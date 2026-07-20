@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotpickle.app/schema/plotpickle-project.schema.json",
+  "title": "PlotPickle Project",
+  "description": "Canonical local-first story project shared by the Instructions, Story Planner, and Visual Board interfaces.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "metadata", "story", "world", "characters", "blocks"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "id": { "type": "string", "minLength": 1 },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "subtitle", "format", "targetMinutes", "genre", "tone", "status", "createdAt", "updatedAt"],
+      "properties": {
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "format": { "type": "string" },
+        "targetMinutes": { "type": "number", "minimum": 1 },
+        "genre": { "type": "string" },
+        "tone": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "story": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["premise", "logline", "theme", "antiTheme", "dramaticQuestion", "hook", "catalyst", "stakes", "ending", "notes"],
+      "properties": {
+        "premise": { "type": "string" },
+        "logline": { "type": "string" },
+        "theme": { "type": "string" },
+        "antiTheme": { "type": "string" },
+        "dramaticQuestion": { "type": "string" },
+        "hook": { "type": "string" },
+        "catalyst": { "type": "string" },
+        "stakes": { "type": "string" },
+        "ending": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "world": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ordinaryWorld", "newWorld", "period", "history", "cultures", "rules", "technology", "visualLanguage", "locations"],
+      "properties": {
+        "ordinaryWorld": { "type": "string" },
+        "newWorld": { "type": "string" },
+        "period": { "type": "string" },
+        "history": { "type": "string" },
+        "cultures": { "type": "string" },
+        "rules": { "type": "string" },
+        "technology": { "type": "string" },
+        "visualLanguage": { "type": "string" },
+        "locations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/location" }
+        }
+      }
+    },
+    "characters": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/character" }
+    },
+    "blocks": {
+      "type": "array",
+      "minItems": 24,
+      "maxItems": 24,
+      "items": { "$ref": "#/$defs/block" }
+    }
+  },
+  "$defs": {
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "description", "image"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "image": { "type": "string" }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["characterId", "label", "description"],
+      "properties": {
+        "characterId": { "type": "string" },
+        "label": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    },
+    "character": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "role", "pronouns", "description", "want", "need", "ghost", "fatalFlaw", "strengths", "arc", "voice", "image", "relationships"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "pronouns": { "type": "string" },
+        "description": { "type": "string" },
+        "want": { "type": "string" },
+        "need": { "type": "string" },
+        "ghost": { "type": "string", "description": "Past wound, loss, trauma, or belief still controlling the character." },
+        "fatalFlaw": { "type": "string" },
+        "strengths": { "type": "string" },
+        "arc": { "type": "string" },
+        "voice": { "type": "string" },
+        "image": { "type": "string" },
+        "relationships": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/relationship" }
+        }
+      }
+    },
+    "visual": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "src", "alt", "caption", "prompt", "shot", "continuity"],
+      "properties": {
+        "id": { "type": "string" },
+        "src": { "type": "string" },
+        "alt": { "type": "string" },
+        "caption": { "type": "string" },
+        "prompt": { "type": "string" },
+        "shot": { "type": "string" },
+        "continuity": { "type": "string" }
+      }
+    },
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "number", "act", "title", "purpose", "summary", "characterIds", "locationIds", "goal", "conflict", "choice", "action", "consequence", "emotionalTurn", "setup", "payoff", "scriptExcerpt", "notes", "visuals"],
+      "properties": {
+        "id": { "type": "string" },
+        "number": { "type": "integer", "minimum": 1, "maximum": 24 },
+        "act": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "title": { "type": "string" },
+        "purpose": { "type": "string" },
+        "summary": { "type": "string" },
+        "characterIds": { "type": "array", "items": { "type": "string" } },
+        "locationIds": { "type": "array", "items": { "type": "string" } },
+        "goal": { "type": "string" },
+        "conflict": { "type": "string" },
+        "choice": { "type": "string" },
+        "action": { "type": "string" },
+        "consequence": { "type": "string" },
+        "emotionalTurn": { "type": "string" },
+        "setup": { "type": "string" },
+        "payoff": { "type": "string" },
+        "scriptExcerpt": { "type": "string" },
+        "notes": { "type": "string" },
+        "visuals": { "type": "array", "items": { "$ref": "#/$defs/visual" } }
+      }
+    }
+  }
+}

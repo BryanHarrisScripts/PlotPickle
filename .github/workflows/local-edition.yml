@@ -41,7 +41,19 @@ jobs:
         run: npm run lint
 
       - name: Build static local edition
-        run: npm run build:local
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run build:local 2>&1 | tee build-local.log
+
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: plotpickle-local-build-log
+          path: build-local.log
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Test PHP local runtime
         run: bash scripts/test-local-runtime.sh

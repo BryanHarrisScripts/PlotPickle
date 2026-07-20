@@ -8,6 +8,7 @@ on:
       - "local/**"
       - "public/**"
       - "scripts/build-local.sh"
+      - "scripts/fetch-windows-php.sh"
       - "scripts/package-local.sh"
       - "scripts/test-local-runtime.sh"
       - "next.config.ts"
@@ -58,15 +59,27 @@ jobs:
       - name: Test PHP local runtime
         run: bash scripts/test-local-runtime.sh
 
-      - name: Create developer packages
+      - name: Fetch verified Windows PHP runtime
+        run: bash scripts/fetch-windows-php.sh
+
+      - name: Create release candidate packages
+        env:
+          PLOTPICKLE_WINDOWS_PHP_DIR: ${{ github.workspace }}/vendor/php-runtimes/windows
         run: npm run package:local
+
+      - name: Verify Windows package contains PHP
+        run: |
+          unzip -l releases/local/PlotPickle-Windows.zip | grep -q "runtime/php/php.exe"
+          test -s releases/local/PlotPickle-Windows.zip
+          sha256sum releases/local/PlotPickle-Windows.zip > releases/local/PlotPickle-Windows.zip.sha256
 
       - name: Upload local packages
         uses: actions/upload-artifact@v7
         with:
-          name: plotpickle-local-developer-packages
+          name: plotpickle-local-release-candidate
           path: |
             releases/local/PlotPickle-Windows.zip
+            releases/local/PlotPickle-Windows.zip.sha256
             releases/local/PlotPickle-macOS.zip
             releases/local/PlotPickle-Linux.tar.gz
             releases/local/manifest.json

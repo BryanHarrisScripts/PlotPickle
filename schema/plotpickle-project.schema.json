@@ -5,9 +5,9 @@
   "description": "Canonical local-first story project shared by the Instructions, Story Planner, and Visual Board interfaces.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "id", "metadata", "story", "world", "characters", "blocks"],
+  "required": ["schemaVersion", "id", "metadata", "story", "world", "development", "characters", "blocks"],
   "properties": {
-    "schemaVersion": { "const": "1.0.0" },
+    "schemaVersion": { "const": "1.1.0" },
     "id": { "type": "string", "minLength": 1 },
     "metadata": {
       "type": "object",
@@ -61,6 +61,20 @@
         }
       }
     },
+    "development": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["storySetup", "pitch", "ghost", "catalyst", "foundations", "dialogue", "notes"],
+      "properties": {
+        "storySetup": { "$ref": "#/$defs/storySetup" },
+        "pitch": { "$ref": "#/$defs/pitch" },
+        "ghost": { "$ref": "#/$defs/ghost" },
+        "catalyst": { "$ref": "#/$defs/catalyst" },
+        "foundations": { "$ref": "#/$defs/foundations" },
+        "dialogue": { "$ref": "#/$defs/dialogue" },
+        "notes": { "$ref": "#/$defs/projectNotes" }
+      }
+    },
     "characters": {
       "type": "array",
       "items": { "$ref": "#/$defs/character" }
@@ -73,6 +87,97 @@
     }
   },
   "$defs": {
+    "storySetup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["audience", "contentRating", "language", "scope", "collaborators"],
+      "properties": {
+        "audience": { "type": "string" },
+        "contentRating": { "type": "string" },
+        "language": { "type": "string" },
+        "scope": { "type": "string" },
+        "collaborators": { "type": "string" }
+      }
+    },
+    "pitch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["oneSentence", "shortPitch", "audiencePromise", "emotionalExperience", "comparableTitles", "visualVision"],
+      "properties": {
+        "oneSentence": { "type": "string" },
+        "shortPitch": { "type": "string" },
+        "audiencePromise": { "type": "string" },
+        "emotionalExperience": { "type": "string" },
+        "comparableTitles": { "type": "string" },
+        "visualVision": { "type": "string" }
+      }
+    },
+    "ghost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["centralWound", "origin", "lie", "trigger", "presentPattern", "truth"],
+      "properties": {
+        "centralWound": { "type": "string" },
+        "origin": { "type": "string" },
+        "lie": { "type": "string" },
+        "trigger": { "type": "string" },
+        "presentPattern": { "type": "string" },
+        "truth": { "type": "string" }
+      }
+    },
+    "catalyst": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event", "timing", "immediateImpact", "choiceForced", "resistance", "doorway"],
+      "properties": {
+        "event": { "type": "string" },
+        "timing": { "type": "string" },
+        "immediateImpact": { "type": "string" },
+        "choiceForced": { "type": "string" },
+        "resistance": { "type": "string" },
+        "doorway": { "type": "string" }
+      }
+    },
+    "foundations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protagonist", "objective", "opposition", "urgency", "storyEngine", "transformation", "endingProof"],
+      "properties": {
+        "protagonist": { "type": "string" },
+        "objective": { "type": "string" },
+        "opposition": { "type": "string" },
+        "urgency": { "type": "string" },
+        "storyEngine": { "type": "string" },
+        "transformation": { "type": "string" },
+        "endingProof": { "type": "string" }
+      }
+    },
+    "dialogue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["principles", "voiceContrast", "subtext", "expositionRules", "recurringLanguage", "notes"],
+      "properties": {
+        "principles": { "type": "string" },
+        "voiceContrast": { "type": "string" },
+        "subtext": { "type": "string" },
+        "expositionRules": { "type": "string" },
+        "recurringLanguage": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "projectNotes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["general", "research", "openQuestions", "continuity", "revisions", "sources"],
+      "properties": {
+        "general": { "type": "string" },
+        "research": { "type": "string" },
+        "openQuestions": { "type": "string" },
+        "continuity": { "type": "string" },
+        "revisions": { "type": "string" },
+        "sources": { "type": "string" }
+      }
+    },
     "location": {
       "type": "object",
       "additionalProperties": false,
@@ -135,7 +240,7 @@
     "block": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "number", "act", "title", "purpose", "summary", "characterIds", "locationIds", "goal", "conflict", "choice", "action", "consequence", "emotionalTurn", "setup", "payoff", "scriptExcerpt", "notes", "visuals"],
+      "required": ["id", "number", "act", "title", "purpose", "summary", "characterIds", "locationIds", "goal", "conflict", "choice", "action", "consequence", "emotionalTurn", "setup", "payoff", "scriptExcerpt", "storyboardDirection", "notes", "visuals"],
       "properties": {
         "id": { "type": "string" },
         "number": { "type": "integer", "minimum": 1, "maximum": 24 },
@@ -154,6 +259,7 @@
         "setup": { "type": "string" },
         "payoff": { "type": "string" },
         "scriptExcerpt": { "type": "string" },
+        "storyboardDirection": { "type": "string" },
         "notes": { "type": "string" },
         "visuals": { "type": "array", "items": { "$ref": "#/$defs/visual" } }
       }

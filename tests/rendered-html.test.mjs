@@ -29,5 +29,21 @@ test("renders development preview metadata", async () => {
     response.headers.get("content-type") ?? "",
     /^text\/html\b/i,
   );
-  assert.match(await response.text(), developmentPreviewMeta);
+  const html = await response.text();
+  assert.match(html, developmentPreviewMeta);
+  for (const section of [
+    "Story Setup",
+    "Pitch &amp; Vision",
+    "World",
+    "Characters",
+    "Ghost",
+    "Catalyst",
+    "Foundations",
+    "Dialogue",
+    "24 Blocks",
+    "Storyboard",
+    "Notes",
+  ]) {
+    assert.match(html, new RegExp(section));
+  }
 });

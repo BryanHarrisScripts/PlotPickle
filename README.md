@@ -8,7 +8,7 @@ PlotPickle is a local-first story development application built around Bryan Har
 
 ## Project data
 
-Every project uses schema version `1.0.0`. The source of truth is documented in `schema/plotpickle-project.schema.json` and typed in `lib/project.ts`.
+Every project uses schema version `1.1.0`. Version 1.1 restores the complete shared story column—Story Setup, Pitch & Vision, World, Characters, Ghost, Catalyst, Foundations, Dialogue, 24 Blocks, Storyboard, and Notes—while automatically upgrading 1.0 project files during import. The source of truth is documented in `schema/plotpickle-project.schema.json` and typed in `lib/project.ts`.
 
 The application autosaves the active project to browser storage. Export produces a readable `.plotpickle.json` file that can be imported into any PlotPickle installation. A valid project contains exactly 24 blocks.
 

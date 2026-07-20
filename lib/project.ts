@@ -56,12 +56,72 @@ export type StoryBlock = {
   setup: string;
   payoff: string;
   scriptExcerpt: string;
+  storyboardDirection: string;
   notes: string;
   visuals: VisualFrame[];
 };
 
+export type ProjectDevelopment = {
+  storySetup: {
+    audience: string;
+    contentRating: string;
+    language: string;
+    scope: string;
+    collaborators: string;
+  };
+  pitch: {
+    oneSentence: string;
+    shortPitch: string;
+    audiencePromise: string;
+    emotionalExperience: string;
+    comparableTitles: string;
+    visualVision: string;
+  };
+  ghost: {
+    centralWound: string;
+    origin: string;
+    lie: string;
+    trigger: string;
+    presentPattern: string;
+    truth: string;
+  };
+  catalyst: {
+    event: string;
+    timing: string;
+    immediateImpact: string;
+    choiceForced: string;
+    resistance: string;
+    doorway: string;
+  };
+  foundations: {
+    protagonist: string;
+    objective: string;
+    opposition: string;
+    urgency: string;
+    storyEngine: string;
+    transformation: string;
+    endingProof: string;
+  };
+  dialogue: {
+    principles: string;
+    voiceContrast: string;
+    subtext: string;
+    expositionRules: string;
+    recurringLanguage: string;
+    notes: string;
+  };
+  notes: {
+    general: string;
+    research: string;
+    openQuestions: string;
+    continuity: string;
+    revisions: string;
+    sources: string;
+  };
+};
+
 export type PlotPickleProject = {
-  schemaVersion: "1.0.0";
+  schemaVersion: "1.1.0";
   id: string;
   metadata: {
     title: string;
@@ -97,6 +157,7 @@ export type PlotPickleProject = {
     visualLanguage: string;
     locations: Location[];
   };
+  development: ProjectDevelopment;
   characters: Character[];
   blocks: StoryBlock[];
 };
@@ -135,10 +196,22 @@ function makeId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+export function createBlankDevelopment(): ProjectDevelopment {
+  return {
+    storySetup: { audience: "", contentRating: "", language: "", scope: "", collaborators: "" },
+    pitch: { oneSentence: "", shortPitch: "", audiencePromise: "", emotionalExperience: "", comparableTitles: "", visualVision: "" },
+    ghost: { centralWound: "", origin: "", lie: "", trigger: "", presentPattern: "", truth: "" },
+    catalyst: { event: "", timing: "", immediateImpact: "", choiceForced: "", resistance: "", doorway: "" },
+    foundations: { protagonist: "", objective: "", opposition: "", urgency: "", storyEngine: "", transformation: "", endingProof: "" },
+    dialogue: { principles: "", voiceContrast: "", subtext: "", expositionRules: "", recurringLanguage: "", notes: "" },
+    notes: { general: "", research: "", openQuestions: "", continuity: "", revisions: "", sources: "" },
+  };
+}
+
 export function createBlankProject(): PlotPickleProject {
   const now = new Date().toISOString();
   return {
-    schemaVersion: "1.0.0",
+    schemaVersion: "1.1.0",
     id: makeId("project"),
     metadata: {
       title: "Untitled Story",
@@ -174,6 +247,7 @@ export function createBlankProject(): PlotPickleProject {
       visualLanguage: "",
       locations: [],
     },
+    development: createBlankDevelopment(),
     characters: [],
     blocks: beatTemplates.map(([title, purpose], index) => ({
       id: `block-${String(index + 1).padStart(2, "0")}`,
@@ -193,6 +267,7 @@ export function createBlankProject(): PlotPickleProject {
       setup: "",
       payoff: "",
       scriptExcerpt: "",
+      storyboardDirection: "",
       notes: "",
       visuals: [],
     })),
@@ -207,15 +282,65 @@ export function isPlotPickleProject(value: unknown): value is PlotPickleProject 
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<PlotPickleProject>;
   return (
-    candidate.schemaVersion === "1.0.0" &&
+    candidate.schemaVersion === "1.1.0" &&
     typeof candidate.id === "string" &&
     !!candidate.metadata &&
     !!candidate.story &&
     !!candidate.world &&
+    !!candidate.development &&
     Array.isArray(candidate.characters) &&
     Array.isArray(candidate.blocks) &&
     candidate.blocks.length === 24
   );
+}
+
+export function normalizePlotPickleProject(value: unknown): PlotPickleProject | null {
+  if (!value || typeof value !== "object") return null;
+  const candidate = value as Record<string, unknown> & {
+    schemaVersion?: string;
+    id?: string;
+    metadata?: PlotPickleProject["metadata"];
+    story?: PlotPickleProject["story"];
+    world?: PlotPickleProject["world"];
+    development?: Partial<ProjectDevelopment>;
+    characters?: Character[];
+    blocks?: Array<Partial<StoryBlock>>;
+  };
+  if (
+    !["1.0.0", "1.1.0"].includes(candidate.schemaVersion ?? "") ||
+    typeof candidate.id !== "string" ||
+    !candidate.metadata ||
+    !candidate.story ||
+    !candidate.world ||
+    !Array.isArray(candidate.characters) ||
+    !Array.isArray(candidate.blocks) ||
+    candidate.blocks.length !== 24
+  ) return null;
+
+  const defaults = createBlankDevelopment();
+  const development = candidate.development ?? {};
+  return {
+    schemaVersion: "1.1.0",
+    id: candidate.id,
+    metadata: candidate.metadata,
+    story: candidate.story,
+    world: candidate.world,
+    development: {
+      storySetup: { ...defaults.storySetup, ...development.storySetup },
+      pitch: { ...defaults.pitch, ...development.pitch },
+      ghost: { ...defaults.ghost, ...development.ghost },
+      catalyst: { ...defaults.catalyst, ...development.catalyst },
+      foundations: { ...defaults.foundations, ...development.foundations },
+      dialogue: { ...defaults.dialogue, ...development.dialogue },
+      notes: { ...defaults.notes, ...development.notes },
+    },
+    characters: candidate.characters,
+    blocks: candidate.blocks.map((block, index) => ({
+      ...createBlankProject().blocks[index],
+      ...block,
+      storyboardDirection: block.storyboardDirection ?? "",
+    })),
+  };
 }
 
 export function completionFor(project: PlotPickleProject) {

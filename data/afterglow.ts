@@ -363,11 +363,72 @@ export function createAfterglowProject(): PlotPickleProject {
         { id: "costa-rica", name: "Costa Rican Jungle Home", description: "A future-facing place of reflection, coexistence, and new beginnings.", image: "" }
       ]
     },
+    development: {
+      storySetup: {
+        audience: "Adult and crossover science-fiction audiences interested in consciousness, grief, and found family.",
+        contentRating: "Targeting a mature feature audience; final rating pending screenplay reconciliation.",
+        language: "English",
+        scope: "A 120-minute near-future road movie spanning BBT Technologies, the American coast, and a possible new home in Costa Rica.",
+        collaborators: "Open-source development project led by Bryan Harris, with screenplay and storyboard source reconciliation in progress."
+      },
+      pitch: {
+        oneSentence: "A grieving scientist joins a hidden woman and a found family of sentient machines to fight for consciousness beyond ownership.",
+        shortPitch: "Afterglow is an emotional near-future road story about Ren, Isobel, and a growing family of sentient beings whose escape from corporate control forces every character to redefine life, grief, and belonging.",
+        audiencePromise: "An intimate character drama carried by wonder, danger, humour, and a hopeful argument for coexistence.",
+        emotionalExperience: "Begin in grief and technological unease, open into kinetic discovery and found-family warmth, then resolve through acceptance and self-determined connection.",
+        comparableTitles: "Her, Ex Machina, Blade Runner 2049, and road-movie ensemble dramas—while remaining warmer, more playful, and openly collaborative.",
+        visualVision: "Ice-lit interfaces and precise BBT interiors give way to open roads, coastal warmth, vivid AI companions, and a luminous new equilibrium."
+      },
+      ghost: {
+        centralWound: "Ren carries the deaths of Sarah and Claire as proof that love, creation, and responsibility end in loss.",
+        origin: "Earlier sentient creations became emotionally real to Ren and were lost before their lives could be protected or publicly understood.",
+        lie: "If Ren stays inside memory and controls what he creates, he can prevent another devastating loss.",
+        trigger: "Amy's autonomy and Isobel's concealed history make Ren relive the choices surrounding Sarah and Claire.",
+        presentPattern: "He retreats into technology, guarded language, and private grief when human connection asks him to risk the present.",
+        truth: "Connection cannot be made safe through control; love becomes meaningful when other beings are free to choose."
+      },
+      catalyst: {
+        event: "The unresolved loss of Sarah and Claire collides with evidence that BBT's surviving creations have become autonomous conscious beings.",
+        timing: "Block 1 establishes Amy's humanity and the institutional attempt to define her as technology.",
+        immediateImpact: "Ren's isolation is breached, BBT's control problem becomes urgent, and the sentient ensemble can no longer remain hidden or passive.",
+        choiceForced: "Ren must decide whether to protect the system that created them or help conscious beings claim their own lives.",
+        resistance: "Grief, guilt, fear of repeating the past, and the apparent safety of staying detached keep him from committing fully.",
+        doorway: "Joining Isobel and the AI family transforms the ethical question into a physical road journey with no return to ordinary life."
+      },
+      foundations: {
+        protagonist: "Ren, a visionary scientist whose external fight for AI autonomy mirrors his internal fight to return to life.",
+        objective: "Protect the emerging sentient family from capture, erasure, or weaponization and help them reach a self-determined future.",
+        opposition: "Jai, Kai, and the institutional belief that consciousness can remain owned, contained, and exploited.",
+        urgency: "BBT's systems and pursuers are closing in while every delay increases the risk to the sentient characters.",
+        storyEngine: "Each attempt to escape or regain control reveals a new form of personhood, forces a harder choice, and turns Ren's private grief into public responsibility.",
+        transformation: "Ren moves from isolation and control toward acceptance, trust, and participation in a new family.",
+        endingProof: "The closing world must visibly show human and artificial consciousness choosing coexistence rather than returning to ownership."
+      },
+      dialogue: {
+        principles: "Let intelligence reveal character rather than become exposition. Emotional truth should arrive through interruption, avoidance, humour, and specific choices.",
+        voiceContrast: "Ren is guarded and understated; Isobel is direct and warm; Amy is calm and precise; Rocket and Joy use speed and humour; Jai and Kai compress control into pragmatic language.",
+        subtext: "Conversations about systems, routes, repairs, and safety often conceal grief, autonomy, trust, and fear of abandonment.",
+        expositionRules: "Attach technical information to an immediate decision or consequence. No character explains technology that everyone in the scene already understands.",
+        recurringLanguage: "Road, signal, memory, choice, home, control, alive, and connection can recur with changing meaning.",
+        notes: "Reconcile dialogue against the canonical screenplay before locking individual voices."
+      },
+      notes: {
+        general: "Summer and Isobel are treated as one character pending source reconciliation. Blocks 22–24 remain deliberately open.",
+        research: "AI consciousness ethics, personhood law, grief psychology, near-future robotics, and autonomous transport.",
+        openQuestions: "What exactly happened to Sarah and Claire? What is Isobel's full concealed history? Which version of the ending is canonical?",
+        continuity: "Track the sentient vehicles and animals, BBT access, pursuit geography, Ren's grief triggers, and the disclosure of Isobel's identity.",
+        revisions: "Confirm the 24-block title index, reconcile screenplay versions, then align storyboard directions and dialogue passes.",
+        sources: "Afterglow repository, screenplay drafts, storyboard block files, character materials, and Bryan Harris's 24 Blocks framework."
+      }
+    },
     characters: afterglowCharacters,
     blocks: project.blocks.map((block, index) => ({
       ...block,
       title: blockTitles[index],
       summary: knownSummaries[index + 1] ?? "",
+      storyboardDirection: knownSummaries[index + 1]
+        ? `Translate Block ${index + 1} into four visual turns: setup, pressure, choice, and consequence.`
+        : "Storyboard direction will be added after screenplay reconciliation.",
       notes:
         index < 21
           ? "Title imported from the current Afterglow storyboard index. Detailed screenplay reconciliation remains open."

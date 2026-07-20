@@ -32,4 +32,12 @@ npm run build
 
 ## Deployment
 
-The application has no required database, account system, or server-side storage. It can be deployed as a standard PlotPickle Site and the same source can later be adapted for GitHub Pages, Plesk, or another static/web host.
+The hosted edition has no required database, account system, or server-side storage. It can be deployed as a standard PlotPickle Site and the same source can later be adapted for GitHub Pages, Plesk, or another web host.
+
+## PlotPickle Local
+
+The repository now includes the foundation for portable Windows, macOS, and Linux editions. Each local edition uses the same browser interface and a private PHP server bound to `127.0.0.1`.
+
+The local server provides project listing, project loading, atomic autosave, and timestamped backups. Platform launchers and the package builder live under `local/` and `scripts/package-local.sh`.
+
+See [LOCAL.md](LOCAL.md) for the package layout, API routes, security model, and remaining static-export integration work.

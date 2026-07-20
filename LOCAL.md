@@ -1,16 +1,16 @@
 # PlotPickle Local
 
-PlotPickle Local runs the same browser interface from a private PHP server on the user's own computer. It is intended to complement—not replace—the hosted PlotPickle demo.
+PlotPickle Local runs the same browser interface from a private PHP server on the user's own computer. It complements—not replaces—the hosted PlotPickle demo.
 
 ## Editions
 
-| Edition | Entry point | Intended release package |
+| Edition | Current entry point | Intended public package |
 | --- | --- | --- |
-| Windows | `PlotPickle.bat` initially; compiled launcher later | `PlotPickle-Windows.zip` or signed installer |
-| macOS | `PlotPickle.command` initially; `.app` wrapper later | `PlotPickle-macOS.dmg` |
-| Linux | `plotpickle.sh` initially; AppImage wrapper later | `PlotPickle-Linux.AppImage` |
+| Windows | `PlotPickle.bat` | `PlotPickle.exe` inside a signed installer or portable ZIP |
+| macOS | `PlotPickle.command` | notarized `PlotPickle.app` in a DMG |
+| Linux | `plotpickle.sh` | AppImage |
 
-All editions use the same web bundle and `local/server/router.php`. Only the launcher and bundled PHP runtime differ.
+All editions use the same exported HTML, CSS, JavaScript, PHP router, project schema, and autosave bridge. Only the launcher and PHP runtime differ.
 
 ## Local capabilities
 
@@ -22,7 +22,9 @@ The PHP runtime listens only on `127.0.0.1:48721` and provides:
 - `PUT /__plotpickle/project?name=...` — saves a project atomically.
 - Automatic timestamped backups, retaining the latest 20 backups per project.
 
-User data is stored beside the application:
+When the local runtime is detected, `app/local-runtime-bridge.tsx` restores the newest disk project and mirrors the canonical browser project into a real project file after changes. The hosted edition continues using browser storage and JSON import/export because the local endpoints do not exist there.
+
+User data is stored beside the portable application:
 
 ```text
 PlotPickle/
@@ -37,17 +39,42 @@ PlotPickle/
 
 A later installer can move `data` to the normal per-user application-data directory. Keeping it beside the portable package makes the first release easy to inspect, copy, and back up.
 
-## Build a package
+## Build and package
 
-The local package builder expects a static browser bundle containing `index.html`:
+Install dependencies and create the local static export:
 
 ```bash
-bash scripts/package-local.sh path/to/static-bundle
+npm ci
+npm run build:local
 ```
 
-It produces platform folders under `releases/local/`.
+The local build enables Next.js static export only for this command and validates that `out/index.html`, the canonical storage key, and the PHP bridge are present.
 
-Before distributing them publicly, add the appropriate PHP runtime:
+Create platform folders and archives:
+
+```bash
+npm run package:local
+```
+
+Outputs are written under `releases/local/`:
+
+```text
+PlotPickle-Windows.zip
+PlotPickle-macOS.zip
+PlotPickle-Linux.tar.gz
+manifest.json
+```
+
+To supply bundled PHP runtimes during packaging, point these variables at complete redistributable runtime folders:
+
+```bash
+PLOTPICKLE_WINDOWS_PHP_DIR=/path/to/windows/php \
+PLOTPICKLE_MACOS_PHP_DIR=/path/to/macos/php \
+PLOTPICKLE_LINUX_PHP_DIR=/path/to/linux/php \
+npm run package:local
+```
+
+Expected runtime executables:
 
 ```text
 Windows: runtime/php/php.exe
@@ -55,13 +82,27 @@ macOS:   runtime/php/php
 Linux:   runtime/php/php
 ```
 
-PHP binaries are intentionally not committed to the repository.
+PHP binaries are intentionally not committed to the source repository.
 
-## Current integration boundary
+## Validation
 
-The existing hosted build produces an OpenAI Sites Worker artifact rather than a directly servable static folder. The local runtime and packaging layer are complete, but the app still needs a dedicated static-export build and a small client bridge that sends autosaves to the local API when `/__plotpickle/health` is available.
+Run the local server smoke test:
 
-Until that bridge lands, the local package can serve a static PlotPickle build but the hosted application continues using browser storage and JSON export/import.
+```bash
+bash scripts/test-local-runtime.sh
+```
+
+It verifies health detection, project saving, project loading, and automatic backup creation. The `PlotPickle Local` GitHub Actions workflow also builds the static edition, runs lint and smoke tests, packages the three developer archives, and uploads them as a workflow artifact.
+
+## Remaining release work
+
+The application plumbing is complete. Public installers still require:
+
+1. approved redistributable PHP runtime builds for each operating system;
+2. a Windows `.exe` launcher and signing certificate;
+3. a macOS `.app` wrapper, Developer ID signing, and notarization;
+4. a Linux AppImage wrapper;
+5. final installer testing on clean machines.
 
 ## Security
 

@@ -1,9 +1,9 @@
 @echo off
 setlocal
 
-set "ROOT=%~dp0..\.."
-set "PHP=%ROOT%\runtime\php\php.exe"
-set "ROUTER=%ROOT%\server\router.php"
+set "ROOT=%~dp0"
+set "PHP=%ROOT%runtime\php\php.exe"
+set "ROUTER=%ROOT%server\router.php"
 set "HOST=127.0.0.1"
 set "PORT=48721"
 set "URL=http://%HOST%:%PORT%"

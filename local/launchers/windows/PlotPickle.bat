@@ -1,6 +1,8 @@
 @echo off
 setlocal
 
+title PlotPickle Local Server
+
 set "ROOT=%~dp0"
 set "PHP=%ROOT%runtime\php\php.exe"
 set "ROUTER=%ROOT%server\router.php"
@@ -25,5 +27,28 @@ if not exist "%ROUTER%" (
   exit /b 1
 )
 
+cls
+echo ==============================================================
+echo                    PLOTPICKLE LOCAL
+echo ==============================================================
+echo.
+echo This window runs PlotPickle's private local server.
+echo Please leave it open while you are using PlotPickle.
+echo.
+echo PlotPickle will open in your browser at:
+echo   %URL%
+echo.
+echo Your projects and automatic backups are stored inside:
+echo   %ROOT%data
+echo.
+echo Server activity and helpful error messages will appear below.
+echo Closing this window safely stops PlotPickle Local.
+echo ==============================================================
+echo.
+
 start "PlotPickle" "%URL%"
 "%PHP%" -S %HOST%:%PORT% "%ROUTER%"
+
+echo.
+echo PlotPickle Local has stopped.
+pause

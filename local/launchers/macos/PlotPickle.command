@@ -1,7 +1,7 @@
 #!/bin/zsh
 set -e
 
-ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+ROOT="$(cd "$(dirname "$0")" && pwd)"
 PHP="$ROOT/runtime/php/php"
 ROUTER="$ROOT/server/router.php"
 HOST="127.0.0.1"

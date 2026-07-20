@@ -1,7 +1,15 @@
 import type { NextConfig } from "next";
 
+const isLocalExport = process.env.PLOTPICKLE_LOCAL_EXPORT === "1";
+
 const nextConfig: NextConfig = {
-  /* config options here */
+  ...(isLocalExport
+    ? {
+        output: "export" as const,
+        trailingSlash: true,
+        images: { unoptimized: true },
+      }
+    : {}),
 };
 
 export default nextConfig;

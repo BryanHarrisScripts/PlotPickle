@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import styles from "./edition-banner.module.css";
 
 export default function EditionBanner() {
   const [edition, setEdition] = useState<"checking" | "online" | "local">("checking");
@@ -30,22 +31,24 @@ export default function EditionBanner() {
 
   if (edition === "local") {
     return (
-      <div className="edition-banner edition-banner-local" role="status">
-        <strong>PlotPickle Local</strong>
-        <span>Your story is running from this computer and autosaving to the local project folder.</span>
+      <div className={`${styles.banner} ${styles.local}`} role="status">
+        <div>
+          <strong>PlotPickle Local</strong>
+          <span>Your story is running from this computer and autosaving to the local project folder.</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <section className="edition-banner edition-banner-online" aria-label="PlotPickle Online">
+    <section className={styles.banner} aria-label="PlotPickle Online">
       <div>
         <strong>PlotPickle Online</strong>
         <span>Try the complete 24 Blocks story workspace in your browser. No installation required.</span>
       </div>
-      <div className="edition-banner-actions">
+      <div className={styles.actions}>
         <a href="#plotpickle-workspace">Open the workspace</a>
-        <a href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">Local edition & source</a>
+        <a href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">Local edition &amp; source</a>
       </div>
     </section>
   );

@@ -20,6 +20,7 @@ import {
 } from "@/lib/project";
 
 const STORAGE_KEY = "plotpickle.project.v1";
+const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
 
 type MainTab = "instructions" | "planner" | "visuals";
 type StorySection = "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "dialogue" | "blocks" | "storyboard" | "notes";
@@ -213,6 +214,187 @@ function Portrait({ character, size = "regular" }: { character: Character; size?
   );
 }
 
+function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
+  return (
+    <div className="marketing-page">
+      <header className="marketing-header">
+        <a className="marketing-brand" href="#top" aria-label="PlotPickle Playhouse home">
+          <span className="brand-mark" aria-hidden="true">P</span>
+          <span>
+            <strong>PlotPickle</strong>
+            <small>PlotPickle Playhouse</small>
+          </span>
+        </a>
+        <nav aria-label="Product navigation">
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#download">Download</a>
+        </nav>
+        <button type="button" className="secondary-button marketing-online-button" onClick={onOpenOnline}>
+          Open online
+        </button>
+      </header>
+
+      <main id="top">
+        <section className="marketing-hero">
+          <div className="marketing-hero-copy">
+            <p className="marketing-kicker">The 24 Blocks story development system</p>
+            <h1>Build the story.<br />See the whole film.</h1>
+            <p className="marketing-lede">
+              PlotPickle Playhouse brings the method, the writing plan, and the visual board into one connected workspace—ready to run on your Windows computer.
+            </p>
+            <div className="marketing-hero-actions">
+              <a className="download-button" href={WINDOWS_DOWNLOAD_URL} target="_blank" rel="noreferrer">
+                <span className="download-icon" aria-hidden="true">↓</span>
+                <span><strong>Download for Windows</strong><small>Get the latest PlotPickle package</small></span>
+              </a>
+              <button type="button" className="marketing-text-link" onClick={onOpenOnline}>
+                Explore PlotPickle Online <span aria-hidden="true">→</span>
+              </button>
+            </div>
+            <div className="marketing-trust-row" aria-label="Product highlights">
+              <span>Local-first</span>
+              <span>One story file</span>
+              <span>No ChatGPT account required</span>
+            </div>
+          </div>
+
+          <div className="product-window" aria-label="PlotPickle Playhouse interface preview">
+            <div className="product-window-bar">
+              <span className="product-window-brand"><i>P</i> PlotPickle Playhouse</span>
+              <span>Saved on this device</span>
+            </div>
+            <div className="product-window-body">
+              <aside>
+                {storySections.map((section, index) => (
+                  <div className={section.id === "blocks" ? "active" : ""} key={section.id}>
+                    <span>{section.code}</span>
+                    <strong>{section.label}</strong>
+                    {index < 8 ? <i aria-hidden="true">✓</i> : null}
+                  </div>
+                ))}
+              </aside>
+              <div className="product-workspace">
+                <div className="product-tabs"><span>Instructions</span><span className="active">Story Planner</span><span>Visual Board</span></div>
+                <div className="product-workspace-heading">
+                  <div><small>ACT II · CONFRONTATION</small><strong>Your complete story at a glance</strong></div>
+                  <span>18% complete</span>
+                </div>
+                <div className="block-preview-grid">
+                  {[7, 8, 9, 10, 11, 12].map((number) => (
+                    <div className={number === 9 ? "active" : ""} key={number}>
+                      <span>{number}</span>
+                      <strong>{number === 9 ? "Choices & Adjusted Plan" : number === 12 ? "Plan, Stakes & Action" : "Story movement"}</strong>
+                      <small>{number === 9 ? "Developing" : "Ready"}</small>
+                    </div>
+                  ))}
+                </div>
+                <div className="product-inspector">
+                  <small>BLOCK 9</small>
+                  <strong>Choices & Adjusted Plan</strong>
+                  <p>The story text, notes, storyboard direction, and visual frames stay connected to the same block.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="marketing-section feature-section" id="features">
+          <div className="marketing-section-heading">
+            <p className="marketing-kicker">One playhouse. Three connected rooms.</p>
+            <h2>Everything develops the same story.</h2>
+            <p>Move from learning to planning to visualization without copying information between separate tools.</p>
+          </div>
+          <div className="feature-grid">
+            <article>
+              <span className="feature-code">01</span>
+              <p className="feature-label">Learn</p>
+              <h3>Instructions</h3>
+              <p>Follow Bryan Harris&apos;s complete 24 Blocks method with focused questions, clear deliverables, and story-building guidance.</p>
+            </article>
+            <article>
+              <span className="feature-code">02</span>
+              <p className="feature-label">Develop</p>
+              <h3>Story Planner</h3>
+              <p>Build the world, cast, ghost, catalyst, foundations, dialogue, and all twenty-four causal story movements.</p>
+            </article>
+            <article>
+              <span className="feature-code">03</span>
+              <p className="feature-label">Visualize</p>
+              <h3>Visual Board</h3>
+              <p>Carry every block into storyboard directions, frame prompts, shot notes, locations, characters, and visual continuity.</p>
+            </article>
+          </div>
+        </section>
+
+        <section className="marketing-section story-system-section">
+          <div className="story-system-copy">
+            <p className="marketing-kicker">Your entire story in one structure</p>
+            <h2>Eleven story columns. One source of truth.</h2>
+            <p>
+              Story Setup, Pitch &amp; Vision, World, Characters, Ghost, Catalyst, Foundations, Dialogue, 24 Blocks, Storyboard, and Notes stay aligned across every workspace.
+            </p>
+            <ul>
+              <li><span>01</span> One readable <code>.plotpickle.json</code> project file</li>
+              <li><span>02</span> Import, export, and move projects between editions</li>
+              <li><span>03</span> Your story remains yours and stays on your device</li>
+            </ul>
+          </div>
+          <div className="story-column-stack" aria-label="The eleven PlotPickle story columns">
+            {storySections.map((section) => (
+              <div className={section.id === "blocks" ? "active" : ""} key={section.id}>
+                <span>{section.code}</span><strong>{section.label}</strong><i aria-hidden="true">→</i>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="marketing-section how-section" id="how-it-works">
+          <div className="marketing-section-heading">
+            <p className="marketing-kicker">From download to first block</p>
+            <h2>Open the door and start writing.</h2>
+          </div>
+          <div className="step-grid">
+            <article><span>1</span><h3>Download</h3><p>Get the PlotPickle Playhouse Windows package.</p></article>
+            <article><span>2</span><h3>Unzip</h3><p>Extract the folder somewhere easy to find, such as your Desktop.</p></article>
+            <article><span>3</span><h3>Start</h3><p>Run the included PlotPickle starter and your browser will open automatically.</p></article>
+            <article><span>4</span><h3>Keep it running</h3><p>The command window is PlotPickle&apos;s private local server. Leave it open while you work; useful errors appear there.</p></article>
+          </div>
+        </section>
+
+        <section className="download-section" id="download">
+          <div>
+            <p className="marketing-kicker">PlotPickle Playhouse for Windows</p>
+            <h2>Your story room, on your computer.</h2>
+            <p>Download the local-first edition and develop your project without depending on a ChatGPT account.</p>
+            <div className="download-details">
+              <span>Windows 10 or 11</span><span>Portable folder</span><span>Local project storage</span>
+            </div>
+          </div>
+          <div className="download-card">
+            <span className="download-card-mark" aria-hidden="true">P</span>
+            <div><strong>PlotPickle Playhouse</strong><small>Windows edition</small></div>
+            <a className="download-button" href={WINDOWS_DOWNLOAD_URL} target="_blank" rel="noreferrer">
+              <span className="download-icon" aria-hidden="true">↓</span>
+              <span><strong>Download latest</strong><small>Available through GitHub Releases</small></span>
+            </a>
+            <button type="button" className="marketing-text-link" onClick={onOpenOnline}>Or open PlotPickle Online</button>
+          </div>
+        </section>
+      </main>
+
+      <footer className="marketing-footer">
+        <div className="marketing-brand">
+          <span className="brand-mark" aria-hidden="true">P</span>
+          <span><strong>PlotPickle</strong><small>PlotPickle Playhouse</small></span>
+        </div>
+        <p>Story development built around Bryan Harris&apos;s 24 Blocks method.</p>
+        <button type="button" onClick={onOpenOnline}>Open PlotPickle Online →</button>
+      </footer>
+    </div>
+  );
+}
+
 export default function Home() {
   const [project, setProject] = useState<PlotPickleProject>(() => createBlankProject());
   const [activeTab, setActiveTab] = useState<MainTab>("instructions");
@@ -224,6 +406,7 @@ export default function Home() {
   const [hydrated, setHydrated] = useState(false);
   const [saveState, setSaveState] = useState("Saved on this device");
   const [toast, setToast] = useState("");
+  const [showLanding, setShowLanding] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -263,6 +446,10 @@ export default function Home() {
   const selectedCharacter = project.characters.find((character) => character.id === selectedCharacterId) ?? project.characters[0];
   const selectedBlock = project.blocks.find((block) => block.number === selectedBlockNumber) ?? project.blocks[0];
   const selectedFrame = selectedBlock.visuals.find((frame) => frame.id === selectedFrameId) ?? selectedBlock.visuals[0];
+
+  if (showLanding) {
+    return <LandingPage onOpenOnline={() => setShowLanding(false)} />;
+  }
 
   function commit(next: PlotPickleProject) {
     setSaveState("Saving…");
@@ -431,13 +618,13 @@ export default function Home() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <div className="brand-lockup">
+        <button type="button" className="brand-lockup home-trigger" onClick={() => setShowLanding(true)} aria-label="Return to the PlotPickle product page">
           <span className="brand-mark" aria-hidden="true">P</span>
           <div>
             <strong>PlotPickle</strong>
-            <span>Open Story Studio</span>
+            <span>PlotPickle Playhouse</span>
           </div>
-        </div>
+        </button>
 
         <nav className="main-tabs" aria-label="Primary workspaces" role="tablist">
           {mainTabs.map((tab) => (

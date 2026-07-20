@@ -31,6 +31,9 @@ test("renders development preview metadata", async () => {
   );
   const html = await response.text();
   assert.match(html, developmentPreviewMeta);
+  assert.match(html, /PlotPickle Playhouse/);
+  assert.match(html, /Download for Windows/);
+  assert.match(html, /Explore PlotPickle Online/);
   for (const section of [
     "Story Setup",
     "Pitch &amp; Vision",

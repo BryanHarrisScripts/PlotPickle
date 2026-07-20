@@ -69,8 +69,8 @@ export default function LocalRuntimeBridge() {
   useEffect(() => {
     let stopped = false;
     let lastSaved = "";
-    let pending: ReturnType<typeof window.setTimeout> | undefined;
-    let interval: ReturnType<typeof window.setInterval> | undefined;
+    let pending: number | undefined;
+    let interval: number | undefined;
 
     void (async () => {
       if (!(await isLocalRuntime()) || stopped) return;
@@ -85,7 +85,7 @@ export default function LocalRuntimeBridge() {
       const checkForChanges = () => {
         const current = window.localStorage.getItem(STORAGE_KEY);
         if (!current || current === lastSaved) return;
-        if (pending) window.clearTimeout(pending);
+        if (pending !== undefined) window.clearTimeout(pending);
         pending = window.setTimeout(() => {
           void saveProject(current)
             .then(() => {
@@ -104,8 +104,8 @@ export default function LocalRuntimeBridge() {
 
     return () => {
       stopped = true;
-      if (pending) window.clearTimeout(pending);
-      if (interval) window.clearInterval(interval);
+      if (pending !== undefined) window.clearTimeout(pending);
+      if (interval !== undefined) window.clearInterval(interval);
     };
   }, []);
 

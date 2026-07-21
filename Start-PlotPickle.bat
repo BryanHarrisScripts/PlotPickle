@@ -136,7 +136,7 @@ echo 3. Run Start-PlotPickle.bat again. It will retry the repair.
 echo.
 echo If Windows continues to report EPERM, restart the computer,
 echo delete only the node_modules folder inside PlotPickle, and run
-Start-PlotPickle.bat again. Your PlotPickle project data is not stored there.
+echo Start-PlotPickle.bat again. Your PlotPickle project data is not stored there.
 echo.
 pause
 exit /b 1

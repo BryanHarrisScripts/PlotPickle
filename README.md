@@ -1,8 +1,8 @@
 # PlotPickle Playhouse
 
-PlotPickle is a local-first story development application built around Bryan Harris's 24 Blocks method. One canonical project object powers connected workspaces for learning the method, planning the story, aligning meaning, developing dialogue, writing visible screenplay action, reviewing the whole draft, and building the visual board.
+PlotPickle is a local-first story development application built around Bryan Harris's 24 Blocks method. One canonical project object powers connected workspaces for learning the method, planning the story, aligning meaning, developing dialogue, writing visible screenplay action, reviewing the whole draft, practising the complete craft loop, and building the visual board.
 
-Current application version: `0.5.2`
+Current application version: `0.6.0`
 
 Current project schema: `1.3.0`
 
@@ -97,9 +97,10 @@ Deleting `node_modules` does not delete PlotPickle story projects. Active projec
 - **Voiceprint Engine** builds dialogue from character history, social context, knowledge, worldview, rhythm, vocabulary, emotional access, relationships, objectives, and pressure.
 - **PageFlow Engine** turns block plans into visible, active, actor-playable, economical screenplay description and provides revision signals for invisible information, weak phrasing, dense paragraphs, emotion labels, and unnecessary directing language.
 - **DraftLens Engine** reviews the whole screenplay through story question, character, structure, page experience, dialogue, and surprise lenses, then turns reader experience into root diagnoses, evidence and revision questions.
+- **CraftLoop Engine** connects audience engagement, opening design, scene turns, character-specific pressure, observed dialogue, page compression, pitching, and comparative study into a repeatable deliberate-practice cycle.
 - **Visual Board** attaches storyboard frames, prompts, shot notes, performance ideas, and continuity information to the same blocks.
 
-Open DraftLens, Resonance, Voiceprint, and PageFlow from the floating engine buttons inside PlotPickle. All four read and write the same locally saved project as the main application.
+Open CraftLoop, DraftLens, Resonance, Voiceprint, and PageFlow from the floating engine buttons inside PlotPickle. All five read and write the same locally saved project as the main application.
 
 ## Resonance Engine
 
@@ -157,6 +158,33 @@ DraftLens follows a diagnosis-before-prescription rule. It asks what the reader 
 
 The complete design is documented in `docs/architecture/draftlens-engine.md`.
 
+## CraftLoop Engine
+
+CraftLoop is a capstone practice and integration layer, not a second craft database. It organizes the complete process into seven repeatable passes:
+
+1. audience game;
+2. opening contract;
+3. scene turn;
+4. character-specific pressure;
+5. human voice;
+6. page compression;
+7. pitch and reflection.
+
+It deliberately coordinates existing canonical fields:
+
+- The Pickle and block audience fields for what viewers are tracking;
+- hook, theme, catalyst, ordinary world, and Block 1 evidence for the opening contract;
+- block goal, conflict, choice, action, consequence, and emotional turn for scene movement;
+- character want, need, Ghost, fatal flaw, and arc for pressure;
+- character voice, project subtext, voice contrast, and fieldwork notes for observed dialogue;
+- `block.scriptExcerpt`, `storyboardDirection`, and the PageFlow scanner for page compression;
+- `development.pitch.oneSentence` and `shortPitch` for explanation and pitching;
+- `development.notes.research` for comparative craft study.
+
+The CraftLoop coverage signal measures whether enough evidence exists for a complete practice pass. It does not measure talent, originality, entertainment value, or production readiness.
+
+The complete design is documented in `docs/architecture/craftloop-engine.md`.
+
 ## Project data
 
 Every new project uses schema version `1.3.0`. Import automatically upgrades compatible PlotPickle 1.0, 1.1, and 1.2 project files.
@@ -176,7 +204,7 @@ Version 1.3 added the Voiceprint Engine to the shared story architecture. Each c
 
 The project-wide dialogue system also tracks world vernacular, monologue rules, subtext seeds, exposition rules, recurring language, and an observation library.
 
-Application version 0.4 added the Resonance Engine without changing the project schema. Application version 0.5 added DraftLens using the existing project notes, story, character, block, dialogue, and Pickle fields. Version 0.5.1 hardened the local Windows setup and server launch process. Version 0.5.2 adds the transparent guided installer and verified success report. Existing 1.3 projects remain compatible without migration.
+Application version 0.4 added the Resonance Engine without changing the project schema. Application version 0.5 added DraftLens using the existing project notes, story, character, block, dialogue, and Pickle fields. Version 0.5.1 hardened the local Windows setup and server launch process. Version 0.5.2 added the transparent guided installer and verified success report. Version 0.6 adds CraftLoop as a coordinating deliberate-practice workspace using existing project fields. Existing 1.3 projects remain compatible without migration.
 
 The source of truth is documented in `schema/plotpickle-project.schema.json` and typed in `lib/project.ts`. The Voiceprint Engine design is documented in `docs/architecture/voiceprint-engine.md`.
 
@@ -186,9 +214,9 @@ The application autosaves the active project to browser storage. Export produces
 
 The Afterglow starter project is assembled in `data/afterglow.ts`. It includes the current world, character library, and 21 named storyboard blocks found in the source repository. Blocks 22–24 remain explicitly marked for screenplay reconciliation rather than being filled with invented material.
 
-## Connected production chain
+## Connected production cycle
 
-**Plan the cause → test the idea → shape the voice → write the page → review the draft → preserve the image.**
+**Plan the cause → test the idea → shape the voice → write the page → review the draft → practise the craft → preserve the image → repeat.**
 
 ## Manual local development
 

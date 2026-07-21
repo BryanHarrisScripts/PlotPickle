@@ -8,7 +8,7 @@ param(
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "Continue"
 $downloadUrl = "https://github.com/BryanHarrisScripts/PlotPickle/archive/refs/heads/main.zip"
-$managedDirectories = @(".github", "app", "data", "docs", "lib", "public", "schema", "scripts", "tests")
+$preservedDirectories = @("node_modules", ".git", ".next", "dist", ".wrangler", ".plotpickle", "projects", "exports", "user-data", "backups")
 $preservedRootFiles = @(".env", ".env.local", ".env.development.local", ".env.production.local")
 
 function Write-Heading([string]$Text) {
@@ -27,12 +27,6 @@ function Read-Manifest([string]$Root) {
   } catch {
     return $null
   }
-}
-
-function Read-Version([string]$Root) {
-  $manifest = Read-Manifest $Root
-  if (-not $manifest) { return "unknown" }
-  return $manifest.version
 }
 
 function Select-UpdateZip {
@@ -89,7 +83,7 @@ Write-Host "It preserves:" -ForegroundColor White
 Write-Host "  - the persistent package runtime in %LOCALAPPDATA%\PlotPickle" -ForegroundColor Green
 Write-Host "  - browser-stored PlotPickle projects" -ForegroundColor Green
 Write-Host "  - exported .plotpickle.json files" -ForegroundColor Green
-Write-Host "  - local .env configuration files" -ForegroundColor Green
+Write-Host "  - local .env configuration and user-owned folders" -ForegroundColor Green
 Write-Host ""
 Write-Host "Current installation: $InstallRoot"
 Write-Host "Current version:      $($currentManifest.version)"
@@ -138,16 +132,16 @@ try {
   Add-Content -LiteralPath $history -Value "$(Get-Date -Format o)  $oldVersion -> $newVersion  ZIP=$ZipPath"
   Write-Host "[OK] Persistent runtime left untouched: $localHome\runtimes" -ForegroundColor Green
   Write-Host "[OK] Browser project storage is outside the program folder." -ForegroundColor Green
+  Write-Host "[OK] User-owned projects, exports, user-data, and backups folders are preserved." -ForegroundColor Green
   Write-Host "[OK] Local update history: $history" -ForegroundColor Green
 
   Write-Heading "STEP 3 OF 4 - Updating PlotPickle program files"
-  foreach ($directory in $managedDirectories) {
-    $source = Join-Path $sourceRoot $directory
-    $target = Join-Path $InstallRoot $directory
-    if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Recurse -Force }
-    if (Test-Path -LiteralPath $source) {
-      Copy-Item -LiteralPath $source -Destination $target -Recurse -Force
-      Write-Host "[UPDATED] $directory"
+  Get-ChildItem -LiteralPath $sourceRoot -Directory -Force | ForEach-Object {
+    if (-not ($preservedDirectories -contains $_.Name)) {
+      $target = Join-Path $InstallRoot $_.Name
+      if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Recurse -Force }
+      Copy-Item -LiteralPath $_.FullName -Destination $target -Recurse -Force
+      Write-Host "[UPDATED] $($_.Name)"
     }
   }
 

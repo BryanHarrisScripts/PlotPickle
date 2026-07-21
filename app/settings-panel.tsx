@@ -12,7 +12,29 @@ import {
 import styles from "./settings-panel.module.css";
 
 const SETTINGS_STORAGE_KEY = "plotpickle.settings.v1";
+const CONNECTION_API = "/api/local-ai/connection";
 type SettingsSection = "ai" | "music" | "plugins";
+type ConnectionState = "loading" | "idle" | "checking" | "connected" | "error" | "unavailable";
+
+type ConnectionStatus = {
+  state: ConnectionState;
+  saved: boolean;
+  provider?: PlotPickleSettings["ai"]["provider"];
+  checkedAt?: string;
+  message: string;
+};
+
+type ConnectionResponse = {
+  ok?: boolean;
+  available?: boolean;
+  saved?: boolean;
+  provider?: PlotPickleSettings["ai"]["provider"];
+  baseUrl?: string;
+  textModel?: string;
+  imageModel?: string;
+  checkedAt?: string;
+  message?: string;
+};
 
 function createMusicLink(): MusicArtistLink {
   return {
@@ -23,12 +45,30 @@ function createMusicLink(): MusicArtistLink {
   };
 }
 
+async function connectionRequest(method: "GET" | "POST" | "DELETE", path = CONNECTION_API, body?: object) {
+  const response = await fetch(path, {
+    method,
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) throw new Error("local-gateway-unavailable");
+  const value = await response.json() as ConnectionResponse;
+  if (!response.ok) throw new Error(value.message || "The API connection could not be checked.");
+  return value;
+}
+
 export default function SettingsPanel() {
   const [section, setSection] = useState<SettingsSection>("ai");
   const [settings, setSettings] = useState<PlotPickleSettings>(() => structuredClone(defaultPlotPickleSettings));
   const [sessionKey, setSessionKey] = useState("");
   const [hydrated, setHydrated] = useState(false);
   const [notice, setNotice] = useState("");
+  const [connection, setConnection] = useState<ConnectionStatus>({
+    state: "loading",
+    saved: false,
+    message: "Checking local connection settings…",
+  });
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -44,10 +84,55 @@ export default function SettingsPanel() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    if (!hydrated) return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const saved = await connectionRequest("GET");
+        if (!saved.saved) {
+          setConnection({ state: "idle", saved: false, message: "No API connection has been saved." });
+          return;
+        }
+        if (saved.provider && saved.baseUrl) {
+          setSettings((current) => ({
+            ...current,
+            ai: {
+              provider: saved.provider!,
+              baseUrl: saved.baseUrl!,
+              textModel: saved.textModel ?? current.ai.textModel,
+              imageModel: saved.imageModel ?? current.ai.imageModel,
+            },
+          }));
+        }
+        setConnection({ state: "checking", saved: true, provider: saved.provider, checkedAt: saved.checkedAt, message: "Checking the saved API connection…" });
+        const checked = await connectionRequest("POST", `${CONNECTION_API}/check`);
+        if (!controller.signal.aborted) {
+          setConnection({ state: "connected", saved: true, provider: checked.provider, checkedAt: checked.checkedAt, message: checked.message || "API connected." });
+        }
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        const message = error instanceof Error ? error.message : "The API connection could not be checked.";
+        if (message === "local-gateway-unavailable") {
+          setConnection({ state: "unavailable", saved: false, message: "Local API setup is available in the downloaded PlotPickle app." });
+        } else {
+          setConnection({ state: "error", saved: true, message });
+        }
+      }
+    }, 0);
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [hydrated]);
+
   const preset = useMemo(
     () => providerPresets.find((item) => item.kind === settings.ai.provider) ?? providerPresets.at(-1),
     [settings.ai.provider],
   );
+
+  const liveProvider = settings.ai.provider !== "disabled" && settings.ai.provider !== "manual";
+  const connectionMatchesProvider = connection.provider === settings.ai.provider;
 
   function selectProvider(provider: PlotPickleSettings["ai"]["provider"]) {
     const nextPreset = providerPresets.find((item) => item.kind === provider);
@@ -60,11 +145,20 @@ export default function SettingsPanel() {
         imageModel: nextPreset?.defaultConfig.models.image ?? "",
       },
     }));
+    setSessionKey("");
     setNotice("");
+    setConnection((current) => ({
+      ...current,
+      state: "idle",
+      message: current.saved ? "Save and test this provider to replace the saved connection." : "No API connection has been saved.",
+    }));
   }
 
   function updateAi(key: "baseUrl" | "textModel" | "imageModel", value: string) {
     setSettings((current) => ({ ...current, ai: { ...current.ai, [key]: value } }));
+    setConnection((current) => current.state === "connected"
+      ? { ...current, state: "idle", message: "Connection details changed. Save and test again." }
+      : current);
   }
 
   function updateMusic(id: string, patch: Partial<MusicArtistLink>) {
@@ -83,8 +177,64 @@ export default function SettingsPanel() {
       return;
     }
     window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-    setNotice("Settings saved on this device. API keys are not saved.");
+    setNotice("Preferences saved on this device. API keys are managed separately by the private local server.");
   }
+
+  async function saveAndConnect() {
+    if (!liveProvider || connection.state === "checking") return;
+    setNotice("");
+    setConnection((current) => ({ ...current, state: "checking", message: "Saving and checking the API connection…" }));
+    try {
+      const result = await connectionRequest("POST", CONNECTION_API, {
+        provider: settings.ai.provider,
+        baseUrl: settings.ai.baseUrl,
+        textModel: settings.ai.textModel,
+        imageModel: settings.ai.imageModel,
+        apiKey: sessionKey,
+      });
+      window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+      setSessionKey("");
+      setConnection({ state: "connected", saved: true, provider: result.provider, checkedAt: result.checkedAt, message: result.message || "API connected." });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "The API connection could not be checked.";
+      setConnection({
+        state: message === "local-gateway-unavailable" ? "unavailable" : "error",
+        saved: connection.saved,
+        provider: connection.provider,
+        checkedAt: connection.checkedAt,
+        message: message === "local-gateway-unavailable" ? "Local API setup is available in the downloaded PlotPickle app." : message,
+      });
+    }
+  }
+
+  async function testAgain() {
+    setConnection((current) => ({ ...current, state: "checking", message: "Checking the saved API connection…" }));
+    try {
+      const result = await connectionRequest("POST", `${CONNECTION_API}/check`);
+      setConnection({ state: "connected", saved: true, provider: result.provider, checkedAt: result.checkedAt, message: result.message || "API connected." });
+    } catch (error) {
+      setConnection((current) => ({ ...current, state: "error", message: error instanceof Error ? error.message : "The API connection could not be checked." }));
+    }
+  }
+
+  async function removeConnection() {
+    try {
+      await connectionRequest("DELETE");
+      setSessionKey("");
+      setConnection({ state: "idle", saved: false, message: "No API connection has been saved." });
+      setNotice("The saved API connection was removed from this computer.");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "The saved API connection could not be removed.");
+    }
+  }
+
+  const statusLabel = connection.state === "connected" && connectionMatchesProvider
+    ? "API connected"
+    : connection.state === "checking"
+      ? "Checking connection"
+      : connection.state === "unavailable"
+        ? "Local setup unavailable"
+        : "Not connected";
 
   return (
     <div className={styles.page}>
@@ -94,7 +244,7 @@ export default function SettingsPanel() {
           <h1>Connections and creative services</h1>
           <span>Set up optional AI and music links. PlotPickle remains fully usable without either.</span>
         </div>
-        <button type="button" onClick={saveSettings}>Save settings</button>
+        <button type="button" onClick={saveSettings}>Save preferences</button>
       </header>
 
       <div className={styles.layout}>
@@ -107,7 +257,12 @@ export default function SettingsPanel() {
         <section className={styles.content}>
           {section === "ai" ? (
             <>
-              <div className={styles.sectionHeading}><p>AI Setup</p><h2>Choose how PlotPickle may assist you.</h2><span>ChatGPT / OpenAI API is our primary tested connection. Other services and no-AI use remain available.</span></div>
+              <div className={styles.sectionHeading}>
+                <div><p>AI Setup</p><h2>Choose how PlotPickle may assist you.</h2><span>ChatGPT / OpenAI API is our primary tested connection. Other services and no-AI use remain available.</span></div>
+                <div className={`${styles.connectionBadge} ${connection.state === "connected" && connectionMatchesProvider ? styles.connectionBadgeConnected : ""}`} role="status">
+                  <i aria-hidden="true" />{statusLabel}
+                </div>
+              </div>
               <div className={styles.providerGrid}>
                 {providerPresets.map((item) => (
                   <button type="button" key={item.kind} className={settings.ai.provider === item.kind ? styles.selectedCard : styles.card} onClick={() => selectProvider(item.kind)}>
@@ -118,16 +273,28 @@ export default function SettingsPanel() {
                 ))}
               </div>
 
-              {settings.ai.provider !== "disabled" && settings.ai.provider !== "manual" ? (
+              {liveProvider ? (
                 <div className={styles.formCard}>
                   <h3>Connection details</h3>
                   <div className={styles.formGrid}>
                     <label><span>Server address</span><input type="url" value={settings.ai.baseUrl} onChange={(event) => updateAi("baseUrl", event.target.value)} /></label>
                     <label><span>Text model</span><input value={settings.ai.textModel} onChange={(event) => updateAi("textModel", event.target.value)} placeholder="Choose or enter a model" /></label>
                     <label><span>Image model</span><input value={settings.ai.imageModel} onChange={(event) => updateAi("imageModel", event.target.value)} placeholder="Optional" /></label>
-                    <label><span>API key for this open session</span><input type="password" autoComplete="off" value={sessionKey} onChange={(event) => setSessionKey(event.target.value)} placeholder={settings.ai.provider === "ollama" ? "Usually not required" : "Not saved"} /></label>
+                    <label><span>{settings.ai.provider === "ollama" ? "API key (usually not required)" : "API key"}</span><input type="password" autoComplete="off" value={sessionKey} onChange={(event) => { setSessionKey(event.target.value); setConnection((current) => ({ ...current, state: "idle", message: "Save and test the new key to connect." })); }} placeholder={connection.saved && connectionMatchesProvider ? "Saved securely on this computer" : "Enter API key"} /></label>
                   </div>
-                  <p className={styles.note}>The API key stays in memory only while PlotPickle is open. It is not written to local settings or exported story files. ChatGPT subscriptions and OpenAI API billing are separate.</p>
+
+                  <div className={`${styles.connectionPanel} ${connection.state === "connected" && connectionMatchesProvider ? styles.connectionPanelConnected : connection.state === "error" ? styles.connectionPanelError : ""}`}>
+                    <div className={styles.connectionSummary}>
+                      <i aria-hidden="true" />
+                      <div><strong>{statusLabel}</strong><span>{connection.message}</span>{connection.checkedAt && connection.state === "connected" ? <small>Last verified {new Date(connection.checkedAt).toLocaleString()}</small> : null}</div>
+                    </div>
+                    <div className={styles.connectionActions}>
+                      <button type="button" onClick={saveAndConnect} disabled={connection.state === "checking"}>{connection.state === "checking" ? "Checking…" : connection.saved && connectionMatchesProvider ? "Save & reconnect" : "Save key & connect"}</button>
+                      {connection.saved && connectionMatchesProvider ? <button type="button" className={styles.secondaryAction} onClick={testAgain} disabled={connection.state === "checking"}>Test again</button> : null}
+                      {connection.saved ? <button type="button" className={styles.removeConnection} onClick={removeConnection}>Remove saved key</button> : null}
+                    </div>
+                  </div>
+                  <p className={styles.note}>The key is saved in PlotPickle&apos;s private local-server data under your computer account. It is never written to browser settings, story projects, exports, prompts, logs, or GitHub. ChatGPT subscriptions and OpenAI API billing are separate.</p>
                 </div>
               ) : null}
 
@@ -137,7 +304,7 @@ export default function SettingsPanel() {
 
           {section === "music" ? (
             <>
-              <div className={styles.sectionHeading}><p>Music</p><h2>Keep your artist pages close to the story.</h2><span>Add Suno or Udio artist links, such as Ava Iris. PlotPickle stores the links; it does not copy or publish the music.</span></div>
+              <div className={styles.sectionHeading}><div><p>Music</p><h2>Keep your artist pages close to the story.</h2><span>Add Suno or Udio artist links, such as Ava Iris. PlotPickle stores the links; it does not copy or publish the music.</span></div></div>
               <div className={styles.artistList}>
                 {settings.music.map((item) => (
                   <article className={styles.artistCard} key={item.id}>
@@ -156,7 +323,7 @@ export default function SettingsPanel() {
 
           {section === "plugins" ? (
             <>
-              <div className={styles.sectionHeading}><p>Plugins</p><h2>Future connectivity will live here.</h2><span>Plugins are placeholders only. Nothing is enabled or given access until a real connection is built and reviewed.</span></div>
+              <div className={styles.sectionHeading}><div><p>Plugins</p><h2>Future connectivity will live here.</h2><span>Plugins are placeholders only. Nothing is enabled or given access until a real connection is built and reviewed.</span></div></div>
               <div className={styles.pluginGrid}>{settings.plugins.map((plugin) => <article key={plugin.id}><span>Coming later</span><h3>{plugin.label}</h3><p>Reserved for future PlotPickle connectivity.</p><button type="button" disabled>Not available yet</button></article>)}</div>
             </>
           ) : null}

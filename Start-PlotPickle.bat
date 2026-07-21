@@ -5,6 +5,17 @@ title PlotPickle Playhouse Local Server
 
 set "PLOTPICKLE_PORT=4173"
 set "PLOTPICKLE_URL=http://127.0.0.1:%PLOTPICKLE_PORT%"
+set "VITE_CMD=node_modules\.bin\vite.cmd"
+
+rem Make first-time installation more tolerant of slow or interrupted networks.
+set "NODE_ENV=development"
+set "npm_config_fetch_retries=5"
+set "npm_config_fetch_retry_factor=2"
+set "npm_config_fetch_retry_mintimeout=20000"
+set "npm_config_fetch_retry_maxtimeout=120000"
+set "npm_config_audit=false"
+set "npm_config_fund=false"
+set "npm_config_update_notifier=false"
 
 echo.
 echo ============================================================
@@ -48,18 +59,8 @@ if errorlevel 1 (
   exit /b 1
 )
 
-if not exist "node_modules" (
-  echo First-time setup: installing PlotPickle components...
-  echo This step only runs again after a fresh download or dependency update.
-  echo.
-  call npm ci
-  if errorlevel 1 (
-    echo.
-    echo PlotPickle setup did not complete. Review the error above.
-    pause
-    exit /b 1
-  )
-)
+call :ensure_dependencies
+if errorlevel 1 goto :setup_failed
 
 echo.
 echo Starting PlotPickle at %PLOTPICKLE_URL%
@@ -68,7 +69,7 @@ echo Press Ctrl+C in this window when you are finished.
 echo.
 
 start "" /b powershell.exe -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 4; Start-Process '%PLOTPICKLE_URL%'"
-call npm run dev:local -- --host 127.0.0.1 --port %PLOTPICKLE_PORT%
+call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT%
 
 set "EXIT_CODE=%ERRORLEVEL%"
 echo.
@@ -79,3 +80,63 @@ if not "%EXIT_CODE%"=="0" (
 )
 pause
 exit /b %EXIT_CODE%
+
+:ensure_dependencies
+call :dependencies_ready
+if not errorlevel 1 (
+  echo PlotPickle components are ready.
+  exit /b 0
+)
+
+if exist "node_modules" (
+  echo An incomplete PlotPickle component folder was detected.
+  echo Repairing the interrupted installation...
+) else (
+  echo First-time setup: installing PlotPickle components...
+)
+echo This may take several minutes on the first run.
+echo.
+
+call npm ci --include=dev --prefer-offline --no-audit --no-fund
+call :dependencies_ready
+if not errorlevel 1 exit /b 0
+
+echo.
+echo The first installation attempt did not complete.
+echo Retrying while preserving any packages that were already downloaded...
+echo.
+call npm cache verify
+call npm install --include=dev --prefer-offline --no-audit --no-fund
+call :dependencies_ready
+if not errorlevel 1 exit /b 0
+
+exit /b 1
+
+:dependencies_ready
+if not exist "%VITE_CMD%" exit /b 1
+if not exist "node_modules\vite\package.json" exit /b 1
+if not exist "node_modules\next\package.json" exit /b 1
+if not exist "node_modules\react\package.json" exit /b 1
+if not exist "node_modules\vinext\package.json" exit /b 1
+call "%VITE_CMD%" --version >nul 2>&1
+if errorlevel 1 exit /b 1
+exit /b 0
+
+:setup_failed
+echo.
+echo ============================================================
+echo   PlotPickle setup could not finish
+echo ============================================================
+echo.
+echo The required Vite component is still missing or incomplete.
+echo.
+echo 1. Confirm that your internet connection is stable.
+echo 2. Close any other PlotPickle, Node, npm, editor, or terminal windows.
+echo 3. Run Start-PlotPickle.bat again. It will retry the repair.
+echo.
+echo If Windows continues to report EPERM, restart the computer,
+echo delete only the node_modules folder inside PlotPickle, and run
+Start-PlotPickle.bat again. Your PlotPickle project data is not stored there.
+echo.
+pause
+exit /b 1

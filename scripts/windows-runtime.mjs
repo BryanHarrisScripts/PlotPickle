@@ -49,6 +49,15 @@ function runtimeInfo() {
   };
 }
 
+function entryExists(item) {
+  try {
+    lstatSync(item);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function samePath(left, right) {
   return path.resolve(left).toLowerCase() === path.resolve(right).toLowerCase();
 }
@@ -68,7 +77,7 @@ function coreReady(modulesPath) {
 }
 
 function removeLinkOrDirectory(item) {
-  if (!existsSync(item)) return;
+  if (!entryExists(item)) return;
   const stat = lstatSync(item);
   if (stat.isSymbolicLink()) {
     unlinkSync(item);
@@ -79,7 +88,7 @@ function removeLinkOrDirectory(item) {
 
 function createJunction(target, link) {
   mkdirSync(target, { recursive: true });
-  if (existsSync(link)) {
+  if (entryExists(link)) {
     const resolved = realPathOrNull(link);
     if (resolved && samePath(resolved, target)) return;
     removeLinkOrDirectory(link);
@@ -103,13 +112,13 @@ function prepare() {
   let migrated = false;
   let reused = coreReady(info.runtimeModules);
 
-  if (existsSync(info.appModules)) {
+  if (entryExists(info.appModules)) {
     const stat = lstatSync(info.appModules);
     const resolved = realPathOrNull(info.appModules);
     const alreadyLinked = stat.isSymbolicLink() && resolved && samePath(resolved, info.runtimeModules);
 
     if (!alreadyLinked && !stat.isSymbolicLink()) {
-      if (!existsSync(info.runtimeModules)) {
+      if (!entryExists(info.runtimeModules)) {
         renameSync(info.appModules, info.runtimeModules);
         migrated = true;
         reused = coreReady(info.runtimeModules);
@@ -180,7 +189,7 @@ function markReady() {
 
 function resetCurrent() {
   const info = runtimeInfo();
-  if (existsSync(info.runtimeModules)) rmSync(info.runtimeModules, { recursive: true, force: true });
+  if (entryExists(info.runtimeModules)) rmSync(info.runtimeModules, { recursive: true, force: true });
   if (existsSync(info.marker)) rmSync(info.marker, { force: true });
   mkdirSync(info.runtimeModules, { recursive: true });
   copyRuntimeManifests(info);

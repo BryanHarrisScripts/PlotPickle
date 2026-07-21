@@ -23,7 +23,7 @@ const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
 
 type MainTab = "instructions" | "planner" | "visuals";
-type StorySection = "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "blocks" | "storyboard" | "notes";
+type StorySection = "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "actOne" | "dialogue" | "blocks" | "storyboard" | "notes";
 
 const mainTabs: { id: MainTab; label: string; description: string }[] = [
   { id: "instructions", label: "Instructions", description: "Learn the method" },
@@ -40,11 +40,27 @@ const storySections: { id: StorySection; code: string; label: string }[] = [
   { id: "catalyst", code: "CA", label: "Catalyst" },
   { id: "foundations", code: "FN", label: "Foundations" },
   { id: "pickle", code: "PK", label: "The Pickle" },
+  { id: "actOne", code: "A1", label: "Act I Launch" },
   { id: "dialogue", code: "DL", label: "Dialogue" },
   { id: "blocks", code: "24", label: "24 Blocks" },
   { id: "storyboard", code: "SB", label: "Storyboard" },
   { id: "notes", code: "NT", label: "Notes" },
 ];
+
+const actOneLaunchSignals = [
+  { block: 1, key: "primaryPresence", title: "Primary Presence", guidance: "Introduce the person, force, or vulnerability that anchors attention." },
+  { block: 1, key: "revealingContrast", title: "Revealing Contrast", guidance: "Use a relationship or mirror to expose the protagonist's strength, flaw, or missing capacity." },
+  { block: 2, key: "opposingPressure", title: "Opposing Pressure", guidance: "Reveal or amplify the force capable of pushing back." },
+  { block: 2, key: "pressureMultiplier", title: "Pressure Multiplier", guidance: "Add an obstacle that makes the original problem more urgent, costly, or personal." },
+  { block: 3, key: "disruptionLands", title: "Disruption Lands", guidance: "Deliver the blow that overturns normal and opens a path with a cost." },
+  { block: 3, key: "problemNamed", title: "Problem Named", guidance: "Make the actionable problem, fear, and consequence clear enough for the audience to state." },
+  { block: 4, key: "outsidePush", title: "Outside Push", guidance: "Let an ally, relationship, or circumstance push the protagonist beyond comfort." },
+  { block: 4, key: "innerLock", title: "Inner Lock", guidance: "Show the old strategy or flaw that still prevents full commitment." },
+  { block: 5, key: "counterstrike", title: "Counterstrike", guidance: "Let opposition attack in a way that activates the central dramatic question." },
+  { block: 5, key: "emotionalAnchor", title: "Emotional Anchor", guidance: "Reveal the relationship, place, value, or future that makes the goal matter." },
+  { block: 6, key: "personalThreat", title: "Personal Threat", guidance: "Put that emotional anchor at credible risk of loss, removal, or harm." },
+  { block: 6, key: "irreversibleStep", title: "Irreversible Step", guidance: "End Act I with a choice that makes the remaining story necessary." },
+] as const;
 
 const sectionGuides: Record<StorySection, { title: string; description: string; questions: string[]; deliverable: string; connection: string }> = {
   storySetup: {
@@ -102,6 +118,13 @@ const sectionGuides: Record<StorySection, { title: string; description: string; 
     questions: ["What question will the audience keep answering as they watch?", "What outcome can they anticipate while the route remains surprising?", "Which two explanations, hopes, or fears can remain plausible at the same time?"],
     deliverable: "An audience contract with a central tension, competing live answers, escalation pattern, final answer, and signature execution.",
     connection: "Each of the 24 blocks records the audience's current expectation and the turn that complicates, confirms, or reframes it; Visual Board carries the same tension into images.",
+  },
+  actOne: {
+    title: "Make Act I launch everything the story must carry.",
+    description: "Act I establishes the world, cast, pressure, theme, audience tension, emotional stakes, and difficult choice that makes the remaining story unavoidable. Use the twelve signals as diagnostics, not mandatory beats.",
+    questions: ["What must the audience understand before the protagonist commits?", "Which promise made here must a later act pay off?", "If a signal is deliberately absent, what stronger choice replaces its function?"],
+    deliverable: "A flexible six-block launch grid with two diagnostic signals per block and a clear threshold decision.",
+    connection: "The launch grid draws from World, Characters, Catalyst, Foundations, and The Pickle, then shows the promises every later block must carry or pay off.",
   },
   dialogue: {
     title: "Design voices that reveal pressure, not information.",
@@ -320,7 +343,7 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
               <span className="feature-code">02</span>
               <p className="feature-label">Develop</p>
               <h3>Story Planner</h3>
-              <p>Build the world, cast, ghost, catalyst, foundations, The Pickle audience engine, dialogue, and all twenty-four causal story movements.</p>
+              <p>Build the world, cast, ghost, catalyst, foundations, The Pickle audience engine, Act I Launch, dialogue, and all twenty-four causal story movements.</p>
             </article>
             <article>
               <span className="feature-code">03</span>
@@ -334,9 +357,9 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
         <section className="marketing-section story-system-section">
           <div className="story-system-copy">
             <p className="marketing-kicker">Your entire story in one structure</p>
-            <h2>Twelve story columns. One source of truth.</h2>
+            <h2>Thirteen story columns. One source of truth.</h2>
             <p>
-              Story Setup, Pitch &amp; Vision, World, Characters, Ghost, Catalyst, Foundations, The Pickle, Dialogue, 24 Blocks, Storyboard, and Notes stay aligned across every workspace.
+              Story Setup, Pitch &amp; Vision, World, Characters, Ghost, Catalyst, Foundations, The Pickle, Act I Launch, Dialogue, 24 Blocks, Storyboard, and Notes stay aligned across every workspace.
             </p>
             <ul>
               <li><span>01</span> One readable <code>.plotpickle.json</code> project file</li>
@@ -344,7 +367,7 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
               <li><span>03</span> Your story remains yours and stays on your device</li>
             </ul>
           </div>
-          <div className="story-column-stack" aria-label="The twelve PlotPickle story columns">
+          <div className="story-column-stack" aria-label="The thirteen PlotPickle story columns">
             {storySections.map((section) => (
               <div className={section.id === "blocks" ? "active" : ""} key={section.id}>
                 <span>{section.code}</span><strong>{section.label}</strong><i aria-hidden="true">→</i>
@@ -714,6 +737,9 @@ export default function Home() {
               {activeSection === "pickle" ? (
                 <PickleEditor project={project} updateDevelopment={updateDevelopment} />
               ) : null}
+              {activeSection === "actOne" ? (
+                <ActOneLaunchEditor project={project} updateDevelopment={updateDevelopment} />
+              ) : null}
               {activeSection === "dialogue" ? (
                 <DialogueEditor project={project} selected={selectedCharacter} select={setSelectedCharacterId} updateCharacter={updateCharacter} updateDevelopment={updateDevelopment} />
               ) : null}
@@ -950,6 +976,33 @@ function PickleEditor({ project, updateDevelopment }: { project: PlotPickleProje
       <FormField label="Escalation pattern" value={pickle.escalationPattern} onChange={(value) => updateDevelopment("pickle", "escalationPattern", value)} help="How clues, reversals, complications, and near-answers refresh the tension." />
       <FormField label="Final answer" value={pickle.finalAnswer} onChange={(value) => updateDevelopment("pickle", "finalAnswer", value)} help="How the ending answers or deliberately reframes the audience question." />
       <FormField label="Signature move" value={pickle.signatureMove} onChange={(value) => updateDevelopment("pickle", "signatureMove", value)} help="The execution choice that makes this familiar pattern belong only to this story." />
+    </div></div>
+  </div>;
+}
+
+function ActOneLaunchEditor({ project, updateDevelopment }: { project: PlotPickleProject; updateDevelopment: DevelopmentUpdater }) {
+  const actOne = project.development.actOne;
+  return <div className="editor-page">
+    <SectionHeading eyebrow="A1 · Act I Launch" title="Build the foundation every later act must carry." description="Use a flexible six-block launch grid to establish the story contract, test twelve essential functions, and make the protagonist's threshold decision feel both surprising and inevitable." />
+    <div className="form-section"><h3>Launch contract</h3><div className="form-grid two-columns">
+      <FormField label="Target length" value={actOne.targetLength} onChange={(value) => updateDevelopment("actOne", "targetLength", value)} help="A pacing target, not a mandatory page count." />
+      <FormField label="Reason to flex" value={actOne.flexibilityReason} onChange={(value) => updateDevelopment("actOne", "flexibilityReason", value)} help="Why this story may need a shorter or longer launch." />
+      <FormField label="World contract" value={actOne.worldContract} onChange={(value) => updateDevelopment("actOne", "worldContract", value)} help="The rules and parameters the audience must understand." />
+      <FormField label="Cast orientation" value={actOne.castOrientation} onChange={(value) => updateDevelopment("actOne", "castOrientation", value)} help="Who matters now and how their roles create pressure." />
+      <FormField label="Theme seed" value={actOne.themeSeed} onChange={(value) => updateDevelopment("actOne", "themeSeed", value)} help="The belief conflict introduced through action, image, or relationship." />
+      <FormField label="Audience-tension seed" value={actOne.pickleSeed} onChange={(value) => updateDevelopment("actOne", "pickleSeed", value)} help="The first form of the question viewers will keep trying to solve." />
+      <FormField label="Downstream promises" value={actOne.downstreamPromises} onChange={(value) => updateDevelopment("actOne", "downstreamPromises", value)} help="The setups, relationships, questions, and images later acts must develop or pay off." />
+    </div></div>
+    <div className="form-section signal-section"><h3>Twelve launch signals</h3><div className="form-grid two-columns">
+      {actOneLaunchSignals.map((signal) => (
+        <FormField
+          key={signal.key}
+          label={`Block ${signal.block} · ${signal.title}`}
+          value={actOne[signal.key]}
+          onChange={(value) => updateDevelopment("actOne", signal.key, value)}
+          help={`${signal.guidance} Describe how the story performs this function—or why it is deliberately omitted.`}
+        />
+      ))}
     </div></div>
   </div>;
 }
@@ -1279,6 +1332,9 @@ function VisualBoard({
 }
 
 function VisualContext({ project, section, selectedBlock }: { project: PlotPickleProject; section: StorySection; selectedBlock: StoryBlock }) {
+  const launchSignals = actOneLaunchSignals
+    .filter((signal) => signal.block === selectedBlock.number)
+    .map((signal) => project.development.actOne[signal.key]);
   const contexts: Record<StorySection, { title: string; values: string[] }> = {
     storySetup: { title: "Production container", values: [project.metadata.format, `${project.metadata.targetMinutes} minutes`, project.development.storySetup.audience] },
     pitch: { title: "Pitch & visual promise", values: [project.development.pitch.oneSentence || project.story.logline, project.development.pitch.visualVision, project.development.pitch.emotionalExperience] },
@@ -1288,6 +1344,9 @@ function VisualContext({ project, section, selectedBlock }: { project: PlotPickl
     catalyst: { title: "Catalyst in visible action", values: [project.story.catalyst, project.development.catalyst.immediateImpact, project.development.catalyst.doorway] },
     foundations: { title: "Foundation check", values: [project.development.foundations.objective, project.development.foundations.opposition, project.development.foundations.transformation] },
     pickle: { title: "Audience tension", values: [project.development.pickle.audienceQuestion, selectedBlock.audienceExpectation || project.development.pickle.expectedDestination, selectedBlock.pickleTurn || project.development.pickle.signatureMove] },
+    actOne: selectedBlock.number <= 6
+      ? { title: `Block ${selectedBlock.number} launch signals`, values: launchSignals }
+      : { title: "Act I promises carried forward", values: [project.development.actOne.downstreamPromises, project.development.actOne.worldContract, project.development.actOne.pickleSeed] },
     dialogue: { title: "Voice & subtext reference", values: [project.development.dialogue.voiceContrast, project.development.dialogue.subtext, project.development.dialogue.recurringLanguage] },
     blocks: { title: `Block ${selectedBlock.number} story motion`, values: [selectedBlock.goal, selectedBlock.choice, selectedBlock.consequence] },
     storyboard: { title: `Block ${selectedBlock.number} storyboard direction`, values: [selectedBlock.storyboardDirection, selectedBlock.summary, `${selectedBlock.visuals.length}/4 visuals planned`] },

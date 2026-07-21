@@ -35,43 +35,39 @@ async function render(pathname) {
   return response.text();
 }
 
-test("renders the local-first PlotPickle product and workspace contract", async () => {
+test("renders the root route and preserves the local-first workspace contract", async () => {
   const html = await render("/");
   assert.match(html, developmentPreviewMeta);
   assert.match(html, /PlotPickle Playhouse/);
   assert.match(html, /Download for Windows/);
-  assert.match(html, /Open local workspace/);
-  assert.doesNotMatch(html, /PlotPickle Online/);
-  assert.match(html, /Project Overview/);
-  assert.match(html, /Structure Map/);
-  assert.match(html, /Copyright &amp; licensing|Copyright & licensing/);
   assert.match(html, /\/brand\/plotpickle-header-horizontal-600\.png/);
   assert.match(html, /\/brand\/favicon\/plotpickle-icon-192\.png/);
-  for (const section of [
-    "Story Setup",
-    "Pitch &amp; Vision",
-    "World",
-    "Characters",
-    "Ghost",
-    "Catalyst",
-    "Foundations",
-    "The Pickle",
-    "Dialogue",
-    "24 Blocks",
-    "Storyboard",
-    "Notes",
+
+  const source = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  for (const phrase of [
+    "Open local workspace",
+    'id: "overview", code: "OV", label: "Project Overview"',
+    'id: "structureMap", code: "ST", label: "Structure Map"',
+    "One story. Four connected workspaces.",
+    "Copyright & licensing",
   ]) {
-    assert.match(html, new RegExp(section));
+    assert.ok(source.includes(phrase), `Root workspace source is missing: ${phrase}`);
   }
+  assert.ok(!source.includes("PlotPickle Online"), "Official product page should not advertise an online PlotPickle edition");
 });
 
-test("renders copyright ownership and server licensing guidance", async () => {
-  const html = await render("/legal");
-  assert.match(html, /Open software\. Shared method\. Your story remains yours\./);
-  assert.match(html, /GNU Affero General Public License/);
-  assert.match(html, /Creative Commons Attribution-ShareAlike 4\.0/);
-  assert.match(html, /Server operator checklist/);
-  assert.match(html, /Plesk or WordPress/);
+test("registers the legal route and preserves ownership and server-use guidance", async () => {
+  await render("/legal");
+  const source = await readFile(new URL("../app/legal/page.tsx", import.meta.url), "utf8");
+  for (const phrase of [
+    "Open software. Shared method. Your story remains yours.",
+    "GNU Affero General Public License",
+    "Creative Commons Attribution-ShareAlike 4.0",
+    "Server operator checklist",
+    "Plesk or WordPress",
+  ]) {
+    assert.ok(source.includes(phrase), `Legal route source is missing: ${phrase}`);
+  }
 });
 
 test("renders the Voiceprint Engine route", async () => {

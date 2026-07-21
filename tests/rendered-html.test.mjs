@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const developmentPreviewMeta =
@@ -88,4 +89,13 @@ test("renders the DraftLens Engine route", async () => {
   assert.match(html, /Six diagnostic lenses/);
   assert.match(html, /Separate the visible symptom from the root cause/);
   assert.match(html, /Notes protocol/);
+});
+
+test("Windows launcher repairs interrupted dependency installs", async () => {
+  const launcher = await readFile(new URL("../Start-PlotPickle.bat", import.meta.url), "utf8");
+  assert.ok(launcher.includes('set "VITE_CMD=node_modules\\.bin\\vite.cmd"'));
+  assert.ok(launcher.includes("npm ci --include=dev --prefer-offline"));
+  assert.ok(launcher.includes("npm install --include=dev --prefer-offline"));
+  assert.ok(launcher.includes('call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT%'));
+  assert.ok(launcher.includes("An incomplete PlotPickle component folder was detected."));
 });

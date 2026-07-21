@@ -38,6 +38,31 @@ export type VisualFrame = {
   continuity: string;
 };
 
+export type StoryScene = {
+  id: string;
+  title: string;
+  purpose: string;
+  characterIds: string[];
+  locationId: string;
+  pointOfView: string;
+  desire: string;
+  counterDesire: string;
+  hold: string;
+  cutIn: string;
+  cutOut: string;
+  revealingChoice: string;
+  settingPressure: string;
+  surfaceAction: string;
+  undercurrent: string;
+  openingValue: string;
+  pivot: string;
+  closingValue: string;
+  tacticShift: string;
+  focusReveal: string;
+  handoff: string;
+  notes: string;
+};
+
 export type StoryBlock = {
   id: string;
   number: number;
@@ -60,6 +85,7 @@ export type StoryBlock = {
   scriptExcerpt: string;
   storyboardDirection: string;
   notes: string;
+  scenes: StoryScene[];
   visuals: VisualFrame[];
 };
 
@@ -165,7 +191,7 @@ export type ProjectDevelopment = {
 };
 
 export type PlotPickleProject = {
-  schemaVersion: "1.4.0";
+  schemaVersion: "1.5.0";
   id: string;
   metadata: {
     title: string;
@@ -297,7 +323,7 @@ export function createBlankDevelopment(): ProjectDevelopment {
 export function createBlankProject(): PlotPickleProject {
   const now = new Date().toISOString();
   return {
-    schemaVersion: "1.4.0",
+    schemaVersion: "1.5.0",
     id: makeId("project"),
     metadata: {
       title: "Untitled Story",
@@ -357,6 +383,7 @@ export function createBlankProject(): PlotPickleProject {
       scriptExcerpt: "",
       storyboardDirection: "",
       notes: "",
+      scenes: [],
       visuals: [],
     })),
   };
@@ -370,7 +397,7 @@ export function isPlotPickleProject(value: unknown): value is PlotPickleProject 
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<PlotPickleProject>;
   return (
-    candidate.schemaVersion === "1.4.0" &&
+    candidate.schemaVersion === "1.5.0" &&
     typeof candidate.id === "string" &&
     !!candidate.metadata &&
     !!candidate.story &&
@@ -395,7 +422,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     blocks?: Array<Partial<StoryBlock>>;
   };
   if (
-    !["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0"].includes(candidate.schemaVersion ?? "") ||
+    !["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0"].includes(candidate.schemaVersion ?? "") ||
     typeof candidate.id !== "string" ||
     !candidate.metadata ||
     !candidate.story ||
@@ -408,7 +435,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
   const defaults = createBlankDevelopment();
   const development = candidate.development ?? {};
   return {
-    schemaVersion: "1.4.0",
+    schemaVersion: "1.5.0",
     id: candidate.id,
     metadata: candidate.metadata,
     story: candidate.story,
@@ -431,6 +458,9 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
       storyboardDirection: block.storyboardDirection ?? "",
       audienceExpectation: block.audienceExpectation ?? "",
       pickleTurn: block.pickleTurn ?? "",
+      scenes: Array.isArray(block.scenes)
+        ? block.scenes.map((scene) => ({ ...createBlankScene(), ...scene }))
+        : [],
     })),
   };
 }
@@ -515,4 +545,35 @@ export function addBlankFrame(block: StoryBlock): StoryBlock {
       },
     ],
   };
+}
+
+export function createBlankScene(): StoryScene {
+  return {
+    id: makeId("scene"),
+    title: "New Scene",
+    purpose: "",
+    characterIds: [],
+    locationId: "",
+    pointOfView: "",
+    desire: "",
+    counterDesire: "",
+    hold: "",
+    cutIn: "",
+    cutOut: "",
+    revealingChoice: "",
+    settingPressure: "",
+    surfaceAction: "",
+    undercurrent: "",
+    openingValue: "",
+    pivot: "",
+    closingValue: "",
+    tacticShift: "",
+    focusReveal: "",
+    handoff: "",
+    notes: "",
+  };
+}
+
+export function addBlankScene(block: StoryBlock): StoryBlock {
+  return { ...block, scenes: [...block.scenes, createBlankScene()] };
 }

@@ -1,0 +1,132 @@
+name: PlotPickle Local
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - "app/**"
+      - "lib/**"
+      - "local/**"
+      - "public/**"
+      - "scripts/build-local.sh"
+      - "scripts/fetch-windows-php.sh"
+      - "scripts/package-local.sh"
+      - "scripts/stage-php-runtimes.sh"
+      - "scripts/test-local-runtime.sh"
+      - "next.config.ts"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/local-edition.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-local:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22.19.0"
+          cache: npm
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build static local edition
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run build:local 2>&1 | tee build-local.log
+
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: plotpickle-local-build-log
+          path: build-local.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Test PHP local runtime
+        run: bash scripts/test-local-runtime.sh
+
+      - name: Fetch verified Windows PHP runtime
+        run: bash scripts/fetch-windows-php.sh
+
+      - name: Create portable packages
+        env:
+          PLOTPICKLE_WINDOWS_PHP_DIR: ${{ github.workspace }}/vendor/php-runtimes/windows
+        run: npm run package:local
+
+      - name: Verify Windows package contains PHP
+        run: |
+          unzip -l releases/local/PlotPickle-Windows.zip | grep -q "runtime/php/php.exe"
+          test -s releases/local/PlotPickle-Windows.zip
+          sha256sum releases/local/PlotPickle-Windows.zip > releases/local/PlotPickle-Windows.zip.sha256
+
+      - name: Upload local packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: plotpickle-local-release-candidate
+          path: |
+            releases/local/PlotPickle-Windows.zip
+            releases/local/PlotPickle-Windows.zip.sha256
+            releases/local/PlotPickle-macOS.zip
+            releases/local/PlotPickle-Linux.tar.gz
+            releases/local/manifest.json
+          if-no-files-found: error
+          retention-days: 14
+
+
+      - name: Publish the latest Windows download
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="local-latest"
+          notes_file="${RUNNER_TEMP}/plotpickle-release-notes.md"
+
+          cat > "$notes_file" <<'EOF'
+          PlotPickle Local is the portable Windows edition of PlotPickle Playhouse.
+
+          Download PlotPickle-Windows.zip, choose Extract all, open the extracted folder, and double-click START-PLOTPICKLE.bat. No PHP, Node.js, or development software is required.
+
+          Leave the PlotPickle Local Server window open while working. Projects and rolling backups remain inside the package's data folder.
+          EOF
+
+          git tag --force "$tag" "$GITHUB_SHA"
+          git push origin "refs/tags/$tag" --force
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" \
+              releases/local/PlotPickle-Windows.zip \
+              releases/local/PlotPickle-Windows.zip.sha256 \
+              --clobber
+            gh release edit "$tag" \
+              --title "PlotPickle Local — Latest Windows Download" \
+              --notes-file "$notes_file" \
+              --latest
+          else
+            gh release create "$tag" \
+              releases/local/PlotPickle-Windows.zip \
+              releases/local/PlotPickle-Windows.zip.sha256 \
+              --target "$GITHUB_SHA" \
+              --title "PlotPickle Local — Latest Windows Download" \
+              --notes-file "$notes_file" \
+              --latest
+          fi

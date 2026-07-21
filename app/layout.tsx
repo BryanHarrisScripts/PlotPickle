@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import EditionBanner from "./edition-banner";
+import LocalRuntimeBridge from "./local-runtime-bridge";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -38,10 +40,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <LocalRuntimeBridge />
+        <EditionBanner />
+        <div id="plotpickle-workspace">{children}</div>
       </body>
     </html>
   );

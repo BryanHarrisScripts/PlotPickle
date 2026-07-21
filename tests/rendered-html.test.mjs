@@ -111,6 +111,49 @@ test("registers the CraftLoop client route and preserves its workspace contract"
   }
 });
 
+test("registers the Structure Engine and preserves the 4-12-24-48-96 workspace", async () => {
+  const html = await render("/structure");
+  assert.match(html, /page:\/structure/);
+
+  const source = await readFile(new URL("../app/structure/page.tsx", import.meta.url), "utf8");
+  for (const phrase of [
+    "Structure Engine",
+    "12-Sequence Navigator",
+    "Story Clock",
+    "Rebalance full timeline",
+    "Mini-block B{block.number}.{mini.number}",
+    "calculated ASL",
+  ]) {
+    assert.ok(source.includes(phrase), `Structure Engine source is missing: ${phrase}`);
+  }
+});
+
+test("schema 1.4 requires twelve sequences, two scenes per block, and two mini-blocks per scene", async () => {
+  const raw = await readFile(new URL("../schema/plotpickle-project.schema.json", import.meta.url), "utf8");
+  const schema = JSON.parse(raw);
+  assert.equal(schema.properties.schemaVersion.const, "1.4.0");
+  assert.ok(schema.required.includes("structure"));
+  assert.equal(schema.$defs.structure.properties.sequences.minItems, 12);
+  assert.equal(schema.$defs.structure.properties.sequences.maxItems, 12);
+  assert.equal(schema.$defs.block.properties.scenes.minItems, 2);
+  assert.equal(schema.$defs.block.properties.scenes.maxItems, 2);
+  assert.equal(schema.$defs.scene.properties.miniBlocks.minItems, 2);
+  assert.equal(schema.$defs.scene.properties.miniBlocks.maxItems, 2);
+});
+
+test("project migration accepts earlier schemas and creates the new hierarchy", async () => {
+  const projectSource = await readFile(new URL("../lib/project.ts", import.meta.url), "utf8");
+  const structureSource = await readFile(new URL("../lib/structure.ts", import.meta.url), "utf8");
+  for (const version of ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0"]) {
+    assert.ok(projectSource.includes(`\"${version}\"`), `Migration no longer accepts ${version}`);
+  }
+  assert.ok(projectSource.includes('schemaVersion: "1.4.0"'));
+  assert.ok(projectSource.includes("createDefaultScenes(index + 1, targetMinutes)"));
+  assert.ok(structureSource.includes("sequenceTemplates.map"));
+  assert.ok(structureSource.includes("beatTarget: 4"));
+  assert.ok(structureSource.includes("shotTarget: 16"));
+});
+
 test("Windows launcher repairs interrupted dependency installs", async () => {
   const launcher = await readFile(new URL("../Start-PlotPickle.bat", import.meta.url), "utf8");
   assert.ok(launcher.includes('set "VITE_CMD=node_modules\\.bin\\vite.cmd"'));

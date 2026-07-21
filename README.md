@@ -1,226 +1,205 @@
 # PlotPickle Playhouse
 
-PlotPickle is a local-first story development application built around Bryan Harris's 24 Blocks method. One canonical project object powers connected workspaces for learning the method, planning the story, aligning meaning, developing dialogue, writing visible screenplay action, reviewing the whole draft, practising the complete craft loop, and building the visual board.
+PlotPickle is a local-first story development application built around Bryan Harris's 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, scene, mini-block, screenplay page, review, and visual board.
 
-Current application version: `0.6.0`
+Current application version: `0.7.0`
 
-Current project schema: `1.3.0`
+Current project schema: `1.4.0`
 
 ## Download the current version
 
 [Download a fresh copy of PlotPickle Playhouse](https://github.com/BryanHarrisScripts/PlotPickle/archive/refs/heads/main.zip)
 
-This link always downloads the current `main` version, so it stays up to date as PlotPickle develops. Because the repository is private, sign in to the GitHub account that has access before downloading.
+This link always downloads the current `main` version. Because the repository is private, sign in to the GitHub account that has access before downloading.
 
 ## Easiest Windows setup
 
-1. Download the current ZIP using the link above.
-2. Right-click the downloaded ZIP and select **Extract All**.
+1. Download the current ZIP.
+2. Right-click the ZIP and select **Extract All**.
 3. Open the extracted `PlotPickle-main` folder.
 4. Double-click `Start-PlotPickle.bat`.
 5. Review the installation plan and press **Y** to continue.
-6. Leave the command window open while using PlotPickle. The browser opens automatically at `http://127.0.0.1:4173`.
-7. Press `Ctrl+C` in the command window when finished, then close it.
+6. Leave the command window open while using PlotPickle. The browser opens at `http://127.0.0.1:4173`.
+7. Press `Ctrl+C` when finished, then close the command window.
 
-PlotPickle requires Node.js 22.13 or newer. If Node.js is missing or too old, the starter explains the problem and opens the official Node.js download page. The first launch installs the required components; later launches verify them and start more quickly.
+PlotPickle requires Node.js 22.13 or newer. The first launch installs the local components; later launches verify them and start more quickly.
 
-The command window is PlotPickle's local server. It must remain open while the application is running, and it provides a useful place to see installation progress, verification results, setup errors, and server messages.
+The command window is PlotPickle's private local server. It must remain open while the application is running. Closing it stops PlotPickle.
 
 ## Transparent guided installer
 
-Version 0.5.2 explains the setup before anything is downloaded. The installer displays:
+The Windows launcher explains the setup before anything is downloaded. It displays:
 
-- the PlotPickle, Node.js, and npm versions;
-- the exact top-level package categories and requested versions;
-- the local `node_modules` installation folder;
-- the reusable npm cache location;
-- the free space currently available;
+- PlotPickle, Node.js, and npm versions;
+- every top-level package and requested version;
+- the local installation folder and reusable npm cache;
+- currently available disk space;
 - a recommended minimum of **2 GB free space**;
-- an estimated maximum first-setup working requirement of about **1.5 GB**, including room for dependencies and download caching;
-- a Y/N consent prompt before package installation begins;
-- numbered setup stages and visible npm download, extraction, warning, and verification messages;
-- a final **SUCCESS** report showing the installed package versions and the actual `node_modules` size.
+- an estimated first-setup working requirement of about **1.5 GB**;
+- a Y/N consent prompt;
+- visible installation and repair progress;
+- a final **SUCCESS** report with installed versions and actual dependency size.
 
-The main installed components are:
-
-- Next.js, React, and React DOM for the application interface;
-- Vite and Vinext for the local browser server;
-- Tailwind CSS and TypeScript for styling and code compilation;
-- ESLint for quality checks;
-- Wrangler and Cloudflare/Vite compatibility packages used by the build architecture;
-- Drizzle ORM tooling used by the project architecture.
-
-These packages are installed inside the extracted PlotPickle folder. npm also maintains a reusable download cache in the user's normal npm cache location.
-
-### Security and privacy explanation
-
-The launcher:
-
-- does not request Administrator rights;
-- does not install a Windows service;
-- does not add PlotPickle to Windows startup;
-- does not disable antivirus or Windows security;
-- uses `package.json` and `package-lock.json` to define packages and verify available package-integrity data;
-- does not upload the active story project;
-- binds the server to `127.0.0.1`, the private loopback address for the current computer only.
-
-A local server means PlotPickle uses normal web-browser technology while the program itself is running on the user's computer. It is not published to the home network or public internet. Closing the command window stops the server.
-
-The transparency report is intended to make the setup understandable; it is not a substitute for normal antivirus scanning or downloading only from the official PlotPickle repository.
+The launcher does not request Administrator rights, install a Windows service, add itself to startup, disable Windows Security, or upload the active story project. It binds to `127.0.0.1`, the private loopback address for the current computer only.
 
 ## Windows setup recovery
 
-Version 0.5.1 hardened the Windows launcher against interrupted dependency downloads. The launcher verifies that Vite and the core local packages are actually installed instead of checking only for the existence of the `node_modules` folder.
+The launcher detects interrupted or incomplete package installations and:
 
-When a first installation is interrupted, the launcher:
+1. verifies that Vite and the core packages are truly installed;
+2. retries `npm ci` with network and cache preferences;
+3. falls back to `npm install` so downloaded packages can be reused;
+4. refuses to start the server until Vite passes validation.
 
-1. detects the incomplete installation;
-2. retries `npm ci` with network retry and offline-cache preferences;
-3. falls back to `npm install` so already-downloaded packages can be reused;
-4. refuses to start the server until the local Vite executable passes validation.
-
-If Windows continues to report `ECONNRESET` or `EPERM`:
+For repeated `ECONNRESET` or `EPERM` errors:
 
 1. confirm the internet connection is stable;
-2. confirm at least 2 GB of disk space is free;
+2. confirm at least 2 GB of space is free;
 3. close other PlotPickle, Node, npm, editor, and terminal windows;
 4. run `Start-PlotPickle.bat` again;
-5. if `EPERM` continues, restart Windows, delete only the `node_modules` folder inside PlotPickle, and run the launcher again.
+5. restart Windows and delete only `node_modules` if Windows continues locking the folder.
 
-Deleting `node_modules` does not delete PlotPickle story projects. Active projects are stored in browser storage and can also be preserved through `.plotpickle.json` exports.
+Deleting `node_modules` does not delete story projects. Projects are stored in browser storage and can also be exported as `.plotpickle.json` files.
 
 ## Connected workspaces
 
-- **Instructions** explains the four-act, 24-block process.
-- **Story Planner** develops the foundation, world, characters, Ghost, Catalyst, The Pickle, dialogue system, and block-by-block cause-and-effect spine.
-- **Resonance Engine** turns the central story question into a pattern of character choices, opening and closing images, block turns, motifs, locations, subtext, and consequences without reducing the screenplay to a slogan.
-- **Voiceprint Engine** builds dialogue from character history, social context, knowledge, worldview, rhythm, vocabulary, emotional access, relationships, objectives, and pressure.
-- **PageFlow Engine** turns block plans into visible, active, actor-playable, economical screenplay description and provides revision signals for invisible information, weak phrasing, dense paragraphs, emotion labels, and unnecessary directing language.
-- **DraftLens Engine** reviews the whole screenplay through story question, character, structure, page experience, dialogue, and surprise lenses, then turns reader experience into root diagnoses, evidence and revision questions.
-- **CraftLoop Engine** connects audience engagement, opening design, scene turns, character-specific pressure, observed dialogue, page compression, pitching, and comparative study into a repeatable deliberate-practice cycle.
-- **Visual Board** attaches storyboard frames, prompts, shot notes, performance ideas, and continuity information to the same blocks.
+- **Instructions** explains the four-act, 24-block method.
+- **Story Planner** develops the story foundation, world, characters, Ghost, Catalyst, The Pickle, dialogue system, and block spine.
+- **Structure Engine** expands the spine into 12 sequences, 48 scenes, 96 mini-blocks, beat and shot targets, and a complete Story Clock.
+- **Resonance Engine** aligns the central question with character choices, motifs, opening and closing images, and consequences.
+- **Voiceprint Engine** develops character-specific speech from history, status, worldview, rhythm, vocabulary, emotion, and pressure.
+- **PageFlow Engine** turns planning into visible, active, actor-playable screenplay description.
+- **DraftLens Engine** reviews the whole draft and converts reader experience into evidence, root diagnosis, and revision questions.
+- **CraftLoop Engine** connects the entire method into a repeatable deliberate-practice cycle.
+- **Visual Board** attaches storyboard frames, prompts, shot notes, performance ideas, and continuity to the same project.
 
-Open CraftLoop, DraftLens, Resonance, Voiceprint, and PageFlow from the floating engine buttons inside PlotPickle. All five read and write the same locally saved project as the main application.
+Every workspace reads and writes the same locally saved project.
 
-## Resonance Engine
+## Structure Engine
 
-Resonance is an alignment and diagnostic layer, not a second theme database. It uses existing canonical project fields:
+Version 0.7 restores the complete timed hierarchy beneath the 24 Blocks method:
 
-- `story.dramaticQuestion` for the difficult question the screenplay tests;
-- `story.theme` and `story.antiTheme` for the working answer and credible counter-answer;
-- `development.pitch.audiencePromise` and `emotionalExperience` for the reason to tell the story and the desired audience aftertaste;
-- `story.hook` and `story.ending` for the opening and closing image bracket;
-- character wants, needs, ghosts, and arcs as competing dramatic arguments;
-- `block.emotionalTurn`, `setup`, `payoff`, and `pickleTurn` for block-level pressure, seeds, evidence, and audience reframes;
-- `world.visualLanguage`, dialogue subtext, and recurring language for visual, spatial, behavioural, and verbal motifs.
+**4 Acts → 12 Sequences → 24 Blocks → 48 Scenes → 96 Mini-Blocks → Beats → Shots**
 
-The Resonance alignment signal measures coverage, not artistic quality. Ambiguity, contradiction, irony, silence, and justified exceptions remain valid creative choices.
+### Twelve sequences
 
-The complete design is documented in `docs/architecture/resonance-engine.md`.
+Each act contains three sequences and each sequence contains two blocks. The editable starting progression is:
 
-## PageFlow Engine
+1. Awakening
+2. Discovery
+3. Alliance
+4. Conflict
+5. Struggle
+6. Pivot
+7. Apex
+8. Turn
+9. Reveal
+10. Fallout
+11. Mending
+12. Legacy
 
-PageFlow is a diagnostic and revision layer, not a second screenplay database. It uses the existing canonical project fields:
+Each sequence records its question, promise, escalation, climax, turning point, result, block pair, and target runtime.
 
-- `block.scriptExcerpt` for the page-ready action or scene draft;
-- `block.storyboardDirection` for the visible sequence and image progression;
-- `block.goal`, `conflict`, `action`, `consequence`, and `emotionalTurn` for causal context;
-- `character.description` for the character entrance and concise first impression;
-- `block.notes` for revision decisions and unresolved PageFlow questions;
-- `block.visuals` for the corresponding Visual Board images.
+### Forty-eight scenes
 
-The PageFlow draft signal is an editorial prompt, not a grade. It highlights phrases worth inspecting while allowing justified exceptions for voiceover, genre, formal experimentation, and necessary shot design.
+Every block begins with two scene containers:
 
-The complete design is documented in `docs/architecture/pageflow-engine.md`.
+- Scene 1 establishes the block objective and develops the first pressure.
+- Scene 2 deepens the conflict, forces action or choice, and creates the block consequence.
 
-## DraftLens Engine
+The scene records are flexible. They can represent two full screenplay scenes, two movements, or containers for several shorter scenes.
 
-DraftLens is a whole-draft review and feedback layer, not an automated rewrite system or a second notes database. It organizes existing project evidence through six diagnostic lenses:
+### Ninety-six mini-blocks
 
-- story question and stakes;
-- character want, need, Ghost, fatal flaw, and arc;
-- structure, cause, choice, consequence, pacing, and pattern;
-- page clarity, momentum, and visual evidence;
-- dialogue distinction, subtext, status, and exposition;
-- audience expectation, surprise, and distinctive execution.
+Each block contains four mini-blocks:
 
-It uses the existing project notes fields deliberately:
+1. Promise
+2. Progress
+3. Pressure
+4. Payoff
 
-- `development.notes.general` for first-read observations;
-- `development.notes.revisions` for root diagnosis and revision priorities;
-- `development.notes.openQuestions` for questions that preserve multiple possible solutions;
-- `development.notes.continuity` for supporting evidence;
-- `development.notes.research` for craft references and comparisons;
-- `development.notes.sources` for readers, drafts, dates, table reads, and feedback sources;
-- `block.notes` for the selected block's review evidence.
+Each mini-block can store purpose, active character, objective, resistance, action, revelation, turn, entry and exit states, visual beat, dialogue intention, setup, payoff, notes, duration, beat target, and shot target.
 
-DraftLens follows a diagnosis-before-prescription rule. It asks what the reader experienced, where the evidence appears, what deeper story function may be causing it, and which question could help the writer discover the strongest repair.
+### Original two-hour preset
 
-The complete design is documented in `docs/architecture/draftlens-engine.md`.
+At 120 minutes, the default model produces:
 
-## CraftLoop Engine
+- 30 minutes per act;
+- 10 minutes per sequence;
+- 5 minutes per block;
+- 2.5 minutes per scene;
+- 75 seconds per mini-block;
+- 4 beats and 16 shots per mini-block;
+- 16 beats and 64 shots per block;
+- 384 beat targets and 1,536 shot targets overall;
+- an average shot length of approximately 4.69 seconds.
 
-CraftLoop is a capstone practice and integration layer, not a second craft database. It organizes the complete process into seven repeatable passes:
+These values are reference targets, not requirements. Every mini-block timing, beat target, and shot target remains editable.
 
-1. audience game;
-2. opening contract;
-3. scene turn;
-4. character-specific pressure;
-5. human voice;
-6. page compression;
-7. pitch and reflection.
+### Story Clock
 
-It deliberately coordinates existing canonical fields:
+The Story Clock calculates start time, end time, duration, beats, and shots for every sequence, block, scene, and mini-block.
 
-- The Pickle and block audience fields for what viewers are tracking;
-- hook, theme, catalyst, ordinary world, and Block 1 evidence for the opening contract;
-- block goal, conflict, choice, action, consequence, and emotional turn for scene movement;
-- character want, need, Ghost, fatal flaw, and arc for pressure;
-- character voice, project subtext, voice contrast, and fieldwork notes for observed dialogue;
-- `block.scriptExcerpt`, `storyboardDirection`, and the PageFlow scanner for page compression;
-- `development.pitch.oneSentence` and `shortPitch` for explanation and pitching;
-- `development.notes.research` for comparative craft study.
+Changing the project runtime and selecting **Rebalance full timeline** changes duration allocations only. It does not overwrite story, dialogue, screenplay, or visual content.
 
-The CraftLoop coverage signal measures whether enough evidence exists for a complete practice pass. It does not measure talent, originality, entertainment value, or production readiness.
+The complete design is documented in `docs/architecture/structure-engine.md`.
 
-The complete design is documented in `docs/architecture/craftloop-engine.md`.
+## Project data and migration
 
-## Project data
+New projects use schema `1.4.0`.
 
-Every new project uses schema version `1.3.0`. Import automatically upgrades compatible PlotPickle 1.0, 1.1, and 1.2 project files.
+Imports from PlotPickle 1.0, 1.1, 1.2, and 1.3 are upgraded automatically. Migration:
 
-Version 1.3 added the Voiceprint Engine to the shared story architecture. Each character can store:
+- preserves all existing story, world, character, block, dialogue, note, screenplay, and visual data;
+- creates twelve sequence records;
+- assigns blocks to sequences in pairs;
+- creates two scene records per block;
+- creates four mini-block records per block;
+- calculates the initial Story Clock from the project target runtime.
 
-- origin and formative environment;
-- social context and status;
-- education and expertise;
-- worldview and boundaries;
-- rhythm and sentence shape;
-- vocabulary and metaphors;
-- verbal fingerprints;
-- emotional access;
-- status and relationship shifts;
-- persuasion strategy.
+The source of truth is:
 
-The project-wide dialogue system also tracks world vernacular, monologue rules, subtext seeds, exposition rules, recurring language, and an observation library.
+- `schema/plotpickle-project.schema.json`
+- `lib/project.ts`
+- `lib/structure.ts`
 
-Application version 0.4 added the Resonance Engine without changing the project schema. Application version 0.5 added DraftLens using the existing project notes, story, character, block, dialogue, and Pickle fields. Version 0.5.1 hardened the local Windows setup and server launch process. Version 0.5.2 added the transparent guided installer and verified success report. Version 0.6 adds CraftLoop as a coordinating deliberate-practice workspace using existing project fields. Existing 1.3 projects remain compatible without migration.
+## Specialist engines
 
-The source of truth is documented in `schema/plotpickle-project.schema.json` and typed in `lib/project.ts`. The Voiceprint Engine design is documented in `docs/architecture/voiceprint-engine.md`.
+### Resonance Engine
 
-The Pickle defines what the audience keeps trying to solve: the central tension, story promise, expected destination, unpredictable route, competing live answers, escalation pattern, final answer, and signature execution. Every block also records the audience expectation and the clue, reversal, complication, near-answer, or reframe that changes it. See `docs/architecture/the-pickle.md`.
+Resonance uses the dramatic question, theme, anti-theme, audience promise, opening and closing images, character arcs, block turns, visual language, and dialogue motifs. Its alignment signal measures coverage, not artistic quality.
 
-The application autosaves the active project to browser storage. Export produces a readable `.plotpickle.json` file that can be imported into any compatible PlotPickle installation. A valid project contains exactly 24 blocks.
+See `docs/architecture/resonance-engine.md`.
 
-The Afterglow starter project is assembled in `data/afterglow.ts`. It includes the current world, character library, and 21 named storyboard blocks found in the source repository. Blocks 22–24 remain explicitly marked for screenplay reconciliation rather than being filled with invented material.
+### Voiceprint Engine
+
+Voiceprint stores each character's origin, social context, expertise, worldview, sentence shape, vocabulary, verbal fingerprints, emotional access, status shifts, and persuasion strategy while retaining a concise scene-ready voice rule.
+
+See `docs/architecture/voiceprint-engine.md`.
+
+### PageFlow Engine
+
+PageFlow uses `block.scriptExcerpt`, `storyboardDirection`, block cause-and-effect fields, character descriptions, notes, and visuals. Its diagnostic signal highlights language worth inspecting without treating exceptions as errors.
+
+See `docs/architecture/pageflow-engine.md`.
+
+### DraftLens Engine
+
+DraftLens reviews story question, character, structure, page experience, dialogue, and surprise. It separates reader experience, evidence, root cause, and revision questions.
+
+See `docs/architecture/draftlens-engine.md`.
+
+### CraftLoop Engine
+
+CraftLoop coordinates audience game, opening contract, scene turn, character pressure, observed voice, page compression, pitching, and comparative craft study.
+
+See `docs/architecture/craftloop-engine.md`.
 
 ## Connected production cycle
 
-**Plan the cause → test the idea → shape the voice → write the page → review the draft → practise the craft → preserve the image → repeat.**
+**Plan the story → organize the sequence → build the scene → turn the mini-block → test the idea → shape the voice → write the page → review the draft → practise the craft → preserve the image → repeat.**
 
 ## Manual local development
-
-Install dependencies and run the local development server:
 
 ```bash
 npm ci
@@ -228,13 +207,6 @@ npm run dev:local -- --host 127.0.0.1 --port 4173
 ```
 
 Then open `http://127.0.0.1:4173`.
-
-On macOS or Linux, the existing development command can also be used:
-
-```bash
-npm ci
-npm run dev
-```
 
 Run the production checks in a Bash-compatible environment:
 
@@ -246,8 +218,8 @@ npm test
 
 ## Brand assets
 
-The complete PlotPickle Playhouse logo kit lives in `public/brand`. The horizontal lockup is used by the product page, the icon-only mark is used inside the application, and the favicon, Apple touch icon, and web-app sizes are connected through the site metadata and `public/manifest.webmanifest`.
+The PlotPickle Playhouse logo kit is in `public/brand`. The horizontal lockup is used by the product page, the icon-only mark is used inside the application, and favicon and web-app sizes are connected through the site metadata and manifest.
 
 ## Deployment
 
-The application has no required database, account system, or server-side project storage. It can run locally through the included Windows starter and can also be deployed as a standard PlotPickle Site, GitHub Pages adaptation, Plesk application, or another compatible web host.
+PlotPickle has no required database, account system, or server-side project storage. It can run locally through the Windows launcher or be adapted for another compatible web host.

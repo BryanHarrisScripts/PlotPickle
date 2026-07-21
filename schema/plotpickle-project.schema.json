@@ -7,7 +7,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "id", "metadata", "story", "world", "development", "characters", "blocks"],
   "properties": {
-    "schemaVersion": { "const": "1.4.0" },
+    "schemaVersion": { "const": "1.5.0" },
     "id": { "type": "string", "minLength": 1 },
     "metadata": {
       "type": "object",
@@ -291,10 +291,39 @@
         "continuity": { "type": "string" }
       }
     },
+    "scene": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "purpose", "characterIds", "locationId", "pointOfView", "desire", "counterDesire", "hold", "cutIn", "cutOut", "revealingChoice", "settingPressure", "surfaceAction", "undercurrent", "openingValue", "pivot", "closingValue", "tacticShift", "focusReveal", "handoff", "notes"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "purpose": { "type": "string" },
+        "characterIds": { "type": "array", "items": { "type": "string" } },
+        "locationId": { "type": "string" },
+        "pointOfView": { "type": "string", "description": "The character or force whose pursuit organizes the scene." },
+        "desire": { "type": "string", "description": "The immediate result the scene driver is trying to create." },
+        "counterDesire": { "type": "string", "description": "The incompatible result another person, system, circumstance, or inner force is pursuing." },
+        "hold": { "type": "string", "description": "Why the pressure matters enough that the participants cannot simply disengage." },
+        "cutIn": { "type": "string", "description": "The first essential moment after routine approach and explanation have been removed." },
+        "cutOut": { "type": "string", "description": "The decisive line, image, action, or discovery after which the scene has finished its job." },
+        "revealingChoice": { "type": "string", "description": "The choice that proves character through behaviour." },
+        "settingPressure": { "type": "string", "description": "How an organic location, task, prop, witness, or physical condition intensifies the scene." },
+        "surfaceAction": { "type": "string", "description": "What participants openly do, discuss, or pursue." },
+        "undercurrent": { "type": "string", "description": "What is actually being negotiated emotionally, relationally, or thematically." },
+        "openingValue": { "type": "string", "description": "The relationship, status, safety, belief, control, or emotional value at the opening." },
+        "pivot": { "type": "string", "description": "The new information, action, refusal, or reversal that changes how the scene must proceed." },
+        "closingValue": { "type": "string", "description": "The changed value at the scene exit." },
+        "tacticShift": { "type": "string", "description": "How the driver adapts after the pivot." },
+        "focusReveal": { "type": "string", "description": "The clearest audience takeaway the scene earns without unnecessary explanation." },
+        "handoff": { "type": "string", "description": "The unresolved pressure, consequence, question, or decision that makes the next movement necessary." },
+        "notes": { "type": "string" }
+      }
+    },
     "block": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "number", "act", "title", "purpose", "summary", "characterIds", "locationIds", "goal", "conflict", "choice", "action", "consequence", "emotionalTurn", "audienceExpectation", "pickleTurn", "setup", "payoff", "scriptExcerpt", "storyboardDirection", "notes", "visuals"],
+      "required": ["id", "number", "act", "title", "purpose", "summary", "characterIds", "locationIds", "goal", "conflict", "choice", "action", "consequence", "emotionalTurn", "audienceExpectation", "pickleTurn", "setup", "payoff", "scriptExcerpt", "storyboardDirection", "notes", "scenes", "visuals"],
       "properties": {
         "id": { "type": "string" },
         "number": { "type": "integer", "minimum": 1, "maximum": 24 },
@@ -317,6 +346,7 @@
         "scriptExcerpt": { "type": "string" },
         "storyboardDirection": { "type": "string" },
         "notes": { "type": "string" },
+        "scenes": { "type": "array", "items": { "$ref": "#/$defs/scene" } },
         "visuals": { "type": "array", "items": { "$ref": "#/$defs/visual" } }
       }
     }

@@ -31,14 +31,17 @@ export default function SettingsPanel() {
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
-      if (stored) setSettings(normalizePlotPickleSettings(JSON.parse(stored)));
-    } catch {
-      setNotice("Saved settings could not be read. Safe defaults are in use.");
-    } finally {
-      setHydrated(true);
-    }
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+        if (stored) setSettings(normalizePlotPickleSettings(JSON.parse(stored)));
+      } catch {
+        setNotice("Saved settings could not be read. Safe defaults are in use.");
+      } finally {
+        setHydrated(true);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const preset = useMemo(

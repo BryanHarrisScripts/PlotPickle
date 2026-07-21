@@ -2,7 +2,7 @@
 
 PlotPickle is a local-first story development application built around Bryan Harris's 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, scene, mini-block, screenplay page, review, and visual board.
 
-Current application version: `0.7.0`
+Current application version: `0.7.1`
 
 Current project schema: `1.4.0`
 
@@ -25,6 +25,32 @@ This link always downloads the current `main` version. Because the repository is
 PlotPickle requires Node.js 22.13 or newer. The first launch installs the local components; later launches verify them and start more quickly.
 
 The command window is PlotPickle's private local server. It must remain open while the application is running. Closing it stops PlotPickle.
+
+## Easy in-place upgrades
+
+Beginning with PlotPickle 0.7.1, keep one permanent PlotPickle folder instead of deleting it after every release.
+
+For routine upgrades:
+
+1. Close PlotPickle and its local-server command window.
+2. Download the latest PlotPickle ZIP while signed into GitHub.
+3. Do not extract the new ZIP manually.
+4. Double-click `Update-PlotPickle.bat` inside the existing PlotPickle folder.
+5. Select the newly downloaded ZIP.
+6. Wait for the updater's success message.
+7. Run `Start-PlotPickle.bat` normally.
+
+The updater replaces application files while preserving `node_modules`, the npm cache, the dependency fingerprint, and browser-stored projects.
+
+The starter compares the new `package-lock.json` with the fingerprint from the last successful installation:
+
+- if dependencies did not change, PlotPickle starts without running npm;
+- if dependencies changed, npm performs an incremental upgrade and reuses installed packages and cache wherever possible;
+- if dependencies are damaged or missing, the full installation and repair path is used.
+
+The repository is private, so the updater asks the user to select a ZIP downloaded through their authenticated GitHub session rather than attempting an anonymous download.
+
+See `docs/windows-upgrades.md` for the complete upgrade and recovery guide.
 
 ## Transparent guided installer
 

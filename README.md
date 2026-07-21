@@ -2,7 +2,7 @@
 
 PlotPickle is a local-first story development application built around Bryan Harris's 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, scene, mini-block, screenplay page, review, and visual board.
 
-Current application version: `0.7.1`
+Current application version: `0.7.2`
 
 Current project schema: `1.4.0`
 
@@ -28,7 +28,7 @@ The command window is PlotPickle's private local server. It must remain open whi
 
 ## Easy upgrades without reinstalling everything
 
-Beginning with PlotPickle 0.7.1, application files and installed packages are separated:
+Beginning with PlotPickle 0.7.2, application files and installed packages are separated:
 
 - replaceable PlotPickle program files remain in the extracted folder;
 - reusable packages live under `%LOCALAPPDATA%\PlotPickle\runtimes\<dependency fingerprint>`;

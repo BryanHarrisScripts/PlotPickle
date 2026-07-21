@@ -4,15 +4,17 @@ import test from "node:test";
 const developmentPreviewMeta =
   /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']development["'])[^>]*>/i;
 
-test("renders development preview metadata", async () => {
+async function loadWorker() {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
+  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}-${Math.random()}`);
   const { default: worker } = await import(workerUrl.href);
+  return worker;
+}
 
+async function render(pathname) {
+  const worker = await loadWorker();
   const response = await worker.fetch(
-    new Request("http://localhost/", {
-      headers: { accept: "text/html" },
-    }),
+    new Request(`http://localhost${pathname}`, { headers: { accept: "text/html" } }),
     {
       ASSETS: {
         fetch: async () => new Response("Not found", { status: 404 }),
@@ -23,13 +25,13 @@ test("renders development preview metadata", async () => {
       passThroughOnException() {},
     },
   );
-
   assert.equal(response.status, 200);
-  assert.match(
-    response.headers.get("content-type") ?? "",
-    /^text\/html\b/i,
-  );
-  const html = await response.text();
+  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
+  return response.text();
+}
+
+test("renders the main PlotPickle workspace", async () => {
+  const html = await render("/");
   assert.match(html, developmentPreviewMeta);
   assert.match(html, /PlotPickle Playhouse/);
   assert.match(html, /Download for Windows/);
@@ -52,4 +54,20 @@ test("renders development preview metadata", async () => {
   ]) {
     assert.match(html, new RegExp(section));
   }
+});
+
+test("renders the Voiceprint Engine route", async () => {
+  const html = await render("/voiceprint");
+  assert.match(html, /Voiceprint Engine/);
+  assert.match(html, /Project dialogue system/);
+  assert.match(html, /Character-specific language/);
+  assert.match(html, /Scene pressure reference/);
+});
+
+test("renders the PageFlow Engine route", async () => {
+  const html = await render("/pageflow");
+  assert.match(html, /PageFlow Engine/);
+  assert.match(html, /Write the movie the reader can see/);
+  assert.match(html, /Revision signals/);
+  assert.match(html, /Five-pass rewrite/);
 });

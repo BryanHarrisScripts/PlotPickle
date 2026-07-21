@@ -7,9 +7,12 @@ set "PLOTPICKLE_PORT=4173"
 set "PLOTPICKLE_URL=http://127.0.0.1:%PLOTPICKLE_PORT%"
 set "VITE_CMD=node_modules\.bin\vite.cmd"
 set "SETUP_REPORT=scripts\windows-setup-report.mjs"
+set "INSTALL_STATE_DIR=.plotpickle"
+set "LOCK_HASH_FILE=%INSTALL_STATE_DIR%\package-lock.sha256"
 set "INSTALL_PERFORMED=0"
+set "UPGRADE_PERFORMED=0"
 
-rem Make first-time installation more tolerant and visible.
+rem Make installation and upgrades more tolerant and visible.
 set "NODE_ENV=development"
 set "npm_config_fetch_retries=5"
 set "npm_config_fetch_retry_factor=2"
@@ -34,7 +37,7 @@ echo It does not install a Windows service and does not require Administrator ri
 echo The local address 127.0.0.1 is private to this computer.
 echo Keep this window open while using PlotPickle; closing it stops the server.
 echo.
-echo [STEP 1 OF 4] Checking Node.js and npm...
+echo [STEP 1 OF 4] Checking Node.js, npm, and PlotPickle version...
 echo.
 
 where node >nul 2>&1
@@ -80,7 +83,7 @@ call :ensure_dependencies
 set "SETUP_RESULT=!ERRORLEVEL!"
 if "!SETUP_RESULT!"=="2" (
   echo.
-  echo Setup was cancelled. Nothing else was installed or started.
+  echo Setup or upgrade was cancelled. Nothing else was installed or started.
   pause
   exit /b 0
 )
@@ -91,6 +94,15 @@ echo [STEP 3 OF 4] Verifying installed components and reporting results...
 echo.
 if "!INSTALL_PERFORMED!"=="1" (
   node "%SETUP_REPORT%" success
+) else if "!UPGRADE_PERFORMED!"=="1" (
+  echo ============================================================
+  echo   SUCCESS - PLOTPICKLE UPGRADE COMPLETED
+  echo ============================================================
+  echo.
+  echo Application files and npm components now match PlotPickle !PLOTPICKLE_VERSION!.
+  echo Existing components were reused wherever possible.
+  echo.
+  node "%SETUP_REPORT%" ready
 ) else (
   node "%SETUP_REPORT%" ready
 )
@@ -119,16 +131,51 @@ pause
 exit /b %EXIT_CODE%
 
 :ensure_dependencies
-echo [STEP 2 OF 4] Checking PlotPickle components...
+echo [STEP 2 OF 4] Checking PlotPickle components and upgrade state...
 echo.
-call :dependencies_ready
+call :core_dependencies_ready
+if errorlevel 1 goto :full_install
+
+call :lock_matches
 if not errorlevel 1 (
-  echo [OK] Required components are already installed and verified.
+  echo [OK] Required components are installed and match this PlotPickle version.
   exit /b 0
 )
 
+echo A PlotPickle program update changed the component definition.
+echo Existing components will be reused; npm will update only what changed.
+echo This is not a new first-time installation.
+echo.
+if not exist "%SETUP_REPORT%" (
+  echo [ERROR] The setup-report file is missing from this PlotPickle download.
+  exit /b 1
+)
+node "%SETUP_REPORT%" plan
+if errorlevel 1 exit /b 1
+echo.
+choice /C YN /N /M "Continue with this PlotPickle component upgrade? [Y/N]: "
+if errorlevel 2 exit /b 2
+
+echo.
+echo ------------------------------------------------------------
+echo   COMPONENT UPGRADE - Reusing the existing installation
+ echo ------------------------------------------------------------
+echo npm will compare package-lock.json with the installed components.
+echo Unchanged packages remain available and the npm cache will be reused.
+echo.
+call npm install --include=dev --prefer-offline --no-audit --no-fund --progress=true --loglevel=notice
+call :core_dependencies_ready
+if errorlevel 1 goto :full_install
+call :write_lock_hash
+if errorlevel 1 exit /b 1
+set "UPGRADE_PERFORMED=1"
+echo.
+echo [SUCCESS] PlotPickle components were upgraded in place.
+exit /b 0
+
+:full_install
 if exist "node_modules" (
-  echo An incomplete PlotPickle component folder was detected.
+  echo An incomplete or incompatible PlotPickle component folder was detected.
   echo The installer will repair it instead of trying to start a broken server.
 ) else (
   echo First-time setup is required.
@@ -158,8 +205,10 @@ echo Yellow deprecation warnings do not normally mean setup failed.
 echo A red npm error means the installer will attempt a repair.
 echo.
 call npm ci --include=dev --prefer-offline --no-audit --no-fund --progress=true --loglevel=notice
-call :dependencies_ready
+call :core_dependencies_ready
 if not errorlevel 1 (
+  call :write_lock_hash
+  if errorlevel 1 exit /b 1
   set "INSTALL_PERFORMED=1"
   echo.
   echo [SUCCESS] Clean package installation completed.
@@ -174,17 +223,18 @@ echo Reusing packages already downloaded to the npm cache...
 echo.
 call npm cache verify
 call npm install --include=dev --prefer-offline --no-audit --no-fund --progress=true --loglevel=notice
-call :dependencies_ready
+call :core_dependencies_ready
 if not errorlevel 1 (
+  call :write_lock_hash
+  if errorlevel 1 exit /b 1
   set "INSTALL_PERFORMED=1"
   echo.
   echo [SUCCESS] Package repair completed.
   exit /b 0
 )
-
 exit /b 1
 
-:dependencies_ready
+:core_dependencies_ready
 if not exist "%VITE_CMD%" exit /b 1
 if not exist "node_modules\vite\package.json" exit /b 1
 if not exist "node_modules\next\package.json" exit /b 1
@@ -194,13 +244,42 @@ call "%VITE_CMD%" --version >nul 2>&1
 if errorlevel 1 exit /b 1
 exit /b 0
 
+:current_lock_hash
+set "CURRENT_LOCK_HASH="
+if not exist "package-lock.json" exit /b 1
+for /f "tokens=1" %%H in ('certutil -hashfile "package-lock.json" SHA256 ^| findstr /R /V "hash CertUtil"') do if not defined CURRENT_LOCK_HASH set "CURRENT_LOCK_HASH=%%H"
+if not defined CURRENT_LOCK_HASH exit /b 1
+exit /b 0
+
+:lock_matches
+if not exist "%LOCK_HASH_FILE%" exit /b 1
+call :current_lock_hash
+if errorlevel 1 exit /b 1
+set /p "INSTALLED_LOCK_HASH=" < "%LOCK_HASH_FILE%"
+if /I "!CURRENT_LOCK_HASH!"=="!INSTALLED_LOCK_HASH!" exit /b 0
+exit /b 1
+
+:write_lock_hash
+call :current_lock_hash
+if errorlevel 1 (
+  echo [ERROR] package-lock.json could not be fingerprinted.
+  exit /b 1
+)
+if not exist "%INSTALL_STATE_DIR%" mkdir "%INSTALL_STATE_DIR%" >nul 2>&1
+> "%LOCK_HASH_FILE%" echo !CURRENT_LOCK_HASH!
+if not exist "%LOCK_HASH_FILE%" (
+  echo [ERROR] The dependency fingerprint could not be saved.
+  exit /b 1
+)
+exit /b 0
+
 :setup_failed
 echo.
 echo ============================================================
-echo   PLOTPICKLE SETUP COULD NOT FINISH
+echo   PLOTPICKLE SETUP OR UPGRADE COULD NOT FINISH
 echo ============================================================
 echo.
-echo The required local components are still missing or incomplete.
+echo The required local components are still missing, incomplete, or incompatible.
 echo Nothing was installed as a Windows service, and no server was started.
 echo.
 echo 1. Confirm that your internet connection is stable.

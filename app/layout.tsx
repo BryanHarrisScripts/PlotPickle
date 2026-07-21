@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import CurrentDownloadLinks from "./current-download-links";
 import "./globals.css";
 
@@ -16,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "PlotPickle Playhouse — Download the 24 Blocks Story Planner",
   description:
-    "Download PlotPickle Playhouse for Windows: a local-first story planner connecting Instructions, Story Planner, Resonance Engine, Voiceprint Engine, PageFlow Engine, and Visual Board through Bryan Harris's 24 Blocks method.",
+    "Download PlotPickle Playhouse for Windows: a local-first story planner connecting Instructions, Story Planner, Resonance Engine, Voiceprint Engine, PageFlow Engine, DraftLens Engine, and Visual Board through Bryan Harris's 24 Blocks method.",
   other: {
     "codex-preview": "development",
   },
@@ -69,9 +70,10 @@ export default function RootLayout({
             gap: 8,
           }}
         >
-          <a href="/resonance" style={engineLinkStyle}>Resonance Engine</a>
-          <a href="/pageflow" style={engineLinkStyle}>PageFlow Engine</a>
-          <a href="/voiceprint" style={engineLinkStyle}>Voiceprint Engine</a>
+          <Link href="/draftlens" style={engineLinkStyle}>DraftLens Engine</Link>
+          <Link href="/resonance" style={engineLinkStyle}>Resonance Engine</Link>
+          <Link href="/pageflow" style={engineLinkStyle}>PageFlow Engine</Link>
+          <Link href="/voiceprint" style={engineLinkStyle}>Voiceprint Engine</Link>
         </nav>
       </body>
     </html>

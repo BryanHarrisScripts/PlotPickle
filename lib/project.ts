@@ -53,6 +53,8 @@ export type StoryBlock = {
   action: string;
   consequence: string;
   emotionalTurn: string;
+  audienceExpectation: string;
+  pickleTurn: string;
   setup: string;
   payoff: string;
   scriptExcerpt: string;
@@ -102,6 +104,18 @@ export type ProjectDevelopment = {
     transformation: string;
     endingProof: string;
   };
+  pickle: {
+    centralTension: string;
+    audienceQuestion: string;
+    storyPromise: string;
+    expectedDestination: string;
+    unpredictableRoute: string;
+    liveAnswerA: string;
+    liveAnswerB: string;
+    escalationPattern: string;
+    finalAnswer: string;
+    signatureMove: string;
+  };
   dialogue: {
     principles: string;
     voiceContrast: string;
@@ -121,7 +135,7 @@ export type ProjectDevelopment = {
 };
 
 export type PlotPickleProject = {
-  schemaVersion: "1.1.0";
+  schemaVersion: "1.2.0";
   id: string;
   metadata: {
     title: string;
@@ -203,6 +217,18 @@ export function createBlankDevelopment(): ProjectDevelopment {
     ghost: { centralWound: "", origin: "", lie: "", trigger: "", presentPattern: "", truth: "" },
     catalyst: { event: "", timing: "", immediateImpact: "", choiceForced: "", resistance: "", doorway: "" },
     foundations: { protagonist: "", objective: "", opposition: "", urgency: "", storyEngine: "", transformation: "", endingProof: "" },
+    pickle: {
+      centralTension: "",
+      audienceQuestion: "",
+      storyPromise: "",
+      expectedDestination: "",
+      unpredictableRoute: "",
+      liveAnswerA: "",
+      liveAnswerB: "",
+      escalationPattern: "",
+      finalAnswer: "",
+      signatureMove: "",
+    },
     dialogue: { principles: "", voiceContrast: "", subtext: "", expositionRules: "", recurringLanguage: "", notes: "" },
     notes: { general: "", research: "", openQuestions: "", continuity: "", revisions: "", sources: "" },
   };
@@ -211,7 +237,7 @@ export function createBlankDevelopment(): ProjectDevelopment {
 export function createBlankProject(): PlotPickleProject {
   const now = new Date().toISOString();
   return {
-    schemaVersion: "1.1.0",
+    schemaVersion: "1.2.0",
     id: makeId("project"),
     metadata: {
       title: "Untitled Story",
@@ -264,6 +290,8 @@ export function createBlankProject(): PlotPickleProject {
       action: "",
       consequence: "",
       emotionalTurn: "",
+      audienceExpectation: "",
+      pickleTurn: "",
       setup: "",
       payoff: "",
       scriptExcerpt: "",
@@ -282,7 +310,7 @@ export function isPlotPickleProject(value: unknown): value is PlotPickleProject 
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<PlotPickleProject>;
   return (
-    candidate.schemaVersion === "1.1.0" &&
+    candidate.schemaVersion === "1.2.0" &&
     typeof candidate.id === "string" &&
     !!candidate.metadata &&
     !!candidate.story &&
@@ -307,7 +335,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     blocks?: Array<Partial<StoryBlock>>;
   };
   if (
-    !["1.0.0", "1.1.0"].includes(candidate.schemaVersion ?? "") ||
+    !["1.0.0", "1.1.0", "1.2.0"].includes(candidate.schemaVersion ?? "") ||
     typeof candidate.id !== "string" ||
     !candidate.metadata ||
     !candidate.story ||
@@ -320,7 +348,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
   const defaults = createBlankDevelopment();
   const development = candidate.development ?? {};
   return {
-    schemaVersion: "1.1.0",
+    schemaVersion: "1.2.0",
     id: candidate.id,
     metadata: candidate.metadata,
     story: candidate.story,
@@ -331,6 +359,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
       ghost: { ...defaults.ghost, ...development.ghost },
       catalyst: { ...defaults.catalyst, ...development.catalyst },
       foundations: { ...defaults.foundations, ...development.foundations },
+      pickle: { ...defaults.pickle, ...development.pickle },
       dialogue: { ...defaults.dialogue, ...development.dialogue },
       notes: { ...defaults.notes, ...development.notes },
     },
@@ -339,6 +368,8 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
       ...createBlankProject().blocks[index],
       ...block,
       storyboardDirection: block.storyboardDirection ?? "",
+      audienceExpectation: block.audienceExpectation ?? "",
+      pickleTurn: block.pickleTurn ?? "",
     })),
   };
 }
@@ -351,6 +382,9 @@ export function completionFor(project: PlotPickleProject) {
     project.story.dramaticQuestion,
     project.story.catalyst,
     project.story.stakes,
+    project.development.pickle.centralTension,
+    project.development.pickle.audienceQuestion,
+    project.development.pickle.signatureMove,
   ];
   const world = [project.world.ordinaryWorld, project.world.newWorld, project.world.rules];
   const characterScore = project.characters.filter(

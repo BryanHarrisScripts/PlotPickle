@@ -12,16 +12,25 @@ const RECOMMENDED_FREE_BYTES = 2 * 1024 ** 3;
 const ESTIMATED_WORKING_BYTES = 1.5 * 1024 ** 3;
 
 const components = [
+  ["Project data runtime", "drizzle-orm"],
   ["Application framework", "next"],
   ["User interface", "react"],
   ["Browser renderer", "react-dom"],
-  ["Local development server", "vite"],
-  ["Next.js-to-Vite compatibility", "vinext"],
-  ["Styling and CSS build tools", "tailwindcss"],
-  ["Code safety and compilation", "typescript"],
+  ["Cloudflare/Vite build compatibility", "@cloudflare/vite-plugin"],
+  ["Tailwind PostCSS integration", "@tailwindcss/postcss"],
+  ["Node.js type definitions", "@types/node"],
+  ["React type definitions", "@types/react"],
+  ["React DOM type definitions", "@types/react-dom"],
+  ["React/Vite build integration", "@vitejs/plugin-react"],
+  ["React Server Components integration", "@vitejs/plugin-rsc"],
+  ["Project data build tooling", "drizzle-kit"],
   ["Code-quality checking", "eslint"],
+  ["Next.js quality rules", "eslint-config-next"],
+  ["Styling framework", "tailwindcss"],
+  ["Code safety and compilation", "typescript"],
+  ["Next.js-to-Vite compatibility", "vinext"],
+  ["Private local development server", "vite"],
   ["Local/build compatibility", "wrangler"],
-  ["Project data tooling", "drizzle-orm"],
 ];
 
 function divider() {
@@ -49,12 +58,14 @@ function installedVersion(packageName) {
 }
 
 function npmCachePath() {
-  const result = spawnSync("npm", ["config", "get", "cache"], {
+  const options = {
     cwd: projectRoot,
     encoding: "utf8",
     windowsHide: true,
-    shell: process.platform === "win32",
-  });
+  };
+  const result = process.platform === "win32"
+    ? spawnSync(process.env.ComSpec ?? "cmd.exe", ["/d", "/s", "/c", "npm config get cache"], options)
+    : spawnSync("npm", ["config", "get", "cache"], options);
   return result.status === 0 ? result.stdout.trim() : "npm user cache";
 }
 
@@ -138,7 +149,7 @@ function printPlan() {
   divider();
   console.log(`Application version: ${manifest.version}`);
   console.log("");
-  console.log("What will be installed:");
+  console.log("Every top-level package requested by PlotPickle:");
   printComponentPlan();
   console.log("");
   console.log("Where files will go:");
@@ -159,10 +170,12 @@ function printPlan() {
   console.log("During installation npm will display package download, extraction, and verification messages below.");
 }
 
-function printSuccess() {
+function printSuccess(includeInstalledSize) {
   const installedFolder = path.join(projectRoot, "node_modules");
   divider();
-  console.log("  SUCCESS - PLOTPICKLE COMPONENTS ARE READY");
+  console.log(includeInstalledSize
+    ? "  SUCCESS - PLOTPICKLE INSTALLATION COMPLETED"
+    : "  SUCCESS - PLOTPICKLE COMPONENTS VERIFIED");
   divider();
   console.log(`Application version: ${manifest.version}`);
   console.log("");
@@ -170,7 +183,12 @@ function printSuccess() {
   const missing = printInstalledComponents();
   console.log("");
   console.log(`Installed dependency folder: ${installedFolder}`);
-  console.log(`Installed dependency size: ${formatBytes(directorySize(installedFolder))}`);
+  if (includeInstalledSize) {
+    console.log("Calculating the final installed dependency size...");
+    console.log(`Installed dependency size: ${formatBytes(directorySize(installedFolder))}`);
+  } else {
+    console.log("Installed dependency size was measured during setup and is not recalculated on every launch.");
+  }
   console.log(`npm cache: ${npmCachePath()}`);
   console.log("");
   console.log("What running a local server means:");
@@ -186,12 +204,14 @@ function printSuccess() {
     console.log(`[ERROR] ${missing} expected component(s) could not be verified.`);
     process.exitCode = 1;
   } else {
-    console.log("All required components passed verification. PlotPickle can now start safely in local mode.");
+    console.log("All required components passed verification. PlotPickle can now start in private local mode.");
   }
 }
 
 if (mode === "success") {
-  printSuccess();
+  printSuccess(true);
+} else if (mode === "ready") {
+  printSuccess(false);
 } else {
   printPlan();
 }

@@ -35,6 +35,7 @@ test("renders development preview metadata", async () => {
   assert.match(html, /Download for Windows/);
   assert.match(html, /Explore PlotPickle Online/);
   assert.match(html, /Opening Move/);
+  assert.match(html, /Scene Pulse/);
   assert.match(html, /\/brand\/plotpickle-header-horizontal-600\.png/);
   assert.match(html, /\/brand\/favicon\/plotpickle-icon-192\.png/);
   for (const section of [
@@ -49,6 +50,7 @@ test("renders development preview metadata", async () => {
     "Act I Launch",
     "Dialogue",
     "24 Blocks",
+    "Scene Lab",
     "Storyboard",
     "Notes",
   ]) {

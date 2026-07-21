@@ -79,7 +79,9 @@ The launcher does not request Administrator rights, install a Windows service, a
 
 Every workspace reads and writes the same locally saved project.
 
-The Script Viewer accepts plain-text (`.txt`), Fountain (`.fountain` or `.spmd`), and Final Draft (`.fdx`) files. Parsing and guided reading happen on the local device. The source screenplay is stored in the canonical `.plotpickle.json` project so it travels with the project, while the writer retains ownership of the script.
+The Script Viewer accepts plain-text (`.txt`), Fountain (`.fountain` or `.spmd`), and Final Draft (`.fdx`) files. **Load a screenplay** in Script Viewer and **Import** in the top bar use the same ingestion pipeline. A screenplay creates a fresh active project, replaces the optional Afterglow example, preserves the complete draft, detects the title, speaking characters, locations and scene order, and maps passages into the 24 Blocks, Story Planner, Structure Map, guided questions, and Visual Board directions. Script-derived interpretations are visibly marked as suggestions until the writer reviews and confirms them.
+
+Parsing and the initial structural extraction happen on the local device without AI. The source screenplay is stored in the canonical `.plotpickle.json` project so it travels with the project, while the writer retains ownership of the script. Importing an existing `.plotpickle.json` file still restores that complete saved project.
 
 ## Optional AI foundation
 

@@ -4,6 +4,7 @@
 
 import { ChangeEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { createAfterglowProject } from "@/data/afterglow";
+import EngineHub from "./engine-hub";
 import {
   addBlankCharacter,
   addBlankFrame,
@@ -22,13 +23,14 @@ import {
 const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
 
-type MainTab = "instructions" | "planner" | "visuals";
+type MainTab = "instructions" | "planner" | "visuals" | "engines";
 type StorySection = "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "blocks" | "storyboard" | "notes";
 
 const mainTabs: { id: MainTab; label: string; description: string }[] = [
   { id: "instructions", label: "Instructions", description: "Learn the method" },
   { id: "planner", label: "Story Planner", description: "Build the story" },
   { id: "visuals", label: "Visual Board", description: "See the film" },
+  { id: "engines", label: "Engines", description: "Refine the story" },
 ];
 
 const storySections: { id: StorySection; code: string; label: string }[] = [
@@ -279,7 +281,7 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
                 ))}
               </aside>
               <div className="product-workspace">
-                <div className="product-tabs"><span>Instructions</span><span className="active">Story Planner</span><span>Visual Board</span></div>
+                <div className="product-tabs"><span>Instructions</span><span className="active">Story Planner</span><span>Visual Board</span><span>Engines</span></div>
                 <div className="product-workspace-heading">
                   <div><small>ACT II · CONFRONTATION</small><strong>Your complete story at a glance</strong></div>
                   <span>18% complete</span>
@@ -305,9 +307,9 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
 
         <section className="marketing-section feature-section" id="features">
           <div className="marketing-section-heading">
-            <p className="marketing-kicker">One playhouse. Three connected rooms.</p>
+            <p className="marketing-kicker">One playhouse. Four connected workspaces.</p>
             <h2>Everything develops the same story.</h2>
-            <p>Move from learning to planning to visualization without copying information between separate tools.</p>
+            <p>Move from learning to planning, visualization, and focused specialist engines without copying information between separate tools.</p>
           </div>
           <div className="feature-grid">
             <article>
@@ -327,6 +329,12 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
               <p className="feature-label">Visualize</p>
               <h3>Visual Board</h3>
               <p>Carry every block into storyboard directions, frame prompts, shot notes, locations, characters, and visual continuity.</p>
+            </article>
+            <article>
+              <span className="feature-code">04</span>
+              <p className="feature-label">Refine</p>
+              <h3>Engines</h3>
+              <p>Choose a guided specialist pass for structure, meaning, voice, screenplay action, draft diagnosis, or deliberate practice.</p>
             </article>
           </div>
         </section>
@@ -584,7 +592,7 @@ export default function Home() {
       commit(cloneProject(normalized));
       setSelectedCharacterId(normalized.characters[0]?.id ?? "");
       setSelectedBlockNumber(1);
-      setToast("Project imported and connected to all three workspaces.");
+      setToast("Project imported and connected to all PlotPickle workspaces.");
     } catch {
       setToast("That file is not a valid PlotPickle 1.0 project with exactly 24 blocks.");
     }
@@ -755,6 +763,8 @@ export default function Home() {
             />
           </div>
         ) : null}
+
+        {activeTab === "engines" ? <EngineHub /> : null}
       </main>
 
       {toast ? <div className="toast" role="status">{toast}</div> : null}

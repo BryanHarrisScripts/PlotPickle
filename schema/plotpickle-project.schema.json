@@ -7,7 +7,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "id", "metadata", "story", "world", "development", "characters", "blocks"],
   "properties": {
-    "schemaVersion": { "const": "1.2.0" },
+    "schemaVersion": { "const": "1.3.0" },
     "id": { "type": "string", "minLength": 1 },
     "metadata": {
       "type": "object",
@@ -64,7 +64,7 @@
     "development": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["storySetup", "pitch", "ghost", "catalyst", "foundations", "pickle", "dialogue", "notes"],
+      "required": ["storySetup", "pitch", "ghost", "catalyst", "foundations", "pickle", "actOne", "dialogue", "notes"],
       "properties": {
         "storySetup": { "$ref": "#/$defs/storySetup" },
         "pitch": { "$ref": "#/$defs/pitch" },
@@ -72,6 +72,7 @@
         "catalyst": { "$ref": "#/$defs/catalyst" },
         "foundations": { "$ref": "#/$defs/foundations" },
         "pickle": { "$ref": "#/$defs/pickle" },
+        "actOne": { "$ref": "#/$defs/actOne" },
         "dialogue": { "$ref": "#/$defs/dialogue" },
         "notes": { "$ref": "#/$defs/projectNotes" }
       }
@@ -168,6 +169,32 @@
         "escalationPattern": { "type": "string" },
         "finalAnswer": { "type": "string" },
         "signatureMove": { "type": "string" }
+      }
+    },
+    "actOne": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetLength", "flexibilityReason", "worldContract", "castOrientation", "themeSeed", "pickleSeed", "primaryPresence", "revealingContrast", "opposingPressure", "pressureMultiplier", "disruptionLands", "problemNamed", "outsidePush", "innerLock", "counterstrike", "emotionalAnchor", "personalThreat", "irreversibleStep", "downstreamPromises"],
+      "properties": {
+        "targetLength": { "type": "string" },
+        "flexibilityReason": { "type": "string" },
+        "worldContract": { "type": "string" },
+        "castOrientation": { "type": "string" },
+        "themeSeed": { "type": "string" },
+        "pickleSeed": { "type": "string" },
+        "primaryPresence": { "type": "string" },
+        "revealingContrast": { "type": "string" },
+        "opposingPressure": { "type": "string" },
+        "pressureMultiplier": { "type": "string" },
+        "disruptionLands": { "type": "string" },
+        "problemNamed": { "type": "string" },
+        "outsidePush": { "type": "string" },
+        "innerLock": { "type": "string" },
+        "counterstrike": { "type": "string" },
+        "emotionalAnchor": { "type": "string" },
+        "personalThreat": { "type": "string" },
+        "irreversibleStep": { "type": "string" },
+        "downstreamPromises": { "type": "string" }
       }
     },
     "dialogue": {

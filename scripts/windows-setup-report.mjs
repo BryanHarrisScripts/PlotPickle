@@ -10,6 +10,7 @@ const mode = process.argv[2] ?? "plan";
 
 const RECOMMENDED_FREE_BYTES = 2 * 1024 ** 3;
 const ESTIMATED_WORKING_BYTES = 1.5 * 1024 ** 3;
+const MAX_REASONABLE_FREE_BYTES = 1024 ** 5;
 
 const components = [
   ["Project data runtime", "drizzle-orm"],
@@ -70,9 +71,27 @@ function npmCachePath() {
 }
 
 function freeSpaceBytes() {
+  if (process.platform === "win32") {
+    const result = spawnSync(
+      "powershell.exe",
+      [
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
+        "$item = Get-Item -LiteralPath .; [Console]::Write($item.PSDrive.Free)",
+      ],
+      { cwd: projectRoot, encoding: "utf8", windowsHide: true },
+    );
+    const value = Number(result.stdout?.trim());
+    return result.status === 0 && Number.isFinite(value) && value >= 0 ? value : Number.NaN;
+  }
+
   try {
     const stats = statfsSync(projectRoot);
-    return Number(stats.bavail) * Number(stats.bsize);
+    const value = Number(stats.bavail) * Number(stats.bsize);
+    return Number.isFinite(value) && value >= 0 && value <= MAX_REASONABLE_FREE_BYTES
+      ? value
+      : Number.NaN;
   } catch {
     return Number.NaN;
   }

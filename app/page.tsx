@@ -2,9 +2,13 @@
 
 /* eslint-disable @next/next/no-img-element -- Project JSON accepts arbitrary user-supplied reference URLs. */
 
+import Link from "next/link";
 import { ChangeEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { createAfterglowProject } from "@/data/afterglow";
 import EngineHub from "./engine-hub";
+import ProjectOverview from "./project-overview";
+import StructureMapSummary from "./structure-map-summary";
+import { projectSectionProgress, sectionHasAlert } from "@/lib/project-progress";
 import {
   addBlankCharacter,
   addBlankFrame,
@@ -24,7 +28,8 @@ const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
 
 type MainTab = "instructions" | "planner" | "visuals" | "engines";
-type StorySection = "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "blocks" | "storyboard" | "notes";
+type StorySection = "overview" | "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "structureMap" | "blocks" | "storyboard" | "notes";
+type StorySectionGroup = "Project" | "Foundation" | "Structure" | "Production";
 
 const mainTabs: { id: MainTab; label: string; description: string }[] = [
   { id: "instructions", label: "Instructions", description: "Learn the method" },
@@ -33,22 +38,31 @@ const mainTabs: { id: MainTab; label: string; description: string }[] = [
   { id: "engines", label: "Engines", description: "Refine the story" },
 ];
 
-const storySections: { id: StorySection; code: string; label: string }[] = [
-  { id: "storySetup", code: "01", label: "Story Setup" },
-  { id: "pitch", code: "PV", label: "Pitch & Vision" },
-  { id: "world", code: "WD", label: "World" },
-  { id: "characters", code: "CH", label: "Characters" },
-  { id: "ghost", code: "GH", label: "Ghost" },
-  { id: "catalyst", code: "CA", label: "Catalyst" },
-  { id: "foundations", code: "FN", label: "Foundations" },
-  { id: "pickle", code: "PK", label: "The Pickle" },
-  { id: "dialogue", code: "DL", label: "Dialogue" },
-  { id: "blocks", code: "24", label: "24 Blocks" },
-  { id: "storyboard", code: "SB", label: "Storyboard" },
-  { id: "notes", code: "NT", label: "Notes" },
+const storySections: { id: StorySection; code: string; label: string; group: StorySectionGroup }[] = [
+  { id: "overview", code: "OV", label: "Project Overview", group: "Project" },
+  { id: "storySetup", code: "01", label: "Story Setup", group: "Foundation" },
+  { id: "pitch", code: "PV", label: "Pitch & Vision", group: "Foundation" },
+  { id: "world", code: "WD", label: "World", group: "Foundation" },
+  { id: "characters", code: "CH", label: "Characters", group: "Foundation" },
+  { id: "ghost", code: "GH", label: "Ghost", group: "Foundation" },
+  { id: "catalyst", code: "CA", label: "Catalyst", group: "Foundation" },
+  { id: "foundations", code: "FN", label: "Foundations", group: "Foundation" },
+  { id: "pickle", code: "PK", label: "The Pickle", group: "Foundation" },
+  { id: "dialogue", code: "DL", label: "Dialogue", group: "Foundation" },
+  { id: "structureMap", code: "ST", label: "Structure Map", group: "Structure" },
+  { id: "blocks", code: "24", label: "24 Blocks", group: "Structure" },
+  { id: "storyboard", code: "SB", label: "Storyboard", group: "Production" },
+  { id: "notes", code: "NT", label: "Notes", group: "Production" },
 ];
 
 const sectionGuides: Record<StorySection, { title: string; description: string; questions: string[]; deliverable: string; connection: string }> = {
+  overview: {
+    title: "Re-enter the project through one clear dashboard.",
+    description: "See overall progress, the next useful task, structural coverage, open questions, and ownership information before choosing where to work.",
+    questions: ["What is the project asking for next?", "Which section is underdeveloped?", "What question or continuity issue should remain visible?"],
+    deliverable: "A current project snapshot and a deliberate next step.",
+    connection: "Every story column, engine, block, scene, and visual contributes to the same overview.",
+  },
   storySetup: {
     title: "Set the creative container before filling it.",
     description: "Define the format, audience, scope, and working conditions that every later choice must serve.",
@@ -111,6 +125,13 @@ const sectionGuides: Record<StorySection, { title: string; description: string; 
     questions: ["How does each character avoid saying what they mean?", "What rhythm and vocabulary belong only to them?", "Which exposition can become conflict or action?"],
     deliverable: "Voice contrasts, subtext rules, exposition limits, and recurring language.",
     connection: "Character voices and dialogue rules travel into every block's story text.",
+  },
+  structureMap: {
+    title: "See the complete hierarchy without leaving the story columns.",
+    description: "Review the four acts, twelve sequences, twenty-four blocks, forty-eight scenes, ninety-six mini-blocks, and Story Clock before entering the full Structure Engine.",
+    questions: ["Does every sequence turn the story?", "Where does the runtime concentrate?", "Which block, scene, or mini-block still lacks a clear function?"],
+    deliverable: "A readable map from act to mini-block with direct block access.",
+    connection: "The summary reads the same structure edited by the Structure Engine and used by every screenplay and visual workspace.",
   },
   blocks: {
     title: "Turn the story into twenty-four causal movements.",
@@ -224,7 +245,7 @@ function Portrait({ character, size = "regular" }: { character: Character; size?
   );
 }
 
-function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
+function LandingPage({ onEnter }: { onEnter: () => void }) {
   return (
     <div className="marketing-page">
       <header className="marketing-header">
@@ -236,8 +257,8 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
           <a href="#how-it-works">How it works</a>
           <a href="#download">Download</a>
         </nav>
-        <button type="button" className="secondary-button marketing-online-button" onClick={onOpenOnline}>
-          Open online
+        <button type="button" className="secondary-button marketing-online-button" onClick={onEnter}>
+          Open local workspace
         </button>
       </header>
 
@@ -254,8 +275,8 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
                 <span className="download-icon" aria-hidden="true">↓</span>
                 <span><strong>Download for Windows</strong><small>Get the latest PlotPickle package</small></span>
               </a>
-              <button type="button" className="marketing-text-link" onClick={onOpenOnline}>
-                Explore PlotPickle Online <span aria-hidden="true">→</span>
+              <button type="button" className="marketing-text-link" onClick={onEnter}>
+                Open local workspace <span aria-hidden="true">→</span>
               </button>
             </div>
             <div className="marketing-trust-row" aria-label="Product highlights">
@@ -390,7 +411,7 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
               <span className="download-icon" aria-hidden="true">↓</span>
               <span><strong>Download latest</strong><small>Available through GitHub Releases</small></span>
             </a>
-            <button type="button" className="marketing-text-link" onClick={onOpenOnline}>Or open PlotPickle Online</button>
+            <button type="button" className="marketing-text-link" onClick={onEnter}>Open the installed workspace</button>
           </div>
         </section>
       </main>
@@ -400,7 +421,7 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
           <img className="marketing-brand-logo" src="/brand/plotpickle-header-horizontal-600.png" alt="PlotPickle Playhouse" />
         </div>
         <p>Story development built around Bryan Harris&apos;s 24 Blocks method.</p>
-        <button type="button" onClick={onOpenOnline}>Open PlotPickle Online →</button>
+        <div className="marketing-footer-actions"><button type="button" onClick={onEnter}>Open local workspace →</button><Link href="/legal">Copyright & licensing</Link><a href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">Source</a></div>
       </footer>
     </div>
   );
@@ -409,7 +430,7 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
 export default function Home() {
   const [project, setProject] = useState<PlotPickleProject>(() => createBlankProject());
   const [activeTab, setActiveTab] = useState<MainTab>("instructions");
-  const [activeSection, setActiveSection] = useState<StorySection>("storySetup");
+  const [activeSection, setActiveSection] = useState<StorySection>("overview");
   const [selectedCharacterId, setSelectedCharacterId] = useState("");
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
   const [selectedFrameId, setSelectedFrameId] = useState("");
@@ -459,7 +480,7 @@ export default function Home() {
   const selectedFrame = selectedBlock.visuals.find((frame) => frame.id === selectedFrameId) ?? selectedBlock.visuals[0];
 
   if (showLanding) {
-    return <LandingPage onOpenOnline={() => setShowLanding(false)} />;
+    return <LandingPage onEnter={() => setShowLanding(false)} />;
   }
 
   function commit(next: PlotPickleProject) {
@@ -551,7 +572,7 @@ export default function Home() {
     setSelectedCharacterId("");
     setSelectedBlockNumber(1);
     setActiveTab("planner");
-    setActiveSection("storySetup");
+    setActiveSection("overview");
     setToast("A new 24 Blocks project is ready.");
   }
 
@@ -563,7 +584,7 @@ export default function Home() {
     setSelectedCharacterId("ren");
     setSelectedBlockNumber(1);
     setActiveTab("planner");
-    setActiveSection("storySetup");
+    setActiveSection("overview");
     setToast("Afterglow loaded with its world, cast, and 24-block spine.");
   }
 
@@ -680,6 +701,7 @@ export default function Home() {
       <main className="workspace">
         {activeTab === "instructions" ? (
           <Instructions
+            project={project}
             activeSection={activeSection}
             selectSection={setActiveSection}
             onStart={() => setActiveTab("planner")}
@@ -689,9 +711,20 @@ export default function Home() {
 
         {activeTab === "planner" ? (
           <div className="studio-layout">
-            <StoryRail workspace="Story Planner" activeSection={activeSection} selectSection={setActiveSection} />
+            <StoryRail project={project} workspace="Story Planner" activeSection={activeSection} selectSection={setActiveSection} />
 
             <section className="planner-content">
+              {activeSection === "overview" ? (
+                <ProjectOverview
+                  project={project}
+                  onOpenSection={(section) => setActiveSection(section as StorySection)}
+                  onOpenEngines={() => setActiveTab("engines")}
+                  onOpenBlock={(number) => openBlock(number, "planner")}
+                />
+              ) : null}
+              {activeSection === "structureMap" ? (
+                <StructureMapSummary project={project} onOpenBlock={(number) => openBlock(number, "planner")} />
+              ) : null}
               {activeSection === "storySetup" ? (
                 <StorySetupEditor project={project} updateMetadata={updateMetadata} updateDevelopment={updateDevelopment} />
               ) : null}
@@ -747,7 +780,7 @@ export default function Home() {
 
         {activeTab === "visuals" ? (
           <div className="studio-layout visual-studio-layout">
-            <StoryRail workspace="Visual Board" activeSection={activeSection} selectSection={setActiveSection} />
+            <StoryRail project={project} workspace="Visual Board" activeSection={activeSection} selectSection={setActiveSection} />
             <VisualBoard
               project={project}
               activeSection={activeSection}
@@ -774,37 +807,51 @@ export default function Home() {
 
 type DevelopmentUpdater = (section: keyof PlotPickleProject["development"], key: string, value: string) => void;
 
-function StoryRail({ workspace, activeSection, selectSection }: { workspace: string; activeSection: StorySection; selectSection: (section: StorySection) => void }) {
+function StoryRail({ project, workspace, activeSection, selectSection }: { project: PlotPickleProject; workspace: string; activeSection: StorySection; selectSection: (section: StorySection) => void }) {
+  const progress = projectSectionProgress(project);
+  const groups: StorySectionGroup[] = ["Project", "Foundation", "Structure", "Production"];
   return (
     <aside className="story-rail">
       <div className="story-rail-heading">
         <p className="eyebrow">{workspace}</p>
         <strong>Story columns</strong>
-        <span>One structure. Three connected views.</span>
+        <span>One story. Four connected workspaces.</span>
       </div>
       <nav aria-label={`${workspace} story sections`}>
-        {storySections.map((section) => (
-          <button type="button" className={activeSection === section.id ? "active" : ""} key={section.id} onClick={() => selectSection(section.id)}>
-            <span>{section.code}</span>
-            <strong>{section.label}</strong>
-          </button>
+        {groups.map((group) => (
+          <div className="story-rail-group" key={group}>
+            <p className="story-rail-group-label">{group}</p>
+            {storySections.filter((section) => section.group === group).map((section) => {
+              const sectionProgress = progress[section.id];
+              const alert = sectionHasAlert(project, section.id);
+              const symbol = alert ? "!" : sectionProgress >= 70 ? "✓" : sectionProgress > 0 ? "◐" : "○";
+              const status = alert ? "Open question or continuity item" : sectionProgress >= 70 ? "Substantially complete" : sectionProgress > 0 ? "In progress" : "Not started";
+              return (
+                <button type="button" className={activeSection === section.id ? "active" : ""} key={section.id} onClick={() => selectSection(section.id)}>
+                  <span>{section.code}</span>
+                  <strong>{section.label}</strong>
+                  <i className={alert ? "rail-progress alert" : "rail-progress"} aria-label={`${status}: ${sectionProgress}%`}>{symbol}</i>
+                </button>
+              );
+            })}
+          </div>
         ))}
       </nav>
       <div className="method-note">
-        <span>24 Blocks</span>
-        <strong>4 acts × 6 blocks</strong>
-        <p>Each block carries story text, notes, storyboard direction, and visual frames.</p>
+        <span>Complete hierarchy</span>
+        <strong>4 → 12 → 24 → 48 → 96</strong>
+        <p>Acts, sequences, blocks, scenes, and mini-blocks share one project.</p>
       </div>
     </aside>
   );
 }
 
-function Instructions({ activeSection, selectSection, onStart, onLoadAfterglow }: { activeSection: StorySection; selectSection: (section: StorySection) => void; onStart: () => void; onLoadAfterglow: () => void }) {
+function Instructions({ project, activeSection, selectSection, onStart, onLoadAfterglow }: { project: PlotPickleProject; activeSection: StorySection; selectSection: (section: StorySection) => void; onStart: () => void; onLoadAfterglow: () => void }) {
   const guide = sectionGuides[activeSection];
   const current = storySections.find((section) => section.id === activeSection) ?? storySections[0];
   return (
     <div className="studio-layout instructions-layout">
-      <StoryRail workspace="Instructions" activeSection={activeSection} selectSection={selectSection} />
+      <StoryRail project={project} workspace="Instructions" activeSection={activeSection} selectSection={selectSection} />
       <section className="guide-page">
         <div className="guide-hero">
           <div>
@@ -824,7 +871,7 @@ function Instructions({ activeSection, selectSection, onStart, onLoadAfterglow }
             <ol>{guide.questions.map((question) => <li key={question}>{question}</li>)}</ol>
           </article>
           <article className="guide-card"><p className="eyebrow">Section deliverable</p><h2>{guide.deliverable}</h2></article>
-          <article className="guide-card connection-card"><p className="eyebrow">Shared story data</p><h2>{guide.connection}</h2><div><span>Instructions</span><i>→</i><span>Story Planner</span><i>→</i><span>Visual Board</span></div></article>
+          <article className="guide-card connection-card"><p className="eyebrow">Shared story data</p><h2>{guide.connection}</h2><div><span>Instructions</span><i>→</i><span>Story Planner</span><i>→</i><span>Visual Board</span><i>→</i><span>Engines</span></div></article>
         </div>
         {activeSection === "blocks" ? (
           <div className="compact-act-guide">
@@ -1290,6 +1337,7 @@ function VisualBoard({
 
 function VisualContext({ project, section, selectedBlock }: { project: PlotPickleProject; section: StorySection; selectedBlock: StoryBlock }) {
   const contexts: Record<StorySection, { title: string; values: string[] }> = {
+    overview: { title: "Project snapshot", values: [project.metadata.format, `${project.metadata.targetMinutes} minutes`, project.metadata.status] },
     storySetup: { title: "Production container", values: [project.metadata.format, `${project.metadata.targetMinutes} minutes`, project.development.storySetup.audience] },
     pitch: { title: "Pitch & visual promise", values: [project.development.pitch.oneSentence || project.story.logline, project.development.pitch.visualVision, project.development.pitch.emotionalExperience] },
     world: { title: "World continuity", values: [project.world.period, project.world.visualLanguage, project.world.rules] },
@@ -1299,6 +1347,7 @@ function VisualContext({ project, section, selectedBlock }: { project: PlotPickl
     foundations: { title: "Foundation check", values: [project.development.foundations.objective, project.development.foundations.opposition, project.development.foundations.transformation] },
     pickle: { title: "Audience tension", values: [project.development.pickle.audienceQuestion, selectedBlock.audienceExpectation || project.development.pickle.expectedDestination, selectedBlock.pickleTurn || project.development.pickle.signatureMove] },
     dialogue: { title: "Voice & subtext reference", values: [project.development.dialogue.voiceContrast, project.development.dialogue.subtext, project.development.dialogue.recurringLanguage] },
+    structureMap: { title: "Structure hierarchy", values: ["4 acts · 12 sequences · 24 blocks", "48 scenes · 96 mini-blocks", `${project.structure.pacingProfile.replaceAll("-", " ")} pacing`] },
     blocks: { title: `Block ${selectedBlock.number} story motion`, values: [selectedBlock.goal, selectedBlock.choice, selectedBlock.consequence] },
     storyboard: { title: `Block ${selectedBlock.number} storyboard direction`, values: [selectedBlock.storyboardDirection, selectedBlock.summary, `${selectedBlock.visuals.length}/4 visuals planned`] },
     notes: { title: "Continuity & revision notes", values: [project.development.notes.continuity, project.development.notes.openQuestions, project.development.notes.revisions] },

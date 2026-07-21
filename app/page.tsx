@@ -23,7 +23,7 @@ const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
 
 type MainTab = "instructions" | "planner" | "visuals";
-type StorySection = "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "dialogue" | "blocks" | "storyboard" | "notes";
+type StorySection = "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "blocks" | "storyboard" | "notes";
 
 const mainTabs: { id: MainTab; label: string; description: string }[] = [
   { id: "instructions", label: "Instructions", description: "Learn the method" },
@@ -39,6 +39,7 @@ const storySections: { id: StorySection; code: string; label: string }[] = [
   { id: "ghost", code: "GH", label: "Ghost" },
   { id: "catalyst", code: "CA", label: "Catalyst" },
   { id: "foundations", code: "FN", label: "Foundations" },
+  { id: "pickle", code: "PK", label: "The Pickle" },
   { id: "dialogue", code: "DL", label: "Dialogue" },
   { id: "blocks", code: "24", label: "24 Blocks" },
   { id: "storyboard", code: "SB", label: "Storyboard" },
@@ -95,6 +96,13 @@ const sectionGuides: Record<StorySection, { title: string; description: string; 
     deliverable: "A compact story engine that can test every block.",
     connection: "The foundations keep all 24 blocks causal instead of episodic.",
   },
+  pickle: {
+    title: "Give the audience something irresistible to solve.",
+    description: "The Pickle is the living tension between what viewers think they know and what they still need answered. Establish a recognizable story promise, then keep refreshing how it might resolve.",
+    questions: ["What question will the audience keep answering as they watch?", "What outcome can they anticipate while the route remains surprising?", "Which two explanations, hopes, or fears can remain plausible at the same time?"],
+    deliverable: "An audience contract with a central tension, competing live answers, escalation pattern, final answer, and signature execution.",
+    connection: "Each of the 24 blocks records the audience's current expectation and the turn that complicates, confirms, or reframes it; Visual Board carries the same tension into images.",
+  },
   dialogue: {
     title: "Design voices that reveal pressure, not information.",
     description: "Dialogue should express strategy, status, subtext, genre, and relationship while making every speaker recognizably different.",
@@ -146,7 +154,7 @@ function slugify(value: string) {
 }
 
 function fieldCompletion(block: StoryBlock) {
-  const values = [block.summary, block.goal, block.conflict, block.choice, block.action, block.consequence];
+  const values = [block.summary, block.goal, block.conflict, block.choice, block.action, block.consequence, block.audienceExpectation, block.pickleTurn];
   return Math.round((values.filter(Boolean).length / values.length) * 100);
 }
 
@@ -316,7 +324,7 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
               <span className="feature-code">02</span>
               <p className="feature-label">Develop</p>
               <h3>Story Planner</h3>
-              <p>Build the world, cast, ghost, catalyst, foundations, dialogue, and all twenty-four causal story movements.</p>
+              <p>Build the world, cast, ghost, catalyst, foundations, The Pickle audience engine, dialogue, and all twenty-four causal story movements.</p>
             </article>
             <article>
               <span className="feature-code">03</span>
@@ -330,9 +338,9 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
         <section className="marketing-section story-system-section">
           <div className="story-system-copy">
             <p className="marketing-kicker">Your entire story in one structure</p>
-            <h2>Eleven story columns. One source of truth.</h2>
+            <h2>Twelve story columns. One source of truth.</h2>
             <p>
-              Story Setup, Pitch &amp; Vision, World, Characters, Ghost, Catalyst, Foundations, Dialogue, 24 Blocks, Storyboard, and Notes stay aligned across every workspace.
+              Story Setup, Pitch &amp; Vision, World, Characters, Ghost, Catalyst, Foundations, The Pickle, Dialogue, 24 Blocks, Storyboard, and Notes stay aligned across every workspace.
             </p>
             <ul>
               <li><span>01</span> One readable <code>.plotpickle.json</code> project file</li>
@@ -340,7 +348,7 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
               <li><span>03</span> Your story remains yours and stays on your device</li>
             </ul>
           </div>
-          <div className="story-column-stack" aria-label="The eleven PlotPickle story columns">
+          <div className="story-column-stack" aria-label="The twelve PlotPickle story columns">
             {storySections.map((section) => (
               <div className={section.id === "blocks" ? "active" : ""} key={section.id}>
                 <span>{section.code}</span><strong>{section.label}</strong><i aria-hidden="true">→</i>
@@ -708,6 +716,9 @@ export default function Home() {
               {activeSection === "foundations" ? (
                 <FoundationsEditor project={project} updateStory={updateStory} updateDevelopment={updateDevelopment} />
               ) : null}
+              {activeSection === "pickle" ? (
+                <PickleEditor project={project} updateDevelopment={updateDevelopment} />
+              ) : null}
               {activeSection === "dialogue" ? (
                 <DialogueEditor project={project} selected={selectedCharacter} select={setSelectedCharacterId} updateCharacter={updateCharacter} updateDevelopment={updateDevelopment} />
               ) : null}
@@ -925,6 +936,29 @@ function FoundationsEditor({ project, updateStory, updateDevelopment }: { projec
   </div>;
 }
 
+function PickleEditor({ project, updateDevelopment }: { project: PlotPickleProject; updateDevelopment: DevelopmentUpdater }) {
+  const pickle = project.development.pickle;
+  return <div className="editor-page">
+    <SectionHeading eyebrow="PK · The Pickle" title="Shape what the audience keeps trying to solve." description="Define the pattern viewers understand, the uncertainty that keeps it alive, and the signature way this story changes their expectations." />
+    <div className="form-section"><h3>Audience contract</h3><div className="form-grid two-columns">
+      <FormField label="Central tension" value={pickle.centralTension} onChange={(value) => updateDevelopment("pickle", "centralTension", value)} help="The unstable situation that can sustain the whole story." />
+      <FormField label="Audience question" value={pickle.audienceQuestion} onChange={(value) => updateDevelopment("pickle", "audienceQuestion", value)} help="What viewers actively test, predict, hope, or fear." />
+      <FormField label="Story promise" value={pickle.storyPromise} onChange={(value) => updateDevelopment("pickle", "storyPromise", value)} help="The repeatable pattern or rule the audience learns to recognize." />
+    </div></div>
+    <div className="form-section signal-section"><h3>Expectation gap</h3><div className="form-grid two-columns">
+      <FormField label="Expected destination" value={pickle.expectedDestination} onChange={(value) => updateDevelopment("pickle", "expectedDestination", value)} help="The broad result viewers may reasonably anticipate." />
+      <FormField label="Unpredictable route" value={pickle.unpredictableRoute} onChange={(value) => updateDevelopment("pickle", "unpredictableRoute", value)} help="What must remain difficult to predict even when the destination feels likely." />
+      <FormField label="Live answer A" value={pickle.liveAnswerA} onChange={(value) => updateDevelopment("pickle", "liveAnswerA", value)} help="One plausible explanation, outcome, hope, or fear." />
+      <FormField label="Live answer B" value={pickle.liveAnswerB} onChange={(value) => updateDevelopment("pickle", "liveAnswerB", value)} help="A competing answer the story can also support." />
+    </div></div>
+    <div className="form-section"><h3>Escalation & payoff</h3><div className="form-grid two-columns">
+      <FormField label="Escalation pattern" value={pickle.escalationPattern} onChange={(value) => updateDevelopment("pickle", "escalationPattern", value)} help="How clues, reversals, complications, and near-answers refresh the tension." />
+      <FormField label="Final answer" value={pickle.finalAnswer} onChange={(value) => updateDevelopment("pickle", "finalAnswer", value)} help="How the ending answers or deliberately reframes the audience question." />
+      <FormField label="Signature move" value={pickle.signatureMove} onChange={(value) => updateDevelopment("pickle", "signatureMove", value)} help="The execution choice that makes this familiar pattern belong only to this story." />
+    </div></div>
+  </div>;
+}
+
 function DialogueEditor({ project, selected, select, updateCharacter, updateDevelopment }: { project: PlotPickleProject; selected?: Character; select: (id: string) => void; updateCharacter: (id: string, key: keyof Character, value: string) => void; updateDevelopment: DevelopmentUpdater }) {
   const dialogue = project.development.dialogue;
   return <div className="editor-page">
@@ -1121,6 +1155,8 @@ function BlocksEditor({
           <FormField label="Action" value={selectedBlock.action} onChange={(value) => updateBlock(selectedBlock.number, "action", value)} />
           <FormField label="Consequence" value={selectedBlock.consequence} onChange={(value) => updateBlock(selectedBlock.number, "consequence", value)} help="This should create pressure for the following block." />
           <FormField label="Emotional turn" value={selectedBlock.emotionalTurn} onChange={(value) => updateBlock(selectedBlock.number, "emotionalTurn", value)} />
+          <FormField label="Audience expectation" value={selectedBlock.audienceExpectation} onChange={(value) => updateBlock(selectedBlock.number, "audienceExpectation", value)} help="What viewers are likely to believe, expect, hope, or fear after this block." />
+          <FormField label="The Pickle turn" value={selectedBlock.pickleTurn} onChange={(value) => updateBlock(selectedBlock.number, "pickleTurn", value)} help="The clue, reversal, complication, near-answer, or reframe that refreshes the central tension." />
         </div>
         <div className="reference-grid">
           <div><span className="field-label">Characters in this block</span><div className="chip-list">{project.characters.map((character) => <button type="button" className={selectedBlock.characterIds.includes(character.id) ? "active" : ""} key={character.id} onClick={() => toggleReference("characterIds", character.id)}>{character.name}</button>)}</div></div>
@@ -1256,6 +1292,7 @@ function VisualContext({ project, section, selectedBlock }: { project: PlotPickl
     ghost: { title: "Ghost beneath the image", values: [project.development.ghost.centralWound, project.development.ghost.presentPattern, project.development.ghost.truth] },
     catalyst: { title: "Catalyst in visible action", values: [project.story.catalyst, project.development.catalyst.immediateImpact, project.development.catalyst.doorway] },
     foundations: { title: "Foundation check", values: [project.development.foundations.objective, project.development.foundations.opposition, project.development.foundations.transformation] },
+    pickle: { title: "Audience tension", values: [project.development.pickle.audienceQuestion, selectedBlock.audienceExpectation || project.development.pickle.expectedDestination, selectedBlock.pickleTurn || project.development.pickle.signatureMove] },
     dialogue: { title: "Voice & subtext reference", values: [project.development.dialogue.voiceContrast, project.development.dialogue.subtext, project.development.dialogue.recurringLanguage] },
     blocks: { title: `Block ${selectedBlock.number} story motion`, values: [selectedBlock.goal, selectedBlock.choice, selectedBlock.consequence] },
     storyboard: { title: `Block ${selectedBlock.number} storyboard direction`, values: [selectedBlock.storyboardDirection, selectedBlock.summary, `${selectedBlock.visuals.length}/4 visuals planned`] },

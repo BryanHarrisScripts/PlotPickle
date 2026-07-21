@@ -75,7 +75,7 @@ package_platform "Linux" "$ROOT/local/launchers/linux/plotpickle.sh" "plotpickle
 
 cat > "$OUTPUT/manifest.json" <<EOF
 {
-  "version": "1.4.0",
+  "version": "1.5.0",
   "generatedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "port": 48721,
   "packages": [

@@ -7,7 +7,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "id", "metadata", "story", "world", "development", "characters", "blocks"],
   "properties": {
-    "schemaVersion": { "const": "1.3.0" },
+    "schemaVersion": { "const": "1.4.0" },
     "id": { "type": "string", "minLength": 1 },
     "metadata": {
       "type": "object",
@@ -174,8 +174,17 @@
     "actOne": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["targetLength", "flexibilityReason", "worldContract", "castOrientation", "themeSeed", "pickleSeed", "primaryPresence", "revealingContrast", "opposingPressure", "pressureMultiplier", "disruptionLands", "problemNamed", "outsidePush", "innerLock", "counterstrike", "emotionalAnchor", "personalThreat", "irreversibleStep", "downstreamPromises"],
+      "required": ["openingEntry", "openingFirstSignal", "openingAnchor", "openingGrip", "openingCompass", "openingQuestion", "openingImprint", "openingEcho", "openingHandoff", "targetLength", "flexibilityReason", "worldContract", "castOrientation", "themeSeed", "pickleSeed", "primaryPresence", "revealingContrast", "opposingPressure", "pressureMultiplier", "disruptionLands", "problemNamed", "outsidePush", "innerLock", "counterstrike", "emotionalAnchor", "personalThreat", "irreversibleStep", "downstreamPromises"],
       "properties": {
+        "openingEntry": { "type": "string" },
+        "openingFirstSignal": { "type": "string" },
+        "openingAnchor": { "type": "string" },
+        "openingGrip": { "type": "string" },
+        "openingCompass": { "type": "string" },
+        "openingQuestion": { "type": "string" },
+        "openingImprint": { "type": "string" },
+        "openingEcho": { "type": "string" },
+        "openingHandoff": { "type": "string" },
         "targetLength": { "type": "string" },
         "flexibilityReason": { "type": "string" },
         "worldContract": { "type": "string" },

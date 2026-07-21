@@ -14,7 +14,7 @@ Users may instead select an OpenAI-compatible endpoint, a local Ollama server, m
 
 1. The PlotPickle project stores creative truth: story, characters, continuity, knowledge references, prompts, approved assets, and provenance.
 2. Provider settings store connection details and model choices outside the project.
-3. Secrets remain in the local server session or environment and are never written into a `.plotpickle.json` export.
+3. Secrets remain in the local server's private user data or environment, are never written into browser settings, and are never written into a `.plotpickle.json` export.
 4. Provider adapters translate PlotPickle requests into OpenAI, compatible-server, or Ollama calls.
 5. Generated output is always proposed material. The writer reviews and explicitly applies or approves it.
 
@@ -69,6 +69,8 @@ Video is a job rather than a synchronous response. A job records prompt, source 
 
 - API keys are not project data and are not included in exports, autosaves, logs, prompts, or error messages.
 - The official local gateway accepts browser requests only from localhost origins.
+- A key saved through AI Setup is written only after a successful provider check, under the current computer account's persistent PlotPickle data with user-only file permissions where the operating system supports them.
+- The interface shows **API connected** only after a real provider response, records the last successful check, rechecks a saved connection when PlotPickle opens, and lets the user test or remove it.
 - Connections to arbitrary compatible endpoints require an explicit user action and a visible base URL.
 - PlotPickle shows what selected project material will leave the computer before the first live call.
 - Live API calls are opt-in tests. Automated CI uses mocked provider contracts and never requires a real key.
@@ -77,7 +79,7 @@ Video is a job rather than a synchronous response. A job records prompt, source 
 
 PlotPickle exposes these connections through a single Settings menu rather than a separate AI Studio. It has three sections:
 
-- **AI Setup** selects ChatGPT / OpenAI API, an OpenAI-compatible endpoint, Ollama or another local LLM, manual prompt export, or no AI. Non-secret connection preferences remain local to PlotPickle. API keys remain session-only and never enter project exports or saved settings.
+- **AI Setup** selects ChatGPT / OpenAI API, an OpenAI-compatible endpoint, Ollama or another local LLM, manual prompt export, or no AI. Non-secret preferences remain in local browser settings. In the downloaded edition, verified API keys may be saved through the private local gateway, but never enter browser settings or project exports.
 - **Music** saves one or more Suno or Udio artist links, such as an Ava Iris profile, so the writer can return to the music associated with a project or creative identity. PlotPickle stores links only; it does not copy music or claim a direct service integration.
 - **Plugins** is a clearly labelled future-connectivity area. Placeholder entries cannot be enabled until a real, reviewed connector exists.
 

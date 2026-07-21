@@ -74,4 +74,4 @@ After Act I is mapped, review Blocks 7–24 against the downstream promises. Lat
 
 Act I Launch is a shared story column in Instructions, Story Planner, and Visual Board. The planner stores Opening Move, the launch contract, and twelve signals in `development.actOne`. The Visual Board shows Opening Move beside Block 1, the relevant launch signals beside Blocks 1–6, and the downstream promises in later blocks.
 
-Schema version 1.4.0 extends this object with Opening Move. Imports from versions 1.0.0 through 1.3.0 are normalized with blank fields for any architecture added after their saved version, so existing work remains intact.
+Opening Move was introduced in schema version 1.4.0 and remains intact in the current schema. Version 1.5.0 imports projects from versions 1.0.0 through 1.4.0 with blank defaults for later architecture, so existing work remains intact.

@@ -62,6 +62,16 @@ const actOneLaunchSignals = [
   { block: 6, key: "irreversibleStep", title: "Irreversible Step", guidance: "End Act I with a choice that makes the remaining story necessary." },
 ] as const;
 
+const openingMoveEffects = [
+  { key: "openingAnchor", title: "Anchor", guidance: "The person, force, value, or vulnerability the audience begins tracking." },
+  { key: "openingGrip", title: "Grip", guidance: "The pressure, contrast, or information gap that makes the next moment necessary." },
+  { key: "openingCompass", title: "Compass", guidance: "The world rule and point of view the audience infers without needing a lecture." },
+  { key: "openingQuestion", title: "Question", guidance: "The first active uncertainty viewers begin solving; it should feed The Pickle rather than answer it." },
+  { key: "openingImprint", title: "Imprint", guidance: "The blend of tone, theme, rhythm, and creative personality planted at first contact." },
+  { key: "openingEcho", title: "Echo", guidance: "How the ending transforms the meaning of the opening image, action, sound, or line." },
+  { key: "openingHandoff", title: "Handoff", guidance: "The causal, emotional, or visual bridge that makes the opening inseparable from the main story." },
+] as const;
+
 const sectionGuides: Record<StorySection, { title: string; description: string; questions: string[]; deliverable: string; connection: string }> = {
   storySetup: {
     title: "Set the creative container before filling it.",
@@ -121,10 +131,10 @@ const sectionGuides: Record<StorySection, { title: string; description: string; 
   },
   actOne: {
     title: "Make Act I launch everything the story must carry.",
-    description: "Act I establishes the world, cast, pressure, theme, audience tension, emotional stakes, and difficult choice that makes the remaining story unavoidable. Use the twelve signals as diagnostics, not mandatory beats.",
-    questions: ["What must the audience understand before the protagonist commits?", "Which promise made here must a later act pay off?", "If a signal is deliberately absent, what stronger choice replaces its function?"],
-    deliverable: "A flexible six-block launch grid with two diagnostic signals per block and a clear threshold decision.",
-    connection: "The launch grid draws from World, Characters, Catalyst, Foundations, and The Pickle, then shows the promises every later block must carry or pay off.",
+    description: "The Opening Move designs the audience's first contact; the rest of Act I establishes the world, cast, pressure, theme, emotional stakes, and difficult choice that makes the remaining story unavoidable. Use the signals as diagnostics, not mandatory beats.",
+    questions: ["What should viewers notice, feel, and begin solving in the first scene?", "Which promise made here must a later act pay off?", "If a signal is deliberately absent, what stronger choice replaces its function?"],
+    deliverable: "An Opening Move, a flexible six-block launch grid, and a clear threshold decision.",
+    connection: "Opening Move turns World, Characters, Theme, and The Pickle into first-contact effects; the launch grid then tracks the promises every later block must carry or pay off.",
   },
   dialogue: {
     title: "Design voices that reveal pressure, not information.",
@@ -343,7 +353,7 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
               <span className="feature-code">02</span>
               <p className="feature-label">Develop</p>
               <h3>Story Planner</h3>
-              <p>Build the world, cast, ghost, catalyst, foundations, The Pickle audience engine, Act I Launch, dialogue, and all twenty-four causal story movements.</p>
+              <p>Build the world, cast, ghost, catalyst, foundations, The Pickle audience engine, Opening Move, Act I Launch, dialogue, and all twenty-four causal story movements.</p>
             </article>
             <article>
               <span className="feature-code">03</span>
@@ -983,7 +993,21 @@ function PickleEditor({ project, updateDevelopment }: { project: PlotPickleProje
 function ActOneLaunchEditor({ project, updateDevelopment }: { project: PlotPickleProject; updateDevelopment: DevelopmentUpdater }) {
   const actOne = project.development.actOne;
   return <div className="editor-page">
-    <SectionHeading eyebrow="A1 · Act I Launch" title="Build the foundation every later act must carry." description="Use a flexible six-block launch grid to establish the story contract, test twelve essential functions, and make the protagonist's threshold decision feel both surprising and inevitable." />
+    <SectionHeading eyebrow="A1 · Act I Launch" title="Build the foundation every later act must carry." description="Design the audience's first contact with Opening Move, then use a flexible six-block launch grid to make the threshold decision feel both surprising and inevitable." />
+    <div className="form-section signal-section"><h3>Opening Move</h3><div className="form-grid two-columns">
+      <FormField label="Entry strategy" value={actOne.openingEntry} onChange={(value) => updateDevelopment("actOne", "openingEntry", value)} help="Whose experience, pressure, or vulnerability is the audience's doorway—and why it fits what viewers already know." />
+      <FormField label="First signal" value={actOne.openingFirstSignal} onChange={(value) => updateDevelopment("actOne", "openingFirstSignal", value)} help="The first image, action, sound, or line the audience can read as meaningful." />
+    </div><h3>Seven first-contact effects</h3><div className="form-grid two-columns">
+      {openingMoveEffects.map((effect) => (
+        <FormField
+          key={effect.key}
+          label={effect.title}
+          value={actOne[effect.key]}
+          onChange={(value) => updateDevelopment("actOne", effect.key, value)}
+          help={effect.guidance}
+        />
+      ))}
+    </div></div>
     <div className="form-section"><h3>Launch contract</h3><div className="form-grid two-columns">
       <FormField label="Target length" value={actOne.targetLength} onChange={(value) => updateDevelopment("actOne", "targetLength", value)} help="A pacing target, not a mandatory page count." />
       <FormField label="Reason to flex" value={actOne.flexibilityReason} onChange={(value) => updateDevelopment("actOne", "flexibilityReason", value)} help="Why this story may need a shorter or longer launch." />
@@ -1344,7 +1368,9 @@ function VisualContext({ project, section, selectedBlock }: { project: PlotPickl
     catalyst: { title: "Catalyst in visible action", values: [project.story.catalyst, project.development.catalyst.immediateImpact, project.development.catalyst.doorway] },
     foundations: { title: "Foundation check", values: [project.development.foundations.objective, project.development.foundations.opposition, project.development.foundations.transformation] },
     pickle: { title: "Audience tension", values: [project.development.pickle.audienceQuestion, selectedBlock.audienceExpectation || project.development.pickle.expectedDestination, selectedBlock.pickleTurn || project.development.pickle.signatureMove] },
-    actOne: selectedBlock.number <= 6
+    actOne: selectedBlock.number === 1
+      ? { title: "Block 1 · Opening Move & launch", values: [project.development.actOne.openingFirstSignal, project.development.actOne.openingGrip, launchSignals.filter(Boolean).join(" · ")] }
+      : selectedBlock.number <= 6
       ? { title: `Block ${selectedBlock.number} launch signals`, values: launchSignals }
       : { title: "Act I promises carried forward", values: [project.development.actOne.downstreamPromises, project.development.actOne.worldContract, project.development.actOne.pickleSeed] },
     dialogue: { title: "Voice & subtext reference", values: [project.development.dialogue.voiceContrast, project.development.dialogue.subtext, project.development.dialogue.recurringLanguage] },

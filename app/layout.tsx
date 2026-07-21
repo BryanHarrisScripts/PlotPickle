@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "PlotPickle Playhouse — Download the 24 Blocks Story Planner",
   description:
-    "Download PlotPickle Playhouse for Windows: a local-first story planner connecting Instructions, Story Planner, and Visual Board through Bryan Harris's 24 Blocks method.",
+    "Download PlotPickle Playhouse for Windows: a local-first story planner connecting Instructions, Story Planner, Voiceprint Engine, and Visual Board through Bryan Harris's 24 Blocks method.",
   other: {
     "codex-preview": "development",
   },
@@ -42,6 +42,26 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <a
+          href="/voiceprint"
+          style={{
+            position: "fixed",
+            right: 18,
+            bottom: 18,
+            zIndex: 1000,
+            border: "1px solid #bcd9d8",
+            borderRadius: 999,
+            background: "rgba(248, 255, 254, 0.94)",
+            boxShadow: "0 12px 28px rgba(32, 79, 86, 0.18)",
+            color: "#204f56",
+            fontSize: 13,
+            fontWeight: 800,
+            padding: "10px 15px",
+            textDecoration: "none",
+          }}
+        >
+          Voiceprint Engine
+        </a>
       </body>
     </html>
   );

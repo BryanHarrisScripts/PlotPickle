@@ -18,6 +18,12 @@ The opening act creates the contract that later acts develop and pay off. Before
 
 A launch should surprise in execution while feeling inevitable in retrospect.
 
+## Opening Move
+
+Opening Move is the first-scene layer inside Act I Launch. It asks the writer to choose the audience's doorway and first readable signal, then design seven effects: Anchor, Grip, Compass, Question, Imprint, Echo, and Handoff. These effects connect Block 1 to Characters, World, Theme, The Pickle, the ending, and the remaining story spine without requiring the opening to explain everything.
+
+Opening Move is not a separate story column. It deepens Primary Presence and Revealing Contrast in Block 1 while preserving the six-block launch grid. See `opening-move.md` for its full design.
+
 ## Launch contract
 
 | Field | Purpose |
@@ -66,6 +72,6 @@ After Act I is mapped, review Blocks 7–24 against the downstream promises. Lat
 
 ## Workspace integration
 
-Act I Launch is a shared story column in Instructions, Story Planner, and Visual Board. The planner stores the launch contract and twelve signals in `development.actOne`. The Visual Board shows the two relevant signals beside Blocks 1–6 and carries the downstream promises into later blocks.
+Act I Launch is a shared story column in Instructions, Story Planner, and Visual Board. The planner stores Opening Move, the launch contract, and twelve signals in `development.actOne`. The Visual Board shows Opening Move beside Block 1, the relevant launch signals beside Blocks 1–6, and the downstream promises in later blocks.
 
-Schema version 1.3.0 adds this object. Imports from versions 1.0.0 through 1.2.0 are normalized with blank Act I Launch fields so existing work remains intact.
+Schema version 1.4.0 extends this object with Opening Move. Imports from versions 1.0.0 through 1.3.0 are normalized with blank fields for any architecture added after their saved version, so existing work remains intact.

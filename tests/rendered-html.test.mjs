@@ -95,13 +95,20 @@ test("renders the DraftLens Engine route", async () => {
   assert.match(html, /Notes protocol/);
 });
 
-test("renders the CraftLoop Engine route", async () => {
+test("registers the CraftLoop client route and preserves its workspace contract", async () => {
   const html = await render("/craftloop");
-  assert.match(html, /CraftLoop Engine/);
-  assert.match(html, /Give the audience something active to track/);
-  assert.match(html, /Make Block 1 end differently than it began/);
-  assert.match(html, /Observe motive, rhythm, silence, and status/);
-  assert.match(html, /Repeatable studio loop/);
+  assert.match(html, /page:\/craftloop/);
+
+  const source = await readFile(new URL("../app/craftloop/page.tsx", import.meta.url), "utf8");
+  for (const phrase of [
+    "CraftLoop Engine",
+    "Give the audience something active to track",
+    "Make Block {selectedBlock.number} end differently than it began",
+    "Observe motive, rhythm, silence, and status",
+    "Repeatable studio loop",
+  ]) {
+    assert.ok(source.includes(phrase), `CraftLoop source is missing: ${phrase}`);
+  }
 });
 
 test("Windows launcher repairs interrupted dependency installs", async () => {

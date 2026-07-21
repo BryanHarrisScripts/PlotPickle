@@ -49,4 +49,4 @@ If an effect is deliberately absent, another choice may perform its function lat
 
 Story Planner stores Opening Move as prefixed fields inside `development.actOne`. Visual Board surfaces the first signal and Grip beside Block 1 together with its launch signals. Instructions explains the audience effect of each field rather than presenting a rigid scene formula.
 
-Schema version 1.4.0 adds the Opening Move fields. Imports from versions 1.0.0 through 1.3.0 receive blank defaults without losing existing project data.
+Opening Move was introduced in schema version 1.4.0 and remains intact in the current schema. Version 1.5.0 imports projects from versions 1.0.0 through 1.4.0 with blank defaults for later architecture without losing existing project data.

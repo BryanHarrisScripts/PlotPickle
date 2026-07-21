@@ -117,6 +117,15 @@ export type ProjectDevelopment = {
     signatureMove: string;
   };
   actOne: {
+    openingEntry: string;
+    openingFirstSignal: string;
+    openingAnchor: string;
+    openingGrip: string;
+    openingCompass: string;
+    openingQuestion: string;
+    openingImprint: string;
+    openingEcho: string;
+    openingHandoff: string;
     targetLength: string;
     flexibilityReason: string;
     worldContract: string;
@@ -156,7 +165,7 @@ export type ProjectDevelopment = {
 };
 
 export type PlotPickleProject = {
-  schemaVersion: "1.3.0";
+  schemaVersion: "1.4.0";
   id: string;
   metadata: {
     title: string;
@@ -251,6 +260,15 @@ export function createBlankDevelopment(): ProjectDevelopment {
       signatureMove: "",
     },
     actOne: {
+      openingEntry: "",
+      openingFirstSignal: "",
+      openingAnchor: "",
+      openingGrip: "",
+      openingCompass: "",
+      openingQuestion: "",
+      openingImprint: "",
+      openingEcho: "",
+      openingHandoff: "",
       targetLength: "",
       flexibilityReason: "",
       worldContract: "",
@@ -279,7 +297,7 @@ export function createBlankDevelopment(): ProjectDevelopment {
 export function createBlankProject(): PlotPickleProject {
   const now = new Date().toISOString();
   return {
-    schemaVersion: "1.3.0",
+    schemaVersion: "1.4.0",
     id: makeId("project"),
     metadata: {
       title: "Untitled Story",
@@ -352,7 +370,7 @@ export function isPlotPickleProject(value: unknown): value is PlotPickleProject 
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<PlotPickleProject>;
   return (
-    candidate.schemaVersion === "1.3.0" &&
+    candidate.schemaVersion === "1.4.0" &&
     typeof candidate.id === "string" &&
     !!candidate.metadata &&
     !!candidate.story &&
@@ -377,7 +395,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     blocks?: Array<Partial<StoryBlock>>;
   };
   if (
-    !["1.0.0", "1.1.0", "1.2.0", "1.3.0"].includes(candidate.schemaVersion ?? "") ||
+    !["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0"].includes(candidate.schemaVersion ?? "") ||
     typeof candidate.id !== "string" ||
     !candidate.metadata ||
     !candidate.story ||
@@ -390,7 +408,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
   const defaults = createBlankDevelopment();
   const development = candidate.development ?? {};
   return {
-    schemaVersion: "1.3.0",
+    schemaVersion: "1.4.0",
     id: candidate.id,
     metadata: candidate.metadata,
     story: candidate.story,
@@ -428,6 +446,9 @@ export function completionFor(project: PlotPickleProject) {
     project.development.pickle.centralTension,
     project.development.pickle.audienceQuestion,
     project.development.pickle.signatureMove,
+    project.development.actOne.openingGrip,
+    project.development.actOne.openingQuestion,
+    project.development.actOne.openingHandoff,
     project.development.actOne.problemNamed,
     project.development.actOne.irreversibleStep,
     project.development.actOne.downstreamPromises,

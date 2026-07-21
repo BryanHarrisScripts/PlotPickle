@@ -1,3 +1,14 @@
+import {
+  createDefaultScenes,
+  createDefaultStructure,
+  normalizeScenes,
+  normalizeStructure,
+  type ProjectStructure,
+  type StoryScene,
+} from "./structure";
+
+export type { ClockRow, MiniBlock, PacingProfile, ProjectStructure, StoryScene, StorySequence } from "./structure";
+
 export type Relationship = {
   characterId: string;
   label: string;
@@ -65,6 +76,8 @@ export type StoryBlock = {
   id: string;
   number: number;
   act: number;
+  sequenceNumber: number;
+  targetMinutes: number;
   title: string;
   purpose: string;
   summary: string;
@@ -83,6 +96,7 @@ export type StoryBlock = {
   scriptExcerpt: string;
   storyboardDirection: string;
   notes: string;
+  scenes: StoryScene[];
   visuals: VisualFrame[];
 };
 
@@ -162,7 +176,7 @@ export type ProjectDevelopment = {
 };
 
 export type PlotPickleProject = {
-  schemaVersion: "1.3.0";
+  schemaVersion: "1.4.0";
   id: string;
   metadata: {
     title: string;
@@ -199,6 +213,7 @@ export type PlotPickleProject = {
     locations: Location[];
   };
   development: ProjectDevelopment;
+  structure: ProjectStructure;
   characters: Character[];
   blocks: StoryBlock[];
 };
@@ -289,14 +304,15 @@ export function createBlankDevelopment(): ProjectDevelopment {
 
 export function createBlankProject(): PlotPickleProject {
   const now = new Date().toISOString();
+  const targetMinutes = 120;
   return {
-    schemaVersion: "1.3.0",
+    schemaVersion: "1.4.0",
     id: makeId("project"),
     metadata: {
       title: "Untitled Story",
       subtitle: "A 24 Blocks project",
       format: "Feature screenplay",
-      targetMinutes: 120,
+      targetMinutes,
       genre: "",
       tone: "",
       status: "Planning",
@@ -327,11 +343,14 @@ export function createBlankProject(): PlotPickleProject {
       locations: [],
     },
     development: createBlankDevelopment(),
+    structure: createDefaultStructure(targetMinutes),
     characters: [],
     blocks: beatTemplates.map(([title, purpose], index) => ({
       id: `block-${String(index + 1).padStart(2, "0")}`,
       number: index + 1,
       act: Math.floor(index / 6) + 1,
+      sequenceNumber: Math.floor(index / 2) + 1,
+      targetMinutes: targetMinutes / 24,
       title,
       purpose,
       summary: "",
@@ -350,6 +369,7 @@ export function createBlankProject(): PlotPickleProject {
       scriptExcerpt: "",
       storyboardDirection: "",
       notes: "",
+      scenes: createDefaultScenes(index + 1, targetMinutes),
       visuals: [],
     })),
   };
@@ -363,15 +383,19 @@ export function isPlotPickleProject(value: unknown): value is PlotPickleProject 
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<PlotPickleProject>;
   return (
-    candidate.schemaVersion === "1.3.0" &&
+    candidate.schemaVersion === "1.4.0" &&
     typeof candidate.id === "string" &&
     !!candidate.metadata &&
     !!candidate.story &&
     !!candidate.world &&
     !!candidate.development &&
+    !!candidate.structure &&
+    Array.isArray(candidate.structure.sequences) &&
+    candidate.structure.sequences.length === 12 &&
     Array.isArray(candidate.characters) &&
     Array.isArray(candidate.blocks) &&
-    candidate.blocks.length === 24
+    candidate.blocks.length === 24 &&
+    candidate.blocks.every((block) => Array.isArray(block.scenes) && block.scenes.length === 2 && block.scenes.every((scene) => scene.miniBlocks.length === 2))
   );
 }
 
@@ -384,11 +408,12 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     story?: PlotPickleProject["story"];
     world?: PlotPickleProject["world"];
     development?: Partial<ProjectDevelopment>;
+    structure?: Partial<ProjectStructure>;
     characters?: Character[];
     blocks?: Array<Partial<StoryBlock>>;
   };
   if (
-    !["1.0.0", "1.1.0", "1.2.0", "1.3.0"].includes(candidate.schemaVersion ?? "") ||
+    !["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0"].includes(candidate.schemaVersion ?? "") ||
     typeof candidate.id !== "string" ||
     !candidate.metadata ||
     !candidate.story ||
@@ -398,13 +423,15 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     candidate.blocks.length !== 24
   ) return null;
 
+  const targetMinutes = Math.max(1, Number(candidate.metadata.targetMinutes) || 120);
+  const blank = createBlankProject();
   const defaults = createBlankDevelopment();
   const voiceprintDefaults = createBlankVoiceprint();
   const development = candidate.development ?? {};
   return {
-    schemaVersion: "1.3.0",
+    schemaVersion: "1.4.0",
     id: candidate.id,
-    metadata: candidate.metadata,
+    metadata: { ...candidate.metadata, targetMinutes },
     story: candidate.story,
     world: candidate.world,
     development: {
@@ -417,13 +444,20 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
       dialogue: { ...defaults.dialogue, ...development.dialogue },
       notes: { ...defaults.notes, ...development.notes },
     },
+    structure: normalizeStructure(candidate.structure, targetMinutes),
     characters: candidate.characters.map((character) => ({ ...voiceprintDefaults, ...character })),
     blocks: candidate.blocks.map((block, index) => ({
-      ...createBlankProject().blocks[index],
+      ...blank.blocks[index],
       ...block,
+      number: index + 1,
+      act: Math.floor(index / 6) + 1,
+      sequenceNumber: Math.floor(index / 2) + 1,
+      targetMinutes: Number(block.targetMinutes) > 0 ? Number(block.targetMinutes) : targetMinutes / 24,
       storyboardDirection: block.storyboardDirection ?? "",
       audienceExpectation: block.audienceExpectation ?? "",
       pickleTurn: block.pickleTurn ?? "",
+      scenes: normalizeScenes(block.scenes, index + 1, targetMinutes),
+      visuals: Array.isArray(block.visuals) ? block.visuals : [],
     })),
   };
 }
@@ -447,12 +481,11 @@ export function completionFor(project: PlotPickleProject) {
   const blockScore = project.blocks.filter(
     (block) => block.summary && block.conflict && (block.action || block.choice),
   ).length;
-  const completed =
-    foundation.filter(Boolean).length +
-    world.filter(Boolean).length +
-    Math.min(characterScore, 4) +
-    blockScore;
-  const total = foundation.length + world.length + 4 + 24;
+  const structureScore = project.structure.sequences.filter(
+    (sequence) => sequence.promise && sequence.turningPoint,
+  ).length;
+  const completed = foundation.filter(Boolean).length + world.filter(Boolean).length + Math.min(characterScore, 4) + blockScore + structureScore;
+  const total = foundation.length + world.length + 4 + 24 + 12;
   return Math.round((completed / total) * 100);
 }
 

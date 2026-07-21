@@ -6,6 +6,7 @@ const contracts = await readFile(new URL("../lib/ai/contracts.ts", import.meta.u
 const providers = await readFile(new URL("../lib/ai/providers.ts", import.meta.url), "utf8");
 const adapters = await readFile(new URL("../lib/ai/adapters.ts", import.meta.url), "utf8");
 const architecture = await readFile(new URL("../docs/ai-architecture.md", import.meta.url), "utf8");
+const settings = await readFile(new URL("../lib/ai/settings.ts", import.meta.url), "utf8");
 
 test("AI contracts cover portable knowledge and character consistency", () => {
   assert.match(contracts, /type KnowledgeSource/);
@@ -42,4 +43,13 @@ test("OpenAI Responses and image generation are isolated in the adapter", () => 
   assert.match(adapters, /gpt-image-2|models\.image/);
   assert.match(adapters, /extractOpenAiOutputText/);
   assert.match(adapters, /image-editing-not-implemented/);
+});
+
+test("advanced AI capabilities stay behind one Settings menu", () => {
+  assert.match(architecture, /single Settings menu/);
+  assert.match(architecture, /AI Setup/);
+  assert.match(architecture, /Music/);
+  assert.match(architecture, /Plugins/);
+  assert.doesNotMatch(architecture, /AI Studio interface with Setup, Knowledge, Character Lab, Image Lab, Video Lab, and Activity/);
+  assert.match(settings, /type PlotPickleSettings/);
 });

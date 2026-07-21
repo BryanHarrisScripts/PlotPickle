@@ -80,3 +80,12 @@ test("renders the Resonance Engine route", async () => {
   assert.match(html, /Evidence channels/);
   assert.match(html, /Restraint rule/);
 });
+
+test("renders the DraftLens Engine route", async () => {
+  const html = await render("/draftlens");
+  assert.match(html, /DraftLens Engine/);
+  assert.match(html, /Record the experience before trying to repair it/);
+  assert.match(html, /Six diagnostic lenses/);
+  assert.match(html, /Separate the visible symptom from the root cause/);
+  assert.match(html, /Notes protocol/);
+});

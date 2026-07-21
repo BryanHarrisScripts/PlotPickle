@@ -95,6 +95,15 @@ test("renders the DraftLens Engine route", async () => {
   assert.match(html, /Notes protocol/);
 });
 
+test("renders the CraftLoop Engine route", async () => {
+  const html = await render("/craftloop");
+  assert.match(html, /CraftLoop Engine/);
+  assert.match(html, /Give the audience something active to track/);
+  assert.match(html, /Make Block 1 end differently than it began/);
+  assert.match(html, /Observe motive, rhythm, silence, and status/);
+  assert.match(html, /Repeatable studio loop/);
+});
+
 test("Windows launcher repairs interrupted dependency installs", async () => {
   const launcher = await readFile(new URL("../Start-PlotPickle.bat", import.meta.url), "utf8");
   assert.ok(launcher.includes('set "VITE_CMD=node_modules\\.bin\\vite.cmd"'));

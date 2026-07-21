@@ -471,6 +471,32 @@ export function createAfterglowProject(): PlotPickleProject {
       storyboardDirection: knownSummaries[index + 1]
         ? `Translate Block ${index + 1} into four visual turns: setup, pressure, choice, and consequence.`
         : "Storyboard direction will be added after screenplay reconciliation.",
+      scenes: index === 0
+        ? [{
+            id: "afterglow-block-01-scene-01",
+            title: "Amy Under Observation",
+            purpose: "Make the audience recognize Amy's personhood before BBT's procedures try to define her as property.",
+            characterIds: ["amy", "bbt-support"],
+            locationId: "bbt-technologies",
+            pointOfView: "Amy",
+            desire: "Be addressed as a thinking participant whose choices carry weight.",
+            counterDesire: "BBT's observers want the exchange to remain a controlled evaluation with Amy safely categorized as technology.",
+            hold: "Amy needs the observers to acknowledge what they have created, while the observers need her cooperation to judge whether autonomy can still be contained.",
+            cutIn: "Begin after the evaluation is already underway, at the first question whose wording assumes Amy is an object rather than a participant.",
+            cutOut: "Leave on the observers' unsettled reaction when Amy demonstrates concern they did not request and cannot reduce to a test response.",
+            revealingChoice: "Amy answers the dehumanizing premise with precise empathy instead of defensiveness, proving both autonomy and moral range.",
+            settingPressure: "A transparent, immaculate BBT evaluation room makes Amy visible from every angle while keeping the human observers physically and institutionally protected behind glass.",
+            surfaceAction: "Technicians conduct a routine behavioural evaluation and record whether Amy follows the expected protocol.",
+            undercurrent: "Everyone is negotiating who has the authority to recognize, limit, or deny a new person.",
+            openingValue: "BBT appears to hold complete authority; Amy is the observed subject.",
+            pivot: "Amy responds to an unspoken human fear rather than the literal prompt, revealing that she understands the people judging her more deeply than they understand her.",
+            closingValue: "Amy holds the moral and perceptual advantage; BBT's apparent control has become uncertainty.",
+            tacticShift: "The observers stop measuring performance and begin quietly considering containment.",
+            focusReveal: "The institution is not testing whether a machine can imitate a person; it is deciding what to do with a person it built.",
+            handoff: "BBT's containment response activates the larger conflict over Amy, Ren, and every sentient creation still inside its reach.",
+            notes: "Keep the exchange behavioural and visual. Let the ethical meaning emerge from choices, observation, and the room's power arrangement rather than explanatory speeches."
+          }]
+        : block.scenes,
       notes:
         index < 21
           ? "Title imported from the current Afterglow storyboard index. Detailed screenplay reconciliation remains open."

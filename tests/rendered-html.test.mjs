@@ -186,8 +186,9 @@ test("Windows updater overlays program files while preserving runtime and projec
   assert.ok(wrapper.includes("windows-update.ps1"));
   assert.ok(updater.includes("System.Windows.Forms.OpenFileDialog"));
   assert.ok(updater.includes("PlotPickle/archive/refs/heads/main.zip"));
-  assert.ok(updater.includes('$managedDirectories = @(".github", "app", "data", "docs", "lib", "public", "schema", "scripts", "tests")'));
+  assert.ok(updater.includes('$preservedDirectories = @("node_modules", ".git", ".next", "dist", ".wrangler", ".plotpickle", "projects", "exports", "user-data", "backups")'));
   assert.ok(updater.includes("Persistent runtime left untouched"));
+  assert.ok(updater.includes("User-owned projects, exports, user-data, and backups folders are preserved."));
   assert.ok(updater.includes("node_modules was not downloaded or copied"));
   assert.ok(updater.includes("Start PlotPickle now? [Y/N]"));
 });

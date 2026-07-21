@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   createBlankProject,
@@ -77,25 +78,29 @@ export default function ResonancePage() {
   const [status, setStatus] = useState("Loading the active PlotPickle project…");
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (!stored) {
-        setStatus("No saved project was found. Open PlotPickle or begin with the blank project shown here.");
-        return;
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = window.localStorage.getItem(STORAGE_KEY);
+        if (!stored) {
+          setStatus("No saved project was found. Open PlotPickle or begin with the blank project shown here.");
+          return;
+        }
+        const normalized = normalizePlotPickleProject(JSON.parse(stored));
+        if (!normalized) {
+          setStatus("The saved project could not be upgraded. A blank project is shown instead.");
+          return;
+        }
+        setProject(normalized);
+        setSelectedCharacterId(normalized.characters[0]?.id ?? "");
+        setStatus("Connected to the active PlotPickle project.");
+      } catch {
+        setStatus("The saved project could not be opened. A blank project is shown instead.");
+      } finally {
+        setHydrated(true);
       }
-      const normalized = normalizePlotPickleProject(JSON.parse(stored));
-      if (!normalized) {
-        setStatus("The saved project could not be upgraded. A blank project is shown instead.");
-        return;
-      }
-      setProject(normalized);
-      setSelectedCharacterId(normalized.characters[0]?.id ?? "");
-      setStatus("Connected to the active PlotPickle project.");
-    } catch {
-      setStatus("The saved project could not be opened. A blank project is shown instead.");
-    } finally {
-      setHydrated(true);
-    }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   const selectedBlock = project.blocks.find((block) => block.number === selectedBlockNumber) ?? project.blocks[0];
@@ -175,9 +180,9 @@ export default function ResonancePage() {
             </p>
           </div>
           <div className={styles.actions}>
-            <a className={styles.secondaryButton} href="/">Back to PlotPickle</a>
-            <a className={styles.secondaryButton} href="/pageflow">Open PageFlow</a>
-            <a className={styles.secondaryButton} href="/voiceprint">Open Voiceprint</a>
+            <Link className={styles.secondaryButton} href="/">Back to PlotPickle</Link>
+            <Link className={styles.secondaryButton} href="/pageflow">Open PageFlow</Link>
+            <Link className={styles.secondaryButton} href="/voiceprint">Open Voiceprint</Link>
             <button className={styles.button} type="button" onClick={exportProject}>Export project</button>
           </div>
         </header>

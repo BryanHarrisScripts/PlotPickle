@@ -1,0 +1,38 @@
+name: Apply Engines Workspace
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-engines-workspace.yml
+      - scripts/apply-engines-workspace.mjs
+      - app/engine-hub.tsx
+      - app/engine-hub.module.css
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply source migration
+        run: node scripts/apply-engines-workspace.mjs
+
+      - name: Commit updated application
+        run: |
+          if git diff --quiet -- app/page.tsx; then
+            echo "Engines workspace was already applied."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/page.tsx
+          git commit -m "Add Engines as the fourth PlotPickle workspace"
+          git push

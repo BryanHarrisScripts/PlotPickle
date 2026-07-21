@@ -2,7 +2,7 @@
 
 PlotPickle is a local-first story development application built around Bryan Harris's 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, scene, mini-block, screenplay page, review, and visual board.
 
-Current application version: `0.7.2`
+Current application version: `0.7.3`
 
 Current project schema: `1.4.0`
 
@@ -111,6 +111,20 @@ For repeated `ECONNRESET` or `EPERM` errors:
 - **Visual Board** attaches storyboard frames, prompts, shot notes, performance ideas, and continuity to the same project.
 
 Every workspace reads and writes the same locally saved project.
+
+## Engines workspace
+
+**Engines** is the fourth top-level menu item beside Instructions, Story Planner, and Visual Board. It replaces the former floating button stack with a guided overview of all six specialist engines.
+
+Before entering a specialist screen, each engine card explains:
+
+- the story problem the engine is designed to solve;
+- the best time to use it;
+- the canonical project information it works with;
+- the expected result of the pass;
+- where it belongs in the recommended development sequence.
+
+The suggested path is **Structure → Resonance → Voiceprint → PageFlow → DraftLens → CraftLoop**, but writers may enter whichever engine addresses the current problem.
 
 ## Structure Engine
 

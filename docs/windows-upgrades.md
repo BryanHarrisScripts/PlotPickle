@@ -1,6 +1,6 @@
 # Updating PlotPickle on Windows
 
-PlotPickle 0.7.1 separates replaceable application files from reusable npm dependencies. Routine upgrades no longer require deleting the program directory or reinstalling every package.
+PlotPickle 0.7.2 separates replaceable application files from reusable npm dependencies. Routine upgrades no longer require deleting the program directory or reinstalling every package.
 
 ## Storage model
 
@@ -14,7 +14,7 @@ The application folder can be updated or replaced. Matching future versions reco
 
 ## One-time transition from an older installation
 
-Run the new `Start-PlotPickle.bat` once from PlotPickle 0.7.1 or later.
+Run the new `Start-PlotPickle.bat` once from PlotPickle 0.7.2 or later.
 
 When the existing folder contains a complete local `node_modules`, the launcher attempts to move it into the persistent runtime and creates a Windows directory junction from the application folder to that runtime. This is a one-time migration; the packages are not downloaded again.
 
@@ -42,6 +42,7 @@ The updater preserves:
 - browser-stored PlotPickle projects;
 - exported `.plotpickle.json` files;
 - `.env`, `.env.local`, and environment-specific local configuration files;
+- user-owned `projects`, `exports`, `user-data`, and `backups` folders;
 - a local update-history log under `%LOCALAPPDATA%\PlotPickle`.
 
 The updater does not copy or redownload `node_modules`.

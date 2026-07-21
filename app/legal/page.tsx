@@ -115,8 +115,8 @@ export default function LegalPage() {
         <p>Licensing questions involving a particular business, contributor agreement, commercial deployment, or jurisdiction should be reviewed by a qualified intellectual-property professional.</p>
         <div>
           <a href={sourceRepository} target="_blank" rel="noreferrer">Source repository</a>
-          <a href="/LICENSES.md">Licence scope file</a>
-          <a href="/CONTRIBUTING.md">Contribution terms</a>
+          <a href={`${sourceRepository}/blob/main/LICENSES.md`} target="_blank" rel="noreferrer">Licence scope file</a>
+          <a href={`${sourceRepository}/blob/main/CONTRIBUTING.md`} target="_blank" rel="noreferrer">Contribution terms</a>
         </div>
       </footer>
     </main>

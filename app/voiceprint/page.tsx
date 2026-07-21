@@ -1,11 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   addBlankCharacter,
   createBlankProject,
   normalizePlotPickleProject,
-  type Character,
   type PlotPickleProject,
 } from "@/lib/project";
 import styles from "./voiceprint.module.css";
@@ -80,25 +80,29 @@ export default function VoiceprintPage() {
   const [status, setStatus] = useState("Loading the active PlotPickle project…");
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const normalized = normalizePlotPickleProject(JSON.parse(stored));
-        if (normalized) {
-          setProject(normalized);
-          setSelectedCharacterId(normalized.characters[0]?.id ?? "");
-          setStatus("Connected to the active PlotPickle project.");
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = window.localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const normalized = normalizePlotPickleProject(JSON.parse(stored));
+          if (normalized) {
+            setProject(normalized);
+            setSelectedCharacterId(normalized.characters[0]?.id ?? "");
+            setStatus("Connected to the active PlotPickle project.");
+          } else {
+            setStatus("The saved project could not be upgraded. A blank project is shown instead.");
+          }
         } else {
-          setStatus("The saved project could not be upgraded. A blank project is shown instead.");
+          setStatus("No saved project was found. Add a character here or open PlotPickle first.");
         }
-      } else {
-        setStatus("No saved project was found. Add a character here or open PlotPickle first.");
+      } catch {
+        setStatus("The saved project could not be opened. A blank project is shown instead.");
+      } finally {
+        setHydrated(true);
       }
-    } catch {
-      setStatus("The saved project could not be opened. A blank project is shown instead.");
-    } finally {
-      setHydrated(true);
-    }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   const selectedCharacter = useMemo(
@@ -176,7 +180,7 @@ export default function VoiceprintPage() {
             </p>
           </div>
           <div className={styles.actions}>
-            <a className={styles.secondaryButton} href="/">Back to PlotPickle</a>
+            <Link className={styles.secondaryButton} href="/">Back to PlotPickle</Link>
             <button className={styles.secondaryButton} type="button" onClick={addCharacter}>Add character</button>
             <button className={styles.button} type="button" onClick={exportProject}>Export project</button>
           </div>

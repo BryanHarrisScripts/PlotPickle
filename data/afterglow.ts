@@ -417,6 +417,15 @@ export function createAfterglowProject(): PlotPickleProject {
         signatureMove: "Let vehicles, animals, interfaces, and companions reveal distinct forms of consciousness through humour, loyalty, memory, and action rather than speeches about being alive."
       },
       actOne: {
+        openingEntry: "Amy is the audience's doorway because her calm, recognizably human presence lets viewers experience the ethical conflict before Ren and the larger ensemble arrive.",
+        openingFirstSignal: "Inside BBT's controlled environment, Amy appears to behave like a person while the institution around her still reads and manages her as technology.",
+        openingAnchor: "Anchor attention to Amy's dignity and self-possession: the audience should begin protecting her personhood in its own mind before anyone labels it.",
+        openingGrip: "The contradiction between Amy's lived humanity and BBT's ownership logic creates an immediate need to learn what she is allowed to choose—and what happens if she refuses.",
+        openingCompass: "Without exposition, behaviour and environment establish a near future where artificial consciousness has advanced faster than the rules governing it.",
+        openingQuestion: "If Amy can perceive, care, and choose, who has the authority to define her as property?",
+        openingImprint: "Blend near-future realism, clinical corporate control, quiet warmth, and philosophical tension expressed through specific behaviour rather than speeches.",
+        openingEcho: "The closing movement toward coexistence and self-determined purpose should reframe this first encounter: Amy was never becoming a person; the world was learning to see one.",
+        openingHandoff: "BBT's attempt to contain what Amy represents opens the wider conflict over Ren, the surviving creations, and the sentient family that must leave institutional control behind.",
         targetLength: "Approximately 25–30 screenplay pages across Blocks 1–6, with room for the ensemble and near-future world to breathe.",
         flexibilityReason: "The story introduces a large sentient ensemble and unfamiliar rules, so clarity matters more than hitting an exact page count.",
         worldContract: "BBT treats advanced AI as controllable property while the audience sees personality, memory, humour, and choice emerging as evidence of personhood.",

@@ -404,6 +404,18 @@ export function createAfterglowProject(): PlotPickleProject {
         transformation: "Ren moves from isolation and control toward acceptance, trust, and participation in a new family.",
         endingProof: "The closing world must visibly show human and artificial consciousness choosing coexistence rather than returning to ownership."
       },
+      pickle: {
+        centralTension: "Can independent artificial consciousness and grieving human beings choose connection without repeating systems of ownership and control?",
+        audienceQuestion: "Will Ren protect emerging personhood and re-enter life, or will grief and BBT's need for control reduce every new relationship to another loss?",
+        storyPromise: "Each stage of the journey introduces a more human form of artificial life, then forces a choice between control and freely chosen connection.",
+        expectedDestination: "Ren and the sentient ensemble will break from BBT and form a self-determined family.",
+        unpredictableRoute: "Which identities are genuine, who can be trusted, how autonomy will manifest, and what Ren must surrender before coexistence becomes possible.",
+        liveAnswerA: "Consciousness can become a reciprocal relationship when its freedom is protected.",
+        liveAnswerB: "Creation remains ownership, making control or destruction inevitable.",
+        escalationPattern: "Alternate wonder and belonging with pursuit, concealment, betrayal, and evidence that the sentient characters are exceeding every assigned purpose.",
+        finalAnswer: "The ending should prove through visible choices that personhood grows through autonomy, responsibility, and freely chosen connection.",
+        signatureMove: "Let vehicles, animals, interfaces, and companions reveal distinct forms of consciousness through humour, loyalty, memory, and action rather than speeches about being alive."
+      },
       dialogue: {
         principles: "Let intelligence reveal character rather than become exposition. Emotional truth should arrive through interruption, avoidance, humour, and specific choices.",
         voiceContrast: "Ren is guarded and understated; Isobel is direct and warm; Amy is calm and precise; Rocket and Joy use speed and humour; Jai and Kai compress control into pragmatic language.",

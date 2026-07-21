@@ -7,7 +7,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "id", "metadata", "story", "world", "development", "characters", "blocks"],
   "properties": {
-    "schemaVersion": { "const": "1.2.0" },
+    "schemaVersion": { "const": "1.3.0" },
     "id": { "type": "string", "minLength": 1 },
     "metadata": {
       "type": "object",
@@ -180,7 +180,11 @@
         "subtext": { "type": "string" },
         "expositionRules": { "type": "string" },
         "recurringLanguage": { "type": "string" },
-        "notes": { "type": "string" }
+        "notes": { "type": "string" },
+        "worldVernacular": { "type": "string", "description": "Shared slang, technical language, forms of address, and speech rules created by the story world." },
+        "monologueRules": { "type": "string", "description": "Conditions that make a long speech earned, persuasive, and scene-changing." },
+        "subtextSeeds": { "type": "string", "description": "Objects, repeated words, actions, and callbacks that can accumulate hidden meaning." },
+        "fieldworkNotes": { "type": "string", "description": "Original observations about rhythm, hesitation, repetition, status shifts, and other reusable speech fingerprints." }
       }
     },
     "projectNotes": {
@@ -233,7 +237,17 @@
         "fatalFlaw": { "type": "string" },
         "strengths": { "type": "string" },
         "arc": { "type": "string" },
-        "voice": { "type": "string" },
+        "voice": { "type": "string", "description": "Compact scene-by-scene voice rule." },
+        "originEnvironment": { "type": "string", "description": "Geography, community, family, work, culture, and formative surroundings." },
+        "socialContext": { "type": "string", "description": "Class, status, money, institutions, belonging, and exclusion." },
+        "educationExpertise": { "type": "string", "description": "Formal education, practical knowledge, professional language, and blind spots." },
+        "worldviewBoundaries": { "type": "string", "description": "Beliefs, loyalties, taboos, assumptions, and subjects the character avoids." },
+        "rhythmSentenceShape": { "type": "string", "description": "Speed, sentence length, directness, interruption, and structural habits." },
+        "vocabularyMetaphors": { "type": "string", "description": "Preferred words, references, comparisons, and areas of fluency." },
+        "verbalFingerprints": { "type": "string", "description": "Repeated connectors, fillers, corrections, jokes, deflections, and signature phrasing." },
+        "emotionalAccess": { "type": "string", "description": "What can be stated directly, disguised, or not admitted." },
+        "statusShift": { "type": "string", "description": "How speech changes with authority, intimacy, fear, attraction, rivalry, or dependence." },
+        "persuasionStrategy": { "type": "string", "description": "How the character asks, pressures, charms, bargains, threatens, proves, or avoids." },
         "image": { "type": "string" },
         "relationships": {
           "type": "array",

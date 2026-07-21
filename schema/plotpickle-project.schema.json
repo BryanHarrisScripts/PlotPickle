@@ -2,13 +2,27 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://plotpickle.app/schema/plotpickle-project.schema.json",
   "title": "PlotPickle Project",
-  "description": "Canonical local-first story project shared by the Instructions, Story Planner, and Visual Board interfaces.",
+  "description": "Canonical local-first story project shared by every PlotPickle workspace.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "id", "metadata", "story", "world", "development", "characters", "blocks"],
+  "required": ["schemaVersion", "id", "metadata", "story", "world", "development", "structure", "characters", "blocks"],
   "properties": {
-    "schemaVersion": { "const": "1.3.0" },
+    "schemaVersion": { "const": "1.4.0" },
     "id": { "type": "string", "minLength": 1 },
+    "metadata": { "$ref": "#/$defs/metadata" },
+    "story": { "$ref": "#/$defs/story" },
+    "world": { "$ref": "#/$defs/world" },
+    "development": { "$ref": "#/$defs/development" },
+    "structure": { "$ref": "#/$defs/structure" },
+    "characters": { "type": "array", "items": { "$ref": "#/$defs/character" } },
+    "blocks": {
+      "type": "array",
+      "minItems": 24,
+      "maxItems": 24,
+      "items": { "$ref": "#/$defs/block" }
+    }
+  },
+  "$defs": {
     "metadata": {
       "type": "object",
       "additionalProperties": false,
@@ -55,10 +69,7 @@
         "rules": { "type": "string" },
         "technology": { "type": "string" },
         "visualLanguage": { "type": "string" },
-        "locations": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/location" }
-        }
+        "locations": { "type": "array", "items": { "$ref": "#/$defs/location" } }
       }
     },
     "development": {
@@ -76,28 +87,106 @@
         "notes": { "$ref": "#/$defs/projectNotes" }
       }
     },
-    "characters": {
-      "type": "array",
-      "items": { "$ref": "#/$defs/character" }
+    "structure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pacingProfile", "averageShotSeconds", "automaticTiming", "sequences"],
+      "properties": {
+        "pacingProfile": { "enum": ["original-24-96", "contemplative", "moderate", "propulsive", "custom"] },
+        "averageShotSeconds": { "type": "number", "exclusiveMinimum": 0 },
+        "automaticTiming": { "type": "boolean" },
+        "sequences": {
+          "type": "array",
+          "minItems": 12,
+          "maxItems": 12,
+          "items": { "$ref": "#/$defs/sequence" }
+        }
+      }
     },
-    "blocks": {
-      "type": "array",
-      "minItems": 24,
-      "maxItems": 24,
-      "items": { "$ref": "#/$defs/block" }
-    }
-  },
-  "$defs": {
+    "sequence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "number", "act", "title", "purpose", "question", "promise", "escalation", "climax", "turningPoint", "result", "targetMinutes", "blockNumbers"],
+      "properties": {
+        "id": { "type": "string" },
+        "number": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "act": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "title": { "type": "string" },
+        "purpose": { "type": "string" },
+        "question": { "type": "string" },
+        "promise": { "type": "string" },
+        "escalation": { "type": "string" },
+        "climax": { "type": "string" },
+        "turningPoint": { "type": "string" },
+        "result": { "type": "string" },
+        "targetMinutes": { "type": "number", "minimum": 0 },
+        "blockNumbers": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "type": "integer", "minimum": 1, "maximum": 24 }
+        }
+      }
+    },
+    "scene": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "number", "title", "purpose", "characterIds", "locationIds", "objective", "conflict", "turn", "resolution", "outcome", "estimatedSeconds", "miniBlocks"],
+      "properties": {
+        "id": { "type": "string" },
+        "number": { "type": "integer", "minimum": 1, "maximum": 2 },
+        "title": { "type": "string" },
+        "purpose": { "type": "string" },
+        "characterIds": { "type": "array", "items": { "type": "string" } },
+        "locationIds": { "type": "array", "items": { "type": "string" } },
+        "objective": { "type": "string" },
+        "conflict": { "type": "string" },
+        "turn": { "type": "string" },
+        "resolution": { "type": "string" },
+        "outcome": { "type": "string" },
+        "estimatedSeconds": { "type": "number", "minimum": 0 },
+        "miniBlocks": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/miniBlock" }
+        }
+      }
+    },
+    "miniBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "number", "label", "function", "purpose", "characterId", "objective", "resistance", "action", "revelation", "turn", "visualBeat", "dialogueIntention", "entryState", "exitState", "setup", "payoff", "estimatedSeconds", "beatTarget", "shotTarget", "notes"],
+      "properties": {
+        "id": { "type": "string" },
+        "number": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "label": { "type": "string" },
+        "function": { "type": "string" },
+        "purpose": { "type": "string" },
+        "characterId": { "type": "string" },
+        "objective": { "type": "string" },
+        "resistance": { "type": "string" },
+        "action": { "type": "string" },
+        "revelation": { "type": "string" },
+        "turn": { "type": "string" },
+        "visualBeat": { "type": "string" },
+        "dialogueIntention": { "type": "string" },
+        "entryState": { "type": "string" },
+        "exitState": { "type": "string" },
+        "setup": { "type": "string" },
+        "payoff": { "type": "string" },
+        "estimatedSeconds": { "type": "number", "minimum": 0 },
+        "beatTarget": { "type": "integer", "minimum": 0 },
+        "shotTarget": { "type": "integer", "minimum": 0 },
+        "notes": { "type": "string" }
+      }
+    },
     "storySetup": {
       "type": "object",
       "additionalProperties": false,
       "required": ["audience", "contentRating", "language", "scope", "collaborators"],
       "properties": {
-        "audience": { "type": "string" },
-        "contentRating": { "type": "string" },
-        "language": { "type": "string" },
-        "scope": { "type": "string" },
-        "collaborators": { "type": "string" }
+        "audience": { "type": "string" }, "contentRating": { "type": "string" }, "language": { "type": "string" }, "scope": { "type": "string" }, "collaborators": { "type": "string" }
       }
     },
     "pitch": {
@@ -105,12 +194,7 @@
       "additionalProperties": false,
       "required": ["oneSentence", "shortPitch", "audiencePromise", "emotionalExperience", "comparableTitles", "visualVision"],
       "properties": {
-        "oneSentence": { "type": "string" },
-        "shortPitch": { "type": "string" },
-        "audiencePromise": { "type": "string" },
-        "emotionalExperience": { "type": "string" },
-        "comparableTitles": { "type": "string" },
-        "visualVision": { "type": "string" }
+        "oneSentence": { "type": "string" }, "shortPitch": { "type": "string" }, "audiencePromise": { "type": "string" }, "emotionalExperience": { "type": "string" }, "comparableTitles": { "type": "string" }, "visualVision": { "type": "string" }
       }
     },
     "ghost": {
@@ -118,12 +202,7 @@
       "additionalProperties": false,
       "required": ["centralWound", "origin", "lie", "trigger", "presentPattern", "truth"],
       "properties": {
-        "centralWound": { "type": "string" },
-        "origin": { "type": "string" },
-        "lie": { "type": "string" },
-        "trigger": { "type": "string" },
-        "presentPattern": { "type": "string" },
-        "truth": { "type": "string" }
+        "centralWound": { "type": "string" }, "origin": { "type": "string" }, "lie": { "type": "string" }, "trigger": { "type": "string" }, "presentPattern": { "type": "string" }, "truth": { "type": "string" }
       }
     },
     "catalyst": {
@@ -131,12 +210,7 @@
       "additionalProperties": false,
       "required": ["event", "timing", "immediateImpact", "choiceForced", "resistance", "doorway"],
       "properties": {
-        "event": { "type": "string" },
-        "timing": { "type": "string" },
-        "immediateImpact": { "type": "string" },
-        "choiceForced": { "type": "string" },
-        "resistance": { "type": "string" },
-        "doorway": { "type": "string" }
+        "event": { "type": "string" }, "timing": { "type": "string" }, "immediateImpact": { "type": "string" }, "choiceForced": { "type": "string" }, "resistance": { "type": "string" }, "doorway": { "type": "string" }
       }
     },
     "foundations": {
@@ -144,13 +218,7 @@
       "additionalProperties": false,
       "required": ["protagonist", "objective", "opposition", "urgency", "storyEngine", "transformation", "endingProof"],
       "properties": {
-        "protagonist": { "type": "string" },
-        "objective": { "type": "string" },
-        "opposition": { "type": "string" },
-        "urgency": { "type": "string" },
-        "storyEngine": { "type": "string" },
-        "transformation": { "type": "string" },
-        "endingProof": { "type": "string" }
+        "protagonist": { "type": "string" }, "objective": { "type": "string" }, "opposition": { "type": "string" }, "urgency": { "type": "string" }, "storyEngine": { "type": "string" }, "transformation": { "type": "string" }, "endingProof": { "type": "string" }
       }
     },
     "pickle": {
@@ -158,16 +226,7 @@
       "additionalProperties": false,
       "required": ["centralTension", "audienceQuestion", "storyPromise", "expectedDestination", "unpredictableRoute", "liveAnswerA", "liveAnswerB", "escalationPattern", "finalAnswer", "signatureMove"],
       "properties": {
-        "centralTension": { "type": "string" },
-        "audienceQuestion": { "type": "string" },
-        "storyPromise": { "type": "string" },
-        "expectedDestination": { "type": "string" },
-        "unpredictableRoute": { "type": "string" },
-        "liveAnswerA": { "type": "string" },
-        "liveAnswerB": { "type": "string" },
-        "escalationPattern": { "type": "string" },
-        "finalAnswer": { "type": "string" },
-        "signatureMove": { "type": "string" }
+        "centralTension": { "type": "string" }, "audienceQuestion": { "type": "string" }, "storyPromise": { "type": "string" }, "expectedDestination": { "type": "string" }, "unpredictableRoute": { "type": "string" }, "liveAnswerA": { "type": "string" }, "liveAnswerB": { "type": "string" }, "escalationPattern": { "type": "string" }, "finalAnswer": { "type": "string" }, "signatureMove": { "type": "string" }
       }
     },
     "dialogue": {
@@ -175,16 +234,7 @@
       "additionalProperties": false,
       "required": ["principles", "voiceContrast", "subtext", "expositionRules", "recurringLanguage", "notes"],
       "properties": {
-        "principles": { "type": "string" },
-        "voiceContrast": { "type": "string" },
-        "subtext": { "type": "string" },
-        "expositionRules": { "type": "string" },
-        "recurringLanguage": { "type": "string" },
-        "notes": { "type": "string" },
-        "worldVernacular": { "type": "string", "description": "Shared slang, technical language, forms of address, and speech rules created by the story world." },
-        "monologueRules": { "type": "string", "description": "Conditions that make a long speech earned, persuasive, and scene-changing." },
-        "subtextSeeds": { "type": "string", "description": "Objects, repeated words, actions, and callbacks that can accumulate hidden meaning." },
-        "fieldworkNotes": { "type": "string", "description": "Original observations about rhythm, hesitation, repetition, status shifts, and other reusable speech fingerprints." }
+        "principles": { "type": "string" }, "voiceContrast": { "type": "string" }, "subtext": { "type": "string" }, "expositionRules": { "type": "string" }, "recurringLanguage": { "type": "string" }, "notes": { "type": "string" }, "worldVernacular": { "type": "string" }, "monologueRules": { "type": "string" }, "subtextSeeds": { "type": "string" }, "fieldworkNotes": { "type": "string" }
       }
     },
     "projectNotes": {
@@ -192,109 +242,50 @@
       "additionalProperties": false,
       "required": ["general", "research", "openQuestions", "continuity", "revisions", "sources"],
       "properties": {
-        "general": { "type": "string" },
-        "research": { "type": "string" },
-        "openQuestions": { "type": "string" },
-        "continuity": { "type": "string" },
-        "revisions": { "type": "string" },
-        "sources": { "type": "string" }
+        "general": { "type": "string" }, "research": { "type": "string" }, "openQuestions": { "type": "string" }, "continuity": { "type": "string" }, "revisions": { "type": "string" }, "sources": { "type": "string" }
       }
     },
     "location": {
       "type": "object",
       "additionalProperties": false,
       "required": ["id", "name", "description", "image"],
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "description": { "type": "string" },
-        "image": { "type": "string" }
-      }
+      "properties": { "id": { "type": "string" }, "name": { "type": "string" }, "description": { "type": "string" }, "image": { "type": "string" } }
     },
     "relationship": {
       "type": "object",
       "additionalProperties": false,
       "required": ["characterId", "label", "description"],
-      "properties": {
-        "characterId": { "type": "string" },
-        "label": { "type": "string" },
-        "description": { "type": "string" }
-      }
+      "properties": { "characterId": { "type": "string" }, "label": { "type": "string" }, "description": { "type": "string" } }
     },
     "character": {
       "type": "object",
       "additionalProperties": false,
       "required": ["id", "name", "role", "pronouns", "description", "want", "need", "ghost", "fatalFlaw", "strengths", "arc", "voice", "image", "relationships"],
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "role": { "type": "string" },
-        "pronouns": { "type": "string" },
-        "description": { "type": "string" },
-        "want": { "type": "string" },
-        "need": { "type": "string" },
-        "ghost": { "type": "string", "description": "Past wound, loss, trauma, or belief still controlling the character." },
-        "fatalFlaw": { "type": "string" },
-        "strengths": { "type": "string" },
-        "arc": { "type": "string" },
-        "voice": { "type": "string", "description": "Compact scene-by-scene voice rule." },
-        "originEnvironment": { "type": "string", "description": "Geography, community, family, work, culture, and formative surroundings." },
-        "socialContext": { "type": "string", "description": "Class, status, money, institutions, belonging, and exclusion." },
-        "educationExpertise": { "type": "string", "description": "Formal education, practical knowledge, professional language, and blind spots." },
-        "worldviewBoundaries": { "type": "string", "description": "Beliefs, loyalties, taboos, assumptions, and subjects the character avoids." },
-        "rhythmSentenceShape": { "type": "string", "description": "Speed, sentence length, directness, interruption, and structural habits." },
-        "vocabularyMetaphors": { "type": "string", "description": "Preferred words, references, comparisons, and areas of fluency." },
-        "verbalFingerprints": { "type": "string", "description": "Repeated connectors, fillers, corrections, jokes, deflections, and signature phrasing." },
-        "emotionalAccess": { "type": "string", "description": "What can be stated directly, disguised, or not admitted." },
-        "statusShift": { "type": "string", "description": "How speech changes with authority, intimacy, fear, attraction, rivalry, or dependence." },
-        "persuasionStrategy": { "type": "string", "description": "How the character asks, pressures, charms, bargains, threatens, proves, or avoids." },
-        "image": { "type": "string" },
-        "relationships": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/relationship" }
-        }
+        "id": { "type": "string" }, "name": { "type": "string" }, "role": { "type": "string" }, "pronouns": { "type": "string" }, "description": { "type": "string" }, "want": { "type": "string" }, "need": { "type": "string" }, "ghost": { "type": "string" }, "fatalFlaw": { "type": "string" }, "strengths": { "type": "string" }, "arc": { "type": "string" }, "voice": { "type": "string" }, "originEnvironment": { "type": "string" }, "socialContext": { "type": "string" }, "educationExpertise": { "type": "string" }, "worldviewBoundaries": { "type": "string" }, "rhythmSentenceShape": { "type": "string" }, "vocabularyMetaphors": { "type": "string" }, "verbalFingerprints": { "type": "string" }, "emotionalAccess": { "type": "string" }, "statusShift": { "type": "string" }, "persuasionStrategy": { "type": "string" }, "image": { "type": "string" }, "relationships": { "type": "array", "items": { "$ref": "#/$defs/relationship" } }
       }
     },
     "visual": {
       "type": "object",
       "additionalProperties": false,
       "required": ["id", "src", "alt", "caption", "prompt", "shot", "continuity"],
-      "properties": {
-        "id": { "type": "string" },
-        "src": { "type": "string" },
-        "alt": { "type": "string" },
-        "caption": { "type": "string" },
-        "prompt": { "type": "string" },
-        "shot": { "type": "string" },
-        "continuity": { "type": "string" }
-      }
+      "properties": { "id": { "type": "string" }, "src": { "type": "string" }, "alt": { "type": "string" }, "caption": { "type": "string" }, "prompt": { "type": "string" }, "shot": { "type": "string" }, "continuity": { "type": "string" } }
     },
     "block": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "number", "act", "title", "purpose", "summary", "characterIds", "locationIds", "goal", "conflict", "choice", "action", "consequence", "emotionalTurn", "audienceExpectation", "pickleTurn", "setup", "payoff", "scriptExcerpt", "storyboardDirection", "notes", "visuals"],
+      "required": ["id", "number", "act", "sequenceNumber", "targetMinutes", "title", "purpose", "summary", "characterIds", "locationIds", "goal", "conflict", "choice", "action", "consequence", "emotionalTurn", "audienceExpectation", "pickleTurn", "setup", "payoff", "scriptExcerpt", "storyboardDirection", "notes", "scenes", "visuals"],
       "properties": {
         "id": { "type": "string" },
         "number": { "type": "integer", "minimum": 1, "maximum": 24 },
         "act": { "type": "integer", "minimum": 1, "maximum": 4 },
-        "title": { "type": "string" },
-        "purpose": { "type": "string" },
-        "summary": { "type": "string" },
+        "sequenceNumber": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "targetMinutes": { "type": "number", "minimum": 0 },
+        "title": { "type": "string" }, "purpose": { "type": "string" }, "summary": { "type": "string" },
         "characterIds": { "type": "array", "items": { "type": "string" } },
         "locationIds": { "type": "array", "items": { "type": "string" } },
-        "goal": { "type": "string" },
-        "conflict": { "type": "string" },
-        "choice": { "type": "string" },
-        "action": { "type": "string" },
-        "consequence": { "type": "string" },
-        "emotionalTurn": { "type": "string" },
-        "audienceExpectation": { "type": "string", "description": "What the audience is likely to believe, expect, hope, or fear after this block." },
-        "pickleTurn": { "type": "string", "description": "The clue, reversal, complication, near-answer, or reframe that refreshes the central audience tension." },
-        "setup": { "type": "string" },
-        "payoff": { "type": "string" },
-        "scriptExcerpt": { "type": "string" },
-        "storyboardDirection": { "type": "string" },
-        "notes": { "type": "string" },
+        "goal": { "type": "string" }, "conflict": { "type": "string" }, "choice": { "type": "string" }, "action": { "type": "string" }, "consequence": { "type": "string" }, "emotionalTurn": { "type": "string" }, "audienceExpectation": { "type": "string" }, "pickleTurn": { "type": "string" }, "setup": { "type": "string" }, "payoff": { "type": "string" }, "scriptExcerpt": { "type": "string" }, "storyboardDirection": { "type": "string" }, "notes": { "type": "string" },
+        "scenes": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "$ref": "#/$defs/scene" } },
         "visuals": { "type": "array", "items": { "$ref": "#/$defs/visual" } }
       }
     }

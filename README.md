@@ -18,37 +18,46 @@ This link always downloads the current `main` version. Because the repository is
 2. Right-click the ZIP and select **Extract All**.
 3. Open the extracted `PlotPickle-main` folder.
 4. Double-click `Start-PlotPickle.bat`.
-5. Review the installation plan and press **Y** to continue.
+5. Review the installation plan and press **Y** only when a dependency runtime is genuinely required.
 6. Leave the command window open while using PlotPickle. The browser opens at `http://127.0.0.1:4173`.
 7. Press `Ctrl+C` when finished, then close the command window.
 
-PlotPickle requires Node.js 22.13 or newer. The first launch installs the local components; later launches verify them and start more quickly.
+PlotPickle requires Node.js 22.13 or newer. The first successful launch installs a reusable dependency runtime under the current Windows user's local application-data folder. Later launches and matching future downloads reconnect to that runtime instead of installing all packages again.
 
 The command window is PlotPickle's private local server. It must remain open while the application is running. Closing it stops PlotPickle.
 
-## Easy in-place upgrades
+## Easy upgrades without reinstalling everything
 
-Beginning with PlotPickle 0.7.1, keep one permanent PlotPickle folder instead of deleting it after every release.
+Beginning with PlotPickle 0.7.1, application files and installed packages are separated:
 
-For routine upgrades:
+- replaceable PlotPickle program files remain in the extracted folder;
+- reusable packages live under `%LOCALAPPDATA%\PlotPickle\runtimes\<dependency fingerprint>`;
+- npm downloads are cached under `%LOCALAPPDATA%\PlotPickle\npm-cache`;
+- browser-stored story projects remain outside the program folder.
+
+### Recommended routine upgrade
 
 1. Close PlotPickle and its local-server command window.
-2. Download the latest PlotPickle ZIP while signed into GitHub.
-3. Do not extract the new ZIP manually.
-4. Double-click `Update-PlotPickle.bat` inside the existing PlotPickle folder.
-5. Select the newly downloaded ZIP.
-6. Wait for the updater's success message.
-7. Run `Start-PlotPickle.bat` normally.
+2. Double-click `Update-PlotPickle.bat` inside the existing PlotPickle folder.
+3. The updater opens the current GitHub ZIP download in your signed-in browser.
+4. After the download finishes, return to the updater and select the ZIP.
+5. The updater validates the package, replaces managed program files, preserves the runtime and local settings, and displays a success message.
+6. Choose whether to start the upgraded PlotPickle immediately.
 
-The updater replaces application files while preserving `node_modules`, the npm cache, the dependency fingerprint, and browser-stored projects.
+A downloaded ZIP can also be dragged directly onto `Update-PlotPickle.bat`.
 
-The starter compares the new `package-lock.json` with the fingerprint from the last successful installation:
+### What happens on the next start
 
-- if dependencies did not change, PlotPickle starts without running npm;
-- if dependencies changed, npm performs an incremental upgrade and reuses installed packages and cache wherever possible;
-- if dependencies are damaged or missing, the full installation and repair path is used.
+The launcher fingerprints `package-lock.json`:
 
-The repository is private, so the updater asks the user to select a ZIP downloaded through their authenticated GitHub session rather than attempting an anonymous download.
+- if the fingerprint matches an installed runtime, PlotPickle starts without running npm;
+- if an older folder already contains a complete local `node_modules`, the launcher moves it into the persistent runtime once and reuses it thereafter;
+- if the dependency fingerprint changed, PlotPickle creates one new runtime and installs only that new dependency set;
+- older fingerprinted runtimes remain separate, allowing an older PlotPickle version to reconnect to its matching packages.
+
+Deleting and re-extracting the PlotPickle program directory no longer forces a first-time package installation when the same dependency fingerprint is already present. Keeping one permanent folder and using the updater is still the fastest and cleanest workflow.
+
+The repository is private, so the updater uses the authenticated browser download rather than attempting an anonymous background download.
 
 See `docs/windows-upgrades.md` for the complete upgrade and recovery guide.
 
@@ -57,12 +66,14 @@ See `docs/windows-upgrades.md` for the complete upgrade and recovery guide.
 The Windows launcher explains the setup before anything is downloaded. It displays:
 
 - PlotPickle, Node.js, and npm versions;
+- the package-lock dependency fingerprint;
 - every top-level package and requested version;
-- the local installation folder and reusable npm cache;
+- the replaceable application folder;
+- the persistent dependency runtime and npm cache;
 - currently available disk space;
-- a recommended minimum of **2 GB free space**;
-- an estimated first-setup working requirement of about **1.5 GB**;
-- a Y/N consent prompt;
+- a recommended minimum of **2 GB free space** for a new runtime;
+- an estimated first-runtime working requirement of about **1.5 GB**;
+- a Y/N consent prompt only when installation is needed;
 - visible installation and repair progress;
 - a final **SUCCESS** report with installed versions and actual dependency size.
 
@@ -70,11 +81,11 @@ The launcher does not request Administrator rights, install a Windows service, a
 
 ## Windows setup recovery
 
-The launcher detects interrupted or incomplete package installations and:
+The launcher detects interrupted or incomplete dependency runtimes and:
 
 1. verifies that Vite and the core packages are truly installed;
-2. retries `npm ci` with network and cache preferences;
-3. falls back to `npm install` so downloaded packages can be reused;
+2. retries `npm ci` inside the fingerprinted persistent runtime;
+3. falls back to `npm install` so cached packages can be reused;
 4. refuses to start the server until Vite passes validation.
 
 For repeated `ECONNRESET` or `EPERM` errors:
@@ -83,9 +94,9 @@ For repeated `ECONNRESET` or `EPERM` errors:
 2. confirm at least 2 GB of space is free;
 3. close other PlotPickle, Node, npm, editor, and terminal windows;
 4. run `Start-PlotPickle.bat` again;
-5. restart Windows and delete only `node_modules` if Windows continues locking the folder.
+5. use `Repair-PlotPickle.bat` if the current fingerprinted runtime remains damaged.
 
-Deleting `node_modules` does not delete story projects. Projects are stored in browser storage and can also be exported as `.plotpickle.json` files.
+`Repair-PlotPickle.bat` resets only the runtime required by the current `package-lock.json`. It does not delete application files, browser-stored projects, exported `.plotpickle.json` files, or runtimes used by other PlotPickle versions.
 
 ## Connected workspaces
 

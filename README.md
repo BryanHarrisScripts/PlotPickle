@@ -69,14 +69,17 @@ Before any packages are downloaded, the Windows launcher displays:
 
 The launcher does not request Administrator rights, install a Windows service, add itself to startup, disable Windows Security, or upload the active story project.
 
-## Four connected workspaces
+## Five connected workspaces
 
 - **Instructions** explains the 24 Blocks method and every story column.
 - **Story Planner** develops the story foundation, world, characters, Ghost, Catalyst, The Pickle, dialogue system, structure summary, block spine, and notes.
+- **Script Viewer** keeps the complete screenplay readable in order, colour-codes screenplay grammar, navigates scenes, estimates each passage’s 24-Block position, and answers guided structural questions from the shared project.
 - **Visual Board** attaches storyboard frames, prompts, shot notes, performance ideas, and continuity to the same project.
 - **Engines** explains and opens six focused specialist passes.
 
 Every workspace reads and writes the same locally saved project.
+
+The Script Viewer accepts plain-text (`.txt`), Fountain (`.fountain` or `.spmd`), and Final Draft (`.fdx`) files. Parsing and guided reading happen on the local device. The source screenplay is stored in the canonical `.plotpickle.json` project so it travels with the project, while the writer retains ownership of the script.
 
 ## Optional AI foundation
 

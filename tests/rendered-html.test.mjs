@@ -71,3 +71,12 @@ test("renders the PageFlow Engine route", async () => {
   assert.match(html, /Revision signals/);
   assert.match(html, /Five-pass rewrite/);
 });
+
+test("renders the Resonance Engine route", async () => {
+  const html = await render("/resonance");
+  assert.match(html, /Resonance Engine/);
+  assert.match(html, /Ask a question the story must earn/);
+  assert.match(html, /Make this block carry part of the argument/);
+  assert.match(html, /Evidence channels/);
+  assert.match(html, /Restraint rule/);
+});

@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "PlotPickle Playhouse — Download the 24 Blocks Story Planner",
   description:
-    "Download PlotPickle Playhouse for Windows: a local-first story planner connecting Instructions, Story Planner, Voiceprint Engine, PageFlow Engine, and Visual Board through Bryan Harris's 24 Blocks method.",
+    "Download PlotPickle Playhouse for Windows: a local-first story planner connecting Instructions, Story Planner, Resonance Engine, Voiceprint Engine, PageFlow Engine, and Visual Board through Bryan Harris's 24 Blocks method.",
   other: {
     "codex-preview": "development",
   },
@@ -69,6 +69,7 @@ export default function RootLayout({
             gap: 8,
           }}
         >
+          <a href="/resonance" style={engineLinkStyle}>Resonance Engine</a>
           <a href="/pageflow" style={engineLinkStyle}>PageFlow Engine</a>
           <a href="/voiceprint" style={engineLinkStyle}>Voiceprint Engine</a>
         </nav>

@@ -5,7 +5,7 @@
   "description": "Canonical local-first story project shared by every PlotPickle workspace.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "id", "metadata", "story", "world", "development", "structure", "characters", "blocks"],
+  "required": ["schemaVersion", "id", "metadata", "story", "world", "development", "screenplay", "structure", "characters", "blocks"],
   "properties": {
     "schemaVersion": { "const": "1.4.0" },
     "id": { "type": "string", "minLength": 1 },
@@ -13,6 +13,7 @@
     "story": { "$ref": "#/$defs/story" },
     "world": { "$ref": "#/$defs/world" },
     "development": { "$ref": "#/$defs/development" },
+    "screenplay": { "$ref": "#/$defs/screenplay" },
     "structure": { "$ref": "#/$defs/structure" },
     "characters": { "type": "array", "items": { "$ref": "#/$defs/character" } },
     "blocks": {
@@ -23,6 +24,17 @@
     }
   },
   "$defs": {
+    "screenplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileName", "format", "sourceText", "importedAt"],
+      "properties": {
+        "fileName": { "type": "string" },
+        "format": { "enum": ["plain-text", "fountain", "final-draft"] },
+        "sourceText": { "type": "string" },
+        "importedAt": { "type": "string" }
+      }
+    },
     "metadata": {
       "type": "object",
       "additionalProperties": false,

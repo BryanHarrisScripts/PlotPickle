@@ -7,7 +7,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "id", "metadata", "story", "world", "development", "characters", "blocks"],
   "properties": {
-    "schemaVersion": { "const": "1.1.0" },
+    "schemaVersion": { "const": "1.2.0" },
     "id": { "type": "string", "minLength": 1 },
     "metadata": {
       "type": "object",
@@ -64,13 +64,14 @@
     "development": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["storySetup", "pitch", "ghost", "catalyst", "foundations", "dialogue", "notes"],
+      "required": ["storySetup", "pitch", "ghost", "catalyst", "foundations", "pickle", "dialogue", "notes"],
       "properties": {
         "storySetup": { "$ref": "#/$defs/storySetup" },
         "pitch": { "$ref": "#/$defs/pitch" },
         "ghost": { "$ref": "#/$defs/ghost" },
         "catalyst": { "$ref": "#/$defs/catalyst" },
         "foundations": { "$ref": "#/$defs/foundations" },
+        "pickle": { "$ref": "#/$defs/pickle" },
         "dialogue": { "$ref": "#/$defs/dialogue" },
         "notes": { "$ref": "#/$defs/projectNotes" }
       }
@@ -150,6 +151,23 @@
         "storyEngine": { "type": "string" },
         "transformation": { "type": "string" },
         "endingProof": { "type": "string" }
+      }
+    },
+    "pickle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["centralTension", "audienceQuestion", "storyPromise", "expectedDestination", "unpredictableRoute", "liveAnswerA", "liveAnswerB", "escalationPattern", "finalAnswer", "signatureMove"],
+      "properties": {
+        "centralTension": { "type": "string" },
+        "audienceQuestion": { "type": "string" },
+        "storyPromise": { "type": "string" },
+        "expectedDestination": { "type": "string" },
+        "unpredictableRoute": { "type": "string" },
+        "liveAnswerA": { "type": "string" },
+        "liveAnswerB": { "type": "string" },
+        "escalationPattern": { "type": "string" },
+        "finalAnswer": { "type": "string" },
+        "signatureMove": { "type": "string" }
       }
     },
     "dialogue": {
@@ -240,7 +258,7 @@
     "block": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "number", "act", "title", "purpose", "summary", "characterIds", "locationIds", "goal", "conflict", "choice", "action", "consequence", "emotionalTurn", "setup", "payoff", "scriptExcerpt", "storyboardDirection", "notes", "visuals"],
+      "required": ["id", "number", "act", "title", "purpose", "summary", "characterIds", "locationIds", "goal", "conflict", "choice", "action", "consequence", "emotionalTurn", "audienceExpectation", "pickleTurn", "setup", "payoff", "scriptExcerpt", "storyboardDirection", "notes", "visuals"],
       "properties": {
         "id": { "type": "string" },
         "number": { "type": "integer", "minimum": 1, "maximum": 24 },
@@ -256,6 +274,8 @@
         "action": { "type": "string" },
         "consequence": { "type": "string" },
         "emotionalTurn": { "type": "string" },
+        "audienceExpectation": { "type": "string", "description": "What the audience is likely to believe, expect, hope, or fear after this block." },
+        "pickleTurn": { "type": "string", "description": "The clue, reversal, complication, near-answer, or reframe that refreshes the central audience tension." },
         "setup": { "type": "string" },
         "payoff": { "type": "string" },
         "scriptExcerpt": { "type": "string" },

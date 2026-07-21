@@ -34,6 +34,7 @@ test("renders development preview metadata", async () => {
   assert.match(html, /PlotPickle Playhouse/);
   assert.match(html, /Download for Windows/);
   assert.match(html, /Explore PlotPickle Online/);
+  assert.match(html, /Opening Move/);
   assert.match(html, /\/brand\/plotpickle-header-horizontal-600\.png/);
   assert.match(html, /\/brand\/favicon\/plotpickle-icon-192\.png/);
   for (const section of [

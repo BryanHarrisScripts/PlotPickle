@@ -78,6 +78,23 @@ The launcher does not request Administrator rights, install a Windows service, a
 
 Every workspace reads and writes the same locally saved project.
 
+## Optional AI foundation
+
+PlotPickle's AI layer is provider-independent and local-server mediated. The primary development and live-test target is **ChatGPT / OpenAI API**, using the writer's own API key, while OpenAI-compatible servers, Ollama, manual prompt export, and no-AI operation remain supported choices.
+
+The first foundation includes:
+
+- capability-based provider selection instead of hardcoded model assumptions;
+- portable knowledge-source contracts and bounded project context packs;
+- character identity locks, approved looks, continuity locks, and generation provenance;
+- OpenAI Responses and GPT Image adapters;
+- compatible-server and Ollama text adapters; and
+- a replaceable asynchronous video-job contract.
+
+API keys are connection settings, not project data, and must never be written into exported .plotpickle.json files. OpenAI video is not enabled in the initial preset because the current Sora 2 Videos API is scheduled to shut down on September 24, 2026.
+
+See `docs/ai-architecture.md` for the complete architecture and delivery sequence.
+
 ## Guided left-hand story rail
 
 The story rail is grouped into four readable areas.

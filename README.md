@@ -2,7 +2,7 @@
 
 PlotPickle is a local-first story development application built around Bryan Harris's 24 Blocks method. One canonical project object powers connected workspaces for learning the method, planning the story, aligning meaning, developing dialogue, writing visible screenplay action, reviewing the whole draft, and building the visual board.
 
-Current application version: `0.5.0`
+Current application version: `0.5.1`
 
 Current project schema: `1.3.0`
 
@@ -21,9 +21,29 @@ This link always downloads the current `main` version, so it stays up to date as
 5. Leave the command window open while using PlotPickle. The browser opens automatically at `http://127.0.0.1:4173`.
 6. Press `Ctrl+C` in the command window when finished, then close it.
 
-PlotPickle requires Node.js 22.13 or newer. If Node.js is missing or too old, the starter explains the problem and opens the official Node.js download page. The first launch installs the required components with `npm ci`; later launches start more quickly.
+PlotPickle requires Node.js 22.13 or newer. If Node.js is missing or too old, the starter explains the problem and opens the official Node.js download page. The first launch installs the required components; later launches start more quickly.
 
 The command window is PlotPickle's local server. It must remain open while the application is running, and it provides a useful place to see setup or runtime errors.
+
+## Windows setup recovery
+
+Version 0.5.1 hardens the Windows launcher against interrupted dependency downloads. The launcher now verifies that Vite and the core local packages are actually installed instead of checking only for the existence of the `node_modules` folder.
+
+When a first installation is interrupted, the launcher:
+
+1. detects the incomplete installation;
+2. retries `npm ci` with network retry and offline-cache preferences;
+3. falls back to `npm install` so already-downloaded packages can be reused;
+4. refuses to start the server until the local Vite executable passes validation.
+
+If Windows continues to report `ECONNRESET` or `EPERM`:
+
+1. confirm the internet connection is stable;
+2. close other PlotPickle, Node, npm, editor, and terminal windows;
+3. run `Start-PlotPickle.bat` again;
+4. if `EPERM` continues, restart Windows, delete only the `node_modules` folder inside PlotPickle, and run the launcher again.
+
+Deleting `node_modules` does not delete PlotPickle story projects. Active projects are stored in browser storage and can also be preserved through `.plotpickle.json` exports.
 
 ## Connected workspaces
 
@@ -112,7 +132,7 @@ Version 1.3 added the Voiceprint Engine to the shared story architecture. Each c
 
 The project-wide dialogue system also tracks world vernacular, monologue rules, subtext seeds, exposition rules, recurring language, and an observation library.
 
-Application version 0.4 added the Resonance Engine without changing the project schema. Application version 0.5 adds DraftLens using the existing project notes, story, character, block, dialogue, and Pickle fields. Existing 1.3 projects remain compatible without migration.
+Application version 0.4 added the Resonance Engine without changing the project schema. Application version 0.5 added DraftLens using the existing project notes, story, character, block, dialogue, and Pickle fields. Version 0.5.1 hardens the local Windows setup and server launch process. Existing 1.3 projects remain compatible without migration.
 
 The source of truth is documented in `schema/plotpickle-project.schema.json` and typed in `lib/project.ts`. The Voiceprint Engine design is documented in `docs/architecture/voiceprint-engine.md`.
 

@@ -141,6 +141,10 @@ if not exist "%SETUP_REPORT%" (
 )
 
 node "%SETUP_REPORT%" plan
+if errorlevel 1 (
+  echo [ERROR] The installation plan could not be generated. Setup will not continue invisibly.
+  exit /b 1
+)
 echo.
 choice /C YN /N /M "Continue with this local installation? [Y/N]: "
 if errorlevel 2 exit /b 2

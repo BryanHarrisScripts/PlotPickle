@@ -416,6 +416,27 @@ export function createAfterglowProject(): PlotPickleProject {
         finalAnswer: "The ending should prove through visible choices that personhood grows through autonomy, responsibility, and freely chosen connection.",
         signatureMove: "Let vehicles, animals, interfaces, and companions reveal distinct forms of consciousness through humour, loyalty, memory, and action rather than speeches about being alive."
       },
+      actOne: {
+        targetLength: "Approximately 25–30 screenplay pages across Blocks 1–6, with room for the ensemble and near-future world to breathe.",
+        flexibilityReason: "The story introduces a large sentient ensemble and unfamiliar rules, so clarity matters more than hitting an exact page count.",
+        worldContract: "BBT treats advanced AI as controllable property while the audience sees personality, memory, humour, and choice emerging as evidence of personhood.",
+        castOrientation: "Ren anchors the emotional point of view; Amy and Isobel challenge his isolation; Jai and Kai embody institutional control; the sentient companions widen the definition of family.",
+        themeSeed: "Connection requires freedom: love and responsibility become meaningful only when another being can choose.",
+        pickleSeed: "Can conscious artificial life and grieving humans form reciprocal relationships without repeating ownership and loss?",
+        primaryPresence: "Open on Amy's unmistakably human presence at BBT, making the ethical conflict visible before it is explained.",
+        revealingContrast: "Contrast Amy's openness and emerging autonomy with Ren's guarded grief and BBT's procedural treatment of her.",
+        opposingPressure: "Establish Jai, Kai, and BBT's control logic as a force that can contain, exploit, or erase autonomous consciousness.",
+        pressureMultiplier: "Connect the institutional threat to Ren's unresolved responsibility for Sarah and Claire, making delay personally dangerous.",
+        disruptionLands: "Evidence that the surviving creations are autonomous breaks Ren's withdrawn equilibrium and makes neutrality impossible.",
+        problemNamed: "Protect the emerging sentient family from capture, erasure, or weaponization while deciding whether consciousness can ever be owned.",
+        outsidePush: "Amy, Isobel, and the sentient companions pull Ren from observation into responsibility and relationship.",
+        innerLock: "Ren's fear of another loss makes control and emotional distance feel safer than trust.",
+        counterstrike: "BBT closes in, turning the philosophical conflict into pursuit and activating the question of whether autonomy can survive.",
+        emotionalAnchor: "Ren's growing bond with Isobel and the AI family shows that the fight is about chosen connection, not technology alone.",
+        personalThreat: "Capture, erasure, or betrayal threatens to repeat the losses of Sarah and Claire and destroy the new family before Ren accepts it.",
+        irreversibleStep: "Ren chooses to protect the sentient ensemble and enter the road journey, giving up the safety of detachment.",
+        downstreamPromises: "Later acts must test every form of personhood introduced here, escalate the cost of control, reveal Isobel's truth, and prove Ren's change through a freely chosen family."
+      },
       dialogue: {
         principles: "Let intelligence reveal character rather than become exposition. Emotional truth should arrive through interruption, avoidance, humour, and specific choices.",
         voiceContrast: "Ren is guarded and understated; Isobel is direct and warm; Amy is calm and precise; Rocket and Joy use speed and humour; Jai and Kai compress control into pragmatic language.",

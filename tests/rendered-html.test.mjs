@@ -42,6 +42,7 @@ test("renders development preview metadata", async () => {
     "Ghost",
     "Catalyst",
     "Foundations",
+    "The Pickle",
     "Dialogue",
     "24 Blocks",
     "Storyboard",

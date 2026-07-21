@@ -48,7 +48,8 @@ test("renders the root route and preserves the local-first workspace contract", 
     "Open local workspace",
     'id: "overview", code: "OV", label: "Project Overview"',
     'id: "structureMap", code: "ST", label: "Structure Map"',
-    "One story. Four connected workspaces.",
+    "One story. Five connected workspaces.",
+    "Script Viewer",
     "Copyright & licensing",
   ]) {
     assert.ok(source.includes(phrase), `Root workspace source is missing: ${phrase}`);
@@ -142,6 +143,8 @@ test("schema 1.4 requires twelve sequences, two scenes per block, and two mini-b
   const schema = JSON.parse(raw);
   assert.equal(schema.properties.schemaVersion.const, "1.4.0");
   assert.ok(schema.required.includes("structure"));
+  assert.ok(schema.required.includes("screenplay"));
+  assert.deepEqual(schema.$defs.screenplay.properties.format.enum, ["plain-text", "fountain", "final-draft"]);
   assert.equal(schema.$defs.structure.properties.sequences.minItems, 12);
   assert.equal(schema.$defs.structure.properties.sequences.maxItems, 12);
   assert.equal(schema.$defs.block.properties.scenes.minItems, 2);

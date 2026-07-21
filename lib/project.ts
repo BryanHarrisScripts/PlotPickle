@@ -9,6 +9,15 @@ import {
 
 export type { ClockRow, MiniBlock, PacingProfile, ProjectStructure, StoryScene, StorySequence } from "./structure";
 
+export type ScreenplayFormat = "plain-text" | "fountain" | "final-draft";
+
+export type ScreenplayDocument = {
+  fileName: string;
+  format: ScreenplayFormat;
+  sourceText: string;
+  importedAt: string;
+};
+
 export type Relationship = {
   characterId: string;
   label: string;
@@ -213,6 +222,7 @@ export type PlotPickleProject = {
     locations: Location[];
   };
   development: ProjectDevelopment;
+  screenplay: ScreenplayDocument;
   structure: ProjectStructure;
   characters: Character[];
   blocks: StoryBlock[];
@@ -302,6 +312,10 @@ export function createBlankDevelopment(): ProjectDevelopment {
   };
 }
 
+export function createBlankScreenplay(): ScreenplayDocument {
+  return { fileName: "", format: "plain-text", sourceText: "", importedAt: "" };
+}
+
 export function createBlankProject(): PlotPickleProject {
   const now = new Date().toISOString();
   const targetMinutes = 120;
@@ -343,6 +357,7 @@ export function createBlankProject(): PlotPickleProject {
       locations: [],
     },
     development: createBlankDevelopment(),
+    screenplay: createBlankScreenplay(),
     structure: createDefaultStructure(targetMinutes),
     characters: [],
     blocks: beatTemplates.map(([title, purpose], index) => ({
@@ -389,6 +404,7 @@ export function isPlotPickleProject(value: unknown): value is PlotPickleProject 
     !!candidate.story &&
     !!candidate.world &&
     !!candidate.development &&
+    !!candidate.screenplay &&
     !!candidate.structure &&
     Array.isArray(candidate.structure.sequences) &&
     candidate.structure.sequences.length === 12 &&
@@ -397,6 +413,18 @@ export function isPlotPickleProject(value: unknown): value is PlotPickleProject 
     candidate.blocks.length === 24 &&
     candidate.blocks.every((block) => Array.isArray(block.scenes) && block.scenes.length === 2 && block.scenes.every((scene) => scene.miniBlocks.length === 2))
   );
+}
+
+export function normalizeScreenplay(value: unknown): ScreenplayDocument {
+  if (!value || typeof value !== "object") return createBlankScreenplay();
+  const candidate = value as Partial<ScreenplayDocument>;
+  const formats: ScreenplayFormat[] = ["plain-text", "fountain", "final-draft"];
+  return {
+    fileName: typeof candidate.fileName === "string" ? candidate.fileName : "",
+    format: formats.includes(candidate.format as ScreenplayFormat) ? candidate.format as ScreenplayFormat : "plain-text",
+    sourceText: typeof candidate.sourceText === "string" ? candidate.sourceText : "",
+    importedAt: typeof candidate.importedAt === "string" ? candidate.importedAt : "",
+  };
 }
 
 export function normalizePlotPickleProject(value: unknown): PlotPickleProject | null {
@@ -408,6 +436,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     story?: PlotPickleProject["story"];
     world?: PlotPickleProject["world"];
     development?: Partial<ProjectDevelopment>;
+    screenplay?: Partial<ScreenplayDocument>;
     structure?: Partial<ProjectStructure>;
     characters?: Character[];
     blocks?: Array<Partial<StoryBlock>>;
@@ -434,6 +463,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     metadata: { ...candidate.metadata, targetMinutes },
     story: candidate.story,
     world: candidate.world,
+    screenplay: normalizeScreenplay(candidate.screenplay),
     development: {
       storySetup: { ...defaults.storySetup, ...development.storySetup },
       pitch: { ...defaults.pitch, ...development.pitch },
@@ -537,3 +567,4 @@ export function addBlankFrame(block: StoryBlock): StoryBlock {
     ],
   };
 }
+

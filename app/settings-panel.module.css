@@ -1,0 +1,202 @@
+.page {
+  width: min(1500px, 100%);
+  margin: 0 auto;
+  padding: 34px;
+  color: #153f43;
+}
+
+.heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 26px;
+}
+
+.heading p,
+.sectionHeading p {
+  margin: 0 0 7px;
+  color: #208982;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.heading h1,
+.sectionHeading h2 {
+  margin: 0 0 8px;
+  color: #153f43;
+}
+
+.heading span,
+.sectionHeading span {
+  color: #617778;
+  line-height: 1.55;
+}
+
+.heading button,
+.addButton {
+  border: 0;
+  border-radius: 9px;
+  background: #176d69;
+  color: white;
+  padding: 12px 18px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 24px;
+}
+
+.menu {
+  align-self: start;
+  padding: 10px;
+  border: 1px solid #cce1df;
+  border-radius: 16px;
+  background: #f6fbfa;
+}
+
+.menu button {
+  display: grid;
+  width: 100%;
+  gap: 5px;
+  padding: 14px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #2b5356;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu button + button { margin-top: 4px; }
+.menu button span { color: #708586; font-size: 0.76rem; line-height: 1.35; }
+.menu .active { background: #dff3ee; color: #125e5a; }
+
+.content {
+  min-width: 0;
+  padding: 28px;
+  border: 1px solid #d9e9e7;
+  border-radius: 18px;
+  background: white;
+  box-shadow: 0 12px 32px rgb(24 75 73 / 7%);
+}
+
+.sectionHeading { margin-bottom: 24px; }
+
+.providerGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.card,
+.selectedCard {
+  display: grid;
+  min-height: 150px;
+  gap: 9px;
+  padding: 18px;
+  border: 1px solid #d6e7e4;
+  border-radius: 13px;
+  background: #fbfdfd;
+  color: #214b4d;
+  text-align: left;
+  cursor: pointer;
+}
+
+.selectedCard { border: 2px solid #2d9990; background: #eaf8f4; padding: 17px; }
+.card span,
+.selectedCard span { color: #25867f; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.card small,
+.selectedCard small { color: #657b7c; line-height: 1.45; }
+
+.formCard,
+.notice {
+  margin-top: 18px;
+  padding: 22px;
+  border-radius: 13px;
+  background: #f5faf9;
+}
+
+.formCard h3 { margin: 0 0 18px; }
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.formGrid label,
+.artistCard label {
+  display: grid;
+  gap: 7px;
+  color: #31595b;
+  font-size: 0.77rem;
+  font-weight: 800;
+}
+
+.formGrid input,
+.artistCard input,
+.artistCard select {
+  min-width: 0;
+  border: 1px solid #c6dcda;
+  border-radius: 8px;
+  background: white;
+  color: #173f42;
+  padding: 11px 12px;
+  font: inherit;
+}
+
+.note,
+.notice p,
+.empty span,
+.pluginGrid p {
+  color: #667d7e;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.note { margin: 17px 0 0; }
+.notice { border-left: 4px solid #7fc9bf; }
+.notice p { margin: 0; }
+.notice p + p { margin-top: 6px; }
+
+.artistList { display: grid; gap: 12px; }
+.artistCard { display: grid; grid-template-columns: 130px 1fr 2fr auto auto; align-items: end; gap: 12px; padding: 16px; border: 1px solid #d8e8e6; border-radius: 12px; }
+.artistCard a { padding: 11px 3px; color: #176d69; font-size: 0.8rem; font-weight: 800; white-space: nowrap; }
+.removeButton { border: 0; background: transparent; color: #8b4a4a; padding: 11px 3px; cursor: pointer; }
+.addButton { margin-top: 16px; }
+.empty { padding: 32px; border: 1px dashed #bfd6d3; border-radius: 12px; text-align: center; }
+.empty p { margin: 0 0 5px; font-weight: 800; }
+
+.pluginGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.pluginGrid article { padding: 20px; border: 1px solid #d9e7e5; border-radius: 13px; background: #fafcfc; }
+.pluginGrid article > span { color: #788a8b; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.pluginGrid h3 { margin: 8px 0; }
+.pluginGrid button { width: 100%; border: 1px solid #d6dfde; border-radius: 8px; background: #eef2f2; color: #879393; padding: 10px; }
+.status { margin: 22px 0 0; padding: 12px 14px; border-radius: 9px; background: #e7f5f0; color: #175e5a; font-weight: 750; }
+
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }
+  .menu { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .menu button + button { margin-top: 0; }
+  .providerGrid,
+  .pluginGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .artistCard { grid-template-columns: 1fr 1fr; }
+  .urlField { grid-column: 1 / -1; }
+}
+
+@media (max-width: 640px) {
+  .page { padding: 18px; }
+  .heading { align-items: stretch; flex-direction: column; }
+  .menu,
+  .providerGrid,
+  .pluginGrid,
+  .formGrid,
+  .artistCard { grid-template-columns: 1fr; }
+  .content { padding: 20px; }
+}

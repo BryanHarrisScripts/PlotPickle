@@ -8,6 +8,8 @@ import { createAfterglowProject } from "@/data/afterglow";
 import EngineHub from "./engine-hub";
 import ProjectOverview from "./project-overview";
 import StructureMapSummary from "./structure-map-summary";
+import SettingsPanel from "./settings-panel";
+import ScriptViewer from "./script-viewer";
 import { projectSectionProgress, sectionHasAlert } from "@/lib/project-progress";
 import {
   addBlankCharacter,
@@ -27,15 +29,17 @@ import {
 const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
 
-type MainTab = "instructions" | "planner" | "visuals" | "engines";
+type MainTab = "instructions" | "planner" | "script" | "visuals" | "engines" | "settings";
 type StorySection = "overview" | "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "structureMap" | "blocks" | "storyboard" | "notes";
 type StorySectionGroup = "Project" | "Foundation" | "Structure" | "Production";
 
 const mainTabs: { id: MainTab; label: string; description: string }[] = [
   { id: "instructions", label: "Instructions", description: "Learn the method" },
   { id: "planner", label: "Story Planner", description: "Build the story" },
+  { id: "script", label: "Script Viewer", description: "Read & learn" },
   { id: "visuals", label: "Visual Board", description: "See the film" },
   { id: "engines", label: "Engines", description: "Refine the story" },
+  { id: "settings", label: "Settings", description: "Connect services" },
 ];
 
 const storySections: { id: StorySection; code: string; label: string; group: StorySectionGroup }[] = [
@@ -302,7 +306,7 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
                 ))}
               </aside>
               <div className="product-workspace">
-                <div className="product-tabs"><span>Instructions</span><span className="active">Story Planner</span><span>Visual Board</span><span>Engines</span></div>
+                <div className="product-tabs"><span>Instructions</span><span className="active">Story Planner</span><span>Script Viewer</span><span>Visual Board</span><span>Engines</span></div>
                 <div className="product-workspace-heading">
                   <div><small>ACT II · CONFRONTATION</small><strong>Your complete story at a glance</strong></div>
                   <span>18% complete</span>
@@ -328,9 +332,9 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
 
         <section className="marketing-section feature-section" id="features">
           <div className="marketing-section-heading">
-            <p className="marketing-kicker">One playhouse. Four connected workspaces.</p>
+            <p className="marketing-kicker">One playhouse. Five connected workspaces.</p>
             <h2>Everything develops the same story.</h2>
-            <p>Move from learning to planning, visualization, and focused specialist engines without copying information between separate tools.</p>
+            <p>Move from learning to planning, full-script reading, visualization, and focused specialist engines without copying information between separate tools.</p>
           </div>
           <div className="feature-grid">
             <article>
@@ -347,12 +351,18 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
             </article>
             <article>
               <span className="feature-code">03</span>
+              <p className="feature-label">Read</p>
+              <h3>Script Viewer</h3>
+              <p>Follow the complete screenplay with colour-coded formatting, scene navigation, structural position, and guided questions answered from the project.</p>
+            </article>
+            <article>
+              <span className="feature-code">04</span>
               <p className="feature-label">Visualize</p>
               <h3>Visual Board</h3>
               <p>Carry every block into storyboard directions, frame prompts, shot notes, locations, characters, and visual continuity.</p>
             </article>
             <article>
-              <span className="feature-code">04</span>
+              <span className="feature-code">05</span>
               <p className="feature-label">Refine</p>
               <h3>Engines</h3>
               <p>Choose a guided specialist pass for structure, meaning, voice, screenplay action, draft diagnosis, or deliberate practice.</p>
@@ -778,6 +788,14 @@ export default function Home() {
           </div>
         ) : null}
 
+        {activeTab === "script" ? (
+          <ScriptViewer
+            project={project}
+            onChange={(screenplay) => commit({ ...project, screenplay })}
+            onOpenBlock={(number) => openBlock(number, "planner")}
+          />
+        ) : null}
+
         {activeTab === "visuals" ? (
           <div className="studio-layout visual-studio-layout">
             <StoryRail project={project} workspace="Visual Board" activeSection={activeSection} selectSection={setActiveSection} />
@@ -798,6 +816,10 @@ export default function Home() {
         ) : null}
 
         {activeTab === "engines" ? <EngineHub /> : null}
+
+        <div hidden={activeTab !== "settings"}>
+          <SettingsPanel />
+        </div>
       </main>
 
       {toast ? <div className="toast" role="status">{toast}</div> : null}
@@ -815,7 +837,7 @@ function StoryRail({ project, workspace, activeSection, selectSection }: { proje
       <div className="story-rail-heading">
         <p className="eyebrow">{workspace}</p>
         <strong>Story columns</strong>
-        <span>One story. Four connected workspaces.</span>
+        <span>One story. Five connected workspaces.</span>
       </div>
       <nav aria-label={`${workspace} story sections`}>
         {groups.map((group) => (
@@ -871,7 +893,7 @@ function Instructions({ project, activeSection, selectSection, onStart, onLoadAf
             <ol>{guide.questions.map((question) => <li key={question}>{question}</li>)}</ol>
           </article>
           <article className="guide-card"><p className="eyebrow">Section deliverable</p><h2>{guide.deliverable}</h2></article>
-          <article className="guide-card connection-card"><p className="eyebrow">Shared story data</p><h2>{guide.connection}</h2><div><span>Instructions</span><i>→</i><span>Story Planner</span><i>→</i><span>Visual Board</span><i>→</i><span>Engines</span></div></article>
+          <article className="guide-card connection-card"><p className="eyebrow">Shared story data</p><h2>{guide.connection}</h2><div><span>Instructions</span><i>→</i><span>Story Planner</span><i>→</i><span>Script Viewer</span><i>→</i><span>Visual Board</span><i>→</i><span>Engines</span></div></article>
         </div>
         {activeSection === "blocks" ? (
           <div className="compact-act-guide">

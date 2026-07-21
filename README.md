@@ -16,6 +16,10 @@ The application autosaves the active project to browser storage. Export produces
 
 The Afterglow starter project is assembled in `data/afterglow.ts`. It includes the current world, character library, and 21 named storyboard blocks found in the source repository. Blocks 22–24 remain explicitly marked for screenplay reconciliation rather than being filled with invented material.
 
+## Brand assets
+
+The complete PlotPickle Playhouse logo kit lives in `public/brand`. The horizontal lockup is used by the product page, the icon-only mark is used inside the application, and the supplied favicon, Apple touch icon, and web-app sizes are connected through the site metadata and `public/manifest.webmanifest`.
+
 ## Development
 
 Install dependencies and run the development server:

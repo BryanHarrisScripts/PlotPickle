@@ -113,6 +113,13 @@ p {
   gap: 11px;
 }
 
+.brand-icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  object-fit: contain;
+}
+
 .brand-mark {
   display: grid;
   width: 38px;
@@ -2478,6 +2485,13 @@ p {
   text-decoration: none;
 }
 
+.marketing-brand-logo {
+  display: block;
+  width: 210px;
+  max-width: 100%;
+  height: auto;
+}
+
 .marketing-brand > span:last-child {
   display: grid;
   gap: 2px;
@@ -2689,11 +2703,18 @@ p {
   display: grid;
   width: 25px;
   height: 25px;
+  overflow: hidden;
   place-items: center;
   border-radius: 8px 8px 8px 2px;
   background: var(--ice-green);
   color: var(--pickle-dark);
   font-style: normal;
+}
+
+.product-window-brand img {
+  width: 23px;
+  height: 23px;
+  object-fit: contain;
 }
 
 .product-window-body {
@@ -3161,12 +3182,19 @@ p {
   width: 64px;
   height: 64px;
   margin-bottom: 15px;
+  overflow: hidden;
   place-items: center;
   border-radius: 18px 18px 18px 4px;
   background: #d9f6ea;
   color: #176274;
   font-size: 28px;
   font-weight: 800;
+}
+
+.download-card-mark img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
 }
 
 .download-card > div {

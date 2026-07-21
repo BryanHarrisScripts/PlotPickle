@@ -227,11 +227,7 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
     <div className="marketing-page">
       <header className="marketing-header">
         <a className="marketing-brand" href="#top" aria-label="PlotPickle Playhouse home">
-          <span className="brand-mark" aria-hidden="true">P</span>
-          <span>
-            <strong>PlotPickle</strong>
-            <small>PlotPickle Playhouse</small>
-          </span>
+          <img className="marketing-brand-logo" src="/brand/plotpickle-header-horizontal-600.png" alt="PlotPickle Playhouse" />
         </a>
         <nav aria-label="Product navigation">
           <a href="#features">Features</a>
@@ -269,7 +265,7 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
 
           <div className="product-window" aria-label="PlotPickle Playhouse interface preview">
             <div className="product-window-bar">
-              <span className="product-window-brand"><i>P</i> PlotPickle Playhouse</span>
+              <span className="product-window-brand"><i><img src="/brand/favicon/plotpickle-icon-32.png" alt="" /></i> PlotPickle Playhouse</span>
               <span>Saved on this device</span>
             </div>
             <div className="product-window-body">
@@ -380,7 +376,7 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
             </div>
           </div>
           <div className="download-card">
-            <span className="download-card-mark" aria-hidden="true">P</span>
+            <span className="download-card-mark" aria-hidden="true"><img src="/brand/favicon/plotpickle-icon-128.png" alt="" /></span>
             <div><strong>PlotPickle Playhouse</strong><small>Windows edition</small></div>
             <a className="download-button" href={WINDOWS_DOWNLOAD_URL} target="_blank" rel="noreferrer">
               <span className="download-icon" aria-hidden="true">↓</span>
@@ -393,8 +389,7 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
 
       <footer className="marketing-footer">
         <div className="marketing-brand">
-          <span className="brand-mark" aria-hidden="true">P</span>
-          <span><strong>PlotPickle</strong><small>PlotPickle Playhouse</small></span>
+          <img className="marketing-brand-logo" src="/brand/plotpickle-header-horizontal-600.png" alt="PlotPickle Playhouse" />
         </div>
         <p>Story development built around Bryan Harris&apos;s 24 Blocks method.</p>
         <button type="button" onClick={onOpenOnline}>Open PlotPickle Online →</button>
@@ -627,7 +622,7 @@ export default function Home() {
     <div className="app-shell">
       <header className="topbar">
         <button type="button" className="brand-lockup home-trigger" onClick={() => setShowLanding(true)} aria-label="Return to the PlotPickle product page">
-          <span className="brand-mark" aria-hidden="true">P</span>
+          <img className="brand-icon" src="/brand/favicon/plotpickle-icon-128.png" alt="" aria-hidden="true" />
           <div>
             <strong>PlotPickle</strong>
             <span>PlotPickle Playhouse</span>

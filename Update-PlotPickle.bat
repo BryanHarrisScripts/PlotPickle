@@ -3,19 +3,20 @@ setlocal EnableExtensions
 cd /d "%~dp0"
 title PlotPickle Playhouse Updater
 
-set "UPDATER=scripts\update-plotpickle.ps1"
+set "UPDATER=scripts\windows-update.ps1"
+set "TEMP_UPDATER=%TEMP%\plotpickle-update-%RANDOM%-%RANDOM%.ps1"
 
 cls
 echo.
 echo ============================================================
-echo   PlotPickle Playhouse - In-Place Updater
+echo   PlotPickle Playhouse - Guided In-Place Updater
 echo ============================================================
 echo.
 echo This updater replaces PlotPickle program files while preserving:
-echo   - the existing node_modules component folder
-echo   - the npm download cache
-echo   - local installation fingerprints
+echo   - the reusable dependency runtime in %%LOCALAPPDATA%%\PlotPickle
 echo   - browser-stored PlotPickle projects
+echo   - exported .plotpickle.json files
+echo   - local .env configuration files
 echo.
 echo Close the PlotPickle local-server window before continuing.
 echo.
@@ -26,17 +27,27 @@ if not exist "%UPDATER%" (
   exit /b 1
 )
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%UPDATER%"
+copy /y "%UPDATER%" "%TEMP_UPDATER%" >nul
+if errorlevel 1 (
+  echo [ERROR] The updater could not prepare its temporary working copy.
+  pause
+  exit /b 1
+)
+
+if "%~1"=="" (
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%TEMP_UPDATER%" -InstallRoot "%CD%"
+) else (
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%TEMP_UPDATER%" -InstallRoot "%CD%" -ZipPath "%~1"
+)
+
 set "EXIT_CODE=%ERRORLEVEL%"
+del /q "%TEMP_UPDATER%" >nul 2>&1
 
 echo.
 if "%EXIT_CODE%"=="0" (
-  echo [SUCCESS] PlotPickle program files were updated in place.
-  echo Run Start-PlotPickle.bat to verify components and start the app.
-) else if "%EXIT_CODE%"=="2" (
-  echo Update cancelled. No PlotPickle files were changed.
+  echo PlotPickle updater has finished.
 ) else (
-  echo [ERROR] The update did not complete. Review the message above.
+  echo PlotPickle update did not complete. Review the message above.
 )
 echo.
 pause

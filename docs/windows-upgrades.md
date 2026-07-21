@@ -1,57 +1,79 @@
 # Updating PlotPickle on Windows
 
-PlotPickle 0.7.1 introduces an in-place upgrade path. You no longer need to delete the PlotPickle directory or reinstall every npm package after each update.
+PlotPickle 0.7.1 separates replaceable application files from reusable npm dependencies. Routine upgrades no longer require deleting the program directory or reinstalling every package.
 
-## One-time transition
+## Storage model
 
-If your current PlotPickle folder does not contain `Update-PlotPickle.bat`, download and extract PlotPickle 0.7.1 once. Keep that extracted folder as your permanent PlotPickle installation.
+PlotPickle now uses three separate locations:
 
-From that point onward, do not delete the folder for routine upgrades.
+1. **Application folder** — the extracted PlotPickle source files and Windows launchers.
+2. **Persistent dependency runtimes** — `%LOCALAPPDATA%\PlotPickle\runtimes\<package-lock fingerprint>`.
+3. **Persistent npm cache** — `%LOCALAPPDATA%\PlotPickle\npm-cache`.
 
-## Routine upgrade
+The application folder can be updated or replaced. Matching future versions reconnect to the runtime created for the same `package-lock.json` fingerprint.
+
+## One-time transition from an older installation
+
+Run the new `Start-PlotPickle.bat` once from PlotPickle 0.7.1 or later.
+
+When the existing folder contains a complete local `node_modules`, the launcher attempts to move it into the persistent runtime and creates a Windows directory junction from the application folder to that runtime. This is a one-time migration; the packages are not downloaded again.
+
+If Windows has the old folder locked, close PlotPickle, Node, npm, editor, and terminal windows, then run the launcher again.
+
+## Recommended routine upgrade
 
 1. Close PlotPickle and its local-server command window.
-2. Download the latest PlotPickle ZIP from the official GitHub repository.
-3. Leave the ZIP in Downloads; do not extract it manually.
-4. Double-click `Update-PlotPickle.bat` inside your existing PlotPickle folder.
-5. Select the newly downloaded ZIP when the file window opens.
-6. Wait for the updater to report `SUCCESS - PLOTPICKLE PROGRAM FILES UPDATED`.
-7. Double-click `Start-PlotPickle.bat`.
+2. Double-click `Update-PlotPickle.bat` inside the current PlotPickle folder.
+3. The updater opens the current ZIP download in the signed-in browser.
+4. Wait for the ZIP download to finish, return to the updater, and press Enter.
+5. Select the downloaded ZIP in the file window.
+6. The updater validates that the ZIP contains the official `plotpickle` package.
+7. It replaces managed application files while preserving local configuration and the persistent runtime.
+8. When the success message appears, choose whether to start PlotPickle immediately.
 
-## What is preserved
+A ZIP may also be dragged directly onto `Update-PlotPickle.bat`.
 
-The updater replaces application source files while preserving:
+## What the updater preserves
 
-- `node_modules`, which contains the already-installed local components;
-- `.plotpickle`, which contains the dependency fingerprint;
-- the npm cache managed by npm;
+The updater preserves:
+
+- every runtime under `%LOCALAPPDATA%\PlotPickle\runtimes`;
+- the persistent npm cache;
 - browser-stored PlotPickle projects;
-- exported `.plotpickle.json` files stored outside the program folder.
+- exported `.plotpickle.json` files;
+- `.env`, `.env.local`, and environment-specific local configuration files;
+- a local update-history log under `%LOCALAPPDATA%\PlotPickle`.
 
-The updater also leaves `.git`, build output, and temporary development folders alone when present.
+The updater does not copy or redownload `node_modules`.
 
 ## What happens after an upgrade
 
-`Start-PlotPickle.bat` fingerprints `package-lock.json` and compares it with the fingerprint saved after the last successful installation.
+`Start-PlotPickle.bat` calculates a fingerprint from `package-lock.json`.
 
-### Program-only update
+### Matching dependency fingerprint
 
-When the lock file has not changed, PlotPickle verifies Vite and starts immediately. npm does not reinstall packages.
+When a matching persistent runtime exists and passes verification, PlotPickle starts immediately. npm does not run.
 
-### Dependency update
+This also works after deleting and freshly extracting the application folder because the runtime is outside that directory.
 
-When the lock file changed, PlotPickle explains that an upgrade is required and asks for confirmation. It runs `npm install --prefer-offline`, reusing the existing `node_modules` folder and npm cache wherever possible.
+### New dependency fingerprint
 
-### Missing or damaged installation
+When package requirements genuinely change, PlotPickle creates a separate runtime for the new fingerprint. It first uses `npm ci` with the persistent cache, then falls back to `npm install` if an interrupted download requires repair.
 
-When the required packages are missing or damaged, the launcher falls back to the full two-step installation and repair process.
+The previous runtime remains separate so an older PlotPickle version can reconnect to its matching packages.
+
+### Missing or damaged runtime
+
+Run `Repair-PlotPickle.bat`.
+
+The repair command removes only the runtime selected by the current `package-lock.json` fingerprint, recreates its connection, and launches the normal guided installer. It does not delete other version runtimes or story projects.
 
 ## Why the updater asks for a ZIP
 
-The PlotPickle repository is private. A script cannot anonymously download its contents. The user downloads the ZIP while signed into GitHub, then the local updater safely applies it to the permanent installation folder.
+The PlotPickle repository is private. The updater opens the official ZIP URL in the user's authenticated browser and then asks the user to select the downloaded archive. It does not require a GitHub token or store GitHub credentials.
 
 ## Project safety
 
-PlotPickle projects are saved in browser storage and may also be exported as `.plotpickle.json`. Routine program upgrades do not erase browser storage.
+PlotPickle projects are stored in browser storage for `http://127.0.0.1:4173` and may also be exported as `.plotpickle.json` files. Updating or replacing the program folder does not erase that browser storage.
 
-Before major operating-system work or browser resets, export important projects as an additional backup.
+Before browser resets, Windows reinstallation, or major operating-system work, export important projects as an additional backup.

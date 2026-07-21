@@ -2,7 +2,7 @@
 
 PlotPickle is a local-first story-development application built around Bryan Harris’s 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, scene, mini-block, screenplay page, review, and visual board.
 
-Current application version: `0.8.0`
+Current application version: `0.8.1`
 
 Current project schema: `1.4.0`
 
@@ -96,7 +96,7 @@ The first foundation includes:
 - compatible-server and Ollama text adapters; and
 - a replaceable asynchronous video-job contract.
 
-API keys are connection settings, not project data, and must never be written into exported .plotpickle.json files. OpenAI video is not enabled in the initial preset because the current Sora 2 Videos API is scheduled to shut down on September 24, 2026.
+In the downloaded local edition, a verified API key may be saved in PlotPickle's private local-server data under the current computer account. AI Setup confirms the live connection, records the last successful check, and can test or remove the saved key. API keys are connection secrets, not project data, and are never written into browser settings, exported `.plotpickle.json` files, prompts, logs, or GitHub. OpenAI video is not enabled in the initial preset because the current Sora 2 Videos API is scheduled to shut down on September 24, 2026.
 
 See `docs/ai-architecture.md` for the complete architecture and delivery sequence.
 

@@ -1,0 +1,45 @@
+name: Apply Project Navigation and Licence
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-project-navigation.yml
+      - scripts/apply-project-navigation.mjs
+      - app/project-overview.tsx
+      - app/project-overview.module.css
+      - app/structure-map-summary.tsx
+      - app/structure-map-summary.module.css
+      - lib/project-progress.ts
+      - LICENSES.md
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply grouped navigation
+        run: node scripts/apply-project-navigation.mjs
+
+      - name: Add official AGPLv3 licence text
+        run: curl --fail --silent --show-error --location https://www.gnu.org/licenses/agpl-3.0.txt --output LICENSE
+
+      - name: Commit completed application changes
+        run: |
+          if git diff --quiet -- app/page.tsx LICENSE; then
+            echo "Navigation and licence were already applied."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "4189826+github-actions[bot]@users.noreply.github.com"
+          git add app/page.tsx LICENSE
+          git commit -m "Add guided project rail and open licensing"
+          git push

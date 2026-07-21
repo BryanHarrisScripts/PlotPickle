@@ -11,11 +11,16 @@ export type { ClockRow, MiniBlock, PacingProfile, ProjectStructure, StoryScene, 
 
 export type ScreenplayFormat = "plain-text" | "fountain" | "final-draft";
 
+export type ScreenplayAnalysisStatus = "none" | "suggested" | "reviewed";
+
 export type ScreenplayDocument = {
   fileName: string;
   format: ScreenplayFormat;
   sourceText: string;
   importedAt: string;
+  analysisStatus: ScreenplayAnalysisStatus;
+  analyzedAt: string;
+  suggestedFields: string[];
 };
 
 export type Relationship = {
@@ -313,7 +318,15 @@ export function createBlankDevelopment(): ProjectDevelopment {
 }
 
 export function createBlankScreenplay(): ScreenplayDocument {
-  return { fileName: "", format: "plain-text", sourceText: "", importedAt: "" };
+  return {
+    fileName: "",
+    format: "plain-text",
+    sourceText: "",
+    importedAt: "",
+    analysisStatus: "none",
+    analyzedAt: "",
+    suggestedFields: [],
+  };
 }
 
 export function createBlankProject(): PlotPickleProject {
@@ -419,11 +432,19 @@ export function normalizeScreenplay(value: unknown): ScreenplayDocument {
   if (!value || typeof value !== "object") return createBlankScreenplay();
   const candidate = value as Partial<ScreenplayDocument>;
   const formats: ScreenplayFormat[] = ["plain-text", "fountain", "final-draft"];
+  const statuses: ScreenplayAnalysisStatus[] = ["none", "suggested", "reviewed"];
   return {
     fileName: typeof candidate.fileName === "string" ? candidate.fileName : "",
     format: formats.includes(candidate.format as ScreenplayFormat) ? candidate.format as ScreenplayFormat : "plain-text",
     sourceText: typeof candidate.sourceText === "string" ? candidate.sourceText : "",
     importedAt: typeof candidate.importedAt === "string" ? candidate.importedAt : "",
+    analysisStatus: statuses.includes(candidate.analysisStatus as ScreenplayAnalysisStatus)
+      ? candidate.analysisStatus as ScreenplayAnalysisStatus
+      : "none",
+    analyzedAt: typeof candidate.analyzedAt === "string" ? candidate.analyzedAt : "",
+    suggestedFields: Array.isArray(candidate.suggestedFields)
+      ? candidate.suggestedFields.filter((item): item is string => typeof item === "string")
+      : [],
   };
 }
 
@@ -567,4 +588,3 @@ export function addBlankFrame(block: StoryBlock): StoryBlock {
     ],
   };
 }
-

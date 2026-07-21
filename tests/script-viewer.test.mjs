@@ -15,6 +15,9 @@ test("full screenplay remains part of the canonical local project", async () => 
   assert.match(project, /normalizeScreenplay/);
   assert.ok(schema.required.includes("screenplay"));
   assert.equal(schema.properties.screenplay.$ref, "#/$defs/screenplay");
+  for (const field of ["analysisStatus", "analyzedAt", "suggestedFields"]) {
+    assert.ok(schema.$defs.screenplay.required.includes(field), `Screenplay schema is missing ${field}`);
+  }
 });
 
 test("viewer reads common screenplay formats and colour-codes screenplay grammar", async () => {
@@ -34,4 +37,38 @@ test("guided reading connects passages to existing story knowledge", async () =>
     assert.ok(viewer.includes(field), `Guided viewer is missing ${field}`);
   }
   assert.match(viewer, /Open the full Block/);
+});
+
+test("top Import and Script Viewer use one screenplay ingestion pipeline", async () => {
+  const page = await source("app/page.tsx");
+  const viewer = await source("app/script-viewer.tsx");
+  const importer = await source("lib/screenplay-import.ts");
+
+  assert.match(page, /createProjectFromScreenplay/);
+  assert.match(page, /replaceWithImportedScreenplay/);
+  assert.match(page, /onImport={replaceWithImportedScreenplay}/);
+  assert.match(page, /\.txt,\.fountain,\.spmd,\.fdx/);
+  assert.match(viewer, /onImport\(next\)/);
+  assert.match(importer, /export function createProjectFromScreenplay/);
+  assert.match(importer, /createBlankProject\(\)/);
+});
+
+test("screenplay import replaces example data and populates the shared framework as suggestions", async () => {
+  const importer = await source("lib/screenplay-import.ts");
+  for (const contract of [
+    "makeCharacters",
+    "makeLocations",
+    "populateBlock",
+    "analysisStatus: \"suggested\"",
+    "suggestedFields",
+    "storyboardDirection",
+    "development.ghost",
+    "development.catalyst",
+    "development.foundations",
+    "development.pickle",
+    "structure:",
+    "markScreenplayAnalysisReviewed",
+  ]) {
+    assert.ok(importer.includes(contract), `Unified screenplay import is missing ${contract}`);
+  }
 });

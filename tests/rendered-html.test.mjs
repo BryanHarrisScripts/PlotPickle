@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { promisify } from "node:util";
 
+const execFileAsync = promisify(execFile);
 const developmentPreviewMeta =
   /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']development["'])[^>]*>/i;
 
@@ -98,4 +101,26 @@ test("Windows launcher repairs interrupted dependency installs", async () => {
   assert.ok(launcher.includes("npm install --include=dev --prefer-offline"));
   assert.ok(launcher.includes('call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT%'));
   assert.ok(launcher.includes("An incomplete PlotPickle component folder was detected."));
+});
+
+test("Windows launcher explains and verifies the local installation", async () => {
+  const launcher = await readFile(new URL("../Start-PlotPickle.bat", import.meta.url), "utf8");
+  assert.ok(launcher.includes("[STEP 1 OF 4] Checking Node.js and npm"));
+  assert.ok(launcher.includes("Continue with this local installation? [Y/N]"));
+  assert.ok(launcher.includes("SUCCESS - PLOTPICKLE COMPONENTS ARE READY") || launcher.includes('node "%SETUP_REPORT%" success'));
+  assert.ok(launcher.includes("Only this computer can use this 127.0.0.1 address."));
+  assert.ok(launcher.includes("does not require Administrator rights"));
+});
+
+test("Windows setup report lists space, packages, privacy, and local-server meaning", async () => {
+  const reportUrl = new URL("../scripts/windows-setup-report.mjs", import.meta.url);
+  const { stdout } = await execFileAsync(process.execPath, [reportUrl.pathname, "plan"], {
+    cwd: new URL("..", import.meta.url),
+  });
+  assert.match(stdout, /PLOTPICKLE INSTALLATION PLAN/);
+  assert.match(stdout, /Recommended free space before setup: 2\.00 GB/);
+  assert.match(stdout, /Local development server: vite/);
+  assert.match(stdout, /does not request Administrator rights/);
+  assert.match(stdout, /server listens on 127\.0\.0\.1/);
+  assert.match(stdout, /does not upload your story project/);
 });

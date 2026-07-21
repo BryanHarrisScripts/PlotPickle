@@ -1,8 +1,8 @@
 # PlotPickle Playhouse
 
-PlotPickle is a local-first story development application built around Bryan Harris's 24 Blocks method. One canonical project object powers connected workspaces for learning the method, planning the story, developing character dialogue, and building the visual board.
+PlotPickle is a local-first story development application built around Bryan Harris's 24 Blocks method. One canonical project object powers connected workspaces for learning the method, planning the story, developing dialogue, writing visible screenplay action, and building the visual board.
 
-Current application version: `0.2.0`
+Current application version: `0.3.0`
 
 Current project schema: `1.3.0`
 
@@ -21,7 +21,7 @@ This link always downloads the current `main` version, so it stays up to date as
 5. Leave the command window open while using PlotPickle. The browser opens automatically at `http://127.0.0.1:4173`.
 6. Press `Ctrl+C` in the command window when finished, then close it.
 
-PlotPickle requires Node.js 22 or newer. If Node.js is missing or too old, the starter explains the problem and opens the official Node.js download page. The first launch installs the required components with `npm ci`; later launches start more quickly.
+PlotPickle requires Node.js 22.13 or newer. If Node.js is missing or too old, the starter explains the problem and opens the official Node.js download page. The first launch installs the required components with `npm ci`; later launches start more quickly.
 
 The command window is PlotPickle's local server. It must remain open while the application is running, and it provides a useful place to see setup or runtime errors.
 
@@ -30,15 +30,31 @@ The command window is PlotPickle's local server. It must remain open while the a
 - **Instructions** explains the four-act, 24-block process.
 - **Story Planner** develops the foundation, world, characters, Ghost, Catalyst, The Pickle, dialogue system, and block-by-block cause-and-effect spine.
 - **Voiceprint Engine** builds dialogue from character history, social context, knowledge, worldview, rhythm, vocabulary, emotional access, relationships, objectives, and pressure.
+- **PageFlow Engine** turns block plans into visible, active, actor-playable, economical screenplay description and provides revision signals for invisible information, weak phrasing, dense paragraphs, emotion labels, and unnecessary directing language.
 - **Visual Board** attaches storyboard frames, prompts, shot notes, performance ideas, and continuity information to the same blocks.
 
-Open the Voiceprint Engine from the floating button inside PlotPickle. It reads and writes the same locally saved project as the main application.
+Open Voiceprint and PageFlow from the floating engine buttons inside PlotPickle. Both read and write the same locally saved project as the main application.
+
+## PageFlow Engine
+
+PageFlow is a diagnostic and revision layer, not a second screenplay database. It uses the existing canonical project fields:
+
+- `block.scriptExcerpt` for the page-ready action or scene draft;
+- `block.storyboardDirection` for the visible sequence and image progression;
+- `block.goal`, `conflict`, `action`, `consequence`, and `emotionalTurn` for causal context;
+- `character.description` for the character entrance and concise first impression;
+- `block.notes` for revision decisions and unresolved PageFlow questions;
+- `block.visuals` for the corresponding Visual Board images.
+
+The PageFlow draft signal is an editorial prompt, not a grade. It highlights phrases worth inspecting while allowing justified exceptions for voiceover, genre, formal experimentation, and necessary shot design.
+
+The complete design is documented in `docs/architecture/pageflow-engine.md`.
 
 ## Project data
 
 Every new project uses schema version `1.3.0`. Import automatically upgrades compatible PlotPickle 1.0, 1.1, and 1.2 project files.
 
-Version 1.3 adds the Voiceprint Engine to the shared story architecture. Each character can now store:
+Version 1.3 added the Voiceprint Engine to the shared story architecture. Each character can store:
 
 - origin and formative environment;
 - social context and status;

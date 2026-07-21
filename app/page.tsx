@@ -8,6 +8,7 @@ import { createAfterglowProject } from "@/data/afterglow";
 import EngineHub from "./engine-hub";
 import ProjectOverview from "./project-overview";
 import StructureMapSummary from "./structure-map-summary";
+import SettingsPanel from "./settings-panel";
 import { projectSectionProgress, sectionHasAlert } from "@/lib/project-progress";
 import {
   addBlankCharacter,
@@ -27,7 +28,7 @@ import {
 const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
 
-type MainTab = "instructions" | "planner" | "visuals" | "engines";
+type MainTab = "instructions" | "planner" | "visuals" | "engines" | "settings";
 type StorySection = "overview" | "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "structureMap" | "blocks" | "storyboard" | "notes";
 type StorySectionGroup = "Project" | "Foundation" | "Structure" | "Production";
 
@@ -36,6 +37,7 @@ const mainTabs: { id: MainTab; label: string; description: string }[] = [
   { id: "planner", label: "Story Planner", description: "Build the story" },
   { id: "visuals", label: "Visual Board", description: "See the film" },
   { id: "engines", label: "Engines", description: "Refine the story" },
+  { id: "settings", label: "Settings", description: "Connect services" },
 ];
 
 const storySections: { id: StorySection; code: string; label: string; group: StorySectionGroup }[] = [
@@ -798,6 +800,10 @@ export default function Home() {
         ) : null}
 
         {activeTab === "engines" ? <EngineHub /> : null}
+
+        <div hidden={activeTab !== "settings"}>
+          <SettingsPanel />
+        </div>
       </main>
 
       {toast ? <div className="toast" role="status">{toast}</div> : null}

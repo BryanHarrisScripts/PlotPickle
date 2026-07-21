@@ -35,12 +35,16 @@ async function render(pathname) {
   return response.text();
 }
 
-test("renders the main PlotPickle workspace", async () => {
+test("renders the local-first PlotPickle product and workspace contract", async () => {
   const html = await render("/");
   assert.match(html, developmentPreviewMeta);
   assert.match(html, /PlotPickle Playhouse/);
   assert.match(html, /Download for Windows/);
-  assert.match(html, /Explore PlotPickle Online/);
+  assert.match(html, /Open local workspace/);
+  assert.doesNotMatch(html, /PlotPickle Online/);
+  assert.match(html, /Project Overview/);
+  assert.match(html, /Structure Map/);
+  assert.match(html, /Copyright &amp; licensing|Copyright & licensing/);
   assert.match(html, /\/brand\/plotpickle-header-horizontal-600\.png/);
   assert.match(html, /\/brand\/favicon\/plotpickle-icon-192\.png/);
   for (const section of [
@@ -59,6 +63,15 @@ test("renders the main PlotPickle workspace", async () => {
   ]) {
     assert.match(html, new RegExp(section));
   }
+});
+
+test("renders copyright ownership and server licensing guidance", async () => {
+  const html = await render("/legal");
+  assert.match(html, /Open software\. Shared method\. Your story remains yours\./);
+  assert.match(html, /GNU Affero General Public License/);
+  assert.match(html, /Creative Commons Attribution-ShareAlike 4\.0/);
+  assert.match(html, /Server operator checklist/);
+  assert.match(html, /Plesk or WordPress/);
 });
 
 test("renders the Voiceprint Engine route", async () => {

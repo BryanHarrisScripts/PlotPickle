@@ -49,11 +49,11 @@ function installedVersion(packageName) {
 }
 
 function npmCachePath() {
-  const command = process.platform === "win32" ? "npm.cmd" : "npm";
-  const result = spawnSync(command, ["config", "get", "cache"], {
+  const result = spawnSync("npm", ["config", "get", "cache"], {
     cwd: projectRoot,
     encoding: "utf8",
     windowsHide: true,
+    shell: process.platform === "win32",
   });
   return result.status === 0 ? result.stdout.trim() : "npm user cache";
 }

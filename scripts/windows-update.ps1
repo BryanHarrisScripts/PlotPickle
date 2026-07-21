@@ -19,14 +19,20 @@ function Write-Heading([string]$Text) {
   Write-Host ""
 }
 
-function Read-Version([string]$Root) {
+function Read-Manifest([string]$Root) {
   $manifestPath = Join-Path $Root "package.json"
-  if (-not (Test-Path -LiteralPath $manifestPath)) { return "unknown" }
+  if (-not (Test-Path -LiteralPath $manifestPath)) { return $null }
   try {
-    return (Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json).version
+    return Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
   } catch {
-    return "unknown"
+    return $null
   }
+}
+
+function Read-Version([string]$Root) {
+  $manifest = Read-Manifest $Root
+  if (-not $manifest) { return "unknown" }
+  return $manifest.version
 }
 
 function Select-UpdateZip {
@@ -60,20 +66,20 @@ function Find-SourceRoot([string]$ExtractRoot) {
 }
 
 function Assert-ServerStopped {
+  $listener = $null
   try {
     $listener = Get-NetTCPConnection -LocalPort 4173 -State Listen -ErrorAction SilentlyContinue
-    if ($listener) {
-      throw "PlotPickle is still running. Close its local-server window, then run the updater again."
-    }
-  } catch [Microsoft.PowerShell.Commands.WriteErrorException] {
-    throw
   } catch {
-    # Older Windows editions may not expose Get-NetTCPConnection. File replacement will still detect locks.
+    # Older Windows editions may not expose Get-NetTCPConnection. Locked files are checked during replacement.
+  }
+  if ($listener) {
+    throw "PlotPickle is still running. Close its local-server window, then run the updater again."
   }
 }
 
 $InstallRoot = [System.IO.Path]::GetFullPath($InstallRoot)
-if (-not (Test-Path -LiteralPath (Join-Path $InstallRoot "package.json"))) {
+$currentManifest = Read-Manifest $InstallRoot
+if (-not $currentManifest -or $currentManifest.name -ne "plotpickle") {
   throw "This updater must be run from an existing PlotPickle folder."
 }
 
@@ -86,7 +92,7 @@ Write-Host "  - exported .plotpickle.json files" -ForegroundColor Green
 Write-Host "  - local .env configuration files" -ForegroundColor Green
 Write-Host ""
 Write-Host "Current installation: $InstallRoot"
-Write-Host "Current version:      $(Read-Version $InstallRoot)"
+Write-Host "Current version:      $($currentManifest.version)"
 
 Assert-ServerStopped
 
@@ -115,8 +121,12 @@ try {
   Write-Host "ZIP: $ZipPath"
   Expand-Archive -LiteralPath $ZipPath -DestinationPath $tempRoot -Force
   $sourceRoot = Find-SourceRoot $tempRoot
-  $newVersion = Read-Version $sourceRoot
-  if ($newVersion -eq "unknown") { throw "The update package has no readable PlotPickle version." }
+  $newManifest = Read-Manifest $sourceRoot
+  if (-not $newManifest -or $newManifest.name -ne "plotpickle") {
+    throw "The selected ZIP is not an official PlotPickle source package."
+  }
+  $newVersion = $newManifest.version
+  if ([string]::IsNullOrWhiteSpace($newVersion)) { throw "The update package has no readable PlotPickle version." }
   Write-Host "[OK] Valid PlotPickle package found." -ForegroundColor Green
   Write-Host "New version: $newVersion"
 
@@ -124,7 +134,7 @@ try {
   $localHome = if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "PlotPickle" } else { Join-Path $env:USERPROFILE ".plotpickle" }
   New-Item -ItemType Directory -Path $localHome -Force | Out-Null
   $history = Join-Path $localHome "update-history.log"
-  $oldVersion = Read-Version $InstallRoot
+  $oldVersion = $currentManifest.version
   Add-Content -LiteralPath $history -Value "$(Get-Date -Format o)  $oldVersion -> $newVersion  ZIP=$ZipPath"
   Write-Host "[OK] Persistent runtime left untouched: $localHome\runtimes" -ForegroundColor Green
   Write-Host "[OK] Browser project storage is outside the program folder." -ForegroundColor Green
@@ -142,8 +152,9 @@ try {
   }
 
   Get-ChildItem -LiteralPath $sourceRoot -File -Force | ForEach-Object {
-    if ($preservedRootFiles -contains $_.Name) { return }
-    Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $InstallRoot $_.Name) -Force
+    if (-not ($preservedRootFiles -contains $_.Name)) {
+      Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $InstallRoot $_.Name) -Force
+    }
   }
 
   foreach ($buildFolder in @(".next", "dist", ".wrangler")) {
@@ -155,9 +166,11 @@ try {
   Write-Host "[OK] node_modules was not downloaded or copied." -ForegroundColor Green
 
   Write-Heading "STEP 4 OF 4 - Update completed successfully"
-  $installedVersion = Read-Version $InstallRoot
-  if ($installedVersion -ne $newVersion) { throw "Version verification failed after file replacement." }
-  Write-Host "SUCCESS - PlotPickle $oldVersion was upgraded to $installedVersion." -ForegroundColor Green
+  $installedManifest = Read-Manifest $InstallRoot
+  if (-not $installedManifest -or $installedManifest.name -ne "plotpickle" -or $installedManifest.version -ne $newVersion) {
+    throw "Version verification failed after file replacement."
+  }
+  Write-Host "SUCCESS - PlotPickle $oldVersion was upgraded to $($installedManifest.version)." -ForegroundColor Green
   Write-Host ""
   Write-Host "On the next start:" -ForegroundColor White
   Write-Host "  - the launcher reconnects to the matching persistent runtime;" -ForegroundColor White

@@ -154,19 +154,35 @@ test("project migration accepts earlier schemas and creates the new hierarchy", 
   assert.ok(structureSource.includes("shotTarget: 16"));
 });
 
-test("Windows launcher repairs interrupted dependency installs", async () => {
+test("Windows launcher repairs interrupted installs and performs dependency-aware upgrades", async () => {
   const launcher = await readFile(new URL("../Start-PlotPickle.bat", import.meta.url), "utf8");
   assert.ok(launcher.includes('set "VITE_CMD=node_modules\\.bin\\vite.cmd"'));
+  assert.ok(launcher.includes('set "LOCK_HASH_FILE=%INSTALL_STATE_DIR%\\package-lock.sha256"'));
   assert.ok(launcher.includes("npm ci --include=dev --prefer-offline"));
   assert.ok(launcher.includes("npm install --include=dev --prefer-offline"));
+  assert.ok(launcher.includes(":lock_matches"));
+  assert.ok(launcher.includes(":write_lock_hash"));
+  assert.ok(launcher.includes("This is not a new first-time installation."));
   assert.ok(launcher.includes('call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT%'));
-  assert.ok(launcher.includes("An incomplete PlotPickle component folder was detected."));
+  assert.ok(launcher.includes("An incomplete or incompatible PlotPickle component folder was detected."));
+});
+
+test("Windows updater preserves components and overlays a selected official ZIP", async () => {
+  const wrapper = await readFile(new URL("../Update-PlotPickle.bat", import.meta.url), "utf8");
+  const updater = await readFile(new URL("../scripts/update-plotpickle.ps1", import.meta.url), "utf8");
+  assert.ok(wrapper.includes("In-Place Updater"));
+  assert.ok(wrapper.includes("Run Start-PlotPickle.bat to verify components and start the app."));
+  assert.ok(updater.includes("System.Windows.Forms.OpenFileDialog"));
+  assert.ok(updater.includes("'node_modules', '.git', '.next', 'dist', '.wrangler', '.plotpickle'"));
+  assert.ok(updater.includes("Installed npm components were preserved."));
+  assert.ok(updater.includes("it will update npm components only if package-lock.json changed"));
 });
 
 test("Windows launcher explains and verifies the local installation", async () => {
   const launcher = await readFile(new URL("../Start-PlotPickle.bat", import.meta.url), "utf8");
-  assert.ok(launcher.includes("[STEP 1 OF 4] Checking Node.js and npm"));
+  assert.ok(launcher.includes("[STEP 1 OF 4] Checking Node.js, npm, and PlotPickle version"));
   assert.ok(launcher.includes("Continue with this local installation? [Y/N]"));
+  assert.ok(launcher.includes("Continue with this PlotPickle component upgrade? [Y/N]"));
   assert.ok(launcher.includes('node "%SETUP_REPORT%" success'));
   assert.ok(launcher.includes('node "%SETUP_REPORT%" ready'));
   assert.ok(launcher.includes("Only this computer can use this 127.0.0.1 address."));

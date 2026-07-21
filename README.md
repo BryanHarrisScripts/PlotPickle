@@ -82,6 +82,8 @@ Every workspace reads and writes the same locally saved project.
 
 PlotPickle's AI layer is provider-independent and local-server mediated. The primary development and live-test target is **ChatGPT / OpenAI API**, using the writer's own API key, while OpenAI-compatible servers, Ollama, manual prompt export, and no-AI operation remain supported choices.
 
+All optional connections live under one **Settings** menu with three sections: **AI Setup**, **Music**, and **Plugins**. Music can store Suno or Udio artist links, including profiles such as Ava Iris. Plugins are reserved for future connectivity and cannot be enabled yet.
+
 The first foundation includes:
 
 - capability-based provider selection instead of hardcoded model assumptions;

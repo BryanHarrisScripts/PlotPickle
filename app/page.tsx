@@ -8,6 +8,7 @@ import {
   addBlankCharacter,
   addBlankFrame,
   addBlankLocation,
+  addBlankScene,
   cloneProject,
   completionFor,
   createBlankProject,
@@ -16,6 +17,7 @@ import {
   type Location,
   type PlotPickleProject,
   type StoryBlock,
+  type StoryScene,
   type VisualFrame,
 } from "@/lib/project";
 
@@ -23,7 +25,7 @@ const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
 
 type MainTab = "instructions" | "planner" | "visuals";
-type StorySection = "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "actOne" | "dialogue" | "blocks" | "storyboard" | "notes";
+type StorySection = "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "actOne" | "dialogue" | "blocks" | "scenes" | "storyboard" | "notes";
 
 const mainTabs: { id: MainTab; label: string; description: string }[] = [
   { id: "instructions", label: "Instructions", description: "Learn the method" },
@@ -43,6 +45,7 @@ const storySections: { id: StorySection; code: string; label: string }[] = [
   { id: "actOne", code: "A1", label: "Act I Launch" },
   { id: "dialogue", code: "DL", label: "Dialogue" },
   { id: "blocks", code: "24", label: "24 Blocks" },
+  { id: "scenes", code: "SC", label: "Scene Lab" },
   { id: "storyboard", code: "SB", label: "Storyboard" },
   { id: "notes", code: "NT", label: "Notes" },
 ];
@@ -149,6 +152,13 @@ const sectionGuides: Record<StorySection, { title: string; description: string; 
     questions: ["What changes because of this block?", "Which choice makes the next block necessary?", "Does the external action test the internal foundation?"],
     deliverable: "Four acts of six developed blocks with linked setups and payoffs.",
     connection: "The same blocks drive the planner map and the visual board.",
+  },
+  scenes: {
+    title: "Make every scene arrive under pressure and leave changed.",
+    description: "Scene Pulse turns a block into playable dramatic movement. It locks opposing immediate wants together, trims the routine edges, reveals character through choice, changes a value, and hands fresh pressure forward.",
+    questions: ["Who needs what result right now—and who needs an incompatible result?", "Why can the participants not simply disengage?", "Which choice, pivot, and value shift earn the scene's final moment?"],
+    deliverable: "One or more scene cards with a Pressure Lock, Cut Line, Character Proof, Value Flip, Focus Signal, and Handoff.",
+    connection: "Scene cards live inside their 24 Block, draw from Characters, Locations, Dialogue, and The Pickle, then supply visible turns to the storyboard.",
   },
   storyboard: {
     title: "Translate story change into visible turns.",
@@ -353,7 +363,7 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
               <span className="feature-code">02</span>
               <p className="feature-label">Develop</p>
               <h3>Story Planner</h3>
-              <p>Build the world, cast, ghost, catalyst, foundations, The Pickle audience engine, Opening Move, Act I Launch, dialogue, and all twenty-four causal story movements.</p>
+              <p>Build the world, cast, ghost, catalyst, foundations, The Pickle audience engine, Opening Move, Act I Launch, dialogue, all twenty-four story movements, and their individual Scene Pulses.</p>
             </article>
             <article>
               <span className="feature-code">03</span>
@@ -367,9 +377,9 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
         <section className="marketing-section story-system-section">
           <div className="story-system-copy">
             <p className="marketing-kicker">Your entire story in one structure</p>
-            <h2>Thirteen story columns. One source of truth.</h2>
+            <h2>Fourteen story columns. One source of truth.</h2>
             <p>
-              Story Setup, Pitch &amp; Vision, World, Characters, Ghost, Catalyst, Foundations, The Pickle, Act I Launch, Dialogue, 24 Blocks, Storyboard, and Notes stay aligned across every workspace.
+              Story Setup, Pitch &amp; Vision, World, Characters, Ghost, Catalyst, Foundations, The Pickle, Act I Launch, Dialogue, 24 Blocks, Scene Lab, Storyboard, and Notes stay aligned across every workspace.
             </p>
             <ul>
               <li><span>01</span> One readable <code>.plotpickle.json</code> project file</li>
@@ -377,7 +387,7 @@ function LandingPage({ onOpenOnline }: { onOpenOnline: () => void }) {
               <li><span>03</span> Your story remains yours and stays on your device</li>
             </ul>
           </div>
-          <div className="story-column-stack" aria-label="The thirteen PlotPickle story columns">
+          <div className="story-column-stack" aria-label="The fourteen PlotPickle story columns">
             {storySections.map((section) => (
               <div className={section.id === "blocks" ? "active" : ""} key={section.id}>
                 <span>{section.code}</span><strong>{section.label}</strong><i aria-hidden="true">→</i>
@@ -437,6 +447,7 @@ export default function Home() {
   const [activeSection, setActiveSection] = useState<StorySection>("storySetup");
   const [selectedCharacterId, setSelectedCharacterId] = useState("");
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
+  const [selectedSceneId, setSelectedSceneId] = useState("");
   const [selectedFrameId, setSelectedFrameId] = useState("");
   const [visualAct, setVisualAct] = useState(0);
   const [hydrated, setHydrated] = useState(false);
@@ -481,6 +492,7 @@ export default function Home() {
   const completion = useMemo(() => completionFor(project), [project]);
   const selectedCharacter = project.characters.find((character) => character.id === selectedCharacterId) ?? project.characters[0];
   const selectedBlock = project.blocks.find((block) => block.number === selectedBlockNumber) ?? project.blocks[0];
+  const selectedScene = selectedBlock.scenes.find((scene) => scene.id === selectedSceneId) ?? selectedBlock.scenes[0];
   const selectedFrame = selectedBlock.visuals.find((frame) => frame.id === selectedFrameId) ?? selectedBlock.visuals[0];
 
   if (showLanding) {
@@ -562,6 +574,24 @@ export default function Home() {
     });
   }
 
+  function updateScene(blockNumber: number, sceneId: string, key: keyof StoryScene, value: string | string[]) {
+    commit({
+      ...project,
+      blocks: project.blocks.map((block) =>
+        block.number === blockNumber
+          ? { ...block, scenes: block.scenes.map((scene) => (scene.id === sceneId ? { ...scene, [key]: value } : scene)) }
+          : block,
+      ),
+    });
+  }
+
+  function toggleSceneCharacter(scene: StoryScene, characterId: string) {
+    const next = scene.characterIds.includes(characterId)
+      ? scene.characterIds.filter((id) => id !== characterId)
+      : [...scene.characterIds, characterId];
+    updateScene(selectedBlock.number, scene.id, "characterIds", next);
+  }
+
   function toggleBlockReference(kind: "characterIds" | "locationIds", id: string) {
     const current = selectedBlock[kind];
     const next = current.includes(id) ? current.filter((value) => value !== id) : [...current, id];
@@ -575,6 +605,7 @@ export default function Home() {
     setProject(blank);
     setSelectedCharacterId("");
     setSelectedBlockNumber(1);
+    setSelectedSceneId("");
     setActiveTab("planner");
     setActiveSection("storySetup");
     setToast("A new 24 Blocks project is ready.");
@@ -587,6 +618,7 @@ export default function Home() {
     setProject(afterglow);
     setSelectedCharacterId("ren");
     setSelectedBlockNumber(1);
+    setSelectedSceneId(afterglow.blocks[0].scenes[0]?.id ?? "");
     setActiveTab("planner");
     setActiveSection("storySetup");
     setToast("Afterglow loaded with its world, cast, and 24-block spine.");
@@ -617,6 +649,7 @@ export default function Home() {
       commit(cloneProject(normalized));
       setSelectedCharacterId(normalized.characters[0]?.id ?? "");
       setSelectedBlockNumber(1);
+      setSelectedSceneId(normalized.blocks[0].scenes[0]?.id ?? "");
       setToast("Project imported and connected to all three workspaces.");
     } catch {
       setToast("That file is not a valid PlotPickle 1.0 project with exactly 24 blocks.");
@@ -643,11 +676,20 @@ export default function Home() {
     setSelectedFrameId(frame.id);
   }
 
+  function addScene(block: StoryBlock) {
+    const updated = addBlankScene(block);
+    const scene = updated.scenes[updated.scenes.length - 1];
+    replaceBlock(updated);
+    setSelectedBlockNumber(block.number);
+    setSelectedSceneId(scene.id);
+  }
+
   function openBlock(number: number, destination: MainTab = "planner") {
     setSelectedBlockNumber(number);
     setActiveTab(destination);
     setActiveSection(destination === "planner" ? "blocks" : "storyboard");
     const block = project.blocks[number - 1];
+    setSelectedSceneId(block.scenes[0]?.id ?? "");
     setSelectedFrameId(block.visuals[0]?.id ?? "");
   }
 
@@ -761,6 +803,29 @@ export default function Home() {
                   updateBlock={updateBlock}
                   toggleReference={toggleBlockReference}
                   openVisual={(number) => openBlock(number, "visuals")}
+                />
+              ) : null}
+              {activeSection === "scenes" ? (
+                <SceneLab
+                  project={project}
+                  selectedBlock={selectedBlock}
+                  selectedScene={selectedScene}
+                  selectBlock={(number) => {
+                    const block = project.blocks[number - 1];
+                    setSelectedBlockNumber(number);
+                    setSelectedSceneId(block.scenes[0]?.id ?? "");
+                  }}
+                  selectScene={setSelectedSceneId}
+                  addScene={addScene}
+                  updateScene={updateScene}
+                  toggleCharacter={toggleSceneCharacter}
+                  openVisual={(number) => {
+                    const block = project.blocks[number - 1];
+                    setSelectedBlockNumber(number);
+                    setSelectedFrameId(block.visuals[0]?.id ?? "");
+                    setActiveTab("visuals");
+                    setActiveSection("scenes");
+                  }}
                 />
               ) : null}
               {activeSection === "storyboard" ? (
@@ -1247,6 +1312,116 @@ function BlocksEditor({
   );
 }
 
+function SceneLab({
+  project,
+  selectedBlock,
+  selectedScene,
+  selectBlock,
+  selectScene,
+  addScene,
+  updateScene,
+  toggleCharacter,
+  openVisual,
+}: {
+  project: PlotPickleProject;
+  selectedBlock: StoryBlock;
+  selectedScene?: StoryScene;
+  selectBlock: (number: number) => void;
+  selectScene: (id: string) => void;
+  addScene: (block: StoryBlock) => void;
+  updateScene: (blockNumber: number, sceneId: string, key: keyof StoryScene, value: string | string[]) => void;
+  toggleCharacter: (scene: StoryScene, characterId: string) => void;
+  openVisual: (number: number) => void;
+}) {
+  const update = (key: keyof StoryScene, value: string | string[]) => {
+    if (selectedScene) updateScene(selectedBlock.number, selectedScene.id, key, value);
+  };
+
+  return (
+    <div className="editor-page scene-lab-page">
+      <SectionHeading
+        eyebrow="SC · Scene Lab"
+        title="Give every scene a pulse."
+        description="Scene Pulse turns a block into playable dramatic movement: lock incompatible wants together, enter under pressure, force a revealing choice, pivot the value, and cut with new pressure still alive."
+        action={<button type="button" className="primary-button compact" onClick={() => addScene(selectedBlock)}>Add scene to Block {selectedBlock.number}</button>}
+      />
+      <div className="scene-lab-workspace">
+        <div className="scene-block-map">
+          {project.blocks.map((block) => (
+            <button type="button" className={selectedBlock.number === block.number ? `active act-${block.act}` : `act-${block.act}`} key={block.id} onClick={() => selectBlock(block.number)}>
+              <span>{String(block.number).padStart(2, "0")}</span>
+              <strong>{block.title}</strong>
+              <small>{block.scenes.length} {block.scenes.length === 1 ? "scene" : "scenes"}</small>
+            </button>
+          ))}
+        </div>
+
+        <div className="scene-lab-panel">
+          <div className="inspector-head">
+            <div className={`block-index act-${selectedBlock.act}`}>{String(selectedBlock.number).padStart(2, "0")}</div>
+            <div><p className="eyebrow">Block {selectedBlock.number} · Scene Pulse</p><h2>{selectedBlock.title}</h2><p>{selectedBlock.purpose}</p></div>
+            <button type="button" className="secondary-button compact" onClick={() => openVisual(selectedBlock.number)}>Open visual board</button>
+          </div>
+
+          {selectedBlock.scenes.length ? (
+            <>
+              <div className="scene-tabs" aria-label={`Scenes in Block ${selectedBlock.number}`}>
+                {selectedBlock.scenes.map((scene, index) => (
+                  <button type="button" className={selectedScene?.id === scene.id ? "active" : ""} key={scene.id} onClick={() => selectScene(scene.id)}>
+                    <span>{String(index + 1).padStart(2, "0")}</span><strong>{scene.title || `Scene ${index + 1}`}</strong>
+                  </button>
+                ))}
+                <button type="button" className="add-scene-tab" onClick={() => addScene(selectedBlock)}>+ Add scene</button>
+              </div>
+
+              {selectedScene ? (
+                <div className="scene-pulse-editor">
+                  <div className="form-section"><h3>Scene identity</h3><div className="form-grid two-columns">
+                    <FormField label="Scene title" value={selectedScene.title} onChange={(value) => update("title", value)} multiline={false} />
+                    <FormField label="Scene purpose" value={selectedScene.purpose} onChange={(value) => update("purpose", value)} help="The one story job this scene must complete before it can end." />
+                    <FormField label="Point of view / driver" value={selectedScene.pointOfView} onChange={(value) => update("pointOfView", value)} help="Whose pursuit organizes how the audience experiences the scene?" />
+                    <label className="form-field"><span className="field-label">Primary location</span><select value={selectedScene.locationId} onChange={(event) => update("locationId", event.target.value)}><option value="">Choose a location</option>{project.world.locations.map((location) => <option value={location.id} key={location.id}>{location.name}</option>)}</select></label>
+                  </div><div className="scene-character-picker"><span className="field-label">Characters in this scene</span><div className="chip-list">{project.characters.map((character) => <button type="button" className={selectedScene.characterIds.includes(character.id) ? "active" : ""} key={character.id} onClick={() => toggleCharacter(selectedScene, character.id)}>{character.name}</button>)}</div></div></div>
+
+                  <div className="form-section signal-section"><h3>Pressure Lock</h3><div className="form-grid two-columns">
+                    <FormField label="Immediate desire" value={selectedScene.desire} onChange={(value) => update("desire", value)} help="The concrete result the scene driver is trying to create now." />
+                    <FormField label="Counter-desire" value={selectedScene.counterDesire} onChange={(value) => update("counterDesire", value)} help="The incompatible result another person, system, circumstance, or inner force wants instead." />
+                    <FormField label="The hold" value={selectedScene.hold} onChange={(value) => update("hold", value)} help="Why the participants cannot simply leave, withdraw, or avoid the collision." />
+                    <FormField label="Revealing choice" value={selectedScene.revealingChoice} onChange={(value) => update("revealingChoice", value)} help="The decision that proves character through behaviour rather than description." />
+                  </div></div>
+
+                  <div className="form-section"><h3>Cut Line & Character Proof</h3><div className="form-grid two-columns">
+                    <FormField label="Cut in" value={selectedScene.cutIn} onChange={(value) => update("cutIn", value)} help="The first essential moment after routine arrival and explanation have been removed." />
+                    <FormField label="Cut out" value={selectedScene.cutOut} onChange={(value) => update("cutOut", value)} help="The final line, image, action, or discovery after which the scene has completed its job." />
+                    <FormField label="Setting pressure" value={selectedScene.settingPressure} onChange={(value) => update("settingPressure", value)} help="How the organic place, task, prop, witness, or physical condition makes the scene more revealing and difficult." />
+                    <FormField label="Surface action" value={selectedScene.surfaceAction} onChange={(value) => update("surfaceAction", value)} help="What the characters openly do, discuss, or pursue." />
+                    <FormField label="Undercurrent" value={selectedScene.undercurrent} onChange={(value) => update("undercurrent", value)} help="What they are actually negotiating emotionally, relationally, or thematically." />
+                  </div></div>
+
+                  <div className="form-section signal-section"><h3>Value Flip</h3><div className="form-grid two-columns">
+                    <FormField label="Opening value" value={selectedScene.openingValue} onChange={(value) => update("openingValue", value)} help="Name the starting state: trust, control, safety, status, hope, belonging, or another live value." />
+                    <FormField label="Pivot" value={selectedScene.pivot} onChange={(value) => update("pivot", value)} help="The discovery, action, refusal, or reversal that makes the original approach impossible." />
+                    <FormField label="Tactic shift" value={selectedScene.tacticShift} onChange={(value) => update("tacticShift", value)} help="How the driver changes strategy after the pivot." />
+                    <FormField label="Closing value" value={selectedScene.closingValue} onChange={(value) => update("closingValue", value)} help="The changed state that proves the scene moved." />
+                  </div></div>
+
+                  <div className="form-section"><h3>Focus Signal & Handoff</h3><div className="form-grid two-columns">
+                    <FormField label="Focus signal" value={selectedScene.focusReveal} onChange={(value) => update("focusReveal", value)} help="The clearest audience takeaway earned by the scene. A climax may intentionally converge several prepared signals." />
+                    <FormField label="Handoff pressure" value={selectedScene.handoff} onChange={(value) => update("handoff", value)} help="The consequence, question, decision, or unfinished pressure that makes the next scene or block necessary." />
+                    <FormField label="Scene notes" value={selectedScene.notes} onChange={(value) => update("notes", value)} />
+                  </div></div>
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <div className="empty-state scene-empty"><p>This block has no scene cards yet.</p><span>Begin with the scene that carries the block&apos;s most important choice or turn.</span><button type="button" className="primary-button" onClick={() => addScene(selectedBlock)}>Create the first Scene Pulse</button></div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StoryboardPlanner({ project, selectedBlock, openBlock, updateBlock, openVisual }: { project: PlotPickleProject; selectedBlock: StoryBlock; openBlock: (number: number) => void; updateBlock: (number: number, key: keyof StoryBlock, value: string | string[]) => void; openVisual: (number: number) => void }) {
   return (
     <div className="editor-page storyboard-planner-page">
@@ -1375,6 +1550,7 @@ function VisualContext({ project, section, selectedBlock }: { project: PlotPickl
       : { title: "Act I promises carried forward", values: [project.development.actOne.downstreamPromises, project.development.actOne.worldContract, project.development.actOne.pickleSeed] },
     dialogue: { title: "Voice & subtext reference", values: [project.development.dialogue.voiceContrast, project.development.dialogue.subtext, project.development.dialogue.recurringLanguage] },
     blocks: { title: `Block ${selectedBlock.number} story motion`, values: [selectedBlock.goal, selectedBlock.choice, selectedBlock.consequence] },
+    scenes: { title: `Block ${selectedBlock.number} scene pulses`, values: selectedBlock.scenes.map((scene) => `${scene.title}: ${scene.pivot || scene.handoff || scene.purpose}`) },
     storyboard: { title: `Block ${selectedBlock.number} storyboard direction`, values: [selectedBlock.storyboardDirection, selectedBlock.summary, `${selectedBlock.visuals.length}/4 visuals planned`] },
     notes: { title: "Continuity & revision notes", values: [project.development.notes.continuity, project.development.notes.openQuestions, project.development.notes.revisions] },
   };

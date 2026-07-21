@@ -48,7 +48,7 @@ export const defaultPlotPickleSettings: PlotPickleSettings = {
 export function normalizePlotPickleSettings(value: unknown): PlotPickleSettings {
   if (!value || typeof value !== "object") return structuredClone(defaultPlotPickleSettings);
   const candidate = value as Partial<PlotPickleSettings>;
-  const ai = candidate.ai && typeof candidate.ai === "object" ? candidate.ai : {};
+  const ai: Partial<PlotPickleSettings["ai"]> = candidate.ai && typeof candidate.ai === "object" ? candidate.ai : {};
   const providerChoices: AiProviderKind[] = ["openai", "openai-compatible", "ollama", "manual", "disabled"];
   const provider = providerChoices.includes(ai.provider as AiProviderKind) ? ai.provider as AiProviderKind : "disabled";
   const music = Array.isArray(candidate.music)

@@ -13,7 +13,7 @@ import styles from "./script-viewer.module.css";
 
 type ScriptViewerProps = {
   project: PlotPickleProject;
-  onChange: (screenplay: ScreenplayDocument) => void;
+  onImport: (screenplay: ScreenplayDocument) => boolean;
   onOpenBlock: (blockNumber: number) => void;
 };
 
@@ -43,7 +43,7 @@ function EmptyViewer({ onChoose }: { onChoose: () => void }) {
   );
 }
 
-export default function ScriptViewer({ project, onChange, onOpenBlock }: ScriptViewerProps) {
+export default function ScriptViewer({ project, onImport, onOpenBlock }: ScriptViewerProps) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [search, setSearch] = useState("");
@@ -69,8 +69,11 @@ export default function ScriptViewer({ project, onChange, onOpenBlock }: ScriptV
       format: screenplayFormatForFile(file.name),
       sourceText,
       importedAt: new Date().toISOString(),
+      analysisStatus: "none",
+      analyzedAt: "",
+      suggestedFields: [],
     };
-    onChange(next);
+    if (!onImport(next)) return;
     setSelectedIndex(0);
     setSearch("");
   }
@@ -95,6 +98,8 @@ export default function ScriptViewer({ project, onChange, onOpenBlock }: ScriptV
               <p>Full Script Viewer</p>
               <h1>{project.metadata.title}</h1>
               <span>{project.screenplay.fileName} · Read-only learning view</span>
+              {project.screenplay.analysisStatus === "suggested" ? <strong className={styles.suggestionStatus}>Structure suggested from script · review before confirming</strong> : null}
+              {project.screenplay.analysisStatus === "reviewed" ? <strong className={styles.reviewedStatus}>Imported structure reviewed</strong> : null}
             </div>
             <div className={styles.headerActions}>
               <button type="button" className={styles.secondaryButton} onClick={() => fileInput.current?.click()}>Replace script</button>
@@ -144,7 +149,7 @@ export default function ScriptViewer({ project, onChange, onOpenBlock }: ScriptV
             {showGuide ? (
               <aside className={styles.guide}>
                 <div className={`${styles.blockBadge} ${styles[`act${block.act}`]}`}><span>Estimated position</span><strong>Act {block.act} · Block {block.number}</strong><small>{block.title}</small></div>
-                <p className={styles.estimateNote}>The initial block link is estimated from script position. Use it as a reading guide until the screenplay is manually reconciled with the 24 Blocks.</p>
+                <p className={styles.estimateNote}>{project.screenplay.analysisStatus === "suggested" ? "This block and its guided answers were suggested from script position and extracted passages. Confirm or revise them in Story Planner." : "The initial block link is estimated from script position. Use it as a reading guide until the screenplay is manually reconciled with the 24 Blocks."}</p>
                 <div className={styles.selectedPassage}><span>Selected passage</span><strong>{selected ? screenplayLegend.find((item) => item.type === selected.type)?.label : "Script"}</strong><p>{selected?.text}</p></div>
                 <h2>Questions this passage helps answer</h2>
                 <dl>{answers.map((item) => <div key={item.question}><dt>{item.question}</dt><dd className={item.answer ? "" : styles.unanswered}>{item.answer || "Not answered yet—keep this question open while you read."}</dd></div>)}</dl>

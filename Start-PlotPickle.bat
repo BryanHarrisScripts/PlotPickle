@@ -67,7 +67,7 @@ echo Press Ctrl+C in this window when you are finished.
 echo.
 
 start "PlotPickle Browser" cmd /c "timeout /t 4 /nobreak >nul & start \"\" \"%PLOTPICKLE_URL%\""
-call npm run dev -- --host 127.0.0.1 --port %PLOTPICKLE_PORT%
+call npm run dev:local -- --host 127.0.0.1 --port %PLOTPICKLE_PORT%
 
 set "EXIT_CODE=%ERRORLEVEL%"
 echo.

@@ -1,86 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  createBlankProject,
-  normalizePlotPickleProject,
-  type Character,
-  type PlotPickleProject,
-  type StoryBlock,
-} from "@/lib/project";
+import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject, type StoryBlock } from "@/lib/project";
+import { scanPageFlowDraft } from "@/lib/pageflow";
 import styles from "./pageflow.module.css";
 
 const STORAGE_KEY = "plotpickle.project.v1";
-
-const invisibleTerms = [
-  "thinks",
-  "feels",
-  "knows",
-  "realizes",
-  "remembers",
-  "decides",
-  "believes",
-  "understands",
-  "wants",
-  "because",
-];
-
-const directingTerms = [
-  "camera",
-  "close-up",
-  "close up",
-  "wide shot",
-  "angle on",
-  "pan",
-  "tilt",
-  "zoom",
-  "cut to",
-  "we see",
-  "we hear",
-];
-
-const weakPhrases = ["starts to", "begins to", "seems to", "appears to", "tries to"];
-const emotionLabels = ["angry", "sad", "nervous", "afraid", "happy", "upset", "confused", "frustrated", "excited", "anxious"];
-
-function uniqueMatches(text: string, terms: string[]) {
-  const lower = text.toLowerCase();
-  return terms.filter((term) => lower.includes(term));
-}
-
-function wordCount(text: string) {
-  return text.trim() ? text.trim().split(/\s+/).length : 0;
-}
-
-function scanDraft(text: string) {
-  const paragraphs = text
-    .split(/\n\s*\n/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
-  const sentences = text
-    .split(/[.!?]+/)
-    .map((sentence) => sentence.trim())
-    .filter(Boolean);
-  const words = wordCount(text);
-  const invisible = uniqueMatches(text, invisibleTerms);
-  const directing = uniqueMatches(text, directingTerms);
-  const weak = uniqueMatches(text, weakPhrases);
-  const emotions = uniqueMatches(text, emotionLabels);
-  const longParagraphs = paragraphs.filter((paragraph) => wordCount(paragraph) > 55).length;
-  const averageSentence = sentences.length ? Math.round(words / sentences.length) : 0;
-  const deductions = invisible.length * 7 + directing.length * 5 + weak.length * 5 + emotions.length * 4 + longParagraphs * 8;
-
-  return {
-    words,
-    paragraphs: paragraphs.length,
-    averageSentence,
-    invisible,
-    directing,
-    weak,
-    emotions,
-    longParagraphs,
-    signal: Math.max(0, Math.min(100, 100 - deductions)),
-  };
-}
 
 function DraftField({
   label,
@@ -148,7 +73,7 @@ export default function PageFlowPage() {
 
   const selectedBlock = project.blocks.find((block) => block.number === selectedBlockNumber) ?? project.blocks[0];
   const selectedCharacter = project.characters.find((character) => character.id === selectedCharacterId) ?? project.characters[0];
-  const draftScan = useMemo(() => scanDraft(selectedBlock.scriptExcerpt), [selectedBlock.scriptExcerpt]);
+  const draftScan = useMemo(() => scanPageFlowDraft(selectedBlock.scriptExcerpt), [selectedBlock.scriptExcerpt]);
 
   function commit(next: PlotPickleProject, message = "Saved to this device.") {
     const updated: PlotPickleProject = {
@@ -235,37 +160,22 @@ export default function PageFlowPage() {
         </section>
 
         <section className={styles.contextGrid}>
-          <article>
-            <strong>Story cause</strong>
-            <span>Why the block moves</span>
-            <p>{blockContext || "Add the goal, conflict, action, and consequence in Story Planner."}</p>
-          </article>
-          <article>
-            <strong>Emotional turn</strong>
-            <span>Meaning that needs screen evidence</span>
-            <p>{selectedBlock.emotionalTurn || "Name the emotional change, then express it through behaviour, space, objects, dialogue, or reaction."}</p>
-          </article>
-          <article>
-            <strong>Audience attention</strong>
-            <span>What the reader should track</span>
-            <p>{selectedBlock.audienceExpectation || selectedBlock.pickleTurn || "Clarify what the audience expects and what changes that expectation."}</p>
-          </article>
+          <article><strong>Story cause</strong><span>Why the block moves</span><p>{blockContext || "Add the goal, conflict, action, and consequence in Story Planner."}</p></article>
+          <article><strong>Emotional turn</strong><span>Meaning that needs screen evidence</span><p>{selectedBlock.emotionalTurn || "Name the emotional change, then express it through behaviour, space, objects, dialogue, or reaction."}</p></article>
+          <article><strong>Audience attention</strong><span>What the reader should track</span><p>{selectedBlock.audienceExpectation || selectedBlock.pickleTurn || "Clarify what the audience expects and what changes that expectation."}</p></article>
         </section>
 
         <section className={styles.scorePanel} aria-label="PageFlow draft signals">
           <div className={styles.scoreRing} style={{ "--score": `${draftScan.signal * 3.6}deg` } as React.CSSProperties}>
-            <strong>{draftScan.signal}</strong>
-            <span>draft signal</span>
+            <strong>{draftScan.signal}</strong><span>draft signal</span>
           </div>
           <div className={styles.metricGrid}>
-            <div><strong>{draftScan.words}</strong><span>words</span></div>
+            <div><strong>{draftScan.words}</strong><span>action words</span></div>
             <div><strong>{draftScan.paragraphs}</strong><span>visual beats</span></div>
             <div><strong>{draftScan.averageSentence}</strong><span>words per sentence</span></div>
             <div><strong>{draftScan.longParagraphs}</strong><span>dense paragraphs</span></div>
           </div>
-          <p>
-            This is an editorial signal, not a grade. A phrase may be justified by voiceover, genre, formal design, or a necessary shot.
-          </p>
+          <p>This is an editorial signal, not a grade. Dialogue and character cues are excluded where screenplay formatting makes them identifiable.</p>
         </section>
 
         <div className={styles.workspace}>
@@ -275,28 +185,10 @@ export default function PageFlowPage() {
               <h2>Write the movie the reader can see.</h2>
               <p>Use exact nouns, active verbs, clear order, playable behaviour, and paragraph breaks that match visual turns.</p>
             </div>
-            <DraftField
-              label="Page Draft"
-              help="Screenplay action, scene text, or a polished description pass. This edits the block's shared Story text field."
-              value={selectedBlock.scriptExcerpt}
-              onChange={(value) => updateBlock("scriptExcerpt", value)}
-              rows={22}
-            />
+            <DraftField label="Page Draft" help="Screenplay action, scene text, or a polished description pass. This edits the block's shared Story text field." value={selectedBlock.scriptExcerpt} onChange={(value) => updateBlock("scriptExcerpt", value)} rows={22} />
             <div className={styles.twoColumns}>
-              <DraftField
-                label="Visible sequence"
-                help="Describe the image progression the Visual Board should preserve."
-                value={selectedBlock.storyboardDirection}
-                onChange={(value) => updateBlock("storyboardDirection", value)}
-                rows={9}
-              />
-              <DraftField
-                label="PageFlow revision notes"
-                help="Record invisible information to externalize, beats to split, actions to sharpen, or justified exceptions."
-                value={selectedBlock.notes}
-                onChange={(value) => updateBlock("notes", value)}
-                rows={9}
-              />
+              <DraftField label="Visible sequence" help="Describe the image progression the Visual Board should preserve." value={selectedBlock.storyboardDirection} onChange={(value) => updateBlock("storyboardDirection", value)} rows={9} />
+              <DraftField label="PageFlow revision notes" help="Record invisible information to externalize, beats to split, actions to sharpen, or justified exceptions." value={selectedBlock.notes} onChange={(value) => updateBlock("notes", value)} rows={9} />
             </div>
             <div className={styles.entrancePanel}>
               <div>
@@ -305,28 +197,19 @@ export default function PageFlowPage() {
                 <p>Give the reader a concise first impression through condition, action, contradiction, clothing, or relationship to the space.</p>
               </div>
               {selectedCharacter ? (
-                <DraftField
-                  label={`${selectedCharacter.name} · Introduction`}
-                  help="This edits the character's shared description, so keep it useful beyond a single scene."
-                  value={selectedCharacter.description}
-                  onChange={updateCharacterDescription}
-                  rows={7}
-                />
+                <DraftField label={`${selectedCharacter.name} · Introduction`} help="This edits the character's shared description, so keep it useful beyond a single scene." value={selectedCharacter.description} onChange={updateCharacterDescription} rows={7} />
               ) : <p className={styles.empty}>Add characters in Story Planner to develop an entrance.</p>}
             </div>
           </section>
 
           <aside className={styles.diagnosticPanel}>
             <div className={styles.sectionHeading}>
-              <p className={styles.kicker}>Revision signals</p>
-              <h2>Inspect, do not obey blindly.</h2>
-              <p>Each signal asks whether the line has become visible, direct, playable, and readable.</p>
+              <p className={styles.kicker}>Revision signals</p><h2>Inspect, do not obey blindly.</h2><p>Each signal asks whether the action line has become visible, direct, playable, and readable.</p>
             </div>
-            <SignalList title="Invisible or explanatory" items={draftScan.invisible} empty="No common invisible-state terms detected." />
-            <SignalList title="Possible directing language" items={draftScan.directing} empty="No common camera or editing terms detected." />
-            <SignalList title="Weak action phrases" items={draftScan.weak} empty="No common delayed-action phrases detected." />
-            <SignalList title="Emotion labels to physicalize" items={draftScan.emotions} empty="No common emotion labels detected." />
-
+            <SignalList title="Invisible or explanatory" items={draftScan.invisible} empty="No common invisible-state terms detected in action text." />
+            <SignalList title="Possible directing language" items={draftScan.directing} empty="No common camera or editing terms detected in action text." />
+            <SignalList title="Weak action phrases" items={draftScan.weak} empty="No common delayed-action phrases detected in action text." />
+            <SignalList title="Emotion labels to physicalize" items={draftScan.emotions} empty="No common emotion labels detected in action text." />
             <div className={styles.checklist}>
               <h3>Five-pass rewrite</h3>
               <ol>
@@ -337,14 +220,9 @@ export default function PageFlowPage() {
                 <li><strong>Restraint pass</strong><span>Are you guiding attention without directing every shot?</span></li>
               </ol>
             </div>
-
             <div className={styles.wordBank}>
-              <h3>Action families</h3>
-              <p>Use these as prompts for specificity, not as mandatory vocabulary.</p>
-              <div>
-                <span>advance</span><span>withdraw</span><span>block</span><span>grip</span><span>scan</span><span>flinch</span>
-                <span>crumple</span><span>snap</span><span>hover</span><span>brace</span><span>corner</span><span>release</span>
-              </div>
+              <h3>Action families</h3><p>Use these as prompts for specificity, not as mandatory vocabulary.</p>
+              <div><span>advance</span><span>withdraw</span><span>block</span><span>grip</span><span>scan</span><span>flinch</span><span>crumple</span><span>snap</span><span>hover</span><span>brace</span><span>corner</span><span>release</span></div>
             </div>
           </aside>
         </div>

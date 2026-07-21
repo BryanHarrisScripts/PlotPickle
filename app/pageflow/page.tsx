@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject, type StoryBlock } from "@/lib/project";
 import { scanPageFlowDraft } from "@/lib/pageflow";
@@ -50,25 +51,29 @@ export default function PageFlowPage() {
   const [status, setStatus] = useState("Loading the active PlotPickle project…");
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const normalized = normalizePlotPickleProject(JSON.parse(stored));
-        if (normalized) {
-          setProject(normalized);
-          setSelectedCharacterId(normalized.characters[0]?.id ?? "");
-          setStatus("Connected to the active PlotPickle project.");
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = window.localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const normalized = normalizePlotPickleProject(JSON.parse(stored));
+          if (normalized) {
+            setProject(normalized);
+            setSelectedCharacterId(normalized.characters[0]?.id ?? "");
+            setStatus("Connected to the active PlotPickle project.");
+          } else {
+            setStatus("The saved project could not be upgraded. A blank project is shown instead.");
+          }
         } else {
-          setStatus("The saved project could not be upgraded. A blank project is shown instead.");
+          setStatus("No saved project was found. Open PlotPickle or begin with the blank project shown here.");
         }
-      } else {
-        setStatus("No saved project was found. Open PlotPickle or begin with the blank project shown here.");
+      } catch {
+        setStatus("The saved project could not be opened. A blank project is shown instead.");
+      } finally {
+        setHydrated(true);
       }
-    } catch {
-      setStatus("The saved project could not be opened. A blank project is shown instead.");
-    } finally {
-      setHydrated(true);
-    }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   const selectedBlock = project.blocks.find((block) => block.number === selectedBlockNumber) ?? project.blocks[0];
@@ -134,8 +139,8 @@ export default function PageFlowPage() {
             </p>
           </div>
           <div className={styles.actions}>
-            <a className={styles.secondaryButton} href="/">Back to PlotPickle</a>
-            <a className={styles.secondaryButton} href="/voiceprint">Open Voiceprint</a>
+            <Link className={styles.secondaryButton} href="/">Back to PlotPickle</Link>
+            <Link className={styles.secondaryButton} href="/voiceprint">Open Voiceprint</Link>
             <button className={styles.button} type="button" onClick={exportProject}>Export project</button>
           </div>
         </header>

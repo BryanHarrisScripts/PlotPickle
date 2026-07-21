@@ -350,7 +350,7 @@ export default function DraftLensPage() {
             <div className={styles.sectionHeading}>
               <p className={styles.kicker}>Selected character</p>
               <h2>{selectedCharacter?.name ?? "No character selected"}</h2>
-              <p>The plot should challenge the character's current strategy, not merely move them between events.</p>
+              <p>The plot should challenge the character&apos;s current strategy, not merely move them between events.</p>
             </div>
             {selectedCharacter ? (
               <div className={styles.characterGrid}>

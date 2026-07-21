@@ -2,7 +2,7 @@
 
 PlotPickle is a local-first story development application built around Bryan Harris's 24 Blocks method. One canonical project object powers connected workspaces for learning the method, planning the story, aligning meaning, developing dialogue, writing visible screenplay action, reviewing the whole draft, and building the visual board.
 
-Current application version: `0.5.1`
+Current application version: `0.5.2`
 
 Current project schema: `1.3.0`
 
@@ -18,16 +18,59 @@ This link always downloads the current `main` version, so it stays up to date as
 2. Right-click the downloaded ZIP and select **Extract All**.
 3. Open the extracted `PlotPickle-main` folder.
 4. Double-click `Start-PlotPickle.bat`.
-5. Leave the command window open while using PlotPickle. The browser opens automatically at `http://127.0.0.1:4173`.
-6. Press `Ctrl+C` in the command window when finished, then close it.
+5. Review the installation plan and press **Y** to continue.
+6. Leave the command window open while using PlotPickle. The browser opens automatically at `http://127.0.0.1:4173`.
+7. Press `Ctrl+C` in the command window when finished, then close it.
 
-PlotPickle requires Node.js 22.13 or newer. If Node.js is missing or too old, the starter explains the problem and opens the official Node.js download page. The first launch installs the required components; later launches start more quickly.
+PlotPickle requires Node.js 22.13 or newer. If Node.js is missing or too old, the starter explains the problem and opens the official Node.js download page. The first launch installs the required components; later launches verify them and start more quickly.
 
-The command window is PlotPickle's local server. It must remain open while the application is running, and it provides a useful place to see setup or runtime errors.
+The command window is PlotPickle's local server. It must remain open while the application is running, and it provides a useful place to see installation progress, verification results, setup errors, and server messages.
+
+## Transparent guided installer
+
+Version 0.5.2 explains the setup before anything is downloaded. The installer displays:
+
+- the PlotPickle, Node.js, and npm versions;
+- the exact top-level package categories and requested versions;
+- the local `node_modules` installation folder;
+- the reusable npm cache location;
+- the free space currently available;
+- a recommended minimum of **2 GB free space**;
+- an estimated maximum first-setup working requirement of about **1.5 GB**, including room for dependencies and download caching;
+- a Y/N consent prompt before package installation begins;
+- numbered setup stages and visible npm download, extraction, warning, and verification messages;
+- a final **SUCCESS** report showing the installed package versions and the actual `node_modules` size.
+
+The main installed components are:
+
+- Next.js, React, and React DOM for the application interface;
+- Vite and Vinext for the local browser server;
+- Tailwind CSS and TypeScript for styling and code compilation;
+- ESLint for quality checks;
+- Wrangler and Cloudflare/Vite compatibility packages used by the build architecture;
+- Drizzle ORM tooling used by the project architecture.
+
+These packages are installed inside the extracted PlotPickle folder. npm also maintains a reusable download cache in the user's normal npm cache location.
+
+### Security and privacy explanation
+
+The launcher:
+
+- does not request Administrator rights;
+- does not install a Windows service;
+- does not add PlotPickle to Windows startup;
+- does not disable antivirus or Windows security;
+- uses `package.json` and `package-lock.json` to define packages and verify available package-integrity data;
+- does not upload the active story project;
+- binds the server to `127.0.0.1`, the private loopback address for the current computer only.
+
+A local server means PlotPickle uses normal web-browser technology while the program itself is running on the user's computer. It is not published to the home network or public internet. Closing the command window stops the server.
+
+The transparency report is intended to make the setup understandable; it is not a substitute for normal antivirus scanning or downloading only from the official PlotPickle repository.
 
 ## Windows setup recovery
 
-Version 0.5.1 hardens the Windows launcher against interrupted dependency downloads. The launcher now verifies that Vite and the core local packages are actually installed instead of checking only for the existence of the `node_modules` folder.
+Version 0.5.1 hardened the Windows launcher against interrupted dependency downloads. The launcher verifies that Vite and the core local packages are actually installed instead of checking only for the existence of the `node_modules` folder.
 
 When a first installation is interrupted, the launcher:
 
@@ -39,9 +82,10 @@ When a first installation is interrupted, the launcher:
 If Windows continues to report `ECONNRESET` or `EPERM`:
 
 1. confirm the internet connection is stable;
-2. close other PlotPickle, Node, npm, editor, and terminal windows;
-3. run `Start-PlotPickle.bat` again;
-4. if `EPERM` continues, restart Windows, delete only the `node_modules` folder inside PlotPickle, and run the launcher again.
+2. confirm at least 2 GB of disk space is free;
+3. close other PlotPickle, Node, npm, editor, and terminal windows;
+4. run `Start-PlotPickle.bat` again;
+5. if `EPERM` continues, restart Windows, delete only the `node_modules` folder inside PlotPickle, and run the launcher again.
 
 Deleting `node_modules` does not delete PlotPickle story projects. Active projects are stored in browser storage and can also be preserved through `.plotpickle.json` exports.
 
@@ -132,7 +176,7 @@ Version 1.3 added the Voiceprint Engine to the shared story architecture. Each c
 
 The project-wide dialogue system also tracks world vernacular, monologue rules, subtext seeds, exposition rules, recurring language, and an observation library.
 
-Application version 0.4 added the Resonance Engine without changing the project schema. Application version 0.5 added DraftLens using the existing project notes, story, character, block, dialogue, and Pickle fields. Version 0.5.1 hardens the local Windows setup and server launch process. Existing 1.3 projects remain compatible without migration.
+Application version 0.4 added the Resonance Engine without changing the project schema. Application version 0.5 added DraftLens using the existing project notes, story, character, block, dialogue, and Pickle fields. Version 0.5.1 hardened the local Windows setup and server launch process. Version 0.5.2 adds the transparent guided installer and verified success report. Existing 1.3 projects remain compatible without migration.
 
 The source of truth is documented in `schema/plotpickle-project.schema.json` and typed in `lib/project.ts`. The Voiceprint Engine design is documented in `docs/architecture/voiceprint-engine.md`.
 

@@ -116,6 +116,27 @@ export type ProjectDevelopment = {
     finalAnswer: string;
     signatureMove: string;
   };
+  actOne: {
+    targetLength: string;
+    flexibilityReason: string;
+    worldContract: string;
+    castOrientation: string;
+    themeSeed: string;
+    pickleSeed: string;
+    primaryPresence: string;
+    revealingContrast: string;
+    opposingPressure: string;
+    pressureMultiplier: string;
+    disruptionLands: string;
+    problemNamed: string;
+    outsidePush: string;
+    innerLock: string;
+    counterstrike: string;
+    emotionalAnchor: string;
+    personalThreat: string;
+    irreversibleStep: string;
+    downstreamPromises: string;
+  };
   dialogue: {
     principles: string;
     voiceContrast: string;
@@ -135,7 +156,7 @@ export type ProjectDevelopment = {
 };
 
 export type PlotPickleProject = {
-  schemaVersion: "1.2.0";
+  schemaVersion: "1.3.0";
   id: string;
   metadata: {
     title: string;
@@ -229,6 +250,27 @@ export function createBlankDevelopment(): ProjectDevelopment {
       finalAnswer: "",
       signatureMove: "",
     },
+    actOne: {
+      targetLength: "",
+      flexibilityReason: "",
+      worldContract: "",
+      castOrientation: "",
+      themeSeed: "",
+      pickleSeed: "",
+      primaryPresence: "",
+      revealingContrast: "",
+      opposingPressure: "",
+      pressureMultiplier: "",
+      disruptionLands: "",
+      problemNamed: "",
+      outsidePush: "",
+      innerLock: "",
+      counterstrike: "",
+      emotionalAnchor: "",
+      personalThreat: "",
+      irreversibleStep: "",
+      downstreamPromises: "",
+    },
     dialogue: { principles: "", voiceContrast: "", subtext: "", expositionRules: "", recurringLanguage: "", notes: "" },
     notes: { general: "", research: "", openQuestions: "", continuity: "", revisions: "", sources: "" },
   };
@@ -237,7 +279,7 @@ export function createBlankDevelopment(): ProjectDevelopment {
 export function createBlankProject(): PlotPickleProject {
   const now = new Date().toISOString();
   return {
-    schemaVersion: "1.2.0",
+    schemaVersion: "1.3.0",
     id: makeId("project"),
     metadata: {
       title: "Untitled Story",
@@ -310,7 +352,7 @@ export function isPlotPickleProject(value: unknown): value is PlotPickleProject 
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<PlotPickleProject>;
   return (
-    candidate.schemaVersion === "1.2.0" &&
+    candidate.schemaVersion === "1.3.0" &&
     typeof candidate.id === "string" &&
     !!candidate.metadata &&
     !!candidate.story &&
@@ -335,7 +377,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     blocks?: Array<Partial<StoryBlock>>;
   };
   if (
-    !["1.0.0", "1.1.0", "1.2.0"].includes(candidate.schemaVersion ?? "") ||
+    !["1.0.0", "1.1.0", "1.2.0", "1.3.0"].includes(candidate.schemaVersion ?? "") ||
     typeof candidate.id !== "string" ||
     !candidate.metadata ||
     !candidate.story ||
@@ -348,7 +390,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
   const defaults = createBlankDevelopment();
   const development = candidate.development ?? {};
   return {
-    schemaVersion: "1.2.0",
+    schemaVersion: "1.3.0",
     id: candidate.id,
     metadata: candidate.metadata,
     story: candidate.story,
@@ -360,6 +402,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
       catalyst: { ...defaults.catalyst, ...development.catalyst },
       foundations: { ...defaults.foundations, ...development.foundations },
       pickle: { ...defaults.pickle, ...development.pickle },
+      actOne: { ...defaults.actOne, ...development.actOne },
       dialogue: { ...defaults.dialogue, ...development.dialogue },
       notes: { ...defaults.notes, ...development.notes },
     },
@@ -385,6 +428,9 @@ export function completionFor(project: PlotPickleProject) {
     project.development.pickle.centralTension,
     project.development.pickle.audienceQuestion,
     project.development.pickle.signatureMove,
+    project.development.actOne.problemNamed,
+    project.development.actOne.irreversibleStep,
+    project.development.actOne.downstreamPromises,
   ];
   const world = [project.world.ordinaryWorld, project.world.newWorld, project.world.rules];
   const characterScore = project.characters.filter(

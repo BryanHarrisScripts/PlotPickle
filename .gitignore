@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+# PlotPickle local installation state
+/.plotpickle/
+
 # testing
 /coverage
 

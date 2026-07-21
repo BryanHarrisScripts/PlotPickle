@@ -4,6 +4,19 @@ export type Relationship = {
   description: string;
 };
 
+export type CharacterVoiceprint = {
+  originEnvironment: string;
+  socialContext: string;
+  educationExpertise: string;
+  worldviewBoundaries: string;
+  rhythmSentenceShape: string;
+  vocabularyMetaphors: string;
+  verbalFingerprints: string;
+  emotionalAccess: string;
+  statusShift: string;
+  persuasionStrategy: string;
+};
+
 export type Character = {
   id: string;
   name: string;
@@ -17,6 +30,16 @@ export type Character = {
   strengths: string;
   arc: string;
   voice: string;
+  originEnvironment?: string;
+  socialContext?: string;
+  educationExpertise?: string;
+  worldviewBoundaries?: string;
+  rhythmSentenceShape?: string;
+  vocabularyMetaphors?: string;
+  verbalFingerprints?: string;
+  emotionalAccess?: string;
+  statusShift?: string;
+  persuasionStrategy?: string;
   image: string;
   relationships: Relationship[];
 };
@@ -123,6 +146,10 @@ export type ProjectDevelopment = {
     expositionRules: string;
     recurringLanguage: string;
     notes: string;
+    worldVernacular?: string;
+    monologueRules?: string;
+    subtextSeeds?: string;
+    fieldworkNotes?: string;
   };
   notes: {
     general: string;
@@ -135,7 +162,7 @@ export type ProjectDevelopment = {
 };
 
 export type PlotPickleProject = {
-  schemaVersion: "1.2.0";
+  schemaVersion: "1.3.0";
   id: string;
   metadata: {
     title: string;
@@ -210,6 +237,21 @@ function makeId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+export function createBlankVoiceprint(): CharacterVoiceprint {
+  return {
+    originEnvironment: "",
+    socialContext: "",
+    educationExpertise: "",
+    worldviewBoundaries: "",
+    rhythmSentenceShape: "",
+    vocabularyMetaphors: "",
+    verbalFingerprints: "",
+    emotionalAccess: "",
+    statusShift: "",
+    persuasionStrategy: "",
+  };
+}
+
 export function createBlankDevelopment(): ProjectDevelopment {
   return {
     storySetup: { audience: "", contentRating: "", language: "", scope: "", collaborators: "" },
@@ -229,7 +271,18 @@ export function createBlankDevelopment(): ProjectDevelopment {
       finalAnswer: "",
       signatureMove: "",
     },
-    dialogue: { principles: "", voiceContrast: "", subtext: "", expositionRules: "", recurringLanguage: "", notes: "" },
+    dialogue: {
+      principles: "",
+      voiceContrast: "",
+      subtext: "",
+      expositionRules: "",
+      recurringLanguage: "",
+      notes: "",
+      worldVernacular: "",
+      monologueRules: "",
+      subtextSeeds: "",
+      fieldworkNotes: "",
+    },
     notes: { general: "", research: "", openQuestions: "", continuity: "", revisions: "", sources: "" },
   };
 }
@@ -237,7 +290,7 @@ export function createBlankDevelopment(): ProjectDevelopment {
 export function createBlankProject(): PlotPickleProject {
   const now = new Date().toISOString();
   return {
-    schemaVersion: "1.2.0",
+    schemaVersion: "1.3.0",
     id: makeId("project"),
     metadata: {
       title: "Untitled Story",
@@ -310,7 +363,7 @@ export function isPlotPickleProject(value: unknown): value is PlotPickleProject 
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<PlotPickleProject>;
   return (
-    candidate.schemaVersion === "1.2.0" &&
+    candidate.schemaVersion === "1.3.0" &&
     typeof candidate.id === "string" &&
     !!candidate.metadata &&
     !!candidate.story &&
@@ -335,7 +388,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     blocks?: Array<Partial<StoryBlock>>;
   };
   if (
-    !["1.0.0", "1.1.0", "1.2.0"].includes(candidate.schemaVersion ?? "") ||
+    !["1.0.0", "1.1.0", "1.2.0", "1.3.0"].includes(candidate.schemaVersion ?? "") ||
     typeof candidate.id !== "string" ||
     !candidate.metadata ||
     !candidate.story ||
@@ -346,9 +399,10 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
   ) return null;
 
   const defaults = createBlankDevelopment();
+  const voiceprintDefaults = createBlankVoiceprint();
   const development = candidate.development ?? {};
   return {
-    schemaVersion: "1.2.0",
+    schemaVersion: "1.3.0",
     id: candidate.id,
     metadata: candidate.metadata,
     story: candidate.story,
@@ -363,7 +417,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
       dialogue: { ...defaults.dialogue, ...development.dialogue },
       notes: { ...defaults.notes, ...development.notes },
     },
-    characters: candidate.characters,
+    characters: candidate.characters.map((character) => ({ ...voiceprintDefaults, ...character })),
     blocks: candidate.blocks.map((block, index) => ({
       ...createBlankProject().blocks[index],
       ...block,
@@ -416,6 +470,7 @@ export function addBlankCharacter(project: PlotPickleProject): PlotPickleProject
     strengths: "",
     arc: "",
     voice: "",
+    ...createBlankVoiceprint(),
     image: "",
     relationships: [],
   };

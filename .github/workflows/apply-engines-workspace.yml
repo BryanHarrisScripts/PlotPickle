@@ -27,12 +27,12 @@ jobs:
 
       - name: Commit updated application
         run: |
-          if git diff --quiet -- app/page.tsx; then
-            echo "Engines workspace was already applied."
+          if git diff --quiet -- app/page.tsx README.md; then
+            echo "Engines workspace and documentation were already applied."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app/page.tsx
-          git commit -m "Add Engines as the fourth PlotPickle workspace"
+          git add app/page.tsx README.md
+          git commit -m "Document Engines as the fourth PlotPickle workspace"
           git push

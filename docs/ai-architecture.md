@@ -73,7 +73,12 @@ Video is a job rather than a synchronous response. A job records prompt, source 
 - PlotPickle shows what selected project material will leave the computer before the first live call.
 - Live API calls are opt-in tests. Automated CI uses mocked provider contracts and never requires a real key.
 
-## Delivery sequence
+## Settings menu
 
-The foundation types and adapters come first. The following increment adds the AI Studio interface with Setup, Knowledge, Character Lab, Image Lab, Video Lab, and Activity screens. After that, inline actions can be added to Characters, Story Planner, Visual Board, Voiceprint, PageFlow, and DraftLens without duplicating provider logic.
+PlotPickle exposes these connections through a single Settings menu rather than a separate AI Studio. It has three sections:
 
+- **AI Setup** selects ChatGPT / OpenAI API, an OpenAI-compatible endpoint, Ollama or another local LLM, manual prompt export, or no AI. Non-secret connection preferences remain local to PlotPickle. API keys remain session-only and never enter project exports or saved settings.
+- **Music** saves one or more Suno or Udio artist links, such as an Ava Iris profile, so the writer can return to the music associated with a project or creative identity. PlotPickle stores links only; it does not copy music or claim a direct service integration.
+- **Plugins** is a clearly labelled future-connectivity area. Placeholder entries cannot be enabled until a real, reviewed connector exists.
+
+Knowledge, character consistency, image, and video capabilities remain part of the provider-independent foundation. They appear as contextual actions inside Characters, Story Planner, Visual Board, Voiceprint, PageFlow, and DraftLens when implemented, without adding more top-level workspaces.

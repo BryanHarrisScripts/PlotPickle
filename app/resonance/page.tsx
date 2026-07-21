@@ -5,7 +5,6 @@ import {
   createBlankProject,
   normalizePlotPickleProject,
   type PlotPickleProject,
-  type StoryBlock,
 } from "@/lib/project";
 import styles from "./resonance.module.css";
 
@@ -14,18 +13,14 @@ const STORAGE_KEY = "plotpickle.project.v1";
 type StoryKey = "dramaticQuestion" | "theme" | "antiTheme" | "hook" | "ending";
 type PitchKey = "audiencePromise" | "emotionalExperience";
 type DialogueKey = "subtext" | "recurringLanguage";
-type ResonanceBlockKey = "emotionalTurn" | "setup" | "payoff" | "pickleTurn";
+type BlockKey = "emotionalTurn" | "setup" | "payoff" | "pickleTurn";
 
 function filled(values: string[]) {
   return values.filter((value) => value.trim()).length;
 }
 
 function calculateSignal(project: PlotPickleProject) {
-  const core = filled([
-    project.story.dramaticQuestion,
-    project.story.theme,
-    project.story.antiTheme,
-  ]);
+  const core = filled([project.story.dramaticQuestion, project.story.theme, project.story.antiTheme]);
   const purpose = filled([
     project.development.pitch.audiencePromise,
     project.development.pitch.emotionalExperience,
@@ -42,7 +37,6 @@ function calculateSignal(project: PlotPickleProject) {
       block.pickleTurn.trim() &&
       (block.setup.trim() || block.payoff.trim()),
   ).length;
-
   const signal = Math.round(
     (core / 3) * 30 +
       (purpose / 2) * 15 +
@@ -50,11 +44,10 @@ function calculateSignal(project: PlotPickleProject) {
       (channels / 3) * 15 +
       (resonantBlocks / 24) * 25,
   );
-
-  return { core, purpose, frame, channels, resonantBlocks, signal };
+  return { core, frame, channels, resonantBlocks, signal };
 }
 
-function TextField({
+function Field({
   label,
   help,
   value,
@@ -86,18 +79,18 @@ export default function ResonancePage() {
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const normalized = normalizePlotPickleProject(JSON.parse(stored));
-        if (normalized) {
-          setProject(normalized);
-          setSelectedCharacterId(normalized.characters[0]?.id ?? "");
-          setStatus("Connected to the active PlotPickle project.");
-        } else {
-          setStatus("The saved project could not be upgraded. A blank project is shown instead.");
-        }
-      } else {
+      if (!stored) {
         setStatus("No saved project was found. Open PlotPickle or begin with the blank project shown here.");
+        return;
       }
+      const normalized = normalizePlotPickleProject(JSON.parse(stored));
+      if (!normalized) {
+        setStatus("The saved project could not be upgraded. A blank project is shown instead.");
+        return;
+      }
+      setProject(normalized);
+      setSelectedCharacterId(normalized.characters[0]?.id ?? "");
+      setStatus("Connected to the active PlotPickle project.");
     } catch {
       setStatus("The saved project could not be opened. A blank project is shown instead.");
     } finally {
@@ -110,10 +103,10 @@ export default function ResonancePage() {
   const signal = useMemo(() => calculateSignal(project), [project]);
 
   function commit(next: PlotPickleProject, message = "Saved to this device.") {
-    const updated: PlotPickleProject = {
+    const updated = {
       ...next,
       metadata: { ...next.metadata, updatedAt: new Date().toISOString() },
-    };
+    } satisfies PlotPickleProject;
     setProject(updated);
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     setStatus(message);
@@ -143,11 +136,7 @@ export default function ResonancePage() {
     });
   }
 
-  function updateVisualLanguage(value: string) {
-    commit({ ...project, world: { ...project.world, visualLanguage: value } });
-  }
-
-  function updateBlock(key: ResonanceBlockKey, value: string) {
+  function updateBlock(key: BlockKey, value: string) {
     commit({
       ...project,
       blocks: project.blocks.map((block) =>
@@ -216,7 +205,7 @@ export default function ResonancePage() {
           <div className={styles.signalCopy}>
             <p className={styles.kicker}>Alignment signal</p>
             <div className={styles.signalNumber}>{signal.signal}<span>/100</span></div>
-            <p>This is a coverage prompt, not a quality grade. Contradiction and ambiguity are welcome when they are intentional.</p>
+            <p>This is a coverage prompt, not a quality grade. Contradiction and ambiguity are welcome when intentional.</p>
           </div>
           <div className={styles.signalDetails}>
             <div className={styles.meter}><span style={{ width: `${signal.signal}%` }} /></div>
@@ -233,41 +222,16 @@ export default function ResonancePage() {
           <div className={styles.sectionHeading}>
             <p className={styles.kicker}>The contested idea</p>
             <h2>Ask a question the story must earn.</h2>
-            <p>A strong story does not announce an answer. It places competing answers under pressure and lets consequences create meaning.</p>
+            <p>Place competing answers under pressure and let choices and consequences create meaning.</p>
           </div>
           <div className={styles.threeColumns}>
-            <TextField
-              label="Central question"
-              help="Use a difficult, arguable question—not one with an automatic moral answer."
-              value={project.story.dramaticQuestion}
-              onChange={(value) => updateStory("dramaticQuestion", value)}
-            />
-            <TextField
-              label="Working answer"
-              help="The answer the completed story may support through action and consequence."
-              value={project.story.theme}
-              onChange={(value) => updateStory("theme", value)}
-            />
-            <TextField
-              label="Credible counter-answer"
-              help="The opposing belief must be strong enough that intelligent characters could live by it."
-              value={project.story.antiTheme}
-              onChange={(value) => updateStory("antiTheme", value)}
-            />
+            <Field label="Central question" help="Use a difficult, arguable question—not an automatic moral answer." value={project.story.dramaticQuestion} onChange={(value) => updateStory("dramaticQuestion", value)} />
+            <Field label="Working answer" help="The answer the completed story may support through action and consequence." value={project.story.theme} onChange={(value) => updateStory("theme", value)} />
+            <Field label="Credible counter-answer" help="The opposing belief must be strong enough that intelligent characters could live by it." value={project.story.antiTheme} onChange={(value) => updateStory("antiTheme", value)} />
           </div>
           <div className={styles.twoColumns}>
-            <TextField
-              label="Reason to tell this story"
-              help="What should make this story matter to its audience now? This edits the shared audience promise."
-              value={project.development.pitch.audiencePromise}
-              onChange={(value) => updatePitch("audiencePromise", value)}
-            />
-            <TextField
-              label="Audience aftertaste"
-              help="Name the feeling or unresolved thought that should remain after the ending."
-              value={project.development.pitch.emotionalExperience}
-              onChange={(value) => updatePitch("emotionalExperience", value)}
-            />
+            <Field label="Reason to tell this story" help="What should make this story matter to its audience now?" value={project.development.pitch.audiencePromise} onChange={(value) => updatePitch("audiencePromise", value)} />
+            <Field label="Audience aftertaste" help="Name the feeling or unresolved thought that should remain after the ending." value={project.development.pitch.emotionalExperience} onChange={(value) => updatePitch("emotionalExperience", value)} />
           </div>
         </section>
 
@@ -275,23 +239,11 @@ export default function ResonancePage() {
           <div className={styles.sectionHeading}>
             <p className={styles.kicker}>Opening and closing proof</p>
             <h2>Let the first and last images argue with each other.</h2>
-            <p>The difference between them should reveal what changed, what failed to change, or what the story finally understands.</p>
+            <p>Their difference should reveal what changed, failed to change, reversed, or remains unresolved.</p>
           </div>
           <div className={styles.twoColumns}>
-            <TextField
-              label="Opening image or first impression"
-              help="The story&apos;s starting condition, belief, imbalance, or visual promise."
-              value={project.story.hook}
-              onChange={(value) => updateStory("hook", value)}
-              rows={6}
-            />
-            <TextField
-              label="Closing image or final proof"
-              help="A visible outcome that answers or deliberately complicates the opening."
-              value={project.story.ending}
-              onChange={(value) => updateStory("ending", value)}
-              rows={6}
-            />
+            <Field label="Opening image or first impression" help="The starting condition, belief, imbalance, or visual promise." value={project.story.hook} onChange={(value) => updateStory("hook", value)} rows={6} />
+            <Field label="Closing image or final proof" help="A visible outcome that answers or deliberately complicates the opening." value={project.story.ending} onChange={(value) => updateStory("ending", value)} rows={6} />
           </div>
         </section>
 
@@ -303,30 +255,10 @@ export default function ResonancePage() {
               <p>{blockCause || "Add the goal, conflict, choice, and consequence in Story Planner so the idea has dramatic pressure."}</p>
             </div>
             <div className={styles.twoColumns}>
-              <TextField
-                label="Belief under pressure"
-                help="What emotional or philosophical position changes, hardens, fractures, or becomes visible here?"
-                value={selectedBlock.emotionalTurn}
-                onChange={(value) => updateBlock("emotionalTurn", value)}
-              />
-              <TextField
-                label="Audience reframe"
-                help="How does this block alter what the audience expects or believes about the central question?"
-                value={selectedBlock.pickleTurn}
-                onChange={(value) => updateBlock("pickleTurn", value)}
-              />
-              <TextField
-                label="Question seed"
-                help="An image, choice, object, relationship, or line that plants meaning for later."
-                value={selectedBlock.setup}
-                onChange={(value) => updateBlock("setup", value)}
-              />
-              <TextField
-                label="Answer evidence"
-                help="The consequence or callback that gives the seed new meaning without explaining it."
-                value={selectedBlock.payoff}
-                onChange={(value) => updateBlock("payoff", value)}
-              />
+              <Field label="Belief under pressure" help="What position changes, hardens, fractures, or becomes visible here?" value={selectedBlock.emotionalTurn} onChange={(value) => updateBlock("emotionalTurn", value)} />
+              <Field label="Audience reframe" help="How does this block change what the audience expects or believes?" value={selectedBlock.pickleTurn} onChange={(value) => updateBlock("pickleTurn", value)} />
+              <Field label="Question seed" help="An image, choice, object, relationship, or line that plants meaning for later." value={selectedBlock.setup} onChange={(value) => updateBlock("setup", value)} />
+              <Field label="Answer evidence" help="A consequence or callback that gives the seed new meaning without explaining it." value={selectedBlock.payoff} onChange={(value) => updateBlock("payoff", value)} />
             </div>
             <div className={styles.readOnlyCard}>
               <strong>Visible sequence from PageFlow</strong>
@@ -338,7 +270,7 @@ export default function ResonancePage() {
             <div className={styles.sectionHeading}>
               <p className={styles.kicker}>Character as argument</p>
               <h2>{selectedCharacter?.name ?? "No character selected"}</h2>
-              <p>Characters test the central question by pursuing different wants, protecting different wounds, and paying different prices.</p>
+              <p>Characters test the question by pursuing different wants, protecting different wounds, and paying different prices.</p>
             </div>
             {selectedCharacter ? (
               <div className={styles.characterGrid}>
@@ -355,30 +287,12 @@ export default function ResonancePage() {
           <div className={styles.sectionHeading}>
             <p className={styles.kicker}>Evidence channels</p>
             <h2>Repeat meaning through variation, not repetition.</h2>
-            <p>Images, settings, objects and language should approach the same question from different angles rather than all stating the same answer.</p>
+            <p>Images, settings, objects and language should approach the same question from different angles.</p>
           </div>
           <div className={styles.threeColumns}>
-            <TextField
-              label="Visual and location language"
-              help="Recurring spaces, materials, colours, distances, objects, movement patterns, or environmental contrasts."
-              value={project.world.visualLanguage}
-              onChange={updateVisualLanguage}
-              rows={8}
-            />
-            <TextField
-              label="Behavioural subtext"
-              help="How characters conceal, redirect, embody, or resist the central question in scenes."
-              value={project.development.dialogue.subtext}
-              onChange={(value) => updateDialogue("subtext", value)}
-              rows={8}
-            />
-            <TextField
-              label="Recurring language and motifs"
-              help="Words, images, objects, jokes, rituals, and callbacks whose meaning can change across the story."
-              value={project.development.dialogue.recurringLanguage}
-              onChange={(value) => updateDialogue("recurringLanguage", value)}
-              rows={8}
-            />
+            <Field label="Visual and location language" help="Spaces, materials, colours, objects, movement patterns, and environmental contrasts." value={project.world.visualLanguage} onChange={(value) => commit({ ...project, world: { ...project.world, visualLanguage: value } })} rows={8} />
+            <Field label="Behavioural subtext" help="How characters conceal, redirect, embody, or resist the central question." value={project.development.dialogue.subtext} onChange={(value) => updateDialogue("subtext", value)} rows={8} />
+            <Field label="Recurring language and motifs" help="Words, images, objects, jokes, rituals, and callbacks whose meaning changes." value={project.development.dialogue.recurringLanguage} onChange={(value) => updateDialogue("recurringLanguage", value)} rows={8} />
           </div>
           <div className={styles.restraintNote}>
             <strong>Restraint rule</strong>

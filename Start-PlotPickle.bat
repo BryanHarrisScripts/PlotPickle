@@ -7,6 +7,7 @@ set "PLOTPICKLE_PORT=4173"
 set "PLOTPICKLE_URL=http://127.0.0.1:%PLOTPICKLE_PORT%"
 set "VITE_CMD=node_modules\.bin\vite.cmd"
 set "SETUP_REPORT=scripts\windows-setup-report.mjs"
+set "INSTALL_PERFORMED=0"
 
 rem Make first-time installation more tolerant and visible.
 set "NODE_ENV=development"
@@ -88,7 +89,11 @@ if not "!SETUP_RESULT!"=="0" goto :setup_failed
 echo.
 echo [STEP 3 OF 4] Verifying installed components and reporting results...
 echo.
-node "%SETUP_REPORT%" success
+if "!INSTALL_PERFORMED!"=="1" (
+  node "%SETUP_REPORT%" success
+) else (
+  node "%SETUP_REPORT%" ready
+)
 if errorlevel 1 goto :setup_failed
 
 echo.
@@ -151,6 +156,7 @@ echo.
 call npm ci --include=dev --prefer-offline --no-audit --no-fund --progress=true --loglevel=notice
 call :dependencies_ready
 if not errorlevel 1 (
+  set "INSTALL_PERFORMED=1"
   echo.
   echo [SUCCESS] Clean package installation completed.
   exit /b 0
@@ -166,6 +172,7 @@ call npm cache verify
 call npm install --include=dev --prefer-offline --no-audit --no-fund --progress=true --loglevel=notice
 call :dependencies_ready
 if not errorlevel 1 (
+  set "INSTALL_PERFORMED=1"
   echo.
   echo [SUCCESS] Package repair completed.
   exit /b 0

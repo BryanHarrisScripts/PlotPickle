@@ -20,7 +20,7 @@ where node >nul 2>&1
 if errorlevel 1 (
   echo Node.js was not found.
   echo.
-  echo Install Node.js 22 or newer, then run this file again:
+  echo Install Node.js 22.13 or newer, then run this file again:
   echo https://nodejs.org/
   echo.
   start "" "https://nodejs.org/"
@@ -28,9 +28,10 @@ if errorlevel 1 (
   exit /b 1
 )
 
-for /f "tokens=1 delims=." %%V in ('node -p "process.versions.node"') do set "NODE_MAJOR=%%V"
-if !NODE_MAJOR! LSS 22 (
-  echo Node.js !NODE_MAJOR! is installed, but PlotPickle requires Node.js 22 or newer.
+for /f %%V in ('node -p "process.versions.node"') do set "NODE_VERSION=%%V"
+node -e "const [major, minor] = process.versions.node.split('.').map(Number); process.exit(major > 22 || (major === 22 && minor >= 13) ? 0 : 1)"
+if errorlevel 1 (
+  echo Node.js !NODE_VERSION! is installed, but PlotPickle requires Node.js 22.13 or newer.
   echo.
   echo Download the current Node.js version here:
   echo https://nodejs.org/
@@ -66,7 +67,7 @@ echo Your browser will open automatically.
 echo Press Ctrl+C in this window when you are finished.
 echo.
 
-start "PlotPickle Browser" cmd /c "timeout /t 4 /nobreak >nul & start \"\" \"%PLOTPICKLE_URL%\""
+start "" /b powershell.exe -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 4; Start-Process '%PLOTPICKLE_URL%'"
 call npm run dev:local -- --host 127.0.0.1 --port %PLOTPICKLE_PORT%
 
 set "EXIT_CODE=%ERRORLEVEL%"

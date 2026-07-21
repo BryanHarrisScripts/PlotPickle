@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-test-lint:
@@ -16,12 +16,33 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 22.13.0
           cache: npm
+
+      - name: Apply generated navigation and licence files
+        run: |
+          node --check scripts/apply-project-navigation.mjs
+          node scripts/apply-project-navigation.mjs
+          curl --fail --silent --show-error --location https://www.gnu.org/licenses/agpl-3.0.txt --output LICENSE
+
+      - name: Commit generated source on main
+        if: github.event_name == 'push'
+        run: |
+          if git diff --quiet -- app/page.tsx LICENSE; then
+            echo "Generated source is already committed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/page.tsx LICENSE
+          git commit -m "Apply guided project rail and open licensing"
+          git push
 
       - name: Install dependencies
         run: npm ci

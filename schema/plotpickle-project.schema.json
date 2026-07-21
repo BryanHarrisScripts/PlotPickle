@@ -27,12 +27,15 @@
     "screenplay": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["fileName", "format", "sourceText", "importedAt"],
+      "required": ["fileName", "format", "sourceText", "importedAt", "analysisStatus", "analyzedAt", "suggestedFields"],
       "properties": {
         "fileName": { "type": "string" },
         "format": { "enum": ["plain-text", "fountain", "final-draft"] },
         "sourceText": { "type": "string" },
-        "importedAt": { "type": "string" }
+        "importedAt": { "type": "string" },
+        "analysisStatus": { "enum": ["none", "suggested", "reviewed"] },
+        "analyzedAt": { "type": "string" },
+        "suggestedFields": { "type": "array", "items": { "type": "string" } }
       }
     },
     "metadata": {

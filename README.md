@@ -1,8 +1,8 @@
 # PlotPickle Playhouse
 
-PlotPickle is a local-first story development application built around Bryan Harris's 24 Blocks method. One canonical project object powers connected workspaces for learning the method, planning the story, developing dialogue, writing visible screenplay action, and building the visual board.
+PlotPickle is a local-first story development application built around Bryan Harris's 24 Blocks method. One canonical project object powers connected workspaces for learning the method, planning the story, aligning meaning, developing dialogue, writing visible screenplay action, and building the visual board.
 
-Current application version: `0.3.0`
+Current application version: `0.4.0`
 
 Current project schema: `1.3.0`
 
@@ -29,11 +29,28 @@ The command window is PlotPickle's local server. It must remain open while the a
 
 - **Instructions** explains the four-act, 24-block process.
 - **Story Planner** develops the foundation, world, characters, Ghost, Catalyst, The Pickle, dialogue system, and block-by-block cause-and-effect spine.
+- **Resonance Engine** turns the central story question into a pattern of character choices, opening and closing images, block turns, motifs, locations, subtext, and consequences without reducing the screenplay to a slogan.
 - **Voiceprint Engine** builds dialogue from character history, social context, knowledge, worldview, rhythm, vocabulary, emotional access, relationships, objectives, and pressure.
 - **PageFlow Engine** turns block plans into visible, active, actor-playable, economical screenplay description and provides revision signals for invisible information, weak phrasing, dense paragraphs, emotion labels, and unnecessary directing language.
 - **Visual Board** attaches storyboard frames, prompts, shot notes, performance ideas, and continuity information to the same blocks.
 
-Open Voiceprint and PageFlow from the floating engine buttons inside PlotPickle. Both read and write the same locally saved project as the main application.
+Open Resonance, Voiceprint, and PageFlow from the floating engine buttons inside PlotPickle. All three read and write the same locally saved project as the main application.
+
+## Resonance Engine
+
+Resonance is an alignment and diagnostic layer, not a second theme database. It uses existing canonical project fields:
+
+- `story.dramaticQuestion` for the difficult question the screenplay tests;
+- `story.theme` and `story.antiTheme` for the working answer and credible counter-answer;
+- `development.pitch.audiencePromise` and `emotionalExperience` for the reason to tell the story and the desired audience aftertaste;
+- `story.hook` and `story.ending` for the opening and closing image bracket;
+- character wants, needs, ghosts, and arcs as competing dramatic arguments;
+- `block.emotionalTurn`, `setup`, `payoff`, and `pickleTurn` for block-level pressure, seeds, evidence, and audience reframes;
+- `world.visualLanguage`, dialogue subtext, and recurring language for visual, spatial, behavioural, and verbal motifs.
+
+The Resonance alignment signal measures coverage, not artistic quality. Ambiguity, contradiction, irony, silence, and justified exceptions remain valid creative choices.
+
+The complete design is documented in `docs/architecture/resonance-engine.md`.
 
 ## PageFlow Engine
 
@@ -68,6 +85,8 @@ Version 1.3 added the Voiceprint Engine to the shared story architecture. Each c
 - persuasion strategy.
 
 The project-wide dialogue system also tracks world vernacular, monologue rules, subtext seeds, exposition rules, recurring language, and an observation library.
+
+Application version 0.4 adds the Resonance Engine without changing the project schema. It coordinates fields already shared by Story Planner, The Pickle, Voiceprint, PageFlow, and Visual Board, so existing 1.3 projects remain compatible without migration.
 
 The source of truth is documented in `schema/plotpickle-project.schema.json` and typed in `lib/project.ts`. The Voiceprint Engine design is documented in `docs/architecture/voiceprint-engine.md`.
 

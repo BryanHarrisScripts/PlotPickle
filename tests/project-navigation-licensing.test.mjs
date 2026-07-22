@@ -40,6 +40,7 @@ test("section progress model covers every visible story section", async () => {
     "foundations",
     "pickle",
     "dialogue",
+    "coreModel",
     "structureMap",
     "blocks",
     "storyboard",
@@ -80,7 +81,7 @@ test("overview and structure summary explain their contracts before deeper work"
 
 test("PlotPickle declares software, method, user, contribution, and brand rights separately", async () => {
   const packageJson = JSON.parse(await source("package.json"));
-  assert.equal(packageJson.version, "0.12.0");
+  assert.equal(packageJson.version, "0.13.0");
   assert.equal(packageJson.license, "AGPL-3.0-or-later");
 
   const legal = await source("app/legal/page.tsx");

@@ -32,7 +32,7 @@ test("storyboard images use the private local gateway, landscape output, and loc
   assert.match(gateway, /input\.assetId \|\| input\.characterId/);
 });
 
-test("schema 1.6 migrates earlier projects into four storyboard slots per block", async () => {
+test("schema 1.7 migrates earlier projects into four storyboard slots per block", async () => {
   const project = await source("lib/project.ts");
   const schema = JSON.parse(await source("schema/plotpickle-project.schema.json"));
   assert.match(project, /createDefaultStoryboardFrames/);

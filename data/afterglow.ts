@@ -1,7 +1,7 @@
-import { createBlankProject, type Character, type PlotPickleProject } from "@/lib/project";
+import { createBlankArcMatrix, createBlankProject, type Character, type PlotPickleProject } from "@/lib/project";
 import { createAfterglowScreenplay } from "./afterglow-screenplay";
 
-const afterglowCharacters: Character[] = [
+const afterglowCharacters: Array<Omit<Character, "arcMatrix">> = [
   {
     id: "ren",
     name: "Ren",
@@ -533,7 +533,7 @@ export function createAfterglowProject(): PlotPickleProject {
         sources: "Afterglow repository, screenplay drafts, storyboard block files, character materials, and Bryan Harris's 24 Blocks framework."
       }
     },
-    characters: afterglowCharacters,
+    characters: afterglowCharacters.map((character) => ({ ...character, arcMatrix: createBlankArcMatrix(character) })),
     blocks: project.blocks.map(populateAfterglowBlock),
     screenplay: createAfterglowScreenplay(importedAt)
   };

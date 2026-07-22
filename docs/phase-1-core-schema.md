@@ -139,7 +139,7 @@ Migration adds:
 - a blank rights and provenance ledger; and
 - an empty revision history.
 
-The original `schema/plotpickle-project.schema.json` remains available for current 1.6 exports during the UI transition. The Phase 1 schema is `schema/plotpickle-project-v1.7.schema.json`. Once the six UI surfaces use the migration adapter, schema 1.7 can become the default export without breaking existing saved projects.
+Schema 1.7 is the canonical application and export model as of PlotPickle 0.13. Imports from schemas 1.0 through 1.6 are normalized into the same model before any workspace edits or exports them.
 
 ## Implementation source
 

@@ -65,6 +65,11 @@ export type StoryScene = {
   outcome: string;
   estimatedSeconds: number;
   pageEstimate: number;
+  order: number;
+  threadIds: string[];
+  status: "outline" | "draft" | "revised" | "locked" | "omitted";
+  revisionColour: "none" | "blue" | "pink" | "yellow" | "green" | "goldenrod" | "buff" | "salmon" | "cherry" | "tan" | "gray";
+  locked: boolean;
   miniBlocks: MiniBlock[];
 };
 
@@ -215,6 +220,11 @@ function blankScene(blockNumber: number, number: number, estimatedSeconds: numbe
     outcome: "",
     estimatedSeconds,
     pageEstimate: estimatedSeconds / 60,
+    order: number - 1,
+    threadIds: [],
+    status: "outline",
+    revisionColour: "none",
+    locked: false,
     miniBlocks: [],
   };
 }
@@ -320,6 +330,11 @@ function normalizeScene(value: Partial<StoryScene>, index: number, blockNumber: 
     outcome: typeof value.outcome === "string" ? value.outcome : "",
     estimatedSeconds,
     pageEstimate: Math.max(0, Number(value.pageEstimate) || estimatedSeconds / 60),
+    order: index,
+    threadIds: strings(value.threadIds),
+    status: (["outline", "draft", "revised", "locked", "omitted"] as StoryScene["status"][]).includes(value.status as StoryScene["status"]) ? value.status as StoryScene["status"] : "outline",
+    revisionColour: (["none", "blue", "pink", "yellow", "green", "goldenrod", "buff", "salmon", "cherry", "tan", "gray"] as StoryScene["revisionColour"][]).includes(value.revisionColour as StoryScene["revisionColour"]) ? value.revisionColour as StoryScene["revisionColour"] : "none",
+    locked: Boolean(value.locked),
     miniBlocks: [],
   };
 }

@@ -70,7 +70,7 @@ test("Phase 1 documentation explains the migration boundary", async () => {
     "Rights, attribution and AI provenance",
     "Revision snapshots and comparison",
     "upgradeProjectToPhaseOne()",
-    "schema 1.7 can become the default export",
+    "Schema 1.7 is the canonical application and export model",
   ]) {
     assert.ok(documentation.includes(phrase), `Phase 1 documentation is missing: ${phrase}`);
   }

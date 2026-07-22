@@ -12,10 +12,11 @@ import {
 } from "@/lib/ai/settings";
 import styles from "./settings-panel.module.css";
 import { ScreenplayReports, TerminologyIndex } from "./settings-project-tools";
+import CoreModelStudio from "./core-model-studio";
 
 const SETTINGS_STORAGE_KEY = "plotpickle.settings.v1";
 const CONNECTION_API = "/api/local-ai/connection";
-type SettingsSection = "reports" | "terminology" | "ai" | "music" | "plugins";
+type SettingsSection = "reports" | "terminology" | "core" | "ai" | "music" | "plugins";
 type ConnectionState = "loading" | "idle" | "checking" | "connected" | "error" | "unavailable";
 
 type ConnectionStatus = {
@@ -60,7 +61,7 @@ async function connectionRequest(method: "GET" | "POST" | "DELETE", path = CONNE
   return value;
 }
 
-export default function SettingsPanel({ project }: { project: PlotPickleProject }) {
+export default function SettingsPanel({ project, onProjectChange }: { project: PlotPickleProject; onProjectChange: (project: PlotPickleProject) => void }) {
   const [section, setSection] = useState<SettingsSection>("ai");
   const [settings, setSettings] = useState<PlotPickleSettings>(() => structuredClone(defaultPlotPickleSettings));
   const [sessionKey, setSessionKey] = useState("");
@@ -253,6 +254,7 @@ export default function SettingsPanel({ project }: { project: PlotPickleProject 
         <nav className={styles.menu} aria-label="Settings sections">
           <button type="button" className={section === "reports" ? styles.active : ""} onClick={() => setSection("reports")}><b>Reports</b><span>Characters, dialogue, words, and scenes</span></button>
           <button type="button" className={section === "terminology" ? styles.active : ""} onClick={() => setSection("terminology")}><b>Terminology Index</b><span>Screenplay terms in plain language</span></button>
+          <button type="button" className={section === "core" ? styles.active : ""} onClick={() => setSection("core")}><b>Core Model</b><span>Threads, arcs, rights, provenance, revisions</span></button>
           <button type="button" className={section === "ai" ? styles.active : ""} onClick={() => setSection("ai")}><b>AI Setup</b><span>ChatGPT, other AI, or local LLM</span></button>
           <button type="button" className={section === "music" ? styles.active : ""} onClick={() => setSection("music")}><b>Music</b><span>Suno, Udio, and artist links</span></button>
           <button type="button" className={section === "plugins" ? styles.active : ""} onClick={() => setSection("plugins")}><b>Plugins</b><span>Future connectivity</span></button>
@@ -261,6 +263,7 @@ export default function SettingsPanel({ project }: { project: PlotPickleProject 
         <section className={styles.content}>
           {section === "reports" ? <ScreenplayReports project={project} /> : null}
           {section === "terminology" ? <TerminologyIndex /> : null}
+          {section === "core" ? <CoreModelStudio project={project} onChange={onProjectChange} compact /> : null}
           {section === "ai" ? (
             <>
               <div className={styles.sectionHeading}>

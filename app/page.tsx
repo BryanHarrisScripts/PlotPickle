@@ -15,6 +15,7 @@ import ScriptViewer from "./script-viewer";
 import writerStyles from "./script-workspace.module.css";
 import CharacterImageGenerator from "./character-image-generator";
 import VisualStoryboard from "./visual-storyboard";
+import CoreModelStudio from "./core-model-studio";
 import { projectSectionProgress, sectionHasAlert } from "@/lib/project-progress";
 import { createProjectFromScreenplay, markScreenplayAnalysisReviewed } from "@/lib/screenplay-import";
 import { screenplayFormatForFile } from "@/lib/screenplay";
@@ -37,7 +38,7 @@ const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
 
 type MainTab = "instructions" | "learn" | "planner" | "script" | "visuals" | "engines" | "settings";
-type StorySection = "overview" | "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "structureMap" | "blocks" | "storyboard" | "notes";
+type StorySection = "overview" | "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "coreModel" | "structureMap" | "blocks" | "storyboard" | "notes";
 type StorySectionGroup = "Project" | "Foundation" | "Structure" | "Production";
 
 const mainTabs: { id: MainTab; label: string; description: string }[] = [
@@ -61,6 +62,7 @@ const storySections: { id: StorySection; code: string; label: string; group: Sto
   { id: "foundations", code: "FN", label: "Foundations", group: "Foundation" },
   { id: "pickle", code: "PK", label: "The Pickle", group: "Foundation" },
   { id: "dialogue", code: "DL", label: "Dialogue", group: "Foundation" },
+  { id: "coreModel", code: "CM", label: "Core Model", group: "Foundation" },
   { id: "structureMap", code: "ST", label: "Structure Map", group: "Structure" },
   { id: "blocks", code: "24", label: "24 Blocks", group: "Structure" },
   { id: "storyboard", code: "SB", label: "Storyboard", group: "Production" },
@@ -137,6 +139,13 @@ const sectionGuides: Record<StorySection, { title: string; description: string; 
     questions: ["How does each character avoid saying what they mean?", "What rhythm and vocabulary belong only to them?", "Which exposition can become conflict or action?"],
     deliverable: "Voice contrasts, subtext rules, exposition limits, and recurring language.",
     connection: "Character voices and dialogue rules travel into every block's story text.",
+  },
+  coreModel: {
+    title: "Track the story beneath every draft.",
+    description: "Connect subplots, character-change evidence, ownership, sources, AI-assisted work and named revisions to the same canonical project.",
+    questions: ["Which story thread is still unresolved?", "Where is each character's change visible?", "Can every source, collaborator and retained AI contribution be accounted for?"],
+    deliverable: "A portable schema 1.7 project with complete threads, arcs, rights, provenance and revision history.",
+    connection: "The Writer, Structure Engine, Reports and Settings read these same records.",
   },
   structureMap: {
     title: "See the complete hierarchy without leaving the story columns.",
@@ -793,6 +802,9 @@ export default function Home() {
               {activeSection === "dialogue" ? (
                 <DialogueEditor project={project} selected={selectedCharacter} select={setSelectedCharacterId} updateCharacter={updateCharacter} updateDevelopment={updateDevelopment} />
               ) : null}
+              {activeSection === "coreModel" ? (
+                <div className="editor-page"><CoreModelStudio project={project} onChange={commit} /></div>
+              ) : null}
               {activeSection === "blocks" ? (
                 <BlocksEditor
                   project={project}
@@ -870,7 +882,7 @@ export default function Home() {
         {activeTab === "engines" ? <EngineHub /> : null}
 
         <div hidden={activeTab !== "settings"}>
-          <SettingsPanel project={project} />
+          <SettingsPanel project={project} onProjectChange={commit} />
         </div>
       </main>
 

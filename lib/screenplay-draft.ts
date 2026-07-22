@@ -7,12 +7,8 @@ import type {
 import { parseScreenplay } from "./screenplay";
 
 const editableTypes: ScreenplayDraftElementType[] = [
-  "scene-heading",
-  "action",
-  "character",
-  "parenthetical",
-  "dialogue",
-  "transition",
+  "scene-heading", "action", "character", "parenthetical", "dialogue", "transition",
+  "section", "synopsis", "shot", "lyrics", "dual-dialogue", "centered", "page-break", "title-page", "note", "boneyard",
 ];
 
 function id() {
@@ -28,7 +24,7 @@ export function createDraftElement(
   sceneId = "",
 ): ScreenplayDraftElement {
   const now = new Date().toISOString();
-  return { id: id(), type, text, blockNumber, miniBlockNumber, sceneNumber, sceneId, createdAt: now, updatedAt: now };
+  return { id: id(), type, text, blockNumber, miniBlockNumber, sceneNumber, sceneId, threadIds: [], omitted: false, locked: false, revisionColour: "none", sourceAttributionIds: [], aiProvenanceIds: [], createdAt: now, updatedAt: now };
 }
 
 function fountainLine(element: ScreenplayDraftElement) {
@@ -37,7 +33,17 @@ function fountainLine(element: ScreenplayDraftElement) {
   if (element.type === "character") return `@${text.toUpperCase()}`;
   if (element.type === "parenthetical") return text.startsWith("(") ? text : `(${text})`;
   if (element.type === "transition") return `> ${text.toUpperCase()}`;
+  if (element.omitted || element.type === "boneyard") return `/* ${text} */`;
   if (element.type === "action") return `!${text}`;
+  if (element.type === "section") return `# ${text}`;
+  if (element.type === "synopsis") return `= ${text}`;
+  if (element.type === "shot") return `!! ${text.toUpperCase()}`;
+  if (element.type === "lyrics") return text.split("\n").map((line) => `~${line}`).join("\n");
+  if (element.type === "dual-dialogue") return `${text} ^`;
+  if (element.type === "centered") return `>${text}<`;
+  if (element.type === "page-break") return "===";
+  if (element.type === "title-page") return `Title: ${text}`;
+  if (element.type === "note") return `[[${text}]]`;
   return text;
 }
 
@@ -57,6 +63,16 @@ const finalDraftTypes: Record<ScreenplayDraftElementType, string> = {
   parenthetical: "Parenthetical",
   dialogue: "Dialogue",
   transition: "Transition",
+  section: "Action",
+  synopsis: "Action",
+  shot: "Shot",
+  lyrics: "Lyrics",
+  "dual-dialogue": "Dialogue",
+  centered: "Action",
+  "page-break": "New Page",
+  "title-page": "Action",
+  note: "Action",
+  boneyard: "Action",
 };
 
 export function screenplayToFinalDraft(project: PlotPickleProject) {

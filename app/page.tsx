@@ -9,8 +9,11 @@ import EngineHub from "./engine-hub";
 import ProjectOverview from "./project-overview";
 import StructureMapSummary from "./structure-map-summary";
 import SettingsPanel from "./settings-panel";
-import ScriptViewer from "./script-viewer";
+import ScriptWorkspace from "./script-workspace";
+import CharacterImageGenerator from "./character-image-generator";
 import { projectSectionProgress, sectionHasAlert } from "@/lib/project-progress";
+import { createProjectFromScreenplay, markScreenplayAnalysisReviewed } from "@/lib/screenplay-import";
+import { screenplayFormatForFile } from "@/lib/screenplay";
 import {
   addBlankCharacter,
   addBlankFrame,
@@ -22,6 +25,7 @@ import {
   type Character,
   type Location,
   type PlotPickleProject,
+  type ScreenplayDocument,
   type StoryBlock,
   type VisualFrame,
 } from "@/lib/project";
@@ -36,7 +40,7 @@ type StorySectionGroup = "Project" | "Foundation" | "Structure" | "Production";
 const mainTabs: { id: MainTab; label: string; description: string }[] = [
   { id: "instructions", label: "Instructions", description: "Learn the method" },
   { id: "planner", label: "Story Planner", description: "Build the story" },
-  { id: "script", label: "Script Viewer", description: "Read & learn" },
+  { id: "script", label: "Screenplay", description: "Outline & write" },
   { id: "visuals", label: "Visual Board", description: "See the film" },
   { id: "engines", label: "Engines", description: "Refine the story" },
   { id: "settings", label: "Settings", description: "Connect services" },
@@ -306,7 +310,7 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
                 ))}
               </aside>
               <div className="product-workspace">
-                <div className="product-tabs"><span>Instructions</span><span className="active">Story Planner</span><span>Script Viewer</span><span>Visual Board</span><span>Engines</span></div>
+                <div className="product-tabs"><span>Instructions</span><span className="active">Story Planner</span><span>Screenplay</span><span>Visual Board</span><span>Engines</span></div>
                 <div className="product-workspace-heading">
                   <div><small>ACT II · CONFRONTATION</small><strong>Your complete story at a glance</strong></div>
                   <span>18% complete</span>
@@ -582,8 +586,8 @@ export default function Home() {
     setSelectedCharacterId("");
     setSelectedBlockNumber(1);
     setActiveTab("planner");
-    setActiveSection("overview");
-    setToast("A new 24 Blocks project is ready.");
+    setActiveSection("storySetup");
+    setToast("A blank feature screenplay is ready. Begin with Story Setup, then build the 24 Blocks and 96 mini-blocks.");
   }
 
   function loadAfterglow() {
@@ -612,21 +616,57 @@ export default function Home() {
     setToast("Project exported as canonical PlotPickle JSON.");
   }
 
-  async function importProject(event: ChangeEvent<HTMLInputElement>) {
+  function replaceWithImportedScreenplay(screenplay: ScreenplayDocument) {
+    const hasCurrentWork = completion > 0 || Boolean(project.screenplay.sourceText);
+    if (hasCurrentWork && !window.confirm(`Replace “${project.metadata.title}” with ${screenplay.fileName}? Export first if you want a separate backup.`)) return false;
+    const imported = createProjectFromScreenplay(screenplay);
+    setSaveState("Saving…");
+    setProject(imported);
+    setSelectedCharacterId(imported.characters[0]?.id ?? "");
+    setSelectedBlockNumber(1);
+    setSelectedFrameId("");
+    setVisualAct(0);
+    setActiveTab("script");
+    setActiveSection("overview");
+    setToast(`${screenplay.fileName} replaced the example project. ${imported.characters.length} characters, ${imported.world.locations.length} locations, and 24 suggested Blocks are ready to review.`);
+    return true;
+  }
+
+  async function importFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
     try {
-      const parsed: unknown = JSON.parse(await file.text());
-      const normalized = normalizePlotPickleProject(parsed);
-      if (!normalized) throw new Error("invalid");
-      commit(cloneProject(normalized));
-      setSelectedCharacterId(normalized.characters[0]?.id ?? "");
-      setSelectedBlockNumber(1);
-      setToast("Project imported and connected to all PlotPickle workspaces.");
+      const sourceText = await file.text();
+      if (/\.json$/i.test(file.name)) {
+        const parsed: unknown = JSON.parse(sourceText);
+        const normalized = normalizePlotPickleProject(parsed);
+        if (!normalized) throw new Error("invalid-project");
+        commit(cloneProject(normalized));
+        setSelectedCharacterId(normalized.characters[0]?.id ?? "");
+        setSelectedBlockNumber(1);
+        setToast("Project imported and connected to all PlotPickle workspaces.");
+        return;
+      }
+      if (!/\.(?:txt|fountain|spmd|fdx)$/i.test(file.name)) throw new Error("unsupported-script");
+      replaceWithImportedScreenplay({
+        fileName: file.name,
+        format: screenplayFormatForFile(file.name),
+        sourceText,
+        importedAt: new Date().toISOString(),
+        analysisStatus: "none",
+        analyzedAt: "",
+        suggestedFields: [],
+        draftElements: [],
+      });
     } catch {
-      setToast("That file is not a valid PlotPickle 1.0 project with exactly 24 blocks.");
+      setToast("Choose a PlotPickle JSON project or a TXT, Fountain, SPMD, or Final Draft FDX screenplay.");
     }
+  }
+
+  function confirmImportedSuggestions() {
+    commit(markScreenplayAnalysisReviewed(project));
+    setToast("The imported structure is marked reviewed. You can continue revising any answer.");
   }
 
   function addCharacter() {
@@ -685,7 +725,7 @@ export default function Home() {
         </nav>
 
         <div className="project-actions">
-          <input ref={fileInputRef} className="visually-hidden" type="file" accept="application/json,.json" onChange={importProject} />
+          <input ref={fileInputRef} className="visually-hidden" type="file" accept="application/json,.json,.txt,.fountain,.spmd,.fdx,text/plain,text/xml,application/xml" onChange={importFile} />
           <button type="button" className="text-button" onClick={createNewProject}>New</button>
           <button type="button" className="text-button" onClick={() => fileInputRef.current?.click()}>Import</button>
           <button type="button" className="text-button" onClick={exportProject}>Export</button>
@@ -702,6 +742,7 @@ export default function Home() {
           </div>
         </div>
         <div className="save-state">{saveState}</div>
+        {project.screenplay.analysisStatus === "suggested" ? <div className="save-state">Script-derived suggestions <button type="button" className="text-button" onClick={confirmImportedSuggestions}>Mark reviewed</button></div> : null}
         <div className="progress-block" aria-label={`${completion}% story planning complete`}>
           <span>{completion}% complete</span>
           <div className="progress-track"><i style={{ width: `${completion}%` }} /></div>
@@ -789,9 +830,10 @@ export default function Home() {
         ) : null}
 
         {activeTab === "script" ? (
-          <ScriptViewer
+          <ScriptWorkspace
             project={project}
             onChange={(screenplay) => commit({ ...project, screenplay })}
+            onImport={replaceWithImportedScreenplay}
             onOpenBlock={(number) => openBlock(number, "planner")}
           />
         ) : null}
@@ -818,7 +860,7 @@ export default function Home() {
         {activeTab === "engines" ? <EngineHub /> : null}
 
         <div hidden={activeTab !== "settings"}>
-          <SettingsPanel />
+          <SettingsPanel project={project} />
         </div>
       </main>
 
@@ -1149,6 +1191,7 @@ function CharacterEditor({
               </div>
             </div>
             <FormField label="Character description" value={selected.description} onChange={(value) => update(selected.id, "description", value)} />
+            <CharacterImageGenerator key={selected.id} project={project} character={selected} onImage={(value) => update(selected.id, "image", value)} />
             <div className="character-core-grid">
               <FormField label="Conscious want" value={selected.want} onChange={(value) => update(selected.id, "want", value)} help="What they believe will solve the problem." />
               <FormField label="Unconscious need" value={selected.need} onChange={(value) => update(selected.id, "need", value)} help="The internal truth they resist." />

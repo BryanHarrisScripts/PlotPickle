@@ -6,6 +6,9 @@ const settings = await readFile(new URL("../lib/ai/settings.ts", import.meta.url
 const panel = await readFile(new URL("../app/settings-panel.tsx", import.meta.url), "utf8");
 const gateway = await readFile(new URL("../build/local-ai-gateway.ts", import.meta.url), "utf8");
 const viteConfig = await readFile(new URL("../vite.config.ts", import.meta.url), "utf8");
+const reportPanel = await readFile(new URL("../app/settings-project-tools.tsx", import.meta.url), "utf8");
+const reports = await readFile(new URL("../lib/screenplay-reports.ts", import.meta.url), "utf8");
+const terms = await readFile(new URL("../lib/screenplay-terms.ts", import.meta.url), "utf8");
 
 test("settings keep AI, music, and future plugins in one local model", () => {
   assert.match(settings, /type PlotPickleSettings/);
@@ -42,4 +45,32 @@ test("music artist links are limited to Suno and Udio HTTPS profiles", () => {
   assert.match(settings, /url\.protocol !== "https:"/);
   assert.match(settings, /hostname === "suno\.com"/);
   assert.match(settings, /hostname === "udio\.com"/);
+});
+
+test("Settings includes live character and actor-facing screenplay reports", () => {
+  assert.match(panel, /Reports/);
+  assert.match(panel, /ScreenplayReports project={project}/);
+  for (const field of ["dialogueLines", "wordCount", "sceneNumbers", "sceneHeadings", "estimatedSpeakingSeconds"]) {
+    assert.ok(reports.includes(field), `Character report is missing ${field}`);
+  }
+  assert.match(reportPanel, /Scene breakdown by character/);
+  assert.match(reportPanel, /Dialogue lines/);
+  assert.match(reportPanel, /Spoken words/);
+  assert.match(reportPanel, /Print report/);
+});
+
+test("character reports work from both editable drafts and imported screenplay text", () => {
+  assert.match(reports, /screenplay\.draftElements\.length/);
+  assert.match(reports, /parseScreenplay\(project\.screenplay\)/);
+  assert.match(reports, /normalizeCharacterCue/);
+  assert.match(reports, /countSpokenWords/);
+});
+
+test("Settings provides a searchable categorized screenplay terminology index", () => {
+  assert.match(panel, /Terminology Index/);
+  assert.match(reportPanel, /Search terms/);
+  assert.match(reportPanel, /screenplayTermCategories/);
+  for (const term of ["Scene heading (slugline)", "Beat (story)", "Beat (pause)", "Ghost", "Mini-block", "V.O."]) {
+    assert.ok(terms.includes(term), `Terminology index is missing ${term}`);
+  }
 });

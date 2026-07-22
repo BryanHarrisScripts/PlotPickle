@@ -41,7 +41,7 @@ test("the canonical schema and revision snapshots include production planning", 
 test("Afterglow Blocks 22 through 24 contain twelve replacement keyframes", async () => {
   const storyboard = await source("data/afterglow-storyboard.ts");
   assert.match(storyboard, /bundledStoryboardBlocks = 24/);
-  assert.match(storyboard, /replacementBlocks: \[22, 23, 24\]/);
+  assert.match(storyboard, /replacementBlocks = \[22, 23, 24\] as const/);
   assert.match(storyboard, /images: bundledStoryboardBlocks \* 4/);
   for (const block of [22, 23, 24]) {
     for (const mini of [1, 2, 3, 4]) {

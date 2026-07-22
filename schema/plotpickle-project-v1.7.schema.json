@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://plotpickle.app/schema/plotpickle-project-v1.7.schema.json",
-  "title": "PlotPickle Project — Phase 1 Core Schema",
-  "description": "Schema 1.7 adds story threads, dynamic scenes, expanded screenplay elements, character arc matrices, rights and AI provenance, and revision snapshots.",
+  "title": "PlotPickle Project — Phase 1",
+  "description": "Schema 1.7 adds flexible scenes, story threads, character arc matrices, rights and provenance, expanded screenplay elements, and revision snapshots.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -41,80 +41,97 @@
     "revisions": { "type": "array", "items": { "$ref": "#/$defs/revisionSnapshot" } }
   },
   "$defs": {
-    "screenplay": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["fileName", "format", "sourceText", "importedAt", "analysisStatus", "analyzedAt", "suggestedFields", "draftElements"],
-      "properties": {
-        "fileName": { "type": "string" },
-        "format": { "enum": ["plain-text", "fountain", "final-draft"] },
-        "sourceText": { "type": "string" },
-        "importedAt": { "type": "string" },
-        "analysisStatus": { "enum": ["none", "suggested", "reviewed"] },
-        "analyzedAt": { "type": "string" },
-        "suggestedFields": { "type": "array", "items": { "type": "string" } },
-        "draftElements": { "type": "array", "items": { "$ref": "#/$defs/screenplayDraftElement" } }
-      }
+    "revisionColour": {
+      "enum": ["none", "blue", "pink", "yellow", "green", "goldenrod", "buff", "salmon", "cherry", "tan", "gray"]
     },
-    "screenplayDraftElement": {
+    "sceneType": {
+      "enum": ["action", "dialogue", "suspense", "revelation", "montage", "transition", "other"]
+    },
+    "shortScene": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "id",
-        "type",
-        "text",
-        "blockNumber",
-        "miniBlockNumber",
-        "sceneNumber",
-        "sceneId",
-        "threadIds",
-        "omitted",
-        "locked",
-        "revisionColour",
-        "sourceAttributionIds",
-        "aiProvenanceIds",
-        "createdAt",
-        "updatedAt"
+        "title",
+        "sceneType",
+        "entryCondition",
+        "objective",
+        "opposition",
+        "action",
+        "reversal",
+        "outcome",
+        "charactersEntering",
+        "charactersLeaving",
+        "estimatedSeconds",
+        "pageEstimate"
       ],
       "properties": {
         "id": { "type": "string" },
-        "type": {
-          "enum": [
-            "scene-heading",
-            "action",
-            "character",
-            "parenthetical",
-            "dialogue",
-            "transition",
-            "section",
-            "synopsis",
-            "shot",
-            "lyrics",
-            "dual-dialogue",
-            "centered",
-            "page-break",
-            "title-page",
-            "note",
-            "boneyard"
-          ]
-        },
-        "text": { "type": "string" },
-        "blockNumber": { "type": "integer", "minimum": 1, "maximum": 24 },
-        "miniBlockNumber": { "type": "integer", "minimum": 1, "maximum": 4 },
-        "sceneNumber": { "type": "integer", "minimum": 1 },
-        "sceneId": { "type": "string" },
-        "threadIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
-        "omitted": { "type": "boolean" },
-        "locked": { "type": "boolean" },
-        "revisionColour": { "$ref": "#/$defs/revisionColour" },
-        "sourceAttributionIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
-        "aiProvenanceIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
+        "title": { "type": "string" },
+        "sceneType": { "$ref": "#/$defs/sceneType" },
+        "entryCondition": { "type": "string" },
+        "objective": { "type": "string" },
+        "opposition": { "type": "string" },
+        "action": { "type": "string" },
+        "reversal": { "type": "string" },
+        "outcome": { "type": "string" },
+        "charactersEntering": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "charactersLeaving": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "estimatedSeconds": { "type": "number", "minimum": 0 },
+        "pageEstimate": { "type": "number", "minimum": 0 }
       }
     },
-    "revisionColour": {
-      "enum": ["none", "blue", "pink", "yellow", "green", "goldenrod", "buff", "salmon", "cherry", "tan", "gray"]
+    "miniBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "number",
+        "label",
+        "function",
+        "purpose",
+        "characterId",
+        "objective",
+        "resistance",
+        "action",
+        "revelation",
+        "turn",
+        "visualBeat",
+        "dialogueIntention",
+        "entryState",
+        "exitState",
+        "setup",
+        "payoff",
+        "estimatedSeconds",
+        "beatTarget",
+        "shotTarget",
+        "notes",
+        "shortScenes"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "number": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "label": { "type": "string" },
+        "function": { "type": "string" },
+        "purpose": { "type": "string" },
+        "characterId": { "type": "string" },
+        "objective": { "type": "string" },
+        "resistance": { "type": "string" },
+        "action": { "type": "string" },
+        "revelation": { "type": "string" },
+        "turn": { "type": "string" },
+        "visualBeat": { "type": "string" },
+        "dialogueIntention": { "type": "string" },
+        "entryState": { "type": "string" },
+        "exitState": { "type": "string" },
+        "setup": { "type": "string" },
+        "payoff": { "type": "string" },
+        "estimatedSeconds": { "type": "number", "minimum": 0 },
+        "beatTarget": { "type": "integer", "minimum": 0 },
+        "shotTarget": { "type": "integer", "minimum": 0 },
+        "notes": { "type": "string" },
+        "shortScenes": { "type": "array", "items": { "$ref": "#/$defs/shortScene" } }
+      }
     },
     "scene": {
       "type": "object",
@@ -124,15 +141,24 @@
         "number",
         "order",
         "title",
+        "sceneType",
         "purpose",
+        "entryCondition",
+        "exitCondition",
         "characterIds",
         "locationIds",
+        "charactersEntering",
+        "charactersLeaving",
         "objective",
+        "opposition",
         "conflict",
+        "action",
+        "reversal",
         "turn",
         "resolution",
         "outcome",
         "estimatedSeconds",
+        "pageEstimate",
         "miniBlocks",
         "threadIds",
         "status",
@@ -144,19 +170,28 @@
         "number": { "type": "integer", "minimum": 1 },
         "order": { "type": "integer", "minimum": 0 },
         "title": { "type": "string" },
+        "sceneType": { "$ref": "#/$defs/sceneType" },
         "purpose": { "type": "string" },
-        "characterIds": { "type": "array", "items": { "type": "string" } },
-        "locationIds": { "type": "array", "items": { "type": "string" } },
+        "entryCondition": { "type": "string" },
+        "exitCondition": { "type": "string" },
+        "characterIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "locationIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "charactersEntering": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "charactersLeaving": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
         "objective": { "type": "string" },
+        "opposition": { "type": "string" },
         "conflict": { "type": "string" },
+        "action": { "type": "string" },
+        "reversal": { "type": "string" },
         "turn": { "type": "string" },
         "resolution": { "type": "string" },
         "outcome": { "type": "string" },
         "estimatedSeconds": { "type": "number", "minimum": 0 },
+        "pageEstimate": { "type": "number", "minimum": 0 },
         "miniBlocks": {
           "type": "array",
           "maxItems": 4,
-          "items": { "$ref": "./plotpickle-project.schema.json#/$defs/miniBlock" }
+          "items": { "$ref": "#/$defs/miniBlock" }
         },
         "threadIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
         "status": { "enum": ["outline", "draft", "revised", "locked", "omitted"] },
@@ -307,7 +342,22 @@
     "storyThread": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "name", "kind", "status", "summary", "question", "characterIds", "sceneIds", "introducedBlockNumber", "resolvedBlockNumber", "milestones", "notes", "createdAt", "updatedAt"],
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "status",
+        "summary",
+        "question",
+        "characterIds",
+        "sceneIds",
+        "introducedBlockNumber",
+        "resolvedBlockNumber",
+        "milestones",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ],
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
@@ -323,6 +373,78 @@
         "notes": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "screenplayDraftElement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "text",
+        "blockNumber",
+        "miniBlockNumber",
+        "sceneNumber",
+        "sceneId",
+        "threadIds",
+        "omitted",
+        "locked",
+        "revisionColour",
+        "sourceAttributionIds",
+        "aiProvenanceIds",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "type": {
+          "enum": [
+            "scene-heading",
+            "action",
+            "character",
+            "parenthetical",
+            "dialogue",
+            "transition",
+            "section",
+            "synopsis",
+            "shot",
+            "lyrics",
+            "dual-dialogue",
+            "centered",
+            "page-break",
+            "title-page",
+            "note",
+            "boneyard"
+          ]
+        },
+        "text": { "type": "string" },
+        "blockNumber": { "type": "integer", "minimum": 1, "maximum": 24 },
+        "miniBlockNumber": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "sceneNumber": { "type": "integer", "minimum": 1 },
+        "sceneId": { "type": "string" },
+        "threadIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "omitted": { "type": "boolean" },
+        "locked": { "type": "boolean" },
+        "revisionColour": { "$ref": "#/$defs/revisionColour" },
+        "sourceAttributionIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "aiProvenanceIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "screenplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileName", "format", "sourceText", "importedAt", "analysisStatus", "analyzedAt", "suggestedFields", "draftElements"],
+      "properties": {
+        "fileName": { "type": "string" },
+        "format": { "enum": ["plain-text", "fountain", "final-draft"] },
+        "sourceText": { "type": "string" },
+        "importedAt": { "type": "string" },
+        "analysisStatus": { "enum": ["none", "suggested", "reviewed"] },
+        "analyzedAt": { "type": "string" },
+        "suggestedFields": { "type": "array", "items": { "type": "string" } },
+        "draftElements": { "type": "array", "items": { "$ref": "#/$defs/screenplayDraftElement" } }
       }
     },
     "rightsCollaborator": {
@@ -354,11 +476,11 @@
         "licence": { "type": "string" },
         "permissionReference": { "type": "string" },
         "notes": { "type": "string" },
-        "attachedTo": { "type": "array", "items": { "type": "string" } },
+        "attachedTo": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
         "createdAt": { "type": "string", "format": "date-time" }
       }
     },
-    "aiProvenanceRecord": {
+    "aiProvenance": {
       "type": "object",
       "additionalProperties": false,
       "required": ["id", "provider", "model", "operation", "promptSummary", "outputSummary", "humanContribution", "humanDecision", "retained", "attachedTo", "createdAt"],
@@ -372,14 +494,25 @@
         "humanContribution": { "type": "string" },
         "humanDecision": { "type": "string" },
         "retained": { "type": "boolean" },
-        "attachedTo": { "type": "array", "items": { "type": "string" } },
+        "attachedTo": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
         "createdAt": { "type": "string", "format": "date-time" }
       }
     },
     "rights": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["projectOwner", "copyrightNotice", "rightsStatement", "defaultCreativeLicence", "sourceWorkTitle", "sourceWorkAuthor", "adaptationStatus", "collaborators", "attributions", "aiProvenance"],
+      "required": [
+        "projectOwner",
+        "copyrightNotice",
+        "rightsStatement",
+        "defaultCreativeLicence",
+        "sourceWorkTitle",
+        "sourceWorkAuthor",
+        "adaptationStatus",
+        "collaborators",
+        "attributions",
+        "aiProvenance"
+      ],
       "properties": {
         "projectOwner": { "type": "string" },
         "copyrightNotice": { "type": "string" },
@@ -390,7 +523,7 @@
         "adaptationStatus": { "enum": ["original", "adaptation", "commissioned", "collaboration", "unknown"] },
         "collaborators": { "type": "array", "items": { "$ref": "#/$defs/rightsCollaborator" } },
         "attributions": { "type": "array", "items": { "$ref": "#/$defs/sourceAttribution" } },
-        "aiProvenance": { "type": "array", "items": { "$ref": "#/$defs/aiProvenanceRecord" } }
+        "aiProvenance": { "type": "array", "items": { "$ref": "#/$defs/aiProvenance" } }
       }
     },
     "revisionSnapshot": {
@@ -404,20 +537,7 @@
         "createdAt": { "type": "string", "format": "date-time" },
         "schemaVersion": { "const": "1.7.0" },
         "contentHash": { "type": "string" },
-        "payload": {
-          "type": "object",
-          "required": ["projectTitle", "story", "blocks", "scenes", "screenplayElements", "characterArcs", "storyThreads"],
-          "properties": {
-            "projectTitle": { "type": "string" },
-            "story": { "$ref": "./plotpickle-project.schema.json#/$defs/story" },
-            "blocks": { "type": "array", "items": { "type": "object" } },
-            "scenes": { "type": "array", "items": { "type": "object" } },
-            "screenplayElements": { "type": "array", "items": { "$ref": "#/$defs/screenplayDraftElement" } },
-            "characterArcs": { "type": "array", "items": { "type": "object" } },
-            "storyThreads": { "type": "array", "items": { "$ref": "#/$defs/storyThread" } }
-          },
-          "additionalProperties": false
-        }
+        "payload": { "type": "object" }
       }
     }
   }

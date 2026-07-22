@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://plotpickle.app/schema/plotpickle-project.schema.json",
   "title": "PlotPickle Project",
-  "description": "Canonical PlotPickle 1.7 project schema with flexible scenes, Story Threads, Character Arc Matrices, rights and provenance, revision snapshots, local review threads, pitch-package records, and the complete 24/96 project model.",
+  "description": "Canonical PlotPickle 1.7 project schema with flexible scenes, Story Threads, Character Arc Matrices, rights and provenance, expanded screenplay elements, revisions, local review, and continuous pre-production planning from shots and sound through scheduling and distribution.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -18,7 +18,8 @@
     "blocks",
     "storyThreads",
     "rights",
-    "revisions"
+    "revisions",
+    "production"
   ],
   "properties": {
     "schemaVersion": {
@@ -77,6 +78,9 @@
     },
     "review": {
       "$ref": "#/$defs/reviewWorkspace"
+    },
+    "production": {
+      "$ref": "#/$defs/productionWorkspace"
     }
   },
   "$defs": {
@@ -2209,6 +2213,499 @@
         },
         "updatedAt": {
           "type": "string"
+        }
+      }
+    },
+    "productionShot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "blockNumber",
+        "miniBlockNumber",
+        "sceneId",
+        "screenplayElementIds",
+        "frameId",
+        "shotNumber",
+        "shotSize",
+        "angle",
+        "movement",
+        "lens",
+        "composition",
+        "purpose",
+        "continuity",
+        "keyframeSrc",
+        "keyframeAlt",
+        "status",
+        "durationSeconds",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "blockNumber": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "miniBlockNumber": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "sceneId": {
+          "type": "string"
+        },
+        "screenplayElementIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "frameId": {
+          "type": "string"
+        },
+        "shotNumber": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "shotSize": {
+          "type": "string"
+        },
+        "angle": {
+          "type": "string"
+        },
+        "movement": {
+          "type": "string"
+        },
+        "lens": {
+          "type": "string"
+        },
+        "composition": {
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "continuity": {
+          "type": "string"
+        },
+        "keyframeSrc": {
+          "type": "string"
+        },
+        "keyframeAlt": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "planned",
+            "approved",
+            "captured",
+            "omitted"
+          ]
+        },
+        "durationSeconds": {
+          "type": "number",
+          "minimum": 1
+        },
+        "notes": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "sonicCue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "cueNumber",
+        "blockNumber",
+        "sceneId",
+        "type",
+        "title",
+        "motif",
+        "cueIn",
+        "cueOut",
+        "purpose",
+        "status",
+        "rights",
+        "durationSeconds",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "cueNumber": {
+          "type": "string"
+        },
+        "blockNumber": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "sceneId": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "score",
+            "source",
+            "atmosphere",
+            "sfx",
+            "silence"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "motif": {
+          "type": "string"
+        },
+        "cueIn": {
+          "type": "string"
+        },
+        "cueOut": {
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "temp",
+            "original",
+            "approved",
+            "licensed",
+            "clearance-needed"
+          ]
+        },
+        "rights": {
+          "type": "string"
+        },
+        "durationSeconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "notes": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "productionBreakdown": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "blockNumber",
+        "sceneId",
+        "castIds",
+        "locationIds",
+        "props",
+        "wardrobe",
+        "vehicles",
+        "effects",
+        "stunts",
+        "extras",
+        "makeup",
+        "sound",
+        "estimatedHours",
+        "readiness",
+        "notes",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "blockNumber": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "sceneId": {
+          "type": "string"
+        },
+        "castIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locationIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "props": {
+          "type": "string"
+        },
+        "wardrobe": {
+          "type": "string"
+        },
+        "vehicles": {
+          "type": "string"
+        },
+        "effects": {
+          "type": "string"
+        },
+        "stunts": {
+          "type": "string"
+        },
+        "extras": {
+          "type": "string"
+        },
+        "makeup": {
+          "type": "string"
+        },
+        "sound": {
+          "type": "string"
+        },
+        "estimatedHours": {
+          "type": "number",
+          "minimum": 1
+        },
+        "readiness": {
+          "enum": [
+            "draft",
+            "reviewed",
+            "ready",
+            "blocked"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "productionScheduleDay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "dayNumber",
+        "date",
+        "sceneIds",
+        "locationId",
+        "callTime",
+        "estimatedHours",
+        "status",
+        "notes",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "dayNumber": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "date": {
+          "type": "string"
+        },
+        "sceneIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locationId": {
+          "type": "string"
+        },
+        "callTime": {
+          "type": "string"
+        },
+        "estimatedHours": {
+          "type": "number",
+          "minimum": 0
+        },
+        "status": {
+          "enum": [
+            "planned",
+            "confirmed",
+            "completed",
+            "moved"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "productionWorkspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "shots",
+        "cues",
+        "breakdowns",
+        "schedule",
+        "animatic",
+        "distribution"
+      ],
+      "properties": {
+        "shots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/productionShot"
+          }
+        },
+        "cues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sonicCue"
+          }
+        },
+        "breakdowns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/productionBreakdown"
+          }
+        },
+        "schedule": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/productionScheduleDay"
+          }
+        },
+        "animatic": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "defaultFrameSeconds",
+            "includeDialogue",
+            "showCueLabels",
+            "updatedAt"
+          ],
+          "properties": {
+            "defaultFrameSeconds": {
+              "type": "number",
+              "minimum": 1
+            },
+            "includeDialogue": {
+              "type": "boolean"
+            },
+            "showCueLabels": {
+              "type": "boolean"
+            },
+            "updatedAt": {
+              "type": "string"
+            }
+          }
+        },
+        "distribution": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "audience",
+            "positioning",
+            "releasePath",
+            "festivalTargets",
+            "distributorTargets",
+            "salesMaterials",
+            "trailerPlan",
+            "posterPlan",
+            "socialCampaign",
+            "pressAngles",
+            "milestones",
+            "updatedAt"
+          ],
+          "properties": {
+            "audience": {
+              "type": "string"
+            },
+            "positioning": {
+              "type": "string"
+            },
+            "releasePath": {
+              "type": "string"
+            },
+            "festivalTargets": {
+              "type": "string"
+            },
+            "distributorTargets": {
+              "type": "string"
+            },
+            "salesMaterials": {
+              "type": "string"
+            },
+            "trailerPlan": {
+              "type": "string"
+            },
+            "posterPlan": {
+              "type": "string"
+            },
+            "socialCampaign": {
+              "type": "string"
+            },
+            "pressAngles": {
+              "type": "string"
+            },
+            "milestones": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "title",
+                  "targetDate",
+                  "status",
+                  "notes"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "targetDate": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "enum": [
+                      "planned",
+                      "active",
+                      "complete",
+                      "deferred"
+                    ]
+                  },
+                  "notes": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "updatedAt": {
+              "type": "string"
+            }
+          }
         }
       }
     }

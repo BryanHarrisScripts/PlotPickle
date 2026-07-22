@@ -106,6 +106,19 @@ const engines: EngineDefinition[] = [
     result: "A resolved review trail and a complete PDF, HTML or presentation-ready pitch package generated from the active story.",
   },
   {
+    code: "PD",
+    title: "Production Studio",
+    href: "/production",
+    stage: "Move from page to production",
+    question: "How do the screenplay, images, shots and sound become one producible plan?",
+    summary:
+      "Design shot coverage, build a Sonic Bible, play the storyboard as an animatic, generate scene breakdowns and shoot days, and connect the finished film to distribution and marketing planning.",
+    useWhen:
+      "Use it after the scene plan and screenplay have enough detail to make visual, sonic, scheduling, resource and release decisions without disconnecting them from the 24 Blocks.",
+    connects: ["Stable scenes", "Storyboard frames", "Shot coverage", "Sound cues", "Breakdowns and schedule", "Distribution plan"],
+    result: "A continuous pre-production plan from 24 Blocks and screenplay evidence through shots, keyframes, cues, shoot days and campaign materials.",
+  },
+  {
     code: "LB",
     title: "Specialist Labs",
     href: "/labs",

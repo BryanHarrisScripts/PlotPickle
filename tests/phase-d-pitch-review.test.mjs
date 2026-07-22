@@ -9,7 +9,7 @@ test("PlotPickle 0.16 exposes the complete pitch and review studio", async () =>
   const packageJson = JSON.parse(await source("package.json"));
   const page = await source("app/pitch-review/page.tsx");
   const workspace = await source("app/pitch-review-workspace.tsx");
-  assert.equal(packageJson.version, "0.16.0");
+  assert.ok(Number(packageJson.version.split(".")[1]) >= 16);
   assert.match(packageJson.scripts.test, /phase-d-pitch-review\.test\.mjs/);
   assert.match(page, /PitchReviewWorkspace/);
   for (const label of ["Logline Workshop", "Anchored Reviews", "Revision Compare", "Pitch Package", "Exports"]) assert.ok(workspace.includes(label), `Missing Phase D view: ${label}`);

@@ -81,7 +81,7 @@ test("overview and structure summary explain their contracts before deeper work"
 
 test("PlotPickle declares software, method, user, contribution, and brand rights separately", async () => {
   const packageJson = JSON.parse(await source("package.json"));
-  assert.equal(packageJson.version, "0.16.0");
+  assert.ok(Number(packageJson.version.split(".")[1]) >= 16);
   assert.equal(packageJson.license, "AGPL-3.0-or-later");
 
   const legal = await source("app/legal/page.tsx");

@@ -18,23 +18,27 @@ test("the default app resolves to the complete renamed Afterglow project", async
   assert.match(project, /Reflections of Sentience/);
 });
 
-test("Afterglow includes 84 bundled WebP storyboard images for source Blocks 1 through 21", async () => {
+test("Afterglow includes 84 source WebP images and twelve replacement SVG keyframes", async () => {
   const files = await readdir(new URL("public/afterglow/storyboard/", root));
   const webp = files.filter((file) => file.endsWith(".webp")).sort();
+  const svg = files.filter((file) => file.endsWith(".svg")).sort();
   assert.equal(webp.length, 84);
+  assert.equal(svg.length, 12);
   assert.equal(webp[0], "block-01-mini-1.webp");
   assert.equal(webp.at(-1), "block-21-mini-4.webp");
+  assert.equal(svg[0], "block-22-mini-1.svg");
+  assert.equal(svg.at(-1), "block-24-mini-4.svg");
 
   const storyboard = await source("data/afterglow-storyboard.ts");
-  assert.match(storyboard, /bundledStoryboardBlocks = 21/);
-  assert.match(storyboard, /images: bundledStoryboardBlocks \* 4/);
-  assert.match(storyboard, /unresolvedBlocks: \[22, 23, 24\]/);
-  assert.match(storyboard, /\/afterglow\/storyboard\/block-/);
+  assert.match(storyboard, /bundledStoryboardBlocks = 24/);
+  assert.match(storyboard, /replacementBlocks = \[22, 23, 24\]/);
+  assert.match(storyboard, /replacementImages: replacementBlocks\.length \* 4/);
+  assert.match(storyboard, /unresolvedBlocks: \[]/);
 });
 
-test("Blocks 22 through 24 use the complete screenplay without reusing incorrect legacy images", async () => {
+test("Blocks 22 through 24 use new replacement concepts rather than incorrect legacy images", async () => {
   const project = await source("data/afterglow-complete.ts");
   assert.match(project, /legacy Block 22–24 folders duplicated Block 6 content/);
+  assert.match(project, /replacement concept keyframes/);
   assert.match(project, /visuals: createAfterglowStoryboardFrames\(blockNumber\)/);
-  assert.match(project, /blockNumber <= 21/);
 });

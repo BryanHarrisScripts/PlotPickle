@@ -41,7 +41,7 @@ function recommendations(blockNumber: number, miniBlockNumber: number) {
 export default function LearningStudio({ project, blockNumber, miniBlockNumber, onBlockChange, onMiniBlockChange, onOpenTreatment, onOpenScreenplay, onOpenBlock }: Props) {
   const [query, setQuery] = useState("");
   const [path, setPath] = useState<(typeof learningPaths)[number]>("All");
-  const [view, setView] = useState<ViewMode>("guide");
+  const [view, setView] = useState<ViewMode>("library");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const block = project.blocks[blockNumber - 1];
@@ -127,8 +127,8 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
     </section>
 
     <nav className={styles.viewTabs} aria-label="Learning Studio views">
-      <button type="button" className={view === "guide" ? styles.active : ""} onClick={() => setView("guide")}>Guidance for this Block</button>
       <button type="button" className={view === "library" ? styles.active : ""} onClick={() => setView("library")}>Complete Learning Library</button>
+      <button type="button" className={view === "guide" ? styles.active : ""} onClick={() => setView("guide")}>Guidance for this Block</button>
     </nav>
 
     {view === "guide" ? <section className={styles.guidance}>

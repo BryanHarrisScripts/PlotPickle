@@ -1,0 +1,49 @@
+name: Import Afterglow storyboard assets
+
+on:
+  push:
+    branches:
+      - agent/complete-afterglow-screenplay-storyboard
+
+permissions:
+  contents: write
+
+jobs:
+  import-assets:
+    if: ${{ !contains(github.event.head_commit.message, 'Bundle Afterglow WebP storyboard assets') }}
+    runs-on: ubuntu-latest
+    env:
+      ARTIFACT_URL: "https://sdmntprnorthcentralus.oaiusercontent.com/files/00000000-6e04-822f-994e-74e798b9866a/raw?se=2026-07-22T15:35:05Z&sp=r&sv=2026-02-06&sr=b&scid=28ece66e-e34a-5db5-93cc-9a42851355da&skoid=77636ecc-ad8d-44df-baa7-163b524a0261&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-07-22T13:19:42Z&ske=2026-07-24T13:19:42Z&sks=b&skv=2026-02-06&sig=7WrvDwIrcnJ%2BjV26yya5fE9reWO6mSPZdAfhjYYEcR4%3D"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/complete-afterglow-screenplay-storyboard
+
+      - name: Download the successful Afterglow WebP export
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 "$ARTIFACT_URL" --output /tmp/afterglow-webp.zip
+          mkdir -p /tmp/afterglow-webp
+          unzip -q /tmp/afterglow-webp.zip -d /tmp/afterglow-webp
+          test "$(find /tmp/afterglow-webp -maxdepth 1 -type f -name '*.webp' | wc -l)" -eq 84
+
+      - name: Bundle the storyboard assets into PlotPickle
+        run: |
+          set -euo pipefail
+          mkdir -p public/afterglow/storyboard
+          cp /tmp/afterglow-webp/*.webp public/afterglow/storyboard/
+          cp /tmp/afterglow-webp/SOURCES.tsv public/afterglow/storyboard/SOURCES.tsv
+          printf '%s\n' 'Afterglow storyboard preview assets: 84 WebP images, four per source Block for Blocks 1–21. Original source: BryanHarrisScripts/Afterglow-Echoes-of-Sentience. CC BY-SA 4.0.' > public/afterglow/storyboard/README.txt
+
+      - name: Commit generated assets to the feature branch
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/afterglow/storyboard
+          if git diff --cached --quiet; then
+            echo "Assets already bundled."
+            exit 0
+          fi
+          git commit -m "Bundle Afterglow WebP storyboard assets"
+          git push origin HEAD:agent/complete-afterglow-screenplay-storyboard

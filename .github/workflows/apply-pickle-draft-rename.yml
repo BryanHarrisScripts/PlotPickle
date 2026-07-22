@@ -1,0 +1,58 @@
+name: Apply Pickle Draft terminology update
+
+on:
+  push:
+    branches:
+      - agent/pickle-draft-visual-fit
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ !contains(github.event.head_commit.message, 'Rename the Pickle Draft learning module') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/pickle-draft-visual-fit
+
+      - name: Rename the learning module and recommendations
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          library = Path('app/learning-library.ts')
+          text = library.read_text(encoding='utf-8')
+          replacements = {
+              'id: "vomit-draft"': 'id: "pickle-draft"',
+              'title: "The Vomit Draft"': 'title: "The Pickle Draft"',
+              'The phrase describes an intentionally rough first draft produced with forward momentum.': 'The Pickle Draft is an intentionally rough first draft produced with forward momentum.',
+              'tags: ["vomit draft",': 'tags: ["pickle draft",',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'Missing expected learning-library text: {old}')
+              text = text.replace(old, new)
+          library.write_text(text, encoding='utf-8')
+
+          studio = Path('app/learning-studio.tsx')
+          text = studio.read_text(encoding='utf-8')
+          if '"vomit-draft"' not in text:
+              raise SystemExit('Missing expected recommendation id')
+          studio.write_text(text.replace('"vomit-draft"', '"pickle-draft"'), encoding='utf-8')
+
+          test = Path('tests/pickle-draft-visual-fit.test.mjs')
+          test.write_text('''import assert from "node:assert/strict";\nimport { readFile } from "node:fs/promises";\nimport test from "node:test";\n\nconst root = new URL("..", import.meta.url);\nconst source = (path) => readFile(new URL(path, root), "utf8");\n\ntest("the branded first-draft lesson is called Pickle Draft everywhere", async () => {\n  const library = await source("app/learning-library.ts");\n  const studio = await source("app/learning-studio.tsx");\n\n  assert.match(library, /id: "pickle-draft"/);\n  assert.match(library, /title: "The Pickle Draft"/);\n  assert.match(library, /The Pickle Draft is an intentionally rough first draft/);\n  assert.doesNotMatch(library, /Vomit Draft|vomit draft|vomit-draft/);\n  assert.match(studio, /"pickle-draft"/);\n  assert.doesNotMatch(studio, /vomit-draft/);\n});\n\ntest("the Visual Board overview is embedded inside its story-column layout", async () => {\n  const host = await source("app/workspace-intro-host.tsx");\n  const css = await source("app/workspace-intro.module.css");\n\n  assert.match(host, /visual-studio-layout > :last-child/);\n  assert.match(host, /embedded=\\{activeLabel === "Visual Board"\\}/);\n  assert.match(css, /max-width: 100vw/);\n  assert.match(css, /overflow-x: clip/);\n  assert.match(css, /overflow-wrap: anywhere/);\n});\n''', encoding='utf-8')
+          PY
+
+      - name: Remove this temporary workflow
+        run: rm .github/workflows/apply-pickle-draft-rename.yml
+
+      - name: Commit the completed update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/learning-library.ts app/learning-studio.tsx tests/pickle-draft-visual-fit.test.mjs .github/workflows/apply-pickle-draft-rename.yml
+          git commit -m "Rename the Pickle Draft learning module"
+          git push origin HEAD:agent/pickle-draft-visual-fit

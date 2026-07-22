@@ -1,6 +1,8 @@
 name: Phase 1 validation
 
 on:
+  push:
+    branches: [agent/phase-1-core-schema]
   pull_request:
     branches: [main]
   workflow_dispatch:

@@ -40,3 +40,5 @@ The chronology view uses the ordered scene plan. Presentation order uses the fir
 ## Completion standard
 
 PlotPickle 0.14 passes Phase B when it can state what function is weak, why that function matters, what project evidence supports the diagnosis, and which questions should guide revision for a story movement, scene, thread or character arc.
+
+The release must pass the standard PlotPickle lint, production build, smoke-test and complete regression pipelines on the exact merge candidate.

@@ -1,0 +1,41 @@
+name: Phase A diagnostics
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - ready_for_review
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-a-core-model-013
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Capture build and tests
+        run: |
+          set +e
+          npm run build > docs/phase-a-build.log 2>&1
+          echo $? > docs/phase-a-build.exit
+          npm test > docs/phase-a-test.log 2>&1
+          echo $? > docs/phase-a-test.exit
+          exit 0
+      - name: Commit diagnostics
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/phase-a-*.log docs/phase-a-*.exit
+          git commit -m "Capture Phase A validation diagnostics"
+          git push origin HEAD:agent/phase-a-core-model-013

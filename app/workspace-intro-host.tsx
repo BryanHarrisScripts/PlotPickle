@@ -44,29 +44,46 @@ const introductions: Record<string, IntroDefinition> = {
   },
 };
 
+function findIntroContainer(activeLabel: string) {
+  const workspace = document.querySelector<HTMLElement>("main.workspace");
+  if (!workspace) return null;
+
+  if (activeLabel === "Visual Board") {
+    return document.querySelector<HTMLElement>(".visual-studio-layout > :last-child") ?? workspace;
+  }
+
+  return workspace;
+}
+
 export default function WorkspaceIntroHost() {
   const [target, setTarget] = useState<HTMLElement | null>(null);
   const [activeLabel, setActiveLabel] = useState("");
 
   useEffect(() => {
     let host: HTMLDivElement | null = null;
+    let container: HTMLElement | null = null;
 
     function sync() {
+      const activeTab = document.querySelector<HTMLButtonElement>('.main-tabs button[aria-selected="true"]');
+      const nextLabel = activeTab?.querySelector("span")?.textContent?.trim() ?? "";
+      const nextContainer = findIntroContainer(nextLabel);
+
       if (host && !host.isConnected) {
         host = null;
+        container = null;
         setTarget(null);
       }
 
-      const workspace = document.querySelector<HTMLElement>("main.workspace");
-      if (workspace && !host) {
+      if (nextContainer && (!host || container !== nextContainer)) {
+        host?.remove();
         host = document.createElement("div");
         host.dataset.workspaceIntroHost = "true";
-        workspace.prepend(host);
+        nextContainer.prepend(host);
+        container = nextContainer;
         setTarget(host);
       }
 
-      const activeTab = document.querySelector<HTMLButtonElement>('.main-tabs button[aria-selected="true"]');
-      setActiveLabel(activeTab?.querySelector("span")?.textContent?.trim() ?? "");
+      setActiveLabel(nextLabel);
     }
 
     sync();
@@ -87,5 +104,5 @@ export default function WorkspaceIntroHost() {
   const intro = introductions[activeLabel];
   if (!target || !intro) return null;
 
-  return createPortal(<WorkspaceIntro {...intro} />, target);
+  return createPortal(<WorkspaceIntro {...intro} embedded={activeLabel === "Visual Board"} />, target);
 }

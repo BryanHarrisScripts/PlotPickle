@@ -52,12 +52,16 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
   const selected = learningModules.find((module) => module.id === selectedId) ?? null;
 
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(storageKey);
-      setCompleted(new Set(saved ? JSON.parse(saved) as string[] : []));
-    } catch {
-      setCompleted(new Set());
-    }
+    const loadProgress = window.setTimeout(() => {
+      try {
+        const saved = window.localStorage.getItem(storageKey);
+        setCompleted(new Set(saved ? JSON.parse(saved) as string[] : []));
+      } catch {
+        setCompleted(new Set());
+      }
+    }, 0);
+
+    return () => window.clearTimeout(loadProgress);
   }, [storageKey]);
 
   const filtered = useMemo(() => {
@@ -130,8 +134,8 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
     {view === "guide" ? <section className={styles.guidance}>
       <div className={styles.sectionIntro}><span>Recommended here</span><h2>Learn what helps at Block {block.number}.{mini.number}</h2><p>These modules match the current stage and mini-block movement. Opening one does not change the story; the exercise connects it to the work when you are ready.</p></div>
       <div className={styles.recommendedGrid}>{recommendedIds.map((id) => {
-        const module = learningModules.find((item) => item.id === id)!;
-        return <ModuleCard module={module} complete={completed.has(module.id)} recommended onOpen={() => openModule(module.id)} onToggle={() => toggleComplete(module.id)} key={module.id} />;
+        const recommendedModule = learningModules.find((item) => item.id === id)!;
+        return <ModuleCard module={recommendedModule} complete={completed.has(recommendedModule.id)} recommended onOpen={() => openModule(recommendedModule.id)} onToggle={() => toggleComplete(recommendedModule.id)} key={recommendedModule.id} />;
       })}</div>
       <button className={styles.browseAll} type="button" onClick={() => setView("library")}>Browse all 14 complete modules</button>
     </section> : <section className={styles.library}>

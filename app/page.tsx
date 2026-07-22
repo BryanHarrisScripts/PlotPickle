@@ -860,7 +860,7 @@ export default function Home() {
         {activeTab === "engines" ? <EngineHub /> : null}
 
         <div hidden={activeTab !== "settings"}>
-          <SettingsPanel />
+          <SettingsPanel project={project} />
         </div>
       </main>
 

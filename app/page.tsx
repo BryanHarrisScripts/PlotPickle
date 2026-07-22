@@ -11,6 +11,8 @@ import StructureMapSummary from "./structure-map-summary";
 import SettingsPanel from "./settings-panel";
 import ScriptWorkspace, { type WriterViewMode } from "./script-workspace";
 import LearningStudio from "./learning-studio";
+import ScriptViewer from "./script-viewer";
+import writerStyles from "./script-workspace.module.css";
 import CharacterImageGenerator from "./character-image-generator";
 import VisualStoryboard from "./visual-storyboard";
 import { projectSectionProgress, sectionHasAlert } from "@/lib/project-progress";
@@ -809,22 +811,32 @@ export default function Home() {
         ) : null}
 
         {activeTab === "learn" ? (
-          <LearningStudio
-            project={project}
-            blockNumber={selectedBlockNumber}
-            miniBlockNumber={selectedMiniBlockNumber}
-            onBlockChange={setSelectedBlockNumber}
-            onMiniBlockChange={setSelectedMiniBlockNumber}
-            onOpenTreatment={() => {
-              setWriterMode("treatment");
-              setActiveTab("script");
-            }}
-            onOpenScreenplay={() => {
-              setWriterMode("screenplay");
-              setActiveTab("script");
-            }}
-            onOpenBlock={(number) => openBlock(number, "planner")}
-          />
+          <div className={writerStyles.workspaceShell}>
+            <LearningStudio
+              project={project}
+              blockNumber={selectedBlockNumber}
+              miniBlockNumber={selectedMiniBlockNumber}
+              onBlockChange={setSelectedBlockNumber}
+              onMiniBlockChange={setSelectedMiniBlockNumber}
+              onOpenTreatment={() => {
+                setWriterMode("treatment");
+                setActiveTab("script");
+              }}
+              onOpenScreenplay={() => {
+                setWriterMode("screenplay");
+                setActiveTab("script");
+              }}
+              onOpenBlock={(number) => openBlock(number, "planner")}
+            />
+            <details className={writerStyles.scriptStudy} open={Boolean(project.screenplay.sourceText)}>
+              <summary>{project.screenplay.sourceText ? "Study the loaded screenplay" : "Load a screenplay to study"}</summary>
+              <ScriptViewer
+                project={project}
+                onImport={replaceWithImportedScreenplay}
+                onOpenBlock={(number) => openBlock(number, "planner")}
+              />
+            </details>
+          </div>
         ) : null}
 
         {activeTab === "script" ? (

@@ -1,5 +1,9 @@
 # PlotPickle Playhouse
 
+## PlotPickle 0.16 — Pitch and Review Workflows
+
+Open `/pitch-review` to move from guided logline development through local anchored comments, review-thread resolution, revision snapshot comparison and a complete pitch package. The same active project produces a browser PDF layout, self-contained HTML package and presentation-ready Markdown deck. Review anchors use stable project IDs and all decisions remain local to the canonical PlotPickle project.
+
 ## PlotPickle 0.15 — Specialist Labs
 
 PlotPickle now includes `/labs`, a review-first workspace containing the AI Prompt Lab, Dialogue Lab, Structured Research & Canon Binder, Visual Bible and mood boards, prompt and generated-asset provenance, and saved specialist passes with before/after comparison.
@@ -10,7 +14,7 @@ The PlotPickle 0.14 Diagnostic Craft Layer remains available at `/diagnostics`, 
 
 PlotPickle is a local-first story-development application built around Bryan Harris’s 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, flexible scene plan, mini-block, screenplay page, review, visual board, diagnostics and specialist labs.
 
-Current application version: `0.15.0`
+Current application version: `0.16.0`
 
 Current released project schema: `1.7.0`
 

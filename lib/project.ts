@@ -266,6 +266,66 @@ export type RightsAndProvenance = {
   aiProvenance: AiProvenanceRecord[];
 };
 
+export type ReviewAnchorKind = "project" | "story-field" | "block" | "scene" | "screenplay-element" | "character";
+export type ReviewThreadStatus = "open" | "in-review" | "resolved" | "deferred";
+export type ReviewPriority = "low" | "normal" | "high" | "critical";
+
+export type ReviewAnchor = {
+  kind: ReviewAnchorKind;
+  targetId: string;
+  label: string;
+};
+
+export type ReviewComment = {
+  id: string;
+  author: string;
+  body: string;
+  createdAt: string;
+};
+
+export type ReviewThread = {
+  id: string;
+  title: string;
+  anchor: ReviewAnchor;
+  status: ReviewThreadStatus;
+  priority: ReviewPriority;
+  comments: ReviewComment[];
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt: string;
+};
+
+export type LoglineCandidate = {
+  id: string;
+  text: string;
+  source: string;
+  selected: boolean;
+  createdAt: string;
+};
+
+export type PitchPackage = {
+  title: string;
+  subtitle: string;
+  tagline: string;
+  logline: string;
+  synopsis: string;
+  creatorStatement: string;
+  audience: string;
+  comparableTitles: string;
+  visualStatement: string;
+  contactLine: string;
+  selectedCharacterIds: string[];
+  selectedLocationIds: string[];
+  includeSections: string[];
+  updatedAt: string;
+};
+
+export type ReviewWorkspace = {
+  threads: ReviewThread[];
+  loglineCandidates: LoglineCandidate[];
+  pitchPackage: PitchPackage;
+};
+
 export type RevisionSnapshot = {
   id: string;
   label: string;
@@ -396,6 +456,7 @@ export type PlotPickleProject = {
   storyThreads: StoryThread[];
   rights: RightsAndProvenance;
   revisions: RevisionSnapshot[];
+  review: ReviewWorkspace;
 };
 
 export const beatTemplates = [
@@ -476,6 +537,29 @@ export function createBlankRightsAndProvenance(projectTitle = "Untitled Story"):
     collaborators: [],
     attributions: [],
     aiProvenance: [],
+  };
+}
+
+export function createBlankReviewWorkspace(projectTitle = "Untitled Story"): ReviewWorkspace {
+  return {
+    threads: [],
+    loglineCandidates: [],
+    pitchPackage: {
+      title: projectTitle,
+      subtitle: "",
+      tagline: "",
+      logline: "",
+      synopsis: "",
+      creatorStatement: "",
+      audience: "",
+      comparableTitles: "",
+      visualStatement: "",
+      contactLine: "",
+      selectedCharacterIds: [],
+      selectedLocationIds: [],
+      includeSections: ["cover", "logline", "synopsis", "characters", "world", "visuals", "creator", "rights"],
+      updatedAt: new Date().toISOString(),
+    },
   };
 }
 
@@ -642,6 +726,7 @@ export function createBlankProject(): PlotPickleProject {
     storyThreads: [],
     rights: createBlankRightsAndProvenance("Untitled Story"),
     revisions: [],
+    review: createBlankReviewWorkspace("Untitled Story"),
   };
 }
 
@@ -669,6 +754,7 @@ export function isPlotPickleProject(value: unknown): value is PlotPickleProject 
     Array.isArray(candidate.storyThreads) &&
     Boolean(candidate.rights) &&
     Array.isArray(candidate.revisions) &&
+    Boolean(candidate.review) &&
     candidate.blocks.every((block) => {
       if (!Array.isArray(block.scenes) || block.scenes.length < 1) return false;
       const miniNumbers = block.scenes.flatMap((scene) => Array.isArray(scene.miniBlocks)
@@ -830,6 +916,69 @@ function normalizeRevisions(value: unknown): RevisionSnapshot[] {
   });
 }
 
+function normalizeReviewWorkspace(value: unknown, projectTitle: string): ReviewWorkspace {
+  const defaults = createBlankReviewWorkspace(projectTitle);
+  if (!value || typeof value !== "object") return defaults;
+  const candidate = value as Partial<ReviewWorkspace>;
+  const statuses: ReviewThreadStatus[] = ["open", "in-review", "resolved", "deferred"];
+  const priorities: ReviewPriority[] = ["low", "normal", "high", "critical"];
+  const anchorKinds: ReviewAnchorKind[] = ["project", "story-field", "block", "scene", "screenplay-element", "character"];
+  const now = new Date().toISOString();
+  const threads = Array.isArray(candidate.threads) ? candidate.threads.flatMap((item, index) => {
+    if (!item || typeof item !== "object") return [];
+    const thread = item as Partial<ReviewThread>;
+    const anchor = thread.anchor && typeof thread.anchor === "object" ? thread.anchor as Partial<ReviewAnchor> : {};
+    return [{
+      id: typeof thread.id === "string" && thread.id ? thread.id : `review-thread-${index + 1}`,
+      title: typeof thread.title === "string" ? thread.title : `Review thread ${index + 1}`,
+      anchor: {
+        kind: anchorKinds.includes(anchor.kind as ReviewAnchorKind) ? anchor.kind as ReviewAnchorKind : "project",
+        targetId: typeof anchor.targetId === "string" ? anchor.targetId : "",
+        label: typeof anchor.label === "string" ? anchor.label : "Whole project",
+      },
+      status: statuses.includes(thread.status as ReviewThreadStatus) ? thread.status as ReviewThreadStatus : "open",
+      priority: priorities.includes(thread.priority as ReviewPriority) ? thread.priority as ReviewPriority : "normal",
+      comments: Array.isArray(thread.comments) ? thread.comments.flatMap((commentItem, commentIndex) => {
+        if (!commentItem || typeof commentItem !== "object") return [];
+        const comment = commentItem as Partial<ReviewComment>;
+        return [{
+          id: typeof comment.id === "string" && comment.id ? comment.id : `review-comment-${index + 1}-${commentIndex + 1}`,
+          author: typeof comment.author === "string" ? comment.author : "Local reviewer",
+          body: typeof comment.body === "string" ? comment.body : "",
+          createdAt: typeof comment.createdAt === "string" ? comment.createdAt : now,
+        }];
+      }) : [],
+      createdAt: typeof thread.createdAt === "string" ? thread.createdAt : now,
+      updatedAt: typeof thread.updatedAt === "string" ? thread.updatedAt : now,
+      resolvedAt: typeof thread.resolvedAt === "string" ? thread.resolvedAt : "",
+    }];
+  }) : [];
+  const loglineCandidates = Array.isArray(candidate.loglineCandidates) ? candidate.loglineCandidates.flatMap((item, index) => {
+    if (!item || typeof item !== "object") return [];
+    const entry = item as Partial<LoglineCandidate>;
+    return [{
+      id: typeof entry.id === "string" && entry.id ? entry.id : `logline-${index + 1}`,
+      text: typeof entry.text === "string" ? entry.text : "",
+      source: typeof entry.source === "string" ? entry.source : "Guided workshop",
+      selected: Boolean(entry.selected),
+      createdAt: typeof entry.createdAt === "string" ? entry.createdAt : now,
+    }];
+  }) : [];
+  const pitch = candidate.pitchPackage && typeof candidate.pitchPackage === "object" ? candidate.pitchPackage as Partial<PitchPackage> : {};
+  return {
+    threads,
+    loglineCandidates,
+    pitchPackage: {
+      ...defaults.pitchPackage,
+      ...pitch,
+      selectedCharacterIds: stringArray(pitch.selectedCharacterIds),
+      selectedLocationIds: stringArray(pitch.selectedLocationIds),
+      includeSections: stringArray(pitch.includeSections).length ? stringArray(pitch.includeSections) : defaults.pitchPackage.includeSections,
+      updatedAt: typeof pitch.updatedAt === "string" ? pitch.updatedAt : now,
+    },
+  };
+}
+
 export function normalizePlotPickleProject(value: unknown): PlotPickleProject | null {
   if (!value || typeof value !== "object") return null;
   const candidate = value as Record<string, unknown> & {
@@ -846,6 +995,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     storyThreads?: StoryThread[];
     rights?: RightsAndProvenance;
     revisions?: RevisionSnapshot[];
+    review?: ReviewWorkspace;
   };
   if (
     !["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0"].includes(candidate.schemaVersion ?? "") ||
@@ -898,6 +1048,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     storyThreads: normalizeStoryThreads(candidate.storyThreads),
     rights: normalizeRights(candidate.rights, candidate.metadata.title),
     revisions: normalizeRevisions(candidate.revisions),
+    review: normalizeReviewWorkspace(candidate.review, candidate.metadata.title),
   };
 }
 

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://plotpickle.app/schema/plotpickle-project.schema.json",
   "title": "PlotPickle Project",
-  "description": "Canonical PlotPickle 1.7 project schema with flexible scenes, Story Threads, Character Arc Matrices, rights and provenance, expanded screenplay elements, revision snapshots, and the complete 24/96 project model.",
+  "description": "Canonical PlotPickle 1.7 project schema with flexible scenes, Story Threads, Character Arc Matrices, rights and provenance, revision snapshots, local review threads, pitch-package records, and the complete 24/96 project model.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -74,6 +74,9 @@
       "items": {
         "$ref": "#/$defs/revisionSnapshot"
       }
+    },
+    "review": {
+      "$ref": "#/$defs/reviewWorkspace"
     }
   },
   "$defs": {
@@ -1971,6 +1974,241 @@
         },
         "payload": {
           "type": "object"
+        }
+      }
+    },
+    "reviewWorkspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "threads",
+        "loglineCandidates",
+        "pitchPackage"
+      ],
+      "properties": {
+        "threads": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reviewThread"
+          }
+        },
+        "loglineCandidates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/loglineCandidate"
+          }
+        },
+        "pitchPackage": {
+          "$ref": "#/$defs/pitchPackage"
+        }
+      }
+    },
+    "reviewThread": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "anchor",
+        "status",
+        "priority",
+        "comments",
+        "createdAt",
+        "updatedAt",
+        "resolvedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "anchor": {
+          "$ref": "#/$defs/reviewAnchor"
+        },
+        "status": {
+          "enum": [
+            "open",
+            "in-review",
+            "resolved",
+            "deferred"
+          ]
+        },
+        "priority": {
+          "enum": [
+            "low",
+            "normal",
+            "high",
+            "critical"
+          ]
+        },
+        "comments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reviewComment"
+          }
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "resolvedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "reviewAnchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "targetId",
+        "label"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "project",
+            "story-field",
+            "block",
+            "scene",
+            "screenplay-element",
+            "character"
+          ]
+        },
+        "targetId": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      }
+    },
+    "reviewComment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "author",
+        "body",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      }
+    },
+    "loglineCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text",
+        "source",
+        "selected",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "selected": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      }
+    },
+    "pitchPackage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "subtitle",
+        "tagline",
+        "logline",
+        "synopsis",
+        "creatorStatement",
+        "audience",
+        "comparableTitles",
+        "visualStatement",
+        "contactLine",
+        "selectedCharacterIds",
+        "selectedLocationIds",
+        "includeSections",
+        "updatedAt"
+      ],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "tagline": {
+          "type": "string"
+        },
+        "logline": {
+          "type": "string"
+        },
+        "synopsis": {
+          "type": "string"
+        },
+        "creatorStatement": {
+          "type": "string"
+        },
+        "audience": {
+          "type": "string"
+        },
+        "comparableTitles": {
+          "type": "string"
+        },
+        "visualStatement": {
+          "type": "string"
+        },
+        "contactLine": {
+          "type": "string"
+        },
+        "selectedCharacterIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "selectedLocationIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "includeSections": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "updatedAt": {
+          "type": "string"
         }
       }
     }

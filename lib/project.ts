@@ -326,6 +326,125 @@ export type ReviewWorkspace = {
   pitchPackage: PitchPackage;
 };
 
+
+export type ProductionShotStatus = "planned" | "approved" | "captured" | "omitted";
+
+export type ProductionShot = {
+  id: string;
+  blockNumber: number;
+  miniBlockNumber: number;
+  sceneId: string;
+  screenplayElementIds: string[];
+  frameId: string;
+  shotNumber: number;
+  shotSize: string;
+  angle: string;
+  movement: string;
+  lens: string;
+  composition: string;
+  purpose: string;
+  continuity: string;
+  keyframeSrc: string;
+  keyframeAlt: string;
+  status: ProductionShotStatus;
+  durationSeconds: number;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SonicCueType = "score" | "source" | "atmosphere" | "sfx" | "silence";
+export type SonicCueStatus = "temp" | "original" | "approved" | "licensed" | "clearance-needed";
+
+export type SonicCue = {
+  id: string;
+  cueNumber: string;
+  blockNumber: number;
+  sceneId: string;
+  type: SonicCueType;
+  title: string;
+  motif: string;
+  cueIn: string;
+  cueOut: string;
+  purpose: string;
+  status: SonicCueStatus;
+  rights: string;
+  durationSeconds: number;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ProductionBreakdown = {
+  id: string;
+  blockNumber: number;
+  sceneId: string;
+  castIds: string[];
+  locationIds: string[];
+  props: string;
+  wardrobe: string;
+  vehicles: string;
+  effects: string;
+  stunts: string;
+  extras: string;
+  makeup: string;
+  sound: string;
+  estimatedHours: number;
+  readiness: "draft" | "reviewed" | "ready" | "blocked";
+  notes: string;
+  updatedAt: string;
+};
+
+export type ProductionScheduleDay = {
+  id: string;
+  dayNumber: number;
+  date: string;
+  sceneIds: string[];
+  locationId: string;
+  callTime: string;
+  estimatedHours: number;
+  status: "planned" | "confirmed" | "completed" | "moved";
+  notes: string;
+  updatedAt: string;
+};
+
+export type DistributionMilestone = {
+  id: string;
+  title: string;
+  targetDate: string;
+  status: "planned" | "active" | "complete" | "deferred";
+  notes: string;
+};
+
+export type DistributionMarketingPlan = {
+  audience: string;
+  positioning: string;
+  releasePath: string;
+  festivalTargets: string;
+  distributorTargets: string;
+  salesMaterials: string;
+  trailerPlan: string;
+  posterPlan: string;
+  socialCampaign: string;
+  pressAngles: string;
+  milestones: DistributionMilestone[];
+  updatedAt: string;
+};
+
+export type ProductionWorkspace = {
+  shots: ProductionShot[];
+  cues: SonicCue[];
+  breakdowns: ProductionBreakdown[];
+  schedule: ProductionScheduleDay[];
+  animatic: {
+    defaultFrameSeconds: number;
+    includeDialogue: boolean;
+    showCueLabels: boolean;
+    updatedAt: string;
+  };
+  distribution: DistributionMarketingPlan;
+};
+
 export type RevisionSnapshot = {
   id: string;
   label: string;
@@ -457,6 +576,7 @@ export type PlotPickleProject = {
   rights: RightsAndProvenance;
   revisions: RevisionSnapshot[];
   review: ReviewWorkspace;
+  production: ProductionWorkspace;
 };
 
 export const beatTemplates = [
@@ -559,6 +679,37 @@ export function createBlankReviewWorkspace(projectTitle = "Untitled Story"): Rev
       selectedLocationIds: [],
       includeSections: ["cover", "logline", "synopsis", "characters", "world", "visuals", "creator", "rights"],
       updatedAt: new Date().toISOString(),
+    },
+  };
+}
+
+
+export function createBlankProductionWorkspace(): ProductionWorkspace {
+  const now = new Date().toISOString();
+  return {
+    shots: [],
+    cues: [],
+    breakdowns: [],
+    schedule: [],
+    animatic: {
+      defaultFrameSeconds: 4,
+      includeDialogue: true,
+      showCueLabels: true,
+      updatedAt: now,
+    },
+    distribution: {
+      audience: "",
+      positioning: "",
+      releasePath: "",
+      festivalTargets: "",
+      distributorTargets: "",
+      salesMaterials: "",
+      trailerPlan: "",
+      posterPlan: "",
+      socialCampaign: "",
+      pressAngles: "",
+      milestones: [],
+      updatedAt: now,
     },
   };
 }
@@ -727,6 +878,7 @@ export function createBlankProject(): PlotPickleProject {
     rights: createBlankRightsAndProvenance("Untitled Story"),
     revisions: [],
     review: createBlankReviewWorkspace("Untitled Story"),
+    production: createBlankProductionWorkspace(),
   };
 }
 
@@ -755,6 +907,7 @@ export function isPlotPickleProject(value: unknown): value is PlotPickleProject 
     Boolean(candidate.rights) &&
     Array.isArray(candidate.revisions) &&
     Boolean(candidate.review) &&
+    Boolean(candidate.production) &&
     candidate.blocks.every((block) => {
       if (!Array.isArray(block.scenes) || block.scenes.length < 1) return false;
       const miniNumbers = block.scenes.flatMap((scene) => Array.isArray(scene.miniBlocks)
@@ -979,6 +1132,123 @@ function normalizeReviewWorkspace(value: unknown, projectTitle: string): ReviewW
   };
 }
 
+
+function normalizeProductionWorkspace(value: unknown): ProductionWorkspace {
+  const defaults = createBlankProductionWorkspace();
+  if (!value || typeof value !== "object") return defaults;
+  const candidate = value as Partial<ProductionWorkspace>;
+  const now = new Date().toISOString();
+  const shotStatuses: ProductionShotStatus[] = ["planned", "approved", "captured", "omitted"];
+  const cueTypes: SonicCueType[] = ["score", "source", "atmosphere", "sfx", "silence"];
+  const cueStatuses: SonicCueStatus[] = ["temp", "original", "approved", "licensed", "clearance-needed"];
+  const readinessValues: ProductionBreakdown["readiness"][] = ["draft", "reviewed", "ready", "blocked"];
+  const dayStatuses: ProductionScheduleDay["status"][] = ["planned", "confirmed", "completed", "moved"];
+  return {
+    shots: Array.isArray(candidate.shots) ? candidate.shots.flatMap((item, index) => {
+      if (!item || typeof item !== "object") return [];
+      const shot = item as Partial<ProductionShot>;
+      return [{
+        id: typeof shot.id === "string" && shot.id ? shot.id : `shot-${index + 1}`,
+        blockNumber: Math.min(24, Math.max(1, Number(shot.blockNumber) || 1)),
+        miniBlockNumber: Math.min(4, Math.max(1, Number(shot.miniBlockNumber) || 1)),
+        sceneId: typeof shot.sceneId === "string" ? shot.sceneId : "",
+        screenplayElementIds: stringArray(shot.screenplayElementIds),
+        frameId: typeof shot.frameId === "string" ? shot.frameId : "",
+        shotNumber: Math.max(1, Number(shot.shotNumber) || index + 1),
+        shotSize: typeof shot.shotSize === "string" ? shot.shotSize : "Wide",
+        angle: typeof shot.angle === "string" ? shot.angle : "Eye level",
+        movement: typeof shot.movement === "string" ? shot.movement : "Locked",
+        lens: typeof shot.lens === "string" ? shot.lens : "Natural perspective",
+        composition: typeof shot.composition === "string" ? shot.composition : "",
+        purpose: typeof shot.purpose === "string" ? shot.purpose : "",
+        continuity: typeof shot.continuity === "string" ? shot.continuity : "",
+        keyframeSrc: typeof shot.keyframeSrc === "string" ? shot.keyframeSrc : "",
+        keyframeAlt: typeof shot.keyframeAlt === "string" ? shot.keyframeAlt : "",
+        status: shotStatuses.includes(shot.status as ProductionShotStatus) ? shot.status as ProductionShotStatus : "planned",
+        durationSeconds: Math.max(1, Number(shot.durationSeconds) || 4),
+        notes: typeof shot.notes === "string" ? shot.notes : "",
+        createdAt: typeof shot.createdAt === "string" ? shot.createdAt : now,
+        updatedAt: typeof shot.updatedAt === "string" ? shot.updatedAt : now,
+      }];
+    }) : [],
+    cues: Array.isArray(candidate.cues) ? candidate.cues.flatMap((item, index) => {
+      if (!item || typeof item !== "object") return [];
+      const cue = item as Partial<SonicCue>;
+      return [{
+        id: typeof cue.id === "string" && cue.id ? cue.id : `cue-${index + 1}`,
+        cueNumber: typeof cue.cueNumber === "string" ? cue.cueNumber : `M${index + 1}`,
+        blockNumber: Math.min(24, Math.max(1, Number(cue.blockNumber) || 1)),
+        sceneId: typeof cue.sceneId === "string" ? cue.sceneId : "",
+        type: cueTypes.includes(cue.type as SonicCueType) ? cue.type as SonicCueType : "score",
+        title: typeof cue.title === "string" ? cue.title : `Cue ${index + 1}`,
+        motif: typeof cue.motif === "string" ? cue.motif : "",
+        cueIn: typeof cue.cueIn === "string" ? cue.cueIn : "",
+        cueOut: typeof cue.cueOut === "string" ? cue.cueOut : "",
+        purpose: typeof cue.purpose === "string" ? cue.purpose : "",
+        status: cueStatuses.includes(cue.status as SonicCueStatus) ? cue.status as SonicCueStatus : "temp",
+        rights: typeof cue.rights === "string" ? cue.rights : "",
+        durationSeconds: Math.max(0, Number(cue.durationSeconds) || 0),
+        notes: typeof cue.notes === "string" ? cue.notes : "",
+        createdAt: typeof cue.createdAt === "string" ? cue.createdAt : now,
+        updatedAt: typeof cue.updatedAt === "string" ? cue.updatedAt : now,
+      }];
+    }) : [],
+    breakdowns: Array.isArray(candidate.breakdowns) ? candidate.breakdowns.flatMap((item, index) => {
+      if (!item || typeof item !== "object") return [];
+      const breakdown = item as Partial<ProductionBreakdown>;
+      return [{
+        id: typeof breakdown.id === "string" && breakdown.id ? breakdown.id : `breakdown-${index + 1}`,
+        blockNumber: Math.min(24, Math.max(1, Number(breakdown.blockNumber) || 1)),
+        sceneId: typeof breakdown.sceneId === "string" ? breakdown.sceneId : "",
+        castIds: stringArray(breakdown.castIds),
+        locationIds: stringArray(breakdown.locationIds),
+        props: typeof breakdown.props === "string" ? breakdown.props : "",
+        wardrobe: typeof breakdown.wardrobe === "string" ? breakdown.wardrobe : "",
+        vehicles: typeof breakdown.vehicles === "string" ? breakdown.vehicles : "",
+        effects: typeof breakdown.effects === "string" ? breakdown.effects : "",
+        stunts: typeof breakdown.stunts === "string" ? breakdown.stunts : "",
+        extras: typeof breakdown.extras === "string" ? breakdown.extras : "",
+        makeup: typeof breakdown.makeup === "string" ? breakdown.makeup : "",
+        sound: typeof breakdown.sound === "string" ? breakdown.sound : "",
+        estimatedHours: Math.max(1, Number(breakdown.estimatedHours) || 1),
+        readiness: readinessValues.includes(breakdown.readiness as ProductionBreakdown["readiness"]) ? breakdown.readiness as ProductionBreakdown["readiness"] : "draft",
+        notes: typeof breakdown.notes === "string" ? breakdown.notes : "",
+        updatedAt: typeof breakdown.updatedAt === "string" ? breakdown.updatedAt : now,
+      }];
+    }) : [],
+    schedule: Array.isArray(candidate.schedule) ? candidate.schedule.flatMap((item, index) => {
+      if (!item || typeof item !== "object") return [];
+      const day = item as Partial<ProductionScheduleDay>;
+      return [{
+        id: typeof day.id === "string" && day.id ? day.id : `shoot-day-${index + 1}`,
+        dayNumber: Math.max(1, Number(day.dayNumber) || index + 1),
+        date: typeof day.date === "string" ? day.date : "",
+        sceneIds: stringArray(day.sceneIds),
+        locationId: typeof day.locationId === "string" ? day.locationId : "location-tbd",
+        callTime: typeof day.callTime === "string" ? day.callTime : "08:00",
+        estimatedHours: Math.max(0, Number(day.estimatedHours) || 0),
+        status: dayStatuses.includes(day.status as ProductionScheduleDay["status"]) ? day.status as ProductionScheduleDay["status"] : "planned",
+        notes: typeof day.notes === "string" ? day.notes : "",
+        updatedAt: typeof day.updatedAt === "string" ? day.updatedAt : now,
+      }];
+    }) : [],
+    animatic: {
+      ...defaults.animatic,
+      ...(candidate.animatic && typeof candidate.animatic === "object" ? candidate.animatic : {}),
+      defaultFrameSeconds: Math.max(1, Number(candidate.animatic?.defaultFrameSeconds) || defaults.animatic.defaultFrameSeconds),
+      includeDialogue: candidate.animatic?.includeDialogue !== false,
+      showCueLabels: candidate.animatic?.showCueLabels !== false,
+      updatedAt: typeof candidate.animatic?.updatedAt === "string" ? candidate.animatic.updatedAt : now,
+    },
+    distribution: {
+      ...defaults.distribution,
+      ...(candidate.distribution && typeof candidate.distribution === "object" ? candidate.distribution : {}),
+      milestones: Array.isArray(candidate.distribution?.milestones) ? candidate.distribution.milestones.filter((item): item is DistributionMilestone => Boolean(item && typeof item === "object")) : [],
+      updatedAt: typeof candidate.distribution?.updatedAt === "string" ? candidate.distribution.updatedAt : now,
+    },
+  };
+}
+
 export function normalizePlotPickleProject(value: unknown): PlotPickleProject | null {
   if (!value || typeof value !== "object") return null;
   const candidate = value as Record<string, unknown> & {
@@ -996,6 +1266,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     rights?: RightsAndProvenance;
     revisions?: RevisionSnapshot[];
     review?: ReviewWorkspace;
+    production?: ProductionWorkspace;
   };
   if (
     !["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0"].includes(candidate.schemaVersion ?? "") ||
@@ -1043,12 +1314,25 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
       audienceExpectation: block.audienceExpectation ?? "",
       pickleTurn: block.pickleTurn ?? "",
       scenes: normalizeScenes(block.scenes, index + 1, targetMinutes),
-      visuals: normalizeStoryboardFrames(block.visuals, index + 1),
+      visuals: normalizeStoryboardFrames(block.visuals, index + 1).map((frame) => {
+        const number = index + 1;
+        const isAfterglowClosingFrame = candidate.metadata.title.toLowerCase().includes("afterglow") && number >= 22 && number <= 24 && !frame.src;
+        if (!isAfterglowClosingFrame) return frame;
+        return {
+          ...frame,
+          src: `/afterglow/storyboard/block-${String(number).padStart(2, "0")}-mini-${frame.miniBlockNumber}.svg`,
+          alt: `Afterglow replacement concept keyframe — Block ${number}.${frame.miniBlockNumber}`,
+          caption: `PlotPickle replacement concept keyframe for the complete Afterglow ending, Block ${number}.${frame.miniBlockNumber}.`,
+          shot: "Use this new closing-movement concept as the keyframe anchor, then refine it through Shot Designer.",
+          continuity: "Preserve the established Afterglow chosen-family, coastal light, sentient-machine design language and emotional movement toward release and connection.",
+        };
+      }),
     })),
     storyThreads: normalizeStoryThreads(candidate.storyThreads),
     rights: normalizeRights(candidate.rights, candidate.metadata.title),
     revisions: normalizeRevisions(candidate.revisions),
     review: normalizeReviewWorkspace(candidate.review, candidate.metadata.title),
+    production: normalizeProductionWorkspace(candidate.production),
   };
 }
 

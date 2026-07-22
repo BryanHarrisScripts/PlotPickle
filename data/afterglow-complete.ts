@@ -138,10 +138,10 @@ function completeBlock(
     locationIds: locationIdsFor(evidence),
     storyboardDirection: blockNumber <= 21
       ? `Use the four approved Afterglow WebP frames as the visual anchors for Block ${blockNumber}, while preserving the complete screenplay evidence and continuity.`
-      : `Develop four new frames from the complete screenplay ending for Block ${blockNumber}; the legacy storyboard repository did not contain trustworthy source images for this movement.`,
+      : `Use the four new PlotPickle replacement concept keyframes for Block ${blockNumber}; they were created from the complete screenplay ending because the legacy storyboard repository did not contain trustworthy source images for this movement.`,
     notes: blockNumber <= 21
       ? "This Block is reconciled to the complete v9 screenplay and includes four bundled source storyboard frames."
-      : "This Block is reconciled to the complete v9 screenplay. Its visual slots remain intentionally open because the legacy Block 22–24 folders duplicated earlier material.",
+      : "This Block is reconciled to the complete v9 screenplay and now includes four clearly identified PlotPickle replacement concept keyframes because the legacy Block 22–24 folders duplicated earlier material.",
     scenes,
     visuals: createAfterglowStoryboardFrames(blockNumber),
   };
@@ -178,9 +178,9 @@ export function createAfterglowProject(): PlotPickleProject {
       notes: {
         ...base.development.notes,
         general: "The complete screenplay is loaded across all 24 Blocks and 96 mini-blocks. Summer reveals her true name, Isobel, in Venice Beach.",
-        openQuestions: "Blocks 22–24 have complete screenplay material but require newly approved storyboard images because the legacy source folders duplicated Block 6 content.",
+        openQuestions: "Blocks 22–24 now use newly approved PlotPickle replacement concept keyframes because the legacy source folders duplicated Block 6 content.",
         continuity: "Track Summer's transition to Isobel, the messenger bag and its contents, Rocket and Joy's damage and rebirth, the AI animal family, the North Star, coastal geography, and the final move to Costa Rica.",
-        revisions: "Review the proportional 24/96 screenplay mapping and create final approved visuals for Blocks 22–24.",
+        revisions: "Review the proportional 24/96 screenplay mapping and refine the new Blocks 22–24 replacement keyframes through Shot Designer.",
         sources: "Afterglow v9 Twitter Rewrite Bryan E. Harris 2023; Afterglow Storyboard Blocks 1–21; Bryan Harris's 24 Blocks framework; CC BY-SA 4.0.",
       },
     },

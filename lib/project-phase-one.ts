@@ -221,6 +221,7 @@ export type RevisionSnapshotPayload = {
   characterArcs: Array<{ characterId: string; name: string; arcMatrix: CharacterArcMatrix }>;
   storyThreads: StoryThread[];
   review: ReviewWorkspace;
+  production: PlotPickleProject["production"];
 };
 
 export type RevisionSnapshot = {
@@ -370,7 +371,8 @@ export function isPhaseOneProject(value: unknown): value is PhaseOneProject {
     && candidate.blocks.every((block) => Array.isArray(block.scenes) && block.scenes.length >= 1)
     && Array.isArray(candidate.storyThreads)
     && Boolean(candidate.rights)
-    && Array.isArray(candidate.revisions);
+    && Array.isArray(candidate.revisions)
+    && Boolean(candidate.production);
 }
 
 function enrichScenes(scenes: StoryScene[]): PhaseOneStoryScene[] {
@@ -585,6 +587,7 @@ export function captureRevisionPayload(project: PhaseOneProject): RevisionSnapsh
     characterArcs: project.characters.map((character) => ({ characterId: character.id, name: character.name, arcMatrix: character.arcMatrix })),
     storyThreads: project.storyThreads,
     review: project.review,
+    production: project.production,
   });
 }
 

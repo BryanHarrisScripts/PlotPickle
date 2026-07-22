@@ -46,10 +46,10 @@ test("Structure, Writer and DraftLens embed the same diagnostic engine", async (
   }
 });
 
-test("PlotPickle 0.14 documents the completion standard", async () => {
+test("the Phase B completion standard remains documented in later releases", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   const documentation = await source("docs/phase-b-diagnostic-craft.md");
-  assert.equal(packageJson.version, "0.14.0");
+  assert.ok(Number(packageJson.version.split(".")[1]) >= 14, "Phase B requires PlotPickle 0.14 or later");
   assert.match(documentation, /what function is weak/);
   assert.match(documentation, /why that function matters/);
   assert.match(documentation, /story movement, scene, thread or character arc/);

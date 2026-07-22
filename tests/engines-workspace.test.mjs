@@ -8,7 +8,7 @@ test("main application exposes Engines inside five connected creative workspaces
   assert.ok(source.includes('{ id: "engines", label: "Engines", description: "Refine the story" }'));
   assert.ok(source.includes('import EngineHub from "./engine-hub"'));
   assert.ok(source.includes('{activeTab === "engines" ? <EngineHub /> : null}'));
-  assert.ok(source.includes('<span>Script Viewer</span><span>Visual Board</span><span>Engines</span>'));
+  assert.ok(source.includes('<span>Screenplay</span><span>Visual Board</span><span>Engines</span>'));
   assert.ok(source.includes("One playhouse. Five connected workspaces."));
 });
 

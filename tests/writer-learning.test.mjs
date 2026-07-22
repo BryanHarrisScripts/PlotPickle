@@ -36,16 +36,13 @@ test("Learning Studio preserves the educational and user-work licence boundary",
 
 test("Afterglow populates the Markdown Treatment and carries it into storyboard prompts", async () => {
   const afterglow = await source("data/afterglow.ts");
-  const treatment = await source("data/afterglow-treatment.ts");
   const storyboard = await source("app/visual-storyboard.tsx");
   const page = await source("app/page.tsx");
-  for (const phrase of ["afterglowTreatmentSections", "populateAfterglowBlock", "Source-based working treatment", "Source reconciliation required", "miniBlocks", "notes:"]) {
+  for (const phrase of ["populateAfterglowBlock", "Known Afterglow summary already included in PlotPickle", "Source reconciliation required", "Treatment task", "miniBlocks", "notes:"]) {
     assert.ok(afterglow.includes(phrase), `Afterglow treatment loading is missing ${phrase}`);
   }
-  assert.match(treatment, /PUPPETS AND PUPPETEERS PART 1/);
-  assert.match(treatment, /GUIDING STARS/);
-  assert.match(treatment, /Block 24\.4/);
   assert.match(storyboard, /Treatment evidence for this exact mini-block/);
   assert.match(storyboard, /mini\.notes\.slice\(0, 1800\)/);
-  assert.match(page, /84 source-based Treatment movements, 12 reconciliation slots/);
+  assert.match(page, /all 96 Treatment positions/);
+  assert.match(page, /Unreconciled material is clearly marked/);
 });

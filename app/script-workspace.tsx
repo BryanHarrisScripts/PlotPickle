@@ -171,6 +171,20 @@ export default function ScriptWorkspace({ project, onChange, onProjectChange, on
     setMode("screenplay");
   }
 
+  function jumpToPosition(nextBlockNumber: number, nextMiniBlockNumber?: number) {
+    const target = elements.find((element) =>
+      element.blockNumber === nextBlockNumber
+      && (nextMiniBlockNumber === undefined || element.miniBlockNumber === nextMiniBlockNumber),
+    );
+    setBlockNumber(nextBlockNumber);
+    setMiniBlockNumber(nextMiniBlockNumber ?? target?.miniBlockNumber ?? 1);
+    if (!target) return;
+    setSelectedId(target.id);
+    window.setTimeout(() => {
+      document.getElementById(`script-position-${target.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  }
+
   if (mode === "treatment") {
     return (
       <div className={styles.workspaceShell}>
@@ -225,7 +239,7 @@ export default function ScriptWorkspace({ project, onChange, onProjectChange, on
       </div>
 
       <header className={styles.writerHeader}>
-        <div><p>Feature Screenplay</p><h1>{project.metadata.title}</h1><span>{pages} estimated pages · {sceneCount} scenes · target {project.metadata.targetMinutes} minutes</span></div>
+        <div><p>Feature Screenplay</p><h1>{project.metadata.title}</h1><span>{pages} estimated pages · {sceneCount} scenes · target {project.metadata.targetMinutes} minutes · full scrollable draft</span></div>
         <div className={styles.exportActions}>
           <button type="button" onClick={() => download(`${slug(project.metadata.title)}.fountain`, screenplayToFountain(project.screenplay), "text/plain")}>Export Fountain</button>
           <button type="button" onClick={() => download(`${slug(project.metadata.title)}.fdx`, screenplayToFinalDraft(project), "application/xml")}>Export Final Draft</button>
@@ -238,7 +252,7 @@ export default function ScriptWorkspace({ project, onChange, onProjectChange, on
           <div><span>Story structure</span><strong>24 Blocks / 96 mini-blocks</strong><small>Select a block, then one of its four story movements.</small></div>
           <nav aria-label="Screenplay blocks">{project.blocks.map((item) => {
             const count = elements.filter((element) => element.blockNumber === item.number).length;
-            return <button type="button" className={item.number === blockNumber ? styles.activeBlock : ""} key={item.id} onClick={() => { setBlockNumber(item.number); setMiniBlockNumber(1); }}><span>{String(item.number).padStart(2, "0")}</span><strong>{item.title}</strong><small>{count ? `${count} script elements` : "Not written"}</small></button>;
+            return <button type="button" className={item.number === blockNumber ? styles.activeBlock : ""} key={item.id} onClick={() => jumpToPosition(item.number)}><span>{String(item.number).padStart(2, "0")}</span><strong>{item.title}</strong><small>{count ? `${count} script elements` : "Not written"}</small></button>;
           })}</nav>
         </aside>
 
@@ -247,7 +261,7 @@ export default function ScriptWorkspace({ project, onChange, onProjectChange, on
             <div><span>Act {block.act} · Block {block.number}</span><h2>{block.title}</h2><p>{block.purpose}</p></div>
             <div className={styles.miniGrid}>{minis.map((item) => {
               const count = elements.filter((element) => element.blockNumber === blockNumber && element.miniBlockNumber === item.number).length;
-              return <button type="button" className={item.number === miniBlockNumber ? styles.activeMini : ""} key={item.id} onClick={() => setMiniBlockNumber(item.number)}><span>{block.number}.{item.number}</span><strong>{item.label}</strong><small>{item.function}</small><i>{count ? `${count} elements` : "Empty"}</i></button>;
+              return <button type="button" className={item.number === miniBlockNumber ? styles.activeMini : ""} key={item.id} onClick={() => jumpToPosition(blockNumber, item.number)}><span>{block.number}.{item.number}</span><strong>{item.label}</strong><small>{item.function}</small><i>{count ? `${count} elements` : "Empty"}</i></button>;
             })}</div>
             <button type="button" className={styles.openPlan} onClick={() => onOpenBlock(blockNumber)}>Open Block {blockNumber} plan</button>
           </section>
@@ -264,7 +278,7 @@ export default function ScriptWorkspace({ project, onChange, onProjectChange, on
           <section className={styles.scriptPaper} aria-label="Editable screenplay">
             {!elements.length && !project.screenplay.sourceText ? <div className={styles.blankPage}><span>Page 1</span><h2>Begin with the opening image.</h2><p>Start with a scene heading, then action. PlotPickle will keep every page connected to Block 1 and its four mini-blocks.</p><button type="button" onClick={() => addElement("scene-heading", "INT. LOCATION - DAY")}>Write the first scene</button></div> : null}
             {elements.map((element, index) => (
-              <article className={`${styles.scriptElement} ${styles[element.type]} ${selectedId === element.id ? styles.selectedElement : ""}`} key={element.id} onClick={() => setSelectedId(element.id)}>
+              <article id={`script-position-${element.id}`} className={`${styles.scriptElement} ${styles[element.type]} ${selectedId === element.id ? styles.selectedElement : ""}`} key={element.id} onClick={() => setSelectedId(element.id)}>
                 <div className={styles.elementMeta}>
                   <span>B{element.blockNumber}.{element.miniBlockNumber}</span>
                   <select aria-label="Screenplay element type" value={element.type} onChange={(event) => updateElement(element.id, { type: event.target.value as ScreenplayDraftElementType })}>{elementOrder.map((type) => <option key={type} value={type}>{elementLabels[type]}</option>)}</select>

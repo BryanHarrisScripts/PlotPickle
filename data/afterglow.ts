@@ -1,4 +1,5 @@
 import { createBlankProject, type Character, type PlotPickleProject } from "@/lib/project";
+import { createAfterglowScreenplay } from "./afterglow-screenplay";
 
 const afterglowCharacters: Character[] = [
   {
@@ -533,6 +534,7 @@ export function createAfterglowProject(): PlotPickleProject {
       }
     },
     characters: afterglowCharacters,
-    blocks: project.blocks.map(populateAfterglowBlock)
+    blocks: project.blocks.map(populateAfterglowBlock),
+    screenplay: createAfterglowScreenplay(importedAt)
   };
 }

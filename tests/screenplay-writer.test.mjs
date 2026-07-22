@@ -27,6 +27,21 @@ test("writer supports standard screenplay grammar and Final Draft/Fountain hando
   assert.match(workspace, /Print \/ PDF/);
 });
 
+test("Afterglow loads its v10 screenplay as one continuous editable draft", async () => {
+  const workspace = await source("app/script-workspace.tsx");
+  const afterglow = await source("data/afterglow.ts");
+  const screenplay = await source("data/afterglow-screenplay.ts");
+  assert.match(afterglow, /screenplay: createAfterglowScreenplay\(importedAt\)/);
+  assert.equal((screenplay.match(/"type":/g) ?? []).length, 368);
+  assert.match(screenplay, /"blockNumber": 1/);
+  assert.match(screenplay, /"blockNumber": 8/);
+  assert.match(screenplay, /"type": "dialogue"/);
+  assert.match(screenplay, /"type": "action"/);
+  assert.match(workspace, /full scrollable draft/);
+  assert.match(workspace, /jumpToPosition/);
+  assert.match(workspace, /scrollIntoView/);
+});
+
 test("AI writing and character images use the private local gateway and require approval", async () => {
   const workspace = await source("app/script-workspace.tsx");
   const character = await source("app/character-image-generator.tsx");

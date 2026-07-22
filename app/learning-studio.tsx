@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { PlotPickleProject } from "@/lib/project";
 import styles from "./learning-studio.module.css";
 
@@ -54,10 +54,10 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
   const mini = minis[miniBlockNumber - 1];
   const paths = ["All", "Start", "Character", "Structure", "Scenes", "Dialogue", "Revision", "Tools"];
   const recommendedIds = miniBlockNumber === 1 ? ["concept", "dynamic-scenes", "visual-writing"] : miniBlockNumber === 2 ? ["character", "dialogue", "subtext"] : miniBlockNumber === 3 ? ["dramatic-question", "inner-journey", "pacing"] : ["theme", "silence", "revision"];
-  const filtered = useMemo(() => lessons.filter((lesson) => {
+  const filtered = lessons.filter((lesson) => {
     const haystack = `${lesson.title} ${lesson.summary} ${lesson.path} ${lesson.tags.join(" ")}`.toLowerCase();
     return (path === "All" || lesson.path === path) && haystack.includes(query.trim().toLowerCase());
-  }).sort((left, right) => Number(recommendedIds.includes(right.id)) - Number(recommendedIds.includes(left.id))), [path, query, recommendedIds.join("|")]);
+  }).sort((left, right) => Number(recommendedIds.includes(right.id)) - Number(recommendedIds.includes(left.id)));
 
   function applyLesson(lesson: Lesson) {
     if (lesson.apply === "Screenplay") onOpenScreenplay();

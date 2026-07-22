@@ -62,3 +62,7 @@ These are diagnostic prompts, not rigid screenplay rules. The writer can intenti
 ## Compatibility
 
 The canonical compatibility schema still identifies the project as schema 1.6 while the larger Phase 1 additive model remains schema 1.7. The 1.6 normalizer upgrades older fixed-scene projects into the flexible scene shape and now validates one or more scenes per block instead of exactly two.
+
+## Validation
+
+Phase 2 includes source, schema and interface regression tests for flexible scene counts, stable screenplay links, short scenes, global numbering, scene-health diagnostics and backward-compatible project loading. The standard PlotPickle quality workflow runs linting, a production build, smoke tests and the complete test suite before merge.

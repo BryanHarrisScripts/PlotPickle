@@ -5,6 +5,11 @@
     radial-gradient(circle at 92% 7%, rgba(101, 174, 222, 0.11), transparent 28rem);
 }
 
+.embedded {
+  padding: 0 0 28px;
+  background: transparent;
+}
+
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.55fr);
@@ -84,6 +89,10 @@
 @media (max-width: 700px) {
   .wrap {
     padding: 22px 15px 18px;
+  }
+
+  .embedded {
+    padding: 0 0 18px;
   }
 
   .primaryCard,

@@ -9,7 +9,8 @@ import EngineHub from "./engine-hub";
 import ProjectOverview from "./project-overview";
 import StructureMapSummary from "./structure-map-summary";
 import SettingsPanel from "./settings-panel";
-import ScriptWorkspace from "./script-workspace";
+import ScriptWorkspace, { type WriterViewMode } from "./script-workspace";
+import LearningStudio from "./learning-studio";
 import CharacterImageGenerator from "./character-image-generator";
 import VisualStoryboard from "./visual-storyboard";
 import { projectSectionProgress, sectionHasAlert } from "@/lib/project-progress";
@@ -32,12 +33,13 @@ import {
 const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
 
-type MainTab = "instructions" | "planner" | "script" | "visuals" | "engines" | "settings";
+type MainTab = "instructions" | "learn" | "planner" | "script" | "visuals" | "engines" | "settings";
 type StorySection = "overview" | "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "structureMap" | "blocks" | "storyboard" | "notes";
 type StorySectionGroup = "Project" | "Foundation" | "Structure" | "Production";
 
 const mainTabs: { id: MainTab; label: string; description: string }[] = [
   { id: "instructions", label: "Instructions", description: "Learn the method" },
+  { id: "learn", label: "Read & Learn", description: "Study the craft" },
   { id: "planner", label: "Story Planner", description: "Build the story" },
   { id: "script", label: "Screenplay", description: "Outline & write" },
   { id: "visuals", label: "Visual Board", description: "See the film" },
@@ -446,6 +448,8 @@ export default function Home() {
   const [activeSection, setActiveSection] = useState<StorySection>("overview");
   const [selectedCharacterId, setSelectedCharacterId] = useState("");
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
+  const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(1);
+  const [writerMode, setWriterMode] = useState<WriterViewMode>("treatment");
   const [visualAct, setVisualAct] = useState(0);
   const [hydrated, setHydrated] = useState(false);
   const [saveState, setSaveState] = useState("Saved on this device");
@@ -567,6 +571,7 @@ export default function Home() {
     setProject(blank);
     setSelectedCharacterId("");
     setSelectedBlockNumber(1);
+    setSelectedMiniBlockNumber(1);
     setActiveTab("planner");
     setActiveSection("storySetup");
     setToast("A blank feature screenplay is ready. Begin with Story Setup, then build the 24 Blocks and 96 mini-blocks.");
@@ -579,6 +584,7 @@ export default function Home() {
     setProject(afterglow);
     setSelectedCharacterId("ren");
     setSelectedBlockNumber(1);
+    setSelectedMiniBlockNumber(1);
     setActiveTab("planner");
     setActiveSection("overview");
     setToast("Afterglow loaded across the Story Planner, all 96 Treatment positions, and Visual Storyboard context. Unreconciled material is clearly marked.");
@@ -606,6 +612,7 @@ export default function Home() {
     setProject(imported);
     setSelectedCharacterId(imported.characters[0]?.id ?? "");
     setSelectedBlockNumber(1);
+    setSelectedMiniBlockNumber(1);
     setVisualAct(0);
     setActiveTab("script");
     setActiveSection("overview");
@@ -664,6 +671,7 @@ export default function Home() {
 
   function openBlock(number: number, destination: MainTab = "planner") {
     setSelectedBlockNumber(number);
+    setSelectedMiniBlockNumber(1);
     setActiveTab(destination);
     setActiveSection(destination === "planner" ? "blocks" : "storyboard");
   }
@@ -800,12 +808,32 @@ export default function Home() {
           </div>
         ) : null}
 
+        {activeTab === "learn" ? (
+          <LearningStudio
+            project={project}
+            blockNumber={selectedBlockNumber}
+            miniBlockNumber={selectedMiniBlockNumber}
+            onBlockChange={setSelectedBlockNumber}
+            onMiniBlockChange={setSelectedMiniBlockNumber}
+            onOpenTreatment={() => {
+              setWriterMode("treatment");
+              setActiveTab("script");
+            }}
+            onOpenScreenplay={() => {
+              setWriterMode("screenplay");
+              setActiveTab("script");
+            }}
+            onOpenBlock={(number) => openBlock(number, "planner")}
+          />
+        ) : null}
+
         {activeTab === "script" ? (
           <ScriptWorkspace
             project={project}
+            mode={writerMode}
+            onModeChange={setWriterMode}
             onChange={(screenplay) => commit({ ...project, screenplay })}
             onProjectChange={commit}
-            onImport={replaceWithImportedScreenplay}
             onOpenBlock={(number) => openBlock(number, "planner")}
           />
         ) : null}

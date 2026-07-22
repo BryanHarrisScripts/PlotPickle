@@ -2,7 +2,7 @@
 
 PlotPickle is a local-first story-development application built around Bryan Harris’s 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, scene, mini-block, screenplay page, review, and visual board.
 
-Current application version: `0.10.0`
+Current application version: `0.11.0`
 
 Current project schema: `1.6.0`
 
@@ -73,13 +73,17 @@ The launcher does not request Administrator rights, install a Windows service, a
 
 - **Instructions** explains the 24 Blocks method and every story column.
 - **Story Planner** develops the story foundation, world, characters, Ghost, Catalyst, The Pickle, dialogue system, structure summary, block spine, and notes.
-- **Screenplay** is the connected writing workspace. Write standard scene headings, action, character cues, parentheticals, dialogue and transitions against the 24 Blocks and 96 mini-blocks, then switch to Read & Learn for the colour-coded teaching viewer.
+- **Writer** connects three modes to the same 24 Blocks and 96 mini-blocks: a Markdown Treatment editor for developing literature and story prose, a screenplay editor for standard scene headings, action, character cues, parentheticals, dialogue and transitions, and Read & Learn for contextual craft education plus the colour-coded script viewer.
 - **Visual Storyboard** moves from the 24-block overview into all 96 mini-block images. Every default prompt is assembled from the current story, scene purpose, mini-block function, assigned characters, locations, visual language, screenplay evidence, shot notes, and continuity. Writers can refine or copy the prompt, generate a landscape frame through the private local AI gateway, and see whole-film completion at a glance.
 - **Engines** explains and opens six focused specialist passes.
 
 Every workspace reads and writes the same locally saved project.
 
-The Screenplay workspace starts blank for a new movie and uses the existing Story Setup, World, Characters, Ghost, Catalyst, 24 Blocks, 48 scenes and 96 mini-blocks as its writing foundation. Every screenplay element retains its Block and mini-block assignment. The editor estimates page and scene counts, uses screenplay-standard spacing, and exports Fountain and Final Draft FDX; Print / PDF uses the screenplay page layout. Read & Learn keeps the complete screenplay readable in order, colour-codes screenplay grammar, and answers guided structural questions from the same project.
+The Writer starts with a Markdown treatment section for every mini-block. It includes formatting tools, live preview, section and complete-treatment export, word counts, optional AI cleanup that requires approval, and a deliberate handoff from prose into screenplay action. Treatment text is saved in the canonical local project and can contribute context to later visual-storyboard prompts.
+
+Screenplay mode starts blank for a new movie and uses the existing Story Setup, World, Characters, Ghost, Catalyst, 24 Blocks, 48 scenes and 96 mini-blocks as its writing foundation. Every screenplay element retains its Block and mini-block assignment. The editor estimates page and scene counts, uses screenplay-standard spacing, and exports Fountain and Final Draft FDX; Print / PDF uses the screenplay page layout.
+
+Read & Learn adds a searchable Learning Studio drawn from PlotPickle's screenwriting documentation. Short learning paths cover concept-to-draft, character and inner journey, structure and dramatic questions, scene construction, visual writing, dialogue, subtext, silence, theme, pacing, revision and Markdown. Recommended lessons follow the active Block and mini-block, provide an immediate exercise, and open the correct workspace for application. The educational guidance remains CC BY-SA 4.0; each writer's creative work remains their own.
 
 It also accepts plain-text (`.txt`), Fountain (`.fountain` or `.spmd`), and Final Draft (`.fdx`) files. **Load a screenplay** in Read & Learn and **Import** in the top bar use the same ingestion pipeline. A screenplay creates a fresh active project, replaces the optional Afterglow example, preserves the complete draft, detects the title, speaking characters, locations and scene order, and maps passages into the 24 Blocks, Story Planner, Structure Map, guided questions, and Visual Board directions. Script-derived interpretations are visibly marked as suggestions until the writer reviews and confirms them.
 

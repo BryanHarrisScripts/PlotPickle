@@ -38,9 +38,11 @@ test("workspace introductions follow the selected primary navigation tab", async
 
   assert.match(layout, /<WorkspaceIntroHost \/>/);
   assert.match(host, /main\.workspace/);
-  assert.match(host, /aria-selected=\"true\"/);
+  assert.match(host, /aria-selected="true"/);
   assert.match(host, /MutationObserver/);
-  assert.match(host, /workspace\.prepend\(host\)/);
+  assert.match(host, /nextContainer\.prepend\(host\)/);
+  assert.match(host, /visual-studio-layout/);
+  assert.match(host, /embedded=\{activeLabel === "Visual Board"\}/);
   assert.match(host, /createPortal/);
 });
 

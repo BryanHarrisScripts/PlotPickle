@@ -36,7 +36,7 @@ test("Learning Studio connects contextual guidance to the complete course", asyn
 test("Learning Library contains all 14 source modules with substantial teaching tools", async () => {
   const library = await source("app/learning-library.ts");
   assert.equal((library.match(/number: \d+,/g) ?? []).length, 14);
-  for (const phrase of ["The Pitch", "Tropes and Genres", "Story Structures: Screenplays to Improv", "The Writing Process", "Concept to Final Draft", "World-Building", "Story Bible: Character", "The Story Bible", "The Vomit Draft", "Script Formatting", "Books, Screenplays and Deliberate Study", "Screenplay Challenges Guide", "The Film Industry", "Responsible AI-Assisted Writing"]) {
+  for (const phrase of ["The Pitch", "Tropes and Genres", "Story Structures: Screenplays to Improv", "The Writing Process", "Concept to Final Draft", "World-Building", "Story Bible: Character", "The Story Bible", "The Pickle Draft", "Script Formatting", "Books, Screenplays and Deliberate Study", "Screenplay Challenges Guide", "The Film Industry", "Responsible AI-Assisted Writing"]) {
     assert.ok(library.includes(phrase), `Learning Library is missing ${phrase}`);
   }
   for (const teachingTool of ["objectives:", "sections:", "definitions:", "example:", "checklist:", "mistakes:", "exercise:", "apply:"]) {

@@ -5,11 +5,16 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("Writer connects Treatment, Screenplay and Read & Learn to the same story position", async () => {
+test("Read & Learn is a primary workspace and Writer keeps Treatment and Screenplay connected", async () => {
+  const page = await source("app/page.tsx");
   const workspace = await source("app/script-workspace.tsx");
-  for (const phrase of ["TreatmentEditor", "LearningStudio", 'type ViewMode = "treatment" | "screenplay" | "learn"', "Treatment", "Screenplay", "Read & learn", "onProjectChange"]) {
+  for (const phrase of ['id: "learn", label: "Read & Learn", description: "Study the craft"', '<LearningStudio', 'activeTab === "learn"', 'setWriterMode("treatment")', 'setWriterMode("screenplay")']) {
+    assert.ok(page.includes(phrase), `Primary learning workspace is missing ${phrase}`);
+  }
+  for (const phrase of ["TreatmentEditor", 'export type WriterViewMode = "treatment" | "screenplay"', "Treatment", "Screenplay", "onProjectChange"]) {
     assert.ok(workspace.includes(phrase), `Writer is missing ${phrase}`);
   }
+  assert.ok(!workspace.includes("Read & learn"), "Read & Learn must not remain inside the Screenplay section");
 });
 
 test("Markdown treatment supports local writing, preview, export, AI approval and screenplay handoff", async () => {

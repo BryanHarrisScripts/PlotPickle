@@ -23,6 +23,8 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - name: Remove duplicated migration declarations
+        run: python scripts/cleanup-phase-a.py
       - run: npm ci
       - name: Capture build and tests
         run: |
@@ -32,10 +34,10 @@ jobs:
           npm test > docs/phase-a-test.log 2>&1
           echo $? > docs/phase-a-test.exit
           exit 0
-      - name: Commit diagnostics
+      - name: Commit cleanup and diagnostics
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/phase-a-*.log docs/phase-a-*.exit
-          git commit -m "Capture Phase A validation diagnostics"
+          git add -A
+          git commit -m "Clean and validate the Phase A implementation"
           git push origin HEAD:agent/phase-a-core-model-013

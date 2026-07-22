@@ -52,6 +52,11 @@ export default function WorkspaceIntroHost() {
     let host: HTMLDivElement | null = null;
 
     function sync() {
+      if (host && !host.isConnected) {
+        host = null;
+        setTarget(null);
+      }
+
       const workspace = document.querySelector<HTMLElement>("main.workspace");
       if (workspace && !host) {
         host = document.createElement("div");

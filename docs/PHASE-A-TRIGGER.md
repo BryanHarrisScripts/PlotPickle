@@ -1,0 +1,1 @@
+Temporary trigger file for the Phase A pull-request migration. The migration removes this file before the implementation commit.

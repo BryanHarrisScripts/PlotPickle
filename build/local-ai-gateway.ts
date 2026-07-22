@@ -25,7 +25,7 @@ type ConnectionInput = {
 };
 
 type TextGenerationInput = { instructions?: unknown; prompt?: unknown };
-type ImageGenerationInput = { prompt?: unknown; characterId?: unknown };
+type ImageGenerationInput = { prompt?: unknown; characterId?: unknown; assetId?: unknown; aspect?: unknown };
 
 const API_PATH = "/api/local-ai/connection";
 const CHECK_PATH = `${API_PATH}/check`;
@@ -222,7 +222,7 @@ async function generateImage(connection: SavedAiConnection, input: ImageGenerati
   const value = await providerJson(`${normalizedUrl(connection.baseUrl)}/images/generations`, connection, {
     model: connection.imageModel,
     prompt,
-    size: "1024x1536",
+    size: input.aspect === "landscape" ? "1536x1024" : "1024x1536",
     quality: "medium",
     output_format: "webp",
     n: 1,
@@ -239,7 +239,7 @@ async function generateImage(connection: SavedAiConnection, input: ImageGenerati
     bytes = Buffer.from(await imageResponse.arrayBuffer());
   }
   if (!bytes.length || bytes.length > 20 * 1024 * 1024) throw new Error("The generated image file was empty or too large.");
-  const fileName = `${safeAssetStem(input.characterId)}-${Date.now()}.webp`;
+  const fileName = `${safeAssetStem(input.assetId || input.characterId)}-${Date.now()}.webp`;
   await mkdir(assetsDirectory(), { recursive: true, mode: 0o700 });
   await writeFile(path.join(assetsDirectory(), fileName), bytes, { mode: 0o600 });
   return { assetUrl: `${ASSET_PATH}${fileName}`, revisedPrompt: result.revised_prompt };

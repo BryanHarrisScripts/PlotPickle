@@ -7,7 +7,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "id", "metadata", "story", "world", "development", "screenplay", "structure", "characters", "blocks"],
   "properties": {
-    "schemaVersion": { "const": "1.5.0" },
+    "schemaVersion": { "const": "1.6.0" },
     "id": { "type": "string", "minLength": 1 },
     "metadata": { "$ref": "#/$defs/metadata" },
     "story": { "$ref": "#/$defs/story" },
@@ -299,8 +299,8 @@
     "visual": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "src", "alt", "caption", "prompt", "shot", "continuity"],
-      "properties": { "id": { "type": "string" }, "src": { "type": "string" }, "alt": { "type": "string" }, "caption": { "type": "string" }, "prompt": { "type": "string" }, "shot": { "type": "string" }, "continuity": { "type": "string" } }
+      "required": ["id", "miniBlockNumber", "src", "alt", "caption", "prompt", "shot", "continuity"],
+      "properties": { "id": { "type": "string" }, "miniBlockNumber": { "type": "integer", "minimum": 1, "maximum": 4 }, "src": { "type": "string" }, "alt": { "type": "string" }, "caption": { "type": "string" }, "prompt": { "type": "string" }, "shot": { "type": "string" }, "continuity": { "type": "string" } }
     },
     "block": {
       "type": "object",

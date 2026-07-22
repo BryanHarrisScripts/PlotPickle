@@ -98,6 +98,7 @@ export type Location = {
 
 export type VisualFrame = {
   id: string;
+  miniBlockNumber: number;
   src: string;
   alt: string;
   caption: string;
@@ -210,7 +211,7 @@ export type ProjectDevelopment = {
 };
 
 export type PlotPickleProject = {
-  schemaVersion: "1.5.0";
+  schemaVersion: "1.6.0";
   id: string;
   metadata: {
     title: string;
@@ -350,11 +351,52 @@ export function createBlankScreenplay(): ScreenplayDocument {
   };
 }
 
+export function createStoryboardFrame(blockNumber: number, miniBlockNumber: number, suffix = "primary"): VisualFrame {
+  const safeMiniBlockNumber = Math.min(4, Math.max(1, Number(miniBlockNumber) || 1));
+  return {
+    id: `block-${String(blockNumber).padStart(2, "0")}-mini-${safeMiniBlockNumber}-${suffix}`,
+    miniBlockNumber: safeMiniBlockNumber,
+    src: "",
+    alt: "",
+    caption: "",
+    prompt: "",
+    shot: "",
+    continuity: "",
+  };
+}
+
+export function createDefaultStoryboardFrames(blockNumber: number): VisualFrame[] {
+  return [1, 2, 3, 4].map((miniBlockNumber) => createStoryboardFrame(blockNumber, miniBlockNumber));
+}
+
+function normalizeStoryboardFrames(value: unknown, blockNumber: number): VisualFrame[] {
+  const incoming = Array.isArray(value) ? value : [];
+  const normalized = incoming.flatMap((item, index) => {
+    if (!item || typeof item !== "object") return [];
+    const frame = item as Partial<VisualFrame>;
+    const miniBlockNumber = Math.min(4, Math.max(1, Number(frame.miniBlockNumber) || Math.min(index + 1, 4)));
+    return [{
+      id: typeof frame.id === "string" && frame.id ? frame.id : `block-${String(blockNumber).padStart(2, "0")}-mini-${miniBlockNumber}-legacy-${index + 1}`,
+      miniBlockNumber,
+      src: typeof frame.src === "string" ? frame.src : "",
+      alt: typeof frame.alt === "string" ? frame.alt : "",
+      caption: typeof frame.caption === "string" ? frame.caption : "",
+      prompt: typeof frame.prompt === "string" ? frame.prompt : "",
+      shot: typeof frame.shot === "string" ? frame.shot : "",
+      continuity: typeof frame.continuity === "string" ? frame.continuity : "",
+    }];
+  });
+  const missing = [1, 2, 3, 4]
+    .filter((miniBlockNumber) => !normalized.some((frame) => frame.miniBlockNumber === miniBlockNumber))
+    .map((miniBlockNumber) => createStoryboardFrame(blockNumber, miniBlockNumber));
+  return [...normalized, ...missing].sort((left, right) => left.miniBlockNumber - right.miniBlockNumber);
+}
+
 export function createBlankProject(): PlotPickleProject {
   const now = new Date().toISOString();
   const targetMinutes = 120;
   return {
-    schemaVersion: "1.5.0",
+    schemaVersion: "1.6.0",
     id: makeId("project"),
     metadata: {
       title: "Untitled Story",
@@ -419,7 +461,7 @@ export function createBlankProject(): PlotPickleProject {
       storyboardDirection: "",
       notes: "",
       scenes: createDefaultScenes(index + 1, targetMinutes),
-      visuals: [],
+      visuals: createDefaultStoryboardFrames(index + 1),
     })),
   };
 }
@@ -432,7 +474,7 @@ export function isPlotPickleProject(value: unknown): value is PlotPickleProject 
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<PlotPickleProject>;
   return (
-    candidate.schemaVersion === "1.5.0" &&
+    candidate.schemaVersion === "1.6.0" &&
     typeof candidate.id === "string" &&
     !!candidate.metadata &&
     !!candidate.story &&
@@ -503,7 +545,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     blocks?: Array<Partial<StoryBlock>>;
   };
   if (
-    !["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0"].includes(candidate.schemaVersion ?? "") ||
+    !["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0"].includes(candidate.schemaVersion ?? "") ||
     typeof candidate.id !== "string" ||
     !candidate.metadata ||
     !candidate.story ||
@@ -519,7 +561,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
   const voiceprintDefaults = createBlankVoiceprint();
   const development = candidate.development ?? {};
   return {
-    schemaVersion: "1.5.0",
+    schemaVersion: "1.6.0",
     id: candidate.id,
     metadata: { ...candidate.metadata, targetMinutes },
     story: candidate.story,
@@ -548,7 +590,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
       audienceExpectation: block.audienceExpectation ?? "",
       pickleTurn: block.pickleTurn ?? "",
       scenes: normalizeScenes(block.scenes, index + 1, targetMinutes),
-      visuals: Array.isArray(block.visuals) ? block.visuals : [],
+      visuals: normalizeStoryboardFrames(block.visuals, index + 1),
     })),
   };
 }
@@ -611,20 +653,12 @@ export function addBlankLocation(project: PlotPickleProject): PlotPickleProject 
   return { ...project, world: { ...project.world, locations: [...project.world.locations, location] } };
 }
 
-export function addBlankFrame(block: StoryBlock): StoryBlock {
+export function addBlankFrame(block: StoryBlock, miniBlockNumber = 1): StoryBlock {
   return {
     ...block,
     visuals: [
       ...block.visuals,
-      {
-        id: makeId("frame"),
-        src: "",
-        alt: "",
-        caption: "New storyboard frame",
-        prompt: "",
-        shot: "",
-        continuity: "",
-      },
+      { ...createStoryboardFrame(block.number, miniBlockNumber, makeId("frame")), caption: "Additional storyboard frame" },
     ],
   };
 }

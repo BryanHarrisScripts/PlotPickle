@@ -138,10 +138,10 @@ test("registers the Structure Engine and preserves the 4-12-24-48-96 workspace",
   }
 });
 
-test("schema 1.5 requires editable screenplay elements and the complete 12/24/48/96 hierarchy", async () => {
+test("schema 1.6 requires editable screenplay elements, storyboard slots, and the complete 12/24/48/96 hierarchy", async () => {
   const raw = await readFile(new URL("../schema/plotpickle-project.schema.json", import.meta.url), "utf8");
   const schema = JSON.parse(raw);
-  assert.equal(schema.properties.schemaVersion.const, "1.5.0");
+  assert.equal(schema.properties.schemaVersion.const, "1.6.0");
   assert.ok(schema.required.includes("structure"));
   assert.ok(schema.required.includes("screenplay"));
   assert.deepEqual(schema.$defs.screenplay.properties.format.enum, ["plain-text", "fountain", "final-draft"]);
@@ -159,10 +159,10 @@ test("schema 1.5 requires editable screenplay elements and the complete 12/24/48
 test("project migration accepts earlier schemas and creates the new hierarchy", async () => {
   const projectSource = await readFile(new URL("../lib/project.ts", import.meta.url), "utf8");
   const structureSource = await readFile(new URL("../lib/structure.ts", import.meta.url), "utf8");
-  for (const version of ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0"]) {
+  for (const version of ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0"]) {
     assert.ok(projectSource.includes(`\"${version}\"`), `Migration no longer accepts ${version}`);
   }
-  assert.ok(projectSource.includes('schemaVersion: "1.5.0"'));
+  assert.ok(projectSource.includes('schemaVersion: "1.6.0"'));
   assert.ok(projectSource.includes("createDefaultScenes(index + 1, targetMinutes)"));
   assert.ok(structureSource.includes("sequenceTemplates.map"));
   assert.ok(structureSource.includes("beatTarget: 4"));

@@ -2,9 +2,9 @@
 
 PlotPickle is a local-first story-development application built around Bryan Harris’s 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, scene, mini-block, screenplay page, review, and visual board.
 
-Current application version: `0.9.0`
+Current application version: `0.10.0`
 
-Current project schema: `1.5.0`
+Current project schema: `1.6.0`
 
 ## Official distribution
 
@@ -74,7 +74,7 @@ The launcher does not request Administrator rights, install a Windows service, a
 - **Instructions** explains the 24 Blocks method and every story column.
 - **Story Planner** develops the story foundation, world, characters, Ghost, Catalyst, The Pickle, dialogue system, structure summary, block spine, and notes.
 - **Screenplay** is the connected writing workspace. Write standard scene headings, action, character cues, parentheticals, dialogue and transitions against the 24 Blocks and 96 mini-blocks, then switch to Read & Learn for the colour-coded teaching viewer.
-- **Visual Board** attaches storyboard frames, prompts, shot notes, performance ideas, and continuity to the same project.
+- **Visual Storyboard** moves from the 24-block overview into all 96 mini-block images. Every default prompt is assembled from the current story, scene purpose, mini-block function, assigned characters, locations, visual language, screenplay evidence, shot notes, and continuity. Writers can refine or copy the prompt, generate a landscape frame through the private local AI gateway, and see whole-film completion at a glance.
 - **Engines** explains and opens six focused specialist passes.
 
 Every workspace reads and writes the same locally saved project.
@@ -179,7 +179,7 @@ These are editable planning references, not mandatory filmmaking rules.
 
 ## Project data and migration
 
-New projects use schema `1.5.0`.
+New projects use schema `1.6.0`.
 
 Imports from schemas 1.0 through 1.3 are upgraded automatically. Migration preserves existing story, world, character, dialogue, note, screenplay, block, and visual data while creating the 12-sequence, 48-scene, and 96-mini-block hierarchy.
 

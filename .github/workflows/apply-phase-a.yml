@@ -26,11 +26,15 @@ jobs:
         with:
           python-version: '3.12'
       - name: Apply Phase A
-        run: python scripts/apply-phase-a.py
-      - name: Commit generated implementation
+        run: |
+          set +e
+          python scripts/apply-phase-a.py > docs/phase-a-migration.log 2>&1
+          echo $? > docs/phase-a-migration.exit
+          exit 0
+      - name: Commit generated implementation or diagnostics
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Activate the canonical Phase A core model"
+          git commit -m "Apply Phase A core model migration"
           git push origin HEAD:agent/phase-a-core-model-013

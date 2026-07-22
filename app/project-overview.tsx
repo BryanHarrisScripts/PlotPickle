@@ -54,9 +54,8 @@ export default function ProjectOverview({
   const developedSequences = project.structure.sequences.filter(
     (sequence) => sequence.promise && sequence.turningPoint,
   ).length;
-  const allMinis = project.blocks.flatMap((block) =>
-    block.scenes.flatMap((scene) => scene.miniBlocks),
-  );
+  const allScenes = project.blocks.flatMap((block) => block.scenes);
+  const allMinis = allScenes.flatMap((scene) => scene.miniBlocks);
   const beats = allMinis.reduce((sum, mini) => sum + mini.beatTarget, 0);
   const shots = allMinis.reduce((sum, mini) => sum + mini.shotTarget, 0);
   const openQuestionPreview = project.development.notes.openQuestions
@@ -127,7 +126,7 @@ export default function ProjectOverview({
             <article><strong>4</strong><span>Acts</span></article>
             <article><strong>12</strong><span>Sequences</span></article>
             <article><strong>24</strong><span>Blocks</span></article>
-            <article><strong>48</strong><span>Scenes</span></article>
+            <article><strong>{allScenes.length}</strong><span>Scenes</span></article>
             <article><strong>96</strong><span>Mini-blocks</span></article>
             <article><strong>{shots}</strong><span>Shot targets</span></article>
           </div>

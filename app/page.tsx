@@ -31,6 +31,7 @@ import {
   type ScreenplayDocument,
   type StoryBlock,
 } from "@/lib/project";
+import { synchronizeScreenplaySceneReferences } from "@/lib/scene-management";
 
 const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
@@ -139,7 +140,7 @@ const sectionGuides: Record<StorySection, { title: string; description: string; 
   },
   structureMap: {
     title: "See the complete hierarchy without leaving the story columns.",
-    description: "Review the four acts, twelve sequences, twenty-four blocks, forty-eight scenes, ninety-six mini-blocks, and Story Clock before entering the full Structure Engine.",
+    description: "Review the four acts, twelve sequences, twenty-four blocks, the live scene plan, ninety-six mini-blocks, and Story Clock before entering the full Structure Engine.",
     questions: ["Does every sequence turn the story?", "Where does the runtime concentrate?", "Which block, scene, or mini-block still lacks a clear function?"],
     deliverable: "A readable map from act to mini-block with direct block access.",
     connection: "The summary reads the same structure edited by the Structure Engine and used by every screenplay and visual workspace.",
@@ -466,7 +467,7 @@ export default function Home() {
         if (stored) {
           const parsed: unknown = JSON.parse(stored);
           const normalized = normalizePlotPickleProject(parsed);
-          if (normalized) setProject(normalized);
+          if (normalized) setProject(synchronizeScreenplaySceneReferences(normalized, normalized.blocks));
         }
       } catch {
         setToast("The saved project could not be opened. A new project is ready instead.");
@@ -502,9 +503,10 @@ export default function Home() {
 
   function commit(next: PlotPickleProject) {
     setSaveState("Saving…");
+    const synchronized = synchronizeScreenplaySceneReferences(next, project.blocks);
     setProject({
-      ...next,
-      metadata: { ...next.metadata, updatedAt: new Date().toISOString() },
+      ...synchronized,
+      metadata: { ...synchronized.metadata, updatedAt: new Date().toISOString() },
     });
   }
 
@@ -611,8 +613,9 @@ export default function Home() {
     if (hasCurrentWork && !window.confirm(`Replace “${project.metadata.title}” with ${screenplay.fileName}? Export first if you want a separate backup.`)) return false;
     const imported = createProjectFromScreenplay(screenplay);
     setSaveState("Saving…");
-    setProject(imported);
-    setSelectedCharacterId(imported.characters[0]?.id ?? "");
+    const synchronized = synchronizeScreenplaySceneReferences(imported, imported.blocks);
+    setProject(synchronized);
+    setSelectedCharacterId(synchronized.characters[0]?.id ?? "");
     setSelectedBlockNumber(1);
     setSelectedMiniBlockNumber(1);
     setVisualAct(0);
@@ -910,8 +913,8 @@ function StoryRail({ project, workspace, activeSection, selectSection }: { proje
       </nav>
       <div className="method-note">
         <span>Complete hierarchy</span>
-        <strong>4 → 12 → 24 → 48 → 96</strong>
-        <p>Acts, sequences, blocks, scenes, and mini-blocks share one project.</p>
+        <strong>4 → 12 → 24 → flexible scenes → 96</strong>
+        <p>Forty-eight scenes are the starting template; the live scene count changes with the story.</p>
       </div>
     </aside>
   );

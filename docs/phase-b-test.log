@@ -1,0 +1,550 @@
+
+> plotpickle@0.14.0 test
+> npm run build && node --test tests/rendered-html.test.mjs tests/engines-workspace.test.mjs tests/project-navigation-licensing.test.mjs tests/ai-architecture.test.mjs tests/settings-menu.test.mjs tests/script-viewer.test.mjs tests/screenplay-writer.test.mjs tests/visual-storyboard.test.mjs tests/writer-learning.test.mjs tests/phase-one-core-schema.test.mjs tests/dynamic-scenes.test.mjs tests/phase-two-dynamic-scenes.test.mjs tests/phase-a-core-model.test.mjs tests/phase-b-diagnostic-craft.test.mjs
+
+
+> plotpickle@0.14.0 build
+> bash scripts/build-verified.sh
+
+Running bounded vinext build...
+
+  vinext build  (Vite 8.0.13)
+
+[34m[1/5] analyze client references...[39m
+[2Ktransforming...✓ 149 modules transformed.
+rendering chunks...
+[32m✓ built in 979ms[39m
+[34m[2/5] analyze server references...[39m
+[2Ktransforming...✓ 129 modules transformed.
+rendering chunks...
+[32m✓ built in 819ms[39m
+[34m[3/5] build rsc environment...[39m
+[2Ktransforming...✓ 155 modules transformed.
+rendering chunks...
+computing gzip size...
+[32m✓ built in 686ms[39m
+[34m[4/5] build client environment...[39m
+[2Ktransforming...✓ 136 modules transformed.
+rendering chunks...
+computing gzip size...
+[32m✓ built in 916ms[39m
+[34m[5/5] build ssr environment...[39m
+[2Ktransforming...✓ 135 modules transformed.
+rendering chunks...
+computing gzip size...
+[32m✓ built in 792ms[39m
+[0m
+  Route (app)
+  ┌ ? /           
+  ├ ? /craftloop  
+  ├ ? /diagnostics
+  ├ ? /draftlens  
+  ├ ? /legal      
+  ├ ? /pageflow   
+  ├ ? /resonance  
+  ├ ? /structure  
+  └ ? /voiceprint 
+
+  ? Unknown
+
+  ? Some routes could not be classified. vinext currently uses static analysis
+    and cannot detect dynamic API usage (headers(), cookies(), etc.) at build time.
+    Automatic classification will be improved in a future release.
+
+  Build complete. Run `vinext start` to start the production server.
+
+Validated Sites artifact: ESM Worker default.fetch and hosting manifest are present.
+TAP version 13
+# Subtest: AI contracts cover portable knowledge and character consistency
+ok 1 - AI contracts cover portable knowledge and character consistency
+  ---
+  duration_ms: 0.944225
+  type: 'test'
+  ...
+# Subtest: provider choices preserve OpenAI focus without provider lock-in
+ok 2 - provider choices preserve OpenAI focus without provider lock-in
+  ---
+  duration_ms: 0.312318
+  type: 'test'
+  ...
+# Subtest: OpenAI video is a replaceable unavailable capability
+ok 3 - OpenAI video is a replaceable unavailable capability
+  ---
+  duration_ms: 0.21808
+  type: 'test'
+  ...
+# Subtest: provider configuration never contains an API key
+ok 4 - provider configuration never contains an API key
+  ---
+  duration_ms: 0.276149
+  type: 'test'
+  ...
+# Subtest: OpenAI Responses and image generation are isolated in the adapter
+ok 5 - OpenAI Responses and image generation are isolated in the adapter
+  ---
+  duration_ms: 0.222688
+  type: 'test'
+  ...
+# Subtest: advanced AI capabilities stay behind one Settings menu
+ok 6 - advanced AI capabilities stay behind one Settings menu
+  ---
+  duration_ms: 0.156505
+  type: 'test'
+  ...
+# Subtest: the structure model treats 48 scenes as a template rather than a restriction
+ok 7 - the structure model treats 48 scenes as a template rather than a restriction
+  ---
+  duration_ms: 5.769623
+  type: 'test'
+  ...
+# Subtest: the Structure Engine exposes complete dynamic scene controls
+ok 8 - the Structure Engine exposes complete dynamic scene controls
+  ---
+  duration_ms: 2.472387
+  type: 'test'
+  ...
+# Subtest: main application exposes Engines inside five connected creative workspaces
+ok 9 - main application exposes Engines inside five connected creative workspaces
+  ---
+  duration_ms: 6.195934
+  type: 'test'
+  ...
+# Subtest: Engines workspace explains every specialist before opening it
+ok 10 - Engines workspace explains every specialist before opening it
+  ---
+  duration_ms: 1.768343
+  type: 'test'
+  ...
+# Subtest: floating engine stack was removed from the root layout
+ok 11 - floating engine stack was removed from the root layout
+  ---
+  duration_ms: 1.432482
+  type: 'test'
+  ...
+# Subtest: schema 1.7 is the canonical released schema
+ok 12 - schema 1.7 is the canonical released schema
+  ---
+  duration_ms: 8.964898
+  type: 'test'
+  ...
+# Subtest: blank, imported and Afterglow projects use the Phase A model
+ok 13 - blank, imported and Afterglow projects use the Phase A model
+  ---
+  duration_ms: 3.323035
+  type: 'test'
+  ...
+# Subtest: all Phase A interfaces are connected
+ok 14 - all Phase A interfaces are connected
+  ---
+  duration_ms: 3.578865
+  type: 'test'
+  ...
+# Subtest: expanded screenplay elements export through Fountain and FDX
+ok 15 - expanded screenplay elements export through Fountain and FDX
+  ---
+  duration_ms: 1.822295
+  type: 'test'
+  ...
+# Subtest: Phase B provides diagnostic engines for movements, scenes, threads, ledgers, arcs and time
+not ok 16 - Phase B provides diagnostic engines for movements, scenes, threads, ledgers, arcs and time
+  ---
+  duration_ms: 7.541373
+  type: 'test'
+  location: '/home/runner/work/PlotPickle/PlotPickle/tests/phase-b-diagnostic-craft.test.mjs:8:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing diagnostic language: value flip'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///home/runner/work/PlotPickle/PlotPickle/tests/phase-b-diagnostic-craft.test.mjs:20:158)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: Opening Move and Act I Launch architecture is ported without a second story model
+ok 17 - Opening Move and Act I Launch architecture is ported without a second story model
+  ---
+  duration_ms: 4.249506
+  type: 'test'
+  ...
+# Subtest: the Diagnostic Craft workspace exposes every Phase B view
+ok 18 - the Diagnostic Craft workspace exposes every Phase B view
+  ---
+  duration_ms: 1.738848
+  type: 'test'
+  ...
+# Subtest: Structure, Writer and DraftLens embed the same diagnostic engine
+ok 19 - Structure, Writer and DraftLens embed the same diagnostic engine
+  ---
+  duration_ms: 2.79911
+  type: 'test'
+  ...
+# Subtest: PlotPickle 0.14 documents the completion standard
+ok 20 - PlotPickle 0.14 documents the completion standard
+  ---
+  duration_ms: 1.79882
+  type: 'test'
+  ...
+# Subtest: schema 1.7 declares every Phase 1 project capability
+ok 21 - schema 1.7 declares every Phase 1 project capability
+  ---
+  duration_ms: 6.330337
+  type: 'test'
+  ...
+# Subtest: Phase 1 operations cover migration, dynamic scenes, threads, arcs, provenance and revisions
+ok 22 - Phase 1 operations cover migration, dynamic scenes, threads, arcs, provenance and revisions
+  ---
+  duration_ms: 2.397556
+  type: 'test'
+  ...
+# Subtest: Phase 1 documentation explains the migration boundary
+ok 23 - Phase 1 documentation explains the migration boundary
+  ---
+  duration_ms: 2.408546
+  type: 'test'
+  ...
+# Subtest: Phase 2 keeps screenplay elements attached to stable scene identities
+ok 24 - Phase 2 keeps screenplay elements attached to stable scene identities
+  ---
+  duration_ms: 7.708166
+  type: 'test'
+  ...
+# Subtest: the canonical compatibility schema accepts flexible scenes and short scenes
+ok 25 - the canonical compatibility schema accepts flexible scenes and short scenes
+  ---
+  duration_ms: 3.172472
+  type: 'test'
+  ...
+# Subtest: the project validator no longer restores the two-scene restriction
+ok 26 - the project validator no longer restores the two-scene restriction
+  ---
+  duration_ms: 2.899486
+  type: 'test'
+  ...
+# Subtest: the Structure Engine reports scene health and global numbering
+ok 27 - the Structure Engine reports scene health and global numbering
+  ---
+  duration_ms: 2.657053
+  type: 'test'
+  ...
+# Subtest: main application exposes the grouped project rail and local-only product model
+ok 28 - main application exposes the grouped project rail and local-only product model
+  ---
+  duration_ms: 6.543778
+  type: 'test'
+  ...
+# Subtest: section progress model covers every visible story section
+ok 29 - section progress model covers every visible story section
+  ---
+  duration_ms: 1.762963
+  type: 'test'
+  ...
+# Subtest: overview and structure summary explain their contracts before deeper work
+ok 30 - overview and structure summary explain their contracts before deeper work
+  ---
+  duration_ms: 2.268954
+  type: 'test'
+  ...
+# Subtest: PlotPickle declares software, method, user, contribution, and brand rights separately
+not ok 31 - PlotPickle declares software, method, user, contribution, and brand rights separately
+  ---
+  duration_ms: 4.875993
+  type: 'test'
+  location: '/home/runner/work/PlotPickle/PlotPickle/tests/project-navigation-licensing.test.mjs:82:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    '0.14.0' !== '0.13.0'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '0.13.0'
+  actual: '0.14.0'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/runner/work/PlotPickle/PlotPickle/tests/project-navigation-licensing.test.mjs:84:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: repository includes the complete AGPL licence text
+ok 32 - repository includes the complete AGPL licence text
+  ---
+  duration_ms: 2.42657
+  type: 'test'
+  ...
+# Subtest: renders the root route and preserves the local-first workspace contract
+ok 33 - renders the root route and preserves the local-first workspace contract
+  ---
+  duration_ms: 186.530813
+  type: 'test'
+  ...
+# Subtest: registers the legal route and preserves ownership and server-use guidance
+ok 34 - registers the legal route and preserves ownership and server-use guidance
+  ---
+  duration_ms: 75.18834
+  type: 'test'
+  ...
+# Subtest: renders the Voiceprint Engine route
+ok 35 - renders the Voiceprint Engine route
+  ---
+  duration_ms: 67.301876
+  type: 'test'
+  ...
+# Subtest: renders the PageFlow Engine route
+ok 36 - renders the PageFlow Engine route
+  ---
+  duration_ms: 82.495765
+  type: 'test'
+  ...
+# Subtest: renders the Resonance Engine route
+ok 37 - renders the Resonance Engine route
+  ---
+  duration_ms: 40.96774
+  type: 'test'
+  ...
+# Subtest: renders the DraftLens Engine route
+ok 38 - renders the DraftLens Engine route
+  ---
+  duration_ms: 71.245648
+  type: 'test'
+  ...
+# Subtest: registers the CraftLoop client route and preserves its workspace contract
+ok 39 - registers the CraftLoop client route and preserves its workspace contract
+  ---
+  duration_ms: 64.105071
+  type: 'test'
+  ...
+# Subtest: registers the Structure Engine and preserves the 4-12-24-48-96 workspace
+ok 40 - registers the Structure Engine and preserves the 4-12-24-48-96 workspace
+  ---
+  duration_ms: 65.317091
+  type: 'test'
+  ...
+# Subtest: schema 1.7 preserves 12/24/96 while accepting flexible scenes
+ok 41 - schema 1.7 preserves 12/24/96 while accepting flexible scenes
+  ---
+  duration_ms: 2.75063
+  type: 'test'
+  ...
+# Subtest: project migration accepts earlier schemas and creates the new hierarchy
+ok 42 - project migration accepts earlier schemas and creates the new hierarchy
+  ---
+  duration_ms: 2.43194
+  type: 'test'
+  ...
+# Subtest: Windows launcher reuses a package-lock-specific persistent runtime
+ok 43 - Windows launcher reuses a package-lock-specific persistent runtime
+  ---
+  duration_ms: 1.51647
+  type: 'test'
+  ...
+# Subtest: persistent runtime manager fingerprints package-lock and separates application files
+ok 44 - persistent runtime manager fingerprints package-lock and separates application files
+  ---
+  duration_ms: 41.168568
+  type: 'test'
+  ...
+# Subtest: Windows updater overlays program files while preserving runtime and projects
+ok 45 - Windows updater overlays program files while preserving runtime and projects
+  ---
+  duration_ms: 2.562256
+  type: 'test'
+  ...
+# Subtest: Windows repair resets only the current persistent runtime
+ok 46 - Windows repair resets only the current persistent runtime
+  ---
+  duration_ms: 1.744448
+  type: 'test'
+  ...
+# Subtest: Windows launcher explains and verifies the local installation
+ok 47 - Windows launcher explains and verifies the local installation
+  ---
+  duration_ms: 4.773691
+  type: 'test'
+  ...
+# Subtest: Windows setup report lists space, packages, persistent upgrades, privacy, and local-server meaning
+ok 48 - Windows setup report lists space, packages, persistent upgrades, privacy, and local-server meaning
+  ---
+  duration_ms: 43.563648
+  type: 'test'
+  ...
+# Subtest: Screenplay is a write and read workspace tied to all 24 Blocks and 96 mini-blocks
+ok 49 - Screenplay is a write and read workspace tied to all 24 Blocks and 96 mini-blocks
+  ---
+  duration_ms: 7.137195
+  type: 'test'
+  ...
+# Subtest: writer supports standard screenplay grammar and Final Draft/Fountain handoff
+ok 50 - writer supports standard screenplay grammar and Final Draft/Fountain handoff
+  ---
+  duration_ms: 4.703357
+  type: 'test'
+  ...
+# Subtest: Afterglow loads the complete v9 screenplay as one continuous editable draft
+ok 51 - Afterglow loads the complete v9 screenplay as one continuous editable draft
+  ---
+  duration_ms: 5.117979
+  type: 'test'
+  ...
+# Subtest: AI writing and character images use the private local gateway and require approval
+ok 52 - AI writing and character images use the private local gateway and require approval
+  ---
+  duration_ms: 2.654258
+  type: 'test'
+  ...
+# Subtest: full screenplay remains part of the canonical local project
+ok 53 - full screenplay remains part of the canonical local project
+  ---
+  duration_ms: 7.400157
+  type: 'test'
+  ...
+# Subtest: viewer reads common screenplay formats and colour-codes screenplay grammar
+ok 54 - viewer reads common screenplay formats and colour-codes screenplay grammar
+  ---
+  duration_ms: 3.175507
+  type: 'test'
+  ...
+# Subtest: guided reading connects passages to existing story knowledge
+ok 55 - guided reading connects passages to existing story knowledge
+  ---
+  duration_ms: 1.3253
+  type: 'test'
+  ...
+# Subtest: top Import and Script Viewer use one screenplay ingestion pipeline
+ok 56 - top Import and Script Viewer use one screenplay ingestion pipeline
+  ---
+  duration_ms: 2.167473
+  type: 'test'
+  ...
+# Subtest: screenplay import replaces example data and populates the shared framework as suggestions
+ok 57 - screenplay import replaces example data and populates the shared framework as suggestions
+  ---
+  duration_ms: 1.390894
+  type: 'test'
+  ...
+# Subtest: settings keep AI, music, and future plugins in one local model
+ok 58 - settings keep AI, music, and future plugins in one local model
+  ---
+  duration_ms: 0.971596
+  type: 'test'
+  ...
+# Subtest: settings never include API-key storage
+ok 59 - settings never include API-key storage
+  ---
+  duration_ms: 0.253156
+  type: 'test'
+  ...
+# Subtest: AI Setup verifies a saved key and displays live connection state
+ok 60 - AI Setup verifies a saved key and displays live connection state
+  ---
+  duration_ms: 0.177082
+  type: 'test'
+  ...
+# Subtest: the saved key stays behind the private localhost gateway
+ok 61 - the saved key stays behind the private localhost gateway
+  ---
+  duration_ms: 0.208561
+  type: 'test'
+  ...
+# Subtest: music artist links are limited to Suno and Udio HTTPS profiles
+ok 62 - music artist links are limited to Suno and Udio HTTPS profiles
+  ---
+  duration_ms: 0.165531
+  type: 'test'
+  ...
+# Subtest: Settings includes live character and actor-facing screenplay reports
+ok 63 - Settings includes live character and actor-facing screenplay reports
+  ---
+  duration_ms: 0.270668
+  type: 'test'
+  ...
+# Subtest: character reports work from both editable drafts and imported screenplay text
+ok 64 - character reports work from both editable drafts and imported screenplay text
+  ---
+  duration_ms: 0.200307
+  type: 'test'
+  ...
+# Subtest: Settings provides a searchable categorized screenplay terminology index
+ok 65 - Settings provides a searchable categorized screenplay terminology index
+  ---
+  duration_ms: 0.226345
+  type: 'test'
+  ...
+# Subtest: Visual Storyboard exposes the 24-block overview and all 96 mini-block visual slots
+ok 66 - Visual Storyboard exposes the 24-block overview and all 96 mini-block visual slots
+  ---
+  duration_ms: 6.644246
+  type: 'test'
+  ...
+# Subtest: default prompts combine story, scene, character, location, screenplay, shot, and continuity context
+ok 67 - default prompts combine story, scene, character, location, screenplay, shot, and continuity context
+  ---
+  duration_ms: 1.683684
+  type: 'test'
+  ...
+# Subtest: storyboard images use the private local gateway, landscape output, and local assets
+ok 68 - storyboard images use the private local gateway, landscape output, and local assets
+  ---
+  duration_ms: 4.206618
+  type: 'test'
+  ...
+# Subtest: schema 1.7 migrates earlier projects into four storyboard slots per block
+ok 69 - schema 1.7 migrates earlier projects into four storyboard slots per block
+  ---
+  duration_ms: 3.704951
+  type: 'test'
+  ...
+# Subtest: Read & Learn is a primary workspace and Writer keeps Treatment and Screenplay connected
+ok 70 - Read & Learn is a primary workspace and Writer keeps Treatment and Screenplay connected
+  ---
+  duration_ms: 7.645318
+  type: 'test'
+  ...
+# Subtest: Markdown treatment supports local writing, preview, export, AI approval and screenplay handoff
+ok 71 - Markdown treatment supports local writing, preview, export, AI approval and screenplay handoff
+  ---
+  duration_ms: 1.605167
+  type: 'test'
+  ...
+# Subtest: Learning Studio connects contextual guidance to the complete course
+ok 72 - Learning Studio connects contextual guidance to the complete course
+  ---
+  duration_ms: 2.353734
+  type: 'test'
+  ...
+# Subtest: Learning Library contains all 14 source modules with substantial teaching tools
+ok 73 - Learning Library contains all 14 source modules with substantial teaching tools
+  ---
+  duration_ms: 2.179456
+  type: 'test'
+  ...
+# Subtest: Learning progress is per project and survives a browser restart
+ok 74 - Learning progress is per project and survives a browser restart
+  ---
+  duration_ms: 1.207079
+  type: 'test'
+  ...
+# Subtest: Learning Studio preserves the educational and user-work licence boundary
+ok 75 - Learning Studio preserves the educational and user-work licence boundary
+  ---
+  duration_ms: 1.20802
+  type: 'test'
+  ...
+# Subtest: Afterglow populates the Markdown Treatment and carries it into storyboard prompts
+ok 76 - Afterglow populates the Markdown Treatment and carries it into storyboard prompts
+  ---
+  duration_ms: 4.908895
+  type: 'test'
+  ...
+1..76
+# tests 76
+# suites 0
+# pass 74
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1651.456849

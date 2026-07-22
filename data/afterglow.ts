@@ -317,6 +317,106 @@ const knownSummaries: Record<number, string> = {
   21: "The story turns toward closure, new beginnings, and a world in which human and artificial consciousness can coexist."
 };
 
+const afterglowCharacterAliases: Record<string, string> = {
+  ren: "ren",
+  summer: "isobel",
+  isobel: "isobel",
+  amy: "amy",
+  sarah: "sarah",
+  claire: "claire",
+  jai: "jai",
+  kai: "kai",
+  joy: "joy",
+  rocket: "rocket",
+  journey: "journey",
+  compass: "compass",
+  spectrum: "spectrum",
+  binary: "binary",
+  byte: "byte",
+  pixel: "pixel",
+  buzz: "buzz"
+};
+
+const afterglowLocationAliases: Array<[RegExp, string]> = [
+  [/\bBBT (?:Technologies|dealership)\b/i, "bbt-technologies"],
+  [/\b(?:road|highway|car|rocket|joy|journey)\b/i, "road"],
+  [/\bVenice Beach\b/i, "venice-beach"],
+  [/\bSan Diego\b/i, "san-diego"],
+  [/\bCosta Ric(?:a|an)\b/i, "costa-rica"]
+];
+
+function unique(values: string[]) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function plainTreatment(markdown: string) {
+  return markdown
+    .replace(/^#{1,6}\s*/gm, "")
+    .replace(/^>\s?/gm, "")
+    .replace(/[*_`]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function characterIdsFor(markdown: string) {
+  const lower = markdown.toLowerCase();
+  return unique(Object.entries(afterglowCharacterAliases)
+    .filter(([name]) => new RegExp(`\\b${name}\\b`, "i").test(lower))
+    .map(([, id]) => id));
+}
+
+function locationIdsFor(markdown: string) {
+  return unique(afterglowLocationAliases.filter(([pattern]) => pattern.test(markdown)).map(([, id]) => id));
+}
+
+function populateAfterglowBlock(block: PlotPickleProject["blocks"][number], index: number) {
+  const blockNumber = index + 1;
+  const knownSummary = knownSummaries[blockNumber] ?? "";
+  const sourceStatus = knownSummary
+    ? "Known Afterglow summary already included in PlotPickle. Expand and revise this working movement against the canonical screenplay."
+    : "Source reconciliation required. PlotPickle has identified this writing position but has not invented canonical Afterglow material.";
+  const scenes = block.scenes.map((scene) => {
+    const miniBlocks = scene.miniBlocks.map((mini) => {
+      const treatmentTask = `${mini.function} Use this section to define the present-tense action, character objective, pressure, and visible turn for “${blockTitles[index]}.”`;
+      const source = `## Block ${blockNumber}.${mini.number} — ${mini.label}\n\n_${sourceStatus}_\n\n${knownSummary || `Afterglow identifies this story movement as “${blockTitles[index]},” but its detailed treatment has not yet been reconciled inside PlotPickle.`}\n\n### Treatment task\n\n${treatmentTask}`;
+      const plain = plainTreatment(source);
+      const characterIds = characterIdsFor(knownSummary);
+      return {
+        ...mini,
+        purpose: mini.function,
+        characterId: characterIds[0] ?? "",
+        action: knownSummary ? plain.slice(0, 700) : "",
+        visualBeat: knownSummary ? knownSummary.slice(0, 420) : "",
+        notes: source
+      };
+    });
+    const source = miniBlocks.map((mini) => mini.notes).join("\n\n");
+    return {
+      ...scene,
+      characterIds: unique(miniBlocks.map((mini) => mini.characterId)),
+      locationIds: locationIdsFor(source),
+      purpose: knownSummary ? plainTreatment(source).slice(0, 500) : scene.purpose,
+      miniBlocks
+    };
+  });
+  const source = scenes.flatMap((scene) => scene.miniBlocks).map((mini) => mini.notes).join("\n\n");
+  return {
+    ...block,
+    title: blockTitles[index],
+    summary: knownSummary,
+    scriptExcerpt: knownSummary,
+    characterIds: unique(scenes.flatMap((scene) => scene.characterIds)),
+    locationIds: unique(scenes.flatMap((scene) => scene.locationIds)),
+    storyboardDirection: knownSummary
+      ? `Use the four Treatment movements for Block ${blockNumber} to develop the visual setup, progress, pressure, and payoff from the known summary.`
+      : "Storyboard direction will be added after screenplay reconciliation.",
+    notes: knownSummary
+      ? "Treatment movements are initialized from the Afterglow summary already included in PlotPickle and remain editable working material."
+      : "The Treatment positions are ready. Reconcile the canonical Afterglow screenplay before presenting detailed story material as final.",
+    scenes
+  };
+}
+
 export function createAfterglowProject(): PlotPickleProject {
   const project = createBlankProject();
   const importedAt = "2026-07-20T12:00:00.000Z";
@@ -434,17 +534,6 @@ export function createAfterglowProject(): PlotPickleProject {
       }
     },
     characters: afterglowCharacters,
-    blocks: project.blocks.map((block, index) => ({
-      ...block,
-      title: blockTitles[index],
-      summary: knownSummaries[index + 1] ?? "",
-      storyboardDirection: knownSummaries[index + 1]
-        ? `Translate Block ${index + 1} into four visual turns: setup, pressure, choice, and consequence.`
-        : "Storyboard direction will be added after screenplay reconciliation.",
-      notes:
-        index < 21
-          ? "Title imported from the current Afterglow storyboard index. Detailed screenplay reconciliation remains open."
-          : "The repository contains references to later block files, while the main storyboard index currently ends at Block 21. Reconcile against the canonical screenplay before filling this block."
-    }))
+    blocks: project.blocks.map(populateAfterglowBlock)
   };
 }

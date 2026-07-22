@@ -1,0 +1,61 @@
+
+> plotpickle@0.13.0 build
+> bash scripts/build-verified.sh
+
+Running bounded vinext build...
+
+  vinext build  (Vite 8.0.13)
+
+[34m[1/5] analyze client references...[39m
+[2Ktransforming...✓ 148 modules transformed.
+rendering chunks...
+[32m✓ built in 973ms[39m
+[34m[2/5] analyze server references...[39m
+[2Ktransforming...✓ 125 modules transformed.
+rendering chunks...
+[32m✓ built in 820ms[39m
+[34m[3/5] build rsc environment...[39m
+[2Ktransforming...✓ 154 modules transformed.
+rendering chunks...
+computing gzip size...
+[32m✓ built in 685ms[39m
+[34m[4/5] build client environment...[39m
+[2Ktransforming...✓ 132 modules transformed.
+[31m✗[39m Build failed in 714ms
+[31mBuild failed with 2 errors:
+
+[31m[PARSE_ERROR] [0mDuplicated export 'createBlankArcMatrix'
+    [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m lib/project.ts:48:17 [38;5;246m][0m
+    [38;5;246m│[0m
+ [38;5;246m48 │[0m [38;5;249me[0m[38;5;249mx[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m [0m[38;5;249mf[0m[38;5;249mu[0m[38;5;249mn[0m[38;5;249mc[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249m [0mcreateBlankArcMatrix[38;5;249m([0m[38;5;249mc[0m[38;5;249mh[0m[38;5;249ma[0m[38;5;249mr[0m[38;5;249ma[0m[38;5;249mc[0m[38;5;249mt[0m[38;5;249me[0m[38;5;249mr[0m[38;5;249m [0m[38;5;249m=[0m[38;5;249m [0m[38;5;249m{[0m[38;5;249m}[0m[38;5;249m)[0m[38;5;249m [0m[38;5;249m{[0m
+ [38;5;240m   │[0m                 ──────────┬─────────  
+ [38;5;240m   │[0m                           ╰─────────── Export has already been declared here
+ [38;5;240m   │[0m 
+ [38;5;246m78 │[0m [38;5;249me[0m[38;5;249mx[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m [0m[38;5;249mf[0m[38;5;249mu[0m[38;5;249mn[0m[38;5;249mc[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249m [0mcreateBlankArcMatrix[38;5;249m([0m[38;5;249mc[0m[38;5;249mh[0m[38;5;249ma[0m[38;5;249mr[0m[38;5;249ma[0m[38;5;249mc[0m[38;5;249mt[0m[38;5;249me[0m[38;5;249mr[0m[38;5;249m [0m[38;5;249m=[0m[38;5;249m [0m[38;5;249m{[0m[38;5;249m}[0m[38;5;249m)[0m[38;5;249m [0m[38;5;249m{[0m
+ [38;5;240m   │[0m                 ──────────┬─────────  
+ [38;5;240m   │[0m                           ╰─────────── It cannot be redeclared here
+[38;5;246m────╯[0m
+
+[31m[PARSE_ERROR] [0mDuplicated export 'createBlankRightsAndProvenance'
+    [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m lib/project.ts:63:17 [38;5;246m][0m
+    [38;5;246m│[0m
+ [38;5;246m63 │[0m [38;5;249me[0m[38;5;249mx[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m [0m[38;5;249mf[0m[38;5;249mu[0m[38;5;249mn[0m[38;5;249mc[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249m [0mcreateBlankRightsAndProvenance[38;5;249m([0m[38;5;249mp[0m[38;5;249mr[0m[38;5;249mo[0m[38;5;249mj[0m[38;5;249me[0m[38;5;249mc[0m[38;5;249mt[0m[38;5;249mT[0m[38;5;249mi[0m[38;5;249mt[0m[38;5;249ml[0m[38;5;249me[0m[38;5;249m [0m[38;5;249m=[0m[38;5;249m [0m[38;5;249m"[0m[38;5;249mU[0m[38;5;249mn[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249mt[0m[38;5;249ml[0m[38;5;249me[0m[38;5;249md[0m[38;5;249m [0m[38;5;249mS[0m[38;5;249mt[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249my[0m[38;5;249m"[0m[38;5;249m)[0m[38;5;249m [0m[38;5;249m{[0m
+ [38;5;240m   │[0m                 ───────────────┬──────────────  
+ [38;5;240m   │[0m                                ╰──────────────── Export has already been declared here
+ [38;5;240m   │[0m 
+ [38;5;246m93 │[0m [38;5;249me[0m[38;5;249mx[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m [0m[38;5;249mf[0m[38;5;249mu[0m[38;5;249mn[0m[38;5;249mc[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249m [0mcreateBlankRightsAndProvenance[38;5;249m([0m[38;5;249mp[0m[38;5;249mr[0m[38;5;249mo[0m[38;5;249mj[0m[38;5;249me[0m[38;5;249mc[0m[38;5;249mt[0m[38;5;249mT[0m[38;5;249mi[0m[38;5;249mt[0m[38;5;249ml[0m[38;5;249me[0m[38;5;249m [0m[38;5;249m=[0m[38;5;249m [0m[38;5;249m"[0m[38;5;249mU[0m[38;5;249mn[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249mt[0m[38;5;249ml[0m[38;5;249me[0m[38;5;249md[0m[38;5;249m [0m[38;5;249mS[0m[38;5;249mt[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249my[0m[38;5;249m"[0m[38;5;249m)[0m[38;5;249m [0m[38;5;249m{[0m
+ [38;5;240m   │[0m                 ───────────────┬──────────────  
+ [38;5;240m   │[0m                                ╰──────────────── It cannot be redeclared here
+[38;5;246m────╯[0m
+[39m
+    at aggregateBindingErrorsIntoJsError (file:///home/runner/work/PlotPickle/PlotPickle/node_modules/rolldown/dist/shared/error-CkdMJ9ps.mjs:48:18)
+    at unwrapBindingResult (file:///home/runner/work/PlotPickle/PlotPickle/node_modules/rolldown/dist/shared/error-CkdMJ9ps.mjs:18:128)
+    at #build (file:///home/runner/work/PlotPickle/PlotPickle/node_modules/rolldown/dist/shared/rolldown-build-BVD3dIdE.mjs:3275:34)
+    at async buildEnvironment (file:///home/runner/work/PlotPickle/PlotPickle/node_modules/vite/dist/node/chunks/node.js:33133:64)
+    at async Object.build (file:///home/runner/work/PlotPickle/PlotPickle/node_modules/vite/dist/node/chunks/node.js:33555:19)
+    at async buildApp (file:///home/runner/work/PlotPickle/PlotPickle/node_modules/@vitejs/plugin-rsc/dist/plugin-BhzHKRFo.js:636:3)
+    at async BasicMinimalPluginContext.handler (file:///home/runner/work/PlotPickle/PlotPickle/node_modules/@vitejs/plugin-rsc/dist/plugin-BhzHKRFo.js:749:43)
+    at async Object.buildApp (file:///home/runner/work/PlotPickle/PlotPickle/node_modules/vite/dist/node/chunks/node.js:33549:5)
+    at async buildApp (file:///home/runner/work/PlotPickle/PlotPickle/node_modules/vinext/dist/cli.js:225:2) {
+  errors: [Getter/Setter]
+}

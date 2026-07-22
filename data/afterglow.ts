@@ -399,7 +399,6 @@ function populateAfterglowBlock(block: PlotPickleProject["blocks"][number], inde
       miniBlocks
     };
   });
-  const source = scenes.flatMap((scene) => scene.miniBlocks).map((mini) => mini.notes).join("\n\n");
   return {
     ...block,
     title: blockTitles[index],

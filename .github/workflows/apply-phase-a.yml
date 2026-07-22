@@ -28,7 +28,7 @@ jobs:
       - name: Apply Phase A
         run: |
           set +e
-          python scripts/apply-phase-a.py > docs/phase-a-migration.log 2>&1
+          python scripts/continue-phase-a.py > docs/phase-a-migration.log 2>&1
           echo $? > docs/phase-a-migration.exit
           exit 0
       - name: Commit generated implementation or diagnostics

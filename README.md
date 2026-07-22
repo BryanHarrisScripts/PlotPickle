@@ -89,7 +89,9 @@ Parsing and the initial structural extraction happen on the local device without
 
 PlotPickle's AI layer is provider-independent and local-server mediated. The primary development and live-test target is **ChatGPT / OpenAI API**, using the writer's own API key, while OpenAI-compatible servers, Ollama, manual prompt export, and no-AI operation remain supported choices.
 
-All optional connections live under one **Settings** menu with three sections: **AI Setup**, **Music**, and **Plugins**. Music can store Suno or Udio artist links, including profiles such as Ava Iris. Plugins are reserved for future connectivity and cannot be enabled yet.
+Settings also contains **Reports** and a searchable **Terminology Index**. Reports calculate each character’s dialogue lines, spoken words, scene count, scene list, first and last appearance, and estimated speaking time from the active screenplay so actors can compare roles. The index explains screenplay formatting, structure, character, production, and PlotPickle terms in plain language. Both work locally without AI.
+
+Optional connections remain in **AI Setup**, **Music**, and **Plugins**. Music can store Suno or Udio artist links, including profiles such as Ava Iris. Plugins are reserved for future connectivity and cannot be enabled yet.
 
 The first foundation includes:
 
@@ -177,7 +179,7 @@ These are editable planning references, not mandatory filmmaking rules.
 
 ## Project data and migration
 
-New projects use schema `1.4.0`.
+New projects use schema `1.5.0`.
 
 Imports from schemas 1.0 through 1.3 are upgraded automatically. Migration preserves existing story, world, character, dialogue, note, screenplay, block, and visual data while creating the 12-sequence, 48-scene, and 96-mini-block hierarchy.
 

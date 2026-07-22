@@ -1,4 +1,4 @@
-name: Finalize Phase B validation
+name: Complete Phase B validation
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  finalize:
+  complete:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -23,54 +23,41 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Finalize diagnostic language and release contracts
+      - name: Align final ledger diagnosis and clean diagnostics
         run: |
           python - <<'PY'
           from pathlib import Path
 
           diagnostics = Path('lib/craft-diagnostics.ts')
           source = diagnostics.read_text(encoding='utf-8')
-          old = 'title: "The scene closes on its opening value"'
-          new = 'title: "No value flip changes the scene opening condition"'
+          old = '`Payoff in Block ${entry.payoffBlock} has no visible setup`'
+          new = '`Unearned payoff in Block ${entry.payoffBlock} has no visible setup`'
           if old in source:
               source = source.replace(old, new, 1)
           elif new not in source:
-              raise RuntimeError('Scene value diagnostic title was not found')
+              raise RuntimeError('Unearned payoff diagnosis was not found')
           diagnostics.write_text(source, encoding='utf-8')
 
-          licensing = Path('tests/project-navigation-licensing.test.mjs')
-          source = licensing.read_text(encoding='utf-8')
-          old = 'assert.equal(packageJson.version, "0.13.0");'
-          new = 'assert.equal(packageJson.version, "0.14.0");'
-          if old in source:
-              source = source.replace(old, new, 1)
-          elif new not in source:
-              raise RuntimeError('Release version assertion was not found')
-          licensing.write_text(source, encoding='utf-8')
-
           for path in [
-              'docs/phase-b-build.log',
-              'docs/phase-b-build.exit',
-              'docs/phase-b-test.log',
-              'docs/phase-b-test.exit',
+              '.github/workflows/finalize-phase-b.yml',
+              'docs/phase-b-final-lint.log',
+              'docs/phase-b-final-lint.exit',
+              'docs/phase-b-final-test.log',
+              'docs/phase-b-final-test.exit',
           ]:
               item = Path(path)
               if item.exists():
                   item.unlink()
           PY
       - run: npm ci
-      - name: Capture final Phase B validation
+      - name: Validate complete Phase B candidate
         run: |
-          set +e
-          npm run lint > docs/phase-b-final-lint.log 2>&1
-          echo $? > docs/phase-b-final-lint.exit
-          npm test > docs/phase-b-final-test.log 2>&1
-          echo $? > docs/phase-b-final-test.exit
-          exit 0
-      - name: Commit patched candidate and validation output
+          npm run lint
+          npm test
+      - name: Commit clean PlotPickle 0.14 candidate
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Apply and validate final PlotPickle 0.14 fixes"
+          git commit -m "Complete and validate PlotPickle 0.14"
           git push origin HEAD:agent/phase-b-diagnostic-craft-014

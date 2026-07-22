@@ -409,6 +409,7 @@ export default function StructureEnginePage() {
           <div><strong>12</strong><span>sequences</span></div>
           <div><strong>24</strong><span>blocks</span></div>
           <div><strong>{allScenes.length}</strong><span>scenes</span></div>
+          <div><strong>{project.storyThreads.length}</strong><span>story threads</span></div>
           <div><strong>{allMinis.length}</strong><span>mini-blocks</span></div>
           <div><strong>{totalShortScenes}</strong><span>short scenes</span></div>
           <div><strong>{totalShots}</strong><span>shot target</span></div>
@@ -418,6 +419,12 @@ export default function StructureEnginePage() {
         <section className={styles.templateNote}>
           <div><span>Starting template</span><strong>48 scenes</strong></div>
           <p>A feature often lands around forty to sixty scenes. PlotPickle keeps two scenes per block only as the initial distribution; each block may contain one or more scenes, and each mini-block may hold multiple short scenes.</p>
+        </section>
+
+        <section className={styles.templateNote}>
+          <div><span>Selected scene threads</span><strong>{scene.threadIds.length}</strong></div>
+          <p>{project.storyThreads.length ? "Assign structural scenes to the main plot, subplots, relationships, mysteries, thematic arguments or world pressures." : "Create Story Threads in Story Planner → Core Model, then return here to see their structural coverage."}</p>
+          {project.storyThreads.length ? <div>{project.storyThreads.map((thread) => <label key={thread.id} style={{ marginRight: "1rem" }}><input type="checkbox" checked={scene.threadIds.includes(thread.id)} onChange={() => updateBlockScenes((current) => current.map((item) => item.id === scene.id ? { ...item, threadIds: item.threadIds.includes(thread.id) ? item.threadIds.filter((id) => id !== thread.id) : [...item.threadIds, thread.id] } : item), "Scene thread assignments updated.")} /> {thread.name}</label>)}</div> : null}
         </section>
 
         <section className={styles.sceneDiagnostics} aria-labelledby="scene-health-title">

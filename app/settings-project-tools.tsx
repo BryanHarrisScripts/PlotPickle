@@ -42,6 +42,10 @@ export function ScreenplayReports({ project }: { project: PlotPickleProject }) {
       </div>
 
       <div className={styles.reportSummary}>
+        <article><span>Story threads</span><strong>{project.storyThreads.length}</strong></article>
+        <article><span>Arc checkpoints</span><strong>{project.characters.reduce((total, character) => total + (character.arcMatrix?.checkpoints.length ?? 0), 0)}</strong></article>
+        <article><span>Sources & AI records</span><strong>{project.rights.attributions.length + project.rights.aiProvenance.length}</strong></article>
+        <article><span>Revision snapshots</span><strong>{project.revisions.length}</strong></article>
         <article><span>Speaking characters</span><strong>{report.summary.charactersWithDialogue}</strong></article>
         <article><span>Dialogue lines</span><strong>{report.summary.dialogueLines.toLocaleString()}</strong></article>
         <article><span>Spoken words</span><strong>{report.summary.spokenWords.toLocaleString()}</strong></article>

@@ -2,11 +2,9 @@
 
 PlotPickle is a local-first story-development application built around Bryan Harris’s 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, flexible scene plan, mini-block, screenplay page, review, and visual board.
 
-Current application version: `0.12.0`
+Current application version: `0.13.0`
 
-Current released project schema: `1.6.0`
-
-Phase 1 development schema: `1.7.0`
+Current released project schema: `1.7.0`
 
 ## Official distribution
 
@@ -185,7 +183,7 @@ These are editable planning references, not mandatory filmmaking rules.
 
 ## Project data and migration
 
-Released projects use schema `1.6.0`. Phase 1 development uses schema `1.7.0`.
+Released projects use canonical schema `1.7.0`. Imports from schemas 1.0 through 1.6 are upgraded non-destructively.
 
 Imports from schemas 1.0 through 1.6 are upgraded non-destructively. Migration preserves existing story, world, character, dialogue, note, screenplay, block, scene, mini-block, and visual data while adding dynamic scene fields, Story Threads, Character Arc Matrices, rights and provenance records, and revision history.
 

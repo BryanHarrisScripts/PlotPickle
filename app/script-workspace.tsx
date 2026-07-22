@@ -39,6 +39,16 @@ const elementLabels: Record<ScreenplayDraftElementType, string> = {
   parenthetical: "Parenthetical",
   dialogue: "Dialogue",
   transition: "Transition",
+  section: "Section",
+  synopsis: "Synopsis",
+  shot: "Shot",
+  lyrics: "Lyrics",
+  "dual-dialogue": "Dual dialogue",
+  centered: "Centered text",
+  "page-break": "Page break",
+  "title-page": "Title page",
+  note: "Note",
+  boneyard: "Boneyard",
 };
 
 const elementOrder = Object.keys(elementLabels) as ScreenplayDraftElementType[];
@@ -321,6 +331,12 @@ export default function ScriptWorkspace({ project, mode, onModeChange, onChange,
                 if (entry) updateElement(selected.id, { ...assignDraftElementToScene(selected, entry), miniBlockNumber: miniNumber });
               }}>{allMiniBlocks(project, selected.blockNumber).map((item) => <option value={item.number} key={item.id}>{selected.blockNumber}.{item.number} · {item.label}</option>)}</select>
             </label>
+            <label>Revision colour
+              <select value={selected.revisionColour} onChange={(event) => updateElement(selected.id, { revisionColour: event.target.value as ScreenplayDraftElement["revisionColour"] })}>{["none", "blue", "pink", "yellow", "green", "goldenrod", "buff", "salmon", "cherry", "tan", "gray"].map((colour) => <option key={colour}>{colour}</option>)}</select>
+            </label>
+            <label><input type="checkbox" checked={selected.locked} onChange={(event) => updateElement(selected.id, { locked: event.target.checked })} /> Lock element</label>
+            <label><input type="checkbox" checked={selected.omitted} onChange={(event) => updateElement(selected.id, { omitted: event.target.checked })} /> Omit without deleting</label>
+            {project.storyThreads.length ? <fieldset><legend>Story Threads</legend>{project.storyThreads.map((thread) => <label key={thread.id}><input type="checkbox" checked={selected.threadIds.includes(thread.id)} onChange={() => updateElement(selected.id, { threadIds: selected.threadIds.includes(thread.id) ? selected.threadIds.filter((id) => id !== thread.id) : [...selected.threadIds, thread.id] })} /> {thread.name}</label>)}</fieldset> : null}
           </div> : null}
         </aside>
       </div>

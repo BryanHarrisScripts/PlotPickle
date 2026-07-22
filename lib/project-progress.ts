@@ -11,6 +11,7 @@ export type ProjectProgressSection =
   | "foundations"
   | "pickle"
   | "dialogue"
+  | "coreModel"
   | "structureMap"
   | "blocks"
   | "storyboard"
@@ -26,6 +27,7 @@ export const recommendedSectionOrder: ProjectProgressSection[] = [
   "foundations",
   "pickle",
   "dialogue",
+  "coreModel",
   "structureMap",
   "blocks",
   "storyboard",
@@ -194,6 +196,12 @@ export function projectSectionProgress(project: PlotPickleProject): Record<Proje
       project.development.dialogue.subtextSeeds,
       project.development.dialogue.fieldworkNotes,
       project.characters.some((character) => isFilled(character.voice)),
+    ]),
+    coreModel: average([
+      score([project.storyThreads.length]),
+      average(project.characters.map((character) => score(Object.values(character.arcMatrix ?? {})))),
+      score([project.rights.projectOwner, project.rights.rightsStatement, project.rights.defaultCreativeLicence]),
+      score([project.revisions.length]),
     ]),
     structureMap: average([...sequenceScores, ...sceneScores, ...miniBlockScores]),
     blocks: average(project.blocks.map(blockProgress)),

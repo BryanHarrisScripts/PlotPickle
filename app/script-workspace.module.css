@@ -85,6 +85,9 @@
 .aiResult button { padding: 6px; font-size: .62rem; }
 .assignmentCard label { display: block; margin-top: 10px; color: #557176; font-size: .68rem; font-weight: 800; }
 .assignmentCard select { display: block; margin-top: 4px; font-size: .7rem; }
+.scriptStudy { margin: 0; border-top: 1px solid #bdd7d4; background: #edf6f4; }
+.scriptStudy > summary { padding: 13px 28px; color: #2e676b; font-size: .78rem; font-weight: 900; cursor: pointer; }
+.scriptStudy[open] > summary { border-bottom: 1px solid #c9dedb; }
 @media (max-width: 1180px) { .writerLayout { grid-template-columns: 200px minmax(520px, 1fr); } .assistantPanel { grid-column: 1 / -1; border-top: 1px solid #bfd7d6; border-left: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; } }
 @media (max-width: 820px) { .writerHeader, .modeBar { align-items: flex-start; flex-direction: column; } .writerLayout { display: block; } .blockRail nav { display: flex; max-height: none; overflow-x: auto; } .blockRail nav button { min-width: 170px; } .miniGrid { grid-template-columns: repeat(2, 1fr); } .scriptPaper { padding: 50px 36px 70px 62px; } .assistantPanel { display: block; } .formatToolbar { overflow-x: auto; } }
 @media print { .modeBar, .writerHeader, .blockRail, .miniNavigator, .formatToolbar, .assistantPanel, .keyboardHint, .elementMeta { display: none !important; } .writerLayout { display: block; background: #fff; } .writerMain { padding: 0; } .scriptPaper { width: 8.5in; min-height: 11in; margin: 0; padding: .75in 1in 1in 1.5in; box-shadow: none; } .scriptElement textarea { border: 0; resize: none; } }

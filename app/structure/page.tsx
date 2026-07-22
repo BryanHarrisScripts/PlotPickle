@@ -34,6 +34,7 @@ import {
   synchronizeScreenplaySceneReferences,
 } from "@/lib/scene-management";
 import styles from "./structure.module.css";
+import { CraftDiagnosticSummary } from "../craft-diagnostics";
 
 const STORAGE_KEY = "plotpickle.project.v1";
 const sceneTypes: SceneType[] = ["action", "dialogue", "suspense", "revelation", "montage", "transition", "other"];
@@ -426,6 +427,8 @@ export default function StructureEnginePage() {
           <p>{project.storyThreads.length ? "Assign structural scenes to the main plot, subplots, relationships, mysteries, thematic arguments or world pressures." : "Create Story Threads in Story Planner → Core Model, then return here to see their structural coverage."}</p>
           {project.storyThreads.length ? <div>{project.storyThreads.map((thread) => <label key={thread.id} style={{ marginRight: "1rem" }}><input type="checkbox" checked={scene.threadIds.includes(thread.id)} onChange={() => updateBlockScenes((current) => current.map((item) => item.id === scene.id ? { ...item, threadIds: item.threadIds.includes(thread.id) ? item.threadIds.filter((id) => id !== thread.id) : [...item.threadIds, thread.id] } : item), "Scene thread assignments updated.")} /> {thread.name}</label>)}</div> : null}
         </section>
+
+        <CraftDiagnosticSummary project={project} focus={{ blockNumber: block.number, sceneId: scene.id }} />
 
         <section className={styles.sceneDiagnostics} aria-labelledby="scene-health-title">
           <div className={styles.diagnosticLead}>

@@ -1,5 +1,11 @@
 # PlotPickle Playhouse
 
+
+## PlotPickle 0.14 — Diagnostic Craft Layer
+
+PlotPickle now diagnoses story function rather than only storing story description. Open `/diagnostics` for Act I Launch, Opening Move, Scene Pulse, Story Thread overlays, the Setup/Payoff/Reflection Ledger, Character Arc checkpoints, and chronology-versus-presentation views. The same focused findings appear inside Structure, Writer and DraftLens.
+
+
 PlotPickle is a local-first story-development application built around Bryan Harris’s 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, flexible scene plan, mini-block, screenplay page, review, and visual board.
 
 Current application version: `0.13.0`

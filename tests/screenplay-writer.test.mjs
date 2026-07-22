@@ -28,16 +28,23 @@ test("writer supports standard screenplay grammar and Final Draft/Fountain hando
   assert.match(workspace, /Print \/ PDF/);
 });
 
-test("Afterglow loads its v10 screenplay as one continuous editable draft", async () => {
+test("Afterglow loads the complete v9 screenplay as one continuous editable draft", async () => {
   const workspace = await source("app/script-workspace.tsx");
-  const afterglow = await source("data/afterglow.ts");
+  const completeProject = await source("data/afterglow-complete.ts");
   const screenplay = await source("data/afterglow-screenplay.ts");
-  assert.match(afterglow, /screenplay: createAfterglowScreenplay\(importedAt\)/);
-  assert.equal((screenplay.match(/"type":/g) ?? []).length, 368);
-  assert.match(screenplay, /"blockNumber": 1/);
-  assert.match(screenplay, /"blockNumber": 8/);
-  assert.match(screenplay, /"type": "dialogue"/);
-  assert.match(screenplay, /"type": "action"/);
+  const parts = await Promise.all(Array.from({ length: 8 }, (_, index) => source(`data/afterglow-screenplay/part-${String(index + 1).padStart(2, "0")}.ts`)));
+  const fullSource = parts.join("\n");
+
+  assert.match(completeProject, /Afterglow: Reflections of Sentience/);
+  assert.match(completeProject, /Complete 24 Blocks demonstration project/);
+  assert.match(screenplay, /Afterglow v9 Twitter Rewrite \(2023\) — complete screenplay/);
+  assert.match(screenplay, /blocks: 24/);
+  assert.match(screenplay, /screenplayPages: 80/);
+  assert.match(fullSource, /# PUPPETS AND PUPPETEERS/);
+  assert.match(fullSource, /# CODED BONDS/);
+  assert.match(fullSource, /> THE END/);
+  assert.match(fullSource, /@REN/);
+  assert.match(fullSource, /!Ren/);
   assert.match(workspace, /full scrollable draft/);
   assert.match(workspace, /jumpToPosition/);
   assert.match(workspace, /scrollIntoView/);

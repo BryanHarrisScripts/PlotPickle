@@ -19,6 +19,7 @@
       }
     ],
     "paths": {
+      "@/data/afterglow": ["./data/afterglow-complete"],
       "@/*": ["./*"]
     }
   },

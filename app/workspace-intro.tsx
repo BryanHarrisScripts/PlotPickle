@@ -8,6 +8,7 @@ type WorkspaceIntroProps = {
   sideEyebrow: string;
   sideTitle: string;
   sideDescription: string;
+  embedded?: boolean;
 };
 
 export default function WorkspaceIntro({
@@ -18,9 +19,10 @@ export default function WorkspaceIntro({
   sideEyebrow,
   sideTitle,
   sideDescription,
+  embedded = false,
 }: WorkspaceIntroProps) {
   return (
-    <section className={styles.wrap} aria-labelledby={id}>
+    <section className={`${styles.wrap} ${embedded ? styles.embedded : ""}`} aria-labelledby={id}>
       <div className={styles.hero}>
         <div className={styles.primaryCard}>
           <p className={styles.eyebrow}>{eyebrow}</p>

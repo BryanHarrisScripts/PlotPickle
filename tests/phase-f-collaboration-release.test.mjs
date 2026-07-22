@@ -1,0 +1,83 @@
+import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
+const root = new URL("..", import.meta.url);
+const source = (path) => readFile(new URL(path, root), "utf8");
+
+test("PlotPickle 1.0 candidate defines a portable .ppf boundary", async () => {
+  const packageJson = JSON.parse(await source("package.json"));
+  const portable = await source("lib/project-package.ts");
+  assert.equal(packageJson.version, "1.0.0-rc.1");
+  assert.match(packageJson.scripts.test, /phase-f-collaboration-release\.test\.mjs/);
+  for (const phrase of ["plotpickle-project-file", "PPF_FORMAT_VERSION", "createPortableProjectFile", "parsePortableProjectFile", "integrityValid", "portableProjectFileName"]) {
+    assert.ok(portable.includes(phrase), `Missing .ppf contract: ${phrase}`);
+  }
+});
+
+test("local project storage uses atomic saves, integrity checks, and rolling backups", async () => {
+  const gateway = await source("build/local-project-gateway.ts");
+  for (const phrase of ["atomicWrite", "handle.sync", "rename(temporary, filePath)", "createBackup", "BACKUP_LIMIT = 20", "integrity check failed", "/api/local-projects/library", "/api/local-projects/recover"]) {
+    assert.ok(gateway.includes(phrase), `Missing local storage protection: ${phrase}`);
+  }
+  const scriptPath = fileURLToPath(new URL("../scripts/project-recovery-smoke.mjs", import.meta.url));
+  const { stdout } = await execFileAsync(process.execPath, [scriptPath]);
+  assert.match(stdout, /rolling backup, corruption detection, and recovery smoke test passed/i);
+});
+
+test("GitHub synchronization is optional, local-only, and review-first", async () => {
+  const [gateway, component, comparison] = await Promise.all([
+    source("build/local-project-gateway.ts"),
+    source("app/github-collaboration.tsx"),
+    source("lib/github-collaboration.ts"),
+  ]);
+  for (const phrase of ["githubConnectionFile", "secrets", "GitHub token", "Project storage and GitHub synchronization accept requests only", "githubPull", "githubPush", "githubHistory"]) {
+    assert.ok(gateway.includes(phrase), `Missing GitHub gateway protection: ${phrase}`);
+  }
+  assert.ok(!gateway.includes("token: project"), "GitHub credentials must never be read from the project.");
+  for (const phrase of ["Pull GitHub version for review", "Nothing has been applied", "Apply reviewed version", "Discard incoming version", "Push named backup", "GitHub remains optional"]) {
+    assert.ok(component.includes(phrase), `Missing review-first collaboration UI: ${phrase}`);
+  }
+  assert.match(comparison, /compareCollaborativeProjects/);
+  assert.match(comparison, /applyReviewedGitHubProject/);
+});
+
+test("canonical projects retain repository metadata without credentials", async () => {
+  const [project, schema, afterglow, overview] = await Promise.all([
+    source("lib/project.ts"),
+    source("schema/plotpickle-project.schema.json").then(JSON.parse),
+    source("data/afterglow-complete.ts"),
+    source("app/project-overview.tsx"),
+  ]);
+  for (const phrase of ["ProjectCollaboration", "sourceRepositoryUrl", "lastPulledCommit", "lastPushedCommit", "collaboration: ProjectCollaboration", "normalizeCollaboration"]) {
+    assert.ok(project.includes(phrase), `Missing canonical collaboration field: ${phrase}`);
+  }
+  assert.ok(schema.required.includes("collaboration"));
+  assert.equal(schema.properties.collaboration.$ref, "#/$defs/projectCollaboration");
+  assert.match(afterglow, /https:\/\/github\.com\/BryanHarrisScripts\/Afterglow-Echoes-of-Sentience/);
+  assert.match(overview, /Open this story’s GitHub repository/);
+});
+
+test("Windows, macOS, and Linux release candidates are packaged and clean-machine tested", async () => {
+  const [workflow, packageScript, windows, macos, linux, portableRuntime] = await Promise.all([
+    source(".github/workflows/release-candidate.yml"),
+    source("scripts/package-platform.mjs"),
+    source("Start-PlotPickle.bat"),
+    source("Start-PlotPickle.command"),
+    source("start-plotpickle.sh"),
+    source("scripts/portable-runtime.mjs"),
+  ]);
+  for (const platform of ["windows-latest", "macos-latest", "ubuntu-latest"]) assert.ok(workflow.includes(platform));
+  for (const phrase of ["Clean-machine extraction and dependency test", "SHA-256 checksum", "PlotPickle-Windows.zip", "PlotPickle-macOS.zip", "PlotPickle-Linux.zip", "publish-tag"]) assert.ok(workflow.includes(phrase), `Missing release gate: ${phrase}`);
+  assert.match(packageScript, /release-manifest\.json/);
+  for (const launcher of [windows, macos, linux]) {
+    assert.match(launcher, /127\.0\.0\.1/);
+    assert.ok(!launcher.includes("--host 0.0.0.0"));
+  }
+  assert.match(portableRuntime, /Dependency fingerprint/);
+  assert.match(portableRuntime, /package-lock\.json/);
+});

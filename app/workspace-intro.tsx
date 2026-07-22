@@ -28,11 +28,15 @@ export default function WorkspaceIntro({
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
-    try {
-      setCollapsed(window.localStorage.getItem(storageKey) === "true");
-    } catch {
-      setCollapsed(false);
-    }
+    const timer = window.setTimeout(() => {
+      try {
+        setCollapsed(window.localStorage.getItem(storageKey) === "true");
+      } catch {
+        setCollapsed(false);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [storageKey]);
 
   function setOverviewCollapsed(next: boolean) {

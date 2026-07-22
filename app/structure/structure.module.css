@@ -15,7 +15,8 @@
 .sequenceEditor,
 .builder,
 .timeline,
-.sequenceSection {
+.sequenceSection,
+.templateNote {
   border: 1px solid #bfdedb;
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.94);
@@ -48,7 +49,8 @@
   text-transform: uppercase;
 }
 
-.actions {
+.actions,
+.sceneActions {
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
@@ -58,7 +60,12 @@
 
 .actions a,
 .actions button,
-.clockControls button {
+.clockControls button,
+.moveScenePanel button,
+.shortSceneHeading button,
+.addSceneButton,
+.sceneActions button,
+.shortSceneMetrics button {
   border: 1px solid #236771;
   border-radius: 999px;
   background: #236771;
@@ -72,6 +79,24 @@
 .actions .secondary {
   background: white;
   color: #236771;
+}
+
+.sceneActions button {
+  background: white;
+  color: #236771;
+  padding: 9px 13px;
+}
+
+.sceneActions button:disabled,
+.shortSceneMetrics button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.sceneActions .dangerButton,
+.shortSceneMetrics .dangerButton {
+  border-color: #a74f4f;
+  color: #8e3434;
 }
 
 .dashboard {
@@ -96,6 +121,33 @@
 
 .dashboard strong { font-size: 26px; }
 .dashboard span { color: #628086; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+
+.templateNote {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  align-items: center;
+  gap: 22px;
+  margin-bottom: 16px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #e1f5ee, #eef8fc);
+}
+
+.templateNote div {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #b9d8d4;
+}
+
+.templateNote span {
+  color: #5b7b80;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.templateNote strong { font-size: 28px; }
+.templateNote p { margin: 0; line-height: 1.55; }
 
 .clockControls {
   display: grid;
@@ -126,7 +178,8 @@
 
 .sequenceGrid button,
 .navigator button,
-.miniTabs button {
+.miniTabs button,
+.shortSceneTabs button {
   border: 1px solid #c5dedb;
   border-radius: 16px;
   background: #f8fdfc;
@@ -141,13 +194,16 @@
 .navigator button span,
 .navigator button small,
 .miniTabs button span,
-.miniTabs button small {
+.miniTabs button small,
+.shortSceneTabs button span,
+.shortSceneTabs button small {
   display: block;
 }
 
 .sequenceGrid button span,
 .navigator button span,
-.miniTabs button span {
+.miniTabs button span,
+.shortSceneTabs button span {
   color: #648187;
   font-size: 11px;
   font-weight: 900;
@@ -157,7 +213,8 @@
 
 .sequenceGrid button strong,
 .navigator button strong,
-.miniTabs button strong {
+.miniTabs button strong,
+.shortSceneTabs button strong {
   display: block;
   margin: 4px 0;
   font-size: 16px;
@@ -165,12 +222,14 @@
 
 .sequenceGrid button small,
 .navigator button small,
-.miniTabs button small { color: #648187; }
+.miniTabs button small,
+.shortSceneTabs button small { color: #648187; }
 
 .sequenceGrid .activeSequence,
 .navigator .activeBlock,
 .navigator .activeScene,
-.miniTabs .activeMini {
+.miniTabs .activeMini,
+.shortSceneTabs .activeShortScene {
   border-color: #236771;
   background: #dff4ef;
   box-shadow: inset 0 0 0 1px #236771;
@@ -192,7 +251,8 @@
 
 .field > span,
 .numberField > span,
-.selectField > span {
+.selectField > span,
+.assignmentSignal > span {
   font-size: 12px;
   font-weight: 900;
   letter-spacing: 0.055em;
@@ -217,7 +277,7 @@
 
 .builder {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 300px minmax(0, 1fr);
   overflow: hidden;
   margin-bottom: 16px;
 }
@@ -227,6 +287,16 @@
   background: #f4fbf9;
   padding: 22px;
 }
+
+.navigatorHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.navigatorHeading small { color: #648187; }
+.navigator .addSceneButton { width: auto; margin: 0; padding: 8px 12px; }
 
 .blockGroup { margin-top: 12px; }
 .blockGroup > button { width: 100%; margin-bottom: 7px; }
@@ -238,6 +308,122 @@
 }
 
 .sceneWorkspace { padding: 28px; min-width: 0; }
+
+.sceneHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.sceneHeader .sectionHeading { flex: 1; }
+.sceneActions { max-width: 430px; }
+
+.sceneMetrics {
+  display: grid;
+  grid-template-columns: 180px 170px 160px minmax(190px, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.assignmentSignal {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid #b8d8d3;
+  border-radius: 14px;
+  background: #eef9f5;
+  padding: 10px 13px;
+}
+
+.assignmentSignal strong { font-size: 21px; }
+.assignmentSignal small { color: #617f84; }
+.assignmentSignal[data-alert="true"] { border-color: #d6a75a; background: #fff7e6; }
+
+.characterMovement {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.characterChecklist {
+  min-width: 0;
+  border: 1px solid #c4ddda;
+  border-radius: 16px;
+  background: #f8fcfb;
+  padding: 14px;
+}
+
+.characterChecklist legend {
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.characterChecklist label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.characterChecklist small { color: #648187; line-height: 1.4; }
+
+.moveScenePanel {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(230px, 0.65fr) auto;
+  gap: 16px;
+  align-items: end;
+  border: 1px solid #bcd9d6;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #f0faf7, #f3f9fd);
+  margin: 18px 0;
+  padding: 18px;
+}
+
+.moveScenePanel span {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.moveScenePanel p { margin: 5px 0 0; color: #58757b; line-height: 1.45; }
+
+.assignmentPanel {
+  border: 1px solid #bddbd7;
+  border-radius: 20px;
+  background: #f8fcfb;
+  margin: 20px 0;
+  padding: 20px;
+}
+
+.assignmentGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.assignmentGrid article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.8fr);
+  align-items: end;
+  gap: 12px;
+  border: 1px solid #c7dfdc;
+  border-radius: 14px;
+  background: white;
+  padding: 14px;
+}
+
+.assignmentGrid article span,
+.assignmentGrid article small { display: block; }
+.assignmentGrid article span { color: #648187; font-size: 11px; font-weight: 900; text-transform: uppercase; }
+.assignmentGrid article strong { display: block; margin: 4px 0; }
+.assignmentGrid article small { color: #648187; }
 
 .miniTabs {
   display: grid;
@@ -259,6 +445,63 @@
   gap: 12px;
   margin-bottom: 18px;
 }
+
+.shortScenePanel {
+  border-top: 1px solid #c6dfdc;
+  margin-top: 24px;
+  padding-top: 22px;
+}
+
+.shortSceneHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.shortSceneHeading h3 { margin: 5px 0 0; }
+
+.shortSceneWorkspace {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.shortSceneTabs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shortSceneTabs button { width: 100%; padding: 11px; }
+.shortSceneEditor { min-width: 0; }
+
+.shortSceneMetrics {
+  display: grid;
+  grid-template-columns: 150px 130px 130px auto;
+  align-items: end;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.shortSceneMetrics .dangerButton {
+  background: white;
+  padding: 10px 13px;
+}
+
+.emptyShortScene,
+.unassignedScene {
+  border: 1px dashed #b8d2cf;
+  border-radius: 16px;
+  background: white;
+  color: #5e7b80;
+  padding: 18px;
+}
+
+.unassignedScene { margin-top: 20px; }
+.unassignedScene strong { color: #8b6428; }
+.unassignedScene p { margin-bottom: 0; }
 
 .tableWrap { overflow-x: auto; }
 .tableWrap table { width: 100%; border-collapse: collapse; min-width: 820px; }
@@ -282,26 +525,46 @@
   text-align: center;
 }
 
-@media (max-width: 1150px) {
+@media (max-width: 1200px) {
   .dashboard { grid-template-columns: repeat(4, 1fr); }
   .sequenceGrid { grid-template-columns: repeat(3, 1fr); }
   .clockControls { grid-template-columns: 1fr 1fr; }
+  .sceneMetrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .moveScenePanel { grid-template-columns: 1fr 1fr; }
+  .moveScenePanel button { width: fit-content; }
+  .shortSceneMetrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 900px) {
   .page { padding: 16px 12px 100px; }
-  .header { flex-direction: column; padding: 22px; }
-  .actions { justify-content: flex-start; }
+  .header,
+  .sceneHeader,
+  .shortSceneHeading { flex-direction: column; }
+  .header { padding: 22px; }
+  .actions,
+  .sceneActions { justify-content: flex-start; max-width: none; }
   .dashboard { grid-template-columns: repeat(2, 1fr); }
   .sequenceGrid { grid-template-columns: repeat(2, 1fr); }
   .twoColumns,
-  .metricInputs { grid-template-columns: 1fr; }
+  .metricInputs,
+  .characterMovement,
+  .assignmentGrid { grid-template-columns: 1fr; }
   .builder { grid-template-columns: 1fr; }
   .navigator { border-right: 0; border-bottom: 1px solid #c8dfdd; }
+  .shortSceneWorkspace { grid-template-columns: 1fr; }
+  .shortSceneTabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .templateNote { grid-template-columns: 1fr; }
+  .templateNote div { border-right: 0; border-bottom: 1px solid #b9d8d4; padding-bottom: 10px; }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 620px) {
   .sequenceGrid,
   .miniTabs,
-  .clockControls { grid-template-columns: 1fr; }
+  .clockControls,
+  .sceneMetrics,
+  .moveScenePanel,
+  .shortSceneTabs,
+  .shortSceneMetrics { grid-template-columns: 1fr; }
+  .assignmentGrid article { grid-template-columns: 1fr; }
+  .sceneWorkspace { padding: 20px; }
 }

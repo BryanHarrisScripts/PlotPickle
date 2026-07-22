@@ -1,10 +1,12 @@
 # PlotPickle Playhouse
 
-PlotPickle is a local-first story-development application built around Bryan Harris’s 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, scene, mini-block, screenplay page, review, and visual board.
+PlotPickle is a local-first story-development application built around Bryan Harris’s 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, flexible scene plan, mini-block, screenplay page, review, and visual board.
 
 Current application version: `0.11.0`
 
-Current project schema: `1.6.0`
+Current released project schema: `1.6.0`
+
+Phase 1 development schema: `1.7.0`
 
 ## Official distribution
 
@@ -81,7 +83,7 @@ Every workspace reads and writes the same locally saved project.
 
 The Writer starts with a Markdown treatment section for every mini-block. It includes formatting tools, live preview, section and complete-treatment export, word counts, optional AI cleanup that requires approval, and a deliberate handoff from prose into screenplay action. Treatment text is saved in the canonical local project and can contribute context to later visual-storyboard prompts.
 
-Screenplay mode starts blank for a new movie and uses the existing Story Setup, World, Characters, Ghost, Catalyst, 24 Blocks, 48 scenes and 96 mini-blocks as its writing foundation. Every screenplay element retains its Block and mini-block assignment. The editor estimates page and scene counts, uses screenplay-standard spacing, and exports Fountain and Final Draft FDX; Print / PDF uses the screenplay page layout.
+Screenplay mode starts blank for a new movie and uses the existing Story Setup, World, Characters, Ghost, Catalyst, 24 Blocks, flexible scene plan and 96 mini-blocks as its writing foundation. Every screenplay element retains its Block and mini-block assignment. The editor estimates page and scene counts, uses screenplay-standard spacing, and exports Fountain and Final Draft FDX; Print / PDF uses the screenplay page layout.
 
 Read & Learn adds a searchable Learning Studio drawn from PlotPickle's screenwriting documentation. Short learning paths cover concept-to-draft, character and inner journey, structure and dramatic questions, scene construction, visual writing, dialogue, subtext, silence, theme, pacing, revision and Markdown. Recommended lessons follow the active Block and mini-block, provide an immediate exercise, and open the correct workspace for application. The educational guidance remains CC BY-SA 4.0; each writer's creative work remains their own.
 
@@ -134,7 +136,7 @@ The story rail is grouped into four readable areas.
 
 ### Structure
 
-- **ST — Structure Map** summarizes 4 acts, 12 sequences, 24 blocks, 48 scenes, 96 mini-blocks, and the Story Clock before the writer enters the full Structure Engine.
+- **ST — Structure Map** summarizes 4 acts, 12 sequences, 24 blocks, the live scene count, 96 mini-blocks, and the Story Clock before the writer enters the full Structure Engine. A 48-scene feature plan remains the starting template rather than a fixed requirement.
 - 24 Blocks
 
 ### Production
@@ -155,7 +157,7 @@ The guided engine order is:
 
 **Structure → Resonance → Voiceprint → PageFlow → DraftLens → CraftLoop**
 
-- **Structure Engine** expands the spine into 12 sequences, 48 scenes, 96 mini-blocks, beat and shot targets, and a complete Story Clock.
+- **Structure Engine** expands the spine into 12 sequences, a flexible scene plan, 96 mini-blocks, beat and shot targets, and a complete Story Clock. It can add, delete, duplicate, reorder and move scenes between blocks, assign one to four mini-blocks to a scene, and place multiple short scenes inside a mini-block.
 - **Resonance Engine** aligns the central question with character choices, motifs, opening and closing images, and consequences.
 - **Voiceprint Engine** develops character-specific speech from history, status, worldview, rhythm, vocabulary, emotion, and pressure.
 - **PageFlow Engine** turns planning into visible, active, actor-playable screenplay description.
@@ -166,14 +168,14 @@ The suggested order is not mandatory. Writers may enter whichever engine address
 
 ## Complete structural hierarchy
 
-**4 Acts → 12 Sequences → 24 Blocks → 48 Scenes → 96 Mini-Blocks → Beats → Shots**
+**4 Acts → 12 Sequences → 24 Blocks → Flexible Scenes → 96 Mini-Blocks → Beats → Shots**
 
 At the original 120-minute preset, the default reference model provides:
 
 - 30 minutes per act;
 - 10 minutes per sequence;
 - 5 minutes per block;
-- 2.5 minutes per scene;
+- an initial two-scene distribution per block, producing a 48-scene starting template;
 - 75 seconds per mini-block;
 - 4 beats and 16 shots per mini-block;
 - 384 beat targets and 1,536 shot targets overall; and
@@ -183,14 +185,16 @@ These are editable planning references, not mandatory filmmaking rules.
 
 ## Project data and migration
 
-New projects use schema `1.6.0`.
+Released projects use schema `1.6.0`. Phase 1 development uses schema `1.7.0`.
 
-Imports from schemas 1.0 through 1.3 are upgraded automatically. Migration preserves existing story, world, character, dialogue, note, screenplay, block, and visual data while creating the 12-sequence, 48-scene, and 96-mini-block hierarchy.
+Imports from schemas 1.0 through 1.6 are upgraded non-destructively. Migration preserves existing story, world, character, dialogue, note, screenplay, block, scene, mini-block, and visual data while adding dynamic scene fields, Story Threads, Character Arc Matrices, rights and provenance records, and revision history.
 
 The source of truth is:
 
 - `schema/plotpickle-project.schema.json`
+- `schema/plotpickle-project-v1.7.schema.json`
 - `lib/project.ts`
+- `lib/project-phase-one.ts`
 - `lib/structure.ts`
 
 ## Copyright, ownership, and licences

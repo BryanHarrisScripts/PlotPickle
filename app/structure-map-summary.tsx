@@ -25,9 +25,9 @@ export default function StructureMapSummary({
   onOpenBlock: (number: number) => void;
 }) {
   const clock = buildStoryClock(project);
-  const allMinis = project.blocks.flatMap((block) =>
-    block.scenes.flatMap((scene) => scene.miniBlocks),
-  );
+  const allScenes = project.blocks.flatMap((block) => block.scenes);
+  const allMinis = allScenes.flatMap((scene) => scene.miniBlocks);
+  const shortSceneCount = allMinis.reduce((sum, mini) => sum + mini.shortScenes.length, 0);
   const totalBeats = allMinis.reduce((sum, mini) => sum + mini.beatTarget, 0);
   const totalShots = allMinis.reduce((sum, mini) => sum + mini.shotTarget, 0);
   const sequenceRows = clock.filter((row) => row.level === "sequence");
@@ -39,12 +39,12 @@ export default function StructureMapSummary({
           <p className={styles.eyebrow}>ST · Structure Map</p>
           <h1>See the complete dramatic hierarchy before entering the full engine.</h1>
           <p>
-            This map summarizes the four acts, twelve sequences, twenty-four blocks, forty-eight scenes, and ninety-six mini-blocks already stored in the active project.
+            This map summarizes four acts, twelve sequences, twenty-four blocks, the project&apos;s live scene count, and 96 structural mini-blocks. The 48-scene starting template is guidance, not a restriction.
           </p>
         </div>
         <div className={styles.heroActions}>
           <Link href="/structure">Open full Structure Engine <span aria-hidden="true">→</span></Link>
-          <small>The full engine edits timing, sequence questions, scenes, mini-blocks, beats, and shots.</small>
+          <small>The full engine adds, deletes, duplicates, reorders and moves scenes while preserving mini-block structure and timing.</small>
         </div>
       </section>
 
@@ -52,16 +52,16 @@ export default function StructureMapSummary({
         <article><strong>4</strong><span>Acts</span></article>
         <article><strong>12</strong><span>Sequences</span></article>
         <article><strong>24</strong><span>Blocks</span></article>
-        <article><strong>48</strong><span>Scenes</span></article>
-        <article><strong>96</strong><span>Mini-blocks</span></article>
-        <article><strong>{totalShots}</strong><span>Shot targets</span></article>
+        <article><strong>{allScenes.length}</strong><span>Scenes</span></article>
+        <article><strong>{allMinis.length}</strong><span>Mini-blocks</span></article>
+        <article><strong>{shortSceneCount}</strong><span>Short scenes</span></article>
       </section>
 
       <section className={styles.clockStrip}>
         <div><span>Target runtime</span><strong>{project.metadata.targetMinutes} minutes</strong></div>
         <div><span>Pacing profile</span><strong>{project.structure.pacingProfile.replaceAll("-", " ")}</strong></div>
         <div><span>Planned beats</span><strong>{totalBeats}</strong></div>
-        <div><span>Average shot</span><strong>{project.structure.averageShotSeconds.toFixed(2)} sec</strong></div>
+        <div><span>Shot targets</span><strong>{totalShots}</strong></div>
       </section>
 
       <div className={styles.acts}>

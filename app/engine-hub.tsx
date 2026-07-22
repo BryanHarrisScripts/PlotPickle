@@ -21,11 +21,11 @@ const engines: EngineDefinition[] = [
     stage: "Organize the film",
     question: "How does the complete story unfold in time?",
     summary:
-      "Expand the four-act spine into twelve sequences, twenty-four blocks, forty-eight scenes and ninety-six mini-blocks, then see the whole movie on a live Story Clock.",
+      "Expand the four-act spine into twelve sequences, twenty-four blocks, a flexible scene plan and ninety-six mini-blocks, then see the whole movie on a live Story Clock.",
     useWhen:
-      "Use it after the 24-block spine exists, or whenever pacing, scene placement, sequence turns, beats or shot targets need to be clarified.",
-    connects: ["Target runtime", "12 sequences", "24 blocks", "48 scenes", "96 mini-blocks", "Beat and shot targets"],
-    result: "A timed, navigable dramatic hierarchy from act to shot.",
+      "Use it after the 24-block spine exists, or whenever pacing, scene placement, scene count, sequence turns, beats or shot targets need to be clarified.",
+    connects: ["Target runtime", "12 sequences", "24 blocks", "Flexible scenes", "96 mini-blocks", "Beat and shot targets"],
+    result: "A timed, navigable dramatic hierarchy from act to shot, with forty-eight scenes as a starting template rather than a limit.",
   },
   {
     code: "RE",

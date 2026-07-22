@@ -581,7 +581,7 @@ export default function Home() {
     setSelectedBlockNumber(1);
     setActiveTab("planner");
     setActiveSection("overview");
-    setToast("Afterglow loaded across the Story Planner, 84 source-based Treatment movements, 12 reconciliation slots, and Visual Storyboard context.");
+    setToast("Afterglow loaded across the Story Planner, all 96 Treatment positions, and Visual Storyboard context. Unreconciled material is clearly marked.");
   }
 
   function exportProject() {

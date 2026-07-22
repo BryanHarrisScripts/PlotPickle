@@ -6,7 +6,18 @@ import {
   type ScreenplayDraftElement,
   type StoryBlock,
 } from "./project";
-import type { MiniBlock, StoryScene } from "./structure";
+import {
+  addDynamicScene,
+  assignMiniBlockToScene as assignMiniBlock,
+  duplicateDynamicScene,
+  moveDynamicScene,
+  moveSceneBetweenBlocks as moveBetweenBlocks,
+  removeDynamicScene,
+  type MiniBlock,
+  type SceneType,
+  type ShortScene,
+  type StoryScene,
+} from "./structure";
 
 export const PHASE_ONE_SCHEMA_VERSION = "1.7.0" as const;
 
@@ -172,13 +183,22 @@ export type RevisionSnapshotScene = {
   blockNumber: number;
   order: number;
   title: string;
+  sceneType: SceneType;
   purpose: string;
+  entryCondition: string;
+  exitCondition: string;
   objective: string;
-  conflict: string;
-  turn: string;
+  opposition: string;
+  action: string;
+  reversal: string;
   outcome: string;
+  charactersEntering: string[];
+  charactersLeaving: string[];
+  estimatedSeconds: number;
+  pageEstimate: number;
   threadIds: string[];
   miniBlockIds: string[];
+  shortScenes: ShortScene[];
 };
 
 export type RevisionSnapshotPayload = {
@@ -227,10 +247,7 @@ export type RevisionComparison = {
   summary: string;
 };
 
-export type PhaseOneProject = Omit<
-  PlotPickleProject,
-  "schemaVersion" | "screenplay" | "characters" | "blocks"
-> & {
+export type PhaseOneProject = Omit<PlotPickleProject, "schemaVersion" | "screenplay" | "characters" | "blocks"> & {
   schemaVersion: typeof PHASE_ONE_SCHEMA_VERSION;
   screenplay: PhaseOneScreenplayDocument;
   characters: PhaseOneCharacter[];
@@ -241,28 +258,12 @@ export type PhaseOneProject = Omit<
 };
 
 const expandedElementTypes: ExpandedScreenplayDraftElementType[] = [
-  "scene-heading",
-  "action",
-  "character",
-  "parenthetical",
-  "dialogue",
-  "transition",
-  "section",
-  "synopsis",
-  "shot",
-  "lyrics",
-  "dual-dialogue",
-  "centered",
-  "page-break",
-  "title-page",
-  "note",
-  "boneyard",
+  "scene-heading", "action", "character", "parenthetical", "dialogue", "transition", "section", "synopsis",
+  "shot", "lyrics", "dual-dialogue", "centered", "page-break", "title-page", "note", "boneyard",
 ];
 
 function makeId(prefix: string) {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return `${prefix}-${crypto.randomUUID()}`;
-  }
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return `${prefix}-${crypto.randomUUID()}`;
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
@@ -323,29 +324,24 @@ function enrichScene(scene: StoryScene, order: number): PhaseOneStoryScene {
       : "outline",
     revisionColour: candidate.revisionColour ?? "none",
     locked: Boolean(candidate.locked),
-    miniBlocks: Array.isArray(scene.miniBlocks) ? clone(scene.miniBlocks) : [],
+    miniBlocks: clone(scene.miniBlocks),
   };
 }
 
 function enrichElement(element: ScreenplayDraftElement): PhaseOneScreenplayDraftElement {
   const candidate = element as Partial<PhaseOneScreenplayDraftElement>;
-  const type = expandedElementTypes.includes(candidate.type as ExpandedScreenplayDraftElementType)
-    ? candidate.type as ExpandedScreenplayDraftElementType
-    : "action";
   return {
     ...element,
-    type,
+    type: expandedElementTypes.includes(candidate.type as ExpandedScreenplayDraftElementType)
+      ? candidate.type as ExpandedScreenplayDraftElementType
+      : "action",
     sceneId: typeof candidate.sceneId === "string" ? candidate.sceneId : "",
     threadIds: Array.isArray(candidate.threadIds) ? candidate.threadIds.filter((id): id is string => typeof id === "string") : [],
     omitted: Boolean(candidate.omitted),
     locked: Boolean(candidate.locked),
     revisionColour: candidate.revisionColour ?? "none",
-    sourceAttributionIds: Array.isArray(candidate.sourceAttributionIds)
-      ? candidate.sourceAttributionIds.filter((id): id is string => typeof id === "string")
-      : [],
-    aiProvenanceIds: Array.isArray(candidate.aiProvenanceIds)
-      ? candidate.aiProvenanceIds.filter((id): id is string => typeof id === "string")
-      : [],
+    sourceAttributionIds: Array.isArray(candidate.sourceAttributionIds) ? candidate.sourceAttributionIds.filter((id): id is string => typeof id === "string") : [],
+    aiProvenanceIds: Array.isArray(candidate.aiProvenanceIds) ? candidate.aiProvenanceIds.filter((id): id is string => typeof id === "string") : [],
   };
 }
 
@@ -354,18 +350,9 @@ export function upgradeProjectToPhaseOne(project: PlotPickleProject): PhaseOnePr
   return {
     ...base,
     schemaVersion: PHASE_ONE_SCHEMA_VERSION,
-    screenplay: {
-      ...base.screenplay,
-      draftElements: base.screenplay.draftElements.map(enrichElement),
-    },
-    characters: base.characters.map((character) => ({
-      ...character,
-      arcMatrix: createBlankArcMatrix(character),
-    })),
-    blocks: base.blocks.map((block) => ({
-      ...block,
-      scenes: block.scenes.map(enrichScene),
-    })),
+    screenplay: { ...base.screenplay, draftElements: base.screenplay.draftElements.map(enrichElement) },
+    characters: base.characters.map((character) => ({ ...character, arcMatrix: createBlankArcMatrix(character) })),
+    blocks: base.blocks.map((block) => ({ ...block, scenes: block.scenes.map(enrichScene) })),
     storyThreads: [],
     rights: createBlankRightsAndProvenance(base.metadata.title),
     revisions: [],
@@ -384,96 +371,28 @@ export function isPhaseOneProject(value: unknown): value is PhaseOneProject {
     && Array.isArray(candidate.revisions);
 }
 
-function normalizeSceneOrder(scenes: PhaseOneStoryScene[]) {
-  return scenes.map((scene, index) => ({ ...scene, order: index, number: index + 1 }));
-}
-
-function rebalanceSceneDurations(scenes: PhaseOneStoryScene[], totalSeconds: number) {
-  const safeTotal = Math.max(0, totalSeconds);
-  const duration = scenes.length > 0 ? safeTotal / scenes.length : safeTotal;
-  return scenes.map((scene) => ({ ...scene, estimatedSeconds: duration }));
-}
-
-function totalSceneSeconds(block: PhaseOneStoryBlock) {
-  const fromScenes = block.scenes.reduce((sum, scene) => sum + Math.max(0, Number(scene.estimatedSeconds) || 0), 0);
-  return fromScenes > 0 ? fromScenes : Math.max(0, Number(block.targetMinutes) || 0) * 60;
-}
-
-function nextSceneTitle(block: PhaseOneStoryBlock) {
-  return `Scene ${block.scenes.length + 1} — New movement`;
-}
-
-function createDynamicScene(block: PhaseOneStoryBlock): PhaseOneStoryScene {
-  return {
-    id: makeId(`block-${String(block.number).padStart(2, "0")}-scene`),
-    number: block.scenes.length + 1,
-    order: block.scenes.length,
-    title: nextSceneTitle(block),
-    purpose: "Define the objective, conflict, turn, and outcome for this scene.",
-    characterIds: [],
-    locationIds: [],
-    objective: "",
-    conflict: "",
-    turn: "",
-    resolution: "",
-    outcome: "",
-    estimatedSeconds: 0,
-    miniBlocks: [],
-    threadIds: [],
-    status: "outline",
-    revisionColour: "none",
-    locked: false,
-  };
+function enrichScenes(scenes: StoryScene[]): PhaseOneStoryScene[] {
+  return scenes.map((scene, index) => enrichScene(scene, index));
 }
 
 export function addSceneToBlock(block: PhaseOneStoryBlock, afterSceneId?: string): PhaseOneStoryBlock {
-  const totalSeconds = totalSceneSeconds(block);
-  const scenes = clone(block.scenes);
-  const newScene = createDynamicScene(block);
-  const insertionIndex = afterSceneId
-    ? Math.max(0, scenes.findIndex((scene) => scene.id === afterSceneId) + 1)
-    : scenes.length;
+  return { ...block, scenes: enrichScenes(addDynamicScene(block.scenes, block.number, afterSceneId)) };
+}
 
-  const donorIndex = scenes.reduce((bestIndex, scene, index, all) => {
-    if (scene.miniBlocks.length <= 1) return bestIndex;
-    if (bestIndex < 0 || scene.miniBlocks.length > all[bestIndex].miniBlocks.length) return index;
-    return bestIndex;
-  }, -1);
-
-  if (donorIndex >= 0) {
-    const movedMini = scenes[donorIndex].miniBlocks.pop();
-    if (movedMini) newScene.miniBlocks = [movedMini];
-  }
-
-  scenes.splice(insertionIndex, 0, newScene);
-  return { ...block, scenes: rebalanceSceneDurations(normalizeSceneOrder(scenes), totalSeconds) };
+export function duplicateSceneInBlock(block: PhaseOneStoryBlock, sceneId: string): PhaseOneStoryBlock {
+  return { ...block, scenes: enrichScenes(duplicateDynamicScene(block.scenes, sceneId, block.number)) };
 }
 
 export function removeSceneFromBlock(block: PhaseOneStoryBlock, sceneId: string): PhaseOneStoryBlock {
-  if (block.scenes.length <= 1) return block;
-  const totalSeconds = totalSceneSeconds(block);
   const index = block.scenes.findIndex((scene) => scene.id === sceneId);
-  if (index < 0 || block.scenes[index].locked) return block;
-
-  const scenes = clone(block.scenes);
-  const [removed] = scenes.splice(index, 1);
-  const recipientIndex = Math.max(0, Math.min(index - 1, scenes.length - 1));
-  scenes[recipientIndex] = {
-    ...scenes[recipientIndex],
-    miniBlocks: [...scenes[recipientIndex].miniBlocks, ...removed.miniBlocks].sort((left, right) => left.number - right.number),
-    threadIds: [...new Set([...scenes[recipientIndex].threadIds, ...removed.threadIds])],
-  };
-  return { ...block, scenes: rebalanceSceneDurations(normalizeSceneOrder(scenes), totalSeconds) };
+  if (index < 0 || block.scenes.length <= 1 || block.scenes[index].locked) return block; // locked scene cannot be removed
+  return { ...block, scenes: enrichScenes(removeDynamicScene(block.scenes, sceneId)) };
 }
 
 export function moveSceneInBlock(block: PhaseOneStoryBlock, sceneId: string, direction: "up" | "down"): PhaseOneStoryBlock {
-  const index = block.scenes.findIndex((scene) => scene.id === sceneId);
-  if (index < 0 || block.scenes[index].locked) return block;
-  const target = direction === "up" ? index - 1 : index + 1;
-  if (target < 0 || target >= block.scenes.length) return block;
-  const scenes = clone(block.scenes);
-  [scenes[index], scenes[target]] = [scenes[target], scenes[index]];
-  return { ...block, scenes: normalizeSceneOrder(scenes) };
+  const selected = block.scenes.find((scene) => scene.id === sceneId);
+  if (!selected || selected.locked) return block;
+  return { ...block, scenes: enrichScenes(moveDynamicScene(block.scenes, sceneId, direction)) };
 }
 
 export function reorderScenesInBlock(block: PhaseOneStoryBlock, orderedSceneIds: string[]): PhaseOneStoryBlock {
@@ -481,28 +400,16 @@ export function reorderScenesInBlock(block: PhaseOneStoryBlock, orderedSceneIds:
   const ordered = orderedSceneIds.flatMap((id) => current.has(id) ? [current.get(id) as PhaseOneStoryScene] : []);
   const missing = block.scenes.filter((scene) => !orderedSceneIds.includes(scene.id));
   if (ordered.length === 0) return block;
-  return { ...block, scenes: normalizeSceneOrder([...ordered, ...missing]) };
+  return { ...block, scenes: enrichScenes([...ordered, ...missing]) };
 }
 
 export function assignMiniBlockToScene(block: PhaseOneStoryBlock, miniBlockId: string, targetSceneId: string): PhaseOneStoryBlock {
-  const targetExists = block.scenes.some((scene) => scene.id === targetSceneId);
-  if (!targetExists) return block;
-  let moved: MiniBlock | undefined;
-  const scenes = block.scenes.map((scene) => {
-    const miniBlocks = scene.miniBlocks.filter((mini) => {
-      if (mini.id !== miniBlockId) return true;
-      moved = mini;
-      return false;
-    });
-    return { ...scene, miniBlocks };
-  });
-  if (!moved) return block;
-  return {
-    ...block,
-    scenes: scenes.map((scene) => scene.id === targetSceneId
-      ? { ...scene, miniBlocks: [...scene.miniBlocks, moved as MiniBlock].sort((left, right) => left.number - right.number) }
-      : scene),
-  };
+  return { ...block, scenes: enrichScenes(assignMiniBlock(block.scenes, miniBlockId, targetSceneId)) };
+}
+
+export function moveSceneToBlock(project: PhaseOneProject, sceneId: string, targetBlockNumber: number, afterSceneId?: string): PhaseOneProject {
+  const blocks = moveBetweenBlocks(project.blocks, sceneId, targetBlockNumber, afterSceneId);
+  return { ...project, blocks: blocks.map((block) => ({ ...block, scenes: enrichScenes(block.scenes) })) };
 }
 
 export function createStoryThread(input: Partial<StoryThread> = {}): StoryThread {
@@ -530,14 +437,13 @@ export function addStoryThread(project: PhaseOneProject, input: Partial<StoryThr
 }
 
 export function linkStoryThreadToScene(project: PhaseOneProject, threadId: string, sceneId: string): PhaseOneProject {
-  const thread = project.storyThreads.find((item) => item.id === threadId);
-  if (!thread) return project;
+  if (!project.storyThreads.some((item) => item.id === threadId)) return project;
   const now = timestamp();
   return {
     ...project,
-    storyThreads: project.storyThreads.map((item) => item.id === threadId
-      ? { ...item, sceneIds: [...new Set([...item.sceneIds, sceneId])], updatedAt: now }
-      : item),
+    storyThreads: project.storyThreads.map((thread) => thread.id === threadId
+      ? { ...thread, sceneIds: [...new Set([...thread.sceneIds, sceneId])], updatedAt: now }
+      : thread),
     blocks: project.blocks.map((block) => ({
       ...block,
       scenes: block.scenes.map((scene) => scene.id === sceneId
@@ -590,11 +496,7 @@ export function upsertCharacterArcCheckpoint(
     characters: project.characters.map((character) => {
       if (character.id !== characterId) return character;
       const id = checkpoint.id || makeId("arc-checkpoint");
-      const nextCheckpoint: CharacterArcCheckpoint = {
-        ...checkpoint,
-        id,
-        blockNumber: clampBlockNumber(checkpoint.blockNumber),
-      };
+      const nextCheckpoint: CharacterArcCheckpoint = { ...checkpoint, id, blockNumber: clampBlockNumber(checkpoint.blockNumber) };
       const exists = character.arcMatrix.checkpoints.some((item) => item.id === id);
       return {
         ...character,
@@ -660,20 +562,25 @@ export function captureRevisionPayload(project: PhaseOneProject): RevisionSnapsh
       blockNumber: block.number,
       order: scene.order,
       title: scene.title,
+      sceneType: scene.sceneType,
       purpose: scene.purpose,
+      entryCondition: scene.entryCondition,
+      exitCondition: scene.exitCondition,
       objective: scene.objective,
-      conflict: scene.conflict,
-      turn: scene.turn,
+      opposition: scene.opposition,
+      action: scene.action,
+      reversal: scene.reversal,
       outcome: scene.outcome,
+      charactersEntering: scene.charactersEntering,
+      charactersLeaving: scene.charactersLeaving,
+      estimatedSeconds: scene.estimatedSeconds,
+      pageEstimate: scene.pageEstimate,
       threadIds: scene.threadIds,
       miniBlockIds: scene.miniBlocks.map((mini) => mini.id),
+      shortScenes: scene.miniBlocks.flatMap((mini) => mini.shortScenes),
     }))),
     screenplayElements: project.screenplay.draftElements,
-    characterArcs: project.characters.map((character) => ({
-      characterId: character.id,
-      name: character.name,
-      arcMatrix: character.arcMatrix,
-    })),
+    characterArcs: project.characters.map((character) => ({ characterId: character.id, name: character.name, arcMatrix: character.arcMatrix })),
     storyThreads: project.storyThreads,
   });
 }
@@ -741,10 +648,13 @@ export function compareRevisionSnapshots(left: RevisionSnapshot, right: Revision
 
 export function phaseOneCoverage(project: PhaseOneProject) {
   const sceneCount = project.blocks.reduce((sum, block) => sum + block.scenes.length, 0);
+  const shortSceneCount = project.blocks.flatMap((block) => block.scenes).flatMap((scene) => scene.miniBlocks)
+    .reduce((sum, mini) => sum + mini.shortScenes.length, 0);
   const linkedThreadCount = project.storyThreads.filter((thread) => thread.sceneIds.length > 0).length;
   const arcCheckpointCount = project.characters.reduce((sum, character) => sum + character.arcMatrix.checkpoints.length, 0);
   return {
     sceneCount,
+    shortSceneCount,
     storyThreadCount: project.storyThreads.length,
     linkedThreadCount,
     arcCheckpointCount,
@@ -753,3 +663,5 @@ export function phaseOneCoverage(project: PhaseOneProject) {
     revisionCount: project.revisions.length,
   };
 }
+
+export type { MiniBlock, SceneType, ShortScene, StoryScene };

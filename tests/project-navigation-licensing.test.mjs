@@ -15,7 +15,7 @@ test("main application exposes the grouped project rail and local-only product m
     'id: "structureMap", code: "ST", label: "Structure Map"',
     'const groups: StorySectionGroup[] = ["Project", "Foundation", "Structure", "Production"]',
     "One story. Five connected workspaces.",
-    "Script Viewer",
+    "Screenplay",
     "rail-progress alert",
     "ProjectOverview",
     "StructureMapSummary",
@@ -80,7 +80,7 @@ test("overview and structure summary explain their contracts before deeper work"
 
 test("PlotPickle declares software, method, user, contribution, and brand rights separately", async () => {
   const packageJson = JSON.parse(await source("package.json"));
-  assert.equal(packageJson.version, "0.8.1");
+  assert.equal(packageJson.version, "0.9.0");
   assert.equal(packageJson.license, "AGPL-3.0-or-later");
 
   const legal = await source("app/legal/page.tsx");

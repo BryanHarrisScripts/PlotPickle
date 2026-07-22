@@ -84,3 +84,11 @@ PlotPickle exposes these connections through a single Settings menu rather than 
 - **Plugins** is a clearly labelled future-connectivity area. Placeholder entries cannot be enabled until a real, reviewed connector exists.
 
 Knowledge, character consistency, image, and video capabilities remain part of the provider-independent foundation. They appear as contextual actions inside Characters, Story Planner, Visual Board, Voiceprint, PageFlow, and DraftLens when implemented, without adding more top-level workspaces.
+## First in-workflow creative actions
+
+Version 0.9.0 moves the first optional AI actions into the places where writers work:
+
+- Screenplay suggestions receive only the current project, Block, mini-block, and character context selected by the writer. The response remains a suggestion until the writer chooses how to insert it.
+- Character reference generation builds a reusable identity prompt from the character profile and world visual language. The local gateway saves the generated file under the current PlotPickle user-data folder and returns a loopback asset URL for the character thumbnail.
+- OpenAI uses the Responses and image-generation endpoints. OpenAI-compatible services use chat-completions and image-generation conventions. Ollama/local models support screenplay text when the selected model is capable; they do not falsely advertise image generation.
+- The saved API key remains server-side. The browser sends creative context to PlotPickle's loopback gateway and never receives the key.

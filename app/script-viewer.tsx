@@ -72,6 +72,7 @@ export default function ScriptViewer({ project, onImport, onOpenBlock }: ScriptV
       analysisStatus: "none",
       analyzedAt: "",
       suggestedFields: [],
+      draftElements: [],
     };
     if (!onImport(next)) return;
     setSelectedIndex(0);

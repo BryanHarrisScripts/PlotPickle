@@ -2,9 +2,9 @@
 
 PlotPickle is a local-first story-development application built around Bryan Harris’s 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, scene, mini-block, screenplay page, review, and visual board.
 
-Current application version: `0.8.1`
+Current application version: `0.9.0`
 
-Current project schema: `1.4.0`
+Current project schema: `1.5.0`
 
 ## Official distribution
 
@@ -73,13 +73,15 @@ The launcher does not request Administrator rights, install a Windows service, a
 
 - **Instructions** explains the 24 Blocks method and every story column.
 - **Story Planner** develops the story foundation, world, characters, Ghost, Catalyst, The Pickle, dialogue system, structure summary, block spine, and notes.
-- **Script Viewer** keeps the complete screenplay readable in order, colour-codes screenplay grammar, navigates scenes, estimates each passage’s 24-Block position, and answers guided structural questions from the shared project.
+- **Screenplay** is the connected writing workspace. Write standard scene headings, action, character cues, parentheticals, dialogue and transitions against the 24 Blocks and 96 mini-blocks, then switch to Read & Learn for the colour-coded teaching viewer.
 - **Visual Board** attaches storyboard frames, prompts, shot notes, performance ideas, and continuity to the same project.
 - **Engines** explains and opens six focused specialist passes.
 
 Every workspace reads and writes the same locally saved project.
 
-The Script Viewer accepts plain-text (`.txt`), Fountain (`.fountain` or `.spmd`), and Final Draft (`.fdx`) files. **Load a screenplay** in Script Viewer and **Import** in the top bar use the same ingestion pipeline. A screenplay creates a fresh active project, replaces the optional Afterglow example, preserves the complete draft, detects the title, speaking characters, locations and scene order, and maps passages into the 24 Blocks, Story Planner, Structure Map, guided questions, and Visual Board directions. Script-derived interpretations are visibly marked as suggestions until the writer reviews and confirms them.
+The Screenplay workspace starts blank for a new movie and uses the existing Story Setup, World, Characters, Ghost, Catalyst, 24 Blocks, 48 scenes and 96 mini-blocks as its writing foundation. Every screenplay element retains its Block and mini-block assignment. The editor estimates page and scene counts, uses screenplay-standard spacing, and exports Fountain and Final Draft FDX; Print / PDF uses the screenplay page layout. Read & Learn keeps the complete screenplay readable in order, colour-codes screenplay grammar, and answers guided structural questions from the same project.
+
+It also accepts plain-text (`.txt`), Fountain (`.fountain` or `.spmd`), and Final Draft (`.fdx`) files. **Load a screenplay** in Read & Learn and **Import** in the top bar use the same ingestion pipeline. A screenplay creates a fresh active project, replaces the optional Afterglow example, preserves the complete draft, detects the title, speaking characters, locations and scene order, and maps passages into the 24 Blocks, Story Planner, Structure Map, guided questions, and Visual Board directions. Script-derived interpretations are visibly marked as suggestions until the writer reviews and confirms them.
 
 Parsing and the initial structural extraction happen on the local device without AI. The source screenplay is stored in the canonical `.plotpickle.json` project so it travels with the project, while the writer retains ownership of the script. Importing an existing `.plotpickle.json` file still restores that complete saved project.
 
@@ -99,6 +101,8 @@ The first foundation includes:
 - a replaceable asynchronous video-job contract.
 
 In the downloaded local edition, a verified API key may be saved in PlotPickle's private local-server data under the current computer account. AI Setup confirms the live connection, records the last successful check, and can test or remove the saved key. API keys are connection secrets, not project data, and are never written into browser settings, exported `.plotpickle.json` files, prompts, logs, or GitHub. OpenAI video is not enabled in the initial preset because the current Sora 2 Videos API is scheduled to shut down on September 24, 2026.
+
+The first live creative actions are available inside the work itself. The Screenplay assistant can suggest material using the current Block, mini-block and character context, but inserts nothing until the writer approves it. Characters can generate a portrait through the connected image model; the local server saves the resulting asset under the current computer account and attaches it as the character reference. OpenAI is the primary tested path, while compatible endpoints and local text models use the same private gateway where their capabilities allow it.
 
 See `docs/ai-architecture.md` for the complete architecture and delivery sequence.
 

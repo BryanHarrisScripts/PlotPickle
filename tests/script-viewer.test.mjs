@@ -15,7 +15,7 @@ test("full screenplay remains part of the canonical local project", async () => 
   assert.match(project, /normalizeScreenplay/);
   assert.ok(schema.required.includes("screenplay"));
   assert.equal(schema.properties.screenplay.$ref, "#/$defs/screenplay");
-  for (const field of ["analysisStatus", "analyzedAt", "suggestedFields"]) {
+  for (const field of ["analysisStatus", "analyzedAt", "suggestedFields", "draftElements"]) {
     assert.ok(schema.$defs.screenplay.required.includes(field), `Screenplay schema is missing ${field}`);
   }
 });

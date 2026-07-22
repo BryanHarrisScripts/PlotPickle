@@ -13,6 +13,25 @@ export type ScreenplayFormat = "plain-text" | "fountain" | "final-draft";
 
 export type ScreenplayAnalysisStatus = "none" | "suggested" | "reviewed";
 
+export type ScreenplayDraftElementType =
+  | "scene-heading"
+  | "action"
+  | "character"
+  | "parenthetical"
+  | "dialogue"
+  | "transition";
+
+export type ScreenplayDraftElement = {
+  id: string;
+  type: ScreenplayDraftElementType;
+  text: string;
+  blockNumber: number;
+  miniBlockNumber: number;
+  sceneNumber: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type ScreenplayDocument = {
   fileName: string;
   format: ScreenplayFormat;
@@ -21,6 +40,7 @@ export type ScreenplayDocument = {
   analysisStatus: ScreenplayAnalysisStatus;
   analyzedAt: string;
   suggestedFields: string[];
+  draftElements: ScreenplayDraftElement[];
 };
 
 export type Relationship = {
@@ -190,7 +210,7 @@ export type ProjectDevelopment = {
 };
 
 export type PlotPickleProject = {
-  schemaVersion: "1.4.0";
+  schemaVersion: "1.5.0";
   id: string;
   metadata: {
     title: string;
@@ -326,6 +346,7 @@ export function createBlankScreenplay(): ScreenplayDocument {
     analysisStatus: "none",
     analyzedAt: "",
     suggestedFields: [],
+    draftElements: [],
   };
 }
 
@@ -333,7 +354,7 @@ export function createBlankProject(): PlotPickleProject {
   const now = new Date().toISOString();
   const targetMinutes = 120;
   return {
-    schemaVersion: "1.4.0",
+    schemaVersion: "1.5.0",
     id: makeId("project"),
     metadata: {
       title: "Untitled Story",
@@ -411,7 +432,7 @@ export function isPlotPickleProject(value: unknown): value is PlotPickleProject 
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<PlotPickleProject>;
   return (
-    candidate.schemaVersion === "1.4.0" &&
+    candidate.schemaVersion === "1.5.0" &&
     typeof candidate.id === "string" &&
     !!candidate.metadata &&
     !!candidate.story &&
@@ -445,6 +466,25 @@ export function normalizeScreenplay(value: unknown): ScreenplayDocument {
     suggestedFields: Array.isArray(candidate.suggestedFields)
       ? candidate.suggestedFields.filter((item): item is string => typeof item === "string")
       : [],
+    draftElements: Array.isArray(candidate.draftElements)
+      ? candidate.draftElements.flatMap((item, index) => {
+          if (!item || typeof item !== "object") return [];
+          const draft = item as Partial<ScreenplayDraftElement>;
+          const types: ScreenplayDraftElementType[] = ["scene-heading", "action", "character", "parenthetical", "dialogue", "transition"];
+          if (!types.includes(draft.type as ScreenplayDraftElementType)) return [];
+          const now = new Date().toISOString();
+          return [{
+            id: typeof draft.id === "string" && draft.id ? draft.id : `screenplay-draft-${index + 1}`,
+            type: draft.type as ScreenplayDraftElementType,
+            text: typeof draft.text === "string" ? draft.text : "",
+            blockNumber: Math.min(24, Math.max(1, Number(draft.blockNumber) || 1)),
+            miniBlockNumber: Math.min(4, Math.max(1, Number(draft.miniBlockNumber) || 1)),
+            sceneNumber: Math.max(1, Number(draft.sceneNumber) || 1),
+            createdAt: typeof draft.createdAt === "string" ? draft.createdAt : now,
+            updatedAt: typeof draft.updatedAt === "string" ? draft.updatedAt : now,
+          }];
+        })
+      : [],
   };
 }
 
@@ -463,7 +503,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     blocks?: Array<Partial<StoryBlock>>;
   };
   if (
-    !["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0"].includes(candidate.schemaVersion ?? "") ||
+    !["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0"].includes(candidate.schemaVersion ?? "") ||
     typeof candidate.id !== "string" ||
     !candidate.metadata ||
     !candidate.story ||
@@ -479,7 +519,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
   const voiceprintDefaults = createBlankVoiceprint();
   const development = candidate.development ?? {};
   return {
-    schemaVersion: "1.4.0",
+    schemaVersion: "1.5.0",
     id: candidate.id,
     metadata: { ...candidate.metadata, targetMinutes },
     story: candidate.story,

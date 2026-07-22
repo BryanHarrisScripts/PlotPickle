@@ -7,7 +7,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "id", "metadata", "story", "world", "development", "screenplay", "structure", "characters", "blocks"],
   "properties": {
-    "schemaVersion": { "const": "1.4.0" },
+    "schemaVersion": { "const": "1.5.0" },
     "id": { "type": "string", "minLength": 1 },
     "metadata": { "$ref": "#/$defs/metadata" },
     "story": { "$ref": "#/$defs/story" },
@@ -27,7 +27,7 @@
     "screenplay": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["fileName", "format", "sourceText", "importedAt", "analysisStatus", "analyzedAt", "suggestedFields"],
+      "required": ["fileName", "format", "sourceText", "importedAt", "analysisStatus", "analyzedAt", "suggestedFields", "draftElements"],
       "properties": {
         "fileName": { "type": "string" },
         "format": { "enum": ["plain-text", "fountain", "final-draft"] },
@@ -35,7 +35,23 @@
         "importedAt": { "type": "string" },
         "analysisStatus": { "enum": ["none", "suggested", "reviewed"] },
         "analyzedAt": { "type": "string" },
-        "suggestedFields": { "type": "array", "items": { "type": "string" } }
+        "suggestedFields": { "type": "array", "items": { "type": "string" } },
+        "draftElements": { "type": "array", "items": { "$ref": "#/$defs/screenplayDraftElement" } }
+      }
+    },
+    "screenplayDraftElement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "text", "blockNumber", "miniBlockNumber", "sceneNumber", "createdAt", "updatedAt"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "enum": ["scene-heading", "action", "character", "parenthetical", "dialogue", "transition"] },
+        "text": { "type": "string" },
+        "blockNumber": { "type": "integer", "minimum": 1, "maximum": 24 },
+        "miniBlockNumber": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "sceneNumber": { "type": "integer", "minimum": 1 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       }
     },
     "metadata": {

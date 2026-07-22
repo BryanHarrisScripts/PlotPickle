@@ -9,7 +9,8 @@ import EngineHub from "./engine-hub";
 import ProjectOverview from "./project-overview";
 import StructureMapSummary from "./structure-map-summary";
 import SettingsPanel from "./settings-panel";
-import ScriptViewer from "./script-viewer";
+import ScriptWorkspace from "./script-workspace";
+import CharacterImageGenerator from "./character-image-generator";
 import { projectSectionProgress, sectionHasAlert } from "@/lib/project-progress";
 import { createProjectFromScreenplay, markScreenplayAnalysisReviewed } from "@/lib/screenplay-import";
 import { screenplayFormatForFile } from "@/lib/screenplay";
@@ -39,7 +40,7 @@ type StorySectionGroup = "Project" | "Foundation" | "Structure" | "Production";
 const mainTabs: { id: MainTab; label: string; description: string }[] = [
   { id: "instructions", label: "Instructions", description: "Learn the method" },
   { id: "planner", label: "Story Planner", description: "Build the story" },
-  { id: "script", label: "Script Viewer", description: "Read & learn" },
+  { id: "script", label: "Screenplay", description: "Outline & write" },
   { id: "visuals", label: "Visual Board", description: "See the film" },
   { id: "engines", label: "Engines", description: "Refine the story" },
   { id: "settings", label: "Settings", description: "Connect services" },
@@ -309,7 +310,7 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
                 ))}
               </aside>
               <div className="product-workspace">
-                <div className="product-tabs"><span>Instructions</span><span className="active">Story Planner</span><span>Script Viewer</span><span>Visual Board</span><span>Engines</span></div>
+                <div className="product-tabs"><span>Instructions</span><span className="active">Story Planner</span><span>Screenplay</span><span>Visual Board</span><span>Engines</span></div>
                 <div className="product-workspace-heading">
                   <div><small>ACT II · CONFRONTATION</small><strong>Your complete story at a glance</strong></div>
                   <span>18% complete</span>
@@ -585,8 +586,8 @@ export default function Home() {
     setSelectedCharacterId("");
     setSelectedBlockNumber(1);
     setActiveTab("planner");
-    setActiveSection("overview");
-    setToast("A new 24 Blocks project is ready.");
+    setActiveSection("storySetup");
+    setToast("A blank feature screenplay is ready. Begin with Story Setup, then build the 24 Blocks and 96 mini-blocks.");
   }
 
   function loadAfterglow() {
@@ -656,6 +657,7 @@ export default function Home() {
         analysisStatus: "none",
         analyzedAt: "",
         suggestedFields: [],
+        draftElements: [],
       });
     } catch {
       setToast("Choose a PlotPickle JSON project or a TXT, Fountain, SPMD, or Final Draft FDX screenplay.");
@@ -828,8 +830,9 @@ export default function Home() {
         ) : null}
 
         {activeTab === "script" ? (
-          <ScriptViewer
+          <ScriptWorkspace
             project={project}
+            onChange={(screenplay) => commit({ ...project, screenplay })}
             onImport={replaceWithImportedScreenplay}
             onOpenBlock={(number) => openBlock(number, "planner")}
           />
@@ -1188,6 +1191,7 @@ function CharacterEditor({
               </div>
             </div>
             <FormField label="Character description" value={selected.description} onChange={(value) => update(selected.id, "description", value)} />
+            <CharacterImageGenerator key={selected.id} project={project} character={selected} onImage={(value) => update(selected.id, "image", value)} />
             <div className="character-core-grid">
               <FormField label="Conscious want" value={selected.want} onChange={(value) => update(selected.id, "want", value)} help="What they believe will solve the problem." />
               <FormField label="Unconscious need" value={selected.need} onChange={(value) => update(selected.id, "need", value)} help="The internal truth they resist." />

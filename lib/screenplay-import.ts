@@ -198,6 +198,7 @@ export function createProjectFromScreenplay(screenplay: ScreenplayDocument): Plo
   const now = new Date().toISOString();
   const document: ScreenplayDocument = {
     ...screenplay,
+    draftElements: screenplay.draftElements ?? [],
     analysisStatus: "suggested",
     analyzedAt: now,
     suggestedFields: ["project", "story", "world", "characters", "ghost", "catalyst", "foundations", "pickle", "dialogue", "structure", "blocks", "visual-board"],

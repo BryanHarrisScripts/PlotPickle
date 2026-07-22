@@ -24,8 +24,14 @@ type ConnectionInput = {
   apiKey?: unknown;
 };
 
+type TextGenerationInput = { instructions?: unknown; prompt?: unknown };
+type ImageGenerationInput = { prompt?: unknown; characterId?: unknown };
+
 const API_PATH = "/api/local-ai/connection";
 const CHECK_PATH = `${API_PATH}/check`;
+const TEXT_PATH = "/api/local-ai/generate/text";
+const IMAGE_PATH = "/api/local-ai/generate/image";
+const ASSET_PATH = "/api/local-ai/assets/";
 const LIVE_PROVIDERS: LiveProvider[] = ["openai", "openai-compatible", "ollama"];
 
 function persistentHome() {
@@ -36,6 +42,10 @@ function persistentHome() {
 
 function connectionFile() {
   return path.join(persistentHome(), "secrets", "ai-connection.json");
+}
+
+function assetsDirectory() {
+  return path.join(persistentHome(), "assets");
 }
 
 function isLoopback(value: string | undefined) {
@@ -70,16 +80,16 @@ function sendJson(response: ServerResponse, status: number, body: Record<string,
   response.end(JSON.stringify(body));
 }
 
-async function readBody(request: IncomingMessage) {
+async function readBody(request: IncomingMessage, maximum = 64 * 1024): Promise<unknown> {
   const chunks: Buffer[] = [];
   let length = 0;
   for await (const chunk of request) {
     const value = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     length += value.length;
-    if (length > 64 * 1024) throw new Error("Connection settings are too large.");
+    if (length > maximum) throw new Error("The local request is too large.");
     chunks.push(value);
   }
-  return JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}") as ConnectionInput;
+  return JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
 }
 
 function isSavedConnection(value: unknown): value is SavedAiConnection {
@@ -143,6 +153,110 @@ function cleanProviderError(value: unknown) {
   return "The provider did not accept the connection check.";
 }
 
+function providerHeaders(connection: SavedAiConnection) {
+  const headers: Record<string, string> = { Accept: "application/json", "Content-Type": "application/json" };
+  if (connection.provider !== "ollama" && connection.apiKey) headers.Authorization = `Bearer ${connection.apiKey}`;
+  return headers;
+}
+
+async function providerJson(url: string, connection: SavedAiConnection, body: Record<string, unknown>, timeout = 120_000) {
+  const providerResponse = await fetch(url, {
+    method: "POST",
+    headers: providerHeaders(connection),
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(timeout),
+  });
+  const text = await providerResponse.text();
+  let value: unknown = {};
+  try { value = text ? JSON.parse(text) : {}; } catch { value = {}; }
+  if (!providerResponse.ok) {
+    if (providerResponse.status === 401 || providerResponse.status === 403) throw new Error("The saved API key was rejected. Reconnect it in Settings.");
+    throw new Error(cleanProviderError(value));
+  }
+  return value as Record<string, unknown>;
+}
+
+function openAiOutputText(value: Record<string, unknown>) {
+  if (typeof value.output_text === "string") return value.output_text;
+  const output = Array.isArray(value.output) ? value.output as Array<{ content?: Array<{ type?: string; text?: string }> }> : [];
+  return output.flatMap((item) => item.content ?? []).filter((item) => item.type === "output_text").map((item) => item.text ?? "").join("\n").trim();
+}
+
+async function generateText(connection: SavedAiConnection, input: TextGenerationInput) {
+  const instructions = typeof input.instructions === "string" ? input.instructions.trim().slice(0, 6_000) : "";
+  const prompt = typeof input.prompt === "string" ? input.prompt.trim().slice(0, 30_000) : "";
+  if (!prompt) throw new Error("Enter a writing request before generating.");
+  if (!connection.textModel) throw new Error("Choose a text model in Settings.");
+  const baseUrl = normalizedUrl(connection.baseUrl);
+  if (connection.provider === "openai") {
+    const value = await providerJson(`${baseUrl}/responses`, connection, { model: connection.textModel, instructions, input: prompt });
+    return openAiOutputText(value);
+  }
+  if (connection.provider === "openai-compatible") {
+    const value = await providerJson(`${baseUrl}/chat/completions`, connection, {
+      model: connection.textModel,
+      messages: [{ role: "system", content: instructions }, { role: "user", content: prompt }],
+    });
+    const choices = Array.isArray(value.choices) ? value.choices as Array<{ message?: { content?: string } }> : [];
+    return choices[0]?.message?.content?.trim() ?? "";
+  }
+  const value = await providerJson(`${baseUrl}/api/generate`, connection, {
+    model: connection.textModel,
+    system: instructions,
+    prompt,
+    stream: false,
+  });
+  return typeof value.response === "string" ? value.response.trim() : "";
+}
+
+function safeAssetStem(value: unknown) {
+  const stem = typeof value === "string" ? value.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-|-$/g, "") : "character";
+  return stem.slice(0, 70) || "character";
+}
+
+async function generateImage(connection: SavedAiConnection, input: ImageGenerationInput) {
+  const prompt = typeof input.prompt === "string" ? input.prompt.trim().slice(0, 30_000) : "";
+  if (!prompt) throw new Error("Enter an image prompt before generating.");
+  if (connection.provider === "ollama") throw new Error("The selected local text model does not provide image generation. Connect an image-capable provider in Settings.");
+  if (!connection.imageModel) throw new Error("Choose an image model in Settings.");
+  const value = await providerJson(`${normalizedUrl(connection.baseUrl)}/images/generations`, connection, {
+    model: connection.imageModel,
+    prompt,
+    size: "1024x1536",
+    quality: "medium",
+    output_format: "webp",
+    n: 1,
+  }, 180_000);
+  const data = Array.isArray(value.data) ? value.data as Array<{ b64_json?: string; url?: string; revised_prompt?: string }> : [];
+  const result = data[0];
+  if (!result?.b64_json && !result?.url) throw new Error("The image provider returned no image.");
+  let bytes: Buffer;
+  if (result.b64_json) {
+    bytes = Buffer.from(result.b64_json, "base64");
+  } else {
+    const imageResponse = await fetch(result.url!, { signal: AbortSignal.timeout(60_000) });
+    if (!imageResponse.ok) throw new Error("The generated image could not be downloaded for local storage.");
+    bytes = Buffer.from(await imageResponse.arrayBuffer());
+  }
+  if (!bytes.length || bytes.length > 20 * 1024 * 1024) throw new Error("The generated image file was empty or too large.");
+  const fileName = `${safeAssetStem(input.characterId)}-${Date.now()}.webp`;
+  await mkdir(assetsDirectory(), { recursive: true, mode: 0o700 });
+  await writeFile(path.join(assetsDirectory(), fileName), bytes, { mode: 0o600 });
+  return { assetUrl: `${ASSET_PATH}${fileName}`, revisedPrompt: result.revised_prompt };
+}
+
+async function serveAsset(pathname: string, response: ServerResponse) {
+  const fileName = pathname.slice(ASSET_PATH.length);
+  if (!/^[a-z0-9-]+\.(?:webp|png|jpe?g)$/i.test(fileName)) throw new Error("Invalid local asset path.");
+  const bytes = await readFile(path.join(assetsDirectory(), fileName));
+  const extension = path.extname(fileName).toLowerCase();
+  response.statusCode = 200;
+  response.setHeader("Content-Type", extension === ".png" ? "image/png" : extension === ".jpg" || extension === ".jpeg" ? "image/jpeg" : "image/webp");
+  response.setHeader("Cache-Control", "private, max-age=31536000, immutable");
+  response.setHeader("X-Content-Type-Options", "nosniff");
+  response.end(bytes);
+}
+
 async function verifyConnection(value: Omit<SavedAiConnection, "verifiedAt">) {
   if (value.provider === "openai" && !value.apiKey) throw new Error("Enter an OpenAI API key.");
   const baseUrl = normalizedUrl(value.baseUrl);
@@ -188,7 +302,7 @@ async function handleConnection(request: IncomingMessage, response: ServerRespon
     }
     if (request.url === API_PATH && request.method === "POST") {
       const existing = await readConnection();
-      const candidate = parseInput(await readBody(request), existing);
+      const candidate = parseInput(await readBody(request) as ConnectionInput, existing);
       const verifiedAt = await verifyConnection(candidate);
       const saved: SavedAiConnection = { ...candidate, verifiedAt };
       await writeConnection(saved);
@@ -221,6 +335,40 @@ async function handleConnection(request: IncomingMessage, response: ServerRespon
   }
 }
 
+async function handleGeneration(request: IncomingMessage, response: ServerResponse, pathname: string) {
+  if (!isLocalRequest(request)) {
+    sendJson(response, 403, { ok: false, message: "The local AI gateway accepts requests only from this PlotPickle server." });
+    return;
+  }
+  try {
+    if (request.method === "GET" && pathname.startsWith(ASSET_PATH)) {
+      await serveAsset(pathname, response);
+      return;
+    }
+    if (request.method !== "POST") {
+      sendJson(response, 405, { ok: false, message: "Method not allowed." });
+      return;
+    }
+    const connection = await readConnection();
+    if (!connection) throw new Error("Connect an AI provider in Settings before generating.");
+    if (pathname === TEXT_PATH) {
+      const text = await generateText(connection, await readBody(request, 48 * 1024) as TextGenerationInput);
+      if (!text) throw new Error("The AI provider returned no text.");
+      sendJson(response, 200, { ok: true, text, provider: connection.provider, model: connection.textModel });
+      return;
+    }
+    if (pathname === IMAGE_PATH) {
+      const result = await generateImage(connection, await readBody(request, 48 * 1024) as ImageGenerationInput);
+      sendJson(response, 200, { ok: true, ...result, provider: connection.provider, model: connection.imageModel });
+      return;
+    }
+    sendJson(response, 404, { ok: false, message: "Local AI operation not found." });
+  } catch (error) {
+    const message = error instanceof Error ? error.message.replace(/sk-[a-zA-Z0-9_-]+/g, "[redacted]") : "The local AI operation failed.";
+    sendJson(response, 400, { ok: false, message });
+  }
+}
+
 export function localAiGateway(): Plugin {
   return {
     name: "plotpickle-local-ai-gateway",
@@ -228,11 +376,12 @@ export function localAiGateway(): Plugin {
     configureServer(server) {
       server.middlewares.use((request, response, next) => {
         const pathname = request.url?.split("?", 1)[0];
-        if (pathname !== API_PATH && pathname !== CHECK_PATH) {
+        if (!pathname || (pathname !== API_PATH && pathname !== CHECK_PATH && pathname !== TEXT_PATH && pathname !== IMAGE_PATH && !pathname.startsWith(ASSET_PATH))) {
           next();
           return;
         }
-        void handleConnection(request, response);
+        if (pathname === API_PATH || pathname === CHECK_PATH) void handleConnection(request, response);
+        else void handleGeneration(request, response, pathname);
       });
     },
   };

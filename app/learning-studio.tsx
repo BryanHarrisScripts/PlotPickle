@@ -32,7 +32,7 @@ function recommendations(blockNumber: number, miniBlockNumber: number) {
       : blockNumber <= 16
         ? ["structures", "challenges", "formatting"]
         : blockNumber <= 20
-          ? ["vomit-draft", "writing-process", "responsible-ai"]
+          ? ["pickle-draft", "writing-process", "responsible-ai"]
           : ["challenges", "formatting", "industry"];
   const byMovement = miniBlockNumber === 1 ? "concept-to-draft" : miniBlockNumber === 2 ? "character-bible" : miniBlockNumber === 3 ? "challenges" : "writing-process";
   return [...new Set([byMovement, ...stage])].slice(0, 4);

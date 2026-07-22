@@ -194,15 +194,15 @@ export const learningModules: LearningModule[] = [
     tags: ["story bible", "canon", "continuity", "timeline", "research", "world", "character", "source of truth"]
   },
   {
-    id: "vomit-draft",
+    id: "pickle-draft",
     number: 9,
     path: "Drafting",
-    title: "The Vomit Draft",
+    title: "The Pickle Draft",
     duration: "25–35 min",
     overview: "Use a fast, permission-giving first pass to discover the movie from beginning to end, while leaving clear markers for the disciplined revision that follows.",
     objectives: ["Understand speed as a discovery tool rather than a quality standard.", "Finish movements without stopping for every uncertainty.", "Prepare the rough draft for useful diagnosis."],
     sections: [
-      { heading: "Permission to be incomplete", paragraphs: ["The phrase describes an intentionally rough first draft produced with forward momentum. Its value is psychological and practical: a writer can discover connections, missing motives and unexpected images only after enough of the story exists together.", "Fast drafting does not mean careless treatment of people, facts or safety. It means postponing sentence perfection and local repair while the larger movement is still emerging."], points: ["Write toward the planned turn.", "Use placeholders for facts, names or research.", "Record a problem without solving it immediately.", "Keep the causal line visible even when language is rough."] },
+      { heading: "Permission to be incomplete", paragraphs: ["The Pickle Draft is an intentionally rough first draft produced with forward momentum. Its value is psychological and practical: a writer can discover connections, missing motives and unexpected images only after enough of the story exists together.", "Fast drafting does not mean careless treatment of people, facts or safety. It means postponing sentence perfection and local repair while the larger movement is still emerging."], points: ["Write toward the planned turn.", "Use placeholders for facts, names or research.", "Record a problem without solving it immediately.", "Keep the causal line visible even when language is rough."] },
       { heading: "A productive session", paragraphs: ["Begin with a small target: one mini-block, one scene or one sequence. Review the entry condition, objective, resistance and intended change. Draft until the movement turns, then leave a short note about discoveries and unresolved issues.", "Markers such as [RESEARCH], [CONTINUITY], [BETTER IMAGE] or [MOTIVE?] preserve momentum. They also create a revision inventory instead of allowing vague dissatisfaction to follow the writer everywhere."], points: ["Set a time or movement target.", "Do not reread from page one before each session.", "Stop after recording the next intended action.", "Back up or export at meaningful milestones."] },
       { heading: "From roughness to revision", paragraphs: ["After completing a meaningful span, read it as an audience member and write observations before editing. Identify where the objective disappears, the conflict repeats, the character becomes passive or the turn fails to change anything.", "Preserve discoveries with energy. Revision is not punishment for drafting badly; it is the separate craft of shaping material that drafting made available."] }
     ],
@@ -212,7 +212,7 @@ export const learningModules: LearningModule[] = [
     mistakes: ["Using speed to excuse a story with no causal intention.", "Stopping for every word choice or factual search.", "Calling the first draft finished because it exists.", "Revising without first identifying the audience experience."],
     exercise: "Draft the selected mini-block for 20 uninterrupted minutes. Use markers instead of stopping. Finish by writing three discoveries, three questions and the next scene's entry condition.",
     apply: "Screenplay",
-    tags: ["vomit draft", "first draft", "discovery", "momentum", "placeholder", "writer block", "finish"]
+    tags: ["pickle draft", "first draft", "discovery", "momentum", "placeholder", "writer block", "finish"]
   },
   {
     id: "formatting",

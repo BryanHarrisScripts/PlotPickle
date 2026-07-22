@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PlotPickle Playhouse — Download the 24 Blocks Story Planner",
+  title: "PlotPickle",
   description:
     "Download PlotPickle Playhouse: a local-first story planner connecting Project Overview, Story Planner, Structure Map, Visual Board, and guided specialist engines through Bryan Harris's 24 Blocks method.",
   other: {

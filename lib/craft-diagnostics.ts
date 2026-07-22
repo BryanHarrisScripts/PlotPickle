@@ -296,7 +296,7 @@ export function diagnoseCraftLayer(project: PlotPickleProject, focus?: { blockNu
   ];
   const relevant = allFindings.filter((item) => !focus?.blockNumber || item.blockNumber === undefined || item.blockNumber === focus.blockNumber)
     .filter((item) => !focus?.characterId || item.characterId === undefined || item.characterId === focus.characterId)
-    .sort((left, right) => ({ problem: 0, watch: 1, healthy: 2 }[left.severity] - ({ problem: 0, watch: 1, healthy: 2 }[right.severity]));
+    .sort((left, right) => ({ problem: 0, watch: 1, healthy: 2 }[left.severity]) - ({ problem: 0, watch: 1, healthy: 2 }[right.severity]));
   const problemCount = allFindings.filter((item) => item.severity === "problem").length;
   const watchCount = allFindings.filter((item) => item.severity === "watch").length;
   return {

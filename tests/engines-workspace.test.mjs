@@ -4,7 +4,7 @@ import test from "node:test";
 
 test("main application exposes Engines inside five connected creative workspaces", async () => {
   const source = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
-  assert.ok(source.includes('type MainTab = "instructions" | "planner" | "script" | "visuals" | "engines"'));
+  assert.ok(source.includes('type MainTab = "instructions" | "learn" | "planner" | "script" | "visuals" | "engines"'));
   assert.ok(source.includes('{ id: "engines", label: "Engines", description: "Refine the story" }'));
   assert.ok(source.includes('import EngineHub from "./engine-hub"'));
   assert.ok(source.includes('{activeTab === "engines" ? <EngineHub /> : null}'));

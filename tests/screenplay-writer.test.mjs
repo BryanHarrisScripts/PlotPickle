@@ -10,9 +10,10 @@ test("Screenplay is a write and read workspace tied to all 24 Blocks and 96 mini
   const workspace = await source("app/script-workspace.tsx");
   assert.match(page, /label: "Screenplay", description: "Outline & write"/);
   assert.match(page, /<ScriptWorkspace/);
-  for (const phrase of ["24 Blocks · 96 mini-blocks", "allMiniBlocks", "blockNumber", "miniBlockNumber", "Read & learn", "Open Block"] ) {
+  for (const phrase of ["24 Blocks · 96 mini-blocks", "allMiniBlocks", "blockNumber", "miniBlockNumber", "Open Block"] ) {
     assert.ok(workspace.includes(phrase), `Screenplay workspace is missing ${phrase}`);
   }
+  assert.ok(!workspace.includes("Read & learn"), "Learning belongs in the primary navigation, not the Screenplay workspace");
 });
 
 test("writer supports standard screenplay grammar and Final Draft/Fountain handoff", async () => {

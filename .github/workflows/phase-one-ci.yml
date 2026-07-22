@@ -25,10 +25,22 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --silent
 
       - name: Lint
         run: npm run lint
 
       - name: Build and test
-        run: npm test
+        shell: bash
+        run: |
+          set +e
+          npm test > phase-one-test.log 2>&1
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            echo "Phase 1 validation failed. Final test output:"
+            tail -n 180 phase-one-test.log
+          else
+            echo "Phase 1 validation passed. Final test output:"
+            tail -n 40 phase-one-test.log
+          fi
+          exit "$status"

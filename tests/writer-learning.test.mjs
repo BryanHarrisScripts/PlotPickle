@@ -21,11 +21,30 @@ test("Markdown treatment supports local writing, preview, export, AI approval an
   assert.match(treatment, /AI is optional and changes nothing until you approve it/);
 });
 
-test("Learning Studio is searchable, contextual and covers the repository teaching paths", async () => {
+test("Learning Studio connects contextual guidance to the complete course", async () => {
   const learning = await source("app/learning-studio.tsx");
-  for (const phrase of ["Current story position", "Search screenwriting lessons", "Recommended here", "Apply it to Block", "Concept", "Character", "Structure", "Scenes", "Dialogue", "Revision", "Markdown"] ) {
+  for (const phrase of ["Current story position", "Search screenwriting lessons", "Recommended here", "Apply it to Block", "Screenplay anatomy", "Complete Learning Library", "Fourteen full learning modules", "Read full module"] ) {
     assert.ok(learning.includes(phrase), `Learning Studio is missing ${phrase}`);
   }
+});
+
+test("Learning Library contains all 14 source modules with substantial teaching tools", async () => {
+  const library = await source("app/learning-library.ts");
+  assert.equal((library.match(/number: \d+,/g) ?? []).length, 14);
+  for (const phrase of ["The Pitch", "Tropes and Genres", "Story Structures: Screenplays to Improv", "The Writing Process", "Concept to Final Draft", "World-Building", "Story Bible: Character", "The Story Bible", "The Vomit Draft", "Script Formatting", "Books, Screenplays and Deliberate Study", "Screenplay Challenges Guide", "The Film Industry", "Responsible AI-Assisted Writing"]) {
+    assert.ok(library.includes(phrase), `Learning Library is missing ${phrase}`);
+  }
+  for (const teachingTool of ["objectives:", "sections:", "definitions:", "example:", "checklist:", "mistakes:", "exercise:", "apply:"]) {
+    assert.equal((library.match(new RegExp(`^    ${teachingTool}`, "gm")) ?? []).length, 14, `Every module needs ${teachingTool}`);
+  }
+});
+
+test("Learning progress is per project and survives a browser restart", async () => {
+  const learning = await source("app/learning-studio.tsx");
+  assert.match(learning, /plotpickle-learning-progress:\$\{project\.id\}/);
+  assert.match(learning, /window\.localStorage\.getItem/);
+  assert.match(learning, /window\.localStorage\.setItem/);
+  assert.match(learning, /modules complete/);
 });
 
 test("Learning Studio preserves the educational and user-work licence boundary", async () => {

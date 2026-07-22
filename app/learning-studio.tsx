@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { PlotPickleProject } from "@/lib/project";
+import { learningModules, learningPaths, moduleSearchText, type LearningModule } from "./learning-library";
 import styles from "./learning-studio.module.css";
 
 type Props = {
@@ -15,58 +16,98 @@ type Props = {
   onOpenBlock: (blockNumber: number) => void;
 };
 
-type Lesson = {
-  id: string;
-  path: "Start" | "Character" | "Structure" | "Scenes" | "Dialogue" | "Revision" | "Tools";
-  title: string;
-  summary: string;
-  principles: string[];
-  exercise: string;
-  apply: "Treatment" | "Screenplay" | "Block plan";
-  tags: string[];
-};
+type ViewMode = "guide" | "library";
 
-const lessons: Lesson[] = [
-  { id: "concept", path: "Start", title: "Concept to a working treatment", summary: "Move from the original idea through research, logline, beats, outline and treatment before screenplay formatting. A treatment is the present-tense prose version of the movie.", principles: ["Clarify the central conflict and character journey first.", "Use the treatment to test causality before polishing pages.", "Let each mini-block answer what changes and why the next movement is necessary."], exercise: "Write this mini-block as a short present-tense scene: condition, attempt, pressure and visible turn.", apply: "Treatment", tags: ["idea", "logline", "outline", "treatment", "workflow"] },
-  { id: "character", path: "Character", title: "Character choices drive plot", summary: "Characters are not passengers in the structure. Their goals, contradictions and decisions create consequences that propel the next block.", principles: ["Give the character a conscious objective and a less conscious need.", "Make strengths and flaws useful until pressure changes their cost.", "Show transformation through choices and behaviour, not explanation."], exercise: "Name the choice available here, the protective habit that shapes it, and the consequence that exposes character.", apply: "Block plan", tags: ["character", "motivation", "choice", "arc", "ghost"] },
-  { id: "inner-journey", path: "Character", title: "Track the inner journey under the action", summary: "The external plot gains emotional meaning when each confrontation tests the character's old belief and makes a new truth increasingly necessary.", principles: ["Connect the past wound to a present strategy.", "Let failure challenge the old strategy in stages.", "Prove change through the final action under pressure."], exercise: "Describe the entry belief and exit belief for this mini-block. What evidence shifts the character between them?", apply: "Treatment", tags: ["inner journey", "belief", "transformation", "failure", "arc"] },
-  { id: "dramatic-question", path: "Structure", title: "Keep the dramatic question alive", summary: "A dramatic question gives the audience something active to track. Every answer should create a sharper question until the story earns its final answer.", principles: ["State the question in terms of uncertain outcome.", "Keep at least two plausible answers alive.", "Use revelations to reframe the route, not merely delay it."], exercise: "What does the audience believe before this movement, and what new possibility must they consider after it?", apply: "Block plan", tags: ["dramatic question", "audience", "suspense", "pickle", "reveal"] },
-  { id: "dynamic-scenes", path: "Scenes", title: "Build a scene as a mini-story", summary: "An effective scene establishes a condition, develops conflict and ends with a changed circumstance, relationship or challenge.", principles: ["Enter with a specific scene purpose.", "Give someone an objective and meaningful resistance.", "Exit on a turn that moves plot or character."], exercise: "Write one sentence each for the scene's beginning, pressure-filled middle and changed ending.", apply: "Treatment", tags: ["scene", "goal", "conflict", "turn", "purpose"] },
-  { id: "visual-writing", path: "Scenes", title: "Write what the audience can see and hear", summary: "Film communicates through behaviour, images, sound and juxtaposition. Translate explanation into observable evidence whenever possible.", principles: ["Choose concrete actions over abstract emotional labels.", "Use the environment to apply pressure or reveal character.", "Leave room for performance and production interpretation."], exercise: "Replace one internal explanation with a physical choice, prop, look, sound or change in distance.", apply: "Screenplay", tags: ["visual", "show don't tell", "action", "image", "sound"] },
-  { id: "dialogue", path: "Dialogue", title: "Make every voice character-specific", summary: "Dialogue reveals strategy, status and worldview through rhythm and vocabulary. It should do more than transfer information.", principles: ["Let background and social context shape language.", "Give each speaker a persuasion strategy and verbal fingerprint.", "Use conflict to make exposition active."], exercise: "Write the same request in two characters' voices. Change sentence shape, vocabulary and what each refuses to say.", apply: "Screenplay", tags: ["dialogue", "voice", "rhythm", "exposition", "status"] },
-  { id: "subtext", path: "Dialogue", title: "Let the real conversation live underneath", summary: "Subtext appears when the spoken words serve a strategy while the deeper want, fear or conflict remains unstated.", principles: ["Know what each speaker wants from the exchange.", "Let behaviour contradict or complicate the words.", "Avoid explaining subtext after the audience can infer it."], exercise: "Write the literal line, then write what the character actually means. Keep only the line that creates useful tension.", apply: "Screenplay", tags: ["subtext", "conflict", "strategy", "emotion", "dialogue"] },
-  { id: "silence", path: "Dialogue", title: "Use silence as dramatic action", summary: "A pause, refusal, interruption or physical response can carry more pressure than another line of dialogue.", principles: ["Silence must change the exchange, not simply decorate it.", "Anchor the pause in behaviour the audience can read.", "Use absence of response to shift status or expectation."], exercise: "Remove the most explanatory response in the scene. Replace it with one playable action that changes power.", apply: "Screenplay", tags: ["silence", "pause", "action", "power", "dialogue"] },
-  { id: "theme", path: "Structure", title: "Express theme through competing choices", summary: "Theme becomes dramatic when characters embody different answers and the plot tests those answers through consequence.", principles: ["Frame theme as an argument, not a slogan.", "Give the anti-theme genuine short-term power.", "Let the ending prove meaning through action."], exercise: "Which belief wins this mini-block, and what price or benefit makes that belief persuasive?", apply: "Block plan", tags: ["theme", "anti-theme", "meaning", "choice", "ending"] },
-  { id: "pacing", path: "Revision", title: "Revise pacing through cause and pressure", summary: "Pacing is not only speed. It is the rate at which meaningful information, choices, consequences and emotional shifts reach the audience.", principles: ["Cut repetition that does not deepen meaning.", "Enter after the setup is understood and leave on the turn.", "Vary scene shape while preserving causal momentum."], exercise: "Underline the new information, choice and consequence here. If one is missing, add it; if a beat repeats, compress it.", apply: "Treatment", tags: ["pacing", "revision", "compression", "cause", "consequence"] },
-  { id: "revision", path: "Revision", title: "Diagnose before rewriting", summary: "Record the reader experience first, identify evidence, then find the underlying story cause before changing pages.", principles: ["Separate the visible symptom from the root problem.", "Revise one intention at a time.", "Protect what already works while testing the change."], exercise: "State the problem as an audience experience, cite the exact evidence, and write one question that could reveal the cause.", apply: "Treatment", tags: ["revision", "critique", "diagnosis", "feedback", "draft"] },
-  { id: "markdown", path: "Tools", title: "Use Markdown as a lightweight story workspace", summary: "Headings, emphasis, lists, task boxes and quotes make treatments and revision notes readable without locking the writer into a proprietary document format.", principles: ["Use headings for story movements, not decorative size.", "Use lists for beats and tasks for revision work.", "Export plain Markdown whenever you need a portable copy."], exercise: "Add a heading for the movement, a three-item beat list and one unchecked revision task.", apply: "Treatment", tags: ["markdown", "formatting", "notes", "export", "workflow"] },
-];
+const anatomy = ["Structure", "Dialogue", "Character", "Theme & conflict", "World-building", "Pacing & tone", "Symbolic techniques"];
 
 function miniBlocks(project: PlotPickleProject, blockNumber: number) {
   return project.blocks[blockNumber - 1].scenes.flatMap((scene) => scene.miniBlocks);
 }
 
+function recommendations(blockNumber: number, miniBlockNumber: number) {
+  const stage = blockNumber <= 4
+    ? ["pitch", "concept-to-draft", "character-bible"]
+    : blockNumber <= 8
+      ? ["world-building", "genres", "story-bible"]
+      : blockNumber <= 16
+        ? ["structures", "challenges", "formatting"]
+        : blockNumber <= 20
+          ? ["vomit-draft", "writing-process", "responsible-ai"]
+          : ["challenges", "formatting", "industry"];
+  const byMovement = miniBlockNumber === 1 ? "concept-to-draft" : miniBlockNumber === 2 ? "character-bible" : miniBlockNumber === 3 ? "challenges" : "writing-process";
+  return [...new Set([byMovement, ...stage])].slice(0, 4);
+}
+
 export default function LearningStudio({ project, blockNumber, miniBlockNumber, onBlockChange, onMiniBlockChange, onOpenTreatment, onOpenScreenplay, onOpenBlock }: Props) {
   const [query, setQuery] = useState("");
-  const [path, setPath] = useState("All");
+  const [path, setPath] = useState<(typeof learningPaths)[number]>("All");
+  const [view, setView] = useState<ViewMode>("guide");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [completed, setCompleted] = useState<Set<string>>(new Set());
   const block = project.blocks[blockNumber - 1];
   const minis = miniBlocks(project, blockNumber);
   const mini = minis[miniBlockNumber - 1];
-  const paths = ["All", "Start", "Character", "Structure", "Scenes", "Dialogue", "Revision", "Tools"];
-  const recommendedIds = miniBlockNumber === 1 ? ["concept", "dynamic-scenes", "visual-writing"] : miniBlockNumber === 2 ? ["character", "dialogue", "subtext"] : miniBlockNumber === 3 ? ["dramatic-question", "inner-journey", "pacing"] : ["theme", "silence", "revision"];
-  const filtered = lessons.filter((lesson) => {
-    const haystack = `${lesson.title} ${lesson.summary} ${lesson.path} ${lesson.tags.join(" ")}`.toLowerCase();
-    return (path === "All" || lesson.path === path) && haystack.includes(query.trim().toLowerCase());
-  }).sort((left, right) => Number(recommendedIds.includes(right.id)) - Number(recommendedIds.includes(left.id)));
+  const storageKey = `plotpickle-learning-progress:${project.id}`;
+  const recommendedIds = recommendations(blockNumber, miniBlockNumber);
+  const selected = learningModules.find((module) => module.id === selectedId) ?? null;
 
-  function applyLesson(lesson: Lesson) {
-    if (lesson.apply === "Screenplay") onOpenScreenplay();
-    else if (lesson.apply === "Block plan") onOpenBlock(block.number);
+  useEffect(() => {
+    const loadProgress = window.setTimeout(() => {
+      try {
+        const saved = window.localStorage.getItem(storageKey);
+        setCompleted(new Set(saved ? JSON.parse(saved) as string[] : []));
+      } catch {
+        setCompleted(new Set());
+      }
+    }, 0);
+
+    return () => window.clearTimeout(loadProgress);
+  }, [storageKey]);
+
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return learningModules.filter((module) => (path === "All" || module.path === path) && (!needle || moduleSearchText(module).includes(needle)));
+  }, [path, query]);
+
+  function applyModule(module: LearningModule) {
+    if (module.apply === "Screenplay") onOpenScreenplay();
+    else if (module.apply === "Block plan") onOpenBlock(block.number);
     else onOpenTreatment();
   }
 
+  function toggleComplete(moduleId: string) {
+    setCompleted((current) => {
+      const next = new Set(current);
+      if (next.has(moduleId)) next.delete(moduleId);
+      else next.add(moduleId);
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify([...next]));
+      } catch {
+        // Learning remains usable when browser storage is unavailable.
+      }
+      return next;
+    });
+  }
+
+  function openModule(moduleId: string) {
+    setSelectedId(moduleId);
+    window.setTimeout(() => document.getElementById("learning-module-reader")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+  }
+
+  function moveModule(direction: -1 | 1) {
+    if (!selected) return;
+    const index = learningModules.findIndex((module) => module.id === selected.id);
+    const next = learningModules[index + direction];
+    if (next) openModule(next.id);
+  }
+
+  const progress = Math.round((completed.size / learningModules.length) * 100);
+
   return <div className={styles.page}>
-    <header className={styles.header}><div><span>Read & Learn</span><h1>Learn the craft while building the story.</h1><p>Short lessons from the PlotPickle screenwriting library follow the current Block and mini-block, then point directly to the workspace where the idea can be applied.</p></div><div className={styles.licence}><strong>Shared teaching, private writing</strong><span>Educational guidance: CC BY-SA 4.0</span><small>Your original story and screenplay remain yours.</small></div></header>
+    <header className={styles.header}>
+      <div><span>Read & Learn</span><h1>The complete PlotPickle screenwriting course.</h1><p>Learn the craft in depth, then apply each lesson directly to the active Block, treatment, screenplay or visual-development flow.</p></div>
+      <div className={styles.licence}><strong>Shared teaching, private writing</strong><span>Educational guidance: CC BY-SA 4.0</span><small>Your original story and screenplay remain yours.</small></div>
+    </header>
 
     <section className={styles.position}>
       <div><span>Current story position</span><h2>Block {block.number}.{mini.number}: {mini.label}</h2><p>{mini.function}</p></div>
@@ -74,18 +115,70 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
       <label>Mini-block<select value={miniBlockNumber} onChange={(event) => onMiniBlockChange(Number(event.target.value))}>{minis.map((item) => <option value={item.number} key={item.id}>{block.number}.{item.number} · {item.label}</option>)}</select></label>
     </section>
 
-    <section className={styles.filters}>
-      <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search scenes, dialogue, subtext, character, pacing…" aria-label="Search screenwriting lessons" />
-      <div>{paths.map((item) => <button type="button" className={path === item ? styles.active : ""} onClick={() => setPath(item)} key={item}>{item}</button>)}</div>
+    <section className={styles.courseStatus} aria-label="Learning progress">
+      <div><span>Course progress</span><strong>{completed.size} of {learningModules.length} modules complete</strong></div>
+      <div className={styles.progressTrack}><i style={{ width: `${progress}%` }} /></div>
+      <b>{progress}%</b>
     </section>
 
-    <main className={styles.lessonGrid}>{filtered.map((lesson) => <article className={recommendedIds.includes(lesson.id) ? styles.recommended : ""} key={lesson.id}>
-      <div className={styles.lessonHead}><span>{lesson.path}</span>{recommendedIds.includes(lesson.id) ? <strong>Recommended here</strong> : null}</div>
-      <h2>{lesson.title}</h2><p>{lesson.summary}</p>
-      <ul>{lesson.principles.map((principle) => <li key={principle}>{principle}</li>)}</ul>
-      <div className={styles.exercise}><span>Apply it to Block {block.number}.{mini.number}</span><p>{lesson.exercise}</p></div>
-      <button type="button" onClick={() => applyLesson(lesson)}>Open {lesson.apply}</button>
-    </article>)}</main>
-    {!filtered.length ? <div className={styles.empty}>No lesson matches that search. Try a craft term such as scene, character, dialogue, theme or revision.</div> : null}
+    <section className={styles.anatomy}>
+      <div><span>Screenplay anatomy</span><strong>Seven lenses run through the complete course</strong></div>
+      <ul>{anatomy.map((item, index) => <li key={item}><b>{index + 1}</b>{item}</li>)}</ul>
+    </section>
+
+    <nav className={styles.viewTabs} aria-label="Learning Studio views">
+      <button type="button" className={view === "guide" ? styles.active : ""} onClick={() => setView("guide")}>Guidance for this Block</button>
+      <button type="button" className={view === "library" ? styles.active : ""} onClick={() => setView("library")}>Complete Learning Library</button>
+    </nav>
+
+    {view === "guide" ? <section className={styles.guidance}>
+      <div className={styles.sectionIntro}><span>Recommended here</span><h2>Learn what helps at Block {block.number}.{mini.number}</h2><p>These modules match the current stage and mini-block movement. Opening one does not change the story; the exercise connects it to the work when you are ready.</p></div>
+      <div className={styles.recommendedGrid}>{recommendedIds.map((id) => {
+        const recommendedModule = learningModules.find((item) => item.id === id)!;
+        return <ModuleCard module={recommendedModule} complete={completed.has(recommendedModule.id)} recommended onOpen={() => openModule(recommendedModule.id)} onToggle={() => toggleComplete(recommendedModule.id)} key={recommendedModule.id} />;
+      })}</div>
+      <button className={styles.browseAll} type="button" onClick={() => setView("library")}>Browse all 14 complete modules</button>
+    </section> : <section className={styles.library}>
+      <div className={styles.sectionIntro}><span>Complete curriculum</span><h2>Fourteen full learning modules</h2><p>Search the lesson text, definitions, examples, checklists, common mistakes and exercises—not only the module titles.</p></div>
+      <section className={styles.filters}>
+        <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search formatting, genre, character, dialogue, rights, AI…" aria-label="Search screenwriting lessons" />
+        <div>{learningPaths.map((item) => <button type="button" className={path === item ? styles.active : ""} onClick={() => setPath(item)} key={item}>{item}</button>)}</div>
+      </section>
+      <main className={styles.moduleGrid}>{filtered.map((module) => <ModuleCard module={module} complete={completed.has(module.id)} recommended={recommendedIds.includes(module.id)} onOpen={() => openModule(module.id)} onToggle={() => toggleComplete(module.id)} key={module.id} />)}</main>
+      {!filtered.length ? <div className={styles.empty}>No module matches that search. Try a craft term such as structure, dialogue, world, pitch, continuity or privacy.</div> : null}
+    </section>}
+
+    {selected ? <ModuleReader module={selected} complete={completed.has(selected.id)} blockNumber={block.number} miniBlockNumber={mini.number} first={selected.number === 1} last={selected.number === learningModules.length} onClose={() => setSelectedId(null)} onPrevious={() => moveModule(-1)} onNext={() => moveModule(1)} onToggle={() => toggleComplete(selected.id)} onApply={() => applyModule(selected)} /> : null}
   </div>;
+}
+
+function ModuleCard({ module, complete, recommended, onOpen, onToggle }: { module: LearningModule; complete: boolean; recommended: boolean; onOpen: () => void; onToggle: () => void }) {
+  return <article className={`${styles.moduleCard} ${recommended ? styles.recommended : ""}`}>
+    <div className={styles.moduleMeta}><span>Module {module.number} · {module.path}</span>{recommended ? <strong>Recommended here</strong> : null}</div>
+    <h3>{module.title}</h3>
+    <p>{module.overview}</p>
+    <div className={styles.cardStats}><span>{module.duration}</span><span>{module.sections.length} lessons</span><span>Exercise</span></div>
+    <div className={styles.cardActions}><button type="button" onClick={onOpen}>Read full module</button><button type="button" className={complete ? styles.complete : ""} onClick={onToggle}>{complete ? "Completed" : "Mark complete"}</button></div>
+  </article>;
+}
+
+function ModuleReader({ module, complete, blockNumber, miniBlockNumber, first, last, onClose, onPrevious, onNext, onToggle, onApply }: { module: LearningModule; complete: boolean; blockNumber: number; miniBlockNumber: number; first: boolean; last: boolean; onClose: () => void; onPrevious: () => void; onNext: () => void; onToggle: () => void; onApply: () => void }) {
+  return <section className={styles.reader} id="learning-module-reader">
+    <div className={styles.readerTop}><button type="button" onClick={onClose}>Close module</button><div><button type="button" disabled={first} onClick={onPrevious}>Previous</button><button type="button" disabled={last} onClick={onNext}>Next</button></div></div>
+    <header className={styles.readerHeader}><span>Module {module.number} of {learningModules.length} · {module.path} · {module.duration}</span><h2>{module.title}</h2><p>{module.overview}</p><button type="button" className={complete ? styles.complete : ""} onClick={onToggle}>{complete ? "Completed — mark incomplete" : "Mark module complete"}</button></header>
+
+    <div className={styles.readerLayout}>
+      <main>
+        <section className={styles.objectives}><h3>What you will learn</h3><ul>{module.objectives.map((objective) => <li key={objective}>{objective}</li>)}</ul></section>
+        {module.sections.map((section) => <section className={styles.lessonSection} key={section.heading}><h3>{section.heading}</h3>{section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}{section.points?.length ? <ul>{section.points.map((point) => <li key={point}>{point}</li>)}</ul> : null}</section>)}
+        <section className={styles.example}><span>Worked example</span><h3>{module.example.title}</h3><p>{module.example.text}</p></section>
+        <section className={styles.exercise}><span>Apply it to Block {blockNumber}.{miniBlockNumber}</span><h3>Practical exercise</h3><p>{module.exercise}</p><button type="button" onClick={onApply}>Open {module.apply}</button></section>
+      </main>
+      <aside>
+        <section><h3>Plain-language definitions</h3><dl>{module.definitions.map((item) => <div key={item.term}><dt>{item.term}</dt><dd>{item.meaning}</dd></div>)}</dl></section>
+        <section><h3>Practical checklist</h3><ul className={styles.checklist}>{module.checklist.map((item) => <li key={item}>{item}</li>)}</ul></section>
+        <section className={styles.mistakes}><h3>Common mistakes</h3><ul>{module.mistakes.map((item) => <li key={item}>{item}</li>)}</ul></section>
+      </aside>
+    </div>
+  </section>;
 }

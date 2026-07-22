@@ -1,4 +1,4 @@
-import type { Character, PlotPickleProject, StoryBlock } from "./project";
+import type { Character, PlotPickleProject } from "./project";
 import type { StoryScene } from "./structure";
 
 export type DiagnosticSeverity = "healthy" | "watch" | "problem";

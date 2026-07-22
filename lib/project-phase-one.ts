@@ -247,7 +247,7 @@ export type RevisionComparison = {
   summary: string;
 };
 
-export type PhaseOneProject = Omit<PlotPickleProject, "schemaVersion" | "screenplay" | "characters" | "blocks"> & {
+export type PhaseOneProject = Omit<PlotPickleProject, "schemaVersion" | "screenplay" | "characters" | "blocks" | "storyThreads" | "rights" | "revisions"> & {
   schemaVersion: typeof PHASE_ONE_SCHEMA_VERSION;
   screenplay: PhaseOneScreenplayDocument;
   characters: PhaseOneCharacter[];

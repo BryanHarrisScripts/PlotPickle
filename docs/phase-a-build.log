@@ -9,26 +9,26 @@ Running bounded vinext build...
 [34m[1/5] analyze client references...[39m
 [2Ktransforming...✓ 148 modules transformed.
 rendering chunks...
-[32m✓ built in 1.29s[39m
+[32m✓ built in 920ms[39m
 [34m[2/5] analyze server references...[39m
 [2Ktransforming...✓ 125 modules transformed.
 rendering chunks...
-[32m✓ built in 907ms[39m
+[32m✓ built in 706ms[39m
 [34m[3/5] build rsc environment...[39m
 [2Ktransforming...✓ 154 modules transformed.
 rendering chunks...
 computing gzip size...
-[32m✓ built in 672ms[39m
+[32m✓ built in 621ms[39m
 [34m[4/5] build client environment...[39m
 [2Ktransforming...✓ 132 modules transformed.
 rendering chunks...
 computing gzip size...
-[32m✓ built in 881ms[39m
+[32m✓ built in 795ms[39m
 [34m[5/5] build ssr environment...[39m
 [2Ktransforming...✓ 131 modules transformed.
 rendering chunks...
 computing gzip size...
-[32m✓ built in 766ms[39m
+[32m✓ built in 726ms[39m
 [0m
   Route (app)
   ┌ ? /          

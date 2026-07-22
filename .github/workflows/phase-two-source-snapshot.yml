@@ -3,6 +3,8 @@ name: Phase 2 source snapshot
 on:
   push:
     branches: [agent/phase-2-dynamic-scenes]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:

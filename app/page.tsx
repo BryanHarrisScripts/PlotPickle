@@ -804,6 +804,7 @@ export default function Home() {
           <ScriptWorkspace
             project={project}
             onChange={(screenplay) => commit({ ...project, screenplay })}
+            onProjectChange={commit}
             onImport={replaceWithImportedScreenplay}
             onOpenBlock={(number) => openBlock(number, "planner")}
           />

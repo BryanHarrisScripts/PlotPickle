@@ -16,8 +16,20 @@ test("missing top-level workspaces receive the shared two-card introduction", as
   assert.ok(!host.includes('"Story Planner":'), "Story Planner already owns a project overview introduction and should not receive a duplicate");
   assert.match(intro, /primaryCard/);
   assert.match(intro, /sideCard/);
-  assert.match(css, /grid-template-columns: minmax\(0, 1\.25fr\) minmax\(280px, 0\.55fr\)/);
+  assert.match(css, /grid-template-columns: minmax\(0, 1\.25fr\) minmax\(270px, 0\.52fr\)/);
   assert.match(css, /@media \(max-width: 1000px\)/);
+});
+
+test("workspace introductions can be collapsed without losing the explanation", async () => {
+  const intro = await source("app/workspace-intro.tsx");
+  const css = await source("app/workspace-intro.module.css");
+
+  assert.match(intro, /Hide overview/);
+  assert.match(intro, /Show overview/);
+  assert.match(intro, /aria-expanded/);
+  assert.match(intro, /plotpickle\.workspace-intro\.collapsed/);
+  assert.match(intro, /localStorage/);
+  assert.match(css, /\.collapsed/);
 });
 
 test("workspace introductions follow the selected primary navigation tab", async () => {
@@ -26,7 +38,7 @@ test("workspace introductions follow the selected primary navigation tab", async
 
   assert.match(layout, /<WorkspaceIntroHost \/>/);
   assert.match(host, /main\.workspace/);
-  assert.match(host, /aria-selected=\\"true\\"/);
+  assert.match(host, /aria-selected=\"true\"/);
   assert.match(host, /MutationObserver/);
   assert.match(host, /workspace\.prepend\(host\)/);
   assert.match(host, /createPortal/);

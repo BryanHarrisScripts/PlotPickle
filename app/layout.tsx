@@ -5,6 +5,8 @@ import WorkspaceIntroHost from "./workspace-intro-host";
 import "./globals.css";
 import "./engines-workspace-overrides.css";
 import "./navigation-additions.css";
+import "./ui-ux-cleanup.css";
+import "./engine-ux-cleanup.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

@@ -11,12 +11,12 @@ import StructureMapSummary from "./structure-map-summary";
 import SettingsPanel from "./settings-panel";
 import ScriptWorkspace from "./script-workspace";
 import CharacterImageGenerator from "./character-image-generator";
+import VisualStoryboard from "./visual-storyboard";
 import { projectSectionProgress, sectionHasAlert } from "@/lib/project-progress";
 import { createProjectFromScreenplay, markScreenplayAnalysisReviewed } from "@/lib/screenplay-import";
 import { screenplayFormatForFile } from "@/lib/screenplay";
 import {
   addBlankCharacter,
-  addBlankFrame,
   addBlankLocation,
   cloneProject,
   completionFor,
@@ -27,7 +27,6 @@ import {
   type PlotPickleProject,
   type ScreenplayDocument,
   type StoryBlock,
-  type VisualFrame,
 } from "@/lib/project";
 
 const STORAGE_KEY = "plotpickle.project.v1";
@@ -447,7 +446,6 @@ export default function Home() {
   const [activeSection, setActiveSection] = useState<StorySection>("overview");
   const [selectedCharacterId, setSelectedCharacterId] = useState("");
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
-  const [selectedFrameId, setSelectedFrameId] = useState("");
   const [visualAct, setVisualAct] = useState(0);
   const [hydrated, setHydrated] = useState(false);
   const [saveState, setSaveState] = useState("Saved on this device");
@@ -491,7 +489,6 @@ export default function Home() {
   const completion = useMemo(() => completionFor(project), [project]);
   const selectedCharacter = project.characters.find((character) => character.id === selectedCharacterId) ?? project.characters[0];
   const selectedBlock = project.blocks.find((block) => block.number === selectedBlockNumber) ?? project.blocks[0];
-  const selectedFrame = selectedBlock.visuals.find((frame) => frame.id === selectedFrameId) ?? selectedBlock.visuals[0];
 
   if (showLanding) {
     return <LandingPage onEnter={() => setShowLanding(false)} />;
@@ -557,21 +554,6 @@ export default function Home() {
     });
   }
 
-  function replaceBlock(updatedBlock: StoryBlock) {
-    commit({ ...project, blocks: project.blocks.map((block) => (block.number === updatedBlock.number ? updatedBlock : block)) });
-  }
-
-  function updateFrame(blockNumber: number, frameId: string, key: keyof VisualFrame, value: string) {
-    commit({
-      ...project,
-      blocks: project.blocks.map((block) =>
-        block.number === blockNumber
-          ? { ...block, visuals: block.visuals.map((frame) => (frame.id === frameId ? { ...frame, [key]: value } : frame)) }
-          : block,
-      ),
-    });
-  }
-
   function toggleBlockReference(kind: "characterIds" | "locationIds", id: string) {
     const current = selectedBlock[kind];
     const next = current.includes(id) ? current.filter((value) => value !== id) : [...current, id];
@@ -624,7 +606,6 @@ export default function Home() {
     setProject(imported);
     setSelectedCharacterId(imported.characters[0]?.id ?? "");
     setSelectedBlockNumber(1);
-    setSelectedFrameId("");
     setVisualAct(0);
     setActiveTab("script");
     setActiveSection("overview");
@@ -681,20 +662,10 @@ export default function Home() {
     commit(next);
   }
 
-  function addFrame(block: StoryBlock) {
-    const updated = addBlankFrame(block);
-    const frame = updated.visuals[updated.visuals.length - 1];
-    replaceBlock(updated);
-    setSelectedBlockNumber(block.number);
-    setSelectedFrameId(frame.id);
-  }
-
   function openBlock(number: number, destination: MainTab = "planner") {
     setSelectedBlockNumber(number);
     setActiveTab(destination);
     setActiveSection(destination === "planner" ? "blocks" : "storyboard");
-    const block = project.blocks[number - 1];
-    setSelectedFrameId(block.visuals[0]?.id ?? "");
   }
 
   return (
@@ -841,18 +812,13 @@ export default function Home() {
         {activeTab === "visuals" ? (
           <div className="studio-layout visual-studio-layout">
             <StoryRail project={project} workspace="Visual Board" activeSection={activeSection} selectSection={setActiveSection} />
-            <VisualBoard
+            <VisualStoryboard
               project={project}
-              activeSection={activeSection}
-              selectedBlock={selectedBlock}
-              selectedFrame={selectedFrame}
+              initialBlockNumber={selectedBlock.number}
               visualAct={visualAct}
-              setVisualAct={setVisualAct}
-              openBlock={(number) => openBlock(number, "visuals")}
-              selectFrame={setSelectedFrameId}
-              addFrame={addFrame}
-              updateFrame={updateFrame}
-              updateBlock={updateBlock}
+              onVisualActChange={setVisualAct}
+              onOpenPlannerBlock={(number) => openBlock(number, "planner")}
+              onChange={commit}
             />
           </div>
         ) : null}
@@ -1318,106 +1284,4 @@ function StoryboardPlanner({ project, selectedBlock, openBlock, updateBlock, ope
       </div>
     </div>
   );
-}
-
-function VisualBoard({
-  project,
-  activeSection,
-  selectedBlock,
-  selectedFrame,
-  visualAct,
-  setVisualAct,
-  openBlock,
-  selectFrame,
-  addFrame,
-  updateFrame,
-  updateBlock,
-}: {
-  project: PlotPickleProject;
-  activeSection: StorySection;
-  selectedBlock: StoryBlock;
-  selectedFrame?: VisualFrame;
-  visualAct: number;
-  setVisualAct: (act: number) => void;
-  openBlock: (number: number) => void;
-  selectFrame: (id: string) => void;
-  addFrame: (block: StoryBlock) => void;
-  updateFrame: (blockNumber: number, frameId: string, key: keyof VisualFrame, value: string) => void;
-  updateBlock: (number: number, key: keyof StoryBlock, value: string | string[]) => void;
-}) {
-  const visibleBlocks = visualAct ? project.blocks.filter((block) => block.act === visualAct) : project.blocks;
-  return (
-    <div className="visual-page">
-      <VisualContext project={project} section={activeSection} selectedBlock={selectedBlock} />
-      <div className="visual-header">
-        <SectionHeading eyebrow="Visual Board" title="See the whole story at once." description="Frames, prompts, shot notes, and continuity live inside the same 24 blocks as the story plan." action={<button type="button" className="primary-button compact" onClick={() => addFrame(selectedBlock)}>Add frame to Block {selectedBlock.number}</button>} />
-        <div className="act-filter" aria-label="Filter visual board by act">
-          {[0, 1, 2, 3, 4].map((act) => <button type="button" className={visualAct === act ? "active" : ""} key={act} onClick={() => setVisualAct(act)}>{act === 0 ? "All acts" : `Act ${act}`}</button>)}
-        </div>
-      </div>
-
-      <div className="visual-workspace">
-        <div className="storyboard-grid">
-          {visibleBlocks.map((block) => {
-            const frame = block.visuals[0];
-            return (
-              <button type="button" className={selectedBlock.number === block.number ? `storyboard-card active act-${block.act}` : `storyboard-card act-${block.act}`} key={block.id} onClick={() => openBlock(block.number)}>
-                <div className="frame-preview">
-                  {frame?.src ? <img src={frame.src} alt={frame.alt || `Block ${block.number} frame`} /> : <span><b>{String(block.number).padStart(2, "0")}</b><small>Image placeholder</small></span>}
-                  {block.visuals.length > 1 ? <i>{block.visuals.length} frames</i> : null}
-                </div>
-                <div className="frame-caption"><span>Block {block.number}</span><strong>{block.title}</strong><p>{frame?.caption || block.summary || block.purpose}</p></div>
-              </button>
-            );
-          })}
-        </div>
-
-        <aside className="visual-inspector">
-          <div className="visual-inspector-head"><div className={`block-index act-${selectedBlock.act}`}>{String(selectedBlock.number).padStart(2, "0")}</div><div><span>Selected block</span><h2>{selectedBlock.title}</h2></div></div>
-          <FormField label="Block visual summary" value={selectedBlock.summary} onChange={(value) => updateBlock(selectedBlock.number, "summary", value)} help="The action the frame sequence must communicate." />
-          <FormField label="Storyboard direction" value={selectedBlock.storyboardDirection} onChange={(value) => updateBlock(selectedBlock.number, "storyboardDirection", value)} help="The planned image progression shared with Story Planner." />
-          <div className="frame-strip">
-            {selectedBlock.visuals.map((frame, index) => (
-              <button type="button" className={selectedFrame?.id === frame.id ? "active" : ""} key={frame.id} onClick={() => selectFrame(frame.id)}>
-                {frame.src ? <img src={frame.src} alt={frame.alt || `Frame ${index + 1}`} /> : <span>{index + 1}</span>}
-              </button>
-            ))}
-            <button type="button" className="add-frame-tile" onClick={() => addFrame(selectedBlock)}>+</button>
-          </div>
-          {selectedFrame ? (
-            <div className="frame-editor">
-              <FormField label="Image URL" value={selectedFrame.src} onChange={(value) => updateFrame(selectedBlock.number, selectedFrame.id, "src", value)} multiline={false} placeholder="https://…" />
-              <FormField label="Caption" value={selectedFrame.caption} onChange={(value) => updateFrame(selectedBlock.number, selectedFrame.id, "caption", value)} />
-              <FormField label="Image prompt" value={selectedFrame.prompt} onChange={(value) => updateFrame(selectedBlock.number, selectedFrame.id, "prompt", value)} help="Describe character, action, location, light, mood, and visual style." />
-              <FormField label="Shot & lens" value={selectedFrame.shot} onChange={(value) => updateFrame(selectedBlock.number, selectedFrame.id, "shot", value)} />
-              <FormField label="Continuity lock" value={selectedFrame.continuity} onChange={(value) => updateFrame(selectedBlock.number, selectedFrame.id, "continuity", value)} help="Wardrobe, props, time of day, injuries, screen direction, and recurring design details." />
-              <FormField label="Accessible description" value={selectedFrame.alt} onChange={(value) => updateFrame(selectedBlock.number, selectedFrame.id, "alt", value)} />
-            </div>
-          ) : <div className="empty-frame"><p>This block has no storyboard frames yet.</p><button type="button" className="primary-button" onClick={() => addFrame(selectedBlock)}>Add the first frame</button></div>}
-        </aside>
-      </div>
-    </div>
-  );
-}
-
-function VisualContext({ project, section, selectedBlock }: { project: PlotPickleProject; section: StorySection; selectedBlock: StoryBlock }) {
-  const contexts: Record<StorySection, { title: string; values: string[] }> = {
-    overview: { title: "Project snapshot", values: [project.metadata.format, `${project.metadata.targetMinutes} minutes`, project.metadata.status] },
-    storySetup: { title: "Production container", values: [project.metadata.format, `${project.metadata.targetMinutes} minutes`, project.development.storySetup.audience] },
-    pitch: { title: "Pitch & visual promise", values: [project.development.pitch.oneSentence || project.story.logline, project.development.pitch.visualVision, project.development.pitch.emotionalExperience] },
-    world: { title: "World continuity", values: [project.world.period, project.world.visualLanguage, project.world.rules] },
-    characters: { title: "Cast in visual continuity", values: project.characters.slice(0, 5).map((character) => `${character.name}: ${character.description}`) },
-    ghost: { title: "Ghost beneath the image", values: [project.development.ghost.centralWound, project.development.ghost.presentPattern, project.development.ghost.truth] },
-    catalyst: { title: "Catalyst in visible action", values: [project.story.catalyst, project.development.catalyst.immediateImpact, project.development.catalyst.doorway] },
-    foundations: { title: "Foundation check", values: [project.development.foundations.objective, project.development.foundations.opposition, project.development.foundations.transformation] },
-    pickle: { title: "Audience tension", values: [project.development.pickle.audienceQuestion, selectedBlock.audienceExpectation || project.development.pickle.expectedDestination, selectedBlock.pickleTurn || project.development.pickle.signatureMove] },
-    dialogue: { title: "Voice & subtext reference", values: [project.development.dialogue.voiceContrast, project.development.dialogue.subtext, project.development.dialogue.recurringLanguage] },
-    structureMap: { title: "Structure hierarchy", values: ["4 acts · 12 sequences · 24 blocks", "48 scenes · 96 mini-blocks", `${project.structure.pacingProfile.replaceAll("-", " ")} pacing`] },
-    blocks: { title: `Block ${selectedBlock.number} story motion`, values: [selectedBlock.goal, selectedBlock.choice, selectedBlock.consequence] },
-    storyboard: { title: `Block ${selectedBlock.number} storyboard direction`, values: [selectedBlock.storyboardDirection, selectedBlock.summary, `${selectedBlock.visuals.length}/4 visuals planned`] },
-    notes: { title: "Continuity & revision notes", values: [project.development.notes.continuity, project.development.notes.openQuestions, project.development.notes.revisions] },
-  };
-  const context = contexts[section];
-  const values = context.values.filter(Boolean);
-  return <section className="visual-context"><div><p className="eyebrow">{storySections.find((item) => item.id === section)?.label} reference</p><h2>{context.title}</h2></div><div>{values.length ? values.slice(0, 3).map((value, index) => <p key={`${section}-${index}`}>{value}</p>) : <p className="context-empty">Add this detail in Story Planner and it will appear here.</p>}</div></section>;
 }

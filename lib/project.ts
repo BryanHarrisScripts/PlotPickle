@@ -19,7 +19,19 @@ export type ScreenplayDraftElementType =
   | "character"
   | "parenthetical"
   | "dialogue"
-  | "transition";
+  | "transition"
+  | "section"
+  | "synopsis"
+  | "shot"
+  | "lyrics"
+  | "dual-dialogue"
+  | "centered"
+  | "page-break"
+  | "title-page"
+  | "note"
+  | "boneyard";
+
+export type RevisionColour = "none" | "blue" | "pink" | "yellow" | "green" | "goldenrod" | "buff" | "salmon" | "cherry" | "tan" | "gray";
 
 export type ScreenplayDraftElement = {
   id: string;
@@ -29,6 +41,12 @@ export type ScreenplayDraftElement = {
   miniBlockNumber: number;
   sceneNumber: number;
   sceneId?: string;
+  threadIds: string[];
+  omitted: boolean;
+  locked: boolean;
+  revisionColour: RevisionColour;
+  sourceAttributionIds: string[];
+  aiProvenanceIds: string[];
   createdAt: string;
   updatedAt: string;
 };
@@ -63,6 +81,35 @@ export type CharacterVoiceprint = {
   persuasionStrategy: string;
 };
 
+export type ArcCheckpointKind = "opening" | "catalyst" | "threshold" | "midpoint" | "crisis" | "climax" | "ending" | "custom";
+
+export type CharacterArcCheckpoint = {
+  id: string;
+  kind: ArcCheckpointKind;
+  blockNumber: number | null;
+  sceneId: string;
+  belief: string;
+  strategy: string;
+  pressure: string;
+  choice: string;
+  consequence: string;
+  evidence: string;
+};
+
+export type CharacterArcMatrix = {
+  startingState: string;
+  consciousWant: string;
+  underlyingNeed: string;
+  protectiveLie: string;
+  emergingTruth: string;
+  midpointShift: string;
+  crisisChoice: string;
+  climaxChoice: string;
+  endingState: string;
+  relationshipImpact: string;
+  checkpoints: CharacterArcCheckpoint[];
+};
+
 export type Character = {
   id: string;
   name: string;
@@ -86,6 +133,7 @@ export type Character = {
   emotionalAccess?: string;
   statusShift?: string;
   persuasionStrategy?: string;
+  arcMatrix: CharacterArcMatrix;
   image: string;
   relationships: Relationship[];
 };
@@ -134,6 +182,98 @@ export type StoryBlock = {
   notes: string;
   scenes: StoryScene[];
   visuals: VisualFrame[];
+};
+
+export type StoryThreadKind = "main" | "subplot" | "relationship" | "mystery" | "theme" | "world";
+export type StoryThreadStatus = "planned" | "active" | "paused" | "resolved" | "abandoned";
+export type StoryThreadMilestoneKind = "setup" | "development" | "turn" | "reveal" | "payoff" | "resolution";
+
+export type StoryThreadMilestone = {
+  id: string;
+  sceneId: string;
+  blockNumber: number;
+  kind: StoryThreadMilestoneKind;
+  summary: string;
+  resolved: boolean;
+};
+
+export type StoryThread = {
+  id: string;
+  name: string;
+  kind: StoryThreadKind;
+  status: StoryThreadStatus;
+  summary: string;
+  question: string;
+  characterIds: string[];
+  sceneIds: string[];
+  introducedBlockNumber: number | null;
+  resolvedBlockNumber: number | null;
+  milestones: StoryThreadMilestone[];
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type RightsCollaborator = {
+  id: string;
+  name: string;
+  role: string;
+  contribution: string;
+  ownershipShare: string;
+  agreementReference: string;
+  creditedAs: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SourceAttribution = {
+  id: string;
+  title: string;
+  creator: string;
+  sourceType: "research" | "quotation" | "adaptation" | "public-domain" | "licensed-material" | "other";
+  sourceUrl: string;
+  licence: string;
+  permissionReference: string;
+  notes: string;
+  attachedTo: string[];
+  createdAt: string;
+};
+
+export type AiProvenanceRecord = {
+  id: string;
+  provider: string;
+  model: string;
+  operation: "brainstorm" | "rewrite" | "analysis" | "dialogue" | "image" | "audio" | "video" | "other";
+  promptSummary: string;
+  outputSummary: string;
+  humanContribution: string;
+  humanDecision: string;
+  retained: boolean;
+  attachedTo: string[];
+  createdAt: string;
+};
+
+export type RightsAndProvenance = {
+  projectOwner: string;
+  copyrightNotice: string;
+  rightsStatement: string;
+  defaultCreativeLicence: string;
+  sourceWorkTitle: string;
+  sourceWorkAuthor: string;
+  adaptationStatus: "original" | "adaptation" | "commissioned" | "collaboration" | "unknown";
+  collaborators: RightsCollaborator[];
+  attributions: SourceAttribution[];
+  aiProvenance: AiProvenanceRecord[];
+};
+
+export type RevisionSnapshot = {
+  id: string;
+  label: string;
+  notes: string;
+  createdAt: string;
+  schemaVersion: "1.7.0";
+  contentHash: string;
+  payload: Record<string, unknown>;
 };
 
 export type ProjectDevelopment = {
@@ -212,7 +352,7 @@ export type ProjectDevelopment = {
 };
 
 export type PlotPickleProject = {
-  schemaVersion: "1.6.0";
+  schemaVersion: "1.7.0";
   id: string;
   metadata: {
     title: string;
@@ -253,6 +393,9 @@ export type PlotPickleProject = {
   structure: ProjectStructure;
   characters: Character[];
   blocks: StoryBlock[];
+  storyThreads: StoryThread[];
+  rights: RightsAndProvenance;
+  revisions: RevisionSnapshot[];
 };
 
 export const beatTemplates = [
@@ -301,6 +444,38 @@ export function createBlankVoiceprint(): CharacterVoiceprint {
     emotionalAccess: "",
     statusShift: "",
     persuasionStrategy: "",
+  };
+}
+
+export function createBlankArcMatrix(character: Partial<Character> = {}): CharacterArcMatrix {
+  return {
+    startingState: typeof character.description === "string" ? character.description : "",
+    consciousWant: typeof character.want === "string" ? character.want : "",
+    underlyingNeed: typeof character.need === "string" ? character.need : "",
+    protectiveLie: typeof character.ghost === "string" ? character.ghost : "",
+    emergingTruth: typeof character.arc === "string" ? character.arc : "",
+    midpointShift: "",
+    crisisChoice: "",
+    climaxChoice: "",
+    endingState: "",
+    relationshipImpact: "",
+    checkpoints: [],
+  };
+}
+
+export function createBlankRightsAndProvenance(projectTitle = "Untitled Story"): RightsAndProvenance {
+  const year = new Date().getFullYear();
+  return {
+    projectOwner: "",
+    copyrightNotice: `Copyright ${year}. All rights reserved by the project owner.`,
+    rightsStatement: `The writer retains the rights they hold in ${projectTitle} and its original creative material.`,
+    defaultCreativeLicence: "All rights reserved",
+    sourceWorkTitle: "",
+    sourceWorkAuthor: "",
+    adaptationStatus: "original",
+    collaborators: [],
+    attributions: [],
+    aiProvenance: [],
   };
 }
 

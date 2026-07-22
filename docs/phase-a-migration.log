@@ -1,0 +1,8 @@
+/home/runner/work/PlotPickle/PlotPickle/scripts/apply-phase-a.py:1127: SyntaxWarning: invalid escape sequence '\.'
+  assert.match(project, /schemaVersion: "1\.7\.0"/);
+Traceback (most recent call last):
+  File "/home/runner/work/PlotPickle/PlotPickle/scripts/apply-phase-a.py", line 297, in <module>
+    replace_once("lib/project.ts", '    schemaVersion: "1.6.0",', '    schemaVersion: "1.7.0",')
+  File "/home/runner/work/PlotPickle/PlotPickle/scripts/apply-phase-a.py", line 23, in replace_once
+    raise RuntimeError(f"Expected exactly one match in {path}, found {count}: {old[:120]!r}")
+RuntimeError: Expected exactly one match in lib/project.ts, found 2: '    schemaVersion: "1.6.0",'

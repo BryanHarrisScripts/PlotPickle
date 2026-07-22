@@ -198,7 +198,7 @@ function appendPass(project: PlotPickleProject, suggestion: SpecialistSuggestion
 }
 
 export function applySpecialistSuggestion(project: PlotPickleProject, suggestion: SpecialistSuggestion): PlotPickleProject {
-  let next = cloneProject(project);
+  const next = cloneProject(project);
   let provenanceId = "";
 
   if (suggestion.lab === "dialogue") {

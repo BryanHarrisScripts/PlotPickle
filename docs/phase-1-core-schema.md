@@ -1,6 +1,6 @@
 # Phase 1: Core schema upgrade
 
-Phase 1 establishes schema `1.7.0` as the data foundation for six connected capabilities. The implementation is intentionally kept in pure project operations so the Story Planner, Structure Engine, Screenplay Writer, Settings and Reports can all use the same rules.
+Phase 1 establishes schema `1.7.0` as the data foundation for six connected capabilities. The implementation uses shared project operations so the Story Planner, Structure Engine, Screenplay Writer, Settings and Reports can all use the same rules.
 
 ## 1. Story Threads and subplot tracking
 
@@ -21,18 +21,35 @@ Thread links are reciprocal. Linking a thread to a scene updates both the thread
 
 The original schema assumed exactly two scenes per block. Schema 1.7 allows one or more scenes in every block while preserving the fixed 24 Blocks and 96 mini-block framework.
 
-The project operations provide:
+Forty-eight scenes remain the default feature-screenplay template. They are no longer a restriction. The Structure Engine reports the live scene count and supports a common forty-to-sixty-scene range without imposing either boundary.
 
-- add scene;
-- remove scene;
-- move scene up or down;
-- apply an explicit drag-and-drop order;
-- move a mini-block from one scene to another; and
-- automatically reindex scene number and order.
+The project operations and Structure Engine provide:
 
-When a scene is removed, its mini-blocks and thread links move to a neighbouring scene. A locked scene cannot be removed or reordered. Adding or removing scenes redistributes the block's scene-duration estimate without changing the block runtime.
+- add a scene after the selected scene;
+- duplicate scene content without duplicating a structural mini-block;
+- delete a scene while preserving its mini-block assignments;
+- move a scene up or down inside a block;
+- apply an explicit scene order;
+- move a scene between blocks;
+- assign any of the block's four mini-blocks to a different scene; and
+- automatically reindex scene numbers and timing estimates.
 
-The four mini-blocks remain the story-function layer for each block. A writer may create more than four screenplay scenes inside a block; scenes beyond the available mini-blocks can remain unassigned until the writer deliberately redistributes the mini-block evidence.
+Each full scene records:
+
+- scene type: action, dialogue, suspense, revelation, montage, transition or other;
+- entry and exit conditions;
+- objective and opposition;
+- visible action;
+- reversal or turn;
+- resolution and outcome;
+- all participating characters;
+- characters entering and leaving;
+- duration in seconds; and
+- screenplay page estimate.
+
+The four mini-blocks remain the story-function layer for each block. A full scene may hold one to four mini-blocks. When a block needs more rapid scenes than its four structural anchors, a mini-block can contain multiple short scenes for montage, intercutting, transitions or brief location changes. Each short scene has its own type, entry condition, objective, opposition, action, reversal, outcome, character movement, duration and page estimate.
+
+When a full scene is removed, its mini-blocks move to a neighbouring scene. Moving a scene to a different block leaves the source block's mini-blocks in place and assigns a spare target mini-block when one is available. This protects the 96-mini-block framework while allowing scene order and scene count to change freely.
 
 ## 3. Expanded screenplay element types
 
@@ -94,7 +111,7 @@ An AI provenance record identifies the provider, model, operation, prompt and ou
 
 ## 6. Revision snapshots and comparison
 
-A snapshot captures the story fields, block spine, dynamic scene order, screenplay elements, character arcs and Story Threads at a named moment.
+A snapshot captures the story fields, block spine, dynamic scene order, scene type and timing, mini-block assignments, short scenes, screenplay elements, character arcs and Story Threads at a named moment.
 
 Snapshots include a deterministic content hash. The comparison operation reports:
 
@@ -116,6 +133,8 @@ Migration adds:
 - blank Story Threads;
 - an Arc Matrix seeded from each existing character profile;
 - stable scene order and revision metadata;
+- dynamic scene fields with safe defaults;
+- an empty short-scene list on every mini-block;
 - expanded metadata on existing screenplay elements;
 - a blank rights and provenance ledger; and
 - an empty revision history.
@@ -124,6 +143,9 @@ The original `schema/plotpickle-project.schema.json` remains available for curre
 
 ## Implementation source
 
+- `lib/structure.ts`
+- `app/structure/page.tsx`
 - `lib/project-phase-one.ts`
 - `schema/plotpickle-project-v1.7.schema.json`
 - `tests/phase-one-core-schema.test.mjs`
+- `tests/dynamic-scenes.test.mjs`

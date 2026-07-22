@@ -1,0 +1,33 @@
+name: Apply Phase B workspace integration
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - ready_for_review
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-b-diagnostic-craft-014
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Connect Phase B diagnostics to every workspace
+        run: python scripts/apply-phase-b.py
+      - name: Commit the permanent Phase B implementation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Integrate the Phase B diagnostic craft layer"
+          git push origin HEAD:agent/phase-b-diagnostic-craft-014

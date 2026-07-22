@@ -1,4 +1,4 @@
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync, chmodSync } from "node:fs";
+import { chmodSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -47,7 +47,7 @@ const manifest = {
 writeFileSync(path.join(destination, "release-manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
 const files = [];
 function walk(folder) {
-  for (const name of (await import("node:fs")).readdirSync(folder).sort()) {
+  for (const name of readdirSync(folder).sort()) {
     const item = path.join(folder, name);
     const info = statSync(item);
     if (info.isDirectory()) walk(item);

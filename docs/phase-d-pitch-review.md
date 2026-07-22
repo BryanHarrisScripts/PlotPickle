@@ -31,3 +31,5 @@ The builder saves title, subtitle, tagline, approved logline, synopsis, creator 
 ## Completion standard
 
 PlotPickle 0.16 passes Phase D when a writer can review the draft, create and resolve anchored comments, compare revisions, approve a logline, assemble a pitch package and create all three shareable export formats without leaving PlotPickle.
+
+The exact release candidate must pass licence and generated-navigation checks, lint, the verified production build, smoke testing and the complete Phase A–D regression suite before merge.

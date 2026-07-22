@@ -8,6 +8,7 @@ import {
   type PlotPickleProject,
 } from "@/lib/project";
 import styles from "./draftlens.module.css";
+import { CraftDiagnosticSummary } from "../craft-diagnostics";
 
 const STORAGE_KEY = "plotpickle.project.v1";
 
@@ -260,6 +261,8 @@ export default function DraftLensPage() {
             </div>
           </div>
         </section>
+
+        <CraftDiagnosticSummary project={project} focus={{ blockNumber: selectedBlock.number, sceneId: selectedBlock.scenes[0]?.id, characterId: selectedCharacter?.id }} />
 
         <section className={styles.firstReadPanel}>
           <div className={styles.sectionHeading}>

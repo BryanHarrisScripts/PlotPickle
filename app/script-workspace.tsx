@@ -18,6 +18,7 @@ import {
 } from "@/lib/screenplay-draft";
 import { assignDraftElementToScene, buildGlobalSceneIndex } from "@/lib/scene-management";
 import TreatmentEditor from "./treatment-editor";
+import { CraftDiagnosticSummary } from "./craft-diagnostics";
 import styles from "./script-workspace.module.css";
 
 type Props = {
@@ -298,6 +299,7 @@ export default function ScriptWorkspace({ project, mode, onModeChange, onChange,
 
         <aside className={styles.assistantPanel}>
           <div className={styles.miniBrief}><span>Current mini-block</span><strong>{block.number}.{mini.number} {mini.label}</strong><p>{mini.function}</p><dl><div><dt>Objective</dt><dd>{mini.objective || "Open in the Block plan to answer."}</dd></div><div><dt>Resistance</dt><dd>{mini.resistance || block.conflict || "Not answered yet."}</dd></div><div><dt>Turn</dt><dd>{mini.turn || block.choice || "Not answered yet."}</dd></div><div><dt>Dialogue intention</dt><dd>{mini.dialogueIntention || "Not answered yet."}</dd></div></dl></div>
+          <CraftDiagnosticSummary project={project} focus={{ blockNumber, sceneId: currentSceneEntry?.sceneId }} />
           <div className={styles.aiCard}>
             <span>Optional AI assistant</span><h2>Ask from this exact story position.</h2><p>PlotPickle sends the current Block, mini-block and character context through the provider connected in Settings.</p>
             <textarea value={aiDirection} onChange={(event) => setAiDirection(event.target.value)} placeholder="For example: Draft a tense exchange where Mara hides what she learned." rows={5} />

@@ -39,7 +39,7 @@ export default function StructureMapSummary({
           <p className={styles.eyebrow}>ST · Structure Map</p>
           <h1>See the complete dramatic hierarchy before entering the full engine.</h1>
           <p>
-            This map summarizes four acts, twelve sequences, twenty-four blocks, the project&apos;s live scene count, and ninety-six structural mini-blocks. The 48-scene starting template is guidance, not a restriction.
+            This map summarizes four acts, twelve sequences, twenty-four blocks, the project&apos;s live scene count, and 96 structural mini-blocks. The 48-scene starting template is guidance, not a restriction.
           </p>
         </div>
         <div className={styles.heroActions}>

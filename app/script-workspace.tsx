@@ -16,20 +16,19 @@ import {
   screenplayToFountain,
   syncDraft,
 } from "@/lib/screenplay-draft";
-import ScriptViewer from "./script-viewer";
 import TreatmentEditor from "./treatment-editor";
-import LearningStudio from "./learning-studio";
 import styles from "./script-workspace.module.css";
 
 type Props = {
   project: PlotPickleProject;
+  mode: WriterViewMode;
+  onModeChange: (mode: WriterViewMode) => void;
   onChange: (screenplay: ScreenplayDocument) => void;
   onProjectChange: (project: PlotPickleProject) => void;
-  onImport: (screenplay: ScreenplayDocument) => boolean;
   onOpenBlock: (blockNumber: number) => void;
 };
 
-type ViewMode = "treatment" | "screenplay" | "learn";
+export type WriterViewMode = "treatment" | "screenplay";
 type AiResponse = { ok?: boolean; text?: string; message?: string };
 
 const elementLabels: Record<ScreenplayDraftElementType, string> = {
@@ -62,8 +61,7 @@ function allMiniBlocks(project: PlotPickleProject, blockNumber: number) {
   return project.blocks[blockNumber - 1].scenes.flatMap((scene) => scene.miniBlocks);
 }
 
-export default function ScriptWorkspace({ project, onChange, onProjectChange, onImport, onOpenBlock }: Props) {
-  const [mode, setMode] = useState<ViewMode>("treatment");
+export default function ScriptWorkspace({ project, mode, onModeChange, onChange, onProjectChange, onOpenBlock }: Props) {
   const [blockNumber, setBlockNumber] = useState(1);
   const [miniBlockNumber, setMiniBlockNumber] = useState(1);
   const [selectedId, setSelectedId] = useState("");
@@ -168,7 +166,7 @@ export default function ScriptWorkspace({ project, onChange, onProjectChange, on
   function sendTreatmentToScreenplay(text: string) {
     if (!text.trim()) return;
     addElement("action", text.trim());
-    setMode("screenplay");
+    onModeChange("screenplay");
   }
 
   function jumpToPosition(nextBlockNumber: number, nextMiniBlockNumber?: number) {
@@ -189,8 +187,8 @@ export default function ScriptWorkspace({ project, onChange, onProjectChange, on
     return (
       <div className={styles.workspaceShell}>
         <div className={styles.modeBar}>
-          <div><strong>Writer</strong><span>Develop, format and learn in one story flow.</span></div>
-          <div><button type="button" className={styles.activeMode}>Treatment</button><button type="button" onClick={() => setMode("screenplay")}>Screenplay</button><button type="button" onClick={() => setMode("learn")}>Read & learn</button></div>
+          <div><strong>Writer</strong><span>Develop and format the story in one connected flow.</span></div>
+          <div><button type="button" className={styles.activeMode}>Treatment</button><button type="button" onClick={() => onModeChange("screenplay")}>Screenplay</button></div>
         </div>
         <TreatmentEditor
           project={project}
@@ -206,36 +204,11 @@ export default function ScriptWorkspace({ project, onChange, onProjectChange, on
     );
   }
 
-  if (mode === "learn") {
-    return (
-      <div className={styles.workspaceShell}>
-        <div className={styles.modeBar}>
-          <div><strong>Writer</strong><span>Study the craft at the current story position.</span></div>
-          <div><button type="button" onClick={() => setMode("treatment")}>Treatment</button><button type="button" onClick={() => setMode("screenplay")}>Screenplay</button><button type="button" className={styles.activeMode}>Read & learn</button></div>
-        </div>
-        <LearningStudio
-          project={project}
-          blockNumber={blockNumber}
-          miniBlockNumber={miniBlockNumber}
-          onBlockChange={setBlockNumber}
-          onMiniBlockChange={setMiniBlockNumber}
-          onOpenTreatment={() => setMode("treatment")}
-          onOpenScreenplay={() => setMode("screenplay")}
-          onOpenBlock={onOpenBlock}
-        />
-        <details className={styles.scriptStudy} open={Boolean(project.screenplay.sourceText)}>
-          <summary>{project.screenplay.sourceText ? "Study the loaded screenplay" : "Load a screenplay to study"}</summary>
-          <ScriptViewer project={project} onImport={onImport} onOpenBlock={onOpenBlock} />
-        </details>
-      </div>
-    );
-  }
-
   return (
     <div className={styles.workspaceShell}>
       <div className={styles.modeBar}>
         <div><strong>Writer</strong><span>24 Blocks · 96 mini-blocks · standard feature format</span></div>
-        <div><button type="button" onClick={() => setMode("treatment")}>Treatment</button><button type="button" className={styles.activeMode}>Screenplay</button><button type="button" onClick={() => setMode("learn")}>Read & learn</button></div>
+        <div><button type="button" onClick={() => onModeChange("treatment")}>Treatment</button><button type="button" className={styles.activeMode}>Screenplay</button></div>
       </div>
 
       <header className={styles.writerHeader}>

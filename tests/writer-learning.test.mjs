@@ -33,3 +33,16 @@ test("Learning Studio preserves the educational and user-work licence boundary",
   assert.match(learning, /Educational guidance: CC BY-SA 4\.0/);
   assert.match(learning, /Your original story and screenplay remain yours/);
 });
+
+test("Afterglow populates the Markdown Treatment and carries it into storyboard prompts", async () => {
+  const afterglow = await source("data/afterglow.ts");
+  const storyboard = await source("app/visual-storyboard.tsx");
+  const page = await source("app/page.tsx");
+  for (const phrase of ["populateAfterglowBlock", "Known Afterglow summary already included in PlotPickle", "Source reconciliation required", "Treatment task", "miniBlocks", "notes:"]) {
+    assert.ok(afterglow.includes(phrase), `Afterglow treatment loading is missing ${phrase}`);
+  }
+  assert.match(storyboard, /Treatment evidence for this exact mini-block/);
+  assert.match(storyboard, /mini\.notes\.slice\(0, 1800\)/);
+  assert.match(page, /all 96 Treatment positions/);
+  assert.match(page, /Unreconciled material is clearly marked/);
+});

@@ -581,7 +581,7 @@ export default function Home() {
     setSelectedBlockNumber(1);
     setActiveTab("planner");
     setActiveSection("overview");
-    setToast("Afterglow loaded with its world, cast, and 24-block spine.");
+    setToast("Afterglow loaded across the Story Planner, all 96 Treatment positions, and Visual Storyboard context. Unreconciled material is clearly marked.");
   }
 
   function exportProject() {

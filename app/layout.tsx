@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import CurrentDownloadLinks from "./current-download-links";
+import WorkspaceIntroHost from "./workspace-intro-host";
 import "./globals.css";
 import "./engines-workspace-overrides.css";
 import "./navigation-additions.css";
@@ -45,6 +46,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <WorkspaceIntroHost />
         <CurrentDownloadLinks />
       </body>
     </html>

@@ -1,9 +1,9 @@
 name: Apply Phase A source migration
 
 on:
-  push:
+  pull_request:
     branches:
-      - agent/phase-a-core-model-013
+      - main
     paths:
       - scripts/apply-phase-a.py
       - .github/workflows/apply-phase-a.yml

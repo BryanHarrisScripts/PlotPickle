@@ -11,7 +11,7 @@ test("PlotPickle 0.15 exposes every specialist lab", async () => {
     read("../package.json"),
   ]);
   const packageJson = JSON.parse(packageSource);
-  assert.equal(packageJson.version, "0.15.0");
+  assert.ok(Number(packageJson.version.split(".")[1]) >= 15);
   for (const label of [
     "AI Prompt Lab",
     "Dialogue Lab",

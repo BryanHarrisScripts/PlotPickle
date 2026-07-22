@@ -93,6 +93,19 @@ const engines: EngineDefinition[] = [
     result: "A deliberate-practice loop that connects the full PlotPickle method.",
   },
   {
+    code: "PR",
+    title: "Pitch & Review Studio",
+    href: "/pitch-review",
+    stage: "Review and share",
+    question: "How does the draft become a clear, reviewable and shareable package?",
+    summary:
+      "Guide the logline, anchor local comments to stable story IDs, resolve review threads, compare revision snapshots and assemble a complete pitch package with shareable exports.",
+    useWhen:
+      "Use it after a draft or development pass, during local review, before sharing revisions, or when the project needs a professional logline, synopsis, character presentation and visual pitch.",
+    connects: ["Anchored comments", "Review states", "Revision snapshots", "Approved logline", "Pitch package", "Pitch exports"],
+    result: "A resolved review trail and a complete PDF, HTML or presentation-ready pitch package generated from the active story.",
+  },
+  {
     code: "LB",
     title: "Specialist Labs",
     href: "/labs",

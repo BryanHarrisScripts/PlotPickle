@@ -2,6 +2,7 @@ import {
   cloneProject,
   type Character,
   type PlotPickleProject,
+  type ReviewWorkspace,
   type ScreenplayDocument,
   type ScreenplayDraftElement,
   type StoryBlock,
@@ -219,6 +220,7 @@ export type RevisionSnapshotPayload = {
   screenplayElements: PhaseOneScreenplayDraftElement[];
   characterArcs: Array<{ characterId: string; name: string; arcMatrix: CharacterArcMatrix }>;
   storyThreads: StoryThread[];
+  review: ReviewWorkspace;
 };
 
 export type RevisionSnapshot = {
@@ -582,6 +584,7 @@ export function captureRevisionPayload(project: PhaseOneProject): RevisionSnapsh
     screenplayElements: project.screenplay.draftElements,
     characterArcs: project.characters.map((character) => ({ characterId: character.id, name: character.name, arcMatrix: character.arcMatrix })),
     storyThreads: project.storyThreads,
+    review: project.review,
   });
 }
 

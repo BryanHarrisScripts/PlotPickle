@@ -92,6 +92,19 @@ const engines: EngineDefinition[] = [
     connects: ["The Pickle", "Opening contract", "Block cause and turn", "Character pressure", "PageFlow signal", "Pitch and craft research"],
     result: "A deliberate-practice loop that connects the full PlotPickle method.",
   },
+  {
+    code: "LB",
+    title: "Specialist Labs",
+    href: "/labs",
+    stage: "Experiment with approval",
+    question: "What can be explored safely before the writer commits it to the story?",
+    summary:
+      "Use focused prompt, dialogue, research, visual and provenance labs beside the active project, compare every proposed change and retain only what the writer explicitly approves.",
+    useWhen:
+      "Use the labs when an idea needs controlled exploration, sourced canon, a dialogue alternative, a visual-bible pass, prompt development or a complete record of generated assets and human decisions.",
+    connects: ["Canonical project context", "Screenplay elements", "Research sources", "Visual assets", "AI provenance", "Revision snapshots"],
+    result: "Reviewable specialist suggestions with before-and-after evidence, provenance and no automatic project changes.",
+  },
 ];
 
 export default function EngineHub() {
@@ -100,19 +113,19 @@ export default function EngineHub() {
       <div className={styles.hero}>
         <div>
           <p className={styles.eyebrow}>Fourth connected workspace</p>
-          <h1 id="engines-title">Choose the right engine for the next story problem.</h1>
+          <h1 id="engines-title">Choose the right engine or lab for the next story problem.</h1>
           <p>
-            The Story Planner holds the project. The Engines provide focused passes over that same project. Nothing is copied into a separate database, and every specialist screen reads and writes the active PlotPickle story.
+            The Story Planner holds the project. The Engines and Specialist Labs provide focused passes over that same project. Nothing is copied into a separate database, and every specialist screen reads and writes the active PlotPickle story.
           </p>
         </div>
         <div className={styles.sharedProject}>
           <span>One active project</span>
-          <strong>Plan once. Refine from six different angles.</strong>
-          <p>Open an engine only after reading what it is designed to solve. Return here whenever the next useful pass is unclear.</p>
+          <strong>Plan once. Refine through engines and labs.</strong>
+          <p>Open a specialist only after reading what it is designed to solve. Return here whenever the next useful pass is unclear.</p>
         </div>
       </div>
 
-      <div className={styles.process} aria-label="Recommended engine order">
+      <div className={styles.process} aria-label="Recommended engine and lab order">
         {engines.map((engine, index) => (
           <div key={engine.code}>
             <span>{String(index + 1).padStart(2, "0")}</span>
@@ -162,7 +175,7 @@ export default function EngineHub() {
 
       <footer className={styles.footerNote}>
         <strong>There is no required order.</strong>
-        <p>Use the suggested sequence for a full development pass, or enter the engine that addresses the problem currently slowing the story down.</p>
+        <p>Use the suggested sequence for a full development pass, or enter the engine or lab that addresses the problem currently slowing the story down.</p>
       </footer>
     </section>
   );

@@ -16,6 +16,7 @@ import {
   screenplayToFountain,
   syncDraft,
 } from "@/lib/screenplay-draft";
+import { assignDraftElementToScene, buildGlobalSceneIndex } from "@/lib/scene-management";
 import TreatmentEditor from "./treatment-editor";
 import styles from "./script-workspace.module.css";
 
@@ -75,7 +76,11 @@ export default function ScriptWorkspace({ project, mode, onModeChange, onChange,
   const mini = minis[miniBlockNumber - 1];
   const selected = elements.find((item) => item.id === selectedId);
   const pages = estimatedScreenplayPages(elements);
-  const sceneCount = useMemo(() => new Set(elements.map((item) => item.sceneNumber)).size, [elements]);
+  const sceneIndex = useMemo(() => buildGlobalSceneIndex(project.blocks), [project.blocks]);
+  const currentSceneEntry = sceneIndex.find((entry) => (
+    entry.blockNumber === blockNumber && entry.miniBlockNumbers.includes(miniBlockNumber)
+  )) ?? sceneIndex.find((entry) => entry.blockNumber === blockNumber);
+  const scriptedSceneCount = useMemo(() => new Set(elements.map((item) => item.sceneId || `number-${item.sceneNumber}`)).size, [elements]);
 
   function save(next: ScreenplayDraftElement[]) {
     onChange(syncDraft(project.screenplay, next));
@@ -88,9 +93,16 @@ export default function ScriptWorkspace({ project, mode, onModeChange, onChange,
   }
 
   function addElement(type: ScreenplayDraftElementType, text = "") {
-    const lastScene = elements.at(-1)?.sceneNumber ?? 0;
-    const sceneNumber = type === "scene-heading" ? lastScene + 1 : Math.max(1, lastScene);
-    const next = createDraftElement(type, blockNumber, miniBlockNumber, sceneNumber, text);
+    const fallbackScene = elements.at(-1)?.sceneNumber ?? 1;
+    const sceneNumber = currentSceneEntry?.globalNumber ?? Math.max(1, fallbackScene);
+    const next = createDraftElement(
+      type,
+      blockNumber,
+      miniBlockNumber,
+      sceneNumber,
+      text,
+      currentSceneEntry?.sceneId ?? "",
+    );
     const insertionIndex = elements.findLastIndex((item) =>
       item.blockNumber < blockNumber || (item.blockNumber === blockNumber && item.miniBlockNumber <= miniBlockNumber),
     );
@@ -212,7 +224,7 @@ export default function ScriptWorkspace({ project, mode, onModeChange, onChange,
       </div>
 
       <header className={styles.writerHeader}>
-        <div><p>Feature Screenplay</p><h1>{project.metadata.title}</h1><span>{pages} estimated pages · {sceneCount} scenes · target {project.metadata.targetMinutes} minutes · full scrollable draft</span></div>
+        <div><p>Feature Screenplay · full scrollable draft</p><h1>{project.metadata.title}</h1><span>{pages} estimated pages · {sceneIndex.length} planned scenes · {scriptedSceneCount} scenes with draft material · target {project.metadata.targetMinutes} minutes</span></div>
         <div className={styles.exportActions}>
           <button type="button" onClick={() => download(`${slug(project.metadata.title)}.fountain`, screenplayToFountain(project.screenplay), "text/plain")}>Export Fountain</button>
           <button type="button" onClick={() => download(`${slug(project.metadata.title)}.fdx`, screenplayToFinalDraft(project), "application/xml")}>Export Final Draft</button>
@@ -244,7 +256,7 @@ export default function ScriptWorkspace({ project, mode, onModeChange, onChange,
           ) : null}
 
           <section className={styles.formatToolbar} aria-label="Add screenplay element">
-            <span>Add to Block {blockNumber}.{miniBlockNumber}</span>
+            <span>Add to Scene {currentSceneEntry?.globalNumber ?? "—"} · Block {blockNumber}.{miniBlockNumber}</span>
             {elementOrder.map((type) => <button type="button" key={type} onClick={() => addElement(type)}>{elementLabels[type]}</button>)}
           </section>
 
@@ -253,7 +265,7 @@ export default function ScriptWorkspace({ project, mode, onModeChange, onChange,
             {elements.map((element, index) => (
               <article id={`script-position-${element.id}`} className={`${styles.scriptElement} ${styles[element.type]} ${selectedId === element.id ? styles.selectedElement : ""}`} key={element.id} onClick={() => setSelectedId(element.id)}>
                 <div className={styles.elementMeta}>
-                  <span>B{element.blockNumber}.{element.miniBlockNumber}</span>
+                  <span>S{element.sceneNumber} · B{element.blockNumber}.{element.miniBlockNumber}</span>
                   <select aria-label="Screenplay element type" value={element.type} onChange={(event) => updateElement(element.id, { type: event.target.value as ScreenplayDraftElementType })}>{elementOrder.map((type) => <option key={type} value={type}>{elementLabels[type]}</option>)}</select>
                   <button type="button" aria-label="Move up" onClick={() => moveElement(element.id, -1)}>↑</button>
                   <button type="button" aria-label="Move down" onClick={() => moveElement(element.id, 1)}>↓</button>
@@ -283,7 +295,33 @@ export default function ScriptWorkspace({ project, mode, onModeChange, onChange,
             {aiSuggestion ? <div className={aiState === "error" ? styles.aiError : styles.aiResult}><p>{aiSuggestion}</p>{aiState !== "error" ? <div><button type="button" onClick={() => applyAi("action")}>Insert as action</button><button type="button" onClick={() => applyAi("dialogue")}>Insert as dialogue</button></div> : null}</div> : null}
             <small>Nothing is inserted until you approve it. AI is optional.</small>
           </div>
-          {selected ? <div className={styles.assignmentCard}><span>Selected element</span><label>Block<select value={selected.blockNumber} onChange={(event) => updateElement(selected.id, { blockNumber: Number(event.target.value) })}>{project.blocks.map((item) => <option value={item.number} key={item.id}>{item.number} · {item.title}</option>)}</select></label><label>Mini-block<select value={selected.miniBlockNumber} onChange={(event) => updateElement(selected.id, { miniBlockNumber: Number(event.target.value) })}>{allMiniBlocks(project, selected.blockNumber).map((item) => <option value={item.number} key={item.id}>{selected.blockNumber}.{item.number} · {item.label}</option>)}</select></label></div> : null}
+          {selected ? <div className={styles.assignmentCard}>
+            <span>Selected element</span>
+            <label>Scene
+              <select
+                value={selected.sceneId || sceneIndex.find((entry) => entry.globalNumber === selected.sceneNumber)?.sceneId || ""}
+                onChange={(event) => {
+                  const entry = sceneIndex.find((item) => item.sceneId === event.target.value);
+                  if (entry) updateElement(selected.id, assignDraftElementToScene(selected, entry));
+                }}
+              >
+                {sceneIndex.map((entry) => <option value={entry.sceneId} key={entry.sceneId}>Scene {entry.globalNumber} · Block {entry.blockNumber}.{entry.localNumber} · {entry.title}</option>)}
+              </select>
+            </label>
+            <label>Block
+              <select value={selected.blockNumber} onChange={(event) => {
+                const entry = sceneIndex.find((item) => item.blockNumber === Number(event.target.value));
+                if (entry) updateElement(selected.id, assignDraftElementToScene(selected, entry));
+              }}>{project.blocks.map((item) => <option value={item.number} key={item.id}>{item.number} · {item.title}</option>)}</select>
+            </label>
+            <label>Mini-block
+              <select value={selected.miniBlockNumber} onChange={(event) => {
+                const miniNumber = Number(event.target.value);
+                const entry = sceneIndex.find((item) => item.blockNumber === selected.blockNumber && item.miniBlockNumbers.includes(miniNumber));
+                if (entry) updateElement(selected.id, { ...assignDraftElementToScene(selected, entry), miniBlockNumber: miniNumber });
+              }}>{allMiniBlocks(project, selected.blockNumber).map((item) => <option value={item.number} key={item.id}>{selected.blockNumber}.{item.number} · {item.label}</option>)}</select>
+            </label>
+          </div> : null}
         </aside>
       </div>
     </div>

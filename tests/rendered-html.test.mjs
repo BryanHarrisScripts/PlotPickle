@@ -138,7 +138,7 @@ test("registers the Structure Engine and preserves the 4-12-24-48-96 workspace",
   }
 });
 
-test("schema 1.6 requires editable screenplay elements, storyboard slots, and the complete 12/24/48/96 hierarchy", async () => {
+test("schema 1.6 preserves 12/24/96 while accepting flexible scenes", async () => {
   const raw = await readFile(new URL("../schema/plotpickle-project.schema.json", import.meta.url), "utf8");
   const schema = JSON.parse(raw);
   assert.equal(schema.properties.schemaVersion.const, "1.6.0");
@@ -150,10 +150,12 @@ test("schema 1.6 requires editable screenplay elements, storyboard slots, and th
   assert.equal(schema.$defs.screenplayDraftElement.properties.miniBlockNumber.maximum, 4);
   assert.equal(schema.$defs.structure.properties.sequences.minItems, 12);
   assert.equal(schema.$defs.structure.properties.sequences.maxItems, 12);
-  assert.equal(schema.$defs.block.properties.scenes.minItems, 2);
-  assert.equal(schema.$defs.block.properties.scenes.maxItems, 2);
-  assert.equal(schema.$defs.scene.properties.miniBlocks.minItems, 2);
-  assert.equal(schema.$defs.scene.properties.miniBlocks.maxItems, 2);
+  assert.equal(schema.$defs.block.properties.scenes.minItems, 1);
+  assert.equal(schema.$defs.block.properties.scenes.maxItems, undefined);
+  assert.equal(schema.$defs.scene.properties.miniBlocks.minItems, undefined);
+  assert.equal(schema.$defs.scene.properties.miniBlocks.maxItems, 4);
+  assert.ok(schema.$defs.miniBlock.required.includes("shortScenes"));
+  assert.equal(schema.$defs.screenplayDraftElement.properties.sceneId.type, "string");
 });
 
 test("project migration accepts earlier schemas and creates the new hierarchy", async () => {

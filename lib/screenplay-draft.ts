@@ -25,9 +25,10 @@ export function createDraftElement(
   miniBlockNumber: number,
   sceneNumber: number,
   text = "",
+  sceneId = "",
 ): ScreenplayDraftElement {
   const now = new Date().toISOString();
-  return { id: id(), type, text, blockNumber, miniBlockNumber, sceneNumber, createdAt: now, updatedAt: now };
+  return { id: id(), type, text, blockNumber, miniBlockNumber, sceneNumber, sceneId, createdAt: now, updatedAt: now };
 }
 
 function fountainLine(element: ScreenplayDraftElement) {

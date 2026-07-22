@@ -28,6 +28,7 @@ export type ScreenplayDraftElement = {
   blockNumber: number;
   miniBlockNumber: number;
   sceneNumber: number;
+  sceneId?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -487,7 +488,16 @@ export function isPlotPickleProject(value: unknown): value is PlotPickleProject 
     Array.isArray(candidate.characters) &&
     Array.isArray(candidate.blocks) &&
     candidate.blocks.length === 24 &&
-    candidate.blocks.every((block) => Array.isArray(block.scenes) && block.scenes.length === 2 && block.scenes.every((scene) => scene.miniBlocks.length === 2))
+    candidate.blocks.every((block) => {
+      if (!Array.isArray(block.scenes) || block.scenes.length < 1) return false;
+      const miniNumbers = block.scenes.flatMap((scene) => Array.isArray(scene.miniBlocks)
+        ? scene.miniBlocks.map((mini) => mini.number)
+        : []);
+      return miniNumbers.length === 4
+        && new Set(miniNumbers).size === 4
+        && [1, 2, 3, 4].every((number) => miniNumbers.includes(number))
+        && block.scenes.every((scene) => Array.isArray(scene.miniBlocks) && scene.miniBlocks.length <= 4);
+    })
   );
 }
 
@@ -522,6 +532,7 @@ export function normalizeScreenplay(value: unknown): ScreenplayDocument {
             blockNumber: Math.min(24, Math.max(1, Number(draft.blockNumber) || 1)),
             miniBlockNumber: Math.min(4, Math.max(1, Number(draft.miniBlockNumber) || 1)),
             sceneNumber: Math.max(1, Number(draft.sceneNumber) || 1),
+            sceneId: typeof draft.sceneId === "string" ? draft.sceneId : "",
             createdAt: typeof draft.createdAt === "string" ? draft.createdAt : now,
             updatedAt: typeof draft.updatedAt === "string" ? draft.updatedAt : now,
           }];

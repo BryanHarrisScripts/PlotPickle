@@ -2,7 +2,7 @@
 
 PlotPickle is a local-first story-development application built around Bryan Harris’s 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, flexible scene plan, mini-block, screenplay page, review, and visual board.
 
-Current application version: `0.11.0`
+Current application version: `0.12.0`
 
 Current released project schema: `1.6.0`
 

@@ -28,6 +28,11 @@ import {
   type StoryScene,
   type StorySequence,
 } from "@/lib/structure";
+import {
+  analyzeSceneStructure,
+  buildGlobalSceneIndex,
+  synchronizeScreenplaySceneReferences,
+} from "@/lib/scene-management";
 import styles from "./structure.module.css";
 
 const STORAGE_KEY = "plotpickle.project.v1";
@@ -126,10 +131,11 @@ export default function StructureEnginePage() {
           setStatus("The saved project could not be upgraded. A blank project is shown instead.");
           return;
         }
-        setProject(normalized);
-        setRuntimeDraft(normalized.metadata.targetMinutes);
-        setSceneId(normalized.blocks[0].scenes[0].id);
-        setMiniId(normalized.blocks[0].scenes[0].miniBlocks[0]?.id ?? "");
+        const synchronized = synchronizeScreenplaySceneReferences(normalized, normalized.blocks);
+        setProject(synchronized);
+        setRuntimeDraft(synchronized.metadata.targetMinutes);
+        setSceneId(synchronized.blocks[0].scenes[0].id);
+        setMiniId(synchronized.blocks[0].scenes[0].miniBlocks[0]?.id ?? "");
         setStatus("Connected to the active PlotPickle project. Scene counts are flexible in every block.");
       } catch {
         setStatus("The saved project could not be opened. A blank project is shown instead.");
@@ -147,6 +153,10 @@ export default function StructureEnginePage() {
   const mini = scene ? selectedOrFirst(scene.miniBlocks, miniId) : undefined;
   const shortScene = mini ? selectedOrFirst(mini.shortScenes, shortSceneId) : undefined;
 
+  const sceneIndex = useMemo(() => buildGlobalSceneIndex(project.blocks), [project.blocks]);
+  const diagnostics = useMemo(() => analyzeSceneStructure(project), [project]);
+  const sceneEntry = sceneIndex.find((entry) => entry.sceneId === scene.id);
+  const globalSceneNumber = sceneEntry?.globalNumber ?? 1;
   const clock = useMemo(() => buildStoryClock(project), [project]);
   const allScenes = useMemo(() => project.blocks.flatMap((item) => item.scenes), [project]);
   const allMinis = useMemo(() => allScenes.flatMap((item) => item.miniBlocks), [allScenes]);
@@ -161,9 +171,10 @@ export default function StructureEnginePage() {
   });
 
   function commit(next: PlotPickleProject, message = "Saved to this device.") {
+    const synchronized = synchronizeScreenplaySceneReferences(next, project.blocks);
     const updated: PlotPickleProject = {
-      ...next,
-      metadata: { ...next.metadata, updatedAt: new Date().toISOString() },
+      ...synchronized,
+      metadata: { ...synchronized.metadata, updatedAt: new Date().toISOString() },
     };
     setProject(updated);
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
@@ -409,6 +420,35 @@ export default function StructureEnginePage() {
           <p>A feature often lands around forty to sixty scenes. PlotPickle keeps two scenes per block only as the initial distribution; each block may contain one or more scenes, and each mini-block may hold multiple short scenes.</p>
         </section>
 
+        <section className={styles.sceneDiagnostics} aria-labelledby="scene-health-title">
+          <div className={styles.diagnosticLead}>
+            <p className={styles.kicker}>Scene health</p>
+            <h2 id="scene-health-title">{diagnostics.totalScenes} scenes · {diagnostics.totalPages.toFixed(1)} estimated pages</h2>
+            <p>
+              {diagnostics.targetRange === "within"
+                ? "The current scene count is inside the common forty-to-sixty scene feature range."
+                : diagnostics.targetRange === "below"
+                  ? "The current scene count is below the common feature range. Add scenes only where the story needs a distinct objective or turn."
+                  : "The current scene count is above the common feature range. Combine scenes only when their objectives and turns genuinely belong together."}
+            </p>
+          </div>
+          <div className={styles.diagnosticGrid}>
+            <article data-alert={diagnostics.unassignedSceneIds.length ? "true" : "false"}><span>Unassigned scenes</span><strong>{diagnostics.unassignedSceneIds.length}</strong><small>Scenes without a structural mini-block</small></article>
+            <article data-alert={diagnostics.blocksWithMiniBlockErrors.length ? "true" : "false"}><span>Mini-block errors</span><strong>{diagnostics.blocksWithMiniBlockErrors.length}</strong><small>Blocks that do not contain one copy of mini-blocks 1–4</small></article>
+            <article data-alert={diagnostics.continuityWarnings.length ? "true" : "false"}><span>Continuity notices</span><strong>{diagnostics.continuityWarnings.length}</strong><small>Entrances or departures that need review</small></article>
+            <article><span>Planned runtime</span><strong>{secondsToTimecode(diagnostics.totalSeconds)}</strong><small>Calculated from current scene assignments</small></article>
+          </div>
+          {diagnostics.continuityWarnings.length ? (
+            <details className={styles.continuityDetails}>
+              <summary>Review character entrances and departures</summary>
+              <ul>{diagnostics.continuityWarnings.slice(0, 12).map((warning, index) => {
+                const character = project.characters.find((item) => item.id === warning.characterId);
+                return <li key={`${warning.sceneId}-${warning.kind}-${warning.characterId}-${index}`}><strong>{character?.name ?? "Character"}</strong><span>{warning.message}</span></li>;
+              })}</ul>
+            </details>
+          ) : null}
+        </section>
+
         <section className={styles.clockControls}>
           <div>
             <p className={styles.kicker}>Story Clock</p>
@@ -476,13 +516,16 @@ export default function StructureEnginePage() {
                   <strong>{item.title}</strong>
                   <small>{item.scenes.length} scene{item.scenes.length === 1 ? "" : "s"} · {item.targetMinutes.toFixed(1)} minutes</small>
                 </button>
-                {item.number === block.number ? item.scenes.map((sceneItem) => (
-                  <button type="button" key={sceneItem.id} className={sceneItem.id === scene.id ? styles.activeScene : styles.sceneButton} onClick={() => { setSceneId(sceneItem.id); setMiniId(sceneItem.miniBlocks[0]?.id ?? ""); setShortSceneId(""); }}>
-                    <span>{sceneItem.sceneType}</span>
-                    <strong>Scene {sceneItem.number}</strong>
-                    <small>{sceneItem.miniBlocks.length} mini · {sceneItem.pageEstimate.toFixed(1)} pages</small>
-                  </button>
-                )) : null}
+                {item.number === block.number ? item.scenes.map((sceneItem) => {
+                  const indexed = sceneIndex.find((entry) => entry.sceneId === sceneItem.id);
+                  return (
+                    <button type="button" key={sceneItem.id} className={sceneItem.id === scene.id ? styles.activeScene : styles.sceneButton} onClick={() => { setSceneId(sceneItem.id); setMiniId(sceneItem.miniBlocks[0]?.id ?? ""); setShortSceneId(""); }}>
+                      <span>{sceneItem.sceneType}</span>
+                      <strong>Scene {indexed?.globalNumber ?? sceneItem.number}</strong>
+                      <small>Block {item.number}.{sceneItem.number} · {sceneItem.miniBlocks.length} mini · {sceneItem.pageEstimate.toFixed(1)} pages</small>
+                    </button>
+                  );
+                }) : null}
               </div>
             ))}
           </aside>
@@ -490,7 +533,7 @@ export default function StructureEnginePage() {
           <div className={styles.sceneWorkspace}>
             <div className={styles.sceneHeader}>
               <div className={styles.sectionHeading}>
-                <p className={styles.kicker}>Block {block.number} · Scene {scene.number}</p>
+                <p className={styles.kicker}>Global Scene {globalSceneNumber} · Block {block.number}.{scene.number}</p>
                 <h2>{scene.title}</h2>
                 <p>{scene.purpose}</p>
               </div>

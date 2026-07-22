@@ -4,9 +4,11 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - scripts/apply-phase-a.py
-      - .github/workflows/apply-phase-a.yml
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
 
 permissions:
   contents: write

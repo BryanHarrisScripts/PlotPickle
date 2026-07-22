@@ -1,0 +1,70 @@
+name: Finalize Phase B validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - ready_for_review
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-b-diagnostic-craft-014
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Finalize diagnostic language and release contracts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          diagnostics = Path('lib/craft-diagnostics.ts')
+          source = diagnostics.read_text(encoding='utf-8')
+          old = 'title: "The scene closes on its opening value"'
+          new = 'title: "No value flip changes the scene opening condition"'
+          if source.count(old) != 1:
+              raise RuntimeError('Expected one scene value diagnostic title')
+          diagnostics.write_text(source.replace(old, new, 1), encoding='utf-8')
+
+          licensing = Path('tests/project-navigation-licensing.test.mjs')
+          source = licensing.read_text(encoding='utf-8')
+          old = 'assert.equal(packageJson.version, "0.13.0");'
+          new = 'assert.equal(packageJson.version, "0.14.0");'
+          if source.count(old) != 1:
+              raise RuntimeError('Expected one 0.13 licensing version assertion')
+          licensing.write_text(source.replace(old, new, 1), encoding='utf-8')
+
+          for path in [
+              '.github/workflows/capture-phase-b-validation.yml',
+              '.github/workflows/finalize-phase-b.yml',
+              'docs/phase-b-build.log',
+              'docs/phase-b-build.exit',
+              'docs/phase-b-test.log',
+              'docs/phase-b-test.exit',
+          ]:
+              item = Path(path)
+              if item.exists():
+                  item.unlink()
+          PY
+      - run: npm ci
+      - name: Validate final Phase B implementation
+        run: |
+          npm run lint
+          npm test
+      - name: Commit final Phase B candidate
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Finalize and validate PlotPickle 0.14"
+          git push origin HEAD:agent/phase-b-diagnostic-craft-014

@@ -63,7 +63,7 @@ export function portableProjectFileName(project: PlotPickleProject) {
 
 export function createPortableProjectFile(
   project: PlotPickleProject,
-  applicationVersion = "1.0.0-rc.1",
+  applicationVersion = "1.0.0-rc.2",
   assets: PortableAssetManifestEntry[] = [],
   createdAt = new Date().toISOString(),
 ): PortablePlotPickleFile {

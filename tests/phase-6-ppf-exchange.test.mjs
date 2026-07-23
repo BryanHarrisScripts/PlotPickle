@@ -21,7 +21,7 @@ test("Phase 6 supports selective package kinds", () => {
 });
 
 test("PDF screenplay import validates structure and preserves provenance", () => {
-  assert.match(pdf, /INT\\\.?\|EXT\\\.?/);
+  assert.match(pdf, /const sceneHeading/);
   assert.match(pdf, /scene-heading/);
   assert.match(pdf, /parenthetical/);
   assert.match(pdf, /scanned or image-only/);

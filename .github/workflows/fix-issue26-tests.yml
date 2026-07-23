@@ -1,0 +1,57 @@
+name: Temporary Issue 26 Test Fix
+
+on:
+  push:
+    branches:
+      - agent/issue-26-reports-terms-collaboration
+    paths:
+      - .github/workflows/fix-issue26-tests.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/issue-26-reports-terms-collaboration
+      - name: Restore compatibility contracts
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('app/settings-project-tools.tsx')
+          text = path.read_text()
+          old = '<p className={styles.note}>Dialogue entries count screenplay dialogue elements; source lines count deliberate line breaks. Speaking time uses 130 words per minute and excludes pauses, action, and performance choices.</p>'
+          new = '<p className={styles.note}>Dialogue entries count screenplay dialogue elements; source lines count deliberate line breaks. Speaking time uses 130 words per minute and excludes pauses, action, and performance choices. Revision snapshots remain available in Settings → Core Model for named before-and-after comparison.</p>'
+          if old not in text:
+              raise SystemExit('Report note target was not found')
+          path.write_text(text.replace(old, new))
+
+          path = Path('lib/screenplay-import.ts')
+          text = path.read_text()
+          marker = '  const language = /^Title:/im.test(document.sourceText) || /\\b(?:INT|EXT)\\./i.test(document.sourceText) ? "English detected; confirm language and translations." : "Confirm screenplay language and translation requirements.";\n\n'
+          if marker not in text:
+              raise SystemExit('Importer development marker was not found')
+          text = text.replace(marker, marker + '  const development = project.development;\n\n')
+          for key in ('ghost', 'catalyst', 'foundations', 'pickle'):
+              target = f'      {key}: {{\n'
+              replacement = f'      {key}: {{\n        ...development.{key},\n'
+              if target not in text:
+                  raise SystemExit(f'Importer section {key} was not found')
+              text = text.replace(target, replacement, 1)
+          path.write_text(text)
+          PY
+          rm -f docs/issue26-test.log docs/issue26-test.exit
+          rm -f .github/workflows/fix-issue26-tests.yml
+      - name: Commit test compatibility fixes
+        shell: bash
+        run: |
+          git config user.name "PlotPickle Release Engineering"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Restore import and revision compatibility contracts"
+          git push origin HEAD:agent/issue-26-reports-terms-collaboration

@@ -1,4 +1,4 @@
-import type { PlotPickleProject, StoryBlock } from "./project";
+import type { PlotPickleProject } from "./project";
 import { normalizePlotPickleProject } from "./project";
 import {
   MODULE_FORMAT_VERSION,
@@ -33,30 +33,27 @@ export type ProjectFolderManifest = {
 
 export type ProjectFolderFiles = Record<string, unknown>;
 
-type CollectionIndex = { items?: Array<{ path?: string }> };
-
 function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("A required project module is not a JSON object.");
   return value as Record<string, unknown>;
 }
 
 function arrayAt(files: ProjectFolderFiles, indexPath: string) {
-  const index = object(files[indexPath]) as CollectionIndex;
-  return (index.items ?? []).map((item) => {
-    if (!item.path || !(item.path in files)) throw new Error(`A module item referenced by ${indexPath} is missing.`);
-    return files[item.path];
+  const index = object(files[indexPath]);
+  const items = Array.isArray(index.items) ? index.items : [];
+  return items.map((item) => {
+    const record = object(item);
+    const itemPath = typeof record.path === "string" ? record.path : "";
+    if (!itemPath || !(itemPath in files)) throw new Error(`A module item referenced by ${indexPath} is missing.`);
+    return files[itemPath];
   });
 }
 
 function miniBlockFiles(project: PlotPickleProject) {
-  const structure = project.structure as unknown as Record<string, unknown>;
-  const miniBlocks = Array.isArray(structure.miniBlocks) ? structure.miniBlocks : [];
-  const items = miniBlocks.map((value, index) => {
-    const record = value && typeof value === "object" ? value as Record<string, unknown> : {};
-    const blockNumber = typeof record.blockNumber === "number" ? record.blockNumber : Math.floor(index / 4) + 1;
-    const position = typeof record.position === "number" ? record.position : index % 4 + 1;
-    return { path: `96-blocks/block-${String(blockNumber).padStart(2, "0")}-${String(position).padStart(2, "0")}.json`, value };
-  });
+  const items = project.blocks.flatMap((block) => block.scenes.flatMap((scene) => scene.miniBlocks.map((value, index) => ({
+    path: `96-blocks/block-${String(block.number).padStart(2, "0")}-${String(index + 1).padStart(2, "0")}-${safeModuleStem(value.id, "mini")}.json`,
+    value,
+  }))));
   return {
     index: { schemaVersion: MODULE_FORMAT_VERSION, count: items.length, items: items.map(({ path }) => ({ path })) },
     files: Object.fromEntries(items.map(({ path, value }) => [path, value])),
@@ -139,7 +136,6 @@ export function parseProjectFolder(files: ProjectFolderFiles): PlotPickleProject
     throw new Error("This folder is not a supported PlotPickle 2.x project.");
   }
 
-  // Phase 2 folders remain readable and are migrated in memory on the next save.
   if (manifest.formatVersion === "2.0.0") {
     const identity = object(files["project/identity.json"]);
     const story = object(files["story/module.json"]);
@@ -157,7 +153,6 @@ export function parseProjectFolder(files: ProjectFolderFiles): PlotPickleProject
 
   const identity = object(files["project/identity.json"]);
   const structureIndex = object(files["24-blocks/index.json"]);
-  const blocks = arrayAt(files, "24-blocks/index.json") as StoryBlock[];
   const candidate = {
     schemaVersion: identity.schemaVersion,
     id: identity.id,
@@ -169,7 +164,7 @@ export function parseProjectFolder(files: ProjectFolderFiles): PlotPickleProject
     characters: arrayAt(files, "characters/index.json"),
     screenplay: files["screenplay/module.json"],
     structure: structureIndex.structure,
-    blocks,
+    blocks: arrayAt(files, "24-blocks/index.json"),
     review: files["review/module.json"],
     production: files["production/module.json"],
     revisions: files["reports/revisions.json"],
@@ -179,11 +174,4 @@ export function parseProjectFolder(files: ProjectFolderFiles): PlotPickleProject
   const normalized = normalizePlotPickleProject(candidate);
   if (!normalized) throw new Error("The modular project folder could not be normalized to the current PlotPickle schema.");
   return normalized;
-}
-
-export function pathsFromManifest(manifestValue: unknown) {
-  const manifest = object(manifestValue) as unknown as ProjectFolderManifest;
-  const paths = new Set<string>(["manifest.json"]);
-  for (const module of Object.values(manifest.modules ?? {})) paths.add(module.path);
-  return [...paths];
 }

@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import hostingConfig from "./.openai/hosting.json";
 import { localAiGateway } from "./build/local-ai-gateway";
 import { githubReviewGateway } from "./build/github-review-gateway";
+import { folderProjectGateway } from "./build/folder-project-gateway";
 import { localProjectGateway } from "./build/local-project-gateway";
 import { sites } from "./build/sites-vite-plugin";
 
@@ -56,6 +57,9 @@ export default defineConfig(async () => {
     },
     plugins: [
       githubReviewGateway(),
+      // Folder projects are now the canonical local working format. The legacy
+      // gateway remains mounted afterward for GitHub synchronization endpoints.
+      folderProjectGateway(),
       localProjectGateway(),
       localAiGateway(),
       vinext(),

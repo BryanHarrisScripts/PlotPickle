@@ -2,7 +2,7 @@
 
 ## PlotPickle 1.0 candidate — Collaboration and Release Engineering
 
-Settings → GitHub & Backups now provides a disk-backed `.ppf` project library, atomic rolling backups, corruption-aware recovery, optional GitHub pull/review/push workflows, and repository history. Afterglow: Reflections of Sentience links directly to its current GitHub source repository. Windows, macOS and Linux release candidates are clean-machine tested and published with SHA-256 checksums, while local-only writing continues to require no PlotPickle or cloud account.
+Settings → GitHub & Backups now provides a disk-backed `.ppf` project library, rolling backups, canonical pulls, and owner-controlled collaboration proposals. Every local PlotPickle server submits changes through a unique GitHub branch and pull request; only an owner or maintainer merge changes the canonical story. Afterglow: Reflections of Sentience links directly to its current GitHub source repository. Windows, macOS and Linux release candidates are clean-machine tested and published with SHA-256 checksums, while local-only writing continues to require no PlotPickle or cloud account.
 
 ## PlotPickle 0.17 — Page to Production
 
@@ -22,7 +22,7 @@ The PlotPickle 0.14 Diagnostic Craft Layer remains available at `/diagnostics`, 
 
 PlotPickle is a local-first story-development application built around Bryan Harris’s 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, flexible scene plan, mini-block, screenplay page, review, visual board, diagnostics and specialist labs.
 
-Current application version: `1.0.0-rc.1`
+Current application version: `1.0.0-rc.2`
 
 Current released project schema: `1.7.0`
 
@@ -105,7 +105,7 @@ Screenplay mode starts blank for a new movie and uses the existing Story Setup, 
 
 Read & Learn adds a searchable Learning Studio drawn from PlotPickle's screenwriting documentation. Short learning paths cover concept-to-draft, character and inner journey, structure and dramatic questions, scene construction, visual writing, dialogue, subtext, silence, theme, pacing, revision and Markdown. Recommended lessons follow the active Block and mini-block, provide an immediate exercise, and open the correct workspace for application. The educational guidance remains CC BY-SA 4.0; each writer's creative work remains their own.
 
-PlotPickle accepts plain-text (`.txt`), Fountain (`.fountain` or `.spmd`), and Final Draft (`.fdx`) files. **Load a screenplay** in Read & Learn and **Import** in the top bar use the same ingestion pipeline. A screenplay creates a fresh active project, replaces the optional Afterglow example, preserves the complete draft, detects the title, speaking characters, locations and scene order, and maps passages into the 24 Blocks, Story Planner, Structure Map, guided questions, and Visual Board directions. Script-derived interpretations are visibly marked as suggestions until the writer reviews and confirms them.
+PlotPickle accepts plain-text (`.txt`), Fountain (`.fountain` or `.spmd`), and Final Draft (`.fdx`) files. **Load a screenplay** in Read & Learn and **Import** in the top bar use the same ingestion pipeline. A screenplay creates a complete schema 1.7 project and populates reviewable metadata, story, world, characters, voiceprints, arc matrices, 24 Blocks, scenes, 96 mini-blocks, Story Threads, rights, review, pitch, production and collaboration fields. Script-derived interpretations are visibly marked as suggestions until the writer reviews and confirms them.
 
 Parsing and the initial structural extraction happen on the local device without AI. The source screenplay is stored in the canonical `.plotpickle.json` project so it travels with the project, while the writer retains ownership of the script. Importing an existing `.plotpickle.json` file restores that complete saved project.
 
@@ -113,7 +113,7 @@ Parsing and the initial structural extraction happen on the local device without
 
 PlotPickle's AI layer is provider-independent and local-server mediated. The primary development and live-test target is **ChatGPT / OpenAI API**, using the writer's own API key, while OpenAI-compatible servers, Ollama, manual prompt export, and no-AI operation remain supported choices.
 
-Settings also contains **Reports** and a searchable **Terminology Index**. Reports calculate each character’s dialogue lines, spoken words, scene count, scene list, first and last appearance, and estimated speaking time from the active screenplay so actors can compare roles. The index explains screenplay formatting, structure, character, production, and PlotPickle terms in plain language. Both work locally without AI.
+Settings also contains live **Reports** and a redesigned **Terminology Index**. Reports recalculate from the active canonical screenplay after every load, import, normalization, replacement or edit, including speaking coverage and a current-schema population audit. Terms are grouped, searchable, available in concise or expanded views, and linked to their relevant PlotPickle workspace. Both work locally without AI.
 
 Optional connections remain in **AI Setup**, **Music**, and **Plugins**. Music can store Suno or Udio artist links. Plugins are reserved for future connectivity and cannot be enabled yet.
 
@@ -235,7 +235,7 @@ The source of truth is:
 - `lib/craft-diagnostics.ts`
 - `lib/specialist-labs.ts`
 
-A future portable `.ppf` project package and optional GitHub collaboration layer are tracked in issue #22. They will build on schema 1.7 revisions and provenance without changing local-only use.
+Portable `.ppf` projects and optional GitHub collaboration now build on schema 1.7 revisions and provenance without changing local-only use. Multiple local servers submit reviewable pull requests rather than writing directly to the canonical branch.
 
 ## Copyright, ownership, and licences
 

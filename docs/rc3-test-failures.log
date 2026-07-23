@@ -1,0 +1,204 @@
+146-ok 15 - many local servers submit branches and pull requests instead of canonical writes
+147-  ---
+148-  duration_ms: 1.610924
+149-  type: 'test'
+150-  ...
+151-# Subtest: schema 1.7 is the canonical released schema
+152-ok 16 - schema 1.7 is the canonical released schema
+153-  ---
+154-  duration_ms: 8.257915
+155-  type: 'test'
+156-  ...
+157-# Subtest: blank, imported and Afterglow projects use the Phase A model
+158-ok 17 - blank, imported and Afterglow projects use the Phase A model
+159-  ---
+160-  duration_ms: 2.821731
+161-  type: 'test'
+162-  ...
+163-# Subtest: all Phase A interfaces are connected
+164:not ok 18 - all Phase A interfaces are connected
+165-  ---
+166-  duration_ms: 5.168819
+167-  type: 'test'
+168-  location: '/home/runner/work/PlotPickle/PlotPickle/tests/phase-a-core-model.test.mjs:26:1'
+169-  failureType: 'testCodeFailure'
+170-  error: |-
+171-    The input did not match the regular expression /Core Model/. Input:
+172-    
+173-    '"use client";\n' +
+174-      '\n' +
+175-      'import { useEffect, useMemo, useState } from "react";\n' +
+176-      'import type { PlotPickleProject } from "@/lib/project";\n' +
+177-      'import { providerPresets } from "@/lib/ai/providers";\n' +
+178-      'import {\n' +
+179-      '  defaultPlotPickleSettings,\n' +
+180-      '  isSupportedMusicArtistUrl,\n' +
+181-      '  normalizePlotPickleSettings,\n' +
+182-      '  type MusicArtistLink,\n' +
+183-      '  type PlotPickleSettings,\n' +
+184-      '} from "@/lib/ai/settings";\n' +
+185-      'import styles from "./settings-panel.module.css";\n' +
+186-      'import { ScreenplayReports, TerminologyIndex } from "./settings-project-tools";\n' +
+187-      'import GitHubCollaboration from "./github-collaboration";\n' +
+188-      '\n' +
+189-      'const SETTINGS_STORAGE_KEY = "plotpickle.settings.v1";\n' +
+190-      'const CONNECTION_API = "/api/local-ai/connection";\n' +
+191-      'type SettingsSection = "reports" | "terminology" | "collaboration" | "ai" | "music";\n' +
+192-      'type ConnectionState = "loading" | "idle" | "checking" | "connected" | "error" | "unavailable";\n' +
+193-      '\n' +
+194-      'type ConnectionStatus = {\n' +
+195-      '  state: ConnectionState;\n' +
+196-      '  saved: boolean;\n' +
+197-      '  provider?: PlotPickleSettings["ai"]["provider"];\n' +
+198-      '  checkedAt?: string;\n' +
+199-      '  message: string;\n' +
+--
+404-      '  }\n' +
+405-      '\n' +
+406-      '  const statusLabel = connection.state === "connected" && connectionMatchesProvider\n' +
+407-      '    ? "API connected"\n' +
+408-      '    : connection.state === "checking"\n' +
+409-      '      ? "Checking connection"\n' +
+410-      '      : connection.state === "unavailable"\n' +
+411-      '        ? "Local setup unavailable"\n' +
+412-      '        : "Not connected";\n' +
+413-      '\n' +
+414-      '  return (\n' +
+415-      '    <div className={styles.page}>\n' +
+416-      '      <header className={styles.heading}>\n' +
+417-      '        <div>\n' +
+418-      '          <p>Settings</p>\n' +
+419-      '          <h1>Project tools and connections</h1>\n' +
+420-      '          <span>Open role-specific reports, le'... 8263 more characters
+421-    
+422:  code: 'ERR_ASSERTION'
+423:  name: 'AssertionError'
+424-  expected:
+425-  actual: |-
+426-    "use client";
+427-    
+428-    import { useEffect, useMemo, useState } from "react";
+429-    import type { PlotPickleProject } from "@/lib/project";
+430-    import { providerPresets } from "@/lib/ai/providers";
+431-    import {
+432-      defaultPlotPickleSettings,
+433-      isSupportedMusicArtistUrl,
+434-      normalizePlotPickleSettings,
+435-      type MusicArtistLink,
+436-      type PlotPickleSettings,
+437-    } from "@/lib/ai/settings";
+438-    import styles from "./settings-panel.module.css";
+439-    import { ScreenplayReports, TerminologyIndex } from "./settings-project-tools";
+440-    import GitHubCollaboration from "./github-collaboration";
+441-    
+442-    const SETTINGS_STORAGE_KEY = "plotpickle.settings.v1";
+443-    const CONNECTION_API = "/api/local-ai/connection";
+444-    type SettingsSection = "reports" | "terminology" | "collaboration" | "ai" | "music";
+445-    type ConnectionState = "loading" | "idle" | "checking" | "connected" | "error" | "unavailable";
+446-    
+447-    type ConnectionStatus = {
+448-      state: ConnectionState;
+449-      saved: boolean;
+450-      provider?: PlotPickleSettings["ai"]["provider"];
+451-      checkedAt?: string;
+452-      message: string;
+453-    };
+454-    
+455-    type ConnectionResponse = {
+456-      ok?: boolean;
+457-      available?: boolean;
+458-      saved?: boolean;
+--
+879-ok 37 - the canonical schema and revision snapshots include production planning
+880-  ---
+881-  duration_ms: 2.675754
+882-  type: 'test'
+883-  ...
+884-# Subtest: Afterglow Blocks 22 through 24 contain twelve replacement keyframes
+885-ok 38 - Afterglow Blocks 22 through 24 contain twelve replacement keyframes
+886-  ---
+887-  duration_ms: 5.491967
+888-  type: 'test'
+889-  ...
+890-# Subtest: Phase E documentation states the continuous-plan completion contract
+891-ok 39 - Phase E documentation states the continuous-plan completion contract
+892-  ---
+893-  duration_ms: 1.067793
+894-  type: 'test'
+895-  ...
+896-# Subtest: PlotPickle 1.0 candidate defines a portable .ppf boundary
+897:not ok 40 - PlotPickle 1.0 candidate defines a portable .ppf boundary
+898-  ---
+899-  duration_ms: 7.03448
+900-  type: 'test'
+901-  location: '/home/runner/work/PlotPickle/PlotPickle/tests/phase-f-collaboration-release.test.mjs:12:1'
+902-  failureType: 'testCodeFailure'
+903-  error: |-
+904-    Expected values to be strictly equal:
+905-    + actual - expected
+906-    
+907-    + '1.0.0-rc.3'
+908-    - '1.0.0-rc.2'
+909-                ^
+910-    
+911:  code: 'ERR_ASSERTION'
+912:  name: 'AssertionError'
+913-  expected: '1.0.0-rc.2'
+914-  actual: '1.0.0-rc.3'
+915-  operator: 'strictEqual'
+916-  stack: |-
+917-    TestContext.<anonymous> (file:///home/runner/work/PlotPickle/PlotPickle/tests/phase-f-collaboration-release.test.mjs:15:10)
+918-    async Test.run (node:internal/test_runner/test:1054:7)
+919-    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+920-  ...
+921-# Subtest: local project storage uses atomic saves, integrity checks, and rolling backups
+922-ok 41 - local project storage uses atomic saves, integrity checks, and rolling backups
+923-  ---
+924-  duration_ms: 92.756384
+925-  type: 'test'
+926-  ...
+927-# Subtest: GitHub collaboration is local-only, review-first, and owner-controlled
+928-ok 42 - GitHub collaboration is local-only, review-first, and owner-controlled
+929-  ---
+930-  duration_ms: 2.602775
+931-  type: 'test'
+932-  ...
+933-# Subtest: canonical projects retain repository metadata without credentials
+934-ok 43 - canonical projects retain repository metadata without credentials
+935-  ---
+936-  duration_ms: 2.83396
+937-  type: 'test'
+938-  ...
+939-# Subtest: Windows, macOS, and Linux release candidates are packaged and clean-machine tested
+940-ok 44 - Windows, macOS, and Linux release candidates are packaged and clean-machine tested
+941-  ---
+942-  duration_ms: 3.652787
+943-  type: 'test'
+944-  ...
+945-# Subtest: schema 1.7 declares every Phase 1 project capability
+946-ok 45 - schema 1.7 declares every Phase 1 project capability
+947-  ---
+--
+1303-  type: 'test'
+1304-  ...
+1305-# Subtest: Learning Studio preserves the educational and user-work licence boundary
+1306-ok 105 - Learning Studio preserves the educational and user-work licence boundary
+1307-  ---
+1308-  duration_ms: 1.394782
+1309-  type: 'test'
+1310-  ...
+1311-# Subtest: Afterglow populates the Markdown Treatment and carries it into storyboard prompts
+1312-ok 106 - Afterglow populates the Markdown Treatment and carries it into storyboard prompts
+1313-  ---
+1314-  duration_ms: 4.798722
+1315-  type: 'test'
+1316-  ...
+1317-1..106
+1318-# tests 106
+1319-# suites 0
+1320-# pass 104
+1321:# fail 2
+1322-# cancelled 0
+1323-# skipped 0
+1324-# todo 0
+1325-# duration_ms 1951.168761

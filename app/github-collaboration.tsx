@@ -271,12 +271,12 @@ export default function GitHubCollaboration({ project, onChange }: { project: Pl
           <strong>{project.metadata.title}</strong>
           <span>{identity?.label || "Local server identity loading…"}</span>
           {identity?.id ? <code>{identity.id}</code> : null}
-          {sourceRepository ? <a href={sourceRepository} target="_blank" rel="noreferrer">Open this story's GitHub repository</a> : <span>No source repository is recorded for this project.</span>}
+          {sourceRepository ? <a href={sourceRepository} target="_blank" rel="noreferrer">Open this story’s GitHub repository</a> : <span>No source repository is recorded for this project.</span>}
         </div>
       </section>
 
       <div className={styles.architecture} aria-label="Collaboration architecture">
-        <article><b>1</b><strong>Pull approved story</strong><span>Every server starts from the repository's canonical branch and .ppf revision.</span></article>
+        <article><b>1</b><strong>Pull approved story</strong><span>Every server starts from the repository’s canonical branch and .ppf revision.</span></article>
         <i>→</i>
         <article><b>2</b><strong>Edit locally</strong><span>Autosave, AI, screenplay, reports, visuals, and production remain private on that computer.</span></article>
         <i>→</i>
@@ -323,7 +323,7 @@ export default function GitHubCollaboration({ project, onChange }: { project: Pl
 
       <div className={styles.grid}>
         <section className={styles.panel}>
-          <header><div><p>Canonical pull</p><h3>Compare the owner-approved version</h3><span>A pull reads only the configured canonical branch. It never reads another server's unmerged proposal and never changes the active project automatically.</span></div></header>
+          <header><div><p>Canonical pull</p><h3>Compare the owner-approved version</h3><span>A pull reads only the configured canonical branch. It never reads another server’s unmerged proposal and never changes the active project automatically.</span></div></header>
           <div className={styles.actions}><button type="button" className={styles.primary} disabled={working || !status.connected} onClick={() => void pullForReview()}>Pull approved version for review</button></div>
           {comparison ? (
             <div className={styles.comparison}>
@@ -341,7 +341,7 @@ export default function GitHubCollaboration({ project, onChange }: { project: Pl
                 <button type="button" onClick={() => setIncoming(null)}>Discard incoming version</button>
               </div>
             </div>
-          ) : <p className={styles.help}>Pulling creates a review candidate in memory. Apply it to register the exact canonical .ppf revision as this server's collaboration base.</p>}
+          ) : <p className={styles.help}>Pulling creates a review candidate in memory. Apply it to register the exact canonical .ppf revision as this server’s collaboration base.</p>}
         </section>
 
         <section className={styles.panel}>

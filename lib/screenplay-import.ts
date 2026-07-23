@@ -483,7 +483,7 @@ export function createProjectFromScreenplay(screenplay: ScreenplayDocument): Plo
   const targetMinutes = Math.max(24, stats.pages || Math.ceil(elements.length / 55));
   const language = /^Title:/im.test(document.sourceText) || /\b(?:INT|EXT)\./i.test(document.sourceText) ? "English detected; confirm language and translations." : "Confirm screenplay language and translation requirements.";
 
-  let imported: PlotPickleProject = {
+  const imported: PlotPickleProject = {
     ...project,
     id: idFor("project", `${title}-${now}`),
     metadata: {

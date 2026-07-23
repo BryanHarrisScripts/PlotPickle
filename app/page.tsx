@@ -16,6 +16,7 @@ import writerStyles from "./script-workspace.module.css";
 import CharacterImageGenerator from "./character-image-generator";
 import VisualStoryboard from "./visual-storyboard";
 import CoreModelStudio from "./core-model-studio";
+import ReadmeTabs from "./readme-tabs";
 import { projectSectionProgress, sectionHasAlert } from "@/lib/project-progress";
 import { createProjectFromScreenplay, markScreenplayAnalysisReviewed } from "@/lib/screenplay-import";
 import { screenplayFormatForFile } from "@/lib/screenplay";
@@ -964,6 +965,7 @@ function Instructions({ project, activeSection, selectSection, onStart, onLoadAf
             {actNames.map((name, index) => <article className={`act-${index + 1}`} key={name}><span>Act {index + 1}</span><strong>{name}</strong><small>Blocks {index * 6 + 1}–{index * 6 + 6}</small></article>)}
           </div>
         ) : null}
+        {activeSection === "overview" ? <ReadmeTabs /> : null}
       </section>
     </div>
   );

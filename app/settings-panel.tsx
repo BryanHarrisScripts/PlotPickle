@@ -12,12 +12,11 @@ import {
 } from "@/lib/ai/settings";
 import styles from "./settings-panel.module.css";
 import { ScreenplayReports, TerminologyIndex } from "./settings-project-tools";
-import CoreModelStudio from "./core-model-studio";
 import GitHubCollaboration from "./github-collaboration";
 
 const SETTINGS_STORAGE_KEY = "plotpickle.settings.v1";
 const CONNECTION_API = "/api/local-ai/connection";
-type SettingsSection = "reports" | "terminology" | "core" | "collaboration" | "ai" | "music" | "plugins";
+type SettingsSection = "reports" | "terminology" | "collaboration" | "ai" | "music";
 type ConnectionState = "loading" | "idle" | "checking" | "connected" | "error" | "unavailable";
 
 type ConnectionStatus = {
@@ -63,7 +62,7 @@ async function connectionRequest(method: "GET" | "POST" | "DELETE", path = CONNE
 }
 
 export default function SettingsPanel({ project, onProjectChange }: { project: PlotPickleProject; onProjectChange: (project: PlotPickleProject) => void }) {
-  const [section, setSection] = useState<SettingsSection>("ai");
+  const [section, setSection] = useState<SettingsSection>("reports");
   const [settings, setSettings] = useState<PlotPickleSettings>(() => structuredClone(defaultPlotPickleSettings));
   const [sessionKey, setSessionKey] = useState("");
   const [hydrated, setHydrated] = useState(false);
@@ -246,26 +245,23 @@ export default function SettingsPanel({ project, onProjectChange }: { project: P
         <div>
           <p>Settings</p>
           <h1>Project tools and connections</h1>
-          <span>Review the active screenplay, learn industry language, and set up optional creative services.</span>
+          <span>Open role-specific reports, learn industry language, and manage the GitHub, AI and music connections that are actually available.</span>
         </div>
-        {section === "ai" || section === "music" || section === "plugins" ? <button type="button" onClick={saveSettings}>Save preferences</button> : null}
+        {section === "ai" || section === "music" ? <button type="button" onClick={saveSettings}>Save preferences</button> : null}
       </header>
 
       <div className={styles.layout}>
         <nav className={styles.menu} aria-label="Settings sections">
           <button type="button" className={section === "reports" ? styles.active : ""} onClick={() => setSection("reports")}><b>Reports</b><span>Characters, dialogue, words, and scenes</span></button>
           <button type="button" className={section === "terminology" ? styles.active : ""} onClick={() => setSection("terminology")}><b>Terminology Index</b><span>Screenplay terms in plain language</span></button>
-          <button type="button" className={section === "core" ? styles.active : ""} onClick={() => setSection("core")}><b>Core Model</b><span>Threads, arcs, rights, provenance, revisions</span></button>
-          <button type="button" className={section === "collaboration" ? styles.active : ""} onClick={() => setSection("collaboration")}><b>GitHub &amp; Backups</b><span>.ppf library, recovery, history, collaboration</span></button>
+          <button type="button" className={section === "collaboration" ? styles.active : ""} onClick={() => setSection("collaboration")}><b>GitHub</b><span>Shared repository, proposals, .ppf backups and history</span></button>
           <button type="button" className={section === "ai" ? styles.active : ""} onClick={() => setSection("ai")}><b>AI Setup</b><span>ChatGPT, other AI, or local LLM</span></button>
           <button type="button" className={section === "music" ? styles.active : ""} onClick={() => setSection("music")}><b>Music</b><span>Suno, Udio, and artist links</span></button>
-          <button type="button" className={section === "plugins" ? styles.active : ""} onClick={() => setSection("plugins")}><b>Plugins</b><span>Future connectivity</span></button>
         </nav>
 
         <section className={styles.content}>
           {section === "reports" ? <ScreenplayReports project={project} /> : null}
           {section === "terminology" ? <TerminologyIndex /> : null}
-          {section === "core" ? <CoreModelStudio project={project} onChange={onProjectChange} compact /> : null}
           {section === "collaboration" ? <GitHubCollaboration project={project} onChange={onProjectChange} /> : null}
           {section === "ai" ? (
             <>
@@ -330,13 +326,6 @@ export default function SettingsPanel({ project, onProjectChange }: { project: P
                 {!settings.music.length ? <div className={styles.empty}><p>No artist links have been added.</p><span>You can use PlotPickle without connecting a music service.</span></div> : null}
               </div>
               <button type="button" className={styles.addButton} onClick={() => setSettings((current) => ({ ...current, music: [...current.music, createMusicLink()] }))}>Add artist link</button>
-            </>
-          ) : null}
-
-          {section === "plugins" ? (
-            <>
-              <div className={styles.sectionHeading}><div><p>Plugins</p><h2>Future connectivity will live here.</h2><span>Plugins are placeholders only. Nothing is enabled or given access until a real connection is built and reviewed.</span></div></div>
-              <div className={styles.pluginGrid}>{settings.plugins.map((plugin) => <article key={plugin.id}><span>Coming later</span><h3>{plugin.label}</h3><p>Reserved for future PlotPickle connectivity.</p><button type="button" disabled>Not available yet</button></article>)}</div>
             </>
           ) : null}
 

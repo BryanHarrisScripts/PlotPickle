@@ -2,13 +2,14 @@
 
 import { useMemo, useState } from "react";
 import type { PlotPickleProject } from "@/lib/project";
-import { createCharacterDialogueReport, type CharacterDialogueReport } from "@/lib/screenplay-reports";
+import { createCharacterDialogueReport, createDirectorReport, createProducerReport, type CharacterDialogueReport } from "@/lib/screenplay-reports";
 import { screenplayTermCategories, screenplayTerms, type ScreenplayTermCategory } from "@/lib/screenplay-terms";
 import panelStyles from "./settings-panel.module.css";
 import styles from "./settings-project-tools.module.css";
 
 type ReportSort = "words" | "lines" | "scenes" | "coverage" | "name";
 type TermView = "concise" | "expanded";
+type ReportAudience = "producer" | "actor" | "director";
 
 function duration(seconds: number) {
   if (!seconds) return "0 sec";
@@ -29,8 +30,11 @@ function compareReports(a: CharacterDialogueReport, b: CharacterDialogueReport, 
 export function ScreenplayReports({ project }: { project: PlotPickleProject }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<ReportSort>("words");
+  const [reportView, setReportView] = useState<ReportAudience>("producer");
   const [showPopulation, setShowPopulation] = useState(true);
   const report = useMemo(() => createCharacterDialogueReport(project), [project]);
+  const producer = useMemo(() => createProducerReport(project), [project]);
+  const directorScenes = useMemo(() => createDirectorReport(project), [project]);
   const characters = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return report.characters
@@ -52,6 +56,8 @@ export function ScreenplayReports({ project }: { project: PlotPickleProject }) {
         <div><strong>Report is current</strong><span>Derived from the {report.source}. Project update: {report.refreshedAt || "not yet saved"}. Signature {report.signature.slice(-18)}.</span></div>
       </div>
 
+      <div className={styles.roleTabs} role="tablist" aria-label="Industry reports"><button type="button" role="tab" aria-selected={reportView === "producer"} className={reportView === "producer" ? styles.active : ""} onClick={() => setReportView("producer")}><strong>Producer</strong><span>Scale, readiness, schedule and blockers</span></button><button type="button" role="tab" aria-selected={reportView === "actor"} className={reportView === "actor" ? styles.active : ""} onClick={() => setReportView("actor")}><strong>Actor</strong><span>Dialogue, words, scenes and speaking time</span></button><button type="button" role="tab" aria-selected={reportView === "director"} className={reportView === "director" ? styles.active : ""} onClick={() => setReportView("director")}><strong>Director</strong><span>Scene intention, cast, coverage and runtime</span></button></div>
+
       <div className={styles.summaryGrid}>
         <article><span>Pages</span><strong>{report.summary.pages}</strong><small>Estimated screenplay pages</small></article>
         <article><span>Scenes</span><strong>{report.summary.scenes}</strong><small>Detected scene coverage</small></article>
@@ -62,6 +68,10 @@ export function ScreenplayReports({ project }: { project: PlotPickleProject }) {
         <article><span>Runtime</span><strong>{duration(report.summary.estimatedRuntimeSeconds)}</strong><small>project planning estimate</small></article>
         <article><span>Project hydration</span><strong>{complete}/{report.population.length}</strong><small>{partial} sections need review</small></article>
       </div>
+
+      {reportView === "producer" ? <section className={styles.rolePanel}><header><div><p>Producer report</p><h3>Can this draft move toward a producible plan?</h3><span>The report joins screenplay scale to the current breakdown and schedule—not a stored budget estimate.</span></div></header><div className={styles.roleMetrics}><article><span>Cast required</span><strong>{producer.cast}</strong></article><article><span>Locations</span><strong>{producer.locations}</strong></article><article><span>Breakdowns ready</span><strong>{producer.breakdownsReady}/{producer.breakdowns}</strong></article><article><span>Blocked</span><strong>{producer.blockedBreakdowns}</strong></article><article><span>Shoot days</span><strong>{producer.scheduleDays}</strong></article><article><span>Scheduled hours</span><strong>{producer.scheduledHours}</strong></article><article><span>Unscheduled scenes</span><strong>{producer.unscheduledScenes}</strong></article><article><span>Production elements</span><strong>{producer.productionLoads}</strong></article></div><div className={styles.productionQuestions}><strong>Producer questions</strong><ul><li>{producer.unscheduledScenes ? `${producer.unscheduledScenes} scenes are not assigned to a shoot day.` : "Every planned scene is represented in the schedule."}</li><li>{producer.blockedBreakdowns ? `${producer.blockedBreakdowns} breakdowns are blocked and need decisions.` : "No breakdown is currently marked blocked."}</li><li>{producer.breakdowns < producer.scenes ? `${producer.scenes - producer.breakdowns} scenes still need a production breakdown.` : "Every scene has at least one breakdown record."}</li></ul></div></section> : null}
+
+      {reportView === "director" ? <section className={styles.rolePanel}><header><div><p>Director report</p><h3>Scene intention and coverage</h3><span>Read each scene’s purpose, turn, cast, location, page weight and planned shot coverage in story order.</span></div></header><div className={styles.tableWrap}><table className={styles.reportTable}><thead><tr><th>Scene</th><th>Purpose / turn</th><th>Cast & location</th><th>Pages / runtime</th><th>Coverage</th><th>Status</th></tr></thead><tbody>{directorScenes.map((scene) => <tr key={scene.id}><td><strong>{scene.number}. {scene.title}</strong><small>Block {scene.blockNumber}</small></td><td>{scene.purpose || "Purpose not recorded"}<small>{scene.turn || "Turn not recorded"}</small></td><td>{scene.cast.join(", ") || "No cast linked"}<small>{scene.locations.join(", ") || "No location linked"}</small></td><td>{scene.pageEstimate || 0} pages<small>{duration(scene.estimatedSeconds)}</small></td><td>{scene.approvedShots}/{scene.shots} approved<small>{scene.dialogueWords} dialogue words · {scene.actionParagraphs} action paragraphs</small></td><td>{scene.locked ? "Locked" : scene.status}</td></tr>)}</tbody></table></div></section> : null}
 
       <section className={styles.auditCard}>
         <header><div><p>Import and metadata audit</p><h3>All current project sections are included</h3><span>This audit checks the latest schema fields, not a cached report object. “Complete” means every tracked field has a value; suggestions still require writer review.</span></div><button type="button" onClick={() => setShowPopulation((value) => !value)}>{showPopulation ? "Hide audit" : "Show audit"}</button></header>
@@ -74,6 +84,7 @@ export function ScreenplayReports({ project }: { project: PlotPickleProject }) {
         ))}</div> : null}
       </section>
 
+      {reportView === "actor" ? <>
       <div className={styles.controls}>
         <label><span>Find a character</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name, role, or description" /></label>
         <label><span>Rank characters by</span><select value={sort} onChange={(event) => setSort(event.target.value as ReportSort)}><option value="words">Most spoken words</option><option value="lines">Most dialogue lines</option><option value="scenes">Most speaking scenes</option><option value="coverage">Highest scene coverage</option><option value="name">Character name</option></select></label>
@@ -109,7 +120,8 @@ export function ScreenplayReports({ project }: { project: PlotPickleProject }) {
           ))}
         </div>
       ) : null}
-      <p className={styles.note}>Dialogue entries count screenplay dialogue elements; source lines count deliberate line breaks. Speaking time uses 130 words per minute and excludes pauses, action, and performance choices. Revision snapshots remain available in Settings → Core Model for named before-and-after comparison.</p>
+      <p className={styles.note}>Dialogue entries count screenplay dialogue elements; source lines count deliberate line breaks. Speaking time uses 130 words per minute and excludes pauses, action, and performance choices. Revision snapshots remain available in Story Planner → Core Model for named before-and-after comparison.</p>
+      </> : null}
     </>
   );
 }

@@ -12,9 +12,9 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 test("PlotPickle 1.0 candidate defines a portable .ppf boundary", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   const portable = await source("lib/project-package.ts");
-  assert.equal(packageJson.version, "1.0.0-rc.2");
+  assert.match(packageJson.version, /^1\.0\.0-rc\.\d+$/);
   assert.match(packageJson.scripts.test, /phase-f-collaboration-release\.test\.mjs/);
-  for (const phrase of ["plotpickle-project-file", "PPF_FORMAT_VERSION", "createPortableProjectFile", "parsePortableProjectFile", "integrityValid", "portableProjectFileName", "1.0.0-rc.2"]) {
+  for (const phrase of ["plotpickle-project-file", "PPF_FORMAT_VERSION", "createPortableProjectFile", "parsePortableProjectFile", "integrityValid", "portableProjectFileName", packageJson.version]) {
     assert.ok(portable.includes(phrase), `Missing .ppf contract: ${phrase}`);
   }
 });

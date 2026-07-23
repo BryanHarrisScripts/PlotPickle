@@ -6,10 +6,14 @@ import { useMemo, useState } from "react";
 import type { PlotPickleProject, ScreenplayDraftElement } from "@/lib/project";
 import {
   applySpecialistSuggestion,
+  attachProjectDocumentToCanonBinder,
   buildSpecialistProjectContext,
+  canonProjectDocumentAttachedAt,
+  canonProjectDocuments,
   createSpecialistSuggestion,
   projectGeneratedAssets,
   savedSpecialistPasses,
+  type CanonProjectDocumentKind,
   type SpecialistLabKind,
   type SpecialistSuggestion,
 } from "@/lib/specialist-labs";
@@ -128,6 +132,13 @@ export default function SpecialistLabs({ project, onProjectChange }: Props) {
     setStatus("Dialogue revision is ready for comparison. The screenplay has not changed.");
   }
 
+  function attachProjectDocument(kind: CanonProjectDocumentKind) {
+    const next = attachProjectDocumentToCanonBinder(project, kind);
+    onProjectChange(next);
+    const label = canonProjectDocuments.find((item) => item.kind === kind)?.label || kind;
+    setStatus(`${label} was attached to the Canon Binder as a current project snapshot.`);
+  }
+
   function prepareCanonEntry() {
     if (!sourceTitle.trim() || !canonEntry.trim()) return;
     setReview(createSpecialistSuggestion({
@@ -243,6 +254,7 @@ export default function SpecialistLabs({ project, onProjectChange }: Props) {
 
           {activeTab === "research" ? <section>
             <div className={styles.sectionHeading}><span>Structured Research & Canon Binder</span><h2>Separate sourced evidence from story canon.</h2><p>Record the source, licence and exact canon decision. AI-generated claims should not be treated as verified research.</p></div>
+            <div className={styles.projectDocuments}><header><div><span>Attach current project documents</span><h3>Keep beats, outline and pitch beside the verified canon.</h3></div><p>Each button replaces its previous snapshot so the binder shows the latest approved project state.</p></header><div>{canonProjectDocuments.map((document) => { const attachedAt = canonProjectDocumentAttachedAt(project, document.kind); return <article key={document.kind}><strong>{document.label}</strong><span>{document.description}</span><button type="button" onClick={() => attachProjectDocument(document.kind)}>{attachedAt ? "Refresh attachment" : "Attach to Canon Binder"}</button>{attachedAt ? <small>Last attached {new Date(attachedAt).toLocaleString()}</small> : null}</article>; })}</div></div>
             <div className={styles.twoColumns}>
               <label>Source or canon title<input value={sourceTitle} onChange={(event) => setSourceTitle(event.target.value)} /></label>
               <label>Creator or authority<input value={sourceCreator} onChange={(event) => setSourceCreator(event.target.value)} /></label>

@@ -248,3 +248,59 @@ export function createCharacterDialogueReport(project: PlotPickleProject) {
   const signature = [project.id, project.metadata.updatedAt, project.screenplay.fileName, project.screenplay.importedAt, elements.length, summary.spokenWords].join(":");
   return { characters: characterReports, summary, population, source, signature, refreshedAt: project.metadata.updatedAt || project.screenplay.analyzedAt || project.screenplay.importedAt };
 }
+
+
+export function createProducerReport(project: PlotPickleProject) {
+  const scenes = project.blocks.flatMap((block) => block.scenes.map((scene) => ({ blockNumber: block.number, scene })));
+  const scheduledSceneIds = new Set(project.production.schedule.flatMap((day) => day.sceneIds));
+  const castIds = new Set(scenes.flatMap(({ scene }) => scene.characterIds));
+  project.production.breakdowns.forEach((breakdown) => breakdown.castIds.forEach((id) => castIds.add(id)));
+  const locationIds = new Set(scenes.flatMap(({ scene }) => scene.locationIds));
+  project.production.breakdowns.forEach((breakdown) => breakdown.locationIds.forEach((id) => locationIds.add(id)));
+  const ready = project.production.breakdowns.filter((item) => item.readiness === "ready").length;
+  const blocked = project.production.breakdowns.filter((item) => item.readiness === "blocked").length;
+  const productionLoads = project.production.breakdowns.reduce((total, item) => total + [item.props, item.wardrobe, item.vehicles, item.effects, item.stunts, item.extras, item.makeup, item.sound].filter((value) => value.trim()).length, 0);
+  return {
+    scenes: scenes.length,
+    pages: project.screenplay.draftElements.length ? Math.max(1, Math.ceil(project.screenplay.draftElements.filter((item) => !item.omitted).length / 55)) : 0,
+    cast: castIds.size,
+    locations: locationIds.size,
+    breakdowns: project.production.breakdowns.length,
+    breakdownsReady: ready,
+    blockedBreakdowns: blocked,
+    productionLoads,
+    scheduleDays: project.production.schedule.length,
+    scheduledHours: project.production.schedule.reduce((total, day) => total + day.estimatedHours, 0),
+    unscheduledScenes: scenes.filter(({ scene }) => !scheduledSceneIds.has(scene.id)).length,
+    distributionMilestones: project.production.distribution.milestones.length,
+  };
+}
+
+export function createDirectorReport(project: PlotPickleProject) {
+  const characterNames = new Map(project.characters.map((character) => [character.id, character.name]));
+  const locationNames = new Map(project.world.locations.map((location) => [location.id, location.name]));
+  return project.blocks.flatMap((block) => block.scenes.map((scene) => {
+    const elements = project.screenplay.draftElements.filter((element) => element.sceneId === scene.id || (!element.sceneId && element.sceneNumber === scene.number));
+    const dialogueWords = elements.filter((element) => element.type === "dialogue" || element.type === "dual-dialogue").reduce((total, element) => total + countSpokenWords(element.text), 0);
+    const actionParagraphs = elements.filter((element) => element.type === "action").length;
+    const shots = project.production.shots.filter((shot) => shot.sceneId === scene.id);
+    return {
+      id: scene.id,
+      number: scene.number,
+      blockNumber: block.number,
+      title: scene.title || elements.find((element) => element.type === "scene-heading")?.text || "Untitled scene",
+      purpose: scene.purpose,
+      cast: scene.characterIds.map((id) => characterNames.get(id) || id),
+      locations: scene.locationIds.map((id) => locationNames.get(id) || id),
+      pageEstimate: scene.pageEstimate,
+      estimatedSeconds: scene.estimatedSeconds,
+      dialogueWords,
+      actionParagraphs,
+      shots: shots.length,
+      approvedShots: shots.filter((shot) => shot.status === "approved" || shot.status === "captured").length,
+      status: scene.status,
+      locked: scene.locked,
+      turn: scene.turn || scene.reversal || scene.outcome,
+    };
+  })).sort((left, right) => left.number - right.number);
+}

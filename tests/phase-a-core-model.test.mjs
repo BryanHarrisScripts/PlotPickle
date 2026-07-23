@@ -23,7 +23,7 @@ test("blank, imported and Afterglow projects use the Phase A model", async () =>
   assert.match(afterglow, /createBlankArcMatrix\(character\)/);
 });
 
-test("all Phase A interfaces are connected", async () => {
+test("all Phase A interfaces are connected without duplicating Core Model in Settings", async () => {
   const studio = await source("app/core-model-studio.tsx");
   const page = await source("app/page.tsx");
   const writer = await source("app/script-workspace.tsx");
@@ -31,11 +31,12 @@ test("all Phase A interfaces are connected", async () => {
   const settings = await source("app/settings-panel.tsx");
   const reports = await source("app/settings-project-tools.tsx");
   for (const phrase of ["Story Threads", "Arc Matrix", "Rights & Provenance", "Revisions", "Capture revision snapshot", "AI provenance"]) assert.ok(studio.includes(phrase), phrase);
+  assert.match(page, /id: "coreModel", code: "CM", label: "Core Model"/);
   assert.match(page, /activeSection === "coreModel"/);
   assert.match(writer, /Dual dialogue/);
   assert.match(writer, /Story Threads/);
   assert.match(structure, /Selected scene threads/);
-  assert.match(settings, /Core Model/);
+  assert.doesNotMatch(settings, /<b>Core Model<\/b>/);
   assert.match(reports, /Revision snapshots/);
 });
 

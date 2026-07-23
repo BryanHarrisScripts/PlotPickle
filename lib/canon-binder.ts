@@ -51,36 +51,52 @@ export function buildCanonBinder(project: PlotPickleProject, generatedAt = proje
   add("story", "premise", "Premise", project.story.premise);
   add("story", "logline", "Logline", project.story.logline);
   add("story", "theme", "Theme", project.story.theme);
-  add("story", "tone", "Tone", project.story.tone);
-  add("story", "genre", "Genre", project.story.genre);
+  add("story", "tone", "Tone", project.metadata.tone);
+  add("story", "genre", "Genre", project.metadata.genre);
 
   for (const character of project.characters) {
     const name = text(character.name) || character.id;
     const characterId = add("characters", "character", name, character);
-    const voiceId = add("voiceprints", "character-voiceprint", name, character.voiceprint ?? {}, "approved", { type: "project" }, [characterId]);
+    const voiceprint = {
+      originEnvironment: character.originEnvironment ?? "",
+      socialContext: character.socialContext ?? "",
+      educationExpertise: character.educationExpertise ?? "",
+      worldviewBoundaries: character.worldviewBoundaries ?? "",
+      rhythmSentenceShape: character.rhythmSentenceShape ?? "",
+      vocabularyMetaphors: character.vocabularyMetaphors ?? "",
+      verbalFingerprints: character.verbalFingerprints ?? "",
+      emotionalAccess: character.emotionalAccess ?? "",
+      statusShift: character.statusShift ?? "",
+      persuasionStrategy: character.persuasionStrategy ?? "",
+    };
+    const voiceId = add("voiceprints", "character-voiceprint", name, voiceprint, "approved", { type: "project" }, [characterId]);
     relationships.push({ id: `rel:${characterId}:voiceprint`, from: characterId, to: voiceId, type: "has-voiceprint", confidence: 1, status: "approved" });
   }
 
   add("world", "world", "World", project.world);
-  for (const location of project.world.locations ?? []) add("locations", "location", text((location as { name?: unknown }).name) || "Location", location);
+  for (const location of project.world.locations) add("locations", "location", text(location.name) || location.id, location);
   add("timeline", "period", "Story Period", project.world.period);
   add("timeline", "history", "World History", project.world.history);
   add("continuity", "notes", "Continuity Notes", project.development.notes.continuity);
   add("research", "notes", "Research Notes", project.development.notes.research, "reviewed");
   add("references", "sources", "Reference Sources", project.development.notes.sources, "reviewed");
   add("legal", "rights", "Rights and Ownership", project.rights, "locked");
-  add("visual-style", "storyboard-style", "Visual Style", { frames: project.blocks.flatMap((block) => block.visuals), world: project.world });
-  add("ai-decisions", "decision-log", "AI Decisions", [], "draft");
-  add("meeting-notes", "notes", "Meeting Notes", [], "draft");
+  add("visual-style", "storyboard-style", "Visual Style", { visualLanguage: project.world.visualLanguage, frames: project.blocks.flatMap((block) => block.visuals) });
+  add("ai-decisions", "decision-log", "AI Decisions", project.rights.aiProvenance, project.rights.aiProvenance.length ? "reviewed" : "draft", { type: "ai" });
+  add("meeting-notes", "notes", "Meeting Notes", [], "draft", { type: "meeting" });
   add("producer-notes", "notes", "Producer Notes", [], "draft");
   add("director-notes", "notes", "Director Notes", [], "draft");
   add("actor-notes", "notes", "Actor Notes", [], "draft");
 
   for (const block of project.blocks) {
     for (const scene of block.scenes) {
-      for (const characterId of scene.characterIds ?? []) {
+      for (const characterId of scene.characterIds) {
         const canonical = Object.values(entries).find((entry) => entry.section === "characters" && String((entry.value as { id?: unknown })?.id) === characterId);
         if (canonical) relationships.push({ id: `rel:${canonical.id}:scene:${scene.id}`, from: canonical.id, to: `scene:${scene.id}`, type: "appears-in", confidence: 1, status: "approved" });
+      }
+      for (const locationId of scene.locationIds) {
+        const canonical = Object.values(entries).find((entry) => entry.section === "locations" && String((entry.value as { id?: unknown })?.id) === locationId);
+        if (canonical) relationships.push({ id: `rel:${canonical.id}:scene:${scene.id}`, from: canonical.id, to: `scene:${scene.id}`, type: "used-in", confidence: 1, status: "approved" });
       }
     }
   }
@@ -113,6 +129,6 @@ export function queryCanon(binder: CanonBinder, options: { sections?: CanonSecti
 export function canonContextPacket(binder: CanonBinder, entryIds: string[], includeRelated = true) {
   const ids = new Set(entryIds);
   if (includeRelated) for (const relationship of binder.relationships) if (ids.has(relationship.from) || ids.has(relationship.to)) { ids.add(relationship.from); ids.add(relationship.to); }
-  const entries = [...ids].map((id) => binder.entries[id]).filter(Boolean).filter((entry) => entry.status === "approved" || entry.status === "locked");
+  const entries = [...ids].map((id) => binder.entries[id]).filter((entry): entry is CanonEntry => Boolean(entry)).filter((entry) => entry.status === "approved" || entry.status === "locked");
   return { binderVersion: binder.version, generatedAt: binder.generatedAt, policy: binder.policy, entries, relationships: binder.relationships.filter((relationship) => ids.has(relationship.from) && ids.has(relationship.to)) };
 }

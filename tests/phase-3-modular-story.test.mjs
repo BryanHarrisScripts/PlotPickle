@@ -8,7 +8,7 @@ const gateway = await readFile(new URL("../build/folder-project-gateway.ts", imp
 
 test("Phase 3 registers independent story modules", () => {
   for (const moduleName of ["characters", "voiceprints", "screenplay", "structure", "miniBlocks", "storyboard", "production", "research", "canon", "imports", "plugins"]) {
-    assert.match(modules, new RegExp(`key: \\\"${moduleName}\\\"`));
+    assert.match(modules, new RegExp(`key: "${moduleName}"`));
   }
   assert.match(modules, /dependencies:/);
   assert.match(modules, /collection:/);

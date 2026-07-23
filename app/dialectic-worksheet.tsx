@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { PlotPickleProject } from "@/lib/project";
 import styles from "./dialectic-worksheet.module.css";
 
@@ -11,13 +10,6 @@ export default function DialecticWorksheet({ project, onProjectChange }: { proje
   const [synthesis, setSynthesis] = useState(project.development.foundations.transformation);
   const [endingProof, setEndingProof] = useState(project.development.foundations.endingProof);
   const [status, setStatus] = useState("Map the competing beliefs, then save the synthesis into the canonical project.");
-
-  useEffect(() => {
-    setThesis(project.story.theme);
-    setAntithesis(project.story.antiTheme);
-    setSynthesis(project.development.foundations.transformation);
-    setEndingProof(project.development.foundations.endingProof);
-  }, [project.id, project.story.theme, project.story.antiTheme, project.development.foundations.transformation, project.development.foundations.endingProof]);
 
   function save() {
     const now = new Date().toISOString();

@@ -4,6 +4,7 @@ import hostingConfig from "./.openai/hosting.json";
 import { localAiGateway } from "./build/local-ai-gateway";
 import { githubReviewGateway } from "./build/github-review-gateway";
 import { folderProjectGateway } from "./build/folder-project-gateway";
+import { nativeGitGateway } from "./build/native-git-gateway";
 import { localProjectGateway } from "./build/local-project-gateway";
 import { sites } from "./build/sites-vite-plugin";
 
@@ -57,9 +58,10 @@ export default defineConfig(async () => {
     },
     plugins: [
       githubReviewGateway(),
-      // Folder projects are now the canonical local working format. The legacy
-      // gateway remains mounted afterward for GitHub synchronization endpoints.
+      // Folder projects are the canonical working format. Native Git operates
+      // directly inside those folders and never requires a terminal.
       folderProjectGateway(),
+      nativeGitGateway(),
       localProjectGateway(),
       localAiGateway(),
       vinext(),

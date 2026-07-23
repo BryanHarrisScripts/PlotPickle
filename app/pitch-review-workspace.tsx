@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import styles from "./pitch-review-workspace.module.css";
+import DialecticWorksheet from "./dialectic-worksheet";
+import LoglineRubric from "./logline-rubric";
 import {
   addReviewComment,
   approveLoglineCandidate,
@@ -20,7 +22,7 @@ import {
 } from "@/lib/pitch-review";
 import type { PitchPackage, PlotPickleProject, ReviewAnchor, ReviewPriority, ReviewThreadStatus } from "@/lib/project";
 
-type View = "logline" | "reviews" | "revisions" | "package" | "exports";
+type View = "logline" | "dialectic" | "reviews" | "revisions" | "package" | "exports";
 
 type AnchorOption = ReviewAnchor & { value: string };
 
@@ -178,6 +180,7 @@ export default function PitchReviewWorkspace({ project, onProjectChange }: { pro
       <nav className={styles.tabs} aria-label="Pitch and review workflows">
         {([
           ["logline", "Logline Workshop"],
+          ["dialectic", "Theme Dialectic"],
           ["reviews", "Anchored Reviews"],
           ["revisions", "Revision Compare"],
           ["package", "Pitch Package"],
@@ -185,7 +188,7 @@ export default function PitchReviewWorkspace({ project, onProjectChange }: { pro
         ] as Array<[View, string]>).map(([id, label]) => <button key={id} type="button" className={view === id ? styles.activeTab : ""} onClick={() => setView(id)}>{label}</button>)}
       </nav>
 
-      {view === "logline" ? <div className={styles.twoColumn}>
+      {view === "logline" ? <><div className={styles.twoColumn}>
         <section className={styles.panel}>
           <div className={styles.panelTitle}><div><span>Step {step + 1} of {workshopSteps.length}</span><h2>{workshopSteps[step].title}</h2></div><small>One concrete decision at a time</small></div>
           <p className={styles.question}>{workshopSteps[step].question}</p>
@@ -197,7 +200,9 @@ export default function PitchReviewWorkspace({ project, onProjectChange }: { pro
           <div className={styles.panelTitle}><div><span>Candidate library</span><h2>Compare and approve</h2></div><small>Approval updates the canonical logline</small></div>
           <div className={styles.stack}>{active.review.loglineCandidates.length ? active.review.loglineCandidates.map((candidate) => <article className={candidate.selected ? styles.selectedCard : styles.card} key={candidate.id}><span>{candidate.source} · {new Date(candidate.createdAt).toLocaleString()}</span><p>{candidate.text}</p><button type="button" disabled={candidate.selected} onClick={() => onProjectChange(approveLoglineCandidate(active, candidate.id))}>{candidate.selected ? "Current approved logline" : "Approve this logline"}</button></article>) : <p className={styles.empty}>No saved candidates yet. Complete the guided questions to create the first one.</p>}</div>
         </section>
-      </div> : null}
+      </div><LoglineRubric project={active} text={candidatePreview || active.story.logline || active.development.pitch.oneSentence} /></> : null}
+
+      {view === "dialectic" ? <DialecticWorksheet project={active} onProjectChange={onProjectChange} /> : null}
 
       {view === "reviews" ? <div className={styles.reviewLayout}>
         <section className={styles.panel}>

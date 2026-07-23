@@ -78,6 +78,74 @@ export function createSpecialistSuggestion(input: Omit<SpecialistSuggestion, "id
   return { ...input, id: makeId("lab-suggestion"), createdAt: timestamp() };
 }
 
+
+export type CanonProjectDocumentKind = "beats" | "outline" | "pitch";
+
+export const canonProjectDocuments: Array<{ kind: CanonProjectDocumentKind; label: string; description: string }> = [
+  { kind: "beats", label: "24 Blocks beats", description: "Attach the current block-by-block dramatic spine." },
+  { kind: "outline", label: "Scene outline", description: "Attach sequences, scenes, purposes and turns." },
+  { kind: "pitch", label: "Pitch package", description: "Attach the current premise, logline, pitch and audience promise." },
+];
+
+function canonDocumentText(project: PlotPickleProject, kind: CanonProjectDocumentKind) {
+  if (kind === "beats") {
+    return project.blocks.map((block) => [
+      `BLOCK ${block.number}: ${block.title}`,
+      `Purpose: ${block.purpose}`,
+      `Summary: ${block.summary}`,
+      `Goal: ${block.goal}`,
+      `Conflict: ${block.conflict}`,
+      `Choice/turn: ${block.choice || block.emotionalTurn}`,
+      `Consequence: ${block.consequence}`,
+    ].join("\n")).join("\n\n");
+  }
+  if (kind === "outline") {
+    const sequences = project.structure.sequences.map((sequence) => `SEQUENCE ${sequence.number}: ${sequence.title}\n${sequence.purpose}\nTurning point: ${sequence.turningPoint}`).join("\n\n");
+    const scenes = project.blocks.flatMap((block) => block.scenes.map((scene) => `SCENE ${scene.number} · BLOCK ${block.number}: ${scene.title}\nPurpose: ${scene.purpose}\nObjective: ${scene.objective}\nOpposition: ${scene.opposition}\nTurn: ${scene.turn || scene.reversal}\nOutcome: ${scene.outcome}`)).join("\n\n");
+    return `${sequences}\n\n${scenes}`.trim();
+  }
+  const pitch = project.review.pitchPackage;
+  return [
+    `Title: ${project.metadata.title}`,
+    `Format: ${project.metadata.format} · ${project.metadata.genre} · ${project.metadata.targetMinutes} minutes`,
+    `Premise: ${project.story.premise}`,
+    `Logline: ${project.story.logline}`,
+    `One-sentence pitch: ${project.development.pitch.oneSentence}`,
+    `Short pitch: ${project.development.pitch.shortPitch}`,
+    `Audience promise: ${project.development.pitch.audiencePromise}`,
+    `Emotional experience: ${project.development.pitch.emotionalExperience}`,
+    `Comparable titles: ${project.development.pitch.comparableTitles}`,
+    `Visual vision: ${project.development.pitch.visualVision || pitch.visualStatement}`,
+    `Synopsis: ${pitch.synopsis}`,
+  ].join("\n\n");
+}
+
+export function attachProjectDocumentToCanonBinder(project: PlotPickleProject, kind: CanonProjectDocumentKind): PlotPickleProject {
+  const next = cloneProject(project);
+  const now = timestamp();
+  const marker = `project-document:${kind}`;
+  const labels: Record<CanonProjectDocumentKind, string> = { beats: "Current 24 Blocks beats", outline: "Current scene outline", pitch: "Current pitch package" };
+  const attribution: SourceAttribution = {
+    id: makeId(`canon-${kind}`),
+    title: labels[kind],
+    creator: project.rights.projectOwner || "PlotPickle project team",
+    sourceType: "other",
+    sourceUrl: "",
+    licence: "Project-owned working material",
+    permissionReference: "Canonical PlotPickle project snapshot",
+    notes: canonDocumentText(project, kind),
+    attachedTo: ["canon-binder", marker],
+    createdAt: now,
+  };
+  next.rights.attributions = [...next.rights.attributions.filter((item) => !item.attachedTo.includes(marker)), attribution];
+  next.metadata.updatedAt = now;
+  return next;
+}
+
+export function canonProjectDocumentAttachedAt(project: PlotPickleProject, kind: CanonProjectDocumentKind) {
+  return project.rights.attributions.find((item) => item.attachedTo.includes(`project-document:${kind}`))?.createdAt || "";
+}
+
 export function buildSpecialistProjectContext(project: PlotPickleProject) {
   const characterContext = project.characters
     .map((character) => `${character.name}: role ${character.role}; want ${character.want}; need ${character.need}; voice ${character.voice}`)

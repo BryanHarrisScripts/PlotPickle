@@ -1,16 +1,7 @@
-# PlotPickle Playhouse
+PlotPickle Playhouse
+====================
 
-<table><tr><td><strong><a href="public/docs/readme/GETTING-STARTED.md">Getting Started</a></strong></td><td><strong><a href="public/docs/readme/WRITING-AND-PRODUCTION.md">Writing &amp; Production</a></strong></td><td><strong><a href="public/docs/readme/COLLABORATION-AND-DEVELOPMENT.md">Collaboration &amp; Development</a></strong></td></tr></table>
-
-The complete README is also available as three selectable tabs inside **Instructions → Project Overview**. No documentation was removed; the tabs reorganize the full guide by task.
-
-![Multiple PlotPickle servers connected to one owner-controlled GitHub film repository](docs/images/plotpickle-multi-server-collaboration.svg)
-
-[Windows Unknown Publisher explanation and fix](docs/windows-publisher-warning.md) · [AI readiness review](docs/ai-readiness-review.md)
-
-## PlotPickle 1.0 candidate — Collaboration and Release Engineering
-
-Settings → GitHub & Backups now provides a disk-backed `.ppf` project library, rolling backups, canonical pulls, and owner-controlled collaboration proposals. Every local PlotPickle server submits changes through a unique GitHub branch and pull request; only an owner or maintainer merge changes the canonical story. Afterglow: Reflections of Sentience links directly to its current GitHub source repository. Windows, macOS and Linux release candidates are clean-machine tested and published with SHA-256 checksums, while local-only writing continues to require no PlotPickle or cloud account.
+This is one selectable tab from the complete PlotPickle README. The canonical root README links all three tabs.
 
 ## PlotPickle 0.17 — Page to Production
 
@@ -30,72 +21,9 @@ The PlotPickle 0.14 Diagnostic Craft Layer remains available at `/diagnostics`, 
 
 PlotPickle is a local-first story-development application built around Bryan Harris’s 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, flexible scene plan, mini-block, screenplay page, review, visual board, diagnostics and specialist labs.
 
-Current application version: `1.0.0-rc.3`
+Current application version: `1.0.0-rc.2`
 
 Current released project schema: `1.7.0`
-
-## Official distribution
-
-PlotPickle is officially distributed as a **downloadable local-server application**.
-
-[Download the current PlotPickle Playhouse ZIP](https://github.com/BryanHarrisScripts/PlotPickle/archive/refs/heads/main.zip)
-
-The local edition runs on the user’s own computer and opens in a browser at `http://127.0.0.1:4173`. There is no required PlotPickle cloud account and no official online PlotPickle service.
-
-Because the repository is currently private, sign into the GitHub account that has access before downloading.
-
-## Easiest Windows setup
-
-1. Download the current ZIP.
-2. Right-click the ZIP and select **Extract All**.
-3. Open the extracted `PlotPickle-main` folder.
-4. Double-click `Start-PlotPickle.bat`.
-5. Review the installation plan and press **Y** only when a dependency runtime is genuinely required.
-6. Leave the command window open while using PlotPickle.
-7. Press `Ctrl+C` when finished, then close the command window.
-
-PlotPickle requires Node.js 22.13 or newer. The first successful launch installs a reusable dependency runtime under the current Windows user’s local application-data folder. Later launches and matching future downloads reconnect to that runtime instead of installing all packages again.
-
-The command window is PlotPickle’s private local server. Closing it stops the application. The launcher binds to `127.0.0.1`, so the default local edition is available only on that computer.
-
-## Easy upgrades without reinstalling everything
-
-Application files and installed packages are separated:
-
-- replaceable PlotPickle program files remain in the extracted folder;
-- reusable packages live under `%LOCALAPPDATA%\PlotPickle\runtimes\<dependency fingerprint>`;
-- npm downloads are cached under `%LOCALAPPDATA%\PlotPickle\npm-cache`;
-- browser-stored story projects remain outside the program folder.
-
-### Recommended routine upgrade
-
-1. Close PlotPickle and its local-server command window.
-2. Double-click `Update-PlotPickle.bat` inside the existing PlotPickle folder.
-3. Download the current ZIP through the signed-in browser.
-4. Return to the updater and select the ZIP.
-5. The updater replaces managed program files while preserving the runtime and local settings.
-6. Choose whether to start the upgraded PlotPickle immediately.
-
-A downloaded ZIP can also be dragged directly onto `Update-PlotPickle.bat`.
-
-The launcher fingerprints `package-lock.json`. When the fingerprint matches an installed runtime, PlotPickle starts without running npm. A new dependency runtime is created only when the dependency fingerprint changes or the current runtime is damaged.
-
-See `docs/windows-upgrades.md` for the complete upgrade and recovery guide.
-
-## Transparent guided installer
-
-Before any packages are downloaded, the Windows launcher displays:
-
-- PlotPickle, Node.js, and npm versions;
-- the dependency fingerprint;
-- every requested top-level package and version;
-- the application folder, persistent runtime, and npm cache;
-- current disk space and a recommended 2 GB free-space allowance;
-- a Y/N consent prompt only when installation is needed;
-- visible installation and repair progress; and
-- a final **SUCCESS** report with verified versions and actual dependency size.
-
-The launcher does not request Administrator rights, install a Windows service, add itself to startup, disable Windows Security, or upload the active story project.
 
 ## Five connected workspaces
 
@@ -224,83 +152,3 @@ At the original 120-minute preset, the default reference model provides:
 - approximately 4.69 seconds average shot length.
 
 These are editable planning references, not mandatory filmmaking rules.
-
-## Project data and migration
-
-Released projects use canonical schema `1.7.0`. Imports from schemas 1.0 through 1.6 are upgraded non-destructively.
-
-Migration preserves existing story, world, character, dialogue, note, screenplay, block, scene, mini-block, and visual data while adding dynamic scene fields, Story Threads, Character Arc Matrices, rights and provenance records, and revision history.
-
-Phase C reuses those existing schema 1.7 capabilities. Research entries use source attributions, AI and asset records use AI provenance, and approved specialist passes use revision snapshots with embedded before/after metadata.
-
-The source of truth is:
-
-- `schema/plotpickle-project.schema.json`
-- `schema/plotpickle-project-v1.7.schema.json`
-- `lib/project.ts`
-- `lib/project-phase-one.ts`
-- `lib/structure.ts`
-- `lib/craft-diagnostics.ts`
-- `lib/specialist-labs.ts`
-
-Portable `.ppf` projects and optional GitHub collaboration now build on schema 1.7 revisions and provenance without changing local-only use. Multiple local servers submit reviewable pull requests rather than writing directly to the canonical branch.
-
-## Copyright, ownership, and licences
-
-PlotPickle separates software, instructional material, user work, and brand rights.
-
-### User-created work
-
-Users retain the rights they hold in their original stories, screenplays, characters, dialogue, images, notes, and exported `.plotpickle.json` project files. Using PlotPickle does not transfer that material to Bryan Harris, PlotPickle, a contributor, or a server operator.
-
-### Software
-
-PlotPickle software is licensed under **GNU AGPLv3 or later** (`AGPL-3.0-or-later`). The full licence text is included as `LICENSE`.
-
-### Method and documentation
-
-Unless otherwise marked, the written 24 Blocks method, documentation, diagrams, and reusable non-software instructional material are licensed under **Creative Commons Attribution-ShareAlike 4.0 International** (`CC BY-SA 4.0`).
-
-### Contributions
-
-Contributors retain copyright in their original contributions. By submitting material for inclusion, software contributions are licensed under AGPL-3.0-or-later and documentation or method contributions are licensed under CC BY-SA 4.0.
-
-See:
-
-- `LICENSE`
-- `LICENSES.md`
-- `NOTICE.md`
-- `CONTRIBUTING.md`
-- `TRADEMARKS.md`
-- `docs/licensing-and-ownership.md`
-
-These project documents provide practical information and are not a substitute for legal advice.
-
-## Self-hosted server editions
-
-PlotPickle’s official distribution remains the downloadable local edition. Downstream users may adapt PlotPickle for compatible server infrastructure, including Plesk or a WordPress-connected architecture, under the applicable licences.
-
-A modified version made available to remote users must prominently offer those users the corresponding source code for that version at no charge, as required by AGPLv3 section 13. Hosted editions must preserve legal notices, identify modifications, respect user ownership, and avoid implying that an unofficial edition is the official PlotPickle service.
-
-A server operator should provide their own privacy and data-retention terms because a hosted edition may store user projects differently from the official local edition.
-
-## Manual local development
-
-```bash
-npm ci
-npm run dev:local -- --host 127.0.0.1 --port 4173
-```
-
-Then open `http://127.0.0.1:4173`.
-
-Run production checks in a Bash-compatible environment:
-
-```bash
-npm run lint
-npm run build
-npm test
-```
-
-## Brand assets
-
-The PlotPickle Playhouse logo kit is in `public/brand`. Brand assets may not be used to misrepresent an unofficial or modified edition as the official PlotPickle project. See `TRADEMARKS.md`.

@@ -47,13 +47,13 @@ test("music artist links are limited to Suno and Udio HTTPS profiles", () => {
   assert.match(settings, /hostname === "udio\.com"/);
 });
 
-test("Settings includes live actor-facing reports and a current import audit", () => {
+test("Settings includes live producer, actor, and director reports plus a current import audit", () => {
   assert.match(panel, /Reports/);
   assert.match(panel, /ScreenplayReports project={project}/);
   for (const field of ["dialogueLines", "dialogueEntries", "wordCount", "sceneNumbers", "sceneHeadings", "speakingSceneCoverage", "estimatedSpeakingSeconds"]) {
     assert.ok(reports.includes(field), `Character report is missing ${field}`);
   }
-  for (const phrase of ["Live screenplay intelligence", "Report is current", "Import and metadata audit", "Project hydration", "Scene breakdown by character", "Print report"]) {
+  for (const phrase of ["Live screenplay intelligence", "Report is current", "Import and metadata audit", "Project hydration", "Scene breakdown by character", "Producer report", "Director report", "Print report"]) {
     assert.ok(reportPanel.includes(phrase), `Report UI is missing ${phrase}`);
   }
   assert.match(reports, /createScreenplayPopulationReport/);

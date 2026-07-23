@@ -1,0 +1,43 @@
+name: Capture Phase F validation
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-f-collaboration-release-100-rc
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.19.0"
+          cache: npm
+      - run: npm ci
+      - name: Capture validation output
+        run: |
+          set +e
+          npm run lint > docs/phase-f-lint.log 2>&1
+          echo $? > docs/phase-f-lint.exit
+          npm test > docs/phase-f-test.log 2>&1
+          echo $? > docs/phase-f-test.exit
+          npm run package:windows > docs/phase-f-package.log 2>&1
+          PACKAGE_EXIT=$?
+          if [ "$PACKAGE_EXIT" -eq 0 ]; then node scripts/package-smoke.mjs releases/stage/PlotPickle-Windows >> docs/phase-f-package.log 2>&1; PACKAGE_EXIT=$?; fi
+          echo "$PACKAGE_EXIT" > docs/phase-f-package.exit
+          exit 0
+      - name: Commit diagnostics
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/phase-f-*.log docs/phase-f-*.exit
+          git commit -m "Capture Phase F validation diagnostics"
+          git push origin HEAD:agent/phase-f-collaboration-release-100-rc

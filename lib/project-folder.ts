@@ -10,9 +10,10 @@ import {
   voiceprintModuleFiles,
   type ModuleManifestEntry,
 } from "./project-modules";
+import { buildStoryDependencies } from "./story-dependencies";
 
 export const PROJECT_FOLDER_FORMAT = "plotpickle-project" as const;
-export const PROJECT_FOLDER_VERSION = "2.1.0" as const;
+export const PROJECT_FOLDER_VERSION = "2.2.0" as const;
 
 export type ProjectFolderManifest = {
   $schema: string;
@@ -73,7 +74,7 @@ export function createProjectFolder(project: PlotPickleProject, applicationVersi
     reviewStatus: project.screenplay.analysisStatus,
   }] : [];
   const manifest: ProjectFolderManifest = {
-    $schema: "https://plotpickle.org/schemas/2.1/manifest.schema.json",
+    $schema: "https://plotpickle.org/schemas/2.2/manifest.schema.json",
     format: PROJECT_FOLDER_FORMAT,
     formatVersion: PROJECT_FOLDER_VERSION,
     projectId: project.id,
@@ -86,7 +87,7 @@ export function createProjectFolder(project: PlotPickleProject, applicationVersi
     canon: { root: "canon/", policy: "approved-only" },
     rights: { path: "canon/rights.json" },
     imports,
-    extensions: { legacySchemaVersion: project.schemaVersion, modularArchitecture: "phase-3" },
+    extensions: { legacySchemaVersion: project.schemaVersion, modularArchitecture: "phase-4", dependencyEngine: "1.0.0" },
   };
 
   const characters = characterModuleFiles(project.characters);
@@ -94,6 +95,7 @@ export function createProjectFolder(project: PlotPickleProject, applicationVersi
   const blocks = blockModuleFiles(project.blocks);
   const miniBlocks = miniBlockFiles(project);
   const storyboardFrames = project.blocks.flatMap((block) => block.visuals.map((frame) => ({ ...frame, blockId: block.id, blockNumber: block.number })));
+  const dependencies = buildStoryDependencies(project, project.metadata.updatedAt || new Date().toISOString());
 
   const files: ProjectFolderFiles = {
     "manifest.json": manifest,
@@ -117,12 +119,18 @@ export function createProjectFolder(project: PlotPickleProject, applicationVersi
     "research/index.json": { schemaVersion: MODULE_FORMAT_VERSION, notes: project.development.notes.research, sources: project.development.notes.sources, attachments: [] },
     "canon/index.json": { schemaVersion: MODULE_FORMAT_VERSION, policy: "approved-only", files: ["canon/rules.json", "canon/continuity.json", "canon/timeline.json", "canon/glossary.json", "canon/rights.json"] },
     "canon/rules.json": { worldRules: project.world.rules, technology: project.world.technology, approvedFacts: [] },
-    "canon/continuity.json": { notes: project.development.notes.continuity, issues: [], callbacks: [], foreshadowing: [] },
+    "canon/continuity.json": { notes: project.development.notes.continuity, issues: dependencies.conflicts, callbacks: [], foreshadowing: [] },
     "canon/timeline.json": { period: project.world.period, history: project.world.history, events: [] },
     "canon/glossary.json": { entries: [] },
     "canon/rights.json": project.rights,
+    "dependencies/graph.json": dependencies.graph,
+    "dependencies/references.json": dependencies.references,
+    "dependencies/reverse-index.json": dependencies.reverseIndex,
+    "dependencies/conflicts.json": { version: dependencies.version, generatedAt: dependencies.generatedAt, conflicts: dependencies.conflicts },
+    "dependencies/health.json": dependencies.health,
     "review/module.json": project.review,
     "reports/revisions.json": project.revisions,
+    "reports/story-health.json": dependencies.health,
     "collaboration/module.json": project.collaboration,
     "imports/index.json": { schemaVersion: MODULE_FORMAT_VERSION, imports },
     "plugins/registry.json": { schemaVersion: MODULE_FORMAT_VERSION, plugins: [], disabledUnknownModules: [] },
@@ -132,7 +140,7 @@ export function createProjectFolder(project: PlotPickleProject, applicationVersi
 
 export function parseProjectFolder(files: ProjectFolderFiles): PlotPickleProject {
   const manifest = object(files["manifest.json"]);
-  if (manifest.format !== PROJECT_FOLDER_FORMAT || !["2.0.0", PROJECT_FOLDER_VERSION].includes(String(manifest.formatVersion))) {
+  if (manifest.format !== PROJECT_FOLDER_FORMAT || !["2.0.0", "2.1.0", PROJECT_FOLDER_VERSION].includes(String(manifest.formatVersion))) {
     throw new Error("This folder is not a supported PlotPickle 2.x project.");
   }
 

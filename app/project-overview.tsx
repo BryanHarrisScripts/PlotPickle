@@ -164,7 +164,7 @@ export default function ProjectOverview({
           </p>
           <div className={styles.rightsLinks}>
             <Link href="/legal">Read copyright and licensing</Link>
-            <a href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">View source repository</a>
+            {project.collaboration.sourceRepositoryUrl ? <a href={project.collaboration.sourceRepositoryUrl} target="_blank" rel="noreferrer">Open this story’s GitHub repository</a> : <a href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">View PlotPickle source repository</a>}
           </div>
         </section>
       </div>

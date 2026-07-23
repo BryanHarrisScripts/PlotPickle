@@ -1,5 +1,9 @@
 # PlotPickle Playhouse
 
+## PlotPickle 1.0 candidate — Collaboration and Release Engineering
+
+Settings → GitHub & Backups now provides a disk-backed `.ppf` project library, atomic rolling backups, corruption-aware recovery, optional GitHub pull/review/push workflows, and repository history. Afterglow: Reflections of Sentience links directly to its current GitHub source repository. Windows, macOS and Linux release candidates are clean-machine tested and published with SHA-256 checksums, while local-only writing continues to require no PlotPickle or cloud account.
+
 ## PlotPickle 0.17 — Page to Production
 
 Open `/production` to connect the 24 Blocks, flexible scenes, screenplay, storyboard frames, shot coverage, keyframes, Sonic Bible, cue sheet, animatic playback, production breakdowns, shoot schedule and distribution plan. Afterglow now includes twelve new replacement concept keyframes for Blocks 22–24.
@@ -18,7 +22,7 @@ The PlotPickle 0.14 Diagnostic Craft Layer remains available at `/diagnostics`, 
 
 PlotPickle is a local-first story-development application built around Bryan Harris’s 24 Blocks method. One canonical project powers the complete hierarchy from story foundation to sequence, block, flexible scene plan, mini-block, screenplay page, review, visual board, diagnostics and specialist labs.
 
-Current application version: `0.17.0`
+Current application version: `1.0.0-rc.1`
 
 Current released project schema: `1.7.0`
 

@@ -19,7 +19,8 @@
     "storyThreads",
     "rights",
     "revisions",
-    "production"
+    "production",
+    "collaboration"
   ],
   "properties": {
     "schemaVersion": {
@@ -81,6 +82,9 @@
     },
     "production": {
       "$ref": "#/$defs/productionWorkspace"
+    },
+    "collaboration": {
+      "$ref": "#/$defs/projectCollaboration"
     }
   },
   "$defs": {
@@ -2706,6 +2710,66 @@
               "type": "string"
             }
           }
+        }
+      }
+    },
+    "projectCollaboration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "repositoryUrl",
+        "sourceRepositoryUrl",
+        "owner",
+        "repo",
+        "branch",
+        "projectPath",
+        "syncEnabled",
+        "lastPulledCommit",
+        "lastPushedCommit",
+        "connectedAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": [
+            "none",
+            "github"
+          ]
+        },
+        "repositoryUrl": {
+          "type": "string"
+        },
+        "sourceRepositoryUrl": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "repo": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "projectPath": {
+          "type": "string"
+        },
+        "syncEnabled": {
+          "type": "boolean"
+        },
+        "lastPulledCommit": {
+          "type": "string"
+        },
+        "lastPushedCommit": {
+          "type": "string"
+        },
+        "connectedAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
         }
       }
     }

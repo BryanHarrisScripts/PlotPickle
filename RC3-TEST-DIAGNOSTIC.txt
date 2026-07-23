@@ -1,1 +1,1 @@
-capture final test diagnostics
+capture focused test failures

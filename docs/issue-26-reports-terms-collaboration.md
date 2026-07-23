@@ -34,3 +34,7 @@ The proposal workflow never writes directly to the canonical branch. GitHub perm
 ## Repository decision model
 
 A submitted proposal is durable evidence of one local server's work at a known canonical base. The repository owner can inspect the `.ppf` change and discussion in GitHub, merge accepted work, or close the pull request without changing the canonical story.
+
+## Compatibility guarantees
+
+The expanded importer preserves existing development subobjects while populating Ghost, Catalyst, Foundations and Pickle suggestions. Reports continue to point writers to named revision snapshots in the Core Model, so the new live report interface does not remove established revision workflows.

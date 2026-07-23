@@ -63,13 +63,15 @@ test("canonical projects retain repository metadata without credentials", async 
 });
 
 test("Windows, macOS, and Linux release candidates are packaged and clean-machine tested", async () => {
-  const [workflow, packageScript, windows, macos, linux, portableRuntime] = await Promise.all([
+  const [workflow, packageScript, windows, macos, linux, portableRuntime, buildScript, timeoutRunner] = await Promise.all([
     source(".github/workflows/release-candidate.yml"),
     source("scripts/package-platform.mjs"),
     source("Start-PlotPickle.bat"),
     source("Start-PlotPickle.command"),
     source("start-plotpickle.sh"),
     source("scripts/portable-runtime.mjs"),
+    source("scripts/build-verified.sh"),
+    source("scripts/run-command-with-timeout.mjs"),
   ]);
   for (const platform of ["windows-latest", "macos-latest", "ubuntu-latest"]) assert.ok(workflow.includes(platform));
   for (const phrase of ["Clean-machine extraction and dependency test", "SHA-256 checksum", "PlotPickle-Windows.zip", "PlotPickle-macOS.zip", "PlotPickle-Linux.zip", "publish-tag"]) assert.ok(workflow.includes(phrase), `Missing release gate: ${phrase}`);
@@ -80,4 +82,9 @@ test("Windows, macOS, and Linux release candidates are packaged and clean-machin
   }
   assert.match(portableRuntime, /Dependency fingerprint/);
   assert.match(portableRuntime, /package-lock\.json/);
+  assert.match(buildScript, /run-command-with-timeout\.mjs/);
+  assert.ok(!buildScript.includes("requires GNU timeout"));
+  assert.match(timeoutRunner, /process\.platform === "win32"/);
+  assert.match(timeoutRunner, /SIGTERM/);
+  assert.match(timeoutRunner, /SIGKILL/);
 });

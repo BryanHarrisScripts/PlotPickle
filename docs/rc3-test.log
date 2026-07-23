@@ -1,0 +1,350 @@
+ok 50 - the project validator no longer restores the two-scene restriction
+  ---
+  duration_ms: 0.948032
+  type: 'test'
+  ...
+# Subtest: the Structure Engine reports scene health and global numbering
+ok 51 - the Structure Engine reports scene health and global numbering
+  ---
+  duration_ms: 2.088933
+  type: 'test'
+  ...
+# Subtest: main application exposes the grouped project rail and local-only product model
+ok 52 - main application exposes the grouped project rail and local-only product model
+  ---
+  duration_ms: 4.648593
+  type: 'test'
+  ...
+# Subtest: section progress model covers every visible story section
+ok 53 - section progress model covers every visible story section
+  ---
+  duration_ms: 1.240161
+  type: 'test'
+  ...
+# Subtest: overview and structure summary explain their contracts before deeper work
+ok 54 - overview and structure summary explain their contracts before deeper work
+  ---
+  duration_ms: 1.202934
+  type: 'test'
+  ...
+# Subtest: PlotPickle declares software, method, user, contribution, and brand rights separately
+ok 55 - PlotPickle declares software, method, user, contribution, and brand rights separately
+  ---
+  duration_ms: 2.841582
+  type: 'test'
+  ...
+# Subtest: repository includes the complete AGPL licence text
+ok 56 - repository includes the complete AGPL licence text
+  ---
+  duration_ms: 1.49926
+  type: 'test'
+  ...
+# Subtest: renders the root route and preserves the local-first workspace contract
+ok 57 - renders the root route and preserves the local-first workspace contract
+  ---
+  duration_ms: 139.020193
+  type: 'test'
+  ...
+# Subtest: registers the legal route and preserves ownership and server-use guidance
+ok 58 - registers the legal route and preserves ownership and server-use guidance
+  ---
+  duration_ms: 61.177169
+  type: 'test'
+  ...
+# Subtest: renders the Voiceprint Engine route
+ok 59 - renders the Voiceprint Engine route
+  ---
+  duration_ms: 52.708226
+  type: 'test'
+  ...
+# Subtest: renders the PageFlow Engine route
+ok 60 - renders the PageFlow Engine route
+  ---
+  duration_ms: 50.942247
+  type: 'test'
+  ...
+# Subtest: renders the Resonance Engine route
+ok 61 - renders the Resonance Engine route
+  ---
+  duration_ms: 29.869841
+  type: 'test'
+  ...
+# Subtest: renders the DraftLens Engine route
+ok 62 - renders the DraftLens Engine route
+  ---
+  duration_ms: 35.866155
+  type: 'test'
+  ...
+# Subtest: registers the CraftLoop client route and preserves its workspace contract
+ok 63 - registers the CraftLoop client route and preserves its workspace contract
+  ---
+  duration_ms: 43.962248
+  type: 'test'
+  ...
+# Subtest: registers the Structure Engine and preserves the 4-12-24-48-96 workspace
+ok 64 - registers the Structure Engine and preserves the 4-12-24-48-96 workspace
+  ---
+  duration_ms: 44.678532
+  type: 'test'
+  ...
+# Subtest: schema 1.7 preserves 12/24/96 while accepting flexible scenes
+ok 65 - schema 1.7 preserves 12/24/96 while accepting flexible scenes
+  ---
+  duration_ms: 1.831077
+  type: 'test'
+  ...
+# Subtest: project migration accepts earlier schemas and creates the new hierarchy
+ok 66 - project migration accepts earlier schemas and creates the new hierarchy
+  ---
+  duration_ms: 4.121702
+  type: 'test'
+  ...
+# Subtest: Windows launcher reuses a package-lock-specific persistent runtime
+ok 67 - Windows launcher reuses a package-lock-specific persistent runtime
+  ---
+  duration_ms: 0.918257
+  type: 'test'
+  ...
+# Subtest: persistent runtime manager fingerprints package-lock and separates application files
+ok 68 - persistent runtime manager fingerprints package-lock and separates application files
+  ---
+  duration_ms: 28.848209
+  type: 'test'
+  ...
+# Subtest: Windows updater overlays program files while preserving runtime and projects
+ok 69 - Windows updater overlays program files while preserving runtime and projects
+  ---
+  duration_ms: 1.453079
+  type: 'test'
+  ...
+# Subtest: Windows repair resets only the current persistent runtime
+ok 70 - Windows repair resets only the current persistent runtime
+  ---
+  duration_ms: 0.917296
+  type: 'test'
+  ...
+# Subtest: Windows launcher explains and verifies the local installation
+ok 71 - Windows launcher explains and verifies the local installation
+  ---
+  duration_ms: 0.839579
+  type: 'test'
+  ...
+# Subtest: Windows setup report lists space, packages, persistent upgrades, privacy, and local-server meaning
+ok 72 - Windows setup report lists space, packages, persistent upgrades, privacy, and local-server meaning
+  ---
+  duration_ms: 29.2825
+  type: 'test'
+  ...
+# Subtest: Screenplay is a write and read workspace tied to all 24 Blocks and 96 mini-blocks
+ok 73 - Screenplay is a write and read workspace tied to all 24 Blocks and 96 mini-blocks
+  ---
+  duration_ms: 4.720511
+  type: 'test'
+  ...
+# Subtest: writer supports standard screenplay grammar and Final Draft/Fountain handoff
+ok 74 - writer supports standard screenplay grammar and Final Draft/Fountain handoff
+  ---
+  duration_ms: 2.723315
+  type: 'test'
+  ...
+# Subtest: Afterglow loads the complete v9 screenplay as one continuous editable draft
+ok 75 - Afterglow loads the complete v9 screenplay as one continuous editable draft
+  ---
+  duration_ms: 3.471046
+  type: 'test'
+  ...
+# Subtest: AI writing and character images use the private local gateway and require approval
+ok 76 - AI writing and character images use the private local gateway and require approval
+  ---
+  duration_ms: 2.34702
+  type: 'test'
+  ...
+# Subtest: full screenplay remains part of the canonical local project
+ok 77 - full screenplay remains part of the canonical local project
+  ---
+  duration_ms: 5.373489
+  type: 'test'
+  ...
+# Subtest: viewer reads common screenplay formats and colour-codes screenplay grammar
+ok 78 - viewer reads common screenplay formats and colour-codes screenplay grammar
+  ---
+  duration_ms: 2.2731
+  type: 'test'
+  ...
+# Subtest: guided reading connects passages to existing story knowledge
+ok 79 - guided reading connects passages to existing story knowledge
+  ---
+  duration_ms: 0.899809
+  type: 'test'
+  ...
+# Subtest: top Import and Script Viewer use one screenplay ingestion pipeline
+ok 80 - top Import and Script Viewer use one screenplay ingestion pipeline
+  ---
+  duration_ms: 1.571908
+  type: 'test'
+  ...
+# Subtest: screenplay import replaces example data and populates the shared framework as suggestions
+ok 81 - screenplay import replaces example data and populates the shared framework as suggestions
+  ---
+  duration_ms: 1.181783
+  type: 'test'
+  ...
+# Subtest: settings keep AI, music, and future plugins in one local model
+ok 82 - settings keep AI, music, and future plugins in one local model
+  ---
+  duration_ms: 0.656034
+  type: 'test'
+  ...
+# Subtest: settings never include API-key storage
+ok 83 - settings never include API-key storage
+  ---
+  duration_ms: 0.208853
+  type: 'test'
+  ...
+# Subtest: AI Setup verifies a saved key and displays live connection state
+ok 84 - AI Setup verifies a saved key and displays live connection state
+  ---
+  duration_ms: 0.121712
+  type: 'test'
+  ...
+# Subtest: the saved key stays behind the private localhost gateway
+ok 85 - the saved key stays behind the private localhost gateway
+  ---
+  duration_ms: 0.146429
+  type: 'test'
+  ...
+# Subtest: music artist links are limited to Suno and Udio HTTPS profiles
+ok 86 - music artist links are limited to Suno and Udio HTTPS profiles
+  ---
+  duration_ms: 0.110105
+  type: 'test'
+  ...
+# Subtest: Settings includes live producer, actor, and director reports plus a current import audit
+ok 87 - Settings includes live producer, actor, and director reports plus a current import audit
+  ---
+  duration_ms: 0.227982
+  type: 'test'
+  ...
+# Subtest: character reports recalculate from editable drafts or imported source
+ok 88 - character reports recalculate from editable drafts or imported source
+  ---
+  duration_ms: 0.215263
+  type: 'test'
+  ...
+# Subtest: Settings terminology is grouped, searchable, and concise or expanded
+ok 89 - Settings terminology is grouped, searchable, and concise or expanded
+  ---
+  duration_ms: 0.176474
+  type: 'test'
+  ...
+# Subtest: Pitch & Review includes a four-part dialectic worksheet and 20-point logline deconstruction
+ok 90 - Pitch & Review includes a four-part dialectic worksheet and 20-point logline deconstruction
+  ---
+  duration_ms: 5.149083
+  type: 'test'
+  ...
+# Subtest: Canon Binder can attach the current beats, outline and pitch
+ok 91 - Canon Binder can attach the current beats, outline and pitch
+  ---
+  duration_ms: 2.04656
+  type: 'test'
+  ...
+# Subtest: Settings exposes real connections and three role-specific reports
+ok 92 - Settings exposes real connections and three role-specific reports
+  ---
+  duration_ms: 1.382053
+  type: 'test'
+  ...
+# Subtest: README remains complete while three .md tabs are selectable from the main page
+ok 93 - README remains complete while three .md tabs are selectable from the main page
+  ---
+  duration_ms: 1.707411
+  type: 'test'
+  ...
+# Subtest: collaboration documentation uses committed PlotPickle logos
+ok 94 - collaboration documentation uses committed PlotPickle logos
+  ---
+  duration_ms: 0.932128
+  type: 'test'
+  ...
+# Subtest: Windows publisher guidance explains Mark of the Web and the signed-launcher path
+ok 95 - Windows publisher guidance explains Mark of the Web and the signed-launcher path
+  ---
+  duration_ms: 1.316284
+  type: 'test'
+  ...
+# Subtest: Visual Storyboard exposes the 24-block overview and all 96 mini-block visual slots
+ok 96 - Visual Storyboard exposes the 24-block overview and all 96 mini-block visual slots
+  ---
+  duration_ms: 4.737716
+  type: 'test'
+  ...
+# Subtest: default prompts combine story, scene, character, location, screenplay, shot, and continuity context
+ok 97 - default prompts combine story, scene, character, location, screenplay, shot, and continuity context
+  ---
+  duration_ms: 1.166991
+  type: 'test'
+  ...
+# Subtest: storyboard images use the private local gateway, landscape output, and local assets
+ok 98 - storyboard images use the private local gateway, landscape output, and local assets
+  ---
+  duration_ms: 1.923815
+  type: 'test'
+  ...
+# Subtest: schema 1.7 migrates earlier projects into four storyboard slots per block
+ok 99 - schema 1.7 migrates earlier projects into four storyboard slots per block
+  ---
+  duration_ms: 1.670506
+  type: 'test'
+  ...
+# Subtest: Read & Learn is a primary workspace and Writer keeps Treatment and Screenplay connected
+ok 100 - Read & Learn is a primary workspace and Writer keeps Treatment and Screenplay connected
+  ---
+  duration_ms: 5.318998
+  type: 'test'
+  ...
+# Subtest: Markdown treatment supports local writing, preview, export, AI approval and screenplay handoff
+ok 101 - Markdown treatment supports local writing, preview, export, AI approval and screenplay handoff
+  ---
+  duration_ms: 1.131858
+  type: 'test'
+  ...
+# Subtest: Learning Studio connects contextual guidance to the complete course
+ok 102 - Learning Studio connects contextual guidance to the complete course
+  ---
+  duration_ms: 1.590285
+  type: 'test'
+  ...
+# Subtest: Learning Library contains all 14 source modules with substantial teaching tools
+ok 103 - Learning Library contains all 14 source modules with substantial teaching tools
+  ---
+  duration_ms: 1.489043
+  type: 'test'
+  ...
+# Subtest: Learning progress is per project and survives a browser restart
+ok 104 - Learning progress is per project and survives a browser restart
+  ---
+  duration_ms: 0.827811
+  type: 'test'
+  ...
+# Subtest: Learning Studio preserves the educational and user-work licence boundary
+ok 105 - Learning Studio preserves the educational and user-work licence boundary
+  ---
+  duration_ms: 0.765609
+  type: 'test'
+  ...
+# Subtest: Afterglow populates the Markdown Treatment and carries it into storyboard prompts
+ok 106 - Afterglow populates the Markdown Treatment and carries it into storyboard prompts
+  ---
+  duration_ms: 2.738177
+  type: 'test'
+  ...
+1..106
+# tests 106
+# suites 0
+# pass 104
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1654.339093

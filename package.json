@@ -3,16 +3,14 @@
   "version": "1.0.0-rc.3",
   "private": true,
   "license": "AGPL-3.0-or-later",
-  "engines": {
-    "node": ">=22.13.0"
-  },
+  "engines": { "node": ">=22.13.0" },
   "scripts": {
     "install:ci": "bash scripts/install-ci.sh",
     "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vite",
     "dev:local": "vite",
     "build": "bash scripts/build-verified.sh",
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/engines-workspace.test.mjs tests/project-navigation-licensing.test.mjs tests/ai-architecture.test.mjs tests/settings-menu.test.mjs tests/script-viewer.test.mjs tests/screenplay-writer.test.mjs tests/visual-storyboard.test.mjs tests/writer-learning.test.mjs tests/phase-one-core-schema.test.mjs tests/dynamic-scenes.test.mjs tests/phase-two-dynamic-scenes.test.mjs tests/phase-a-core-model.test.mjs tests/phase-b-diagnostic-craft.test.mjs tests/phase-c-specialist-labs.test.mjs tests/phase-d-pitch-review.test.mjs tests/phase-e-page-to-production.test.mjs tests/phase-f-collaboration-release.test.mjs tests/issue-26-reports-terms-collaboration.test.mjs tests/story-tools-reports-docs.test.mjs tests/phase-2-folder-projects.test.mjs tests/phase-3-modular-story.test.mjs tests/phase-4-story-dependencies.test.mjs tests/phase-5-native-git.test.mjs",
+    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/engines-workspace.test.mjs tests/project-navigation-licensing.test.mjs tests/ai-architecture.test.mjs tests/settings-menu.test.mjs tests/script-viewer.test.mjs tests/screenplay-writer.test.mjs tests/visual-storyboard.test.mjs tests/writer-learning.test.mjs tests/phase-one-core-schema.test.mjs tests/dynamic-scenes.test.mjs tests/phase-two-dynamic-scenes.test.mjs tests/phase-a-core-model.test.mjs tests/phase-b-diagnostic-craft.test.mjs tests/phase-c-specialist-labs.test.mjs tests/phase-d-pitch-review.test.mjs tests/phase-e-page-to-production.test.mjs tests/phase-f-collaboration-release.test.mjs tests/issue-26-reports-terms-collaboration.test.mjs tests/story-tools-reports-docs.test.mjs tests/phase-2-folder-projects.test.mjs tests/phase-3-modular-story.test.mjs tests/phase-4-story-dependencies.test.mjs tests/phase-5-native-git.test.mjs tests/phase-6-ppf-exchange.test.mjs",
     "validate:artifact": "bash scripts/validate-artifact.sh",
     "lint": "bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate",
@@ -21,29 +19,8 @@
     "package:macos": "node scripts/package-platform.mjs macos",
     "package:linux": "node scripts/package-platform.mjs linux"
   },
-  "dependencies": {
-    "drizzle-orm": "0.45.2",
-    "next": "16.2.6",
-    "react": "19.2.6",
-    "react-dom": "19.2.6"
-  },
-  "devDependencies": {
-    "@cloudflare/vite-plugin": "1.37.1",
-    "@tailwindcss/postcss": "4.2.1",
-    "@types/node": "22.19.19",
-    "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3",
-    "@vitejs/plugin-react": "6.0.2",
-    "@vitejs/plugin-rsc": "0.5.26",
-    "drizzle-kit": "0.31.10",
-    "eslint": "9.39.4",
-    "eslint-config-next": "16.2.6",
-    "tailwindcss": "4.2.1",
-    "typescript": "5.9.3",
-    "vinext": "0.0.50",
-    "vite": "8.0.13",
-    "wrangler": "4.92.0"
-  },
+  "dependencies": { "drizzle-orm": "0.45.2", "next": "16.2.6", "react": "19.2.6", "react-dom": "19.2.6" },
+  "devDependencies": { "@cloudflare/vite-plugin": "1.37.1", "@tailwindcss/postcss": "4.2.1", "@types/node": "22.19.19", "@types/react": "19.2.14", "@types/react-dom": "19.2.3", "@vitejs/plugin-react": "6.0.2", "@vitejs/plugin-rsc": "0.5.26", "drizzle-kit": "0.31.10", "eslint": "9.39.4", "eslint-config-next": "16.2.6", "tailwindcss": "4.2.1", "typescript": "5.9.3", "vinext": "0.0.50", "vite": "8.0.13", "wrangler": "4.92.0" },
   "type": "module",
   "displayName": "PlotPickle"
 }

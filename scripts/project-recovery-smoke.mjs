@@ -34,8 +34,6 @@ async function atomicWrite(file, content) {
   await rename(temporary, file);
 }
 
-const root = await mkdir(path.join(os.tmpdir(), `plotpickle-recovery-${process.pid}-${Date.now()}`), { recursive: true }).then(() => path.join(os.tmpdir(), `plotpickle-recovery-${process.pid}-${Date.now()}`));
-// mkdir above uses a separate timestamp; reset with a deterministic second directory.
 const folder = path.join(os.tmpdir(), `plotpickle-recovery-smoke-${process.pid}`);
 await rm(folder, { recursive: true, force: true });
 await mkdir(path.join(folder, "projects"), { recursive: true });
@@ -43,26 +41,28 @@ await mkdir(path.join(folder, "backups"), { recursive: true });
 const projectFile = path.join(folder, "projects", "long-running-story.ppf");
 let project = { schemaVersion: "1.7.0", id: "project-test", metadata: { title: "Long Running Story", updatedAt: "" }, revision: 0 };
 
-for (let revision = 1; revision <= 25; revision += 1) {
-  try { await copyFile(projectFile, path.join(folder, "backups", `long-running-story-${String(revision).padStart(3, "0")}.ppf`)); } catch { /* first save has no previous file */ }
-  project = { ...project, revision, metadata: { ...project.metadata, updatedAt: new Date().toISOString() } };
-  await atomicWrite(projectFile, `${JSON.stringify(ppf(project), null, 2)}\n`);
-  const backups = (await readdir(path.join(folder, "backups"))).sort().reverse();
-  await Promise.all(backups.slice(20).map((name) => rm(path.join(folder, "backups", name), { force: true })));
-}
+try {
+  for (let revision = 1; revision <= 25; revision += 1) {
+    try { await copyFile(projectFile, path.join(folder, "backups", `long-running-story-${String(revision).padStart(3, "0")}.ppf`)); } catch { /* first save has no previous file */ }
+    project = { ...project, revision, metadata: { ...project.metadata, updatedAt: new Date().toISOString() } };
+    await atomicWrite(projectFile, `${JSON.stringify(ppf(project), null, 2)}\n`);
+    const backups = (await readdir(path.join(folder, "backups"))).sort().reverse();
+    await Promise.all(backups.slice(20).map((name) => rm(path.join(folder, "backups", name), { force: true })));
+  }
 
-assert.equal((await readdir(path.join(folder, "backups"))).length, 20, "Rolling backup limit must remain 20.");
-const healthy = JSON.parse(await readFile(projectFile, "utf8"));
-assert.equal(verify(healthy), true, "Current project should pass integrity validation.");
-healthy.project.metadata.title = "Corrupted title without checksum update";
-await writeFile(projectFile, JSON.stringify(healthy));
-const corrupted = JSON.parse(await readFile(projectFile, "utf8"));
-assert.equal(verify(corrupted), false, "Corruption must be detected before loading.");
-const newestBackup = (await readdir(path.join(folder, "backups"))).sort().at(-1);
-assert.ok(newestBackup, "A recovery backup should exist.");
-const recovered = JSON.parse(await readFile(path.join(folder, "backups", newestBackup), "utf8"));
-assert.equal(verify(recovered), true, "The newest backup should pass integrity validation.");
-assert.ok(recovered.project.revision >= 20, "Recovery should restore a recent revision.");
-await rm(folder, { recursive: true, force: true });
-await rm(root, { recursive: true, force: true });
-console.log("PlotPickle rolling backup, corruption detection, and recovery smoke test passed.");
+  assert.equal((await readdir(path.join(folder, "backups"))).length, 20, "Rolling backup limit must remain 20.");
+  const healthy = JSON.parse(await readFile(projectFile, "utf8"));
+  assert.equal(verify(healthy), true, "Current project should pass integrity validation.");
+  healthy.project.metadata.title = "Corrupted title without checksum update";
+  await writeFile(projectFile, JSON.stringify(healthy));
+  const corrupted = JSON.parse(await readFile(projectFile, "utf8"));
+  assert.equal(verify(corrupted), false, "Corruption must be detected before loading.");
+  const newestBackup = (await readdir(path.join(folder, "backups"))).sort().at(-1);
+  assert.ok(newestBackup, "A recovery backup should exist.");
+  const recovered = JSON.parse(await readFile(path.join(folder, "backups", newestBackup), "utf8"));
+  assert.equal(verify(recovered), true, "The newest backup should pass integrity validation.");
+  assert.ok(recovered.project.revision >= 20, "Recovery should restore a recent revision.");
+  console.log("PlotPickle rolling backup, corruption detection, and recovery smoke test passed.");
+} finally {
+  await rm(folder, { recursive: true, force: true });
+}

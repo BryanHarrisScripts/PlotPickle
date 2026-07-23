@@ -3,8 +3,8 @@ import os from "node:os";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
-import { createPortableProjectFile, parsePortableProjectFile, serializePortableProjectFile } from "../lib/project-package";
-import { createProjectFolder, parseProjectFolder, projectFolderModulePaths, projectFolderName, type ProjectFolderFiles } from "../lib/project-folder";
+import { createPortableProjectFile, parsePortableProjectFile } from "../lib/project-package";
+import { createProjectFolder, parseProjectFolder, projectFolderName, type ProjectFolderFiles } from "../lib/project-folder";
 import { normalizePlotPickleProject, type PlotPickleProject } from "../lib/project";
 
 const API = "/api/local-projects";
@@ -30,12 +30,12 @@ function isLocal(request: IncomingMessage) {
     return !origin || new URL(origin).host === hostUrl.host;
   } catch { return false; }
 }
-function send(response: ServerResponse, status: number, body: Record<string, unknown>) {
+function send(response: ServerResponse, status: number, payload: Record<string, unknown>) {
   response.statusCode = status;
   response.setHeader("Content-Type", "application/json; charset=utf-8");
   response.setHeader("Cache-Control", "no-store");
   response.setHeader("X-Content-Type-Options", "nosniff");
-  response.end(JSON.stringify(body));
+  response.end(JSON.stringify(payload));
 }
 async function body(request: IncomingMessage) {
   const chunks: Buffer[] = [];
@@ -53,20 +53,29 @@ function safeKey(value: unknown) {
   const stem = source.replace(/\.ppf$/i, "").toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 100);
   return stem || "untitled-story";
 }
-async function atomicJson(file: string, value: unknown) {
+async function atomicFile(file: string, value: unknown) {
   await mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
   const temporary = `${file}.${process.pid}.${Date.now()}.tmp`;
   const handle = await open(temporary, "w", 0o600);
-  try { await handle.writeFile(`${JSON.stringify(value, null, 2)}\n`, "utf8"); await handle.sync(); }
+  const content = typeof value === "string" && !file.endsWith(".json") ? value : `${JSON.stringify(value, null, 2)}\n`;
+  try { await handle.writeFile(content, "utf8"); await handle.sync(); }
   finally { await handle.close(); }
   await rename(temporary, file);
 }
-async function readFolder(folder: string) {
-  const files: ProjectFolderFiles = {};
-  for (const relative of ["manifest.json", ...projectFolderModulePaths]) {
-    files[relative] = JSON.parse(await readFile(path.join(folder, relative), "utf8"));
+
+async function collectFolderFiles(folder: string, relative = "", files: ProjectFolderFiles = {}) {
+  const current = path.join(folder, relative);
+  for (const entry of await readdir(current, { withFileTypes: true })) {
+    if (entry.name === ".git" || entry.name === "assets" || entry.name === "exports") continue;
+    const child = relative ? `${relative}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) await collectFolderFiles(folder, child, files);
+    else if (entry.name.endsWith(".json")) files[child] = JSON.parse(await readFile(path.join(folder, child), "utf8"));
+    else if (entry.name.endsWith(".fountain")) files[child] = await readFile(path.join(folder, child), "utf8");
   }
-  return parseProjectFolder(files);
+  return files;
+}
+async function readFolder(folder: string) {
+  return parseProjectFolder(await collectFolderFiles(folder));
 }
 async function writeFolder(project: PlotPickleProject, requestedName?: unknown) {
   const key = safeKey(requestedName || projectFolderName(project));
@@ -76,15 +85,20 @@ async function writeFolder(project: PlotPickleProject, requestedName?: unknown) 
     const previous = await readFolder(folder);
     await mkdir(backupsRoot(), { recursive: true, mode: 0o700 });
     backup = `${key}-${new Date().toISOString().replace(/[:.]/g, "-")}.ppf`;
-    await atomicJson(path.join(backupsRoot(), backup), createPortableProjectFile(previous));
+    await atomicFile(path.join(backupsRoot(), backup), createPortableProjectFile(previous));
     const entries = (await readdir(backupsRoot())).filter((name) => name.startsWith(`${key}-`) && name.endsWith(".ppf")).sort().reverse();
     await Promise.all(entries.slice(BACKUP_LIMIT).map((name) => rm(path.join(backupsRoot(), name), { force: true })));
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
   }
+
+  const temporaryFolder = `${folder}.${process.pid}.${Date.now()}.tmp`;
+  await rm(temporaryFolder, { recursive: true, force: true });
   const { files, manifest } = createProjectFolder(project);
-  for (const [relative, value] of Object.entries(files)) await atomicJson(path.join(folder, relative), value);
-  return { fileName: `${key}.ppf`, projectKey: key, storage: "folder", backup, savedAt: manifest.updatedAt, projectPath: folder };
+  for (const [relative, value] of Object.entries(files)) await atomicFile(path.join(temporaryFolder, relative), value);
+  await rm(folder, { recursive: true, force: true });
+  await rename(temporaryFolder, folder);
+  return { fileName: `${key}.ppf`, projectKey: key, storage: "modular-folder", backup, savedAt: manifest.updatedAt, projectPath: folder, moduleCount: Object.keys(manifest.modules).length };
 }
 async function library() {
   await mkdir(projectsRoot(), { recursive: true, mode: 0o700 });
@@ -92,11 +106,15 @@ async function library() {
   const results = await Promise.all(entries.filter((entry) => entry.isDirectory()).map(async (entry) => {
     const folder = path.join(projectsRoot(), entry.name);
     try {
-      const [project, info] = await Promise.all([readFolder(folder), stat(path.join(folder, "manifest.json"))]);
-      return { fileName: `${entry.name}.ppf`, projectKey: entry.name, title: project.metadata.title, updatedAt: project.metadata.updatedAt, bytes: info.size, integrityValid: true, storage: "folder" };
+      const [project, manifest, info] = await Promise.all([
+        readFolder(folder),
+        readFile(path.join(folder, "manifest.json"), "utf8").then((source) => JSON.parse(source) as { modules?: Record<string, unknown>; formatVersion?: string }),
+        stat(path.join(folder, "manifest.json")),
+      ]);
+      return { fileName: `${entry.name}.ppf`, projectKey: entry.name, title: project.metadata.title, updatedAt: project.metadata.updatedAt, bytes: info.size, integrityValid: true, storage: "modular-folder", formatVersion: manifest.formatVersion, moduleCount: Object.keys(manifest.modules ?? {}).length };
     } catch {
       const info = await stat(folder);
-      return { fileName: `${entry.name}.ppf`, projectKey: entry.name, title: "Unreadable project folder", updatedAt: info.mtime.toISOString(), bytes: 0, integrityValid: false, storage: "folder" };
+      return { fileName: `${entry.name}.ppf`, projectKey: entry.name, title: "Unreadable project folder", updatedAt: info.mtime.toISOString(), bytes: 0, integrityValid: false, storage: "modular-folder" };
     }
   }));
   return results.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
@@ -126,13 +144,13 @@ export function folderProjectGateway(): Plugin {
         if (!url.pathname.startsWith(API)) { next(); return; }
         if (!isLocal(request)) { send(response, 403, { ok: false, message: "Project folders accept requests only from this local PlotPickle server." }); return; }
         void (async () => {
-          if (request.method === "GET" && url.pathname === `${API}/status`) { send(response, 200, { ok: true, available: true, home: home(), projectsRoot: projectsRoot(), storage: "folder", formatVersion: "2.0.0", backupLimit: BACKUP_LIMIT }); return; }
+          if (request.method === "GET" && url.pathname === `${API}/status`) { send(response, 200, { ok: true, available: true, home: home(), projectsRoot: projectsRoot(), storage: "modular-folder", formatVersion: "2.1.0", backupLimit: BACKUP_LIMIT }); return; }
           if (request.method === "GET" && url.pathname === `${API}/library`) { send(response, 200, { ok: true, projects: await library() }); return; }
           if (request.method === "GET" && url.pathname === `${API}/backups`) { send(response, 200, { ok: true, backups: await backups(url.searchParams.get("project") || undefined) }); return; }
           if (request.method === "GET" && url.pathname === `${API}/load`) {
             const key = safeKey(url.searchParams.get("file"));
             const project = await readFolder(path.join(projectsRoot(), key));
-            send(response, 200, { ok: true, fileName: `${key}.ppf`, projectKey: key, storage: "folder", project, portable: createPortableProjectFile(project) }); return;
+            send(response, 200, { ok: true, fileName: `${key}.ppf`, projectKey: key, storage: "modular-folder", project, portable: createPortableProjectFile(project) }); return;
           }
           if (request.method === "GET" && url.pathname === `${API}/recover`) {
             const fileName = path.basename(url.searchParams.get("file") || "");

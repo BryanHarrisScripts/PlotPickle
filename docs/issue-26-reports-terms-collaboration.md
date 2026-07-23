@@ -30,3 +30,7 @@ One GitHub repository and canonical `.ppf` path can be connected to many indepen
 6. If the canonical `.ppf` changed since the server's last pull, submission is rejected until the approved version is pulled and reviewed again.
 
 The proposal workflow never writes directly to the canonical branch. GitHub permissions, branch protection and pull-request review remain authoritative. Tokens stay in the private localhost server and are never written into `.ppf` files.
+
+## Repository decision model
+
+A submitted proposal is durable evidence of one local server's work at a known canonical base. The repository owner can inspect the `.ppf` change and discussion in GitHub, merge accepted work, or close the pull request without changing the canonical story.

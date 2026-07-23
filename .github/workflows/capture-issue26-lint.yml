@@ -1,0 +1,40 @@
+name: Temporary Issue 26 Lint Capture
+
+on:
+  push:
+    branches:
+      - agent/issue-26-reports-terms-collaboration
+    paths:
+      - .github/workflows/capture-issue26-lint.yml
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/issue-26-reports-terms-collaboration
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Capture lint output
+        shell: bash
+        run: |
+          set +e
+          npm run lint > docs/issue26-lint.log 2>&1
+          echo $? > docs/issue26-lint.exit
+          set -e
+          rm -f .github/workflows/capture-issue26-lint.yml
+      - name: Commit diagnostics
+        shell: bash
+        run: |
+          git config user.name "PlotPickle Diagnostics"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Temporary: capture Issue 26 lint diagnostics"
+          git push origin HEAD:agent/issue-26-reports-terms-collaboration

@@ -5,11 +5,16 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
+function versionAtLeast(version, requiredMinor) {
+  const [major, minor] = version.split(".").map(Number);
+  return major >= 1 || (major === 0 && minor >= requiredMinor);
+}
+
 test("PlotPickle 0.16 exposes the complete pitch and review studio", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   const page = await source("app/pitch-review/page.tsx");
   const workspace = await source("app/pitch-review-workspace.tsx");
-  assert.ok(Number(packageJson.version.split(".")[1]) >= 16);
+  assert.ok(versionAtLeast(packageJson.version, 16));
   assert.match(packageJson.scripts.test, /phase-d-pitch-review\.test\.mjs/);
   assert.match(page, /PitchReviewWorkspace/);
   for (const label of ["Logline Workshop", "Anchored Reviews", "Revision Compare", "Pitch Package", "Exports"]) assert.ok(workspace.includes(label), `Missing Phase D view: ${label}`);

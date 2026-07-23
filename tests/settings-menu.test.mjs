@@ -10,7 +10,7 @@ const reportPanel = await readFile(new URL("../app/settings-project-tools.tsx", 
 const reports = await readFile(new URL("../lib/screenplay-reports.ts", import.meta.url), "utf8");
 const terms = await readFile(new URL("../lib/screenplay-terms.ts", import.meta.url), "utf8");
 
-test("settings keep AI, music, and future plugins in one local model", () => {
+ test("settings keep AI, music, and future plugins in one local model", () => {
   assert.match(settings, /type PlotPickleSettings/);
   assert.match(settings, /provider: AiProviderKind/);
   assert.match(settings, /service: MusicService/);
@@ -47,30 +47,39 @@ test("music artist links are limited to Suno and Udio HTTPS profiles", () => {
   assert.match(settings, /hostname === "udio\.com"/);
 });
 
-test("Settings includes live character and actor-facing screenplay reports", () => {
+test("Settings includes live actor-facing reports and a current import audit", () => {
   assert.match(panel, /Reports/);
   assert.match(panel, /ScreenplayReports project={project}/);
-  for (const field of ["dialogueLines", "wordCount", "sceneNumbers", "sceneHeadings", "estimatedSpeakingSeconds"]) {
+  for (const field of ["dialogueLines", "dialogueEntries", "wordCount", "sceneNumbers", "sceneHeadings", "speakingSceneCoverage", "estimatedSpeakingSeconds"]) {
     assert.ok(reports.includes(field), `Character report is missing ${field}`);
   }
-  assert.match(reportPanel, /Scene breakdown by character/);
-  assert.match(reportPanel, /Dialogue lines/);
-  assert.match(reportPanel, /Spoken words/);
-  assert.match(reportPanel, /Print report/);
+  for (const phrase of ["Live screenplay intelligence", "Report is current", "Import and metadata audit", "Project hydration", "Scene breakdown by character", "Print report"]) {
+    assert.ok(reportPanel.includes(phrase), `Report UI is missing ${phrase}`);
+  }
+  assert.match(reports, /createScreenplayPopulationReport/);
+  for (const section of ["Project metadata", "Planner forms", "Characters, arcs and voiceprints", "96 Mini-Blocks", "Review and pitch package", "Production planning", "Collaboration metadata"]) {
+    assert.ok(reports.includes(section), `Population audit is missing ${section}`);
+  }
 });
 
-test("character reports work from both editable drafts and imported screenplay text", () => {
+test("character reports recalculate from editable drafts or imported source", () => {
   assert.match(reports, /screenplay\.draftElements\.length/);
   assert.match(reports, /parseScreenplay\(project\.screenplay\)/);
+  assert.match(reports, /metadata\.updatedAt/);
+  assert.match(reports, /signature/);
   assert.match(reports, /normalizeCharacterCue/);
   assert.match(reports, /countSpokenWords/);
 });
 
-test("Settings provides a searchable categorized screenplay terminology index", () => {
+test("Settings terminology is grouped, searchable, and concise or expanded", () => {
   assert.match(panel, /Terminology Index/);
-  assert.match(reportPanel, /Search terms/);
-  assert.match(reportPanel, /screenplayTermCategories/);
-  for (const term of ["Scene heading (slugline)", "Beat (story)", "Beat (pause)", "Ghost", "Mini-block", "V.O."]) {
+  for (const phrase of ["Search terms", "Concise", "Expanded", "screenplayTermCategories", "workspace.href", "related"]) {
+    assert.ok(reportPanel.includes(phrase), `Terminology UI is missing ${phrase}`);
+  }
+  for (const category of ["Writing", "Formatting", "Structure", "Character", "Production", "Revision", "PlotPickle", "Collaboration"]) {
+    assert.ok(terms.includes(`"${category}"`), `Terminology category is missing ${category}`);
+  }
+  for (const term of ["Scene heading (slugline)", "Beat (story)", "Beat (pause)", "Ghost", "Mini-block", "V.O.", "Pull request", "Collaboration proposal", "Production breakdown"]) {
     assert.ok(terms.includes(term), `Terminology index is missing ${term}`);
   }
 });

@@ -1,0 +1,50 @@
+name: Temporary Issue 26 Lint Fix
+
+on:
+  push:
+    branches:
+      - agent/issue-26-reports-terms-collaboration
+    paths:
+      - .github/workflows/fix-issue26-lint.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/issue-26-reports-terms-collaboration
+      - name: Apply exact lint fixes and remove diagnostics
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('app/github-collaboration.tsx')
+          text = path.read_text()
+          replacements = {
+              "this story's GitHub repository": "this story’s GitHub repository",
+              "repository's canonical branch": "repository’s canonical branch",
+              "another server's unmerged proposal": "another server’s unmerged proposal",
+              "this server's collaboration base": "this server’s collaboration base",
+          }
+          for before, after in replacements.items():
+              text = text.replace(before, after)
+          path.write_text(text)
+
+          path = Path('lib/screenplay-import.ts')
+          text = path.read_text().replace('  let imported: PlotPickleProject = {', '  const imported: PlotPickleProject = {')
+          path.write_text(text)
+          PY
+          rm -f docs/issue26-lint.log docs/issue26-lint.exit
+          rm -f .github/workflows/fix-issue26-lint.yml
+      - name: Commit lint fixes
+        shell: bash
+        run: |
+          git config user.name "PlotPickle Release Engineering"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Fix Issue 26 lint findings and remove diagnostics"
+          git push origin HEAD:agent/issue-26-reports-terms-collaboration

@@ -483,6 +483,8 @@ export function createProjectFromScreenplay(screenplay: ScreenplayDocument): Plo
   const targetMinutes = Math.max(24, stats.pages || Math.ceil(elements.length / 55));
   const language = /^Title:/im.test(document.sourceText) || /\b(?:INT|EXT)\./i.test(document.sourceText) ? "English detected; confirm language and translations." : "Confirm screenplay language and translation requirements.";
 
+  const development = project.development;
+
   const imported: PlotPickleProject = {
     ...project,
     id: idFor("project", `${title}-${now}`),
@@ -538,6 +540,7 @@ export function createProjectFromScreenplay(screenplay: ScreenplayDocument): Plo
         visualVision: `Use the screenplay's ${locations.length} detected locations, recurring actions, and visible contrasts as the visual foundation.`,
       },
       ghost: {
+        ...development.ghost,
         centralWound: `Suggested question: what happened before page one that still shapes ${protagonist}?`,
         origin: "Locate the event, relationship, loss, shame, inheritance, or false conclusion that created the wound.",
         lie: `State the protective belief ${protagonist} thinks is necessary for survival.`,
@@ -546,6 +549,7 @@ export function createProjectFromScreenplay(screenplay: ScreenplayDocument): Plo
         truth: `State the truth the ending requires ${protagonist} to live through action.`,
       },
       catalyst: {
+        ...development.catalyst,
         event: excerpt(catalystElements.filter((item) => item.type === "action"), 700) || "Identify the exact disruptive event.",
         timing: "Suggested from the early screenplay position; confirm the precise inciting moment and page.",
         immediateImpact: blocks[1]?.consequence || "Describe what changes before the protagonist is ready.",
@@ -554,6 +558,7 @@ export function createProjectFromScreenplay(screenplay: ScreenplayDocument): Plo
         doorway: blocks[5]?.consequence || "Identify the action that makes return to the old normal impossible.",
       },
       foundations: {
+        ...development.foundations,
         protagonist,
         objective: `Review ${protagonist}'s repeated actions and dialogue to state the story-level objective precisely.`,
         opposition: blocks.map((block) => block.conflict).find((value) => value && !value.startsWith("Review")) ?? "Identify the person, system, circumstance, or inner strategy that can stop the objective.",
@@ -563,6 +568,7 @@ export function createProjectFromScreenplay(screenplay: ScreenplayDocument): Plo
         endingProof: blocks[23]?.consequence || "Identify the final visible choice that proves change or refusal.",
       },
       pickle: {
+        ...development.pickle,
         centralTension: `What will happen as ${protagonist}'s objective meets the script's central opposition?`,
         audienceQuestion: `What does the audience keep predicting, hoping, or fearing for ${protagonist}?`,
         storyPromise: "Review the repeated dramatic pattern established by the imported scenes.",

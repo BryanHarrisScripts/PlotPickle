@@ -109,7 +109,7 @@ export function ScreenplayReports({ project }: { project: PlotPickleProject }) {
           ))}
         </div>
       ) : null}
-      <p className={styles.note}>Dialogue entries count screenplay dialogue elements; source lines count deliberate line breaks. Speaking time uses 130 words per minute and excludes pauses, action, and performance choices.</p>
+      <p className={styles.note}>Dialogue entries count screenplay dialogue elements; source lines count deliberate line breaks. Speaking time uses 130 words per minute and excludes pauses, action, and performance choices. Revision snapshots remain available in Settings → Core Model for named before-and-after comparison.</p>
     </>
   );
 }

@@ -184,6 +184,18 @@ export function createAfterglowProject(): PlotPickleProject {
         sources: "Afterglow v9 Twitter Rewrite Bryan E. Harris 2023; Afterglow Storyboard Blocks 1–21; Bryan Harris's 24 Blocks framework; CC BY-SA 4.0.",
       },
     },
+    collaboration: {
+      ...base.collaboration,
+      provider: "none",
+      repositoryUrl: "https://github.com/BryanHarrisScripts/Afterglow-Echoes-of-Sentience",
+      sourceRepositoryUrl: "https://github.com/BryanHarrisScripts/Afterglow-Echoes-of-Sentience",
+      owner: "BryanHarrisScripts",
+      repo: "Afterglow-Echoes-of-Sentience",
+      branch: "main",
+      projectPath: "stories/afterglow-reflections-of-sentience.ppf",
+      syncEnabled: false,
+      updatedAt: importedAt,
+    },
     screenplay,
     blocks: [],
   };

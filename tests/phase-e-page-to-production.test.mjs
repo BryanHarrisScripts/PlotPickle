@@ -9,7 +9,7 @@ test("PlotPickle 0.17 exposes the complete page-to-production workspace", async 
   const packageJson = JSON.parse(await source("package.json"));
   const workspace = await source("app/preproduction-workspace.tsx");
   const page = await source("app/production/page.tsx");
-  assert.equal(packageJson.version, "0.17.0");
+  assert.ok(packageJson.version === "0.17.0" || packageJson.version.startsWith("1.0.0-rc."));
   for (const phrase of ["Shot Designer", "Sonic Bible", "Animatic", "Production Breakdowns", "shooting schedule", "Distribution and Marketing Planner"]) {
     assert.ok(`${workspace}\n${page}`.includes(phrase), `Missing Phase E workspace: ${phrase}`);
   }

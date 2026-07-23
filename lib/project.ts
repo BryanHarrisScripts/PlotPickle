@@ -445,6 +445,23 @@ export type ProductionWorkspace = {
   distribution: DistributionMarketingPlan;
 };
 
+export type ProjectCollaborationProvider = "none" | "github";
+
+export type ProjectCollaboration = {
+  provider: ProjectCollaborationProvider;
+  repositoryUrl: string;
+  sourceRepositoryUrl: string;
+  owner: string;
+  repo: string;
+  branch: string;
+  projectPath: string;
+  syncEnabled: boolean;
+  lastPulledCommit: string;
+  lastPushedCommit: string;
+  connectedAt: string;
+  updatedAt: string;
+};
+
 export type RevisionSnapshot = {
   id: string;
   label: string;
@@ -577,6 +594,7 @@ export type PlotPickleProject = {
   revisions: RevisionSnapshot[];
   review: ReviewWorkspace;
   production: ProductionWorkspace;
+  collaboration: ProjectCollaboration;
 };
 
 export const beatTemplates = [
@@ -711,6 +729,23 @@ export function createBlankProductionWorkspace(): ProductionWorkspace {
       milestones: [],
       updatedAt: now,
     },
+  };
+}
+
+export function createBlankCollaboration(): ProjectCollaboration {
+  return {
+    provider: "none",
+    repositoryUrl: "",
+    sourceRepositoryUrl: "",
+    owner: "",
+    repo: "",
+    branch: "main",
+    projectPath: "",
+    syncEnabled: false,
+    lastPulledCommit: "",
+    lastPushedCommit: "",
+    connectedAt: "",
+    updatedAt: new Date().toISOString(),
   };
 }
 
@@ -879,6 +914,7 @@ export function createBlankProject(): PlotPickleProject {
     revisions: [],
     review: createBlankReviewWorkspace("Untitled Story"),
     production: createBlankProductionWorkspace(),
+    collaboration: createBlankCollaboration(),
   };
 }
 
@@ -908,6 +944,7 @@ export function isPlotPickleProject(value: unknown): value is PlotPickleProject 
     Array.isArray(candidate.revisions) &&
     Boolean(candidate.review) &&
     Boolean(candidate.production) &&
+    Boolean(candidate.collaboration) &&
     candidate.blocks.every((block) => {
       if (!Array.isArray(block.scenes) || block.scenes.length < 1) return false;
       const miniNumbers = block.scenes.flatMap((scene) => Array.isArray(scene.miniBlocks)
@@ -1249,6 +1286,26 @@ function normalizeProductionWorkspace(value: unknown): ProductionWorkspace {
   };
 }
 
+function normalizeCollaboration(value: unknown): ProjectCollaboration {
+  const defaults = createBlankCollaboration();
+  if (!value || typeof value !== "object") return defaults;
+  const candidate = value as Partial<ProjectCollaboration>;
+  return {
+    provider: candidate.provider === "github" ? "github" : "none",
+    repositoryUrl: typeof candidate.repositoryUrl === "string" ? candidate.repositoryUrl : "",
+    sourceRepositoryUrl: typeof candidate.sourceRepositoryUrl === "string" ? candidate.sourceRepositoryUrl : "",
+    owner: typeof candidate.owner === "string" ? candidate.owner : "",
+    repo: typeof candidate.repo === "string" ? candidate.repo : "",
+    branch: typeof candidate.branch === "string" && candidate.branch ? candidate.branch : "main",
+    projectPath: typeof candidate.projectPath === "string" ? candidate.projectPath : "",
+    syncEnabled: Boolean(candidate.syncEnabled),
+    lastPulledCommit: typeof candidate.lastPulledCommit === "string" ? candidate.lastPulledCommit : "",
+    lastPushedCommit: typeof candidate.lastPushedCommit === "string" ? candidate.lastPushedCommit : "",
+    connectedAt: typeof candidate.connectedAt === "string" ? candidate.connectedAt : "",
+    updatedAt: typeof candidate.updatedAt === "string" ? candidate.updatedAt : defaults.updatedAt,
+  };
+}
+
 export function normalizePlotPickleProject(value: unknown): PlotPickleProject | null {
   if (!value || typeof value !== "object") return null;
   const candidate = value as Record<string, unknown> & {
@@ -1267,6 +1324,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     revisions?: RevisionSnapshot[];
     review?: ReviewWorkspace;
     production?: ProductionWorkspace;
+    collaboration?: ProjectCollaboration;
   };
   if (
     !["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0"].includes(candidate.schemaVersion ?? "") ||
@@ -1333,6 +1391,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     revisions: normalizeRevisions(candidate.revisions),
     review: normalizeReviewWorkspace(candidate.review, candidate.metadata.title),
     production: normalizeProductionWorkspace(candidate.production),
+    collaboration: normalizeCollaboration(candidate.collaboration),
   };
 }
 

@@ -222,6 +222,7 @@ export type RevisionSnapshotPayload = {
   storyThreads: StoryThread[];
   review: ReviewWorkspace;
   production: PlotPickleProject["production"];
+  collaboration: PlotPickleProject["collaboration"];
 };
 
 export type RevisionSnapshot = {
@@ -588,6 +589,7 @@ export function captureRevisionPayload(project: PhaseOneProject): RevisionSnapsh
     storyThreads: project.storyThreads,
     review: project.review,
     production: project.production,
+    collaboration: project.collaboration,
   });
 }
 

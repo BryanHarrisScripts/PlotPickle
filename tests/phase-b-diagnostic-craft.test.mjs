@@ -5,6 +5,11 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
+function versionAtLeast(version, requiredMinor) {
+  const [major, minor] = version.split(".").map(Number);
+  return major >= 1 || (major === 0 && minor >= requiredMinor);
+}
+
 test("Phase B provides diagnostic engines for movements, scenes, threads, ledgers, arcs and time", async () => {
   const diagnostics = await source("lib/craft-diagnostics.ts");
   for (const operation of [
@@ -49,7 +54,7 @@ test("Structure, Writer and DraftLens embed the same diagnostic engine", async (
 test("the Phase B completion standard remains documented in later releases", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   const documentation = await source("docs/phase-b-diagnostic-craft.md");
-  assert.ok(Number(packageJson.version.split(".")[1]) >= 14, "Phase B requires PlotPickle 0.14 or later");
+  assert.ok(versionAtLeast(packageJson.version, 14), "Phase B requires PlotPickle 0.14 or later");
   assert.match(documentation, /what function is weak/);
   assert.match(documentation, /why that function matters/);
   assert.match(documentation, /story movement, scene, thread or character arc/);

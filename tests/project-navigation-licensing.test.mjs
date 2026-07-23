@@ -8,6 +8,11 @@ async function source(path) {
   return readFile(new URL(path, root), "utf8");
 }
 
+function versionAtLeast(version, requiredMinor) {
+  const [major, minor] = version.split(".").map(Number);
+  return major >= 1 || (major === 0 && minor >= requiredMinor);
+}
+
 test("main application exposes the grouped project rail and local-only product model", async () => {
   const page = await source("app/page.tsx");
   for (const phrase of [
@@ -81,7 +86,7 @@ test("overview and structure summary explain their contracts before deeper work"
 
 test("PlotPickle declares software, method, user, contribution, and brand rights separately", async () => {
   const packageJson = JSON.parse(await source("package.json"));
-  assert.ok(Number(packageJson.version.split(".")[1]) >= 16);
+  assert.ok(versionAtLeast(packageJson.version, 16));
   assert.equal(packageJson.license, "AGPL-3.0-or-later");
 
   const legal = await source("app/legal/page.tsx");

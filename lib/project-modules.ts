@@ -1,6 +1,6 @@
 import type { Character, PlotPickleProject, StoryBlock } from "./project";
 
-export const MODULE_FORMAT_VERSION = "2.1.0" as const;
+export const MODULE_FORMAT_VERSION = "2.2.0" as const;
 
 export type ModuleManifestEntry = {
   id: string;
@@ -33,6 +33,7 @@ export const coreModuleRegistry: ModuleDescriptor[] = [
   { key: "production", type: "plotpickle.production", path: "production/module.json", required: false, dependencies: ["screenplay", "storyboard"] },
   { key: "research", type: "plotpickle.research", path: "research/index.json", required: false },
   { key: "canon", type: "plotpickle.canon", path: "canon/index.json", required: true, dependencies: ["story", "characters", "world"] },
+  { key: "dependencies", type: "plotpickle.story-dependencies", path: "dependencies/graph.json", required: true, dependencies: ["story", "characters", "world", "screenplay", "structure", "storyboard", "production", "canon"] },
   { key: "review", type: "plotpickle.review", path: "review/module.json", required: false, dependencies: ["story"] },
   { key: "revisions", type: "plotpickle.revisions", path: "reports/revisions.json", required: false },
   { key: "collaboration", type: "plotpickle.collaboration", path: "collaboration/module.json", required: false },

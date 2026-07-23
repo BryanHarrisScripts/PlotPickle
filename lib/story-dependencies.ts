@@ -102,16 +102,20 @@ export function buildStoryDependencies(project: PlotPickleProject, generatedAt =
     for (const threadId of element.threadIds) addEdge(edges, threadId, element.id, "referenced-by");
   }
 
+  const blockIdByNumber = new Map(project.blocks.map((block) => [block.number, block.id]));
   for (const shot of project.production.shots) {
-    node(nodes, { id: shot.id, kind: "production-shot", label: shot.description || shot.shotType || shot.id, module: "production" });
+    node(nodes, { id: shot.id, kind: "production-shot", label: shot.purpose || shot.shotSize || shot.id, module: "production" });
     if (shot.sceneId) addEdge(edges, shot.sceneId, shot.id, "covered-by");
-    if (shot.blockId) addEdge(edges, shot.blockId, shot.id, "covered-by");
-    if (shot.storyboardFrameId) addEdge(edges, shot.storyboardFrameId, shot.id, "realized-as");
+    const blockId = blockIdByNumber.get(shot.blockNumber);
+    if (blockId) addEdge(edges, blockId, shot.id, "covered-by");
+    if (shot.frameId) addEdge(edges, shot.frameId, shot.id, "realized-as");
+    for (const elementId of shot.screenplayElementIds) addEdge(edges, elementId, shot.id, "covered-by");
   }
   for (const cue of project.production.cues) {
-    node(nodes, { id: cue.id, kind: "production-cue", label: cue.label || cue.description || cue.id, module: "production" });
+    node(nodes, { id: cue.id, kind: "production-cue", label: cue.title || cue.purpose || cue.id, module: "production" });
     if (cue.sceneId) addEdge(edges, cue.sceneId, cue.id, "scored-by");
-    if (cue.blockId) addEdge(edges, cue.blockId, cue.id, "scored-by");
+    const blockId = blockIdByNumber.get(cue.blockNumber);
+    if (blockId) addEdge(edges, blockId, cue.id, "scored-by");
   }
 
   const references: Record<string, string[]> = {};
@@ -156,5 +160,5 @@ export function impactForNode(snapshot: StoryDependencySnapshot, nodeId: string)
   const outgoing = snapshot.references[nodeId] ?? [];
   const incoming = snapshot.reverseIndex[nodeId] ?? [];
   const affected = [...new Set([...outgoing, ...incoming])];
-  return { nodeId, directlyAffected: affected, count: affected.length, nodes: snapshot.graph.nodes.filter((node) => affected.includes(node.id)) };
+  return { nodeId, directlyAffected: affected, count: affected.length, nodes: snapshot.graph.nodes.filter((item) => affected.includes(item.id)) };
 }

@@ -5,7 +5,7 @@ on:
     branches:
       - agent/issue-26-reports-terms-collaboration
     paths:
-      - .github/issue26-payload.b64
+      - .github/issue26-payload.04.b64
 
 permissions:
   contents: write
@@ -22,7 +22,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          base64 --decode .github/issue26-payload.b64 | tar -xzf -
+          cat .github/issue26-payload.*.b64 | base64 --decode | tar -xzf -
           python - <<'PY'
           from pathlib import Path
           readme = Path('README.md')
@@ -47,7 +47,7 @@ jobs:
           readme.write_text(text)
           PY
           npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          rm -f .github/issue26-payload.b64 .github/workflows/issue26-apply.yml
+          rm -f .github/issue26-payload.*.b64 .github/workflows/issue26-apply.yml
       - name: Commit completed Issue 26 implementation
         shell: bash
         run: |

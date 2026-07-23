@@ -21,7 +21,7 @@ test("PlotPickle 1.0 candidate defines a portable .ppf boundary", async () => {
 
 test("local project storage uses atomic saves, integrity checks, and rolling backups", async () => {
   const gateway = await source("build/local-project-gateway.ts");
-  for (const phrase of ["atomicWrite", "handle.sync", "rename(temporary, filePath)", "createBackup", "BACKUP_LIMIT = 20", "integrity check failed", "/api/local-projects/library", "/api/local-projects/recover"]) {
+  for (const phrase of ["atomicWrite", "handle.sync", "rename(temporary, filePath)", "createBackup", "BACKUP_LIMIT = 20", "integrity check failed", "${PROJECT_API}/library", "${PROJECT_API}/recover"]) {
     assert.ok(gateway.includes(phrase), `Missing local storage protection: ${phrase}`);
   }
   const scriptPath = fileURLToPath(new URL("../scripts/project-recovery-smoke.mjs", import.meta.url));

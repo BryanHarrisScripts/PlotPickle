@@ -38,3 +38,7 @@ A submitted proposal is durable evidence of one local server's work at a known c
 ## Compatibility guarantees
 
 The expanded importer preserves existing development subobjects while populating Ghost, Catalyst, Foundations and Pickle suggestions. Reports continue to point writers to named revision snapshots in the Core Model, so the new live report interface does not remove established revision workflows.
+
+## Release validation
+
+The RC2 source tree is validated through the normal pull-request quality, build and release-candidate workflows. This documentation-only commit makes those workflows exercise the exact implementation committed at `6173e310095083423a1b4badcd24c39b2806b104`.

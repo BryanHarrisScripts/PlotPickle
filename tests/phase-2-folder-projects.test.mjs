@@ -8,9 +8,9 @@ const viteSource = await readFile(new URL("../vite.config.ts", import.meta.url),
 
 test("Phase 2 folder projects remain readable after modular evolution", () => {
   assert.match(folderSource, /PROJECT_FOLDER_FORMAT = "plotpickle-project"/);
-  assert.match(folderSource, /PROJECT_FOLDER_VERSION = "2\.2\.0"/);
+  assert.match(folderSource, /PROJECT_FOLDER_VERSION = "2\.3\.0"/);
   assert.match(folderSource, /manifest\.formatVersion === "2\.0\.0"/);
-  assert.match(folderSource, /"2\.0\.0", "2\.1\.0", PROJECT_FOLDER_VERSION/);
+  for (const version of ["2.0.0", "2.1.0", "2.2.0"]) assert.match(folderSource, new RegExp(version.replaceAll(".", "\\.")));
   assert.match(folderSource, /"manifest\.json"/);
   assert.match(folderSource, /screenplay\/module\.json/);
   assert.match(folderSource, /canon\/rights\.json/);

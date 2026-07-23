@@ -55,23 +55,40 @@ jobs:
         run: |
           cd releases/stage
           zip -X -r "../${{ matrix.archive }}" "${{ matrix.folder }}"
-      - name: Clean-machine extraction and dependency test
+      - name: Clean-machine extraction and dependency test (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $clean = Join-Path $env:RUNNER_TEMP "plotpickle-clean"
+          if (Test-Path $clean) { Remove-Item $clean -Recurse -Force }
+          New-Item -ItemType Directory -Path $clean | Out-Null
+          Expand-Archive -Path "releases/${{ matrix.archive }}" -DestinationPath $clean -Force
+          $packageRoot = Join-Path $clean "${{ matrix.folder }}"
+          if (-not (Test-Path $packageRoot)) { throw "The extracted PlotPickle package folder is missing." }
+          Set-Location $packageRoot
+          if (Test-Path "node_modules") { throw "The release archive must not contain node_modules." }
+          npm ci --no-audit --no-fund
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/package-smoke.mjs .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & ".\node_modules\.bin\vite.cmd" --version
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/windows-runtime.mjs describe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Clean-machine extraction and dependency test (macOS and Linux)
+        if: matrix.platform != 'windows'
         shell: bash
         run: |
           clean="$RUNNER_TEMP/plotpickle-clean"
           rm -rf "$clean"
           mkdir -p "$clean"
-          if command -v powershell.exe >/dev/null 2>&1; then
-            powershell.exe -NoProfile -Command "Expand-Archive -Path '$(pwd)/releases/${{ matrix.archive }}' -DestinationPath '$clean' -Force"
-          else
-            unzip -q "releases/${{ matrix.archive }}" -d "$clean"
-          fi
+          unzip -q "releases/${{ matrix.archive }}" -d "$clean"
           cd "$clean/${{ matrix.folder }}"
           test ! -d node_modules
           npm ci --no-audit --no-fund
           node scripts/package-smoke.mjs .
           node_modules/.bin/vite --version
-          if [ "${{ matrix.platform }}" = "windows" ]; then node scripts/windows-runtime.mjs describe; else node scripts/portable-runtime.mjs describe; fi
+          node scripts/portable-runtime.mjs describe
       - name: Create SHA-256 checksum
         shell: bash
         run: |

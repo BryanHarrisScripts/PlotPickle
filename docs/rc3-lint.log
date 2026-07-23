@@ -1,0 +1,42 @@
+
+> plotpickle@1.0.0-rc.3 lint
+> bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next
+
+
+/home/runner/work/PlotPickle/PlotPickle/app/dialectic-worksheet.tsx
+  16:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/runner/work/PlotPickle/PlotPickle/app/dialectic-worksheet.tsx:16:5
+  14 |
+  15 |   useEffect(() => {
+> 16 |     setThesis(project.story.theme);
+     |     ^^^^^^^^^ Avoid calling setState() directly within an effect
+  17 |     setAntithesis(project.story.antiTheme);
+  18 |     setSynthesis(project.development.foundations.transformation);
+  19 |     setEndingProof(project.development.foundations.endingProof);  react-hooks/set-state-in-effect
+
+/home/runner/work/PlotPickle/PlotPickle/app/preproduction-workspace.tsx
+  131:109  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  169:72   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  171:265  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/home/runner/work/PlotPickle/PlotPickle/app/structure/page.tsx
+  164:9  warning  'totalBeats' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/PlotPickle/PlotPickle/lib/ai/adapters.ts
+   75:21  warning  '_request' is defined but never used  @typescript-eslint/no-unused-vars
+   79:21  warning  '_id' is defined but never used       @typescript-eslint/no-unused-vars
+  233:23  warning  '_request' is defined but never used  @typescript-eslint/no-unused-vars
+  280:23  warning  '_request' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/PlotPickle/PlotPickle/lib/preproduction.ts
+  1:10  warning  'cloneProject' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 10 problems (1 error, 9 warnings)
+

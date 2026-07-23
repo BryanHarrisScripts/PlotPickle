@@ -4,6 +4,11 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 
+function versionAtLeast(version, requiredMinor) {
+  const [major, minor] = version.split(".").map(Number);
+  return major >= 1 || (major === 0 && minor >= requiredMinor);
+}
+
 test("PlotPickle 0.15 exposes every specialist lab", async () => {
   const [workspace, hub, packageSource] = await Promise.all([
     read("../app/specialist-labs.tsx"),
@@ -11,7 +16,7 @@ test("PlotPickle 0.15 exposes every specialist lab", async () => {
     read("../package.json"),
   ]);
   const packageJson = JSON.parse(packageSource);
-  assert.ok(Number(packageJson.version.split(".")[1]) >= 15);
+  assert.ok(versionAtLeast(packageJson.version, 15));
   for (const label of [
     "AI Prompt Lab",
     "Dialogue Lab",

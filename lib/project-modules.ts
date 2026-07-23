@@ -46,19 +46,22 @@ export function safeModuleStem(value: string, fallback: string) {
   return stem || fallback;
 }
 
-function uniqueStem(value: string, id: string, used: Set<string>, fallback: string) {
+function uniqueStem(value: string, used: Set<string>, fallback: string) {
   const base = safeModuleStem(value, fallback);
   let stem = base;
   let count = 2;
-  while (used.has(stem)) stem = `${base}-${count++}`;
+  while (used.has(stem)) {
+    stem = `${base}-${count}`;
+    count += 1;
+  }
   used.add(stem);
-  return { stem, id };
+  return stem;
 }
 
 export function characterModuleFiles(characters: Character[]) {
   const used = new Set<string>();
   const items = characters.map((character) => {
-    const { stem } = uniqueStem(character.name, character.id, used, "character");
+    const stem = uniqueStem(character.name, used, "character");
     return { id: character.id, name: character.name, path: `characters/${stem}.json`, value: character };
   });
   return {
@@ -70,7 +73,7 @@ export function characterModuleFiles(characters: Character[]) {
 export function voiceprintModuleFiles(characters: Character[]) {
   const used = new Set<string>();
   const items = characters.map((character) => {
-    const { stem } = uniqueStem(character.name, character.id, used, "character");
+    const stem = uniqueStem(character.name, used, "character");
     const voiceprint = {
       characterId: character.id,
       characterName: character.name,

@@ -1,4 +1,4 @@
-import { chmod, copyFile, mkdir, open, readFile, readdir, rename, rm, stat, unlink, writeFile } from "node:fs/promises";
+import { chmod, copyFile, mkdir, open, readFile, readdir, rename, rm, stat, unlink } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -227,7 +227,7 @@ async function githubRequest(connection: GitHubConnection, endpoint: string, ini
     error.status = response.status;
     throw error;
   }
-  return body as Record<string, unknown>;
+  return body;
 }
 
 async function verifyGitHubConnection(input: Record<string, unknown>, saved: GitHubConnection | null) {
@@ -250,11 +250,14 @@ async function verifyGitHubConnection(input: Record<string, unknown>, saved: Git
 async function githubPull(connection: GitHubConnection) {
   const endpoint = `/repos/${encodeURIComponent(connection.owner)}/${encodeURIComponent(connection.repo)}/contents/${connection.projectPath.split("/").map(encodeURIComponent).join("/")}?ref=${encodeURIComponent(connection.branch)}`;
   const body = await githubRequest(connection, endpoint);
-  if (typeof body.content !== "string" || typeof body.sha !== "string") throw new Error("The GitHub story file is missing content or a revision SHA.");
-  const decoded = Buffer.from(body.content.replace(/\s/g, ""), "base64").toString("utf8");
+  if (!body || typeof body !== "object" || typeof (body as Record<string, unknown>).content !== "string" || typeof (body as Record<string, unknown>).sha !== "string") {
+    throw new Error("The GitHub story file is missing content or a revision SHA.");
+  }
+  const record = body as Record<string, unknown>;
+  const decoded = Buffer.from(String(record.content).replace(/\s/g, ""), "base64").toString("utf8");
   const portable = parsePortableProjectFile(decoded);
   if (!portable.integrityValid) throw new Error("The GitHub .ppf file failed its integrity check.");
-  return { project: portable.project, portable: portable.file, remoteSha: body.sha };
+  return { project: portable.project, portable: portable.file, remoteSha: String(record.sha) };
 }
 
 async function githubPush(connection: GitHubConnection, project: PlotPickleProject, message: string) {
@@ -262,7 +265,7 @@ async function githubPush(connection: GitHubConnection, project: PlotPickleProje
   let existingSha: string | undefined;
   try {
     const current = await githubRequest(connection, `/repos/${encodeURIComponent(connection.owner)}/${encodeURIComponent(connection.repo)}/contents/${connection.projectPath.split("/").map(encodeURIComponent).join("/")}?ref=${encodeURIComponent(connection.branch)}`);
-    existingSha = typeof current.sha === "string" ? current.sha : undefined;
+    if (current && typeof current === "object" && typeof (current as Record<string, unknown>).sha === "string") existingSha = String((current as Record<string, unknown>).sha);
   } catch (error) {
     if ((error as Error & { status?: number }).status !== 404) throw error;
   }
@@ -276,7 +279,8 @@ async function githubPush(connection: GitHubConnection, project: PlotPickleProje
       ...(existingSha ? { sha: existingSha } : {}),
     }),
   });
-  const commit = body.commit && typeof body.commit === "object" ? body.commit as { sha?: unknown; html_url?: unknown } : {};
+  const responseRecord = body && typeof body === "object" ? body as Record<string, unknown> : {};
+  const commit = responseRecord.commit && typeof responseRecord.commit === "object" ? responseRecord.commit as { sha?: unknown; html_url?: unknown } : {};
   return { commitSha: typeof commit.sha === "string" ? commit.sha : "", commitUrl: typeof commit.html_url === "string" ? commit.html_url : "" };
 }
 

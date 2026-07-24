@@ -1,5 +1,6 @@
 name: PlotPickle Quality
 
+# CI refresh: force a clean workflow run after Actions availability was restored.
 on:
   push:
     branches: [main]

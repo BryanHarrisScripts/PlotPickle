@@ -104,3 +104,43 @@ test("marketing is routed outside screenplay editing", async () => {
   assert.match(playbooks, /destination: "Pitch & Review"/);
   assert.match(playbooks, /Route approved copy to Pitch & Review or Distribution, never into screenplay pages/);
 });
+
+test("AI Prompt Lab exposes pass, operation and canonical scope controls", async () => {
+  const labs = await source("app/specialist-labs.tsx");
+  for (const integration of [
+    "aiRevisionPlaybooks",
+    "buildGuidedRevisionPrompt",
+    "revisionOperations",
+    "revisionScopes",
+    "Guided revision pass",
+    "Operation",
+    "Canonical scope",
+    "Prepare reviewable guided prompt",
+  ]) assert.ok(labs.includes(integration), `Missing Prompt Lab integration: ${integration}`);
+  assert.match(labs, /Prompt assembled locally; no project text changed and no AI call was required/);
+  assert.match(labs, /Object\.entries\(review\.metadata\)/);
+});
+
+test("Read and Learn exposes the generated AI-Assisted Revision collection", async () => {
+  const collection = await source("app/learning-ai-revision.ts");
+  const studio = await source("app/learning-studio.tsx");
+  assert.match(collection, /aiRevisionPlaybooks\.map/);
+  assert.match(collection, /collection: "AI-Assisted Revision"/);
+  for (const field of ["sourceResources", "useWhen", "avoidWhen", "defaultOperation", "canonicalScopes", "evaluation", "failureModes", "destination", "workspaceHref"]) {
+    assert.ok(collection.includes(field), `Missing learning field: ${field}`);
+  }
+  assert.match(studio, /AI-Assisted Revision/);
+  assert.match(studio, /ai-revision-structure-causality/);
+  assert.match(studio, /ai-revision-scene-purpose-turn/);
+  assert.match(studio, /window\.location\.assign\(module\.workspaceHref\)/);
+});
+
+test("guided recommendations remain contextual and revision remains explicit", async () => {
+  const labs = await source("app/specialist-labs.tsx");
+  const studio = await source("app/learning-studio.tsx");
+  assert.match(labs, /project\.screenplay\.draftElements\.length/);
+  assert.match(labs, /Recommendations are optional and never run automatically/);
+  assert.match(studio, /function recommendations\(blockNumber, miniBlockNumber\)/);
+  assert.match(studio, /AI-assisted pass/);
+  assert.doesNotMatch(labs, /defaultOperation.*Propose a revision for review/);
+});

@@ -140,7 +140,7 @@ test("guided recommendations remain contextual and revision remains explicit", a
   const studio = await source("app/learning-studio.tsx");
   assert.match(labs, /project\.screenplay\.draftElements\.length/);
   assert.match(labs, /Recommendations are optional and never run automatically/);
-  assert.match(studio, /function recommendations\(blockNumber, miniBlockNumber\)/);
+  assert.match(studio, /function recommendations\(blockNumber: number, miniBlockNumber: number\)/);
   assert.match(studio, /guided revision passes/);
   assert.doesNotMatch(labs, /defaultOperation.*Propose a revision for review/);
 });

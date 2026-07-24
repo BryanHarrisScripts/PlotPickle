@@ -1,0 +1,129 @@
+name: Issue 52 release validation
+
+on:
+  push:
+    branches:
+      - issue-52-contributor-handbook
+    paths:
+      - .github/issue52-release-ready
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: Validate ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows
+            folder: PlotPickle-Windows
+            archive: PlotPickle-Windows.zip
+          - os: macos-latest
+            platform: macos
+            folder: PlotPickle-macOS
+            archive: PlotPickle-macOS.zip
+          - os: ubuntu-latest
+            platform: linux
+            folder: PlotPickle-Linux
+            archive: PlotPickle-Linux.zip
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: issue-52-contributor-handbook
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.19.0"
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - name: Stage release package
+        run: node scripts/package-platform.mjs ${{ matrix.platform }}
+      - name: Verify staged package
+        run: node scripts/package-smoke.mjs releases/stage/${{ matrix.folder }}
+      - name: Archive Windows package
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: Compress-Archive -Path "releases/stage/${{ matrix.folder }}" -DestinationPath "releases/${{ matrix.archive }}" -CompressionLevel Optimal
+      - name: Archive macOS or Linux package
+        if: matrix.platform != 'windows'
+        shell: bash
+        run: |
+          cd releases/stage
+          zip -X -r "../${{ matrix.archive }}" "${{ matrix.folder }}"
+      - name: Clean-machine extraction and dependency test (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $clean = Join-Path $env:RUNNER_TEMP "plotpickle-clean"
+          if (Test-Path $clean) { Remove-Item $clean -Recurse -Force }
+          New-Item -ItemType Directory -Path $clean | Out-Null
+          Expand-Archive -Path "releases/${{ matrix.archive }}" -DestinationPath $clean -Force
+          $packageRoot = Join-Path $clean "${{ matrix.folder }}"
+          if (-not (Test-Path $packageRoot)) { throw "The extracted PlotPickle package folder is missing." }
+          Set-Location $packageRoot
+          if (Test-Path "node_modules") { throw "The release archive must not contain node_modules." }
+          npm ci --no-audit --no-fund
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/package-smoke.mjs .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & ".\node_modules\.bin\vite.cmd" --version
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/windows-runtime.mjs describe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Clean-machine extraction and dependency test (macOS and Linux)
+        if: matrix.platform != 'windows'
+        shell: bash
+        run: |
+          clean="$RUNNER_TEMP/plotpickle-clean"
+          rm -rf "$clean"
+          mkdir -p "$clean"
+          unzip -q "releases/${{ matrix.archive }}" -d "$clean"
+          cd "$clean/${{ matrix.folder }}"
+          test ! -d node_modules
+          npm ci --no-audit --no-fund
+          node scripts/package-smoke.mjs .
+          node_modules/.bin/vite --version
+          node scripts/portable-runtime.mjs describe
+      - name: Write platform result
+        if: always()
+        shell: bash
+        run: echo "${{ matrix.platform }}=${{ job.status }}" > "issue52-${{ matrix.platform }}.txt"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: issue52-release-${{ matrix.platform }}
+          path: issue52-${{ matrix.platform }}.txt
+          if-no-files-found: error
+
+  record:
+    if: always()
+    needs: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: issue-52-contributor-handbook
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: issue52-release-*
+          path: issue52-results
+          merge-multiple: true
+      - name: Record and clean one-time validation
+        run: |
+          {
+            echo "matrix_status=${{ needs.package.result }}"
+            cat issue52-results/issue52-*.txt | sort
+          } > .github/issue52-release-validation-result.txt
+          git config user.name "PlotPickle Actions"
+          git config user.email "actions@users.noreply.github.com"
+          git rm .github/workflows/issue52-release-validation.yml .github/issue52-release-ready
+          git add .github/issue52-release-validation-result.txt
+          git commit -m "Record issue 52 release validation"
+          git push origin HEAD:issue-52-contributor-handbook

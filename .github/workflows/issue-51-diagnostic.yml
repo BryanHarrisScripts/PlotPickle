@@ -1,0 +1,27 @@
+name: Issue 51 diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Capture lint output
+        shell: bash
+        run: |
+          npm run lint > issue-51-lint.log 2>&1 || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: issue-51-lint-log
+          path: issue-51-lint.log

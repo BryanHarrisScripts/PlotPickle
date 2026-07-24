@@ -3,6 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import type { PlotPickleProject } from "@/lib/project";
 import { aiRevisionLessons, aiRevisionLessonSearchText, type AiRevisionLesson } from "./learning-ai-revision";
+import {
+  collaborationOwnershipLessons,
+  collaborationOwnershipSearchText,
+  workflowChoices,
+  type CollaborationOwnershipLesson,
+  type WorkflowChoice,
+} from "./learning-collaboration-ownership";
 import { learningModules, learningPaths, moduleSearchText, type LearningModule } from "./learning-library";
 import { twentyFourBlocksLessons, twentyFourBlocksSearchText, type TwentyFourBlocksLesson } from "./learning-24-blocks";
 import styles from "./learning-studio.module.css";
@@ -18,10 +25,10 @@ type Props = {
   onOpenBlock: (blockNumber: number) => void;
 };
 
-type ViewMode = "guide" | "library" | "method" | "ai-revision";
-type CourseModule = LearningModule | TwentyFourBlocksLesson | AiRevisionLesson;
+type ViewMode = "workflow" | "guide" | "library" | "method" | "ai-revision" | "collaboration";
+type CourseModule = LearningModule | TwentyFourBlocksLesson | AiRevisionLesson | CollaborationOwnershipLesson;
 
-const courseModules: CourseModule[] = [...learningModules, ...twentyFourBlocksLessons, ...aiRevisionLessons];
+const courseModules: CourseModule[] = [...learningModules, ...twentyFourBlocksLessons, ...aiRevisionLessons, ...collaborationOwnershipLessons];
 const anatomy = ["Structure", "Dialogue", "Character", "Theme & conflict", "World-building", "Pacing & tone", "Symbolic techniques"];
 
 function isMethodLesson(module: CourseModule): module is TwentyFourBlocksLesson {
@@ -32,10 +39,15 @@ function isAiRevisionLesson(module: CourseModule): module is AiRevisionLesson {
   return "collection" in module && module.collection === "AI-Assisted Revision";
 }
 
+function isCollaborationLesson(module: CourseModule): module is CollaborationOwnershipLesson {
+  return "collection" in module && module.collection === "Collaboration, Formats & Ownership";
+}
+
 function courseSearchText(module: CourseModule) {
   const base = moduleSearchText(module);
   if (isMethodLesson(module)) return `${base} ${twentyFourBlocksSearchText(module)}`;
   if (isAiRevisionLesson(module)) return `${base} ${aiRevisionLessonSearchText(module)}`;
+  if (isCollaborationLesson(module)) return `${base} ${collaborationOwnershipSearchText(module)}`;
   return base;
 }
 
@@ -77,16 +89,26 @@ function recommendations(blockNumber: number, miniBlockNumber: number) {
   return [...new Set([aiByMovement, aiByStage, byMovement, ...stage])].slice(0, 5);
 }
 
+function clickNamedNavigationButton(navLabel: string, buttonLabel: string) {
+  const navigation = document.querySelector(`nav[aria-label="${navLabel}"]`);
+  const button = Array.from(navigation?.querySelectorAll<HTMLButtonElement>("button") ?? [])
+    .find((item) => item.textContent?.includes(buttonLabel));
+  button?.click();
+  return Boolean(button);
+}
+
 export default function LearningStudio({ project, blockNumber, miniBlockNumber, onBlockChange, onMiniBlockChange, onOpenTreatment, onOpenScreenplay, onOpenBlock }: Props) {
   const [query, setQuery] = useState("");
   const [path, setPath] = useState<(typeof learningPaths)[number]>("All");
-  const [view, setView] = useState<ViewMode>("library");
+  const [view, setView] = useState<ViewMode>("workflow");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [completed, setCompleted] = useState<Set<string>>(new Set());
+  const [workflowChoiceId, setWorkflowChoiceId] = useState<WorkflowChoice["id"] | null>(null);
   const block = project.blocks[blockNumber - 1];
   const minis = miniBlocks(project, blockNumber);
   const mini = minis[miniBlockNumber - 1];
   const storageKey = `plotpickle-learning-progress:${project.id}`;
+  const workflowStorageKey = `plotpickle-workflow-choice:${project.id}`;
   const recommendedIds = recommendations(blockNumber, miniBlockNumber);
   const selected = courseModules.find((module) => module.id === selectedId) ?? null;
 
@@ -95,22 +117,55 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
       try {
         const saved = window.localStorage.getItem(storageKey);
         setCompleted(new Set(saved ? JSON.parse(saved) as string[] : []));
+        const savedWorkflow = window.localStorage.getItem(workflowStorageKey) as WorkflowChoice["id"] | null;
+        if (savedWorkflow && workflowChoices.some((choice) => choice.id === savedWorkflow)) {
+          setWorkflowChoiceId(savedWorkflow);
+          setView("library");
+        } else {
+          setWorkflowChoiceId(null);
+          setView("workflow");
+        }
       } catch {
         setCompleted(new Set());
+        setWorkflowChoiceId(null);
+        setView("workflow");
       }
     }, 0);
 
     return () => window.clearTimeout(loadProgress);
-  }, [storageKey]);
+  }, [storageKey, workflowStorageKey]);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return courseModules.filter((module) => (path === "All" || module.path === path) && (!needle || courseSearchText(module).includes(needle)));
   }, [path, query]);
 
+  function openCollaborationWorkspace(module: CollaborationOwnershipLesson) {
+    if (module.workspaceTarget === "writer") {
+      onOpenScreenplay();
+      return;
+    }
+    if (module.workspaceTarget === "pitch-review") {
+      window.location.assign(module.workspaceHref);
+      return;
+    }
+    if (module.workspaceTarget === "project-overview") {
+      clickNamedNavigationButton("Primary workspaces", "Story Planner");
+      window.setTimeout(() => clickNamedNavigationButton("Story Planner story sections", "Project Overview"), 0);
+      return;
+    }
+    clickNamedNavigationButton("Primary workspaces", "Settings");
+    const settingsSection = module.workspaceTarget === "ai-setup" ? "AI Setup" : "GitHub";
+    window.setTimeout(() => clickNamedNavigationButton("Settings sections", settingsSection), 0);
+  }
+
   function applyModule(module: CourseModule) {
     if (isAiRevisionLesson(module)) {
       window.location.assign(module.workspaceHref);
+      return;
+    }
+    if (isCollaborationLesson(module)) {
+      openCollaborationWorkspace(module);
       return;
     }
     if (module.apply === "Screenplay") onOpenScreenplay();
@@ -137,6 +192,22 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
     window.setTimeout(() => document.getElementById("learning-module-reader")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   }
 
+  function chooseWorkflow(choice: WorkflowChoice) {
+    setWorkflowChoiceId(choice.id);
+    try {
+      window.localStorage.setItem(workflowStorageKey, choice.id);
+    } catch {
+      // The workflow chooser remains usable without persistent browser storage.
+    }
+    setView("collaboration");
+    openModule(choice.lessonId);
+  }
+
+  function reviewWorkflowLesson(choice: WorkflowChoice) {
+    setView("collaboration");
+    openModule(choice.lessonId);
+  }
+
   function moveModule(direction: -1 | 1) {
     if (!selected) return;
     const index = courseModules.findIndex((module) => module.id === selected.id);
@@ -148,8 +219,8 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
 
   return <div className={styles.page}>
     <header className={styles.header}>
-      <div><span>Read & Learn</span><h1>The complete PlotPickle screenwriting course.</h1><p>Learn the craft in depth, then apply each lesson directly to the active Block, treatment, screenplay, guided revision pass or specialist workspace.</p></div>
-      <div className={styles.licence}><strong>Shared teaching, private writing</strong><span>Educational guidance: CC BY-SA 4.0</span><small>Your original story and screenplay remain yours.</small></div>
+      <div><span>Read & Learn</span><h1>The complete PlotPickle screenwriting course.</h1><p>Learn the craft, choose how you want to work, and apply each lesson directly to the active Block, treatment, screenplay, collaboration workflow, guided revision pass or specialist workspace.</p></div>
+      <div className={styles.licence}><strong>Shared teaching, private writing</strong><span>Educational guidance: CC BY-SA 4.0</span><small>Your original story and screenplay remain yours and are not automatically licensed to PlotPickle or the public.</small></div>
     </header>
 
     <section className={styles.position}>
@@ -171,12 +242,18 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
 
     <nav className={styles.viewTabs} aria-label="Learning Studio views">
       <button type="button" className={view === "library" ? styles.active : ""} onClick={() => setView("library")}>Complete Learning Library</button>
+      <button type="button" className={view === "workflow" ? styles.active : ""} onClick={() => setView("workflow")}>Choose Your Workflow</button>
       <button type="button" className={view === "method" ? styles.active : ""} onClick={() => setView("method")}>The 24 Blocks Method</button>
       <button type="button" className={view === "ai-revision" ? styles.active : ""} onClick={() => setView("ai-revision")}>AI-Assisted Revision</button>
+      <button type="button" className={view === "collaboration" ? styles.active : ""} onClick={() => setView("collaboration")}>Collaboration, Formats & Ownership</button>
       <button type="button" className={view === "guide" ? styles.active : ""} onClick={() => setView("guide")}>Guidance for this Block</button>
     </nav>
 
-    {view === "guide" ? <section className={styles.guidance}>
+    {view === "workflow" ? <section className={styles.guidance}>
+      <div className={styles.sectionIntro}><span>First-run guide</span><h2>Choose how you want to work</h2><p>Compare all five valid paths. Choosing one records a project preference and opens the most relevant lesson; it does not connect an account, publish the project, run AI or change story material.</p></div>
+      <div className={styles.recommendedGrid}>{workflowChoices.map((choice) => <WorkflowChoiceCard choice={choice} selected={workflowChoiceId === choice.id} onChoose={() => chooseWorkflow(choice)} onRead={() => reviewWorkflowLesson(choice)} key={choice.id} />)}</div>
+      <button className={styles.browseAll} type="button" onClick={() => setView("collaboration")}>Explore all collaboration and ownership lessons</button>
+    </section> : view === "guide" ? <section className={styles.guidance}>
       <div className={styles.sectionIntro}><span>Recommended here</span><h2>Learn what helps at Block {block.number}.{mini.number}</h2><p>These craft lessons and guided revision passes match the current stage and mini-block movement. Opening one does not change the story.</p></div>
       <div className={styles.recommendedGrid}>{recommendedIds.map((id) => {
         const recommendedModule = courseModules.find((item) => item.id === id);
@@ -189,18 +266,32 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
     </section> : view === "ai-revision" ? <section className={styles.library}>
       <div className={styles.sectionIntro}><span>Guided collection</span><h2>AI-Assisted Revision</h2><p>Fourteen focused passes begin with the story problem, limit the operation and canonical scope, identify evaluation criteria and known AI failure modes, and route approved work to the right PlotPickle engine or lab.</p></div>
       <main className={styles.moduleGrid}>{aiRevisionLessons.map((module) => <ModuleCard module={module} complete={completed.has(module.id)} recommended={recommendedIds.includes(module.id)} onOpen={() => openModule(module.id)} onToggle={() => toggleComplete(module.id)} key={module.id} />)}</main>
+    </section> : view === "collaboration" ? <section className={styles.library}>
+      <div className={styles.sectionIntro}><span>Practical workflow collection</span><h2>Collaboration, Formats & Ownership</h2><p>Five PlotPickled lessons replace eight legacy Blog articles with current local-first workflow choices, owner-controlled collaboration, direct screenplay interchange, careful rights guidance and optional AI, GitHub and public publishing paths.</p></div>
+      <main className={styles.moduleGrid}>{collaborationOwnershipLessons.map((module) => <ModuleCard module={module} complete={completed.has(module.id)} recommended={workflowChoices.find((choice) => choice.id === workflowChoiceId)?.lessonId === module.id} onOpen={() => openModule(module.id)} onToggle={() => toggleComplete(module.id)} key={module.id} />)}</main>
     </section> : <section className={styles.library}>
-      <div className={styles.sectionIntro}><span>Complete curriculum</span><h2>{courseModules.length} full learning modules</h2><p>Search lesson text, source concepts, revision operations, canonical scopes, definitions, examples, checklists, common mistakes and active-project exercises—not only module titles.</p></div>
+      <div className={styles.sectionIntro}><span>Complete curriculum</span><h2>{courseModules.length} full learning modules</h2><p>Search lesson text, legacy source aliases, workflow paths, format cautions, ownership distinctions, revision operations, canonical scopes, definitions, examples, checklists, common mistakes and active-project exercises—not only module titles.</p></div>
       <section className={styles.filters}>
-        <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search 24 Blocks, structure, dialogue, character, rights, AI revision…" aria-label="Search screenwriting lessons" />
+        <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search 24 Blocks, collaboration, Final Draft, Markdown, ownership, GitHub, AI revision…" aria-label="Search screenwriting lessons" />
         <div>{learningPaths.map((item) => <button type="button" className={path === item ? styles.active : ""} onClick={() => setPath(item)} key={item}>{item}</button>)}</div>
       </section>
       <main className={styles.moduleGrid}>{filtered.map((module) => <ModuleCard module={module} complete={completed.has(module.id)} recommended={recommendedIds.includes(module.id)} onOpen={() => openModule(module.id)} onToggle={() => toggleComplete(module.id)} key={module.id} />)}</main>
-      {!filtered.length ? <div className={styles.empty}>No module matches that search. Try a craft term such as 24 Blocks, dramatic question, structure, dialogue, scope, revision, world, continuity or privacy.</div> : null}
+      {!filtered.length ? <div className={styles.empty}>No module matches that search. Try 24 Blocks, dramatic question, collaboration, branch, Final Draft, Fountain, Markdown, ownership, open-source screenplay, AI navigation, continuity or privacy.</div> : null}
     </section>}
 
     {selected ? <ModuleReader module={selected} complete={completed.has(selected.id)} blockNumber={block.number} miniBlockNumber={mini.number} first={selected.id === courseModules[0]?.id} last={selected.id === courseModules.at(-1)?.id} onClose={() => setSelectedId(null)} onPrevious={() => moveModule(-1)} onNext={() => moveModule(1)} onToggle={() => toggleComplete(selected.id)} onApply={() => applyModule(selected)} /> : null}
   </div>;
+}
+
+function WorkflowChoiceCard({ choice, selected, onChoose, onRead }: { choice: WorkflowChoice; selected: boolean; onChoose: () => void; onRead: () => void }) {
+  return <article className={`${styles.moduleCard} ${selected ? styles.recommended : ""}`}>
+    <div className={styles.moduleMeta}><span>Workflow path</span>{selected ? <strong>Current choice</strong> : null}</div>
+    <small>{choice.accountRequirement}</small>
+    <h3>{choice.title}</h3>
+    <p>{choice.summary}</p>
+    <div className={styles.cardStats}><span>{choice.workspaceLabel}</span><span>Writer-controlled</span></div>
+    <div className={styles.cardActions}><button type="button" onClick={onChoose}>{selected ? "Keep this path" : "Choose this path"}</button><button type="button" onClick={onRead}>Read linked lesson</button></div>
+  </article>;
 }
 
 function ModuleCard({ module, complete, recommended, onOpen, onToggle }: { module: CourseModule; complete: boolean; recommended: boolean; onOpen: () => void; onToggle: () => void }) {
@@ -208,9 +299,10 @@ function ModuleCard({ module, complete, recommended, onOpen, onToggle }: { modul
     <div className={styles.moduleMeta}><span>Module {module.number} · {module.path}</span>{recommended ? <strong>Recommended here</strong> : null}</div>
     {isMethodLesson(module) ? <small>{module.collection} · Source concept: {module.sourceConcept}</small> : null}
     {isAiRevisionLesson(module) ? <small>{module.collection} · {module.layer} · Route to {module.destination}</small> : null}
+    {isCollaborationLesson(module) ? <small>{module.collection} · Open {module.workspaceLabel}</small> : null}
     <h3>{module.title}</h3>
     <p>{module.overview}</p>
-    <div className={styles.cardStats}><span>{module.duration}</span><span>{module.sections.length} lessons</span>{isAiRevisionLesson(module) ? <span>{module.defaultOperation}</span> : <span>Exercise</span>}</div>
+    <div className={styles.cardStats}><span>{module.duration}</span><span>{module.sections.length} lessons</span>{isAiRevisionLesson(module) ? <span>{module.defaultOperation}</span> : isCollaborationLesson(module) ? <span>{module.workspaceLabel}</span> : <span>Exercise</span>}</div>
     <div className={styles.cardActions}><button type="button" onClick={onOpen}>Read full module</button><button type="button" className={complete ? styles.complete : ""} onClick={onToggle}>{complete ? "Completed" : "Mark complete"}</button></div>
   </article>;
 }
@@ -218,7 +310,7 @@ function ModuleCard({ module, complete, recommended, onOpen, onToggle }: { modul
 function ModuleReader({ module, complete, blockNumber, miniBlockNumber, first, last, onClose, onPrevious, onNext, onToggle, onApply }: { module: CourseModule; complete: boolean; blockNumber: number; miniBlockNumber: number; first: boolean; last: boolean; onClose: () => void; onPrevious: () => void; onNext: () => void; onToggle: () => void; onApply: () => void }) {
   return <section className={styles.reader} id="learning-module-reader">
     <div className={styles.readerTop}><button type="button" onClick={onClose}>Close module</button><div><button type="button" disabled={first} onClick={onPrevious}>Previous</button><button type="button" disabled={last} onClick={onNext}>Next</button></div></div>
-    <header className={styles.readerHeader}><span>Module {module.number} of {courseModules.length} · {module.path} · {module.duration}</span><h2>{module.title}</h2><p>{module.overview}</p>{isMethodLesson(module) ? <small>{module.sourceNote}</small> : null}{isAiRevisionLesson(module) ? <small>{module.sourceNote}</small> : null}<button type="button" className={complete ? styles.complete : ""} onClick={onToggle}>{complete ? "Completed — mark incomplete" : "Mark module complete"}</button></header>
+    <header className={styles.readerHeader}><span>Module {module.number} of {courseModules.length} · {module.path} · {module.duration}</span><h2>{module.title}</h2><p>{module.overview}</p>{isMethodLesson(module) ? <small>{module.sourceNote}</small> : null}{isAiRevisionLesson(module) ? <small>{module.sourceNote}</small> : null}{isCollaborationLesson(module) ? <small>{module.sourceNote}</small> : null}<button type="button" className={complete ? styles.complete : ""} onClick={onToggle}>{complete ? "Completed — mark incomplete" : "Mark module complete"}</button></header>
 
     <div className={styles.readerLayout}>
       <main>
@@ -227,8 +319,9 @@ function ModuleReader({ module, complete, blockNumber, miniBlockNumber, first, l
         {isMethodLesson(module) ? <section className={styles.example}><span>Visual hierarchy</span><h3>{module.sourceConcept}</h3><p>{module.visual.join(" → ")}</p></section> : null}
         {isMethodLesson(module) ? <section className={styles.lessonSection}><h3>How PlotPickle applies this</h3><p>{module.howPlotPickleApplies}</p></section> : null}
         {isAiRevisionLesson(module) ? <section className={styles.example}><span>Guided pass setup</span><h3>{module.layer} · {module.destination}</h3><p>Default operation: {module.defaultOperation}. Canonical scope: {module.canonicalScopes.join(" · ")}. The original remains separate from any proposed revision until the writer approves it.</p></section> : null}
+        {isCollaborationLesson(module) ? <section className={styles.example}><span>Direct application</span><h3>{module.workspaceLabel}</h3><p>This lesson opens the current PlotPickle workspace rather than an obsolete external workaround. Opening it does not publish, connect, licence, merge or apply story changes automatically.</p></section> : null}
         <section className={styles.example}><span>Worked example</span><h3>{module.example.title}</h3><p>{module.example.text}</p></section>
-        <section className={styles.exercise}><span>Apply it to Block {blockNumber}.{miniBlockNumber}</span><h3>Active-project exercise</h3><p>{module.exercise}</p><button type="button" onClick={onApply}>Open {isAiRevisionLesson(module) ? module.destination : module.apply}</button></section>
+        <section className={styles.exercise}><span>Apply it to Block {blockNumber}.{miniBlockNumber}</span><h3>Active-project exercise</h3><p>{module.exercise}</p><button type="button" onClick={onApply}>Open {isAiRevisionLesson(module) ? module.destination : isCollaborationLesson(module) ? module.workspaceLabel : module.apply}</button></section>
       </main>
       <aside>
         <section><h3>Plain-language definitions</h3><dl>{module.definitions.map((item) => <div key={item.term}><dt>{item.term}</dt><dd>{item.meaning}</dd></div>)}</dl></section>

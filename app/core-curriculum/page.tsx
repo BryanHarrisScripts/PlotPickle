@@ -123,18 +123,6 @@ export default function CoreCurriculumPage() {
   const route = coreRoutes.find((item) => item.id === routeId) ?? coreRoutes[0];
   const focusArea = focusAreas.find((item) => item.id === focusAreaId) ?? focusAreas[0];
 
-  useEffect(() => {
-    if (!recommendations.length) return;
-    const focusModuleId = routeId === "focused-problem" ? focusArea.moduleId : "";
-    const preferred = recommendations.find((item) => item.moduleId === focusModuleId) ?? recommendations[0];
-    if (preferred && !coreModule(selectedModuleId)) setSelectedModuleId(preferred.moduleId);
-  }, [focusArea.moduleId, recommendations, routeId, selectedModuleId]);
-
-  useEffect(() => {
-    setExerciseNote(selectedRecord?.exerciseNote ?? "");
-    setAppliedEvidence(selectedRecord?.appliedEvidence ?? "");
-  }, [selectedModuleId, selectedRecord?.appliedEvidence, selectedRecord?.exerciseNote]);
-
   const readCount = coreModuleGuides.filter((guide) => readModules.has(guide.moduleId)).length;
   const exerciseCount = coreModuleGuides.filter((guide) => recordByModule.get(guide.moduleId)?.exerciseAttempted).length;
   const appliedCount = coreModuleGuides.filter((guide) => recordByModule.get(guide.moduleId)?.appliedToProject).length;
@@ -204,7 +192,10 @@ export default function CoreCurriculumPage() {
   }
 
   function selectModule(moduleId: string) {
+    const record = recordByModule.get(moduleId);
     setSelectedModuleId(moduleId);
+    setExerciseNote(record?.exerciseNote ?? "");
+    setAppliedEvidence(record?.appliedEvidence ?? "");
     window.setTimeout(() => document.getElementById("core-module-detail")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   }
 
@@ -249,15 +240,15 @@ export default function CoreCurriculumPage() {
     <section className={styles.panel}>
       <header><span>Five-stage learning spine</span><h2>Orientation without a mandatory order</h2><p>Stages explain how the broad modules connect. “Recommended before” and “Useful after” are advisory relationships, never prerequisites.</p></header>
       <div className={styles.stageList}>{coreStages.map((stage) => <section key={stage.id}><header><b>Stage {stage.number}</b><div><h3>{stage.title}</h3><p>{stage.outcome}</p></div></header><div className={styles.moduleGrid}>{stage.moduleIds.map((moduleId) => {
-        const module = coreModule(moduleId);
+        const lesson = coreModule(moduleId);
         const guide = coreGuideFor(moduleId);
         const record = recordByModule.get(moduleId);
         const recommendation = recommendations.find((item) => item.moduleId === moduleId);
-        if (!module || !guide) return null;
+        if (!lesson || !guide) return null;
         return <article className={selectedModuleId === moduleId ? styles.selectedCard : ""} key={moduleId}>
-          <div className={styles.cardMeta}><span>Module {module.number}</span>{recommendation ? <strong>Recommended</strong> : null}</div>
-          <h4>{module.title}</h4>
-          <p>{module.overview}</p>
+          <div className={styles.cardMeta}><span>Module {lesson.number}</span>{recommendation ? <strong>Recommended</strong> : null}</div>
+          <h4>{lesson.title}</h4>
+          <p>{lesson.overview}</p>
           {recommendation ? <small>{recommendation.reason}</small> : null}
           <div className={styles.statuses}><span className={readModules.has(moduleId) ? styles.done : ""}>Read</span><span className={record?.exerciseAttempted ? styles.done : ""}>Exercise</span><span className={record?.appliedToProject ? styles.done : ""}>Applied</span><span className={record?.revisit ? styles.revisit : ""}>Revisit</span></div>
           <button type="button" onClick={() => selectModule(moduleId)}>Open core lesson panel</button>

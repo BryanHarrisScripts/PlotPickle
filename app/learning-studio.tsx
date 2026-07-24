@@ -18,6 +18,7 @@ import {
 import { workingTogetherLessons, workingTogetherSearchText, type WorkingTogetherLesson } from "./learning-working-together";
 import { dialogueLessons, dialogueLessonSearchText, type DialogueLesson } from "./learning-dialogue-in-motion";
 import { storyCraftLessons, storyCraftSearchText, type StoryCraftLesson } from "./learning-story-craft-essentials";
+import { coreGuideFor } from "./learning-core-curriculum";
 import { learningModules, learningPaths, moduleSearchText, type LearningModule } from "./learning-library";
 import { twentyFourBlocksLessons, twentyFourBlocksSearchText, type TwentyFourBlocksLesson } from "./learning-24-blocks";
 import styles from "./learning-studio.module.css";
@@ -85,6 +86,8 @@ function courseSearchText(module: CourseModule) {
   if (isDialogueLesson(module)) return `${base} ${dialogueLessonSearchText(module)}`;
   if (isStoryCraftLesson(module)) return `${base} ${storyCraftSearchText(module)}`;
   if (isCharacterMotionLesson(module)) return `${base} ${characterMotionSearchText(module)}`;
+  const coreGuide = coreGuideFor(module.id);
+  if (coreGuide) return `${base} ${coreGuide.sourceTitle} ${coreGuide.sourceAliases.join(" ")} ${coreGuide.adaptation} ${coreGuide.understand} ${coreGuide.seeIt} ${coreGuide.tryIt} ${coreGuide.applyLabel} ${coreGuide.checkLabel} ${coreGuide.deeperLabel} ${coreGuide.commonNextProblem}`;
   return base;
 }
 
@@ -201,13 +204,20 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
         const saved = window.localStorage.getItem(storageKey);
         setCompleted(new Set(saved ? JSON.parse(saved) as string[] : []));
         const savedWorkflow = window.localStorage.getItem(workflowStorageKey) as WorkflowChoice["id"] | null;
-        if (savedWorkflow && workflowChoices.some((choice) => choice.id === savedWorkflow)) {
+        const params = new URLSearchParams(window.location.search);
+        const requestedView = params.get("view") as ViewMode | null;
+        const requestedModule = params.get("module");
+        const validViews: ViewMode[] = ["workflow", "guide", "library", "method", "ai-revision", "collaboration", "working-together", "characters", "dialogue", "story-craft"];
+        if (requestedView && validViews.includes(requestedView)) {
+          setView(requestedView);
+        } else if (savedWorkflow && workflowChoices.some((choice) => choice.id === savedWorkflow)) {
           setWorkflowChoiceId(savedWorkflow);
           setView("library");
         } else {
           setWorkflowChoiceId(null);
           setView("workflow");
         }
+        if (requestedModule && courseModules.some((module) => module.id === requestedModule)) setSelectedId(requestedModule);
       } catch {
         setCompleted(new Set());
         setWorkflowChoiceId(null);
@@ -292,6 +302,11 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
       openStoryCraftWorkspace(module);
       return;
     }
+    const coreGuide = coreGuideFor(module.id);
+    if (coreGuide) {
+      window.location.assign(coreGuide.applyHref);
+      return;
+    }
     if (module.apply === "Screenplay") onOpenScreenplay();
     else if (module.apply === "Block plan") onOpenBlock(block.number);
     else onOpenTreatment();
@@ -359,6 +374,14 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
       <b>{progress}%</b>
     </section>
 
+    <section className={styles.anatomy} aria-label="Learning entry points">
+      <div><span>Choose your learning view</span><strong>Complete Learning Library or the PlotPickle Core Curriculum</strong></div>
+      <ul>
+        <li><b>1</b><button type="button" onClick={() => setView("library")}>Complete Learning Library</button></li>
+        <li><b>2</b><button type="button" onClick={() => window.location.assign("/core-curriculum")}>Start with the PlotPickle Core Curriculum</button></li>
+      </ul>
+    </section>
+
     <section className={styles.anatomy}>
       <div><span>Screenplay anatomy</span><strong>Seven lenses run through the complete course</strong></div>
       <ul>{anatomy.map((item, index) => <li key={item}><b>{index + 1}</b>{item}</li>)}</ul>
@@ -366,6 +389,7 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
 
     <nav className={styles.viewTabs} aria-label="Learning Studio views">
       <button type="button" className={view === "library" ? styles.active : ""} onClick={() => setView("library")}>Complete Learning Library</button>
+      <button type="button" onClick={() => window.location.assign("/core-curriculum")}>Core Curriculum</button>
       <button type="button" className={view === "workflow" ? styles.active : ""} onClick={() => setView("workflow")}>Choose Your Workflow</button>
       <button type="button" className={view === "method" ? styles.active : ""} onClick={() => setView("method")}>The 24 Blocks Method</button>
       <button type="button" className={view === "characters" ? styles.active : ""} onClick={() => setView("characters")}>Characters in Motion</button>
@@ -443,6 +467,7 @@ function ModuleCard({ module, complete, recommended, onOpen, onToggle }: { modul
     {isWorkingTogetherLesson(module) ? <small>{module.collection} · Open {module.workspaceLabel}</small> : null}
     {isDialogueLesson(module) ? <small>{module.collection} · Open {module.workspaceLabel}</small> : null}
     {isStoryCraftLesson(module) ? <small>{module.collection} · Open {module.workspaceLabel}</small> : null}
+    {coreGuideFor(module.id) ? <small>PlotPickle Core Curriculum · {coreGuideFor(module.id)?.sourceTitle}</small> : null}
     {isCharacterMotionLesson(module) ? <small>{module.collection} · Open {module.workspaceLabel}</small> : null}
     <h3>{module.title}</h3>
     <p>{module.overview}</p>
@@ -454,7 +479,7 @@ function ModuleCard({ module, complete, recommended, onOpen, onToggle }: { modul
 function ModuleReader({ module, complete, blockNumber, miniBlockNumber, first, last, onClose, onPrevious, onNext, onToggle, onApply }: { module: CourseModule; complete: boolean; blockNumber: number; miniBlockNumber: number; first: boolean; last: boolean; onClose: () => void; onPrevious: () => void; onNext: () => void; onToggle: () => void; onApply: () => void }) {
   return <section className={styles.reader} id="learning-module-reader">
     <div className={styles.readerTop}><button type="button" onClick={onClose}>Close module</button><div><button type="button" disabled={first} onClick={onPrevious}>Previous</button><button type="button" disabled={last} onClick={onNext}>Next</button></div></div>
-    <header className={styles.readerHeader}><span>Module {module.number} of {courseModules.length} · {module.path} · {module.duration}</span><h2>{module.title}</h2><p>{module.overview}</p>{isMethodLesson(module) || isAiRevisionLesson(module) || isCollaborationLesson(module) || isWorkingTogetherLesson(module) || isDialogueLesson(module) || isStoryCraftLesson(module) || isCharacterMotionLesson(module) ? <small>{module.sourceNote}</small> : null}<button type="button" className={complete ? styles.complete : ""} onClick={onToggle}>{complete ? "Completed — mark incomplete" : "Mark module complete"}</button></header>
+    <header className={styles.readerHeader}><span>Module {module.number} of {courseModules.length} · {module.path} · {module.duration}</span><h2>{module.title}</h2><p>{module.overview}</p>{isMethodLesson(module) || isAiRevisionLesson(module) || isCollaborationLesson(module) || isWorkingTogetherLesson(module) || isDialogueLesson(module) || isStoryCraftLesson(module) || isCharacterMotionLesson(module) ? <small>{module.sourceNote}</small> : null}{coreGuideFor(module.id) ? <small>Adapted from {coreGuideFor(module.id)?.sourceTitle} and rewritten for PlotPickle&apos;s current local-first workflow. Legacy phrases remain searchable.</small> : null}<button type="button" className={complete ? styles.complete : ""} onClick={onToggle}>{complete ? "Completed — mark incomplete" : "Mark module complete"}</button></header>
 
     <div className={styles.readerLayout}>
       <main>
@@ -468,8 +493,9 @@ function ModuleReader({ module, complete, blockNumber, miniBlockNumber, first, l
         {isDialogueLesson(module) ? <section className={styles.example}><span>Direct application</span><h3>{module.workspaceLabel}</h3><p>The active Block and mini-block travel into the dialogue workspace. Blueprint, proof and table-read records remain reviewable evidence; no screenplay text is rewritten or applied automatically.</p></section> : null}
         {isStoryCraftLesson(module) ? <section className={styles.example}><span>Direct application</span><h3>{module.workspaceLabel}</h3><p>The active Block and mini-block travel into the craft workspace. Cards, maps, ledgers and audits remain evidence records; no story or screenplay text is rewritten, formatted or inserted automatically.</p></section> : null}
         {isCharacterMotionLesson(module) ? <section className={styles.example}><span>Direct application</span><h3>{module.workspaceLabel}</h3><p>The active Block and mini-block travel into the character workspace. Diagnostics compare planned claims with project evidence and remain questions for the writer; no character, relationship, scene or dialogue is rewritten or merged automatically.</p></section> : null}
+        {coreGuideFor(module.id) ? <section className={styles.example}><span>Core-to-workspace path</span><h3>Understand → See it → Try it → Apply it → Check it → Go deeper</h3><p><strong>Understand:</strong> {coreGuideFor(module.id)?.understand}</p><p><strong>See it:</strong> {coreGuideFor(module.id)?.seeIt}</p><p><strong>Try it:</strong> {coreGuideFor(module.id)?.tryIt}</p><p><a href={coreGuideFor(module.id)?.applyHref}>{coreGuideFor(module.id)?.applyLabel}</a> · <a href={coreGuideFor(module.id)?.checkHref}>{coreGuideFor(module.id)?.checkLabel}</a> · <a href={coreGuideFor(module.id)?.deeperHref}>{coreGuideFor(module.id)?.deeperLabel}</a></p><small>Recommended before and useful after relationships are advisory, never locked prerequisites.</small></section> : null}
         <section className={styles.example}><span>Worked example</span><h3>{module.example.title}</h3><p>{module.example.text}</p></section>
-        <section className={styles.exercise}><span>Apply it to Block {blockNumber}.{miniBlockNumber}</span><h3>Active-project exercise</h3><p>{module.exercise}</p><button type="button" onClick={onApply}>Open {isAiRevisionLesson(module) ? module.destination : isCollaborationLesson(module) || isWorkingTogetherLesson(module) || isDialogueLesson(module) || isStoryCraftLesson(module) || isCharacterMotionLesson(module) ? module.workspaceLabel : module.apply}</button></section>
+        <section className={styles.exercise}><span>Apply it to Block {blockNumber}.{miniBlockNumber}</span><h3>Active-project exercise</h3><p>{module.exercise}</p><button type="button" onClick={onApply}>Open {isAiRevisionLesson(module) ? module.destination : isCollaborationLesson(module) || isWorkingTogetherLesson(module) || isDialogueLesson(module) || isStoryCraftLesson(module) || isCharacterMotionLesson(module) ? module.workspaceLabel : coreGuideFor(module.id)?.applyLabel ?? module.apply}</button></section>
       </main>
       <aside>
         <section><h3>Plain-language definitions</h3><dl>{module.definitions.map((item) => <div key={item.term}><dt>{item.term}</dt><dd>{item.meaning}</dd></div>)}</dl></section>

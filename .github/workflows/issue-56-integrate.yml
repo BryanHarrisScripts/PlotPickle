@@ -24,10 +24,23 @@ jobs:
         run: python scripts/issue-56-integrate.py
       - name: Install dependencies
         run: npm ci
-      - name: Validate
+      - name: Capture validation output
+        shell: bash
         run: |
-          npm run lint
-          npm test
+          set +e
+          npm run lint > issue-56-validation.log 2>&1
+          lint_status=$?
+          npm test >> issue-56-validation.log 2>&1
+          test_status=$?
+          echo "lint_status=$lint_status test_status=$test_status" >> issue-56-validation.log
+          if [ "$lint_status" -ne 0 ] || [ "$test_status" -ne 0 ]; then touch issue-56-validation.failed; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: issue-56-validation-log
+          path: issue-56-validation.log
+      - name: Fail on validation error
+        run: test ! -f issue-56-validation.failed
       - name: Commit integration
         shell: bash
         run: |

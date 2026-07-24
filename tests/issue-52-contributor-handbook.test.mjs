@@ -251,3 +251,13 @@ test("issue 52 contributor workspace is responsive and exposes all operating sec
   assert.match(css, /\.flow/);
   assert.match(css, /\.lessonGrid/);
 });
+
+
+test("issue 52 appears as a first-class collection in the central Read & Learn library", async () => {
+  const studio = await readFile(new URL("../app/learning-studio.tsx", import.meta.url), "utf8");
+  assert.match(studio, /workingTogetherLessons/);
+  assert.match(studio, /Working Together in PlotPickle/);
+  assert.match(studio, /setView\("working-together"\)/);
+  assert.match(studio, /isWorkingTogetherLesson/);
+  assert.match(studio, /Contributor Handbook/);
+});

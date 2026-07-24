@@ -31,7 +31,6 @@ import {
   type CollaborationAgreement,
   type CollaborationAuthority,
   type CollaborationDecision,
-  type CollaborationModelId,
   type CollaborationPrivacy,
   type CollaborationRoleId,
   type ContributionBrief,

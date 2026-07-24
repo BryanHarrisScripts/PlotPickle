@@ -8,7 +8,7 @@ import {
   reviewOutcomes,
 } from "@/lib/collaboration-handbook";
 
-export type WorkingTogetherLesson = {
+type WorkingTogetherLessonSource = {
   id: string;
   number: number;
   title: string;
@@ -25,6 +25,14 @@ export type WorkingTogetherLesson = {
   aliases: string[];
 };
 
+export type WorkingTogetherLesson = WorkingTogetherLessonSource & {
+  collection: "Working Together in PlotPickle";
+  path: "Industry";
+  sourceNote: string;
+  workspaceLabel: "Contributor Handbook";
+  apply: "Treatment";
+};
+
 export const collaboratorSourceMap = [
   { source: "Your Role and Key Questions", lessonIds: ["working-model", "working-authority", "working-brief"] },
   { source: "Process Post-Submission", lessonIds: ["working-proposal", "working-canon", "working-disagreement"] },
@@ -35,7 +43,7 @@ export const collaboratorSourceMap = [
   { source: "Afterglow collaborator guide", lessonIds: ["working-model", "working-privacy", "working-scale"] },
 ] as const;
 
-export const workingTogetherLessons: WorkingTogetherLesson[] = [
+const workingTogetherLessonSources: WorkingTogetherLessonSource[] = [
   {
     id: "working-model",
     number: 1,
@@ -375,6 +383,17 @@ export const workingTogetherLessons: WorkingTogetherLesson[] = [
     aliases: ["Unlimited Contributions", "Evolving Together", "million minds", "community collaboration", "review queue"],
   },
 ];
+
+const workingTogetherSourceNote = "PlotPickled from the legacy Collaborators guide: Your Role and Key Questions, Process Post-Submission, Feedback and Communication, Unlimited Contributions, Evolving Together, Act review questions and the Afterglow collaborator guide.";
+
+export const workingTogetherLessons: WorkingTogetherLesson[] = workingTogetherLessonSources.map((lesson) => ({
+  ...lesson,
+  collection: "Working Together in PlotPickle",
+  path: "Industry",
+  sourceNote: workingTogetherSourceNote,
+  workspaceLabel: "Contributor Handbook",
+  apply: "Treatment",
+}));
 
 export function workingTogetherSearchText(lesson: WorkingTogetherLesson) {
   return [

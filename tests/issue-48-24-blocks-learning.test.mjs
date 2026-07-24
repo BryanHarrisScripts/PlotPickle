@@ -20,7 +20,7 @@ const concepts = [
 
 test("The 24 Blocks Method exposes all ten original source concepts", async () => {
   const lessons = await source("app/learning-24-blocks.ts");
-  assert.equal((lessons.match(/sourceConcept:/g) ?? []).length, 10);
+  assert.equal((lessons.match(/^    sourceConcept:/gm) ?? []).length, 10);
   for (const concept of concepts) assert.ok(lessons.includes(concept), `Missing source concept: ${concept}`);
   for (const phrase of ["The 24 Blocks Method", "sourceNote", "howPlotPickleApplies", "visual:", "workspaceLink", "twentyFourBlocksSourceMap", "searchTerms"]) {
     assert.ok(lessons.includes(phrase), `Missing learning metadata: ${phrase}`);
@@ -47,7 +47,7 @@ test("Dramatic questions and structure diversity are taught at the required reso
 test("Every method lesson includes application, example, visual, mistakes and active-project exercise", async () => {
   const lessons = await source("app/learning-24-blocks.ts");
   for (const field of ["example:", "mistakes:", "exercise:", "apply:", "howPlotPickleApplies:", "visual:"]) {
-    assert.equal((lessons.match(new RegExp(`    ${field}`, "g")) ?? []).length, 10, `Every lesson needs ${field}`);
+    assert.equal((lessons.match(new RegExp(`^    ${field}`, "gm")) ?? []).length, 10, `Every lesson needs ${field}`);
   }
 });
 

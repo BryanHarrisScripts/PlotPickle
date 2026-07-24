@@ -1,0 +1,353 @@
+lint_status=0
+test_status=0
+
+===== LINT OUTPUT =====
+
+> plotpickle@1.0.0-rc.3 lint
+> bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next
+
+
+/home/runner/work/PlotPickle/PlotPickle/app/preproduction-workspace.tsx
+  131:109  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  169:72   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  171:265  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/home/runner/work/PlotPickle/PlotPickle/app/structure/page.tsx
+  164:9  warning  'totalBeats' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/PlotPickle/PlotPickle/lib/ai/adapters.ts
+   75:21  warning  '_request' is defined but never used  @typescript-eslint/no-unused-vars
+   79:21  warning  '_id' is defined but never used       @typescript-eslint/no-unused-vars
+  233:23  warning  '_request' is defined but never used  @typescript-eslint/no-unused-vars
+  280:23  warning  '_request' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/PlotPickle/PlotPickle/lib/preproduction.ts
+  1:10  warning  'cloneProject' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/runner/work/PlotPickle/PlotPickle/scripts/sdk-release.mjs
+  4:10  warning  'dirname' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 10 problems (0 errors, 10 warnings)
+
+
+===== TEST OUTPUT =====
+ok 122 - RC4 portable fixture passes local validation
+  ---
+  duration_ms: 35.605634
+  type: 'test'
+  ...
+# Subtest: freeze policy covers security, migration and breaking changes
+ok 123 - freeze policy covers security, migration and breaking changes
+  ---
+  duration_ms: 0.286362
+  type: 'test'
+  ...
+# Subtest: renders the root route and preserves the local-first workspace contract
+ok 124 - renders the root route and preserves the local-first workspace contract
+  ---
+  duration_ms: 209.479851
+  type: 'test'
+  ...
+# Subtest: registers the legal route and preserves ownership and server-use guidance
+ok 125 - registers the legal route and preserves ownership and server-use guidance
+  ---
+  duration_ms: 47.904782
+  type: 'test'
+  ...
+# Subtest: renders the Voiceprint Engine route
+ok 126 - renders the Voiceprint Engine route
+  ---
+  duration_ms: 42.611494
+  type: 'test'
+  ...
+# Subtest: renders the PageFlow Engine route
+ok 127 - renders the PageFlow Engine route
+  ---
+  duration_ms: 57.243749
+  type: 'test'
+  ...
+# Subtest: renders the Resonance Engine route
+ok 128 - renders the Resonance Engine route
+  ---
+  duration_ms: 39.743985
+  type: 'test'
+  ...
+# Subtest: renders the DraftLens Engine route
+ok 129 - renders the DraftLens Engine route
+  ---
+  duration_ms: 47.083937
+  type: 'test'
+  ...
+# Subtest: registers the CraftLoop client route and preserves its workspace contract
+ok 130 - registers the CraftLoop client route and preserves its workspace contract
+  ---
+  duration_ms: 60.130433
+  type: 'test'
+  ...
+# Subtest: registers the Structure Engine and preserves the 4-12-24-48-96 workspace
+ok 131 - registers the Structure Engine and preserves the 4-12-24-48-96 workspace
+  ---
+  duration_ms: 60.078887
+  type: 'test'
+  ...
+# Subtest: schema 1.7 preserves 12/24/96 while accepting flexible scenes
+ok 132 - schema 1.7 preserves 12/24/96 while accepting flexible scenes
+  ---
+  duration_ms: 2.429556
+  type: 'test'
+  ...
+# Subtest: project migration accepts earlier schemas and creates the new hierarchy
+ok 133 - project migration accepts earlier schemas and creates the new hierarchy
+  ---
+  duration_ms: 2.017509
+  type: 'test'
+  ...
+# Subtest: Windows launcher reuses a package-lock-specific persistent runtime
+ok 134 - Windows launcher reuses a package-lock-specific persistent runtime
+  ---
+  duration_ms: 1.153725
+  type: 'test'
+  ...
+# Subtest: persistent runtime manager fingerprints package-lock and separates application files
+ok 135 - persistent runtime manager fingerprints package-lock and separates application files
+  ---
+  duration_ms: 51.636517
+  type: 'test'
+  ...
+# Subtest: Windows updater overlays program files while preserving runtime and projects
+ok 136 - Windows updater overlays program files while preserving runtime and projects
+  ---
+  duration_ms: 2.512129
+  type: 'test'
+  ...
+# Subtest: Windows repair resets only the current persistent runtime
+ok 137 - Windows repair resets only the current persistent runtime
+  ---
+  duration_ms: 5.257952
+  type: 'test'
+  ...
+# Subtest: Windows launcher explains and verifies the local installation
+ok 138 - Windows launcher explains and verifies the local installation
+  ---
+  duration_ms: 4.212258
+  type: 'test'
+  ...
+# Subtest: Windows setup report lists space, packages, persistent upgrades, privacy, and local-server meaning
+ok 139 - Windows setup report lists space, packages, persistent upgrades, privacy, and local-server meaning
+  ---
+  duration_ms: 91.758634
+  type: 'test'
+  ...
+# Subtest: Screenplay is a write and read workspace tied to all 24 Blocks and 96 mini-blocks
+ok 140 - Screenplay is a write and read workspace tied to all 24 Blocks and 96 mini-blocks
+  ---
+  duration_ms: 6.37083
+  type: 'test'
+  ...
+# Subtest: writer supports standard screenplay grammar and Final Draft/Fountain handoff
+ok 141 - writer supports standard screenplay grammar and Final Draft/Fountain handoff
+  ---
+  duration_ms: 2.011819
+  type: 'test'
+  ...
+# Subtest: Afterglow loads the complete v9 screenplay as one continuous editable draft
+ok 142 - Afterglow loads the complete v9 screenplay as one continuous editable draft
+  ---
+  duration_ms: 4.846765
+  type: 'test'
+  ...
+# Subtest: AI writing and character images use the private local gateway and require approval
+ok 143 - AI writing and character images use the private local gateway and require approval
+  ---
+  duration_ms: 2.374423
+  type: 'test'
+  ...
+# Subtest: full screenplay remains part of the canonical local project
+ok 144 - full screenplay remains part of the canonical local project
+  ---
+  duration_ms: 7.039503
+  type: 'test'
+  ...
+# Subtest: viewer reads common screenplay formats and colour-codes screenplay grammar
+ok 145 - viewer reads common screenplay formats and colour-codes screenplay grammar
+  ---
+  duration_ms: 2.814581
+  type: 'test'
+  ...
+# Subtest: guided reading connects passages to existing story knowledge
+ok 146 - guided reading connects passages to existing story knowledge
+  ---
+  duration_ms: 1.172178
+  type: 'test'
+  ...
+# Subtest: top Import and Script Viewer use one screenplay ingestion pipeline
+ok 147 - top Import and Script Viewer use one screenplay ingestion pipeline
+  ---
+  duration_ms: 2.204837
+  type: 'test'
+  ...
+# Subtest: screenplay import replaces example data and populates the shared framework as suggestions
+ok 148 - screenplay import replaces example data and populates the shared framework as suggestions
+  ---
+  duration_ms: 1.457729
+  type: 'test'
+  ...
+# Subtest: settings keep AI, music, and future plugins in one local model
+ok 149 - settings keep AI, music, and future plugins in one local model
+  ---
+  duration_ms: 0.92502
+  type: 'test'
+  ...
+# Subtest: settings never include API-key storage
+ok 150 - settings never include API-key storage
+  ---
+  duration_ms: 0.236109
+  type: 'test'
+  ...
+# Subtest: AI Setup verifies a saved key and displays live connection state
+ok 151 - AI Setup verifies a saved key and displays live connection state
+  ---
+  duration_ms: 0.168042
+  type: 'test'
+  ...
+# Subtest: the saved key stays behind the private localhost gateway
+ok 152 - the saved key stays behind the private localhost gateway
+  ---
+  duration_ms: 0.225559
+  type: 'test'
+  ...
+# Subtest: music artist links are limited to Suno and Udio HTTPS profiles
+ok 153 - music artist links are limited to Suno and Udio HTTPS profiles
+  ---
+  duration_ms: 0.163154
+  type: 'test'
+  ...
+# Subtest: Settings includes live producer, actor, and director reports plus a current import audit
+ok 154 - Settings includes live producer, actor, and director reports plus a current import audit
+  ---
+  duration_ms: 0.29076
+  type: 'test'
+  ...
+# Subtest: character reports recalculate from editable drafts or imported source
+ok 155 - character reports recalculate from editable drafts or imported source
+  ---
+  duration_ms: 0.270052
+  type: 'test'
+  ...
+# Subtest: Settings terminology is grouped, searchable, and concise or expanded
+ok 156 - Settings terminology is grouped, searchable, and concise or expanded
+  ---
+  duration_ms: 0.230288
+  type: 'test'
+  ...
+# Subtest: Pitch & Review includes a four-part dialectic worksheet and 20-point logline deconstruction
+ok 157 - Pitch & Review includes a four-part dialectic worksheet and 20-point logline deconstruction
+  ---
+  duration_ms: 7.028532
+  type: 'test'
+  ...
+# Subtest: Canon Binder can attach the current beats, outline and pitch
+ok 158 - Canon Binder can attach the current beats, outline and pitch
+  ---
+  duration_ms: 2.777622
+  type: 'test'
+  ...
+# Subtest: Settings exposes real connections and three role-specific reports
+ok 159 - Settings exposes real connections and three role-specific reports
+  ---
+  duration_ms: 1.876127
+  type: 'test'
+  ...
+# Subtest: README remains complete while three .md tabs are selectable from the main page
+ok 160 - README remains complete while three .md tabs are selectable from the main page
+  ---
+  duration_ms: 2.648078
+  type: 'test'
+  ...
+# Subtest: collaboration documentation uses committed PlotPickle logos
+ok 161 - collaboration documentation uses committed PlotPickle logos
+  ---
+  duration_ms: 1.046915
+  type: 'test'
+  ...
+# Subtest: Windows publisher guidance explains Mark of the Web and the signed-launcher path
+ok 162 - Windows publisher guidance explains Mark of the Web and the signed-launcher path
+  ---
+  duration_ms: 2.48059
+  type: 'test'
+  ...
+# Subtest: Visual Storyboard exposes the 24-block overview and all 96 mini-block visual slots
+ok 163 - Visual Storyboard exposes the 24-block overview and all 96 mini-block visual slots
+  ---
+  duration_ms: 6.342808
+  type: 'test'
+  ...
+# Subtest: default prompts combine story, scene, character, location, screenplay, shot, and continuity context
+ok 164 - default prompts combine story, scene, character, location, screenplay, shot, and continuity context
+  ---
+  duration_ms: 1.585457
+  type: 'test'
+  ...
+# Subtest: storyboard images use the private local gateway, landscape output, and local assets
+ok 165 - storyboard images use the private local gateway, landscape output, and local assets
+  ---
+  duration_ms: 2.403457
+  type: 'test'
+  ...
+# Subtest: schema 1.7 migrates earlier projects into four storyboard slots per block
+ok 166 - schema 1.7 migrates earlier projects into four storyboard slots per block
+  ---
+  duration_ms: 2.200339
+  type: 'test'
+  ...
+# Subtest: Read & Learn is a primary workspace and Writer keeps Treatment and Screenplay connected
+ok 167 - Read & Learn is a primary workspace and Writer keeps Treatment and Screenplay connected
+  ---
+  duration_ms: 8.227338
+  type: 'test'
+  ...
+# Subtest: Markdown treatment supports local writing, preview, export, AI approval and screenplay handoff
+ok 168 - Markdown treatment supports local writing, preview, export, AI approval and screenplay handoff
+  ---
+  duration_ms: 1.597098
+  type: 'test'
+  ...
+# Subtest: Learning Studio connects contextual guidance to the complete course
+ok 169 - Learning Studio connects contextual guidance to the complete course
+  ---
+  duration_ms: 3.052006
+  type: 'test'
+  ...
+# Subtest: Learning Library contains all 14 source modules with substantial teaching tools
+ok 170 - Learning Library contains all 14 source modules with substantial teaching tools
+  ---
+  duration_ms: 1.910611
+  type: 'test'
+  ...
+# Subtest: Learning progress is per project and survives a browser restart
+ok 171 - Learning progress is per project and survives a browser restart
+  ---
+  duration_ms: 1.139267
+  type: 'test'
+  ...
+# Subtest: Learning Studio preserves the educational and user-work licence boundary
+ok 172 - Learning Studio preserves the educational and user-work licence boundary
+  ---
+  duration_ms: 1.042835
+  type: 'test'
+  ...
+# Subtest: Afterglow populates the Markdown Treatment and carries it into storyboard prompts
+ok 173 - Afterglow populates the Markdown Treatment and carries it into storyboard prompts
+  ---
+  duration_ms: 3.335709
+  type: 'test'
+  ...
+1..173
+# tests 173
+# suites 0
+# pass 173
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2898.146938

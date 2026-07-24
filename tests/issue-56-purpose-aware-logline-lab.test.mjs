@@ -64,10 +64,10 @@ test("imported screenplay loglines remain suggestions with evidence and uncertai
 test("focused learning deep dive extends The Pitch without creating a broad curriculum", async () => {
   const learning = await source("app/learning-loglines-that-carry-the-movie.ts");
   assert.match(learning, /title: "Loglines That Carry the Movie"/);
-  assert.match(learning, /Development logline/);
-  assert.match(learning, /Pitch-deck logline/);
-  assert.match(learning, /Public teaser/);
-  assert.match(learning, /Collaborator brief/);
+  assert.match(learning, /development logline/i);
+  assert.match(learning, /pitch-deck logline/i);
+  assert.match(learning, /public teaser/i);
+  assert.match(learning, /collaborator brief/i);
   assert.match(learning, /One Afterglow project, three useful versions/);
   for (const alias of ["The Art of Crafting Loglines", "20-step logline guide", "perfect logline", "logline deconstruction", "avoid character names", "irony", "active voice"]) {
     assert.ok(learning.includes(alias), `Missing legacy alias: ${alias}`);

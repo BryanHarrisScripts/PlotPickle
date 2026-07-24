@@ -20,6 +20,7 @@ import { dialogueLessons, dialogueLessonSearchText, type DialogueLesson } from "
 import { storyCraftLessons, storyCraftSearchText, type StoryCraftLesson } from "./learning-story-craft-essentials";
 import { coreGuideFor } from "./learning-core-curriculum";
 import { learningModules, learningPaths, moduleSearchText, type LearningModule } from "./learning-library";
+import { loglinesThatCarryTheMovie } from "./learning-loglines-that-carry-the-movie";
 import { twentyFourBlocksLessons, twentyFourBlocksSearchText, type TwentyFourBlocksLesson } from "./learning-24-blocks";
 import styles from "./learning-studio.module.css";
 
@@ -39,6 +40,7 @@ type CourseModule = LearningModule | TwentyFourBlocksLesson | AiRevisionLesson |
 
 const courseModules: CourseModule[] = [
   ...learningModules,
+  loglinesThatCarryTheMovie,
   ...twentyFourBlocksLessons,
   ...aiRevisionLessons,
   ...collaborationOwnershipLessons,

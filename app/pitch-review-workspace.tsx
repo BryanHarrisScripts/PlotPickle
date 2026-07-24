@@ -3,11 +3,9 @@
 import { useMemo, useState } from "react";
 import styles from "./pitch-review-workspace.module.css";
 import DialecticWorksheet from "./dialectic-worksheet";
-import LoglineRubric from "./logline-rubric";
+import LoglineLab from "./logline-lab";
 import {
   addReviewComment,
-  approveLoglineCandidate,
-  buildGuidedLoglineCandidate,
   buildPitchPackageHtml,
   buildPresentationMarkdown,
   compareRevisionSnapshotsForReview,
@@ -15,26 +13,14 @@ import {
   ensureReviewWorkspace,
   pitchExportFileNames,
   removeReviewThread,
-  saveLoglineCandidate,
   updatePitchPackage,
   updateReviewThreadStatus,
-  type LoglineWorkshopAnswers,
 } from "@/lib/pitch-review";
 import type { PitchPackage, PlotPickleProject, ReviewAnchor, ReviewPriority, ReviewThreadStatus } from "@/lib/project";
 
 type View = "logline" | "dialectic" | "reviews" | "revisions" | "package" | "exports";
 
 type AnchorOption = ReviewAnchor & { value: string };
-
-const workshopSteps: Array<{ key: keyof LoglineWorkshopAnswers; title: string; question: string; placeholder: string }> = [
-  { key: "protagonist", title: "Protagonist", question: "Who carries the film?", placeholder: "Name or defining role" },
-  { key: "identity", title: "Identity", question: "What makes them immediately specific?", placeholder: "A reluctant archivist with a forbidden memory" },
-  { key: "disruption", title: "Disruption", question: "What breaks the ordinary world?", placeholder: "The catalytic event" },
-  { key: "goal", title: "Goal", question: "What must they actively achieve?", placeholder: "A visible, playable objective" },
-  { key: "opposition", title: "Opposition", question: "What force makes that difficult?", placeholder: "Person, system, environment or inner pattern" },
-  { key: "stakes", title: "Stakes", question: "What happens if they fail?", placeholder: "Personal and external cost" },
-  { key: "distinction", title: "Distinction", question: "What makes this film unlike the obvious version?", placeholder: "Irony, world rule, relationship or signature move" },
-];
 
 function downloadText(name: string, content: string, type: string) {
   const url = URL.createObjectURL(new Blob([content], { type }));
@@ -74,17 +60,6 @@ function buildAnchorOptions(project: PlotPickleProject): AnchorOption[] {
 export default function PitchReviewWorkspace({ project, onProjectChange }: { project: PlotPickleProject; onProjectChange: (project: PlotPickleProject) => void }) {
   const active = useMemo(() => ensureReviewWorkspace(project), [project]);
   const [view, setView] = useState<View>("logline");
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<LoglineWorkshopAnswers>({
-    protagonist: project.development.foundations.protagonist,
-    identity: "",
-    disruption: project.story.catalyst,
-    goal: project.development.foundations.objective,
-    opposition: project.development.foundations.opposition,
-    stakes: project.story.stakes,
-    distinction: project.development.pickle.signatureMove,
-  });
-  const [candidatePreview, setCandidatePreview] = useState("");
   const anchorOptions = useMemo(() => buildAnchorOptions(active), [active]);
   const [anchorValue, setAnchorValue] = useState(anchorOptions[0]?.value ?? "project:project");
   const [threadTitle, setThreadTitle] = useState("");
@@ -103,17 +78,6 @@ export default function PitchReviewWorkspace({ project, onProjectChange }: { pro
     const right = active.revisions.find((revision) => revision.id === rightRevisionId);
     return left && right && left.id !== right.id ? compareRevisionSnapshotsForReview(left, right) : null;
   }, [active.revisions, leftRevisionId, rightRevisionId]);
-
-  function createCandidate() {
-    const next = buildGuidedLoglineCandidate(active, answers);
-    setCandidatePreview(next);
-  }
-
-  function keepCandidate() {
-    if (!candidatePreview) return;
-    onProjectChange(saveLoglineCandidate(active, candidatePreview));
-    setCandidatePreview("");
-  }
 
   function addThread() {
     const anchor = anchorOptions.find((option) => option.value === anchorValue);
@@ -179,7 +143,7 @@ export default function PitchReviewWorkspace({ project, onProjectChange }: { pro
 
       <nav className={styles.tabs} aria-label="Pitch and review workflows">
         {([
-          ["logline", "Logline Workshop"],
+          ["logline", "Logline Lab"],
           ["dialectic", "Theme Dialectic"],
           ["reviews", "Anchored Reviews"],
           ["revisions", "Revision Compare"],
@@ -188,19 +152,7 @@ export default function PitchReviewWorkspace({ project, onProjectChange }: { pro
         ] as Array<[View, string]>).map(([id, label]) => <button key={id} type="button" className={view === id ? styles.activeTab : ""} onClick={() => setView(id)}>{label}</button>)}
       </nav>
 
-      {view === "logline" ? <><div className={styles.twoColumn}>
-        <section className={styles.panel}>
-          <div className={styles.panelTitle}><div><span>Step {step + 1} of {workshopSteps.length}</span><h2>{workshopSteps[step].title}</h2></div><small>One concrete decision at a time</small></div>
-          <p className={styles.question}>{workshopSteps[step].question}</p>
-          <textarea value={answers[workshopSteps[step].key]} placeholder={workshopSteps[step].placeholder} onChange={(event) => setAnswers({ ...answers, [workshopSteps[step].key]: event.target.value })} />
-          <div className={styles.actions}><button type="button" disabled={step === 0} onClick={() => setStep(Math.max(0, step - 1))}>Previous</button>{step < workshopSteps.length - 1 ? <button type="button" className={styles.primary} onClick={() => setStep(step + 1)}>Next question</button> : <button type="button" className={styles.primary} onClick={createCandidate}>Build logline candidate</button>}</div>
-          {candidatePreview ? <div className={styles.preview}><span>Review before saving</span><p>{candidatePreview}</p><div className={styles.actions}><button type="button" onClick={() => setCandidatePreview("")}>Discard</button><button type="button" className={styles.primary} onClick={keepCandidate}>Save candidate</button></div></div> : null}
-        </section>
-        <section className={styles.panel}>
-          <div className={styles.panelTitle}><div><span>Candidate library</span><h2>Compare and approve</h2></div><small>Approval updates the canonical logline</small></div>
-          <div className={styles.stack}>{active.review.loglineCandidates.length ? active.review.loglineCandidates.map((candidate) => <article className={candidate.selected ? styles.selectedCard : styles.card} key={candidate.id}><span>{candidate.source} · {new Date(candidate.createdAt).toLocaleString()}</span><p>{candidate.text}</p><button type="button" disabled={candidate.selected} onClick={() => onProjectChange(approveLoglineCandidate(active, candidate.id))}>{candidate.selected ? "Current approved logline" : "Approve this logline"}</button></article>) : <p className={styles.empty}>No saved candidates yet. Complete the guided questions to create the first one.</p>}</div>
-        </section>
-      </div><LoglineRubric project={active} text={candidatePreview || active.story.logline || active.development.pitch.oneSentence} /></> : null}
+      {view === "logline" ? <LoglineLab project={active} onProjectChange={onProjectChange} /> : null}
 
       {view === "dialectic" ? <DialecticWorksheet project={active} onProjectChange={onProjectChange} /> : null}
 

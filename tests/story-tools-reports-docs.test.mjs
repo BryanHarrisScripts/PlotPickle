@@ -6,15 +6,19 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("Pitch & Review includes a four-part dialectic worksheet and 20-point logline deconstruction", async () => {
+test("Pitch & Review includes a four-part dialectic worksheet and evidence-based Logline Lab", async () => {
   const workspace = await source("app/pitch-review-workspace.tsx");
+  const labUi = await source("app/logline-lab.tsx");
   const dialectic = await source("app/dialectic-worksheet.tsx");
   const rubric = await source("lib/logline-rubric.ts");
+  const evidence = await source("lib/logline-lab.ts");
   assert.match(workspace, /Theme Dialectic/);
-  assert.match(workspace, /LoglineRubric/);
+  assert.match(workspace, /LoglineLab/);
+  assert.match(labUi, /LoglineRubric/);
   for (const field of ["Thesis", "Antithesis", "Synthesis", "Ending proof"]) assert.match(dialectic, new RegExp(field, "i"));
-  assert.match(rubric, /LOGLINE_RUBRIC_TOTAL = 20/);
-  for (const criterion of ["Identifiable protagonist", "Active visible goal", "Opposing force", "Consequences of failure", "Dramatic irony", "Professional concision", "Specific language", "Escalating final pressure"]) assert.ok(rubric.includes(criterion), `Missing rubric criterion: ${criterion}`);
+  for (const group of ["Core dramatic engine", "Promise and distinction", "Clarity and delivery"]) assert.ok(evidence.includes(group), `Missing evidence group: ${group}`);
+  for (const state of ["sentence-supported", "project-only", "intentional-omission", "review"]) assert.ok(evidence.includes(state), `Missing evidence state: ${state}`);
+  assert.doesNotMatch(rubric, /LOGLINE_RUBRIC_TOTAL|Exceptional|Pitch-ready/);
 });
 
 test("Canon Binder can attach the current beats, outline and pitch", async () => {

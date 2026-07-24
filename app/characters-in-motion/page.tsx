@@ -94,15 +94,21 @@ export default function CharactersInMotionPage() {
   const selectedScene = scenes.find((scene) => scene.id === sceneId) ?? scenes[0];
 
   useEffect(() => {
-    setSceneId(scenes[0]?.id ?? "");
-    setCheckpointKind(fallbackCheckpoint(blockNumber));
+    const timer = window.setTimeout(() => {
+      setSceneId(scenes[0]?.id ?? "");
+      setCheckpointKind(fallbackCheckpoint(blockNumber));
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [blockNumber, scenes]);
 
   useEffect(() => {
     if (!project || !character) return;
-    const key = `plotpickle-character-arc-shape:${project.id}:${character.id}`;
-    const saved = window.localStorage.getItem(key) as CharacterArcShape | null;
-    setArcShape(characterArcShapes.some((shape) => shape.id === saved) ? saved! : "custom");
+    const timer = window.setTimeout(() => {
+      const key = `plotpickle-character-arc-shape:${project.id}:${character.id}`;
+      const saved = window.localStorage.getItem(key) as CharacterArcShape | null;
+      setArcShape(saved && characterArcShapes.some((shape) => shape.id === saved) ? saved : "custom");
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [project, character]);
 
   function chooseArcShape(value: CharacterArcShape) {
@@ -213,7 +219,7 @@ export default function CharactersInMotionPage() {
         const sharedScenes = project.blocks.flatMap((item) => item.scenes.map((scene) => ({ ...scene, blockNumber: item.number }))).filter((scene) => scene.characterIds.includes(character.id) && scene.characterIds.includes(other.id));
         const selectedPoints = matrix.checkpoints.filter((point) => point.sceneId && sharedScenes.some((scene) => scene.id === point.sceneId));
         const otherPoints = other.arcMatrix.checkpoints.filter((point) => point.sceneId && sharedScenes.some((scene) => scene.id === point.sceneId));
-        return <article key={other.id}><h3>{character.name} ↔ {other.name}</h3><div><span>{character.name}'s perspective</span><strong>{outward?.label || "Not defined"}</strong><p>{outward?.description || "Add a relationship record from this character's point of view."}</p></div><div><span>{other.name}'s perspective</span><strong>{inward?.label || "Not defined"}</strong><p>{inward?.description || "Add the reciprocal relationship record from the other point of view."}</p></div><footer><span>{sharedScenes.length} shared scene{sharedScenes.length === 1 ? "" : "s"}</span><span>{selectedPoints.length + otherPoints.length} linked change point{selectedPoints.length + otherPoints.length === 1 ? "" : "s"}</span></footer></article>;
+        return <article key={other.id}><h3>{character.name} ↔ {other.name}</h3><div><span>{character.name}&apos;s perspective</span><strong>{outward?.label || "Not defined"}</strong><p>{outward?.description || "Add a relationship record from this character's point of view."}</p></div><div><span>{other.name}&apos;s perspective</span><strong>{inward?.label || "Not defined"}</strong><p>{inward?.description || "Add the reciprocal relationship record from the other point of view."}</p></div><footer><span>{sharedScenes.length} shared scene{sharedScenes.length === 1 ? "" : "s"}</span><span>{selectedPoints.length + otherPoints.length} linked change point{selectedPoints.length + otherPoints.length === 1 ? "" : "s"}</span></footer></article>;
       })}</div>
     </section>
 

@@ -1,0 +1,4 @@
+matrix_status=success
+linux=success
+macos=success
+windows=success

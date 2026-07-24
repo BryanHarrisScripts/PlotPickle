@@ -24,19 +24,11 @@ export type PlotPickleEventMap = {
 export type PlotPickleEventName = keyof PlotPickleEventMap;
 export type EventListener<K extends PlotPickleEventName> = (event: Readonly<PlotPickleEventMap[K]>) => void | Promise<void>;
 
-export interface Disposable {
-  dispose(): void;
-}
+export interface Disposable { dispose(): void }
 
 export function toDisposable(dispose: () => void): Disposable {
   let active = true;
-  return {
-    dispose() {
-      if (!active) return;
-      active = false;
-      dispose();
-    },
-  };
+  return { dispose() { if (!active) return; active = false; dispose(); } };
 }
 
 export class DisposableStore implements Disposable {
@@ -44,28 +36,14 @@ export class DisposableStore implements Disposable {
   private disposed = false;
 
   add<T extends Disposable>(item: T): T {
-    if (this.disposed) {
-      item.dispose();
-      return item;
-    }
+    if (this.disposed) { item.dispose(); return item; }
     this.items.add(item);
     return item;
   }
 
-  delete(item: Disposable): boolean {
-    return this.items.delete(item);
-  }
-
-  clear(): void {
-    for (const item of [...this.items]) item.dispose();
-    this.items.clear();
-  }
-
-  dispose(): void {
-    if (this.disposed) return;
-    this.disposed = true;
-    this.clear();
-  }
+  delete(item: Disposable): boolean { return this.items.delete(item); }
+  clear(): void { for (const item of [...this.items]) item.dispose(); this.items.clear(); }
+  dispose(): void { if (this.disposed) return; this.disposed = true; this.clear(); }
 }
 
 export interface EventBus {
@@ -94,10 +72,7 @@ export class TypedEventBus implements EventBus, Disposable {
     for (const listener of listeners) await listener(Object.freeze(structuredClone(event)));
   }
 
-  dispose(): void {
-    this.disposed = true;
-    this.listeners.clear();
-  }
+  dispose(): void { this.disposed = true; this.listeners.clear(); }
 }
 
 export type CommandHandler = (...args: unknown[]) => unknown | Promise<unknown>;
@@ -121,42 +96,31 @@ export class PermissionError extends Error {
   }
 }
 
-export type PermissionServiceMap = {
-  project: "project:read" | "project:write";
-  canon: "canon:read" | "canon:write";
-  screenplay: "screenplay:read" | "screenplay:write";
-  storyboard: "storyboard:read" | "storyboard:write";
-  reports: "reports:read" | "reports:write";
-  assets: "assets:read" | "assets:write";
-  storage: "storage:read" | "storage:write";
-  git: "git";
-  ai: "ai";
-  plugins: "project:read";
-  timeline: "project:read";
-};
-
 export type PermissionAwareServices = PlotPickleServices;
+type ServiceName = keyof Omit<PlotPickleServices, "apiVersion">;
 
 export function assertPermission(pluginId: string, granted: ReadonlySet<PluginPermission>, permission: PluginPermission): void {
   if (!granted.has(permission)) throw new PermissionError(pluginId, permission);
 }
 
-function permissionForCall(service: keyof PlotPickleServices, member: PropertyKey): PluginPermission {
-  const writeLike = /^(create|update|save|set|add|remove|delete|write|apply|grant|install|enable|disable|uninstall|generate|run|commit|push|pull|export)/i.test(String(member));
-  const map: Record<keyof PlotPickleServices, readonly [PluginPermission, PluginPermission]> = {
-    project: ["project:read", "project:write"],
-    canon: ["canon:read", "canon:write"],
-    screenplay: ["screenplay:read", "screenplay:write"],
-    storyboard: ["storyboard:read", "storyboard:write"],
-    reports: ["reports:read", "reports:write"],
-    timeline: ["project:read", "project:write"],
-    ai: ["ai", "ai"],
-    assets: ["assets:read", "assets:write"],
-    storage: ["storage:read", "storage:write"],
-    git: ["git", "git"],
-    plugins: ["project:read", "project:write"],
-  };
-  return map[service][writeLike ? 1 : 0];
+const methodPermissions: Record<ServiceName, Record<string, PluginPermission>> = {
+  project: { get: "project:read", replace: "project:write", transact: "project:write" },
+  canon: { binder: "canon:read", query: "canon:read", context: "canon:read" },
+  screenplay: { read: "screenplay:read", update: "screenplay:write" },
+  storyboard: { frames: "storyboard:read" },
+  reports: { list: "reports:read", generate: "reports:read" },
+  timeline: { events: "project:read" },
+  ai: { providers: "ai", complete: "ai" },
+  assets: { list: "assets:read", read: "assets:read", write: "assets:write" },
+  storage: { readJson: "storage:read", writeJson: "storage:write" },
+  git: { status: "git", history: "git", propose: "git" },
+  plugins: { registry: "project:read", pluginsFor: "project:read" },
+};
+
+function permissionForCall(service: ServiceName, member: PropertyKey): PluginPermission {
+  const permission = methodPermissions[service][String(member)];
+  if (!permission) throw new Error(`Plugin service method ${service}.${String(member)} has no public permission mapping.`);
+  return permission;
 }
 
 export function createPermissionAwareServices(
@@ -165,8 +129,11 @@ export function createPermissionAwareServices(
   grantedPermissions: Iterable<PluginPermission>,
 ): PermissionAwareServices {
   const granted = new Set(grantedPermissions);
-  const wrapped = {} as PlotPickleServices;
-  for (const [serviceName, service] of Object.entries(services) as [keyof PlotPickleServices, object][]) {
+  const wrapped = { apiVersion: services.apiVersion } as PlotPickleServices;
+  const serviceNames: ServiceName[] = ["project", "canon", "screenplay", "storyboard", "reports", "timeline", "ai", "assets", "storage", "git", "plugins"];
+
+  for (const serviceName of serviceNames) {
+    const service = services[serviceName] as object;
     wrapped[serviceName] = new Proxy(service, {
       get(target, member, receiver) {
         const value = Reflect.get(target, member, receiver);
@@ -206,15 +173,16 @@ export type ActivationHostOptions = {
 };
 
 export class PluginActivationHost implements Disposable {
-  private readonly subscriptions = new DisposableStore();
+  private subscriptions = new DisposableStore();
   private activeModule?: PluginModule;
-  private moduleDisposable?: Disposable;
   private active = false;
 
   constructor(private readonly options: ActivationHostOptions) {}
 
   async activate(module: PluginModule): Promise<PluginContext> {
     if (this.active) throw new Error(`Plugin ${this.options.manifest.id} is already active.`);
+    if (this.subscriptions) this.subscriptions.dispose();
+    this.subscriptions = new DisposableStore();
     const events = this.options.events ?? new TypedEventBus();
     const context: PluginContext = {
       manifest: Object.freeze(structuredClone(this.options.manifest)),
@@ -228,7 +196,7 @@ export class PluginActivationHost implements Disposable {
     };
     this.activeModule = module;
     const result = await module.activate(context);
-    if (result) this.moduleDisposable = this.subscriptions.add(result);
+    if (result) this.subscriptions.add(result);
     this.active = true;
     return context;
   }
@@ -236,20 +204,16 @@ export class PluginActivationHost implements Disposable {
   async deactivate(): Promise<void> {
     if (!this.active) return;
     await this.activeModule?.deactivate?.();
-    this.moduleDisposable?.dispose();
     this.subscriptions.dispose();
     this.active = false;
     this.activeModule = undefined;
-    this.moduleDisposable = undefined;
   }
 
-  dispose(): void {
-    void this.deactivate();
-  }
+  dispose(): void { void this.deactivate(); }
 }
 
 export type PluginDevelopmentSession = {
-  generation: number;
+  readonly generation: number;
   reload(module: PluginModule): Promise<PluginContext>;
   dispose(): Promise<void>;
 };

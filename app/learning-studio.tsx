@@ -17,6 +17,7 @@ import {
 } from "./learning-collaboration-ownership";
 import { workingTogetherLessons, workingTogetherSearchText, type WorkingTogetherLesson } from "./learning-working-together";
 import { dialogueLessons, dialogueLessonSearchText, type DialogueLesson } from "./learning-dialogue-in-motion";
+import { storyCraftLessons, storyCraftSearchText, type StoryCraftLesson } from "./learning-story-craft-essentials";
 import { learningModules, learningPaths, moduleSearchText, type LearningModule } from "./learning-library";
 import { twentyFourBlocksLessons, twentyFourBlocksSearchText, type TwentyFourBlocksLesson } from "./learning-24-blocks";
 import styles from "./learning-studio.module.css";
@@ -32,8 +33,8 @@ type Props = {
   onOpenBlock: (blockNumber: number) => void;
 };
 
-type ViewMode = "workflow" | "guide" | "library" | "method" | "ai-revision" | "collaboration" | "working-together" | "characters" | "dialogue";
-type CourseModule = LearningModule | TwentyFourBlocksLesson | AiRevisionLesson | CollaborationOwnershipLesson | CharacterMotionLesson | WorkingTogetherLesson | DialogueLesson;
+type ViewMode = "workflow" | "guide" | "library" | "method" | "ai-revision" | "collaboration" | "working-together" | "characters" | "dialogue" | "story-craft";
+type CourseModule = LearningModule | TwentyFourBlocksLesson | AiRevisionLesson | CollaborationOwnershipLesson | CharacterMotionLesson | WorkingTogetherLesson | DialogueLesson | StoryCraftLesson;
 
 const courseModules: CourseModule[] = [
   ...learningModules,
@@ -43,6 +44,7 @@ const courseModules: CourseModule[] = [
   ...workingTogetherLessons,
   ...characterMotionLessons,
   ...dialogueLessons,
+  ...storyCraftLessons,
 ];
 const anatomy = ["Structure", "Dialogue", "Character", "Theme & conflict", "World-building", "Pacing & tone", "Symbolic techniques"];
 
@@ -70,6 +72,10 @@ function isDialogueLesson(module: CourseModule): module is DialogueLesson {
   return "collection" in module && module.collection === "Dialogue in Motion";
 }
 
+function isStoryCraftLesson(module: CourseModule): module is StoryCraftLesson {
+  return "collection" in module && module.collection === "Story Craft Essentials";
+}
+
 function courseSearchText(module: CourseModule) {
   const base = moduleSearchText(module);
   if (isMethodLesson(module)) return `${base} ${twentyFourBlocksSearchText(module)}`;
@@ -77,6 +83,7 @@ function courseSearchText(module: CourseModule) {
   if (isCollaborationLesson(module)) return `${base} ${collaborationOwnershipSearchText(module)}`;
   if (isWorkingTogetherLesson(module)) return `${base} ${workingTogetherSearchText(module)}`;
   if (isDialogueLesson(module)) return `${base} ${dialogueLessonSearchText(module)}`;
+  if (isStoryCraftLesson(module)) return `${base} ${storyCraftSearchText(module)}`;
   if (isCharacterMotionLesson(module)) return `${base} ${characterMotionSearchText(module)}`;
   return base;
 }
@@ -146,7 +153,23 @@ function recommendations(blockNumber: number, miniBlockNumber: number) {
       : miniBlockNumber === 3
         ? "dialogue-conflict"
         : "dialogue-exchange-turn";
-  return [...new Set([dialogueByMovement, dialogueByStage, characterByMovement, characterByStage, aiByMovement, aiByStage, byMovement, ...stage])].slice(0, 8);
+  const essentialsByStage = blockNumber <= 4
+    ? "essentials-experience"
+    : blockNumber <= 10
+      ? "essentials-pacing"
+      : blockNumber <= 16
+        ? "essentials-theme"
+        : blockNumber <= 20
+          ? "essentials-motif"
+          : "essentials-audit";
+  const essentialsByMovement = miniBlockNumber === 1
+    ? "essentials-tone"
+    : miniBlockNumber === 2
+      ? "essentials-screen-evidence"
+      : miniBlockNumber === 3
+        ? "essentials-scene"
+        : "essentials-formatting";
+  return [...new Set([essentialsByMovement, essentialsByStage, dialogueByMovement, dialogueByStage, characterByMovement, characterByStage, aiByMovement, aiByStage, byMovement, ...stage])].slice(0, 10);
 }
 
 function clickNamedNavigationButton(navLabel: string, buttonLabel: string) {
@@ -238,6 +261,12 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
     window.location.assign(`${module.workspaceHref}?${queryString.toString()}${section}`);
   }
 
+  function openStoryCraftWorkspace(module: StoryCraftLesson) {
+    const queryString = new URLSearchParams({ block: String(block.number), mini: String(mini.number), lesson: module.id });
+    const section = module.workspaceSection ? `#${module.workspaceSection}` : "";
+    window.location.assign(`${module.workspaceHref}?${queryString.toString()}${section}`);
+  }
+
   function applyModule(module: CourseModule) {
     if (isAiRevisionLesson(module)) {
       window.location.assign(module.workspaceHref);
@@ -257,6 +286,10 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
     }
     if (isDialogueLesson(module)) {
       openDialogueWorkspace(module);
+      return;
+    }
+    if (isStoryCraftLesson(module)) {
+      openStoryCraftWorkspace(module);
       return;
     }
     if (module.apply === "Screenplay") onOpenScreenplay();
@@ -337,6 +370,7 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
       <button type="button" className={view === "method" ? styles.active : ""} onClick={() => setView("method")}>The 24 Blocks Method</button>
       <button type="button" className={view === "characters" ? styles.active : ""} onClick={() => setView("characters")}>Characters in Motion</button>
       <button type="button" className={view === "dialogue" ? styles.active : ""} onClick={() => setView("dialogue")}>Dialogue in Motion</button>
+      <button type="button" className={view === "story-craft" ? styles.active : ""} onClick={() => setView("story-craft")}>Story Craft Essentials</button>
       <button type="button" className={view === "ai-revision" ? styles.active : ""} onClick={() => setView("ai-revision")}>AI-Assisted Revision</button>
       <button type="button" className={view === "collaboration" ? styles.active : ""} onClick={() => setView("collaboration")}>Collaboration, Formats & Ownership</button>
       <button type="button" className={view === "working-together" ? styles.active : ""} onClick={() => setView("working-together")}>Working Together</button>
@@ -363,6 +397,9 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
     </section> : view === "dialogue" ? <section className={styles.library}>
       <div className={styles.sectionIntro}><span>Playable screenplay dialogue collection</span><h2>Dialogue in Motion</h2><p>Eight PlotPickled lessons connect objectives, tactics, Voiceprint, subtext, conflict, action, silence, exposition, genre, scene turns, revision and table-read evidence to the active project.</p></div>
       <main className={styles.moduleGrid}>{dialogueLessons.map((module) => <ModuleCard module={module} complete={completed.has(module.id)} recommended={recommendedIds.includes(module.id)} onOpen={() => openModule(module.id)} onToggle={() => toggleComplete(module.id)} key={module.id} />)}</main>
+    </section> : view === "story-craft" ? <section className={styles.library}>
+      <div className={styles.sectionIntro}><span>Integrated craft path</span><h2>Story Craft Essentials</h2><p>Nine PlotPickled lessons connect audience experience, pacing, tone, thematic argument, scene change, screen evidence, motifs, advanced screenplay forms and an evidence-based craft audit to the active project.</p></div>
+      <main className={styles.moduleGrid}>{storyCraftLessons.map((module) => <ModuleCard module={module} complete={completed.has(module.id)} recommended={recommendedIds.includes(module.id)} onOpen={() => openModule(module.id)} onToggle={() => toggleComplete(module.id)} key={module.id} />)}</main>
     </section> : view === "ai-revision" ? <section className={styles.library}>
       <div className={styles.sectionIntro}><span>Guided collection</span><h2>AI-Assisted Revision</h2><p>Fourteen focused passes begin with the story problem, limit the operation and canonical scope, identify evaluation criteria and known AI failure modes, and route approved work to the right PlotPickle engine or lab.</p></div>
       <main className={styles.moduleGrid}>{aiRevisionLessons.map((module) => <ModuleCard module={module} complete={completed.has(module.id)} recommended={recommendedIds.includes(module.id)} onOpen={() => openModule(module.id)} onToggle={() => toggleComplete(module.id)} key={module.id} />)}</main>
@@ -375,7 +412,7 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
     </section> : <section className={styles.library}>
       <div className={styles.sectionIntro}><span>Complete curriculum</span><h2>{courseModules.length} full learning modules</h2><p>Search lesson text, legacy source aliases, character evidence, arc shapes, relationship perspectives, workflow paths, format cautions, ownership distinctions, revision operations, definitions, examples, checklists, common mistakes and active-project exercises—not only module titles.</p></div>
       <section className={styles.filters}>
-        <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search 24 Blocks, playable dialogue, subtext, Voiceprint, table read, Final Draft, ownership, GitHub, AI revision…" aria-label="Search screenwriting lessons" />
+        <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search 24 Blocks, story experience, pacing, tone, theme, motifs, montage, playable dialogue, Voiceprint, ownership, AI revision…" aria-label="Search screenwriting lessons" />
         <div>{learningPaths.map((item) => <button type="button" className={path === item ? styles.active : ""} onClick={() => setPath(item)} key={item}>{item}</button>)}</div>
       </section>
       <main className={styles.moduleGrid}>{filtered.map((module) => <ModuleCard module={module} complete={completed.has(module.id)} recommended={recommendedIds.includes(module.id)} onOpen={() => openModule(module.id)} onToggle={() => toggleComplete(module.id)} key={module.id} />)}</main>
@@ -405,10 +442,11 @@ function ModuleCard({ module, complete, recommended, onOpen, onToggle }: { modul
     {isCollaborationLesson(module) ? <small>{module.collection} · Open {module.workspaceLabel}</small> : null}
     {isWorkingTogetherLesson(module) ? <small>{module.collection} · Open {module.workspaceLabel}</small> : null}
     {isDialogueLesson(module) ? <small>{module.collection} · Open {module.workspaceLabel}</small> : null}
+    {isStoryCraftLesson(module) ? <small>{module.collection} · Open {module.workspaceLabel}</small> : null}
     {isCharacterMotionLesson(module) ? <small>{module.collection} · Open {module.workspaceLabel}</small> : null}
     <h3>{module.title}</h3>
     <p>{module.overview}</p>
-    <div className={styles.cardStats}><span>{module.duration}</span><span>{module.sections.length} lessons</span>{isAiRevisionLesson(module) ? <span>{module.defaultOperation}</span> : isCollaborationLesson(module) || isWorkingTogetherLesson(module) || isDialogueLesson(module) || isCharacterMotionLesson(module) ? <span>{module.workspaceLabel}</span> : <span>Exercise</span>}</div>
+    <div className={styles.cardStats}><span>{module.duration}</span><span>{module.sections.length} lessons</span>{isAiRevisionLesson(module) ? <span>{module.defaultOperation}</span> : isCollaborationLesson(module) || isWorkingTogetherLesson(module) || isDialogueLesson(module) || isStoryCraftLesson(module) || isCharacterMotionLesson(module) ? <span>{module.workspaceLabel}</span> : <span>Exercise</span>}</div>
     <div className={styles.cardActions}><button type="button" onClick={onOpen}>Read full module</button><button type="button" className={complete ? styles.complete : ""} onClick={onToggle}>{complete ? "Completed" : "Mark complete"}</button></div>
   </article>;
 }
@@ -416,7 +454,7 @@ function ModuleCard({ module, complete, recommended, onOpen, onToggle }: { modul
 function ModuleReader({ module, complete, blockNumber, miniBlockNumber, first, last, onClose, onPrevious, onNext, onToggle, onApply }: { module: CourseModule; complete: boolean; blockNumber: number; miniBlockNumber: number; first: boolean; last: boolean; onClose: () => void; onPrevious: () => void; onNext: () => void; onToggle: () => void; onApply: () => void }) {
   return <section className={styles.reader} id="learning-module-reader">
     <div className={styles.readerTop}><button type="button" onClick={onClose}>Close module</button><div><button type="button" disabled={first} onClick={onPrevious}>Previous</button><button type="button" disabled={last} onClick={onNext}>Next</button></div></div>
-    <header className={styles.readerHeader}><span>Module {module.number} of {courseModules.length} · {module.path} · {module.duration}</span><h2>{module.title}</h2><p>{module.overview}</p>{isMethodLesson(module) || isAiRevisionLesson(module) || isCollaborationLesson(module) || isWorkingTogetherLesson(module) || isDialogueLesson(module) || isCharacterMotionLesson(module) ? <small>{module.sourceNote}</small> : null}<button type="button" className={complete ? styles.complete : ""} onClick={onToggle}>{complete ? "Completed — mark incomplete" : "Mark module complete"}</button></header>
+    <header className={styles.readerHeader}><span>Module {module.number} of {courseModules.length} · {module.path} · {module.duration}</span><h2>{module.title}</h2><p>{module.overview}</p>{isMethodLesson(module) || isAiRevisionLesson(module) || isCollaborationLesson(module) || isWorkingTogetherLesson(module) || isDialogueLesson(module) || isStoryCraftLesson(module) || isCharacterMotionLesson(module) ? <small>{module.sourceNote}</small> : null}<button type="button" className={complete ? styles.complete : ""} onClick={onToggle}>{complete ? "Completed — mark incomplete" : "Mark module complete"}</button></header>
 
     <div className={styles.readerLayout}>
       <main>
@@ -428,9 +466,10 @@ function ModuleReader({ module, complete, blockNumber, miniBlockNumber, first, l
         {isCollaborationLesson(module) ? <section className={styles.example}><span>Direct application</span><h3>{module.workspaceLabel}</h3><p>This lesson opens the current PlotPickle workspace rather than an obsolete external workaround. Opening it does not publish, connect, licence, merge or apply story changes automatically.</p></section> : null}
         {isWorkingTogetherLesson(module) ? <section className={styles.example}><span>Direct application</span><h3>{module.workspaceLabel}</h3><p>Create a project-specific welcome card, contribution brief, proposal packet, anchored review note or decision record. Records stay local until the writer deliberately shares a proposal.</p></section> : null}
         {isDialogueLesson(module) ? <section className={styles.example}><span>Direct application</span><h3>{module.workspaceLabel}</h3><p>The active Block and mini-block travel into the dialogue workspace. Blueprint, proof and table-read records remain reviewable evidence; no screenplay text is rewritten or applied automatically.</p></section> : null}
+        {isStoryCraftLesson(module) ? <section className={styles.example}><span>Direct application</span><h3>{module.workspaceLabel}</h3><p>The active Block and mini-block travel into the craft workspace. Cards, maps, ledgers and audits remain evidence records; no story or screenplay text is rewritten, formatted or inserted automatically.</p></section> : null}
         {isCharacterMotionLesson(module) ? <section className={styles.example}><span>Direct application</span><h3>{module.workspaceLabel}</h3><p>The active Block and mini-block travel into the character workspace. Diagnostics compare planned claims with project evidence and remain questions for the writer; no character, relationship, scene or dialogue is rewritten or merged automatically.</p></section> : null}
         <section className={styles.example}><span>Worked example</span><h3>{module.example.title}</h3><p>{module.example.text}</p></section>
-        <section className={styles.exercise}><span>Apply it to Block {blockNumber}.{miniBlockNumber}</span><h3>Active-project exercise</h3><p>{module.exercise}</p><button type="button" onClick={onApply}>Open {isAiRevisionLesson(module) ? module.destination : isCollaborationLesson(module) || isWorkingTogetherLesson(module) || isDialogueLesson(module) || isCharacterMotionLesson(module) ? module.workspaceLabel : module.apply}</button></section>
+        <section className={styles.exercise}><span>Apply it to Block {blockNumber}.{miniBlockNumber}</span><h3>Active-project exercise</h3><p>{module.exercise}</p><button type="button" onClick={onApply}>Open {isAiRevisionLesson(module) ? module.destination : isCollaborationLesson(module) || isWorkingTogetherLesson(module) || isDialogueLesson(module) || isStoryCraftLesson(module) || isCharacterMotionLesson(module) ? module.workspaceLabel : module.apply}</button></section>
       </main>
       <aside>
         <section><h3>Plain-language definitions</h3><dl>{module.definitions.map((item) => <div key={item.term}><dt>{item.term}</dt><dd>{item.meaning}</dd></div>)}</dl></section>

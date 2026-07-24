@@ -48,6 +48,8 @@ replace(page, '          <h4>{module.title}</h4>', '          <h4>{lesson.title}
 replace(page, '          <p>{module.overview}</p>', '          <p>{lesson.overview}</p>')
 
 core = "app/learning-core-curriculum.ts"
+replace(core, 'export type CoreProgressState = "not-started" | "read" | "exercise-attempted" | "applied" | "revisit";\n', 'export type CoreProgressState = "not-started" | "read" | "exercise-attempted" | "applied" | "revisit";\n\nexport const coreRelationshipNote = "Recommended before and useful after are advisory. No prerequisite is locked.";\n')
+replace(core, 'adaptation: "Genre is an agreement about audience experience, not a stereotype about pace, seriousness, dialogue or world scale."', 'adaptation: "Genre is an audience agreement, not a stereotype about pace, seriousness, dialogue or world scale."')
 replace(core, '  const dialogueElements = project.screenplay.draftElements.filter((item) => item.type === "dialogue" || item.type === "dual-dialogue");\n', '')
 replace(
     core,

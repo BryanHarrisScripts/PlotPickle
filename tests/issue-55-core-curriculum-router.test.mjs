@@ -54,7 +54,7 @@ test("the existing modules form a five-stage advisory curriculum", async () => {
   for (const stage of ["Find the Story", "Build the Story World", "Write the Movie", "Learn and Diagnose", "Prepare and Work Responsibly"]) {
     assert.ok(core.includes(`title: "${stage}"`), `Missing core stage: ${stage}`);
   }
-  assert.equal((core.match(/number: [1-5],\n    title:/g) ?? []).length, 5);
+  assert.equal((core.match(/number: [1-5],\r?\n    title:/g) ?? []).length, 5);
   assert.match(core, /recommendedBefore: string\[\]/);
   assert.match(core, /usefulAfter: string\[\]/);
   assert.match(core, /No prerequisite/);

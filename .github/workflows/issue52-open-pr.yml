@@ -1,0 +1,72 @@
+name: Open issue 52 pull request
+
+on:
+  push:
+    branches:
+      - issue-52-contributor-handbook
+    paths:
+      - .github/issue52-open-pr-ready
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  open-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: issue-52-contributor-handbook
+          fetch-depth: 0
+      - name: Prepare pull request body
+        shell: bash
+        run: |
+          cat > /tmp/issue52-pr-body.md <<'EOF'
+          Closes #52.
+
+          ## Implementation
+
+          - adds `Working Together in PlotPickle` as an 11-lesson central Read & Learn collection
+          - maps all seven legacy Collaborators guide sources into a modern contributor handbook
+          - supports eight collaboration models, including local-only and file-based workflows without GitHub
+          - separates creative roles and decision authority from technical repository permissions
+          - adds canonical operating agreements, authority records, contribution briefs, proposal packets, categorized review notes and decision logs
+          - adds Markdown and HTML contributor welcome cards and an editable Afterglow contributor example
+          - teaches private repository invitations, public forks, protected proposal branches and the difference between visibility and reuse permission
+          - connects the latest structured proposal packet to Settings → GitHub & Backups
+          - integrates category/outcome guidance into Pitch & Review
+          - adds contextual Act, Block, scene and character review questions
+          - records canon decisions with revision snapshots and contributor rights/credit checks
+          - protects local drafts, autosaves, AI prompts, private assets and credentials
+          - adds complete regression coverage
+
+          ## Validation
+
+          - lint passed
+          - production build passed
+          - 173 tests passed
+          - Windows, macOS and Linux release packaging passed
+          - staged-package and clean-machine extraction checks passed on all platforms
+          EOF
+      - name: Remove one-time PR workflow
+        run: |
+          git config user.name "PlotPickle Actions"
+          git config user.email "actions@users.noreply.github.com"
+          git rm .github/workflows/issue52-open-pr.yml .github/issue52-open-pr-ready
+          git commit -m "Remove one-time issue 52 PR workflow"
+          git push origin HEAD:issue-52-contributor-handbook
+      - name: Create draft pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --head issue-52-contributor-handbook --state open --json url --jq '.[0].url // empty')"
+          if [ -n "$existing" ]; then
+            echo "Draft pull request already exists: $existing"
+            exit 0
+          fi
+          pr_url="$(gh pr create --repo "$GITHUB_REPOSITORY" --base main --head issue-52-contributor-handbook --draft --title "Issue #52: contributor onboarding and review handbook" --body-file /tmp/issue52-pr-body.md)"
+          gh issue comment 52 --repo "$GITHUB_REPOSITORY" --body "Draft implementation PR created: $pr_url"
+          echo "Created $pr_url"

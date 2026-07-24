@@ -28,6 +28,19 @@ const engines: EngineDefinition[] = [
     result: "A timed, navigable dramatic hierarchy from act to shot, with forty-eight scenes as a starting template rather than a limit.",
   },
   {
+    code: "ES",
+    title: "Story Craft Essentials",
+    href: "/story-craft-essentials",
+    stage: "Connect the craft",
+    question: "How do promise, pacing, tone, theme, scenes, evidence and form work together?",
+    summary:
+      "Build a Story Experience Card, map pacing and tone, test thematic arguments, learn Scene Pulse terms, translate inner meaning into screen evidence, track motifs, preview advanced screenplay forms and run an evidence-based craft audit.",
+    useWhen:
+      "Use it when the intention is abstract—make it tense, strengthen the theme, improve the scene—or when several craft layers need one connected why-to-revision path.",
+    connects: ["Story Setup and Pitch", "Structure and Scene Pulse", "Resonance", "PageFlow", "DraftLens", "Screenplay formatting"],
+    result: "A connected craft diagnosis and set of reviewable cards, maps, ledgers, questions and revision priorities without automatic rewriting.",
+  },
+  {
     code: "RE",
     title: "Resonance Engine",
     href: "/resonance",

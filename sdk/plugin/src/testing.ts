@@ -72,25 +72,19 @@ export class MockPluginHost {
     });
   }
 
-  activate(module: PluginModule) {
-    return this.activation.activate(module);
-  }
-
-  deactivate() {
-    return this.activation.deactivate();
-  }
+  activate(module: PluginModule) { return this.activation.activate(module); }
+  deactivate() { return this.activation.deactivate(); }
 }
 
 export function createMockServices(overrides: Partial<PlotPickleServices> = {}): PlotPickleServices {
   const empty = new Proxy({}, {
     get(_target, member) {
-      return () => {
-        throw new Error(`Mock service method ${String(member)} was not configured.`);
-      };
+      return () => { throw new Error(`Mock service method ${String(member)} was not configured.`); };
     },
   });
 
   return {
+    apiVersion: "1.0.0",
     project: empty,
     canon: empty,
     screenplay: empty,

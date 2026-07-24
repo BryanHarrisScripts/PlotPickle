@@ -3,6 +3,15 @@
 /* eslint-disable @next/next/no-img-element -- Canonical projects can contain user-supplied local and remote reference images. */
 
 import { useMemo, useState } from "react";
+import {
+  aiRevisionPlaybooks,
+  buildGuidedRevisionPrompt,
+  revisionOperations,
+  revisionResponseContract,
+  revisionScopes,
+  type RevisionOperation,
+  type RevisionScope,
+} from "@/lib/ai-revision-playbooks";
 import type { PlotPickleProject, ScreenplayDraftElement } from "@/lib/project";
 import {
   applySpecialistSuggestion,
@@ -28,7 +37,7 @@ type LabTab = SpecialistLabKind | "passes";
 type AiResponse = { text?: string; message?: string };
 
 const labTabs: Array<{ id: LabTab; label: string; description: string }> = [
-  { id: "prompt", label: "AI Prompt Lab", description: "Build reusable prompts from the active story." },
+  { id: "prompt", label: "AI Prompt Lab", description: "Build bounded revision prompts from the active story." },
   { id: "dialogue", label: "Dialogue Lab", description: "Compare a line or passage before approving a revision." },
   { id: "research", label: "Research & Canon", description: "Bind sourced facts and canon decisions to the project." },
   { id: "visual", label: "Visual Bible", description: "Unify mood, references and generated visual direction." },
@@ -36,9 +45,15 @@ const labTabs: Array<{ id: LabTab; label: string; description: string }> = [
   { id: "passes", label: "Saved Passes", description: "Review approved before-and-after specialist work." },
 ];
 
+const revisionLayers = ["Story First", "Craft Layer", "Polish Layer"] as const;
+
 function lineLabel(element: ScreenplayDraftElement) {
   const preview = element.text.trim().replace(/\s+/g, " ").slice(0, 72) || "Empty screenplay element";
   return `Scene ${element.sceneNumber} · ${element.type} · ${preview}`;
+}
+
+function metadataLabel(value: string) {
+  return value.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (letter) => letter.toUpperCase());
 }
 
 export default function SpecialistLabs({ project, onProjectChange }: Props) {
@@ -47,7 +62,12 @@ export default function SpecialistLabs({ project, onProjectChange }: Props) {
   const [status, setStatus] = useState("Choose a lab and prepare a suggestion for review.");
   const [aiState, setAiState] = useState<"idle" | "working" | "error">("idle");
 
+  const [playbookId, setPlaybookId] = useState(aiRevisionPlaybooks[0].id);
+  const [revisionOperation, setRevisionOperation] = useState<RevisionOperation>(aiRevisionPlaybooks[0].defaultOperation);
+  const [selectedScopes, setSelectedScopes] = useState<RevisionScope[]>([aiRevisionPlaybooks[0].reads[0]]);
   const [promptGoal, setPromptGoal] = useState("");
+  const selectedPlaybook = aiRevisionPlaybooks.find((playbook) => playbook.id === playbookId) ?? aiRevisionPlaybooks[0];
+
   const dialogueElements = useMemo(() => project.screenplay.draftElements.filter((element) => ["dialogue", "action", "parenthetical"].includes(element.type)), [project.screenplay.draftElements]);
   const [dialogueElementId, setDialogueElementId] = useState("");
   const [dialogueDirection, setDialogueDirection] = useState("");
@@ -69,6 +89,19 @@ export default function SpecialistLabs({ project, onProjectChange }: Props) {
 
   const savedPasses = useMemo(() => savedSpecialistPasses(project), [project]);
   const generatedAssets = useMemo(() => projectGeneratedAssets(project), [project]);
+  const recommendedPlaybooks = useMemo(() => {
+    const ids = project.screenplay.draftElements.length
+      ? ["diagnose-only", "pacing-repetition", "dialogue-voiceprint"]
+      : ["structure-causality", "character-choice-arc", "conflict-stakes-escalation"];
+    return ids.map((id) => aiRevisionPlaybooks.find((playbook) => playbook.id === id)).filter((playbook): playbook is (typeof aiRevisionPlaybooks)[number] => Boolean(playbook));
+  }, [project.screenplay.draftElements.length]);
+
+  function choosePlaybook(nextId: string) {
+    const next = aiRevisionPlaybooks.find((playbook) => playbook.id === nextId) ?? aiRevisionPlaybooks[0];
+    setPlaybookId(next.id);
+    setRevisionOperation(next.defaultOperation);
+    setSelectedScopes(next.reads.length ? [next.reads[0]] : []);
+  }
 
   async function requestText(instructions: string, prompt: string) {
     setAiState("working");
@@ -89,25 +122,39 @@ export default function SpecialistLabs({ project, onProjectChange }: Props) {
     }
   }
 
-  async function buildPromptSuggestion() {
-    if (!promptGoal.trim()) return;
-    const result = await requestText(
-      "Create one reusable production-quality prompt for a story-development assistant. Return the prompt only. It must preserve writer control, distinguish project facts from suggestions, request concise output and never apply changes automatically.",
-      `${buildSpecialistProjectContext(project)}\n\nWriter's prompt goal: ${promptGoal.trim()}`,
-    );
-    if (!result) return;
+  function buildPromptSuggestion() {
+    if (!selectedScopes.length) return;
+    const result = buildGuidedRevisionPrompt({
+      playbook: selectedPlaybook,
+      operation: revisionOperation,
+      scopes: selectedScopes,
+      contextSummary: buildSpecialistProjectContext(project),
+      writerGoal: promptGoal.trim() || undefined,
+      includedFacts: [project.story.logline, project.story.dramaticQuestion].filter(Boolean),
+      canonLocks: [project.world.rules, project.story.theme].filter(Boolean),
+    });
     setReview(createSpecialistSuggestion({
       lab: "prompt",
-      title: promptGoal.trim().slice(0, 64),
-      summary: "Reusable AI prompt assembled from the canonical story context.",
-      target: "prompt-library",
-      before: "No approved specialist prompt saved for this goal.",
+      title: selectedPlaybook.title,
+      summary: `${selectedPlaybook.layer} guided pass for ${selectedScopes.join(", ")}. Recommended destination: ${selectedPlaybook.destination}.`,
+      target: `${selectedPlaybook.destination} · ${revisionOperation} · ${selectedScopes.join(", ")}`,
+      before: "No approved guided revision prompt exists for this pass, operation and canonical scope.",
       after: result,
-      prompt: promptGoal.trim(),
-      generated: true,
-      metadata: {},
+      prompt: promptGoal.trim() || selectedPlaybook.problem,
+      generated: false,
+      metadata: {
+        collection: "AI-Assisted Revision",
+        playbookId: selectedPlaybook.id,
+        layer: selectedPlaybook.layer,
+        operation: revisionOperation,
+        scopes: selectedScopes.join(", "),
+        destination: selectedPlaybook.destination,
+        responseContract: revisionResponseContract.join("; "),
+        sourceResources: selectedPlaybook.sourceResources.join(", "),
+        approvalBoundary: "Prompt assembled locally; no project text changed and no AI call was required.",
+      },
     }));
-    setStatus("Prompt suggestion is ready for review. The project has not changed.");
+    setStatus("Guided revision prompt is ready for review and manual copy. No AI call was made and the project has not changed.");
   }
 
   async function buildDialogueSuggestion() {
@@ -238,9 +285,23 @@ export default function SpecialistLabs({ project, onProjectChange }: Props) {
       <div className={styles.labLayout}>
         <main className={styles.labPanel}>
           {activeTab === "prompt" ? <section>
-            <div className={styles.sectionHeading}><span>AI Prompt Lab</span><h2>Turn the canonical story into a reusable, bounded prompt.</h2><p>The lab supplies project context but asks the AI to return a prompt, not to rewrite the project.</p></div>
-            <label>What should the prompt help the writer do?<textarea rows={7} value={promptGoal} onChange={(event) => setPromptGoal(event.target.value)} placeholder="For example: test three alternative Act II complications without changing the protagonist's objective." /></label>
-            <button type="button" className={styles.primary} disabled={!promptGoal.trim() || aiState === "working"} onClick={buildPromptSuggestion}>{aiState === "working" ? "Generating…" : "Generate reviewable prompt"}</button>
+            <div className={styles.sectionHeading}><span>AI Prompt Lab · Guided revision</span><h2>Choose the craft problem before choosing what AI may do.</h2><p>PlotPickle assembles the prompt locally from the active project, selected pass, operation and canonical scope. You can copy it manually, use no AI at all or send it through any connected provider.</p></div>
+            <div className={styles.projectDocuments}>
+              <header><div><span>Contextual recommendations</span><h3>{project.screenplay.draftElements.length ? "A draft is available for diagnosis and focused craft passes." : "Build the story foundation before polishing pages."}</h3></div><p>Recommendations are optional and never run automatically.</p></header>
+              <div>{recommendedPlaybooks.map((playbook) => <article key={playbook.id}><strong>{playbook.title}</strong><span>{playbook.problem}</span><button type="button" onClick={() => choosePlaybook(playbook.id)}>Use this pass</button><small>{playbook.layer} · {playbook.destination}</small></article>)}</div>
+            </div>
+            <div className={styles.twoColumns}>
+              <label>Guided revision pass<select value={selectedPlaybook.id} onChange={(event) => choosePlaybook(event.target.value)}>{revisionLayers.map((layer) => <optgroup label={layer} key={layer}>{aiRevisionPlaybooks.filter((playbook) => playbook.layer === layer).map((playbook) => <option value={playbook.id} key={playbook.id}>{playbook.title}</option>)}</optgroup>)}</select></label>
+              <label>Operation<select value={revisionOperation} onChange={(event) => setRevisionOperation(event.target.value as RevisionOperation)}>{revisionOperations.map((item) => <option value={item} key={item}>{item}</option>)}</select></label>
+            </div>
+            <label>Canonical scope<select multiple size={6} value={selectedScopes} onChange={(event) => setSelectedScopes(Array.from(event.currentTarget.selectedOptions, (option) => option.value as RevisionScope))}>{revisionScopes.map((scope) => <option value={scope} key={scope} disabled={!selectedPlaybook.reads.includes(scope)}>{scope}{selectedPlaybook.reads.includes(scope) ? "" : " · not recommended for this pass"}</option>)}</select><small>Select one or more supported project areas. Hold Ctrl or Command to select several.</small></label>
+            <div className={styles.twoColumns}>
+              <div className={styles.binder}><h3>Use when</h3><ul>{selectedPlaybook.useWhen.map((item) => <li key={item}>{item}</li>)}</ul></div>
+              <div className={styles.binder}><h3>Avoid when</h3><ul>{selectedPlaybook.avoidWhen.map((item) => <li key={item}>{item}</li>)}</ul></div>
+            </div>
+            <div className={styles.projectDocuments}><header><div><span>Pass contract</span><h3>{selectedPlaybook.layer} · Route to {selectedPlaybook.destination}</h3></div><p>{selectedPlaybook.problem}</p></header><div><article><strong>Evaluate with</strong><span>{selectedPlaybook.evaluation.join(" · ")}</span></article><article><strong>Watch for AI failure modes</strong><span>{selectedPlaybook.failureModes.join(" · ")}</span></article><article><strong>Structured response</strong><span>{revisionResponseContract.join(" · ")}</span></article></div></div>
+            <label>Writer goal or added direction<textarea rows={5} value={promptGoal} onChange={(event) => setPromptGoal(event.target.value)} placeholder={`Optional: describe the exact concern. Otherwise PlotPickle uses: ${selectedPlaybook.problem}`} /></label>
+            <button type="button" className={styles.primary} disabled={!selectedScopes.length} onClick={buildPromptSuggestion}>Prepare reviewable guided prompt</button>
           </section> : null}
 
           {activeTab === "dialogue" ? <section>
@@ -289,7 +350,7 @@ export default function SpecialistLabs({ project, onProjectChange }: Props) {
 
           {activeTab === "passes" ? <section>
             <div className={styles.sectionHeading}><span>Saved Specialist Passes</span><h2>Every approved change keeps its before and after.</h2><p>Passes are stored inside canonical revision snapshots, so they travel with exported PlotPickle projects.</p></div>
-            <div className={styles.passList}>{savedPasses.length ? savedPasses.map((pass) => <article key={pass.id}><header><div><span>{pass.lab} lab</span><h3>{pass.title}</h3></div><time>{new Date(pass.approvedAt).toLocaleString()}</time></header><p>{pass.summary}</p><div className={styles.comparison}><div><span>Before</span><pre>{pass.before}</pre></div><div><span>After</span><pre>{pass.after}</pre></div></div><small>Target: {pass.target}{pass.provenanceId ? ` · Provenance: ${pass.provenanceId}` : " · Human-entered pass"}</small></article>) : <p className={styles.empty}>No specialist pass has been approved yet.</p>}</div>
+            <div className={styles.passList}>{savedPasses.length ? savedPasses.map((pass) => <article key={pass.id}><header><div><span>{pass.lab} lab</span><h3>{pass.title}</h3></div><time>{new Date(pass.approvedAt).toLocaleString()}</time></header><p>{pass.summary}</p><div className={styles.comparison}><div><span>Before</span><pre>{pass.before}</pre></div><div><span>After</span><pre>{pass.after}</pre></div></div><small>Target and pass metadata: {pass.target}{pass.provenanceId ? ` · Provenance: ${pass.provenanceId}` : " · Human-reviewed local pass"}</small></article>) : <p className={styles.empty}>No specialist pass has been approved yet.</p>}</div>
           </section> : null}
         </main>
 
@@ -297,7 +358,7 @@ export default function SpecialistLabs({ project, onProjectChange }: Props) {
           <div className={styles.reviewHeading}><span>Review gate</span><h2>{review ? review.title : "No suggestion waiting"}</h2><p>{review ? review.summary : "Prepare a lab suggestion to compare it here."}</p></div>
           {review ? <>
             <div className={styles.comparison}><div><span>Before</span><pre>{review.before}</pre></div><div><span>Suggested after</span><pre>{review.after}</pre></div></div>
-            <div className={styles.reviewMeta}><span>Target</span><strong>{review.target}</strong><span>Source</span><strong>{review.generated ? "AI-assisted suggestion" : "Writer-entered record"}</strong></div>
+            <div className={styles.reviewMeta}><span>Target</span><strong>{review.target}</strong><span>Source</span><strong>{review.generated ? "AI-assisted suggestion" : review.metadata.collection ? "Guided prompt assembled locally" : "Writer-entered record"}</strong>{Object.entries(review.metadata).filter(([, value]) => value).map(([key, value]) => <><span key={`${key}-label`}>{metadataLabel(key)}</span><strong key={`${key}-value`}>{value}</strong></>)}</div>
             <p className={styles.warning}>Nothing changes until you approve this suggestion.</p>
             <div className={styles.reviewActions}><button type="button" className={styles.primary} onClick={approveSuggestion}>Apply approved suggestion</button><button type="button" onClick={discardSuggestion}>Discard suggestion</button></div>
           </> : <div className={styles.reviewEmpty}><strong>Review first.</strong><p>PlotPickle does not automatically insert prompts, rewrite dialogue, declare research as canon, replace visual rules or retain provenance records.</p></div>}

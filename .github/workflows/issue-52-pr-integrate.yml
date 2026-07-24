@@ -1,0 +1,40 @@
+name: Issue 52 integration
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/issue-52-working-together
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply integration
+        run: python scripts/issue-52-integrate.py
+      - name: Validate
+        run: |
+          npm ci
+          npm run lint
+          npm test
+      - name: Commit integration
+        shell: bash
+        run: |
+          rm .github/workflows/issue-52-integrate.yml
+          rm .github/workflows/issue-52-pr-integrate.yml
+          rm scripts/issue-52-integrate.py
+          git config user.name "PlotPickle automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Integrate Working Together collaboration system"
+          git push origin HEAD:agent/issue-52-working-together

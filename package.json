@@ -1,6 +1,6 @@
 {
   "name": "plotpickle",
-  "version": "1.0.0-rc.4",
+  "version": "1.0.0-rc.3",
   "private": true,
   "license": "AGPL-3.0-or-later",
   "engines": { "node": ">=22.13.0" },

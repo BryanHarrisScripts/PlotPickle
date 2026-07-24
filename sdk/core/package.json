@@ -1,9 +1,15 @@
 {
   "name": "@plotpickle/sdk",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.1.0-preview.1",
+  "description": "Public PlotPickle client and Core Services SDK.",
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "types": "./src/index.ts",
-  "peerDependencies": { "typescript": ">=5.9.0" }
+  "license": "AGPL-3.0-or-later",
+  "files": ["dist", "README.md", "LICENSE"],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "dependencies": { "@plotpickle/types": "0.1.0-preview.1" },
+  "engines": { "node": ">=22.13.0" },
+  "publishConfig": { "access": "public", "provenance": true },
+  "sideEffects": false
 }

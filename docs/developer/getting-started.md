@@ -25,7 +25,7 @@ my-plugin/
   "version": "0.1.0",
   "apiVersion": "1.0.0",
   "entryPoint": "src/index.ts",
-  "permissions": ["project.read"],
+  "permissions": ["project:read"],
   "capabilities": ["commands", "events"]
 }
 ```
@@ -47,8 +47,8 @@ const plugin: PluginModule = {
 
     context.registerCommand({
       id: "example.my-plugin.inspect",
-      title: "Inspect active project",
-      handler: () => context.services.project.getActive(),
+      title: "Inspect project",
+      handler: (projectId) => context.services.project.get(String(projectId)),
     });
   },
 };
@@ -82,12 +82,12 @@ await test("registers its command", async () => {
       version: "0.1.0",
       apiVersion: "1.0.0",
       entryPoint: "src/index.ts",
-      permissions: ["project.read"],
+      permissions: ["project:read"],
       capabilities: ["commands", "events"],
     },
-    grantedPermissions: ["project.read"],
+    grantedPermissions: ["project:read"],
     services: createMockServices({
-      project: { getActive: async () => null },
+      project: { get: async () => null },
     }),
   });
 

@@ -14,7 +14,8 @@ const requiredEvents = [
 
 test("Phase 9B exposes the public plugin SDK package", () => {
   assert.equal(packageSource.name, "@plotpickle/plugin-sdk");
-  assert.equal(packageSource.exports["./testing"], "./src/testing.ts");
+  assert.equal(packageSource.exports["./testing"].types, "./dist/testing.d.ts");
+  assert.equal(packageSource.exports["./testing"].import, "./dist/testing.js");
   assert.match(sdkSource, /PLOTPICKLE_PLUGIN_SDK_VERSION/);
 });
 

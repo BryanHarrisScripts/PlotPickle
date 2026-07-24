@@ -1,0 +1,37 @@
+name: Issue 55 Windows diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Capture Windows test output
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Continue"
+          npm test *>&1 | Tee-Object -FilePath issue-55-windows-test.log
+          $status = $LASTEXITCODE
+          "exit_status=$status" | Add-Content issue-55-windows-test.log
+          if ($status -ne 0) { New-Item issue-55-windows-test.failed -ItemType File | Out-Null }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: issue-55-windows-test-log
+          path: issue-55-windows-test.log
+      - name: Fail on test error
+        shell: pwsh
+        run: |
+          if (Test-Path issue-55-windows-test.failed) { exit 1 }

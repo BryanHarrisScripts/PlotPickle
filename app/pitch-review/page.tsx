@@ -44,7 +44,7 @@ export default function PitchReviewPage() {
       <div style={{ maxWidth: 1620, margin: "0 auto", display: "grid", gap: 18 }}>
         <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <Link href="/" style={{ color: "#163331", fontWeight: 800 }}>Back to PlotPickle</Link>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}><Link href="/labs">Specialist Labs</Link><Link href="/diagnostics">Diagnostics</Link><Link href="/draftlens">DraftLens</Link><Link href="/structure">Structure</Link></div>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}><Link href="/working-together">Working Together</Link><Link href="/labs">Specialist Labs</Link><Link href="/diagnostics">Diagnostics</Link><Link href="/draftlens">DraftLens</Link><Link href="/structure">Structure</Link></div>
         </nav>
         <PitchReviewWorkspace project={project} onProjectChange={save} />
         <p style={{ color: "#57706d" }} aria-live="polite">{status}</p>

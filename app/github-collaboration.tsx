@@ -275,6 +275,11 @@ export default function GitHubCollaboration({ project, onChange }: { project: Pl
         </div>
       </section>
 
+      <section className={styles.panel}>
+        <header><div><p>Contributor onboarding</p><h3>Define the human agreement before connecting the technical queue</h3><span>Choose the collaboration model, creative roles, canon authority, privacy, credit and rights expectations; create a welcome card and bounded contribution brief; then use GitHub only when repository collaboration is desired.</span></div></header>
+        <div className={styles.actions}><a href="/working-together">Open contributor onboarding</a><a href="/read-learn">Read the Working Together handbook</a></div>
+      </section>
+
       <div className={styles.architecture} aria-label="Collaboration architecture">
         <article><b>1</b><strong>Pull approved story</strong><span>Every server starts from the repository’s canonical branch and .ppf revision.</span></article>
         <i>→</i>

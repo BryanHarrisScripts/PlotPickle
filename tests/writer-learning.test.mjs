@@ -28,7 +28,7 @@ test("Markdown treatment supports local writing, preview, export, AI approval an
 
 test("Learning Studio connects contextual guidance to the complete course", async () => {
   const learning = await source("app/learning-studio.tsx");
-  for (const phrase of ["Current story position", "Search screenwriting lessons", "Recommended here", "Apply it to Block", "Screenplay anatomy", "Complete Learning Library", "Fourteen full learning modules", "Read full module"] ) {
+  for (const phrase of ["Current story position", "Search screenwriting lessons", "Recommended here", "Apply it to Block", "Screenplay anatomy", "Complete Learning Library", "The 24 Blocks Method", "full learning modules", "Read full module"] ) {
     assert.ok(learning.includes(phrase), `Learning Studio is missing ${phrase}`);
   }
 });

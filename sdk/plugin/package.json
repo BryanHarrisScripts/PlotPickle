@@ -1,12 +1,18 @@
 {
   "name": "@plotpickle/plugin-sdk",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.1.0-preview.1",
+  "description": "Plugin lifecycle, events, registrations and permission-aware services for PlotPickle.",
   "type": "module",
   "license": "AGPL-3.0-or-later",
+  "files": ["dist", "README.md", "LICENSE"],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./testing": "./src/testing.ts"
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./testing": { "types": "./dist/testing.d.ts", "import": "./dist/testing.js" }
   },
-  "types": "./src/index.ts"
+  "dependencies": { "@plotpickle/types": "0.1.0-preview.1" },
+  "engines": { "node": ">=22.13.0" },
+  "publishConfig": { "access": "public", "provenance": true },
+  "sideEffects": false
 }

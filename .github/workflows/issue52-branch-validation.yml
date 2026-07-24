@@ -1,0 +1,52 @@
+name: Issue 52 branch validation
+
+on:
+  push:
+    branches:
+      - agent/issue-52-contributor-handbook
+    paths:
+      - .github/issue52-validate-ready
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/issue-52-contributor-handbook
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run validation and capture result
+        shell: bash
+        run: |
+          set +e
+          npm run lint > /tmp/issue52-lint.log 2>&1
+          LINT_STATUS=$?
+          npm test > /tmp/issue52-test.log 2>&1
+          TEST_STATUS=$?
+          {
+            echo "lint_status=$LINT_STATUS"
+            echo "test_status=$TEST_STATUS"
+            echo ""
+            echo "===== LINT OUTPUT ====="
+            tail -n 240 /tmp/issue52-lint.log
+            echo ""
+            echo "===== TEST OUTPUT ====="
+            tail -n 320 /tmp/issue52-test.log
+          } > .github/issue52-validation-result.txt
+          exit 0
+      - name: Replace one-time workflow with validation result
+        run: |
+          git config user.name "PlotPickle Actions"
+          git config user.email "actions@users.noreply.github.com"
+          git rm .github/workflows/issue52-branch-validation.yml .github/issue52-validate-ready
+          git add .github/issue52-validation-result.txt
+          git commit -m "Record issue 52 branch validation"
+          git push origin HEAD:agent/issue-52-contributor-handbook

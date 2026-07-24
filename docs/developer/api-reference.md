@@ -64,6 +64,7 @@ The context exposes these service groups. Method availability is versioned by th
 
 `@plotpickle/plugin-sdk/testing` provides:
 
+- `MockPluginHostOptions` — manifest, services and optional permission grants for a mock activation;
 - `MockPluginHost` — activation host with observable registrations and events;
 - `MockRegistrationHost` — in-memory command, menu, panel and workspace registry;
 - `createMockServices(overrides)` — minimal Core Services test double.

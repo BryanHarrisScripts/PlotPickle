@@ -1,0 +1,34 @@
+name: Issue 52 integration
+
+on:
+  push:
+    branches:
+      - agent/issue-52-contributor-handbook
+    paths:
+      - .github/issue52-integrate-ready
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/issue-52-contributor-handbook
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply integration patch
+        run: node scripts/issue52-integrate.mjs
+      - name: Remove one-time integration files
+        run: git rm scripts/issue52-integrate.mjs .github/workflows/issue52-integrate.yml .github/issue52-integrate-ready
+      - name: Commit integration
+        run: |
+          git config user.name "PlotPickle Actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add app/github-collaboration.tsx app/github-collaboration.module.css app/pitch-review-workspace.tsx app/pitch-review-workspace.module.css
+          git commit -m "Integrate contributor handbook with collaboration reviews"
+          git push origin HEAD:agent/issue-52-contributor-handbook

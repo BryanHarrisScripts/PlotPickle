@@ -152,8 +152,8 @@ const workingTogetherLessonSources: WorkingTogetherLessonSource[] = [
     sections: [
       {
         heading: "The PlotPickle sequence",
-        paragraphs: ["Connect GitHub only when it helps the chosen model. Pull the approved `.ppf`, compare it, deliberately apply it as the local base, read the brief and continuity locks, then work locally. Save backups and revision snapshots before submitting a bounded proposal."],
-        points: ["Pull approved story", "Compare before applying", "Apply as local base", "Work locally", "Save backup and revision", "Submit proposal—not a direct canon write"],
+        paragraphs: ["Connect GitHub only when it helps the chosen model. For a private repository, the owner invites a named contributor, the contributor accepts the invitation and connects their own PlotPickle server. For a public project, a contributor may work from a fork, while an authorized proposal branch keeps the owner’s canon protected. In every case, pull the approved `.ppf`, compare it, deliberately apply it as the local base, read the welcome card, brief and continuity locks, then work locally. Save backups and revision snapshots before submitting a bounded proposal. Repository visibility never substitutes for reuse permission."],
+        points: ["Private repository: owner invitation → contributor acceptance → personal PlotPickle connection", "Public project: fork for independent work → proposal branch for review", "Pull approved story", "Compare before applying", "Apply as local base", "Work locally", "Save backup and revision", "Submit proposal—not a direct canon write", "Visibility and reuse permission remain separate"],
       },
       {
         heading: "Stale work needs a story decision",
@@ -248,7 +248,7 @@ const workingTogetherLessonSources: WorkingTogetherLessonSource[] = [
       },
       {
         heading: "Record the close",
-        paragraphs: ["A merge, decline, defer, withdrawal or supersession should name the decision-maker, date, rationale, accepted and rejected portions, resolved or deferred review threads, revision snapshot, rights updates and follow-up work."],
+        paragraphs: ["Review the structured packet, affected project areas and before-and-after evidence inside PlotPickle first. Use GitHub for repository history, discussion and the final technical merge when the project uses it. A merge, decline, defer, withdrawal or supersession should name the decision-maker, date, rationale, accepted and rejected portions, resolved or deferred review threads, revision snapshot, rights updates and follow-up work."],
       },
     ],
     definitions: [

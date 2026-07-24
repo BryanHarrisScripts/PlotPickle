@@ -13,6 +13,7 @@ import {
   collaborationModels,
   collaborationRoles,
   contextualCollaborationQuestions,
+  createAfterglowContributorExample,
   createDefaultAuthorityRecord,
   createDefaultContributionBrief,
   createDefaultDecision,
@@ -144,6 +145,17 @@ export default function CollaborationHandbookPage() {
   function saveAgreement() {
     if (!project || !agreement) return;
     commit(saveCollaborationAgreement(project, agreement), "Collaboration operating agreement saved as an anchored canonical review record.");
+  }
+
+  function loadAfterglowExample() {
+    if (!project) return;
+    const example = createAfterglowContributorExample(project);
+    setAgreement(example.agreement);
+    setAuthority(example.authority);
+    setBrief(example.brief);
+    setSelectedAuthorityId(example.authority.id);
+    setSelectedBriefId(example.brief.id);
+    setNotice("Loaded the editable Afterglow contributor example. Review and save each record deliberately; nothing was published or made canonical.");
   }
 
   function selectCollaborator(collaboratorId: string) {
@@ -314,7 +326,7 @@ export default function CollaborationHandbookPage() {
         <label className={styles.wide}>Notes<textarea value={agreement.notes} onChange={(event) => setAgreement({ ...agreement, notes: event.target.value })} /></label>
         <label className={styles.check}><input type="checkbox" checked={agreement.unsolicitedProposals} onChange={(event) => setAgreement({ ...agreement, unsolicitedProposals: event.target.checked })} />Unsolicited proposals are accepted</label>
       </div>
-      <button className={styles.primary} type="button" onClick={saveAgreement}>Save operating agreement</button>
+      <div className={styles.actions}><button className={styles.primary} type="button" onClick={saveAgreement}>Save operating agreement</button><button type="button" onClick={loadAfterglowExample}>Load editable Afterglow example</button></div>
     </section>
 
     <section className={styles.section} id="roles">

@@ -261,3 +261,20 @@ test("issue 52 appears as a first-class collection in the central Read & Learn l
   assert.match(studio, /isWorkingTogetherLesson/);
   assert.match(studio, /Contributor Handbook/);
 });
+
+
+test("issue 52 retains an editable Afterglow contributor example", () => {
+  assert.match(model, /createAfterglowContributorExample/);
+  assert.match(model, /Afterglow relationship and ending review/);
+  assert.match(model, /Afterglow drafts, images, prompts, research and unpublished story decisions remain private/);
+  assert.match(page, /Load editable Afterglow example/);
+  assert.match(page, /nothing was published or made canonical/);
+});
+
+test("issue 52 explains private invitations, public forks and proposal branches", () => {
+  assert.match(learning, /private repository, the owner invites a named contributor/i);
+  assert.match(learning, /public project, a contributor may work from a fork/i);
+  assert.match(learning, /proposal branch keeps the owner’s canon protected/i);
+  assert.match(learning, /Repository visibility never substitutes for reuse permission/i);
+  assert.match(learning, /Review the structured packet.*inside PlotPickle first/i);
+});

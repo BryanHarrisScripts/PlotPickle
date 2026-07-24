@@ -416,6 +416,56 @@ export function createDefaultContributionBrief(project: PlotPickleProject): Cont
   };
 }
 
+export function createAfterglowContributorExample(project: PlotPickleProject) {
+  const owner = project.rights.projectOwner || "Bryan Elgin Harris / Project Owner";
+  const block = project.blocks.find((item) => item.number === 21) ?? project.blocks.at(-1) ?? project.blocks[0];
+  const agreement: CollaborationAgreement = {
+    ...createDefaultCollaborationAgreement(project),
+    model: "invited-contributor",
+    ownerName: owner,
+    canonicalAuthority: owner,
+    privacy: "private-repository",
+    unsolicitedProposals: false,
+    confidentiality: "Afterglow drafts, images, prompts, research and unpublished story decisions remain private unless the project owner approves sharing.",
+    creditExpectation: "Accepted contributions are credited according to the recorded contribution and written agreement; feedback alone does not create ownership.",
+    notes: "Editable Afterglow example: an invited contributor reviews a bounded late-story relationship and ending question without changing approved canon directly.",
+    updatedAt: now(),
+  };
+  const authority: AuthorityRecord = {
+    ...createDefaultAuthorityRecord(),
+    collaboratorName: "Afterglow invited contributor",
+    role: "contributor",
+    authority: ["view", "comment", "create-review-threads", "propose-changes"],
+    scope: "Review the selected Afterglow Block, linked relationship evidence and ending consequences; submit a bounded proposal only.",
+    delegatedBy: owner,
+    agreementReference: "Attach the applicable contributor, commission or collaboration agreement.",
+  };
+  const brief: ContributionBrief = {
+    ...createDefaultContributionBrief(project),
+    title: "Afterglow relationship and ending review",
+    template: "Alternative scene or Block",
+    contributorName: authority.collaboratorName,
+    requestedRole: "contributor",
+    decisionMaker: owner,
+    targetKind: "block",
+    targetId: block.id,
+    targetLabel: `Block ${block.number}: ${block.title}`,
+    problem: "Test whether the late-story relationship choice and final consequence are emotionally earned by earlier Afterglow evidence.",
+    storyPurpose: "Clarify the decisive relationship turn while preserving the intended theme, protagonist agency and ending image.",
+    canonLocks: "Preserve established character identities, approved world rules, the current crisis choice, existing rights records and linked continuity facts.",
+    mustNotChange: "Do not replace the complete screenplay, remove approved attribution, publish private material or treat the proposal as canon.",
+    preferredOutput: "Anchored review notes plus one bounded alternative scene or Block proposal with before-and-after evidence.",
+    creativeFreedom: "bounded",
+    privacy: "private-repository",
+    reviewWindow: "The project owner will review when the current development round reaches this Block; detailed feedback is not guaranteed on a fixed timetable.",
+    creditExpectation: "Record credit only for accepted material under the applicable agreement.",
+    acceptanceCriteria: "The proposal preserves canon locks, explains its audience effect, identifies relationship and ending dependencies, records provenance and remains separately reviewable before approval.",
+    status: "draft",
+    updatedAt: now(),
+  };
+  return { agreement, authority, brief };
+}
+
 export function createDefaultProposalPacket(project: PlotPickleProject, brief?: ContributionBrief): ProposalReviewPacket {
   return {
     id: id("proposal-packet"),

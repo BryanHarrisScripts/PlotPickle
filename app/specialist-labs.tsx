@@ -12,6 +12,7 @@ import {
   type RevisionOperation,
   type RevisionScope,
 } from "@/lib/ai-revision-playbooks";
+import { dialogueGuidedPasses } from "./learning-dialogue-in-motion";
 import type { PlotPickleProject, ScreenplayDraftElement } from "@/lib/project";
 import {
   applySpecialistSuggestion,
@@ -68,10 +69,12 @@ export default function SpecialistLabs({ project, onProjectChange }: Props) {
   const [promptGoal, setPromptGoal] = useState("");
   const selectedPlaybook = aiRevisionPlaybooks.find((playbook) => playbook.id === playbookId) ?? aiRevisionPlaybooks[0];
 
-  const dialogueElements = useMemo(() => project.screenplay.draftElements.filter((element) => ["dialogue", "action", "parenthetical"].includes(element.type)), [project.screenplay.draftElements]);
+  const dialogueElements = useMemo(() => project.screenplay.draftElements.filter((element) => ["dialogue", "dual-dialogue", "action", "parenthetical"].includes(element.type)), [project.screenplay.draftElements]);
   const [dialogueElementId, setDialogueElementId] = useState("");
   const [dialogueDirection, setDialogueDirection] = useState("");
+  const [dialoguePassId, setDialoguePassId] = useState(dialogueGuidedPasses[0].id);
   const selectedDialogue = dialogueElements.find((element) => element.id === dialogueElementId) ?? dialogueElements[0];
+  const selectedDialoguePass = dialogueGuidedPasses.find((pass) => pass.id === dialoguePassId) ?? dialogueGuidedPasses[0];
 
   const [sourceTitle, setSourceTitle] = useState("");
   const [sourceCreator, setSourceCreator] = useState("");
@@ -158,11 +161,13 @@ export default function SpecialistLabs({ project, onProjectChange }: Props) {
   }
 
   async function buildDialogueSuggestion() {
-    if (!selectedDialogue || !dialogueDirection.trim()) return;
+    if (!selectedDialogue) return;
     const character = project.characters.find((candidate) => selectedDialogue.text.toUpperCase().includes(candidate.name.toUpperCase()));
     const result = await requestText(
-      "Act as a dialogue editor. Return only the revised screenplay text. Preserve story facts and intention. Strengthen character-specific voice, subtext, status pressure and playable rhythm. Do not add facts not contained in the project context.",
-      `${buildSpecialistProjectContext(project)}\n\nCurrent screenplay text: ${selectedDialogue.text}\nCharacter context: ${character ? `${character.name}; ${character.voice}; ${character.rhythmSentenceShape}; ${character.vocabularyMetaphors}` : "Use the cast voice distinctions in the project."}\nWriter direction: ${dialogueDirection.trim()}`,
+      `Act as a screenplay dialogue editor. ${selectedDialoguePass.instruction} Preserve story facts, intention, formatting and locked continuity. Return a diagnosis when the pass is critique only; otherwise return only the proposed screenplay text. Do not add facts not contained in project context.`,
+      `${buildSpecialistProjectContext(project)}\n\nCurrent screenplay text: ${selectedDialogue.text}\nCharacter context: ${character ? `${character.name}; ${character.voice}; ${character.rhythmSentenceShape}; ${character.vocabularyMetaphors}` : "Use the cast voice distinctions in the project."}\nGuided dialogue pass: ${selectedDialoguePass.label}
+Pass instruction: ${selectedDialoguePass.instruction}
+Free-form writer direction: ${dialogueDirection.trim() || "No added direction; use the bounded pass only."}`,
     );
     if (!result) return;
     setReview(createSpecialistSuggestion({
@@ -172,9 +177,9 @@ export default function SpecialistLabs({ project, onProjectChange }: Props) {
       target: selectedDialogue.id,
       before: selectedDialogue.text,
       after: result,
-      prompt: dialogueDirection.trim(),
+      prompt: dialogueDirection.trim() || selectedDialoguePass.instruction,
       generated: true,
-      metadata: {},
+      metadata: { guidedPass: selectedDialoguePass.label, passInstruction: selectedDialoguePass.instruction, approvalBoundary: "Original and proposed versions remain separate until explicit writer approval." },
     }));
     setStatus("Dialogue revision is ready for comparison. The screenplay has not changed.");
   }
@@ -305,11 +310,12 @@ export default function SpecialistLabs({ project, onProjectChange }: Props) {
           </section> : null}
 
           {activeTab === "dialogue" ? <section>
-            <div className={styles.sectionHeading}><span>Dialogue Lab</span><h2>Hear the difference before replacing a line.</h2><p>Select one screenplay element, define the craft problem and compare the original with the suggestion.</p></div>
+            <div className={styles.sectionHeading}><span>Dialogue Lab</span><h2>Hear the difference before replacing a line.</h2><p>Select one screenplay element, choose a bounded craft pass and compare the original with the suggestion. Manual writing and free-form direction remain available.</p><a href="/dialogue-in-motion">Open Dialogue Blueprint, proof and table-read workspace</a></div>
             {dialogueElements.length ? <>
               <label>Screenplay element<select value={selectedDialogue?.id || ""} onChange={(event) => setDialogueElementId(event.target.value)}>{dialogueElements.map((element) => <option value={element.id} key={element.id}>{lineLabel(element)}</option>)}</select></label>
-              <label>Dialogue-pass direction<textarea rows={6} value={dialogueDirection} onChange={(event) => setDialogueDirection(event.target.value)} placeholder="Clarify the subtext, keep the refusal indirect and make the power shift audible." /></label>
-              <button type="button" className={styles.primary} disabled={!dialogueDirection.trim() || aiState === "working"} onClick={buildDialogueSuggestion}>{aiState === "working" ? "Generating…" : "Generate dialogue comparison"}</button>
+              <label>Guided dialogue pass<select value={dialoguePassId} onChange={(event) => setDialoguePassId(event.target.value)}>{dialogueGuidedPasses.map((pass) => <option value={pass.id} key={pass.id}>{pass.label}</option>)}</select><small>{selectedDialoguePass.instruction}</small></label>
+              <label>Free-form writer direction<textarea rows={6} value={dialogueDirection} onChange={(event) => setDialogueDirection(event.target.value)} placeholder="Optional: clarify the subtext, keep the refusal indirect and make the power shift audible." /></label>
+              <button type="button" className={styles.primary} disabled={aiState === "working"} onClick={buildDialogueSuggestion}>{aiState === "working" ? "Generating…" : "Generate dialogue comparison"}</button>
             </> : <p className={styles.empty}>Write or import screenplay dialogue and action before running this lab.</p>}
           </section> : null}
 

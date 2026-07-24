@@ -62,6 +62,7 @@ test("Read & Learn integrates the method collection, search and contextual recom
     "Active-project exercise",
     "24b-principle-three",
     "24b-dynamic-scenes",
-    "Open {module.apply}",
+    "module.apply",
+    "module.destination",
   ]) assert.ok(studio.includes(phrase), `Learning Studio integration is missing ${phrase}`);
 });

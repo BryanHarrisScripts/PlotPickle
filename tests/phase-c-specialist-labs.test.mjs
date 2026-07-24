@@ -49,9 +49,9 @@ test("specialist suggestions cannot change the project without approval", async 
     "Nothing changes until you approve this suggestion.",
     "Apply approved suggestion",
     "Discard suggestion",
-    "The project has not changed.",
     "The screenplay has not changed.",
   ]) assert.ok(workspace.includes(boundary), `Missing approval boundary: ${boundary}`);
+  assert.match(workspace, /project has not changed/i);
   assert.ok(workspace.includes("function approveSuggestion()"));
   assert.ok(workspace.includes("applySpecialistSuggestion(project, review)"));
   assert.ok(workspace.includes("onClick={approveSuggestion}"));

@@ -83,3 +83,57 @@ replace(studio, '''const courseModules: CourseModule[] = [
 
 package = "package.json"
 replace(package, 'tests/issue-55-core-curriculum-router.test.mjs tests/phase-one-core-schema.test.mjs', 'tests/issue-55-core-curriculum-router.test.mjs tests/issue-56-purpose-aware-logline-lab.test.mjs tests/phase-one-core-schema.test.mjs')
+
+issue_test = "tests/issue-56-purpose-aware-logline-lab.test.mjs"
+replace(issue_test, 'assert.match(learning, /Development logline/);', 'assert.match(learning, /development logline/i);')
+replace(issue_test, 'assert.match(learning, /Pitch-deck logline/);', 'assert.match(learning, /pitch-deck logline/i);')
+replace(issue_test, 'assert.match(learning, /Public teaser/);', 'assert.match(learning, /public teaser/i);')
+replace(issue_test, 'assert.match(learning, /Collaborator brief/);', 'assert.match(learning, /collaborator brief/i);')
+
+phase_d = "tests/phase-d-pitch-review.test.mjs"
+replace(phase_d, 'for (const label of ["Logline Workshop", "Anchored Reviews", "Revision Compare", "Pitch Package", "Exports"])', 'for (const label of ["Logline Lab", "Anchored Reviews", "Revision Compare", "Pitch Package", "Exports"])')
+replace(phase_d, '''test("guided logline candidates require explicit approval", async () => {
+  const operations = await source("lib/pitch-review.ts");
+  const workspace = await source("app/pitch-review-workspace.tsx");
+  assert.match(operations, /buildGuidedLoglineCandidate/);
+  assert.match(operations, /saveLoglineCandidate/);
+  assert.match(operations, /approveLoglineCandidate/);
+  assert.match(operations, /next\.story\.logline = candidate\.text/);
+  assert.match(workspace, /Review before saving/);
+  assert.match(workspace, /Approve this logline/);
+});''', '''test("purpose-aware logline candidates require explicit selective approval", async () => {
+  const lab = await source("lib/logline-lab.ts");
+  const workspace = await source("app/logline-lab.tsx");
+  assert.match(lab, /buildLoglineAlternatives/);
+  assert.match(lab, /savePurposeAwareCandidate/);
+  assert.match(lab, /approvePurposeAwareLogline/);
+  assert.match(lab, /if \(targets\.primary\) next\.story\.logline = candidate\.text/);
+  assert.match(workspace, /Save editable candidate/);
+  assert.match(workspace, /Approve selected targets deliberately/);
+  assert.match(workspace, /No candidate becomes canonical automatically/);
+});''')
+
+story_tools = "tests/story-tools-reports-docs.test.mjs"
+replace(story_tools, '''test("Pitch & Review includes a four-part dialectic worksheet and 20-point logline deconstruction", async () => {
+  const workspace = await source("app/pitch-review-workspace.tsx");
+  const dialectic = await source("app/dialectic-worksheet.tsx");
+  const rubric = await source("lib/logline-rubric.ts");
+  assert.match(workspace, /Theme Dialectic/);
+  assert.match(workspace, /LoglineRubric/);
+  for (const field of ["Thesis", "Antithesis", "Synthesis", "Ending proof"]) assert.match(dialectic, new RegExp(field, "i"));
+  assert.match(rubric, /LOGLINE_RUBRIC_TOTAL = 20/);
+  for (const criterion of ["Identifiable protagonist", "Active visible goal", "Opposing force", "Consequences of failure", "Dramatic irony", "Professional concision", "Specific language", "Escalating final pressure"]) assert.ok(rubric.includes(criterion), `Missing rubric criterion: ${criterion}`);
+});''', '''test("Pitch & Review includes a four-part dialectic worksheet and evidence-based Logline Lab", async () => {
+  const workspace = await source("app/pitch-review-workspace.tsx");
+  const labUi = await source("app/logline-lab.tsx");
+  const dialectic = await source("app/dialectic-worksheet.tsx");
+  const rubric = await source("lib/logline-rubric.ts");
+  const evidence = await source("lib/logline-lab.ts");
+  assert.match(workspace, /Theme Dialectic/);
+  assert.match(workspace, /LoglineLab/);
+  assert.match(labUi, /LoglineRubric/);
+  for (const field of ["Thesis", "Antithesis", "Synthesis", "Ending proof"]) assert.match(dialectic, new RegExp(field, "i"));
+  for (const group of ["Core dramatic engine", "Promise and distinction", "Clarity and delivery"]) assert.ok(evidence.includes(group), `Missing evidence group: ${group}`);
+  for (const state of ["sentence-supported", "project-only", "intentional-omission", "review"]) assert.ok(evidence.includes(state), `Missing evidence state: ${state}`);
+  assert.doesNotMatch(rubric, /LOGLINE_RUBRIC_TOTAL|Exceptional|Pitch-ready/);
+});''')

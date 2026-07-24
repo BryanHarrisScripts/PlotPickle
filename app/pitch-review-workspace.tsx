@@ -175,6 +175,7 @@ export default function PitchReviewWorkspace({ project, onProjectChange }: { pro
           <article><strong>{counts.revisions}</strong><span>revision snapshots</span></article>
           <article><strong>{counts.candidates}</strong><span>saved loglines</span></article>
         </div>
+        <a className={styles.handbookLink} href="/collaboration-handbook#reviews"><strong>Working Together</strong><span>Open contribution briefs, categorized feedback, authority and canon decisions</span></a>
       </header>
 
       <nav className={styles.tabs} aria-label="Pitch and review workflows">
@@ -210,6 +211,7 @@ export default function PitchReviewWorkspace({ project, onProjectChange }: { pro
           <label>Reviewer<input value={reviewer} onChange={(event) => setReviewer(event.target.value)} /></label>
           <label>Anchor<select value={anchorValue} onChange={(event) => setAnchorValue(event.target.value)}>{anchorOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
           <label>Priority<select value={priority} onChange={(event) => setPriority(event.target.value as ReviewPriority)}><option value="low">Low</option><option value="normal">Normal</option><option value="high">High</option><option value="critical">Critical</option></select></label>
+          <p className={styles.reviewGuide}>For required, continuity, rights, craft, question, preference and praise categories—with explicit accepted, requested, deferred, declined or superseded outcomes—use the <a href="/collaboration-handbook#reviews">Working Together review method</a>.</p>
           <label>Thread title<input value={threadTitle} placeholder="What needs attention?" onChange={(event) => setThreadTitle(event.target.value)} /></label>
           <label>Opening comment<textarea value={threadBody} placeholder="Describe the reader experience, evidence or question." onChange={(event) => setThreadBody(event.target.value)} /></label>
           <button type="button" className={styles.primary} onClick={addThread}>Create anchored thread</button>

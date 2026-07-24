@@ -9,6 +9,7 @@ import {
   serializePortableProjectFile,
 } from "@/lib/project-package";
 import { applyReviewedGitHubProject, compareCollaborativeProjects } from "@/lib/github-collaboration";
+import { buildProposalSummary, latestProposalPacket } from "@/lib/collaboration-handbook";
 import type { PlotPickleProject } from "@/lib/project";
 
 type LibraryItem = { fileName: string; title: string; updatedAt: string; bytes: number; integrityValid: boolean };
@@ -74,7 +75,18 @@ export default function GitHubCollaboration({ project, onChange }: { project: Pl
 
   const sourceRepository = project.collaboration.sourceRepositoryUrl || project.collaboration.repositoryUrl;
   const comparison = useMemo(() => incoming ? compareCollaborativeProjects(project, incoming.project) : null, [incoming, project]);
+  const latestPacket = useMemo(() => latestProposalPacket(project), [project]);
   const openProposals = proposals.filter((item) => item.state === "open" || item.state === "draft").length;
+
+  function useLatestProposalPacket() {
+    if (!latestPacket) {
+      setNotice("Create and save a proposal review packet in Working Together before loading it here.");
+      return;
+    }
+    setProposalTitle(latestPacket.title);
+    setProposalNote(buildProposalSummary(latestPacket));
+    setNotice("The latest saved proposal review packet now supplies the title and contributor note. Review both before submission.");
+  }
 
   async function loadProposals() {
     if (!status.connected) return;
@@ -287,6 +299,11 @@ export default function GitHubCollaboration({ project, onChange }: { project: Pl
 
       <div className={styles.status} role="status">{notice}</div>
 
+      <section className={styles.handbookCallout}>
+        <div><p>Contributor operating agreement</p><h3>Define the relationship before connecting the repository.</h3><span>Choose the collaboration model, record roles and authority, issue a bounded contribution brief, prepare the proposal packet, categorize review notes and log the canon decision.</span></div>
+        <a href="/collaboration-handbook">Open Working Together in PlotPickle</a>
+      </section>
+
       <div className={styles.grid}>
         <section className={styles.panel}>
           <header><div><p>Project Library</p><h3>Disk files and rolling backups</h3><span>Atomic saves keep the latest 20 safety copies per story on this server.</span></div></header>
@@ -348,10 +365,12 @@ export default function GitHubCollaboration({ project, onChange }: { project: Pl
           <header><div><p>Submit local work</p><h3>Create a branch and pull request</h3><span>This server must be based on the latest canonical .ppf. If another proposal was merged first, PlotPickle requires a new pull before submission.</span></div></header>
           <div className={styles.form}>
             <label className={styles.wide}><span>Proposal title</span><input value={proposalTitle} onChange={(event) => setProposalTitle(event.target.value)} /></label>
-            <label className={styles.wide}><span>Contributor note</span><textarea rows={4} value={proposalNote} onChange={(event) => setProposalNote(event.target.value)} placeholder="Explain what changed, why, and anything the owner should inspect closely." /></label>
+            <label className={styles.wide}><span>Contributor note</span><textarea rows={8} value={proposalNote} onChange={(event) => setProposalNote(event.target.value)} placeholder="Explain what changed, why, affected areas, dependencies, rights and anything the owner should inspect closely." /></label>
           </div>
+          {latestPacket ? <div className={styles.packetState}><span>Latest saved review packet</span><strong>{latestPacket.title}</strong><small>{latestPacket.status} · {latestPacket.affectedAreas.length} affected area{latestPacket.affectedAreas.length === 1 ? "" : "s"} · base {latestPacket.baseRevision || "not recorded"}</small></div> : <p className={styles.help}>No structured proposal packet is saved yet. The proposal can still be submitted, but Working Together provides the fuller purpose, scope, evidence, dependency and rights review.</p>}
           <div className={styles.baseState}><span>Known canonical .ppf revision</span><code>{project.collaboration.lastPulledCommit || "Pull required before first proposal to an existing project"}</code></div>
           <div className={styles.actions}>
+            <button type="button" disabled={!latestPacket} onClick={useLatestProposalPacket}>Use latest review packet</button>
             <button type="button" className={styles.primary} disabled={working || !status.connected} onClick={() => void submitProposal()}>Submit changes for owner approval</button>
             <button type="button" disabled={!status.connected} onClick={() => void loadProposals()}>Refresh proposals</button>
           </div>

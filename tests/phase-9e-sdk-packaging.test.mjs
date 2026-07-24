@@ -28,7 +28,7 @@ test("release tooling keeps publishing manually locked", () => {
   assert.match(script, /PLOTPICKLE_APPROVE_SDK_PUBLISH/);
   assert.match(script, /Clean external consumer installation verified/);
   assert.match(script, /--declarationMap/);
-  assert.match(script, /npm[^\n]+pack/);
+  assert.match(script, /run\("npm", \["pack"/);
 });
 
 test("release policy documents compatibility, migration and rollback", () => {

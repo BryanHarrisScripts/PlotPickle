@@ -22,7 +22,7 @@ jobs:
           cache: npm
       - name: Import verified Afterglow WebP artifact
         env:
-          ARTIFACT_URL: "https://sdmntprnorthcentralus.oaiusercontent.com/files/00000000-1a7c-822f-abaf-a77cf89c7a39/raw?se=2026-07-25T00:52:57Z&sp=r&sv=2026-02-06&sr=b&scid=16d412ca-67c8-524a-ac00-591f4b00de3b&skoid=add8ee7d-5fc7-451e-b06e-a82b2276cf62&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-07-25T00:42:21Z&ske=2026-07-27T00:42:21Z&sks=b&skv=2026-02-06&sig=qLjKkCpn1/cP%2BncJE3A7NcBxNcrkoLd%2BJ92O7Zp5xNE%3D"
+          ARTIFACT_URL: "https://sdmntprsoutheastus3.oaiusercontent.com/files/00000000-9614-820c-890d-10558eea2e4a/raw?se=2026-07-25T00:59:16Z&sp=r&sv=2026-02-06&sr=b&scid=4781a7e0-100e-598e-8480-10d791a32e99&skoid=add8ee7d-5fc7-451e-b06e-a82b2276cf62&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-07-24T22:34:21Z&ske=2026-07-26T22:34:21Z&sks=b&skv=2026-02-06&sig=heV5SEzibZwUEqYc2Qw/hnfIEfehk8oy44HVdQznPgc%3D"
         run: |
           curl -fL "$ARTIFACT_URL" -o /tmp/afterglow.zip
           rm -rf /tmp/afterglow-build

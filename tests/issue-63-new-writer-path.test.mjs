@@ -32,6 +32,15 @@ test("beginner journey has eight ordered stages and plain-language rules", () =>
   assert.match(start, /Guidance for this step/);
   assert.match(start, /Nothing here is a pass\/fail test/);
   for (const state of ["Not started", "Exploring", "Working draft", "Reviewed", "Approved for this draft", "Needs continuity check"]) assert.match(start, new RegExp(state));
+  assert.match(start, /Skip for now/);
+  assert.match(start, /Return this step to the journey/);
+});
+
+test("guided routes bypass welcome middleware and keep the same workspace", () => {
+  assert.match(start, /workspaceHref/);
+  assert.match(start, /workspace=1/);
+  assert.match(readiness, /readinessHref/);
+  assert.match(readiness, /tab=planner&section=coreModel/);
 });
 
 test("onboarding edits the canonical project rather than a separate schema", () => {

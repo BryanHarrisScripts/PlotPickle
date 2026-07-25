@@ -30,7 +30,8 @@ export const FIVE_KEY_SELLING_POINTS = [
   },
   {
     id: "learning-system",
-    title: `${LEARNING_MODULE_COUNT}-module learning system`,
+    title: "81-module learning system",
+    moduleCount: LEARNING_MODULE_COUNT,
     summary: "Use screenwriting education and in-context guidance directly inside the writing workflow.",
   },
   {

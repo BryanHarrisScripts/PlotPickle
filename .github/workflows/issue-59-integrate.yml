@@ -1,0 +1,51 @@
+name: Issue 59 integration
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/issue-59-about-origins-principles
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply integration
+        run: python scripts/issue-59-integrate.py
+      - run: npm ci
+      - name: Capture validation output
+        shell: bash
+        run: |
+          set +e
+          npm run lint > issue-59-validation.log 2>&1
+          lint_status=$?
+          npm test >> issue-59-validation.log 2>&1
+          test_status=$?
+          echo "lint_status=$lint_status test_status=$test_status" >> issue-59-validation.log
+          if [ "$lint_status" -ne 0 ] || [ "$test_status" -ne 0 ]; then touch issue-59-validation.failed; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: issue-59-validation-log
+          path: issue-59-validation.log
+      - name: Fail on validation error
+        run: test ! -f issue-59-validation.failed
+      - name: Commit clean integration
+        run: |
+          rm .github/workflows/issue-59-integrate.yml
+          rm scripts/issue-59-integrate.py
+          git config user.name "PlotPickle automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Integrate About, origins and product principles"
+          git push origin HEAD:agent/issue-59-about-origins-principles

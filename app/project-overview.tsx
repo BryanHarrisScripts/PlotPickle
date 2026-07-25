@@ -109,6 +109,8 @@ export default function ProjectOverview({
 
       <AfterglowLegacyVisuals project={project} mode="overview" />
 
+      {project.id === "afterglow-echoes-of-sentience" ? <section className={styles.panel} aria-label="Afterglow Source Reconciliation"><header><div><p className={styles.eyebrow}>Afterglow Source Reconciliation</p><h2>Complete baseline, partial rewrite, current decisions.</h2></div><Link href="/afterglow-reconciliation">Open Version Bridge</Link></header><p>The complete v9 screenplay remains readable, v10 is preserved as an unfinished Blocks 1–8 alternate, and the current Reflections rewrite advances only through reviewed decisions. CC BY-SA attribution, modification history and poster rights remain visible.</p><div className={styles.rightsLinks}><Link href="/afterglow-reconciliation">Review source claims and versions</Link><Link href="/legal">Review attribution and licensing</Link></div></section> : null}
+
       <div className={styles.dashboardGrid}>
         <section className={styles.panel}>
           <header>

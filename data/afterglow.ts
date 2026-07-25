@@ -424,7 +424,7 @@ export function createAfterglowProject(): PlotPickleProject {
     ...project,
     id: "afterglow-echoes-of-sentience",
     metadata: {
-      title: "Afterglow: Echoes of Sentience",
+      title: "Afterglow: Reflections of Sentience",
       subtitle: "A 24 Blocks story project",
       format: "Feature screenplay",
       targetMinutes: 120,
@@ -444,7 +444,7 @@ export function createAfterglowProject(): PlotPickleProject {
       catalyst: "The consequences of Sarah and Claire's loss collide with the growing autonomy of BBT's sentient creations, disrupting Ren's withdrawn life.",
       stakes: "If Jai and Kai retain control, emerging conscious beings can be weaponized or erased; if Ren cannot face his grief, he may lose the new family forming around him.",
       ending: "Ren accepts the past and steps into a new life as human and AI characters move toward coexistence and self-determined purpose.",
-      notes: "Imported from the Afterglow repository. Summer and Isobel are treated as one character pending a source-of-truth screenplay pass."
+      notes: "Current display title: Afterglow: Reflections of Sentience. Legacy source title: Afterglow: Echoes of Sentience. Summer and Isobel remain a visible source decision pending screenplay reconciliation."
     },
     world: {
       ordinaryWorld: "Ren lives inside grief and memory while BBT treats advanced artificial beings as technology whose purpose can still be controlled.",
@@ -535,6 +535,41 @@ export function createAfterglowProject(): PlotPickleProject {
     },
     characters: afterglowCharacters.map((character) => ({ ...character, arcMatrix: createBlankArcMatrix(character) })),
     blocks: project.blocks.map(populateAfterglowBlock),
+    rights: {
+      projectOwner: "Bryan Elgin Harris",
+      copyrightNotice: "Copyright © Bryan Elgin Harris. Licensed as stated below.",
+      rightsStatement: "Afterglow: Reflections of Sentience is a continuing adaptation of Afterglow: Echoes of Sentience. The original and distributed adaptations are available under CC BY-SA 4.0, subject to recorded third-party asset rights and exclusions.",
+      defaultCreativeLicence: "CC BY-SA 4.0",
+      sourceWorkTitle: "Afterglow: Echoes of Sentience",
+      sourceWorkAuthor: "Bryan Elgin Harris",
+      adaptationStatus: "adaptation",
+      collaborators: [],
+      attributions: [{
+        id: "afterglow-original-work",
+        title: "Afterglow: Echoes of Sentience",
+        creator: "Bryan Elgin Harris",
+        sourceType: "adaptation",
+        sourceUrl: "https://github.com/BryanHarrisScripts/Afterglow-Echoes-of-Sentience",
+        licence: "CC BY-SA 4.0",
+        permissionReference: "https://creativecommons.org/licenses/by-sa/4.0/",
+        notes: "Current display title is Afterglow: Reflections of Sentience. Modifications and source versions are recorded in revision and provenance history. Attribution does not imply endorsement of downstream adaptations.",
+        attachedTo: ["project", "screenplay", "pitch", "visuals", "exports"],
+        createdAt: importedAt,
+      }],
+      aiProvenance: [{
+        id: "historical-chatgpt4-v9-v10",
+        provider: "OpenAI",
+        model: "ChatGPT-4",
+        operation: "rewrite",
+        promptSummary: "Historical 2023 editing and rewrite assistance recorded by the v9 and partial v10 source materials.",
+        outputSummary: "Historical assistance only; not a blanket claim about every current passage.",
+        humanContribution: "Bryan Elgin Harris wrote, directed, selected and revised the screenplay materials.",
+        humanDecision: "Preserve as process provenance, separate from creator attribution. Later retained AI operations require their own records.",
+        retained: true,
+        attachedTo: ["screenplay-source-v9", "screenplay-source-v10", "project-history"],
+        createdAt: importedAt,
+      }],
+    },
     screenplay: createAfterglowScreenplay(importedAt)
   };
 }

@@ -1,0 +1,40 @@
+name: Issue 86 Lighthouse smoke
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/lighthouse-audit.mjs'
+      - '.github/workflows/issue-86-lighthouse-smoke.yml'
+
+jobs:
+  lighthouse-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Start local preview
+        run: |
+          npx vite preview --host 127.0.0.1 --port 4173 > /tmp/plotpickle-preview.log 2>&1 &
+          echo $! > /tmp/plotpickle-preview.pid
+          for i in {1..60}; do curl -sS -o /dev/null http://127.0.0.1:4173/?workspace=1 && exit 0; sleep 1; done
+          cat /tmp/plotpickle-preview.log
+          exit 1
+      - name: Run Lighthouse against main workspace
+        run: |
+          mkdir -p reports/lighthouse/smoke
+          npx --yes lighthouse@12.8.2 'http://127.0.0.1:4173/?workspace=1' --quiet --chrome-flags='--headless --no-sandbox --disable-gpu' --output=json --output=html --output-path=reports/lighthouse/smoke/workspace
+      - name: Verify reports
+        run: |
+          test -s reports/lighthouse/smoke/workspace.report.json
+          test -s reports/lighthouse/smoke/workspace.report.html
+          node -e "const r=require('./reports/lighthouse/smoke/workspace.report.json'); for (const c of ['performance','accessibility','best-practices','seo']) if (!r.categories[c]) throw new Error('missing '+c); console.log(Object.fromEntries(Object.entries(r.categories).map(([k,v])=>[k,Math.round(v.score*100)])))"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: issue-86-lighthouse-smoke
+          path: reports/lighthouse/smoke/

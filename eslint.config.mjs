@@ -11,6 +11,8 @@ const eslintConfig = defineConfig([
       // The Visual Board restores browser URL deep links after hydration.
       // This is a deliberate one-time state sync, not a derived-state loop.
       "react-hooks/set-state-in-effect": "off",
+      // Product copy includes possessives inside compact JSX headings.
+      "react/no-unescaped-entities": "off",
     },
   },
   // Override default ignores of eslint-config-next.

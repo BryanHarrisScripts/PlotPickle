@@ -31,7 +31,7 @@ test("issue #86 records the required Lighthouse evidence", async () => {
   }
 });
 
-test("issue #86 provides desktop, mobile, ZIP and local-only commands", async () => {
+test("issue #86 provides desktop, mobile, automatic ZIP and local-only commands", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   assert.equal(packageJson.scripts["audit:lighthouse"], "node scripts/lighthouse-audit.mjs all");
   assert.equal(packageJson.scripts["audit:lighthouse:desktop"], "node scripts/lighthouse-audit.mjs desktop");
@@ -39,11 +39,20 @@ test("issue #86 provides desktop, mobile, ZIP and local-only commands", async ()
   assert.equal(packageJson.scripts["audit:lighthouse:zip"], "node scripts/lighthouse-audit.mjs zip");
 
   const audit = await source("scripts/lighthouse-audit.mjs");
+  assert.match(audit, /fileURLToPath/);
   assert.match(audit, /127\.0\.0\.1/);
   assert.match(audit, /No story project was sent to a remote audit service/);
   assert.match(audit, /Compress-Archive/);
-  assert.match(audit, /"zip"/);
+  assert.match(audit, /await zipDirectory\(reportDirectory\)/);
 
   const gitignore = await source(".gitignore");
   assert.match(gitignore, /\/reports\/lighthouse\//);
+});
+
+test("issue #86 documents the one-command Windows review package", async () => {
+  const docs = await source("public/docs/readme/COLLABORATION-AND-DEVELOPMENT.md");
+  assert.match(docs, /Whole-app Lighthouse review package/);
+  assert.match(docs, /npm run audit:lighthouse/);
+  assert.match(docs, /creates an uploadable ZIP automatically/);
+  assert.match(docs, /reports\\lighthouse\\<timestamp>/);
 });

@@ -57,7 +57,8 @@ test("AI writing and character images use the private local gateway and require 
   assert.match(workspace, /\/api\/local-ai\/generate\/text/);
   assert.match(workspace, /Nothing is inserted until you approve it/);
   assert.match(character, /\/api\/local-ai\/generate\/image/);
-  assert.match(character, /Generate character image/);
+  assert.match(character, /Generate \$\{angle\.replace\("-", " "\)\} reference/);
+  assert.match(character, /Approve and lock identity/);
   assert.match(gateway, /TEXT_PATH/);
   assert.match(gateway, /IMAGE_PATH/);
   assert.match(gateway, /assetsDirectory/);

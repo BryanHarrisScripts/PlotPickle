@@ -104,8 +104,7 @@ function normalizeReferences(value: unknown, fallbackImage = ""): CharacterVisua
 }
 
 export function buildCharacterIdentityPrompt(character: CharacterWithVisualIdentity, projectVisualLanguage = "", period = "") {
-  const identity = getCharacterVisualIdentity(character);
-  const traits = identity.traits;
+  const traits = normalizeTraits(character.visualIdentity?.traits);
   return [
     `Character identity lock for ${character.name}.`,
     character.role && `Story role: ${character.role}.`,
@@ -260,7 +259,7 @@ export function characterVisualIdentityDiagnostic(character: CharacterWithVisual
   const identity = getCharacterVisualIdentity(character);
   if (identity.status !== "locked") return { characterId: character.id, characterName: character.name, severity: "blocked", message: `${character.name} does not yet have a locked visual identity.` };
   if (!identity.approvedPrompt) return { characterId: character.id, characterName: character.name, severity: "blocked", message: `${character.name}'s locked identity has no approved prompt.` };
-  if (!approvedCharacterReferenceImages(character).length) return { characterId: character.id, characterName: character.name, severity: "review", message: `${character.name} has a locked prompt but no approved reference image.` };
   if (identity.pendingRevision) return { characterId: character.id, characterName: character.name, severity: "review", message: `${character.name} has an unapproved visual identity revision.` };
+  if (!approvedCharacterReferenceImages(character).length) return { characterId: character.id, characterName: character.name, severity: "review", message: `${character.name} has a locked prompt but no approved reference image.` };
   return { characterId: character.id, characterName: character.name, severity: "clear", message: `${character.name}'s visual identity is locked at version ${identity.version}.` };
 }

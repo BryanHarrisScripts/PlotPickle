@@ -5,10 +5,14 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("Read & Learn is a primary workspace and Writer keeps Treatment and Screenplay connected", async () => {
-  const page = await source("app/page.tsx");
-  const workspace = await source("app/script-workspace.tsx");
-  for (const phrase of ['id: "learn", label: "Read & Learn", description: "Study the craft"', '<LearningStudio', 'activeTab === "learn"', 'setWriterMode("treatment")', 'setWriterMode("screenplay")']) {
+test("Learn is a primary workspace and Writer keeps Treatment and Screenplay connected", async () => {
+  const [page, navigation, workspace] = await Promise.all([
+    source("app/page.tsx"),
+    source("lib/product-direction.ts"),
+    source("app/script-workspace.tsx"),
+  ]);
+  assert.match(navigation, /id: "learn", label: "Learn", description: "Study the craft and terminology"/);
+  for (const phrase of ["<LearningStudio", 'activeTab === "learn"', 'setWriterMode("treatment")', 'setWriterMode("screenplay")']) {
     assert.ok(page.includes(phrase), `Primary learning workspace is missing ${phrase}`);
   }
   for (const phrase of ["TreatmentEditor", 'export type WriterViewMode = "treatment" | "screenplay"', "Treatment", "Screenplay", "onProjectChange"]) {
@@ -28,7 +32,7 @@ test("Markdown treatment supports local writing, preview, export, AI approval an
 
 test("Learning Studio connects contextual guidance to the complete course", async () => {
   const learning = await source("app/learning-studio.tsx");
-  for (const phrase of ["Current story position", "Search screenwriting lessons", "Recommended here", "Apply it to Block", "Screenplay anatomy", "Complete Learning Library", "The 24 Blocks Method", "full learning modules", "Read full module"] ) {
+  for (const phrase of ["Current story position", "Search screenwriting lessons", "Recommended here", "Apply it to Block", "Screenplay anatomy", "Complete Learning Library", "The 24 Blocks Method", "full learning modules", "Read full module"]) {
     assert.ok(learning.includes(phrase), `Learning Studio is missing ${phrase}`);
   }
 });

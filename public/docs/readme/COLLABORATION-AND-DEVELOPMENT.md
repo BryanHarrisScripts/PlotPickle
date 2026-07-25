@@ -13,13 +13,11 @@ A complete local Lighthouse audit can be created without sending a story project
 
 ### Windows
 
-1. Open the extracted PlotPickle folder in File Explorer.
-2. Click the address bar, type `cmd`, and press Enter.
-3. Run:
+1. Open the extracted PlotPickle source folder in File Explorer.
+2. Double-click `Run-Lighthouse.bat`.
+3. Choose desktop and mobile, desktop only, mobile only, or ZIP the latest completed audit.
 
-```bat
-npm run audit:lighthouse
-```
+The launcher uses native Windows tools. It does not open Ubuntu and does not require Windows Subsystem for Linux. If the project dependencies are missing, it installs them with `npm ci` before starting the audit.
 
 PlotPickle builds once, starts a private preview server on `127.0.0.1`, discovers the registered application pages, audits every accessible route in desktop and mobile modes, and creates an uploadable ZIP automatically.
 
@@ -31,15 +29,25 @@ reports\lighthouse\<timestamp>\
 
 The ZIP contains a route summary plus each page's Lighthouse JSON, HTML and command log. Dynamic routes that require a real project identifier are listed separately instead of being silently skipped.
 
-Optional commands:
+The launcher also accepts command-line modes:
 
 ```bat
+Run-Lighthouse.bat all
+Run-Lighthouse.bat desktop
+Run-Lighthouse.bat mobile
+Run-Lighthouse.bat zip
+```
+
+The equivalent npm commands remain available:
+
+```bat
+npm run audit:lighthouse
 npm run audit:lighthouse:desktop
 npm run audit:lighthouse:mobile
 npm run audit:lighthouse:zip
 ```
 
-The first audit may download the pinned Lighthouse command package and requires a locally installed Chrome or Chromium browser. The report folder is ignored by Git so private local audit results are not committed accidentally.
+Node.js 22.13.0 or newer and a locally installed Chrome or Chromium browser are required. The first audit may download the pinned Lighthouse command package. The report folder is ignored by Git so private local audit results are not committed accidentally.
 
 ## Project data and migration
 

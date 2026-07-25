@@ -49,7 +49,7 @@ export const convergenceMap = [
 
 export const currentProductFacts = [
   "PlotPickle is a downloadable local-server story-development and screenplay application.",
-  "One portable schema 1.7 project connects foundations, structure, treatment, screenplay, visuals, review, production and provenance.",
+  "PlotPickle uses one portable canonical project in schema 1.7 to connect foundations, structure, treatment, screenplay, visuals, review, production and provenance.",
   "The 24 Blocks are human-readable first and AI-compatible, not AI-dependent.",
   "Writers can use connected AI, local models, manual prompts or no AI at all.",
   "User-created stories remain under the rights their creators hold unless they deliberately share or license them.",

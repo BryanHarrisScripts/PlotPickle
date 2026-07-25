@@ -22,6 +22,7 @@ import { coreGuideFor } from "./learning-core-curriculum";
 import { learningModules, learningPaths, moduleSearchText, type LearningModule } from "./learning-library";
 import { loglinesThatCarryTheMovie } from "./learning-loglines-that-carry-the-movie";
 import { moodColourVisualLanguage } from "./learning-mood-colour-visual-language";
+import { earlyVisualDevelopmentLesson, earlyVisualDevelopmentSearchText } from "./learning-early-visual-development";
 import { twentyFourBlocksLessons, twentyFourBlocksSearchText, type TwentyFourBlocksLesson } from "./learning-24-blocks";
 import styles from "./learning-studio.module.css";
 
@@ -43,6 +44,7 @@ const courseModules: CourseModule[] = [
   ...learningModules,
   loglinesThatCarryTheMovie,
   moodColourVisualLanguage,
+  earlyVisualDevelopmentLesson,
   ...twentyFourBlocksLessons,
   ...aiRevisionLessons,
   ...collaborationOwnershipLessons,
@@ -90,6 +92,7 @@ function courseSearchText(module: CourseModule) {
   if (isDialogueLesson(module)) return `${base} ${dialogueLessonSearchText(module)}`;
   if (isStoryCraftLesson(module)) return `${base} ${storyCraftSearchText(module)}`;
   if (isCharacterMotionLesson(module)) return `${base} ${characterMotionSearchText(module)}`;
+  if (module.id === earlyVisualDevelopmentLesson.id) return `${base} ${earlyVisualDevelopmentSearchText()}`;
   const coreGuide = coreGuideFor(module.id);
   if (coreGuide) return `${base} ${coreGuide.sourceTitle} ${coreGuide.sourceAliases.join(" ")} ${coreGuide.adaptation} ${coreGuide.understand} ${coreGuide.seeIt} ${coreGuide.tryIt} ${coreGuide.applyLabel} ${coreGuide.checkLabel} ${coreGuide.deeperLabel} ${coreGuide.commonNextProblem}`;
   return base;

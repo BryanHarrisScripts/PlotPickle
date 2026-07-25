@@ -4,6 +4,7 @@
 
 import { useMemo, useState } from "react";
 import { createStoryboardFrame, type MiniBlock, type PlotPickleProject, type StoryBlock, type StoryScene, type VisualFrame } from "@/lib/project";
+import AfterglowLegacyVisuals from "./afterglow-legacy-visuals";
 import styles from "./visual-storyboard.module.css";
 
 type BoardMode = "blocks" | "minis";
@@ -202,6 +203,8 @@ export default function VisualStoryboard({
         </main>
 
         <aside className={styles.inspector}>
+          <p><strong>Current approved storyboard</strong> frames remain separate from historical source art.</p>
+          <AfterglowLegacyVisuals project={project} mode="block" blockNumber={block.number} />
           <div className={styles.inspectorHead}><div><span>Selected visual</span><h2>Block {block.number}.{miniBlockNumber}</h2><strong>{block.title} · {mini.label}</strong></div><button type="button" onClick={() => onOpenPlannerBlock(block.number)}>Open story block</button></div>
           <div className={styles.turnStrip}>{[1, 2, 3, 4].map((number) => { const itemMini = miniBlockFor(block, number); const itemFrame = primaryFrame(block, number); return <button type="button" className={number === miniBlockNumber ? styles.active : ""} onClick={() => setMiniBlockNumber(number)} key={number}><span>{number}</span><strong>{itemMini.label}</strong><i className={itemFrame.src ? styles.done : itemFrame.prompt ? styles.ready : ""} /></button>; })}</div>
           <div className={styles.context}><small>Scene purpose</small><p>{scene.purpose || "Add the scene purpose in the Structure Map or Block editor."}</p><small>Mini-block purpose</small><p>{mini.visualBeat || mini.purpose || mini.function}</p></div>

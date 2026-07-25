@@ -6,6 +6,7 @@ import {
   recommendedSectionOrder,
   type ProjectProgressSection,
 } from "@/lib/project-progress";
+import AfterglowLegacyVisuals from "./afterglow-legacy-visuals";
 import styles from "./project-overview.module.css";
 
 const sectionLabels: Record<ProjectProgressSection, string> = {
@@ -99,6 +100,8 @@ export default function ProjectOverview({
         <article><span>Status</span><strong>{project.metadata.status || "Not set"}</strong></article>
         <article><span>Last updated</span><strong>{readableDate(project.metadata.updatedAt)}</strong></article>
       </section>
+
+      <AfterglowLegacyVisuals project={project} mode="overview" />
 
       <div className={styles.dashboardGrid}>
         <section className={styles.panel}>

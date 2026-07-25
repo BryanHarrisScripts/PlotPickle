@@ -13,10 +13,11 @@ const middleware = read("middleware.ts");
 
 test("welcome offers all six optional Simple Start entry routes", () => {
   for (const label of ["I have an idea", "Create a new screenplay", "Continue my screenplay", "Import an existing screenplay", "Explore Afterglow", "Learn how screenplays work"]) assert.match(welcome, new RegExp(label));
-  assert.match(welcome, /Choose a simple way into your screenplay/);
+  assert.match(welcome, /A complete screenplay studio that stays under the writer/);
   assert.match(welcome, /Afterglow: Reflections of Sentience/);
-  assert.match(welcome, /AI is optional/);
-  assert.match(welcome, /Your rights stay yours/);
+  assert.match(welcome, /FIVE_KEY_SELLING_POINTS\.map/);
+  assert.match(welcome, /LEARNING_MODULE_COUNT/);
+  assert.match(welcome, /Complete Learning Library/);
 });
 
 test("the root opens the core workspace while Welcome remains optional", () => {

@@ -13,7 +13,7 @@ const middleware = read("middleware.ts");
 
 test("welcome offers all six optional Simple Start entry routes", () => {
   for (const label of ["I have an idea", "Create a new screenplay", "Continue my screenplay", "Import an existing screenplay", "Explore Afterglow", "Learn how screenplays work"]) assert.match(welcome, new RegExp(label));
-  assert.match(welcome, /Write your movie one clear piece at a time/);
+  assert.match(welcome, /Choose a simple way into your screenplay/);
   assert.match(welcome, /Afterglow: Reflections of Sentience/);
   assert.match(welcome, /AI is optional/);
   assert.match(welcome, /Your rights stay yours/);
@@ -25,6 +25,7 @@ test("the root opens the core workspace while Welcome remains optional", () => {
   assert.match(middleware, /return NextResponse\.next\(\)/);
   assert.doesNotMatch(middleware, /NextResponse\.redirect/);
   assert.match(welcome, /Simple Start · optional guided entry/);
+  assert.doesNotMatch(welcome, /plotpickle-open-last/);
 });
 
 test("beginner journey has eight ordered stages and plain-language rules", () => {

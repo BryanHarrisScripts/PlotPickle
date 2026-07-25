@@ -19,18 +19,30 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - name: Print failing test files only
+      - name: Capture failing test files
         shell: bash
         run: |
           set +e
           failed=0
+          : > /tmp/issue-87-failures.txt
           for file in tests/*.test.mjs; do
             node --test "$file" > /tmp/one-test.log 2>&1
             status=$?
             if [ "$status" -ne 0 ]; then
               failed=1
-              echo "FAIL: $file"
-              tail -n 45 /tmp/one-test.log
+              {
+                echo "FAIL: $file"
+                tail -n 80 /tmp/one-test.log
+                echo
+              } >> /tmp/issue-87-failures.txt
             fi
           done
-          exit "$failed"
+          if [ "$failed" -eq 0 ]; then echo "All test files passed." > /tmp/issue-87-failures.txt; fi
+          echo "$failed" > /tmp/issue-87-status.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: issue-87-test-diagnostics
+          path: /tmp/issue-87-failures.txt
+      - name: Fail when tests failed
+        shell: bash
+        run: test "$(cat /tmp/issue-87-status.txt)" = "0"

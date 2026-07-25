@@ -17,6 +17,8 @@ import CharacterImageGenerator from "./character-image-generator";
 import VisualStoryboard from "./visual-storyboard";
 import CoreModelStudio from "./core-model-studio";
 import ReadmeTabs from "./readme-tabs";
+import SimpleStart from "./simple-start";
+import { ScreenplayReports, TerminologyIndex } from "./settings-project-tools";
 import { projectSectionProgress, sectionHasAlert } from "@/lib/project-progress";
 import { createProjectFromScreenplay, markScreenplayAnalysisReviewed } from "@/lib/screenplay-import";
 import { screenplayFormatForFile } from "@/lib/screenplay";
@@ -38,8 +40,8 @@ import { synchronizeScreenplaySceneReferences } from "@/lib/scene-management";
 const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
 
-type MainTab = "instructions" | "learn" | "planner" | "script" | "visuals" | "engines" | "settings";
-type StorySection = "overview" | "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "coreModel" | "structureMap" | "blocks" | "storyboard" | "notes";
+type MainTab = "instructions" | "learn" | "planner" | "script" | "visuals" | "engines" | "reports" | "settings";
+type StorySection = "simpleStart" | "overview" | "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "coreModel" | "structureMap" | "blocks" | "storyboard" | "notes";
 type StorySectionGroup = "Project" | "Foundation" | "Structure" | "Production";
 
 const mainTabs: { id: MainTab; label: string; description: string }[] = [
@@ -49,10 +51,12 @@ const mainTabs: { id: MainTab; label: string; description: string }[] = [
   { id: "script", label: "Screenplay", description: "Outline & write" },
   { id: "visuals", label: "Visual Board", description: "See the film" },
   { id: "engines", label: "Engines", description: "Refine the story" },
-  { id: "settings", label: "Settings", description: "Connect services" },
+  { id: "reports", label: "Reports", description: "Measure the script" },
+  { id: "settings", label: "Settings", description: "Setup & preferences" },
 ];
 
 const storySections: { id: StorySection; code: string; label: string; group: StorySectionGroup }[] = [
+  { id: "simpleStart", code: "SS", label: "Simple Start", group: "Project" },
   { id: "overview", code: "OV", label: "Project Overview", group: "Project" },
   { id: "storySetup", code: "01", label: "Story Setup", group: "Foundation" },
   { id: "pitch", code: "PV", label: "Pitch & Vision", group: "Foundation" },
@@ -71,6 +75,13 @@ const storySections: { id: StorySection; code: string; label: string; group: Sto
 ];
 
 const sectionGuides: Record<StorySection, { title: string; description: string; questions: string[]; deliverable: string; connection: string }> = {
+  simpleStart: {
+    title: "Choose a clear way into the story.",
+    description: "Simple Start is an optional beginner pathway inside Story Planner, not a required splash screen.",
+    questions: ["Are you continuing, importing, learning, or beginning fresh?", "What is the smallest useful next step?", "Would the Afterglow example help?"],
+    deliverable: "A deliberate entry point without blocking the main workspace.",
+    connection: "Simple Start opens the same local project used by every PlotPickle workspace.",
+  },
   overview: {
     title: "Re-enter the project through one clear dashboard.",
     description: "See overall progress, the next useful task, structural coverage, open questions, and ownership information before choosing where to work.",
@@ -457,7 +468,7 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
 
 export default function Home() {
   const [project, setProject] = useState<PlotPickleProject>(() => createBlankProject());
-  const [activeTab, setActiveTab] = useState<MainTab>("instructions");
+  const [activeTab, setActiveTab] = useState<MainTab>("planner");
   const [activeSection, setActiveSection] = useState<StorySection>("overview");
   const [selectedCharacterId, setSelectedCharacterId] = useState("");
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
@@ -467,7 +478,7 @@ export default function Home() {
   const [hydrated, setHydrated] = useState(false);
   const [saveState, setSaveState] = useState("Saved on this device");
   const [toast, setToast] = useState("");
-  const [showLanding, setShowLanding] = useState(true);
+  const [showLanding, setShowLanding] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -694,7 +705,7 @@ export default function Home() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <button type="button" className="brand-lockup home-trigger" onClick={() => setShowLanding(true)} aria-label="Return to the PlotPickle product page">
+        <button type="button" className="brand-lockup home-trigger" onClick={() => { setActiveTab("planner"); setActiveSection("overview"); }} aria-label="Open the PlotPickle project dashboard">
           <img className="brand-icon" src="/brand/favicon/plotpickle-icon-128.png" alt="" aria-hidden="true" />
           <div>
             <strong>PlotPickle</strong>
@@ -759,6 +770,16 @@ export default function Home() {
             <StoryRail project={project} workspace="Story Planner" activeSection={activeSection} selectSection={setActiveSection} />
 
             <section className="planner-content">
+              {activeSection === "simpleStart" ? (
+                <SimpleStart
+                  project={project}
+                  onContinue={() => setActiveSection("overview")}
+                  onNew={createNewProject}
+                  onLearn={() => setActiveTab("learn")}
+                  onImport={() => fileInputRef.current?.click()}
+                  onAfterglow={loadAfterglow}
+                />
+              ) : null}
               {activeSection === "overview" ? (
                 <ProjectOverview
                   project={project}
@@ -844,6 +865,10 @@ export default function Home() {
               }}
               onOpenBlock={(number) => openBlock(number, "planner")}
             />
+            <details className={writerStyles.scriptStudy}>
+              <summary>Screenplay terminology</summary>
+              <TerminologyIndex />
+            </details>
             <details className={writerStyles.scriptStudy} open={Boolean(project.screenplay.sourceText)}>
               <summary>{project.screenplay.sourceText ? "Study the loaded screenplay" : "Load a screenplay to study"}</summary>
               <ScriptViewer
@@ -881,6 +906,8 @@ export default function Home() {
         ) : null}
 
         {activeTab === "engines" ? <EngineHub /> : null}
+
+        {activeTab === "reports" ? <ScreenplayReports project={project} /> : null}
 
         <div hidden={activeTab !== "settings"}>
           <SettingsPanel project={project} onProjectChange={commit} />

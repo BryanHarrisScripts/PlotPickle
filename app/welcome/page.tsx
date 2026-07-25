@@ -22,14 +22,12 @@ function saveProject(project: PlotPickleProject) {
 
 export default function WelcomePage() {
   const [recent, setRecent] = useState<RecentProject[]>([]);
-  const [openLast, setOpenLast] = useState(false);
   const [hasCurrent, setHasCurrent] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setHasCurrent(Boolean(localStorage.getItem(STORAGE_KEY)));
       try { setRecent(JSON.parse(localStorage.getItem(RECENTS_KEY) || "[]")); } catch { setRecent([]); }
-      setOpenLast(document.cookie.split("; ").some((part) => part === "plotpickle-open-last=1"));
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -49,17 +47,12 @@ export default function WelcomePage() {
     window.location.href = "/?workspace=1&tab=instructions&section=overview";
   }
 
-  function updateLaunchPreference(value: boolean) {
-    setOpenLast(value);
-    document.cookie = `plotpickle-open-last=${value ? "1" : "0"}; path=/; max-age=${value ? 31536000 : 0}; samesite=lax`;
-  }
-
   return (
     <main className={styles.page}>
       <header className={styles.hero}>
         <div className={styles.brand}>PlotPickle</div>
-        <p className={styles.eyebrow}>Local screenplay studio</p>
-        <h1>Write your movie one clear piece at a time.</h1>
+        <p className={styles.eyebrow}>Simple Start · optional guided entry</p>
+        <h1>Choose a simple way into your screenplay.</h1>
         <p className={styles.lede}>PlotPickle guides you from an initial idea through characters, world, 24 Blocks, treatment, screenplay, revision, visuals and production planning. Work locally, use AI only if you choose, and keep control of every creative decision.</p>
       </header>
 
@@ -85,8 +78,8 @@ export default function WelcomePage() {
       </section>
 
       <footer className={styles.footer}>
-        <label><input type="checkbox" checked={openLast} onChange={(event) => updateLaunchPreference(event.target.checked)} /> Open my last project directly on future launches</label>
-        <div><Link href="/about">About PlotPickle</Link><Link href="/?workspace=1">Advanced workspace</Link></div>
+        <p>Simple Start remains available here whenever you need a guided entry; regular launches open the main workspace directly.</p>
+        <div><Link href="/about">About PlotPickle</Link><Link href="/?workspace=1">Open main workspace</Link></div>
       </footer>
     </main>
   );

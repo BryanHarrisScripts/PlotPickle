@@ -1,4 +1,3 @@
-
 import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
@@ -29,11 +28,16 @@ test("Canon Binder can attach the current beats, outline and pitch", async () =>
   assert.match(logic, /project-document:\$\{kind\}/);
 });
 
-test("Settings exposes real connections and three role-specific reports", async () => {
+test("Setup exposes real connections while Reports remains a primary workspace", async () => {
+  const page = await source("app/page.tsx");
   const panel = await source("app/settings-panel.tsx");
   const reportUi = await source("app/settings-project-tools.tsx");
   const reports = await source("lib/screenplay-reports.ts");
-  for (const item of ["<b>GitHub</b>", "<b>AI Setup</b>", "<b>Music</b>"]) assert.ok(panel.includes(item), `Missing live connection: ${item}`);
+  for (const item of ["<b>GitHub setup</b>", "<b>AI setup</b>", "<b>Music setup</b>"]) assert.ok(panel.includes(item), `Missing live setup connection: ${item}`);
+  assert.match(page, /id: "reports", label: "Reports"/);
+  assert.match(page, /activeTab === "reports"[\s\S]*ScreenplayReports/);
+  assert.doesNotMatch(panel, /<b>Reports<\/b>/);
+  assert.doesNotMatch(panel, /<b>Terminology Index<\/b>/);
   assert.doesNotMatch(panel, /<b>Core Model<\/b>/);
   assert.doesNotMatch(panel, /<b>Plugins<\/b>/);
   for (const role of ["Producer report", "Actor", "Director report"]) assert.ok(reportUi.includes(role), `Missing role report: ${role}`);

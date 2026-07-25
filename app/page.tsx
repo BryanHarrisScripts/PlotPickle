@@ -722,6 +722,8 @@ export default function Home() {
         </nav>
       </header>
 
+      <input ref={fileInputRef} className="visually-hidden" type="file" accept="application/json,.json,.txt,.fountain,.spmd,.fdx,text/plain,text/xml,application/xml" onChange={importFile} />
+
       <div className="project-strip">
         <div className="project-title">
           <span className="status-dot" />
@@ -742,7 +744,6 @@ export default function Home() {
         {activeTab === "dashboard" ? (
           <>
             <section className="dashboard-actions" aria-label="Project actions">
-              <input ref={fileInputRef} className="visually-hidden" type="file" accept="application/json,.json,.txt,.fountain,.spmd,.fdx,text/plain,text/xml,application/xml" onChange={importFile} />
               <button type="button" className="text-button" onClick={createNewProject}>New project</button>
               <button type="button" className="text-button" onClick={() => fileInputRef.current?.click()}>Import</button>
               <button type="button" className="text-button" onClick={exportProject}>Export</button>

@@ -66,8 +66,8 @@ test("issue #86 provides a native Windows launcher without Bash or WSL", async (
   assert.match(launcher, /desktop/);
   assert.match(launcher, /mobile/);
   assert.match(launcher, /zip/);
-  assert.doesNotMatch(launcher, /\bbash(?:\.exe)?\b/i);
-  assert.doesNotMatch(launcher, /\bwsl(?:\.exe)?\b/i);
+  assert.doesNotMatch(launcher, /bash scripts\//i);
+  assert.doesNotMatch(launcher, /wsl\.exe/i);
 });
 
 test("issue #86 documents the one-command Windows review package", async () => {

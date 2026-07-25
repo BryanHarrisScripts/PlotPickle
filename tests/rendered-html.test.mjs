@@ -35,19 +35,21 @@ async function render(pathname) {
   return response.text();
 }
 
-test("renders the root workspace and preserves the local-first workspace contract", async () => {
-  const html = await render("/?workspace=1");
+test("renders the root workspace directly and preserves the local-first workspace contract", async () => {
+  const html = await render("/");
   assert.match(html, developmentPreviewMeta);
   assert.match(html, /PlotPickle Playhouse/);
-  assert.match(html, /Download for Windows/);
-  assert.match(html, /\/brand\/plotpickle-header-horizontal-600\.png/);
-  assert.match(html, /\/brand\/favicon\/plotpickle-icon-192\.png/);
+  assert.match(html, /Story Planner/);
+  assert.match(html, /Simple Start/);
+  assert.match(html, /Reports/);
+  assert.match(html, /\/brand\/favicon\/plotpickle-icon-128\.png/);
 
   const source = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   for (const phrase of [
-    "Open local workspace",
+    'id: "simpleStart", code: "SS", label: "Simple Start"',
     'id: "overview", code: "OV", label: "Project Overview"',
     'id: "structureMap", code: "ST", label: "Structure Map"',
+    'id: "reports", label: "Reports"',
     "One story. Five connected workspaces.",
     "Script Viewer",
     "Copyright & licensing",

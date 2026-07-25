@@ -113,13 +113,13 @@ The launcher does not request Administrator rights, install a Windows service, a
 
 ## Primary workspaces
 
-- **Dashboard** opens local and recent projects and reports verified storage, backup, GitHub and synchronization state.
+- **Dashboard** opens the active project overview and provides New, Import, Export and Afterglow actions.
 - **Instructions** explains the 24 Blocks method, Project Overview and every story column.
-- **Read & Learn** contains the complete 81-module learning system, terminology and contextual craft guidance.
-- **Story Planner** contains optional Simple Start, story foundations, world, characters, structure and notes.
-- **Screenplay** connects treatment, screenplay writing, import, revision and the complete script view.
-- **Visual Board** connects character identity locks, visual language, 24 Blocks, 96 frames, pitch images and diagnostics.
-- **Engines** opens focused structure, resonance, voice, page, draft, craft and specialist tools.
+- **Learn** opens Read & Learn with the complete 81-module learning system, terminology and contextual craft guidance.
+- **Plan** opens Story Planner with optional Simple Start, story foundations, world, characters, structure and notes.
+- **Write** opens the Screenplay workspace for treatment, screenplay writing, import, revision and the complete script view.
+- **Storyboard** opens Visual Board for character identity locks, visual language, 24 Blocks, 96 frames, pitch images and diagnostics.
+- **Refine** opens the Engines workspace for structure, resonance, voice, page, draft, craft and specialist tools.
 - **Reports** measures screenplay, character, scene, production and schema coverage from the active project.
 - **Settings** contains preferences and Setup for GitHub, AI, music and future optional providers.
 
@@ -131,7 +131,7 @@ Screenplay mode starts blank for a new movie and uses the existing Story Setup, 
 
 Read & Learn provides 81 searchable learning modules drawn from PlotPickle’s screenwriting documentation. Learning paths cover concept-to-draft, character and inner journey, structure and dramatic questions, scene construction, visual writing, dialogue, subtext, silence, theme, pacing, revision, collaboration, ownership and screenplay formatting. Recommended lessons follow the active Block and mini-block, provide an immediate exercise, and open the correct workspace for application. The educational guidance remains CC BY-SA 4.0; each writer’s creative work remains their own.
 
-PlotPickle accepts plain-text (`.txt`), Fountain (`.fountain` or `.spmd`), and Final Draft (`.fdx`) files. **Load a screenplay** in Read & Learn and **Import** in the top bar use the same ingestion pipeline. A screenplay creates a complete schema 1.7 project and populates reviewable metadata, story, world, characters, voiceprints, arc matrices, 24 Blocks, scenes, 96 mini-blocks, Story Threads, rights, review, pitch, production and collaboration fields. Script-derived interpretations are visibly marked as suggestions until the writer reviews and confirms them.
+PlotPickle accepts plain-text (`.txt`), Fountain (`.fountain` or `.spmd`), and Final Draft (`.fdx`) files. **Load a screenplay** in Learn and **Import** on the Dashboard use the same ingestion pipeline. A screenplay creates a complete schema 1.7 project and populates reviewable metadata, story, world, characters, voiceprints, arc matrices, 24 Blocks, scenes, 96 mini-blocks, Story Threads, rights, review, pitch, production and collaboration fields. Script-derived interpretations are visibly marked as suggestions until the writer reviews and confirms them.
 
 Parsing and the initial structural extraction happen on the local device without AI. The source screenplay is stored in the canonical `.plotpickle.json` project so it travels with the project, while the writer retains ownership of the script. Importing an existing `.plotpickle.json` file restores that complete saved project.
 

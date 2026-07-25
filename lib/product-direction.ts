@@ -4,11 +4,11 @@ export const LEARNING_MODULE_COUNT = 81;
 export const PRODUCT_NAVIGATION = [
   { id: "dashboard", label: "Dashboard", description: "Projects, collaboration and storage" },
   { id: "instructions", label: "Instructions", description: "Learn the method" },
-  { id: "learn", label: "Read & Learn", description: "Study the craft and terminology" },
-  { id: "planner", label: "Story Planner", description: "Simple Start and story planning" },
-  { id: "script", label: "Screenplay", description: "Outline and write" },
-  { id: "visuals", label: "Visual Board", description: "See and preserve the film" },
-  { id: "engines", label: "Engines", description: "Refine the story" },
+  { id: "learn", label: "Learn", description: "Study the craft and terminology" },
+  { id: "planner", label: "Plan", description: "Simple Start and story planning" },
+  { id: "script", label: "Write", description: "Outline and write" },
+  { id: "visuals", label: "Storyboard", description: "See and preserve the film" },
+  { id: "engines", label: "Refine", description: "Refine the story" },
   { id: "reports", label: "Reports", description: "Understand the screenplay" },
   { id: "settings", label: "Settings", description: "Preferences and Setup" },
 ] as const;

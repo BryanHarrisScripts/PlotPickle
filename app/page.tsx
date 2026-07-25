@@ -36,24 +36,16 @@ import {
   type StoryBlock,
 } from "@/lib/project";
 import { synchronizeScreenplaySceneReferences } from "@/lib/scene-management";
+import { PRODUCT_NAVIGATION, type ProductNavigationId } from "@/lib/product-direction";
 
 const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
 
-type MainTab = "instructions" | "learn" | "planner" | "script" | "visuals" | "engines" | "reports" | "settings";
+type MainTab = ProductNavigationId;
 type StorySection = "simpleStart" | "overview" | "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "coreModel" | "structureMap" | "blocks" | "storyboard" | "notes";
 type StorySectionGroup = "Project" | "Foundation" | "Structure" | "Production";
 
-const mainTabs: { id: MainTab; label: string; description: string }[] = [
-  { id: "instructions", label: "Instructions", description: "Learn the method" },
-  { id: "learn", label: "Read & Learn", description: "Study the craft" },
-  { id: "planner", label: "Story Planner", description: "Build the story" },
-  { id: "script", label: "Screenplay", description: "Outline & write" },
-  { id: "visuals", label: "Visual Board", description: "See the film" },
-  { id: "engines", label: "Engines", description: "Refine the story" },
-  { id: "reports", label: "Reports", description: "Measure the script" },
-  { id: "settings", label: "Settings", description: "Setup & preferences" },
-];
+const mainTabs = PRODUCT_NAVIGATION;
 
 const storySections: { id: StorySection; code: string; label: string; group: StorySectionGroup }[] = [
   { id: "simpleStart", code: "SS", label: "Simple Start", group: "Project" },
@@ -468,7 +460,7 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
 
 export default function Home() {
   const [project, setProject] = useState<PlotPickleProject>(() => createBlankProject());
-  const [activeTab, setActiveTab] = useState<MainTab>("planner");
+  const [activeTab, setActiveTab] = useState<MainTab>("dashboard");
   const [activeSection, setActiveSection] = useState<StorySection>("overview");
   const [selectedCharacterId, setSelectedCharacterId] = useState("");
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
@@ -705,7 +697,7 @@ export default function Home() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <button type="button" className="brand-lockup home-trigger" onClick={() => { setActiveTab("planner"); setActiveSection("overview"); }} aria-label="Open the PlotPickle project dashboard">
+        <button type="button" className="brand-lockup home-trigger" onClick={() => setShowLanding(true)} aria-label="Open the PlotPickle marketing page">
           <img className="brand-icon" src="/brand/favicon/plotpickle-icon-128.png" alt="" aria-hidden="true" />
           <div>
             <strong>PlotPickle</strong>
@@ -721,21 +713,13 @@ export default function Home() {
               aria-selected={activeTab === tab.id}
               className={activeTab === tab.id ? "active" : ""}
               key={tab.id}
+              title={tab.description}
               onClick={() => setActiveTab(tab.id)}
             >
               <span>{tab.label}</span>
-              <small>{tab.description}</small>
             </button>
           ))}
         </nav>
-
-        <div className="project-actions">
-          <input ref={fileInputRef} className="visually-hidden" type="file" accept="application/json,.json,.txt,.fountain,.spmd,.fdx,text/plain,text/xml,application/xml" onChange={importFile} />
-          <button type="button" className="text-button" onClick={createNewProject}>New</button>
-          <button type="button" className="text-button" onClick={() => fileInputRef.current?.click()}>Import</button>
-          <button type="button" className="text-button" onClick={exportProject}>Export</button>
-          <button type="button" className="primary-button compact" onClick={loadAfterglow}>Load Afterglow</button>
-        </div>
       </header>
 
       <div className="project-strip">
@@ -755,6 +739,24 @@ export default function Home() {
       </div>
 
       <main className="workspace">
+        {activeTab === "dashboard" ? (
+          <>
+            <section className="dashboard-actions" aria-label="Project actions">
+              <input ref={fileInputRef} className="visually-hidden" type="file" accept="application/json,.json,.txt,.fountain,.spmd,.fdx,text/plain,text/xml,application/xml" onChange={importFile} />
+              <button type="button" className="text-button" onClick={createNewProject}>New project</button>
+              <button type="button" className="text-button" onClick={() => fileInputRef.current?.click()}>Import</button>
+              <button type="button" className="text-button" onClick={exportProject}>Export</button>
+              <button type="button" className="primary-button compact" onClick={loadAfterglow}>Load Afterglow</button>
+            </section>
+            <ProjectOverview
+              project={project}
+              onOpenSection={(section) => { setActiveTab("planner"); setActiveSection(section as StorySection); }}
+              onOpenEngines={() => setActiveTab("engines")}
+              onOpenBlock={(number) => openBlock(number, "planner")}
+            />
+          </>
+        ) : null}
+
         {activeTab === "instructions" ? (
           <Instructions
             project={project}

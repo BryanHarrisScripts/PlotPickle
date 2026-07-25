@@ -37,6 +37,11 @@ export default function StartHerePage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   }
 
+  function saveRecord(next: PathRecord) {
+    setRecord(next);
+    localStorage.setItem(RECORD_KEY, JSON.stringify(next));
+  }
+
   function updateField(field: "title" | "format" | "premise" | "audience" | "protagonist", value: string) {
     if (!project) return;
     const next = structuredClone(project);
@@ -49,9 +54,12 @@ export default function StartHerePage() {
   }
 
   function updateState(stageId: string, value: BeginnerProgressState) {
-    const next = { ...record, stageStates: { ...record.stageStates, [stageId]: value }, updatedAt: new Date().toISOString() };
-    setRecord(next);
-    localStorage.setItem(RECORD_KEY, JSON.stringify(next));
+    saveRecord({ ...record, stageStates: { ...record.stageStates, [stageId]: value }, skipped: record.skipped.filter((id) => id !== stageId), updatedAt: new Date().toISOString() });
+  }
+
+  function toggleSkipped(stageId: string) {
+    const skipped = record.skipped.includes(stageId) ? record.skipped.filter((id) => id !== stageId) : [...record.skipped, stageId];
+    saveRecord({ ...record, skipped, updatedAt: new Date().toISOString() });
   }
 
   if (!project) return <main className={styles.page}><h1>Start Here</h1><p>Create or load a project from the welcome page first.</p><Link href="/welcome">Open Welcome</Link></main>;
@@ -79,7 +87,7 @@ export default function StartHerePage() {
         <nav className={styles.stages} aria-label="Beginner writing stages">
           {beginnerStages.map((stage) => (
             <button key={stage.id} className={stage.id === active ? styles.activeStage : styles.stage} onClick={() => setActive(stage.id)}>
-              <span>{stage.number}</span><div><strong>{stage.title}</strong><small>{record.stageStates[stage.id] ?? "not-started"}</small></div>
+              <span>{stage.number}</span><div><strong>{stage.title}</strong><small>{record.skipped.includes(stage.id) ? "skipped — revisit anytime" : record.stageStates[stage.id] ?? "not-started"}</small></div>
             </button>
           ))}
         </nav>
@@ -99,6 +107,7 @@ export default function StartHerePage() {
             <select aria-label="Progress state" value={record.stageStates[current.id] ?? "not-started"} onChange={(e) => updateState(current.id, e.target.value as BeginnerProgressState)}>
               <option value="not-started">Not started</option><option value="exploring">Exploring</option><option value="working-draft">Working draft</option><option value="reviewed">Reviewed</option><option value="approved-for-draft">Approved for this draft</option><option value="needs-continuity-check">Needs continuity check</option>
             </select>
+            <button type="button" onClick={() => toggleSkipped(current.id)}>{record.skipped.includes(current.id) ? "Return this step to the journey" : "Skip for now"}</button>
           </div>
         </section>
       </div>

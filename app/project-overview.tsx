@@ -94,6 +94,12 @@ export default function ProjectOverview({
         </div>
       </section>
 
+      <section className={styles.panel} aria-label="Why PlotPickle">
+        <header><div><p className={styles.eyebrow}>Why PlotPickle</p><h2>One story, one canonical project.</h2></div></header>
+        <p>PlotPickle grew from Afterglow, the 24 Blocks learning archive and several OpenStory experiments. The current local application keeps foundations, structure, treatment, screenplay, visuals, review, production, rights and provenance connected while the writer works on one manageable unit at a time.</p>
+        <div className={styles.rightsLinks}><Link href="/about">About, origins and product principles</Link><Link href="/read-learn?module=why-plotpickle-works-in-layers">Why PlotPickle Works in Layers</Link></div>
+      </section>
+
       <section className={styles.identityGrid} aria-label="Project identity">
         <article><span>Format</span><strong>{project.metadata.format || "Not set"}</strong></article>
         <article><span>Target runtime</span><strong>{project.metadata.targetMinutes || 0} minutes</strong></article>

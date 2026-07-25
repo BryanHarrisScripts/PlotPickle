@@ -23,6 +23,7 @@ import { learningModules, learningPaths, moduleSearchText, type LearningModule }
 import { loglinesThatCarryTheMovie } from "./learning-loglines-that-carry-the-movie";
 import { moodColourVisualLanguage } from "./learning-mood-colour-visual-language";
 import { earlyVisualDevelopmentLesson, earlyVisualDevelopmentSearchText } from "./learning-early-visual-development";
+import { whyPlotPickleWorksInLayers, whyPlotPickleSearchText } from "./learning-why-plotpickle";
 import { twentyFourBlocksLessons, twentyFourBlocksSearchText, type TwentyFourBlocksLesson } from "./learning-24-blocks";
 import styles from "./learning-studio.module.css";
 
@@ -45,6 +46,7 @@ const courseModules: CourseModule[] = [
   loglinesThatCarryTheMovie,
   moodColourVisualLanguage,
   earlyVisualDevelopmentLesson,
+  whyPlotPickleWorksInLayers,
   ...twentyFourBlocksLessons,
   ...aiRevisionLessons,
   ...collaborationOwnershipLessons,
@@ -93,6 +95,7 @@ function courseSearchText(module: CourseModule) {
   if (isStoryCraftLesson(module)) return `${base} ${storyCraftSearchText(module)}`;
   if (isCharacterMotionLesson(module)) return `${base} ${characterMotionSearchText(module)}`;
   if (module.id === earlyVisualDevelopmentLesson.id) return `${base} ${earlyVisualDevelopmentSearchText()}`;
+  if (module.id === whyPlotPickleWorksInLayers.id) return `${base} ${whyPlotPickleSearchText()}`;
   const coreGuide = coreGuideFor(module.id);
   if (coreGuide) return `${base} ${coreGuide.sourceTitle} ${coreGuide.sourceAliases.join(" ")} ${coreGuide.adaptation} ${coreGuide.understand} ${coreGuide.seeIt} ${coreGuide.tryIt} ${coreGuide.applyLabel} ${coreGuide.checkLabel} ${coreGuide.deeperLabel} ${coreGuide.commonNextProblem}`;
   return base;

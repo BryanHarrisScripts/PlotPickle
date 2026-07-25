@@ -449,7 +449,7 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
           <img className="marketing-brand-logo" src="/brand/plotpickle-header-horizontal-600.png" alt="PlotPickle Playhouse" />
         </div>
         <p>Story development built around Bryan Harris&apos;s 24 Blocks method.</p>
-        <div className="marketing-footer-actions"><button type="button" onClick={onEnter}>Open local workspace →</button><Link href="/legal">Copyright & licensing</Link><a href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">Source</a></div>
+        <div className="marketing-footer-actions"><button type="button" onClick={onEnter}>Open local workspace →</button><Link href="/about">Why PlotPickle</Link><Link href="/legal">Copyright & licensing</Link><a href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">Source</a></div>
       </footer>
     </div>
   );

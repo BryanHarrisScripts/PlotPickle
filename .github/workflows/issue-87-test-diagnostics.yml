@@ -1,0 +1,31 @@
+name: Issue 87 test diagnostics
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'tests/**'
+      - '.github/workflows/issue-87-test-diagnostics.yml'
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - run: npm ci
+      - name: Print only failing test details
+        shell: bash
+        run: |
+          set +e
+          npm test > /tmp/plotpickle-tests.log 2>&1
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            grep -nE 'not ok|AssertionError|ERR_ASSERTION|actual:|expected:|operator:|test at' /tmp/plotpickle-tests.log | tail -n 160 || true
+            exit "$status"
+          fi
+          tail -n 40 /tmp/plotpickle-tests.log

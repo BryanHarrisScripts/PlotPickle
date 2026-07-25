@@ -5,6 +5,7 @@ import test from "node:test";
 const settings = await readFile(new URL("../lib/ai/settings.ts", import.meta.url), "utf8");
 const panel = await readFile(new URL("../app/settings-panel.tsx", import.meta.url), "utf8");
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+const navigation = await readFile(new URL("../lib/product-direction.ts", import.meta.url), "utf8");
 const gateway = await readFile(new URL("../build/local-ai-gateway.ts", import.meta.url), "utf8");
 const viteConfig = await readFile(new URL("../vite.config.ts", import.meta.url), "utf8");
 const reportPanel = await readFile(new URL("../app/settings-project-tools.tsx", import.meta.url), "utf8");
@@ -49,7 +50,7 @@ test("music artist links are limited to Suno and Udio HTTPS profiles", () => {
 });
 
 test("Reports is a primary workspace with live producer, actor, and director reports", () => {
-  assert.match(page, /id: "reports", label: "Reports"/);
+  assert.match(navigation, /id: "reports", label: "Reports", description: "Understand the screenplay"/);
   assert.match(page, /activeTab === "reports"/);
   assert.match(page, /ScreenplayReports project={project}/);
   for (const field of ["dialogueLines", "dialogueEntries", "wordCount", "sceneNumbers", "sceneHeadings", "speakingSceneCoverage", "estimatedSpeakingSeconds"]) {

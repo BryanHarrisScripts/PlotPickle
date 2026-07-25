@@ -18,14 +18,19 @@ jobs:
           node-version: '22.13.0'
           cache: npm
       - run: npm ci
-      - name: Print only failing test details
+      - run: npm run build
+      - name: Print failing test files only
         shell: bash
         run: |
           set +e
-          npm test > /tmp/plotpickle-tests.log 2>&1
-          status=$?
-          if [ "$status" -ne 0 ]; then
-            grep -nE 'not ok|AssertionError|ERR_ASSERTION|actual:|expected:|operator:|test at' /tmp/plotpickle-tests.log | tail -n 160 || true
-            exit "$status"
-          fi
-          tail -n 40 /tmp/plotpickle-tests.log
+          failed=0
+          for file in tests/*.test.mjs; do
+            node --test "$file" > /tmp/one-test.log 2>&1
+            status=$?
+            if [ "$status" -ne 0 ]; then
+              failed=1
+              echo "FAIL: $file"
+              tail -n 45 /tmp/one-test.log
+            fi
+          done
+          exit "$failed"

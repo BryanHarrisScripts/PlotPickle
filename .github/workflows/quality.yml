@@ -25,11 +25,21 @@ jobs:
         if: github.head_ref == 'agent/proposed-primary-menu' && github.actor != 'github-actions[bot]'
         shell: bash
         run: |
-          node scripts/fix-proposed-primary-menu.mjs
+          set +e
+          node scripts/fix-proposed-primary-menu.mjs 2>&1 | tee /tmp/primary-menu-fix.log
+          status=${PIPESTATUS[0]}
+          set -e
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm -f .primary-menu-lint.log .primary-menu-test.log
-          git add app/page.tsx tests/proposed-primary-menu.test.mjs .primary-menu-lint.log .primary-menu-test.log
+          if [ "$status" -ne 0 ]; then
+            cp /tmp/primary-menu-fix.log .primary-menu-fix.log
+            git add .primary-menu-fix.log
+            git commit -m "Record primary menu follow-up failure" || true
+            git push origin HEAD:${{ github.head_ref }}
+            exit "$status"
+          fi
+          rm -f .primary-menu-fix.log .primary-menu-lint.log .primary-menu-test.log
+          git add app/page.tsx tests/proposed-primary-menu.test.mjs .primary-menu-fix.log .primary-menu-lint.log .primary-menu-test.log
           git commit -m "Preserve import access across workspaces"
           git push origin HEAD:${{ github.head_ref }}
 

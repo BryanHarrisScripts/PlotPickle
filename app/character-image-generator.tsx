@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element, react-hooks/immutability -- Local generated assets use the loopback gateway; identity staging is committed through onImage. */
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { Character, PlotPickleProject } from "@/lib/project";
 import {
   approvePendingVisualIdentity,
@@ -47,8 +47,7 @@ function masterReference(identity: CharacterVisualIdentity) {
 
 export default function CharacterImageGenerator({ project, character, onImage }: { project: PlotPickleProject; character: Character; onImage: (value: string) => void }) {
   const visualCharacter = character as CharacterWithVisualIdentity;
-  const initial = useMemo(() => getCharacterVisualIdentity(visualCharacter), [visualCharacter]);
-  const [identity, setIdentity] = useState<CharacterVisualIdentity>(initial);
+  const [identity, setIdentity] = useState<CharacterVisualIdentity>(() => getCharacterVisualIdentity(visualCharacter));
   const [angle, setAngle] = useState<CharacterReferenceAngle>("master");
   const [state, setState] = useState<"idle" | "working" | "error">("idle");
   const [message, setMessage] = useState("");

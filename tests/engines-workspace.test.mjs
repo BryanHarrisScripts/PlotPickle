@@ -2,14 +2,18 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-test("main application exposes Engines inside five connected creative workspaces", async () => {
-  const source = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
-  assert.ok(source.includes('type MainTab = "instructions" | "learn" | "planner" | "script" | "visuals" | "engines"'));
-  assert.ok(source.includes('{ id: "engines", label: "Engines", description: "Refine the story" }'));
-  assert.ok(source.includes('import EngineHub from "./engine-hub"'));
-  assert.ok(source.includes('{activeTab === "engines" ? <EngineHub /> : null}'));
-  assert.ok(source.includes('<span>Screenplay</span><span>Visual Board</span><span>Engines</span>'));
-  assert.ok(source.includes("One playhouse. Five connected workspaces."));
+test("main application exposes Refine as the connected Engines workspace", async () => {
+  const [page, navigation] = await Promise.all([
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../lib/product-direction.ts", import.meta.url), "utf8"),
+  ]);
+  assert.ok(page.includes("type MainTab = ProductNavigationId"));
+  assert.ok(page.includes('import { PRODUCT_NAVIGATION, type ProductNavigationId } from "@/lib/product-direction"'));
+  assert.ok(navigation.includes('{ id: "engines", label: "Refine", description: "Refine the story" }'));
+  assert.ok(page.includes('import EngineHub from "./engine-hub"'));
+  assert.ok(page.includes('{activeTab === "engines" ? <EngineHub /> : null}'));
+  assert.ok(page.includes('<span>Screenplay</span><span>Visual Board</span><span>Engines</span>'));
+  assert.ok(page.includes("One playhouse. Five connected workspaces."));
 });
 
 test("Engines workspace explains every specialist before opening it", async () => {

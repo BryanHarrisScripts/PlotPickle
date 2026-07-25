@@ -44,18 +44,22 @@ test("renders the root workspace directly and preserves the local-first workspac
   assert.match(html, /Reports/);
   assert.match(html, /\/brand\/favicon\/plotpickle-icon-128\.png/);
 
-  const source = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const [source, navigation] = await Promise.all([
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../lib/product-direction.ts", import.meta.url), "utf8"),
+  ]);
   for (const phrase of [
     'id: "simpleStart", code: "SS", label: "Simple Start"',
     'id: "overview", code: "OV", label: "Project Overview"',
     'id: "structureMap", code: "ST", label: "Structure Map"',
-    'id: "reports", label: "Reports"',
     "One story. Five connected workspaces.",
     "Script Viewer",
     "Copyright & licensing",
   ]) {
     assert.ok(source.includes(phrase), `Root workspace source is missing: ${phrase}`);
   }
+  assert.ok(navigation.includes('{ id: "reports", label: "Reports", description: "Understand the screenplay" }'));
+  assert.ok(navigation.includes('{ id: "dashboard", label: "Dashboard"'));
   assert.ok(!source.includes("PlotPickle Online"), "Official product page should not advertise an online PlotPickle edition");
 });
 

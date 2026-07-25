@@ -5,20 +5,21 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #87 opens the core workspace directly and keeps Simple Start optional", async () => {
+test("issue #87 opens the Dashboard directly and keeps Simple Start optional", async () => {
   const [page, middleware] = await Promise.all([source("app/page.tsx"), source("middleware.ts")]);
-  assert.match(page, /useState<MainTab>\("planner"\)/);
+  assert.match(page, /useState<MainTab>\("dashboard"\)/);
   assert.match(page, /useState\(false\)/);
   assert.match(page, /id: "simpleStart"[\s\S]*label: "Simple Start"/);
   assert.match(page, /<SimpleStart/);
-  assert.doesNotMatch(page, /Return to the PlotPickle product page/);
+  assert.match(page, /setShowLanding\(true\)/);
+  assert.match(page, /Open the PlotPickle marketing page/);
   assert.doesNotMatch(middleware, /NextResponse\.redirect/);
   assert.doesNotMatch(middleware, /plotpickle-open-last/);
 });
 
 test("issue #87 places Reports in core navigation and Terminology in learning", async () => {
-  const page = await source("app/page.tsx");
-  assert.match(page, /id: "reports", label: "Reports"/);
+  const [page, contract] = await Promise.all([source("app/page.tsx"), source("lib/product-direction.ts")]);
+  assert.match(contract, /id: "reports", label: "Reports"/);
   assert.match(page, /activeTab === "reports"[\s\S]*ScreenplayReports/);
   assert.match(page, /Screenplay terminology[\s\S]*TerminologyIndex/);
 });

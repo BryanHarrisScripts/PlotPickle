@@ -29,12 +29,15 @@ test("Canon Binder can attach the current beats, outline and pitch", async () =>
 });
 
 test("Setup exposes real connections while Reports remains a primary workspace", async () => {
-  const page = await source("app/page.tsx");
-  const panel = await source("app/settings-panel.tsx");
-  const reportUi = await source("app/settings-project-tools.tsx");
-  const reports = await source("lib/screenplay-reports.ts");
+  const [page, navigation, panel, reportUi, reports] = await Promise.all([
+    source("app/page.tsx"),
+    source("lib/product-direction.ts"),
+    source("app/settings-panel.tsx"),
+    source("app/settings-project-tools.tsx"),
+    source("lib/screenplay-reports.ts"),
+  ]);
   for (const item of ["<b>GitHub setup</b>", "<b>AI setup</b>", "<b>Music setup</b>"]) assert.ok(panel.includes(item), `Missing live setup connection: ${item}`);
-  assert.match(page, /id: "reports", label: "Reports"/);
+  assert.match(navigation, /id: "reports", label: "Reports", description: "Understand the screenplay"/);
   assert.match(page, /activeTab === "reports"[\s\S]*ScreenplayReports/);
   assert.doesNotMatch(panel, /<b>Reports<\/b>/);
   assert.doesNotMatch(panel, /<b>Terminology Index<\/b>/);

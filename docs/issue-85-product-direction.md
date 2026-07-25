@@ -10,15 +10,15 @@ PlotPickle has one main application workspace. **Simple Start** is an optional b
 
 1. Dashboard
 2. Instructions
-3. Read & Learn
-4. Story Planner
-5. Screenplay
-6. Visual Board
-7. Engines
+3. Learn
+4. Plan
+5. Write
+6. Storyboard
+7. Refine
 8. Reports
 9. Settings
 
-Terminology belongs in Read & Learn. Reports belongs in the primary working navigation. GitHub, AI, music, image, voice and future providers belong under **Settings → Setup**.
+Terminology belongs in Learn (the Read & Learn workspace). Reports belongs in the primary working navigation. GitHub, AI, music, image, voice and future providers belong under **Settings → Setup**.
 
 ## Five selling points
 

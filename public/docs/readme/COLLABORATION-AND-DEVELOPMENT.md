@@ -7,6 +7,40 @@ This is one selectable tab from the complete PlotPickle README. The canonical ro
 
 Settings → GitHub & Backups now provides a disk-backed `.ppf` project library, rolling backups, canonical pulls, and owner-controlled collaboration proposals. Every local PlotPickle server submits changes through a unique GitHub branch and pull request; only an owner or maintainer merge changes the canonical story. Afterglow: Reflections of Sentience links directly to its current GitHub source repository. Windows, macOS and Linux release candidates are clean-machine tested and published with SHA-256 checksums, while local-only writing continues to require no PlotPickle or cloud account.
 
+## Whole-app Lighthouse review package
+
+A complete local Lighthouse audit can be created without sending a story project to a remote audit service.
+
+### Windows
+
+1. Open the extracted PlotPickle folder in File Explorer.
+2. Click the address bar, type `cmd`, and press Enter.
+3. Run:
+
+```bat
+npm run audit:lighthouse
+```
+
+PlotPickle builds once, starts a private preview server on `127.0.0.1`, discovers the registered application pages, audits every accessible route in desktop and mobile modes, and creates an uploadable ZIP automatically.
+
+The command window prints the final ZIP path. Reports are stored under:
+
+```text
+reports\lighthouse\<timestamp>\
+```
+
+The ZIP contains a route summary plus each page's Lighthouse JSON, HTML and command log. Dynamic routes that require a real project identifier are listed separately instead of being silently skipped.
+
+Optional commands:
+
+```bat
+npm run audit:lighthouse:desktop
+npm run audit:lighthouse:mobile
+npm run audit:lighthouse:zip
+```
+
+The first audit may download the pinned Lighthouse command package and requires a locally installed Chrome or Chromium browser. The report folder is ignored by Git so private local audit results are not committed accidentally.
+
 ## Project data and migration
 
 Released projects use canonical schema `1.7.0`. Imports from schemas 1.0 through 1.6 are upgraded non-destructively.

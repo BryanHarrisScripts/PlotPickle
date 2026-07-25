@@ -6,12 +6,14 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #87 opens the core workspace directly and keeps Simple Start optional", async () => {
-  const page = await source("app/page.tsx");
+  const [page, middleware] = await Promise.all([source("app/page.tsx"), source("middleware.ts")]);
   assert.match(page, /useState<MainTab>\("planner"\)/);
   assert.match(page, /useState\(false\)/);
   assert.match(page, /id: "simpleStart"[\s\S]*label: "Simple Start"/);
   assert.match(page, /<SimpleStart/);
   assert.doesNotMatch(page, /Return to the PlotPickle product page/);
+  assert.doesNotMatch(middleware, /NextResponse\.redirect/);
+  assert.doesNotMatch(middleware, /plotpickle-open-last/);
 });
 
 test("issue #87 places Reports in core navigation and Terminology in learning", async () => {
@@ -31,9 +33,11 @@ test("issue #87 groups GitHub, AI and Music under Settings Setup", async () => {
   assert.doesNotMatch(settings, /<b>Terminology Index<\/b>/);
 });
 
-test("issue #87 preserves the Welcome deep link as Simple Start", async () => {
+test("issue #87 preserves the Welcome deep link as optional Simple Start", async () => {
   const welcome = await source("app/welcome/page.tsx");
   assert.match(welcome, /Simple Start · optional guided entry/);
   assert.match(welcome, /Open main workspace/);
   assert.match(welcome, /\/\?workspace=1/);
+  assert.doesNotMatch(welcome, /plotpickle-open-last/);
+  assert.doesNotMatch(welcome, /Open my last project directly/);
 });

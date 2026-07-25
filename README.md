@@ -4,17 +4,27 @@
 
 The complete README is also available as three selectable tabs inside **Instructions → Project Overview**. No documentation was removed; the tabs reorganize the full guide by task.
 
-[About PlotPickle](app/about/page.tsx) · [How OpenStory evolved into PlotPickle](docs/history/from-openstory-to-plotpickle.md) · [Legacy README disposition map](docs/history/legacy-readme-map.md)
+[Official PlotPickle GitHub repository](https://github.com/BryanHarrisScripts/PlotPickle) · [About PlotPickle](app/about/page.tsx) · [How OpenStory evolved into PlotPickle](docs/history/from-openstory-to-plotpickle.md) · [Legacy README disposition map](docs/history/legacy-readme-map.md)
 
 PlotPickle grew from the Afterglow screenplay, the 24 Blocks learning archive and several OpenStory experiments. The current product is one downloadable local application with one canonical project, optional AI, owner-controlled collaboration and explicit rights/provenance records. Historical GPT, web3, token, DAO, revenue and autonomous-agent ideas are preserved as history rather than current roadmap commitments.
 
-![Multiple PlotPickle servers connected to one owner-controlled GitHub film repository](docs/images/plotpickle-multi-server-collaboration.svg)
+## Five reasons to use PlotPickle
+
+1. **Complete screenplay studio** — move from idea through 24 Blocks, 96 mini-blocks, treatment, screenplay, revision, visuals and production planning in one project.
+2. **81-module learning system** — use the Complete Learning Library, focused craft collections, worked examples and in-context guidance directly inside the writing workflow.
+3. **Visual continuity engine** — carry locked character identities, world references, a Visual Bible and 96 storyboard frames through one approved visual language.
+4. **Local-first ownership with optional AI** — control projects, files, providers and every creative decision while using AI only when deliberately chosen.
+5. **Distributed PlotPickle collaboration** — coordinate complete local or private web-based PlotPickle installations through an owner-controlled GitHub film repository.
+
+Writer, Director, Producer, Actor and Reviewer are roles within PlotPickle, not separate server editions. One person may hold several roles. Local work remains local until it is explicitly proposed or synchronized; only an owner or maintainer merge changes the canonical `.ppf` project.
+
+![Complete PlotPickle installations connected to one owner-controlled GitHub film repository](docs/images/plotpickle-multi-server-collaboration.svg)
 
 [Windows Unknown Publisher explanation and fix](docs/windows-publisher-warning.md) · [AI readiness review](docs/ai-readiness-review.md)
 
 ## PlotPickle 1.0 candidate — Collaboration and Release Engineering
 
-Settings → GitHub & Backups now provides a disk-backed `.ppf` project library, rolling backups, canonical pulls, and owner-controlled collaboration proposals. Every local PlotPickle server submits changes through a unique GitHub branch and pull request; only an owner or maintainer merge changes the canonical story. Afterglow: Reflections of Sentience links directly to its current GitHub source repository. Windows, macOS and Linux release candidates are clean-machine tested and published with SHA-256 checksums, while local-only writing continues to require no PlotPickle or cloud account.
+Settings → Setup → GitHub & Backups provides a disk-backed `.ppf` project library, rolling backups, canonical pulls and owner-controlled collaboration proposals. Every complete local or private web-based PlotPickle installation can submit controlled work through a unique GitHub branch and pull request; only an owner or maintainer merge changes the canonical story. Afterglow: Reflections of Sentience links directly to its current GitHub source repository. Windows, macOS and Linux release candidates are clean-machine tested and published with SHA-256 checksums, while local-only writing continues to require no PlotPickle or cloud account.
 
 ## PlotPickle 0.17 — Page to Production
 
@@ -101,21 +111,25 @@ Before any packages are downloaded, the Windows launcher displays:
 
 The launcher does not request Administrator rights, install a Windows service, add itself to startup, disable Windows Security, or upload the active story project.
 
-## Five connected workspaces
+## Primary workspaces
 
-- **Instructions** explains the 24 Blocks method and every story column.
-- **Story Planner** develops the story foundation, world, characters, Ghost, Catalyst, The Pickle, dialogue system, structure summary, block spine, and notes.
-- **Writer** connects three modes to the same 24 Blocks and 96 mini-blocks: a Markdown Treatment editor, a screenplay editor and Read & Learn.
-- **Visual Storyboard** moves from the 24-block overview into all 96 mini-block images using canonical story, scene, character, location, screenplay, shot and continuity context.
-- **Engines** explains and opens six focused craft engines plus the Specialist Labs.
+- **Dashboard** opens local and recent projects and reports verified storage, backup, GitHub and synchronization state.
+- **Instructions** explains the 24 Blocks method, Project Overview and every story column.
+- **Read & Learn** contains the complete 81-module learning system, terminology and contextual craft guidance.
+- **Story Planner** contains optional Simple Start, story foundations, world, characters, structure and notes.
+- **Screenplay** connects treatment, screenplay writing, import, revision and the complete script view.
+- **Visual Board** connects character identity locks, visual language, 24 Blocks, 96 frames, pitch images and diagnostics.
+- **Engines** opens focused structure, resonance, voice, page, draft, craft and specialist tools.
+- **Reports** measures screenplay, character, scene, production and schema coverage from the active project.
+- **Settings** contains preferences and Setup for GitHub, AI, music and future optional providers.
 
-Every workspace reads and writes the same locally saved project.
+Every workspace reads and writes the same locally saved canonical project.
 
-The Writer starts with a Markdown treatment section for every mini-block. It includes formatting tools, live preview, section and complete-treatment export, word counts, optional AI cleanup that requires approval, and a deliberate handoff from prose into screenplay action. Treatment text is saved in the canonical local project and can contribute context to later visual-storyboard prompts.
+The Screenplay workspace starts with a Markdown treatment section for every mini-block. It includes formatting tools, live preview, section and complete-treatment export, word counts, optional AI cleanup that requires approval, and a deliberate handoff from prose into screenplay action. Treatment text is saved in the canonical local project and can contribute context to later visual-storyboard prompts.
 
 Screenplay mode starts blank for a new movie and uses the existing Story Setup, World, Characters, Ghost, Catalyst, 24 Blocks, flexible scene plan and 96 mini-blocks as its writing foundation. Every screenplay element retains its Block and mini-block assignment. The editor estimates page and scene counts, uses screenplay-standard spacing, and exports Fountain and Final Draft FDX; Print / PDF uses the screenplay page layout.
 
-Read & Learn adds a searchable Learning Studio drawn from PlotPickle's screenwriting documentation. Short learning paths cover concept-to-draft, character and inner journey, structure and dramatic questions, scene construction, visual writing, dialogue, subtext, silence, theme, pacing, revision and Markdown. Recommended lessons follow the active Block and mini-block, provide an immediate exercise, and open the correct workspace for application. The educational guidance remains CC BY-SA 4.0; each writer's creative work remains their own.
+Read & Learn provides 81 searchable learning modules drawn from PlotPickle’s screenwriting documentation. Learning paths cover concept-to-draft, character and inner journey, structure and dramatic questions, scene construction, visual writing, dialogue, subtext, silence, theme, pacing, revision, collaboration, ownership and screenplay formatting. Recommended lessons follow the active Block and mini-block, provide an immediate exercise, and open the correct workspace for application. The educational guidance remains CC BY-SA 4.0; each writer’s creative work remains their own.
 
 PlotPickle accepts plain-text (`.txt`), Fountain (`.fountain` or `.spmd`), and Final Draft (`.fdx`) files. **Load a screenplay** in Read & Learn and **Import** in the top bar use the same ingestion pipeline. A screenplay creates a complete schema 1.7 project and populates reviewable metadata, story, world, characters, voiceprints, arc matrices, 24 Blocks, scenes, 96 mini-blocks, Story Threads, rights, review, pitch, production and collaboration fields. Script-derived interpretations are visibly marked as suggestions until the writer reviews and confirms them.
 
@@ -123,11 +137,9 @@ Parsing and the initial structural extraction happen on the local device without
 
 ## Optional AI foundation
 
-PlotPickle's AI layer is provider-independent and local-server mediated. The primary development and live-test target is **ChatGPT / OpenAI API**, using the writer's own API key, while OpenAI-compatible servers, Ollama, manual prompt export, and no-AI operation remain supported choices.
+PlotPickle’s AI layer is provider-independent and local-server mediated. The primary development and live-test target is **ChatGPT / OpenAI API**, using the writer’s own API key, while OpenAI-compatible servers, Ollama, manual prompt export, and no-AI operation remain supported choices.
 
-Settings also contains live **Reports** and a redesigned **Terminology Index**. Reports recalculate from the active canonical screenplay after every load, import, normalization, replacement or edit, including speaking coverage and a current-schema population audit. Terms are grouped, searchable, available in concise or expanded views, and linked to their relevant PlotPickle workspace. Both work locally without AI.
-
-Optional connections remain in **AI Setup**, **Music**, and **Plugins**. Music can store Suno or Udio artist links. Plugins are reserved for future connectivity and cannot be enabled yet.
+Reports is a primary workspace and Terminology is part of Read & Learn. Optional connections are grouped under **Settings → Setup**, including **GitHub setup**, **AI setup** and **Music setup**. Future plugins remain disabled until an implementation is available.
 
 The AI foundation includes:
 
@@ -138,7 +150,7 @@ The AI foundation includes:
 - compatible-server and Ollama text adapters; and
 - a replaceable asynchronous video-job contract.
 
-In the downloaded local edition, a verified API key may be saved in PlotPickle's private local-server data under the current computer account. AI Setup confirms the live connection, records the last successful check, and can test or remove the saved key. API keys are connection secrets, not project data, and are never written into browser settings, exported `.plotpickle.json` files, prompts, logs, provenance records or GitHub.
+In the downloaded local edition, a verified API key may be saved in PlotPickle’s private local-server data under the current computer account. AI Setup confirms the live connection, records the last successful check, and can test or remove the saved key. API keys are connection secrets, not project data, and are never written into browser settings, exported `.plotpickle.json` files, prompts, logs, provenance records or GitHub.
 
 The Screenplay assistant can suggest material using the current Block, mini-block and character context, but inserts nothing until the writer approves it. Characters can generate a portrait through the connected image model; the local server saves the resulting asset under the current computer account and attaches it as the character reference.
 
@@ -165,6 +177,7 @@ The story rail is grouped into four readable areas.
 
 ### Project
 
+- **SS — Simple Start** offers an optional beginner pathway inside Story Planner.
 - **OV — Project Overview** shows project identity, overall coverage, the next suggested task, structural totals, open questions, and ownership information.
 
 ### Foundation
@@ -178,6 +191,7 @@ The story rail is grouped into four readable areas.
 - Foundations
 - The Pickle
 - Dialogue
+- Core Model
 
 ### Structure
 
@@ -247,7 +261,7 @@ The source of truth is:
 - `lib/craft-diagnostics.ts`
 - `lib/specialist-labs.ts`
 
-Portable `.ppf` projects and optional GitHub collaboration now build on schema 1.7 revisions and provenance without changing local-only use. Multiple local servers submit reviewable pull requests rather than writing directly to the canonical branch.
+Portable `.ppf` projects and optional GitHub collaboration build on schema 1.7 revisions and provenance without changing local-only use. Complete PlotPickle installations submit reviewable pull requests rather than writing directly to the canonical branch.
 
 ## Copyright, ownership, and licences
 

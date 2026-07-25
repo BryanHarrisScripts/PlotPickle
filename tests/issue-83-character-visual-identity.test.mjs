@@ -30,6 +30,15 @@ test("locked identity edits become a pending version instead of silently replaci
   assert.match(generator, /Approve and replace locked identity/);
 });
 
+test("generating a locked reference preserves the approved thumbnail until approval", () => {
+  assert.match(generator, /identity\.status === "locked"/);
+  assert.match(generator, /saveVisualIdentityDraft\(visualCharacter, proposed/);
+  assert.match(generator, /locked identity and thumbnail remain unchanged/i);
+  assert.doesNotMatch(generator, /if \(angle === "master"\) character\.image = result\.assetUrl/);
+  assert.match(generator, /approveReplacement/);
+  assert.match(generator, /masterReference\(next\) \|\| character\.image/);
+});
+
 test("character editor provides a complete writer-approved identity lock flow", () => {
   for (const label of ["Character Visual Identity Lock", "Stable visual traits", "Identity prompt", "Negative identity prompt", "Reference view", "Approve and lock identity"]) assert.match(generator, new RegExp(label));
   assert.match(generator, /AI is optional/);

@@ -11,7 +11,7 @@ const examples = read("app/worked-examples/page.tsx");
 const readiness = read("app/screenplay-readiness/page.tsx");
 const middleware = read("middleware.ts");
 
-test("welcome offers all six required entry routes", () => {
+test("welcome offers all six optional Simple Start entry routes", () => {
   for (const label of ["I have an idea", "Create a new screenplay", "Continue my screenplay", "Import an existing screenplay", "Explore Afterglow", "Learn how screenplays work"]) assert.match(welcome, new RegExp(label));
   assert.match(welcome, /Write your movie one clear piece at a time/);
   assert.match(welcome, /Afterglow: Reflections of Sentience/);
@@ -19,11 +19,12 @@ test("welcome offers all six required entry routes", () => {
   assert.match(welcome, /Your rights stay yours/);
 });
 
-test("first launch routes to welcome while advanced and returning routes remain available", () => {
+test("the root opens the core workspace while Welcome remains optional", () => {
   assert.match(middleware, /pathname !== "\/"/);
-  assert.match(middleware, /searchParams\.get\("workspace"\) === "1"/);
-  assert.match(middleware, /plotpickle-open-last/);
-  assert.match(middleware, /welcome/);
+  assert.match(middleware, /optional Simple Start route/);
+  assert.match(middleware, /return NextResponse\.next\(\)/);
+  assert.doesNotMatch(middleware, /NextResponse\.redirect/);
+  assert.match(welcome, /Simple Start · optional guided entry/);
 });
 
 test("beginner journey has eight ordered stages and plain-language rules", () => {
@@ -36,7 +37,7 @@ test("beginner journey has eight ordered stages and plain-language rules", () =>
   assert.match(start, /Return this step to the journey/);
 });
 
-test("guided routes bypass welcome middleware and keep the same workspace", () => {
+test("guided routes keep the same workspace", () => {
   assert.match(start, /workspaceHref/);
   assert.match(start, /workspace=1/);
   assert.match(readiness, /readinessHref/);

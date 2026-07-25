@@ -13,6 +13,11 @@ type PathRecord = { stageStates: Record<string, BeginnerProgressState>; skipped:
 
 const blankRecord: PathRecord = { stageStates: {}, skipped: [], updatedAt: "" };
 
+function workspaceHref(href: string) {
+  if (!href.startsWith("/?")) return href;
+  return href.includes("workspace=1") ? href : href.replace("/?", "/?workspace=1&");
+}
+
 export default function StartHerePage() {
   const [project, setProject] = useState<PlotPickleProject | null>(null);
   const [record, setRecord] = useState<PathRecord>(blankRecord);
@@ -85,11 +90,11 @@ export default function StartHerePage() {
           <p>{current.plainLanguage}</p>
           <aside><strong>Why this matters</strong><p>{current.whyItMatters}</p></aside>
           <div className={styles.learningOrder}>
-            <Link href={current.learningHref}>1. Complete Learning Library</Link>
+            <Link href={workspaceHref(current.learningHref)}>1. Complete Learning Library</Link>
             <div><strong>2. Guidance for this step</strong><span>Required now: {current.required.join(" · ")}</span><span>Optional: {current.optional.join(" · ")}</span></div>
           </div>
           <div className={styles.actions}>
-            <Link className={styles.primary} href={current.href}>Open {current.workspace}</Link>
+            <Link className={styles.primary} href={workspaceHref(current.href)}>Open {current.workspace}</Link>
             <Link href="/worked-examples">Show an example</Link>
             <select aria-label="Progress state" value={record.stageStates[current.id] ?? "not-started"} onChange={(e) => updateState(current.id, e.target.value as BeginnerProgressState)}>
               <option value="not-started">Not started</option><option value="exploring">Exploring</option><option value="working-draft">Working draft</option><option value="reviewed">Reviewed</option><option value="approved-for-draft">Approved for this draft</option><option value="needs-continuity-check">Needs continuity check</option>

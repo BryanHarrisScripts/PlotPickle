@@ -76,6 +76,6 @@ export function legacyVisualProposalText(visual: AfterglowLegacyVisual, decision
     `Source filename: ${visual.source.originalFilename}`,
     `Source SHA: ${visual.source.originalSha}`,
     `Writer note: ${decision.writerNote || "No added note."}`,
-    "This decision references a bundled legacy source visual. It does not duplicate the image into project data or classify it as a new AI generation event.",
+    "This decision references a bundled legacy source visual. It does not duplicate the image into project data. It does not classify it as a new AI generation event.",
   ].join("\n");
 }

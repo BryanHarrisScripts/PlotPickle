@@ -65,6 +65,12 @@ PlotPickle grew from the Afterglow screenplay, the 24 Blocks learning archive an
 ''',
 )
 
+replace(
+    "tests/issue-59-about-origins-principles.test.mjs",
+    '"public contribution by default"',
+    '"public/open contribution by default"',
+)
+
 package = Path("package.json")
 text = package.read_text()
 old = "tests/issue-58-afterglow-legacy-visuals.test.mjs tests/phase-one-core-schema.test.mjs"

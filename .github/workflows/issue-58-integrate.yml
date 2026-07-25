@@ -1,0 +1,59 @@
+name: Issue 58 integration
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/issue-58-afterglow-legacy-visuals
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Import verified Afterglow WebP artifact
+        env:
+          ARTIFACT_URL: "https://sdmntprsoutheastus3.oaiusercontent.com/files/00000000-9f08-820c-a462-c8f321b291da/raw?se=2026-07-25T00:45:52Z&sp=r&sv=2026-02-06&sr=b&scid=44775ba3-d8bd-5af8-969f-cd41c0497ec7&skoid=add8ee7d-5fc7-451e-b06e-a82b2276cf62&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-07-24T22:36:29Z&ske=2026-07-26T22:36:29Z&sks=b&skv=2026-02-06&sig=6LDyAxf3CJUH9PRNjgCWbq0gol3TMeCCtbWwN/49uC0%3D"
+        run: |
+          curl -fL "$ARTIFACT_URL" -o /tmp/afterglow.zip
+          rm -rf /tmp/afterglow-build
+          mkdir -p /tmp/afterglow-build
+          unzip -q /tmp/afterglow.zip -d /tmp/afterglow-build
+          mkdir -p public/afterglow/legacy-visuals data
+          cp -R /tmp/afterglow-build/full public/afterglow/legacy-visuals/full
+          cp -R /tmp/afterglow-build/card public/afterglow/legacy-visuals/card
+          cp -R /tmp/afterglow-build/thumbnail public/afterglow/legacy-visuals/thumbnail
+          cp /tmp/afterglow-build/manifest.json public/afterglow/legacy-visuals/manifest.json
+          cp /tmp/afterglow-build/manifest.json data/afterglow-visual-manifest.json
+          cp /tmp/afterglow-build/report.json public/afterglow/legacy-visuals/report.json
+      - name: Apply product integration
+        run: python scripts/issue-58-integrate.py
+      - run: npm ci
+      - name: Validate asset inventory
+        run: |
+          test "$(find public/afterglow/legacy-visuals/full -name '*.webp' | wc -l)" -eq 22
+          test "$(find public/afterglow/legacy-visuals/card -name '*.webp' | wc -l)" -eq 22
+          test "$(find public/afterglow/legacy-visuals/thumbnail -name '*.webp' | wc -l)" -eq 22
+          node -e "const r=require('./public/afterglow/legacy-visuals/report.json'); if(r.sourceCount!==22||r.retainedCount!==21||r.placeholderCount!==1||r.unresolvedCount!==3||r.derivativeCount!==66||r.failures.length) process.exit(1)"
+      - name: Validate application
+        run: |
+          npm run lint
+          npm test
+      - name: Commit clean integration
+        run: |
+          rm .github/workflows/issue-58-integrate.yml
+          rm scripts/issue-58-integrate.py
+          git config user.name "PlotPickle automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Integrate Afterglow legacy visual library"
+          git push origin HEAD:agent/issue-58-afterglow-legacy-visuals

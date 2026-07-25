@@ -49,9 +49,32 @@ test("issue #86 provides desktop, mobile, automatic ZIP and local-only commands"
   assert.match(gitignore, /\/reports\/lighthouse\//);
 });
 
+test("issue #86 provides a native Windows launcher without Bash or WSL", async () => {
+  const packageJson = JSON.parse(await source("package.json"));
+  assert.equal(packageJson.scripts.build, "node scripts/build-verified.mjs");
+  assert.doesNotMatch(packageJson.scripts.build, /bash/i);
+
+  const build = await source("scripts/build-verified.mjs");
+  assert.match(build, /process\.platform === "win32" \? "vinext\.cmd" : "vinext"/);
+  assert.match(build, /run-command-with-timeout\.mjs/);
+  assert.match(build, /dist["'], "server["'], "index\.js/);
+  assert.match(build, /dist["'], "\.openai["'], "hosting\.json/);
+
+  const launcher = await source("Run-Lighthouse.bat");
+  assert.match(launcher, /npm ci/);
+  assert.match(launcher, /audit:lighthouse/);
+  assert.match(launcher, /desktop/);
+  assert.match(launcher, /mobile/);
+  assert.match(launcher, /zip/);
+  assert.doesNotMatch(launcher, /bash scripts\//i);
+  assert.doesNotMatch(launcher, /wsl\.exe/i);
+});
+
 test("issue #86 documents the one-command Windows review package", async () => {
   const docs = await source("public/docs/readme/COLLABORATION-AND-DEVELOPMENT.md");
   assert.match(docs, /Whole-app Lighthouse review package/);
+  assert.match(docs, /Double-click `Run-Lighthouse\.bat`/);
+  assert.match(docs, /does not open Ubuntu/);
   assert.match(docs, /npm run audit:lighthouse/);
   assert.match(docs, /creates an uploadable ZIP automatically/);
   assert.match(docs, /reports\\lighthouse\\<timestamp>/);

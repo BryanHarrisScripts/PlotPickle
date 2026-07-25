@@ -11,12 +11,11 @@ import {
   type PlotPickleSettings,
 } from "@/lib/ai/settings";
 import styles from "./settings-panel.module.css";
-import { ScreenplayReports, TerminologyIndex } from "./settings-project-tools";
 import GitHubCollaboration from "./github-collaboration";
 
 const SETTINGS_STORAGE_KEY = "plotpickle.settings.v1";
 const CONNECTION_API = "/api/local-ai/connection";
-type SettingsSection = "reports" | "terminology" | "collaboration" | "ai" | "music";
+type SettingsSection = "collaboration" | "ai" | "music";
 type ConnectionState = "loading" | "idle" | "checking" | "connected" | "error" | "unavailable";
 
 type ConnectionStatus = {
@@ -62,7 +61,7 @@ async function connectionRequest(method: "GET" | "POST" | "DELETE", path = CONNE
 }
 
 export default function SettingsPanel({ project, onProjectChange }: { project: PlotPickleProject; onProjectChange: (project: PlotPickleProject) => void }) {
-  const [section, setSection] = useState<SettingsSection>("reports");
+  const [section, setSection] = useState<SettingsSection>("collaboration");
   const [settings, setSettings] = useState<PlotPickleSettings>(() => structuredClone(defaultPlotPickleSettings));
   const [sessionKey, setSessionKey] = useState("");
   const [hydrated, setHydrated] = useState(false);
@@ -243,25 +242,21 @@ export default function SettingsPanel({ project, onProjectChange }: { project: P
     <div className={styles.page}>
       <header className={styles.heading}>
         <div>
-          <p>Settings</p>
-          <h1>Project tools and connections</h1>
-          <span>Open role-specific reports, learn industry language, and manage the GitHub, AI and music connections that are actually available.</span>
+          <p>Settings · Setup</p>
+          <h1>Connect PlotPickle services</h1>
+          <span>GitHub collaboration, AI providers and music links live together in Setup. Reports and Terminology now belong to the core writing and learning workspaces.</span>
         </div>
         {section === "ai" || section === "music" ? <button type="button" onClick={saveSettings}>Save preferences</button> : null}
       </header>
 
       <div className={styles.layout}>
         <nav className={styles.menu} aria-label="Settings sections">
-          <button type="button" className={section === "reports" ? styles.active : ""} onClick={() => setSection("reports")}><b>Reports</b><span>Characters, dialogue, words, and scenes</span></button>
-          <button type="button" className={section === "terminology" ? styles.active : ""} onClick={() => setSection("terminology")}><b>Terminology Index</b><span>Screenplay terms in plain language</span></button>
-          <button type="button" className={section === "collaboration" ? styles.active : ""} onClick={() => setSection("collaboration")}><b>GitHub</b><span>Shared repository, proposals, .ppf backups and history</span></button>
-          <button type="button" className={section === "ai" ? styles.active : ""} onClick={() => setSection("ai")}><b>AI Setup</b><span>ChatGPT, other AI, or local LLM</span></button>
-          <button type="button" className={section === "music" ? styles.active : ""} onClick={() => setSection("music")}><b>Music</b><span>Suno, Udio, and artist links</span></button>
+          <button type="button" className={section === "collaboration" ? styles.active : ""} onClick={() => setSection("collaboration")}><b>GitHub setup</b><span>Shared repository, proposals, .ppf backups and history</span></button>
+          <button type="button" className={section === "ai" ? styles.active : ""} onClick={() => setSection("ai")}><b>AI setup</b><span>ChatGPT, other AI, local LLM or no AI</span></button>
+          <button type="button" className={section === "music" ? styles.active : ""} onClick={() => setSection("music")}><b>Music setup</b><span>Suno, Udio and artist links</span></button>
         </nav>
 
         <section className={styles.content}>
-          {section === "reports" ? <ScreenplayReports project={project} /> : null}
-          {section === "terminology" ? <TerminologyIndex /> : null}
           {section === "collaboration" ? <GitHubCollaboration project={project} onChange={onProjectChange} /> : null}
           {section === "ai" ? (
             <>

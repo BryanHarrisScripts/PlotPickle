@@ -58,8 +58,8 @@ export default function WelcomePage() {
     <main className={styles.page}>
       <header className={styles.hero}>
         <div className={styles.brand}>PlotPickle</div>
-        <p className={styles.eyebrow}>Local screenplay studio</p>
-        <h1>Write your movie one clear piece at a time.</h1>
+        <p className={styles.eyebrow}>Simple Start · optional guided entry</p>
+        <h1>Choose a simple way into your screenplay.</h1>
         <p className={styles.lede}>PlotPickle guides you from an initial idea through characters, world, 24 Blocks, treatment, screenplay, revision, visuals and production planning. Work locally, use AI only if you choose, and keep control of every creative decision.</p>
       </header>
 
@@ -86,7 +86,7 @@ export default function WelcomePage() {
 
       <footer className={styles.footer}>
         <label><input type="checkbox" checked={openLast} onChange={(event) => updateLaunchPreference(event.target.checked)} /> Open my last project directly on future launches</label>
-        <div><Link href="/about">About PlotPickle</Link><Link href="/?workspace=1">Advanced workspace</Link></div>
+        <div><Link href="/about">About PlotPickle</Link><Link href="/?workspace=1">Open main workspace</Link></div>
       </footer>
     </main>
   );

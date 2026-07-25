@@ -4,6 +4,10 @@
 
 The complete README is also available as three selectable tabs inside **Instructions → Project Overview**. No documentation was removed; the tabs reorganize the full guide by task.
 
+[About PlotPickle](app/about/page.tsx) · [How OpenStory evolved into PlotPickle](docs/history/from-openstory-to-plotpickle.md) · [Legacy README disposition map](docs/history/legacy-readme-map.md)
+
+PlotPickle grew from the Afterglow screenplay, the 24 Blocks learning archive and several OpenStory experiments. The current product is one downloadable local application with one canonical project, optional AI, owner-controlled collaboration and explicit rights/provenance records. Historical GPT, web3, token, DAO, revenue and autonomous-agent ideas are preserved as history rather than current roadmap commitments.
+
 ![Multiple PlotPickle servers connected to one owner-controlled GitHub film repository](docs/images/plotpickle-multi-server-collaboration.svg)
 
 [Windows Unknown Publisher explanation and fix](docs/windows-publisher-warning.md) · [AI readiness review](docs/ai-readiness-review.md)

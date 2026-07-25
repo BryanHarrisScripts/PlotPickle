@@ -57,7 +57,7 @@ test("both legacy READMEs are mapped section by section with explicit dispositio
   assert.match(mapping, /BryanHarrisScripts\.github\.io\/README\.md/);
   assert.match(mapping, /24-Blocks-OpenStoryStudio\/README\.md/);
   for (const disposition of ["Retained", "Revised", "Archived", "Retired", "Deferred", "Consolidated"]) assert.ok(mapping.includes(disposition), `Missing disposition: ${disposition}`);
-  for (const retired of ["Micropayments", "NFTs", "blockchain", "DAO governance", "Required OpenAI subscription", "Stale WGA", "blanket authorship", "public contribution by default"]) {
+  for (const retired of ["Micropayments", "NFTs", "blockchain", "DAO governance", "Required OpenAI subscription", "Stale WGA", "blanket authorship", "public/open contribution by default"]) {
     assert.ok(mapping.toLowerCase().includes(retired.toLowerCase()), `Missing retired mapping: ${retired}`);
   }
 });

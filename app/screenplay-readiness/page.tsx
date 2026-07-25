@@ -8,6 +8,12 @@ import styles from "./screenplay-readiness.module.css";
 
 const STORAGE_KEY = "plotpickle.project.v1";
 
+function readinessHref(href: string) {
+  if (href === "/core-model") return "/?workspace=1&tab=planner&section=coreModel";
+  if (href.startsWith("/?") && !href.includes("workspace=1")) return href.replace("/?", "/?workspace=1&");
+  return href;
+}
+
 export default function ScreenplayReadinessPage() {
   const [project, setProject] = useState<PlotPickleProject | null>(null);
   const [intentional, setIntentional] = useState<string[]>([]);
@@ -48,9 +54,9 @@ export default function ScreenplayReadinessPage() {
 
     <section className={styles.review}>{categories.map((category) => <div key={category} className={styles.category}><h2>{category}</h2>{items.filter((item) => item.category === category).map((item) => <article key={item.id} className={styles.item}>
       <div><span className={styles.badge}>{item.kind.replace(/-/g, " ")}</span><h3>{item.label}</h3><p>{item.evidence}</p></div>
-      <div className={styles.itemActions}><Link href={item.href}>Open exact item</Link><button onClick={() => toggleIntentional(item.id)}>{intentional.includes(item.id) ? "Restore review" : "Mark intentional"}</button></div>
+      <div className={styles.itemActions}><Link href={readinessHref(item.href)}>Open exact item</Link><button onClick={() => toggleIntentional(item.id)}>{intentional.includes(item.id) ? "Restore review" : "Mark intentional"}</button></div>
     </article>)}</div>)}</section>
 
-    <section className={styles.finalActions}><h2>Next actions</h2><div><Link href="/core-model">Create a revision snapshot</Link><Link href="/?workspace=1&tab=script&view=reader">Export a reader draft</Link><Link href="/?workspace=1&tab=script&view=writer">Export a submission draft</Link><Link href="/?workspace=1&tab=engines">Prepare a table-read package</Link><Link href="/pitch-review">Open Pitch & Review</Link><Link href="/production">Open Production</Link><button onClick={saveBackup}>Save a backup</button></div></section>
+    <section className={styles.finalActions}><h2>Next actions</h2><div><Link href="/?workspace=1&tab=planner&section=coreModel">Create a revision snapshot</Link><Link href="/?workspace=1&tab=script&view=reader">Export a reader draft</Link><Link href="/?workspace=1&tab=script&view=writer">Export a submission draft</Link><Link href="/?workspace=1&tab=engines">Prepare a table-read package</Link><Link href="/pitch-review">Open Pitch & Review</Link><Link href="/?workspace=1&tab=planner&section=storyboard">Open Production</Link><button onClick={saveBackup}>Save a backup</button></div></section>
   </main>;
 }

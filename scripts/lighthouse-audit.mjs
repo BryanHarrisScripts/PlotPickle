@@ -6,8 +6,9 @@ import { access, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 
-const ROOT = resolve(new URL("..", import.meta.url).pathname);
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const APP_DIR = join(ROOT, "app");
 const REPORT_ROOT = join(ROOT, "reports", "lighthouse");
 const HOST = "127.0.0.1";
@@ -160,9 +161,10 @@ async function auditRoute({ baseUrl, route, mode, outputDirectory }) {
     const failedAudits = audits
       .filter((audit) => audit?.score !== null && audit?.score < 0.9 && audit?.scoreDisplayMode !== "notApplicable")
       .map((audit) => ({ id: audit.id, title: audit.title, score: audit.score, displayValue: audit.displayValue ?? "" }));
+    const accessibilityAuditRefs = new Set((categories.accessibility?.auditRefs ?? []).map((item) => item.id));
     const seriousAccessibility = audits
-      .filter((audit) => audit?.details?.type === "table" && ["serious", "critical"].includes(audit?.details?.debugData?.impact))
-      .map((audit) => ({ id: audit.id, title: audit.title, impact: audit.details.debugData.impact }));
+      .filter((audit) => accessibilityAuditRefs.has(audit?.id) && audit?.score === 0)
+      .map((audit) => ({ id: audit.id, title: audit.title, impact: "failed-accessibility-audit" }));
     const consoleErrors = report.audits?.["errors-in-console"]?.details?.items ?? [];
 
     return {
@@ -199,7 +201,7 @@ async function auditRoute({ baseUrl, route, mode, outputDirectory }) {
 
 function summaryMarkdown(summary) {
   const lines = [
-    `# PlotPickle Lighthouse audit`,
+    "# PlotPickle Lighthouse audit",
     "",
     `Generated: ${summary.generatedAt}`,
     `Mode: ${summary.mode}`,
@@ -226,9 +228,6 @@ async function runMode(mode, reportDirectory) {
   const inventory = await discoverRoutes();
   const port = await choosePort();
   const baseUrl = `http://${HOST}:${port}`;
-
-  console.log(`Building PlotPickle before ${mode} audit…`);
-  await run(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "build"]);
   const preview = startPreview(port);
   preview.stdout.on("data", (chunk) => process.stdout.write(`[preview] ${chunk}`));
   preview.stderr.on("data", (chunk) => process.stderr.write(`[preview] ${chunk}`));
@@ -249,6 +248,17 @@ async function runMode(mode, reportDirectory) {
   }
 }
 
+async function zipDirectory(directory) {
+  const zipPath = `${directory}.zip`;
+  if (process.platform === "win32") {
+    await run("powershell.exe", ["-NoProfile", "-Command", `Compress-Archive -Path '${directory}\\*' -DestinationPath '${zipPath}' -Force`]);
+  } else {
+    await run("zip", ["-r", zipPath, basename(directory)], { cwd: dirname(directory) });
+  }
+  console.log(`Upload this file for review: ${zipPath}`);
+  return zipPath;
+}
+
 async function zipLatest() {
   await mkdir(REPORT_ROOT, { recursive: true });
   const entries = (await readdir(REPORT_ROOT, { withFileTypes: true }))
@@ -257,14 +267,7 @@ async function zipLatest() {
     .sort()
     .reverse();
   if (!entries.length) throw new Error("No Lighthouse report folder exists. Run an audit first.");
-  const latest = join(REPORT_ROOT, entries[0]);
-  const zipPath = `${latest}.zip`;
-  if (process.platform === "win32") {
-    await run("powershell.exe", ["-NoProfile", "-Command", `Compress-Archive -Path '${latest}\\*' -DestinationPath '${zipPath}' -Force`]);
-  } else {
-    await run("zip", ["-r", zipPath, basename(latest)], { cwd: dirname(latest) });
-  }
-  console.log(`Upload this file for review: ${zipPath}`);
+  return zipDirectory(join(REPORT_ROOT, entries[0]));
 }
 
 async function main() {
@@ -272,14 +275,16 @@ async function main() {
   if (command === "zip") return zipLatest();
   const reportDirectory = join(REPORT_ROOT, timestamp());
   await mkdir(reportDirectory, { recursive: true });
+  console.log("Building PlotPickle once before the Lighthouse audit…");
+  await run(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "build"]);
   if (command === "desktop" || command === "mobile") await runMode(command, reportDirectory);
   else if (command === "all") {
     await runMode("desktop", reportDirectory);
     await runMode("mobile", reportDirectory);
   } else throw new Error(`Unknown audit mode: ${command}`);
   await writeFile(join(REPORT_ROOT, "latest.txt"), `${reportDirectory}\n`);
+  await zipDirectory(reportDirectory);
   console.log(`Audit complete: ${reportDirectory}`);
-  console.log("Run npm run audit:lighthouse:zip to create the uploadable ZIP.");
 }
 
 main().catch((error) => {

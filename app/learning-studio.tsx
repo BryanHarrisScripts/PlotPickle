@@ -21,6 +21,7 @@ import { storyCraftLessons, storyCraftSearchText, type StoryCraftLesson } from "
 import { coreGuideFor } from "./learning-core-curriculum";
 import { learningModules, learningPaths, moduleSearchText, type LearningModule } from "./learning-library";
 import { loglinesThatCarryTheMovie } from "./learning-loglines-that-carry-the-movie";
+import { moodColourVisualLanguage } from "./learning-mood-colour-visual-language";
 import { twentyFourBlocksLessons, twentyFourBlocksSearchText, type TwentyFourBlocksLesson } from "./learning-24-blocks";
 import styles from "./learning-studio.module.css";
 
@@ -41,6 +42,7 @@ type CourseModule = LearningModule | TwentyFourBlocksLesson | AiRevisionLesson |
 const courseModules: CourseModule[] = [
   ...learningModules,
   loglinesThatCarryTheMovie,
+  moodColourVisualLanguage,
   ...twentyFourBlocksLessons,
   ...aiRevisionLessons,
   ...collaborationOwnershipLessons,

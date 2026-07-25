@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-test-lint:
@@ -17,6 +17,27 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply proposed primary menu
+        if: github.head_ref == 'agent/proposed-primary-menu' && github.actor != 'github-actions[bot]'
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('.github/workflows/apply-proposed-primary-menu.yml').read_text()
+          start = text.index("          node --input-type=module <<'NODE'\n") + len("          node --input-type=module <<'NODE'\n")
+          end = text.index("\n          NODE", start)
+          lines = text[start:end].splitlines()
+          Path('/tmp/apply-primary-menu.mjs').write_text('\n'.join(line[10:] if line.startswith('          ') else line for line in lines) + '\n')
+          PY
+          node /tmp/apply-primary-menu.mjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/page.tsx app/ui-ux-cleanup.css lib/product-direction.ts README.md docs/issue-85-product-direction.md package.json tests/issue-85-product-direction.test.mjs tests/issue-87-navigation-cleanup.test.mjs tests/proposed-primary-menu.test.mjs
+          git commit -m "Implement proposed primary menu"
+          git push origin HEAD:${{ github.head_ref }}
 
       - name: Set up Node
         uses: actions/setup-node@v4

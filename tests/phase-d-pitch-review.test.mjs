@@ -17,7 +17,7 @@ test("PlotPickle 0.16 exposes the complete pitch and review studio", async () =>
   assert.ok(versionAtLeast(packageJson.version, 16));
   assert.match(packageJson.scripts.test, /phase-d-pitch-review\.test\.mjs/);
   assert.match(page, /PitchReviewWorkspace/);
-  for (const label of ["Logline Workshop", "Anchored Reviews", "Revision Compare", "Pitch Package", "Exports"]) assert.ok(workspace.includes(label), `Missing Phase D view: ${label}`);
+  for (const label of ["Logline Lab", "Anchored Reviews", "Revision Compare", "Pitch Package", "Exports"]) assert.ok(workspace.includes(label), `Missing Phase D view: ${label}`);
 });
 
 test("review threads anchor to stable canonical project identities", async () => {
@@ -28,15 +28,16 @@ test("review threads anchor to stable canonical project identities", async () =>
   assert.match(project, /normalizeReviewWorkspace/);
 });
 
-test("guided logline candidates require explicit approval", async () => {
-  const operations = await source("lib/pitch-review.ts");
-  const workspace = await source("app/pitch-review-workspace.tsx");
-  assert.match(operations, /buildGuidedLoglineCandidate/);
-  assert.match(operations, /saveLoglineCandidate/);
-  assert.match(operations, /approveLoglineCandidate/);
-  assert.match(operations, /next\.story\.logline = candidate\.text/);
-  assert.match(workspace, /Review before saving/);
-  assert.match(workspace, /Approve this logline/);
+test("purpose-aware logline candidates require explicit selective approval", async () => {
+  const lab = await source("lib/logline-lab.ts");
+  const workspace = await source("app/logline-lab.tsx");
+  assert.match(lab, /buildLoglineAlternatives/);
+  assert.match(lab, /savePurposeAwareCandidate/);
+  assert.match(lab, /approvePurposeAwareLogline/);
+  assert.match(lab, /if \(targets\.primary\) next\.story\.logline = candidate\.text/);
+  assert.match(workspace, /Save editable candidate/);
+  assert.match(workspace, /Approve selected targets deliberately/);
+  assert.match(workspace, /No candidate becomes canonical automatically/);
 });
 
 test("revision comparison and pitch exports remain inside PlotPickle", async () => {

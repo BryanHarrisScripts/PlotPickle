@@ -1,6 +1,6 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element -- Local generated assets are served by PlotPickle's loopback gateway. */
+/* eslint-disable @next/next/no-img-element, react-hooks/immutability -- Local generated assets use the loopback gateway; identity staging is committed through onImage. */
 
 import { useMemo, useState } from "react";
 import type { Character, PlotPickleProject } from "@/lib/project";

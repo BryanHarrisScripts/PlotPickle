@@ -25,27 +25,9 @@ jobs:
         if: github.head_ref == 'agent/proposed-primary-menu' && github.actor != 'github-actions[bot]'
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          text = Path('.github/workflows/apply-proposed-primary-menu.yml').read_text()
-          start = text.index("          node --input-type=module <<'NODE'\n") + len("          node --input-type=module <<'NODE'\n")
-          end = text.index("\n          NODE", start)
-          lines = text[start:end].splitlines()
-          Path('/tmp/apply-primary-menu.mjs').write_text('\n'.join(line[10:] if line.startswith('          ') else line for line in lines) + '\n')
-          PY
-          set +e
-          node /tmp/apply-primary-menu.mjs 2>&1 | tee /tmp/apply-primary-menu.log
-          status=${PIPESTATUS[0]}
-          set -e
+          node scripts/apply-proposed-primary-menu.mjs
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ "$status" -ne 0 ]; then
-            cp /tmp/apply-primary-menu.log .primary-menu-error.log
-            git add .primary-menu-error.log
-            git commit -m "Record primary menu migration failure" || true
-            git push origin HEAD:${{ github.head_ref }}
-            exit "$status"
-          fi
           rm -f .primary-menu-error.log
           git add app/page.tsx app/ui-ux-cleanup.css lib/product-direction.ts README.md docs/issue-85-product-direction.md package.json tests/issue-85-product-direction.test.mjs tests/issue-87-navigation-cleanup.test.mjs tests/proposed-primary-menu.test.mjs .primary-menu-error.log
           git commit -m "Implement proposed primary menu"

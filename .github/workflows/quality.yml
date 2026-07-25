@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-test-lint:
@@ -17,9 +17,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -41,18 +38,4 @@ jobs:
         run: npm run lint
 
       - name: Build and smoke test
-        shell: bash
-        run: |
-          set +e
-          npm test 2>&1 | tee /tmp/primary-menu-test.log
-          status=${PIPESTATUS[0]}
-          set -e
-          if [ "$status" -ne 0 ]; then
-            cp /tmp/primary-menu-test.log .primary-menu-test.log
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add .primary-menu-test.log
-            git commit -m "Record primary menu test failure" || true
-            git push origin HEAD:${{ github.head_ref }}
-            exit "$status"
-          fi
+        run: npm test

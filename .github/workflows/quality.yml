@@ -18,6 +18,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: Apply proposed primary menu
@@ -32,10 +33,21 @@ jobs:
           lines = text[start:end].splitlines()
           Path('/tmp/apply-primary-menu.mjs').write_text('\n'.join(line[10:] if line.startswith('          ') else line for line in lines) + '\n')
           PY
-          node /tmp/apply-primary-menu.mjs
+          set +e
+          node /tmp/apply-primary-menu.mjs 2>&1 | tee /tmp/apply-primary-menu.log
+          status=${PIPESTATUS[0]}
+          set -e
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app/page.tsx app/ui-ux-cleanup.css lib/product-direction.ts README.md docs/issue-85-product-direction.md package.json tests/issue-85-product-direction.test.mjs tests/issue-87-navigation-cleanup.test.mjs tests/proposed-primary-menu.test.mjs
+          if [ "$status" -ne 0 ]; then
+            cp /tmp/apply-primary-menu.log .primary-menu-error.log
+            git add .primary-menu-error.log
+            git commit -m "Record primary menu migration failure" || true
+            git push origin HEAD:${{ github.head_ref }}
+            exit "$status"
+          fi
+          rm -f .primary-menu-error.log
+          git add app/page.tsx app/ui-ux-cleanup.css lib/product-direction.ts README.md docs/issue-85-product-direction.md package.json tests/issue-85-product-direction.test.mjs tests/issue-87-navigation-cleanup.test.mjs tests/proposed-primary-menu.test.mjs .primary-menu-error.log
           git commit -m "Implement proposed primary menu"
           git push origin HEAD:${{ github.head_ref }}
 

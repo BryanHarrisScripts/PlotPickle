@@ -4,13 +4,14 @@ import test from "node:test";
 
 const settings = await readFile(new URL("../lib/ai/settings.ts", import.meta.url), "utf8");
 const panel = await readFile(new URL("../app/settings-panel.tsx", import.meta.url), "utf8");
+const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 const gateway = await readFile(new URL("../build/local-ai-gateway.ts", import.meta.url), "utf8");
 const viteConfig = await readFile(new URL("../vite.config.ts", import.meta.url), "utf8");
 const reportPanel = await readFile(new URL("../app/settings-project-tools.tsx", import.meta.url), "utf8");
 const reports = await readFile(new URL("../lib/screenplay-reports.ts", import.meta.url), "utf8");
 const terms = await readFile(new URL("../lib/screenplay-terms.ts", import.meta.url), "utf8");
 
- test("settings keep AI, music, and future plugins in one local model", () => {
+test("settings keep AI, music, and future plugins in one local model", () => {
   assert.match(settings, /type PlotPickleSettings/);
   assert.match(settings, /provider: AiProviderKind/);
   assert.match(settings, /service: MusicService/);
@@ -47,9 +48,10 @@ test("music artist links are limited to Suno and Udio HTTPS profiles", () => {
   assert.match(settings, /hostname === "udio\.com"/);
 });
 
-test("Settings includes live producer, actor, and director reports plus a current import audit", () => {
-  assert.match(panel, /Reports/);
-  assert.match(panel, /ScreenplayReports project={project}/);
+test("Reports is a primary workspace with live producer, actor, and director reports", () => {
+  assert.match(page, /id: "reports", label: "Reports"/);
+  assert.match(page, /activeTab === "reports"/);
+  assert.match(page, /ScreenplayReports project={project}/);
   for (const field of ["dialogueLines", "dialogueEntries", "wordCount", "sceneNumbers", "sceneHeadings", "speakingSceneCoverage", "estimatedSpeakingSeconds"]) {
     assert.ok(reports.includes(field), `Character report is missing ${field}`);
   }
@@ -71,8 +73,9 @@ test("character reports recalculate from editable drafts or imported source", ()
   assert.match(reports, /countSpokenWords/);
 });
 
-test("Settings terminology is grouped, searchable, and concise or expanded", () => {
-  assert.match(panel, /Terminology Index/);
+test("Read & Learn terminology is grouped, searchable, and concise or expanded", () => {
+  assert.match(page, /TerminologyIndex/);
+  assert.match(page, /Screenplay terminology/);
   for (const phrase of ["Search terms", "Concise", "Expanded", "screenplayTermCategories", "workspace.href", "related"]) {
     assert.ok(reportPanel.includes(phrase), `Terminology UI is missing ${phrase}`);
   }

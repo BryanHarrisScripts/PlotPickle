@@ -53,12 +53,18 @@ test("issue #85 defines explicit storage and synchronization states", async () =
   assert.match(contract, /verified repository revision/);
 });
 
-test("issue #85 coordinates child issues without closing the epic early", async () => {
+test("issue #85 records all completed child issues and the final consistency pass", async () => {
   const contract = await source("lib/product-direction.ts");
   const docs = await source("docs/issue-85-product-direction.md");
+  const welcome = await source("app/welcome/page.tsx");
+  const readme = await source("README.md");
   for (const issue of [86, 87, 88, 89, 90]) {
     assert.ok(contract.includes(`issue: ${issue}`), `Missing implementation issue #${issue}`);
     assert.ok(docs.includes(`#${issue}`), `Documentation missing issue #${issue}`);
   }
-  assert.match(docs, /Issue #85 remains open until #86, #87, #88, #89 and #90 are merged/);
+  for (const issue of [86, 87, 88, 89]) assert.match(docs, new RegExp(`#${issue}[^\n]*(complete|merged)`, "i"));
+  assert.match(docs, /#90[^\n]*final implementation/i);
+  assert.match(docs, /#90 merge completes issue #85/i);
+  assert.match(welcome, /FIVE_KEY_SELLING_POINTS\.map/);
+  assert.match(readme, /Five reasons to use PlotPickle/);
 });

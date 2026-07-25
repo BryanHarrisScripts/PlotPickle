@@ -57,14 +57,18 @@ test("README remains complete while three .md tabs are selectable from the main 
   }
 });
 
-test("collaboration documentation uses committed PlotPickle logos", async () => {
+test("collaboration documentation shows complete installations with roles inside PlotPickle", async () => {
   const diagram = await source("docs/images/plotpickle-multi-server-collaboration.svg");
   assert.match(diagram, /plotpickle-header-horizontal-600\.png/);
   assert.match(diagram, /plotpickle-icon-128\.png/);
-  assert.match(diagram, /Writer server/);
-  assert.match(diagram, /Director server/);
-  assert.match(diagram, /Producer server/);
-  assert.match(diagram, /Pull-request review queue/);
+  assert.match(diagram, /Complete PlotPickle installations/);
+  assert.match(diagram, /Local PlotPickle/);
+  assert.match(diagram, /Private web PlotPickle/);
+  for (const role of ["Writer", "Director", "Producer", "Actor", "Reviewer"]) assert.match(diagram, new RegExp(role));
+  assert.match(diagram, /Roles belong to people inside PlotPickle/);
+  assert.match(diagram, /Proposal branches and pull requests/);
+  assert.match(diagram, /Owner \/ maintainer: review · merge · close/);
+  assert.doesNotMatch(diagram, /Writer server|Director server|Producer server|Actor server/);
 });
 
 test("Windows publisher guidance explains Mark of the Web and the signed-launcher path", async () => {

@@ -44,10 +44,23 @@ jobs:
           test "$(find public/afterglow/legacy-visuals/card -name '*.webp' | wc -l)" -eq 22
           test "$(find public/afterglow/legacy-visuals/thumbnail -name '*.webp' | wc -l)" -eq 22
           node -e "const r=require('./public/afterglow/legacy-visuals/report.json'); if(r.sourceCount!==22||r.retainedCount!==21||r.placeholderCount!==1||r.unresolvedCount!==3||r.derivativeCount!==66||r.failures.length) process.exit(1)"
-      - name: Validate application
+      - name: Capture validation output
+        shell: bash
         run: |
-          npm run lint
-          npm test
+          set +e
+          npm run lint > issue-58-validation.log 2>&1
+          lint_status=$?
+          npm test >> issue-58-validation.log 2>&1
+          test_status=$?
+          echo "lint_status=$lint_status test_status=$test_status" >> issue-58-validation.log
+          if [ "$lint_status" -ne 0 ] || [ "$test_status" -ne 0 ]; then touch issue-58-validation.failed; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: issue-58-validation-log
+          path: issue-58-validation.log
+      - name: Fail on validation error
+        run: test ! -f issue-58-validation.failed
       - name: Commit clean integration
         run: |
           rm .github/workflows/issue-58-integrate.yml

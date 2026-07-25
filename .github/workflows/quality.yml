@@ -39,7 +39,8 @@ jobs:
             exit "$status"
           fi
           rm -f .primary-menu-fix.log .primary-menu-lint.log .primary-menu-test.log
-          git add app/page.tsx tests/proposed-primary-menu.test.mjs .primary-menu-fix.log .primary-menu-lint.log .primary-menu-test.log
+          git add app/page.tsx tests/proposed-primary-menu.test.mjs
+          git add -u
           git commit -m "Preserve import access across workspaces"
           git push origin HEAD:${{ github.head_ref }}
 

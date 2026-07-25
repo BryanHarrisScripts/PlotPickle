@@ -26,9 +26,12 @@ export default function WelcomePage() {
   const [hasCurrent, setHasCurrent] = useState(false);
 
   useEffect(() => {
-    setHasCurrent(Boolean(localStorage.getItem(STORAGE_KEY)));
-    try { setRecent(JSON.parse(localStorage.getItem(RECENTS_KEY) || "[]")); } catch { setRecent([]); }
-    setOpenLast(document.cookie.split("; ").some((part) => part === "plotpickle-open-last=1"));
+    const timer = window.setTimeout(() => {
+      setHasCurrent(Boolean(localStorage.getItem(STORAGE_KEY)));
+      try { setRecent(JSON.parse(localStorage.getItem(RECENTS_KEY) || "[]")); } catch { setRecent([]); }
+      setOpenLast(document.cookie.split("; ").some((part) => part === "plotpickle-open-last=1"));
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const last = useMemo(() => recent[0], [recent]);

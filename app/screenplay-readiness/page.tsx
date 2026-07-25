@@ -47,7 +47,7 @@ export default function ScreenplayReadinessPage() {
     <section className={styles.destinations} aria-label="Readiness destinations">{destinations.map((destination) => <article key={destination.id} className={destination.ready ? styles.ready : styles.notReady}><strong>{destination.label}</strong><span>{destination.ready ? "Ready" : "Not yet"}</span><p>{destination.reason}</p></article>)}</section>
 
     <section className={styles.review}>{categories.map((category) => <div key={category} className={styles.category}><h2>{category}</h2>{items.filter((item) => item.category === category).map((item) => <article key={item.id} className={styles.item}>
-      <div><span className={`${styles.badge} ${styles[item.kind.replace(/-/g, "") as keyof typeof styles] || ""}`}>{item.kind.replace(/-/g, " ")}</span><h3>{item.label}</h3><p>{item.evidence}</p></div>
+      <div><span className={styles.badge}>{item.kind.replace(/-/g, " ")}</span><h3>{item.label}</h3><p>{item.evidence}</p></div>
       <div className={styles.itemActions}><Link href={item.href}>Open exact item</Link><button onClick={() => toggleIntentional(item.id)}>{intentional.includes(item.id) ? "Restore review" : "Mark intentional"}</button></div>
     </article>)}</div>)}</section>
 

@@ -19,9 +19,12 @@ export default function ScreenplayReadinessPage() {
   const [intentional, setIntentional] = useState<string[]>([]);
 
   useEffect(() => {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) setProject(normalizePlotPickleProject(JSON.parse(raw)));
-    try { setIntentional(JSON.parse(localStorage.getItem("plotpickle.readiness.intentional.v1") || "[]")); } catch { setIntentional([]); }
+    const timer = window.setTimeout(() => {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setProject(normalizePlotPickleProject(JSON.parse(raw)));
+      try { setIntentional(JSON.parse(localStorage.getItem("plotpickle.readiness.intentional.v1") || "[]")); } catch { setIntentional([]); }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const items = useMemo(() => project ? assessScreenplayReadiness(project).map((item) => intentional.includes(item.id) ? { ...item, status: "intentional" as const, kind: "intentional-choice" as const } : item) : [], [project, intentional]);

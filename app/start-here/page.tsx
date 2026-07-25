@@ -24,9 +24,12 @@ export default function StartHerePage() {
   const [active, setActive] = useState(beginnerStages[0].id);
 
   useEffect(() => {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) setProject(normalizePlotPickleProject(JSON.parse(raw)));
-    try { setRecord(JSON.parse(localStorage.getItem(RECORD_KEY) || JSON.stringify(blankRecord))); } catch { setRecord(blankRecord); }
+    const timer = window.setTimeout(() => {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setProject(normalizePlotPickleProject(JSON.parse(raw)));
+      try { setRecord(JSON.parse(localStorage.getItem(RECORD_KEY) || JSON.stringify(blankRecord))); } catch { setRecord(blankRecord); }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const current = useMemo(() => beginnerStages.find((stage) => stage.id === active) ?? beginnerStages[0], [active]);

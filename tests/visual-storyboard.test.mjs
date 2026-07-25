@@ -14,9 +14,9 @@ test("Visual Storyboard exposes the 24-block overview and all 96 mini-block visu
   }
 });
 
-test("default prompts combine story, scene, character, location, screenplay, shot, and continuity context", async () => {
+test("default prompts combine story, scene, character identity, location, screenplay, shot, and continuity context", async () => {
   const board = await source("app/visual-storyboard.tsx");
-  for (const context of ["Block purpose", "Scene purpose", "Dramatic function", "Characters present", "Location:", "Screenplay evidence", "Camera and composition", "Continuity lock"]) {
+  for (const context of ["Block purpose", "Scene purpose", "Dramatic function", "CHARACTER IDENTITY LOCKS", "Location:", "Screenplay evidence", "Camera and composition", "Continuity lock"]) {
     assert.ok(board.includes(context), `Storyboard prompt is missing ${context}`);
   }
 });

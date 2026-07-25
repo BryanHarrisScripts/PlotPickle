@@ -35,8 +35,8 @@ async function render(pathname) {
   return response.text();
 }
 
-test("renders the root route and preserves the local-first workspace contract", async () => {
-  const html = await render("/");
+test("renders the root workspace and preserves the local-first workspace contract", async () => {
+  const html = await render("/?workspace=1");
   assert.match(html, developmentPreviewMeta);
   assert.match(html, /PlotPickle Playhouse/);
   assert.match(html, /Download for Windows/);

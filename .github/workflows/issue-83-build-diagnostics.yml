@@ -1,0 +1,33 @@
+name: Issue 83 build diagnostics
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-diagnostics:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: npm
+      - run: npm ci
+      - name: Capture build output
+        shell: bash
+        run: |
+          set +e
+          npm run build > issue-83-build.log 2>&1
+          status=$?
+          echo "exit_code=$status" >> issue-83-build.log
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: issue-83-build-diagnostics
+          path: issue-83-build.log
+          if-no-files-found: error

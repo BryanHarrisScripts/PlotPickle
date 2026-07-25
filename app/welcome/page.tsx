@@ -22,14 +22,12 @@ function saveProject(project: PlotPickleProject) {
 
 export default function WelcomePage() {
   const [recent, setRecent] = useState<RecentProject[]>([]);
-  const [openLast, setOpenLast] = useState(false);
   const [hasCurrent, setHasCurrent] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setHasCurrent(Boolean(localStorage.getItem(STORAGE_KEY)));
       try { setRecent(JSON.parse(localStorage.getItem(RECENTS_KEY) || "[]")); } catch { setRecent([]); }
-      setOpenLast(document.cookie.split("; ").some((part) => part === "plotpickle-open-last=1"));
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -47,11 +45,6 @@ export default function WelcomePage() {
   function exploreAfterglow() {
     saveProject(createAfterglowProject());
     window.location.href = "/?workspace=1&tab=instructions&section=overview";
-  }
-
-  function updateLaunchPreference(value: boolean) {
-    setOpenLast(value);
-    document.cookie = `plotpickle-open-last=${value ? "1" : "0"}; path=/; max-age=${value ? 31536000 : 0}; samesite=lax`;
   }
 
   return (
@@ -85,7 +78,7 @@ export default function WelcomePage() {
       </section>
 
       <footer className={styles.footer}>
-        <label><input type="checkbox" checked={openLast} onChange={(event) => updateLaunchPreference(event.target.checked)} /> Open my last project directly on future launches</label>
+        <p>Simple Start remains available here whenever you need a guided entry; regular launches open the main workspace directly.</p>
         <div><Link href="/about">About PlotPickle</Link><Link href="/?workspace=1">Open main workspace</Link></div>
       </footer>
     </main>

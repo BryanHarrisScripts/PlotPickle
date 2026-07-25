@@ -1,0 +1,24 @@
+name: Issue 88 lint diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-tail:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - run: npm ci
+      - name: Print lint errors
+        shell: bash
+        run: |
+          set +e
+          npm run lint > lint-output.txt 2>&1
+          status=$?
+          tail -120 lint-output.txt
+          exit $status

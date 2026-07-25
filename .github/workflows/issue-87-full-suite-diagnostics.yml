@@ -1,0 +1,77 @@
+name: Issue 87 full-suite diagnostics
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  batch:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: batch-1-core-workspaces
+            tests: >-
+              tests/engines-workspace.test.mjs
+              tests/project-navigation-licensing.test.mjs
+              tests/ai-architecture.test.mjs
+              tests/script-viewer.test.mjs
+              tests/screenplay-writer.test.mjs
+              tests/visual-storyboard.test.mjs
+              tests/writer-learning.test.mjs
+          - name: batch-2-learning-issues
+            tests: >-
+              tests/issue-48-24-blocks-learning.test.mjs
+              tests/issue-49-guided-ai-revision.test.mjs
+              tests/issue-55-core-curriculum-router.test.mjs
+              tests/issue-56-purpose-aware-logline-lab.test.mjs
+              tests/issue-57-visual-reference-library.test.mjs
+              tests/issue-58-afterglow-legacy-visuals.test.mjs
+              tests/issue-59-about-origins-principles.test.mjs
+              tests/issues-60-62-afterglow-reconciliation.test.mjs
+          - name: batch-3-product-and-schema
+            tests: >-
+              tests/issue-83-character-visual-identity.test.mjs
+              tests/issue-85-product-direction.test.mjs
+              tests/issue-86-lighthouse-audit.test.mjs
+              tests/phase-one-core-schema.test.mjs
+              tests/dynamic-scenes.test.mjs
+              tests/phase-two-dynamic-scenes.test.mjs
+              tests/phase-a-core-model.test.mjs
+          - name: batch-4-craft-and-release
+            tests: >-
+              tests/phase-b-diagnostic-craft.test.mjs
+              tests/phase-c-specialist-labs.test.mjs
+              tests/phase-d-pitch-review.test.mjs
+              tests/phase-e-page-to-production.test.mjs
+              tests/phase-f-collaboration-release.test.mjs
+              tests/issue-26-reports-terms-collaboration.test.mjs
+              tests/story-tools-reports-docs.test.mjs
+          - name: batch-5-storage-and-git
+            tests: >-
+              tests/phase-2-folder-projects.test.mjs
+              tests/phase-3-modular-story.test.mjs
+              tests/phase-4-story-dependencies.test.mjs
+              tests/phase-5-native-git.test.mjs
+              tests/phase-6-ppf-exchange.test.mjs
+              tests/phase-7-canon-binder.test.mjs
+          - name: batch-6-sdk-and-rc4
+            tests: >-
+              tests/phase-8-open-plugin-platform.test.mjs
+              tests/phase-9a-sdk-foundation.test.mjs
+              tests/phase-9b-plugin-sdk.test.mjs
+              tests/phase-9c-example-plugins.test.mjs
+              tests/phase-9d-developer-docs.test.mjs
+              tests/phase-9e-sdk-packaging.test.mjs
+              tests/rc4-project-format.test.mjs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: node --test ${{ matrix.tests }}

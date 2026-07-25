@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-test-lint:
@@ -17,32 +17,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-
-      - name: Preserve global import access
-        if: github.head_ref == 'agent/proposed-primary-menu' && github.actor != 'github-actions[bot]'
-        shell: bash
-        run: |
-          set +e
-          node scripts/fix-proposed-primary-menu.mjs 2>&1 | tee /tmp/primary-menu-fix.log
-          status=${PIPESTATUS[0]}
-          set -e
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ "$status" -ne 0 ]; then
-            cp /tmp/primary-menu-fix.log .primary-menu-fix.log
-            git add .primary-menu-fix.log
-            git commit -m "Record primary menu follow-up failure" || true
-            git push origin HEAD:${{ github.head_ref }}
-            exit "$status"
-          fi
-          rm -f .primary-menu-fix.log .primary-menu-lint.log .primary-menu-test.log
-          git add app/page.tsx tests/proposed-primary-menu.test.mjs
-          git add -u
-          git commit -m "Preserve import access across workspaces"
-          git push origin HEAD:${{ github.head_ref }}
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -61,35 +35,7 @@ jobs:
         run: npm ci
 
       - name: Lint
-        shell: bash
-        run: |
-          set +e
-          npm run lint 2>&1 | tee /tmp/primary-menu-lint.log
-          status=${PIPESTATUS[0]}
-          set -e
-          if [ "$status" -ne 0 ]; then
-            cp /tmp/primary-menu-lint.log .primary-menu-lint.log
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add .primary-menu-lint.log
-            git commit -m "Record primary menu lint failure" || true
-            git push origin HEAD:${{ github.head_ref }}
-            exit "$status"
-          fi
+        run: npm run lint
 
       - name: Build and smoke test
-        shell: bash
-        run: |
-          set +e
-          npm test 2>&1 | tee /tmp/primary-menu-test.log
-          status=${PIPESTATUS[0]}
-          set -e
-          if [ "$status" -ne 0 ]; then
-            cp /tmp/primary-menu-test.log .primary-menu-test.log
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add .primary-menu-test.log
-            git commit -m "Record primary menu test failure" || true
-            git push origin HEAD:${{ github.head_ref }}
-            exit "$status"
-          fi
+        run: npm test

@@ -180,7 +180,7 @@ test("issue #117 AI workflow checks the local provider and requires notice ackno
     "Submit AI review",
     "Connect a provider in Settings to submit",
   ]) assert.ok(panel.includes(contract), `Missing live AI review contract: ${contract}`);
-  assert.match(panel, /disabled=\{!provider\.connected \|\| !acknowledged/);
+  assert.match(panel, /disabled=\{[^}]*!provider\.connected[^}]*!acknowledged[^}]*\}/);
 });
 
 test("issue #117 AI results expose structured findings decisions and proposal approval", async () => {

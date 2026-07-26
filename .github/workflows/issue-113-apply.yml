@@ -23,10 +23,21 @@ jobs:
       - name: Apply live integration
         run: python scripts/apply-issue-113.py
       - name: Validate targeted contracts
+        shell: bash
         run: |
-          npm ci --silent
-          npm run test:dashboard-command-centre
-          npm run lint
+          set -euo pipefail
+          npm ci --silent >/dev/null 2>&1
+          if ! npm run test:dashboard-command-centre > /tmp/issue-113-tests.log 2>&1; then
+            echo "::error title=Issue 113 targeted test failure::"
+            cat /tmp/issue-113-tests.log
+            exit 1
+          fi
+          if ! npm run lint > /tmp/issue-113-lint.log 2>&1; then
+            echo "::error title=Issue 113 lint failure::"
+            tail -n 120 /tmp/issue-113-lint.log
+            exit 1
+          fi
+          echo "Issue #113 targeted tests and lint passed."
       - name: Commit integration when needed
         shell: bash
         run: |

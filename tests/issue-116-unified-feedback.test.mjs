@@ -158,6 +158,97 @@ test("issue #116 keeps suggestions proposal-only and does not rewrite canon", as
   assert.match(model, /synthetic: true/);
 });
 
+test("issue #116 persists richer feedback inside existing canonical review threads", async () => {
+  const store = await source("lib/unified-feedback-store.ts");
+  for (const contract of [
+    "FEEDBACK_METADATA_PREFIX",
+    "serializeFeedbackMetadata",
+    "parseFeedbackMetadata",
+    "createFeedback",
+    "updateFeedback",
+    "addFeedbackComment",
+    "project.review.threads",
+    "legacyAnchor",
+    "legacyStatus",
+    "feedbackTargetOptions",
+  ]) assert.ok(store.includes(contract), `Feedback store is missing: ${contract}`);
+  assert.match(store, /cloneProject\(project\)/);
+  assert.match(store, /next\.review\.threads\.push\(thread\)/);
+  assert.doesNotMatch(store, /localStorage|sessionStorage|indexedDB|feedbackDatabase/);
+});
+
+test("issue #116 live workspace renders all sections filters decisions threads and target links", async () => {
+  const workspace = await source("app/feedback-workspace.tsx");
+  for (const contract of [
+    "FEEDBACK_SECTIONS.map",
+    "AI Review",
+    "Human Review",
+    "Writers’ Room",
+    "Shooting Script",
+    "Table Read",
+    "createStoredFeedbackModel",
+    "feedbackTargetOptions",
+    "Create anchored feedback",
+    "Include resolved history",
+    "Proposed change",
+    "Resolution",
+    "Linked revision",
+    "Add comment",
+    "onOpenTarget?.(selectedRecord.target)",
+    "project.review.threads.length",
+    "Suggestions do not overwrite the screenplay automatically",
+    "Anchored review",
+  ]) assert.ok(workspace.includes(contract), `Live Feedback workspace is missing: ${contract}`);
+  assert.doesNotMatch(workspace, /localStorage|sessionStorage|applySpecialistSuggestion/);
+});
+
+test("issue #116 makes Build and Feedback reachable in the primary workflow", async () => {
+  const direction = await source("lib/product-direction.ts");
+  assert.match(direction, /id: "planner", label: "Plan"[\s\S]*id: "build", label: "Build"[\s\S]*id: "script", label: "Write"/);
+  assert.match(direction, /id: "engines", label: "Refine"[\s\S]*id: "feedback", label: "Feedback"[\s\S]*id: "reports", label: "Reports"/);
+});
+
+test("issue #116 mounts Feedback and preserves reviewed-item navigation context", async () => {
+  const page = await source("app/page.tsx");
+  for (const contract of [
+    'import FeedbackWorkspace from "./feedback-workspace"',
+    'import FeedbackContextBadge from "./feedback-context-badge"',
+    "createStoredFeedbackModel",
+    "feedbackTargetId",
+    "openFeedback",
+    "openFeedbackTarget",
+    'activeTab === "feedback"',
+    "initialTargetId={feedbackTargetId}",
+    "onOpenTarget={openFeedbackTarget}",
+  ]) assert.ok(page.includes(contract), `Feedback page integration is missing: ${contract}`);
+});
+
+test("issue #116 shows context badges in Build Write and Storyboard", async () => {
+  const [page, build, wall, badge] = await Promise.all([
+    source("app/page.tsx"),
+    source("app/build-workspace.tsx"),
+    source("app/mini-block-wall.tsx"),
+    source("app/feedback-context-badge.tsx"),
+  ]);
+  assert.match(page, /FeedbackContextBadge[\s\S]*selectedBlockFeedbackCount/);
+  assert.match(page, /activeTab === "script"[\s\S]*FeedbackContextBadge/);
+  assert.match(page, /activeTab === "visuals"[\s\S]*FeedbackContextBadge/);
+  assert.match(build, /createStoredFeedbackModel/);
+  assert.match(build, /onOpenFeedback/);
+  assert.match(build, /feedbackBadge/);
+  assert.match(wall, /feedbackBadges/);
+  assert.match(wall, /FeedbackContextBadge/);
+  assert.match(badge, /Open \$\{count\} feedback records/);
+});
+
+test("issue #116 workspace remains responsive", async () => {
+  const css = await source("app/feedback-workspace.module.css");
+  assert.match(css, /@media\(max-width:1250px\)/);
+  assert.match(css, /@media\(max-width:940px\)/);
+  assert.match(css, /@media\(max-width:620px\)/);
+  assert.match(css, /overflow:auto/);
+});
+
 test("issue #116 foundation test is registered", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   assert.match(packageJson.scripts.test, /issue-116-unified-feedback\.test\.mjs/);

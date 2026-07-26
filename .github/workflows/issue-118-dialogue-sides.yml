@@ -1,0 +1,35 @@
+name: Issue 118 dialogue sides projection
+
+on:
+  push:
+    branches:
+      - agent/issue-118-consolidated-reports
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/issue-118-consolidated-reports
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.19.0'
+      - name: Apply guarded dialogue sides projection
+        run: node scripts/issue-118-dialogue-sides.mjs
+      - name: Verify focused reports contracts
+        run: node --test tests/issue-118-consolidated-reports.test.mjs
+      - name: Commit permanent patch and remove temporary automation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm scripts/issue-118-dialogue-sides.mjs .github/workflows/issue-118-dialogue-sides.yml
+          git add lib/consolidated-reports.ts
+          git commit -m "Expose dialogue sides in consolidated reports"
+          git push origin HEAD:agent/issue-118-consolidated-reports

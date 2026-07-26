@@ -20,14 +20,17 @@ jobs:
         include:
           - os: windows-latest
             platform: windows
+            node: "24.15.0"
             folder: PlotPickle-Windows
             archive: PlotPickle-Windows.zip
           - os: macos-latest
             platform: macos
+            node: "22.19.0"
             folder: PlotPickle-macOS
             archive: PlotPickle-macOS.zip
           - os: ubuntu-latest
             platform: linux
+            node: "22.19.0"
             folder: PlotPickle-Linux
             archive: PlotPickle-Linux.zip
     runs-on: ${{ matrix.os }}
@@ -36,7 +39,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "22.19.0"
+          node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
       - run: npm run lint
@@ -73,8 +76,41 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & ".\node_modules\.bin\vite.cmd" --version
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/windows-runtime.mjs verify-modules node_modules
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/windows-runtime.mjs describe
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          $stdout = Join-Path $env:RUNNER_TEMP "plotpickle-vite-stdout.log"
+          $stderr = Join-Path $env:RUNNER_TEMP "plotpickle-vite-stderr.log"
+          $server = Start-Process -FilePath ".\node_modules\.bin\vite.cmd" -ArgumentList "--host", "127.0.0.1", "--port", "4173", "--strictPort" -PassThru -NoNewWindow -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+          try {
+            $ready = $false
+            for ($attempt = 1; $attempt -le 45; $attempt++) {
+              Start-Sleep -Seconds 1
+              if ($server.HasExited) {
+                if (Test-Path $stdout) { Get-Content $stdout }
+                if (Test-Path $stderr) { Get-Content $stderr }
+                throw "The Windows PlotPickle server exited before becoming ready."
+              }
+              try {
+                $response = Invoke-WebRequest -Uri "http://127.0.0.1:4173" -UseBasicParsing -TimeoutSec 2
+                if ($response.StatusCode -eq 200) {
+                  $ready = $true
+                  break
+                }
+              } catch {
+                # Vite is still starting; retry within the bounded readiness window.
+              }
+            }
+            if (-not $ready) {
+              if (Test-Path $stdout) { Get-Content $stdout }
+              if (Test-Path $stderr) { Get-Content $stderr }
+              throw "The Windows PlotPickle server did not answer on 127.0.0.1:4173."
+            }
+          } finally {
+            if (-not $server.HasExited) { Stop-Process -Id $server.Id -Force }
+          }
       - name: Clean-machine extraction and dependency test (macOS and Linux)
         if: matrix.platform != 'windows'
         shell: bash

@@ -97,6 +97,7 @@ function ReviewNotice({ request }: { request: AiReviewRequest }) {
 
 function AiReviewPanel({ project, onProjectChange }: Omit<ReviewWorkflowPanelProps, "mode">) {
   const [provider, setProvider] = useState<AiProviderSnapshot>({ connected: false, provider: "", model: "", checkedAt: "" });
+  const [providerMode, setProviderMode] = useState<"local" | "connected">("connected");
   const [connectionMessage, setConnectionMessage] = useState("Checking the local AI connection…");
   const [scope, setScope] = useState<AiReviewScope>("project");
   const [lens, setLens] = useState<AiReviewLens>("story-editor");
@@ -125,9 +126,11 @@ function AiReviewPanel({ project, onProjectChange }: Omit<ReviewWorkflowPanelPro
         const connected = Boolean(value.saved && value.provider && value.textModel);
         setProvider({ connected, provider: value.provider ?? "", model: value.textModel ?? "", checkedAt: value.checkedAt ?? "" });
         setConnectionMessage(connected ? `${value.provider} · ${value.textModel}` : "No provider is connected. Requests can still be prepared locally.");
+        if (!connected) setProviderMode("local");
       } catch (error) {
         if (controller.signal.aborted) return;
         setProvider({ connected: false, provider: "", model: "", checkedAt: "" });
+        setProviderMode("local");
         setConnectionMessage(error instanceof Error ? error.message : "No provider is connected.");
       }
     })();
@@ -161,7 +164,7 @@ function AiReviewPanel({ project, onProjectChange }: Omit<ReviewWorkflowPanelPro
       lens,
       targetIds,
       customQuestions: splitLines(questions),
-      provider,
+      provider: providerMode === "connected" ? provider : { connected: false, provider: "", model: "", checkedAt: "" },
     });
     setRequest(next);
     setResult(null);
@@ -171,7 +174,7 @@ function AiReviewPanel({ project, onProjectChange }: Omit<ReviewWorkflowPanelPro
   }
 
   async function submitReview() {
-    if (!request || !provider.connected || !acknowledged) return;
+    if (!request || providerMode !== "connected" || !provider.connected || !acknowledged) return;
     setState("working");
     setMessage("Submitting the selected context to the connected provider…");
     try {
@@ -242,6 +245,7 @@ function AiReviewPanel({ project, onProjectChange }: Omit<ReviewWorkflowPanelPro
       <div className={styles.workflowGrid}>
         <label><span>Scope</span><select value={scope} onChange={(event) => chooseScope(event.target.value as AiReviewScope)}>{AI_REVIEW_SCOPES.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
         <label><span>Review lens</span><select value={lens} onChange={(event) => { setLens(event.target.value as AiReviewLens); setRequest(null); setResult(null); }}><option value="story-editor">Story editor</option>{AI_REVIEW_LENSES.filter((item) => item.id !== "story-editor").map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
+        <label><span>Provider / model</span><select value={providerMode} onChange={(event) => { setProviderMode(event.target.value as "local" | "connected"); setRequest(null); setResult(null); setAcknowledged(false); }}><option value="local">Local prompt only · no submission</option><option value="connected" disabled={!provider.connected}>{provider.connected ? `${provider.provider} · ${provider.model}` : "No connected provider"}</option></select></label>
         <label className={styles.wideField}><span>Custom questions · one per line</span><textarea rows={3} value={questions} onChange={(event) => { setQuestions(event.target.value); setRequest(null); setResult(null); }} placeholder="What remains unclear to an audience reader?" /></label>
       </div>
 
@@ -254,7 +258,7 @@ function AiReviewPanel({ project, onProjectChange }: Omit<ReviewWorkflowPanelPro
         <ReviewNotice request={request} />
         <section className={styles.requestSummary}><strong>Prepared request</strong><span>{request.provider || "No provider"} · {request.model || "No model"}</span><span>{request.contextItems.length} targets · approximately {request.estimatedInputTokens.toLocaleString("en-CA")} input tokens</span><span>Prompt provenance: {request.promptHash}</span></section>
         <label className={styles.acknowledge}><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} /><span>I reviewed the selected context, privacy notice and possible provider cost.</span></label>
-        <button type="button" className={styles.primary} disabled={!provider.connected || !acknowledged || state === "working"} onClick={submitReview}>{state === "working" ? "Reviewing…" : provider.connected ? "Submit AI review" : "Connect a provider in Settings to submit"}</button>
+        <button type="button" className={styles.primary} disabled={providerMode !== "connected" || !provider.connected || !acknowledged || state === "working"} onClick={submitReview}>{state === "working" ? "Reviewing…" : providerMode === "local" ? "Local prompt only · no submission" : provider.connected ? "Submit AI review" : "Connect a provider in Settings to submit"}</button>
       </> : null}
 
       {result ? <section className={styles.resultPanel}>

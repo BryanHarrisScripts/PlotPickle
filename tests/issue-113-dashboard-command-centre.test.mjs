@@ -22,7 +22,11 @@ test("issue #113 reuses canonical project, progress, storage and settings source
 });
 
 test("issue #113 dashboard presents connections, workflow, attention and project snapshot", async () => {
-  const dashboard = await source("app/dashboard-command-centre.tsx");
+  const [dashboard, model] = await Promise.all([
+    source("app/dashboard-command-centre.tsx"),
+    source("lib/dashboard-command-centre.ts"),
+  ]);
+  const surface = `${dashboard}\n${model}`;
   for (const phrase of [
     "Five-second readiness check",
     "Connections",
@@ -42,23 +46,24 @@ test("issue #113 dashboard presents connections, workflow, attention and project
     "Refine",
     "Estimated pages",
     "Canonical / branch state",
-  ]) assert.ok(dashboard.includes(phrase), `Dashboard UI is missing: ${phrase}`);
+  ]) assert.ok(surface.includes(phrase), `Dashboard surface is missing: ${phrase}`);
   assert.match(dashboard, /toneMeta/);
   assert.match(dashboard, /aria-label/);
   assert.doesNotMatch(dashboard, />New Project<|>Import<|>Export<|>Load Afterglow</);
 });
 
 test("issue #113 moves project actions to the persistent shell and replaces the legacy Dashboard", async () => {
-  const [page, shell] = await Promise.all([
+  const [page, shell, direction] = await Promise.all([
     source("app/page.tsx"),
     source("app/application-shell-header.tsx"),
+    source("lib/product-direction.ts"),
   ]);
   assert.match(page, /<ApplicationShellHeader/);
   assert.match(page, /<DashboardCommandCentre/);
   assert.doesNotMatch(page, /className="dashboard-actions"/);
   assert.doesNotMatch(page, /const dashboardStatuses/);
   assert.match(shell, /PROJECT_ACTIONS\.map/);
-  for (const action of ["New Project", "Import", "Export", "Load Afterglow"]) assert.ok(shell.includes(action) || (await source("lib/product-direction.ts")).includes(action));
+  for (const action of ["New Project", "Import", "Export", "Load Afterglow"]) assert.ok(shell.includes(action) || direction.includes(action));
 });
 
 test("issue #113 Dashboard links can request the exact Settings subsection", async () => {

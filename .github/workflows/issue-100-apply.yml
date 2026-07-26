@@ -4,12 +4,16 @@ on:
   push:
     branches:
       - agent/issue-100-premium-ui-ux
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
   apply:
+    if: github.event_name == 'push' || github.head_ref == 'agent/issue-100-premium-ui-ux'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

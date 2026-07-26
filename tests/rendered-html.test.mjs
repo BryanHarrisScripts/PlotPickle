@@ -35,13 +35,15 @@ async function render(pathname) {
   return response.text();
 }
 
-test("renders the root workspace directly and preserves the local-first workspace contract", async () => {
+test("renders the premium startup splash and preserves the local-first workspace contract", async () => {
   const html = await render("/");
   assert.match(html, developmentPreviewMeta);
   assert.match(html, /PlotPickle Playhouse/);
   assert.match(html, /Story Planner/);
   assert.match(html, /Simple Start/);
-  assert.match(html, /Reports/);
+  for (const phrase of ["Learn the craft", "Plan the whole story", "Write the screenplay", "See the film", "Refine with purpose"]) {
+    assert.match(html, new RegExp(phrase));
+  }
   assert.match(html, /\/brand\/favicon\/plotpickle-icon-128\.png/);
 
   const [source, navigation] = await Promise.all([

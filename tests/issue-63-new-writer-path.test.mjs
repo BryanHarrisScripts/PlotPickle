@@ -10,6 +10,7 @@ const start = read("app/start-here/page.tsx");
 const examples = read("app/worked-examples/page.tsx");
 const readiness = read("app/screenplay-readiness/page.tsx");
 const middleware = read("middleware.ts");
+const main = read("app/page.tsx");
 
 test("welcome offers all six optional Simple Start entry routes", () => {
   for (const label of ["I have an idea", "Create a new screenplay", "Continue my screenplay", "Import an existing screenplay", "Explore Afterglow", "Learn how screenplays work"]) assert.match(welcome, new RegExp(label));
@@ -20,11 +21,12 @@ test("welcome offers all six optional Simple Start entry routes", () => {
   assert.match(welcome, /Complete Learning Library/);
 });
 
-test("the root opens the core workspace while Welcome remains optional", () => {
+test("the root opens the updated splash while Welcome remains an optional guided route", () => {
   assert.match(middleware, /pathname !== "\/"/);
   assert.match(middleware, /optional Simple Start route/);
   assert.match(middleware, /return NextResponse\.next\(\)/);
   assert.doesNotMatch(middleware, /NextResponse\.redirect/);
+  assert.match(main, /const \[showLanding, setShowLanding\] = useState\(true\)/);
   assert.match(welcome, /Simple Start · optional guided entry/);
   assert.doesNotMatch(welcome, /plotpickle-open-last/);
 });

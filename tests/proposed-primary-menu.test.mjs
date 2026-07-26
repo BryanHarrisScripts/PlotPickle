@@ -16,11 +16,12 @@ test("the primary menu uses the approved short labels in order", async () => {
   }
 });
 
-test("the application renders the shared menu and opens on Dashboard", async () => {
+test("the application renders the shared menu with Dashboard ready behind the splash", async () => {
   const page = await source("app/page.tsx");
   assert.match(page, /PRODUCT_NAVIGATION/);
   assert.match(page, /type MainTab = ProductNavigationId/);
   assert.match(page, /useState<MainTab>\("dashboard"\)/);
+  assert.match(page, /const \[showLanding, setShowLanding\] = useState\(true\)/);
   assert.match(page, /activeTab === "dashboard"[\s\S]*ProjectOverview/);
   assert.match(page, /className="dashboard-actions"/);
   assert.equal((page.match(/ref={fileInputRef}/g) ?? []).length, 1);
@@ -38,10 +39,10 @@ test("the brand opens the marketing splash and the top bar stays navigation-only
 });
 
 test("the proposed menu has responsive styling and Dashboard actions", async () => {
-  const css = await source("app/ui-ux-cleanup.css");
-  assert.match(css, /Proposed simplified primary menu/);
-  assert.match(css, /grid-template-columns: minmax\(220px, 0\.9fr\) minmax\(0, 4fr\)/);
-  assert.match(css, /min-height: 64px/);
+  const css = await source("app/premium-ui.css");
+  assert.match(css, /grid-template-columns:minmax\(190px,1fr\) auto minmax\(190px,1fr\)/);
+  assert.match(css, /\.main-tabs\{justify-self:center/);
+  assert.match(css, /min-height:70px/);
   assert.match(css, /\.dashboard-actions/);
-  assert.match(css, /@media \(max-width: 600px\)/);
+  assert.match(css, /@media\(max-width:760px\)/);
 });

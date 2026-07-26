@@ -31,8 +31,9 @@ test("issue #104 preserves Windows executable paths containing spaces", async ()
   assert.match(helper, /process\.env\.ComSpec/);
   assert.ok(helper.includes('/\\.(?:cmd|bat)$/i'));
   assert.match(helper, /shell: false/);
-  assert.match(helper, /quoteForCommandPrompt/);
-  assert.match(helper, /windowsVerbatimArguments: true/);
+  assert.match(helper, /\["\/d", "\/c", command, \.\.\.args\]/);
+  assert.doesNotMatch(helper, /windowsVerbatimArguments/);
+  assert.doesNotMatch(helper, /quoteForCommandPrompt/);
   assert.match(helper, /C:\\Program Files\\nodejs\\node\.exe/);
 
   for (const file of [build, timeout, audit]) {

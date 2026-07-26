@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import styles from "./build-workspace.module.css";
+import MiniBlockWall from "./mini-block-wall";
 import {
   createBuildWorkspaceModel,
   updateCanonicalBuildBlock,
@@ -17,17 +18,20 @@ import {
 } from "@/lib/build-workspace-order";
 import type { PlotPickleProject } from "@/lib/project";
 
+type BuildWorkspaceDisplay = BuildWorkspaceView | "mini-blocks";
+
 type BuildWorkspaceProps = {
   project: PlotPickleProject;
   onProjectChange: (project: PlotPickleProject) => void;
   onOpenBlock: (number: number) => void;
 };
 
-const VIEW_OPTIONS: { id: BuildWorkspaceView; label: string; description: string }[] = [
+const VIEW_OPTIONS: { id: BuildWorkspaceDisplay; label: string; description: string }[] = [
   { id: "whole-film", label: "Whole film", description: "Four acts and twelve sequences" },
   { id: "act", label: "Acts", description: "Six Blocks per act" },
   { id: "sequence", label: "Sequences", description: "Two Blocks per sequence" },
   { id: "blocks", label: "24 Blocks", description: "Every canonical story movement" },
+  { id: "mini-blocks", label: "96 Mini-blocks", description: "The complete construction wall" },
 ];
 
 const STATUS_OPTIONS: { id: BuildBlockStatus | "all"; label: string }[] = [
@@ -126,7 +130,7 @@ function InspectorField({ label, value, onChange, rows = 2 }: { label: string; v
 }
 
 export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }: BuildWorkspaceProps) {
-  const [view, setView] = useState<BuildWorkspaceView>("whole-film");
+  const [view, setView] = useState<BuildWorkspaceDisplay>("whole-film");
   const [query, setQuery] = useState("");
   const [act, setAct] = useState(0);
   const [sequence, setSequence] = useState(0);
@@ -196,6 +200,9 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
   }
 
   function renderCanvas() {
+    if (view === "mini-blocks") {
+      return <MiniBlockWall project={project} onProjectChange={onProjectChange} onOpenBlock={onOpenBlock} />;
+    }
     if (view === "blocks") {
       return <CardGrid cards={model.visibleCards} selectedId={selectedBlock?.id ?? ""} onSelect={setSelectedBlockId} onMove={moveBlock} />;
     }
@@ -237,10 +244,12 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
     ))}</div>;
   }
 
+  const wallMode = view === "mini-blocks";
+
   return (
-    <div className={styles.workspace}>
+    <div className={`${styles.workspace} ${wallMode ? styles.wallMode : ""}`}>
       <aside className={styles.submenu} aria-label="Build sections">
-        <div><p className={styles.eyebrow}>Build</p><strong>Arrange the film</strong><span>One canonical 24-Block structure.</span></div>
+        <div><p className={styles.eyebrow}>Build</p><strong>Arrange the film</strong><span>One canonical 24-Block and 96-mini-block structure.</span></div>
         <nav aria-label="Build views">
           {VIEW_OPTIONS.map((option) => (
             <button type="button" key={option.id} className={view === option.id ? styles.activeView : ""} onClick={() => setView(option.id)}>
@@ -256,26 +265,28 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
       </aside>
 
       <main className={styles.main}>
-        <header className={styles.hero}>
-          <div><p className={styles.eyebrow}>Visual story construction</p><h1>Build the whole film, then refine one Block without losing context.</h1><p>Drag a Block onto another Block to move it, or use the keyboard-safe position controls in the inspector. Every path updates the same canonical project.</p></div>
-          <div className={styles.heroMetric}><strong>{model.visibleCards.length}</strong><span>visible Blocks</span></div>
-        </header>
+        {!wallMode ? <>
+          <header className={styles.hero}>
+            <div><p className={styles.eyebrow}>Visual story construction</p><h1>Build the whole film, then refine one Block without losing context.</h1><p>Drag a Block onto another Block to move it, or use the keyboard-safe position controls in the inspector. Every path updates the same canonical project.</p></div>
+            <div className={styles.heroMetric}><strong>{model.visibleCards.length}</strong><span>visible Blocks</span></div>
+          </header>
 
-        <section className={styles.filters} aria-label="Build filters">
-          <label><span>Search</span><input type="search" value={query} placeholder="Title, purpose, character, setup…" onChange={(event) => setQuery(event.target.value)} /></label>
-          <label><span>Act</span><select value={act} onChange={(event) => setAct(Number(event.target.value))}><option value={0}>All acts</option>{[1, 2, 3, 4].map((value) => <option value={value} key={value}>Act {value}</option>)}</select></label>
-          <label><span>Sequence</span><select value={sequence} onChange={(event) => setSequence(Number(event.target.value))}><option value={0}>All sequences</option>{project.structure.sequences.map((item) => <option value={item.number} key={item.id}>Sequence {item.number}</option>)}</select></label>
-          <label><span>Status</span><select value={status} onChange={(event) => setStatus(event.target.value as BuildBlockStatus | "all")}>{STATUS_OPTIONS.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>
-          <label><span>Label</span><select value={label} onChange={(event) => setLabel(event.target.value)}><option value="">All labels</option>{labels.map((item) => <option value={item} key={item}>{item}</option>)}</select></label>
-          <button type="button" onClick={() => { setQuery(""); setAct(0); setSequence(0); setStatus("all"); setLabel(""); }}>Clear filters</button>
-        </section>
+          <section className={styles.filters} aria-label="Build filters">
+            <label><span>Search</span><input type="search" value={query} placeholder="Title, purpose, character, setup…" onChange={(event) => setQuery(event.target.value)} /></label>
+            <label><span>Act</span><select value={act} onChange={(event) => setAct(Number(event.target.value))}><option value={0}>All acts</option>{[1, 2, 3, 4].map((value) => <option value={value} key={value}>Act {value}</option>)}</select></label>
+            <label><span>Sequence</span><select value={sequence} onChange={(event) => setSequence(Number(event.target.value))}><option value={0}>All sequences</option>{project.structure.sequences.map((item) => <option value={item.number} key={item.id}>Sequence {item.number}</option>)}</select></label>
+            <label><span>Status</span><select value={status} onChange={(event) => setStatus(event.target.value as BuildBlockStatus | "all")}>{STATUS_OPTIONS.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>
+            <label><span>Label</span><select value={label} onChange={(event) => setLabel(event.target.value)}><option value="">All labels</option>{labels.map((item) => <option value={item} key={item}>{item}</option>)}</select></label>
+            <button type="button" onClick={() => { setQuery(""); setAct(0); setSequence(0); setStatus("all"); setLabel(""); }}>Clear filters</button>
+          </section>
+        </> : null}
 
         <section className={styles.canvas} aria-label={`${VIEW_OPTIONS.find((option) => option.id === view)?.label} Build view`}>
           {renderCanvas()}
         </section>
       </main>
 
-      <aside className={styles.inspector} aria-label="Block inspector">
+      {!wallMode ? <aside className={styles.inspector} aria-label="Block inspector">
         {selectedBlock && selectedCard ? (
           <>
             <header><div><p className={styles.eyebrow}>Block inspector</p><h2>Block {selectedBlock.number}</h2></div><span className={`${styles.status} ${styles[`status${statusLabel(selectedCard.status)}`]}`}>{statusLabel(selectedCard.status)}</span></header>
@@ -314,7 +325,7 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
             <button type="button" className={styles.primaryAction} onClick={() => onOpenBlock(selectedBlock.number)}>Open full Block editor in Plan</button>
           </>
         ) : <p className={styles.emptyState}>Choose a Block to inspect it.</p>}
-      </aside>
+      </aside> : null}
     </div>
   );
 }

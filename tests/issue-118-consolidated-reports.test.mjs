@@ -104,8 +104,8 @@ test("issue #118 Dialogue report covers counts speeches balance repetition voice
     "silentScenes",
     "repeatedPhrases",
     "voiceConsistency",
+    "characters: report.characters",
     "estimatedSpeakingSeconds",
-    "sceneHeadings",
   ]) assert.ok(reports.includes(contract), `Missing Dialogue report contract: ${contract}`);
 });
 

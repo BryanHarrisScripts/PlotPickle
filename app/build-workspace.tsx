@@ -42,13 +42,38 @@ function statusLabel(status: BuildBlockStatus) {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
-function BlockCard({ card, selected, onSelect }: { card: BuildBlockCard; selected: boolean; onSelect: () => void }) {
+function BlockCard({
+  card,
+  selected,
+  onSelect,
+  onMove,
+}: {
+  card: BuildBlockCard;
+  selected: boolean;
+  onSelect: () => void;
+  onMove: (sourceId: string, targetNumber: number) => void;
+}) {
   return (
     <button
       type="button"
+      draggable
       className={`${styles.blockCard} ${selected ? styles.blockCardSelected : ""}`}
       onClick={onSelect}
+      onDragStart={(event) => {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", card.id);
+      }}
+      onDragOver={(event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+      }}
+      onDrop={(event) => {
+        event.preventDefault();
+        const sourceId = event.dataTransfer.getData("text/plain");
+        if (sourceId && sourceId !== card.id) onMove(sourceId, card.number);
+      }}
       aria-pressed={selected}
+      title="Select this Block, or drag it onto another Block to move it."
     >
       <span className={styles.cardTopline}>
         <strong>Block {card.number}</strong>
@@ -62,11 +87,29 @@ function BlockCard({ card, selected, onSelect }: { card: BuildBlockCard; selecte
   );
 }
 
-function CardGrid({ cards, selectedId, onSelect }: { cards: BuildBlockCard[]; selectedId: string; onSelect: (id: string) => void }) {
+function CardGrid({
+  cards,
+  selectedId,
+  onSelect,
+  onMove,
+}: {
+  cards: BuildBlockCard[];
+  selectedId: string;
+  onSelect: (id: string) => void;
+  onMove: (sourceId: string, targetNumber: number) => void;
+}) {
   if (!cards.length) return <p className={styles.emptyState}>No Blocks match the current filters.</p>;
   return (
     <div className={styles.cardGrid}>
-      {cards.map((card) => <BlockCard key={card.id} card={card} selected={card.id === selectedId} onSelect={() => onSelect(card.id)} />)}
+      {cards.map((card) => (
+        <BlockCard
+          key={card.id}
+          card={card}
+          selected={card.id === selectedId}
+          onSelect={() => onSelect(card.id)}
+          onMove={onMove}
+        />
+      ))}
     </div>
   );
 }
@@ -118,13 +161,18 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
     patchSelected({ characterIds });
   }
 
-  function moveSelected(targetNumber: number) {
-    if (!selectedBlock) return;
-    const next = moveCanonicalBuildBlock(project, selectedBlock.id, targetNumber);
+  function moveBlock(blockId: string, targetNumber: number) {
+    const next = moveCanonicalBuildBlock(project, blockId, targetNumber);
     if (next === project) return;
     setUndoOrders((orders) => [...orders.slice(-19), canonicalBuildOrder(project)]);
     setRedoOrders([]);
+    setSelectedBlockId(blockId);
     onProjectChange(next);
+  }
+
+  function moveSelected(targetNumber: number) {
+    if (!selectedBlock) return;
+    moveBlock(selectedBlock.id, targetNumber);
   }
 
   function undoMove() {
@@ -148,13 +196,15 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
   }
 
   function renderCanvas() {
-    if (view === "blocks") return <CardGrid cards={model.visibleCards} selectedId={selectedBlock?.id ?? ""} onSelect={setSelectedBlockId} />;
+    if (view === "blocks") {
+      return <CardGrid cards={model.visibleCards} selectedId={selectedBlock?.id ?? ""} onSelect={setSelectedBlockId} onMove={moveBlock} />;
+    }
     if (view === "sequence") {
       return <div className={styles.laneStack}>{model.sequences.map((lane) => (
         <section className={styles.lane} key={lane.id}>
           <header><div><p>Sequence {lane.number} · Act {lane.act}</p><h2>{lane.title}</h2></div><span>{lane.cards.length} Blocks</span></header>
           <p>{lane.purpose}</p>
-          <CardGrid cards={lane.cards} selectedId={selectedBlock?.id ?? ""} onSelect={setSelectedBlockId} />
+          <CardGrid cards={lane.cards} selectedId={selectedBlock?.id ?? ""} onSelect={setSelectedBlockId} onMove={moveBlock} />
         </section>
       ))}</div>;
     }
@@ -162,7 +212,7 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
       return <div className={styles.laneStack}>{model.acts.map((lane) => (
         <section className={styles.lane} key={lane.number}>
           <header><div><p>Act {lane.number}</p><h2>{["Setup", "Confrontation", "Complication", "Resolution"][lane.number - 1]}</h2></div><span>{lane.cards.length} Blocks</span></header>
-          <CardGrid cards={lane.cards} selectedId={selectedBlock?.id ?? ""} onSelect={setSelectedBlockId} />
+          <CardGrid cards={lane.cards} selectedId={selectedBlock?.id ?? ""} onSelect={setSelectedBlockId} onMove={moveBlock} />
         </section>
       ))}</div>;
     }
@@ -172,7 +222,15 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
         {actLane.sequences.map((sequenceLane) => (
           <div className={styles.sequenceGroup} key={sequenceLane.id}>
             <div className={styles.sequenceHeading}><strong>Sequence {sequenceLane.number}</strong><span>{sequenceLane.title}</span></div>
-            {sequenceLane.cards.map((card) => <BlockCard key={card.id} card={card} selected={card.id === selectedBlock?.id} onSelect={() => setSelectedBlockId(card.id)} />)}
+            {sequenceLane.cards.map((card) => (
+              <BlockCard
+                key={card.id}
+                card={card}
+                selected={card.id === selectedBlock?.id}
+                onSelect={() => setSelectedBlockId(card.id)}
+                onMove={moveBlock}
+              />
+            ))}
           </div>
         ))}
       </section>
@@ -199,7 +257,7 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
 
       <main className={styles.main}>
         <header className={styles.hero}>
-          <div><p className={styles.eyebrow}>Visual story construction</p><h1>Build the whole film, then refine one Block without losing context.</h1><p>Move between four acts, twelve sequences and twenty-four stable Block IDs. Search and inspect the same data already used throughout PlotPickle.</p></div>
+          <div><p className={styles.eyebrow}>Visual story construction</p><h1>Build the whole film, then refine one Block without losing context.</h1><p>Drag a Block onto another Block to move it, or use the keyboard-safe position controls in the inspector. Every path updates the same canonical project.</p></div>
           <div className={styles.heroMetric}><strong>{model.visibleCards.length}</strong><span>visible Blocks</span></div>
         </header>
 

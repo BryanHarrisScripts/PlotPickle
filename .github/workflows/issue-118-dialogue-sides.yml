@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: issue-118-dialogue-sides
+  cancel-in-progress: true
+
 jobs:
   patch:
     if: github.actor != 'github-actions[bot]'

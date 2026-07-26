@@ -1,0 +1,39 @@
+name: Issue 114 Build integration
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.head_ref == 'agent/issue-114-build-workspace'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ github.token }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: node scripts/issue-114-integrate.mjs
+      - run: npm ci --silent
+      - run: npm run test:build-workspace
+      - run: npm run lint
+      - run: npm run build
+      - name: Commit integration when needed
+        run: |
+          if git diff --quiet; then
+            echo "Build workspace is already integrated."
+            exit 0
+          fi
+          git config user.name "PlotPickle Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add app/page.tsx
+          git commit -m "Issue #114: mount live Build workspace"
+          git push origin HEAD:${GITHUB_HEAD_REF}

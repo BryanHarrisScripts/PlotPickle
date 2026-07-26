@@ -83,7 +83,7 @@ jobs:
 
           $stdout = Join-Path $env:RUNNER_TEMP "plotpickle-vite-stdout.log"
           $stderr = Join-Path $env:RUNNER_TEMP "plotpickle-vite-stderr.log"
-          $server = Start-Process -FilePath ".\node_modules\.bin\vite.cmd" -ArgumentList "--host", "127.0.0.1", "--port", "4173", "--strictPort" -PassThru -NoNewWindow -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+          $server = Start-Process -FilePath "node.exe" -ArgumentList "node_modules/vite/bin/vite.js", "--host", "127.0.0.1", "--port", "4173", "--strictPort" -PassThru -NoNewWindow -RedirectStandardOutput $stdout -RedirectStandardError $stderr
           try {
             $ready = $false
             for ($attempt = 1; $attempt -le 45; $attempt++) {

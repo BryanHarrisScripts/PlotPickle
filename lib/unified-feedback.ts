@@ -183,7 +183,7 @@ function text(value: unknown) {
 }
 
 function normalized(value: string) {
-  return value.trim().toLocaleLowerCase().replace(/\s+/g, " ");
+  return text(value).toLocaleLowerCase().replace(/\s+/g, " ");
 }
 
 function priorityForDiagnostic(kind: string): ReviewPriority {

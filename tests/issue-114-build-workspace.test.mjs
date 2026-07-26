@@ -136,6 +136,22 @@ test("issue #114 provides keyboard movement and order-only undo redo", async () 
   assert.match(workspace, /disabled=\{selectedBlock\.number >= project\.blocks\.length\}/);
 });
 
+test("issue #114 drag and drop uses the same stable-ID movement path", async () => {
+  const workspace = await source("app/build-workspace.tsx");
+  for (const contract of [
+    "draggable",
+    "onDragStart",
+    "onDragOver",
+    "onDrop",
+    'setData("text/plain", card.id)',
+    'getData("text/plain")',
+    "onMove(sourceId, card.number)",
+    "moveBlock(selectedBlock.id, targetNumber)",
+  ]) assert.ok(workspace.includes(contract), `Build drag-and-drop is missing: ${contract}`);
+  assert.match(workspace, /moveCanonicalBuildBlock\(project, blockId, targetNumber\)/);
+  assert.match(workspace, /setSelectedBlockId\(blockId\)/);
+});
+
 test("issue #114 documents stable-ID movement and positional sequence lanes", async () => {
   const [foundation, liveSlice] = await Promise.all([
     source("docs/issue-114-build-workspace.md"),
@@ -150,6 +166,7 @@ test("issue #114 documents stable-ID movement and positional sequence lanes", as
     "review anchors",
     "Sequence `blockNumbers` ranges remain fixed",
     "order-only undo and redo",
+    "pointer drag-and-drop",
   ]) assert.ok((foundation + liveSlice).includes(phrase), `Build movement documentation is missing: ${phrase}`);
   assert.match(foundation, /stable-ID ordering/);
   assert.match(liveSlice, /stable Block, scene, mini-block and review target IDs/);

@@ -6,11 +6,11 @@ Create Build as a visual construction workspace between Plan and Write while pre
 
 ## Existing reuse boundary
 
-- `app/build-workspace.tsx` already provides the live Build route and persistent submenu.
+- `app/build-workspace.tsx` provides the live Build route and persistent submenu.
 - `project.blocks` remains the only persisted Block collection.
 - `project.structure.sequences` remains the canonical 12-sequence structure.
 - `StoryBlock.scenes`, `StoryScene.miniBlocks`, screenplay links, visuals, review anchors and production references remain attached to their existing stable IDs.
-- `app/page.tsx` continues to own project commits, autosave and cross-workspace synchronization.
+- `app/page.tsx` continues to own project commits, debounced autosave and cross-workspace scene synchronization.
 
 ## Foundation added
 
@@ -25,22 +25,41 @@ Create Build as a visual construction workspace between Plan and Write while pre
 - derived card readiness without adding a persisted Build-only status record;
 - immutable canonical Block-field updates that preserve the Block ID.
 
-## Reorder safety requirement
+## Reference-safe ordering
 
-Block reordering is intentionally separated from the first foundation commit. A Block move changes its canonical number, act and sequence and therefore must remap every numeric reference that follows that Block, including screenplay elements, thread milestones, arc checkpoints, review labels, production records and any structure sequence ranges. Reorder will be added only with explicit reference-remapping and undo tests so existing projects cannot silently lose links.
+`lib/build-workspace-order.ts` moves Blocks by stable ID and then atomically updates the canonical project:
 
-## Next implementation slices
+- Block `number`, `act` and `sequenceNumber` fields;
+- screenplay element `blockNumber` references;
+- story-thread introduction, resolution and milestone Block numbers;
+- character arc checkpoint Block numbers;
+- production shot, cue and breakdown Block numbers;
+- leading `Block N` text in review anchors while preserving their stable target IDs.
 
-1. Replace the current Build summary with whole-film, act, sequence and 24-Block views using the derived model.
-2. Add the Block inspector using existing `StoryBlock` fields and canonical commit callbacks.
-3. Add a reference-aware move operation and keyboard alternative.
-4. Add local undo/redo history around canonical project snapshots.
-5. Reuse the existing debounced project persistence in `app/page.tsx`.
-6. Add contextual routes to guidance, visuals, diagnostics and Feedback.
+Sequence `blockNumbers` ranges remain fixed because they describe positional lanes, not a particular Block identity. Scene, mini-block, visual and review target IDs remain unchanged.
+
+## Movement and undo
+
+The Build inspector provides:
+
+- Move earlier and Move later buttons;
+- direct movement to any Block position;
+- keyboard-operable controls without requiring drag-and-drop;
+- order-only undo and redo history;
+- autosave through the existing project commit path.
+
+Undo stores only the stable-ID ordering, so text edits made after a move are preserved when the previous order is restored.
+
+## Remaining implementation slices
+
+1. Add optional pointer drag-and-drop on top of the completed keyboard movement controls.
+2. Add contextual routes to guidance, visuals, diagnostics and Feedback.
+3. Add focused interaction tests for repeated cross-act moves in a rendered browser environment.
 
 ## Non-negotiable rules
 
 - No Build-only story database or duplicate Block records.
-- Stable Block, scene and mini-block IDs survive edits and moves.
+- Stable Block, scene, mini-block and review target IDs survive edits and moves.
 - Plan, Build, Write, Storyboard, Feedback and Reports read the same updated project.
+- Existing projects continue to normalize without data loss.
 - All core operations remain available without AI, GitHub or Google.

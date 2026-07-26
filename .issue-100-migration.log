@@ -1,14 +1,4 @@
-file:///home/runner/work/PlotPickle/PlotPickle/scripts/issue-100-shell.mjs:102
-    { id: "story", label: "Story plan", tone: completion >= 70 ? "green" : completion > 0 ? "yellow" : "red", status: completion >= 70 ? "Ready for the next pass" : completion > 0 ? "In progress" : "Not started", detail: \`${completion}% of the active story plan is populated.\` },
-                                                                                                                                                                                                                                 ^
-
-ReferenceError: completion is not defined
-    at file:///home/runner/work/PlotPickle/PlotPickle/scripts/issue-100-shell.mjs:102:226
-    at ModuleJob.run (node:internal/modules/esm/module_job:271:25)
-    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:547:26)
-    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)
-
-Node.js v22.13.0
+Issue #100 shell migration applied.
 file:///home/runner/work/PlotPickle/PlotPickle/scripts/issue-100-reports-tests.mjs:6
   if (count !== 1) throw new Error(`${path}: expected one match, found ${count}`);
                          ^

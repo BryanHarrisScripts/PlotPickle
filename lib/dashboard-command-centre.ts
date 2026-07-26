@@ -3,6 +3,12 @@ import { projectSectionProgress, sectionHasAlert } from "./project-progress";
 import { deriveDashboardStorageStatus, type DashboardStorageStatus } from "./project-dashboard";
 import { LEARNING_MODULE_COUNT, type ProductNavigationId } from "./product-direction";
 import type { PlotPickleSettings } from "./ai/settings";
+import {
+  connectionSettingsSection,
+  type ConnectionState,
+  type ConnectionStatusSnapshot,
+  type PublicConnectionStatus,
+} from "./connection-status";
 
 export type DashboardTone = "green" | "yellow" | "red";
 
@@ -69,8 +75,7 @@ export type DashboardCommandCentreOptions = {
   saveState: string;
   learningCompleted?: number;
   settings: PlotPickleSettings;
-  aiConnection: "disabled" | "configured" | "connected" | "error" | "unavailable";
-  aiMessage?: string;
+  connectionStatus: ConnectionStatusSnapshot;
 };
 
 function clamp(value: number) {
@@ -95,6 +100,22 @@ function storageTone(storage: DashboardStorageStatus): DashboardTone {
   if (storage.state === "synchronized") return "green";
   if (storage.state === "review-required") return "red";
   return "yellow";
+}
+
+function connectionTone(state: ConnectionState): DashboardTone {
+  if (state === "connected" || state === "disabled") return "green";
+  if (state === "error") return "red";
+  return "yellow";
+}
+
+function connectionStateLabel(connection: PublicConnectionStatus) {
+  if (connection.state === "connected") return "Connected";
+  if (connection.state === "configured") return "Configured — test connection";
+  if (connection.state === "checking") return "Checking connection";
+  if (connection.state === "error") return "Connection problem";
+  if (connection.state === "unavailable") return "Unavailable in this environment";
+  if (connection.state === "disabled") return "Optional — disabled";
+  return "Optional — not connected";
 }
 
 function latestActivity(project: PlotPickleProject, values: string[] = []) {
@@ -154,61 +175,32 @@ export function createDashboardCommandCentreModel(project: PlotPickleProject, op
     exportCreatedAt: "",
   });
 
-  const saveHealthy = /^Saved\b/i.test(options.saveState);
-  const aiTone: DashboardTone = options.aiConnection === "error" ? "red" : options.aiConnection === "connected" || options.aiConnection === "disabled" ? "green" : "yellow";
-  const aiStatus = options.aiConnection === "disabled"
-    ? "Optional — disabled"
-    : options.aiConnection === "connected"
-      ? "Connected"
-      : options.aiConnection === "configured"
-        ? "Configured — verify connection"
-        : options.aiConnection === "unavailable"
-          ? "Available in the local app"
-          : "Connection problem";
-  const activePlugins = options.settings.plugins.filter((plugin) => String(plugin.status) !== "coming-soon").length;
+  const sharedConnections = options.connectionStatus.items;
+  const saveHealthy = sharedConnections.storage.state === "connected";
+  const connectionCard = (connection: PublicConnectionStatus, label = connection.label): DashboardConnectionCard => ({
+    id: connection.id,
+    label,
+    tone: connectionTone(connection.state),
+    status: connectionStateLabel(connection),
+    detail: [connection.identity, connection.detail].filter(Boolean).join(" · "),
+    target: { workspace: "settings", section: connectionSettingsSection(connection.id) },
+  });
 
   const connections: DashboardConnectionCard[] = [
+    connectionCard(sharedConnections.github, "GitHub"),
+    connectionCard(sharedConnections.ai, "AI provider"),
+    connectionCard(sharedConnections.plugins, "Plugins"),
+    connectionCard(sharedConnections.google, "Google"),
     {
-      id: "github",
-      label: "GitHub",
-      tone: connectedToGitHub ? (commitsMatch ? "green" : "yellow") : "yellow",
-      status: connectedToGitHub ? (commitsMatch ? "Connected and aligned" : "Connected — review synchronization") : "Optional — not connected",
-      detail: connectedToGitHub
-        ? `${project.collaboration.owner}/${project.collaboration.repo || "repository"} · ${project.collaboration.branch || "main"}`
-        : "Connect a repository in Settings when you are ready to collaborate or publish proposals.",
-      target: { workspace: "settings", section: "collaboration" },
-    },
-    {
-      id: "ai",
-      label: "AI provider",
-      tone: aiTone,
-      status: aiStatus,
-      detail: options.aiMessage || (options.settings.ai.provider === "disabled" ? "PlotPickle remains fully usable without AI." : `${options.settings.ai.provider} is selected in local settings.`),
-      target: { workspace: "settings", section: "ai" },
-    },
-    {
-      id: "plugins",
-      label: "Plugins",
-      tone: activePlugins ? "green" : "yellow",
-      status: activePlugins ? `${activePlugins} active` : "No active plugins",
-      detail: activePlugins ? "Connected extensions are available to the current installation." : "Plugin placeholders are present; no optional extension is required to write.",
-      target: { workspace: "settings", section: "collaboration" },
-    },
-    {
+      ...connectionCard(sharedConnections.storage, "Current project"),
       id: "save",
-      label: "Current project",
-      tone: saveHealthy ? "green" : "yellow",
-      status: options.saveState,
-      detail: saveHealthy ? "The active canonical project is saved on this device." : "Keep this page open until the current save completes.",
       target: { workspace: "dashboard" },
     },
     {
-      id: "storage",
-      label: "Storage and backup",
+      ...connectionCard(sharedConnections.backups, "Storage and backup"),
       tone: storageTone(storage),
       status: storage.label,
-      detail: storage.detail,
-      target: { workspace: "settings", section: "collaboration" },
+      detail: `${storage.detail} ${sharedConnections.backups.detail}`.trim(),
     },
     {
       id: "collaboration",
@@ -216,7 +208,7 @@ export function createDashboardCommandCentreModel(project: PlotPickleProject, op
       tone: connectedToGitHub ? (commitsMatch ? "green" : "yellow") : "yellow",
       status: connectedToGitHub ? (commitsMatch ? "Canonical branch aligned" : "Proposal or synchronization review needed") : "Local-only workflow",
       detail: connectedToGitHub ? `Canonical branch: ${project.collaboration.branch || "main"}.` : "Local work stays private until you explicitly connect and propose changes.",
-      target: { workspace: "settings", section: "collaboration" },
+      target: { workspace: "settings", section: "github" },
     },
   ];
 
@@ -344,11 +336,11 @@ export function createDashboardCommandCentreModel(project: PlotPickleProject, op
     target: { workspace: "dashboard" },
   });
 
-  if (options.aiConnection === "error") attention.push({
+  if (sharedConnections.ai.state === "error") attention.push({
     id: "ai",
     tone: "red",
     title: "AI connection needs attention",
-    detail: options.aiMessage || "Open Settings to verify the saved provider.",
+    detail: sharedConnections.ai.error || sharedConnections.ai.detail || "Open Settings to verify the saved provider.",
     target: { workspace: "settings", section: "ai" },
   });
 
@@ -357,7 +349,7 @@ export function createDashboardCommandCentreModel(project: PlotPickleProject, op
     tone: "yellow",
     title: "GitHub synchronization or proposal review is pending",
     detail: "The last pulled and last pushed canonical commits do not match.",
-    target: { workspace: "settings", section: "collaboration" },
+    target: { workspace: "settings", section: "github" },
   });
 
   if (storage.requiresReview || storage.state === "backup-recommended") attention.push({
@@ -365,7 +357,7 @@ export function createDashboardCommandCentreModel(project: PlotPickleProject, op
     tone: storage.state === "review-required" ? "red" : "yellow",
     title: storage.label,
     detail: storage.detail,
-    target: { workspace: "settings", section: "collaboration" },
+    target: { workspace: "settings", section: "storage" },
   });
 
   const redCount = attention.filter((item) => item.tone === "red").length;

@@ -28,7 +28,7 @@ test("Canon Binder can attach the current beats, outline and pitch", async () =>
   assert.match(logic, /project-document:\$\{kind\}/);
 });
 
-test("Setup exposes real connections while Reports remains a primary workspace", async () => {
+test("Settings exposes real connections while Reports remains a primary workspace", async () => {
   const [page, navigation, panel, reportUi, reports] = await Promise.all([
     source("app/page.tsx"),
     source("lib/product-direction.ts"),
@@ -36,13 +36,13 @@ test("Setup exposes real connections while Reports remains a primary workspace",
     source("app/settings-project-tools.tsx"),
     source("lib/screenplay-reports.ts"),
   ]);
-  for (const item of ["<b>GitHub setup</b>", "<b>AI setup</b>", "<b>Music setup</b>"]) assert.ok(panel.includes(item), `Missing live setup connection: ${item}`);
+  for (const item of ['label: "GitHub"', 'label: "AI providers"', "Music service links"]) assert.ok(panel.includes(item), `Missing live Settings capability: ${item}`);
   assert.match(navigation, /id: "reports", label: "Reports", description: "Understand the screenplay"/);
   assert.match(page, /activeTab === "reports"[\s\S]*ReportsWorkspace/);
   assert.doesNotMatch(panel, /<b>Reports<\/b>/);
   assert.doesNotMatch(panel, /<b>Terminology Index<\/b>/);
   assert.doesNotMatch(panel, /<b>Core Model<\/b>/);
-  assert.doesNotMatch(panel, /<b>Plugins<\/b>/);
+  assert.match(panel, /label: "Plugins"/);
   for (const role of ["Producer report", "Actor", "Director report"]) assert.ok(reportUi.includes(role), `Missing role report: ${role}`);
   assert.match(reports, /createProducerReport/);
   assert.match(reports, /createDirectorReport/);

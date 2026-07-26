@@ -47,6 +47,8 @@ import { createStoredFeedbackModel } from "@/lib/unified-feedback-store";
 import type { ConsolidatedReportSection, ReportTarget } from "@/lib/consolidated-reports";
 import type { ProductionReportSection } from "@/lib/production-reports";
 import type { FeedbackTargetReference } from "@/lib/unified-feedback";
+import { reportsRuntimeConnections } from "@/lib/connection-status";
+import { useConnectionStatus } from "./use-connection-status";
 
 const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
@@ -303,6 +305,11 @@ export default function Home() {
   const [toast, setToast] = useState("");
   const [showLanding, setShowLanding] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const connectionState = useConnectionStatus(project, saveState);
+  const reportConnections = useMemo(
+    () => reportsRuntimeConnections(connectionState.snapshot),
+    [connectionState.snapshot],
+  );
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -665,6 +672,8 @@ export default function Home() {
           <DashboardCommandCentre
             project={project}
             saveState={saveState}
+            settings={connectionState.settings}
+            connectionStatus={connectionState.snapshot}
             onNavigate={(workspace, section) => {
               setActiveTab(workspace);
               if (workspace === "planner" && section) setActiveSection(section as StorySection);
@@ -847,10 +856,10 @@ export default function Home() {
           <FeedbackWorkspace project={project} onProjectChange={commit} onOpenTarget={openFeedbackTarget} initialTargetId={feedbackTargetId} />
         ) : null}
 
-        {activeTab === "reports" ? <ReportsWorkspace project={project} section={reportSection} onSectionChange={setReportSection} productionSection={productionReportSection} onProductionSectionChange={setProductionReportSection} onProjectChange={commit} onOpenTarget={openReportTarget} /> : null}
+        {activeTab === "reports" ? <ReportsWorkspace project={project} section={reportSection} onSectionChange={setReportSection} productionSection={productionReportSection} onProductionSectionChange={setProductionReportSection} onProjectChange={commit} onOpenTarget={openReportTarget} runtimeConnections={reportConnections} /> : null}
 
         <div hidden={activeTab !== "settings"}>
-          <SettingsPanel project={project} onProjectChange={commit} />
+          <SettingsPanel project={project} onProjectChange={commit} connections={connectionState.snapshot} onConnectionChange={connectionState.refresh} />
         </div>
       </main>
 

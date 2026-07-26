@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { defaultPlotPickleSettings, normalizePlotPickleSettings, type PlotPickleSettings } from "@/lib/ai/settings";
+import type { PlotPickleSettings } from "@/lib/ai/settings";
+import type { ConnectionStatusSnapshot } from "@/lib/connection-status";
 import { createDashboardCommandCentreModel, type DashboardTarget, type DashboardTone } from "@/lib/dashboard-command-centre";
 import type { PlotPickleProject } from "@/lib/project";
 import type { ProductNavigationId } from "@/lib/product-direction";
 import styles from "./dashboard-command-centre.module.css";
 
-const SETTINGS_STORAGE_KEY = "plotpickle.settings.v1";
 const SETTINGS_SECTION_KEY = "plotpickle.settings.section";
-const CONNECTION_API = "/api/local-ai/connection";
 
 const toneMeta: Record<DashboardTone, { icon: string; label: string }> = {
   green: { icon: "✓", label: "Ready or healthy" },
@@ -17,11 +16,11 @@ const toneMeta: Record<DashboardTone, { icon: string; label: string }> = {
   red: { icon: "×", label: "Missing, blocked or critical" },
 };
 
-type AiConnection = "disabled" | "configured" | "connected" | "error" | "unavailable";
-
 type Props = {
   project: PlotPickleProject;
   saveState: string;
+  settings: PlotPickleSettings;
+  connectionStatus: ConnectionStatusSnapshot;
   onNavigate: (workspace: ProductNavigationId, section?: string) => void;
   onOpenBlock: (blockNumber: number) => void;
 };
@@ -39,24 +38,11 @@ function progressTone(completion: number): DashboardTone {
   return "red";
 }
 
-export default function DashboardCommandCentre({ project, saveState, onNavigate, onOpenBlock }: Props) {
-  const [settings, setSettings] = useState<PlotPickleSettings>(() => structuredClone(defaultPlotPickleSettings));
+export default function DashboardCommandCentre({ project, saveState, settings, connectionStatus, onNavigate, onOpenBlock }: Props) {
   const [learningCompleted, setLearningCompleted] = useState(0);
-  const [aiConnection, setAiConnection] = useState<AiConnection>("disabled");
-  const [aiMessage, setAiMessage] = useState("");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      try {
-        const storedSettings = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
-        const nextSettings = storedSettings ? normalizePlotPickleSettings(JSON.parse(storedSettings)) : structuredClone(defaultPlotPickleSettings);
-        setSettings(nextSettings);
-        setAiConnection(nextSettings.ai.provider === "disabled" ? "disabled" : "configured");
-      } catch {
-        setSettings(structuredClone(defaultPlotPickleSettings));
-        setAiConnection("disabled");
-      }
-
       try {
         const savedLearning = window.localStorage.getItem(`plotpickle-learning-progress:${project.id}`);
         const completed = savedLearning ? JSON.parse(savedLearning) as unknown : [];
@@ -68,53 +54,12 @@ export default function DashboardCommandCentre({ project, saveState, onNavigate,
     return () => window.clearTimeout(timer);
   }, [project.id]);
 
-  useEffect(() => {
-    if (settings.ai.provider === "disabled") return;
-    const controller = new AbortController();
-    const timer = window.setTimeout(async () => {
-      try {
-        const response = await fetch(CONNECTION_API, { signal: controller.signal });
-        const contentType = response.headers.get("content-type") || "";
-        if (!contentType.includes("application/json")) throw new Error("local-gateway-unavailable");
-        const payload = await response.json() as { saved?: boolean; checkedAt?: string; message?: string };
-        if (!response.ok) throw new Error(payload.message || "The saved AI provider could not be read.");
-        if (!payload.saved) {
-          setAiConnection("configured");
-          setAiMessage("A provider is selected, but no private local credential has been saved.");
-        } else if (payload.checkedAt) {
-          setAiConnection("connected");
-          setAiMessage(`Last verified ${formatDate(payload.checkedAt)}.`);
-        } else {
-          setAiConnection("configured");
-          setAiMessage("Private credentials are saved; verify the provider in Settings.");
-        }
-      } catch (error) {
-        if (controller.signal.aborted) return;
-        const message = error instanceof Error ? error.message : "The AI connection could not be checked.";
-        if (message === "local-gateway-unavailable") {
-          setAiConnection("unavailable");
-          setAiMessage("Connection status is available in the downloaded local PlotPickle app.");
-        } else {
-          setAiConnection("error");
-          setAiMessage(message);
-        }
-      }
-    }, 0);
-    return () => {
-      controller.abort();
-      window.clearTimeout(timer);
-    };
-  }, [settings.ai.provider]);
-
-  const resolvedAiConnection: AiConnection = settings.ai.provider === "disabled" ? "disabled" : aiConnection;
-  const resolvedAiMessage = settings.ai.provider === "disabled" ? "PlotPickle remains fully usable without AI." : aiMessage;
   const model = useMemo(() => createDashboardCommandCentreModel(project, {
     saveState,
     learningCompleted,
     settings,
-    aiConnection: resolvedAiConnection,
-    aiMessage: resolvedAiMessage,
-  }), [project, saveState, learningCompleted, settings, resolvedAiConnection, resolvedAiMessage]);
+    connectionStatus,
+  }), [project, saveState, learningCompleted, settings, connectionStatus]);
 
   function openTarget(target: DashboardTarget) {
     if (target.blockNumber) {

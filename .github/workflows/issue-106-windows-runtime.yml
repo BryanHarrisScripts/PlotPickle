@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - agent/issue-106-cmd-quoting
+  pull_request:
+    branches:
+      - main
 
 jobs:
   windows-cmd-quoting:

@@ -6,9 +6,11 @@ export const PRODUCT_NAVIGATION = [
   { id: "instructions", label: "Introduction", description: "Understand PlotPickle and choose where to begin", zone: "orientation" },
   { id: "learn", label: "Learn", description: "Study the craft and terminology", zone: "workflow" },
   { id: "planner", label: "Plan", description: "Simple Start and story planning", zone: "workflow" },
+  { id: "build", label: "Build", description: "Arrange 24 Blocks and 96 mini-blocks", zone: "workflow" },
   { id: "script", label: "Write", description: "Outline and write", zone: "workflow" },
   { id: "visuals", label: "Storyboard", description: "See and preserve the film", zone: "workflow" },
   { id: "engines", label: "Refine", description: "Refine the story", zone: "workflow" },
+  { id: "feedback", label: "Feedback", description: "Review notes, proposals and decisions", zone: "workflow" },
   { id: "reports", label: "Reports", description: "Understand the screenplay", zone: "workflow" },
   { id: "settings", label: "Settings", description: "Preferences and Setup", zone: "configuration" },
 ] as const;

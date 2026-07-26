@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import styles from "./build-workspace.module.css";
 import MiniBlockWall from "./mini-block-wall";
+import FeedbackContextBadge from "./feedback-context-badge";
 import {
   createBuildWorkspaceModel,
   updateCanonicalBuildBlock,
@@ -17,6 +18,7 @@ import {
   moveCanonicalBuildBlock,
 } from "@/lib/build-workspace-order";
 import type { PlotPickleProject } from "@/lib/project";
+import { createStoredFeedbackModel } from "@/lib/unified-feedback-store";
 
 type BuildWorkspaceDisplay = BuildWorkspaceView | "mini-blocks";
 
@@ -24,6 +26,7 @@ type BuildWorkspaceProps = {
   project: PlotPickleProject;
   onProjectChange: (project: PlotPickleProject) => void;
   onOpenBlock: (number: number) => void;
+  onOpenFeedback: (targetId: string) => void;
 };
 
 const VIEW_OPTIONS: { id: BuildWorkspaceDisplay; label: string; description: string }[] = [
@@ -51,11 +54,13 @@ function BlockCard({
   selected,
   onSelect,
   onMove,
+  feedbackCount,
 }: {
   card: BuildBlockCard;
   selected: boolean;
   onSelect: () => void;
   onMove: (sourceId: string, targetNumber: number) => void;
+  feedbackCount: number;
 }) {
   return (
     <button
@@ -86,6 +91,7 @@ function BlockCard({
       <span className={styles.cardTitle}>{card.title || "Untitled Block"}</span>
       <span className={styles.cardPurpose}>{card.purpose || "Add the dramatic purpose for this movement."}</span>
       <span className={styles.cardMeta}>{card.sceneCount} scenes · {card.miniBlockCount} mini-blocks</span>
+      {feedbackCount ? <span className={styles.feedbackBadge}>{feedbackCount} feedback</span> : null}
       {card.characterFocus.length ? <span className={styles.cardLabels}>{card.characterFocus.slice(0, 3).join(" · ")}</span> : null}
     </button>
   );
@@ -96,11 +102,13 @@ function CardGrid({
   selectedId,
   onSelect,
   onMove,
+  feedbackBadges,
 }: {
   cards: BuildBlockCard[];
   selectedId: string;
   onSelect: (id: string) => void;
   onMove: (sourceId: string, targetNumber: number) => void;
+  feedbackBadges: Map<string, number>;
 }) {
   if (!cards.length) return <p className={styles.emptyState}>No Blocks match the current filters.</p>;
   return (
@@ -112,6 +120,7 @@ function CardGrid({
           selected={card.id === selectedId}
           onSelect={() => onSelect(card.id)}
           onMove={onMove}
+          feedbackCount={feedbackBadges.get(`block:${card.id}`) ?? 0}
         />
       ))}
     </div>
@@ -129,7 +138,7 @@ function InspectorField({ label, value, onChange, rows = 2 }: { label: string; v
   );
 }
 
-export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }: BuildWorkspaceProps) {
+export default function BuildWorkspace({ project, onProjectChange, onOpenBlock, onOpenFeedback }: BuildWorkspaceProps) {
   const [view, setView] = useState<BuildWorkspaceDisplay>("whole-film");
   const [query, setQuery] = useState("");
   const [act, setAct] = useState(0);
@@ -151,6 +160,8 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
   const selectedBlock = project.blocks.find((block) => block.id === selectedBlockId) ?? project.blocks[0];
   const selectedCard = model.cards.find((card) => card.id === selectedBlock?.id);
   const labels = useMemo(() => [...new Set(model.cards.flatMap((card) => card.labels))].sort(), [model.cards]);
+  const feedbackModel = useMemo(() => createStoredFeedbackModel(project), [project]);
+  const selectedBlockFeedbackCount = selectedBlock ? feedbackModel.badges.get(`block:${selectedBlock.id}`) ?? 0 : 0;
 
   function patchSelected(patch: BuildBlockPatch) {
     if (!selectedBlock) return;
@@ -201,17 +212,17 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
 
   function renderCanvas() {
     if (view === "mini-blocks") {
-      return <MiniBlockWall project={project} onProjectChange={onProjectChange} onOpenBlock={onOpenBlock} />;
+      return <MiniBlockWall project={project} onProjectChange={onProjectChange} onOpenBlock={onOpenBlock} feedbackBadges={feedbackModel.badges} onOpenFeedback={onOpenFeedback} />;
     }
     if (view === "blocks") {
-      return <CardGrid cards={model.visibleCards} selectedId={selectedBlock?.id ?? ""} onSelect={setSelectedBlockId} onMove={moveBlock} />;
+      return <CardGrid cards={model.visibleCards} selectedId={selectedBlock?.id ?? ""} onSelect={setSelectedBlockId} onMove={moveBlock} feedbackBadges={feedbackModel.badges} />;
     }
     if (view === "sequence") {
       return <div className={styles.laneStack}>{model.sequences.map((lane) => (
         <section className={styles.lane} key={lane.id}>
           <header><div><p>Sequence {lane.number} · Act {lane.act}</p><h2>{lane.title}</h2></div><span>{lane.cards.length} Blocks</span></header>
           <p>{lane.purpose}</p>
-          <CardGrid cards={lane.cards} selectedId={selectedBlock?.id ?? ""} onSelect={setSelectedBlockId} onMove={moveBlock} />
+          <CardGrid cards={lane.cards} selectedId={selectedBlock?.id ?? ""} onSelect={setSelectedBlockId} onMove={moveBlock} feedbackBadges={feedbackModel.badges} />
         </section>
       ))}</div>;
     }
@@ -219,7 +230,7 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
       return <div className={styles.laneStack}>{model.acts.map((lane) => (
         <section className={styles.lane} key={lane.number}>
           <header><div><p>Act {lane.number}</p><h2>{["Setup", "Confrontation", "Complication", "Resolution"][lane.number - 1]}</h2></div><span>{lane.cards.length} Blocks</span></header>
-          <CardGrid cards={lane.cards} selectedId={selectedBlock?.id ?? ""} onSelect={setSelectedBlockId} onMove={moveBlock} />
+          <CardGrid cards={lane.cards} selectedId={selectedBlock?.id ?? ""} onSelect={setSelectedBlockId} onMove={moveBlock} feedbackBadges={feedbackModel.badges} />
         </section>
       ))}</div>;
     }
@@ -236,6 +247,7 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
                 selected={card.id === selectedBlock?.id}
                 onSelect={() => setSelectedBlockId(card.id)}
                 onMove={moveBlock}
+                feedbackCount={feedbackModel.badges.get(`block:${card.id}`) ?? 0}
               />
             ))}
           </div>
@@ -322,6 +334,7 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
               <div><strong>Linked scenes</strong><span>{selectedBlock.scenes.length}</span></div>
               {selectedBlock.scenes.length ? selectedBlock.scenes.map((scene) => <p key={scene.id}><strong>{scene.title}</strong><span>{scene.status} · {scene.miniBlocks.length} mini-blocks</span></p>) : <p>No scenes are linked yet.</p>}
             </section>
+            <FeedbackContextBadge count={selectedBlockFeedbackCount} label={`Block ${selectedBlock.number} · ${selectedBlock.title}`} onOpen={() => onOpenFeedback(selectedBlock.id)} />
             <button type="button" className={styles.primaryAction} onClick={() => onOpenBlock(selectedBlock.number)}>Open full Block editor in Plan</button>
           </>
         ) : <p className={styles.emptyState}>Choose a Block to inspect it.</p>}

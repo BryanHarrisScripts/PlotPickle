@@ -4,6 +4,7 @@
 
 import { useMemo, useState } from "react";
 import styles from "./mini-block-wall.module.css";
+import FeedbackContextBadge from "./feedback-context-badge";
 import {
   createMiniBlockWallModel,
   DEFAULT_MINI_BLOCK_WALL_STATE,
@@ -63,6 +64,8 @@ type MiniBlockWallProps = {
   project: PlotPickleProject;
   onProjectChange: (project: PlotPickleProject) => void;
   onOpenBlock: (number: number) => void;
+  feedbackBadges: Map<string, number>;
+  onOpenFeedback: (targetId: string) => void;
 };
 
 function labelForStatus(status: MiniBlockWallCardStatus) {
@@ -134,7 +137,7 @@ function legendValues(project: PlotPickleProject, state: MiniBlockWallState, car
   return labels.map((label) => ({ label, tone: hash(label) % 8 }));
 }
 
-export default function MiniBlockWall({ project, onProjectChange, onOpenBlock }: MiniBlockWallProps) {
+export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, feedbackBadges, onOpenFeedback }: MiniBlockWallProps) {
   const [session, setSession] = useState(() => ({
     projectId: project.id,
     state: wallStateByProject.get(project.id) ?? DEFAULT_MINI_BLOCK_WALL_STATE,
@@ -174,6 +177,7 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock }:
   }, [model.cards, selectedCard]);
   const legend = legendValues(project, state, model.cards).filter((entry) => entry.label).slice(0, 10);
   const anchor = selectedCard ?? model.cards[0];
+  const selectedFeedbackCount = selectedCard ? feedbackBadges.get(`mini-block:${selectedCard.id}`) ?? 0 : 0;
 
   function updateState(patch: Partial<MiniBlockWallState>) {
     const next = normalizeMiniBlockWallState({ ...state, ...patch });
@@ -365,6 +369,7 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock }:
             {relationshipCards.length ? <section className={styles.relationshipPanel}><strong>Setup / payoff relationships</strong>{relationshipCards.map((card) => <button type="button" key={card.id} onClick={() => revealCard(card)}>Mini {card.globalNumber} · Block {card.blockNumber}<span>{card.label || card.turn || "Related movement"}</span></button>)}</section> : null}
             <WallField label="Notes" rows={4} value={selected.miniBlock.notes} onChange={(value) => patchSelected({ notes: value })} />
             <section className={styles.linkSummary}><strong>Linked context</strong><span>{selectedCard.frame?.src ? "Storyboard frame linked" : "Storyboard frame missing"}</span><span>Scene: {selected.scene.title}</span><span>{selectedCard.screenplayElementIds.length} screenplay elements</span><span>{selectedCard.shotIds.length} production shots</span><span>{selectedCard.storylineNames.join(" · ") || "No storyline linked"}</span><span>{selectedCard.locationNames.join(" · ") || "No location linked"}</span></section>
+            <FeedbackContextBadge count={selectedFeedbackCount} label={`Mini ${selectedCard.globalNumber} · ${selected.miniBlock.label || selected.miniBlock.id}`} onOpen={() => onOpenFeedback(selected.miniBlock.id)} />
             <button type="button" className={styles.primary} onClick={() => onOpenBlock(selected.block.number)}>Open Block {selected.block.number} in Plan</button>
           </> : <p>No mini-block matches the current view and filters.</p>}
         </aside>

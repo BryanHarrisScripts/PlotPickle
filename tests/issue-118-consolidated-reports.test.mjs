@@ -193,7 +193,7 @@ test("issue #118 keeps report selection and provides exact-context return naviga
   assert.match(build, /initialTargetId\?: string/);
   assert.match(build, /initialTargetId\.startsWith\("act-"\)/);
   assert.match(writer, /initialSceneId\?: string/);
-  assert.match(writer, /sceneIndex\.find\(\(entry\) => entry\.sceneId === initialSceneId\)/);
+  assert.match(writer, /entry\.sceneId === initialSceneId/);
 });
 
 test("issue #118 live Reports remains canonical, responsive and useful with empty data", async () => {

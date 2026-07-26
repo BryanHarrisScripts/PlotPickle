@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
+import { KeyboardEvent, useMemo, useState } from "react";
 import type {
   PlotPickleProject,
   ScreenplayDocument,
@@ -76,13 +76,18 @@ function allMiniBlocks(project: PlotPickleProject, blockNumber: number) {
 }
 
 export default function ScriptWorkspace({ project, mode, initialBlockNumber, initialSceneId, onModeChange, onChange, onProjectChange, onOpenBlock }: Props) {
-  const [blockNumber, setBlockNumber] = useState(1);
-  const [miniBlockNumber, setMiniBlockNumber] = useState(1);
-  const [selectedId, setSelectedId] = useState("");
+  const initialSceneEntry = initialSceneId
+    ? buildGlobalSceneIndex(project.blocks).find((entry) => entry.sceneId === initialSceneId)
+    : undefined;
+  const initialElement = initialSceneId
+    ? project.screenplay.draftElements.find((element) => element.sceneId === initialSceneId)
+    : undefined;
+  const [blockNumber, setBlockNumber] = useState(initialSceneEntry?.blockNumber ?? initialBlockNumber ?? 1);
+  const [miniBlockNumber, setMiniBlockNumber] = useState(initialSceneEntry?.miniBlockNumbers[0] ?? 1);
+  const [selectedId, setSelectedId] = useState(initialElement?.id ?? "");
   const [aiDirection, setAiDirection] = useState("");
   const [aiSuggestion, setAiSuggestion] = useState("");
   const [aiState, setAiState] = useState<"idle" | "working" | "error">("idle");
-  const appliedReportTarget = useRef("");
 
   const elements = project.screenplay.draftElements;
   const block = project.blocks[blockNumber - 1];
@@ -95,21 +100,6 @@ export default function ScriptWorkspace({ project, mode, initialBlockNumber, ini
     entry.blockNumber === blockNumber && entry.miniBlockNumbers.includes(miniBlockNumber)
   )) ?? sceneIndex.find((entry) => entry.blockNumber === blockNumber);
 
-  useEffect(() => {
-    const targetSignature = initialSceneId || (initialBlockNumber ? `block-${initialBlockNumber}` : "");
-    if (!targetSignature || appliedReportTarget.current === targetSignature) return;
-    appliedReportTarget.current = targetSignature;
-    const sceneEntry = initialSceneId ? sceneIndex.find((entry) => entry.sceneId === initialSceneId) : undefined;
-    const nextBlockNumber = sceneEntry?.blockNumber ?? initialBlockNumber;
-    if (nextBlockNumber && nextBlockNumber >= 1 && nextBlockNumber <= project.blocks.length) {
-      setBlockNumber(nextBlockNumber);
-      setMiniBlockNumber(sceneEntry?.miniBlockNumbers[0] ?? 1);
-    }
-    if (initialSceneId) {
-      const sceneElement = elements.find((element) => element.sceneId === initialSceneId);
-      if (sceneElement) setSelectedId(sceneElement.id);
-    }
-  }, [elements, initialBlockNumber, initialSceneId, project.blocks.length, sceneIndex]);
   const scriptedSceneCount = useMemo(() => new Set(elements.map((item) => item.sceneId || `number-${item.sceneNumber}`)).size, [elements]);
 
   function save(next: ScreenplayDraftElement[]) {

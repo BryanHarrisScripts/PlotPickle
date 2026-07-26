@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import styles from "./build-workspace.module.css";
 import MiniBlockWall from "./mini-block-wall";
 import FeedbackContextBadge from "./feedback-context-badge";
@@ -140,48 +140,27 @@ function InspectorField({ label, value, onChange, rows = 2 }: { label: string; v
 }
 
 export default function BuildWorkspace({ project, initialTargetId, onProjectChange, onOpenBlock, onOpenFeedback }: BuildWorkspaceProps) {
-  const [view, setView] = useState<BuildWorkspaceDisplay>("whole-film");
+  const initialAct = initialTargetId?.startsWith("act-") ? Number(initialTargetId.slice(4)) : 0;
+  const initialSequence = project.structure.sequences.find((item) => item.id === initialTargetId);
+  const initialBlock = project.blocks.find((item) => item.id === initialTargetId);
+  const initialView: BuildWorkspaceDisplay = initialTargetId === "mini-blocks"
+    ? "mini-blocks"
+    : initialTargetId === "blocks" || initialBlock
+      ? "blocks"
+      : initialAct >= 1 && initialAct <= 4
+        ? "act"
+        : initialSequence
+          ? "sequence"
+          : "whole-film";
+  const [view, setView] = useState<BuildWorkspaceDisplay>(initialView);
   const [query, setQuery] = useState("");
-  const [act, setAct] = useState(0);
-  const [sequence, setSequence] = useState(0);
+  const [act, setAct] = useState(initialAct >= 1 && initialAct <= 4 ? initialAct : 0);
+  const [sequence, setSequence] = useState(initialSequence?.number ?? 0);
   const [status, setStatus] = useState<BuildBlockStatus | "all">("all");
   const [label, setLabel] = useState("");
-  const [selectedBlockId, setSelectedBlockId] = useState(project.blocks[0]?.id ?? "");
+  const [selectedBlockId, setSelectedBlockId] = useState(initialBlock?.id ?? project.blocks[0]?.id ?? "");
   const [undoOrders, setUndoOrders] = useState<string[][]>([]);
   const [redoOrders, setRedoOrders] = useState<string[][]>([]);
-  const appliedTargetId = useRef("");
-
-  useEffect(() => {
-    if (!initialTargetId || appliedTargetId.current === initialTargetId) return;
-    appliedTargetId.current = initialTargetId;
-    if (initialTargetId === "mini-blocks") {
-      setView("mini-blocks");
-      return;
-    }
-    if (initialTargetId === "blocks") {
-      setView("blocks");
-      return;
-    }
-    if (initialTargetId.startsWith("act-")) {
-      const targetAct = Number(initialTargetId.slice(4));
-      if (targetAct >= 1 && targetAct <= 4) {
-        setView("act");
-        setAct(targetAct);
-      }
-      return;
-    }
-    const targetSequence = project.structure.sequences.find((item) => item.id === initialTargetId);
-    if (targetSequence) {
-      setView("sequence");
-      setSequence(targetSequence.number);
-      return;
-    }
-    const targetBlock = project.blocks.find((item) => item.id === initialTargetId);
-    if (targetBlock) {
-      setView("blocks");
-      setSelectedBlockId(targetBlock.id);
-    }
-  }, [initialTargetId, project.blocks, project.structure.sequences]);
 
   const model = useMemo(() => createBuildWorkspaceModel(project, {
     query,

@@ -335,12 +335,6 @@ export default function Home() {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
-  useEffect(() => {
-    if (activeTab === "reports") setReportReturnSection("");
-    if (activeTab !== "script") setReportSceneId("");
-    if (activeTab !== "build") setReportBuildTargetId("");
-  }, [activeTab]);
-
   const completion = useMemo(() => completionFor(project), [project]);
   const selectedCharacter = project.characters.find((character) => character.id === selectedCharacterId) ?? project.characters[0];
   const selectedBlock = project.blocks.find((block) => block.number === selectedBlockNumber) ?? project.blocks[0];
@@ -561,6 +555,7 @@ export default function Home() {
   function openReportTarget(target: ReportTarget) {
     if (target.workspace === "reports") {
       setReportSection(target.targetId as ConsolidatedReportSection);
+      setReportReturnSection("");
       setActiveTab("reports");
       return;
     }
@@ -609,7 +604,12 @@ export default function Home() {
     <div className="app-shell">
       <ApplicationShellHeader
         activeTab={activeTab}
-        onNavigate={setActiveTab}
+        onNavigate={(tab) => {
+          setReportBuildTargetId("");
+          setReportSceneId("");
+          if (tab === "reports") setReportReturnSection("");
+          setActiveTab(tab);
+        }}
         onOpenLanding={() => setShowLanding(true)}
         onProjectAction={(action) => {
           if (action === "new-project") createNewProject();
@@ -646,7 +646,12 @@ export default function Home() {
               <span>Your selected Reports view is preserved.</span>
             </div>
           </div>
-          <button type="button" className="secondary-button compact" onClick={() => setActiveTab("reports")}>
+          <button type="button" className="secondary-button compact" onClick={() => {
+            setReportReturnSection("");
+            setReportBuildTargetId("");
+            setReportSceneId("");
+            setActiveTab("reports");
+          }}>
             Return to {reportReturnSection.charAt(0).toUpperCase() + reportReturnSection.slice(1)} report
           </button>
           <div className="save-state">No report state was duplicated or changed.</div>

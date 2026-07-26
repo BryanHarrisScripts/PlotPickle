@@ -228,7 +228,7 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
       </main>
 
       <footer className={styles.footer}>
-        <div className={styles.wrap}><span><strong>PlotPickle Playhouse</strong> · Local-first screenplay and film development</span><span>Open software · Optional AI · Writer-controlled canon</span></div>
+        <div className={styles.wrap}><span><strong>PlotPickle Playhouse</strong> · Local-first screenplay and film development</span><nav aria-label="PlotPickle information"><a href="/about">About</a><a href="/legal">Copyright & licensing</a><a href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">Source</a></nav><span>Open software · Optional AI · Writer-controlled canon</span></div>
       </footer>
     </div>
   );

@@ -14,7 +14,10 @@ function versionAtLeast(version, requiredMinor) {
 }
 
 test("main application exposes the grouped project rail and local-only product model", async () => {
-  const page = await source("app/page.tsx");
+  const [page, splash] = await Promise.all([
+    source("app/page.tsx"),
+    source("app/marketing-splash.tsx"),
+  ]);
   for (const phrase of [
     'id: "overview", code: "OV", label: "Project Overview"',
     'id: "structureMap", code: "ST", label: "Structure Map"',
@@ -25,10 +28,10 @@ test("main application exposes the grouped project rail and local-only product m
     "ProjectOverview",
     "StructureMapSummary",
     "MarketingSplash",
-    "Copyright & licensing",
   ]) {
     assert.ok(page.includes(phrase), `Main application is missing: ${phrase}`);
   }
+  assert.match(splash, /Copyright & licensing/);
   assert.ok(!page.includes("PlotPickle Online"), "Official product page should not advertise an online PlotPickle edition");
 });
 

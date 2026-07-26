@@ -20,12 +20,10 @@ export const PRODUCT_COMPONENTS = [
 ] as const;
 
 `);
-
 replace("app/layout.tsx", `import "./engine-ux-cleanup.css";
 `, `import "./engine-ux-cleanup.css";
 import "./premium-ui.css";
 `);
-
 replace("app/page.tsx", `import { PRODUCT_NAVIGATION, type ProductNavigationId } from "@/lib/product-direction";`, `import { PRODUCT_COMPONENTS, PRODUCT_NAVIGATION, type ProductNavigationId } from "@/lib/product-direction";`);
 replace("app/page.tsx", `const mainTabs = PRODUCT_NAVIGATION;
 
@@ -46,7 +44,6 @@ replace("app/page.tsx", `<p className="marketing-kicker">One playhouse. Five con
             <p>Move from learning to planning, full-script reading, visualization, and focused specialist engines without copying information between separate tools.</p>`, `<p className="marketing-kicker">One playhouse. Five connected components.</p>
             <h2>A complete path from learning to a finished film plan.</h2>
             <p>Learn, plan, write, storyboard and refine inside one calm, local-first application with one canonical project.</p>`);
-
 replace("app/page.tsx", `          <div className="feature-grid">
             <article>
               <span className="feature-code">01</span>
@@ -91,7 +88,6 @@ replace("app/page.tsx", `          <div className="feature-grid">
               </article>
             ))}
           </div>`);
-
 replace("app/page.tsx", `const [showLanding, setShowLanding] = useState(false);`, `const [showLanding, setShowLanding] = useState(true);`);
 replace("app/page.tsx", `  const completion = useMemo(() => completionFor(project), [project]);
   const selectedCharacter = project.characters.find((character) => character.id === selectedCharacterId) ?? project.characters[0];`, `  const completion = useMemo(() => completionFor(project), [project]);
@@ -99,13 +95,12 @@ replace("app/page.tsx", `  const completion = useMemo(() => completionFor(projec
   const visualBlocks = project.blocks.filter((block) => block.visuals.length > 0).length;
   const screenplayItems = project.screenplay.draftElements.length + (project.screenplay.sourceText.trim() ? 1 : 0);
   const dashboardStatuses: DashboardStatus[] = [
-    { id: "story", label: "Story plan", tone: completion >= 70 ? "green" : completion > 0 ? "yellow" : "red", status: completion >= 70 ? "Ready for the next pass" : completion > 0 ? "In progress" : "Not started", detail: \`${completion}% of the active story plan is populated.\` },
+    { id: "story", label: "Story plan", tone: completion >= 70 ? "green" : completion > 0 ? "yellow" : "red", status: completion >= 70 ? "Ready for the next pass" : completion > 0 ? "In progress" : "Not started", detail: completion + "% of the active story plan is populated." },
     { id: "screenplay", label: "Screenplay", tone: screenplayItems ? "green" : "red", status: screenplayItems ? "Draft available" : "Draft missing", detail: screenplayItems ? "A screenplay source or editable draft is connected." : "Write or import screenplay pages to activate reports and production tools." },
-    { id: "visuals", label: "Visual continuity", tone: visualBlocks === project.blocks.length ? "green" : visualBlocks > 0 ? "yellow" : "red", status: visualBlocks === project.blocks.length ? "Covered" : visualBlocks > 0 ? "Partial coverage" : "No visual coverage", detail: \`${visualBlocks} of ${project.blocks.length} Blocks currently include visual evidence.\` },
-    { id: "review", label: "Open review items", tone: openAlerts === 0 ? "green" : openAlerts <= 3 ? "yellow" : "red", status: openAlerts === 0 ? "Clear" : openAlerts <= 3 ? "Review needed" : "Blocked by open work", detail: openAlerts === 0 ? "No tracked story section currently carries an alert." : \`${openAlerts} story sections contain an open question or continuity item.\` },
+    { id: "visuals", label: "Visual continuity", tone: visualBlocks === project.blocks.length ? "green" : visualBlocks > 0 ? "yellow" : "red", status: visualBlocks === project.blocks.length ? "Covered" : visualBlocks > 0 ? "Partial coverage" : "No visual coverage", detail: visualBlocks + " of " + project.blocks.length + " Blocks currently include visual evidence." },
+    { id: "review", label: "Open review items", tone: openAlerts === 0 ? "green" : openAlerts <= 3 ? "yellow" : "red", status: openAlerts === 0 ? "Clear" : openAlerts <= 3 ? "Review needed" : "Blocked by open work", detail: openAlerts === 0 ? "No tracked story section currently carries an alert." : openAlerts + " story sections contain an open question or continuity item." },
   ];
   const selectedCharacter = project.characters.find((character) => character.id === selectedCharacterId) ?? project.characters[0];`);
-
 replace("app/page.tsx", `{activeTab === "dashboard" ? (
           <>
             <section className="dashboard-actions" aria-label="Project actions">
@@ -127,13 +122,13 @@ replace("app/page.tsx", `{activeTab === "dashboard" ? (
               <p className="eyebrow">Dashboard</p><strong>Project control</strong>
               <a href="#dashboard-status">Health status</a><a href="#dashboard-actions">Project actions</a><a href="#dashboard-overview">Story overview</a>
               <div className="status-legend" aria-label="Dashboard status meaning">
-                {(Object.keys(healthMeta) as HealthTone[]).map((tone) => <span className={\`status-key status-${tone}\`} key={tone}><i aria-hidden="true">{healthMeta[tone].icon}</i>{healthMeta[tone].meaning}</span>)}
+                {(Object.keys(healthMeta) as HealthTone[]).map((tone) => <span className={"status-key status-" + tone} key={tone}><i aria-hidden="true">{healthMeta[tone].icon}</i>{healthMeta[tone].meaning}</span>)}
               </div>
             </aside>
             <div className="dashboard-main">
               <section className="dashboard-status" id="dashboard-status" aria-labelledby="dashboard-status-title">
                 <div className="section-heading compact-heading"><div><p className="eyebrow">Live project health</p><h2 id="dashboard-status-title">Know what is ready, what needs attention and what is blocked.</h2><p>Status uses text, symbols and colour together so the dashboard remains readable and accessible.</p></div></div>
-                <div className="dashboard-status-grid">{dashboardStatuses.map((item) => <article className={\`status-card status-${item.tone}\`} key={item.id}><span className="status-card-label">{item.label}</span><strong><i aria-hidden="true">{healthMeta[item.tone].icon}</i>{item.status}</strong><p>{item.detail}</p></article>)}</div>
+                <div className="dashboard-status-grid">{dashboardStatuses.map((item) => <article className={"status-card status-" + item.tone} key={item.id}><span className="status-card-label">{item.label}</span><strong><i aria-hidden="true">{healthMeta[item.tone].icon}</i>{item.status}</strong><p>{item.detail}</p></article>)}</div>
               </section>
               <section className="dashboard-actions" id="dashboard-actions" aria-label="Project actions">
                 <button type="button" className="text-button" onClick={createNewProject}>New project</button><button type="button" className="text-button" onClick={() => fileInputRef.current?.click()}>Import</button><button type="button" className="text-button" onClick={exportProject}>Export</button><button type="button" className="primary-button compact" onClick={loadAfterglow}>Load Afterglow</button>
@@ -142,5 +137,4 @@ replace("app/page.tsx", `{activeTab === "dashboard" ? (
             </div>
           </div>
         ) : null}`);
-
 console.log("Issue #100 shell migration applied.");

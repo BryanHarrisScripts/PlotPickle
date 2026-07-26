@@ -398,9 +398,10 @@ function recordFromSpecialistPass(project: PlotPickleProject, pass: SpecialistPa
 function recordFromDiagnostic(project: PlotPickleProject, warning: ReturnType<typeof createMiniBlockWallModel>["warnings"][number], index: number): UnifiedFeedbackRecord {
   const block = project.blocks.find((candidate) => candidate.id === warning.blockId);
   const mini = block?.scenes.flatMap((scene) => scene.miniBlocks.map((miniBlock) => ({ scene, miniBlock }))).find(({ miniBlock }) => miniBlock.id === warning.miniBlockId);
-  const scene = warning.sceneId
-    ? project.blocks.flatMap((candidate) => candidate.scenes.map((storyScene) => ({ block: candidate, scene: storyScene }))).find((entry) => entry.scene.id === warning.sceneId)
-    : mini ? { block, scene: mini.scene } : undefined;
+  const unlinkedScene = warning.kind === "unlinked-scene"
+    ? project.blocks.flatMap((candidate) => candidate.scenes.map((storyScene) => ({ block: candidate, scene: storyScene }))).find((entry) => entry.scene.id === warning.targetId)
+    : undefined;
+  const scene = unlinkedScene ?? (mini ? { block, scene: mini.scene } : undefined);
   const target: FeedbackTargetReference = warning.miniBlockId && mini
     ? {
         kind: "mini-block",

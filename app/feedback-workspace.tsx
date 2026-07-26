@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import styles from "./feedback-workspace.module.css";
+import ReviewWorkflowsPanel from "./review-workflows-panel";
 import {
   FEEDBACK_SECTIONS,
   FEEDBACK_STATUSES,
@@ -86,7 +87,7 @@ function sourceForSection(section: FeedbackSection): FeedbackSource {
 
 function RecordCard({ record, selected, onSelect }: { record: UnifiedFeedbackRecord; selected: boolean; onSelect: () => void }) {
   return (
-    <button type="button" className={`${styles.recordCard} ${selected ? styles.selectedRecord : ""}`} onClick={onSelect} aria-pressed={selected}>
+    <button type="button" className={`${styles.recordCard} ${record.source === "ai" || record.source === "diagnostic" ? styles.aiRecord : styles.humanRecord} ${selected ? styles.selectedRecord : ""}`} onClick={onSelect} aria-pressed={selected}>
       <span className={styles.recordTopline}>
         <i className={styles[`priority${titleCase(record.priority)}`]}>{record.priority}</i>
         <b>{titleCase(record.status)}</b>
@@ -234,6 +235,9 @@ export default function FeedbackWorkspace({ project, onProjectChange, onOpenTarg
           <article><strong>{model.counts.ai + model.counts.diagnostics}</strong><span>AI and diagnostics</span></article>
           <article><strong>{model.counts.human}</strong><span>Human review</span></article>
         </section>
+
+        {section === "ai-review" ? <ReviewWorkflowsPanel project={project} mode="ai" onProjectChange={onProjectChange} /> : null}
+        {section === "human-review" ? <ReviewWorkflowsPanel project={project} mode="human" onProjectChange={onProjectChange} /> : null}
 
         {createOpen ? (
           <section className={styles.createPanel} aria-label="Create feedback">

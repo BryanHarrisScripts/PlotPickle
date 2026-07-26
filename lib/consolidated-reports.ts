@@ -1,4 +1,4 @@
-import type { PlotPickleProject, ReviewPriority, ScreenplayDraftElement } from "./project";
+import type { PlotPickleProject, ReviewPriority } from "./project";
 import { createMiniBlockWallModel } from "./mini-block-wall";
 import {
   countSpokenWords,

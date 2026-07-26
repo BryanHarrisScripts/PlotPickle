@@ -1,0 +1,17 @@
+name: Issue 104 Windows runtime check
+
+on:
+  push:
+    branches:
+      - agent/issue-104-windows-runtime-check
+
+jobs:
+  windows-paths:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Execute Program Files and spaced-path regression
+        run: node --test tests/issue-104-windows-paths.test.mjs

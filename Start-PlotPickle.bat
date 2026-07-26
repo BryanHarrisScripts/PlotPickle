@@ -189,7 +189,8 @@ if errorlevel 1 (
   exit /b 1
 )
 echo.
-choice /C YN /N /M "Continue with this local runtime installation or repair? [Y/N]: "
+echo This step may install a new runtime or repair the matching runtime if its native binding is incomplete.
+choice /C YN /N /M "Continue with this local runtime installation? [Y/N]: "
 if errorlevel 2 exit /b 2
 
 echo.

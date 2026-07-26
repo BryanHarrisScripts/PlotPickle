@@ -6,13 +6,17 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #87 keeps Dashboard ready behind the startup splash and Simple Start optional", async () => {
-  const [page, middleware] = await Promise.all([source("app/page.tsx"), source("middleware.ts")]);
+  const [page, shell, middleware] = await Promise.all([
+    source("app/page.tsx"),
+    source("app/application-shell-header.tsx"),
+    source("middleware.ts"),
+  ]);
   assert.match(page, /useState<MainTab>\("dashboard"\)/);
   assert.match(page, /useState\(true\)/);
   assert.match(page, /id: "simpleStart"[\s\S]*label: "Simple Start"/);
   assert.match(page, /<SimpleStart/);
-  assert.match(page, /setShowLanding\(true\)/);
-  assert.match(page, /Open the PlotPickle marketing page/);
+  assert.match(page, /<ApplicationShellHeader[\s\S]*onOpenLanding=\{\(\) => setShowLanding\(true\)\}/);
+  assert.match(shell, /Open the PlotPickle marketing page/);
   assert.doesNotMatch(middleware, /NextResponse\.redirect/);
   assert.doesNotMatch(middleware, /plotpickle-open-last/);
 });

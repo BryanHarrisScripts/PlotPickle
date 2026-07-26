@@ -1,0 +1,54 @@
+name: Issue 118 diagnostic
+
+on:
+  push:
+    branches:
+      - agent/issue-118-diagnostic
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/issue-118-diagnostic
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.19.0'
+          cache: npm
+      - run: npm ci
+      - name: Capture build and focused test output
+        shell: bash
+        run: |
+          set +e
+          npm run build > issue-118-build-full.log 2>&1
+          build_status=$?
+          if [ "$build_status" -eq 0 ]; then
+            node --test tests/issue-118-consolidated-reports.test.mjs > issue-118-test-full.log 2>&1
+            test_status=$?
+          else
+            printf 'Focused test not run because build failed.\n' > issue-118-test-full.log
+            test_status=0
+          fi
+          {
+            echo "BUILD_STATUS=$build_status"
+            echo "TEST_STATUS=$test_status"
+            echo "===== BUILD TAIL ====="
+            tail -n 160 issue-118-build-full.log
+            echo "===== TEST TAIL ====="
+            tail -n 160 issue-118-test-full.log
+          } > issue-118-diagnostic.log
+          exit 0
+      - name: Commit diagnostic log
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add issue-118-diagnostic.log
+          git commit -m "Record issue 118 build diagnostic"
+          git push origin HEAD:agent/issue-118-diagnostic

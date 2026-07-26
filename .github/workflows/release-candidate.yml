@@ -96,36 +96,16 @@ jobs:
         run: |
           $packageRoot = Join-Path (Join-Path $env:RUNNER_TEMP "plotpickle-clean") "${{ matrix.folder }}"
           Set-Location $packageRoot
-          $stdout = Join-Path $env:RUNNER_TEMP "plotpickle-vite-stdout.log"
-          $stderr = Join-Path $env:RUNNER_TEMP "plotpickle-vite-stderr.log"
-          $server = Start-Process -FilePath "node.exe" -ArgumentList "node_modules/vite/bin/vite.js", "--host", "127.0.0.1", "--port", "4173", "--strictPort" -PassThru -NoNewWindow -RedirectStandardOutput $stdout -RedirectStandardError $stderr
-          try {
-            $ready = $false
-            for ($attempt = 1; $attempt -le 90; $attempt++) {
-              Start-Sleep -Seconds 1
-              if ($server.HasExited) {
-                if (Test-Path $stdout) { Get-Content $stdout }
-                if (Test-Path $stderr) { Get-Content $stderr }
-                throw "The Windows PlotPickle server exited before becoming ready."
-              }
-              try {
-                $response = Invoke-WebRequest -Uri "http://127.0.0.1:4173" -UseBasicParsing -TimeoutSec 2
-                if ($response.StatusCode -eq 200) {
-                  $ready = $true
-                  break
-                }
-              } catch {
-                # Vite is still starting; retry within the bounded readiness window.
-              }
-            }
-            if (-not $ready) {
-              if (Test-Path $stdout) { Get-Content $stdout }
-              if (Test-Path $stderr) { Get-Content $stderr }
-              throw "The Windows PlotPickle server did not answer on 127.0.0.1:4173."
-            }
-          } finally {
-            if (-not $server.HasExited) { Stop-Process -Id $server.Id -Force }
-          }
+          node scripts/windows-server-smoke.mjs .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload Windows server diagnostic
+        if: always() && matrix.platform == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: plotpickle-windows-server-smoke-${{ github.sha }}
+          path: ${{ runner.temp }}/plotpickle-clean/${{ matrix.folder }}/windows-server-smoke.log
+          if-no-files-found: warn
+          retention-days: 7
       - name: Clean-machine extraction and dependency test (macOS and Linux)
         if: matrix.platform != 'windows'
         shell: bash

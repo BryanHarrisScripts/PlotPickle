@@ -69,11 +69,7 @@ export default function DashboardCommandCentre({ project, saveState, onNavigate,
   }, [project.id]);
 
   useEffect(() => {
-    if (settings.ai.provider === "disabled") {
-      setAiConnection("disabled");
-      setAiMessage("PlotPickle remains fully usable without AI.");
-      return;
-    }
+    if (settings.ai.provider === "disabled") return;
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       try {
@@ -110,13 +106,15 @@ export default function DashboardCommandCentre({ project, saveState, onNavigate,
     };
   }, [settings.ai.provider]);
 
+  const resolvedAiConnection: AiConnection = settings.ai.provider === "disabled" ? "disabled" : aiConnection;
+  const resolvedAiMessage = settings.ai.provider === "disabled" ? "PlotPickle remains fully usable without AI." : aiMessage;
   const model = useMemo(() => createDashboardCommandCentreModel(project, {
     saveState,
     learningCompleted,
     settings,
-    aiConnection,
-    aiMessage,
-  }), [project, saveState, learningCompleted, settings, aiConnection, aiMessage]);
+    aiConnection: resolvedAiConnection,
+    aiMessage: resolvedAiMessage,
+  }), [project, saveState, learningCompleted, settings, resolvedAiConnection, resolvedAiMessage]);
 
   function openTarget(target: DashboardTarget) {
     if (target.blockNumber) {

@@ -312,9 +312,23 @@ export default function ProductionReportsWorkspace({
             <div><dt>Pages</dt><dd>{report.timeline.pages}</dd></div>
             <div><dt>Scenes</dt><dd>{report.timeline.scenes}</dd></div>
             <div><dt>Shots</dt><dd>{report.timeline.shots}</dd></div>
+            <div><dt>Cast</dt><dd>{report.timeline.cast}</dd></div>
             <div><dt>Locations</dt><dd>{report.timeline.locations}</dd></div>
             <div><dt>Company moves</dt><dd>{report.timeline.moves}</dd></div>
             <div><dt>Night scenes</dt><dd>{report.timeline.nights}</dd></div>
+            <div><dt>Setup hours</dt><dd>{report.timeline.setupHours}</dd></div>
+            <div><dt>Lighting plans</dt><dd>{report.timeline.lightingPlans}</dd></div>
+            <div><dt>Weather locations</dt><dd>{report.timeline.weatherLocations}</dd></div>
+            <div><dt>Child/minor scenes</dt><dd>{report.timeline.childScenes}</dd></div>
+            <div><dt>Animal scenes</dt><dd>{report.timeline.animalScenes}</dd></div>
+            <div><dt>Stunt scenes</dt><dd>{report.timeline.stuntScenes}</dd></div>
+            <div><dt>Effects scenes</dt><dd>{report.timeline.effectsScenes}</dd></div>
+            <div><dt>Vehicle scenes</dt><dd>{report.timeline.vehicleScenes}</dd></div>
+            <div><dt>Makeup scenes</dt><dd>{report.timeline.makeupScenes}</dd></div>
+            <div><dt>Equipment cues</dt><dd>{report.timeline.equipmentSetups}</dd></div>
+            <div><dt>Rehearsal hours</dt><dd>{report.timeline.rehearsalHours}</dd></div>
+            <div><dt>Planned work</dt><dd>{report.timeline.workloadHours} hr</dd></div>
+            <div><dt>Workday</dt><dd>{report.timeline.hoursPerDay} hr</dd></div>
             <div><dt>Prep</dt><dd>{report.timeline.prepDays} day(s)</dd></div>
             <div><dt>Pickups</dt><dd>{report.timeline.pickupDays} day(s)</dd></div>
             <div><dt>Contingency</dt><dd>{report.timeline.contingencyPercent}%</dd></div>

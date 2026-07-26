@@ -85,7 +85,20 @@ test("issue #119 shoot groups explain reasoning and persist accept reject and ad
     source("lib/project.ts"),
     source("app/production-reports-workspace.tsx"),
   ]);
-  for (const reason of ["Shared location:", "Shared story time:", "Shared cast:", "Shared wardrobe:", "Shared props:", "Shared vehicles:", "Shared stunt needs:", "Shared effects:"]) {
+  for (const reason of [
+    "Shared location:",
+    "Shared set:",
+    "Shared story time:",
+    "Shared cast:",
+    "Shared wardrobe:",
+    "Shared props:",
+    "Shared lighting plan:",
+    "Shared camera setup:",
+    "Shared vehicles:",
+    "Shared stunt needs:",
+    "Shared effects:",
+    "Shared weather constraint:",
+  ]) {
     assert.ok(reports.includes(reason), `Missing group rationale: ${reason}`);
   }
   assert.match(reports, /updateProductionShootGroupDecision/);
@@ -126,6 +139,15 @@ test("issue #119 timeline exposes optimistic realistic and contingency schedules
     "effects",
     "vehicles",
     "makeup",
+    "setupHours",
+    "lightingPlans",
+    "weatherLocations",
+    "rehearsalHours",
+    "childScenes",
+    "animalScenes",
+    "equipmentSetups",
+    "workloadHours",
+    "hoursPerDay",
     "pagesPerDay",
     "scenesPerDay",
     "nights",

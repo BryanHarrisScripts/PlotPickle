@@ -19,14 +19,14 @@ All estimates and recommendations are visibly labelled as planning guidance. The
 
 The optional `project.production.reporting` record stores location logistics, actor availability, shoot-group decisions and timeline assumptions. Normalization supplies safe defaults for older `.ppf` files without changing schema compatibility.
 
-Shoot-group proposals are derived deterministically from shared location and story time, then explain any shared cast, wardrobe, props, vehicles, stunts or effects. A producer can accept, reject, reset or adjust the included scenes. Those decisions are saved in the canonical project rather than a report-only cache.
+Shoot-group proposals are derived deterministically from shared location, set footprint and story time, then explain any shared cast, wardrobe, props, lighting, camera setup, vehicles, stunts, effects or weather constraints. A producer can accept, reject, reset or adjust the included scenes. Those decisions are saved in the canonical project rather than a report-only cache.
 
 ## Derived reports
 
 - Location rows combine story locations with real-location planning, scene headings, cast, breakdown requirements, schedule availability and shoot-time estimates.
 - Shot Types classifies canonical Shot Designer and storyboard text against the complete requested camera and effects taxonomy.
 - Actor Schedule joins characters, scenes, production days, locations, wardrobe, makeup, rehearsal, calls, wraps, daily sides and saved availability conflicts.
-- Shooting Timeline calculates optimistic, realistic and contingency scenarios from pages, scenes, coverage, locations, moves, cast load, nights, stunts, effects, vehicles and makeup.
+- Shooting Timeline calculates optimistic, realistic and contingency scenarios from pages, scenes, coverage, workload and setup hours, locations, moves, cast load, children/minors, animals, nights, lighting, weather, equipment, stunts, effects, vehicles, makeup and rehearsal.
 - Production Requirements consolidates seventeen departments or risk categories and keeps unpopulated categories visible as review gaps.
 
 ## Maintainable AI review

@@ -262,10 +262,15 @@ function commonValues(values: string[][]) {
   return unique(values[0]).filter((value) => values.every((list) => list.includes(value)));
 }
 
+function isRecorded(value: string | undefined) {
+  return Boolean(value?.trim() && value.trim().toLocaleLowerCase() !== "not recorded");
+}
+
 function createShootGroupsReport(project: PlotPickleProject, scenes: SceneRecord[]) {
   const locationNames = new Map(project.world.locations.map((location) => [location.id, location.name]));
   const characterNames = new Map(project.characters.map((character) => [character.id, character.name || "Unnamed character"]));
   const decisions = new Map((project.production.reporting?.shootGroups ?? []).map((item) => [item.id, item]));
+  const locationPlans = new Map((project.production.reporting?.locations ?? []).map((item) => [item.locationId, item]));
   const buckets = new Map<string, SceneRecord[]>();
   scenes.forEach((scene) => {
     const locationId = scene.locationIds[0];
@@ -279,6 +284,7 @@ function createShootGroupsReport(project: PlotPickleProject, scenes: SceneRecord
     const [locationId, dayNight] = key.split("|");
     const id = `shoot-group-${slug(locationId)}-${slug(dayNight)}`;
     const decision = decisions.get(id);
+    const locationPlan = locationPlans.get(locationId);
     const sharedCastIds = commonValues(groupedScenes.map((scene) => scene.characterIds));
     const breakdowns = groupedScenes.map((scene) => scene.breakdown).filter((item): item is ProductionBreakdown => Boolean(item));
     const sharedWardrobe = commonValues(breakdowns.map((item) => splitDetails(item.wardrobe)));
@@ -286,15 +292,28 @@ function createShootGroupsReport(project: PlotPickleProject, scenes: SceneRecord
     const sharedVehicles = commonValues(breakdowns.map((item) => splitDetails(item.vehicles)));
     const sharedStunts = commonValues(breakdowns.map((item) => splitDetails(item.stunts)));
     const sharedEffects = commonValues(breakdowns.map((item) => splitDetails(item.effects)));
+    const shotsByScene = groupedScenes.map((scene) => project.production.shots.filter((shot) => shot.sceneId === scene.id));
+    const sharedCameraSetup = unique([
+      ...commonValues(shotsByScene.map((shots) => shots.map((shot) => shot.shotSize))).map((value) => `${value} framing`),
+      ...commonValues(shotsByScene.map((shots) => shots.map((shot) => shot.angle))).map((value) => `${value} angle`),
+      ...commonValues(shotsByScene.map((shots) => shots.map((shot) => shot.movement))).map((value) => `${value} movement`),
+      ...commonValues(shotsByScene.map((shots) => shots.map((shot) => shot.lens))).map((value) => `${value} lens`),
+    ]);
+    const storyLocation = locationNames.get(locationId) || locationId;
+    const setFootprint = isRecorded(locationPlan?.realLocation) ? `${storyLocation} at ${locationPlan?.realLocation}` : storyLocation;
     const reasons = [
-      `Shared location: ${locationNames.get(locationId) || locationId}`,
+      `Shared location: ${storyLocation}`,
+      `Shared set: ${setFootprint}`,
       dayNight !== "Not specified" ? `Shared story time: ${dayNight}` : "",
       sharedCastIds.length ? `Shared cast: ${sharedCastIds.map((idValue) => characterNames.get(idValue) || idValue).join(", ")}` : "",
       sharedWardrobe.length ? `Shared wardrobe: ${sharedWardrobe.join(", ")}` : "",
       sharedProps.length ? `Shared props: ${sharedProps.join(", ")}` : "",
+      isRecorded(locationPlan?.lighting) ? `Shared lighting plan: ${locationPlan?.lighting}` : "",
+      sharedCameraSetup.length ? `Shared camera setup: ${sharedCameraSetup.join(", ")}` : "",
       sharedVehicles.length ? `Shared vehicles: ${sharedVehicles.join(", ")}` : "",
       sharedStunts.length ? `Shared stunt needs: ${sharedStunts.join(", ")}` : "",
       sharedEffects.length ? `Shared effects: ${sharedEffects.join(", ")}` : "",
+      isRecorded(locationPlan?.weather) ? `Shared weather constraint: ${locationPlan?.weather}` : "",
     ].filter(Boolean);
     return [{
       id,
@@ -393,11 +412,40 @@ function createTimelineReport(project: PlotPickleProject, scenes: SceneRecord[])
   const settings = project.production.reporting?.timeline;
   const pages = Math.round(scenes.reduce((total, scene) => total + scene.pageEstimate, 0) * 10) / 10;
   const shots = project.production.shots.length;
+  const cast = new Set(scenes.flatMap((scene) => scene.characterIds)).size;
   const nights = scenes.filter((scene) => scene.dayNight === "Night").length;
-  const uniqueLocations = unique(scenes.flatMap((scene) => scene.locationIds)).length;
+  const activeLocationIds = unique(scenes.flatMap((scene) => scene.locationIds));
+  const uniqueLocations = activeLocationIds.length;
   const moves = project.production.schedule.reduce((total, day, index, days) => (
     index && day.locationId && days[index - 1].locationId && day.locationId !== days[index - 1].locationId ? total + 1 : total
   ), 0) || Math.max(0, uniqueLocations - 1);
+  const activeLocationPlans = (project.production.reporting?.locations ?? []).filter((plan) => activeLocationIds.includes(plan.locationId));
+  const setupHours = Math.round(activeLocationPlans.reduce((total, plan) => total + plan.setupMinutes / 60, 0) * 10) / 10;
+  const lightingPlans = activeLocationPlans.filter((plan) => isRecorded(plan.lighting)).length;
+  const weatherLocations = activeLocationPlans.filter((plan) => isRecorded(plan.weather)).length;
+  const activeCharacterIds = new Set(scenes.flatMap((scene) => scene.characterIds));
+  const rehearsalHours = Math.round((project.production.reporting?.actors ?? [])
+    .filter((plan) => activeCharacterIds.has(plan.characterId))
+    .reduce((total, plan) => total + plan.rehearsalHours, 0) * 10) / 10;
+  const childCharacterIds = new Set(project.characters.filter((character) => (
+    /\b(child|children|kid|minor|teen(?:ager)?|baby|infant|toddler|school[ -]?age)\b/i
+      .test([character.name, character.role, character.description].join(" "))
+  )).map((character) => character.id));
+  const childScenes = scenes.filter((scene) => scene.characterIds.some((id) => childCharacterIds.has(id))).length;
+  const animalPattern = /\b(animal|dog|cat|horse|bird|livestock|pet|wildlife)\b/i;
+  const animalScenes = scenes.filter((scene) => animalPattern.test([
+    scene.breakdown?.notes,
+    scene.breakdown?.extras,
+    scene.breakdown?.props,
+    scene.breakdown?.effects,
+  ].join(" "))).length;
+  const stuntScenes = scenes.filter((scene) => Boolean(scene.breakdown?.stunts.trim())).length;
+  const effectsScenes = scenes.filter((scene) => Boolean(scene.breakdown?.effects.trim())).length;
+  const vehicleScenes = scenes.filter((scene) => Boolean(scene.breakdown?.vehicles.trim())).length;
+  const makeupScenes = scenes.filter((scene) => Boolean(scene.breakdown?.makeup.trim())).length;
+  const equipmentSetups = unique(project.production.shots.flatMap((shot) => [shot.movement, shot.lens])).length;
+  const breakdownHours = project.production.breakdowns.reduce((total, breakdown) => total + breakdown.estimatedHours, 0);
+  const workloadHours = Math.round((breakdownHours + setupHours + rehearsalHours) * 10) / 10;
   const complexitySignals = scenes.reduce((total, scene) => {
     const breakdown = scene.breakdown;
     return total
@@ -408,10 +456,18 @@ function createTimelineReport(project: PlotPickleProject, scenes: SceneRecord[])
       + (breakdown?.effects.trim() ? 1.25 : 0)
       + (breakdown?.vehicles.trim() ? 0.75 : 0)
       + (breakdown?.makeup.trim() ? 0.5 : 0);
-  }, 0);
+  }, 0)
+    + childScenes * 0.75
+    + animalScenes * 1.5
+    + setupHours / 4
+    + rehearsalHours / 8
+    + equipmentSetups / 12
+    + weatherLocations * 0.75
+    + moves * 0.5;
   const pagesPerDay = settings?.pagesPerDay || 5;
-  const optimisticDays = Math.max(1, Math.ceil(Math.max(pages / (pagesPerDay * 1.2), scenes.length / 8, complexitySignals / 12)));
-  const realisticDays = Math.max(project.production.schedule.length, Math.ceil(Math.max(pages / pagesPerDay, scenes.length / 6, complexitySignals / 9)));
+  const hoursPerDay = settings?.hoursPerDay || 10;
+  const optimisticDays = Math.max(1, Math.ceil(Math.max(pages / (pagesPerDay * 1.2), scenes.length / 8, complexitySignals / 12, workloadHours / (hoursPerDay * 1.1))));
+  const realisticDays = Math.max(project.production.schedule.length, Math.ceil(Math.max(pages / pagesPerDay, scenes.length / 6, complexitySignals / 9, workloadHours / hoursPerDay)));
   const contingencyPercent = settings?.contingencyPercent ?? 20;
   const contingencyDays = Math.max(realisticDays, Math.ceil(realisticDays * (1 + contingencyPercent / 100)));
   const prepDays = settings?.prepDays ?? Math.max(1, Math.ceil(uniqueLocations / 3));
@@ -420,9 +476,23 @@ function createTimelineReport(project: PlotPickleProject, scenes: SceneRecord[])
     pages,
     scenes: scenes.length,
     shots,
+    cast,
     locations: uniqueLocations,
     moves,
     nights,
+    setupHours,
+    lightingPlans,
+    weatherLocations,
+    rehearsalHours,
+    childScenes,
+    animalScenes,
+    stuntScenes,
+    effectsScenes,
+    vehicleScenes,
+    makeupScenes,
+    equipmentSetups,
+    workloadHours,
+    hoursPerDay,
     prepDays,
     pickupDays,
     contingencyPercent,

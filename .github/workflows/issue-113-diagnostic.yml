@@ -1,0 +1,35 @@
+name: Issue 113 concise diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Diagnose build and tests
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git clone -q --depth=1 --branch "$GITHUB_HEAD_REF" "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" repo
+          cd repo
+          npm ci --silent >/dev/null 2>&1
+          if ! npm run build > /tmp/issue-113-build.log 2>&1; then
+            echo "::error title=Issue 113 build failure::"
+            tail -n 160 /tmp/issue-113-build.log
+            exit 1
+          fi
+          TEST_FILES=$(node -e 'const p=require("./package.json"); console.log(p.scripts.test.replace(/^npm run build && node --test /, ""))')
+          if ! node --test $TEST_FILES > /tmp/issue-113-tests.log 2>&1; then
+            echo "::error title=Issue 113 regression failure::"
+            grep -E 'not ok|failureType|error:|code:|AssertionError|actual:|expected:|stack:|test at|ERR_' /tmp/issue-113-tests.log | tail -n 140 || true
+            exit 1
+          fi
+          echo "Issue #113 build and full regression suite passed."

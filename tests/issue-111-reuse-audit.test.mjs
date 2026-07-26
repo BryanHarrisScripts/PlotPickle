@@ -36,7 +36,7 @@ test("issue #111 preserves the reuse-first and canonical-data boundaries", async
 test("issue #111 identifies current context-loss mechanisms", async () => {
   const audit = await source("docs/ISSUE-111-REUSE-AUDIT.md");
   assert.match(audit, /window\.location\.assign/);
-  assert.match(audit, /query the DOM and click named buttons/);
+  assert.match(audit, /query the DOM and click named buttons/i);
   assert.match(audit, /Standalone specialist routes/);
   assert.match(audit, /shared project session\/provider/);
 });

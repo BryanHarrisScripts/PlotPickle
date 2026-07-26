@@ -10,7 +10,7 @@ test("main application exposes Refine as the connected Engines workspace", async
   ]);
   assert.ok(page.includes("type MainTab = ProductNavigationId"));
   assert.ok(page.includes("PRODUCT_COMPONENTS, PRODUCT_NAVIGATION, type ProductNavigationId"));
-  assert.ok(navigation.includes('{ id: "engines", label: "Refine", description: "Refine the story" }'));
+  assert.match(navigation, /id: "engines", label: "Refine", description: "Refine the story", zone: "workflow"/);
   assert.ok(page.includes('import EngineHub from "./engine-hub"'));
   assert.ok(page.includes('{activeTab === "engines" ? <EngineHub /> : null}'));
   assert.ok(splash.includes("components.map"));

@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   copyFileSync,
@@ -149,6 +150,64 @@ function verifyModules(modulesPath, { quiet = false } = {}) {
     if (binding.packageName) console.log(`Native binding verified: ${binding.packageName}`);
   }
   return true;
+}
+
+function installedRolldownVersion(modulesPath) {
+  const manifestPath = path.join(modulesPath, "rolldown", "package.json");
+  if (!existsSync(manifestPath)) return "";
+  try {
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    return typeof manifest.version === "string" ? manifest.version : "";
+  } catch {
+    return "";
+  }
+}
+
+function repairNativeBinding(modulesPath) {
+  if (process.platform !== "win32") return true;
+  if (nativeBindingReady(modulesPath)) {
+    console.log("Windows native binding is already complete.");
+    return true;
+  }
+
+  const packageName = expectedWindowsBinding();
+  const version = installedRolldownVersion(modulesPath);
+  if (!packageName || !version) {
+    console.error("[PlotPickle runtime error] Rolldown must be installed before its Windows native binding can be repaired.");
+    return false;
+  }
+
+  const runtimeDir = path.dirname(modulesPath);
+  const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+  const packageSpec = `${packageName}@${version}`;
+  console.log(`Repairing Windows native binding with ${packageSpec}...`);
+  const result = spawnSync(
+    npmCommand,
+    [
+      "install",
+      "--prefix",
+      runtimeDir,
+      "--include=dev",
+      "--prefer-offline",
+      "--no-audit",
+      "--no-fund",
+      "--no-save",
+      "--package-lock=false",
+      packageSpec,
+    ],
+    {
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        npm_config_cache: process.env.PLOTPICKLE_NPM_CACHE || runtimeInfo().npmCache,
+      },
+    },
+  );
+  if (result.status !== 0) {
+    console.error(`[PlotPickle runtime error] Native binding repair exited with code ${result.status ?? "unknown"}.`);
+    return false;
+  }
+  return verifyModules(modulesPath);
 }
 
 function removeLinkOrDirectory(item) {
@@ -309,6 +368,11 @@ try {
   } else if (command === "verify-modules") {
     const modulesPath = path.resolve(projectRoot, commandArgument || "node_modules");
     if (!verifyModules(modulesPath)) process.exitCode = 1;
+  } else if (command === "repair-native") {
+    const modulesPath = commandArgument
+      ? path.resolve(projectRoot, commandArgument)
+      : runtimeInfo().runtimeModules;
+    if (!repairNativeBinding(modulesPath)) process.exitCode = 1;
   } else describe();
 } catch (error) {
   console.error(`[PlotPickle runtime error] ${error instanceof Error ? error.message : String(error)}`);

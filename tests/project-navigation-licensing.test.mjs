@@ -24,7 +24,7 @@ test("main application exposes the grouped project rail and local-only product m
     "rail-progress alert",
     "ProjectOverview",
     "StructureMapSummary",
-    "Open local workspace",
+    "MarketingSplash",
     "Copyright & licensing",
   ]) {
     assert.ok(page.includes(phrase), `Main application is missing: ${phrase}`);

@@ -191,7 +191,7 @@ test("issue #118 keeps report selection and provides exact-context return naviga
   assert.match(page, /initialTargetId=\{reportBuildTargetId\}/);
   assert.match(page, /initialSceneId=\{reportSceneId\}/);
   assert.match(build, /initialTargetId\?: string/);
-  assert.match(build, /initialTargetId\.startsWith\("act-"\)/);
+  assert.match(build, /initialTargetId\?\.startsWith\("act-"\)/);
   assert.match(writer, /initialSceneId\?: string/);
   assert.match(writer, /entry\.sceneId === initialSceneId/);
 });

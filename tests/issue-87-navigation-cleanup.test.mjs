@@ -24,7 +24,7 @@ test("issue #87 keeps Dashboard ready behind the startup splash and Simple Start
 test("issue #87 places Reports in core navigation and Terminology in learning", async () => {
   const [page, contract] = await Promise.all([source("app/page.tsx"), source("lib/product-direction.ts")]);
   assert.match(contract, /id: "reports", label: "Reports"/);
-  assert.match(page, /activeTab === "reports"[\s\S]*ScreenplayReports/);
+  assert.match(page, /activeTab === "reports"[\s\S]*ReportsWorkspace/);
   assert.match(page, /Screenplay terminology[\s\S]*TerminologyIndex/);
 });
 

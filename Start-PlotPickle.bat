@@ -102,7 +102,10 @@ echo [OK] PlotPickle !PLOTPICKLE_VERSION!
 echo [OK] Node.js !NODE_VERSION!
 echo [OK] npm !NPM_VERSION!
 echo [OK] Dependency fingerprint !PLOTPICKLE_LOCK_HASH!
+echo [OK] Runtime fingerprint !PLOTPICKLE_RUNTIME_FINGERPRINT!
+echo [OK] Runtime platform !PLOTPICKLE_RUNTIME_PLATFORM! !PLOTPICKLE_RUNTIME_ARCH!
 echo [OK] Persistent runtime !PLOTPICKLE_RUNTIME_DIR!
+if defined PLOTPICKLE_NATIVE_BINDING echo [OK] Required native binding !PLOTPICKLE_NATIVE_BINDING!
 if "!PLOTPICKLE_RUNTIME_MIGRATED!"=="1" echo [OK] Your previous local packages were moved into the reusable runtime.
 echo.
 
@@ -154,19 +157,26 @@ echo.
 call :dependencies_ready
 if not errorlevel 1 (
   node "%RUNTIME_MANAGER%" mark-ready >nul 2>&1
+  if errorlevel 1 exit /b 1
   if "!PLOTPICKLE_RUNTIME_REUSED!"=="1" (
-    echo [SUCCESS] Matching PlotPickle components were reused from the persistent runtime.
+    echo [SUCCESS] Matching PlotPickle components and the Windows native binding were reused from the persistent runtime.
     echo No package download or first-time installation was needed.
   ) else (
-    echo [OK] Required components are already installed and verified.
+    echo [OK] Required components and the Windows native binding are installed and verified.
   )
   exit /b 0
 )
 
-echo A matching dependency runtime has not been completed yet.
-echo Application upgrades reuse an existing runtime whenever package-lock.json is unchanged.
-echo A new runtime is installed only when the required package set changes.
-echo.
+if exist "node_modules\rolldown\package.json" (
+  echo [REPAIR] The matching runtime is present, but its Windows native binding is missing or damaged.
+  echo PlotPickle will rebuild this dependency runtime before starting.
+  echo.
+) else (
+  echo A matching dependency runtime has not been completed yet.
+  echo Application upgrades reuse an existing runtime whenever package-lock.json, Windows platform, and CPU architecture are unchanged.
+  echo A new runtime is installed only when the required package set or platform changes.
+  echo.
+)
 
 if not exist "%SETUP_REPORT%" (
   echo [ERROR] The setup-report file is missing from this PlotPickle download.
@@ -179,7 +189,7 @@ if errorlevel 1 (
   exit /b 1
 )
 echo.
-choice /C YN /N /M "Continue with this local runtime installation? [Y/N]: "
+choice /C YN /N /M "Continue with this local runtime installation or repair? [Y/N]: "
 if errorlevel 2 exit /b 2
 
 echo.
@@ -196,26 +206,30 @@ call npm ci --prefix "%PLOTPICKLE_RUNTIME_DIR%" --include=dev --prefer-offline -
 call :dependencies_ready
 if not errorlevel 1 (
   node "%RUNTIME_MANAGER%" mark-ready
+  if errorlevel 1 exit /b 1
   set "INSTALL_PERFORMED=1"
   echo.
-  echo [SUCCESS] Persistent package installation completed.
+  echo [SUCCESS] Persistent package installation completed, including the Windows native binding.
   exit /b 0
 )
 
 echo.
 echo ------------------------------------------------------------
-echo   INSTALL ATTEMPT 2 OF 2 - Interrupted-download repair
+echo   INSTALL ATTEMPT 2 OF 2 - Native-binding and interrupted-download repair
 echo ------------------------------------------------------------
-echo Reusing packages already downloaded to the persistent npm cache...
+echo Resetting the incomplete runtime and reusing packages already downloaded to the persistent npm cache...
 echo.
+node "%RUNTIME_MANAGER%" reset-current
+if errorlevel 1 exit /b 1
 call npm cache verify
 call npm install --prefix "%PLOTPICKLE_RUNTIME_DIR%" --include=dev --prefer-offline --no-audit --no-fund --progress=true --loglevel=notice
 call :dependencies_ready
 if not errorlevel 1 (
   node "%RUNTIME_MANAGER%" mark-ready
+  if errorlevel 1 exit /b 1
   set "INSTALL_PERFORMED=1"
   echo.
-  echo [SUCCESS] Persistent package repair completed.
+  echo [SUCCESS] Persistent package repair completed, including the Windows native binding.
   exit /b 0
 )
 
@@ -227,6 +241,9 @@ if not exist "node_modules\vite\package.json" exit /b 1
 if not exist "node_modules\next\package.json" exit /b 1
 if not exist "node_modules\react\package.json" exit /b 1
 if not exist "node_modules\vinext\package.json" exit /b 1
+if not exist "node_modules\rolldown\package.json" exit /b 1
+node "%RUNTIME_MANAGER%" verify-runtime >nul 2>&1
+if errorlevel 1 exit /b 1
 call "%VITE_CMD%" --version >nul 2>&1
 if errorlevel 1 exit /b 1
 exit /b 0
@@ -237,13 +254,13 @@ echo ============================================================
 echo   PLOTPICKLE SETUP COULD NOT FINISH
 echo ============================================================
 echo.
-echo The required local components are still missing or incomplete.
+echo The required local components or Windows native binding are still missing or incomplete.
 echo Nothing was installed as a Windows service, and no server was started.
 echo.
 echo 1. Confirm that your internet connection is stable.
 echo 2. Confirm that at least 2 GB of disk space is free.
 echo 3. Close other PlotPickle, Node, npm, editor, or terminal windows.
-echo 4. Run Start-PlotPickle.bat again. It will retry the same persistent runtime.
+echo 4. Run Start-PlotPickle.bat again. It will retry the same platform-specific runtime.
 echo 5. Run Repair-PlotPickle.bat only if the same runtime remains damaged.
 echo.
 echo Runtime folder: !PLOTPICKLE_RUNTIME_DIR!

@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: issue-117-provider-choice
+  cancel-in-progress: true
+
 jobs:
   integrate:
     if: github.actor != 'github-actions[bot]'

@@ -91,17 +91,68 @@ test("issue #114 mounts Build as a real canonical workspace", async () => {
   assert.match(page, /onProjectChange=\{commit\}/);
 });
 
-test("issue #114 records reference-remapping as a prerequisite for reorder", async () => {
-  const doc = await source("docs/issue-114-build-workspace.md");
+test("issue #114 remaps every canonical Block-number reference atomically", async () => {
+  const order = await source("lib/build-workspace-order.ts");
+  for (const contract of [
+    "canonicalBuildOrder",
+    "applyCanonicalBuildOrder",
+    "moveCanonicalBuildBlock",
+    "numberMapping",
+    "element.blockNumber",
+    "checkpoint.blockNumber",
+    "introducedBlockNumber",
+    "resolvedBlockNumber",
+    "milestone.blockNumber",
+    "shot.blockNumber",
+    "cue.blockNumber",
+    "breakdown.blockNumber",
+    'thread.anchor.kind !== "block"',
+    "blockNumberById",
+  ]) assert.ok(order.includes(contract), `Build ordering is missing reference remapping: ${contract}`);
+  assert.match(order, /number: index \+ 1/);
+  assert.match(order, /act: Math\.floor\(index \/ 6\) \+ 1/);
+  assert.match(order, /sequenceNumber: Math\.floor\(index \/ 2\) \+ 1/);
+  assert.match(order, /blocksById/);
+  assert.match(order, /block\.id/);
+  assert.doesNotMatch(order, /id:\s*`|id:\s*makeId|randomUUID/);
+});
+
+test("issue #114 provides keyboard movement and order-only undo redo", async () => {
+  const workspace = await source("app/build-workspace.tsx");
+  for (const contract of [
+    "Move earlier",
+    "Move later",
+    "Position",
+    "Undo move",
+    "Redo move",
+    "Keyboard-safe movement",
+    "undoOrders",
+    "redoOrders",
+    "canonicalBuildOrder(project)",
+    "applyCanonicalBuildOrder(project, previousOrder)",
+    "applyCanonicalBuildOrder(project, nextOrder)",
+  ]) assert.ok(workspace.includes(contract), `Build movement history is missing: ${contract}`);
+  assert.match(workspace, /disabled=\{selectedBlock\.number <= 1\}/);
+  assert.match(workspace, /disabled=\{selectedBlock\.number >= project\.blocks\.length\}/);
+});
+
+test("issue #114 documents stable-ID movement and positional sequence lanes", async () => {
+  const [foundation, liveSlice] = await Promise.all([
+    source("docs/issue-114-build-workspace.md"),
+    source("docs/issue-114-live-build-slice.md"),
+  ]);
   for (const phrase of [
-    "reference-remapping",
-    "screenplay elements",
-    "thread milestones",
-    "arc checkpoints",
-    "production records",
-    "undo tests",
-    "cannot silently lose links",
-  ]) assert.ok(doc.includes(phrase), `Build reorder safety note is missing: ${phrase}`);
+    "Reference-safe ordering",
+    "screenplay element",
+    "story-thread",
+    "character arc checkpoint",
+    "production shot",
+    "review anchors",
+    "Sequence `blockNumbers` ranges remain fixed",
+    "order-only undo and redo",
+  ]) assert.ok((foundation + liveSlice).includes(phrase), `Build movement documentation is missing: ${phrase}`);
+  assert.match(foundation, /stable-ID ordering/);
+  assert.match(liveSlice, /stable Block, scene, mini-block and review target IDs/);
 });
 
 test("issue #114 test is registered", async () => {

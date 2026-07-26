@@ -14,6 +14,7 @@ import styles from "./settings-panel.module.css";
 import GitHubCollaboration from "./github-collaboration";
 
 const SETTINGS_STORAGE_KEY = "plotpickle.settings.v1";
+const SETTINGS_SECTION_KEY = "plotpickle.settings.section";
 const CONNECTION_API = "/api/local-ai/connection";
 type SettingsSection = "collaboration" | "ai" | "music";
 type ConnectionState = "loading" | "idle" | "checking" | "connected" | "error" | "unavailable";
@@ -71,6 +72,17 @@ export default function SettingsPanel({ project, onProjectChange }: { project: P
     saved: false,
     message: "Checking local connection settings…",
   });
+
+  useEffect(() => {
+    function selectRequestedSection(value: string | null) {
+      if (value === "collaboration" || value === "ai" || value === "music") setSection(value);
+    }
+    selectRequestedSection(window.sessionStorage.getItem(SETTINGS_SECTION_KEY));
+    window.sessionStorage.removeItem(SETTINGS_SECTION_KEY);
+    const handleSectionRequest = (event: Event) => selectRequestedSection((event as CustomEvent<string>).detail);
+    window.addEventListener("plotpickle:settings-section", handleSectionRequest);
+    return () => window.removeEventListener("plotpickle:settings-section", handleSectionRequest);
+  }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {

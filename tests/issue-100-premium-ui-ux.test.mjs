@@ -33,19 +33,29 @@ test("issue #100 centers the application menu through one shared premium shell",
 });
 
 test("issue #100 dashboard uses accessible green yellow and red status states", async () => {
-  const [page, css] = await Promise.all([source("app/page.tsx"), source("app/premium-ui.css")]);
+  const [dashboard, css] = await Promise.all([
+    source("app/dashboard-command-centre.tsx"),
+    source("app/dashboard-command-centre.module.css"),
+  ]);
   for (const tone of ["green", "yellow", "red"]) {
-    assert.match(page, new RegExp(`"${tone}"`));
-    assert.match(css, new RegExp(`\\.status-${tone}`));
+    assert.match(dashboard, new RegExp(`${tone}: \\{ icon:`));
+    assert.match(css, new RegExp(`\\.tone-${tone}`));
   }
-  assert.match(page, /Status uses text, symbols and colour together/);
-  assert.match(page, /dashboard-status-grid/);
-  assert.match(page, /status-legend/);
+  assert.match(dashboard, /Dashboard status meaning/);
+  assert.match(dashboard, /Colour is always paired with an icon, status text and a direct action/);
+  assert.match(dashboard, /toneMeta/);
 });
 
 test("issue #100 long dashboard and reports workspaces use left-side section navigation", async () => {
-  const [page, reports, reportCss] = await Promise.all([source("app/page.tsx"), source("app/settings-project-tools.tsx"), source("app/settings-project-tools.module.css")]);
-  assert.match(page, /workspace-subnav dashboard-nav/);
+  const [dashboard, dashboardCss, reports, reportCss] = await Promise.all([
+    source("app/dashboard-command-centre.tsx"),
+    source("app/dashboard-command-centre.module.css"),
+    source("app/settings-project-tools.tsx"),
+    source("app/settings-project-tools.module.css"),
+  ]);
+  assert.match(dashboard, /aria-label="Dashboard sections"/);
+  assert.match(dashboard, /className=\{styles\.subnav\}/);
+  assert.match(dashboardCss, /\.subnav\{position:sticky/);
   assert.match(reports, /reportLayout/);
   assert.match(reports, /aria-label="Report sections"/);
   assert.match(reportCss, /\.reportLayout/);

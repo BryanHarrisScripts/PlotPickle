@@ -3,6 +3,8 @@
 /* eslint-disable @next/next/no-img-element -- Project JSON accepts arbitrary user-supplied reference URLs. */
 
 import MarketingSplash from "./marketing-splash";
+import ApplicationShellHeader from "./application-shell-header";
+import DashboardCommandCentre from "./dashboard-command-centre";
 import { ChangeEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { createAfterglowProject } from "@/data/afterglow";
 import EngineHub from "./engine-hub";
@@ -36,7 +38,7 @@ import {
   type StoryBlock,
 } from "@/lib/project";
 import { synchronizeScreenplaySceneReferences } from "@/lib/scene-management";
-import { PRODUCT_COMPONENTS, PRODUCT_NAVIGATION, type ProductNavigationId } from "@/lib/product-direction";
+import { PRODUCT_COMPONENTS, type ProductNavigationId } from "@/lib/product-direction";
 
 const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
@@ -45,15 +47,6 @@ type MainTab = ProductNavigationId;
 type StorySection = "simpleStart" | "overview" | "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "coreModel" | "structureMap" | "blocks" | "storyboard" | "notes";
 type StorySectionGroup = "Project" | "Foundation" | "Structure" | "Production";
 
-const mainTabs = PRODUCT_NAVIGATION;
-
-type HealthTone = "green" | "yellow" | "red";
-type DashboardStatus = { id: string; label: string; tone: HealthTone; status: string; detail: string };
-const healthMeta: Record<HealthTone, { icon: string; meaning: string }> = {
-  green: { icon: "✓", meaning: "Ready or healthy" },
-  yellow: { icon: "!", meaning: "Needs attention or review" },
-  red: { icon: "×", meaning: "Missing, blocked or critical" },
-};
 
 const storySections: { id: StorySection; code: string; label: string; group: StorySectionGroup }[] = [
   { id: "simpleStart", code: "SS", label: "Simple Start", group: "Project" },
@@ -331,15 +324,6 @@ export default function Home() {
   }, [toast]);
 
   const completion = useMemo(() => completionFor(project), [project]);
-  const openAlerts = storySections.filter((section) => sectionHasAlert(project, section.id)).length;
-  const visualBlocks = project.blocks.filter((block) => block.visuals.length > 0).length;
-  const screenplayItems = project.screenplay.draftElements.length + (project.screenplay.sourceText.trim() ? 1 : 0);
-  const dashboardStatuses: DashboardStatus[] = [
-    { id: "story", label: "Story plan", tone: completion >= 70 ? "green" : completion > 0 ? "yellow" : "red", status: completion >= 70 ? "Ready for the next pass" : completion > 0 ? "In progress" : "Not started", detail: completion + "% of the active story plan is populated." },
-    { id: "screenplay", label: "Screenplay", tone: screenplayItems ? "green" : "red", status: screenplayItems ? "Draft available" : "Draft missing", detail: screenplayItems ? "A screenplay source or editable draft is connected." : "Write or import screenplay pages to activate reports and production tools." },
-    { id: "visuals", label: "Visual continuity", tone: visualBlocks === project.blocks.length ? "green" : visualBlocks > 0 ? "yellow" : "red", status: visualBlocks === project.blocks.length ? "Covered" : visualBlocks > 0 ? "Partial coverage" : "No visual coverage", detail: visualBlocks + " of " + project.blocks.length + " Blocks currently include visual evidence." },
-    { id: "review", label: "Open review items", tone: openAlerts === 0 ? "green" : openAlerts <= 3 ? "yellow" : "red", status: openAlerts === 0 ? "Clear" : openAlerts <= 3 ? "Review needed" : "Blocked by open work", detail: openAlerts === 0 ? "No tracked story section currently carries an alert." : openAlerts + " story sections contain an open question or continuity item." },
-  ];
   const selectedCharacter = project.characters.find((character) => character.id === selectedCharacterId) ?? project.characters[0];
   const selectedBlock = project.blocks.find((block) => block.number === selectedBlockNumber) ?? project.blocks[0];
 
@@ -529,31 +513,17 @@ export default function Home() {
 
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <button type="button" className="brand-lockup home-trigger" onClick={() => setShowLanding(true)} aria-label="Open the PlotPickle marketing page">
-          <img className="brand-icon" src="/brand/favicon/plotpickle-icon-128.png" alt="" aria-hidden="true" />
-          <div>
-            <strong>PlotPickle</strong>
-            <span>PlotPickle Playhouse</span>
-          </div>
-        </button>
-
-        <nav className="main-tabs" aria-label="Primary workspaces" role="tablist">
-          {mainTabs.map((tab) => (
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              className={activeTab === tab.id ? "active" : ""}
-              key={tab.id}
-              title={tab.description}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </nav>
-      </header>
+      <ApplicationShellHeader
+        activeTab={activeTab}
+        onNavigate={setActiveTab}
+        onOpenLanding={() => setShowLanding(true)}
+        onProjectAction={(action) => {
+          if (action === "new-project") createNewProject();
+          else if (action === "import") fileInputRef.current?.click();
+          else if (action === "export") exportProject();
+          else loadAfterglow();
+        }}
+      />
 
       <input ref={fileInputRef} className="visually-hidden" type="file" accept="application/json,.json,.txt,.fountain,.spmd,.fdx,text/plain,text/xml,application/xml" onChange={importFile} />
 
@@ -575,25 +545,15 @@ export default function Home() {
 
       <main className="workspace">
         {activeTab === "dashboard" ? (
-          <div className="dashboard-shell">
-            <aside className="workspace-subnav dashboard-nav" aria-label="Dashboard sections">
-              <p className="eyebrow">Dashboard</p><strong>Project control</strong>
-              <a href="#dashboard-status">Health status</a><a href="#dashboard-actions">Project actions</a><a href="#dashboard-overview">Story overview</a>
-              <div className="status-legend" aria-label="Dashboard status meaning">
-                {(Object.keys(healthMeta) as HealthTone[]).map((tone) => <span className={"status-key status-" + tone} key={tone}><i aria-hidden="true">{healthMeta[tone].icon}</i>{healthMeta[tone].meaning}</span>)}
-              </div>
-            </aside>
-            <div className="dashboard-main">
-              <section className="dashboard-status" id="dashboard-status" aria-labelledby="dashboard-status-title">
-                <div className="section-heading compact-heading"><div><p className="eyebrow">Live project health</p><h2 id="dashboard-status-title">Know what is ready, what needs attention and what is blocked.</h2><p>Status uses text, symbols and colour together so the dashboard remains readable and accessible.</p></div></div>
-                <div className="dashboard-status-grid">{dashboardStatuses.map((item) => <article className={"status-card status-" + item.tone} key={item.id}><span className="status-card-label">{item.label}</span><strong><i aria-hidden="true">{healthMeta[item.tone].icon}</i>{item.status}</strong><p>{item.detail}</p></article>)}</div>
-              </section>
-              <section className="dashboard-actions" id="dashboard-actions" aria-label="Project actions">
-                <button type="button" className="text-button" onClick={createNewProject}>New project</button><button type="button" className="text-button" onClick={() => fileInputRef.current?.click()}>Import</button><button type="button" className="text-button" onClick={exportProject}>Export</button><button type="button" className="primary-button compact" onClick={loadAfterglow}>Load Afterglow</button>
-              </section>
-              <section id="dashboard-overview" className="dashboard-overview"><ProjectOverview project={project} onOpenSection={(section) => { setActiveTab("planner"); setActiveSection(section as StorySection); }} onOpenEngines={() => setActiveTab("engines")} onOpenBlock={(number) => openBlock(number, "planner")} /></section>
-            </div>
-          </div>
+          <DashboardCommandCentre
+            project={project}
+            saveState={saveState}
+            onNavigate={(workspace, section) => {
+              setActiveTab(workspace);
+              if (workspace === "planner" && section) setActiveSection(section as StorySection);
+            }}
+            onOpenBlock={(number) => openBlock(number, "planner")}
+          />
         ) : null}
 
         {activeTab === "instructions" ? (

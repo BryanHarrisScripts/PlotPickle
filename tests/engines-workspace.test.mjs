@@ -3,13 +3,15 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("main application exposes Refine as the connected Engines workspace", async () => {
-  const [page, splash, navigation] = await Promise.all([
+  const [page, shell, splash, navigation] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/application-shell-header.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/marketing-splash.tsx", import.meta.url), "utf8"),
     readFile(new URL("../lib/product-direction.ts", import.meta.url), "utf8"),
   ]);
   assert.ok(page.includes("type MainTab = ProductNavigationId"));
-  assert.ok(page.includes("PRODUCT_COMPONENTS, PRODUCT_NAVIGATION, type ProductNavigationId"));
+  assert.ok(page.includes('import ApplicationShellHeader from "./application-shell-header"'));
+  assert.match(shell, /PRODUCT_NAVIGATION\.filter/);
   assert.match(navigation, /id: "engines", label: "Refine", description: "Refine the story", zone: "workflow"/);
   assert.ok(page.includes('import EngineHub from "./engine-hub"'));
   assert.ok(page.includes('{activeTab === "engines" ? <EngineHub /> : null}'));

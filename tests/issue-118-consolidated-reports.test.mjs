@@ -165,6 +165,48 @@ test("issue #118 derives reports without mutating canonical project data", async
   assert.doesNotMatch(reports, /\.push\(|\.splice\(/);
 });
 
+
+test("issue #118 mounts the live eight-section Reports workspace", async () => {
+  const workspace = await source("app/reports-workspace.tsx");
+  const page = await source("app/page.tsx");
+  assert.match(workspace, /createConsolidatedReportsModel/);
+  assert.match(workspace, /aria-label="Reports sections"/);
+  for (const renderer of ["renderProject", "renderStory", "renderCharacters", "renderScenes", "renderDialogue", "renderProduction", "renderFeedback", "renderConnections"]) {
+    assert.ok(workspace.includes(renderer), `Missing live report renderer: ${renderer}`);
+  }
+  assert.match(page, /<ReportsWorkspace project=\{project\}/);
+  assert.doesNotMatch(page, /activeTab === "reports"[^\n]+ScreenplayReports/);
+});
+
+test("issue #118 keeps report selection and provides exact-context return navigation", async () => {
+  const workspace = await source("app/reports-workspace.tsx");
+  const page = await source("app/page.tsx");
+  const build = await source("app/build-workspace.tsx");
+  const writer = await source("app/script-workspace.tsx");
+  assert.match(workspace, /onSectionChange\(item\.id\)/);
+  assert.match(workspace, /target\.workspace === "reports"/);
+  assert.match(page, /function openReportTarget\(target: ReportTarget\)/);
+  assert.match(page, /reportReturnSection/);
+  assert.match(page, /Return to \{reportReturnSection/);
+  assert.match(page, /initialTargetId=\{reportBuildTargetId\}/);
+  assert.match(page, /initialSceneId=\{reportSceneId\}/);
+  assert.match(build, /initialTargetId\?: string/);
+  assert.match(build, /initialTargetId\.startsWith\("act-"\)/);
+  assert.match(writer, /initialSceneId\?: string/);
+  assert.match(writer, /sceneIndex\.find\(\(entry\) => entry\.sceneId === initialSceneId\)/);
+});
+
+test("issue #118 live Reports remains canonical, responsive and useful with empty data", async () => {
+  const workspace = await source("app/reports-workspace.tsx");
+  const styles = await source("app/reports-workspace.module.css");
+  assert.doesNotMatch(workspace, /localStorage|sessionStorage|reportDatabase|cachedReports/);
+  assert.match(workspace, /creates no second report database/i);
+  assert.match(workspace, /Optional connections may remain disconnected/);
+  assert.match(workspace, /No Feedback records are available/);
+  assert.match(styles, /@media\(max-width:980px\)/);
+  assert.match(styles, /@media\(max-width:700px\)/);
+});
+
 test("issue #118 test is registered", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   assert.match(packageJson.scripts.test, /issue-118-consolidated-reports\.test\.mjs/);

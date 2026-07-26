@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./build-workspace.module.css";
 import MiniBlockWall from "./mini-block-wall";
 import FeedbackContextBadge from "./feedback-context-badge";
@@ -24,6 +24,7 @@ type BuildWorkspaceDisplay = BuildWorkspaceView | "mini-blocks";
 
 type BuildWorkspaceProps = {
   project: PlotPickleProject;
+  initialTargetId?: string;
   onProjectChange: (project: PlotPickleProject) => void;
   onOpenBlock: (number: number) => void;
   onOpenFeedback: (targetId: string) => void;
@@ -138,7 +139,7 @@ function InspectorField({ label, value, onChange, rows = 2 }: { label: string; v
   );
 }
 
-export default function BuildWorkspace({ project, onProjectChange, onOpenBlock, onOpenFeedback }: BuildWorkspaceProps) {
+export default function BuildWorkspace({ project, initialTargetId, onProjectChange, onOpenBlock, onOpenFeedback }: BuildWorkspaceProps) {
   const [view, setView] = useState<BuildWorkspaceDisplay>("whole-film");
   const [query, setQuery] = useState("");
   const [act, setAct] = useState(0);
@@ -148,6 +149,39 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock, 
   const [selectedBlockId, setSelectedBlockId] = useState(project.blocks[0]?.id ?? "");
   const [undoOrders, setUndoOrders] = useState<string[][]>([]);
   const [redoOrders, setRedoOrders] = useState<string[][]>([]);
+  const appliedTargetId = useRef("");
+
+  useEffect(() => {
+    if (!initialTargetId || appliedTargetId.current === initialTargetId) return;
+    appliedTargetId.current = initialTargetId;
+    if (initialTargetId === "mini-blocks") {
+      setView("mini-blocks");
+      return;
+    }
+    if (initialTargetId === "blocks") {
+      setView("blocks");
+      return;
+    }
+    if (initialTargetId.startsWith("act-")) {
+      const targetAct = Number(initialTargetId.slice(4));
+      if (targetAct >= 1 && targetAct <= 4) {
+        setView("act");
+        setAct(targetAct);
+      }
+      return;
+    }
+    const targetSequence = project.structure.sequences.find((item) => item.id === initialTargetId);
+    if (targetSequence) {
+      setView("sequence");
+      setSequence(targetSequence.number);
+      return;
+    }
+    const targetBlock = project.blocks.find((item) => item.id === initialTargetId);
+    if (targetBlock) {
+      setView("blocks");
+      setSelectedBlockId(targetBlock.id);
+    }
+  }, [initialTargetId, project.blocks, project.structure.sequences]);
 
   const model = useMemo(() => createBuildWorkspaceModel(project, {
     query,

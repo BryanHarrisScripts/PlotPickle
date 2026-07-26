@@ -139,7 +139,13 @@ When no overlay is supplied, every optional integration defaults safely to disco
 
 ## Interaction boundary
 
-The model supplies stable workspace and target references instead of performing redirects. The live Reports workspace will own navigation, preserve the selected report, open exact editing context when requested and provide a clear return path.
+The model supplies stable workspace and target references instead of performing redirects. The live Reports workspace owns navigation, preserves the selected report, opens exact editing context when requested and provides a clear return path.
+
+## Live workspace
+
+`app/reports-workspace.tsx` mounts the eight persistent views from the consolidated model. It includes responsive metric cards, completeness bars, diagnostic lists, report tables, empty states and disconnected connection states.
+
+Report actions are coordinated by `app/page.tsx`. Opening an external target retains the chosen report, selects the matching Block, scene or character where available, and displays a visible return control. Build accepts an exact act, sequence or Block target, while Write accepts the selected Block and scene.
 
 ## Non-negotiable rules
 

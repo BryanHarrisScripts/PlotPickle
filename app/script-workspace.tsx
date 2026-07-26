@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyboardEvent, useMemo, useState } from "react";
+import { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import type {
   PlotPickleProject,
   ScreenplayDocument,
@@ -24,6 +24,8 @@ import styles from "./script-workspace.module.css";
 type Props = {
   project: PlotPickleProject;
   mode: WriterViewMode;
+  initialBlockNumber?: number;
+  initialSceneId?: string;
   onModeChange: (mode: WriterViewMode) => void;
   onChange: (screenplay: ScreenplayDocument) => void;
   onProjectChange: (project: PlotPickleProject) => void;
@@ -73,13 +75,14 @@ function allMiniBlocks(project: PlotPickleProject, blockNumber: number) {
   return project.blocks[blockNumber - 1].scenes.flatMap((scene) => scene.miniBlocks);
 }
 
-export default function ScriptWorkspace({ project, mode, onModeChange, onChange, onProjectChange, onOpenBlock }: Props) {
+export default function ScriptWorkspace({ project, mode, initialBlockNumber, initialSceneId, onModeChange, onChange, onProjectChange, onOpenBlock }: Props) {
   const [blockNumber, setBlockNumber] = useState(1);
   const [miniBlockNumber, setMiniBlockNumber] = useState(1);
   const [selectedId, setSelectedId] = useState("");
   const [aiDirection, setAiDirection] = useState("");
   const [aiSuggestion, setAiSuggestion] = useState("");
   const [aiState, setAiState] = useState<"idle" | "working" | "error">("idle");
+  const appliedReportTarget = useRef("");
 
   const elements = project.screenplay.draftElements;
   const block = project.blocks[blockNumber - 1];
@@ -91,6 +94,22 @@ export default function ScriptWorkspace({ project, mode, onModeChange, onChange,
   const currentSceneEntry = sceneIndex.find((entry) => (
     entry.blockNumber === blockNumber && entry.miniBlockNumbers.includes(miniBlockNumber)
   )) ?? sceneIndex.find((entry) => entry.blockNumber === blockNumber);
+
+  useEffect(() => {
+    const targetSignature = initialSceneId || (initialBlockNumber ? `block-${initialBlockNumber}` : "");
+    if (!targetSignature || appliedReportTarget.current === targetSignature) return;
+    appliedReportTarget.current = targetSignature;
+    const sceneEntry = initialSceneId ? sceneIndex.find((entry) => entry.sceneId === initialSceneId) : undefined;
+    const nextBlockNumber = sceneEntry?.blockNumber ?? initialBlockNumber;
+    if (nextBlockNumber && nextBlockNumber >= 1 && nextBlockNumber <= project.blocks.length) {
+      setBlockNumber(nextBlockNumber);
+      setMiniBlockNumber(sceneEntry?.miniBlockNumbers[0] ?? 1);
+    }
+    if (initialSceneId) {
+      const sceneElement = elements.find((element) => element.sceneId === initialSceneId);
+      if (sceneElement) setSelectedId(sceneElement.id);
+    }
+  }, [elements, initialBlockNumber, initialSceneId, project.blocks.length, sceneIndex]);
   const scriptedSceneCount = useMemo(() => new Set(elements.map((item) => item.sceneId || `number-${item.sceneNumber}`)).size, [elements]);
 
   function save(next: ScreenplayDraftElement[]) {

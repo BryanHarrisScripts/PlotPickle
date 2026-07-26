@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawnCommand } from "./spawn-command.mjs";
 
 function parseDuration(value, fallback) {
   if (!value) return fallback;
@@ -22,10 +22,9 @@ const [command, ...args] = process.argv.slice(separator + 1);
 let timedOut = false;
 let forceTimer;
 
-const child = spawn(command, args, {
+const child = spawnCommand(command, args, {
   stdio: "inherit",
   env: process.env,
-  shell: process.platform === "win32",
 });
 
 const timeoutTimer = setTimeout(() => {

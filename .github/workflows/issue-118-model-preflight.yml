@@ -1,0 +1,37 @@
+name: Issue 118 reports model preflight
+
+on:
+  push:
+    branches:
+      - agent/issue-118-consolidated-reports
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/issue-118-consolidated-reports
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.19.0'
+      - name: Apply guarded reports model preflight
+        run: node scripts/issue-118-model-preflight.mjs
+      - name: Verify source contract
+        run: |
+          ! grep -q 'ScreenplayDraftElement' lib/consolidated-reports.ts
+          grep -q 'createConsolidatedReportsModel' lib/consolidated-reports.ts
+      - name: Commit permanent patch and remove temporary automation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm scripts/issue-118-model-preflight.mjs .github/workflows/issue-118-model-preflight.yml
+          git add lib/consolidated-reports.ts
+          git commit -m "Clean consolidated reports model imports"
+          git push origin HEAD:agent/issue-118-consolidated-reports

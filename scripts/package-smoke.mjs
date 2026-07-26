@@ -8,7 +8,19 @@ const manifest = JSON.parse(readFileSync(path.join(folder, "release-manifest.jso
 assert.equal(manifest.product, "PlotPickle");
 assert.equal(manifest.projectFormat, ".ppf");
 assert.equal(manifest.localOnly, true);
-for (const file of ["package.json", "package-lock.json", "vite.config.ts", "README.md", "lib/project-package.ts", "build/local-project-gateway.ts"]) {
+for (const file of [
+  ".openai/hosting.json",
+  "package.json",
+  "package-lock.json",
+  "vite.config.ts",
+  "README.md",
+  "worker/index.ts",
+  "db/index.ts",
+  "lib/project-package.ts",
+  "build/local-project-gateway.ts",
+  "scripts/windows-runtime.mjs",
+  "scripts/windows-server-smoke.mjs",
+]) {
   assert.ok(existsSync(path.join(folder, file)), `Missing packaged file: ${file}`);
 }
 const launcher = manifest.platform === "windows" ? "Start-PlotPickle.bat" : manifest.platform === "macos" ? "Start-PlotPickle.command" : "start-plotpickle.sh";

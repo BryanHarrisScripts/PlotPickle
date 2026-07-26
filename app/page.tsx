@@ -6,6 +6,8 @@ import MarketingSplash from "./marketing-splash";
 import ApplicationShellHeader from "./application-shell-header";
 import DashboardCommandCentre from "./dashboard-command-centre";
 import BuildWorkspace from "./build-workspace";
+import FeedbackWorkspace from "./feedback-workspace";
+import FeedbackContextBadge from "./feedback-context-badge";
 import { ChangeEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { createAfterglowProject } from "@/data/afterglow";
 import EngineHub from "./engine-hub";
@@ -40,6 +42,8 @@ import {
 } from "@/lib/project";
 import { synchronizeScreenplaySceneReferences } from "@/lib/scene-management";
 import { PRODUCT_COMPONENTS, type ProductNavigationId } from "@/lib/product-direction";
+import { createStoredFeedbackModel } from "@/lib/unified-feedback-store";
+import type { FeedbackTargetReference } from "@/lib/unified-feedback";
 
 const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
@@ -283,6 +287,7 @@ export default function Home() {
   const [selectedCharacterId, setSelectedCharacterId] = useState("");
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
   const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(1);
+  const [feedbackTargetId, setFeedbackTargetId] = useState("");
   const [writerMode, setWriterMode] = useState<WriterViewMode>("treatment");
   const [visualAct, setVisualAct] = useState(0);
   const [hydrated, setHydrated] = useState(false);
@@ -327,6 +332,8 @@ export default function Home() {
   const completion = useMemo(() => completionFor(project), [project]);
   const selectedCharacter = project.characters.find((character) => character.id === selectedCharacterId) ?? project.characters[0];
   const selectedBlock = project.blocks.find((block) => block.number === selectedBlockNumber) ?? project.blocks[0];
+  const feedbackModel = useMemo(() => createStoredFeedbackModel(project), [project]);
+  const selectedBlockFeedbackCount = feedbackModel.badges.get(`block:${selectedBlock.id}`) ?? 0;
 
   if (showLanding) {
     return <LandingPage onEnter={() => setShowLanding(false)} />;
@@ -512,6 +519,33 @@ export default function Home() {
     setActiveSection(destination === "planner" ? "blocks" : "storyboard");
   }
 
+  function openFeedback(targetId: string) {
+    setFeedbackTargetId(targetId);
+    setActiveTab("feedback");
+  }
+
+  function openFeedbackTarget(target: FeedbackTargetReference) {
+    setFeedbackTargetId(target.targetId);
+    const block = project.blocks.find((candidate) => candidate.id === target.blockId)
+      ?? project.blocks.find((candidate) => candidate.scenes.some((scene) => scene.id === target.sceneId || scene.miniBlocks.some((mini) => mini.id === target.miniBlockId)));
+    if (block) setSelectedBlockNumber(block.number);
+    if (target.miniBlockId && block) {
+      const mini = block.scenes.flatMap((scene) => scene.miniBlocks).find((candidate) => candidate.id === target.miniBlockId);
+      if (mini) setSelectedMiniBlockNumber(mini.number);
+    }
+    if (target.characterId) setSelectedCharacterId(target.characterId);
+    if (target.workspace === "build") setActiveTab("build");
+    else if (target.workspace === "write") setActiveTab("script");
+    else if (target.workspace === "storyboard") setActiveTab("visuals");
+    else if (target.workspace === "refine") setActiveTab("engines");
+    else if (target.workspace === "reports") setActiveTab("reports");
+    else if (target.workspace === "dashboard") setActiveTab("dashboard");
+    else if (target.workspace === "plan") {
+      setActiveTab("planner");
+      setActiveSection(target.characterId ? "characters" : target.kind === "world" ? "world" : block ? "blocks" : "overview");
+    } else setActiveTab("feedback");
+  }
+
   return (
     <div className="app-shell">
       <ApplicationShellHeader
@@ -572,6 +606,7 @@ export default function Home() {
             project={project}
             onProjectChange={commit}
             onOpenBlock={(number) => openBlock(number, "planner")}
+            onOpenFeedback={openFeedback}
           />
         ) : null}
 
@@ -691,31 +726,41 @@ export default function Home() {
         ) : null}
 
         {activeTab === "script" ? (
-          <ScriptWorkspace
-            project={project}
-            mode={writerMode}
-            onModeChange={setWriterMode}
-            onChange={(screenplay) => commit({ ...project, screenplay })}
-            onProjectChange={commit}
-            onOpenBlock={(number) => openBlock(number, "planner")}
-          />
+          <>
+            <FeedbackContextBadge count={selectedBlockFeedbackCount} label={`Block ${selectedBlock.number} · ${selectedBlock.title}`} onOpen={() => openFeedback(selectedBlock.id)} />
+            <ScriptWorkspace
+              project={project}
+              mode={writerMode}
+              onModeChange={setWriterMode}
+              onChange={(screenplay) => commit({ ...project, screenplay })}
+              onProjectChange={commit}
+              onOpenBlock={(number) => openBlock(number, "planner")}
+            />
+          </>
         ) : null}
 
         {activeTab === "visuals" ? (
           <div className="studio-layout visual-studio-layout">
             <StoryRail project={project} workspace="Visual Board" activeSection={activeSection} selectSection={setActiveSection} />
-            <VisualStoryboard
-              project={project}
-              initialBlockNumber={selectedBlock.number}
-              visualAct={visualAct}
-              onVisualActChange={setVisualAct}
-              onOpenPlannerBlock={(number) => openBlock(number, "planner")}
-              onChange={commit}
-            />
+            <div>
+              <FeedbackContextBadge count={selectedBlockFeedbackCount} label={`Block ${selectedBlock.number} · ${selectedBlock.title}`} onOpen={() => openFeedback(selectedBlock.id)} />
+              <VisualStoryboard
+                project={project}
+                initialBlockNumber={selectedBlock.number}
+                visualAct={visualAct}
+                onVisualActChange={setVisualAct}
+                onOpenPlannerBlock={(number) => openBlock(number, "planner")}
+                onChange={commit}
+              />
+            </div>
           </div>
         ) : null}
 
         {activeTab === "engines" ? <EngineHub /> : null}
+
+        {activeTab === "feedback" ? (
+          <FeedbackWorkspace project={project} onProjectChange={commit} onOpenTarget={openFeedbackTarget} initialTargetId={feedbackTargetId} />
+        ) : null}
 
         {activeTab === "reports" ? <ScreenplayReports project={project} /> : null}
 

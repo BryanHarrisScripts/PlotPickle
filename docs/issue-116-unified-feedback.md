@@ -2,23 +2,23 @@
 
 ## Objective
 
-Consolidate PlotPickle’s existing review fragments into one discoverable Feedback system without creating a second comment database or allowing feedback to change canon automatically.
+Consolidate PlotPickle’s review fragments into one discoverable Feedback system without creating a second comment database or allowing feedback to change canon automatically.
 
 ## Canonical reuse boundary
 
-The foundation reads from existing project-owned records:
+The implementation reuses:
 
 - `project.review.threads` for anchored human review and collaborator notes;
 - approved Specialist Lab passes stored inside `project.revisions`;
-- AI provenance and approval boundaries retained by Specialist Lab passes;
+- existing AI provenance and approval boundaries;
 - Build’s canonical structural diagnostics;
-- stable Block, scene, mini-block, character, screenplay-element and storyboard-frame IDs.
+- stable Block, scene, mini-block, character, screenplay-element, storyboard-frame and production-item IDs.
 
-`lib/unified-feedback.ts` creates a unified read model only. It does not add browser storage, a feedback database or a second persisted record collection.
+`lib/unified-feedback.ts` provides the unified read model. `lib/unified-feedback-store.ts` persists richer metadata inside the existing canonical review thread as a hidden machine-readable comment. PlotPickle does not create a second feedback collection, browser database or external service dependency.
 
-## Feedback submenu
+## Feedback workspace
 
-The unified model establishes these permanent sections:
+The primary workflow now includes Build and Feedback in their approved order. Feedback contains six permanent sections:
 
 1. Overview
 2. AI Review
@@ -27,11 +27,24 @@ The unified model establishes these permanent sections:
 5. Shooting Script
 6. Table Read
 
-Writers’ Room, Shooting Script and Table Read may begin with foundation records, but their placement and source identifiers are now fixed.
+The live workspace provides:
+
+- status, source, priority and category filters;
+- full-text search across title, body, proposal, resolution, target and author;
+- active and resolved history;
+- section totals and status summaries;
+- canonical target selection across every supported record kind;
+- anchored feedback creation;
+- threaded comments;
+- editable status, priority, category and author role;
+- proposed-change and resolution fields;
+- linked revision selection;
+- read-only diagnostic and approved-revision evidence;
+- context-preserving links back to Plan, Build, Write, Storyboard, Refine, Dashboard and Reports.
 
 ## Record model
 
-Every `UnifiedFeedbackRecord` includes:
+Every unified record includes:
 
 - a stable target reference and destination workspace;
 - author and author role;
@@ -47,7 +60,7 @@ Every `UnifiedFeedbackRecord` includes:
 - linked revision ID;
 - origin ID and a flag identifying synthetic read-only records.
 
-The required statuses are:
+Statuses:
 
 - Open
 - Under review
@@ -57,11 +70,11 @@ The required statuses are:
 - Resolved
 - Deferred
 
-Legacy `in-review` records are mapped to `under-review` in the unified view. Existing project schema `1.7.0` is not changed by this foundation.
+Legacy `in-review` records appear as `under-review`. Stored records continue using schema `1.7.0`; the richer status and target metadata round-trips through the existing review-thread container.
 
 ## Supported targets
 
-The target model establishes stable references for:
+Feedback can attach to:
 
 - project;
 - act;
@@ -80,55 +93,38 @@ The target model establishes stable references for:
 - visual identity;
 - production item.
 
-Target resolution uses IDs rather than current Block or mini-block positions. Reordering therefore does not break feedback links.
+Target resolution uses stable IDs instead of current positions. Reordering Blocks or mini-blocks therefore does not break links.
 
 ## Source adapters
 
 ### Anchored review threads
 
-Existing `project.review.threads` are adapted into human, AI, diagnostic, collaboration, Writers’ Room, Shooting Script or Table Read records. Existing comments remain the thread history.
-
-The adapter also recognizes optional comment conventions already safe inside legacy threads:
-
-- `Proposed change: ...`
-- `Resolution: ...`
+Existing `project.review.threads` become human, AI, diagnostic, collaboration, Writers’ Room, Shooting Script or Table Read records. Existing comments remain visible thread history.
 
 ### Specialist Lab and revision history
 
-Approved Specialist Lab passes become accepted Feedback records. Their before/after evidence is retained, and each record points to the canonical revision snapshot that contains the pass.
+Approved Specialist Lab passes become accepted read-only Feedback records. Their before/after evidence and linked revision remain available.
 
 ### Structural diagnostics
 
-The 96-mini-block wall’s warnings become read-only diagnostic Feedback records. They remain proposals or warnings only and never rewrite project content.
+The 96-mini-block wall’s warnings become read-only diagnostic records. They remain proposals or warnings and never rewrite project content.
 
-## Filtering and reporting foundation
+## Context badges
 
-The model supports:
+Feedback badges are visible in:
 
-- full-text search across title, body, proposed change, resolution, target and author;
-- status, source, priority, category and target-kind filters;
-- one stable target filter for context-sensitive side panels;
-- active versus resolved history;
-- section totals;
-- per-target badge counts for Blocks, mini-blocks, scenes, characters, screenplay passages and storyboard frames.
+- Build Block cards and the Block inspector;
+- the 96-mini-block inspector;
+- Write for the current Block;
+- Storyboard for the current Block.
 
-## Migration strategy
+Opening Feedback from these locations carries the stable target ID into the workspace. Returning through the target link restores the corresponding Block, mini-block, character or workspace context.
 
-This first slice deliberately avoids changing the persisted project schema. The next slice will add migration-tested write operations only after the adapters prove that existing projects, saved passes and diagnostics are represented correctly.
+## Canon safety
 
-Any persisted extension must:
-
-- preserve legacy review-thread IDs and comments;
-- normalize old `in-review` records;
-- retain stable target IDs;
-- survive import, export and `.ppf` packaging;
-- keep feedback proposal-only until the writer explicitly applies a change;
-- preserve searchable resolved history.
-
-## Next implementation slice
-
-1. Replace the current Feedback summary screen with the six-section unified workspace.
-2. Add filters, searchable history, record detail and stable context links.
-3. Add migration-tested creation and status operations for the seven required statuses.
-4. Add feedback badges to Build, Write and Storyboard.
-5. Add context-preserving side-panel entry from Blocks, mini-blocks, scenes, screenplay passages and frames.
+- Feedback never applies a proposed change automatically.
+- Accepting or resolving a record changes review metadata only.
+- Synthetic diagnostics and revision evidence are read-only.
+- Canonical project edits remain separate explicit actions.
+- Imported legacy projects retain thread IDs, comments and history.
+- All primary operations work offline without AI, GitHub or Google.

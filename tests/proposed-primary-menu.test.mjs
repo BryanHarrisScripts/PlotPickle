@@ -44,5 +44,5 @@ test("the proposed menu has responsive styling and Dashboard actions", async () 
   assert.match(css, /\.main-tabs\{justify-self:center/);
   assert.match(css, /min-height:70px/);
   assert.match(css, /\.dashboard-actions/);
-  assert.match(css, /@media \(max-width: 600px\)/);
+  assert.match(css, /@media\(max-width:760px\)/);
 });

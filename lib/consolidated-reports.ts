@@ -9,6 +9,7 @@ import {
 } from "./screenplay-reports";
 import { createStoredFeedbackModel } from "./unified-feedback-store";
 import type { FeedbackCategory, FeedbackSource, FeedbackStatus } from "./unified-feedback";
+import { createProductionReportsModel } from "./production-reports";
 
 export type ConsolidatedReportSection =
   | "project"
@@ -30,7 +31,7 @@ export const CONSOLIDATED_REPORT_SECTIONS: Array<{
   { id: "characters", label: "Characters", description: "Scenes, dialogue, appearances, shared scenes, arcs, visuals and shooting days." },
   { id: "scenes", label: "Scenes", description: "Headings, timing, locations, cast, Blocks, storyboard, feedback and production readiness." },
   { id: "dialogue", label: "Dialogue", description: "Lines, words, speeches, scene balance, repetition, voice, sides and duration." },
-  { id: "production", label: "Production", description: "Breakdowns, shots, schedule, cast, locations, loads, blockers and distribution." },
+  { id: "production", label: "Production", description: "Locations, coverage, shoot groups, actor schedules, timelines, requirements and AI systems." },
   { id: "feedback", label: "Feedback", description: "Active and resolved review by source, reviewer, target, category and review room." },
   { id: "connections", label: "Connections", description: "GitHub, AI, plugins, Google, storage, backups, repository and sync state." },
 ];
@@ -457,6 +458,7 @@ export function createConsolidatedReportsModel(
     scenes: sceneReport(project),
     dialogue: dialogueReport(project),
     production: {
+      ...createProductionReportsModel(project),
       summary: createProducerReport(project),
       scenes: createDirectorReport(project),
       shots: project.production.shots,

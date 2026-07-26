@@ -2,6 +2,7 @@
 
 import { useMemo, type ReactNode } from "react";
 import styles from "./reports-workspace.module.css";
+import ProductionReportsWorkspace from "./production-reports-workspace";
 import {
   CONSOLIDATED_REPORT_SECTIONS,
   createConsolidatedReportsModel,
@@ -11,11 +12,15 @@ import {
   type ReportsRuntimeConnections,
 } from "@/lib/consolidated-reports";
 import type { PlotPickleProject } from "@/lib/project";
+import type { ProductionReportSection } from "@/lib/production-reports";
 
 type ReportsWorkspaceProps = {
   project: PlotPickleProject;
   section: ConsolidatedReportSection;
   onSectionChange: (section: ConsolidatedReportSection) => void;
+  productionSection: ProductionReportSection;
+  onProductionSectionChange: (section: ProductionReportSection) => void;
+  onProjectChange: (project: PlotPickleProject) => void;
   onOpenTarget: (target: ReportTarget) => void;
   runtimeConnections?: ReportsRuntimeConnections;
 };
@@ -120,6 +125,9 @@ export default function ReportsWorkspace({
   project,
   section,
   onSectionChange,
+  productionSection,
+  onProductionSectionChange,
+  onProjectChange,
   onOpenTarget,
   runtimeConnections = {},
 }: ReportsWorkspaceProps) {
@@ -365,49 +373,15 @@ export default function ReportsWorkspace({
   }
 
   function renderProduction() {
-    const report = model.production;
-    const summary = Object.entries(report.summary).map(([key, value]) => ({ label: titleCase(key), value }));
-    const sceneNames = new Map(report.scenes.map((scene) => [scene.id, `Scene ${scene.number} · ${scene.title}`]));
-    const locationNames = new Map(project.world.locations.map((location) => [location.id, location.name]));
     return (
-      <div className={styles.reportStack}>
-        <SummaryStrip values={summary} />
-        <div className={styles.twoColumn}>
-          <SectionCard eyebrow="Breakdowns" title={`${report.breakdowns.length} production breakdowns`}>
-            {report.breakdowns.length ? <div className={styles.cardList}>{report.breakdowns.map((breakdown) => (
-              <article key={breakdown.id}>
-                <span><b>{sceneNames.get(breakdown.sceneId) || `Block ${breakdown.blockNumber}`}</b><small>{breakdown.castIds.length} cast · {breakdown.locationIds.length} locations · {breakdown.estimatedHours} hr</small></span>
-                <b className={`${styles.statusPill} ${breakdown.readiness === "blocked" ? styles.statusBlocked : ""}`}>{titleCase(breakdown.readiness)}</b>
-              </article>
-            ))}</div> : <EmptyState>No scene breakdowns have been created.</EmptyState>}
-          </SectionCard>
-          <SectionCard eyebrow="Schedule" title={`${report.schedule.length} shooting days`}>
-            {report.schedule.length ? <div className={styles.cardList}>{report.schedule.map((day) => (
-              <article key={day.id}>
-                <span><b>Day {day.dayNumber}{day.date ? ` · ${day.date}` : ""}</b><small>{locationNames.get(day.locationId) || "Location not set"} · {day.sceneIds.length} scenes</small></span>
-                <span><strong>{day.estimatedHours} hr</strong><small>{titleCase(day.status)}</small></span>
-              </article>
-            ))}</div> : <EmptyState>No shooting days have been scheduled.</EmptyState>}
-          </SectionCard>
-        </div>
-        <div className={styles.threeColumn}>
-          <SectionCard eyebrow="Shot Designer" title={`${report.shots.length} shots`}>
-            {report.shots.length ? <div className={styles.rankedList}>{report.shots.slice(0, 16).map((shot) => (
-              <article key={shot.id}><strong>#{shot.shotNumber} · {shot.shotSize || "Size not set"} · {titleCase(shot.status)}</strong><span>{shot.movement || shot.angle || shot.purpose || sceneNames.get(shot.sceneId) || "Shot details not set"}</span></article>
-            ))}</div> : <EmptyState>No planned shots are available.</EmptyState>}
-          </SectionCard>
-          <SectionCard eyebrow="Sonic Bible" title={`${report.cues.length} cues`}>
-            {report.cues.length ? <div className={styles.rankedList}>{report.cues.slice(0, 16).map((cue) => (
-              <article key={cue.id}><strong>{cue.cueNumber || cue.title || "Untitled cue"} · {titleCase(cue.type)}</strong><span>{cue.purpose || cue.motif || titleCase(cue.status)}</span></article>
-            ))}</div> : <EmptyState>No sound or music cues are available.</EmptyState>}
-          </SectionCard>
-          <SectionCard eyebrow="Release path" title={`${report.distribution.milestones.length} milestones`}>
-            {report.distribution.milestones.length ? <div className={styles.rankedList}>{report.distribution.milestones.map((milestone) => (
-              <article key={milestone.id}><strong>{milestone.title} · {titleCase(milestone.status)}</strong><span>{milestone.targetDate || milestone.notes || "Date not set"}</span></article>
-            ))}</div> : <EmptyState>No distribution milestones are available.</EmptyState>}
-          </SectionCard>
-        </div>
-      </div>
+      <ProductionReportsWorkspace
+        project={project}
+        report={model.production}
+        section={productionSection}
+        onSectionChange={onProductionSectionChange}
+        onProjectChange={onProjectChange}
+        onOpenTarget={openTarget}
+      />
     );
   }
 

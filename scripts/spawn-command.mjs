@@ -1,29 +1,24 @@
 import { spawn } from "node:child_process";
 import process from "node:process";
 
-function quoteForCommandPrompt(value) {
-  return `"${String(value).replaceAll('"', '""')}"`;
-}
-
 /**
  * Spawn a command without Node's `shell: true` string concatenation.
  *
  * Windows cannot execute .cmd or .bat files directly through CreateProcess,
- * so those wrappers are passed to cmd.exe as one explicitly quoted command.
- * The complete command receives an additional outer quote pair because
- * `cmd.exe /s /c` removes that pair before parsing the executable and args.
- * Native executables such as node.exe and powershell.exe are always spawned
- * directly, preserving paths such as C:\Program Files\nodejs\node.exe.
+ * so those wrappers are passed to cmd.exe using separate child-process
+ * arguments. Node then quotes only values that require quoting, including
+ * script paths and arguments containing spaces. Native executables such as
+ * node.exe and powershell.exe are spawned directly, preserving paths such as
+ * C:\Program Files\nodejs\node.exe.
  */
 export function spawnCommand(command, args = [], options = {}) {
   const spawnOptions = { ...options, shell: false };
 
   if (process.platform === "win32" && /\.(?:cmd|bat)$/i.test(command)) {
-    const commandLine = [command, ...args].map(quoteForCommandPrompt).join(" ");
     return spawn(
       process.env.ComSpec || "cmd.exe",
-      ["/d", "/s", "/c", `"${commandLine}"`],
-      { ...spawnOptions, windowsVerbatimArguments: true },
+      ["/d", "/c", command, ...args],
+      spawnOptions,
     );
   }
 

@@ -14,9 +14,11 @@ jobs:
     steps:
       - name: Run concise test diagnostic
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          git clone -q --depth=1 --branch fix-112-post-merge-recovery https://github.com/BryanHarrisScripts/PlotPickle.git repo
+          git clone -q --depth=1 --branch "$GITHUB_HEAD_REF" "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" repo
           cd repo
           npm ci --silent >/dev/null 2>&1
           if npm test > /tmp/plotpickle-test.log 2>&1; then

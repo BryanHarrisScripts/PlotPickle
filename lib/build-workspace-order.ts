@@ -40,6 +40,7 @@ export function applyCanonicalBuildOrder(
     act: Math.floor(index / 6) + 1,
     sequenceNumber: Math.floor(index / 2) + 1,
   }));
+  const blockNumberById = new Map(blocks.map((block) => [block.id, block.number]));
 
   return {
     ...project,
@@ -72,6 +73,22 @@ export function applyCanonicalBuildOrder(
       })),
       updatedAt: now,
     })),
+    review: {
+      ...project.review,
+      threads: project.review.threads.map((thread) => {
+        if (thread.anchor.kind !== "block") return thread;
+        const blockNumber = blockNumberById.get(thread.anchor.targetId);
+        if (!blockNumber) return thread;
+        return {
+          ...thread,
+          anchor: {
+            ...thread.anchor,
+            label: thread.anchor.label.replace(/\bBlock\s+\d+\b/i, `Block ${blockNumber}`),
+          },
+          updatedAt: now,
+        };
+      }),
+    },
     production: {
       ...project.production,
       shots: project.production.shots.map((shot) => ({

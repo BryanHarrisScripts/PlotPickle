@@ -12,9 +12,40 @@ jobs:
   windows-cmd-quoting:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.13.0
       - name: Execute npm.cmd and spaced-path commands
-        run: node --test tests/issue-104-windows-paths.test.mjs
+        shell: pwsh
+        run: |
+          $directory = Join-Path $env:RUNNER_TEMP "PlotPickle command check"
+          New-Item -ItemType Directory -Force -Path $directory | Out-Null
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/BryanHarrisScripts/PlotPickle/8d6fe8f90e537efdd02af1e9248d5feb39244e06/scripts/spawn-command.mjs" -OutFile (Join-Path $directory "spawn-command.mjs")
+          @'
+          import { copyFile, writeFile } from "node:fs/promises";
+          import { join } from "node:path";
+          import process from "node:process";
+          import { spawnCommand } from "./spawn-command.mjs";
+
+          function completed(command, args) {
+            return new Promise((resolve, reject) => {
+              const child = spawnCommand(command, args, { stdio: "inherit" });
+              child.once("error", reject);
+              child.once("exit", (code, signal) => {
+                if (code === 0) resolve();
+                else reject(new Error(`${command} failed with ${signal ?? `exit ${code}`}`));
+              });
+            });
+          }
+
+          const directory = process.argv[2];
+          const copiedNode = join(directory, "node copy.exe");
+          const commandFile = join(directory, "argument check.cmd");
+          await copyFile(process.execPath, copiedNode);
+          await writeFile(commandFile, '@echo off\r\nif "%~1"=="hello world" exit /b 0\r\nexit /b 1\r\n', "utf8");
+          console.log("Checking native executable path with spaces...");
+          await completed(copiedNode, ["-e", "process.exit(0)"]);
+          console.log("Checking npm.cmd without literal quote characters...");
+          await completed("npm.cmd", ["--version"]);
+          console.log("Checking cmd file and argument containing spaces...");
+          await completed(commandFile, ["hello world"]);
+          console.log("All Windows command quoting checks passed.");
+          '@ | Set-Content -Path (Join-Path $directory "check.mjs") -Encoding utf8
+          node (Join-Path $directory "check.mjs") $directory

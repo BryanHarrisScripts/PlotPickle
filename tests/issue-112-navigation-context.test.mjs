@@ -45,3 +45,23 @@ test("issue #112 context model preserves required working selections", async () 
   assert.match(context, /restorePreviousContext/);
   assert.match(context, /previous: history\.current/);
 });
+
+test("issue #112 supplies reusable live shell, Build and Feedback components", async () => {
+  const header = await source("app/application-shell-header.tsx");
+  const build = await source("app/build-workspace.tsx");
+  const feedback = await source("app/feedback-workspace.tsx");
+
+  assert.match(header, /shell-zone-orientation/);
+  assert.match(header, /shell-zone-workflow/);
+  assert.match(header, /shell-zone-project-actions/);
+  assert.match(header, /shell-zone-configuration/);
+  assert.match(header, /PROJECT_ACTIONS\.map/);
+
+  assert.match(build, /StructureMapSummary/);
+  assert.match(build, /canonical story movements/i);
+  assert.match(build, /stable ID/i);
+
+  assert.match(feedback, /project\.review\.threads/);
+  assert.match(feedback, /Anchored review/);
+  assert.match(feedback, /Suggestions do not overwrite the screenplay automatically/);
+});

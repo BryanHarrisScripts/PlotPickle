@@ -2,18 +2,45 @@ export const PLOTPICKLE_REPOSITORY_URL = "https://github.com/BryanHarrisScripts/
 export const LEARNING_MODULE_COUNT = 81;
 
 export const PRODUCT_NAVIGATION = [
-  { id: "dashboard", label: "Dashboard", description: "Projects, collaboration and storage" },
-  { id: "instructions", label: "Instructions", description: "Learn the method" },
-  { id: "learn", label: "Learn", description: "Study the craft and terminology" },
-  { id: "planner", label: "Plan", description: "Simple Start and story planning" },
-  { id: "script", label: "Write", description: "Outline and write" },
-  { id: "visuals", label: "Storyboard", description: "See and preserve the film" },
-  { id: "engines", label: "Refine", description: "Refine the story" },
-  { id: "reports", label: "Reports", description: "Understand the screenplay" },
-  { id: "settings", label: "Settings", description: "Preferences and Setup" },
+  { id: "dashboard", label: "Dashboard", description: "Projects, collaboration and storage", zone: "workflow" },
+  { id: "instructions", label: "Introduction", description: "Understand PlotPickle and choose where to begin", zone: "orientation" },
+  { id: "learn", label: "Learn", description: "Study the craft and terminology", zone: "workflow" },
+  { id: "planner", label: "Plan", description: "Simple Start and story planning", zone: "workflow" },
+  { id: "script", label: "Write", description: "Outline and write", zone: "workflow" },
+  { id: "visuals", label: "Storyboard", description: "See and preserve the film", zone: "workflow" },
+  { id: "engines", label: "Refine", description: "Refine the story", zone: "workflow" },
+  { id: "reports", label: "Reports", description: "Understand the screenplay", zone: "workflow" },
+  { id: "settings", label: "Settings", description: "Preferences and Setup", zone: "configuration" },
 ] as const;
 
 export type ProductNavigationId = (typeof PRODUCT_NAVIGATION)[number]["id"];
+export type ApplicationShellZone = "orientation" | "workflow" | "project-actions" | "configuration";
+
+export const TARGET_CREATIVE_WORKFLOW = [
+  "Dashboard",
+  "Learn",
+  "Plan",
+  "Build",
+  "Write",
+  "Storyboard",
+  "Refine",
+  "Feedback",
+  "Reports",
+] as const;
+
+export const PROJECT_ACTIONS = [
+  { id: "new-project", label: "New Project" },
+  { id: "import", label: "Import" },
+  { id: "export", label: "Export" },
+  { id: "load-afterglow", label: "Load Afterglow" },
+] as const;
+
+export const APPLICATION_SHELL_ZONES = [
+  { id: "orientation", label: "Orientation", items: ["PlotPickle", "Introduction"] },
+  { id: "workflow", label: "Creative workflow", items: TARGET_CREATIVE_WORKFLOW },
+  { id: "project-actions", label: "Project actions", items: PROJECT_ACTIONS.map((action) => action.label) },
+  { id: "configuration", label: "Application configuration", items: ["Settings"] },
+] as const;
 
 export const PRODUCT_COMPONENTS = [
   { id: "learn", label: "Learn", title: "Learn the craft", summary: "Use the 81-module learning system and contextual guidance without leaving the active project.", icon: "/brand/components/learn.svg" },
@@ -71,48 +98,13 @@ export const PLOTPICKLE_SERVER_MODEL = {
 } as const;
 
 export const STORAGE_STATUS_DEFINITIONS = [
-  {
-    id: "local-only",
-    label: "Local only",
-    severity: "attention",
-    explanation: "The canonical project is stored on this device and has not been verified in GitHub or an exported backup.",
-  },
-  {
-    id: "local-with-assets",
-    label: "Local project and local images",
-    severity: "attention",
-    explanation: "The project file and visual assets are stored locally; both need backup protection before an upgrade or device failure.",
-  },
-  {
-    id: "connected-unpublished",
-    label: "Connected to GitHub — unpublished changes",
-    severity: "review",
-    explanation: "A repository connection exists, but current project or asset changes have not been verified on the remote repository.",
-  },
-  {
-    id: "synchronized",
-    label: "Synchronized with GitHub",
-    severity: "clear",
-    explanation: "The active local revision matches the verified repository revision.",
-  },
-  {
-    id: "pull-required",
-    label: "Remote changes available",
-    severity: "review",
-    explanation: "A newer repository revision is available and must be reviewed before contributing or replacing local work.",
-  },
-  {
-    id: "conflict-review",
-    label: "Conflict or review required",
-    severity: "blocked",
-    explanation: "Local and remote changes diverge and must not be overwritten automatically.",
-  },
-  {
-    id: "backup-recommended",
-    label: "Backup recommended",
-    severity: "attention",
-    explanation: "The project has no recently verified backup package containing both the project file and required assets.",
-  },
+  { id: "local-only", label: "Local only", severity: "attention", explanation: "The canonical project is stored on this device and has not been verified in GitHub or an exported backup." },
+  { id: "local-with-assets", label: "Local project and local images", severity: "attention", explanation: "The project file and visual assets are stored locally; both need backup protection before an upgrade or device failure." },
+  { id: "connected-unpublished", label: "Connected to GitHub — unpublished changes", severity: "review", explanation: "A repository connection exists, but current project or asset changes have not been verified on the remote repository." },
+  { id: "synchronized", label: "Synchronized with GitHub", severity: "clear", explanation: "The active local revision matches the verified repository revision." },
+  { id: "pull-required", label: "Remote changes available", severity: "review", explanation: "A newer repository revision is available and must be reviewed before contributing or replacing local work." },
+  { id: "conflict-review", label: "Conflict or review required", severity: "blocked", explanation: "Local and remote changes diverge and must not be overwritten automatically." },
+  { id: "backup-recommended", label: "Backup recommended", severity: "attention", explanation: "The project has no recently verified backup package containing both the project file and required assets." },
 ] as const;
 
 export type StorageStatusId = (typeof STORAGE_STATUS_DEFINITIONS)[number]["id"];

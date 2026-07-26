@@ -5,14 +5,22 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #100 opens on the updated marketing splash with five current components", async () => {
-  const [page, contract] = await Promise.all([source("app/page.tsx"), source("lib/product-direction.ts")]);
+test("issue #100 opens on the approved marketing splash with five current components", async () => {
+  const [page, splash, contract] = await Promise.all([
+    source("app/page.tsx"),
+    source("app/marketing-splash.tsx"),
+    source("lib/product-direction.ts"),
+  ]);
   assert.match(page, /useState\(true\)/);
-  assert.match(page, /PRODUCT_COMPONENTS\.map/);
+  assert.match(page, /MarketingSplash/);
+  assert.match(splash, /components\.map/);
+  assert.match(splash, /Your whole film/);
+  assert.match(splash, /Five reasons to use PlotPickle/);
   for (const id of ["learn", "plan", "write", "storyboard", "refine"]) {
     assert.match(contract, new RegExp(`id: "${id}"`));
     await access(new URL(`public/brand/components/${id}.svg`, root));
   }
+  await access(new URL("public/brand/marketing/plotpickle-multi-server-collaboration.svg", root));
 });
 
 test("issue #100 centers the application menu through one shared premium shell", async () => {

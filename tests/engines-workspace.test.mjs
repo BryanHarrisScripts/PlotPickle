@@ -3,17 +3,18 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("main application exposes Refine as the connected Engines workspace", async () => {
-  const [page, navigation] = await Promise.all([
+  const [page, splash, navigation] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/marketing-splash.tsx", import.meta.url), "utf8"),
     readFile(new URL("../lib/product-direction.ts", import.meta.url), "utf8"),
   ]);
   assert.ok(page.includes("type MainTab = ProductNavigationId"));
-  assert.ok(page.includes('PRODUCT_COMPONENTS, PRODUCT_NAVIGATION, type ProductNavigationId'));
+  assert.ok(page.includes("PRODUCT_COMPONENTS, PRODUCT_NAVIGATION, type ProductNavigationId"));
   assert.ok(navigation.includes('{ id: "engines", label: "Refine", description: "Refine the story" }'));
   assert.ok(page.includes('import EngineHub from "./engine-hub"'));
   assert.ok(page.includes('{activeTab === "engines" ? <EngineHub /> : null}'));
-  assert.ok(page.includes('<span>Write</span><span>Storyboard</span><span>Refine</span>'));
-  assert.ok(page.includes("One playhouse. Five connected components."));
+  assert.ok(splash.includes("components.map"));
+  assert.ok(splash.includes("An open film-development platform."));
 });
 
 test("Engines workspace explains every specialist before opening it", async () => {

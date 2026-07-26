@@ -35,20 +35,29 @@ async function render(pathname) {
   return response.text();
 }
 
-test("renders the premium startup splash and preserves the local-first workspace contract", async () => {
+test("renders the approved whole-film startup splash and preserves the local-first workspace contract", async () => {
   const html = await render("/");
   assert.match(html, developmentPreviewMeta);
-  assert.match(html, /PlotPickle Playhouse/);
-  assert.match(html, /Story Planner/);
-  assert.match(html, /Simple Start/);
-  for (const phrase of ["Learn the craft", "Plan the whole story", "Write the screenplay", "See the film", "Refine with purpose"]) {
-    assert.match(html, new RegExp(phrase));
+  for (const phrase of [
+    "PlotPickle Playhouse",
+    "Your whole film.",
+    "One canonical project.",
+    "Complete screenplay studio",
+    "81-module learning system",
+    "Visual continuity engine",
+    "Local-first ownership with optional AI",
+    "Distributed PlotPickle collaboration",
+    "An open film-development platform.",
+    "Complete installations. One approved film.",
+  ]) {
+    assert.ok(html.includes(phrase), "Rendered splash is missing: " + phrase);
   }
   assert.match(html, /\/brand\/favicon\/plotpickle-icon-128\.png/);
 
-  const [source, navigation] = await Promise.all([
+  const [source, navigation, splash] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../lib/product-direction.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/marketing-splash.tsx", import.meta.url), "utf8"),
   ]);
   for (const phrase of [
     'id: "simpleStart", code: "SS", label: "Simple Start"',
@@ -56,10 +65,11 @@ test("renders the premium startup splash and preserves the local-first workspace
     'id: "structureMap", code: "ST", label: "Structure Map"',
     "One story. Five connected workspaces.",
     "Script Viewer",
-    "Copyright & licensing",
   ]) {
-    assert.ok(source.includes(phrase), `Root workspace source is missing: ${phrase}`);
+    assert.ok(source.includes(phrase), "Root workspace source is missing: " + phrase);
   }
+  assert.match(splash, /Copyright & licensing/);
+  assert.match(splash, /plotpickle-multi-server-collaboration\.svg/);
   assert.ok(navigation.includes('{ id: "reports", label: "Reports", description: "Understand the screenplay" }'));
   assert.ok(navigation.includes('{ id: "dashboard", label: "Dashboard"'));
   assert.ok(!source.includes("PlotPickle Online"), "Official product page should not advertise an online PlotPickle edition");

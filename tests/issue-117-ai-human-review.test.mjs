@@ -154,6 +154,83 @@ test("issue #117 remains useful without AI or GitHub", async () => {
   assert.doesNotMatch(workflows, /throw new Error\("Connect GitHub|throw new Error\("Connect an AI/);
 });
 
+test("issue #117 mounts dedicated AI and human workflows inside Feedback", async () => {
+  const feedback = await source("app/feedback-workspace.tsx");
+  for (const contract of [
+    'import ReviewWorkflowsPanel from "./review-workflows-panel"',
+    'section === "ai-review"',
+    'mode="ai"',
+    'section === "human-review"',
+    'mode="human"',
+  ]) assert.ok(feedback.includes(contract), `Missing Feedback workflow mount: ${contract}`);
+});
+
+test("issue #117 AI workflow checks the local provider and requires notice acknowledgement", async () => {
+  const panel = await source("app/review-workflows-panel.tsx");
+  for (const contract of [
+    'fetch("/api/local-ai/connection"',
+    'fetch("/api/local-ai/generate/text"',
+    "Prepare review",
+    "Copy prepared prompt",
+    "Privacy",
+    "Context",
+    "Cost",
+    "Writer control",
+    "I reviewed the selected context, privacy notice and possible provider cost.",
+    "Submit AI review",
+    "Connect a provider in Settings to submit",
+  ]) assert.ok(panel.includes(contract), `Missing live AI review contract: ${contract}`);
+  assert.match(panel, /disabled=\{!provider\.connected \|\| !acknowledged/);
+});
+
+test("issue #117 AI results expose structured findings decisions and proposal approval", async () => {
+  const panel = await source("app/review-workflows-panel.tsx");
+  for (const contract of [
+    "Structured result",
+    "Recurring patterns",
+    "Priorities",
+    "Save all under review",
+    "Accept as feedback",
+    "Defer",
+    "Reject",
+    "Create an approval-gated revision proposal",
+    "Approve proposal",
+    "Reject proposal",
+    "No story record changes until a later explicit revision operation",
+  ]) assert.ok(panel.includes(contract), `Missing AI result decision contract: ${contract}`);
+});
+
+test("issue #117 human workflow collects identity questions due date GitHub link and exports", async () => {
+  const panel = await source("app/review-workflows-panel.tsx");
+  for (const contract of [
+    "Structured human review",
+    "Reviewer name",
+    "Reviewer role",
+    "Organisation",
+    "Contact · optional",
+    "Requested due date",
+    "GitHub proposal URL · optional",
+    "GitHub proposal number · optional",
+    "Review questions · one per line",
+    "Create human review request",
+    "Export review summary",
+    "Local-first review",
+  ]) assert.ok(panel.includes(contract), `Missing human review UI contract: ${contract}`);
+  assert.match(panel, /createHumanReviewRequest\(project/);
+  assert.match(panel, /exportReviewSummary\(model\.records/);
+});
+
+test("issue #117 visually distinguishes AI and human review", async () => {
+  const panelCss = await source("app/review-workflows-panel.module.css");
+  const feedbackCss = await source("app/feedback-workspace.module.css");
+  const feedback = await source("app/feedback-workspace.tsx");
+  assert.match(panelCss, /\.aiPanel\{/);
+  assert.match(panelCss, /\.humanPanel\{/);
+  assert.match(feedbackCss, /\.aiRecord\{/);
+  assert.match(feedbackCss, /\.humanRecord\{/);
+  assert.match(feedback, /record\.source === "ai" \|\| record\.source === "diagnostic"/);
+});
+
 test("issue #117 test is registered", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   assert.match(packageJson.scripts.test, /issue-117-ai-human-review\.test\.mjs/);

@@ -12,20 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22.19.0"
-          cache: npm
-      - name: Apply live integration
-        run: python scripts/apply-issue-113.py
-      - name: Validate targeted contracts
+      - name: Apply, validate and commit issue 113 integration
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          git clone -q --depth=1 --branch "$GITHUB_HEAD_REF" "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" repo
+          cd repo
+          python scripts/apply-issue-113.py
           npm ci --silent >/dev/null 2>&1
           if ! npm run test:dashboard-command-centre > /tmp/issue-113-tests.log 2>&1; then
             echo "::error title=Issue 113 targeted test failure::"
@@ -38,9 +33,6 @@ jobs:
             exit 1
           fi
           echo "Issue #113 targeted tests and lint passed."
-      - name: Commit integration when needed
-        shell: bash
-        run: |
           if git diff --quiet; then
             echo "Issue #113 integration already present."
             exit 0

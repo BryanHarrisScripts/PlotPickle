@@ -65,7 +65,24 @@ test("Windows launcher repairs a damaged native runtime before starting", async 
   assert.match(launcher, /mark-ready[\s\S]*if errorlevel 1 exit \/b 1/);
 });
 
-test("Windows release validation repairs the native binding and starts the real server", async () => {
+test("Windows server smoke uses Node directly and saves startup diagnostics", async () => {
+  const smoke = await source("scripts/windows-server-smoke.mjs");
+  for (const contract of [
+    "spawn(",
+    "node_modules",
+    "vite.js",
+    '"--host", "127.0.0.1"',
+    '"--strictPort"',
+    "fetch(url",
+    "AbortSignal.timeout",
+    "windows-server-smoke.log",
+    "saveLog",
+    'server.kill("SIGTERM")',
+  ]) assert.ok(smoke.includes(contract), `Windows server smoke is missing: ${contract}`);
+  assert.doesNotMatch(smoke, /Start-Process|Invoke-WebRequest/);
+});
+
+test("Windows release validation repairs the binding and runs the captured server smoke", async () => {
   const workflow = await source(".github/workflows/release-candidate.yml");
   for (const contract of [
     'node: "24.15.0"',
@@ -73,11 +90,9 @@ test("Windows release validation repairs the native binding and starts the real 
     "windows-runtime.mjs verify-modules node_modules",
     "windows-runtime.mjs repair-native node_modules",
     "Start clean-machine Windows server",
-    "Start-Process",
-    '"--strictPort"',
-    "Invoke-WebRequest",
-    "http://127.0.0.1:4173",
-    "The Windows PlotPickle server exited before becoming ready.",
+    "windows-server-smoke.mjs .",
+    "Upload Windows server diagnostic",
+    "windows-server-smoke.log",
   ]) assert.ok(workflow.includes(contract), `Windows release validation is missing: ${contract}`);
 });
 

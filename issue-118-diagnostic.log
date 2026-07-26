@@ -1,0 +1,177 @@
+BUILD_STATUS=0
+TEST_STATUS=1
+===== BUILD TAIL =====
+
+> plotpickle@1.0.0-rc.3 build
+> node scripts/build-verified.mjs
+
+Running bounded vinext build on linux...
+
+  vinext build  (Vite 8.0.13)
+
+[vinext] middleware.ts is deprecated in Next.js 16. Rename to proxy.ts and export a default or named proxy function.
+[34m[1/5] analyze client references...[39m
+[2Ktransforming...✓ 171 modules transformed.
+rendering chunks...
+[32m✓ built in 1.28s[39m
+[34m[2/5] analyze server references...[39m
+[2Ktransforming...✓ 225 modules transformed.
+rendering chunks...
+[32m✓ built in 1.49s[39m
+[34m[3/5] build rsc environment...[39m
+[2Ktransforming...✓ 177 modules transformed.
+rendering chunks...
+computing gzip size...
+[32m✓ built in 857ms[39m
+[34m[4/5] build client environment...[39m
+[2Ktransforming...✓ 232 modules transformed.
+rendering chunks...
+computing gzip size...
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 1.59s[39m
+[34m[5/5] build ssr environment...[39m
+[2Ktransforming...✓ 231 modules transformed.
+rendering chunks...
+computing gzip size...
+[32m✓ built in 1.41s[39m
+[0m
+  Route (app)
+  ┌ ? /                        
+  ├ ? /about                   
+  ├ ? /afterglow-reconciliation
+  ├ ? /characters-in-motion    
+  ├ ? /core-curriculum         
+  ├ ? /craftloop               
+  ├ ? /diagnostics             
+  ├ ? /dialogue-in-motion      
+  ├ ? /draftlens               
+  ├ ? /git                     
+  ├ ? /labs                    
+  ├ ? /legal                   
+  ├ ? /pageflow                
+  ├ ? /pitch-review            
+  ├ ? /production              
+  ├ ? /resonance               
+  ├ ? /screenplay-readiness    
+  ├ ? /start-here              
+  ├ ? /story-craft-essentials  
+  ├ ? /structure               
+  ├ ? /voiceprint              
+  ├ ? /welcome                 
+  ├ ? /worked-examples         
+  └ ? /working-together        
+
+  ? Unknown
+
+  ? Some routes could not be classified. vinext currently uses static analysis
+    and cannot detect dynamic API usage (headers(), cookies(), etc.) at build time.
+    Automatic classification will be improved in a future release.
+
+  Build complete. Run `vinext start` to start the production server.
+
+Validated Sites artifact: ESM Worker default.fetch and hosting manifest are present.
+===== TEST TAIL =====
+TAP version 13
+# Subtest: issue \#118 defines the persistent eight-section Reports workspace
+ok 1 - issue \#118 defines the persistent eight-section Reports workspace
+  ---
+  duration_ms: 8.718636
+  type: 'test'
+  ...
+# Subtest: issue \#118 reuses existing canonical report and diagnostic builders
+ok 2 - issue \#118 reuses existing canonical report and diagnostic builders
+  ---
+  duration_ms: 2.925888
+  type: 'test'
+  ...
+# Subtest: issue \#118 Project report covers draft format scale completion storyboard feedback and canon
+ok 3 - issue \#118 Project report covers draft format scale completion storyboard feedback and canon
+  ---
+  duration_ms: 1.465003
+  type: 'test'
+  ...
+# Subtest: issue \#118 Story report covers balance completion diagnostics setup payoff arcs storylines and pacing
+ok 4 - issue \#118 Story report covers balance completion diagnostics setup payoff arcs storylines and pacing
+  ---
+  duration_ms: 1.301196
+  type: 'test'
+  ...
+# Subtest: issue \#118 Character report covers scenes dialogue appearances sharing arcs visuals requirements and days
+ok 5 - issue \#118 Character report covers scenes dialogue appearances sharing arcs visuals requirements and days
+  ---
+  duration_ms: 1.44182
+  type: 'test'
+  ...
+# Subtest: issue \#118 Scene report covers headings timing links storyboard feedback readiness and requirements
+not ok 6 - issue \#118 Scene report covers headings timing links storyboard feedback readiness and requirements
+  ---
+  duration_ms: 2.694847
+  type: 'test'
+  location: '/home/runner/work/PlotPickle/PlotPickle/tests/issue-118-consolidated-reports.test.mjs:83:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing Scene report contract: pageEstimate'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///home/runner/work/PlotPickle/PlotPickle/tests/issue-118-consolidated-reports.test.mjs:96:13)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: issue \#118 Dialogue report covers counts speeches balance repetition voice sides and duration
+ok 7 - issue \#118 Dialogue report covers counts speeches balance repetition voice sides and duration
+  ---
+  duration_ms: 2.788792
+  type: 'test'
+  ...
+# Subtest: issue \#118 Production report exposes existing producer director and canonical planning records
+ok 8 - issue \#118 Production report exposes existing producer director and canonical planning records
+  ---
+  duration_ms: 1.337765
+  type: 'test'
+  ...
+# Subtest: issue \#118 Feedback report covers status source reviewer target category priority and review rooms
+ok 9 - issue \#118 Feedback report covers status source reviewer target category priority and review rooms
+  ---
+  duration_ms: 1.643588
+  type: 'test'
+  ...
+# Subtest: issue \#118 Connections report remains useful when every optional integration is disconnected
+ok 10 - issue \#118 Connections report remains useful when every optional integration is disconnected
+  ---
+  duration_ms: 2.161199
+  type: 'test'
+  ...
+# Subtest: issue \#118 report actions retain stable workspace and target context
+ok 11 - issue \#118 report actions retain stable workspace and target context
+  ---
+  duration_ms: 1.330571
+  type: 'test'
+  ...
+# Subtest: issue \#118 derives reports without mutating canonical project data
+ok 12 - issue \#118 derives reports without mutating canonical project data
+  ---
+  duration_ms: 1.247616
+  type: 'test'
+  ...
+# Subtest: issue \#118 test is registered
+ok 13 - issue \#118 test is registered
+  ---
+  duration_ms: 1.26588
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 12
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 85.641029

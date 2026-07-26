@@ -7,7 +7,7 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("the primary menu uses the approved short labels in order", async () => {
   const contract = await source("lib/product-direction.ts");
-  const labels = ["Dashboard", "Instructions", "Learn", "Plan", "Write", "Storyboard", "Refine", "Reports", "Settings"];
+  const labels = ["Dashboard", "Introduction", "Learn", "Plan", "Write", "Storyboard", "Refine", "Reports", "Settings"];
   let lastIndex = -1;
   for (const label of labels) {
     const index = contract.indexOf(`label: "${label}"`);

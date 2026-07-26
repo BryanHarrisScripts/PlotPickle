@@ -31,7 +31,9 @@ test("issue #104 preserves Windows executable paths containing spaces", async ()
   assert.match(helper, /process\.env\.ComSpec/);
   assert.ok(helper.includes('/\\.(?:cmd|bat)$/i'));
   assert.match(helper, /shell: false/);
-  assert.match(helper, /quoteForCommandPrompt/);
+  assert.match(helper, /\["\/d", "\/c", command, \.\.\.args\]/);
+  assert.doesNotMatch(helper, /windowsVerbatimArguments/);
+  assert.doesNotMatch(helper, /quoteForCommandPrompt/);
   assert.match(helper, /C:\\Program Files\\nodejs\\node\.exe/);
 
   for (const file of [build, timeout, audit]) {
@@ -45,7 +47,7 @@ test("issue #104 preserves Windows executable paths containing spaces", async ()
   assert.match(audit, /npx\.cmd/);
 });
 
-test("issue #104 executes Windows native and cmd commands from a folder with spaces", { skip: process.platform !== "win32" }, async () => {
+test("issue #106 executes npm.cmd and spaced Windows commands without literal quote characters", { skip: process.platform !== "win32" }, async () => {
   const directory = await mkdtemp(join(tmpdir(), "PlotPickle command path "));
   try {
     const copiedNode = join(directory, "node copy.exe");
@@ -54,6 +56,7 @@ test("issue #104 executes Windows native and cmd commands from a folder with spa
     await writeFile(commandFile, '@echo off\r\nif "%~1"=="hello world" exit /b 0\r\nexit /b 1\r\n', "utf8");
 
     await completed(copiedNode, ["-e", "process.exit(0)"]);
+    await completed("npm.cmd", ["--version"]);
     await completed(commandFile, ["hello world"]);
   } finally {
     await rm(directory, { recursive: true, force: true });

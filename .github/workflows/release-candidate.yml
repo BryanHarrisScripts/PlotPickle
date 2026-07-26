@@ -76,17 +76,32 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & ".\node_modules\.bin\vite.cmd" --version
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify or repair Windows Rolldown native binding
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $packageRoot = Join-Path (Join-Path $env:RUNNER_TEMP "plotpickle-clean") "${{ matrix.folder }}"
+          Set-Location $packageRoot
+          node scripts/windows-runtime.mjs verify-modules node_modules
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "The optional Windows binding was omitted; exercising PlotPickle's targeted repair."
+            node scripts/windows-runtime.mjs repair-native node_modules
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
           node scripts/windows-runtime.mjs verify-modules node_modules
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node scripts/windows-runtime.mjs describe
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
+      - name: Start clean-machine Windows server
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $packageRoot = Join-Path (Join-Path $env:RUNNER_TEMP "plotpickle-clean") "${{ matrix.folder }}"
+          Set-Location $packageRoot
           $stdout = Join-Path $env:RUNNER_TEMP "plotpickle-vite-stdout.log"
           $stderr = Join-Path $env:RUNNER_TEMP "plotpickle-vite-stderr.log"
           $server = Start-Process -FilePath "node.exe" -ArgumentList "node_modules/vite/bin/vite.js", "--host", "127.0.0.1", "--port", "4173", "--strictPort" -PassThru -NoNewWindow -RedirectStandardOutput $stdout -RedirectStandardError $stderr
           try {
             $ready = $false
-            for ($attempt = 1; $attempt -le 45; $attempt++) {
+            for ($attempt = 1; $attempt -le 90; $attempt++) {
               Start-Sleep -Seconds 1
               if ($server.HasExited) {
                 if (Test-Path $stdout) { Get-Content $stdout }

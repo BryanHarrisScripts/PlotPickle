@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-import { spawn } from "node:child_process";
 import { access, mkdir, readFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import process from "node:process";
 import { pathToFileURL, fileURLToPath } from "node:url";
+import { spawnCommand } from "./spawn-command.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const runtimeSetting = process.env.SITES_RUNTIME_ROOT;
@@ -14,11 +14,10 @@ const RUNTIME_ROOT = runtimeSetting
 
 function run(command, args, env) {
   return new Promise((resolvePromise, reject) => {
-    const child = spawn(command, args, {
+    const child = spawnCommand(command, args, {
       cwd: ROOT,
       env,
       stdio: "inherit",
-      shell: process.platform === "win32",
     });
     child.once("error", reject);
     child.once("exit", (code, signal) => {

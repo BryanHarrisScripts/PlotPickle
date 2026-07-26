@@ -44,8 +44,9 @@ function persistentHome() {
 }
 
 function dependencyHash() {
-  const source = existsSync(lockFile) ? readFileSync(lockFile) : readFileSync(packageFile);
-  return createHash("sha256").update(source).digest("hex").slice(0, 20);
+  const packageSource = readFileSync(packageFile);
+  const lockSource = existsSync(lockFile) ? readFileSync(lockFile) : Buffer.alloc(0);
+  return createHash("sha256").update(packageSource).update("\0").update(lockSource).digest("hex").slice(0, 20);
 }
 
 function runtimeDirectory() {

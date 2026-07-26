@@ -408,6 +408,61 @@ export type ProductionScheduleDay = {
   updatedAt: string;
 };
 
+export type ProductionShootGroupDecisionStatus = "proposed" | "accepted" | "rejected" | "adjusted";
+
+export type ProductionLocationPlan = {
+  locationId: string;
+  realLocation: string;
+  lighting: string;
+  weather: string;
+  permits: string;
+  travel: string;
+  accessibility: string;
+  availability: string;
+  setupMinutes: number;
+  estimatedShootHours: number;
+  notes: string;
+  updatedAt: string;
+};
+
+export type ProductionActorPlan = {
+  characterId: string;
+  actorName: string;
+  availableDates: string[];
+  unavailableDates: string[];
+  wardrobe: string;
+  makeup: string;
+  rehearsalHours: number;
+  preferredCallTime: string;
+  estimatedWrapTime: string;
+  notes: string;
+  updatedAt: string;
+};
+
+export type ProductionShootGroupDecision = {
+  id: string;
+  sceneIds: string[];
+  status: ProductionShootGroupDecisionStatus;
+  notes: string;
+  updatedAt: string;
+};
+
+export type ProductionTimelinePlan = {
+  hoursPerDay: number;
+  pagesPerDay: number;
+  prepDays: number;
+  pickupDays: number;
+  contingencyPercent: number;
+  updatedAt: string;
+};
+
+export type ProductionReporting = {
+  locations: ProductionLocationPlan[];
+  actors: ProductionActorPlan[];
+  shootGroups: ProductionShootGroupDecision[];
+  timeline: ProductionTimelinePlan;
+};
+
 export type DistributionMilestone = {
   id: string;
   title: string;
@@ -436,6 +491,7 @@ export type ProductionWorkspace = {
   cues: SonicCue[];
   breakdowns: ProductionBreakdown[];
   schedule: ProductionScheduleDay[];
+  reporting?: ProductionReporting;
   animatic: {
     defaultFrameSeconds: number;
     includeDialogue: boolean;
@@ -702,6 +758,22 @@ export function createBlankReviewWorkspace(projectTitle = "Untitled Story"): Rev
 }
 
 
+export function createBlankProductionReporting(now = new Date().toISOString()): ProductionReporting {
+  return {
+    locations: [],
+    actors: [],
+    shootGroups: [],
+    timeline: {
+      hoursPerDay: 10,
+      pagesPerDay: 5,
+      prepDays: 1,
+      pickupDays: 1,
+      contingencyPercent: 20,
+      updatedAt: now,
+    },
+  };
+}
+
 export function createBlankProductionWorkspace(): ProductionWorkspace {
   const now = new Date().toISOString();
   return {
@@ -709,6 +781,7 @@ export function createBlankProductionWorkspace(): ProductionWorkspace {
     cues: [],
     breakdowns: [],
     schedule: [],
+    reporting: createBlankProductionReporting(now),
     animatic: {
       defaultFrameSeconds: 4,
       includeDialogue: true,
@@ -1170,6 +1243,72 @@ function normalizeReviewWorkspace(value: unknown, projectTitle: string): ReviewW
 }
 
 
+function normalizeProductionReporting(value: unknown, now: string): ProductionReporting {
+  const defaults = createBlankProductionReporting(now);
+  if (!value || typeof value !== "object") return defaults;
+  const candidate = value as Partial<ProductionReporting>;
+  const statuses: ProductionShootGroupDecisionStatus[] = ["proposed", "accepted", "rejected", "adjusted"];
+  const timeline = candidate.timeline && typeof candidate.timeline === "object" ? candidate.timeline : defaults.timeline;
+  return {
+    locations: Array.isArray(candidate.locations) ? candidate.locations.flatMap((item) => {
+      if (!item || typeof item !== "object") return [];
+      const plan = item as Partial<ProductionLocationPlan>;
+      if (typeof plan.locationId !== "string" || !plan.locationId) return [];
+      return [{
+        locationId: plan.locationId,
+        realLocation: typeof plan.realLocation === "string" ? plan.realLocation : "",
+        lighting: typeof plan.lighting === "string" ? plan.lighting : "",
+        weather: typeof plan.weather === "string" ? plan.weather : "",
+        permits: typeof plan.permits === "string" ? plan.permits : "",
+        travel: typeof plan.travel === "string" ? plan.travel : "",
+        accessibility: typeof plan.accessibility === "string" ? plan.accessibility : "",
+        availability: typeof plan.availability === "string" ? plan.availability : "",
+        setupMinutes: Math.max(0, Number(plan.setupMinutes) || 0),
+        estimatedShootHours: Math.max(0, Number(plan.estimatedShootHours) || 0),
+        notes: typeof plan.notes === "string" ? plan.notes : "",
+        updatedAt: typeof plan.updatedAt === "string" ? plan.updatedAt : now,
+      }];
+    }) : [],
+    actors: Array.isArray(candidate.actors) ? candidate.actors.flatMap((item) => {
+      if (!item || typeof item !== "object") return [];
+      const plan = item as Partial<ProductionActorPlan>;
+      if (typeof plan.characterId !== "string" || !plan.characterId) return [];
+      return [{
+        characterId: plan.characterId,
+        actorName: typeof plan.actorName === "string" ? plan.actorName : "",
+        availableDates: stringArray(plan.availableDates),
+        unavailableDates: stringArray(plan.unavailableDates),
+        wardrobe: typeof plan.wardrobe === "string" ? plan.wardrobe : "",
+        makeup: typeof plan.makeup === "string" ? plan.makeup : "",
+        rehearsalHours: Math.max(0, Number(plan.rehearsalHours) || 0),
+        preferredCallTime: typeof plan.preferredCallTime === "string" ? plan.preferredCallTime : "",
+        estimatedWrapTime: typeof plan.estimatedWrapTime === "string" ? plan.estimatedWrapTime : "",
+        notes: typeof plan.notes === "string" ? plan.notes : "",
+        updatedAt: typeof plan.updatedAt === "string" ? plan.updatedAt : now,
+      }];
+    }) : [],
+    shootGroups: Array.isArray(candidate.shootGroups) ? candidate.shootGroups.flatMap((item, index) => {
+      if (!item || typeof item !== "object") return [];
+      const decision = item as Partial<ProductionShootGroupDecision>;
+      return [{
+        id: typeof decision.id === "string" && decision.id ? decision.id : `shoot-group-${index + 1}`,
+        sceneIds: stringArray(decision.sceneIds),
+        status: statuses.includes(decision.status as ProductionShootGroupDecisionStatus) ? decision.status as ProductionShootGroupDecisionStatus : "proposed",
+        notes: typeof decision.notes === "string" ? decision.notes : "",
+        updatedAt: typeof decision.updatedAt === "string" ? decision.updatedAt : now,
+      }];
+    }) : [],
+    timeline: {
+      hoursPerDay: Math.max(1, Number(timeline.hoursPerDay) || defaults.timeline.hoursPerDay),
+      pagesPerDay: Math.max(0.1, Number(timeline.pagesPerDay) || defaults.timeline.pagesPerDay),
+      prepDays: Math.max(0, Number(timeline.prepDays) || 0),
+      pickupDays: Math.max(0, Number(timeline.pickupDays) || 0),
+      contingencyPercent: Math.min(100, Math.max(0, Number(timeline.contingencyPercent) || 0)),
+      updatedAt: typeof timeline.updatedAt === "string" ? timeline.updatedAt : now,
+    },
+  };
+}
+
 function normalizeProductionWorkspace(value: unknown): ProductionWorkspace {
   const defaults = createBlankProductionWorkspace();
   if (!value || typeof value !== "object") return defaults;
@@ -1269,6 +1408,7 @@ function normalizeProductionWorkspace(value: unknown): ProductionWorkspace {
         updatedAt: typeof day.updatedAt === "string" ? day.updatedAt : now,
       }];
     }) : [],
+    reporting: normalizeProductionReporting(candidate.reporting, now),
     animatic: {
       ...defaults.animatic,
       ...(candidate.animatic && typeof candidate.animatic === "object" ? candidate.animatic : {}),

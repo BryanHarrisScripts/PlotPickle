@@ -45,6 +45,7 @@ import { synchronizeScreenplaySceneReferences } from "@/lib/scene-management";
 import { PRODUCT_COMPONENTS, type ProductNavigationId } from "@/lib/product-direction";
 import { createStoredFeedbackModel } from "@/lib/unified-feedback-store";
 import type { ConsolidatedReportSection, ReportTarget } from "@/lib/consolidated-reports";
+import type { ProductionReportSection } from "@/lib/production-reports";
 import type { FeedbackTargetReference } from "@/lib/unified-feedback";
 
 const STORAGE_KEY = "plotpickle.project.v1";
@@ -291,6 +292,7 @@ export default function Home() {
   const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(1);
   const [feedbackTargetId, setFeedbackTargetId] = useState("");
   const [reportSection, setReportSection] = useState<ConsolidatedReportSection>("project");
+  const [productionReportSection, setProductionReportSection] = useState<ProductionReportSection>("overview");
   const [reportReturnSection, setReportReturnSection] = useState<ConsolidatedReportSection | "">("");
   const [reportBuildTargetId, setReportBuildTargetId] = useState("");
   const [reportSceneId, setReportSceneId] = useState("");
@@ -845,7 +847,7 @@ export default function Home() {
           <FeedbackWorkspace project={project} onProjectChange={commit} onOpenTarget={openFeedbackTarget} initialTargetId={feedbackTargetId} />
         ) : null}
 
-        {activeTab === "reports" ? <ReportsWorkspace project={project} section={reportSection} onSectionChange={setReportSection} onOpenTarget={openReportTarget} /> : null}
+        {activeTab === "reports" ? <ReportsWorkspace project={project} section={reportSection} onSectionChange={setReportSection} productionSection={productionReportSection} onProductionSectionChange={setProductionReportSection} onProjectChange={commit} onOpenTarget={openReportTarget} /> : null}
 
         <div hidden={activeTab !== "settings"}>
           <SettingsPanel project={project} onProjectChange={commit} />

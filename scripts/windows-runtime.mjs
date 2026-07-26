@@ -37,8 +37,9 @@ function persistentHome() {
 }
 
 function lockHash() {
-  const source = existsSync(lockFile) ? readFileSync(lockFile) : readFileSync(packageFile);
-  return createHash("sha256").update(source).digest("hex").slice(0, 20);
+  const packageSource = readFileSync(packageFile);
+  const lockSource = existsSync(lockFile) ? readFileSync(lockFile) : Buffer.alloc(0);
+  return createHash("sha256").update(packageSource).update("\0").update(lockSource).digest("hex").slice(0, 20);
 }
 
 function runtimeFingerprint() {
@@ -84,7 +85,7 @@ function realPathOrNull(item) {
 }
 
 function coreReady(modulesPath) {
-  return ["vite", "next", "react", "vinext", "rolldown"].every((name) =>
+  return ["vite", "next", "react", "vinext", "rolldown", "drizzle-kit"].every((name) =>
     existsSync(path.join(modulesPath, name, "package.json")),
   );
 }

@@ -10,7 +10,12 @@ import {
   type BuildBlockStatus,
   type BuildWorkspaceView,
 } from "@/lib/build-workspace-model";
-import type { PlotPickleProject, StoryBlock } from "@/lib/project";
+import {
+  applyCanonicalBuildOrder,
+  canonicalBuildOrder,
+  moveCanonicalBuildBlock,
+} from "@/lib/build-workspace-order";
+import type { PlotPickleProject } from "@/lib/project";
 
 type BuildWorkspaceProps = {
   project: PlotPickleProject;
@@ -85,6 +90,8 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
   const [status, setStatus] = useState<BuildBlockStatus | "all">("all");
   const [label, setLabel] = useState("");
   const [selectedBlockId, setSelectedBlockId] = useState(project.blocks[0]?.id ?? "");
+  const [undoOrders, setUndoOrders] = useState<string[][]>([]);
+  const [redoOrders, setRedoOrders] = useState<string[][]>([]);
 
   const model = useMemo(() => createBuildWorkspaceModel(project, {
     query,
@@ -109,6 +116,35 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
       ? selectedBlock.characterIds.filter((id) => id !== characterId)
       : [...selectedBlock.characterIds, characterId];
     patchSelected({ characterIds });
+  }
+
+  function moveSelected(targetNumber: number) {
+    if (!selectedBlock) return;
+    const next = moveCanonicalBuildBlock(project, selectedBlock.id, targetNumber);
+    if (next === project) return;
+    setUndoOrders((orders) => [...orders.slice(-19), canonicalBuildOrder(project)]);
+    setRedoOrders([]);
+    onProjectChange(next);
+  }
+
+  function undoMove() {
+    const previousOrder = undoOrders.at(-1);
+    if (!previousOrder) return;
+    const next = applyCanonicalBuildOrder(project, previousOrder);
+    if (next === project) return;
+    setUndoOrders((orders) => orders.slice(0, -1));
+    setRedoOrders((orders) => [...orders.slice(-19), canonicalBuildOrder(project)]);
+    onProjectChange(next);
+  }
+
+  function redoMove() {
+    const nextOrder = redoOrders.at(-1);
+    if (!nextOrder) return;
+    const next = applyCanonicalBuildOrder(project, nextOrder);
+    if (next === project) return;
+    setRedoOrders((orders) => orders.slice(0, -1));
+    setUndoOrders((orders) => [...orders.slice(-19), canonicalBuildOrder(project)]);
+    onProjectChange(next);
   }
 
   function renderCanvas() {
@@ -157,7 +193,7 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
         <div className={styles.canonicalNote}>
           <span>Canonical project</span>
           <strong>{model.totals.blocks} Blocks · {model.totals.scenes} scenes · {model.totals.miniBlocks} mini-blocks</strong>
-          <p>Edits autosave through the same project used by Plan, Write, Storyboard, Feedback and Reports.</p>
+          <p>Edits and moves autosave through the same project used by Plan, Write, Storyboard, Feedback and Reports.</p>
         </div>
       </aside>
 
@@ -185,6 +221,19 @@ export default function BuildWorkspace({ project, onProjectChange, onOpenBlock }
         {selectedBlock && selectedCard ? (
           <>
             <header><div><p className={styles.eyebrow}>Block inspector</p><h2>Block {selectedBlock.number}</h2></div><span className={`${styles.status} ${styles[`status${statusLabel(selectedCard.status)}`]}`}>{statusLabel(selectedCard.status)}</span></header>
+            <section className={styles.orderControls} aria-label="Block order controls">
+              <div><strong>Position and history</strong><span>Act {selectedBlock.act} · Sequence {selectedBlock.sequenceNumber}</span></div>
+              <div className={styles.moveRow}>
+                <button type="button" disabled={selectedBlock.number <= 1} onClick={() => moveSelected(selectedBlock.number - 1)}>Move earlier</button>
+                <label><span>Position</span><select value={selectedBlock.number} onChange={(event) => moveSelected(Number(event.target.value))}>{project.blocks.map((_, index) => <option key={index + 1} value={index + 1}>Block {index + 1}</option>)}</select></label>
+                <button type="button" disabled={selectedBlock.number >= project.blocks.length} onClick={() => moveSelected(selectedBlock.number + 1)}>Move later</button>
+              </div>
+              <div className={styles.historyRow}>
+                <button type="button" disabled={!undoOrders.length} onClick={undoMove}>Undo move</button>
+                <button type="button" disabled={!redoOrders.length} onClick={redoMove}>Redo move</button>
+              </div>
+              <p>Keyboard-safe movement updates canonical ordering and every linked block-number reference atomically.</p>
+            </section>
             <InspectorField label="Title" rows={1} value={selectedBlock.title} onChange={(value) => patchSelected({ title: value })} />
             <InspectorField label="Purpose" value={selectedBlock.purpose} onChange={(value) => patchSelected({ purpose: value })} />
             <InspectorField label="Conflict" value={selectedBlock.conflict} onChange={(value) => patchSelected({ conflict: value })} />

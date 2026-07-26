@@ -79,3 +79,15 @@ test("issue #86 documents the one-command Windows review package", async () => {
   assert.match(docs, /creates an uploadable ZIP automatically/);
   assert.match(docs, /reports\\lighthouse\\<timestamp>/);
 });
+
+
+test("issue #108 waits for Lighthouse log streams before child-process stdio", async () => {
+  const audit = await source("scripts/lighthouse-audit.mjs");
+  assert.match(audit, /export function waitForWritableOpen/);
+  assert.match(audit, /stream\.once\("open"/);
+  assert.match(audit, /await waitForWritableOpen\(log\)/);
+  assert.match(audit, /export function closeWritable/);
+  assert.match(audit, /stream\.once\("close"/);
+  assert.match(audit, /await closeWritable\(log\)/);
+  assert.doesNotMatch(audit, /finally \{\s*log\.end\(\);/);
+});

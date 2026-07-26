@@ -81,6 +81,35 @@ function commandForNpx() {
   return process.platform === "win32" ? "npx.cmd" : "npx";
 }
 
+export function waitForWritableOpen(stream) {
+  if (stream.fd !== null) return Promise.resolve();
+  return new Promise((resolvePromise, reject) => {
+    const cleanup = () => {
+      stream.off("open", onOpen);
+      stream.off("error", onError);
+    };
+    const onOpen = () => { cleanup(); resolvePromise(); };
+    const onError = (error) => { cleanup(); reject(error); };
+    stream.once("open", onOpen);
+    stream.once("error", onError);
+  });
+}
+
+export function closeWritable(stream) {
+  if (stream.closed) return Promise.resolve();
+  return new Promise((resolvePromise, reject) => {
+    const cleanup = () => {
+      stream.off("close", onClose);
+      stream.off("error", onError);
+    };
+    const onClose = () => { cleanup(); resolvePromise(); };
+    const onError = (error) => { cleanup(); reject(error); };
+    stream.once("close", onClose);
+    stream.once("error", onError);
+    stream.end();
+  });
+}
+
 async function waitForServer(url, timeoutMs = 90_000) {
   const deadline = Date.now() + timeoutMs;
   let lastError;
@@ -136,12 +165,13 @@ async function auditRoute({ baseUrl, route, mode, outputDirectory }) {
   const log = createWriteStream(logPath, { flags: "w" });
   let exitCode = 0;
   try {
+    await waitForWritableOpen(log);
     await run(commandForNpx(), args, { stdio: ["ignore", log, log] });
   } catch (error) {
     exitCode = 1;
-    log.write(`\n${error.stack ?? error.message}\n`);
+    if (!log.destroyed) log.write(`\n${error.stack ?? error.message}\n`);
   } finally {
-    log.end();
+    await closeWritable(log);
   }
 
   const possibleJson = [`${join(outputDirectory, slug)}.report.json`, `${join(outputDirectory, slug)}.json`];

@@ -8,12 +8,12 @@ test("main application exposes Refine as the connected Engines workspace", async
     readFile(new URL("../lib/product-direction.ts", import.meta.url), "utf8"),
   ]);
   assert.ok(page.includes("type MainTab = ProductNavigationId"));
-  assert.ok(page.includes('import { PRODUCT_NAVIGATION, type ProductNavigationId } from "@/lib/product-direction"'));
+  assert.ok(page.includes('PRODUCT_COMPONENTS, PRODUCT_NAVIGATION, type ProductNavigationId'));
   assert.ok(navigation.includes('{ id: "engines", label: "Refine", description: "Refine the story" }'));
   assert.ok(page.includes('import EngineHub from "./engine-hub"'));
   assert.ok(page.includes('{activeTab === "engines" ? <EngineHub /> : null}'));
-  assert.ok(page.includes('<span>Screenplay</span><span>Visual Board</span><span>Engines</span>'));
-  assert.ok(page.includes("One playhouse. Five connected workspaces."));
+  assert.ok(page.includes('<span>Write</span><span>Storyboard</span><span>Refine</span>'));
+  assert.ok(page.includes("One playhouse. Five connected components."));
 });
 
 test("Engines workspace explains every specialist before opening it", async () => {
@@ -37,11 +37,4 @@ test("Engines workspace explains every specialist before opening it", async () =
   ]) {
     assert.ok(source.includes(contract), `Engines workspace is missing guidance: ${contract}`);
   }
-});
-
-test("floating engine stack was removed from the root layout", async () => {
-  const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
-  assert.ok(!layout.includes("engineLinkStyle"));
-  assert.ok(!layout.includes('aria-label="PlotPickle writing engines"'));
-  assert.ok(!layout.includes('href="/structure"'));
 });

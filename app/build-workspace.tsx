@@ -5,7 +5,10 @@ import type { PlotPickleProject } from "@/lib/project";
 
 export default function BuildWorkspace({ project, onOpenBlock }: { project: PlotPickleProject; onOpenBlock: (number: number) => void }) {
   const sceneCount = project.blocks.reduce((total, block) => total + block.scenes.length, 0);
-  const miniBlockCount = project.blocks.reduce((total, block) => total + block.miniBlocks.length, 0);
+  const miniBlockCount = project.blocks.reduce(
+    (total, block) => total + block.scenes.reduce((sceneTotal, scene) => sceneTotal + scene.miniBlocks.length, 0),
+    0,
+  );
 
   return (
     <div className="dashboard-shell build-workspace">

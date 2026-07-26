@@ -40,21 +40,21 @@ Sequence `blockNumbers` ranges remain fixed because they describe positional lan
 
 ## Movement and undo
 
-The Build inspector provides:
+The Build workspace provides:
 
+- pointer drag-and-drop between Block cards;
 - Move earlier and Move later buttons;
 - direct movement to any Block position;
-- keyboard-operable controls without requiring drag-and-drop;
+- keyboard-operable controls that remain the accessible alternative to drag-and-drop;
 - order-only undo and redo history;
 - autosave through the existing project commit path.
 
-Undo stores only the stable-ID ordering, so text edits made after a move are preserved when the previous order is restored.
+Every movement path calls the same stable-ID remapper. Undo stores only the stable-ID ordering, so text edits made after a move are preserved when the previous order is restored.
 
 ## Remaining implementation slices
 
-1. Add optional pointer drag-and-drop on top of the completed keyboard movement controls.
-2. Add contextual routes to guidance, visuals, diagnostics and Feedback.
-3. Add focused interaction tests for repeated cross-act moves in a rendered browser environment.
+1. Add contextual routes to guidance, visuals, diagnostics and Feedback.
+2. Add focused interaction tests for repeated cross-act moves in a rendered browser environment.
 
 ## Non-negotiable rules
 

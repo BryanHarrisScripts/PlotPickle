@@ -5,10 +5,10 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #87 opens the Dashboard directly and keeps Simple Start optional", async () => {
+test("issue #87 keeps Dashboard ready behind the startup splash and Simple Start optional", async () => {
   const [page, middleware] = await Promise.all([source("app/page.tsx"), source("middleware.ts")]);
   assert.match(page, /useState<MainTab>\("dashboard"\)/);
-  assert.match(page, /useState\(false\)/);
+  assert.match(page, /useState\(true\)/);
   assert.match(page, /id: "simpleStart"[\s\S]*label: "Simple Start"/);
   assert.match(page, /<SimpleStart/);
   assert.match(page, /setShowLanding\(true\)/);

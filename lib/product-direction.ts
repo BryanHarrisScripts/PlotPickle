@@ -15,6 +15,14 @@ export const PRODUCT_NAVIGATION = [
 
 export type ProductNavigationId = (typeof PRODUCT_NAVIGATION)[number]["id"];
 
+export const PRODUCT_COMPONENTS = [
+  { id: "learn", label: "Learn", title: "Learn the craft", summary: "Use the 81-module learning system and contextual guidance without leaving the active project.", icon: "/brand/components/learn.svg" },
+  { id: "plan", label: "Plan", title: "Plan the whole story", summary: "Shape the story through four acts, twelve sequences, twenty-four blocks and ninety-six mini-blocks.", icon: "/brand/components/plan.svg" },
+  { id: "write", label: "Write", title: "Write the screenplay", summary: "Move from treatment to a complete screenplay with connected scenes, dialogue and revisions.", icon: "/brand/components/write.svg" },
+  { id: "storyboard", label: "Storyboard", title: "See the film", summary: "Carry approved characters, locations and visual continuity through every storyboard position.", icon: "/brand/components/storyboard.svg" },
+  { id: "refine", label: "Refine", title: "Refine with purpose", summary: "Use specialist engines, reports and review evidence to improve the story without losing authorship.", icon: "/brand/components/refine.svg" },
+] as const;
+
 export const SIMPLE_START = {
   label: "Simple Start",
   destination: "Story Planner",

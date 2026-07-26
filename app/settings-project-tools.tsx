@@ -56,8 +56,9 @@ export function ScreenplayReports({ project }: { project: PlotPickleProject }) {
         <div><strong>Report is current</strong><span>Derived from the {report.source}. Project update: {report.refreshedAt || "not yet saved"}. Signature {report.signature.slice(-18)}.</span></div>
       </div>
 
-      <div className={styles.roleTabs} role="tablist" aria-label="Industry reports"><button type="button" role="tab" aria-selected={reportView === "producer"} className={reportView === "producer" ? styles.active : ""} onClick={() => setReportView("producer")}><strong>Producer</strong><span>Scale, readiness, schedule and blockers</span></button><button type="button" role="tab" aria-selected={reportView === "actor"} className={reportView === "actor" ? styles.active : ""} onClick={() => setReportView("actor")}><strong>Actor</strong><span>Dialogue, words, scenes and speaking time</span></button><button type="button" role="tab" aria-selected={reportView === "director"} className={reportView === "director" ? styles.active : ""} onClick={() => setReportView("director")}><strong>Director</strong><span>Scene intention, cast, coverage and runtime</span></button></div>
-
+      <div className={styles.reportLayout}>
+        <nav className={styles.roleTabs} aria-label="Report sections"><button type="button" aria-current={reportView === "producer" ? "page" : undefined} className={reportView === "producer" ? styles.active : ""} onClick={() => setReportView("producer")}><strong>Producer</strong><span>Scale, readiness, schedule and blockers</span></button><button type="button" aria-current={reportView === "actor" ? "page" : undefined} className={reportView === "actor" ? styles.active : ""} onClick={() => setReportView("actor")}><strong>Actor</strong><span>Dialogue, words, scenes and speaking time</span></button><button type="button" aria-current={reportView === "director" ? "page" : undefined} className={reportView === "director" ? styles.active : ""} onClick={() => setReportView("director")}><strong>Director</strong><span>Scene intention, cast, coverage and runtime</span></button></nav>
+        <div className={styles.reportContent}>
       <div className={styles.summaryGrid}>
         <article><span>Pages</span><strong>{report.summary.pages}</strong><small>Estimated screenplay pages</small></article>
         <article><span>Scenes</span><strong>{report.summary.scenes}</strong><small>Detected scene coverage</small></article>
@@ -122,6 +123,8 @@ export function ScreenplayReports({ project }: { project: PlotPickleProject }) {
       ) : null}
       <p className={styles.note}>Dialogue entries count screenplay dialogue elements; source lines count deliberate line breaks. Speaking time uses 130 words per minute and excludes pauses, action, and performance choices. Revision snapshots remain available in Story Planner → Core Model for named before-and-after comparison.</p>
       </> : null}
+        </div>
+      </div>
     </>
   );
 }

@@ -16,33 +16,32 @@ test("the primary menu uses the approved short labels in order", async () => {
   }
 });
 
-test("the application renders the shared menu with Dashboard ready behind the splash", async () => {
+test("the application renders the shared shell and command-centre Dashboard behind the splash", async () => {
   const page = await source("app/page.tsx");
-  assert.match(page, /PRODUCT_NAVIGATION/);
+  assert.match(page, /ApplicationShellHeader/);
+  assert.match(page, /DashboardCommandCentre/);
   assert.match(page, /type MainTab = ProductNavigationId/);
   assert.match(page, /useState<MainTab>\("dashboard"\)/);
   assert.match(page, /const \[showLanding, setShowLanding\] = useState\(true\)/);
-  assert.match(page, /activeTab === "dashboard"[\s\S]*ProjectOverview/);
-  assert.match(page, /className="dashboard-actions"/);
   assert.equal((page.match(/ref={fileInputRef}/g) ?? []).length, 1);
-  assert.match(page, /<\/header>[\s\S]*ref={fileInputRef}[\s\S]*<div className="project-strip">/);
-  assert.doesNotMatch(page, /<small>{tab\.description}<\/small>/);
+  assert.doesNotMatch(page, /className="dashboard-actions"/);
+  assert.doesNotMatch(page, /const dashboardStatuses/);
 });
 
-test("the brand opens the marketing splash and the top bar stays navigation-only", async () => {
-  const page = await source("app/page.tsx");
-  const topbar = page.match(/<header className="topbar">([\s\S]*?)<\/header>/)?.[1] ?? "";
-  assert.match(topbar, /setShowLanding\(true\)/);
-  assert.match(topbar, /Open the PlotPickle marketing page/);
-  assert.doesNotMatch(topbar, /project-actions/);
-  assert.doesNotMatch(topbar, />New</);
+test("the shared header owns orientation, workflow, project actions and configuration", async () => {
+  const shell = await source("app/application-shell-header.tsx");
+  for (const zone of ["shell-zone-orientation", "shell-zone-workflow", "shell-zone-project-actions", "shell-zone-configuration"]) assert.ok(shell.includes(zone), `Missing shell zone: ${zone}`);
+  assert.match(shell, /onOpenLanding/);
+  assert.match(shell, /PROJECT_ACTIONS\.map/);
+  assert.match(shell, /Open the PlotPickle marketing page/);
 });
 
-test("the proposed menu has responsive styling and Dashboard actions", async () => {
-  const css = await source("app/premium-ui.css");
-  assert.match(css, /grid-template-columns:minmax\(190px,1fr\) auto minmax\(190px,1fr\)/);
-  assert.match(css, /\.main-tabs\{justify-self:center/);
-  assert.match(css, /min-height:70px/);
-  assert.match(css, /\.dashboard-actions/);
-  assert.match(css, /@media\(max-width:760px\)/);
+test("the Dashboard command centre has responsive local styling", async () => {
+  const css = await source("app/dashboard-command-centre.module.css");
+  assert.match(css, /grid-template-columns:250px minmax\(0,1fr\)/);
+  assert.match(css, /@media\(max-width:1100px\)/);
+  assert.match(css, /@media\(max-width:700px\)/);
+  assert.match(css, /tone-green/);
+  assert.match(css, /tone-yellow/);
+  assert.match(css, /tone-red/);
 });

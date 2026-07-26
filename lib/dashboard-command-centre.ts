@@ -165,7 +165,7 @@ export function createDashboardCommandCentreModel(project: PlotPickleProject, op
         : options.aiConnection === "unavailable"
           ? "Available in the local app"
           : "Connection problem";
-  const activePlugins = options.settings.plugins.filter((plugin) => plugin.status !== "coming-soon").length;
+  const activePlugins = options.settings.plugins.filter((plugin) => String(plugin.status) !== "coming-soon").length;
 
   const connections: DashboardConnectionCard[] = [
     {
@@ -192,7 +192,7 @@ export function createDashboardCommandCentreModel(project: PlotPickleProject, op
       tone: activePlugins ? "green" : "yellow",
       status: activePlugins ? `${activePlugins} active` : "No active plugins",
       detail: activePlugins ? "Connected extensions are available to the current installation." : "Plugin placeholders are present; no optional extension is required to write.",
-      target: { workspace: "settings", section: "plugins" },
+      target: { workspace: "settings", section: "collaboration" },
     },
     {
       id: "save",
@@ -208,7 +208,7 @@ export function createDashboardCommandCentreModel(project: PlotPickleProject, op
       tone: storageTone(storage),
       status: storage.label,
       detail: storage.detail,
-      target: { workspace: "settings", section: "storage" },
+      target: { workspace: "settings", section: "collaboration" },
     },
     {
       id: "collaboration",
@@ -365,7 +365,7 @@ export function createDashboardCommandCentreModel(project: PlotPickleProject, op
     tone: storage.state === "review-required" ? "red" : "yellow",
     title: storage.label,
     detail: storage.detail,
-    target: { workspace: "settings", section: "storage" },
+    target: { workspace: "settings", section: "collaboration" },
   });
 
   const redCount = attention.filter((item) => item.tone === "red").length;

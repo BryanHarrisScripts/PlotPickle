@@ -1,9 +1,24 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { copyFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import process from "node:process";
 import test from "node:test";
+import { spawnCommand } from "../scripts/spawn-command.mjs";
 
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
+
+function completed(command, args) {
+  return new Promise((resolve, reject) => {
+    const child = spawnCommand(command, args, { stdio: "ignore" });
+    child.once("error", reject);
+    child.once("exit", (code, signal) => {
+      if (code === 0) resolve();
+      else reject(new Error(`${command} failed with ${signal ?? `exit ${code}`}`));
+    });
+  });
+}
 
 test("issue #104 preserves Windows executable paths containing spaces", async () => {
   const [helper, build, timeout, audit] = await Promise.all([
@@ -28,4 +43,19 @@ test("issue #104 preserves Windows executable paths containing spaces", async ()
   assert.match(build, /process\.execPath/);
   assert.match(audit, /npm\.cmd/);
   assert.match(audit, /npx\.cmd/);
+});
+
+test("issue #104 executes Windows native and cmd commands from a folder with spaces", { skip: process.platform !== "win32" }, async () => {
+  const directory = await mkdtemp(join(tmpdir(), "PlotPickle command path "));
+  try {
+    const copiedNode = join(directory, "node copy.exe");
+    const commandFile = join(directory, "argument check.cmd");
+    await copyFile(process.execPath, copiedNode);
+    await writeFile(commandFile, '@echo off\r\nif "%~1"=="hello world" exit /b 0\r\nexit /b 1\r\n', "utf8");
+
+    await completed(copiedNode, ["-e", "process.exit(0)"]);
+    await completed(commandFile, ["hello world"]);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });

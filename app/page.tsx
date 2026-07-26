@@ -7,6 +7,7 @@ import ApplicationShellHeader from "./application-shell-header";
 import DashboardCommandCentre from "./dashboard-command-centre";
 import BuildWorkspace from "./build-workspace";
 import FeedbackWorkspace from "./feedback-workspace";
+import ReportsWorkspace from "./reports-workspace";
 import FeedbackContextBadge from "./feedback-context-badge";
 import { ChangeEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { createAfterglowProject } from "@/data/afterglow";
@@ -23,7 +24,7 @@ import VisualStoryboard from "./visual-storyboard";
 import CoreModelStudio from "./core-model-studio";
 import ReadmeTabs from "./readme-tabs";
 import SimpleStart from "./simple-start";
-import { ScreenplayReports, TerminologyIndex } from "./settings-project-tools";
+import { TerminologyIndex } from "./settings-project-tools";
 import { projectSectionProgress, sectionHasAlert } from "@/lib/project-progress";
 import { createProjectFromScreenplay, markScreenplayAnalysisReviewed } from "@/lib/screenplay-import";
 import { screenplayFormatForFile } from "@/lib/screenplay";
@@ -43,6 +44,7 @@ import {
 import { synchronizeScreenplaySceneReferences } from "@/lib/scene-management";
 import { PRODUCT_COMPONENTS, type ProductNavigationId } from "@/lib/product-direction";
 import { createStoredFeedbackModel } from "@/lib/unified-feedback-store";
+import type { ConsolidatedReportSection, ReportTarget } from "@/lib/consolidated-reports";
 import type { FeedbackTargetReference } from "@/lib/unified-feedback";
 
 const STORAGE_KEY = "plotpickle.project.v1";
@@ -288,6 +290,10 @@ export default function Home() {
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
   const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(1);
   const [feedbackTargetId, setFeedbackTargetId] = useState("");
+  const [reportSection, setReportSection] = useState<ConsolidatedReportSection>("project");
+  const [reportReturnSection, setReportReturnSection] = useState<ConsolidatedReportSection | "">("");
+  const [reportBuildTargetId, setReportBuildTargetId] = useState("");
+  const [reportSceneId, setReportSceneId] = useState("");
   const [writerMode, setWriterMode] = useState<WriterViewMode>("treatment");
   const [visualAct, setVisualAct] = useState(0);
   const [hydrated, setHydrated] = useState(false);
@@ -546,11 +552,64 @@ export default function Home() {
     } else setActiveTab("feedback");
   }
 
+  function openReportTarget(target: ReportTarget) {
+    if (target.workspace === "reports") {
+      setReportSection(target.targetId as ConsolidatedReportSection);
+      setReportReturnSection("");
+      setActiveTab("reports");
+      return;
+    }
+
+    const block = project.blocks.find((candidate) => candidate.id === target.blockId || candidate.id === target.targetId)
+      ?? project.blocks.find((candidate) => candidate.scenes.some((scene) => (
+        scene.id === target.sceneId
+        || scene.id === target.targetId
+        || scene.miniBlocks.some((mini) => mini.id === target.miniBlockId || mini.id === target.targetId)
+      )));
+    if (block) setSelectedBlockNumber(block.number);
+    if (target.miniBlockId && block) {
+      const mini = block.scenes.flatMap((scene) => scene.miniBlocks).find((candidate) => candidate.id === target.miniBlockId);
+      if (mini) setSelectedMiniBlockNumber(mini.number);
+    }
+    if (target.characterId) setSelectedCharacterId(target.characterId);
+
+    setReportReturnSection(reportSection);
+    if (target.workspace === "dashboard") setActiveTab("dashboard");
+    else if (target.workspace === "build") {
+      setReportBuildTargetId(target.blockId || target.miniBlockId || target.targetId);
+      setActiveTab("build");
+    } else if (target.workspace === "write") {
+      setWriterMode("screenplay");
+      setReportSceneId(target.sceneId);
+      setActiveTab("script");
+    } else if (target.workspace === "storyboard") {
+      if (block) setVisualAct(block.act);
+      setActiveTab("visuals");
+    } else if (target.workspace === "refine") setActiveTab("engines");
+    else if (target.workspace === "feedback") {
+      setFeedbackTargetId(target.targetId);
+      setActiveTab("feedback");
+    } else if (target.workspace === "settings") setActiveTab("settings");
+    else if (target.workspace === "plan") {
+      setActiveTab("planner");
+      if (target.characterId) setActiveSection("characters");
+      else if (target.targetId === "world") setActiveSection("world");
+      else if (target.targetId === "storySetup") setActiveSection("storySetup");
+      else if (block) setActiveSection("blocks");
+      else setActiveSection("overview");
+    }
+  }
+
   return (
     <div className="app-shell">
       <ApplicationShellHeader
         activeTab={activeTab}
-        onNavigate={setActiveTab}
+        onNavigate={(tab) => {
+          setReportBuildTargetId("");
+          setReportSceneId("");
+          if (tab === "reports") setReportReturnSection("");
+          setActiveTab(tab);
+        }}
         onOpenLanding={() => setShowLanding(true)}
         onProjectAction={(action) => {
           if (action === "new-project") createNewProject();
@@ -578,6 +637,27 @@ export default function Home() {
         </div>
       </div>
 
+      {reportReturnSection && activeTab !== "reports" ? (
+        <div className="project-strip" role="status">
+          <div className="project-title">
+            <span className="status-dot" />
+            <div>
+              <strong>Viewing an exact report target</strong>
+              <span>Your selected Reports view is preserved.</span>
+            </div>
+          </div>
+          <button type="button" className="secondary-button compact" onClick={() => {
+            setReportReturnSection("");
+            setReportBuildTargetId("");
+            setReportSceneId("");
+            setActiveTab("reports");
+          }}>
+            Return to {reportReturnSection.charAt(0).toUpperCase() + reportReturnSection.slice(1)} report
+          </button>
+          <div className="save-state">No report state was duplicated or changed.</div>
+        </div>
+      ) : null}
+
       <main className="workspace">
         {activeTab === "dashboard" ? (
           <DashboardCommandCentre
@@ -604,6 +684,7 @@ export default function Home() {
         {activeTab === "build" ? (
           <BuildWorkspace
             project={project}
+            initialTargetId={reportBuildTargetId}
             onProjectChange={commit}
             onOpenBlock={(number) => openBlock(number, "planner")}
             onOpenFeedback={openFeedback}
@@ -731,6 +812,8 @@ export default function Home() {
             <ScriptWorkspace
               project={project}
               mode={writerMode}
+              initialBlockNumber={selectedBlockNumber}
+              initialSceneId={reportSceneId}
               onModeChange={setWriterMode}
               onChange={(screenplay) => commit({ ...project, screenplay })}
               onProjectChange={commit}
@@ -762,7 +845,7 @@ export default function Home() {
           <FeedbackWorkspace project={project} onProjectChange={commit} onOpenTarget={openFeedbackTarget} initialTargetId={feedbackTargetId} />
         ) : null}
 
-        {activeTab === "reports" ? <ScreenplayReports project={project} /> : null}
+        {activeTab === "reports" ? <ReportsWorkspace project={project} section={reportSection} onSectionChange={setReportSection} onOpenTarget={openReportTarget} /> : null}
 
         <div hidden={activeTab !== "settings"}>
           <SettingsPanel project={project} onProjectChange={commit} />

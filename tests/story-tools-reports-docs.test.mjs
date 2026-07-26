@@ -38,7 +38,7 @@ test("Setup exposes real connections while Reports remains a primary workspace",
   ]);
   for (const item of ["<b>GitHub setup</b>", "<b>AI setup</b>", "<b>Music setup</b>"]) assert.ok(panel.includes(item), `Missing live setup connection: ${item}`);
   assert.match(navigation, /id: "reports", label: "Reports", description: "Understand the screenplay"/);
-  assert.match(page, /activeTab === "reports"[\s\S]*ScreenplayReports/);
+  assert.match(page, /activeTab === "reports"[\s\S]*ReportsWorkspace/);
   assert.doesNotMatch(panel, /<b>Reports<\/b>/);
   assert.doesNotMatch(panel, /<b>Terminology Index<\/b>/);
   assert.doesNotMatch(panel, /<b>Core Model<\/b>/);

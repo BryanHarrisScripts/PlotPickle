@@ -24,6 +24,7 @@ type BuildWorkspaceDisplay = BuildWorkspaceView | "mini-blocks";
 
 type BuildWorkspaceProps = {
   project: PlotPickleProject;
+  initialTargetId?: string;
   onProjectChange: (project: PlotPickleProject) => void;
   onOpenBlock: (number: number) => void;
   onOpenFeedback: (targetId: string) => void;
@@ -138,14 +139,26 @@ function InspectorField({ label, value, onChange, rows = 2 }: { label: string; v
   );
 }
 
-export default function BuildWorkspace({ project, onProjectChange, onOpenBlock, onOpenFeedback }: BuildWorkspaceProps) {
-  const [view, setView] = useState<BuildWorkspaceDisplay>("whole-film");
+export default function BuildWorkspace({ project, initialTargetId, onProjectChange, onOpenBlock, onOpenFeedback }: BuildWorkspaceProps) {
+  const initialAct = initialTargetId?.startsWith("act-") ? Number(initialTargetId.slice(4)) : 0;
+  const initialSequence = project.structure.sequences.find((item) => item.id === initialTargetId);
+  const initialBlock = project.blocks.find((item) => item.id === initialTargetId);
+  const initialView: BuildWorkspaceDisplay = initialTargetId === "mini-blocks"
+    ? "mini-blocks"
+    : initialTargetId === "blocks" || initialBlock
+      ? "blocks"
+      : initialAct >= 1 && initialAct <= 4
+        ? "act"
+        : initialSequence
+          ? "sequence"
+          : "whole-film";
+  const [view, setView] = useState<BuildWorkspaceDisplay>(initialView);
   const [query, setQuery] = useState("");
-  const [act, setAct] = useState(0);
-  const [sequence, setSequence] = useState(0);
+  const [act, setAct] = useState(initialAct >= 1 && initialAct <= 4 ? initialAct : 0);
+  const [sequence, setSequence] = useState(initialSequence?.number ?? 0);
   const [status, setStatus] = useState<BuildBlockStatus | "all">("all");
   const [label, setLabel] = useState("");
-  const [selectedBlockId, setSelectedBlockId] = useState(project.blocks[0]?.id ?? "");
+  const [selectedBlockId, setSelectedBlockId] = useState(initialBlock?.id ?? project.blocks[0]?.id ?? "");
   const [undoOrders, setUndoOrders] = useState<string[][]>([]);
   const [redoOrders, setRedoOrders] = useState<string[][]>([]);
 

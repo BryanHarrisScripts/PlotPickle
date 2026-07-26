@@ -24,6 +24,8 @@ import styles from "./script-workspace.module.css";
 type Props = {
   project: PlotPickleProject;
   mode: WriterViewMode;
+  initialBlockNumber?: number;
+  initialSceneId?: string;
   onModeChange: (mode: WriterViewMode) => void;
   onChange: (screenplay: ScreenplayDocument) => void;
   onProjectChange: (project: PlotPickleProject) => void;
@@ -73,10 +75,16 @@ function allMiniBlocks(project: PlotPickleProject, blockNumber: number) {
   return project.blocks[blockNumber - 1].scenes.flatMap((scene) => scene.miniBlocks);
 }
 
-export default function ScriptWorkspace({ project, mode, onModeChange, onChange, onProjectChange, onOpenBlock }: Props) {
-  const [blockNumber, setBlockNumber] = useState(1);
-  const [miniBlockNumber, setMiniBlockNumber] = useState(1);
-  const [selectedId, setSelectedId] = useState("");
+export default function ScriptWorkspace({ project, mode, initialBlockNumber, initialSceneId, onModeChange, onChange, onProjectChange, onOpenBlock }: Props) {
+  const initialSceneEntry = initialSceneId
+    ? buildGlobalSceneIndex(project.blocks).find((entry) => entry.sceneId === initialSceneId)
+    : undefined;
+  const initialElement = initialSceneId
+    ? project.screenplay.draftElements.find((element) => element.sceneId === initialSceneId)
+    : undefined;
+  const [blockNumber, setBlockNumber] = useState(initialSceneEntry?.blockNumber ?? initialBlockNumber ?? 1);
+  const [miniBlockNumber, setMiniBlockNumber] = useState(initialSceneEntry?.miniBlockNumbers[0] ?? 1);
+  const [selectedId, setSelectedId] = useState(initialElement?.id ?? "");
   const [aiDirection, setAiDirection] = useState("");
   const [aiSuggestion, setAiSuggestion] = useState("");
   const [aiState, setAiState] = useState<"idle" | "working" | "error">("idle");
@@ -91,6 +99,7 @@ export default function ScriptWorkspace({ project, mode, onModeChange, onChange,
   const currentSceneEntry = sceneIndex.find((entry) => (
     entry.blockNumber === blockNumber && entry.miniBlockNumbers.includes(miniBlockNumber)
   )) ?? sceneIndex.find((entry) => entry.blockNumber === blockNumber);
+
   const scriptedSceneCount = useMemo(() => new Set(elements.map((item) => item.sceneId || `number-${item.sceneNumber}`)).size, [elements]);
 
   function save(next: ScreenplayDraftElement[]) {

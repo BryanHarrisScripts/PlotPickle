@@ -52,7 +52,7 @@ test("music artist links are limited to Suno and Udio HTTPS profiles", () => {
 test("Reports is a primary workspace with live producer, actor, and director reports", () => {
   assert.match(navigation, /id: "reports", label: "Reports", description: "Understand the screenplay"/);
   assert.match(page, /activeTab === "reports"/);
-  assert.match(page, /ScreenplayReports project={project}/);
+  assert.match(page, /ReportsWorkspace project={project}/);
   for (const field of ["dialogueLines", "dialogueEntries", "wordCount", "sceneNumbers", "sceneHeadings", "speakingSceneCoverage", "estimatedSpeakingSeconds"]) {
     assert.ok(reports.includes(field), `Character report is missing ${field}`);
   }

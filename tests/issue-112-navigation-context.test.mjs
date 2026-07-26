@@ -47,9 +47,12 @@ test("issue #112 context model preserves required working selections", async () 
 });
 
 test("issue #112 supplies reusable live shell, Build and Feedback components", async () => {
-  const header = await source("app/application-shell-header.tsx");
-  const build = await source("app/build-workspace.tsx");
-  const feedback = await source("app/feedback-workspace.tsx");
+  const [header, build, buildOrder, feedback] = await Promise.all([
+    source("app/application-shell-header.tsx"),
+    source("app/build-workspace.tsx"),
+    source("lib/build-workspace-order.ts"),
+    source("app/feedback-workspace.tsx"),
+  ]);
 
   assert.match(header, /shell-zone-orientation/);
   assert.match(header, /shell-zone-workflow/);
@@ -57,9 +60,11 @@ test("issue #112 supplies reusable live shell, Build and Feedback components", a
   assert.match(header, /shell-zone-configuration/);
   assert.match(header, /PROJECT_ACTIONS\.map/);
 
-  assert.match(build, /StructureMapSummary/);
-  assert.match(build, /canonical story movements/i);
-  assert.match(build, /stable ID/i);
+  assert.match(build, /createBuildWorkspaceModel/);
+  assert.match(build, /Whole film/);
+  assert.match(build, /onProjectChange/);
+  assert.match(buildOrder, /canonicalBuildOrder/);
+  assert.match(buildOrder, /block\.id/);
 
   assert.match(feedback, /project\.review\.threads/);
   assert.match(feedback, /Anchored review/);

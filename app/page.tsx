@@ -5,6 +5,7 @@
 import MarketingSplash from "./marketing-splash";
 import ApplicationShellHeader from "./application-shell-header";
 import DashboardCommandCentre from "./dashboard-command-centre";
+import BuildWorkspace from "./build-workspace";
 import { ChangeEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { createAfterglowProject } from "@/data/afterglow";
 import EngineHub from "./engine-hub";
@@ -563,6 +564,14 @@ export default function Home() {
             selectSection={setActiveSection}
             onStart={() => setActiveTab("planner")}
             onLoadAfterglow={loadAfterglow}
+          />
+        ) : null}
+
+        {activeTab === "build" ? (
+          <BuildWorkspace
+            project={project}
+            onProjectChange={commit}
+            onOpenBlock={(number) => openBlock(number, "planner")}
           />
         ) : null}
 

@@ -1,0 +1,17 @@
+name: Issue 106 Windows cmd quoting
+
+on:
+  push:
+    branches:
+      - agent/issue-106-cmd-quoting
+
+jobs:
+  windows-cmd-quoting:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Execute npm.cmd and spaced-path commands
+        run: node --test tests/issue-104-windows-paths.test.mjs

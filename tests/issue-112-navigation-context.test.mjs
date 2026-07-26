@@ -57,9 +57,10 @@ test("issue #112 supplies reusable live shell, Build and Feedback components", a
   assert.match(header, /shell-zone-configuration/);
   assert.match(header, /PROJECT_ACTIONS\.map/);
 
-  assert.match(build, /StructureMapSummary/);
-  assert.match(build, /canonical story movements/i);
-  assert.match(build, /stable ID/i);
+  assert.match(build, /createBuildWorkspaceModel/);
+  assert.match(build, /Whole film/);
+  assert.match(build, /stable Block IDs/i);
+  assert.match(build, /onProjectChange/);
 
   assert.match(feedback, /project\.review\.threads/);
   assert.match(feedback, /Anchored review/);

@@ -169,7 +169,7 @@ if not errorlevel 1 (
 
 if exist "node_modules\rolldown\package.json" (
   echo [REPAIR] The matching runtime is present, but its Windows native binding is missing or damaged.
-  echo PlotPickle will rebuild this dependency runtime before starting.
+  echo PlotPickle will repair the exact native package before considering a full reinstall.
   echo.
 ) else (
   echo A matching dependency runtime has not been completed yet.
@@ -215,8 +215,24 @@ if not errorlevel 1 (
 )
 
 echo.
+echo [REPAIR] npm did not provide a usable Windows native binding.
+echo Installing the exact binding version required by the installed Rolldown package...
+node "%RUNTIME_MANAGER%" repair-native "%PLOTPICKLE_RUNTIME_MODULES%"
+if not errorlevel 1 (
+  call :dependencies_ready
+  if not errorlevel 1 (
+    node "%RUNTIME_MANAGER%" mark-ready
+    if errorlevel 1 exit /b 1
+    set "INSTALL_PERFORMED=1"
+    echo.
+    echo [SUCCESS] The missing Windows native binding was repaired without rebuilding the full runtime.
+    exit /b 0
+  )
+)
+
+echo.
 echo ------------------------------------------------------------
-echo   INSTALL ATTEMPT 2 OF 2 - Native-binding and interrupted-download repair
+echo   INSTALL ATTEMPT 2 OF 2 - Interrupted-download repair
 echo ------------------------------------------------------------
 echo Resetting the incomplete runtime and reusing packages already downloaded to the persistent npm cache...
 echo.
@@ -225,6 +241,12 @@ if errorlevel 1 exit /b 1
 call npm cache verify
 call npm install --prefix "%PLOTPICKLE_RUNTIME_DIR%" --include=dev --prefer-offline --no-audit --no-fund --progress=true --loglevel=notice
 call :dependencies_ready
+if errorlevel 1 (
+  echo.
+  echo [REPAIR] The rebuilt runtime still needs its exact Windows native binding.
+  node "%RUNTIME_MANAGER%" repair-native "%PLOTPICKLE_RUNTIME_MODULES%"
+  if not errorlevel 1 call :dependencies_ready
+)
 if not errorlevel 1 (
   node "%RUNTIME_MANAGER%" mark-ready
   if errorlevel 1 exit /b 1

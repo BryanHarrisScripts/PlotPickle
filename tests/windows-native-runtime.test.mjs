@@ -25,7 +25,7 @@ test("Windows runtime fingerprints the dependency set by platform and architectu
   assert.match(stdout, new RegExp(`Runtime platform: ${process.platform} ${process.arch}`));
 });
 
-test("Windows runtime verifies the actual Rolldown native file before reuse", async () => {
+test("Windows runtime verifies and repairs the actual Rolldown native file", async () => {
   const runtime = await source("scripts/windows-runtime.mjs");
   for (const contract of [
     "@rolldown/binding-win32-x64-msvc",
@@ -34,10 +34,16 @@ test("Windows runtime verifies the actual Rolldown native file before reuse", as
     "nativeBindingReady",
     "runtimeReady",
     "verifyModules",
+    "installedRolldownVersion",
+    "repairNativeBinding",
+    "spawnSync",
+    '"--no-save"',
+    '"--package-lock=false"',
     "manifest.main",
     "existsSync(entryPath)",
     'command === "verify-runtime"',
     'command === "verify-modules"',
+    'command === "repair-native"',
   ]) assert.ok(runtime.includes(contract), `Missing Windows native-runtime contract: ${contract}`);
   assert.doesNotMatch(runtime, /function runtimeReady[\s\S]{0,200}return coreReady\(modulesPath\);/);
 });
@@ -49,8 +55,9 @@ test("Windows launcher repairs a damaged native runtime before starting", async 
     "PLOTPICKLE_NATIVE_BINDING",
     'node "%RUNTIME_MANAGER%" verify-runtime',
     "Windows native binding is missing or damaged",
+    'node "%RUNTIME_MANAGER%" repair-native "%PLOTPICKLE_RUNTIME_MODULES%"',
     'node "%RUNTIME_MANAGER%" reset-current',
-    "Native-binding and interrupted-download repair",
+    "The missing Windows native binding was repaired without rebuilding the full runtime.",
     "including the Windows native binding",
     'call "%VITE_CMD%" --version',
   ]) assert.ok(launcher.includes(contract), `Launcher is missing native-runtime recovery: ${contract}`);
@@ -58,11 +65,14 @@ test("Windows launcher repairs a damaged native runtime before starting", async 
   assert.match(launcher, /mark-ready[\s\S]*if errorlevel 1 exit \/b 1/);
 });
 
-test("Windows release validation loads the native binding and starts the real server", async () => {
+test("Windows release validation repairs the native binding and starts the real server", async () => {
   const workflow = await source(".github/workflows/release-candidate.yml");
   for (const contract of [
     'node: "24.15.0"',
+    "Verify or repair Windows Rolldown native binding",
     "windows-runtime.mjs verify-modules node_modules",
+    "windows-runtime.mjs repair-native node_modules",
+    "Start clean-machine Windows server",
     "Start-Process",
     '"--strictPort"',
     "Invoke-WebRequest",

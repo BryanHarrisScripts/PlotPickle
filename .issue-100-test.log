@@ -1,0 +1,1743 @@
+
+> plotpickle@1.0.0-rc.3 test
+> npm run build && node --test tests/rendered-html.test.mjs tests/engines-workspace.test.mjs tests/project-navigation-licensing.test.mjs tests/ai-architecture.test.mjs tests/settings-menu.test.mjs tests/script-viewer.test.mjs tests/screenplay-writer.test.mjs tests/visual-storyboard.test.mjs tests/writer-learning.test.mjs tests/issue-48-24-blocks-learning.test.mjs tests/issue-49-guided-ai-revision.test.mjs tests/issue-55-core-curriculum-router.test.mjs tests/issue-56-purpose-aware-logline-lab.test.mjs tests/issue-57-visual-reference-library.test.mjs tests/issue-58-afterglow-legacy-visuals.test.mjs tests/issue-59-about-origins-principles.test.mjs tests/issues-60-62-afterglow-reconciliation.test.mjs tests/issue-63-new-writer-path.test.mjs tests/issue-83-character-visual-identity.test.mjs tests/issue-85-product-direction.test.mjs tests/issue-86-lighthouse-audit.test.mjs tests/issue-87-navigation-cleanup.test.mjs tests/issue-88-visual-board-navigation.test.mjs tests/issue-89-project-dashboard.test.mjs tests/issue-90-front-page-collaboration.test.mjs tests/proposed-primary-menu.test.mjs tests/issue-100-premium-ui-ux.test.mjs tests/phase-one-core-schema.test.mjs tests/dynamic-scenes.test.mjs tests/phase-two-dynamic-scenes.test.mjs tests/phase-a-core-model.test.mjs tests/phase-b-diagnostic-craft.test.mjs tests/phase-c-specialist-labs.test.mjs tests/phase-d-pitch-review.test.mjs tests/phase-e-page-to-production.test.mjs tests/phase-f-collaboration-release.test.mjs tests/issue-26-reports-terms-collaboration.test.mjs tests/story-tools-reports-docs.test.mjs tests/phase-2-folder-projects.test.mjs tests/phase-3-modular-story.test.mjs tests/phase-4-story-dependencies.test.mjs tests/phase-5-native-git.test.mjs tests/phase-6-ppf-exchange.test.mjs tests/phase-7-canon-binder.test.mjs tests/phase-8-open-plugin-platform.test.mjs tests/phase-9a-sdk-foundation.test.mjs tests/phase-9b-plugin-sdk.test.mjs tests/phase-9c-example-plugins.test.mjs tests/phase-9d-developer-docs.test.mjs tests/phase-9e-sdk-packaging.test.mjs tests/rc4-project-format.test.mjs
+
+
+> plotpickle@1.0.0-rc.3 build
+> node scripts/build-verified.mjs
+
+Running bounded vinext build on linux...
+
+  vinext build  (Vite 8.0.13)
+
+(node:2207) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[vinext] middleware.ts is deprecated in Next.js 16. Rename to proxy.ts and export a default or named proxy function.
+[34m[1/5] analyze client references...[39m
+[2Ktransforming...(node:2207) ExperimentalWarning: glob is an experimental feature and might change at any time
+✓ 171 modules transformed.
+rendering chunks...
+[32m✓ built in 1.33s[39m
+[34m[2/5] analyze server references...[39m
+[2Ktransforming...✓ 201 modules transformed.
+rendering chunks...
+[32m✓ built in 1.34s[39m
+[34m[3/5] build rsc environment...[39m
+[2Ktransforming...✓ 177 modules transformed.
+rendering chunks...
+computing gzip size...
+[32m✓ built in 961ms[39m
+[34m[4/5] build client environment...[39m
+[2Ktransforming...✓ 208 modules transformed.
+rendering chunks...
+computing gzip size...
+[32m✓ built in 1.45s[39m
+[34m[5/5] build ssr environment...[39m
+[2Ktransforming...✓ 207 modules transformed.
+rendering chunks...
+computing gzip size...
+[32m✓ built in 1.36s[39m
+[0m
+  Route (app)
+  ┌ ? /                        
+  ├ ? /about                   
+  ├ ? /afterglow-reconciliation
+  ├ ? /characters-in-motion    
+  ├ ? /core-curriculum         
+  ├ ? /craftloop               
+  ├ ? /diagnostics             
+  ├ ? /dialogue-in-motion      
+  ├ ? /draftlens               
+  ├ ? /git                     
+  ├ ? /labs                    
+  ├ ? /legal                   
+  ├ ? /pageflow                
+  ├ ? /pitch-review            
+  ├ ? /production              
+  ├ ? /resonance               
+  ├ ? /screenplay-readiness    
+  ├ ? /start-here              
+  ├ ? /story-craft-essentials  
+  ├ ? /structure               
+  ├ ? /voiceprint              
+  ├ ? /welcome                 
+  ├ ? /worked-examples         
+  └ ? /working-together        
+
+  ? Unknown
+
+  ? Some routes could not be classified. vinext currently uses static analysis
+    and cannot detect dynamic API usage (headers(), cookies(), etc.) at build time.
+    Automatic classification will be improved in a future release.
+
+  Build complete. Run `vinext start` to start the production server.
+
+Validated Sites artifact: ESM Worker default.fetch and hosting manifest are present.
+TAP version 13
+# Subtest: AI contracts cover portable knowledge and character consistency
+ok 1 - AI contracts cover portable knowledge and character consistency
+  ---
+  duration_ms: 0.953137
+  ...
+# Subtest: provider choices preserve OpenAI focus without provider lock-in
+ok 2 - provider choices preserve OpenAI focus without provider lock-in
+  ---
+  duration_ms: 0.235169
+  ...
+# Subtest: OpenAI video is a replaceable unavailable capability
+ok 3 - OpenAI video is a replaceable unavailable capability
+  ---
+  duration_ms: 0.213097
+  ...
+# Subtest: provider configuration never contains an API key
+ok 4 - provider configuration never contains an API key
+  ---
+  duration_ms: 0.238545
+  ...
+# Subtest: OpenAI Responses and image generation are isolated in the adapter
+ok 5 - OpenAI Responses and image generation are isolated in the adapter
+  ---
+  duration_ms: 0.264242
+  ...
+# Subtest: advanced AI capabilities stay behind one Settings menu
+ok 6 - advanced AI capabilities stay behind one Settings menu
+  ---
+  duration_ms: 0.157714
+  ...
+# Subtest: the structure model treats 48 scenes as a template rather than a restriction
+ok 7 - the structure model treats 48 scenes as a template rather than a restriction
+  ---
+  duration_ms: 4.901626
+  ...
+# Subtest: the Structure Engine exposes complete dynamic scene controls
+ok 8 - the Structure Engine exposes complete dynamic scene controls
+  ---
+  duration_ms: 2.079646
+  ...
+# Subtest: main application exposes Refine as the connected Engines workspace
+not ok 9 - main application exposes Refine as the connected Engines workspace
+  ---
+  duration_ms: 12.08234
+  location: '/home/runner/work/PlotPickle/PlotPickle/tests/engines-workspace.test.mjs:5:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(page.includes('import { PRODUCT_NAVIGATION, type ProductNavigationId } from "@/lib/product-direction"'))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///home/runner/work/PlotPickle/PlotPickle/tests/engines-workspace.test.mjs:11:10)
+    async Test.run (node:internal/test_runner/test:932:9)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: Engines workspace explains every specialist before opening it
+ok 10 - Engines workspace explains every specialist before opening it
+  ---
+  duration_ms: 5.36501
+  ...
+# Subtest: floating engine stack was removed from the root layout
+ok 11 - floating engine stack was removed from the root layout
+  ---
+  duration_ms: 2.191815
+  ...
+# Subtest: issue \#100 opens on the updated marketing splash with five current components
+ok 12 - issue \#100 opens on the updated marketing splash with five current components
+  ---
+  duration_ms: 8.28982
+  ...
+# Subtest: issue \#100 centers the application menu through one shared premium shell
+ok 13 - issue \#100 centers the application menu through one shared premium shell
+  ---
+  duration_ms: 2.199109
+  ...
+# Subtest: issue \#100 dashboard uses accessible green yellow and red status states
+ok 14 - issue \#100 dashboard uses accessible green yellow and red status states
+  ---
+  duration_ms: 2.290719
+  ...
+# Subtest: issue \#100 long dashboard and reports workspaces use left-side section navigation
+ok 15 - issue \#100 long dashboard and reports workspaces use left-side section navigation
+  ---
+  duration_ms: 4.403457
+  ...
+# Subtest: screenplay import populates every current canonical project area
+ok 16 - screenplay import populates every current canonical project area
+  ---
+  duration_ms: 6.578942
+  ...
+# Subtest: reports recalculate and audit all recently added sections
+ok 17 - reports recalculate and audit all recently added sections
+  ---
+  duration_ms: 5.567809
+  ...
+# Subtest: terminology uses readable categories, views, examples, and workspace links
+ok 18 - terminology uses readable categories, views, examples, and workspace links
+  ---
+  duration_ms: 2.004416
+  ...
+# Subtest: many local servers submit branches and pull requests instead of canonical writes
+ok 19 - many local servers submit branches and pull requests instead of canonical writes
+  ---
+  duration_ms: 2.086659
+  ...
+# Subtest: The 24 Blocks Method exposes all ten original source concepts
+ok 20 - The 24 Blocks Method exposes all ten original source concepts
+  ---
+  duration_ms: 6.118093
+  ...
+# Subtest: Principle of Three preserves the original triad and identifies Pressure as PlotPickle's extension
+ok 21 - Principle of Three preserves the original triad and identifies Pressure as PlotPickle's extension
+  ---
+  duration_ms: 1.932291
+  ...
+# Subtest: Dramatic questions and structure diversity are taught at the required resolution
+ok 22 - Dramatic questions and structure diversity are taught at the required resolution
+  ---
+  duration_ms: 2.405604
+  ...
+# Subtest: Every method lesson includes application, example, visual, mistakes and active-project exercise
+ok 23 - Every method lesson includes application, example, visual, mistakes and active-project exercise
+  ---
+  duration_ms: 1.70071
+  ...
+# Subtest: Read & Learn integrates the method collection, search and contextual recommendations
+ok 24 - Read & Learn integrates the method collection, search and contextual recommendations
+  ---
+  duration_ms: 1.300173
+  ...
+# Subtest: all legacy prompt resources map into consolidated revision playbooks
+ok 25 - all legacy prompt resources map into consolidated revision playbooks
+  ---
+  duration_ms: 7.43601
+  ...
+# Subtest: passes are grouped by Story First, Craft Layer and Polish Layer
+ok 26 - passes are grouped by Story First, Craft Layer and Polish Layer
+  ---
+  duration_ms: 2.400907
+  ...
+# Subtest: operation modes keep revision opt-in instead of default
+ok 27 - operation modes keep revision opt-in instead of default
+  ---
+  duration_ms: 3.225692
+  ...
+# Subtest: canonical scope selector supports project, structural, screenplay and pitch targets
+ok 28 - canonical scope selector supports project, structural, screenplay and pitch targets
+  ---
+  duration_ms: 1.246924
+  ...
+# Subtest: generated prompts enforce the structured response and approval boundary
+ok 29 - generated prompts enforce the structured response and approval boundary
+  ---
+  duration_ms: 1.225674
+  ...
+# Subtest: marketing is routed outside screenplay editing
+ok 30 - marketing is routed outside screenplay editing
+  ---
+  duration_ms: 1.270147
+  ...
+# Subtest: AI Prompt Lab exposes pass, operation and canonical scope controls
+ok 31 - AI Prompt Lab exposes pass, operation and canonical scope controls
+  ---
+  duration_ms: 2.099633
+  ...
+# Subtest: Read and Learn exposes the generated AI-Assisted Revision collection
+ok 32 - Read and Learn exposes the generated AI-Assisted Revision collection
+  ---
+  duration_ms: 2.4838
+  ...
+# Subtest: guided recommendations remain contextual and revision remains explicit
+ok 33 - guided recommendations remain contextual and revision remains explicit
+  ---
+  duration_ms: 2.299176
+  ...
+# Subtest: all fourteen General sources map to the existing fourteen modules
+ok 34 - all fourteen General sources map to the existing fourteen modules
+  ---
+  duration_ms: 8.00465
+  ...
+# Subtest: the existing modules form a five-stage advisory curriculum
+ok 35 - the existing modules form a five-stage advisory curriculum
+  ---
+  duration_ms: 2.542589
+  ...
+# Subtest: six editable writer routes cover idea through collaboration
+ok 36 - six editable writer routes cover idea through collaboration
+  ---
+  duration_ms: 1.829901
+  ...
+# Subtest: focused-problem routing covers ten specialist areas
+ok 37 - focused-problem routing covers ten specialist areas
+  ---
+  duration_ms: 1.280126
+  ...
+# Subtest: every core module has Understand, See it, Try it, Apply it, Check it and Go deeper data
+ok 38 - every core module has Understand, See it, Try it, Apply it, Check it and Go deeper data
+  ---
+  duration_ms: 1.863093
+  ...
+# Subtest: recommendations explain why now using active-project evidence
+ok 39 - recommendations explain why now using active-project evidence
+  ---
+  duration_ms: 5.153976
+  ...
+# Subtest: progress separates generic reading from project-specific evidence
+ok 40 - progress separates generic reading from project-specific evidence
+  ---
+  duration_ms: 1.388979
+  ...
+# Subtest: Vomit Draft remains searchable while Pickle Draft is displayed
+ok 41 - Vomit Draft remains searchable while Pickle Draft is displayed
+  ---
+  duration_ms: 2.137293
+  ...
+# Subtest: legacy framing corrections remain explicit
+ok 42 - legacy framing corrections remain explicit
+  ---
+  duration_ms: 1.498904
+  ...
+# Subtest: Complete Learning Library remains prominent beside Core Curriculum
+ok 43 - Complete Learning Library remains prominent beside Core Curriculum
+  ---
+  duration_ms: 1.852964
+  ...
+# Subtest: Read and Learn searches legacy aliases and supports direct deep links
+ok 44 - Read and Learn searches legacy aliases and supports direct deep links
+  ---
+  duration_ms: 1.305002
+  ...
+# Subtest: schema 1.7 remains frozen and records use existing review threads
+ok 45 - schema 1.7 remains frozen and records use existing review threads
+  ---
+  duration_ms: 1.612646
+  ...
+# Subtest: logline lab supports six purposes and seven transparent sentence shapes
+ok 46 - logline lab supports six purposes and seven transparent sentence shapes
+  ---
+  duration_ms: 6.615212
+  ...
+# Subtest: candidate metadata is optional and backward compatible
+ok 47 - candidate metadata is optional and backward compatible
+  ---
+  duration_ms: 4.119638
+  ...
+# Subtest: evidence model separates sentence support from project-only and intentional omission
+ok 48 - evidence model separates sentence support from project-only and intentional omission
+  ---
+  duration_ms: 8.676091
+  ...
+# Subtest: approval is selective and preserves revision history
+ok 49 - approval is selective and preserves revision history
+  ---
+  duration_ms: 2.328791
+  ...
+# Subtest: imported screenplay loglines remain suggestions with evidence and uncertainty
+ok 50 - imported screenplay loglines remain suggestions with evidence and uncertainty
+  ---
+  duration_ms: 1.346499
+  ...
+# Subtest: focused learning deep dive extends The Pitch without creating a broad curriculum
+ok 51 - focused learning deep dive extends The Pitch without creating a broad curriculum
+  ---
+  duration_ms: 2.268278
+  ...
+# Subtest: manual local-only and no-AI operation remain complete
+ok 52 - manual local-only and no-AI operation remain complete
+  ---
+  duration_ms: 2.442843
+  ...
+# Subtest: legacy mood-board inventory is exact and verified
+ok 53 - legacy mood-board inventory is exact and verified
+  ---
+  duration_ms: 7.210459
+  ...
+# Subtest: every retained reference has complete searchable metadata and three WebP derivatives
+ok 54 - every retained reference has complete searchable metadata and three WebP derivatives
+  ---
+  duration_ms: 38.592051
+  ...
+# Subtest: named-film boards are generalized rather than shipped as film presets
+ok 55 - named-film boards are generalized rather than shipped as film presets
+  ---
+  duration_ms: 2.465446
+  ...
+# Subtest: Visual Bible separates Project Mood Board from Reference Library
+ok 56 - Visual Bible separates Project Mood Board from Reference Library
+  ---
+  duration_ms: 3.983164
+  ...
+# Subtest: reference detail exposes palette, visual ingredients, accessibility and provenance
+ok 57 - reference detail exposes palette, visual ingredients, accessibility and provenance
+  ---
+  duration_ms: 1.262202
+  ...
+# Subtest: selecting a bundled reference stays behind the Visual Bible approval boundary
+ok 58 - selecting a bundled reference stays behind the Visual Bible approval boundary
+  ---
+  duration_ms: 1.126439
+  ...
+# Subtest: reference proposals support selective palette, ingredients and project scope
+ok 59 - reference proposals support selective palette, ingredients and project scope
+  ---
+  duration_ms: 1.232688
+  ...
+# Subtest: Mood Colour and Visual Language learning opens the reference workflow without copying
+ok 60 - Mood Colour and Visual Language learning opens the reference workflow without copying
+  ---
+  duration_ms: 1.597267
+  ...
+# Subtest: the reference library is static and offline with no AI, account or remote image dependency
+ok 61 - the reference library is static and offline with no AI, account or remote image dependency
+  ---
+  duration_ms: 2.43
+  ...
+# Subtest: exact Afterglow Images inventory is preserved
+ok 62 - exact Afterglow Images inventory is preserved
+  ---
+  duration_ms: 6.909989
+  ...
+# Subtest: every manifest visual has full card and thumbnail WebPs
+ok 63 - every manifest visual has full card and thumbnail WebPs
+  ---
+  duration_ms: 10.025376
+  ...
+# Subtest: story mapping preserves proposed status and known Block relationships
+ok 64 - story mapping preserves proposed status and known Block relationships
+  ---
+  duration_ms: 2.153083
+  ...
+# Subtest: Banner remains historical placeholder and unresolved assets remain visible for review
+ok 65 - Banner remains historical placeholder and unresolved assets remain visible for review
+  ---
+  duration_ms: 1.575808
+  ...
+# Subtest: overview pitch visual bible and storyboard integrations keep approval boundaries
+ok 66 - overview pitch visual bible and storyboard integrations keep approval boundaries
+  ---
+  duration_ms: 3.089078
+  ...
+# Subtest: legacy decisions use specialist review and do not mutate automatically
+ok 67 - legacy decisions use specialist review and do not mutate automatically
+  ---
+  duration_ms: 1.777704
+  ...
+# Subtest: Summer and Isobel reconciliation is explicit
+ok 68 - Summer and Isobel reconciliation is explicit
+  ---
+  duration_ms: 2.218337
+  ...
+# Subtest: learning deep dive distinguishes concept card Block cover storyboard and production keyframe
+ok 69 - learning deep dive distinguishes concept card Block cover storyboard and production keyframe
+  ---
+  duration_ms: 3.28349
+  ...
+# Subtest: About PlotPickle explains the current product without reviving obsolete commitments
+ok 70 - About PlotPickle explains the current product without reviving obsolete commitments
+  ---
+  duration_ms: 7.93008
+  ...
+# Subtest: evolution timeline connects Afterglow, 24 Blocks, OpenStory and PlotPickle
+ok 71 - evolution timeline connects Afterglow, 24 Blocks, OpenStory and PlotPickle
+  ---
+  duration_ms: 2.8976
+  ...
+# Subtest: page-to-production diagram uses one canonical project across all stages
+ok 72 - page-to-production diagram uses one canonical project across all stages
+  ---
+  duration_ms: 1.558995
+  ...
+# Subtest: legacy convergence map explains separate GPT and repository evolution
+ok 73 - legacy convergence map explains separate GPT and repository evolution
+  ---
+  duration_ms: 1.354835
+  ...
+# Subtest: both legacy READMEs are mapped section by section with explicit disposition
+ok 74 - both legacy READMEs are mapped section by section with explicit disposition
+  ---
+  duration_ms: 2.515529
+  ...
+# Subtest: historical document separates origins from roadmap, licensing and legal guidance
+ok 75 - historical document separates origins from roadmap, licensing and legal guidance
+  ---
+  duration_ms: 1.278182
+  ...
+# Subtest: Why PlotPickle Works in Layers is a complete learning module with legacy aliases
+ok 76 - Why PlotPickle Works in Layers is a complete learning module with legacy aliases
+  ---
+  duration_ms: 2.035705
+  ...
+# Subtest: product integration links About from README, Project Overview and Read & Learn
+ok 77 - product integration links About from README, Project Overview and Read & Learn
+  ---
+  duration_ms: 3.323684
+  ...
+# Subtest: welcome offers all six optional Simple Start entry routes
+ok 78 - welcome offers all six optional Simple Start entry routes
+  ---
+  duration_ms: 1.967147
+  ...
+# Subtest: the root opens the updated splash while Welcome remains an optional guided route
+ok 79 - the root opens the updated splash while Welcome remains an optional guided route
+  ---
+  duration_ms: 0.285693
+  ...
+# Subtest: beginner journey has eight ordered stages and plain-language rules
+ok 80 - beginner journey has eight ordered stages and plain-language rules
+  ---
+  duration_ms: 0.220782
+  ...
+# Subtest: guided routes keep the same workspace
+ok 81 - guided routes keep the same workspace
+  ---
+  duration_ms: 0.146944
+  ...
+# Subtest: onboarding edits the canonical project rather than a separate schema
+ok 82 - onboarding edits the canonical project rather than a separate schema
+  ---
+  duration_ms: 0.151893
+  ...
+# Subtest: minimum worked example set is present with before, after and reasoning
+ok 83 - minimum worked example set is present with before, after and reasoning
+  ---
+  duration_ms: 0.312202
+  ...
+# Subtest: readiness avoids one quality score and separates result types
+ok 84 - readiness avoids one quality score and separates result types
+  ---
+  duration_ms: 0.261056
+  ...
+# Subtest: readiness covers story, structure, characters, pages, continuity and rights
+ok 85 - readiness covers story, structure, characters, pages, continuity and rights
+  ---
+  duration_ms: 0.1935
+  ...
+# Subtest: character visual identity model stores immutable traits, references and approval state
+ok 86 - character visual identity model stores immutable traits, references and approval state
+  ---
+  duration_ms: 1.088189
+  ...
+# Subtest: older characters receive a safe lazy migration and retain legacy thumbnails
+ok 87 - older characters receive a safe lazy migration and retain legacy thumbnails
+  ---
+  duration_ms: 0.307814
+  ...
+# Subtest: locked identity edits become a pending version instead of silently replacing canon
+ok 88 - locked identity edits become a pending version instead of silently replacing canon
+  ---
+  duration_ms: 0.180587
+  ...
+# Subtest: generating a locked reference preserves the approved thumbnail until approval
+ok 89 - generating a locked reference preserves the approved thumbnail until approval
+  ---
+  duration_ms: 0.264764
+  ...
+# Subtest: character editor provides a complete writer-approved identity lock flow
+ok 90 - character editor provides a complete writer-approved identity lock flow
+  ---
+  duration_ms: 0.339873
+  ...
+# Subtest: storyboard prompts use exact approved identity packages
+ok 91 - storyboard prompts use exact approved identity packages
+  ---
+  duration_ms: 0.1665
+  ...
+# Subtest: storyboard generation hands reference images and identity locks to providers
+ok 92 - storyboard generation hands reference images and identity locks to providers
+  ---
+  duration_ms: 0.235339
+  ...
+# Subtest: continuity diagnostics distinguish missing, review and clear states
+ok 93 - continuity diagnostics distinguish missing, review and clear states
+  ---
+  duration_ms: 0.159507
+  ...
+# Subtest: issue \#85 defines one canonical primary navigation
+ok 94 - issue \#85 defines one canonical primary navigation
+  ---
+  duration_ms: 5.833864
+  ...
+# Subtest: issue \#85 exposes exactly five selling points and 81 learning modules
+ok 95 - issue \#85 exposes exactly five selling points and 81 learning modules
+  ---
+  duration_ms: 1.838447
+  ...
+# Subtest: issue \#85 distinguishes complete PlotPickle servers from collaboration roles
+ok 96 - issue \#85 distinguishes complete PlotPickle servers from collaboration roles
+  ---
+  duration_ms: 1.512649
+  ...
+# Subtest: issue \#85 defines explicit storage and synchronization states
+ok 97 - issue \#85 defines explicit storage and synchronization states
+  ---
+  duration_ms: 2.821881
+  ...
+# Subtest: issue \#85 records all completed child issues and the final consistency pass
+ok 98 - issue \#85 records all completed child issues and the final consistency pass
+  ---
+  duration_ms: 2.357354
+  ...
+# Subtest: issue \#86 discovers application routes and preserves explicit workspace coverage
+ok 99 - issue \#86 discovers application routes and preserves explicit workspace coverage
+  ---
+  duration_ms: 5.872926
+  ...
+# Subtest: issue \#86 records the required Lighthouse evidence
+ok 100 - issue \#86 records the required Lighthouse evidence
+  ---
+  duration_ms: 1.844368
+  ...
+# Subtest: issue \#86 provides desktop, mobile, automatic ZIP and local-only commands
+ok 101 - issue \#86 provides desktop, mobile, automatic ZIP and local-only commands
+  ---
+  duration_ms: 3.117992
+  ...
+# Subtest: issue \#86 provides a native Windows launcher without Bash or WSL
+ok 102 - issue \#86 provides a native Windows launcher without Bash or WSL
+  ---
+  duration_ms: 2.149817
+  ...
+# Subtest: issue \#86 documents the one-command Windows review package
+ok 103 - issue \#86 documents the one-command Windows review package
+  ---
+  duration_ms: 1.307176
+  ...
+# Subtest: issue \#87 keeps Dashboard ready behind the startup splash and Simple Start optional
+ok 104 - issue \#87 keeps Dashboard ready behind the startup splash and Simple Start optional
+  ---
+  duration_ms: 6.188966
+  ...
+# Subtest: issue \#87 places Reports in core navigation and Terminology in learning
+ok 105 - issue \#87 places Reports in core navigation and Terminology in learning
+  ---
+  duration_ms: 3.076604
+  ...
+# Subtest: issue \#87 groups GitHub, AI and Music under Settings Setup
+ok 106 - issue \#87 groups GitHub, AI and Music under Settings Setup
+  ---
+  duration_ms: 2.220899
+  ...
+# Subtest: issue \#87 preserves the Welcome deep link as optional Simple Start
+ok 107 - issue \#87 preserves the Welcome deep link as optional Simple Start
+  ---
+  duration_ms: 3.221524
+  ...
+# Subtest: issue \#88 exposes real visual production destinations
+ok 108 - issue \#88 exposes real visual production destinations
+  ---
+  duration_ms: 5.924681
+  ...
+# Subtest: issue \#88 navigation scrolls, tracks active sections and preserves deep links
+ok 109 - issue \#88 navigation scrolls, tracks active sections and preserves deep links
+  ---
+  duration_ms: 1.882649
+  ...
+# Subtest: issue \#88 keeps the visual navigator sticky, responsive and keyboard visible
+ok 110 - issue \#88 keeps the visual navigator sticky, responsive and keyboard visible
+  ---
+  duration_ms: 2.1513
+  ...
+# Subtest: issue \#88 storyboard controls remain functional
+ok 111 - issue \#88 storyboard controls remain functional
+  ---
+  duration_ms: 1.963621
+  ...
+# Subtest: Dashboard discovery requires a PlotPickle repository manifest
+ok 112 - Dashboard discovery requires a PlotPickle repository manifest
+  ---
+  duration_ms: 4.988658
+  ...
+# Subtest: Dashboard storage states never claim synchronization without verified hashes and commits
+ok 113 - Dashboard storage states never claim synchronization without verified hashes and commits
+  ---
+  duration_ms: 1.799444
+  ...
+# Subtest: Dashboard separates the canonical project from binary assets and keeps Setup responsible for credentials
+ok 114 - Dashboard separates the canonical project from binary assets and keeps Setup responsible for credentials
+  ---
+  duration_ms: 1.967066
+  ...
+# Subtest: issue \#90 front page uses the official repository and canonical product contract
+ok 115 - issue \#90 front page uses the official repository and canonical product contract
+  ---
+  duration_ms: 5.441062
+  ...
+# Subtest: issue \#90 presents exactly five canonical selling points
+ok 116 - issue \#90 presents exactly five canonical selling points
+  ---
+  duration_ms: 2.320836
+  ...
+# Subtest: issue \#90 explains complete local and web installations with role badges
+ok 117 - issue \#90 explains complete local and web installations with role badges
+  ---
+  duration_ms: 2.949958
+  ...
+# Subtest: issue \#85 final consistency contract reaches the README and completion record
+ok 118 - issue \#85 final consistency contract reaches the README and completion record
+  ---
+  duration_ms: 2.174531
+  ...
+# Subtest: source ledger preserves current and legacy titles with explicit statuses
+ok 119 - source ledger preserves current and legacy titles with explicit statuses
+  ---
+  duration_ms: 6.509152
+  ...
+# Subtest: v9 remains complete, v10 remains partial and current draft stays complete through baseline fallback
+ok 120 - v9 remains complete, v10 remains partial and current draft stays complete through baseline fallback
+  ---
+  duration_ms: 1.464269
+  ...
+# Subtest: version bridge offers all writer-controlled reconciliation actions
+ok 121 - version bridge offers all writer-controlled reconciliation actions
+  ---
+  duration_ms: 1.463839
+  ...
+# Subtest: poster is labelled legacy draft and keeps source provenance and derivative paths
+ok 122 - poster is labelled legacy draft and keeps source provenance and derivative paths
+  ---
+  duration_ms: 2.303103
+  ...
+# Subtest: Afterglow attribution separates creator credit from historical AI provenance
+ok 123 - Afterglow attribution separates creator credit from historical AI provenance
+  ---
+  duration_ms: 1.208813
+  ...
+# Subtest: built-in Afterglow project overrides blank rights and uses current display title
+ok 124 - built-in Afterglow project overrides blank rights and uses current display title
+  ---
+  duration_ms: 1.255941
+  ...
+# Subtest: user projects keep All rights reserved defaults
+ok 125 - user projects keep All rights reserved defaults
+  ---
+  duration_ms: 1.702814
+  ...
+# Subtest: overview and permanent suite expose the reconciliation workspace
+ok 126 - overview and permanent suite expose the reconciliation workspace
+  ---
+  duration_ms: 1.670093
+  ...
+# Subtest: Phase 2 folder projects remain readable after modular evolution
+ok 127 - Phase 2 folder projects remain readable after modular evolution
+  ---
+  duration_ms: 0.993361
+  ...
+# Subtest: canonical projects remain folders with portable backups and staged writes
+ok 128 - canonical projects remain folders with portable backups and staged writes
+  ---
+  duration_ms: 0.167973
+  ...
+# Subtest: The folder gateway precedes the legacy GitHub gateway
+ok 129 - The folder gateway precedes the legacy GitHub gateway
+  ---
+  duration_ms: 0.19336
+  ...
+# Subtest: Phase 3 registers independent story modules
+ok 130 - Phase 3 registers independent story modules
+  ---
+  duration_ms: 0.963756
+  ...
+# Subtest: characters, voiceprints and 24 Blocks serialize as individual files
+ok 131 - characters, voiceprints and 24 Blocks serialize as individual files
+  ---
+  duration_ms: 0.164507
+  ...
+# Subtest: folder creation includes screenplay Fountain, canon and plugin registries
+ok 132 - folder creation includes screenplay Fountain, canon and plugin registries
+  ---
+  duration_ms: 1.0305
+  ...
+# Subtest: Phase 2 folders migrate and unknown JSON modules remain harmless
+ok 133 - Phase 2 folders migrate and unknown JSON modules remain harmless
+  ---
+  duration_ms: 0.183321
+  ...
+# Subtest: module saves use a staged folder replacement
+ok 134 - module saves use a staged folder replacement
+  ---
+  duration_ms: 0.171911
+  ...
+# Subtest: Phase 4 builds a typed story knowledge graph
+ok 135 - Phase 4 builds a typed story knowledge graph
+  ---
+  duration_ms: 0.893375
+  ...
+# Subtest: Phase 4 detects broken references and unresolved threads
+ok 136 - Phase 4 detects broken references and unresolved threads
+  ---
+  duration_ms: 0.247341
+  ...
+# Subtest: Phase 4 produces deterministic story health checks
+ok 137 - Phase 4 produces deterministic story health checks
+  ---
+  duration_ms: 0.202748
+  ...
+# Subtest: dependency artifacts remain written into the modular project
+ok 138 - dependency artifacts remain written into the modular project
+  ---
+  duration_ms: 0.268381
+  ...
+# Subtest: Phase 2 through Phase 4 project folders remain readable
+ok 139 - Phase 2 through Phase 4 project folders remain readable
+  ---
+  duration_ms: 0.266587
+  ...
+# Subtest: Phase 5 exposes terminal-free native Git operations
+ok 140 - Phase 5 exposes terminal-free native Git operations
+  ---
+  duration_ms: 1.150003
+  ...
+# Subtest: native Git is local-only and constrained to project folders
+ok 141 - native Git is local-only and constrained to project folders
+  ---
+  duration_ms: 0.175066
+  ...
+# Subtest: Phase 5 UI presents the planned story-oriented commands
+ok 142 - Phase 5 UI presents the planned story-oriented commands
+  ---
+  duration_ms: 0.192278
+  ...
+# Subtest: native Git gateway is mounted with canonical folder storage
+ok 143 - native Git gateway is mounted with canonical folder storage
+  ---
+  duration_ms: 0.231592
+  ...
+# Subtest: Phase 6 defines ZIP exchange packages and checksums
+ok 144 - Phase 6 defines ZIP exchange packages and checksums
+  ---
+  duration_ms: 0.919434
+  ...
+# Subtest: Phase 6 supports selective package kinds
+ok 145 - Phase 6 supports selective package kinds
+  ---
+  duration_ms: 0.227003
+  ...
+# Subtest: PDF screenplay import validates structure and preserves provenance
+ok 146 - PDF screenplay import validates structure and preserves provenance
+  ---
+  duration_ms: 0.157223
+  ...
+# Subtest: Phase 6 documentation freezes folder-first exchange boundaries
+ok 147 - Phase 6 documentation freezes folder-first exchange boundaries
+  ---
+  duration_ms: 1.020181
+  ...
+# Subtest: Phase 7 defines authoritative canon sections and lifecycle
+ok 148 - Phase 7 defines authoritative canon sections and lifecycle
+  ---
+  duration_ms: 1.009932
+  ...
+# Subtest: Phase 7 exposes canon query and context packet APIs
+ok 149 - Phase 7 exposes canon query and context packet APIs
+  ---
+  duration_ms: 0.186006
+  ...
+# Subtest: Phase 7 persists binder artifacts in project folders
+ok 150 - Phase 7 persists binder artifacts in project folders
+  ---
+  duration_ms: 0.173132
+  ...
+# Subtest: Phase 7 documentation states the single-source-of-truth boundary
+ok 151 - Phase 7 documentation states the single-source-of-truth boundary
+  ---
+  duration_ms: 1.057431
+  ...
+# Subtest: Phase 8 defines a versioned permissioned plugin manifest
+ok 152 - Phase 8 defines a versioned permissioned plugin manifest
+  ---
+  duration_ms: 0.886903
+  ...
+# Subtest: plugins install disabled and cannot escalate undeclared permissions
+ok 153 - plugins install disabled and cannot escalate undeclared permissions
+  ---
+  duration_ms: 0.218427
+  ...
+# Subtest: Phase 8 provides the complete core services layer
+ok 154 - Phase 8 provides the complete core services layer
+  ---
+  duration_ms: 0.231862
+  ...
+# Subtest: initial plugin contracts cover core integrations without vendor lock-in
+ok 155 - initial plugin contracts cover core integrations without vendor lock-in
+  ---
+  duration_ms: 1.133282
+  ...
+# Subtest: Phase 9A exposes versioned SDK packages
+ok 156 - Phase 9A exposes versioned SDK packages
+  ---
+  duration_ms: 5.727545
+  ...
+# Subtest: Phase 9A publishes a machine-readable host contract and stability guide
+ok 157 - Phase 9A publishes a machine-readable host contract and stability guide
+  ---
+  duration_ms: 2.617308
+  ...
+# Subtest: Phase 9B exposes the public plugin SDK package
+ok 158 - Phase 9B exposes the public plugin SDK package
+  ---
+  duration_ms: 0.91747
+  ...
+# Subtest: Phase 9B declares all initial typed events
+ok 159 - Phase 9B declares all initial typed events
+  ---
+  duration_ms: 0.38662
+  ...
+# Subtest: subscriptions and registrations are disposable
+ok 160 - subscriptions and registrations are disposable
+  ---
+  duration_ms: 0.190866
+  ...
+# Subtest: permission failures are explicit and testable
+ok 161 - permission failures are explicit and testable
+  ---
+  duration_ms: 0.141123
+  ...
+# Subtest: mock activation host and development reload boundaries exist
+ok 162 - mock activation host and development reload boundaries exist
+  ---
+  duration_ms: 0.210763
+  ...
+# Subtest: Phase 9C ships the complete reference catalog
+ok 163 - Phase 9C ships the complete reference catalog
+  ---
+  duration_ms: 1.374021
+  ...
+# Subtest: examples cover the required plugin shapes
+ok 164 - examples cover the required plugin shapes
+  ---
+  duration_ms: 0.260566
+  ...
+# Subtest: reference source uses only the public lifecycle surface
+ok 165 - reference source uses only the public lifecycle surface
+  ---
+  duration_ms: 0.347597
+  ...
+# Subtest: provider safety and provenance rules are explicit
+ok 166 - provider safety and provenance rules are explicit
+  ---
+  duration_ms: 0.197178
+  ...
+# Subtest: Phase 9D ships a complete offline documentation bundle
+ok 167 - Phase 9D ships a complete offline documentation bundle
+  ---
+  duration_ms: 1.375333
+  ...
+# Subtest: developer documentation has no broken relative Markdown links
+ok 168 - developer documentation has no broken relative Markdown links
+  ---
+  duration_ms: 3.183686
+  ...
+# Subtest: search index covers every developer page
+ok 169 - search index covers every developer page
+  ---
+  duration_ms: 0.419071
+  ...
+# Subtest: API reference documents every public plugin SDK export
+ok 170 - API reference documents every public plugin SDK export
+  ---
+  duration_ms: 1.438581
+  ...
+# Subtest: documentation distinguishes stable preview and internal APIs
+ok 171 - documentation distinguishes stable preview and internal APIs
+  ---
+  duration_ms: 0.206505
+  ...
+# Subtest: SDK packages are coordinated and intentionally allow-listed
+ok 172 - SDK packages are coordinated and intentionally allow-listed
+  ---
+  duration_ms: 1.630799
+  ...
+# Subtest: release tooling keeps publishing manually locked
+ok 173 - release tooling keeps publishing manually locked
+  ---
+  duration_ms: 0.253001
+  ...
+# Subtest: release policy documents compatibility, migration and rollback
+ok 174 - release policy documents compatibility, migration and rollback
+  ---
+  duration_ms: 0.406427
+  ...
+# Subtest: schema 1.7 is the canonical released schema
+ok 175 - schema 1.7 is the canonical released schema
+  ---
+  duration_ms: 9.672798
+  ...
+# Subtest: blank, imported and Afterglow projects use the Phase A model
+ok 176 - blank, imported and Afterglow projects use the Phase A model
+  ---
+  duration_ms: 2.159244
+  ...
+# Subtest: all Phase A interfaces are connected without duplicating Core Model in Settings
+ok 177 - all Phase A interfaces are connected without duplicating Core Model in Settings
+  ---
+  duration_ms: 4.373643
+  ...
+# Subtest: expanded screenplay elements export through Fountain and FDX
+ok 178 - expanded screenplay elements export through Fountain and FDX
+  ---
+  duration_ms: 1.655115
+  ...
+# Subtest: Phase B provides diagnostic engines for movements, scenes, threads, ledgers, arcs and time
+ok 179 - Phase B provides diagnostic engines for movements, scenes, threads, ledgers, arcs and time
+  ---
+  duration_ms: 6.387296
+  ...
+# Subtest: Opening Move and Act I Launch architecture is ported without a second story model
+ok 180 - Opening Move and Act I Launch architecture is ported without a second story model
+  ---
+  duration_ms: 2.972981
+  ...
+# Subtest: the Diagnostic Craft workspace exposes every Phase B view
+ok 181 - the Diagnostic Craft workspace exposes every Phase B view
+  ---
+  duration_ms: 1.596566
+  ...
+# Subtest: Structure, Writer and DraftLens embed the same diagnostic engine
+ok 182 - Structure, Writer and DraftLens embed the same diagnostic engine
+  ---
+  duration_ms: 2.518094
+  ...
+# Subtest: the Phase B completion standard remains documented in later releases
+ok 183 - the Phase B completion standard remains documented in later releases
+  ---
+  duration_ms: 1.670664
+  ...
+# Subtest: PlotPickle 0.15 exposes every specialist lab
+ok 184 - PlotPickle 0.15 exposes every specialist lab
+  ---
+  duration_ms: 6.761561
+  ...
+# Subtest: every lab reads and writes the active canonical project
+ok 185 - every lab reads and writes the active canonical project
+  ---
+  duration_ms: 1.953842
+  ...
+# Subtest: specialist suggestions cannot change the project without approval
+ok 186 - specialist suggestions cannot change the project without approval
+  ---
+  duration_ms: 2.41975
+  ...
+# Subtest: approved passes preserve before, after, provenance and source records
+ok 187 - approved passes preserve before, after, provenance and source records
+  ---
+  duration_ms: 1.257734
+  ...
+# Subtest: research and visual labs use existing canonical fields instead of parallel storage
+ok 188 - research and visual labs use existing canonical fields instead of parallel storage
+  ---
+  duration_ms: 1.285436
+  ...
+# Subtest: PlotPickle 0.16 exposes the complete pitch and review studio
+ok 189 - PlotPickle 0.16 exposes the complete pitch and review studio
+  ---
+  duration_ms: 6.59379
+  ...
+# Subtest: review threads anchor to stable canonical project identities
+ok 190 - review threads anchor to stable canonical project identities
+  ---
+  duration_ms: 3.584942
+  ...
+# Subtest: purpose-aware logline candidates require explicit selective approval
+ok 191 - purpose-aware logline candidates require explicit selective approval
+  ---
+  duration_ms: 1.659663
+  ...
+# Subtest: revision comparison and pitch exports remain inside PlotPickle
+ok 192 - revision comparison and pitch exports remain inside PlotPickle
+  ---
+  duration_ms: 1.855649
+  ...
+# Subtest: the specialist hub links review to the existing story workflow
+ok 193 - the specialist hub links review to the existing story workflow
+  ---
+  duration_ms: 1.221577
+  ...
+# Subtest: PlotPickle 0.17 exposes the complete page-to-production workspace
+ok 194 - PlotPickle 0.17 exposes the complete page-to-production workspace
+  ---
+  duration_ms: 6.624137
+  ...
+# Subtest: shots, cues, breakdowns and schedules retain stable project links
+ok 195 - shots, cues, breakdowns and schedules retain stable project links
+  ---
+  duration_ms: 4.213243
+  ...
+# Subtest: the canonical schema and revision snapshots include production planning
+ok 196 - the canonical schema and revision snapshots include production planning
+  ---
+  duration_ms: 3.898466
+  ...
+# Subtest: Afterglow Blocks 22 through 24 contain twelve replacement keyframes
+ok 197 - Afterglow Blocks 22 through 24 contain twelve replacement keyframes
+  ---
+  duration_ms: 6.217719
+  ...
+# Subtest: Phase E documentation states the continuous-plan completion contract
+ok 198 - Phase E documentation states the continuous-plan completion contract
+  ---
+  duration_ms: 1.164521
+  ...
+# Subtest: PlotPickle 1.0 candidate defines a portable .ppf boundary
+ok 199 - PlotPickle 1.0 candidate defines a portable .ppf boundary
+  ---
+  duration_ms: 6.428983
+  ...
+# Subtest: local project storage uses atomic saves, integrity checks, and rolling backups
+ok 200 - local project storage uses atomic saves, integrity checks, and rolling backups
+  ---
+  duration_ms: 96.903819
+  ...
+# Subtest: GitHub collaboration is local-only, review-first, and owner-controlled
+ok 201 - GitHub collaboration is local-only, review-first, and owner-controlled
+  ---
+  duration_ms: 2.845944
+  ...
+# Subtest: canonical projects retain repository metadata without credentials
+ok 202 - canonical projects retain repository metadata without credentials
+  ---
+  duration_ms: 2.954086
+  ...
+# Subtest: Windows, macOS, and Linux release candidates are packaged and clean-machine tested
+ok 203 - Windows, macOS, and Linux release candidates are packaged and clean-machine tested
+  ---
+  duration_ms: 3.832253
+  ...
+# Subtest: schema 1.7 declares every Phase 1 project capability
+ok 204 - schema 1.7 declares every Phase 1 project capability
+  ---
+  duration_ms: 5.98212
+  ...
+# Subtest: Phase 1 operations cover migration, dynamic scenes, threads, arcs, provenance and revisions
+ok 205 - Phase 1 operations cover migration, dynamic scenes, threads, arcs, provenance and revisions
+  ---
+  duration_ms: 2.300037
+  ...
+# Subtest: Phase 1 documentation explains the migration boundary
+ok 206 - Phase 1 documentation explains the migration boundary
+  ---
+  duration_ms: 2.52104
+  ...
+# Subtest: Phase 2 keeps screenplay elements attached to stable scene identities
+ok 207 - Phase 2 keeps screenplay elements attached to stable scene identities
+  ---
+  duration_ms: 6.833487
+  ...
+# Subtest: the canonical compatibility schema accepts flexible scenes and short scenes
+ok 208 - the canonical compatibility schema accepts flexible scenes and short scenes
+  ---
+  duration_ms: 3.447436
+  ...
+# Subtest: the project validator no longer restores the two-scene restriction
+ok 209 - the project validator no longer restores the two-scene restriction
+  ---
+  duration_ms: 1.445864
+  ...
+# Subtest: the Structure Engine reports scene health and global numbering
+ok 210 - the Structure Engine reports scene health and global numbering
+  ---
+  duration_ms: 2.545404
+  ...
+# Subtest: main application exposes the grouped project rail and local-only product model
+ok 211 - main application exposes the grouped project rail and local-only product model
+  ---
+  duration_ms: 5.980487
+  ...
+# Subtest: section progress model covers every visible story section
+ok 212 - section progress model covers every visible story section
+  ---
+  duration_ms: 1.72779
+  ...
+# Subtest: overview and structure summary explain their contracts before deeper work
+ok 213 - overview and structure summary explain their contracts before deeper work
+  ---
+  duration_ms: 1.602687
+  ...
+# Subtest: PlotPickle declares software, method, user, contribution, and brand rights separately
+ok 214 - PlotPickle declares software, method, user, contribution, and brand rights separately
+  ---
+  duration_ms: 3.785946
+  ...
+# Subtest: repository includes the complete AGPL licence text
+ok 215 - repository includes the complete AGPL licence text
+  ---
+  duration_ms: 1.300615
+  ...
+# Subtest: the primary menu uses the approved short labels in order
+ok 216 - the primary menu uses the approved short labels in order
+  ---
+  duration_ms: 5.412037
+  ...
+# Subtest: the application renders the shared menu with Dashboard ready behind the splash
+ok 217 - the application renders the shared menu with Dashboard ready behind the splash
+  ---
+  duration_ms: 2.587533
+  ...
+# Subtest: the brand opens the marketing splash and the top bar stays navigation-only
+ok 218 - the brand opens the marketing splash and the top bar stays navigation-only
+  ---
+  duration_ms: 2.163673
+  ...
+# Subtest: the proposed menu has responsive styling and Dashboard actions
+not ok 219 - the proposed menu has responsive styling and Dashboard actions
+  ---
+  duration_ms: 2.086239
+  location: '/home/runner/work/PlotPickle/PlotPickle/tests/proposed-primary-menu.test.mjs:41:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /@media \(max-width: 600px\)/. Input:
+    
+    ':root{--premium-ink:#102f3a;--premium-muted:#607983;--premium-paper:#edf5f6;--premium-surface:#fff;--premium-line:#d6e4e5;--premium-line-strong:#b9d0d3;--premium-accent:#2f8c80;--premium-accent-dark:#17665f;--premium-shadow:0 18px 50px rgba(17,52,62,.1);--premium-shadow-soft:0 8px 24px rgba(17,52,62,.07);--status-green:#237a4d;--status-green-bg:#eaf7ef;--status-yellow:#8a6410;--status-yellow-bg:#fff7df;--status-red:#a13e39;--status-red-bg:#fff0ee;--paper:var(--premium-paper);--panel:var(--premium-surface);--line:var(--premium-line);--line-strong:var(--premium-line-strong);--ink:var(--premium-ink);--ink-soft:var(--premium-muted);--pickle:var(--premium-accent);--pickle-dark:var(--premium-accent-dark);--shadow:var(--premium-shadow)}body{background:linear-gradient(180deg,#f4f9f9 0,var(--premium-paper) 24rem);letter-spacing:-.008em}button,a,input,textarea,select{transition:border-color .15s ease,background-color .15s ease,color .15s ease,box-shadow .15s ease,transform .15s ease}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid rgba(47,140,128,.3);outline-offset:3px}.topbar{grid-template-columns:minmax(190px,1fr) auto minmax(190px,1fr);min-height:70px;padding:0 24px;background:rgba(13,39,51,.97);box-shadow:0 10px 30px rgba(10,32,43,.18)}.brand-lockup{justify-self:start}.main-tabs{justify-self:center;display:flex;align-items:center;justify-content:center;gap:3px;width:max-content;padding:5px;border:1px solid rgba(255,255,255,.08);border-radius:13px;background:rgba(255,255,255,.05)}.main-tabs button{min-height:40px;padding:0 13px;border:1px solid transparent;border-radius:9px;color:#b9cbd1;font-size:.78rem;font-weight:720;white-space:nowrap}.main-tabs button:hover{background:rgba(255,255,255,.08);color:#fff}.main-tabs button.active{border-color:rgba(128,223,205,.28);background:rgba(82,177,160,.2);color:#fff;box-shadow:inset 0 -2px 0 #79d1c0}.project-strip{position:sticky;z-index:30;top:70px;min-height:58px;border-bottom:1px solid var(--premium-line);background:rgba(250,253,253,.94);backdrop-filter:blur(14px)}.workspace{width:min(100%,1680px);margin:0 auto;padding:clamp(20px,2.5vw,36px)}.primary-button,.secondary-button,.text-button,.dashboard-actions button{border-radius:10px;font-weight:760}.primary-button{border-color:var(--premium-accent-dark);background:linear-gradient(180deg,#32998b,#247a70);box-shadow:0 8px 18px rgba(36,122,112,.18)}.primary-button:hover{transform:translateY(-1px);box-shadow:0 11px 22px rgba(36,122,112,.22)}.form-field input,.form-field textarea,.form-field select,.workspace input,.workspace textarea,.workspace select{border-color:var(--premium-line-strong);border-radius:10px;background:#fff}.editor-page,.guide-page,.planner-content,.dashboard-main>section{border:1px solid var(--premium-line);border-radius:22px;background:var(--premium-surface);box-shadow:var(--premium-shadow-soft)}.section-heading{padding-bottom:18px;border-bottom:1px solid var(--premium-line)}.compact-heading{margin-bottom:18px}.dashboard-shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:22px;align-items:start}.workspace-subnav{position:sticky;top:148px;display:grid;gap:6px;padding:18px;border:1px solid var(--premium-line);border-radius:16px;background:rgba(255,255,255,.96);box-shadow:var(--premium-shadow-soft)}.workspace-subnav>strong{margin-bottom:8px;font-size:1rem}.workspace-subnav>a{padding:10px 11px;border-radius:9px;color:#4e6972;font-size:.76rem;font-weight:720;text-decoration:none}.workspace-subnav>a:hover{background:#edf7f5;color:var(--premium-accent-dark)}.dashboard-main{display:grid;gap:18px;min-width:0}.dashboard-status{padding:clamp(20px,2.5vw,30px)}.dashboard-status-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.status-card{display:grid;align-content:start;gap:8px;min-height:148px;padding:17px;border:1px solid currentColor;border-radius:14px}.status-card-label{font-size:.68rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.status-card strong{display:flex;align-items:center;gap:8px;color:var(--premium-ink);font-size:1rem}.status-card strong i,.status-key i{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:999px;background:currentColor;color:#fff;font-style:normal;font-weight:900}.status-card p{margin:0;color:#5d737b;font-size:.74rem;line-height:1.5}.status-green{color:var(--status-green);background:var(--status-green-bg)}.status-yellow{color:var(--status-yellow);background:var(--status-yellow-bg)}.status-red{color:var(--status-red);background:var(--status-red-bg)}.status-legend{display:grid;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--premium-line)}.status-key{display:flex;align-items:center;gap:8px;color:#5d747b;font-size:.66rem}.status-key i{width:19px;height:19px;flex:0 0 19px;font-size:.66rem}.dashboard-actions{padding:14px 18px;border:1px solid var(--premium-line);background:#fff;box-shadow:var(--premium-shadow-soft)}.dashboard-overview{overflow:hidden}.marketing-page{color:var(--premium-ink);background:linear-gradient(180deg,#f8fbfb 0,#edf5f4 48rem,#f8fbfb 100%)}.marketing-header{border-bottom:1px solid rgba(21,72,79,.1);background:rgba(250,253,253,.9);backdrop-filter:blur(18px)}.marketing-hero{min-height:min(760px,calc(100vh - 72px))}.component-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}.component-card{display:flex;flex-direction:column;min-width:0;overflow:hidden;border:1px solid var(--premium-line);border-radius:18px;background:#fff;box-shadow:var(--premium-shadow-soft)}.component-card:hover{transform:translateY(-3px);border-color:#a8c9c7;box-shadow:var(--premium-shadow)}.component-visual{aspect-ratio:7/4;padding:10px;border-bottom:1px solid var(--premium-line);background:linear-gradient(145deg,#edf8f6,#f5f9fc)}.component-visual img{width:100%;height:100%;object-fit:contain}.component-copy{display:grid;align-content:start;gap:5px;padding:17px}.component-copy h3{margin:0;font-size:1rem}.component-copy>p:last-child{margin:4px 0 0;color:var(--premium-muted);font-size:.74rem;line-height:1.55}@media(max-width:1380px){.main-tabs button{padding-inline:10px}.dashboard-status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.component-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:1080px){.topbar{grid-template-columns:auto minmax(0,1fr)}.main-tabs{justify-self:stretch;width:100%;overflow-x:auto;justify-content:flex-start}.dashboard-shell{grid-template-columns:1fr}.workspace-subnav{position:static;grid-template-columns:repeat(3,minmax(0,1fr))}.workspace-subnav>p,.workspace-subnav>strong,.status-legend{grid-column:1/-1}}@media(max-width:760px){.topbar{grid-template-columns:1fr;gap:8px;padding:10px 14px}.brand-lockup{justify-self:center}.project-strip{top:126px}.workspace{padding:14px}.dashboard-status-grid,.component-grid,.workspace-subnav{grid-template-columns:1fr}.status-card{min-height:auto}.marketing-header nav{display:none}}'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: ':root{--premium-ink:#102f3a;--premium-muted:#607983;--premium-paper:#edf5f6;--premium-surface:#fff;--premium-line:#d6e4e5;--premium-line-strong:#b9d0d3;--premium-accent:#2f8c80;--premium-accent-dark:#17665f;--premium-shadow:0 18px 50px rgba(17,52,62,.1);--premium-shadow-soft:0 8px 24px rgba(17,52,62,.07);--status-green:#237a4d;--status-green-bg:#eaf7ef;--status-yellow:#8a6410;--status-yellow-bg:#fff7df;--status-red:#a13e39;--status-red-bg:#fff0ee;--paper:var(--premium-paper);--panel:var(--premium-surface);--line:var(--premium-line);--line-strong:var(--premium-line-strong);--ink:var(--premium-ink);--ink-soft:var(--premium-muted);--pickle:var(--premium-accent);--pickle-dark:var(--premium-accent-dark);--shadow:var(--premium-shadow)}body{background:linear-gradient(180deg,#f4f9f9 0,var(--premium-paper) 24rem);letter-spacing:-.008em}button,a,input,textarea,select{transition:border-color .15s ease,background-color .15s ease,color .15s ease,box-shadow .15s ease,transform .15s ease}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid rgba(47,140,128,.3);outline-offset:3px}.topbar{grid-template-columns:minmax(190px,1fr) auto minmax(190px,1fr);min-height:70px;padding:0 24px;background:rgba(13,39,51,.97);box-shadow:0 10px 30px rgba(10,32,43,.18)}.brand-lockup{justify-self:start}.main-tabs{justify-self:center;display:flex;align-items:center;justify-content:center;gap:3px;width:max-content;padding:5px;border:1px solid rgba(255,255,255,.08);border-radius:13px;background:rgba(255,255,255,.05)}.main-tabs button{min-height:40px;padding:0 13px;border:1px solid transparent;border-radius:9px;color:#b9cbd1;font-size:.78rem;font-weight:720;white-space:nowrap}.main-tabs button:hover{background:rgba(255,255,255,.08);color:#fff}.main-tabs button.active{border-color:rgba(128,223,205,.28);background:rgba(82,177,160,.2);color:#fff;box-shadow:inset 0 -2px 0 #79d1c0}.project-strip{position:sticky;z-index:30;top:70px;min-height:58px;border-bottom:1px solid var(--premium-line);background:rgba(250,253,253,.94);backdrop-filter:blur(14px)}.workspace{width:min(100%,1680px);margin:0 auto;padding:clamp(20px,2.5vw,36px)}.primary-button,.secondary-button,.text-button,.dashboard-actions button{border-radius:10px;font-weight:760}.primary-button{border-color:var(--premium-accent-dark);background:linear-gradient(180deg,#32998b,#247a70);box-shadow:0 8px 18px rgba(36,122,112,.18)}.primary-button:hover{transform:translateY(-1px);box-shadow:0 11px 22px rgba(36,122,112,.22)}.form-field input,.form-field textarea,.form-field select,.workspace input,.workspace textarea,.workspace select{border-color:var(--premium-line-strong);border-radius:10px;background:#fff}.editor-page,.guide-page,.planner-content,.dashboard-main>section{border:1px solid var(--premium-line);border-radius:22px;background:var(--premium-surface);box-shadow:var(--premium-shadow-soft)}.section-heading{padding-bottom:18px;border-bottom:1px solid var(--premium-line)}.compact-heading{margin-bottom:18px}.dashboard-shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:22px;align-items:start}.workspace-subnav{position:sticky;top:148px;display:grid;gap:6px;padding:18px;border:1px solid var(--premium-line);border-radius:16px;background:rgba(255,255,255,.96);box-shadow:var(--premium-shadow-soft)}.workspace-subnav>strong{margin-bottom:8px;font-size:1rem}.workspace-subnav>a{padding:10px 11px;border-radius:9px;color:#4e6972;font-size:.76rem;font-weight:720;text-decoration:none}.workspace-subnav>a:hover{background:#edf7f5;color:var(--premium-accent-dark)}.dashboard-main{display:grid;gap:18px;min-width:0}.dashboard-status{padding:clamp(20px,2.5vw,30px)}.dashboard-status-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.status-card{display:grid;align-content:start;gap:8px;min-height:148px;padding:17px;border:1px solid currentColor;border-radius:14px}.status-card-label{font-size:.68rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.status-card strong{display:flex;align-items:center;gap:8px;color:var(--premium-ink);font-size:1rem}.status-card strong i,.status-key i{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:999px;background:currentColor;color:#fff;font-style:normal;font-weight:900}.status-card p{margin:0;color:#5d737b;font-size:.74rem;line-height:1.5}.status-green{color:var(--status-green);background:var(--status-green-bg)}.status-yellow{color:var(--status-yellow);background:var(--status-yellow-bg)}.status-red{color:var(--status-red);background:var(--status-red-bg)}.status-legend{display:grid;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--premium-line)}.status-key{display:flex;align-items:center;gap:8px;color:#5d747b;font-size:.66rem}.status-key i{width:19px;height:19px;flex:0 0 19px;font-size:.66rem}.dashboard-actions{padding:14px 18px;border:1px solid var(--premium-line);background:#fff;box-shadow:var(--premium-shadow-soft)}.dashboard-overview{overflow:hidden}.marketing-page{color:var(--premium-ink);background:linear-gradient(180deg,#f8fbfb 0,#edf5f4 48rem,#f8fbfb 100%)}.marketing-header{border-bottom:1px solid rgba(21,72,79,.1);background:rgba(250,253,253,.9);backdrop-filter:blur(18px)}.marketing-hero{min-height:min(760px,calc(100vh - 72px))}.component-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}.component-card{display:flex;flex-direction:column;min-width:0;overflow:hidden;border:1px solid var(--premium-line);border-radius:18px;background:#fff;box-shadow:var(--premium-shadow-soft)}.component-card:hover{transform:translateY(-3px);border-color:#a8c9c7;box-shadow:var(--premium-shadow)}.component-visual{aspect-ratio:7/4;padding:10px;border-bottom:1px solid var(--premium-line);background:linear-gradient(145deg,#edf8f6,#f5f9fc)}.component-visual img{width:100%;height:100%;object-fit:contain}.component-copy{display:grid;align-content:start;gap:5px;padding:17px}.component-copy h3{margin:0;font-size:1rem}.component-copy>p:last-child{margin:4px 0 0;color:var(--premium-muted);font-size:.74rem;line-height:1.55}@media(max-width:1380px){.main-tabs button{padding-inline:10px}.dashboard-status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.component-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:1080px){.topbar{grid-template-columns:auto minmax(0,1fr)}.main-tabs{justify-self:stretch;width:100%;overflow-x:auto;justify-content:flex-start}.dashboard-shell{grid-template-columns:1fr}.workspace-subnav{position:static;grid-template-columns:repeat(3,minmax(0,1fr))}.workspace-subnav>p,.workspace-subnav>strong,.status-legend{grid-column:1/-1}}@media(max-width:760px){.topbar{grid-template-columns:1fr;gap:8px;padding:10px 14px}.brand-lockup{justify-self:center}.project-strip{top:126px}.workspace{padding:14px}.dashboard-status-grid,.component-grid,.workspace-subnav{grid-template-columns:1fr}.status-card{min-height:auto}.marketing-header nav{display:none}}'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///home/runner/work/PlotPickle/PlotPickle/tests/proposed-primary-menu.test.mjs:47:10)
+    async Test.run (node:internal/test_runner/test:932:9)
+    async Test.processPendingSubtests (node:internal/test_runner/test:629:7)
+  ...
+# Subtest: RC4 freezes project format major version 1
+ok 220 - RC4 freezes project format major version 1
+  ---
+  duration_ms: 1.022716
+  ...
+# Subtest: RC4 declares all frozen schema families
+ok 221 - RC4 declares all frozen schema families
+  ---
+  duration_ms: 0.224819
+  ...
+# Subtest: unknown optional extensions and fields survive JSON round-trip
+ok 222 - unknown optional extensions and fields survive JSON round-trip
+  ---
+  duration_ms: 0.6871
+  ...
+# Subtest: RC4 portable fixture passes local validation
+ok 223 - RC4 portable fixture passes local validation
+  ---
+  duration_ms: 35.07142
+  ...
+# Subtest: freeze policy covers security, migration and breaking changes
+ok 224 - freeze policy covers security, migration and breaking changes
+  ---
+  duration_ms: 0.345484
+  ...
+# Subtest: renders the root workspace directly and preserves the local-first workspace contract
+not ok 225 - renders the root workspace directly and preserves the local-first workspace contract
+  ---
+  duration_ms: 312.281797
+  location: '/home/runner/work/PlotPickle/PlotPickle/tests/rendered-html.test.mjs:38:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /Reports/. Input:
+    
+    '<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preload" as="image" href="/brand/plotpickle-header-horizontal-600.png"/><link rel="preload" as="image" href="/brand/favicon/plotpickle-icon-32.png"/><link rel="preload" as="image" href="/brand/components/learn.svg"/><link rel="preload" as="image" href="/brand/components/plan.svg"/><link rel="preload" as="image" href="/brand/components/write.svg"/><link rel="preload" as="image" href="/brand/components/storyboard.svg"/><link rel="preload" as="image" href="/brand/components/refine.svg"/><link rel="preload" as="image" href="/brand/favicon/plotpickle-icon-128.png"/><link rel="stylesheet" href="/assets/index-DedKIDsC.css" data-rsc-css-href="/assets/index-DedKIDsC.css" data-precedence="vite-rsc/importer-resources"/><link rel="stylesheet" href="/assets/workspace-intro-host-UFuZVsBR.css" data-precedence="vite-rsc/client-reference"/><link rel="stylesheet" href="/assets/page-CpHwvAEN.css" data-precedence="vite-rsc/client-reference"/><link rel="stylesheet" href="/assets/craft-diagnostics-DbnUvPcX.css" data-precedence="vite-rsc/client-reference"/><link rel="modulepreload" href="/assets/layout-segment-context-BNyMK8TZ.js" crossorigin=""/><link rel="modulepreload" href="/assets/rolldown-runtime-S-ySWqyJ.js" crossorigin=""/><link rel="modulepreload" href="/assets/index-DBCHrurJ.js" crossorigin=""/><link rel="modulepreload" href="/assets/framework-CXnKph_e.js" crossorigin=""/><link rel="modulepreload" href="/assets/workspace-intro-host-CnArBHOg.js" crossorigin=""/><link rel="modulepreload" href="/assets/current-download-links-3l8nFcvL.js" crossorigin=""/><link rel="modulepreload" href="/assets/page-MM8Xa37r.js" crossorigin=""/><link rel="modulepreload" href="/assets/afterglow-legacy-visuals-CRJntNsP.js" crossorigin=""/><link rel="modulepreload" href="/assets/craft-diagnostics-BMo_m0eV.js" crossorigin=""/><link rel="modulepreload" href="/assets/craft-diagnostics-XIFsYAz3.js" crossorigin=""/><link rel="modulepreload" href="/assets/link-CCG66p8X.js" crossorigin=""/><link rel="modulepreload" href="/assets/learning-characters-in-motion-HtIfxoD4.js" crossorigin=""/><link rel="modulepreload" href="/assets/learning-core-curriculum-D19BoTIl.js" crossorigin=""/><link rel="modulepreload" href="/assets/learning-dialogue-in-motion-B6i9KY4e.js" crossorigin=""/><link rel="modulepreload" href="/assets/learning-story-craft-essentials-H0VM6yvo.js" crossorigin=""/><link rel="modulepreload" href="/assets/learning-working-together-Boc7DZn8.js" crossorigin=""/><link rel="modulepreload" href="/assets/product-direction-BLPn_Vt-.js" crossorigin=""/><link rel="modulepreload" href="/assets/project-Bbf9cAFJ.js" crossorigin=""/><link rel="modulepreload" href="/assets/scene-management-Cn6mPSF8.js" crossorigin=""/><title>PlotPickle</title><meta name="description" content="Download PlotPickle Playhouse: a local-first story planner connecting Project Overview, Story Planner, Structure Map, Visual Board, and guided specialist engines through Bryan Harris&#x27;s 24 Blocks method."/><link rel="shortcut icon" href="/brand/favicon/favicon.ico"/><link rel="icon" href="/brand/favicon/plotpickle-icon-32.png" sizes="32x32" type="image/png"/><link rel="icon" href="/brand/favicon/plotpickle-icon-192.png" sizes="192x192" type="image/png"/><link rel="icon" href="/brand/favicon/plotpickle-icon-512.png" sizes="512x512" type="image/png"/><link rel="apple-touch-icon" href="/brand/favicon/apple-touch-icon-180.png"/><link rel="manifest" href="/manifest.webmanifest"/><meta name="codex-preview" content="development"/><script>self.__VINEXT_RSC_PARAMS__={}</script><script>self.__VINEXT_RSC_NAV__={"pathname":"/","searchParams":[]}</script><link rel="modulepreload" href="/assets/index-DBCHrurJ.js" />\n' +
+      '<link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-ff2310f5.woff2" as="font" type="font/woff2" crossorigin />\n' +
+      '<link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-875ccdd4.woff2" as="font" type="font/woff2" crossorigin />\n' +
+      '<link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-52306abf.woff2" as="font" type="font/woff2" crossorigin />\n' +
+      '<link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-001175b1.woff2" as="font" type="font/woff2" crossorigin />\n' +
+      '<link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-98bbbccb.woff2" as="font" type="font/woff2" crossorigin />\n' +
+      '<link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-f6b33328.woff2" as="font" type="font/woff2" crossorigin />\n' +
+      '<link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-44e03052.woff2" as="font" type="font/woff2" crossorigin />\n' +
+      '<link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-0638449e.woff2" as="font" type="font/woff2" crossorigin />\n' +
+      '<link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-971fb274.woff2" as="font" type="font/woff2" crossorigin />\n' +
+      '<link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-44745446.woff2" as="font" type="font/woff2" crossorigin />\n' +
+      '<link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-013b2f2f.woff2" as="font" type="font/woff2" crossorigin />\n' +
+      '<style data-vinext-fonts>/* cyrillic-ext */\n' +
+      '@font-face {\n' +
+      "  font-family: 'Geist';\n" +
+      '  font-style: normal;\n' +
+      '  font-weight: 100 900;\n' +
+      '  font-display: swap;\n' +
+      "  src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-ff2310f5.woff2) format('woff2');\n" +
+      '  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;\n' +
+      '}\n' +
+      '/* cyrillic */\n' +
+      '@font-face {\n' +
+      "  font-family: 'Geist';\n" +
+      '  font-style: normal;\n' +
+      '  font-weight: 100 900;\n' +
+      '  font-display: swap;\n' +
+      "  src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-875ccdd4.woff2) format('woff2');\n" +
+      '  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;\n' +
+      '}\n' +
+      '/* vietnamese */\n' +
+      '@font-face {\n' +
+      "  font-family: 'Geist';\n" +
+      '  font-style: normal;\n' +
+      '  font-weight: 100 900;\n' +
+      '  font-display: swap;\n' +
+      "  src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-52306abf.woff2) format('woff2');\n" +
+      '  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;\n' +
+      '}\n' +
+      '/* latin-ext */\n' +
+      '@font-face {\n' +
+      "  font-family: 'Geist';\n" +
+      '  font-style: normal;\n' +
+      '  font-weight: 100 900;\n' +
+      '  font-display: swap;\n' +
+      "  src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-001175b1.woff2) format('woff2');\n" +
+      '  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;\n' +
+      '}\n' +
+      '/* latin */\n' +
+      '@font-face {\n' +
+      "  font-family: 'Geist';\n" +
+      '  font-style: normal;\n' +
+      '  font-weight: 100 900;\n' +
+      '  font-display: swap;\n' +
+      "  src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-98bbbccb.woff2) format('woff2');\n" +
+      '  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n' +
+      '}\n' +
+      '\n' +
+      ".__font_geist_0gdoon9 { font-family: 'Geist', sans-serif; }\n" +
+      '\n' +
+      ".__variable_geist_0gdoon9 { --font-geist-sans: 'Geist', sans-serif; }\n" +
+      '\n' +
+      '/* cyrillic-ext */\n' +
+      '@font-face {\n' +
+      "  font-family: 'Geist Mono';\n" +
+      '  font-style: normal;\n' +
+      '  font-weight: 100 900;\n' +
+      '  font-display: swap;\n' +
+      "  src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-f6b33328.woff2) format('woff2');\n" +
+      '  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;\n' +
+      '}\n' +
+      '/* cyrillic */\n' +
+      '@font-face {\n' +
+      "  font-family: 'Geist Mono';\n" +
+      '  font-style: normal;\n' +
+      '  font-weight: 100 900;\n' +
+      '  font-display: swap;\n' +
+      "  src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-44e03052.woff2) format('woff2');\n" +
+      '  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;\n' +
+      '}\n' +
+      '/* symbols2 */\n' +
+      '@font-face {\n' +
+      "  font-family: 'Geist Mono';\n" +
+      '  font-style: normal;\n' +
+      '  font-weight: 100 900;\n' +
+      '  font-display: swap;\n' +
+      "  src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-0638449e.woff2) format('woff2');\n" +
+      '  unicode-range: U+2000-2001, U+2004-2008, U+200A, U+23B8-23BD, U+2500-259F;\n' +
+      '}\n' +
+      '/* vietnamese */\n' +
+      '@font-face {\n' +
+      "  font-family: 'Geist Mono';\n" +
+      '  font-style: normal;\n' +
+      '  font-weight: 100 900;\n' +
+      '  font-display: swap;\n' +
+      "  src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-971fb274.woff2) format('woff2');\n" +
+      '  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;\n' +
+      '}\n' +
+      '/* latin-ext */\n' +
+      '@font-face {\n' +
+      "  font-family: 'Geist Mono';\n" +
+      '  font-style: normal;\n' +
+      '  font-weight: 100 900;\n' +
+      '  font-display: swap;\n' +
+      "  src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-44745446.woff2) format('woff2');\n" +
+      '  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;\n' +
+      '}\n' +
+      '/* latin */\n' +
+      '@font-face {\n' +
+      "  font-family: 'Geist Mono';\n" +
+      '  font-style: normal;\n' +
+      '  font-weight: 100 900;\n' +
+      '  font-display: swap;\n' +
+      "  src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-013b2f2f.woff2) format('woff2');\n" +
+      '  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n' +
+      '}\n' +
+      '\n' +
+      ".__font_geist_mono_08lusff { font-family: 'Geist Mono', sans-serif"... 14685 more characters
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    <!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preload" as="image" href="/brand/plotpickle-header-horizontal-600.png"/><link rel="preload" as="image" href="/brand/favicon/plotpickle-icon-32.png"/><link rel="preload" as="image" href="/brand/components/learn.svg"/><link rel="preload" as="image" href="/brand/components/plan.svg"/><link rel="preload" as="image" href="/brand/components/write.svg"/><link rel="preload" as="image" href="/brand/components/storyboard.svg"/><link rel="preload" as="image" href="/brand/components/refine.svg"/><link rel="preload" as="image" href="/brand/favicon/plotpickle-icon-128.png"/><link rel="stylesheet" href="/assets/index-DedKIDsC.css" data-rsc-css-href="/assets/index-DedKIDsC.css" data-precedence="vite-rsc/importer-resources"/><link rel="stylesheet" href="/assets/workspace-intro-host-UFuZVsBR.css" data-precedence="vite-rsc/client-reference"/><link rel="stylesheet" href="/assets/page-CpHwvAEN.css" data-precedence="vite-rsc/client-reference"/><link rel="stylesheet" href="/assets/craft-diagnostics-DbnUvPcX.css" data-precedence="vite-rsc/client-reference"/><link rel="modulepreload" href="/assets/layout-segment-context-BNyMK8TZ.js" crossorigin=""/><link rel="modulepreload" href="/assets/rolldown-runtime-S-ySWqyJ.js" crossorigin=""/><link rel="modulepreload" href="/assets/index-DBCHrurJ.js" crossorigin=""/><link rel="modulepreload" href="/assets/framework-CXnKph_e.js" crossorigin=""/><link rel="modulepreload" href="/assets/workspace-intro-host-CnArBHOg.js" crossorigin=""/><link rel="modulepreload" href="/assets/current-download-links-3l8nFcvL.js" crossorigin=""/><link rel="modulepreload" href="/assets/page-MM8Xa37r.js" crossorigin=""/><link rel="modulepreload" href="/assets/afterglow-legacy-visuals-CRJntNsP.js" crossorigin=""/><link rel="modulepreload" href="/assets/craft-diagnostics-BMo_m0eV.js" crossorigin=""/><link rel="modulepreload" href="/assets/craft-diagnostics-XIFsYAz3.js" crossorigin=""/><link rel="modulepreload" href="/assets/link-CCG66p8X.js" crossorigin=""/><link rel="modulepreload" href="/assets/learning-characters-in-motion-HtIfxoD4.js" crossorigin=""/><link rel="modulepreload" href="/assets/learning-core-curriculum-D19BoTIl.js" crossorigin=""/><link rel="modulepreload" href="/assets/learning-dialogue-in-motion-B6i9KY4e.js" crossorigin=""/><link rel="modulepreload" href="/assets/learning-story-craft-essentials-H0VM6yvo.js" crossorigin=""/><link rel="modulepreload" href="/assets/learning-working-together-Boc7DZn8.js" crossorigin=""/><link rel="modulepreload" href="/assets/product-direction-BLPn_Vt-.js" crossorigin=""/><link rel="modulepreload" href="/assets/project-Bbf9cAFJ.js" crossorigin=""/><link rel="modulepreload" href="/assets/scene-management-Cn6mPSF8.js" crossorigin=""/><title>PlotPickle</title><meta name="description" content="Download PlotPickle Playhouse: a local-first story planner connecting Project Overview, Story Planner, Structure Map, Visual Board, and guided specialist engines through Bryan Harris&#x27;s 24 Blocks method."/><link rel="shortcut icon" href="/brand/favicon/favicon.ico"/><link rel="icon" href="/brand/favicon/plotpickle-icon-32.png" sizes="32x32" type="image/png"/><link rel="icon" href="/brand/favicon/plotpickle-icon-192.png" sizes="192x192" type="image/png"/><link rel="icon" href="/brand/favicon/plotpickle-icon-512.png" sizes="512x512" type="image/png"/><link rel="apple-touch-icon" href="/brand/favicon/apple-touch-icon-180.png"/><link rel="manifest" href="/manifest.webmanifest"/><meta name="codex-preview" content="development"/><script>self.__VINEXT_RSC_PARAMS__={}</script><script>self.__VINEXT_RSC_NAV__={"pathname":"/","searchParams":[]}</script><link rel="modulepreload" href="/assets/index-DBCHrurJ.js" />
+    <link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-ff2310f5.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-875ccdd4.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-52306abf.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-001175b1.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-98bbbccb.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-f6b33328.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-44e03052.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-0638449e.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-971fb274.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-44745446.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-013b2f2f.woff2" as="font" type="font/woff2" crossorigin />
+    <style data-vinext-fonts>/* cyrillic-ext */
+    @font-face {
+      font-family: 'Geist';
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-ff2310f5.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+    /* cyrillic */
+    @font-face {
+      font-family: 'Geist';
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-875ccdd4.woff2) format('woff2');
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+    /* vietnamese */
+    @font-face {
+      font-family: 'Geist';
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-52306abf.woff2) format('woff2');
+      unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+    }
+    /* latin-ext */
+    @font-face {
+      font-family: 'Geist';
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-001175b1.woff2) format('woff2');
+      unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+    /* latin */
+    @font-face {
+      font-family: 'Geist';
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-8ac0455e797f/geist-98bbbccb.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    
+    .__font_geist_0gdoon9 { font-family: 'Geist', sans-serif; }
+    
+    .__variable_geist_0gdoon9 { --font-geist-sans: 'Geist', sans-serif; }
+    
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Geist Mono';
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-f6b33328.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+    /* cyrillic */
+    @font-face {
+      font-family: 'Geist Mono';
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-44e03052.woff2) format('woff2');
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+    /* symbols2 */
+    @font-face {
+      font-family: 'Geist Mono';
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-0638449e.woff2) format('woff2');
+      unicode-range: U+2000-2001, U+2004-2008, U+200A, U+23B8-23BD, U+2500-259F;
+    }
+    /* vietnamese */
+    @font-face {
+      font-family: 'Geist Mono';
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-971fb274.woff2) format('woff2');
+      unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+    }
+    /* latin-ext */
+    @font-face {
+      font-family: 'Geist Mono';
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-44745446.woff2) format('woff2');
+      unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+    /* latin */
+    @font-face {
+      font-family: 'Geist Mono';
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url(/workspace/sites/plotpickle/.vinext/fonts/geist-mono-00e989178794/geist-mono-013b2f2f.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    
+    .__font_geist_mono_08lusff { font-family: 'Geist Mono', sans-serif; }
+    
+    .__variable_geist_mono_08lusff { --font-geist-mono: 'Geist Mono', sans-serif; }
+    </style>
+    </head><body class="__variable_geist_0gdoon9 __variable_geist_mono_08lusff antialiased"><div class="marketing-page"><header class="marketing-header"><a class="marketing-brand" href="#top" aria-label="PlotPickle Playhouse home"><img class="marketing-brand-logo" src="/brand/plotpickle-header-horizontal-600.png" alt="PlotPickle Playhouse"/></a><nav aria-label="Product navigation"><a href="#features">Features</a><a href="#how-it-works">How it works</a><a href="#download">Download</a></nav><button type="button" class="secondary-button marketing-online-button">Open local workspace</button></header><main id="top"><section class="marketing-hero"><div class="marketing-hero-copy"><p class="marketing-kicker">The 24 Blocks story development system</p><h1>Build the story.<br/>See the whole film.</h1><p class="marketing-lede">PlotPickle Playhouse brings the method, the writing plan, and the visual board into one connected workspace—ready to run on your Windows computer.</p><div class="marketing-hero-actions"><a class="download-button" href="https://github.com/BryanHarrisScripts/PlotPickle/releases/latest" target="_blank" rel="noreferrer"><span class="download-icon" aria-hidden="true">↓</span><span><strong>Download for Windows</strong><small>Get the latest PlotPickle package</small></span></a><button type="button" class="marketing-text-link">Open local workspace <span aria-hidden="true">→</span></button></div><div class="marketing-trust-row" aria-label="Product highlights"><span>Local-first</span><span>One story file</span><span>No ChatGPT account required</span></div></div><div class="product-window" aria-label="PlotPickle Playhouse interface preview"><div class="product-window-bar"><span class="product-window-brand"><i><img src="/brand/favicon/plotpickle-icon-32.png" alt=""/></i> PlotPickle Playhouse</span><span>Saved on this device</span></div><div class="product-window-body"><aside><div class=""><span>SS</span><strong>Simple Start</strong><i aria-hidden="true">✓</i></div><div class=""><span>OV</span><strong>Project Overview</strong><i aria-hidden="true">✓</i></div><div class=""><span>01</span><strong>Story Setup</strong><i aria-hidden="true">✓</i></div><div class=""><span>PV</span><strong>Pitch &amp; Vision</strong><i aria-hidden="true">✓</i></div><div class=""><span>WD</span><strong>World</strong><i aria-hidden="true">✓</i></div><div class=""><span>CH</span><strong>Characters</strong><i aria-hidden="true">✓</i></div><div class=""><span>GH</span><strong>Ghost</strong><i aria-hidden="true">✓</i></div><div class=""><span>CA</span><strong>Catalyst</strong><i aria-hidden="true">✓</i></div><div class=""><span>FN</span><strong>Foundations</strong></div><div class=""><span>PK</span><strong>The Pickle</strong></div><div class=""><span>DL</span><strong>Dialogue</strong></div><div class=""><span>CM</span><strong>Core Model</strong></div><div class=""><span>ST</span><strong>Structure Map</strong></div><div class="active"><span>24</span><strong>24 Blocks</strong></div><div class=""><span>SB</span><strong>Storyboard</strong></div><div class=""><span>NT</span><strong>Notes</strong></div></aside><div class="product-workspace"><div class="product-tabs"><span>Learn</span><span class="active">Plan</span><span>Write</span><span>Storyboard</span><span>Refine</span></div><div class="product-workspace-heading"><div><small>ACT II · CONFRONTATION</small><strong>Your complete story at a glance</strong></div><span>18% complete</span></div><div class="block-preview-grid"><div class=""><span>7</span><strong>Story movement</strong><small>Ready</small></div><div class=""><span>8</span><strong>Story movement</strong><small>Ready</small></div><div class="active"><span>9</span><strong>Choices &amp; Adjusted Plan</strong><small>Developing</small></div><div class=""><span>10</span><strong>Story movement</strong><small>Ready</small></div><div class=""><span>11</span><strong>Story movement</strong><small>Ready</small></div><div class=""><span>12</span><strong>Plan, Stakes &amp; Action</strong><small>Ready</small></div></div><div class="product-inspector"><small>BLOCK 9</small><strong>Choices &amp; Adjusted Plan</strong><p>The story text, notes, storyboard direction, and visual frames stay connected to the same block.</p></div></div></div></div></section><section class="marketing-section feature-section" id="features"><div class="marketing-section-heading"><p class="marketing-kicker">One playhouse. Five connected components.</p><h2>A complete path from learning to a finished film plan.</h2><p>Learn, plan, write, storyboard and refine inside one calm, local-first application with one canonical project.</p></div><div class="component-grid"><article class="component-card"><div class="component-visual"><img src="/brand/components/learn.svg" alt="" aria-hidden="true"/></div><div class="component-copy"><span class="feature-code">01</span><p class="feature-label">Learn</p><h3>Learn the craft</h3><p>Use the 81-module learning system and contextual guidance without leaving the active project.</p></div></article><article class="component-card"><div class="component-visual"><img src="/brand/components/plan.svg" alt="" aria-hidden="true"/></div><div class="component-copy"><span class="feature-code">02</span><p class="feature-label">Plan</p><h3>Plan the whole story</h3><p>Shape the story through four acts, twelve sequences, twenty-four blocks and ninety-six mini-blocks.</p></div></article><article class="component-card"><div class="component-visual"><img src="/brand/components/write.svg" alt="" aria-hidden="true"/></div><div class="component-copy"><span class="feature-code">03</span><p class="feature-label">Write</p><h3>Write the screenplay</h3><p>Move from treatment to a complete screenplay with connected scenes, dialogue and revisions.</p></div></article><article class="component-card"><div class="component-visual"><img src="/brand/components/storyboard.svg" alt="" aria-hidden="true"/></div><div class="component-copy"><span class="feature-code">04</span><p class="feature-label">Storyboard</p><h3>See the film</h3><p>Carry approved characters, locations and visual continuity through every storyboard position.</p></div></article><article class="component-card"><div class="component-visual"><img src="/brand/components/refine.svg" alt="" aria-hidden="true"/></div><div class="component-copy"><span class="feature-code">05</span><p class="feature-label">Refine</p><h3>Refine with purpose</h3><p>Use specialist engines, reports and review evidence to improve the story without losing authorship.</p></div></article></div></section><section class="marketing-section story-system-section"><div class="story-system-copy"><p class="marketing-kicker">Your entire story in one structure</p><h2>Twelve story columns. One source of truth.</h2><p>Story Setup, Pitch &amp; Vision, World, Characters, Ghost, Catalyst, Foundations, The Pickle, Dialogue, 24 Blocks, Storyboard, and Notes stay aligned across every workspace.</p><ul><li><span>01</span> One readable <code>.plotpickle.json</code> project file</li><li><span>02</span> Import, export, and move projects between editions</li><li><span>03</span> Your story remains yours and stays on your device</li></ul></div><div class="story-column-stack" aria-label="The twelve PlotPickle story columns"><div class=""><span>SS</span><strong>Simple Start</strong><i aria-hidden="true">→</i></div><div class=""><span>OV</span><strong>Project Overview</strong><i aria-hidden="true">→</i></div><div class=""><span>01</span><strong>Story Setup</strong><i aria-hidden="true">→</i></div><div class=""><span>PV</span><strong>Pitch &amp; Vision</strong><i aria-hidden="true">→</i></div><div class=""><span>WD</span><strong>World</strong><i aria-hidden="true">→</i></div><div class=""><span>CH</span><strong>Characters</strong><i aria-hidden="true">→</i></div><div class=""><span>GH</span><strong>Ghost</strong><i aria-hidden="true">→</i></div><div class=""><span>CA</span><strong>Catalyst</strong><i aria-hidden="true">→</i></div><div class=""><span>FN</span><strong>Foundations</strong><i aria-hidden="true">→</i></div><div class=""><span>PK</span><strong>The Pickle</strong><i aria-hidden="true">→</i></div><div class=""><span>DL</span><strong>Dialogue</strong><i aria-hidden="true">→</i></div><div class=""><span>CM</span><strong>Core Model</strong><i aria-hidden="true">→</i></div><div class=""><span>ST</span><strong>Structure Map</strong><i aria-hidden="true">→</i></div><div class="active"><span>24</span><strong>24 Blocks</strong><i aria-hidden="true">→</i></div><div class=""><span>SB</span><strong>Storyboard</strong><i aria-hidden="true">→</i></div><div class=""><span>NT</span><strong>Notes</strong><i aria-hidden="true">→</i></div></div></section><section class="marketing-section how-section" id="how-it-works"><div class="marketing-section-heading"><p class="marketing-kicker">From download to first block</p><h2>Open the door and start writing.</h2></div><div class="step-grid"><article><span>1</span><h3>Download</h3><p>Get the PlotPickle Playhouse Windows package.</p></article><article><span>2</span><h3>Unzip</h3><p>Extract the folder somewhere easy to find, such as your Desktop.</p></article><article><span>3</span><h3>Start</h3><p>Run the included PlotPickle starter and your browser will open automatically.</p></article><article><span>4</span><h3>Keep it running</h3><p>The command window is PlotPickle&#x27;s private local server. Leave it open while you work; useful errors appear there.</p></article></div></section><section class="download-section" id="download"><div><p class="marketing-kicker">PlotPickle Playhouse for Windows</p><h2>Your story room, on your computer.</h2><p>Download the local-first edition and develop your project without depending on a ChatGPT account.</p><div class="download-details"><span>Windows 10 or 11</span><span>Portable folder</span><span>Local project storage</span></div></div><div class="download-card"><span class="download-card-mark" aria-hidden="true"><img src="/brand/favicon/plotpickle-icon-128.png" alt=""/></span><div><strong>PlotPickle Playhouse</strong><small>Windows edition</small></div><a class="download-button" href="https://github.com/BryanHarrisScripts/PlotPickle/releases/latest" target="_blank" rel="noreferrer"><span class="download-icon" aria-hidden="true">↓</span><span><strong>Download latest</strong><small>Available through GitHub Releases</small></span></a><button type="button" class="marketing-text-link">Open the installed workspace</button></div></section></main><footer class="marketing-footer"><div class="marketing-brand"><img class="marketing-brand-logo" src="/brand/plotpickle-header-horizontal-600.png" alt="PlotPickle Playhouse"/></div><p>Story development built around Bryan Harris&#x27;s 24 Blocks method.</p><div class="marketing-footer-actions"><button type="button">Open local workspace →</button><a href="/about">Why PlotPickle</a><a href="/legal">Copyright &amp; licensing</a><a href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">Source</a></div></footer></div><script id="_R_">import("/assets/index-DBCHrurJ.js")</script></body></html><script>self.__VINEXT_RSC_CHUNKS__=self.__VINEXT_RSC_CHUNKS__||[];self.__VINEXT_RSC_CHUNKS__.push("2:I[\"8c0f216c4604\",[],\"Children\",1]\n3:I[\"f08ec09499bf\",[],\"default\",1]\n4:I[\"96df7669e034\",[],\"default\",1]\n5:I[\"15c18cfaeeff\",[],\"LayoutSegmentProvider\",1]\n6:I[\"8c0f216c4604\",[],\"Slot\",1]\n7:I[\"593f344dc510\",[],\"RedirectBoundary\",1]\n:HL[\"/assets/index-DedKIDsC.css\",\"style\"]\n")</script><script>self.__VINEXT_RSC_CHUNKS__=self.__VINEXT_RSC_CHUNKS__||[];self.__VINEXT_RSC_CHUNKS__.push("0:{\"__route\":\"route:/\",\"__interceptionContext\":null,\"__layoutIds\":[\"layout:/\"],\"__rootLayout\":\"/\",\"page:/\":\"$L1\",\"layout:/\":[[[[\"$\",\"link\",\"css:/assets/index-DedKIDsC.css\",{\"rel\":\"stylesheet\",\"precedence\":\"vite-rsc/importer-resources\",\"href\":\"/assets/index-DedKIDsC.css\",\"data-rsc-css-href\":\"/assets/index-DedKIDsC.css\"}],\"$undefined\"],[\"$\",\"html\",null,{\"lang\":\"en\",\"children\":[\"$\",\"body\",null,{\"className\":\"__variable_geist_0gdoon9 __variable_geist_mono_08lusff antialiased\",\"children\":[[\"$\",\"$L2\",null,{}],[\"$\",\"$L3\",null,{}],[\"$\",\"$L4\",null,{}]]}]}]],null],\"route:/\":[[[\"$\",\"meta\",null,{\"charSet\":\"utf-8\"}],[[\"$\",\"title\",\"0\",{\"children\":\"PlotPickle\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"Download PlotPickle Playhouse: a local-first story planner connecting Project Overview, Story Planner, Structure Map, Visual Board, and guided specialist engines through Bryan Harris's 24 Blocks method.\"}],[\"$\",\"link\",\"2\",{\"rel\":\"shortcut icon\",\"href\":\"/brand/favicon/favicon.ico\"}],[\"$\",\"link\",\"3\",{\"rel\":\"icon\",\"href\":\"/brand/favicon/plotpickle-icon-32.png\",\"sizes\":\"32x32\",\"type\":\"image/png\"}],[\"$\",\"link\",\"4\",{\"rel\":\"icon\",\"href\":\"/brand/favicon/plotpickle-icon-192.png\",\"sizes\":\"192x192\",\"type\":\"image/png\"}],[\"$\",\"link\",\"5\",{\"rel\":\"icon\",\"href\":\"/brand/favicon/plotpickle-icon-512.png\",\"sizes\":\"512x512\",\"type\":\"image/png\"}],[\"$\",\"link\",\"6\",{\"rel\":\"apple-touch-icon\",\"href\":\"/brand/favicon/apple-touch-icon-180.png\"}],[\"$\",\"link\",\"7\",{\"rel\":\"manifest\",\"href\":\"/manifest.webmanifest\"}],[\"$\",\"meta\",\"8\",{\"name\":\"codex-preview\",\"content\":\"development\"}]],[[\"$\",\"meta\",\"0\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]],[\"$\",\"$L5\",null,{\"segmentMap\":{\"children\":[]},\"children\":[\"$\",\"$L6\",null,{\"id\":\"layout:/\",\"parallelSlots\":\"$undefined\",\"children\":[\"$\",\"$L7\",null,{\"children\":[\"$\",\"$L5\",null,{\"segmentMap\":{\"children\":[]},\"children\":[\"$\",\"$L6\",null,{\"id\":\"page:/\"}]}]}]}]}]],\"__layoutFlags\":{\"layout:/\":\"s\"},\"__artifactCompatibility\":{\"schemaVersion\":1,\"graphVersion\":\"app-route-graph:4uhn5s1wvoptc\",\"deploymentVersion\":\"7c5aa9a8-a9df-45dd-b57c-622d91a9e524\",\"appElementsSchemaVersion\":1,\"rscPayloadSchemaVersion\":1,\"rootBoundaryId\":\"/\",\"renderEpoch\":null}}\n")</script><script>self.__VINEXT_RSC_CHUNKS__=self.__VINEXT_RSC_CHUNKS__||[];self.__VINEXT_RSC_CHUNKS__.push("8:I[\"6efdf509a785\",[],\"default\",1]\n1:[\"$\",\"$L8\",null,{\"params\":\"$@9\",\"searchParams\":\"$@a\"}]\n")</script><script>self.__VINEXT_RSC_CHUNKS__=self.__VINEXT_RSC_CHUNKS__||[];self.__VINEXT_RSC_CHUNKS__.push("9:{}\na:{}\n")</script><script>self.__VINEXT_RSC_DONE__=true</script>
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///home/runner/work/PlotPickle/PlotPickle/tests/rendered-html.test.mjs:44:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async Test.run (node:internal/test_runner/test:932:9)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: registers the legal route and preserves ownership and server-use guidance
+ok 226 - registers the legal route and preserves ownership and server-use guidance
+  ---
+  duration_ms: 69.704721
+  ...
+# Subtest: renders the Voiceprint Engine route
+ok 227 - renders the Voiceprint Engine route
+  ---
+  duration_ms: 47.176331
+  ...
+# Subtest: renders the PageFlow Engine route
+ok 228 - renders the PageFlow Engine route
+  ---
+  duration_ms: 65.102163
+  ...
+# Subtest: renders the Resonance Engine route
+ok 229 - renders the Resonance Engine route
+  ---
+  duration_ms: 48.482697
+  ...
+# Subtest: renders the DraftLens Engine route
+ok 230 - renders the DraftLens Engine route
+  ---
+  duration_ms: 51.11932
+  ...
+# Subtest: registers the CraftLoop client route and preserves its workspace contract
+ok 231 - registers the CraftLoop client route and preserves its workspace contract
+  ---
+  duration_ms: 69.866273
+  ...
+# Subtest: registers the Structure Engine and preserves the 4-12-24-48-96 workspace
+ok 232 - registers the Structure Engine and preserves the 4-12-24-48-96 workspace
+  ---
+  duration_ms: 62.204862
+  ...
+# Subtest: schema 1.7 preserves 12/24/96 while accepting flexible scenes
+ok 233 - schema 1.7 preserves 12/24/96 while accepting flexible scenes
+  ---
+  duration_ms: 2.890007
+  ...
+# Subtest: project migration accepts earlier schemas and creates the new hierarchy
+ok 234 - project migration accepts earlier schemas and creates the new hierarchy
+  ---
+  duration_ms: 2.334932
+  ...
+# Subtest: Windows launcher reuses a package-lock-specific persistent runtime
+ok 235 - Windows launcher reuses a package-lock-specific persistent runtime
+  ---
+  duration_ms: 1.984699
+  ...
+# Subtest: persistent runtime manager fingerprints package-lock and separates application files
+ok 236 - persistent runtime manager fingerprints package-lock and separates application files
+  ---
+  duration_ms: 41.916686
+  ...
+# Subtest: Windows updater overlays program files while preserving runtime and projects
+ok 237 - Windows updater overlays program files while preserving runtime and projects
+  ---
+  duration_ms: 2.107539
+  ...
+# Subtest: Windows repair resets only the current persistent runtime
+ok 238 - Windows repair resets only the current persistent runtime
+  ---
+  duration_ms: 1.386805
+  ...
+# Subtest: Windows launcher explains and verifies the local installation
+ok 239 - Windows launcher explains and verifies the local installation
+  ---
+  duration_ms: 1.907687
+  ...
+# Subtest: Windows setup report lists space, packages, persistent upgrades, privacy, and local-server meaning
+ok 240 - Windows setup report lists space, packages, persistent upgrades, privacy, and local-server meaning
+  ---
+  duration_ms: 42.925418
+  ...
+# Subtest: Write is the screenplay workspace tied to all 24 Blocks and 96 mini-blocks
+ok 241 - Write is the screenplay workspace tied to all 24 Blocks and 96 mini-blocks
+  ---
+  duration_ms: 6.810484
+  ...
+# Subtest: writer supports standard screenplay grammar and Final Draft/Fountain handoff
+ok 242 - writer supports standard screenplay grammar and Final Draft/Fountain handoff
+  ---
+  duration_ms: 2.222102
+  ...
+# Subtest: Afterglow loads the complete v9 screenplay as one continuous editable draft
+ok 243 - Afterglow loads the complete v9 screenplay as one continuous editable draft
+  ---
+  duration_ms: 5.335475
+  ...
+# Subtest: AI writing and character images use the private local gateway and require approval
+ok 244 - AI writing and character images use the private local gateway and require approval
+  ---
+  duration_ms: 3.381653
+  ...
+# Subtest: full screenplay remains part of the canonical local project
+ok 245 - full screenplay remains part of the canonical local project
+  ---
+  duration_ms: 7.385115
+  ...
+# Subtest: viewer reads common screenplay formats and colour-codes screenplay grammar
+ok 246 - viewer reads common screenplay formats and colour-codes screenplay grammar
+  ---
+  duration_ms: 2.946382
+  ...
+# Subtest: guided reading connects passages to existing story knowledge
+ok 247 - guided reading connects passages to existing story knowledge
+  ---
+  duration_ms: 1.304171
+  ...
+# Subtest: top Import and Script Viewer use one screenplay ingestion pipeline
+ok 248 - top Import and Script Viewer use one screenplay ingestion pipeline
+  ---
+  duration_ms: 2.281643
+  ...
+# Subtest: screenplay import replaces example data and populates the shared framework as suggestions
+ok 249 - screenplay import replaces example data and populates the shared framework as suggestions
+  ---
+  duration_ms: 1.519232
+  ...
+# Subtest: settings keep AI, music, and future plugins in one local model
+ok 250 - settings keep AI, music, and future plugins in one local model
+  ---
+  duration_ms: 0.974056
+  ...
+# Subtest: settings never include API-key storage
+ok 251 - settings never include API-key storage
+  ---
+  duration_ms: 0.249745
+  ...
+# Subtest: AI Setup verifies a saved key and displays live connection state
+ok 252 - AI Setup verifies a saved key and displays live connection state
+  ---
+  duration_ms: 0.176118
+  ...
+# Subtest: the saved key stays behind the private localhost gateway
+ok 253 - the saved key stays behind the private localhost gateway
+  ---
+  duration_ms: 0.233706
+  ...
+# Subtest: music artist links are limited to Suno and Udio HTTPS profiles
+ok 254 - music artist links are limited to Suno and Udio HTTPS profiles
+  ---
+  duration_ms: 0.272418
+  ...
+# Subtest: Reports is a primary workspace with live producer, actor, and director reports
+ok 255 - Reports is a primary workspace with live producer, actor, and director reports
+  ---
+  duration_ms: 0.303155
+  ...
+# Subtest: character reports recalculate from editable drafts or imported source
+ok 256 - character reports recalculate from editable drafts or imported source
+  ---
+  duration_ms: 0.285392
+  ...
+# Subtest: Read & Learn terminology is grouped, searchable, and concise or expanded
+ok 257 - Read & Learn terminology is grouped, searchable, and concise or expanded
+  ---
+  duration_ms: 0.242822
+  ...
+# Subtest: Pitch & Review includes a four-part dialectic worksheet and evidence-based Logline Lab
+ok 258 - Pitch & Review includes a four-part dialectic worksheet and evidence-based Logline Lab
+  ---
+  duration_ms: 7.402036
+  ...
+# Subtest: Canon Binder can attach the current beats, outline and pitch
+ok 259 - Canon Binder can attach the current beats, outline and pitch
+  ---
+  duration_ms: 2.906547
+  ...
+# Subtest: Setup exposes real connections while Reports remains a primary workspace
+ok 260 - Setup exposes real connections while Reports remains a primary workspace
+  ---
+  duration_ms: 3.032044
+  ...
+# Subtest: README remains complete while three .md tabs are selectable from the main page
+ok 261 - README remains complete while three .md tabs are selectable from the main page
+  ---
+  duration_ms: 2.767659
+  ...
+# Subtest: collaboration documentation shows complete installations with roles inside PlotPickle
+ok 262 - collaboration documentation shows complete installations with roles inside PlotPickle
+  ---
+  duration_ms: 1.533749
+  ...
+# Subtest: Windows publisher guidance explains Mark of the Web and the signed-launcher path
+ok 263 - Windows publisher guidance explains Mark of the Web and the signed-launcher path
+  ---
+  duration_ms: 1.720207
+  ...
+# Subtest: Visual Storyboard exposes the 24-block overview and all 96 mini-block visual slots
+ok 264 - Visual Storyboard exposes the 24-block overview and all 96 mini-block visual slots
+  ---
+  duration_ms: 6.121921
+  ...
+# Subtest: default prompts combine story, scene, character identity, location, screenplay, shot, and continuity context
+ok 265 - default prompts combine story, scene, character identity, location, screenplay, shot, and continuity context
+  ---
+  duration_ms: 1.812669
+  ...
+# Subtest: storyboard images use the private local gateway, landscape output, and local assets
+ok 266 - storyboard images use the private local gateway, landscape output, and local assets
+  ---
+  duration_ms: 2.482156
+  ...
+# Subtest: schema 1.7 migrates earlier projects into four storyboard slots per block
+ok 267 - schema 1.7 migrates earlier projects into four storyboard slots per block
+  ---
+  duration_ms: 2.574138
+  ...
+# Subtest: Learn is a primary workspace and Writer keeps Treatment and Screenplay connected
+ok 268 - Learn is a primary workspace and Writer keeps Treatment and Screenplay connected
+  ---
+  duration_ms: 7.59713
+  ...
+# Subtest: Markdown treatment supports local writing, preview, export, AI approval and screenplay handoff
+ok 269 - Markdown treatment supports local writing, preview, export, AI approval and screenplay handoff
+  ---
+  duration_ms: 1.498804
+  ...
+# Subtest: Learning Studio connects contextual guidance to the complete course
+ok 270 - Learning Studio connects contextual guidance to the complete course
+  ---
+  duration_ms: 2.410132
+  ...
+# Subtest: Learning Library contains all 14 source modules with substantial teaching tools
+ok 271 - Learning Library contains all 14 source modules with substantial teaching tools
+  ---
+  duration_ms: 2.088152
+  ...
+# Subtest: Learning progress is per project and survives a browser restart
+ok 272 - Learning progress is per project and survives a browser restart
+  ---
+  duration_ms: 1.181823
+  ...
+# Subtest: Learning Studio preserves the educational and user-work licence boundary
+ok 273 - Learning Studio preserves the educational and user-work licence boundary
+  ---
+  duration_ms: 1.292178
+  ...
+# Subtest: Afterglow populates the Markdown Treatment and carries it into storyboard prompts
+ok 274 - Afterglow populates the Markdown Treatment and carries it into storyboard prompts
+  ---
+  duration_ms: 3.20871
+  ...
+1..274
+# tests 274
+# suites 0
+# pass 271
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4074.656622

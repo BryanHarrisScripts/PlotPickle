@@ -52,8 +52,9 @@ test("Windows launcher repairs a damaged native runtime before starting", async 
     'node "%RUNTIME_MANAGER%" reset-current',
     "Native-binding and interrupted-download repair",
     "including the Windows native binding",
+    'call "%VITE_CMD%" --version',
   ]) assert.ok(launcher.includes(contract), `Launcher is missing native-runtime recovery: ${contract}`);
-  assert.match(launcher, /:dependencies_ready[\s\S]*verify-runtime[\s\S]*vite\.cmd/);
+  assert.match(launcher, /:dependencies_ready[\s\S]*verify-runtime[\s\S]*call "%VITE_CMD%" --version/);
   assert.match(launcher, /mark-ready[\s\S]*if errorlevel 1 exit \/b 1/);
 });
 

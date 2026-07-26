@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { spawn } from "node:child_process";
+import { spawnCommand } from "./spawn-command.mjs";
 import { createWriteStream } from "node:fs";
 import { access, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
@@ -68,7 +68,7 @@ export async function discoverRoutes() {
 
 function run(command, args, options = {}) {
   return new Promise((resolvePromise, reject) => {
-    const child = spawn(command, args, { cwd: ROOT, stdio: options.stdio ?? "inherit", shell: process.platform === "win32", ...options });
+    const child = spawnCommand(command, args, { cwd: ROOT, stdio: options.stdio ?? "inherit", ...options });
     child.once("error", reject);
     child.once("exit", (code, signal) => {
       if (code === 0) resolvePromise({ code, signal });
@@ -109,10 +109,9 @@ async function choosePort(preferred = DEFAULT_PORT) {
 }
 
 function startPreview(port) {
-  return spawn(commandForNpx(), ["--yes", "vite", "preview", "--host", HOST, "--port", String(port)], {
+  return spawnCommand(commandForNpx(), ["--yes", "vite", "preview", "--host", HOST, "--port", String(port)], {
     cwd: ROOT,
     stdio: ["ignore", "pipe", "pipe"],
-    shell: process.platform === "win32",
   });
 }
 

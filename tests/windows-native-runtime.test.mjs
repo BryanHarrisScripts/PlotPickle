@@ -65,6 +65,18 @@ test("Windows launcher repairs a damaged native runtime before starting", async 
   assert.match(launcher, /mark-ready[\s\S]*if errorlevel 1 exit \/b 1/);
 });
 
+test("release packages include every local server configuration input", async () => {
+  const packager = await source("scripts/package-platform.mjs");
+  const smoke = await source("scripts/package-smoke.mjs");
+  for (const directory of ['".openai"', '"worker"', '"db"']) {
+    assert.ok(packager.includes(directory), `Packager omits runtime directory: ${directory}`);
+  }
+  for (const file of [".openai/hosting.json", "worker/index.ts", "db/index.ts"]) {
+    assert.ok(smoke.includes(file), `Package smoke omits runtime file: ${file}`);
+  }
+  assert.match(packager, /Required runtime directory is missing/);
+});
+
 test("Windows server smoke uses Node directly and saves startup diagnostics", async () => {
   const smoke = await source("scripts/windows-server-smoke.mjs");
   for (const contract of [

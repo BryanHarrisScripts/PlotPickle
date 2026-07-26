@@ -15,11 +15,28 @@ const exclusions = new Set([".git", ".next", ".wrangler", "dist", "node_modules"
 rmSync(destination, { recursive: true, force: true });
 mkdirSync(destination, { recursive: true });
 
-for (const entry of ["app", "build", "data", "docs", "lib", "public", "schema", "scripts", "tests"]) {
-  cpSync(path.join(root, entry), path.join(destination, entry), {
+const runtimeDirectories = [
+  ".openai",
+  "app",
+  "build",
+  "data",
+  "db",
+  "docs",
+  "lib",
+  "public",
+  "schema",
+  "scripts",
+  "tests",
+  "worker",
+];
+
+for (const entry of runtimeDirectories) {
+  const source = path.join(root, entry);
+  if (!existsSync(source)) throw new Error(`Required runtime directory is missing: ${entry}`);
+  cpSync(source, path.join(destination, entry), {
     recursive: true,
-    filter(source) {
-      const relative = path.relative(root, source);
+    filter(item) {
+      const relative = path.relative(root, item);
       return !relative.split(path.sep).some((part) => exclusions.has(part));
     },
   });

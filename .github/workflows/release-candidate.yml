@@ -20,14 +20,17 @@ jobs:
         include:
           - os: windows-latest
             platform: windows
+            node: "24.15.0"
             folder: PlotPickle-Windows
             archive: PlotPickle-Windows.zip
           - os: macos-latest
             platform: macos
+            node: "22.19.0"
             folder: PlotPickle-macOS
             archive: PlotPickle-macOS.zip
           - os: ubuntu-latest
             platform: linux
+            node: "22.19.0"
             folder: PlotPickle-Linux
             archive: PlotPickle-Linux.zip
     runs-on: ${{ matrix.os }}
@@ -36,7 +39,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "22.19.0"
+          node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
       - run: npm run lint
@@ -73,8 +76,36 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & ".\node_modules\.bin\vite.cmd" --version
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node scripts/windows-runtime.mjs describe
+      - name: Verify or repair Windows Rolldown native binding
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $packageRoot = Join-Path (Join-Path $env:RUNNER_TEMP "plotpickle-clean") "${{ matrix.folder }}"
+          Set-Location $packageRoot
+          node scripts/windows-runtime.mjs verify-modules node_modules
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "The optional Windows binding was omitted; exercising PlotPickle's targeted repair."
+            node scripts/windows-runtime.mjs repair-native node_modules
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          node scripts/windows-runtime.mjs verify-modules node_modules
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Start clean-machine Windows server
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $packageRoot = Join-Path (Join-Path $env:RUNNER_TEMP "plotpickle-clean") "${{ matrix.folder }}"
+          Set-Location $packageRoot
+          node scripts/windows-server-smoke.mjs .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload Windows server diagnostic
+        if: always() && matrix.platform == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: plotpickle-windows-server-smoke-${{ github.sha }}
+          path: ${{ runner.temp }}/plotpickle-clean/${{ matrix.folder }}/windows-server-smoke.log
+          if-no-files-found: warn
+          retention-days: 7
       - name: Clean-machine extraction and dependency test (macOS and Linux)
         if: matrix.platform != 'windows'
         shell: bash

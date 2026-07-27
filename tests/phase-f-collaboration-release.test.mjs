@@ -29,7 +29,7 @@ test("local project storage uses atomic saves, integrity checks, and rolling bac
   assert.match(stdout, /rolling backup, corruption detection, and recovery smoke test passed/i);
 });
 
-test("GitHub collaboration is local-only, review-first, and owner-controlled", async () => {
+test("GitHub collaboration is local-only, review-first, and Project Lead-controlled", async () => {
   const [gateway, proposalGateway, component, comparison, vite, vault] = await Promise.all([
     source("build/local-project-gateway.ts"),
     source("build/github-review-gateway.ts"),
@@ -48,8 +48,8 @@ test("GitHub collaboration is local-only, review-first, and owner-controlled", a
     assert.ok(proposalGateway.includes(phrase), `Missing proposal architecture: ${phrase}`);
   }
   assert.ok(!proposalGateway.includes("token: project"), "GitHub credentials must never be read from the project.");
-  for (const phrase of ["Many local PlotPickle servers", "Pull approved version for review", "Submit changes for owner approval", "repository owner merges", "Review in GitHub", "canonical .ppf revision"]) {
-    assert.ok(component.includes(phrase), `Missing owner-controlled collaboration UI: ${phrase}`);
+  for (const phrase of ["Many local PlotPickle servers", "Get approved version for review", "Submit changes for Project Lead approval", "The approved ${branch} version is unchanged until the Project Lead accepts it", "Review in GitHub", "approved .ppf revision"]) {
+    assert.ok(component.includes(phrase), `Missing Project Lead-controlled collaboration UI: ${phrase}`);
   }
   assert.doesNotMatch(component, /Push named backup/);
   assert.match(comparison, /compareCollaborativeProjects/);

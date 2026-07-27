@@ -1,6 +1,7 @@
 export const PLOTPICKLE_GITHUB_RECOVERY_VERSION = 1 as const;
 export const GITHUB_RECOVERY_MAX_ATTEMPTS = 8;
 export const GITHUB_RECOVERY_MAX_DELAY_MS = 15 * 60 * 1000;
+export const GITHUB_RECOVERY_MAX_ENTRIES = 50;
 
 export const GITHUB_RECOVERY_ALLOWED_PATHS = [
   "/api/local-github-sync/publish",
@@ -73,11 +74,22 @@ export type GitHubRecoveryQueue = {
   updatedAt: string;
 };
 
-const FORBIDDEN_KEY = /(authorization|access.?token|refresh.?token|client.?secret|private.?key|password|passphrase|credential|cookie)/i;
-const SECRET_TEXT = /(bearer\s+[a-z0-9._-]+|gh[pousr]_[a-z0-9_]+|github_pat_[a-z0-9_]+)/gi;
+const SECRET_TEXT = /(bearer\s+[a-z0-9._-]+|gh[pousr]_[a-z0-9_]+|github_pat_[a-z0-9_]+|sk-[a-z0-9_-]+)/gi;
 const MAX_DEPTH = 40;
 const MAX_LABEL = 160;
 const MAX_MESSAGE = 700;
+const RECOVERY_STATES: readonly GitHubRecoveryState[] = ["queued", "retrying", "paused", "conflict", "failed"];
+const RECOVERY_CLASSIFICATIONS: readonly GitHubRecoveryClassification[] = [
+  "offline",
+  "transient",
+  "rate-limited",
+  "authorization-expired",
+  "repository-missing",
+  "branch-missing",
+  "conflict-review",
+  "invalid-request",
+  "unknown",
+];
 
 function text(value: unknown, maximum = MAX_MESSAGE) {
   return typeof value === "string" ? value.trim().slice(0, maximum) : "";
@@ -90,7 +102,7 @@ function iso(value: unknown, fallback: string) {
 }
 
 function stable(value: unknown): string {
-  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (value === null || typeof value !== "object") return JSON.stringify(value) ?? "null";
   if (Array.isArray(value)) return `[${value.map(stable).join(",")}]`;
   const record = value as Record<string, unknown>;
   return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${stable(record[key])}`).join(",")}}`;
@@ -105,6 +117,27 @@ function hash(source: string) {
   return (value >>> 0).toString(16).padStart(8, "0");
 }
 
+function forbiddenCredentialKey(key: string) {
+  const normalized = key.replace(/[^a-z0-9]/gi, "").toLowerCase();
+  return normalized === "authorization"
+    || normalized === "authorizationheader"
+    || normalized === "credential"
+    || normalized === "credentials"
+    || normalized === "cookie"
+    || normalized === "cookies"
+    || normalized === "passphrase"
+    || normalized === "privatekey"
+    || normalized === "apikey"
+    || normalized === "secret"
+    || normalized.endsWith("token")
+    || normalized.endsWith("tokenhash")
+    || normalized.startsWith("password")
+    || normalized.endsWith("password")
+    || normalized.endsWith("apikey")
+    || normalized.endsWith("apikeyhash")
+    || normalized.endsWith("clientsecret");
+}
+
 function safeValue(value: unknown, depth: number): unknown {
   if (depth > MAX_DEPTH) throw new Error("The recovery request is nested too deeply.");
   if (value === null || typeof value === "string" || typeof value === "boolean") return value;
@@ -116,7 +149,7 @@ function safeValue(value: unknown, depth: number): unknown {
   if (!value || typeof value !== "object") throw new Error("The recovery request contains an unsupported value.");
   const result: Record<string, unknown> = {};
   for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
-    if (FORBIDDEN_KEY.test(key)) throw new Error(`Recovery requests cannot contain credential field ${key}.`);
+    if (forbiddenCredentialKey(key)) throw new Error(`Recovery requests cannot contain credential field ${key}.`);
     result[key] = safeValue(item, depth + 1);
   }
   return result;
@@ -204,8 +237,11 @@ export function normalizeGitHubRecoveryQueue(value: unknown, now = new Date().to
       const createdAt = iso(entry.createdAt, fallback);
       const updatedAt = iso(entry.updatedAt, createdAt);
       const attempts = Math.max(0, Math.floor(Number(entry.attempts) || 0));
-      const state: GitHubRecoveryState = ["queued", "retrying", "paused", "conflict", "failed"].includes(String(entry.state)) ? entry.state as GitHubRecoveryState : "queued";
+      const state = RECOVERY_STATES.includes(entry.state as GitHubRecoveryState) ? entry.state as GitHubRecoveryState : "queued";
       const decision = classifyGitHubRecoveryFailure({ status: Number(entry.lastStatus) || 0, message: entry.lastError || "Queued for retry." });
+      const classification = RECOVERY_CLASSIFICATIONS.includes(entry.classification as GitHubRecoveryClassification)
+        ? entry.classification as GitHubRecoveryClassification
+        : decision.classification;
       return [{
         id: text(entry.id, 120) || `recovery-${hash(stable({ path, body, createdAt }))}`,
         version: PLOTPICKLE_GITHUB_RECOVERY_VERSION,
@@ -216,7 +252,7 @@ export function normalizeGitHubRecoveryQueue(value: unknown, now = new Date().to
         body,
         idempotencyKey: text(entry.idempotencyKey, 160) || hash(stable({ path, body })),
         state,
-        classification: entry.classification || decision.classification,
+        classification,
         attempts,
         createdAt,
         updatedAt,
@@ -230,7 +266,8 @@ export function normalizeGitHubRecoveryQueue(value: unknown, now = new Date().to
       return [];
     }
   });
-  const deduplicated = [...new Map(entries.sort((left, right) => left.createdAt.localeCompare(right.createdAt)).map((entry) => [entry.idempotencyKey, entry])).values()];
+  const deduplicated = [...new Map(entries.sort((left, right) => left.createdAt.localeCompare(right.createdAt)).map((entry) => [entry.idempotencyKey, entry])).values()]
+    .slice(0, GITHUB_RECOVERY_MAX_ENTRIES);
   return { version: PLOTPICKLE_GITHUB_RECOVERY_VERSION, entries: deduplicated, updatedAt: iso((value as { updatedAt?: unknown }).updatedAt, fallback) };
 }
 
@@ -251,9 +288,11 @@ export function enqueueGitHubRecoveryOperation(queueValue: unknown, input: {
   const idempotencyKey = text(input.idempotencyKey, 160) || hash(stable({ path, body }));
   const existing = queue.entries.find((entry) => entry.idempotencyKey === idempotencyKey);
   if (existing) return { queue, entry: existing, created: false };
+  if (queue.entries.length >= GITHUB_RECOVERY_MAX_ENTRIES) {
+    throw new Error(`The protected GitHub recovery queue is full (${GITHUB_RECOVERY_MAX_ENTRIES} operations). Review or remove an existing item before adding another.`);
+  }
   const failure = input.failure || { status: 0, message: "Queued while GitHub was unavailable." };
   const decision = classifyGitHubRecoveryFailure(failure);
-  const retryable = decision.retryable && 0 < GITHUB_RECOVERY_MAX_ATTEMPTS;
   const entry: GitHubRecoveryEntry = {
     id: `recovery-${hash(`${idempotencyKey}:${now}`)}`,
     version: PLOTPICKLE_GITHUB_RECOVERY_VERSION,
@@ -269,7 +308,7 @@ export function enqueueGitHubRecoveryOperation(queueValue: unknown, input: {
     createdAt: now,
     updatedAt: now,
     lastAttemptAt: "",
-    nextRetryAt: retryable ? new Date(Date.parse(now) + githubRecoveryDelayMs(0, failure.retryAfterMs)).toISOString() : "",
+    nextRetryAt: decision.retryable ? new Date(Date.parse(now) + githubRecoveryDelayMs(0, failure.retryAfterMs)).toISOString() : "",
     lastStatus: Number(failure.status) || 0,
     lastError: decision.message,
     userAction: decision.userAction,
@@ -328,7 +367,8 @@ export function dueGitHubRecoveryEntries(queueValue: unknown, nowValue = new Dat
   return normalizeGitHubRecoveryQueue(queueValue, new Date(now).toISOString()).entries.filter((entry) => entry.state === "queued" && entry.nextRetryAt && Date.parse(entry.nextRetryAt) <= now);
 }
 
-export function publicGitHubRecoveryEntry(entry: GitHubRecoveryEntry) {
-  const { body: _body, ...publicEntry } = entry;
-  return publicEntry;
+export function publicGitHubRecoveryEntry(entry: GitHubRecoveryEntry): Omit<GitHubRecoveryEntry, "body"> {
+  const publicEntry = { ...entry } as Partial<GitHubRecoveryEntry>;
+  delete publicEntry.body;
+  return publicEntry as Omit<GitHubRecoveryEntry, "body">;
 }

@@ -4,6 +4,7 @@ import hostingConfig from "./.openai/hosting.json";
 import { localAiGateway } from "./build/local-ai-gateway";
 import { localConnectionsGateway } from "./build/local-connections-gateway";
 import { githubAppGateway } from "./build/github-app-gateway";
+import { githubRecoveryGateway } from "./build/github-recovery-gateway";
 import { githubProjectSyncGateway } from "./build/github-project-sync-gateway";
 import { githubReviewGateway } from "./build/github-review-gateway";
 import { collaborationAccessGuard } from "./build/collaboration-access-guard";
@@ -64,6 +65,7 @@ export default defineConfig(async () => {
     plugins: [
       localConnectionsGateway(),
       githubAppGateway(),
+      githubRecoveryGateway(),
       githubProjectSyncGateway(),
       collaborationAccessGuard(),
       githubReviewGateway(),

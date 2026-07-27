@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import styles from "./github-collaboration.module.css";
+import GitHubAppConnection, { type GitHubAppConnectedRepository } from "./github-app-connection";
 import {
   createPortableProjectFile,
   parsePortableProjectFile,
@@ -164,6 +165,51 @@ export default function GitHubCollaboration({
     };
   });
 
+  function updateProjectConnection(patch: Partial<PlotPickleProject["collaboration"]>) {
+    onChange({
+      ...project,
+      collaboration: { ...project.collaboration, ...patch, updatedAt: new Date().toISOString() },
+      metadata: { ...project.metadata, updatedAt: new Date().toISOString() },
+    });
+  }
+
+  function applyConnectedRepository(connection: GitHubAppConnectedRepository | Record<string, unknown>) {
+    const ownerValue = String(connection.owner ?? owner);
+    const repoValue = String(connection.repo ?? repo);
+    const branchValue = String(connection.branch ?? branch);
+    const pathValue = String(connection.projectPath ?? projectPath);
+    const repositoryUrl = String(connection.repositoryUrl ?? `https://github.com/${ownerValue}/${repoValue}`);
+    const nextStatus = statusFromResponse({
+      connected: true,
+      ready: Boolean(connection.ready),
+      owner: ownerValue,
+      repo: repoValue,
+      branch: branchValue,
+      projectPath: pathValue,
+      login: connection.login,
+      repositoryUrl,
+      verifiedAt: connection.verifiedAt,
+      checks: connection.checks,
+    });
+    setOwner(ownerValue);
+    setRepo(repoValue);
+    setBranch(branchValue);
+    setProjectPath(pathValue);
+    setStatus(nextStatus);
+    updateProjectConnection({
+      provider: "github",
+      owner: ownerValue,
+      repo: repoValue,
+      branch: branchValue,
+      projectPath: pathValue,
+      repositoryUrl,
+      syncEnabled: true,
+      connectedAt: new Date().toISOString(),
+    });
+    onConnectionChange?.();
+    if (nextStatus.ready) void loadProposals();
+  }
+
   async function loadProposals() {
     if (!status.ready) return;
     try {
@@ -197,9 +243,12 @@ export default function GitHubCollaboration({
       }
       setLibrary(Array.isArray(projects.projects) ? projects.projects as LibraryItem[] : []);
       if (!nextStatus.connected) {
-        setNotice("Local rolling backups are ready. Follow the three connection steps below whenever you want GitHub collaboration.");
+        setNotice("Local rolling backups are ready. Connect a GitHub account only when repository collaboration is wanted.");
         return;
       }
+      try {
+        await jsonRequest("/api/local-github-app/status");
+      } catch { /* Manual-token connections do not require GitHub App status. */ }
       try {
         const checked = await jsonRequest("/api/local-github/connection/check", "POST");
         const readyStatus = statusFromResponse(checked);
@@ -208,7 +257,7 @@ export default function GitHubCollaboration({
         setRepo(String(checked.repo ?? repo));
         setBranch(String(checked.branch ?? branch));
         setProjectPath(String(checked.projectPath ?? projectPath));
-        setNotice("GitHub is ready. Pull the approved story, make local changes, then submit a pull request for owner approval.");
+        setNotice("GitHub is ready. Pull the approved story, make local changes, then submit a story proposal for owner approval.");
         onConnectionChange?.();
         const result = await jsonRequest("/api/local-github/proposals");
         setProposals(Array.isArray(result.proposals) ? result.proposals as ProposalItem[] : []);
@@ -238,14 +287,6 @@ export default function GitHubCollaboration({
     // The initial check intentionally uses project defaults only once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  function updateProjectConnection(patch: Partial<PlotPickleProject["collaboration"]>) {
-    onChange({
-      ...project,
-      collaboration: { ...project.collaboration, ...patch, updatedAt: new Date().toISOString() },
-      metadata: { ...project.metadata, updatedAt: new Date().toISOString() },
-    });
-  }
 
   async function saveLocalBackup() {
     setWorking(true);
@@ -283,22 +324,8 @@ export default function GitHubCollaboration({
     try {
       const result = await jsonRequest("/api/local-github/connection", "POST", { owner, repo, branch, projectPath, token });
       setToken("");
-      const readyStatus = statusFromResponse(result);
-      setStatus(readyStatus);
-      updateProjectConnection({
-        provider: "github",
-        owner,
-        repo,
-        branch,
-        projectPath,
-        repositoryUrl: String(result.repositoryUrl ?? `https://github.com/${owner}/${repo}`),
-        syncEnabled: true,
-        connectedAt: new Date().toISOString(),
-      });
-      setNotice("GitHub is ready. Canonical changes still require a pull request and repository-owner merge.");
-      onConnectionChange?.();
-      const proposalResult = await jsonRequest("/api/local-github/proposals");
-      setProposals(Array.isArray(proposalResult.proposals) ? proposalResult.proposals as ProposalItem[] : []);
+      applyConnectedRepository(result);
+      setNotice("GitHub is ready. Canonical changes still require a story proposal and Project Lead approval.");
     } catch (error) {
       const requestError = error as JsonRequestError;
       setStatus((current) => ({
@@ -348,7 +375,7 @@ export default function GitHubCollaboration({
       const pullRequestUrl = String(result.pullRequestUrl ?? "");
       updateProjectConnection({ provider: "github", lastPushedCommit: commitSha, syncEnabled: true });
       setProposalNote("");
-      setNotice(`Proposal #${pullRequestNumber} created. The canonical ${branch} branch is unchanged until the repository owner merges it.`);
+      setNotice(`Story proposal #${pullRequestNumber} created. The approved ${branch} version is unchanged until the Project Lead accepts it.`);
       await loadProposals();
       if (pullRequestUrl) window.open(pullRequestUrl, "_blank", "noopener,noreferrer");
     } catch (error) {
@@ -366,10 +393,13 @@ export default function GitHubCollaboration({
   }
 
   async function disconnectGitHub() {
-    if (!window.confirm("Remove the saved GitHub credential from this computer? Local projects, assets and backups will be kept. The token will remain active at GitHub until you revoke it there.")) return;
+    if (!window.confirm("Remove the saved GitHub account and repository connection from this computer? Local projects, assets and backups will be kept.")) return;
     setWorking(true);
     try {
-      await jsonRequest("/api/local-github/connection", "DELETE");
+      await Promise.allSettled([
+        jsonRequest("/api/local-github-app/connection", "DELETE"),
+        jsonRequest("/api/local-github/connection", "DELETE"),
+      ]);
       setStatus({ connected: false, ready: false, state: "disconnected", checks: [] });
       setProposals([]);
       updateProjectConnection({ provider: "none", syncEnabled: false });
@@ -410,13 +440,13 @@ export default function GitHubCollaboration({
       </section>
 
       <div className={styles.architecture} aria-label="Collaboration architecture">
-        <article><b>1</b><strong>Pull approved story</strong><span>Every server starts from the repository’s canonical branch and .ppf revision.</span></article>
+        <article><b>1</b><strong>Get approved story</strong><span>Every server starts from the repository’s approved branch and .ppf revision.</span></article>
         <i>→</i>
-        <article><b>2</b><strong>Edit locally</strong><span>Autosave, AI, screenplay, reports, visuals, and production remain private on that computer.</span></article>
+        <article><b>2</b><strong>Edit locally</strong><span>Autosave, AI, screenplay, reports, visuals and production remain private on that computer.</span></article>
         <i>→</i>
-        <article><b>3</b><strong>Submit proposal</strong><span>PlotPickle creates a unique branch, commit, and pull request—never a direct canonical write.</span></article>
+        <article><b>3</b><strong>Submit story proposal</strong><span>PlotPickle creates a unique working version and review request—never a direct approved-version write.</span></article>
         <i>→</i>
-        <article><b>4</b><strong>Owner decides</strong><span>The repository owner reviews, discusses, merges, or closes the proposal in GitHub.</span></article>
+        <article><b>4</b><strong>Project Lead decides</strong><span>The repository owner reviews, discusses, accepts or declines the proposal.</span></article>
       </div>
 
       <div className={styles.status} role="status">{notice}</div>
@@ -440,52 +470,66 @@ export default function GitHubCollaboration({
 
         <section className={styles.panel}>
           <header className={styles.connectionHeader}>
-            <div><p>GitHub Connection</p><h3>{status.connected ? `${status.owner}/${status.repo}` : "Connect a story repository"}</h3><span>The green Ready light appears only after PlotPickle confirms the repository, branch, .ppf destination and both write permissions.</span></div>
+            <div><p>GitHub Connection</p><h3>{status.connected ? `${status.owner}/${status.repo}` : "Connect a story project"}</h3><span>Connect an account, choose a story project and let PlotPickle detect the approved branch. The green Ready light still requires all five live collaboration checks.</span></div>
             <div className={`${styles.readiness} ${readinessClass}`} role="status" aria-live="polite"><i aria-hidden="true" /><span>{readinessLabel(status)}</span></div>
           </header>
-          <div className={styles.connectionGuide}>
-            <strong>Connect in three steps</strong>
-            <ol>
-              <li><span>1</span><p><b>Create a fine-grained GitHub token.</b> Limit it to the one story repository and choose an expiration.</p></li>
-              <li><span>2</span><p><b>Set Contents and Pull requests to Read and write.</b> No Administration or workflow permission is required.</p></li>
-              <li><span>3</span><p><b>Paste the token once and select Connect GitHub.</b> PlotPickle tests everything before showing Ready.</p></li>
-            </ol>
-            <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">Create a fine-grained token in GitHub</a>
-          </div>
-          <div className={styles.form}>
-            <label><span>Owner</span><input value={owner} spellCheck={false} onChange={(event) => setOwner(event.target.value)} placeholder="GitHub username or organization" /></label>
-            <label><span>Repository</span><input value={repo} spellCheck={false} onChange={(event) => setRepo(event.target.value)} placeholder="my-plotpickle-story" /></label>
-            <label><span>Canonical branch</span><input value={branch} spellCheck={false} onChange={(event) => setBranch(event.target.value)} /></label>
-            <label><span>Canonical .ppf path</span><input value={projectPath} spellCheck={false} onChange={(event) => setProjectPath(event.target.value)} /><small>An existing .ppf is integrity-checked. A valid new path is created by the first proposal.</small></label>
-            <label className={styles.wide}><span>Fine-grained GitHub token — stored outside the project</span><input type="password" autoComplete="off" spellCheck={false} value={token} onChange={(event) => setToken(event.target.value)} placeholder={status.connected ? "Leave blank to keep the saved token" : "Paste the token from GitHub"} /></label>
-          </div>
+
+          <GitHubAppConnection
+            projectPath={projectPath}
+            disabled={working}
+            onMessage={setNotice}
+            onConnected={applyConnectedRepository}
+          />
+
+          <details className={styles.advancedSetup}>
+            <summary>Advanced Setup: fine-grained GitHub token</summary>
+            <div className={styles.connectionGuide}>
+              <strong>Manual connection in three steps</strong>
+              <ol>
+                <li><span>1</span><p><b>Create a fine-grained GitHub token.</b> Limit it to the one story repository and choose an expiration.</p></li>
+                <li><span>2</span><p><b>Set Contents and Pull requests to Read and write.</b> No Administration or workflow permission is required.</p></li>
+                <li><span>3</span><p><b>Paste the token once and test the connection.</b> PlotPickle stores it outside every project and export.</p></li>
+              </ol>
+              <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">Create a fine-grained token in GitHub</a>
+            </div>
+            <div className={styles.form}>
+              <label><span>Project Lead or organization</span><input value={owner} spellCheck={false} onChange={(event) => setOwner(event.target.value)} placeholder="GitHub username or organization" /></label>
+              <label><span>Story project repository</span><input value={repo} spellCheck={false} onChange={(event) => setRepo(event.target.value)} placeholder="my-plotpickle-story" /></label>
+              <label><span>Approved branch</span><input value={branch} spellCheck={false} onChange={(event) => setBranch(event.target.value)} /></label>
+              <label><span>Canonical .ppf path</span><input value={projectPath} spellCheck={false} onChange={(event) => setProjectPath(event.target.value)} /><small>An existing .ppf is integrity-checked. A valid new path is created by the first proposal.</small></label>
+              <label className={styles.wide}><span>Fine-grained GitHub token — stored outside the project</span><input type="password" autoComplete="off" spellCheck={false} value={token} onChange={(event) => setToken(event.target.value)} placeholder={status.connected ? "Leave blank to keep the saved token" : "Paste the token from GitHub"} /></label>
+            </div>
+            <div className={styles.actions}>
+              <button type="button" className={styles.primary} disabled={working} onClick={() => void connectGitHub()}>{status.state === "checking" ? "Checking…" : status.connected ? "Test and update manual setup" : "Connect with token"}</button>
+            </div>
+          </details>
+
           <div className={styles.checkList} aria-label="GitHub readiness checks">
             {displayedChecks.map((check) => {
               const failed = status.state === "error" && status.checks.some((item) => item.id === check.id && !item.ready);
-              const pending = !check.ready && !failed;
               return (
                 <div key={check.id} className={check.ready ? styles.checkReady : failed ? styles.checkError : styles.checkPending}>
                   <i aria-hidden="true" />
                   <span><b>{check.label}</b><small>{check.detail}</small></span>
-                  <em>{check.ready ? "Ready" : failed ? "Needs attention" : pending ? "Pending" : "Pending"}</em>
+                  <em>{check.ready ? "Ready" : failed ? "Needs attention" : "Pending"}</em>
                 </div>
               );
             })}
           </div>
           {status.error ? <p className={styles.connectionError}>{status.error}</p> : null}
           <div className={styles.actions}>
-            <button type="button" className={styles.primary} disabled={working} onClick={() => void connectGitHub()}>{status.state === "checking" ? "Checking…" : status.connected ? "Test and update" : "Connect GitHub"}</button>
-            {status.repositoryUrl ? <a href={status.repositoryUrl} target="_blank" rel="noreferrer">Open repository</a> : null}
-            {status.connected ? <button type="button" className={styles.dangerAction} disabled={working} onClick={() => void disconnectGitHub()}>Remove GitHub credential</button> : null}
+            {status.connected ? <button type="button" className={styles.primary} disabled={working} onClick={() => void refresh()}>Test connection</button> : null}
+            {status.repositoryUrl ? <a href={status.repositoryUrl} target="_blank" rel="noreferrer">Open story project</a> : null}
+            {status.connected ? <button type="button" className={styles.dangerAction} disabled={working} onClick={() => void disconnectGitHub()}>Disconnect GitHub</button> : null}
           </div>
-          <p className={styles.credentialNote}>The saved token is never placed in a .ppf project, export, report, log or GitHub commit. On Windows, new or updated credential files are encrypted for the current Windows user.</p>
+          <p className={styles.credentialNote}>GitHub credentials are never placed in a .ppf project, export, report, log or GitHub commit. On Windows, new or updated credential files are encrypted for the current Windows user.</p>
         </section>
       </div>
 
       <div className={styles.grid}>
         <section className={styles.panel}>
-          <header><div><p>Canonical pull</p><h3>Compare the owner-approved version</h3><span>A pull reads only the configured canonical branch. It never reads another server’s unmerged proposal and never changes the active project automatically.</span></div></header>
-          <div className={styles.actions}><button type="button" className={styles.primary} disabled={working || !status.ready} onClick={() => void pullForReview()}>Pull approved version for review</button></div>
+          <header><div><p>Approved version</p><h3>Compare the Project Lead-approved story</h3><span>A pull reads only the configured approved branch. It never reads another server’s unmerged proposal and never changes the active project automatically.</span></div></header>
+          <div className={styles.actions}><button type="button" className={styles.primary} disabled={working || !status.ready} onClick={() => void pullForReview()}>Get approved version for review</button></div>
           {comparison ? (
             <div className={styles.comparison}>
               <strong>{comparison.summary}</strong>
@@ -502,37 +546,37 @@ export default function GitHubCollaboration({
                 <button type="button" onClick={() => setIncoming(null)}>Discard incoming version</button>
               </div>
             </div>
-          ) : <p className={styles.help}>Pulling creates a review candidate in memory. Apply it to register the exact canonical .ppf revision as this server’s collaboration base.</p>}
+          ) : <p className={styles.help}>Getting the approved version creates a review candidate in memory. Apply it to register the exact canonical .ppf revision as this server’s collaboration base.</p>}
         </section>
 
         <section className={styles.panel}>
-          <header><div><p>Submit local work</p><h3>Create a branch and pull request</h3><span>This server must be based on the latest canonical .ppf. If another proposal was merged first, PlotPickle requires a new pull before submission.</span></div></header>
+          <header><div><p>Submit local work</p><h3>Create a story proposal</h3><span>This server must be based on the latest approved .ppf. If another proposal was accepted first, PlotPickle requires a new pull before submission.</span></div></header>
           <div className={styles.form}>
             <label className={styles.wide}><span>Proposal title</span><input value={proposalTitle} onChange={(event) => setProposalTitle(event.target.value)} /></label>
-            <label className={styles.wide}><span>Contributor note</span><textarea rows={4} value={proposalNote} onChange={(event) => setProposalNote(event.target.value)} placeholder="Explain what changed, why, and anything the owner should inspect closely." /></label>
+            <label className={styles.wide}><span>Contributor note</span><textarea rows={4} value={proposalNote} onChange={(event) => setProposalNote(event.target.value)} placeholder="Explain what changed, why, and anything the Project Lead should inspect closely." /></label>
           </div>
-          <div className={styles.baseState}><span>Known canonical .ppf revision</span><code>{project.collaboration.lastPulledCommit || "Pull required before first proposal to an existing project"}</code></div>
+          <div className={styles.baseState}><span>Known approved .ppf revision</span><code>{project.collaboration.lastPulledCommit || "Get the approved version before the first proposal to an existing project"}</code></div>
           <div className={styles.actions}>
-            <button type="button" className={styles.primary} disabled={working || !status.ready} onClick={() => void submitProposal()}>Submit changes for owner approval</button>
+            <button type="button" className={styles.primary} disabled={working || !status.ready} onClick={() => void submitProposal()}>Submit changes for Project Lead approval</button>
             <button type="button" disabled={!status.ready} onClick={() => void loadProposals()}>Refresh proposals</button>
           </div>
         </section>
       </div>
 
       <section className={styles.panel}>
-        <header><div><p>Repository review queue</p><h3>{openProposals} proposal{openProposals === 1 ? "" : "s"} awaiting a decision</h3><span>All connected PlotPickle servers submit into this shared GitHub pull-request queue. GitHub permissions and branch protection remain authoritative.</span></div><button type="button" disabled={!status.ready} onClick={() => void loadProposals()}>Refresh</button></header>
+        <header><div><p>Story proposal queue</p><h3>{openProposals} proposal{openProposals === 1 ? "" : "s"} awaiting a decision</h3><span>All connected PlotPickle servers submit into this shared GitHub review queue. GitHub permissions and branch protection remain authoritative.</span></div><button type="button" disabled={!status.ready} onClick={() => void loadProposals()}>Refresh</button></header>
         <div className={styles.proposalList}>
           {proposals.length ? proposals.map((item) => (
             <article key={item.number}>
               <div><span className={styles[item.state]}>{proposalStatusLabel(item.state)}</span><strong>#{item.number} · {item.title}</strong><small>{item.author} · {item.branchName} · {item.updatedAt}</small></div>
               {item.url ? <a href={item.url} target="_blank" rel="noreferrer">Review in GitHub</a> : null}
             </article>
-          )) : <p className={styles.help}>No PlotPickle proposal pull requests are listed yet.</p>}
+          )) : <p className={styles.help}>No PlotPickle story proposals are listed yet.</p>}
         </div>
       </section>
 
       <section className={styles.panel}>
-        <header><div><p>Approved history</p><h3>Canonical .ppf commits</h3><span>History is read from the configured canonical branch and project path—not from unmerged proposals.</span></div></header>
+        <header><div><p>Approved history</p><h3>Canonical .ppf revisions</h3><span>History is read from the configured approved branch and project path—not from unmerged proposals.</span></div></header>
         <div className={styles.actions}><button type="button" disabled={!status.ready} onClick={() => void loadHistory()}>Refresh approved history</button></div>
         <div className={styles.list}>
           {history.map((item) => <div className={styles.row} key={item.sha}><div><strong>{item.message.split("\n")[0]}</strong><span>{item.sha.slice(0, 10)} · {item.date}</span></div>{item.url ? <a href={item.url} target="_blank" rel="noreferrer">Open</a> : null}</div>)}

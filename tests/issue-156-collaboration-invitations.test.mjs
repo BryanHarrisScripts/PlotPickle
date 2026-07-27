@@ -105,7 +105,7 @@ test("issue #156 enforces roles and Accepting Proposals before protected APIs", 
   assert.ok(vite.indexOf("collaborationAccessGuard()") < vite.indexOf("githubReviewGateway()"), "Role guard must run before Story Proposal routes.");
   assert.ok(vite.indexOf("collaborationAccessGuard()") < vite.indexOf("collaborationInvitationGateway()"), "Role guard must run before invitation policy routes.");
   for (const phrase of [
-    "project/collaboration/policy.json",
+    "collaboration/policy.json",
     "force: false",
     "expectedRemoteCommit",
     "collaboration-invitation.json",
@@ -116,11 +116,12 @@ test("issue #156 enforces roles and Accepting Proposals before protected APIs", 
 });
 
 test("issue #156 exposes role-first onboarding and Project Lead-only decisions", async () => {
-  const [component, proposals, styles, docs] = await Promise.all([
+  const [component, proposals, styles, docs, contractSource] = await Promise.all([
     source("app/collaboration-invitations.tsx"),
     source("app/story-proposals.tsx"),
     source("app/collaboration-invitations.module.css"),
     source("docs/issue-156-collaboration-invitations.md"),
+    source("lib/collaboration-invitations.ts"),
   ]);
   for (const phrase of [
     "Open a .ppinvite",
@@ -129,20 +130,16 @@ test("issue #156 exposes role-first onboarding and Project Lead-only decisions",
     "Read-only review",
     "repository details already inside the invitation",
     "Revoked invitation IDs",
-    "writer",
-    "director",
-    "actor",
-    "producer",
-    "reviewer",
   ]) assert.ok(component.includes(phrase), `Invitation UI is missing: ${phrase}`);
+  for (const role of ["writer", "director", "actor", "producer", "reviewer"]) assert.ok(contractSource.includes(`id: "${role}"`), `Role profile is missing: ${role}`);
   assert.match(proposals, /access\.isProjectLead/);
   assert.match(proposals, /access\.canSubmitProposals/);
   assert.match(proposals, /access\.acceptingProposals/);
-  assert.match(proposals, /disabled=!access\.isProjectLead|disabled=\{!access\.isProjectLead\}/);
+  assert.match(proposals, /disabled=\{!access\.isProjectLead\}/);
   for (const className of ["panel", "modeBadge", "roleWorkspace", "leadGrid", "rolePreview", "toggle", "revokedList"]) {
     assert.ok(styles.includes(`.${className}`), `Invitation styling is missing: ${className}`);
   }
-  for (const phrase of ["credential-free `.ppinvite`", "role-based defaults", "read-only review", "Accepting Proposals", "server-side access guard", "repository metadata remains hidden", "Phase 6"]) {
+  for (const phrase of ["credential-free `.ppinvite`", "role-based defaults", "read-only review", "Accepting Proposals", "server-side access guard", "repository metadata hidden", "Phase 6"]) {
     assert.ok(docs.includes(phrase), `Phase 5 documentation is missing: ${phrase}`);
   }
 });

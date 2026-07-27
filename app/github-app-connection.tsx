@@ -29,6 +29,8 @@ type GitHubAppStatus = {
   expiresAt: string;
   installUrl: string;
   permissions: string[];
+  templateRepository: string;
+  repositoryCreationPermission: string;
 };
 
 type RepositoryChoice = {
@@ -43,11 +45,23 @@ type RepositoryChoice = {
   permissions: { pull: boolean; push: boolean; admin: boolean };
 };
 
+type OwnerChoice = {
+  login: string;
+  label: string;
+  kind: "personal" | "organization";
+  installationId: number;
+};
+
 type DeviceAuthorization = {
   userCode: string;
   verificationUri: string;
   expiresAt: string;
   intervalSeconds: number;
+};
+
+type PendingInitialization = {
+  repository: RepositoryChoice;
+  message: string;
 };
 
 type JsonError = Error & { response?: Record<string, unknown> };
@@ -83,6 +97,8 @@ function statusFrom(value: Record<string, unknown>): GitHubAppStatus {
     expiresAt: typeof value.expiresAt === "string" ? value.expiresAt : "",
     installUrl: typeof value.installUrl === "string" ? value.installUrl : "",
     permissions: Array.isArray(value.permissions) ? value.permissions.filter((item): item is string => typeof item === "string") : [],
+    templateRepository: typeof value.templateRepository === "string" ? value.templateRepository : "",
+    repositoryCreationPermission: typeof value.repositoryCreationPermission === "string" ? value.repositoryCreationPermission : "",
   };
 }
 
@@ -112,6 +128,39 @@ function repositoryList(value: unknown): RepositoryChoice[] {
   });
 }
 
+function ownerList(value: unknown): OwnerChoice[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const record = item as Record<string, unknown>;
+    const login = typeof record.login === "string" ? record.login : "";
+    if (!login) return [];
+    return [{
+      login,
+      label: typeof record.label === "string" && record.label ? record.label : login,
+      kind: record.kind === "organization" ? "organization" as const : "personal" as const,
+      installationId: Number(record.installationId) || 0,
+    }];
+  });
+}
+
+function repositorySlug(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[^A-Za-z0-9._-]+/g, "-")
+    .replace(/-{2,}/g, "-")
+    .replace(/^[.-]+|[.-]+$/g, "")
+    .slice(0, 100);
+}
+
+function projectId() {
+  return globalThis.crypto?.randomUUID?.() || `plotpickle-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function repositoryFrom(value: unknown): RepositoryChoice | null {
+  return repositoryList(value ? [value] : [])[0] || null;
+}
+
 export default function GitHubAppConnection({
   projectPath,
   disabled,
@@ -130,18 +179,38 @@ export default function GitHubAppConnection({
     expiresAt: "",
     installUrl: "",
     permissions: [],
+    templateRepository: "",
+    repositoryCreationPermission: "",
   });
   const [repositories, setRepositories] = useState<RepositoryChoice[]>([]);
+  const [owners, setOwners] = useState<OwnerChoice[]>([]);
   const [selected, setSelected] = useState("");
   const [device, setDevice] = useState<DeviceAuthorization | null>(null);
   const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState<"existing" | "create">("existing");
+  const [newOwner, setNewOwner] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [newName, setNewName] = useState("");
+  const [nameEdited, setNameEdited] = useState(false);
+  const [newPrivate, setNewPrivate] = useState(true);
+  const [pendingInitialization, setPendingInitialization] = useState<PendingInitialization | null>(null);
 
-  async function loadRepositories() {
-    const result = await request("/api/local-github-app/repositories");
-    const next = repositoryList(result.repositories);
-    setRepositories(next);
-    setSelected((current) => current && next.some((item) => item.fullName === current) ? current : next.find((item) => item.permissions.push)?.fullName || next[0]?.fullName || "");
-    return next;
+  async function loadChoices() {
+    const [repositoryResult, ownerResult] = await Promise.all([
+      request("/api/local-github-app/repositories"),
+      request("/api/local-github-app/owners"),
+    ]);
+    const nextRepositories = repositoryList(repositoryResult.repositories);
+    const nextOwners = ownerList(ownerResult.owners);
+    setRepositories(nextRepositories);
+    setOwners(nextOwners);
+    setSelected((current) => current && nextRepositories.some((item) => item.fullName === current)
+      ? current
+      : nextRepositories.find((item) => item.permissions.push)?.fullName || nextRepositories[0]?.fullName || "");
+    setNewOwner((current) => current && nextOwners.some((item) => item.login === current)
+      ? current
+      : nextOwners.find((item) => item.kind === "personal")?.login || nextOwners[0]?.login || "");
+    return { repositories: nextRepositories, owners: nextOwners };
   }
 
   async function loadStatus() {
@@ -149,7 +218,7 @@ export default function GitHubAppConnection({
       const result = await request("/api/local-github-app/status");
       const next = statusFrom(result);
       setStatus(next);
-      if (next.authenticated) await loadRepositories();
+      if (next.authenticated) await loadChoices();
     } catch (error) {
       onMessage(error instanceof Error ? error.message : "GitHub App status could not be loaded.");
     }
@@ -174,8 +243,8 @@ export default function GitHubAppConnection({
           const next = statusFrom(result);
           setStatus(next);
           setDevice(null);
-          await loadRepositories();
-          onMessage(`Connected GitHub account ${next.identity?.login || "successfully"}. Choose the story repository below.`);
+          await loadChoices();
+          onMessage(`Connected GitHub account ${next.identity?.login || "successfully"}. Choose or create a story project below.`);
           return;
         }
         const retry = Math.max(1, Number(result.retryAfterSeconds) || device.intervalSeconds);
@@ -215,29 +284,51 @@ export default function GitHubAppConnection({
     }
   }
 
-  async function connectRepository() {
+  async function finalizeConnection(result: Record<string, unknown>) {
+    const checked = await request("/api/local-github/connection/check", "POST");
+    const repository = repositoryFrom(result.repository);
+    onConnected({
+      owner: String(checked.owner ?? repository?.owner ?? ""),
+      repo: String(checked.repo ?? repository?.name ?? ""),
+      branch: String(checked.branch ?? repository?.defaultBranch ?? "main"),
+      projectPath: String(checked.projectPath ?? projectPath),
+      repositoryUrl: String(checked.repositoryUrl ?? repository?.htmlUrl ?? ""),
+      login: String(checked.login ?? status.identity?.login ?? ""),
+      verifiedAt: String(checked.verifiedAt ?? ""),
+      ready: Boolean(checked.ready),
+      checks: Array.isArray(checked.checks) ? checked.checks : [],
+    });
+  }
+
+  async function connectRepository(initializeMissingManifest = false) {
     if (!selected) {
       onMessage("Choose a story repository first.");
       return;
     }
     setBusy(true);
-    onMessage("Checking the selected story repository and required GitHub permissions…");
+    setPendingInitialization(null);
+    onMessage(initializeMissingManifest
+      ? "Adding the missing PlotPickle setup files without replacing existing repository files…"
+      : "Checking the story repository, PlotPickle manifest and required permissions…");
     try {
-      const selectedResult = await request("/api/local-github-app/select", "POST", { fullName: selected, projectPath });
-      const checked = await request("/api/local-github/connection/check", "POST");
-      const repository = selectedResult.repository && typeof selectedResult.repository === "object" ? selectedResult.repository as Record<string, unknown> : {};
-      onConnected({
-        owner: String(checked.owner ?? repository.owner ?? ""),
-        repo: String(checked.repo ?? repository.name ?? ""),
-        branch: String(checked.branch ?? repository.defaultBranch ?? "main"),
-        projectPath: String(checked.projectPath ?? projectPath),
-        repositoryUrl: String(checked.repositoryUrl ?? repository.htmlUrl ?? ""),
-        login: String(checked.login ?? status.identity?.login ?? ""),
-        verifiedAt: String(checked.verifiedAt ?? ""),
-        ready: Boolean(checked.ready),
-        checks: Array.isArray(checked.checks) ? checked.checks : [],
+      const result = await request("/api/local-github-app/select", "POST", {
+        fullName: selected,
+        projectPath,
+        initializeMissingManifest,
+        title: newTitle,
+        projectId: projectId(),
       });
-      onMessage("GitHub is ready. PlotPickle selected the repository and detected its approved branch automatically.");
+      if (result.requiresInitialization) {
+        const repository = repositoryFrom(result.repository);
+        if (!repository) throw new Error("The selected repository could not be prepared for initialization.");
+        setPendingInitialization({ repository, message: String(result.message ?? "This repository needs a PlotPickle manifest.") });
+        onMessage(String(result.message ?? "Review the repository, then initialize it for PlotPickle."));
+        return;
+      }
+      await finalizeConnection(result);
+      onMessage(initializeMissingManifest
+        ? "The repository was initialized without replacing its existing files. GitHub collaboration is ready."
+        : "PlotPickle found the story project manifest, selected its approved branch and confirmed readiness.");
     } catch (error) {
       onMessage(error instanceof Error ? error.message : "The selected GitHub repository could not be connected.");
     } finally {
@@ -245,12 +336,54 @@ export default function GitHubAppConnection({
     }
   }
 
+  async function createRepository() {
+    const title = newTitle.trim();
+    const name = repositorySlug(newName || title);
+    if (!title) {
+      onMessage("Enter the story title before creating its GitHub project.");
+      return;
+    }
+    if (!name) {
+      onMessage("Enter a valid repository name.");
+      return;
+    }
+    if (!newOwner) {
+      onMessage("Choose the account or organization that will own the story project.");
+      return;
+    }
+    setBusy(true);
+    onMessage("Creating the private story project, manifest and collaboration files…");
+    try {
+      const result = await request("/api/local-github-app/create", "POST", {
+        owner: newOwner,
+        title,
+        name,
+        private: newPrivate,
+        projectPath,
+        projectId: projectId(),
+      });
+      await loadChoices();
+      await finalizeConnection(result);
+      const creationMode = result.creationMode === "template" ? "the configured PlotPickle template" : "the built-in PlotPickle bootstrap";
+      onMessage(`Created ${newOwner}/${name} using ${creationMode}. The story project is private by default and ready for collaboration.`);
+    } catch (error) {
+      onMessage(error instanceof Error ? error.message : "The GitHub story project could not be created.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function updateTitle(value: string) {
+    setNewTitle(value);
+    if (!nameEdited) setNewName(repositorySlug(value));
+  }
+
   return (
     <div className={styles.appConnection}>
       <div className={styles.appConnectionIntro}>
         <div>
           <strong>Recommended: connect your GitHub account</strong>
-          <p>Sign in through GitHub, choose a story project and let PlotPickle fill in the repository and approved branch. No token copying is required.</p>
+          <p>Sign in through GitHub, then choose an existing story project or create a private one with the required PlotPickle files.</p>
         </div>
         <span className={status.authenticated ? styles.accountReady : styles.accountWaiting}>{status.authenticated ? "Account connected" : status.configured ? "Account not connected" : "App setup required"}</span>
       </div>
@@ -286,21 +419,59 @@ export default function GitHubAppConnection({
             <div><span>Signed in as</span><strong>{status.identity?.name || status.identity?.login}</strong><small>@{status.identity?.login}</small></div>
             {status.installUrl ? <a href={status.installUrl} target="_blank" rel="noreferrer">Manage repository access</a> : null}
           </div>
-          <label>
-            <span>Story project</span>
-            <select value={selected} onChange={(event) => setSelected(event.target.value)} disabled={disabled || busy || !repositories.length}>
-              {repositories.length ? repositories.map((repository) => (
-                <option key={`${repository.installationId}:${repository.id}`} value={repository.fullName} disabled={!repository.permissions.push}>
-                  {repository.fullName} · {repository.private ? "Private" : "Public"}{repository.permissions.push ? "" : " · Read only"}
-                </option>
-              )) : <option value="">No accessible repositories found</option>}
-            </select>
-            <small>Only repositories installed for the PlotPickle GitHub App are listed.</small>
-          </label>
-          <div className={styles.actions}>
-            <button type="button" className={styles.primary} disabled={disabled || busy || !selected} onClick={() => void connectRepository()}>{busy ? "Checking…" : "Use selected story project"}</button>
-            <button type="button" disabled={disabled || busy} onClick={() => void loadRepositories()}>Refresh projects</button>
+
+          <div className={styles.setupTabs} role="tablist" aria-label="Story project setup">
+            <button type="button" role="tab" aria-selected={mode === "existing"} className={mode === "existing" ? styles.activeTab : ""} onClick={() => setMode("existing")}>Use existing project</button>
+            <button type="button" role="tab" aria-selected={mode === "create"} className={mode === "create" ? styles.activeTab : ""} onClick={() => setMode("create")}>Create new story project</button>
           </div>
+
+          {mode === "existing" ? (
+            <div className={styles.setupPane}>
+              <label>
+                <span>Story project</span>
+                <select value={selected} onChange={(event) => { setSelected(event.target.value); setPendingInitialization(null); }} disabled={disabled || busy || !repositories.length}>
+                  {repositories.length ? repositories.map((repository) => (
+                    <option key={`${repository.installationId}:${repository.id}`} value={repository.fullName} disabled={!repository.permissions.push}>
+                      {repository.fullName} · {repository.private ? "Private" : "Public"}{repository.permissions.push ? "" : " · Read only"}
+                    </option>
+                  )) : <option value="">No accessible repositories found</option>}
+                </select>
+                <small>PlotPickle checks for <code>plotpickle-project.json</code> and automatically uses the repository’s approved default branch.</small>
+              </label>
+              <div className={styles.actions}>
+                <button type="button" className={styles.primary} disabled={disabled || busy || !selected} onClick={() => void connectRepository(false)}>{busy ? "Checking…" : "Use selected story project"}</button>
+                <button type="button" disabled={disabled || busy} onClick={() => void loadChoices()}>Refresh projects</button>
+              </div>
+              {pendingInitialization ? (
+                <div className={styles.initializationCard}>
+                  <strong>PlotPickle setup is missing</strong>
+                  <p>{pendingInitialization.message}</p>
+                  <p>Initialization adds the manifest, collaboration template and missing starter folders. Existing files are preserved, and incompatible manifests are never overwritten.</p>
+                  <div className={styles.actions}>
+                    <button type="button" className={styles.primary} disabled={disabled || busy} onClick={() => void connectRepository(true)}>Initialize this repository</button>
+                    {pendingInitialization.repository.htmlUrl ? <a href={pendingInitialization.repository.htmlUrl} target="_blank" rel="noreferrer">Review repository first</a> : null}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <div className={styles.setupPane}>
+              <div className={styles.creationNotice}>
+                <strong>Private by default</strong>
+                <p>PlotPickle creates a user-owned repository. Repository creation requires the GitHub App’s Administration permission; connecting an existing repository does not.</p>
+              </div>
+              <div className={styles.creationForm}>
+                <label><span>Project owner</span><select value={newOwner} onChange={(event) => setNewOwner(event.target.value)} disabled={disabled || busy}>{owners.map((owner) => <option key={owner.login} value={owner.login}>{owner.label} · {owner.kind === "organization" ? "Organization" : "Personal account"}</option>)}</select></label>
+                <label><span>Story title</span><input value={newTitle} onChange={(event) => updateTitle(event.target.value)} placeholder="Untitled Story" /></label>
+                <label><span>Repository name</span><input value={newName} spellCheck={false} onChange={(event) => { setNameEdited(true); setNewName(repositorySlug(event.target.value)); }} placeholder="untitled-story" /><small>{newOwner || status.identity?.login}/{newName || "repository-name"}</small></label>
+                <label className={styles.privacyChoice}><input type="checkbox" checked={newPrivate} onChange={(event) => setNewPrivate(event.target.checked)} /><span>Keep this story project private</span></label>
+              </div>
+              <div className={styles.actions}>
+                <button type="button" className={styles.primary} disabled={disabled || busy || !newOwner || !newTitle.trim() || !newName} onClick={() => void createRepository()}>{busy ? "Creating…" : "Create story project"}</button>
+              </div>
+              <p className={styles.credentialNote}>{status.templateRepository ? `Template source: ${status.templateRepository}.` : "No external template is configured, so PlotPickle will use its built-in bootstrap files."} {status.repositoryCreationPermission}</p>
+            </div>
+          )}
         </div>
       )}
     </div>

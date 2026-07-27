@@ -48,13 +48,24 @@ test("GitHub collaboration is local-only, review-first, and Project Lead-control
     assert.ok(proposalGateway.includes(phrase), `Missing proposal architecture: ${phrase}`);
   }
   assert.ok(!proposalGateway.includes("token: project"), "GitHub credentials must never be read from the project.");
-  for (const phrase of ["Many local PlotPickle servers", "Get approved version for review", "Submit changes for Project Lead approval", "The approved ${branch} version is unchanged until the Project Lead accepts it", "Review in GitHub", "approved .ppf revision"]) {
+  for (const phrase of [
+    "Many local PlotPickle servers",
+    "Canonical Git synchronization",
+    "Compare project files",
+    "Get approved project folder",
+    "Project Lead: publish approved version",
+    "Submit changes for Project Lead approval",
+    "The approved ${branch} version is unchanged until the Project Lead accepts it",
+    "Review in GitHub",
+    "Legacy approved version",
+  ]) {
     assert.ok(component.includes(phrase), `Missing Project Lead-controlled collaboration UI: ${phrase}`);
   }
   assert.doesNotMatch(component, /Push named backup/);
   assert.match(comparison, /compareCollaborativeProjects/);
   assert.match(comparison, /applyReviewedGitHubProject/);
   assert.match(vite, /githubReviewGateway\(\)/);
+  assert.match(vite, /githubProjectSyncGateway\(\)/);
 });
 
 test("canonical projects retain repository metadata without credentials", async () => {

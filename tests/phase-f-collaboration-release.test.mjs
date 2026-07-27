@@ -30,15 +30,19 @@ test("local project storage uses atomic saves, integrity checks, and rolling bac
 });
 
 test("GitHub collaboration is local-only, review-first, and owner-controlled", async () => {
-  const [gateway, proposalGateway, component, comparison, vite] = await Promise.all([
+  const [gateway, proposalGateway, component, comparison, vite, vault] = await Promise.all([
     source("build/local-project-gateway.ts"),
     source("build/github-review-gateway.ts"),
     source("app/github-collaboration.tsx"),
     source("lib/github-collaboration.ts"),
     source("vite.config.ts"),
+    source("build/local-credentials.ts"),
   ]);
-  for (const phrase of ["githubConnectionFile", "secrets", "Project storage and GitHub synchronization accept requests only", "githubPull", "githubHistory"]) {
+  for (const phrase of ["local-credentials", "readCredentialJson", "Project storage and GitHub synchronization accept requests only", "githubPull", "githubHistory"]) {
     assert.ok(gateway.includes(phrase), `Missing GitHub gateway protection: ${phrase}`);
+  }
+  for (const phrase of ["credentialsDirectory", '"secrets"', "readCredentialJson", "writeCredentialJson"]) {
+    assert.ok(vault.includes(phrase), `Missing centralized credential protection: ${phrase}`);
   }
   for (const phrase of ["serverIdentity", "submit-proposal", "git/refs", "pulls", "expectedBaseRevision", "canonical GitHub story changed", "maintainer_can_modify", "owner or maintainer", "No API key or GitHub credential"]) {
     assert.ok(proposalGateway.includes(phrase), `Missing proposal architecture: ${phrase}`);

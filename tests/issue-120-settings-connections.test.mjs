@@ -96,15 +96,17 @@ test("issue #120 implements minimal Google Calendar and Meet OAuth foundations",
 });
 
 test("issue #120 keeps credentials outside projects and authentication failures non-blocking", async () => {
-  const [gateway, panel, status, project] = await Promise.all([
+  const [gateway, vault, panel, status, project] = await Promise.all([
     source("build/local-connections-gateway.ts"),
+    source("build/local-credentials.ts"),
     source("app/settings-panel.tsx"),
     source("lib/connection-status.ts"),
     source("lib/project.ts"),
   ]);
-  assert.match(gateway, /PLOTPICKLE_HOME/);
-  assert.match(gateway, /secrets/);
-  assert.match(gateway, /0o600/);
+  assert.match(vault, /PLOTPICKLE_HOME/);
+  assert.match(vault, /secrets/);
+  assert.match(vault, /0o600/);
+  assert.match(gateway, /readCredentialJson/);
   assert.match(gateway, /isLocalRequest/);
   assert.match(gateway, /Local removal still protects this installation and cannot block local work/);
   assert.match(panel, /Failed or declined authentication never blocks local project work/);

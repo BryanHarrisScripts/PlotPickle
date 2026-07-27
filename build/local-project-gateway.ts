@@ -1,5 +1,4 @@
-import { chmod, copyFile, mkdir, open, readFile, readdir, rename, rm, stat, unlink } from "node:fs/promises";
-import os from "node:os";
+import { chmod, copyFile, mkdir, open, readFile, readdir, rename, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
@@ -10,6 +9,12 @@ import {
   serializePortableProjectFile,
 } from "../lib/project-package";
 import { normalizePlotPickleProject, type PlotPickleProject } from "../lib/project";
+import {
+  persistentHome,
+  readCredentialJson,
+  removeCredentialFile,
+  writeCredentialJson,
+} from "./local-credentials";
 
 const PROJECT_API = "/api/local-projects";
 const GITHUB_API = "/api/local-github";
@@ -23,18 +28,25 @@ type GitHubConnection = {
   branch: string;
   projectPath: string;
   token: string;
+  login?: string;
   verifiedAt: string;
+  readiness?: GitHubReadiness;
 };
 
-function persistentHome() {
-  if (process.env.PLOTPICKLE_HOME) return path.resolve(process.env.PLOTPICKLE_HOME);
-  if (process.env.LOCALAPPDATA) return path.join(process.env.LOCALAPPDATA, "PlotPickle");
-  return path.join(os.homedir(), ".plotpickle");
-}
+type GitHubReadinessCheck = {
+  id: "repository" | "branch" | "project-path" | "contents-write" | "pull-requests";
+  label: string;
+  ready: boolean;
+  detail: string;
+};
+
+type GitHubReadiness = {
+  ready: boolean;
+  checks: GitHubReadinessCheck[];
+};
 
 function projectsDirectory() { return path.join(persistentHome(), "projects"); }
 function backupsDirectory() { return path.join(persistentHome(), "backups"); }
-function githubConnectionFile() { return path.join(persistentHome(), "secrets", "github-connection.json"); }
 
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
@@ -172,32 +184,29 @@ function validGitHubConnection(value: unknown): value is GitHubConnection {
 }
 
 async function readGitHubConnection() {
-  try {
-    const value: unknown = JSON.parse(await readFile(githubConnectionFile(), "utf8"));
-    return validGitHubConnection(value) ? value : null;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
-    throw error;
-  }
+  const value = await readCredentialJson<unknown>("github-connection.json");
+  return validGitHubConnection(value) ? value : null;
 }
 
 async function writeGitHubConnection(connection: GitHubConnection) {
-  const file = githubConnectionFile();
-  await mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
-  await atomicWrite(file, `${JSON.stringify(connection, null, 2)}\n`);
+  await writeCredentialJson("github-connection.json", connection);
 }
 
 function publicGitHubConnection(connection: GitHubConnection | null) {
   return connection ? {
     available: true,
     connected: true,
+    ready: Boolean(connection.readiness?.ready),
+    state: connection.readiness?.ready ? "ready" : "configured",
     owner: connection.owner,
     repo: connection.repo,
     branch: connection.branch,
     projectPath: connection.projectPath,
+    login: connection.login || "",
     repositoryUrl: `https://github.com/${connection.owner}/${connection.repo}`,
     verifiedAt: connection.verifiedAt,
-  } : { available: true, connected: false };
+    checks: connection.readiness?.checks ?? [],
+  } : { available: true, connected: false, ready: false, state: "disconnected", checks: [] };
 }
 
 function githubHeaders(connection: GitHubConnection, includeJson = false) {
@@ -211,6 +220,18 @@ function githubHeaders(connection: GitHubConnection, includeJson = false) {
 }
 
 async function githubRequest(connection: GitHubConnection, endpoint: string, init: RequestInit = {}) {
+  const { response, body } = await githubResponse(connection, endpoint, init);
+  if (!response.ok) {
+    const message = githubMessage(body, `GitHub returned ${response.status}.`);
+    const error = new Error(message) as Error & { status?: number; body?: unknown };
+    error.status = response.status;
+    error.body = body;
+    throw error;
+  }
+  return body;
+}
+
+async function githubResponse(connection: GitHubConnection, endpoint: string, init: RequestInit = {}) {
   const response = await fetch(`https://api.github.com${endpoint}`, {
     ...init,
     headers: { ...githubHeaders(connection, Boolean(init.body)), ...(init.headers ?? {}) },
@@ -219,15 +240,138 @@ async function githubRequest(connection: GitHubConnection, endpoint: string, ini
   const text = await response.text();
   let body: unknown = {};
   try { body = text ? JSON.parse(text) : {}; } catch { body = {}; }
-  if (!response.ok) {
-    const message = body && typeof body === "object" && typeof (body as { message?: unknown }).message === "string"
-      ? String((body as { message: string }).message)
-      : `GitHub returned ${response.status}.`;
-    const error = new Error(message) as Error & { status?: number };
-    error.status = response.status;
-    throw error;
+  return { response, body };
+}
+
+function githubMessage(body: unknown, fallback: string) {
+  return body && typeof body === "object" && typeof (body as { message?: unknown }).message === "string"
+    ? String((body as { message: string }).message)
+    : fallback;
+}
+
+function readinessFailure(message: string, checks: GitHubReadinessCheck[], status?: number) {
+  const error = new Error(message) as Error & { status?: number; checks?: GitHubReadinessCheck[] };
+  error.status = status;
+  error.checks = checks;
+  return error;
+}
+
+function readyCheck(id: GitHubReadinessCheck["id"], label: string, detail: string): GitHubReadinessCheck {
+  return { id, label, ready: true, detail };
+}
+
+function failedCheck(id: GitHubReadinessCheck["id"], label: string, detail: string): GitHubReadinessCheck {
+  return { id, label, ready: false, detail };
+}
+
+async function writePermissionProbe(
+  connection: GitHubConnection,
+  endpoint: string,
+  permission: "contents-write" | "pull-requests",
+  label: string,
+) {
+  const { response, body } = await githubResponse(connection, endpoint, {
+    method: permission === "contents-write" ? "PUT" : "POST",
+    body: "{}",
+  });
+  if (response.status === 422) return;
+  if (response.status === 401 || response.status === 403 || response.status === 404) {
+    throw new Error(permission === "contents-write"
+      ? "The token needs Contents repository permission set to Read and write."
+      : "The token needs Pull requests repository permission set to Read and write.");
   }
-  return body;
+  throw new Error(githubMessage(body, `${label} could not be confirmed (GitHub ${response.status}).`));
+}
+
+async function existingPortableProject(connection: GitHubConnection, body: unknown) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("The canonical .ppf path points to a folder instead of a file.");
+  const record = body as Record<string, unknown>;
+  if (record.type !== "file" || typeof record.sha !== "string") throw new Error("The canonical .ppf path is not a readable repository file.");
+  let encoded = typeof record.content === "string" ? record.content.replace(/\s/g, "") : "";
+  if (!encoded && typeof record.git_url === "string") {
+    const gitUrl = new URL(record.git_url);
+    if (gitUrl.origin !== "https://api.github.com") throw new Error("GitHub returned an invalid .ppf blob address.");
+    const blob = await githubRequest(connection, `${gitUrl.pathname}${gitUrl.search}`);
+    if (!blob || typeof blob !== "object" || typeof (blob as Record<string, unknown>).content !== "string") {
+      throw new Error("GitHub did not return the existing .ppf content.");
+    }
+    encoded = String((blob as Record<string, unknown>).content).replace(/\s/g, "");
+  }
+  if (!encoded) throw new Error("GitHub did not return the existing .ppf content.");
+  const parsed = parsePortableProjectFile(Buffer.from(encoded, "base64").toString("utf8"));
+  if (!parsed.integrityValid) throw new Error("The existing canonical .ppf failed its integrity check.");
+  return { parsed, blobSha: record.sha };
+}
+
+async function verifyGitHubReadiness(connection: GitHubConnection) {
+  const checks: GitHubReadinessCheck[] = [];
+  let login = "";
+  try {
+    const [repository, profile] = await Promise.all([
+      githubRequest(connection, `/repos/${encodeURIComponent(connection.owner)}/${encodeURIComponent(connection.repo)}`),
+      githubRequest(connection, "/user"),
+    ]);
+    const repoRecord = repository && typeof repository === "object" ? repository as Record<string, unknown> : {};
+    const permissions = repoRecord.permissions && typeof repoRecord.permissions === "object"
+      ? repoRecord.permissions as Record<string, unknown>
+      : {};
+    if (permissions.push === false) throw new Error("The selected GitHub account does not have write access to this repository.");
+    login = profile && typeof profile === "object" && typeof (profile as Record<string, unknown>).login === "string"
+      ? String((profile as Record<string, unknown>).login)
+      : "";
+    checks.push(readyCheck("repository", "Repository access", `${connection.owner}/${connection.repo}${login ? ` is available to ${login}` : " is available"}.`));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "The repository could not be verified.";
+    checks.push(failedCheck("repository", "Repository access", message));
+    throw readinessFailure(message, checks, (error as { status?: number }).status);
+  }
+
+  try {
+    await githubRequest(connection, `/repos/${encodeURIComponent(connection.owner)}/${encodeURIComponent(connection.repo)}/branches/${encodeURIComponent(connection.branch)}`);
+    checks.push(readyCheck("branch", "Canonical branch", `${connection.branch} exists and can be read.`));
+  } catch (error) {
+    const message = `The canonical branch "${connection.branch}" could not be read.`;
+    checks.push(failedCheck("branch", "Canonical branch", message));
+    throw readinessFailure(message, checks, (error as { status?: number }).status);
+  }
+
+  try {
+    const endpoint = `/repos/${encodeURIComponent(connection.owner)}/${encodeURIComponent(connection.repo)}/contents/${connection.projectPath.split("/").map(encodeURIComponent).join("/")}?ref=${encodeURIComponent(connection.branch)}`;
+    try {
+      const body = await githubRequest(connection, endpoint);
+      await existingPortableProject(connection, body);
+      checks.push(readyCheck("project-path", "Canonical .ppf path", `${connection.projectPath} contains an integrity-checked .ppf project.`));
+    } catch (error) {
+      if ((error as { status?: number }).status !== 404) throw error;
+      checks.push(readyCheck("project-path", "Canonical .ppf path", `${connection.projectPath} is ready for PlotPickle to create the first .ppf proposal.`));
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "The canonical .ppf path could not be verified.";
+    checks.push(failedCheck("project-path", "Canonical .ppf path", message));
+    throw readinessFailure(message, checks, (error as { status?: number }).status);
+  }
+
+  try {
+    const endpoint = `/repos/${encodeURIComponent(connection.owner)}/${encodeURIComponent(connection.repo)}/contents/${connection.projectPath.split("/").map(encodeURIComponent).join("/")}`;
+    await writePermissionProbe(connection, endpoint, "contents-write", "Repository contents permission");
+    checks.push(readyCheck("contents-write", "Contents: Read and write", "The token can use GitHub's file-write endpoint; no file was created or changed by this check."));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Repository contents write access could not be verified.";
+    checks.push(failedCheck("contents-write", "Contents: Read and write", message));
+    throw readinessFailure(message, checks, (error as { status?: number }).status);
+  }
+
+  try {
+    const endpoint = `/repos/${encodeURIComponent(connection.owner)}/${encodeURIComponent(connection.repo)}/pulls`;
+    await writePermissionProbe(connection, endpoint, "pull-requests", "Pull-request permission");
+    checks.push(readyCheck("pull-requests", "Pull requests: Read and write", "The token can use GitHub's pull-request endpoint; no pull request was created by this check."));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Pull-request write access could not be verified.";
+    checks.push(failedCheck("pull-requests", "Pull requests: Read and write", message));
+    throw readinessFailure(message, checks, (error as { status?: number }).status);
+  }
+
+  return { login, readiness: { ready: true, checks } satisfies GitHubReadiness };
 }
 
 async function verifyGitHubConnection(input: Record<string, unknown>, saved: GitHubConnection | null) {
@@ -240,24 +384,41 @@ async function verifyGitHubConnection(input: Record<string, unknown>, saved: Git
   const token = typeof input.token === "string" && input.token.trim() ? input.token.trim() : saved?.token ?? "";
   if (!/^[A-Za-z0-9_.-]+$/.test(owner) || !/^[A-Za-z0-9_.-]+$/.test(repo)) throw new Error("Enter a valid GitHub owner and repository name.");
   if (!token) throw new Error("Enter a GitHub token with access to this story repository.");
-  if (!projectPath.toLowerCase().endsWith(".ppf") || projectPath.includes("..")) throw new Error("The repository story path must be a safe .ppf path.");
-  const connection: GitHubConnection = { version: 1, owner, repo, branch, projectPath, token, verifiedAt: new Date().toISOString() };
-  await githubRequest(connection, `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`);
-  await writeGitHubConnection(connection);
-  return connection;
+  if (!branch || branch.length > 240 || /(?:^\/|\/$|\/\/|\.{2}|[~^:?*[\]\\\u0000-\u001f])/.test(branch)) throw new Error("Enter a safe canonical GitHub branch name.");
+  const pathParts = projectPath.split("/");
+  if (projectPath.length > 500 || !projectPath.toLowerCase().endsWith(".ppf") || pathParts.some((part) => !part || part === "." || part === ".." || /[\\\u0000-\u001f]/.test(part))) {
+    throw new Error("The repository story path must be a safe .ppf path.");
+  }
+  const candidate: GitHubConnection = { version: 1, owner, repo, branch, projectPath, token, verifiedAt: saved?.verifiedAt ?? "" };
+  try {
+    const verified = await verifyGitHubReadiness(candidate);
+    const connection: GitHubConnection = {
+      ...candidate,
+      login: verified.login,
+      verifiedAt: new Date().toISOString(),
+      readiness: verified.readiness,
+    };
+    await writeGitHubConnection(connection);
+    return connection;
+  } catch (error) {
+    if (saved && saved.token === token) {
+      const checks = (error as { checks?: GitHubReadinessCheck[] }).checks ?? [];
+      await writeGitHubConnection({
+        ...candidate,
+        login: saved.login,
+        verifiedAt: saved.verifiedAt,
+        readiness: { ready: false, checks },
+      });
+    }
+    throw error;
+  }
 }
 
 async function githubPull(connection: GitHubConnection) {
   const endpoint = `/repos/${encodeURIComponent(connection.owner)}/${encodeURIComponent(connection.repo)}/contents/${connection.projectPath.split("/").map(encodeURIComponent).join("/")}?ref=${encodeURIComponent(connection.branch)}`;
   const body = await githubRequest(connection, endpoint);
-  if (!body || typeof body !== "object" || typeof (body as Record<string, unknown>).content !== "string" || typeof (body as Record<string, unknown>).sha !== "string") {
-    throw new Error("The GitHub story file is missing content or a revision SHA.");
-  }
-  const record = body as Record<string, unknown>;
-  const decoded = Buffer.from(String(record.content).replace(/\s/g, ""), "base64").toString("utf8");
-  const portable = parsePortableProjectFile(decoded);
-  if (!portable.integrityValid) throw new Error("The GitHub .ppf file failed its integrity check.");
-  return { project: portable.project, portable: portable.file, remoteSha: String(record.sha) };
+  const { parsed, blobSha } = await existingPortableProject(connection, body);
+  return { project: parsed.project, portable: parsed.file, remoteSha: blobSha };
 }
 
 async function githubPush(connection: GitHubConnection, project: PlotPickleProject, message: string) {
@@ -344,18 +505,17 @@ async function handleGitHub(request: IncomingMessage, response: ServerResponse, 
     const saved = await readGitHubConnection();
     const input = url.pathname.endsWith("/check") ? {} : await readBody(request) as Record<string, unknown>;
     const connection = await verifyGitHubConnection(input, saved);
-    sendJson(response, 200, { ok: true, message: "GitHub repository connected.", ...publicGitHubConnection(connection) });
+    sendJson(response, 200, { ok: true, message: "GitHub collaboration is ready.", ...publicGitHubConnection(connection) });
     return;
   }
   if (request.method === "DELETE" && url.pathname === `${GITHUB_API}/connection`) {
-    try { await unlink(githubConnectionFile()); } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-    }
+    await removeCredentialFile("github-connection.json");
     sendJson(response, 200, { ok: true, available: true, connected: false, message: "GitHub connection removed from this computer." });
     return;
   }
   const connection = await readGitHubConnection();
   if (!connection) throw new Error("Connect a GitHub story repository in Settings first.");
+  if (!connection.readiness?.ready) throw new Error("Test the GitHub connection in Settings and wait for the green Ready light before using collaboration.");
   if (request.method === "POST" && url.pathname === `${GITHUB_API}/pull`) {
     sendJson(response, 200, { ok: true, ...(await githubPull(connection)) });
     return;
@@ -394,7 +554,12 @@ export function localProjectGateway(): Plugin {
           const message = error instanceof Error
             ? error.message.replace(/gh[pousr]_[A-Za-z0-9_]+/g, "[redacted]")
             : "The local project operation failed.";
-          sendJson(response, 400, { ok: false, message });
+          const checks = (error as { checks?: GitHubReadinessCheck[] }).checks;
+          sendJson(response, 400, {
+            ok: false,
+            message,
+            ...(checks ? { ready: false, state: "error", checks } : {}),
+          });
         });
       });
     },

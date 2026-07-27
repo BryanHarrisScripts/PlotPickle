@@ -7,6 +7,7 @@ import type { Plugin } from "vite";
 import { compareCollaborativeProjects } from "../lib/github-collaboration";
 import { createPortableProjectFile, parsePortableProjectFile, serializePortableProjectFile } from "../lib/project-package";
 import { normalizePlotPickleProject, type PlotPickleProject } from "../lib/project";
+import { persistentHome, readCredentialJson } from "./local-credentials";
 
 const API = "/api/local-github";
 const MAX_BODY = 30 * 1024 * 1024;
@@ -19,6 +20,7 @@ type GitHubConnection = {
   projectPath: string;
   token: string;
   verifiedAt: string;
+  readiness?: { ready: boolean };
 };
 
 type ServerIdentity = {
@@ -30,13 +32,6 @@ type ServerIdentity = {
 
 type GitHubError = Error & { status?: number; body?: unknown };
 
-function persistentHome() {
-  if (process.env.PLOTPICKLE_HOME) return path.resolve(process.env.PLOTPICKLE_HOME);
-  if (process.env.LOCALAPPDATA) return path.join(process.env.LOCALAPPDATA, "PlotPickle");
-  return path.join(os.homedir(), ".plotpickle");
-}
-
-function connectionFile() { return path.join(persistentHome(), "secrets", "github-connection.json"); }
 function identityFile() { return path.join(persistentHome(), "server-identity.json"); }
 
 function isLoopback(value: string | undefined) {
@@ -99,8 +94,9 @@ function validConnection(value: unknown): value is GitHubConnection {
 }
 
 async function readConnection() {
-  const value: unknown = JSON.parse(await readFile(connectionFile(), "utf8"));
+  const value = await readCredentialJson<unknown>("github-connection.json");
   if (!validConnection(value)) throw new Error("Reconnect the GitHub repository before submitting changes.");
+  if (!value.readiness?.ready) throw new Error("Test the GitHub connection in Settings and wait for the green Ready light before using collaboration.");
   return value;
 }
 
@@ -167,8 +163,19 @@ async function canonicalProject(connection: GitHubConnection) {
     const body = await githubRequest(connection, contentEndpoint(connection, connection.branch));
     if (!body || typeof body !== "object") throw new Error("The canonical GitHub project response is invalid.");
     const record = body as Record<string, unknown>;
-    if (typeof record.content !== "string" || typeof record.sha !== "string") throw new Error("The canonical .ppf file is missing content or a revision SHA.");
-    const source = Buffer.from(record.content.replace(/\s/g, ""), "base64").toString("utf8");
+    if (typeof record.sha !== "string") throw new Error("The canonical .ppf file is missing a revision SHA.");
+    let encoded = typeof record.content === "string" ? record.content.replace(/\s/g, "") : "";
+    if (!encoded && typeof record.git_url === "string") {
+      const gitUrl = new URL(record.git_url);
+      if (gitUrl.origin !== "https://api.github.com") throw new Error("GitHub returned an invalid .ppf blob address.");
+      const blob = await githubRequest(connection, `${gitUrl.pathname}${gitUrl.search}`);
+      if (!blob || typeof blob !== "object" || typeof (blob as Record<string, unknown>).content !== "string") {
+        throw new Error("GitHub did not return the canonical .ppf content.");
+      }
+      encoded = String((blob as Record<string, unknown>).content).replace(/\s/g, "");
+    }
+    if (!encoded) throw new Error("The canonical .ppf file is missing content.");
+    const source = Buffer.from(encoded, "base64").toString("utf8");
     const parsed = parsePortableProjectFile(source);
     if (!parsed.integrityValid) throw new Error("The canonical GitHub .ppf failed its integrity check.");
     return { exists: true as const, project: parsed.project, blobSha: record.sha };

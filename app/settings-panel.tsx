@@ -23,6 +23,7 @@ import GitHubCollaboration from "./github-collaboration";
 
 const AI_CONNECTION_API = "/api/local-ai/connection";
 const GOOGLE_CONNECTION_API = "/api/local-google/connection";
+const CREDENTIALS_API = "/api/local-connections/credentials";
 const SETTINGS_SECTION_KEY = "plotpickle.settings.section";
 
 type SettingsSection =
@@ -58,6 +59,30 @@ type AiConnectionResponse = {
   imageModel?: string;
   checkedAt?: string;
   message?: string;
+};
+
+type CredentialFileSummary = {
+  name: string;
+  bytes: number;
+  protection: "windows-dpapi-current-user" | "account-file-permissions";
+};
+
+type CredentialState = {
+  path: string;
+  files: CredentialFileSummary[];
+  count: number;
+  protectedCount: number;
+  defaultProtection: CredentialFileSummary["protection"];
+  protectionLabel: string;
+};
+
+const EMPTY_CREDENTIAL_STATE: CredentialState = {
+  path: "",
+  files: [],
+  count: 0,
+  protectedCount: 0,
+  defaultProtection: "account-file-permissions",
+  protectionLabel: "Credential storage has not been checked.",
 };
 
 const SETTINGS_SECTIONS: Array<{ id: SettingsSection; label: string; description: string }> = [
@@ -101,7 +126,7 @@ async function jsonRequest<T extends object>(
 }
 
 function statusLabel(status: PublicConnectionStatus) {
-  if (status.state === "connected") return "Connected";
+  if (status.state === "connected") return "Ready";
   if (status.state === "configured") return "Configured";
   if (status.state === "checking") return "Checking";
   if (status.state === "error") return "Needs repair";
@@ -144,17 +169,18 @@ function Toggle({
 }
 
 function SharedConnectionCard({ status, actions }: { status: PublicConnectionStatus; actions?: ReactNode }) {
-  const healthy = status.state === "connected" || status.state === "disabled";
+  const healthy = status.state === "connected";
+  const waiting = status.state === "checking" || status.state === "configured";
   const failed = status.state === "error";
   return (
-    <article className={`${styles.connectionOverview} ${healthy ? styles.connectionPanelConnected : ""} ${failed ? styles.connectionPanelError : ""}`}>
+    <article className={`${styles.connectionOverview} ${healthy ? styles.connectionPanelConnected : ""} ${waiting ? styles.connectionPanelChecking : ""} ${failed ? styles.connectionPanelError : ""}`}>
       <header>
         <div>
           <p>Shared connection status</p>
           <h3>{status.label}</h3>
           <span>{status.identity || "No account or provider identity"}</span>
         </div>
-        <div className={`${styles.connectionBadge} ${healthy ? styles.connectionBadgeConnected : ""}`} role="status">
+        <div className={`${styles.connectionBadge} ${healthy ? styles.connectionBadgeConnected : ""} ${waiting ? styles.connectionBadgeChecking : ""} ${failed ? styles.connectionBadgeError : ""}`} role="status">
           <i aria-hidden="true" />{statusLabel(status)}
         </div>
       </header>
@@ -189,6 +215,8 @@ export default function SettingsPanel({
   const [notice, setNotice] = useState("");
   const [googlePermissions, setGooglePermissions] = useState<Array<"calendar" | "meet">>([]);
   const [googleWorking, setGoogleWorking] = useState(false);
+  const [credentialState, setCredentialState] = useState<CredentialState>(EMPTY_CREDENTIAL_STATE);
+  const [credentialWorking, setCredentialWorking] = useState(false);
   const [aiConnection, setAiConnection] = useState<AiConnectionStatus>({
     state: "loading",
     saved: false,
@@ -231,6 +259,19 @@ export default function SettingsPanel({
       .map((permission) => permission.id);
     setGooglePermissions(granted);
   }, [connections.items.google.permissions]);
+
+  useEffect(() => {
+    if (section !== "privacy") return;
+    let active = true;
+    void jsonRequest<CredentialState>("GET", CREDENTIALS_API)
+      .then((result) => { if (active) setCredentialState(result); })
+      .catch((error) => {
+        if (!active) return;
+        const message = error instanceof Error ? error.message : "Credential storage could not be checked.";
+        setNotice(message === "local-gateway-unavailable" ? "Credential controls are available in the downloaded local PlotPickle server." : message);
+      });
+    return () => { active = false; };
+  }, [section]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -443,6 +484,43 @@ export default function SettingsPanel({
     }
   }
 
+  async function openCredentialFolder() {
+    setCredentialWorking(true);
+    try {
+      const result = await jsonRequest<{ path?: string; message?: string }>("POST", `${CREDENTIALS_API}/open`);
+      setNotice(result.message || `Opened ${result.path || "the private credentials folder"}.`);
+      const refreshed = await jsonRequest<CredentialState>("GET", CREDENTIALS_API);
+      setCredentialState(refreshed);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "The credentials folder could not be opened.");
+    } finally {
+      setCredentialWorking(false);
+    }
+  }
+
+  async function eraseAllCredentials() {
+    const confirmed = window.confirm(
+      "Erase every credential saved by PlotPickle on this computer?\n\n"
+      + "GitHub, AI and Google connection files will be deleted. Projects, assets and backups will remain untouched.\n\n"
+      + "GitHub and AI tokens may remain active at their providers until you revoke them there.",
+    );
+    if (!confirmed) return;
+    setCredentialWorking(true);
+    try {
+      const result = await jsonRequest<{ removed?: number; message?: string }>("DELETE", CREDENTIALS_API);
+      setCredentialState((current) => ({ ...current, files: [], count: 0, protectedCount: 0 }));
+      setSessionKey("");
+      setAiConnection({ state: "idle", saved: false, message: "No API connection has been saved." });
+      setGooglePermissions([]);
+      setNotice(result.message || "All local credentials were removed. Projects, assets and backups were kept.");
+      await onConnectionChange();
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "The local credentials could not be erased.");
+    } finally {
+      setCredentialWorking(false);
+    }
+  }
+
   const aiStatusLabel = aiConnection.state === "connected" && connectionMatchesProvider
     ? "API connected"
     : aiConnection.state === "checking"
@@ -634,7 +712,28 @@ export default function SettingsPanel({
               <SectionHeading eyebrow="Privacy and permissions" title="Make every external boundary explicit." description="PlotPickle is local-first. Nothing is sent to an optional provider until the writer initiates an action and the provider's permissions allow it." />
               <Toggle label="Confirm external sharing" description="Show the provider and selected context before any AI, GitHub or connected-service submission." checked={settings.privacy.confirmExternalSharing} onChange={(checked) => setSettings((current) => ({ ...current, privacy: { ...current.privacy, confirmExternalSharing: checked } }))} />
               <Toggle label="Allow anonymous diagnostic reports" description="Diagnostic sharing is off by default and never includes story text or credentials." checked={settings.privacy.diagnosticReports} onChange={(checked) => setSettings((current) => ({ ...current, privacy: { ...current.privacy, diagnosticReports: checked } }))} />
-              <div className={styles.privacyBoundary}><strong>Credential rule</strong><p>API keys, repository tokens and OAuth tokens must remain outside project files, Reports, exports, prompts, logs and source control.</p></div>
+              <div className={styles.privacyBoundary}><strong>Credential rule</strong><p>API keys, repository tokens and OAuth tokens remain outside project files, Reports, exports, prompts, logs and source control.</p><p>PlotPickle keeps separate provider files inside one private credentials folder so each connection can be removed independently and the entire folder can be erased at once.</p></div>
+              <section className={styles.credentialVault} aria-labelledby="credential-vault-title">
+                <header>
+                  <div><p>Local credential vault</p><h3 id="credential-vault-title">{credentialState.count} saved credential file{credentialState.count === 1 ? "" : "s"}</h3></div>
+                  <span>{credentialState.defaultProtection === "windows-dpapi-current-user" ? "Windows encrypted" : "Current-account only"}</span>
+                </header>
+                <p>{credentialState.protectionLabel}</p>
+                <code>{credentialState.path || "%LOCALAPPDATA%\\PlotPickle\\secrets"}</code>
+                <div className={styles.credentialFiles}>
+                  {credentialState.files.length ? credentialState.files.map((file) => (
+                    <div key={file.name}>
+                      <span><b>{file.name}</b><small>{file.protection === "windows-dpapi-current-user" ? "Encrypted for this Windows user" : "Protected by current-account file permissions"}</small></span>
+                      <em>{file.bytes.toLocaleString()} bytes</em>
+                    </div>
+                  )) : <p>No GitHub, AI or Google credential is currently stored by PlotPickle.</p>}
+                </div>
+                <div className={styles.credentialActions}>
+                  <button type="button" disabled={credentialWorking} onClick={() => void openCredentialFolder()}>Open credentials folder</button>
+                  <button type="button" className={styles.eraseCredentials} disabled={credentialWorking || credentialState.count === 0} onClick={() => void eraseAllCredentials()}>Erase all credentials</button>
+                </div>
+                <p className={styles.credentialWarning}>Erasing removes PlotPickle&apos;s local copies without deleting projects, assets or backups. It does not automatically invalidate GitHub or AI tokens at those providers; revoke those there if you want them unusable everywhere.</p>
+              </section>
             </div>
           ) : null}
 

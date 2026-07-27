@@ -15,15 +15,36 @@ type LibraryItem = { fileName: string; title: string; updatedAt: string; bytes: 
 type HistoryItem = { sha: string; url: string; message: string; date: string };
 type ProposalItem = { number: number; title: string; url: string; state: "open" | "draft" | "merged" | "declined"; author: string; branchName: string; updatedAt: string; mergedAt: string };
 type ServerIdentity = { id: string; label: string; createdAt: string };
+type ReadinessCheck = {
+  id: "repository" | "branch" | "project-path" | "contents-write" | "pull-requests";
+  label: string;
+  ready: boolean;
+  detail: string;
+};
 type GitHubStatus = {
   connected: boolean;
+  ready: boolean;
+  state: "disconnected" | "configured" | "checking" | "ready" | "error";
   owner?: string;
   repo?: string;
   branch?: string;
   projectPath?: string;
+  login?: string;
   repositoryUrl?: string;
   verifiedAt?: string;
+  checks: ReadinessCheck[];
+  error?: string;
 };
+
+type JsonRequestError = Error & { response?: Record<string, unknown> };
+
+const READINESS_CHECKS: Array<Pick<ReadinessCheck, "id" | "label">> = [
+  { id: "repository", label: "Repository access" },
+  { id: "branch", label: "Canonical branch" },
+  { id: "project-path", label: "Canonical .ppf path" },
+  { id: "contents-write", label: "Contents: Read and write" },
+  { id: "pull-requests", label: "Pull requests: Read and write" },
+];
 
 async function jsonRequest(path: string, method: "GET" | "POST" | "DELETE" = "GET", body?: object) {
   const response = await fetch(path, {
@@ -34,8 +55,50 @@ async function jsonRequest(path: string, method: "GET" | "POST" | "DELETE" = "GE
   const type = response.headers.get("content-type") ?? "";
   if (!type.includes("application/json")) throw new Error("Local project services are available in the downloaded PlotPickle server.");
   const value = await response.json() as Record<string, unknown>;
-  if (!response.ok) throw new Error(typeof value.message === "string" ? value.message : "The local project operation failed.");
+  if (!response.ok) {
+    const error = new Error(typeof value.message === "string" ? value.message : "The local project operation failed.") as JsonRequestError;
+    error.response = value;
+    throw error;
+  }
   return value;
+}
+
+function readinessChecks(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is ReadinessCheck => Boolean(
+    item
+    && typeof item === "object"
+    && READINESS_CHECKS.some((check) => check.id === (item as ReadinessCheck).id)
+    && typeof (item as ReadinessCheck).label === "string"
+    && typeof (item as ReadinessCheck).ready === "boolean"
+    && typeof (item as ReadinessCheck).detail === "string",
+  ));
+}
+
+function statusFromResponse(value: Record<string, unknown>, fallback: GitHubStatus["state"] = "configured"): GitHubStatus {
+  const connected = Boolean(value.connected);
+  const ready = Boolean(value.ready);
+  return {
+    connected,
+    ready,
+    state: ready ? "ready" : connected ? fallback : "disconnected",
+    owner: typeof value.owner === "string" ? value.owner : undefined,
+    repo: typeof value.repo === "string" ? value.repo : undefined,
+    branch: typeof value.branch === "string" ? value.branch : undefined,
+    projectPath: typeof value.projectPath === "string" ? value.projectPath : undefined,
+    login: typeof value.login === "string" ? value.login : undefined,
+    repositoryUrl: typeof value.repositoryUrl === "string" ? value.repositoryUrl : undefined,
+    verifiedAt: typeof value.verifiedAt === "string" ? value.verifiedAt : undefined,
+    checks: readinessChecks(value.checks),
+  };
+}
+
+function readinessLabel(status: GitHubStatus) {
+  if (status.state === "ready") return "Ready";
+  if (status.state === "checking") return "Checking";
+  if (status.state === "error") return "Needs attention";
+  if (status.state === "configured") return "Test required";
+  return "Not connected";
 }
 
 function downloadText(name: string, content: string) {
@@ -73,7 +136,12 @@ export default function GitHubCollaboration({
   const [notice, setNotice] = useState("Checking local project storage…");
   const [available, setAvailable] = useState(false);
   const [working, setWorking] = useState(false);
-  const [status, setStatus] = useState<GitHubStatus>({ connected: false });
+  const [status, setStatus] = useState<GitHubStatus>({
+    connected: false,
+    ready: false,
+    state: "disconnected",
+    checks: [],
+  });
   const [identity, setIdentity] = useState<ServerIdentity | null>(null);
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -83,9 +151,21 @@ export default function GitHubCollaboration({
   const sourceRepository = project.collaboration.sourceRepositoryUrl || project.collaboration.repositoryUrl;
   const comparison = useMemo(() => incoming ? compareCollaborativeProjects(project, incoming.project) : null, [incoming, project]);
   const openProposals = proposals.filter((item) => item.state === "open" || item.state === "draft").length;
+  const displayedChecks = READINESS_CHECKS.map((definition) => {
+    const check = status.checks.find((item) => item.id === definition.id);
+    return check ?? {
+      ...definition,
+      ready: false,
+      detail: status.state === "checking"
+        ? "Checking…"
+        : status.state === "error"
+          ? "Not reached after the failed check above."
+          : "Waiting for a successful connection test.",
+    };
+  });
 
   async function loadProposals() {
-    if (!status.connected) return;
+    if (!status.ready) return;
     try {
       const result = await jsonRequest("/api/local-github/proposals");
       setProposals(Array.isArray(result.proposals) ? result.proposals as ProposalItem[] : []);
@@ -103,15 +183,10 @@ export default function GitHubCollaboration({
         jsonRequest("/api/local-github/identity"),
       ]);
       setAvailable(Boolean(local.available));
-      const nextStatus: GitHubStatus = {
-        connected: Boolean(github.connected),
-        owner: typeof github.owner === "string" ? github.owner : undefined,
-        repo: typeof github.repo === "string" ? github.repo : undefined,
-        branch: typeof github.branch === "string" ? github.branch : undefined,
-        projectPath: typeof github.projectPath === "string" ? github.projectPath : undefined,
-        repositoryUrl: typeof github.repositoryUrl === "string" ? github.repositoryUrl : undefined,
-        verifiedAt: typeof github.verifiedAt === "string" ? github.verifiedAt : undefined,
-      };
+      const savedStatus = statusFromResponse(github);
+      const nextStatus = savedStatus.connected
+        ? { ...savedStatus, ready: false, state: "checking" as const, error: "" }
+        : savedStatus;
       setStatus(nextStatus);
       setIdentity({ id: String(server.id ?? ""), label: String(server.label ?? "Local PlotPickle server"), createdAt: String(server.createdAt ?? "") });
       if (github.connected) {
@@ -121,15 +196,38 @@ export default function GitHubCollaboration({
         setProjectPath(String(github.projectPath ?? projectPath));
       }
       setLibrary(Array.isArray(projects.projects) ? projects.projects as LibraryItem[] : []);
-      setNotice(github.connected
-        ? "This server is connected. Pull the approved story, make local changes, then submit a pull request for owner approval."
-        : "Local rolling backups are ready. GitHub collaboration remains optional.");
-      if (nextStatus.connected) {
+      if (!nextStatus.connected) {
+        setNotice("Local rolling backups are ready. Follow the three connection steps below whenever you want GitHub collaboration.");
+        return;
+      }
+      try {
+        const checked = await jsonRequest("/api/local-github/connection/check", "POST");
+        const readyStatus = statusFromResponse(checked);
+        setStatus(readyStatus);
+        setOwner(String(checked.owner ?? owner));
+        setRepo(String(checked.repo ?? repo));
+        setBranch(String(checked.branch ?? branch));
+        setProjectPath(String(checked.projectPath ?? projectPath));
+        setNotice("GitHub is ready. Pull the approved story, make local changes, then submit a pull request for owner approval.");
+        onConnectionChange?.();
         const result = await jsonRequest("/api/local-github/proposals");
         setProposals(Array.isArray(result.proposals) ? result.proposals as ProposalItem[] : []);
+      } catch (error) {
+        const requestError = error as JsonRequestError;
+        setStatus({
+          ...savedStatus,
+          ready: false,
+          state: "error",
+          checks: readinessChecks(requestError.response?.checks),
+          error: requestError.message,
+        });
+        setProposals([]);
+        setNotice(requestError.message);
+        onConnectionChange?.();
       }
     } catch (error) {
       setAvailable(false);
+      setStatus((current) => ({ ...current, ready: false, state: "error", error: error instanceof Error ? error.message : "Local project services are unavailable." }));
       setNotice(error instanceof Error ? error.message : "Local project services are unavailable.");
     }
   }
@@ -180,10 +278,13 @@ export default function GitHubCollaboration({
 
   async function connectGitHub() {
     setWorking(true);
+    setStatus((current) => ({ ...current, ready: false, state: "checking", checks: [], error: "" }));
+    setNotice("Checking the repository, branch, .ppf path and required GitHub permissions…");
     try {
       const result = await jsonRequest("/api/local-github/connection", "POST", { owner, repo, branch, projectPath, token });
       setToken("");
-      setStatus({ connected: true, owner, repo, branch, projectPath, repositoryUrl: String(result.repositoryUrl ?? ""), verifiedAt: String(result.verifiedAt ?? "") });
+      const readyStatus = statusFromResponse(result);
+      setStatus(readyStatus);
       updateProjectConnection({
         provider: "github",
         owner,
@@ -194,12 +295,21 @@ export default function GitHubCollaboration({
         syncEnabled: true,
         connectedAt: new Date().toISOString(),
       });
-      setNotice("GitHub repository connected. Canonical changes require a pull request and repository-owner merge.");
+      setNotice("GitHub is ready. Canonical changes still require a pull request and repository-owner merge.");
       onConnectionChange?.();
       const proposalResult = await jsonRequest("/api/local-github/proposals");
       setProposals(Array.isArray(proposalResult.proposals) ? proposalResult.proposals as ProposalItem[] : []);
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "GitHub could not be connected.");
+      const requestError = error as JsonRequestError;
+      setStatus((current) => ({
+        ...current,
+        ready: false,
+        state: "error",
+        checks: readinessChecks(requestError.response?.checks),
+        error: requestError.message,
+      }));
+      setNotice(requestError.message || "GitHub could not be connected.");
+      onConnectionChange?.();
     } finally { setWorking(false); }
   }
 
@@ -256,10 +366,11 @@ export default function GitHubCollaboration({
   }
 
   async function disconnectGitHub() {
+    if (!window.confirm("Remove the saved GitHub credential from this computer? Local projects, assets and backups will be kept. The token will remain active at GitHub until you revoke it there.")) return;
     setWorking(true);
     try {
       await jsonRequest("/api/local-github/connection", "DELETE");
-      setStatus({ connected: false });
+      setStatus({ connected: false, ready: false, state: "disconnected", checks: [] });
       setProposals([]);
       updateProjectConnection({ provider: "none", syncEnabled: false });
       setNotice("GitHub credentials were removed from this computer. Local projects and backups were kept.");
@@ -268,6 +379,14 @@ export default function GitHubCollaboration({
       setNotice(error instanceof Error ? error.message : "The GitHub connection could not be removed.");
     } finally { setWorking(false); }
   }
+
+  const readinessClass = status.state === "ready"
+    ? styles.readinessReady
+    : status.state === "checking" || status.state === "configured"
+      ? styles.readinessChecking
+      : status.state === "error"
+        ? styles.readinessError
+        : styles.readinessDisconnected;
 
   return (
     <div className={styles.workspace}>
@@ -320,26 +439,53 @@ export default function GitHubCollaboration({
         </section>
 
         <section className={styles.panel}>
-          <header><div><p>GitHub Connection</p><h3>{status.connected ? `${status.owner}/${status.repo}` : "Connect a story repository"}</h3><span>The configured branch is the owner-approved source of truth. Proposal branches are created automatically per server and submission.</span></div></header>
+          <header className={styles.connectionHeader}>
+            <div><p>GitHub Connection</p><h3>{status.connected ? `${status.owner}/${status.repo}` : "Connect a story repository"}</h3><span>The green Ready light appears only after PlotPickle confirms the repository, branch, .ppf destination and both write permissions.</span></div>
+            <div className={`${styles.readiness} ${readinessClass}`} role="status" aria-live="polite"><i aria-hidden="true" /><span>{readinessLabel(status)}</span></div>
+          </header>
+          <div className={styles.connectionGuide}>
+            <strong>Connect in three steps</strong>
+            <ol>
+              <li><span>1</span><p><b>Create a fine-grained GitHub token.</b> Limit it to the one story repository and choose an expiration.</p></li>
+              <li><span>2</span><p><b>Set Contents and Pull requests to Read and write.</b> No Administration or workflow permission is required.</p></li>
+              <li><span>3</span><p><b>Paste the token once and select Connect GitHub.</b> PlotPickle tests everything before showing Ready.</p></li>
+            </ol>
+            <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">Create a fine-grained token in GitHub</a>
+          </div>
           <div className={styles.form}>
-            <label><span>Owner</span><input value={owner} onChange={(event) => setOwner(event.target.value)} placeholder="GitHub username or organization" /></label>
-            <label><span>Repository</span><input value={repo} onChange={(event) => setRepo(event.target.value)} placeholder="my-plotpickle-story" /></label>
-            <label><span>Canonical branch</span><input value={branch} onChange={(event) => setBranch(event.target.value)} /></label>
-            <label><span>Canonical .ppf path</span><input value={projectPath} onChange={(event) => setProjectPath(event.target.value)} /></label>
-            <label className={styles.wide}><span>GitHub token — stored outside the project</span><input type="password" value={token} onChange={(event) => setToken(event.target.value)} placeholder={status.connected ? "Leave blank to keep the saved token" : "Token with contents and pull-request access"} /></label>
+            <label><span>Owner</span><input value={owner} spellCheck={false} onChange={(event) => setOwner(event.target.value)} placeholder="GitHub username or organization" /></label>
+            <label><span>Repository</span><input value={repo} spellCheck={false} onChange={(event) => setRepo(event.target.value)} placeholder="my-plotpickle-story" /></label>
+            <label><span>Canonical branch</span><input value={branch} spellCheck={false} onChange={(event) => setBranch(event.target.value)} /></label>
+            <label><span>Canonical .ppf path</span><input value={projectPath} spellCheck={false} onChange={(event) => setProjectPath(event.target.value)} /><small>An existing .ppf is integrity-checked. A valid new path is created by the first proposal.</small></label>
+            <label className={styles.wide}><span>Fine-grained GitHub token — stored outside the project</span><input type="password" autoComplete="off" spellCheck={false} value={token} onChange={(event) => setToken(event.target.value)} placeholder={status.connected ? "Leave blank to keep the saved token" : "Paste the token from GitHub"} /></label>
           </div>
+          <div className={styles.checkList} aria-label="GitHub readiness checks">
+            {displayedChecks.map((check) => {
+              const failed = status.state === "error" && status.checks.some((item) => item.id === check.id && !item.ready);
+              const pending = !check.ready && !failed;
+              return (
+                <div key={check.id} className={check.ready ? styles.checkReady : failed ? styles.checkError : styles.checkPending}>
+                  <i aria-hidden="true" />
+                  <span><b>{check.label}</b><small>{check.detail}</small></span>
+                  <em>{check.ready ? "Ready" : failed ? "Needs attention" : pending ? "Pending" : "Pending"}</em>
+                </div>
+              );
+            })}
+          </div>
+          {status.error ? <p className={styles.connectionError}>{status.error}</p> : null}
           <div className={styles.actions}>
-            <button type="button" className={styles.primary} disabled={working} onClick={() => void connectGitHub()}>{status.connected ? "Test and update" : "Connect GitHub"}</button>
+            <button type="button" className={styles.primary} disabled={working} onClick={() => void connectGitHub()}>{status.state === "checking" ? "Checking…" : status.connected ? "Test and update" : "Connect GitHub"}</button>
             {status.repositoryUrl ? <a href={status.repositoryUrl} target="_blank" rel="noreferrer">Open repository</a> : null}
-            {status.connected ? <button type="button" disabled={working} onClick={() => void disconnectGitHub()}>Remove connection</button> : null}
+            {status.connected ? <button type="button" className={styles.dangerAction} disabled={working} onClick={() => void disconnectGitHub()}>Remove GitHub credential</button> : null}
           </div>
+          <p className={styles.credentialNote}>The saved token is never placed in a .ppf project, export, report, log or GitHub commit. On Windows, new or updated credential files are encrypted for the current Windows user.</p>
         </section>
       </div>
 
       <div className={styles.grid}>
         <section className={styles.panel}>
           <header><div><p>Canonical pull</p><h3>Compare the owner-approved version</h3><span>A pull reads only the configured canonical branch. It never reads another server’s unmerged proposal and never changes the active project automatically.</span></div></header>
-          <div className={styles.actions}><button type="button" className={styles.primary} disabled={working || !status.connected} onClick={() => void pullForReview()}>Pull approved version for review</button></div>
+          <div className={styles.actions}><button type="button" className={styles.primary} disabled={working || !status.ready} onClick={() => void pullForReview()}>Pull approved version for review</button></div>
           {comparison ? (
             <div className={styles.comparison}>
               <strong>{comparison.summary}</strong>
@@ -367,14 +513,14 @@ export default function GitHubCollaboration({
           </div>
           <div className={styles.baseState}><span>Known canonical .ppf revision</span><code>{project.collaboration.lastPulledCommit || "Pull required before first proposal to an existing project"}</code></div>
           <div className={styles.actions}>
-            <button type="button" className={styles.primary} disabled={working || !status.connected} onClick={() => void submitProposal()}>Submit changes for owner approval</button>
-            <button type="button" disabled={!status.connected} onClick={() => void loadProposals()}>Refresh proposals</button>
+            <button type="button" className={styles.primary} disabled={working || !status.ready} onClick={() => void submitProposal()}>Submit changes for owner approval</button>
+            <button type="button" disabled={!status.ready} onClick={() => void loadProposals()}>Refresh proposals</button>
           </div>
         </section>
       </div>
 
       <section className={styles.panel}>
-        <header><div><p>Repository review queue</p><h3>{openProposals} proposal{openProposals === 1 ? "" : "s"} awaiting a decision</h3><span>All connected PlotPickle servers submit into this shared GitHub pull-request queue. GitHub permissions and branch protection remain authoritative.</span></div><button type="button" disabled={!status.connected} onClick={() => void loadProposals()}>Refresh</button></header>
+        <header><div><p>Repository review queue</p><h3>{openProposals} proposal{openProposals === 1 ? "" : "s"} awaiting a decision</h3><span>All connected PlotPickle servers submit into this shared GitHub pull-request queue. GitHub permissions and branch protection remain authoritative.</span></div><button type="button" disabled={!status.ready} onClick={() => void loadProposals()}>Refresh</button></header>
         <div className={styles.proposalList}>
           {proposals.length ? proposals.map((item) => (
             <article key={item.number}>
@@ -387,7 +533,7 @@ export default function GitHubCollaboration({
 
       <section className={styles.panel}>
         <header><div><p>Approved history</p><h3>Canonical .ppf commits</h3><span>History is read from the configured canonical branch and project path—not from unmerged proposals.</span></div></header>
-        <div className={styles.actions}><button type="button" disabled={!status.connected} onClick={() => void loadHistory()}>Refresh approved history</button></div>
+        <div className={styles.actions}><button type="button" disabled={!status.ready} onClick={() => void loadHistory()}>Refresh approved history</button></div>
         <div className={styles.list}>
           {history.map((item) => <div className={styles.row} key={item.sha}><div><strong>{item.message.split("\n")[0]}</strong><span>{item.sha.slice(0, 10)} · {item.date}</span></div>{item.url ? <a href={item.url} target="_blank" rel="noreferrer">Open</a> : null}</div>)}
         </div>

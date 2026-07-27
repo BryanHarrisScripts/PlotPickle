@@ -150,7 +150,15 @@ The AI foundation includes:
 - compatible-server and Ollama text adapters; and
 - a replaceable asynchronous video-job contract.
 
-In the downloaded local edition, a verified API key may be saved in PlotPickle’s private local-server data under the current computer account. AI Setup confirms the live connection, records the last successful check, and can test or remove the saved key. API keys are connection secrets, not project data, and are never written into browser settings, exported `.plotpickle.json` files, prompts, logs, provenance records or GitHub.
+In the downloaded local edition, verified connection credentials may be saved in PlotPickle’s private local-server data under the current computer account. AI Setup confirms the live connection, records the last successful check, and can test or remove the saved key. API keys and tokens are connection secrets, not project data, and are never written into browser settings, exported `.plotpickle.json` files, prompts, logs, provenance records or GitHub.
+
+### Credential storage and removal
+
+PlotPickle keeps provider credentials as separate files inside one private `secrets` folder. On Windows the default location is `%LOCALAPPDATA%\PlotPickle\secrets\`; new, updated and legacy credential files read after this upgrade are encrypted for the current Windows user with DPAPI. On macOS and Linux the files are restricted to the current operating-system user with owner-only permissions.
+
+Settings → Privacy and permissions shows a sanitized inventory without displaying secret values. It can open the exact credentials folder or erase the complete folder in one action. Erasing credentials does not delete projects, assets or backups. A locally erased GitHub or AI token may remain active at its provider, so revoke it through that provider as well when complete invalidation is required.
+
+GitHub setup displays a green **Ready** light only after PlotPickle confirms the repository, canonical branch, canonical `.ppf` path, Contents read/write access and Pull requests read/write access. The check does not create a file or pull request.
 
 The Screenplay assistant can suggest material using the current Block, mini-block and character context, but inserts nothing until the writer approves it. Characters can generate a portrait through the connected image model; the local server saves the resulting asset under the current computer account and attaches it as the character reference.
 

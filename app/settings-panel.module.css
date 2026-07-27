@@ -240,6 +240,28 @@
   box-shadow: 0 0 0 4px rgba(58, 154, 100, 0.12);
 }
 
+.connectionBadgeChecking {
+  border-color: #dcc271;
+  background: #fff8dc;
+  color: #765b0e;
+}
+
+.connectionBadgeChecking i {
+  background: #d1a52f;
+  box-shadow: 0 0 0 4px rgba(209, 165, 47, 0.12);
+}
+
+.connectionBadgeError {
+  border-color: #d99c91;
+  background: #fff0ed;
+  color: #93483c;
+}
+
+.connectionBadgeError i {
+  background: #c45546;
+  box-shadow: 0 0 0 4px rgba(196, 85, 70, 0.11);
+}
+
 .providerGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -363,6 +385,11 @@
 .connectionPanelConnected {
   border-color: #9dceb0;
   background: #eff9f2;
+}
+
+.connectionPanelChecking {
+  border-color: #ddc980;
+  background: #fffaf0;
 }
 
 .connectionPanelError {
@@ -694,6 +721,140 @@
   line-height: 1.55;
 }
 
+.credentialVault {
+  display: grid;
+  gap: 13px;
+  padding: 18px;
+  border: 1px solid #bed8d3;
+  border-radius: 14px;
+  background: #fbfefd;
+}
+
+.credentialVault > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.credentialVault > header p {
+  margin: 0 0 4px;
+  color: #208982;
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.credentialVault > header h3 {
+  margin: 0;
+}
+
+.credentialVault > header > span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #e7f6ec;
+  color: #256847;
+  font-size: 0.62rem;
+  font-weight: 850;
+}
+
+.credentialVault > p {
+  margin: 0;
+  color: #5d7877;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.credentialVault > code {
+  overflow-wrap: anywhere;
+  padding: 10px 11px;
+  border: 1px solid #d7e5e2;
+  border-radius: 9px;
+  background: #eff6f4;
+  color: #345d5a;
+  font-size: 0.69rem;
+}
+
+.credentialFiles {
+  display: grid;
+  gap: 7px;
+}
+
+.credentialFiles > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 11px;
+  border: 1px solid #d8e5e2;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.credentialFiles > div > span {
+  display: grid;
+  gap: 2px;
+}
+
+.credentialFiles b {
+  color: #315956;
+  font-size: 0.72rem;
+}
+
+.credentialFiles small,
+.credentialFiles em {
+  color: #708481;
+  font-size: 0.64rem;
+  font-style: normal;
+}
+
+.credentialFiles > p {
+  margin: 0;
+  padding: 14px;
+  border: 1px dashed #cbded9;
+  border-radius: 9px;
+  color: #6c817e;
+  font-size: 0.73rem;
+}
+
+.credentialActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.credentialActions button {
+  min-height: 40px;
+  padding: 9px 13px;
+  border: 1px solid #9fc3c0;
+  border-radius: 8px;
+  background: #fff;
+  color: #326865;
+  font: inherit;
+  font-size: 0.73rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.credentialActions .eraseCredentials {
+  border-color: #d3aaa2;
+  color: #9c4639;
+}
+
+.credentialActions button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.credentialVault .credentialWarning {
+  padding: 10px 11px;
+  border-radius: 9px;
+  background: #fff6ec;
+  color: #765d3e;
+  font-size: 0.7rem;
+}
+
 .aboutGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -789,6 +950,12 @@
   }
 
   .connectionOverview > header {
+    flex-direction: column;
+  }
+
+  .credentialVault > header,
+  .credentialFiles > div {
+    align-items: flex-start;
     flex-direction: column;
   }
 

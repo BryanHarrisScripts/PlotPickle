@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import styles from "./feedback-workspace.module.css";
 import ReviewWorkflowsPanel from "./review-workflows-panel";
+import WritersRoomPanel from "./writers-room-panel";
 import {
   FEEDBACK_SECTIONS,
   FEEDBACK_STATUSES,
@@ -238,6 +239,7 @@ export default function FeedbackWorkspace({ project, onProjectChange, onOpenTarg
 
         {section === "ai-review" ? <ReviewWorkflowsPanel project={project} mode="ai" onProjectChange={onProjectChange} /> : null}
         {section === "human-review" ? <ReviewWorkflowsPanel project={project} mode="human" onProjectChange={onProjectChange} /> : null}
+        {section === "writers-room" ? <WritersRoomPanel project={project} onProjectChange={onProjectChange} /> : null}
 
         {createOpen ? (
           <section className={styles.createPanel} aria-label="Create feedback">

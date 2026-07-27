@@ -1,8 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 import {
+  GITHUB_RECOVERY_MAX_ENTRIES,
   dueGitHubRecoveryEntries,
-  emptyGitHubRecoveryQueue,
   enqueueGitHubRecoveryOperation,
   isGitHubRecoveryPath,
   markGitHubRecoveryRetrying,
@@ -11,7 +11,6 @@ import {
   recordGitHubRecoveryFailure,
   removeGitHubRecoveryEntry,
   safeGitHubRecoveryBody,
-  type GitHubRecoveryEntry,
   type GitHubRecoveryFailure,
   type GitHubRecoveryQueue,
 } from "../lib/github-recovery";
@@ -113,9 +112,24 @@ function validConnection(value: unknown): value is GitHubConnection {
     && typeof item.verifiedAt === "string";
 }
 
+function validSyncState(value: unknown): value is SavedSyncState {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Partial<SavedSyncState>;
+  return item.version === 1
+    && typeof item.repository === "string" && Boolean(item.repository)
+    && typeof item.branch === "string" && Boolean(item.branch)
+    && typeof item.projectId === "string" && Boolean(item.projectId)
+    && typeof item.remoteCommit === "string" && Boolean(item.remoteCommit);
+}
+
 async function optionalConnection() {
   const value = await readCredentialJson<unknown>(CONNECTION_FILE);
   return validConnection(value) ? value : null;
+}
+
+async function requireProjectLead(action: string) {
+  const invitation = await readCredentialJson<unknown>(INVITATION_STATE_FILE);
+  if (invitation) throw new Error(`Only the Project Lead workspace can ${action}. Collaborator invitations cannot change the approved GitHub connection.`);
 }
 
 async function loadQueue() {
@@ -203,6 +217,7 @@ async function executeQueuedOperation(request: IncomingMessage, id: string) {
       headers: {
         "Content-Type": "application/json",
         Origin: `http://${host}`,
+        "X-PlotPickle-Operation-Id": entry.idempotencyKey,
         "X-PlotPickle-Recovery-Retry": entry.idempotencyKey,
       },
       body: JSON.stringify(entry.body),
@@ -252,9 +267,26 @@ async function diagnoseConnection() {
   const record = repository.body && typeof repository.body === "object" ? repository.body as Record<string, unknown> : {};
   const fullName = typeof record.full_name === "string" ? record.full_name : `${connection.owner}/${connection.repo}`;
   const [owner, repo] = fullName.split("/");
+  if (!owner || !repo) return { connected: true, state: "error", message: "GitHub returned an invalid repository identity." };
   const moved = fullName.toLowerCase() !== `${connection.owner}/${connection.repo}`.toLowerCase();
   const branchResult = await githubApi(connection, `${encodedRepository(owner, repo)}/git/ref/heads/${encodedBranch(connection.branch)}`);
   const branchMissing = branchResult.status === 404;
+  if (!branchResult.ok && !branchMissing) {
+    const failure = recoveryFailure(branchResult.status, branchResult.body, branchResult.headers);
+    return {
+      connected: true,
+      state: branchResult.status === 401 || branchResult.status === 403 ? "authorization-expired" : "error",
+      repository: `${connection.owner}/${connection.repo}`,
+      resolvedRepository: fullName,
+      moved,
+      branch: connection.branch,
+      branchMissing: false,
+      availableBranches: [],
+      projectId: "",
+      message: failure.message,
+    };
+  }
+
   let branches: string[] = [];
   if (branchMissing) {
     const available = await githubApi(connection, `${encodedRepository(owner, repo)}/branches?per_page=30`);
@@ -262,10 +294,22 @@ async function diagnoseConnection() {
       branches = available.body.flatMap((item) => item && typeof item === "object" && typeof (item as { name?: unknown }).name === "string" ? [String((item as { name: string }).name)] : []);
     }
   }
+
   let projectId = "";
+  let recoveryCommit = "";
   if (!branchMissing) {
     try { projectId = (await manifestAt(connection, owner, repo, connection.branch)).projectId; } catch { projectId = ""; }
+  } else {
+    const syncValue = await readCredentialJson<unknown>(SYNC_STATE_FILE);
+    if (validSyncState(syncValue)) {
+      const repositories = new Set([`${connection.owner}/${connection.repo}`.toLowerCase(), fullName.toLowerCase()]);
+      if (repositories.has(syncValue.repository.toLowerCase()) && syncValue.branch === connection.branch) {
+        projectId = syncValue.projectId;
+        recoveryCommit = syncValue.remoteCommit;
+      }
+    }
   }
+
   return {
     connected: true,
     state: branchMissing ? "branch-missing" : moved ? "repository-moved" : "ready",
@@ -276,8 +320,11 @@ async function diagnoseConnection() {
     branchMissing,
     availableBranches: branches,
     projectId,
+    recoveryCommit,
     message: branchMissing
-      ? "The approved branch no longer exists. PlotPickle will not recreate or replace it without Project Lead approval."
+      ? projectId
+        ? "The approved branch no longer exists. PlotPickle found the last verified project identity and can safely review an existing branch or recreate the approved branch."
+        : "The approved branch no longer exists, and no verified synchronization state is available for guarded recovery."
       : moved
         ? `GitHub resolved this story repository to ${fullName}. Verify the project identity before adopting the new location.`
         : "The saved repository and approved branch are reachable.",
@@ -286,21 +333,22 @@ async function diagnoseConnection() {
 
 async function adoptRepository(input: Record<string, unknown>) {
   const connection = await optionalConnection();
-  if (!connection) throw new Error("Reconnect GitHub before adopting a moved repository.");
+  if (!connection) throw new Error("Reconnect GitHub before updating the recovered repository or approved branch.");
+  await requireProjectLead("update the recovered repository or approved branch");
   const owner = typeof input.owner === "string" ? input.owner.trim() : "";
   const repo = typeof input.repo === "string" ? input.repo.trim() : "";
   const branch = typeof input.branch === "string" ? input.branch.trim() : connection.branch;
   const projectId = typeof input.projectId === "string" ? input.projectId.trim() : "";
   if (!/^[A-Za-z0-9_.-]+$/.test(owner) || !/^[A-Za-z0-9_.-]+$/.test(repo)) throw new Error("The recovered GitHub repository name is invalid.");
-  if (!branch || branch.startsWith("/") || branch.includes("..") || branch.endsWith("/")) throw new Error("The recovered approved branch is invalid.");
-  if (!projectId) throw new Error("The PlotPickle project ID is required before adopting a moved repository.");
+  if (!branch || branch.startsWith("/") || branch.includes("..") || branch.endsWith("/") || !/^[A-Za-z0-9._/-]+$/.test(branch)) throw new Error("The recovered approved branch is invalid.");
+  if (!projectId) throw new Error("The PlotPickle project ID is required before updating the recovered connection.");
   const repository = await githubApi(connection, encodedRepository(owner, repo));
   if (!repository.ok) throw new Error(responseMessage(repository.body, "The recovered GitHub repository could not be opened."));
   const record = repository.body && typeof repository.body === "object" ? repository.body as Record<string, unknown> : {};
   const fullName = typeof record.full_name === "string" ? record.full_name : `${owner}/${repo}`;
   if (fullName.toLowerCase() !== `${owner}/${repo}`.toLowerCase()) throw new Error(`GitHub resolves that repository to ${fullName}. Use the resolved owner and name.`);
   const manifest = await manifestAt(connection, owner, repo, branch);
-  if (manifest.projectId !== projectId) throw new Error("The recovered repository belongs to a different PlotPickle project. The saved connection was not changed.");
+  if (manifest.projectId !== projectId) throw new Error("The recovered repository or branch belongs to a different PlotPickle project. The saved connection was not changed.");
   const next: GitHubConnection = {
     ...connection,
     owner,
@@ -317,26 +365,26 @@ async function adoptRepository(input: Record<string, unknown>) {
 async function recreateApprovedBranch(input: Record<string, unknown>) {
   const connection = await optionalConnection();
   if (!connection) throw new Error("Reconnect GitHub before recovering the approved branch.");
-  const invitation = await readCredentialJson<unknown>(INVITATION_STATE_FILE);
-  if (invitation) throw new Error("Only the Project Lead workspace can recreate the approved branch. Collaborator invitations cannot perform branch recovery.");
-  const sync = await readCredentialJson<SavedSyncState>(SYNC_STATE_FILE);
+  await requireProjectLead("recreate the approved branch");
+  const syncValue = await readCredentialJson<unknown>(SYNC_STATE_FILE);
   const projectId = typeof input.projectId === "string" ? input.projectId.trim() : "";
-  if (!sync || sync.version !== 1 || !sync.remoteCommit || !sync.projectId) throw new Error("No verified synchronized commit is available for guarded branch recovery.");
-  if (!projectId || projectId !== sync.projectId) throw new Error("The requested PlotPickle project does not match the verified synchronization state.");
-  if (sync.repository.toLowerCase() !== `${connection.owner}/${connection.repo}`.toLowerCase()) throw new Error("The verified synchronization state belongs to a different repository.");
+  if (!validSyncState(syncValue)) throw new Error("No verified synchronized commit is available for guarded branch recovery.");
+  if (!projectId || projectId !== syncValue.projectId) throw new Error("The requested PlotPickle project does not match the verified synchronization state.");
+  if (syncValue.repository.toLowerCase() !== `${connection.owner}/${connnection.repo}`.toLowerCase()) throw new Error("The verified synchronization state belongs to a different repository.");
+  if (syncValue.branch !== connection.branch) throw new Error("The verified synchronization state belongs to a different approved branch.");
   const existing = await githubApi(connection, `${encodedRepository(connection.owner, connection.repo)}/git/ref/heads/${encodedBranch(connection.branch)}`);
   if (existing.ok) throw new Error("The approved branch already exists. PlotPickle did not replace it.");
   if (existing.status !== 404) throw new Error(responseMessage(existing.body, "The approved branch state could not be verified."));
-  const commit = await githubApi(connection, `${encodedRepository(connection.owner, connection.repo)}/git/commits/${encodeURIComponent(sync.remoteCommit)}`);
+  const commit = await githubApi(connection, `${encodedRepository(connection.owner, connection.repo)}/git/commits/${encodeURIComponent(syncValue.remoteCommit)}`);
   if (!commit.ok) throw new Error("The last verified approved commit is no longer available. Recover it in GitHub before recreating the branch.");
-  const manifest = await manifestAt(connection, connection.owner, connection.repo, sync.remoteCommit);
+  const manifest = await manifestAt(connection, connection.owner, connection.repo, syncValue.remoteCommit);
   if (manifest.projectId !== projectId) throw new Error("The verified recovery commit belongs to a different PlotPickle project.");
   const created = await githubApi(connection, `${encodedRepository(connection.owner, connection.repo)}/git/refs`, {
     method: "POST",
-    body: { ref: `refs/heads/${connection.branch}`, sha: sync.remoteCommit },
+    body: { ref: `refs/heads/${connection.branch}`, sha: syncValue.remoteCommit },
   });
   if (!created.ok) throw new Error(responseMessage(created.body, "GitHub did not recreate the approved branch."));
-  return { branch: connection.branch, recoveredCommit: sync.remoteCommit, projectId, force: false };
+  return { branch: connection.branch, recoveredCommit: syncValue.remoteCommit, projectId, force: false };
 }
 
 async function handle(request: IncomingMessage, response: ServerResponse, url: URL) {
@@ -346,6 +394,8 @@ async function handle(request: IncomingMessage, response: ServerResponse, url: U
       ok: true,
       version: queue.version,
       queued: queue.entries.length,
+      capacity: GITHUB_RECOVERY_MAX_ENTRIES,
+      remainingCapacity: Math.max(0, GITHUB_RECOVERY_MAX_ENTRIES - queue.entries.length),
       due: dueGitHubRecoveryEntries(queue).length,
       localWritingAvailable: true,
       entries: queue.entries.map(publicGitHubRecoveryEntry),
@@ -407,7 +457,7 @@ async function handle(request: IncomingMessage, response: ServerResponse, url: U
 
 function safeError(error: unknown) {
   return (error instanceof Error ? error.message : "GitHub recovery failed.")
-    .replace(/bearer\s+[a-z0-9._-]+/gi, "Bearer [redacted]")
+    .replace(/bearer\s+a-z0-9._-]+/gi, "Bearer [redacted]")
     .replace(/gh[pousr]_[A-Za-z0-9_]+/g, "[redacted]")
     .replace(/github_pat_[A-Za-z0-9_]+/g, "[redacted]")
     .slice(0, 700);

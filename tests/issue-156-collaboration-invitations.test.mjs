@@ -98,6 +98,7 @@ test("issue #156 enforces roles and Accepting Proposals before protected APIs", 
     "/api/local-collaboration/create-invitation",
     "/api/local-collaboration/policy",
     "Only the Project Lead workspace",
+    "not the repository owner or recorded Project Lead",
     "not accepting new Story Proposals",
     "does not permit Story Proposal submission",
     "validateInvitationUse",
@@ -116,12 +117,15 @@ test("issue #156 enforces roles and Accepting Proposals before protected APIs", 
 });
 
 test("issue #156 exposes role-first onboarding and Project Lead-only decisions", async () => {
-  const [component, proposals, styles, docs, contractSource] = await Promise.all([
+  const [component, proposals, styles, docs, contractSource, router, shell, layout] = await Promise.all([
     source("app/collaboration-invitations.tsx"),
     source("app/story-proposals.tsx"),
     source("app/collaboration-invitations.module.css"),
     source("docs/issue-156-collaboration-invitations.md"),
     source("lib/collaboration-invitations.ts"),
+    source("app/collaboration-workspace-router.tsx"),
+    source("app/application-shell-header.tsx"),
+    source("app/layout.tsx"),
   ]);
   for (const phrase of [
     "Open a .ppinvite",
@@ -142,6 +146,11 @@ test("issue #156 exposes role-first onboarding and Project Lead-only decisions",
   for (const phrase of ["credential-free `.ppinvite`", "role-based defaults", "read-only review", "Accepting Proposals", "server-side access guard", "repository metadata hidden", "Phase 6"]) {
     assert.ok(docs.includes(phrase), `Phase 5 documentation is missing: ${phrase}`);
   }
+  for (const contract of ["/write", '"script"', "/storyboard", '"visuals"', "/table-read", '"feedback"', "plotpickle:navigate-workspace"]) {
+    assert.ok(router.includes(contract), `Collaborator workspace router is missing: ${contract}`);
+  }
+  assert.match(shell, /addEventListener\("plotpickle:navigate-workspace"/);
+  assert.match(layout, /<CollaborationWorkspaceRouter \/>/);
 });
 
 test("issue #156 test is registered", async () => {

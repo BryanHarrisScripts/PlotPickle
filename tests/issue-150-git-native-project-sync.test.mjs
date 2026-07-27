@@ -100,7 +100,7 @@ test("issue #150 exposes compare, review, migration and Project Lead publishing"
   for (const className of ["syncArchitecture", "syncPreview", "syncSummary", "syncPaths", "syncConsent", "syncMessage"]) {
     assert.ok(styles.includes(`.${className}`), `Synchronization styling is missing: ${className}`);
   }
-  for (const phrase of ["canonical source of truth", "SHA-256", "one atomic commit", "Legacy .ppf migration", "Remote divergence", "release snapshots"]) {
+  for (const phrase of ["canonical source of truth", "SHA-256", "Create one commit", "Legacy `.ppf` migration", "approved branch moved after preview", "release snapshots"]) {
     assert.ok(docs.includes(phrase), `Phase 3 documentation is missing: ${phrase}`);
   }
 });
@@ -115,12 +115,14 @@ test("issue #150 promotes project/ to canonical and keeps .ppf as exchange", asy
   assert.equal(schema.properties.formatVersion.const, "1.1.0");
   assert.equal(schema.properties.canonicalProject.properties.mode.const, "modular-folder");
   assert.equal(schema.properties.canonicalProject.properties.root.const, "project");
+  assert.equal(schema.properties.portableProject.properties.role.const, "exchange-snapshot");
   assert.equal(templateManifest.canonicalProject.mode, "modular-folder");
   assert.equal(templateManifest.canonicalProject.root, "project");
-  assert.equal(templateManifest.portableExchange.mode, "ppf");
+  assert.equal(templateManifest.portableProject.path, "stories/plotpickle-story.ppf");
+  assert.equal(templateManifest.portableProject.role, "exchange-snapshot");
   assert.match(repositorySource, /STORY_PROJECT_FORMAT_VERSION = "1\.1\.0"/);
   assert.match(repositorySource, /mode: "modular-folder"/);
-  assert.match(repositorySource, /portableExchange/);
+  assert.match(repositorySource, /portableProject/);
   assert.match(vite, /githubProjectSyncGateway\(\)/);
 });
 

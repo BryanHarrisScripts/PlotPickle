@@ -244,10 +244,10 @@ export default function GitHubProjectSync({
             <span>Canonical project root</span>
             <code>{preview.projectRoot}/</code>
           </div>
-          {preview.changedPaths.length ? (
+          {preview.diff.changedPaths.length ? (
             <details className={styles.syncPaths}>
-              <summary>Review {preview.changedPaths.length} managed path{preview.changedPaths.length === 1 ? "" : "s"}</summary>
-              <ul>{preview.changedPaths.slice(0, 80).map((path) => <li key={path}><code>{path}</code></li>)}</ul>
+              <summary>Review {preview.diff.changedPaths.length} managed path{preview.diff.changedPaths.length === 1 ? "" : "s"}</summary>
+              <ul>{preview.diff.changedPaths.slice(0, 80).map((path) => <li key={path}><code>{path}</code></li>)}</ul>
             </details>
           ) : <p className={styles.help}>No canonical project files differ.</p>}
           {preview.migrationRequired ? (

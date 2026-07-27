@@ -19,7 +19,7 @@ jobs:
           ref: agent/phase-3-git-native-project-sync
           fetch-depth: 0
 
-      - name: Replace literal newline escapes
+      - name: Replace literal newline tokens
         shell: bash
         run: |
           python - <<'PY'
@@ -28,21 +28,21 @@ jobs:
           test = Path("tests/issue-150-git-native-project-sync.test.mjs")
           source = test.read_text()
 
-          old_assertions = r'''  assert.match(gateway, /parents:\s*\[branch\.commitSha\]/);\n  assert.match(gateway, /body:\s*\{\s*sha:\s*commitSha,\s*force:\s*false\s*\}/s);'''
-          new_assertions = '''  assert.match(gateway, /parents:\\s*\\[branch\\.commitSha\\]/);
-  assert.match(gateway, /body:\\s*\\{\\s*sha:\\s*commitSha,\\s*force:\\s*false\\s*\\}/s);'''
-          if old_assertions not in source:
-              raise SystemExit("The literal assertion newline was not found")
-          source = source.replace(old_assertions, new_assertions, 1)
+          assertion_token = r');\n  assert.match(gateway, /body:'
+          if source.count(assertion_token) != 1:
+              raise SystemExit(f"Expected one assertion token, found {source.count(assertion_token)}")
+          source = source.replace(assertion_token, ');\n  assert.match(gateway, /body:', 1)
 
-          old_workflows = r'''    ".github/workflows/phase-3-source-integrate.yml",\n    ".github/workflows/phase-3-gateway-contract-fix.yml",\n    ".github/workflows/phase-3-test-contract-fix.yml",'''
-          new_workflows = '''    ".github/workflows/phase-3-source-integrate.yml",
-    ".github/workflows/phase-3-gateway-contract-fix.yml",
-    ".github/workflows/phase-3-test-contract-fix.yml",
-    ".github/workflows/phase-3-test-syntax-fix.yml",'''
-          if old_workflows not in source:
-              raise SystemExit("The literal workflow-list newlines were not found")
-          source = source.replace(old_workflows, new_workflows, 1)
+          workflow_token = r'\n    ".github/workflows/phase-3-'
+          if source.count(workflow_token) != 2:
+              raise SystemExit(f"Expected two workflow tokens, found {source.count(workflow_token)}")
+          source = source.replace(workflow_token, '\n    ".github/workflows/phase-3-')
+
+          anchor = '    ".github/workflows/phase-3-test-contract-fix.yml",'
+          addition = anchor + '\n    ".github/workflows/phase-3-test-syntax-fix.yml",'
+          if anchor not in source:
+              raise SystemExit("The workflow-list anchor was not found")
+          source = source.replace(anchor, addition, 1)
 
           test.write_text(source)
           Path(".github/workflows/phase-3-test-syntax-fix.yml").unlink()

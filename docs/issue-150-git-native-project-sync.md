@@ -24,6 +24,8 @@ The GitHub App connection record retains its existing `projectPath` field so Pha
 
 Repositories using manifest `1.0.0` remain readable. PlotPickle inspects them as migration candidates, preserves their legacy `.ppf`, and upgrades the repository contract only after explicit Project Lead approval. New and upgraded repositories use manifest `1.1.0`.
 
+Regression coverage validates new `1.1.0` repositories, explicit `1.0.0` migration, the transitional connection path, the canonical `project/` root and removal of all temporary write-enabled workflows.
+
 ## Deterministic synchronization
 
 Before GitHub comparison, PlotPickle:

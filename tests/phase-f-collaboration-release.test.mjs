@@ -30,14 +30,16 @@ test("local project storage uses atomic saves, integrity checks, and rolling bac
 });
 
 test("GitHub collaboration is local-only, review-first, and Project Lead-controlled", async () => {
-  const [gateway, proposalGateway, component, comparison, vite, vault] = await Promise.all([
+  const [gateway, proposalGateway, component, syncComponent, comparison, vite, vault] = await Promise.all([
     source("build/local-project-gateway.ts"),
     source("build/github-review-gateway.ts"),
     source("app/github-collaboration.tsx"),
+    source("app/github-project-sync.tsx"),
     source("lib/github-collaboration.ts"),
     source("vite.config.ts"),
     source("build/local-credentials.ts"),
   ]);
+  const collaborationUi = `${component}\n${syncComponent}`;
   for (const phrase of ["local-credentials", "readCredentialJson", "Project storage and GitHub synchronization accept requests only", "githubPull", "githubHistory"]) {
     assert.ok(gateway.includes(phrase), `Missing GitHub gateway protection: ${phrase}`);
   }
@@ -48,13 +50,24 @@ test("GitHub collaboration is local-only, review-first, and Project Lead-control
     assert.ok(proposalGateway.includes(phrase), `Missing proposal architecture: ${phrase}`);
   }
   assert.ok(!proposalGateway.includes("token: project"), "GitHub credentials must never be read from the project.");
-  for (const phrase of ["Many local PlotPickle servers", "Get approved version for review", "Submit changes for Project Lead approval", "The approved ${branch} version is unchanged until the Project Lead accepts it", "Review in GitHub", "approved .ppf revision"]) {
-    assert.ok(component.includes(phrase), `Missing Project Lead-controlled collaboration UI: ${phrase}`);
+  for (const phrase of [
+    "Many local PlotPickle servers",
+    "Canonical Git synchronization",
+    "Compare project files",
+    "Get approved project folder",
+    "Project Lead: publish approved version",
+    "Submit changes for Project Lead approval",
+    "The approved ${branch} version is unchanged until the Project Lead accepts it",
+    "Review in GitHub",
+    "Legacy approved version",
+  ]) {
+    assert.ok(collaborationUi.includes(phrase), `Missing Project Lead-controlled collaboration UI: ${phrase}`);
   }
-  assert.doesNotMatch(component, /Push named backup/);
+  assert.doesNotMatch(collaborationUi, /Push named backup/);
   assert.match(comparison, /compareCollaborativeProjects/);
   assert.match(comparison, /applyReviewedGitHubProject/);
   assert.match(vite, /githubReviewGateway\(\)/);
+  assert.match(vite, /githubProjectSyncGateway\(\)/);
 });
 
 test("canonical projects retain repository metadata without credentials", async () => {

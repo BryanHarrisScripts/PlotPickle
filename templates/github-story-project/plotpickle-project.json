@@ -1,7 +1,7 @@
 {
-  "$schema": "https://plotpickle.org/schemas/github-story-project/1.0/manifest.schema.json",
+  "$schema": "https://plotpickle.org/schemas/github-story-project/1.1/manifest.schema.json",
   "format": "plotpickle-story-project",
-  "formatVersion": "1.0.0",
+  "formatVersion": "1.1.0",
   "schemaVersion": "2.3.0",
   "projectId": "replace-when-created",
   "title": "Untitled Story",
@@ -14,14 +14,23 @@
     "defaultBranch": "main"
   },
   "canonicalProject": {
-    "mode": "portable-ppf",
-    "path": "stories/plotpickle-story.ppf"
+    "mode": "modular-folder",
+    "root": "project",
+    "manifestPath": "project/manifest.json",
+    "format": "plotpickle-project",
+    "formatVersion": "2.3.0"
+  },
+  "portableProject": {
+    "path": "stories/plotpickle-story.ppf",
+    "role": "exchange-snapshot",
+    "legacyCanonicalPath": "stories/plotpickle-story.ppf"
   },
   "modularProject": {
     "format": "plotpickle-project",
     "formatVersion": "2.3.0",
-    "manifestPath": "manifest.json",
-    "status": "phase-3"
+    "root": "project",
+    "manifestPath": "project/manifest.json",
+    "status": "active"
   },
   "collaboration": {
     "approvalAuthority": "project-lead",

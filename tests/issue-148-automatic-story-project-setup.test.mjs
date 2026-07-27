@@ -17,6 +17,7 @@ test("issue #148 creates a versioned repository manifest and deterministic boots
   assert.equal(contract.validateRepositoryName("My_Story.2026"), "My_Story.2026");
   assert.throws(() => contract.validateRepositoryName("///"), /repository name/i);
   assert.throws(() => contract.safeCanonicalProjectPath("../secret.ppf"), /safe \.ppf/i);
+  assert.throws(() => contract.safeCanonicalProjectRoot("../project"), /safe repository folder/i);
 
   const manifest = contract.createStoryProjectManifest({
     projectId: "project-148",
@@ -25,14 +26,19 @@ test("issue #148 creates a versioned repository manifest and deterministic boots
     repository: "Afterglow Story",
     defaultBranch: "trunk",
     canonicalProjectPath: "stories/afterglow.ppf",
+    canonicalProjectRoot: "project",
     createdAt: "2026-07-27T00:00:00.000Z",
   });
   assert.equal(manifest.format, "plotpickle-story-project");
-  assert.equal(manifest.formatVersion, "1.0.0");
+  assert.equal(manifest.formatVersion, "1.1.0");
   assert.equal(manifest.schemaVersion, "2.3.0");
   assert.equal(manifest.repository.name, "Afterglow-Story");
   assert.equal(manifest.repository.defaultBranch, "trunk");
-  assert.equal(manifest.canonicalProject.path, "stories/afterglow.ppf");
+  assert.equal(manifest.canonicalProject.mode, "modular-folder");
+  assert.equal(manifest.canonicalProject.root, "project");
+  assert.equal(manifest.canonicalProject.manifestPath, "project/manifest.json");
+  assert.equal(manifest.portableProject.path, "stories/afterglow.ppf");
+  assert.equal(manifest.portableProject.role, "exchange-snapshot");
   assert.equal(manifest.collaboration.approvalAuthority, "project-lead");
   assert.equal(manifest.collaboration.proposalMode, "pull-request");
 
@@ -42,6 +48,7 @@ test("issue #148 creates a versioned repository manifest and deterministic boots
     "README.md",
     ".gitignore",
     ".github/pull_request_template.md",
+    "project/.gitkeep",
     "stories/.gitkeep",
     "canon/.gitkeep",
     "assets/.gitkeep",
@@ -52,6 +59,29 @@ test("issue #148 creates a versioned repository manifest and deterministic boots
 
   const parsed = contract.parseStoryProjectManifest(JSON.parse(files["plotpickle-project.json"]));
   assert.equal(parsed.projectId, "project-148");
+  assert.equal(parsed.canonicalProject.root, "project");
+
+  const { portableProject: _portableProject, ...legacyBase } = manifest;
+  const legacyManifest = {
+    ...legacyBase,
+    $schema: "https://plotpickle.org/schemas/github-story-project/1.0/manifest.schema.json",
+    formatVersion: "1.0.0",
+    canonicalProject: { mode: "portable-ppf", path: "stories/afterglow.ppf" },
+    modularProject: {
+      format: "plotpickle-project",
+      formatVersion: "2.3.0",
+      manifestPath: "manifest.json",
+      status: "phase-3",
+    },
+  };
+  const inspected = contract.inspectStoryProjectManifest(legacyManifest);
+  assert.equal(inspected.migrationRequired, true);
+  assert.equal(inspected.sourceVersion, "1.0.0");
+  assert.equal(inspected.legacyPortablePath, "stories/afterglow.ppf");
+  assert.equal(inspected.manifest.formatVersion, "1.1.0");
+  assert.equal(inspected.manifest.canonicalProject.root, "project");
+  assert.equal(inspected.manifest.portableProject.path, "stories/afterglow.ppf");
+
   assert.throws(() => contract.parseStoryProjectManifest({ ...manifest, formatVersion: "9.0.0" }), /upgrade or migrate/i);
   assert.throws(() => contract.parseStoryProjectManifest({ format: "another-format" }), /different project format/i);
 });
@@ -87,11 +117,13 @@ test("issue #148 detects manifests and requires explicit initialization without 
     "STORY_PROJECT_MANIFEST_PATH",
     "storyManifest",
     "parseStoryProjectManifest",
+    "inspectStoryProjectManifest",
     "requiresInitialization: true",
     "initializeMissingManifest",
     "preserveExisting",
     "PlotPickle did not overwrite it",
-    "manifest.canonicalProject.path",
+    "manifest.canonicalProject.root",
+    "manifest.portableProject.path",
     "repository.defaultBranch",
   ]) assert.ok(setupContract.includes(contract), `Manifest detection is missing: ${contract}`);
   for (const phrase of [
@@ -118,9 +150,13 @@ test("issue #148 retains the schema, template source and implementation guide", 
     source("docs/issue-148-automatic-story-project-setup.md"),
   ]);
   assert.equal(schema.properties.format.const, "plotpickle-story-project");
-  assert.equal(schema.properties.formatVersion.const, "1.0.0");
+  assert.equal(schema.properties.formatVersion.const, "1.1.0");
   assert.equal(schema.properties.schemaVersion.const, "2.3.0");
-  assert.equal(templateManifest.canonicalProject.path, "stories/plotpickle-story.ppf");
+  assert.equal(schema.properties.canonicalProject.properties.mode.const, "modular-folder");
+  assert.equal(schema.properties.canonicalProject.properties.root.const, "project");
+  assert.equal(templateManifest.canonicalProject.root, "project");
+  assert.equal(templateManifest.portableProject.path, "stories/plotpickle-story.ppf");
+  assert.equal(templateManifest.portableProject.role, "exchange-snapshot");
   assert.match(templateReadme, /PLOTPICKLE_GITHUB_TEMPLATE_REPOSITORY/);
   assert.match(pullRequestTemplate, /PlotPickle Story Proposal/);
   for (const phrase of ["Configured GitHub template", "Built-in bootstrap", "Administration: Read and write", "incompatible manifest is never overwritten", "Phase 3"]) {

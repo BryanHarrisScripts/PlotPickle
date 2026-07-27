@@ -128,9 +128,9 @@ test("Read and Learn and collaboration settings route into the handbook", async 
 test("proposal flow remains owner-controlled and stale-base safe", async () => {
   const collaboration = await source("app/github-collaboration.tsx");
   const gateway = await source("build/github-review-gateway.ts");
-  for (const phrase of ["Pull approved story", "Edit locally", "Submit proposal", "Owner decides", "requires a new pull before submission"]) {
+  for (const phrase of ["Get approved story", "Edit locally", "Submit story proposal", "Project Lead decides", "requires a new pull before submission"]) {
     assert.ok(collaboration.includes(phrase), `Missing collaboration boundary: ${phrase}`);
   }
   assert.match(gateway, /stale/i);
-  assert.match(collaboration, /canonical .* branch is unchanged until the repository owner merges it/i);
+  assert.match(collaboration, /The approved .* version is unchanged until the Project Lead accepts it/i);
 });

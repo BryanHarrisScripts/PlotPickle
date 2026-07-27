@@ -59,16 +59,7 @@ type LinePurpose = {
   createdAt: string;
 };
 
-type TableReadObservation = {
-  id: string;
-  kind: "table-read-observation";
-  sceneId: string;
-  author: string;
-  observation: string;
-  createdAt: string;
-};
-
-type DialogueRecord = Blueprint | LinePurpose | TableReadObservation;
+type DialogueRecord = Blueprint | LinePurpose;
 
 const blankBlueprint = {
   relationshipState: "",
@@ -154,10 +145,6 @@ export default function DialogueInMotionPage() {
   const [selectedElementId, setSelectedElementId] = useState("");
   const [purposeLabel, setPurposeLabel] = useState<(typeof dialoguePurposeLabels)[number]>("pressure");
   const [purposeNote, setPurposeNote] = useState("");
-  const [tableReadAuthor, setTableReadAuthor] = useState("");
-  const [tableReadObservation, setTableReadObservation] = useState("");
-  const [showPlanning, setShowPlanning] = useState(false);
-  const [showAction, setShowAction] = useState(true);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -194,7 +181,6 @@ export default function DialogueInMotionPage() {
   const records = useMemo(() => project.review.threads.map((thread) => ({ thread, record: decode(thread) })).filter((item): item is { thread: ReviewThread; record: DialogueRecord } => Boolean(item.record)), [project.review.threads]);
   const blueprints = records.filter((item): item is { thread: ReviewThread; record: Blueprint } => item.record.kind === "dialogue-blueprint");
   const purposeRecords = records.filter((item): item is { thread: ReviewThread; record: LinePurpose } => item.record.kind === "dialogue-purpose");
-  const tableReadRecords = records.filter((item): item is { thread: ReviewThread; record: TableReadObservation } => item.record.kind === "table-read-observation");
   const activeBlueprint = blueprints.find((item) => item.record.sceneId === scene?.id && item.record.miniBlockNumber === miniBlockNumber)?.record;
 
   const dialogueBySpeaker = useMemo(() => {
@@ -252,13 +238,6 @@ export default function DialogueInMotionPage() {
     setPurposeNote("");
   }
 
-  function saveTableReadObservation() {
-    if (!scene || !tableReadObservation.trim()) return;
-    const record: TableReadObservation = { id: makeId("table-read"), kind: "table-read-observation", sceneId: scene.id, author: tableReadAuthor, observation: tableReadObservation.trim(), createdAt: new Date().toISOString() };
-    addRecord(record, `[Table Read] ${scene.title}`, `Scene ${scene.number}: ${scene.title}`, tableReadAuthor || "Reader");
-    setTableReadObservation("");
-  }
-
   function chooseScene(nextSceneId: string) {
     setSceneId(nextSceneId);
     setMiniBlockNumber(1);
@@ -314,7 +293,7 @@ export default function DialogueInMotionPage() {
 
     <section className={styles.panel}><header><span>Dialogue purpose labels</span><h2>Label selected evidence only when useful</h2><p>Purpose labels aid analysis; writers do not need to classify every line.</p></header>{dialogueElements.length ? <><div className={styles.formGrid}><label className={styles.wide}>Selected speech<select value={selectedElement?.id || ""} onChange={(event) => setSelectedElementId(event.target.value)}>{dialogueElements.map((item) => <option value={item.id} key={item.id}>{speakerMap.get(item.id)} · {item.text.slice(0, 90)}</option>)}</select></label><label>Purpose<select value={purposeLabel} onChange={(event) => setPurposeLabel(event.target.value as (typeof dialoguePurposeLabels)[number])}>{dialoguePurposeLabels.map((item) => <option key={item}>{item}</option>)}</select></label><label>Evidence note<input value={purposeNote} onChange={(event) => setPurposeNote(event.target.value)} /></label></div><div className={styles.actions}><button type="button" onClick={labelPurpose}>Save purpose label</button></div></> : <p>No dialogue elements are assigned to this scene.</p>}<div className={styles.chips}>{dialoguePurposeLabels.map((item) => <span key={item}>{item}</span>)}</div></section>
 
-    <section className={styles.panel} id="table-read"><header><span>Read-aloud and table-read mode</span><h2>Test intention, rhythm and response</h2><p>This focused surface hides planning notes by default, preserves action only when needed for meaning and captures reader observations as anchored review threads. PlotPickle does not imitate a real performer.</p></header><div className={styles.tableControls}><label><input type="checkbox" checked={showAction} onChange={(event) => setShowAction(event.target.checked)} /> Show action and parentheticals</label><label><input type="checkbox" checked={showPlanning} onChange={(event) => setShowPlanning(event.target.checked)} /> Show blueprint context</label></div>{showPlanning && activeBlueprint ? <pre className={styles.blueprintPreview}>{JSON.stringify(activeBlueprint, null, 2)}</pre> : null}<div className={styles.readSurface}>{sceneElements.filter((item) => showAction || ["character", "dialogue", "dual-dialogue"].includes(item.type)).map((item) => <article className={styles[item.type.replace("-", "")]} key={item.id}><small>{item.type}</small><p>{item.text}</p>{(item.type === "dialogue" || item.type === "dual-dialogue") ? <span>{wordCount(item.text)} words · {purposeRecords.find((record) => record.record.elementId === item.id)?.record.label || "unlabelled"}</span> : null}</article>)}</div><div className={styles.formGrid}><label>Reader or actor<input value={tableReadAuthor} onChange={(event) => setTableReadAuthor(event.target.value)} /></label><label className={styles.wide}>Observation about intention, clarity, rhythm, interruption or performance<textarea value={tableReadObservation} onChange={(event) => setTableReadObservation(event.target.value)} /></label></div><div className={styles.actions}><button type="button" disabled={!tableReadObservation.trim()} onClick={saveTableReadObservation}>Save anchored table-read observation</button></div><div className={styles.recordList}>{tableReadRecords.filter((item) => item.record.sceneId === scene?.id).map((item) => <article key={item.record.id}><strong>{item.record.author || "Reader"}</strong><p>{item.record.observation}</p></article>)}</div></section>
+    <section className={styles.panel} id="table-read"><header><span>Read-aloud and table-read mode moved to Feedback</span><h2>Continue rehearsal in Feedback</h2><p>Dialogue in Motion keeps voice, purpose and screenplay-evidence analysis. Feedback now owns browser playback, actor sides, timing and the “Save anchored table-read observation” workflow, so PlotPickle does not maintain a second Table Read engine. It does not imitate a real performer.</p></header><div className={styles.actions}><Link href="/">Open Table Read in Feedback</Link></div></section>
 
     <section className={styles.panel} id="diagnostics"><header><span>Contextual guidance and diagnostics</span><h2>Questions for Block {blockNumber}.{miniBlockNumber}</h2><p>Evidence prompts diagnose before rewriting and remain useful with manual, no-AI workflows.</p></header><ol className={styles.questions}>{questions.map((item) => <li key={item}>{item}</li>)}</ol><div className={styles.passGrid}>{dialogueGuidedPasses.map((pass) => <article key={pass.id}><strong>{pass.label}</strong><p>{pass.instruction}</p><Link href="/labs">Open Dialogue Lab</Link></article>)}</div><p className={styles.safety}>A revision is never applied automatically. Preserve the original, proposed version, explanation, affected continuity and explicit approve/discard controls.</p></section>
 

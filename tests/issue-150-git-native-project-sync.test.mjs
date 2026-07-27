@@ -76,7 +76,8 @@ test("issue #150 uses one guarded Git tree and preserves unrelated repository co
   ]) assert.ok(`${gateway}\n${syncSource}`.includes(contract), `Git-native synchronization is missing: ${contract}`);
   assert.doesNotMatch(gateway, /Promise\.all\([^)]*(?:PUT|DELETE)/s);
   assert.match(gateway, /body:\s*\{\s*base_tree:\s*branch\.treeSha,\s*tree:\s*entries\s*\}/s);
-  assert.match(gateway, /parents:\s*\[branch\.commitSha\]/);\n  assert.match(gateway, /body:\s*\{\s*sha:\s*commitSha,\s*force:\s*false\s*\}/s);
+  assert.match(gateway, /parents:\s*\[branch\.commitSha\]/);
+  assert.match(gateway, /body:\s*\{\s*sha:\s*commitSha,\s*force:\s*false\s*\}/s);
 });
 
 test("issue #150 exposes compare, review, migration and Project Lead publishing", async () => {
@@ -129,7 +130,10 @@ test("issue #150 promotes project/ to canonical and keeps .ppf as exchange", asy
 test("issue #150 leaves no temporary write-enabled integration workflow", async () => {
   for (const filePath of [
     ".github/workflows/phase-3-integrate.yml",
-    ".github/workflows/phase-3-source-integrate.yml",\n    ".github/workflows/phase-3-gateway-contract-fix.yml",\n    ".github/workflows/phase-3-test-contract-fix.yml",
+    ".github/workflows/phase-3-source-integrate.yml",
+    ".github/workflows/phase-3-gateway-contract-fix.yml",
+    ".github/workflows/phase-3-test-contract-fix.yml",
+    ".github/workflows/phase-3-test-syntax-fix.yml",
   ]) {
     await assert.rejects(source(filePath), /ENOENT/);
   }

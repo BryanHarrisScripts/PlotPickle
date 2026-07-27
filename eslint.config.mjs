@@ -15,6 +15,19 @@ const eslintConfig = defineConfig([
       "react/no-unescaped-entities": "off",
     },
   },
+  {
+    files: ["app/github-recovery-centre.tsx"],
+    rules: {
+      // Phase 6 deliberately installs and restores one browser-wide fetch interceptor
+      // so existing GitHub writes can enter the protected local recovery queue.
+      "react-hooks/globals": "off",
+      "react-hooks/immutability": "off",
+      // Recovery status refreshes are asynchronous local-server reads, not derived render state.
+      "react-hooks/set-state-in-effect": "off",
+      // PlotPickle's downloaded Vite-compatible local server uses this internal settings route.
+      "@next/next/no-html-link-for-pages": "off",
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

@@ -7,7 +7,7 @@ const root = new URL("..", import.meta.url);
 const source = (filePath) => readFile(new URL(filePath, root), "utf8");
 
 async function syncContract() {
-  const raw = await source("lib/project-folder-sync.ts");
+  const raw = (await source("lib/project-folder-sync.ts")).replace(/\r\n?/g, "\n");
   const withoutRelativeImports = raw.replace(/import[\s\S]*?;\n/g, (statement) => statement.includes('from "./') ? "" : statement);
   const dependencies = 'const PROJECT_FOLDER_FORMAT = "plotpickle-project";\nconst PROJECT_FOLDER_VERSION = "2.3.0";\n';
   const compiled = stripTypeScriptTypes(`${dependencies}${withoutRelativeImports}`, { mode: "transform" });

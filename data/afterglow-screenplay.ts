@@ -1,7 +1,8 @@
-import type {
-  ScreenplayDocument,
-  ScreenplayDraftElement,
-  ScreenplayDraftElementType,
+import {
+  createBlankProductionDraftState,
+  type ScreenplayDocument,
+  type ScreenplayDraftElement,
+  type ScreenplayDraftElementType,
 } from "@/lib/project";
 import { parseScreenplay } from "@/lib/screenplay";
 import part01 from "./afterglow-screenplay/part-01";
@@ -50,6 +51,7 @@ function sourceDocument(importedAt: string): ScreenplayDocument {
     analyzedAt: importedAt,
     suggestedFields: [],
     draftElements: [],
+    productionDraft: createBlankProductionDraftState(),
   };
 }
 

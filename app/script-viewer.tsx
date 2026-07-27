@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent, useMemo, useRef, useState } from "react";
-import type { PlotPickleProject, ScreenplayDocument } from "@/lib/project";
+import { createBlankProductionDraftState, type PlotPickleProject, type ScreenplayDocument } from "@/lib/project";
 import {
   parseScreenplay,
   screenplayFormatForFile,
@@ -73,6 +73,7 @@ export default function ScriptViewer({ project, onImport, onOpenBlock }: ScriptV
       analyzedAt: "",
       suggestedFields: [],
       draftElements: [],
+      productionDraft: createBlankProductionDraftState(),
     };
     if (!onImport(next)) return;
     setSelectedIndex(0);

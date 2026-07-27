@@ -14,10 +14,11 @@ import {
   nextElementType,
   screenplayToFinalDraft,
   screenplayToFountain,
-  syncDraft,
 } from "@/lib/screenplay-draft";
 import { assignDraftElementToScene, buildGlobalSceneIndex } from "@/lib/scene-management";
+import { productionPageLabel, productionSceneLabel, reconcileProductionDraft } from "@/lib/production-draft";
 import TreatmentEditor from "./treatment-editor";
+import ProductionDraftPanel from "./production-draft-panel";
 import { CraftDiagnosticSummary } from "./craft-diagnostics";
 import styles from "./script-workspace.module.css";
 
@@ -103,7 +104,7 @@ export default function ScriptWorkspace({ project, mode, initialBlockNumber, ini
   const scriptedSceneCount = useMemo(() => new Set(elements.map((item) => item.sceneId || `number-${item.sceneNumber}`)).size, [elements]);
 
   function save(next: ScreenplayDraftElement[]) {
-    onChange(syncDraft(project.screenplay, next));
+    onChange(reconcileProductionDraft(project.screenplay, next));
   }
 
   function makeEditable() {
@@ -251,6 +252,7 @@ export default function ScriptWorkspace({ project, mode, initialBlockNumber, ini
           <button type="button" onClick={() => window.print()}>Print / PDF</button>
         </div>
       </header>
+      <ProductionDraftPanel project={project} selected={selected} onProjectChange={onProjectChange} />
 
       <div className={styles.writerLayout}>
         <aside className={styles.blockRail}>
@@ -286,6 +288,9 @@ export default function ScriptWorkspace({ project, mode, initialBlockNumber, ini
               <article id={`script-position-${element.id}`} className={`${styles.scriptElement} ${styles[element.type]} ${selectedId === element.id ? styles.selectedElement : ""}`} key={element.id} onClick={() => setSelectedId(element.id)}>
                 <div className={styles.elementMeta}>
                   <span>S{element.sceneNumber} · B{element.blockNumber}.{element.miniBlockNumber}</span>
+                  {project.screenplay.productionDraft.mode === "production"
+                    ? <span>Production S{productionSceneLabel(project.screenplay, element)}{project.screenplay.productionDraft.paginationLocked ? ` · P${productionPageLabel(project.screenplay, element.id) || "—"}` : ""}</span>
+                    : null}
                   <select aria-label="Screenplay element type" value={element.type} onChange={(event) => updateElement(element.id, { type: event.target.value as ScreenplayDraftElementType })}>{elementOrder.map((type) => <option key={type} value={type}>{elementLabels[type]}</option>)}</select>
                   <button type="button" aria-label="Move up" onClick={() => moveElement(element.id, -1)}>↑</button>
                   <button type="button" aria-label="Move down" onClick={() => moveElement(element.id, 1)}>↓</button>

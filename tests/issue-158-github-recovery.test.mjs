@@ -93,7 +93,7 @@ test("issue #158 reuses existing GitHub APIs and exposes guarded recovery action
     "requiresReadinessCheck: true",
     "Only the Project Lead workspace",
     "force: false",
-    "The recovered repository belongs to a different PlotPickle project",
+    "The recovered repository or branch belongs to a different PlotPickle project",
     "last verified approved commit",
   ]) assert.ok(gateway.includes(phrase), `Recovery gateway is missing: ${phrase}`);
   assert.doesNotMatch(gateway, /force:\s*true/);

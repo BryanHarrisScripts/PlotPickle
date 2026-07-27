@@ -119,7 +119,7 @@ The launcher does not request Administrator rights, install a Windows service, a
 - **Plan** opens Story Planner with optional Simple Start, story foundations, world, characters, structure and notes.
 - **Write** opens the Screenplay workspace for treatment, screenplay writing, import, revision and the complete script view.
 - **Storyboard** opens Visual Board for character identity locks, visual language, 24 Blocks, 96 frames, pitch images and diagnostics.
-- **Refine** opens the Engines workspace for structure, resonance, voice, page, draft, craft and specialist tools.
+- **Refine** opens diagnostic and specialist passes for resonance, voice, page, draft, craft and production. Structural arrangement belongs only to Build; Refine links back to Build’s contextual structure diagnostics instead of exposing a second editor.
 - **Reports** measures screenplay, character, scene, production and schema coverage from the active project.
 - **Settings** contains preferences and Setup for GitHub, AI, music and future optional providers.
 
@@ -195,7 +195,7 @@ The story rail is grouped into four readable areas.
 
 ### Structure
 
-- **ST — Structure Map** summarizes 4 acts, 12 sequences, 24 blocks, the live scene count, 96 mini-blocks, and the Story Clock before the writer enters the full Structure Engine. A 48-scene feature plan remains the starting template rather than a fixed requirement.
+- **ST — Structure Map** summarizes 4 acts, 12 sequences, 24 blocks, the live scene count, 96 mini-blocks, and the Story Clock before the writer opens Build. A 48-scene feature plan remains the starting template rather than a fixed requirement.
 - 24 Blocks
 
 ### Production
@@ -216,7 +216,7 @@ The guided engine order is:
 
 **Structure → Resonance → Voiceprint → PageFlow → DraftLens → CraftLoop → Specialist Labs**
 
-- **Structure Engine** expands the spine into 12 sequences, a flexible scene plan, 96 mini-blocks, beat and shot targets, and a complete Story Clock.
+- **Build structure workspace** expands and arranges the spine across 12 sequences, a flexible scene plan and 96 mini-blocks. Blocks and mini-blocks support pointer movement, keyboard alternatives, bounded undo/redo, debounced autosave and a local recovery snapshot while preserving stable IDs and linked screenplay, storyboard, feedback and production references.
 - **Resonance Engine** aligns the central question with character choices, motifs, opening and closing images, and consequences.
 - **Voiceprint Engine** develops character-specific speech from history, status, worldview, rhythm, vocabulary, emotion, and pressure.
 - **PageFlow Engine** turns planning into visible, active, actor-playable screenplay description.

@@ -852,7 +852,10 @@ export default function Home() {
           </div>
         ) : null}
 
-        {activeTab === "engines" ? <EngineHub /> : null}
+        {activeTab === "engines" ? <EngineHub onOpenBuild={() => {
+          setReportBuildTargetId("mini-blocks");
+          setActiveTab("build");
+        }} /> : null}
 
         {activeTab === "feedback" ? (
           <FeedbackWorkspace project={project} onProjectChange={commit} onOpenTarget={openFeedbackTarget} initialTargetId={feedbackTargetId} />

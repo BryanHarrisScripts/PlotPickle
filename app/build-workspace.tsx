@@ -17,6 +17,10 @@ import {
   canonicalBuildOrder,
   moveCanonicalBuildBlock,
 } from "@/lib/build-workspace-order";
+import {
+  captureArrangementRecovery,
+  loadArrangementRecovery,
+} from "@/lib/build-recovery";
 import type { PlotPickleProject } from "@/lib/project";
 import { createStoredFeedbackModel } from "@/lib/unified-feedback-store";
 
@@ -87,6 +91,7 @@ function BlockCard({
     >
       <span className={styles.cardTopline}>
         <strong>Block {card.number}</strong>
+        <span className={styles.dragHandle} aria-hidden="true">Drag</span>
         <i className={`${styles.status} ${styles[`status${statusLabel(card.status)}`]}`}>{statusLabel(card.status)}</i>
       </span>
       <span className={styles.cardTitle}>{card.title || "Untitled Block"}</span>
@@ -161,6 +166,7 @@ export default function BuildWorkspace({ project, initialTargetId, onProjectChan
   const [selectedBlockId, setSelectedBlockId] = useState(initialBlock?.id ?? project.blocks[0]?.id ?? "");
   const [undoOrders, setUndoOrders] = useState<string[][]>([]);
   const [redoOrders, setRedoOrders] = useState<string[][]>([]);
+  const [movementStatus, setMovementStatus] = useState("Block arrangement ready.");
 
   const model = useMemo(() => createBuildWorkspaceModel(project, {
     query,
@@ -192,9 +198,12 @@ export default function BuildWorkspace({ project, initialTargetId, onProjectChan
   function moveBlock(blockId: string, targetNumber: number) {
     const next = moveCanonicalBuildBlock(project, blockId, targetNumber);
     if (next === project) return;
+    captureArrangementRecovery(project, "block-move");
     setUndoOrders((orders) => [...orders.slice(-19), canonicalBuildOrder(project)]);
     setRedoOrders([]);
     setSelectedBlockId(blockId);
+    const moved = next.blocks.find((block) => block.id === blockId);
+    setMovementStatus(moved ? `Moved Block ${moved.number}. Linked screenplay, arc, thread, review and production references were synchronized.` : "Block move complete.");
     onProjectChange(next);
   }
 
@@ -208,8 +217,10 @@ export default function BuildWorkspace({ project, initialTargetId, onProjectChan
     if (!previousOrder) return;
     const next = applyCanonicalBuildOrder(project, previousOrder);
     if (next === project) return;
+    captureArrangementRecovery(project, "undo");
     setUndoOrders((orders) => orders.slice(0, -1));
     setRedoOrders((orders) => [...orders.slice(-19), canonicalBuildOrder(project)]);
+    setMovementStatus("Undid the last Block move.");
     onProjectChange(next);
   }
 
@@ -218,9 +229,24 @@ export default function BuildWorkspace({ project, initialTargetId, onProjectChan
     if (!nextOrder) return;
     const next = applyCanonicalBuildOrder(project, nextOrder);
     if (next === project) return;
+    captureArrangementRecovery(project, "redo");
     setRedoOrders((orders) => orders.slice(0, -1));
     setUndoOrders((orders) => [...orders.slice(-19), canonicalBuildOrder(project)]);
+    setMovementStatus("Redid the last Block move.");
     onProjectChange(next);
+  }
+
+  function restoreRecovery() {
+    const recovery = loadArrangementRecovery(project.id);
+    if (!recovery) {
+      setMovementStatus("No earlier Build recovery snapshot is available.");
+      return;
+    }
+    if (!window.confirm(`Restore the Build arrangement saved ${recovery.savedAt ? new Date(recovery.savedAt).toLocaleString() : "before the last move"}? The current arrangement will remain available through normal project backups.`)) return;
+    setUndoOrders((orders) => [...orders.slice(-19), canonicalBuildOrder(project)]);
+    setRedoOrders([]);
+    setMovementStatus("Restored the last Build recovery snapshot.");
+    onProjectChange(recovery.project);
   }
 
   function renderCanvas() {
@@ -326,6 +352,8 @@ export default function BuildWorkspace({ project, initialTargetId, onProjectChan
                 <button type="button" disabled={!undoOrders.length} onClick={undoMove}>Undo move</button>
                 <button type="button" disabled={!redoOrders.length} onClick={redoMove}>Redo move</button>
               </div>
+              <button type="button" className={styles.recoveryButton} onClick={restoreRecovery}>Restore last arrangement</button>
+              <p role="status" aria-live="polite">{movementStatus}</p>
               <p>Keyboard-safe movement updates canonical ordering and every linked block-number reference atomically.</p>
             </section>
             <InspectorField label="Title" rows={1} value={selectedBlock.title} onChange={(value) => patchSelected({ title: value })} />

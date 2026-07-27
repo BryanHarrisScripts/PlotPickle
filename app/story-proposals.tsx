@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { PlotPickleProject } from "@/lib/project";
 import type { StoryProposalGroupId } from "@/lib/story-proposals";
-import styles from "./github-collaboration.module.css";
+import styles from "./story-proposals.module.css";
 
 type ProposalState = "open" | "draft" | "approved" | "merged" | "declined";
 type ProposalItem = {

@@ -46,13 +46,28 @@ test("terminology uses readable categories, views, examples, and workspace links
   assert.match(styles, /categoryBar/);
 });
 
-test("many local servers submit story proposals instead of writing directly to the approved version", async () => {
-  const [gateway, component] = await Promise.all([source("build/github-review-gateway.ts"), source("app/github-collaboration.tsx")]);
-  for (const phrase of ["server-identity.json", "randomUUID", "plotpickle/", "git/refs", "contents", "pulls", "expectedBaseRevision", "canonical GitHub story changed", "maintainer_can_modify"]) {
-    assert.ok(gateway.includes(phrase), `Collaboration gateway is missing ${phrase}`);
-  }
-  assert.match(component, /Many local PlotPickle servers\. One owner-controlled GitHub story/);
-  assert.match(component, /Submit changes for Project Lead approval/);
-  assert.match(component, /The approved .* version is unchanged until the Project Lead accepts it/);
-  assert.doesNotMatch(component, /Push named backup/);
+test("many local servers submit Story Proposals instead of writing directly to the approved version", async () => {
+  const [gateway, workspace, proposals] = await Promise.all([
+    source("build/github-review-gateway.ts"),
+    source("app/github-collaboration.tsx"),
+    source("app/story-proposals.tsx"),
+  ]);
+  for (const phrase of [
+    "server-identity.json",
+    "randomUUID",
+    "plotpickle/proposal/",
+    "/git/blobs",
+    "/git/trees",
+    "/git/commits",
+    "pulls",
+    "expectedBaseRevision",
+    "expectedBaseCommit",
+    "selectedGroups",
+    "maintainer_can_modify",
+  ]) assert.ok(gateway.includes(phrase), `Collaboration gateway is missing ${phrase}`);
+  assert.match(workspace, /Many local PlotPickle servers\. One owner-controlled GitHub story/);
+  assert.match(proposals, /Create Story Proposal/);
+  assert.match(proposals, /Approve selected groups/);
+  assert.match(proposals, /The approved \$\{branch\} version is unchanged/);
+  assert.doesNotMatch(`${workspace}\n${proposals}`, /Push named backup/);
 });

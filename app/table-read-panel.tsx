@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PlotPickleProject } from "@/lib/project";
 import {
   actorSides,
@@ -41,7 +41,6 @@ export default function TableReadPanel({ project, onProjectChange, initialTarget
   const [title, setTitle] = useState("");
   const [scope, setScope] = useState<TableReadScope>("scene");
   const [startSceneId, setStartSceneId] = useState(initialSceneId);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [paused, setPaused] = useState(false);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -53,13 +52,14 @@ export default function TableReadPanel({ project, onProjectChange, initialTarget
   const startedAtRef = useRef(0);
   const playingRef = useRef(false);
   const pausedRef = useRef(false);
-  const speakAtRef = useRef<(index: number) => void>(() => undefined);
+  const completedIdsRef = useRef<Set<string>>(new Set());
 
   const selected = sessions.find(({ session }) => session.id === selectedId)?.session ?? sessions[0]?.session;
   const items = useMemo(
     () => selected ? itemsForTableReadScope(project, selected.scope, selected.startSceneId) : [],
     [project, selected],
   );
+  const currentIndex = Math.max(0, items.findIndex((item) => item.id === selected?.currentElementId));
   const current = items[currentIndex] ?? items[0];
   const report = selected ? tableReadSessionReport(project, selected) : null;
   const sides = useMemo(() => actorSides(project, sideCharacterId), [project, sideCharacterId]);
@@ -75,25 +75,19 @@ export default function TableReadPanel({ project, onProjectChange, initialTarget
     };
   }, []);
 
-  useEffect(() => {
-    if (!selected) return;
-    const nextIndex = Math.max(0, items.findIndex((item) => item.id === selected.currentElementId));
-    setCurrentIndex(nextIndex);
-  }, [items, selected]);
-
-  function patch(patchValue: Record<string, unknown>) {
+  const patch = useCallback((patchValue: Record<string, unknown>) => {
     if (!selected) return;
     onProjectChange(updateTableReadSession(project, selected.id, (session) => ({ ...session, ...patchValue })));
-  }
+  }, [onProjectChange, project, selected]);
 
-  speakAtRef.current = (index: number) => {
+  const speakAt = useCallback(function speakAt(index: number) {
     if (!selected || !globalThis.speechSynthesis || index < 0 || index >= items.length) {
       playingRef.current = false;
       setPlaying(false);
       return;
     }
     const item = items[index];
-    setCurrentIndex(index);
+    patch({ currentElementId: item.id });
     const utterance = new SpeechSynthesisUtterance(applyTableReadPronunciations(item.text, selected.pronunciations));
     const assignment = selected.voiceAssignments.find((candidate) => candidate.characterId === item.characterId);
     const voiceURI = item.narrator ? selected.narratorVoiceURI : assignment?.voiceURI;
@@ -102,16 +96,17 @@ export default function TableReadPanel({ project, onProjectChange, initialTarget
     utterance.pitch = item.narrator ? selected.narratorPitch : assignment?.pitch ?? 1;
     utterance.onend = () => {
       if (!playingRef.current || pausedRef.current) return;
+      completedIdsRef.current.add(item.id);
       patch({
         currentElementId: item.id,
-        completedElementIds: [...new Set([...selected.completedElementIds, item.id])],
+        completedElementIds: [...completedIdsRef.current],
         startedAt: selected.startedAt || new Date().toISOString(),
       });
-      speakAtRef.current(index + 1);
+      speakAt(index + 1);
     };
     globalThis.speechSynthesis.cancel();
     globalThis.speechSynthesis.speak(utterance);
-  };
+  }, [items, patch, selected, voices]);
 
   function createSession() {
     if (!startSceneId) return;
@@ -120,7 +115,6 @@ export default function TableReadPanel({ project, onProjectChange, initialTarget
     onProjectChange(next);
     if (created) setSelectedId(created.id);
     setTitle("");
-    setCurrentIndex(0);
   }
 
   function play() {
@@ -128,10 +122,11 @@ export default function TableReadPanel({ project, onProjectChange, initialTarget
     startedAtRef.current = Date.now();
     playingRef.current = true;
     pausedRef.current = false;
+    completedIdsRef.current = new Set(selected.completedElementIds);
     setPlaying(true);
     setPaused(false);
     patch({ startedAt: selected.startedAt || new Date().toISOString(), endedAt: "" });
-    speakAtRef.current(currentIndex);
+    speakAt(currentIndex);
   }
 
   function pause() {
@@ -157,8 +152,7 @@ export default function TableReadPanel({ project, onProjectChange, initialTarget
   function moveTo(index: number) {
     const bounded = Math.min(Math.max(index, 0), Math.max(0, items.length - 1));
     patch({ currentElementId: items[bounded]?.id || "" });
-    if (playingRef.current) speakAtRef.current(bounded);
-    else setCurrentIndex(bounded);
+    if (playingRef.current) speakAt(bounded);
   }
 
   function moveScene(direction: -1 | 1) {

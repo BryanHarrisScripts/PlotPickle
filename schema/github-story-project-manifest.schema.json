@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://plotpickle.org/schemas/github-story-project/1.0/manifest.schema.json",
+  "$id": "https://plotpickle.org/schemas/github-story-project/1.1/manifest.schema.json",
   "title": "PlotPickle GitHub Story Project Manifest",
   "type": "object",
   "additionalProperties": false,
@@ -16,13 +16,14 @@
     "createdWith",
     "repository",
     "canonicalProject",
+    "portableProject",
     "modularProject",
     "collaboration"
   ],
   "properties": {
-    "$schema": { "type": "string", "const": "https://plotpickle.org/schemas/github-story-project/1.0/manifest.schema.json" },
+    "$schema": { "type": "string", "const": "https://plotpickle.org/schemas/github-story-project/1.1/manifest.schema.json" },
     "format": { "type": "string", "const": "plotpickle-story-project" },
-    "formatVersion": { "type": "string", "const": "1.0.0" },
+    "formatVersion": { "type": "string", "const": "1.1.0" },
     "schemaVersion": { "type": "string", "const": "2.3.0" },
     "projectId": { "type": "string", "minLength": 1 },
     "title": { "type": "string", "minLength": 1 },
@@ -42,21 +43,35 @@
     "canonicalProject": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["mode", "path"],
+      "required": ["mode", "root", "manifestPath", "format", "formatVersion"],
       "properties": {
-        "mode": { "type": "string", "const": "portable-ppf" },
-        "path": { "type": "string", "pattern": "^[^\\\\]+\\.ppf$" }
+        "mode": { "type": "string", "const": "modular-folder" },
+        "root": { "type": "string", "const": "project" },
+        "manifestPath": { "type": "string", "const": "project/manifest.json" },
+        "format": { "type": "string", "const": "plotpickle-project" },
+        "formatVersion": { "type": "string", "const": "2.3.0" }
+      }
+    },
+    "portableProject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "role", "legacyCanonicalPath"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^[^\\\\]+\\.ppf$" },
+        "role": { "type": "string", "const": "exchange-snapshot" },
+        "legacyCanonicalPath": { "type": "string", "pattern": "^[^\\\\]+\\.ppf$" }
       }
     },
     "modularProject": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["format", "formatVersion", "manifestPath", "status"],
+      "required": ["format", "formatVersion", "root", "manifestPath", "status"],
       "properties": {
         "format": { "type": "string", "const": "plotpickle-project" },
         "formatVersion": { "type": "string", "const": "2.3.0" },
-        "manifestPath": { "type": "string", "const": "manifest.json" },
-        "status": { "type": "string", "const": "phase-3" }
+        "root": { "type": "string", "const": "project" },
+        "manifestPath": { "type": "string", "const": "project/manifest.json" },
+        "status": { "type": "string", "const": "active" }
       }
     },
     "collaboration": {

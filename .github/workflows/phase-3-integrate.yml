@@ -1,21 +1,20 @@
 name: Phase 3 integration patch
 
 on:
-  push:
-    branches: [agent/phase-3-git-native-project-sync]
-    paths: [.github/workflows/phase-3-integrate.yml]
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
 
 jobs:
   integrate:
-    if: github.actor != 'github-actions[bot]'
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'agent/phase-3-git-native-project-sync'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: agent/phase-3-git-native-project-sync
+          ref: ${{ github.head_ref }}
       - name: Integrate canonical synchronization workspace
         shell: bash
         run: |
@@ -60,4 +59,4 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add app/github-collaboration.tsx app/github-project-sync.tsx
           git diff --cached --quiet || git commit -m "Integrate canonical project sync workspace"
-          git push origin HEAD:agent/phase-3-git-native-project-sync
+          git push origin HEAD:${{ github.head_ref }}

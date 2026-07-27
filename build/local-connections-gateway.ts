@@ -1,6 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import { chmod, mkdir, open, readFile, readdir, rename, unlink } from "node:fs/promises";
-import os from "node:os";
+import { readdir } from "node:fs/promises";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
@@ -11,8 +10,19 @@ import {
   type ConnectionPermission,
   type PublicConnectionStatus,
 } from "../lib/connection-status";
+import {
+  credentialInventory,
+  defaultCredentialProtection,
+  eraseAllCredentials,
+  openCredentialsDirectory,
+  persistentHome,
+  readCredentialJson,
+  removeCredentialFile,
+  writeCredentialJson,
+} from "./local-credentials";
 
 const CONNECTIONS_API = "/api/local-connections";
+const CREDENTIALS_API = `${CONNECTIONS_API}/credentials`;
 const GOOGLE_API = "/api/local-google/connection";
 const GOOGLE_CALLBACK = "/api/local-google/callback";
 const GOOGLE_AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -63,19 +73,16 @@ type GitHubConnection = {
   branch: string;
   projectPath: string;
   verifiedAt: string;
+  readiness?: {
+    ready: boolean;
+    checks: Array<{ id: string; label: string; ready: boolean; detail: string }>;
+  };
 };
 
-function persistentHome() {
-  if (process.env.PLOTPICKLE_HOME) return path.resolve(process.env.PLOTPICKLE_HOME);
-  if (process.env.LOCALAPPDATA) return path.join(process.env.LOCALAPPDATA, "PlotPickle");
-  return path.join(os.homedir(), ".plotpickle");
-}
-
-function secretsDirectory() { return path.join(persistentHome(), "secrets"); }
-function googleConnectionFile() { return path.join(secretsDirectory(), "google-connection.json"); }
-function googlePendingFile() { return path.join(secretsDirectory(), "google-pending.json"); }
-function aiConnectionFile() { return path.join(secretsDirectory(), "ai-connection.json"); }
-function githubConnectionFile() { return path.join(secretsDirectory(), "github-connection.json"); }
+function googleConnectionFile() { return "google-connection.json"; }
+function googlePendingFile() { return "google-pending.json"; }
+function aiConnectionFile() { return "ai-connection.json"; }
+function githubConnectionFile() { return "github-connection.json"; }
 function projectsDirectory() { return path.join(persistentHome(), "projects"); }
 function backupsDirectory() { return path.join(persistentHome(), "backups"); }
 
@@ -133,35 +140,6 @@ async function readBody(request: IncomingMessage, maximum = 32 * 1024): Promise<
     chunks.push(value);
   }
   return JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
-}
-
-async function readJson<T>(filePath: string): Promise<T | null> {
-  try {
-    return JSON.parse(await readFile(filePath, "utf8")) as T;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
-    throw error;
-  }
-}
-
-async function atomicWrite(filePath: string, value: unknown) {
-  await mkdir(path.dirname(filePath), { recursive: true, mode: 0o700 });
-  const temporary = `${filePath}.${process.pid}.${Date.now()}.tmp`;
-  const handle = await open(temporary, "w", 0o600);
-  try {
-    await handle.writeFile(`${JSON.stringify(value, null, 2)}\n`, "utf8");
-    await handle.sync();
-  } finally {
-    await handle.close();
-  }
-  await rename(temporary, filePath);
-  try { await chmod(filePath, 0o600); } catch { /* Windows protects the current account profile. */ }
-}
-
-async function removeFile(filePath: string) {
-  try { await unlink(filePath); } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-  }
 }
 
 function base64Url(value: Buffer) {
@@ -272,9 +250,9 @@ async function countFiles(directory: string, extension: string) {
 
 async function aggregateStatus() {
   const [ai, github, google, projectCount, backupCount] = await Promise.all([
-    readJson<AiConnection>(aiConnectionFile()),
-    readJson<GitHubConnection>(githubConnectionFile()),
-    readJson<GoogleConnection>(googleConnectionFile()),
+    readCredentialJson<AiConnection>(aiConnectionFile()),
+    readCredentialJson<GitHubConnection>(githubConnectionFile()),
+    readCredentialJson<GoogleConnection>(googleConnectionFile()),
     countFiles(projectsDirectory(), ".ppf"),
     countFiles(backupsDirectory(), ".ppf"),
   ]);
@@ -290,12 +268,15 @@ async function aggregateStatus() {
     identity: "No saved provider credential",
     dataShared: ["Nothing until an AI request is explicitly prepared and submitted"],
   });
+  const githubReady = Boolean(github?.readiness?.ready);
   const githubStatus = github?.version === 1 && github.owner && github.repo ? status("github", "GitHub", {
-    state: "connected",
+    state: githubReady ? "connected" : "configured",
     identity: `${github.owner}/${github.repo}`,
     detail: `${github.branch || "main"} · ${github.projectPath || "No .ppf path"}`,
     lastSuccessfulConnection: github.verifiedAt,
-    repairGuidance: "Test and update the repository connection or remove the saved local token.",
+    repairGuidance: githubReady
+      ? "Use Test and update whenever the repository, token or permissions change."
+      : "Open GitHub Settings and run Test and update before pulling or proposing changes.",
     dataShared: ["Selected .ppf content", "repository proposal metadata", "branch and project path"],
     scopes: ["Repository contents", "Pull requests"],
   }) : status("github", "GitHub", {
@@ -348,7 +329,7 @@ async function startGoogleAuthorization(request: IncomingMessage) {
     redirectUri: redirectUri(request),
     createdAt: new Date().toISOString(),
   };
-  await atomicWrite(googlePendingFile(), pending);
+  await writeCredentialJson(googlePendingFile(), pending);
   const authorization = new URL(GOOGLE_AUTHORIZE_URL);
   authorization.search = new URLSearchParams({
     client_id: clientId,
@@ -396,7 +377,7 @@ async function userInfo(accessToken: string) {
 }
 
 async function completeGoogleAuthorization(url: URL) {
-  const pending = await readJson<PendingGoogleAuthorization>(googlePendingFile());
+  const pending = await readCredentialJson<PendingGoogleAuthorization>(googlePendingFile());
   if (!pending || pending.version !== 1) throw new Error("The Google sign-in request expired. Start again from Settings.");
   if (Date.now() - Date.parse(pending.createdAt) > AUTHORIZATION_MAX_AGE_MS) throw new Error("The Google sign-in request expired. Start again from Settings.");
   if (url.searchParams.get("state") !== pending.state) throw new Error("Google returned an invalid authorization state.");
@@ -415,7 +396,7 @@ async function completeGoogleAuthorization(url: URL) {
   });
   const accessToken = typeof token.access_token === "string" ? token.access_token : "";
   if (!accessToken) throw new Error("Google did not return an access token.");
-  const previous = await readJson<GoogleConnection>(googleConnectionFile());
+  const previous = await readCredentialJson<GoogleConnection>(googleConnectionFile());
   const refreshToken = typeof token.refresh_token === "string" ? token.refresh_token : previous?.refreshToken || "";
   const expiresIn = Number(token.expires_in) || 3600;
   const account = await userInfo(accessToken);
@@ -430,13 +411,13 @@ async function completeGoogleAuthorization(url: URL) {
     account,
     verifiedAt: new Date().toISOString(),
   };
-  await atomicWrite(googleConnectionFile(), saved);
-  await removeFile(googlePendingFile());
+  await writeCredentialJson(googleConnectionFile(), saved);
+  await removeCredentialFile(googlePendingFile());
   return saved;
 }
 
 async function liveGoogleConnection() {
-  const saved = await readJson<GoogleConnection>(googleConnectionFile());
+  const saved = await readCredentialJson<GoogleConnection>(googleConnectionFile());
   if (!validGoogleConnection(saved)) throw new Error("No saved Google connection was found.");
   let current = saved;
   if (Date.parse(saved.expiresAt) <= Date.now() + 60_000) {
@@ -459,12 +440,12 @@ async function liveGoogleConnection() {
   }
   const account = await userInfo(current.accessToken);
   const verified = { ...current, account, verifiedAt: new Date().toISOString() };
-  await atomicWrite(googleConnectionFile(), verified);
+  await writeCredentialJson(googleConnectionFile(), verified);
   return verified;
 }
 
 async function revokeGoogleConnection() {
-  const saved = await readJson<GoogleConnection>(googleConnectionFile());
+  const saved = await readCredentialJson<GoogleConnection>(googleConnectionFile());
   let remoteRevoked = false;
   if (saved?.accessToken || saved?.refreshToken) {
     try {
@@ -477,8 +458,25 @@ async function revokeGoogleConnection() {
       remoteRevoked = response.ok;
     } catch { /* Local removal still protects this installation and cannot block local work. */ }
   }
-  await Promise.all([removeFile(googleConnectionFile()), removeFile(googlePendingFile())]);
+  await Promise.all([removeCredentialFile(googleConnectionFile()), removeCredentialFile(googlePendingFile())]);
   return remoteRevoked;
+}
+
+async function publicCredentialState() {
+  const inventory = await credentialInventory();
+  const defaultProtection = defaultCredentialProtection();
+  const protectedCount = inventory.files.filter((file) => file.protection === "windows-dpapi-current-user").length;
+  return {
+    ok: true,
+    path: inventory.path,
+    files: inventory.files,
+    count: inventory.files.length,
+    defaultProtection,
+    protectedCount,
+    protectionLabel: defaultProtection === "windows-dpapi-current-user"
+      ? "New and updated credentials are encrypted for the current Windows user with DPAPI."
+      : "Credential files are restricted to the current computer account with owner-only file permissions.",
+  };
 }
 
 async function handle(request: IncomingMessage, response: ServerResponse, url: URL) {
@@ -486,8 +484,30 @@ async function handle(request: IncomingMessage, response: ServerResponse, url: U
     sendJson(response, 200, await aggregateStatus());
     return;
   }
+  if (request.method === "GET" && url.pathname === CREDENTIALS_API) {
+    sendJson(response, 200, await publicCredentialState());
+    return;
+  }
+  if (request.method === "POST" && url.pathname === `${CREDENTIALS_API}/open`) {
+    const directory = await openCredentialsDirectory();
+    sendJson(response, 200, { ok: true, path: directory, message: "The private credentials folder was opened." });
+    return;
+  }
+  if (request.method === "DELETE" && url.pathname === CREDENTIALS_API) {
+    const before = await credentialInventory();
+    let googleRemoteRevoked = false;
+    try { googleRemoteRevoked = await revokeGoogleConnection(); } catch { /* Local deletion must still complete. */ }
+    await eraseAllCredentials();
+    sendJson(response, 200, {
+      ok: true,
+      removed: before.files.length,
+      googleRemoteRevoked,
+      message: `Removed ${before.files.length} local credential file${before.files.length === 1 ? "" : "s"}. Projects, assets and backups were kept.`,
+    });
+    return;
+  }
   if (request.method === "GET" && url.pathname === GOOGLE_API) {
-    sendJson(response, 200, { ok: true, ...(publicGoogleConnection(await readJson<GoogleConnection>(googleConnectionFile()))) });
+    sendJson(response, 200, { ok: true, ...(publicGoogleConnection(await readCredentialJson<GoogleConnection>(googleConnectionFile()))) });
     return;
   }
   if (request.method === "POST" && url.pathname === `${GOOGLE_API}/start`) {
@@ -514,7 +534,7 @@ async function handle(request: IncomingMessage, response: ServerResponse, url: U
       const connected = await completeGoogleAuthorization(url);
       sendCallbackPage(response, true, `Connected ${connected.account.email || "the selected Google account"}.`);
     } catch (error) {
-      await removeFile(googlePendingFile());
+      await removeCredentialFile(googlePendingFile());
       sendCallbackPage(response, false, error instanceof Error ? error.message : "Google sign-in could not be completed.");
     }
     return;
@@ -539,7 +559,7 @@ export function localConnectionsGateway(): Plugin {
         const rawUrl = request.url;
         if (!rawUrl) { next(); return; }
         const url = new URL(rawUrl, "http://127.0.0.1");
-        if (url.pathname !== CONNECTIONS_API && !url.pathname.startsWith(GOOGLE_API) && url.pathname !== GOOGLE_CALLBACK) {
+        if (!url.pathname.startsWith(CONNECTIONS_API) && !url.pathname.startsWith(GOOGLE_API) && url.pathname !== GOOGLE_CALLBACK) {
           next();
           return;
         }

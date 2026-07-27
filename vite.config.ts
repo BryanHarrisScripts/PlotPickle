@@ -4,6 +4,7 @@ import hostingConfig from "./.openai/hosting.json";
 import { localAiGateway } from "./build/local-ai-gateway";
 import { localConnectionsGateway } from "./build/local-connections-gateway";
 import { githubAppGateway } from "./build/github-app-gateway";
+import { githubProjectSyncGateway } from "./build/github-project-sync-gateway";
 import { githubReviewGateway } from "./build/github-review-gateway";
 import { folderProjectGateway } from "./build/folder-project-gateway";
 import { nativeGitGateway } from "./build/native-git-gateway";
@@ -61,6 +62,7 @@ export default defineConfig(async () => {
     plugins: [
       localConnectionsGateway(),
       githubAppGateway(),
+      githubProjectSyncGateway(),
       githubReviewGateway(),
       // Folder projects are the canonical working format. Native Git operates
       // directly inside those folders and never requires a terminal.

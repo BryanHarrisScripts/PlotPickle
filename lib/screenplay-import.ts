@@ -1,4 +1,5 @@
 import {
+  createBlankProductionDraftState,
   createBlankArcMatrix,
   createBlankProject,
   createBlankVoiceprint,
@@ -450,6 +451,7 @@ export function createProjectFromScreenplay(screenplay: ScreenplayDocument): Plo
   const document: ScreenplayDocument = {
     ...screenplay,
     draftElements: screenplay.draftElements ?? [],
+    productionDraft: screenplay.productionDraft ?? createBlankProductionDraftState(),
     analysisStatus: "suggested",
     analyzedAt: now,
     suggestedFields: [

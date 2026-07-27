@@ -146,6 +146,177 @@
   background: #eaf6f4;
 }
 
+.productionDraftPanel {
+  padding: 16px 28px;
+  border-bottom: 1px solid #c8dedd;
+  background: #f4faf8;
+}
+
+.productionDraftPanel > div:first-child > span,
+.productionDraftPanel header span {
+  color: #398187;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.productionDraftPanel h2,
+.productionDraftPanel h3,
+.productionDraftPanel p {
+  margin: 4px 0;
+}
+
+.productionDraftPanel p {
+  color: #617b7f;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.productionDraftPanel > button,
+.productionDraftPanel button {
+  min-height: 36px;
+  padding: 7px 11px;
+  border: 1px solid #8ebfc0;
+  border-radius: 8px;
+  background: #fff;
+  color: #285f65;
+  font-weight: 800;
+}
+
+.productionDraftPanel > label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 10px 0 0;
+  color: #48686d;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.productionDraftPanel > label input {
+  min-height: 36px;
+  padding: 7px 9px;
+  border: 1px solid #b7d2d1;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.productionDraftPanel header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.productionMetrics,
+.productionActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.productionMetrics {
+  justify-content: flex-end;
+}
+
+.productionMetrics b {
+  padding: 6px 8px;
+  border: 1px solid #b9d5d3;
+  border-radius: 999px;
+  background: #fff;
+  color: #446b70;
+  font-size: 0.68rem;
+}
+
+.productionActions {
+  align-items: flex-end;
+  margin-top: 12px;
+}
+
+.productionActions label,
+.revisionForm label {
+  display: grid;
+  gap: 4px;
+  color: #547175;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.productionActions input,
+.revisionForm input,
+.revisionForm select,
+.revisionForm textarea {
+  min-height: 36px;
+  padding: 7px 9px;
+  border: 1px solid #b7d2d1;
+  border-radius: 7px;
+  background: #fff;
+  color: #274f54;
+  font: inherit;
+}
+
+.productionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.productionGrid > div {
+  padding: 12px;
+  border: 1px solid #c4dbd9;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.productionGrid h3 {
+  font-size: 0.85rem;
+}
+
+.revisionForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(100px, 0.5fr);
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.revisionForm label:has(textarea) {
+  grid-column: 1 / -1;
+}
+
+.productionHistory {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #d2e2e0;
+}
+
+.productionHistory summary {
+  color: #355e63;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.productionHistory ol {
+  margin: 10px 0 0;
+  padding-left: 22px;
+}
+
+.productionHistory li {
+  margin-bottom: 7px;
+  color: #42656a;
+  font-size: 0.72rem;
+}
+
+.productionHistory li strong,
+.productionHistory li span {
+  display: block;
+}
+
+.productionHistory li span {
+  color: #7a9093;
+}
+
 .writerLayout {
   display: grid;
   grid-template-columns: 220px minmax(540px, 1fr) 300px;

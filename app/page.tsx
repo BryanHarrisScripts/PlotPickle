@@ -33,6 +33,7 @@ import {
   addBlankLocation,
   cloneProject,
   completionFor,
+  createBlankProductionDraftState,
   createBlankProject,
   normalizePlotPickleProject,
   type Character,
@@ -504,6 +505,7 @@ export default function Home() {
         analyzedAt: "",
         suggestedFields: [],
         draftElements: [],
+        productionDraft: createBlankProductionDraftState(),
       });
     } catch {
       setToast("Choose a PlotPickle JSON project or a TXT, Fountain, SPMD, or Final Draft FDX screenplay.");

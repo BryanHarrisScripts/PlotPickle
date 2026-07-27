@@ -139,6 +139,9 @@
           "items": {
             "$ref": "#/$defs/screenplayDraftElement"
           }
+        },
+        "productionDraft": {
+          "$ref": "#/$defs/productionDraft"
         }
       }
     },
@@ -243,6 +246,83 @@
         "updatedAt": {
           "type": "string",
           "format": "date-time"
+        }
+      }
+    },
+    "productionDraft": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "convertedAt",
+        "writerBaselineRevisionId",
+        "paginationLocked",
+        "paginationLockedAt",
+        "sceneNumbers",
+        "pageAssignments",
+        "revisionSets",
+        "activeRevisionSetId",
+        "annotations",
+        "approvalHistory"
+      ],
+      "properties": {
+        "mode": {
+          "enum": ["writer", "production"]
+        },
+        "convertedAt": {
+          "type": "string"
+        },
+        "writerBaselineRevisionId": {
+          "type": "string"
+        },
+        "paginationLocked": {
+          "type": "boolean"
+        },
+        "paginationLockedAt": {
+          "type": "string"
+        },
+        "sceneNumbers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["sceneId", "elementId", "number", "omitted"]
+          }
+        },
+        "pageAssignments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["elementId", "pageLabel", "basePage", "lockedAt"]
+          }
+        },
+        "revisionSets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["id", "label", "colour", "date", "marks", "notes", "authorizedBy", "changedElementIds", "changedPageLabels", "createdAt"]
+          }
+        },
+        "activeRevisionSetId": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["id", "targetType", "targetId", "department", "body", "author", "createdAt", "updatedAt"]
+          }
+        },
+        "approvalHistory": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["id", "action", "summary", "authorizedBy", "createdAt"]
+          }
         }
       }
     },

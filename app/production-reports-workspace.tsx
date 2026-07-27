@@ -98,6 +98,9 @@ export default function ProductionReportsWorkspace({
       ["Storyboard frames", report.overview.storyboardFrames],
       ["Ready breakdowns", `${report.overview.readyBreakdowns}/${report.overview.breakdowns}`],
       ["Unscheduled scenes", report.overview.unscheduledScenes],
+      ["Shooting Script", report.overview.shootingScript.mode === "production" ? "Production draft" : "Writer draft"],
+      ["Locked production pages", report.overview.shootingScript.pages],
+      ["Changed pages", report.overview.shootingScript.changedPages],
     ];
     return (
       <div className={styles.stack}>
@@ -116,6 +119,8 @@ export default function ProductionReportsWorkspace({
               <div><dt>Ready</dt><dd>{report.overview.readyBreakdowns}</dd></div>
               <div><dt>Blocked</dt><dd>{report.overview.blockedBreakdowns}</dd></div>
               <div><dt>Shooting days</dt><dd>{report.overview.scheduleDays}</dd></div>
+              <div><dt>Production revisions</dt><dd>{report.overview.shootingScript.revisionSets}</dd></div>
+              <div><dt>Production approvals</dt><dd>{report.overview.shootingScript.approvals}</dd></div>
             </dl>
           </Panel>
           <Panel eyebrow="Planning gaps" title="What to review next">
@@ -150,7 +155,7 @@ export default function ProductionReportsWorkspace({
                     <td><strong>{location.storyLocation}</strong><small>{location.realLocation}</small>{location.description ? <small>{location.description}</small> : null}</td>
                     <td>
                       {location.scenes.map((scene) => (
-                        <button type="button" key={scene.id} onClick={() => openScene(onOpenTarget, scene)}>#{scene.number}</button>
+                        <button type="button" key={scene.id} onClick={() => openScene(onOpenTarget, scene)}>#{scene.productionNumber}</button>
                       ))}
                     </td>
                     <td>{location.interiorExterior.join(", ") || "Not specified"}<small>{location.dayNight.join(", ") || "Not specified"}</small></td>
@@ -181,7 +186,7 @@ export default function ProductionReportsWorkspace({
             {shotType.scenes.length ? (
               <div className={styles.sceneLinks}>
                 {shotType.scenes.slice(0, 8).map((scene) => (
-                  <button type="button" key={scene.id} onClick={() => openScene(onOpenTarget, scene)}>Scene {scene.number}</button>
+                  <button type="button" key={scene.id} onClick={() => openScene(onOpenTarget, scene)}>Scene {scene.productionNumber}</button>
                 ))}
               </div>
             ) : null}
@@ -211,7 +216,7 @@ export default function ProductionReportsWorkspace({
                     checked={group.selectedSceneIds.includes(scene.id)}
                     onChange={(event) => toggleGroupScene(group, scene.id, event)}
                   />
-                  <span>Scene {scene.number} · {scene.title}</span>
+                  <span>Scene {scene.productionNumber} · {scene.title}</span>
                   <button type="button" onClick={() => openScene(onOpenTarget, scene)}>Open</button>
                 </label>
               ))}
@@ -248,7 +253,7 @@ export default function ProductionReportsWorkspace({
                   {report.actorSchedule.actors.map((actor) => (
                     <tr key={actor.id}>
                       <td><strong>{actor.actor}</strong><small>{actor.character}</small></td>
-                      <td>{actor.scenes.map((scene) => <button type="button" key={scene.id} onClick={() => openScene(onOpenTarget, scene)}>#{scene.number}</button>)}<small>{actor.unscheduledScenes} unscheduled</small></td>
+                      <td>{actor.scenes.map((scene) => <button type="button" key={scene.id} onClick={() => openScene(onOpenTarget, scene)}>#{scene.productionNumber}</button>)}<small>{actor.unscheduledScenes} unscheduled</small></td>
                       <td>{actor.locations.join(", ") || "Not linked"}</td>
                       <td>{actor.wardrobe.join(", ") || "Not recorded"}<small>{actor.makeup.join(", ") || "No makeup record"}</small></td>
                       <td>{actor.rehearsalHours ? `${actor.rehearsalHours} hr` : "Not recorded"}</td>

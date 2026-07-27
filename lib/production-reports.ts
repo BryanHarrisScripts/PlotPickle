@@ -5,6 +5,7 @@ import type {
   ProductionShootGroupDecision,
   ProductionShootGroupDecisionStatus,
 } from "@/lib/project";
+import { productionDraftReport } from "@/lib/production-draft";
 
 export const PRODUCTION_REPORT_GUIDANCE =
   "Planning guidance only. Confirm assumptions with the producer, department heads, cast, locations and safety leads before committing a schedule.";
@@ -50,6 +51,7 @@ export type AiSystemsCatalog = {
 type SceneRecord = {
   id: string;
   number: number;
+  productionNumber: string;
   title: string;
   heading: string;
   blockId: string;
@@ -142,6 +144,7 @@ function parseHeading(value: string) {
 }
 
 function sceneRecords(project: PlotPickleProject): SceneRecord[] {
+  const productionNumbers = new Map(project.screenplay.productionDraft.sceneNumbers.map((scene) => [scene.sceneId, scene.number]));
   return project.blocks.flatMap((block) => block.scenes.map((scene) => {
     const heading = project.screenplay.draftElements.find((element) => (
       element.type === "scene-heading"
@@ -154,6 +157,7 @@ function sceneRecords(project: PlotPickleProject): SceneRecord[] {
     return {
       id: scene.id,
       number: scene.number,
+      productionNumber: productionNumbers.get(scene.id) || String(scene.number),
       title: scene.title || heading,
       heading,
       blockId: block.id,
@@ -194,7 +198,7 @@ function createLocationsReport(project: PlotPickleProject, scenes: SceneRecord[]
       storyLocation: location?.name || locationId,
       description: location?.description || "",
       realLocation: plan?.realLocation || "Not recorded",
-      scenes: linkedScenes.map((scene) => ({ id: scene.id, number: scene.number, title: scene.title, blockId: scene.blockId })),
+      scenes: linkedScenes.map((scene) => ({ id: scene.id, number: scene.number, productionNumber: scene.productionNumber, title: scene.title, blockId: scene.blockId })),
       interiorExterior: unique(linkedScenes.map((scene) => scene.interiorExterior)),
       dayNight: unique(linkedScenes.map((scene) => scene.dayNight)),
       characters: unique(linkedScenes.flatMap((scene) => scene.characterIds.map((id) => characterNames.get(id) || id))),
@@ -247,6 +251,7 @@ function createShotTypesReport(project: PlotPickleProject, scenes: SceneRecord[]
       scenes: sceneIds.map((id) => sceneById.get(id)).filter((scene): scene is SceneRecord => Boolean(scene)).map((scene) => ({
         id: scene.id,
         number: scene.number,
+        productionNumber: scene.productionNumber,
         title: scene.title,
         blockId: scene.blockId,
       })),
@@ -325,6 +330,7 @@ function createShootGroupsReport(project: PlotPickleProject, scenes: SceneRecord
       scenes: groupedScenes.map((scene) => ({
         id: scene.id,
         number: scene.number,
+        productionNumber: scene.productionNumber,
         title: scene.title,
         blockId: scene.blockId,
         shots: scene.shotIds.length,
@@ -362,8 +368,8 @@ function createActorScheduleReport(project: PlotPickleProject, scenes: SceneReco
         callTime: day.callTime || plan?.preferredCallTime || "Not recorded",
         wrapTime: addHours(day.callTime || plan?.preferredCallTime || "", day.estimatedHours),
         location: locationNames.get(day.locationId) || "Location not set",
-        scenes: dayScenes.map((scene) => ({ id: scene.id, number: scene.number, title: scene.title, blockId: scene.blockId })),
-        sides: dayScenes.map((scene) => `Scene ${scene.number} · ${scene.title}`),
+        scenes: dayScenes.map((scene) => ({ id: scene.id, number: scene.number, productionNumber: scene.productionNumber, title: scene.title, blockId: scene.blockId })),
+        sides: dayScenes.map((scene) => `Scene ${scene.productionNumber} · ${scene.title}`),
       };
     });
     const breakdowns = actorScenes.flatMap((scene) => scene.breakdown ? [scene.breakdown] : []);
@@ -377,7 +383,7 @@ function createActorScheduleReport(project: PlotPickleProject, scenes: SceneReco
       id: character.id,
       character: character.name || "Unnamed character",
       actor: plan?.actorName || "Uncast",
-      scenes: actorScenes.map((scene) => ({ id: scene.id, number: scene.number, title: scene.title, blockId: scene.blockId })),
+      scenes: actorScenes.map((scene) => ({ id: scene.id, number: scene.number, productionNumber: scene.productionNumber, title: scene.title, blockId: scene.blockId })),
       locations: unique(actorScenes.flatMap((scene) => scene.locationIds.map((id) => locationNames.get(id) || id))),
       wardrobe: unique([...(plan?.wardrobe ? splitDetails(plan.wardrobe) : []), ...breakdowns.flatMap((item) => splitDetails(item.wardrobe))]),
       makeup: unique([...(plan?.makeup ? splitDetails(plan.makeup) : []), ...breakdowns.flatMap((item) => splitDetails(item.makeup))]),
@@ -397,7 +403,7 @@ function createActorScheduleReport(project: PlotPickleProject, scenes: SceneReco
     date: day.date,
     location: locationNames.get(day.locationId) || "Location not set",
     characters: actors.filter((actor) => actor.days.some((item) => item.id === day.id)).map((actor) => actor.character),
-    scenes: day.sceneIds.map((id) => sceneById.get(id)).filter((scene): scene is SceneRecord => Boolean(scene)).map((scene) => `Scene ${scene.number} · ${scene.title}`),
+    scenes: day.sceneIds.map((id) => sceneById.get(id)).filter((scene): scene is SceneRecord => Boolean(scene)).map((scene) => `Scene ${scene.productionNumber} · ${scene.title}`),
     callTime: day.callTime,
     wrapTime: addHours(day.callTime, day.estimatedHours),
   }));
@@ -564,6 +570,7 @@ export function createProductionReportsModel(
   const shotTypes = createShotTypesReport(project, scenes);
   const shootGroups = createShootGroupsReport(project, scenes);
   const actorSchedule = createActorScheduleReport(project, scenes, shootGroups);
+  const shootingScript = productionDraftReport(project);
   return {
     guidance: PRODUCTION_REPORT_GUIDANCE,
     overview: {
@@ -578,6 +585,7 @@ export function createProductionReportsModel(
       blockedBreakdowns: project.production.breakdowns.filter((item) => item.readiness === "blocked").length,
       scheduleDays: project.production.schedule.length,
       unscheduledScenes: scenes.filter((scene) => !project.production.schedule.some((day) => day.sceneIds.includes(scene.id))).length,
+      shootingScript,
     },
     locations,
     shotTypes,

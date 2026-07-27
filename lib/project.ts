@@ -33,6 +33,66 @@ export type ScreenplayDraftElementType =
 
 export type RevisionColour = "none" | "blue" | "pink" | "yellow" | "green" | "goldenrod" | "buff" | "salmon" | "cherry" | "tan" | "gray";
 
+export type ProductionDraftSceneNumber = {
+  sceneId: string;
+  elementId: string;
+  number: string;
+  omitted: boolean;
+};
+
+export type ProductionDraftPageAssignment = {
+  elementId: string;
+  pageLabel: string;
+  basePage: number;
+  lockedAt: string;
+};
+
+export type ProductionDraftRevisionSet = {
+  id: string;
+  label: string;
+  colour: Exclude<RevisionColour, "none">;
+  date: string;
+  marks: string;
+  notes: string;
+  authorizedBy: string;
+  changedElementIds: string[];
+  changedPageLabels: string[];
+  createdAt: string;
+};
+
+export type ProductionDraftAnnotation = {
+  id: string;
+  targetType: "screenplay-element" | "scene" | "page";
+  targetId: string;
+  department: string;
+  body: string;
+  author: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ProductionDraftApproval = {
+  id: string;
+  action: "converted" | "pagination-locked" | "revision-started" | "revision-closed" | "direct-edit";
+  summary: string;
+  authorizedBy: string;
+  createdAt: string;
+};
+
+export type ProductionDraftState = {
+  mode: "writer" | "production";
+  convertedAt: string;
+  writerBaselineRevisionId: string;
+  paginationLocked: boolean;
+  paginationLockedAt: string;
+  sceneNumbers: ProductionDraftSceneNumber[];
+  pageAssignments: ProductionDraftPageAssignment[];
+  revisionSets: ProductionDraftRevisionSet[];
+  activeRevisionSetId: string;
+  annotations: ProductionDraftAnnotation[];
+  approvalHistory: ProductionDraftApproval[];
+};
+
 export type ScreenplayDraftElement = {
   id: string;
   type: ScreenplayDraftElementType;
@@ -60,6 +120,7 @@ export type ScreenplayDocument = {
   analyzedAt: string;
   suggestedFields: string[];
   draftElements: ScreenplayDraftElement[];
+  productionDraft: ProductionDraftState;
 };
 
 export type Relationship = {
@@ -867,6 +928,23 @@ export function createBlankScreenplay(): ScreenplayDocument {
     analyzedAt: "",
     suggestedFields: [],
     draftElements: [],
+    productionDraft: createBlankProductionDraftState(),
+  };
+}
+
+export function createBlankProductionDraftState(): ProductionDraftState {
+  return {
+    mode: "writer",
+    convertedAt: "",
+    writerBaselineRevisionId: "",
+    paginationLocked: false,
+    paginationLockedAt: "",
+    sceneNumbers: [],
+    pageAssignments: [],
+    revisionSets: [],
+    activeRevisionSetId: "",
+    annotations: [],
+    approvalHistory: [],
   };
 }
 
@@ -1036,6 +1114,13 @@ export function normalizeScreenplay(value: unknown): ScreenplayDocument {
   const candidate = value as Partial<ScreenplayDocument>;
   const formats: ScreenplayFormat[] = ["plain-text", "fountain", "final-draft"];
   const statuses: ScreenplayAnalysisStatus[] = ["none", "suggested", "reviewed"];
+  const productionDefaults = createBlankProductionDraftState();
+  const productionCandidate = candidate.productionDraft && typeof candidate.productionDraft === "object"
+    ? candidate.productionDraft
+    : productionDefaults;
+  const revisionColours: Array<Exclude<RevisionColour, "none">> = ["blue", "pink", "yellow", "green", "goldenrod", "buff", "salmon", "cherry", "tan", "gray"];
+  const approvalActions: ProductionDraftApproval["action"][] = ["converted", "pagination-locked", "revision-started", "revision-closed", "direct-edit"];
+  const annotationTargets: ProductionDraftAnnotation["targetType"][] = ["screenplay-element", "scene", "page"];
   return {
     fileName: typeof candidate.fileName === "string" ? candidate.fileName : "",
     format: formats.includes(candidate.format as ScreenplayFormat) ? candidate.format as ScreenplayFormat : "plain-text",
@@ -1074,6 +1159,76 @@ export function normalizeScreenplay(value: unknown): ScreenplayDocument {
           }];
         })
       : [],
+    productionDraft: {
+      mode: productionCandidate.mode === "production" ? "production" : "writer",
+      convertedAt: typeof productionCandidate.convertedAt === "string" ? productionCandidate.convertedAt : "",
+      writerBaselineRevisionId: typeof productionCandidate.writerBaselineRevisionId === "string" ? productionCandidate.writerBaselineRevisionId : "",
+      paginationLocked: Boolean(productionCandidate.paginationLocked),
+      paginationLockedAt: typeof productionCandidate.paginationLockedAt === "string" ? productionCandidate.paginationLockedAt : "",
+      sceneNumbers: Array.isArray(productionCandidate.sceneNumbers) ? productionCandidate.sceneNumbers.flatMap((item) => {
+        if (!item || typeof item !== "object") return [];
+        const scene = item as Partial<ProductionDraftSceneNumber>;
+        return [{
+          sceneId: typeof scene.sceneId === "string" ? scene.sceneId : "",
+          elementId: typeof scene.elementId === "string" ? scene.elementId : "",
+          number: typeof scene.number === "string" && scene.number ? scene.number : "1",
+          omitted: Boolean(scene.omitted),
+        }];
+      }) : [],
+      pageAssignments: Array.isArray(productionCandidate.pageAssignments) ? productionCandidate.pageAssignments.flatMap((item) => {
+        if (!item || typeof item !== "object") return [];
+        const page = item as Partial<ProductionDraftPageAssignment>;
+        return [{
+          elementId: typeof page.elementId === "string" ? page.elementId : "",
+          pageLabel: typeof page.pageLabel === "string" && page.pageLabel ? page.pageLabel : "1",
+          basePage: Math.max(1, Number(page.basePage) || 1),
+          lockedAt: typeof page.lockedAt === "string" ? page.lockedAt : "",
+        }];
+      }) : [],
+      revisionSets: Array.isArray(productionCandidate.revisionSets) ? productionCandidate.revisionSets.flatMap((item, index) => {
+        if (!item || typeof item !== "object") return [];
+        const revision = item as Partial<ProductionDraftRevisionSet>;
+        return [{
+          id: typeof revision.id === "string" && revision.id ? revision.id : `production-revision-${index + 1}`,
+          label: typeof revision.label === "string" ? revision.label : `Revision ${index + 1}`,
+          colour: revisionColours.includes(revision.colour as Exclude<RevisionColour, "none">) ? revision.colour as Exclude<RevisionColour, "none"> : "blue",
+          date: typeof revision.date === "string" ? revision.date : "",
+          marks: typeof revision.marks === "string" ? revision.marks : "",
+          notes: typeof revision.notes === "string" ? revision.notes : "",
+          authorizedBy: typeof revision.authorizedBy === "string" ? revision.authorizedBy : "",
+          changedElementIds: stringArray(revision.changedElementIds),
+          changedPageLabels: stringArray(revision.changedPageLabels),
+          createdAt: typeof revision.createdAt === "string" ? revision.createdAt : "",
+        }];
+      }) : [],
+      activeRevisionSetId: typeof productionCandidate.activeRevisionSetId === "string" ? productionCandidate.activeRevisionSetId : "",
+      annotations: Array.isArray(productionCandidate.annotations) ? productionCandidate.annotations.flatMap((item, index) => {
+        if (!item || typeof item !== "object") return [];
+        const annotation = item as Partial<ProductionDraftAnnotation>;
+        const now = new Date().toISOString();
+        return [{
+          id: typeof annotation.id === "string" && annotation.id ? annotation.id : `production-annotation-${index + 1}`,
+          targetType: annotationTargets.includes(annotation.targetType as ProductionDraftAnnotation["targetType"]) ? annotation.targetType as ProductionDraftAnnotation["targetType"] : "screenplay-element",
+          targetId: typeof annotation.targetId === "string" ? annotation.targetId : "",
+          department: typeof annotation.department === "string" ? annotation.department : "",
+          body: typeof annotation.body === "string" ? annotation.body : "",
+          author: typeof annotation.author === "string" ? annotation.author : "",
+          createdAt: typeof annotation.createdAt === "string" ? annotation.createdAt : now,
+          updatedAt: typeof annotation.updatedAt === "string" ? annotation.updatedAt : now,
+        }];
+      }) : [],
+      approvalHistory: Array.isArray(productionCandidate.approvalHistory) ? productionCandidate.approvalHistory.flatMap((item, index) => {
+        if (!item || typeof item !== "object") return [];
+        const approval = item as Partial<ProductionDraftApproval>;
+        return [{
+          id: typeof approval.id === "string" && approval.id ? approval.id : `production-approval-${index + 1}`,
+          action: approvalActions.includes(approval.action as ProductionDraftApproval["action"]) ? approval.action as ProductionDraftApproval["action"] : "direct-edit",
+          summary: typeof approval.summary === "string" ? approval.summary : "",
+          authorizedBy: typeof approval.authorizedBy === "string" ? approval.authorizedBy : "",
+          createdAt: typeof approval.createdAt === "string" ? approval.createdAt : "",
+        }];
+      }) : [],
+    },
   };
 }
 

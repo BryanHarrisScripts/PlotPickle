@@ -30,12 +30,13 @@ test("Dashboard storage states never claim synchronization without verified hash
   assert.match(model, /must not overwrite either version silently/i);
 });
 
-test("Dashboard separates the canonical project from binary assets and keeps Setup responsible for credentials", async () => {
+test("Dashboard separates the canonical project from binary assets and keeps Settings responsible for private credentials", async () => {
   const model = await source("lib/project-dashboard.ts");
   assert.match(model, /canonical \.ppf project/);
   assert.match(model, /generated binary assets/);
   assert.match(model, /separate asset folder/);
   const settings = await source("app/settings-panel.tsx");
-  assert.match(settings, /GitHub/);
-  assert.match(settings, /Setup/);
+  assert.match(settings, /label: "GitHub"/);
+  assert.match(settings, /credentials stay in the private local-server secrets area/i);
+  assert.match(settings, /excluded from \.ppf projects, reports, exports, logs and GitHub/i);
 });

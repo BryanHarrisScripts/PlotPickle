@@ -54,7 +54,15 @@ function proposalStatusLabel(state: ProposalItem["state"]) {
   return "Awaiting owner review";
 }
 
-export default function GitHubCollaboration({ project, onChange }: { project: PlotPickleProject; onChange: (project: PlotPickleProject) => void }) {
+export default function GitHubCollaboration({
+  project,
+  onChange,
+  onConnectionChange,
+}: {
+  project: PlotPickleProject;
+  onChange: (project: PlotPickleProject) => void;
+  onConnectionChange?: () => void;
+}) {
   const [owner, setOwner] = useState(project.collaboration.owner);
   const [repo, setRepo] = useState(project.collaboration.repo);
   const [branch, setBranch] = useState(project.collaboration.branch || "main");
@@ -187,6 +195,7 @@ export default function GitHubCollaboration({ project, onChange }: { project: Pl
         connectedAt: new Date().toISOString(),
       });
       setNotice("GitHub repository connected. Canonical changes require a pull request and repository-owner merge.");
+      onConnectionChange?.();
       const proposalResult = await jsonRequest("/api/local-github/proposals");
       setProposals(Array.isArray(proposalResult.proposals) ? proposalResult.proposals as ProposalItem[] : []);
     } catch (error) {
@@ -254,6 +263,7 @@ export default function GitHubCollaboration({ project, onChange }: { project: Pl
       setProposals([]);
       updateProjectConnection({ provider: "none", syncEnabled: false });
       setNotice("GitHub credentials were removed from this computer. Local projects and backups were kept.");
+      onConnectionChange?.();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The GitHub connection could not be removed.");
     } finally { setWorking(false); }

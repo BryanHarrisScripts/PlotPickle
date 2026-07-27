@@ -45,15 +45,14 @@ function WorkspaceButton({
 export default function ApplicationShellHeader({ activeTab, onNavigate, onProjectAction, onOpenLanding }: ApplicationShellHeaderProps) {
   return (
     <header className="topbar application-shell-header">
-      <div className="shell-zone shell-zone-orientation" aria-label="Orientation">
-        <button type="button" className="brand-lockup home-trigger" onClick={onOpenLanding} aria-label="Open the PlotPickle marketing page">
-          <img className="brand-icon" src="/brand/favicon/plotpickle-icon-128.png" alt="" aria-hidden="true" />
-          <div><strong>PlotPickle</strong><span>PlotPickle Playhouse</span></div>
-        </button>
-        <nav className="main-tabs orientation-tabs" aria-label="Orientation workspace" role="tablist">
-          {orientation.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
-        </nav>
-      </div>
+      <button type="button" className="brand-lockup home-trigger shell-brand" onClick={onOpenLanding} aria-label="Open the PlotPickle marketing page">
+        <img className="brand-icon" src="/brand/favicon/plotpickle-icon-128.png" alt="" aria-hidden="true" />
+        <div><strong>PlotPickle</strong><span>PlotPickle Playhouse</span></div>
+      </button>
+
+      <nav className="main-tabs shell-zone shell-zone-orientation orientation-tabs" aria-label="Orientation workspace" role="tablist">
+        {orientation.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
+      </nav>
 
       <nav className="main-tabs shell-zone shell-zone-workflow" aria-label="Creative workflow" role="tablist">
         {workflow.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}

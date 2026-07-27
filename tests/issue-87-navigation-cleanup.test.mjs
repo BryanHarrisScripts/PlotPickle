@@ -28,12 +28,11 @@ test("issue #87 places Reports in core navigation and Terminology in learning", 
   assert.match(page, /Screenplay terminology[\s\S]*TerminologyIndex/);
 });
 
-test("issue #87 groups GitHub, AI and Music under Settings Setup", async () => {
+test("issue #87 keeps GitHub AI and Music capabilities inside the expanded Settings workspace", async () => {
   const settings = await source("app/settings-panel.tsx");
-  assert.match(settings, /Settings · Setup/);
-  assert.match(settings, /GitHub setup/);
-  assert.match(settings, /AI setup/);
-  assert.match(settings, /Music setup/);
+  assert.match(settings, /label: "GitHub"/);
+  assert.match(settings, /label: "AI providers"/);
+  assert.match(settings, /Music service links/);
   assert.doesNotMatch(settings, /<b>Reports<\/b>/);
   assert.doesNotMatch(settings, /<b>Terminology Index<\/b>/);
 });

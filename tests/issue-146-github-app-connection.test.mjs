@@ -16,10 +16,10 @@ test("issue #146 makes GitHub App sign-in the recommended collaboration path", a
     "Recommended: connect your GitHub account",
     "Connect GitHub Account",
     "Use selected story project",
-    "Only repositories installed for the PlotPickle GitHub App are listed",
+    "PlotPickle checks for",
     "Manage repository access",
     "Advanced Setup: fine-grained GitHub token",
-    "No token copying is required",
+    "Sign in through GitHub",
   ]) assert.ok(`${workspace}\n${appConnection}`.includes(phrase), `GitHub App onboarding is missing: ${phrase}`);
 
   for (const style of [

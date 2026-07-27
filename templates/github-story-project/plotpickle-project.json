@@ -1,0 +1,31 @@
+{
+  "$schema": "https://plotpickle.org/schemas/github-story-project/1.0/manifest.schema.json",
+  "format": "plotpickle-story-project",
+  "formatVersion": "1.0.0",
+  "schemaVersion": "2.3.0",
+  "projectId": "replace-when-created",
+  "title": "Untitled Story",
+  "createdAt": "1970-01-01T00:00:00.000Z",
+  "updatedAt": "1970-01-01T00:00:00.000Z",
+  "createdWith": "PlotPickle 1.0.0-rc.3",
+  "repository": {
+    "owner": "replace-when-created",
+    "name": "untitled-story",
+    "defaultBranch": "main"
+  },
+  "canonicalProject": {
+    "mode": "portable-ppf",
+    "path": "stories/plotpickle-story.ppf"
+  },
+  "modularProject": {
+    "format": "plotpickle-project",
+    "formatVersion": "2.3.0",
+    "manifestPath": "manifest.json",
+    "status": "phase-3"
+  },
+  "collaboration": {
+    "approvalAuthority": "project-lead",
+    "proposalMode": "pull-request",
+    "acceptingProposals": true
+  }
+}

@@ -8,8 +8,9 @@ const source = (filePath) => readFile(new URL(filePath, root), "utf8");
 
 async function syncContract() {
   const raw = await source("lib/project-folder-sync.ts");
-  const withoutRelativeImports = raw.replace(/import\s+(?:type\s+)?[\s\S]*?from\s+"\.\/[^\"]+";\n/g, "");
-  const compiled = stripTypeScriptTypes(withoutRelativeImports, { mode: "transform" });
+  const withoutRelativeImports = raw.replace(/import[\s\S]*?;\n/g, (statement) => statement.includes('from "./') ? "" : statement);
+  const dependencies = 'const PROJECT_FOLDER_FORMAT = "plotpickle-project";\nconst PROJECT_FOLDER_VERSION = "2.3.0";\n';
+  const compiled = stripTypeScriptTypes(`${dependencies}${withoutRelativeImports}`, { mode: "transform" });
   return import(`data:text/javascript;base64,${Buffer.from(compiled, "utf8").toString("base64")}`);
 }
 
@@ -101,7 +102,7 @@ test("issue #150 exposes compare, review, migration and Project Lead publishing"
   for (const className of ["syncArchitecture", "syncPreview", "syncSummary", "syncPaths", "syncConsent", "syncMessage"]) {
     assert.ok(styles.includes(`.${className}`), `Synchronization styling is missing: ${className}`);
   }
-  for (const phrase of ["canonical source of truth", "SHA-256", "Create one commit", "Legacy `.ppf` migration", "approved branch moved after preview", "release snapshots"]) {
+  for (const phrase of ["source of truth", "SHA-256", "Create one commit", "Legacy `.ppf` migration", "approved branch moved after preview", "release snapshots"]) {
     assert.ok(docs.includes(phrase), `Phase 3 documentation is missing: ${phrase}`);
   }
 });

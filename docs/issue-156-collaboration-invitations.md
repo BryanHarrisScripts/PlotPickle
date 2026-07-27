@@ -1,18 +1,16 @@
 # Issue #156 — Collaboration invitations and roles
 
-Phase 5 adds a filmmaker-facing invitation layer on top of GitHub App connection, canonical project folders and Story Proposals.
+Phase 5 adds a human-facing invitation and role layer over the merged GitHub App, canonical project-folder and Story Proposal engines. It does not duplicate those engines.
 
 ## `.ppinvite` packages
 
-A Project Lead can create a portable `.ppinvite` JSON package for a Writer, Director, Actor, Producer or Reviewer. The package contains only bounded project identity, the user-owned repository address, approved branch, canonical project root, invitation ID, role, issuer and expiry. It never contains an API key, access token, refresh token, private key, client secret or local credential path.
+A repository owner or maintainer acting as Project Lead can create a portable `.ppinvite` JSON package for a Writer, Director, Actor, Producer or Reviewer. It contains bounded project identity, the user-owned repository address, approved branch, canonical project root, invitation ID, role, issuer and expiry. It never contains an API key, access token, refresh token, private key, client secret or credential path.
 
-The package includes a deterministic integrity value for accidental or casual modification detection. Once the collaborator connects GitHub, PlotPickle also verifies the package against the approved repository's `collaboration/invitations.json` registry. Registered role, recipient, issuer, issue date and expiry must match exactly. Missing, changed, expired, revoked and wrong-project invitations are rejected with specific guidance.
+A deterministic integrity value detects package modification. After GitHub connects, PlotPickle verifies the package against `collaboration/invitations.json` on the approved branch. The registered role, recipient, issuer, issue date and expiry must match exactly. Missing, changed, expired, revoked, wrong-project and wrong-repository invitations are rejected clearly.
 
-## Human-friendly onboarding
+## Onboarding and role defaults
 
-Opening a `.ppinvite` applies the story-project owner, repository, approved branch and canonical root without asking the collaborator to type GitHub metadata. GitHub authorization remains a separate, explicit account action. After sign-in, the normal repository picker is replaced by one invitation-selected repository check.
-
-Role defaults surface the most relevant workspace first:
+Opening a package identifies the exact story repository without asking the collaborator to type repository metadata. GitHub authorization remains a separate explicit account step, and credentials remain in PlotPickle's encrypted local secrets area.
 
 - Writer → Write
 - Director → Storyboard
@@ -20,22 +18,26 @@ Role defaults surface the most relevant workspace first:
 - Producer → Reports
 - Reviewer → Feedback in read-only review mode
 
-The role changes interface guidance, not the installed PlotPickle edition. Every collaborator still uses the complete local-first application.
+Roles guide the interface rather than creating separate PlotPickle editions. The complete local-first application remains installed.
 
 ## Reviewer boundary
 
-Reviewer mode locks canon editing and Story Proposal submission. Feedback notes remain available, as do approved-story refresh, local exports and the ability to start a separate local project. The server repeats the reviewer and invitation checks before creating any Story Proposal.
+Reviewer mode opens Feedback and blocks canon form changes, content editing, drag/drop mutation and Story Proposal submission. Viewing the story, navigating, leaving Feedback, refreshing the approved story and exporting local material remain available. The local gateway repeats the reviewer check before the existing Story Proposal engine runs.
 
 ## Accepting Proposals
 
-The Project Lead can pause or reopen new Story Proposals through the versioned repository manifest. Pausing submissions does not disable local writing, approved-story refresh, proposal review or Project Lead decisions on proposals already open.
+The Project Lead can pause or reopen new Story Proposals through `plotpickle-project.json`. Pausing does not disable local writing, approved-story refresh, review of proposals already open or Project Lead decisions.
 
-Setting changes, invitation registration and revocation use the exact approved commit as a stale-base guard and update the approved branch with a non-forced commit. Invited roles cannot change these Project Lead controls.
+## Project Lead authority
+
+Invitation registration, revocation, proposal acceptance settings, proposal approval/decline, approved-folder publishing, repository migration and release snapshots require repository owner or maintainer permission. The Phase 5 gateway is mounted before the existing proposal and synchronization gateways and blocks unauthorized operations before their request bodies are consumed.
+
+Invitation and manifest changes use the exact approved commit as a stale-base guard, create one Git tree and one commit, and update the branch with `force: false`.
 
 ## Storage and privacy
 
-Invitation registry records live in `collaboration/invitations.json` in the user-owned story repository. Credentials remain in PlotPickle's private encrypted local secrets area and are excluded from projects, `.ppinvite` packages, `.ppf` files, reports, exports, logs and Git commits.
+The invitation registry is versioned in the user-owned story repository. The active role session is stored in the same private local credential boundary already used by PlotPickle connections. Credentials are excluded from projects, `.ppinvite` packages, `.ppf` files, reports, exports, logs and Git commits.
 
 ## Compatibility
 
-Legacy projects normalize to Project Lead, no invitation, editable canon and accepting proposals. `.ppf` remains a portable exchange and migration format; the canonical collaboration source remains the modular `project/` folder.
+Projects without an invitation remain in normal Project Lead mode. `.ppf` remains a portable exchange and migration format; the canonical collaboration source remains the modular `project/` folder. Phase 6 offline queue and recovery work remains separate.

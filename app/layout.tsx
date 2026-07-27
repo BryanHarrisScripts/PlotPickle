@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import CurrentDownloadLinks from "./current-download-links";
 import WorkspaceIntroHost from "./workspace-intro-host";
+import CollaborationInvitationHost from "./collaboration-invitations";
+import CollaborationRoleGuard from "./collaboration-role-guard";
 import "./globals.css";
 import "./engines-workspace-overrides.css";
 import "./navigation-additions.css";
@@ -49,6 +51,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <CollaborationRoleGuard />
+        <CollaborationInvitationHost />
         <WorkspaceIntroHost />
         <CurrentDownloadLinks />
       </body>

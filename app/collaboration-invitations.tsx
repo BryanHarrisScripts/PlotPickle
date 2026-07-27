@@ -1,310 +1,81 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { PlotPickleProject } from "@/lib/project";
-import {
-  COLLABORATION_ROLE_DEFAULTS,
-  INVITABLE_COLLABORATION_ROLES,
-  applyCollaborationInvitation,
-  parseCollaborationInvitation,
-  serializeCollaborationInvitation,
-  type CollaborationInvitation,
-  type InvitableCollaborationRole,
-} from "@/lib/collaboration-invitations";
+import { useEffect, useRef, useState } from "react";
+import { COLLABORATION_ROLES, COLLABORATION_ROLE_DEFAULTS, parseCollaborationInvitation, serializeCollaborationInvitation, type CollaborationInvitation, type CollaborationInvitationRecord, type CollaborationRole, type CollaborationSession } from "@/lib/collaboration-invitations";
 import styles from "./collaboration-invitations.module.css";
 
-type InvitationRecord = {
-  invitationId: string;
-  role: InvitableCollaborationRole;
-  recipientName: string;
-  issuer: string;
-  issuedAt: string;
-  expiresAt: string;
-  status: "active" | "revoked";
-};
+type Status = { connected: boolean; projectLead: boolean; repository: string; branch: string; remoteCommit: string; projectId: string; title: string; acceptingProposals: boolean; invitations: CollaborationInvitationRecord[]; session: CollaborationSession | null };
+const EMPTY: Status = { connected: false, projectLead: false, repository: "", branch: "main", remoteCommit: "", projectId: "", title: "", acceptingProposals: true, invitations: [], session: null };
 
-async function request(path: string, method: "GET" | "POST" = "GET", body?: object) {
-  const response = await fetch(path, {
-    method,
-    headers: body ? { "Content-Type": "application/json" } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const contentType = response.headers.get("content-type") ?? "";
-  if (!contentType.includes("application/json")) throw new Error("Collaboration invitations are available in the downloaded PlotPickle server.");
+async function request(path: string, method: "GET" | "POST" | "DELETE" = "GET", body?: object) {
+  const response = await fetch(path, { method, headers: body ? { "Content-Type": "application/json" } : undefined, body: body ? JSON.stringify(body) : undefined });
+  const type = response.headers.get("content-type") || "";
+  if (!type.includes("application/json")) throw new Error("Collaboration invitations are available in the downloaded PlotPickle server.");
   const value = await response.json() as Record<string, unknown>;
-  if (!response.ok) throw new Error(typeof value.message === "string" ? value.message : "The collaboration invitation operation failed.");
+  if (!response.ok) throw new Error(typeof value.message === "string" ? value.message : "The collaboration operation failed.");
   return value;
 }
-
-function downloadInvitation(invitation: CollaborationInvitation) {
-  const fileName = `${invitation.project.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "plotpickle"}-${invitation.invitation.role}.ppinvite`;
+function status(value: Record<string, unknown>): Status {
+  return { connected: value.connected === true, projectLead: value.projectLead === true, repository: String(value.repository || ""), branch: String(value.branch || "main"), remoteCommit: String(value.remoteCommit || ""), projectId: String(value.projectId || ""), title: String(value.title || ""), acceptingProposals: value.acceptingProposals !== false, invitations: Array.isArray(value.invitations) ? value.invitations as CollaborationInvitationRecord[] : [], session: value.session && typeof value.session === "object" ? value.session as CollaborationSession : null };
+}
+function download(invitation: CollaborationInvitation) {
+  const slug = invitation.project.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "plotpickle";
   const url = URL.createObjectURL(new Blob([serializeCollaborationInvitation(invitation)], { type: "application/vnd.plotpickle.invitation+json" }));
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.click();
-  URL.revokeObjectURL(url);
+  const anchor = document.createElement("a"); anchor.href = url; anchor.download = `${slug}-${invitation.invitation.role}.ppinvite`; anchor.click(); URL.revokeObjectURL(url);
+}
+function announce(session: CollaborationSession | null) {
+  window.dispatchEvent(new CustomEvent("plotpickle-collaboration-session", { detail: session }));
 }
 
-function invitationRecords(value: unknown): InvitationRecord[] {
-  if (!Array.isArray(value)) return [];
-  return value.flatMap((item) => {
-    if (!item || typeof item !== "object") return [];
-    const record = item as Record<string, unknown>;
-    const role = String(record.role) as InvitableCollaborationRole;
-    if (!INVITABLE_COLLABORATION_ROLES.includes(role)) return [];
-    return [{
-      invitationId: String(record.invitationId ?? ""),
-      role,
-      recipientName: String(record.recipientName ?? ""),
-      issuer: String(record.issuer ?? ""),
-      issuedAt: String(record.issuedAt ?? ""),
-      expiresAt: String(record.expiresAt ?? ""),
-      status: record.status === "revoked" ? "revoked" : "active",
-    }];
-  });
-}
-
-export default function CollaborationInvitations({
-  project,
-  onChange,
-  ready,
-  onNotice,
-  onOpenWorkspace,
-}: {
-  project: PlotPickleProject;
-  onChange: (project: PlotPickleProject) => void;
-  ready: boolean;
-  onNotice: (message: string) => void;
-  onOpenWorkspace?: (workspace: "script" | "visuals" | "feedback" | "reports") => void;
-}) {
-  const [role, setRole] = useState<InvitableCollaborationRole>("writer");
-  const [recipientName, setRecipientName] = useState("");
-  const [issuer, setIssuer] = useState(project.rights.projectOwner || "Project Lead");
-  const [expiryDays, setExpiryDays] = useState(14);
-  const [records, setRecords] = useState<InvitationRecord[]>([]);
-  const [busy, setBusy] = useState(false);
-  const fileInput = useRef<HTMLInputElement>(null);
-  const isProjectLead = project.collaboration.role === "project-lead";
-  const defaults = project.collaboration.role === "project-lead"
-    ? null
-    : COLLABORATION_ROLE_DEFAULTS[project.collaboration.role as InvitableCollaborationRole];
-  const revokedIds = useMemo(() => records.filter((record) => record.status === "revoked").map((record) => record.invitationId), [records]);
-
-  async function loadSettings() {
-    if (!ready) return;
-    try {
-      const invitationQuery = new URLSearchParams({
-        invitationId: project.collaboration.invitationId,
-        role: project.collaboration.role,
-        recipientName: project.collaboration.invitationRecipientName,
-        issuer: project.collaboration.invitationIssuer,
-        issuedAt: project.collaboration.invitationIssuedAt,
-        expiresAt: project.collaboration.invitationExpiresAt,
-      });
-      const value = await request(`/api/local-github/collaboration-settings?${invitationQuery.toString()}`);
-      const acceptingProposals = value.acceptingProposals !== false;
-      setRecords(invitationRecords(value.invitations));
-      if (project.collaboration.acceptingProposals !== acceptingProposals) {
-        onChange({
-          ...project,
-          collaboration: { ...project.collaboration, acceptingProposals, updatedAt: new Date().toISOString() },
-        });
+export default function CollaborationInvitationHost() {
+  const [open, setOpen] = useState(false); const [value, setValue] = useState<Status>(EMPTY); const [notice, setNotice] = useState(""); const [busy, setBusy] = useState(false);
+  const [role, setRole] = useState<CollaborationRole>("writer"); const [recipient, setRecipient] = useState(""); const [issuer, setIssuer] = useState("Project Lead"); const [days, setDays] = useState(14);
+  const file = useRef<HTMLInputElement>(null);
+  async function refresh() { try { const next = status(await request("/api/local-collaboration/status")); setValue(next); announce(next.session); } catch (error) { setNotice(error instanceof Error ? error.message : "Collaboration status could not be loaded."); } }
+  useEffect(() => { const timer = window.setTimeout(() => { void refresh(); }, 0); return () => window.clearTimeout(timer); }, []);
+  async function importInvite(selected: File) {
+    setBusy(true); try {
+      const parsed = parseCollaborationInvitation(JSON.parse(await selected.text()));
+      if (!value.connected || value.repository.toLowerCase() !== `${parsed.project.owner}/${parsed.project.repo}`.toLowerCase()) {
+        const selectedRepository = await request("/api/local-github-app/select", "POST", { fullName: `${parsed.project.owner}/${parsed.project.repo}`, projectPath: parsed.project.canonicalRoot, initializeMissingManifest: false, title: parsed.project.title, projectId: parsed.project.projectId });
+        if (selectedRepository.requiresInitialization) throw new Error("The invited repository is missing its PlotPickle manifest and cannot be initialized by a collaborator.");
+        await request("/api/local-github/connection/check", "POST");
       }
-      const invitationStatus = typeof value.currentInvitationStatus === "string" ? value.currentInvitationStatus : "";
-      if (project.collaboration.invitationId && ["revoked", "expired", "missing", "changed"].includes(invitationStatus)) {
-        onChange({
-          ...project,
-          collaboration: {
-            ...project.collaboration,
-            syncEnabled: false,
-            readOnlyReview: true,
-            acceptingProposals: false,
-            updatedAt: new Date().toISOString(),
-          },
-        });
-        onNotice(`This collaboration invitation is ${invitationStatus}. Local work remains available, but repository submissions are locked.`);
-      }
-    } catch (error) {
-      onNotice(error instanceof Error ? error.message : "Collaboration settings could not be loaded.");
-    }
+      const result = await request("/api/local-collaboration/validate-invitation", "POST", { invitation: parsed });
+      const active = result.session as CollaborationSession; setNotice(`${COLLABORATION_ROLE_DEFAULTS[parsed.invitation.role].label} invitation accepted. Opening the role workspace.`); await refresh(); announce(active);
+      window.location.href = active.workspaceHref;
+    } catch (error) { setNotice(error instanceof Error ? error.message : "The .ppinvite package could not be accepted."); } finally { setBusy(false); if (file.current) file.current.value = ""; }
   }
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => { void loadSettings(); }, 0);
-    return () => window.clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready]);
-
-  async function setAcceptingProposals(value: boolean) {
-    setBusy(true);
-    try {
-      const result = await request("/api/local-github/collaboration-settings", "POST", {
-        expectedBaseCommit: project.collaboration.lastPulledCommit,
-        acceptingProposals: value,
-        projectRole: project.collaboration.role,
-        callerInvitationId: project.collaboration.invitationId,
-      });
-      const remoteCommit = String(result.remoteCommit ?? "");
-      onChange({
-        ...project,
-        collaboration: {
-          ...project.collaboration,
-          acceptingProposals: value,
-          lastPulledCommit: remoteCommit || project.collaboration.lastPulledCommit,
-          lastPushedCommit: remoteCommit || project.collaboration.lastPushedCommit,
-          updatedAt: new Date().toISOString(),
-        },
-      });
-      onNotice(value ? "The story project is accepting new Story Proposals." : "New Story Proposals are paused. Approved-story refresh and local work remain available.");
-      await loadSettings();
-    } catch (error) {
-      onNotice(error instanceof Error ? error.message : "The proposal setting could not be changed.");
-    } finally { setBusy(false); }
+  async function createInvite() {
+    setBusy(true); try {
+      const result = await request("/api/local-collaboration/create-invitation", "POST", { expectedRemoteCommit: value.remoteCommit, role, recipientName: recipient, issuer, expiresAt: new Date(Date.now() + days * 86_400_000).toISOString() });
+      download(result.invitation as CollaborationInvitation); setRecipient(""); setNotice(`Created a credential-free ${COLLABORATION_ROLE_DEFAULTS[role].label} invitation.`); await refresh();
+    } catch (error) { setNotice(error instanceof Error ? error.message : "The invitation could not be created."); } finally { setBusy(false); }
   }
-
-  async function createInvitation() {
-    setBusy(true);
-    try {
-      const expiresAt = new Date(Date.now() + Math.max(1, expiryDays) * 86_400_000).toISOString();
-      const value = await request("/api/local-github/create-invitation", "POST", {
-        expectedBaseCommit: project.collaboration.lastPulledCommit,
-        projectId: project.id,
-        projectRole: project.collaboration.role,
-        callerInvitationId: project.collaboration.invitationId,
-        role,
-        recipientName,
-        issuer,
-        expiresAt,
-      });
-      const invitation = value.invitation as CollaborationInvitation;
-      downloadInvitation(invitation);
-      const remoteCommit = String(value.remoteCommit ?? "");
-      onChange({
-        ...project,
-        collaboration: {
-          ...project.collaboration,
-          lastPulledCommit: remoteCommit || project.collaboration.lastPulledCommit,
-          lastPushedCommit: remoteCommit || project.collaboration.lastPushedCommit,
-          updatedAt: new Date().toISOString(),
-        },
-      });
-      setRecipientName("");
-      onNotice(`Created a ${COLLABORATION_ROLE_DEFAULTS[role].label} invitation without credentials. The .ppinvite package is ready to share privately.`);
-      await loadSettings();
-    } catch (error) {
-      onNotice(error instanceof Error ? error.message : "The collaboration invitation could not be created.");
-    } finally { setBusy(false); }
+  async function toggleProposals() {
+    setBusy(true); try { await request("/api/local-collaboration/accepting-proposals", "POST", { expectedRemoteCommit: value.remoteCommit, acceptingProposals: !value.acceptingProposals }); setNotice(value.acceptingProposals ? "New Story Proposals are paused. Approved-story refresh and local work remain available." : "The story project is accepting new Story Proposals."); await refresh(); } catch (error) { setNotice(error instanceof Error ? error.message : "The proposal setting could not be changed."); } finally { setBusy(false); }
   }
-
-  async function revokeInvitation(invitationId: string) {
-    setBusy(true);
-    try {
-      const value = await request("/api/local-github/revoke-invitation", "POST", {
-        expectedBaseCommit: project.collaboration.lastPulledCommit,
-        invitationId,
-        projectId: project.id,
-        projectRole: project.collaboration.role,
-        callerInvitationId: project.collaboration.invitationId,
-      });
-      const remoteCommit = String(value.remoteCommit ?? "");
-      onChange({
-        ...project,
-        collaboration: {
-          ...project.collaboration,
-          lastPulledCommit: remoteCommit || project.collaboration.lastPulledCommit,
-          lastPushedCommit: remoteCommit || project.collaboration.lastPushedCommit,
-          updatedAt: new Date().toISOString(),
-        },
-      });
-      onNotice("The invitation was revoked. Connected collaborators will be locked from new submissions when PlotPickle rechecks the story project.");
-      await loadSettings();
-    } catch (error) {
-      onNotice(error instanceof Error ? error.message : "The collaboration invitation could not be revoked.");
-    } finally { setBusy(false); }
+  async function revoke(invitationId: string) {
+    setBusy(true); try { await request("/api/local-collaboration/revoke-invitation", "POST", { expectedRemoteCommit: value.remoteCommit, invitationId }); setNotice("The invitation was revoked."); await refresh(); } catch (error) { setNotice(error instanceof Error ? error.message : "The invitation could not be revoked."); } finally { setBusy(false); }
   }
-
-  async function importInvitation(file: File) {
-    setBusy(true);
-    try {
-      let parsed = parseCollaborationInvitation(JSON.parse(await file.text()), {
-        expectedProjectId: project.collaboration.repo ? project.id : undefined,
-        revokedInvitationIds: revokedIds,
-      });
-      let acceptingProposals = true;
-      if (ready && project.collaboration.repo) {
-        const validated = await request("/api/local-github/validate-invitation", "POST", { invitation: parsed });
-        parsed = validated.invitation as CollaborationInvitation;
-        acceptingProposals = validated.acceptingProposals !== false;
-      }
-      const next = applyCollaborationInvitation(project, parsed);
-      next.collaboration.acceptingProposals = acceptingProposals;
-      onChange(next);
-      const roleDefaults = COLLABORATION_ROLE_DEFAULTS[parsed.invitation.role];
-      onOpenWorkspace?.(roleDefaults.defaultWorkspace);
-      onNotice(`${roleDefaults.label} invitation accepted. Repository details were applied without asking the collaborator to enter them manually.`);
-    } catch (error) {
-      onNotice(error instanceof Error ? error.message : "The selected .ppinvite package could not be accepted.");
-    } finally {
-      setBusy(false);
-      if (fileInput.current) fileInput.current.value = "";
-    }
-  }
-
-  return (
-    <section className={styles.panel}>
-      <header>
-        <div>
-          <p>Invitations and roles</p>
-          <h3>{isProjectLead ? "Invite collaborators without exposing GitHub setup" : `${defaults?.label || "Collaborator"} workspace`}</h3>
-          <span>.ppinvite packages contain bounded story-project identity, role and expiry information—never credentials. Normal onboarding hides repository fields and applies role-appropriate defaults.</span>
-        </div>
-        <div className={styles.actions}>
-          <input ref={fileInput} className={styles.fileInput} type="file" accept=".ppinvite,application/json" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importInvitation(file); }} />
-          <button type="button" disabled={busy} onClick={() => fileInput.current?.click()}>Open .ppinvite</button>
-          {defaults ? <a className={styles.primaryLink} href={defaults.workspaceHref}>Open {defaults.label} start</a> : null}
-        </div>
-      </header>
-
-      {project.collaboration.invitationId ? (
-        <div className={styles.roleBanner}>
-          <div><strong>{defaults?.label || project.collaboration.role}</strong><span>{defaults?.description}</span></div>
-          <dl>
-            <div><dt>Invitation</dt><dd>{project.collaboration.invitationId}</dd></div>
-            <div><dt>Collaborator</dt><dd>{project.collaboration.invitationRecipientName || "Not named"}</dd></div>
-            <div><dt>Issued by</dt><dd>{project.collaboration.invitationIssuer || "Project Lead"}</dd></div>
-            <div><dt>Issued</dt><dd>{project.collaboration.invitationIssuedAt || "Not recorded"}</dd></div>
-            <div><dt>Expires</dt><dd>{project.collaboration.invitationExpiresAt || "Not recorded"}</dd></div>
-            <div><dt>Mode</dt><dd>{project.collaboration.readOnlyReview ? "Read-only review" : "Proposal contributor"}</dd></div>
-          </dl>
-        </div>
-      ) : null}
-
-      {isProjectLead ? (
-        <>
-          <div className={styles.settingRow}>
-            <div><strong>Accepting Proposals</strong><span>Pause new submissions without disabling approved-story refresh or anyone’s local work.</span></div>
-            <button type="button" className={project.collaboration.acceptingProposals ? styles.on : styles.off} disabled={!ready || busy} onClick={() => void setAcceptingProposals(!project.collaboration.acceptingProposals)}>{project.collaboration.acceptingProposals ? "On" : "Paused"}</button>
-          </div>
-          <div className={styles.form}>
-            <label><span>Role</span><select value={role} onChange={(event) => setRole(event.target.value as InvitableCollaborationRole)}>{INVITABLE_COLLABORATION_ROLES.map((item) => <option key={item} value={item}>{COLLABORATION_ROLE_DEFAULTS[item].label}</option>)}</select></label>
-            <label><span>Collaborator name</span><input value={recipientName} onChange={(event) => setRecipientName(event.target.value)} placeholder="Optional name" /></label>
-            <label><span>Issued by</span><input value={issuer} onChange={(event) => setIssuer(event.target.value)} /></label>
-            <label><span>Expires after</span><select value={expiryDays} onChange={(event) => setExpiryDays(Number(event.target.value))}><option value={7}>7 days</option><option value={14}>14 days</option><option value={30}>30 days</option><option value={60}>60 days</option></select></label>
-          </div>
-          <div className={styles.actions}><button type="button" className={styles.primary} disabled={!ready || busy || !project.collaboration.lastPulledCommit} onClick={() => void createInvitation()}>Create .ppinvite</button></div>
-          <div className={styles.list}>
-            {records.length ? records.map((record) => (
-              <article key={record.invitationId}>
-                <div><strong>{COLLABORATION_ROLE_DEFAULTS[record.role].label}{record.recipientName ? ` · ${record.recipientName}` : ""}</strong><span>{record.status === "revoked" ? "Revoked" : `Expires ${record.expiresAt}`}</span><code>{record.invitationId}</code></div>
-                {record.status === "active" ? <button type="button" disabled={busy} onClick={() => void revokeInvitation(record.invitationId)}>Revoke</button> : null}
-              </article>
-            )) : <p>No invitation packages have been registered for this story project.</p>}
-          </div>
-        </>
-      ) : (
-        <p className={styles.help}>Repository owner, repository name, approved branch and canonical root came from the invitation package. GitHub account authorization remains separate and credentials stay in the private local secrets folder.</p>
-      )}
-    </section>
-  );
+  async function leaveRole() { await request("/api/local-collaboration/session", "DELETE"); setNotice("This computer returned to Project Lead mode. GitHub credentials and local story files were kept."); await refresh(); }
+  const active = value.session; const isLead = value.projectLead;
+  return <div data-plotpickle-collaboration-ui className={styles.host}>
+    <button type="button" className={styles.launcher} onClick={() => setOpen(true)}><span aria-hidden="true">◎</span>{active ? COLLABORATION_ROLE_DEFAULTS[active.role as CollaborationRole]?.label || "Collaboration" : "Collaboration"}</button>
+    {active?.readOnlyReview ? <div className={styles.reviewBanner}><strong>Reviewer read-only mode</strong><span>Canon editing and Story Proposals are locked. Feedback remains available.</span><a href={active.workspaceHref}>Open Feedback</a></div> : null}
+    {open ? <div className={styles.backdrop} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
+      <section className={styles.dialog} role="dialog" aria-modal="true" aria-label="PlotPickle collaboration invitations">
+        <header><div><p>Invitations and collaborator roles</p><h2>{active ? `${active.projectTitle} · ${active.role}` : value.connected ? value.title || value.repository : "Connect a story project"}</h2><span>.ppinvite packages contain bounded project identity, role and expiry—never GitHub credentials. No repository metadata needs to be typed.</span></div><button type="button" onClick={() => setOpen(false)}>Close</button></header>
+        {notice ? <div className={styles.notice} role="status">{notice}</div> : null}
+        <div className={styles.connection}><span>{value.connected ? "GitHub ready" : "GitHub not connected"}</span><code>{value.repository || "Use Settings → GitHub to connect"}</code>{value.remoteCommit ? <small>Approved {value.branch} · {value.remoteCommit.slice(0, 12)}</small> : null}</div>
+        <div className={styles.actions}><input ref={file} hidden type="file" accept=".ppinvite,application/json" onChange={(event) => { const selected = event.target.files?.[0]; if (selected) void importInvite(selected); }} /><button type="button" className={styles.primary} disabled={busy} onClick={() => file.current?.click()}>Open .ppinvite</button>{active ? <a href={active.workspaceHref}>Open {COLLABORATION_ROLE_DEFAULTS[active.role as CollaborationRole]?.label || "role"} workspace</a> : null}{active && value.projectLead ? <button type="button" disabled={busy} onClick={() => void leaveRole()}>Return to Project Lead mode</button> : null}</div>
+        {isLead && value.connected ? <>
+          <div className={styles.setting}><div><strong>Accepting Proposals</strong><span>Pause submissions without disabling approved-story refresh or local work.</span></div><button type="button" disabled={busy || !value.remoteCommit} className={value.acceptingProposals ? styles.on : styles.off} onClick={() => void toggleProposals()}>{value.acceptingProposals ? "On" : "Paused"}</button></div>
+          <div className={styles.form}><label><span>Role</span><select value={role} onChange={(event) => setRole(event.target.value as CollaborationRole)}>{COLLABORATION_ROLES.map((item) => <option key={item} value={item}>{COLLABORATION_ROLE_DEFAULTS[item].label}</option>)}</select></label><label><span>Collaborator name</span><input value={recipient} onChange={(event) => setRecipient(event.target.value)} placeholder="Optional" /></label><label><span>Issued by</span><input value={issuer} onChange={(event) => setIssuer(event.target.value)} /></label><label><span>Expires</span><select value={days} onChange={(event) => setDays(Number(event.target.value))}><option value={7}>7 days</option><option value={14}>14 days</option><option value={30}>30 days</option><option value={60}>60 days</option></select></label></div>
+          <div className={styles.actions}><button type="button" className={styles.primary} disabled={busy || !value.remoteCommit} onClick={() => void createInvite()}>Create .ppinvite</button></div>
+          <div className={styles.list}>{value.invitations.length ? value.invitations.map((item) => <article key={item.invitationId}><div><strong>{COLLABORATION_ROLE_DEFAULTS[item.role].label}{item.recipientName ? ` · ${item.recipientName}` : ""}</strong><span>{item.status === "revoked" ? "Revoked" : `Expires ${item.expiresAt}`}</span><code>{item.invitationId}</code></div>{item.status === "active" ? <button type="button" disabled={busy} onClick={() => void revoke(item.invitationId)}>Revoke</button> : null}</article>) : <p>No invitations registered yet.</p>}</div>
+        </> : null}
+      </section>
+    </div> : null}
+  </div>;
 }

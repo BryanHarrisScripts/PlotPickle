@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotpickle.local/schema/plotpickle-invitation.schema.json",
+  "title": "PlotPickle collaboration invitation",
+  "type": "object",
+  "required": ["format", "formatVersion", "invitationId", "project", "invitation", "defaults", "integrity"],
+  "properties": {
+    "format": { "const": "plotpickle-invitation" },
+    "formatVersion": { "const": 1 },
+    "invitationId": { "type": "string", "minLength": 1 },
+    "project": {
+      "type": "object",
+      "required": ["projectId", "title", "repositoryUrl", "owner", "repo", "approvedBranch", "canonicalRoot"],
+      "properties": {
+        "projectId": { "type": "string", "minLength": 1 }, "title": { "type": "string", "minLength": 1 },
+        "repositoryUrl": { "type": "string", "minLength": 1 }, "owner": { "type": "string", "minLength": 1 },
+        "repo": { "type": "string", "minLength": 1 }, "approvedBranch": { "type": "string", "minLength": 1 },
+        "canonicalRoot": { "type": "string", "minLength": 1 }
+      }, "additionalProperties": false
+    },
+    "invitation": {
+      "type": "object", "required": ["role", "recipientName", "issuer", "issuedAt", "expiresAt"],
+      "properties": {
+        "role": { "enum": ["writer", "director", "actor", "producer", "reviewer"] },
+        "recipientName": { "type": "string" }, "issuer": { "type": "string", "minLength": 1 },
+        "issuedAt": { "type": "string", "format": "date-time" }, "expiresAt": { "type": "string", "format": "date-time" }
+      }, "additionalProperties": false
+    },
+    "defaults": { "type": "object", "required": ["defaultWorkspace", "workspaceHref", "readOnlyReview", "canSubmitProposals"] },
+    "integrity": { "type": "string", "pattern": "^fnv1a64-[0-9a-f]{16}$" }
+  },
+  "additionalProperties": false
+}

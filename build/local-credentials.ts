@@ -87,6 +87,7 @@ async function protectForCurrentWindowsUser(source: string) {
   const encoded = Buffer.from(source, "utf8").toString("base64");
   const script = [
     "$ErrorActionPreference='Stop'",
+    "Add-Type -AssemblyName System.Security",
     "$source=[Console]::In.ReadToEnd().Trim()",
     "$bytes=[Convert]::FromBase64String($source)",
     `$entropy=[Text.Encoding]::UTF8.GetBytes('${DPAPI_ENTROPY}')`,
@@ -101,6 +102,7 @@ async function protectForCurrentWindowsUser(source: string) {
 async function unprotectForCurrentWindowsUser(ciphertext: string) {
   const script = [
     "$ErrorActionPreference='Stop'",
+    "Add-Type -AssemblyName System.Security",
     "$source=[Console]::In.ReadToEnd().Trim()",
     "$bytes=[Convert]::FromBase64String($source)",
     `$entropy=[Text.Encoding]::UTF8.GetBytes('${DPAPI_ENTROPY}')`,

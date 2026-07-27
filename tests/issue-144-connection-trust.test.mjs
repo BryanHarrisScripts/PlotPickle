@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { access, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { stripTypeScriptTypes } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -107,7 +108,8 @@ test("eraseAllCredentials removes only the exact secrets directory", async () =>
   const previousHome = process.env.PLOTPICKLE_HOME;
   process.env.PLOTPICKLE_HOME = temporaryHome;
   try {
-    const vault = await import("../build/local-credentials.ts");
+    const compiledVault = stripTypeScriptTypes(await source("build/local-credentials.ts"), { mode: "transform" });
+    const vault = await import(`data:text/javascript;base64,${Buffer.from(compiledVault, "utf8").toString("base64")}`);
     await vault.writeCredentialJson("github-connection.json", { version: 1, token: "test-token" });
     await vault.writeCredentialJson("ai-connection.json", { version: 1, apiKey: "test-key" });
     await mkdir(path.join(temporaryHome, "projects"), { recursive: true });

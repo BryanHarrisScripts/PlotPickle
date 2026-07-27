@@ -1,8 +1,13 @@
-import { chmod, mkdir, readFile, unlink, writeFile } from "node:fs/promises";
-import os from "node:os";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
+import {
+  persistentHome,
+  readCredentialJson,
+  removeCredentialFile,
+  writeCredentialJson,
+} from "./local-credentials";
 
 type LiveProvider = "openai" | "openai-compatible" | "ollama";
 
@@ -33,16 +38,6 @@ const TEXT_PATH = "/api/local-ai/generate/text";
 const IMAGE_PATH = "/api/local-ai/generate/image";
 const ASSET_PATH = "/api/local-ai/assets/";
 const LIVE_PROVIDERS: LiveProvider[] = ["openai", "openai-compatible", "ollama"];
-
-function persistentHome() {
-  if (process.env.PLOTPICKLE_HOME) return path.resolve(process.env.PLOTPICKLE_HOME);
-  if (process.env.LOCALAPPDATA) return path.join(process.env.LOCALAPPDATA, "PlotPickle");
-  return path.join(os.homedir(), ".plotpickle");
-}
-
-function connectionFile() {
-  return path.join(persistentHome(), "secrets", "ai-connection.json");
-}
 
 function assetsDirectory() {
   return path.join(persistentHome(), "assets");
@@ -105,24 +100,12 @@ function isSavedConnection(value: unknown): value is SavedAiConnection {
 }
 
 async function readConnection() {
-  try {
-    const value: unknown = JSON.parse(await readFile(connectionFile(), "utf8"));
-    return isSavedConnection(value) ? value : null;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
-    throw error;
-  }
+  const value = await readCredentialJson<unknown>("ai-connection.json");
+  return isSavedConnection(value) ? value : null;
 }
 
 async function writeConnection(value: SavedAiConnection) {
-  const file = connectionFile();
-  await mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
-  await writeFile(file, `${JSON.stringify(value, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
-  try {
-    await chmod(file, 0o600);
-  } catch {
-    // Windows protects the file through the current user's profile permissions.
-  }
+  await writeCredentialJson("ai-connection.json", value);
 }
 
 function publicConnection(value: SavedAiConnection | null) {
@@ -320,9 +303,7 @@ async function handleConnection(request: IncomingMessage, response: ServerRespon
       return;
     }
     if (request.url === API_PATH && request.method === "DELETE") {
-      try { await unlink(connectionFile()); } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-      }
+      await removeCredentialFile("ai-connection.json");
       sendJson(response, 200, { ok: true, message: "Saved API connection removed.", available: true, saved: false });
       return;
     }

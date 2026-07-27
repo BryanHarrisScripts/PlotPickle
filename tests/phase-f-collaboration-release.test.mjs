@@ -30,14 +30,16 @@ test("local project storage uses atomic saves, integrity checks, and rolling bac
 });
 
 test("GitHub collaboration is local-only, review-first, and Project Lead-controlled", async () => {
-  const [gateway, proposalGateway, component, comparison, vite, vault] = await Promise.all([
+  const [gateway, proposalGateway, component, syncComponent, comparison, vite, vault] = await Promise.all([
     source("build/local-project-gateway.ts"),
     source("build/github-review-gateway.ts"),
     source("app/github-collaboration.tsx"),
+    source("app/github-project-sync.tsx"),
     source("lib/github-collaboration.ts"),
     source("vite.config.ts"),
     source("build/local-credentials.ts"),
   ]);
+  const collaborationUi = `${component}\n${syncComponent}`;
   for (const phrase of ["local-credentials", "readCredentialJson", "Project storage and GitHub synchronization accept requests only", "githubPull", "githubHistory"]) {
     assert.ok(gateway.includes(phrase), `Missing GitHub gateway protection: ${phrase}`);
   }
@@ -59,9 +61,9 @@ test("GitHub collaboration is local-only, review-first, and Project Lead-control
     "Review in GitHub",
     "Legacy approved version",
   ]) {
-    assert.ok(component.includes(phrase), `Missing Project Lead-controlled collaboration UI: ${phrase}`);
+    assert.ok(collaborationUi.includes(phrase), `Missing Project Lead-controlled collaboration UI: ${phrase}`);
   }
-  assert.doesNotMatch(component, /Push named backup/);
+  assert.doesNotMatch(collaborationUi, /Push named backup/);
   assert.match(comparison, /compareCollaborativeProjects/);
   assert.match(comparison, /applyReviewedGitHubProject/);
   assert.match(vite, /githubReviewGateway\(\)/);

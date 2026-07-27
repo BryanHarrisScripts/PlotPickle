@@ -18,6 +18,12 @@ The repository-level `plotpickle-project.json` manifest now identifies:
 
 The canonical folder reuses `createProjectFolder` and `parseProjectFolder`. Phase 3 does not introduce another story schema or duplicate the existing module engines.
 
+## Compatibility with Phases 1 and 2
+
+The GitHub App connection record retains its existing `projectPath` field so Phase 1 readiness checks and Phase 2 repository selection remain compatible. Under manifest `1.1.0`, that transitional field is populated from `portableProject.path`; canonical synchronization reads `canonicalProject.root` and `canonicalProject.manifestPath` instead.
+
+Repositories using manifest `1.0.0` remain readable. PlotPickle inspects them as migration candidates, preserves their legacy `.ppf`, and upgrades the repository contract only after explicit Project Lead approval. New and upgraded repositories use manifest `1.1.0`.
+
 ## Deterministic synchronization
 
 Before GitHub comparison, PlotPickle:

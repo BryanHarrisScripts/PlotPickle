@@ -30,25 +30,39 @@ test("local project storage uses atomic saves, integrity checks, and rolling bac
 });
 
 test("GitHub collaboration is local-only, review-first, and Project Lead-controlled", async () => {
-  const [gateway, proposalGateway, component, syncComponent, comparison, vite, vault] = await Promise.all([
+  const [gateway, proposalGateway, component, syncComponent, storyComponent, semanticEngine, comparison, vite, vault] = await Promise.all([
     source("build/local-project-gateway.ts"),
     source("build/github-review-gateway.ts"),
     source("app/github-collaboration.tsx"),
     source("app/github-project-sync.tsx"),
+    source("app/story-proposals.tsx"),
+    source("lib/story-proposals.ts"),
     source("lib/github-collaboration.ts"),
     source("vite.config.ts"),
     source("build/local-credentials.ts"),
   ]);
-  const collaborationUi = `${component}\n${syncComponent}`;
+  const collaborationUi = `${component}\n${syncComponent}\n${storyComponent}`;
   for (const phrase of ["local-credentials", "readCredentialJson", "Project storage and GitHub synchronization accept requests only", "githubPull", "githubHistory"]) {
     assert.ok(gateway.includes(phrase), `Missing GitHub gateway protection: ${phrase}`);
   }
   for (const phrase of ["credentialsDirectory", '"secrets"', "readCredentialJson", "writeCredentialJson"]) {
     assert.ok(vault.includes(phrase), `Missing centralized credential protection: ${phrase}`);
   }
-  for (const phrase of ["serverIdentity", "submit-proposal", "git/refs", "pulls", "expectedBaseRevision", "canonical GitHub story changed", "maintainer_can_modify", "owner or maintainer", "No API key or GitHub credential"]) {
-    assert.ok(proposalGateway.includes(phrase), `Missing proposal architecture: ${phrase}`);
-  }
+  for (const phrase of [
+    "serverIdentity",
+    "submit-proposal",
+    "plotpickle/proposal/",
+    "/git/blobs",
+    "/git/trees",
+    "/git/commits",
+    "expectedBaseRevision",
+    "expectedBaseCommit",
+    "selectedGroups",
+    "maintainer_can_modify",
+    "No API key, access token, refresh token or private credential",
+  ]) assert.ok(proposalGateway.includes(phrase), `Missing Story Proposal architecture: ${phrase}`);
+  assert.match(semanticEngine, /applyStoryProposalGroups/);
+  assert.match(semanticEngine, /compareStoryProposalProjects/);
   assert.ok(!proposalGateway.includes("token: project"), "GitHub credentials must never be read from the project.");
   for (const phrase of [
     "Many local PlotPickle servers",
@@ -56,13 +70,12 @@ test("GitHub collaboration is local-only, review-first, and Project Lead-control
     "Compare project files",
     "Get approved project folder",
     "Project Lead: publish approved version",
-    "Submit changes for Project Lead approval",
-    "The approved ${branch} version is unchanged until the Project Lead accepts it",
-    "Review in GitHub",
+    "Story Proposals",
+    "Create Story Proposal",
+    "Approve selected groups",
+    "Open review in GitHub",
     "Legacy approved version",
-  ]) {
-    assert.ok(collaborationUi.includes(phrase), `Missing Project Lead-controlled collaboration UI: ${phrase}`);
-  }
+  ]) assert.ok(collaborationUi.includes(phrase), `Missing Project Lead-controlled collaboration UI: ${phrase}`);
   assert.doesNotMatch(collaborationUi, /Push named backup/);
   assert.match(comparison, /compareCollaborativeProjects/);
   assert.match(comparison, /applyReviewedGitHubProject/);

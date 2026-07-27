@@ -23,19 +23,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Capture build and focused tests
+      - name: Capture complete test suite
         id: diagnostic
         shell: bash
         run: |
           set +e
-          npm run build > phase-1-build.log 2>&1
-          build_status=$?
-          node --test tests/issue-144-connection-trust.test.mjs tests/issue-146-github-app-connection.test.mjs > phase-1-tests.log 2>&1
+          npm test > phase-1-full-test.log 2>&1
           test_status=$?
-          printf 'build_status=%s\ntest_status=%s\n' "$build_status" "$test_status" > phase-1-status.txt
-          if [ "$build_status" -ne 0 ] || [ "$test_status" -ne 0 ]; then
-            exit 1
-          fi
+          printf 'test_status=%s\n' "$test_status" > phase-1-status.txt
+          exit "$test_status"
 
       - name: Upload diagnostic logs
         if: always()
@@ -43,8 +39,7 @@ jobs:
         with:
           name: phase-1-diagnostic
           path: |
-            phase-1-build.log
-            phase-1-tests.log
+            phase-1-full-test.log
             phase-1-status.txt
           if-no-files-found: error
           retention-days: 1

@@ -8,22 +8,25 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (filePath) => readFile(new URL(filePath, root), "utf8");
 
-test("issue #144 gives GitHub a visible four-state readiness light and first-time instructions", async () => {
-  const [panel, css] = await Promise.all([
+test("issue #144 keeps GitHub's visible readiness states and trustworthy first-time instructions", async () => {
+  const [panel, appConnection, css] = await Promise.all([
     source("app/github-collaboration.tsx"),
+    source("app/github-app-connection.tsx"),
     source("app/github-collaboration.module.css"),
   ]);
+  const onboarding = `${panel}\n${appConnection}`;
   for (const phrase of [
     "Not connected",
     "Checking",
     "Ready",
     "Needs attention",
-    "Connect in three steps",
+    "Recommended: connect your GitHub account",
+    "Advanced Setup: fine-grained GitHub token",
     "Create a fine-grained token in GitHub",
     "https://github.com/settings/personal-access-tokens/new",
     "Contents and Pull requests to Read and write",
-    "The green Ready light appears only after PlotPickle confirms",
-  ]) assert.ok(panel.includes(phrase), `GitHub onboarding is missing: ${phrase}`);
+    "The green Ready light still requires all five live collaboration checks",
+  ]) assert.ok(onboarding.includes(phrase), `GitHub onboarding is missing: ${phrase}`);
   for (const style of [
     "readinessDisconnected",
     "readinessChecking",

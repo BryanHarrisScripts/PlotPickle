@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "./github-collaboration.module.css";
 import GitHubAppConnection, { type GitHubAppConnectedRepository } from "./github-app-connection";
+import GitHubProjectSync from "./github-project-sync";
 import {
   createPortableProjectFile,
   parsePortableProjectFile,
@@ -440,7 +441,7 @@ export default function GitHubCollaboration({
       </section>
 
       <div className={styles.architecture} aria-label="Collaboration architecture">
-        <article><b>1</b><strong>Get approved story</strong><span>Every server starts from the repository’s approved branch and .ppf revision.</span></article>
+        <article><b>1</b><strong>Get approved story</strong><span>Every server starts from the repository’s approved branch and canonical project folder.</span></article>
         <i>→</i>
         <article><b>2</b><strong>Edit locally</strong><span>Autosave, AI, screenplay, reports, visuals and production remain private on that computer.</span></article>
         <i>→</i>
@@ -496,7 +497,7 @@ export default function GitHubCollaboration({
               <label><span>Project Lead or organization</span><input value={owner} spellCheck={false} onChange={(event) => setOwner(event.target.value)} placeholder="GitHub username or organization" /></label>
               <label><span>Story project repository</span><input value={repo} spellCheck={false} onChange={(event) => setRepo(event.target.value)} placeholder="my-plotpickle-story" /></label>
               <label><span>Approved branch</span><input value={branch} spellCheck={false} onChange={(event) => setBranch(event.target.value)} /></label>
-              <label><span>Canonical .ppf path</span><input value={projectPath} spellCheck={false} onChange={(event) => setProjectPath(event.target.value)} /><small>An existing .ppf is integrity-checked. A valid new path is created by the first proposal.</small></label>
+              <label><span>Legacy .ppf exchange path</span><input value={projectPath} spellCheck={false} onChange={(event) => setProjectPath(event.target.value)} /><small>The canonical collaboration source is project/. This path remains for legacy migration and portable exchange.</small></label>
               <label className={styles.wide}><span>Fine-grained GitHub token — stored outside the project</span><input type="password" autoComplete="off" spellCheck={false} value={token} onChange={(event) => setToken(event.target.value)} placeholder={status.connected ? "Leave blank to keep the saved token" : "Paste the token from GitHub"} /></label>
             </div>
             <div className={styles.actions}>
@@ -526,10 +527,17 @@ export default function GitHubCollaboration({
         </section>
       </div>
 
+      <GitHubProjectSync
+        project={project}
+        onChange={onChange}
+        ready={status.ready}
+        onNotice={setNotice}
+      />
+
       <div className={styles.grid}>
         <section className={styles.panel}>
-          <header><div><p>Approved version</p><h3>Compare the Project Lead-approved story</h3><span>A pull reads only the configured approved branch. It never reads another server’s unmerged proposal and never changes the active project automatically.</span></div></header>
-          <div className={styles.actions}><button type="button" className={styles.primary} disabled={working || !status.ready} onClick={() => void pullForReview()}>Get approved version for review</button></div>
+          <header><div><p>Legacy approved version</p><h3>Compare the Project Lead-approved portable story</h3><span>This compatibility path reads the configured legacy .ppf only. New collaboration uses the canonical project/ folder above.</span></div></header>
+          <div className={styles.actions}><button type="button" className={styles.primary} disabled={working || !status.ready} onClick={() => void pullForReview()}>Get legacy approved version for review</button></div>
           {comparison ? (
             <div className={styles.comparison}>
               <strong>{comparison.summary}</strong>
@@ -546,16 +554,16 @@ export default function GitHubCollaboration({
                 <button type="button" onClick={() => setIncoming(null)}>Discard incoming version</button>
               </div>
             </div>
-          ) : <p className={styles.help}>Getting the approved version creates a review candidate in memory. Apply it to register the exact canonical .ppf revision as this server’s collaboration base.</p>}
+          ) : <p className={styles.help}>Use this only for an existing repository that has not yet migrated from a single .ppf collaboration file.</p>}
         </section>
 
         <section className={styles.panel}>
-          <header><div><p>Submit local work</p><h3>Create a story proposal</h3><span>This server must be based on the latest approved .ppf. If another proposal was accepted first, PlotPickle requires a new pull before submission.</span></div></header>
+          <header><div><p>Submit local work</p><h3>Create a story proposal</h3><span>This server must be based on the latest approved version. If another proposal was accepted first, PlotPickle requires a new pull before submission.</span></div></header>
           <div className={styles.form}>
             <label className={styles.wide}><span>Proposal title</span><input value={proposalTitle} onChange={(event) => setProposalTitle(event.target.value)} /></label>
             <label className={styles.wide}><span>Contributor note</span><textarea rows={4} value={proposalNote} onChange={(event) => setProposalNote(event.target.value)} placeholder="Explain what changed, why, and anything the Project Lead should inspect closely." /></label>
           </div>
-          <div className={styles.baseState}><span>Known approved .ppf revision</span><code>{project.collaboration.lastPulledCommit || "Get the approved version before the first proposal to an existing project"}</code></div>
+          <div className={styles.baseState}><span>Known approved revision</span><code>{project.collaboration.lastPulledCommit || "Get the approved version before the first proposal to an existing project"}</code></div>
           <div className={styles.actions}>
             <button type="button" className={styles.primary} disabled={working || !status.ready} onClick={() => void submitProposal()}>Submit changes for Project Lead approval</button>
             <button type="button" disabled={!status.ready} onClick={() => void loadProposals()}>Refresh proposals</button>
@@ -576,7 +584,7 @@ export default function GitHubCollaboration({
       </section>
 
       <section className={styles.panel}>
-        <header><div><p>Approved history</p><h3>Canonical .ppf revisions</h3><span>History is read from the configured approved branch and project path—not from unmerged proposals.</span></div></header>
+        <header><div><p>Approved history</p><h3>Canonical project revisions</h3><span>History is read from the configured approved branch—not from unmerged proposals.</span></div></header>
         <div className={styles.actions}><button type="button" disabled={!status.ready} onClick={() => void loadHistory()}>Refresh approved history</button></div>
         <div className={styles.list}>
           {history.map((item) => <div className={styles.row} key={item.sha}><div><strong>{item.message.split("\n")[0]}</strong><span>{item.sha.slice(0, 10)} · {item.date}</span></div>{item.url ? <a href={item.url} target="_blank" rel="noreferrer">Open</a> : null}</div>)}

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://plotpickle.org/schemas/github-story-project/1.0/manifest.schema.json",
+  "title": "PlotPickle GitHub Story Project Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "format",
+    "formatVersion",
+    "schemaVersion",
+    "projectId",
+    "title",
+    "createdAt",
+    "updatedAt",
+    "createdWith",
+    "repository",
+    "canonicalProject",
+    "modularProject",
+    "collaboration"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "const": "https://plotpickle.org/schemas/github-story-project/1.0/manifest.schema.json" },
+    "format": { "type": "string", "const": "plotpickle-story-project" },
+    "formatVersion": { "type": "string", "const": "1.0.0" },
+    "schemaVersion": { "type": "string", "const": "2.3.0" },
+    "projectId": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "createdWith": { "type": "string", "minLength": 1 },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner", "name", "defaultBranch"],
+      "properties": {
+        "owner": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "defaultBranch": { "type": "string", "minLength": 1 }
+      }
+    },
+    "canonicalProject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "path"],
+      "properties": {
+        "mode": { "type": "string", "const": "portable-ppf" },
+        "path": { "type": "string", "pattern": "^[^\\\\]+\\.ppf$" }
+      }
+    },
+    "modularProject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["format", "formatVersion", "manifestPath", "status"],
+      "properties": {
+        "format": { "type": "string", "const": "plotpickle-project" },
+        "formatVersion": { "type": "string", "const": "2.3.0" },
+        "manifestPath": { "type": "string", "const": "manifest.json" },
+        "status": { "type": "string", "const": "phase-3" }
+      }
+    },
+    "collaboration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["approvalAuthority", "proposalMode", "acceptingProposals"],
+      "properties": {
+        "approvalAuthority": { "type": "string", "const": "project-lead" },
+        "proposalMode": { "type": "string", "const": "pull-request" },
+        "acceptingProposals": { "type": "boolean" }
+      }
+    }
+  }
+}

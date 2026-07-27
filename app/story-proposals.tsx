@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { PlotPickleProject } from "@/lib/project";
 import type { StoryProposalGroupId } from "@/lib/story-proposals";
+import CollaborationInvitations, { type CollaborationAccess } from "./collaboration-invitations";
 import styles from "./story-proposals.module.css";
 
 type ProposalState = "open" | "draft" | "approved" | "merged" | "declined";
@@ -43,6 +44,25 @@ type ProposalReview = {
 };
 
 type JsonError = Error & { response?: Record<string, unknown> };
+
+const DEFAULT_ACCESS: CollaborationAccess = {
+  connected: false,
+  role: null,
+  roleLabel: "Project Lead",
+  isProjectLead: true,
+  readOnly: false,
+  canSubmitProposals: true,
+  acceptingProposals: true,
+  verificationState: "lead",
+  verificationMessage: "",
+  remoteCommit: "",
+  primaryWorkspace: "/",
+  workspaceDefaults: ["/", "/settings"],
+  invitationId: "",
+  recipientName: "",
+  projectTitle: "",
+  revokedInvitationIds: [],
+};
 
 async function request(path: string, method: "GET" | "POST" = "GET", body?: object) {
   const response = await fetch(path, {
@@ -173,11 +193,20 @@ export default function StoryProposals({
   const [title, setTitle] = useState(`Story Proposal: ${project.metadata.title}`);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  const [access, setAccess] = useState<CollaborationAccess>(DEFAULT_ACCESS);
 
+  const effectiveReady = ready || access.connected;
   const openCount = useMemo(() => items.filter((item) => item.state === "open" || item.state === "draft").length, [items]);
+  const submissionBlocked = !access.acceptingProposals
+    ? "The Project Lead has paused new Story Proposals. Local work and approved-story refresh remain available."
+    : access.readOnly
+      ? "This role is read-only and cannot submit Story Proposals."
+      : !access.canSubmitProposals
+        ? access.verificationMessage || "This invitation must be verified before it can submit Story Proposals."
+        : "";
 
   async function loadProposals() {
-    if (!ready) {
+    if (!effectiveReady) {
       setItems([]);
       setReview(null);
       return;
@@ -193,9 +222,9 @@ export default function StoryProposals({
   useEffect(() => {
     const timer = window.setTimeout(() => { void loadProposals(); }, 0);
     return () => window.clearTimeout(timer);
-    // Refresh whenever GitHub readiness changes.
+    // Refresh whenever GitHub or invitation readiness changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready]);
+  }, [effectiveReady, access.verificationState]);
 
   async function submit() {
     setBusy(true);
@@ -237,8 +266,10 @@ export default function StoryProposals({
       const value = await request(`/api/local-github/proposal-review?number=${encodeURIComponent(item.number)}`);
       const next = reviewFrom(value);
       setReview(next);
-      setSelected(next.groups.map((group) => group.id));
-      onNotice(`Story Proposal #${item.number} is ready for semantic review. No approved files have changed.`);
+      setSelected(access.isProjectLead ? next.groups.map((group) => group.id) : []);
+      onNotice(access.isProjectLead
+        ? `Story Proposal #${item.number} is ready for semantic review. No approved files have changed.`
+        : `Story Proposal #${item.number} opened in read-only semantic review.`);
     } catch (error) {
       onNotice(error instanceof Error ? error.message : "The Story Proposal could not be reviewed.");
     } finally {
@@ -247,11 +278,12 @@ export default function StoryProposals({
   }
 
   function toggle(group: StoryProposalGroupId) {
+    if (!access.isProjectLead) return;
     setSelected((current) => current.includes(group) ? current.filter((item) => item !== group) : [...current, group]);
   }
 
   async function approve() {
-    if (!review) return;
+    if (!review || !access.isProjectLead) return;
     setBusy(true);
     try {
       const value = await request("/api/local-github/approve-proposal", "POST", {
@@ -274,7 +306,7 @@ export default function StoryProposals({
   }
 
   async function decline() {
-    if (!review) return;
+    if (!review || !access.isProjectLead) return;
     if (!window.confirm(`Decline Story Proposal #${review.proposal.number}? The approved story will remain unchanged.`)) return;
     setBusy(true);
     try {
@@ -308,82 +340,93 @@ export default function StoryProposals({
   }
 
   return (
-    <section className={`${styles.panel} ${styles.storyProposalWorkspace}`}>
-      <header>
-        <div>
-          <p>Story Proposals</p>
-          <h3>{openCount} proposal{openCount === 1 ? "" : "s"} awaiting a Project Lead decision</h3>
-          <span>Proposal branches contain only changed canonical project files. Project Leads can approve dialogue, character, scene, production or other semantic groups separately.</span>
-        </div>
-        <div className={styles.actions}>
-          <button type="button" disabled={!ready || busy} onClick={() => void loadProposals()}>Refresh proposals</button>
-          <button type="button" className={styles.primary} disabled={!ready || busy} onClick={() => void refreshApproved()}>Refresh approved story</button>
-        </div>
-      </header>
+    <>
+      <CollaborationInvitations project={project} ready={ready} onNotice={onNotice} onAccessChange={setAccess} />
 
-      <div className={styles.proposalComposer}>
-        <div>
-          <strong>Create a Story Proposal</strong>
-          <p>PlotPickle compares your local canonical folder with the approved branch and commits only changed project files to a new proposal branch.</p>
-        </div>
-        <div className={styles.form}>
-          <label className={styles.wide}><span>Proposal title</span><input value={title} onChange={(event) => setTitle(event.target.value)} /></label>
-          <label className={styles.wide}><span>Contributor note</span><textarea rows={4} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Explain the creative intent, the areas changed and anything the Project Lead should inspect closely." /></label>
-        </div>
-        <div className={styles.baseState}><span>Known approved commit</span><code>{project.collaboration.lastPulledCommit || "Refresh the approved story before creating a proposal"}</code></div>
-        <div className={styles.actions}>
-          <button type="button" className={styles.primary} disabled={!ready || busy || !project.collaboration.lastPulledCommit} onClick={() => void submit()}>Create Story Proposal</button>
-        </div>
-      </div>
+      <section className={`${styles.panel} ${styles.storyProposalWorkspace}`}>
+        <header>
+          <div>
+            <p>Story Proposals</p>
+            <h3>{openCount} proposal{openCount === 1 ? "" : "s"} awaiting a Project Lead decision</h3>
+            <span>{access.isProjectLead
+              ? "Proposal branches contain only changed canonical project files. Select dialogue, character, scene, production or other semantic groups independently."
+              : `${access.roleLabel} access keeps local work separate until an authorized Story Proposal is submitted. Approval remains controlled by the Project Lead.`}</span>
+          </div>
+          <div className={styles.actions}>
+            <button type="button" disabled={!effectiveReady || busy} onClick={() => void loadProposals()}>Refresh proposals</button>
+            <button type="button" className={styles.primary} disabled={!effectiveReady || busy} onClick={() => void refreshApproved()}>Refresh approved story</button>
+          </div>
+        </header>
 
-      <div className={styles.proposalLayout}>
-        <div className={styles.proposalQueue}>
-          <strong>Proposal queue</strong>
-          {items.length ? items.map((item) => (
-            <article key={item.number} className={review?.proposal.number === item.number ? styles.proposalActive : ""}>
-              <button type="button" disabled={busy || item.state === "approved" || item.state === "merged" || item.state === "declined"} onClick={() => void inspect(item)}>
-                <span className={`${styles.proposalState} ${stateClass(item.state)}`}>{stateLabel(item.state)}</span>
-                <b>#{item.number} · {item.title}</b>
-                <small>{item.author} · {item.updatedAt || "No update time"}</small>
-              </button>
-              {item.url ? <a href={item.url} target="_blank" rel="noreferrer">Open review in GitHub</a> : null}
-            </article>
-          )) : <p className={styles.help}>No Story Proposals are listed yet.</p>}
+        <div className={styles.proposalComposer}>
+          <div>
+            <strong>Create a Story Proposal</strong>
+            <p>PlotPickle compares your local canonical folder with the approved branch and commits only changed project files to a new proposal branch.</p>
+          </div>
+          {submissionBlocked ? <p className={styles.help}><b>Submission unavailable:</b> {submissionBlocked}</p> : null}
+          <div className={styles.form}>
+            <label className={styles.wide}><span>Proposal title</span><input value={title} disabled={Boolean(submissionBlocked)} onChange={(event) => setTitle(event.target.value)} /></label>
+            <label className={styles.wide}><span>Contributor note</span><textarea rows={4} value={note} disabled={Boolean(submissionBlocked)} onChange={(event) => setNote(event.target.value)} placeholder="Explain the creative intent, the areas changed and anything the Project Lead should inspect closely." /></label>
+          </div>
+          <div className={styles.baseState}><span>Known approved commit</span><code>{project.collaboration.lastPulledCommit || "Refresh the approved story before creating a proposal"}</code></div>
+          <div className={styles.actions}>
+            <button type="button" className={styles.primary} disabled={!effectiveReady || busy || Boolean(submissionBlocked) || !project.collaboration.lastPulledCommit} onClick={() => void submit()}>Create Story Proposal</button>
+          </div>
         </div>
 
-        <div className={styles.proposalReview}>
-          {review ? (
-            <>
-              <div className={styles.proposalReviewHeader}>
-                <div><span>Semantic review</span><strong>#{review.proposal.number} · {review.proposal.title}</strong><small>{review.diff.changed} changed canonical file{review.diff.changed === 1 ? "" : "s"} · base {review.baseCommit.slice(0, 10)}</small></div>
-                <button type="button" disabled={busy} onClick={() => { setReview(null); setSelected([]); }}>Close review</button>
+        <div className={styles.proposalLayout}>
+          <div className={styles.proposalQueue}>
+            <strong>Proposal queue</strong>
+            {items.length ? items.map((item) => (
+              <article key={item.number} className={review?.proposal.number === item.number ? styles.proposalActive : ""}>
+                <button type="button" disabled={busy || item.state === "approved" || item.state === "merged" || item.state === "declined"} onClick={() => void inspect(item)}>
+                  <span className={`${styles.proposalState} ${stateClass(item.state)}`}>{stateLabel(item.state)}</span>
+                  <b>#{item.number} · {item.title}</b>
+                  <small>{item.author} · {item.updatedAt || "No update time"}</small>
+                </button>
+                {item.url ? <a href={item.url} target="_blank" rel="noreferrer">Open review in GitHub</a> : null}
+              </article>
+            )) : <p className={styles.help}>No Story Proposals are listed yet.</p>}
+          </div>
+
+          <div className={styles.proposalReview}>
+            {review ? (
+              <>
+                <div className={styles.proposalReviewHeader}>
+                  <div><span>{access.isProjectLead ? "Semantic review" : "Read-only semantic review"}</span><strong>#{review.proposal.number} · {review.proposal.title}</strong><small>{review.diff.changed} changed canonical file{review.diff.changed === 1 ? "" : "s"} · base {review.baseCommit.slice(0, 10)}</small></div>
+                  <button type="button" disabled={busy} onClick={() => { setReview(null); setSelected([]); }}>Close review</button>
+                </div>
+                <div className={styles.semanticGrid}>
+                  {review.groups.map((group) => {
+                    const checked = selected.includes(group.id);
+                    return (
+                      <label key={group.id} className={`${styles.semanticCard} ${checked ? styles.semanticSelected : ""}`}>
+                        <input type="checkbox" checked={checked} disabled={!access.isProjectLead} onChange={() => toggle(group.id)} />
+                        <span><b>{group.label}</b><small>{group.summary}</small><em>{group.description}</em></span>
+                        <code>{group.filePaths.length} file path{group.filePaths.length === 1 ? "" : "s"}</code>
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className={styles.help}>{access.isProjectLead
+                  ? "Selected groups are rebuilt into one guarded approved-project commit. Unselected groups are excluded rather than silently merged."
+                  : "You can inspect each semantic group, but only the Project Lead can approve or decline the proposal."}</p>
+                {access.isProjectLead ? (
+                  <div className={styles.actions}>
+                    <button type="button" className={styles.primary} disabled={busy || !selected.length} onClick={() => void approve()}>Approve selected groups</button>
+                    <button type="button" className={styles.dangerAction} disabled={busy} onClick={() => void decline()}>Decline proposal</button>
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <div className={styles.proposalEmpty}>
+                <strong>Select an open Story Proposal</strong>
+                <p>PlotPickle compares the approved and proposed canonical projects, then separates the changes into filmmaker-facing semantic groups.</p>
               </div>
-              <div className={styles.semanticGrid}>
-                {review.groups.map((group) => {
-                  const checked = selected.includes(group.id);
-                  return (
-                    <label key={group.id} className={`${styles.semanticCard} ${checked ? styles.semanticSelected : ""}`}>
-                      <input type="checkbox" checked={checked} onChange={() => toggle(group.id)} />
-                      <span><b>{group.label}</b><small>{group.summary}</small><em>{group.description}</em></span>
-                      <code>{group.filePaths.length} file path{group.filePaths.length === 1 ? "" : "s"}</code>
-                    </label>
-                  );
-                })}
-              </div>
-              <p className={styles.help}>Selected groups are rebuilt into one guarded approved-project commit. Unselected groups are excluded rather than silently merged.</p>
-              <div className={styles.actions}>
-                <button type="button" className={styles.primary} disabled={busy || !selected.length} onClick={() => void approve()}>Approve selected groups</button>
-                <button type="button" className={styles.dangerAction} disabled={busy} onClick={() => void decline()}>Decline proposal</button>
-              </div>
-            </>
-          ) : (
-            <div className={styles.proposalEmpty}>
-              <strong>Select an open Story Proposal</strong>
-              <p>PlotPickle will compare the approved and proposed canonical projects, then separate the changes into filmmaker-facing semantic groups.</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

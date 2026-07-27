@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { PRODUCT_NAVIGATION, PROJECT_ACTIONS, type ProductNavigationId } from "@/lib/product-direction";
 
 type ProjectActionId = (typeof PROJECT_ACTIONS)[number]["id"];
@@ -43,6 +44,17 @@ function WorkspaceButton({
 }
 
 export default function ApplicationShellHeader({ activeTab, onNavigate, onProjectAction, onOpenLanding }: ApplicationShellHeaderProps) {
+  useEffect(() => {
+    const handleWorkspaceNavigation = (event: Event) => {
+      const requested = (event as CustomEvent<unknown>).detail;
+      if (typeof requested !== "string") return;
+      const workspace = PRODUCT_NAVIGATION.find((item) => item.id === requested);
+      if (workspace) onNavigate(workspace.id);
+    };
+    window.addEventListener("plotpickle:navigate-workspace", handleWorkspaceNavigation);
+    return () => window.removeEventListener("plotpickle:navigate-workspace", handleWorkspaceNavigation);
+  }, [onNavigate]);
+
   return (
     <header className="topbar application-shell-header">
       <button type="button" className="brand-lockup home-trigger shell-brand" onClick={onOpenLanding} aria-label="Open the PlotPickle marketing page">

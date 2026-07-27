@@ -30,6 +30,7 @@ type GitHubConnection = {
   repo: string;
   branch: string;
   token: string;
+  login?: string;
   readiness?: { ready: boolean };
 };
 
@@ -128,10 +129,25 @@ async function repositoryPolicy(value: GitHubConnection) {
   return { manifest: inspected.manifest, policy };
 }
 
+async function authenticatedLogin(value: GitHubConnection) {
+  if (typeof value.login === "string" && value.login.trim()) return value.login.trim();
+  const profile = await githubJson(value, "/user");
+  if (typeof profile.login !== "string" || !profile.login.trim()) throw new Error("GitHub did not return the signed-in account for Project Lead verification.");
+  return profile.login.trim();
+}
+
 async function assertProjectLead() {
   const invitation = await localInvitation();
   if (invitation) {
-    throw new Error("Only the Project Lead workspace can approve or decline Story Proposals, create invitations or change collaboration policy. Remove the accepted collaborator role from this computer to return to Project Lead controls.");
+    throw new Error("Only the Project Lead workspace can approve or decline Story Proposals, create invitations or change collaboration policy.");
+  }
+  const value = await connection();
+  if (!value || !value.readiness?.ready) throw new Error("Connect GitHub and wait for the green Ready light before using Project Lead controls.");
+  const { policy } = await repositoryPolicy(value);
+  const login = (await authenticatedLogin(value)).toLowerCase();
+  const permittedLeads = new Set([value.owner, policy.updatedBy].map((item) => item.trim().toLowerCase()).filter(Boolean));
+  if (!permittedLeads.has(login)) {
+    throw new Error("The signed-in GitHub account is not the repository owner or recorded Project Lead for this story.");
   }
 }
 

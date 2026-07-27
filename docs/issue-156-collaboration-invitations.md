@@ -46,6 +46,8 @@ Producer mode prioritizes Reports, Production, Feedback and Dashboard. It can su
 
 Reviewer mode opens with read-only review defaults. It prioritizes Feedback, Read, Reports and Read & Learn. It can inspect the approved story and semantic proposal groups, but it cannot submit, approve or decline canonical changes.
 
+Role shortcuts are translated into the existing PlotPickle application-shell tabs. They do not create duplicate route pages or separate role editions of PlotPickle.
+
 ## Role-first onboarding
 
 The normal invitation flow deliberately keeps repository metadata hidden:
@@ -84,14 +86,15 @@ Buttons are not the security boundary. A server-side access guard runs before th
 
 It enforces that:
 
-- only the Project Lead workspace can create invitations;
-- only the Project Lead workspace can change collaboration policy;
-- only the Project Lead workspace can approve or decline proposals;
+- only the repository owner or recorded Project Lead account can create invitations;
+- only the repository owner or recorded Project Lead account can change collaboration policy;
+- only the repository owner or recorded Project Lead account can approve or decline proposals;
+- an accepted collaborator role cannot use Project Lead endpoints;
 - reviewer and other non-submitting roles cannot submit proposals;
 - expired, revoked, wrong-project or repository-mismatched invitations cannot submit;
 - no role can submit while **Accepting Proposals** is off.
 
-Removing an accepted collaborator role from the local computer restores Project Lead controls without deleting the story, local backups or GitHub account connection.
+Removing an accepted collaborator role clears the local role defaults, but it does not grant Project Lead authority. Project Lead operations still require the repository owner or the account recorded by the collaboration policy.
 
 ## Compatibility and privacy
 
@@ -117,4 +120,5 @@ Phase 5 is complete when:
 - the Project Lead-only server guard covers invitation, policy, approval and decline operations;
 - **Accepting Proposals** is enforced at the server before proposal creation;
 - role-first UI and read-only review controls are present;
+- role shortcuts resolve through the existing application shell;
 - the PlotPickle Quality, Phase 1 compatibility and Windows/macOS/Linux release-candidate workflows pass.

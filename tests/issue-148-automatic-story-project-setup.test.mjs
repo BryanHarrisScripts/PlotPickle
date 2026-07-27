@@ -77,10 +77,12 @@ test("issue #148 supports template generation, bootstrap fallback and owner sele
 });
 
 test("issue #148 detects manifests and requires explicit initialization without overwriting", async () => {
-  const [gateway, component] = await Promise.all([
+  const [gateway, component, repositoryContractSource] = await Promise.all([
     source("build/github-app-gateway.ts"),
     source("app/github-app-connection.tsx"),
+    source("lib/story-project-repository.ts"),
   ]);
+  const setupContract = `${gateway}\n${repositoryContractSource}`;
   for (const contract of [
     "STORY_PROJECT_MANIFEST_PATH",
     "storyManifest",
@@ -91,7 +93,7 @@ test("issue #148 detects manifests and requires explicit initialization without 
     "PlotPickle did not overwrite it",
     "manifest.canonicalProject.path",
     "repository.defaultBranch",
-  ]) assert.ok(gateway.includes(contract), `Manifest detection is missing: ${contract}`);
+  ]) assert.ok(setupContract.includes(contract), `Manifest detection is missing: ${contract}`);
   for (const phrase of [
     "Use existing project",
     "Create new story project",

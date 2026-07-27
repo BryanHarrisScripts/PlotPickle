@@ -47,6 +47,9 @@ Filtering, diagnostics, colour modes, zoom and pan do not alter canonical orderi
 - roving keyboard focus with Arrow, Home and End navigation;
 - pointer selection and accessible button/select alternatives;
 - per-project restoration of view, filters, selection, expansion, zoom and pan when Build is left and reopened;
+- direct pointer drag-and-drop across scenes and Blocks, plus equivalent earlier/later and position controls;
+- bounded order-only undo and redo with a pre-move local recovery snapshot;
+- synchronized screenplay, storyboard, Feedback and production references keyed from each stable mini-block ID;
 - responsive desktop, tablet and mobile layouts with a scrollable whole-film viewport.
 
 The wall is mounted by `app/build-workspace.tsx`. The original 24-Block views, filters, inspector, drag-and-drop, reference-safe reordering and undo/redo remain unchanged.

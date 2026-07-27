@@ -82,13 +82,66 @@
 
 .process {
   display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   max-width: 1420px;
   margin: 0 auto 28px;
   overflow: hidden;
   border: 1px solid #c5e2e6;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.76);
+}
+
+.structureBoundary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: 1420px;
+  margin: 0 auto 28px;
+  padding: 22px 26px;
+  border: 1px solid #abd5da;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(217, 246, 234, 0.82), rgba(223, 244, 255, 0.84));
+}
+
+.structureBoundary > div {
+  display: grid;
+  gap: 6px;
+}
+
+.structureBoundary span {
+  color: #3c94a8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.structureBoundary strong {
+  color: #123442;
+  font-size: 18px;
+}
+
+.structureBoundary p {
+  max-width: 900px;
+  margin: 0;
+  color: #54727d;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.structureBoundary button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  border: 0;
+  border-radius: 11px;
+  background: #176274;
+  color: #fff;
+  padding: 11px 15px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .process > div {

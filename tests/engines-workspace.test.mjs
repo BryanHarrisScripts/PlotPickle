@@ -14,7 +14,9 @@ test("main application exposes Refine as the connected Engines workspace", async
   assert.match(shell, /PRODUCT_NAVIGATION\.filter/);
   assert.match(navigation, /id: "engines", label: "Refine", description: "Refine the story", zone: "workflow"/);
   assert.ok(page.includes('import EngineHub from "./engine-hub"'));
-  assert.ok(page.includes('{activeTab === "engines" ? <EngineHub /> : null}'));
+  assert.match(page, /activeTab === "engines"[\s\S]*<EngineHub onOpenBuild=/);
+  assert.match(page, /setReportBuildTargetId\("mini-blocks"\)/);
+  assert.match(page, /setActiveTab\("build"\)/);
   assert.ok(splash.includes("components.map"));
   assert.ok(splash.includes("An open film-development platform."));
 });
@@ -22,7 +24,6 @@ test("main application exposes Refine as the connected Engines workspace", async
 test("Engines workspace explains every specialist before opening it", async () => {
   const source = await readFile(new URL("../app/engine-hub.tsx", import.meta.url), "utf8");
   for (const title of [
-    "Structure Engine",
     "Resonance Engine",
     "Voiceprint Engine",
     "PageFlow Engine",
@@ -40,4 +41,7 @@ test("Engines workspace explains every specialist before opening it", async () =
   ]) {
     assert.ok(source.includes(contract), `Engines workspace is missing guidance: ${contract}`);
   }
+  assert.match(source, /Build owns arrangement\. Refine reads the same structure for diagnosis\./);
+  assert.match(source, /Open Build structure diagnostics/);
+  assert.doesNotMatch(source, /title: "Structure Engine"|href: "\/structure"/);
 });

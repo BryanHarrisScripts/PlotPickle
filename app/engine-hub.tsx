@@ -15,19 +15,6 @@ type EngineDefinition = {
 
 const engines: EngineDefinition[] = [
   {
-    code: "ST",
-    title: "Structure Engine",
-    href: "/structure",
-    stage: "Organize the film",
-    question: "How does the complete story unfold in time?",
-    summary:
-      "Expand the four-act spine into twelve sequences, twenty-four blocks, a flexible scene plan and ninety-six mini-blocks, then see the whole movie on a live Story Clock.",
-    useWhen:
-      "Use it after the 24-block spine exists, or whenever pacing, scene placement, scene count, sequence turns, beats or shot targets need to be clarified.",
-    connects: ["Target runtime", "12 sequences", "24 blocks", "Flexible scenes", "96 mini-blocks", "Beat and shot targets"],
-    result: "A timed, navigable dramatic hierarchy from act to shot, with forty-eight scenes as a starting template rather than a limit.",
-  },
-  {
     code: "ES",
     title: "Story Craft Essentials",
     href: "/story-craft-essentials",
@@ -146,7 +133,7 @@ const engines: EngineDefinition[] = [
   },
 ];
 
-export default function EngineHub() {
+export default function EngineHub({ onOpenBuild }: { onOpenBuild: () => void }) {
   return (
     <section className={styles.page} aria-labelledby="engines-title">
       <div className={styles.hero}>
@@ -163,6 +150,15 @@ export default function EngineHub() {
           <p>Open a specialist only after reading what it is designed to solve. Return here whenever the next useful pass is unclear.</p>
         </div>
       </div>
+
+      <section className={styles.structureBoundary} aria-label="Structure workspace boundary">
+        <div>
+          <span>Structure diagnostics</span>
+          <strong>Build owns arrangement. Refine reads the same structure for diagnosis.</strong>
+          <p>The former full Structure Engine entry duplicated Build. Open Build to move Blocks or mini-blocks, inspect the Story Clock and review structural warnings against the selected canonical target.</p>
+        </div>
+        <button type="button" onClick={onOpenBuild}>Open Build structure diagnostics</button>
+      </section>
 
       <div className={styles.process} aria-label="Recommended engine and lab order">
         {engines.map((engine, index) => (

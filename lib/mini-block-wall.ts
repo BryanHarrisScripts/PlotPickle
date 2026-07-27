@@ -291,7 +291,10 @@ function diagnostics(project: PlotPickleProject, cards: MiniBlockWallCard[]) {
     }
   });
 
-  return warnings;
+  return [...new Map(warnings.map((item) => [
+    `${item.kind}:${item.targetId}:${item.miniBlockId}:${item.message}`,
+    item,
+  ])).values()];
 }
 
 export function normalizeMiniBlockWallState(state: Partial<MiniBlockWallState> | undefined): MiniBlockWallState {

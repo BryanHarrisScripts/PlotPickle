@@ -21,6 +21,15 @@ import {
   updateCanonicalMiniBlock,
   type MiniBlockWallPatch,
 } from "@/lib/mini-block-wall-edit";
+import {
+  applyCanonicalMiniBlockOrder,
+  canonicalMiniBlockOrder,
+  moveCanonicalMiniBlock,
+} from "@/lib/mini-block-wall-order";
+import {
+  captureArrangementRecovery,
+  loadArrangementRecovery,
+} from "@/lib/build-recovery";
 import type { PlotPickleProject } from "@/lib/project";
 
 const wallStateByProject = new Map<string, MiniBlockWallState>();
@@ -145,6 +154,10 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
   const state = session.projectId === project.id
     ? session.state
     : wallStateByProject.get(project.id) ?? DEFAULT_MINI_BLOCK_WALL_STATE;
+  const [undoOrders, setUndoOrders] = useState<string[][]>([]);
+  const [redoOrders, setRedoOrders] = useState<string[][]>([]);
+  const [draggedMiniBlockId, setDraggedMiniBlockId] = useState("");
+  const [movementStatus, setMovementStatus] = useState("Mini-block arrangement ready.");
   const model = useMemo(() => createMiniBlockWallModel(project, state), [project, state]);
   const selectedCard = model.cards.find((card) => card.id === state.selectedMiniBlockId)
     ?? model.visibleCards[0]
@@ -230,6 +243,73 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
     onProjectChange(updateCanonicalMiniBlock(project, selectedCard.id, patch));
   }
 
+  function moveMiniBlock(sourceId: string, targetId: string) {
+    const next = moveCanonicalMiniBlock(project, sourceId, targetId);
+    if (next === project) {
+      setMovementStatus("Mini-block move cancelled; the story order did not change.");
+      return;
+    }
+    captureArrangementRecovery(project, "mini-block-move");
+    setUndoOrders((orders) => [...orders.slice(-19), canonicalMiniBlockOrder(project)]);
+    setRedoOrders([]);
+    setDraggedMiniBlockId("");
+    const nextCard = createMiniBlockWallModel(next, DEFAULT_MINI_BLOCK_WALL_STATE).cards.find((card) => card.id === sourceId);
+    if (nextCard) {
+      updateState({
+        selectedMiniBlockId: sourceId,
+        act: nextCard.act,
+        sequenceNumber: nextCard.sequenceNumber,
+        blockId: nextCard.blockId,
+      });
+      setMovementStatus(`Moved mini-block ${nextCard.globalNumber} to Block ${nextCard.blockNumber}. Linked screenplay, storyboard, feedback and production references moved with its stable ID.`);
+    }
+    onProjectChange(next);
+  }
+
+  function moveSelectedToIndex(targetIndex: number) {
+    if (!selectedCard || !model.cards.length) return;
+    const boundedIndex = Math.min(model.cards.length - 1, Math.max(0, targetIndex));
+    const target = model.cards[boundedIndex];
+    if (target) moveMiniBlock(selectedCard.id, target.id);
+  }
+
+  function undoMove() {
+    const previousOrder = undoOrders.at(-1);
+    if (!previousOrder) return;
+    const next = applyCanonicalMiniBlockOrder(project, previousOrder);
+    if (next === project) return;
+    captureArrangementRecovery(project, "undo");
+    setUndoOrders((orders) => orders.slice(0, -1));
+    setRedoOrders((orders) => [...orders.slice(-19), canonicalMiniBlockOrder(project)]);
+    setMovementStatus("Undid the last mini-block move.");
+    onProjectChange(next);
+  }
+
+  function redoMove() {
+    const nextOrder = redoOrders.at(-1);
+    if (!nextOrder) return;
+    const next = applyCanonicalMiniBlockOrder(project, nextOrder);
+    if (next === project) return;
+    captureArrangementRecovery(project, "redo");
+    setRedoOrders((orders) => orders.slice(0, -1));
+    setUndoOrders((orders) => [...orders.slice(-19), canonicalMiniBlockOrder(project)]);
+    setMovementStatus("Redid the last mini-block move.");
+    onProjectChange(next);
+  }
+
+  function restoreRecovery() {
+    const recovery = loadArrangementRecovery(project.id);
+    if (!recovery) {
+      setMovementStatus("No earlier Build recovery snapshot is available.");
+      return;
+    }
+    if (!window.confirm(`Restore the Build arrangement saved ${recovery.savedAt ? new Date(recovery.savedAt).toLocaleString() : "before the last move"}? The current arrangement will remain available through normal project backups.`)) return;
+    setUndoOrders((orders) => [...orders.slice(-19), canonicalMiniBlockOrder(project)]);
+    setRedoOrders([]);
+    setMovementStatus("Restored the last Build recovery snapshot.");
+    onProjectChange(recovery.project);
+  }
+
   function clearFilters() {
     updateState({ filters: DEFAULT_MINI_BLOCK_WALL_STATE.filters });
   }
@@ -287,6 +367,25 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
         <button type="button" onClick={resetView}>Reset wall</button>
       </section>
 
+      <section className={styles.movementBar} aria-label="Mini-block order and recovery controls">
+        <div>
+          <strong>Arrange mini-blocks</strong>
+          <span>Drag the visible handle, or move the selected card with these equivalent controls.</span>
+        </div>
+        <button type="button" disabled={!selectedCard || selectedCard.globalNumber <= 1} onClick={() => moveSelectedToIndex((selectedCard?.globalNumber ?? 1) - 2)}>Move earlier</button>
+        <label>
+          <span>Position</span>
+          <select value={selectedCard?.globalNumber ?? 1} onChange={(event) => moveSelectedToIndex(Number(event.target.value) - 1)}>
+            {model.cards.map((card) => <option key={card.id} value={card.globalNumber}>Mini {card.globalNumber} · Block {card.blockNumber}</option>)}
+          </select>
+        </label>
+        <button type="button" disabled={!selectedCard || selectedCard.globalNumber >= model.cards.length} onClick={() => moveSelectedToIndex(selectedCard?.globalNumber ?? 1)}>Move later</button>
+        <button type="button" disabled={!undoOrders.length} onClick={undoMove}>Undo move</button>
+        <button type="button" disabled={!redoOrders.length} onClick={redoMove}>Redo move</button>
+        <button type="button" onClick={restoreRecovery}>Restore last arrangement</button>
+      </section>
+      <p id="mini-block-movement-status" className={styles.movementStatus} role="status" aria-live="polite">{movementStatus}</p>
+
       <div className={styles.legend} aria-label={`${state.colourMode} colour legend`}>
         <strong>{COLOUR_OPTIONS.find((option) => option.id === state.colourMode)?.label}</strong>
         {legend.length ? legend.map((entry) => <span key={`${entry.label}-${entry.tone}`}><i className={styles[`tone${entry.tone}`]} />{entry.label}</span>) : <span>No labelled items yet.</span>}
@@ -316,9 +415,30 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
                                   type="button"
                                   id={`mini-wall-card-${card.id}`}
                                   key={card.id}
+                                  draggable
                                   tabIndex={card.id === selectedCard?.id ? 0 : -1}
-                                  className={`${styles.miniCard} ${styles[`tone${toneIndex(card, state)}`]} ${card.id === selectedCard?.id ? styles.selected : ""} ${expanded ? "" : styles.compact}`}
+                                  className={`${styles.miniCard} ${styles[`tone${toneIndex(card, state)}`]} ${card.id === selectedCard?.id ? styles.selected : ""} ${expanded ? "" : styles.compact} ${draggedMiniBlockId === card.id ? styles.dragging : ""}`}
                                   onClick={() => selectCard(card)}
+                                  onDragStart={(event) => {
+                                    event.dataTransfer.effectAllowed = "move";
+                                    event.dataTransfer.setData("application/x-plotpickle-mini-block", card.id);
+                                    event.dataTransfer.setData("text/plain", card.id);
+                                    setDraggedMiniBlockId(card.id);
+                                    setMovementStatus(`Moving mini-block ${card.globalNumber}. Drop it on another mini-block.`);
+                                  }}
+                                  onDragOver={(event) => {
+                                    event.preventDefault();
+                                    event.dataTransfer.dropEffect = "move";
+                                  }}
+                                  onDrop={(event) => {
+                                    event.preventDefault();
+                                    const sourceId = event.dataTransfer.getData("application/x-plotpickle-mini-block") || event.dataTransfer.getData("text/plain");
+                                    if (sourceId) moveMiniBlock(sourceId, card.id);
+                                  }}
+                                  onDragEnd={(event) => {
+                                    setDraggedMiniBlockId("");
+                                    if (event.dataTransfer.dropEffect === "none") setMovementStatus("Mini-block move cancelled; the story order did not change.");
+                                  }}
                                   onKeyDown={(event) => {
                                     if (event.key === "ArrowRight" || event.key === "ArrowDown") { event.preventDefault(); moveSelection(1); }
                                     if (event.key === "ArrowLeft" || event.key === "ArrowUp") { event.preventDefault(); moveSelection(-1); }
@@ -326,11 +446,13 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
                                     if (event.key === "End") { event.preventDefault(); const last = model.visibleCards.at(-1); if (last) selectCard(last, true); }
                                   }}
                                   aria-pressed={card.id === selectedCard?.id}
+                                  aria-describedby="mini-block-movement-status"
+                                  aria-label={`Mini-block ${card.globalNumber}, Block ${card.blockNumber}, ${card.label || "untitled"}. Drag to move or use the order controls.`}
                                 >
-                                  <span className={styles.cardTop}><strong>{card.globalNumber}</strong><i>{labelForStatus(card.status)}</i>{warningCount ? <b aria-label={`${warningCount} diagnostic signals`}>{warningCount}</b> : null}</span>
+                                  <span className={styles.cardTop}><strong>{card.globalNumber}</strong><span className={styles.dragHandle} aria-hidden="true">Drag</span><i>{labelForStatus(card.status)}</i>{warningCount ? <b aria-label={`${warningCount} diagnostic signals`}>{warningCount}</b> : null}</span>
                                   <span className={styles.cardLabel}>{card.label || `Mini-block ${card.number}`}</span>
                                   {expanded ? <>
-                                    {card.frame?.src ? <img src={card.frame.src} alt={card.frame.alt || card.frame.caption || `Mini-block ${card.globalNumber} storyboard`} /> : <span className={styles.framePlaceholder}>No storyboard frame</span>}
+                                    {card.frame?.src ? <img loading="lazy" decoding="async" src={card.frame.src} alt={card.frame.alt || card.frame.caption || `Mini-block ${card.globalNumber} storyboard`} /> : <span className={styles.framePlaceholder}>No storyboard frame</span>}
                                     <span className={styles.cardPurpose}>{card.turn || card.purpose || card.function || "Define the dramatic movement."}</span>
                                     <span className={styles.relationships}>{card.setup ? <em>Setup</em> : null}{card.payoff ? <em>Payoff</em> : null}</span>
                                     <span className={styles.cardMeta}>{card.characterName || "No character focus"}</span>

@@ -68,6 +68,7 @@ test("issue #144 centralizes credentials and protects new Windows secrets with c
     "PLOTPICKLE_HOME",
     '"secrets"',
     "plotpickle-protected-credential",
+    "Add-Type -AssemblyName System.Security",
     "System.Security.Cryptography.ProtectedData",
     "DataProtectionScope]::CurrentUser",
     "windows-dpapi-current-user",

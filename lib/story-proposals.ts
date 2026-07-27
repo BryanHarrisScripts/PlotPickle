@@ -32,7 +32,7 @@ function stable(value: unknown): string {
       .map(([key, child]) => `${JSON.stringify(key)}:${stable(child)}`)
       .join(",")}}`;
   }
-  return JSON.stringify(value);
+  return JSON.stringify(value) ?? "undefined";
 }
 
 function differs(left: unknown, right: unknown) {

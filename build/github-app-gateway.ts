@@ -518,7 +518,7 @@ async function saveSelectedConnection(authorization: GitHubAppAuthorization, rep
     owner: repository.owner,
     repo: repository.name,
     branch: repository.defaultBranch,
-    projectPath: manifest.canonicalProject.path,
+    projectPath: manifest.portableProject.path,
     token: authorization.accessToken,
     login: authorization.account.login,
     verifiedAt: "",
@@ -614,7 +614,7 @@ async function selectRepository(input: Record<string, unknown>) {
     existing = { manifest, sha: "" };
   }
   const manifest = existing.manifest;
-  safeCanonicalProjectPath(manifest.canonicalProject.path);
+  safeCanonicalProjectPath(manifest.portableProject.path);
   const connection = await saveSelectedConnection(authorization, repository, manifest);
   return {
     ok: true,

@@ -1,0 +1,63 @@
+name: Phase 3 integration patch
+
+on:
+  push:
+    branches: [agent/phase-3-git-native-project-sync]
+    paths: [.github/workflows/phase-3-integrate.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-3-git-native-project-sync
+      - name: Integrate canonical synchronization workspace
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          collaboration = Path("app/github-collaboration.tsx")
+          source = collaboration.read_text()
+          import_line = 'import GitHubAppConnection, { type GitHubAppConnectedRepository } from "./github-app-connection";'
+          replacement = import_line + '\nimport GitHubProjectSync from "./github-project-sync";'
+          if 'import GitHubProjectSync from "./github-project-sync";' not in source:
+              if import_line not in source:
+                  raise SystemExit("GitHub collaboration import anchor was not found")
+              source = source.replace(import_line, replacement, 1)
+
+          marker = '''      <div className={styles.grid}>
+        <section className={styles.panel}>
+          <header><div><p>Approved version</p>'''
+          insertion = '''      <GitHubProjectSync
+        project={project}
+        onChange={onChange}
+        ready={status.ready}
+        onNotice={setNotice}
+      />
+
+      <div className={styles.grid}>
+        <section className={styles.panel}>
+          <header><div><p>Approved version</p>'''
+          if '<GitHubProjectSync' not in source:
+              if marker not in source:
+                  raise SystemExit("GitHub collaboration workspace anchor was not found")
+              source = source.replace(marker, insertion, 1)
+          collaboration.write_text(source)
+
+          component = Path("app/github-project-sync.tsx")
+          source = component.read_text()
+          source = source.replace('preview.changedPaths.length', 'preview.diff.changedPaths.length')
+          source = source.replace('preview.changedPaths.slice', 'preview.diff.changedPaths.slice')
+          component.write_text(source)
+          PY
+          git config user.name "PlotPickle Build"
+          git config user.email "actions@users.noreply.github.com"
+          git add app/github-collaboration.tsx app/github-project-sync.tsx
+          git diff --cached --quiet || git commit -m "Integrate canonical project sync workspace"
+          git push origin HEAD:agent/phase-3-git-native-project-sync

@@ -7,6 +7,7 @@ const panel = await readFile(new URL("../app/settings-panel.tsx", import.meta.ur
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 const navigation = await readFile(new URL("../lib/product-direction.ts", import.meta.url), "utf8");
 const gateway = await readFile(new URL("../build/local-ai-gateway.ts", import.meta.url), "utf8");
+const credentialStore = await readFile(new URL("../build/local-credentials.ts", import.meta.url), "utf8");
 const viteConfig = await readFile(new URL("../vite.config.ts", import.meta.url), "utf8");
 const reportPanel = await readFile(new URL("../app/settings-project-tools.tsx", import.meta.url), "utf8");
 const reports = await readFile(new URL("../lib/screenplay-reports.ts", import.meta.url), "utf8");
@@ -33,12 +34,13 @@ test("AI Setup verifies a saved key and displays live connection state", () => {
 });
 
 test("the saved key stays behind the private localhost gateway", () => {
-  assert.match(gateway, /PLOTPICKLE_HOME/);
+  assert.match(credentialStore, /PLOTPICKLE_HOME/);
   assert.match(gateway, /isLocalRequest/);
-  assert.match(gateway, /0o600/);
+  assert.match(credentialStore, /0o600/);
+  assert.match(gateway, /writeCredentialJson/);
   assert.match(gateway, /AbortSignal\.timeout/);
   assert.match(gateway, /API key was rejected/);
-  assert.doesNotMatch(gateway, /console\.(?:log|error|warn)/);
+  assert.doesNotMatch(`${gateway}\n${credentialStore}`, /console\.(?:log|error|warn)/);
   assert.match(viteConfig, /localAiGateway\(\)/);
 });
 

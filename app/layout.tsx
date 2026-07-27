@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import CollaborationWorkspaceRouter from "./collaboration-workspace-router";
 import CurrentDownloadLinks from "./current-download-links";
+import GitHubRecoveryCentre from "./github-recovery-centre";
 import WorkspaceIntroHost from "./workspace-intro-host";
 import "./globals.css";
 import "./engines-workspace-overrides.css";
@@ -52,6 +53,7 @@ export default function RootLayout({
         {children}
         <CollaborationWorkspaceRouter />
         <WorkspaceIntroHost />
+        <GitHubRecoveryCentre />
         <CurrentDownloadLinks />
       </body>
     </html>

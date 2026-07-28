@@ -72,11 +72,33 @@
   position: sticky;
   top: 154px;
   align-self: start;
+  max-height: calc(100vh - 174px);
+  overflow-y: auto;
   padding: 9px;
   border: 1px solid #cce1df;
   border-radius: 16px;
   background: rgba(246, 251, 250, 0.96);
   box-shadow: 0 9px 26px rgba(24, 75, 73, 0.055);
+}
+
+.menuGroup + .menuGroup {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #d8e7e5;
+}
+
+.menuGroup h2 {
+  margin: 0 8px 6px;
+  color: #668083;
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.menuGroup > div {
+  display: grid;
+  gap: 4px;
 }
 
 .menu button {
@@ -90,10 +112,6 @@
   background: transparent;
   color: #2b5356;
   text-align: left;
-}
-
-.menu button + button {
-  margin-top: 4px;
 }
 
 .menu button:hover {
@@ -130,6 +148,33 @@
 
 .sectionStack > .sectionHeading {
   margin-bottom: 0;
+}
+
+.subsectionHeading {
+  padding-top: 4px;
+  border-top: 1px solid #d9e8e6;
+}
+
+.subsectionHeading span {
+  display: block;
+  margin: 16px 0 5px;
+  color: #208982;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.subsectionHeading h3 {
+  margin: 0 0 5px;
+  color: #153f43;
+}
+
+.subsectionHeading p {
+  margin: 0;
+  color: #687f81;
+  font-size: 0.76rem;
+  line-height: 1.5;
 }
 
 .settingGrid {
@@ -893,7 +938,21 @@
     position: relative;
     top: auto;
     display: flex;
+    max-height: none;
+    overflow-y: hidden;
     overflow-x: auto;
+  }
+
+  .menuGroup {
+    flex: 0 0 auto;
+  }
+
+  .menuGroup + .menuGroup {
+    margin-top: 0;
+    padding-top: 0;
+    padding-left: 12px;
+    border-top: 0;
+    border-left: 1px solid #d8e7e5;
   }
 
   .menu button {

@@ -34,6 +34,7 @@ function WorkspaceButton({
       type="button"
       role="tab"
       aria-selected={activeTab === id}
+      aria-current={activeTab === id ? "page" : undefined}
       className={activeTab === id ? "active" : ""}
       title={description}
       onClick={() => onNavigate(id)}

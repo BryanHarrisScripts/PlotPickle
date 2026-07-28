@@ -59,6 +59,7 @@ const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/r
 type MainTab = ProductNavigationId;
 type StorySection = "simpleStart" | "overview" | "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "coreModel" | "structureMap" | "blocks" | "storyboard" | "notes";
 type StorySectionGroup = "Project" | "Foundation" | "Structure" | "Production";
+type LearnSection = "introduction" | "library" | "terminology" | "screenplay";
 
 const WORKSPACE_QUERY_TABS: Record<string, MainTab> = {
   dashboard: "dashboard",
@@ -317,6 +318,7 @@ export default function Home() {
   const [project, setProject] = useState<PlotPickleProject>(() => createBlankProject());
   const [activeTab, setActiveTab] = useState<MainTab>("dashboard");
   const [activeSection, setActiveSection] = useState<StorySection>("overview");
+  const [learnSection, setLearnSection] = useState<LearnSection>("introduction");
   const [selectedCharacterId, setSelectedCharacterId] = useState("");
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
   const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(1);
@@ -721,7 +723,7 @@ export default function Home() {
         ) : null}
 
         {activeTab === "instructions" ? (
-          <Instructions
+          <Introduction
             project={project}
             activeSection={activeSection}
             selectSection={setActiveSection}
@@ -824,34 +826,55 @@ export default function Home() {
 
         {activeTab === "learn" ? (
           <div className={writerStyles.workspaceShell}>
-            <LearningStudio
-              project={project}
-              blockNumber={selectedBlockNumber}
-              miniBlockNumber={selectedMiniBlockNumber}
-              onBlockChange={setSelectedBlockNumber}
-              onMiniBlockChange={setSelectedMiniBlockNumber}
-              onOpenTreatment={() => {
-                setWriterMode("treatment");
-                setActiveTab("script");
-              }}
-              onOpenScreenplay={() => {
-                setWriterMode("screenplay");
-                setActiveTab("script");
-              }}
-              onOpenBlock={(number) => openBlock(number, "planner")}
-            />
-            <details className={writerStyles.scriptStudy}>
-              <summary>Screenplay terminology</summary>
-              <TerminologyIndex />
-            </details>
-            <details className={writerStyles.scriptStudy} open={Boolean(project.screenplay.sourceText)}>
-              <summary>{project.screenplay.sourceText ? "Study the loaded screenplay" : "Load a screenplay to study"}</summary>
-              <ScriptViewer
+            <nav className="learn-section-tabs" aria-label="Learn sections">
+              <button type="button" aria-current={learnSection === "introduction" ? "page" : undefined} className={learnSection === "introduction" ? "active" : ""} onClick={() => setLearnSection("introduction")}>Introduction</button>
+              <button type="button" aria-current={learnSection === "library" ? "page" : undefined} className={learnSection === "library" ? "active" : ""} onClick={() => setLearnSection("library")}>Complete Learning Library</button>
+              <button type="button" aria-current={learnSection === "terminology" ? "page" : undefined} className={learnSection === "terminology" ? "active" : ""} onClick={() => setLearnSection("terminology")}>Terminology</button>
+              <button type="button" aria-current={learnSection === "screenplay" ? "page" : undefined} className={learnSection === "screenplay" ? "active" : ""} onClick={() => setLearnSection("screenplay")}>Screenplay Study</button>
+            </nav>
+            {learnSection === "introduction" ? (
+              <Introduction
                 project={project}
-                onImport={replaceWithImportedScreenplay}
+                activeSection={activeSection}
+                selectSection={setActiveSection}
+                onStart={() => setActiveTab("planner")}
+                onLoadAfterglow={loadAfterglow}
+              />
+            ) : null}
+            {learnSection === "library" ? (
+              <LearningStudio
+                project={project}
+                blockNumber={selectedBlockNumber}
+                miniBlockNumber={selectedMiniBlockNumber}
+                onBlockChange={setSelectedBlockNumber}
+                onMiniBlockChange={setSelectedMiniBlockNumber}
+                onOpenTreatment={() => {
+                  setWriterMode("treatment");
+                  setActiveTab("script");
+                }}
+                onOpenScreenplay={() => {
+                  setWriterMode("screenplay");
+                  setActiveTab("script");
+                }}
                 onOpenBlock={(number) => openBlock(number, "planner")}
               />
-            </details>
+            ) : null}
+            {learnSection === "terminology" ? (
+              <details className={writerStyles.scriptStudy} open>
+                <summary>Screenplay terminology</summary>
+                <TerminologyIndex />
+              </details>
+            ) : null}
+            {learnSection === "screenplay" ? (
+              <details className={writerStyles.scriptStudy} open>
+                <summary>{project.screenplay.sourceText ? "Study the loaded screenplay" : "Load a screenplay to study"}</summary>
+                <ScriptViewer
+                  project={project}
+                  onImport={replaceWithImportedScreenplay}
+                  onOpenBlock={(number) => openBlock(number, "planner")}
+                />
+              </details>
+            ) : null}
           </div>
         ) : null}
 
@@ -967,12 +990,12 @@ function StoryRail({ project, workspace, activeSection, selectSection }: { proje
   );
 }
 
-function Instructions({ project, activeSection, selectSection, onStart, onLoadAfterglow }: { project: PlotPickleProject; activeSection: StorySection; selectSection: (section: StorySection) => void; onStart: () => void; onLoadAfterglow: () => void }) {
+function Introduction({ project, activeSection, selectSection, onStart, onLoadAfterglow }: { project: PlotPickleProject; activeSection: StorySection; selectSection: (section: StorySection) => void; onStart: () => void; onLoadAfterglow: () => void }) {
   const guide = sectionGuides[activeSection];
   const current = storySections.find((section) => section.id === activeSection) ?? storySections[0];
   return (
-    <div className="studio-layout instructions-layout">
-      <StoryRail project={project} workspace="Instructions" activeSection={activeSection} selectSection={selectSection} />
+    <div className="studio-layout introduction-layout instructions-layout">
+      <StoryRail project={project} workspace="Introduction" activeSection={activeSection} selectSection={selectSection} />
       <section className="guide-page">
         <div className="guide-hero">
           <div>
@@ -992,7 +1015,7 @@ function Instructions({ project, activeSection, selectSection, onStart, onLoadAf
             <ol>{guide.questions.map((question) => <li key={question}>{question}</li>)}</ol>
           </article>
           <article className="guide-card"><p className="eyebrow">Section deliverable</p><h2>{guide.deliverable}</h2></article>
-          <article className="guide-card connection-card"><p className="eyebrow">Shared story data</p><h2>{guide.connection}</h2><div><span>Instructions</span><i>→</i><span>Story Planner</span><i>→</i><span>Script Viewer</span><i>→</i><span>Visual Board</span><i>→</i><span>Engines</span></div></article>
+          <article className="guide-card connection-card"><p className="eyebrow">Shared story data</p><h2>{guide.connection}</h2><div><span>Introduction</span><i>→</i><span>Plan</span><i>→</i><span>Write</span><i>→</i><span>Storyboard</span><i>→</i><span>Refine</span></div></article>
         </div>
         {activeSection === "blocks" ? (
           <div className="compact-act-guide">

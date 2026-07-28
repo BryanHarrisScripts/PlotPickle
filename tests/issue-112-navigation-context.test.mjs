@@ -48,6 +48,44 @@ test("issue #112 context model preserves required working selections", async () 
   assert.match(context, /previous: history\.current/);
 });
 
+test("issue #170 makes Introduction the first visible Learn section without adding a primary step", async () => {
+  const [page, direction] = await Promise.all([
+    source("app/page.tsx"),
+    source("lib/product-direction.ts"),
+  ]);
+  const primary = direction.slice(direction.indexOf("PRIMARY_WORKFLOW_NAVIGATION"), direction.indexOf("PRODUCT_NAVIGATION"));
+  const labels = [...primary.matchAll(/label: "([^"]+)"/g)].map((match) => match[1]);
+  assert.deepEqual(labels, ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Pitch", "Build", "Feedback", "Refine", "Reports"]);
+  assert.doesNotMatch(primary, /Introduction|instructions/);
+  assert.match(page, /type LearnSection = "introduction" \| "library" \| "terminology" \| "screenplay"/);
+  assert.match(page, /useState<LearnSection>\("introduction"\)/);
+  const learnStart = page.indexOf('aria-label="Learn sections"');
+  const learnTabs = page.slice(learnStart, page.indexOf("</nav>", learnStart));
+  assert.ok(learnTabs.indexOf(">Introduction<") < learnTabs.indexOf(">Complete Learning Library<"));
+  assert.ok(learnTabs.indexOf(">Complete Learning Library<") < learnTabs.indexOf(">Terminology<"));
+  assert.match(page, /activeTab === "instructions"[\s\S]*<Introduction/);
+  assert.match(page, /function Introduction/);
+  assert.match(page, /workspace="Introduction"/);
+  assert.doesNotMatch(page, /workspace="Instructions"/);
+  assert.match(page, /id: "simpleStart"[\s\S]*label: "Simple Start"[\s\S]*group: "Project"/);
+});
+
+test("issue #170 removes nested navigation pills and uses an accessible underline", async () => {
+  const [header, css] = await Promise.all([
+    source("app/application-shell-header.tsx"),
+    source("app/premium-ui.css"),
+  ]);
+  const issueCss = css.slice(css.indexOf("Issue #170"));
+  assert.match(header, /aria-current=\{activeTab === id \? "page" : undefined\}/);
+  assert.match(header, /Discovery &amp; Pre-Production/);
+  assert.match(header, /Production &amp; Polishing/);
+  assert.match(issueCss, /\.application-shell-header \.main-tabs,[\s\S]*border: 0;[\s\S]*border-radius: 0;[\s\S]*background: transparent;/);
+  assert.match(issueCss, /\.application-shell-header \.main-tabs button\.active\s*\{[\s\S]*background: transparent;[\s\S]*font-weight: 860;/);
+  assert.match(issueCss, /\.application-shell-header \.main-tabs button\.active::after\s*\{\s*background: #8edbc9;/);
+  assert.match(issueCss, /\.application-shell-header \.shell-zone-production\s*\{[\s\S]*border-left: 1px solid/);
+  assert.match(issueCss, /\.learn-section-tabs button\.active::after\s*\{\s*background: #8edbc9;/);
+});
+
 test("issue #112 supplies reusable live shell, Build and Feedback components", async () => {
   const [header, build, buildOrder, feedback] = await Promise.all([
     source("app/application-shell-header.tsx"),

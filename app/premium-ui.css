@@ -146,3 +146,169 @@
     top: 0;
   }
 }
+
+/* Issue #170: open navigation with an underlined active state, not nested pills. */
+.application-shell-header {
+  min-height: 78px;
+}
+
+.application-shell-header .shell-workflow-group {
+  position: relative;
+  display: flex;
+  gap: 0;
+}
+
+.application-shell-header .shell-zone-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.application-shell-header .main-tabs,
+.application-shell-header .shell-workflow-group .main-tabs,
+.application-shell-header .shell-zone-configuration {
+  gap: 17px;
+  width: max-content;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.application-shell-header .main-tabs button {
+  position: relative;
+  min-height: 46px;
+  padding: 0 1px;
+  border: 0;
+  border-radius: 0;
+  color: #afc3c8;
+  background: transparent;
+  box-shadow: none;
+}
+
+.application-shell-header .main-tabs button::after {
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  left: 0;
+  height: 2px;
+  content: "";
+  background: transparent;
+}
+
+.application-shell-header .main-tabs button:hover {
+  color: #fff;
+  background: transparent;
+}
+
+.application-shell-header .main-tabs button.active {
+  border: 0;
+  color: #fff;
+  background: transparent;
+  box-shadow: none;
+  font-weight: 860;
+}
+
+.application-shell-header .main-tabs button.active::after {
+  background: #8edbc9;
+}
+
+.application-shell-header .shell-zone-production {
+  margin-left: 8px;
+  padding-left: 20px;
+  border-left: 1px solid rgba(142, 219, 201, 0.42);
+}
+
+.application-shell-header .shell-zone-configuration {
+  margin-left: 5px;
+  padding-left: 14px;
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.project-strip {
+  top: 78px;
+}
+
+.learn-section-tabs {
+  display: flex;
+  gap: 26px;
+  overflow-x: auto;
+  padding: 0 2px;
+  border-bottom: 1px solid var(--premium-line);
+}
+
+.learn-section-tabs button {
+  position: relative;
+  min-height: 50px;
+  padding: 0;
+  border: 0;
+  color: var(--premium-muted);
+  background: transparent;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 760;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.learn-section-tabs button::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 3px;
+  content: "";
+  background: transparent;
+}
+
+.learn-section-tabs button:hover {
+  color: var(--premium-ink);
+}
+
+.learn-section-tabs button.active {
+  color: var(--premium-ink);
+  font-weight: 880;
+}
+
+.learn-section-tabs button.active::after {
+  background: #8edbc9;
+}
+
+@media (max-width: 1500px) {
+  .application-shell-header .main-tabs,
+  .application-shell-header .shell-workflow-group .main-tabs {
+    gap: 12px;
+  }
+
+  .application-shell-header .main-tabs button {
+    padding-inline: 1px;
+  }
+}
+
+@media (max-width: 760px) {
+  .application-shell-header .shell-workflow-group .main-tabs,
+  .application-shell-header .shell-zone-configuration {
+    padding: 0;
+  }
+
+  .application-shell-header .shell-zone-production {
+    padding-left: 14px;
+  }
+
+  .application-shell-header .main-tabs button {
+    min-height: 42px;
+    padding-inline: 1px;
+  }
+
+  .project-strip {
+    top: 0;
+  }
+
+  .learn-section-tabs {
+    gap: 20px;
+  }
+}

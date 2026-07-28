@@ -9,6 +9,7 @@ import BuildWorkspace from "./build-workspace";
 import FeedbackWorkspace from "./feedback-workspace";
 import ReportsWorkspace from "./reports-workspace";
 import FeedbackContextBadge from "./feedback-context-badge";
+import AiPitchDeckWorkspace from "./ai-pitch-deck-workspace";
 import { ChangeEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { createAfterglowProject } from "@/data/afterglow";
 import EngineHub from "./engine-hub";
@@ -850,6 +851,24 @@ export default function Home() {
               />
             </div>
           </div>
+        ) : null}
+
+        {activeTab === "pitch" ? (
+          <AiPitchDeckWorkspace
+            project={project}
+            aiStatus={connectionState.snapshot.items.ai}
+            imageModel={connectionState.settings.ai.imageModel}
+            onProjectChange={commit}
+            onOpenAiSettings={() => {
+              window.sessionStorage.setItem("plotpickle.settings.section", "ai");
+              window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: "ai" }));
+              setActiveTab("settings");
+            }}
+            onOpenCharacters={() => {
+              setActiveSection("characters");
+              setActiveTab("planner");
+            }}
+          />
         ) : null}
 
         {activeTab === "engines" ? <EngineHub onOpenBuild={() => {

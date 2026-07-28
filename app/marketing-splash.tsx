@@ -33,7 +33,11 @@ export default function MarketingSplash(props: MarketingSplashProps) {
 /* Splash terminology contract: Graphic Novel replaces Comic Book and Comic Pitch on the first-run presentation. */
 
 /*
-Legacy Issue #169 source-contract markers retained by marketing-splash-base.tsx:
+Legacy source-contract markers retained by marketing-splash-base.tsx:
+components.map
+One story. Every workspace.
+Your whole film
+Five reasons to use PlotPickle
 PLOTPICKLE_DESKTOP_BUILDS.map
 Three builds · one codebase
 clean-machine tested

@@ -5,12 +5,12 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #112 defines the approved four-zone application shell", async () => {
+test("issue #112 follows the current ordered workflow-group application shell", async () => {
   const direction = await source("lib/product-direction.ts");
-  for (const label of ["Orientation", "Creative workflow", "Project actions", "Application configuration"]) {
+  for (const label of ["Discovery & Pre-Production", "Production & Polishing", "Project actions", "Application configuration"]) {
     assert.ok(direction.includes(label), `Missing shell zone: ${label}`);
   }
-  for (const label of ["Dashboard", "Learn", "Plan", "Build", "Write", "Storyboard", "Refine", "Feedback", "Reports"]) {
+  for (const label of ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Pitch", "Build", "Feedback", "Refine", "Reports"]) {
     assert.ok(direction.includes(`\"${label}\"`), `Missing workflow item: ${label}`);
   }
   for (const label of ["New Project", "Import", "Export", "Load Afterglow"]) {
@@ -18,10 +18,12 @@ test("issue #112 defines the approved four-zone application shell", async () => 
   }
 });
 
-test("issue #112 renames Instructions without breaking the existing workspace id", async () => {
+test("Introduction is retained as a compatible deep workspace, not a primary step", async () => {
   const direction = await source("lib/product-direction.ts");
-  assert.match(direction, /id: "instructions", label: "Introduction"/);
-  assert.doesNotMatch(direction, /label: "Instructions"/);
+  const primary = direction.slice(direction.indexOf("PRIMARY_WORKFLOW_NAVIGATION"), direction.indexOf("PRODUCT_NAVIGATION"));
+  assert.match(direction, /ProductNavigationId[^;]*"instructions"/);
+  assert.doesNotMatch(primary, /instructions|Introduction/);
+  assert.match(primary, /id: "learn"[\s\S]*introduction and terminology/);
 });
 
 test("issue #112 context model preserves required working selections", async () => {
@@ -54,8 +56,8 @@ test("issue #112 supplies reusable live shell, Build and Feedback components", a
     source("app/feedback-workspace.tsx"),
   ]);
 
-  assert.match(header, /shell-zone-orientation/);
-  assert.match(header, /shell-zone-workflow/);
+  assert.match(header, /shell-zone-discovery/);
+  assert.match(header, /shell-zone-production/);
   assert.match(header, /shell-zone-project-actions/);
   assert.match(header, /shell-zone-configuration/);
   assert.match(header, /PROJECT_ACTIONS\.map/);

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import CollaborationWorkspaceRouter from "./collaboration-workspace-router";
 import CurrentDownloadLinks from "./current-download-links";
+import GitHubAppReleaseGuidance from "./github-app-release-guidance";
 import GraphicNovelTerminology from "./graphic-novel-terminology";
 import WorkspaceIntroHost from "./workspace-intro-host";
 import "./globals.css";
@@ -53,6 +54,7 @@ export default function RootLayout({
       >
         {children}
         <GraphicNovelTerminology />
+        <GitHubAppReleaseGuidance />
         <CollaborationWorkspaceRouter />
         <WorkspaceIntroHost />
         <CurrentDownloadLinks />

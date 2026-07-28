@@ -123,8 +123,12 @@ Disconnect GitHub
 Project Lead selects
 protected canonical content
 Approved history
+Legacy approved version
 Open contributor onboarding
 Configuration first. Collaboration and approvals second.
+Disk Files
+Rolling Backups
+Restore & Recovery
 /api/local-projects/library
 /api/local-projects/backups
 /api/local-projects/recover

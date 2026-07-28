@@ -105,7 +105,7 @@ const SETTINGS_GROUPS: Array<{
     label: "Integrations",
     sections: [
       { id: "ai", label: "AI Providers", description: "AI providers, compatible services, local models or no AI" },
-      { id: "github", label: "GitHub", description: "Repository, proposals, .ppf backups and history" },
+      { id: "github", label: "GitHub", description: "Connection, configuration, collaboration and approvals" },
       { id: "google", label: "Google Services", description: "Google and Connected Services: optional Calendar and Meet" },
       { id: "plugins", label: "Plugins & Connections", description: "Plugins, music links and other optional connections" },
     ],
@@ -627,13 +627,21 @@ export default function SettingsPanel({
 
           {section === "storage" ? (
             <div className={styles.sectionStack}>
-              <SectionHeading eyebrow="Storage and backups" title="Keep projects local, readable and recoverable." description="Project files and rolling backups stay under the current computer account unless you explicitly export or connect GitHub." />
+              <SectionHeading eyebrow="Storage & Backups" title="Keep primary files, safety copies and recovery in one clear home." description="Disk files are primary storage, not backups. Both stay under the current computer account unless you explicitly export a project." />
               <SharedConnectionCard status={connections.items.storage} />
               <SharedConnectionCard status={connections.items.backups} />
               <div className={styles.settingGrid}>
                 <label><span>Rolling backup limit</span><input type="number" min="1" max="100" value={settings.storage.backupLimit} onChange={(event) => setSettings((current) => ({ ...current, storage: { ...current.storage, backupLimit: Number(event.target.value) || 20 } }))} /></label>
               </div>
               <Toggle label="Create a rolling backup when saving" description="Keep recoverable local history without placing credentials in the project." checked={settings.storage.backupOnSave} onChange={(checked) => setSettings((current) => ({ ...current, storage: { ...current.storage, backupOnSave: checked } }))} />
+              <GitHubCollaboration
+                project={project}
+                onChange={onProjectChange}
+                onConnectionChange={() => void onConnectionChange()}
+                surface="storage"
+                backupLimit={settings.storage.backupLimit}
+                backupOnSave={settings.storage.backupOnSave}
+              />
             </div>
           ) : null}
 
@@ -681,7 +689,7 @@ export default function SettingsPanel({
             <div className={styles.sectionStack}>
               <SectionHeading eyebrow="GitHub" title="Connect collaboration without surrendering canon." description="Repository credentials stay in the private local-server secrets area. The .ppf stores only non-secret repository metadata." />
               <SharedConnectionCard status={connections.items.github} />
-              <GitHubCollaboration project={project} onChange={onProjectChange} onConnectionChange={() => void onConnectionChange()} />
+              <GitHubCollaboration project={project} onChange={onProjectChange} onConnectionChange={() => void onConnectionChange()} surface="github" />
             </div>
           ) : null}
 

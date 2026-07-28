@@ -144,3 +144,65 @@ test("issue #120 test is registered", async () => {
   assert.match(packageJson.scripts.test, /issue-120-settings-connections\.test\.mjs/);
   assert.equal(packageJson.scripts["test:settings-connections"], "node --test tests/issue-120-settings-connections.test.mjs");
 });
+
+test("issue #171 separates GitHub configuration from collaboration and approval controls", async () => {
+  const [panel, collaboration] = await Promise.all([
+    source("app/settings-panel.tsx"),
+    source("app/github-collaboration.tsx"),
+  ]);
+  assert.match(panel, /surface="github"/);
+  const connection = collaboration.indexOf("Connection & Configuration");
+  const controls = collaboration.indexOf("Collaboration & Approval Controls");
+  assert.ok(connection >= 0 && controls > connection, "GitHub responsibilities are missing or out of order");
+  for (const contract of [
+    "GitHubAppConnection",
+    "Advanced Setup: fine-grained GitHub token",
+    "Disconnect GitHub",
+    "StoryProposals",
+    "Project Lead selects",
+    "protected canonical content",
+    "Approved history",
+  ]) assert.ok(collaboration.includes(contract), `GitHub responsibility is missing: ${contract}`);
+  assert.match(collaboration, /surface\?: CollaborationSurface/);
+  assert.match(collaboration, /const showGitHub = surface !== "storage"/);
+});
+
+test("issue #171 gives Storage & Backups distinct disk, rolling-backup and recovery sections", async () => {
+  const [panel, collaboration] = await Promise.all([
+    source("app/settings-panel.tsx"),
+    source("app/github-collaboration.tsx"),
+  ]);
+  assert.match(panel, /label: "Storage & Backups"/);
+  assert.match(panel, /Disk files are primary storage, not backups/);
+  assert.match(panel, /surface="storage"/);
+  assert.match(panel, /backupLimit=\{settings\.storage\.backupLimit\}/);
+  assert.match(panel, /backupOnSave=\{settings\.storage\.backupOnSave\}/);
+  const sections = ["Disk Files", "Rolling Backups", "Restore & Recovery"];
+  let previous = -1;
+  for (const section of sections) {
+    const index = collaboration.indexOf(section);
+    assert.ok(index > previous, `Storage responsibility is missing or out of order: ${section}`);
+    previous = index;
+  }
+  for (const endpoint of ["/api/local-projects/library", "/api/local-projects/backups", "/api/local-projects/recover"]) {
+    assert.ok(collaboration.includes(endpoint), `Storage UI is missing endpoint: ${endpoint}`);
+  }
+  assert.match(collaboration, /Open project folder/);
+  assert.match(collaboration, /Open backup folder/);
+  assert.match(collaboration, /Restore entire project/);
+  assert.match(collaboration, /Restore selected areas/);
+  assert.match(collaboration, /next\.collaboration = cloneProject\(project\)\.collaboration/);
+  assert.match(collaboration, /window\.confirm/);
+});
+
+test("issue #171 enforces the configured rolling-backup retention limit in the local gateway", async () => {
+  const gateway = await source("build/local-project-gateway.ts");
+  assert.match(gateway, /const MAX_BACKUP_LIMIT = 100/);
+  assert.match(gateway, /normalizeBackupLimit/);
+  assert.match(gateway, /entries\.slice\(normalizeBackupLimit\(backupLimit\)\)/);
+  assert.match(gateway, /body\.backupLimit/);
+  assert.match(gateway, /body\.createRollingBackup !== false/);
+  assert.match(gateway, /\/open-folder/);
+  assert.match(gateway, /projectsPath: projectsDirectory\(\)/);
+  assert.match(gateway, /backupsPath: backupsDirectory\(\)/);
+});

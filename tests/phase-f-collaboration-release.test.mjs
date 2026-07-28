@@ -7,6 +7,7 @@ import { promisify } from "node:util";
 import "./issue-161-github-command-outbox.test.mjs";
 import "./issue-163-github-recovery-centre.test.mjs";
 import "./issue-165-github-repository-recovery.test.mjs";
+import "./issue-175-consolidated.test.mjs";
 
 const execFileAsync = promisify(execFile);
 const root = new URL("..", import.meta.url);
@@ -68,7 +69,8 @@ test("GitHub collaboration is local-only, review-first, and Project Lead-control
   assert.match(semanticEngine, /compareStoryProposalProjects/);
   assert.ok(!proposalGateway.includes("token: project"), "GitHub credentials must never be read from the project.");
   for (const phrase of [
-    "Many local PlotPickle servers",
+    "Configuration first. Collaboration and approvals second.",
+    "Collaboration & Approval Controls",
     "Canonical Git synchronization",
     "Compare project files",
     "Get approved project folder",

@@ -13,6 +13,7 @@ import { collaborationInvitationGateway } from "./build/collaboration-invitation
 import { folderProjectGateway } from "./build/folder-project-gateway";
 import { nativeGitGateway } from "./build/native-git-gateway";
 import { localProjectGateway } from "./build/local-project-gateway";
+import { localStorageSafetyGateway } from "./build/local-storage-safety-gateway";
 import { sites } from "./build/sites-vite-plugin";
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
@@ -76,6 +77,7 @@ export default defineConfig(async () => {
       // directly inside those folders and never requires a terminal.
       folderProjectGateway(),
       nativeGitGateway(),
+      localStorageSafetyGateway(),
       localProjectGateway(),
       localAiGateway(),
       vinext(),

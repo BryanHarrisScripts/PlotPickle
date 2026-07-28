@@ -7,21 +7,21 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #120 exposes the complete Settings navigation", async () => {
   const panel = await source("app/settings-panel.tsx");
-  for (const section of [
-    "General",
-    "Appearance",
-    "Project defaults",
-    "Storage and backups",
-    "AI providers",
-    "GitHub",
-    "Plugins",
-    "Google and Connected Services",
-    "Privacy and permissions",
-    "Accessibility",
-    "About and licensing",
-  ]) assert.ok(panel.includes(section), `Settings is missing: ${section}`);
+  const menu = panel.slice(panel.indexOf("const SETTINGS_GROUPS"), panel.indexOf("const SETTINGS_SECTIONS"));
+  const labels = [
+    "Workspace", "General", "Appearance / Accessibility", "Project Defaults",
+    "Integrations", "AI Providers", "GitHub", "Google Services", "Plugins & Connections",
+    "Data Storage", "Storage & Backups",
+    "Security", "Privacy & Permissions", "About & Licensing",
+  ];
+  let previous = -1;
+  for (const label of labels) {
+    const index = menu.indexOf(`label: "${label}"`);
+    assert.ok(index > previous, `Settings is missing or out of order: ${label}`);
+    previous = index;
+  }
   assert.match(panel, /aria-label="Settings sections"/);
-  assert.match(panel, /SETTINGS_SECTIONS\.map/);
+  assert.match(panel, /SETTINGS_GROUPS\.map/);
 });
 
 test("issue #120 uses one sanitized connection-status source in Settings Dashboard and Reports", async () => {
@@ -122,8 +122,8 @@ test("issue #120 keeps the application header in one ordered five-zone row", asy
   ]);
   const selectors = [
     "shell-brand",
-    "shell-zone-orientation",
-    "shell-zone-workflow",
+    "shell-zone-discovery",
+    "shell-zone-production",
     "shell-zone-project-actions",
     "shell-zone-configuration",
   ];
@@ -136,7 +136,7 @@ test("issue #120 keeps the application header in one ordered five-zone row", asy
   assert.match(css, /\.application-shell-header\s*\{\s*grid-template-columns:/);
   assert.match(css, /\.application-shell-header > \*\s*\{[^}]*grid-row: auto/s);
   assert.match(css, /\.application-shell-header \.shell-zone-project-actions\s*\{\s*display: flex/);
-  assert.doesNotMatch(header, /shell-zone-orientation"[^>]*>\s*<button[^>]*shell-brand/s);
+  assert.doesNotMatch(header, /shell-zone-discovery"[^>]*>\s*<button[^>]*shell-brand/s);
 });
 
 test("issue #120 test is registered", async () => {

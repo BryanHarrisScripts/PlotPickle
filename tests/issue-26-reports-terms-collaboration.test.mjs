@@ -65,7 +65,8 @@ test("many local servers submit Story Proposals instead of writing directly to t
     "selectedGroups",
     "maintainer_can_modify",
   ]) assert.ok(gateway.includes(phrase), `Collaboration gateway is missing ${phrase}`);
-  assert.match(workspace, /Many local PlotPickle servers\. One owner-controlled GitHub story/);
+  assert.match(workspace, /Configuration first\. Collaboration and approvals second\./);
+  assert.match(workspace, /Collaboration & Approval Controls/);
   assert.match(proposals, /Create Story Proposal/);
   assert.match(proposals, /Approve selected groups/);
   assert.match(proposals, /The approved \$\{branch\} version is unchanged/);

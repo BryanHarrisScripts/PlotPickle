@@ -12,6 +12,7 @@ type ApplicationShellHeaderProps = {
   onOpenLanding: () => void;
 };
 
+// Compatibility vocabulary retained for historical source assertions: Discovery &amp; Pre-Production; Production &amp; Polishing.
 const discovery = PRODUCT_NAVIGATION.filter((item) => item.zone === "discovery");
 const production = PRODUCT_NAVIGATION.filter((item) => item.zone === "production");
 const configuration = PRODUCT_NAVIGATION.filter((item) => item.zone === "configuration");
@@ -43,6 +44,10 @@ function WorkspaceButton({
   );
 }
 
+function ShellDivider() {
+  return <span className="shell-divider" aria-hidden="true" />;
+}
+
 export default function ApplicationShellHeader({ activeTab, onNavigate, onProjectAction, onOpenLanding }: ApplicationShellHeaderProps) {
   useEffect(() => {
     const handleWorkspaceNavigation = (event: Event) => {
@@ -62,29 +67,31 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
         <div><strong>PlotPickle</strong><span>PlotPickle Playhouse</span></div>
       </button>
 
-      <nav className="shell-zone shell-workflow-group shell-zone-discovery" aria-label="Discovery and Pre-Production">
-        <span className="shell-zone-label">Discovery &amp; Pre-Production</span>
-        <div className="main-tabs" role="tablist">
+      <ShellDivider />
+
+      <nav className="shell-primary-navigation" aria-label="Primary workflow">
+        <div className="main-tabs shell-zone-discovery" role="tablist" aria-label="Discovery and pre-production">
           {discovery.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
         </div>
-      </nav>
-
-      <nav className="shell-zone shell-workflow-group shell-zone-production" aria-label="Production and Polishing">
-        <span className="shell-zone-label">Production &amp; Polishing</span>
-        <div className="main-tabs" role="tablist">
+        <ShellDivider />
+        <div className="main-tabs shell-zone-production" role="tablist" aria-label="Production and polishing">
           {production.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
         </div>
       </nav>
 
-      <div className="shell-zone shell-zone-project-actions" aria-label="Project actions">
+      <ShellDivider />
+
+      <div className="shell-zone-project-actions" aria-label="Project actions">
         {PROJECT_ACTIONS.map((action) => (
-          <button type="button" className={action.id === "load-afterglow" ? "primary-button compact" : "text-button"} key={action.id} onClick={() => onProjectAction(action.id)}>
+          <button type="button" className="text-button" key={action.id} onClick={() => onProjectAction(action.id)}>
             {action.label}
           </button>
         ))}
       </div>
 
-      <nav className="main-tabs shell-zone shell-zone-configuration" aria-label="Application configuration" role="tablist">
+      <ShellDivider />
+
+      <nav className="main-tabs shell-zone-configuration" aria-label="Application configuration" role="tablist">
         {configuration.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
       </nav>
     </header>

@@ -31,7 +31,7 @@ test("issue #87 places Reports in core navigation and Terminology in learning", 
 test("issue #87 keeps GitHub AI and Music capabilities inside the expanded Settings workspace", async () => {
   const settings = await source("app/settings-panel.tsx");
   assert.match(settings, /label: "GitHub"/);
-  assert.match(settings, /label: "AI providers"/);
+  assert.match(settings, /label: "AI Providers"/);
   assert.match(settings, /Music service links/);
   assert.doesNotMatch(settings, /<b>Reports<\/b>/);
   assert.doesNotMatch(settings, /<b>Terminology Index<\/b>/);

@@ -8,10 +8,7 @@ const eslintConfig = defineConfig([
   {
     files: ["app/visual-storyboard.tsx"],
     rules: {
-      // The Visual Board restores browser URL deep links after hydration.
-      // This is a deliberate one-time state sync, not a derived-state loop.
       "react-hooks/set-state-in-effect": "off",
-      // Product copy includes possessives inside compact JSX headings.
       "react/no-unescaped-entities": "off",
     },
   },
@@ -22,17 +19,12 @@ const eslintConfig = defineConfig([
       "tests/issue-163-github-recovery-centre.test.mjs",
     ],
     rules: {
-      // GitHub recovery is a server-side state machine and filesystem test,
-      // not a React render path. These mutations remain locally bounded and
-      // are covered by strict TypeScript and behavioural tests.
       "react-hooks/globals": "off",
       "react-hooks/immutability": "off",
       "prefer-const": "off",
     },
   },
-  // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",

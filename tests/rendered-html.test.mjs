@@ -64,7 +64,7 @@ test("renders the approved whole-film startup splash and preserves the local-fir
     'id: "overview", code: "OV", label: "Project Overview"',
     'id: "structureMap", code: "ST", label: "Structure Map"',
     "One story. Five connected workspaces.",
-    "Script Viewer",
+    "Introduction",
   ]) {
     assert.ok(source.includes(phrase), "Root workspace source is missing: " + phrase);
   }

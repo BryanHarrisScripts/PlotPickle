@@ -67,7 +67,8 @@
     "test:consolidated-reports": "node --test tests/issue-118-consolidated-reports.test.mjs",
     "test:production-reports": "node --test tests/issue-119-production-reports.test.mjs",
     "test:settings-connections": "node --test tests/issue-120-settings-connections.test.mjs",
-    "test:windows-runtime": "node --test tests/windows-native-runtime.test.mjs"
+    "test:windows-runtime": "node --test tests/windows-native-runtime.test.mjs",
+    "test:github-recovery-centre": "node --test tests/issue-163-github-recovery-centre.test.mjs"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

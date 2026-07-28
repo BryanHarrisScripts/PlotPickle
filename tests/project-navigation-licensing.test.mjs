@@ -31,7 +31,8 @@ test("main application exposes the grouped project rail and local-only product m
   ]) {
     assert.ok(page.includes(phrase), `Main application is missing: ${phrase}`);
   }
-  assert.match(splash, /Copyright & licensing/);
+  assert.match(splash, /OPEN_SOURCE_FOUNDATIONS\.map/);
+  assert.match(splash, /href="\/legal"/);
   assert.ok(!page.includes("PlotPickle Online"), "Official product page should not advertise an online PlotPickle edition");
 });
 

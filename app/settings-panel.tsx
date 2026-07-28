@@ -105,7 +105,7 @@ const SETTINGS_GROUPS: Array<{
     label: "Integrations",
     sections: [
       { id: "ai", label: "AI Providers", description: "AI providers, compatible services, local models or no AI" },
-      { id: "github", label: "GitHub", description: "Connection, configuration, collaboration and approvals" },
+      { id: "github", label: "GitHub", description: "Account, repository, permissions and recovery configuration" },
       { id: "google", label: "Google Services", description: "Google and Connected Services: optional Calendar and Meet" },
       { id: "plugins", label: "Plugins & Connections", description: "Plugins, music links and other optional connections" },
     ],
@@ -687,9 +687,9 @@ export default function SettingsPanel({
 
           {section === "github" ? (
             <div className={styles.sectionStack}>
-              <SectionHeading eyebrow="GitHub" title="Connect collaboration without surrendering canon." description="Repository credentials stay in the private local-server secrets area. The .ppf stores only non-secret repository metadata." />
+              <SectionHeading eyebrow="GitHub" title="Configure the account and repository connection." description="Settings owns sign-in, repository selection, permissions, readiness and recovery; credentials stay in the private local-server secrets area. Story Proposals and Project Lead decisions are used from Collab." />
               <SharedConnectionCard status={connections.items.github} />
-              <GitHubCollaboration project={project} onChange={onProjectChange} onConnectionChange={() => void onConnectionChange()} surface="github" />
+              <GitHubCollaboration project={project} onChange={onProjectChange} onConnectionChange={() => void onConnectionChange()} surface="configuration" />
             </div>
           ) : null}
 

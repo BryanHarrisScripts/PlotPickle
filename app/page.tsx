@@ -8,6 +8,7 @@ import DashboardCommandCentre from "./dashboard-command-centre";
 import BuildWorkspace from "./build-workspace";
 import FeedbackWorkspace from "./feedback-workspace";
 import ReportsWorkspace from "./reports-workspace";
+import CollabWorkspace from "./collab-workspace";
 import FeedbackContextBadge from "./feedback-context-badge";
 import AiPitchDeckWorkspace from "./ai-pitch-deck-workspace";
 import WorkspaceCapabilityShelf, { type CapabilityOwner } from "./workspace-capability-shelf";
@@ -72,6 +73,7 @@ const WORKSPACE_QUERY_TABS: Record<string, MainTab> = {
   feedback: "feedback",
   refine: "engines",
   reports: "reports",
+  collab: "collab",
   settings: "settings",
 };
 
@@ -939,6 +941,20 @@ export default function Home() {
         ) : null}
 
         {activeTab === "reports" ? <ReportsWorkspace project={project} section={reportSection} onSectionChange={setReportSection} productionSection={productionReportSection} onProductionSectionChange={setProductionReportSection} onOpenTarget={openReportTarget} runtimeConnections={reportConnections} /> : null}
+
+        {activeTab === "collab" ? (
+          <CollabWorkspace
+            project={project}
+            onProjectChange={commit}
+            connections={connectionState.snapshot}
+            onConnectionChange={connectionState.refresh}
+            onOpenSettings={(section) => {
+              window.sessionStorage.setItem("plotpickle.settings.section", section);
+              window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: section }));
+              setActiveTab("settings");
+            }}
+          />
+        ) : null}
 
         <div hidden={activeTab !== "settings"}>
           <SettingsPanel project={project} onProjectChange={commit} connections={connectionState.snapshot} onConnectionChange={connectionState.refresh} />

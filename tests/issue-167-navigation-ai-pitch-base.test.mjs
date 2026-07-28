@@ -9,7 +9,7 @@ test("issue #167 keeps exactly ten primary workflow steps in the requested order
   const direction = await source("lib/product-direction.ts");
   const primary = direction.slice(
     direction.indexOf("export const PRIMARY_WORKFLOW_NAVIGATION"),
-    direction.indexOf("export const PRODUCT_NAVIGATION"),
+    direction.indexOf("export const COLLABORATION_NAVIGATION"),
   );
   const actual = [...primary.matchAll(/label: "([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual(actual, ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Pitch", "Build", "Feedback", "Refine", "Reports"]);

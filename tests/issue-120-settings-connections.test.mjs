@@ -115,7 +115,7 @@ test("issue #120 keeps credentials outside projects and authentication failures 
   assert.doesNotMatch(project, /accessToken|refreshToken|googleToken|oauthToken/);
 });
 
-test("issue #120 keeps the application header in one ordered five-zone row", async () => {
+test("issues #120 and #182 keep the application header in one ordered six-zone row", async () => {
   const [header, css] = await Promise.all([
     source("app/application-shell-header.tsx"),
     source("app/premium-ui.css"),
@@ -124,6 +124,7 @@ test("issue #120 keeps the application header in one ordered five-zone row", asy
     "shell-brand",
     "shell-zone-discovery",
     "shell-zone-production",
+    "shell-zone-collaboration",
     "shell-zone-project-actions",
     "shell-zone-configuration",
   ];
@@ -145,12 +146,12 @@ test("issue #120 test is registered", async () => {
   assert.equal(packageJson.scripts["test:settings-connections"], "node --test tests/issue-120-settings-connections.test.mjs");
 });
 
-test("issue #171 separates GitHub configuration from collaboration and approval controls", async () => {
+test("issues #171 and #182 separate GitHub configuration from collaboration and approval controls", async () => {
   const [panel, collaboration] = await Promise.all([
     source("app/settings-panel.tsx"),
     source("app/github-collaboration.tsx"),
   ]);
-  assert.match(panel, /surface="github"/);
+  assert.match(panel, /surface="configuration"/);
   const connection = collaboration.indexOf("Connection & Configuration");
   const controls = collaboration.indexOf("Collaboration & Approval Controls");
   assert.ok(connection >= 0 && controls > connection, "GitHub responsibilities are missing or out of order");
@@ -165,6 +166,8 @@ test("issue #171 separates GitHub configuration from collaboration and approval 
   ]) assert.ok(collaboration.includes(contract), `GitHub responsibility is missing: ${contract}`);
   assert.match(collaboration, /surface\?: CollaborationSurface/);
   assert.match(collaboration, /const showGitHub = surface !== "storage"/);
+  assert.match(collaboration, /const showConfiguration =/);
+  assert.match(collaboration, /const showApprovals =/);
 });
 
 test("issue #171 gives Storage & Backups distinct disk, rolling-backup and recovery sections", async () => {

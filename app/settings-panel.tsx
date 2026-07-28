@@ -36,8 +36,9 @@ type SettingsSection =
   | "plugins"
   | "google"
   | "privacy"
-  | "accessibility"
   | "about";
+
+type SettingsGroup = "workspace" | "integrations" | "data-storage" | "security";
 
 type ConnectionState = "loading" | "idle" | "checking" | "connected" | "error" | "unavailable";
 
@@ -85,19 +86,48 @@ const EMPTY_CREDENTIAL_STATE: CredentialState = {
   protectionLabel: "Credential storage has not been checked.",
 };
 
-const SETTINGS_SECTIONS: Array<{ id: SettingsSection; label: string; description: string }> = [
-  { id: "general", label: "General", description: "Language, startup and confirmation preferences" },
-  { id: "appearance", label: "Appearance", description: "Theme, density and visual effects" },
-  { id: "project-defaults", label: "Project defaults", description: "Format, target length and autosave" },
-  { id: "storage", label: "Storage and backups", description: "Local projects, rolling backups and recovery" },
-  { id: "ai", label: "AI providers", description: "OpenAI, compatible services, local models or no AI" },
-  { id: "github", label: "GitHub", description: "Repository, proposals, .ppf backups and history" },
-  { id: "plugins", label: "Plugins", description: "Optional extensions and connected media links" },
-  { id: "google", label: "Google and Connected Services", description: "Optional Google sign-in, Calendar and Meet" },
-  { id: "privacy", label: "Privacy and permissions", description: "External sharing, diagnostics and local boundaries" },
-  { id: "accessibility", label: "Accessibility", description: "Contrast, motion and text preferences" },
-  { id: "about", label: "About and licensing", description: "Version, origins, attribution and open licence" },
+const SETTINGS_GROUPS: Array<{
+  id: SettingsGroup;
+  label: string;
+  sections: Array<{ id: SettingsSection; label: string; description: string }>;
+}> = [
+  {
+    id: "workspace",
+    label: "Workspace",
+    sections: [
+      { id: "general", label: "General", description: "Language, startup and confirmation preferences" },
+      { id: "appearance", label: "Appearance / Accessibility", description: "Theme, density, contrast, motion and text" },
+      { id: "project-defaults", label: "Project Defaults", description: "Project defaults for format, target length and autosave" },
+    ],
+  },
+  {
+    id: "integrations",
+    label: "Integrations",
+    sections: [
+      { id: "ai", label: "AI Providers", description: "AI providers, compatible services, local models or no AI" },
+      { id: "github", label: "GitHub", description: "Repository, proposals, .ppf backups and history" },
+      { id: "google", label: "Google Services", description: "Google and Connected Services: optional Calendar and Meet" },
+      { id: "plugins", label: "Plugins & Connections", description: "Plugins, music links and other optional connections" },
+    ],
+  },
+  {
+    id: "data-storage",
+    label: "Data Storage",
+    sections: [
+      { id: "storage", label: "Storage & Backups", description: "Storage and backups for local projects and recovery" },
+    ],
+  },
+  {
+    id: "security",
+    label: "Security",
+    sections: [
+      { id: "privacy", label: "Privacy & Permissions", description: "Privacy and permissions at every external boundary" },
+      { id: "about", label: "About & Licensing", description: "About and licensing, origins, attribution and open licence" },
+    ],
+  },
 ];
+
+const SETTINGS_SECTIONS = SETTINGS_GROUPS.flatMap((group) => group.sections);
 
 function createMusicLink(): MusicArtistLink {
   return {
@@ -228,6 +258,7 @@ export default function SettingsPanel({
       const aliases: Record<string, SettingsSection> = {
         collaboration: "github",
         music: "plugins",
+        accessibility: "appearance",
       };
       const resolved = value ? aliases[value] || value : "";
       if (SETTINGS_SECTIONS.some((item) => item.id === resolved)) setSection(resolved as SettingsSection);
@@ -542,10 +573,17 @@ export default function SettingsPanel({
 
       <div className={styles.layout}>
         <nav className={styles.menu} aria-label="Settings sections">
-          {SETTINGS_SECTIONS.map((item) => (
-            <button type="button" key={item.id} className={section === item.id ? styles.active : ""} onClick={() => setSection(item.id)}>
-              <b>{item.label}</b><span>{item.description}</span>
-            </button>
+          {SETTINGS_GROUPS.map((group) => (
+            <section className={styles.menuGroup} key={group.id} aria-labelledby={`settings-group-${group.id}`}>
+              <h2 id={`settings-group-${group.id}`}>{group.label}</h2>
+              <div>
+                {group.sections.map((item) => (
+                  <button type="button" key={item.id} className={section === item.id ? styles.active : ""} onClick={() => setSection(item.id)}>
+                    <b>{item.label}</b><span>{item.description}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
           ))}
         </nav>
 
@@ -563,12 +601,16 @@ export default function SettingsPanel({
 
           {section === "appearance" ? (
             <div className={styles.sectionStack}>
-              <SectionHeading eyebrow="Appearance" title="Choose a comfortable working surface." description="Appearance preferences affect this installation only." />
+              <SectionHeading eyebrow="Appearance / Accessibility" title="Make the workspace calm, readable and adaptable." description="Appearance and Accessibility preferences affect this installation only and never enter the story project." />
               <div className={styles.settingGrid}>
                 <label><span>Theme</span><select value={settings.appearance.theme} onChange={(event) => setSettings((current) => ({ ...current, appearance: { ...current.appearance, theme: event.target.value as PlotPickleSettings["appearance"]["theme"] } }))}><option value="system">Use system setting</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
                 <label><span>Interface density</span><select value={settings.appearance.density} onChange={(event) => setSettings((current) => ({ ...current, appearance: { ...current.appearance, density: event.target.value as PlotPickleSettings["appearance"]["density"] } }))}><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></label>
               </div>
               <Toggle label="Reduce transparency" description="Use more solid surfaces behind text and controls." checked={settings.appearance.reduceTransparency} onChange={(checked) => setSettings((current) => ({ ...current, appearance: { ...current.appearance, reduceTransparency: checked } }))} />
+              <div className={styles.subsectionHeading}><span>Accessibility</span><h3>Adapt PlotPickle to the writer.</h3><p>Colour is paired with text and icons throughout connection status. These preferences stay on this device.</p></div>
+              <Toggle label="Higher contrast" description="Increase separation between text, controls and surfaces." checked={settings.accessibility.highContrast} onChange={(checked) => setSettings((current) => ({ ...current, accessibility: { ...current.accessibility, highContrast: checked } }))} />
+              <Toggle label="Reduced motion" description="Minimize non-essential animation and movement." checked={settings.accessibility.reducedMotion} onChange={(checked) => setSettings((current) => ({ ...current, accessibility: { ...current.accessibility, reducedMotion: checked } }))} />
+              <Toggle label="Larger interface text" description="Increase working text and control labels." checked={settings.accessibility.largeText} onChange={(checked) => setSettings((current) => ({ ...current, accessibility: { ...current.accessibility, largeText: checked } }))} />
             </div>
           ) : null}
 
@@ -645,7 +687,7 @@ export default function SettingsPanel({
 
           {section === "plugins" ? (
             <div className={styles.sectionStack}>
-              <SectionHeading eyebrow="Plugins" title="Keep optional extensions visible and bounded." description="No plugin is required for local writing. Each enabled plugin must disclose its capabilities and shared data." />
+              <SectionHeading eyebrow="Plugins & Connections" title="Keep optional extensions and connections visible and bounded." description="No plugin or connected service is required for local writing. Each enabled connection must disclose its capabilities and shared data." />
               <SharedConnectionCard status={connections.items.plugins} />
               <div className={styles.pluginGrid}>
                 {settings.plugins.map((plugin) => (
@@ -679,7 +721,7 @@ export default function SettingsPanel({
 
           {section === "google" ? (
             <div className={styles.sectionStack}>
-              <SectionHeading eyebrow="Google and Connected Services" title="Grant only the Google access this project needs." description="Google Calendar and Google Meet are optional. Failed or declined authentication never blocks local project work." />
+              <SectionHeading eyebrow="Google Services" title="Grant only the Google access this project needs." description="Google and Connected Services remain optional. Failed or declined Calendar or Meet authentication never blocks local project work." />
               <SharedConnectionCard
                 status={connections.items.google}
                 actions={(
@@ -734,15 +776,6 @@ export default function SettingsPanel({
                 </div>
                 <p className={styles.credentialWarning}>Erasing removes PlotPickle&apos;s local copies without deleting projects, assets or backups. It does not automatically invalidate GitHub or AI tokens at those providers; revoke those there if you want them unusable everywhere.</p>
               </section>
-            </div>
-          ) : null}
-
-          {section === "accessibility" ? (
-            <div className={styles.sectionStack}>
-              <SectionHeading eyebrow="Accessibility" title="Adapt PlotPickle to the writer." description="Colour is paired with text and icons throughout connection status. These additional preferences stay on this device." />
-              <Toggle label="Higher contrast" description="Increase separation between text, controls and surfaces." checked={settings.accessibility.highContrast} onChange={(checked) => setSettings((current) => ({ ...current, accessibility: { ...current.accessibility, highContrast: checked } }))} />
-              <Toggle label="Reduced motion" description="Minimize non-essential animation and movement." checked={settings.accessibility.reducedMotion} onChange={(checked) => setSettings((current) => ({ ...current, accessibility: { ...current.accessibility, reducedMotion: checked } }))} />
-              <Toggle label="Larger interface text" description="Increase working text and control labels." checked={settings.accessibility.largeText} onChange={(checked) => setSettings((current) => ({ ...current, accessibility: { ...current.accessibility, largeText: checked } }))} />
             </div>
           ) : null}
 

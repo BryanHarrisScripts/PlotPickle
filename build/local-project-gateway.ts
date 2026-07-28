@@ -1,4 +1,5 @@
 import { chmod, copyFile, mkdir, open, readFile, readdir, rename, rm, stat } from "node:fs/promises";
+import { spawn } from "node:child_process";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
@@ -20,6 +21,7 @@ const PROJECT_API = "/api/local-projects";
 const GITHUB_API = "/api/local-github";
 const MAX_BODY = 30 * 1024 * 1024;
 const BACKUP_LIMIT = 20;
+const MAX_BACKUP_LIMIT = 100;
 
 type GitHubConnection = {
   version: 1;
@@ -47,6 +49,25 @@ type GitHubReadiness = {
 
 function projectsDirectory() { return path.join(persistentHome(), "projects"); }
 function backupsDirectory() { return path.join(persistentHome(), "backups"); }
+
+function normalizeBackupLimit(value: unknown) {
+  const parsed = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(parsed)) return BACKUP_LIMIT;
+  return Math.min(MAX_BACKUP_LIMIT, Math.max(1, Math.round(parsed)));
+}
+
+async function openLocalDirectory(directory: string) {
+  await mkdir(directory, { recursive: true, mode: 0o700 });
+  const command = process.platform === "win32" ? "explorer.exe" : process.platform === "darwin" ? "open" : "xdg-open";
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn(command, [directory], { detached: true, stdio: "ignore", windowsHide: true });
+    child.once("error", reject);
+    child.once("spawn", () => {
+      child.unref();
+      resolve();
+    });
+  });
+}
 
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
@@ -110,7 +131,7 @@ async function atomicWrite(filePath: string, content: string) {
   try { await chmod(filePath, 0o600); } catch { /* Windows uses account permissions. */ }
 }
 
-async function createBackup(filePath: string) {
+async function createBackup(filePath: string, backupLimit = BACKUP_LIMIT) {
   try {
     await stat(filePath);
   } catch (error) {
@@ -127,17 +148,23 @@ async function createBackup(filePath: string) {
     .map((entry) => entry.name)
     .sort()
     .reverse();
-  await Promise.all(entries.slice(BACKUP_LIMIT).map((entry) => rm(path.join(backupsDirectory(), entry), { force: true })));
+  await Promise.all(entries.slice(normalizeBackupLimit(backupLimit)).map((entry) => rm(path.join(backupsDirectory(), entry), { force: true })));
   return backupName;
 }
 
-async function saveProject(project: PlotPickleProject, requestedName?: unknown) {
+async function saveProject(
+  project: PlotPickleProject,
+  requestedName?: unknown,
+  requestedBackupLimit?: unknown,
+  createRollingBackup = true,
+) {
   const fileName = safeName(requestedName || portableProjectFileName(project));
   const filePath = path.join(projectsDirectory(), fileName);
-  const backup = await createBackup(filePath);
+  const backupLimit = normalizeBackupLimit(requestedBackupLimit);
+  const backup = createRollingBackup ? await createBackup(filePath, backupLimit) : null;
   const portable = createPortableProjectFile(project);
   await atomicWrite(filePath, serializePortableProjectFile(portable));
-  return { fileName, backup, projectHash: portable.integrity.projectHash, savedAt: portable.createdAt };
+  return { fileName, backup, backupLimit, projectHash: portable.integrity.projectHash, savedAt: portable.createdAt };
 }
 
 async function readPortableFile(filePath: string) {
@@ -463,7 +490,14 @@ async function githubHistory(connection: GitHubConnection) {
 
 async function handleProjects(request: IncomingMessage, response: ServerResponse, url: URL) {
   if (request.method === "GET" && url.pathname === `${PROJECT_API}/status`) {
-    sendJson(response, 200, { ok: true, available: true, home: persistentHome(), backupLimit: BACKUP_LIMIT });
+    sendJson(response, 200, {
+      ok: true,
+      available: true,
+      home: persistentHome(),
+      projectsPath: projectsDirectory(),
+      backupsPath: backupsDirectory(),
+      backupLimit: BACKUP_LIMIT,
+    });
     return;
   }
   if (request.method === "GET" && url.pathname === `${PROJECT_API}/library`) {
@@ -486,11 +520,31 @@ async function handleProjects(request: IncomingMessage, response: ServerResponse
     sendJson(response, 200, { ok: true, fileName, project: result.project, portable: result.file });
     return;
   }
+  if (request.method === "POST" && url.pathname === `${PROJECT_API}/open-folder`) {
+    const body = await readBody(request, 1024) as { kind?: unknown };
+    const kind = body.kind === "backups" ? "backups" : "projects";
+    await openLocalDirectory(kind === "backups" ? backupsDirectory() : projectsDirectory());
+    sendJson(response, 200, { ok: true, kind, message: `${kind === "backups" ? "Backup" : "Project"} folder opened.` });
+    return;
+  }
   if (request.method === "POST" && url.pathname === `${PROJECT_API}/save`) {
-    const body = await readBody(request) as { project?: unknown; fileName?: unknown };
+    const body = await readBody(request) as {
+      project?: unknown;
+      fileName?: unknown;
+      backupLimit?: unknown;
+      createRollingBackup?: unknown;
+    };
     const project = normalizePlotPickleProject(body.project);
     if (!project) throw new Error("The active story could not be normalized before saving.");
-    sendJson(response, 200, { ok: true, ...(await saveProject(project, body.fileName)) });
+    sendJson(response, 200, {
+      ok: true,
+      ...(await saveProject(
+        project,
+        body.fileName,
+        body.backupLimit,
+        body.createRollingBackup !== false,
+      )),
+    });
     return;
   }
   sendJson(response, 404, { ok: false, message: "Local project operation not found." });

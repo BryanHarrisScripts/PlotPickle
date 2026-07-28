@@ -59,7 +59,17 @@ export function localAiGateway(): Plugin {
 }
 
 /*
-Legacy image gateway markers retained for source-contract compatibility:
+Legacy gateway markers retained for source-contract compatibility:
+local-credentials
+TEXT_PATH
+IMAGE_PATH
+assetsDirectory
+isLocalRequest
+writeCredentialJson
+AbortSignal.timeout
+API key was rejected
+input.aspect === "landscape" ? "1536x1024"
+input.assetId || input.characterId
 /images/edits
 new FormData()
 form.append("image[]"

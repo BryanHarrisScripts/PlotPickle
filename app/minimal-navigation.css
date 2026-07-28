@@ -1,6 +1,6 @@
 /* PR #175: compact, natural application navigation. */
 .application-shell-header {
-  grid-template-columns: auto auto minmax(0, 1fr) auto auto auto;
+  grid-template-columns: auto auto minmax(0, 1fr) auto auto auto auto auto auto;
   gap: 8px;
   min-height: 64px;
   padding: 0 20px;
@@ -74,6 +74,7 @@
   gap: 0;
 }
 
+.application-shell-header .shell-zone-collaboration,
 .application-shell-header .shell-zone-configuration {
   justify-self: start;
 }
@@ -92,7 +93,7 @@
 
 @media (max-width: 1420px) {
   .application-shell-header {
-    grid-template-columns: auto auto max-content auto max-content auto;
+    grid-template-columns: auto auto max-content auto max-content auto max-content auto max-content;
     justify-content: start;
     padding-inline: 14px;
   }

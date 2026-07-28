@@ -22,7 +22,7 @@ No file, commit, branch or pull request is created during sign-in, repository se
 
 ## GitHub App registration
 
-Register a GitHub App owned by the appropriate PlotPickle account or organization.
+Register a public GitHub App owned by the appropriate PlotPickle account or organization.
 
 Required settings:
 
@@ -38,24 +38,28 @@ Repository permissions:
 - Contents: Read and write
 - Pull requests: Read and write
 
-Do not request Administration or Workflows permission for Phase 1.
+Phase 2 repository creation additionally uses Administration: Read and write. Connecting an existing repository does not use that capability.
 
-## Local server configuration
+## Release and local server configuration
 
-Set the following environment variable before starting the downloaded PlotPickle server:
-
-```text
-PLOTPICKLE_GITHUB_APP_CLIENT_ID=Iv1.your_client_id
-```
-
-Optional variables:
+Official Windows, macOS and Linux releases package the public GitHub App identity in:
 
 ```text
-PLOTPICKLE_GITHUB_APP_SLUG=plotpickle
-PLOTPICKLE_GITHUB_APP_INSTALL_URL=https://github.com/apps/plotpickle/installations/new
+config/github-app.json
 ```
 
-`PLOTPICKLE_GITHUB_APP_INSTALL_URL` takes precedence when both optional values are supplied.
+The desktop launcher supplies that file automatically. A normal user does not set a client ID or install another application.
+
+Development, recovery and self-hosted installations may override the packaged identity with:
+
+```text
+PLOTPICKLE_GITHUB_APP_CONFIG
+PLOTPICKLE_GITHUB_APP_CLIENT_ID
+PLOTPICKLE_GITHUB_APP_SLUG
+PLOTPICKLE_GITHUB_APP_INSTALL_URL
+```
+
+The official registration and packaging procedure is documented in `docs/issue-180-official-github-app-config.md`.
 
 The device flow does not embed or require a GitHub App client secret in the downloaded application.
 
@@ -110,7 +114,6 @@ The fallback continues to require Contents and Pull requests set to Read and wri
 
 ## Out of scope
 
-- Creating repositories from a PlotPickle template
 - Canonical folder-based repository synchronization
 - Semantic story proposal review and selective merge
 - `.ppinvite` collaboration packages

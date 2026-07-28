@@ -30,7 +30,15 @@ type ConnectionInput = {
 };
 
 type TextGenerationInput = { instructions?: unknown; prompt?: unknown };
-type ImageGenerationInput = { prompt?: unknown; characterId?: unknown; assetId?: unknown; aspect?: unknown };
+type ImageGenerationInput = {
+  prompt?: unknown;
+  characterId?: unknown;
+  assetId?: unknown;
+  aspect?: unknown;
+  quality?: unknown;
+  referenceImages?: unknown;
+  identityLocks?: unknown;
+};
 
 const API_PATH = "/api/local-ai/connection";
 const CHECK_PATH = `${API_PATH}/check`;
@@ -142,11 +150,34 @@ function providerHeaders(connection: SavedAiConnection) {
   return headers;
 }
 
+function providerFormHeaders(connection: SavedAiConnection) {
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (connection.apiKey) headers.Authorization = `Bearer ${connection.apiKey}`;
+  return headers;
+}
+
 async function providerJson(url: string, connection: SavedAiConnection, body: Record<string, unknown>, timeout = 120_000) {
   const providerResponse = await fetch(url, {
     method: "POST",
     headers: providerHeaders(connection),
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(timeout),
+  });
+  const text = await providerResponse.text();
+  let value: unknown = {};
+  try { value = text ? JSON.parse(text) : {}; } catch { value = {}; }
+  if (!providerResponse.ok) {
+    if (providerResponse.status === 401 || providerResponse.status === 403) throw new Error("The saved API key was rejected. Reconnect it in Settings.");
+    throw new Error(cleanProviderError(value));
+  }
+  return value as Record<string, unknown>;
+}
+
+async function providerForm(url: string, connection: SavedAiConnection, body: FormData, timeout = 180_000) {
+  const providerResponse = await fetch(url, {
+    method: "POST",
+    headers: providerFormHeaders(connection),
+    body,
     signal: AbortSignal.timeout(timeout),
   });
   const text = await providerResponse.text();
@@ -197,19 +228,80 @@ function safeAssetStem(value: unknown) {
   return stem.slice(0, 70) || "character";
 }
 
+type LocalReferenceImage = {
+  bytes: Buffer;
+  mimeType: "image/png" | "image/jpeg" | "image/webp";
+  fileName: string;
+};
+
+async function localReferenceImage(value: unknown, index: number): Promise<LocalReferenceImage | null> {
+  if (typeof value !== "string") return null;
+  const reference = value.trim();
+  let bytes: Buffer;
+  let extension: ".png" | ".jpg" | ".webp";
+  if (reference.startsWith(ASSET_PATH)) {
+    const fileName = reference.slice(ASSET_PATH.length);
+    if (!/^[a-z0-9][a-z0-9._-]*\.(png|jpe?g|webp)$/i.test(fileName)) return null;
+    bytes = await readFile(path.join(assetsDirectory(), fileName));
+    extension = fileName.toLowerCase().endsWith(".png") ? ".png" : /\.jpe?g$/i.test(fileName) ? ".jpg" : ".webp";
+  } else {
+    const match = /^data:image\/(png|jpeg|jpg|webp);base64,([a-z0-9+/=\s]+)$/i.exec(reference);
+    if (!match) return null;
+    extension = match[1].toLowerCase() === "png" ? ".png" : /^jpe?g$/i.test(match[1]) ? ".jpg" : ".webp";
+    bytes = Buffer.from(match[2], "base64");
+  }
+  if (!bytes.length || bytes.length > 20 * 1024 * 1024) return null;
+  return {
+    bytes,
+    mimeType: extension === ".png" ? "image/png" : extension === ".jpg" ? "image/jpeg" : "image/webp",
+    fileName: `character-reference-${index + 1}${extension}`,
+  };
+}
+
+async function referenceImages(input: ImageGenerationInput) {
+  if (!Array.isArray(input.referenceImages)) return [];
+  const candidates = await Promise.all(input.referenceImages.slice(0, 4).map(async (value, index) => {
+    try {
+      return await localReferenceImage(value, index);
+    } catch {
+      return null;
+    }
+  }));
+  return candidates.filter((value): value is LocalReferenceImage => Boolean(value));
+}
+
 async function generateImage(connection: SavedAiConnection, input: ImageGenerationInput) {
   const prompt = typeof input.prompt === "string" ? input.prompt.trim().slice(0, 30_000) : "";
   if (!prompt) throw new Error("Enter an image prompt before generating.");
   if (connection.provider === "ollama") throw new Error("The selected local text model does not provide image generation. Connect an image-capable provider in Settings.");
   if (!connection.imageModel) throw new Error("Choose an image model in Settings.");
-  const value = await providerJson(`${normalizedUrl(connection.baseUrl)}/images/generations`, connection, {
-    model: connection.imageModel,
-    prompt,
-    size: input.aspect === "landscape" ? "1536x1024" : "1024x1536",
-    quality: "medium",
-    output_format: "webp",
-    n: 1,
-  }, 180_000);
+  const quality = input.quality === "low" || input.quality === "medium" || input.quality === "high" ? input.quality : "medium";
+  const size = input.aspect === "landscape" ? "1536x1024" : "1024x1536";
+  const references = connection.provider === "openai" ? await referenceImages(input) : [];
+  let value: Record<string, unknown>;
+  if (references.length) {
+    const form = new FormData();
+    form.set("model", connection.imageModel);
+    form.set("prompt", prompt);
+    form.set("size", size);
+    form.set("quality", quality);
+    form.set("output_format", "webp");
+    form.set("n", "1");
+    if (!connection.imageModel.startsWith("gpt-image-2")) form.set("input_fidelity", "high");
+    references.forEach((reference) => {
+      form.append("image[]", new Blob([new Uint8Array(reference.bytes)], { type: reference.mimeType }), reference.fileName);
+    });
+    value = await providerForm(`${normalizedUrl(connection.baseUrl)}/images/edits`, connection, form);
+  } else {
+    value = await providerJson(`${normalizedUrl(connection.baseUrl)}/images/generations`, connection, {
+      model: connection.imageModel,
+      prompt,
+      size,
+      quality,
+      output_format: "webp",
+      n: 1,
+    }, 180_000);
+  }
   const data = Array.isArray(value.data) ? value.data as Array<{ b64_json?: string; url?: string; revised_prompt?: string }> : [];
   const result = data[0];
   if (!result?.b64_json && !result?.url) throw new Error("The image provider returned no image.");
@@ -225,7 +317,7 @@ async function generateImage(connection: SavedAiConnection, input: ImageGenerati
   const fileName = `${safeAssetStem(input.assetId || input.characterId)}-${Date.now()}.webp`;
   await mkdir(assetsDirectory(), { recursive: true, mode: 0o700 });
   await writeFile(path.join(assetsDirectory(), fileName), bytes, { mode: 0o600 });
-  return { assetUrl: `${ASSET_PATH}${fileName}`, revisedPrompt: result.revised_prompt };
+  return { assetUrl: `${ASSET_PATH}${fileName}`, revisedPrompt: result.revised_prompt, referenceImagesUsed: references.length };
 }
 
 async function serveAsset(pathname: string, response: ServerResponse) {
@@ -339,7 +431,7 @@ async function handleGeneration(request: IncomingMessage, response: ServerRespon
       return;
     }
     if (pathname === IMAGE_PATH) {
-      const result = await generateImage(connection, await readBody(request, 48 * 1024) as ImageGenerationInput);
+      const result = await generateImage(connection, await readBody(request, 256 * 1024) as ImageGenerationInput);
       sendJson(response, 200, { ok: true, ...result, provider: connection.provider, model: connection.imageModel });
       return;
     }

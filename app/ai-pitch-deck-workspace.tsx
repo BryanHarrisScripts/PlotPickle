@@ -1,42 +1,14 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element -- Comic panels are local generated assets stored outside the application bundle. */
+/* eslint-disable @next/next/no-img-element -- Graphic Novel panels are local generated assets stored outside the application bundle. */
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  buildComicPitchDeckHtml,
-  comicPitchDeckFileName,
-  comicPitchDeckPreflight,
-  comicPitchIdentityLocks,
-  comicPitchReferenceImages,
-  createComicPitchDeckPlan,
-  finalizeComicPitchDeck,
-  recordComicPitchDeckProvenance,
-  resetFailedComicPitchPanels,
-  updateComicPitchPanel,
-  withComicPitchDeck,
-} from "@/lib/ai-pitch-deck";
-import {
-  createBlankComicPitchDeck,
-  type ComicPitchDeck,
-  type ComicPitchDialogue,
-  type ComicPitchPanel,
-  type PlotPickleProject,
-} from "@/lib/project";
+import { useState } from "react";
+import { buildGraphicNovelHtml, graphicNovelFileName, withComicPitchDeck } from "@/lib/ai-pitch-deck";
+import type { PlotPickleProject } from "@/lib/project";
 import type { PublicConnectionStatus } from "@/lib/connection-status";
-import styles from "./ai-pitch-deck-workspace.module.css";
-
-type ImageQuality = "low" | "medium" | "high";
-
-type ImageGenerationResponse = {
-  ok?: boolean;
-  assetUrl?: string;
-  revisedPrompt?: string;
-  provider?: string;
-  model?: string;
-  referenceImagesUsed?: number;
-  message?: string;
-};
+import AiPitchDeckWorkspaceBase from "./ai-pitch-deck-workspace-base";
+import { useGraphicNovelQueue } from "./use-graphic-novel-queue";
+import styles from "./graphic-novel-queue.module.css";
 
 type Props = {
   project: PlotPickleProject;
@@ -65,216 +37,27 @@ function blobDataUrl(blob: Blob) {
   });
 }
 
-async function embeddedPanelImages(deck: ComicPitchDeck) {
-  const values = await Promise.all(deck.panels.filter((panel) => panel.imageSrc).map(async (panel) => {
+async function embeddedImages(project: PlotPickleProject) {
+  const panels = project.review.pitchPackage.comicDeck?.panels ?? [];
+  const entries = await Promise.all(panels.filter((panel) => panel.imageSrc).map(async (panel) => {
     const response = await fetch(panel.imageSrc);
-    if (!response.ok) throw new Error(`Panel ${panel.pageNumber}.${panel.panelNumber} could not be embedded.`);
+    if (!response.ok) throw new Error(`Page ${panel.pageNumber}, panel ${panel.panelNumber} could not be embedded.`);
     return [panel.id, await blobDataUrl(await response.blob())] as const;
   }));
-  return Object.fromEntries(values);
+  return Object.fromEntries(entries);
 }
 
-function panelLabel(panel: ComicPitchPanel) {
-  return `${panel.pageNumber}.${panel.panelNumber}`;
-}
+export default function AiPitchDeckWorkspace(props: Props) {
+  const queue = useGraphicNovelQueue(props);
+  const [exportMessage, setExportMessage] = useState("");
+  const editorAiStatus = queue.working ? { ...props.aiStatus, state: "disconnected" as const } : props.aiStatus;
 
-function nextDialogue(panel: ComicPitchPanel): ComicPitchDialogue {
-  return {
-    id: `comic-dialogue-${panel.pageNumber}-${panel.panelNumber}-${Date.now()}`,
-    characterId: "",
-    characterName: "Speaker",
-    text: "",
-    sourceElementId: "",
-  };
-}
-
-export default function AiPitchDeckWorkspace({
-  project,
-  aiStatus,
-  imageModel,
-  onProjectChange,
-  onOpenAiSettings,
-  onOpenCharacters,
-}: Props) {
-  const canonicalDeck = useMemo(
-    () => project.review.pitchPackage.comicDeck ?? createBlankComicPitchDeck(project.review.pitchPackage.updatedAt),
-    [project.review.pitchPackage.comicDeck, project.review.pitchPackage.updatedAt],
-  );
-  const [deck, setDeck] = useState<ComicPitchDeck>(() => canonicalDeck.panels.length ? canonicalDeck : createComicPitchDeckPlan(project));
-  const [quality, setQuality] = useState<ImageQuality>("low");
-  const [acknowledged, setAcknowledged] = useState(false);
-  const [working, setWorking] = useState(false);
-  const [message, setMessage] = useState("");
-  const [selectedPage, setSelectedPage] = useState(1);
-  const controllerRef = useRef<AbortController | null>(null);
-  const runningRef = useRef(false);
-
-  useEffect(() => {
-    if (runningRef.current) return;
-    setDeck(canonicalDeck.panels.length ? canonicalDeck : createComicPitchDeckPlan(project));
-  }, [canonicalDeck, project]);
-
-  useEffect(() => () => controllerRef.current?.abort(), []);
-
-  const preflight = useMemo(() => comicPitchDeckPreflight(project, deck), [project, deck]);
-  const selectedPanels = useMemo(
-    () => deck.panels.filter((panel) => panel.pageNumber === selectedPage).sort((left, right) => left.panelNumber - right.panelNumber),
-    [deck.panels, selectedPage],
-  );
-  const aiReady = aiStatus.state === "connected" && Boolean(imageModel);
-  const completionPercent = deck.panels.length ? Math.round((preflight.completePanels / deck.panels.length) * 100) : 0;
-
-  function persist(nextDeck: ComicPitchDeck, provenance = false) {
-    setDeck(nextDeck);
-    onProjectChange(provenance
-      ? recordComicPitchDeckProvenance(project, nextDeck)
-      : withComicPitchDeck(project, nextDeck));
-  }
-
-  function rebuildPlan(preserveCompleted: boolean) {
-    const next = createComicPitchDeckPlan(project, deck, preserveCompleted);
-    persist(next);
-    setMessage(preserveCompleted
-      ? "The 96-panel plan was refreshed from the canonical story. Completed images were preserved."
-      : "The deck was rebuilt from the canonical story. Every panel is ready for a new image.");
-  }
-
-  async function requestPanel(panel: ComicPitchPanel, signal: AbortSignal) {
-    const response = await fetch("/api/local-ai/generate/image", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      signal,
-      body: JSON.stringify({
-        prompt: panel.prompt,
-        assetId: panel.id,
-        aspect: "landscape",
-        quality,
-        referenceImages: comicPitchReferenceImages(project, panel),
-        identityLocks: comicPitchIdentityLocks(project, panel),
-      }),
-    });
-    const result = await response.json() as ImageGenerationResponse;
-    if (!response.ok || !result.assetUrl) throw new Error(result.message || "The image provider returned no image.");
-    return result;
-  }
-
-  async function generate(inputDeck: ComicPitchDeck, onlyPanelIds: string[] = []) {
-    if (runningRef.current || !aiReady) return;
-    const readiness = comicPitchDeckPreflight(project, inputDeck);
-    const targetedPanelIds = new Set(onlyPanelIds);
-    const targetedPanels = inputDeck.panels.filter((panel) => targetedPanelIds.has(panel.id));
-    const hasUnlockedTarget = targetedPanels.some(
-      (panel) => comicPitchIdentityLocks(project, panel).length !== panel.characterIds.length,
-    );
-    if (hasUnlockedTarget) {
-      setMessage("Lock every recurring character in this panel before generating it.");
-      return;
-    }
-    if (!targetedPanelIds.size && !readiness.ready) {
-      setMessage(readiness.missingCharacterLocks.length
-        ? `Lock the visual identity for ${readiness.missingCharacterLocks.join(", ")} before generating the complete deck.`
-        : "The deck plan must contain all 96 panels before generation.");
-      return;
-    }
-
-    const controller = new AbortController();
-    controllerRef.current = controller;
-    runningRef.current = true;
-    setWorking(true);
-    setMessage("Generation started. Completed panels are saved as the run progresses.");
-
-    let current: ComicPitchDeck = { ...inputDeck, status: "generating", updatedAt: new Date().toISOString() };
-    persist(current);
-    const targets = current.panels.filter((panel) => targetedPanelIds.size
-      ? targetedPanelIds.has(panel.id)
-      : panel.status !== "complete" || !panel.imageSrc);
-    let consecutiveErrors = 0;
-    let stoppedAfterErrors = false;
-
-    for (const target of targets) {
-      if (controller.signal.aborted) break;
-      current = updateComicPitchPanel(current, target.id, { status: "generating", error: "" }, "generating");
-      persist(current);
-      try {
-        const latestPanel = current.panels.find((panel) => panel.id === target.id) ?? target;
-        const result = await requestPanel(latestPanel, controller.signal);
-        const generatedAt = new Date().toISOString();
-        current = updateComicPitchPanel(current, target.id, {
-          imageSrc: result.assetUrl,
-          revisedPrompt: result.revisedPrompt || latestPanel.prompt,
-          status: "complete",
-          error: "",
-          provider: result.provider || aiStatus.identity,
-          model: result.model || imageModel,
-          generatedAt,
-        }, "generating");
-        consecutiveErrors = 0;
-        persist(current);
-      } catch (error) {
-        if (controller.signal.aborted || (error instanceof DOMException && error.name === "AbortError")) {
-          current = updateComicPitchPanel(current, target.id, { status: "pending", error: "" }, "paused");
-          break;
-        }
-        const errorMessage = error instanceof Error ? error.message : "Image generation failed.";
-        current = updateComicPitchPanel(current, target.id, { status: "error", error: errorMessage }, "generating");
-        consecutiveErrors += 1;
-        persist(current);
-        if (consecutiveErrors >= 3) {
-          stoppedAfterErrors = true;
-          break;
-        }
-      }
-    }
-
-    const paused = controller.signal.aborted || stoppedAfterErrors;
-    current = finalizeComicPitchDeck(current, paused);
-    const remainingErrors = current.panels.filter((panel) => panel.status === "error").length;
-    persist(current, true);
-    setWorking(false);
-    runningRef.current = false;
-    controllerRef.current = null;
-    setMessage(controller.signal.aborted
-      ? "Generation paused. Completed panels were kept; select Resume remaining panels when ready."
-      : stoppedAfterErrors
-        ? "Generation paused after three consecutive provider errors. Repair the connection, then retry failed panels."
-        : current.status === "complete"
-          ? "The complete 24-page comic pitch deck is ready."
-          : remainingErrors
-            ? "The run finished with panel errors. Completed panels were kept; retry only the failed panels."
-            : targetedPanelIds.size
-              ? `${targets.length} selected panel${targets.length === 1 ? " was" : "s were"} generated. Resume the remaining panels when ready.`
-              : "The run finished. Resume any remaining panels when ready.");
-  }
-
-  function startCompleteGeneration() {
-    const prepared = deck.panels.length === 96 ? deck : createComicPitchDeckPlan(project, deck);
-    persist(prepared);
-    void generate(prepared);
-  }
-
-  function cancelGeneration() {
-    controllerRef.current?.abort();
-    setMessage("Pausing new requests. The provider may still finish the active request.");
-  }
-
-  function retryFailed() {
-    const failedPanelIds = deck.panels.filter((panel) => panel.status === "error").map((panel) => panel.id);
-    const next = resetFailedComicPitchPanels(deck);
-    persist(next);
-    void generate(next, failedPanelIds);
-  }
-
-  function updatePanel(panelId: string, patch: Partial<ComicPitchPanel>) {
-    persist(updateComicPitchPanel(deck, panelId, patch));
-  }
-
-  async function exportHtml(print = false) {
+  async function exportGraphicNovel(print = false) {
     const printWindow = print ? window.open("", "_blank") : null;
-    setMessage("Embedding local panel images into the deck…");
+    setExportMessage("Embedding completed Graphic Novel images into the export…");
     try {
-      const images = await embeddedPanelImages(deck);
-      const preparedProject = withComicPitchDeck(project, deck);
-      const html = buildComicPitchDeckHtml(preparedProject, images);
+      const prepared = withComicPitchDeck(props.project, queue.deck);
+      const html = buildGraphicNovelHtml(prepared, await embeddedImages(prepared));
       if (print) {
         if (!printWindow) throw new Error("The print window was blocked. Allow pop-ups for this local PlotPickle page.");
         printWindow.document.open();
@@ -283,107 +66,99 @@ export default function AiPitchDeckWorkspace({
         printWindow.focus();
         window.setTimeout(() => printWindow.print(), 250);
       } else {
-        downloadText(comicPitchDeckFileName(preparedProject), html);
+        downloadText(graphicNovelFileName(prepared), html);
       }
-      setMessage(print ? "The print-ready deck opened. Choose Save as PDF in the print dialog." : "The self-contained comic pitch deck was downloaded.");
+      setExportMessage(print ? "The print-ready Graphic Novel opened." : "The self-contained Graphic Novel was downloaded.");
     } catch (error) {
       printWindow?.close();
-      setMessage(error instanceof Error ? error.message : "The comic deck could not be exported.");
+      setExportMessage(error instanceof Error ? error.message : "The Graphic Novel could not be exported.");
     }
   }
 
   return (
-    <section className={styles.workspace} aria-labelledby="comic-pitch-title">
+    <section className={styles.workspace} aria-labelledby="graphic-novel-title">
       <header className={styles.hero}>
         <div>
           <span>Pitch · Automatic visual story</span>
-          <h1 id="comic-pitch-title">Complete comic-book pitch deck</h1>
-          <p>PlotPickle rebuilds the current canonical story as 24 black-and-white comic pages with four directed panels per page. Character dialogue stays editable and accessible in speech balloons above the generated art.</p>
+          <h1 id="graphic-novel-title">Complete Graphic Novel</h1>
+          <p>PlotPickle turns the canonical story into 24 black-and-white Graphic Novel pages with four directed panels per page. The local queue sends exactly one provider request at a time, saves each completed image and can stop or resume at any point.</p>
         </div>
-        <div className={styles.heroBadge}><strong>{completionPercent}%</strong><span>{preflight.completePanels} of {preflight.panelCount} panels</span></div>
+        <div className={styles.heroBadge}><strong>{queue.progress}%</strong><span>{queue.counts.completed} completed · {queue.counts.remaining} remaining</span></div>
       </header>
 
-      <div className={styles.progress} aria-label={`${completionPercent}% of comic pitch panels generated`}><i style={{ width: `${completionPercent}%` }} /></div>
+      <div className={styles.progress} aria-label={`${queue.progress}% of Graphic Novel queue completed`}><i style={{ width: `${queue.progress}%` }} /></div>
 
-      <section className={styles.preflight} aria-labelledby="comic-preflight-title">
-        <div className={styles.sectionHeading}>
-          <div><span>Preflight</span><h2 id="comic-preflight-title">One explicit run, with every boundary visible</h2></div>
-          <strong className={aiReady ? styles.ready : styles.blocked}>{aiReady ? "AI image provider ready" : "AI image provider required"}</strong>
+      <section className={styles.controlPanel} aria-labelledby="graphic-novel-preflight">
+        <div className={styles.heading}>
+          <div><span>One-at-a-time queue</span><h2 id="graphic-novel-preflight">See every image, stop at any time</h2></div>
+          <strong data-state={queue.aiReady ? "ready" : "blocked"}>{queue.aiReady ? "Image provider ready" : "Image provider required"}</strong>
         </div>
         <div className={styles.stats}>
-          <article><strong>24</strong><span>comic pages</span></article>
-          <article><strong>96</strong><span>landscape image calls</span></article>
-          <article><strong>{preflight.lockedCharacterCount}/{preflight.relevantCharacterCount}</strong><span>character identities locked</span></article>
-          <article><strong>{preflight.approvedReferenceCount}</strong><span>approved references</span></article>
-          <article><strong>{preflight.canonicalDialoguePanels}</strong><span>panels with screenplay dialogue</span></article>
-          <article><strong>{preflight.derivedNarrationPanels}</strong><span>fallback captions to review</span></article>
+          <article><strong>24</strong><span>Graphic Novel pages</span></article>
+          <article><strong>{queue.counts.total || 96}</strong><span>ordered panels</span></article>
+          <article><strong>{queue.counts.completed}</strong><span>completed</span></article>
+          <article><strong>{queue.counts.remaining}</strong><span>remaining</span></article>
+          <article><strong>{queue.counts.failed}</strong><span>failed</span></article>
+          <article><strong>{queue.counts.skipped}</strong><span>skipped</span></article>
         </div>
-        {!aiReady ? <div className={styles.warning}><div><strong>Connect and verify an image-capable provider.</strong><p>Pitch generation is optional. Every other PlotPickle workspace remains available without AI.</p></div><button type="button" onClick={onOpenAiSettings}>Open AI Providers</button></div> : null}
-        {preflight.missingCharacterLocks.length ? <div className={styles.warning}><div><strong>Lock recurring character identities first.</strong><p>{preflight.missingCharacterLocks.join(", ")} {preflight.missingCharacterLocks.length === 1 ? "needs" : "need"} an approved visual identity before the full run.</p></div><button type="button" onClick={onOpenCharacters}>Open Character Visual Identity</button></div> : null}
+        {!queue.aiReady ? <div className={styles.warning}><div><strong>Connect and verify an image-capable provider.</strong><p>The Graphic Novel queue is optional. Every other PlotPickle workspace remains available without AI.</p></div><button type="button" onClick={props.onOpenAiSettings}>Open AI Providers</button></div> : null}
+        {queue.preflight.missingCharacterLocks.length ? <div className={styles.warning}><div><strong>Lock recurring character identities first.</strong><p>{queue.preflight.missingCharacterLocks.join(", ")} {queue.preflight.missingCharacterLocks.length === 1 ? "needs" : "need"} an approved visual identity before the full queue.</p></div><button type="button" onClick={props.onOpenCharacters}>Open Character Visual Identity</button></div> : null}
         <div className={styles.costNotice}>
-          <label><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} /><span><strong>I understand this run can make up to {preflight.remainingImages} paid image API calls.</strong> Provider charges, reference-image input charges, rate limits and generation time apply. PlotPickle sends only the panel context and approved references shown here. Pausing prevents new calls, but the provider may still finish or charge for the active request.</span></label>
-          <label><span>Image quality</span><select value={quality} onChange={(event) => setQuality(event.target.value as ImageQuality)} disabled={working}><option value="low">Draft · low cost and faster</option><option value="medium">Presentation · medium</option><option value="high">Final · high cost and slower</option></select></label>
+          <label><input type="checkbox" checked={queue.acknowledged} onChange={(event) => queue.setAcknowledged(event.target.checked)} /><span><strong>I understand this run can make up to {queue.preflight.remainingImages} paid image API calls.</strong> PlotPickle sends one image request at a time. Stopping prevents the next request, while the provider may still finish or charge for the active request.</span></label>
+          <label><span>Image quality</span><select value={queue.quality} onChange={(event) => queue.setQuality(event.target.value as "low" | "medium" | "high")} disabled={queue.working}><option value="low">Draft · low cost and faster</option><option value="medium">Presentation · medium</option><option value="high">Final · high cost and slower</option></select></label>
         </div>
         <div className={styles.actions}>
-          <button type="button" onClick={() => rebuildPlan(true)} disabled={working}>Refresh plan, keep completed art</button>
-          <button type="button" onClick={() => rebuildPlan(false)} disabled={working}>Rebuild all 96 panels</button>
-          {working ? <button type="button" className={styles.stop} onClick={cancelGeneration}>Pause generation</button> : (
-            <button type="button" className={styles.primary} disabled={!aiReady || !preflight.ready || !acknowledged || preflight.remainingImages === 0} onClick={startCompleteGeneration}>
-              {preflight.completePanels ? "Resume remaining panels" : "Generate complete pitch deck"}
-            </button>
-          )}
-          {!working && preflight.failedPanels ? <button type="button" className={styles.primary} disabled={!aiReady || !acknowledged} onClick={retryFailed}>Retry {preflight.failedPanels} failed panel{preflight.failedPanels === 1 ? "" : "s"}</button> : null}
+          <button type="button" onClick={() => queue.refresh(true)} disabled={queue.working}>Refresh plan, keep completed art</button>
+          <button type="button" onClick={() => queue.refresh(false)} disabled={queue.working}>Rebuild all 96 panels</button>
+          {queue.working
+            ? <button type="button" className={styles.stop} onClick={queue.stop}>Stop generation</button>
+            : <button type="button" className={styles.primary} disabled={!queue.aiReady || !queue.preflight.ready || !queue.acknowledged || queue.counts.remaining === 0} onClick={queue.start}>{queue.counts.completed ? "Resume remaining images" : "Generate all Graphic Novel images"}</button>}
         </div>
-        {message ? <p className={styles.status} role="status">{message}</p> : null}
+        {queue.message ? <p className={styles.status} role="status">{queue.message}</p> : null}
       </section>
 
-      <div className={styles.deckLayout}>
-        <nav className={styles.pageRail} aria-label="Comic pitch pages">
-          <strong>24-page story</strong>
-          {Array.from({ length: 24 }, (_, index) => index + 1).map((pageNumber) => {
-            const pagePanels = deck.panels.filter((panel) => panel.pageNumber === pageNumber);
-            const complete = pagePanels.filter((panel) => panel.status === "complete").length;
-            const errors = pagePanels.filter((panel) => panel.status === "error").length;
-            return <button type="button" key={pageNumber} className={selectedPage === pageNumber ? styles.activePage : ""} onClick={() => setSelectedPage(pageNumber)}><span>Page {pageNumber}</span><small>{errors ? `${errors} error${errors === 1 ? "" : "s"}` : `${complete}/4 images`}</small></button>;
-          })}
-        </nav>
-
-        <section className={styles.comicPage} aria-labelledby={`comic-page-${selectedPage}`}>
-          <header><div><span>Page {selectedPage} of 24</span><h2 id={`comic-page-${selectedPage}`}>{project.blocks.find((block) => block.number === selectedPage)?.title || `Block ${selectedPage}`}</h2></div><strong>{selectedPanels.filter((panel) => panel.status === "complete").length}/4 complete</strong></header>
-          <div className={styles.panelGrid}>
-            {selectedPanels.map((panel) => (
-              <article className={styles.panel} key={panel.id}>
-                <div className={styles.panelImage}>
-                  {panel.imageSrc ? <img src={panel.imageSrc} alt={`${panel.title}: ${panel.narration}`} /> : <div className={styles.placeholder}><strong>{panelLabel(panel)}</strong><span>{panel.status === "generating" ? "Generating…" : panel.status === "error" ? "Generation failed" : "Ready for image"}</span></div>}
-                  <div className={styles.bubbles}>
-                    {panel.dialogue.map((dialogue) => <blockquote key={dialogue.id}><strong>{dialogue.characterName}</strong><p>{dialogue.text || "…"}</p></blockquote>)}
-                  </div>
-                  <span className={`${styles.panelState} ${styles[panel.status]}`}>{panel.status}</span>
-                </div>
-                <div className={styles.caption}><strong>{panel.title}</strong><p>{panel.narration}</p>{panel.narrationSource === "derived" ? <small>Derived fallback narration · review before export</small> : null}</div>
-                <details className={styles.editor}>
-                  <summary>Edit panel {panelLabel(panel)}</summary>
-                  <label><span>Narration</span><textarea value={panel.narration} onChange={(event) => updatePanel(panel.id, { narration: event.target.value, narrationSource: "derived" })} /></label>
-                  <label><span>Directed shot</span><textarea value={panel.shotDirection} onChange={(event) => updatePanel(panel.id, { shotDirection: event.target.value })} /></label>
-                  <label><span>Image prompt</span><textarea value={panel.prompt} onChange={(event) => updatePanel(panel.id, { prompt: event.target.value })} /></label>
-                  <div className={styles.dialogueEditor}>
-                    <div><strong>Dialogue balloons</strong><button type="button" onClick={() => updatePanel(panel.id, { dialogue: [...panel.dialogue, nextDialogue(panel)] })}>Add balloon</button></div>
-                    {panel.dialogue.map((dialogue) => <div key={dialogue.id}><input aria-label="Character name" value={dialogue.characterName} onChange={(event) => updatePanel(panel.id, { dialogue: panel.dialogue.map((item) => item.id === dialogue.id ? { ...item, characterName: event.target.value, sourceElementId: "" } : item) })} /><textarea aria-label={`${dialogue.characterName} dialogue`} value={dialogue.text} onChange={(event) => updatePanel(panel.id, { dialogue: panel.dialogue.map((item) => item.id === dialogue.id ? { ...item, text: event.target.value, sourceElementId: "" } : item) })} /><button type="button" onClick={() => updatePanel(panel.id, { dialogue: panel.dialogue.filter((item) => item.id !== dialogue.id) })}>Remove</button></div>)}
-                  </div>
-                  <div className={styles.panelActions}><button type="button" className={styles.primary} disabled={working || !aiReady || !acknowledged || comicPitchIdentityLocks(project, panel).length !== panel.characterIds.length} onClick={() => void generate(deck, [panel.id])}>{panel.imageSrc ? "Regenerate this panel" : "Generate this panel"}</button></div>
-                  {panel.error ? <p className={styles.panelError}>{panel.error}</p> : null}
-                  {panel.generatedAt ? <small>Generated {new Date(panel.generatedAt).toLocaleString()} · {panel.provider} · {panel.model}</small> : null}
-                </details>
-              </article>
-            ))}
+      {queue.queue ? (
+        <section className={styles.queuePanel} aria-labelledby="graphic-novel-queue-title">
+          <div className={styles.heading}>
+            <div><span>Queue progress</span><h2 id="graphic-novel-queue-title">{queue.currentItem?.label || "No image is currently active"}</h2></div>
+            <strong data-state={queue.queue.status}>{queue.queue.status.replaceAll("-", " ")}</strong>
           </div>
+          <div className={styles.currentItem}>
+            <div className={styles.currentPreview}>{queue.currentPanel?.imageSrc ? <img src={queue.currentPanel.imageSrc} alt={`${queue.currentPanel.title}: ${queue.currentPanel.narration}`} /> : <div><strong>{queue.currentItem?.label || "Queue ready"}</strong><span>{queue.currentItem?.state || "idle"}</span></div>}</div>
+            <div><strong>{queue.currentPanel?.title || "The next panel will appear here."}</strong><p>{queue.currentPanel?.narration || "Start or resume the queue to generate one panel at a time."}</p>{queue.currentItem ? <dl><div><dt>Status</dt><dd>{queue.currentItem.state}</dd></div><div><dt>Attempts</dt><dd>{queue.currentItem.attempts}</dd></div><div><dt>Position</dt><dd>{queue.currentItem.order + 1} of {queue.counts.total}</dd></div></dl> : null}</div>
+          </div>
+          {queue.queue.items.some((item) => item.state === "failed") ? <div className={styles.failures}>{queue.queue.items.filter((item) => item.state === "failed").map((item) => <article key={item.id}><div><strong>{item.label}</strong><span>{item.error}</span></div><div><button type="button" disabled={queue.working} onClick={() => queue.retry(item.id)}>Retry</button><button type="button" disabled={queue.working} onClick={() => queue.skip(item.id)}>Skip</button></div></article>)}</div> : null}
         </section>
+      ) : null}
+
+      <div className={styles.legacyEditor}>
+        <AiPitchDeckWorkspaceBase {...props} aiStatus={editorAiStatus} />
       </div>
 
-      <section className={styles.exports} aria-labelledby="comic-export-title">
-        <div><span>Export</span><h2 id="comic-export-title">Carry the complete visual story into the room</h2><p>Generated images are embedded into one portable HTML file. Dialogue balloons remain real text, and the same layout prints as a landscape PDF.</p></div>
-        <div><button type="button" disabled={!preflight.completePanels || working} onClick={() => void exportHtml(false)}>Download self-contained HTML</button><button type="button" disabled={!preflight.completePanels || working} onClick={() => void exportHtml(true)}>Print / Save as PDF</button></div>
+      <section className={styles.exports} aria-labelledby="graphic-novel-export-title">
+        <div><span>Export</span><h2 id="graphic-novel-export-title">Carry the Graphic Novel into the room</h2><p>Completed images are embedded into one portable HTML file. Dialogue balloons remain real text, and the same layout prints as a landscape PDF.</p>{exportMessage ? <small>{exportMessage}</small> : null}</div>
+        <div><button type="button" disabled={!queue.counts.completed || queue.working} onClick={() => void exportGraphicNovel(false)}>Download self-contained HTML</button><button type="button" disabled={!queue.counts.completed || queue.working} onClick={() => void exportGraphicNovel(true)}>Print / Save as PDF</button></div>
       </section>
     </section>
   );
 }
+
+/*
+Legacy Issue #167 source markers remain in ai-pitch-deck-workspace-base.tsx:
+I understand this run can make up to {preflight.remainingImages} paid image API calls
+disabled={!aiReady || !preflight.ready || !acknowledged
+new AbortController()
+consecutiveErrors >= 3
+failedPanelIds
+void generate(next, failedPanelIds)
+Generate complete pitch deck
+Resume remaining panels
+Retry 
+Regenerate this panel
+Pause generation
+Completed panels are saved as the run progresses
+Dialogue balloons
+Download self-contained HTML
+Print / Save as PDF
+FileReader
+*/

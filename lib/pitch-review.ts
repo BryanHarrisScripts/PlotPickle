@@ -1,5 +1,6 @@
 import {
   cloneProject,
+  createBlankComicPitchDeck,
   type LoglineCandidate,
   type PitchPackage,
   type PlotPickleProject,
@@ -73,6 +74,7 @@ function defaultPitchPackage(project: PlotPickleProject): PitchPackage {
     selectedCharacterIds: project.characters.slice(0, 6).map((character) => character.id),
     selectedLocationIds: project.world.locations.slice(0, 6).map((location) => location.id),
     includeSections: ["cover", "logline", "synopsis", "characters", "world", "visuals", "creator", "rights"],
+    comicDeck: createBlankComicPitchDeck(),
     updatedAt: timestamp(),
   };
 }

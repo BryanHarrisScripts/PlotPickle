@@ -2295,7 +2295,198 @@
             "type": "string"
           }
         },
+        "comicDeck": {
+          "$ref": "#/$defs/comicPitchDeck"
+        },
         "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "comicPitchDeck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "style",
+        "status",
+        "panels",
+        "createdAt",
+        "updatedAt",
+        "lastGeneratedAt"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "style": {
+          "const": "black-and-white-sketch"
+        },
+        "status": {
+          "enum": [
+            "not-started",
+            "planned",
+            "generating",
+            "paused",
+            "complete",
+            "complete-with-errors"
+          ]
+        },
+        "panels": {
+          "type": "array",
+          "maxItems": 96,
+          "items": {
+            "$ref": "#/$defs/comicPitchPanel"
+          }
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "lastGeneratedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "comicPitchPanel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "pageNumber",
+        "panelNumber",
+        "blockNumber",
+        "miniBlockNumber",
+        "title",
+        "narration",
+        "narrationSource",
+        "dialogue",
+        "characterIds",
+        "locationIds",
+        "shotDirection",
+        "prompt",
+        "imageSrc",
+        "revisedPrompt",
+        "status",
+        "error",
+        "provider",
+        "model",
+        "generatedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "pageNumber": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "panelNumber": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "blockNumber": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "miniBlockNumber": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "title": {
+          "type": "string"
+        },
+        "narration": {
+          "type": "string"
+        },
+        "narrationSource": {
+          "enum": [
+            "canonical",
+            "derived"
+          ]
+        },
+        "dialogue": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/comicPitchDialogue"
+          }
+        },
+        "characterIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locationIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "shotDirection": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "imageSrc": {
+          "type": "string"
+        },
+        "revisedPrompt": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "generating",
+            "complete",
+            "error"
+          ]
+        },
+        "error": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "generatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "comicPitchDialogue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "characterId",
+        "characterName",
+        "text",
+        "sourceElementId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "characterId": {
+          "type": "string"
+        },
+        "characterName": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "sourceElementId": {
           "type": "string"
         }
       }

@@ -12,8 +12,8 @@ type ApplicationShellHeaderProps = {
   onOpenLanding: () => void;
 };
 
-const orientation = PRODUCT_NAVIGATION.filter((item) => item.zone === "orientation");
-const workflow = PRODUCT_NAVIGATION.filter((item) => item.zone === "workflow");
+const discovery = PRODUCT_NAVIGATION.filter((item) => item.zone === "discovery");
+const production = PRODUCT_NAVIGATION.filter((item) => item.zone === "production");
 const configuration = PRODUCT_NAVIGATION.filter((item) => item.zone === "configuration");
 
 function WorkspaceButton({
@@ -62,12 +62,18 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
         <div><strong>PlotPickle</strong><span>PlotPickle Playhouse</span></div>
       </button>
 
-      <nav className="main-tabs shell-zone shell-zone-orientation orientation-tabs" aria-label="Orientation workspace" role="tablist">
-        {orientation.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
+      <nav className="shell-zone shell-workflow-group shell-zone-discovery" aria-label="Discovery and Pre-Production">
+        <span className="shell-zone-label">Discovery &amp; Pre-Production</span>
+        <div className="main-tabs" role="tablist">
+          {discovery.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
+        </div>
       </nav>
 
-      <nav className="main-tabs shell-zone shell-zone-workflow" aria-label="Creative workflow" role="tablist">
-        {workflow.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
+      <nav className="shell-zone shell-workflow-group shell-zone-production" aria-label="Production and Polishing">
+        <span className="shell-zone-label">Production &amp; Polishing</span>
+        <div className="main-tabs" role="tablist">
+          {production.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
+        </div>
       </nav>
 
       <div className="shell-zone shell-zone-project-actions" aria-label="Project actions">

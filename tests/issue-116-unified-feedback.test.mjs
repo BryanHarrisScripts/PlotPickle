@@ -204,8 +204,8 @@ test("issue #116 live workspace renders all sections filters decisions threads a
 
 test("issue #116 makes Build and Feedback reachable in the primary workflow", async () => {
   const direction = await source("lib/product-direction.ts");
-  assert.match(direction, /id: "planner", label: "Plan"[\s\S]*id: "build", label: "Build"[\s\S]*id: "script", label: "Write"/);
-  assert.match(direction, /id: "engines", label: "Refine"[\s\S]*id: "feedback", label: "Feedback"[\s\S]*id: "reports", label: "Reports"/);
+  assert.match(direction, /id: "planner", label: "Plan"[\s\S]*id: "visuals", label: "Storyboard"[\s\S]*id: "script", label: "Write"[\s\S]*id: "pitch", label: "Pitch"[\s\S]*id: "build", label: "Build"/);
+  assert.match(direction, /id: "build", label: "Build"[\s\S]*id: "feedback", label: "Feedback"[\s\S]*id: "engines", label: "Refine"[\s\S]*id: "reports", label: "Reports"/);
 });
 
 test("issue #116 mounts Feedback and preserves reviewed-item navigation context", async () => {

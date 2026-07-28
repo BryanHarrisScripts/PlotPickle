@@ -12,7 +12,7 @@ test("main application exposes Refine as the connected Engines workspace", async
   assert.ok(page.includes("type MainTab = ProductNavigationId"));
   assert.ok(page.includes('import ApplicationShellHeader from "./application-shell-header"'));
   assert.match(shell, /PRODUCT_NAVIGATION\.filter/);
-  assert.match(navigation, /id: "engines", label: "Refine", description: "Refine the story", zone: "workflow"/);
+  assert.match(navigation, /id: "engines", label: "Refine", description: "Refine the story", zone: "production"/);
   assert.ok(page.includes('import EngineHub from "./engine-hub"'));
   assert.match(page, /activeTab === "engines"[\s\S]*<EngineHub onOpenBuild=/);
   assert.match(page, /setReportBuildTargetId\("mini-blocks"\)/);

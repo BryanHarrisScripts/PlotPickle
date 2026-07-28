@@ -45,8 +45,8 @@ test("OpenAI Responses and image generation are isolated in the adapter", () => 
   assert.match(adapters, /image-editing-not-implemented/);
 });
 
-test("advanced AI capabilities stay behind one Settings menu", () => {
-  assert.match(architecture, /single Settings menu/);
+test("advanced AI capabilities stay behind one grouped Settings menu", () => {
+  assert.match(architecture, /one grouped Settings menu/);
   assert.match(architecture, /AI Setup/);
   assert.match(architecture, /Music/);
   assert.match(architecture, /Plugins/);

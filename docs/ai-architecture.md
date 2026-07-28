@@ -61,6 +61,8 @@ Storyboard and video jobs reference the character ID and look ID. Provider-speci
 4. Save the returned asset locally with model, provider, prompt, reference, date, and human-edit provenance.
 5. Let the writer reject it, keep it as a variation, or approve it as a canonical reference or storyboard frame.
 
+For the automatic comic Pitch, PlotPickle makes one explicitly approved batch across the 96 canonical mini-block positions. OpenAI requests with approved local character references use the image-editing endpoint; requests without usable references use image generation. Prompts exclude written words, while screenplay dialogue stays editable as HTML balloons outside generated image pixels.
+
 ## Video workflow
 
 Video is a job rather than a synchronous response. A job records prompt, source frame, character looks, duration, aspect ratio, provider, model, status, progress, output asset, and failure details. Provider adapters may implement create, poll, cancel, and download operations. A provider without video capability still supports prompt export.
@@ -77,18 +79,24 @@ Video is a job rather than a synchronous response. A job records prompt, source 
 
 ## Settings menu
 
-PlotPickle exposes these connections through a single Settings menu rather than a separate AI Studio. It has three sections:
+PlotPickle exposes these connections through one grouped Settings menu rather than a separate AI Studio:
 
-- **AI Setup** selects ChatGPT / OpenAI API, an OpenAI-compatible endpoint, Ollama or another local LLM, manual prompt export, or no AI. Non-secret preferences remain in local browser settings. In the downloaded edition, verified API keys may be saved through the private local gateway, but never enter browser settings or project exports.
-- **Music** saves one or more Suno or Udio artist links, such as an Ava Iris profile, so the writer can return to the music associated with a project or creative identity. PlotPickle stores links only; it does not copy music or claim a direct service integration.
-- **Plugins** is a clearly labelled future-connectivity area. Placeholder entries cannot be enabled until a real, reviewed connector exists.
+- **Workspace:** General; Appearance / Accessibility; Project Defaults.
+- **Integrations:** AI Providers; GitHub; Google Services; Plugins & Connections.
+- **Data Storage:** Storage & Backups.
+- **Security:** Privacy & Permissions; About & Licensing.
 
-Knowledge, character consistency, image, and video capabilities remain part of the provider-independent foundation. They appear as contextual actions inside Characters, Story Planner, Visual Board, Voiceprint, PageFlow, and DraftLens when implemented, without adding more top-level workspaces.
+AI Providers contains the former **AI Setup** choices: ChatGPT / OpenAI API, an OpenAI-compatible endpoint, Ollama or another local LLM, manual prompt export, or no AI. Non-secret preferences remain in local browser settings. In the downloaded edition, verified API keys may be saved through the private local gateway, but never enter browser settings or project exports.
+
+**Music** links for Suno or Udio remain bounded references inside Plugins & Connections. PlotPickle stores links only; it does not copy music or claim a direct service integration. **Plugins** placeholders cannot be enabled until a real, reviewed connector exists.
+
+Knowledge, character consistency, image, and video capabilities remain part of the provider-independent foundation. They appear as contextual actions inside Characters, Story Planner, Visual Board, Pitch, Voiceprint, PageFlow, and DraftLens when implemented.
 ## First in-workflow creative actions
 
 Version 0.9.0 moves the first optional AI actions into the places where writers work:
 
 - Screenplay suggestions receive only the current project, Block, mini-block, and character context selected by the writer. The response remains a suggestion until the writer chooses how to insert it.
 - Character reference generation builds a reusable identity prompt from the character profile and world visual language. The local gateway saves the generated file under the current PlotPickle user-data folder and returns a loopback asset URL for the character thumbnail.
+- Comic Pitch rebuilds all 24 Blocks and 96 mini-blocks as a resumable black-and-white visual deck only after the writer reviews the context, character locks, privacy boundary and possible cost.
 - OpenAI uses the Responses and image-generation endpoints. OpenAI-compatible services use chat-completions and image-generation conventions. Ollama/local models support screenplay text when the selected model is capable; they do not falsely advertise image generation.
 - The saved API key remains server-side. The browser sends creative context to PlotPickle's loopback gateway and never receives the key.

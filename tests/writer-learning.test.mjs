@@ -11,7 +11,7 @@ test("Learn is a primary workspace and Writer keeps Treatment and Screenplay con
     source("lib/product-direction.ts"),
     source("app/script-workspace.tsx"),
   ]);
-  assert.match(navigation, /id: "learn", label: "Learn", description: "Study the craft and terminology"/);
+  assert.match(navigation, /id: "learn", label: "Learn", description: "Study the craft, introduction and terminology"/);
   for (const phrase of ["<LearningStudio", 'activeTab === "learn"', 'setWriterMode("treatment")', 'setWriterMode("screenplay")']) {
     assert.ok(page.includes(phrase), `Primary learning workspace is missing ${phrase}`);
   }

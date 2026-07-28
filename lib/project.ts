@@ -364,6 +364,49 @@ export type LoglineCandidate = {
   createdAt: string;
 };
 
+export type ComicPitchDialogue = {
+  id: string;
+  characterId: string;
+  characterName: string;
+  text: string;
+  sourceElementId: string;
+};
+
+export type ComicPitchPanelStatus = "pending" | "generating" | "complete" | "error";
+
+export type ComicPitchPanel = {
+  id: string;
+  pageNumber: number;
+  panelNumber: number;
+  blockNumber: number;
+  miniBlockNumber: number;
+  title: string;
+  narration: string;
+  narrationSource: "canonical" | "derived";
+  dialogue: ComicPitchDialogue[];
+  characterIds: string[];
+  locationIds: string[];
+  shotDirection: string;
+  prompt: string;
+  imageSrc: string;
+  revisedPrompt: string;
+  status: ComicPitchPanelStatus;
+  error: string;
+  provider: string;
+  model: string;
+  generatedAt: string;
+};
+
+export type ComicPitchDeck = {
+  version: 1;
+  style: "black-and-white-sketch";
+  status: "not-started" | "planned" | "generating" | "paused" | "complete" | "complete-with-errors";
+  panels: ComicPitchPanel[];
+  createdAt: string;
+  updatedAt: string;
+  lastGeneratedAt: string;
+};
+
 export type PitchPackage = {
   title: string;
   subtitle: string;
@@ -378,6 +421,7 @@ export type PitchPackage = {
   selectedCharacterIds: string[];
   selectedLocationIds: string[];
   includeSections: string[];
+  comicDeck?: ComicPitchDeck;
   updatedAt: string;
 };
 
@@ -795,7 +839,20 @@ export function createBlankRightsAndProvenance(projectTitle = "Untitled Story"):
   };
 }
 
+export function createBlankComicPitchDeck(now = new Date().toISOString()): ComicPitchDeck {
+  return {
+    version: 1,
+    style: "black-and-white-sketch",
+    status: "not-started",
+    panels: [],
+    createdAt: now,
+    updatedAt: now,
+    lastGeneratedAt: "",
+  };
+}
+
 export function createBlankReviewWorkspace(projectTitle = "Untitled Story"): ReviewWorkspace {
+  const now = new Date().toISOString();
   return {
     threads: [],
     loglineCandidates: [],
@@ -813,7 +870,8 @@ export function createBlankReviewWorkspace(projectTitle = "Untitled Story"): Rev
       selectedCharacterIds: [],
       selectedLocationIds: [],
       includeSections: ["cover", "logline", "synopsis", "characters", "world", "visuals", "creator", "rights"],
-      updatedAt: new Date().toISOString(),
+      comicDeck: createBlankComicPitchDeck(now),
+      updatedAt: now,
     },
   };
 }
@@ -1334,6 +1392,63 @@ function normalizeRevisions(value: unknown): RevisionSnapshot[] {
   });
 }
 
+function normalizeComicPitchDeck(value: unknown, now: string): ComicPitchDeck {
+  const defaults = createBlankComicPitchDeck(now);
+  if (!value || typeof value !== "object") return defaults;
+  const candidate = value as Partial<ComicPitchDeck>;
+  const panelStatuses: ComicPitchPanelStatus[] = ["pending", "generating", "complete", "error"];
+  const deckStatuses: ComicPitchDeck["status"][] = ["not-started", "planned", "generating", "paused", "complete", "complete-with-errors"];
+  const panels = Array.isArray(candidate.panels) ? candidate.panels.slice(0, 96).flatMap((item, index) => {
+    if (!item || typeof item !== "object") return [];
+    const panel = item as Partial<ComicPitchPanel>;
+    const pageNumber = Math.min(24, Math.max(1, Number(panel.pageNumber) || Math.floor(index / 4) + 1));
+    const panelNumber = Math.min(4, Math.max(1, Number(panel.panelNumber) || (index % 4) + 1));
+    const status = panelStatuses.includes(panel.status as ComicPitchPanelStatus) ? panel.status as ComicPitchPanelStatus : "pending";
+    return [{
+      id: typeof panel.id === "string" && panel.id ? panel.id : `comic-pitch-${pageNumber}-${panelNumber}`,
+      pageNumber,
+      panelNumber,
+      blockNumber: Math.min(24, Math.max(1, Number(panel.blockNumber) || pageNumber)),
+      miniBlockNumber: Math.min(4, Math.max(1, Number(panel.miniBlockNumber) || panelNumber)),
+      title: typeof panel.title === "string" ? panel.title : `Page ${pageNumber}, panel ${panelNumber}`,
+      narration: typeof panel.narration === "string" ? panel.narration : "",
+      narrationSource: panel.narrationSource === "derived" ? "derived" as const : "canonical" as const,
+      dialogue: Array.isArray(panel.dialogue) ? panel.dialogue.flatMap((item, dialogueIndex) => {
+        if (!item || typeof item !== "object") return [];
+        const dialogue = item as Partial<ComicPitchDialogue>;
+        return [{
+          id: typeof dialogue.id === "string" && dialogue.id ? dialogue.id : `comic-dialogue-${pageNumber}-${panelNumber}-${dialogueIndex + 1}`,
+          characterId: typeof dialogue.characterId === "string" ? dialogue.characterId : "",
+          characterName: typeof dialogue.characterName === "string" ? dialogue.characterName : "Speaker",
+          text: typeof dialogue.text === "string" ? dialogue.text : "",
+          sourceElementId: typeof dialogue.sourceElementId === "string" ? dialogue.sourceElementId : "",
+        }];
+      }) : [],
+      characterIds: stringArray(panel.characterIds),
+      locationIds: stringArray(panel.locationIds),
+      shotDirection: typeof panel.shotDirection === "string" ? panel.shotDirection : "",
+      prompt: typeof panel.prompt === "string" ? panel.prompt : "",
+      imageSrc: typeof panel.imageSrc === "string" ? panel.imageSrc : "",
+      revisedPrompt: typeof panel.revisedPrompt === "string" ? panel.revisedPrompt : "",
+      status: status === "generating" ? "pending" : status,
+      error: typeof panel.error === "string" ? panel.error : "",
+      provider: typeof panel.provider === "string" ? panel.provider : "",
+      model: typeof panel.model === "string" ? panel.model : "",
+      generatedAt: typeof panel.generatedAt === "string" ? panel.generatedAt : "",
+    }];
+  }) : [];
+  const status = deckStatuses.includes(candidate.status as ComicPitchDeck["status"]) ? candidate.status as ComicPitchDeck["status"] : "not-started";
+  return {
+    version: 1,
+    style: "black-and-white-sketch",
+    status: status === "generating" ? "paused" : status,
+    panels,
+    createdAt: typeof candidate.createdAt === "string" ? candidate.createdAt : now,
+    updatedAt: typeof candidate.updatedAt === "string" ? candidate.updatedAt : now,
+    lastGeneratedAt: typeof candidate.lastGeneratedAt === "string" ? candidate.lastGeneratedAt : "",
+  };
+}
+
 function normalizeReviewWorkspace(value: unknown, projectTitle: string): ReviewWorkspace {
   const defaults = createBlankReviewWorkspace(projectTitle);
   if (!value || typeof value !== "object") return defaults;
@@ -1392,6 +1507,7 @@ function normalizeReviewWorkspace(value: unknown, projectTitle: string): ReviewW
       selectedCharacterIds: stringArray(pitch.selectedCharacterIds),
       selectedLocationIds: stringArray(pitch.selectedLocationIds),
       includeSections: stringArray(pitch.includeSections).length ? stringArray(pitch.includeSections) : defaults.pitchPackage.includeSections,
+      comicDeck: normalizeComicPitchDeck(pitch.comicDeck, now),
       updatedAt: typeof pitch.updatedAt === "string" ? pitch.updatedAt : now,
     },
   };
@@ -1632,7 +1748,8 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     candidate.blocks.length !== 24
   ) return null;
 
-  const targetMinutes = Math.max(1, Number(candidate.metadata.targetMinutes) || 120);
+  const metadata = candidate.metadata;
+  const targetMinutes = Math.max(1, Number(metadata.targetMinutes) || 120);
   const blank = createBlankProject();
   const defaults = createBlankDevelopment();
   const voiceprintDefaults = createBlankVoiceprint();
@@ -1640,7 +1757,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
   return {
     schemaVersion: "1.7.0",
     id: candidate.id,
-    metadata: { ...candidate.metadata, targetMinutes },
+    metadata: { ...metadata, targetMinutes },
     story: candidate.story,
     world: candidate.world,
     screenplay: normalizeScreenplay(candidate.screenplay),
@@ -1669,7 +1786,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
       scenes: normalizeScenes(block.scenes, index + 1, targetMinutes),
       visuals: normalizeStoryboardFrames(block.visuals, index + 1).map((frame) => {
         const number = index + 1;
-        const isAfterglowClosingFrame = candidate.metadata.title.toLowerCase().includes("afterglow") && number >= 22 && number <= 24 && !frame.src;
+        const isAfterglowClosingFrame = metadata.title.toLowerCase().includes("afterglow") && number >= 22 && number <= 24 && !frame.src;
         if (!isAfterglowClosingFrame) return frame;
         return {
           ...frame,
@@ -1682,9 +1799,9 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
       }),
     })),
     storyThreads: normalizeStoryThreads(candidate.storyThreads),
-    rights: normalizeRights(candidate.rights, candidate.metadata.title),
+    rights: normalizeRights(candidate.rights, metadata.title),
     revisions: normalizeRevisions(candidate.revisions),
-    review: normalizeReviewWorkspace(candidate.review, candidate.metadata.title),
+    review: normalizeReviewWorkspace(candidate.review, metadata.title),
     production: normalizeProductionWorkspace(candidate.production),
     collaboration: normalizeCollaboration(candidate.collaboration),
   };

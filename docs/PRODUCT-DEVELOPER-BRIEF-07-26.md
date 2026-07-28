@@ -49,9 +49,9 @@ The application should restore:
 
 ### 1.3 Canonical project data
 
-Plan, Build, Write, Storyboard, Refine, Feedback and Reports must use the same canonical project structure and stable IDs.
+Plan, Storyboard, Write, Pitch, Build, Feedback, Refine and Reports must use the same canonical project structure and stable IDs.
 
-Build must not create a second story model. Feedback must remain linked after structural reordering. Reports must derive from canonical project data.
+Pitch and Build must not create a second story model. Feedback must remain linked after structural reordering. Reports must derive from canonical project data.
 
 ### 1.4 Local-first and optional integrations
 
@@ -65,21 +65,28 @@ Credentials and tokens must never be stored inside `.ppf` project files or expor
 
 ## 2. Application shell
 
-The header should have four clearly separated zones.
+The header should keep the brand, two clearly named workflow groups, project actions and Settings visually separated.
 
-### Zone A — Orientation
+### Brand
 
 - PlotPickle logo returns to the marketing splash page.
-- Rename **Instructions** to **Introduction**.
-- Add a visible gutter after Introduction.
+- Introductory guidance remains available through Learn and compatible deep links, but is not an extra primary workflow step.
 
-### Zone B — Creative workflow
+### Discovery & Pre-Production
 
-Centered primary navigation:
+Use this exact sequence:
 
-**Dashboard · Learn · Plan · Build · Write · Storyboard · Refine · Feedback · Reports**
+**Dashboard · Learn · Plan · Storyboard · Write · Pitch**
 
-### Zone C — Project actions
+### Production & Polishing
+
+Continue with this exact sequence:
+
+**Build · Feedback · Refine · Reports**
+
+Together these are the ten primary workflow steps. Do not insert another step between them.
+
+### Project actions
 
 Place on the far-right side before Settings:
 
@@ -90,7 +97,7 @@ Place on the far-right side before Settings:
 
 These actions remain available from every primary workspace and must not be treated as Dashboard content.
 
-### Zone D — Configuration
+### Configuration
 
 - Add a visible gutter before Settings.
 - Settings remains the far-right application and provider configuration area.
@@ -117,6 +124,8 @@ It should reuse and reorganize existing guidance and include:
 - Afterglow as a worked example.
 
 Introduction should not contain active project status, file-management controls or project reports.
+
+It is reached through Learn or an existing deep link rather than appearing as an eleventh primary workflow step.
 
 ---
 
@@ -194,6 +203,21 @@ Examples:
 Include title, draft, format, runtime estimate, screenplay pages, scenes, characters, locations, project path, last save and canonical/branch state.
 
 New Project, Import, Export and Load Afterglow do not belong here.
+
+### 5.5 Automatic comic Pitch
+
+Pitch rebuilds the canonical 24-Block story as a 24-page, 96-panel black-and-white sketched comic deck.
+
+- one page per Block and one panel per mini-block;
+- directed shots from Production, Storyboard and canonical story context;
+- approved character identity locks and reference images for recurring-character continuity;
+- screenplay dialogue rendered as editable HTML balloons outside generated image pixels;
+- explicit cost and privacy acknowledgement before a complete run;
+- progress saving, pause, resume, failed-panel retry and individual regeneration;
+- one self-contained HTML export with a print-to-PDF layout;
+- provider, model and retained-output provenance without credentials.
+
+Pitch generation is optional and never silently changes story canon. Refreshing the plan may preserve completed art; rebuilding all panels is always a deliberate writer action.
 
 ---
 
@@ -659,19 +683,22 @@ Clearly identify Connected, Plugin available, Recommended but not connected, Loc
 
 ## 14. Settings structure
 
-Recommended Settings navigation:
+Settings navigation uses four groups in this exact order:
 
-- General
-- Appearance
-- Project defaults
-- Storage and backups
-- AI providers
-- GitHub
-- Plugins
-- Google and Connected Services
-- Privacy and permissions
-- Accessibility
-- About and licensing
+1. **Workspace**
+   - General
+   - Appearance / Accessibility
+   - Project Defaults
+2. **Integrations**
+   - AI Providers
+   - GitHub
+   - Google Services
+   - Plugins & Connections
+3. **Data Storage**
+   - Storage & Backups
+4. **Security**
+   - Privacy & Permissions
+   - About & Licensing
 
 Every integration should expose status, identity, setup, test connection, last success, errors, repair guidance, disconnect/revoke and a clear data-sharing explanation.
 
@@ -742,6 +769,8 @@ All schema changes require migration and round-trip tests.
 ## 17. Ordered delivery plan
 
 The GitHub implementation roadmap is tracked in Issue #110 and child Issues #111–#124.
+
+Issue #167 extends the shell and canonical Pitch package with the ordered navigation, grouped Settings and automatic comic Pitch workflow.
 
 ### Milestone 1 — Workflow shell and reuse map
 

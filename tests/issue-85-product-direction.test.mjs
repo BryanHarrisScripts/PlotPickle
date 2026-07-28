@@ -7,12 +7,14 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #85 defines one canonical primary navigation", async () => {
   const contract = await source("lib/product-direction.ts");
-  const expected = ["Dashboard", "Introduction", "Learn", "Plan", "Write", "Storyboard", "Refine", "Reports", "Settings"];
+  const expected = ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Pitch", "Build", "Feedback", "Refine", "Reports"];
   for (const label of expected) assert.match(contract, new RegExp(`label: "${label.replace(/[&]/g, "\\&")}"`));
+  assert.match(contract, /Discovery & Pre-Production/);
+  assert.match(contract, /Production & Polishing/);
   assert.match(contract, /Simple Start/);
   assert.match(contract, /not a required splash screen/);
   assert.match(contract, /Terminology|terminology/);
-  assert.match(contract, /Preferences and Setup/);
+  assert.match(contract, /Workspace, integrations, storage and security/);
 });
 
 test("issue #85 exposes exactly five selling points and 81 learning modules", async () => {

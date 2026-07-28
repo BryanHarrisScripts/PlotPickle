@@ -5,6 +5,7 @@ import { localAiGateway } from "./build/local-ai-gateway";
 import { localConnectionsGateway } from "./build/local-connections-gateway";
 import { githubAppGateway } from "./build/github-app-gateway";
 import { githubCommandGateway } from "./build/github-command-gateway";
+import { githubRepositoryRecoveryGateway } from "./build/github-repository-recovery-gateway";
 import { githubProjectSyncGateway } from "./build/github-project-sync-gateway";
 import { githubReviewGateway } from "./build/github-review-gateway";
 import { collaborationAccessGuard } from "./build/collaboration-access-guard";
@@ -66,6 +67,7 @@ export default defineConfig(async () => {
       localConnectionsGateway(),
       githubAppGateway(),
       githubCommandGateway(),
+      githubRepositoryRecoveryGateway(),
       githubProjectSyncGateway(),
       collaborationAccessGuard(),
       githubReviewGateway(),

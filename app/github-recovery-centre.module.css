@@ -39,3 +39,26 @@
   .header, .boundary, .commandHeader { align-items: flex-start; flex-direction: column; }
   .indicator { align-self: flex-start; }
 }
+.repositoryRecovery, .diagnosis, .recoveryChoice, .branchChoices, .conflicts { display: grid; gap: .75rem; }
+.repositoryRecovery { grid-template-columns: 1fr auto; align-items: center; padding: 1rem; border: 1px solid color-mix(in srgb, var(--border, #cbd5d1) 72%, #78b7d4); border-radius: .9rem; background: color-mix(in srgb, #e5f3fb 42%, var(--surface, #fff)); }
+.repositoryRecovery > div { display: grid; gap: .25rem; }
+.repositoryRecovery p, .repositoryRecovery h4, .repositoryRecovery span, .diagnosis span, .conflicts p, .conflicts small { margin: 0; }
+.repositoryRecovery p { font-size: .75rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.repositoryRecovery h4 { font-size: 1.05rem; }
+.repositoryRecovery span, .diagnosis span, .conflicts p, .conflicts small { color: var(--muted, #61706b); line-height: 1.5; }
+.diagnosis { padding: 1rem; border: 1px solid var(--border, #cbd5d1); border-radius: .9rem; background: #f8fbfa; }
+.diagnosis[data-state="repository-moved"], .diagnosis[data-state="branch-missing"] { border-color: #d9bd62; background: #fff9df; }
+.diagnosis[data-state="project-mismatch"], .diagnosis[data-state="repository-missing"], .diagnosis[data-state="authentication"] { border-color: #e3aaaa; background: #fff1f1; }
+.diagnosisHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.diagnosisHeader > div { display: grid; gap: .25rem; }
+.diagnosisHeader code { padding: .45rem .6rem; border-radius: .55rem; background: #edf2f0; font-size: .78rem; }
+.recoveryChoice, .branchChoices, .conflicts { padding: .85rem; border-radius: .75rem; background: color-mix(in srgb, var(--surface, #fff) 88%, #dff7ef); }
+.recoveryChoice { grid-template-columns: 1fr auto; align-items: center; }
+.recoveryChoice > div, .branchChoices { display: grid; gap: .2rem; }
+.conflicts article { display: grid; gap: .35rem; padding: .8rem; border: 1px solid var(--border, #cbd5d1); border-radius: .7rem; background: var(--surface, #fff); }
+.conflicts article > div { display: grid; gap: .1rem; }
+.conflicts article span { font-size: .85rem; }
+@media (max-width: 720px) {
+  .repositoryRecovery, .recoveryChoice { grid-template-columns: 1fr; }
+  .diagnosisHeader { flex-direction: column; }
+}

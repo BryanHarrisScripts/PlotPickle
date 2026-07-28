@@ -85,7 +85,7 @@ export default function GitHubCollaboration({
 
   function guardedChange(next: PlotPickleProject) {
     if (next.id !== project.id) {
-      window.alert("A different project cannot replace the active story through Restore & Recovery. Open or import it instead.");
+      window.alert("A different project cannot replace the active story through recovery. Open or import it instead.");
       return;
     }
     onChange(next);

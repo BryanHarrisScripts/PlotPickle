@@ -1,6 +1,53 @@
 export const PLOTPICKLE_REPOSITORY_URL = "https://github.com/BryanHarrisScripts/PlotPickle";
 export const LEARNING_MODULE_COUNT = 81;
 
+export const PLOTPICKLE_DESKTOP_BUILDS = [
+  {
+    id: "windows",
+    platform: "Windows",
+    archive: "PlotPickle-Windows.zip",
+    launcher: "Start-PlotPickle.bat",
+    detail: "Guided local launcher with repair and update tools.",
+  },
+  {
+    id: "macos",
+    platform: "macOS",
+    archive: "PlotPickle-macOS.zip",
+    launcher: "Start-PlotPickle.command",
+    detail: "A complete local-server package for Apple computers.",
+  },
+  {
+    id: "linux",
+    platform: "Linux",
+    archive: "PlotPickle-Linux.zip",
+    launcher: "start-plotpickle.sh",
+    detail: "A portable local-server package with a shell launcher.",
+  },
+] as const;
+
+export const OPEN_SOURCE_FOUNDATIONS = [
+  {
+    label: "Software",
+    title: "GNU AGPLv3 or later",
+    summary: "Study, modify, share and self-host the PlotPickle software while preserving the licence and source-code obligations.",
+  },
+  {
+    label: "Method and documentation",
+    title: "Creative Commons BY-SA 4.0",
+    summary: "The 24 Blocks method and reusable learning material remain open with attribution to Bryan Elgin Harris and share-alike terms.",
+  },
+  {
+    label: "Your creative work",
+    title: "Your story remains yours",
+    summary: "Using PlotPickle does not transfer ownership of your screenplay, characters, images, notes or exported project files.",
+  },
+  {
+    label: "Open platform",
+    title: "Portable projects, plugins and SDK",
+    summary: "Human-readable project data, portable .ppf exchange packages and permission-controlled extensions reduce lock-in.",
+  },
+] as const;
+
 export const PRIMARY_WORKFLOW_NAVIGATION = [
   { id: "dashboard", label: "Dashboard", description: "Projects, collaboration and storage", zone: "discovery" },
   { id: "learn", label: "Learn", description: "Study the craft, introduction and terminology", zone: "discovery" },

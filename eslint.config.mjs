@@ -23,6 +23,9 @@ const eslintConfig = defineConfig([
       // deliberate and remain covered by strict TypeScript and behavioural tests.
       "react-hooks/globals": "off",
       "react-hooks/immutability": "off",
+      // The durable outbox intentionally mutates a freshly cloned local array
+      // before returning a new immutable state object.
+      "prefer-const": "off",
     },
   },
   // Override default ignores of eslint-config-next.

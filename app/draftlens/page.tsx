@@ -127,7 +127,7 @@ export default function DraftLensPage() {
         }
         setProject(normalized);
         setSelectedCharacterId(normalized.characters[0]?.id ?? "");
-        setStatus("Connected to the active PlotPickle project.");
+        setStatus("Connected to the active project. DraftLens saves diagnostic notes only; make story and screenplay changes in their owning workspaces.");
       } catch {
         setStatus("The saved project could not be opened. A blank project is shown instead.");
       } finally {
@@ -181,7 +181,7 @@ export default function DraftLensPage() {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    setStatus("Project exported with the current DraftLens review work.");
+    setStatus("Project exported with the current DraftLens diagnostic notes.");
   }
 
   const characterEvidence = selectedCharacter
@@ -210,17 +210,18 @@ export default function DraftLensPage() {
       <div className={styles.shell}>
         <header className={styles.header}>
           <div>
-            <p className={styles.kicker}>PlotPickle Playhouse · Whole-draft review workspace</p>
-            <h1>DraftLens Engine</h1>
+            <p className={styles.kicker}>Refine · Full-draft diagnosis</p>
+            <h1>DraftLens Diagnostics</h1>
             <p>
               Read the screenplay as a flexible blueprint, locate what the reader actually experiences, and turn feedback into
-              story-serving questions. Diagnose the root problem before choosing a solution.
+              story-serving questions. DraftLens records evidence and revision proposals; it does not rewrite canonical story
+              structure or screenplay text.
             </p>
           </div>
           <div className={styles.actions}>
-            <Link className={styles.secondaryButton} href="/">Back to PlotPickle</Link>
-            <Link className={styles.secondaryButton} href="/resonance">Open Resonance</Link>
-            <Link className={styles.secondaryButton} href="/pageflow">Open PageFlow</Link>
+            <Link className={styles.secondaryButton} href="/?workspace=refine">Back to Refine</Link>
+            <Link className={styles.secondaryButton} href="/resonance?return=refine">Open Resonance</Link>
+            <Link className={styles.secondaryButton} href="/pageflow?return=refine">Open PageFlow</Link>
             <button className={styles.button} type="button" onClick={exportProject}>Export project</button>
           </div>
         </header>

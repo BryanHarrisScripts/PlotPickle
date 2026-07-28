@@ -1,0 +1,83 @@
+.shelf {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 20px;
+  padding: 18px;
+  border: 1px solid #cfe2df;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f6fbfa, #f1f8f6);
+  color: #173f42;
+}
+
+.shelf > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr);
+  gap: 18px;
+  align-items: end;
+}
+
+.shelf header span,
+.shelf article > span {
+  color: #237f78;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.shelf h2,
+.shelf h3,
+.shelf p {
+  margin: 0;
+}
+
+.shelf h2 {
+  margin-top: 4px;
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
+}
+
+.shelf > header > p,
+.shelf article p {
+  color: #617878;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.grid article {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  padding: 14px;
+  border: 1px solid #d7e7e4;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.grid h3 {
+  font-size: 0.98rem;
+}
+
+.grid a,
+.grid small {
+  margin-top: 4px;
+  color: #176d69;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.grid a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 760px) {
+  .shelf > header {
+    grid-template-columns: 1fr;
+  }
+}

@@ -52,7 +52,6 @@ function Field({
   label,
   help,
   value,
-  onChange,
   rows = 5,
 }: {
   label: string;
@@ -64,7 +63,7 @@ function Field({
   return (
     <label className={styles.field}>
       <span>{label}</span>
-      <textarea rows={rows} value={value} onChange={(event) => onChange(event.target.value)} />
+      <textarea rows={rows} value={value} readOnly aria-readonly="true" />
       <small>{help}</small>
     </label>
   );
@@ -92,7 +91,7 @@ export default function ResonancePage() {
         }
         setProject(normalized);
         setSelectedCharacterId(normalized.characters[0]?.id ?? "");
-        setStatus("Connected to the active PlotPickle project.");
+        setStatus("Connected to the active PlotPickle project in diagnostic-only mode. Open Plan to change story intent.");
       } catch {
         setStatus("The saved project could not be opened. A blank project is shown instead.");
       } finally {
@@ -172,17 +171,17 @@ export default function ResonancePage() {
       <div className={styles.shell}>
         <header className={styles.header}>
           <div>
-            <p className={styles.kicker}>PlotPickle Playhouse · Story alignment workspace</p>
-            <h1>Resonance Engine</h1>
+            <p className={styles.kicker}>Refine · Story and theme diagnostics</p>
+            <h1>Resonance Diagnostics</h1>
             <p>
-              Turn the story&apos;s central question into a pattern of character choices, block turns, images, locations,
-              objects, and dialogue. Build cohesion without reducing the screenplay to a slogan.
+              Trace the story&apos;s central question through character choices, block turns, images, locations, objects,
+              and dialogue. This view proposes a Plan pass without editing canonical story fields.
             </p>
           </div>
           <div className={styles.actions}>
-            <Link className={styles.secondaryButton} href="/">Back to PlotPickle</Link>
-            <Link className={styles.secondaryButton} href="/pageflow">Open PageFlow</Link>
-            <Link className={styles.secondaryButton} href="/voiceprint">Open Voiceprint</Link>
+            <Link className={styles.secondaryButton} href="/?workspace=refine">Back to Refine</Link>
+            <Link className={styles.secondaryButton} href="/pageflow?return=refine">Open PageFlow</Link>
+            <Link className={styles.secondaryButton} href="/voiceprint?return=plan">Open Plan voice definitions</Link>
             <button className={styles.button} type="button" onClick={exportProject}>Export project</button>
           </div>
         </header>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import styles from "./engine-hub.module.css";
 
-type EngineDefinition = {
+type RefineSection = {
   code: string;
   title: string;
   href: string;
@@ -13,141 +13,113 @@ type EngineDefinition = {
   result: string;
 };
 
-const engines: EngineDefinition[] = [
+const refineSections: RefineSection[] = [
   {
-    code: "ES",
-    title: "Story Craft Essentials",
-    href: "/story-craft-essentials",
-    stage: "Connect the craft",
-    question: "How do promise, pacing, tone, theme, scenes, evidence and form work together?",
-    summary:
-      "Build a Story Experience Card, map pacing and tone, test thematic arguments, learn Scene Pulse terms, translate inner meaning into screen evidence, track motifs, preview advanced screenplay forms and run an evidence-based craft audit.",
-    useWhen:
-      "Use it when the intention is abstract—make it tense, strengthen the theme, improve the scene—or when several craft layers need one connected why-to-revision path.",
-    connects: ["Story Setup and Pitch", "Structure and Scene Pulse", "Resonance", "PageFlow", "DraftLens", "Screenplay formatting"],
-    result: "A connected craft diagnosis and set of reviewable cards, maps, ledgers, questions and revision priorities without automatic rewriting.",
+    code: "DQ",
+    title: "Overview & Diagnostic Queue",
+    href: "/diagnostics",
+    stage: "Choose the next pass",
+    question: "Which evidence-backed problem should be diagnosed next?",
+    summary: "Collect unresolved structural, story, character, dialogue, page and draft signals without opening another canonical editor.",
+    useWhen: "Use it when several symptoms compete for attention or the most useful next diagnostic pass is unclear.",
+    connects: ["Shared project evidence", "Open feedback", "Report signals", "Revision priorities"],
+    result: "A bounded diagnostic queue with an explicit owning workspace for every proposed change.",
+  },
+  {
+    code: "SP",
+    title: "Structure & Pacing Diagnostics",
+    href: "/diagnostics?focus=structure",
+    stage: "Read arrangement",
+    question: "Where does causality, escalation, duration or handoff weaken?",
+    summary: "Read the canonical 24 Blocks, 96 mini-blocks, scenes and Story Clock without moving or rewriting them.",
+    useWhen: "Use it when the film drags, jumps, repeats, loses causality or gives key turns the wrong amount of space.",
+    connects: ["24 Blocks", "96 mini-blocks", "Stable scene IDs", "Story Clock"],
+    result: "Evidence and proposed priorities routed back to Build for structural changes.",
   },
   {
     code: "RE",
-    title: "Resonance Engine",
-    href: "/resonance",
-    stage: "Test the idea",
-    question: "What is the story really proving through action?",
-    summary:
-      "Align the central question, theme and credible counter-answer with character choices, consequences, opening and closing images, motifs, locations and dialogue subtext.",
-    useWhen:
-      "Use it when the plot works mechanically but the meaning feels scattered, obvious, preachy or disconnected from the ending.",
-    connects: ["Dramatic question", "Theme and anti-theme", "Character arcs", "Block turns", "Visual language", "Recurring dialogue"],
-    result: "A pattern of dramatic evidence rather than a stated moral.",
+    title: "Story & Theme through Resonance",
+    href: "/resonance?return=refine",
+    stage: "Test meaning",
+    question: "What is the story proving through choices and consequences?",
+    summary: "Trace dramatic question, competing answers, character choices, motifs, opening and ending evidence, and dialogue subtext.",
+    useWhen: "Use it when plot mechanics work but meaning feels scattered, obvious or disconnected from the ending.",
+    connects: ["Dramatic question", "Theme and anti-theme", "Character evidence", "Motif patterns"],
+    result: "A diagnostic pattern and Plan-facing proposals rather than an automatic thematic rewrite.",
   },
   {
-    code: "VO",
-    title: "Voiceprint Engine",
-    href: "/voiceprint",
-    stage: "Shape the voice",
-    question: "Why does each character sound like only themselves?",
-    summary:
-      "Build speech from origin, social context, expertise, worldview, rhythm, vocabulary, emotional access, status shifts and persuasion strategy.",
-    useWhen:
-      "Use it before a dialogue pass, when characters sound interchangeable, or when a relationship and scene pressure should change how someone speaks.",
-    connects: ["Character history", "World vernacular", "Voice contrast", "Subtext rules", "Relationships", "Selected block pressure"],
-    result: "Distinct, playable voices with concise scene-ready rules.",
+    code: "CD",
+    title: "Character & Dialogue Diagnostics",
+    href: "/labs?scope=refine&return=refine",
+    stage: "Compare voice evidence",
+    question: "Where do character strategy, voice contrast or subtext become inconsistent?",
+    summary: "Use bounded prompt and Dialogue Lab comparisons against Plan-owned voice definitions and Write-owned screenplay text.",
+    useWhen: "Use it when characters sound interchangeable, a line states the subtext or relationship pressure is not audible.",
+    connects: ["Plan voice definitions", "Write screenplay IDs", "Dialogue evidence", "Explicit review gate"],
+    result: "A reviewable proposal handed to Write only after explicit human approval.",
   },
   {
     code: "PF",
-    title: "PageFlow Engine",
-    href: "/pageflow",
-    stage: "Write the page",
-    question: "Can the reader clearly see and play what is written?",
-    summary:
-      "Turn block planning into active, visible, economical screenplay description while checking for invisible information, weak phrasing, dense paragraphs and unnecessary directing language.",
-    useWhen:
-      "Use it while drafting scenes or when screenplay action feels novelistic, slow, vague, over-directed or difficult for an actor to play.",
-    connects: ["Block goal and conflict", "Script excerpt", "Visual sequence", "Character entrance", "Action diagnostics", "Visual Board frames"],
-    result: "Readable screenplay action built from visible behaviour and strong verbs.",
+    title: "Page & Scene Diagnostics through PageFlow",
+    href: "/pageflow?return=refine",
+    stage: "Read the page",
+    question: "Can the reader clearly see, follow and play what is written?",
+    summary: "Scan the current screenplay for invisible information, dense paragraphs, weak action phrases, emotion labels and unnecessary directing language.",
+    useWhen: "Use it when pages feel novelistic, vague, slow, over-directed or difficult for an actor to play.",
+    connects: ["Write-owned screenplay text", "Scene IDs", "Visual beats", "PageFlow signals"],
+    result: "Read-only page evidence and a proposed Write pass, never a second screenplay editor.",
   },
   {
     code: "DL",
-    title: "DraftLens Engine",
-    href: "/draftlens",
-    stage: "Review the draft",
+    title: "Full-Draft Diagnosis through DraftLens",
+    href: "/draftlens?return=refine",
+    stage: "Review the whole draft",
     question: "What did the reader experience, and what caused it?",
-    summary:
-      "Review the whole screenplay through story, character, structure, page experience, dialogue and surprise lenses, then separate symptoms from root causes.",
-    useWhen:
-      "Use it after a complete pass, table read or feedback session—before rewriting individual scenes or accepting someone else’s proposed solution.",
-    connects: ["First-read response", "Character evidence", "Block evidence", "Continuity", "Revision priorities", "Open questions and sources"],
-    result: "A diagnosis-led revision plan that preserves the writer’s authorship.",
+    summary: "Review story, character, structure, page experience, dialogue and surprise as one complete draft before solving individual symptoms.",
+    useWhen: "Use it after a complete pass, table read or feedback session and before rewriting isolated scenes.",
+    connects: ["First-read response", "Character evidence", "Block evidence", "Continuity"],
+    result: "A root-cause revision plan that preserves the writer’s authorship.",
   },
   {
-    code: "CL",
-    title: "CraftLoop Engine",
-    href: "/craftloop",
-    stage: "Practise and repeat",
-    question: "Which craft pass will make this block stronger next?",
-    summary:
-      "Run one character and one block through audience engagement, opening contract, scene turn, character pressure, human voice, page compression, pitching and reflection.",
-    useWhen:
-      "Use it as a repeatable studio exercise, a capstone check, or a way to decide which specialist engine should receive the next focused pass.",
-    connects: ["The Pickle", "Opening contract", "Block cause and turn", "Character pressure", "PageFlow signal", "Pitch and craft research"],
-    result: "A deliberate-practice loop that connects the full PlotPickle method.",
-  },
-  {
-    code: "PR",
-    title: "Pitch & Review Studio",
-    href: "/pitch-review",
-    stage: "Review and share",
-    question: "How does the draft become a clear, reviewable and shareable package?",
-    summary:
-      "Guide the logline, anchor local comments to stable story IDs, resolve review threads, compare revision snapshots and assemble a complete pitch package with shareable exports.",
-    useWhen:
-      "Use it after a draft or development pass, during local review, before sharing revisions, or when the project needs a professional logline, synopsis, character presentation and visual pitch.",
-    connects: ["Anchored comments", "Review states", "Revision snapshots", "Approved logline", "Pitch package", "Pitch exports"],
-    result: "A resolved review trail and a complete PDF, HTML or presentation-ready pitch package generated from the active story.",
-  },
-  {
-    code: "PD",
-    title: "Production Studio",
-    href: "/production",
-    stage: "Move from page to production",
-    question: "How do the screenplay, images, shots and sound become one producible plan?",
-    summary:
-      "Design shot coverage, build a Sonic Bible, play the storyboard as an animatic, generate scene breakdowns and shoot days, and connect the finished film to distribution and marketing planning.",
-    useWhen:
-      "Use it after the scene plan and screenplay have enough detail to make visual, sonic, scheduling, resource and release decisions without disconnecting them from the 24 Blocks.",
-    connects: ["Stable scenes", "Storyboard frames", "Shot coverage", "Sound cues", "Breakdowns and schedule", "Distribution plan"],
-    result: "A continuous pre-production plan from 24 Blocks and screenplay evidence through shots, keyframes, cues, shoot days and campaign materials.",
-  },
-  {
-    code: "LB",
-    title: "Specialist Labs",
-    href: "/labs",
-    stage: "Experiment with approval",
-    question: "What can be explored safely before the writer commits it to the story?",
-    summary:
-      "Use focused prompt, dialogue, research, visual and provenance labs beside the active project, compare every proposed change and retain only what the writer explicitly approves.",
-    useWhen:
-      "Use the labs when an idea needs controlled exploration, sourced canon, a dialogue alternative, a visual-bible pass, prompt development or a complete record of generated assets and human decisions.",
-    connects: ["Canonical project context", "Screenplay elements", "Research sources", "Visual assets", "AI provenance", "Revision snapshots"],
-    result: "Reviewable specialist suggestions with before-and-after evidence, provenance and no automatic project changes.",
+    code: "RP",
+    title: "Revision Passes & Essential Craft Audit",
+    href: "/story-craft-essentials?scope=refine&return=refine#audit",
+    stage: "Propose the pass",
+    question: "Which bounded revision pass best addresses the diagnosed root cause?",
+    summary: "Run the evidence-based Essential Craft Audit, separate symptom from cause and record a deliberate revision priority.",
+    useWhen: "Use it after diagnosis, before opening the workspace that owns the actual change.",
+    connects: ["Diagnostic evidence", "Revision snapshots", "Feedback approval", "Owning workspace"],
+    result: "An explicit revision proposal; no canonical story, screenplay, storyboard or production content changes silently.",
   },
 ];
+
+const movedCapabilities = [
+  ["Learn", "Lessons and CraftLoop", "/?workspace=learn"],
+  ["Plan", "Research, canon, story experience, motifs and voice definitions", "/?workspace=plan"],
+  ["Storyboard", "Visual Bible, Shot Designer and Animatic", "/?workspace=storyboard"],
+  ["Pitch", "Loglines, pitch packages, comic deck and exports", "/?workspace=pitch"],
+  ["Build", "Sonic Bible, breakdowns, schedule and distribution planning", "/?workspace=build"],
+  ["Feedback", "Anchored review, revision compare and saved-pass approval", "/?workspace=feedback"],
+  ["Reports", "Read-only production and provenance summaries", "/?workspace=reports"],
+] as const;
 
 export default function EngineHub({ onOpenBuild }: { onOpenBuild: () => void }) {
   return (
     <section className={styles.page} aria-labelledby="engines-title">
       <div className={styles.hero}>
         <div>
-          <p className={styles.eyebrow}>Fourth connected workspace</p>
-          <h1 id="engines-title">Choose the right engine or lab for the next story problem.</h1>
+          <p className={styles.eyebrow}>Refine · diagnostic workspace</p>
+          <h1 id="engines-title">Diagnose and propose. Change the story in its owning workspace.</h1>
           <p>
-            The Story Planner holds the project. The Engines and Specialist Labs provide focused passes over that same project. Nothing is copied into a separate database, and every specialist screen reads and writes the active PlotPickle story.
+            Refine reads the same canonical PlotPickle project as every other workspace. It identifies evidence,
+            separates symptoms from root causes and prepares bounded revision passes; it is not another structure,
+            screenplay, storyboard, pitch, production or approval editor.
           </p>
         </div>
         <div className={styles.sharedProject}>
-          <span>One active project</span>
-          <strong>Plan once. Refine through engines and labs.</strong>
-          <p>Open a specialist only after reading what it is designed to solve. Return here whenever the next useful pass is unclear.</p>
+          <span>Governing rule</span>
+          <strong>Refine diagnoses and proposes.</strong>
+          <p>Plan, Build, Write and Storyboard own changes. Feedback owns discussion and approval. Reports owns read-only summaries.</p>
         </div>
       </div>
 
@@ -155,62 +127,49 @@ export default function EngineHub({ onOpenBuild }: { onOpenBuild: () => void }) 
         <div>
           <span>Structure diagnostics</span>
           <strong>Build owns arrangement. Refine reads the same structure for diagnosis.</strong>
-          <p>The former full Structure Engine entry duplicated Build. Open Build to move Blocks or mini-blocks, inspect the Story Clock and review structural warnings against the selected canonical target.</p>
+          <p>Use the diagnostic pass to identify pacing and causal problems. Open Build only when you deliberately choose to move Blocks or mini-blocks.</p>
         </div>
-        <button type="button" onClick={onOpenBuild}>Open Build structure diagnostics</button>
+        <button type="button" onClick={onOpenBuild}>Open Build structure editor</button>
       </section>
 
-      <div className={styles.process} aria-label="Recommended engine and lab order">
-        {engines.map((engine, index) => (
-          <div key={engine.code}>
+      <div className={styles.process} aria-label="Refine diagnostic order">
+        {refineSections.map((section, index) => (
+          <div key={section.code}>
             <span>{String(index + 1).padStart(2, "0")}</span>
-            <strong>{engine.title.replace(" Engine", "")}</strong>
-            {index < engines.length - 1 ? <i aria-hidden="true">→</i> : null}
+            <strong>{section.title}</strong>
+            {index < refineSections.length - 1 ? <i aria-hidden="true">→</i> : null}
           </div>
         ))}
       </div>
 
       <div className={styles.grid}>
-        {engines.map((engine, index) => (
-          <article className={styles.card} key={engine.code}>
+        {refineSections.map((section, index) => (
+          <article className={styles.card} key={section.code}>
             <header>
-              <div className={styles.code}>{engine.code}</div>
+              <div className={styles.code}>{section.code}</div>
               <div>
-                <p>{String(index + 1).padStart(2, "0")} · {engine.stage}</p>
-                <h2>{engine.title}</h2>
+                <p>{String(index + 1).padStart(2, "0")} · {section.stage}</p>
+                <h2>{section.title}</h2>
               </div>
             </header>
-
-            <p className={styles.question}>{engine.question}</p>
-            <p className={styles.summary}>{engine.summary}</p>
-
-            <div className={styles.detail}>
-              <span>Use it when</span>
-              <p>{engine.useWhen}</p>
-            </div>
-
+            <p className={styles.question}>{section.question}</p>
+            <p className={styles.summary}>{section.summary}</p>
+            <div className={styles.detail}><span>Use it when</span><p>{section.useWhen}</p></div>
             <div className={styles.connection}>
-              <span>Works with shared project data</span>
-              <div>
-                {engine.connects.map((item) => <small key={item}>{item}</small>)}
-              </div>
+              <span>Reads shared canonical evidence</span>
+              <div>{section.connects.map((item) => <small key={item}>{item}</small>)}</div>
             </div>
-
-            <div className={styles.result}>
-              <span>Expected result</span>
-              <strong>{engine.result}</strong>
-            </div>
-
-            <Link href={engine.href} className={styles.openButton}>
-              Open {engine.title} <span aria-hidden="true">→</span>
-            </Link>
+            <div className={styles.result}><span>Expected result</span><strong>{section.result}</strong></div>
+            <Link href={section.href} className={styles.openButton}>Open diagnostic <span aria-hidden="true">→</span></Link>
           </article>
         ))}
       </div>
 
       <footer className={styles.footerNote}>
-        <strong>There is no required order.</strong>
-        <p>Use the suggested sequence for a full development pass, or enter the engine or lab that addresses the problem currently slowing the story down.</p>
+        <strong>Tools that edit or approve now open from their owner.</strong>
+        <div className={styles.connection}>
+          <div>{movedCapabilities.map(([owner, capability, href]) => <Link href={href} key={owner}>{owner}: {capability}</Link>)}</div>
+        </div>
       </footer>
     </section>
   );

@@ -5,9 +5,9 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #118 defines the persistent eight-section Reports workspace", async () => {
+test("issue #118 defines the persistent Reports workspace with read-only provenance", async () => {
   const reports = await source("lib/consolidated-reports.ts");
-  for (const section of ["project", "story", "characters", "scenes", "dialogue", "production", "feedback", "connections"]) {
+  for (const section of ["project", "story", "characters", "scenes", "dialogue", "production", "feedback", "provenance", "connections"]) {
     assert.ok(reports.includes(`\"${section}\"`), `Missing consolidated report section: ${section}`);
   }
   assert.match(reports, /CONSOLIDATED_REPORT_SECTIONS/);
@@ -166,12 +166,12 @@ test("issue #118 derives reports without mutating canonical project data", async
 });
 
 
-test("issue #118 mounts the live eight-section Reports workspace", async () => {
+test("issue #118 mounts the live Reports workspace", async () => {
   const workspace = await source("app/reports-workspace.tsx");
   const page = await source("app/page.tsx");
   assert.match(workspace, /createConsolidatedReportsModel/);
   assert.match(workspace, /aria-label="Reports sections"/);
-  for (const renderer of ["renderProject", "renderStory", "renderCharacters", "renderScenes", "renderDialogue", "renderProduction", "renderFeedback", "renderConnections"]) {
+  for (const renderer of ["renderProject", "renderStory", "renderCharacters", "renderScenes", "renderDialogue", "renderProduction", "renderFeedback", "renderProvenance", "renderConnections"]) {
     assert.ok(workspace.includes(renderer), `Missing live report renderer: ${renderer}`);
   }
   assert.match(page, /<ReportsWorkspace project=\{project\}/);

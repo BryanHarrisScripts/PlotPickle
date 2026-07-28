@@ -9,7 +9,7 @@ function versionAtLeast(version, requiredMinor) {
   return major >= 1 || (major === 0 && minor >= requiredMinor);
 }
 
-test("PlotPickle 0.15 exposes every specialist lab", async () => {
+test("PlotPickle 0.15 keeps every specialist lab and routes it through its owner", async () => {
   const [workspace, hub, packageSource] = await Promise.all([
     read("../app/specialist-labs.tsx"),
     read("../app/engine-hub.tsx"),
@@ -25,8 +25,9 @@ test("PlotPickle 0.15 exposes every specialist lab", async () => {
     "Prompt & Generated-Asset Provenance",
     "Saved Specialist Passes",
   ]) assert.ok(workspace.includes(label), `Missing specialist lab: ${label}`);
-  assert.ok(hub.includes('href: "/labs"'));
-  assert.ok(hub.includes("Specialist Labs"));
+  assert.ok(hub.includes('href: "/labs?scope=refine&return=refine"'));
+  assert.ok(hub.includes("Character & Dialogue Diagnostics"));
+  assert.ok(hub.includes("Visual Bible, Shot Designer and Animatic"));
 });
 
 test("every lab reads and writes the active canonical project", async () => {
@@ -48,11 +49,13 @@ test("specialist suggestions cannot change the project without approval", async 
     "Nothing changes automatically.",
     "Nothing changes until you approve this suggestion.",
     "Apply approved suggestion",
+    "Send to Feedback for approval",
     "Discard suggestion",
     "The screenplay has not changed.",
   ]) assert.ok(workspace.includes(boundary), `Missing approval boundary: ${boundary}`);
   assert.match(workspace, /project has not changed/i);
   assert.ok(workspace.includes("function approveSuggestion()"));
+  assert.ok(workspace.includes("PENDING_SPECIALIST_SUGGESTION_KEY"));
   assert.ok(workspace.includes("applySpecialistSuggestion(project, review)"));
   assert.ok(workspace.includes("onClick={approveSuggestion}"));
 });

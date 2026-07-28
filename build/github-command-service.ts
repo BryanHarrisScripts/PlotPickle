@@ -12,6 +12,7 @@ import {
   publicGitHubCommandEntry,
   recordGitHubCommandFailure,
   recoverInterruptedGitHubCommands,
+  retryGitHubCommand,
   type GitHubCommandDraft,
   type GitHubCommandEntry,
   type GitHubCommandOutbox,
@@ -123,6 +124,17 @@ export async function completePersistentGitHubCommand(id: string, nowValue = new
 export async function failPersistentGitHubCommand(id: string, failure: unknown, nowValue = new Date().toISOString()) {
   return mutateGitHubCommandOutbox((outbox) => {
     const changed = recordGitHubCommandFailure(outbox, id, failure, nowValue);
+    return { outbox: changed.outbox, result: publicGitHubCommandEntry(changed.entry) };
+  });
+}
+
+export async function retryPersistentGitHubCommand(
+  id: string,
+  nowValue = new Date().toISOString(),
+  options: { authenticationReady?: boolean } = {},
+) {
+  return mutateGitHubCommandOutbox((outbox) => {
+    const changed = retryGitHubCommand(outbox, id, nowValue, options);
     return { outbox: changed.outbox, result: publicGitHubCommandEntry(changed.entry) };
   });
 }

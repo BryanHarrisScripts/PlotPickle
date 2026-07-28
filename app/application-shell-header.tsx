@@ -15,6 +15,7 @@ type ApplicationShellHeaderProps = {
 // Compatibility vocabulary retained for historical source assertions: Discovery &amp; Pre-Production; Production &amp; Polishing.
 const discovery = PRODUCT_NAVIGATION.filter((item) => item.zone === "discovery");
 const production = PRODUCT_NAVIGATION.filter((item) => item.zone === "production");
+const collaboration = PRODUCT_NAVIGATION.filter((item) => item.zone === "collaboration");
 const configuration = PRODUCT_NAVIGATION.filter((item) => item.zone === "configuration");
 
 function WorkspaceButton({
@@ -78,6 +79,12 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
         <div className="main-tabs shell-zone-production" role="tablist" aria-label="Production and polishing">
           {production.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
         </div>
+      </nav>
+
+      <ShellDivider />
+
+      <nav className="main-tabs shell-zone-collaboration" aria-label="Collaboration" role="tablist">
+        {collaboration.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
       </nav>
 
       <ShellDivider />

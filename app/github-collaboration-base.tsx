@@ -20,7 +20,7 @@ type BackupItem = { fileName: string; bytes: number };
 type HistoryItem = { sha: string; url: string; message: string; date: string };
 type ServerIdentity = { id: string; label: string; createdAt: string };
 type StorageStatus = { home: string; projectsPath: string; backupsPath: string; backupLimit: number };
-type CollaborationSurface = "all" | "github" | "storage";
+export type CollaborationSurface = "all" | "github" | "storage" | "configuration" | "approvals";
 type RestoreArea = "story" | "characters" | "screenplay" | "pitch-feedback" | "production" | "rights";
 type ReadinessCheck = {
   id: "repository" | "branch" | "project-path" | "contents-write" | "pull-requests";
@@ -142,7 +142,9 @@ export default function GitHubCollaboration({
   backupOnSave?: boolean;
 }) {
   const showGitHub = surface !== "storage";
-  const showStorage = surface !== "github";
+  const showStorage = surface === "all" || surface === "storage";
+  const showConfiguration = surface === "all" || surface === "github" || surface === "configuration";
+  const showApprovals = surface === "all" || surface === "github" || surface === "approvals";
   const [owner, setOwner] = useState(project.collaboration.owner);
   const [repo, setRepo] = useState(project.collaboration.repo);
   const [branch, setBranch] = useState(project.collaboration.branch || "main");
@@ -551,8 +553,8 @@ export default function GitHubCollaboration({
           <section className={styles.hero}>
             <div>
               <p>GitHub</p>
-              <h2>Configuration first. Collaboration and approvals second.</h2>
-              <span>Connection credentials and repository identity remain separate from proposals, Project Lead decisions, protected canon, conflict recovery and collaboration history.</span>
+              <h2>{surface === "approvals" ? "Review, approve and refresh the canonical story." : "Configure GitHub without mixing credentials into creative work."}</h2>
+              <span>{surface === "approvals" ? "Story Proposals, Project Lead decisions, approved history and canonical synchronization live here. Account and repository setup remain in Settings." : "Account identity, repository access, readiness checks and recovery remain separate from proposals and Project Lead decisions."}</span>
             </div>
             <div className={styles.sourceCard}>
               <strong>{project.metadata.title}</strong>
@@ -562,8 +564,10 @@ export default function GitHubCollaboration({
             </div>
           </section>
 
-          <section className={styles.panel}>
-            <header><div><p>Connection & Configuration</p><h3>Choose the account, repository and approved branch</h3><span>GitHub App setup, account identity, repository selection, readiness checks, advanced token setup, repository access and disconnect/revoke controls live here.</span></div></header>
+          {showConfiguration ? (
+            <>
+              <section className={styles.panel}>
+                <header><div><p>Connection & Configuration</p><h3>Choose the account, repository and approved branch</h3><span>GitHub App setup, account identity, repository selection, readiness checks, advanced token setup, repository access and disconnect/revoke controls live here.</span></div></header>
           </section>
 
           <section className={styles.panel}>
@@ -608,10 +612,16 @@ export default function GitHubCollaboration({
               {status.connected ? <button type="button" className={styles.dangerAction} disabled={working} onClick={() => void disconnectGitHub()}>Disconnect GitHub</button> : null}
             </div>
             <p className={styles.credentialNote}>GitHub credentials are never placed in a .ppf project, canonical folder, export, report, log or GitHub commit. On Windows, new or updated credential files are encrypted for the current Windows user.</p>
-          </section>
+              </section>
 
-          <section className={styles.panel}>
-            <header><div><p>Collaboration & Approval Controls</p><h3>Keep proposals bounded and canon owner-controlled</h3><span>Contributor roles, proposal permissions, Project Lead approval, merge boundaries, protected canonical content, conflict handling and collaboration history live here.</span></div></header>
+              <GitHubRecoveryCentre connected={status.connected} ready={status.ready} onNotice={setNotice} />
+            </>
+          ) : null}
+
+          {showApprovals ? (
+            <>
+              <section className={styles.panel}>
+                <header><div><p>Collaboration & Approval Controls</p><h3>Keep proposals bounded and canon owner-controlled</h3><span>Contributor roles, proposal permissions, Project Lead approval, merge boundaries, protected canonical content, conflict handling and collaboration history live here.</span></div></header>
             <div className={styles.actions}><a href="/working-together">Open contributor onboarding</a><a href="/read-learn">Read the Working Together handbook</a></div>
           </section>
 
@@ -625,7 +635,6 @@ export default function GitHubCollaboration({
             <article><b>4</b><strong>Project Lead selects</strong><span>Approve semantic groups separately; unselected changes stay out of the approved result.</span></article>
           </div>
 
-          <GitHubRecoveryCentre connected={status.connected} ready={status.ready} onNotice={setNotice} />
 
           <GitHubProjectSync project={project} onChange={onChange} ready={status.ready} onNotice={setNotice} />
 
@@ -657,6 +666,8 @@ export default function GitHubCollaboration({
               <div className={styles.list}>{history.map((item) => <div className={styles.row} key={item.sha}><div><strong>{item.message.split("\n")[0]}</strong><span>{item.sha.slice(0, 10)} · {item.date}</span></div>{item.url ? <a href={item.url} target="_blank" rel="noreferrer">Open</a> : null}</div>)}</div>
             </section>
           </div>
+            </>
+          ) : null}
         </>
       ) : null}
     </div>

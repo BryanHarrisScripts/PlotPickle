@@ -7,7 +7,7 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #112 follows the current ordered workflow-group application shell", async () => {
   const direction = await source("lib/product-direction.ts");
-  for (const label of ["Discovery & Pre-Production", "Production & Polishing", "Project actions", "Application configuration"]) {
+  for (const label of ["Discovery & Pre-Production", "Production & Polishing", "Collaboration", "Project actions", "Application configuration"]) {
     assert.ok(direction.includes(label), `Missing shell zone: ${label}`);
   }
   for (const label of ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Pitch", "Build", "Feedback", "Refine", "Reports"]) {
@@ -20,7 +20,7 @@ test("issue #112 follows the current ordered workflow-group application shell", 
 
 test("Introduction is retained as a compatible deep workspace, not a primary step", async () => {
   const direction = await source("lib/product-direction.ts");
-  const primary = direction.slice(direction.indexOf("PRIMARY_WORKFLOW_NAVIGATION"), direction.indexOf("PRODUCT_NAVIGATION"));
+  const primary = direction.slice(direction.indexOf("PRIMARY_WORKFLOW_NAVIGATION"), direction.indexOf("COLLABORATION_NAVIGATION"));
   assert.match(direction, /ProductNavigationId[^;]*"instructions"/);
   assert.doesNotMatch(primary, /instructions|Introduction/);
   assert.match(primary, /id: "learn"[\s\S]*introduction and terminology/);
@@ -53,7 +53,7 @@ test("issue #170 makes Introduction the first visible Learn section without addi
     source("app/page.tsx"),
     source("lib/product-direction.ts"),
   ]);
-  const primary = direction.slice(direction.indexOf("PRIMARY_WORKFLOW_NAVIGATION"), direction.indexOf("PRODUCT_NAVIGATION"));
+  const primary = direction.slice(direction.indexOf("PRIMARY_WORKFLOW_NAVIGATION"), direction.indexOf("COLLABORATION_NAVIGATION"));
   const labels = [...primary.matchAll(/label: "([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual(labels, ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Pitch", "Build", "Feedback", "Refine", "Reports"]);
   assert.doesNotMatch(primary, /Introduction|instructions/);

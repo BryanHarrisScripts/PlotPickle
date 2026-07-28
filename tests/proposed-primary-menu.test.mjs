@@ -9,7 +9,7 @@ test("the primary menu uses the approved short labels in order", async () => {
   const contract = await source("lib/product-direction.ts");
   const primary = contract.slice(
     contract.indexOf("export const PRIMARY_WORKFLOW_NAVIGATION"),
-    contract.indexOf("export const PRODUCT_NAVIGATION"),
+    contract.indexOf("export const COLLABORATION_NAVIGATION"),
   );
   const labels = ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Pitch", "Build", "Feedback", "Refine", "Reports"];
   let lastIndex = -1;
@@ -34,9 +34,9 @@ test("the application renders the shared shell and command-centre Dashboard behi
   assert.doesNotMatch(page, /const dashboardStatuses/);
 });
 
-test("the shared header owns the two workflow groups, project actions and configuration", async () => {
+test("the shared header owns workflow groups, Collab, project actions and configuration", async () => {
   const shell = await source("app/application-shell-header.tsx");
-  for (const zone of ["shell-zone-discovery", "shell-zone-production", "shell-zone-project-actions", "shell-zone-configuration"]) assert.ok(shell.includes(zone), `Missing shell zone: ${zone}`);
+  for (const zone of ["shell-zone-discovery", "shell-zone-production", "shell-zone-collaboration", "shell-zone-project-actions", "shell-zone-configuration"]) assert.ok(shell.includes(zone), `Missing shell zone: ${zone}`);
   assert.match(shell, /Discovery &amp; Pre-Production/);
   assert.match(shell, /Production &amp; Polishing/);
   assert.match(shell, /onOpenLanding/);

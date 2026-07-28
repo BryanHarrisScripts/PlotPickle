@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import styles from "./github-collaboration.module.css";
 import GitHubAppConnection, { type GitHubAppConnectedRepository } from "./github-app-connection";
 import GitHubProjectSync from "./github-project-sync";
+import GitHubRecoveryCentre from "./github-recovery-centre";
 import StoryProposals from "./story-proposals";
 import {
   createPortableProjectFile,
@@ -443,6 +444,8 @@ export default function GitHubCollaboration({
           <p className={styles.credentialNote}>GitHub credentials are never placed in a .ppf project, canonical folder, export, report, log or GitHub commit. On Windows, new or updated credential files are encrypted for the current Windows user.</p>
         </section>
       </div>
+
+      <GitHubRecoveryCentre connected={status.connected} ready={status.ready} onNotice={setNotice} />
 
       <GitHubProjectSync project={project} onChange={onChange} ready={status.ready} onNotice={setNotice} />
 

@@ -233,8 +233,10 @@ function normalizedEntry(value: unknown, now: string): GitHubCommandEntry | null
   if (!value || typeof value !== "object") return null;
   const item = value as Partial<GitHubCommandEntry>;
   if (!validCommandType(item.type)) return null;
-  let payload: Record<string, unknown>;
-  try { payload = safeGitHubCommandPayload(item.payload); } catch { return null; }
+  const payload = (() => {
+    try { return safeGitHubCommandPayload(item.payload); } catch { return null; }
+  })();
+  if (!payload) return null;
   const repository = cleanText(item.repository, 240);
   const branch = cleanText(item.branch, 240);
   const projectId = cleanText(item.projectId, 240);
@@ -378,14 +380,40 @@ export function markGitHubCommandCompleted(outboxValue: unknown, id: string, now
   }), now);
 }
 
+export function retryGitHubCommand(
+  outboxValue: unknown,
+  id: string,
+  nowValue = new Date().toISOString(),
+  options: { authenticationReady?: boolean } = {},
+) {
+  const now = iso(nowValue, new Date().toISOString());
+  return replaceEntry(outboxValue, id, (entry) => {
+    const authenticationRecovered = entry.state === "needs-authentication" && options.authenticationReady === true;
+    if (entry.state !== "retryable" && !authenticationRecovered) {
+      throw new Error(`GitHub command ${entry.id} cannot be prepared for retry from ${entry.state}.`);
+    }
+    return {
+      ...entry,
+      state: "pending",
+      nextAttemptAt: "",
+      updatedAt: now,
+    };
+  }, now);
+}
+
 export function cancelGitHubCommand(outboxValue: unknown, id: string, nowValue = new Date().toISOString()) {
   const now = iso(nowValue, new Date().toISOString());
-  return replaceEntry(outboxValue, id, (entry) => ({
-    ...entry,
-    state: "cancelled",
-    nextAttemptAt: "",
-    updatedAt: now,
-  }), now);
+  return replaceEntry(outboxValue, id, (entry) => {
+    if (!["pending", "retryable", "needs-authentication", "needs-review"].includes(entry.state)) {
+      throw new Error(`GitHub command ${entry.id} cannot be cancelled from ${entry.state}.`);
+    }
+    return {
+      ...entry,
+      state: "cancelled",
+      nextAttemptAt: "",
+      updatedAt: now,
+    };
+  }, now);
 }
 
 export function githubCommandRetryDelayMs(attempts: number, retryAfterMs = 0) {

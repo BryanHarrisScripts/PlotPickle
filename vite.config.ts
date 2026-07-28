@@ -4,6 +4,7 @@ import hostingConfig from "./.openai/hosting.json";
 import { localAiGateway } from "./build/local-ai-gateway";
 import { localConnectionsGateway } from "./build/local-connections-gateway";
 import { githubAppGateway } from "./build/github-app-gateway";
+import { applyGitHubAppPublicConfig } from "./build/github-app-public-config";
 import { githubCommandGateway } from "./build/github-command-gateway";
 import { githubRepositoryRecoveryGateway } from "./build/github-repository-recovery-gateway";
 import { githubProjectSyncGateway } from "./build/github-project-sync-gateway";
@@ -52,6 +53,10 @@ export default defineConfig(async () => {
   process.env.WRANGLER_WRITE_LOGS ??= "false";
   process.env.WRANGLER_LOG_PATH ??= ".wrangler/logs";
   process.env.MINIFLARE_REGISTRY_PATH ??= ".wrangler/registry";
+
+  // Desktop releases load the same versioned public GitHub App identity.
+  // Environment values remain explicit development and self-hosting overrides.
+  applyGitHubAppPublicConfig();
 
   // Wrangler snapshots its log path while the Cloudflare plugin is imported.
   const { cloudflare } = await import("@cloudflare/vite-plugin");

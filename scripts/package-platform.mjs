@@ -19,6 +19,7 @@ const runtimeDirectories = [
   ".openai",
   "app",
   "build",
+  "config",
   "data",
   "db",
   "docs",
@@ -45,11 +46,21 @@ for (const file of ["package.json", "package-lock.json", "vite.config.ts", "tsco
   if (existsSync(path.join(root, file))) cpSync(path.join(root, file), path.join(destination, file));
 }
 const launcher = platform === "windows" ? "Start-PlotPickle.bat" : platform === "macos" ? "Start-PlotPickle.command" : "start-plotpickle.sh";
-cpSync(path.join(root, launcher), path.join(destination, launcher));
-if (platform !== "windows") chmodSync(path.join(destination, launcher), 0o755);
+const launcherPath = path.join(destination, launcher);
+cpSync(path.join(root, launcher), launcherPath);
+const launcherAnchor = platform === "windows" ? 'cd /d "%~dp0"' : 'cd "$(dirname "$0")"';
+const launcherConfig = platform === "windows"
+  ? 'set "PLOTPICKLE_GITHUB_APP_CONFIG=%CD%\\config\\github-app.json"'
+  : 'export PLOTPICKLE_GITHUB_APP_CONFIG="${PLOTPICKLE_GITHUB_APP_CONFIG:-$PWD/config/github-app.json}"';
+const launcherSource = readFileSync(launcherPath, "utf8");
+if (!launcherSource.includes(launcherAnchor)) throw new Error(`The ${platform} launcher configuration anchor is missing.`);
+writeFileSync(launcherPath, launcherSource.replace(launcherAnchor, `${launcherAnchor}\n${launcherConfig}`));
+if (platform !== "windows") chmodSync(launcherPath, 0o755);
 if (platform === "windows") {
   for (const file of ["Repair-PlotPickle.bat", "Update-PlotPickle.bat"]) if (existsSync(path.join(root, file))) cpSync(path.join(root, file), path.join(destination, file));
 }
+const githubAppConfigPath = path.join(destination, "config", "github-app.json");
+const githubAppConfig = JSON.parse(readFileSync(githubAppConfigPath, "utf8"));
 const manifest = {
   product: "PlotPickle",
   version: packageJson.version,
@@ -59,6 +70,12 @@ const manifest = {
   node: packageJson.engines?.node ?? ">=22.13.0",
   localOnly: true,
   projectFormat: ".ppf",
+  githubApp: {
+    configPath: "config/github-app.json",
+    configured: githubAppConfig.registrationStatus === "registered" && Boolean(githubAppConfig.clientId),
+    registrationStatus: githubAppConfig.registrationStatus,
+    slug: githubAppConfig.slug,
+  },
   createdAt: process.env.SOURCE_DATE_EPOCH ? new Date(Number(process.env.SOURCE_DATE_EPOCH) * 1000).toISOString() : new Date().toISOString(),
 };
 writeFileSync(path.join(destination, "release-manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);

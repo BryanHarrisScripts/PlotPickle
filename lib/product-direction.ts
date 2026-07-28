@@ -61,14 +61,19 @@ export const PRIMARY_WORKFLOW_NAVIGATION = [
   { id: "reports", label: "Reports", description: "Understand the screenplay", zone: "production" },
 ] as const;
 
+export const COLLABORATION_NAVIGATION = [
+  { id: "collab", label: "Collab", description: "Approvals, meetings, calendar and connected collaborators", zone: "collaboration" },
+] as const;
+
 export const PRODUCT_NAVIGATION = [
   ...PRIMARY_WORKFLOW_NAVIGATION,
+  ...COLLABORATION_NAVIGATION,
   { id: "settings", label: "Settings", description: "Workspace, integrations, storage and security", zone: "configuration" },
 ] as const;
 
 export type PrimaryWorkflowNavigationId = (typeof PRIMARY_WORKFLOW_NAVIGATION)[number]["id"];
 export type ProductNavigationId = (typeof PRODUCT_NAVIGATION)[number]["id"] | "instructions";
-export type ApplicationShellZone = "discovery" | "production" | "project-actions" | "configuration";
+export type ApplicationShellZone = "discovery" | "production" | "collaboration" | "project-actions" | "configuration";
 
 export const TARGET_CREATIVE_WORKFLOW = PRIMARY_WORKFLOW_NAVIGATION.map((item) => item.label);
 
@@ -82,6 +87,7 @@ export const PROJECT_ACTIONS = [
 export const APPLICATION_SHELL_ZONES = [
   { id: "discovery", label: "Discovery & Pre-Production", items: PRIMARY_WORKFLOW_NAVIGATION.filter((item) => item.zone === "discovery").map((item) => item.label) },
   { id: "production", label: "Production & Polishing", items: PRIMARY_WORKFLOW_NAVIGATION.filter((item) => item.zone === "production").map((item) => item.label) },
+  { id: "collaboration", label: "Collaboration", items: COLLABORATION_NAVIGATION.map((item) => item.label) },
   { id: "project-actions", label: "Project actions", items: PROJECT_ACTIONS.map((action) => action.label) },
   { id: "configuration", label: "Application configuration", items: ["Settings"] },
 ] as const;

@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import "./issue-161-github-command-outbox.test.mjs";
 import "./issue-163-github-recovery-centre.test.mjs";
+import "./issue-165-github-repository-recovery.test.mjs";
 
 const execFileAsync = promisify(execFile);
 const root = new URL("..", import.meta.url);

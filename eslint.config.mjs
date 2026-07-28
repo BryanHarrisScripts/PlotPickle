@@ -15,8 +15,10 @@ const eslintConfig = defineConfig([
   {
     files: [
       "lib/github-command-outbox.ts",
+      "lib/github-repository-recovery.ts",
       "tests/issue-161-github-command-outbox.test.mjs",
       "tests/issue-163-github-recovery-centre.test.mjs",
+      "tests/issue-165-github-repository-recovery.test.mjs",
     ],
     rules: {
       "react-hooks/globals": "off",

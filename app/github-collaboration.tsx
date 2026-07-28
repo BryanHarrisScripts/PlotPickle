@@ -5,7 +5,7 @@ import type { PlotPickleProject } from "@/lib/project";
 import { portableProjectFileName } from "@/lib/project-package";
 import GitHubCollaborationBase from "./github-collaboration-base";
 
-type CollaborationSurface = "all" | "github" | "storage";
+type CollaborationSurface = "all" | "github" | "storage" | "configuration" | "approvals";
 
 type Props = {
   project: PlotPickleProject;
@@ -116,6 +116,8 @@ import GitHubRecoveryCentre from "./github-recovery-centre"
 <details className={styles.advancedSetup}>
 surface?: CollaborationSurface
 const showGitHub = surface !== "storage"
+const showConfiguration = surface === "all" || surface === "github" || surface === "configuration"
+const showApprovals = surface === "all" || surface === "github" || surface === "approvals"
 Connection & Configuration
 Collaboration & Approval Controls
 Advanced Setup: fine-grained GitHub token

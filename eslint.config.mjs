@@ -16,15 +16,17 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    files: ["lib/github-command-outbox.ts", "tests/issue-161-github-command-outbox.test.mjs"],
+    files: [
+      "lib/github-command-outbox.ts",
+      "tests/issue-161-github-command-outbox.test.mjs",
+      "tests/issue-163-github-recovery-centre.test.mjs",
+    ],
     rules: {
-      // Phase 6A is a server-side state machine and a filesystem test, not a
-      // React render path. Local object updates and test-environment setup are
-      // deliberate and remain covered by strict TypeScript and behavioural tests.
+      // GitHub recovery is a server-side state machine and filesystem test,
+      // not a React render path. These mutations remain locally bounded and
+      // are covered by strict TypeScript and behavioural tests.
       "react-hooks/globals": "off",
       "react-hooks/immutability": "off",
-      // The durable outbox intentionally mutates a freshly cloned local array
-      // before returning a new immutable state object.
       "prefer-const": "off",
     },
   },

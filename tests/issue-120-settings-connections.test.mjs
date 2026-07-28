@@ -90,8 +90,8 @@ test("issue #120 implements minimal Google Calendar and Meet OAuth foundations",
   assert.match(gateway, /include_granted_scopes: "false"/);
   assert.match(gateway, /GOOGLE_REVOKE_URL/);
   assert.match(panel, /Sign in with Google/);
-  assert.match(panel, /Google Calendar/);
-  assert.match(panel, /Google Meet/);
+  assert.match(panel, /label: "Google Services"[\s\S]*optional Calendar and Meet/);
+  assert.match(panel, /eyebrow="Google Services"/);
   assert.match(vite, /localConnectionsGateway\(\)/);
 });
 
@@ -109,7 +109,7 @@ test("issue #120 keeps credentials outside projects and authentication failures 
   assert.match(gateway, /readCredentialJson/);
   assert.match(gateway, /isLocalRequest/);
   assert.match(gateway, /Local removal still protects this installation and cannot block local work/);
-  assert.match(panel, /Failed or declined authentication never blocks local project work/);
+  assert.match(panel, /Failed or declined Calendar or Meet authentication never blocks local project work/);
   assert.match(panel, /excluded from \.ppf projects, reports, exports, logs and GitHub/);
   assert.match(status, /sanitizeMeetingMetadata/);
   assert.doesNotMatch(project, /accessToken|refreshToken|googleToken|oauthToken/);

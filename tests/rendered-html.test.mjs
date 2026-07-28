@@ -70,7 +70,7 @@ test("renders the approved whole-film startup splash and preserves the local-fir
   }
   assert.match(splash, /Copyright & licensing/);
   assert.match(splash, /plotpickle-multi-server-collaboration\.svg/);
-  assert.match(navigation, /id: "reports", label: "Reports", description: "Understand the screenplay", zone: "workflow"/);
+  assert.match(navigation, /id: "reports", label: "Reports", description: "Understand the screenplay", zone: "production"/);
   assert.ok(navigation.includes('{ id: "dashboard", label: "Dashboard"'));
   assert.ok(!source.includes("PlotPickle Online"), "Official product page should not advertise an online PlotPickle edition");
 });

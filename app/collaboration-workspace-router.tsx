@@ -16,6 +16,7 @@ const COLLABORATION_WORKSPACES: Record<string, ProductNavigationId> = {
   "/table-read": "feedback",
   "/characters": "planner",
   "/reports": "reports",
+  "/collab": "collab",
   "/settings": "settings",
 };
 

@@ -69,8 +69,10 @@ export function useGraphicNovelQueue({ project, aiStatus, imageModel, onProjectC
   const projectRef = useRef(project);
   const onChangeRef = useRef(onProjectChange);
 
-  projectRef.current = project;
-  onChangeRef.current = onProjectChange;
+  useEffect(() => {
+    projectRef.current = project;
+    onChangeRef.current = onProjectChange;
+  }, [project, onProjectChange]);
 
   const aiReady = aiStatus.state === "connected" && Boolean(imageModel);
   const preflight = useMemo(() => comicPitchDeckPreflight(project, deck), [project, deck]);

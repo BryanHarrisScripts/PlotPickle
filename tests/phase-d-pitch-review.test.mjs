@@ -10,14 +10,16 @@ function versionAtLeast(version, requiredMinor) {
   return major >= 1 || (major === 0 && minor >= requiredMinor);
 }
 
-test("PlotPickle 0.16 exposes the complete pitch and review studio", async () => {
+test("PlotPickle 0.16 keeps the canonical pitch package tools in Pitch", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   const page = await source("app/pitch-review/page.tsx");
   const workspace = await source("app/pitch-review-workspace.tsx");
   assert.ok(versionAtLeast(packageJson.version, 16));
   assert.match(packageJson.scripts.test, /phase-d-pitch-review\.test\.mjs/);
   assert.match(page, /PitchReviewWorkspace/);
-  for (const label of ["Logline Lab", "Anchored Reviews", "Revision Compare", "Pitch Package", "Exports"]) assert.ok(workspace.includes(label), `Missing Phase D view: ${label}`);
+  for (const label of ["Logline Lab", "Pitch Package", "Exports"]) assert.ok(workspace.includes(label), `Missing Phase D Pitch view: ${label}`);
+  assert.match(workspace, /type PitchReviewScope = "pitch" \| "plan"/);
+  assert.doesNotMatch(workspace, /scope: "feedback"/);
 });
 
 test("review threads anchor to stable canonical project identities", async () => {
@@ -47,10 +49,16 @@ test("revision comparison and pitch exports remain inside PlotPickle", async () 
   for (const phrase of ["Save as PDF", "self-contained shareable pitch package", "slide-separated Markdown", "without leaving PlotPickle"]) assert.ok(documentation.includes(phrase), `Missing Phase D contract: ${phrase}`);
 });
 
-test("the specialist hub links review to the existing story workflow", async () => {
-  const hub = await source("app/engine-hub.tsx");
-  assert.match(hub, /Pitch & Review Studio/);
-  assert.match(hub, /href: "\/pitch-review"/);
-  assert.match(hub, /Anchored comments/);
-  assert.match(hub, /Pitch exports/);
+test("pitch packaging and human review open from separate owning workspaces", async () => {
+  const [hub, shelf, route] = await Promise.all([
+    source("app/engine-hub.tsx"),
+    source("app/workspace-capability-shelf.tsx"),
+    source("app/pitch-review/page.tsx"),
+  ]);
+  assert.doesNotMatch(hub, /Pitch & Review Studio/);
+  assert.match(shelf, /Logline, package & exports/);
+  assert.match(shelf, /Anchored reviews & revision compare/);
+  assert.match(shelf, /\/pitch-review\?scope=pitch&return=pitch/);
+  assert.match(route, /requestedScope === "feedback"/);
+  assert.match(route, /window\.location\.replace\("\/\?workspace=feedback"\)/);
 });

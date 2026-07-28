@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- Canonical projects can contain user-supplied local and remote reference images. */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   aiRevisionPlaybooks,
   buildGuidedRevisionPrompt,
@@ -35,18 +35,23 @@ import styles from "./specialist-labs.module.css";
 type Props = {
   project: PlotPickleProject;
   onProjectChange: (project: PlotPickleProject) => void;
+  scope?: LabScope;
 };
 
 type LabTab = SpecialistLabKind | "passes";
+export type LabScope = "all" | "plan" | "storyboard" | "refine" | "feedback";
 type AiResponse = { text?: string; message?: string };
+type PendingSpecialistSuggestion = { projectId: string; suggestion: SpecialistSuggestion };
 
-const labTabs: Array<{ id: LabTab; label: string; description: string }> = [
-  { id: "prompt", label: "AI Prompt Lab", description: "Build bounded revision prompts from the active story." },
-  { id: "dialogue", label: "Dialogue Lab", description: "Compare a line or passage before approving a revision." },
-  { id: "research", label: "Research & Canon", description: "Bind sourced facts and canon decisions to the project." },
-  { id: "visual", label: "Visual Bible", description: "Unify mood, references and generated visual direction." },
-  { id: "provenance", label: "Provenance", description: "Record prompts, models, outputs and generated assets." },
-  { id: "passes", label: "Saved Passes", description: "Review approved before-and-after specialist work." },
+const PENDING_SPECIALIST_SUGGESTION_KEY = "plotpickle.specialist.pending.v1";
+
+const labTabs: Array<{ id: LabTab; label: string; description: string; owner: Exclude<LabScope, "all"> | "legacy" }> = [
+  { id: "prompt", label: "AI Prompt Lab", description: "Build bounded diagnostic prompts from the active story.", owner: "refine" },
+  { id: "dialogue", label: "Dialogue Lab", description: "Compare a line or passage before handing an approved proposal to Write.", owner: "refine" },
+  { id: "research", label: "Research & Canon", description: "Bind sourced facts and canon decisions to the project.", owner: "plan" },
+  { id: "visual", label: "Visual Bible", description: "Unify mood, references and generated visual direction.", owner: "storyboard" },
+  { id: "provenance", label: "Provenance", description: "Legacy provenance editor; Reports exposes the read-only canonical summary.", owner: "legacy" },
+  { id: "passes", label: "Saved-Pass Approval History", description: "Review approved before-and-after specialist work.", owner: "feedback" },
 ];
 
 const revisionLayers = ["Story First", "Craft Layer", "Polish Layer"] as const;
@@ -60,8 +65,14 @@ function metadataLabel(value: string) {
   return value.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (letter) => letter.toUpperCase());
 }
 
-export default function SpecialistLabs({ project, onProjectChange }: Props) {
-  const [activeTab, setActiveTab] = useState<LabTab>("prompt");
+export default function SpecialistLabs({ project, onProjectChange, scope = "all" }: Props) {
+  const scopedTabs = useMemo(() => labTabs.filter((tab) => scope === "all" || tab.owner === scope), [scope]);
+  const [selectedTab, setActiveTab] = useState<LabTab>(
+    scope === "plan" ? "research" : scope === "storyboard" ? "visual" : scope === "feedback" ? "passes" : "prompt",
+  );
+  const activeTab = scopedTabs.some((tab) => tab.id === selectedTab)
+    ? selectedTab
+    : scopedTabs[0]?.id ?? "prompt";
   const [review, setReview] = useState<SpecialistSuggestion | null>(null);
   const [status, setStatus] = useState("Choose a lab and prepare a suggestion for review.");
   const [aiState, setAiState] = useState<"idle" | "working" | "error">("idle");
@@ -75,7 +86,7 @@ export default function SpecialistLabs({ project, onProjectChange }: Props) {
   const dialogueElements = useMemo(() => project.screenplay.draftElements.filter((element) => ["dialogue", "dual-dialogue", "action", "parenthetical"].includes(element.type)), [project.screenplay.draftElements]);
   const [dialogueElementId, setDialogueElementId] = useState("");
   const [dialogueDirection, setDialogueDirection] = useState("");
-  const [dialoguePassId, setDialoguePassId] = useState(dialogueGuidedPasses[0].id);
+  const [dialoguePassId, setDialoguePassId] = useState<string>(dialogueGuidedPasses[0].id);
   const selectedDialogue = dialogueElements.find((element) => element.id === dialogueElementId) ?? dialogueElements[0];
   const selectedDialoguePass = dialogueGuidedPasses.find((pass) => pass.id === dialoguePassId) ?? dialogueGuidedPasses[0];
 
@@ -102,6 +113,26 @@ export default function SpecialistLabs({ project, onProjectChange }: Props) {
       : ["structure-causality", "character-choice-arc", "conflict-stakes-escalation"];
     return ids.map((id) => aiRevisionPlaybooks.find((playbook) => playbook.id === id)).filter((playbook): playbook is (typeof aiRevisionPlaybooks)[number] => Boolean(playbook));
   }, [project.screenplay.draftElements.length]);
+
+  useEffect(() => {
+    if (scope !== "feedback") return;
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = window.localStorage.getItem(PENDING_SPECIALIST_SUGGESTION_KEY);
+        if (!stored) return;
+        const pending = JSON.parse(stored) as PendingSpecialistSuggestion;
+        if (pending.projectId !== project.id) {
+          setStatus("A pending specialist proposal belongs to another project and was not opened.");
+          return;
+        }
+        setReview(pending.suggestion);
+        setStatus(`${pending.suggestion.title} is waiting for an explicit Feedback decision.`);
+      } catch {
+        setStatus("The pending specialist proposal could not be read. No canonical project data changed.");
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [project.id, scope]);
 
   function choosePlaybook(nextId: string) {
     const next = aiRevisionPlaybooks.find((playbook) => playbook.id === nextId) ?? aiRevisionPlaybooks[0];
@@ -287,13 +318,24 @@ Free-form writer direction: ${dialogueDirection.trim() || "No added direction; u
 
   function approveSuggestion() {
     if (!review) return;
+    if (scope !== "feedback") {
+      const existing = window.localStorage.getItem(PENDING_SPECIALIST_SUGGESTION_KEY);
+      if (existing && !window.confirm("Replace the specialist proposal already waiting in Feedback?")) return;
+      const pending: PendingSpecialistSuggestion = { projectId: project.id, suggestion: review };
+      window.localStorage.setItem(PENDING_SPECIALIST_SUGGESTION_KEY, JSON.stringify(pending));
+      setStatus(`${review.title} was sent to Feedback. The canonical project is still unchanged.`);
+      setReview(null);
+      return;
+    }
     const next = applySpecialistSuggestion(project, review);
     onProjectChange(next);
     setStatus(`${review.title} was approved, applied and saved as a canonical specialist pass.`);
+    window.localStorage.removeItem(PENDING_SPECIALIST_SUGGESTION_KEY);
     setReview(null);
   }
 
   function discardSuggestion() {
+    if (scope === "feedback") window.localStorage.removeItem(PENDING_SPECIALIST_SUGGESTION_KEY);
     setReview(null);
     setStatus("Suggestion discarded. The canonical project was not changed.");
   }
@@ -303,8 +345,8 @@ Free-form writer direction: ${dialogueDirection.trim() || "No added direction; u
       <header className={styles.hero}>
         <div>
           <p className={styles.eyebrow}>PlotPickle 0.15 · Specialist Labs</p>
-          <h1 id="labs-title">Experiment beside the story, not inside it.</h1>
-          <p>Every lab reads the same active schema 1.7 project. Suggestions remain temporary until the writer reviews and explicitly approves them.</p>
+          <h1 id="labs-title">{scope === "plan" ? "Research & Canon." : scope === "storyboard" ? "Visual Bible & Mood Boards." : scope === "feedback" ? "Saved-pass approval." : "Diagnose beside the story, not inside it."}</h1>
+          <p>Each scoped lab reads the same active schema 1.7 project. Suggestions remain temporary until the writer reviews and explicitly approves them, and canonical edits remain in their owning workspace.</p>
         </div>
         <div className={styles.guardrail}>
           <span>Approval boundary</span>
@@ -314,7 +356,7 @@ Free-form writer direction: ${dialogueDirection.trim() || "No added direction; u
       </header>
 
       <nav className={styles.tabs} aria-label="Specialist labs">
-        {labTabs.map((tab) => <button type="button" className={activeTab === tab.id ? styles.activeTab : ""} key={tab.id} onClick={() => setActiveTab(tab.id)}><strong>{tab.label}</strong><span>{tab.description}</span></button>)}
+        {scopedTabs.map((tab) => <button type="button" className={activeTab === tab.id ? styles.activeTab : ""} key={tab.id} onClick={() => setActiveTab(tab.id)}><strong>{tab.label}</strong><span>{tab.description}</span></button>)}
       </nav>
 
       <div className={styles.labLayout}>
@@ -399,7 +441,7 @@ Free-form writer direction: ${dialogueDirection.trim() || "No added direction; u
             <div className={styles.comparison}><div><span>Before</span><pre>{review.before}</pre></div><div><span>Suggested after</span><pre>{review.after}</pre></div></div>
             <div className={styles.reviewMeta}><span>Target</span><strong>{review.target}</strong><span>Source</span><strong>{review.generated ? "AI-assisted suggestion" : review.metadata.collection ? "Guided prompt assembled locally" : "Writer-entered record"}</strong>{Object.entries(review.metadata).filter(([, value]) => value).map(([key, value]) => <><span key={`${key}-label`}>{metadataLabel(key)}</span><strong key={`${key}-value`}>{value}</strong></>)}</div>
             <p className={styles.warning}>Nothing changes until you approve this suggestion.</p>
-            <div className={styles.reviewActions}><button type="button" className={styles.primary} onClick={approveSuggestion}>Apply approved suggestion</button><button type="button" onClick={discardSuggestion}>Discard suggestion</button></div>
+            <div className={styles.reviewActions}><button type="button" className={styles.primary} onClick={approveSuggestion}>{scope === "feedback" ? "Apply approved suggestion" : "Send to Feedback for approval"}</button><button type="button" onClick={discardSuggestion}>Discard suggestion</button></div>
           </> : <div className={styles.reviewEmpty}><strong>Review first.</strong><p>PlotPickle does not automatically insert prompts, rewrite dialogue, declare research as canon, replace visual rules or retain provenance records.</p></div>}
         </aside>
       </div>

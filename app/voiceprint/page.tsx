@@ -172,15 +172,15 @@ export default function VoiceprintPage() {
       <div className={styles.shell}>
         <header className={styles.header}>
           <div>
-            <p className={styles.kicker}>PlotPickle Playhouse · Dialogue workspace</p>
-            <h1>Voiceprint Engine</h1>
+            <p className={styles.kicker}>Plan · Character voice definitions</p>
+            <h1>Voiceprint Planner</h1>
             <p>
-              Build dialogue from who formed the speaker, who they are addressing, what they want, and how pressure changes their language.
-              The same project file remains connected to Characters, Relationships, 24 Blocks, and the Visual Board.
+              Define who formed the speaker, how relationships alter their language, and what pressure does to their voice.
+              Write owns final screenplay text; Refine compares that text with these Plan-owned definitions.
             </p>
           </div>
           <div className={styles.actions}>
-            <Link className={styles.secondaryButton} href="/">Back to PlotPickle</Link>
+            <Link className={styles.secondaryButton} href="/?workspace=plan">Back to Plan</Link>
             <button className={styles.secondaryButton} type="button" onClick={addCharacter}>Add character</button>
             <button className={styles.button} type="button" onClick={exportProject}>Export project</button>
           </div>

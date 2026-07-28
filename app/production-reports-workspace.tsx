@@ -1,23 +1,19 @@
 "use client";
 
-import type { ChangeEvent, ReactNode } from "react";
-import type { PlotPickleProject } from "@/lib/project";
+import type { ReactNode } from "react";
 import {
   PRODUCTION_REPORT_SECTIONS,
   type AiSystemCategory,
   type ProductionReportSection,
   type ProductionReportsModel,
-  updateProductionShootGroupDecision,
 } from "@/lib/production-reports";
 import type { ReportTarget } from "@/lib/consolidated-reports";
 import styles from "./production-reports-workspace.module.css";
 
 type ProductionReportsWorkspaceProps = {
-  project: PlotPickleProject;
   report: ProductionReportsModel;
   section: ProductionReportSection;
   onSectionChange: (section: ProductionReportSection) => void;
-  onProjectChange: (project: PlotPickleProject) => void;
   onOpenTarget: (target: ReportTarget) => void;
 };
 
@@ -55,39 +51,19 @@ function openScene(onOpenTarget: (target: ReportTarget) => void, scene: { id: st
   onOpenTarget({
     workspace: "write",
     targetId: scene.id,
-    sceneId: scene.id,
     blockId: scene.blockId,
+    miniBlockId: "",
+    sceneId: scene.id,
+    characterId: "",
   });
 }
 
 export default function ProductionReportsWorkspace({
-  project,
   report,
   section,
   onSectionChange,
-  onProjectChange,
   onOpenTarget,
 }: ProductionReportsWorkspaceProps) {
-  function saveGroup(
-    group: ProductionReportsModel["shootGroups"][number],
-    status: "proposed" | "accepted" | "rejected" | "adjusted",
-    sceneIds = group.selectedSceneIds,
-    notes = group.notes,
-  ) {
-    onProjectChange(updateProductionShootGroupDecision(project, group.id, sceneIds, status, notes));
-  }
-
-  function toggleGroupScene(
-    group: ProductionReportsModel["shootGroups"][number],
-    sceneId: string,
-    event: ChangeEvent<HTMLInputElement>,
-  ) {
-    const sceneIds = event.currentTarget.checked
-      ? [...group.selectedSceneIds, sceneId]
-      : group.selectedSceneIds.filter((id) => id !== sceneId);
-    saveGroup(group, "adjusted", sceneIds);
-  }
-
   function renderOverview() {
     const values = [
       ["Scenes", report.overview.scenes],
@@ -207,14 +183,14 @@ export default function ProductionReportsWorkspace({
             </header>
             <p className={styles.groupSummary}>{group.scenes.length} scenes · {group.shotIds.length} shots · {titleCase(group.confidence)} confidence</p>
             <ul className={styles.reasonList}>{group.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>
-            <fieldset>
-              <legend>Manual scene adjustment</legend>
+            <fieldset disabled>
+              <legend>Saved scene selection</legend>
               {group.scenes.map((scene) => (
                 <label key={scene.id}>
                   <input
                     type="checkbox"
                     checked={group.selectedSceneIds.includes(scene.id)}
-                    onChange={(event) => toggleGroupScene(group, scene.id, event)}
+                    readOnly
                   />
                   <span>Scene {scene.productionNumber} · {scene.title}</span>
                   <button type="button" onClick={() => openScene(onOpenTarget, scene)}>Open</button>
@@ -222,19 +198,15 @@ export default function ProductionReportsWorkspace({
               ))}
             </fieldset>
             <label className={styles.notesField}>
-              <span>Producer adjustment note</span>
+              <span>Saved producer note</span>
               <textarea
                 key={`${group.id}-${group.notes}`}
                 defaultValue={group.notes}
-                placeholder="Record why this grouping was adjusted."
-                onBlur={(event) => saveGroup(group, group.status === "proposed" ? "adjusted" : group.status, group.selectedSceneIds, event.currentTarget.value)}
+                placeholder="No producer note is recorded."
+                readOnly
               />
             </label>
-            <div className={styles.groupActions}>
-              <button type="button" onClick={() => saveGroup(group, "accepted")}>Accept proposal</button>
-              <button type="button" onClick={() => saveGroup(group, "rejected")}>Reject</button>
-              <button type="button" onClick={() => saveGroup(group, "proposed", group.baseSceneIds, "")}>Reset</button>
-            </div>
+            <p>Reports is read-only. <a href="/production?scope=build&return=build">Open Build Production Planning</a> to adjust or approve shoot groups.</p>
           </article>
         ))}
       </div>

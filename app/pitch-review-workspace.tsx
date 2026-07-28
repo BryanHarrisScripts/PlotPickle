@@ -19,8 +19,16 @@ import {
 import type { PitchPackage, PlotPickleProject, ReviewAnchor, ReviewPriority, ReviewThreadStatus } from "@/lib/project";
 
 type View = "logline" | "dialectic" | "reviews" | "revisions" | "package" | "exports";
+export type PitchReviewScope = "pitch" | "plan";
 
 type AnchorOption = ReviewAnchor & { value: string };
+
+const WORKFLOWS: Array<[View, string, PitchReviewScope]> = [
+  ["logline", "Logline Lab", "pitch"],
+  ["dialectic", "Theme Dialectic", "plan"],
+  ["package", "Pitch Package", "pitch"],
+  ["exports", "Exports", "pitch"],
+];
 
 function downloadText(name: string, content: string, type: string) {
   const url = URL.createObjectURL(new Blob([content], { type }));
@@ -57,9 +65,21 @@ function buildAnchorOptions(project: PlotPickleProject): AnchorOption[] {
   return options;
 }
 
-export default function PitchReviewWorkspace({ project, onProjectChange }: { project: PlotPickleProject; onProjectChange: (project: PlotPickleProject) => void }) {
+export default function PitchReviewWorkspace({
+  project,
+  onProjectChange,
+  scope = "pitch",
+}: {
+  project: PlotPickleProject;
+  onProjectChange: (project: PlotPickleProject) => void;
+  scope?: PitchReviewScope;
+}) {
   const active = useMemo(() => ensureReviewWorkspace(project), [project]);
-  const [view, setView] = useState<View>("logline");
+  const scopedWorkflows = useMemo(() => WORKFLOWS.filter((workflow) => workflow[2] === scope), [scope]);
+  const [selectedView, setView] = useState<View>(scopedWorkflows[0]?.[0] ?? "logline");
+  const view = scopedWorkflows.some(([id]) => id === selectedView)
+    ? selectedView
+    : scopedWorkflows[0]?.[0] ?? "logline";
   const anchorOptions = useMemo(() => buildAnchorOptions(active), [active]);
   const [anchorValue, setAnchorValue] = useState(anchorOptions[0]?.value ?? "project:project");
   const [threadTitle, setThreadTitle] = useState("");
@@ -118,38 +138,33 @@ export default function PitchReviewWorkspace({ project, onProjectChange }: { pro
     window.setTimeout(() => printWindow.print(), 150);
   }
 
-  const counts = {
-    open: active.review.threads.filter((thread) => thread.status === "open" || thread.status === "in-review").length,
-    resolved: active.review.threads.filter((thread) => thread.status === "resolved").length,
-    revisions: active.revisions.length,
-    candidates: active.review.loglineCandidates.length,
-  };
+  const metrics = scope === "plan" ? [
+    { value: active.storyThreads.length, label: "story threads" },
+    { value: active.characters.length, label: "character viewpoints" },
+    { value: active.story.theme ? 1 : 0, label: "working answer" },
+    { value: active.story.antiTheme ? 1 : 0, label: "competing answer" },
+  ] : [
+    { value: active.review.loglineCandidates.length, label: "saved loglines" },
+    { value: packageDraft.selectedCharacterIds.length, label: "package characters" },
+    { value: packageDraft.selectedLocationIds.length, label: "package locations" },
+    { value: packageDraft.includeSections.length, label: "export sections" },
+  ];
 
   return (
     <section className={styles.workspace} aria-labelledby="pitch-review-title">
       <header className={styles.hero}>
         <div>
           <p>PlotPickle 0.16 · Phase D</p>
-          <h1 id="pitch-review-title">Pitch & Review Studio</h1>
-          <span>Move from a local draft review to a complete shareable pitch package without separating comments, revisions or story evidence from the active project.</span>
+          <h1 id="pitch-review-title">{scope === "plan" ? "Theme Dialectic" : "Pitch Package Studio"}</h1>
+          <span>{scope === "plan" ? "Plan owns the central question and competing answers. This worksheet tests them before Pitch turns the story into a package." : "Develop the logline, pitch package and exports without mixing in review-thread or approval controls."}</span>
         </div>
         <div className={styles.metrics}>
-          <article><strong>{counts.open}</strong><span>active review threads</span></article>
-          <article><strong>{counts.resolved}</strong><span>resolved threads</span></article>
-          <article><strong>{counts.revisions}</strong><span>revision snapshots</span></article>
-          <article><strong>{counts.candidates}</strong><span>saved loglines</span></article>
+          {metrics.map((metric) => <article key={metric.label}><strong>{metric.value}</strong><span>{metric.label}</span></article>)}
         </div>
       </header>
 
       <nav className={styles.tabs} aria-label="Pitch and review workflows">
-        {([
-          ["logline", "Logline Lab"],
-          ["dialectic", "Theme Dialectic"],
-          ["reviews", "Anchored Reviews"],
-          ["revisions", "Revision Compare"],
-          ["package", "Pitch Package"],
-          ["exports", "Exports"],
-        ] as Array<[View, string]>).map(([id, label]) => <button key={id} type="button" className={view === id ? styles.activeTab : ""} onClick={() => setView(id)}>{label}</button>)}
+        {scopedWorkflows.map(([id, label]) => <button key={id} type="button" className={view === id ? styles.activeTab : ""} onClick={() => setView(id)}>{label}</button>)}
       </nav>
 
       {view === "logline" ? <LoglineLab project={active} onProjectChange={onProjectChange} /> : null}

@@ -10,6 +10,7 @@ import FeedbackWorkspace from "./feedback-workspace";
 import ReportsWorkspace from "./reports-workspace";
 import FeedbackContextBadge from "./feedback-context-badge";
 import AiPitchDeckWorkspace from "./ai-pitch-deck-workspace";
+import WorkspaceCapabilityShelf, { type CapabilityOwner } from "./workspace-capability-shelf";
 import { ChangeEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { createAfterglowProject } from "@/data/afterglow";
 import EngineHub from "./engine-hub";
@@ -58,6 +59,31 @@ const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/r
 type MainTab = ProductNavigationId;
 type StorySection = "simpleStart" | "overview" | "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "coreModel" | "structureMap" | "blocks" | "storyboard" | "notes";
 type StorySectionGroup = "Project" | "Foundation" | "Structure" | "Production";
+
+const WORKSPACE_QUERY_TABS: Record<string, MainTab> = {
+  dashboard: "dashboard",
+  learn: "learn",
+  plan: "planner",
+  storyboard: "visuals",
+  write: "script",
+  pitch: "pitch",
+  build: "build",
+  feedback: "feedback",
+  refine: "engines",
+  reports: "reports",
+  settings: "settings",
+};
+
+const CAPABILITY_OWNER_BY_TAB: Partial<Record<MainTab, CapabilityOwner>> = {
+  learn: "learn",
+  planner: "plan",
+  visuals: "storyboard",
+  script: "write",
+  pitch: "pitch",
+  build: "build",
+  feedback: "feedback",
+  reports: "reports",
+};
 
 
 const storySections: { id: StorySection; code: string; label: string; group: StorySectionGroup }[] = [
@@ -315,6 +341,12 @@ export default function Home() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
+      const requestedWorkspace = new URLSearchParams(window.location.search).get("workspace");
+      const requestedTab = requestedWorkspace ? WORKSPACE_QUERY_TABS[requestedWorkspace] : undefined;
+      if (requestedTab) {
+        setActiveTab(requestedTab);
+        setShowLanding(false);
+      }
       try {
         const stored = window.localStorage.getItem(STORAGE_KEY);
         if (stored) {
@@ -351,6 +383,7 @@ export default function Home() {
   const selectedBlock = project.blocks.find((block) => block.number === selectedBlockNumber) ?? project.blocks[0];
   const feedbackModel = useMemo(() => createStoredFeedbackModel(project), [project]);
   const selectedBlockFeedbackCount = feedbackModel.badges.get(`block:${selectedBlock.id}`) ?? 0;
+  const capabilityOwner = CAPABILITY_OWNER_BY_TAB[activeTab];
 
   if (showLanding) {
     return <LandingPage onEnter={() => setShowLanding(false)} />;
@@ -671,6 +704,8 @@ export default function Home() {
       ) : null}
 
       <main className="workspace">
+        {capabilityOwner ? <WorkspaceCapabilityShelf workspace={capabilityOwner} /> : null}
+
         {activeTab === "dashboard" ? (
           <DashboardCommandCentre
             project={project}
@@ -880,7 +915,7 @@ export default function Home() {
           <FeedbackWorkspace project={project} onProjectChange={commit} onOpenTarget={openFeedbackTarget} initialTargetId={feedbackTargetId} />
         ) : null}
 
-        {activeTab === "reports" ? <ReportsWorkspace project={project} section={reportSection} onSectionChange={setReportSection} productionSection={productionReportSection} onProductionSectionChange={setProductionReportSection} onProjectChange={commit} onOpenTarget={openReportTarget} runtimeConnections={reportConnections} /> : null}
+        {activeTab === "reports" ? <ReportsWorkspace project={project} section={reportSection} onSectionChange={setReportSection} productionSection={productionReportSection} onProductionSectionChange={setProductionReportSection} onOpenTarget={openReportTarget} runtimeConnections={reportConnections} /> : null}
 
         <div hidden={activeTab !== "settings"}>
           <SettingsPanel project={project} onProjectChange={commit} connections={connectionState.snapshot} onConnectionChange={connectionState.refresh} />
@@ -891,7 +926,6 @@ export default function Home() {
     </div>
   );
 }
-
 type DevelopmentUpdater = (section: keyof PlotPickleProject["development"], key: string, value: string) => void;
 
 function StoryRail({ project, workspace, activeSection, selectSection }: { project: PlotPickleProject; workspace: string; activeSection: StorySection; selectSection: (section: StorySection) => void }) {

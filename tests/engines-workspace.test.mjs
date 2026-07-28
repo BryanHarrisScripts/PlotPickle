@@ -21,27 +21,29 @@ test("main application exposes Refine as the connected Engines workspace", async
   assert.ok(splash.includes("An open film-development platform."));
 });
 
-test("Engines workspace explains every specialist before opening it", async () => {
+test("Refine explains each diagnostic pass and routes edits to their owners", async () => {
   const source = await readFile(new URL("../app/engine-hub.tsx", import.meta.url), "utf8");
   for (const title of [
-    "Resonance Engine",
-    "Voiceprint Engine",
-    "PageFlow Engine",
-    "DraftLens Engine",
-    "CraftLoop Engine",
+    "Overview & Diagnostic Queue",
+    "Structure & Pacing Diagnostics",
+    "Story & Theme through Resonance",
+    "Character & Dialogue Diagnostics",
+    "Page & Scene Diagnostics through PageFlow",
+    "Full-Draft Diagnosis through DraftLens",
+    "Revision Passes & Essential Craft Audit",
   ]) {
-    assert.ok(source.includes(title), `Engines workspace is missing ${title}`);
+    assert.ok(source.includes(title), `Refine is missing ${title}`);
   }
   for (const contract of [
     "Use it when",
-    "Works with shared project data",
+    "Reads shared canonical evidence",
     "Expected result",
-    "One active project",
-    "There is no required order.",
+    "Refine diagnoses and proposes.",
+    "Tools that edit or approve now open from their owner.",
   ]) {
-    assert.ok(source.includes(contract), `Engines workspace is missing guidance: ${contract}`);
+    assert.ok(source.includes(contract), `Refine is missing guidance: ${contract}`);
   }
   assert.match(source, /Build owns arrangement\. Refine reads the same structure for diagnosis\./);
-  assert.match(source, /Open Build structure diagnostics/);
+  assert.match(source, /Open Build structure editor/);
   assert.doesNotMatch(source, /title: "Structure Engine"|href: "\/structure"/);
 });

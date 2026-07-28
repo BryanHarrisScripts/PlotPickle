@@ -2,33 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject, type StoryBlock } from "@/lib/project";
+import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/project";
 import { scanPageFlowDraft } from "@/lib/pageflow";
 import styles from "./pageflow.module.css";
 
 const STORAGE_KEY = "plotpickle.project.v1";
-
-function DraftField({
-  label,
-  help,
-  value,
-  onChange,
-  rows = 8,
-}: {
-  label: string;
-  help: string;
-  value: string;
-  onChange: (value: string) => void;
-  rows?: number;
-}) {
-  return (
-    <label className={styles.field}>
-      <span>{label}</span>
-      <textarea rows={rows} value={value} onChange={(event) => onChange(event.target.value)} />
-      <small>{help}</small>
-    </label>
-  );
-}
 
 function SignalList({ title, items, empty }: { title: string; items: string[]; empty: string }) {
   return (
@@ -80,48 +58,6 @@ export default function PageFlowPage() {
   const selectedCharacter = project.characters.find((character) => character.id === selectedCharacterId) ?? project.characters[0];
   const draftScan = useMemo(() => scanPageFlowDraft(selectedBlock.scriptExcerpt), [selectedBlock.scriptExcerpt]);
 
-  function commit(next: PlotPickleProject, message = "Saved to this device.") {
-    const updated: PlotPickleProject = {
-      ...next,
-      metadata: { ...next.metadata, updatedAt: new Date().toISOString() },
-    };
-    setProject(updated);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    setStatus(message);
-  }
-
-  function updateBlock(key: keyof StoryBlock, value: string) {
-    commit({
-      ...project,
-      blocks: project.blocks.map((block) =>
-        block.number === selectedBlock.number ? { ...block, [key]: value } : block,
-      ),
-    });
-  }
-
-  function updateCharacterDescription(value: string) {
-    if (!selectedCharacter) return;
-    commit({
-      ...project,
-      characters: project.characters.map((character) =>
-        character.id === selectedCharacter.id ? { ...character, description: value } : character,
-      ),
-    });
-  }
-
-  function exportProject() {
-    const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${project.metadata.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "plotpickle-project"}.plotpickle.json`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-    setStatus("Project exported with the current PageFlow revisions.");
-  }
-
   const blockContext = [selectedBlock.goal, selectedBlock.conflict, selectedBlock.action, selectedBlock.consequence]
     .filter(Boolean)
     .join(" → ");
@@ -131,17 +67,16 @@ export default function PageFlowPage() {
       <div className={styles.shell}>
         <header className={styles.header}>
           <div>
-            <p className={styles.kicker}>PlotPickle Playhouse · Screen description workspace</p>
-            <h1>PageFlow Engine</h1>
+            <p className={styles.kicker}>Refine · Page and scene diagnostics</p>
+            <h1>PageFlow Diagnostics</h1>
             <p>
-              Turn a planned block into visible, active, actor-playable screenplay description. The Page Draft, visual sequence,
-              character entrance, notes, and Visual Board remain attached to the same PlotPickle project.
+              Read the current Write-owned screenplay text and identify visibility, action, density, directing-language and
+              playability signals. PageFlow proposes a pass; it does not edit the screenplay, storyboard or character definitions.
             </p>
           </div>
           <div className={styles.actions}>
-            <Link className={styles.secondaryButton} href="/">Back to PlotPickle</Link>
-            <Link className={styles.secondaryButton} href="/voiceprint">Open Voiceprint</Link>
-            <button className={styles.button} type="button" onClick={exportProject}>Export project</button>
+            <Link className={styles.secondaryButton} href="/?workspace=refine">Back to Refine</Link>
+            <Link className={styles.button} href="/?workspace=write">Open Write to revise</Link>
           </div>
         </header>
 
@@ -187,24 +122,16 @@ export default function PageFlowPage() {
           <section className={styles.draftPanel}>
             <div className={styles.sectionHeading}>
               <p className={styles.kicker}>Block {selectedBlock.number} · {selectedBlock.title}</p>
-              <h2>Write the movie the reader can see.</h2>
-              <p>Use exact nouns, active verbs, clear order, playable behaviour, and paragraph breaks that match visual turns.</p>
+              <h2>Read the current page evidence.</h2>
+              <p>This text is read-only here. Use Write for exact screenplay wording, Storyboard for visual direction and Plan for character definitions.</p>
             </div>
-            <DraftField label="Page Draft" help="Screenplay action, scene text, or a polished description pass. This edits the block's shared Story text field." value={selectedBlock.scriptExcerpt} onChange={(value) => updateBlock("scriptExcerpt", value)} rows={22} />
-            <div className={styles.twoColumns}>
-              <DraftField label="Visible sequence" help="Describe the image progression the Visual Board should preserve." value={selectedBlock.storyboardDirection} onChange={(value) => updateBlock("storyboardDirection", value)} rows={9} />
-              <DraftField label="PageFlow revision notes" help="Record invisible information to externalize, beats to split, actions to sharpen, or justified exceptions." value={selectedBlock.notes} onChange={(value) => updateBlock("notes", value)} rows={9} />
+            <pre>{selectedBlock.scriptExcerpt || "No screenplay excerpt is attached to this Block yet. Open Write to draft canonical text."}</pre>
+            <div className={styles.contextGrid}>
+              <article><strong>Storyboard evidence</strong><p>{selectedBlock.storyboardDirection || "No visual direction recorded."}</p></article>
+              <article><strong>Character definition</strong><p>{selectedCharacter?.description || "No character description recorded."}</p></article>
+              <article><strong>Existing revision notes</strong><p>{selectedBlock.notes || "No Block notes recorded."}</p></article>
             </div>
-            <div className={styles.entrancePanel}>
-              <div>
-                <p className={styles.kicker}>Character entrance in motion</p>
-                <h3>{selectedCharacter ? selectedCharacter.name : "No character selected"}</h3>
-                <p>Give the reader a concise first impression through condition, action, contradiction, clothing, or relationship to the space.</p>
-              </div>
-              {selectedCharacter ? (
-                <DraftField label={`${selectedCharacter.name} · Introduction`} help="This edits the character's shared description, so keep it useful beyond a single scene." value={selectedCharacter.description} onChange={updateCharacterDescription} rows={7} />
-              ) : <p className={styles.empty}>Add characters in Story Planner to develop an entrance.</p>}
-            </div>
+            <div className={styles.actions}><Link className={styles.button} href="/?workspace=write">Revise this evidence in Write</Link></div>
           </section>
 
           <aside className={styles.diagnosticPanel}>

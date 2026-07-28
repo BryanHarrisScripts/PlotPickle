@@ -19,6 +19,7 @@ export type ConsolidatedReportSection =
   | "dialogue"
   | "production"
   | "feedback"
+  | "provenance"
   | "connections";
 
 export const CONSOLIDATED_REPORT_SECTIONS: Array<{
@@ -33,6 +34,7 @@ export const CONSOLIDATED_REPORT_SECTIONS: Array<{
   { id: "dialogue", label: "Dialogue", description: "Lines, words, speeches, scene balance, repetition, voice, sides and duration." },
   { id: "production", label: "Production", description: "Locations, coverage, shoot groups, actor schedules, timelines, requirements and AI systems." },
   { id: "feedback", label: "Feedback", description: "Active and resolved review by source, reviewer, target, category and review room." },
+  { id: "provenance", label: "Provenance", description: "Read-only generated-asset sources, retained outputs, human contributions and decisions." },
   { id: "connections", label: "Connections", description: "GitHub, AI, plugins, Google, storage, backups, repository and sync state." },
 ];
 

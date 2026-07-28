@@ -79,11 +79,12 @@ test("issue #119 covers the complete requested shot taxonomy", async () => {
   ]) assert.ok(reports.includes(`label: "${shotType}"`), `Missing shot type: ${shotType}`);
 });
 
-test("issue #119 shoot groups explain reasoning and persist accept reject and adjustment decisions", async () => {
-  const [reports, project, workspace] = await Promise.all([
+test("issue #119 shoot groups explain reasoning and Build owns accept reject and adjustment decisions", async () => {
+  const [reports, project, reportWorkspace, buildWorkspace] = await Promise.all([
     source("lib/production-reports.ts"),
     source("lib/project.ts"),
     source("app/production-reports-workspace.tsx"),
+    source("app/preproduction-workspace.tsx"),
   ]);
   for (const reason of [
     "Shared location:",
@@ -104,8 +105,10 @@ test("issue #119 shoot groups explain reasoning and persist accept reject and ad
   assert.match(reports, /updateProductionShootGroupDecision/);
   assert.match(project, /ProductionShootGroupDecisionStatus = "proposed" \| "accepted" \| "rejected" \| "adjusted"/);
   for (const action of ["Accept proposal", "Reject", "Reset", "Manual scene adjustment", "Producer adjustment note"]) {
-    assert.ok(workspace.includes(action), `Missing manual shoot-group action: ${action}`);
+    assert.ok(buildWorkspace.includes(action), `Build is missing manual shoot-group action: ${action}`);
   }
+  assert.doesNotMatch(reportWorkspace, /updateProductionShootGroupDecision|onProjectChange/);
+  assert.match(reportWorkspace, /Reports is read-only/);
 });
 
 test("issue #119 actor schedule includes cast days locations sides availability and conflicts", async () => {
@@ -200,7 +203,7 @@ test("issue #119 AI system options are dated sourced maintainable and credential
   assert.doesNotMatch(dataText, /api[_-]?key|access[_-]?token|secret|bearer\s+[a-z0-9]/i);
 });
 
-test("issue #119 mounts the nested Production workspace with visible guidance and canonical writes", async () => {
+test("issue #119 mounts read-only Production reports and routes canonical writes to Build", async () => {
   const [reportsWorkspace, productionWorkspace, page, consolidated] = await Promise.all([
     source("app/reports-workspace.tsx"),
     source("app/production-reports-workspace.tsx"),
@@ -210,9 +213,10 @@ test("issue #119 mounts the nested Production workspace with visible guidance an
   assert.match(reportsWorkspace, /<ProductionReportsWorkspace/);
   assert.match(productionWorkspace, /aria-label="Production report sections"/);
   assert.match(productionWorkspace, /Production planning guidance/);
-  assert.match(productionWorkspace, /onProjectChange\(updateProductionShootGroupDecision/);
+  assert.doesNotMatch(productionWorkspace, /onProjectChange|updateProductionShootGroupDecision/);
+  assert.match(productionWorkspace, /Open Build Production Planning/);
   assert.match(page, /productionReportSection/);
-  assert.match(page, /onProjectChange=\{commit\}/);
+  assert.doesNotMatch(page, /<ReportsWorkspace[^>]*onProjectChange/);
   assert.match(consolidated, /createProductionReportsModel\(project\)/);
 });
 

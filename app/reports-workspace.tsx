@@ -20,7 +20,6 @@ type ReportsWorkspaceProps = {
   onSectionChange: (section: ConsolidatedReportSection) => void;
   productionSection: ProductionReportSection;
   onProductionSectionChange: (section: ProductionReportSection) => void;
-  onProjectChange: (project: PlotPickleProject) => void;
   onOpenTarget: (target: ReportTarget) => void;
   runtimeConnections?: ReportsRuntimeConnections;
 };
@@ -127,7 +126,6 @@ export default function ReportsWorkspace({
   onSectionChange,
   productionSection,
   onProductionSectionChange,
-  onProjectChange,
   onOpenTarget,
   runtimeConnections = {},
 }: ReportsWorkspaceProps) {
@@ -375,11 +373,9 @@ export default function ReportsWorkspace({
   function renderProduction() {
     return (
       <ProductionReportsWorkspace
-        project={project}
         report={model.production}
         section={productionSection}
         onSectionChange={onProductionSectionChange}
-        onProjectChange={onProjectChange}
         onOpenTarget={openTarget}
       />
     );
@@ -431,6 +427,45 @@ export default function ReportsWorkspace({
     );
   }
 
+  function renderProvenance() {
+    const records = [...project.rights.aiProvenance].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+    const retained = records.filter((record) => record.retained).length;
+    const providers = new Set(records.map((record) => record.provider).filter(Boolean)).size;
+    const attached = records.filter((record) => record.attachedTo.length).length;
+    return (
+      <div className={styles.reportStack}>
+        <SummaryStrip values={[
+          { label: "AI records", value: records.length },
+          { label: "Retained outputs", value: retained },
+          { label: "Providers", value: providers },
+          { label: "Attached to canon", value: attached },
+        ]} />
+        <SectionCard eyebrow="Read-only provenance" title="Generated assets and retained human decisions">
+          {records.length ? <div className={styles.feedbackList}>{records.map((record) => (
+            <article key={record.id}>
+              <div>
+                <span className={styles.feedbackMeta}>{titleCase(record.operation)} · {record.retained ? "Retained" : "Not retained"} · {dateLabel(record.createdAt)}</span>
+                <h3>{record.provider || "Unspecified provider"} · {record.model || "Unspecified model"}</h3>
+                <p><strong>Prompt:</strong> {record.promptSummary || "No prompt summary recorded."}</p>
+                <p><strong>Output:</strong> {record.outputSummary || "No output summary recorded."}</p>
+                <small>Human contribution: {record.humanContribution || "Not recorded"} · Decision: {record.humanDecision || "Not recorded"}</small>
+                <small>Attached to: {record.attachedTo.join(", ") || "No canonical target recorded"}</small>
+              </div>
+            </article>
+          ))}</div> : <EmptyState>No AI or generated-asset provenance has been retained. Manual-only projects remain fully supported.</EmptyState>}
+        </SectionCard>
+        <SectionCard eyebrow="Ownership and rights" title="Human authorship remains explicit">
+          <dl className={styles.repositoryGrid}>
+            <div><dt>Project owner</dt><dd>{project.rights.projectOwner || "Not recorded"}</dd></div>
+            <div><dt>Rights statement</dt><dd>{project.rights.rightsStatement || "Not recorded"}</dd></div>
+            <div><dt>Source work</dt><dd>{project.rights.sourceWorkTitle || "Original project"}</dd></div>
+            <div><dt>Adaptation status</dt><dd>{titleCase(project.rights.adaptationStatus)}</dd></div>
+          </dl>
+        </SectionCard>
+      </div>
+    );
+  }
+
   function renderConnections() {
     const report = model.connections;
     return (
@@ -470,9 +505,10 @@ export default function ReportsWorkspace({
       : section === "characters" ? renderCharacters()
         : section === "scenes" ? renderScenes()
           : section === "dialogue" ? renderDialogue()
-            : section === "production" ? renderProduction()
+          : section === "production" ? renderProduction()
               : section === "feedback" ? renderFeedback()
-                : renderConnections();
+                : section === "provenance" ? renderProvenance()
+                  : renderConnections();
 
   return (
     <div className={styles.workspace}>

@@ -18,17 +18,20 @@ import {
   updateScheduleDay,
   updateSonicCue,
 } from "@/lib/preproduction";
+import { createProductionReportsModel, updateProductionShootGroupDecision } from "@/lib/production-reports";
 import type { PlotPickleProject, ProductionBreakdown, ProductionScheduleDay, ProductionShot, SonicCue } from "@/lib/project";
 
-type View = "shots" | "sonic" | "animatic" | "breakdowns" | "schedule" | "distribution";
+type View = "shots" | "sonic" | "animatic" | "breakdowns" | "shoot-groups" | "schedule" | "distribution";
+export type ProductionScope = "all" | "storyboard" | "build";
 
-const views: Array<{ id: View; label: string; description: string }> = [
-  { id: "shots", label: "Shot Designer", description: "Turn scenes and storyboard frames into a coverage plan." },
-  { id: "sonic", label: "Sonic Bible", description: "Plan score, source music, atmosphere, sound effects and silence." },
-  { id: "animatic", label: "Animatic", description: "Play the storyboard, shots, dialogue and cue labels as one timeline." },
-  { id: "breakdowns", label: "Breakdowns", description: "Extract cast, locations, props, effects, sound and production needs." },
-  { id: "schedule", label: "Schedule", description: "Group breakdowns into practical shoot days." },
-  { id: "distribution", label: "Distribution", description: "Plan positioning, release pathways and marketing materials." },
+const views: Array<{ id: View; label: string; description: string; owner: Exclude<ProductionScope, "all"> }> = [
+  { id: "shots", label: "Shot Designer", description: "Turn scenes and storyboard frames into a coverage plan.", owner: "storyboard" },
+  { id: "sonic", label: "Sonic Bible", description: "Plan score, source music, atmosphere, sound effects and silence.", owner: "build" },
+  { id: "animatic", label: "Animatic", description: "Play the storyboard, shots, dialogue and cue labels as one timeline.", owner: "storyboard" },
+  { id: "breakdowns", label: "Breakdowns", description: "Extract cast, locations, props, effects, sound and production needs.", owner: "build" },
+  { id: "shoot-groups", label: "Shoot Groups", description: "Review, adjust and approve practical scene combinations.", owner: "build" },
+  { id: "schedule", label: "Schedule", description: "Group breakdowns into practical shoot days.", owner: "build" },
+  { id: "distribution", label: "Distribution", description: "Plan positioning, release pathways and marketing materials.", owner: "build" },
 ];
 
 function excerpt(value: string, length = 80) {
@@ -41,9 +44,21 @@ function numberValue(value: string, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-export default function PreproductionWorkspace({ project, onProjectChange }: { project: PlotPickleProject; onProjectChange: (project: PlotPickleProject) => void }) {
+export default function PreproductionWorkspace({
+  project,
+  onProjectChange,
+  scope = "all",
+}: {
+  project: PlotPickleProject;
+  onProjectChange: (project: PlotPickleProject) => void;
+  scope?: ProductionScope;
+}) {
   const active = useMemo(() => ensureProductionWorkspace(project), [project]);
-  const [view, setView] = useState<View>("shots");
+  const scopedViews = useMemo(() => views.filter((item) => scope === "all" || item.owner === scope), [scope]);
+  const [selectedView, setView] = useState<View>(scope === "build" ? "sonic" : "shots");
+  const view = scopedViews.some((item) => item.id === selectedView)
+    ? selectedView
+    : scopedViews[0]?.id ?? "shots";
   const [blockNumber, setBlockNumber] = useState(1);
   const [sceneId, setSceneId] = useState(active.blocks[0]?.scenes[0]?.id || "");
   const [frameId, setFrameId] = useState(active.blocks[0]?.visuals[0]?.id || "");
@@ -99,8 +114,8 @@ export default function PreproductionWorkspace({ project, onProjectChange }: { p
       <header className={styles.hero}>
         <div>
           <p>PlotPickle 0.17 · Page to production</p>
-          <h1 id="preproduction-title">One continuous pre-production plan.</h1>
-          <span>The 24 Blocks, flexible scenes, screenplay, storyboard frames, shots, sound cues, breakdowns, schedule and release plan remain connected through stable project IDs.</span>
+          <h1 id="preproduction-title">{scope === "storyboard" ? "Shot design and animatic." : scope === "build" ? "Production Planning." : "One continuous pre-production plan."}</h1>
+          <span>{scope === "storyboard" ? "Storyboard owns shot coverage and animatic playback over the same stable scenes, mini-blocks and frames." : scope === "build" ? "Build owns the Sonic Bible, production breakdowns, scheduling and distribution plan over the same stable project IDs." : "The 24 Blocks, flexible scenes, screenplay, storyboard frames, shots, sound cues, breakdowns, schedule and release plan remain connected through stable project IDs."}</span>
         </div>
         <div className={styles.metrics}>
           <article><strong>{metrics.shots}</strong><span>planned shots</span></article>
@@ -113,10 +128,10 @@ export default function PreproductionWorkspace({ project, onProjectChange }: { p
       </header>
 
       <nav className={styles.tabs} aria-label="Pre-production workspaces">
-        {views.map((item) => <button key={item.id} className={view === item.id ? styles.activeTab : ""} onClick={() => setView(item.id)}><strong>{item.label}</strong><span>{item.description}</span></button>)}
+        {scopedViews.map((item) => <button key={item.id} className={view === item.id ? styles.activeTab : ""} onClick={() => setView(item.id)}><strong>{item.label}</strong><span>{item.description}</span></button>)}
       </nav>
 
-      {view !== "distribution" && view !== "animatic" ? (
+      {view !== "distribution" && view !== "animatic" && view !== "shoot-groups" ? (
         <div className={styles.contextBar}>
           <label>Block<select value={blockNumber} onChange={(event) => chooseBlock(Number(event.target.value))}>{active.blocks.map((item) => <option key={item.id} value={item.number}>{item.number}. {item.title}</option>)}</select></label>
           <label>Scene<select value={sceneId} onChange={(event) => setSceneId(event.target.value)}>{sceneOptions.map((scene) => <option key={scene.id} value={scene.id}>Scene {scene.number}: {scene.title || scene.purpose || "Untitled"}</option>)}</select></label>
@@ -173,9 +188,60 @@ export default function PreproductionWorkspace({ project, onProjectChange }: { p
       ) : null}
 
       {view === "breakdowns" ? <BreakdownView project={active} onChange={save} /> : null}
+      {view === "shoot-groups" ? <ShootGroupsView project={active} onChange={save} /> : null}
       {view === "schedule" ? <ScheduleView project={active} onChange={save} /> : null}
       {view === "distribution" ? <DistributionView project={active} onChange={save} /> : null}
     </section>
+  );
+}
+
+function ShootGroupsView({ project, onChange }: { project: PlotPickleProject; onChange: (project: PlotPickleProject) => void }) {
+  const groups = useMemo(() => createProductionReportsModel(project).shootGroups, [project]);
+
+  function saveGroup(
+    group: (typeof groups)[number],
+    status: "proposed" | "accepted" | "rejected" | "adjusted",
+    sceneIds = group.selectedSceneIds,
+    notes = group.notes,
+  ) {
+    onChange(updateProductionShootGroupDecision(project, group.id, sceneIds, status, notes));
+  }
+
+  return (
+    <div className={styles.twoColumn}>
+      {groups.length ? groups.map((group) => (
+        <section className={styles.panel} key={group.id}>
+          <div className={styles.panelTitle}>
+            <div><p>{group.status} · {group.confidence} confidence</p><h2>{group.label}</h2></div>
+          </div>
+          <p className={styles.help}>{group.reasons.join(" · ")}</p>
+          <p className={styles.help}><strong>Manual scene adjustment</strong> · Select the scenes that should remain in this practical shoot group.</p>
+          <div className={styles.formGrid}>
+            {group.scenes.map((scene) => (
+              <label className={styles.check} key={scene.id}>
+                <input
+                  type="checkbox"
+                  checked={group.selectedSceneIds.includes(scene.id)}
+                  onChange={(event) => {
+                    const sceneIds = event.currentTarget.checked
+                      ? [...group.selectedSceneIds, scene.id]
+                      : group.selectedSceneIds.filter((id) => id !== scene.id);
+                    saveGroup(group, "adjusted", sceneIds);
+                  }}
+                />
+                Scene {scene.productionNumber} · {scene.title}
+              </label>
+            ))}
+            <label className={styles.full}>Producer adjustment note<textarea key={`${group.id}-${group.notes}`} defaultValue={group.notes} onBlur={(event) => saveGroup(group, group.status === "proposed" ? "adjusted" : group.status, group.selectedSceneIds, event.currentTarget.value)} /></label>
+          </div>
+          <div className={styles.playControls}>
+            <button type="button" className={styles.primary} onClick={() => saveGroup(group, "accepted")}>Accept proposal</button>
+            <button type="button" onClick={() => saveGroup(group, "rejected")}>Reject</button>
+            <button type="button" onClick={() => saveGroup(group, "proposed", group.baseSceneIds, "")}>Reset</button>
+          </div>
+        </section>
+      )) : <p className={styles.empty}>No scenes currently share enough canonical location and story-time data for a shoot-group proposal.</p>}
+    </div>
   );
 }
 

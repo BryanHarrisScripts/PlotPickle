@@ -89,34 +89,34 @@ test("registers the legal route and preserves ownership and server-use guidance"
   }
 });
 
-test("renders the Voiceprint Engine route", async () => {
+test("renders the Plan-owned Voiceprint route", async () => {
   const html = await render("/voiceprint");
-  assert.match(html, /Voiceprint Engine/);
+  assert.match(html, /Voiceprint Planner/);
   assert.match(html, /Project dialogue system/);
   assert.match(html, /Character-specific language/);
   assert.match(html, /Scene pressure reference/);
 });
 
-test("renders the PageFlow Engine route", async () => {
+test("renders the read-only PageFlow diagnostics route", async () => {
   const html = await render("/pageflow");
-  assert.match(html, /PageFlow Engine/);
-  assert.match(html, /Write the movie the reader can see/);
+  assert.match(html, /PageFlow Diagnostics/);
+  assert.match(html, /Read the current page evidence/);
   assert.match(html, /Revision signals/);
   assert.match(html, /Five-pass rewrite/);
 });
 
-test("renders the Resonance Engine route", async () => {
+test("renders the Resonance diagnostics route", async () => {
   const html = await render("/resonance");
-  assert.match(html, /Resonance Engine/);
+  assert.match(html, /Resonance Diagnostics/);
   assert.match(html, /Ask a question the story must earn/);
   assert.match(html, /Make this block carry part of the argument/);
   assert.match(html, /Evidence channels/);
   assert.match(html, /Restraint rule/);
 });
 
-test("renders the DraftLens Engine route", async () => {
+test("renders the DraftLens diagnostics route", async () => {
   const html = await render("/draftlens");
-  assert.match(html, /DraftLens Engine/);
+  assert.match(html, /DraftLens Diagnostics/);
   assert.match(html, /Record the experience before trying to repair it/);
   assert.match(html, /Six diagnostic lenses/);
   assert.match(html, /Separate the visible symptom from the root cause/);

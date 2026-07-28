@@ -18,7 +18,7 @@ test("main application exposes Refine as the connected Engines workspace", async
   assert.match(page, /setReportBuildTargetId\("mini-blocks"\)/);
   assert.match(page, /setActiveTab\("build"\)/);
   assert.ok(splash.includes("components.map"));
-  assert.ok(splash.includes("An open film-development platform."));
+  assert.ok(splash.includes("One story. Every workspace."));
 });
 
 test("Refine explains each diagnostic pass and routes edits to their owners", async () => {

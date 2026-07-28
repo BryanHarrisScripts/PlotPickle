@@ -41,14 +41,14 @@ test("renders the approved whole-film startup splash and preserves the local-fir
   for (const phrase of [
     "PlotPickle Playhouse",
     "Your whole film.",
-    "One canonical project.",
-    "Complete screenplay studio",
-    "81-module learning system",
-    "Visual continuity engine",
-    "Local-first ownership with optional AI",
-    "Distributed PlotPickle collaboration",
-    "An open film-development platform.",
-    "Complete installations. One approved film.",
+    "One open studio.",
+    "One story. Every workspace.",
+    "Three builds",
+    "Automatic comic-book pitch deck",
+    "Works without AI",
+    "No required cloud account",
+    "Open software. Open method. Your story.",
+    "Write the story. See the film. Keep it yours.",
   ]) {
     assert.ok(html.includes(phrase), "Rendered splash is missing: " + phrase);
   }
@@ -68,7 +68,8 @@ test("renders the approved whole-film startup splash and preserves the local-fir
   ]) {
     assert.ok(source.includes(phrase), "Root workspace source is missing: " + phrase);
   }
-  assert.match(splash, /Copyright & licensing/);
+  assert.match(splash, /OPEN_SOURCE_FOUNDATIONS\.map/);
+  assert.match(splash, /href="\/legal"/);
   assert.match(splash, /plotpickle-multi-server-collaboration\.svg/);
   assert.match(navigation, /id: "reports", label: "Reports", description: "Understand the screenplay", zone: "production"/);
   assert.ok(navigation.includes('{ id: "dashboard", label: "Dashboard"'));

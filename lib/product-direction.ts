@@ -1,34 +1,29 @@
 export const PLOTPICKLE_REPOSITORY_URL = "https://github.com/BryanHarrisScripts/PlotPickle";
 export const LEARNING_MODULE_COUNT = 81;
 
+export const PRIMARY_WORKFLOW_NAVIGATION = [
+  { id: "dashboard", label: "Dashboard", description: "Projects, collaboration and storage", zone: "discovery" },
+  { id: "learn", label: "Learn", description: "Study the craft, introduction and terminology", zone: "discovery" },
+  { id: "planner", label: "Plan", description: "Simple Start and story planning", zone: "discovery" },
+  { id: "visuals", label: "Storyboard", description: "See and preserve the film", zone: "discovery" },
+  { id: "script", label: "Write", description: "Outline and write", zone: "discovery" },
+  { id: "pitch", label: "Pitch", description: "Generate and review the complete comic-book pitch deck", zone: "discovery" },
+  { id: "build", label: "Build", description: "Arrange 24 Blocks and 96 mini-blocks", zone: "production" },
+  { id: "feedback", label: "Feedback", description: "Review notes, proposals and decisions", zone: "production" },
+  { id: "engines", label: "Refine", description: "Refine the story", zone: "production" },
+  { id: "reports", label: "Reports", description: "Understand the screenplay", zone: "production" },
+] as const;
+
 export const PRODUCT_NAVIGATION = [
-  { id: "dashboard", label: "Dashboard", description: "Projects, collaboration and storage", zone: "workflow" },
-  { id: "instructions", label: "Introduction", description: "Understand PlotPickle and choose where to begin", zone: "orientation" },
-  { id: "learn", label: "Learn", description: "Study the craft and terminology", zone: "workflow" },
-  { id: "planner", label: "Plan", description: "Simple Start and story planning", zone: "workflow" },
-  { id: "build", label: "Build", description: "Arrange 24 Blocks and 96 mini-blocks", zone: "workflow" },
-  { id: "script", label: "Write", description: "Outline and write", zone: "workflow" },
-  { id: "visuals", label: "Storyboard", description: "See and preserve the film", zone: "workflow" },
-  { id: "engines", label: "Refine", description: "Refine the story", zone: "workflow" },
-  { id: "feedback", label: "Feedback", description: "Review notes, proposals and decisions", zone: "workflow" },
-  { id: "reports", label: "Reports", description: "Understand the screenplay", zone: "workflow" },
-  { id: "settings", label: "Settings", description: "Preferences and Setup", zone: "configuration" },
+  ...PRIMARY_WORKFLOW_NAVIGATION,
+  { id: "settings", label: "Settings", description: "Workspace, integrations, storage and security", zone: "configuration" },
 ] as const;
 
-export type ProductNavigationId = (typeof PRODUCT_NAVIGATION)[number]["id"];
-export type ApplicationShellZone = "orientation" | "workflow" | "project-actions" | "configuration";
+export type PrimaryWorkflowNavigationId = (typeof PRIMARY_WORKFLOW_NAVIGATION)[number]["id"];
+export type ProductNavigationId = (typeof PRODUCT_NAVIGATION)[number]["id"] | "instructions";
+export type ApplicationShellZone = "discovery" | "production" | "project-actions" | "configuration";
 
-export const TARGET_CREATIVE_WORKFLOW = [
-  "Dashboard",
-  "Learn",
-  "Plan",
-  "Build",
-  "Write",
-  "Storyboard",
-  "Refine",
-  "Feedback",
-  "Reports",
-] as const;
+export const TARGET_CREATIVE_WORKFLOW = PRIMARY_WORKFLOW_NAVIGATION.map((item) => item.label);
 
 export const PROJECT_ACTIONS = [
   { id: "new-project", label: "New Project" },
@@ -38,8 +33,8 @@ export const PROJECT_ACTIONS = [
 ] as const;
 
 export const APPLICATION_SHELL_ZONES = [
-  { id: "orientation", label: "Orientation", items: ["PlotPickle", "Introduction"] },
-  { id: "workflow", label: "Creative workflow", items: TARGET_CREATIVE_WORKFLOW },
+  { id: "discovery", label: "Discovery & Pre-Production", items: PRIMARY_WORKFLOW_NAVIGATION.filter((item) => item.zone === "discovery").map((item) => item.label) },
+  { id: "production", label: "Production & Polishing", items: PRIMARY_WORKFLOW_NAVIGATION.filter((item) => item.zone === "production").map((item) => item.label) },
   { id: "project-actions", label: "Project actions", items: PROJECT_ACTIONS.map((action) => action.label) },
   { id: "configuration", label: "Application configuration", items: ["Settings"] },
 ] as const;

@@ -59,21 +59,18 @@ test("issue #180 loads packaged configuration before the existing GitHub gateway
 });
 
 test("issue #180 packages and loads the same configuration on every desktop platform", async () => {
-  const [packager, smoke, windows, macos, linux] = await Promise.all([
+  const [packager, smoke] = await Promise.all([
     source("scripts/package-platform.mjs"),
     source("scripts/package-smoke.mjs"),
-    source("Start-PlotPickle.bat"),
-    source("Start-PlotPickle.command"),
-    source("start-plotpickle.sh"),
   ]);
   assert.match(packager, /"config"/);
   assert.match(packager, /githubApp:/);
+  assert.match(packager, /PLOTPICKLE_GITHUB_APP_CONFIG=%CD%\\\\config\\\\github-app\.json/);
+  assert.match(packager, /\$PWD\/config\/github-app\.json/);
   assert.match(smoke, /config\/github-app\.json/);
   assert.match(smoke, /registrationStatus, "registered"/);
-  for (const launcher of [windows, macos, linux]) {
-    assert.match(launcher, /PLOTPICKLE_GITHUB_APP_CONFIG/);
-    assert.match(launcher, /config[\\/]github-app\.json/);
-  }
+  assert.match(smoke, /PLOTPICKLE_GITHUB_APP_CONFIG/);
+  assert.match(smoke, /config\[\\\\\/\]github-app/);
 });
 
 test("issue #180 provides one owner registration helper and user-facing release guidance", async () => {

@@ -10,8 +10,9 @@ import {
   voiceprintModuleFiles,
   type ModuleManifestEntry,
 } from "./project-modules";
-import { buildStoryDependencies } from "./story-dependencies";
+import { buildStoryDependencies, relationshipIndexFingerprint } from "./story-dependencies";
 import { buildCanonBinder } from "./canon-binder";
+import { migrateLegacyAssetReferences } from "./project-assets";
 
 export const PROJECT_FOLDER_FORMAT = "plotpickle-project" as const;
 export const PROJECT_FOLDER_VERSION = "2.3.0" as const;
@@ -67,6 +68,7 @@ export function projectFolderName(project: PlotPickleProject) {
 }
 
 export function createProjectFolder(project: PlotPickleProject, applicationVersion = "1.0.0-rc.3") {
+  project = normalizePlotPickleProject(project) ?? migrateLegacyAssetReferences(project);
   const imports = project.screenplay.importedAt ? [{
     id: `import-${project.id}`,
     type: project.screenplay.format,
@@ -88,7 +90,15 @@ export function createProjectFolder(project: PlotPickleProject, applicationVersi
     canon: { root: "canon/", policy: "approved-only", binder: "canon/binder.json", queryVersion: "1.0.0" },
     rights: { path: "canon/legal/rights.json" },
     imports,
-    extensions: { legacySchemaVersion: project.schemaVersion, modularArchitecture: "phase-7", dependencyEngine: "1.0.0", canonBinder: "1.0.0", exchangeFormat: "1.0.0" },
+    extensions: {
+      legacySchemaVersion: project.schemaVersion,
+      modularArchitecture: "phase-7",
+      dependencyEngine: "2.0.0",
+      relationshipIndex: "2.0.0",
+      assetIdentity: "1.0.0",
+      canonBinder: "1.0.0",
+      exchangeFormat: "1.0.0",
+    },
   };
 
   const characters = characterModuleFiles(project.characters);
@@ -116,6 +126,7 @@ export function createProjectFolder(project: PlotPickleProject, applicationVersi
     ...blocks.files,
     "96-blocks/index.json": miniBlocks.index,
     ...miniBlocks.files,
+    "assets/index.json": project.assets,
     "storyboard/index.json": { schemaVersion: MODULE_FORMAT_VERSION, frameCount: storyboardFrames.length, frames: storyboardFrames },
     "production/module.json": project.production,
     "research/index.json": { schemaVersion: MODULE_FORMAT_VERSION, notes: project.development.notes.research, sources: project.development.notes.sources, attachments: [] },
@@ -146,6 +157,21 @@ export function createProjectFolder(project: PlotPickleProject, applicationVersi
     "canon/timeline.json": { period: project.world.period, history: project.world.history, events: [] },
     "canon/glossary.json": { entries: [] },
     "canon/rights.json": project.rights,
+    "dependencies/index.json": {
+      version: dependencies.version,
+      generatedAt: dependencies.generatedAt,
+      projectId: dependencies.projectId,
+      fingerprint: relationshipIndexFingerprint(dependencies),
+      derived: true,
+      canonicalDataStoredHere: false,
+      files: {
+        graph: "dependencies/graph.json",
+        references: "dependencies/references.json",
+        reverseIndex: "dependencies/reverse-index.json",
+        conflicts: "dependencies/conflicts.json",
+        health: "dependencies/health.json",
+      },
+    },
     "dependencies/graph.json": dependencies.graph,
     "dependencies/references.json": dependencies.references,
     "dependencies/reverse-index.json": dependencies.reverseIndex,
@@ -199,6 +225,7 @@ export function parseProjectFolder(files: ProjectFolderFiles): PlotPickleProject
     blocks: arrayAt(files, "24-blocks/index.json"),
     review: files["review/module.json"],
     production: files["production/module.json"],
+    assets: files["assets/index.json"],
     revisions: files["reports/revisions.json"],
     collaboration: files["collaboration/module.json"],
     rights: files["canon/legal/rights.json"] ?? files["canon/rights.json"],

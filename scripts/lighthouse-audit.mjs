@@ -2,8 +2,9 @@
 
 import { spawnCommand } from "./spawn-command.mjs";
 import { createWriteStream } from "node:fs";
-import { access, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
+import os from "node:os";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -15,6 +16,8 @@ const HOST = "127.0.0.1";
 const DEFAULT_PORT = 4173;
 const LIGHTHOUSE_VERSION = "12.8.2";
 const PAGE_FILE = /^page\.(?:[cm]?[jt]sx?)$/;
+const ROUTE_TIMEOUT_MS = Number(process.env.PLOTPICKLE_LIGHTHOUSE_ROUTE_TIMEOUT_MS || 120_000);
+const TOTAL_TIMEOUT_MS = Number(process.env.PLOTPICKLE_LIGHTHOUSE_TOTAL_TIMEOUT_MS || 20 * 60_000);
 const SMOKE_AUDITS = [
   "http-status-code",
   "errors-in-console",
@@ -33,6 +36,10 @@ function timestamp() {
   return new Date().toISOString().replace(/[:.]/g, "-");
 }
 
+function delay(ms) {
+  return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
+}
+
 function slugFor(route) {
   if (route === "/") return "root";
   return route
@@ -47,7 +54,7 @@ async function walk(directory) {
   const files = [];
   for (const entry of entries) {
     const fullPath = join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...(await walk(fullPath)));
+    if (entry.isDirectory()) files.push(...await walk(fullPath));
     else if (PAGE_FILE.test(entry.name)) files.push(fullPath);
   }
   return files;
@@ -72,20 +79,72 @@ export async function discoverRoutes() {
   const unique = new Map(staticRoutes.map((item) => [item.route, item]));
   unique.set("/", unique.get("/") ?? { route: "/", source: "app/page.tsx" });
   unique.set("/?workspace=1", { route: "/?workspace=1", source: "main workspace audit variant" });
-
   return {
     staticRoutes: [...unique.values()].sort((a, b) => a.route.localeCompare(b.route)),
     dynamicRoutes: dynamicRoutes.sort((a, b) => a.route.localeCompare(b.route)),
   };
 }
 
+async function terminateProcessTree(child, label = "child process") {
+  if (!child?.pid || child.exitCode !== null || child.signalCode !== null) return;
+
+  if (process.platform === "win32") {
+    await new Promise((resolvePromise) => {
+      const killer = spawnCommand("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], {
+        cwd: ROOT,
+        windowsHide: true,
+        stdio: "ignore",
+      });
+      const timer = setTimeout(resolvePromise, 10_000);
+      killer.once("exit", () => { clearTimeout(timer); resolvePromise(); });
+      killer.once("error", () => { clearTimeout(timer); resolvePromise(); });
+    });
+  } else {
+    try { process.kill(-child.pid, "SIGTERM"); }
+    catch { try { child.kill("SIGTERM"); } catch {} }
+  }
+
+  const deadline = Date.now() + 5_000;
+  while (child.exitCode === null && child.signalCode === null && Date.now() < deadline) await delay(100);
+  if (child.exitCode === null && child.signalCode === null) {
+    try {
+      if (process.platform === "win32") {
+        spawnCommand("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], { cwd: ROOT, windowsHide: true, stdio: "ignore" });
+      } else {
+        process.kill(-child.pid, "SIGKILL");
+      }
+    } catch {}
+    console.warn(`${label} required forced termination.`);
+  }
+}
+
 function run(command, args, options = {}) {
+  const timeoutMs = options.timeoutMs ?? ROUTE_TIMEOUT_MS;
+  const { timeoutMs: _timeout, ...spawnOptions } = options;
   return new Promise((resolvePromise, reject) => {
-    const child = spawnCommand(command, args, { cwd: ROOT, stdio: options.stdio ?? "inherit", ...options });
-    child.once("error", reject);
+    const child = spawnCommand(command, args, {
+      cwd: ROOT,
+      stdio: spawnOptions.stdio ?? "inherit",
+      detached: process.platform !== "win32",
+      windowsHide: true,
+      ...spawnOptions,
+    });
+    let settled = false;
+    const finish = async (error, result) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (error) await terminateProcessTree(child, command);
+      if (error) reject(error);
+      else resolvePromise(result);
+    };
+    const timer = setTimeout(() => {
+      void finish(new Error(`${command} exceeded ${timeoutMs} ms.`));
+    }, timeoutMs);
+    child.once("error", (error) => { void finish(error); });
     child.once("exit", (code, signal) => {
-      if (code === 0) resolvePromise({ code, signal });
-      else reject(new Error(`${command} ${args.join(" ")} failed with ${signal ?? `exit ${code}`}`));
+      if (code === 0) void finish(null, { code, signal });
+      else void finish(new Error(`${command} ${args.join(" ")} failed with ${signal ?? `exit ${code}`}`));
     });
   });
 }
@@ -128,14 +187,14 @@ async function waitForServer(url, timeoutMs = 90_000) {
   let lastError;
   while (Date.now() < deadline) {
     try {
-      const response = await fetch(url, { redirect: "manual" });
+      const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(4_000) });
       if (response.status > 0) return;
     } catch (error) {
       lastError = error;
     }
-    await new Promise((resolvePromise) => setTimeout(resolvePromise, 500));
+    await delay(500);
   }
-  throw new Error(`Preview server did not become ready at ${url}: ${lastError?.message ?? "timeout"}`);
+  throw new Error(`Local server did not become ready at ${url}: ${lastError?.message ?? "timeout"}`);
 }
 
 async function choosePort(preferred = DEFAULT_PORT) {
@@ -147,13 +206,27 @@ async function choosePort(preferred = DEFAULT_PORT) {
     });
     if (available) return port;
   }
-  throw new Error("Could not find a free local preview port.");
+  throw new Error("Could not find a free local server port.");
 }
 
-function startPreview(port) {
-  return spawnCommand(commandForNpx(), ["--yes", "vite", "preview", "--host", HOST, "--port", String(port)], {
+function startLocalServer(port, temporaryHome) {
+  const viteEntry = join(ROOT, "node_modules", "vite", "bin", "vite.js");
+  return spawnCommand(process.execPath, [viteEntry, "--host", HOST, "--port", String(port), "--strictPort"], {
     cwd: ROOT,
+    detached: process.platform !== "win32",
+    windowsHide: true,
     stdio: ["ignore", "pipe", "pipe"],
+    env: {
+      ...process.env,
+      FORCE_COLOR: "0",
+      NODE_ENV: "development",
+      PLOTPICKLE_HOME: temporaryHome,
+      PLOTPICKLE_GITHUB_APP_CONFIG: join(ROOT, "config", "github-app.json"),
+      PLOTPICKLE_GOOGLE_OAUTH_CONFIG: join(ROOT, "config", "google-oauth.json"),
+      WRANGLER_WRITE_LOGS: "false",
+      WRANGLER_LOG_PATH: join(temporaryHome, "wrangler-logs"),
+      MINIFLARE_REGISTRY_PATH: join(temporaryHome, "wrangler-registry"),
+    },
   });
 }
 
@@ -166,11 +239,8 @@ function smokeResult(report, target, exitCode, consoleErrors) {
   const finalUrl = report.finalDisplayedUrl ?? report.finalUrl ?? target;
   const requestedOrigin = new URL(target).origin;
   let finalOrigin = "";
-  try {
-    finalOrigin = new URL(finalUrl).origin;
-  } catch {
-    failures.push("Lighthouse did not return a valid final URL.");
-  }
+  try { finalOrigin = new URL(finalUrl).origin; }
+  catch { failures.push("Lighthouse did not return a valid final URL."); }
 
   const documentRequests = requests.filter((item) => item?.resourceType === "Document");
   const successfulDocument = httpAudit?.score === 1
@@ -187,15 +257,7 @@ function smokeResult(report, target, exitCode, consoleErrors) {
   if (!consoleClean) failures.push(`The route produced ${consoleErrors.length} serious browser console error${consoleErrors.length === 1 ? "" : "s"}.`);
   if (browserErrorPage) failures.push("The route ended on a runtime, browser or cross-origin error page.");
 
-  return {
-    passed: failures.length === 0,
-    failures,
-    browserErrorPage,
-    documentTitle,
-    metaDescription,
-    successfulDocument,
-    consoleClean,
-  };
+  return { passed: failures.length === 0, failures, browserErrorPage, documentTitle, metaDescription, successfulDocument, consoleClean };
 }
 
 async function auditRoute({ baseUrl, route, mode, outputDirectory }) {
@@ -221,7 +283,7 @@ async function auditRoute({ baseUrl, route, mode, outputDirectory }) {
   let exitCode = 0;
   try {
     await waitForWritableOpen(log);
-    await run(commandForNpx(), args, { stdio: ["ignore", log, log] });
+    await run(commandForNpx(), args, { stdio: ["ignore", log, log], timeoutMs: ROUTE_TIMEOUT_MS });
   } catch (error) {
     exitCode = 1;
     if (!log.destroyed) log.write(`\n${error.stack ?? error.message}\n`);
@@ -296,19 +358,19 @@ async function auditRoute({ baseUrl, route, mode, outputDirectory }) {
 
 async function checkRequiredAssets(baseUrl) {
   const results = [];
-  for (const path of REQUIRED_ASSETS) {
+  for (const assetPath of REQUIRED_ASSETS) {
     try {
-      const response = await fetch(new URL(path, baseUrl), { redirect: "follow" });
+      const response = await fetch(new URL(assetPath, baseUrl), { redirect: "follow", signal: AbortSignal.timeout(5_000) });
       const body = await response.arrayBuffer();
       results.push({
-        path,
+        path: assetPath,
         status: response.status,
         contentType: response.headers.get("content-type") ?? "",
         bytes: body.byteLength,
         passed: response.ok && body.byteLength > 0,
       });
     } catch (error) {
-      results.push({ path, status: null, contentType: "", bytes: 0, passed: false, error: error.message });
+      results.push({ path: assetPath, status: null, contentType: "", bytes: 0, passed: false, error: error.message });
     }
   }
   return results;
@@ -316,12 +378,12 @@ async function checkRequiredAssets(baseUrl) {
 
 function summaryMarkdown(summary) {
   const lines = [
-    "# PlotPickle Lighthouse audit",
+    "# PlotPickle Lighthouse diagnostic",
     "",
     `Generated: ${summary.generatedAt}`,
     `Mode: ${summary.mode}`,
     `Base URL: ${summary.baseUrl}`,
-    `Smoke result: ${summary.smoke.passed ? "PASS" : "FAIL"}`,
+    `Diagnostic result: ${summary.smoke.passed ? "PASS" : "FAIL"}`,
     "",
     "| Route | Smoke | Status | Performance | Accessibility | Best Practices | SEO | Final URL |",
     "|---|---:|---:|---:|---:|---:|---:|---|",
@@ -332,14 +394,10 @@ function summaryMarkdown(summary) {
   }
   if (summary.smoke.routeFailures.length) {
     lines.push("", "## Route smoke failures", "");
-    for (const item of summary.smoke.routeFailures) {
-      lines.push(`- \`${item.route}\`: ${item.failures.join(" ")}`);
-    }
+    for (const item of summary.smoke.routeFailures) lines.push(`- \`${item.route}\`: ${item.failures.join(" ")}`);
   }
   lines.push("", "## Required metadata and brand assets", "");
-  for (const item of summary.requiredAssets) {
-    lines.push(`- ${item.passed ? "PASS" : "FAIL"} \`${item.path}\` — ${item.status ?? "request failed"}, ${item.bytes} bytes`);
-  }
+  for (const item of summary.requiredAssets) lines.push(`- ${item.passed ? "PASS" : "FAIL"} \`${item.path}\` — ${item.status ?? "request failed"}, ${item.bytes} bytes`);
   if (summary.dynamicRoutes.length) {
     lines.push("", "## Dynamic routes needing sample parameters", "");
     for (const item of summary.dynamicRoutes) lines.push(`- \`${item.route}\` — ${item.reason} (${item.source})`);
@@ -348,7 +406,7 @@ function summaryMarkdown(summary) {
     "",
     "## Interpretation",
     "",
-    "The smoke result is the release gate: the server starts, every supported static route returns a real document on the local origin, required title and description metadata are present, serious browser console errors are absent, and required brand assets load. Lighthouse category scores remain diagnostic and do not create arbitrary release thresholds.",
+    "Lighthouse is diagnostic evidence, not the packaged Windows release gate. The Windows interaction smoke exercises the extracted release package, screens and safe controls. Lighthouse category scores remain diagnostic and do not create arbitrary release thresholds.",
     "",
     "## Privacy",
     "",
@@ -357,15 +415,15 @@ function summaryMarkdown(summary) {
   return `${lines.join("\n")}\n`;
 }
 
-async function runMode(mode, reportDirectory) {
+async function runMode(mode, reportDirectory, temporaryHome) {
   const outputDirectory = join(reportDirectory, mode);
   await mkdir(outputDirectory, { recursive: true });
   const inventory = await discoverRoutes();
   const port = await choosePort();
   const baseUrl = `http://${HOST}:${port}`;
-  const preview = startPreview(port);
-  preview.stdout.on("data", (chunk) => process.stdout.write(`[preview] ${chunk}`));
-  preview.stderr.on("data", (chunk) => process.stderr.write(`[preview] ${chunk}`));
+  const preview = startLocalServer(port, temporaryHome);
+  preview.stdout.on("data", (chunk) => process.stdout.write(`[local] ${chunk}`));
+  preview.stderr.on("data", (chunk) => process.stderr.write(`[local] ${chunk}`));
 
   try {
     await waitForServer(baseUrl);
@@ -375,9 +433,7 @@ async function runMode(mode, reportDirectory) {
       results.push(await auditRoute({ baseUrl, route: item.route, mode, outputDirectory }));
     }
     const requiredAssets = await checkRequiredAssets(baseUrl);
-    const routeFailures = results
-      .filter((item) => !item.smoke.passed)
-      .map((item) => ({ route: item.route, failures: item.smoke.failures }));
+    const routeFailures = results.filter((item) => !item.smoke.passed).map((item) => ({ route: item.route, failures: item.smoke.failures }));
     const assetFailures = requiredAssets.filter((item) => !item.passed).map((item) => item.path);
     const summary = {
       generatedAt: new Date().toISOString(),
@@ -387,26 +443,22 @@ async function runMode(mode, reportDirectory) {
       dynamicRoutes: inventory.dynamicRoutes,
       requiredAssets,
       results,
-      smoke: {
-        passed: routeFailures.length === 0 && assetFailures.length === 0,
-        routeFailures,
-        assetFailures,
-      },
+      smoke: { passed: routeFailures.length === 0 && assetFailures.length === 0, routeFailures, assetFailures },
     };
     await writeFile(join(outputDirectory, "summary.json"), `${JSON.stringify(summary, null, 2)}\n`);
     await writeFile(join(outputDirectory, "summary.md"), summaryMarkdown(summary));
     return summary;
   } finally {
-    preview.kill("SIGTERM");
+    await terminateProcessTree(preview, "PlotPickle local server");
   }
 }
 
 async function zipDirectory(directory) {
   const zipPath = `${directory}.zip`;
   if (process.platform === "win32") {
-    await run("powershell.exe", ["-NoProfile", "-Command", `Compress-Archive -Path '${directory}\\*' -DestinationPath '${zipPath}' -Force`]);
+    await run("powershell.exe", ["-NoProfile", "-Command", `Compress-Archive -Path '${directory}\\*' -DestinationPath '${zipPath}' -Force`], { timeoutMs: 120_000 });
   } else {
-    await run("zip", ["-r", zipPath, basename(directory)], { cwd: dirname(directory) });
+    await run("zip", ["-r", zipPath, basename(directory)], { cwd: dirname(directory), timeoutMs: 120_000 });
   }
   console.log(`Upload this file for review: ${zipPath}`);
   return zipPath;
@@ -427,31 +479,41 @@ async function main() {
   const command = process.argv[2] ?? "smoke";
   if (command === "zip") return zipLatest();
   const reportDirectory = join(REPORT_ROOT, timestamp());
+  const temporaryHome = await mkdtemp(join(os.tmpdir(), "plotpickle-lighthouse-"));
   await mkdir(reportDirectory, { recursive: true });
-  if (process.env.PLOTPICKLE_LIGHTHOUSE_SKIP_BUILD === "1") {
-    console.log("Using the build already verified by CI.");
-  } else {
-    console.log("Building PlotPickle once before the Lighthouse audit…");
-    await run(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "build"]);
-  }
 
-  const summaries = [];
-  if (command === "smoke" || command === "desktop" || command === "mobile") {
-    summaries.push(await runMode(command, reportDirectory));
-  } else if (command === "all") {
-    summaries.push(await runMode("desktop", reportDirectory));
-    summaries.push(await runMode("mobile", reportDirectory));
-  } else {
-    throw new Error(`Unknown audit mode: ${command}`);
-  }
+  const watchdog = setTimeout(() => {
+    console.error(`Lighthouse exceeded its total timeout of ${TOTAL_TIMEOUT_MS} ms.`);
+    process.exit(124);
+  }, TOTAL_TIMEOUT_MS);
 
-  await writeFile(join(REPORT_ROOT, "latest.txt"), `${reportDirectory}\n`);
-  await zipDirectory(reportDirectory);
-  const failures = summaries.filter((summary) => !summary.smoke.passed);
-  if (failures.length) {
-    throw new Error(`Lighthouse smoke failed in ${failures.map((summary) => summary.mode).join(", ")} mode. Review ${reportDirectory}.`);
+  try {
+    if (process.env.PLOTPICKLE_LIGHTHOUSE_SKIP_BUILD === "1") {
+      console.log("Using the build already verified by CI.");
+    } else {
+      console.log("Building PlotPickle once before the Lighthouse audit…");
+      await run(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "build"], { timeoutMs: 10 * 60_000 });
+    }
+
+    const summaries = [];
+    if (command === "smoke" || command === "desktop" || command === "mobile") {
+      summaries.push(await runMode(command, reportDirectory, temporaryHome));
+    } else if (command === "all") {
+      summaries.push(await runMode("desktop", reportDirectory, temporaryHome));
+      summaries.push(await runMode("mobile", reportDirectory, temporaryHome));
+    } else {
+      throw new Error(`Unknown audit mode: ${command}`);
+    }
+
+    await writeFile(join(REPORT_ROOT, "latest.txt"), `${reportDirectory}\n`);
+    await zipDirectory(reportDirectory);
+    const failures = summaries.filter((summary) => !summary.smoke.passed);
+    if (failures.length) throw new Error(`Lighthouse smoke failed in ${failures.map((summary) => summary.mode).join(", ")} mode. Review ${reportDirectory}.`);
+    console.log(`Lighthouse smoke passed: ${reportDirectory}`);
+  } finally {
+    clearTimeout(watchdog);
+    await rm(temporaryHome, { recursive: true, force: true });
   }
-  console.log(`Lighthouse smoke passed: ${reportDirectory}`);
 }
 
 main().catch((error) => {

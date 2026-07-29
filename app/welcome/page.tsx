@@ -16,7 +16,7 @@ const RECENTS_KEY = "plotpickle.recent-projects.v1";
 
 type RecentProject = { id: string; title: string; updatedAt: string; stage: string };
 
-const pathway = ["Idea", "Story Setup", "Characters & World", "24 Blocks", "96 Mini-Blocks", "Treatment", "Screenplay", "Revision", "Visuals", "Production & Export"];
+const pathway = ["Idea", "Story Logic", "Characters & World", "24 Blocks", "96 Mini-Blocks", "Screenplay", "Whole Film", "Storyboard", "Production Shots", "Animatic & Pitch"];
 
 const collaborationServers = [
   { installation: "Local PlotPickle", label: "Writer workstation", roles: ["Writer", "Director"] },
@@ -71,8 +71,8 @@ export default function WelcomePage() {
       <header className={styles.hero}>
         <div className={styles.brand}>PlotPickle</div>
         <p className={styles.eyebrow}>Simple Start · optional guided entry</p>
-        <h1>A complete screenplay studio that stays under the writer&apos;s control.</h1>
-        <p className={styles.lede}>Move from an initial idea through characters, world, 24 Blocks, 96 mini-blocks, treatment, screenplay, revision, visuals and production planning in one project. Work locally, use AI only when you choose, and collaborate through an owner-controlled GitHub film repository.</p>
+        <h1>A visual storyworld for seeing the movie before full production.</h1>
+        <p className={styles.lede}>PlotPickle is a visual storyworld and AI previsualization engine that connects story logic, canon, characters, screenplay material, visuals, shots and sound in one portable PPF project. Build with the visual tools available now, work toward a watchable prototype and keep every canonical decision under project-owner control.</p>
         <a className={styles.repositoryLink} href={PLOTPICKLE_REPOSITORY_URL} target="_blank" rel="noreferrer">
           <GitHubMark />
           <span>Official PlotPickle GitHub repository</span>
@@ -98,7 +98,7 @@ export default function WelcomePage() {
       </section>
 
       <section className={styles.pathSection}>
-        <h2>From first idea to finished screenplay</h2>
+        <h2>From first idea to visual prototype</h2>
         <div className={styles.path}>{pathway.map((step, index) => <span key={step}>{step}{index < pathway.length - 1 ? <b aria-hidden="true">→</b> : null}</span>)}</div>
       </section>
 

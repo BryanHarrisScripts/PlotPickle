@@ -8,6 +8,10 @@ on:
     tags:
       - "v*"
 
+concurrency:
+  group: plotpickle-release-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -90,22 +94,28 @@ jobs:
           }
           node scripts/windows-runtime.mjs verify-modules node_modules
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Start clean-machine Windows server
+      - name: Run packaged Windows interaction smoke
         if: matrix.platform == 'windows'
         shell: pwsh
+        env:
+          PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS: "480000"
+          PLOTPICKLE_SMOKE_ACTION_TIMEOUT_MS: "15000"
+          PLOTPICKLE_SMOKE_MAX_STATES: "180"
+          PLOTPICKLE_SMOKE_MAX_ACTIONS: "650"
+          PLOTPICKLE_SMOKE_MAX_DEPTH: "6"
         run: |
           $packageRoot = Join-Path (Join-Path $env:RUNNER_TEMP "plotpickle-clean") "${{ matrix.folder }}"
           Set-Location $packageRoot
-          node scripts/windows-server-smoke.mjs .
+          node scripts/windows-interaction-smoke.mjs . reports/windows-interaction-smoke
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Upload Windows server diagnostic
+      - name: Upload Windows interaction evidence
         if: always() && matrix.platform == 'windows'
         uses: actions/upload-artifact@v4
         with:
-          name: plotpickle-windows-server-smoke-${{ github.sha }}
-          path: ${{ runner.temp }}/plotpickle-clean/${{ matrix.folder }}/windows-server-smoke.log
+          name: plotpickle-windows-interaction-smoke-${{ github.sha }}
+          path: ${{ runner.temp }}/plotpickle-clean/${{ matrix.folder }}/reports/windows-interaction-smoke/
           if-no-files-found: warn
-          retention-days: 7
+          retention-days: 14
       - name: Clean-machine extraction and dependency test (macOS and Linux)
         if: matrix.platform != 'windows'
         shell: bash

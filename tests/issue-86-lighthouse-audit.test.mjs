@@ -89,6 +89,11 @@ test("issue #86 provides smoke by default and optional full desktop or mobile re
   assert.match(audit, /await rm\(candidate, \{ force: true \}\)/);
   assert.match(audit, /No story project was sent to a remote audit service/);
   assert.match(audit, /await zipDirectory\(reportDirectory\)/);
+  const auditRoute = audit.slice(
+    audit.indexOf("async function auditRoute"),
+    audit.indexOf("async function checkRequiredAssets"),
+  );
+  assert.match(auditRoute, /const requests = report\.audits\?\.\["network-requests"\]/);
 });
 
 test("issue #86 keeps font assets portable across local and built servers", async () => {

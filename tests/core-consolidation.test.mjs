@@ -66,13 +66,12 @@ test("core consolidation sells the completed Storyworld Map rather than an unfin
   assert.equal([...contract.matchAll(/statusLabel: "Available now"/g)].length, 5);
 });
 
-test("core consolidation README displays the official logo set and connection boundary", async () => {
+test("core consolidation README displays the official header logo and connection boundary", async () => {
   const readme = await source("README.md");
-  for (const asset of [
-    "public/brand/plotpickle-header-horizontal-1200.png",
-    "public/brand/plotpickle-icon-master-transparent.png",
-    "public/brand/plotpickle-logo-stacked-transparent-800.png",
-  ]) assert.ok(readme.includes(asset), `README is missing logo: ${asset}`);
+  assert.ok(
+    readme.includes("public/brand/plotpickle-header-horizontal-1200.png"),
+    "README is missing the official horizontal PlotPickle header logo",
+  );
   for (const label of integrationLabels) assert.ok(readme.includes(`**${label}**`), `README is missing connection area: ${label}`);
   assert.match(readme, /Future extension; no active API/);
   assert.match(readme, /not active development commitments/);

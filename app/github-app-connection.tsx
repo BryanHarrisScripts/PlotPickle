@@ -389,12 +389,12 @@ export default function GitHubAppConnection({
       </div>
 
       {!status.configured ? (
-        <div className={styles.appUnavailable}>
+        <div key="github-app-unavailable" className={styles.appUnavailable}>
           <strong>The PlotPickle GitHub App is not configured in this build.</strong>
           <p>Set <code>PLOTPICKLE_GITHUB_APP_CLIENT_ID</code> on the local server after registering the app. Fine-grained-token setup remains available under Advanced Setup below.</p>
         </div>
       ) : !status.authenticated ? (
-        <div className={styles.appStart}>
+        <div key="github-app-sign-in" className={styles.appStart}>
           {device ? (
             <div className={styles.deviceCard}>
               <span>Enter this code at GitHub</span>
@@ -413,7 +413,7 @@ export default function GitHubAppConnection({
           <p className={styles.credentialNote}>GitHub shows the repositories and permissions being granted. PlotPickle stores the resulting short-lived access and refresh credentials in its encrypted local credentials folder.</p>
         </div>
       ) : (
-        <div className={styles.repositoryPicker}>
+        <div key="github-app-repositories" className={styles.repositoryPicker}>
           <div className={styles.accountCard}>
             {status.identity?.avatarUrl ? <img src={status.identity.avatarUrl} alt="" /> : null}
             <div><span>Signed in as</span><strong>{status.identity?.name || status.identity?.login}</strong><small>@{status.identity?.login}</small></div>

@@ -60,12 +60,12 @@ test("issue #182 keeps provider setup in Settings and uses split GitHub surfaces
   ]);
   assert.match(settings, /surface="configuration"/);
   assert.match(workspace, /surface="approvals"/);
-  assert.match(settings, /Account, repository, permissions and recovery configuration/);
+  assert.match(settings, /GitHub is the supported optional repository connection/);
   assert.match(settings, /Sign in with Google/);
   assert.match(settings, /Disconnect and revoke/);
   assert.match(workspace, /Open \{status\.label\} settings/);
   assert.match(workspace, /Settings → GitHub/);
-  assert.match(workspace, /Settings → Google Services/);
+  assert.match(workspace, /Settings → Scheduling & Meetings/);
   assert.doesNotMatch(workspace, /Sign in with Google|Connect GitHub Account|fine-grained GitHub token/);
   assert.match(collaboration, /"configuration" \| "approvals"/);
   assert.match(base, /showConfiguration/);
@@ -86,7 +86,7 @@ test("issue #182 keeps Google setup in Settings while later phases isolate Calen
   assert.match(calendarUi, /\/api\/local-google\/calendar/);
   assert.match(meetUi, /\/api\/local-google\/meet/);
   assert.doesNotMatch(`${calendarUi}\n${meetUi}`, /googleapis\.com|accounts\.google\.com/);
-  assert.match(status, /Google sign-in, Calendar and Meet are optional and disconnected/);
+  assert.match(status, /Scheduling and meetings are optional and disconnected/);
   assert.match(status, /NonSensitiveMeetingMetadata/);
 });
 

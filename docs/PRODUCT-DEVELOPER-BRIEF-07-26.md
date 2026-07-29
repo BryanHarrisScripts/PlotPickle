@@ -2,11 +2,25 @@
 
 ## Purpose
 
-This brief defines the expanded PlotPickle product direction and the implementation rules that govern Issues #110–#124.
+This brief defines the expanded PlotPickle product direction and the implementation rules established for Issues #110–#124. Roadmap #192 and Phase 0 Issue #193 add the visual storyworld-to-prototype direction below without replacing those reuse, navigation, ownership or safety rules.
 
-PlotPickle should become a clear, local-first screenwriting and production-planning environment that helps a writer move from learning and planning through story construction, screenplay writing, visual development, refinement, feedback, reporting, rehearsal and production preparation.
+PlotPickle is a local-first visual storyworld and AI previsualization engine. It connects story logic, canon, characters, visuals, shots and sound in one portable PPF project, then helps approved material grow toward a watchable prototype that supports a green-light decision.
 
-The product must remain understandable to a new writer, useful to an experienced writer, and safe for existing projects.
+The product must remain understandable to a new writer, useful to an experienced writer and visual-development team, and safe for existing projects.
+
+PlotPickle does not aim to replace Final Draft or a studio production and finishing pipeline. Screenplay features should support story structure, logic and visualization rather than pursue full professional screenplay-editor parity.
+
+### Visual storyworld-to-prototype loop
+
+1. PPF remains the portable creative source of truth.
+2. Whole Film is upgraded into the definitive Storyworld Map.
+3. Graphic Novel, Storyboard and Production Shots share provider-neutral rendering.
+4. Generated images, clips and approved variations return to stable PPF assets with continuity and provenance.
+5. Animatic, Pitch and Reports extend into the watchable prototype and green-light package.
+
+This is a conversion-first roadmap. Existing visual tools are extended and generalized; no persistent second story graph, parallel renderer or replacement prototype player should be created.
+
+Available capabilities and roadmap conversions must always be labelled separately. Until the later phases are complete, PlotPickle must not claim that it can render a complete movie.
 
 ---
 

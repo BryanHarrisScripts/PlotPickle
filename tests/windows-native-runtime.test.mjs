@@ -94,17 +94,19 @@ test("Windows server smoke uses Node directly and saves startup diagnostics", as
   assert.doesNotMatch(smoke, /Start-Process|Invoke-WebRequest/);
 });
 
-test("Windows release validation repairs the binding and runs the captured server smoke", async () => {
+test("Windows release validation repairs the binding and runs the packaged interaction smoke", async () => {
   const workflow = await source(".github/workflows/release-candidate.yml");
   for (const contract of [
     'node: "24.15.0"',
     "Verify or repair Windows Rolldown native binding",
     "windows-runtime.mjs verify-modules node_modules",
     "windows-runtime.mjs repair-native node_modules",
-    "Start clean-machine Windows server",
-    "windows-server-smoke.mjs .",
-    "Upload Windows server diagnostic",
-    "windows-server-smoke.log",
+    "Run packaged Windows interaction smoke",
+    "windows-interaction-smoke.mjs . reports/windows-interaction-smoke",
+    "Upload Windows interaction evidence",
+    "plotpickle-windows-interaction-smoke-",
+    "reports/windows-interaction-smoke/",
+    "PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS",
   ]) assert.ok(workflow.includes(contract), `Windows release validation is missing: ${contract}`);
 });
 

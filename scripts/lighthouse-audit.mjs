@@ -2,7 +2,7 @@
 
 import { spawnCommand } from "./spawn-command.mjs";
 import { createWriteStream } from "node:fs";
-import { access, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { access, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import process from "node:process";
@@ -150,8 +150,8 @@ async function choosePort(preferred = DEFAULT_PORT) {
   throw new Error("Could not find a free local preview port.");
 }
 
-function startPreview(port) {
-  return spawnCommand(commandForNpx(), ["--yes", "vite", "preview", "--host", HOST, "--port", String(port)], {
+function startLocalServer(port) {
+  return spawnCommand(commandForNpx(), ["--yes", "vite", "--host", HOST, "--port", String(port)], {
     cwd: ROOT,
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -211,9 +211,9 @@ async function auditRoute({ baseUrl, route, mode, outputDirectory }) {
     "--quiet",
     "--chrome-flags=--headless --no-sandbox --disable-gpu",
     "--output=json",
-    "--output=html",
     `--output-path=${join(outputDirectory, slug)}`,
   ];
+  if (mode !== "smoke") args.push("--output=html");
   if (mode === "desktop" || mode === "smoke") args.push("--preset=desktop");
   if (mode === "smoke") args.push(`--only-audits=${SMOKE_AUDITS.join(",")}`);
 
@@ -251,14 +251,19 @@ async function auditRoute({ baseUrl, route, mode, outputDirectory }) {
       .map((audit) => ({ id: audit.id, title: audit.title, impact: "failed-accessibility-audit" }));
     const consoleErrors = report.audits?.["errors-in-console"]?.details?.items ?? [];
     const finalUrl = report.finalDisplayedUrl ?? report.finalUrl ?? target;
-
-    return {
+    const smoke = smokeResult(report, target, exitCode, consoleErrors);
+    const result = {
       route,
       requestedUrl: target,
       finalUrl,
       status: exitCode === 0 ? "audited" : "audited-with-command-error",
-      smoke: smokeResult(report, target, exitCode, consoleErrors),
-      scores: {
+      smoke,
+      scores: mode === "smoke" ? {
+        performance: null,
+        accessibility: null,
+        bestPractices: null,
+        seo: null,
+      } : {
         performance: categories.performance?.score ?? null,
         accessibility: categories.accessibility?.score ?? null,
         bestPractices: categories["best-practices"]?.score ?? null,
@@ -267,8 +272,43 @@ async function auditRoute({ baseUrl, route, mode, outputDirectory }) {
       failedAudits,
       seriousAccessibility,
       consoleErrors,
-      files: { json: basename(jsonPath), html: basename(htmlPath), log: basename(logPath) },
+      files: mode === "smoke"
+        ? { json: basename(jsonPath), log: basename(logPath) }
+        : { json: basename(jsonPath), html: basename(htmlPath), log: basename(logPath) },
     };
+    if (mode === "smoke") {
+      const auditEvidence = Object.fromEntries(SMOKE_AUDITS.map((id) => {
+        const audit = report.audits?.[id];
+        return [id, {
+          id,
+          title: audit?.title ?? id,
+          score: audit?.score ?? null,
+          displayValue: audit?.displayValue ?? "",
+        }];
+      }));
+      const failedNetworkRequests = requests
+        .filter((item) => Number(item?.statusCode) >= 400)
+        .map((item) => ({
+          url: item.url ?? "",
+          statusCode: Number(item.statusCode),
+          resourceType: item.resourceType ?? "",
+        }));
+      await writeFile(jsonPath, `${JSON.stringify({
+        lighthouseVersion: report.lighthouseVersion ?? "",
+        fetchTime: report.fetchTime ?? "",
+        route,
+        requestedUrl: target,
+        finalUrl,
+        smoke,
+        audits: auditEvidence,
+        consoleErrors,
+        failedNetworkRequests,
+      }, null, 2)}\n`);
+      for (const candidate of [...possibleJson, ...possibleHtml]) {
+        if (candidate !== jsonPath) await rm(candidate, { force: true });
+      }
+    }
+    return result;
   } catch (error) {
     return {
       route,
@@ -363,9 +403,9 @@ async function runMode(mode, reportDirectory) {
   const inventory = await discoverRoutes();
   const port = await choosePort();
   const baseUrl = `http://${HOST}:${port}`;
-  const preview = startPreview(port);
-  preview.stdout.on("data", (chunk) => process.stdout.write(`[preview] ${chunk}`));
-  preview.stderr.on("data", (chunk) => process.stderr.write(`[preview] ${chunk}`));
+  const localServer = startLocalServer(port);
+  localServer.stdout.on("data", (chunk) => process.stdout.write(`[local-server] ${chunk}`));
+  localServer.stderr.on("data", (chunk) => process.stderr.write(`[local-server] ${chunk}`));
 
   try {
     await waitForServer(baseUrl);
@@ -397,7 +437,7 @@ async function runMode(mode, reportDirectory) {
     await writeFile(join(outputDirectory, "summary.md"), summaryMarkdown(summary));
     return summary;
   } finally {
-    preview.kill("SIGTERM");
+    localServer.kill("SIGTERM");
   }
 }
 

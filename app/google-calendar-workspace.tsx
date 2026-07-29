@@ -71,7 +71,7 @@ export default function GoogleCalendarWorkspace({
     }
   }, [connected, project.id]);
 
-  // Defer the initial refresh so state updates originate from the timer callback, not synchronously from the effect body.
+  // Schedule the initial refresh outside the effect body so React state updates are deferred.
   useEffect(() => {
     const refreshTimer = window.setTimeout(() => { void load(); }, 0);
     return () => window.clearTimeout(refreshTimer);

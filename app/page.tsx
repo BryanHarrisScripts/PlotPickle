@@ -52,7 +52,9 @@ import type { ConsolidatedReportSection, ReportTarget } from "@/lib/consolidated
 import type { ProductionReportSection } from "@/lib/production-reports";
 import type { FeedbackTargetReference } from "@/lib/unified-feedback";
 import { reportsRuntimeConnections } from "@/lib/connection-status";
+import { AFTERGLOW_PROJECT_ID } from "@/lib/afterglow-persistence";
 import { useConnectionStatus } from "./use-connection-status";
+import { useAfterglowPersistence } from "./use-afterglow-persistence";
 
 const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
@@ -338,6 +340,7 @@ export default function Home() {
   const [showLanding, setShowLanding] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const connectionState = useConnectionStatus(project, saveState);
+  const afterglowPersistence = useAfterglowPersistence(project.id);
   const reportConnections = useMemo(
     () => reportsRuntimeConnections(connectionState.snapshot),
     [connectionState.snapshot],
@@ -375,6 +378,20 @@ export default function Home() {
     }, 300);
     return () => window.clearTimeout(timer);
   }, [project, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated || !afterglowPersistence.enabled || project.id !== AFTERGLOW_PROJECT_ID) return;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void afterglowPersistence.save(project).then((saved) => {
+        if (saved && !cancelled) setSaveState("Saved in persistent Afterglow project folder");
+      });
+    }, 900);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [afterglowPersistence.enabled, afterglowPersistence.save, hydrated, project]);
 
   useEffect(() => {
     if (!toast) return;
@@ -473,17 +490,55 @@ export default function Home() {
     setToast("A blank feature screenplay is ready. Begin with Story Setup, then build the 24 Blocks and 96 mini-blocks.");
   }
 
-  function loadAfterglow() {
+  async function loadAfterglow() {
     if (completion > 0 && project.id !== "afterglow-echoes-of-sentience" && !window.confirm("Replace the current project with the Afterglow example? Export first if you want a backup.")) return;
-    const afterglow = createAfterglowProject();
-    setSaveState("Saving…");
-    setProject(afterglow);
-    setSelectedCharacterId("ren");
-    setSelectedBlockNumber(1);
-    setSelectedMiniBlockNumber(1);
-    setActiveTab("planner");
-    setActiveSection("overview");
-    setToast("Afterglow loaded across the Story Planner, all 96 Treatment positions, and Visual Storyboard context. Unreconciled material is clearly marked.");
+    setSaveState(afterglowPersistence.enabled ? "Opening persistent Afterglow project…" : "Saving…");
+    try {
+      const persistent = await afterglowPersistence.load();
+      const candidate = persistent ? normalizePlotPickleProject(persistent.project) : createAfterglowProject();
+      if (!candidate) throw new Error("The saved Afterglow project could not be normalized and was not opened.");
+      const afterglow = synchronizeScreenplaySceneReferences(candidate, candidate.blocks);
+      setProject(afterglow);
+      setSelectedCharacterId("ren");
+      setSelectedBlockNumber(1);
+      setSelectedMiniBlockNumber(1);
+      setActiveTab("planner");
+      setActiveSection("overview");
+      setSaveState(persistent ? "Saved in persistent Afterglow project folder" : "Saving…");
+      setToast(persistent?.message || "Afterglow loaded across the Story Planner, all 96 Treatment positions, and Visual Storyboard context. Unreconciled material is clearly marked.");
+    } catch (error) {
+      setSaveState("Saved on this device");
+      setToast(error instanceof Error ? error.message : "Afterglow could not be loaded.");
+    }
+  }
+
+  async function toggleAfterglowGitHub(enabled: boolean) {
+    let target = project;
+    if (enabled && project.id !== AFTERGLOW_PROJECT_ID) {
+      if (completion > 0 && !window.confirm("Replace the current project with Afterglow and connect its GitHub repository? Export first if you want a backup.")) return;
+      target = createAfterglowProject();
+    }
+    setSaveState(enabled ? "Connecting Afterglow repository…" : "Returning Afterglow to local loading…");
+    try {
+      const next = enabled
+        ? await afterglowPersistence.enable(target)
+        : await afterglowPersistence.disable(project);
+      setProject(next);
+      if (enabled) {
+        setSelectedCharacterId("ren");
+        setSelectedBlockNumber(1);
+        setSelectedMiniBlockNumber(1);
+        setActiveSection("overview");
+      }
+      setSaveState(enabled ? "Saved in persistent Afterglow project folder" : "Saved on this device");
+      setToast(enabled
+        ? "Afterglow GitHub repository connected. Local edits are persistent; repository pull and publish remain reviewed actions."
+        : "Afterglow returned to local loading mode. Its persistent project and backups were kept.");
+      await connectionState.refresh();
+    } catch (error) {
+      setSaveState("Saved on this device");
+      setToast(error instanceof Error ? error.message : "The Afterglow persistence setting could not be changed.");
+    }
   }
 
   function exportProject() {
@@ -716,11 +771,16 @@ export default function Home() {
             saveState={saveState}
             settings={connectionState.settings}
             connectionStatus={connectionState.snapshot}
+            afterglow={afterglowPersistence.dashboard}
+            afterglowWorking={afterglowPersistence.working}
+            afterglowMessage={afterglowPersistence.message}
             onNavigate={(workspace, section) => {
               setActiveTab(workspace);
               if (workspace === "planner" && section) setActiveSection(section as StorySection);
             }}
             onOpenBlock={(number) => openBlock(number, "planner")}
+            onLoadAfterglow={() => { void loadAfterglow(); }}
+            onToggleAfterglowGitHub={(enabled) => { void toggleAfterglowGitHub(enabled); }}
           />
         ) : null}
 

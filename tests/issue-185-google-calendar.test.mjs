@@ -74,3 +74,18 @@ test("issue #185 returns only sanitized event metadata", async () => {
   ]) assert.ok(calendar.includes(field), `Sanitized event result is missing: ${field}`);
   assert.doesNotMatch(calendar, /return\s+connection|refreshToken/);
 });
+
+test("issue #185 exposes Calendar CRUD in Collab while keeping Meet isolated", async () => {
+  const [workspace, calendarUi] = await Promise.all([
+    source("app/collab-workspace.tsx"),
+    source("app/google-calendar-workspace.tsx"),
+  ]);
+  assert.match(workspace, /GoogleCalendarWorkspace/);
+  assert.match(workspace, /Meet is the next isolated step/);
+  assert.match(calendarUi, /api\/local-google\/calendar/);
+  assert.match(calendarUi, /method: existing \? "PUT" : "POST"/);
+  assert.match(calendarUi, /method: "DELETE"/);
+  assert.match(calendarUi, /does not import the complete personal calendar/);
+  assert.match(calendarUi, /only sanitized event metadata reaches this screen/);
+  assert.doesNotMatch(calendarUi, /conferenceData|hangoutLink|meet\.google/);
+});

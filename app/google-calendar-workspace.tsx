@@ -71,7 +71,10 @@ export default function GoogleCalendarWorkspace({
     }
   }, [connected, project.id]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const refreshTimer = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(refreshTimer);
+  }, [load]);
 
   async function save(event: FormEvent) {
     event.preventDefault();

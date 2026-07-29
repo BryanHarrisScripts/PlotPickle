@@ -231,6 +231,7 @@ export type NonSensitiveMeetingMetadata = {
   endsAt: string;
   meetUrl: string;
   calendarEventId: string;
+  status: "none" | "pending" | "success" | "failure";
 };
 
 export function sanitizeMeetingMetadata(value: Partial<NonSensitiveMeetingMetadata>): NonSensitiveMeetingMetadata {
@@ -242,5 +243,6 @@ export function sanitizeMeetingMetadata(value: Partial<NonSensitiveMeetingMetada
     endsAt: clean(value.endsAt, 40),
     meetUrl: clean(value.meetUrl, 500),
     calendarEventId: clean(value.calendarEventId, 180),
+    status: value.status === "pending" || value.status === "success" || value.status === "failure" ? value.status : "none",
   };
 }

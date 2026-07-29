@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 import {
+  attachMeetConference,
   cancelCalendarEvent,
   createCalendarEvent,
   listCalendarEvents,
@@ -8,6 +9,7 @@ import {
 } from "./google-calendar";
 
 const CALENDAR_API = "/api/local-google/calendar";
+const MEET_API = "/api/local-google/meet";
 
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
@@ -41,14 +43,14 @@ async function readBody(request: IncomingMessage, maximum = 48 * 1024): Promise<
   for await (const chunk of request) {
     const value = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     length += value.length;
-    if (length > maximum) throw new Error("The Calendar request is too large.");
+    if (length > maximum) throw new Error("The Google Calendar or Meet request is too large.");
     chunks.push(value);
   }
   return JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
 }
 
 function safeError(error: unknown) {
-  const message = error instanceof Error ? error.message : "The Calendar operation failed.";
+  const message = error instanceof Error ? error.message : "The Google Calendar or Meet operation failed.";
   return message
     .replace(/ya29\.[A-Za-z0-9._-]+/g, "[redacted]")
     .replace(/1\/\/[A-Za-z0-9._-]+/g, "[redacted]")
@@ -77,7 +79,14 @@ async function handle(request: IncomingMessage, response: ServerResponse, url: U
     sendJson(response, 200, { ok: true, event: result });
     return;
   }
-  sendJson(response, 404, { ok: false, message: "Calendar operation not found." });
+  if (request.method === "POST" && url.pathname === MEET_API) {
+    const value = await readBody(request);
+    const input = value && typeof value === "object" ? value as Record<string, unknown> : {};
+    const event = await attachMeetConference(input.projectId, input.eventId);
+    sendJson(response, 200, { ok: true, event });
+    return;
+  }
+  sendJson(response, 404, { ok: false, message: "Google Calendar or Meet operation not found." });
 }
 
 export function googleCalendarGateway(): Plugin {
@@ -89,9 +98,9 @@ export function googleCalendarGateway(): Plugin {
         const rawUrl = request.url;
         if (!rawUrl) { next(); return; }
         const url = new URL(rawUrl, "http://127.0.0.1");
-        if (!url.pathname.startsWith(CALENDAR_API)) { next(); return; }
+        if (url.pathname !== CALENDAR_API && url.pathname !== MEET_API) { next(); return; }
         if (!isLocalRequest(request)) {
-          sendJson(response, 403, { ok: false, message: "Calendar actions accept requests only from this local PlotPickle server." });
+          sendJson(response, 403, { ok: false, message: "Calendar and Meet actions accept requests only from this local PlotPickle server." });
           return;
         }
         void handle(request, response, url).catch((error) => {

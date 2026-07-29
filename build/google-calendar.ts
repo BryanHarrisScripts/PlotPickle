@@ -1,6 +1,12 @@
 import { createHash } from "node:crypto";
 import { GOOGLE_CALENDAR_SCOPE } from "../lib/connection-status";
 import { checkGoogleConnection } from "./google-desktop-oauth";
+import {
+  createMeetConferenceData,
+  preserveOrCreateMeetConference,
+  sanitizeMeetConference,
+  type MeetConferenceStatus,
+} from "./google-meet";
 
 const CALENDAR_API = "https://www.googleapis.com/calendar/v3";
 const PLOTPICKLE_PRIVATE_KEY = "plotpickle";
@@ -28,6 +34,9 @@ export type PlotPickleCalendarEvent = {
   organizer: string;
   attendeeCount: number;
   updatedAt: string;
+  meetingId: string;
+  meetUrl: string;
+  conferenceStatus: MeetConferenceStatus;
 };
 
 type GoogleEvent = Record<string, unknown>;
@@ -134,10 +143,11 @@ function sanitizeEvent(value: GoogleEvent): PlotPickleCalendarEvent {
     organizer: typeof organizer.email === "string" ? organizer.email : "",
     attendeeCount: Array.isArray(value.attendees) ? value.attendees.length : 0,
     updatedAt: typeof value.updated === "string" ? value.updated : "",
+    ...sanitizeMeetConference(value.conferenceData),
   };
 }
 
-function providerBody(input: PlotPickleCalendarEventInput) {
+function providerBody(input: PlotPickleCalendarEventInput, conferenceData: Record<string, unknown>) {
   return {
     id: providerEventId(input.projectId, input.eventId),
     summary: input.title,
@@ -152,21 +162,40 @@ function providerBody(input: PlotPickleCalendarEventInput) {
         plotpickleEventId: input.eventId,
       },
     },
+    conferenceData,
   };
+}
+
+function mutationPath(id = "") {
+  const event = id ? `/${encodeURIComponent(id)}` : "";
+  return `/calendars/primary/events${event}?sendUpdates=all&conferenceDataVersion=1`;
+}
+
+async function ensureMeetConferenceForEvent(projectId: string, eventId: string, current?: GoogleEvent) {
+  const id = providerEventId(projectId, eventId);
+  const existing = current ?? await authorizedRequest(`/calendars/primary/events/${encodeURIComponent(id)}`);
+  const meeting = sanitizeMeetConference(existing.conferenceData);
+  if (meeting.conferenceStatus !== "none") return sanitizeEvent(existing);
+  const updated = await authorizedRequest(mutationPath(id), {
+    method: "PATCH",
+    body: JSON.stringify({ conferenceData: createMeetConferenceData(projectId, eventId) }),
+  });
+  return sanitizeEvent(updated);
 }
 
 export async function createCalendarEvent(value: unknown) {
   const input = normalizeCalendarInput(value);
   const id = providerEventId(input.projectId, input.eventId);
   try {
-    return sanitizeEvent(await authorizedRequest(`/calendars/primary/events/${encodeURIComponent(id)}`));
+    const existing = await authorizedRequest(`/calendars/primary/events/${encodeURIComponent(id)}`);
+    return ensureMeetConferenceForEvent(input.projectId, input.eventId, existing);
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
     if (!/not found|404/i.test(message)) throw error;
   }
-  const created = await authorizedRequest("/calendars/primary/events?sendUpdates=all", {
+  const created = await authorizedRequest(mutationPath(), {
     method: "POST",
-    body: JSON.stringify(providerBody(input)),
+    body: JSON.stringify(providerBody(input, createMeetConferenceData(input.projectId, input.eventId))),
   });
   return sanitizeEvent(created);
 }
@@ -191,11 +220,19 @@ export async function listCalendarEvents(projectIdValue: unknown) {
 export async function updateCalendarEvent(value: unknown) {
   const input = normalizeCalendarInput(value);
   const id = providerEventId(input.projectId, input.eventId);
-  const updated = await authorizedRequest(`/calendars/primary/events/${encodeURIComponent(id)}?sendUpdates=all`, {
+  const existing = await authorizedRequest(`/calendars/primary/events/${encodeURIComponent(id)}`);
+  const conferenceData = preserveOrCreateMeetConference(existing.conferenceData, input.projectId, input.eventId);
+  const updated = await authorizedRequest(mutationPath(id), {
     method: "PUT",
-    body: JSON.stringify(providerBody(input)),
+    body: JSON.stringify(providerBody(input, conferenceData)),
   });
   return sanitizeEvent(updated);
+}
+
+export async function attachMeetConference(projectIdValue: unknown, eventIdValue: unknown) {
+  const projectId = requiredText(projectIdValue, "Project ID", 160);
+  const eventId = requiredText(eventIdValue, "PlotPickle event ID", 160);
+  return ensureMeetConferenceForEvent(projectId, eventId);
 }
 
 export async function cancelCalendarEvent(projectIdValue: unknown, eventIdValue: unknown) {

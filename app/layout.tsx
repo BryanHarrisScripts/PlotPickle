@@ -24,9 +24,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PlotPickle — Visual Storyworld and AI Previsualization",
+  title: "PlotPickle — Visual Storyworld Collaboration and Previsualization",
   description:
-    "See the whole movie before you make it. PlotPickle is a local-first visual storyworld and AI previsualization engine that connects story logic, canon, visuals, shots and sound in one portable PPF project.",
+    "See the whole movie before you make it. PlotPickle is a visual storyworld collaboration and previsualization engine connecting story logic, canon, characters, scenes and visual direction in one portable PPF project and interactive Storyworld Map.",
   other: {
     "codex-preview": "development",
   },

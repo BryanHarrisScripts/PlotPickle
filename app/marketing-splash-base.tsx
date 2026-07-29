@@ -7,7 +7,7 @@ import {
   PLOTPICKLE_POSITIONING,
   PLOTPICKLE_DESKTOP_BUILDS,
   PRIMARY_WORKFLOW_NAVIGATION,
-  STORYWORLD_PROTOTYPE_LOOP,
+  STORYWORLD_CORE_LOOP,
 } from "@/lib/product-direction";
 import styles from "./marketing-splash.module.css";
 
@@ -43,23 +43,23 @@ const reasons = [
   },
   {
     number: "04",
-    title: "A path to a watchable prototype",
-    description: "Develop approved visual material toward returned render assets, an Animatic prototype and evidence for a green-light decision.",
+    title: "A clearer case for the movie",
+    description: "Bring the Storyworld Map, screenplay, Graphic Novel, Storyboard, Production Shots, Animatic, Pitch and Reports together as persuasive previsualization evidence.",
   },
   {
     number: "05",
-    title: "Local-first ownership with optional AI",
-    description: "Keep control of files, canon, approvals and providers. AI, external renderers and owner-controlled GitHub collaboration remain deliberate choices.",
+    title: "Local-first ownership with optional connections",
+    description: "Keep control of files, canon and approvals. AI, GitHub, Google and future media engines remain deliberate choices rather than product requirements.",
   },
 ] as const;
 
 const featureHighlights = [
   {
     status: "available",
-    eyebrow: "Available now · Whole Film",
-    title: "See the structure at two visual scales",
-    description: "The existing Build wall displays 24 Blocks and 96 mini-blocks while preserving stable links to scenes, screenplay material and production work.",
-    proof: "24 Blocks · 96 mini-blocks",
+    eyebrow: "Available now · Storyworld Map",
+    title: "See how the whole movie connects",
+    description: "Move from 24 Blocks to 96 mini-blocks while viewing hooks, turns, arcs, causality, characters, locations, continuity and the evidence behind every relationship.",
+    proof: "Interactive map · table · export",
   },
   {
     status: "available",
@@ -70,31 +70,31 @@ const featureHighlights = [
   },
   {
     status: "available",
-    eyebrow: "Available now · Production Shots + Animatic",
-    title: "Move from frames into timed previsualization",
-    description: "Direct shots, attach keyframes, plan sound and play available visual material in the existing Animatic without claiming a finished movie.",
-    proof: "Shots · timing · sound",
+    eyebrow: "Available now · Production + Animatic",
+    title: "Carry the visual plan toward the screen",
+    description: "Direct Production Shots, attach keyframes, plan sound and play the material already available in the project as honest previsualization.",
+    proof: "Shots · timing · sound · playback",
   },
   {
-    status: "roadmap",
-    eyebrow: "Conversion roadmap · Storyworld Map",
-    title: "Upgrade Whole Film instead of adding another map",
-    description: "Add relationships, hooks, turns, arcs, causality and continuity to the existing wall through a rebuildable derived index.",
-    proof: "Whole Film → Storyworld Map",
+    status: "available",
+    eyebrow: "Available now · Pitch + Reports",
+    title: "Make the case with evidence",
+    description: "Present the logline, story logic, visual direction, continuity, readiness and unresolved decisions without pretending software can make the green-light decision.",
+    proof: "Pitch · evidence · readiness",
   },
   {
-    status: "roadmap",
-    eyebrow: "Conversion roadmap · Shared rendering",
-    title: "Generalize the visual tools already here",
-    description: "Graphic Novel, Storyboard and Production Shots will compile provider-neutral render packages and share returned asset variations.",
-    proof: "No duplicate renderer",
+    status: "available",
+    eyebrow: "Available now · Owner-controlled Collab",
+    title: "Review meaning, not just files",
+    description: "Use proposals, approvals, feedback and optional GitHub history to coordinate writers, directors, producers, actors and reviewers without real-time co-writing.",
+    proof: "Propose · review · approve",
   },
   {
-    status: "roadmap",
-    eyebrow: "Conversion roadmap · Prototype",
-    title: "Extend Animatic, Pitch and Reports",
-    description: "Returned images and clips will assemble into a watchable prototype with review evidence for a green-light decision.",
-    proof: "Prototype · review · green-light",
+    status: "available",
+    eyebrow: "Available now · Local-first",
+    title: "Use the core before connecting anything",
+    description: "Open, develop, visualize, review and export a PPF project without an AI key, Google account, rendering engine or required PlotPickle cloud service.",
+    proof: "Your device · your files · your choice",
   },
 ] as const;
 
@@ -158,32 +158,32 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
               </div>
             </div>
 
-            <div className={styles.heroVisual} aria-label="PlotPickle storyworld-to-prototype product loop">
+            <div className={styles.heroVisual} aria-label="PlotPickle visual storyworld product loop">
               <div className={styles.localBar}>
                 <span><i aria-hidden="true" /> Running privately</span>
                 <code>127.0.0.1</code>
               </div>
               <div className={styles.visualBody}>
                 <div className={styles.visualHeading}>
-                  <span>Storyworld-to-prototype loop</span>
-                  <h2>One PPF. One connected visual path.</h2>
-                  <p>Available tools are being converted into the prototype workflow—not replaced by duplicate engines.</p>
+                  <span>The complete visual storyworld core</span>
+                  <h2>One PPF. One movie you can finally see whole.</h2>
+                  <p>The Storyworld Map, visual development, previsualization and review evidence are available now—without a rendering API.</p>
                 </div>
                 <div className={styles.storyMap}>
-                  {STORYWORLD_PROTOTYPE_LOOP.map((step) => (
-                    <article className={step.id === "prototype" ? styles.pitchPreview : undefined} data-status={step.status} key={step.id}>
+                  {STORYWORLD_CORE_LOOP.map((step) => (
+                    <article className={step.id === "greenlight-evidence" ? styles.pitchPreview : undefined} data-status={step.status} key={step.id}>
                       <small>{step.statusLabel}</small>
                       <strong>{step.title}</strong>
                       <span>{step.summary}</span>
-                      {step.id === "prototype" ? <div aria-hidden="true"><i /><i /><i /><i /></div> : null}
+                      {step.id === "greenlight-evidence" ? <div aria-hidden="true"><i /><i /><i /><i /></div> : null}
                     </article>
                   ))}
                 </div>
               </div>
               <div className={styles.projectFooter}>
                 <span>PPF is the creative source of truth</span>
-                <span>Current tools are available now</span>
-                <span>Conversions are clearly labelled</span>
+                <span>The Storyworld Map is available now</span>
+                <span>The core works without external APIs</span>
               </div>
             </div>
           </div>
@@ -193,7 +193,7 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
             <div><strong>96</strong><span>mini-blocks and panels</span></div>
             <div><strong>81</strong><span>learning modules</span></div>
             <div><strong>3</strong><span>desktop builds</span></div>
-            <div><strong>1</strong><span>connected project</span></div>
+            <div><strong>1</strong><span>interactive Storyworld Map</span></div>
           </div>
         </section>
 
@@ -246,10 +246,10 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
 
             <div className={styles.workflowHeading}>
               <div>
-                <p>Available now and conversion roadmap</p>
-                <h2>Build on the visual tools already here.</h2>
+                <p>The completed visual storyworld core</p>
+                <h2>From story logic to a case worth seeing.</h2>
               </div>
-              <span>Roadmap cards describe planned conversions. They are not claims that PlotPickle can already render a complete movie.</span>
+              <span>Every card below is available now. External movie-rendering APIs remain optional future extensions, not a requirement or a shipped claim.</span>
             </div>
             <div className={styles.featureGrid}>
               {featureHighlights.map((feature) => (
@@ -343,8 +343,9 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
               <h2>Choose the helper. Keep the decision.</h2>
               <p>
                 PlotPickle can prepare bounded story context for writing, character imagery,
-                Graphic Novel panels, storyboards and production shots. AI and future external
-                renderers remain optional. Nothing becomes canonical until the project owner approves it.
+                Graphic Novel panels, storyboards and production shots. AI and external
+                rendering engines remain optional and disconnected until deliberately configured.
+                Nothing becomes canonical until the project owner approves it.
               </p>
               <div className={styles.guardrails}>
                 <span>Credentials stay outside projects</span>
@@ -391,8 +392,8 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
           <div className={`${styles.wrap} ${styles.finalCard}`}>
             <div>
               <span>PlotPickle Playhouse</span>
-              <h2>Shape the storyworld. See the movie. Build the proof.</h2>
-              <p>Start with the visual tools available now and keep every future prototype decision under your control.</p>
+              <h2>Shape the storyworld. See the movie. Make the case.</h2>
+              <p>Use the complete visual core now, then add external connections only if the project truly needs them.</p>
             </div>
             <div className={styles.finalActions}>
               <button className={styles.primaryButton} type="button" onClick={onEnter}>Enter PlotPickle</button>
@@ -404,7 +405,7 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
 
       <footer className={styles.footer}>
         <div className={styles.wrap}>
-          <span><strong>PlotPickle</strong> · Visual storyworld and AI previsualization engine</span>
+          <span><strong>PlotPickle</strong> · Visual storyworld collaboration and previsualization engine</span>
           <nav aria-label="PlotPickle information">
             <a href="/about">About</a>
             <a href="/legal">Licensing</a>

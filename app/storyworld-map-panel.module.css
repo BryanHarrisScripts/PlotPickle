@@ -1,0 +1,72 @@
+.mapNodeLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  min-height: 19px;
+}
+
+.mapNodeLinks b {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid currentColor;
+  border-radius: 5px;
+  background: #f8fbfa;
+  font-size: .58rem;
+}
+
+.mapNodeLinks b[data-overlay="hooks-turns"],
+.mapNodeLinks b[data-overlay="setup-payoff"] {
+  color: #9a5429;
+}
+
+.mapNodeLinks b[data-overlay="characters"] {
+  color: #315f98;
+}
+
+.mapNodeLinks b[data-overlay="threads"] {
+  color: #684391;
+}
+
+.mapNodeLinks b[data-overlay="warnings"] {
+  color: #9a3c34;
+}
+
+.mapNodeLinks i {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.mapViewportTools {
+  display: grid;
+  grid-template-columns: repeat(8, auto);
+  gap: 4px;
+  align-items: center;
+  grid-column: 1 / -1;
+}
+
+.mapViewportTools span {
+  min-width: 42px;
+  color: #52645f;
+  font-size: .65rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .mapViewportTools {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mapNodeLinks,
+  .mapViewportTools {
+    scroll-behavior: auto;
+  }
+}

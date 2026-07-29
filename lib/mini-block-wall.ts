@@ -110,8 +110,6 @@ export type MiniBlockWallCard = {
   action: string;
   revelation: string;
   turn: string;
-  entryState: string;
-  exitState: string;
   setup: string;
   payoff: string;
   notes: string;
@@ -209,8 +207,6 @@ function miniBlockCard(
     action: mini.action,
     revelation: mini.revelation,
     turn: mini.turn,
-    entryState: mini.entryState,
-    exitState: mini.exitState,
     setup: mini.setup,
     payoff: mini.payoff,
     notes: mini.notes,

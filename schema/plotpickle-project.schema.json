@@ -88,6 +88,11 @@
     },
     "collaboration": {
       "$ref": "#/$defs/projectCollaboration"
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Versioned optional PPF extensions. Unknown extension payloads must round-trip without loss.",
+      "additionalProperties": true
     }
   },
   "$defs": {

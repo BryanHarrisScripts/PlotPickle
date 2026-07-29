@@ -41,5 +41,8 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Validate Windows interaction smoke syntax
+        run: node --check scripts/windows-interaction-smoke.mjs
+
       - name: Build and test
         run: npm test

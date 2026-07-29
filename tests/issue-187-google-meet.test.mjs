@@ -78,6 +78,7 @@ test("issue #187 presents pending, failed and ready meetings without auto-openin
   assert.match(meetUi, /onClick=\{\(\) => openMeetLink\(item\)\}/);
   assert.match(meetUi, /window\.open\(url\.toString\(\), "_blank", "noopener,noreferrer"\)/);
   assert.match(meetUi, /Calendar event remains available/);
+  assert.doesNotMatch(meetUi, /Meeting \$\{item\.meetingId\}/);
   assert.match(calendarUi, /Create Calendar event \+ Meet link/);
   assert.doesNotMatch(`${meetUi}\n${calendarUi}`, /conferenceData|accessToken|refreshToken/);
 });

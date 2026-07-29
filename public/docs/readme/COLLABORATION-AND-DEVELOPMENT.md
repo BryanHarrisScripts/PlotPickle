@@ -5,23 +5,37 @@ This is one selectable tab from the complete PlotPickle README. The canonical ro
 
 ## PlotPickle 1.0 candidate — Collaboration and Release Engineering
 
-Settings → GitHub & Backups now provides a disk-backed `.ppf` project library, rolling backups, canonical pulls, and owner-controlled collaboration proposals. Every local PlotPickle server submits changes through a unique GitHub branch and pull request; only an owner or maintainer merge changes the canonical story. Afterglow: Reflections of Sentience links directly to its current GitHub source repository. Windows, macOS and Linux release candidates are clean-machine tested and published with SHA-256 checksums, while local-only writing continues to require no PlotPickle or cloud account.
+Settings → Repository & Collab provides a disk-backed `.ppf` project library, rolling backups, canonical pulls, and owner-controlled collaboration proposals. Every local PlotPickle server submits changes through a unique GitHub branch and pull request; only an owner or maintainer merges changes into the canonical story. Afterglow: Reflections of Sentience links directly to its current GitHub source repository. Windows, macOS and Linux release candidates are clean-machine tested and published with SHA-256 checksums, while local-only writing continues to require no PlotPickle or cloud account.
 
-## Whole-app Lighthouse smoke package
+## Windows packaged interaction smoke
 
-The release-gating Lighthouse smoke verifies every supported static route without sending a story project to a remote audit service. It confirms that the local server starts, each route returns a real document on the local origin, title and description metadata are present, serious browser console errors are absent and required PlotPickle brand assets load.
+The Windows release package is now gated by an interaction smoke test that runs after the ZIP is created, extracted into a clean temporary folder and supplied with a fresh dependency installation. It launches the same local Vite runtime and configuration files used by the downloaded PlotPickle package instead of testing a detached static preview.
 
-Lighthouse performance, accessibility, best-practices and SEO scores remain available as diagnostic evidence. The release gate does not turn those scores into arbitrary thresholds.
+The test opens every supported static screen and the main workspace. It then discovers and exercises every discoverable visible safe control, including navigation items, buttons, tabs, pills, summaries, checkboxes, radio controls and select menus. It revisits newly revealed interface states so nested settings, dialogs, panels and secondary controls are included.
+
+The test fails the Windows package when it detects an uncaught JavaScript exception, rejected promise, React runtime overlay, serious console error, failed same-origin request, empty page, missing title or description, missing required brand asset, control timeout or incomplete interaction inventory. Settings → Repository & Collab is included, so the asynchronous GitHub status transition that produced the `removeChild` runtime error is exercised by the packaged build.
+
+The browser and server run with an isolated temporary PlotPickle data home. External authentication, GitHub repository mutation, publishing, paid generation, downloads, system-folder actions and direct destructive controls are inventoried in the report but are not executed. This keeps the release test broad without changing real accounts, projects or files.
+
+A hard total timeout, per-action timeout and state/action limits prevent a stuck control from consuming an unlimited CI run. Cleanup force-terminates the complete browser and server process trees and records JSON, Markdown, browser and server evidence under:
+
+```text
+reports\windows-interaction-smoke\
+```
+
+## Lighthouse diagnostics
+
+Lighthouse remains an optional diagnostic for route metadata, required assets and performance, accessibility, best-practices and SEO evidence. It is no longer the Windows release gate because Lighthouse alone cannot click the complete application interface or prove the behavior of the packaged local gateway.
+
+The Lighthouse runner now uses PlotPickle's local Vite runtime rather than `vite preview`, provides an isolated temporary data home, imposes route and total timeouts, and waits for full process-tree termination. Category scores remain diagnostic evidence and are not converted into arbitrary release thresholds.
 
 ### Windows
 
 1. Open the extracted PlotPickle source folder in File Explorer.
 2. Double-click `Run-Lighthouse.bat`.
-3. Choose the recommended all-route smoke, a full desktop or mobile diagnostic audit, both full modes, or ZIP the latest completed audit.
+3. Choose the all-route smoke diagnostic, a full desktop or mobile diagnostic audit, both full modes, or ZIP the latest completed audit.
 
-The launcher uses native Windows tools. It does not open Ubuntu and does not require Windows Subsystem for Linux. If the project dependencies are missing, it installs them with `npm ci` before starting the audit.
-
-PlotPickle builds once, starts a private preview server on `127.0.0.1`, discovers the registered application pages, audits every accessible route through Lighthouse, and creates an uploadable ZIP automatically.
+The launcher uses native Windows tools. It does not open Ubuntu and does not require Windows Subsystem for Linux. If project dependencies are missing, it installs them with `npm ci` before starting the audit.
 
 The command window prints the final ZIP path. Reports are stored under:
 
@@ -31,7 +45,7 @@ reports\lighthouse\<timestamp>\
 
 The ZIP contains a PASS/FAIL route summary, required-asset results and each page's Lighthouse JSON, HTML and command log. Dynamic routes that require a real project identifier are listed separately instead of being silently skipped.
 
-The launcher also accepts command-line modes:
+The launcher accepts command-line modes:
 
 ```bat
 Run-Lighthouse.bat smoke
@@ -52,7 +66,7 @@ npm run audit:lighthouse:mobile
 npm run audit:lighthouse:zip
 ```
 
-Node.js 22.13.0 or newer and a locally installed Chrome or Chromium browser are required. The first audit may download the pinned Lighthouse command package. The report folder is ignored by Git so private local audit results are not committed accidentally.
+Node.js 22.13.0 or newer and a locally installed Chrome, Edge or Chromium browser are required. The first audit may download the pinned Lighthouse command package. Report folders are ignored by Git so private local audit results are not committed accidentally.
 
 ## Project data and migration
 

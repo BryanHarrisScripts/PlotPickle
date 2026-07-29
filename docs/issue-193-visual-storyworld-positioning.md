@@ -1,56 +1,45 @@
-# Issue #193 — Visual storyworld-to-prototype positioning
+# Issue #193 — Visual storyworld positioning completion record
 
-## Scope lock
+## Completed direction
 
-This phase converts the existing Splashpage, About page, product-direction contract, metadata and top-level documentation to PlotPickle's approved product identity:
+Issue #193 established PlotPickle's product identity and Issues #194–#195 completed its two required foundations:
 
-> PlotPickle is a visual storyworld and AI previsualization engine for creating a watchable prototype movie that supports a green-light decision.
+> PlotPickle is a visual storyworld collaboration and previsualization engine that helps a creative team see, test and present the whole movie before full production.
 
-It does not add a workspace, data model, renderer, provider button, asset service or prototype player.
+The complete visual core is now available:
 
-## Product loop
-
-1. PPF storyworld.
-2. Whole Film becomes the Storyworld Map.
-3. Graphic Novel, Storyboard and Production Shots share provider-neutral rendering.
-4. Generated images, clips and approved variations return to stable PPF assets.
-5. Animatic, Pitch and Reports become the watchable prototype and green-light package.
+1. PPF remains the portable creative source of truth.
+2. The derived relationship index and shared asset identity keep story and visual evidence connected without creating a second project model.
+3. The existing Whole Film wall is now the interactive Storyworld Map.
+4. Graphic Novel, Storyboard, Production Shots and Animatic remain the existing visual-development and previsualization workspaces.
+5. Pitch and Reports present story logic, visual direction, readiness and unresolved decisions.
 
 ## Conversion-first ownership
 
 - PPF remains the portable creative source of truth; the canonical local project folder is authoritative on disk and `.ppf` carries that project model for exchange.
-- Whole Film remains the owner of the visual structural wall.
+- Storyworld Map extends the existing Whole Film wall rather than replacing it with a second engine.
 - Graphic Novel remains the 24-page, 96-panel presentation preset.
 - Storyboard remains the frame-development workspace.
 - Production Shots remains the shot-intent and keyframe source.
 - Animatic remains the playback foundation.
 - Pitch and Reports remain the decision-evidence surfaces.
-- Afterglow remains the persistent reference project used to verify the workflow.
+- Afterglow remains the persistent reference project used to verify the connected visual storyworld.
 
-Future phases extend and generalize those functions. They must not create a second story graph, renderer, asset identity system or prototype player.
+## Current connection boundary
 
-## Truthful capability boundary
+All external services are optional and begin disconnected:
 
-### Available now
+- **Story & Art** supports optional LLM and image assistance, local models, manual prompt export or no AI.
+- **Repository & Collab** exposes the supported optional GitHub connection.
+- **Scheduling & Meetings** contains optional Google Calendar and Meet access.
+- **Media & Film Engines** contains inactive Pika Labs, Runway and future-engine placeholders. There is no active API or credential request.
 
-- portable canonical PPF projects;
-- 24-Block and 96-mini-block Whole Film views;
-- Graphic Novel and Storyboard visual development;
-- Production Shots and Animatic playback;
-- Pitch, Reports, provenance and local-first ownership;
-- optional AI, GitHub and integrations.
+## Closed future phases
 
-### Conversion roadmap
+Roadmap Issues #196, #199, #198, #197 and #200 were closed as not planned after the Storyworld Map shipped. Provider-neutral rendering packages, reusable image and video jobs, automated returned-asset ingestion, full prototype assembly and an Afterglow renderer vertical slice are not active development commitments.
 
-- Whole Film upgraded into the Storyworld Map;
-- Graphic Novel, Storyboard and Production Shots generalized into shared rendering;
-- returned visual variations unified through stable PPF assets;
-- Animatic, Pitch and Reports extended into a watchable prototype and green-light package.
-
-PlotPickle does not currently claim to render a complete movie. It does not aim to replace Final Draft or a studio production and finishing pipeline. External renderers remain optional and no provider is promised before its integration is verified.
+They may be reconsidered only through a new explicit product decision. PlotPickle does not currently claim to render a complete movie and does not aim to replace Final Draft or a studio production and finishing pipeline.
 
 ## Regression boundary
 
-Compatibility assertions that described PlotPickle primarily as a screenplay application are updated with this phase. Existing download, open-project, Afterglow, local-first, optional-AI, rights, licensing, collaboration and accessibility contracts remain intact.
-
-New ideas belong in their own issue and pull request under roadmap #192.
+Existing download, open-project, Afterglow, local-first, optional-AI, rights, licensing, collaboration and accessibility contracts remain intact. New work must continue to extend the canonical PPF project and existing workspaces rather than add parallel engines or required third-party services.

@@ -34,6 +34,22 @@ test("issue #86 defines the packaged Windows interaction release gate", async ()
   assert.match(smoke, /process\.exit\(124\)/);
 });
 
+test("issue #86 uses portable fonts in the packaged local runtime", async () => {
+  const layout = await source("app/layout.tsx");
+  assert.doesNotMatch(layout, /next\/font/);
+  assert.doesNotMatch(layout, /Geist\(|Geist_Mono\(/);
+  assert.match(layout, /--font-geist-sans": "Arial, Helvetica, sans-serif"/);
+  assert.match(layout, /--font-geist-mono": '\"Courier New\", Courier, monospace'/);
+});
+
+test("issue #86 preserves Splash child keys and enters the real workspace for interaction smoke", async () => {
+  const splash = await source("app/marketing-splash.tsx");
+  assert.match(splash, /React\.Children\.map\(node, \(child\) => translateReactNode\(child\)\)/);
+  assert.doesNotMatch(splash, /node\.map\(translateReactNode\)/);
+  assert.match(splash, /get\("workspace"\) === "1"/);
+  assert.match(splash, /props\.onEnter\(\)/);
+});
+
 test("issue #86 gates the clean extracted Windows package on the interaction crawl", async () => {
   const workflow = await source(".github/workflows/release-candidate.yml");
   const extraction = workflow.indexOf("Clean-machine extraction and dependency test (Windows)");

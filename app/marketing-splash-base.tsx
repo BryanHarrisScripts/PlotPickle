@@ -4,8 +4,10 @@
 
 import {
   OPEN_SOURCE_FOUNDATIONS,
+  PLOTPICKLE_POSITIONING,
   PLOTPICKLE_DESKTOP_BUILDS,
   PRIMARY_WORKFLOW_NAVIGATION,
+  STORYWORLD_PROTOTYPE_LOOP,
 } from "@/lib/product-direction";
 import styles from "./marketing-splash.module.css";
 
@@ -26,67 +28,73 @@ type MarketingSplashProps = {
 const reasons = [
   {
     number: "01",
-    title: "One studio for the whole film",
-    description: "Move from learning and the first idea through planning, screenplay, storyboard, pitch, revision and production without splitting the story across disconnected tools.",
+    title: "Visual storyworld in one PPF",
+    description: "Keep canon, characters, structure, screenplay material, visuals, shots, sound and provenance connected in one portable creative source of truth.",
   },
   {
     number: "02",
-    title: "A method you can see",
-    description: "Shape four acts, twelve sequences, 24 Blocks and 96 mini-blocks, then carry those same story positions into scenes, pages, visuals, feedback and reports.",
+    title: "Story logic you can see",
+    description: "Use 24 Blocks, 96 mini-blocks and the learning system to expose hooks, turning points, causality, arcs and continuity across the whole movie.",
   },
   {
     number: "03",
-    title: "Visual continuity built in",
-    description: "Lock approved character looks, define the Visual Bible, direct shots and keep references connected across 96 storyboard positions and the comic pitch deck.",
+    title: "Connected visual development",
+    description: "Carry approved character identities, locations and visual language through Graphic Novel panels, Storyboard frames and Production Shots.",
   },
   {
     number: "04",
-    title: "AI is a choice, not a requirement",
-    description: "Work with no AI, a local model, a compatible provider or your own OpenAI API connection. Generated suggestions never silently replace canonical story work.",
+    title: "A path to a watchable prototype",
+    description: "Develop approved visual material toward returned render assets, an Animatic prototype and evidence for a green-light decision.",
   },
   {
     number: "05",
-    title: "Local ownership, open collaboration",
-    description: "Keep writing on your computer, exchange portable .ppf packages and optionally use owner-controlled GitHub proposals for selective review and approval.",
+    title: "Local-first ownership with optional AI",
+    description: "Keep control of files, canon, approvals and providers. AI, external renderers and owner-controlled GitHub collaboration remain deliberate choices.",
   },
 ] as const;
 
 const featureHighlights = [
   {
-    eyebrow: "Learn and Plan",
-    title: "81 lessons beside the work",
-    description: "Search the craft library, open Introduction, study worked examples and apply guidance directly to the active story.",
-    proof: "81 modules",
+    status: "available",
+    eyebrow: "Available now · Whole Film",
+    title: "See the structure at two visual scales",
+    description: "The existing Build wall displays 24 Blocks and 96 mini-blocks while preserving stable links to scenes, screenplay material and production work.",
+    proof: "24 Blocks · 96 mini-blocks",
   },
   {
-    eyebrow: "Write",
-    title: "Treatment to shooting script",
-    description: "Write connected scenes, action and dialogue; read the complete script; and exchange Fountain and Final Draft FDX files.",
-    proof: "Flexible scenes",
+    status: "available",
+    eyebrow: "Available now · Graphic Novel + Storyboard",
+    title: "Develop one approved visual language",
+    description: "Build a 96-panel Graphic Novel presentation and storyboard frames from canonical characters, locations, visual locks and directed prompts.",
+    proof: "Visual continuity · provenance",
   },
   {
-    eyebrow: "Storyboard",
-    title: "A consistent visual language",
-    description: "Carry character identity locks, locations, shot direction, references and visual provenance through the entire film.",
-    proof: "96 visual positions",
+    status: "available",
+    eyebrow: "Available now · Production Shots + Animatic",
+    title: "Move from frames into timed previsualization",
+    description: "Direct shots, attach keyframes, plan sound and play available visual material in the existing Animatic without claiming a finished movie.",
+    proof: "Shots · timing · sound",
   },
   {
-    eyebrow: "Pitch",
-    title: "Automatic comic-book pitch deck",
-    description: "Turn the canonical story into a 24-page, 96-panel black-and-white sketched deck with directed shots and editable dialogue bubbles.",
-    proof: "24 pages · 96 panels",
+    status: "roadmap",
+    eyebrow: "Conversion roadmap · Storyworld Map",
+    title: "Upgrade Whole Film instead of adding another map",
+    description: "Add relationships, hooks, turns, arcs, causality and continuity to the existing wall through a rebuildable derived index.",
+    proof: "Whole Film → Storyworld Map",
   },
   {
-    eyebrow: "Feedback and Refine",
-    title: "Diagnose, discuss and approve",
-    description: "Refine diagnoses and proposes. Feedback owns anchored review, Story Proposals, table reads, revision comparisons and explicit human approval.",
-    proof: "Human approval",
+    status: "roadmap",
+    eyebrow: "Conversion roadmap · Shared rendering",
+    title: "Generalize the visual tools already here",
+    description: "Graphic Novel, Storyboard and Production Shots will compile provider-neutral render packages and share returned asset variations.",
+    proof: "No duplicate renderer",
   },
   {
-    eyebrow: "Build and Reports",
-    title: "From story wall to production",
-    description: "Build owns production planning, Storyboard owns shots and animatic, and Reports presents continuity, readiness and production evidence without becoming another editor.",
-    proof: "Page to production",
+    status: "roadmap",
+    eyebrow: "Conversion roadmap · Prototype",
+    title: "Extend Animatic, Pitch and Reports",
+    description: "Returned images and clips will assemble into a watchable prototype with review evidence for a green-light decision.",
+    proof: "Prototype · review · green-light",
   },
 ] as const;
 
@@ -111,7 +119,7 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
           </span>
         </a>
         <nav className={styles.nav} aria-label="Splash page navigation">
-          <a href="#studio">Studio</a>
+          <a href="#studio">How it works</a>
           <a href="#builds">Three builds</a>
           <a href="#open-source">Open source</a>
           <a href="#collaboration">Collaboration</a>
@@ -130,67 +138,52 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
         <section className={styles.hero}>
           <div className={`${styles.wrap} ${styles.heroGrid}`}>
             <div className={styles.heroCopy}>
-              <p className={styles.kicker}>Open · local-first · writer-controlled</p>
-              <h1>Your whole film.<span>One open studio.</span></h1>
-              <p className={styles.lede}>
-                PlotPickle connects screenwriting, the 24 Blocks method, visual storyboarding,
-                an automatic comic pitch, feedback, diagnostics and production planning in one
-                project that remains under your control.
-              </p>
+              <p className={styles.kicker}>Visual storyworld · local-first · owner-controlled</p>
+              <h1>See the whole movie<span>before you make it.</span></h1>
+              <p className={styles.lede}>{PLOTPICKLE_POSITIONING.summary}</p>
               <div className={styles.heroActions}>
                 <button className={styles.primaryButton} type="button" onClick={onEnter}>
-                  Open the studio
+                  Open PlotPickle
                 </button>
                 <a className={styles.lightButton} href="#builds">Choose your build</a>
-                <a className={styles.textButton} href="#studio">Explore the features</a>
+                <a className={styles.textButton} href="#studio">See how it works</a>
               </div>
               <div className={styles.trustRow} aria-label="PlotPickle operating principles">
+                <span>Portable PPF projects</span>
                 <span>Works without AI</span>
                 <span>No required cloud account</span>
                 <span>Official local edition</span>
+                <span>Human-controlled approvals</span>
                 <span>GNU AGPLv3</span>
               </div>
             </div>
 
-            <div className={styles.heroVisual} aria-label="PlotPickle canonical film project overview">
+            <div className={styles.heroVisual} aria-label="PlotPickle storyworld-to-prototype product loop">
               <div className={styles.localBar}>
                 <span><i aria-hidden="true" /> Running privately</span>
                 <code>127.0.0.1</code>
               </div>
               <div className={styles.visualBody}>
                 <div className={styles.visualHeading}>
-                  <span>Canonical story project</span>
-                  <h2>One story. Every workspace.</h2>
-                  <p>Stable story IDs keep planning, pages, frames, notes and production evidence connected.</p>
+                  <span>Storyworld-to-prototype loop</span>
+                  <h2>One PPF. One connected visual path.</h2>
+                  <p>Available tools are being converted into the prototype workflow—not replaced by duplicate engines.</p>
                 </div>
                 <div className={styles.storyMap}>
-                  <article>
-                    <small>Story architecture</small>
-                    <strong>4 acts · 12 sequences</strong>
-                    <span>24 Blocks · 96 mini-blocks</span>
-                  </article>
-                  <article>
-                    <small>Screenplay</small>
-                    <strong>Scenes stay connected</strong>
-                    <span>Treatment · action · dialogue</span>
-                  </article>
-                  <article>
-                    <small>Visual development</small>
-                    <strong>Identity-aware frames</strong>
-                    <span>Visual Bible · shots · provenance</span>
-                  </article>
-                  <article className={styles.pitchPreview}>
-                    <small>Automatic Pitch</small>
-                    <strong>Complete comic deck</strong>
-                    <span>24 pages · 96 panels · editable dialogue</span>
-                    <div aria-hidden="true"><i /><i /><i /><i /></div>
-                  </article>
+                  {STORYWORLD_PROTOTYPE_LOOP.map((step) => (
+                    <article className={step.id === "prototype" ? styles.pitchPreview : undefined} data-status={step.status} key={step.id}>
+                      <small>{step.statusLabel}</small>
+                      <strong>{step.title}</strong>
+                      <span>{step.summary}</span>
+                      {step.id === "prototype" ? <div aria-hidden="true"><i /><i /><i /><i /></div> : null}
+                    </article>
+                  ))}
                 </div>
               </div>
               <div className={styles.projectFooter}>
-                <span>Local project folder</span>
-                <span>Portable .ppf exchange</span>
-                <span>Optional GitHub proposals</span>
+                <span>PPF is the creative source of truth</span>
+                <span>Current tools are available now</span>
+                <span>Conversions are clearly labelled</span>
               </div>
             </div>
           </div>
@@ -222,8 +215,8 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
           <div className={styles.wrap}>
             <div className={styles.sectionHeading}>
               <p>Five reasons to use PlotPickle</p>
-              <h2>A complete creative system, not a pile of disconnected tools.</h2>
-              <span>Everything reads and writes the same approved story, from first lesson to production report.</span>
+              <h2>Visualize the story logic. Build the proof.</h2>
+              <span>PlotPickle focuses on the movie&apos;s structure, hooks, turning points, continuity and previsualization—not Final Draft parity or studio finishing.</span>
             </div>
             <div className={styles.reasonGrid}>
               {reasons.map((reason) => (
@@ -237,8 +230,8 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
 
             <div className={styles.workflowHeading}>
               <div>
-                <p>One connected path</p>
-                <h2>Ten clear workspaces from discovery to polish.</h2>
+                <p>One connected application</p>
+                <h2>Ten workspaces supporting one visual storyworld.</h2>
               </div>
               <span>Introduction remains available inside Learn. Simple Start remains optional inside Plan.</span>
             </div>
@@ -251,9 +244,16 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
               ))}
             </div>
 
+            <div className={styles.workflowHeading}>
+              <div>
+                <p>Available now and conversion roadmap</p>
+                <h2>Build on the visual tools already here.</h2>
+              </div>
+              <span>Roadmap cards describe planned conversions. They are not claims that PlotPickle can already render a complete movie.</span>
+            </div>
             <div className={styles.featureGrid}>
               {featureHighlights.map((feature) => (
-                <article key={feature.title}>
+                <article data-status={feature.status} key={feature.title}>
                   <span>{feature.eyebrow}</span>
                   <h3>{feature.title}</h3>
                   <p>{feature.description}</p>
@@ -343,8 +343,8 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
               <h2>Choose the helper. Keep the decision.</h2>
               <p>
                 PlotPickle can prepare bounded story context for writing, character imagery,
-                visual development and the comic pitch deck. Nothing becomes canonical until
-                the writer deliberately approves it.
+                Graphic Novel panels, storyboards and production shots. AI and future external
+                renderers remain optional. Nothing becomes canonical until the project owner approves it.
               </p>
               <div className={styles.guardrails}>
                 <span>Credentials stay outside projects</span>
@@ -391,8 +391,8 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
           <div className={`${styles.wrap} ${styles.finalCard}`}>
             <div>
               <span>PlotPickle Playhouse</span>
-              <h2>Write the story. See the film. Keep it yours.</h2>
-              <p>Enter the studio now, or choose the Windows, macOS or Linux release from one verified download page.</p>
+              <h2>Shape the storyworld. See the movie. Build the proof.</h2>
+              <p>Start with the visual tools available now and keep every future prototype decision under your control.</p>
             </div>
             <div className={styles.finalActions}>
               <button className={styles.primaryButton} type="button" onClick={onEnter}>Enter PlotPickle</button>
@@ -404,7 +404,7 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
 
       <footer className={styles.footer}>
         <div className={styles.wrap}>
-          <span><strong>PlotPickle</strong> · Local-first screenplay and film development</span>
+          <span><strong>PlotPickle</strong> · Visual storyworld and AI previsualization engine</span>
           <nav aria-label="PlotPickle information">
             <a href="/about">About</a>
             <a href="/legal">Licensing</a>

@@ -14,7 +14,7 @@ test("issue #86 discovers every supported static route and the main workspace va
   assert.match(audit, /for \(const item of inventory\.staticRoutes\)/);
 });
 
-test("issue #86 defines a real all-route Lighthouse smoke gate", async () => {
+test("issue #86 keeps an all-route Lighthouse diagnostic", async () => {
   const audit = await source("scripts/lighthouse-audit.mjs");
   for (const smokeAudit of [
     "http-status-code",
@@ -51,7 +51,7 @@ test("issue #86 verifies required metadata and brand assets", async () => {
   assert.match(audit, /Required metadata and brand assets/);
 });
 
-test("issue #86 keeps category scores as diagnostic evidence rather than thresholds", async () => {
+test("issue #86 keeps Lighthouse category scores as diagnostic evidence", async () => {
   const audit = await source("scripts/lighthouse-audit.mjs");
   for (const phrase of [
     "performance",
@@ -68,7 +68,7 @@ test("issue #86 keeps category scores as diagnostic evidence rather than thresho
   assert.doesNotMatch(audit, /performance[^;\n]*>=|accessibility[^;\n]*>=|bestPractices[^;\n]*>=|seo[^;\n]*>=/);
 });
 
-test("issue #86 provides smoke by default and optional full desktop or mobile reports", async () => {
+test("issue #86 provides optional Lighthouse desktop and mobile reports", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   assert.equal(packageJson.scripts["audit:lighthouse"], "node scripts/lighthouse-audit.mjs smoke");
   assert.equal(packageJson.scripts["audit:lighthouse:smoke"], "node scripts/lighthouse-audit.mjs smoke");
@@ -85,16 +85,52 @@ test("issue #86 provides smoke by default and optional full desktop or mobile re
   assert.match(audit, /await zipDirectory\(reportDirectory\)/);
 });
 
-test("issue #86 runs the smoke gate in the authoritative quality workflow", async () => {
-  const workflow = await source(".github/workflows/quality.yml");
-  assert.match(workflow, /name: Lighthouse all-route smoke/);
-  assert.match(workflow, /PLOTPICKLE_LIGHTHOUSE_SKIP_BUILD: "1"/);
-  assert.match(workflow, /run: npm run audit:lighthouse/);
-  assert.match(workflow, /name: lighthouse-smoke/);
-  assert.match(workflow, /path: reports\/lighthouse\//);
+test("issue #86 defines the packaged Windows interaction release gate", async () => {
+  const smoke = await source("scripts/windows-interaction-smoke.mjs");
+  for (const contract of [
+    "PLOTPICKLE_HOME",
+    "Page.addScriptToEvaluateOnNewDocument",
+    "Runtime.exceptionThrown",
+    "Runtime.consoleAPICalled",
+    "Network.responseReceived",
+    "Network.loadingFailed",
+    "button, a[href]",
+    "input[type='checkbox']",
+    "input[type='radio']",
+    "summary",
+    "select",
+    "Failed to execute 'removeChild'",
+    "skippedActions",
+    "maximumActions",
+    "maximumStates",
+    "taskkill.exe",
+    "windows-interaction-smoke.json",
+    "windows-interaction-smoke.md",
+  ]) assert.ok(smoke.includes(contract), `Windows interaction smoke is missing: ${contract}`);
+  assert.match(smoke, /externalOrCostlyAction/);
+  assert.match(smoke, /directMutationAction/);
+  assert.match(smoke, /terminateProcessTree/);
+  assert.match(smoke, /process\.exit\(124\)/);
 });
 
-test("issue #86 provides a native Windows launcher and documents the smoke package", async () => {
+test("issue #86 runs the packaged interaction gate in the Windows release workflow", async () => {
+  const workflow = await source(".github/workflows/release-candidate.yml");
+  assert.match(workflow, /name: Run packaged Windows interaction smoke/);
+  assert.match(workflow, /node scripts\/windows-interaction-smoke\.mjs/);
+  assert.match(workflow, /PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS/);
+  assert.match(workflow, /name: plotpickle-windows-interaction-smoke-/);
+  assert.match(workflow, /reports\/windows-interaction-smoke\//);
+});
+
+test("issue #86 keeps the authoritative quality workflow bounded", async () => {
+  const workflow = await source(".github/workflows/quality.yml");
+  assert.match(workflow, /cancel-in-progress: true/);
+  assert.match(workflow, /timeout-minutes: 20/);
+  assert.match(workflow, /node --check scripts\/windows-interaction-smoke\.mjs/);
+  assert.doesNotMatch(workflow, /run: npm run audit:lighthouse/);
+});
+
+test("issue #86 provides a native Windows Lighthouse launcher for optional diagnostics", async () => {
   const [launcher, docs] = await Promise.all([
     source("Run-Lighthouse.bat"),
     source("public/docs/readme/COLLABORATION-AND-DEVELOPMENT.md"),
@@ -106,20 +142,16 @@ test("issue #86 provides a native Windows launcher and documents the smoke packa
   assert.match(launcher, /zip/);
   assert.doesNotMatch(launcher, /bash scripts\//i);
   assert.doesNotMatch(launcher, /wsl\.exe/i);
-  assert.match(docs, /Whole-app Lighthouse smoke package/);
-  assert.match(docs, /recommended all-route smoke/);
-  assert.match(docs, /title and description metadata/);
-  assert.match(docs, /scores remain available as diagnostic evidence/);
-  assert.match(docs, /creates an uploadable ZIP automatically/);
+  assert.match(docs, /Windows packaged interaction smoke/);
+  assert.match(docs, /Lighthouse remains an optional diagnostic/);
+  assert.match(docs, /every discoverable visible safe control/);
 });
 
-test("issue #108 waits for Lighthouse log streams before child-process stdio", async () => {
+test("issue #108 terminates Lighthouse server process trees and bounds commands", async () => {
   const audit = await source("scripts/lighthouse-audit.mjs");
-  assert.match(audit, /export function waitForWritableOpen/);
-  assert.match(audit, /stream\.once\("open"/);
-  assert.match(audit, /await waitForWritableOpen\(log\)/);
-  assert.match(audit, /export function closeWritable/);
-  assert.match(audit, /stream\.once\("close"/);
-  assert.match(audit, /await closeWritable\(log\)/);
-  assert.doesNotMatch(audit, /finally \{\s*log\.end\(\);/);
+  assert.match(audit, /terminateProcessTree/);
+  assert.match(audit, /timeoutMs/);
+  assert.match(audit, /await terminateProcessTree\(preview/);
+  assert.match(audit, /process\.execPath/);
+  assert.doesNotMatch(audit, /preview\.kill\("SIGTERM"\)/);
 });

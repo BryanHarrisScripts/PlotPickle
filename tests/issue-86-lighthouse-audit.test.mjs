@@ -87,6 +87,10 @@ test("issue #86 provides smoke by default and optional full desktop or mobile re
   assert.match(audit, /mode !== "smoke"\) args\.push\("--output=html"\)/);
   assert.match(audit, /failedNetworkRequests/);
   assert.match(audit, /await rm\(candidate, \{ force: true \}\)/);
+  assert.match(audit, /LIGHTHOUSE_ROUTE_TIMEOUT_MS = 60_000/);
+  assert.match(audit, /child\.kill\("SIGTERM"\)/);
+  assert.match(audit, /timed out after \$\{timeoutMs\}ms/);
+  assert.match(audit, /timeoutMs: LIGHTHOUSE_ROUTE_TIMEOUT_MS/);
   assert.match(audit, /No story project was sent to a remote audit service/);
   assert.match(audit, /await zipDirectory\(reportDirectory\)/);
   const auditRoute = audit.slice(

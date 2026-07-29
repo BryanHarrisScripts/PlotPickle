@@ -66,7 +66,22 @@ export type StoryworldMapModel = {
   };
 };
 
-const DEFAULT_OVERLAYS: StoryworldMapOverlay[] = ["causality", "hooks-turns", "setup-payoff", "warnings"];
+export const DEFAULT_STORYWORLD_MAP_OVERLAYS: StoryworldMapOverlay[] = ["causality", "hooks-turns", "setup-payoff", "warnings"];
+export const STORYWORLD_MAP_OVERLAYS: Array<{
+  id: StoryworldMapOverlay;
+  label: string;
+  symbol: string;
+}> = [
+  { id: "causality", label: "Causality", symbol: "→" },
+  { id: "hooks-turns", label: "Hooks and turns", symbol: "◆" },
+  { id: "characters", label: "Character arcs", symbol: "●" },
+  { id: "threads", label: "Story threads", symbol: "≋" },
+  { id: "setup-payoff", label: "Setup and payoff", symbol: "↔" },
+  { id: "location-time", label: "Location and time", symbol: "⌖" },
+  { id: "visual-continuity", label: "Visual continuity", symbol: "◇" },
+  { id: "render-readiness", label: "Render readiness", symbol: "▣" },
+  { id: "warnings", label: "Warnings", symbol: "!" },
+];
 const ALL_OVERLAYS: StoryworldMapOverlay[] = [
   "causality",
   "hooks-turns",
@@ -78,6 +93,18 @@ const ALL_OVERLAYS: StoryworldMapOverlay[] = [
   "render-readiness",
   "warnings",
 ];
+
+export type StoryworldMapItem = {
+  id: string;
+  canonicalId: string;
+  kind: StoryworldMapGranularity;
+  label: string;
+  context: string;
+  act: number;
+  blockNumber: number;
+  miniBlockIds: string[];
+  shotId: string;
+};
 
 function record(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -222,7 +249,7 @@ export function readStoryworldMapSharedLayout(project: PlotPickleProject): Story
     version: STORYWORLD_MAP_LAYOUT_VERSION,
     mode,
     granularity,
-    overlays: overlays.length ? overlays : DEFAULT_OVERLAYS,
+    overlays: overlays.length ? overlays : DEFAULT_STORYWORLD_MAP_OVERLAYS,
     emphasizedNodeIds: strings(candidate.emphasizedNodeIds),
     updatedAt: typeof candidate.updatedAt === "string" ? candidate.updatedAt : "",
   };
@@ -267,7 +294,7 @@ export function createStoryworldMapModel(project: PlotPickleProject): Storyworld
     cards.filter((card) => card.characterId === character.id),
     "characters",
     `${character.name || "Character"} arc`,
-    (left, right) => `${character.name || "Character"} moves from ${left.exitState || left.turn || left.purpose || `mini-block ${left.globalNumber}`} to ${right.entryState || right.objective || right.purpose || `mini-block ${right.globalNumber}`}.`,
+    (left, right) => `${character.name || "Character"} moves from ${left.turn || left.action || left.purpose || `mini-block ${left.globalNumber}`} to ${right.objective || right.action || right.purpose || `mini-block ${right.globalNumber}`}.`,
   ));
   project.storyThreads.forEach((thread) => addSeriesConnections(
     connections,
@@ -340,6 +367,122 @@ export function createStoryworldMapModel(project: PlotPickleProject): Storyworld
       hooksAndTurns: markers.filter((item) => item.overlay === "hooks-turns").length,
     },
   };
+}
+
+function itemFromCards(
+  id: string,
+  canonicalId: string,
+  kind: StoryworldMapGranularity,
+  label: string,
+  context: string,
+  cards: MiniBlockWallCard[],
+  shotId = "",
+): StoryworldMapItem {
+  const first = cards[0];
+  return {
+    id,
+    canonicalId,
+    kind,
+    label,
+    context,
+    act: first?.act ?? 0,
+    blockNumber: first?.blockNumber ?? 0,
+    miniBlockIds: cards.map((card) => card.id),
+    shotId,
+  };
+}
+
+export function createStoryworldMapItems(
+  project: PlotPickleProject,
+  model: StoryworldMapModel,
+  granularity: StoryworldMapGranularity,
+  visibleMiniBlockIds?: Iterable<string>,
+) {
+  const visible = visibleMiniBlockIds ? new Set(visibleMiniBlockIds) : null;
+  const cards = visible ? model.cards.filter((card) => visible.has(card.id)) : model.cards;
+  if (granularity === "movie") {
+    return [itemFromCards(
+      `movie:${project.id}`,
+      project.id,
+      granularity,
+      project.metadata.title || "Untitled story",
+      `${cards.length} visible mini-blocks across the whole movie`,
+      cards,
+    )];
+  }
+
+  const groups = new Map<string, MiniBlockWallCard[]>();
+  const labels = new Map<string, { canonicalId: string; label: string; context: string }>();
+  for (const card of cards) {
+    let key = card.id;
+    let canonicalId = card.id;
+    let label = card.label || `Mini-block ${card.globalNumber}`;
+    let context = `Block ${card.blockNumber}.${card.number} · ${card.sceneTitle}`;
+    if (granularity === "act") {
+      key = `act:${card.act}`;
+      canonicalId = `act-${card.act}`;
+      label = `Act ${card.act} · ${["Setup", "Confrontation", "Complication", "Resolution"][card.act - 1]}`;
+      context = "Canonical story act";
+    } else if (granularity === "sequence") {
+      key = `sequence:${card.sequenceNumber}`;
+      const sequence = project.structure.sequences.find((item) => item.number === card.sequenceNumber);
+      canonicalId = sequence?.id ?? key;
+      label = `Sequence ${card.sequenceNumber} · ${sequence?.title || "Untitled sequence"}`;
+      context = `Act ${card.act}`;
+    } else if (granularity === "block") {
+      key = `block:${card.blockId}`;
+      canonicalId = card.blockId;
+      label = `Block ${card.blockNumber} · ${card.blockTitle}`;
+      context = `Sequence ${card.sequenceNumber}`;
+    } else if (granularity === "scene") {
+      key = `scene:${card.sceneId}`;
+      canonicalId = card.sceneId;
+      label = card.sceneTitle || "Untitled scene";
+      context = `Block ${card.blockNumber} · Scene containing mini-block ${card.number}`;
+    }
+    groups.set(key, [...(groups.get(key) ?? []), card]);
+    labels.set(key, { canonicalId, label, context });
+  }
+
+  if (granularity === "production-shot") {
+    return cards.flatMap((card) => card.shotIds.map((shotId, index) => {
+      const shot = project.production.shots.find((candidate) => candidate.id === shotId);
+      return itemFromCards(
+        `production-shot:${shotId}`,
+        shotId,
+        granularity,
+        shot ? `Shot ${shot.shotNumber} · ${shot.shotSize}` : `Shot ${index + 1}`,
+        `Block ${card.blockNumber}.${card.number} · ${card.sceneTitle}`,
+        [card],
+        shotId,
+      );
+    }));
+  }
+
+  return [...groups.entries()].map(([key, itemCards]) => {
+    const details = labels.get(key)!;
+    return itemFromCards(key, details.canonicalId, granularity, details.label, details.context, itemCards);
+  });
+}
+
+export function storyworldConnectionsForItem(
+  model: StoryworldMapModel,
+  item: StoryworldMapItem,
+  overlays: StoryworldMapOverlay[],
+) {
+  const members = new Set(item.miniBlockIds);
+  return model.connections.filter((connection) =>
+    overlays.includes(connection.overlay)
+    && (members.has(connection.fromMiniBlockId) || members.has(connection.toMiniBlockId)));
+}
+
+export function storyworldMarkersForItem(
+  model: StoryworldMapModel,
+  item: StoryworldMapItem,
+  overlays: StoryworldMapOverlay[],
+) {
+  const members = new Set(item.miniBlockIds);
+  return model.markers.filter((marker) => members.has(marker.miniBlockId) && overlays.includes(marker.overlay));
 }
 
 export function storyworldConnectionsFor(

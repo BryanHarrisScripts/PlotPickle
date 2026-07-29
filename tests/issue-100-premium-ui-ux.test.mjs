@@ -8,13 +8,14 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 test("issue #100 opens on the approved marketing splash with five current components", async () => {
   const [page, splash, contract] = await Promise.all([
     source("app/page.tsx"),
-    source("app/marketing-splash.tsx"),
+    source("app/marketing-splash-base.tsx"),
     source("lib/product-direction.ts"),
   ]);
   assert.match(page, /useState\(true\)/);
   assert.match(page, /MarketingSplash/);
   assert.match(splash, /components\.map/);
-  assert.match(splash, /Your whole film/);
+  assert.match(splash, /See the whole movie/);
+  assert.match(splash, /STORYWORLD_PROTOTYPE_LOOP\.map/);
   assert.match(splash, /Five reasons to use PlotPickle/);
   for (const id of ["learn", "plan", "write", "storyboard", "refine"]) {
     assert.match(contract, new RegExp(`id: "${id}"`));

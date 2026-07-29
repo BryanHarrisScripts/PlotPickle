@@ -21,11 +21,11 @@ test("issue #85 exposes exactly five selling points and 81 learning modules", as
   const contract = await source("lib/product-direction.ts");
   assert.match(contract, /LEARNING_MODULE_COUNT = 81/);
   for (const title of [
-    "Complete screenplay studio",
-    "81-module learning system",
-    "Visual continuity engine",
+    "Visual storyworld in one PPF",
+    "Story logic you can see",
+    "Connected visual development",
+    "A path to a watchable prototype",
     "Local-first ownership with optional AI",
-    "Distributed PlotPickle collaboration",
   ]) assert.ok(contract.includes(title), `Missing selling point: ${title}`);
   const ids = [...contract.matchAll(/id: "(complete-studio|learning-system|visual-continuity|local-first|distributed-collaboration)"/g)];
   assert.equal(ids.length, 5);

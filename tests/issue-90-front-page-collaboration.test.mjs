@@ -6,11 +6,11 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 const sellingPoints = [
-  "Complete screenplay studio",
-  "81-module learning system",
-  "Visual continuity engine",
+  "Visual storyworld in one PPF",
+  "Story logic you can see",
+  "Connected visual development",
+  "A path to a watchable prototype",
   "Local-first ownership with optional AI",
-  "Distributed PlotPickle collaboration",
 ];
 
 test("issue #90 front page uses the official repository and canonical product contract", async () => {

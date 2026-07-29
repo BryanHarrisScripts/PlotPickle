@@ -1,6 +1,55 @@
 export const PLOTPICKLE_REPOSITORY_URL = "https://github.com/BryanHarrisScripts/PlotPickle";
 export const LEARNING_MODULE_COUNT = 81;
 
+export const PLOTPICKLE_POSITIONING = {
+  category: "Visual storyworld and AI previsualization engine",
+  hero: "See the whole movie before you make it.",
+  summary:
+    "PlotPickle connects story logic, canon, characters, visuals, shots and sound in one portable PPF project, then helps turn approved material into a watchable prototype using the rendering tools you choose.",
+  ppf:
+    "PPF is the portable creative source of truth that keeps structure, canon, screenplay material, visual decisions, production assets, approvals and provenance connected. The canonical local project folder remains authoritative while .ppf packages carry that same project model for exchange.",
+  boundary:
+    "PlotPickle is built to test whether a movie works before full production. It does not aim to replace Final Draft or a studio production and finishing pipeline.",
+} as const;
+
+export const STORYWORLD_PROTOTYPE_LOOP = [
+  {
+    id: "ppf",
+    status: "available",
+    statusLabel: "Available now",
+    title: "PPF storyworld",
+    summary: "Portable canon, structure, screenplay material, visuals, production evidence and provenance remain connected.",
+  },
+  {
+    id: "storyworld-map",
+    status: "roadmap",
+    statusLabel: "Conversion roadmap",
+    title: "Whole Film → Storyworld Map",
+    summary: "The existing 24-Block and 96-mini-block wall gains relationships, hooks, turns, arcs and continuity.",
+  },
+  {
+    id: "shared-rendering",
+    status: "roadmap",
+    statusLabel: "Conversion roadmap",
+    title: "Graphic Novel + Storyboard → shared rendering",
+    summary: "Existing visual prompts and Production Shots become provider-neutral render packages instead of a parallel engine.",
+  },
+  {
+    id: "returned-assets",
+    status: "roadmap",
+    statusLabel: "Conversion roadmap",
+    title: "Generated assets → PPF",
+    summary: "Images, clips and approved variations return to stable project assets with continuity and provenance.",
+  },
+  {
+    id: "prototype",
+    status: "roadmap",
+    statusLabel: "Conversion roadmap",
+    title: "Animatic → watchable prototype",
+    summary: "The existing Animatic, Pitch and Reports grow into a reviewable prototype and green-light package.",
+  },
+] as const;
+
 export const PLOTPICKLE_DESKTOP_BUILDS = [
   {
     id: "windows",
@@ -110,29 +159,29 @@ export const SIMPLE_START = {
 export const FIVE_KEY_SELLING_POINTS = [
   {
     id: "complete-studio",
-    title: "Complete screenplay studio",
-    summary: "Move from idea through 24 Blocks, 96 mini-blocks, treatment, screenplay, revision, visuals and production planning in one project.",
+    title: "Visual storyworld in one PPF",
+    summary: "Keep canon, characters, structure, screenplay material, visuals, shots, sound and provenance connected in one portable creative source of truth.",
   },
   {
     id: "learning-system",
-    title: "81-module learning system",
+    title: "Story logic you can see",
     moduleCount: LEARNING_MODULE_COUNT,
-    summary: "Use screenwriting education and in-context guidance directly inside the writing workflow.",
+    summary: "Use 24 Blocks, 96 mini-blocks and the 81-module learning system to expose hooks, turning points, causality, arcs and continuity.",
   },
   {
     id: "visual-continuity",
-    title: "Visual continuity engine",
-    summary: "Carry locked character identities, world references and 96 storyboard frames through one approved visual language.",
+    title: "Connected visual development",
+    summary: "Carry approved character identities, world references, Graphic Novel panels, storyboard frames and Production Shots through one visual language.",
   },
   {
     id: "local-first",
-    title: "Local-first ownership with optional AI",
-    summary: "Keep control of projects, files, providers and every creative decision while using AI only when chosen.",
+    title: "A path to a watchable prototype",
+    summary: "Develop the existing visual workspaces into a provider-neutral rendering loop, returned assets, an Animatic prototype and green-light evidence.",
   },
   {
     id: "distributed-collaboration",
-    title: "Distributed PlotPickle collaboration",
-    summary: "Coordinate complete local or web-based PlotPickle servers through an owner-controlled GitHub film repository.",
+    title: "Local-first ownership with optional AI",
+    summary: "Keep control of projects, files, canon, approvals and providers while using AI, external renderers and GitHub only when deliberately chosen.",
   },
 ] as const;
 

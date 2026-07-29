@@ -24,9 +24,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PlotPickle",
+  title: "PlotPickle — Visual Storyworld and AI Previsualization",
   description:
-    "Download PlotPickle Playhouse: a local-first story planner connecting Project Overview, Story Planner, Structure Map, Visual Board, and guided specialist engines through Bryan Harris's 24 Blocks method.",
+    "See the whole movie before you make it. PlotPickle is a local-first visual storyworld and AI previsualization engine that connects story logic, canon, visuals, shots and sound in one portable PPF project.",
   other: {
     "codex-preview": "development",
   },

@@ -8,7 +8,7 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 test("issue #169 defines exactly three release builds from one product contract", async () => {
   const [contract, splash] = await Promise.all([
     source("lib/product-direction.ts"),
-    source("app/marketing-splash.tsx"),
+    source("app/marketing-splash-base.tsx"),
   ]);
   for (const value of [
     "PlotPickle-Windows.zip",
@@ -26,9 +26,9 @@ test("issue #169 defines exactly three release builds from one product contract"
   assert.match(splash, /View all three builds/);
 });
 
-test("issue #169 presents the complete connected studio and comic pitch", async () => {
+test("issue #169 presents the connected visual storyworld and conversion roadmap", async () => {
   const [splash, contract] = await Promise.all([
-    source("app/marketing-splash.tsx"),
+    source("app/marketing-splash-base.tsx"),
     source("lib/product-direction.ts"),
   ]);
   assert.match(splash, /PRIMARY_WORKFLOW_NAVIGATION\.map/);
@@ -36,25 +36,24 @@ test("issue #169 presents the complete connected studio and comic pitch", async 
     assert.ok(contract.includes(`label: "${label}"`), `Missing workspace: ${label}`);
   }
   for (const phrase of [
-    "81 lessons beside the work",
-    "Treatment to shooting script",
-    "A consistent visual language",
-    "Automatic comic-book pitch deck",
-    "24-page, 96-panel",
-    "From story wall to production",
+    "Available now · Whole Film",
+    "Available now · Graphic Novel + Storyboard",
+    "Available now · Production Shots + Animatic",
+    "Conversion roadmap · Storyworld Map",
+    "Conversion roadmap · Shared rendering",
+    "Conversion roadmap · Prototype",
   ]) assert.ok(splash.includes(phrase), `Missing feature story: ${phrase}`);
   for (const boundary of [
-    "Refine diagnoses and proposes.",
-    "Feedback owns anchored review",
-    "Build owns production planning",
-    "Storyboard owns shots and animatic",
-    "Reports presents continuity",
+    "Whole Film → Storyworld Map",
+    "No duplicate renderer",
+    "Prototype · review · green-light",
+    "not Final Draft parity or studio finishing",
   ]) assert.ok(splash.includes(boundary), `Missing merged workspace boundary: ${boundary}`);
 });
 
 test("issue #169 distinguishes open software, open learning and user ownership", async () => {
   const [splash, contract] = await Promise.all([
-    source("app/marketing-splash.tsx"),
+    source("app/marketing-splash-base.tsx"),
     source("lib/product-direction.ts"),
   ]);
   assert.match(splash, /OPEN_SOURCE_FOUNDATIONS\.map/);
@@ -68,7 +67,7 @@ test("issue #169 distinguishes open software, open learning and user ownership",
 });
 
 test("issue #169 keeps the official edition local and AI optional", async () => {
-  const splash = await source("app/marketing-splash.tsx");
+  const splash = await source("app/marketing-splash-base.tsx");
   for (const phrase of [
     "Works without AI",
     "No required cloud account",
@@ -84,7 +83,7 @@ test("issue #169 keeps the official edition local and AI optional", async () => 
 
 test("issue #169 splash remains accessible and responsive", async () => {
   const [splash, css] = await Promise.all([
-    source("app/marketing-splash.tsx"),
+    source("app/marketing-splash-base.tsx"),
     source("app/marketing-splash.module.css"),
   ]);
   assert.match(splash, /aria-label="Splash page navigation"/);

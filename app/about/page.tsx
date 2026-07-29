@@ -1,6 +1,10 @@
 import Link from "next/link";
 import packageInfo from "../../package.json";
 import {
+  PLOTPICKLE_POSITIONING,
+  STORYWORLD_PROTOTYPE_LOOP,
+} from "@/lib/product-direction";
+import {
   convergenceMap,
   currentProductFacts,
   pageToProductionStages,
@@ -17,9 +21,9 @@ export default function AboutPlotPicklePage() {
       <header className={styles.hero}>
         <div>
           <span>About · Origins · Product Principles</span>
-          <h1>PlotPickle keeps the whole movie connected while you work on one manageable piece.</h1>
+          <h1>See the whole movie before you make it.</h1>
           <p>
-            PlotPickle is a local-first story-development and screenplay application built around Bryan Harris&apos;s 24 Blocks method. One portable canonical project connects story foundations, flexible structure, treatment, screenplay, visual development, review, production and provenance.
+            PlotPickle is a local-first visual storyworld and AI previsualization engine built around Bryan Harris&apos;s 24 Blocks method. It connects story logic, canon, characters, visuals, shots and sound in one portable PPF project so approved material can grow into a watchable prototype for a green-light decision.
           </p>
           <div className={styles.actions}>
             <Link href="/">Open PlotPickle</Link>
@@ -34,10 +38,10 @@ export default function AboutPlotPicklePage() {
       </header>
 
       <section className={styles.introGrid}>
-        <article><span>What it is</span><h2>One local application</h2><p>Story Planner, Screenplay, Visual Board, Engines, Specialist Labs, Production and Read & Learn all use the same project rather than disconnected files or products.</p></article>
-        <article><span>Why it exists</span><h2>Keep the complete movie visible</h2><p>PlotPickle grew from the problem of a screenplay and its supporting ideas becoming trapped in separate applications, folders and versions.</p></article>
-        <article><span>Who it serves</span><h2>Different writers, different routes</h2><p>Begin with an idea, build a feature, import an existing screenplay, review bounded proposals, teach screenplay craft, use AI selectively or use no AI at all.</p></article>
-        <article><span>What remains yours</span><h2>Ownership and decisions</h2><p>Story ownership, canon, collaboration permissions, AI use, suggestion approval, sharing, licensing, export and distribution remain under the writer&apos;s control.</p></article>
+        <article><span>What it is</span><h2>A visual storyworld engine</h2><p>Structure, screenplay material, Whole Film, Graphic Novel, Storyboard, Production Shots, Animatic, Pitch and Reports use one connected project instead of parallel creative files.</p></article>
+        <article><span>Why it exists</span><h2>Make movie logic visible</h2><p>Hooks, turning points, causality, arcs, character decisions and visual continuity stay visible while the project moves from script structure toward a prototype.</p></article>
+        <article><span>What it proves</span><h2>A movie worth green-lighting</h2><p>The goal is a watchable AI-assisted or manually assembled prototype that helps a creative team judge whether the movie works before committing to full production.</p></article>
+        <article><span>What it is not</span><h2>Not a finishing system</h2><p>PlotPickle does not aim to replace Final Draft, a professional production crew, editorial, colour, sound finishing or a studio delivery pipeline.</p></article>
       </section>
 
       <section className={styles.panel}>
@@ -57,9 +61,22 @@ export default function AboutPlotPicklePage() {
       </section>
 
       <section className={styles.panel}>
-        <header><span>One project from page to production</span><h2>Different resolutions, one source of truth</h2><p>Every stage reads and writes the same project. The diagram is a connected workflow, not a promise that software automatically produces a movie.</p></header>
+        <header><span>Available visual path</span><h2>Different resolutions, one PPF source of truth</h2><p>These existing workspaces already connect screenplay structure to visual development, production shots, animatic playback and decision evidence.</p></header>
         <div className={styles.flow}>{pageToProductionStages.map((stage, index) => <div key={stage}><strong>{stage}</strong>{index < pageToProductionStages.length - 1 ? <span aria-hidden="true">→</span> : null}</div>)}</div>
-        <p className={styles.callout}>A screenplay can remain valuable as writing, learning material, a collaboration source, a visual-development project or a production plan even when it has not yet been produced.</p>
+        <p className={styles.callout}>{PLOTPICKLE_POSITIONING.ppf}</p>
+      </section>
+
+      <section className={styles.panel}>
+        <header><span>Available now and conversion roadmap</span><h2>Extend the tools already here</h2><p>The first step is available today. Each later step is an explicit conversion planned by roadmap #192, not a shipped rendering claim or a new parallel engine.</p></header>
+        <div className={styles.principles}>
+          {STORYWORLD_PROTOTYPE_LOOP.map((step) => (
+            <article key={step.id}>
+              <h3>{step.statusLabel}: {step.title}</h3>
+              <p>{step.summary}</p>
+            </article>
+          ))}
+        </div>
+        <p className={styles.callout}>{PLOTPICKLE_POSITIONING.boundary}</p>
       </section>
 
       <section className={styles.panel}>

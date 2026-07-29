@@ -1,6 +1,6 @@
 import type { AiProviderKind } from "./contracts";
 
-export const SETTINGS_VERSION = "1.1.0" as const;
+export const SETTINGS_VERSION = "1.2.0" as const;
 
 export type MusicService = "suno" | "udio";
 
@@ -57,6 +57,18 @@ export type PlotPickleSettings = {
   plugins: PluginSetting[];
 };
 
+const defaultMediaEnginePlaceholders: PluginSetting[] = [
+  { id: "future-pika", label: "Pika Labs", status: "coming-soon" },
+  { id: "future-runway", label: "Runway", status: "coming-soon" },
+  { id: "future-media-engine", label: "Additional media & film engines", status: "coming-soon" },
+];
+
+const retiredPlaceholderIds = new Set([
+  "future-knowledge",
+  "future-publishing",
+  "future-collaboration",
+]);
+
 export const defaultPlotPickleSettings: PlotPickleSettings = {
   version: SETTINGS_VERSION,
   general: {
@@ -94,11 +106,7 @@ export const defaultPlotPickleSettings: PlotPickleSettings = {
     largeText: false,
   },
   music: [],
-  plugins: [
-    { id: "future-knowledge", label: "Knowledge services", status: "coming-soon" },
-    { id: "future-publishing", label: "Publishing services", status: "coming-soon" },
-    { id: "future-collaboration", label: "Collaboration services", status: "coming-soon" },
-  ],
+  plugins: structuredClone(defaultMediaEnginePlaceholders),
 };
 
 export function normalizePlotPickleSettings(value: unknown): PlotPickleSettings {
@@ -126,6 +134,20 @@ export function normalizePlotPickleSettings(value: unknown): PlotPickleSettings 
       }];
     })
     : [];
+
+  const normalizedPlugins = Array.isArray(candidate.plugins)
+    ? candidate.plugins.flatMap((item) => {
+      if (!item || typeof item !== "object") return [];
+      const plugin = item as Partial<PluginSetting>;
+      if (typeof plugin.id !== "string" || typeof plugin.label !== "string") return [];
+      const status = plugin.status === "enabled" || plugin.status === "disabled" ? plugin.status : "coming-soon";
+      return [{ id: plugin.id, label: plugin.label, status }];
+    })
+    : structuredClone(defaultPlotPickleSettings.plugins);
+  const plugins = normalizedPlugins.length > 0
+    && normalizedPlugins.every((plugin) => retiredPlaceholderIds.has(plugin.id))
+    ? structuredClone(defaultPlotPickleSettings.plugins)
+    : normalizedPlugins;
 
   return {
     version: SETTINGS_VERSION,
@@ -166,15 +188,7 @@ export function normalizePlotPickleSettings(value: unknown): PlotPickleSettings 
       largeText: Boolean(accessibility.largeText),
     },
     music,
-    plugins: Array.isArray(candidate.plugins)
-      ? candidate.plugins.flatMap((item) => {
-        if (!item || typeof item !== "object") return [];
-        const plugin = item as Partial<PluginSetting>;
-        if (typeof plugin.id !== "string" || typeof plugin.label !== "string") return [];
-        const status = plugin.status === "enabled" || plugin.status === "disabled" ? plugin.status : "coming-soon";
-        return [{ id: plugin.id, label: plugin.label, status }];
-      })
-      : structuredClone(defaultPlotPickleSettings.plugins),
+    plugins,
   };
 }
 

@@ -1,44 +1,24 @@
-# Issue #195 — Whole Film becomes the Storyworld Map
+# Issue #195 — Whole Film to Storyworld Map
 
-Phase 2 converts the existing Build Whole Film / 96-mini-block wall into PlotPickle's interactive Storyworld Map. It does not add a workspace, navigation item, structure editor or persistent graph.
+Issue #195 converts the existing Whole Film and 96-mini-block wall inside the same Build workspace. It does not add a primary navigation item, a parallel structure editor or a second persistent story model.
 
-## Canonical boundary
+The existing wall remains the default and keeps its drag, keyboard movement, undo, redo, recovery, filtering, autosave and canonical inspector behaviour. Two additional display modes read the same mini-block cards:
 
-The map reads the deterministic PPF relationship index introduced in Issue #194 and resolves every visible item back to the current Block, scene, mini-block, Storyboard frame, Production Shot, character, location, Story Thread, asset, revision or provenance record that owns it.
+- Storyworld Map presents the derived PPF relationship index at movie, act, sequence, Block, scene, mini-block and Production Shot levels.
+- Accessible table presents the same stable IDs, labels, connection counts, signals and canonical evidence without requiring drag, colour or spatial interpretation.
 
-- The construction wall and Storyworld Map are display modes in the existing Build view.
-- Dragging and the existing move controls remain the only path that changes canonical order.
-- Map selection, semantic zoom, overlays, search, focus and pan do not rewrite canonical data.
-- The relationship index stays rebuildable and disposable.
-- No node or edge database is introduced.
+Semantic zoom groups those same records at movie, act, sequence, Block, scene, mini-block and Production Shot levels. It changes presentation detail only. Map selection and viewport movement cannot call the canonical ordering commands, while the hidden construction cards stop accepting drag operations outside wall mode.
 
-## Relationship overlays
+Selectable overlays expose causality, hooks and turns, character arcs, threads, setup and payoff, location and time, visual continuity, render readiness and warnings. “Show why this connects” displays the source IDs and evidence from the existing relationship index.
 
-The map exposes causality and escalation, hooks and turns, character movement, Story Threads, setup/payoff, location and presentation order, visual continuity, render readiness, and logic/rights/provenance warnings.
+The warning overlay includes mapped logic, continuity, rights, provenance and broken-reference conflicts reported by the existing dependency engine. The map does not invent a separate warning store.
 
-Each selected connection includes a “show why this connects” explanation, its explicit or derived source, and stable source IDs. The user can follow the connection without losing the current Build context.
+Map selection never changes canonical story order. Editing remains with the owning Plan, Build, Write, Storyboard and Production operations. Structural movement still uses the established Build commands.
 
-## Accessibility and performance
+The optional `plotpickle.storyworld-map-layout` PPF extension stores only a versioned shared presentation choice: display mode, semantic zoom, overlays and emphasized canonical IDs. It never becomes a second canonical story graph. Personal pan, zoom, focus, filter and search state remain local.
 
-The existing keyboard-safe card navigation remains available. A complete table alternative exposes the same 96 canonical positions, connections, markers, visuals and Production Shot coverage without drag interaction or colour dependence. Reduced-motion rules remain active, and the existing content visibility boundary continues to virtualize off-screen Block groups.
+The map exports structured SVG and self-contained HTML with labels, stable source identity and an accessible table. The existing Pitch Package visual section also includes the current static Storyworld Map.
 
-Semantic zoom changes presentation detail only. At movie, act, sequence, Block and scene levels, non-focused mini-blocks collapse to compact nodes. Mini-block and Production Shot levels expose full card detail.
+Dense mini-block and shot views retain the existing content-visibility boundary and scrollable viewport. Reduced-motion rules remove optional movement, and every overlay combines a symbol and label with colour.
 
-## Shared and personal layout
-
-The optional `plotpickle.storyworld-map-layout` PPF extension stores only the shared display mode, semantic level, overlays and emphasized stable IDs. It is versioned and round-trips with the project.
-
-Temporary search, filters, selection, viewport pan and viewport zoom remain local session state. They are never written to PPF.
-
-## Export
-
-The existing visual export boundary now has two Storyworld Map outputs:
-
-- structured SVG with accessible title, description, stable node IDs, labelled connection paths and colour-independent tooltips;
-- self-contained HTML containing the SVG plus a readable table alternative.
-
-Both are derived from the current PPF and can be carried into the existing Pitch and Reports flow. They do not become another canonical project format.
-
-## Afterglow verification
-
-Afterglow remains the reference project. Its complete 96-mini-block structure can be explored from whole-film story logic through characters, turns, frames and Production Shots while every selection resolves to the current canonical record.
+Afterglow remains the reference project for the later vertical slice. This phase provides the complete path from whole-movie logic to individual Production Shot identities without introducing Afterglow-specific data or another engine.

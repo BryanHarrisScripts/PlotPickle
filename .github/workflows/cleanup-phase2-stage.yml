@@ -1,0 +1,33 @@
+name: Clean Phase 2 package staging
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/cleanup-phase2-stage.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.head_ref == 'agent/184-google-desktop-oauth'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Phase 2 branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/184-google-desktop-oauth
+          fetch-depth: 0
+
+      - name: Remove generated package stage
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf releases/stage
+          rm -f .github/workflows/cleanup-phase2-stage.yml
+          git config user.name "PlotPickle Build Agent"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Remove generated Phase 2 package staging"
+          git push origin HEAD:agent/184-google-desktop-oauth

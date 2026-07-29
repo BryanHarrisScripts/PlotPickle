@@ -2,13 +2,21 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { PlotPickleSettings } from "@/lib/ai/settings";
+import type { AfterglowDashboardState, AfterglowDashboardStateId } from "@/lib/afterglow-persistence";
 import type { ConnectionStatusSnapshot } from "@/lib/connection-status";
 import { createDashboardCommandCentreModel, type DashboardTarget, type DashboardTone } from "@/lib/dashboard-command-centre";
 import type { PlotPickleProject } from "@/lib/project";
 import type { ProductNavigationId } from "@/lib/product-direction";
 import styles from "./dashboard-command-centre.module.css";
+import afterglowStyles from "./dashboard-afterglow.module.css";
 
 const SETTINGS_SECTION_KEY = "plotpickle.settings.section";
+
+const afterglowStatusLabels: Record<AfterglowDashboardStateId, AfterglowDashboardState["label"]> = {
+  "not-loaded": "Afterglow not loaded",
+  "loaded-locally": "Afterglow loaded locally",
+  "github-repository-connected": "Afterglow GitHub repository connected",
+};
 
 const toneMeta: Record<DashboardTone, { icon: string; label: string }> = {
   green: { icon: "✓", label: "Ready or healthy" },
@@ -21,8 +29,13 @@ type Props = {
   saveState: string;
   settings: PlotPickleSettings;
   connectionStatus: ConnectionStatusSnapshot;
+  afterglow: AfterglowDashboardState;
+  afterglowWorking: boolean;
+  afterglowMessage: string;
   onNavigate: (workspace: ProductNavigationId, section?: string) => void;
   onOpenBlock: (blockNumber: number) => void;
+  onLoadAfterglow: () => void;
+  onToggleAfterglowGitHub: (enabled: boolean) => void;
 };
 
 function formatDate(value: string) {
@@ -38,7 +51,19 @@ function progressTone(completion: number): DashboardTone {
   return "red";
 }
 
-export default function DashboardCommandCentre({ project, saveState, settings, connectionStatus, onNavigate, onOpenBlock }: Props) {
+export default function DashboardCommandCentre({
+  project,
+  saveState,
+  settings,
+  connectionStatus,
+  afterglow,
+  afterglowWorking,
+  afterglowMessage,
+  onNavigate,
+  onOpenBlock,
+  onLoadAfterglow,
+  onToggleAfterglowGitHub,
+}: Props) {
   const [learningCompleted, setLearningCompleted] = useState(0);
 
   useEffect(() => {
@@ -79,6 +104,7 @@ export default function DashboardCommandCentre({ project, saveState, settings, c
         <p className={styles.eyebrow}>Dashboard</p>
         <strong>Command centre</strong>
         <a href="#dashboard-readiness">Readiness</a>
+        <a href="#dashboard-afterglow">Afterglow</a>
         <a href="#dashboard-connections">Connections</a>
         <a href="#dashboard-workflow">Workflow progress</a>
         <a href="#dashboard-attention">Attention required <span>{model.attention.length}</span></a>
@@ -99,6 +125,48 @@ export default function DashboardCommandCentre({ project, saveState, settings, c
             <p>{model.recommendedAction ? model.recommendedAction.detail : "No tracked blocker or review item currently needs attention."}</p>
           </div>
           {model.recommendedAction ? <button type="button" onClick={() => openTarget(model.recommendedAction!.target)}>Recommended: {model.recommendedAction.title}</button> : <button type="button" onClick={() => onNavigate("planner", "overview")}>Continue project</button>}
+        </section>
+
+        <section id="dashboard-afterglow" className={styles.section} aria-labelledby="afterglow-title">
+          <div className={styles.heading}>
+            <div>
+              <p className={styles.eyebrow}>Afterglow project</p>
+              <h2 id="afterglow-title">Bundled example or persistent repository</h2>
+              <p>The bundled example remains the default. GitHub persistence is an explicit project-level choice.</p>
+            </div>
+          </div>
+          <article className={`${afterglowStyles.card} ${styles[`tone-${afterglow.tone}`]}`}>
+            <div className={afterglowStyles.status} role="status" aria-live="polite">
+              <i aria-hidden="true">{afterglow.tone === "green" ? "✓" : "!"}</i>
+              <div>
+                <span>Current state</span>
+                <strong>{afterglowStatusLabels[afterglow.id]}</strong>
+                <p>{afterglow.detail}</p>
+              </div>
+            </div>
+            <div className={afterglowStyles.actions}>
+              <button type="button" disabled={afterglowWorking} onClick={onLoadAfterglow}>
+                {afterglowWorking ? "Working…" : afterglow.id === "not-loaded" ? "Load Afterglow" : "Reload Afterglow"}
+              </button>
+              <label className={afterglowStyles.switch}>
+                <span>
+                  <strong>Use Afterglow GitHub repository</strong>
+                  <small>Off keeps today’s bundled loading behaviour. Turning it off never deletes the persistent project or its backups.</small>
+                </span>
+                <input
+                  type="checkbox"
+                  role="switch"
+                  checked={afterglow.enabled}
+                  disabled={afterglowWorking || !afterglow.available}
+                  onChange={(event) => onToggleAfterglowGitHub(event.target.checked)}
+                />
+              </label>
+            </div>
+            {!afterglow.available ? (
+              <p className={afterglowStyles.notice}>GitHub-backed persistence is available in the downloaded local PlotPickle server. Local bundled loading remains available.</p>
+            ) : null}
+            {afterglowMessage ? <p className={afterglowStyles.notice}>{afterglowMessage}</p> : null}
+          </article>
         </section>
 
         <section id="dashboard-connections" className={styles.section} aria-labelledby="connections-title">

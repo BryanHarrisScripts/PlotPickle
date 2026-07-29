@@ -5,6 +5,7 @@ import type { ConnectionId, ConnectionStatusSnapshot, PublicConnectionStatus } f
 import type { PlotPickleProject } from "@/lib/project";
 import GitHubCollaboration from "./github-collaboration";
 import GoogleCalendarWorkspace from "./google-calendar-workspace";
+import GoogleMeetWorkspace from "./google-meet-workspace";
 import styles from "./collab-workspace.module.css";
 
 type CollabSection = "overview" | "approvals" | "meetings" | "calendar" | "connections";
@@ -54,35 +55,6 @@ function ProviderCard({
       <small>{purpose}</small>
       <button type="button" onClick={onOpenSettings}>Open {status.label} settings</button>
     </article>
-  );
-}
-
-function EmptyProviderState({
-  eyebrow,
-  title,
-  description,
-  status,
-  actionLabel,
-  onOpenSettings,
-}: {
-  eyebrow: string;
-  title: string;
-  description: string;
-  status: PublicConnectionStatus;
-  actionLabel: string;
-  onOpenSettings: () => void;
-}) {
-  const connected = status.state === "connected";
-  return (
-    <section className={styles.emptyState}>
-      <div className={styles.emptyIcon} aria-hidden="true">{connected ? "✓" : "+"}</div>
-      <div>
-        <span>{eyebrow}</span>
-        <h2>{connected ? `No ${title.toLowerCase()} recorded for this project` : title}</h2>
-        <p>{connected ? `${status.identity || status.label} is connected. ${description}` : `${description} Connect the optional provider in Settings when the project needs it.`}</p>
-        <button type="button" onClick={onOpenSettings}>{connected ? actionLabel : `Open ${status.label} settings`}</button>
-      </div>
-    </section>
   );
 }
 
@@ -166,7 +138,7 @@ export default function CollabWorkspace({
 
           <section className={styles.providerGrid} aria-label="Collaboration provider status">
             <ProviderCard status={github} purpose="Carries approved story revisions and Story Proposals." onOpenSettings={() => openSettings("github")} />
-            <ProviderCard status={google} purpose="Carries project Calendar events. Meet remains a separate next step." onOpenSettings={() => openSettings("google")} />
+            <ProviderCard status={google} purpose="Carries project Calendar events and their explicitly created Meet links." onOpenSettings={() => openSettings("google")} />
           </section>
 
           <section className={styles.ruleCard}>
@@ -193,14 +165,7 @@ export default function CollabWorkspace({
       ) : null}
 
       {section === "meetings" ? (
-        <EmptyProviderState
-          eyebrow="Meetings · Google Meet"
-          title="Google Meet is the next isolated step"
-          description="Calendar CRUD is implemented and tested separately first. Meet conference creation will be layered on only after Calendar is green."
-          status={google}
-          actionLabel="Review Google permissions"
-          onOpenSettings={() => openSettings("google")}
-        />
+        <GoogleMeetWorkspace project={project} google={google} onOpenSettings={() => openSettings("google")} />
       ) : null}
 
       {section === "calendar" ? (

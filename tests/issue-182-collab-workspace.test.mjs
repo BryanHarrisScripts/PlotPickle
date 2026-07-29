@@ -73,17 +73,19 @@ test("issue #182 keeps provider setup in Settings and uses split GitHub surfaces
   assert.ok(base.indexOf("GitHubRecoveryCentre") < base.indexOf("showApprovals ?"), "Recovery must remain with Settings configuration");
 });
 
-test("issue #182 keeps Google setup in Settings while later phases isolate Calendar execution", async () => {
-  const [workspace, calendarUi, status] = await Promise.all([
+test("issue #182 keeps Google setup in Settings while later phases isolate Calendar and Meet execution", async () => {
+  const [workspace, calendarUi, meetUi, status] = await Promise.all([
     source("app/collab-workspace.tsx"),
     source("app/google-calendar-workspace.tsx"),
+    source("app/google-meet-workspace.tsx"),
     source("lib/connection-status.ts"),
   ]);
   assert.doesNotMatch(workspace, /\/api\/local-google|googleapis\.com|accounts\.google\.com/);
   assert.match(workspace, /<GoogleCalendarWorkspace/);
-  assert.match(workspace, /Google Meet is the next isolated step/);
+  assert.match(workspace, /<GoogleMeetWorkspace/);
   assert.match(calendarUi, /\/api\/local-google\/calendar/);
-  assert.doesNotMatch(calendarUi, /googleapis\.com|accounts\.google\.com/);
+  assert.match(meetUi, /\/api\/local-google\/meet/);
+  assert.doesNotMatch(`${calendarUi}\n${meetUi}`, /googleapis\.com|accounts\.google\.com/);
   assert.match(status, /Google sign-in, Calendar and Meet are optional and disconnected/);
   assert.match(status, /NonSensitiveMeetingMetadata/);
 });

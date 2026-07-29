@@ -5,6 +5,8 @@ import type { PublicConnectionStatus } from "@/lib/connection-status";
 import type { PlotPickleProject } from "@/lib/project";
 import styles from "./collab-workspace.module.css";
 
+type ConferenceStatus = "none" | "pending" | "success" | "failure";
+
 type CalendarEvent = {
   eventId: string;
   providerEventId: string;
@@ -17,6 +19,9 @@ type CalendarEvent = {
   organizer: string;
   attendeeCount: number;
   updatedAt: string;
+  meetingId: string;
+  meetUrl: string;
+  conferenceStatus: ConferenceStatus;
 };
 
 type Draft = { eventId: string; title: string; description: string; start: string; end: string; attendees: string };
@@ -37,6 +42,13 @@ function messageFrom(value: unknown) {
   return value && typeof value === "object" && typeof (value as { message?: unknown }).message === "string"
     ? (value as { message: string }).message
     : "The Calendar operation did not complete.";
+}
+
+function conferenceLabel(status: ConferenceStatus) {
+  if (status === "success") return "Meet ready";
+  if (status === "pending") return "Meet processing";
+  if (status === "failure") return "Meet needs attention";
+  return "Meet not created";
 }
 
 export default function GoogleCalendarWorkspace({
@@ -71,7 +83,6 @@ export default function GoogleCalendarWorkspace({
     }
   }, [connected, project.id]);
 
-  // Schedule the initial refresh outside the effect body so React state updates are deferred.
   useEffect(() => {
     const refreshTimer = window.setTimeout(() => { void load(); }, 0);
     return () => window.clearTimeout(refreshTimer);
@@ -124,6 +135,19 @@ export default function GoogleCalendarWorkspace({
     }
   }
 
+  function openMeetLink(item: CalendarEvent) {
+    try {
+      const url = new URL(item.meetUrl);
+      if (url.protocol !== "https:" || url.hostname !== "meet.google.com" || url.username || url.password) {
+        throw new Error("PlotPickle received an invalid Google Meet link.");
+      }
+      const opened = window.open(url.toString(), "_blank", "noopener,noreferrer");
+      if (!opened) setError("Your browser blocked the Google Meet window. Allow pop-ups for this local PlotPickle server and try again.");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : messageFrom(reason));
+    }
+  }
+
   if (!connected) {
     return (
       <section className={styles.emptyState}>
@@ -136,29 +160,30 @@ export default function GoogleCalendarWorkspace({
   return (
     <div className={styles.stack}>
       <section className={styles.sectionHeading}>
-        <div><span>Calendar · Project dates only</span><h2>Schedule and manage {project.metadata.title} events</h2><p>Events are tagged privately with this project ID. Tokens remain in encrypted local credential storage; only sanitized event metadata reaches this screen.</p></div>
+        <div><span>Calendar · Project dates only</span><h2>Schedule and manage {project.metadata.title} events</h2><p>Each new event requests one unique Meet link. Calendar events remain usable if conference creation is delayed or fails, and only sanitized metadata reaches this screen.</p></div>
         <button type="button" onClick={() => void load()} disabled={busy}>{busy ? "Working…" : "Refresh"}</button>
       </section>
 
       {error ? <section className={styles.privacyCard}><strong>Calendar needs attention</strong><p>{error}</p></section> : null}
 
       <form className={styles.ruleCard} onSubmit={save}>
-        <span>{events.some((item) => item.eventId === draft.eventId) ? "Update event" : "New project event"}</span>
+        <span>{events.some((item) => item.eventId === draft.eventId) ? "Update event" : "New project meeting"}</span>
         <h2>{draft.title || "Project event"}</h2>
         <label>Title<input required value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} /></label>
         <label>Description<textarea value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></label>
         <label>Start<input required type="datetime-local" value={draft.start} onChange={(event) => setDraft({ ...draft, start: event.target.value })} /></label>
         <label>End<input required type="datetime-local" value={draft.end} onChange={(event) => setDraft({ ...draft, end: event.target.value })} /></label>
         <label>Attendees<textarea placeholder="name@example.com; another@example.com" value={draft.attendees} onChange={(event) => setDraft({ ...draft, attendees: event.target.value })} /></label>
-        <div><button type="submit" disabled={busy}>{events.some((item) => item.eventId === draft.eventId) ? "Update Calendar event" : "Create Calendar event"}</button>{events.some((item) => item.eventId === draft.eventId) ? <button type="button" onClick={() => setDraft(blankDraft())}>Cancel edit</button> : null}</div>
+        <div><button type="submit" disabled={busy}>{events.some((item) => item.eventId === draft.eventId) ? "Update Calendar event" : "Create Calendar event + Meet link"}</button>{events.some((item) => item.eventId === draft.eventId) ? <button type="button" onClick={() => setDraft(blankDraft())}>Cancel edit</button> : null}</div>
       </form>
 
       <section className={styles.summaryGrid} aria-label="Upcoming project events">
         {events.length ? events.map((item) => (
           <article key={item.eventId}>
-            <span>{item.status}</span><strong>{item.title}</strong>
+            <span>{item.status} · {conferenceLabel(item.conferenceStatus)}</span><strong>{item.title}</strong>
             <p>{new Date(item.start).toLocaleString()} – {new Date(item.end).toLocaleString()}</p>
             <small>{item.attendeeCount} attendee{item.attendeeCount === 1 ? "" : "s"} · {item.timeZone || timeZone}</small>
+            {item.meetUrl ? <button type="button" onClick={() => openMeetLink(item)}>Open Google Meet</button> : null}
             <button type="button" onClick={() => setDraft({ eventId: item.eventId, title: item.title, description: "", start: localInput(item.start), end: localInput(item.end), attendees: "" })}>Reschedule</button>
             <button type="button" onClick={() => void cancel(item)} disabled={busy}>Cancel event</button>
           </article>

@@ -81,8 +81,25 @@ test("issue #86 provides smoke by default and optional full desktop or mobile re
   assert.match(audit, /process\.argv\[2\] \?\? "smoke"/);
   assert.match(audit, /PLOTPICKLE_LIGHTHOUSE_SKIP_BUILD/);
   assert.match(audit, /127\.0\.0\.1/);
+  assert.match(audit, /function startLocalServer/);
+  assert.match(audit, /\["--yes", "vite", "--host"/);
+  assert.doesNotMatch(audit, /\["--yes", "vite", "preview"/);
+  assert.match(audit, /mode !== "smoke"\) args\.push\("--output=html"\)/);
+  assert.match(audit, /failedNetworkRequests/);
+  assert.match(audit, /await rm\(candidate, \{ force: true \}\)/);
   assert.match(audit, /No story project was sent to a remote audit service/);
   assert.match(audit, /await zipDirectory\(reportDirectory\)/);
+});
+
+test("issue #86 keeps font assets portable across local and built servers", async () => {
+  const [layout, globalCss] = await Promise.all([
+    source("app/layout.tsx"),
+    source("app/globals.css"),
+  ]);
+  assert.doesNotMatch(layout, /next\/font/);
+  assert.doesNotMatch(layout, /Geist|font-geist/);
+  assert.match(globalCss, /--font-sans: Arial, Helvetica, sans-serif/);
+  assert.match(globalCss, /--font-mono: "Courier New", Courier, monospace/);
 });
 
 test("issue #86 runs the smoke gate in the authoritative quality workflow", async () => {

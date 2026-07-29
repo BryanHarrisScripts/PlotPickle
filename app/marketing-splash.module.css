@@ -399,6 +399,16 @@
   background: linear-gradient(145deg, #e8f5f2, #f9fce8);
 }
 
+.storyMap article[data-status="roadmap"] {
+  border-style: dashed;
+  background: linear-gradient(145deg, #f8fbfa, #eef5f3);
+}
+
+.storyMap article:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  min-height: 112px;
+}
+
 .pitchPreview div {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -690,6 +700,11 @@
   border-radius: 16px;
   background: linear-gradient(145deg, #fff, #f2f8f6);
   box-shadow: var(--shadow-soft);
+}
+
+.featureGrid article[data-status="roadmap"] {
+  border-style: dashed;
+  background: linear-gradient(145deg, #f9fbfa, #eaf3f1);
 }
 
 .featureGrid article > span {

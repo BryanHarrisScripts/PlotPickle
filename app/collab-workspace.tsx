@@ -179,7 +179,7 @@ export default function CollabWorkspace({
           </section>
           <section className={styles.providerGrid}>
             <ProviderCard status={github} purpose="Account, repository and permission setup lives in Settings → GitHub." onOpenSettings={() => openSettings("github")} />
-            <ProviderCard status={google} purpose="Sign-in and Calendar permission live in Settings → Google Services." onOpenSettings={() => openSettings("google")} />
+            <ProviderCard status={google} purpose="Sign-in and Calendar permission live in Settings → Scheduling & Meetings." onOpenSettings={() => openSettings("google")} />
           </section>
           <section className={styles.privacyCard}>
             <strong>Local-first credential boundary</strong>

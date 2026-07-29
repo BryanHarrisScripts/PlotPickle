@@ -32,6 +32,7 @@ jobs:
           cat .phase2-staging/chunk-*.b64 | base64 --decode > /tmp/phase2-files.tar.gz
           echo "0385a5e18fd5b25730443dcd75c0a34c60fb8f2d2614e5dda8fa60512f81cdd2  /tmp/phase2-files.tar.gz" | sha256sum -c -
           tar -xzf /tmp/phase2-files.tar.gz
+          python .phase2-staging/fix-headless-test.py
 
       - name: Validate focused Phase 2 contracts
         run: node --test tests/issue-120-settings-connections.test.mjs tests/issue-144-connection-trust.test.mjs tests/issue-182-collab-workspace.test.mjs tests/issue-184-google-desktop-oauth.test.mjs

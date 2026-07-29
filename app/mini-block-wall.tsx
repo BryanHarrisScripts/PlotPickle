@@ -5,6 +5,7 @@
 import { useMemo, useState } from "react";
 import styles from "./mini-block-wall.module.css";
 import FeedbackContextBadge from "./feedback-context-badge";
+import StoryworldMapPanel from "./storyworld-map-panel";
 import {
   createMiniBlockWallModel,
   DEFAULT_MINI_BLOCK_WALL_STATE,
@@ -31,8 +32,19 @@ import {
   loadArrangementRecovery,
 } from "@/lib/build-recovery";
 import type { PlotPickleProject } from "@/lib/project";
+import { readStoryworldMapSharedLayout } from "@/lib/storyworld-map";
 
 const wallStateByProject = new Map<string, MiniBlockWallState>();
+
+function initialWallState(project: PlotPickleProject) {
+  const sharedLayout = readStoryworldMapSharedLayout(project);
+  return normalizeMiniBlockWallState({
+    ...DEFAULT_MINI_BLOCK_WALL_STATE,
+    display: sharedLayout?.mode ?? DEFAULT_MINI_BLOCK_WALL_STATE.display,
+    granularity: sharedLayout?.granularity,
+    overlays: sharedLayout?.overlays,
+  });
+}
 
 const VIEW_OPTIONS: { id: MiniBlockWallView; label: string }[] = [
   { id: "whole-film", label: "Whole film" },
@@ -149,11 +161,11 @@ function legendValues(project: PlotPickleProject, state: MiniBlockWallState, car
 export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, feedbackBadges, onOpenFeedback }: MiniBlockWallProps) {
   const [session, setSession] = useState(() => ({
     projectId: project.id,
-    state: wallStateByProject.get(project.id) ?? DEFAULT_MINI_BLOCK_WALL_STATE,
+    state: wallStateByProject.get(project.id) ?? initialWallState(project),
   }));
   const state = session.projectId === project.id
     ? session.state
-    : wallStateByProject.get(project.id) ?? DEFAULT_MINI_BLOCK_WALL_STATE;
+    : wallStateByProject.get(project.id) ?? initialWallState(project);
   const [undoOrders, setUndoOrders] = useState<string[][]>([]);
   const [redoOrders, setRedoOrders] = useState<string[][]>([]);
   const [draggedMiniBlockId, setDraggedMiniBlockId] = useState("");
@@ -324,18 +336,24 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
   }
 
   return (
-    <section className={styles.wallWorkspace} aria-label="96 mini-block whole-film wall">
+    <section className={styles.wallWorkspace} aria-label="Whole Film and Storyworld Map">
       <header className={styles.wallHeader}>
         <div>
-          <p>96 mini-block construction wall</p>
-          <h2>See the entire film and edit one precise movement without losing context.</h2>
-          <span>All cards come from the canonical project. Filters and colour modes never change story order.</span>
+          <p>Whole Film · 96 mini-blocks · Storyworld Map</p>
+          <h2>See the movie&apos;s structure, logic and visual readiness without leaving Build.</h2>
+          <span>Wall, map and table are views of the same canonical project. Filters, overlays and map placement never change story order.</span>
         </div>
         <div className={styles.metrics}>
           <strong>{model.counts.visible}</strong><span>visible of {model.counts.cards}</span>
           <strong>{model.warnings.length}</strong><span>diagnostic signals</span>
         </div>
       </header>
+
+      <div className={styles.displayTabs} role="group" aria-label="Whole Film display mode">
+        <button type="button" className={state.display === "wall" ? styles.active : ""} aria-pressed={state.display === "wall"} onClick={() => updateState({ display: "wall" })}>Construction wall</button>
+        <button type="button" className={state.display === "map" ? styles.active : ""} aria-pressed={state.display === "map"} onClick={() => updateState({ display: "map" })}>Storyworld Map</button>
+        <button type="button" className={state.display === "table" ? styles.active : ""} aria-pressed={state.display === "table"} onClick={() => updateState({ display: "table" })}>Accessible table</button>
+      </div>
 
       <div className={styles.viewTabs} role="group" aria-label="Mini-block wall views">
         {VIEW_OPTIONS.map((option) => (
@@ -358,16 +376,16 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
         <button type="button" onClick={clearFilters}>Clear filters</button>
       </section>
 
-      <section className={styles.expansionBar} aria-label="Expansion zoom and pan controls">
+      {state.display === "wall" ? <section className={styles.expansionBar} aria-label="Expansion zoom and pan controls">
         <div role="group" aria-label="Expanded mini-block scope">
           {SCOPE_OPTIONS.map((option) => <button type="button" key={option.id} className={state.expandedScope === option.id ? styles.active : ""} onClick={() => updateState({ expandedScope: option.id })}>{option.label}</button>)}
         </div>
         <div role="group" aria-label="Zoom controls"><button type="button" onClick={() => updateState({ zoom: state.zoom - 0.1 })}>Zoom out</button><span>{Math.round(state.zoom * 100)}%</span><button type="button" onClick={() => updateState({ zoom: state.zoom + 0.1 })}>Zoom in</button></div>
         <div role="group" aria-label="Pan controls"><button type="button" aria-label="Pan left" onClick={() => updateState({ pan: { ...state.pan, x: state.pan.x + 80 } })}>←</button><button type="button" aria-label="Pan up" onClick={() => updateState({ pan: { ...state.pan, y: state.pan.y + 80 } })}>↑</button><button type="button" aria-label="Pan down" onClick={() => updateState({ pan: { ...state.pan, y: state.pan.y - 80 } })}>↓</button><button type="button" aria-label="Pan right" onClick={() => updateState({ pan: { ...state.pan, x: state.pan.x - 80 } })}>→</button></div>
         <button type="button" onClick={resetView}>Reset wall</button>
-      </section>
+      </section> : null}
 
-      <section className={styles.movementBar} aria-label="Mini-block order and recovery controls">
+      {state.display === "wall" ? <section className={styles.movementBar} aria-label="Mini-block order and recovery controls">
         <div>
           <strong>Arrange mini-blocks</strong>
           <span>Drag the visible handle, or move the selected card with these equivalent controls.</span>
@@ -383,15 +401,15 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
         <button type="button" disabled={!undoOrders.length} onClick={undoMove}>Undo move</button>
         <button type="button" disabled={!redoOrders.length} onClick={redoMove}>Redo move</button>
         <button type="button" onClick={restoreRecovery}>Restore last arrangement</button>
-      </section>
-      <p id="mini-block-movement-status" className={styles.movementStatus} role="status" aria-live="polite">{movementStatus}</p>
+      </section> : null}
+      {state.display === "wall" ? <p id="mini-block-movement-status" className={styles.movementStatus} role="status" aria-live="polite">{movementStatus}</p> : null}
 
-      <div className={styles.legend} aria-label={`${state.colourMode} colour legend`}>
+      {state.display === "wall" ? <div className={styles.legend} aria-label={`${state.colourMode} colour legend`}>
         <strong>{COLOUR_OPTIONS.find((option) => option.id === state.colourMode)?.label}</strong>
         {legend.length ? legend.map((entry) => <span key={`${entry.label}-${entry.tone}`}><i className={styles[`tone${entry.tone}`]} />{entry.label}</span>) : <span>No labelled items yet.</span>}
-      </div>
+      </div> : null}
 
-      <div className={styles.boardLayout}>
+      <div className={`${styles.boardLayout} ${state.display === "wall" ? "" : styles.hidden}`}>
         <div className={styles.viewport} tabIndex={0} aria-label="Scrollable and zoomable mini-block wall">
           <div className={styles.wallSurface} style={{ transform: `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.zoom})`, transformOrigin: "0 0" }}>
             {[1, 2, 3, 4].map((act) => {
@@ -415,7 +433,7 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
                                   type="button"
                                   id={`mini-wall-card-${card.id}`}
                                   key={card.id}
-                                  draggable
+                                  draggable={state.display === "wall"}
                                   tabIndex={card.id === selectedCard?.id ? 0 : -1}
                                   className={`${styles.miniCard} ${styles[`tone${toneIndex(card, state)}`]} ${card.id === selectedCard?.id ? styles.selected : ""} ${expanded ? "" : styles.compact} ${draggedMiniBlockId === card.id ? styles.dragging : ""}`}
                                   onClick={() => selectCard(card)}
@@ -496,6 +514,17 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
           </> : <p>No mini-block matches the current view and filters.</p>}
         </aside>
       </div>
+
+      {state.display !== "wall" ? <StoryworldMapPanel
+        project={project}
+        state={state}
+        visibleCards={model.visibleCards}
+        selectedCard={selectedCard}
+        onProjectChange={onProjectChange}
+        onOpenBlock={onOpenBlock}
+        onSelectCard={selectCard}
+        onUpdateState={updateState}
+      /> : null}
 
       <details className={styles.diagnostics}>
         <summary>Diagnostics · {model.warnings.length} signals</summary>

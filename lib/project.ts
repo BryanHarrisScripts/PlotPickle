@@ -778,6 +778,7 @@ export type PlotPickleProject = {
   production: ProductionWorkspace;
   assets: ProjectAssetRegistry;
   collaboration: ProjectCollaboration;
+  extensions?: Record<string, unknown>;
 };
 
 export const beatTemplates = [
@@ -1148,6 +1149,7 @@ export function createBlankProject(): PlotPickleProject {
     production: createBlankProductionWorkspace(),
     assets: createEmptyProjectAssetRegistry(),
     collaboration: createBlankCollaboration(),
+    extensions: {},
   };
 }
 
@@ -1763,6 +1765,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     production?: ProductionWorkspace;
     assets?: ProjectAssetRegistry;
     collaboration?: ProjectCollaboration;
+    extensions?: Record<string, unknown>;
   };
   if (
     !["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0"].includes(candidate.schemaVersion ?? "") ||
@@ -1832,6 +1835,9 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     production: normalizeProductionWorkspace(candidate.production),
     assets: normalizeProjectAssetRegistry(candidate.assets),
     collaboration: normalizeCollaboration(candidate.collaboration),
+    extensions: candidate.extensions && typeof candidate.extensions === "object" && !Array.isArray(candidate.extensions)
+      ? { ...candidate.extensions }
+      : {},
   };
   return migrateLegacyAssetReferences(normalized);
 }

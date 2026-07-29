@@ -5,6 +5,18 @@ export type MiniBlockWallView = "whole-film" | "act" | "sequence" | "block" | "c
 export type MiniBlockWallColourMode = "character" | "storyline" | "location" | "status" | "setup-payoff" | "label";
 export type MiniBlockWallCardStatus = "empty" | "developing" | "ready" | "overloaded";
 export type MiniBlockWallScope = "all" | "act" | "sequence" | "block";
+export type MiniBlockWallDisplay = "wall" | "map" | "table";
+export type MiniBlockWallGranularity = "movie" | "act" | "sequence" | "block" | "scene" | "mini-block" | "production-shot";
+export type MiniBlockWallOverlay =
+  | "causality"
+  | "hooks-turns"
+  | "characters"
+  | "threads"
+  | "setup-payoff"
+  | "location-time"
+  | "visual-continuity"
+  | "render-readiness"
+  | "warnings";
 
 export type MiniBlockWallFilters = {
   characterIds: string[];
@@ -14,6 +26,10 @@ export type MiniBlockWallFilters = {
 };
 
 export type MiniBlockWallState = {
+  display: MiniBlockWallDisplay;
+  granularity: MiniBlockWallGranularity;
+  overlays: MiniBlockWallOverlay[];
+  search: string;
   view: MiniBlockWallView;
   expandedScope: MiniBlockWallScope;
   selectedMiniBlockId: string;
@@ -30,6 +46,10 @@ export type MiniBlockWallState = {
 };
 
 export const DEFAULT_MINI_BLOCK_WALL_STATE: MiniBlockWallState = {
+  display: "wall",
+  granularity: "mini-block",
+  overlays: ["causality", "hooks-turns", "setup-payoff", "warnings"],
+  search: "",
   view: "whole-film",
   expandedScope: "all",
   selectedMiniBlockId: "",
@@ -224,6 +244,28 @@ function matchesView(card: MiniBlockWallCard, state: MiniBlockWallState) {
   return true;
 }
 
+function matchesSearch(card: MiniBlockWallCard, search: string) {
+  const query = normalized(search);
+  if (!query) return true;
+  return normalized([
+    card.label,
+    card.function,
+    card.purpose,
+    card.objective,
+    card.resistance,
+    card.action,
+    card.revelation,
+    card.turn,
+    card.setup,
+    card.payoff,
+    card.characterName,
+    card.sceneTitle,
+    card.blockTitle,
+    card.storylineNames.join(" "),
+    card.locationNames.join(" "),
+  ].join(" ")).includes(query);
+}
+
 function warning(
   kind: MiniBlockWallWarningKind,
   card: MiniBlockWallCard,
@@ -299,6 +341,19 @@ function diagnostics(project: PlotPickleProject, cards: MiniBlockWallCard[]) {
 
 export function normalizeMiniBlockWallState(state: Partial<MiniBlockWallState> | undefined): MiniBlockWallState {
   const filters = state?.filters ?? DEFAULT_MINI_BLOCK_WALL_STATE.filters;
+  const displays: MiniBlockWallDisplay[] = ["wall", "map", "table"];
+  const granularities: MiniBlockWallGranularity[] = ["movie", "act", "sequence", "block", "scene", "mini-block", "production-shot"];
+  const overlays: MiniBlockWallOverlay[] = [
+    "causality",
+    "hooks-turns",
+    "characters",
+    "threads",
+    "setup-payoff",
+    "location-time",
+    "visual-continuity",
+    "render-readiness",
+    "warnings",
+  ];
   return {
     ...DEFAULT_MINI_BLOCK_WALL_STATE,
     ...state,
@@ -308,6 +363,13 @@ export function normalizeMiniBlockWallState(state: Partial<MiniBlockWallState> |
       locationIds: unique(filters.locationIds ?? []),
       statuses: unique(filters.statuses ?? []) as MiniBlockWallCardStatus[],
     },
+    display: displays.includes(state?.display as MiniBlockWallDisplay) ? state?.display as MiniBlockWallDisplay : "wall",
+    granularity: granularities.includes(state?.granularity as MiniBlockWallGranularity)
+      ? state?.granularity as MiniBlockWallGranularity
+      : "mini-block",
+    overlays: unique(state?.overlays ?? DEFAULT_MINI_BLOCK_WALL_STATE.overlays)
+      .filter((item): item is MiniBlockWallOverlay => overlays.includes(item as MiniBlockWallOverlay)),
+    search: typeof state?.search === "string" ? state.search : "",
     zoom: Math.min(2.5, Math.max(0.4, Number(state?.zoom) || 1)),
     pan: {
       x: Number(state?.pan?.x) || 0,
@@ -332,7 +394,10 @@ export function createMiniBlockWallModel(
           globalNumber += 1;
           return miniBlockCard(project, block, scene, mini, globalNumber);
         })));
-  const visibleCards = cards.filter((card) => matchesView(card, state) && matchesFilters(card, state.filters));
+  const visibleCards = cards.filter((card) =>
+    matchesView(card, state)
+    && matchesFilters(card, state.filters)
+    && matchesSearch(card, state.search));
   return {
     cards,
     visibleCards,

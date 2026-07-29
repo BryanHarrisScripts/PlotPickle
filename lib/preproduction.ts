@@ -1,4 +1,9 @@
-import { cloneProject, type PlotPickleProject, type ProductionBreakdown, type ProductionScheduleDay, type ProductionShot, type SonicCue } from "./project";
+import { type PlotPickleProject, type ProductionBreakdown, type ProductionScheduleDay, type ProductionShot, type SonicCue } from "./project";
+import {
+  detachProjectAssetTarget,
+  migrateLegacyAssetReferences,
+  resolveProjectAssetSource,
+} from "./project-assets";
 
 function makeId(prefix: string) {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return `${prefix}-${crypto.randomUUID()}`;
@@ -53,6 +58,7 @@ export function createShotFromFrame(
   if (!block) return active;
   const scene = block.scenes.find((candidate) => candidate.id === sceneId) ?? block.scenes[0];
   const frame = block.visuals.find((candidate) => candidate.id === frameId) ?? block.visuals[0];
+  const frameSource = frame ? resolveProjectAssetSource(active.assets, frame.assetRef, frame.src) : "";
   const existing = active.production.shots.filter((shot) => shot.blockNumber === blockNumber && shot.sceneId === scene?.id);
   const shot: ProductionShot = {
     id: makeId("shot"),
@@ -69,31 +75,48 @@ export function createShotFromFrame(
     composition: frame?.caption || block.storyboardDirection || block.summary,
     purpose: scene?.purpose || block.goal || block.summary,
     continuity: frame?.continuity || block.notes,
-    keyframeSrc: frame?.src || "",
+    keyframeSrc: frameSource,
+    assetRef: frame?.assetRef,
     keyframeAlt: frame?.alt || `${active.metadata.title} Block ${blockNumber} production keyframe`,
-    status: frame?.src ? "approved" : "planned",
+    status: frameSource ? "approved" : "planned",
     durationSeconds: Math.max(2, Math.round((scene?.estimatedSeconds || block.targetMinutes * 60) / Math.max(1, existing.length + 4))),
     notes: "",
     createdAt: timestamp(),
     updatedAt: timestamp(),
   };
-  return { ...active, production: { ...active.production, shots: [...active.production.shots, shot] } };
+  return migrateLegacyAssetReferences({
+    ...active,
+    production: { ...active.production, shots: [...active.production.shots, shot] },
+  });
 }
 
 export function updateProductionShot(project: PlotPickleProject, shotId: string, patch: Partial<ProductionShot>): PlotPickleProject {
   const active = ensureProductionWorkspace(project);
-  return {
+  return migrateLegacyAssetReferences({
     ...active,
     production: {
       ...active.production,
-      shots: active.production.shots.map((shot) => shot.id === shotId ? { ...shot, ...patch, id: shot.id, updatedAt: timestamp() } : shot),
+      shots: active.production.shots.map((shot) => shot.id === shotId ? {
+        ...shot,
+        ...patch,
+        assetRef: patch.keyframeSrc === "" ? undefined : patch.assetRef ?? shot.assetRef,
+        status: patch.keyframeSrc !== undefined && patch.keyframeSrc !== shot.keyframeSrc && patch.status === undefined
+          ? "planned"
+          : patch.status ?? shot.status,
+        id: shot.id,
+        updatedAt: timestamp(),
+      } : shot),
     },
-  };
+  });
 }
 
 export function removeProductionShot(project: PlotPickleProject, shotId: string): PlotPickleProject {
   const active = ensureProductionWorkspace(project);
-  return { ...active, production: { ...active.production, shots: active.production.shots.filter((shot) => shot.id !== shotId) } };
+  return {
+    ...active,
+    assets: detachProjectAssetTarget(active.assets, { kind: "production-shot", id: shotId }),
+    production: { ...active.production, shots: active.production.shots.filter((shot) => shot.id !== shotId) },
+  };
 }
 
 export function createSonicCue(project: PlotPickleProject, blockNumber: number, sceneId: string): PlotPickleProject {
@@ -154,7 +177,7 @@ export function buildShotCoverage(project: PlotPickleProject) {
       frames: block.visuals.length,
       coveredFrames: coveredFrames.size,
       shots: shots.length,
-      keyframes: shots.filter((shot) => Boolean(shot.keyframeSrc)).length,
+      keyframes: shots.filter((shot) => Boolean(resolveProjectAssetSource(active.assets, shot.assetRef, shot.keyframeSrc))).length,
       cues: cues.length,
       missingSceneIds: block.scenes.filter((scene) => !sceneIds.has(scene.id)).map((scene) => scene.id),
       missingFrameIds: block.visuals.filter((frame) => !coveredFrames.has(frame.id)).map((frame) => frame.id),
@@ -177,7 +200,7 @@ export function buildAnimaticTimeline(project: PlotPickleProject) {
       blockNumber: block.number,
       miniBlockNumber: frame.miniBlockNumber,
       title: `Block ${block.number}.${frame.miniBlockNumber} — ${block.title}`,
-      image: frame.src,
+      image: resolveProjectAssetSource(active.assets, frame.assetRef, frame.src),
       alt: frame.alt || frame.caption,
       caption: frame.caption || block.summary,
       dialogue,
@@ -288,7 +311,7 @@ export function productionCoverage(project: PlotPickleProject) {
     sceneCount,
     coveredScenes,
     shots: active.production.shots.length,
-    keyframes: active.production.shots.filter((shot) => Boolean(shot.keyframeSrc)).length,
+    keyframes: active.production.shots.filter((shot) => Boolean(resolveProjectAssetSource(active.assets, shot.assetRef, shot.keyframeSrc))).length,
     cues: active.production.cues.length,
     breakdowns: active.production.breakdowns.length,
     scheduleDays: active.production.schedule.length,

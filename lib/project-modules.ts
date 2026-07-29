@@ -1,4 +1,5 @@
 import type { Character, PlotPickleProject, StoryBlock } from "./project";
+import { PROJECT_ASSET_IDENTITY_VERSION } from "./project-assets";
 
 export const MODULE_FORMAT_VERSION = "2.2.0" as const;
 
@@ -29,11 +30,12 @@ export const coreModuleRegistry: ModuleDescriptor[] = [
   { key: "screenplay", type: "plotpickle.screenplay", path: "screenplay/module.json", required: true, dependencies: ["characters", "world"] },
   { key: "structure", type: "plotpickle.structure", path: "24-blocks/index.json", required: true, dependencies: ["story", "characters"] },
   { key: "miniBlocks", type: "plotpickle.mini-blocks", path: "96-blocks/index.json", required: false, dependencies: ["structure"] },
-  { key: "storyboard", type: "plotpickle.storyboard", path: "storyboard/index.json", required: false, dependencies: ["structure", "screenplay"] },
-  { key: "production", type: "plotpickle.production", path: "production/module.json", required: false, dependencies: ["screenplay", "storyboard"] },
+  { key: "assets", type: "plotpickle.assets", path: "assets/index.json", required: false },
+  { key: "storyboard", type: "plotpickle.storyboard", path: "storyboard/index.json", required: false, dependencies: ["structure", "screenplay", "assets"] },
+  { key: "production", type: "plotpickle.production", path: "production/module.json", required: false, dependencies: ["screenplay", "storyboard", "assets"] },
   { key: "research", type: "plotpickle.research", path: "research/index.json", required: false },
   { key: "canon", type: "plotpickle.canon", path: "canon/index.json", required: true, dependencies: ["story", "characters", "world"] },
-  { key: "dependencies", type: "plotpickle.story-dependencies", path: "dependencies/graph.json", required: true, dependencies: ["story", "characters", "world", "screenplay", "structure", "storyboard", "production", "canon"] },
+  { key: "dependencies", type: "plotpickle.story-dependencies", path: "dependencies/index.json", required: true, dependencies: ["story", "characters", "world", "screenplay", "structure", "storyboard", "production", "assets", "canon"] },
   { key: "review", type: "plotpickle.review", path: "review/module.json", required: false, dependencies: ["story"] },
   { key: "revisions", type: "plotpickle.revisions", path: "reports/revisions.json", required: false },
   { key: "collaboration", type: "plotpickle.collaboration", path: "collaboration/module.json", required: false },
@@ -111,7 +113,7 @@ export function moduleManifestEntries(): Record<string, ModuleManifestEntry> {
     id: `module-${module.key}`,
     type: module.type,
     path: module.path,
-    schemaVersion: MODULE_FORMAT_VERSION,
+    schemaVersion: module.key === "assets" ? PROJECT_ASSET_IDENTITY_VERSION : MODULE_FORMAT_VERSION,
     required: module.required,
     ...(module.dependencies ? { dependencies: module.dependencies } : {}),
     ...(module.key === "characters" ? { collection: { index: module.path, itemPattern: "characters/*.json" } } : {}),

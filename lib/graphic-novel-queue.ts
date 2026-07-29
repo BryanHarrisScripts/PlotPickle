@@ -1,5 +1,6 @@
-import type { ComicPitchDeck, ComicPitchPanel } from "./project";
+import type { ComicPitchDeck, ComicPitchPanel, ProjectAssetRegistry } from "./project";
 import { graphicNovelPanelLabel } from "./ai-pitch-deck";
+import { resolveProjectAssetSource } from "./project-assets";
 
 export type ImageQuality = "low" | "medium" | "high";
 export type QueueItemState = "queued" | "generating" | "completed" | "failed" | "stopped" | "retrying" | "skipped";
@@ -56,12 +57,16 @@ export function buildGraphicNovelQueue(
   deck: ComicPitchDeck,
   previous?: GraphicNovelQueue,
   quality: ImageQuality = "low",
+  assets?: ProjectAssetRegistry,
 ): GraphicNovelQueue {
   const now = timestamp();
   const prior = new Map(previous?.items.map((item) => [item.panelId, item]) ?? []);
   const items = deck.panels.map((panel, order): GraphicNovelQueueItem => {
     const existing = prior.get(panel.id);
-    const complete = panel.status === "complete" && Boolean(panel.imageSrc);
+    const retainedSource = assets
+      ? resolveProjectAssetSource(assets, panel.assetRef, panel.imageSrc)
+      : panel.imageSrc;
+    const complete = panel.status === "complete" && Boolean(retainedSource);
     const state: QueueItemState = complete ? "completed"
       : existing?.state === "skipped" ? "skipped"
         : existing?.state === "failed" ? "failed" : "queued";
@@ -72,7 +77,7 @@ export function buildGraphicNovelQueue(
       order,
       state,
       attempts: existing?.attempts || 0,
-      assetUrl: complete ? panel.imageSrc : existing?.assetUrl || "",
+      assetUrl: complete ? retainedSource : existing?.assetUrl || "",
       error: state === "failed" ? existing?.error || panel.error : "",
       startedAt: existing?.startedAt || "",
       completedAt: complete ? panel.generatedAt || existing?.completedAt || now : existing?.completedAt || "",

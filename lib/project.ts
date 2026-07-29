@@ -6,8 +6,26 @@ import {
   type ProjectStructure,
   type StoryScene,
 } from "./structure";
+import {
+  createEmptyProjectAssetRegistry,
+  migrateLegacyAssetReferences,
+  normalizeProjectAssetReference,
+  normalizeProjectAssetRegistry,
+  type ProjectAssetReference,
+  type ProjectAssetRegistry,
+} from "./project-assets";
 
 export type { ClockRow, MiniBlock, PacingProfile, ProjectStructure, StoryScene, StorySequence } from "./structure";
+export type {
+  ProjectAsset,
+  ProjectAssetApproval,
+  ProjectAssetKind,
+  ProjectAssetReference,
+  ProjectAssetRegistry,
+  ProjectAssetTarget,
+  ProjectAssetTargetKind,
+  ProjectAssetVariation,
+} from "./project-assets";
 
 export type ScreenplayFormat = "plain-text" | "fountain" | "final-draft";
 
@@ -210,6 +228,7 @@ export type VisualFrame = {
   id: string;
   miniBlockNumber: number;
   src: string;
+  assetRef?: ProjectAssetReference;
   alt: string;
   caption: string;
   prompt: string;
@@ -389,6 +408,7 @@ export type ComicPitchPanel = {
   shotDirection: string;
   prompt: string;
   imageSrc: string;
+  assetRef?: ProjectAssetReference;
   revisedPrompt: string;
   status: ComicPitchPanelStatus;
   error: string;
@@ -450,6 +470,7 @@ export type ProductionShot = {
   purpose: string;
   continuity: string;
   keyframeSrc: string;
+  assetRef?: ProjectAssetReference;
   keyframeAlt: string;
   status: ProductionShotStatus;
   durationSeconds: number;
@@ -755,6 +776,7 @@ export type PlotPickleProject = {
   revisions: RevisionSnapshot[];
   review: ReviewWorkspace;
   production: ProductionWorkspace;
+  assets: ProjectAssetRegistry;
   collaboration: ProjectCollaboration;
 };
 
@@ -1034,6 +1056,7 @@ function normalizeStoryboardFrames(value: unknown, blockNumber: number): VisualF
       id: typeof frame.id === "string" && frame.id ? frame.id : `block-${String(blockNumber).padStart(2, "0")}-mini-${miniBlockNumber}-legacy-${index + 1}`,
       miniBlockNumber,
       src: typeof frame.src === "string" ? frame.src : "",
+      assetRef: normalizeProjectAssetReference(frame.assetRef),
       alt: typeof frame.alt === "string" ? frame.alt : "",
       caption: typeof frame.caption === "string" ? frame.caption : "",
       prompt: typeof frame.prompt === "string" ? frame.prompt : "",
@@ -1123,6 +1146,7 @@ export function createBlankProject(): PlotPickleProject {
     revisions: [],
     review: createBlankReviewWorkspace("Untitled Story"),
     production: createBlankProductionWorkspace(),
+    assets: createEmptyProjectAssetRegistry(),
     collaboration: createBlankCollaboration(),
   };
 }
@@ -1429,6 +1453,7 @@ function normalizeComicPitchDeck(value: unknown, now: string): ComicPitchDeck {
       shotDirection: typeof panel.shotDirection === "string" ? panel.shotDirection : "",
       prompt: typeof panel.prompt === "string" ? panel.prompt : "",
       imageSrc: typeof panel.imageSrc === "string" ? panel.imageSrc : "",
+      assetRef: normalizeProjectAssetReference(panel.assetRef),
       revisedPrompt: typeof panel.revisedPrompt === "string" ? panel.revisedPrompt : "",
       status: status === "generating" ? "pending" : status,
       error: typeof panel.error === "string" ? panel.error : "",
@@ -1610,6 +1635,7 @@ function normalizeProductionWorkspace(value: unknown): ProductionWorkspace {
         purpose: typeof shot.purpose === "string" ? shot.purpose : "",
         continuity: typeof shot.continuity === "string" ? shot.continuity : "",
         keyframeSrc: typeof shot.keyframeSrc === "string" ? shot.keyframeSrc : "",
+        assetRef: normalizeProjectAssetReference(shot.assetRef),
         keyframeAlt: typeof shot.keyframeAlt === "string" ? shot.keyframeAlt : "",
         status: shotStatuses.includes(shot.status as ProductionShotStatus) ? shot.status as ProductionShotStatus : "planned",
         durationSeconds: Math.max(1, Number(shot.durationSeconds) || 4),
@@ -1735,6 +1761,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     revisions?: RevisionSnapshot[];
     review?: ReviewWorkspace;
     production?: ProductionWorkspace;
+    assets?: ProjectAssetRegistry;
     collaboration?: ProjectCollaboration;
   };
   if (
@@ -1754,7 +1781,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
   const defaults = createBlankDevelopment();
   const voiceprintDefaults = createBlankVoiceprint();
   const development = candidate.development ?? {};
-  return {
+  const normalized: PlotPickleProject = {
     schemaVersion: "1.7.0",
     id: candidate.id,
     metadata: { ...metadata, targetMinutes },
@@ -1803,8 +1830,10 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     revisions: normalizeRevisions(candidate.revisions),
     review: normalizeReviewWorkspace(candidate.review, metadata.title),
     production: normalizeProductionWorkspace(candidate.production),
+    assets: normalizeProjectAssetRegistry(candidate.assets),
     collaboration: normalizeCollaboration(candidate.collaboration),
   };
+  return migrateLegacyAssetReferences(normalized);
 }
 
 export function completionFor(project: PlotPickleProject) {

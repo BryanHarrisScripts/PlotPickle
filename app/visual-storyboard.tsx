@@ -4,6 +4,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createStoryboardFrame, type MiniBlock, type PlotPickleProject, type StoryBlock, type StoryScene, type VisualFrame } from "@/lib/project";
+import { migrateLegacyAssetReferences, resolveProjectAssetSource } from "@/lib/project-assets";
 import {
   approvedCharacterIdentityPrompt,
   approvedCharacterReferenceImages,
@@ -118,6 +119,7 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
   const mini = miniBlockFor(block, miniBlockNumber);
   const scene = sceneFor(block, miniBlockNumber);
   const frame = primaryFrame(block, miniBlockNumber);
+  const frameSource = resolveProjectAssetSource(project.assets, frame.assetRef, frame.src);
   const prompt = useMemo(() => storyboardPrompt(project, block, scene, mini, frame), [project, block, scene, mini, frame]);
   const identityInputs = useMemo(() => storyboardIdentityInputs(project, block, scene, mini), [project, block, scene, mini]);
   const identityWarnings = identityInputs.filter((identity) => identity.diagnostic.severity !== "clear");
@@ -199,15 +201,25 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
   }
 
   function updateFrame(patch: Partial<VisualFrame>) {
-    onChange({
+    onChange(migrateLegacyAssetReferences({
       ...project,
       blocks: project.blocks.map((item) => item.number === block.number ? {
         ...item,
         visuals: item.visuals.some((visual) => visual.id === frame.id)
-          ? item.visuals.map((visual) => visual.id === frame.id ? { ...visual, ...patch, miniBlockNumber } : visual)
-          : [...item.visuals, { ...frame, ...patch, miniBlockNumber }],
+          ? item.visuals.map((visual) => visual.id === frame.id ? {
+            ...visual,
+            ...patch,
+            assetRef: patch.src === "" ? undefined : patch.assetRef ?? visual.assetRef,
+            miniBlockNumber,
+          } : visual)
+          : [...item.visuals, {
+            ...frame,
+            ...patch,
+            assetRef: patch.src === "" ? undefined : patch.assetRef ?? frame.assetRef,
+            miniBlockNumber,
+          }],
       } : item),
-    });
+    }));
   }
 
   async function copyPrompt() {
@@ -327,14 +339,14 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
                 <div className={styles.context}><small>Scene purpose</small><p>{scene.purpose || "Add the scene purpose in the Structure Map or Block editor."}</p><small>Mini-block purpose</small><p>{mini.visualBeat || mini.purpose || mini.function}</p></div>
                 {identityInputs.length ? <div className={styles.context}><small>Character identity status</small>{identityInputs.map((identity) => <p key={identity.characterId}><strong>{identity.name}</strong> · {identity.status} v{identity.version} · {identity.referenceImages.length} approved reference{identity.referenceImages.length === 1 ? "" : "s"}{identity.diagnostic.severity !== "clear" ? ` — ${identity.diagnostic.message}` : ""}</p>)}</div> : null}
                 {identityWarnings.length ? <p className={styles.note}><strong>Identity review needed:</strong> {identityWarnings.map((identity) => identity.name).join(", ")}.</p> : null}
-                <div className={styles.preview}>{frame.src ? <img src={frame.src} alt={frame.alt || `Block ${block.number}.${miniBlockNumber} storyboard`} /> : <div><strong>No image yet</strong><span>The complete default prompt is ready below.</span></div>}</div>
+                <div className={styles.preview}>{frameSource ? <img src={frameSource} alt={frame.alt || `Block ${block.number}.${miniBlockNumber} storyboard`} /> : <div><strong>No image yet</strong><span>The complete default prompt is ready below.</span></div>}</div>
                 <label><span>Image prompt</span><textarea rows={12} value={frame.prompt || prompt} onChange={(event) => updateFrame({ prompt: event.target.value })} /></label>
                 <div className={styles.promptActions}><button type="button" onClick={() => updateFrame({ prompt })}>Rebuild from story</button><button type="button" onClick={copyPrompt}>Copy prompt</button><button type="button" disabled={working === "prompt" || working === "image"} onClick={refinePrompt}>{working === "prompt" ? "Refining…" : "Refine with AI"}</button></div>
                 <label><span>Shot and lens</span><input value={frame.shot} onChange={(event) => updateFrame({ shot: event.target.value })} placeholder="Wide two-shot, 35mm lens, low eye line…" /></label>
                 <label><span>Continuity lock</span><textarea rows={3} value={frame.continuity} onChange={(event) => updateFrame({ continuity: event.target.value })} placeholder="Wardrobe, props, injuries, time of day, screen direction…" /></label>
                 <label><span>Caption</span><input value={frame.caption} onChange={(event) => updateFrame({ caption: event.target.value })} placeholder="What changes in this image?" /></label>
                 <label><span>Accessible description</span><input value={frame.alt} onChange={(event) => updateFrame({ alt: event.target.value })} /></label>
-                <button type="button" className={styles.generate} disabled={working === "image" || working === "prompt"} onClick={generateImage}>{working === "image" ? "Generating image…" : frame.src ? "Regenerate storyboard image" : "Generate storyboard image"}</button>
+                <button type="button" className={styles.generate} disabled={working === "image" || working === "prompt"} onClick={generateImage}>{working === "image" ? "Generating image…" : frameSource ? "Regenerate storyboard image" : "Generate storyboard image"}</button>
                 {message ? <p className={working === "error" ? styles.error : styles.message} role="status">{message}</p> : null}
                 <p className={styles.note}>AI is optional. The generated image is saved by the private local server; the prompt and structured reference list can also be used with another image tool.</p>
               </aside>

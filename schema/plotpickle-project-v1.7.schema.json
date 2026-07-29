@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://plotpickle.app/schema/plotpickle-project.schema.json",
   "title": "PlotPickle Project",
-  "description": "Canonical PlotPickle 1.7 project schema with flexible scenes, Story Threads, Character Arc Matrices, rights and provenance, expanded screenplay elements, revisions, local review, and continuous pre-production planning from shots and sound through scheduling and distribution.",
+  "description": "Canonical PlotPickle 1.7 project schema with flexible scenes, Story Threads, Character Arc Matrices, rights and provenance, expanded screenplay elements, revisions, local review, optional shared visual asset identity, and continuous pre-production planning from shots and sound through scheduling and distribution.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -82,6 +82,9 @@
     },
     "production": {
       "$ref": "#/$defs/productionWorkspace"
+    },
+    "assets": {
+      "$ref": "#/$defs/projectAssetRegistry"
     },
     "collaboration": {
       "$ref": "#/$defs/projectCollaboration"
@@ -1294,6 +1297,9 @@
         "src": {
           "type": "string"
         },
+        "assetRef": {
+          "$ref": "#/$defs/projectAssetReference"
+        },
         "alt": {
           "type": "string"
         },
@@ -2438,6 +2444,9 @@
         "imageSrc": {
           "type": "string"
         },
+        "assetRef": {
+          "$ref": "#/$defs/projectAssetReference"
+        },
         "revisedPrompt": {
           "type": "string"
         },
@@ -2570,6 +2579,9 @@
         },
         "keyframeSrc": {
           "type": "string"
+        },
+        "assetRef": {
+          "$ref": "#/$defs/projectAssetReference"
         },
         "keyframeAlt": {
           "type": "string"
@@ -2981,6 +2993,203 @@
               "type": "string"
             }
           }
+        }
+      }
+    },
+    "projectAssetReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assetId",
+        "variationId"
+      ],
+      "properties": {
+        "assetId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "variationId": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "projectAssetTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "graphic-novel-panel",
+            "storyboard-frame",
+            "production-shot",
+            "animatic",
+            "report",
+            "other"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "projectAssetVariation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "source",
+        "portablePath",
+        "sourceFingerprint",
+        "contentHash",
+        "mediaType",
+        "bytes",
+        "provider",
+        "model",
+        "prompt",
+        "generatedAt",
+        "provenanceIds",
+        "approval",
+        "extensions"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string"
+        },
+        "portablePath": {
+          "type": "string"
+        },
+        "sourceFingerprint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contentHash": {
+          "type": "string"
+        },
+        "mediaType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "provider": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "generatedAt": {
+          "type": "string"
+        },
+        "provenanceIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "approval": {
+          "enum": [
+            "unreviewed",
+            "approved",
+            "rejected"
+          ]
+        },
+        "extensions": {
+          "type": "object"
+        }
+      }
+    },
+    "projectAsset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "label",
+        "targets",
+        "variations",
+        "approvedVariationId",
+        "createdAt",
+        "updatedAt",
+        "extensions"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "image",
+            "video",
+            "audio",
+            "document",
+            "other"
+          ]
+        },
+        "label": {
+          "type": "string"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/projectAssetTarget"
+          }
+        },
+        "variations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/projectAssetVariation"
+          }
+        },
+        "approvedVariationId": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "extensions": {
+          "type": "object"
+        }
+      }
+    },
+    "projectAssetRegistry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "assets",
+        "extensions"
+      ],
+      "properties": {
+        "version": {
+          "const": "1.0.0"
+        },
+        "assets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/projectAsset"
+          }
+        },
+        "extensions": {
+          "type": "object"
         }
       }
     },

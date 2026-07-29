@@ -59,7 +59,7 @@ Collab owns use of the configured collaboration service:
 
 Meetings and Calendar are provider-neutral empty states backed only by the existing sanitized connection-status snapshot. They do not call Google APIs in this phase.
 
-When Google is disconnected, Collab routes the user to **Settings → Google Services**. When connected, Collab shows provider readiness but still sends permission changes back to Settings.
+When Google is disconnected, Collab routes the user to **Settings → Scheduling & Meetings**. When connected, Collab shows provider readiness but still sends permission changes back to Settings.
 
 Future phases may add project-focused Calendar events and unique Google Meet links. The complete personal calendar must not be imported by default.
 

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import CollaborationWorkspaceRouter from "./collaboration-workspace-router";
 import CurrentDownloadLinks from "./current-download-links";
 import GitHubAppReleaseGuidance from "./github-app-release-guidance";
@@ -12,16 +11,6 @@ import "./ui-ux-cleanup.css";
 import "./engine-ux-cleanup.css";
 import "./premium-ui.css";
 import "./minimal-navigation.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "PlotPickle — Visual Storyworld Collaboration and Previsualization",
@@ -49,9 +38,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className="antialiased">
         {children}
         <GraphicNovelTerminology />
         <GitHubAppReleaseGuidance />

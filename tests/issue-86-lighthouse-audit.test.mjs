@@ -5,121 +5,74 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #86 discovers every supported static route and the main workspace variant", async () => {
-  const audit = await source("scripts/lighthouse-audit.mjs");
-  assert.match(audit, /discoverRoutes/);
-  assert.match(audit, /PAGE_FILE/);
-  assert.match(audit, /\/\?workspace=1/);
-  assert.match(audit, /Dynamic route needs a real sample parameter/);
-  assert.match(audit, /for \(const item of inventory\.staticRoutes\)/);
+test("issue #86 defines the packaged Windows interaction release gate", async () => {
+  const smoke = await source("scripts/windows-interaction-smoke.mjs");
+  for (const contract of [
+    "PLOTPICKLE_HOME",
+    "Page.addScriptToEvaluateOnNewDocument",
+    "Runtime.exceptionThrown",
+    "Runtime.consoleAPICalled",
+    "Network.responseReceived",
+    "Network.loadingFailed",
+    "button, a[href]",
+    "input[type='checkbox']",
+    "input[type='radio']",
+    "summary",
+    "select",
+    "Failed to execute 'removeChild'",
+    "skippedActions",
+    "maximumActions",
+    "maximumStates",
+    "taskkill.exe",
+    "windows-interaction-smoke.json",
+    "windows-interaction-smoke.md",
+  ]) assert.ok(smoke.includes(contract), `Windows interaction smoke is missing: ${contract}`);
+
+  assert.match(smoke, /externalOrCostlyAction/);
+  assert.match(smoke, /directMutationAction/);
+  assert.match(smoke, /terminateProcessTree/);
+  assert.match(smoke, /process\.exit\(124\)/);
 });
 
-test("issue #86 defines a real all-route Lighthouse smoke gate", async () => {
-  const audit = await source("scripts/lighthouse-audit.mjs");
-  for (const smokeAudit of [
-    "http-status-code",
-    "errors-in-console",
-    "document-title",
-    "meta-description",
-    "network-requests",
-  ]) assert.ok(audit.includes(`"${smokeAudit}"`), `Smoke audit is missing: ${smokeAudit}`);
-  for (const signal of [
-    "successfulDocument",
-    "documentTitle",
-    "metaDescription",
-    "consoleClean",
-    "browserErrorPage",
-    "routeFailures",
-    "assetFailures",
-    "Lighthouse smoke failed",
-    "Lighthouse smoke passed",
-  ]) assert.ok(audit.includes(signal), `Smoke result is missing: ${signal}`);
-  assert.match(audit, /--only-audits=\$\{SMOKE_AUDITS\.join\(","\)\}/);
-  assert.match(audit, /summary\.smoke\.passed/);
+test("issue #86 gates the clean extracted Windows package on the interaction crawl", async () => {
+  const workflow = await source(".github/workflows/release-candidate.yml");
+  const extraction = workflow.indexOf("Clean-machine extraction and dependency test (Windows)");
+  const interaction = workflow.indexOf("Run packaged Windows interaction smoke");
+
+  assert.ok(extraction >= 0, "The Windows clean-machine extraction step is missing.");
+  assert.ok(interaction > extraction, "The interaction smoke must run after clean extraction and dependency installation.");
+  assert.match(workflow, /node scripts\/windows-interaction-smoke\.mjs/);
+  assert.match(workflow, /PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS/);
+  assert.match(workflow, /name: plotpickle-windows-interaction-smoke-/);
+  assert.match(workflow, /reports\/windows-interaction-smoke\//);
 });
 
-test("issue #86 verifies required metadata and brand assets", async () => {
-  const audit = await source("scripts/lighthouse-audit.mjs");
-  for (const asset of [
-    "/manifest.webmanifest",
-    "/brand/favicon/plotpickle-icon-32.png",
-    "/brand/plotpickle-header-horizontal-600.png",
-    "/brand/plotpickle-logo-stacked-transparent-800.png",
-  ]) assert.ok(audit.includes(asset), `Required smoke asset is missing: ${asset}`);
-  assert.match(audit, /checkRequiredAssets/);
-  assert.match(audit, /response\.ok && body\.byteLength > 0/);
-  assert.match(audit, /Required metadata and brand assets/);
+test("issue #86 keeps CI bounded and does not run Lighthouse", async () => {
+  const [quality, release] = await Promise.all([
+    source(".github/workflows/quality.yml"),
+    source(".github/workflows/release-candidate.yml"),
+  ]);
+
+  assert.match(quality, /cancel-in-progress: true/);
+  assert.match(quality, /timeout-minutes: 20/);
+  assert.match(quality, /node --check scripts\/windows-interaction-smoke\.mjs/);
+  assert.match(release, /cancel-in-progress: true/);
+  assert.match(release, /timeout-minutes: 30/);
+  assert.doesNotMatch(`${quality}\n${release}`, /npm run audit:lighthouse|Lighthouse all-route smoke/);
 });
 
-test("issue #86 keeps category scores as diagnostic evidence rather than thresholds", async () => {
-  const audit = await source("scripts/lighthouse-audit.mjs");
-  for (const phrase of [
-    "performance",
-    "accessibility",
-    "best-practices",
-    "seo",
-    "failedAudits",
-    "seriousAccessibility",
-    "consoleErrors",
-    "summary.json",
-    "summary.md",
-    "category scores remain diagnostic",
-  ]) assert.ok(audit.includes(phrase), `Lighthouse evidence is missing: ${phrase}`);
-  assert.doesNotMatch(audit, /performance[^;\n]*>=|accessibility[^;\n]*>=|bestPractices[^;\n]*>=|seo[^;\n]*>=/);
-});
-
-test("issue #86 provides smoke by default and optional full desktop or mobile reports", async () => {
-  const packageJson = JSON.parse(await source("package.json"));
-  assert.equal(packageJson.scripts["audit:lighthouse"], "node scripts/lighthouse-audit.mjs smoke");
-  assert.equal(packageJson.scripts["audit:lighthouse:smoke"], "node scripts/lighthouse-audit.mjs smoke");
-  assert.equal(packageJson.scripts["audit:lighthouse:full"], "node scripts/lighthouse-audit.mjs all");
-  assert.equal(packageJson.scripts["audit:lighthouse:desktop"], "node scripts/lighthouse-audit.mjs desktop");
-  assert.equal(packageJson.scripts["audit:lighthouse:mobile"], "node scripts/lighthouse-audit.mjs mobile");
-  assert.equal(packageJson.scripts["audit:lighthouse:zip"], "node scripts/lighthouse-audit.mjs zip");
-
-  const audit = await source("scripts/lighthouse-audit.mjs");
-  assert.match(audit, /process\.argv\[2\] \?\? "smoke"/);
-  assert.match(audit, /PLOTPICKLE_LIGHTHOUSE_SKIP_BUILD/);
-  assert.match(audit, /127\.0\.0\.1/);
-  assert.match(audit, /No story project was sent to a remote audit service/);
-  assert.match(audit, /await zipDirectory\(reportDirectory\)/);
-});
-
-test("issue #86 runs the smoke gate in the authoritative quality workflow", async () => {
-  const workflow = await source(".github/workflows/quality.yml");
-  assert.match(workflow, /name: Lighthouse all-route smoke/);
-  assert.match(workflow, /PLOTPICKLE_LIGHTHOUSE_SKIP_BUILD: "1"/);
-  assert.match(workflow, /run: npm run audit:lighthouse/);
-  assert.match(workflow, /name: lighthouse-smoke/);
-  assert.match(workflow, /path: reports\/lighthouse\//);
-});
-
-test("issue #86 provides a native Windows launcher and documents the smoke package", async () => {
-  const [launcher, docs] = await Promise.all([
+test("issue #86 retires the unsupported Lighthouse runner instead of presenting it as valid", async () => {
+  const [runner, launcher, docs] = await Promise.all([
+    source("scripts/lighthouse-audit.mjs"),
     source("Run-Lighthouse.bat"),
     source("public/docs/readme/COLLABORATION-AND-DEVELOPMENT.md"),
   ]);
-  assert.match(launcher, /All-route smoke test - recommended/);
-  assert.match(launcher, /audit:lighthouse/);
-  assert.match(launcher, /desktop/);
-  assert.match(launcher, /mobile/);
-  assert.match(launcher, /zip/);
-  assert.doesNotMatch(launcher, /bash scripts\//i);
-  assert.doesNotMatch(launcher, /wsl\.exe/i);
-  assert.match(docs, /Whole-app Lighthouse smoke package/);
-  assert.match(docs, /recommended all-route smoke/);
-  assert.match(docs, /title and description metadata/);
-  assert.match(docs, /scores remain available as diagnostic evidence/);
-  assert.match(docs, /creates an uploadable ZIP automatically/);
-});
 
-test("issue #108 waits for Lighthouse log streams before child-process stdio", async () => {
-  const audit = await source("scripts/lighthouse-audit.mjs");
-  assert.match(audit, /export function waitForWritableOpen/);
-  assert.match(audit, /stream\.once\("open"/);
-  assert.match(audit, /await waitForWritableOpen\(log\)/);
-  assert.match(audit, /export function closeWritable/);
-  assert.match(audit, /stream\.once\("close"/);
-  assert.match(audit, /await closeWritable\(log\)/);
-  assert.doesNotMatch(audit, /finally \{\s*log\.end\(\);/);
+  assert.match(runner, /Lighthouse runner has been retired/);
+  assert.match(runner, /never provided a trustworthy packaged-runtime release gate/);
+  assert.doesNotMatch(runner, /vite preview|lighthouse@/);
+  assert.match(launcher, /Lighthouse runner has been retired/);
+  assert.match(docs, /Lighthouse runner is retired/);
+  assert.match(docs, /Windows packaged interaction release gate/);
+  assert.match(docs, /tabs, pills, buttons, menus/);
 });

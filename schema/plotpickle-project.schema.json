@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://plotpickle.app/schema/plotpickle-project.schema.json",
   "title": "PlotPickle Project",
-  "description": "Canonical PlotPickle 1.7 project schema with flexible scenes, Story Threads, Character Arc Matrices, rights and provenance, expanded screenplay elements, revisions, local review, optional shared visual asset identity, and continuous pre-production planning from shots and sound through scheduling and distribution.",
+  "description": "Canonical PlotPickle 1.7 project schema with flexible scenes, Story Threads, Character Arc Matrices, rights and provenance, expanded screenplay elements, revisions, local review, and continuous pre-production planning from shots and sound through scheduling and distribution.",
   "type": "object",
   "additionalProperties": false,
   "required": [

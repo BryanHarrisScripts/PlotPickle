@@ -29,9 +29,10 @@ test("issue #182 adds Collab after the ten creative workspaces without changing 
 });
 
 test("issue #182 renders one provider-neutral Collab workspace with the approved section names", async () => {
-  const [page, workspace, css, router] = await Promise.all([
+  const [page, workspace, calendarUi, css, router] = await Promise.all([
     source("app/page.tsx"),
     source("app/collab-workspace.tsx"),
+    source("app/google-calendar-workspace.tsx"),
     source("app/collab-workspace.module.css"),
     source("app/collaboration-workspace-router.tsx"),
   ]);
@@ -43,7 +44,7 @@ test("issue #182 renders one provider-neutral Collab workspace with the approved
   }
   assert.match(workspace, /Settings configures services\. Collab uses services\./);
   assert.match(workspace, /GitHub Story Proposals and Project Lead decisions/);
-  assert.match(workspace, /Project dates only/);
+  assert.match(calendarUi, /Project dates only/);
   assert.match(router, /"\/collab": "collab"/);
   for (const selector of [".hero", ".tabs", ".summaryGrid", ".providerGrid", ".emptyState"]) {
     assert.ok(css.includes(selector), `Collab styling is missing ${selector}`);
@@ -72,13 +73,17 @@ test("issue #182 keeps provider setup in Settings and uses split GitHub surfaces
   assert.ok(base.indexOf("GitHubRecoveryCentre") < base.indexOf("showApprovals ?"), "Recovery must remain with Settings configuration");
 });
 
-test("issue #182 leaves Google API execution for later phases", async () => {
-  const [workspace, status] = await Promise.all([
+test("issue #182 keeps Google setup in Settings while later phases isolate Calendar execution", async () => {
+  const [workspace, calendarUi, status] = await Promise.all([
     source("app/collab-workspace.tsx"),
+    source("app/google-calendar-workspace.tsx"),
     source("lib/connection-status.ts"),
   ]);
   assert.doesNotMatch(workspace, /\/api\/local-google|googleapis\.com|accounts\.google\.com/);
-  assert.match(workspace, /Phase 1 reserves this provider-neutral meeting surface without calling Google APIs/);
+  assert.match(workspace, /<GoogleCalendarWorkspace/);
+  assert.match(workspace, /Google Meet is the next isolated step/);
+  assert.match(calendarUi, /\/api\/local-google\/calendar/);
+  assert.doesNotMatch(calendarUi, /googleapis\.com|accounts\.google\.com/);
   assert.match(status, /Google sign-in, Calendar and Meet are optional and disconnected/);
   assert.match(status, /NonSensitiveMeetingMetadata/);
 });

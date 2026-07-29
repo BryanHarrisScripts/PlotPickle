@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import hostingConfig from "./.openai/hosting.json";
 import { localAiGateway } from "./build/local-ai-gateway";
 import { localConnectionsGateway } from "./build/local-connections-gateway";
+import { googleCalendarGateway } from "./build/google-calendar-gateway";
 import { githubAppGateway } from "./build/github-app-gateway";
 import { applyGitHubAppPublicConfig } from "./build/github-app-public-config";
 import { applyGoogleOAuthPublicConfig } from "./build/google-oauth-public-config";
@@ -73,6 +74,7 @@ export default defineConfig(async () => {
     },
     plugins: [
       localConnectionsGateway(),
+      googleCalendarGateway(),
       githubAppGateway(),
       githubCommandGateway(),
       githubRepositoryRecoveryGateway(),

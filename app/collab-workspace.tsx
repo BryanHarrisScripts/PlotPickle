@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { ConnectionId, ConnectionStatusSnapshot, PublicConnectionStatus } from "@/lib/connection-status";
 import type { PlotPickleProject } from "@/lib/project";
 import GitHubCollaboration from "./github-collaboration";
+import GoogleCalendarWorkspace from "./google-calendar-workspace";
 import styles from "./collab-workspace.module.css";
 
 type CollabSection = "overview" | "approvals" | "meetings" | "calendar" | "connections";
@@ -156,16 +157,16 @@ export default function CollabWorkspace({
               <button type="button" onClick={() => setSection("approvals")}>Review proposal workflow</button>
             </article>
             <article>
-              <span>Project meetings</span>
+              <span>Project calendar</span>
               <strong>{google.state === "connected" ? "Google ready" : "Optional"}</strong>
-              <p>Meetings and Calendar remain project-focused. No personal calendar is displayed by default.</p>
-              <button type="button" onClick={() => setSection("meetings")}>Open meetings</button>
+              <p>Calendar events remain project-focused. No personal calendar is displayed by default.</p>
+              <button type="button" onClick={() => setSection("calendar")}>Open calendar</button>
             </article>
           </section>
 
           <section className={styles.providerGrid} aria-label="Collaboration provider status">
             <ProviderCard status={github} purpose="Carries approved story revisions and Story Proposals." onOpenSettings={() => openSettings("github")} />
-            <ProviderCard status={google} purpose="Will carry project Calendar events and Google Meet links." onOpenSettings={() => openSettings("google")} />
+            <ProviderCard status={google} purpose="Carries project Calendar events. Meet remains a separate next step." onOpenSettings={() => openSettings("google")} />
           </section>
 
           <section className={styles.ruleCard}>
@@ -194,8 +195,8 @@ export default function CollabWorkspace({
       {section === "meetings" ? (
         <EmptyProviderState
           eyebrow="Meetings · Google Meet"
-          title="Connect Google to schedule project meetings"
-          description="Phase 1 reserves this provider-neutral meeting surface without calling Google APIs. Phase 3 will create unique Meet links through project Calendar events."
+          title="Google Meet is the next isolated step"
+          description="Calendar CRUD is implemented and tested separately first. Meet conference creation will be layered on only after Calendar is green."
           status={google}
           actionLabel="Review Google permissions"
           onOpenSettings={() => openSettings("google")}
@@ -203,14 +204,7 @@ export default function CollabWorkspace({
       ) : null}
 
       {section === "calendar" ? (
-        <EmptyProviderState
-          eyebrow="Calendar · Project dates only"
-          title="Connect Google Calendar for shared project dates"
-          description="Only PlotPickle-created or explicitly selected project events will appear here; the complete personal calendar will not be imported by default."
-          status={google}
-          actionLabel="Review Calendar permission"
-          onOpenSettings={() => openSettings("google")}
-        />
+        <GoogleCalendarWorkspace project={project} google={google} onOpenSettings={() => openSettings("google")} />
       ) : null}
 
       {section === "connections" ? (
@@ -220,7 +214,7 @@ export default function CollabWorkspace({
           </section>
           <section className={styles.providerGrid}>
             <ProviderCard status={github} purpose="Account, repository and permission setup lives in Settings → GitHub." onOpenSettings={() => openSettings("github")} />
-            <ProviderCard status={google} purpose="Sign-in, Calendar and Meet permissions live in Settings → Google Services." onOpenSettings={() => openSettings("google")} />
+            <ProviderCard status={google} purpose="Sign-in and Calendar permission live in Settings → Google Services." onOpenSettings={() => openSettings("google")} />
           </section>
           <section className={styles.privacyCard}>
             <strong>Local-first credential boundary</strong>

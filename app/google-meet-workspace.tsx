@@ -135,7 +135,7 @@ export default function GoogleMeetWorkspace({
               <span>Google Meet · {conferenceLabel(item.conferenceStatus)}</span>
               <strong>{item.title}</strong>
               <p>{new Date(item.start).toLocaleString()} – {new Date(item.end).toLocaleString()}</p>
-              <small>Calendar event {item.providerEventId.slice(0, 12)}{item.meetingId ? ` · Meeting ${item.meetingId}` : ""}</small>
+              <small>Calendar event {item.providerEventId.slice(0, 12)}</small>
               {ready ? <button type="button" onClick={() => openMeetLink(item)}>Open Google Meet</button> : null}
               {item.conferenceStatus === "none" ? <button type="button" onClick={() => void createMeetLink(item)} disabled={working}>{working ? "Creating…" : "Create Meet link"}</button> : null}
               {item.conferenceStatus === "pending" ? <p>The Calendar event is saved. Conference creation is still processing; refresh shortly.</p> : null}

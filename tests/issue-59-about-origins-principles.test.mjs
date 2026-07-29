@@ -9,17 +9,18 @@ test("About PlotPickle explains the current product without reviving obsolete co
   const page = await source("app/about/page.tsx");
   const content = await source("app/about/about-content.ts");
   for (const phrase of [
-    "local-first story-development and screenplay application",
-    "one portable canonical project",
+    "local-first visual storyworld and AI previsualization engine",
+    "portable PPF project",
     "The writer's decisions define the work",
     "AI is optional and bounded",
     "Suggestions are not canon",
     "Collaboration is deliberate",
     "Rights and provenance travel with the project",
-    "Page to production remains connected",
+    "Prototype before full production",
+    "Convert before creating",
     "Extensible core, optional integrations",
   ]) assert.ok(`${page}\n${content}`.includes(phrase), `Missing current principle: ${phrase}`);
-  assert.match(page, /do not promise automatic filmmaking or commercial success|do not promise automatic filmmaking|not a promise that software automatically produces a movie/i);
+  assert.match(page, /does not aim to replace Final Draft|not a studio production or finishing pipeline/i);
   assert.match(page, /not current PlotPickle commitments/i);
 });
 
@@ -29,8 +30,8 @@ test("evolution timeline connects Afterglow, 24 Blocks, OpenStory and PlotPickle
     "Afterglow on the page",
     "24 Blocks as a shared story language",
     "OpenStory Studio experiments",
-    "One connected local application",
-    "Writer-controlled collaboration and extensibility",
+    "One connected visual storyworld",
+    "Toward a watchable prototype",
   ]) assert.ok(content.includes(stage), `Missing evolution stage: ${stage}`);
   assert.match(content, /Architect, Plus and Visualizer GPTs/);
   assert.match(content, /provider-independent AI/);
@@ -38,7 +39,7 @@ test("evolution timeline connects Afterglow, 24 Blocks, OpenStory and PlotPickle
 
 test("page-to-production diagram uses one canonical project across all stages", async () => {
   const content = await source("app/about/about-content.ts");
-  for (const stage of ["Idea", "Story Setup", "Character and World", "24 Blocks", "Flexible Scenes", "96 Mini-Blocks", "Treatment", "Screenplay", "Review", "Visual Board", "Shots and Production", "Pitch and Export"]) {
+  for (const stage of ["Story Logic", "Canon and Characters", "24 Blocks", "96 Mini-Blocks", "Screenplay", "Whole Film", "Graphic Novel and Storyboard", "Production Shots", "Generated Assets", "Animatic Prototype", "Pitch and Reports"]) {
     assert.ok(content.includes(`"${stage}"`), `Missing page-to-production stage: ${stage}`);
   }
 });
@@ -49,7 +50,7 @@ test("legacy convergence map explains separate GPT and repository evolution", as
     assert.ok(content.includes(legacy), `Missing legacy convergence item: ${legacy}`);
   }
   assert.match(content, /Possible future plugin or SDK experiment, not required core architecture/);
-  assert.match(content, /Deferred; current collaboration uses local work and reviewable proposals/);
+  assert.match(content, /Out of scope; PlotPickle focuses on storyworld coordination and reviewable proposals/);
 });
 
 test("both legacy READMEs are mapped section by section with explicit disposition", async () => {

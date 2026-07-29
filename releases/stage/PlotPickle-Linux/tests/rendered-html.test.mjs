@@ -1,0 +1,266 @@
+import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
+const developmentPreviewMeta =
+  /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']development["'])[^>]*>/i;
+
+async function loadWorker() {
+  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
+  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}-${Math.random()}`);
+  const { default: worker } = await import(workerUrl.href);
+  return worker;
+}
+
+async function render(pathname) {
+  const worker = await loadWorker();
+  const response = await worker.fetch(
+    new Request(`http://localhost${pathname}`, { headers: { accept: "text/html" } }),
+    {
+      ASSETS: {
+        fetch: async () => new Response("Not found", { status: 404 }),
+      },
+    },
+    {
+      waitUntil() {},
+      passThroughOnException() {},
+    },
+  );
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
+  return response.text();
+}
+
+test("renders the approved whole-film startup splash and preserves the local-first workspace contract", async () => {
+  const html = await render("/");
+  assert.match(html, developmentPreviewMeta);
+  for (const phrase of [
+    "PlotPickle Playhouse",
+    "Your whole film.",
+    "One open studio.",
+    "One story. Every workspace.",
+    "Three builds",
+    "Automatic comic-book pitch deck",
+    "Works without AI",
+    "No required cloud account",
+    "Open software. Open method. Your story.",
+    "Write the story. See the film. Keep it yours.",
+  ]) {
+    assert.ok(html.includes(phrase), "Rendered splash is missing: " + phrase);
+  }
+  assert.match(html, /\/brand\/favicon\/plotpickle-icon-128\.png/);
+
+  const [source, navigation, splash] = await Promise.all([
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../lib/product-direction.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/marketing-splash.tsx", import.meta.url), "utf8"),
+  ]);
+  for (const phrase of [
+    'id: "simpleStart", code: "SS", label: "Simple Start"',
+    'id: "overview", code: "OV", label: "Project Overview"',
+    'id: "structureMap", code: "ST", label: "Structure Map"',
+    "One story. Five connected workspaces.",
+    "Introduction",
+  ]) {
+    assert.ok(source.includes(phrase), "Root workspace source is missing: " + phrase);
+  }
+  assert.match(splash, /OPEN_SOURCE_FOUNDATIONS\.map/);
+  assert.match(splash, /href="\/legal"/);
+  assert.match(splash, /plotpickle-multi-server-collaboration\.svg/);
+  assert.match(navigation, /id: "reports", label: "Reports", description: "Understand the screenplay", zone: "production"/);
+  assert.ok(navigation.includes('{ id: "dashboard", label: "Dashboard"'));
+  assert.ok(!source.includes("PlotPickle Online"), "Official product page should not advertise an online PlotPickle edition");
+});
+
+test("registers the legal route and preserves ownership and server-use guidance", async () => {
+  await render("/legal");
+  const source = await readFile(new URL("../app/legal/page.tsx", import.meta.url), "utf8");
+  for (const phrase of [
+    "Open software. Shared method. Your story remains yours.",
+    "GNU Affero General Public License",
+    "Creative Commons Attribution-ShareAlike 4.0",
+    "Server operator checklist",
+    "Plesk or WordPress",
+  ]) {
+    assert.ok(source.includes(phrase), `Legal route source is missing: ${phrase}`);
+  }
+});
+
+test("renders the Plan-owned Voiceprint route", async () => {
+  const html = await render("/voiceprint");
+  assert.match(html, /Voiceprint Planner/);
+  assert.match(html, /Project dialogue system/);
+  assert.match(html, /Character-specific language/);
+  assert.match(html, /Scene pressure reference/);
+});
+
+test("renders the read-only PageFlow diagnostics route", async () => {
+  const html = await render("/pageflow");
+  assert.match(html, /PageFlow Diagnostics/);
+  assert.match(html, /Read the current page evidence/);
+  assert.match(html, /Revision signals/);
+  assert.match(html, /Five-pass rewrite/);
+});
+
+test("renders the Resonance diagnostics route", async () => {
+  const html = await render("/resonance");
+  assert.match(html, /Resonance Diagnostics/);
+  assert.match(html, /Ask a question the story must earn/);
+  assert.match(html, /Make this block carry part of the argument/);
+  assert.match(html, /Evidence channels/);
+  assert.match(html, /Restraint rule/);
+});
+
+test("renders the DraftLens diagnostics route", async () => {
+  const html = await render("/draftlens");
+  assert.match(html, /DraftLens Diagnostics/);
+  assert.match(html, /Record the experience before trying to repair it/);
+  assert.match(html, /Six diagnostic lenses/);
+  assert.match(html, /Separate the visible symptom from the root cause/);
+  assert.match(html, /Notes protocol/);
+});
+
+test("registers the CraftLoop client route and preserves its workspace contract", async () => {
+  const html = await render("/craftloop");
+  assert.match(html, /page:\/craftloop/);
+
+  const source = await readFile(new URL("../app/craftloop/page.tsx", import.meta.url), "utf8");
+  for (const phrase of [
+    "CraftLoop Engine",
+    "Give the audience something active to track",
+    "Make Block {selectedBlock.number} end differently than it began",
+    "Observe motive, rhythm, silence, and status",
+    "Repeatable studio loop",
+  ]) {
+    assert.ok(source.includes(phrase), `CraftLoop source is missing: ${phrase}`);
+  }
+});
+
+test("registers the Structure Engine and preserves the 4-12-24-48-96 workspace", async () => {
+  const html = await render("/structure");
+  assert.match(html, /page:\/structure/);
+
+  const source = await readFile(new URL("../app/structure/page.tsx", import.meta.url), "utf8");
+  for (const phrase of [
+    "Structure Engine",
+    "12-Sequence Navigator",
+    "Story Clock",
+    "Rebalance full timeline",
+    "Mini-block B{block.number}.{mini.number}",
+    "calculated ASL",
+  ]) {
+    assert.ok(source.includes(phrase), `Structure Engine source is missing: ${phrase}`);
+  }
+});
+
+test("schema 1.7 preserves 12/24/96 while accepting flexible scenes", async () => {
+  const raw = await readFile(new URL("../schema/plotpickle-project.schema.json", import.meta.url), "utf8");
+  const schema = JSON.parse(raw);
+  assert.equal(schema.properties.schemaVersion.const, "1.7.0");
+  assert.ok(schema.required.includes("structure"));
+  assert.ok(schema.required.includes("screenplay"));
+  assert.deepEqual(schema.$defs.screenplay.properties.format.enum, ["plain-text", "fountain", "final-draft"]);
+  assert.ok(schema.$defs.screenplay.required.includes("draftElements"));
+  assert.equal(schema.$defs.screenplayDraftElement.properties.blockNumber.maximum, 24);
+  assert.equal(schema.$defs.screenplayDraftElement.properties.miniBlockNumber.maximum, 4);
+  assert.equal(schema.$defs.structure.properties.sequences.minItems, 12);
+  assert.equal(schema.$defs.structure.properties.sequences.maxItems, 12);
+  assert.equal(schema.$defs.block.properties.scenes.minItems, 1);
+  assert.equal(schema.$defs.block.properties.scenes.maxItems, undefined);
+  assert.equal(schema.$defs.scene.properties.miniBlocks.minItems, undefined);
+  assert.equal(schema.$defs.scene.properties.miniBlocks.maxItems, 4);
+  assert.ok(schema.$defs.miniBlock.required.includes("shortScenes"));
+  assert.equal(schema.$defs.screenplayDraftElement.properties.sceneId.type, "string");
+});
+
+test("project migration accepts earlier schemas and creates the new hierarchy", async () => {
+  const projectSource = await readFile(new URL("../lib/project.ts", import.meta.url), "utf8");
+  const structureSource = await readFile(new URL("../lib/structure.ts", import.meta.url), "utf8");
+  for (const version of ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0"]) {
+    assert.ok(projectSource.includes(`\"${version}\"`), `Migration no longer accepts ${version}`);
+  }
+  assert.ok(projectSource.includes('schemaVersion: "1.7.0"'));
+  assert.ok(projectSource.includes("createDefaultScenes(index + 1, targetMinutes)"));
+  assert.ok(structureSource.includes("sequenceTemplates.map"));
+  assert.ok(structureSource.includes("beatTarget: 4"));
+  assert.ok(structureSource.includes("shotTarget: 16"));
+});
+
+test("Windows launcher reuses a package-lock-specific persistent runtime", async () => {
+  const launcher = await readFile(new URL("../Start-PlotPickle.bat", import.meta.url), "utf8");
+  assert.ok(launcher.includes('set "RUNTIME_MANAGER=scripts\\windows-runtime.mjs"'));
+  assert.ok(launcher.includes('set "VITE_CMD=node_modules\\.bin\\vite.cmd"'));
+  assert.ok(launcher.includes('set "npm_config_cache=%PLOTPICKLE_NPM_CACHE%"'));
+  assert.ok(launcher.includes('npm ci --prefix "%PLOTPICKLE_RUNTIME_DIR%"'));
+  assert.ok(launcher.includes('npm install --prefix "%PLOTPICKLE_RUNTIME_DIR%"'));
+  assert.ok(launcher.includes("PLOTPICKLE_RUNTIME_REUSED"));
+  assert.ok(launcher.includes("No package download or first-time installation was needed."));
+  assert.ok(launcher.includes('call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT%'));
+  assert.ok(launcher.includes("Repair-PlotPickle.bat"));
+});
+
+test("persistent runtime manager fingerprints package-lock and separates application files", async () => {
+  const runtimePath = fileURLToPath(new URL("../scripts/windows-runtime.mjs", import.meta.url));
+  const projectRoot = fileURLToPath(new URL("..", import.meta.url));
+  const { stdout } = await execFileAsync(process.execPath, [runtimePath, "describe"], { cwd: projectRoot });
+  assert.match(stdout, /Application folder:/);
+  assert.match(stdout, /Dependency fingerprint: [a-f0-9]{20}/);
+  assert.match(stdout, /Persistent runtime:/);
+  assert.match(stdout, /Persistent dependencies:/);
+  assert.match(stdout, /Persistent npm cache:/);
+});
+
+test("Windows updater overlays program files while preserving runtime and projects", async () => {
+  const wrapper = await readFile(new URL("../Update-PlotPickle.bat", import.meta.url), "utf8");
+  const updater = await readFile(new URL("../scripts/windows-update.ps1", import.meta.url), "utf8");
+  assert.ok(wrapper.includes("Guided In-Place Updater"));
+  assert.ok(wrapper.includes("reusable dependency runtime"));
+  assert.ok(wrapper.includes("windows-update.ps1"));
+  assert.ok(updater.includes("System.Windows.Forms.OpenFileDialog"));
+  assert.ok(updater.includes("PlotPickle/archive/refs/heads/main.zip"));
+  assert.ok(updater.includes('$preservedDirectories = @("node_modules", ".git", ".next", "dist", ".wrangler", ".plotpickle", "projects", "exports", "user-data", "backups")'));
+  assert.ok(updater.includes("Persistent runtime left untouched"));
+  assert.ok(updater.includes("User-owned projects, exports, user-data, and backups folders are preserved."));
+  assert.ok(updater.includes("node_modules was not downloaded or copied"));
+  assert.ok(updater.includes("Start PlotPickle now? [Y/N]"));
+});
+
+test("Windows repair resets only the current persistent runtime", async () => {
+  const repair = await readFile(new URL("../Repair-PlotPickle.bat", import.meta.url), "utf8");
+  assert.ok(repair.includes("reset-current"));
+  assert.ok(repair.includes("does NOT delete"));
+  assert.ok(repair.includes("browser-stored story projects"));
+  assert.ok(repair.includes("call Start-PlotPickle.bat"));
+});
+
+test("Windows launcher explains and verifies the local installation", async () => {
+  const launcher = await readFile(new URL("../Start-PlotPickle.bat", import.meta.url), "utf8");
+  assert.ok(launcher.includes("[STEP 1 OF 4] Checking Node.js, npm, and the reusable runtime"));
+  assert.ok(launcher.includes("Continue with this local runtime installation? [Y/N]"));
+  assert.ok(launcher.includes('node "%SETUP_REPORT%" success'));
+  assert.ok(launcher.includes('node "%SETUP_REPORT%" ready'));
+  assert.ok(launcher.includes("Only this computer can use this 127.0.0.1 address."));
+  assert.ok(launcher.includes("does not require Administrator rights"));
+});
+
+test("Windows setup report lists space, packages, persistent upgrades, privacy, and local-server meaning", async () => {
+  const reportPath = fileURLToPath(new URL("../scripts/windows-setup-report.mjs", import.meta.url));
+  const projectRoot = fileURLToPath(new URL("..", import.meta.url));
+  const { stdout } = await execFileAsync(process.execPath, [reportPath, "plan"], {
+    cwd: projectRoot,
+  });
+  assert.match(stdout, /PLOTPICKLE INSTALLATION PLAN/);
+  assert.match(stdout, /Recommended free space before the first runtime setup: 2\.00 GB/);
+  assert.match(stdout, /Every top-level package requested by PlotPickle/);
+  assert.match(stdout, /Private local development server: vite/);
+  assert.match(stdout, /Cloudflare\/Vite build compatibility: @cloudflare\/vite-plugin/);
+  assert.match(stdout, /Reusable dependency runtime:/);
+  assert.match(stdout, /code-only upgrades reuse this runtime/);
+  assert.match(stdout, /does not request Administrator rights/);
+  assert.match(stdout, /server listens on 127\.0\.0\.1/);
+  assert.match(stdout, /does not upload your story project/);
+});

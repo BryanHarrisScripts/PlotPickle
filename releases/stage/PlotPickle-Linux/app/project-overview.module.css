@@ -1,0 +1,352 @@
+.page {
+  width: 100%;
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 52px clamp(24px, 4vw, 64px) 100px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: center;
+  gap: 48px;
+  padding: 42px;
+  border: 1px solid #b9dfe2;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(105, 184, 204, 0.18), transparent 18rem),
+    linear-gradient(135deg, rgba(217, 246, 234, 0.92), rgba(223, 244, 255, 0.92));
+  box-shadow: 0 24px 70px rgba(34, 91, 105, 0.12);
+}
+
+.eyebrow {
+  margin-bottom: 9px;
+  color: #3c94a8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  max-width: 850px;
+  margin-bottom: 16px;
+  color: #123442;
+  font-size: clamp(42px, 5.5vw, 74px);
+  letter-spacing: -0.06em;
+  line-height: 0.98;
+}
+
+.hero > div:first-child > p:not(.eyebrow) {
+  max-width: 740px;
+  margin-bottom: 24px;
+  color: #54727d;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.actions,
+.structureActions,
+.rightsLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.completionCard {
+  display: grid;
+  gap: 10px;
+  padding: 26px;
+  border: 1px solid rgba(89, 156, 171, 0.3);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.completionCard > span,
+.identityGrid span,
+.metricGrid span {
+  color: #54727d;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.completionCard > strong {
+  color: #176274;
+  font-size: 58px;
+  letter-spacing: -0.06em;
+  line-height: 1;
+}
+
+.completionCard > div {
+  overflow: hidden;
+  height: 7px;
+  border-radius: 999px;
+  background: #dbe8e7;
+}
+
+.completionCard i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #3c94a8;
+}
+
+.completionCard small {
+  color: #6e858c;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.identityGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.identityGrid article,
+.panel {
+  border: 1px solid #cce4e7;
+  background: rgba(251, 255, 255, 0.9);
+}
+
+.identityGrid article {
+  display: grid;
+  gap: 8px;
+  padding: 18px 20px;
+  border-radius: 15px;
+}
+
+.identityGrid strong {
+  overflow: hidden;
+  color: #123442;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
+  gap: 18px;
+}
+
+.panel {
+  min-width: 0;
+  padding: 28px;
+  border-radius: 22px;
+}
+
+.panel header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.panel h2 {
+  margin: 0;
+  color: #123442;
+  font-size: 24px;
+  letter-spacing: -0.035em;
+}
+
+.panel header > span,
+.panel header > button {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border: 1px solid #b9dfe2;
+  border-radius: 999px;
+  background: #fff;
+  color: #176274;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.panel header > button,
+.progressList button,
+.structureActions button {
+  cursor: pointer;
+}
+
+.progressList {
+  display: grid;
+  gap: 4px;
+}
+
+.progressList button {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.8fr) minmax(110px, 1fr) 42px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 11px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #123442;
+  text-align: left;
+}
+
+.progressList button:hover {
+  background: #edfafa;
+}
+
+.progressList button > span {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.progressList i {
+  overflow: hidden;
+  height: 5px;
+  border-radius: 999px;
+  background: #e2eceb;
+}
+
+.progressList b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #69b8cc;
+}
+
+.progressList button > strong {
+  color: #54727d;
+  font-size: 9px;
+  text-align: right;
+}
+
+.structurePanel {
+  background: linear-gradient(145deg, rgba(223, 244, 255, 0.82), rgba(217, 246, 234, 0.82));
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.metricGrid article {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid rgba(140, 196, 204, 0.38);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.metricGrid strong {
+  color: #176274;
+  font-size: 24px;
+  letter-spacing: -0.04em;
+}
+
+.structurePanel > p,
+.rightsPanel > p,
+.emptyState p {
+  color: #54727d;
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.structureActions {
+  margin: 16px 0;
+}
+
+.structureActions button,
+.rightsLinks a {
+  padding: 9px 11px;
+  border: 1px solid #a8cfd5;
+  border-radius: 9px;
+  background: #fff;
+  color: #176274;
+  font-size: 9px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.structurePanel > small {
+  color: #6c858c;
+  font-size: 8px;
+}
+
+.questions {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.questions li {
+  color: #365c67;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.emptyState {
+  padding: 24px;
+  border: 1px dashed #a8cfd5;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.emptyState strong {
+  color: #176274;
+  font-size: 12px;
+}
+
+.rightsPanel {
+  background: #123442;
+  color: #fff;
+}
+
+.rightsPanel .eyebrow,
+.rightsPanel h2 {
+  color: #d9f6ea;
+}
+
+.rightsPanel > p {
+  color: #c5dce1;
+}
+
+.rightsLinks a {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+  color: #efffff;
+}
+
+@media (max-width: 1050px) {
+  .hero,
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .identityGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .page {
+    padding: 28px 14px 72px;
+  }
+
+  .hero,
+  .panel {
+    padding: 22px;
+  }
+
+  .identityGrid,
+  .metricGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .progressList button {
+    grid-template-columns: minmax(110px, 1fr) 70px 36px;
+    gap: 8px;
+  }
+}

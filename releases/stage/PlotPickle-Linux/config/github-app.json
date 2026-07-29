@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/plotpickle-github-app-public-config.schema.json",
+  "schemaVersion": 1,
+  "product": "PlotPickle",
+  "registrationStatus": "registered",
+  "clientId": "Iv23lifwRtDJSYDC8UjI",
+  "slug": "plotpickle",
+  "installUrl": "https://github.com/apps/plotpickle/installations/new",
+  "homepageUrl": "https://github.com/BryanHarrisScripts/PlotPickle",
+  "deviceFlow": true,
+  "expiringUserTokens": true,
+  "webhooks": false,
+  "permissions": {
+    "metadata": "read",
+    "contents": "write",
+    "pullRequests": "write",
+    "administration": "write"
+  }
+}

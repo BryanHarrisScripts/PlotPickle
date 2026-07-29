@@ -1,0 +1,23 @@
+{
+  "product": "PlotPickle",
+  "version": "1.0.0-rc.3",
+  "candidate": true,
+  "platform": "linux",
+  "launcher": "start-plotpickle.sh",
+  "node": ">=22.13.0",
+  "localOnly": true,
+  "projectFormat": ".ppf",
+  "githubApp": {
+    "configPath": "config/github-app.json",
+    "configured": true,
+    "registrationStatus": "registered",
+    "slug": "plotpickle"
+  },
+  "googleOAuth": {
+    "configPath": "config/google-oauth.json",
+    "configured": false,
+    "registrationStatus": "pending-owner-registration",
+    "applicationType": "desktop"
+  },
+  "createdAt": "2026-07-29T01:14:33.745Z"
+}

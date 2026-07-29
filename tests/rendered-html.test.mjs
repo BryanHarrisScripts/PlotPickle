@@ -35,20 +35,23 @@ async function render(pathname) {
   return response.text();
 }
 
-test("renders the approved whole-film startup splash and preserves the local-first workspace contract", async () => {
+test("renders the approved visual storyworld startup splash and preserves the local-first workspace contract", async () => {
   const html = await render("/");
   assert.match(html, developmentPreviewMeta);
   for (const phrase of [
     "PlotPickle Playhouse",
-    "Your whole film.",
-    "One open studio.",
-    "One story. Every workspace.",
+    "See the whole movie",
+    "before you make it.",
+    "One PPF. One connected visual path.",
+    "Available now",
+    "Conversion roadmap",
+    "Whole Film → Storyworld Map",
+    "Graphic Novel + Storyboard → shared rendering",
     "Three builds",
-    "Automatic comic-book pitch deck",
     "Works without AI",
     "No required cloud account",
     "Open software. Open method. Your story.",
-    "Write the story. See the film. Keep it yours.",
+    "Shape the storyworld. See the movie. Build the proof.",
   ]) {
     assert.ok(html.includes(phrase), "Rendered splash is missing: " + phrase);
   }

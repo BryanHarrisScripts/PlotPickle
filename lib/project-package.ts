@@ -1,4 +1,10 @@
 import { cloneProject, normalizePlotPickleProject, type PlotPickleProject } from "./project";
+import {
+  migrateLegacyAssetReferences,
+  portableAssetManifestEntries,
+  projectAssetSourceRisk,
+  projectAssetSourceRisks,
+} from "./project-assets";
 
 export const PPF_FORMAT = "plotpickle-project-file" as const;
 export const PPF_FORMAT_VERSION = 1 as const;
@@ -61,20 +67,43 @@ export function portableProjectFileName(project: PlotPickleProject) {
   return `${stem}.ppf`;
 }
 
+function assertPortableAssetSources(project: PlotPickleProject) {
+  const risks = projectAssetSourceRisks(project.assets);
+  if (!risks.length) return;
+  const kinds = [...new Set(risks.map((risk) => risk.type))].join(" and ");
+  throw new Error(`Portable project assets contain ${kinds} sources. Relink them through project-relative assets before export or import.`);
+}
+
+function assertPortableManifestSources(assets: PortableAssetManifestEntry[]) {
+  const kinds = new Set<"machine-path" | "credential">();
+  for (const asset of assets) {
+    const source = typeof asset.source === "string" ? asset.source : "";
+    const path = typeof asset.path === "string" ? asset.path : "";
+    const risk = projectAssetSourceRisk(source) || projectAssetSourceRisk(path);
+    if (risk) kinds.add(risk);
+  }
+  if (!kinds.size) return;
+  throw new Error(`Portable asset manifest contains ${[...kinds].join(" and ")} sources. Relink them through project-relative assets before export or import.`);
+}
+
 export function createPortableProjectFile(
   project: PlotPickleProject,
   applicationVersion = "1.0.0-rc.3",
   assets: PortableAssetManifestEntry[] = [],
   createdAt = new Date().toISOString(),
 ): PortablePlotPickleFile {
-  const canonical = cloneProject(project);
+  const canonical = normalizePlotPickleProject(project)
+    ?? migrateLegacyAssetReferences(cloneProject(project));
+  assertPortableAssetSources(canonical);
+  const assetManifest = assets.length ? assets : portableAssetManifestEntries(canonical);
+  assertPortableManifestSources(assetManifest);
   return {
     format: PPF_FORMAT,
     formatVersion: PPF_FORMAT_VERSION,
     createdAt,
     applicationVersion,
     project: canonical,
-    assets: assets.map((asset) => ({ ...asset })),
+    assets: assetManifest.map((asset) => ({ ...asset })),
     integrity: {
       algorithm: "fnv1a-32",
       projectHash: portableProjectHash(canonical),
@@ -95,7 +124,15 @@ export function parsePortableProjectFile(input: string | unknown): PortableProje
   }
   const normalized = normalizePlotPickleProject(candidate.project);
   if (!normalized) throw new Error("The story inside this .ppf file could not be migrated to the current schema.");
+  assertPortableAssetSources(normalized);
+  const assetManifest = Array.isArray(candidate.assets)
+    ? candidate.assets.filter((item): item is PortableAssetManifestEntry => Boolean(item && typeof item === "object"))
+    : [];
+  assertPortableManifestSources(assetManifest);
   const expectedHash = candidate.integrity?.projectHash;
+  const sourceHash = candidate.project && typeof candidate.project === "object"
+    ? portableProjectHash(candidate.project as PlotPickleProject)
+    : "";
   const actualHash = portableProjectHash(normalized);
   const file: PortablePlotPickleFile = {
     format: PPF_FORMAT,
@@ -103,10 +140,8 @@ export function parsePortableProjectFile(input: string | unknown): PortableProje
     createdAt: typeof candidate.createdAt === "string" ? candidate.createdAt : new Date().toISOString(),
     applicationVersion: typeof candidate.applicationVersion === "string" ? candidate.applicationVersion : "unknown",
     project: normalized,
-    assets: Array.isArray(candidate.assets)
-      ? candidate.assets.filter((item): item is PortableAssetManifestEntry => Boolean(item && typeof item === "object"))
-      : [],
+    assets: assetManifest,
     integrity: { algorithm: "fnv1a-32", projectHash: actualHash },
   };
-  return { file, project: normalized, integrityValid: expectedHash === actualHash };
+  return { file, project: normalized, integrityValid: expectedHash === actualHash || expectedHash === sourceHash };
 }

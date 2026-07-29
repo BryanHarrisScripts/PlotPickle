@@ -103,7 +103,7 @@ export function useGraphicNovelQueue({ project, aiStatus, imageModel, onProjectC
     } catch {
       window.localStorage.removeItem(key);
     }
-    const next = buildGraphicNovelQueue(project.id, migrated, stored, stored?.quality || "low");
+    const next = buildGraphicNovelQueue(project.id, migrated, stored, stored?.quality || "low", active.assets);
     queueRef.current = next;
     setQueue(next);
     setQuality(next.quality);
@@ -260,7 +260,7 @@ export function useGraphicNovelQueue({ project, aiStatus, imageModel, onProjectC
       ? { ...deckRef.current, panels: deckRef.current.panels.map((panel) => ({ ...panel, prompt: graphicNovelPrompt(panel.prompt) })) }
       : createGraphicNovelPlan(active, deckRef.current);
     saveDeck(prepared);
-    const next = buildGraphicNovelQueue(active.id, prepared, queueRef.current ?? undefined, quality);
+    const next = buildGraphicNovelQueue(active.id, prepared, queueRef.current ?? undefined, quality, active.assets);
     saveQueue(next);
     void run(next);
   }
@@ -306,7 +306,7 @@ export function useGraphicNovelQueue({ project, aiStatus, imageModel, onProjectC
     const active = projectRef.current;
     const nextDeck = createGraphicNovelPlan(active, deckRef.current, preserveCompleted);
     saveDeck(nextDeck);
-    saveQueue(buildGraphicNovelQueue(active.id, nextDeck, preserveCompleted ? queueRef.current ?? undefined : undefined, quality));
+    saveQueue(buildGraphicNovelQueue(active.id, nextDeck, preserveCompleted ? queueRef.current ?? undefined : undefined, quality, active.assets));
     setMessage(preserveCompleted
       ? "The 96-panel Graphic Novel plan was refreshed. Completed images and queue decisions were preserved."
       : "The Graphic Novel was rebuilt. All 96 panels are ready for a new queue.");

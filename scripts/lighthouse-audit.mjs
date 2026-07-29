@@ -14,6 +14,7 @@ const REPORT_ROOT = join(ROOT, "reports", "lighthouse");
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = 4173;
 const LIGHTHOUSE_VERSION = "12.8.2";
+const LIGHTHOUSE_ROUTE_TIMEOUT_MS = 60_000;
 const PAGE_FILE = /^page\.(?:[cm]?[jt]sx?)$/;
 const SMOKE_AUDITS = [
   "http-status-code",
@@ -81,12 +82,33 @@ export async function discoverRoutes() {
 
 function run(command, args, options = {}) {
   return new Promise((resolvePromise, reject) => {
-    const child = spawnCommand(command, args, { cwd: ROOT, stdio: options.stdio ?? "inherit", ...options });
-    child.once("error", reject);
-    child.once("exit", (code, signal) => {
-      if (code === 0) resolvePromise({ code, signal });
-      else reject(new Error(`${command} ${args.join(" ")} failed with ${signal ?? `exit ${code}`}`));
+    const { timeoutMs, ...spawnOptions } = options;
+    const child = spawnCommand(command, args, {
+      cwd: ROOT,
+      stdio: spawnOptions.stdio ?? "inherit",
+      ...spawnOptions,
     });
+    let settled = false;
+    let timeout;
+    const finish = (callback) => {
+      if (settled) return;
+      settled = true;
+      if (timeout) clearTimeout(timeout);
+      callback();
+    };
+    child.once("error", (error) => finish(() => reject(error)));
+    child.once("exit", (code, signal) => {
+      finish(() => {
+        if (code === 0) resolvePromise({ code, signal });
+        else reject(new Error(`${command} ${args.join(" ")} failed with ${signal ?? `exit ${code}`}`));
+      });
+    });
+    if (timeoutMs) {
+      timeout = setTimeout(() => {
+        child.kill("SIGTERM");
+        finish(() => reject(new Error(`${command} timed out after ${timeoutMs}ms`)));
+      }, timeoutMs);
+    }
   });
 }
 
@@ -221,7 +243,10 @@ async function auditRoute({ baseUrl, route, mode, outputDirectory }) {
   let exitCode = 0;
   try {
     await waitForWritableOpen(log);
-    await run(commandForNpx(), args, { stdio: ["ignore", log, log] });
+    await run(commandForNpx(), args, {
+      stdio: ["ignore", log, log],
+      timeoutMs: LIGHTHOUSE_ROUTE_TIMEOUT_MS,
+    });
   } catch (error) {
     exitCode = 1;
     if (!log.destroyed) log.write(`\n${error.stack ?? error.message}\n`);

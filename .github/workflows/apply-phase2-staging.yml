@@ -5,12 +5,18 @@ on:
     branches: [agent/184-google-desktop-oauth]
     paths:
       - ".phase2-staging/READY"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".phase2-staging/**"
+      - ".github/workflows/apply-phase2-staging.yml"
 
 permissions:
   contents: write
 
 jobs:
   apply:
+    if: github.event_name == 'push' || github.head_ref == 'agent/184-google-desktop-oauth'
     runs-on: ubuntu-latest
     steps:
       - name: Check out Phase 2 branch

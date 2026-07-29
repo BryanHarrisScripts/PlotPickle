@@ -4,8 +4,8 @@
 
 import { useMemo, useState } from "react";
 import styles from "./mini-block-wall.module.css";
-import mapStyles from "./storyworld-map.module.css";
 import FeedbackContextBadge from "./feedback-context-badge";
+import StoryworldMapPanel from "./storyworld-map-panel";
 import {
   createMiniBlockWallModel,
   DEFAULT_MINI_BLOCK_WALL_STATE,
@@ -13,9 +13,6 @@ import {
   type MiniBlockWallCard,
   type MiniBlockWallCardStatus,
   type MiniBlockWallColourMode,
-  type MiniBlockWallDisplay,
-  type MiniBlockWallGranularity,
-  type MiniBlockWallOverlay,
   type MiniBlockWallScope,
   type MiniBlockWallState,
   type MiniBlockWallView,
@@ -34,19 +31,20 @@ import {
   captureArrangementRecovery,
   loadArrangementRecovery,
 } from "@/lib/build-recovery";
-import {
-  buildStoryworldMapHtml,
-  buildStoryworldMapSvg,
-  createStoryworldMapModel,
-  readStoryworldMapSharedLayout,
-  saveStoryworldMapSharedLayout,
-  storyworldConnectionsFor,
-  storyworldMapFileName,
-  storyworldMarkersFor,
-} from "@/lib/storyworld-map";
 import type { PlotPickleProject } from "@/lib/project";
+import { readStoryworldMapSharedLayout } from "@/lib/storyworld-map";
 
 const wallStateByProject = new Map<string, MiniBlockWallState>();
+
+function initialWallState(project: PlotPickleProject) {
+  const sharedLayout = readStoryworldMapSharedLayout(project);
+  return normalizeMiniBlockWallState({
+    ...DEFAULT_MINI_BLOCK_WALL_STATE,
+    display: sharedLayout?.mode ?? DEFAULT_MINI_BLOCK_WALL_STATE.display,
+    granularity: sharedLayout?.granularity,
+    overlays: sharedLayout?.overlays,
+  });
+}
 
 const VIEW_OPTIONS: { id: MiniBlockWallView; label: string }[] = [
   { id: "whole-film", label: "Whole film" },
@@ -79,34 +77,6 @@ const SCOPE_OPTIONS: { id: MiniBlockWallScope; label: string }[] = [
   { id: "act", label: "Selected act" },
   { id: "sequence", label: "Selected sequence" },
   { id: "block", label: "Selected Block" },
-];
-
-const DISPLAY_OPTIONS: { id: MiniBlockWallDisplay; label: string; description: string }[] = [
-  { id: "wall", label: "Construction wall", description: "Arrange the canonical 96 mini-blocks" },
-  { id: "map", label: "Storyworld Map", description: "Explore relationships without changing order" },
-  { id: "table", label: "Map table", description: "Keyboard and screen-reader alternative" },
-];
-
-const GRANULARITY_OPTIONS: { id: MiniBlockWallGranularity; label: string }[] = [
-  { id: "movie", label: "Whole movie" },
-  { id: "act", label: "Acts" },
-  { id: "sequence", label: "Sequences" },
-  { id: "block", label: "Blocks" },
-  { id: "scene", label: "Scenes" },
-  { id: "mini-block", label: "Mini-blocks" },
-  { id: "production-shot", label: "Production Shots" },
-];
-
-const OVERLAY_OPTIONS: { id: MiniBlockWallOverlay; label: string }[] = [
-  { id: "causality", label: "Causality and escalation" },
-  { id: "hooks-turns", label: "Hooks and turns" },
-  { id: "characters", label: "Characters and arcs" },
-  { id: "threads", label: "Threads and dramatic question" },
-  { id: "setup-payoff", label: "Setup and payoff" },
-  { id: "location-time", label: "Location and order" },
-  { id: "visual-continuity", label: "Visual continuity" },
-  { id: "render-readiness", label: "Render readiness" },
-  { id: "warnings", label: "Logic, rights and provenance warnings" },
 ];
 
 type LegendEntry = { label: string; tone: number };
@@ -191,25 +161,16 @@ function legendValues(project: PlotPickleProject, state: MiniBlockWallState, car
 export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, feedbackBadges, onOpenFeedback }: MiniBlockWallProps) {
   const [session, setSession] = useState(() => ({
     projectId: project.id,
-    state: wallStateByProject.get(project.id) ?? (() => {
-      const shared = readStoryworldMapSharedLayout(project);
-      return normalizeMiniBlockWallState(shared ? {
-        ...DEFAULT_MINI_BLOCK_WALL_STATE,
-        display: shared.mode,
-        granularity: shared.granularity,
-        overlays: shared.overlays,
-      } : DEFAULT_MINI_BLOCK_WALL_STATE);
-    })(),
+    state: wallStateByProject.get(project.id) ?? initialWallState(project),
   }));
   const state = session.projectId === project.id
     ? session.state
-    : wallStateByProject.get(project.id) ?? DEFAULT_MINI_BLOCK_WALL_STATE;
+    : wallStateByProject.get(project.id) ?? initialWallState(project);
   const [undoOrders, setUndoOrders] = useState<string[][]>([]);
   const [redoOrders, setRedoOrders] = useState<string[][]>([]);
   const [draggedMiniBlockId, setDraggedMiniBlockId] = useState("");
   const [movementStatus, setMovementStatus] = useState("Mini-block arrangement ready.");
   const model = useMemo(() => createMiniBlockWallModel(project, state), [project, state]);
-  const storyworld = useMemo(() => createStoryworldMapModel(project), [project]);
   const selectedCard = model.cards.find((card) => card.id === state.selectedMiniBlockId)
     ?? model.visibleCards[0]
     ?? model.cards[0];
@@ -242,24 +203,6 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
   const legend = legendValues(project, state, model.cards).filter((entry) => entry.label).slice(0, 10);
   const anchor = selectedCard ?? model.cards[0];
   const selectedFeedbackCount = selectedCard ? feedbackBadges.get(`mini-block:${selectedCard.id}`) ?? 0 : 0;
-  const selectedConnections = useMemo(
-    () => selectedCard ? storyworldConnectionsFor(storyworld, selectedCard.id, state.overlays) : [],
-    [selectedCard, state.overlays, storyworld],
-  );
-  const selectedMarkers = useMemo(
-    () => selectedCard ? storyworldMarkersFor(storyworld, selectedCard.id, state.overlays) : [],
-    [selectedCard, state.overlays, storyworld],
-  );
-  const connectedMiniBlockIds = useMemo(() => new Set(selectedConnections.flatMap((connection) => [
-    connection.fromMiniBlockId,
-    connection.toMiniBlockId,
-  ])), [selectedConnections]);
-  const markersByCard = useMemo(() => {
-    const result = new Map<string, number>();
-    storyworld.markers.filter((marker) => state.overlays.includes(marker.overlay)).forEach((marker) =>
-      result.set(marker.miniBlockId, (result.get(marker.miniBlockId) ?? 0) + 1));
-    return result;
-  }, [state.overlays, storyworld.markers]);
 
   function updateState(patch: Partial<MiniBlockWallState>) {
     const next = normalizeMiniBlockWallState({ ...state, ...patch });
@@ -380,39 +323,7 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
   }
 
   function clearFilters() {
-    updateState({ filters: DEFAULT_MINI_BLOCK_WALL_STATE.filters, search: "" });
-  }
-
-  function toggleOverlay(overlay: MiniBlockWallOverlay) {
-    updateState({
-      overlays: state.overlays.includes(overlay)
-        ? state.overlays.filter((item) => item !== overlay)
-        : [...state.overlays, overlay],
-    });
-  }
-
-  function openConnectedMiniBlock(miniBlockId: string) {
-    const card = model.cards.find((item) => item.id === miniBlockId);
-    if (card) revealCard(card);
-  }
-
-  function downloadMap(content: string, fileName: string, mimeType: string) {
-    const href = URL.createObjectURL(new Blob([content], { type: mimeType }));
-    const link = document.createElement("a");
-    link.href = href;
-    link.download = fileName;
-    link.click();
-    URL.revokeObjectURL(href);
-  }
-
-  function saveSharedLayout() {
-    onProjectChange(saveStoryworldMapSharedLayout(project, {
-      mode: state.display === "map" ? "map" : "wall",
-      granularity: state.granularity,
-      overlays: state.overlays,
-      emphasizedNodeIds: selectedCard ? [selectedCard.id] : [],
-    }));
-    setMovementStatus("Saved the shared Storyworld Map presentation in the PPF. Personal pan and zoom stayed on this device.");
+    updateState({ filters: DEFAULT_MINI_BLOCK_WALL_STATE.filters });
   }
 
   function resetView() {
@@ -425,26 +336,23 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
   }
 
   return (
-    <section className={styles.wallWorkspace} aria-label="Whole Film and interactive Storyworld Map">
+    <section className={styles.wallWorkspace} aria-label="Whole Film and Storyworld Map">
       <header className={styles.wallHeader}>
         <div>
           <p>Whole Film · 96 mini-blocks · Storyworld Map</p>
-          <h2>See the movie&apos;s structure, logic, visuals and production relationships in one canonical view.</h2>
-          <span>The construction wall and map are two modes over the same PPF records. Map placement, filters and overlays never change story order.</span>
+          <h2>See the movie&apos;s structure, logic and visual readiness without leaving Build.</h2>
+          <span>Wall, map and table are views of the same canonical project. Filters, overlays and map placement never change story order.</span>
         </div>
         <div className={styles.metrics}>
           <strong>{model.counts.visible}</strong><span>visible of {model.counts.cards}</span>
-          <strong>{storyworld.summary.connections}</strong><span>derived connections</span>
-          <strong>{storyworld.summary.critical + storyworld.summary.warnings}</strong><span>map warnings</span>
+          <strong>{model.warnings.length}</strong><span>diagnostic signals</span>
         </div>
       </header>
 
-      <div className={mapStyles.displaySwitch} role="group" aria-label="Whole Film display mode">
-        {DISPLAY_OPTIONS.map((option) => (
-          <button type="button" key={option.id} className={state.display === option.id ? styles.active : ""} onClick={() => updateState({ display: option.id })}>
-            <strong>{option.label}</strong><span>{option.description}</span>
-          </button>
-        ))}
+      <div className={styles.displayTabs} role="group" aria-label="Whole Film display mode">
+        <button type="button" className={state.display === "wall" ? styles.active : ""} aria-pressed={state.display === "wall"} onClick={() => updateState({ display: "wall" })}>Construction wall</button>
+        <button type="button" className={state.display === "map" ? styles.active : ""} aria-pressed={state.display === "map"} onClick={() => updateState({ display: "map" })}>Storyworld Map</button>
+        <button type="button" className={state.display === "table" ? styles.active : ""} aria-pressed={state.display === "table"} onClick={() => updateState({ display: "table" })}>Accessible table</button>
       </div>
 
       <div className={styles.viewTabs} role="group" aria-label="Mini-block wall views">
@@ -453,22 +361,7 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
         ))}
       </div>
 
-      {state.display !== "wall" ? <section className={mapStyles.mapControls} aria-label="Storyworld Map relationship controls">
-        <div>
-          <label><span>Semantic zoom</span><select value={state.granularity} onChange={(event) => updateState({ granularity: event.target.value as MiniBlockWallGranularity })}>{GRANULARITY_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
-          <button type="button" onClick={saveSharedLayout}>Save shared map layout</button>
-          <button type="button" onClick={() => downloadMap(buildStoryworldMapSvg(project, storyworld, state.overlays), storyworldMapFileName(project, "svg"), "image/svg+xml")}>Export structured SVG</button>
-          <button type="button" onClick={() => downloadMap(buildStoryworldMapHtml(project, storyworld), storyworldMapFileName(project, "html"), "text/html")}>Export self-contained HTML</button>
-        </div>
-        <fieldset>
-          <legend>Relationship overlays</legend>
-          {OVERLAY_OPTIONS.map((option) => <label key={option.id}><input type="checkbox" checked={state.overlays.includes(option.id)} onChange={() => toggleOverlay(option.id)} /><span>{option.label}</span></label>)}
-        </fieldset>
-        <p>The relationship index is rebuildable evidence. Saving stores only a versioned shared presentation extension; personal viewport state remains local.</p>
-      </section> : null}
-
       <section className={styles.controls} aria-label="Mini-block wall controls">
-        <label><span>Search the storyworld</span><input type="search" value={state.search} placeholder="Hook, turn, character, location…" onChange={(event) => updateState({ search: event.target.value })} /></label>
         <label><span>Act focus</span><select value={state.act} onChange={(event) => updateState({ act: Number(event.target.value), view: event.target.value === "0" ? "whole-film" : "act" })}><option value={0}>All acts</option>{[1, 2, 3, 4].map((act) => <option key={act} value={act}>Act {act}</option>)}</select></label>
         <label><span>Sequence focus</span><select value={state.sequenceNumber} onChange={(event) => updateState({ sequenceNumber: Number(event.target.value), view: event.target.value === "0" ? "whole-film" : "sequence" })}><option value={0}>All sequences</option>{project.structure.sequences.map((sequence) => <option key={sequence.id} value={sequence.number}>Sequence {sequence.number}</option>)}</select></label>
         <label><span>Block focus</span><select value={state.blockId} onChange={(event) => updateState({ blockId: event.target.value, view: event.target.value ? "block" : "whole-film" })}><option value="">All Blocks</option>{project.blocks.map((block) => <option key={block.id} value={block.id}>Block {block.number} · {block.title}</option>)}</select></label>
@@ -483,16 +376,16 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
         <button type="button" onClick={clearFilters}>Clear filters</button>
       </section>
 
-      <section className={styles.expansionBar} aria-label="Expansion zoom and pan controls">
+      {state.display === "wall" ? <section className={styles.expansionBar} aria-label="Expansion zoom and pan controls">
         <div role="group" aria-label="Expanded mini-block scope">
           {SCOPE_OPTIONS.map((option) => <button type="button" key={option.id} className={state.expandedScope === option.id ? styles.active : ""} onClick={() => updateState({ expandedScope: option.id })}>{option.label}</button>)}
         </div>
         <div role="group" aria-label="Zoom controls"><button type="button" onClick={() => updateState({ zoom: state.zoom - 0.1 })}>Zoom out</button><span>{Math.round(state.zoom * 100)}%</span><button type="button" onClick={() => updateState({ zoom: state.zoom + 0.1 })}>Zoom in</button></div>
         <div role="group" aria-label="Pan controls"><button type="button" aria-label="Pan left" onClick={() => updateState({ pan: { ...state.pan, x: state.pan.x + 80 } })}>←</button><button type="button" aria-label="Pan up" onClick={() => updateState({ pan: { ...state.pan, y: state.pan.y + 80 } })}>↑</button><button type="button" aria-label="Pan down" onClick={() => updateState({ pan: { ...state.pan, y: state.pan.y - 80 } })}>↓</button><button type="button" aria-label="Pan right" onClick={() => updateState({ pan: { ...state.pan, x: state.pan.x - 80 } })}>→</button></div>
         <button type="button" onClick={resetView}>Reset wall</button>
-      </section>
+      </section> : null}
 
-      <section className={styles.movementBar} aria-label="Mini-block order and recovery controls">
+      {state.display === "wall" ? <section className={styles.movementBar} aria-label="Mini-block order and recovery controls">
         <div>
           <strong>Arrange mini-blocks</strong>
           <span>Drag the visible handle, or move the selected card with these equivalent controls.</span>
@@ -508,54 +401,15 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
         <button type="button" disabled={!undoOrders.length} onClick={undoMove}>Undo move</button>
         <button type="button" disabled={!redoOrders.length} onClick={redoMove}>Redo move</button>
         <button type="button" onClick={restoreRecovery}>Restore last arrangement</button>
-      </section>
-      <p id="mini-block-movement-status" className={styles.movementStatus} role="status" aria-live="polite">{movementStatus}</p>
-
-      {state.display !== "wall" && selectedCard ? <section className={mapStyles.connectionInspector} aria-label="Selected Storyworld Map evidence">
-        <header>
-          <div><span>Show why this connects</span><strong>Mini-block {selectedCard.globalNumber} · {selectedCard.label || selectedCard.turn || "Story movement"}</strong></div>
-          <small>{selectedConnections.length} visible connections · {selectedMarkers.length} markers</small>
-        </header>
-        <div className={mapStyles.connectionList}>
-          {selectedConnections.length ? selectedConnections.map((connection) => {
-            const targetId = connection.fromMiniBlockId === selectedCard.id ? connection.toMiniBlockId : connection.fromMiniBlockId;
-            const target = model.cards.find((card) => card.id === targetId);
-            return <button type="button" key={connection.id} onClick={() => openConnectedMiniBlock(targetId)}>
-              <span>{connection.overlay.replaceAll("-", " ")} · {connection.source}</span>
-              <strong>{connection.label}</strong>
-              <small>{connection.evidence}</small>
-              <em>{target ? `Open mini-block ${target.globalNumber}` : "Canonical source record"}</em>
-            </button>;
-          }) : <p>No connection matches the selected overlays. Enable another overlay or select a different mini-block.</p>}
-        </div>
-        {selectedMarkers.length ? <div className={mapStyles.markerList}>{selectedMarkers.map((marker) => <article key={marker.id} data-severity={marker.severity}><strong>{marker.label}</strong><span>{marker.evidence}</span><small>{marker.nodeIds.join(" · ")}</small></article>)}</div> : null}
       </section> : null}
+      {state.display === "wall" ? <p id="mini-block-movement-status" className={styles.movementStatus} role="status" aria-live="polite">{movementStatus}</p> : null}
 
-      <div className={styles.legend} aria-label={`${state.colourMode} colour legend`}>
+      {state.display === "wall" ? <div className={styles.legend} aria-label={`${state.colourMode} colour legend`}>
         <strong>{COLOUR_OPTIONS.find((option) => option.id === state.colourMode)?.label}</strong>
         {legend.length ? legend.map((entry) => <span key={`${entry.label}-${entry.tone}`}><i className={styles[`tone${entry.tone}`]} />{entry.label}</span>) : <span>No labelled items yet.</span>}
-      </div>
-
-      {state.display === "table" ? <div className={mapStyles.tableAlternative}>
-        <table>
-          <caption>Storyworld Map table alternative. Every row resolves to the same canonical mini-block used by Build, Plan, Write, Storyboard and Production.</caption>
-          <thead><tr><th>Position</th><th>Story movement</th><th>Character and thread</th><th>Visual and production</th><th>Relationships</th><th>Open</th></tr></thead>
-          <tbody>{model.visibleCards.map((card) => {
-            const connections = storyworldConnectionsFor(storyworld, card.id, state.overlays);
-            const markers = storyworldMarkersFor(storyworld, card.id, state.overlays);
-            return <tr key={card.id}>
-              <th scope="row">Mini {card.globalNumber}<small>Block {card.blockNumber}.{card.number} · {card.sceneTitle}</small></th>
-              <td><strong>{card.label || card.function || "Untitled movement"}</strong><span>{card.turn || card.purpose || card.objective || "No dramatic movement recorded."}</span></td>
-              <td><strong>{card.characterName || "No character focus"}</strong><span>{card.storylineNames.join(" · ") || "No Story Thread"}</span></td>
-              <td><strong>{card.frame?.src ? "Frame linked" : "Frame missing"}</strong><span>{card.shotIds.length} Production Shot(s)</span></td>
-              <td><strong>{connections.length} connections</strong><span>{markers.map((marker) => marker.label).join(" · ") || "No active markers"}</span></td>
-              <td><button type="button" onClick={() => revealCard(card)}>Inspect</button></td>
-            </tr>;
-          })}</tbody>
-        </table>
       </div> : null}
 
-      <div className={`${styles.boardLayout} ${state.display === "map" ? mapStyles.storyworldMode : ""} ${state.display === "table" ? mapStyles.tableMode : ""}`}>
+      <div className={`${styles.boardLayout} ${state.display === "wall" ? "" : styles.hidden}`}>
         <div className={styles.viewport} tabIndex={0} aria-label="Scrollable and zoomable mini-block wall">
           <div className={styles.wallSurface} style={{ transform: `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.zoom})`, transformOrigin: "0 0" }}>
             {[1, 2, 3, 4].map((act) => {
@@ -572,14 +426,8 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
                           <header><div><span>Block {block.number} · Sequence {block.sequenceNumber}</span><strong>{block.title}</strong></div><small>{cards.length} visible</small></header>
                           <div className={styles.miniGrid}>
                             {cards.map((card) => {
-                              const semanticDetail = state.display === "wall"
-                                || ["mini-block", "production-shot"].includes(state.granularity)
-                                || card.id === selectedCard?.id
-                                || connectedMiniBlockIds.has(card.id);
-                              const expanded = (anchor ? isExpanded(card, state, anchor) : true) && semanticDetail;
+                              const expanded = anchor ? isExpanded(card, state, anchor) : true;
                               const warningCount = warningsByCard.get(card.id) ?? 0;
-                              const markerCount = markersByCard.get(card.id) ?? 0;
-                              const mapConnected = connectedMiniBlockIds.has(card.id);
                               return (
                                 <button
                                   type="button"
@@ -587,14 +435,9 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
                                   key={card.id}
                                   draggable={state.display === "wall"}
                                   tabIndex={card.id === selectedCard?.id ? 0 : -1}
-                                  className={`${styles.miniCard} ${styles[`tone${toneIndex(card, state)}`]} ${card.id === selectedCard?.id ? styles.selected : ""} ${expanded ? "" : styles.compact} ${draggedMiniBlockId === card.id ? styles.dragging : ""} ${mapConnected ? mapStyles.connected : ""}`}
+                                  className={`${styles.miniCard} ${styles[`tone${toneIndex(card, state)}`]} ${card.id === selectedCard?.id ? styles.selected : ""} ${expanded ? "" : styles.compact} ${draggedMiniBlockId === card.id ? styles.dragging : ""}`}
                                   onClick={() => selectCard(card)}
                                   onDragStart={(event) => {
-                                    if (state.display !== "wall") {
-                                      event.preventDefault();
-                                      setMovementStatus("Storyworld Map exploration does not change canonical story order. Use the existing arrangement controls when you intend to move a mini-block.");
-                                      return;
-                                    }
                                     event.dataTransfer.effectAllowed = "move";
                                     event.dataTransfer.setData("application/x-plotpickle-mini-block", card.id);
                                     event.dataTransfer.setData("text/plain", card.id);
@@ -622,9 +465,9 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
                                   }}
                                   aria-pressed={card.id === selectedCard?.id}
                                   aria-describedby="mini-block-movement-status"
-                                  aria-label={`Mini-block ${card.globalNumber}, Block ${card.blockNumber}, ${card.label || "untitled"}. ${state.display === "wall" ? "Drag to move or use the order controls." : `${markerCount} active map markers; select to inspect relationship evidence.`}`}
+                                  aria-label={`Mini-block ${card.globalNumber}, Block ${card.blockNumber}, ${card.label || "untitled"}. Drag to move or use the order controls.`}
                                 >
-                                  <span className={styles.cardTop}><strong>{card.globalNumber}</strong><span className={styles.dragHandle} aria-hidden="true">{state.display === "wall" ? "Drag" : state.granularity}</span><i>{labelForStatus(card.status)}</i>{warningCount ? <b aria-label={`${warningCount} diagnostic signals`}>{warningCount}</b> : null}{state.display !== "wall" && markerCount ? <b className={mapStyles.mapMarker} aria-label={`${markerCount} active map markers`}>{markerCount}</b> : null}</span>
+                                  <span className={styles.cardTop}><strong>{card.globalNumber}</strong><span className={styles.dragHandle} aria-hidden="true">Drag</span><i>{labelForStatus(card.status)}</i>{warningCount ? <b aria-label={`${warningCount} diagnostic signals`}>{warningCount}</b> : null}</span>
                                   <span className={styles.cardLabel}>{card.label || `Mini-block ${card.number}`}</span>
                                   {expanded ? <>
                                     {card.frame?.src ? <img loading="lazy" decoding="async" src={card.frame.src} alt={card.frame.alt || card.frame.caption || `Mini-block ${card.globalNumber} storyboard`} /> : <span className={styles.framePlaceholder}>No storyboard frame</span>}
@@ -671,6 +514,17 @@ export default function MiniBlockWall({ project, onProjectChange, onOpenBlock, f
           </> : <p>No mini-block matches the current view and filters.</p>}
         </aside>
       </div>
+
+      {state.display !== "wall" ? <StoryworldMapPanel
+        project={project}
+        state={state}
+        visibleCards={model.visibleCards}
+        selectedCard={selectedCard}
+        onProjectChange={onProjectChange}
+        onOpenBlock={onOpenBlock}
+        onSelectCard={selectCard}
+        onUpdateState={updateState}
+      /> : null}
 
       <details className={styles.diagnostics}>
         <summary>Diagnostics · {model.warnings.length} signals</summary>

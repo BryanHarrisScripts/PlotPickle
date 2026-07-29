@@ -10,7 +10,7 @@ test("issue #120 exposes the complete Settings navigation", async () => {
   const menu = panel.slice(panel.indexOf("const SETTINGS_GROUPS"), panel.indexOf("const SETTINGS_SECTIONS"));
   const labels = [
     "Workspace", "General", "Appearance / Accessibility", "Project Defaults",
-    "Integrations", "AI Providers", "GitHub", "Google Services", "Plugins & Connections",
+    "Integrations", "Story & Art", "Repository & Collab", "Scheduling & Meetings", "Media & Film Engines",
     "Data Storage", "Storage & Backups",
     "Security", "Privacy & Permissions", "About & Licensing",
   ];
@@ -93,8 +93,8 @@ test("issues #120 and #184 implement Google Calendar and Meet desktop OAuth foun
   assert.match(google, /LOOPBACK_CALLBACK_PATH/);
   assert.doesNotMatch(gateway, /api\/local-google\/callback/);
   assert.match(panel, /Sign in with Google/);
-  assert.match(panel, /label: "Google Services"[\s\S]*optional Calendar and Meet/);
-  assert.match(panel, /eyebrow="Google Services"/);
+  assert.match(panel, /label: "Scheduling & Meetings"[\s\S]*Optional Google Calendar and Meet/);
+  assert.match(panel, /eyebrow="Scheduling & Meetings"/);
   assert.match(vite, /localConnectionsGateway\(\)/);
 });
 
@@ -113,7 +113,7 @@ test("issue #120 keeps credentials outside projects and authentication failures 
   assert.match(gateway, /readCredentialJson/);
   assert.match(gateway, /isLocalRequest/);
   assert.match(google, /Local removal still protects this installation and cannot block local work/);
-  assert.match(panel, /Failed or declined Calendar or Meet authentication never blocks local project work/);
+  assert.match(panel, /Failed, declined or unavailable authentication never blocks local project work/);
   assert.match(panel, /excluded from \.ppf projects, reports, exports, browser storage, logs and GitHub/);
   assert.match(status, /sanitizeMeetingMetadata/);
   assert.doesNotMatch(project, /accessToken|refreshToken|googleToken|oauthToken/);

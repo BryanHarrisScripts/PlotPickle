@@ -1,3 +1,13 @@
+<p align="center">
+  <img src="public/brand/plotpickle-header-horizontal-1200.png" alt="PlotPickle Playhouse" width="760">
+</p>
+
+<p align="center">
+  <img src="public/brand/plotpickle-icon-master-transparent.png" alt="PlotPickle icon" width="92">
+  &nbsp;&nbsp;&nbsp;
+  <img src="public/brand/plotpickle-logo-stacked-transparent-800.png" alt="PlotPickle stacked logo" width="180">
+</p>
+
 # PlotPickle Playhouse
 
 <table><tr><td><strong><a href="public/docs/readme/GETTING-STARTED.md">Getting Started</a></strong></td><td><strong><a href="public/docs/readme/WRITING-AND-PRODUCTION.md">Writing &amp; Production</a></strong></td><td><strong><a href="public/docs/readme/COLLABORATION-AND-DEVELOPMENT.md">Collaboration &amp; Development</a></strong></td></tr></table>
@@ -6,40 +16,45 @@ The complete README is also available as three selectable tabs inside **Instruct
 
 [Official PlotPickle GitHub repository](https://github.com/BryanHarrisScripts/PlotPickle) · [About PlotPickle](app/about/page.tsx) · [How OpenStory evolved into PlotPickle](docs/history/from-openstory-to-plotpickle.md) · [Legacy README disposition map](docs/history/legacy-readme-map.md)
 
-PlotPickle is a downloadable visual storyworld and AI previsualization engine for seeing whether a movie works before full production. It connects story logic, canon, characters, visuals, shots and sound in one portable PPF project, then helps approved material grow toward a watchable prototype for a green-light decision.
+PlotPickle is a downloadable visual storyworld collaboration and previsualization engine for seeing, testing and presenting a movie before full production. It connects story logic, canon, characters, screenplay material, visuals, shots and sound in one portable PPF project, then turns those relationships into an interactive Storyworld Map and a connected visual-development workspace.
 
-PlotPickle grew from the Afterglow screenplay, the 24 Blocks learning archive and several OpenStory experiments. The current product is one local-first application with optional AI, owner-controlled collaboration and explicit rights and provenance records. It is not intended to replace Final Draft or a studio production and finishing pipeline. Historical GPT, web3, token, DAO, revenue and autonomous-agent ideas are preserved as history rather than current roadmap commitments.
+PlotPickle grew from the Afterglow screenplay, the 24 Blocks learning archive and several OpenStory experiments. The current product is one local-first application with owner-controlled collaboration, optional connections and explicit rights and provenance records. The complete visual core works without an AI key, external rendering API, Google account or PlotPickle cloud service. It is not intended to replace Final Draft or a studio production and finishing pipeline. Historical GPT, web3, token, DAO, revenue and autonomous-agent ideas are preserved as history rather than current roadmap commitments.
 
 ## Five reasons to use PlotPickle
 
 1. **Visual storyworld in one PPF** — keep canon, characters, structure, screenplay material, visuals, shots, sound and provenance connected in one portable creative source of truth.
 2. **Story logic you can see** — use 24 Blocks, 96 mini-blocks and the 81-module learning system to expose hooks, turning points, causality, arcs and continuity.
 3. **Connected visual development** — carry approved character identities, world references, Graphic Novel panels, storyboard frames and Production Shots through one visual language.
-4. **A path to a watchable prototype** — develop the existing visual workspaces into a provider-neutral rendering loop, returned assets, an Animatic prototype and green-light evidence.
-5. **Local-first ownership with optional AI** — control projects, files, canon, approvals and providers while using AI, external renderers and GitHub only when deliberately chosen.
+4. **A clearer case for the movie** — bring the Storyworld Map, screenplay, Graphic Novel, Storyboard, Production Shots, Animatic, Pitch and Reports together as persuasive previsualization evidence.
+5. **Local-first ownership with optional connections** — control projects, files, canon and approvals while using AI, GitHub, Google or future media engines only when deliberately chosen.
 
-## Storyworld to prototype
+## The visual storyworld core
 
 PPF is the portable creative source of truth for the storyworld. It keeps structure, canon, screenplay material, visual decisions, production assets, approvals and provenance connected while each workspace presents the resolution needed for the current task. On disk, the canonical local project folder remains authoritative; `.ppf` packages carry the same project model for exchange, selective sharing and backup.
 
-### Available now
+Available now:
 
-- **Whole Film** displays the story across 24 Blocks and 96 mini-blocks.
+- **Interactive Storyworld Map** displays 24 Blocks and 96 mini-blocks with hooks, turns, arcs, causality, characters, locations, continuity and inspectable relationship evidence.
 - **Graphic Novel** turns the canonical story into a 24-page, 96-panel visual presentation.
 - **Storyboard** develops frames from approved characters, locations, visual language and directed prompts.
 - **Production Shots** adds shot intent, camera direction, keyframes, timing and production context.
 - **Animatic** plays available frames and production material as timed previsualization.
 - **Pitch and Reports** present story, continuity, readiness and production evidence for review.
-- **Afterglow: Reflections of Sentience** is the persistent reference project used to verify this workflow.
+- **Owner-controlled Collab** coordinates proposals, approvals, feedback and optional repository history without real-time co-writing.
+- **Afterglow: Reflections of Sentience** is the persistent reference project used to verify the connected visual storyworld.
 
-### Conversion roadmap
+Provider-neutral render packages, reusable image or video jobs, automated returned-asset ingestion, full prototype assembly and an Afterglow renderer slice are not active development commitments. Pika Labs, Runway and other media engines are future extensions only; there is no active API connection or promise of provider support.
 
-- **Whole Film → Storyworld Map:** add relationships, hooks, turning points, arcs, causality and continuity to the existing wall through a rebuildable derived index.
-- **Graphic Novel + Storyboard + Production Shots → shared rendering:** generalize the existing prompt and queue foundations into provider-neutral image and video packages.
-- **Generated assets → PPF:** return images, clips and approved variations to stable shared assets with continuity and provenance.
-- **Animatic + Pitch + Reports → watchable prototype:** assemble returned material into a reviewable prototype and green-light package.
+## Optional connections
 
-The roadmap converts existing functions instead of creating parallel engines. External renderers remain optional, no provider is promised before its integration is verified, and PlotPickle does not currently claim to render a complete movie.
+PlotPickle keeps third-party services outside the required product core. Every connection begins disconnected and is used only when the project owner deliberately configures it.
+
+| Connection area | Current boundary |
+|---|---|
+| **Story & Art** | Optional LLM and image assistance, local models, manual prompt export or no AI. The Storyworld Map and visual core do not require it. |
+| **Repository & Collab** | GitHub is the supported optional repository connection for backups, proposals and reviewed collaboration. Local project work remains available without it. |
+| **Scheduling & Meetings** | Google Calendar and Meet are optional and remain disconnected until the user chooses to configure them. |
+| **Media & Film Engines** | Future extension; no active API. Pika Labs, Runway and additional rendering services are displayed only as inactive placeholders. |
 
 Writer, Director, Producer, Actor and Reviewer are roles within PlotPickle, not separate server editions. One person may hold several roles. Local work remains local until it is explicitly proposed or synchronized; only an owner or maintainer merge changes the canonical `.ppf` project.
 
@@ -69,7 +84,7 @@ Every lab reads the same canonical schema 1.7 project. Suggestions remain tempor
 
 The PlotPickle 0.14 Diagnostic Craft Layer remains available at `/diagnostics`, with focused findings inside Structure, Writer and DraftLens.
 
-PlotPickle is a local-first visual storyworld and AI previsualization engine built around Bryan Harris’s 24 Blocks method. One canonical project powers the complete hierarchy from story logic and canon to sequence, Block, flexible scene plan, mini-block, screenplay material, visual development, production shots, animatic playback and review evidence.
+PlotPickle is a local-first visual storyworld collaboration and previsualization engine built around Bryan Harris’s 24 Blocks method. One canonical project powers the complete hierarchy from story logic and canon to sequence, Block, flexible scene plan, mini-block, screenplay material, the interactive Storyworld Map, visual development, production shots, animatic playback and review evidence.
 
 Current application version: `1.0.0-rc.3`
 
@@ -148,7 +163,7 @@ The launcher does not request Administrator rights, install a Windows service, a
 - **Storyboard** opens Visual Board for character identity locks, visual language, 24 Blocks, 96 frames, pitch images and diagnostics.
 - **Refine** opens diagnostic and specialist passes for resonance, voice, page, draft, craft and production. Structural arrangement belongs only to Build; Refine links back to Build’s contextual structure diagnostics instead of exposing a second editor.
 - **Reports** measures screenplay, character, scene, production and schema coverage from the active project.
-- **Settings** contains preferences and Setup for GitHub, AI, music and future optional providers.
+- **Settings** contains preferences and four optional connection areas: Story & Art, Repository & Collab, Scheduling & Meetings and Media & Film Engines.
 
 Every workspace reads and writes the same locally saved canonical project.
 
@@ -166,7 +181,7 @@ Parsing and the initial structural extraction happen on the local device without
 
 PlotPickle’s AI layer is provider-independent and local-server mediated. The primary development and live-test target is **ChatGPT / OpenAI API**, using the writer’s own API key, while OpenAI-compatible servers, Ollama, manual prompt export, and no-AI operation remain supported choices.
 
-Reports is a primary workspace and Terminology is part of Read & Learn. Optional connections are grouped under **Settings → Setup**, including **GitHub setup**, **AI setup** and **Music setup**. Future plugins remain disabled until an implementation is available.
+Reports is a primary workspace and Terminology is part of Read & Learn. Optional connections are grouped under **Settings → Setup** as **Story & Art**, **Repository & Collab**, **Scheduling & Meetings** and **Media & Film Engines**. Future media-engine plugins remain disabled until an implementation is deliberately selected and verified.
 
 The AI foundation includes:
 
@@ -353,6 +368,14 @@ npm run lint
 npm run build
 npm test
 ```
+
+Run the release-gating Lighthouse smoke across every supported static route:
+
+```bash
+npm run audit:lighthouse
+```
+
+The smoke pass verifies local startup, successful route documents, title and description metadata, a clean browser console, the local origin and required brand assets. Full desktop and mobile Lighthouse category reports remain available through `npm run audit:lighthouse:full`; their scores are diagnostic rather than arbitrary release thresholds.
 
 ## Brand assets
 

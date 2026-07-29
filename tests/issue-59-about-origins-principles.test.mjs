@@ -9,15 +9,15 @@ test("About PlotPickle explains the current product without reviving obsolete co
   const page = await source("app/about/page.tsx");
   const content = await source("app/about/about-content.ts");
   for (const phrase of [
-    "local-first visual storyworld and AI previsualization engine",
+    "local-first visual storyworld collaboration and previsualization engine",
     "portable PPF project",
     "The writer's decisions define the work",
     "AI is optional and bounded",
     "Suggestions are not canon",
     "Collaboration is deliberate",
     "Rights and provenance travel with the project",
-    "Prototype before full production",
-    "Convert before creating",
+    "Previsualize before full production",
+    "Extend before duplicating",
     "Extensible core, optional integrations",
   ]) assert.ok(`${page}\n${content}`.includes(phrase), `Missing current principle: ${phrase}`);
   assert.match(page, /does not aim to replace Final Draft|not a studio production or finishing pipeline/i);
@@ -31,15 +31,15 @@ test("evolution timeline connects Afterglow, 24 Blocks, OpenStory and PlotPickle
     "24 Blocks as a shared story language",
     "OpenStory Studio experiments",
     "One connected visual storyworld",
-    "Toward a watchable prototype",
+    "The interactive Storyworld Map",
   ]) assert.ok(content.includes(stage), `Missing evolution stage: ${stage}`);
   assert.match(content, /Architect, Plus and Visualizer GPTs/);
-  assert.match(content, /provider-independent AI/);
+  assert.match(content, /provider-independent AI/i);
 });
 
 test("page-to-production diagram uses one canonical project across all stages", async () => {
   const content = await source("app/about/about-content.ts");
-  for (const stage of ["Story Logic", "Canon and Characters", "24 Blocks", "96 Mini-Blocks", "Screenplay", "Whole Film", "Graphic Novel and Storyboard", "Production Shots", "Generated Assets", "Animatic Prototype", "Pitch and Reports"]) {
+  for (const stage of ["Story Logic", "Canon and Characters", "24 Blocks", "96 Mini-Blocks", "Screenplay", "Storyworld Map", "Graphic Novel and Storyboard", "Production Shots", "Retained Visual Assets", "Animatic Preview", "Pitch and Reports"]) {
     assert.ok(content.includes(`"${stage}"`), `Missing page-to-production stage: ${stage}`);
   }
 });

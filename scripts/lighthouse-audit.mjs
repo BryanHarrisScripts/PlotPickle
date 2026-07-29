@@ -15,6 +15,19 @@ const HOST = "127.0.0.1";
 const DEFAULT_PORT = 4173;
 const LIGHTHOUSE_VERSION = "12.8.2";
 const PAGE_FILE = /^page\.(?:[cm]?[jt]sx?)$/;
+const SMOKE_AUDITS = [
+  "http-status-code",
+  "errors-in-console",
+  "document-title",
+  "meta-description",
+  "network-requests",
+];
+const REQUIRED_ASSETS = [
+  "/manifest.webmanifest",
+  "/brand/favicon/plotpickle-icon-32.png",
+  "/brand/plotpickle-header-horizontal-600.png",
+  "/brand/plotpickle-logo-stacked-transparent-800.png",
+];
 
 function timestamp() {
   return new Date().toISOString().replace(/[:.]/g, "-");
@@ -144,6 +157,47 @@ function startPreview(port) {
   });
 }
 
+function smokeResult(report, target, exitCode, consoleErrors) {
+  const failures = [];
+  const httpAudit = report.audits?.["http-status-code"];
+  const titleAudit = report.audits?.["document-title"];
+  const descriptionAudit = report.audits?.["meta-description"];
+  const requests = report.audits?.["network-requests"]?.details?.items ?? [];
+  const finalUrl = report.finalDisplayedUrl ?? report.finalUrl ?? target;
+  const requestedOrigin = new URL(target).origin;
+  let finalOrigin = "";
+  try {
+    finalOrigin = new URL(finalUrl).origin;
+  } catch {
+    failures.push("Lighthouse did not return a valid final URL.");
+  }
+
+  const documentRequests = requests.filter((item) => item?.resourceType === "Document");
+  const successfulDocument = httpAudit?.score === 1
+    && (documentRequests.length === 0 || documentRequests.some((item) => Number(item.statusCode) >= 200 && Number(item.statusCode) < 400));
+  const documentTitle = titleAudit?.score === 1;
+  const metaDescription = descriptionAudit?.score === 1;
+  const consoleClean = consoleErrors.length === 0;
+  const browserErrorPage = Boolean(report.runtimeError) || (finalOrigin !== "" && finalOrigin !== requestedOrigin);
+
+  if (exitCode !== 0) failures.push("The Lighthouse command reported an error.");
+  if (!successfulDocument) failures.push("The route did not return a successful document.");
+  if (!documentTitle) failures.push("The route is missing a document title.");
+  if (!metaDescription) failures.push("The route is missing a meta description.");
+  if (!consoleClean) failures.push(`The route produced ${consoleErrors.length} serious browser console error${consoleErrors.length === 1 ? "" : "s"}.`);
+  if (browserErrorPage) failures.push("The route ended on a runtime, browser or cross-origin error page.");
+
+  return {
+    passed: failures.length === 0,
+    failures,
+    browserErrorPage,
+    documentTitle,
+    metaDescription,
+    successfulDocument,
+    consoleClean,
+  };
+}
+
 async function auditRoute({ baseUrl, route, mode, outputDirectory }) {
   const slug = slugFor(route);
   const jsonPath = join(outputDirectory, `${slug}.json`);
@@ -160,7 +214,8 @@ async function auditRoute({ baseUrl, route, mode, outputDirectory }) {
     "--output=html",
     `--output-path=${join(outputDirectory, slug)}`,
   ];
-  if (mode === "desktop") args.push("--preset=desktop");
+  if (mode === "desktop" || mode === "smoke") args.push("--preset=desktop");
+  if (mode === "smoke") args.push(`--only-audits=${SMOKE_AUDITS.join(",")}`);
 
   const log = createWriteStream(logPath, { flags: "w" });
   let exitCode = 0;
@@ -195,12 +250,14 @@ async function auditRoute({ baseUrl, route, mode, outputDirectory }) {
       .filter((audit) => accessibilityAuditRefs.has(audit?.id) && audit?.score === 0)
       .map((audit) => ({ id: audit.id, title: audit.title, impact: "failed-accessibility-audit" }));
     const consoleErrors = report.audits?.["errors-in-console"]?.details?.items ?? [];
+    const finalUrl = report.finalDisplayedUrl ?? report.finalUrl ?? target;
 
     return {
       route,
       requestedUrl: target,
-      finalUrl: report.finalDisplayedUrl ?? report.finalUrl ?? target,
+      finalUrl,
       status: exitCode === 0 ? "audited" : "audited-with-command-error",
+      smoke: smokeResult(report, target, exitCode, consoleErrors),
       scores: {
         performance: categories.performance?.score ?? null,
         accessibility: categories.accessibility?.score ?? null,
@@ -219,6 +276,15 @@ async function auditRoute({ baseUrl, route, mode, outputDirectory }) {
       finalUrl: null,
       status: "failed",
       error: error.message,
+      smoke: {
+        passed: false,
+        failures: [`No readable Lighthouse report was produced: ${error.message}`],
+        browserErrorPage: true,
+        documentTitle: false,
+        metaDescription: false,
+        successfulDocument: false,
+        consoleClean: false,
+      },
       scores: { performance: null, accessibility: null, bestPractices: null, seo: null },
       failedAudits: [],
       seriousAccessibility: [],
@@ -228,6 +294,26 @@ async function auditRoute({ baseUrl, route, mode, outputDirectory }) {
   }
 }
 
+async function checkRequiredAssets(baseUrl) {
+  const results = [];
+  for (const path of REQUIRED_ASSETS) {
+    try {
+      const response = await fetch(new URL(path, baseUrl), { redirect: "follow" });
+      const body = await response.arrayBuffer();
+      results.push({
+        path,
+        status: response.status,
+        contentType: response.headers.get("content-type") ?? "",
+        bytes: body.byteLength,
+        passed: response.ok && body.byteLength > 0,
+      });
+    } catch (error) {
+      results.push({ path, status: null, contentType: "", bytes: 0, passed: false, error: error.message });
+    }
+  }
+  return results;
+}
+
 function summaryMarkdown(summary) {
   const lines = [
     "# PlotPickle Lighthouse audit",
@@ -235,19 +321,39 @@ function summaryMarkdown(summary) {
     `Generated: ${summary.generatedAt}`,
     `Mode: ${summary.mode}`,
     `Base URL: ${summary.baseUrl}`,
+    `Smoke result: ${summary.smoke.passed ? "PASS" : "FAIL"}`,
     "",
-    "| Route | Status | Performance | Accessibility | Best Practices | SEO | Final URL |",
-    "|---|---:|---:|---:|---:|---:|---|",
+    "| Route | Smoke | Status | Performance | Accessibility | Best Practices | SEO | Final URL |",
+    "|---|---:|---:|---:|---:|---:|---:|---|",
   ];
   for (const item of summary.results) {
     const score = (value) => value === null ? "—" : String(Math.round(value * 100));
-    lines.push(`| \`${item.route}\` | ${item.status} | ${score(item.scores.performance)} | ${score(item.scores.accessibility)} | ${score(item.scores.bestPractices)} | ${score(item.scores.seo)} | ${item.finalUrl ?? "—"} |`);
+    lines.push(`| \`${item.route}\` | ${item.smoke.passed ? "PASS" : "FAIL"} | ${item.status} | ${score(item.scores.performance)} | ${score(item.scores.accessibility)} | ${score(item.scores.bestPractices)} | ${score(item.scores.seo)} | ${item.finalUrl ?? "—"} |`);
+  }
+  if (summary.smoke.routeFailures.length) {
+    lines.push("", "## Route smoke failures", "");
+    for (const item of summary.smoke.routeFailures) {
+      lines.push(`- \`${item.route}\`: ${item.failures.join(" ")}`);
+    }
+  }
+  lines.push("", "## Required metadata and brand assets", "");
+  for (const item of summary.requiredAssets) {
+    lines.push(`- ${item.passed ? "PASS" : "FAIL"} \`${item.path}\` — ${item.status ?? "request failed"}, ${item.bytes} bytes`);
   }
   if (summary.dynamicRoutes.length) {
     lines.push("", "## Dynamic routes needing sample parameters", "");
     for (const item of summary.dynamicRoutes) lines.push(`- \`${item.route}\` — ${item.reason} (${item.source})`);
   }
-  lines.push("", "## Privacy", "", "This audit ran against the local PlotPickle server on 127.0.0.1. No story project was sent to a remote audit service.");
+  lines.push(
+    "",
+    "## Interpretation",
+    "",
+    "The smoke result is the release gate: the server starts, every supported static route returns a real document on the local origin, required title and description metadata are present, serious browser console errors are absent, and required brand assets load. Lighthouse category scores remain diagnostic and do not create arbitrary release thresholds.",
+    "",
+    "## Privacy",
+    "",
+    "This audit ran against the local PlotPickle server on 127.0.0.1. No story project was sent to a remote audit service.",
+  );
   return `${lines.join("\n")}\n`;
 }
 
@@ -268,7 +374,25 @@ async function runMode(mode, reportDirectory) {
       console.log(`[${mode}] ${item.route}`);
       results.push(await auditRoute({ baseUrl, route: item.route, mode, outputDirectory }));
     }
-    const summary = { generatedAt: new Date().toISOString(), mode, baseUrl, routes: inventory.staticRoutes, dynamicRoutes: inventory.dynamicRoutes, results };
+    const requiredAssets = await checkRequiredAssets(baseUrl);
+    const routeFailures = results
+      .filter((item) => !item.smoke.passed)
+      .map((item) => ({ route: item.route, failures: item.smoke.failures }));
+    const assetFailures = requiredAssets.filter((item) => !item.passed).map((item) => item.path);
+    const summary = {
+      generatedAt: new Date().toISOString(),
+      mode,
+      baseUrl,
+      routes: inventory.staticRoutes,
+      dynamicRoutes: inventory.dynamicRoutes,
+      requiredAssets,
+      results,
+      smoke: {
+        passed: routeFailures.length === 0 && assetFailures.length === 0,
+        routeFailures,
+        assetFailures,
+      },
+    };
     await writeFile(join(outputDirectory, "summary.json"), `${JSON.stringify(summary, null, 2)}\n`);
     await writeFile(join(outputDirectory, "summary.md"), summaryMarkdown(summary));
     return summary;
@@ -300,20 +424,34 @@ async function zipLatest() {
 }
 
 async function main() {
-  const command = process.argv[2] ?? "all";
+  const command = process.argv[2] ?? "smoke";
   if (command === "zip") return zipLatest();
   const reportDirectory = join(REPORT_ROOT, timestamp());
   await mkdir(reportDirectory, { recursive: true });
-  console.log("Building PlotPickle once before the Lighthouse audit…");
-  await run(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "build"]);
-  if (command === "desktop" || command === "mobile") await runMode(command, reportDirectory);
-  else if (command === "all") {
-    await runMode("desktop", reportDirectory);
-    await runMode("mobile", reportDirectory);
-  } else throw new Error(`Unknown audit mode: ${command}`);
+  if (process.env.PLOTPICKLE_LIGHTHOUSE_SKIP_BUILD === "1") {
+    console.log("Using the build already verified by CI.");
+  } else {
+    console.log("Building PlotPickle once before the Lighthouse audit…");
+    await run(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "build"]);
+  }
+
+  const summaries = [];
+  if (command === "smoke" || command === "desktop" || command === "mobile") {
+    summaries.push(await runMode(command, reportDirectory));
+  } else if (command === "all") {
+    summaries.push(await runMode("desktop", reportDirectory));
+    summaries.push(await runMode("mobile", reportDirectory));
+  } else {
+    throw new Error(`Unknown audit mode: ${command}`);
+  }
+
   await writeFile(join(REPORT_ROOT, "latest.txt"), `${reportDirectory}\n`);
   await zipDirectory(reportDirectory);
-  console.log(`Audit complete: ${reportDirectory}`);
+  const failures = summaries.filter((summary) => !summary.smoke.passed);
+  if (failures.length) {
+    throw new Error(`Lighthouse smoke failed in ${failures.map((summary) => summary.mode).join(", ")} mode. Review ${reportDirectory}.`);
+  }
+  console.log(`Lighthouse smoke passed: ${reportDirectory}`);
 }
 
 main().catch((error) => {

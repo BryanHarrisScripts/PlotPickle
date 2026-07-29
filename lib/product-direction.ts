@@ -2,53 +2,55 @@ export const PLOTPICKLE_REPOSITORY_URL = "https://github.com/BryanHarrisScripts/
 export const LEARNING_MODULE_COUNT = 81;
 
 export const PLOTPICKLE_POSITIONING = {
-  category: "Visual storyworld and AI previsualization engine",
+  category: "Visual storyworld collaboration and previsualization engine",
   hero: "See the whole movie before you make it.",
   summary:
-    "PlotPickle connects story logic, canon, characters, visuals, shots and sound in one portable PPF project, then helps turn approved material into a watchable prototype using the rendering tools you choose.",
+    "PlotPickle turns structure, canon, characters, scenes, visuals and production thinking into one interactive Storyworld Map, so a creative team can see what the movie is doing, find what is missing and present a clearer case for what comes next.",
   ppf:
     "PPF is the portable creative source of truth that keeps structure, canon, screenplay material, visual decisions, production assets, approvals and provenance connected. The canonical local project folder remains authoritative while .ppf packages carry that same project model for exchange.",
   boundary:
-    "PlotPickle is built to test whether a movie works before full production. It does not aim to replace Final Draft or a studio production and finishing pipeline.",
+    "PlotPickle develops, visualizes and presents the storyworld before full production. External AI, rendering, repository and scheduling services are optional extensions; PlotPickle does not require them or replace a studio production and finishing pipeline.",
 } as const;
 
-export const STORYWORLD_PROTOTYPE_LOOP = [
+export const STORYWORLD_CORE_LOOP = [
   {
     id: "ppf",
     status: "available",
     statusLabel: "Available now",
     title: "PPF storyworld",
-    summary: "Portable canon, structure, screenplay material, visuals, production evidence and provenance remain connected.",
+    summary: "Portable canon, structure, screenplay material, visuals, approvals and provenance remain connected.",
   },
   {
     id: "storyworld-map",
-    status: "roadmap",
-    statusLabel: "Conversion roadmap",
-    title: "Whole Film → Storyworld Map",
-    summary: "The existing 24-Block and 96-mini-block wall gains relationships, hooks, turns, arcs and continuity.",
+    status: "available",
+    statusLabel: "Available now",
+    title: "Interactive Storyworld Map",
+    summary: "See 24 Blocks and 96 mini-blocks with relationships, hooks, turns, arcs, causality and continuity.",
   },
   {
-    id: "shared-rendering",
-    status: "roadmap",
-    statusLabel: "Conversion roadmap",
-    title: "Graphic Novel + Storyboard → shared rendering",
-    summary: "Existing visual prompts and Production Shots become provider-neutral render packages instead of a parallel engine.",
+    id: "visual-development",
+    status: "available",
+    statusLabel: "Available now",
+    title: "Graphic Novel + Storyboard",
+    summary: "Carry approved characters, locations and visual language through panels and frames.",
   },
   {
-    id: "returned-assets",
-    status: "roadmap",
-    statusLabel: "Conversion roadmap",
-    title: "Generated assets → PPF",
-    summary: "Images, clips and approved variations return to stable project assets with continuity and provenance.",
+    id: "production-preview",
+    status: "available",
+    statusLabel: "Available now",
+    title: "Production Shots + Animatic",
+    summary: "Direct shots, timing, keyframes and sound, then play the visual material already attached to the project.",
   },
   {
-    id: "prototype",
-    status: "roadmap",
-    statusLabel: "Conversion roadmap",
-    title: "Animatic → watchable prototype",
-    summary: "The existing Animatic, Pitch and Reports grow into a reviewable prototype and green-light package.",
+    id: "greenlight-evidence",
+    status: "available",
+    statusLabel: "Available now",
+    title: "Pitch + Reports",
+    summary: "Present story logic, visual direction, continuity, readiness and unresolved decisions for review.",
   },
 ] as const;
+
+export const STORYWORLD_PROTOTYPE_LOOP = STORYWORLD_CORE_LOOP;
 
 export const PLOTPICKLE_DESKTOP_BUILDS = [
   {
@@ -175,13 +177,13 @@ export const FIVE_KEY_SELLING_POINTS = [
   },
   {
     id: "local-first",
-    title: "A path to a watchable prototype",
-    summary: "Develop the existing visual workspaces into a provider-neutral rendering loop, returned assets, an Animatic prototype and green-light evidence.",
+    title: "A clearer case for the movie",
+    summary: "Bring the Storyworld Map, screenplay, Graphic Novel, Storyboard, Production Shots, Animatic, Pitch and Reports together as persuasive previsualization evidence.",
   },
   {
     id: "distributed-collaboration",
-    title: "Local-first ownership with optional AI",
-    summary: "Keep control of projects, files, canon, approvals and providers while using AI, external renderers and GitHub only when deliberately chosen.",
+    title: "Local-first ownership with optional connections",
+    summary: "Keep control of projects, files, canon and approvals while using AI, GitHub, Google or future media engines only when deliberately chosen.",
   },
 ] as const;
 

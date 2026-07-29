@@ -5,22 +5,23 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #193 defines one conversion-first product-positioning contract", async () => {
+test("issue #193 defines the completed visual storyworld product contract", async () => {
   const contract = await source("lib/product-direction.ts");
   for (const phrase of [
-    "Visual storyworld and AI previsualization engine",
+    "Visual storyworld collaboration and previsualization engine",
     "See the whole movie before you make it.",
     "portable creative source of truth",
-    "Whole Film → Storyworld Map",
-    "Graphic Novel + Storyboard → shared rendering",
-    "Generated assets → PPF",
-    "Animatic → watchable prototype",
-    "does not aim to replace Final Draft",
-  ]) assert.ok(contract.includes(phrase), `Missing positioning contract: ${phrase}`);
-  assert.equal([...contract.matchAll(/statusLabel: "(Available now|Conversion roadmap)"/g)].length, 5);
+    "Interactive Storyworld Map",
+    "Graphic Novel + Storyboard",
+    "Production Shots + Animatic",
+    "Pitch + Reports",
+    "does not require them",
+  ]) assert.ok(contract.includes(phrase), `Missing completed product contract: ${phrase}`);
+  assert.equal([...contract.matchAll(/statusLabel: "Available now"/g)].length, 5);
+  assert.doesNotMatch(contract, /statusLabel: "Conversion roadmap"/);
 });
 
-test("issue #193 makes the product loop visible on the existing accessible splash", async () => {
+test("issue #193 makes the completed core visible on the existing accessible splash", async () => {
   const [splash, css] = await Promise.all([
     source("app/marketing-splash-base.tsx"),
     source("app/marketing-splash.module.css"),
@@ -28,15 +29,15 @@ test("issue #193 makes the product loop visible on the existing accessible splas
   for (const phrase of [
     "See the whole movie",
     "before you make it.",
-    "STORYWORLD_PROTOTYPE_LOOP.map",
-    "Available now and conversion roadmap",
-    "PlotPickle storyworld-to-prototype product loop",
-    "Roadmap cards describe planned conversions",
+    "STORYWORLD_CORE_LOOP.map",
+    "The complete visual storyworld core",
+    "One PPF. One movie you can finally see whole.",
+    "Every card below is available now",
     "not Final Draft parity or studio finishing",
+    "The core works without external APIs",
   ]) assert.ok(splash.includes(phrase), `Splash missing: ${phrase}`);
   assert.match(splash, /data-status=\{step\.status\}/);
   assert.match(splash, /data-status=\{feature\.status\}/);
-  assert.match(css, /\[data-status="roadmap"\]/);
   assert.match(splash, /aria-label="Splash page navigation"/);
   assert.match(splash, /aria-label="PlotPickle operating principles"/);
   assert.match(css, /focus-visible/);
@@ -44,7 +45,7 @@ test("issue #193 makes the product loop visible on the existing accessible splas
   assert.match(css, /@media \(max-width: 780px\)/);
 });
 
-test("issue #193 gives each existing visual function one role without adding an engine", async () => {
+test("issue #193 gives every existing visual function one role without adding an engine", async () => {
   const [splash, readme, documentation] = await Promise.all([
     source("app/marketing-splash-base.tsx"),
     source("README.md"),
@@ -52,7 +53,7 @@ test("issue #193 gives each existing visual function one role without adding an 
   ]);
   const combined = `${splash}\n${readme}\n${documentation}`;
   for (const feature of [
-    "Whole Film",
+    "Storyworld Map",
     "Graphic Novel",
     "Storyboard",
     "Production Shots",
@@ -62,24 +63,25 @@ test("issue #193 gives each existing visual function one role without adding an 
     "Afterglow: Reflections of Sentience",
   ]) assert.ok(combined.includes(feature), `Missing existing function: ${feature}`);
   for (const boundary of [
-    "It does not add a workspace, data model, renderer, provider button, asset service or prototype player.",
-    "must not create a second story graph, renderer, asset identity system or prototype player",
+    "without creating a second project model",
+    "extends the existing Whole Film wall rather than replacing it with a second engine",
     "does not currently claim to render a complete movie",
   ]) assert.ok(documentation.includes(boundary), `Missing non-duplication boundary: ${boundary}`);
 });
 
-test("issue #193 visibly separates shipped capability from the conversion roadmap", async () => {
-  const [readme, about, content] = await Promise.all([
+test("issue #193 records closed renderer phases and optional connections", async () => {
+  const [readme, about, documentation] = await Promise.all([
     source("README.md"),
     source("app/about/page.tsx"),
-    source("app/about/about-content.ts"),
+    source("docs/issue-193-visual-storyworld-positioning.md"),
   ]);
-  assert.match(readme, /### Available now/);
-  assert.match(readme, /### Conversion roadmap/);
-  assert.match(about, /Available now and conversion roadmap/);
-  assert.match(about, /STORYWORLD_PROTOTYPE_LOOP\.map/);
-  assert.match(content, /Whole Film, Graphic Novel, Storyboard, Production Shots, Animatic, Pitch and Reports are available now/);
-  assert.match(content, /reference project for verifying the complete prototype workflow/);
+  assert.match(readme, /## The visual storyworld core/);
+  assert.match(about, /Complete visual storyworld core/);
+  assert.match(about, /STORYWORLD_CORE_LOOP\.map/);
+  assert.match(documentation, /Issues #196, #199, #198, #197 and #200 were closed as not planned/);
+  for (const label of ["Story & Art", "Repository & Collab", "Scheduling & Meetings", "Media & Film Engines"]) {
+    assert.ok(`${readme}\n${documentation}`.includes(label), `Missing optional connection: ${label}`);
+  }
 });
 
 test("issue #193 updates metadata and top-level product documentation", async () => {
@@ -90,12 +92,12 @@ test("issue #193 updates metadata and top-level product documentation", async ()
     source("docs/PRODUCT-DEVELOPER-BRIEF-07-26.md"),
   ]);
   for (const text of [layout, welcome, readme, brief]) {
-    assert.match(text, /visual storyworld and AI previsualization engine/i);
+    assert.match(text, /visual storyworld collaboration and previsualization engine/i);
   }
   assert.match(layout, /See the whole movie before you make it/);
-  assert.match(welcome, /From first idea to visual prototype/);
+  assert.match(welcome, /From first idea to a visible storyworld/);
   assert.match(readme, /PPF is the portable creative source of truth/);
-  assert.match(brief, /This is a conversion-first roadmap/);
+  assert.match(brief, /Completed visual storyworld core/);
   assert.match(brief, /must not claim that it can render a complete movie/);
 });
 

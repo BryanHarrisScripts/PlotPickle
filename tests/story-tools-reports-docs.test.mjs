@@ -36,13 +36,13 @@ test("Settings exposes real connections while Reports remains a primary workspac
     source("app/settings-project-tools.tsx"),
     source("lib/screenplay-reports.ts"),
   ]);
-  for (const item of ['label: "GitHub"', 'label: "AI Providers"', 'label: "Google Services"', 'label: "Plugins & Connections"', "Music service links"]) assert.ok(panel.includes(item), `Missing live Settings capability: ${item}`);
+  for (const item of ['label: "Story & Art"', 'label: "Repository & Collab"', 'label: "Scheduling & Meetings"', 'label: "Media & Film Engines"', "Music service links"]) assert.ok(panel.includes(item), `Missing live Settings capability: ${item}`);
   assert.match(navigation, /id: "reports", label: "Reports", description: "Understand the screenplay"/);
   assert.match(page, /activeTab === "reports"[\s\S]*ReportsWorkspace/);
   assert.doesNotMatch(panel, /<b>Reports<\/b>/);
   assert.doesNotMatch(panel, /<b>Terminology Index<\/b>/);
   assert.doesNotMatch(panel, /<b>Core Model<\/b>/);
-  assert.match(panel, /label: "Plugins & Connections"/);
+  assert.match(panel, /label: "Media & Film Engines"/);
   for (const role of ["Producer report", "Actor", "Director report"]) assert.ok(reportUi.includes(role), `Missing role report: ${role}`);
   assert.match(reports, /createProducerReport/);
   assert.match(reports, /createDirectorReport/);

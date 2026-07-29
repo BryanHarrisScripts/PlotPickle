@@ -49,7 +49,8 @@ test("advanced AI capabilities stay behind one grouped Settings menu", () => {
   assert.match(architecture, /one grouped Settings menu/);
   assert.match(architecture, /AI Setup/);
   assert.match(architecture, /Music/);
-  assert.match(architecture, /Plugins/);
+  assert.match(architecture, /Story & Art/);
+  assert.match(architecture, /Media & Film Engines/);
   assert.doesNotMatch(architecture, /AI Studio interface with Setup, Knowledge, Character Lab, Image Lab, Video Lab, and Activity/);
   assert.match(settings, /type PlotPickleSettings/);
 });

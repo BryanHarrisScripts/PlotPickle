@@ -24,8 +24,8 @@ test("issue #85 exposes exactly five selling points and 81 learning modules", as
     "Visual storyworld in one PPF",
     "Story logic you can see",
     "Connected visual development",
-    "A path to a watchable prototype",
-    "Local-first ownership with optional AI",
+    "A clearer case for the movie",
+    "Local-first ownership with optional connections",
   ]) assert.ok(contract.includes(title), `Missing selling point: ${title}`);
   const ids = [...contract.matchAll(/id: "(complete-studio|learning-system|visual-continuity|local-first|distributed-collaboration)"/g)];
   assert.equal(ids.length, 5);

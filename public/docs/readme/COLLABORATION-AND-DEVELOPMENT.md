@@ -7,19 +7,21 @@ This is one selectable tab from the complete PlotPickle README. The canonical ro
 
 Settings → GitHub & Backups now provides a disk-backed `.ppf` project library, rolling backups, canonical pulls, and owner-controlled collaboration proposals. Every local PlotPickle server submits changes through a unique GitHub branch and pull request; only an owner or maintainer merge changes the canonical story. Afterglow: Reflections of Sentience links directly to its current GitHub source repository. Windows, macOS and Linux release candidates are clean-machine tested and published with SHA-256 checksums, while local-only writing continues to require no PlotPickle or cloud account.
 
-## Whole-app Lighthouse review package
+## Whole-app Lighthouse smoke package
 
-A complete local Lighthouse audit can be created without sending a story project to a remote audit service.
+The release-gating Lighthouse smoke verifies every supported static route without sending a story project to a remote audit service. It confirms that the local server starts, each route returns a real document on the local origin, title and description metadata are present, serious browser console errors are absent and required PlotPickle brand assets load.
+
+Lighthouse performance, accessibility, best-practices and SEO scores remain available as diagnostic evidence. The release gate does not turn those scores into arbitrary thresholds.
 
 ### Windows
 
 1. Open the extracted PlotPickle source folder in File Explorer.
 2. Double-click `Run-Lighthouse.bat`.
-3. Choose desktop and mobile, desktop only, mobile only, or ZIP the latest completed audit.
+3. Choose the recommended all-route smoke, a full desktop or mobile diagnostic audit, both full modes, or ZIP the latest completed audit.
 
 The launcher uses native Windows tools. It does not open Ubuntu and does not require Windows Subsystem for Linux. If the project dependencies are missing, it installs them with `npm ci` before starting the audit.
 
-PlotPickle builds once, starts a private preview server on `127.0.0.1`, discovers the registered application pages, audits every accessible route in desktop and mobile modes, and creates an uploadable ZIP automatically.
+PlotPickle builds once, starts a private preview server on `127.0.0.1`, discovers the registered application pages, audits every accessible route through Lighthouse, and creates an uploadable ZIP automatically.
 
 The command window prints the final ZIP path. Reports are stored under:
 
@@ -27,11 +29,12 @@ The command window prints the final ZIP path. Reports are stored under:
 reports\lighthouse\<timestamp>\
 ```
 
-The ZIP contains a route summary plus each page's Lighthouse JSON, HTML and command log. Dynamic routes that require a real project identifier are listed separately instead of being silently skipped.
+The ZIP contains a PASS/FAIL route summary, required-asset results and each page's Lighthouse JSON, HTML and command log. Dynamic routes that require a real project identifier are listed separately instead of being silently skipped.
 
 The launcher also accepts command-line modes:
 
 ```bat
+Run-Lighthouse.bat smoke
 Run-Lighthouse.bat all
 Run-Lighthouse.bat desktop
 Run-Lighthouse.bat mobile
@@ -42,6 +45,8 @@ The equivalent npm commands remain available:
 
 ```bat
 npm run audit:lighthouse
+npm run audit:lighthouse:smoke
+npm run audit:lighthouse:full
 npm run audit:lighthouse:desktop
 npm run audit:lighthouse:mobile
 npm run audit:lighthouse:zip

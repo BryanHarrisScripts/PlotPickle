@@ -187,10 +187,10 @@ export function createDashboardCommandCentreModel(project: PlotPickleProject, op
   });
 
   const connections: DashboardConnectionCard[] = [
-    connectionCard(sharedConnections.github, "GitHub"),
-    connectionCard(sharedConnections.ai, "AI provider"),
-    connectionCard(sharedConnections.plugins, "Plugins"),
-    connectionCard(sharedConnections.google, "Google"),
+    connectionCard(sharedConnections.github, "Repository & Collab"),
+    connectionCard(sharedConnections.ai, "Story & Art"),
+    connectionCard(sharedConnections.plugins, "Media & Film Engines"),
+    connectionCard(sharedConnections.google, "Scheduling & Meetings"),
     {
       ...connectionCard(sharedConnections.storage, "Current project"),
       id: "save",

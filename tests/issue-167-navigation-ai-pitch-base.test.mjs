@@ -39,7 +39,7 @@ test("Settings has the exact four ordered groups and requested destinations", as
   const labels = [...menu.matchAll(/label: "([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual(labels, [
     "Workspace", "General", "Appearance / Accessibility", "Project Defaults",
-    "Integrations", "AI Providers", "GitHub", "Google Services", "Plugins & Connections",
+    "Integrations", "Story & Art", "Repository & Collab", "Scheduling & Meetings", "Media & Film Engines",
     "Data Storage", "Storage & Backups",
     "Security", "Privacy & Permissions", "About & Licensing",
   ]);

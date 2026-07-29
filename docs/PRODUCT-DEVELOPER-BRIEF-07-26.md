@@ -2,25 +2,25 @@
 
 ## Purpose
 
-This brief defines the expanded PlotPickle product direction and the implementation rules established for Issues #110–#124. Roadmap #192 and Phase 0 Issue #193 add the visual storyworld-to-prototype direction below without replacing those reuse, navigation, ownership or safety rules.
+This brief defines the expanded PlotPickle product direction and the implementation rules established for Issues #110–#124. Roadmap #192 and Issues #193–#195 completed the visual storyworld direction below without replacing those reuse, navigation, ownership or safety rules.
 
-PlotPickle is a local-first visual storyworld and AI previsualization engine. It connects story logic, canon, characters, visuals, shots and sound in one portable PPF project, then helps approved material grow toward a watchable prototype that supports a green-light decision.
+PlotPickle is a local-first visual storyworld collaboration and previsualization engine. It connects story logic, canon, characters, screenplay material, visuals, shots and sound in one portable PPF project and interactive Storyworld Map so a creative team can see, test and present the movie before full production.
 
 The product must remain understandable to a new writer, useful to an experienced writer and visual-development team, and safe for existing projects.
 
 PlotPickle does not aim to replace Final Draft or a studio production and finishing pipeline. Screenplay features should support story structure, logic and visualization rather than pursue full professional screenplay-editor parity.
 
-### Visual storyworld-to-prototype loop
+### Completed visual storyworld core
 
 1. PPF remains the portable creative source of truth.
-2. Whole Film is upgraded into the definitive Storyworld Map.
-3. Graphic Novel, Storyboard and Production Shots share provider-neutral rendering.
-4. Generated images, clips and approved variations return to stable PPF assets with continuity and provenance.
-5. Animatic, Pitch and Reports extend into the watchable prototype and green-light package.
+2. The derived relationship index and shared asset identity keep story and visual evidence connected.
+3. Whole Film is the definitive interactive Storyworld Map.
+4. Graphic Novel, Storyboard, Production Shots and Animatic retain their existing visual-development and playback roles.
+5. Pitch and Reports present story logic, visual direction, readiness and unresolved decisions.
 
-This is a conversion-first roadmap. Existing visual tools are extended and generalized; no persistent second story graph, parallel renderer or replacement prototype player should be created.
+This remains a conversion-first product. Existing visual tools are extended and generalized; no persistent second story graph, parallel renderer or replacement prototype player should be created.
 
-Available capabilities and roadmap conversions must always be labelled separately. Until the later phases are complete, PlotPickle must not claim that it can render a complete movie.
+Provider-neutral rendering packages, reusable image and video jobs, automated returned-asset ingestion, full prototype assembly and an Afterglow renderer vertical slice are not active development commitments. Pika Labs, Runway and other media engines remain future optional extensions with no active API. PlotPickle must not claim that it can render a complete movie.
 
 ---
 
@@ -704,10 +704,10 @@ Settings navigation uses four groups in this exact order:
    - Appearance / Accessibility
    - Project Defaults
 2. **Integrations**
-   - AI Providers
-   - GitHub
-   - Google Services
-   - Plugins & Connections
+   - Story & Art
+   - Repository & Collab
+   - Scheduling & Meetings
+   - Media & Film Engines
 3. **Data Storage**
    - Storage & Backups
 4. **Security**

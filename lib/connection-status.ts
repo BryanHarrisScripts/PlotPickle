@@ -47,10 +47,10 @@ export const GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.e
 export const GOOGLE_MEET_SCOPE = GOOGLE_CALENDAR_SCOPE; // Meet links are created through Calendar conferenceData; no direct Meet API scope is requested.
 
 const TARGETS: Record<ConnectionId, { label: string; section: string }> = {
-  github: { label: "GitHub", section: "github" },
-  ai: { label: "AI providers", section: "ai" },
-  plugins: { label: "Plugins", section: "plugins" },
-  google: { label: "Google and Connected Services", section: "google" },
+  github: { label: "Repository & Collab", section: "github" },
+  ai: { label: "Story & Art", section: "ai" },
+  plugins: { label: "Media & Film Engines", section: "plugins" },
+  google: { label: "Scheduling & Meetings", section: "google" },
   storage: { label: "Storage", section: "storage" },
   backups: { label: "Backups", section: "storage" },
 };
@@ -120,14 +120,14 @@ export function createConnectionStatusSnapshot(
   const ai = item("ai", aiDisabled ? {
     state: "disabled",
     identity: "No AI provider",
-    detail: "AI is optional and currently disabled.",
+    detail: "Story and art assistance is optional and currently disabled.",
     repairGuidance: "No repair is required. Select a provider only if you want AI assistance.",
     dataShared: ["Nothing while AI is disabled"],
   } : {
     state: "configured",
     identity: settings.ai.provider,
     detail: `${settings.ai.provider} is selected. A private local credential must be verified separately.`,
-    repairGuidance: "Open AI providers, save the credential locally and test the connection.",
+    repairGuidance: "Open Story & Art, save the credential locally and test the optional connection.",
     dataShared: ["Only the story context explicitly selected for an AI request"],
     scopes: ["Text generation", ...(settings.ai.imageModel ? ["Image generation"] : [])],
   });
@@ -139,14 +139,15 @@ export function createConnectionStatusSnapshot(
     dataShared: ["Only capabilities approved for each enabled plugin"],
     scopes: activePlugins.map((plugin) => plugin.label),
   } : {
-    identity: "No enabled plugins",
-    detail: "No optional plugin is enabled.",
-    dataShared: ["Nothing while plugins are disabled"],
+    identity: "No rendering engine",
+    detail: "No media or film engine is connected. External rendering remains a future extension.",
+    repairGuidance: "No repair is required. PlotPickle's visual storyworld tools work without a rendering API.",
+    dataShared: ["Nothing; no media or film engine connection is active"],
   });
 
   const google = item("google", {
     identity: "No Google account",
-    detail: "Google sign-in, Calendar and Meet are optional and disconnected.",
+    detail: "Scheduling and meetings are optional and disconnected.",
     repairGuidance: "Configure Google OAuth for this local installation, then choose only the permissions you need.",
     dataShared: ["Account name and email after consent", "Non-sensitive meeting title, time and link when explicitly saved"],
     scopes: [...GOOGLE_IDENTITY_SCOPES],

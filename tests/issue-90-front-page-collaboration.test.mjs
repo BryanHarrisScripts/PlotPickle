@@ -9,8 +9,8 @@ const sellingPoints = [
   "Visual storyworld in one PPF",
   "Story logic you can see",
   "Connected visual development",
-  "A path to a watchable prototype",
-  "Local-first ownership with optional AI",
+  "A clearer case for the movie",
+  "Local-first ownership with optional connections",
 ];
 
 test("issue #90 front page uses the official repository and canonical product contract", async () => {

@@ -133,10 +133,10 @@ const SETTINGS_GROUPS: Array<{
     id: "integrations",
     label: "Integrations",
     sections: [
-      { id: "ai", label: "AI Providers", description: "AI providers, compatible services, local models or no AI" },
-      { id: "github", label: "GitHub", description: "Account, repository, permissions and recovery configuration" },
-      { id: "google", label: "Google Services", description: "Google and Connected Services: optional Calendar and Meet" },
-      { id: "plugins", label: "Plugins & Connections", description: "Plugins, music links and other optional connections" },
+      { id: "ai", label: "Story & Art", description: "Optional LLM and image assistance, local models, manual prompts or no AI" },
+      { id: "github", label: "Repository & Collab", description: "Optional GitHub history, proposals, permissions and recovery" },
+      { id: "google", label: "Scheduling & Meetings", description: "Optional Google Calendar and Meet, disconnected until you choose" },
+      { id: "plugins", label: "Media & Film Engines", description: "Future Pika, Runway and video-engine extensions; no active API" },
     ],
   },
   {
@@ -723,7 +723,7 @@ export default function SettingsPanel({
 
           {section === "ai" ? (
             <div className={styles.sectionStack}>
-              <SectionHeading eyebrow="AI providers" title="Choose how PlotPickle may assist you." description="OpenAI is the primary tested connection. Compatible services, local models, manual prompting and no-AI use remain available." />
+              <SectionHeading eyebrow="Story & Art" title="Explore ideas and develop visuals only when you choose." description="Optional LLM and text-to-image assistance can support story ideas, plot points, character designs, storyboards and concept art. PlotPickle's complete visual storyworld remains usable with no AI connection." />
               <SharedConnectionCard status={connections.items.ai} />
               <div className={styles.providerGrid}>
                 {providerPresets.map((item) => (
@@ -763,7 +763,7 @@ export default function SettingsPanel({
 
           {section === "github" ? (
             <div className={styles.sectionStack}>
-              <SectionHeading eyebrow="GitHub" title="Configure the account and repository connection." description="Settings owns sign-in, repository selection, permissions, readiness and recovery; credentials stay in the private local-server secrets area. Story Proposals and Project Lead decisions are used from Collab." />
+              <SectionHeading eyebrow="Repository & Collab" title="Keep story history and proposals under project-owner control." description="GitHub is the supported optional repository connection for version history, permissions and reviewed collaboration. Settings owns sign-in and recovery; Story Proposals and Project Lead decisions remain in Collab." />
               <SharedConnectionCard status={connections.items.github} />
               <GitHubCollaboration project={project} onChange={onProjectChange} onConnectionChange={() => void onConnectionChange()} surface="configuration" />
             </div>
@@ -771,14 +771,14 @@ export default function SettingsPanel({
 
           {section === "plugins" ? (
             <div className={styles.sectionStack}>
-              <SectionHeading eyebrow="Plugins & Connections" title="Keep optional extensions and connections visible and bounded." description="No plugin or connected service is required for local writing. Each enabled connection must disclose its capabilities and shared data." />
+              <SectionHeading eyebrow="Media & Film Engines" title="Keep rendering engines outside the required PlotPickle core." description="Pika Labs, Runway and additional video-generation engines are future extensions. No connector, credential or API permission for these services is active in this release." />
               <SharedConnectionCard status={connections.items.plugins} />
               <div className={styles.pluginGrid}>
                 {settings.plugins.map((plugin) => (
                   <article key={plugin.id}>
-                    <span>{plugin.status === "coming-soon" ? "Coming soon" : plugin.status}</span>
+                    <span>{plugin.status === "coming-soon" ? "Future extension · Not connected" : plugin.status}</span>
                     <h3>{plugin.label}</h3>
-                    <p>{plugin.status === "coming-soon" ? "This placeholder has no permission and shares no data." : "Review this plugin's declared permissions before enabling it."}</p>
+                    <p>{plugin.status === "coming-soon" ? "No API, credential, provider adapter or data-sharing permission is included." : "Review this plugin's declared permissions before enabling it."}</p>
                     <button type="button" disabled={plugin.status === "coming-soon"} onClick={() => setSettings((current) => ({ ...current, plugins: current.plugins.map((item) => item.id === plugin.id ? { ...item, status: item.status === "enabled" ? "disabled" : "enabled" } : item) }))}>{plugin.status === "enabled" ? "Disable" : "Enable"}</button>
                   </article>
                 ))}
@@ -805,7 +805,7 @@ export default function SettingsPanel({
 
           {section === "google" ? (
             <div className={styles.sectionStack}>
-              <SectionHeading eyebrow="Google Services" title="Grant only the Google access this project needs." description="Google and Connected Services remain optional. Failed or declined Calendar or Meet authentication never blocks local project work." />
+              <SectionHeading eyebrow="Scheduling & Meetings" title="Schedule project work only when you are ready to connect Google." description="Google Calendar and Meet remain optional and disconnected until you choose them. Failed, declined or unavailable authentication never blocks local project work." />
               <SharedConnectionCard
                 status={connections.items.google}
                 actions={(

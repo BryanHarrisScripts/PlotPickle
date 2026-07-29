@@ -42,16 +42,16 @@ test("renders the approved visual storyworld startup splash and preserves the lo
     "PlotPickle Playhouse",
     "See the whole movie",
     "before you make it.",
-    "One PPF. One connected visual path.",
+    "One PPF. One movie you can finally see whole.",
     "Available now",
-    "Conversion roadmap",
-    "Whole Film → Storyworld Map",
-    "Graphic Novel + Storyboard → shared rendering",
+    "The complete visual storyworld core",
+    "Interactive Storyworld Map",
+    "Graphic Novel + Storyboard",
     "Three builds",
     "Works without AI",
     "No required cloud account",
     "Open software. Open method. Your story.",
-    "Shape the storyworld. See the movie. Build the proof.",
+    "Shape the storyworld. See the movie. Make the case.",
   ]) {
     assert.ok(html.includes(phrase), "Rendered splash is missing: " + phrase);
   }

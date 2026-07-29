@@ -14,6 +14,11 @@ import {
   type ScreenplayDraftElement,
   type StoryBlock,
 } from "./project";
+import {
+  attachProjectAssetProvenance,
+  migrateLegacyAssetReferences,
+  resolveProjectAssetSource,
+} from "./project-assets";
 import type { MiniBlock, StoryScene } from "./structure";
 
 export const COMIC_PITCH_PAGE_COUNT = 24;
@@ -222,11 +227,15 @@ function createPanel(
     locationIds,
     shotDirection: shotDirectionFor(project, block, miniBlockNumber),
   };
-  const keepGenerated = Boolean(existing?.imageSrc && existing.status === "complete");
+  const retainedSource = existing
+    ? resolveProjectAssetSource(project.assets, existing.assetRef, existing.imageSrc)
+    : "";
+  const keepGenerated = Boolean(retainedSource && existing?.status === "complete");
   return {
     ...panelBase,
     prompt: promptFor(project, panelBase),
-    imageSrc: keepGenerated ? existing?.imageSrc ?? "" : "",
+    imageSrc: keepGenerated ? retainedSource : "",
+    assetRef: keepGenerated ? existing?.assetRef : undefined,
     revisedPrompt: keepGenerated ? existing?.revisedPrompt ?? "" : "",
     status: keepGenerated ? "complete" : "pending",
     error: "",
@@ -323,7 +332,11 @@ export function updateComicPitchPanel(
   return {
     ...deck,
     status: deckStatus,
-    panels: deck.panels.map((panel) => panel.id === panelId ? { ...panel, ...patch } : panel),
+    panels: deck.panels.map((panel) => panel.id === panelId ? {
+      ...panel,
+      ...patch,
+      assetRef: patch.imageSrc === "" ? undefined : patch.assetRef ?? panel.assetRef,
+    } : panel),
     updatedAt: now,
   };
 }
@@ -361,7 +374,7 @@ export function withComicPitchDeck(project: PlotPickleProject, deck: ComicPitchD
   const next = cloneProject(project);
   next.review.pitchPackage.comicDeck = deck;
   next.review.pitchPackage.updatedAt = deck.updatedAt;
-  return next;
+  return migrateLegacyAssetReferences(next);
 }
 
 export function recordComicPitchDeckProvenance(project: PlotPickleProject, deck: ComicPitchDeck): PlotPickleProject {
@@ -387,6 +400,7 @@ export function recordComicPitchDeckProvenance(project: PlotPickleProject, deck:
   const index = next.rights.aiProvenance.findIndex((item) => item.id === id);
   if (index >= 0) next.rights.aiProvenance[index] = record;
   else next.rights.aiProvenance.push(record);
+  next.assets = attachProjectAssetProvenance(next.assets, next.review.pitchPackage.comicDeck?.panels.map((panel) => panel.assetRef) ?? [], id);
   return next;
 }
 
@@ -408,7 +422,7 @@ export function buildComicPitchDeckHtml(
     const pageNumber = index + 1;
     const panels = deck.panels.filter((panel) => panel.pageNumber === pageNumber).sort((left, right) => left.panelNumber - right.panelNumber);
     return `<section class="comic-page"><header><span>Page ${pageNumber} of ${COMIC_PITCH_PAGE_COUNT}</span><h2>${escapeHtml(blockFor(project, pageNumber)?.title || `Block ${pageNumber}`)}</h2></header><div class="panel-grid">${panels.map((panel) => {
-      const image = imageDataByPanel[panel.id] || panel.imageSrc;
+      const image = imageDataByPanel[panel.id] || resolveProjectAssetSource(project.assets, panel.assetRef, panel.imageSrc);
       const bubbles = panel.dialogue.map((item) => `<blockquote><strong>${escapeHtml(item.characterName)}</strong><p>${escapeHtml(item.text)}</p></blockquote>`).join("");
       return `<article class="comic-panel"><div class="panel-image">${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(`${panel.title}: ${panel.narration}`)}">` : `<div class="placeholder">Panel ${panel.panelNumber}<br>Image not generated</div>`}<div class="bubbles">${bubbles}</div></div><div class="caption"><span>${escapeHtml(panel.title)}</span><p>${escapeHtml(panel.narration)}</p>${panel.narrationSource === "derived" ? "<small>Derived fallback narration</small>" : ""}</div></article>`;
     }).join("")}</div></section>`;

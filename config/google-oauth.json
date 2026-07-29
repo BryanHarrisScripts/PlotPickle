@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/plotpickle-google-oauth-public-config.schema.json",
+  "schemaVersion": 1,
+  "product": "PlotPickle",
+  "registrationStatus": "pending-owner-registration",
+  "applicationType": "desktop",
+  "clientId": "",
+  "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+  "tokenUrl": "https://oauth2.googleapis.com/token",
+  "revokeUrl": "https://oauth2.googleapis.com/revoke",
+  "userInfoUrl": "https://www.googleapis.com/oauth2/v3/userinfo",
+  "tokenInfoUrl": "https://oauth2.googleapis.com/tokeninfo",
+  "loopbackRedirect": true,
+  "pkceMethod": "S256",
+  "clientSecretPackaged": false,
+  "identityScopes": [
+    "openid",
+    "email",
+    "profile"
+  ],
+  "optionalScopes": {
+    "calendar": "https://www.googleapis.com/auth/calendar.events.owned",
+    "meet": "https://www.googleapis.com/auth/meetings.space.created"
+  }
+}

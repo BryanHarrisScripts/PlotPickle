@@ -50,8 +50,14 @@ const launcherPath = path.join(destination, launcher);
 cpSync(path.join(root, launcher), launcherPath);
 const launcherAnchor = platform === "windows" ? 'cd /d "%~dp0"' : 'cd "$(dirname "$0")"';
 const launcherConfig = platform === "windows"
-  ? 'set "PLOTPICKLE_GITHUB_APP_CONFIG=%CD%\\config\\github-app.json"'
-  : 'export PLOTPICKLE_GITHUB_APP_CONFIG="${PLOTPICKLE_GITHUB_APP_CONFIG:-$PWD/config/github-app.json}"';
+  ? [
+      'set "PLOTPICKLE_GITHUB_APP_CONFIG=%CD%\\config\\github-app.json"',
+      'set "PLOTPICKLE_GOOGLE_OAUTH_CONFIG=%CD%\\config\\google-oauth.json"',
+    ].join("\n")
+  : [
+      'export PLOTPICKLE_GITHUB_APP_CONFIG="${PLOTPICKLE_GITHUB_APP_CONFIG:-$PWD/config/github-app.json}"',
+      'export PLOTPICKLE_GOOGLE_OAUTH_CONFIG="${PLOTPICKLE_GOOGLE_OAUTH_CONFIG:-$PWD/config/google-oauth.json}"',
+    ].join("\n");
 const launcherSource = readFileSync(launcherPath, "utf8");
 if (!launcherSource.includes(launcherAnchor)) throw new Error(`The ${platform} launcher configuration anchor is missing.`);
 writeFileSync(launcherPath, launcherSource.replace(launcherAnchor, `${launcherAnchor}\n${launcherConfig}`));
@@ -61,6 +67,8 @@ if (platform === "windows") {
 }
 const githubAppConfigPath = path.join(destination, "config", "github-app.json");
 const githubAppConfig = JSON.parse(readFileSync(githubAppConfigPath, "utf8"));
+const googleOAuthConfigPath = path.join(destination, "config", "google-oauth.json");
+const googleOAuthConfig = JSON.parse(readFileSync(googleOAuthConfigPath, "utf8"));
 const manifest = {
   product: "PlotPickle",
   version: packageJson.version,
@@ -75,6 +83,12 @@ const manifest = {
     configured: githubAppConfig.registrationStatus === "registered" && Boolean(githubAppConfig.clientId),
     registrationStatus: githubAppConfig.registrationStatus,
     slug: githubAppConfig.slug,
+  },
+  googleOAuth: {
+    configPath: "config/google-oauth.json",
+    configured: googleOAuthConfig.registrationStatus === "registered" && Boolean(googleOAuthConfig.clientId),
+    registrationStatus: googleOAuthConfig.registrationStatus,
+    applicationType: googleOAuthConfig.applicationType,
   },
   createdAt: process.env.SOURCE_DATE_EPOCH ? new Date(Number(process.env.SOURCE_DATE_EPOCH) * 1000).toISOString() : new Date().toISOString(),
 };

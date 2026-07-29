@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { PlotPickleProject } from "@/lib/project";
 import { providerPresets } from "@/lib/ai/providers";
 import {
@@ -62,10 +62,17 @@ type AiConnectionResponse = {
   message?: string;
 };
 
+type CredentialProtection =
+  | "windows-dpapi-current-user"
+  | "macos-keychain-current-user"
+  | "linux-secret-service-current-user"
+  | "legacy-plaintext"
+  | "unsupported-platform";
+
 type CredentialFileSummary = {
   name: string;
   bytes: number;
-  protection: "windows-dpapi-current-user" | "account-file-permissions";
+  protection: CredentialProtection;
 };
 
 type CredentialState = {
@@ -73,16 +80,38 @@ type CredentialState = {
   files: CredentialFileSummary[];
   count: number;
   protectedCount: number;
-  defaultProtection: CredentialFileSummary["protection"];
+  migrationRequiredCount: number;
+  defaultProtection: CredentialProtection;
   protectionLabel: string;
 };
+
+
+type GoogleAuthorizationStart = {
+  authorizationUrl?: string;
+  attemptId?: string;
+  expiresAt?: string;
+};
+
+type GoogleAuthorizationResult = {
+  state?: "idle" | "pending" | "completed" | "failed" | "expired" | "cancelled";
+  message?: string;
+};
+
+function credentialProtectionText(protection: CredentialProtection) {
+  if (protection === "windows-dpapi-current-user") return "Encrypted for this Windows user with DPAPI";
+  if (protection === "macos-keychain-current-user") return "Encrypted with this user's macOS Keychain";
+  if (protection === "linux-secret-service-current-user") return "Encrypted with this user's Linux Secret Service";
+  if (protection === "legacy-plaintext") return "Legacy plaintext; migration required before use";
+  return "Encrypted credential storage unavailable";
+}
 
 const EMPTY_CREDENTIAL_STATE: CredentialState = {
   path: "",
   files: [],
   count: 0,
   protectedCount: 0,
-  defaultProtection: "account-file-permissions",
+  migrationRequiredCount: 0,
+  defaultProtection: "unsupported-platform",
   protectionLabel: "Credential storage has not been checked.",
 };
 
@@ -245,6 +274,8 @@ export default function SettingsPanel({
   const [notice, setNotice] = useState("");
   const [googlePermissions, setGooglePermissions] = useState<Array<"calendar" | "meet">>([]);
   const [googleWorking, setGoogleWorking] = useState(false);
+  const [googleAttemptId, setGoogleAttemptId] = useState("");
+  const googlePollGeneration = useRef(0);
   const [credentialState, setCredentialState] = useState<CredentialState>(EMPTY_CREDENTIAL_STATE);
   const [credentialWorking, setCredentialWorking] = useState(false);
   const [aiConnection, setAiConnection] = useState<AiConnectionStatus>({
@@ -347,16 +378,7 @@ export default function SettingsPanel({
     };
   }, [hydrated, onConnectionChange]);
 
-  useEffect(() => {
-    const handleGoogleCallback = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin || event.data?.type !== "plotpickle-google-oauth") return;
-      setNotice(event.data.ok ? "Google authorization completed. Connection status refreshed." : "Google authorization was not completed. Local project work is unchanged.");
-      setGoogleWorking(false);
-      void onConnectionChange();
-    };
-    window.addEventListener("message", handleGoogleCallback);
-    return () => window.removeEventListener("message", handleGoogleCallback);
-  }, [onConnectionChange]);
+  useEffect(() => () => { googlePollGeneration.current += 1; }, []);
 
   const preset = useMemo(
     () => providerPresets.find((item) => item.kind === settings.ai.provider) ?? providerPresets.at(-1),
@@ -470,21 +492,73 @@ export default function SettingsPanel({
       : [...current, permission]);
   }
 
+  async function pollGoogleAuthorization(attemptId: string, generation: number) {
+    while (googlePollGeneration.current === generation) {
+      try {
+        const result = await jsonRequest<GoogleAuthorizationResult>("GET", `${GOOGLE_CONNECTION_API}/authorization?attemptId=${encodeURIComponent(attemptId)}`);
+        if (result.state === "completed") {
+          setNotice(result.message || "Google authorization completed in the system browser.");
+          setGoogleWorking(false);
+          setGoogleAttemptId("");
+          await onConnectionChange();
+          return;
+        }
+        if (result.state === "failed" || result.state === "expired" || result.state === "cancelled" || result.state === "idle") {
+          setNotice(result.message || "Google authorization was not completed. Local project work is unchanged.");
+          setGoogleWorking(false);
+          setGoogleAttemptId("");
+          return;
+        }
+      } catch (error) {
+        setNotice(error instanceof Error ? error.message : "Google authorization status could not be checked.");
+        setGoogleWorking(false);
+        setGoogleAttemptId("");
+        return;
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, 1000));
+    }
+  }
+
   async function connectGoogle() {
+    const browser = window.open("about:blank", "_blank");
     setGoogleWorking(true);
     setNotice("");
+    const generation = googlePollGeneration.current + 1;
+    googlePollGeneration.current = generation;
     try {
-      const result = await jsonRequest<{ authorizationUrl?: string }>("POST", `${GOOGLE_CONNECTION_API}/start`, { permissions: googlePermissions });
-      if (!result.authorizationUrl) throw new Error("Google did not return an authorization address.");
+      const result = await jsonRequest<GoogleAuthorizationStart>("POST", `${GOOGLE_CONNECTION_API}/start`, { permissions: googlePermissions });
+      if (!result.authorizationUrl || !result.attemptId) throw new Error("Google did not return a complete desktop authorization request.");
       const authorization = new URL(result.authorizationUrl);
       if (authorization.protocol !== "https:" || authorization.hostname !== "accounts.google.com") throw new Error("The Google authorization address was invalid.");
-      const popup = window.open(authorization.toString(), "plotpickle-google-oauth", "popup,width=720,height=760");
-      if (!popup) throw new Error("Allow the Google sign-in window, then try again.");
-      setNotice("Review Google's consent screen. PlotPickle remains available while sign-in is open.");
+      if (!browser) {
+        await jsonRequest<GoogleAuthorizationResult>("DELETE", `${GOOGLE_CONNECTION_API}/authorization`, { attemptId: result.attemptId });
+        throw new Error("Allow PlotPickle to open the system browser, then try again.");
+      }
+      browser.opener = null;
+      browser.location.replace(authorization.toString());
+      setGoogleAttemptId(result.attemptId);
+      setNotice("Review Google's consent screen in the system browser. PlotPickle is waiting on a one-time local callback.");
+      void pollGoogleAuthorization(result.attemptId, generation);
     } catch (error) {
+      browser?.close();
       setGoogleWorking(false);
+      setGoogleAttemptId("");
       const message = error instanceof Error ? error.message : "Google sign-in could not begin.";
       setNotice(message === "local-gateway-unavailable" ? "Google setup is available in the downloaded local PlotPickle server." : message);
+    }
+  }
+
+  async function cancelGoogleSignIn() {
+    if (!googleAttemptId) return;
+    googlePollGeneration.current += 1;
+    try {
+      const result = await jsonRequest<GoogleAuthorizationResult>("DELETE", `${GOOGLE_CONNECTION_API}/authorization`, { attemptId: googleAttemptId });
+      setNotice(result.message || "Google sign-in was cancelled. Local project work is unchanged.");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Google sign-in could not be cancelled.");
+    } finally {
+      setGoogleWorking(false);
+      setGoogleAttemptId("");
     }
   }
 
@@ -502,6 +576,8 @@ export default function SettingsPanel({
   }
 
   async function revokeGoogle() {
+    googlePollGeneration.current += 1;
+    setGoogleAttemptId("");
     setGoogleWorking(true);
     try {
       const result = await jsonRequest<{ message?: string }>("DELETE", GOOGLE_CONNECTION_API);
@@ -539,7 +615,7 @@ export default function SettingsPanel({
     setCredentialWorking(true);
     try {
       const result = await jsonRequest<{ removed?: number; message?: string }>("DELETE", CREDENTIALS_API);
-      setCredentialState((current) => ({ ...current, files: [], count: 0, protectedCount: 0 }));
+      setCredentialState((current) => ({ ...current, files: [], count: 0, protectedCount: 0, migrationRequiredCount: 0 }));
       setSessionKey("");
       setAiConnection({ state: "idle", saved: false, message: "No API connection has been saved." });
       setGooglePermissions([]);
@@ -734,7 +810,8 @@ export default function SettingsPanel({
                 status={connections.items.google}
                 actions={(
                   <>
-                    <button type="button" disabled={googleWorking || connections.items.google.state === "unavailable"} onClick={() => void connectGoogle()}>{googleWorking ? "Working…" : connections.items.google.state === "connected" ? "Review or add permissions" : "Sign in with Google"}</button>
+                    <button type="button" disabled={googleWorking || connections.items.google.state === "unavailable"} onClick={() => void connectGoogle()}>{googleWorking ? "Waiting for Google…" : connections.items.google.state === "connected" ? "Review or add permissions" : "Sign in with Google"}</button>
+                    {googleWorking && googleAttemptId ? <button type="button" className={styles.secondaryAction} onClick={() => void cancelGoogleSignIn()}>Cancel sign-in</button> : null}
                     {connections.items.google.state === "connected" ? <button type="button" className={styles.secondaryAction} disabled={googleWorking} onClick={() => void testGoogle()}>Test connection</button> : null}
                     {connections.items.google.state === "connected" ? <button type="button" className={styles.removeConnection} disabled={googleWorking} onClick={() => void revokeGoogle()}>Disconnect and revoke</button> : null}
                   </>
@@ -751,7 +828,7 @@ export default function SettingsPanel({
               </div>
               <div className={styles.privacyBoundary}>
                 <strong>Google data boundary</strong>
-                <p>OAuth access and refresh tokens are written only to the private local secrets area under the current computer account. They are excluded from .ppf projects, reports, exports, logs and GitHub.</p>
+                <p>OAuth access and refresh tokens are encrypted for the current operating-system user using Windows DPAPI, macOS Keychain or Linux Secret Service. They are excluded from .ppf projects, reports, exports, browser storage, logs and GitHub.</p>
                 <p>A project may retain only non-sensitive meeting metadata: title, start and end time, meeting link and Calendar event ID. Attendees, email bodies, recordings, transcripts and tokens are not stored in the project foundation.</p>
               </div>
             </div>
@@ -766,14 +843,14 @@ export default function SettingsPanel({
               <section className={styles.credentialVault} aria-labelledby="credential-vault-title">
                 <header>
                   <div><p>Local credential vault</p><h3 id="credential-vault-title">{credentialState.count} saved credential file{credentialState.count === 1 ? "" : "s"}</h3></div>
-                  <span>{credentialState.defaultProtection === "windows-dpapi-current-user" ? "Windows encrypted" : "Current-account only"}</span>
+                  <span>{credentialState.defaultProtection === "unsupported-platform" ? "Encryption unavailable" : "OS-user encrypted"}</span>
                 </header>
                 <p>{credentialState.protectionLabel}</p>
                 <code>{credentialState.path || "%LOCALAPPDATA%\\PlotPickle\\secrets"}</code>
                 <div className={styles.credentialFiles}>
                   {credentialState.files.length ? credentialState.files.map((file) => (
                     <div key={file.name}>
-                      <span><b>{file.name}</b><small>{file.protection === "windows-dpapi-current-user" ? "Encrypted for this Windows user" : "Protected by current-account file permissions"}</small></span>
+                      <span><b>{file.name}</b><small>{credentialProtectionText(file.protection)}</small></span>
                       <em>{file.bytes.toLocaleString()} bytes</em>
                     </div>
                   )) : <p>No GitHub, AI or Google credential is currently stored by PlotPickle.</p>}
@@ -782,7 +859,8 @@ export default function SettingsPanel({
                   <button type="button" disabled={credentialWorking} onClick={() => void openCredentialFolder()}>Open credentials folder</button>
                   <button type="button" className={styles.eraseCredentials} disabled={credentialWorking || credentialState.count === 0} onClick={() => void eraseAllCredentials()}>Erase all credentials</button>
                 </div>
-                <p className={styles.credentialWarning}>Erasing removes PlotPickle&apos;s local copies without deleting projects, assets or backups. It does not automatically invalidate GitHub or AI tokens at those providers; revoke those there if you want them unusable everywhere.</p>
+                {credentialState.migrationRequiredCount ? <p className={styles.credentialWarning}>{credentialState.migrationRequiredCount} legacy plaintext credential file{credentialState.migrationRequiredCount === 1 ? "" : "s"} will be replaced atomically with OS-user encrypted storage before use.</p> : null}
+                <p className={styles.credentialWarning}>Erasing removes PlotPickle&apos;s local encrypted copies and shared OS key without deleting projects, assets or backups. It does not automatically invalidate GitHub or AI tokens at those providers; revoke those there if you want them unusable everywhere.</p>
               </section>
             </div>
           ) : null}

@@ -5,6 +5,7 @@ import { localAiGateway } from "./build/local-ai-gateway";
 import { localConnectionsGateway } from "./build/local-connections-gateway";
 import { githubAppGateway } from "./build/github-app-gateway";
 import { applyGitHubAppPublicConfig } from "./build/github-app-public-config";
+import { applyGoogleOAuthPublicConfig } from "./build/google-oauth-public-config";
 import { githubCommandGateway } from "./build/github-command-gateway";
 import { githubRepositoryRecoveryGateway } from "./build/github-repository-recovery-gateway";
 import { githubProjectSyncGateway } from "./build/github-project-sync-gateway";
@@ -57,6 +58,7 @@ export default defineConfig(async () => {
   // Desktop releases load the same versioned public GitHub App identity.
   // Environment values remain explicit development and self-hosting overrides.
   applyGitHubAppPublicConfig();
+  applyGoogleOAuthPublicConfig();
 
   // Wrangler snapshots its log path while the Cloudflare plugin is imported.
   const { cloudflare } = await import("@cloudflare/vite-plugin");

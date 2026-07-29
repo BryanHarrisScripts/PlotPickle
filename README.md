@@ -2,12 +2,6 @@
   <img src="public/brand/plotpickle-header-horizontal-1200.png" alt="PlotPickle Playhouse" width="760">
 </p>
 
-<p align="center">
-  <img src="public/brand/plotpickle-icon-master-transparent.png" alt="PlotPickle icon" width="92">
-  &nbsp;&nbsp;&nbsp;
-  <img src="public/brand/plotpickle-logo-stacked-transparent-800.png" alt="PlotPickle stacked logo" width="180">
-</p>
-
 # PlotPickle Playhouse
 
 <table><tr><td><strong><a href="public/docs/readme/GETTING-STARTED.md">Getting Started</a></strong></td><td><strong><a href="public/docs/readme/WRITING-AND-PRODUCTION.md">Writing &amp; Production</a></strong></td><td><strong><a href="public/docs/readme/COLLABORATION-AND-DEVELOPMENT.md">Collaboration &amp; Development</a></strong></td></tr></table>

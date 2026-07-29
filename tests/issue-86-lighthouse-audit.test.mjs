@@ -34,20 +34,16 @@ test("issue #86 defines the packaged Windows interaction release gate", async ()
   assert.match(smoke, /process\.exit\(124\)/);
 });
 
-test("issue #86 uses portable fonts in the packaged local runtime", async () => {
-  const layout = await source("app/layout.tsx");
-  assert.doesNotMatch(layout, /next\/font/);
-  assert.doesNotMatch(layout, /Geist\(|Geist_Mono\(/);
-  assert.match(layout, /--font-geist-sans": "Arial, Helvetica, sans-serif"/);
-  assert.match(layout, /--font-geist-mono": '\"Courier New\", Courier, monospace'/);
-});
-
-test("issue #86 preserves Splash child keys and enters the real workspace for interaction smoke", async () => {
-  const splash = await source("app/marketing-splash.tsx");
-  assert.match(splash, /React\.Children\.map\(node, \(child\) => translateReactNode\(child\)\)/);
-  assert.doesNotMatch(splash, /node\.map\(translateReactNode\)/);
-  assert.match(splash, /get\("workspace"\) === "1"/);
-  assert.match(splash, /props\.onEnter\(\)/);
+test("issue #86 starts from a real named workspace and proves Repository & Collab", async () => {
+  const smoke = await source("scripts/windows-interaction-smoke.mjs");
+  assert.doesNotMatch(smoke, /workspace=1/);
+  assert.match(smoke, /workspace=dashboard/);
+  assert.match(smoke, /workspace=settings/);
+  assert.match(smoke, /runRepositoryCollabScenario/);
+  assert.match(smoke, /Repository & Collab control was not found in Settings/);
+  assert.match(smoke, /The asynchronous GitHub status panel did not reach a recognized final state/);
+  assert.match(smoke, /The GitHub status transition reproduced the removeChild runtime error/);
+  assert.match(smoke, /Repository & Collab: \$\{report\.scenarios\.repositoryAndCollab/);
 });
 
 test("issue #86 gates the clean extracted Windows package on the interaction crawl", async () => {

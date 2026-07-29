@@ -2,7 +2,7 @@ import Link from "next/link";
 import packageInfo from "../../package.json";
 import {
   PLOTPICKLE_POSITIONING,
-  STORYWORLD_PROTOTYPE_LOOP,
+  STORYWORLD_CORE_LOOP,
 } from "@/lib/product-direction";
 import {
   convergenceMap,
@@ -23,7 +23,7 @@ export default function AboutPlotPicklePage() {
           <span>About · Origins · Product Principles</span>
           <h1>See the whole movie before you make it.</h1>
           <p>
-            PlotPickle is a local-first visual storyworld and AI previsualization engine built around Bryan Harris&apos;s 24 Blocks method. It connects story logic, canon, characters, visuals, shots and sound in one portable PPF project so approved material can grow into a watchable prototype for a green-light decision.
+            PlotPickle is a local-first visual storyworld collaboration and previsualization engine built around Bryan Harris&apos;s 24 Blocks method. It connects story logic, canon, characters, visuals, shots and sound in one portable PPF project and interactive map so a creative team can see, test and present the whole movie before full production.
           </p>
           <div className={styles.actions}>
             <Link href="/">Open PlotPickle</Link>
@@ -39,8 +39,8 @@ export default function AboutPlotPicklePage() {
 
       <section className={styles.introGrid}>
         <article><span>What it is</span><h2>A visual storyworld engine</h2><p>Structure, screenplay material, Whole Film, Graphic Novel, Storyboard, Production Shots, Animatic, Pitch and Reports use one connected project instead of parallel creative files.</p></article>
-        <article><span>Why it exists</span><h2>Make movie logic visible</h2><p>Hooks, turning points, causality, arcs, character decisions and visual continuity stay visible while the project moves from script structure toward a prototype.</p></article>
-        <article><span>What it proves</span><h2>A movie worth green-lighting</h2><p>The goal is a watchable AI-assisted or manually assembled prototype that helps a creative team judge whether the movie works before committing to full production.</p></article>
+        <article><span>Why it exists</span><h2>Make movie logic visible</h2><p>Hooks, turning points, causality, arcs, character decisions and visual continuity stay visible while the project moves from script structure into connected previsualization.</p></article>
+        <article><span>What it supports</span><h2>A clearer green-light conversation</h2><p>The goal is persuasive previsualization evidence that helps a creative team discuss whether the story, visual direction and production plan are ready for the next investment.</p></article>
         <article><span>What it is not</span><h2>Not a finishing system</h2><p>PlotPickle does not aim to replace Final Draft, a professional production crew, editorial, colour, sound finishing or a studio delivery pipeline.</p></article>
       </section>
 
@@ -67,9 +67,9 @@ export default function AboutPlotPicklePage() {
       </section>
 
       <section className={styles.panel}>
-        <header><span>Available now and conversion roadmap</span><h2>Extend the tools already here</h2><p>The first step is available today. Each later step is an explicit conversion planned by roadmap #192, not a shipped rendering claim or a new parallel engine.</p></header>
+        <header><span>Complete visual storyworld core</span><h2>Use the connected tools available now</h2><p>The PPF, Storyworld Map, visual-development workspaces, previsualization and review evidence form a complete local-first product. External rendering and scheduling engines remain optional future extensions.</p></header>
         <div className={styles.principles}>
-          {STORYWORLD_PROTOTYPE_LOOP.map((step) => (
+          {STORYWORLD_CORE_LOOP.map((step) => (
             <article key={step.id}>
               <h3>{step.statusLabel}: {step.title}</h3>
               <p>{step.summary}</p>

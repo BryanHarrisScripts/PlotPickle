@@ -112,6 +112,8 @@ test("issue #190 reuses guarded repository setup, local folders and reviewed syn
     "/api/local-projects/save",
     "/api/local-projects/load?file=",
     "fileName: AFTERGLOW_PROJECT_FILE",
+    "Opening the existing persistent Afterglow project",
+    "was not overwritten",
     "/api/local-afterglow/enable",
     "/api/local-afterglow/disable",
     "GitHub publication remains a reviewed action",

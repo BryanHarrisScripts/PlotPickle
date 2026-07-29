@@ -26,7 +26,7 @@ test("issue #169 defines exactly three release builds from one product contract"
   assert.match(splash, /View all three builds/);
 });
 
-test("issue #169 presents the connected visual storyworld and conversion roadmap", async () => {
+test("issue #169 presents the completed connected visual storyworld core", async () => {
   const [splash, contract] = await Promise.all([
     source("app/marketing-splash-base.tsx"),
     source("lib/product-direction.ts"),
@@ -36,17 +36,17 @@ test("issue #169 presents the connected visual storyworld and conversion roadmap
     assert.ok(contract.includes(`label: "${label}"`), `Missing workspace: ${label}`);
   }
   for (const phrase of [
-    "Available now · Whole Film",
+    "Available now · Storyworld Map",
     "Available now · Graphic Novel + Storyboard",
-    "Available now · Production Shots + Animatic",
-    "Conversion roadmap · Storyworld Map",
-    "Conversion roadmap · Shared rendering",
-    "Conversion roadmap · Prototype",
+    "Available now · Production + Animatic",
+    "Available now · Pitch + Reports",
+    "Available now · Owner-controlled Collab",
+    "Available now · Local-first",
   ]) assert.ok(splash.includes(phrase), `Missing feature story: ${phrase}`);
   for (const boundary of [
-    "Whole Film → Storyworld Map",
-    "No duplicate renderer",
-    "Prototype · review · green-light",
+    "Interactive map · table · export",
+    "The complete visual storyworld core",
+    "External movie-rendering APIs remain optional future extensions",
     "not Final Draft parity or studio finishing",
   ]) assert.ok(splash.includes(boundary), `Missing merged workspace boundary: ${boundary}`);
 });

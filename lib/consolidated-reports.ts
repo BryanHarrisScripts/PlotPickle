@@ -428,10 +428,10 @@ function connectionsReport(project: PlotPickleProject, runtime: ReportsRuntimeCo
     : { status: "disconnected", detail: "No project repository is configured." };
   return {
     rows: [
-      connectionRow("github", "GitHub", runtime.github, githubCanonical),
-      connectionRow("ai", "AI provider", runtime.ai),
-      connectionRow("plugins", "Plugins", runtime.plugins),
-      connectionRow("google", "Google", runtime.google),
+      connectionRow("github", "Repository & Collab", runtime.github, githubCanonical),
+      connectionRow("ai", "Story & Art", runtime.ai),
+      connectionRow("plugins", "Media & Film Engines", runtime.plugins),
+      connectionRow("google", "Scheduling & Meetings", runtime.google),
       connectionRow("storage", "Local storage", runtime.storage, { status: "unknown", detail: `Canonical project updated ${project.metadata.updatedAt || "not yet saved"}.` }),
       connectionRow("backups", "Backups", runtime.backups, { status: project.revisions.length ? "connected" : "disconnected", detail: `${project.revisions.length} revision snapshot${project.revisions.length === 1 ? "" : "s"} retained.` }),
     ],

@@ -72,7 +72,7 @@ export default function WelcomePage() {
         <div className={styles.brand}>PlotPickle</div>
         <p className={styles.eyebrow}>Simple Start · optional guided entry</p>
         <h1>A visual storyworld for seeing the movie before full production.</h1>
-        <p className={styles.lede}>PlotPickle is a visual storyworld and AI previsualization engine that connects story logic, canon, characters, screenplay material, visuals, shots and sound in one portable PPF project. Build with the visual tools available now, work toward a watchable prototype and keep every canonical decision under project-owner control.</p>
+        <p className={styles.lede}>PlotPickle is a visual storyworld collaboration and previsualization engine that connects story logic, canon, characters, screenplay material, visuals, shots and sound in one portable PPF project. Use the interactive Storyworld Map and connected visual workspaces now, without linking an external API, and keep every canonical decision under project-owner control.</p>
         <a className={styles.repositoryLink} href={PLOTPICKLE_REPOSITORY_URL} target="_blank" rel="noreferrer">
           <GitHubMark />
           <span>Official PlotPickle GitHub repository</span>
@@ -98,7 +98,7 @@ export default function WelcomePage() {
       </section>
 
       <section className={styles.pathSection}>
-        <h2>From first idea to visual prototype</h2>
+        <h2>From first idea to a visible storyworld</h2>
         <div className={styles.path}>{pathway.map((step, index) => <span key={step}>{step}{index < pathway.length - 1 ? <b aria-hidden="true">→</b> : null}</span>)}</div>
       </section>
 

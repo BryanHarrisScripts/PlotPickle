@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Phase 2 turns the existing Google connection foundation into a packaged desktop feature. A writer opens **Settings → Google Services**, chooses only the permissions needed, clicks **Sign in with Google**, completes consent in the system browser and returns to a sanitized green connection status.
+Phase 2 turns the existing Google connection foundation into a packaged desktop feature. A writer opens **Settings → Scheduling & Meetings**, chooses only the permissions needed, clicks **Sign in with Google**, completes consent in the system browser and returns to a sanitized green connection status.
 
 Google remains optional. A failed, cancelled or unavailable connection never blocks local writing, GitHub collaboration, project storage or export.
 

@@ -242,6 +242,7 @@ async function auditRoute({ baseUrl, route, mode, outputDirectory }) {
     const report = JSON.parse(await readFile(jsonPath, "utf8"));
     const categories = report.categories ?? {};
     const audits = Object.values(report.audits ?? {});
+    const requests = report.audits?.["network-requests"]?.details?.items ?? [];
     const failedAudits = audits
       .filter((audit) => audit?.score !== null && audit?.score < 0.9 && audit?.scoreDisplayMode !== "notApplicable")
       .map((audit) => ({ id: audit.id, title: audit.title, score: audit.score, displayValue: audit.displayValue ?? "" }));

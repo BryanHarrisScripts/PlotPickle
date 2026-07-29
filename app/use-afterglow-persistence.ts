@@ -190,15 +190,26 @@ export function useAfterglowPersistence(activeProjectId: string) {
     setWorking(true);
     setMessage("Verifying the Afterglow repository and persistent project folder…");
     try {
-      let connection = await currentAfterglowConnection() || await selectAfterglowRepository(project);
-      let next = connectedProject(project, connection);
+      const current = await refresh();
+      let sourceProject = project;
+      if (current.localProjectAvailable) {
+        const local = await jsonRequest(`/api/local-projects/load?file=${encodeURIComponent(AFTERGLOW_PROJECT_FILE)}`);
+        const saved = local.project as PlotPickleProject;
+        if (!isAfterglowProjectId(saved?.id)) {
+          throw new Error("The existing persistent Afterglow folder belongs to a different project and was not overwritten.");
+        }
+        sourceProject = saved;
+        setMessage("Opening the existing persistent Afterglow project before connecting its repository…");
+      }
+      let connection = await currentAfterglowConnection() || await selectAfterglowRepository(sourceProject);
+      let next = connectedProject(sourceProject, connection);
       try {
         await jsonRequest("/api/local-github-sync/preview", "POST", { project: next });
       } catch (error) {
         const detail = error instanceof Error ? error.message : "";
         if (!/missing plotpickle-project\.json/i.test(detail)) throw error;
-        connection = await selectAfterglowRepository(project);
-        next = connectedProject(project, connection);
+        connection = await selectAfterglowRepository(sourceProject);
+        next = connectedProject(sourceProject, connection);
         await jsonRequest("/api/local-github-sync/preview", "POST", { project: next });
       }
       await jsonRequest("/api/local-projects/save", "POST", {

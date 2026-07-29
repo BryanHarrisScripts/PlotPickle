@@ -24,11 +24,11 @@ Terminology belongs in Learn (the Read & Learn workspace). Reports belongs in th
 
 PlotPickle presents exactly five major product advantages:
 
-1. Complete screenplay studio
-2. 81-module learning system
-3. Visual continuity engine
-4. Local-first ownership with optional AI
-5. Distributed PlotPickle collaboration
+1. Visual storyworld in one PPF
+2. Story logic you can see
+3. Connected visual development
+4. A clearer case for the movie
+5. Local-first ownership with optional connections
 
 The exact reusable titles and descriptions live in `lib/product-direction.ts` and are rendered on the Simple Start/front page.
 

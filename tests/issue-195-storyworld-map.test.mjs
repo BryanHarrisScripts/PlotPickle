@@ -5,174 +5,164 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const source = (path) => readFile(new URL(path, import.meta.url), "utf8");
+const [mapSource, panelSource, wallSource, buildSource, pitchSource, projectSource, documentation] = await Promise.all([
+  readFile(new URL("../lib/storyworld-map.ts", import.meta.url), "utf8"),
+  readFile(new URL("../app/storyworld-map-panel.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../app/mini-block-wall.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../app/build-workspace.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../lib/pitch-review.ts", import.meta.url), "utf8"),
+  readFile(new URL("../lib/project.ts", import.meta.url), "utf8"),
+  readFile(new URL("../docs/ISSUE-195-STORYWORLD-MAP.md", import.meta.url), "utf8"),
+]);
 
-test("Issue 195 upgrades the existing Whole Film wall instead of adding another engine", async () => {
-  const [wall, build, map, docs] = await Promise.all([
-    source("../app/mini-block-wall.tsx"),
-    source("../app/build-workspace.tsx"),
-    source("../lib/storyworld-map.ts"),
-    source("../docs/ISSUE-195-STORYWORLD-MAP.md"),
-  ]);
-  assert.match(wall, /Construction wall/);
-  assert.match(wall, /Storyworld Map/);
-  assert.match(wall, /Map table/);
-  assert.match(build, /view === "mini-blocks"/);
-  assert.match(build, /<MiniBlockWall/);
-  assert.doesNotMatch(build, /storyworld-map.*VIEW_OPTIONS|id: "storyworld"/i);
-  assert.match(map, /createMiniBlockWallModel\(project\)/);
-  assert.match(map, /buildStoryDependencies\(project\)/);
-  assert.match(docs, /does not add a workspace, navigation item, structure editor or persistent graph/i);
+test("Issue 195 converts the existing Whole Film wall instead of adding a workspace or story model", () => {
+  assert.match(buildSource, /<MiniBlockWall/);
+  assert.match(wallSource, /Construction wall/);
+  assert.match(wallSource, /Storyworld Map/);
+  assert.match(wallSource, /Accessible table/);
+  assert.match(wallSource, /StoryworldMapPanel/);
+  assert.doesNotMatch(projectSource, /storyworldMap:\s*{/);
+  assert.match(mapSource, /buildStoryDependencies\(project\)/);
+  assert.match(documentation, /same Build workspace/i);
+  assert.match(documentation, /never becomes a second canonical story graph/i);
 });
 
-test("the map exposes semantic zoom, evidence overlays and canonical navigation", async () => {
-  const [wall, model] = await Promise.all([
-    source("../app/mini-block-wall.tsx"),
-    source("../lib/storyworld-map.ts"),
-  ]);
-  for (const phrase of [
-    "Semantic zoom",
-    "Causality and escalation",
-    "Hooks and turns",
-    "Characters and arcs",
-    "Threads and dramatic question",
-    "Setup and payoff",
-    "Location and order",
-    "Visual continuity",
-    "Render readiness",
-    "Logic, rights and provenance warnings",
+test("Storyworld Map exposes semantic zoom, evidence overlays, shared layout and accessible output", () => {
+  for (const marker of [
+    '"movie"',
+    '"act"',
+    '"sequence"',
+    '"block"',
+    '"scene"',
+    '"mini-block"',
+    '"production-shot"',
     "Show why this connects",
-    "sourceNodeIds",
-  ]) assert.ok(wall.includes(phrase) || model.includes(phrase), `Missing map contract: ${phrase}`);
-  for (const level of ["movie", "act", "sequence", "block", "scene", "mini-block", "production-shot"]) {
-    assert.match(wall, new RegExp(`"${level}"`));
-  }
-  assert.match(wall, /openConnectedMiniBlock/);
-  assert.match(wall, /revealCard\(card\)/);
-  assert.match(wall, /onOpenBlock\(selected\.block\.number\)/);
+    "Relationship overlays",
+    "Save shared layout",
+    "<table",
+    "Export SVG",
+    "Export HTML",
+    "Local map viewport controls",
+  ]) assert.match(`${mapSource}\n${panelSource}\n${wallSource}`, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(mapSource, /STORYWORLD_MAP_LAYOUT_EXTENSION/);
+  assert.match(mapSource, /sourceNodeIds/);
+  assert.match(pitchSource, /buildStoryworldMapSvg/);
+  assert.match(wallSource, /draggable=\{state\.display === "wall"\}/);
 });
 
-test("map exploration cannot silently change canonical story order", async () => {
-  const [wall, map, order] = await Promise.all([
-    source("../app/mini-block-wall.tsx"),
-    source("../lib/storyworld-map.ts"),
-    source("../lib/mini-block-wall-order.ts"),
-  ]);
-  assert.match(wall, /draggable=\{state\.display === "wall"\}/);
-  assert.match(wall, /Storyworld Map exploration does not change canonical story order/);
-  assert.match(wall, /moveCanonicalMiniBlock/);
-  assert.match(order, /id: miniBlock\.id/);
-  assert.doesNotMatch(map, /moveCanonicalMiniBlock|applyCanonicalMiniBlockOrder|onProjectChange/);
-});
-
-test("shared layout round-trips while personal viewport state remains local", async () => {
-  const [project, map, wall, schema] = await Promise.all([
-    source("../lib/project.ts"),
-    source("../lib/storyworld-map.ts"),
-    source("../app/mini-block-wall.tsx"),
-    source("../schema/plotpickle-project.schema.json"),
-  ]);
-  assert.match(project, /extensions\?: Record<string, unknown>/);
-  assert.match(project, /extensions: candidate\.extensions/);
-  assert.match(map, /plotpickle\.storyworld-map-layout/);
-  assert.match(map, /saveStoryworldMapSharedLayout/);
-  assert.match(map, /readStoryworldMapSharedLayout/);
-  assert.match(wall, /Save shared map layout/);
-  assert.match(wall, /Personal pan and zoom stayed on this device/);
-  assert.doesNotMatch(map, /pan:|zoom:|search:/);
-  const parsed = JSON.parse(schema);
-  assert.equal(parsed.properties.extensions.additionalProperties, true);
-  assert.ok(!parsed.required.includes("extensions"));
-});
-
-test("the Storyworld Map model and exports execute against a complete 96-position project", () => {
+test("the derived map is deterministic and its optional layout survives PPF round-trip", () => {
   const program = String.raw`
-    import { createBlankProject, normalizePlotPickleProject } from "./lib/project.ts";
+    import { createBlankProject } from "./lib/project.ts";
+    import { createShotFromFrame } from "./lib/preproduction.ts";
     import {
       buildStoryworldMapHtml,
       buildStoryworldMapSvg,
+      createStoryworldMapItems,
       createStoryworldMapModel,
       readStoryworldMapSharedLayout,
       saveStoryworldMapSharedLayout,
-      storyworldConnectionsFor,
+      storyworldConnectionsForItem,
     } from "./lib/storyworld-map.ts";
+    import { createPortableProjectFile, parsePortableProjectFile, serializePortableProjectFile } from "./lib/project-package.ts";
+    import { buildPitchPackageHtml } from "./lib/pitch-review.ts";
 
     let project = createBlankProject();
+    project.metadata.title = "Afterglow Map Contract";
     const first = project.blocks[0].scenes[0].miniBlocks[0];
     const second = project.blocks[0].scenes[0].miniBlocks[1];
-    first.label = "Promise";
-    first.purpose = "Open the central dramatic question";
-    first.setup = "sealed archive";
-    second.label = "Consequence";
-    second.turn = "The archive answers back";
-    second.payoff = "sealed archive";
-    const characterId = "character-protagonist";
-    project.characters.push({
-      id: characterId, name: "Mara", role: "Protagonist", pronouns: "", description: "", want: "", need: "", ghost: "",
-      flaw: "", belief: "", truth: "", externalGoal: "", internalGoal: "", stakes: "", arcSummary: "", status: "",
-      relationships: [], voiceprint: { worldview: "", rhythm: "", vocabulary: "", metaphor: "", statusStrategy: "", persuasion: "", silence: "", researchNotes: "", updatedAt: "" },
-      visualIdentity: { appearance: "", wardrobe: "", silhouette: "", palette: "", referenceImage: "", referenceImageAlt: "", promptAnchor: "", continuityNotes: "", approved: false, approvedAt: "", updatedAt: "" },
-      arcMatrix: { checkpoints: [] },
-    });
-    first.characterId = characterId;
-    second.characterId = characterId;
+    const last = project.blocks.at(-1).scenes[0].miniBlocks.at(-1);
+    first.purpose = "Open on the impossible image";
+    first.turn = "The world answers back";
+    first.setup = "memory key";
+    second.objective = "Follow the answer";
+    last.payoff = "memory key";
+    project.blocks[0].visuals[0].src = "/api/local-ai/assets/afterglow-map.webp";
+    project.blocks[0].visuals[0].continuity = "Ava keeps the same silver coat.";
+    project = createShotFromFrame(project, 1, project.blocks[0].scenes[0].id, project.blocks[0].visuals[0].id);
+
+    const firstModel = createStoryworldMapModel(project);
+    const secondModel = createStoryworldMapModel(project);
+    const counts = Object.fromEntries(["movie", "act", "sequence", "block", "scene", "mini-block", "production-shot"].map((granularity) => [
+      granularity,
+      createStoryworldMapItems(project, firstModel, granularity).length,
+    ]));
+    const miniItems = createStoryworldMapItems(project, firstModel, "mini-block");
+    const firstItem = miniItems[0];
+    const firstEvidence = storyworldConnectionsForItem(firstModel, firstItem, ["causality", "setup-payoff"]);
+
     project = saveStoryworldMapSharedLayout(project, {
       mode: "map",
       granularity: "production-shot",
-      overlays: ["causality", "characters", "setup-payoff", "warnings"],
-      emphasizedNodeIds: [first.id],
+      overlays: ["visual-continuity", "render-readiness", "warnings"],
+      emphasizedNodeIds: [project.production.shots[0].id],
     });
-    project = normalizePlotPickleProject(JSON.parse(JSON.stringify(project)));
-    if (!project) throw new Error("Project round-trip failed.");
-    const model = createStoryworldMapModel(project);
-    const selected = storyworldConnectionsFor(model, first.id, ["causality", "characters", "setup-payoff"]);
-    const svg = buildStoryworldMapSvg(project, model);
-    const html = buildStoryworldMapHtml(project, model);
+    const portable = createPortableProjectFile(project, "test", [], "2026-07-29T00:00:00.000Z");
+    const roundTrip = parsePortableProjectFile(serializePortableProjectFile(portable)).project;
+    const shared = readStoryworldMapSharedLayout(roundTrip);
+    const svg = buildStoryworldMapSvg(roundTrip);
+    const html = buildStoryworldMapHtml(roundTrip);
+    const pitch = buildPitchPackageHtml(roundTrip);
+
     process.stdout.write(JSON.stringify({
-      cards: model.cards.length,
-      selectedConnections: selected.length,
-      setupPayoff: model.connections.some((item) => item.overlay === "setup-payoff" && item.source === "explicit"),
-      causality: model.connections.some((item) => item.overlay === "causality"),
-      sharedLayout: readStoryworldMapSharedLayout(project),
-      svgStructured: svg.includes("<svg") && svg.includes(first.id) && svg.includes("<title"),
-      htmlAccessible: html.includes("Accessible Storyworld Map index") && html.includes("<table"),
+      deterministic: JSON.stringify(firstModel.connections) === JSON.stringify(secondModel.connections),
+      cards: firstModel.cards.length,
+      counts,
+      evidence: firstEvidence.length,
+      explicitSetupPayoff: firstModel.connections.some((connection) => connection.overlay === "setup-payoff" && connection.source === "explicit"),
+      hookMarker: firstModel.markers.some((marker) => marker.overlay === "hooks-turns"),
+      visualMarker: firstModel.markers.some((marker) => marker.overlay === "visual-continuity"),
+      renderMarker: firstModel.markers.some((marker) => marker.overlay === "render-readiness"),
+      shared,
+      svgIdentity: svg.includes(first.id) && svg.includes("Storyworld Map"),
+      htmlTable: html.includes("Accessible Storyworld Map index") && html.includes("<table>"),
+      pitchMap: pitch.includes("Storyworld Map") && pitch.includes("<svg"),
     }));
   `;
+
   const result = JSON.parse(execFileSync(
     process.execPath,
     ["--import", "tsx", "--input-type=module", "-e", program],
     { cwd: root, encoding: "utf8" },
   ));
+
+  assert.equal(result.deterministic, true);
   assert.equal(result.cards, 96);
-  assert.ok(result.selectedConnections >= 2);
-  assert.equal(result.setupPayoff, true);
-  assert.equal(result.causality, true);
-  assert.equal(result.sharedLayout.mode, "map");
-  assert.equal(result.sharedLayout.granularity, "production-shot");
-  assert.equal(result.svgStructured, true);
-  assert.equal(result.htmlAccessible, true);
+  assert.deepEqual(result.counts, {
+    movie: 1,
+    act: 4,
+    sequence: 12,
+    block: 24,
+    scene: 48,
+    "mini-block": 96,
+    "production-shot": 1,
+  });
+  assert.ok(result.evidence > 0);
+  assert.equal(result.explicitSetupPayoff, true);
+  assert.equal(result.hookMarker, true);
+  assert.equal(result.visualMarker, true);
+  assert.equal(result.renderMarker, true);
+  assert.equal(result.shared.mode, "map");
+  assert.equal(result.shared.granularity, "production-shot");
+  assert.deepEqual(result.shared.overlays, ["visual-continuity", "render-readiness", "warnings"]);
+  assert.equal(result.svgIdentity, true);
+  assert.equal(result.htmlTable, true);
+  assert.equal(result.pitchMap, true);
 });
 
-test("the map includes a complete accessible table, structured export and responsive safeguards", async () => {
-  const [wall, map, css, docs] = await Promise.all([
-    source("../app/mini-block-wall.tsx"),
-    source("../lib/storyworld-map.ts"),
-    source("../app/storyworld-map.module.css"),
-    source("../docs/ISSUE-195-STORYWORLD-MAP.md"),
-  ]);
-  assert.match(wall, /Storyworld Map table alternative/);
-  assert.match(wall, /Export structured SVG/);
-  assert.match(wall, /Export self-contained HTML/);
-  assert.match(map, /role="img"/);
-  assert.match(map, /aria-labelledby="title description"/);
-  assert.match(map, /Accessible Storyworld Map index/);
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.match(css, /overflow: auto/);
-  assert.match(docs, /content visibility boundary continues to virtualize/i);
-});
+test("Issue 195 keeps viewport state local and adds only an optional versioned PPF extension", async () => {
+  assert.match(mapSource, /STORYWORLD_MAP_LAYOUT_VERSION = 1/);
+  assert.match(mapSource, /emphasizedNodeIds/);
+  assert.doesNotMatch(mapSource, /pan:\s*{/);
+  assert.doesNotMatch(mapSource, /zoom:/);
+  assert.match(wallSource, /wallStateByProject/);
 
-test("Issue 195 test is registered", async () => {
-  const packageJson = JSON.parse(await source("../package.json"));
-  assert.match(packageJson.scripts.test, /issue-195-storyworld-map\.test\.mjs/);
-  assert.equal(packageJson.scripts["test:storyworld-map"], "node --test tests/issue-195-storyworld-map.test.mjs");
+  for (const path of [
+    "../schema/plotpickle-project.schema.json",
+    "../schema/plotpickle-project-v1.7.schema.json",
+  ]) {
+    const schema = JSON.parse(await readFile(new URL(path, import.meta.url), "utf8"));
+    assert.equal(schema.properties.extensions.type, "object");
+    assert.equal(schema.properties.extensions.additionalProperties, true);
+    assert.ok(!schema.required.includes("extensions"));
+  }
 });

@@ -35,6 +35,21 @@ test("issue #146 makes GitHub App sign-in the recommended collaboration path", a
   assert.match(workspace, /<details className=\{styles\.advancedSetup\}>/);
 });
 
+
+test("issue #146 replaces the complete GitHub status panel when async account state changes", async () => {
+  const appConnection = await source("app/github-app-connection.tsx");
+
+  for (const key of [
+    'key="github-app-unavailable"',
+    'key="github-app-sign-in"',
+    'key="github-app-repositories"',
+  ]) assert.ok(appConnection.includes(key), `GitHub status panel is missing its stable transition key: ${key}`);
+
+  assert.match(appConnection, /!status\.configured \? \(\s*<div key="github-app-unavailable"/);
+  assert.match(appConnection, /!status\.authenticated \? \(\s*<div key="github-app-sign-in"/);
+  assert.match(appConnection, /:\s*\(\s*<div key="github-app-repositories"/);
+});
+
 test("issue #146 implements GitHub App device flow without a bundled client secret", async () => {
   const gateway = await source("build/github-app-gateway.ts");
   for (const contract of [

@@ -82,13 +82,13 @@ Video is a job rather than a synchronous response. A job records prompt, source 
 PlotPickle exposes these connections through one grouped Settings menu rather than a separate AI Studio:
 
 - **Workspace:** General; Appearance / Accessibility; Project Defaults.
-- **Integrations:** AI Providers; GitHub; Google Services; Plugins & Connections.
+- **Integrations:** Story & Art; Repository & Collab; Scheduling & Meetings; Media & Film Engines.
 - **Data Storage:** Storage & Backups.
 - **Security:** Privacy & Permissions; About & Licensing.
 
-AI Providers contains the former **AI Setup** choices: ChatGPT / OpenAI API, an OpenAI-compatible endpoint, Ollama or another local LLM, manual prompt export, or no AI. Non-secret preferences remain in local browser settings. In the downloaded edition, verified API keys may be saved through the private local gateway, but never enter browser settings or project exports.
+Story & Art contains the former **AI Setup** choices: ChatGPT / OpenAI API, an OpenAI-compatible endpoint, Ollama or another local LLM, manual prompt export, or no AI. Non-secret preferences remain in local browser settings. In the downloaded edition, verified API keys may be saved through the private local gateway, but never enter browser settings or project exports.
 
-**Music** links for Suno or Udio remain bounded references inside Plugins & Connections. PlotPickle stores links only; it does not copy music or claim a direct service integration. **Plugins** placeholders cannot be enabled until a real, reviewed connector exists.
+**Music** links for Suno or Udio remain bounded references inside Media & Film Engines. PlotPickle stores links only; it does not copy music or claim a direct service integration. Media-engine placeholders cannot be enabled until a real, reviewed connector exists.
 
 Knowledge, character consistency, image, and video capabilities remain part of the provider-independent foundation. They appear as contextual actions inside Characters, Story Planner, Visual Board, Pitch, Voiceprint, PageFlow, and DraftLens when implemented.
 ## First in-workflow creative actions

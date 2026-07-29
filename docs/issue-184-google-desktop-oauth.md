@@ -6,6 +6,8 @@ Phase 2 turns the existing Google connection foundation into a packaged desktop 
 
 Google remains optional. A failed, cancelled or unavailable connection never blocks local writing, GitHub collaboration, project storage or export.
 
+The approved build order is to merge this inactive foundation, build and merge Phase 3 against the stable connection contract, and then activate both phases by supplying the official public Desktop Client ID and completing a real-browser connection check.
+
 ## One authenticated owner action
 
 Google requires the application owner to create the public OAuth client in Google Cloud. Repository code and CI cannot perform this account-owned registration.

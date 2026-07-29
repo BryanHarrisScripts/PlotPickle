@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
 cd /d "%~dp0"
-title PlotPickle Lighthouse Audit
+title PlotPickle Lighthouse Smoke Test
 
 set "INTERACTIVE=0"
 if "%~1"=="" set "INTERACTIVE=1"
@@ -37,32 +37,35 @@ goto choose_command
 :menu
 echo.
 echo ==========================================
-echo        PlotPickle Lighthouse Audit
+echo      PlotPickle Lighthouse Validation
 echo ==========================================
 echo.
-echo  1. Desktop and mobile audit
-echo  2. Desktop audit only
-echo  3. Mobile audit only
-echo  4. ZIP the latest completed audit
+echo  1. All-route smoke test - recommended
+echo  2. Full desktop audit
+echo  3. Full mobile audit
+echo  4. Full desktop and mobile audit
+echo  5. ZIP the latest completed run
 echo  Q. Exit
 echo.
 set /p "MODE=Choose an option: "
-if /I "%MODE%"=="1" set "MODE=all"
+if /I "%MODE%"=="1" set "MODE=smoke"
 if /I "%MODE%"=="2" set "MODE=desktop"
 if /I "%MODE%"=="3" set "MODE=mobile"
-if /I "%MODE%"=="4" set "MODE=zip"
+if /I "%MODE%"=="4" set "MODE=all"
+if /I "%MODE%"=="5" set "MODE=zip"
 if /I "%MODE%"=="Q" exit /b 0
 
 :choose_command
-if /I "%MODE%"=="all" set "NPM_COMMAND=audit:lighthouse"
+if /I "%MODE%"=="smoke" set "NPM_COMMAND=audit:lighthouse"
 if /I "%MODE%"=="desktop" set "NPM_COMMAND=audit:lighthouse:desktop"
 if /I "%MODE%"=="mobile" set "NPM_COMMAND=audit:lighthouse:mobile"
+if /I "%MODE%"=="all" set "NPM_COMMAND=audit:lighthouse:full"
 if /I "%MODE%"=="zip" set "NPM_COMMAND=audit:lighthouse:zip"
 
 if not defined NPM_COMMAND (
   echo.
   echo Unknown option: %MODE%
-  echo Use all, desktop, mobile, or zip.
+  echo Use smoke, desktop, mobile, all, or zip.
   goto failed
 )
 
@@ -73,7 +76,7 @@ call npm run %NPM_COMMAND%
 if errorlevel 1 goto failed
 
 echo.
-echo Lighthouse finished successfully.
+echo Lighthouse validation finished successfully.
 echo Reports are stored in reports\lighthouse\
 if "%INTERACTIVE%"=="1" pause
 exit /b 0
@@ -93,6 +96,6 @@ goto failed
 
 :failed
 echo.
-echo The Lighthouse audit did not complete.
+echo The Lighthouse validation did not complete.
 if "%INTERACTIVE%"=="1" pause
 exit /b 1

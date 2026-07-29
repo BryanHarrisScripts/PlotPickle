@@ -38,5 +38,5 @@ test("Dashboard separates the canonical project from binary assets and keeps Set
   const settings = await source("app/settings-panel.tsx");
   assert.match(settings, /label: "GitHub"/);
   assert.match(settings, /credentials stay in the private local-server secrets area/i);
-  assert.match(settings, /excluded from \.ppf projects, reports, exports, logs and GitHub/i);
+  assert.match(settings, /excluded from \.ppf projects, reports, exports,(?: browser storage,)? logs and GitHub/i);
 });

@@ -44,7 +44,7 @@ export type ConnectionStatusSnapshot = {
 
 export const GOOGLE_IDENTITY_SCOPES = ["openid", "email", "profile"] as const;
 export const GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.events.owned";
-export const GOOGLE_MEET_SCOPE = "https://www.googleapis.com/auth/meetings.space.created";
+export const GOOGLE_MEET_SCOPE = GOOGLE_CALENDAR_SCOPE; // Meet links are created through Calendar conferenceData; no direct Meet API scope is requested.
 
 const TARGETS: Record<ConnectionId, { label: string; section: string }> = {
   github: { label: "GitHub", section: "github" },
@@ -163,7 +163,7 @@ export function createConnectionStatusSnapshot(
         label: "Google Meet",
         state: "not-granted",
         scope: GOOGLE_MEET_SCOPE,
-        explanation: "Create and read metadata only for meeting spaces created by PlotPickle.",
+        explanation: "Create unique Google Meet links through PlotPickle-owned Calendar events; no separate Meet API access is requested.",
       },
     ],
   });

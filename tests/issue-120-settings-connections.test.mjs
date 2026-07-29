@@ -65,10 +65,11 @@ test("issue #120 gives every optional integration the shared setup and repair co
   assert.match(panel, /Repair guidance/);
 });
 
-test("issue #120 implements minimal Google Calendar and Meet OAuth foundations", async () => {
-  const [status, gateway, panel, vite] = await Promise.all([
+test("issues #120 and #184 implement Google Calendar and Meet desktop OAuth foundations", async () => {
+  const [status, gateway, google, panel, vite] = await Promise.all([
     source("lib/connection-status.ts"),
     source("build/local-connections-gateway.ts"),
+    source("build/google-desktop-oauth.ts"),
     source("app/settings-panel.tsx"),
     source("vite.config.ts"),
   ]);
@@ -77,18 +78,20 @@ test("issue #120 implements minimal Google Calendar and Meet OAuth foundations",
     "email",
     "profile",
     "https://www.googleapis.com/auth/calendar.events.owned",
-    "https://www.googleapis.com/auth/meetings.space.created",
-  ]) assert.ok(`${status}\n${gateway}`.includes(scope), `Google foundation is missing scope: ${scope}`);
+  ]) assert.ok(`${status}\n${gateway}\n${google}`.includes(scope), `Google foundation is missing scope: ${scope}`);
+  assert.doesNotMatch(`${status}\n${gateway}\n${google}`, /meetings\.space\.created/);
   for (const endpoint of [
     "/api/local-google/connection",
     "/start",
     "/check",
-    "/api/local-google/callback",
+    "/authorization",
   ]) assert.ok(gateway.includes(endpoint), `Google gateway is missing endpoint: ${endpoint}`);
-  assert.match(gateway, /code_challenge_method: "S256"/);
-  assert.match(gateway, /access_type: "offline"/);
-  assert.match(gateway, /include_granted_scopes: "false"/);
-  assert.match(gateway, /GOOGLE_REVOKE_URL/);
+  assert.match(google, /code_challenge_method: "S256"/);
+  assert.match(google, /access_type: "offline"/);
+  assert.match(google, /include_granted_scopes: "false"/);
+  assert.match(google, /revokeUrl/);
+  assert.match(google, /LOOPBACK_CALLBACK_PATH/);
+  assert.doesNotMatch(gateway, /api\/local-google\/callback/);
   assert.match(panel, /Sign in with Google/);
   assert.match(panel, /label: "Google Services"[\s\S]*optional Calendar and Meet/);
   assert.match(panel, /eyebrow="Google Services"/);
@@ -96,8 +99,9 @@ test("issue #120 implements minimal Google Calendar and Meet OAuth foundations",
 });
 
 test("issue #120 keeps credentials outside projects and authentication failures non-blocking", async () => {
-  const [gateway, vault, panel, status, project] = await Promise.all([
+  const [gateway, google, vault, panel, status, project] = await Promise.all([
     source("build/local-connections-gateway.ts"),
+    source("build/google-desktop-oauth.ts"),
     source("build/local-credentials.ts"),
     source("app/settings-panel.tsx"),
     source("lib/connection-status.ts"),
@@ -108,9 +112,9 @@ test("issue #120 keeps credentials outside projects and authentication failures 
   assert.match(vault, /0o600/);
   assert.match(gateway, /readCredentialJson/);
   assert.match(gateway, /isLocalRequest/);
-  assert.match(gateway, /Local removal still protects this installation and cannot block local work/);
+  assert.match(google, /Local removal still protects this installation and cannot block local work/);
   assert.match(panel, /Failed or declined Calendar or Meet authentication never blocks local project work/);
-  assert.match(panel, /excluded from \.ppf projects, reports, exports, logs and GitHub/);
+  assert.match(panel, /excluded from \.ppf projects, reports, exports, browser storage, logs and GitHub/);
   assert.match(status, /sanitizeMeetingMetadata/);
   assert.doesNotMatch(project, /accessToken|refreshToken|googleToken|oauthToken/);
 });

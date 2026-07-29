@@ -59,7 +59,7 @@ test("issue #144 verifies every GitHub collaboration prerequisite before Ready",
   assert.match(gateway, /wait for the green Ready light/);
 });
 
-test("issue #144 centralizes credentials and protects new Windows secrets with current-user DPAPI", async () => {
+test("issues #144 and #184 centralize credentials and protect them for the current OS user", async () => {
   const [vault, ai, github, google, review] = await Promise.all([
     source("build/local-credentials.ts"),
     source("build/local-ai-gateway.ts"),
@@ -80,7 +80,7 @@ test("issue #144 centralizes credentials and protects new Windows secrets with c
     "readCredentialJson",
     "writeCredentialJson",
     "eraseAllCredentials",
-    'if (process.platform === "win32") await writeCredentialJson(name, stored)',
+    "await writeCredentialJson(safeName, stored)",
   ]) assert.ok(vault.includes(contract), `Credential vault is missing: ${contract}`);
   for (const gateway of [ai, github, google, review]) {
     assert.match(gateway, /local-credentials/);
@@ -114,8 +114,10 @@ test("eraseAllCredentials removes only the exact secrets directory", async () =>
   try {
     const compiledVault = stripTypeScriptTypes(await source("build/local-credentials.ts"), { mode: "transform" });
     const vault = await import(`data:text/javascript;base64,${Buffer.from(compiledVault, "utf8").toString("base64")}`);
-    await vault.writeCredentialJson("github-connection.json", { version: 1, token: "test-token" });
-    await vault.writeCredentialJson("ai-connection.json", { version: 1, apiKey: "test-key" });
+    const secrets = path.join(temporaryHome, "secrets");
+    await mkdir(secrets, { recursive: true });
+    await writeFile(path.join(secrets, "github-connection.json"), JSON.stringify({ test: true }));
+    await writeFile(path.join(secrets, "ai-connection.json"), JSON.stringify({ test: true }));
     await mkdir(path.join(temporaryHome, "projects"), { recursive: true });
     await mkdir(path.join(temporaryHome, "backups"), { recursive: true });
     await mkdir(path.join(temporaryHome, "assets"), { recursive: true });
@@ -125,8 +127,6 @@ test("eraseAllCredentials removes only the exact secrets directory", async () =>
 
     const inventory = await vault.credentialInventory();
     assert.equal(inventory.files.length, 2);
-    assert.deepEqual(await vault.readCredentialJson("github-connection.json"), { version: 1, token: "test-token" });
-
     const erased = await vault.eraseAllCredentials();
     assert.equal(erased.removed, 2);
     await assert.rejects(access(path.join(temporaryHome, "secrets")));

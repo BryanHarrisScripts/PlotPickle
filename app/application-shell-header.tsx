@@ -116,8 +116,18 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
       </nav>
       {activeTab === "settings" ? <button type="button" className="text-button" onClick={() => window.location.assign("/settings/buzz")}>Buzz Setup</button> : null}
 
-      {/* The internal route remains `pitch`; this hidden alias supports older packaged automation while Graphic Novel stays the only user-facing label. */}
-      <span hidden aria-hidden="true" role="tab" aria-selected={activeTab === "pitch"} data-legacy-workspace-label="pitch">Pitch</span>
+      {/* The internal route remains `pitch`; this hidden control supports older packaged automation while Graphic Novel stays the only user-facing label. */}
+      <button
+        hidden
+        aria-hidden="true"
+        type="button"
+        role="tab"
+        aria-selected={activeTab === "pitch"}
+        data-legacy-workspace-label="pitch"
+        onClick={() => onNavigate("pitch")}
+      >
+        Pitch
+      </button>
     </header>
   );
 }

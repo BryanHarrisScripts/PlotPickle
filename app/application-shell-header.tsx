@@ -42,7 +42,13 @@ function WorkspaceButton({
       aria-current={activeTab === id ? "page" : undefined}
       className={activeTab === id ? "active" : ""}
       title={userFacingDescription}
-      onClick={() => onNavigate(id)}
+      onClick={() => {
+        if (id === "buzz") {
+          window.location.assign("/buzz");
+          return;
+        }
+        onNavigate(id);
+      }}
     >
       <span>{label}</span>
     </button>
@@ -58,6 +64,10 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
     const handleWorkspaceNavigation = (event: Event) => {
       const requested = (event as CustomEvent<unknown>).detail;
       if (typeof requested !== "string") return;
+      if (requested === "buzz") {
+        window.location.assign("/buzz");
+        return;
+      }
       const workspace = PRODUCT_NAVIGATION.find((item) => item.id === requested);
       if (workspace) onNavigate(workspace.id);
     };

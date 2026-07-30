@@ -118,6 +118,16 @@ jobs:
           Set-Location $packageRoot
           node scripts/windows-release-smoke.mjs . reports/windows-release-smoke
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Run Issue 208 packaged Windows smoke
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        env:
+          PLOTPICKLE_ISSUE_208_SMOKE_TIMEOUT_MS: "180000"
+        run: |
+          $packageRoot = Join-Path (Join-Path $env:RUNNER_TEMP "plotpickle-clean") "${{ matrix.folder }}"
+          Set-Location $packageRoot
+          node scripts/windows-issue-208-smoke.mjs . reports/windows-issue-208-smoke
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload Windows interaction evidence
         if: always() && matrix.platform == 'windows'
         uses: actions/upload-artifact@v4
@@ -126,6 +136,7 @@ jobs:
           path: |
             ${{ runner.temp }}/plotpickle-clean/${{ matrix.folder }}/reports/windows-interaction-smoke/
             ${{ runner.temp }}/plotpickle-clean/${{ matrix.folder }}/reports/windows-release-smoke/
+            ${{ runner.temp }}/plotpickle-clean/${{ matrix.folder }}/reports/windows-issue-208-smoke/
           if-no-files-found: warn
           retention-days: 14
       - name: Clean-machine extraction and dependency test (macOS and Linux)

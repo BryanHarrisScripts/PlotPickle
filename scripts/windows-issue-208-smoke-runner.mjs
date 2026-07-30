@@ -36,18 +36,14 @@ source = source.replace(
   'Boolean(document.querySelector("#dashboard-project-source"))',
 );
 
-const syntheticCheckboxChange = String.raw`        const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "checked")?.set;
-        if (!setter) return { ready: false, reason: "checkbox setter missing" };
-        setter.call(checkbox, true);
-        checkbox.dispatchEvent(new Event("input", { bubbles: true }));
-        checkbox.dispatchEvent(new Event("change", { bubbles: true }));
-        return { ready: true, comicBook: /Comic Book|comic-book/i.test(body) };`;
-const realCheckboxClick = String.raw`        if (!checkbox.checked) checkbox.click();
-        return { ready: checkbox.checked, reason: checkbox.checked ? "" : "acknowledgement checkbox did not accept a user click", comicBook: /Comic Book|comic-book/i.test(body) };`;
-if (!source.includes(syntheticCheckboxChange)) {
+const syntheticCheckboxChange = /const setter = Object\.getOwnPropertyDescriptor\(HTMLInputElement\.prototype, "checked"\)\?\.set;\r?\n\s*if \(!setter\) return \{ ready: false, reason: "checkbox setter missing" \};\r?\n\s*setter\.call\(checkbox, true\);\r?\n\s*checkbox\.dispatchEvent\(new Event\("input", \{ bubbles: true \}\)\);\r?\n\s*checkbox\.dispatchEvent\(new Event\("change", \{ bubbles: true \}\)\);\r?\n\s*return \{ ready: true, comicBook: \/Comic Book\|comic-book\/i\.test\(body\) \};/;
+if (!syntheticCheckboxChange.test(source)) {
   throw new Error("The Issue #208 cast acknowledgement smoke block could not be located.");
 }
-source = source.replace(syntheticCheckboxChange, realCheckboxClick);
+source = source.replace(
+  syntheticCheckboxChange,
+  'if (!checkbox.checked) checkbox.click();\n        return { ready: checkbox.checked, reason: checkbox.checked ? "" : "acknowledgement checkbox did not accept a user click", comicBook: /Comic Book|comic-book/i.test(body) };',
+);
 
 await writeFile(runtimePath, source, "utf8");
 process.once("exit", () => {

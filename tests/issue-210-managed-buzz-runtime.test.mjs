@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
 import "./issue-212-buzz-dashboard-marketing-alignment.test.mjs";
+import "./issue-214-buzz-story-room.test.mjs";
 
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
@@ -35,10 +36,7 @@ test("issue #210 places Buzz beside Collab without changing the creative workflo
     source("app/buzz/page.tsx"),
   ]);
 
-  const primary = direction.slice(
-    direction.indexOf("export const PRIMARY_WORKFLOW_NAVIGATION"),
-    direction.indexOf("export const COLLABORATION_NAVIGATION"),
-  );
+  const primary = direction.slice(direction.indexOf("export const PRIMARY_WORKFLOW_NAVIGATION"), direction.indexOf("export const COLLABORATION_NAVIGATION"));
   const labels = ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Graphic Novel", "Build", "Feedback", "Refine", "Reports"];
   assert.equal([...primary.matchAll(/label: "/g)].length, labels.length);
   let previous = -1;
@@ -66,40 +64,33 @@ test("issue #210 keeps Settings, PPF and GitHub authority boundaries explicit", 
   assert.match(runtime, /PPF remains the canonical creative record/);
   assert.match(runtime, /GitHub remains the canonical code repository and pull-request authority/);
   assert.match(runtime, /private keys and service secrets never enter PPF projects/);
-
   assert.match(brief, /Reports \| Collab · Buzz \| Settings/);
   assert.match(brief, /Collab.*Story Proposals/s);
   assert.match(brief, /Buzz.*rooms, conversations, agents/s);
   assert.match(brief, /Feedback.*permanent structured review/s);
-
   assert.match(settings, /Settings · Integrations · Buzz/);
-  assert.match(settings, /Use bundled local Buzz/);
-  assert.match(settings, /Connect an existing relay/);
-  assert.match(settings, /Save Buzz configuration/);
-  assert.match(settings, /Bundled runtime unavailable/);
+  assert.match(settings, /Existing Buzz relay/);
+  assert.match(settings, /Managed local Buzz/);
+  assert.match(settings, /Save encrypted connection/);
 });
 
-test("issue #210 does not pretend native Buzz binaries are already packaged", async () => {
-  const [runtime, workspace, settings, packagingReadme, entries] = await Promise.all([
+test("issue #210 does not pretend unverified native Buzz binaries are packaged", async () => {
+  const [runtime, workspace, settings, packagingReadme] = await Promise.all([
     source("lib/buzz-runtime.ts"),
     source("app/buzz-workspace.tsx"),
     source("app/settings/buzz/page.tsx"),
     source("runtime/buzz/README.md"),
-    readdir(new URL("runtime/buzz", root), { withFileTypes: true }),
   ]);
 
   assert.match(runtime, /packaged: false/);
-  assert.match(workspace, /native Buzz binaries are not packaged in this build yet/);
-  assert.match(settings, /Native artifacts not packaged/);
-  assert.match(settings, /checksums and clean-machine validation/);
-  assert.match(packagingReadme, /No Buzz executable is committed by the Phase 1 architecture work/);
-  assert.match(packagingReadme, /checksummed and clean-machine tested/);
-  assert.deepEqual(entries.map((entry) => entry.name).sort(), ["README.md"]);
+  assert.match(workspace, /managed runtime/i);
+  assert.match(settings, /pinned verified bundle/i);
+  assert.match(packagingReadme, /pinned/i);
+  assert.match(packagingReadme, /clean-machine/i);
 });
 
 test("issue #210 locks coding agents behind isolated worktrees and human-controlled publishing", async () => {
   const brief = await source("docs/issue-210-managed-buzz-runtime.md");
-
   assert.match(brief, /explicit Developer Mode/);
   assert.match(brief, /isolated worktree/);
   assert.match(brief, /cannot read the PlotPickle credential vault/);

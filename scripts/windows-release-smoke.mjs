@@ -19,10 +19,21 @@ const requiredAssets = [
   "/brand/plotpickle-header-horizontal-600.png",
   "/brand/plotpickle-logo-stacked-transparent-800.png",
 ];
-const workspaces = [
-  "dashboard", "learn", "plan", "storyboard", "write", "pitch",
-  "build", "feedback", "refine", "reports", "collab", "settings",
-];
+const workspaceLabels = {
+  dashboard: "Dashboard",
+  learn: "Learn",
+  plan: "Plan",
+  storyboard: "Storyboard",
+  write: "Write",
+  pitch: "Pitch",
+  build: "Build",
+  feedback: "Feedback",
+  refine: "Refine",
+  reports: "Reports",
+  collab: "Collab",
+  settings: "Settings",
+};
+const workspaces = Object.keys(workspaceLabels);
 const processes = new Set();
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -118,7 +129,12 @@ async function createTarget(port, url) {
 }
 
 class CdpClient {
-  constructor(url) { this.url = url; this.nextId = 1; this.pending = new Map(); this.listeners = new Map(); }
+  constructor(url) {
+    this.url = url;
+    this.nextId = 1;
+    this.pending = new Map();
+    this.listeners = new Map();
+  }
   async connect() {
     this.socket = new WebSocket(this.url);
     await new Promise((resolve, reject) => {
@@ -169,21 +185,45 @@ async function evaluate(client, expression) {
   return result.result?.value;
 }
 
-async function waitFor(client, predicateExpression, timeoutMs = 10_000) {
+async function waitFor(client, predicateExpression, timeoutMs = 15_000, label = "Browser condition") {
   const stopAt = Date.now() + timeoutMs;
+  let lastError = "";
   while (Date.now() < stopAt) {
     try {
-      if (await evaluate(client, predicateExpression)) return;
-    } catch {}
+      const value = await evaluate(client, predicateExpression);
+      if (value) return value;
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
     await delay(100);
   }
-  throw new Error(`Browser condition did not become true within ${timeoutMs} ms.`);
+  throw new Error(`${label} did not become true within ${timeoutMs} ms.${lastError ? ` Last browser error: ${lastError}` : ""}`);
 }
 
 async function navigate(client, url) {
   await client.send("Page.navigate", { url });
-  await waitFor(client, `document.readyState !== "loading" && Boolean(document.body)`, 12_000);
-  await delay(150);
+  await waitFor(client, `document.readyState !== "loading" && Boolean(document.body)`, 15_000, `Page ${url}`);
+}
+
+function browserNormalizeFunction() {
+  return `const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();`;
+}
+
+function hydratedButtonExpression(text) {
+  return `(() => { ${browserNormalizeFunction()} const button = [...document.querySelectorAll("button")].find((item) => normalize(item.innerText) === ${JSON.stringify(text)}); return Boolean(button && Object.keys(button).some((key) => key.startsWith("__reactProps$") || key.startsWith("__reactFiber$"))); })()`;
+}
+
+async function waitForHydratedButton(client, text, timeoutMs = 20_000) {
+  await waitFor(client, hydratedButtonExpression(text), timeoutMs, `Hydrated ${text} button`);
+}
+
+function shellReadyExpression(workspace) {
+  const label = workspaceLabels[workspace];
+  return `(() => { ${browserNormalizeFunction()} const header = document.querySelector(".application-shell-header"); const active = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => normalize(item.innerText) === ${JSON.stringify(label)}); const body = normalize(document.body?.innerText); return Boolean(header && active && !body.includes("See the whole movie before you make it.")); })()`;
+}
+
+async function waitForShell(client, workspace, timeoutMs = 25_000) {
+  await waitFor(client, shellReadyExpression(workspace), timeoutMs, `${workspace} application shell`);
 }
 
 function unique(values) {
@@ -210,8 +250,12 @@ async function inspect(client, events, eventStart, baseOrigin) {
   for (const message of page.scriptErrors) failures.push(`Window error: ${message}`);
   for (const event of events.slice(eventStart)) {
     if (event.kind === "response") {
-      try { if (new URL(event.url).origin === baseOrigin && event.status >= 400) failures.push(`${event.status} ${event.url}`); } catch {}
-    } else failures.push(event.message);
+      try {
+        if (new URL(event.url).origin === baseOrigin && event.status >= 400) failures.push(`${event.status} ${event.url}`);
+      } catch {}
+    } else {
+      failures.push(event.message);
+    }
   }
   return { ...page, body: undefined, failures: unique(failures) };
 }
@@ -306,9 +350,12 @@ async function main() {
       "--no-first-run",
       "--no-default-browser-check",
       "--disable-gpu",
+      "--disable-extensions",
+      "--disable-sync",
+      "--disable-notifications",
       "--disable-background-networking",
       "--disable-component-update",
-      "--disable-features=TranslateUI",
+      "--disable-features=TranslateUI,OptimizationHints,MediaRouter",
       "--window-size=1440,1000",
       "about:blank",
     ], { cwd: root, windowsHide: true, env: { ...process.env, TEMP: temporaryRoot, TMP: temporaryRoot } }, path.join(reportDirectory, "browser.log"));
@@ -327,7 +374,12 @@ async function main() {
       addEventListener("click", (event) => {
         const anchor = event.target instanceof Element ? event.target.closest("a[href]") : null;
         if (!anchor) return;
-        try { if (new URL(anchor.href, location.href).origin !== location.origin) { event.preventDefault(); event.stopImmediatePropagation(); } } catch {}
+        try {
+          if (new URL(anchor.href, location.href).origin !== location.origin) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          }
+        } catch {}
       }, true);
     })();` });
 
@@ -359,18 +411,18 @@ async function main() {
     await runScenario(report, "Splash enters the application", async () => {
       const eventStart = events.length;
       await navigate(client, `${baseUrl}/`);
+      await waitForHydratedButton(client, "Enter PlotPickle");
       const clicked = await evaluate(client, String.raw`(() => {
-        const button = [...document.querySelectorAll("button")].find((item) => String(item.innerText || "").trim() === "Enter PlotPickle");
+        const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
+        const button = [...document.querySelectorAll("button")].find((item) => normalize(item.innerText) === "Enter PlotPickle");
         if (!button) return false;
         button.click();
         return true;
       })()`);
       if (!clicked) throw new Error("The Enter PlotPickle button was not found.");
-      await waitFor(client, `![...document.querySelectorAll("button")].some((item) => String(item.innerText || "").trim() === "Enter PlotPickle")`);
+      await waitForShell(client, "dashboard");
       const page = await inspect(client, events, eventStart, baseOrigin);
       if (page.failures.length) throw new Error(page.failures.join(" "));
-      const entered = await evaluate(client, `document.body.innerText.includes("Dashboard") && document.body.innerText.includes("Settings")`);
-      if (!entered) throw new Error("The application shell did not appear after Splash entry.");
       return { finalUrl: page.url };
     });
 
@@ -378,33 +430,38 @@ async function main() {
       await runScenario(report, `Named workspace: ${workspace}`, async () => {
         const eventStart = events.length;
         await navigate(client, `${baseUrl}/?workspace=${workspace}`);
+        await waitForShell(client, workspace);
         const page = await inspect(client, events, eventStart, baseOrigin);
         if (page.failures.length) throw new Error(page.failures.join(" "));
-        const state = await evaluate(client, `({ search: location.search, splash: document.body.innerText.includes("See the whole movie before you make it."), headings: [...document.querySelectorAll("h1,h2")].map((item) => item.innerText.trim()).filter(Boolean) })`);
+        const state = await evaluate(client, `(() => { ${browserNormalizeFunction()} return { search: location.search, splash: normalize(document.body?.innerText).includes("See the whole movie before you make it."), active: [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].map((item) => normalize(item.innerText)), headings: [...document.querySelectorAll("main h1, main h2")].map((item) => normalize(item.innerText)).filter(Boolean) }; })()`);
         if (state.search !== `?workspace=${workspace}`) throw new Error(`Workspace URL did not remain on ${workspace}.`);
         if (state.splash) throw new Error(`Workspace ${workspace} remained on the Splash page.`);
+        if (!state.active.includes(workspaceLabels[workspace])) throw new Error(`Workspace ${workspace} was not selected in the application shell.`);
         if (!state.headings.length) throw new Error(`Workspace ${workspace} has no visible heading.`);
-        return { finalUrl: page.url, headings: state.headings.slice(0, 5) };
+        return { finalUrl: page.url, active: state.active, headings: state.headings.slice(0, 5) };
       });
     }
 
     await runScenario(report, "Settings → Repository & Collab status transition", async () => {
       const eventStart = events.length;
       await navigate(client, `${baseUrl}/?workspace=settings`);
+      await waitForShell(client, "settings");
+      await waitFor(client, `document.body.innerText.includes("Preferences, connections and permissions")`, 20_000, "Settings panel");
       const clicked = await evaluate(client, String.raw`(() => {
-        const button = [...document.querySelectorAll("button")].find((item) => String(item.querySelector("b")?.innerText || "").replace(/\s+/g, " ").trim() === "Repository & Collab");
+        const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
+        const button = [...document.querySelectorAll("button")].find((item) => normalize(item.querySelector("b")?.innerText) === "Repository & Collab");
         if (!button) return false;
         button.click();
         return true;
       })()`);
       if (!clicked) throw new Error("Repository & Collab was not found in Settings.");
-      await waitFor(client, `document.body.innerText.includes("Keep story history and proposals under project-owner control.")`, 12_000);
-      await waitFor(client, `["The PlotPickle GitHub App is not configured in this build.", "Connect GitHub", "Signed in as"].some((text) => document.body.innerText.includes(text))`, 15_000);
+      await waitFor(client, `document.body.innerText.includes("Keep story history and proposals under project-owner control.")`, 15_000, "Repository & Collab panel");
+      await waitFor(client, `["The PlotPickle GitHub App is not configured in this build.", "Connect GitHub", "Signed in as"].some((text) => document.body.innerText.includes(text))`, 20_000, "GitHub status transition");
       const expanded = await evaluate(client, String.raw`(() => {
-        const summary = document.querySelector("details > summary");
+        const summary = [...document.querySelectorAll("details > summary")].find((item) => item.getBoundingClientRect().width > 0 && item.getBoundingClientRect().height > 0);
         if (!summary) return { present: false, open: false };
         summary.click();
-        return { present: true, open: summary.parentElement.open };
+        return { present: true, open: Boolean(summary.parentElement?.open) };
       })()`);
       if (expanded.present && !expanded.open) throw new Error("The Repository & Collab expandable section did not open.");
       const page = await inspect(client, events, eventStart, baseOrigin);
@@ -424,34 +481,54 @@ async function main() {
     await runScenario(report, "Settings preference saves and survives reload", async () => {
       const eventStart = events.length;
       await navigate(client, `${baseUrl}/?workspace=settings`);
+      await waitForShell(client, "settings");
+      await waitFor(client, `document.body.innerText.includes("Preferences, connections and permissions")`, 20_000, "Settings panel");
+      await evaluate(client, String.raw`(() => {
+        const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
+        const general = [...document.querySelectorAll("button")].find((item) => normalize(item.querySelector("b")?.innerText) === "General");
+        general?.click();
+        return Boolean(general);
+      })()`);
+      await waitFor(client, `(() => { const labels = [...document.querySelectorAll("label")]; return labels.some((label) => label.innerText.includes("Language") && label.querySelector("input")) && labels.some((label) => label.innerText.includes("Startup workspace") && label.querySelector("select")); })()`, 15_000, "General Settings controls");
       const changed = await evaluate(client, String.raw`(() => {
+        const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
         const labels = [...document.querySelectorAll("label")];
-        const language = labels.find((label) => String(label.querySelector("span")?.innerText || "").trim() === "Language")?.querySelector("input");
-        const startup = labels.find((label) => String(label.querySelector("span")?.innerText || "").trim() === "Startup workspace")?.querySelector("select");
+        const language = labels.find((label) => normalize(label.querySelector("span")?.innerText) === "Language")?.querySelector("input");
+        const startup = labels.find((label) => normalize(label.querySelector("span")?.innerText) === "Startup workspace")?.querySelector("select");
         if (!language || !startup) return false;
-        const inputSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
-        const selectSetter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value").set;
+        const inputSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+        const selectSetter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value")?.set;
+        if (!inputSetter || !selectSetter) return false;
         inputSetter.call(language, "English (Smoke)");
         language.dispatchEvent(new Event("input", { bubbles: true }));
         language.dispatchEvent(new Event("change", { bubbles: true }));
         selectSetter.call(startup, "simple-start");
         startup.dispatchEvent(new Event("input", { bubbles: true }));
         startup.dispatchEvent(new Event("change", { bubbles: true }));
-        const save = [...document.querySelectorAll("button")].find((button) => String(button.innerText || "").trim() === "Save preferences");
+        const save = [...document.querySelectorAll("button")].find((button) => normalize(button.innerText) === "Save preferences");
         if (!save) return false;
         save.click();
         return true;
       })()`);
       if (!changed) throw new Error("General Settings controls or Save preferences were not found.");
-      await delay(300);
-      await navigate(client, `${baseUrl}/?workspace=settings`);
-      const persisted = await evaluate(client, String.raw`(() => {
+      await waitFor(client, `document.body.innerText.includes("Preferences saved on this device")`, 15_000, "Settings save confirmation");
+      await client.send("Page.reload", { ignoreCache: true });
+      await waitFor(client, `document.readyState !== "loading" && Boolean(document.body)`, 15_000, "Settings reload");
+      await waitForShell(client, "settings");
+      await waitFor(client, String.raw`(() => {
+        const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
         const labels = [...document.querySelectorAll("label")];
-        const language = labels.find((label) => String(label.querySelector("span")?.innerText || "").trim() === "Language")?.querySelector("input");
-        const startup = labels.find((label) => String(label.querySelector("span")?.innerText || "").trim() === "Startup workspace")?.querySelector("select");
+        const language = labels.find((label) => normalize(label.querySelector("span")?.innerText) === "Language")?.querySelector("input");
+        const startup = labels.find((label) => normalize(label.querySelector("span")?.innerText) === "Startup workspace")?.querySelector("select");
+        return language?.value === "English (Smoke)" && startup?.value === "simple-start";
+      })()`, 20_000, "Saved Settings values");
+      const persisted = await evaluate(client, String.raw`(() => {
+        const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
+        const labels = [...document.querySelectorAll("label")];
+        const language = labels.find((label) => normalize(label.querySelector("span")?.innerText) === "Language")?.querySelector("input");
+        const startup = labels.find((label) => normalize(label.querySelector("span")?.innerText) === "Startup workspace")?.querySelector("select");
         return { language: language?.value || "", startup: startup?.value || "" };
       })()`);
-      if (persisted.language !== "English (Smoke)" || persisted.startup !== "simple-start") throw new Error(`Saved preferences did not survive reload (${persisted.language}, ${persisted.startup}).`);
       const page = await inspect(client, events, eventStart, baseOrigin);
       if (page.failures.length) throw new Error(page.failures.join(" "));
       return persisted;
@@ -460,14 +537,16 @@ async function main() {
     await runScenario(report, "Diagnostics tab and evidence expander", async () => {
       const eventStart = events.length;
       await navigate(client, `${baseUrl}/diagnostics`);
+      await waitForHydratedButton(client, "Opening & Act I");
       const clicked = await evaluate(client, String.raw`(() => {
-        const button = [...document.querySelectorAll("button")].find((item) => String(item.innerText || "").trim() === "Opening & Act I");
+        const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
+        const button = [...document.querySelectorAll("button")].find((item) => normalize(item.innerText) === "Opening & Act I");
         if (!button) return false;
         button.click();
         return true;
       })()`);
       if (!clicked) throw new Error("The Opening & Act I diagnostics tab was not found.");
-      await waitFor(client, `document.body.innerText.includes("Twelve functions across Blocks 1–6")`);
+      await waitFor(client, `document.body.innerText.includes("Twelve functions across Blocks 1–6")`, 15_000, "Opening & Act I diagnostics");
       const page = await inspect(client, events, eventStart, baseOrigin);
       if (page.failures.length) throw new Error(page.failures.join(" "));
       return { finalUrl: page.url };
@@ -476,11 +555,15 @@ async function main() {
     await runScenario(report, "Browser back and forward preserve named workspaces", async () => {
       const eventStart = events.length;
       await navigate(client, `${baseUrl}/?workspace=dashboard`);
+      await waitForShell(client, "dashboard");
       await navigate(client, `${baseUrl}/?workspace=settings`);
+      await waitForShell(client, "settings");
       await evaluate(client, `history.back(); true`);
-      await waitFor(client, `location.search === "?workspace=dashboard"`);
+      await waitFor(client, `location.search === "?workspace=dashboard"`, 15_000, "Browser back URL");
+      await waitForShell(client, "dashboard");
       await evaluate(client, `history.forward(); true`);
-      await waitFor(client, `location.search === "?workspace=settings"`);
+      await waitFor(client, `location.search === "?workspace=settings"`, 15_000, "Browser forward URL");
+      await waitForShell(client, "settings");
       const page = await inspect(client, events, eventStart, baseOrigin);
       if (page.failures.length) throw new Error(page.failures.join(" "));
       return { finalUrl: page.url };

@@ -6,9 +6,10 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #212 makes Buzz configurable in Settings without faking packaged binaries", async () => {
-  const [settings, runtime] = await Promise.all([
+  const [settings, runtime, header] = await Promise.all([
     source("app/settings/buzz/page.tsx"),
     source("lib/buzz-runtime.ts"),
+    source("app/application-shell-header.tsx"),
   ]);
 
   assert.match(settings, /Settings · Integrations · Buzz/);
@@ -23,7 +24,8 @@ test("issue #212 makes Buzz configurable in Settings without faking packaged bin
   assert.match(settings, />Repair</);
   assert.match(settings, />Back up</);
   assert.match(settings, />Erase identity and credentials</);
-  assert.match(settings, /disabled=!runtime\.packaged/);
+  assert.match(settings, /disabled=\{!runtime\.packaged\}/);
+  assert.match(header, /Buzz Setup/);
   assert.match(runtime, /packaged: false/);
   assert.match(runtime, /processRunning: false/);
   assert.match(runtime, /relayListening: false/);
@@ -53,14 +55,18 @@ test("issue #212 aligns the real Dashboard with product-authentic cards", async 
 });
 
 test("issue #212 updates Splash positioning and README with honest Buzz boundaries", async () => {
-  const [direction, readme] = await Promise.all([
+  const [direction, splash, readme] = await Promise.all([
     source("lib/product-direction.ts"),
+    source("app/marketing-splash-base.tsx"),
     source("README.md"),
   ]);
 
   assert.match(direction, /Graphic Novel/);
   assert.match(direction, /Collab \+ Buzz/);
   assert.match(direction, /optional Buzz rooms, agents and development discussion/i);
+  assert.match(splash, /Product-authentic PlotPickle Dashboard preview/);
+  assert.match(splash, /Buzz is dormant by default/);
+  assert.doesNotMatch(splash, /mascot|collaborators online|user avatar/i);
   assert.match(readme, /Dashboard · Learn · Plan · Storyboard · Write · Graphic Novel/);
   assert.match(readme, /Buzz: optional and dormant by default/);
   assert.match(readme, /no Buzz process runs/);

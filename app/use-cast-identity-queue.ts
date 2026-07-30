@@ -66,7 +66,10 @@ export function useCastIdentityQueue({
   const [message, setMessage] = useState("");
   const stopRequested = useRef(false);
   const latestProject = useRef(project);
-  latestProject.current = project;
+
+  useEffect(() => {
+    latestProject.current = project;
+  }, [project]);
 
   useEffect(() => {
     setItems(buildItems(latestProject.current));

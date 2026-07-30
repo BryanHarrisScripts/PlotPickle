@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import ApplicationShellHeader from "../../application-shell-header";
 import styles from "../../buzz-settings.module.css";
 import {
@@ -45,22 +45,20 @@ const WORKSPACE_QUERY: Partial<Record<ProductNavigationId, string>> = {
   settings: "settings",
 };
 
+function readInitialConfiguration(): BuzzConfiguration {
+  if (typeof window === "undefined") return DEFAULT_CONFIGURATION;
+  try {
+    const stored = window.localStorage.getItem(BUZZ_CONFIGURATION_KEY);
+    return stored ? { ...DEFAULT_CONFIGURATION, ...JSON.parse(stored) } : DEFAULT_CONFIGURATION;
+  } catch {
+    return DEFAULT_CONFIGURATION;
+  }
+}
+
 export default function BuzzSettingsPage() {
   const runtime = DORMANT_BUZZ_RUNTIME;
-  const [configuration, setConfiguration] = useState<BuzzConfiguration>(DEFAULT_CONFIGURATION);
-  const [hydrated, setHydrated] = useState(false);
+  const [configuration, setConfiguration] = useState<BuzzConfiguration>(readInitialConfiguration);
   const [notice, setNotice] = useState("");
-
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(BUZZ_CONFIGURATION_KEY);
-      if (stored) setConfiguration({ ...DEFAULT_CONFIGURATION, ...JSON.parse(stored) });
-    } catch {
-      setNotice("The saved Buzz configuration draft could not be read. Safe defaults are in use.");
-    } finally {
-      setHydrated(true);
-    }
-  }, []);
 
   const existingRelayReady = useMemo(() => {
     if (configuration.mode !== "existing-relay") return false;
@@ -87,7 +85,6 @@ export default function BuzzSettingsPage() {
   }
 
   function saveConfiguration() {
-    if (!hydrated) return;
     if (configuration.mode === "existing-relay" && !existingRelayReady) {
       setNotice("Enter a valid HTTPS, localhost or 127.0.0.1 Buzz relay address before saving.");
       return;

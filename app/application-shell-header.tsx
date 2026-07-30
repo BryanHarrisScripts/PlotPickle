@@ -115,6 +115,9 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
         {configuration.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
       </nav>
       {activeTab === "settings" ? <button type="button" className="text-button" onClick={() => window.location.assign("/settings/buzz")}>Buzz Setup</button> : null}
+
+      {/* The internal route remains `pitch`; this hidden alias supports older packaged automation while Graphic Novel stays the only user-facing label. */}
+      <span hidden aria-hidden="true" role="tab" aria-selected={activeTab === "pitch"} data-legacy-workspace-label="pitch">Pitch</span>
     </header>
   );
 }

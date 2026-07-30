@@ -6,6 +6,7 @@ import type { PlotPickleProject } from "@/lib/project";
 import GitHubCollaboration from "./github-collaboration";
 import GoogleCalendarWorkspace from "./google-calendar-workspace";
 import GoogleMeetWorkspace from "./google-meet-workspace";
+import RefreshAction from "./refresh-action";
 import styles from "./collab-workspace.module.css";
 
 type CollabSection = "overview" | "approvals" | "meetings" | "calendar" | "connections";
@@ -76,6 +77,11 @@ export default function CollabWorkspace({
   const google = connections.items.google;
   const approvedCommit = project.collaboration.lastPulledCommit;
   const proposedCommit = project.collaboration.lastPushedCommit;
+  const repository = project.collaboration.owner && project.collaboration.repo
+    ? `${project.collaboration.owner}/${project.collaboration.repo}`
+    : "No repository selected";
+  const branch = project.collaboration.branch || "main";
+  const githubConnected = github.state === "connected";
 
   function openSettings(id: ConnectionId) {
     if (id === "github" || id === "google") onOpenSettings(id);
@@ -92,7 +98,7 @@ export default function CollabWorkspace({
         <div className={styles.projectCard}>
           <span>Active story</span>
           <strong>{project.metadata.title}</strong>
-          <small>{project.collaboration.owner && project.collaboration.repo ? `${project.collaboration.owner}/${project.collaboration.repo}` : "Local project · no collaboration repository selected"}</small>
+          <small>{repository}{repository !== "No repository selected" ? ` · ${branch}` : " · local project"}</small>
         </div>
       </header>
 
@@ -118,9 +124,9 @@ export default function CollabWorkspace({
           <section className={styles.summaryGrid}>
             <article>
               <span>Approved story</span>
-              <strong>{approvedCommit ? approvedCommit.slice(0, 10) : "Not refreshed"}</strong>
-              <p>{approvedCommit ? "This local project records the latest approved GitHub commit it reviewed." : "Connect GitHub in Settings, then refresh the approved canonical story from Approvals."}</p>
-              <button type="button" onClick={() => setSection("approvals")}>Open approvals</button>
+              <strong>{approvedCommit ? approvedCommit.slice(0, 10) : "Approved story refresh required"}</strong>
+              <p>{approvedCommit ? "This local project records the latest approved GitHub commit it reviewed." : githubConnected ? "The repository is connected, but its approved story has not been refreshed into this local project." : "Connect GitHub in Settings before using proposal and approval actions."}</p>
+              <RefreshAction label={approvedCommit ? "Review approved story" : "Open refresh workflow"} onClick={() => setSection("approvals")} />
             </article>
             <article>
               <span>Latest proposal</span>
@@ -137,7 +143,7 @@ export default function CollabWorkspace({
           </section>
 
           <section className={styles.providerGrid} aria-label="Collaboration provider status">
-            <ProviderCard status={github} purpose="Carries approved story revisions and Story Proposals." onOpenSettings={() => openSettings("github")} />
+            <ProviderCard status={github} purpose="Carries approved story revisions and Story Proposals. It does not decide which story is currently loaded." onOpenSettings={() => openSettings("github")} />
             <ProviderCard status={google} purpose="Carries project Calendar events and their explicitly created Meet links." onOpenSettings={() => openSettings("google")} />
           </section>
 
@@ -152,8 +158,14 @@ export default function CollabWorkspace({
       {section === "approvals" ? (
         <div className={styles.stack}>
           <section className={styles.sectionHeading}>
-            <div><span>Approvals</span><h2>GitHub Story Proposals and Project Lead decisions</h2><p>GitHub is the provider behind this queue, but the review language remains story-first: dialogue, characters, scenes, canon, production and rights.</p></div>
-            <div className={styles.providerBadge}><i aria-hidden="true" />GitHub</div>
+            <div>
+              <span>Approvals</span>
+              <h2>GitHub Story Proposals and Project Lead decisions</h2>
+              <p>This workflow is powered by the configured GitHub repository for proposals, approved history and canonical story refreshes. It is not the GitHub connection screen. Current provider: {repository} · {branch}. Repository {githubConnected ? "connected" : "not connected"}; approved story {approvedCommit ? "recorded" : "refresh required"}.</p>
+            </div>
+            <button type="button" className={styles.providerBadge} onClick={() => openSettings("github")} aria-label="View GitHub connection settings">
+              <i aria-hidden="true" />Powered by GitHub · {statusLabel(github)}
+            </button>
           </section>
           <GitHubCollaboration
             project={project}
@@ -178,7 +190,7 @@ export default function CollabWorkspace({
             <div><span>Connections</span><h2>See status here; change access in Settings.</h2><p>Collab never asks for a password, token, repository or OAuth permission. Each provider card opens its single configuration home.</p></div>
           </section>
           <section className={styles.providerGrid}>
-            <ProviderCard status={github} purpose="Account, repository and permission setup lives in Settings → GitHub." onOpenSettings={() => openSettings("github")} />
+            <ProviderCard status={github} purpose="Account, repository and permission setup lives in Settings → Repository & Collab." onOpenSettings={() => openSettings("github")} />
             <ProviderCard status={google} purpose="Sign-in and Calendar permission live in Settings → Scheduling & Meetings." onOpenSettings={() => openSettings("google")} />
           </section>
           <section className={styles.privacyCard}>

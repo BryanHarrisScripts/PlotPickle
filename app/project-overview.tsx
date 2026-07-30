@@ -6,7 +6,7 @@ import {
   recommendedSectionOrder,
   type ProjectProgressSection,
 } from "@/lib/project-progress";
-import AfterglowLegacyVisuals from "./afterglow-legacy-visuals";
+import { DORMANT_BUZZ_RUNTIME } from "@/lib/buzz-runtime";
 import styles from "./project-overview.module.css";
 
 const sectionLabels: Record<ProjectProgressSection, string> = {
@@ -35,6 +35,11 @@ function readableDate(value: string) {
   }).format(date);
 }
 
+function openWorkspace(workspace: string, section?: string) {
+  if (section) window.sessionStorage.setItem("plotpickle.settings.section", section);
+  window.location.assign(`/?workspace=${encodeURIComponent(workspace)}`);
+}
+
 export default function ProjectOverview({
   project,
   onOpenSection,
@@ -59,124 +64,104 @@ export default function ProjectOverview({
   const allMinis = allScenes.flatMap((scene) => scene.miniBlocks);
   const beats = allMinis.reduce((sum, mini) => sum + mini.beatTarget, 0);
   const shots = allMinis.reduce((sum, mini) => sum + mini.shotTarget, 0);
-  const openQuestionPreview = project.development.notes.openQuestions
+  const openQuestions = project.development.notes.openQuestions
     .split(/\r?\n/)
     .map((line) => line.trim())
-    .filter(Boolean)
-    .slice(0, 4);
+    .filter(Boolean);
   const firstDevelopingBlock = project.blocks.find(
     (block) => progress.blocks < 100 && (!block.summary || !block.conflict || (!block.choice && !block.action)),
   );
+  const repositoryConnected = Boolean(project.collaboration.sourceRepositoryUrl);
+  const buzz = DORMANT_BUZZ_RUNTIME;
+  const readySections = recommendedSectionOrder.filter((section) => progress[section] >= 70).length;
+  const characterCount = project.characters.length;
+  const locationCount = project.world.locations.length;
 
   return (
     <div className={styles.page}>
-      <section className={styles.hero}>
+      <section className={styles.hero} aria-labelledby="dashboard-project-title">
         <div>
-          <p className={styles.eyebrow}>OV · Project Overview</p>
-          <h1>{project.metadata.title || "Untitled PlotPickle Project"}</h1>
-          <p>
-            Re-enter the story from one clear dashboard. Review what is complete, what still needs attention, and which PlotPickle workspace is most useful next.
-          </p>
+          <p className={styles.eyebrow}>Dashboard · Current project</p>
+          <h1 id="dashboard-project-title">{project.metadata.title || "Untitled PlotPickle Project"}</h1>
+          <p>See the loaded storyworld, current progress, repository authority, local storage and optional collaboration connections without decorative or fabricated live data.</p>
           <div className={styles.actions}>
-            <button type="button" className="primary-button" onClick={() => onOpenSection(nextSection)}>
-              Continue with {sectionLabels[nextSection]}
-            </button>
-            <button type="button" className="secondary-button" onClick={onOpenEngines}>
-              Choose a specialist engine
-            </button>
+            <button type="button" className="primary-button" onClick={() => onOpenSection(nextSection)}>Continue with {sectionLabels[nextSection]}</button>
+            <button type="button" className="secondary-button" onClick={() => onOpenSection("structureMap")}>Explore Storyworld</button>
           </div>
         </div>
         <div className={styles.completionCard}>
-          <span>Overall planning coverage</span>
+          <span>Writing and development progress</span>
           <strong>{overall}%</strong>
           <div aria-label={`${overall}% project coverage`}><i style={{ width: `${overall}%` }} /></div>
-          <small>Coverage is a planning prompt, not a quality grade.</small>
+          <small>{readySections}/{recommendedSectionOrder.length} planning areas carry substantial evidence. Coverage is a prompt, not a quality grade.</small>
         </div>
       </section>
 
-      <section className={styles.panel} aria-label="Why PlotPickle">
-        <header><div><p className={styles.eyebrow}>Why PlotPickle</p><h2>One story, one canonical project.</h2></div></header>
-        <p>PlotPickle grew from Afterglow, the 24 Blocks learning archive and several OpenStory experiments. The current local application keeps foundations, structure, treatment, screenplay, visuals, review, production, rights and provenance connected while the writer works on one manageable unit at a time.</p>
-        <div className={styles.rightsLinks}><Link href="/about">About, origins and product principles</Link><Link href="/read-learn?module=why-plotpickle-works-in-layers">Why PlotPickle Works in Layers</Link></div>
+      <section className={styles.identityGrid} aria-label="Current project source">
+        <article><span>Loaded story</span><strong>{project.metadata.title || "Untitled local project"}</strong></article>
+        <article><span>Local storage</span><strong>Canonical PPF on this device</strong></article>
+        <article><span>GitHub repository</span><strong>{repositoryConnected ? "Connected" : "Not connected"}</strong></article>
+        <article><span>Approved story</span><strong>{project.metadata.status || "In development"}</strong></article>
       </section>
-
-      <section className={styles.identityGrid} aria-label="Project identity">
-        <article><span>Format</span><strong>{project.metadata.format || "Not set"}</strong></article>
-        <article><span>Target runtime</span><strong>{project.metadata.targetMinutes || 0} minutes</strong></article>
-        <article><span>Status</span><strong>{project.metadata.status || "Not set"}</strong></article>
-        <article><span>Last updated</span><strong>{readableDate(project.metadata.updatedAt)}</strong></article>
-      </section>
-
-      <AfterglowLegacyVisuals project={project} mode="overview" />
-
-      {project.id === "afterglow-echoes-of-sentience" ? <section className={styles.panel} aria-label="Afterglow Source Reconciliation"><header><div><p className={styles.eyebrow}>Afterglow Source Reconciliation</p><h2>Complete baseline, partial rewrite, current decisions.</h2></div><Link href="/afterglow-reconciliation">Open Version Bridge</Link></header><p>The complete v9 screenplay remains readable, v10 is preserved as an unfinished Blocks 1–8 alternate, and the current Reflections rewrite advances only through reviewed decisions. CC BY-SA attribution, modification history and poster rights remain visible.</p><div className={styles.rightsLinks}><Link href="/afterglow-reconciliation">Review source claims and versions</Link><Link href="/legal">Review attribution and licensing</Link></div></section> : null}
 
       <div className={styles.dashboardGrid}>
+        <section className={`${styles.panel} ${styles.storyworldPanel}`}>
+          <header><div><p className={styles.eyebrow}>Storyworld Overview</p><h2>One canonical world, connected.</h2></div><button type="button" onClick={() => onOpenSection("structureMap")}>Open map</button></header>
+          <div className={styles.storyworldMap} aria-label="Storyworld relationship summary">
+            <strong>World</strong>
+            <div><button type="button" onClick={() => onOpenSection("characters")}>{characterCount} Characters</button><button type="button" onClick={() => onOpenSection("world")}>{locationCount} Locations</button><button type="button" onClick={() => onOpenSection("blocks")}>24 Blocks</button></div>
+            <div><span>{allScenes.length} Scenes</span><span>{allMinis.length} Mini-blocks</span><span>{beats} Beat targets</span></div>
+          </div>
+          <p>{developedSequences}/12 sequences and {developedBlocks}/24 blocks currently carry their core dramatic evidence.</p>
+        </section>
+
         <section className={styles.panel}>
-          <header>
-            <div><p className={styles.eyebrow}>Story checklist</p><h2>Progress by section</h2></div>
-            <span>{recommendedSectionOrder.filter((section) => progress[section] >= 70).length}/{recommendedSectionOrder.length} ready</span>
-          </header>
+          <header><div><p className={styles.eyebrow}>Writing Progress</p><h2>{overall}% complete</h2></div><span>{readySections} areas ready</span></header>
           <div className={styles.progressList}>
-            {recommendedSectionOrder.map((section) => (
+            {recommendedSectionOrder.slice(0, 8).map((section) => (
               <button type="button" key={section} onClick={() => onOpenSection(section)}>
-                <span>{sectionLabels[section]}</span>
-                <i><b style={{ width: `${progress[section]}%` }} /></i>
-                <strong>{progress[section]}%</strong>
+                <span>{sectionLabels[section]}</span><i><b style={{ width: `${progress[section]}%` }} /></i><strong>{progress[section]}%</strong>
               </button>
             ))}
           </div>
         </section>
 
-        <section className={`${styles.panel} ${styles.structurePanel}`}>
-          <header>
-            <div><p className={styles.eyebrow}>Complete hierarchy</p><h2>Structure snapshot</h2></div>
-            <button type="button" onClick={() => onOpenSection("structureMap")}>Open map</button>
-          </header>
-          <div className={styles.metricGrid}>
-            <article><strong>4</strong><span>Acts</span></article>
-            <article><strong>12</strong><span>Sequences</span></article>
-            <article><strong>24</strong><span>Blocks</span></article>
-            <article><strong>{allScenes.length}</strong><span>Scenes</span></article>
-            <article><strong>96</strong><span>Mini-blocks</span></article>
-            <article><strong>{shots}</strong><span>Shot targets</span></article>
+        <section className={styles.panel}>
+          <header><div><p className={styles.eyebrow}>Recent Activity</p><h2>Project evidence</h2></div><span>Real project state</span></header>
+          <div className={styles.activityList}>
+            <article><b>Project updated</b><span>{readableDate(project.metadata.updatedAt)}</span></article>
+            <article><b>Structure developed</b><span>{developedBlocks}/24 Blocks · {developedSequences}/12 sequences</span></article>
+            <article><b>Visual plan</b><span>{shots} shot targets across {allMinis.length} mini-blocks</span></article>
           </div>
-          <p>{developedSequences}/12 sequences and {developedBlocks}/24 blocks currently carry their core dramatic evidence.</p>
-          <div className={styles.structureActions}>
-            <button type="button" onClick={() => onOpenSection("structureMap")}>Review the Structure Map</button>
-            {firstDevelopingBlock ? <button type="button" onClick={() => onOpenBlock(firstDevelopingBlock.number)}>Continue Block {firstDevelopingBlock.number}</button> : null}
-          </div>
-          <small>{beats} planned beats · {shots} planned shots · schema {project.schemaVersion}</small>
+        </section>
+
+        <section className={`${styles.panel} ${repositoryConnected ? styles.healthyPanel : styles.attentionPanel}`}>
+          <header><div><p className={styles.eyebrow}>GitHub Approvals</p><h2>{repositoryConnected ? "Repository connected" : "Local project only"}</h2></div><span>{repositoryConnected ? "Review in Collab" : "Setup required"}</span></header>
+          <p>{repositoryConnected ? "Story Proposals and owner-controlled approvals use the connected repository. Only a human merge changes canonical code or story data." : "GitHub remains optional. Connect a repository in Settings before using Story Proposals and approval history."}</p>
+          <button type="button" onClick={() => openWorkspace(repositoryConnected ? "collab" : "settings", repositoryConnected ? undefined : "github")}>{repositoryConnected ? "Open Collab approvals" : "Configure GitHub"}</button>
+        </section>
+
+        <section className={`${styles.panel} ${styles.attentionPanel}`}>
+          <header><div><p className={styles.eyebrow}>Optional Buzz workspace</p><h2>{buzz.lifecycle === "running" ? "Connected" : "Not configured"}</h2></div><span>Dormant by default</span></header>
+          <p>Buzz provides rooms, agents, media discussion and development activity beside Collab. No process, port, identity or Buzz project data exists until configuration is deliberately completed.</p>
+          <button type="button" onClick={() => window.location.assign(buzz.lifecycle === "running" ? "/buzz" : "/settings/buzz")}>{buzz.lifecycle === "running" ? "Open Buzz" : "Configure Buzz"}</button>
         </section>
 
         <section className={styles.panel}>
-          <header>
-            <div><p className={styles.eyebrow}>Attention ledger</p><h2>Open questions</h2></div>
-            <button type="button" onClick={() => onOpenSection("notes")}>Open Notes</button>
-          </header>
-          {openQuestionPreview.length ? (
-            <ul className={styles.questions}>
-              {openQuestionPreview.map((question) => <li key={question}>{question}</li>)}
-            </ul>
-          ) : (
-            <div className={styles.emptyState}>
-              <strong>No open questions are recorded.</strong>
-              <p>Use Notes to keep uncertainty visible instead of hiding it inside draft prose.</p>
-            </div>
-          )}
+          <header><div><p className={styles.eyebrow}>Storage & Backups</p><h2>Local-first authority</h2></div><span>On this device</span></header>
+          <p>The canonical project stays separate from replaceable PlotPickle program files. Rolling backups and recovery are controlled under Settings.</p>
+          <button type="button" onClick={() => openWorkspace("settings", "storage")}>Open Storage & Backups</button>
+        </section>
+
+        <section className={styles.panel}>
+          <header><div><p className={styles.eyebrow}>Canon & decisions</p><h2>{openQuestions.length ? `${openQuestions.length} open question${openQuestions.length === 1 ? "" : "s"}` : "No open questions"}</h2></div><button type="button" onClick={() => onOpenSection("notes")}>Open Notes</button></header>
+          {openQuestions.length ? <ul className={styles.questions}>{openQuestions.slice(0, 4).map((question) => <li key={question}>{question}</li>)}</ul> : <div className={styles.emptyState}><strong>The decision ledger is clear.</strong><p>Add unresolved canon, continuity or production questions in Notes when they appear.</p></div>}
         </section>
 
         <section className={`${styles.panel} ${styles.rightsPanel}`}>
-          <header>
-            <div><p className={styles.eyebrow}>Ownership and use</p><h2>Your story remains yours.</h2></div>
-          </header>
-          <p>
-            PlotPickle’s software and educational materials have open licences, but the stories, characters, dialogue, images, and project files created by a user are not transferred to PlotPickle.
-          </p>
-          <div className={styles.rightsLinks}>
-            <Link href="/legal">Read copyright and licensing</Link>
-            {project.collaboration.sourceRepositoryUrl ? <a href={project.collaboration.sourceRepositoryUrl} target="_blank" rel="noreferrer">Open this story’s GitHub repository</a> : <a href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">View PlotPickle source repository</a>}
-          </div>
+          <header><div><p className={styles.eyebrow}>Ownership and use</p><h2>Your story remains yours.</h2></div></header>
+          <p>PlotPickle software and learning materials use open licences. Your screenplay, characters, images, notes and PPF project remain under your control.</p>
+          <div className={styles.rightsLinks}><Link href="/legal">Copyright and licensing</Link><button type="button" onClick={onOpenEngines}>Review optional engines</button>{firstDevelopingBlock ? <button type="button" onClick={() => onOpenBlock(firstDevelopingBlock.number)}>Continue Block {firstDevelopingBlock.number}</button> : null}</div>
         </section>
       </div>
     </div>

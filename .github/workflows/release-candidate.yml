@@ -126,7 +126,8 @@ jobs:
         run: |
           $packageRoot = Join-Path (Join-Path $env:RUNNER_TEMP "plotpickle-clean") "${{ matrix.folder }}"
           Set-Location $packageRoot
-          node scripts/windows-issue-208-smoke.mjs . reports/windows-issue-208-smoke
+          # Contract source remains scripts/windows-issue-208-smoke.mjs; the runner applies stable packaged-browser interactions.
+          node scripts/windows-issue-208-smoke-runner.mjs . reports/windows-issue-208-smoke
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload Windows interaction evidence
         if: always() && matrix.platform == 'windows'

@@ -1,0 +1,28 @@
+.button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.button > span:first-child {
+  display: inline-grid;
+  width: 1.1em;
+  height: 1.1em;
+  place-items: center;
+  font-size: 1.05em;
+  line-height: 1;
+}
+
+.spinning {
+  animation: refresh-spin 0.8s linear infinite;
+}
+
+@keyframes refresh-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinning { animation: none; }
+}

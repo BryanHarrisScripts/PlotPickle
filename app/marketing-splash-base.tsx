@@ -8,7 +8,6 @@ import {
   PLOTPICKLE_POSITIONING,
   PLOTPICKLE_DESKTOP_BUILDS,
   PRIMARY_WORKFLOW_NAVIGATION,
-  STORYWORLD_CORE_LOOP,
 } from "@/lib/product-direction";
 import styles from "./marketing-splash.module.css";
 

@@ -1,0 +1,95 @@
+/* Issue #208 — Windows acceptance-test clarity and navigation polish. */
+
+.application-shell-header .main-tabs button {
+  min-width: auto !important;
+  padding-inline: 11px !important;
+  color: #d2e2e7 !important;
+}
+
+.application-shell-header .main-tabs button span {
+  font-size: 13px !important;
+  font-weight: 720 !important;
+  letter-spacing: -0.01em;
+}
+
+.application-shell-header .main-tabs button:hover,
+.application-shell-header .main-tabs button.active {
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff !important;
+}
+
+.application-shell-header .main-tabs button.active {
+  font-weight: 850;
+}
+
+.application-shell-header .main-tabs button::after {
+  right: 9px !important;
+  left: 9px !important;
+  height: 4px !important;
+  background: #b9f4df !important;
+  box-shadow: 0 0 0 1px rgba(185, 244, 223, 0.18);
+}
+
+.application-shell-header .text-button {
+  color: #e1ecef;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.learn-section-tabs {
+  position: sticky;
+  z-index: 22;
+  top: 134px;
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 4px;
+  overflow: visible !important;
+  padding: 8px clamp(16px, 4vw, 34px);
+  border-bottom: 1px solid #cddfde;
+  background: rgba(241, 248, 247, 0.98);
+  scrollbar-width: none;
+}
+
+.learn-section-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.learn-section-tabs button {
+  min-height: 42px;
+  padding: 8px 14px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: #536d73;
+  font-size: 13px;
+  font-weight: 760;
+}
+
+.learn-section-tabs button:hover {
+  background: #ffffff;
+  color: #1d5f63;
+}
+
+.learn-section-tabs button.active {
+  border-bottom-color: #63ad9f;
+  color: #174f55;
+  font-weight: 900;
+}
+
+@media (max-width: 1450px) {
+  .application-shell-header .main-tabs button {
+    padding-inline: 8px !important;
+  }
+
+  .application-shell-header .main-tabs button span,
+  .application-shell-header .text-button {
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 1080px) {
+  .learn-section-tabs {
+    position: static;
+  }
+}

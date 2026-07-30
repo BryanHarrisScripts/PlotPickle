@@ -66,21 +66,28 @@ test("the canonical comic plan covers every Block and mini-block with directed v
 });
 
 test("the writer explicitly controls cost, progress, pause, resume, retry and regeneration", async () => {
-  const workspace = await source("app/ai-pitch-deck-workspace.tsx");
-  assert.match(workspace, /I understand this run can make up to \{preflight\.remainingImages\} paid image API calls/);
-  assert.match(workspace, /disabled=\{!aiReady \|\| !preflight\.ready \|\| !acknowledged/);
-  assert.match(workspace, /new AbortController\(\)/);
-  assert.match(workspace, /consecutiveErrors >= 3/);
-  assert.match(workspace, /failedPanelIds/);
-  assert.match(workspace, /void generate\(next, failedPanelIds\)/);
+  const [workspace, queue, castQueue] = await Promise.all([
+    source("app/ai-pitch-deck-workspace.tsx"),
+    source("app/use-graphic-novel-queue.ts"),
+    source("app/use-cast-identity-queue.ts"),
+  ]);
+  assert.match(workspace, /I understand this run can make up to \{queue\.preflight\.remainingImages\} paid image API calls/);
+  assert.match(workspace, /disabled=\{!queue\.aiReady \|\| !queue\.preflight\.ready \|\| !queue\.acknowledged/);
+  assert.match(queue, /new AbortController\(\)/);
+  assert.match(queue, /status: "stopped"/);
+  assert.match(queue, /function retry\(itemId: string\)/);
   for (const label of [
-    "Generate complete pitch deck",
-    "Resume remaining panels",
-    "Retry ",
-    "Regenerate this panel",
-    "Pause generation",
-  ]) assert.ok(workspace.includes(label), `Pitch workflow is missing: ${label}`);
-  assert.match(workspace, /Completed panels are saved as the run progresses/);
+    "Generate all Graphic Novel images",
+    "Resume remaining images",
+    "Retry",
+    "Rebuild all 96 panels",
+    "Stop generation",
+  ]) assert.ok(workspace.includes(label), `Graphic Novel workflow is missing: ${label}`);
+  assert.match(queue, /Completed images were kept/);
+  assert.match(workspace, /Regenerate Entire Cast/);
+  assert.match(castQueue, /window\.confirm/);
+  assert.match(castQueue, /for \(const queueItem of remaining\)/);
+  assert.match(castQueue, /saveVisualIdentityDraft/);
 });
 
 test("dialogue remains editable HTML outside generated image pixels and exports portably", async () => {

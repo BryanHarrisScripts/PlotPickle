@@ -11,6 +11,7 @@ import "./ui-ux-cleanup.css";
 import "./engine-ux-cleanup.css";
 import "./premium-ui.css";
 import "./minimal-navigation.css";
+import "./issue-208-polish.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle — Visual Storyworld Collaboration and Previsualization",

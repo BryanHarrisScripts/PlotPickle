@@ -64,7 +64,7 @@ test("issue #113 moves project actions to the persistent shell and replaces the 
   assert.doesNotMatch(page, /className="dashboard-actions"/);
   assert.doesNotMatch(page, /const dashboardStatuses/);
   assert.match(shell, /PROJECT_ACTIONS\.map/);
-  for (const action of ["New Project", "Import", "Export", "Load Afterglow"]) assert.ok(shell.includes(action) || direction.includes(action));
+  for (const action of ["New Project", "Import", "Export", "Load Example"]) assert.ok(shell.includes(action) || direction.includes(action));
 });
 
 test("issue #113 Dashboard links can request the exact Settings subsection", async () => {

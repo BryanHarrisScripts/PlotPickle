@@ -13,7 +13,7 @@ test("issue #112 follows the current ordered workflow-group application shell", 
   for (const label of ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Pitch", "Build", "Feedback", "Refine", "Reports"]) {
     assert.ok(direction.includes(`\"${label}\"`), `Missing workflow item: ${label}`);
   }
-  for (const label of ["New Project", "Import", "Export", "Load Afterglow"]) {
+  for (const label of ["New Project", "Import", "Export", "Load Example"]) {
     assert.ok(direction.includes(label), `Missing project action: ${label}`);
   }
 });

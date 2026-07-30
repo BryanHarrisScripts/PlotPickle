@@ -2,21 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { PlotPickleSettings } from "@/lib/ai/settings";
-import type { AfterglowDashboardState, AfterglowDashboardStateId } from "@/lib/afterglow-persistence";
+import { AFTERGLOW_PROJECT_ID } from "@/lib/afterglow-persistence";
+import type { AfterglowDashboardState } from "@/lib/afterglow-persistence";
 import type { ConnectionStatusSnapshot } from "@/lib/connection-status";
 import { createDashboardCommandCentreModel, type DashboardTarget, type DashboardTone } from "@/lib/dashboard-command-centre";
 import type { PlotPickleProject } from "@/lib/project";
 import type { ProductNavigationId } from "@/lib/product-direction";
+import RefreshAction from "./refresh-action";
 import styles from "./dashboard-command-centre.module.css";
-import afterglowStyles from "./dashboard-afterglow.module.css";
+import sourceStyles from "./dashboard-afterglow.module.css";
 
 const SETTINGS_SECTION_KEY = "plotpickle.settings.section";
-
-const afterglowStatusLabels: Record<AfterglowDashboardStateId, AfterglowDashboardState["label"]> = {
-  "not-loaded": "Afterglow not loaded",
-  "loaded-locally": "Afterglow loaded locally",
-  "github-repository-connected": "Afterglow GitHub repository connected",
-};
 
 const toneMeta: Record<DashboardTone, { icon: string; label: string }> = {
   green: { icon: "✓", label: "Ready or healthy" },
@@ -49,6 +45,101 @@ function progressTone(completion: number): DashboardTone {
   if (completion >= 70) return "green";
   if (completion > 0) return "yellow";
   return "red";
+}
+
+function currentProjectSource(
+  project: PlotPickleProject,
+  saveState: string,
+  connectionStatus: ConnectionStatusSnapshot,
+  afterglow: AfterglowDashboardState,
+) {
+  const isBundledExample = project.id === AFTERGLOW_PROJECT_ID;
+  const collaboration = project.collaboration;
+  const repositoryConnected = collaboration.provider === "github" && Boolean(collaboration.owner && collaboration.repo);
+  const repository = repositoryConnected ? `${collaboration.owner}/${collaboration.repo}` : "No repository connected";
+  const branch = collaboration.branch || "main";
+  const localHealthy = connectionStatus.items.storage.state === "connected";
+  const repositoryHealthy = connectionStatus.items.github.state === "connected";
+  const approvedCommit = collaboration.lastPulledCommit;
+  const proposedCommit = collaboration.lastPushedCommit;
+
+  if (isBundledExample && afterglow.id === "github-repository-connected") {
+    return {
+      isBundledExample,
+      tone: repositoryHealthy && localHealthy ? "green" as const : "red" as const,
+      label: "GitHub repository working copy",
+      detail: repositoryHealthy && localHealthy
+        ? `The loaded story is the persistent local working copy linked to ${repository} on ${branch}.`
+        : "The GitHub-backed example is selected, but its local folder or repository connection needs repair.",
+      repository,
+      branch,
+      local: saveState,
+      approved: approvedCommit ? `Approved commit ${approvedCommit.slice(0, 10)}` : "Approved story refresh required",
+      changes: proposedCommit && proposedCommit !== approvedCommit ? "A proposal or unpublished revision is recorded" : "No separate proposal is recorded",
+    };
+  }
+
+  if (isBundledExample) {
+    return {
+      isBundledExample,
+      tone: localHealthy ? "green" as const : "red" as const,
+      label: "Bundled example loaded locally",
+      detail: localHealthy
+        ? "The current story is PlotPickle’s bundled example saved on this device. A configured repository does not change the loaded source until the user explicitly switches it."
+        : "The bundled example is selected, but local project storage is unavailable.",
+      repository,
+      branch,
+      local: saveState,
+      approved: repositoryConnected ? "Repository configured; approved story not loaded" : "No approved GitHub story selected",
+      changes: "Current edits remain local",
+    };
+  }
+
+  if (repositoryConnected && approvedCommit) {
+    return {
+      isBundledExample,
+      tone: repositoryHealthy && localHealthy ? "green" as const : "red" as const,
+      label: "GitHub repository working copy",
+      detail: repositoryHealthy && localHealthy
+        ? `The current project is the local working copy linked to ${repository} on ${branch}.`
+        : "This project expects a GitHub-backed working copy, but the repository or local project service is unavailable.",
+      repository,
+      branch,
+      local: saveState,
+      approved: `Approved commit ${approvedCommit.slice(0, 10)}`,
+      changes: proposedCommit && proposedCommit !== approvedCommit ? "Local changes have a recorded proposal state" : "Local approved state matches the recorded commit",
+    };
+  }
+
+  if (repositoryConnected) {
+    return {
+      isBundledExample,
+      tone: localHealthy ? "yellow" as const : "red" as const,
+      label: "Repository configured; local project still loaded",
+      detail: localHealthy
+        ? `GitHub is connected to ${repository}, but the current story remains the local project until an approved story is explicitly refreshed or pulled.`
+        : "A repository is configured, but the local project service is unavailable.",
+      repository,
+      branch,
+      local: saveState,
+      approved: "Approved story refresh required",
+      changes: "Local edits have not been replaced by GitHub content",
+    };
+  }
+
+  return {
+    isBundledExample,
+    tone: localHealthy ? "green" as const : "red" as const,
+    label: localHealthy ? "Local project on this device" : "Local project disconnected",
+    detail: localHealthy
+      ? "The displayed story is the current local project. No GitHub story has replaced it."
+      : "The active story cannot confirm its local project storage. Repair local storage before continuing.",
+    repository,
+    branch,
+    local: saveState,
+    approved: "No GitHub approved story selected",
+    changes: "Current edits remain local",
+  };
 }
 
 export default function DashboardCommandCentre({
@@ -85,6 +176,10 @@ export default function DashboardCommandCentre({
     settings,
     connectionStatus,
   }), [project, saveState, learningCompleted, settings, connectionStatus]);
+  const source = useMemo(
+    () => currentProjectSource(project, saveState, connectionStatus, afterglow),
+    [project, saveState, connectionStatus, afterglow],
+  );
 
   function openTarget(target: DashboardTarget) {
     if (target.blockNumber) {
@@ -104,7 +199,7 @@ export default function DashboardCommandCentre({
         <p className={styles.eyebrow}>Dashboard</p>
         <strong>Command centre</strong>
         <a href="#dashboard-readiness">Readiness</a>
-        <a href="#dashboard-afterglow">Afterglow</a>
+        <a href="#dashboard-project-source">Project source</a>
         <a href="#dashboard-connections">Connections</a>
         <a href="#dashboard-workflow">Workflow progress</a>
         <a href="#dashboard-attention">Attention required <span>{model.attention.length}</span></a>
@@ -127,45 +222,49 @@ export default function DashboardCommandCentre({
           {model.recommendedAction ? <button type="button" onClick={() => openTarget(model.recommendedAction!.target)}>Recommended: {model.recommendedAction.title}</button> : <button type="button" onClick={() => onNavigate("planner", "overview")}>Continue project</button>}
         </section>
 
-        <section id="dashboard-afterglow" className={styles.section} aria-labelledby="afterglow-title">
+        <section id="dashboard-project-source" className={styles.section} aria-labelledby="project-source-title">
           <div className={styles.heading}>
             <div>
-              <p className={styles.eyebrow}>Afterglow project</p>
-              <h2 id="afterglow-title">Bundled example or persistent repository</h2>
-              <p>The bundled example remains the default. GitHub persistence is an explicit project-level choice.</p>
+              <p className={styles.eyebrow}>Current project source</p>
+              <h2 id="project-source-title">Know exactly which story is loaded</h2>
+              <p>Local storage, repository configuration and the loaded story are separate states. A GitHub connection never replaces the current project without an explicit load or refresh.</p>
             </div>
           </div>
-          <article className={`${afterglowStyles.card} ${styles[`tone-${afterglow.tone}`]}`}>
-            <div className={afterglowStyles.status} role="status" aria-live="polite">
-              <i aria-hidden="true">{afterglow.tone === "green" ? "✓" : "!"}</i>
+          <article className={`${sourceStyles.card} ${styles[`tone-${source.tone}`]}`}>
+            <div className={sourceStyles.status} role="status" aria-live="polite">
+              <i aria-hidden="true">{toneMeta[source.tone].icon}</i>
               <div>
-                <span>Current state</span>
-                <strong>{afterglowStatusLabels[afterglow.id]}</strong>
-                <p>{afterglow.detail}</p>
+                <span>Loaded story</span>
+                <strong>{source.label}</strong>
+                <p>{source.detail}</p>
               </div>
             </div>
-            <div className={afterglowStyles.actions}>
-              <button type="button" disabled={afterglowWorking} onClick={onLoadAfterglow}>
-                {afterglowWorking ? "Working…" : afterglow.id === "not-loaded" ? "Load Afterglow" : "Reload Afterglow"}
-              </button>
-              <label className={afterglowStyles.switch}>
-                <span>
-                  <strong>Use Afterglow GitHub repository</strong>
-                  <small>Off keeps today’s bundled loading behaviour. Turning it off never deletes the persistent project or its backups.</small>
-                </span>
-                <input
-                  type="checkbox"
-                  role="switch"
-                  checked={afterglow.enabled}
-                  disabled={afterglowWorking || !afterglow.available}
-                  onChange={(event) => onToggleAfterglowGitHub(event.target.checked)}
-                />
-              </label>
-            </div>
-            {!afterglow.available ? (
-              <p className={afterglowStyles.notice}>GitHub-backed persistence is available in the downloaded local PlotPickle server. Local bundled loading remains available.</p>
+            <dl className={styles.projectDetails}>
+              <div><dt>Project</dt><dd>{project.metadata.title || "Untitled project"}</dd></div>
+              <div><dt>Local storage</dt><dd>{source.local}</dd></div>
+              <div><dt>GitHub repository</dt><dd>{source.repository}{source.repository !== "No repository connected" ? ` · ${source.branch}` : ""}</dd></div>
+              <div><dt>Approved story</dt><dd>{source.approved}</dd></div>
+              <div><dt>Working changes</dt><dd>{source.changes}</dd></div>
+            </dl>
+            {source.isBundledExample ? (
+              <div className={sourceStyles.actions}>
+                <RefreshAction label={afterglow.id === "not-loaded" ? "Load bundled example" : "Reload current example source"} working={afterglowWorking} onClick={onLoadAfterglow} />
+                <label className={sourceStyles.switch}>
+                  <span>
+                    <strong>Use the example’s GitHub working copy</strong>
+                    <small>Turning this on explicitly switches the example to its persistent local folder and linked repository. It never changes another project.</small>
+                  </span>
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    checked={afterglow.enabled}
+                    disabled={afterglowWorking || !afterglow.available}
+                    onChange={(event) => onToggleAfterglowGitHub(event.target.checked)}
+                  />
+                </label>
+              </div>
             ) : null}
-            {afterglowMessage ? <p className={afterglowStyles.notice}>{afterglowMessage}</p> : null}
+            {source.isBundledExample && afterglowMessage ? <p className={sourceStyles.notice}>{afterglowMessage}</p> : null}
           </article>
         </section>
 

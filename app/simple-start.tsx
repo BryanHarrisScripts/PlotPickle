@@ -31,7 +31,7 @@ export default function SimpleStart({
         <article className="guide-card">
           <p className="eyebrow">Continue</p>
           <h2>{project.metadata.title || "Untitled screenplay"}</h2>
-          <p>Return to the project overview and continue from the current local project.</p>
+          <p>Return to the project overview and continue from the current loaded project.</p>
           <button type="button" className="primary-button" onClick={onContinue}>Open project dashboard</button>
         </article>
         <article className="guide-card">
@@ -54,9 +54,9 @@ export default function SimpleStart({
         </article>
         <article className="guide-card">
           <p className="eyebrow">Example</p>
-          <h2>Explore Afterglow</h2>
-          <p>Load the complete example project across planning, screenplay and visuals.</p>
-          <button type="button" className="secondary-button" onClick={onAfterglow}>Load Afterglow</button>
+          <h2>Explore the bundled example project</h2>
+          <p>Load the complete demonstration across planning, screenplay and visuals.</p>
+          <button type="button" className="secondary-button" onClick={onAfterglow}>Load example project</button>
         </article>
       </div>
     </div>

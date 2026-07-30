@@ -1,0 +1,128 @@
+.panel {
+  display: grid;
+  gap: 14px;
+  margin: 16px 0;
+  padding: 18px;
+  border: 1px solid #bfded9;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fbfffe, #eef8f6);
+}
+
+.heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.heading span {
+  color: #2a8b7d;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.heading h3 {
+  margin: 5px 0 4px;
+  font-size: 20px;
+}
+
+.heading p,
+.notice {
+  margin: 0;
+  color: #5d7773;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.metrics div {
+  display: grid;
+  padding: 11px;
+  border: 1px solid #d2e4e1;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.metrics strong { font-size: 20px; }
+.metrics span { color: #68817d; font-size: 10px; }
+
+.confirmation {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+  padding: 13px;
+  border: 1px solid #dfcfad;
+  border-radius: 11px;
+  background: #fff9ec;
+  color: #665d49;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.confirmation input { margin-top: 3px; }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.actions button {
+  min-height: 40px;
+  padding: 9px 13px;
+  border: 1px solid #bcd7d2;
+  border-radius: 9px;
+  background: #fff;
+  color: #285c55;
+  font-weight: 800;
+}
+
+.actions .primary {
+  border-color: #247b6e;
+  background: #247b6e;
+  color: #fff;
+}
+
+.actions .stop {
+  border-color: #a65045;
+  background: #fff7f5;
+  color: #93463d;
+}
+
+.actions button:disabled { cursor: default; opacity: 0.5; }
+
+.queue {
+  display: grid;
+  gap: 6px;
+  max-height: 210px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.queue li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 9px 10px;
+  border: 1px solid #d5e5e2;
+  border-radius: 9px;
+  background: #fff;
+  list-style: none;
+}
+
+.queue strong { font-size: 12px; }
+.queue span { color: #667f7b; font-size: 10px; text-transform: capitalize; }
+.queue small { grid-column: 1 / -1; color: #97554a; }
+
+@media (max-width: 760px) {
+  .heading { display: grid; }
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

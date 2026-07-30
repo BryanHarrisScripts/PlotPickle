@@ -55,10 +55,11 @@ test("issue #212 aligns the real Dashboard with product-authentic cards", async 
   assert.doesNotMatch(dashboard, /avatar|collaborators online|mascot/i);
 });
 
-test("issue #212 updates Splash positioning and README with honest Buzz boundaries", async () => {
-  const [direction, splash, readme] = await Promise.all([
+test("issue #212 updates Splash positioning README and explicit workspace deep links", async () => {
+  const [direction, splash, wrapper, readme] = await Promise.all([
     source("lib/product-direction.ts"),
     source("app/marketing-splash-base.tsx"),
+    source("app/marketing-splash.tsx"),
     source("README.md"),
   ]);
 
@@ -68,6 +69,12 @@ test("issue #212 updates Splash positioning and README with honest Buzz boundari
   assert.match(splash, /Product-authentic PlotPickle Dashboard preview/);
   assert.match(splash, /Buzz is dormant by default/);
   assert.doesNotMatch(splash, /collaborators online|user avatar/i);
+  assert.match(wrapper, /DEEP_LINK_WORKSPACES/);
+  assert.match(wrapper, /React\.useLayoutEffect/);
+  assert.match(wrapper, /requestedWorkspace && DEEP_LINK_WORKSPACES\.has\(requestedWorkspace\)/);
+  for (const workspace of ["dashboard", "settings", "collab", "feedback", "reports"]) {
+    assert.match(wrapper, new RegExp(`"${workspace}"`));
+  }
   assert.match(readme, /Dashboard · Learn · Plan · Storyboard · Write · Graphic Novel/);
   assert.match(readme, /Buzz: optional and dormant by default/);
   assert.match(readme, /no Buzz process runs/);

@@ -3,11 +3,11 @@
 /* eslint-disable @next/next/no-img-element -- Marketing artwork is served from PlotPickle's local public assets. */
 
 import {
+  COLLABORATION_NAVIGATION,
   OPEN_SOURCE_FOUNDATIONS,
   PLOTPICKLE_POSITIONING,
   PLOTPICKLE_DESKTOP_BUILDS,
   PRIMARY_WORKFLOW_NAVIGATION,
-  STORYWORLD_CORE_LOOP,
 } from "@/lib/product-direction";
 import styles from "./marketing-splash.module.css";
 
@@ -26,76 +26,20 @@ type MarketingSplashProps = {
 };
 
 const reasons = [
-  {
-    number: "01",
-    title: "Visual storyworld in one PPF",
-    description: "Keep canon, characters, structure, screenplay material, visuals, shots, sound and provenance connected in one portable creative source of truth.",
-  },
-  {
-    number: "02",
-    title: "Story logic you can see",
-    description: "Use 24 Blocks, 96 mini-blocks and the learning system to expose hooks, turning points, causality, arcs and continuity across the whole movie.",
-  },
-  {
-    number: "03",
-    title: "Connected visual development",
-    description: "Carry approved character identities, locations and visual language through Graphic Novel panels, Storyboard frames and Production Shots.",
-  },
-  {
-    number: "04",
-    title: "A clearer case for the movie",
-    description: "Bring the Storyworld Map, screenplay, Graphic Novel, Storyboard, Production Shots, Animatic, Pitch and Reports together as persuasive previsualization evidence.",
-  },
-  {
-    number: "05",
-    title: "Local-first ownership with optional connections",
-    description: "Keep control of files, canon and approvals. AI, GitHub, Google and future media engines remain deliberate choices rather than product requirements.",
-  },
+  ["01", "Visual storyworld in one PPF", "Keep canon, characters, structure, screenplay material, visuals, shots, sound, approvals and provenance connected."],
+  ["02", "Story logic you can see", "Use 24 Blocks, 96 mini-blocks and the learning system to expose hooks, turns, causality, arcs and continuity."],
+  ["03", "Connected visual development", "Carry approved identities and locations through Graphic Novel panels, Storyboard frames and Production Shots."],
+  ["04", "Review with evidence", "Use Feedback, Pitch and Reports to see readiness, continuity and unresolved decisions without automating the green-light decision."],
+  ["05", "Local-first ownership", "Use the complete core before connecting AI, GitHub, Google, Buzz or a future media engine."],
 ] as const;
 
 const featureHighlights = [
-  {
-    status: "available",
-    eyebrow: "Available now · Storyworld Map",
-    title: "See how the whole movie connects",
-    description: "Move from 24 Blocks to 96 mini-blocks while viewing hooks, turns, arcs, causality, characters, locations, continuity and the evidence behind every relationship.",
-    proof: "Interactive map · table · export",
-  },
-  {
-    status: "available",
-    eyebrow: "Available now · Graphic Novel + Storyboard",
-    title: "Develop one approved visual language",
-    description: "Build a 96-panel Graphic Novel presentation and storyboard frames from canonical characters, locations, visual locks and directed prompts.",
-    proof: "Visual continuity · provenance",
-  },
-  {
-    status: "available",
-    eyebrow: "Available now · Production + Animatic",
-    title: "Carry the visual plan toward the screen",
-    description: "Direct Production Shots, attach keyframes, plan sound and play the material already available in the project as honest previsualization.",
-    proof: "Shots · timing · sound · playback",
-  },
-  {
-    status: "available",
-    eyebrow: "Available now · Pitch + Reports",
-    title: "Make the case with evidence",
-    description: "Present the logline, story logic, visual direction, continuity, readiness and unresolved decisions without pretending software can make the green-light decision.",
-    proof: "Pitch · evidence · readiness",
-  },
-  {
-    status: "available",
-    eyebrow: "Available now · Owner-controlled Collab",
-    title: "Review meaning, not just files",
-    description: "Use proposals, approvals, feedback and optional GitHub history to coordinate writers, directors, producers, actors and reviewers without real-time co-writing.",
-    proof: "Propose · review · approve",
-  },
-  {
-    status: "available",
-    eyebrow: "Available now · Local-first",
-    title: "Use the core before connecting anything",
-    description: "Open, develop, visualize, review and export a PPF project without an AI key, Google account, rendering engine or required PlotPickle cloud service.",
-    proof: "Your device · your files · your choice",
-  },
+  ["Available now · Dashboard", "See the real current project", "Review the loaded story, Storyworld Overview, writing progress, GitHub state, local storage and unresolved canon decisions without fictional collaborators."],
+  ["Available now · Graphic Novel + Storyboard", "Develop one approved visual language", "Carry canonical characters, locations and visual locks through panels, frames, production shots and animatic evidence."],
+  ["Available now · Feedback + Reports", "Review meaning, not just files", "Keep structured feedback and resolution history permanent while Reports measure screenplay, continuity and production readiness."],
+  ["Optional · Collab", "Propose and approve selectively", "Use GitHub Story Proposals, owner-controlled review, meetings and calendar coordination only when a repository is deliberately connected."],
+  ["Optional · Buzz", "Add rooms and agents beside Collab", "Buzz provides rooms, media discussion and development activity. It remains dormant until configured under Settings → Integrations → Buzz."],
+  ["Available now · Local-first", "Stay productive while disconnected", "Open, develop, visualize, review and export a PPF project without an AI key, Google account, Buzz runtime or required PlotPickle cloud service."],
 ] as const;
 
 const aiChoices = [
@@ -111,26 +55,16 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <a className={styles.brand} href="#top" aria-label="PlotPickle Playhouse home">
+        <a className={styles.brand} href="#top" aria-label="PlotPickle home">
           <img src="/brand/favicon/plotpickle-icon-128.png" alt="" aria-hidden="true" />
-          <span>
-            <strong>PlotPickle</strong>
-            <small>PlotPickle Playhouse</small>
-          </span>
+          <span><strong>PlotPickle</strong><small>Visual storyworld engine</small></span>
         </a>
         <nav className={styles.nav} aria-label="Splash page navigation">
-          <a href="#studio">How it works</a>
-          <a href="#builds">Three builds</a>
-          <a href="#open-source">Open source</a>
-          <a href="#collaboration">Collaboration</a>
+          <a href="#studio">Product</a><a href="#builds">Desktop builds</a><a href="#collaboration">Collaboration</a><a href="#open-source">Open source</a>
         </nav>
         <div className={styles.headerActions}>
-          <a className={styles.sourceButton} href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">
-            View source
-          </a>
-          <button className={styles.primaryButton} type="button" onClick={onEnter}>
-            Enter PlotPickle
-          </button>
+          <a className={styles.sourceButton} href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">View source</a>
+          <button className={styles.primaryButton} type="button" onClick={onEnter}>Enter PlotPickle</button>
         </div>
       </header>
 
@@ -138,282 +72,93 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
         <section className={styles.hero}>
           <div className={`${styles.wrap} ${styles.heroGrid}`}>
             <div className={styles.heroCopy}>
-              <p className={styles.kicker}>Visual storyworld · local-first · owner-controlled</p>
-              <h1>See the whole movie<span>before you make it.</span></h1>
+              <p className={styles.kicker}>One installer · local-first · owner-controlled</p>
+              <h1>Build better stories.<span>Review faster. Stay in control.</span></h1>
               <p className={styles.lede}>{PLOTPICKLE_POSITIONING.summary}</p>
               <div className={styles.heroActions}>
-                <button className={styles.primaryButton} type="button" onClick={onEnter}>
-                  Open PlotPickle
-                </button>
+                <button className={styles.primaryButton} type="button" onClick={onEnter}>Open PlotPickle</button>
                 <a className={styles.lightButton} href="#builds">Choose your build</a>
-                <a className={styles.textButton} href="#studio">See how it works</a>
+                <a className={styles.textButton} href="#studio">Explore the workflow</a>
               </div>
               <div className={styles.trustRow} aria-label="PlotPickle operating principles">
-                <span>Portable PPF projects</span>
-                <span>Works without AI</span>
-                <span>No required cloud account</span>
-                <span>Official local edition</span>
-                <span>Human-controlled approvals</span>
-                <span>GNU AGPLv3</span>
+                <span>Portable PPF projects</span><span>Works without AI</span><span>Windows · macOS · Linux</span><span>Human-controlled approvals</span><span>Optional Buzz</span><span>GNU AGPLv3</span>
               </div>
             </div>
 
-            <div className={styles.heroVisual} aria-label="PlotPickle visual storyworld product loop">
-              <div className={styles.localBar}>
-                <span><i aria-hidden="true" /> Running privately</span>
-                <code>127.0.0.1</code>
-              </div>
+            <div className={styles.heroVisual} aria-label="Product-authentic PlotPickle Dashboard preview">
+              <div className={styles.localBar}><span><i aria-hidden="true" /> Local project</span><code>127.0.0.1</code></div>
               <div className={styles.visualBody}>
                 <div className={styles.visualHeading}>
-                  <span>The complete visual storyworld core</span>
-                  <h2>One PPF. One movie you can finally see whole.</h2>
-                  <p>The Storyworld Map, visual development, previsualization and review evidence are available now—without a rendering API.</p>
+                  <span>Dashboard · real project state</span>
+                  <h2>One storyworld, visible from canon to approval.</h2>
+                  <p>No mascot, fake avatar or fabricated online team. Every card represents a real project field or an honest connection state.</p>
                 </div>
                 <div className={styles.storyMap}>
-                  {STORYWORLD_CORE_LOOP.map((step) => (
-                    <article className={step.id === "greenlight-evidence" ? styles.pitchPreview : undefined} data-status={step.status} key={step.id}>
-                      <small>{step.statusLabel}</small>
-                      <strong>{step.title}</strong>
-                      <span>{step.summary}</span>
-                      {step.id === "greenlight-evidence" ? <div aria-hidden="true"><i /><i /><i /><i /></div> : null}
-                    </article>
-                  ))}
+                  <article><small>Storyworld Overview</small><strong>World · Characters · Locations</strong><span>24 Blocks · 96 mini-blocks · scenes and continuity</span></article>
+                  <article><small>Writing Progress</small><strong>Development coverage</strong><span>Real planning evidence from the loaded PPF</span></article>
+                  <article><small>GitHub Approvals</small><strong>Connected or local-only</strong><span>Story Proposals remain owner-controlled in Collab</span></article>
+                  <article><small>Optional Buzz</small><strong>Not configured</strong><span>Dormant until Settings configuration is completed</span></article>
+                  <article><small>Storage & Backups</small><strong>Local-first authority</strong><span>Projects remain separate from replaceable program files</span></article>
+                  <article><small>Canon & Decisions</small><strong>Open questions</strong><span>Uncertainty stays visible instead of hiding in prose</span></article>
                 </div>
               </div>
-              <div className={styles.projectFooter}>
-                <span>PPF is the creative source of truth</span>
-                <span>The Storyworld Map is available now</span>
-                <span>The core works without external APIs</span>
-              </div>
+              <div className={styles.projectFooter}><span>PPF is the creative source of truth</span><span>GitHub is code and merge authority</span><span>Settings owns every optional connection</span></div>
             </div>
           </div>
 
           <div className={`${styles.wrap} ${styles.proofBar}`} aria-label="PlotPickle proof points">
-            <div><strong>24</strong><span>story Blocks</span></div>
-            <div><strong>96</strong><span>mini-blocks and panels</span></div>
-            <div><strong>81</strong><span>learning modules</span></div>
-            <div><strong>3</strong><span>desktop builds</span></div>
-            <div><strong>1</strong><span>interactive Storyworld Map</span></div>
+            <div><strong>24</strong><span>story Blocks</span></div><div><strong>96</strong><span>mini-blocks and panels</span></div><div><strong>81</strong><span>learning modules</span></div><div><strong>3</strong><span>desktop builds</span></div><div><strong>1</strong><span>canonical PPF storyworld</span></div>
           </div>
         </section>
 
         <section className={styles.componentStrip} aria-label="Connected PlotPickle creative spine">
-          <div className={styles.wrap}>
-            {components.map((component) => (
-              <article key={component.id}>
-                <img src={component.icon} alt="" aria-hidden="true" />
-                <div>
-                  <strong>{component.label}</strong>
-                  <span>{component.title}</span>
-                </div>
-              </article>
-            ))}
-          </div>
+          <div className={styles.wrap}>{components.map((component) => <article key={component.id}><img src={component.icon} alt="" aria-hidden="true" /><div><strong>{component.label}</strong><span>{component.title}</span></div></article>)}</div>
         </section>
 
         <section className={`${styles.section} ${styles.studio}`} id="studio">
           <div className={styles.wrap}>
-            <div className={styles.sectionHeading}>
-              <p>Five reasons to use PlotPickle</p>
-              <h2>Visualize the story logic. Build the proof.</h2>
-              <span>PlotPickle focuses on the movie&apos;s structure, hooks, turning points, continuity and previsualization—not Final Draft parity or studio finishing.</span>
-            </div>
-            <div className={styles.reasonGrid}>
-              {reasons.map((reason) => (
-                <article className={styles.reasonCard} key={reason.number}>
-                  <span>{reason.number}</span>
-                  <h3>{reason.title}</h3>
-                  <p>{reason.description}</p>
-                </article>
-              ))}
-            </div>
+            <div className={styles.sectionHeading}><p>Why PlotPickle</p><h2>Visualize the story logic. Build the proof.</h2><span>PlotPickle focuses on structure, continuity, previsualization and review evidence while people retain authorship and approval authority.</span></div>
+            <div className={styles.reasonGrid}>{reasons.map(([number, title, description]) => <article className={styles.reasonCard} key={number}><span>{number}</span><h3>{title}</h3><p>{description}</p></article>)}</div>
 
-            <div className={styles.workflowHeading}>
-              <div>
-                <p>One connected application</p>
-                <h2>Ten workspaces supporting one visual storyworld.</h2>
-              </div>
-              <span>Introduction remains available inside Learn. Simple Start remains optional inside Plan.</span>
-            </div>
+            <div className={styles.workflowHeading}><div><p>One connected application</p><h2>The complete current workspace model.</h2></div><span>Settings configures services. Collab and Buzz use those connections without becoming a second source of canon.</span></div>
             <div className={styles.workflowGrid}>
-              {PRIMARY_WORKFLOW_NAVIGATION.map((workspace, index) => (
-                <article key={workspace.id} data-zone={workspace.zone}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <div><strong>{workspace.label}</strong><p>{workspace.description}</p></div>
-                </article>
-              ))}
+              {[...PRIMARY_WORKFLOW_NAVIGATION, ...COLLABORATION_NAVIGATION].map((workspace, index) => <article key={workspace.id} data-zone={workspace.zone}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{workspace.label}</strong><p>{workspace.description}</p></div></article>)}
             </div>
 
-            <div className={styles.workflowHeading}>
-              <div>
-                <p>The completed visual storyworld core</p>
-                <h2>From story logic to a case worth seeing.</h2>
-              </div>
-              <span>Every card below is available now. External movie-rendering APIs remain optional future extensions, not a requirement or a shipped claim.</span>
-            </div>
-            <div className={styles.featureGrid}>
-              {featureHighlights.map((feature) => (
-                <article data-status={feature.status} key={feature.title}>
-                  <span>{feature.eyebrow}</span>
-                  <h3>{feature.title}</h3>
-                  <p>{feature.description}</p>
-                  <small>{feature.proof}</small>
-                </article>
-              ))}
-            </div>
+            <div className={styles.workflowHeading}><div><p>Product-authentic capabilities</p><h2>Available features and optional connections are clearly separated.</h2></div><span>Native bundled Buzz binaries are not advertised as shipped until checksums, licences and clean-machine tests exist.</span></div>
+            <div className={styles.featureGrid}>{featureHighlights.map(([eyebrow, title, description]) => <article data-status="available" key={title}><span>{eyebrow}</span><h3>{title}</h3><p>{description}</p><small>Human-controlled · local-first · inspectable</small></article>)}</div>
           </div>
         </section>
 
         <section className={`${styles.section} ${styles.builds}`} id="builds">
           <div className={`${styles.wrap} ${styles.buildLayout}`}>
-            <div className={styles.buildCopy}>
-              <p className={styles.kicker}>Three builds · one codebase</p>
-              <h2>PlotPickle goes where the writer works.</h2>
-              <p>
-                Windows, macOS and Linux receive the same complete local-first studio. Each
-                clean-machine tested release candidate is packaged on its target operating system,
-                then published with a SHA-256 checksum.
-              </p>
-              <ul>
-                <li>No separate feature editions</li>
-                <li>No required PlotPickle cloud account</li>
-                <li>No background Windows service or administrator requirement</li>
-                <li>Projects remain separate from replaceable program files</li>
-              </ul>
-              <a className={styles.sourceLink} href={downloadUrl} target="_blank" rel="noreferrer">
-                Open all release downloads
-              </a>
-            </div>
-            <div className={styles.buildCards}>
-              {PLOTPICKLE_DESKTOP_BUILDS.map((build, index) => (
-                <article key={build.id}>
-                  <div className={styles.platformMark} aria-hidden="true">{String(index + 1).padStart(2, "0")}</div>
-                  <div className={styles.buildCardCopy}>
-                    <span>Desktop build</span>
-                    <h3>{build.platform}</h3>
-                    <p>{build.detail}</p>
-                    <dl>
-                      <div><dt>Archive</dt><dd>{build.archive}</dd></div>
-                      <div><dt>Launcher</dt><dd>{build.launcher}</dd></div>
-                    </dl>
-                  </div>
-                  <a href={downloadUrl} target="_blank" rel="noreferrer" aria-label={`Open the ${build.platform} PlotPickle release download`}>
-                    Get {build.platform}
-                  </a>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className={`${styles.section} ${styles.openSource}`} id="open-source">
-          <div className={styles.wrap}>
-            <div className={styles.sectionHeading}>
-              <p>Open source with clear boundaries</p>
-              <h2>Open software. Open method. Your story.</h2>
-              <span>PlotPickle separates software rights, educational material, brand identity and the writer&apos;s original creative work.</span>
-            </div>
-            <div className={styles.openGrid}>
-              {OPEN_SOURCE_FOUNDATIONS.map((foundation) => (
-                <article key={foundation.label}>
-                  <span>{foundation.label}</span>
-                  <h3>{foundation.title}</h3>
-                  <p>{foundation.summary}</p>
-                </article>
-              ))}
-            </div>
-            <div className={styles.openCallout}>
-              <div>
-                <span>Created in the open</span>
-                <h3>Built from Bryan Elgin Harris&apos;s 24 Blocks method and the Afterglow story-development work.</h3>
-                <p>Software is AGPL-3.0-or-later. Unless otherwise marked, the method and reusable documentation are CC BY-SA 4.0. Modifications and contributors remain documented in the repository.</p>
-              </div>
-              <div>
-                <a className={styles.primaryButton} href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">Explore the source</a>
-                <a className={styles.darkButton} href="/legal">Read licensing and ownership</a>
-              </div>
-            </div>
+            <div className={styles.buildCopy}><p className={styles.kicker}>Windows · macOS · Linux</p><h2>One application. Three desktop packages.</h2><p>Each release candidate is built on its target operating system and published with a SHA-256 checksum. There is no required PlotPickle cloud account, administrator installation or background Windows service.</p><ul><li>One installer experience</li><li>Projects separated from program files</li><li>Reusable local runtime and recovery tools</li><li>Optional connections remain disconnected by default</li></ul><a className={styles.sourceLink} href={downloadUrl} target="_blank" rel="noreferrer">Open release downloads</a></div>
+            <div className={styles.buildCards}>{PLOTPICKLE_DESKTOP_BUILDS.map((build, index) => <article key={build.id}><div className={styles.platformMark} aria-hidden="true">{String(index + 1).padStart(2, "0")}</div><div className={styles.buildCardCopy}><span>Desktop build</span><h3>{build.platform}</h3><p>{build.detail}</p><dl><div><dt>Archive</dt><dd>{build.archive}</dd></div><div><dt>Launcher</dt><dd>{build.launcher}</dd></div></dl></div><a href={downloadUrl} target="_blank" rel="noreferrer">Get {build.platform}</a></article>)}</div>
           </div>
         </section>
 
         <section className={`${styles.section} ${styles.aiSection}`}>
           <div className={`${styles.wrap} ${styles.aiLayout}`}>
-            <div className={styles.aiCopy}>
-              <p className={styles.kicker}>Optional AI with visible human control</p>
-              <h2>Choose the helper. Keep the decision.</h2>
-              <p>
-                PlotPickle can prepare bounded story context for writing, character imagery,
-                Graphic Novel panels, storyboards and production shots. AI and external
-                rendering engines remain optional and disconnected until deliberately configured.
-                Nothing becomes canonical until the project owner approves it.
-              </p>
-              <div className={styles.guardrails}>
-                <span>Credentials stay outside projects</span>
-                <span>Prompts remain reviewable</span>
-                <span>Provenance travels with retained work</span>
-                <span>Failed connections never block writing</span>
-              </div>
-            </div>
-            <div className={styles.aiChoices}>
-              {aiChoices.map(([title, description]) => (
-                <article key={title}><strong>{title}</strong><span>{description}</span></article>
-              ))}
-            </div>
+            <div className={styles.aiCopy}><p className={styles.kicker}>Optional assistance with visible human control</p><h2>Choose the helper. Keep the decision.</h2><p>AI, GitHub, Google and Buzz remain disconnected until deliberately configured. Credentials stay outside PPF projects, and nothing becomes canonical until a person approves it.</p><div className={styles.guardrails}><span>Credentials stay outside projects</span><span>Prompts and suggestions remain reviewable</span><span>Failed connections never block writing</span><span>Buzz is dormant by default</span></div></div>
+            <div className={styles.aiChoices}>{aiChoices.map(([title, description]) => <article key={title}><strong>{title}</strong><span>{description}</span></article>)}</div>
           </div>
         </section>
 
         <section className={`${styles.section} ${styles.collaboration}`} id="collaboration">
           <div className={`${styles.wrap} ${styles.collaborationLayout}`}>
-            <div className={styles.collaborationCopy}>
-              <p className={styles.kicker}>Collaboration without surrendering the film</p>
-              <h2>Propose changes. Review meaning. Approve selectively.</h2>
-              <p>
-                GitHub is optional. When connected, each collaborator can work in a complete
-                PlotPickle installation and submit Story Proposals through their own branch.
-                The Project Lead decides what joins the approved story.
-              </p>
-              <div className={styles.roles} aria-label="PlotPickle collaboration roles">
-                {collaborationRoles.map((role) => <span key={role}>{role}</span>)}
-              </div>
-              <ul>
-                <li>Private-by-default story repository setup</li>
-                <li>Dialogue, character and production changes reviewed independently</li>
-                <li>Approval controls, conflict review and guarded recovery</li>
-                <li>Local work stays local until deliberately proposed or synchronized</li>
-              </ul>
-            </div>
-            <div className={styles.collaborationImage}>
-              <img src="/brand/marketing/plotpickle-multi-server-collaboration.svg" alt="Complete PlotPickle installations collaborating through one owner-controlled GitHub film repository" />
-            </div>
+            <div className={styles.collaborationCopy}><p className={styles.kicker}>Collab and Buzz have different jobs</p><h2>Approve formally. Discuss freely. Preserve canon.</h2><p>Collab owns GitHub Story Proposals, approvals, meetings and calendars. Buzz adds optional rooms, agents, media discussion and development activity. Feedback remains the permanent review record.</p><div className={styles.roles}>{collaborationRoles.map((role) => <span key={role}>{role}</span>)}</div><ul><li>Only a human GitHub merge changes shared canonical material</li><li>Buzz messages and agent suggestions never become PPF canon automatically</li><li>Developer Mode uses isolated worktrees and branch-only publishing</li><li>Settings owns connection setup, lifecycle, recovery and removal</li></ul></div>
+            <div className={styles.collaborationImage}><img src="/brand/marketing/plotpickle-multi-server-collaboration.svg" alt="Complete PlotPickle installations collaborating through one owner-controlled GitHub film repository" /></div>
           </div>
         </section>
 
-        <section className={styles.finalSection}>
-          <div className={`${styles.wrap} ${styles.finalCard}`}>
-            <div>
-              <span>PlotPickle Playhouse</span>
-              <h2>Shape the storyworld. See the movie. Make the case.</h2>
-              <p>Use the complete visual core now, then add external connections only if the project truly needs them.</p>
-            </div>
-            <div className={styles.finalActions}>
-              <button className={styles.primaryButton} type="button" onClick={onEnter}>Enter PlotPickle</button>
-              <a className={styles.lightButton} href={downloadUrl} target="_blank" rel="noreferrer">View all three builds</a>
-            </div>
-          </div>
+        <section className={`${styles.section} ${styles.openSource}`} id="open-source">
+          <div className={styles.wrap}><div className={styles.sectionHeading}><p>Open source with clear boundaries</p><h2>Open software. Open method. Your story.</h2><span>PlotPickle separates software rights, educational material and each creator&apos;s original work.</span></div><div className={styles.openGrid}>{OPEN_SOURCE_FOUNDATIONS.map((foundation) => <article key={foundation.label}><span>{foundation.label}</span><h3>{foundation.title}</h3><p>{foundation.summary}</p></article>)}</div></div>
         </section>
+
+        <section className={styles.finalSection}><div className={`${styles.wrap} ${styles.finalCard}`}><div><span>PlotPickle</span><h2>Shape the storyworld. Review the evidence. Stay in control.</h2><p>Use the complete local core now, then add GitHub, Google, AI or Buzz only when the project truly needs them.</p></div><div className={styles.finalActions}><button className={styles.primaryButton} type="button" onClick={onEnter}>Enter PlotPickle</button><a className={styles.lightButton} href={downloadUrl} target="_blank" rel="noreferrer">View all three builds</a></div></div></section>
       </main>
 
-      <footer className={styles.footer}>
-        <div className={styles.wrap}>
-          <span><strong>PlotPickle</strong> · Visual storyworld collaboration and previsualization engine</span>
-          <nav aria-label="PlotPickle information">
-            <a href="/about">About</a>
-            <a href="/legal">Licensing</a>
-            <a href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">Source</a>
-          </nav>
-          <span>Windows · macOS · Linux</span>
-        </div>
-      </footer>
+      <footer className={styles.footer}><div className={styles.wrap}><span>Visual storyworld collaboration and previsualization engine</span><nav aria-label="PlotPickle information"><a href="/about">About</a><a href="/legal">Licensing</a><a href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">Source</a></nav><span>Windows · macOS · Linux</span></div></footer>
     </div>
   );
 }

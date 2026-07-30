@@ -10,7 +10,7 @@ test("issue #112 follows the current ordered workflow-group application shell", 
   for (const label of ["Discovery & Pre-Production", "Production & Polishing", "Collaboration", "Project actions", "Application configuration"]) {
     assert.ok(direction.includes(label), `Missing shell zone: ${label}`);
   }
-  for (const label of ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Pitch", "Build", "Feedback", "Refine", "Reports"]) {
+  for (const label of ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Graphic Novel", "Build", "Feedback", "Refine", "Reports"]) {
     assert.ok(direction.includes(`\"${label}\"`), `Missing workflow item: ${label}`);
   }
   for (const label of ["New Project", "Import", "Export", "Load Example"]) {
@@ -55,7 +55,7 @@ test("issue #170 makes Introduction the first visible Learn section without addi
   ]);
   const primary = direction.slice(direction.indexOf("PRIMARY_WORKFLOW_NAVIGATION"), direction.indexOf("COLLABORATION_NAVIGATION"));
   const labels = [...primary.matchAll(/label: "([^"]+)"/g)].map((match) => match[1]);
-  assert.deepEqual(labels, ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Pitch", "Build", "Feedback", "Refine", "Reports"]);
+  assert.deepEqual(labels, ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Graphic Novel", "Build", "Feedback", "Refine", "Reports"]);
   assert.doesNotMatch(primary, /Introduction|instructions/);
   assert.match(page, /type LearnSection = "introduction" \| "library" \| "terminology" \| "screenplay"/);
   assert.match(page, /useState<LearnSection>\("introduction"\)/);

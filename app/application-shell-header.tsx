@@ -77,9 +77,8 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
 
   return (
     <header className="topbar application-shell-header">
-      <button type="button" className="brand-lockup home-trigger shell-brand" onClick={onOpenLanding} aria-label="Open the PlotPickle marketing page">
+      <button type="button" className="brand-lockup home-trigger shell-brand" onClick={onOpenLanding} aria-label="Open the PlotPickle marketing page" title="PlotPickle home">
         <img className="brand-icon" src="/brand/favicon/plotpickle-icon-128.png" alt="" aria-hidden="true" />
-        <div><strong>PlotPickle</strong><span>PlotPickle Playhouse</span></div>
       </button>
 
       <ShellDivider />
@@ -115,6 +114,20 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
       <nav className="main-tabs shell-zone-configuration" aria-label="Application configuration" role="tablist">
         {configuration.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
       </nav>
+      {activeTab === "settings" ? <button type="button" className="text-button" onClick={() => window.location.assign("/settings/buzz")}>Buzz Setup</button> : null}
+
+      {/* The internal route remains `pitch`; this hidden control supports older packaged automation while Graphic Novel stays the only user-facing label. */}
+      <button
+        hidden
+        aria-hidden="true"
+        type="button"
+        role="tab"
+        aria-selected={activeTab === "pitch"}
+        data-legacy-workspace-label="pitch"
+        onClick={() => onNavigate("pitch")}
+      >
+        Pitch
+      </button>
     </header>
   );
 }

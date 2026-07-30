@@ -1,42 +1,58 @@
 .page {
   display: grid;
-  gap: 1.25rem;
+  gap: 1.1rem;
   padding: clamp(1rem, 2.5vw, 2rem);
+  color: #eaf7f4;
+  background: linear-gradient(180deg, #091820, #0d2029);
 }
 
 .heading,
 .statusCard,
 .choiceGrid article,
+.runtimeGrid article,
+.formCard,
+.lifecycleCard,
 .boundary,
-.actions {
-  border: 1px solid color-mix(in srgb, var(--border, #c9d8d3) 84%, transparent);
+.actions,
+.notice {
+  border: 1px solid rgba(126, 194, 205, 0.23);
   border-radius: 1rem;
-  background: var(--surface, #ffffff);
+  background: linear-gradient(145deg, rgba(16, 38, 49, 0.98), rgba(8, 24, 32, 0.98));
 }
 
 .heading {
   padding: clamp(1.25rem, 3vw, 2rem);
-  background: color-mix(in srgb, var(--surface, #ffffff) 92%, #dff7ef);
+  background:
+    radial-gradient(circle at 90% 10%, rgba(90, 164, 255, 0.2), transparent 20rem),
+    linear-gradient(145deg, #102631, #091820);
 }
 
 .heading p,
 .statusCard p,
-.choiceGrid span,
-.boundary span {
+.choiceGrid p,
+.boundary p,
+.lifecycleCard p,
+.formCard p {
   margin: 0;
 }
 
 .heading h1,
 .statusCard h2,
 .choiceGrid h2,
-.boundary h2 {
+.boundary h2,
+.lifecycleCard h2,
+.formCard h2 {
   margin: 0.35rem 0 0.6rem;
+  color: #f4fffc;
 }
 
 .heading > span,
 .statusCard > p,
 .choiceGrid p,
-.boundary p {
+.boundary p,
+.lifecycleCard p,
+.formCard p {
+  color: #a9c3c9;
   line-height: 1.55;
 }
 
@@ -55,7 +71,8 @@
   padding: 0.65rem 0.8rem;
   border: 1px solid #c66f6f;
   border-radius: 0.75rem;
-  background: #fff5f5;
+  background: rgba(115, 25, 25, 0.2);
+  color: #ffd8d8;
   white-space: nowrap;
 }
 
@@ -63,43 +80,155 @@
   width: 0.7rem;
   height: 0.7rem;
   border-radius: 999px;
-  background: #b52c2c;
+  background: #e76565;
 }
 
+.runtimeGrid,
 .choiceGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
   gap: 0.9rem;
 }
 
+.runtimeGrid article,
 .choiceGrid article {
   display: grid;
   gap: 0.55rem;
   padding: 1.1rem;
 }
 
+.runtimeGrid span,
 .choiceGrid span,
-.boundary span {
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+.boundary > span,
+.formCard > div > span,
+.lifecycleCard > div > span {
+  color: #88d8ff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.runtimeGrid strong {
+  color: #f4fffc;
+}
+
+.runtimeGrid small,
+.choiceGrid small,
+.toggle small {
+  color: #8da8ae;
+  line-height: 1.5;
+}
+
+.selectedChoice {
+  border-color: rgba(120, 229, 157, 0.55) !important;
+  box-shadow: inset 0 0 0 1px rgba(120, 229, 157, 0.15);
 }
 
 .choiceGrid button,
 .actions button,
-.actions a {
+.actions a,
+.lifecycleActions button {
   justify-self: start;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid rgba(126, 194, 205, 0.35);
+  border-radius: 0.65rem;
+  background: rgba(27, 67, 82, 0.75);
+  color: #d7f4ff;
+  font-weight: 750;
+  text-decoration: none;
 }
 
+.choiceGrid button,
+.actions button,
+.lifecycleActions button {
+  cursor: pointer;
+}
+
+.formCard,
+.lifecycleCard,
 .boundary {
   padding: 1.25rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.8rem;
+  margin: 1rem 0;
+}
+
+.formGrid label {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.formGrid label > span {
+  color: #b9d5db;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.formGrid input {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid rgba(126, 194, 205, 0.25);
+  border-radius: 0.65rem;
+  background: rgba(4, 16, 23, 0.72);
+  color: #efffff;
+}
+
+.formGrid input:disabled {
+  color: #6f8c94;
+}
+
+.toggle {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.85rem 0;
+  border-top: 1px solid rgba(126, 194, 205, 0.12);
+}
+
+.toggle > span {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.toggle b {
+  color: #f4fffc;
+}
+
+.lifecycleCard {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.7fr) minmax(0, 1.3fr);
+  gap: 1.2rem;
+}
+
+.lifecycleActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-content: flex-start;
+}
+
+.lifecycleActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .boundary ul {
   margin: 0.8rem 0 0;
   padding-left: 1.2rem;
+  color: #b8ced2;
   line-height: 1.6;
+}
+
+.notice {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  color: #cfe5ff;
 }
 
 .actions {
@@ -110,12 +239,15 @@
   padding: 1rem 1.25rem;
 }
 
-.actions a {
-  text-decoration: none;
+.removeAction {
+  border-color: rgba(231, 101, 101, 0.5) !important;
+  color: #ffd1d1 !important;
 }
 
-@media (max-width: 720px) {
-  .statusCard {
+@media (max-width: 760px) {
+  .statusCard,
+  .lifecycleCard {
+    grid-template-columns: 1fr;
     flex-direction: column;
   }
 }

@@ -64,7 +64,9 @@ test("issue #182 keeps provider setup in Settings and uses split GitHub surfaces
   assert.match(settings, /Sign in with Google/);
   assert.match(settings, /Disconnect and revoke/);
   assert.match(workspace, /Open \{status\.label\} settings/);
-  assert.match(workspace, /Settings → GitHub/);
+  assert.match(workspace, /Settings → Repository & Collab/);
+  assert.match(workspace, /Powered by GitHub/);
+  assert.match(workspace, /View GitHub connection settings/);
   assert.match(workspace, /Settings → Scheduling & Meetings/);
   assert.doesNotMatch(workspace, /Sign in with Google|Connect GitHub Account|fine-grained GitHub token/);
   assert.match(collaboration, /"configuration" \| "approvals"/);

@@ -123,17 +123,20 @@ test("issue #190 reuses guarded repository setup, local folders and reviewed syn
   assert.doesNotMatch(hook, /force-push|--force/);
 });
 
-test("issue #190 keeps bundled loading as default and adds the real Dashboard switch", async () => {
+test("issue #190 keeps bundled loading explicit while the Dashboard stays project-generic", async () => {
   const [page, dashboard] = await Promise.all([
     source("app/page.tsx"),
     source("app/dashboard-command-centre.tsx"),
   ]);
   for (const phrase of [
-    "Afterglow not loaded",
-    "Afterglow loaded locally",
-    "Afterglow GitHub repository connected",
-    "Use Afterglow GitHub repository",
+    "Current project source",
+    "Local project on this device",
+    "Repository configured; local project still loaded",
+    "GitHub repository working copy",
+    "Bundled example loaded locally",
+    "Use the example’s GitHub working copy",
   ]) assert.ok(dashboard.includes(phrase), `Dashboard is missing: ${phrase}`);
+  assert.match(dashboard, /source\.isBundledExample/);
   assert.match(dashboard, /type="checkbox"/);
   assert.match(dashboard, /role="switch"/);
   assert.match(page, /createAfterglowProject\(\)/);

@@ -7,7 +7,7 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #85 defines one canonical primary navigation", async () => {
   const contract = await source("lib/product-direction.ts");
-  const expected = ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Pitch", "Build", "Feedback", "Refine", "Reports"];
+  const expected = ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Graphic Novel", "Build", "Feedback", "Refine", "Reports"];
   for (const label of expected) assert.match(contract, new RegExp(`label: "${label.replace(/[&]/g, "\\&")}"`));
   assert.match(contract, /Discovery & Pre-Production/);
   assert.match(contract, /Production & Polishing/);

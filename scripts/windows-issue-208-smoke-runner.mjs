@@ -27,6 +27,15 @@ const sourcePath = fileURLToPath(new URL("./windows-issue-208-smoke.mjs", import
 const runtimePath = path.join(os.tmpdir(), `plotpickle-issue-208-smoke-runtime-${process.pid}-${Date.now()}.mjs`);
 let source = await readFile(sourcePath, "utf8");
 
+const initialTarget = 'const target = await createTarget(debugPort, `${baseUrl}/`);';
+if (!source.includes(initialTarget)) {
+  throw new Error("The Issue #208 initial browser target could not be located.");
+}
+source = source.replace(
+  initialTarget,
+  'const target = await createTarget(debugPort, `${baseUrl}/?workspace=dashboard`);',
+);
+
 const dashboardPredicate = 'document.body.innerText.includes("Current project source")';
 if (!source.includes(dashboardPredicate)) {
   throw new Error("The Issue #208 Dashboard smoke predicate could not be located.");

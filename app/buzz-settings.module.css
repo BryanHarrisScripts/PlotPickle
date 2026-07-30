@@ -1,0 +1,121 @@
+.page {
+  display: grid;
+  gap: 1.25rem;
+  padding: clamp(1rem, 2.5vw, 2rem);
+}
+
+.heading,
+.statusCard,
+.choiceGrid article,
+.boundary,
+.actions {
+  border: 1px solid color-mix(in srgb, var(--border, #c9d8d3) 84%, transparent);
+  border-radius: 1rem;
+  background: var(--surface, #ffffff);
+}
+
+.heading {
+  padding: clamp(1.25rem, 3vw, 2rem);
+  background: color-mix(in srgb, var(--surface, #ffffff) 92%, #dff7ef);
+}
+
+.heading p,
+.statusCard p,
+.choiceGrid span,
+.boundary span {
+  margin: 0;
+}
+
+.heading h1,
+.statusCard h2,
+.choiceGrid h2,
+.boundary h2 {
+  margin: 0.35rem 0 0.6rem;
+}
+
+.heading > span,
+.statusCard > p,
+.choiceGrid p,
+.boundary p {
+  line-height: 1.55;
+}
+
+.statusCard {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.25rem;
+  align-items: flex-start;
+  padding: 1.25rem;
+}
+
+.statusBadge {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #c66f6f;
+  border-radius: 0.75rem;
+  background: #fff5f5;
+  white-space: nowrap;
+}
+
+.statusBadge i {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: #b52c2c;
+}
+
+.choiceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 0.9rem;
+}
+
+.choiceGrid article {
+  display: grid;
+  gap: 0.55rem;
+  padding: 1.1rem;
+}
+
+.choiceGrid span,
+.boundary span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.choiceGrid button,
+.actions button,
+.actions a {
+  justify-self: start;
+}
+
+.boundary {
+  padding: 1.25rem;
+}
+
+.boundary ul {
+  margin: 0.8rem 0 0;
+  padding-left: 1.2rem;
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 1rem 1.25rem;
+}
+
+.actions a {
+  text-decoration: none;
+}
+
+@media (max-width: 720px) {
+  .statusCard {
+    flex-direction: column;
+  }
+}

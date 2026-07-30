@@ -5,11 +5,11 @@ export const PLOTPICKLE_POSITIONING = {
   category: "Visual storyworld collaboration and previsualization engine",
   hero: "See the whole movie before you make it.",
   summary:
-    "PlotPickle turns structure, canon, characters, scenes, visuals and production thinking into one interactive Storyworld Map, so a creative team can see what the movie is doing, find what is missing and present a clearer case for what comes next.",
+    "PlotPickle turns structure, canon, characters, scenes, visuals and production thinking into one interactive storyworld. Plan, write, develop a Graphic Novel and Storyboard, review evidence, coordinate GitHub approvals in Collab and optionally use Buzz rooms and agents without giving up local canon control.",
   ppf:
     "PPF is the portable creative source of truth that keeps structure, canon, screenplay material, visual decisions, production assets, approvals and provenance connected. The canonical local project folder remains authoritative while .ppf packages carry that same project model for exchange.",
   boundary:
-    "PlotPickle develops, visualizes and presents the storyworld before full production. External AI, rendering, repository and scheduling services are optional extensions; PlotPickle does not require them or replace a studio production and finishing pipeline.",
+    "PlotPickle develops, visualizes and presents the storyworld before full production. External AI, rendering, repository, scheduling and Buzz services are optional extensions; PlotPickle does not require them or replace a studio production and finishing pipeline.",
 } as const;
 
 export const STORYWORLD_CORE_LOOP = [
@@ -18,6 +18,7 @@ export const STORYWORLD_CORE_LOOP = [
   { id: "visual-development", status: "available", statusLabel: "Available now", title: "Graphic Novel + Storyboard", summary: "Carry approved characters, locations and visual language through panels and frames." },
   { id: "production-preview", status: "available", statusLabel: "Available now", title: "Production Shots + Animatic", summary: "Direct shots, timing, keyframes and sound, then play the visual material already attached to the project." },
   { id: "greenlight-evidence", status: "available", statusLabel: "Available now", title: "Pitch + Reports", summary: "Present story logic, visual direction, continuity, readiness and unresolved decisions for review." },
+  { id: "collaboration", status: "available", statusLabel: "Optional connections", title: "Collab + Buzz", summary: "Use GitHub proposals and approvals in Collab, then add optional Buzz rooms, agents and development discussion only after Settings configuration." },
 ] as const;
 
 export const STORYWORLD_PROTOTYPE_LOOP = STORYWORLD_CORE_LOOP;
@@ -41,7 +42,7 @@ export const PRIMARY_WORKFLOW_NAVIGATION = [
   { id: "planner", label: "Plan", description: "Simple Start and story planning", zone: "discovery" },
   { id: "visuals", label: "Storyboard", description: "See and preserve the film", zone: "discovery" },
   { id: "script", label: "Write", description: "Outline and write", zone: "discovery" },
-  { id: "pitch", label: "Pitch", description: "Generate and review the complete Graphic Novel package", zone: "discovery" },
+  { id: "pitch", label: "Graphic Novel", description: "Generate and review the complete Graphic Novel package", zone: "discovery" },
   { id: "build", label: "Build", description: "Arrange 24 Blocks and 96 mini-blocks", zone: "production" },
   { id: "feedback", label: "Feedback", description: "Review notes, proposals and decisions", zone: "production" },
   { id: "engines", label: "Refine", description: "Refine the story", zone: "production" },
@@ -50,7 +51,7 @@ export const PRIMARY_WORKFLOW_NAVIGATION = [
 
 export const COLLABORATION_NAVIGATION = [
   { id: "collab", label: "Collab", description: "Approvals, meetings, calendar and connected collaborators", zone: "collaboration" },
-  { id: "buzz", label: "Buzz", description: "Rooms, agents, media discussion and development activity", zone: "collaboration" },
+  { id: "buzz", label: "Buzz", description: "Optional rooms, agents, media discussion and development activity", zone: "collaboration" },
 ] as const;
 
 export const PRODUCT_NAVIGATION = [

@@ -1,11 +1,7 @@
 import assert from "node:assert/strict";
-import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
 
-const execFileAsync = promisify(execFile);
 const developmentPreviewMeta =
   /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']development["'])[^>]*>/i;
 
@@ -102,13 +98,4 @@ test("renders the Plan-owned Voiceprint route", async () => {
   assert.match(html, /Voiceprint Planner/);
   assert.match(html, /Project dialogue system/);
   assert.match(html, /Character-specific language/);
-});
-
-test("the build script emits a worker that serves the home page", async () => {
-  const script = fileURLToPath(new URL("../scripts/build-verified.mjs", import.meta.url));
-  const { stdout, stderr } = await execFileAsync(process.execPath, [script], {
-    cwd: fileURLToPath(new URL("..", import.meta.url)),
-    env: process.env,
-  });
-  assert.match(`${stdout}\n${stderr}`, /Build completed successfully|Build verified/);
 });

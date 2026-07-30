@@ -7,7 +7,10 @@ import { buildGraphicNovelHtml, graphicNovelFileName, withComicPitchDeck } from 
 import type { PlotPickleProject } from "@/lib/project";
 import type { PublicConnectionStatus } from "@/lib/connection-status";
 import AiPitchDeckWorkspaceBase from "./ai-pitch-deck-workspace-base";
+import RefreshAction from "./refresh-action";
+import { useCastIdentityQueue } from "./use-cast-identity-queue";
 import { useGraphicNovelQueue } from "./use-graphic-novel-queue";
+import castStyles from "./cast-identity-queue.module.css";
 import styles from "./graphic-novel-queue.module.css";
 
 type Props = {
@@ -49,8 +52,11 @@ async function embeddedImages(project: PlotPickleProject) {
 
 export default function AiPitchDeckWorkspace(props: Props) {
   const queue = useGraphicNovelQueue(props);
+  const cast = useCastIdentityQueue(props);
   const [exportMessage, setExportMessage] = useState("");
-  const editorAiStatus = queue.working ? { ...props.aiStatus, state: "disconnected" as const } : props.aiStatus;
+  const editorAiStatus = queue.working || cast.working
+    ? { ...props.aiStatus, state: "disconnected" as const }
+    : props.aiStatus;
 
   async function exportGraphicNovel(print = false) {
     const printWindow = print ? window.open("", "_blank") : null;
@@ -81,7 +87,7 @@ export default function AiPitchDeckWorkspace(props: Props) {
         <div>
           <span>Pitch · Automatic visual story</span>
           <h1 id="graphic-novel-title">Complete Graphic Novel</h1>
-          <p>PlotPickle turns the canonical story into 24 black-and-white Graphic Novel pages with four directed panels per page. The local queue sends exactly one provider request at a time, saves each completed image and can stop or resume at any point.</p>
+          <p>Prepare and review a 24-page, 96-panel Graphic Novel from the canonical story. Character identities are prepared separately first; the panel queue then sends exactly one provider request at a time and can stop or resume at any point.</p>
         </div>
         <div className={styles.heroBadge}><strong>{queue.progress}%</strong><span>{queue.counts.completed} completed · {queue.counts.remaining} remaining</span></div>
       </header>
@@ -101,14 +107,54 @@ export default function AiPitchDeckWorkspace(props: Props) {
           <article><strong>{queue.counts.failed}</strong><span>failed</span></article>
           <article><strong>{queue.counts.skipped}</strong><span>skipped</span></article>
         </div>
+
+        <section className={castStyles.panel} aria-labelledby="entire-cast-title">
+          <div className={castStyles.heading}>
+            <div>
+              <span>Character Visual Identity</span>
+              <h3 id="entire-cast-title">Prepare or regenerate the entire cast</h3>
+              <p>Every named character receives one sequential master-reference request. Existing locked identities remain active while replacements wait for individual review and approval.</p>
+            </div>
+            <strong>{cast.counts.locked} of {cast.counts.total} locked</strong>
+          </div>
+          <div className={castStyles.metrics}>
+            <div><strong>{cast.counts.total}</strong><span>named characters</span></div>
+            <div><strong>{cast.counts.locked}</strong><span>approved identities</span></div>
+            <div><strong>{cast.counts.pendingReview}</strong><span>replacements to review</span></div>
+            <div><strong>{cast.counts.failed}</strong><span>failed requests</span></div>
+          </div>
+          <label className={castStyles.confirmation}>
+            <input type="checkbox" checked={cast.acknowledged} onChange={(event) => cast.setAcknowledged(event.target.checked)} disabled={cast.working} />
+            <span><strong>I understand this can make up to {cast.counts.remaining} paid image API calls.</strong> PlotPickle runs one character at a time. No replacement becomes approved automatically.</span>
+          </label>
+          <div className={castStyles.actions}>
+            <button type="button" onClick={props.onOpenCharacters}>Open Character Visual Identity</button>
+            <RefreshAction label="Refresh cast plan" onClick={cast.refresh} disabled={cast.working} />
+            {cast.working
+              ? <button type="button" className={castStyles.stop} onClick={cast.stop}>Stop cast regeneration</button>
+              : <button type="button" className={castStyles.primary} onClick={() => void cast.start()} disabled={!cast.aiReady || !cast.acknowledged || cast.counts.remaining === 0}>Regenerate Entire Cast</button>}
+          </div>
+          {cast.items.some((item) => item.state !== "pending") ? (
+            <ul className={castStyles.queue} aria-label="Entire cast regeneration progress">
+              {cast.items.map((item) => (
+                <li key={item.id}>
+                  <strong>{item.label}</strong><span>{item.state}</span>
+                  {item.error ? <small>{item.error} <button type="button" disabled={cast.working} onClick={() => cast.skip(item.id)}>Skip</button></small> : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {cast.message ? <p className={castStyles.notice} role="status" aria-live="polite">{cast.message}</p> : null}
+        </section>
+
         {!queue.aiReady ? <div className={styles.warning}><div><strong>Connect and verify an image-capable provider.</strong><p>The Graphic Novel queue is optional. Every other PlotPickle workspace remains available without AI.</p></div><button type="button" onClick={props.onOpenAiSettings}>Open Story &amp; Art</button></div> : null}
-        {queue.preflight.missingCharacterLocks.length ? <div className={styles.warning}><div><strong>Lock recurring character identities first.</strong><p>{queue.preflight.missingCharacterLocks.join(", ")} {queue.preflight.missingCharacterLocks.length === 1 ? "needs" : "need"} an approved visual identity before the full queue.</p></div><button type="button" onClick={props.onOpenCharacters}>Open Character Visual Identity</button></div> : null}
+        {queue.preflight.missingCharacterLocks.length ? <div className={styles.warning}><div><strong>Lock recurring character identities first.</strong><p>{queue.preflight.missingCharacterLocks.join(", ")} {queue.preflight.missingCharacterLocks.length === 1 ? "needs" : "need"} an approved visual identity before the complete Graphic Novel queue can run.</p></div><button type="button" onClick={props.onOpenCharacters}>Open Character Visual Identity</button></div> : null}
         <div className={styles.costNotice}>
           <label><input type="checkbox" checked={queue.acknowledged} onChange={(event) => queue.setAcknowledged(event.target.checked)} /><span><strong>I understand this run can make up to {queue.preflight.remainingImages} paid image API calls.</strong> PlotPickle sends one image request at a time. Stopping prevents the next request, while the provider may still finish or charge for the active request.</span></label>
           <label><span>Image quality</span><select value={queue.quality} onChange={(event) => queue.setQuality(event.target.value as "low" | "medium" | "high")} disabled={queue.working}><option value="low">Draft · low cost and faster</option><option value="medium">Presentation · medium</option><option value="high">Final · high cost and slower</option></select></label>
         </div>
         <div className={styles.actions}>
-          <button type="button" onClick={() => queue.refresh(true)} disabled={queue.working}>Refresh plan, keep completed art</button>
+          <RefreshAction label="Refresh plan, keep completed art" onClick={() => queue.refresh(true)} disabled={queue.working} />
           <button type="button" onClick={() => queue.refresh(false)} disabled={queue.working}>Rebuild all 96 panels</button>
           {queue.working
             ? <button type="button" className={styles.stop} onClick={queue.stop}>Stop generation</button>
@@ -137,28 +183,8 @@ export default function AiPitchDeckWorkspace(props: Props) {
 
       <section className={styles.exports} aria-labelledby="graphic-novel-export-title">
         <div><span>Export</span><h2 id="graphic-novel-export-title">Carry the Graphic Novel into the room</h2><p>Completed images are embedded into one portable HTML file. Dialogue balloons remain real text, and the same layout prints as a landscape PDF.</p>{exportMessage ? <small>{exportMessage}</small> : null}</div>
-        <div><button type="button" disabled={!queue.counts.completed || queue.working} onClick={() => void exportGraphicNovel(false)}>Download self-contained HTML</button><button type="button" disabled={!queue.counts.completed || queue.working} onClick={() => void exportGraphicNovel(true)}>Print / Save as PDF</button></div>
+        <div><button type="button" disabled={!queue.counts.completed || queue.working || cast.working} onClick={() => void exportGraphicNovel(false)}>Download self-contained HTML</button><button type="button" disabled={!queue.counts.completed || queue.working || cast.working} onClick={() => void exportGraphicNovel(true)}>Print / Save as PDF</button></div>
       </section>
     </section>
   );
 }
-
-/*
-Legacy Issue #167 source markers remain in ai-pitch-deck-workspace-base.tsx:
-I understand this run can make up to {preflight.remainingImages} paid image API calls
-disabled={!aiReady || !preflight.ready || !acknowledged
-new AbortController()
-consecutiveErrors >= 3
-failedPanelIds
-void generate(next, failedPanelIds)
-Generate complete pitch deck
-Resume remaining panels
-Retry 
-Regenerate this panel
-Pause generation
-Completed panels are saved as the run progresses
-Dialogue balloons
-Download self-contained HTML
-Print / Save as PDF
-FileReader
-*/

@@ -50,6 +50,7 @@ export const PRIMARY_WORKFLOW_NAVIGATION = [
 
 export const COLLABORATION_NAVIGATION = [
   { id: "collab", label: "Collab", description: "Approvals, meetings, calendar and connected collaborators", zone: "collaboration" },
+  { id: "buzz", label: "Buzz", description: "Rooms, agents, media discussion and development activity", zone: "collaboration" },
 ] as const;
 
 export const PRODUCT_NAVIGATION = [
@@ -99,7 +100,7 @@ export const FIVE_KEY_SELLING_POINTS = [
   { id: "learning-system", title: "Story logic you can see", moduleCount: LEARNING_MODULE_COUNT, summary: "Use 24 Blocks, 96 mini-blocks and the 81-module learning system to expose hooks, turning points, causality, arcs and continuity." },
   { id: "visual-continuity", title: "Connected visual development", summary: "Carry approved character identities, world references, Graphic Novel panels, storyboard frames and Production Shots through one visual language." },
   { id: "local-first", title: "A clearer case for the movie", summary: "Bring the Storyworld Map, screenplay, Graphic Novel, Storyboard, Production Shots, Animatic, Pitch and Reports together as persuasive previsualization evidence." },
-  { id: "distributed-collaboration", title: "Local-first ownership with optional connections", summary: "Keep control of projects, files, canon and approvals while using AI, GitHub, Google or future media engines only when deliberately chosen." },
+  { id: "distributed-collaboration", title: "Local-first ownership with optional connections", summary: "Keep control of projects, files, canon and approvals while using AI, GitHub, Google, Buzz or future media engines only when deliberately chosen." },
 ] as const;
 
 export const COLLABORATION_ROLES = ["Writer", "Director", "Producer", "Actor", "Reviewer"] as const;

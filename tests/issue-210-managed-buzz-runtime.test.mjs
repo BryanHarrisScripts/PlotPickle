@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
+import "./issue-212-buzz-dashboard-marketing-alignment.test.mjs";
 
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
@@ -38,7 +39,7 @@ test("issue #210 places Buzz beside Collab without changing the creative workflo
     direction.indexOf("export const PRIMARY_WORKFLOW_NAVIGATION"),
     direction.indexOf("export const COLLABORATION_NAVIGATION"),
   );
-  const labels = ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Pitch", "Build", "Feedback", "Refine", "Reports"];
+  const labels = ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Graphic Novel", "Build", "Feedback", "Refine", "Reports"];
   assert.equal([...primary.matchAll(/label: "/g)].length, labels.length);
   let previous = -1;
   for (const label of labels) {
@@ -49,6 +50,7 @@ test("issue #210 places Buzz beside Collab without changing the creative workflo
 
   assert.match(direction, /id: "collab", label: "Collab"[\s\S]*id: "buzz", label: "Buzz"/);
   assert.match(header, /id === "buzz"[\s\S]*window\.location\.assign\("\/buzz"\)/);
+  assert.match(header, /Buzz Setup/);
   assert.match(route, /activeTab="buzz"/);
   assert.match(route, /<BuzzWorkspace/);
 });
@@ -72,8 +74,9 @@ test("issue #210 keeps Settings, PPF and GitHub authority boundaries explicit", 
 
   assert.match(settings, /Settings · Integrations · Buzz/);
   assert.match(settings, /Use bundled local Buzz/);
-  assert.match(settings, /Configure bundled Buzz/);
-  assert.match(settings, /disabled>Configure bundled Buzz/);
+  assert.match(settings, /Connect an existing relay/);
+  assert.match(settings, /Save Buzz configuration/);
+  assert.match(settings, /Bundled runtime unavailable/);
 });
 
 test("issue #210 does not pretend native Buzz binaries are already packaged", async () => {
@@ -87,7 +90,8 @@ test("issue #210 does not pretend native Buzz binaries are already packaged", as
 
   assert.match(runtime, /packaged: false/);
   assert.match(workspace, /native Buzz binaries are not packaged in this build yet/);
-  assert.match(settings, /Unavailable until platform-native artifacts and manifests pass clean-machine validation/);
+  assert.match(settings, /Native artifacts not packaged/);
+  assert.match(settings, /checksums and clean-machine validation/);
   assert.match(packagingReadme, /No Buzz executable is committed by the Phase 1 architecture work/);
   assert.match(packagingReadme, /checksummed and clean-machine tested/);
   assert.deepEqual(entries.map((entry) => entry.name).sort(), ["README.md"]);

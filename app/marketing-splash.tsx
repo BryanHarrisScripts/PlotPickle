@@ -6,6 +6,21 @@ import { graphicNovelText } from "@/lib/ai-pitch-deck";
 
 export type MarketingSplashProps = Parameters<typeof MarketingSplashBase>[0];
 
+const DEEP_LINK_WORKSPACES = new Set([
+  "dashboard",
+  "learn",
+  "plan",
+  "storyboard",
+  "write",
+  "pitch",
+  "build",
+  "feedback",
+  "refine",
+  "reports",
+  "collab",
+  "settings",
+]);
+
 function translateReactNode(node: ReactNode): ReactNode {
   if (typeof node === "string") return graphicNovelText(node);
   if (Array.isArray(node)) return React.Children.map(node, (child) => translateReactNode(child));
@@ -21,8 +36,9 @@ function translateReactNode(node: ReactNode): ReactNode {
 }
 
 export default function MarketingSplash(props: MarketingSplashProps) {
-  React.useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("workspace") === "1") props.onEnter();
+  React.useLayoutEffect(() => {
+    const requestedWorkspace = new URLSearchParams(window.location.search).get("workspace");
+    if (requestedWorkspace && DEEP_LINK_WORKSPACES.has(requestedWorkspace)) props.onEnter();
   }, [props.onEnter]);
 
   const rendered = MarketingSplashBase(props);

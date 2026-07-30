@@ -52,7 +52,7 @@ export default function AboutPlotPicklePage() {
       <section className={styles.panel}>
         <header><span>How it evolved</span><h2>From Afterglow to one canonical project</h2><p>The earlier work was consolidated rather than erased. Historical names remain aliases, not current product architecture.</p></header>
         <div className={styles.timeline}>{plotPickleTimeline.map((item) => <article key={item.stage}><small>{item.stage}</small><h3>{item.title}</h3><p>{item.text}</p></article>)}</div>
-        <Link className={styles.textLink} href="/docs/history/from-openstory-to-plotpickle.md">Read the detailed historical record</Link>
+        <Link className={styles.textLink} href="/read-learn?module=why-plotpickle-works-in-layers">Read how the product layers converged</Link>
       </section>
 
       <section className={styles.panel}>

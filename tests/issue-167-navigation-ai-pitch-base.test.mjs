@@ -12,13 +12,13 @@ test("issue #167 keeps exactly ten primary workflow steps in the requested order
     direction.indexOf("export const COLLABORATION_NAVIGATION"),
   );
   const actual = [...primary.matchAll(/label: "([^"]+)"/g)].map((match) => match[1]);
-  assert.deepEqual(actual, ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Pitch", "Build", "Feedback", "Refine", "Reports"]);
+  assert.deepEqual(actual, ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Graphic Novel", "Build", "Feedback", "Refine", "Reports"]);
   assert.equal([...primary.matchAll(/zone: "discovery"/g)].length, 6);
   assert.equal([...primary.matchAll(/zone: "production"/g)].length, 4);
   assert.doesNotMatch(primary, /Introduction|Settings/);
 });
 
-test("the application shell renders both named groups and the new Pitch workspace", async () => {
+test("the application shell renders both named groups and the Graphic Novel workspace", async () => {
   const [header, page] = await Promise.all([
     source("app/application-shell-header.tsx"),
     source("app/page.tsx"),

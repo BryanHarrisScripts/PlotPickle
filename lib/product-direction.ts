@@ -13,90 +13,26 @@ export const PLOTPICKLE_POSITIONING = {
 } as const;
 
 export const STORYWORLD_CORE_LOOP = [
-  {
-    id: "ppf",
-    status: "available",
-    statusLabel: "Available now",
-    title: "PPF storyworld",
-    summary: "Portable canon, structure, screenplay material, visuals, approvals and provenance remain connected.",
-  },
-  {
-    id: "storyworld-map",
-    status: "available",
-    statusLabel: "Available now",
-    title: "Interactive Storyworld Map",
-    summary: "See 24 Blocks and 96 mini-blocks with relationships, hooks, turns, arcs, causality and continuity.",
-  },
-  {
-    id: "visual-development",
-    status: "available",
-    statusLabel: "Available now",
-    title: "Graphic Novel + Storyboard",
-    summary: "Carry approved characters, locations and visual language through panels and frames.",
-  },
-  {
-    id: "production-preview",
-    status: "available",
-    statusLabel: "Available now",
-    title: "Production Shots + Animatic",
-    summary: "Direct shots, timing, keyframes and sound, then play the visual material already attached to the project.",
-  },
-  {
-    id: "greenlight-evidence",
-    status: "available",
-    statusLabel: "Available now",
-    title: "Pitch + Reports",
-    summary: "Present story logic, visual direction, continuity, readiness and unresolved decisions for review.",
-  },
+  { id: "ppf", status: "available", statusLabel: "Available now", title: "PPF storyworld", summary: "Portable canon, structure, screenplay material, visuals, approvals and provenance remain connected." },
+  { id: "storyworld-map", status: "available", statusLabel: "Available now", title: "Interactive Storyworld Map", summary: "See 24 Blocks and 96 mini-blocks with relationships, hooks, turns, arcs, causality and continuity." },
+  { id: "visual-development", status: "available", statusLabel: "Available now", title: "Graphic Novel + Storyboard", summary: "Carry approved characters, locations and visual language through panels and frames." },
+  { id: "production-preview", status: "available", statusLabel: "Available now", title: "Production Shots + Animatic", summary: "Direct shots, timing, keyframes and sound, then play the visual material already attached to the project." },
+  { id: "greenlight-evidence", status: "available", statusLabel: "Available now", title: "Pitch + Reports", summary: "Present story logic, visual direction, continuity, readiness and unresolved decisions for review." },
 ] as const;
 
 export const STORYWORLD_PROTOTYPE_LOOP = STORYWORLD_CORE_LOOP;
 
 export const PLOTPICKLE_DESKTOP_BUILDS = [
-  {
-    id: "windows",
-    platform: "Windows",
-    archive: "PlotPickle-Windows.zip",
-    launcher: "Start-PlotPickle.bat",
-    detail: "Guided local launcher with repair and update tools.",
-  },
-  {
-    id: "macos",
-    platform: "macOS",
-    archive: "PlotPickle-macOS.zip",
-    launcher: "Start-PlotPickle.command",
-    detail: "A complete local-server package for Apple computers.",
-  },
-  {
-    id: "linux",
-    platform: "Linux",
-    archive: "PlotPickle-Linux.zip",
-    launcher: "start-plotpickle.sh",
-    detail: "A portable local-server package with a shell launcher.",
-  },
+  { id: "windows", platform: "Windows", archive: "PlotPickle-Windows.zip", launcher: "Start-PlotPickle.bat", detail: "Guided local launcher with repair and update tools." },
+  { id: "macos", platform: "macOS", archive: "PlotPickle-macOS.zip", launcher: "Start-PlotPickle.command", detail: "A complete local-server package for Apple computers." },
+  { id: "linux", platform: "Linux", archive: "PlotPickle-Linux.zip", launcher: "start-plotpickle.sh", detail: "A portable local-server package with a shell launcher." },
 ] as const;
 
 export const OPEN_SOURCE_FOUNDATIONS = [
-  {
-    label: "Software",
-    title: "GNU AGPLv3 or later",
-    summary: "Study, modify, share and self-host the PlotPickle software while preserving the licence and source-code obligations.",
-  },
-  {
-    label: "Method and documentation",
-    title: "Creative Commons BY-SA 4.0",
-    summary: "The 24 Blocks method and reusable learning material remain open with attribution to Bryan Elgin Harris and share-alike terms.",
-  },
-  {
-    label: "Your creative work",
-    title: "Your story remains yours",
-    summary: "Using PlotPickle does not transfer ownership of your screenplay, characters, images, notes or exported project files.",
-  },
-  {
-    label: "Open platform",
-    title: "Portable projects, plugins and SDK",
-    summary: "Human-readable project data, portable .ppf exchange packages and permission-controlled extensions reduce lock-in.",
-  },
+  { label: "Software", title: "GNU AGPLv3 or later", summary: "Study, modify, share and self-host the PlotPickle software while preserving the licence and source-code obligations." },
+  { label: "Method and documentation", title: "Creative Commons BY-SA 4.0", summary: "The 24 Blocks method and reusable learning material remain open with attribution to Bryan Elgin Harris and share-alike terms." },
+  { label: "Your creative work", title: "Your story remains yours", summary: "Using PlotPickle does not transfer ownership of your screenplay, characters, images, notes or exported project files." },
+  { label: "Open platform", title: "Portable projects, plugins and SDK", summary: "Human-readable project data, portable .ppf exchange packages and permission-controlled extensions reduce lock-in." },
 ] as const;
 
 export const PRIMARY_WORKFLOW_NAVIGATION = [
@@ -105,7 +41,7 @@ export const PRIMARY_WORKFLOW_NAVIGATION = [
   { id: "planner", label: "Plan", description: "Simple Start and story planning", zone: "discovery" },
   { id: "visuals", label: "Storyboard", description: "See and preserve the film", zone: "discovery" },
   { id: "script", label: "Write", description: "Outline and write", zone: "discovery" },
-  { id: "pitch", label: "Pitch", description: "Generate and review the complete comic-book pitch deck", zone: "discovery" },
+  { id: "pitch", label: "Pitch", description: "Generate and review the complete Graphic Novel package", zone: "discovery" },
   { id: "build", label: "Build", description: "Arrange 24 Blocks and 96 mini-blocks", zone: "production" },
   { id: "feedback", label: "Feedback", description: "Review notes, proposals and decisions", zone: "production" },
   { id: "engines", label: "Refine", description: "Refine the story", zone: "production" },
@@ -132,7 +68,7 @@ export const PROJECT_ACTIONS = [
   { id: "new-project", label: "New Project" },
   { id: "import", label: "Import" },
   { id: "export", label: "Export" },
-  { id: "load-afterglow", label: "Load Afterglow" },
+  { id: "load-afterglow", label: "Load Example" },
 ] as const;
 
 export const APPLICATION_SHELL_ZONES = [
@@ -159,32 +95,11 @@ export const SIMPLE_START = {
 } as const;
 
 export const FIVE_KEY_SELLING_POINTS = [
-  {
-    id: "complete-studio",
-    title: "Visual storyworld in one PPF",
-    summary: "Keep canon, characters, structure, screenplay material, visuals, shots, sound and provenance connected in one portable creative source of truth.",
-  },
-  {
-    id: "learning-system",
-    title: "Story logic you can see",
-    moduleCount: LEARNING_MODULE_COUNT,
-    summary: "Use 24 Blocks, 96 mini-blocks and the 81-module learning system to expose hooks, turning points, causality, arcs and continuity.",
-  },
-  {
-    id: "visual-continuity",
-    title: "Connected visual development",
-    summary: "Carry approved character identities, world references, Graphic Novel panels, storyboard frames and Production Shots through one visual language.",
-  },
-  {
-    id: "local-first",
-    title: "A clearer case for the movie",
-    summary: "Bring the Storyworld Map, screenplay, Graphic Novel, Storyboard, Production Shots, Animatic, Pitch and Reports together as persuasive previsualization evidence.",
-  },
-  {
-    id: "distributed-collaboration",
-    title: "Local-first ownership with optional connections",
-    summary: "Keep control of projects, files, canon and approvals while using AI, GitHub, Google or future media engines only when deliberately chosen.",
-  },
+  { id: "complete-studio", title: "Visual storyworld in one PPF", summary: "Keep canon, characters, structure, screenplay material, visuals, shots, sound and provenance connected in one portable creative source of truth." },
+  { id: "learning-system", title: "Story logic you can see", moduleCount: LEARNING_MODULE_COUNT, summary: "Use 24 Blocks, 96 mini-blocks and the 81-module learning system to expose hooks, turning points, causality, arcs and continuity." },
+  { id: "visual-continuity", title: "Connected visual development", summary: "Carry approved character identities, world references, Graphic Novel panels, storyboard frames and Production Shots through one visual language." },
+  { id: "local-first", title: "A clearer case for the movie", summary: "Bring the Storyworld Map, screenplay, Graphic Novel, Storyboard, Production Shots, Animatic, Pitch and Reports together as persuasive previsualization evidence." },
+  { id: "distributed-collaboration", title: "Local-first ownership with optional connections", summary: "Keep control of projects, files, canon and approvals while using AI, GitHub, Google or future media engines only when deliberately chosen." },
 ] as const;
 
 export const COLLABORATION_ROLES = ["Writer", "Director", "Producer", "Actor", "Reviewer"] as const;

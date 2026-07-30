@@ -62,7 +62,7 @@
     "test:connection-trust": "node --test tests/issue-144-connection-trust.test.mjs",
     "test:github-app-connection": "node --test tests/issue-146-github-app-connection.test.mjs",
     "test:automatic-story-project": "node --test tests/issue-148-automatic-story-project-setup.test.mjs",
-    "test:git-native-sync": "node --test tests/issue-150-git-native-sync.test.mjs",
+    "test:git-native-sync": "node --test tests/issue-150-git-native-project-sync.test.mjs",
     "test:story-proposals": "node --test tests/issue-152-story-proposals.test.mjs",
     "test:collaboration-invitations": "node --test tests/issue-156-collaboration-invitations.test.mjs",
     "test:review-workflows": "node --test tests/issue-117-ai-human-review.test.mjs",

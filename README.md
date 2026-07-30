@@ -6,21 +6,21 @@
 
 **A local-first visual storyworld collaboration and previsualization engine.**
 
-PlotPickle keeps story logic, canon, characters, screenplay material, Graphic Novel panels, Storyboard frames, production planning, review evidence and provenance connected in one portable PPF project. The Dashboard now presents the real loaded project, writing progress, Storyworld Overview, GitHub approval state, local storage, unresolved canon decisions and the optional Buzz workspace without fictional collaborators or decorative product mockups.
+PlotPickle keeps story logic, canon, characters, screenplay material, Graphic Novel panels, Storyboard frames, production planning, review evidence and provenance connected in one portable PPF project. The Dashboard presents the real loaded project, writing progress, Storyworld Overview, GitHub approval state, local storage, unresolved canon decisions and the optional Buzz workspace without fictional collaborators or decorative product mockups.
 
-[Getting Started](public/docs/readme/GETTING-STARTED.md) · [Writing & Production](public/docs/readme/WRITING-AND-PRODUCTION.md) · [Collaboration & Development](public/docs/readme/COLLABORATION-AND-DEVELOPMENT.md) · [Official repository](https://github.com/BryanHarrisScripts/PlotPickle)
+[Getting Started](public/docs/readme/GETTING-STARTED.md) · [Writing & Production](public/docs/readme/WRITING-AND-PRODUCTION.md) · [Collaboration & Development](public/docs/readme/COLLABORATION-AND-DEVELOPMENT.md) · [Official repository](https://github.com/BryanHarrisScripts/PlotPickle) · [About PlotPickle](app/about/page.tsx) · [OpenStory history](docs/history/from-openstory-to-plotpickle.md)
 
 ## Five reasons to use PlotPickle
 
 1. **Visual storyworld in one PPF** — keep canon, characters, structure, screenplay material, visuals, approvals and provenance connected.
-2. **Story logic you can see** — expose hooks, turning points, causality, arcs and continuity through 24 Blocks and 96 mini-blocks.
+2. **Story logic you can see** — use 24 Blocks, 96 mini-blocks and the 81-module learning system to expose hooks, turning points, causality, arcs and continuity.
 3. **Connected visual development** — carry approved identities and locations through Graphic Novel, Storyboard, Production Shots and Animatic.
-4. **Review with evidence** — use Feedback, Pitch and Reports to make readiness and unresolved decisions visible.
+4. **A clearer case for the movie** — use the Storyworld Map, screenplay, Graphic Novel, Storyboard, Feedback, Pitch and Reports to make readiness and unresolved decisions visible.
 5. **Local-first ownership with optional connections** — use AI, GitHub, Google and Buzz only when deliberately configured.
 
 ## The visual storyworld core
 
-PPF is the portable creative source of truth. It keeps structure, canon, screenplay material, visual decisions, production assets, approvals and provenance connected while the canonical local project folder remains authoritative.
+**The complete visual storyworld core** keeps development, previsualization, review and ownership connected without requiring external services. PPF is the portable creative source of truth. It keeps structure, canon, screenplay material, visual decisions, production assets, approvals and provenance connected while the canonical local project folder remains authoritative. The core works without external APIs.
 
 Available now:
 
@@ -30,6 +30,8 @@ Available now:
 - Feedback, Pitch and Reports
 - owner-controlled Collab
 - Buzz workspace shell, Settings configuration model and dormant runtime contracts
+
+**Afterglow: Reflections of Sentience** remains the persistent reference project used to verify the connected visual storyworld, legacy visual boundaries and screenplay-version reconciliation.
 
 ## What PlotPickle does
 
@@ -52,7 +54,7 @@ The primary application navigation is:
 - **Storyboard** preserves approved visual identity and continuity across the movie.
 - **Write** develops treatment and screenplay material from the same canonical project.
 - **Graphic Novel** develops the 24-page, 96-panel visual presentation.
-- **Build** owns structural arrangement.
+- **Build** owns structural arrangement. Structural arrangement belongs only to Build; Refine reads the same structure for diagnosis instead of exposing a second editor.
 - **Feedback** remains the permanent structured review and resolution record.
 - **Refine** provides diagnostic and specialist passes without creating a second structure editor.
 - **Reports** measures screenplay, character, scene, production, continuity and readiness evidence.
@@ -86,7 +88,9 @@ PlotPickle's complete local creative core works without external accounts or API
 | **Repository & Collab** | Optional GitHub repository history, Story Proposals, approvals and recovery | Disconnected |
 | **Scheduling & Meetings** | Optional Google Calendar and Meet | Disconnected |
 | **Buzz** | Optional rooms, agents, media discussion and development activity | Not configured |
-| **Media & Film Engines** | Future provider extensions only; no active rendering API | Unavailable |
+| **Media & Film Engines** | Future extension; no active API | Unavailable |
+
+Provider-neutral render packages, automated returned-asset ingestion and third-party movie-rendering connectors are not active development commitments. Pika Labs, Runway and other media engines remain future extensions unless a separate verified implementation is approved.
 
 Credentials remain in the private local-server credential area under the current operating-system user. They are never written into PPF projects, exports, reports, prompts, logs or GitHub commits.
 
@@ -125,6 +129,8 @@ PlotPickle binds to `127.0.0.1`. Replaceable application files remain separate f
 ## Collaboration authority
 
 PPF remains authoritative for creative canon. GitHub remains authoritative for code, branches, pull requests and merges.
+
+Complete local or private web-based PlotPickle installations can collaborate through the same owner-controlled repository. Writer, Director, Producer, Actor and Reviewer are roles within PlotPickle, not separate product editions.
 
 - **Collab** coordinates formal Story Proposals, approvals, meetings and calendar activity.
 - **Buzz** provides optional conversation, agent and development context.

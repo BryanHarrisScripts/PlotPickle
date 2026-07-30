@@ -7,6 +7,7 @@ import {
   type ProjectProgressSection,
 } from "@/lib/project-progress";
 import { DORMANT_BUZZ_RUNTIME } from "@/lib/buzz-runtime";
+import AfterglowLegacyVisuals from "./afterglow-legacy-visuals";
 import styles from "./project-overview.module.css";
 
 const sectionLabels: Record<ProjectProgressSection, string> = {
@@ -72,6 +73,7 @@ export default function ProjectOverview({
     (block) => progress.blocks < 100 && (!block.summary || !block.conflict || (!block.choice && !block.action)),
   );
   const repositoryConnected = Boolean(project.collaboration.sourceRepositoryUrl);
+  const isAfterglowReference = project.id === "afterglow-echoes-of-sentience";
   const buzz = DORMANT_BUZZ_RUNTIME;
   const readySections = recommendedSectionOrder.filter((section) => progress[section] >= 70).length;
   const characterCount = project.characters.length;
@@ -90,10 +92,10 @@ export default function ProjectOverview({
           </div>
         </div>
         <div className={styles.completionCard}>
-          <span>Writing and development progress</span>
+          <span>Overall planning coverage</span>
           <strong>{overall}%</strong>
           <div aria-label={`${overall}% project coverage`}><i style={{ width: `${overall}%` }} /></div>
-          <small>{readySections}/{recommendedSectionOrder.length} planning areas carry substantial evidence. Coverage is a prompt, not a quality grade.</small>
+          <small>Writing and development progress: {readySections}/{recommendedSectionOrder.length} planning areas carry substantial evidence. Coverage is a prompt, not a quality grade.</small>
         </div>
       </section>
 
@@ -104,11 +106,21 @@ export default function ProjectOverview({
         <article><span>Approved story</span><strong>{project.metadata.status || "In development"}</strong></article>
       </section>
 
+      {isAfterglowReference ? (
+        <>
+          <AfterglowLegacyVisuals project={project} mode="overview" />
+          <section className={styles.panel} aria-label="Afterglow Source Reconciliation">
+            <header><div><p className={styles.eyebrow}>Afterglow Source Reconciliation</p><h2>Reference versions remain inspectable.</h2></div><Link href="/afterglow-reconciliation">Open Version Bridge</Link></header>
+            <p>The complete v9 screenplay, partial v10 alternate and current Reflections decisions remain separated so legacy evidence never becomes newly approved canon by accident.</p>
+          </section>
+        </>
+      ) : null}
+
       <div className={styles.dashboardGrid}>
         <section className={`${styles.panel} ${styles.storyworldPanel}`}>
-          <header><div><p className={styles.eyebrow}>Storyworld Overview</p><h2>One canonical world, connected.</h2></div><button type="button" onClick={() => onOpenSection("structureMap")}>Open map</button></header>
+          <header><div><p className={styles.eyebrow}>Storyworld Overview</p><h2>Structure snapshot</h2></div><button type="button" onClick={() => onOpenSection("structureMap")}>Open map</button></header>
           <div className={styles.storyworldMap} aria-label="Storyworld relationship summary">
-            <strong>World</strong>
+            <strong>One canonical world, connected.</strong>
             <div><button type="button" onClick={() => onOpenSection("characters")}>{characterCount} Characters</button><button type="button" onClick={() => onOpenSection("world")}>{locationCount} Locations</button><button type="button" onClick={() => onOpenSection("blocks")}>24 Blocks</button></div>
             <div><span>{allScenes.length} Scenes</span><span>{allMinis.length} Mini-blocks</span><span>{beats} Beat targets</span></div>
           </div>
@@ -116,7 +128,7 @@ export default function ProjectOverview({
         </section>
 
         <section className={styles.panel}>
-          <header><div><p className={styles.eyebrow}>Writing Progress</p><h2>{overall}% complete</h2></div><span>{readySections} areas ready</span></header>
+          <header><div><p className={styles.eyebrow}>Progress by section</p><h2>Writing Progress · {overall}% complete</h2></div><span>{readySections} areas ready</span></header>
           <div className={styles.progressList}>
             {recommendedSectionOrder.slice(0, 8).map((section) => (
               <button type="button" key={section} onClick={() => onOpenSection(section)}>
@@ -138,7 +150,10 @@ export default function ProjectOverview({
         <section className={`${styles.panel} ${repositoryConnected ? styles.healthyPanel : styles.attentionPanel}`}>
           <header><div><p className={styles.eyebrow}>GitHub Approvals</p><h2>{repositoryConnected ? "Repository connected" : "Local project only"}</h2></div><span>{repositoryConnected ? "Review in Collab" : "Setup required"}</span></header>
           <p>{repositoryConnected ? "Story Proposals and owner-controlled approvals use the connected repository. Only a human merge changes canonical code or story data." : "GitHub remains optional. Connect a repository in Settings before using Story Proposals and approval history."}</p>
-          <button type="button" onClick={() => openWorkspace(repositoryConnected ? "collab" : "settings", repositoryConnected ? undefined : "github")}>{repositoryConnected ? "Open Collab approvals" : "Configure GitHub"}</button>
+          <div className={styles.rightsLinks}>
+            <button type="button" onClick={() => openWorkspace(repositoryConnected ? "collab" : "settings", repositoryConnected ? undefined : "github")}>{repositoryConnected ? "Open Collab approvals" : "Configure GitHub"}</button>
+            {project.collaboration.sourceRepositoryUrl ? <a href={project.collaboration.sourceRepositoryUrl} target="_blank" rel="noreferrer">Open this story’s GitHub repository</a> : null}
+          </div>
         </section>
 
         <section className={`${styles.panel} ${styles.attentionPanel}`}>
@@ -154,14 +169,14 @@ export default function ProjectOverview({
         </section>
 
         <section className={styles.panel}>
-          <header><div><p className={styles.eyebrow}>Canon & decisions</p><h2>{openQuestions.length ? `${openQuestions.length} open question${openQuestions.length === 1 ? "" : "s"}` : "No open questions"}</h2></div><button type="button" onClick={() => onOpenSection("notes")}>Open Notes</button></header>
+          <header><div><p className={styles.eyebrow}>Open questions</p><h2>Canon & decisions · {openQuestions.length ? `${openQuestions.length} open question${openQuestions.length === 1 ? "" : "s"}` : "No open questions"}</h2></div><button type="button" onClick={() => onOpenSection("notes")}>Open Notes</button></header>
           {openQuestions.length ? <ul className={styles.questions}>{openQuestions.slice(0, 4).map((question) => <li key={question}>{question}</li>)}</ul> : <div className={styles.emptyState}><strong>The decision ledger is clear.</strong><p>Add unresolved canon, continuity or production questions in Notes when they appear.</p></div>}
         </section>
 
         <section className={`${styles.panel} ${styles.rightsPanel}`}>
           <header><div><p className={styles.eyebrow}>Ownership and use</p><h2>Your story remains yours.</h2></div></header>
           <p>PlotPickle software and learning materials use open licences. Your screenplay, characters, images, notes and PPF project remain under your control.</p>
-          <div className={styles.rightsLinks}><Link href="/legal">Copyright and licensing</Link><button type="button" onClick={onOpenEngines}>Review optional engines</button>{firstDevelopingBlock ? <button type="button" onClick={() => onOpenBlock(firstDevelopingBlock.number)}>Continue Block {firstDevelopingBlock.number}</button> : null}</div>
+          <div className={styles.rightsLinks}><Link href="/about">Why PlotPickle</Link><Link href="/legal">Copyright and licensing</Link><button type="button" onClick={onOpenEngines}>Review optional engines</button>{firstDevelopingBlock ? <button type="button" onClick={() => onOpenBlock(firstDevelopingBlock.number)}>Continue Block {firstDevelopingBlock.number}</button> : null}</div>
         </section>
       </div>
     </div>

@@ -10,6 +10,27 @@ PlotPickle keeps story logic, canon, characters, screenplay material, Graphic No
 
 [Getting Started](public/docs/readme/GETTING-STARTED.md) · [Writing & Production](public/docs/readme/WRITING-AND-PRODUCTION.md) · [Collaboration & Development](public/docs/readme/COLLABORATION-AND-DEVELOPMENT.md) · [Official repository](https://github.com/BryanHarrisScripts/PlotPickle)
 
+## Five reasons to use PlotPickle
+
+1. **Visual storyworld in one PPF** — keep canon, characters, structure, screenplay material, visuals, approvals and provenance connected.
+2. **Story logic you can see** — expose hooks, turning points, causality, arcs and continuity through 24 Blocks and 96 mini-blocks.
+3. **Connected visual development** — carry approved identities and locations through Graphic Novel, Storyboard, Production Shots and Animatic.
+4. **Review with evidence** — use Feedback, Pitch and Reports to make readiness and unresolved decisions visible.
+5. **Local-first ownership with optional connections** — use AI, GitHub, Google and Buzz only when deliberately configured.
+
+## The visual storyworld core
+
+PPF is the portable creative source of truth. It keeps structure, canon, screenplay material, visual decisions, production assets, approvals and provenance connected while the canonical local project folder remains authoritative.
+
+Available now:
+
+- Interactive Storyworld Map
+- Graphic Novel and Storyboard
+- Production Shots and Animatic
+- Feedback, Pitch and Reports
+- owner-controlled Collab
+- Buzz workspace shell, Settings configuration model and dormant runtime contracts
+
 ## What PlotPickle does
 
 - **PPF storyworld:** one portable creative source of truth for canon, structure, screenplay material, visuals, approvals and provenance.

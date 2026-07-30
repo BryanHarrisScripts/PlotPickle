@@ -104,7 +104,7 @@ test("Windows release validation repairs the binding and runs the packaged inter
     "Run packaged Windows interaction smoke",
     "windows-interaction-smoke.mjs . reports/windows-interaction-smoke",
     "Upload Windows interaction evidence",
-    "plotpickle-windows-interaction-smoke-",
+    "plotpickle-windows-smoke-",
     "reports/windows-interaction-smoke/",
     "PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS",
   ]) assert.ok(workflow.includes(contract), `Windows release validation is missing: ${contract}`);

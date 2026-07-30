@@ -20,35 +20,36 @@ test("issue #169 defines exactly three release builds from one product contract"
   ]) assert.ok(contract.includes(value), `Missing release contract: ${value}`);
   assert.equal([...contract.matchAll(/id: "(windows|macos|linux)"/g)].length, 3);
   assert.match(splash, /PLOTPICKLE_DESKTOP_BUILDS\.map/);
-  assert.match(splash, /Three builds · one codebase/);
-  assert.match(splash, /clean-machine tested/);
-  assert.match(splash, /SHA-256/);
+  assert.match(splash, /One application\. Three desktop packages\./);
+  assert.match(splash, /built on its target operating system/);
+  assert.match(splash, /SHA-256 checksum/);
   assert.match(splash, /View all three builds/);
 });
 
-test("issue #169 presents the completed connected visual storyworld core", async () => {
+test("issue #169 presents the complete current workspace model", async () => {
   const [splash, contract] = await Promise.all([
     source("app/marketing-splash-base.tsx"),
     source("lib/product-direction.ts"),
   ]);
-  assert.match(splash, /PRIMARY_WORKFLOW_NAVIGATION\.map/);
-  for (const label of ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Pitch", "Build", "Feedback", "Refine", "Reports"]) {
+  assert.match(splash, /PRIMARY_WORKFLOW_NAVIGATION/);
+  assert.match(splash, /COLLABORATION_NAVIGATION/);
+  for (const label of ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Graphic Novel", "Build", "Feedback", "Refine", "Reports", "Collab", "Buzz"]) {
     assert.ok(contract.includes(`label: "${label}"`), `Missing workspace: ${label}`);
   }
   for (const phrase of [
-    "Available now · Storyworld Map",
+    "Available now · Dashboard",
     "Available now · Graphic Novel + Storyboard",
-    "Available now · Production + Animatic",
-    "Available now · Pitch + Reports",
-    "Available now · Owner-controlled Collab",
+    "Available now · Feedback + Reports",
+    "Optional · Collab",
+    "Optional · Buzz",
     "Available now · Local-first",
   ]) assert.ok(splash.includes(phrase), `Missing feature story: ${phrase}`);
   for (const boundary of [
-    "Interactive map · table · export",
-    "The complete visual storyworld core",
-    "External movie-rendering APIs remain optional future extensions",
-    "not Final Draft parity or studio finishing",
-  ]) assert.ok(splash.includes(boundary), `Missing merged workspace boundary: ${boundary}`);
+    "Product-authentic PlotPickle Dashboard preview",
+    "No mascot, fake avatar or fabricated online team",
+    "Native bundled Buzz binaries are not advertised as shipped",
+    "Settings configures services. Collab and Buzz use those connections",
+  ]) assert.ok(splash.includes(boundary), `Missing product-authentic boundary: ${boundary}`);
 });
 
 test("issue #169 distinguishes open software, open learning and user ownership", async () => {
@@ -66,18 +67,19 @@ test("issue #169 distinguishes open software, open learning and user ownership",
   ]) assert.ok(contract.includes(phrase) || splash.includes(phrase), `Missing ownership boundary: ${phrase}`);
 });
 
-test("issue #169 keeps the official edition local and AI optional", async () => {
+test("issue #169 keeps the official edition local and integrations optional", async () => {
   const splash = await source("app/marketing-splash-base.tsx");
   for (const phrase of [
+    "One installer · local-first · owner-controlled",
     "Works without AI",
-    "No required cloud account",
-    "Official local edition",
+    "There is no required PlotPickle cloud account",
     "No AI",
     "OpenAI API",
     "Local or compatible model",
     "Manual prompt export",
-    "Nothing becomes canonical until",
-  ]) assert.ok(splash.includes(phrase), `Missing local or AI boundary: ${phrase}`);
+    "Buzz is dormant by default",
+    "nothing becomes canonical until a person approves it",
+  ]) assert.ok(splash.includes(phrase), `Missing local or optional-integration boundary: ${phrase}`);
   assert.doesNotMatch(splash, /Try PlotPickle Online|official online edition/i);
 });
 
@@ -88,6 +90,7 @@ test("issue #169 splash remains accessible and responsive", async () => {
   ]);
   assert.match(splash, /aria-label="Splash page navigation"/);
   assert.match(splash, /aria-label="PlotPickle operating principles"/);
+  assert.match(splash, /aria-label="Product-authentic PlotPickle Dashboard preview"/);
   assert.equal((splash.match(/onClick=\{onEnter\}/g) ?? []).length, 3);
   assert.match(splash, /\/brand\/favicon\/plotpickle-icon-128\.png/);
   assert.match(splash, /plotpickle-multi-server-collaboration\.svg/);

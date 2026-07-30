@@ -15,10 +15,14 @@ function FindingCard({ item }: { item: CraftFinding }) {
       <div><span>{item.scope}</span><b>{item.severity}</b></div>
       <h3>{item.title}</h3>
       <p>{item.reason}</p>
-      {item.evidence.length ? <details><summary>Evidence</summary><ul>{item.evidence.map((entry) => <li key={entry}>{entry}</li>)}</ul></details> : null}
-      <div className={styles.questions}>{item.questions.map((question) => <p key={question}>{question}</p>)}</div>
+      {item.evidence.length ? <details><summary>Evidence</summary><ul>{item.evidence.map((entry, index) => <li key={`${item.id}-evidence-${index}`}>{entry}</li>)}</ul></details> : null}
+      <div className={styles.questions}>{item.questions.map((question, index) => <p key={`${item.id}-question-${index}`}>{question}</p>)}</div>
     </article>
   );
+}
+
+function findingKey(item: CraftFinding) {
+  return `${item.id}-${item.title}`;
 }
 
 export function CraftDiagnosticSummary({ project, focus }: { project: PlotPickleProject; focus?: Focus }) {
@@ -35,7 +39,7 @@ export function CraftDiagnosticSummary({ project, focus }: { project: PlotPickle
         <div><b>{diagnostics.pulse.score.score}</b><span>scene pulse</span></div>
       </div>
       <div className={styles.compactFindings}>
-        {diagnostics.findings.slice(0, 3).map((item) => <FindingCard item={item} key={item.id} />)}
+        {diagnostics.findings.slice(0, 3).map((item) => <FindingCard item={item} key={findingKey(item)} />)}
         {!diagnostics.findings.length ? <p className={styles.healthy}>No active craft problem was found at this focus. Keep testing the evidence after each revision.</p> : null}
       </div>
     </section>
@@ -79,21 +83,21 @@ export default function CraftDiagnosticsWorkspace({ project }: { project: PlotPi
           <article><span>Scene Pulse</span><strong>{diagnostics.pulse.score.score}</strong><small>{diagnostics.pulse.scene?.title || "No selected scene"}</small></article>
           <article><span>Story systems</span><strong>{project.storyThreads.length + project.characters.length}</strong><small>threads and character arcs being tracked</small></article>
         </div>
-        <div className={styles.findingGrid}>{diagnostics.findings.map((item) => <FindingCard item={item} key={item.id} />)}{!diagnostics.findings.length ? <p className={styles.healthy}>No active diagnostic finding at this focus.</p> : null}</div>
+        <div className={styles.findingGrid}>{diagnostics.findings.map((item) => <FindingCard item={item} key={findingKey(item)} />)}{!diagnostics.findings.length ? <p className={styles.healthy}>No active diagnostic finding at this focus.</p> : null}</div>
       </div> : null}
 
       {view === "launch" ? <div className={styles.twoPanel}>
         <section><h2>Opening Move</h2><p>Seven first-contact effects test what the audience begins tracking, feeling and predicting.</p><div className={styles.signalList}>{diagnostics.opening.effects.map((effect) => <article data-present={effect.present} key={effect.name}><div><strong>{effect.name}</strong><span>{effect.present ? "Present" : "Missing"}</span></div><p>{effect.diagnosis}</p><small>{effect.evidence || "No evidence recorded."}</small></article>)}</div></section>
-        <section><h2>Act I Launch</h2><p>Twelve functions across Blocks 1–6 test whether the remaining eighteen blocks have enough story pressure and promise.</p><div className={styles.signalList}>{diagnostics.launch.signals.map((signal) => <article data-present={signal.present} key={`${signal.blockNumber}-${signal.name}`}><div><strong>Block {signal.blockNumber} · {signal.name}</strong><span>{signal.present ? "Present" : "Missing"}</span></div><p>{signal.diagnosis}</p><small>{signal.evidence || "No evidence recorded."}</small></article>)}</div><h3>Downstream promises</h3><ul>{diagnostics.launch.downstreamPromises.map((item) => <li key={item}>{item}</li>)}{!diagnostics.launch.downstreamPromises.length ? <li>No tracked promise yet.</li> : null}</ul></section>
+        <section><h2>Act I Launch</h2><p>Twelve functions across Blocks 1–6 test whether the remaining eighteen blocks have enough story pressure and promise.</p><div className={styles.signalList}>{diagnostics.launch.signals.map((signal) => <article data-present={signal.present} key={`${signal.blockNumber}-${signal.name}`}><div><strong>Block {signal.blockNumber} · {signal.name}</strong><span>{signal.present ? "Present" : "Missing"}</span></div><p>{signal.diagnosis}</p><small>{signal.evidence || "No evidence recorded."}</small></article>)}</div><h3>Downstream promises</h3><ul>{diagnostics.launch.downstreamPromises.map((item, index) => <li key={`promise-${index}`}>{item}</li>)}{!diagnostics.launch.downstreamPromises.length ? <li>No tracked promise yet.</li> : null}</ul></section>
       </div> : null}
 
-      {view === "threads" ? <div className={styles.overlayGrid}>{diagnostics.threads.map((thread) => <article className={styles.overlay} key={thread.id}><div><span>{thread.status}</span><strong>{thread.name}</strong></div><p>Blocks: {thread.blocks.join(", ") || "No scene evidence"}</p><div className={styles.blockTrack}>{project.blocks.map((block) => <i data-active={thread.blocks.includes(block.number)} data-gap={thread.gapBlocks.includes(block.number)} title={`Block ${block.number}`} key={block.id} />)}</div><small>{thread.milestoneCount} milestones · {thread.sceneIds.length} scenes · {thread.gapBlocks.length} gap blocks</small>{thread.findings.map((item) => <FindingCard item={item} key={item.id} />)}</article>)}{!diagnostics.threads.length ? <p className={styles.empty}>Add Story Threads in Core Model to build overlays.</p> : null}</div> : null}
+      {view === "threads" ? <div className={styles.overlayGrid}>{diagnostics.threads.map((thread) => <article className={styles.overlay} key={thread.id}><div><span>{thread.status}</span><strong>{thread.name}</strong></div><p>Blocks: {thread.blocks.join(", ") || "No scene evidence"}</p><div className={styles.blockTrack}>{project.blocks.map((block) => <i data-active={thread.blocks.includes(block.number)} data-gap={thread.gapBlocks.includes(block.number)} title={`Block ${block.number}`} key={block.id} />)}</div><small>{thread.milestoneCount} milestones · {thread.sceneIds.length} scenes · {thread.gapBlocks.length} gap blocks</small>{thread.findings.map((item) => <FindingCard item={item} key={findingKey(item)} />)}</article>)}{!diagnostics.threads.length ? <p className={styles.empty}>Add Story Threads in Core Model to build overlays.</p> : null}</div> : null}
 
       {view === "ledger" ? <div className={styles.tableWrap}><table><thead><tr><th>Status</th><th>Setup</th><th>Payoff</th><th>Reflection</th></tr></thead><tbody>{diagnostics.ledger.entries.map((entry) => <tr key={entry.id} data-status={entry.status}><td>{entry.status}</td><td><b>{entry.setupBlock ? `Block ${entry.setupBlock}` : "Missing"}</b><span>{entry.setup || "No visible setup"}</span></td><td><b>{entry.payoffBlock ? `Block ${entry.payoffBlock}` : "Open"}</b><span>{entry.payoff || "No matched payoff"}</span></td><td><b>{entry.reflectionBlock ? `Block ${entry.reflectionBlock}` : "Missing"}</b><span>{entry.reflection || "No emotional or thematic reflection"}</span></td></tr>)}</tbody></table>{!diagnostics.ledger.entries.length ? <p className={styles.empty}>Add setup and payoff text to blocks to build the ledger.</p> : null}</div> : null}
 
-      {view === "arcs" ? <div className={styles.arcGrid}>{diagnostics.arcs.map((arc) => <article className={styles.arc} key={arc.characterId}><h2>{arc.characterName}</h2><div className={styles.arcTrack}>{arc.checkpoints.map((point, index) => <div data-filled={Boolean(point.evidence)} key={`${point.label}-${index}`}><i /><strong>{point.label}</strong><span>{point.blockNumber ? `Block ${point.blockNumber}` : "Flexible"}</span><p>{point.evidence || "No visible evidence"}</p></div>)}</div>{arc.findings.map((item) => <FindingCard item={item} key={item.id} />)}</article>)}{!diagnostics.arcs.length ? <p className={styles.empty}>Add characters and Arc Matrix fields to build checkpoint views.</p> : null}</div> : null}
+      {view === "arcs" ? <div className={styles.arcGrid}>{diagnostics.arcs.map((arc) => <article className={styles.arc} key={arc.characterId}><h2>{arc.characterName}</h2><div className={styles.arcTrack}>{arc.checkpoints.map((point, index) => <div data-filled={Boolean(point.evidence)} key={`${point.label}-${index}`}><i /><strong>{point.label}</strong><span>{point.blockNumber ? `Block ${point.blockNumber}` : "Flexible"}</span><p>{point.evidence || "No visible evidence"}</p></div>)}</div>{arc.findings.map((item) => <FindingCard item={item} key={findingKey(item)} />)}</article>)}{!diagnostics.arcs.length ? <p className={styles.empty}>Add characters and Arc Matrix fields to build checkpoint views.</p> : null}</div> : null}
 
-      {view === "timeline" ? <div className={styles.tableWrap}><table><thead><tr><th>Scene</th><th>Chronology</th><th>Presentation</th><th>Shift</th><th>Temporal signal</th></tr></thead><tbody>{diagnostics.timeline.rows.map((row) => <tr key={row.sceneId}><td><b>Block {row.blockNumber}</b><span>{row.title}</span></td><td>{row.chronologyPosition}</td><td>{row.presentationPosition ?? "Not drafted"}</td><td>{row.presentationDelta === null ? "—" : row.presentationDelta === 0 ? "Same" : row.presentationDelta > 0 ? `Later +${row.presentationDelta}` : `Earlier ${row.presentationDelta}`}</td><td>{row.temporalSignal || "Linear / not signalled"}</td></tr>)}</tbody></table><div className={styles.findingGrid}>{diagnostics.timeline.findings.map((item) => <FindingCard item={item} key={item.id} />)}</div></div> : null}
+      {view === "timeline" ? <div className={styles.tableWrap}><table><thead><tr><th>Scene</th><th>Chronology</th><th>Presentation</th><th>Shift</th><th>Temporal signal</th></tr></thead><tbody>{diagnostics.timeline.rows.map((row) => <tr key={row.sceneId}><td><b>Block {row.blockNumber}</b><span>{row.title}</span></td><td>{row.chronologyPosition}</td><td>{row.presentationPosition ?? "Not drafted"}</td><td>{row.presentationDelta === null ? "—" : row.presentationDelta === 0 ? "Same" : row.presentationDelta > 0 ? `Later +${row.presentationDelta}` : `Earlier ${row.presentationDelta}`}</td><td>{row.temporalSignal || "Linear / not signalled"}</td></tr>)}</tbody></table><div className={styles.findingGrid}>{diagnostics.timeline.findings.map((item) => <FindingCard item={item} key={findingKey(item)} />)}</div></div> : null}
     </section>
   );
 }

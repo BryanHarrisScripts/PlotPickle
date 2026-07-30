@@ -27,6 +27,8 @@ test("issue #212 makes Buzz configurable in Settings without faking packaged bin
   assert.match(settings, /disabled=\{!runtime\.packaged\}/);
   assert.match(header, /activeTab === "settings"[\s\S]*Buzz Setup/);
   assert.match(header, /window\.location\.assign\("\/settings\/buzz"\)/);
+  assert.match(header, /data-legacy-workspace-label="pitch"/);
+  assert.match(header, /hidden aria-hidden="true" role="tab" aria-selected=\{activeTab === "pitch"\}[\s\S]*>Pitch<\/span>/);
   assert.match(runtime, /packaged: false/);
   assert.match(runtime, /processRunning: false/);
   assert.match(runtime, /relayListening: false/);

@@ -5,60 +5,39 @@ This is one selectable tab from the complete PlotPickle README. The canonical ro
 
 ## PlotPickle 1.0 candidate — Collaboration and Release Engineering
 
-Settings → GitHub & Backups now provides a disk-backed `.ppf` project library, rolling backups, canonical pulls, and owner-controlled collaboration proposals. Every local PlotPickle server submits changes through a unique GitHub branch and pull request; only an owner or maintainer merge changes the canonical story. Afterglow: Reflections of Sentience links directly to its current GitHub source repository. Windows, macOS and Linux release candidates are clean-machine tested and published with SHA-256 checksums, while local-only writing continues to require no PlotPickle or cloud account.
+Settings → Repository & Collab provides a disk-backed `.ppf` project library, rolling backups, canonical pulls and owner-controlled collaboration proposals. Every local PlotPickle server submits changes through a unique GitHub branch and pull request; only an owner or maintainer merges changes into the canonical story. Afterglow: Reflections of Sentience links directly to its current GitHub source repository. Windows, macOS and Linux release candidates are clean-machine tested and published with SHA-256 checksums, while local-only writing continues to require no PlotPickle or cloud account.
 
-## Whole-app Lighthouse smoke package
+## Windows packaged interaction release gate
 
-The release-gating Lighthouse smoke verifies every supported static route without sending a story project to a remote audit service. It confirms that the local server starts, each route returns a real document on the local origin, title and description metadata are present, serious browser console errors are absent and required PlotPickle brand assets load.
+The Windows release artifact is accepted only after the ZIP has been created, extracted into a clean temporary folder and supplied with a fresh dependency installation. The gate launches the same local Vite runtime and configuration files shipped in the download instead of testing a detached static preview.
 
-Lighthouse performance, accessibility, best-practices and SEO scores remain available as diagnostic evidence. The release gate does not turn those scores into arbitrary thresholds.
+The browser opens every supported static screen and the main workspace. It then discovers and exercises every visible same-origin control that is safe to activate, including navigation entries, tabs, pills, buttons, menus, expandable summaries, checkboxes, radio controls, select menus and internal links. Newly revealed interface states are revisited so nested Settings panels, dialogs and secondary controls are included.
 
-### Windows
+The gate fails when it detects an uncaught JavaScript exception, rejected promise, React runtime overlay, serious console error, failed same-origin request, empty page, missing title or description, missing required brand asset, control timeout or an incomplete state/action inventory. Settings → Repository & Collab is included, so the asynchronous GitHub account-status transition that produced the `removeChild` runtime error is exercised by the packaged build.
 
-1. Open the extracted PlotPickle source folder in File Explorer.
-2. Double-click `Run-Lighthouse.bat`.
-3. Choose the recommended all-route smoke, a full desktop or mobile diagnostic audit, both full modes, or ZIP the latest completed audit.
+The browser and server use an isolated temporary PlotPickle data home. External authentication, real GitHub repository changes, publishing, paid generation, downloads, system-folder actions and direct destructive controls are listed in the evidence report but are not executed. Safe local changes, such as switching a tab or saving isolated temporary preferences, may be exercised.
 
-The launcher uses native Windows tools. It does not open Ubuntu and does not require Windows Subsystem for Linux. If the project dependencies are missing, it installs them with `npm ci` before starting the audit.
+A hard total timeout, per-action timeout and state/action limits prevent a stuck control from consuming an unlimited CI run. Reaching an inventory limit fails the gate rather than silently claiming complete coverage. Cleanup force-terminates the complete browser and server process trees.
 
-PlotPickle builds once, starts a private preview server on `127.0.0.1`, discovers the registered application pages, audits every accessible route through Lighthouse, and creates an uploadable ZIP automatically.
-
-The command window prints the final ZIP path. Reports are stored under:
+Evidence is stored under:
 
 ```text
-reports\lighthouse\<timestamp>\
+reports\windows-interaction-smoke\
 ```
 
-The ZIP contains a PASS/FAIL route summary, required-asset results and each page's Lighthouse JSON, HTML and command log. Dynamic routes that require a real project identifier are listed separately instead of being silently skipped.
+The evidence contains JSON and Markdown summaries together with browser and server logs. The Windows package workflow uploads this folder even when the gate fails.
 
-The launcher also accepts command-line modes:
+## Lighthouse runner is retired
 
-```bat
-Run-Lighthouse.bat smoke
-Run-Lighthouse.bat all
-Run-Lighthouse.bat desktop
-Run-Lighthouse.bat mobile
-Run-Lighthouse.bat zip
-```
+PlotPickle's earlier Lighthouse runner never provided a trustworthy packaged-runtime release gate. It tested the wrong runtime, produced misleading local API and font failures, and could leave child processes running after the audit had already ended.
 
-The equivalent npm commands remain available:
-
-```bat
-npm run audit:lighthouse
-npm run audit:lighthouse:smoke
-npm run audit:lighthouse:full
-npm run audit:lighthouse:desktop
-npm run audit:lighthouse:mobile
-npm run audit:lighthouse:zip
-```
-
-Node.js 22.13.0 or newer and a locally installed Chrome or Chromium browser are required. The first audit may download the pinned Lighthouse command package. The report folder is ignored by Git so private local audit results are not committed accidentally.
+The runner is no longer used by CI or release packaging. `Run-Lighthouse.bat` and the npm Lighthouse commands now exit immediately with a retirement notice instead of launching a long or misleading audit. The Windows packaged interaction gate is the supported release test.
 
 ## Project data and migration
 
 Released projects use canonical schema `1.7.0`. Imports from schemas 1.0 through 1.6 are upgraded non-destructively.
 
-Migration preserves existing story, world, character, dialogue, note, screenplay, block, scene, mini-block, and visual data while adding dynamic scene fields, Story Threads, Character Arc Matrices, rights and provenance records, and revision history.
+Migration preserves existing story, world, character, dialogue, note, screenplay, block, scene, mini-block and visual data while adding dynamic scene fields, Story Threads, Character Arc Matrices, rights and provenance records, and revision history.
 
 Phase C reuses those existing schema 1.7 capabilities. Research entries use source attributions, AI and asset records use AI provenance, and approved specialist passes use revision snapshots with embedded before/after metadata.
 
@@ -76,11 +55,11 @@ Portable `.ppf` projects and optional GitHub collaboration now build on schema 1
 
 ## Copyright, ownership, and licences
 
-PlotPickle separates software, instructional material, user work, and brand rights.
+PlotPickle separates software, instructional material, user work and brand rights.
 
 ### User-created work
 
-Users retain the rights they hold in their original stories, screenplays, characters, dialogue, images, notes, and exported `.plotpickle.json` project files. Using PlotPickle does not transfer that material to Bryan Harris, PlotPickle, a contributor, or a server operator.
+Users retain the rights they hold in their original stories, screenplays, characters, dialogue, images, notes and exported `.plotpickle.json` project files. Using PlotPickle does not transfer that material to Bryan Harris, PlotPickle, a contributor or a server operator.
 
 ### Software
 
@@ -88,7 +67,7 @@ PlotPickle software is licensed under **GNU AGPLv3 or later** (`AGPL-3.0-or-late
 
 ### Method and documentation
 
-Unless otherwise marked, the written 24 Blocks method, documentation, diagrams, and reusable non-software instructional material are licensed under **Creative Commons Attribution-ShareAlike 4.0 International** (`CC BY-SA 4.0`).
+Unless otherwise marked, the written 24 Blocks method, documentation, diagrams and reusable non-software instructional material are licensed under **Creative Commons Attribution-ShareAlike 4.0 International** (`CC BY-SA 4.0`).
 
 ### Contributions
 
@@ -109,7 +88,7 @@ These project documents provide practical information and are not a substitute f
 
 PlotPickle’s official distribution remains the downloadable local edition. Downstream users may adapt PlotPickle for compatible server infrastructure, including Plesk or a WordPress-connected architecture, under the applicable licences.
 
-A modified version made available to remote users must prominently offer those users the corresponding source code for that version at no charge, as required by AGPLv3 section 13. Hosted editions must preserve legal notices, identify modifications, respect user ownership, and avoid implying that an unofficial edition is the official PlotPickle service.
+A modified version made available to remote users must prominently offer those users the corresponding source code for that version at no charge, as required by AGPLv3 section 13. Hosted editions must preserve legal notices, identify modifications, respect user ownership and avoid implying that an unofficial edition is the official PlotPickle service.
 
 A server operator should provide their own privacy and data-retention terms because a hosted edition may store user projects differently from the official local edition.
 

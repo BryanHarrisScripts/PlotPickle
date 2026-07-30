@@ -8,7 +8,7 @@ export type MarketingSplashProps = Parameters<typeof MarketingSplashBase>[0];
 
 function translateReactNode(node: ReactNode): ReactNode {
   if (typeof node === "string") return graphicNovelText(node);
-  if (Array.isArray(node)) return node.map(translateReactNode);
+  if (Array.isArray(node)) return React.Children.map(node, (child) => translateReactNode(child));
   if (!isValidElement(node)) return node;
   const props = node.props as Record<string, unknown> & { children?: ReactNode };
   const patch: Record<string, unknown> = {};
@@ -21,6 +21,10 @@ function translateReactNode(node: ReactNode): ReactNode {
 }
 
 export default function MarketingSplash(props: MarketingSplashProps) {
+  React.useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("workspace") === "1") props.onEnter();
+  }, [props.onEnter]);
+
   const rendered = MarketingSplashBase(props);
   return (
     <>

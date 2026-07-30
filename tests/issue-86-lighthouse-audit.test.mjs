@@ -55,7 +55,7 @@ test("issue #86 gates the clean extracted Windows package on the interaction cra
   assert.ok(interaction > extraction, "The interaction smoke must run after clean extraction and dependency installation.");
   assert.match(workflow, /node scripts\/windows-interaction-smoke\.mjs/);
   assert.match(workflow, /PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS/);
-  assert.match(workflow, /name: plotpickle-windows-interaction-smoke-/);
+  assert.match(workflow, /name: plotpickle-windows-smoke-/);
   assert.match(workflow, /reports\/windows-interaction-smoke\//);
 });
 

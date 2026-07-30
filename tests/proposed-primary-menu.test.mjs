@@ -11,7 +11,7 @@ test("the primary menu uses the approved short labels in order", async () => {
     contract.indexOf("export const PRIMARY_WORKFLOW_NAVIGATION"),
     contract.indexOf("export const COLLABORATION_NAVIGATION"),
   );
-  const labels = ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Pitch", "Build", "Feedback", "Refine", "Reports"];
+  const labels = ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Graphic Novel", "Build", "Feedback", "Refine", "Reports"];
   let lastIndex = -1;
   for (const label of labels) {
     const index = primary.indexOf(`label: "${label}"`);

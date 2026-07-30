@@ -1,0 +1,158 @@
+.page {
+  display: grid;
+  gap: 1.25rem;
+  padding: clamp(1rem, 2.5vw, 2rem);
+}
+
+.hero,
+.installBoundary,
+.runtimeComponents {
+  border: 1px solid color-mix(in srgb, var(--border, #c9d8d3) 82%, transparent);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--surface, #ffffff) 94%, #dff7ef);
+  box-shadow: 0 0.8rem 2rem rgb(20 48 42 / 8%);
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  align-items: flex-start;
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.hero p,
+.installBoundary p,
+.runtimeComponents p {
+  margin: 0 0 0.4rem;
+}
+
+.hero h1,
+.installBoundary h2,
+.runtimeComponents h2 {
+  margin: 0;
+  max-width: 52rem;
+}
+
+.hero > div:first-child > span,
+.installBoundary span {
+  display: block;
+  max-width: 64rem;
+  margin-top: 0.75rem;
+  line-height: 1.55;
+}
+
+.status {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  min-width: min(100%, 17rem);
+  padding: 0.85rem 1rem;
+  border: 1px solid #c66f6f;
+  border-radius: 0.85rem;
+  background: #fff5f5;
+}
+
+.status i {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: 0.2rem;
+  border-radius: 999px;
+  background: #b52c2c;
+  box-shadow: 0 0 0 0.22rem rgb(181 44 44 / 14%);
+}
+
+.status span {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.status small {
+  line-height: 1.4;
+}
+
+.ready {
+  border-color: #4d9f75;
+  background: #f1fbf5;
+}
+
+.ready i {
+  background: #2a7f55;
+  box-shadow: 0 0 0 0.22rem rgb(42 127 85 / 14%);
+}
+
+.installBoundary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 1.25rem;
+}
+
+.installBoundary button {
+  flex: 0 0 auto;
+}
+
+.summaryGrid,
+.sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.9rem;
+}
+
+.summaryGrid article,
+.sections article {
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--border, #c9d8d3) 86%, transparent);
+  border-radius: 0.9rem;
+  background: var(--surface, #ffffff);
+}
+
+.summaryGrid span,
+.sections span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.summaryGrid h2,
+.sections h2 {
+  margin: 0.4rem 0;
+}
+
+.summaryGrid p,
+.sections p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.runtimeComponents {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.runtimeComponents > div:nth-child(2) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.runtimeComponents code {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--border, #c9d8d3) 86%, transparent);
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, var(--surface, #ffffff) 88%, #dff7ef);
+}
+
+@media (max-width: 760px) {
+  .hero,
+  .installBoundary {
+    flex-direction: column;
+  }
+
+  .status {
+    width: 100%;
+  }
+}

@@ -36,6 +36,36 @@ source = source.replace(
   'Boolean(document.querySelector("#dashboard-project-source"))',
 );
 
+const dashboardStateAnchor = '      const state = await evaluate(client, String.raw`(() => {';
+if (!source.includes(dashboardStateAnchor)) {
+  throw new Error("The Issue #208 Dashboard state inspection could not be located.");
+}
+const dashboardSettledWait = [
+  '      await waitFor(client, `(() => {',
+  '        const section = document.querySelector("#dashboard-project-source");',
+  '        const text = String(section?.textContent || "");',
+  '        return /Loaded story/i.test(text)',
+  '          && /Local storage/i.test(text)',
+  '          && /GitHub repository/i.test(text)',
+  '          && /Approved story/i.test(text)',
+  '          && /Local project on this device/i.test(text);',
+  '      })()`, 20_000, "Settled local project source state");',
+  dashboardStateAnchor,
+].join("\n");
+source = source.replace(dashboardStateAnchor, dashboardSettledWait);
+
+const dashboardAssertions = new Map([
+  ['hasLoadedStory: body.includes("Loaded story"),', 'hasLoadedStory: /Loaded story/i.test(body),'],
+  ['hasLocalStorage: body.includes("Local storage"),', 'hasLocalStorage: /Local storage/i.test(body),'],
+  ['hasRepository: body.includes("GitHub repository"),', 'hasRepository: /GitHub repository/i.test(body),'],
+  ['hasApprovedStory: body.includes("Approved story"),', 'hasApprovedStory: /Approved story/i.test(body),'],
+  ['hasLocalLabel: body.includes("Local project on this device"),', 'hasLocalLabel: /Local project on this device/i.test(body),'],
+]);
+for (const [original, replacement] of dashboardAssertions) {
+  if (!source.includes(original)) throw new Error(`The Issue #208 Dashboard assertion could not be located: ${original}`);
+  source = source.replace(original, replacement);
+}
+
 const syntheticCheckboxChange = /const setter = Object\.getOwnPropertyDescriptor\(HTMLInputElement\.prototype, "checked"\)\?\.set;\r?\n\s*if \(!setter\) return \{ ready: false, reason: "checkbox setter missing" \};\r?\n\s*setter\.call\(checkbox, true\);\r?\n\s*checkbox\.dispatchEvent\(new Event\("input", \{ bubbles: true \}\)\);\r?\n\s*checkbox\.dispatchEvent\(new Event\("change", \{ bubbles: true \}\)\);\r?\n\s*return \{ ready: true, comicBook: \/Comic Book\|comic-book\/i\.test\(body\) \};/;
 if (!syntheticCheckboxChange.test(source)) {
   throw new Error("The Issue #208 cast acknowledgement smoke block could not be located.");

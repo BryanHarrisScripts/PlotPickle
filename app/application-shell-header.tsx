@@ -31,6 +31,9 @@ function WorkspaceButton({
   activeTab: ProductNavigationId;
   onNavigate: (tab: ProductNavigationId) => void;
 }) {
+  const userFacingDescription = id === "pitch"
+    ? "Generate and review the complete Graphic Novel package"
+    : description;
   return (
     <button
       type="button"
@@ -38,7 +41,7 @@ function WorkspaceButton({
       aria-selected={activeTab === id}
       aria-current={activeTab === id ? "page" : undefined}
       className={activeTab === id ? "active" : ""}
-      title={description}
+      title={userFacingDescription}
       onClick={() => onNavigate(id)}
     >
       <span>{label}</span>
@@ -92,7 +95,7 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
       <div className="shell-zone-project-actions" aria-label="Project actions">
         {PROJECT_ACTIONS.map((action) => (
           <button type="button" className="text-button" key={action.id} onClick={() => onProjectAction(action.id)}>
-            {action.label}
+            {action.id === "load-afterglow" ? "Load Example" : action.label}
           </button>
         ))}
       </div>

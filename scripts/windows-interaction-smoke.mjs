@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-import { createWriteStream, existsSync } from "node:fs";
+import { createWriteStream, existsSync, writeFileSync } from "node:fs";
 import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import os from "node:os";
@@ -10,11 +10,12 @@ import process from "node:process";
 
 const root = path.resolve(process.argv[2] ?? ".");
 const reportDirectory = path.resolve(process.argv[3] ?? path.join(root, "reports", "windows-interaction-smoke"));
-const totalTimeoutMs = Number(process.env.PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS || 8 * 60_000);
-const actionTimeoutMs = Number(process.env.PLOTPICKLE_SMOKE_ACTION_TIMEOUT_MS || 15_000);
-const maximumStates = Number(process.env.PLOTPICKLE_SMOKE_MAX_STATES || 180);
-const maximumActions = Number(process.env.PLOTPICKLE_SMOKE_MAX_ACTIONS || 650);
-const maximumDepth = Number(process.env.PLOTPICKLE_SMOKE_MAX_DEPTH || 6);
+const requestedTotalTimeoutMs = Number(process.env.PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS || 6 * 60_000);
+const totalTimeoutMs = Math.min(requestedTotalTimeoutMs, 6 * 60_000);
+const actionTimeoutMs = Math.min(Number(process.env.PLOTPICKLE_SMOKE_ACTION_TIMEOUT_MS || 8_000), 8_000);
+const maximumStates = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_STATES || 60), 60);
+const maximumActions = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_ACTIONS || 240), 240);
+const maximumDepth = Math.min(Number(process.env.PLOTPICKLE_SMOKE_MAX_DEPTH || 3), 3);
 const deadline = Date.now() + totalTimeoutMs;
 const appDirectory = path.join(root, "app");
 const viteEntry = path.join(root, "node_modules", "vite", "bin", "vite.js");
@@ -27,14 +28,33 @@ const requiredAssets = [
 ];
 const externalOrCostlyAction = /\b(connect|sign[ -]?in|log[ -]?in|authorize|install|update|repair|publish|merge|approve|reject|invite|send|upload|import|export|download|open folder|open github|create repository|create story project|generate|render|run ai|buy|subscribe)\b/i;
 const directMutationAction = /\b(delete|erase|wipe|remove|disconnect|revoke|reset|trash|destroy)\b/i;
+const selector = "button, a[href], [role='button'], [role='tab'], summary, input[type='checkbox'], input[type='radio'], select";
 const processes = new Set();
 let watchdog;
+let emergencyReport;
 
 if (process.platform !== "win32") throw new Error("The packaged interaction smoke must run on Windows.");
 if (!existsSync(viteEntry)) throw new Error(`Vite entry is missing: ${viteEntry}`);
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const normalizeText = (value) => String(value ?? "").replace(/\s+/g, " ").trim();
+const stateExpression = String.raw`(() => {
+  const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
+  const visible = (element) => {
+    const style = getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
+    return style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || 1) !== 0 && rect.width > 0 && rect.height > 0;
+  };
+  return {
+    url: location.href,
+    headings: [...document.querySelectorAll("h1,h2,h3")].filter(visible).slice(0, 8).map((element) => normalize(element.innerText)),
+    selected: [...document.querySelectorAll("[aria-selected='true'],[aria-current],details[open]>summary")].filter(visible).slice(0, 12).map((element) => normalize(element.innerText || element.getAttribute("aria-label"))),
+  };
+})()`;
+
+function stateKey(state) {
+  return JSON.stringify({ url: state?.url || "", headings: state?.headings || [], selected: state?.selected || [] });
+}
 
 async function choosePort(preferred) {
   for (let port = preferred; port < preferred + 100; port += 1) {
@@ -154,6 +174,10 @@ class CdpClient {
       }
       for (const listener of this.listeners.get(message.method) ?? []) listener(message.params ?? {});
     });
+    this.socket.addEventListener("close", () => {
+      for (const pending of this.pending.values()) pending.reject(new Error("Browser debugger connection closed."));
+      this.pending.clear();
+    });
   }
   send(method, params = {}) {
     const id = this.nextId++;
@@ -202,7 +226,6 @@ const guardScript = String.raw`(() => {
   }, true);
 })();`;
 
-const selector = "button, a[href], [role='button'], [role='tab'], summary, input[type='checkbox'], input[type='radio'], select";
 const candidateScript = String.raw`(() => {
   const selector = "button, a[href], [role='button'], [role='tab'], summary, input[type='checkbox'], input[type='radio'], select";
   const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
@@ -237,10 +260,13 @@ function performScript(action) {
       const current = Math.max(0, options.findIndex((option) => option.value === element.value));
       const next = options[(current + 1) % Math.max(1, options.length)];
       if (!next) return { ok: false, reason: "select-has-no-option" };
-      element.value = next.value; element.dispatchEvent(new Event("input", { bubbles: true })); element.dispatchEvent(new Event("change", { bubbles: true }));
+      element.value = next.value;
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+      element.dispatchEvent(new Event("change", { bubbles: true }));
       return { ok: true, action: "change", value: next.value };
     }
-    element.click(); return { ok: true, action: "click", url: location.href };
+    element.click();
+    return { ok: true, action: "click", url: location.href };
   })()`;
 }
 
@@ -263,9 +289,9 @@ async function waitForReady(client, expectedOrigin, timeoutMs = actionTimeoutMs)
   while (Date.now() < stopAt) {
     try {
       const state = await evaluate(client, `({ readyState: document.readyState, url: location.href, body: Boolean(document.body) })`);
-      if (state?.body && state.readyState !== "loading" && new URL(state.url).origin === expectedOrigin) { await delay(350); return state; }
+      if (state?.body && state.readyState !== "loading" && new URL(state.url).origin === expectedOrigin) { await delay(100); return state; }
     } catch {}
-    await delay(100);
+    await delay(75);
   }
   throw new Error(`Browser did not become ready within ${timeoutMs} ms.`);
 }
@@ -315,6 +341,25 @@ async function runRepositoryCollabScenario(client, events, baseUrl, baseOrigin) 
   return { passed: failures.length === 0, finalState: panel.finalState, failures };
 }
 
+async function writeReports(report) {
+  await mkdir(reportDirectory, { recursive: true });
+  await writeFile(path.join(reportDirectory, "windows-interaction-smoke.json"), `${JSON.stringify(report, null, 2)}\n`);
+  await writeFile(path.join(reportDirectory, "windows-interaction-smoke.md"), [
+    "# PlotPickle Windows packaged interaction smoke",
+    "",
+    `Result: ${report.passed ? "PASS" : "FAIL"}`,
+    `Routes: ${report.routes.filter((item) => item.passed).length}/${report.routes.length} passed`,
+    `Required assets: ${report.assets.filter((item) => item.passed).length}/${report.assets.length} passed`,
+    `Safe actions: ${report.actions.filter((item) => item.passed).length}/${report.actions.length} passed`,
+    `UI states visited: ${report.statesVisited}`,
+    `Repository & Collab: ${report.scenarios.repositoryAndCollab?.passed ? "PASS" : "FAIL"}`,
+    "",
+    "## Failures",
+    "",
+    ...(report.failures.length ? report.failures.map((item) => `- ${item}`) : ["- None"]),
+  ].join("\n") + "\n");
+}
+
 async function main() {
   await mkdir(reportDirectory, { recursive: true });
   const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), "plotpickle-smoke-"));
@@ -328,7 +373,14 @@ async function main() {
   const baseUrl = `http://127.0.0.1:${serverPort}`;
   const baseOrigin = new URL(baseUrl).origin;
   const browserExecutable = findBrowserExecutable();
-  const report = { generatedAt: new Date().toISOString(), platform: `${process.platform}-${process.arch}`, node: process.version, root, baseUrl, browserExecutable, limits: { totalTimeoutMs, actionTimeoutMs, maximumStates, maximumActions, maximumDepth }, routes: [], dynamicRoutes: [], assets: [], actions: [], skippedActions: [], scenarios: {}, statesVisited: 0, passed: false, failures: [] };
+  const report = {
+    generatedAt: new Date().toISOString(), platform: `${process.platform}-${process.arch}`, node: process.version,
+    root, baseUrl, browserExecutable,
+    limits: { requestedTotalTimeoutMs, totalTimeoutMs, actionTimeoutMs, maximumStates, maximumActions, maximumDepth },
+    routes: [], dynamicRoutes: [], assets: [], actions: [], skippedActions: [], scenarios: {}, statesVisited: 0,
+    passed: false, failures: [], progress: "starting",
+  };
+  emergencyReport = report;
 
   const server = startLoggedProcess(process.execPath, [viteEntry, "--host", "127.0.0.1", "--port", String(serverPort), "--strictPort"], {
     cwd: root, windowsHide: true,
@@ -354,9 +406,11 @@ async function main() {
     client.on("Network.responseReceived", ({ response: item }) => { if (Number(item.status) >= 400) events.push({ kind: "response", status: Number(item.status), url: item.url }); });
     client.on("Network.loadingFailed", (entry) => { if (entry.errorText !== "net::ERR_ABORTED") events.push({ kind: "loading", message: `${entry.errorText || "Network loading failed"}` }); });
 
+    report.progress = "routes";
     const inventory = await discoverRoutes();
     report.dynamicRoutes = inventory.dynamicRoutes;
     for (const route of inventory.routes) {
+      if (Date.now() >= deadline) throw new Error("The total smoke-test deadline was reached during route checks.");
       const eventStart = events.length;
       try {
         await withTimeout(navigate(client, new URL(route, `${baseUrl}/`).href, baseOrigin), actionTimeoutMs, `Route ${route}`);
@@ -365,48 +419,67 @@ async function main() {
       } catch (error) { report.routes.push({ route, passed: false, failures: [error instanceof Error ? error.message : String(error)] }); }
     }
 
+    report.progress = "assets";
     for (const asset of requiredAssets) {
       try { const assetResponse = await fetch(new URL(asset, baseUrl), { signal: AbortSignal.timeout(5_000) }); const bytes = (await assetResponse.arrayBuffer()).byteLength; report.assets.push({ path: asset, status: assetResponse.status, bytes, passed: assetResponse.ok && bytes > 0 }); }
       catch (error) { report.assets.push({ path: asset, status: null, bytes: 0, passed: false, error: error instanceof Error ? error.message : String(error) }); }
     }
 
+    report.progress = "repository-and-collab";
     report.scenarios.repositoryAndCollab = await runRepositoryCollabScenario(client, events, baseUrl, baseOrigin);
 
+    report.progress = "interaction-crawl";
     const workspaceUrl = `${baseUrl}/?workspace=dashboard`;
     const queue = [{ path: [], depth: 0 }];
+    const queuedStateKeys = new Set();
     const visitedStates = new Set();
     const testedActions = new Set();
-    async function replay(actionPath) { await navigate(client, workspaceUrl, baseOrigin); for (const action of actionPath) { const result = await evaluate(client, performScript(action)); if (!result?.ok) throw new Error(`Could not replay ${normalizeText(action.text)}: ${result?.reason || "unknown"}`); await waitForReady(client, baseOrigin); } }
+    async function replay(actionPath) {
+      await navigate(client, workspaceUrl, baseOrigin);
+      for (const action of actionPath) {
+        const result = await evaluate(client, performScript(action));
+        if (!result?.ok) throw new Error(`Could not replay ${normalizeText(action.text)}: ${result?.reason || "unknown"}`);
+        await waitForReady(client, baseOrigin);
+      }
+    }
 
     while (queue.length && visitedStates.size < maximumStates && report.actions.length < maximumActions) {
-      if (Date.now() >= deadline) throw new Error("The total smoke-test deadline was reached.");
+      if (Date.now() >= deadline) { report.failures.push("The total smoke-test deadline was reached before the interaction queue completed."); break; }
       const state = queue.shift();
       try { await withTimeout(replay(state.path), actionTimeoutMs * Math.max(1, state.path.length + 1), "Replay interaction path"); }
       catch (error) { report.failures.push(`State replay failed: ${error instanceof Error ? error.message : String(error)}`); continue; }
-      const stateValue = await evaluate(client, String.raw`(() => ({ url: location.href, headings: [...document.querySelectorAll("h1,h2,h3")].slice(0,8).map((element) => String(element.innerText || "").replace(/\s+/g," ").trim()), selected: [...document.querySelectorAll("[aria-selected='true'],[aria-current],details[open]>summary")].slice(0,12).map((element) => String(element.innerText || element.getAttribute("aria-label") || "").replace(/\s+/g," ").trim()) }))()`);
-      const stateKey = JSON.stringify(stateValue);
-      if (visitedStates.has(stateKey)) continue;
-      visitedStates.add(stateKey); report.statesVisited = visitedStates.size;
+      const stateValue = await evaluate(client, stateExpression);
+      const currentKey = stateKey(stateValue);
+      if (visitedStates.has(currentKey)) continue;
+      visitedStates.add(currentKey);
+      report.statesVisited = visitedStates.size;
       const candidates = await evaluate(client, candidateScript);
+
       for (const candidate of candidates) {
-        if (report.actions.length >= maximumActions) break;
-        const candidateKey = `${stateKey}|${candidate.base}|${candidate.occurrence}`;
+        if (Date.now() >= deadline || report.actions.length >= maximumActions) break;
+        const candidateKey = `${currentKey}|${candidate.base}|${candidate.occurrence}`;
         if (testedActions.has(candidateKey)) continue;
         testedActions.add(candidateKey);
         const classification = classifyAction(candidate, baseOrigin);
         if (classification !== "safe") { report.skippedActions.push({ state: stateValue, action: candidate, reason: classification }); continue; }
         const eventStart = events.length;
         try {
-          await replay(state.path);
+          await withTimeout(replay(state.path), actionTimeoutMs * Math.max(1, state.path.length + 1), `Prepare ${normalizeText(candidate.text)}`);
           const result = await withTimeout(evaluate(client, performScript(candidate)), actionTimeoutMs, `Activate ${normalizeText(candidate.text)}`);
           if (!result?.ok) throw new Error(result?.reason || "The control did not activate.");
           await waitForReady(client, baseOrigin);
           const inspection = await inspectPage(client, events, eventStart, baseOrigin);
-          const nextState = await evaluate(client, `({ url: location.href, body: String(document.body?.innerText || "").slice(0,500) })`);
+          const nextState = await evaluate(client, stateExpression);
+          const nextKey = stateKey(nextState);
           const passed = inspection.failures.length === 0;
           report.actions.push({ state: stateValue, action: candidate, result, nextState, passed, failures: inspection.failures });
-          if (passed && JSON.stringify(nextState) !== JSON.stringify(stateValue) && state.depth < maximumDepth) queue.push({ path: [...state.path, candidate], depth: state.depth + 1 });
-        } catch (error) { report.actions.push({ state: stateValue, action: candidate, passed: false, failures: [error instanceof Error ? error.message : String(error)] }); }
+          if (passed && nextKey !== currentKey && !visitedStates.has(nextKey) && !queuedStateKeys.has(nextKey) && state.depth < maximumDepth) {
+            queuedStateKeys.add(nextKey);
+            queue.push({ path: [...state.path, candidate], depth: state.depth + 1 });
+          }
+        } catch (error) {
+          report.actions.push({ state: stateValue, action: candidate, passed: false, failures: [error instanceof Error ? error.message : String(error)] });
+        }
       }
     }
 
@@ -419,21 +492,42 @@ async function main() {
     if (failedRoutes.length) report.failures.push(`${failedRoutes.length} route smoke check(s) failed.`);
     if (failedAssets.length) report.failures.push(`${failedAssets.length} required asset check(s) failed.`);
     if (failedActions.length) report.failures.push(`${failedActions.length} safe interaction(s) failed.`);
+    report.progress = "complete";
     report.passed = report.failures.length === 0;
-  } catch (error) { fatalError = error; report.failures.push(error instanceof Error ? error.message : String(error)); report.passed = false; }
-  finally { client?.close(); await terminateProcessTree(browser, "Browser"); await terminateProcessTree(server, "Server"); clearTimeout(watchdog); await rm(temporaryRoot, { recursive: true, force: true }).catch(() => {}); }
+  } catch (error) {
+    fatalError = error;
+    report.failures.push(error instanceof Error ? error.message : String(error));
+    report.passed = false;
+  } finally {
+    client?.close();
+    await terminateProcessTree(browser, "Browser");
+    await terminateProcessTree(server, "Server");
+    clearTimeout(watchdog);
+    await rm(temporaryRoot, { recursive: true, force: true }).catch(() => {});
+  }
 
-  await writeFile(path.join(reportDirectory, "windows-interaction-smoke.json"), `${JSON.stringify(report, null, 2)}\n`);
-  await writeFile(path.join(reportDirectory, "windows-interaction-smoke.md"), ["# PlotPickle Windows packaged interaction smoke", "", `Result: ${report.passed ? "PASS" : "FAIL"}`, `Routes: ${report.routes.filter((item) => item.passed).length}/${report.routes.length} passed`, `Required assets: ${report.assets.filter((item) => item.passed).length}/${report.assets.length} passed`, `Safe actions: ${report.actions.filter((item) => item.passed).length}/${report.actions.length} passed`, `UI states visited: ${report.statesVisited}`, `Repository & Collab: ${report.scenarios.repositoryAndCollab?.passed ? "PASS" : "FAIL"}`, "", "## Failures", "", ...(report.failures.length ? report.failures.map((item) => `- ${item}`) : ["- None"])].join("\n") + "\n");
-  if (!report.passed) { if (fatalError) console.error(fatalError.stack || fatalError.message || String(fatalError)); throw new Error(`Windows packaged interaction smoke failed. Review ${reportDirectory}.`); }
+  await writeReports(report);
+  if (!report.passed) {
+    if (fatalError) console.error(fatalError.stack || fatalError.message || String(fatalError));
+    throw new Error(`Windows packaged interaction smoke failed. Review ${reportDirectory}.`);
+  }
   console.log(`Windows packaged interaction smoke passed: ${reportDirectory}`);
 }
 
 watchdog = setTimeout(() => {
   console.error(`Windows interaction smoke exceeded its total timeout of ${totalTimeoutMs} ms.`);
+  try {
+    const report = emergencyReport || { passed: false, failures: [], progress: "unknown" };
+    report.passed = false;
+    report.failures = [...new Set([...(report.failures || []), `Watchdog timeout after ${totalTimeoutMs} ms during ${report.progress || "unknown"}.`])];
+    writeFileSync(path.join(reportDirectory, "windows-interaction-smoke.json"), `${JSON.stringify(report, null, 2)}\n`);
+    writeFileSync(path.join(reportDirectory, "windows-interaction-smoke.md"), `# PlotPickle Windows packaged interaction smoke\n\nResult: FAIL\n\n## Failures\n\n- Watchdog timeout after ${totalTimeoutMs} ms during ${report.progress || "unknown"}.\n`);
+  } catch (error) {
+    console.error(`Could not write emergency smoke evidence: ${error instanceof Error ? error.message : String(error)}`);
+  }
   for (const child of processes) { try { spawn("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {} }
   process.exit(124);
-}, totalTimeoutMs + 30_000);
+}, totalTimeoutMs + 10_000);
 watchdog.unref();
 
 main().catch((error) => { console.error(error.stack || error.message || String(error)); process.exitCode = 1; });

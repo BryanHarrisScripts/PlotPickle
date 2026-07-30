@@ -1,46 +1,26 @@
-# PlotPickle-managed Buzz runtime
+# PlotPickle managed Buzz runtime
 
-This directory is the packaging boundary for the optional Buzz sidecar runtime.
+PlotPickle uses the official Buzz relay container as an optional local writers' room. The normal PlotPickle installation remains fully usable without Buzz.
 
-No Buzz executable is committed by the Phase 1 architecture work. Native artifacts must be produced by a reproducible release workflow, pinned to a reviewed `block/buzz` source revision, checksummed and clean-machine tested before a platform manifest may set `packaged` to `true`.
+## Packaged material
 
-## Included components
+- `compose.yml` is a PlotPickle-local derivative of the official Buzz v0.4.26 production Compose bundle.
+- `manifest.json` pins the upstream repository, release revision, container tag, file checksums and licence record.
+- `LICENSE.buzz.txt` preserves the upstream Apache-2.0 licence.
 
-The managed package is expected to contain:
+The Buzz relay, Postgres, Redis and MinIO images are downloaded only after the user selects **Install managed Buzz** in Settings. They are not embedded in the PlotPickle installer.
 
-- `buzz-relay`
-- `buzz-cli`
-- `buzz-agent`
-- `buzz-dev-mcp`
-- Apache 2.0 licence and required attribution files
+## Security boundary
 
-The separate Buzz Tauri desktop client is not included because PlotPickle provides the user interface.
+- The relay port is bound to `127.0.0.1` by default.
+- Generated service secrets are written under the current PlotPickle user data directory, not into the repository or a PPF project.
+- Buzz user private keys are stored through PlotPickle's encrypted credential vault.
+- Removing managed Buzz can remove the containers and volumes without deleting PlotPickle projects.
 
-## Dormant rule
+## Runtime requirements
 
-Merely installing PlotPickle must not:
+Docker Desktop or Docker Engine with Compose v2 is required. PlotPickle validates the pinned manifest and Compose configuration before it downloads or starts anything.
 
-- start a Buzz process;
-- open a relay port;
-- generate a Buzz identity;
-- create a database, room or media store; or
-- create a Buzz credential file.
+## Authority
 
-Initialization happens only after the user chooses **Configure Buzz** in PlotPickle Settings.
-
-## Program and data separation
-
-Files in this directory are replaceable program artifacts. Generated data, encrypted credentials, logs, backups and coding-agent worktrees live outside the application folder under the current operating-system user account.
-
-## Manifest rule
-
-Each platform release must provide a manifest matching `BuzzRuntimeManifest` in `lib/buzz-runtime.ts` with:
-
-- exact source revision and Buzz version;
-- target platform;
-- component paths;
-- SHA-256 checksums;
-- required/optional component flags; and
-- licence file paths.
-
-A missing, invalid or incomplete manifest produces an honest `unavailable` or `repair-required` state. PlotPickle must never silently download or execute an unverified replacement.
+Buzz discussions and signed events are source context. A user must deliberately convert a discussion into a PlotPickle proposal and approve that proposal before the PPF changes.

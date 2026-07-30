@@ -14,9 +14,10 @@ test("issue #100 opens on the approved marketing splash with five current compon
   assert.match(page, /useState\(true\)/);
   assert.match(page, /MarketingSplash/);
   assert.match(splash, /components\.map/);
-  assert.match(splash, /See the whole movie/);
-  assert.match(splash, /STORYWORLD_CORE_LOOP\.map/);
-  assert.match(splash, /Five reasons to use PlotPickle/);
+  assert.match(splash, /Build better stories/);
+  assert.match(splash, /Product-authentic PlotPickle Dashboard preview/);
+  assert.match(splash, /reasons\.map/);
+  assert.match(splash, /The complete current workspace model/);
   for (const id of ["learn", "plan", "write", "storyboard", "refine"]) {
     assert.match(contract, new RegExp(`id: "${id}"`));
     await access(new URL(`public/brand/components/${id}.svg`, root));

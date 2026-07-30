@@ -5,7 +5,7 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #182 adds Collab after the ten creative workspaces without changing their order", async () => {
+test("issue #182 adds Collab and Buzz after the ten creative workspaces without changing their order", async () => {
   const [direction, header] = await Promise.all([
     source("lib/product-direction.ts"),
     source("app/application-shell-header.tsx"),
@@ -14,7 +14,7 @@ test("issue #182 adds Collab after the ten creative workspaces without changing 
     direction.indexOf("export const PRIMARY_WORKFLOW_NAVIGATION"),
     direction.indexOf("export const COLLABORATION_NAVIGATION"),
   );
-  const labels = ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Pitch", "Build", "Feedback", "Refine", "Reports"];
+  const labels = ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Graphic Novel", "Build", "Feedback", "Refine", "Reports"];
   assert.equal([...primary.matchAll(/label: "/g)].length, labels.length);
   let previous = -1;
   for (const label of labels) {
@@ -22,7 +22,7 @@ test("issue #182 adds Collab after the ten creative workspaces without changing 
     assert.ok(index > previous, `Creative workflow changed or lost ${label}`);
     previous = index;
   }
-  assert.match(direction, /COLLABORATION_NAVIGATION[\s\S]*id: "collab", label: "Collab"/);
+  assert.match(direction, /COLLABORATION_NAVIGATION[\s\S]*id: "collab", label: "Collab"[\s\S]*id: "buzz", label: "Buzz"/);
   assert.ok(direction.indexOf("...PRIMARY_WORKFLOW_NAVIGATION") < direction.indexOf("...COLLABORATION_NAVIGATION"));
   assert.ok(direction.indexOf("...COLLABORATION_NAVIGATION") < direction.indexOf('id: "settings"'));
   assert.match(header, /shell-zone-production[\s\S]*shell-zone-collaboration[\s\S]*shell-zone-project-actions[\s\S]*shell-zone-configuration/);
@@ -39,16 +39,12 @@ test("issue #182 renders one provider-neutral Collab workspace with the approved
   assert.match(page, /import CollabWorkspace/);
   assert.match(page, /collab: "collab"/);
   assert.match(page, /activeTab === "collab"[\s\S]*<CollabWorkspace/);
-  for (const label of ["Overview", "Approvals", "Meetings", "Calendar", "Connections"]) {
-    assert.match(workspace, new RegExp(`label: "${label}"`));
-  }
+  for (const label of ["Overview", "Approvals", "Meetings", "Calendar", "Connections"]) assert.match(workspace, new RegExp(`label: "${label}"`));
   assert.match(workspace, /Settings configures services\. Collab uses services\./);
   assert.match(workspace, /GitHub Story Proposals and Project Lead decisions/);
   assert.match(calendarUi, /Project dates only/);
   assert.match(router, /"\/collab": "collab"/);
-  for (const selector of [".hero", ".tabs", ".summaryGrid", ".providerGrid", ".emptyState"]) {
-    assert.ok(css.includes(selector), `Collab styling is missing ${selector}`);
-  }
+  for (const selector of [".hero", ".tabs", ".summaryGrid", ".providerGrid", ".emptyState"]) assert.ok(css.includes(selector), `Collab styling is missing ${selector}`);
 });
 
 test("issue #182 keeps provider setup in Settings and uses split GitHub surfaces", async () => {

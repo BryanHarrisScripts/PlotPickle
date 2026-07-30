@@ -1,52 +1,65 @@
 .page {
   width: 100%;
-  max-width: 1480px;
+  max-width: 1500px;
   margin: 0 auto;
-  padding: 52px clamp(24px, 4vw, 64px) 100px;
+  padding: 34px clamp(18px, 3vw, 48px) 88px;
+  color: #eaf7f4;
+}
+
+.hero,
+.identityGrid article,
+.panel {
+  border: 1px solid rgba(126, 194, 205, 0.22);
+  background: linear-gradient(145deg, rgba(15, 31, 40, 0.98), rgba(10, 23, 31, 0.98));
+  box-shadow: 0 18px 44px rgba(0, 10, 16, 0.22);
 }
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-columns: minmax(0, 1fr) 310px;
   align-items: center;
-  gap: 48px;
-  padding: 42px;
-  border: 1px solid #b9dfe2;
-  border-radius: 28px;
+  gap: 38px;
+  padding: clamp(26px, 4vw, 46px);
+  border-radius: 24px;
   background:
-    radial-gradient(circle at 88% 12%, rgba(105, 184, 204, 0.18), transparent 18rem),
-    linear-gradient(135deg, rgba(217, 246, 234, 0.92), rgba(223, 244, 255, 0.92));
-  box-shadow: 0 24px 70px rgba(34, 91, 105, 0.12);
+    radial-gradient(circle at 88% 8%, rgba(83, 142, 255, 0.18), transparent 22rem),
+    radial-gradient(circle at 8% 100%, rgba(120, 229, 157, 0.12), transparent 22rem),
+    linear-gradient(145deg, #102431, #091820);
 }
 
 .eyebrow {
-  margin-bottom: 9px;
-  color: #3c94a8;
+  margin: 0 0 8px;
+  color: #88d8ff;
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
 }
 
 .hero h1 {
-  max-width: 850px;
-  margin-bottom: 16px;
-  color: #123442;
-  font-size: clamp(42px, 5.5vw, 74px);
-  letter-spacing: -0.06em;
+  max-width: 900px;
+  margin: 0 0 14px;
+  color: #f7fffd;
+  font-size: clamp(38px, 5vw, 68px);
+  letter-spacing: -0.055em;
   line-height: 0.98;
 }
 
+.hero > div:first-child > p:not(.eyebrow),
+.panel > p,
+.storyworldPanel > p,
+.emptyState p {
+  color: #a9c3c9;
+  line-height: 1.65;
+}
+
 .hero > div:first-child > p:not(.eyebrow) {
-  max-width: 740px;
-  margin-bottom: 24px;
-  color: #54727d;
-  font-size: 15px;
-  line-height: 1.7;
+  max-width: 760px;
+  margin: 0 0 22px;
+  font-size: 14px;
 }
 
 .actions,
-.structureActions,
 .rightsLinks {
   display: flex;
   flex-wrap: wrap;
@@ -55,17 +68,16 @@
 
 .completionCard {
   display: grid;
-  gap: 10px;
-  padding: 26px;
-  border: 1px solid rgba(89, 156, 171, 0.3);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.82);
+  gap: 12px;
+  padding: 24px;
+  border: 1px solid rgba(126, 194, 205, 0.25);
+  border-radius: 20px;
+  background: rgba(5, 18, 26, 0.72);
 }
 
 .completionCard > span,
-.identityGrid span,
-.metricGrid span {
-  color: #54727d;
+.identityGrid span {
+  color: #86a7af;
   font-size: 9px;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -73,280 +85,309 @@
 }
 
 .completionCard > strong {
-  color: #176274;
+  color: #8ce6a7;
   font-size: 58px;
   letter-spacing: -0.06em;
   line-height: 1;
 }
 
-.completionCard > div {
+.completionCard > div,
+.progressList i {
   overflow: hidden;
-  height: 7px;
   border-radius: 999px;
-  background: #dbe8e7;
+  background: #203741;
 }
 
-.completionCard i {
+.completionCard > div {
+  height: 8px;
+}
+
+.completionCard i,
+.progressList b {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: #3c94a8;
+  background: linear-gradient(90deg, #78e59d, #5aa4ff);
 }
 
 .completionCard small {
-  color: #6e858c;
+  color: #87a4ab;
   font-size: 9px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .identityGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  margin: 18px 0;
-}
-
-.identityGrid article,
-.panel {
-  border: 1px solid #cce4e7;
-  background: rgba(251, 255, 255, 0.9);
+  margin: 16px 0;
 }
 
 .identityGrid article {
   display: grid;
   gap: 8px;
-  padding: 18px 20px;
-  border-radius: 15px;
+  min-width: 0;
+  padding: 16px 18px;
+  border-radius: 14px;
 }
 
 .identityGrid strong {
   overflow: hidden;
-  color: #123442;
-  font-size: 13px;
+  color: #f4fffc;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .dashboardGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
-  gap: 18px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
 }
 
 .panel {
+  grid-column: span 4;
   min-width: 0;
-  padding: 28px;
-  border-radius: 22px;
+  padding: 24px;
+  border-radius: 18px;
+}
+
+.panel:nth-child(1),
+.panel:nth-child(2) {
+  grid-column: span 6;
+}
+
+.panel:nth-child(7),
+.panel:nth-child(8) {
+  grid-column: span 6;
 }
 
 .panel header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 22px;
+  gap: 16px;
+  margin-bottom: 18px;
 }
 
 .panel h2 {
   margin: 0;
-  color: #123442;
-  font-size: 24px;
+  color: #f4fffc;
+  font-size: 21px;
   letter-spacing: -0.035em;
 }
 
 .panel header > span,
-.panel header > button {
+.panel header > button,
+.panel > button,
+.rightsLinks button,
+.rightsLinks a {
   flex: 0 0 auto;
-  padding: 7px 10px;
-  border: 1px solid #b9dfe2;
-  border-radius: 999px;
-  background: #fff;
-  color: #176274;
+  padding: 8px 10px;
+  border: 1px solid rgba(126, 194, 205, 0.28);
+  border-radius: 9px;
+  background: rgba(22, 48, 58, 0.8);
+  color: #bcecff;
   font-size: 9px;
   font-weight: 750;
+  text-decoration: none;
+  cursor: pointer;
 }
 
-.panel header > button,
-.progressList button,
-.structureActions button {
+.storyworldPanel {
+  background:
+    radial-gradient(circle at 50% 35%, rgba(83, 142, 255, 0.14), transparent 18rem),
+    linear-gradient(145deg, #102631, #091820);
+}
+
+.storyworldMap {
+  display: grid;
+  justify-items: center;
+  gap: 15px;
+  margin: 14px 0 18px;
+}
+
+.storyworldMap > strong {
+  padding: 9px 22px;
+  border: 1px solid rgba(120, 229, 157, 0.45);
+  border-radius: 999px;
+  background: rgba(44, 119, 77, 0.24);
+  color: #a4efb8;
+}
+
+.storyworldMap > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.storyworldMap button,
+.storyworldMap span {
+  padding: 8px 12px;
+  border: 1px solid rgba(90, 164, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(35, 70, 110, 0.34);
+  color: #cfe5ff;
+  font-size: 10px;
+}
+
+.storyworldMap button {
   cursor: pointer;
+}
+
+.storyworldMap > div:last-child span {
+  border-color: rgba(126, 194, 205, 0.2);
+  background: rgba(16, 39, 49, 0.8);
+  color: #9db8bf;
 }
 
 .progressList {
   display: grid;
-  gap: 4px;
+  gap: 5px;
 }
 
 .progressList button {
   display: grid;
-  grid-template-columns: minmax(130px, 0.8fr) minmax(110px, 1fr) 42px;
+  grid-template-columns: minmax(120px, 0.8fr) minmax(90px, 1fr) 38px;
   align-items: center;
-  gap: 12px;
-  padding: 10px 11px;
+  gap: 10px;
+  padding: 9px 8px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 9px;
   background: transparent;
-  color: #123442;
+  color: #dceceb;
   text-align: left;
+  cursor: pointer;
 }
 
 .progressList button:hover {
-  background: #edfafa;
+  background: rgba(39, 75, 87, 0.45);
 }
 
 .progressList button > span {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
 }
 
 .progressList i {
-  overflow: hidden;
   height: 5px;
-  border-radius: 999px;
-  background: #e2eceb;
-}
-
-.progressList b {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: #69b8cc;
 }
 
 .progressList button > strong {
-  color: #54727d;
+  color: #8da8ae;
   font-size: 9px;
   text-align: right;
 }
 
-.structurePanel {
-  background: linear-gradient(145deg, rgba(223, 244, 255, 0.82), rgba(217, 246, 234, 0.82));
-}
-
-.metricGrid {
+.activityList {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 9px;
 }
 
-.metricGrid article {
+.activityList article {
   display: grid;
-  gap: 4px;
-  padding: 14px;
-  border: 1px solid rgba(140, 196, 204, 0.38);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.65);
+  gap: 3px;
+  padding: 11px 12px;
+  border: 1px solid rgba(126, 194, 205, 0.14);
+  border-radius: 10px;
+  background: rgba(5, 18, 26, 0.48);
 }
 
-.metricGrid strong {
-  color: #176274;
-  font-size: 24px;
-  letter-spacing: -0.04em;
-}
-
-.structurePanel > p,
-.rightsPanel > p,
-.emptyState p {
-  color: #54727d;
+.activityList b {
+  color: #eaf7f4;
   font-size: 11px;
-  line-height: 1.65;
 }
 
-.structureActions {
-  margin: 16px 0;
-}
-
-.structureActions button,
-.rightsLinks a {
-  padding: 9px 11px;
-  border: 1px solid #a8cfd5;
-  border-radius: 9px;
-  background: #fff;
-  color: #176274;
+.activityList span {
+  color: #88a6ad;
   font-size: 9px;
-  font-weight: 750;
-  text-decoration: none;
 }
 
-.structurePanel > small {
-  color: #6c858c;
-  font-size: 8px;
+.healthyPanel {
+  border-color: rgba(120, 229, 157, 0.34);
+}
+
+.attentionPanel {
+  border-color: rgba(90, 164, 255, 0.34);
 }
 
 .questions {
   display: grid;
-  gap: 10px;
+  gap: 9px;
   margin: 0;
-  padding-left: 20px;
+  padding-left: 19px;
 }
 
 .questions li {
-  color: #365c67;
-  font-size: 11px;
+  color: #b8ced2;
+  font-size: 10px;
   line-height: 1.55;
 }
 
 .emptyState {
-  padding: 24px;
-  border: 1px dashed #a8cfd5;
-  border-radius: 14px;
+  padding: 20px;
+  border: 1px dashed rgba(126, 194, 205, 0.3);
+  border-radius: 12px;
   text-align: center;
 }
 
 .emptyState strong {
-  color: #176274;
-  font-size: 12px;
+  color: #a4efb8;
+  font-size: 11px;
 }
 
 .rightsPanel {
-  background: #123442;
-  color: #fff;
+  background: linear-gradient(145deg, #173743, #0b2029);
 }
 
-.rightsPanel .eyebrow,
-.rightsPanel h2 {
-  color: #d9f6ea;
+.rightsPanel .eyebrow {
+  color: #8ce6a7;
 }
 
-.rightsPanel > p {
-  color: #c5dce1;
-}
-
-.rightsLinks a {
-  border-color: rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.08);
-  color: #efffff;
-}
-
-@media (max-width: 1050px) {
-  .hero,
-  .dashboardGrid {
+@media (max-width: 1100px) {
+  .hero {
     grid-template-columns: 1fr;
   }
 
-  .identityGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .panel,
+  .panel:nth-child(1),
+  .panel:nth-child(2),
+  .panel:nth-child(7),
+  .panel:nth-child(8) {
+    grid-column: span 6;
   }
 }
 
-@media (max-width: 650px) {
+@media (max-width: 760px) {
   .page {
-    padding: 28px 14px 72px;
+    padding: 24px 12px 68px;
   }
 
-  .hero,
-  .panel {
-    padding: 22px;
-  }
-
-  .identityGrid,
-  .metricGrid {
+  .identityGrid {
     grid-template-columns: 1fr 1fr;
   }
 
+  .panel,
+  .panel:nth-child(1),
+  .panel:nth-child(2),
+  .panel:nth-child(7),
+  .panel:nth-child(8) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 520px) {
+  .hero,
+  .panel {
+    padding: 20px;
+  }
+
+  .identityGrid {
+    grid-template-columns: 1fr;
+  }
+
   .progressList button {
-    grid-template-columns: minmax(110px, 1fr) 70px 36px;
-    gap: 8px;
+    grid-template-columns: minmax(100px, 1fr) 70px 34px;
   }
 }

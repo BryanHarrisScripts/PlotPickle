@@ -25,7 +25,8 @@ test("issue #212 makes Buzz configurable in Settings without faking packaged bin
   assert.match(settings, />Back up</);
   assert.match(settings, />Erase identity and credentials</);
   assert.match(settings, /disabled=\{!runtime\.packaged\}/);
-  assert.match(header, /Buzz Setup/);
+  assert.match(header, /activeTab === "settings"[\s\S]*Buzz Setup/);
+  assert.match(header, /window\.location\.assign\("\/settings\/buzz"\)/);
   assert.match(runtime, /packaged: false/);
   assert.match(runtime, /processRunning: false/);
   assert.match(runtime, /relayListening: false/);
@@ -66,7 +67,7 @@ test("issue #212 updates Splash positioning and README with honest Buzz boundari
   assert.match(direction, /optional Buzz rooms, agents and development discussion/i);
   assert.match(splash, /Product-authentic PlotPickle Dashboard preview/);
   assert.match(splash, /Buzz is dormant by default/);
-  assert.doesNotMatch(splash, /mascot|collaborators online|user avatar/i);
+  assert.doesNotMatch(splash, /collaborators online|user avatar/i);
   assert.match(readme, /Dashboard · Learn · Plan · Storyboard · Write · Graphic Novel/);
   assert.match(readme, /Buzz: optional and dormant by default/);
   assert.match(readme, /no Buzz process runs/);

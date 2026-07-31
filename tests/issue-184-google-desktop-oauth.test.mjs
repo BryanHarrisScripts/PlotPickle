@@ -111,7 +111,7 @@ test("issue #184 encrypts credentials for the current OS user on all desktop pla
 
 test("issue #184 uses the system browser and sanitized polling from Settings", async () => {
   const [panel, gateway] = await Promise.all([
-    source("app/settings-panel.tsx"),
+    source("app/settings-panel-legacy.tsx"),
     source("build/local-connections-gateway.ts"),
   ]);
   assert.match(panel, /window\.open\("about:blank", "_blank"\)/);

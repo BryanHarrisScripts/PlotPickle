@@ -56,7 +56,7 @@ test("issue #182 renders one provider-neutral Collab workspace with the approved
 
 test("issue #182 keeps provider setup in Settings and uses split GitHub surfaces", async () => {
   const [settings, workspace, collaboration, base] = await Promise.all([
-    source("app/settings-panel.tsx"),
+    source("app/settings-panel-legacy.tsx"),
     source("app/collab-workspace.tsx"),
     source("app/github-collaboration.tsx"),
     source("app/github-collaboration-base.tsx"),

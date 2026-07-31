@@ -104,6 +104,6 @@ test("issue #242 wires discovery into the gateway and explains blank-path behavi
   assert.match(gateway, /releaseTag: resolution\.releaseTag/);
   assert.match(settings, /Buzz Desktop v0\.5\.3/);
   assert.match(settings, /Leave blank to use Buzz Desktop automatically/);
-  assert.match(settings, /status\?\.cli\.source/);
+  assert.match(settings, /status\.cli\.source/);
   assert.doesNotMatch(discovery.text, /spawn\s*\(|writeFile|privateKey|relayUrl/);
 });

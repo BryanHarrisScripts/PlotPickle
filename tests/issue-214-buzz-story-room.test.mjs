@@ -26,9 +26,9 @@ test("issue #214 provides project-specific Story Rooms and signed relay operatio
     assert.match(model, new RegExp(`id: "${room}"`));
   }
   assert.match(workspace, /Create project Story Rooms/);
-  assert.match(workspace, /Convert to proposal/);
-  assert.match(workspace, /Approve selected change/);
-  assert.match(workspace, /Decline proposal/);
+  assert.match(workspace, /Create reviewable proposal/);
+  assert.match(workspace, /Approve into PPF/);
+  assert.match(workspace, />Decline</);
   assert.match(gateway, /"channels", "create"/);
   assert.match(gateway, /"messages", "send"/);
   assert.match(gateway, /BUZZ_PRIVATE_KEY/);
@@ -43,7 +43,8 @@ test("issue #214 keeps PPF authority human-controlled and auditable", async () =
   assert.match(model, /applyBuzzStoryProposal/);
   assert.match(model, /declineBuzzStoryProposal/);
   assert.match(workspace, /window\.localStorage\.setItem\(PROJECT_STORAGE_KEY/);
-  assert.match(workspace, /Only an explicit human approval/);
+  assert.match(workspace, /Human approval gate/);
+  assert.match(workspace, /Approval writes one exact story field/);
 });
 
 test("issue #214 connects Settings to encrypted Phase 1A controls", async () => {

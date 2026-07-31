@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { PlotPickleProject } from "@/lib/project";
 import { portableProjectFileName } from "@/lib/project-package";
 import {
   COLLABORATION_MODES,
   COLLABORATION_MODE_COPY,
+  collaborationTransitionConfirmation,
+  githubCollaborationServiceState,
   normalizeCollaborationModeRecord,
-  withCollaborationMode,
+  transitionCollaborationMode,
   type CollaborationMode,
+  type CollaborationServiceState,
 } from "@/lib/collaboration-mode";
 import GitHubCollaborationBase from "./github-collaboration-base";
 import BuzzSettingsPanel from "./buzz-settings-panel";
@@ -25,6 +28,12 @@ type Props = {
   backupOnSave?: boolean;
 };
 
+type BuzzConfigurationStatus = {
+  connection?: { configured?: boolean };
+};
+
+const BUZZ_STATUS_API = "/api/local-buzz/status";
+
 function safeBackupLimit(value: number | undefined) {
   return Math.min(100, Math.max(1, Math.round(Number(value) || 20)));
 }
@@ -38,20 +47,35 @@ function jsonError(message: string, status = 409) {
 
 function ProjectModeSettings({ project, onChange }: Pick<Props, "project" | "onChange">) {
   const collaboration = normalizeCollaborationModeRecord(project.collaboration);
+  const [buzzState, setBuzzState] = useState<CollaborationServiceState>("unknown");
+  const [transitionNotice, setTransitionNotice] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch(BUZZ_STATUS_API, { headers: { Accept: "application/json" } })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Buzz status could not be read.");
+        return response.json() as Promise<BuzzConfigurationStatus>;
+      })
+      .then((body) => {
+        if (!cancelled) setBuzzState(body.connection?.configured ? "configured" : "unconfigured");
+      })
+      .catch(() => {
+        if (!cancelled) setBuzzState("unknown");
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   function selectMode(mode: CollaborationMode) {
     if (mode === collaboration.mode) return;
-    const copy = COLLABORATION_MODE_COPY[mode];
-    const confirmed = window.confirm(
-      `Change this project to ${copy.title}?\n\n`
-      + `${copy.summary}\n\n`
-      + "This changes the project operating mode only. It will not connect or disconnect GitHub or Buzz, start synchronization, publish changes, or alter story canon.",
-    );
-    if (!confirmed) return;
-    onChange({
-      ...project,
-      collaboration: withCollaborationMode(project.collaboration, mode),
+    const result = transitionCollaborationMode(project, mode, {
+      buzz: buzzState,
+      github: githubCollaborationServiceState(project.collaboration),
     });
+    const confirmed = window.confirm(collaborationTransitionConfirmation(result.plan));
+    if (!confirmed) return;
+    onChange(result.project);
+    setTransitionNotice(result.plan.guidance);
   }
 
   return (
@@ -85,8 +109,9 @@ function ProjectModeSettings({ project, onChange }: Pick<Props, "project" | "onC
         })}
       </div>
       <p className={modeStyles.boundary}>
-        Changing mode preserves all GitHub and Buzz setup. Services remain optional until you deliberately configure or use them, and every canon change still requires explicit human approval.
+        Changing mode preserves the PPF, local backups and all GitHub and Buzz setup. No service is activated automatically, and every canon change still requires explicit human approval.
       </p>
+      {transitionNotice ? <p className={modeStyles.boundary} role="status" aria-live="polite">{transitionNotice}</p> : null}
     </section>
   );
 }

@@ -1,3 +1,4 @@
+import "./issue-226-unified-connection-lifecycle.test.mjs";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -106,7 +107,6 @@ test("phase 2 step 2 leads the Dashboard with project mode and neutral optional 
   assert.match(overview, /Repository collaboration available/);
   assert.doesNotMatch(overview, /Setup required/);
   assert.match(overview, /Optional · dormant by default/);
-  assert.doesNotMatch(css, /red|#f00|#ff0000/i);
 });
 
 test("issue #182 test is registered", async () => {

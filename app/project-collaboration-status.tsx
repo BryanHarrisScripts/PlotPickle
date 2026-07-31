@@ -5,6 +5,10 @@ import {
   normalizeCollaborationModeRecord,
 } from "@/lib/collaboration-mode";
 import type { BuzzRuntimeSnapshot } from "@/lib/buzz-runtime";
+import {
+  buzzConnectionLifecycle,
+  githubConnectionLifecycle,
+} from "@/lib/connection-lifecycle";
 import styles from "./project-collaboration-status.module.css";
 
 export default function ProjectCollaborationStatus({
@@ -17,8 +21,8 @@ export default function ProjectCollaborationStatus({
   const collaboration = normalizeCollaborationModeRecord(project.collaboration);
   const copy = COLLABORATION_MODE_COPY[collaboration.mode];
   const requirements = collaborationModeRequirements(collaboration.mode);
-  const githubConnected = Boolean(collaboration.sourceRepositoryUrl || collaboration.repositoryUrl);
-  const buzzConnected = buzz.lifecycle === "running";
+  const github = githubConnectionLifecycle(collaboration);
+  const buzzStatus = buzzConnectionLifecycle(buzz);
 
   return (
     <section className={styles.status} aria-labelledby="project-collaboration-mode-title">
@@ -32,24 +36,24 @@ export default function ProjectCollaborationStatus({
       </header>
 
       <div className={styles.foundation} aria-label="Project collaboration foundation">
-        <article data-state="healthy">
+        <article data-tone="healthy">
           <span>PPF</span>
           <strong>Local story active</strong>
           <small>Canonical project data on this device</small>
         </article>
-        <article data-state="healthy">
+        <article data-tone="healthy">
           <span>Backups</span>
           <strong>Local protection</strong>
           <small>Required in every project mode</small>
         </article>
-        <article data-state={buzzConnected ? "healthy" : "optional"}>
+        <article data-tone={buzzStatus.tone}>
           <span>Buzz</span>
-          <strong>{buzzConnected ? "Connected" : requirements.buzz === "required" ? "Ready to configure" : "Optional"}</strong>
+          <strong>{buzzStatus.label}</strong>
           <small>{requirements.buzz === "required" ? "Used for Writers' Room discussion" : "Available when discussion is needed"}</small>
         </article>
-        <article data-state={githubConnected ? "healthy" : "optional"}>
+        <article data-tone={github.tone}>
           <span>GitHub</span>
-          <strong>{githubConnected ? "Repository connected" : requirements.github === "required" ? "Ready to configure" : "Optional"}</strong>
+          <strong>{github.label}</strong>
           <small>{requirements.github === "required" ? "Used for repository collaboration" : "Available for proposals and history"}</small>
         </article>
       </div>

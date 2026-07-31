@@ -22,7 +22,7 @@ test("issue #214 provides project-specific Story Rooms and signed relay operatio
     source("app/buzz-workspace.tsx"),
     source("build/buzz-gateway.ts"),
   ]);
-  for (const room of ["story", "characters", "structure", "continuity", "visuals", "production"]) {
+  for (const room of ["story", "characters", "structure", "continuity", "visual-development", "production-notes"]) {
     assert.match(model, new RegExp(`id: "${room}"`));
   }
   assert.match(workspace, /Create project Story Rooms/);
@@ -36,10 +36,10 @@ test("issue #214 provides project-specific Story Rooms and signed relay operatio
 
 test("issue #214 keeps PPF authority human-controlled and auditable", async () => {
   const [model, workspace] = await Promise.all([source("lib/buzz-story-room.ts"), source("app/buzz-workspace.tsx")]);
-  assert.match(model, /status: "open" \| "approved" \| "declined"/);
-  assert.match(model, /sourceRoom/);
-  assert.match(model, /sourceMessage/);
-  assert.match(model, /audit/);
+  assert.match(model, /export type BuzzProposalStatus = "open" \| "approved" \| "declined" \| "conflict"/);
+  assert.match(model, /source: BuzzDiscussionReference/);
+  assert.match(model, /messageId: string/);
+  assert.match(model, /decidedAt: string/);
   assert.match(model, /applyBuzzStoryProposal/);
   assert.match(model, /declineBuzzStoryProposal/);
   assert.match(workspace, /window\.localStorage\.setItem\(PROJECT_STORAGE_KEY/);
@@ -69,7 +69,7 @@ test("issue #214 exposes the managed Phase 1B lifecycle only behind verified pre
   }
   assert.match(settings, /bundleReady/);
   assert.match(gateway, /verifyBundle/);
-  assert.match(gateway, /docker compose/);
+  assert.match(gateway, /command\("docker", \["compose", "version", "--short"\]/);
   assert.match(gateway, /127\.0\.0\.1/);
   assert.match(manifest, /"sourceTag": "v0\.4\.26"/);
   assert.match(manifest, /"validationGate"/);

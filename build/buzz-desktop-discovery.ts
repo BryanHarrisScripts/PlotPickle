@@ -36,34 +36,36 @@ export function buzzDesktopCliCandidates(
   home = os.homedir(),
 ) {
   if (platform === "win32") {
+    const join = path.win32.join;
     const localAppData = env.LOCALAPPDATA;
     const programFiles = env.ProgramFiles;
     const programFilesX86 = env["ProgramFiles(x86)"];
     const roots = unique([
-      localAppData ? path.join(localAppData, "Buzz") : undefined,
-      localAppData ? path.join(localAppData, "Programs", "Buzz") : undefined,
-      programFiles ? path.join(programFiles, "Buzz") : undefined,
-      programFilesX86 ? path.join(programFilesX86, "Buzz") : undefined,
+      localAppData ? join(localAppData, "Buzz") : undefined,
+      localAppData ? join(localAppData, "Programs", "Buzz") : undefined,
+      programFiles ? join(programFiles, "Buzz") : undefined,
+      programFilesX86 ? join(programFilesX86, "Buzz") : undefined,
     ]);
     return unique(roots.flatMap((root) => [
-      path.join(root, "buzz.exe"),
-      path.join(root, "resources", "buzz.exe"),
-      path.join(root, "buzz-x86_64-pc-windows-msvc.exe"),
-      path.join(root, "resources", "buzz-x86_64-pc-windows-msvc.exe"),
+      join(root, "buzz.exe"),
+      join(root, "resources", "buzz.exe"),
+      join(root, "buzz-x86_64-pc-windows-msvc.exe"),
+      join(root, "resources", "buzz-x86_64-pc-windows-msvc.exe"),
     ]));
   }
 
+  const join = path.posix.join;
   if (platform === "darwin") {
     return unique([
       "/Applications/Buzz.app/Contents/MacOS/buzz",
       "/Applications/Buzz.app/Contents/Resources/buzz",
-      path.join(home, "Applications", "Buzz.app", "Contents", "MacOS", "buzz"),
-      path.join(home, "Applications", "Buzz.app", "Contents", "Resources", "buzz"),
+      join(home, "Applications", "Buzz.app", "Contents", "MacOS", "buzz"),
+      join(home, "Applications", "Buzz.app", "Contents", "Resources", "buzz"),
     ]);
   }
 
   return unique([
-    path.join(home, ".local", "bin", "buzz"),
+    join(home, ".local", "bin", "buzz"),
     "/usr/local/bin/buzz",
     "/usr/bin/buzz",
     "/opt/Buzz/buzz",
@@ -97,11 +99,8 @@ export async function resolveBuzzCliExecutable(
   }
 
   const canAccess = options.canAccess ?? defaultCanAccess;
-  const candidates = buzzDesktopCliCandidates(
-    options.platform ?? process.platform,
-    env,
-    options.home ?? os.homedir(),
-  );
+  const platform = options.platform ?? process.platform;
+  const candidates = buzzDesktopCliCandidates(platform, env, options.home ?? os.homedir());
   for (const candidate of candidates) {
     if (await canAccess(candidate)) {
       return {
@@ -114,7 +113,7 @@ export async function resolveBuzzCliExecutable(
   }
 
   return {
-    executable: (options.platform ?? process.platform) === "win32" ? "buzz.exe" : "buzz",
+    executable: platform === "win32" ? "buzz.exe" : "buzz",
     source: "path",
     discovered: false,
     releaseTag: "",

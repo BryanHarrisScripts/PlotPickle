@@ -61,7 +61,7 @@ The architecture terms supplied for planning are placed in their logical homes:
 
 - The taxonomy JSON is the required owner of the Settings navigation contract.
 - Taxonomy styles, documentation and regression tests are mapped to the Settings diagnostics area and its focused suite.
-- The deterministic Windows smoke targets the visible hydrated Settings panel, expands Repos and then selects GitHub Story Repository, avoiding hidden-panel and pre-hydration click races.
+- The deterministic Windows smoke waits for the hydrated `aria-controls="settings-system-repos"` control, opens the semantic Repos submenu and selects GitHub Story Repository from that owned submenu.
 
 ## Scope boundary
 

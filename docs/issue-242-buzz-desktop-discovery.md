@@ -37,3 +37,17 @@ PlotPickle's managed local relay remains the separately pinned Docker Compose pa
 - CLI discovery never reads the Buzz Desktop keyring or backups.
 - Buzz discussion can create a PlotPickle proposal.
 - Only explicit human approval changes the PPF creative record.
+
+## Optional installation from the Windows launcher
+
+`Start-PlotPickle.bat` remains the single Windows startup entry point. After PlotPickle's own reusable runtime is ready, the launcher checks the same supported Buzz Desktop installation roots.
+
+When Buzz Desktop is missing, the launcher presents one explicit Y/N choice. Choosing Yes runs the packaged `scripts/install-buzz-desktop.ps1` helper, which downloads the exact `desktop-v0.5.3` Windows asset from the official `block/buzz` GitHub release and opens the installer visibly. It does not pass silent-install arguments or request elevation. The current asset is labelled alpha-unsigned, so Windows SmartScreen may require confirmation.
+
+Choosing No, cancelling the third-party installer or encountering a download failure does not block PlotPickle startup. No relay, identity or story data is created by the launcher.
+
+Buzz still lives in PlotPickle:
+
+- Settings owns detection, relay configuration, encrypted identity and connection testing.
+- Collab owns Buzz Story Rooms, messages and proposal creation.
+- Buzz Desktop supplies the local client/CLI dependency underneath those PlotPickle surfaces.

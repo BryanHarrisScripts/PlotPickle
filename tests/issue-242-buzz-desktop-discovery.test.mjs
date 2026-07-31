@@ -107,3 +107,41 @@ test("issue #242 wires discovery into the gateway and explains blank-path behavi
   assert.match(settings, /status\.cli\.source/);
   assert.doesNotMatch(discovery.text, /spawn\s*\(|writeFile|privateKey|relayUrl/);
 });
+
+test("issue #244 offers the pinned Buzz Desktop installer without moving Buzz out of PlotPickle", async () => {
+  const [launcher, installer, configText, packageSmoke, settings] = await Promise.all([
+    source("Start-PlotPickle.bat"),
+    source("scripts/install-buzz-desktop.ps1"),
+    source("config/buzz-desktop.json"),
+    source("scripts/package-smoke.mjs"),
+    source("app/buzz-settings-panel.tsx"),
+  ]);
+  const config = JSON.parse(configText);
+
+  assert.equal(config.releaseTag, discovery.exports.BUZZ_DESKTOP_COMPATIBILITY.releaseTag);
+  assert.equal(config.version, discovery.exports.BUZZ_DESKTOP_COMPATIBILITY.version);
+  assert.equal(config.sourceCommit, discovery.exports.BUZZ_DESKTOP_COMPATIBILITY.sourceCommit);
+  assert.equal(config.windows.asset, discovery.exports.BUZZ_DESKTOP_COMPATIBILITY.windowsAsset);
+  assert.equal(config.windows.downloadUrl, "https://github.com/block/buzz/releases/download/desktop-v0.5.3/Buzz_0.5.3_x64-setup_alpha-unsigned.exe");
+  assert.equal(config.windows.unsigned, true);
+
+  assert.match(launcher, /BUZZ_INSTALLER=scripts\\install-buzz-desktop\.ps1/);
+  assert.match(launcher, /-File "%BUZZ_INSTALLER%" -CheckOnly/);
+  assert.match(launcher, /Install Buzz Desktop !BUZZ_DESKTOP_VERSION! now\? \[Y\/N\]:/);
+  assert.match(launcher, /-File "%BUZZ_INSTALLER%" -Install/);
+  assert.match(launcher, /Buzz remains inside the PlotPickle UI/);
+  assert.match(launcher, /Buzz Desktop installation was not completed[\s\S]*PlotPickle will continue normally/);
+
+  assert.match(installer, /Invoke-WebRequest -Uri \$downloadUrl -OutFile \$installerPath/);
+  assert.match(installer, /Start-Process -FilePath \$installerPath -Wait -PassThru/);
+  assert.match(installer, /Get-FileHash -LiteralPath \$installerPath -Algorithm SHA256/);
+  assert.match(installer, /alpha-unsigned/);
+  assert.match(installer, /PLOTPICKLE_BUZZ_STATUS=/);
+  assert.doesNotMatch(installer, /-Verb\s+RunAs|--silent|\/S(?:\s|$)|Invoke-Expression|\biex\b/i);
+  assert.doesNotMatch(installer, /privateKey|relayUrl|writeCredential|canon|\.ppf/i);
+
+  assert.match(packageSmoke, /scripts\/install-buzz-desktop\.ps1/);
+  assert.match(packageSmoke, /config\/buzz-desktop\.json/);
+  assert.match(settings, /Buzz CLI path \(optional\)/);
+  assert.match(settings, /Open Story Room/);
+});

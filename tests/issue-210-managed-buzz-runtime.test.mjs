@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readdir, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import "./issue-212-buzz-dashboard-marketing-alignment.test.mjs";
 import "./issue-214-buzz-story-room.test.mjs";

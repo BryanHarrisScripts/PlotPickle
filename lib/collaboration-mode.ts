@@ -8,6 +8,10 @@ export const COLLABORATION_MODES = [
 
 export type CollaborationMode = (typeof COLLABORATION_MODES)[number];
 
+export type CollaborationModeInput = Partial<ProjectCollaboration> & {
+  mode?: unknown;
+};
+
 export type CollaborationModeRecord = ProjectCollaboration & {
   mode: CollaborationMode;
 };
@@ -88,7 +92,7 @@ export function collaborationModeRequirements(mode: unknown): CollaborationModeR
 }
 
 export function withCollaborationMode(
-  collaboration: ProjectCollaboration | (Partial<ProjectCollaboration> & { mode?: unknown }),
+  collaboration: CollaborationModeInput,
   mode: unknown,
 ): CollaborationModeRecord {
   return {
@@ -98,7 +102,7 @@ export function withCollaborationMode(
 }
 
 export function normalizeCollaborationModeRecord(
-  collaboration: ProjectCollaboration | (Partial<ProjectCollaboration> & { mode?: unknown }),
+  collaboration: CollaborationModeInput,
 ): CollaborationModeRecord {
   return withCollaborationMode(collaboration, collaboration.mode);
 }
@@ -184,7 +188,7 @@ export function collaborationTransitionConfirmation(plan: CollaborationModeTrans
 }
 
 export function githubCollaborationServiceState(
-  collaboration: ProjectCollaboration | (Partial<ProjectCollaboration> & { mode?: unknown }),
+  collaboration: CollaborationModeInput,
 ): CollaborationServiceState {
   const repositoryUrl = typeof collaboration.repositoryUrl === "string" ? collaboration.repositoryUrl.trim() : "";
   const owner = typeof collaboration.owner === "string" ? collaboration.owner.trim() : "";

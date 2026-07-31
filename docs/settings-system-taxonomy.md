@@ -57,6 +57,12 @@ The architecture terms supplied for planning are placed in their logical homes:
 - ReAct loops, function calling, tool execution and MCP clients: Agents.
 - Guardrails, evaluations, model hubs and public packages: Open Source.
 
+## Diagnostics integration
+
+- The taxonomy JSON is the required owner of the Settings navigation contract.
+- Taxonomy styles, documentation and regression tests are mapped to the Settings diagnostics area and its focused suite.
+- The deterministic Windows smoke waits for the hydrated Repos control to expand before selecting GitHub Story Repository, avoiding a pre-hydration click race.
+
 ## Scope boundary
 
 This change is information architecture and navigation. It does not install Buzz, Docker, ComfyUI, models, cloud APIs, vector databases, deployment targets or agent runtimes. It creates the stable bins needed to plan and support those systems deliberately.

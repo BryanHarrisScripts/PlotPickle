@@ -3,8 +3,16 @@
 import { useEffect } from "react";
 import type { PlotPickleProject } from "@/lib/project";
 import { portableProjectFileName } from "@/lib/project-package";
+import {
+  COLLABORATION_MODES,
+  COLLABORATION_MODE_COPY,
+  normalizeCollaborationModeRecord,
+  withCollaborationMode,
+  type CollaborationMode,
+} from "@/lib/collaboration-mode";
 import GitHubCollaborationBase from "./github-collaboration-base";
 import BuzzSettingsPanel from "./buzz-settings-panel";
+import modeStyles from "./project-mode-settings.module.css";
 
 type CollaborationSurface = "all" | "github" | "storage" | "configuration" | "approvals";
 
@@ -26,6 +34,61 @@ function jsonError(message: string, status = 409) {
     status,
     headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
   });
+}
+
+function ProjectModeSettings({ project, onChange }: Pick<Props, "project" | "onChange">) {
+  const collaboration = normalizeCollaborationModeRecord(project.collaboration);
+
+  function selectMode(mode: CollaborationMode) {
+    if (mode === collaboration.mode) return;
+    const copy = COLLABORATION_MODE_COPY[mode];
+    const confirmed = window.confirm(
+      `Change this project to ${copy.title}?\n\n`
+      + `${copy.summary}\n\n`
+      + "This changes the project operating mode only. It will not connect or disconnect GitHub or Buzz, start synchronization, publish changes, or alter story canon.",
+    );
+    if (!confirmed) return;
+    onChange({
+      ...project,
+      collaboration: withCollaborationMode(project.collaboration, mode),
+    });
+  }
+
+  return (
+    <section className={modeStyles.panel} aria-labelledby="project-mode-settings-title">
+      <header>
+        <div>
+          <p>Project operating mode</p>
+          <h3 id="project-mode-settings-title">{COLLABORATION_MODE_COPY[collaboration.mode].title}</h3>
+          <span>{COLLABORATION_MODE_COPY[collaboration.mode].summary}</span>
+        </div>
+        <strong>PPF remains canonical</strong>
+      </header>
+      <div className={modeStyles.options} role="radiogroup" aria-label="Project operating mode">
+        {COLLABORATION_MODES.map((mode) => {
+          const copy = COLLABORATION_MODE_COPY[mode];
+          const active = collaboration.mode === mode;
+          return (
+            <button
+              type="button"
+              role="radio"
+              aria-checked={active}
+              className={active ? modeStyles.active : ""}
+              key={mode}
+              onClick={() => selectMode(mode)}
+            >
+              <span>{active ? "Active mode" : "Available mode"}</span>
+              <b>{copy.title}</b>
+              <small>{copy.summary}</small>
+            </button>
+          );
+        })}
+      </div>
+      <p className={modeStyles.boundary}>
+        Changing mode preserves all GitHub and Buzz setup. Services remain optional until you deliberately configure or use them, and every canon change still requires explicit human approval.
+      </p>
+    </section>
+  );
 }
 
 export default function GitHubCollaboration({
@@ -94,6 +157,7 @@ export default function GitHubCollaboration({
 
   return (
     <>
+      {surface === "configuration" ? <ProjectModeSettings project={project} onChange={guardedChange} /> : null}
       <GitHubCollaborationBase
         project={project}
         onChange={guardedChange}

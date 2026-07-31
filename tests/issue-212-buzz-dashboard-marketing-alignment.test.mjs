@@ -25,7 +25,7 @@ test("issue #212 makes Buzz configurable in Settings without faking packaged bin
   assert.match(settings, />Repair</);
   assert.match(settings, />Back up</);
   assert.match(settings, /Remove runtime and data/);
-  assert.match(settings, /bundleReady/);
+  assert.match(settings, /getBuzzManagedRuntimeActions/);
   assert.match(gateway, /writeCredentialJson/);
   assert.match(gateway, /verifyBundle/);
   assert.match(gateway, /127\.0\.0\.1/);

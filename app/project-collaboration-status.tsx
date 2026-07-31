@@ -4,7 +4,7 @@ import {
   collaborationModeRequirements,
   normalizeCollaborationModeRecord,
 } from "@/lib/collaboration-mode";
-import type { BuzzRuntimeStatus } from "@/lib/buzz-runtime";
+import type { BuzzRuntimeSnapshot } from "@/lib/buzz-runtime";
 import styles from "./project-collaboration-status.module.css";
 
 export default function ProjectCollaborationStatus({
@@ -12,7 +12,7 @@ export default function ProjectCollaborationStatus({
   buzz,
 }: {
   project: PlotPickleProject;
-  buzz: BuzzRuntimeStatus;
+  buzz: BuzzRuntimeSnapshot;
 }) {
   const collaboration = normalizeCollaborationModeRecord(project.collaboration);
   const copy = COLLABORATION_MODE_COPY[collaboration.mode];

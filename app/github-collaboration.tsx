@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import type { PlotPickleProject } from "@/lib/project";
 import { portableProjectFileName } from "@/lib/project-package";
 import GitHubCollaborationBase from "./github-collaboration-base";
+import BuzzSettingsPanel from "./buzz-settings-panel";
 
 type CollaborationSurface = "all" | "github" | "storage" | "configuration" | "approvals";
 
@@ -92,14 +93,17 @@ export default function GitHubCollaboration({
   }
 
   return (
-    <GitHubCollaborationBase
-      project={project}
-      onChange={guardedChange}
-      onConnectionChange={onConnectionChange}
-      surface={surface}
-      backupLimit={effectiveBackupLimit}
-      backupOnSave={false}
-    />
+    <>
+      <GitHubCollaborationBase
+        project={project}
+        onChange={guardedChange}
+        onConnectionChange={onConnectionChange}
+        surface={surface}
+        backupLimit={effectiveBackupLimit}
+        backupOnSave={false}
+      />
+      {surface === "configuration" ? <BuzzSettingsPanel /> : null}
+    </>
   );
 }
 

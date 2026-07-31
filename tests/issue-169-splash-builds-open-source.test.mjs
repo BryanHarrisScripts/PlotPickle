@@ -27,15 +27,19 @@ test("issue #169 defines exactly three release builds from one product contract"
 });
 
 test("issue #169 presents the complete current workspace model", async () => {
-  const [splash, contract] = await Promise.all([
+  const [splash, contract, collab] = await Promise.all([
     source("app/marketing-splash-base.tsx"),
     source("lib/product-direction.ts"),
+    source("app/collab-workspace.tsx"),
   ]);
   assert.match(splash, /PRIMARY_WORKFLOW_NAVIGATION/);
   assert.match(splash, /COLLABORATION_NAVIGATION/);
-  for (const label of ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Graphic Novel", "Build", "Feedback", "Refine", "Reports", "Collab", "Buzz"]) {
+  for (const label of ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Graphic Novel", "Build", "Feedback", "Refine", "Reports", "Collab"]) {
     assert.ok(contract.includes(`label: "${label}"`), `Missing workspace: ${label}`);
   }
+  assert.doesNotMatch(contract, /id: "buzz", label: "Buzz"/);
+  assert.match(collab, /id: "buzz", label: "Buzz"/);
+  assert.match(collab, /<BuzzCollabPanel/);
   for (const phrase of [
     "Available now · Dashboard",
     "Available now · Graphic Novel + Storyboard",

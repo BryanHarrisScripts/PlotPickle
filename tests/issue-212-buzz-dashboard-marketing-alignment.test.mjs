@@ -7,13 +7,13 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #212 makes Buzz configurable in Settings without faking packaged binaries", async () => {
   const [settings, runtime, gateway, header] = await Promise.all([
-    source("app/settings/buzz/page.tsx"),
+    source("app/buzz-settings-panel.tsx"),
     source("lib/buzz-runtime.ts"),
     source("build/buzz-gateway.ts"),
     source("app/application-shell-header.tsx"),
   ]);
 
-  assert.match(settings, /Settings · Integrations · Buzz/);
+  assert.match(settings, /Settings · Repository & Collab · Buzz/);
   assert.match(settings, /Managed local Buzz/);
   assert.match(settings, /Existing Buzz relay/);
   assert.match(settings, /Save encrypted connection/);
@@ -29,8 +29,7 @@ test("issue #212 makes Buzz configurable in Settings without faking packaged bin
   assert.match(gateway, /writeCredentialJson/);
   assert.match(gateway, /verifyBundle/);
   assert.match(gateway, /127\.0\.0\.1/);
-  assert.match(header, /activeTab === "settings"[\s\S]*Buzz Setup/);
-  assert.match(header, /window\.location\.assign\("\/settings\/buzz"\)/);
+  assert.doesNotMatch(header, /Buzz Setup|\/settings\/buzz/);
   assert.match(header, /data-legacy-workspace-label="pitch"/);
   assert.match(header, /hidden[\s\S]*aria-hidden="true"[\s\S]*role="tab"[\s\S]*aria-selected=\{activeTab === "pitch"\}[\s\S]*onClick=\{\(\) => onNavigate\("pitch"\)\}[\s\S]*Pitch[\s\S]*<\/button>/);
   assert.match(runtime, /packaged: false/);

@@ -1,19 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ConnectionId, ConnectionStatusSnapshot, PublicConnectionStatus } from "@/lib/connection-status";
 import type { PlotPickleProject } from "@/lib/project";
 import GitHubCollaboration from "./github-collaboration";
 import GoogleCalendarWorkspace from "./google-calendar-workspace";
 import GoogleMeetWorkspace from "./google-meet-workspace";
 import RefreshAction from "./refresh-action";
+import BuzzCollabPanel from "./buzz-collab-panel";
 import styles from "./collab-workspace.module.css";
 
-type CollabSection = "overview" | "approvals" | "meetings" | "calendar" | "connections";
+type CollabSection = "overview" | "buzz" | "approvals" | "meetings" | "calendar" | "connections";
 type SettingsConnection = "github" | "google";
+
+const COLLAB_SECTION_KEY = "plotpickle.collab.section";
 
 const SECTIONS: Array<{ id: CollabSection; label: string; description: string }> = [
   { id: "overview", label: "Overview", description: "Project collaboration status and the next shared action" },
+  { id: "buzz", label: "Buzz", description: "Project Story Rooms, discussion and human-reviewed PPF proposals" },
   { id: "approvals", label: "Approvals", description: "GitHub Story Proposals and Project Lead decisions" },
   { id: "meetings", label: "Meetings", description: "Project meetings and Google Meet links" },
   { id: "calendar", label: "Calendar", description: "Project-focused dates and meeting events" },
@@ -83,6 +87,14 @@ export default function CollabWorkspace({
   const branch = project.collaboration.branch || "main";
   const githubConnected = github.state === "connected";
 
+  useEffect(() => {
+    const requested = window.sessionStorage.getItem(COLLAB_SECTION_KEY);
+    window.sessionStorage.removeItem(COLLAB_SECTION_KEY);
+    if (!requested || !SECTIONS.some((item) => item.id === requested)) return;
+    const timer = window.setTimeout(() => setSection(requested as CollabSection), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   function openSettings(id: ConnectionId) {
     if (id === "github" || id === "google") onOpenSettings(id);
   }
@@ -140,6 +152,12 @@ export default function CollabWorkspace({
               <p>Calendar events remain project-focused. No personal calendar is displayed by default.</p>
               <button type="button" onClick={() => setSection("calendar")}>Open calendar</button>
             </article>
+            <article>
+              <span>Buzz Story Room</span>
+              <strong>Optional writers’ room</strong>
+              <p>Discuss scenes and visuals, then turn selected discussion into a proposal that still requires human approval.</p>
+              <button type="button" onClick={() => setSection("buzz")}>Open Buzz Story Room</button>
+            </article>
           </section>
 
           <section className={styles.providerGrid} aria-label="Collaboration provider status">
@@ -153,6 +171,14 @@ export default function CollabWorkspace({
             <p>Credentials, permission grants, repository selection and provider recovery stay in Settings. Collab contains only shared work, decisions, meetings and provider status.</p>
           </section>
         </div>
+      ) : null}
+
+      {section === "buzz" ? (
+        <BuzzCollabPanel
+          project={project}
+          onProjectChange={onProjectChange}
+          onOpenSettings={() => onOpenSettings("github")}
+        />
       ) : null}
 
       {section === "approvals" ? (

@@ -4,6 +4,7 @@ import hostingConfig from "./.openai/hosting.json";
 import { localAiGateway } from "./build/local-ai-gateway";
 import { localConnectionsGateway } from "./build/local-connections-gateway";
 import { buzzGateway } from "./build/buzz-gateway";
+import { buzzBundleNormalizer } from "./build/buzz-bundle-normalizer";
 import { googleCalendarGateway } from "./build/google-calendar-gateway";
 import { githubAppGateway } from "./build/github-app-gateway";
 import { applyGitHubAppPublicConfig } from "./build/github-app-public-config";
@@ -50,6 +51,7 @@ export default defineConfig(async () => {
     },
     plugins: [
       localConnectionsGateway(),
+      buzzBundleNormalizer(),
       buzzGateway(),
       googleCalendarGateway(),
       githubAppGateway(),

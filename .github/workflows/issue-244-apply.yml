@@ -1,0 +1,61 @@
+name: Apply Issue 244 build
+
+on:
+  push:
+    branches:
+      - automation/issue-244-apply
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out implementation branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/244-buzz-desktop-launcher-install
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply launcher integration
+        run: node scripts/issue-244-apply.mjs
+
+      - name: Validate diagnostics registry
+        run: npm run diagnostics:validate
+
+      - name: Run focused Buzz and Windows tests
+        run: node --test tests/issue-242-buzz-desktop-discovery.test.mjs tests/issue-210-managed-buzz-runtime.test.mjs tests/windows-native-runtime.test.mjs
+
+      - name: Stage and verify Windows package
+        run: |
+          node scripts/package-platform.mjs windows
+          node scripts/package-smoke.mjs releases/stage/PlotPickle-Windows
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Commit validated implementation
+        run: |
+          git status --short
+          git config user.name "PlotPickle Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add Start-PlotPickle.bat app/buzz-settings-panel.tsx config/buzz-desktop.json docs/issue-242-buzz-desktop-discovery.md scripts/install-buzz-desktop.ps1 scripts/package-smoke.mjs tests/issue-242-buzz-desktop-discovery.test.mjs scripts/issue-244-apply.mjs
+          git commit -m "Offer Buzz Desktop install from Windows launcher"
+          git push origin HEAD:agent/244-buzz-desktop-launcher-install
+
+      - name: Remove temporary automation branch
+        run: git push origin --delete automation/issue-244-apply

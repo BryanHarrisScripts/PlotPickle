@@ -4,6 +4,7 @@ import CurrentDownloadLinks from "./current-download-links";
 import GitHubAppReleaseGuidance from "./github-app-release-guidance";
 import GraphicNovelTerminology from "./graphic-novel-terminology";
 import WorkspaceIntroHost from "./workspace-intro-host";
+import WriterFacingCollaborationLanguage from "./writer-facing-collaboration-language";
 import "./globals.css";
 import "./engines-workspace-overrides.css";
 import "./navigation-additions.css";
@@ -47,6 +48,7 @@ export default function RootLayout({
         } as React.CSSProperties}
       >
         {children}
+        <WriterFacingCollaborationLanguage />
         <GraphicNovelTerminology />
         <GitHubAppReleaseGuidance />
         <CollaborationWorkspaceRouter />

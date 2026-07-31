@@ -122,14 +122,6 @@ export default function SettingsPanel({
   const internalTarget = useRef<string | null>(null);
 
   useEffect(() => {
-    const requested = window.sessionStorage.getItem(SETTINGS_SECTION_KEY);
-    const requestedEntry = itemForTarget(requested);
-    const initial = requestedEntry ?? itemForId(taxonomy.workspace[0].id);
-    setActiveId(initial.item.id);
-    if (initial.system) setExpandedSystem(initial.system.id);
-    if (initial.item.target) window.sessionStorage.setItem(SETTINGS_SECTION_KEY, initial.item.target);
-    setReady(true);
-
     const handleSectionRequest = (event: Event) => {
       const target = (event as CustomEvent<string>).detail;
       if (internalTarget.current === target) {
@@ -142,7 +134,21 @@ export default function SettingsPanel({
       if (next.system) setExpandedSystem(next.system.id);
     };
     window.addEventListener("plotpickle:settings-section", handleSectionRequest);
-    return () => window.removeEventListener("plotpickle:settings-section", handleSectionRequest);
+
+    const timer = window.setTimeout(() => {
+      const requested = window.sessionStorage.getItem(SETTINGS_SECTION_KEY);
+      const requestedEntry = itemForTarget(requested);
+      const initial = requestedEntry ?? itemForId(taxonomy.workspace[0].id);
+      setActiveId(initial.item.id);
+      if (initial.system) setExpandedSystem(initial.system.id);
+      if (initial.item.target) window.sessionStorage.setItem(SETTINGS_SECTION_KEY, initial.item.target);
+      setReady(true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("plotpickle:settings-section", handleSectionRequest);
+    };
   }, []);
 
   const activeEntry = useMemo(() => itemForId(activeId), [activeId]);

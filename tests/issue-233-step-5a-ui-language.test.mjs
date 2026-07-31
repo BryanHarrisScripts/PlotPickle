@@ -20,12 +20,14 @@ test("Step 5A mounts one JSON-backed collaboration language adapter", async () =
   assert.match(adapter, /collaborationCopy\.replacements\.map/);
 });
 
-test("Step 5A exposes a stable Settings test key without hidden compatibility text", async () => {
+test("Step 5A exposes and protects a stable Settings test key without hidden compatibility text", async () => {
   const [adapter, copy] = await Promise.all([
     source("app/writer-facing-collaboration-language.tsx"),
     readCopy(),
   ]);
   assert.match(adapter, /button\.dataset\.uiCopyKey = collaborationCopy\.settings\.repository\.key/);
+  assert.match(adapter, /\[data-ui-copy-key\]/);
+  assert.match(adapter, /markStableCopyKeys\(document\.body\);[\s\S]*translateTree\(document\.body\)/);
   assert.equal(copy.settings.repository.key, "settings.repository");
   assert.doesNotMatch(adapter, /smokeCompatibility|aria-hidden|clipPath|compatibilityLabel/);
 });

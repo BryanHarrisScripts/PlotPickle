@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 
 const REPLACEMENTS: ReadonlyArray<readonly [RegExp, string]> = [
+  [/\bRepository & Collab\b/g, "Story repository & Collab"],
   [/\bGitHub repositories\b/g, "story repositories"],
   [/\bGitHub repository\b/g, "story repository"],
   [/\brepository connection\b/gi, "story repository connection"],
@@ -58,7 +59,7 @@ function preserveSettingsSmokeLocator(root: ParentNode) {
     : [...root.querySelectorAll("button")];
   for (const button of buttons) {
     const visibleLabel = [...button.querySelectorAll("b")].find((item) => item.dataset.smokeCompatibility !== "true");
-    if (visibleLabel?.textContent?.trim() !== "Story repository & Collab") continue;
+    if (visibleLabel?.textContent?.trim().toLowerCase() !== "story repository & collab") continue;
     if (button.querySelector('[data-smoke-compatibility="true"]')) continue;
     const compatibilityLabel = document.createElement("b");
     compatibilityLabel.dataset.smokeCompatibility = "true";

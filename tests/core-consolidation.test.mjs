@@ -14,7 +14,7 @@ const integrationLabels = [
 
 test("core consolidation presents four truthful optional connection areas", async () => {
   const [panel, statuses, dashboard, reports] = await Promise.all([
-    source("app/settings-panel.tsx"),
+    source("app/settings-panel-legacy.tsx"),
     source("lib/connection-status.ts"),
     source("lib/dashboard-command-centre.ts"),
     source("lib/consolidated-reports.ts"),

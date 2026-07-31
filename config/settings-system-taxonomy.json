@@ -1,0 +1,361 @@
+{
+  "schemaVersion": 1,
+  "groupLabel": "Systems",
+  "helpText": "Choose the named system you need to configure. PlotPickle uses these same terms in help, testing and support.",
+  "workspace": [
+    {
+      "id": "general",
+      "label": "General",
+      "helpTerm": "General Settings",
+      "description": "Language, startup and confirmation preferences.",
+      "status": "configure",
+      "target": "general"
+    },
+    {
+      "id": "appearance",
+      "label": "Appearance & Accessibility",
+      "helpTerm": "Appearance & Accessibility",
+      "description": "Theme, density, contrast, motion and interface text.",
+      "status": "configure",
+      "target": "appearance"
+    },
+    {
+      "id": "project-defaults",
+      "label": "Project Defaults",
+      "helpTerm": "Project Defaults",
+      "description": "Starting format, target length and autosave behaviour.",
+      "status": "configure",
+      "target": "project-defaults"
+    }
+  ],
+  "systems": [
+    {
+      "id": "local",
+      "label": "Local",
+      "description": "Apps, models and services that run on this computer.",
+      "items": [
+        {
+          "id": "local-runtime",
+          "label": "PlotPickle Runtime",
+          "helpTerm": "Local · PlotPickle Runtime",
+          "description": "The local Playhouse server, desktop runtime and installed web application packages.",
+          "status": "installed",
+          "target": "general",
+          "examples": ["PlotPickle Playhouse Server", "Node.js 24.15.0", "npm 11.12.1", "Next 16.2.6", "React 19.2.6", "Vite 8.0.13"]
+        },
+        {
+          "id": "local-models",
+          "label": "Local Models",
+          "helpTerm": "Local · Local Models",
+          "description": "Self-hosted language models, model files and inference limits.",
+          "status": "optional",
+          "target": "ai",
+          "examples": ["Local LLMs", "GGUF", "EXL2", "Quantized inference", "Local context-window allocation"],
+          "mechanics": ["Prompting", "Tokens", "Model weights and formats"]
+        },
+        {
+          "id": "local-media",
+          "label": "Local Media & Transcription",
+          "helpTerm": "Local · Local Media & Transcription",
+          "description": "Image, audio, video and transcription applications installed on this computer.",
+          "status": "optional",
+          "target": "plugins",
+          "examples": ["ComfyUI", "Local media-generation nodes", "Transcription tools"]
+        },
+        {
+          "id": "local-buzz",
+          "label": "Buzz Installation",
+          "helpTerm": "Local · Buzz Installation",
+          "description": "Install, start or repair the optional local Buzz runtime.",
+          "status": "optional",
+          "href": "/settings/buzz",
+          "examples": ["Buzz relay", "Buzz CLI", "Buzz identity", "Local writers' rooms"]
+        }
+      ]
+    },
+    {
+      "id": "cloud",
+      "label": "Cloud",
+      "description": "External AI, media and remote-compute services.",
+      "items": [
+        {
+          "id": "cloud-ai",
+          "label": "AI Providers",
+          "helpTerm": "Cloud · AI Providers",
+          "description": "Connect hosted language and image-model APIs.",
+          "status": "optional",
+          "target": "ai",
+          "examples": ["OpenAI API", "Anthropic API", "Hosted model inference"],
+          "mechanics": ["Token metering", "TTFT monitoring", "Structured outputs"]
+        },
+        {
+          "id": "cloud-media",
+          "label": "Media Providers",
+          "helpTerm": "Cloud · Media Providers",
+          "description": "Connect hosted image, video, voice and audio-generation services.",
+          "status": "planned",
+          "examples": ["Runway", "Pika Labs", "AtlasCloud", "ElevenLabs", "modem.dev"]
+        },
+        {
+          "id": "cloud-compute",
+          "label": "Remote Compute",
+          "helpTerm": "Cloud · Remote Compute",
+          "description": "Configure hosted GPU jobs and serverless processing pipelines.",
+          "status": "planned",
+          "examples": ["Modal", "Serverless GPU pipelines", "Remote rendering"]
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "label": "Data",
+      "description": "Project files, databases, caches and retrieval systems.",
+      "items": [
+        {
+          "id": "data-projects",
+          "label": "PPF Projects & Backups",
+          "helpTerm": "Data · PPF Projects & Backups",
+          "description": "Manage canonical project files, rolling backups and recovery.",
+          "status": "configure",
+          "target": "storage",
+          "examples": ["Persistent .ppf projects", "Local app-data storage", "Rolling backups"]
+        },
+        {
+          "id": "data-database",
+          "label": "Databases & Migrations",
+          "helpTerm": "Data · Databases & Migrations",
+          "description": "Review local database runtimes, schema migrations and asset indexes.",
+          "status": "reference",
+          "target": "storage",
+          "examples": ["drizzle-orm 0.45.2", "drizzle-kit 0.31.10", "SQLite-compatible local state"]
+        },
+        {
+          "id": "data-retrieval",
+          "label": "Retrieval & Embeddings",
+          "helpTerm": "Data · Retrieval & Embeddings",
+          "description": "Plan semantic retrieval without mixing generated indexes into PPF canon.",
+          "status": "planned",
+          "examples": ["RAG pipelines", "Embeddings", "Vector stores", "pgvector", "Chroma"],
+          "mechanics": ["Vector similarity search", "Context retrieval"]
+        },
+        {
+          "id": "data-cache",
+          "label": "Asset Cache",
+          "helpTerm": "Data · Asset Cache",
+          "description": "Manage derived previews, downloaded assets and replaceable local caches.",
+          "status": "planned",
+          "examples": ["Image previews", "Media cache", "Generated indexes"]
+        }
+      ]
+    },
+    {
+      "id": "deploy",
+      "label": "Deploy",
+      "description": "Build, publishing and hosted runtime targets.",
+      "items": [
+        {
+          "id": "deploy-build",
+          "label": "Build Runtime",
+          "helpTerm": "Deploy · Build Runtime",
+          "description": "Review local-to-hosted build compatibility and runtime boundaries.",
+          "status": "reference",
+          "examples": ["vinext 0.0.50", "Vite build", "Streaming responses", "Structured JSON schema outputs"]
+        },
+        {
+          "id": "deploy-cloudflare",
+          "label": "Cloudflare & Edge",
+          "helpTerm": "Deploy · Cloudflare & Edge",
+          "description": "Configure worker bindings and edge-hosting targets when deployment is enabled.",
+          "status": "planned",
+          "examples": ["wrangler 4.92.0", "@cloudflare/vite-plugin 1.37.1", "Cloudflare Workers"]
+        },
+        {
+          "id": "deploy-publishing",
+          "label": "Publishing Pipelines",
+          "helpTerm": "Deploy · Publishing Pipelines",
+          "description": "Plan controlled local-to-cloud release and publishing workflows.",
+          "status": "planned",
+          "examples": ["Hosted builds", "Worker environments", "Release packages"]
+        }
+      ]
+    },
+    {
+      "id": "repos",
+      "label": "Repos",
+      "description": "Code, story repositories and shared protocol definitions.",
+      "items": [
+        {
+          "id": "repos-github",
+          "label": "GitHub Story Repository",
+          "helpTerm": "Repos · GitHub Story Repository",
+          "description": "Connect project history, proposals, permissions and repository recovery.",
+          "status": "optional",
+          "target": "github",
+          "examples": ["GitHub", "Story proposals", "Revision history", "Multi-machine recovery"]
+        },
+        {
+          "id": "repos-code",
+          "label": "PlotPickle Code Repository",
+          "helpTerm": "Repos · PlotPickle Code Repository",
+          "description": "Reference the application source, native bindings and release packages.",
+          "status": "reference",
+          "target": "about",
+          "examples": ["PlotPickle repository", "@rolldown/binding-win32-x64-msvc", "Release packages"]
+        },
+        {
+          "id": "repos-afterglow",
+          "label": "Afterglow Repository",
+          "helpTerm": "Repos · Afterglow Repository",
+          "description": "Connect or recover the optional Afterglow example-story repository.",
+          "status": "optional",
+          "target": "github",
+          "examples": ["Afterglow repository", "Example-story history", "Repository-backed persistence"]
+        },
+        {
+          "id": "repos-mcp",
+          "label": "MCP Server Definitions",
+          "helpTerm": "Repos · MCP Server Definitions",
+          "description": "Track reviewed Model Context Protocol server definitions as source-controlled configuration.",
+          "status": "planned",
+          "examples": ["MCP server definitions", "Shared tool protocols"]
+        }
+      ]
+    },
+    {
+      "id": "auth",
+      "label": "Auth",
+      "description": "Accounts, permissions, API keys and encrypted credentials.",
+      "items": [
+        {
+          "id": "auth-google",
+          "label": "Google Account",
+          "helpTerm": "Auth · Google Account",
+          "description": "Authorize Calendar and Meet permissions through desktop OAuth.",
+          "status": "optional",
+          "target": "google",
+          "examples": ["Google Calendar", "Google Meet", "OAuth 2.0"]
+        },
+        {
+          "id": "auth-github",
+          "label": "GitHub Authorization",
+          "helpTerm": "Auth · GitHub Authorization",
+          "description": "Manage GitHub App authorization and advanced token recovery.",
+          "status": "optional",
+          "target": "github",
+          "examples": ["GitHub OAuth", "GitHub App", "Fine-grained token"]
+        },
+        {
+          "id": "auth-api-keys",
+          "label": "AI API Keys",
+          "helpTerm": "Auth · AI API Keys",
+          "description": "Save, test or remove provider keys without placing them in a project.",
+          "status": "optional",
+          "target": "ai",
+          "examples": ["Provider API keys", "Local encrypted secret files"]
+        },
+        {
+          "id": "auth-vault",
+          "label": "Credential Vault",
+          "helpTerm": "Auth · Credential Vault",
+          "description": "Review OS-user encryption, permissions and credential removal.",
+          "status": "configure",
+          "target": "privacy",
+          "examples": ["Windows DPAPI", "macOS Keychain", "Linux Secret Service"],
+          "mechanics": ["Human-in-the-loop authorization gates"]
+        }
+      ]
+    },
+    {
+      "id": "agents",
+      "label": "Agents",
+      "description": "Automation, tool calling and managed execution.",
+      "items": [
+        {
+          "id": "agents-buzz",
+          "label": "Buzz Runtime",
+          "helpTerm": "Agents · Buzz Runtime",
+          "description": "Manage the optional room, relay and signed-discussion runtime.",
+          "status": "optional",
+          "href": "/settings/buzz",
+          "examples": ["Buzz managed relay", "Rooms", "Signed discussion"]
+        },
+        {
+          "id": "agents-docker",
+          "label": "Docker & Compose",
+          "helpTerm": "Agents · Docker & Compose",
+          "description": "Review the current container prerequisite for managed Buzz services.",
+          "status": "optional",
+          "href": "/settings/buzz",
+          "examples": ["Docker Desktop", "Docker Compose", "Postgres", "Redis", "Object storage"]
+        },
+        {
+          "id": "agents-worktrees",
+          "label": "Agent Worktrees",
+          "helpTerm": "Agents · Agent Worktrees",
+          "description": "Plan isolated repository workspaces for branch-only coding agents.",
+          "status": "planned",
+          "examples": ["Isolated worktrees", "Branch-only changes", "Test evidence"]
+        },
+        {
+          "id": "agents-reasoning",
+          "label": "Prompts & Reasoning Loops",
+          "helpTerm": "Agents · Prompts & Reasoning Loops",
+          "description": "Define system prompts, planning steps and bounded autonomous execution.",
+          "status": "planned",
+          "examples": ["System prompts", "ReAct loops", "Planning loops"],
+          "mechanics": ["Prompting", "ReAct", "Guarded execution"]
+        },
+        {
+          "id": "agents-tools",
+          "label": "Tools & MCP Hosts",
+          "helpTerm": "Agents · Tools & MCP Hosts",
+          "description": "Configure callable tools, function execution and MCP client hosts.",
+          "status": "planned",
+          "examples": ["Tool calling", "Function calling", "MCP client hosts"],
+          "mechanics": ["Function execution", "Model Context Protocol"]
+        }
+      ]
+    },
+    {
+      "id": "open-source",
+      "label": "Open Source",
+      "description": "Packages, model formats, licences and evaluation tools.",
+      "items": [
+        {
+          "id": "open-source-packages",
+          "label": "Packages & Versions",
+          "helpTerm": "Open Source · Packages & Versions",
+          "description": "Review the open packages that make up the installed PlotPickle build.",
+          "status": "reference",
+          "target": "about",
+          "examples": ["TypeScript 5.9.3", "ESLint 9.39.4", "Tailwind CSS 4.2.1", "React type definitions"]
+        },
+        {
+          "id": "open-source-models",
+          "label": "Model Hubs & Formats",
+          "helpTerm": "Open Source · Model Hubs & Formats",
+          "description": "Reference open-weight model sources and compatible local formats.",
+          "status": "reference",
+          "examples": ["Hugging Face", "Civitai", "GGUF", "EXL2"]
+        },
+        {
+          "id": "open-source-licences",
+          "label": "Licences & Attribution",
+          "helpTerm": "Open Source · Licences & Attribution",
+          "description": "Review application, package and bundled-component licence obligations.",
+          "status": "reference",
+          "target": "about",
+          "examples": ["AGPL-3.0-or-later", "Third-party notices", "Attribution"]
+        },
+        {
+          "id": "open-source-evals",
+          "label": "Guardrails & Evaluations",
+          "helpTerm": "Open Source · Guardrails & Evaluations",
+          "description": "Plan reusable safety checks, quality gates and model evaluations.",
+          "status": "planned",
+          "examples": ["Guardrails", "Evaluation suites", "Deterministic quality checks"]
+        }
+      ]
+    }
+  ]
+}

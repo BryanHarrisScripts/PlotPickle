@@ -91,7 +91,7 @@ test("issues #144 and #184 centralize credentials and protect them for the curre
 
 test("issue #144 exposes open-folder and erase-all controls with explicit boundaries", async () => {
   const [panel, gateway] = await Promise.all([
-    source("app/settings-panel.tsx"),
+    source("app/settings-panel-legacy.tsx"),
     source("build/local-connections-gateway.ts"),
   ]);
   for (const phrase of [

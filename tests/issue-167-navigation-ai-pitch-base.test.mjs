@@ -34,7 +34,7 @@ test("the application shell renders both named groups and the Graphic Novel work
 });
 
 test("Settings has the exact four ordered groups and requested destinations", async () => {
-  const panel = await source("app/settings-panel.tsx");
+  const panel = await source("app/settings-panel-legacy.tsx");
   const menu = panel.slice(panel.indexOf("const SETTINGS_GROUPS"), panel.indexOf("const SETTINGS_SECTIONS"));
   const labels = [...menu.matchAll(/label: "([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual(labels, [

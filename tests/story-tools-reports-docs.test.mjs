@@ -32,7 +32,7 @@ test("Settings exposes real connections while Reports remains a primary workspac
   const [page, navigation, panel, reportUi, reports] = await Promise.all([
     source("app/page.tsx"),
     source("lib/product-direction.ts"),
-    source("app/settings-panel.tsx"),
+    source("app/settings-panel-legacy.tsx"),
     source("app/settings-project-tools.tsx"),
     source("lib/screenplay-reports.ts"),
   ]);

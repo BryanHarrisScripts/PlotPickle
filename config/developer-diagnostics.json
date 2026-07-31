@@ -24,7 +24,10 @@
         "config/settings-*.json",
         "tests/settings-menu.test.mjs",
         "tests/issue-120-settings-connections.test.mjs",
-        "tests/issue-144-connection-trust.test.mjs"
+        "tests/issue-144-connection-trust.test.mjs",
+        "app/settings-*.module.css",
+        "docs/settings-*.md",
+        "tests/settings-*.test.mjs"
       ],
       "suites": [
         "tests/settings-menu.test.mjs",
@@ -34,7 +37,8 @@
         "tests/issue-182-collab-workspace.test.mjs",
         "tests/issue-184-google-desktop-oauth.test.mjs",
         "tests/issue-210-managed-buzz-runtime.test.mjs",
-        "tests/core-consolidation.test.mjs"
+        "tests/core-consolidation.test.mjs",
+        "tests/settings-system-taxonomy.test.mjs"
       ],
       "contracts": [
         "settings.navigation",
@@ -53,7 +57,10 @@
         "tests/issue-182-collab-workspace.test.mjs",
         "tests/issue-184-google-desktop-oauth.test.mjs",
         "tests/issue-210-managed-buzz-runtime.test.mjs",
-        "tests/core-consolidation.test.mjs"
+        "tests/core-consolidation.test.mjs",
+        "app/settings-*.module.css",
+        "docs/settings-*.md",
+        "tests/settings-*.test.mjs"
       ]
     },
     {
@@ -254,7 +261,7 @@
       "owners": [
         {
           "path": "config/settings-system-taxonomy.json",
-          "optional": true
+          "optional": false
         },
         {
           "path": "app/settings-panel.tsx",
@@ -263,7 +270,8 @@
       ],
       "tests": [
         "tests/settings-menu.test.mjs",
-        "tests/issue-120-settings-connections.test.mjs"
+        "tests/issue-120-settings-connections.test.mjs",
+        "tests/settings-system-taxonomy.test.mjs"
       ]
     },
     "settings.shell": {

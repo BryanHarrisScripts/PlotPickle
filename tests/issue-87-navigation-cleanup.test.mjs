@@ -29,7 +29,7 @@ test("issue #87 places Reports in core navigation and Terminology in learning", 
 });
 
 test("issue #87 keeps GitHub AI and Music capabilities inside the expanded Settings workspace", async () => {
-  const settings = await source("app/settings-panel.tsx");
+  const settings = await source("app/settings-panel-legacy.tsx");
   assert.match(settings, /label: "Repository & Collab"/);
   assert.match(settings, /label: "Story & Art"/);
   assert.match(settings, /Music service links/);

@@ -1,3 +1,6 @@
+import type { ProjectCollaboration } from "./project";
+import type { BuzzRuntimeSnapshot } from "./buzz-runtime";
+
 export const CONNECTION_LIFECYCLE_STATES = [
   "optional",
   "connecting",
@@ -45,6 +48,38 @@ export function connectionLifecyclePresentation(input: ConnectionLifecycleInput)
     default:
       return { state: "optional", label: "Optional · not configured", tone: "neutral" };
   }
+}
+
+export function githubConnectionLifecycle(collaboration: ProjectCollaboration): ConnectionLifecyclePresentation {
+  const configured = collaboration.provider === "github"
+    || Boolean(collaboration.repositoryUrl || collaboration.sourceRepositoryUrl);
+  const previouslyConnected = Boolean(collaboration.connectedAt || collaboration.lastPulledCommit || collaboration.lastPushedCommit);
+  const connected = configured && Boolean(collaboration.repositoryUrl || collaboration.sourceRepositoryUrl);
+
+  return connectionLifecyclePresentation({
+    configured,
+    previouslyConnected,
+    connected,
+    attention: configured && !connected,
+    failed: previouslyConnected && !connected,
+  });
+}
+
+export function buzzConnectionLifecycle(snapshot: BuzzRuntimeSnapshot): ConnectionLifecyclePresentation {
+  const connecting = snapshot.lifecycle === "configuring" || snapshot.lifecycle === "starting" || snapshot.lifecycle === "stopping";
+  const connected = snapshot.lifecycle === "running" && snapshot.processRunning && snapshot.relayListening;
+  const attention = ["prerequisite-required", "stopped", "degraded", "repair-required"].includes(snapshot.lifecycle);
+  const failed = snapshot.configured && ["unavailable", "repair-required"].includes(snapshot.lifecycle);
+  const previouslyConnected = snapshot.configured && (snapshot.processRunning || snapshot.relayListening || Boolean(snapshot.lastCheckedAt));
+
+  return connectionLifecyclePresentation({
+    configured: snapshot.configured,
+    previouslyConnected,
+    connecting,
+    connected,
+    attention,
+    failed,
+  });
 }
 
 export function mayUseErrorTone(input: ConnectionLifecycleInput) {

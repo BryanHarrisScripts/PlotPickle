@@ -33,7 +33,7 @@ if (!source.includes(initialTarget)) {
 }
 source = source.replace(
   initialTarget,
-  'const target = await createTarget(debugPort, `${baseUrl}/?workspace=dashboard`);',
+  'const target = await createTarget(debugPort, "about:blank");',
 );
 
 const dashboardPredicate = 'document.body.innerText.includes("Current project source")';

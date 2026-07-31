@@ -3,6 +3,7 @@ import "./issue-226-unified-connection-lifecycle.test.mjs";
 import "./issue-233-step-5a-surface-language.test.mjs";
 import "./issue-233-step-5a-ui-language.test.mjs";
 import "./issue-235-safe-mode-transitions.test.mjs";
+import "./issue-237-collaboration-refinement-validation.test.mjs";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";

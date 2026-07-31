@@ -21,23 +21,28 @@ test("phase 2 step 4 exposes all three project modes in Repository & Collab sett
 });
 
 test("phase 2 step 4 requires an explicit human confirmation before mode changes", async () => {
-  const collaboration = await source("app/github-collaboration.tsx");
-  assert.match(collaboration, /window\.confirm/);
-  assert.match(collaboration, /This changes the project operating mode only/);
-  assert.match(collaboration, /It will not connect or disconnect GitHub or Buzz/);
-  assert.match(collaboration, /start synchronization, publish changes, or alter story canon/);
-  assert.ok(collaboration.indexOf("if (!confirmed) return") < collaboration.indexOf("onChange({"));
-});
-
-test("phase 2 step 4 changes only collaboration mode and preserves provider configuration", async () => {
   const [collaboration, mode] = await Promise.all([
     source("app/github-collaboration.tsx"),
     source("lib/collaboration-mode.ts"),
   ]);
-  assert.match(collaboration, /collaboration: withCollaborationMode\(project\.collaboration, mode\)/);
-  assert.match(mode, /return \{[\s\S]*\.\.\.collaboration,[\s\S]*mode: normalizeCollaborationMode\(mode\)/);
-  assert.doesNotMatch(collaboration, /fetch\([^)]*mode|connectGitHub|disconnectGitHub|startBuzz|stopBuzz|syncProject|publishProject/);
-  assert.match(collaboration, /Changing mode preserves all GitHub and Buzz setup/);
+  assert.match(collaboration, /window\.confirm\(collaborationTransitionConfirmation\(result\.plan\)\)/);
+  assert.match(mode, /This changes the project operating mode only/);
+  assert.match(mode, /It will not connect or disconnect GitHub or Buzz/);
+  assert.match(mode, /start synchronization, publish changes, or alter story canon/);
+  assert.ok(collaboration.indexOf("if (!confirmed) return") < collaboration.indexOf("onChange(result.project)"));
+});
+
+test("phase 2 step 4 delegates mode changes to the preservation-safe transition engine", async () => {
+  const [collaboration, mode] = await Promise.all([
+    source("app/github-collaboration.tsx"),
+    source("lib/collaboration-mode.ts"),
+  ]);
+  assert.match(collaboration, /transitionCollaborationMode\(project, mode/);
+  assert.match(mode, /collaboration: withCollaborationMode\(project\.collaboration, plan\.to\)/);
+  assert.match(mode, /\.\.\.project/);
+  assert.match(mode, /\.\.\.collaboration/);
+  assert.doesNotMatch(collaboration, /connectGitHub|disconnectGitHub|startBuzz|stopBuzz|syncProject|publishProject/);
+  assert.match(collaboration, /Changing mode preserves the PPF, local backups and all GitHub and Buzz setup/);
   assert.match(collaboration, /every canon change still requires explicit human approval/);
 });
 

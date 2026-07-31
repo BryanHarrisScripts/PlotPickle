@@ -16,8 +16,12 @@ test("defaults missing and unknown mode values to Local Story Mode", () => {
 });
 
 test("keeps the PPF and local backups required in every mode", () => {
-  const localPpfCount = source.match(/localPpf: true/g)?.length ?? 0;
-  const localBackupCount = source.match(/localBackups: true/g)?.length ?? 0;
+  const requirementsStart = source.indexOf("const MODE_REQUIREMENTS");
+  const requirementsEnd = source.indexOf("const SERVICE_ORDER", requirementsStart);
+  assert.ok(requirementsStart >= 0 && requirementsEnd > requirementsStart, "Could not isolate the mode requirements table.");
+  const requirements = source.slice(requirementsStart, requirementsEnd);
+  const localPpfCount = requirements.match(/localPpf: true/g)?.length ?? 0;
+  const localBackupCount = requirements.match(/localBackups: true/g)?.length ?? 0;
   assert.equal(localPpfCount, 3);
   assert.equal(localBackupCount, 3);
 });

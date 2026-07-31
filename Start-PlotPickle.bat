@@ -8,6 +8,8 @@ set "PLOTPICKLE_URL=http://127.0.0.1:%PLOTPICKLE_PORT%"
 set "VITE_CMD=node_modules\.bin\vite.cmd"
 set "SETUP_REPORT=scripts\windows-setup-report.mjs"
 set "RUNTIME_MANAGER=scripts\windows-runtime.mjs"
+set "BUZZ_INSTALLER=scripts\install-buzz-desktop.ps1"
+set "BUZZ_DESKTOP_VERSION=0.5.3"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
 set "INSTALL_PERFORMED=0"
 
@@ -33,6 +35,7 @@ echo ============================================================
 echo.
 echo PlotPickle runs on this computer and opens in your web browser.
 echo It does not install a Windows service and does not require Administrator rights.
+echo Buzz Desktop is optional; when missing, this launcher can offer its official visible installer.
 echo The local address 127.0.0.1 is private to this computer.
 echo Keep this window open while using PlotPickle; closing it stops the server.
 echo.
@@ -120,7 +123,7 @@ if "!SETUP_RESULT!"=="2" (
 if not "!SETUP_RESULT!"=="0" goto :setup_failed
 
 echo.
-echo [STEP 3 OF 4] Verifying installed components and reporting results...
+echo [STEP 3 OF 4] Verifying installed components and checking optional Buzz Desktop...
 echo.
 if "!INSTALL_PERFORMED!"=="1" (
   node "%SETUP_REPORT%" success
@@ -128,6 +131,8 @@ if "!INSTALL_PERFORMED!"=="1" (
   node "%SETUP_REPORT%" ready
 )
 if errorlevel 1 goto :setup_failed
+
+call :ensure_buzz_desktop
 
 echo.
 echo [STEP 4 OF 4] Starting the private local server...
@@ -150,6 +155,48 @@ if not "%EXIT_CODE%"=="0" (
 )
 pause
 exit /b %EXIT_CODE%
+
+:ensure_buzz_desktop
+if not exist "%BUZZ_INSTALLER%" (
+  echo [INFO] The optional Buzz Desktop installer helper is not included in this download.
+  echo PlotPickle will continue normally; Buzz can still be installed separately.
+  exit /b 0
+)
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%BUZZ_INSTALLER%" -CheckOnly
+set "BUZZ_CHECK_RESULT=!ERRORLEVEL!"
+if "!BUZZ_CHECK_RESULT!"=="0" (
+  echo [OK] Buzz Desktop !BUZZ_DESKTOP_VERSION! CLI detected. Buzz remains available inside PlotPickle Settings and Collab.
+  exit /b 0
+)
+if not "!BUZZ_CHECK_RESULT!"=="3" (
+  echo [WARNING] PlotPickle could not determine whether Buzz Desktop is installed.
+  echo PlotPickle will continue without changing Buzz.
+  exit /b 0
+)
+
+echo.
+echo Buzz Desktop !BUZZ_DESKTOP_VERSION! is optional and is used for Buzz Story Rooms.
+echo Buzz remains inside the PlotPickle UI; this only installs the local Buzz Desktop dependency.
+echo The current Windows installer is published by block/buzz and is labelled alpha-unsigned.
+echo Windows SmartScreen may ask you to confirm before it opens.
+echo.
+choice /C YN /N /M "Install Buzz Desktop !BUZZ_DESKTOP_VERSION! now? [Y/N]: "
+if errorlevel 2 (
+  echo [INFO] Buzz Desktop installation skipped. PlotPickle will continue normally.
+  exit /b 0
+)
+
+echo.
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%BUZZ_INSTALLER%" -Install
+set "BUZZ_INSTALL_RESULT=!ERRORLEVEL!"
+if "!BUZZ_INSTALL_RESULT!"=="0" (
+  echo [SUCCESS] Buzz Desktop !BUZZ_DESKTOP_VERSION! is installed and its CLI was detected.
+) else (
+  echo [WARNING] Buzz Desktop installation was not completed.
+  echo PlotPickle will continue normally. Run Start-PlotPickle.bat again to retry.
+)
+exit /b 0
 
 :ensure_dependencies
 echo [STEP 2 OF 4] Checking PlotPickle components...

@@ -8,6 +8,7 @@ import {
 } from "@/lib/project-progress";
 import { DORMANT_BUZZ_RUNTIME } from "@/lib/buzz-runtime";
 import AfterglowLegacyVisuals from "./afterglow-legacy-visuals";
+import ProjectCollaborationStatus from "./project-collaboration-status";
 import styles from "./project-overview.module.css";
 
 const sectionLabels: Record<ProjectProgressSection, string> = {
@@ -99,10 +100,12 @@ export default function ProjectOverview({
         </div>
       </section>
 
+      <ProjectCollaborationStatus project={project} buzz={buzz} />
+
       <section className={styles.identityGrid} aria-label="Current project source">
         <article><span>Loaded story</span><strong>{project.metadata.title || "Untitled local project"}</strong></article>
         <article><span>Local storage</span><strong>Canonical PPF on this device</strong></article>
-        <article><span>GitHub repository</span><strong>{repositoryConnected ? "Connected" : "Not connected"}</strong></article>
+        <article><span>GitHub repository</span><strong>{repositoryConnected ? "Connected" : "Optional · not connected"}</strong></article>
         <article><span>Approved story</span><strong>{project.metadata.status || "In development"}</strong></article>
       </section>
 
@@ -147,17 +150,17 @@ export default function ProjectOverview({
           </div>
         </section>
 
-        <section className={`${styles.panel} ${repositoryConnected ? styles.healthyPanel : styles.attentionPanel}`}>
-          <header><div><p className={styles.eyebrow}>GitHub Approvals</p><h2>{repositoryConnected ? "Repository connected" : "Local project only"}</h2></div><span>{repositoryConnected ? "Review in Collab" : "Setup required"}</span></header>
-          <p>{repositoryConnected ? "Story Proposals and owner-controlled approvals use the connected repository. Only a human merge changes canonical code or story data." : "GitHub remains optional. Connect a repository in Settings before using Story Proposals and approval history."}</p>
+        <section className={`${styles.panel} ${repositoryConnected ? styles.healthyPanel : ""}`}>
+          <header><div><p className={styles.eyebrow}>GitHub Approvals</p><h2>{repositoryConnected ? "Repository connected" : "Repository collaboration available"}</h2></div><span>{repositoryConnected ? "Review in Collab" : "Optional"}</span></header>
+          <p>{repositoryConnected ? "Story Proposals and owner-controlled approvals use the connected repository. Only a human merge changes canonical code or story data." : "GitHub is optional. Connect a repository in Settings only when this project needs Story Proposals, revision history or multi-machine synchronization."}</p>
           <div className={styles.rightsLinks}>
             <button type="button" onClick={() => openWorkspace(repositoryConnected ? "collab" : "settings", repositoryConnected ? undefined : "github")}>{repositoryConnected ? "Open Collab approvals" : "Configure GitHub"}</button>
             {project.collaboration.sourceRepositoryUrl ? <a href={project.collaboration.sourceRepositoryUrl} target="_blank" rel="noreferrer">Open this story’s GitHub repository</a> : null}
           </div>
         </section>
 
-        <section className={`${styles.panel} ${styles.attentionPanel}`}>
-          <header><div><p className={styles.eyebrow}>Optional Buzz workspace</p><h2>{buzz.lifecycle === "running" ? "Connected" : "Not configured"}</h2></div><span>Dormant by default</span></header>
+        <section className={styles.panel}>
+          <header><div><p className={styles.eyebrow}>Optional Buzz workspace</p><h2>{buzz.lifecycle === "running" ? "Connected" : "Not configured"}</h2></div><span>{buzz.lifecycle === "running" ? "Available" : "Optional · dormant by default"}</span></header>
           <p>Buzz provides rooms, agents, media discussion and development activity beside Collab. No process, port, identity or Buzz project data exists until configuration is deliberately completed.</p>
           <button type="button" onClick={() => window.location.assign(buzz.lifecycle === "running" ? "/buzz" : "/settings/buzz")}>{buzz.lifecycle === "running" ? "Open Buzz" : "Configure Buzz"}</button>
         </section>

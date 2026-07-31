@@ -447,18 +447,16 @@ async function main() {
       await navigate(client, `${baseUrl}/?workspace=settings`);
       await waitForShell(client, "settings");
       await waitFor(client, `document.body.innerText.includes("Configure PlotPickle by system.")`, 20_000, "Settings panel");
-      const opened = await evaluate(client, String.raw`(() => {
-        const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
-        const button = [...document.querySelectorAll("button")].find((item) => normalize(item.querySelector("b")?.innerText) === "Repos");
-        if (!button) return false;
-        button.click();
-        return true;
-      })()`);
-      if (!opened) throw new Error("Repos was not found in Settings.");
       await waitFor(client, String.raw`(() => {
         const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
-        return [...document.querySelectorAll("button")].some((item) => normalize(item.querySelector("b")?.innerText) === "GitHub Story Repository");
-      })()`, 10_000, "GitHub Story Repository item");
+        const buttons = [...document.querySelectorAll("button")];
+        const item = buttons.find((candidate) => normalize(candidate.querySelector("b")?.innerText) === "GitHub Story Repository");
+        if (item) return true;
+        const repos = buttons.find((candidate) => normalize(candidate.querySelector("b")?.innerText) === "Repos");
+        if (!repos) return false;
+        if (repos.getAttribute("aria-expanded") === "false") repos.click();
+        return false;
+      })()`, 20_000, "GitHub Story Repository item");
       const clicked = await evaluate(client, String.raw`(() => {
         const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
         const button = [...document.querySelectorAll("button")].find((item) => normalize(item.querySelector("b")?.innerText) === "GitHub Story Repository");

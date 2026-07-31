@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import ts from "typescript";
 
@@ -144,4 +146,14 @@ test("issue #244 offers the pinned Buzz Desktop installer without moving Buzz ou
   assert.match(packageSmoke, /config\/buzz-desktop\.json/);
   assert.match(settings, /Buzz CLI path \(optional\)/);
   assert.match(settings, /Open Story Room/);
+});
+
+test("issue #244 executes the non-network Buzz Desktop check on Windows", { skip: process.platform !== "win32" }, () => {
+  const result = spawnSync(
+    "powershell.exe",
+    ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", "scripts\\install-buzz-desktop.ps1", "-CheckOnly"],
+    { cwd: fileURLToPath(root), encoding: "utf8" },
+  );
+  assert.ok([0, 3].includes(result.status ?? -1), result.stderr || result.stdout || "Buzz Desktop check returned no output.");
+  assert.match(result.stdout, /PLOTPICKLE_BUZZ_STATUS=(?:detected|missing)/);
 });

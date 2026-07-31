@@ -40,6 +40,19 @@ test("Step 5A keeps the Windows smoke label aligned with the JSON contract", asy
   assert.match(smoke, new RegExp(copy.settings.repository.label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 });
 
+test("Step 5A arms the Issue #208 network interception before loading Dashboard", async () => {
+  const [runner, smoke] = await Promise.all([
+    source("scripts/windows-issue-208-smoke-runner.mjs"),
+    source("scripts/windows-issue-208-smoke.mjs"),
+  ]);
+  assert.match(runner, /createTarget\(debugPort, \"about:blank\"\)/);
+  assert.doesNotMatch(runner, /createTarget\(debugPort, `\$\{baseUrl\}\/\?workspace=dashboard`\)/);
+  assert.ok(
+    smoke.indexOf('client.send("Fetch.enable"') < smoke.indexOf('await runScenario(report, "Dashboard identifies a new local project'),
+    "The synthetic local-connection response must be armed before the Dashboard scenario loads.",
+  );
+});
+
 test("Step 5A preserves Advanced and machine-facing technical details", async () => {
   const adapter = await source("app/writer-facing-collaboration-language.tsx");
   assert.match(adapter, /closest\("details, code, pre, input, textarea, select/);

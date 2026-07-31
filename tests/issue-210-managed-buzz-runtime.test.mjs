@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import "./issue-212-buzz-dashboard-marketing-alignment.test.mjs";
 import "./issue-214-buzz-story-room.test.mjs";
+import "./issue-216-buzz-integration-fix.test.mjs";
 
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
@@ -29,7 +30,7 @@ test("issue #210 defines a dormant PlotPickle-managed Buzz runtime", async () =>
   assert.match(runtime, /An unconfigured runtime creates no process, listening port, identity, credential or Buzz project data/);
 });
 
-test("issue #210 places Buzz beside Collab without changing the creative workflow", async () => {
+test("issue #210 keeps Buzz inside Collab without changing the creative workflow", async () => {
   const [direction, header, route] = await Promise.all([
     source("lib/product-direction.ts"),
     source("app/application-shell-header.tsx"),
@@ -46,18 +47,18 @@ test("issue #210 places Buzz beside Collab without changing the creative workflo
     previous = index;
   }
 
-  assert.match(direction, /id: "collab", label: "Collab"[\s\S]*id: "buzz", label: "Buzz"/);
-  assert.match(header, /id === "buzz"[\s\S]*window\.location\.assign\("\/buzz"\)/);
-  assert.match(header, /Buzz Setup/);
-  assert.match(route, /activeTab="buzz"/);
-  assert.match(route, /<BuzzWorkspace/);
+  assert.match(direction, /id: "collab", label: "Collab"/);
+  assert.doesNotMatch(direction, /id: "buzz", label: "Buzz"/);
+  assert.doesNotMatch(header, /Buzz Setup|id === "buzz"/);
+  assert.match(route, /COLLAB_SECTION_KEY/);
+  assert.match(route, /workspace=collab/);
 });
 
 test("issue #210 keeps Settings, PPF and GitHub authority boundaries explicit", async () => {
   const [runtime, brief, settings] = await Promise.all([
     source("lib/buzz-runtime.ts"),
     source("docs/issue-210-managed-buzz-runtime.md"),
-    source("app/settings/buzz/page.tsx"),
+    source("app/buzz-settings-panel.tsx"),
   ]);
 
   assert.match(runtime, /Settings → Integrations → Buzz/);
@@ -68,7 +69,7 @@ test("issue #210 keeps Settings, PPF and GitHub authority boundaries explicit", 
   assert.match(brief, /Collab.*Story Proposals/s);
   assert.match(brief, /Buzz.*rooms, conversations, agents/s);
   assert.match(brief, /Feedback.*permanent structured review/s);
-  assert.match(settings, /Settings · Integrations · Buzz/);
+  assert.match(settings, /Settings · Repository & Collab · Buzz/);
   assert.match(settings, /Existing Buzz relay/);
   assert.match(settings, /Managed local Buzz/);
   assert.match(settings, /Save encrypted connection/);
@@ -78,7 +79,7 @@ test("issue #210 does not pretend unverified native Buzz binaries are packaged",
   const [runtime, workspace, settings, packagingReadme] = await Promise.all([
     source("lib/buzz-runtime.ts"),
     source("app/buzz-workspace.tsx"),
-    source("app/settings/buzz/page.tsx"),
+    source("app/buzz-settings-panel.tsx"),
     source("runtime/buzz/README.md"),
   ]);
 

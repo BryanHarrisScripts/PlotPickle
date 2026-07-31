@@ -1,4 +1,5 @@
 import { chmodSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -25,6 +26,7 @@ const runtimeDirectories = [
   "docs",
   "lib",
   "public",
+  "runtime",
   "schema",
   "scripts",
   "tests",
@@ -69,6 +71,29 @@ const githubAppConfigPath = path.join(destination, "config", "github-app.json");
 const githubAppConfig = JSON.parse(readFileSync(githubAppConfigPath, "utf8"));
 const googleOAuthConfigPath = path.join(destination, "config", "google-oauth.json");
 const googleOAuthConfig = JSON.parse(readFileSync(googleOAuthConfigPath, "utf8"));
+
+function canonicalBuzzBytes(filePath, source) {
+  if (!/\.(?:ya?ml|md|txt)$/i.test(filePath)) return source;
+  return Buffer.from(source.toString("utf8").replace(/\r\n?/g, "\n"), "utf8");
+}
+
+function verifyPackagedBuzzBundle() {
+  const bundleRoot = path.join(destination, "runtime", "buzz");
+  const manifestPath = path.join(bundleRoot, "manifest.json");
+  if (!existsSync(manifestPath)) throw new Error("Packaged Buzz manifest is missing.");
+  const buzzManifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  if (!Array.isArray(buzzManifest.files) || !buzzManifest.files.length) throw new Error("Packaged Buzz manifest has no trust files.");
+  for (const item of buzzManifest.files) {
+    const packagedPath = path.join(bundleRoot, item.path);
+    if (!existsSync(packagedPath)) throw new Error(`Packaged Buzz trust file is missing: ${item.path}`);
+    const bytes = canonicalBuzzBytes(item.path, readFileSync(packagedPath));
+    const digest = createHash("sha256").update(bytes).digest("hex");
+    if (bytes.byteLength !== item.bytes || digest !== item.sha256) throw new Error(`Packaged Buzz trust file failed verification: ${item.path}`);
+  }
+}
+
+verifyPackagedBuzzBundle();
+
 const manifest = {
   product: "PlotPickle",
   version: packageJson.version,

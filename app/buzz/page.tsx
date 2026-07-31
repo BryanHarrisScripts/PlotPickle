@@ -1,45 +1,14 @@
 "use client";
 
-import ApplicationShellHeader from "../application-shell-header";
-import BuzzWorkspace from "../buzz-workspace";
-import type { ProductNavigationId } from "@/lib/product-direction";
+import { useEffect } from "react";
 
-const WORKSPACE_QUERY: Partial<Record<ProductNavigationId, string>> = {
-  dashboard: "dashboard",
-  learn: "learn",
-  planner: "plan",
-  visuals: "storyboard",
-  script: "write",
-  pitch: "pitch",
-  build: "build",
-  feedback: "feedback",
-  engines: "refine",
-  reports: "reports",
-  collab: "collab",
-  settings: "settings",
-};
+const COLLAB_SECTION_KEY = "plotpickle.collab.section";
 
-export default function BuzzPage() {
-  function navigate(tab: ProductNavigationId) {
-    if (tab === "buzz") return;
-    const workspace = WORKSPACE_QUERY[tab] ?? "dashboard";
-    window.location.assign(`/?workspace=${encodeURIComponent(workspace)}`);
-  }
+export default function BuzzCompatibilityPage() {
+  useEffect(() => {
+    window.sessionStorage.setItem(COLLAB_SECTION_KEY, "buzz");
+    window.location.replace("/?workspace=collab");
+  }, []);
 
-  return (
-    <div className="app-shell">
-      <ApplicationShellHeader
-        activeTab="buzz"
-        onNavigate={navigate}
-        onProjectAction={(action) => {
-          const workspace = action === "new-project" ? "plan" : "dashboard";
-          window.location.assign(`/?workspace=${workspace}&action=${encodeURIComponent(action)}`);
-        }}
-        onOpenLanding={() => window.location.assign("/")}
-      />
-      <main className="workspace-main">
-        <BuzzWorkspace onOpenSettings={() => window.location.assign("/settings/buzz")} />
-      </main>
-    </div>
-  );
+  return <main className="workspace-main"><p role="status">Opening Collab → Buzz Story Room…</p></main>;
 }

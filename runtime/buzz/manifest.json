@@ -10,18 +10,18 @@
   "files": [
     {
       "path": "compose.yml",
-      "sha256": "449f029e29f70205e8c227254bcfcfaeea5fcfe67e2d4bd647a96161aede5cdd",
-      "bytes": 4274
+      "sha256": "45bf0994ada4434fd03339d73580137829196e131437717b7dc677e4f9c93d41",
+      "bytes": 4329
     },
     {
       "path": "README.md",
-      "sha256": "afe032e447fdb7cda55f9a17352e016c07023d70c7b84bae167caffaeeed0090",
-      "bytes": 1461
+      "sha256": "1a233e4fad5382b67a1a1ac13e8ff6359c7cef19dd3bc9c18f650d31dfa9b37d",
+      "bytes": 1796
     },
     {
       "path": "LICENSE.buzz.txt",
-      "sha256": "2922b54b6ce6a06b52e40650f8b6caef33748ad85b880b9fbbc8df64090a0e05",
-      "bytes": 11339
+      "sha256": "108cb15997e51b75a8d18b0c1e2c52bd3879d051ab02118973387df1e4aab584",
+      "bytes": 11338
     }
   ],
   "licenseFiles": [

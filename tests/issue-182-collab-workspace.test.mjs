@@ -5,7 +5,7 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #182 adds Collab and Buzz after the ten creative workspaces without changing their order", async () => {
+test("issue #182 keeps Collab after the ten creative workspaces without changing their order", async () => {
   const [direction, header] = await Promise.all([
     source("lib/product-direction.ts"),
     source("app/application-shell-header.tsx"),
@@ -22,7 +22,8 @@ test("issue #182 adds Collab and Buzz after the ten creative workspaces without 
     assert.ok(index > previous, `Creative workflow changed or lost ${label}`);
     previous = index;
   }
-  assert.match(direction, /COLLABORATION_NAVIGATION[\s\S]*id: "collab", label: "Collab"[\s\S]*id: "buzz", label: "Buzz"/);
+  assert.match(direction, /COLLABORATION_NAVIGATION[\s\S]*id: "collab", label: "Collab"/);
+  assert.doesNotMatch(direction, /id: "buzz", label: "Buzz"/);
   assert.ok(direction.indexOf("...PRIMARY_WORKFLOW_NAVIGATION") < direction.indexOf("...COLLABORATION_NAVIGATION"));
   assert.ok(direction.indexOf("...COLLABORATION_NAVIGATION") < direction.indexOf('id: "settings"'));
   assert.match(header, /shell-zone-production[\s\S]*shell-zone-collaboration[\s\S]*shell-zone-project-actions[\s\S]*shell-zone-configuration/);
@@ -39,7 +40,7 @@ test("issue #182 renders one provider-neutral Collab workspace with the approved
   assert.match(page, /import CollabWorkspace/);
   assert.match(page, /collab: "collab"/);
   assert.match(page, /activeTab === "collab"[\s\S]*<CollabWorkspace/);
-  for (const label of ["Overview", "Approvals", "Meetings", "Calendar", "Connections"]) assert.match(workspace, new RegExp(`label: "${label}"`));
+  for (const label of ["Overview", "Buzz", "Approvals", "Meetings", "Calendar", "Connections"]) assert.match(workspace, new RegExp(`label: "${label}"`));
   assert.match(workspace, /Settings configures services\. Collab uses services\./);
   assert.match(workspace, /GitHub Story Proposals and Project Lead decisions/);
   assert.match(calendarUi, /Project dates only/);

@@ -51,7 +51,6 @@ export const PRIMARY_WORKFLOW_NAVIGATION = [
 
 export const COLLABORATION_NAVIGATION = [
   { id: "collab", label: "Collab", description: "Approvals, meetings, calendar and connected collaborators", zone: "collaboration" },
-  { id: "buzz", label: "Buzz", description: "Optional rooms, agents, media discussion and development activity", zone: "collaboration" },
 ] as const;
 
 export const PRODUCT_NAVIGATION = [

@@ -42,13 +42,7 @@ function WorkspaceButton({
       aria-current={activeTab === id ? "page" : undefined}
       className={activeTab === id ? "active" : ""}
       title={userFacingDescription}
-      onClick={() => {
-        if (id === "buzz") {
-          window.location.assign("/buzz");
-          return;
-        }
-        onNavigate(id);
-      }}
+      onClick={() => onNavigate(id)}
     >
       <span>{label}</span>
     </button>
@@ -64,10 +58,6 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
     const handleWorkspaceNavigation = (event: Event) => {
       const requested = (event as CustomEvent<unknown>).detail;
       if (typeof requested !== "string") return;
-      if (requested === "buzz") {
-        window.location.assign("/buzz");
-        return;
-      }
       const workspace = PRODUCT_NAVIGATION.find((item) => item.id === requested);
       if (workspace) onNavigate(workspace.id);
     };
@@ -114,7 +104,6 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
       <nav className="main-tabs shell-zone-configuration" aria-label="Application configuration" role="tablist">
         {configuration.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
       </nav>
-      {activeTab === "settings" ? <button type="button" className="text-button" onClick={() => window.location.assign("/settings/buzz")}>Buzz Setup</button> : null}
 
       {/* The internal route remains `pitch`; this hidden control supports older packaged automation while Graphic Novel stays the only user-facing label. */}
       <button

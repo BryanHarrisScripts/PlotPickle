@@ -8,7 +8,8 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 test("issue #214 registers the local-only Buzz gateway", async () => {
   const [vite, gateway] = await Promise.all([source("vite.config.ts"), source("build/buzz-gateway.ts")]);
   assert.match(vite, /import \{ buzzGateway \} from "\.\/build\/buzz-gateway"/);
-  assert.match(vite, /localConnectionsGateway\(\),\s*buzzGateway\(\)/);
+  assert.match(vite, /import \{ buzzBundleNormalizer \} from "\.\/build\/buzz-bundle-normalizer"/);
+  assert.match(vite, /localConnectionsGateway\(\),\s*buzzBundleNormalizer\(\),\s*buzzGateway\(\)/);
   assert.match(gateway, /const API = "\/api\/local-buzz"/);
   assert.match(gateway, /if \(!isLocalRequest\(request\)\)/);
   assert.match(gateway, /readCredentialJson/);
@@ -48,7 +49,7 @@ test("issue #214 keeps PPF authority human-controlled and auditable", async () =
 });
 
 test("issue #214 connects Settings to encrypted Phase 1A controls", async () => {
-  const settings = await source("app/settings/buzz/page.tsx");
+  const settings = await source("app/buzz-settings-panel.tsx");
   assert.match(settings, /Save encrypted connection/);
   assert.match(settings, /Test Buzz connection/);
   assert.match(settings, /Remove connection and identity/);
@@ -60,7 +61,7 @@ test("issue #214 connects Settings to encrypted Phase 1A controls", async () => 
 
 test("issue #214 exposes the managed Phase 1B lifecycle only behind verified prerequisites", async () => {
   const [settings, gateway, manifest, compose] = await Promise.all([
-    source("app/settings/buzz/page.tsx"),
+    source("app/buzz-settings-panel.tsx"),
     source("build/buzz-gateway.ts"),
     source("runtime/buzz/manifest.json"),
     source("runtime/buzz/compose.yml"),

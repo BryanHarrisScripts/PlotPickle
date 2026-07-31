@@ -21,6 +21,8 @@ The Buzz relay, Postgres, Redis and MinIO images are downloaded only after the u
 
 Docker Desktop or Docker Engine with Compose v2 is required. PlotPickle validates the pinned manifest and Compose configuration before it downloads or starts anything.
 
+The managed bundle is not considered release-ready merely because the controls or Compose file exist. Its validation gate requires checksum verification, licence verification, clean-machine startup, localhost reachability, shutdown, backup, restore, repair and complete removal evidence on the supported PlotPickle release platforms.
+
 ## Authority
 
 Buzz discussions and signed events are source context. A user must deliberately convert a discussion into a PlotPickle proposal and approve that proposal before the PPF changes.

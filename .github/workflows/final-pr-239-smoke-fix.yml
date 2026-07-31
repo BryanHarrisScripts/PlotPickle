@@ -1,0 +1,88 @@
+name: Final PR 239 smoke correction
+
+on:
+  push:
+    branches:
+      - automation/final-pr-239-smoke-fix
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/239-settings-system-taxonomy
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Make the Settings submenu interaction atomic
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = 'scripts/windows-release-smoke.mjs';
+          let source = fs.readFileSync(path, 'utf8');
+
+          const scenario = source.indexOf('Settings → Repository & Collab status transition');
+          const start = source.indexOf('      await waitFor(client, String.raw`(() => {', scenario);
+          const endMarker = '      await waitFor(client, `document.body.innerText.includes("Keep story history and proposals under project-owner control.")`';
+          const end = source.indexOf(endMarker, start);
+          if (scenario < 0 || start < 0 || end < 0) throw new Error('Expected Settings smoke interaction block was not found.');
+
+          const replacement = String.raw`      await waitFor(client, String.raw\`(() => {
+        const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+        const visible = (element) => {
+          if (!element) return false;
+          const rect = element.getBoundingClientRect();
+          const style = getComputedStyle(element);
+          return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+        };
+        if (document.body.innerText.includes("Keep story history and proposals under project-owner control.")) return true;
+        const buttons = [...document.querySelectorAll("button")].filter(visible);
+        const item = buttons.find((candidate) => normalize(candidate.querySelector("b")?.innerText) === "GitHub Story Repository");
+        if (item) {
+          item.click();
+          return false;
+        }
+        const repos = buttons.find((candidate) => normalize(candidate.querySelector("b")?.innerText) === "Repos");
+        if (!repos) return false;
+        if (repos.getAttribute("aria-expanded") !== "true") repos.click();
+        return false;
+      })()\`, 20_000, "GitHub Story Repository panel");
+`;
+
+          source = source.slice(0, start) + replacement + source.slice(end);
+          fs.writeFileSync(path, source);
+          NODE
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate focused contracts
+        run: |
+          node --check scripts/windows-release-smoke.mjs
+          npm run diagnostics:validate
+          node --test tests/windows-release-smoke.test.mjs tests/settings-system-taxonomy.test.mjs tests/issue-240-developer-diagnostics.test.mjs tests/issue-240-pr-239-regression.test.mjs
+
+      - name: Commit final correction
+        shell: bash
+        run: |
+          git config user.name "PlotPickle Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add scripts/windows-release-smoke.mjs
+          git commit -m "Make the Settings Windows smoke interaction atomic"
+          git push origin HEAD:agent/239-settings-system-taxonomy
+
+      - name: Remove temporary automation branch
+        if: always()
+        shell: bash
+        run: git push origin --delete automation/final-pr-239-smoke-fix || true

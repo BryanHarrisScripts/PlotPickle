@@ -1,0 +1,593 @@
+{
+  "version": 1,
+  "reportDirectory": "reports/developer-diagnostics",
+  "defaults": {
+    "maxAttempts": 2,
+    "allowFullSuite": false,
+    "requireHumanApprovalFor": [
+      "write",
+      "commit",
+      "merge",
+      "workflow-dispatch",
+      "scope-expand",
+      "full-suite"
+    ],
+    "stopOnAmbiguity": true
+  },
+  "areas": [
+    {
+      "id": "settings",
+      "label": "Settings",
+      "patterns": [
+        "app/settings-*.tsx",
+        "app/settings/**",
+        "config/settings-*.json",
+        "tests/settings-menu.test.mjs",
+        "tests/issue-120-settings-connections.test.mjs",
+        "tests/issue-144-connection-trust.test.mjs"
+      ],
+      "suites": [
+        "tests/settings-menu.test.mjs",
+        "tests/issue-120-settings-connections.test.mjs",
+        "tests/issue-144-connection-trust.test.mjs",
+        "tests/issue-146-github-app-connection.test.mjs",
+        "tests/issue-182-collab-workspace.test.mjs",
+        "tests/issue-184-google-desktop-oauth.test.mjs",
+        "tests/issue-210-managed-buzz-runtime.test.mjs",
+        "tests/core-consolidation.test.mjs"
+      ],
+      "contracts": [
+        "settings.navigation",
+        "settings.shell",
+        "settings.controls",
+        "settings.buzz"
+      ],
+      "allowedPaths": [
+        "app/settings-*.tsx",
+        "app/settings/**",
+        "config/settings-*.json",
+        "tests/settings-menu.test.mjs",
+        "tests/issue-120-settings-connections.test.mjs",
+        "tests/issue-144-connection-trust.test.mjs",
+        "tests/issue-146-github-app-connection.test.mjs",
+        "tests/issue-182-collab-workspace.test.mjs",
+        "tests/issue-184-google-desktop-oauth.test.mjs",
+        "tests/issue-210-managed-buzz-runtime.test.mjs",
+        "tests/core-consolidation.test.mjs"
+      ]
+    },
+    {
+      "id": "github",
+      "label": "GitHub collaboration",
+      "patterns": [
+        "app/github-*.tsx",
+        "lib/github-*.ts",
+        "build/local-github-*.ts",
+        "config/github-*.json",
+        "tests/issue-14*-github-*.test.mjs",
+        "tests/issue-15*-*.test.mjs",
+        "tests/issue-16*-github-*.test.mjs"
+      ],
+      "suites": [
+        "tests/issue-144-connection-trust.test.mjs",
+        "tests/issue-146-github-app-connection.test.mjs",
+        "tests/issue-148-automatic-story-project-setup.test.mjs",
+        "tests/issue-150-git-native-project-sync.test.mjs",
+        "tests/issue-152-story-proposals.test.mjs",
+        "tests/issue-156-collaboration-invitations.test.mjs",
+        "tests/issue-163-github-recovery-centre.test.mjs",
+        "tests/issue-165-github-repository-recovery.test.mjs",
+        "tests/issue-182-collab-workspace.test.mjs"
+      ],
+      "contracts": [
+        "github.connection",
+        "github.collaboration",
+        "github.recovery"
+      ],
+      "allowedPaths": [
+        "app/github-*.tsx",
+        "lib/github-*.ts",
+        "build/local-github-*.ts",
+        "config/github-*.json",
+        "tests/issue-14*-github-*.test.mjs",
+        "tests/issue-15*-*.test.mjs",
+        "tests/issue-16*-github-*.test.mjs",
+        "tests/issue-182-collab-workspace.test.mjs"
+      ]
+    },
+    {
+      "id": "google",
+      "label": "Google services",
+      "patterns": [
+        "app/google-*.tsx",
+        "lib/google-*.ts",
+        "build/local-google-*.ts",
+        "config/google-*.json",
+        "tests/issue-18*-google-*.test.mjs"
+      ],
+      "suites": [
+        "tests/issue-184-google-desktop-oauth.test.mjs",
+        "tests/issue-185-google-calendar.test.mjs",
+        "tests/issue-187-google-meet.test.mjs",
+        "tests/issue-182-collab-workspace.test.mjs",
+        "tests/issue-120-settings-connections.test.mjs"
+      ],
+      "contracts": [
+        "google.auth",
+        "google.calendar",
+        "google.meet"
+      ],
+      "allowedPaths": [
+        "app/google-*.tsx",
+        "lib/google-*.ts",
+        "build/local-google-*.ts",
+        "config/google-*.json",
+        "tests/issue-18*-google-*.test.mjs",
+        "tests/issue-182-collab-workspace.test.mjs",
+        "tests/issue-120-settings-connections.test.mjs"
+      ]
+    },
+    {
+      "id": "buzz",
+      "label": "Buzz",
+      "patterns": [
+        "app/*buzz*.tsx",
+        "app/buzz/**",
+        "app/settings/buzz/**",
+        "lib/*buzz*.ts",
+        "build/*buzz*.ts",
+        "config/*buzz*.json",
+        "tests/issue-21*-*.test.mjs"
+      ],
+      "suites": [
+        "tests/issue-210-managed-buzz-runtime.test.mjs",
+        "tests/issue-182-collab-workspace.test.mjs",
+        "tests/issue-120-settings-connections.test.mjs"
+      ],
+      "contracts": [
+        "settings.buzz",
+        "buzz.runtime",
+        "buzz.trust"
+      ],
+      "allowedPaths": [
+        "app/*buzz*.tsx",
+        "app/buzz/**",
+        "app/settings/buzz/**",
+        "lib/*buzz*.ts",
+        "build/*buzz*.ts",
+        "config/*buzz*.json",
+        "tests/issue-21*-*.test.mjs",
+        "tests/issue-182-collab-workspace.test.mjs",
+        "tests/issue-120-settings-connections.test.mjs"
+      ]
+    },
+    {
+      "id": "packaging-windows",
+      "label": "Windows packaging",
+      "patterns": [
+        "scripts/windows-*.mjs",
+        "scripts/package-*.mjs",
+        ".github/workflows/release-candidate.yml",
+        "tests/windows-*.test.mjs",
+        "releases/windows/**"
+      ],
+      "suites": [
+        "tests/windows-native-runtime.test.mjs",
+        "tests/windows-release-smoke.test.mjs",
+        "tests/issue-86-lighthouse-audit.test.mjs",
+        "tests/issue-124-release-hardening.test.mjs"
+      ],
+      "contracts": [
+        "packaging.windows",
+        "packaging.smoke"
+      ],
+      "allowedPaths": [
+        "scripts/windows-*.mjs",
+        "scripts/package-*.mjs",
+        ".github/workflows/release-candidate.yml",
+        "tests/windows-*.test.mjs",
+        "tests/issue-86-lighthouse-audit.test.mjs",
+        "tests/issue-124-release-hardening.test.mjs",
+        "releases/windows/**"
+      ],
+      "platform": "win32"
+    },
+    {
+      "id": "packaging-shared",
+      "label": "Shared packaging",
+      "patterns": [
+        "scripts/package-*.mjs",
+        "scripts/build-*.mjs",
+        ".github/workflows/*.yml",
+        "package.json",
+        "package-lock.json"
+      ],
+      "suites": [
+        "tests/issue-124-release-hardening.test.mjs",
+        "tests/phase-f-collaboration-release.test.mjs",
+        "tests/windows-native-runtime.test.mjs"
+      ],
+      "contracts": [
+        "packaging.shared",
+        "ci.responsibilities"
+      ],
+      "allowedPaths": [
+        "scripts/package-*.mjs",
+        "scripts/build-*.mjs",
+        ".github/workflows/*.yml",
+        "package.json",
+        "package-lock.json",
+        "tests/issue-124-release-hardening.test.mjs",
+        "tests/phase-f-collaboration-release.test.mjs",
+        "tests/windows-native-runtime.test.mjs"
+      ]
+    },
+    {
+      "id": "developer-diagnostics",
+      "label": "Developer diagnostics",
+      "patterns": [
+        "config/developer-diagnostics.json",
+        "scripts/developer-diagnostics/**",
+        "tests/issue-240-developer-diagnostics.test.mjs",
+        "docs/developer-diagnostics.md"
+      ],
+      "suites": [
+        "tests/issue-240-developer-diagnostics.test.mjs"
+      ],
+      "contracts": [
+        "diagnostics.registry",
+        "diagnostics.engine",
+        "diagnostics.agent-policy"
+      ],
+      "allowedPaths": [
+        "config/developer-diagnostics.json",
+        "scripts/developer-diagnostics/**",
+        "tests/issue-240-developer-diagnostics.test.mjs",
+        "docs/developer-diagnostics.md",
+        "package.json",
+        ".github/workflows/quality.yml"
+      ]
+    }
+  ],
+  "contracts": {
+    "settings.navigation": {
+      "owners": [
+        {
+          "path": "config/settings-system-taxonomy.json",
+          "optional": true
+        },
+        {
+          "path": "app/settings-panel.tsx",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/settings-menu.test.mjs",
+        "tests/issue-120-settings-connections.test.mjs"
+      ]
+    },
+    "settings.shell": {
+      "owners": [
+        {
+          "path": "app/settings-panel.tsx",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/settings-menu.test.mjs",
+        "tests/issue-120-settings-connections.test.mjs"
+      ]
+    },
+    "settings.controls": {
+      "owners": [
+        {
+          "path": "app/settings-panel-legacy.tsx",
+          "optional": true
+        },
+        {
+          "path": "app/settings-panel.tsx",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/settings-menu.test.mjs",
+        "tests/issue-120-settings-connections.test.mjs",
+        "tests/issue-144-connection-trust.test.mjs"
+      ]
+    },
+    "settings.buzz": {
+      "owners": [
+        {
+          "path": "app/settings/buzz/page.tsx",
+          "optional": true
+        },
+        {
+          "path": "app/buzz-settings-panel.tsx",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-210-managed-buzz-runtime.test.mjs",
+        "tests/issue-120-settings-connections.test.mjs"
+      ]
+    },
+    "github.connection": {
+      "owners": [
+        {
+          "path": "app/github-app-connection.tsx",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-144-connection-trust.test.mjs",
+        "tests/issue-146-github-app-connection.test.mjs"
+      ]
+    },
+    "github.collaboration": {
+      "owners": [
+        {
+          "path": "app/github-collaboration.tsx",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-150-git-native-project-sync.test.mjs",
+        "tests/issue-152-story-proposals.test.mjs",
+        "tests/issue-182-collab-workspace.test.mjs"
+      ]
+    },
+    "github.recovery": {
+      "owners": [
+        {
+          "path": "app/github-command-recovery-centre.tsx",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-163-github-recovery-centre.test.mjs",
+        "tests/issue-165-github-repository-recovery.test.mjs"
+      ]
+    },
+    "google.auth": {
+      "owners": [
+        {
+          "path": "app/settings-panel.tsx",
+          "optional": false
+        },
+        {
+          "path": "build/google-desktop-oauth.ts",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-184-google-desktop-oauth.test.mjs"
+      ]
+    },
+    "google.calendar": {
+      "owners": [
+        {
+          "path": "app/google-calendar-workspace.tsx",
+          "optional": false
+        },
+        {
+          "path": "build/google-calendar.ts",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-185-google-calendar.test.mjs",
+        "tests/issue-182-collab-workspace.test.mjs"
+      ]
+    },
+    "google.meet": {
+      "owners": [
+        {
+          "path": "app/google-meet-workspace.tsx",
+          "optional": false
+        },
+        {
+          "path": "build/google-calendar.ts",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-187-google-meet.test.mjs",
+        "tests/issue-182-collab-workspace.test.mjs"
+      ]
+    },
+    "buzz.runtime": {
+      "owners": [
+        {
+          "path": "app/buzz-settings-panel.tsx",
+          "optional": false
+        },
+        {
+          "path": "build/buzz-gateway.ts",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-210-managed-buzz-runtime.test.mjs"
+      ]
+    },
+    "buzz.trust": {
+      "owners": [
+        {
+          "path": "config/buzz-trust-manifest.json",
+          "optional": true
+        },
+        {
+          "path": "app/buzz-settings-panel.tsx",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-210-managed-buzz-runtime.test.mjs"
+      ]
+    },
+    "packaging.windows": {
+      "owners": [
+        {
+          "path": "scripts/package-platform.mjs",
+          "optional": false
+        },
+        {
+          "path": "scripts/windows-runtime.mjs",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/windows-native-runtime.test.mjs",
+        "tests/windows-release-smoke.test.mjs"
+      ]
+    },
+    "packaging.smoke": {
+      "owners": [
+        {
+          "path": "scripts/windows-interaction-smoke.mjs",
+          "optional": false
+        },
+        {
+          "path": "scripts/windows-release-smoke.mjs",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/windows-release-smoke.test.mjs",
+        "tests/issue-86-lighthouse-audit.test.mjs"
+      ]
+    },
+    "packaging.shared": {
+      "owners": [
+        {
+          "path": "scripts/package-platform.mjs",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-124-release-hardening.test.mjs",
+        "tests/phase-f-collaboration-release.test.mjs"
+      ]
+    },
+    "ci.responsibilities": {
+      "owners": [
+        {
+          "path": ".github/workflows/quality.yml",
+          "optional": false
+        },
+        {
+          "path": ".github/workflows/phase-one-ci.yml",
+          "optional": false
+        },
+        {
+          "path": ".github/workflows/release-candidate.yml",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-124-release-hardening.test.mjs"
+      ]
+    },
+    "diagnostics.registry": {
+      "owners": [
+        {
+          "path": "config/developer-diagnostics.json",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-240-developer-diagnostics.test.mjs"
+      ]
+    },
+    "diagnostics.engine": {
+      "owners": [
+        {
+          "path": "scripts/developer-diagnostics/index.mjs",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-240-developer-diagnostics.test.mjs"
+      ]
+    },
+    "diagnostics.agent-policy": {
+      "owners": [
+        {
+          "path": "scripts/developer-diagnostics/agent-policy.mjs",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-240-developer-diagnostics.test.mjs"
+      ]
+    }
+  },
+  "classifiers": [
+    {
+      "id": "environment",
+      "patterns": [
+        "ENOENT",
+        "MODULE_NOT_FOUND",
+        "Browser did not become ready",
+        "timed out",
+        "timeout",
+        "ECONNRESET",
+        "EAI_AGAIN"
+      ]
+    },
+    {
+      "id": "test-contract",
+      "patterns": [
+        "source contract",
+        "wrong component",
+        "stale assertion",
+        "does not match",
+        "missing control",
+        "missing label"
+      ]
+    },
+    {
+      "id": "product",
+      "patterns": [
+        "runtime error",
+        "uncaught",
+        "unhandled rejection",
+        "invariant"
+      ]
+    }
+  ],
+  "agentPolicy": {
+    "mode": "diagnosis-only",
+    "allowedStates": [
+      "observe",
+      "classify",
+      "propose",
+      "verify",
+      "stop"
+    ],
+    "forbiddenActions": [
+      "write",
+      "delete",
+      "commit",
+      "merge",
+      "workflow-dispatch",
+      "scope-expand",
+      "full-suite"
+    ],
+    "allowedProposalActions": [
+      "focused-test",
+      "inspect-contract",
+      "inspect-report",
+      "stop",
+      "escalate"
+    ],
+    "redactKeys": [
+      "token",
+      "secret",
+      "password",
+      "credential",
+      "apiKey",
+      "authorization"
+    ]
+  }
+}

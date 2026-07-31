@@ -85,7 +85,8 @@ test("issue #210 does not pretend unverified native Buzz binaries are packaged",
 
   assert.match(runtime, /packaged: false/);
   assert.match(workspace, /managed runtime/i);
-  assert.match(settings, /pinned verified bundle/i);
+  assert.match(settings, /pinned Docker Compose bundle/i);
+  assert.match(settings, /getBuzzManagedRuntimeActions/);
   assert.match(packagingReadme, /pinned/i);
   assert.match(packagingReadme, /clean-machine/i);
 });

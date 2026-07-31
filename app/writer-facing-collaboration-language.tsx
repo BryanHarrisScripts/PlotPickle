@@ -1,36 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
+import collaborationCopy from "@/config/collaboration-copy.json";
 
-const REPLACEMENTS: ReadonlyArray<readonly [RegExp, string]> = [
-  [/\bRepository & Collab\b/g, "Story repository & Collab"],
-  [/\bGitHub repositories\b/g, "story repositories"],
-  [/\bGitHub repository\b/g, "story repository"],
-  [/\brepository connection\b/gi, "story repository connection"],
-  [/\brepositories\b/gi, "story repositories"],
-  [/\brepository\b/gi, "story repository"],
-  [/\bproposal branches\b/gi, "proposal change workspaces"],
-  [/\bproposal branch\b/gi, "proposal change workspace"],
-  [/\bapproved branch\b/gi, "approved story line"],
-  [/\bbranch name\b/gi, "change workspace name"],
-  [/\bbranches\b/gi, "change workspaces"],
-  [/\bbranch\b/gi, "change workspace"],
-  [/\bpull requests\b/gi, "Story Proposals"],
-  [/\bpull request\b/gi, "Story Proposal"],
-  [/\bknown approved commit\b/gi, "known approved revision"],
-  [/\bremote commit\b/gi, "shared approved revision"],
-  [/\blocal commit\b/gi, "local recorded revision"],
-  [/\bcommit history\b/gi, "recorded revision history"],
-  [/\bcommits\b/gi, "recorded revisions"],
-  [/\bcommit\b/gi, "recorded revision"],
-  [/\bmerged in GitHub\b/gi, "approved into the official story"],
-  [/\bmerge conflicts\b/gi, "competing story changes"],
-  [/\bmerge conflict\b/gi, "competing story changes"],
-  [/\bconflicts\b/gi, "competing story changes"],
-  [/\bconflict\b/gi, "competing story change"],
-  [/\bpull from GitHub\b/gi, "refresh approved story"],
-  [/\bpush to GitHub\b/gi, "publish approved changes"],
-];
+const REPLACEMENTS: ReadonlyArray<readonly [RegExp, string]> = collaborationCopy.replacements.map((item) => [
+  new RegExp(item.pattern, item.flags),
+  item.replacement,
+] as const);
 
 function isAdvanced(node: Text) {
   const element = node.parentElement;
@@ -53,33 +29,22 @@ function translateTree(root: ParentNode) {
   }
 }
 
-function preserveSettingsSmokeLocator(root: ParentNode) {
+function markStableCopyKeys(root: ParentNode) {
   const buttons = root instanceof Element
     ? [root, ...root.querySelectorAll("button")].filter((item): item is HTMLButtonElement => item instanceof HTMLButtonElement)
     : [...root.querySelectorAll("button")];
   for (const button of buttons) {
-    const visibleLabel = [...button.querySelectorAll("b")].find((item) => item.dataset.smokeCompatibility !== "true");
-    if (visibleLabel?.textContent?.trim().toLowerCase() !== "story repository & collab") continue;
-    if (button.querySelector('[data-smoke-compatibility="true"]')) continue;
-    const compatibilityLabel = document.createElement("b");
-    compatibilityLabel.dataset.smokeCompatibility = "true";
-    compatibilityLabel.dataset.technicalLanguage = "true";
-    compatibilityLabel.setAttribute("aria-hidden", "true");
-    compatibilityLabel.textContent = "Repository & Collab";
-    compatibilityLabel.style.position = "absolute";
-    compatibilityLabel.style.width = "1px";
-    compatibilityLabel.style.height = "1px";
-    compatibilityLabel.style.overflow = "hidden";
-    compatibilityLabel.style.clipPath = "inset(50%)";
-    compatibilityLabel.style.whiteSpace = "nowrap";
-    button.prepend(compatibilityLabel);
+    const label = button.querySelector("b")?.textContent?.trim();
+    if (label === collaborationCopy.settings.repository.label) {
+      button.dataset.uiCopyKey = collaborationCopy.settings.repository.key;
+    }
   }
 }
 
 export default function WriterFacingCollaborationLanguage() {
   useEffect(() => {
+    markStableCopyKeys(document.body);
     translateTree(document.body);
-    preserveSettingsSmokeLocator(document.body);
     const observer = new MutationObserver((records) => {
       for (const record of records) {
         for (const node of record.addedNodes) {
@@ -88,8 +53,8 @@ export default function WriterFacingCollaborationLanguage() {
             if (text.nodeValue) text.nodeValue = translate(text.nodeValue);
           } else if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
+            markStableCopyKeys(element);
             translateTree(element);
-            preserveSettingsSmokeLocator(element);
           }
         }
       }

@@ -8,10 +8,10 @@ const REPLACEMENTS: ReadonlyArray<readonly [RegExp, string]> = collaborationCopy
   item.replacement,
 ] as const);
 
-function isAdvanced(node: Text) {
+function isProtectedCopy(node: Text) {
   const element = node.parentElement;
   if (!element) return false;
-  return Boolean(element.closest("details, code, pre, input, textarea, select, [data-technical-language], [aria-label*='Advanced']"));
+  return Boolean(element.closest("details, code, pre, input, textarea, select, [data-technical-language], [data-ui-copy-key], [aria-label*='Advanced']"));
 }
 
 function translate(value: string) {
@@ -23,7 +23,7 @@ function translateTree(root: ParentNode) {
   const nodes: Text[] = [];
   while (walker.nextNode()) nodes.push(walker.currentNode as Text);
   for (const node of nodes) {
-    if (isAdvanced(node) || !node.nodeValue?.trim()) continue;
+    if (isProtectedCopy(node) || !node.nodeValue?.trim()) continue;
     const next = translate(node.nodeValue);
     if (next !== node.nodeValue) node.nodeValue = next;
   }
@@ -48,7 +48,7 @@ export default function WriterFacingCollaborationLanguage() {
     const observer = new MutationObserver((records) => {
       for (const record of records) {
         for (const node of record.addedNodes) {
-          if (node.nodeType === Node.TEXT_NODE && !isAdvanced(node as Text)) {
+          if (node.nodeType === Node.TEXT_NODE && !isProtectedCopy(node as Text)) {
             const text = node as Text;
             if (text.nodeValue) text.nodeValue = translate(text.nodeValue);
           } else if (node.nodeType === Node.ELEMENT_NODE) {

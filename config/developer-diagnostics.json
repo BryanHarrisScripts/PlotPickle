@@ -144,12 +144,15 @@
         "lib/*buzz*.ts",
         "build/*buzz*.ts",
         "config/*buzz*.json",
-        "tests/issue-21*-*.test.mjs"
+        "tests/issue-21*-*.test.mjs",
+        "tests/issue-242-*.test.mjs",
+        "docs/issue-242-buzz-desktop-discovery.md"
       ],
       "suites": [
         "tests/issue-210-managed-buzz-runtime.test.mjs",
         "tests/issue-182-collab-workspace.test.mjs",
-        "tests/issue-120-settings-connections.test.mjs"
+        "tests/issue-120-settings-connections.test.mjs",
+        "tests/issue-242-buzz-desktop-discovery.test.mjs"
       ],
       "contracts": [
         "settings.buzz",
@@ -165,7 +168,9 @@
         "config/*buzz*.json",
         "tests/issue-21*-*.test.mjs",
         "tests/issue-182-collab-workspace.test.mjs",
-        "tests/issue-120-settings-connections.test.mjs"
+        "tests/issue-120-settings-connections.test.mjs",
+        "tests/issue-242-*.test.mjs",
+        "docs/issue-242-buzz-desktop-discovery.md"
       ]
     },
     {
@@ -316,7 +321,8 @@
       ],
       "tests": [
         "tests/issue-210-managed-buzz-runtime.test.mjs",
-        "tests/issue-120-settings-connections.test.mjs"
+        "tests/issue-120-settings-connections.test.mjs",
+        "tests/issue-242-buzz-desktop-discovery.test.mjs"
       ]
     },
     "github.connection": {
@@ -412,10 +418,15 @@
         {
           "path": "build/buzz-gateway.ts",
           "optional": false
+        },
+        {
+          "path": "build/buzz-desktop-discovery.ts",
+          "optional": false
         }
       ],
       "tests": [
-        "tests/issue-210-managed-buzz-runtime.test.mjs"
+        "tests/issue-210-managed-buzz-runtime.test.mjs",
+        "tests/issue-242-buzz-desktop-discovery.test.mjs"
       ]
     },
     "buzz.trust": {

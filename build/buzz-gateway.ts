@@ -11,6 +11,7 @@ import {
 } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
+import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import type { Plugin } from "vite";
 import { BUZZ_STORY_ROOMS, type BuzzStoryRoomId } from "../lib/buzz-story-room";
 import {
@@ -255,23 +256,37 @@ function parseJson(source: string, label: string): unknown {
   catch { throw new Error(`${label} returned invalid JSON.`); }
 }
 
-function buzzExecutable(connection: BuzzConnection | null) {
-  return connection?.cliPath.trim() || (process.platform === "win32" ? "buzz.exe" : "buzz");
-}
-
 async function cliStatus(connection: BuzzConnection | null) {
-  const executable = buzzExecutable(connection);
+  const resolution = await resolveBuzzCliExecutable(connection?.cliPath ?? "");
+  const executable = resolution.executable;
   try {
     const result = await command(executable, ["--version"], { timeoutMs: 8_000 });
-    return { available: true, executable, version: result.stdout || result.stderr || "Available", error: "" };
+    return {
+      available: true,
+      executable,
+      version: result.stdout || result.stderr || "Available",
+      error: "",
+      source: resolution.source,
+      discovered: resolution.discovered,
+      releaseTag: resolution.releaseTag,
+    };
   } catch (error) {
-    return { available: false, executable, version: "", error: safeError(error) };
+    return {
+      available: false,
+      executable,
+      version: "",
+      error: safeError(error),
+      source: resolution.source,
+      discovered: resolution.discovered,
+      releaseTag: resolution.releaseTag,
+    };
   }
 }
 
 async function runBuzz(connection: BuzzConnection, args: string[], options: { write?: boolean; input?: string } = {}) {
   if (options.write && !connection.privateKey) throw new Error("Add an existing Buzz private identity key before creating rooms or sending messages.");
-  const result = await command(buzzExecutable(connection), args, {
+  const resolution = await resolveBuzzCliExecutable(connection.cliPath);
+  const result = await command(resolution.executable, args, {
     env: {
       BUZZ_RELAY_URL: relayHttpUrl(connection.relayUrl),
       ...(connection.privateKey ? { BUZZ_PRIVATE_KEY: connection.privateKey } : {}),

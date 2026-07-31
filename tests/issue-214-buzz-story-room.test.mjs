@@ -25,7 +25,7 @@ test("issue #214 provides project-specific Story Rooms and signed relay operatio
   for (const room of ["story", "characters", "structure", "continuity", "visual-development", "production-notes"]) {
     assert.match(model, new RegExp(`id: "${room}"`));
   }
-  assert.match(workspace, /Create project Story Rooms/);
+  assert.match(workspace, /Create missing rooms/);
   assert.match(workspace, /Create reviewable proposal/);
   assert.match(workspace, /Approve into PPF/);
   assert.match(workspace, />Decline</);

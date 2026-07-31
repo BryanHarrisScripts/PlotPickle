@@ -9,7 +9,7 @@ type ConnectionMode = "existing-relay" | "managed";
 type BuzzStatus = {
   connection: { configured: boolean; mode: ConnectionMode; relayUrl: string; community: string; identityLabel: string; cliPath: string; identityConfigured: boolean; verifiedAt: string };
   relay: { reachable: boolean; checkedAt: string; latencyMs: number; detail: string };
-  cli: { available: boolean; executable: string; version: string; error: string };
+  cli: { available: boolean; executable: string; version: string; error: string; source: "configured" | "environment" | "buzz-desktop" | "path"; discovered: boolean; releaseTag: string };
   managed: {
     bundle: { available: boolean; sourceTag: string; sourceRevision: string; relayImage: string; validationGate: string; error: string };
     docker: { available: boolean; engine: string; compose: string; error: string };
@@ -89,7 +89,7 @@ export default function BuzzSettingsPanel() {
       <article><span>Configuration</span><strong>{configured ? "Saved locally" : "Optional"}</strong><small>{configured ? status?.connection.mode : "No connection has been saved"}</small></article>
       <article><span>Relay</span><strong>{reachable ? `${status?.relay.latencyMs} ms` : configured ? "Not verified" : "Not configured"}</strong><small>{status?.connection.relayUrl || "No relay address"}</small></article>
       <article><span>Encrypted identity</span><strong>{identityConfigured ? "Stored" : "Not stored"}</strong><small>{status?.connection.identityLabel || "Required for signed room and message operations"}</small></article>
-      <article><span>Buzz CLI</span><strong>{cliAvailable ? status?.cli.version || "Available" : "Unavailable"}</strong><small>{status?.cli.executable || status?.cli.error || "Required for signed room and message operations"}</small></article>
+      <article><span>Buzz CLI</span><strong>{cliAvailable ? status?.cli.version || "Available" : "Unavailable"}</strong><small>{status?.cli.executable ? `${status.cli.executable}${status.cli.source === "buzz-desktop" ? " · detected from Buzz Desktop" : ""}` : status?.cli.error || "Required for signed room and message operations"}</small></article>
     </section>
     <section className={styles.choiceGrid} aria-label="Buzz connection mode">
       <article className={form.mode === "existing-relay" ? styles.selectedChoice : undefined}><span>Phase 1A</span><h2>Existing Buzz relay</h2><p>Use a relay you already operate or trust. Saving configuration does not mark it connected; PlotPickle requires a successful reachability check.</p><button type="button" onClick={() => patch({ mode: "existing-relay" })}>Select existing relay</button></article>
@@ -99,7 +99,7 @@ export default function BuzzSettingsPanel() {
       <label><span>Relay address</span><input value={form.relayUrl} onChange={(event) => patch({ relayUrl: event.target.value })} placeholder="https://buzz.example.com" /></label>
       <label><span>Community / workspace</span><input value={form.community} onChange={(event) => patch({ community: event.target.value })} placeholder="PlotPickle writers room" /></label>
       <label><span>Identity label</span><input value={form.identityLabel} onChange={(event) => patch({ identityLabel: event.target.value })} placeholder="Bryan · PlotPickle" /></label>
-      <label><span>Buzz CLI path</span><input value={form.cliPath} onChange={(event) => patch({ cliPath: event.target.value })} placeholder="buzz or C:\\Tools\\buzz.exe" /></label>
+      <label><span>Buzz CLI path (optional)</span><input value={form.cliPath} onChange={(event) => patch({ cliPath: event.target.value })} placeholder="Leave blank to use Buzz Desktop automatically" /><small>Buzz Desktop v0.5.3 includes the supported CLI sidecar.</small></label>
       <label><span>Buzz private key</span><input type="password" autoComplete="off" value={form.privateKey} onChange={(event) => patch({ privateKey: event.target.value })} placeholder={identityConfigured ? "Leave blank to retain saved encrypted key" : "nsec1… or 64-character private key"} /></label>
     </div></section>
     <section className={styles.actions}>
@@ -109,7 +109,7 @@ export default function BuzzSettingsPanel() {
       {storyRoomReady ? <a href="/buzz">Open Story Room</a> : <button type="button" disabled title="Test the saved relay successfully before opening the Story Room.">Story Room unavailable</button>}
       <button className={styles.removeAction} type="button" disabled={!configured || blocked} onClick={() => void run("disconnect", () => request("/connection", { method: "DELETE" }))}>Remove connection and identity</button>
     </section>
-    {configured && reachable && (!cliAvailable || !identityConfigured) ? <section className={styles.boundary}><span>Phase 1A readiness</span><h2>The relay is connected, but signed operations are not ready.</h2><p>{!cliAvailable ? "Install or select the supported Buzz CLI. " : ""}{!identityConfigured ? "Save an encrypted Buzz private identity before creating rooms or sending messages." : ""}</p></section> : null}
+    {configured && reachable && (!cliAvailable || !identityConfigured) ? <section className={styles.boundary}><span>Phase 1A readiness</span><h2>The relay is connected, but signed operations are not ready.</h2><p>{!cliAvailable ? "Install Buzz Desktop v0.5.3 or select a supported Buzz CLI. " : ""}{!identityConfigured ? "Save an encrypted Buzz private identity before creating rooms or sending messages." : ""}</p></section> : null}
     <section className={styles.lifecycleCard}><div><span>Managed runtime lifecycle</span><h2>{managedCopy.title}</h2><p>{managedCopy.detail}</p><small>{status?.managed.message || status?.managed.bundle.validationGate || "Managed Buzz remains optional."}</small></div><div className={styles.lifecycleActions}>
       <button type="button" disabled={!managedActions.install || blocked} onClick={() => void run("install", () => request("/managed/install", { method: "POST" }))}>Install</button>
       <button type="button" disabled={!managedActions.start || blocked} onClick={() => void run("start", () => request("/managed/start", { method: "POST" }))}>Start</button>

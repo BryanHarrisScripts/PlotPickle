@@ -40,13 +40,17 @@ test("Step 5A keeps the Windows smoke label aligned with the JSON contract", asy
   assert.match(smoke, new RegExp(copy.settings.repository.label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 });
 
-test("Step 5A arms the Issue #208 network interception before loading Dashboard", async () => {
+test("Step 5A arms Issue #208 interception before Dashboard and reads its repository label from JSON", async () => {
   const [runner, smoke] = await Promise.all([
     source("scripts/windows-issue-208-smoke-runner.mjs"),
     source("scripts/windows-issue-208-smoke.mjs"),
   ]);
   assert.match(runner, /createTarget\(debugPort, \"about:blank\"\)/);
   assert.doesNotMatch(runner, /createTarget\(debugPort, `\$\{baseUrl\}\/\?workspace=dashboard`\)/);
+  assert.match(runner, /collaboration-copy\.json/);
+  assert.match(runner, /terms\?\.repository\?\.primary/);
+  assert.match(runner, /normalizedRepositoryLabel/);
+  assert.doesNotMatch(runner, /&& \/GitHub repository\/i\.test\(text\)/);
   assert.ok(
     smoke.indexOf('client.send("Fetch.enable"') < smoke.indexOf('await runScenario(report, "Dashboard identifies a new local project'),
     "The synthetic local-connection response must be armed before the Dashboard scenario loads.",

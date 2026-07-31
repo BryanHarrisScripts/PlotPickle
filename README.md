@@ -29,7 +29,7 @@ Available now:
 - Production Shots and Animatic
 - Feedback, Pitch and Reports
 - owner-controlled Collab
-- Buzz workspace shell, Settings configuration model and dormant runtime contracts
+- Buzz Story Rooms, encrypted existing-relay setup and a pinned managed local relay lifecycle
 
 **Afterglow: Reflections of Sentience** remains the persistent reference project used to verify the connected visual storyworld, legacy visual boundaries and screenplay-version reconciliation.
 
@@ -64,7 +64,7 @@ The primary application navigation is:
 
 ## Buzz: optional and dormant by default
 
-Buzz is included in the product model but does not activate simply because PlotPickle is installed.
+Buzz does not activate simply because PlotPickle is installed.
 
 When Buzz is unconfigured:
 
@@ -74,9 +74,11 @@ When Buzz is unconfigured:
 - no Buzz database, project room, media store or coding worktree exists; and
 - PlotPickle remains fully usable.
 
-Open **Settings → Integrations → Buzz** to choose between the planned PlotPickle-managed bundled runtime and an existing relay. Configuration preferences can be saved now. Native bundled Buzz actions remain disabled until platform-specific artifacts, checksums, licence files and clean-machine validation are complete. PlotPickle does not advertise unverified native Buzz binaries as shipped.
+Open **Settings → Integrations → Buzz** to choose an existing trusted relay or the PlotPickle-managed local relay. Existing-relay details and the Buzz identity are encrypted for the current operating-system user. The managed option installs the pinned Buzz `v0.4.26` Docker Compose bundle only after its manifest, checksums, Apache 2.0 licence files and local Docker prerequisites pass verification. It binds the relay to `127.0.0.1` and keeps install, start, stop, restart, repair, pinned update, backup, restore and removal actions explicit.
 
-Developer Mode and coding agents are always explicit. Later coding integration is limited to isolated worktrees, branch-only changes, test evidence and human-controlled GitHub publishing. Agents may not read the PlotPickle credential vault or unrelated PPF folders.
+PlotPickle does not embed or advertise unverified platform-native Buzz executables, and it does not include the separate Buzz desktop client. The verified Docker-managed relay is an optional sidecar; PPF projects remain usable without it.
+
+Developer Mode and coding agents remain future explicit capabilities. Any later coding integration is limited to isolated worktrees, branch-only changes, test evidence and human-controlled GitHub publishing. Agents may not read the PlotPickle credential vault or unrelated PPF folders.
 
 ## Optional connections
 
@@ -87,7 +89,7 @@ PlotPickle's complete local creative core works without external accounts or API
 | **Story & Art** | Optional OpenAI, compatible-server, Ollama, manual-prompt or no-AI operation | Disconnected |
 | **Repository & Collab** | Optional GitHub repository history, Story Proposals, approvals and recovery | Disconnected |
 | **Scheduling & Meetings** | Optional Google Calendar and Meet | Disconnected |
-| **Buzz** | Optional rooms, agents, media discussion and development activity | Not configured |
+| **Buzz** | Optional Story Rooms, encrypted relay identity and managed local relay | Not configured |
 | **Media & Film Engines** | Future extension; no active API | Unavailable |
 
 Provider-neutral render packages, automated returned-asset ingestion and third-party movie-rendering connectors are not active development commitments. Pika Labs, Runway and other media engines remain future extensions unless a separate verified implementation is approved.
@@ -123,8 +125,8 @@ PlotPickle binds to `127.0.0.1`. Replaceable application files remain separate f
 - Rolling backups and recovery are managed under **Settings → Storage & Backups**.
 - Windows upgrades use `Update-PlotPickle.bat` and preserve the reusable runtime and local settings.
 - Saved connection credentials can be reviewed and erased under **Settings → Privacy & Permissions**.
-- Buzz configuration drafts can be removed under **Settings → Integrations → Buzz**.
-- When native Buzz storage is later enabled, data removal and identity erasure remain separate explicit actions.
+- Buzz connection details and the encrypted identity can be removed under **Settings → Integrations → Buzz** without deleting PlotPickle projects.
+- Managed Buzz containers, volumes, runtime files, service secrets and backups have separate explicit lifecycle and removal controls.
 
 ## Collaboration authority
 
@@ -136,6 +138,7 @@ Complete local or private web-based PlotPickle installations can collaborate thr
 - **Buzz** provides optional conversation, agent and development context.
 - **Feedback** stores permanent structured review decisions.
 - A Buzz message or agent suggestion never becomes PPF canon automatically.
+- Only an explicit human approval applies a selected Buzz proposal to the local PPF.
 - Only the project owner or an authorized maintainer can approve the repository merge that changes shared canonical material.
 
 ## Available now versus future packaging
@@ -147,14 +150,15 @@ Available now:
 - Storyworld Map, Production Shots, Animatic and Pitch evidence;
 - owner-controlled Collab and optional GitHub connection;
 - optional Google Calendar and Meet setup boundaries;
-- Buzz workspace shell, Settings configuration model and dormant runtime contracts;
+- project-specific Buzz Story Rooms, linked discussion excerpts and human-reviewed local PPF proposals;
+- encrypted existing-relay configuration, reachability testing and signed Buzz CLI room/message operations;
+- a pinned Docker-managed local Buzz relay with explicit install, lifecycle, backup, restore and removal controls;
 - Windows, macOS and Linux packaging validation.
 
 Not yet claimed as shipped:
 
-- verified native Buzz binaries and bundled service dependencies;
-- automatic Buzz identity creation or relay startup;
-- production Buzz rooms, media storage or coding-agent execution;
+- embedded platform-native Buzz binaries or the separate Buzz desktop client;
+- production coding-agent execution;
 - active Pika, Runway or other third-party rendering connectors.
 
 ## Open source, licensing and ownership

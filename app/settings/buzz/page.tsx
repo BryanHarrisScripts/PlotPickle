@@ -1,207 +1,154 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import ApplicationShellHeader from "../../application-shell-header";
 import styles from "../../buzz-settings.module.css";
-import {
-  BUZZ_RUNTIME_BOUNDARIES,
-  BUZZ_RUNTIME_COMPONENTS,
-  DORMANT_BUZZ_RUNTIME,
-} from "@/lib/buzz-runtime";
 import type { ProductNavigationId } from "@/lib/product-direction";
 
-const BUZZ_CONFIGURATION_KEY = "plotpickle.buzz.configuration.v1";
+const API = "/api/local-buzz";
 
-type BuzzConfiguration = {
-  mode: "bundled" | "existing-relay";
-  relayUrl: string;
-  identityLabel: string;
-  community: string;
-  developerMode: boolean;
-  allowCodingAgents: boolean;
+type ConnectionMode = "existing-relay" | "managed";
+type BuzzStatus = {
+  connection: { configured: boolean; mode: ConnectionMode; relayUrl: string; community: string; identityLabel: string; cliPath: string; identityConfigured: boolean; verifiedAt: string };
+  relay: { reachable: boolean; checkedAt: string; latencyMs: number; detail: string };
+  cli: { available: boolean; executable: string; version: string; error: string };
+  managed: {
+    bundle: { available: boolean; sourceTag: string; sourceRevision: string; relayImage: string; validationGate: string; error: string };
+    docker: { available: boolean; engine: string; compose: string; error: string };
+    installed: boolean; configured: boolean; running: boolean; reachable: boolean; relayUrl: string; backups: string[]; lifecycle: string; message: string;
+  };
 };
 
-const DEFAULT_CONFIGURATION: BuzzConfiguration = {
-  mode: "bundled",
-  relayUrl: "",
-  identityLabel: "",
-  community: "",
-  developerMode: false,
-  allowCodingAgents: false,
-};
+type FormState = { mode: ConnectionMode; relayUrl: string; community: string; identityLabel: string; cliPath: string; privateKey: string };
+const EMPTY: FormState = { mode: "existing-relay", relayUrl: "", community: "", identityLabel: "", cliPath: "", privateKey: "" };
 
 const WORKSPACE_QUERY: Partial<Record<ProductNavigationId, string>> = {
-  dashboard: "dashboard",
-  learn: "learn",
-  planner: "plan",
-  visuals: "storyboard",
-  script: "write",
-  pitch: "pitch",
-  build: "build",
-  feedback: "feedback",
-  engines: "refine",
-  reports: "reports",
-  collab: "collab",
-  settings: "settings",
+  dashboard: "dashboard", learn: "learn", planner: "plan", visuals: "storyboard", script: "write", pitch: "pitch", build: "build", feedback: "feedback", engines: "refine", reports: "reports", collab: "collab", settings: "settings",
 };
 
-function readInitialConfiguration(): BuzzConfiguration {
-  if (typeof window === "undefined") return DEFAULT_CONFIGURATION;
-  try {
-    const stored = window.localStorage.getItem(BUZZ_CONFIGURATION_KEY);
-    return stored ? { ...DEFAULT_CONFIGURATION, ...JSON.parse(stored) } : DEFAULT_CONFIGURATION;
-  } catch {
-    return DEFAULT_CONFIGURATION;
-  }
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${API}${path}`, { ...init, headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) } });
+  const body = await response.json() as T & { message?: string };
+  if (!response.ok) throw new Error(body.message || `Buzz returned ${response.status}.`);
+  return body;
 }
 
 export default function BuzzSettingsPage() {
-  const runtime = DORMANT_BUZZ_RUNTIME;
-  const [configuration, setConfiguration] = useState<BuzzConfiguration>(readInitialConfiguration);
+  const [status, setStatus] = useState<BuzzStatus | null>(null);
+  const [form, setForm] = useState<FormState>(EMPTY);
+  const [busy, setBusy] = useState("");
   const [notice, setNotice] = useState("");
 
-  const existingRelayReady = useMemo(() => {
-    if (configuration.mode !== "existing-relay") return false;
-    try {
-      const url = new URL(configuration.relayUrl);
-      return url.protocol === "https:" || url.hostname === "127.0.0.1" || url.hostname === "localhost";
-    } catch {
-      return false;
-    }
-  }, [configuration.mode, configuration.relayUrl]);
+  async function refresh(showNotice = false) {
+    const body = await request<BuzzStatus & { ok: true }>("/status");
+    setStatus(body);
+    setForm((current) => ({
+      ...current,
+      mode: body.connection.mode,
+      relayUrl: body.connection.relayUrl,
+      community: body.connection.community,
+      identityLabel: body.connection.identityLabel,
+      cliPath: body.connection.cliPath,
+      privateKey: "",
+    }));
+    if (showNotice) setNotice(body.connection.configured ? body.relay.detail : "Buzz remains optional and unconfigured.");
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+    void request<BuzzStatus & { ok: true }>("/status")
+      .then((body) => {
+        if (cancelled) return;
+        setStatus(body);
+        setForm((current) => ({
+          ...current,
+          mode: body.connection.mode,
+          relayUrl: body.connection.relayUrl,
+          community: body.connection.community,
+          identityLabel: body.connection.identityLabel,
+          cliPath: body.connection.cliPath,
+          privateKey: "",
+        }));
+      })
+      .catch((error) => {
+        if (!cancelled) setNotice(error instanceof Error ? error.message : "Buzz status could not be loaded.");
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   function navigate(tab: ProductNavigationId) {
-    if (tab === "buzz") {
-      window.location.assign("/buzz");
-      return;
-    }
-    const workspace = WORKSPACE_QUERY[tab] ?? "dashboard";
-    window.location.assign(`/?workspace=${encodeURIComponent(workspace)}`);
+    if (tab === "buzz") { window.location.assign("/buzz"); return; }
+    window.location.assign(`/?workspace=${encodeURIComponent(WORKSPACE_QUERY[tab] ?? "dashboard")}`);
   }
 
-  function updateConfiguration(patch: Partial<BuzzConfiguration>) {
-    setConfiguration((current) => ({ ...current, ...patch }));
+  function patch(value: Partial<FormState>) { setForm((current) => ({ ...current, ...value })); setNotice(""); }
+
+  async function run(name: string, operation: () => Promise<{ message?: string }>) {
+    setBusy(name);
     setNotice("");
+    try {
+      const result = await operation();
+      await refresh();
+      setNotice(result.message || "Buzz operation completed.");
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Buzz operation failed."); }
+    finally { setBusy(""); }
   }
 
-  function saveConfiguration() {
-    if (configuration.mode === "existing-relay" && !existingRelayReady) {
-      setNotice("Enter a valid HTTPS, localhost or 127.0.0.1 Buzz relay address before saving.");
-      return;
-    }
-    window.localStorage.setItem(BUZZ_CONFIGURATION_KEY, JSON.stringify(configuration));
-    setNotice(configuration.mode === "bundled"
-      ? "Bundled Buzz preferences were saved. The runtime remains dormant because verified native artifacts are not packaged yet."
-      : "The existing-relay configuration draft was saved on this device. No identity or credential was created and no connection was attempted.");
-  }
-
-  function eraseConfiguration() {
-    window.localStorage.removeItem(BUZZ_CONFIGURATION_KEY);
-    setConfiguration(DEFAULT_CONFIGURATION);
-    setNotice("The Buzz configuration draft was removed. No Buzz data or identity existed to erase.");
-  }
-
-  const packagedActionLabel = runtime.packaged ? "Configure bundled Buzz" : "Bundled runtime unavailable";
+  const connected = Boolean(status?.connection.configured);
+  const reachable = Boolean(status?.relay.reachable);
+  const bundleReady = Boolean(status?.managed.bundle.available && status?.managed.docker.available);
+  const tone = reachable ? "Green · connected" : connected ? "Yellow · degraded" : "Neutral · optional";
 
   return (
     <div className="app-shell">
-      <ApplicationShellHeader
-        activeTab="settings"
-        onNavigate={navigate}
-        onProjectAction={(action) => window.location.assign(`/?workspace=dashboard&action=${encodeURIComponent(action)}`)}
-        onOpenLanding={() => window.location.assign("/")}
-      />
-      <main className="workspace-main">
-        <div className={styles.page}>
-          <header className={styles.heading}>
-            <p>Settings · Integrations · Buzz</p>
-            <h1>Configure the optional Buzz workspace.</h1>
-            <span>Settings owns Buzz setup, lifecycle, recovery and removal. Collab owns formal approvals; Buzz owns rooms, agents, media discussion and development activity.</span>
-          </header>
+      <ApplicationShellHeader activeTab="settings" onNavigate={navigate} onProjectAction={(action) => window.location.assign(`/?workspace=dashboard&action=${encodeURIComponent(action)}`)} onOpenLanding={() => window.location.assign("/")} />
+      <main className="workspace-main"><div className={styles.page}>
+        <header className={styles.heading}><p>Settings · Integrations · Buzz</p><h1>Connect a Buzz Story Room or manage a local relay.</h1><span>Buzz owns discussion. PPF remains authoritative. Credentials are encrypted for the current operating-system user and are never written into the PPF.</span></header>
 
-          <section className={styles.statusCard} aria-labelledby="buzz-settings-status-title">
-            <div>
-              <p>Current runtime status</p>
-              <h2 id="buzz-settings-status-title">Not configured</h2>
-              <p>{runtime.message}</p>
-            </div>
-            <div className={styles.statusBadge} role="status"><i aria-hidden="true" /><b>Red · disconnected</b></div>
-          </section>
+        <section className={styles.statusCard}><div><p>Current Buzz status</p><h2>{reachable ? "Ready" : connected ? "Connection needs attention" : "Not configured"}</h2><p>{status?.relay.detail || "PlotPickle remains fully usable without Buzz."}</p></div><div className={styles.statusBadge} role="status"><i aria-hidden="true" /><b>{tone}</b></div></section>
 
-          <section className={styles.runtimeGrid} aria-label="Buzz runtime information">
-            <article><span>Package</span><strong>{runtime.packaged ? "Verified runtime included" : "Native artifacts not packaged"}</strong><small>PlotPickle never downloads or executes an unverified replacement.</small></article>
-            <article><span>Process and port</span><strong>{runtime.processRunning || runtime.relayListening ? "Active" : "None"}</strong><small>No background process or listening port exists.</small></article>
-            <article><span>Identity</span><strong>{runtime.identityCreated ? "Created" : "Not created"}</strong><small>Private keys and service secrets remain outside PPF and GitHub.</small></article>
-            <article><span>Data</span><strong>{runtime.dataCreated ? "Initialized" : "Not created"}</strong><small>No database, room, media store or worktree exists.</small></article>
-          </section>
+        <section className={styles.runtimeGrid} aria-label="Buzz status details">
+          <article><span>Connection</span><strong>{connected ? status?.connection.mode : "Optional"}</strong><small>{status?.connection.identityLabel || "No encrypted Buzz identity"}</small></article>
+          <article><span>Relay</span><strong>{reachable ? `${status?.relay.latencyMs} ms` : "Not reachable"}</strong><small>{status?.connection.relayUrl || "No relay address"}</small></article>
+          <article><span>Buzz CLI</span><strong>{status?.cli.available ? status.cli.version || "Available" : "Unavailable"}</strong><small>{status?.cli.executable || status?.cli.error || "Used for signed rooms and messages"}</small></article>
+          <article><span>Managed runtime</span><strong>{status?.managed.lifecycle || "unavailable"}</strong><small>{status?.managed.message || "Docker validation has not run."}</small></article>
+        </section>
 
-          <section className={styles.choiceGrid} aria-label="Buzz connection mode">
-            <article className={configuration.mode === "bundled" ? styles.selectedChoice : undefined}>
-              <span>Recommended managed option</span>
-              <h2>Use bundled local Buzz</h2>
-              <p>PlotPickle will eventually initialize, start, stop, repair, update, back up and remove its pinned native Buzz runtime.</p>
-              <button type="button" onClick={() => updateConfiguration({ mode: "bundled" })}>Select bundled Buzz</button>
-              <small>Selected preferences can be saved now, but activation remains disabled until platform artifacts pass checksums and clean-machine validation.</small>
-            </article>
-            <article className={configuration.mode === "existing-relay" ? styles.selectedChoice : undefined}>
-              <span>Advanced self-managed option</span>
-              <h2>Connect an existing relay</h2>
-              <p>Store the relay address and identity label without moving credentials into PPF, browser project data or GitHub.</p>
-              <button type="button" onClick={() => updateConfiguration({ mode: "existing-relay" })}>Select existing relay</button>
-              <small>A later local gateway step performs the connection test and encrypted identity setup.</small>
-            </article>
-          </section>
+        <section className={styles.choiceGrid} aria-label="Buzz connection mode">
+          <article className={form.mode === "existing-relay" ? styles.selectedChoice : undefined}><span>Phase 1A</span><h2>Existing Buzz relay</h2><p>Use a relay you already operate or trust. PlotPickle tests reachability and uses the Buzz CLI for signed room operations.</p><button type="button" onClick={() => patch({ mode: "existing-relay" })}>Select existing relay</button></article>
+          <article className={form.mode === "managed" ? styles.selectedChoice : undefined}><span>Phase 1B</span><h2>Managed local Buzz</h2><p>Install the pinned Docker Compose bundle, keep it bound to localhost, and manage its lifecycle from PlotPickle.</p><button type="button" onClick={() => patch({ mode: "managed", relayUrl: status?.managed.relayUrl || "http://127.0.0.1:3000" })}>Select managed Buzz</button></article>
+        </section>
 
-          <section className={styles.formCard} aria-labelledby="buzz-connection-details-title">
-            <div><span>Connection details</span><h2 id="buzz-connection-details-title">{configuration.mode === "bundled" ? "Bundled local runtime" : "Existing Buzz relay"}</h2></div>
-            <div className={styles.formGrid}>
-              <label><span>Relay address</span><input type="url" value={configuration.relayUrl} disabled={configuration.mode === "bundled"} onChange={(event) => updateConfiguration({ relayUrl: event.target.value })} placeholder={configuration.mode === "bundled" ? "Managed automatically after native packaging" : "https://buzz.example.com"} /></label>
-              <label><span>Identity label</span><input value={configuration.identityLabel} onChange={(event) => updateConfiguration({ identityLabel: event.target.value })} placeholder="Bryan · PlotPickle" /></label>
-              <label><span>Community / workspace</span><input value={configuration.community} onChange={(event) => updateConfiguration({ community: event.target.value })} placeholder="PlotPickle project community" /></label>
-            </div>
-            <label className={styles.toggle}><span><b>Developer Mode</b><small>Required before Buzz may coordinate isolated coding worktrees.</small></span><input type="checkbox" checked={configuration.developerMode} onChange={(event) => updateConfiguration({ developerMode: event.target.checked, allowCodingAgents: event.target.checked ? configuration.allowCodingAgents : false })} /></label>
-            <label className={styles.toggle}><span><b>Allow coding agents</b><small>Agents remain branch-only, test-gated and unable to read the PlotPickle credential vault or unrelated PPF folders.</small></span><input type="checkbox" disabled={!configuration.developerMode} checked={configuration.allowCodingAgents} onChange={(event) => updateConfiguration({ allowCodingAgents: event.target.checked })} /></label>
-          </section>
+        <section className={styles.formCard}><div><span>Encrypted connection</span><h2>{form.mode === "managed" ? "Managed local identity" : "Existing relay identity"}</h2></div><div className={styles.formGrid}>
+          <label><span>Relay address</span><input value={form.relayUrl} onChange={(event) => patch({ relayUrl: event.target.value })} placeholder="https://buzz.example.com" /></label>
+          <label><span>Community / workspace</span><input value={form.community} onChange={(event) => patch({ community: event.target.value })} placeholder="PlotPickle writers room" /></label>
+          <label><span>Identity label</span><input value={form.identityLabel} onChange={(event) => patch({ identityLabel: event.target.value })} placeholder="Bryan · PlotPickle" /></label>
+          <label><span>Buzz CLI path</span><input value={form.cliPath} onChange={(event) => patch({ cliPath: event.target.value })} placeholder="buzz or C:\\Tools\\buzz.exe" /></label>
+          <label><span>Buzz private key</span><input type="password" autoComplete="off" value={form.privateKey} onChange={(event) => patch({ privateKey: event.target.value })} placeholder={status?.connection.identityConfigured ? "Leave blank to retain saved encrypted key" : "nsec1… or 64-character private key"} /></label>
+        </div></section>
 
-          <section className={styles.lifecycleCard} aria-label="Buzz lifecycle controls">
-            <div><span>Runtime lifecycle</span><h2>Settings keeps every action explicit.</h2><p>Unavailable actions stay disabled instead of pretending Buzz is connected.</p></div>
-            <div className={styles.lifecycleActions}>
-              <button type="button" disabled={!runtime.packaged}>{packagedActionLabel}</button>
-              <button type="button" disabled={!runtime.configured}>Start</button>
-              <button type="button" disabled={!runtime.processRunning}>Stop</button>
-              <button type="button" disabled={!runtime.processRunning}>Restart</button>
-              <button type="button" disabled={!runtime.packaged}>Test connection</button>
-              <button type="button" disabled={!runtime.packaged}>Repair</button>
-              <button type="button" disabled={!runtime.packaged}>Update</button>
-              <button type="button" disabled={!runtime.dataCreated}>Back up</button>
-              <button type="button" disabled={!runtime.dataCreated}>Restore</button>
-              <button type="button" disabled={!runtime.dataCreated}>Remove Buzz data</button>
-              <button type="button" disabled={!runtime.identityCreated}>Erase identity and credentials</button>
-            </div>
-          </section>
+        <section className={styles.actions}>
+          <button type="button" disabled={Boolean(busy)} onClick={() => void run("save", () => request("/connection", { method: "PUT", body: JSON.stringify(form) }))}>{busy === "save" ? "Saving…" : "Save encrypted connection"}</button>
+          <button type="button" disabled={!connected || Boolean(busy)} onClick={() => void run("test", () => request("/test", { method: "POST" }))}>{busy === "test" ? "Testing…" : "Test Buzz connection"}</button>
+          <button type="button" disabled={Boolean(busy)} onClick={() => void run("refresh", async () => { await refresh(true); return { message: "Buzz status refreshed." }; })}>Refresh status</button>
+          <a href="/buzz">Open Story Room</a>
+          <button className={styles.removeAction} type="button" disabled={!connected || Boolean(busy)} onClick={() => void run("disconnect", () => request("/connection", { method: "DELETE" }))}>Remove connection and identity</button>
+        </section>
 
-          <section className={styles.boundary}>
-            <span>Dormant-by-default guarantee</span>
-            <h2>Installing PlotPickle does not activate Buzz.</h2>
-            <p>{BUZZ_RUNTIME_BOUNDARIES.dormantRule}</p>
-            <ul><li>No background process or operating-system service.</li><li>No listening relay port.</li><li>No Buzz identity, private key or credential file.</li><li>No database, project room, media store or coding worktree.</li><li>No story content leaves the local PPF project.</li></ul>
-          </section>
+        <section className={styles.lifecycleCard}><div><span>Managed runtime lifecycle</span><h2>Install only from the pinned verified bundle.</h2><p>{status?.managed.bundle.validationGate || "The runtime remains unavailable until its manifest and local Docker prerequisites pass validation."}</p></div><div className={styles.lifecycleActions}>
+          <button type="button" disabled={!bundleReady || status?.managed.installed || Boolean(busy)} onClick={() => void run("install", () => request("/managed/install", { method: "POST" }))}>Install</button>
+          <button type="button" disabled={!status?.managed.installed || status?.managed.running || Boolean(busy)} onClick={() => void run("start", () => request("/managed/start", { method: "POST" }))}>Start</button>
+          <button type="button" disabled={!status?.managed.running || Boolean(busy)} onClick={() => void run("stop", () => request("/managed/stop", { method: "POST" }))}>Stop</button>
+          <button type="button" disabled={!status?.managed.running || Boolean(busy)} onClick={() => void run("restart", () => request("/managed/restart", { method: "POST" }))}>Restart</button>
+          <button type="button" disabled={!status?.managed.installed || Boolean(busy)} onClick={() => void run("repair", () => request("/managed/repair", { method: "POST" }))}>Repair</button>
+          <button type="button" disabled={!status?.managed.installed || Boolean(busy)} onClick={() => void run("update", () => request("/managed/update", { method: "POST" }))}>Update pinned bundle</button>
+          <button type="button" disabled={!status?.managed.running || Boolean(busy)} onClick={() => void run("backup", () => request("/managed/backup", { method: "POST" }))}>Back up</button>
+          <button type="button" disabled={!status?.managed.installed || Boolean(busy)} onClick={() => void run("remove", () => request("/managed", { method: "DELETE", body: JSON.stringify({ removeBackups: false }) }))}>Remove runtime and data</button>
+        </div></section>
 
-          <section className={styles.boundary}>
-            <span>Managed component plan</span>
-            <h2>PlotPickle packages only the native Buzz pieces it uses.</h2>
-            <p>{BUZZ_RUNTIME_COMPONENTS.join(" · ")}</p><p>{BUZZ_RUNTIME_BOUNDARIES.packagingRule}</p>
-          </section>
-
-          {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
-          <section className={styles.actions}>
-            <button type="button" onClick={saveConfiguration}>Save Buzz configuration</button>
-            <button type="button" className={styles.removeAction} onClick={eraseConfiguration}>Remove configuration draft</button>
-            <a href="/buzz">Open Buzz workspace</a>
-            <button type="button" onClick={() => window.location.assign("/?workspace=settings")}>Return to all Settings</button>
-          </section>
-        </div>
-      </main>
+        <section className={styles.boundary}><span>Authority boundary</span><h2>Discussion does not become canon by itself.</h2><p>Buzz messages can be linked to story entities and converted into local proposals. Only an explicit human approval applies a selected proposal to the active PPF project.</p><ul><li>No Buzz service starts when PlotPickle is installed.</li><li>No identity or credential is created until Save encrypted connection is selected.</li><li>Managed services bind to the local computer by default.</li><li>Removing Buzz preserves PlotPickle projects and their approved canon.</li></ul></section>
+        {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
+      </div></main>
     </div>
   );
 }

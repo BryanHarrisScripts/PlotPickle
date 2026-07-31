@@ -13,6 +13,14 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    files: ["app/buzz-workspace.tsx"],
+    rules: {
+      // The Buzz workspace returns to the query-driven PlotPickle shell rather
+      // than treating the dashboard workspace as a separate Next route.
+      "@next/next/no-html-link-for-pages": "off",
+    },
+  },
+  {
     files: [
       "lib/github-command-outbox.ts",
       "lib/github-repository-recovery.ts",

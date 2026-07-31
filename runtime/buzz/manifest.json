@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "sourceRepository": "https://github.com/block/buzz",
+  "sourceTag": "v0.4.26",
+  "sourceRevision": "0096d71",
+  "deploymentKind": "docker-compose",
+  "relayImage": "ghcr.io/block/buzz:v0.4.26",
+  "localOnly": true,
+  "validationGate": "pull-request-clean-machine-docker-compose",
+  "files": [
+    {
+      "path": "compose.yml",
+      "sha256": "449f029e29f70205e8c227254bcfcfaeea5fcfe67e2d4bd647a96161aede5cdd",
+      "bytes": 4274
+    },
+    {
+      "path": "README.md",
+      "sha256": "afe032e447fdb7cda55f9a17352e016c07023d70c7b84bae167caffaeeed0090",
+      "bytes": 1461
+    },
+    {
+      "path": "LICENSE.buzz.txt",
+      "sha256": "2922b54b6ce6a06b52e40650f8b6caef33748ad85b880b9fbbc8df64090a0e05",
+      "bytes": 11339
+    }
+  ],
+  "licenseFiles": [
+    "LICENSE.buzz.txt"
+  ]
+}

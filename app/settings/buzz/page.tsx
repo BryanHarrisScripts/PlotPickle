@@ -54,7 +54,27 @@ export default function BuzzSettingsPage() {
     if (showNotice) setNotice(body.connection.configured ? body.relay.detail : "Buzz remains optional and unconfigured.");
   }
 
-  useEffect(() => { void refresh().catch((error) => setNotice(error instanceof Error ? error.message : "Buzz status could not be loaded.")); }, []);
+  useEffect(() => {
+    let cancelled = false;
+    void request<BuzzStatus & { ok: true }>("/status")
+      .then((body) => {
+        if (cancelled) return;
+        setStatus(body);
+        setForm((current) => ({
+          ...current,
+          mode: body.connection.mode,
+          relayUrl: body.connection.relayUrl,
+          community: body.connection.community,
+          identityLabel: body.connection.identityLabel,
+          cliPath: body.connection.cliPath,
+          privateKey: "",
+        }));
+      })
+      .catch((error) => {
+        if (!cancelled) setNotice(error instanceof Error ? error.message : "Buzz status could not be loaded.");
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   function navigate(tab: ProductNavigationId) {
     if (tab === "buzz") { window.location.assign("/buzz"); return; }

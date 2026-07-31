@@ -65,11 +65,24 @@
   background: rgba(5, 18, 26, 0.48);
 }
 
-.foundation article[data-state="healthy"] {
+.foundation article[data-tone="healthy"] {
   border-color: rgba(120, 229, 157, 0.3);
 }
 
-.foundation article[data-state="optional"] {
+.foundation article[data-tone="working"] {
+  border-color: rgba(136, 216, 255, 0.38);
+}
+
+.foundation article[data-tone="attention"] {
+  border-color: rgba(240, 193, 94, 0.42);
+}
+
+.foundation article[data-tone="error"] {
+  border-color: rgba(255, 104, 104, 0.52);
+  background: rgba(76, 20, 24, 0.28);
+}
+
+.foundation article[data-tone="neutral"] {
   border-color: rgba(126, 194, 205, 0.18);
 }
 

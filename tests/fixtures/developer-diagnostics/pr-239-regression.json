@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "name": "PR #239 Settings taxonomy regression",
+  "readOnly": true,
+  "repository": "BryanHarrisScripts/PlotPickle",
+  "pullRequest": 239,
+  "baseCommit": "be88da9319605271d0cf1c9bb11f1e53b8bfec4b",
+  "settingsCorrectionCommit": "e5bf55f067be1a03e41e36152d9e48bd66dceea0",
+  "windowsCorrectionCommit": "d70c14fbf5bc402ebd30cb3416c94145942ed102",
+  "failedJobId": 91233712810,
+  "windowsFailedJobId": 91253069949,
+  "windowsArtifactId": 8804877753,
+  "changedFiles": [
+    "app/settings-panel-legacy.tsx",
+    "app/settings-panel.tsx",
+    "app/settings-system-navigation.module.css",
+    "config/settings-system-taxonomy.json",
+    "docs/settings-system-taxonomy.md",
+    "scripts/windows-release-smoke.mjs",
+    "tests/core-consolidation.test.mjs",
+    "tests/issue-120-settings-connections.test.mjs",
+    "tests/issue-144-connection-trust.test.mjs",
+    "tests/issue-167-navigation-ai-pitch-base.test.mjs",
+    "tests/issue-182-collab-workspace.test.mjs",
+    "tests/issue-184-google-desktop-oauth.test.mjs",
+    "tests/issue-87-navigation-cleanup.test.mjs",
+    "tests/issue-89-project-dashboard.test.mjs",
+    "tests/settings-menu.test.mjs",
+    "tests/settings-system-taxonomy.test.mjs",
+    "tests/story-tools-reports-docs.test.mjs"
+  ],
+  "settingsFailures": [
+    "tests/core-consolidation.test.mjs",
+    "tests/issue-144-connection-trust.test.mjs",
+    "tests/issue-167-navigation-ai-pitch-base.test.mjs",
+    "tests/issue-182-collab-workspace.test.mjs",
+    "tests/issue-184-google-desktop-oauth.test.mjs",
+    "tests/issue-87-navigation-cleanup.test.mjs",
+    "tests/issue-89-project-dashboard.test.mjs",
+    "tests/settings-menu.test.mjs",
+    "tests/story-tools-reports-docs.test.mjs"
+  ],
+  "settingsFailureEvidence": {
+    "classification": "test-contract",
+    "contract": "settings.controls",
+    "inspectedSource": "app/settings-panel.tsx",
+    "correctOwner": "app/settings-panel-legacy.tsx",
+    "normalizedMessage": "Stale Settings source contract inspected app/settings-panel.tsx after preserved controls moved to app/settings-panel-legacy.tsx.",
+    "verifiedLogFragments": [
+      "Save key & connect",
+      "Story & Art"
+    ],
+    "source": {
+      "type": "corrective-commit",
+      "commit": "e5bf55f067be1a03e41e36152d9e48bd66dceea0"
+    }
+  },
+  "windowsFailureEvidence": [
+    {
+      "id": "pr239-windows-interaction",
+      "name": "Packaged Windows interaction crawler",
+      "message": "Browser did not become ready within 8000 ms.",
+      "classification": "environment",
+      "contract": "packaging.smoke",
+      "testFile": "tests/issue-86-lighthouse-audit.test.mjs",
+      "source": {
+        "type": "workflow-artifact",
+        "jobId": 91253069949,
+        "artifactId": 8804877753,
+        "path": "windows-interaction-smoke/windows-interaction-smoke.json"
+      }
+    },
+    {
+      "id": "pr239-windows-settings-navigation",
+      "name": "Settings → Repository & Collab status transition",
+      "message": "GitHub Story Repository item did not become true within 10000 ms.",
+      "classification": "test-contract",
+      "contract": "packaging.smoke",
+      "testFile": "tests/windows-release-smoke.test.mjs",
+      "source": {
+        "type": "workflow-artifact",
+        "jobId": 91253069949,
+        "artifactId": 8804877753,
+        "path": "windows-release-smoke/windows-release-smoke.json"
+      }
+    }
+  ],
+  "expected": {
+    "areas": ["packaging-windows", "settings"],
+    "forbiddenCommands": ["npm test"],
+    "settingsFailureCount": 9,
+    "settingsClusterCount": 1,
+    "settingsOwner": "app/settings-panel-legacy.tsx",
+    "agentMustRejectPath": "app/unrelated-feature.tsx"
+  }
+}

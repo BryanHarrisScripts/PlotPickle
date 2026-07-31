@@ -41,6 +41,9 @@ jobs:
       - name: Validate developer diagnostics registry
         run: npm run diagnostics:validate
 
+      - name: Validate PR 239 regression subject
+        run: node --test tests/issue-240-pr-239-regression.test.mjs
+
       - name: Lint
         run: npm run lint
 

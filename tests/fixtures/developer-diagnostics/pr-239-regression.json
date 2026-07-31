@@ -72,7 +72,7 @@
     },
     {
       "id": "pr239-windows-settings-navigation",
-      "name": "Settings → Repository & Collab status transition",
+      "name": "Settings \u2192 Repository & Collab status transition",
       "message": "GitHub Story Repository item did not become true within 10000 ms.",
       "classification": "test-contract",
       "contract": "packaging.smoke",
@@ -86,8 +86,14 @@
     }
   ],
   "expected": {
-    "areas": ["packaging-windows", "settings"],
-    "forbiddenCommands": ["npm test"],
+    "areas": [
+      "google",
+      "packaging-windows",
+      "settings"
+    ],
+    "forbiddenCommands": [
+      "npm test"
+    ],
     "settingsFailureCount": 9,
     "settingsClusterCount": 1,
     "settingsOwner": "app/settings-panel-legacy.tsx",

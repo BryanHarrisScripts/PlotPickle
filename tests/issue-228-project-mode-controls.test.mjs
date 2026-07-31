@@ -6,9 +6,13 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("phase 2 step 4 exposes all three project modes in Repository & Collab settings", async () => {
-  const collaboration = await source("app/github-collaboration.tsx");
-  for (const text of ["Project operating mode", "Local Story Mode", "Writers' Room Mode", "Repository Collaboration Mode"]) {
-    assert.match(collaboration, new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  const [collaboration, mode] = await Promise.all([
+    source("app/github-collaboration.tsx"),
+    source("lib/collaboration-mode.ts"),
+  ]);
+  assert.match(collaboration, /Project operating mode/);
+  for (const text of ["Local Story Mode", "Writers' Room Mode", "Repository Collaboration Mode"]) {
+    assert.match(mode, new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   assert.match(collaboration, /surface === "configuration" \? <ProjectModeSettings/);
   assert.match(collaboration, /role="radiogroup"/);

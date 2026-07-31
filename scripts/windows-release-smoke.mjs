@@ -449,17 +449,34 @@ async function main() {
       await waitFor(client, `document.body.innerText.includes("Configure PlotPickle by system.")`, 20_000, "Settings panel");
       await waitFor(client, String.raw`(() => {
         const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
-        const buttons = [...document.querySelectorAll("button")];
+        const visible = (element) => {
+          if (!element) return false;
+          const rect = element.getBoundingClientRect();
+          const style = getComputedStyle(element);
+          return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+        };
+        const heading = [...document.querySelectorAll("h1")].find((candidate) => visible(candidate) && normalize(candidate.innerText) === "Configure PlotPickle by system.");
+        const root = heading?.parentElement?.parentElement;
+        if (!root) return false;
+        const buttons = [...root.querySelectorAll("button")].filter(visible);
         const item = buttons.find((candidate) => normalize(candidate.querySelector("b")?.innerText) === "GitHub Story Repository");
         if (item) return true;
         const repos = buttons.find((candidate) => normalize(candidate.querySelector("b")?.innerText) === "Repos");
         if (!repos) return false;
-        if (repos.getAttribute("aria-expanded") === "false") repos.click();
+        if (repos.getAttribute("aria-expanded") !== "true") repos.click();
         return false;
       })()`, 20_000, "GitHub Story Repository item");
       const clicked = await evaluate(client, String.raw`(() => {
         const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
-        const button = [...document.querySelectorAll("button")].find((item) => normalize(item.querySelector("b")?.innerText) === "GitHub Story Repository");
+        const visible = (element) => {
+          if (!element) return false;
+          const rect = element.getBoundingClientRect();
+          const style = getComputedStyle(element);
+          return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+        };
+        const heading = [...document.querySelectorAll("h1")].find((candidate) => visible(candidate) && normalize(candidate.innerText) === "Configure PlotPickle by system.");
+        const root = heading?.parentElement?.parentElement;
+        const button = root ? [...root.querySelectorAll("button")].find((item) => visible(item) && normalize(item.querySelector("b")?.innerText) === "GitHub Story Repository") : null;
         if (!button) return false;
         button.click();
         return true;

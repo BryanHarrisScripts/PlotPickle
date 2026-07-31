@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "settings": {
+    "repository": {
+      "key": "settings.repository",
+      "label": "Repository & Collab",
+      "title": "Keep story history and proposals under project-owner control.",
+      "subtitle": "GitHub is the supported optional story repository for version history, permissions and reviewed collaboration. Settings owns sign-in and recovery; Story Proposals and Project Lead decisions remain in Collab."
+    }
+  },
+  "terms": {
+    "repository": {
+      "primary": "story repository",
+      "shared": "shared story project",
+      "technical": "GitHub repository"
+    },
+    "branch": {
+      "primary": "approved story line",
+      "proposal": "change workspace",
+      "technical": "Git branch"
+    },
+    "pullRequest": {
+      "primary": "Story Proposal",
+      "technical": "GitHub pull request"
+    },
+    "commit": {
+      "primary": "recorded revision",
+      "saved": "saved change",
+      "technical": "Git commit"
+    },
+    "merge": {
+      "primary": "approve into the official story",
+      "completed": "approved into the official story",
+      "technical": "merge"
+    },
+    "refresh": {
+      "primary": "refresh approved story",
+      "technical": "pull from GitHub"
+    },
+    "publish": {
+      "primary": "publish approved changes",
+      "technical": "push to GitHub"
+    },
+    "divergence": {
+      "primary": "the approved story changed",
+      "detail": "Another approved version was recorded after your last refresh.",
+      "technical": "remote divergence"
+    },
+    "conflict": {
+      "primary": "competing story changes",
+      "detail": "The same story material was changed in more than one version and needs a human decision.",
+      "technical": "merge conflict"
+    }
+  },
+  "surfaces": {
+    "dashboard": {
+      "localTitle": "Local story project",
+      "sharedTitle": "Shared story project",
+      "localSummary": "You are working only with files on this computer.",
+      "sharedSummary": "You are working with a story repository connected through GitHub.",
+      "approvedVersion": "Official story version",
+      "localChanges": "Local story changes"
+    },
+    "settings": {
+      "connectionTitle": "Story repository connection",
+      "connectedProject": "Connected shared story project",
+      "chooseProject": "Choose a shared story project",
+      "defaultVersion": "Official story version",
+      "advancedTitle": "Advanced GitHub details",
+      "disconnect": "Disconnect shared story project"
+    },
+    "proposals": {
+      "title": "Story Proposals",
+      "create": "Create Story Proposal",
+      "refresh": "Refresh Story Proposals",
+      "approve": "Approve into official story",
+      "decline": "Decline Story Proposal",
+      "changeWorkspace": "Change workspace",
+      "recordedRevision": "Recorded revision",
+      "officialRevision": "Official story revision",
+      "mergedState": "Approved into official story"
+    },
+    "synchronization": {
+      "title": "Shared story synchronization",
+      "getApproved": "Get official story updates",
+      "shareChanges": "Share local story changes",
+      "upToDate": "Local story matches the official version",
+      "localAhead": "Local story has unshared changes",
+      "remoteAhead": "Official story has updates to receive",
+      "diverged": "Local and official story versions both changed"
+    },
+    "recovery": {
+      "title": "Story recovery",
+      "officialHistory": "Official story history",
+      "localHistory": "Local story history",
+      "restoreRevision": "Restore recorded revision",
+      "compareVersions": "Compare story versions",
+      "competingChanges": "Competing story changes"
+    },
+    "advanced": {
+      "repository": "GitHub repository",
+      "branch": "Git branch",
+      "pullRequest": "GitHub pull request",
+      "commit": "Git commit",
+      "merge": "merge",
+      "conflict": "merge conflict"
+    }
+  },
+  "replacements": [
+    { "pattern": "\\bGitHub repositories\\b", "flags": "g", "replacement": "story repositories" },
+    { "pattern": "\\bGitHub repository\\b", "flags": "g", "replacement": "story repository" },
+    { "pattern": "\\brepository connection\\b", "flags": "gi", "replacement": "story repository connection" },
+    { "pattern": "\\brepositories\\b", "flags": "gi", "replacement": "story repositories" },
+    { "pattern": "\\brepository\\b", "flags": "gi", "replacement": "story repository" },
+    { "pattern": "\\bproposal branches\\b", "flags": "gi", "replacement": "proposal change workspaces" },
+    { "pattern": "\\bproposal branch\\b", "flags": "gi", "replacement": "proposal change workspace" },
+    { "pattern": "\\bapproved branch\\b", "flags": "gi", "replacement": "approved story line" },
+    { "pattern": "\\bbranch name\\b", "flags": "gi", "replacement": "change workspace name" },
+    { "pattern": "\\bbranches\\b", "flags": "gi", "replacement": "change workspaces" },
+    { "pattern": "\\bbranch\\b", "flags": "gi", "replacement": "change workspace" },
+    { "pattern": "\\bpull requests\\b", "flags": "gi", "replacement": "Story Proposals" },
+    { "pattern": "\\bpull request\\b", "flags": "gi", "replacement": "Story Proposal" },
+    { "pattern": "\\bknown approved commit\\b", "flags": "gi", "replacement": "known approved revision" },
+    { "pattern": "\\bremote commit\\b", "flags": "gi", "replacement": "shared approved revision" },
+    { "pattern": "\\blocal commit\\b", "flags": "gi", "replacement": "local recorded revision" },
+    { "pattern": "\\bcommit history\\b", "flags": "gi", "replacement": "recorded revision history" },
+    { "pattern": "\\bcommits\\b", "flags": "gi", "replacement": "recorded revisions" },
+    { "pattern": "\\bcommit\\b", "flags": "gi", "replacement": "recorded revision" },
+    { "pattern": "\\bmerged in GitHub\\b", "flags": "gi", "replacement": "approved into the official story" },
+    { "pattern": "\\bmerge conflicts\\b", "flags": "gi", "replacement": "competing story changes" },
+    { "pattern": "\\bmerge conflict\\b", "flags": "gi", "replacement": "competing story changes" },
+    { "pattern": "\\bconflicts\\b", "flags": "gi", "replacement": "competing story changes" },
+    { "pattern": "\\bconflict\\b", "flags": "gi", "replacement": "competing story change" },
+    { "pattern": "\\bpull from GitHub\\b", "flags": "gi", "replacement": "refresh approved story" },
+    { "pattern": "\\bpush to GitHub\\b", "flags": "gi", "replacement": "publish approved changes" }
+  ]
+}

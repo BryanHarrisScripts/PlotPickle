@@ -1,3 +1,5 @@
+import "./settings-system-taxonomy.test.mjs";
+
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -6,22 +8,16 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #120 exposes the complete Settings navigation", async () => {
-  const panel = await source("app/settings-panel.tsx");
-  const menu = panel.slice(panel.indexOf("const SETTINGS_GROUPS"), panel.indexOf("const SETTINGS_SECTIONS"));
-  const labels = [
-    "Workspace", "General", "Appearance / Accessibility", "Project Defaults",
-    "Integrations", "Story & Art", "Repository & Collab", "Scheduling & Meetings", "Media & Film Engines",
-    "Data Storage", "Storage & Backups",
-    "Security", "Privacy & Permissions", "About & Licensing",
-  ];
-  let previous = -1;
-  for (const label of labels) {
-    const index = menu.indexOf(`label: "${label}"`);
-    assert.ok(index > previous, `Settings is missing or out of order: ${label}`);
-    previous = index;
-  }
-  assert.match(panel, /aria-label="Settings sections"/);
-  assert.match(panel, /SETTINGS_GROUPS\.map/);
+  const [panel, taxonomyText] = await Promise.all([
+    source("app/settings-panel.tsx"),
+    source("config/settings-system-taxonomy.json"),
+  ]);
+  const taxonomy = JSON.parse(taxonomyText);
+  assert.deepEqual(taxonomy.workspace.map((item) => item.label), ["General", "Appearance & Accessibility", "Project Defaults"]);
+  assert.deepEqual(taxonomy.systems.map((system) => system.label), ["Local", "Cloud", "Data", "Deploy", "Repos", "Auth", "Agents", "Open Source"]);
+  assert.match(panel, /aria-label="PlotPickle Settings systems"/);
+  assert.match(panel, /taxonomy\.systems\.map/);
+  assert.match(panel, /aria-expanded=\{expanded\}/);
 });
 
 test("issue #120 uses one sanitized connection-status source in Settings Dashboard and Reports", async () => {
@@ -46,7 +42,7 @@ test("issue #120 uses one sanitized connection-status source in Settings Dashboa
 test("issue #120 gives every optional integration the shared setup and repair contract", async () => {
   const [status, panel] = await Promise.all([
     source("lib/connection-status.ts"),
-    source("app/settings-panel.tsx"),
+    source("app/settings-panel-legacy.tsx"),
   ]);
   for (const field of [
     "identity",
@@ -70,7 +66,7 @@ test("issues #120 and #184 implement Google Calendar and Meet desktop OAuth foun
     source("lib/connection-status.ts"),
     source("build/local-connections-gateway.ts"),
     source("build/google-desktop-oauth.ts"),
-    source("app/settings-panel.tsx"),
+    source("app/settings-panel-legacy.tsx"),
     source("vite.config.ts"),
   ]);
   for (const scope of [
@@ -103,7 +99,7 @@ test("issue #120 keeps credentials outside projects and authentication failures 
     source("build/local-connections-gateway.ts"),
     source("build/google-desktop-oauth.ts"),
     source("build/local-credentials.ts"),
-    source("app/settings-panel.tsx"),
+    source("app/settings-panel-legacy.tsx"),
     source("lib/connection-status.ts"),
     source("lib/project.ts"),
   ]);
@@ -152,7 +148,7 @@ test("issue #120 test is registered", async () => {
 
 test("issues #171 and #182 separate GitHub configuration from collaboration and approval controls", async () => {
   const [panel, collaboration] = await Promise.all([
-    source("app/settings-panel.tsx"),
+    source("app/settings-panel-legacy.tsx"),
     source("app/github-collaboration.tsx"),
   ]);
   assert.match(panel, /surface="configuration"/);
@@ -176,7 +172,7 @@ test("issues #171 and #182 separate GitHub configuration from collaboration and 
 
 test("issue #171 gives Storage & Backups distinct disk, rolling-backup and recovery sections", async () => {
   const [panel, collaboration] = await Promise.all([
-    source("app/settings-panel.tsx"),
+    source("app/settings-panel-legacy.tsx"),
     source("app/github-collaboration.tsx"),
   ]);
   assert.match(panel, /label: "Storage & Backups"/);

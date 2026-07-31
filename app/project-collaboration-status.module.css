@@ -1,0 +1,116 @@
+.status {
+  margin: 16px 0;
+  padding: 22px;
+  border: 1px solid rgba(126, 194, 205, 0.22);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(15, 31, 40, 0.98), rgba(10, 23, 31, 0.98));
+  box-shadow: 0 18px 44px rgba(0, 10, 16, 0.22);
+}
+
+.status header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.status header p {
+  margin: 0 0 6px;
+  color: #88d8ff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.status header h2 {
+  margin: 0 0 6px;
+  color: #f4fffc;
+  font-size: 24px;
+  letter-spacing: -0.035em;
+}
+
+.status header span {
+  color: #a9c3c9;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.status header > strong {
+  flex: 0 0 auto;
+  padding: 8px 11px;
+  border: 1px solid rgba(120, 229, 157, 0.34);
+  border-radius: 999px;
+  background: rgba(44, 119, 77, 0.2);
+  color: #a4efb8;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.foundation {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.foundation article {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(126, 194, 205, 0.18);
+  border-radius: 12px;
+  background: rgba(5, 18, 26, 0.48);
+}
+
+.foundation article[data-state="healthy"] {
+  border-color: rgba(120, 229, 157, 0.3);
+}
+
+.foundation article[data-state="optional"] {
+  border-color: rgba(126, 194, 205, 0.18);
+}
+
+.foundation span {
+  color: #86a7af;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.foundation strong {
+  overflow: hidden;
+  color: #f4fffc;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.foundation small {
+  color: #88a6ad;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  .foundation {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .status header {
+    display: grid;
+  }
+
+  .status header > strong {
+    justify-self: start;
+  }
+
+  .foundation {
+    grid-template-columns: 1fr;
+  }
+}

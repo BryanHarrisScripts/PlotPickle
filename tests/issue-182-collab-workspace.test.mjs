@@ -89,6 +89,26 @@ test("issue #182 keeps Google setup in Settings while later phases isolate Calen
   assert.match(status, /NonSensitiveMeetingMetadata/);
 });
 
+test("phase 2 step 2 leads the Dashboard with project mode and neutral optional services", async () => {
+  const [overview, status, css] = await Promise.all([
+    source("app/project-overview.tsx"),
+    source("app/project-collaboration-status.tsx"),
+    source("app/project-collaboration-status.module.css"),
+  ]);
+  assert.match(overview, /<ProjectCollaborationStatus project=\{project\} buzz=\{buzz\} \/>/);
+  assert.match(status, /Project mode/);
+  assert.match(status, /PPF remains canonical/);
+  assert.match(status, /Local story active/);
+  assert.match(status, /Required in every project mode/);
+  assert.match(status, /requirements\.buzz === "required"/);
+  assert.match(status, /requirements\.github === "required"/);
+  assert.match(overview, /Optional · not connected/);
+  assert.match(overview, /Repository collaboration available/);
+  assert.doesNotMatch(overview, /Setup required/);
+  assert.match(overview, /Optional · dormant by default/);
+  assert.doesNotMatch(css, /red|#f00|#ff0000/i);
+});
+
 test("issue #182 test is registered", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   assert.match(packageJson.scripts.test, /issue-182-collab-workspace\.test\.mjs/);

@@ -104,7 +104,7 @@ test("Step 7 validates Dashboard, Settings and copy all share the canonical cont
 });
 
 test("Step 7 validates the Settings selection path cannot call providers or mutate canon", async () => {
-  const settings = await source("app/github-collaboration.tsx");
+  const settings = (await source("app/github-collaboration.tsx")).replace(/\r\n/g, "\n");
   const start = settings.indexOf("function selectMode");
   const end = settings.indexOf("\n\n  return (", start);
   assert.ok(start >= 0 && end > start, "Could not isolate the project mode selection path.");

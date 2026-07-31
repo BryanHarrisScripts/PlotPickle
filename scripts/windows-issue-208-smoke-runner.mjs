@@ -24,8 +24,15 @@ Entire-cast regeneration was cancelled. No provider calls were made.
 */
 
 const sourcePath = fileURLToPath(new URL("./windows-issue-208-smoke.mjs", import.meta.url));
+const copyPath = fileURLToPath(new URL("../config/collaboration-copy.json", import.meta.url));
 const runtimePath = path.join(os.tmpdir(), `plotpickle-issue-208-smoke-runtime-${process.pid}-${Date.now()}.mjs`);
 let source = await readFile(sourcePath, "utf8");
+const collaborationCopy = JSON.parse(await readFile(copyPath, "utf8"));
+const repositoryLabel = collaborationCopy?.terms?.repository?.primary;
+if (typeof repositoryLabel !== "string" || !repositoryLabel.trim()) {
+  throw new Error("The writer-facing story repository label is missing from collaboration-copy.json.");
+}
+const normalizedRepositoryLabel = repositoryLabel.trim().toLocaleLowerCase();
 
 const initialTarget = 'const target = await createTarget(debugPort, `${baseUrl}/`);';
 if (!source.includes(initialTarget)) {
@@ -55,7 +62,7 @@ const dashboardSettledWait = [
   '        const text = String(section?.textContent || "");',
   '        return /Loaded story/i.test(text)',
   '          && /Local storage/i.test(text)',
-  '          && /GitHub repository/i.test(text)',
+  `          && text.toLocaleLowerCase().includes(${JSON.stringify(normalizedRepositoryLabel)})`,
   '          && /Approved story/i.test(text)',
   '          && /Local project on this device/i.test(text);',
   '      })()`, 20_000, "Settled local project source state");',
@@ -66,7 +73,7 @@ source = source.replace(dashboardStateAnchor, dashboardSettledWait);
 const dashboardAssertions = new Map([
   ['hasLoadedStory: body.includes("Loaded story"),', 'hasLoadedStory: /Loaded story/i.test(body),'],
   ['hasLocalStorage: body.includes("Local storage"),', 'hasLocalStorage: /Local storage/i.test(body),'],
-  ['hasRepository: body.includes("GitHub repository"),', 'hasRepository: /GitHub repository/i.test(body),'],
+  ['hasRepository: body.includes("GitHub repository"),', `hasRepository: body.toLocaleLowerCase().includes(${JSON.stringify(normalizedRepositoryLabel)}),`],
   ['hasApprovedStory: body.includes("Approved story"),', 'hasApprovedStory: /Approved story/i.test(body),'],
   ['hasLocalLabel: body.includes("Local project on this device"),', 'hasLocalLabel: /Local project on this device/i.test(body),'],
 ]);

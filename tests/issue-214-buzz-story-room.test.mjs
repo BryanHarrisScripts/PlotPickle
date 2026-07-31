@@ -69,7 +69,7 @@ test("issue #214 exposes the managed Phase 1B lifecycle only behind verified pre
   for (const label of ["Install", "Start", "Stop", "Restart", "Repair", "Update pinned bundle", "Back up", "Remove runtime and data"]) {
     assert.match(settings, new RegExp(label));
   }
-  assert.match(settings, /bundleReady/);
+  assert.match(settings, /getBuzzManagedRuntimeActions/);
   assert.match(gateway, /verifyBundle/);
   assert.match(gateway, /command\("docker", \["compose", "version", "--short"\]/);
   assert.match(gateway, /127\.0\.0\.1/);

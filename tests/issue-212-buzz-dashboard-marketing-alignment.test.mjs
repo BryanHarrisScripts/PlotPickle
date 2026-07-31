@@ -6,25 +6,29 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #212 makes Buzz configurable in Settings without faking packaged binaries", async () => {
-  const [settings, runtime, header] = await Promise.all([
+  const [settings, runtime, gateway, header] = await Promise.all([
     source("app/settings/buzz/page.tsx"),
     source("lib/buzz-runtime.ts"),
+    source("build/buzz-gateway.ts"),
     source("app/application-shell-header.tsx"),
   ]);
 
   assert.match(settings, /Settings · Integrations · Buzz/);
-  assert.match(settings, /Use bundled local Buzz/);
-  assert.match(settings, /Connect an existing relay/);
-  assert.match(settings, /Save Buzz configuration/);
-  assert.match(settings, /Developer Mode/);
-  assert.match(settings, /Allow coding agents/);
+  assert.match(settings, /Managed local Buzz/);
+  assert.match(settings, /Existing Buzz relay/);
+  assert.match(settings, /Save encrypted connection/);
+  assert.match(settings, /Test Buzz connection/);
+  assert.match(settings, /Remove connection and identity/);
   assert.match(settings, />Start</);
   assert.match(settings, />Stop</);
   assert.match(settings, />Restart</);
   assert.match(settings, />Repair</);
   assert.match(settings, />Back up</);
-  assert.match(settings, />Erase identity and credentials</);
-  assert.match(settings, /disabled=\{!runtime\.packaged\}/);
+  assert.match(settings, /Remove runtime and data/);
+  assert.match(settings, /bundleReady/);
+  assert.match(gateway, /writeCredentialJson/);
+  assert.match(gateway, /verifyBundle/);
+  assert.match(gateway, /127\.0\.0\.1/);
   assert.match(header, /activeTab === "settings"[\s\S]*Buzz Setup/);
   assert.match(header, /window\.location\.assign\("\/settings\/buzz"\)/);
   assert.match(header, /data-legacy-workspace-label="pitch"/);

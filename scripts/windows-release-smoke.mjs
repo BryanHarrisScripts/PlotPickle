@@ -446,15 +446,27 @@ async function main() {
       const eventStart = events.length;
       await navigate(client, `${baseUrl}/?workspace=settings`);
       await waitForShell(client, "settings");
-      await waitFor(client, `document.body.innerText.includes("Preferences, connections and permissions")`, 20_000, "Settings panel");
-      const clicked = await evaluate(client, String.raw`(() => {
+      await waitFor(client, `document.body.innerText.includes("Configure PlotPickle by system.")`, 20_000, "Settings panel");
+      const opened = await evaluate(client, String.raw`(() => {
         const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
-        const button = [...document.querySelectorAll("button")].find((item) => normalize(item.querySelector("b")?.innerText) === "Repository & Collab");
+        const button = [...document.querySelectorAll("button")].find((item) => normalize(item.querySelector("b")?.innerText) === "Repos");
         if (!button) return false;
         button.click();
         return true;
       })()`);
-      if (!clicked) throw new Error("Repository & Collab was not found in Settings.");
+      if (!opened) throw new Error("Repos was not found in Settings.");
+      await waitFor(client, String.raw`(() => {
+        const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
+        return [...document.querySelectorAll("button")].some((item) => normalize(item.querySelector("b")?.innerText) === "GitHub Story Repository");
+      })()`, 10_000, "GitHub Story Repository item");
+      const clicked = await evaluate(client, String.raw`(() => {
+        const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
+        const button = [...document.querySelectorAll("button")].find((item) => normalize(item.querySelector("b")?.innerText) === "GitHub Story Repository");
+        if (!button) return false;
+        button.click();
+        return true;
+      })()`);
+      if (!clicked) throw new Error("GitHub Story Repository was not found in Settings.");
       await waitFor(client, `document.body.innerText.includes("Keep story history and proposals under project-owner control.")`, 15_000, "Repository & Collab panel");
       await waitFor(client, `["The PlotPickle GitHub App is not configured in this build.", "Connect GitHub", "Signed in as"].some((text) => document.body.innerText.includes(text))`, 20_000, "GitHub status transition");
       const expanded = await evaluate(client, String.raw`(() => {
@@ -482,7 +494,7 @@ async function main() {
       const eventStart = events.length;
       await navigate(client, `${baseUrl}/?workspace=settings`);
       await waitForShell(client, "settings");
-      await waitFor(client, `document.body.innerText.includes("Preferences, connections and permissions")`, 20_000, "Settings panel");
+      await waitFor(client, `document.body.innerText.includes("Configure PlotPickle by system.")`, 20_000, "Settings panel");
       await evaluate(client, String.raw`(() => {
         const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
         const general = [...document.querySelectorAll("button")].find((item) => normalize(item.querySelector("b")?.innerText) === "General");

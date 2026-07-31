@@ -1,3 +1,4 @@
+import "./issue-228-project-mode-controls.test.mjs";
 import "./issue-226-unified-connection-lifecycle.test.mjs";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";

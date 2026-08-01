@@ -83,7 +83,7 @@ test("issue #212 updates Splash positioning README and explicit workspace deep l
   assert.match(readme, /Dashboard · Learn · Plan · Storyboard · Write · Graphic Novel/);
   assert.match(readme, /Buzz: optional and dormant by default/);
   assert.match(readme, /no Buzz process runs/);
-  assert.match(readme, /pinned Buzz `v0\.4\.26` Docker Compose bundle/);
+  assert.match(readme, /verified Docker-managed relay is an optional sidecar/);
   assert.match(readme, /does not embed or advertise unverified platform-native Buzz executables/);
   assert.match(readme, /Windows/);
   assert.match(readme, /macOS/);

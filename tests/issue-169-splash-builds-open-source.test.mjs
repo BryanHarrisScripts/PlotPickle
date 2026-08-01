@@ -23,7 +23,7 @@ test("issue #169 defines exactly three release builds from one product contract"
   assert.match(splash, /One application\. Three desktop packages\./);
   assert.match(splash, /built on its target operating system/);
   assert.match(splash, /SHA-256 checksum/);
-  assert.match(splash, /View all three builds/);
+  assert.match(splash, /Open release downloads/);
 });
 
 test("issue #169 presents the complete current workspace model", async () => {
@@ -50,10 +50,43 @@ test("issue #169 presents the complete current workspace model", async () => {
   ]) assert.ok(splash.includes(phrase), `Missing feature story: ${phrase}`);
   for (const boundary of [
     "Product-authentic PlotPickle Dashboard preview",
-    "No mascot, fake avatar or fabricated online team",
+    "One living story graph",
     "Native bundled Buzz binaries are not advertised as shipped",
     "Settings configures services. Collab and Buzz use those connections",
   ]) assert.ok(splash.includes(boundary), `Missing product-authentic boundary: ${boundary}`);
+});
+
+test("splash follows an AIDA path from story pain to a concrete open-source action", async () => {
+  const splash = await source("app/marketing-splash-base.tsx");
+  const sequence = [
+    "Stop losing the story",
+    "Learn the craft inside the story you are building.",
+    "Start privately. Add people only when the story needs them.",
+    "Load Afterglow",
+  ];
+  let cursor = -1;
+  for (const phrase of sequence) {
+    const next = splash.indexOf(phrase);
+    assert.ok(next > cursor, `AIDA sequence is missing or out of order: ${phrase}`);
+    cursor = next;
+  }
+  for (const pillar of ["self-paced modules", "story graph", "portable PPF", "Story logic", "Visual writing", "Visual pitch", "Community feedback"]) {
+    assert.match(splash, new RegExp(pillar, "i"), `Missing marketing pillar: ${pillar}`);
+  }
+});
+
+test("splash compares the three operating modes with Afterglow and Learning flowing through all", async () => {
+  const splash = await source("app/marketing-splash-base.tsx");
+  for (const phrase of [
+    "Local Story Mode",
+    "Writers’ Room Mode",
+    "Cloud Collab Mode",
+    "PlotPickle installed locally",
+    "Afterglow or your own local story",
+    "Learn workspace · 81 modules · local guides",
+  ]) assert.ok(splash.includes(phrase), `Missing mode-comparison contract: ${phrase}`);
+  assert.match(splash, /operatingModes\.map/);
+  assert.match(splash, /id="modes"/);
 });
 
 test("issue #169 distinguishes open software, open learning and user ownership", async () => {
@@ -74,7 +107,7 @@ test("issue #169 distinguishes open software, open learning and user ownership",
 test("issue #169 keeps the official edition local and integrations optional", async () => {
   const splash = await source("app/marketing-splash-base.tsx");
   for (const phrase of [
-    "One installer · local-first · owner-controlled",
+    "local-first",
     "Works without AI",
     "There is no required PlotPickle cloud account",
     "No AI",
@@ -98,7 +131,7 @@ test("issue #169 splash remains accessible and responsive", async () => {
   assert.equal((splash.match(/onClick=\{onEnter\}/g) ?? []).length, 3);
   assert.match(splash, /\/brand\/favicon\/plotpickle-icon-128\.png/);
   assert.match(splash, /plotpickle-multi-server-collaboration\.svg/);
-  for (const target of ["studio", "builds", "open-source", "collaboration"]) {
+  for (const target of ["studio", "modes", "builds", "open-source", "collaboration"]) {
     assert.ok(splash.includes(`href="#${target}"`), `Missing splash navigation target: ${target}`);
     assert.ok(splash.includes(`id="${target}"`), `Missing splash section id: ${target}`);
   }

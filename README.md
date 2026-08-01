@@ -4,19 +4,36 @@
 
 # PlotPickle
 
-**A local-first visual storyworld collaboration and previsualization engine.**
+**Learn the craft. See the story logic. Build one connected visual storyworld.**
 
-PlotPickle keeps story logic, canon, characters, screenplay material, Graphic Novel panels, Storyboard frames, production planning, review evidence and provenance connected in one portable PPF project. The Dashboard presents the real loaded project, writing progress, Storyworld Overview, GitHub approval state, local storage, unresolved canon decisions and the optional Buzz workspace without fictional collaborators or decorative product mockups.
+PlotPickle is a local-first, self-learning visual writing and pitch studio. It connects story education, a living story graph, 24 Blocks, 96 mini-blocks, screenplay material, Graphic Novel panels, Storyboard frames, feedback, production evidence and provenance in one portable PPF project.
+
+Start with **Afterglow: Reflections of Sentience** to see the full method in a working story. Then build your own privately, invite a Buzz community into a Writers’ Room, or add GitHub history and optional remote compute through Cloud Collab Mode. PlotPickle remains installed locally, and only a person can approve a change to canon.
 
 [Getting Started](public/docs/readme/GETTING-STARTED.md) · [Writing & Production](public/docs/readme/WRITING-AND-PRODUCTION.md) · [Collaboration & Development](public/docs/readme/COLLABORATION-AND-DEVELOPMENT.md) · [Official repository](https://github.com/BryanHarrisScripts/PlotPickle) · [About PlotPickle](app/about/page.tsx) · [OpenStory history](docs/history/from-openstory-to-plotpickle.md)
 
-## Five reasons to use PlotPickle
+## Why PlotPickle
 
-1. **Visual storyworld in one PPF** — keep canon, characters, structure, screenplay material, visuals, approvals and provenance connected.
-2. **Story logic you can see** — use 24 Blocks, 96 mini-blocks and the 81-module learning system to expose hooks, turning points, causality, arcs and continuity.
-3. **Connected visual development** — carry approved identities and locations through Graphic Novel, Storyboard, Production Shots and Animatic.
-4. **A clearer case for the movie** — use the Storyworld Map, screenplay, Graphic Novel, Storyboard, Feedback, Pitch and Reports to make readiness and unresolved decisions visible.
-5. **Local-first ownership with optional connections** — use AI, GitHub, Google and Buzz only when deliberately configured.
+1. **Self-learning modules beside the work** — use 81 guided modules, local guides and Afterglow examples without leaving the story you are developing.
+2. **A story graph you can see** — connect characters, locations, beats, scenes, arcs, dependencies and continuity instead of scattering them across unrelated documents.
+3. **One open, portable PPF** — keep canon, story logic, screenplay material, visuals, feedback, approvals and provenance together.
+4. **Visual story logic** — use 24 Blocks and 96 mini-blocks to expose hooks, turning points, causality, pacing and unresolved decisions.
+5. **Visual writing and visual pitch** — move from structure to screenplay, Graphic Novel, Storyboard, Production Shots, Pitch and Reports without rebuilding the story each time.
+6. **Community collaboration without accidental canon changes** — add Buzz discussion or GitHub proposals only when needed, with explicit human approval.
+
+## Three ways to work
+
+PlotPickle is installed and runs locally in every mode. The same Learn workspace, Afterglow example, PPF model and visual workflow remain available from left to right.
+
+| Compare | Local Story Mode | Writers’ Room Mode | Cloud Collab Mode |
+|---|---|---|---|
+| **Primary role** | Private creation and low-cost local compute | Buzz community discussion and canon-safe proposals | GitHub history, multi-machine proposals and optional remote compute |
+| **User experience** | PlotPickle Playhouse | PlotPickle Playhouse and Buzz Community/Desktop | PlotPickle Playhouse, GitHub and optional cloud services |
+| **Storyline** | Afterglow loaded locally, or your own story | Afterglow or your story discussed through Buzz | Afterglow or your story available through a GitHub repository |
+| **Learning** | 81 modules, local guides and examples | The same complete Learn workspace | The same complete Learn workspace |
+| **Data** | PPF, canonical JSON, assets and rolling backups | Local PPF plus rooms, messages and discussion references | Local PPF plus branches, proposals and repository history |
+| **Authority** | The local PPF is canon | Buzz conversation cannot directly change canon | Only a human-approved merge changes shared repository history |
+| **Cost profile** | Lowest ongoing cost and minimal paid-token use | Local core first; community collaboration added as needed | Local work by default; remote compute used only by choice |
 
 ## The visual storyworld core
 
@@ -46,7 +63,7 @@ Available now:
 
 The primary application navigation is:
 
-`Dashboard · Learn · Plan · Storyboard · Write · Graphic Novel | Build · Feedback · Refine · Reports | Collab · Buzz | Settings`
+`Dashboard · Learn · Plan · Storyboard · Write · Graphic Novel | Build · Feedback · Refine · Reports | Collab · Community | Settings`
 
 - **Dashboard** shows the real current project, source authority, Storyworld Overview, writing progress, recent project evidence, GitHub state, Buzz state, storage and canon questions.
 - **Learn** contains the Introduction, complete 81-module learning library, terminology and screenplay study.
@@ -59,7 +76,7 @@ The primary application navigation is:
 - **Refine** provides diagnostic and specialist passes without creating a second structure editor.
 - **Reports** measures screenplay, character, scene, production, continuity and readiness evidence.
 - **Collab** owns GitHub Story Proposals, approvals, meetings and calendar coordination.
-- **Buzz** owns optional rooms, agents, media discussion and development activity.
+- **Community** brings BuilderLab community setup and Buzz Desktop access into PlotPickle; Buzz carries optional rooms, messages, huddles and development discussion.
 - **Settings** owns configuration, credentials, lifecycle, recovery, storage and removal for every optional connection.
 
 ## Buzz: optional and dormant by default
@@ -74,7 +91,7 @@ When Buzz is unconfigured:
 - no Buzz database, project room, media store or coding worktree exists; and
 - PlotPickle remains fully usable.
 
-Open **Settings → Integrations → Buzz** to choose an existing trusted relay or the PlotPickle-managed local relay. Existing-relay details and the Buzz identity are encrypted for the current operating-system user. The managed option installs the pinned Buzz `v0.4.26` Docker Compose bundle only after its manifest, checksums, Apache 2.0 licence files and local Docker prerequisites pass verification. It binds the relay to `127.0.0.1` and keeps install, start, stop, restart, repair, pinned update, backup, restore and removal actions explicit.
+Open **Community** to join PlotPickleServer, create or manage a community through BuilderLab, and open the saved community in Buzz Desktop. Open **Settings → Repository & Collab → Buzz** to verify Buzz Desktop, the hosted `wss://` community address and the paired Buzz identity together. Connection details and identity are encrypted for the current operating-system user. The advanced managed-relay option remains explicit and separate.
 
 PlotPickle does not embed or advertise unverified platform-native Buzz executables, and it does not include the separate Buzz desktop client. The verified Docker-managed relay is an optional sidecar; PPF projects remain usable without it.
 

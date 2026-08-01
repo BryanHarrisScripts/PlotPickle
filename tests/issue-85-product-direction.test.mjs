@@ -68,5 +68,6 @@ test("issue #85 records all completed child issues and the final consistency pas
   assert.match(docs, /#90[^\n]*final implementation/i);
   assert.match(docs, /#90 merge completes issue #85/i);
   assert.match(welcome, /FIVE_KEY_SELLING_POINTS\.map/);
-  assert.match(readme, /Five reasons to use PlotPickle/);
+  assert.match(readme, /## Why PlotPickle/);
+  assert.match(readme, /Community collaboration without accidental canon changes/);
 });

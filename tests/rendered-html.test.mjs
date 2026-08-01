@@ -36,19 +36,17 @@ test("renders the approved product-authentic startup splash and preserves the lo
   assert.match(html, developmentPreviewMeta);
   for (const phrase of [
     "PlotPickle",
-    "Build better stories.",
-    "Review faster. Stay in control.",
+    "Stop losing the story",
+    "between the notes, drafts and visuals.",
     "Product-authentic PlotPickle Dashboard preview",
-    "Storyworld Overview",
-    "Writing Progress",
-    "GitHub Approvals",
-    "Optional Buzz",
+    "One living story graph",
+    "Afterglow demonstrates the complete path",
     "Graphic Novel",
     "One application. Three desktop packages.",
     "Works without AI",
     "There is no required PlotPickle cloud account",
     "Open software. Open method. Your story.",
-    "Shape the storyworld. Review the evidence. Stay in control.",
+    "Open Afterglow. See the graph. Then build your own.",
   ]) {
     assert.ok(html.includes(phrase), "Rendered splash is missing: " + phrase);
   }

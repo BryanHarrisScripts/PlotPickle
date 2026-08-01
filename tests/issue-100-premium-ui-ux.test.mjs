@@ -5,7 +5,7 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #100 opens on the approved marketing splash with five current components", async () => {
+test("issue #100 opens on the approved AIDA marketing splash with connected components", async () => {
   const [page, splash, contract] = await Promise.all([
     source("app/page.tsx"),
     source("app/marketing-splash-base.tsx"),
@@ -14,7 +14,7 @@ test("issue #100 opens on the approved marketing splash with five current compon
   assert.match(page, /useState\(true\)/);
   assert.match(page, /MarketingSplash/);
   assert.match(splash, /components\.map/);
-  assert.match(splash, /Build better stories/);
+  assert.match(splash, /Stop losing the story/);
   assert.match(splash, /Product-authentic PlotPickle Dashboard preview/);
   assert.match(splash, /reasons\.map/);
   assert.match(splash, /The complete current workspace model/);

@@ -16,8 +16,6 @@ import {
 } from "@/lib/buzz-story-room";
 import {
   BUZZ_RUNTIME_BOUNDARIES,
-  DORMANT_BUZZ_RUNTIME,
-  type BuzzRuntimeSnapshot,
 } from "@/lib/buzz-runtime";
 import styles from "./buzz-workspace.module.css";
 
@@ -57,7 +55,6 @@ type BuzzRoomRecord = { roomId: BuzzStoryRoomId; channel: BuzzChannel; created?:
 type BuzzMessage = { id: string; content: string; author: string; createdAt: string };
 
 type BuzzWorkspaceProps = {
-  runtime?: BuzzRuntimeSnapshot;
   onOpenSettings: () => void;
 };
 
@@ -109,7 +106,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body;
 }
 
-export default function BuzzWorkspace({ runtime = DORMANT_BUZZ_RUNTIME, onOpenSettings }: BuzzWorkspaceProps) {
+export default function BuzzWorkspace({ onOpenSettings }: BuzzWorkspaceProps) {
   const [project, setProject] = useState<Record<string, unknown> | null>(readProject);
   const [proposals, setProposals] = useState<BuzzStoryProposal[]>(readProposals);
   const [status, setStatus] = useState<PublicBuzzStatus | null>(null);
@@ -147,8 +144,24 @@ export default function BuzzWorkspace({ runtime = DORMANT_BUZZ_RUNTIME, onOpenSe
   const projectProposals = proposals.filter((proposal) => proposal.projectId === identity.id);
   const openProposals = projectProposals.filter((proposal) => proposal.status === "open");
   const tone = statusTone(status);
+  const configured = Boolean(status?.connection.configured);
+  const desktopDetected = Boolean(status?.cli.available);
   const canUseCli = Boolean(status?.connection.configured && status.relay.reachable && status.cli.available);
   const canWriteBuzz = Boolean(canUseCli && status?.connection.identityConfigured);
+  const statusTitle = status?.relay.reachable && configured
+    ? "Buzz community connected"
+    : configured
+      ? "Buzz connection needs attention"
+      : desktopDetected
+        ? "Buzz Desktop found · setup incomplete"
+        : "Buzz setup not complete";
+  const statusDetail = configured
+    ? status?.relay.detail || "PlotPickle is checking the saved Buzz community."
+    : desktopDetected
+      ? "The app is installed. PlotPickle still needs your Buzz community URL and identity."
+      : status
+        ? "Install Buzz Desktop, then connect the community you create or join."
+        : "Checking this computer for Buzz Desktop…";
 
   function persistProposals(next: BuzzStoryProposal[]) {
     setProposals(next);
@@ -324,20 +337,51 @@ export default function BuzzWorkspace({ runtime = DORMANT_BUZZ_RUNTIME, onOpenSe
         <div className={`${styles.status} ${styles[tone]}`} role="status">
           <i aria-hidden="true" />
           <span>
-            <b>{tone === "ready" ? "Connected" : tone === "degraded" ? "Connection needs attention" : "Optional · not connected"}</b>
-            <small>{status?.relay.detail || runtime.message}</small>
+            <b>{statusTitle}</b>
+            <small>{statusDetail}</small>
           </span>
         </div>
       </header>
 
-      <section className={styles.authority} aria-label="Buzz creative authority">
+      {!configured ? (
+        <section className={styles.setupGuide} aria-labelledby="buzz-setup-title">
+          <div className={styles.setupHeading}>
+            <div>
+              <span>Finish Buzz setup</span>
+              <h2 id="buzz-setup-title">Installing Buzz Desktop is only the first step.</h2>
+              <p>Buzz is a separate workspace. PlotPickle needs to know which Buzz community to use before it can find or create this project&apos;s rooms.</p>
+            </div>
+            <button type="button" onClick={onOpenSettings}>Open guided Buzz setup</button>
+          </div>
+          <div className={styles.setupSteps}>
+            <article data-complete={desktopDetected ? "true" : "false"}>
+              <span>1</span>
+              <div><b>Buzz Desktop</b><strong>{desktopDetected ? "Detected" : "Not detected"}</strong><p>{desktopDetected ? status?.cli.version || "The supported Buzz app is installed on this computer." : "Install Buzz Desktop v0.5.3, open it once and complete its first screen."}</p></div>
+            </article>
+            <article>
+              <span>2</span>
+              <div><b>Create or join a community</b><strong>Complete this in Buzz Desktop</strong><p>The community URL is the address of your Buzz workspace. Copy it after you create or join the community.</p></div>
+            </article>
+            <article>
+              <span>3</span>
+              <div><b>Connect PlotPickle</b><strong>Community URL + identity</strong><p>Open guided setup, save those details securely, test the connection, then create the six private PlotPickle channels.</p></div>
+            </article>
+          </div>
+          <aside className={styles.terminologyNote}>
+            <b>Looking for Buzz Hangouts?</b>
+            <p>Buzz calls shared discussion spaces <strong>channels</strong>. A live voice conversation is a <strong>huddle</strong>. PlotPickle groups six private channels under the friendlier name Story Rooms; there is no separate Hangouts directory to find.</p>
+          </aside>
+        </section>
+      ) : null}
+
+      {configured ? <section className={styles.authority} aria-label="Buzz creative authority">
         <article><span>1 · Discussion</span><h2>Buzz</h2><p>Rooms, messages, threads and source context.</p></article>
         <article><span>2 · Proposed change</span><h2>PlotPickle proposal</h2><p>The exact target, current value, proposed value and discussion reference.</p></article>
         <article><span>3 · Human decision</span><h2>Approve or decline</h2><p>No automated or casual message can bypass this review.</p></article>
         <article><span>4 · Official story</span><h2>PPF canon</h2><p>{BUZZ_RUNTIME_BOUNDARIES.creativeAuthority}</p></article>
-      </section>
+      </section> : null}
 
-      {!project ? (
+      {!configured ? null : !project ? (
         <section className={styles.emptyState}>
           <div><span>No active PPF project</span><h2>Open or create a story project first.</h2><p>Buzz remains optional and creates no story data while no project is open.</p></div>
           <a href="/?workspace=dashboard">Return to Dashboard</a>
@@ -345,13 +389,13 @@ export default function BuzzWorkspace({ runtime = DORMANT_BUZZ_RUNTIME, onOpenSe
       ) : (
         <>
           <section className={styles.projectBar}>
-            <div><span>Active project</span><h2>{identity.title}</h2><p>Room prefix: <code>{projectPrefix}</code></p></div>
+            <div><span>Active project</span><h2>{identity.title}</h2><p>{rooms.length ? `${rooms.length} of ${BUZZ_STORY_ROOMS.length} Story Rooms found` : "Load existing rooms or create this project’s private room set."}</p></div>
             <div className={styles.projectActions}>
               <button type="button" onClick={() => void refreshStatus(true)} disabled={busy === "status"}>Refresh connection</button>
               <button type="button" onClick={onOpenSettings}>Buzz settings</button>
-              <button type="button" onClick={openBuzz}>{status?.connection.configured ? "Open Buzz" : "Configure Buzz"}</button>
+              <button type="button" onClick={openBuzz}>Open Buzz community</button>
               <button type="button" onClick={() => void loadRooms()} disabled={!canUseCli || Boolean(busy)}>Load rooms</button>
-              <button type="button" onClick={() => void ensureRooms()} disabled={!canWriteBuzz || Boolean(busy)}>Create missing rooms</button>
+              <button type="button" title="Create missing rooms" onClick={() => void ensureRooms()} disabled={!canWriteBuzz || Boolean(busy)}>Create PlotPickle rooms</button>
             </div>
           </section>
 
@@ -375,7 +419,6 @@ export default function BuzzWorkspace({ runtime = DORMANT_BUZZ_RUNTIME, onOpenSe
                     <span>{connected ? "Connected room" : "Planned room"}</span>
                     <b>{room.label}</b>
                     <small>{room.description}</small>
-                    <code>{connected?.channel.name || buzzRoomName(project, room.id)}</code>
                   </button>
                 );
               })}
@@ -477,10 +520,10 @@ export default function BuzzWorkspace({ runtime = DORMANT_BUZZ_RUNTIME, onOpenSe
         </>
       )}
 
-      <section className={styles.runtimeBoundary}>
+      {configured ? <section className={styles.runtimeBoundary}>
         <div><span>Managed local Buzz</span><h2>{status?.managed.message || "Loading managed runtime status…"}</h2><p>The managed relay uses the verified Docker Compose bundle. Native Buzz binaries are not embedded in PlotPickle.</p></div>
         <div><b>{status?.managed.lifecycle || "checking"}</b><small>{status?.managed.bundle.sourceTag ? `${status.managed.bundle.sourceTag} · ${status.managed.bundle.sourceRevision}` : "No verified bundle status"}</small></div>
-      </section>
+      </section> : null}
 
       {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
     </div>

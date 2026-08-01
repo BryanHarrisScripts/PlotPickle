@@ -66,10 +66,10 @@
           "id": "local-buzz",
           "label": "Buzz Installation",
           "helpTerm": "Local · Buzz Installation",
-          "description": "Install, start or repair the optional local Buzz runtime.",
+          "description": "Detect Buzz Desktop, connect its community and prepare PlotPickle Story Rooms.",
           "status": "optional",
-          "href": "/settings/buzz",
-          "examples": ["Buzz relay", "Buzz CLI", "Buzz identity", "Local writers' rooms"]
+          "target": "buzz",
+          "examples": ["Buzz Desktop", "Community URL", "Buzz identity", "PlotPickle Story Rooms"]
         }
       ]
     },
@@ -276,7 +276,7 @@
           "helpTerm": "Agents · Buzz Runtime",
           "description": "Manage the optional room, relay and signed-discussion runtime.",
           "status": "optional",
-          "href": "/settings/buzz",
+          "target": "buzz",
           "examples": ["Buzz managed relay", "Rooms", "Signed discussion"]
         },
         {
@@ -285,7 +285,7 @@
           "helpTerm": "Agents · Docker & Compose",
           "description": "Review the current container prerequisite for managed Buzz services.",
           "status": "optional",
-          "href": "/settings/buzz",
+          "target": "buzz",
           "examples": ["Docker Desktop", "Docker Compose", "Postgres", "Redis", "Object storage"]
         },
         {

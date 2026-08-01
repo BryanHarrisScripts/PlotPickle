@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { PlotPickleProject } from "@/lib/project";
 import type { ConnectionStatusSnapshot } from "@/lib/connection-status";
 import taxonomySource from "../config/settings-system-taxonomy.json";
+import BuzzSettingsPanel from "./buzz-settings-panel";
 import LegacySettingsPanel from "./settings-panel-legacy";
 import styles from "./settings-system-navigation.module.css";
 
@@ -18,6 +19,7 @@ type LegacySection =
   | "github"
   | "plugins"
   | "google"
+  | "buzz"
   | "privacy"
   | "about";
 
@@ -267,6 +269,8 @@ export default function SettingsPanel({
               <a href={activeItem.href}>Open {activeItem.label}</a>
               {activeItem.mechanics?.length ? <p>{activeItem.mechanics.join(" · ")}</p> : null}
             </section>
+          ) : activeItem.target === "buzz" ? (
+            <BuzzSettingsPanel />
           ) : activeItem.target ? (
             <div className={styles.legacy}>
               <LegacySettingsPanel

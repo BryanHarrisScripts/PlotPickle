@@ -1,128 +1,271 @@
 .page {
   display: grid;
-  gap: 1.1rem;
-  padding: clamp(1rem, 2.5vw, 2rem);
-  color: #eaf7f4;
-  background: linear-gradient(180deg, #091820, #0d2029);
+  gap: 18px;
+  color: #183d43;
 }
 
 .heading,
 .statusCard,
-.choiceGrid article,
+.setupGuide,
 .runtimeGrid article,
+.choiceGrid article,
 .formCard,
+.actions,
 .lifecycleCard,
 .boundary,
-.actions,
 .notice {
-  border: 1px solid rgba(126, 194, 205, 0.23);
-  border-radius: 1rem;
-  background: linear-gradient(145deg, rgba(16, 38, 49, 0.98), rgba(8, 24, 32, 0.98));
+  border: 1px solid #d2e1e0;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(31, 70, 75, 0.055);
 }
 
 .heading {
-  padding: clamp(1.25rem, 3vw, 2rem);
-  background:
-    radial-gradient(circle at 90% 10%, rgba(90, 164, 255, 0.2), transparent 20rem),
-    linear-gradient(145deg, #102631, #091820);
+  display: grid;
+  gap: 8px;
+  padding: clamp(24px, 3vw, 38px);
+  background: linear-gradient(135deg, #fbfefd 0%, #eef8f5 68%, #e9f3f6 100%);
 }
 
 .heading p,
-.statusCard p,
-.choiceGrid p,
-.boundary p,
-.lifecycleCard p,
-.formCard p {
+.statusCard > div:first-child > p,
+.guideHeading > span,
+.runtimeGrid span,
+.choiceGrid article > span,
+.formCard > div:first-child > span,
+.lifecycleCard > div:first-child > span,
+.boundary > span {
   margin: 0;
+  color: #397c75;
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
 }
 
-.heading h1,
-.statusCard h2,
-.choiceGrid h2,
-.boundary h2,
-.lifecycleCard h2,
-.formCard h2 {
-  margin: 0.35rem 0 0.6rem;
-  color: #f4fffc;
+.heading h1 {
+  margin: 0;
+  color: #173f45;
+  font-size: clamp(1.75rem, 3vw, 2.7rem);
+  line-height: 1.08;
 }
 
 .heading > span,
-.statusCard > p,
+.statusCard p,
 .choiceGrid p,
-.boundary p,
+.formCard p,
 .lifecycleCard p,
-.formCard p {
-  color: #a9c3c9;
-  line-height: 1.55;
+.boundary p {
+  margin: 0;
+  color: #5c7279;
+  font-size: 0.82rem;
+  line-height: 1.6;
 }
 
 .statusCard {
   display: flex;
   justify-content: space-between;
-  gap: 1.25rem;
-  align-items: flex-start;
-  padding: 1.25rem;
+  gap: 22px;
+  align-items: center;
+  padding: 20px 22px;
+}
+
+.statusCard > div:first-child {
+  display: grid;
+  gap: 5px;
+}
+
+.statusCard h2,
+.guideHeading h2,
+.choiceGrid h2,
+.formCard h2,
+.lifecycleCard h2,
+.boundary h2 {
+  margin: 0;
+  color: #183f45;
 }
 
 .statusBadge {
   display: flex;
-  gap: 0.55rem;
+  gap: 8px;
   align-items: center;
-  padding: 0.65rem 0.8rem;
-  border: 1px solid #c66f6f;
-  border-radius: 0.75rem;
-  background: rgba(115, 25, 25, 0.2);
-  color: #ffd8d8;
+  padding: 9px 11px;
+  border: 1px solid #d4bbb9;
+  border-radius: 10px;
+  background: #fff7f6;
+  color: #8b4742;
+  font-size: 0.72rem;
   white-space: nowrap;
 }
 
 .statusBadge i {
-  width: 0.7rem;
-  height: 0.7rem;
+  width: 9px;
+  height: 9px;
   border-radius: 999px;
-  background: #e76565;
+  background: currentColor;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.statusBadge[data-state="loading"],
+.statusBadge[data-state="detected"],
+.statusBadge[data-state="connecting"] {
+  border-color: #a9cbd5;
+  background: #f2f9fb;
+  color: #317083;
+}
+
+.statusBadge[data-state="connected"] {
+  border-color: #9bcbb2;
+  background: #f1faf5;
+  color: #337b5d;
+}
+
+.statusBadge[data-state="degraded"] {
+  border-color: #d7c18c;
+  background: #fffaf0;
+  color: #8d691f;
+}
+
+.setupGuide {
+  display: grid;
+  gap: 18px;
+  padding: clamp(22px, 3vw, 30px);
+  border-color: #b8d9d3;
+}
+
+.guideHeading {
+  display: grid;
+  gap: 5px;
+}
+
+.setupSteps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.setupSteps article {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #d8e5e4;
+  border-radius: 14px;
+  background: #fbfdfd;
+}
+
+.setupSteps article > span {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: #e8f1f0;
+  color: #47716d;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.setupSteps article[data-complete="true"] {
+  border-color: #a9d4bd;
+  background: #f4fbf7;
+}
+
+.setupSteps article[data-complete="true"] > span {
+  background: #d9f0e3;
+  color: #2f7457;
+}
+
+.setupSteps article > div {
+  display: grid;
+  gap: 4px;
+}
+
+.setupSteps b {
+  color: #183f45;
+  font-size: 0.82rem;
+}
+
+.setupSteps strong {
+  color: #397c75;
+  font-size: 0.7rem;
+}
+
+.setupSteps p,
+.terminologyNote p {
+  margin: 0;
+  color: #647a80;
+  font-size: 0.74rem;
+  line-height: 1.55;
+}
+
+.terminologyNote {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding: 14px 16px;
+  border-left: 4px solid #5a9e93;
+  border-radius: 10px;
+  background: #f1f8f7;
+}
+
+.terminologyNote > b {
+  color: #245f58;
+  font-size: 0.76rem;
+}
+
+.terminologyNote p strong {
+  color: #315f5b;
 }
 
 .runtimeGrid,
 .choiceGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 0.9rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.choiceGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .runtimeGrid article,
 .choiceGrid article {
   display: grid;
-  gap: 0.55rem;
-  padding: 1.1rem;
-}
-
-.runtimeGrid span,
-.choiceGrid span,
-.boundary > span,
-.formCard > div > span,
-.lifecycleCard > div > span {
-  color: #88d8ff;
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  align-content: start;
+  gap: 7px;
+  min-width: 0;
+  padding: 18px;
 }
 
 .runtimeGrid strong {
-  color: #f4fffc;
+  color: #183f45;
+  font-size: 0.94rem;
 }
 
 .runtimeGrid small,
 .choiceGrid small,
-.toggle small {
-  color: #8da8ae;
+.formGrid small,
+.advancedField small,
+.lifecycleCard small {
+  overflow-wrap: anywhere;
+  color: #708489;
+  font-size: 0.7rem;
   line-height: 1.5;
 }
 
-.selectedChoice {
-  border-color: rgba(120, 229, 157, 0.55) !important;
-  box-shadow: inset 0 0 0 1px rgba(120, 229, 157, 0.15);
+.choiceGrid article {
+  border-width: 2px;
+}
+
+.choiceGrid article.selectedChoice {
+  border-color: #69a99f;
+  background: #f2faf8;
+}
+
+.choiceGrid h2 {
+  font-size: 1.05rem;
 }
 
 .choiceGrid button,
@@ -130,124 +273,187 @@
 .actions a,
 .lifecycleActions button {
   justify-self: start;
-  padding: 0.65rem 0.85rem;
-  border: 1px solid rgba(126, 194, 205, 0.35);
-  border-radius: 0.65rem;
-  background: rgba(27, 67, 82, 0.75);
-  color: #d7f4ff;
-  font-weight: 750;
+  min-height: 38px;
+  padding: 9px 13px;
+  border: 1px solid #8dbeb5;
+  border-radius: 9px;
+  background: #edf8f5;
+  color: #205f57;
+  font-size: 0.73rem;
+  font-weight: 800;
   text-decoration: none;
-}
-
-.choiceGrid button,
-.actions button,
-.lifecycleActions button {
   cursor: pointer;
 }
 
+.choiceGrid button:hover,
+.actions button:hover,
+.actions a:hover,
+.lifecycleActions button:hover {
+  background: #dff1ed;
+}
+
 .formCard,
-.lifecycleCard,
-.boundary {
-  padding: 1.25rem;
+.boundary,
+.lifecycleCard {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+
+.formCard > div:first-child,
+.lifecycleCard > div:first-child {
+  display: grid;
+  gap: 5px;
 }
 
 .formGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-  gap: 0.8rem;
-  margin: 1rem 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
-.formGrid label {
+.formGrid label,
+.advancedField label {
   display: grid;
-  gap: 0.4rem;
+  gap: 6px;
 }
 
-.formGrid label > span {
-  color: #b9d5db;
-  font-size: 0.8rem;
-  font-weight: 700;
+.formGrid label > span,
+.advancedField label > span {
+  color: #456970;
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
-.formGrid input {
+.formGrid input,
+.advancedField input {
+  width: 100%;
   min-width: 0;
-  padding: 0.75rem;
-  border: 1px solid rgba(126, 194, 205, 0.25);
-  border-radius: 0.65rem;
-  background: rgba(4, 16, 23, 0.72);
-  color: #efffff;
+  padding: 10px 11px;
+  border: 1px solid #cddcdb;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #173f45;
+  font: inherit;
+  font-size: 0.8rem;
 }
 
 .formGrid input:disabled {
-  color: #6f8c94;
+  background: #f2f5f5;
+  color: #708489;
 }
 
-.toggle {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: center;
-  padding: 0.85rem 0;
-  border-top: 1px solid rgba(126, 194, 205, 0.12);
+.formGrid input:focus,
+.advancedField input:focus {
+  border-color: #5b9f95;
+  outline: 3px solid rgba(91, 159, 149, 0.14);
 }
 
-.toggle > span {
-  display: grid;
-  gap: 0.25rem;
+.advancedField {
+  border-top: 1px solid #e1e9e8;
+  padding-top: 14px;
 }
 
-.toggle b {
-  color: #f4fffc;
+.advancedField summary {
+  color: #397c75;
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
 }
 
-.lifecycleCard {
-  display: grid;
-  grid-template-columns: minmax(14rem, 0.7fr) minmax(0, 1.3fr);
-  gap: 1.2rem;
-}
-
-.lifecycleActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-  align-content: flex-start;
-}
-
-.lifecycleActions button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
-.boundary ul {
-  margin: 0.8rem 0 0;
-  padding-left: 1.2rem;
-  color: #b8ced2;
-  line-height: 1.6;
-}
-
-.notice {
-  margin: 0;
-  padding: 0.9rem 1rem;
-  color: #cfe5ff;
+.advancedField[open] summary {
+  margin-bottom: 12px;
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 9px;
   align-items: center;
-  padding: 1rem 1.25rem;
+  padding: 16px 18px;
 }
 
-.removeAction {
-  border-color: rgba(231, 101, 101, 0.5) !important;
-  color: #ffd1d1 !important;
+.actions > button:first-child {
+  border-color: #2f746a;
+  background: #2f746a;
+  color: #ffffff;
+}
+
+.actions > button:first-child:hover {
+  background: #245f57;
+}
+
+.actions button:disabled,
+.lifecycleActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.actions .removeAction {
+  margin-left: auto;
+  border-color: #d0aaa7;
+  background: #fff7f6;
+  color: #8b4742;
+}
+
+.boundary {
+  gap: 6px;
+  background: #f8fbfb;
+}
+
+.boundary ul {
+  margin: 4px 0 0;
+  padding-left: 20px;
+  color: #5f747a;
+  font-size: 0.76rem;
+  line-height: 1.65;
+}
+
+.lifecycleCard {
+  grid-template-columns: minmax(240px, 0.75fr) minmax(0, 1.25fr);
+}
+
+.lifecycleActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-content: flex-start;
+}
+
+.notice {
+  margin: 0;
+  padding: 13px 15px;
+  border-left: 4px solid #5b9f95;
+  color: #315f5b;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 1000px) {
+  .setupSteps,
+  .runtimeGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 760px) {
-  .statusCard,
+  .statusCard {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .choiceGrid,
+  .formGrid,
   .lifecycleCard {
     grid-template-columns: 1fr;
-    flex-direction: column;
+  }
+
+  .terminologyNote {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .actions .removeAction {
+    margin-left: 0;
   }
 }

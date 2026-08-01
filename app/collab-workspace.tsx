@@ -11,7 +11,7 @@ import BuzzCollabPanel from "./buzz-collab-panel";
 import styles from "./collab-workspace.module.css";
 
 type CollabSection = "overview" | "buzz" | "approvals" | "meetings" | "calendar" | "connections";
-type SettingsConnection = "github" | "google";
+type SettingsConnection = "github" | "google" | "buzz";
 
 const COLLAB_SECTION_KEY = "plotpickle.collab.section";
 
@@ -177,7 +177,7 @@ export default function CollabWorkspace({
         <BuzzCollabPanel
           project={project}
           onProjectChange={onProjectChange}
-          onOpenSettings={() => onOpenSettings("github")}
+          onOpenSettings={() => onOpenSettings("buzz")}
         />
       ) : null}
 

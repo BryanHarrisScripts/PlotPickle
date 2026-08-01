@@ -23,7 +23,7 @@ test("issue #169 defines exactly three release builds from one product contract"
   assert.match(splash, /One application\. Three desktop packages\./);
   assert.match(splash, /built on its target operating system/);
   assert.match(splash, /SHA-256 checksum/);
-  assert.match(splash, /View all three builds/);
+  assert.match(splash, /Open release downloads/);
 });
 
 test("issue #169 presents the complete current workspace model", async () => {

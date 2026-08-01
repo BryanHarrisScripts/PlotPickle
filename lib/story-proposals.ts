@@ -8,6 +8,7 @@ export const STORY_PROPOSAL_GROUPS = [
   { id: "world", label: "World and canon", description: "World rules, locations, timeline, continuity and canon-derived material." },
   { id: "production", label: "Production", description: "Storyboard, shots, cues, breakdowns, schedule and distribution planning." },
   { id: "review", label: "Review and revisions", description: "Review threads, pitch work and revision snapshots." },
+  { id: "assets", label: "Asset versions", description: "Approved repository media, stable hashes and non-destructive image variations." },
   { id: "rights", label: "Rights and provenance", description: "Ownership, attribution, licences and AI provenance records." },
 ] as const;
 
@@ -52,6 +53,7 @@ export function storyProposalGroupForPath(filePath: string): StoryProposalGroupI
   if (path.startsWith("characters/") || path.startsWith("voiceprints/") || path.startsWith("canon/characters/") || path.startsWith("canon/voiceprints/")) return "characters";
   if (path.startsWith("24-blocks/") || path.startsWith("96-blocks/") || path === "story/threads.json") return "scenes";
   if (path.startsWith("production/") || path.startsWith("storyboard/") || path.startsWith("canon/producer-notes/") || path.startsWith("canon/director-notes/") || path.startsWith("canon/actor-notes/")) return "production";
+  if (path.startsWith("assets/") || filePath.startsWith("assets/")) return "assets";
   if (path.startsWith("world/") || path.startsWith("canon/world/") || path.startsWith("canon/timeline/") || path.startsWith("canon/locations/") || path === "canon/rules.json" || path === "canon/continuity.json" || path === "canon/timeline.json") return "world";
   if (path.startsWith("review/") || path.startsWith("reports/revisions")) return "review";
   if (path.startsWith("canon/legal/") || path === "canon/rights.json") return "rights";
@@ -112,6 +114,10 @@ export function compareStoryProposalProjects(
       changed: differs(approved.review, proposed.review) || differs(approved.revisions, proposed.revisions),
       summary: "Review threads, pitch material or revision history changed.",
     },
+    assets: {
+      changed: differs(approved.assets, proposed.assets),
+      summary: "Asset versions, portable paths or selected media references changed.",
+    },
     rights: {
       changed: differs(approved.rights, proposed.rights),
       summary: "Rights, attribution, licence or provenance records changed.",
@@ -153,6 +159,7 @@ export function applyStoryProposalGroups(
     next.review = source.review;
     next.revisions = source.revisions;
   }
+  if (selected.has("assets")) next.assets = source.assets;
   if (selected.has("rights")) next.rights = source.rights;
 
   next.collaboration = cloneProject(approved).collaboration;

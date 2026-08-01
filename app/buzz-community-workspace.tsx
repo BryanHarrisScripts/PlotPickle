@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import styles from "./buzz-community-workspace.module.css";
 
 const COMMUNITY_PORTAL_URL = "https://app.builderlab.xyz/buzz";
+const PLOTPICKLE_SERVER_INVITE_URL = "https://plotpickleplayhouse.communities.buzz.xyz/invite/v2.tdZwBnmvMuZ_E3lh_cEjbo4qeJHdTvFogatjMfVgB-k";
 const BUZZ_STATUS_API = "/api/local-buzz/status";
 
 type BuzzCommunityStatus = {
@@ -66,6 +67,27 @@ export default function BuzzCommunityWorkspace({ onOpenSettings }: { onOpenSetti
           <button type="button" onClick={onOpenSettings}>Writers’ Room setup</button>
         </div>
       </header>
+
+      <section className={styles.communityChoices} aria-label="Choose a Buzz community path">
+        <article className={styles.recommendedChoice}>
+          <span>Fastest start</span>
+          <h2>Join PlotPickleServer</h2>
+          <p>Accept the PlotPickle Playhouse invitation and add its ready-made community to Buzz.</p>
+          <a href={PLOTPICKLE_SERVER_INVITE_URL} target="_blank" rel="noreferrer">Join PlotPickleServer</a>
+        </article>
+        <article>
+          <span>Your own hosted space</span>
+          <h2>Create a new community</h2>
+          <p>Sign in to BuilderLab, create a separate Buzz community and bring its address back to PlotPickle.</p>
+          <a href={COMMUNITY_PORTAL_URL} target="_blank" rel="noreferrer">Create a new community</a>
+        </article>
+        <article>
+          <span>Advanced</span>
+          <h2>Be your own RELAY</h2>
+          <p>Keep using PlotPickle&apos;s existing managed local Buzz relay and lifecycle controls.</p>
+          <button type="button" onClick={onOpenSettings}>Configure local relay</button>
+        </article>
+      </section>
 
       <section className={styles.connectionBar} aria-label="Buzz community status">
         <div>

@@ -76,8 +76,11 @@ test("Community is a first-class workspace with account, hosted and desktop Buzz
   assert.match(community, />Open in Buzz Desktop<\/a>/);
   assert.match(community, /const desktopReady = Boolean\(desktopUrl && status\?\.cli\?\.available\)/);
   assert.match(community, /disabled>Buzz Desktop needs setup<\/button>/);
-  assert.match(community, /title="Buzz Communities"/);
+  assert.doesNotMatch(community, /<iframe/);
+  assert.match(community, /Buzz opens beside PlotPickle/);
+  assert.match(community, /Buzz Communities blocks embedded frames/);
+  assert.match(community, />Manage communities in browser<\/a>/);
   assert.match(community, /Writers’ Room setup/);
   assert.match(css, /\.communityChoices\s*\{[^}]*grid-template-columns: repeat\(3/s);
-  assert.match(css, /\.portal iframe\s*\{[^}]*height: max\(680px/s);
+  assert.match(css, /\.handoff\s*\{[^}]*display: flex/s);
 });

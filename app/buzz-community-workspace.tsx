@@ -76,10 +76,10 @@ export default function BuzzCommunityWorkspace({ onOpenSettings }: { onOpenSetti
           <a href={PLOTPICKLE_SERVER_INVITE_URL} target="_blank" rel="noreferrer">Join PlotPickleServer</a>
         </article>
         <article>
-          <span>Your own hosted space</span>
+          <span>New Buzz account or community</span>
           <h2>Create a new community</h2>
-          <p>Sign in to BuilderLab, create a separate Buzz community and bring its address back to PlotPickle.</p>
-          <a href={COMMUNITY_PORTAL_URL} target="_blank" rel="noreferrer">Create a new community</a>
+          <p>Use BuilderLab to set up or sign in to your account, then create and manage your Buzz communities.</p>
+          <a href={COMMUNITY_PORTAL_URL} target="_blank" rel="noreferrer">Set up account &amp; communities</a>
         </article>
         <article>
           <span>Advanced</span>

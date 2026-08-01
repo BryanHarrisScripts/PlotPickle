@@ -26,11 +26,48 @@ type MarketingSplashProps = {
 };
 
 const reasons = [
-  ["01", "Visual storyworld in one PPF", "Keep canon, characters, structure, screenplay material, visuals, shots, sound, approvals and provenance connected."],
-  ["02", "Story logic you can see", "Use 24 Blocks, 96 mini-blocks and the learning system to expose hooks, turns, causality, arcs and continuity."],
-  ["03", "Connected visual development", "Carry approved identities and locations through Graphic Novel panels, Storyboard frames and Production Shots."],
-  ["04", "Review with evidence", "Use Feedback, Pitch and Reports to see readiness, continuity and unresolved decisions without automating the green-light decision."],
-  ["05", "Local-first ownership", "Use the complete core before connecting AI, GitHub, Google, Buzz or a future media engine."],
+  ["01", "Learn while you build", "Use 81 self-paced modules, local guides and the open Afterglow example to move from story fundamentals into a working project."],
+  ["02", "See the whole story graph", "Map characters, locations, beats, scenes, arcs and dependencies as one connected storyworld instead of scattered documents."],
+  ["03", "Keep one portable PPF", "Carry canon, story logic, screenplay material, visuals, feedback, approvals and provenance in one open, portable project."],
+  ["04", "Test story logic visually", "Use 24 Blocks and 96 mini-blocks to expose hooks, turning points, causality, continuity and unresolved story decisions."],
+  ["05", "Write and pitch visually", "Move from structure to screenplay, Graphic Novel, Storyboard, Production Shots, Pitch and Reports without rebuilding the story each time."],
+  ["06", "Invite feedback without losing canon", "Add Buzz community discussion or GitHub proposals when needed while every official change remains human-approved."],
+] as const;
+
+const operatingModes = [
+  {
+    title: "Local Story Mode",
+    subtitle: "Private creation on this computer",
+    status: "PlotPickle installed locally",
+    experience: "PlotPickle Playhouse · local compute",
+    storyline: "Afterglow or your own local story",
+    learning: "Learn workspace · 81 modules · local guides",
+    collaboration: "Not required",
+    data: "PPF · canonical JSON · assets · rolling backups",
+    cost: "Lowest ongoing cost · minimal paid-token use",
+  },
+  {
+    title: "Writers’ Room Mode",
+    subtitle: "Community discussion through Buzz",
+    status: "PlotPickle installed locally · Buzz optional",
+    experience: "PlotPickle Playhouse · Buzz Community",
+    storyline: "Afterglow or your story shared through Buzz context",
+    learning: "Learn workspace · 81 modules · local guides",
+    collaboration: "Rooms · messages · huddles · canon-safe proposals",
+    data: "Local PPF plus community discussion references",
+    cost: "Local core first · collaboration added only when needed",
+  },
+  {
+    title: "Cloud Collab Mode",
+    subtitle: "Reviewed history across machines",
+    status: "PlotPickle installed locally · GitHub optional",
+    experience: "PlotPickle Playhouse · GitHub · optional cloud compute",
+    storyline: "Afterglow or your story through a GitHub repository",
+    learning: "Learn workspace · 81 modules · local guides",
+    collaboration: "Branches · Story Proposals · revision history",
+    data: "Local PPF plus GitHub repository history",
+    cost: "Local work by default · remote compute only by choice",
+  },
 ] as const;
 
 const featureHighlights = [
@@ -60,7 +97,7 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
           <span><strong>PlotPickle</strong><small>Visual storyworld engine</small></span>
         </a>
         <nav className={styles.nav} aria-label="Splash page navigation">
-          <a href="#studio">Product</a><a href="#builds">Desktop builds</a><a href="#collaboration">Collaboration</a><a href="#open-source">Open source</a>
+          <a href="#studio">Product</a><a href="#modes">Three modes</a><a href="#builds">Builds</a><a href="#collaboration">Collaboration</a><a href="#open-source">Open source</a>
         </nav>
         <div className={styles.headerActions}>
           <a className={styles.sourceButton} href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">View source</a>
@@ -72,13 +109,13 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
         <section className={styles.hero}>
           <div className={`${styles.wrap} ${styles.heroGrid}`}>
             <div className={styles.heroCopy}>
-              <p className={styles.kicker}>One installer · local-first · owner-controlled</p>
-              <h1>Build better stories.<span>Review faster. Stay in control.</span></h1>
-              <p className={styles.lede}>{PLOTPICKLE_POSITIONING.summary}</p>
+              <p className={styles.kicker}>Learn the craft · see the logic · own the story</p>
+              <h1>Stop losing the story<span>between the notes, drafts and visuals.</span></h1>
+              <p className={styles.lede}>PlotPickle is a self-learning visual story studio. Build one connected story graph, preserve it in a portable PPF, test the logic, write visually, shape the pitch and invite feedback without surrendering canon.</p>
               <div className={styles.heroActions}>
                 <button className={styles.primaryButton} type="button" onClick={onEnter}>Open PlotPickle</button>
-                <a className={styles.lightButton} href="#builds">Choose your build</a>
-                <a className={styles.textButton} href="#studio">Explore the workflow</a>
+                <a className={styles.lightButton} href="#studio">See what connects</a>
+                <a className={styles.textButton} href="#modes">Compare the three modes</a>
               </div>
               <div className={styles.trustRow} aria-label="PlotPickle operating principles">
                 <span>Portable PPF projects</span><span>Works without AI</span><span>Windows · macOS · Linux</span><span>Human-controlled approvals</span><span>Optional Buzz</span><span>GNU AGPLv3</span>
@@ -89,17 +126,17 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
               <div className={styles.localBar}><span><i aria-hidden="true" /> Local project</span><code>127.0.0.1</code></div>
               <div className={styles.visualBody}>
                 <div className={styles.visualHeading}>
-                  <span>Dashboard · real project state</span>
-                  <h2>One storyworld, visible from canon to approval.</h2>
-                  <p>No mascot, fake avatar or fabricated online team. Every card represents a real project field or an honest connection state.</p>
+                  <span>One living story graph</span>
+                  <h2>Learn it. Map it. Write it. Show it.</h2>
+                  <p>Afterglow demonstrates the complete path, while every module, visual and decision stays connected to the same PPF storyworld.</p>
                 </div>
                 <div className={styles.storyMap}>
-                  <article><small>Storyworld Overview</small><strong>World · Characters · Locations</strong><span>24 Blocks · 96 mini-blocks · scenes and continuity</span></article>
-                  <article><small>Writing Progress</small><strong>Development coverage</strong><span>Real planning evidence from the loaded PPF</span></article>
-                  <article><small>GitHub Approvals</small><strong>Connected or local-only</strong><span>Story Proposals remain owner-controlled in Collab</span></article>
-                  <article><small>Optional Buzz</small><strong>Not configured</strong><span>Dormant until Settings configuration is completed</span></article>
-                  <article><small>Storage & Backups</small><strong>Local-first authority</strong><span>Projects remain separate from replaceable program files</span></article>
-                  <article><small>Canon & Decisions</small><strong>Open questions</strong><span>Uncertainty stays visible instead of hiding in prose</span></article>
+                  <article><small>Self-learning</small><strong>81 guided modules</strong><span>Story craft beside the work, not in a separate course</span></article>
+                  <article><small>Story graph</small><strong>World · Characters · Locations</strong><span>24 Blocks · 96 mini-blocks · scenes, arcs and continuity</span></article>
+                  <article><small>Portable PPF</small><strong>One creative source of truth</strong><span>Canon, writing, visuals, feedback and provenance stay connected</span></article>
+                  <article><small>Visual writing</small><strong>Graphic Novel · Storyboard</strong><span>Turn structural choices into readable visual proof</span></article>
+                  <article><small>Visual pitch</small><strong>Pitch · Reports · evidence</strong><span>Show what the project is and what still needs a decision</span></article>
+                  <article><small>Community feedback</small><strong>Buzz · GitHub · human approval</strong><span>Discuss freely without allowing conversation to rewrite canon</span></article>
                 </div>
               </div>
               <div className={styles.projectFooter}><span>PPF is the creative source of truth</span><span>GitHub is code and merge authority</span><span>Settings owns every optional connection</span></div>
@@ -117,7 +154,7 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
 
         <section className={`${styles.section} ${styles.studio}`} id="studio">
           <div className={styles.wrap}>
-            <div className={styles.sectionHeading}><p>Why PlotPickle</p><h2>Visualize the story logic. Build the proof.</h2><span>PlotPickle focuses on structure, continuity, previsualization and review evidence while people retain authorship and approval authority.</span></div>
+            <div className={styles.sectionHeading}><p>From interest to proof</p><h2>Learn the craft inside the story you are building.</h2><span>PlotPickle connects learning, structure, writing, visualization, pitch and feedback so each step strengthens the same storyworld.</span></div>
             <div className={styles.reasonGrid}>{reasons.map(([number, title, description]) => <article className={styles.reasonCard} key={number}><span>{number}</span><h3>{title}</h3><p>{description}</p></article>)}</div>
 
             <div className={styles.workflowHeading}><div><p>One connected application</p><h2>The complete current workspace model.</h2></div><span>Settings configures services. Collab and Buzz use those connections without becoming a second source of canon.</span></div>
@@ -127,6 +164,25 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
 
             <div className={styles.workflowHeading}><div><p>Product-authentic capabilities</p><h2>Available features and optional connections are clearly separated.</h2></div><span>Native bundled Buzz binaries are not advertised as shipped until checksums, licences and clean-machine tests exist.</span></div>
             <div className={styles.featureGrid}>{featureHighlights.map(([eyebrow, title, description]) => <article data-status="available" key={title}><span>{eyebrow}</span><h3>{title}</h3><p>{description}</p><small>Human-controlled · local-first · inspectable</small></article>)}</div>
+          </div>
+        </section>
+
+        <section className={`${styles.section} ${styles.modes}`} id="modes">
+          <div className={styles.wrap}>
+            <div className={styles.sectionHeading}><p>One project · three ways to work</p><h2>Start privately. Add people only when the story needs them.</h2><span>PlotPickle remains installed locally in every mode. Afterglow, the Learn workspace and the PPF story model flow through all three.</span></div>
+            <div className={styles.modeComparison}>
+              {operatingModes.map((mode) => <article key={mode.title}>
+                <header><span>{mode.status}</span><h3>{mode.title}</h3><p>{mode.subtitle}</p></header>
+                <dl>
+                  <div><dt>User experience</dt><dd>{mode.experience}</dd></div>
+                  <div><dt>Storyline</dt><dd>{mode.storyline}</dd></div>
+                  <div><dt>Learning</dt><dd>{mode.learning}</dd></div>
+                  <div><dt>Data &amp; storage</dt><dd>{mode.data}</dd></div>
+                  <div><dt>Collaboration</dt><dd>{mode.collaboration}</dd></div>
+                  <div><dt>Cost profile</dt><dd>{mode.cost}</dd></div>
+                </dl>
+              </article>)}
+            </div>
           </div>
         </section>
 
@@ -155,7 +211,7 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
           <div className={styles.wrap}><div className={styles.sectionHeading}><p>Open source with clear boundaries</p><h2>Open software. Open method. Your story.</h2><span>PlotPickle separates software rights, educational material and each creator&apos;s original work.</span></div><div className={styles.openGrid}>{OPEN_SOURCE_FOUNDATIONS.map((foundation) => <article key={foundation.label}><span>{foundation.label}</span><h3>{foundation.title}</h3><p>{foundation.summary}</p></article>)}</div></div>
         </section>
 
-        <section className={styles.finalSection}><div className={`${styles.wrap} ${styles.finalCard}`}><div><span>PlotPickle</span><h2>Shape the storyworld. Review the evidence. Stay in control.</h2><p>Use the complete local core now, then add GitHub, Google, AI or Buzz only when the project truly needs them.</p></div><div className={styles.finalActions}><button className={styles.primaryButton} type="button" onClick={onEnter}>Enter PlotPickle</button><a className={styles.lightButton} href={downloadUrl} target="_blank" rel="noreferrer">View all three builds</a></div></div></section>
+        <section className={styles.finalSection}><div className={`${styles.wrap} ${styles.finalCard}`}><div><span>Start with a working story</span><h2>Open Afterglow. See the graph. Then build your own.</h2><p>Use the complete local core now, learn through the example, and add Buzz, GitHub or AI only when the project truly needs them.</p></div><div className={styles.finalActions}><button className={styles.primaryButton} type="button" onClick={onEnter}>Load Afterglow</button><a className={styles.lightButton} href={downloadUrl} target="_blank" rel="noreferrer">Get the open-source build</a></div></div></section>
       </main>
 
       <footer className={styles.footer}><div className={styles.wrap}><span>Visual storyworld collaboration and previsualization engine</span><nav aria-label="PlotPickle information"><a href="/about">About</a><a href="/legal">Licensing</a><a href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">Source</a></nav><span>Windows · macOS · Linux</span></div></footer>

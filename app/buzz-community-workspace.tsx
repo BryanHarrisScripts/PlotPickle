@@ -58,8 +58,8 @@ export default function BuzzCommunityWorkspace({ onOpenSettings }: { onOpenSetti
       <header className={styles.heading}>
         <div>
           <p>Community</p>
-          <h1>Your Buzz community, inside PlotPickle.</h1>
-          <span>Create or manage the hosted community here, then open that same community in Buzz Desktop for channels, messages and huddles.</span>
+          <h1>Your Buzz community, connected to PlotPickle.</h1>
+          <span>Create or manage the hosted community in your browser, then open that same community in Buzz Desktop for channels, messages and huddles.</span>
         </div>
         <div className={styles.actions}>
           {desktopReady ? <a className={styles.primary} href={desktopUrl}>Open in Buzz Desktop</a> : <button type="button" className={styles.primary} disabled>Buzz Desktop needs setup</button>}
@@ -100,18 +100,16 @@ export default function BuzzCommunityWorkspace({ onOpenSettings }: { onOpenSetti
         </div>
       </section>
 
-      <section className={styles.portal} aria-labelledby="buzz-community-portal-title">
-        <div className={styles.portalHeading}>
-          <div><span>Hosted community manager</span><h2 id="buzz-community-portal-title">Buzz Communities</h2></div>
-          <small>If the hosted page does not appear, use Open in browser above. PlotPickle keeps the Desktop button available here.</small>
+      <section className={styles.handoff} aria-labelledby="buzz-community-handoff-title">
+        <div>
+          <span>Application handoff</span>
+          <h2 id="buzz-community-handoff-title">Buzz opens beside PlotPickle</h2>
+          <p>Buzz Communities blocks embedded frames, and Buzz Desktop is a separate application. PlotPickle keeps the saved community and verified identity visible here while opening each tool in its supported window.</p>
         </div>
-        <iframe
-          src={COMMUNITY_PORTAL_URL}
-          title="Buzz Communities"
-          loading="lazy"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allow="clipboard-read; clipboard-write"
-        />
+        <div className={styles.actions}>
+          {desktopReady ? <a className={styles.primary} href={desktopUrl}>Open Buzz Desktop</a> : <button type="button" className={styles.primary} disabled>Complete Buzz setup</button>}
+          <a href={COMMUNITY_PORTAL_URL} target="_blank" rel="noreferrer">Manage communities in browser</a>
+        </div>
       </section>
     </div>
   );

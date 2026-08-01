@@ -63,14 +63,20 @@ export default function WriterFacingCollaborationLanguage() {
       for (const record of records) {
         if (record.type === "characterData") {
           const text = record.target as Text;
-          if (!isProtectedCopy(text) && text.nodeValue) text.nodeValue = translate(text.nodeValue);
+          if (!isProtectedCopy(text) && text.nodeValue) {
+            const next = translate(text.nodeValue);
+            if (next !== text.nodeValue) text.nodeValue = next;
+          }
           if (text.parentElement) markStableCopyKeys(text.parentElement);
           continue;
         }
         for (const node of record.addedNodes) {
           if (node.nodeType === Node.TEXT_NODE && !isProtectedCopy(node as Text)) {
             const text = node as Text;
-            if (text.nodeValue) text.nodeValue = translate(text.nodeValue);
+            if (text.nodeValue) {
+              const next = translate(text.nodeValue);
+              if (next !== text.nodeValue) text.nodeValue = next;
+            }
             if (text.parentElement) markStableCopyKeys(text.parentElement);
           } else if (node.nodeType === Node.ELEMENT_NODE) {
             refreshCopy(node as Element);

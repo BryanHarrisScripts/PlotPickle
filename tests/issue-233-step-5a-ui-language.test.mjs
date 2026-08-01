@@ -23,17 +23,17 @@ async function loadTranslator() {
       target: ts.ScriptTarget.ES2022,
     },
   }).outputText;
-  const module = { exports: {} };
+  const cjsModule = { exports: {} };
   vm.runInNewContext(compiled, {
-    exports: module.exports,
-    module,
+    exports: cjsModule.exports,
+    module: cjsModule,
     require(specifier) {
       if (specifier === "react") return { useEffect() {} };
       if (specifier === "@/config/collaboration-copy.json") return { default: copy };
       throw new Error(`Unexpected translator dependency: ${specifier}`);
     },
   }, { filename: "writer-facing-collaboration-language.js" });
-  return { copy, translate: module.exports.translate };
+  return { copy, translate: cjsModule.exports.translate };
 }
 
 test("Step 5A mounts one JSON-backed collaboration language adapter", async () => {

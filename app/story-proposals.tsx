@@ -110,7 +110,7 @@ function semanticGroups(value: unknown): SemanticGroup[] {
     if (!item || typeof item !== "object") return [];
     const record = item as Record<string, unknown>;
     const id = String(record.id) as StoryProposalGroupId;
-    if (!["story", "dialogue", "characters", "scenes", "world", "production", "review", "rights"].includes(id)) return [];
+    if (!["story", "dialogue", "characters", "scenes", "world", "production", "review", "assets", "rights"].includes(id)) return [];
     return [{
       id,
       label: typeof record.label === "string" ? record.label : id,

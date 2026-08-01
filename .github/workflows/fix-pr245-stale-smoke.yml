@@ -1,0 +1,39 @@
+name: Apply PR 245 smoke selector fix
+
+on:
+  push:
+    branches:
+      - agent/244-buzz-desktop-launcher-install
+    paths:
+      - .github/workflows/fix-pr245-stale-smoke.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/244-buzz-desktop-launcher-install
+          fetch-depth: 0
+      - name: Replace stale Settings label and remove helper workflow
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/windows-release-smoke.mjs')
+          text = path.read_text(encoding='utf-8')
+          old = 'GitHub Story Repository'
+          count = text.count(old)
+          if count != 2:
+              raise SystemExit(f'Expected exactly 2 stale label occurrences, found {count}.')
+          path.write_text(text.replace(old, 'Repository & Collab'), encoding='utf-8')
+          Path('.github/workflows/fix-pr245-stale-smoke.yml').unlink()
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/windows-release-smoke.mjs .github/workflows/fix-pr245-stale-smoke.yml
+          git commit -m "test: align Windows smoke with Repository & Collab label"
+          git push origin HEAD:agent/244-buzz-desktop-launcher-install

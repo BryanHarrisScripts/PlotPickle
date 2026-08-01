@@ -51,6 +51,7 @@ export const PRIMARY_WORKFLOW_NAVIGATION = [
 
 export const COLLABORATION_NAVIGATION = [
   { id: "collab", label: "Collab", description: "Approvals, meetings, calendar and connected collaborators", zone: "collaboration" },
+  { id: "community", label: "Community", description: "Manage the hosted Buzz community and open it in Buzz Desktop", zone: "collaboration" },
 ] as const;
 
 export const PRODUCT_NAVIGATION = [

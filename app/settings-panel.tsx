@@ -172,7 +172,6 @@ export default function SettingsPanel({
   useEffect(() => {
     if (!ready || playhouseView !== "overview") return;
     let cancelled = false;
-    setBuzzModeStatus("checking");
     void fetch("/api/local-buzz/status", { headers: { Accept: "application/json" } })
       .then(async (response) => {
         if (!response.ok) throw new Error("Buzz status unavailable");

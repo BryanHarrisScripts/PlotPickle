@@ -50,7 +50,7 @@ test("the role selector is responsive and keeps advanced systems secondary", asy
   assert.match(css, /@media \(max-width: 660px\)[\s\S]*\.modeNav\s*\{[^}]*grid-template-columns: repeat\(2/s);
 });
 
-test("Community is a first-class workspace with hosted and desktop Buzz paths", async () => {
+test("Community is a first-class workspace with account, hosted and desktop Buzz paths", async () => {
   const [page, direction, community, css] = await Promise.all([
     source("app/page.tsx"),
     source("lib/product-direction.ts"),

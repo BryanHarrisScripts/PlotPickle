@@ -61,12 +61,11 @@ if (!originalSend.test(source)) {
 }
 source = source.replace(originalSend, boundedSend);
 
-const originalScenarioStart = `async function runScenario(report, name, callback) {
-  const startedAt = new Date().toISOString();`;
+const originalScenarioStart = /async function runScenario\(report, name, callback\) \{\r?\n\s*const startedAt = new Date\(\)\.toISOString\(\);/;
 const loggedScenarioStart = `async function runScenario(report, name, callback) {
   console.log(\`[issue-208] starting: \${name}\`);
   const startedAt = new Date().toISOString();`;
-if (!source.includes(originalScenarioStart)) {
+if (!originalScenarioStart.test(source)) {
   throw new Error("The Issue #208 scenario runner could not be located.");
 }
 source = source.replace(originalScenarioStart, loggedScenarioStart);

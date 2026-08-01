@@ -67,6 +67,7 @@
   transition: width 0.2s ease;
 }
 .preflight,
+.assetLibrary,
 .comicPage,
 .exports {
   padding: 24px;
@@ -144,6 +145,8 @@
 }
 .warning button,
 .actions button,
+.assetLibrary button,
+.versionPicker button,
 .panelActions button,
 .dialogueEditor button,
 .exports button {
@@ -220,6 +223,58 @@
   color: #276f69;
   font-size: 12px;
   font-weight: 700;
+}
+.assetLibrary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px 28px;
+  align-items: center;
+}
+.assetLibrary h2 {
+  margin: 5px 0 7px;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+.assetLibrary > div:first-child > span {
+  color: #2a8b7d;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.assetLibrary p {
+  margin: 0;
+  color: #58736e;
+  line-height: 1.55;
+}
+.assetLibrary small {
+  display: block;
+  margin-top: 8px;
+  color: #6f8581;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 10px;
+}
+.assetLibrary > div:nth-child(2) {
+  display: grid;
+  justify-items: end;
+  gap: 7px;
+}
+.assetLibrary button {
+  border-color: #247b6e;
+  background: #247b6e;
+  color: #fff;
+}
+.assetLibrary > div:nth-child(2) span,
+.assetNotice {
+  color: #607a76;
+  font-size: 10px;
+}
+.assetNotice {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid #d9e8e5;
+  font-weight: 750;
 }
 .deckLayout {
   display: grid;
@@ -401,6 +456,74 @@
   font-size: 11px;
   font-weight: 800;
 }
+.versionPicker {
+  display: grid;
+  gap: 9px;
+  margin-top: 11px;
+  padding: 10px;
+  border: 1px solid #c9ded9;
+  border-radius: 10px;
+  background: #f5faf9;
+}
+.versionPicker > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+.versionPicker > div:first-child span {
+  color: #68817d;
+  font-size: 9px;
+  line-height: 1.4;
+}
+.versionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+  gap: 8px;
+}
+.versionGrid article {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 7px;
+  border: 1px solid #cbdedb;
+  border-radius: 9px;
+  background: #fff;
+}
+.versionGrid article[data-selected] {
+  border-color: #247b6e;
+  box-shadow: inset 0 0 0 1px #247b6e;
+}
+.versionGrid article > div {
+  overflow: hidden;
+  aspect-ratio: 3 / 2;
+  border-radius: 6px;
+  background: #e8f0ee;
+}
+.versionGrid img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.versionGrid article > strong {
+  font-size: 10px;
+}
+.versionGrid article > small {
+  overflow: hidden;
+  color: #718783;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.versionPicker button {
+  padding: 7px;
+  border-radius: 7px;
+  font-size: 9px;
+}
+.versionPicker .publishVersion {
+  border-color: #24627b;
+  background: #eff7fb;
+  color: #245d78;
+}
 .editor label {
   display: grid;
   gap: 5px;
@@ -514,6 +637,7 @@
     min-width: 0;
   }
   .preflight,
+  .assetLibrary,
   .comicPage,
   .exports {
     padding: 16px;
@@ -521,6 +645,12 @@
   }
   .sectionHeading {
     flex-direction: column;
+  }
+  .assetLibrary {
+    grid-template-columns: 1fr;
+  }
+  .assetLibrary > div:nth-child(2) {
+    justify-items: start;
   }
   .stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));

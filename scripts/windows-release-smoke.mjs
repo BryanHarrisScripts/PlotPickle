@@ -463,7 +463,7 @@ async function main() {
       const clicked = await evaluate(client, String.raw`(() => {
         const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
         const submenu = document.querySelector("#settings-system-repos");
-        const button = submenu ? [...submenu.querySelectorAll("button")].find((item) => normalize(item.querySelector("b")?.innerText) === "Repository & Collab") : null;
+        const button = submenu?.querySelector('button[data-ui-copy-key="settings.repository"]') ?? null;
         if (!button) return false;
         button.click();
         return true;

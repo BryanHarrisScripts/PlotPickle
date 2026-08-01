@@ -8,14 +8,39 @@ const REPLACEMENTS: ReadonlyArray<readonly [RegExp, string]> = collaborationCopy
   item.replacement,
 ] as const);
 
+const REPLACEMENT_OUTPUTS = [...new Set(collaborationCopy.replacements.map((item) => item.replacement))]
+  .sort((left, right) => right.length - left.length);
+
 function isProtectedCopy(node: Text) {
   const element = node.parentElement;
   if (!element) return false;
   return Boolean(element.closest("details, code, pre, input, textarea, select, [data-technical-language], [data-ui-copy-key], [aria-label*='Advanced']"));
 }
 
-function translate(value: string) {
-  return REPLACEMENTS.reduce((copy, [pattern, replacement]) => copy.replace(pattern, replacement), value);
+function tokenFor(index: number) {
+  return `\uE000${index.toString(36)}\uE001`;
+}
+
+export function translate(value: string) {
+  const protectedCopy: string[] = [];
+  const protect = (replacement: string) => {
+    const token = tokenFor(protectedCopy.length);
+    protectedCopy.push(replacement);
+    return token;
+  };
+
+  let copy = value;
+  for (const replacement of REPLACEMENT_OUTPUTS) {
+    if (!copy.includes(replacement)) continue;
+    copy = copy.split(replacement).join(protect(replacement));
+  }
+  for (const [pattern, replacement] of REPLACEMENTS) {
+    copy = copy.replace(pattern, () => protect(replacement));
+  }
+  for (let index = 0; index < protectedCopy.length; index += 1) {
+    copy = copy.split(tokenFor(index)).join(protectedCopy[index]);
+  }
+  return copy;
 }
 
 function translateTree(root: ParentNode) {

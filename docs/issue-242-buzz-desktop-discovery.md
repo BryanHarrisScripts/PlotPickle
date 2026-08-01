@@ -54,4 +54,4 @@ Buzz still lives in PlotPickle:
 
 ## Release validation
 
-The deterministic packaged Windows smoke selects the JSON-backed `Repository & Collab` Settings label. This keeps the release gate aligned with the current product language rather than the retired `GitHub Story Repository` label.
+The deterministic packaged Windows smoke selects the JSON-backed `Repository & Collab` Settings entry through its stable `settings.repository` UI copy key. This keeps the release gate aligned with the current product language while remaining resilient to presentation markup changes.

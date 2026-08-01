@@ -79,3 +79,5 @@ jobs:
           git add scripts/windows-release-smoke.mjs .github/workflows/patch-windows-smoke-browser.yml
           git commit -m "Harden Windows smoke browser isolation"
           git push origin HEAD:agent/244-buzz-desktop-launcher-install
+
+# Trigger the one-purpose patch after registration.

@@ -38,19 +38,43 @@ const initialTarget = 'const target = await createTarget(debugPort, `${baseUrl}/
 if (!source.includes(initialTarget)) {
   throw new Error("The Issue #208 initial browser target could not be located.");
 }
-source = source.replace(
-  initialTarget,
-  'const target = await createTarget(debugPort, "about:blank");',
-);
+source = source.replace(initialTarget, 'const target = await createTarget(debugPort, "about:blank");');
+
+const originalSend = /  send\(method, params = \{\}\) \{\r?\n\s*const id = this\.nextId\+\+;\r?\n\s*return new Promise\(\(resolve, reject\) => \{\r?\n\s*this\.pending\.set\(id, \{ resolve, reject, method \}\);\r?\n\s*this\.socket\.send\(JSON\.stringify\(\{ id, method, params \}\)\);\r?\n\s*\}\);\r?\n\s*\}/;
+const boundedSend = `  send(method, params = {}) {
+    const id = this.nextId++;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(\`\${method} did not respond within 10000 ms.\`));
+      }, 10_000);
+      this.pending.set(id, {
+        method,
+        resolve: (value) => { clearTimeout(timer); resolve(value); },
+        reject: (error) => { clearTimeout(timer); reject(error); },
+      });
+      this.socket.send(JSON.stringify({ id, method, params }));
+    });
+  }`;
+if (!originalSend.test(source)) {
+  throw new Error("The Issue #208 CDP send method could not be located.");
+}
+source = source.replace(originalSend, boundedSend);
+
+const originalScenarioStart = /async function runScenario\(report, name, callback\) \{\r?\n\s*const startedAt = new Date\(\)\.toISOString\(\);/;
+const loggedScenarioStart = `async function runScenario(report, name, callback) {
+  console.log(\`[issue-208] starting: \${name}\`);
+  const startedAt = new Date().toISOString();`;
+if (!originalScenarioStart.test(source)) {
+  throw new Error("The Issue #208 scenario runner could not be located.");
+}
+source = source.replace(originalScenarioStart, loggedScenarioStart);
 
 const dashboardPredicate = 'document.body.innerText.includes("Current project source")';
 if (!source.includes(dashboardPredicate)) {
   throw new Error("The Issue #208 Dashboard smoke predicate could not be located.");
 }
-source = source.replace(
-  dashboardPredicate,
-  'Boolean(document.querySelector("#dashboard-project-source"))',
-);
+source = source.replace(dashboardPredicate, 'Boolean(document.querySelector("#dashboard-project-source"))');
 
 const dashboardStateAnchor = '      const state = await evaluate(client, String.raw`(() => {';
 if (!source.includes(dashboardStateAnchor)) {

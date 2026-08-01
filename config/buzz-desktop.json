@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "releaseTag": "desktop-v0.5.3",
+  "version": "0.5.3",
+  "sourceCommit": "3a96ace",
+  "windows": {
+    "asset": "Buzz_0.5.3_x64-setup_alpha-unsigned.exe",
+    "downloadUrl": "https://github.com/block/buzz/releases/download/desktop-v0.5.3/Buzz_0.5.3_x64-setup_alpha-unsigned.exe",
+    "unsigned": true
+  }
+}

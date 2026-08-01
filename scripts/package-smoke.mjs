@@ -23,10 +23,12 @@ for (const file of [
   "build/google-desktop-oauth.ts",
   "config/github-app.json",
   "config/google-oauth.json",
+  "config/buzz-desktop.json",
   "schema/plotpickle-github-app-public-config.schema.json",
   "schema/plotpickle-google-oauth-public-config.schema.json",
   "scripts/github-app-registration.mjs",
   "scripts/google-oauth-registration.mjs",
+  "scripts/install-buzz-desktop.ps1",
   "scripts/windows-runtime.mjs",
   "scripts/windows-server-smoke.mjs",
 ]) {
@@ -75,6 +77,18 @@ assert.equal(manifest.googleOAuth?.configPath, "config/google-oauth.json");
 assert.equal(manifest.googleOAuth?.configured, googleOAuthConfigured);
 assert.equal(manifest.googleOAuth?.registrationStatus, googleOAuth.registrationStatus);
 assert.equal(manifest.googleOAuth?.applicationType, "desktop");
+
+const buzzDesktop = JSON.parse(readFileSync(path.join(folder, "config", "buzz-desktop.json"), "utf8"));
+assert.equal(buzzDesktop.releaseTag, "desktop-v0.5.3");
+assert.equal(buzzDesktop.version, "0.5.3");
+assert.equal(buzzDesktop.sourceCommit, "3a96ace");
+assert.equal(buzzDesktop.windows.asset, "Buzz_0.5.3_x64-setup_alpha-unsigned.exe");
+assert.equal(
+  buzzDesktop.windows.downloadUrl,
+  "https://github.com/block/buzz/releases/download/desktop-v0.5.3/Buzz_0.5.3_x64-setup_alpha-unsigned.exe",
+);
+assert.equal(buzzDesktop.windows.unsigned, true);
+
 const launcher = manifest.platform === "windows" ? "Start-PlotPickle.bat" : manifest.platform === "macos" ? "Start-PlotPickle.command" : "start-plotpickle.sh";
 assert.ok(existsSync(path.join(folder, launcher)), `Missing ${manifest.platform} launcher.`);
 const launcherSource = readFileSync(path.join(folder, launcher), "utf8");
@@ -85,4 +99,9 @@ assert.match(launcherSource, /config[\\/]github-app\.json/);
 assert.match(launcherSource, /PLOTPICKLE_GOOGLE_OAUTH_CONFIG/);
 assert.match(launcherSource, /config[\\/]google-oauth\.json/);
 assert.ok(!launcherSource.includes("0.0.0.0"), "Release launcher must remain loopback-only.");
+if (manifest.platform === "windows") {
+  assert.match(launcherSource, /scripts\\install-buzz-desktop\.ps1/i);
+  assert.match(launcherSource, /Install Buzz Desktop !BUZZ_DESKTOP_VERSION! now\? \[Y\/N\]:/);
+  assert.match(launcherSource, /PlotPickle will continue normally/);
+}
 console.log(`Verified ${manifest.platform} PlotPickle ${manifest.version} package at ${folder}`);

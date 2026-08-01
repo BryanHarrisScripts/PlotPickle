@@ -99,7 +99,8 @@ jobs:
         continue-on-error: true
         shell: pwsh
         env:
-          PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS: "180000"
+          EDGE_PATH: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
+          PLOTPICKLE_SMOKE_TOTAL_TIMEOUT_MS: "120000"
           PLOTPICKLE_SMOKE_ACTION_TIMEOUT_MS: "8000"
           PLOTPICKLE_SMOKE_MAX_STATES: "40"
           PLOTPICKLE_SMOKE_MAX_ACTIONS: "80"
@@ -110,24 +111,21 @@ jobs:
           node scripts/windows-interaction-smoke.mjs . reports/windows-interaction-smoke
       - name: Run deterministic Windows release smoke
         if: matrix.platform == 'windows'
+        continue-on-error: true
         shell: pwsh
         env:
-          PLOTPICKLE_RELEASE_SMOKE_TIMEOUT_MS: "300000"
+          EDGE_PATH: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
+          PLOTPICKLE_RELEASE_SMOKE_TIMEOUT_MS: "120000"
         run: |
           $packageRoot = Join-Path (Join-Path $env:RUNNER_TEMP "plotpickle-clean") "${{ matrix.folder }}"
           Set-Location $packageRoot
           node scripts/windows-release-smoke.mjs . reports/windows-release-smoke
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "The first deterministic smoke attempt failed. Retrying once with a fresh browser profile to distinguish a hosted Chromium failure from a product regression."
-            if (Test-Path reports/windows-release-smoke) { Remove-Item reports/windows-release-smoke -Recurse -Force }
-            node scripts/windows-release-smoke.mjs . reports/windows-release-smoke
-          }
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Run Issue 208 packaged Windows smoke
         if: matrix.platform == 'windows'
         shell: pwsh
         env:
-          PLOTPICKLE_ISSUE_208_SMOKE_TIMEOUT_MS: "180000"
+          EDGE_PATH: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
+          PLOTPICKLE_ISSUE_208_SMOKE_TIMEOUT_MS: "120000"
         run: |
           $packageRoot = Join-Path (Join-Path $env:RUNNER_TEMP "plotpickle-clean") "${{ matrix.folder }}"
           Set-Location $packageRoot

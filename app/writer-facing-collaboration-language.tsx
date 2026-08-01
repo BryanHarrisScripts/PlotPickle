@@ -29,13 +29,22 @@ function translateTree(root: ParentNode) {
   }
 }
 
+function normalize(value: string | null | undefined) {
+  return String(value ?? "").replace(/\s+/g, " ").trim();
+}
+
 function markStableCopyKeys(root: ParentNode) {
   const buttons = root instanceof Element
     ? [root, ...root.querySelectorAll("button")].filter((item): item is HTMLButtonElement => item instanceof HTMLButtonElement)
     : [...root.querySelectorAll("button")];
   for (const button of buttons) {
-    const label = button.querySelector("b")?.textContent?.trim();
-    if (label === collaborationCopy.settings.repository.label) {
+    const boldLabel = normalize(button.querySelector("b")?.textContent);
+    const fullLabel = normalize(button.textContent);
+    if (
+      boldLabel === collaborationCopy.settings.repository.label
+      || fullLabel === collaborationCopy.settings.repository.label
+      || fullLabel.startsWith(`${collaborationCopy.settings.repository.label} `)
+    ) {
       button.dataset.uiCopyKey = collaborationCopy.settings.repository.key;
     }
   }
@@ -43,23 +52,39 @@ function markStableCopyKeys(root: ParentNode) {
 
 export default function WriterFacingCollaborationLanguage() {
   useEffect(() => {
-    markStableCopyKeys(document.body);
-    translateTree(document.body);
+    const refreshCopy = (root: ParentNode) => {
+      markStableCopyKeys(root);
+      translateTree(root);
+      markStableCopyKeys(root);
+    };
+
+    refreshCopy(document.body);
     const observer = new MutationObserver((records) => {
       for (const record of records) {
+        if (record.type === "characterData") {
+          const text = record.target as Text;
+          if (!isProtectedCopy(text) && text.nodeValue) {
+            const next = translate(text.nodeValue);
+            if (next !== text.nodeValue) text.nodeValue = next;
+          }
+          if (text.parentElement) markStableCopyKeys(text.parentElement);
+          continue;
+        }
         for (const node of record.addedNodes) {
           if (node.nodeType === Node.TEXT_NODE && !isProtectedCopy(node as Text)) {
             const text = node as Text;
-            if (text.nodeValue) text.nodeValue = translate(text.nodeValue);
+            if (text.nodeValue) {
+              const next = translate(text.nodeValue);
+              if (next !== text.nodeValue) text.nodeValue = next;
+            }
+            if (text.parentElement) markStableCopyKeys(text.parentElement);
           } else if (node.nodeType === Node.ELEMENT_NODE) {
-            const element = node as Element;
-            markStableCopyKeys(element);
-            translateTree(element);
+            refreshCopy(node as Element);
           }
         }
       }
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, characterData: true, subtree: true });
     return () => observer.disconnect();
   }, []);
 

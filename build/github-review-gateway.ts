@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { mkdir, open, readFile, rename } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import os from "node:os";
@@ -30,6 +30,7 @@ import { persistentHome, readCredentialJson, writeCredentialJson } from "./local
 
 const API = "/api/local-github";
 const MAX_BODY = 30 * 1024 * 1024;
+const MAX_ASSET_BYTES = 20 * 1024 * 1024;
 const SYNC_STATE_FILE = "github-project-sync.json";
 
 type GitHubConnection = {
@@ -87,6 +88,24 @@ type SavedSyncState = {
   manifestSha256: string;
   inventory: ProjectSyncInventory;
   synchronizedAt: string;
+};
+
+type ProposalAssetFile = {
+  fileName: string;
+  repositoryPath: string;
+  contentHash: string;
+};
+
+type RepositoryAssetChange = {
+  path: string;
+  sha: string;
+  size: number;
+};
+
+type RepositoryAssetDiff = {
+  create: RepositoryAssetChange[];
+  update: RepositoryAssetChange[];
+  delete: RepositoryAssetChange[];
 };
 
 function identityFile() { return path.join(persistentHome(), "server-identity.json"); }
@@ -268,6 +287,16 @@ async function blobText(connection: GitHubConnection, sha: string) {
   return encoding === "base64" ? Buffer.from(content, "base64").toString("utf8") : content;
 }
 
+async function blobBytes(connection: GitHubConnection, sha: string) {
+  const blob = await githubRequest(connection, `${repoEndpoint(connection)}/git/blobs/${encodeURIComponent(sha)}`);
+  if (!blob || typeof blob !== "object" || typeof (blob as { content?: unknown }).content !== "string") {
+    throw new Error("GitHub did not return the requested repository asset.");
+  }
+  const encoding = typeof (blob as { encoding?: unknown }).encoding === "string" ? String((blob as { encoding: string }).encoding) : "base64";
+  const content = String((blob as { content: string }).content).replace(/\s/g, "");
+  return encoding === "base64" ? Buffer.from(content, "base64") : Buffer.from(content, "utf8");
+}
+
 async function readTreeFile(connection: GitHubConnection, state: CommitState, filePath: string) {
   const item = state.tree.find((entry) => entry.path === filePath);
   return item ? blobText(connection, item.sha) : null;
@@ -303,6 +332,51 @@ function diffSummary(diff: ReturnType<typeof diffProjectSyncInventories>) {
   };
 }
 
+function safeAssetFileName(value: unknown) {
+  return typeof value === "string" && /^[a-z0-9][a-z0-9._-]*\.(?:webp|png|jpe?g)$/i.test(value) ? value : "";
+}
+
+function safeRepositoryAssetPath(value: unknown) {
+  if (typeof value !== "string" || value.length > 300 || !value.startsWith("assets/") || /[\\\u0000-\u001f]/.test(value)) return "";
+  const parts = value.split("/");
+  if (parts.some((part) => !part || part === "." || part === "..")) return "";
+  return /\.(?:webp|png|jpe?g)$/i.test(value) ? value : "";
+}
+
+function repositoryAssetDiff(base: CommitState, proposed: CommitState): RepositoryAssetDiff {
+  const baseAssets = new Map(base.tree.filter((item) => safeRepositoryAssetPath(item.path)).map((item) => [item.path, item]));
+  const proposedAssets = new Map(proposed.tree.filter((item) => safeRepositoryAssetPath(item.path)).map((item) => [item.path, item]));
+  const create: RepositoryAssetChange[] = [];
+  const update: RepositoryAssetChange[] = [];
+  const deleted: RepositoryAssetChange[] = [];
+  for (const [assetPath, item] of proposedAssets) {
+    const previous = baseAssets.get(assetPath);
+    if (!previous) create.push({ path: assetPath, sha: item.sha, size: item.size });
+    else if (previous.sha !== item.sha) update.push({ path: assetPath, sha: item.sha, size: item.size });
+  }
+  for (const [assetPath, item] of baseAssets) {
+    if (!proposedAssets.has(assetPath)) deleted.push({ path: assetPath, sha: item.sha, size: item.size });
+  }
+  return { create, update, delete: deleted };
+}
+
+function combinedDiffSummary(diff: ReturnType<typeof diffProjectSyncInventories>, assets: RepositoryAssetDiff) {
+  const canonical = diffSummary(diff);
+  return {
+    create: canonical.create + assets.create.length,
+    update: canonical.update + assets.update.length,
+    delete: canonical.delete + assets.delete.length,
+    unchanged: canonical.unchanged,
+    changed: canonical.changed + assets.create.length + assets.update.length + assets.delete.length,
+    changedPaths: [
+      ...canonical.changedPaths,
+      ...assets.create.map((item) => item.path),
+      ...assets.update.map((item) => item.path),
+      ...assets.delete.map((item) => item.path),
+    ],
+  };
+}
+
 async function createBlob(connection: GitHubConnection, content: string) {
   const result = await githubRequest(connection, `${repoEndpoint(connection)}/git/blobs`, {
     method: "POST",
@@ -311,6 +385,52 @@ async function createBlob(connection: GitHubConnection, content: string) {
   const sha = result && typeof result === "object" && typeof (result as { sha?: unknown }).sha === "string" ? String((result as { sha: string }).sha) : "";
   if (!sha) throw new Error("GitHub did not return a Story Proposal file revision.");
   return sha;
+}
+
+async function createBinaryBlob(connection: GitHubConnection, content: Buffer) {
+  const result = await githubRequest(connection, `${repoEndpoint(connection)}/git/blobs`, {
+    method: "POST",
+    body: { content: content.toString("base64"), encoding: "base64" },
+  });
+  const sha = result && typeof result === "object" && typeof (result as { sha?: unknown }).sha === "string" ? String((result as { sha: string }).sha) : "";
+  if (!sha) throw new Error("GitHub did not return an asset revision.");
+  return sha;
+}
+
+function proposalAssetFiles(value: unknown, project: PlotPickleProject): ProposalAssetFile[] {
+  if (!Array.isArray(value)) return [];
+  const files = value.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const candidate = item as Record<string, unknown>;
+    const fileName = safeAssetFileName(candidate.fileName);
+    const repositoryPath = safeRepositoryAssetPath(candidate.repositoryPath);
+    const contentHash = typeof candidate.contentHash === "string" ? candidate.contentHash.toLowerCase() : "";
+    if (!fileName || repositoryPath !== `assets/${fileName}` || !/^sha256:[a-f0-9]{64}$/.test(contentHash)) {
+      throw new Error("A selected repository asset has an invalid filename, path or SHA-256 hash.");
+    }
+    const registered = project.assets.assets.some((asset) => asset.variations.some((variation) =>
+      variation.portablePath === repositoryPath && variation.contentHash.toLowerCase() === contentHash,
+    ));
+    if (!registered) throw new Error(`${fileName} is not registered in this PlotPickle project's asset manifest.`);
+    return [{ fileName, repositoryPath, contentHash }];
+  });
+  const unique = new Map(files.map((file) => [file.repositoryPath, file]));
+  return [...unique.values()];
+}
+
+async function proposalAssetEntries(connection: GitHubConnection, base: CommitState, files: ProposalAssetFile[]) {
+  const entries: Array<{ path: string; mode: "100644"; type: "blob"; sha: string }> = [];
+  for (const file of files) {
+    if (base.tree.some((item) => item.path === file.repositoryPath)) {
+      throw new Error(`${file.repositoryPath} already exists. PlotPickle preserves repository assets instead of overwriting them.`);
+    }
+    const bytes = await readFile(path.join(persistentHome(), "assets", file.fileName));
+    if (!bytes.length || bytes.length > MAX_ASSET_BYTES) throw new Error(`${file.fileName} is empty or exceeds the 20 MB asset limit.`);
+    const contentHash = `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
+    if (contentHash !== file.contentHash) throw new Error(`${file.fileName} changed after it was scanned. Scan local images again before publishing.`);
+    entries.push({ path: file.repositoryPath, mode: "100644", type: "blob", sha: await createBinaryBlob(connection, bytes) });
+  }
+  return entries;
 }
 
 async function treeEntries(
@@ -335,7 +455,7 @@ async function createCommit(
   entries: Array<{ path: string; mode: "100644"; type: "blob"; sha: string | null }>,
   message: string,
 ) {
-  if (!entries.length) throw new Error("The Story Proposal contains no changed canonical project files.");
+  if (!entries.length) throw new Error("The Story Proposal contains no changed files.");
   const tree = await githubRequest(connection, `${repoEndpoint(connection)}/git/trees`, {
     method: "POST",
     body: { base_tree: base.treeSha, tree: entries },
@@ -386,7 +506,7 @@ function proposalBody(
     `**Workspace ID:** \`${identity.id}\``,
     `**Approved base commit:** \`${baseCommit}\``,
     `**Canonical project root:** \`project/\``,
-    `**Changed canonical files:** ${changedPaths.length}`,
+    `**Changed project and asset files:** ${changedPaths.length}`,
     "",
     "### Semantic change groups",
     "",
@@ -421,7 +541,14 @@ async function writeSyncState(connection: GitHubConnection, project: PlotPickleP
   return state;
 }
 
-async function createProposal(connection: GitHubConnection, project: PlotPickleProject, title: string, note: string, expectedBaseRevision: string) {
+async function createProposal(
+  connection: GitHubConnection,
+  project: PlotPickleProject,
+  title: string,
+  note: string,
+  expectedBaseRevision: string,
+  requestedAssets: unknown,
+) {
   const identity = await serverIdentity();
   const baseCommit = await approvedBranchState(connection);
   if (!expectedBaseRevision || expectedBaseRevision !== baseCommit.commitSha) {
@@ -433,10 +560,14 @@ async function createProposal(connection: GitHubConnection, project: PlotPickleP
   if (approved.project.id !== project.id) throw new Error("The active story belongs to a different PlotPickle project ID.");
   const proposedInventory = createProjectSyncInventory(project, approved.projectRoot);
   const diff = diffProjectSyncInventories(proposedInventory, approved.inventory);
-  if (!diff.changedCount) throw new Error("The active story matches the approved project. There is nothing to propose.");
-  const changedPaths = diffSummary(diff).changedPaths;
+  const assetFiles = proposalAssetFiles(requestedAssets, project);
+  if (!diff.changedCount && !assetFiles.length) throw new Error("The active story matches the approved project. There is nothing to propose.");
+  const changedPaths = [...diffSummary(diff).changedPaths, ...assetFiles.map((file) => file.repositoryPath)];
   const groups = compareStoryProposalProjects(approved.project, project, changedPaths);
-  const entries = await treeEntries(connection, diff, approved.projectRoot);
+  const entries = [
+    ...(await treeEntries(connection, diff, approved.projectRoot)),
+    ...(await proposalAssetEntries(connection, approved.commit, assetFiles)),
+  ];
   const message = title.trim() || `Story Proposal: ${project.metadata.title}`;
   const commitSha = await createCommit(connection, approved.commit, entries, message);
 
@@ -466,7 +597,12 @@ async function createProposal(connection: GitHubConnection, project: PlotPickleP
     serverId: identity.id,
     serverLabel: identity.label,
     groups,
-    diff: diffSummary(diff),
+    diff: {
+      ...diffSummary(diff),
+      create: diffSummary(diff).create + assetFiles.length,
+      changed: diffSummary(diff).changed + assetFiles.length,
+      changedPaths,
+    },
   };
 }
 
@@ -524,14 +660,16 @@ async function proposalReview(connection: GitHubConnection, number: number) {
   const proposed = await canonicalState(connection, await commitState(connection, pullCommit(pull, "head")));
   if (base.project.id !== proposed.project.id) throw new Error("The Story Proposal belongs to a different PlotPickle project.");
   const diff = diffProjectSyncInventories(proposed.inventory, base.inventory);
-  const groups = compareStoryProposalProjects(base.project, proposed.project, diffSummary(diff).changedPaths);
+  const assets = repositoryAssetDiff(base.commit, proposed.commit);
+  const summary = combinedDiffSummary(diff, assets);
+  const groups = compareStoryProposalProjects(base.project, proposed.project, summary.changedPaths);
   return {
     proposal: proposalListItem(pull),
     baseCommit: base.commit.commitSha,
     headCommit: proposed.commit.commitSha,
     projectRoot: base.projectRoot,
     groups,
-    diff: diffSummary(diff),
+    diff: summary,
   };
 }
 
@@ -565,15 +703,27 @@ async function approveProposal(connection: GitHubConnection, input: Record<strin
   const approved = await canonicalState(connection, current);
   const proposed = await canonicalState(connection, await commitState(connection, pullCommit(pull, "head")));
   const proposalDiff = diffProjectSyncInventories(proposed.inventory, approved.inventory);
-  const groups = compareStoryProposalProjects(approved.project, proposed.project, diffSummary(proposalDiff).changedPaths);
+  const assetDiff = repositoryAssetDiff(approved.commit, proposed.commit);
+  const proposalSummary = combinedDiffSummary(proposalDiff, assetDiff);
+  const groups = compareStoryProposalProjects(approved.project, proposed.project, proposalSummary.changedPaths);
   const changedGroupIds = new Set(groups.map((group) => group.id));
   const accepted = selectedGroups.filter((group) => changedGroupIds.has(group));
   if (!accepted.length) throw new Error("The selected semantic groups do not contain any proposal changes.");
+  if (assetDiff.update.length || assetDiff.delete.length) {
+    throw new Error("Repository asset proposals may add immutable alternates but may not overwrite or delete existing assets.");
+  }
+  if (assetDiff.create.length && changedGroupIds.has("review") && accepted.includes("assets") !== accepted.includes("review")) {
+    throw new Error("Approve Asset versions and Review and revisions together so the selected panel never points to a missing repository image.");
+  }
 
   const resultProject = applyStoryProposalGroups(approved.project, proposed.project, accepted);
   const resultInventory = createProjectSyncInventory(resultProject, approved.projectRoot);
   const acceptedDiff = diffProjectSyncInventories(resultInventory, approved.inventory);
-  const entries = await treeEntries(connection, acceptedDiff, approved.projectRoot);
+  const acceptedAssets = accepted.includes("assets") ? assetDiff.create : [];
+  const entries = [
+    ...(await treeEntries(connection, acceptedDiff, approved.projectRoot)),
+    ...acceptedAssets.map((asset) => ({ path: asset.path, mode: "100644" as const, type: "blob" as const, sha: asset.sha })),
+  ];
   const message = `Approve Story Proposal #${number}: ${accepted.join(", ")}`;
   const commitSha = await createCommit(connection, approved.commit, entries, message);
   await updateApprovedBranch(connection, commitSha);
@@ -594,7 +744,7 @@ async function approveProposal(connection: GitHubConnection, input: Record<strin
     previousRemoteCommit: approved.commit.commitSha,
     selectedGroups: accepted,
     rejectedGroups: rejected,
-    diff: diffSummary(acceptedDiff),
+    diff: combinedDiffSummary(acceptedDiff, { create: acceptedAssets, update: [], delete: [] }),
     inventory: resultInventory,
     syncState,
   };
@@ -622,12 +772,42 @@ async function refreshApproved(connection: GitHubConnection) {
   };
 }
 
+async function serveRepositoryAsset(connection: GitHubConnection, response: ServerResponse, url: URL) {
+  const assetPath = safeRepositoryAssetPath(url.searchParams.get("path"));
+  const fallback = safeAssetFileName(url.searchParams.get("fallback"));
+  const expectedHash = (url.searchParams.get("sha256") || "").toLowerCase();
+  if (!assetPath || (expectedHash && !/^[a-f0-9]{64}$/.test(expectedHash))) throw new Error("The repository asset request is invalid.");
+  const state = await approvedBranchState(connection);
+  const item = state.tree.find((entry) => entry.path === assetPath);
+  let bytes: Buffer;
+  if (item) {
+    if (!item.size || item.size > MAX_ASSET_BYTES) throw new Error("The repository asset is empty or exceeds the 20 MB limit.");
+    bytes = await blobBytes(connection, item.sha);
+  } else {
+    if (!fallback || assetPath !== `assets/${fallback}`) throw new Error("The approved repository does not contain this asset.");
+    bytes = await readFile(path.join(persistentHome(), "assets", fallback));
+  }
+  if (!bytes.length || bytes.length > MAX_ASSET_BYTES) throw new Error("The repository asset is empty or exceeds the 20 MB limit.");
+  const actualHash = createHash("sha256").update(bytes).digest("hex");
+  if (expectedHash && actualHash !== expectedHash) throw new Error("The repository asset does not match its PlotPickle SHA-256 record.");
+  const extension = path.extname(assetPath).toLowerCase();
+  response.statusCode = 200;
+  response.setHeader("Content-Type", extension === ".png" ? "image/png" : extension === ".jpg" || extension === ".jpeg" ? "image/jpeg" : "image/webp");
+  response.setHeader("Cache-Control", "private, max-age=300");
+  response.setHeader("X-Content-Type-Options", "nosniff");
+  response.end(bytes);
+}
+
 async function handle(request: IncomingMessage, response: ServerResponse, url: URL) {
   if (request.method === "GET" && url.pathname === `${API}/identity`) {
     sendJson(response, 200, { ok: true, ...(await serverIdentity()) });
     return;
   }
   const connection = await readConnection();
+  if (request.method === "GET" && url.pathname === `${API}/asset`) {
+    await serveRepositoryAsset(connection, response, url);
+    return;
+  }
   if (request.method === "GET" && url.pathname === `${API}/proposals`) {
     sendJson(response, 200, { ok: true, proposals: await listProposals(connection) });
     return;
@@ -643,7 +823,7 @@ async function handle(request: IncomingMessage, response: ServerResponse, url: U
     const title = typeof body.title === "string" ? body.title : "";
     const note = typeof body.note === "string" ? body.note : "";
     const baseRevision = typeof body.baseRevision === "string" ? body.baseRevision : "";
-    sendJson(response, 200, { ok: true, ...(await createProposal(connection, project, title, note, baseRevision)) });
+    sendJson(response, 200, { ok: true, ...(await createProposal(connection, project, title, note, baseRevision, body.assetFiles)) });
     return;
   }
   if (request.method === "POST" && url.pathname === `${API}/approve-proposal`) {
@@ -672,6 +852,7 @@ export function githubReviewGateway(): Plugin {
         const url = new URL(rawUrl, "http://127.0.0.1");
         const paths = [
           `${API}/identity`,
+          `${API}/asset`,
           `${API}/proposals`,
           `${API}/proposal-review`,
           `${API}/submit-proposal`,

@@ -18,9 +18,10 @@ test("issue #214 registers the local-only Buzz gateway", async () => {
 });
 
 test("issue #214 provides project-specific Story Rooms and signed relay operations", async () => {
-  const [model, workspace, gateway] = await Promise.all([
+  const [model, workspace, workspaceStyles, gateway] = await Promise.all([
     source("lib/buzz-story-room.ts"),
     source("app/buzz-workspace.tsx"),
+    source("app/buzz-workspace.module.css"),
     source("build/buzz-gateway.ts"),
   ]);
   for (const room of ["story", "characters", "structure", "continuity", "visual-development", "production-notes"]) {
@@ -30,6 +31,9 @@ test("issue #214 provides project-specific Story Rooms and signed relay operatio
   assert.match(workspace, /Create reviewable proposal/);
   assert.match(workspace, /Approve into PPF/);
   assert.match(workspace, />Decline</);
+  for (const className of ["setupGuide", "workspaceGrid", "roomRail", "conversation", "proposalBuilder", "reviewQueue"]) {
+    assert.match(workspaceStyles, new RegExp(`\\.${className}\\b`));
+  }
   assert.match(gateway, /"channels", "create"/);
   assert.match(gateway, /"messages", "send"/);
   assert.match(gateway, /BUZZ_PRIVATE_KEY/);
@@ -49,14 +53,28 @@ test("issue #214 keeps PPF authority human-controlled and auditable", async () =
 });
 
 test("issue #214 connects Settings to encrypted Phase 1A controls", async () => {
-  const settings = await source("app/buzz-settings-panel.tsx");
+  const [settings, collab, settingsPanel, compatibilityRoute, taxonomy] = await Promise.all([
+    source("app/buzz-settings-panel.tsx"),
+    source("app/collab-workspace.tsx"),
+    source("app/settings-panel.tsx"),
+    source("app/settings/buzz/page.tsx"),
+    source("config/settings-system-taxonomy.json"),
+  ]);
   assert.match(settings, /Save encrypted connection/);
   assert.match(settings, /Test Buzz connection/);
   assert.match(settings, /Remove connection and identity/);
   assert.match(settings, /Existing Buzz relay/);
   assert.match(settings, /Buzz private key/);
+  assert.match(settings, /Buzz calls shared discussion spaces|Buzz uses <strong>channels/);
+  assert.match(settings, /huddles/);
   assert.match(settings, /method: "PUT"/);
   assert.match(settings, /method: "DELETE"/);
+  assert.match(collab, /onOpenSettings\("buzz"\)/);
+  assert.doesNotMatch(collab, /onOpenSettings=\{\(\) => onOpenSettings\("github"\)\}/);
+  assert.match(settingsPanel, /activeItem\.target === "buzz"/);
+  assert.match(compatibilityRoute, /SETTINGS_SECTION_KEY, "buzz"/);
+  assert.doesNotMatch(compatibilityRoute, /SETTINGS_SECTION_KEY, "github"/);
+  assert.match(taxonomy, /"target": "buzz"/);
 });
 
 test("issue #214 exposes the managed Phase 1B lifecycle only behind verified prerequisites", async () => {

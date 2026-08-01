@@ -64,7 +64,9 @@ test("Community is a first-class workspace with hosted and desktop Buzz paths", 
   assert.match(community, /https:\/\/app\.builderlab\.xyz\/buzz/);
   assert.match(community, /https:\/\/plotpickleplayhouse\.communities\.buzz\.xyz\/invite\/v2\.tdZwBnmvMuZ_E3lh_cEjbo4qeJHdTvFogatjMfVgB-k/);
   assert.match(community, />Join PlotPickleServer<\/a>/);
-  assert.match(community, />Create a new community<\/a>/);
+  assert.match(community, /New Buzz account or community/);
+  assert.match(community, /Use BuilderLab to set up or sign in to your account/);
+  assert.match(community, />Set up account &amp; communities<\/a>/);
   assert.match(community, />Be your own RELAY<\/h2>/);
   assert.match(community, /onClick=\{onOpenSettings\}>Configure local relay<\/button>/);
   assert.doesNotMatch(community, /mfa-email-challenge|[?&]state=/);

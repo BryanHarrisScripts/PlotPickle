@@ -29,16 +29,16 @@ test("issue #193 makes the completed core visible on the accessible product-auth
     source("app/marketing-splash.module.css"),
   ]);
   for (const phrase of [
-    "Build better stories.",
-    "Review faster. Stay in control.",
+    "Stop losing the story",
+    "between the notes, drafts and visuals.",
     "Product-authentic PlotPickle Dashboard preview",
-    "One storyworld, visible from canon to approval.",
-    "Storyworld Overview",
-    "Writing Progress",
-    "GitHub Approvals",
-    "Optional Buzz",
-    "Storage & Backups",
-    "Canon & Decisions",
+    "One living story graph",
+    "Self-learning",
+    "Story graph",
+    "Portable PPF",
+    "Visual writing",
+    "Visual pitch",
+    "Community feedback",
     "PPF is the creative source of truth",
   ]) assert.ok(splash.includes(phrase), `Splash missing: ${phrase}`);
   assert.match(splash, /data-status="available"/);
@@ -99,9 +99,10 @@ test("issue #193 updates metadata and top-level product documentation", async ()
     source("README.md"),
     source("docs/PRODUCT-DEVELOPER-BRIEF-07-26.md"),
   ]);
-  for (const text of [layout, welcome, readme, brief]) {
+  for (const text of [layout, welcome, brief]) {
     assert.match(text, /visual storyworld collaboration and previsualization engine/i);
   }
+  assert.match(readme, /local-first, self-learning visual writing and pitch studio/i);
   assert.match(layout, /See the whole movie before you make it/);
   assert.match(welcome, /From first idea to a visible storyworld/);
   assert.match(readme, /PPF is the portable creative source of truth/);

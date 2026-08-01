@@ -304,7 +304,7 @@ export default function AiPitchDeckWorkspace({
     }
   }
 
-  function useAssetVersion(panelId: string, reference: ProjectAssetReference) {
+  function selectAssetVersion(panelId: string, reference: ProjectAssetReference) {
     try {
       const next = selectGraphicNovelAssetVersion(project, panelId, reference);
       setDeck(next.review.pitchPackage.comicDeck ?? deck);
@@ -476,7 +476,7 @@ export default function AiPitchDeckWorkspace({
                           <div>{version.source ? <img src={version.source} alt="" /> : null}</div>
                           <strong>{version.label}</strong>
                           <small>{version.contentHash ? version.contentHash.slice(0, 20) + "…" : "Bundled reference"}</small>
-                          <button type="button" disabled={version.selected || working || Boolean(publishingPanelId)} onClick={() => useAssetVersion(panel.id, version.reference)}>{version.selected ? "Selected" : "Use version"}</button>
+                          <button type="button" disabled={version.selected || working || Boolean(publishingPanelId)} onClick={() => selectAssetVersion(panel.id, version.reference)}>{version.selected ? "Selected" : "Use version"}</button>
                           {version.origin === "local" ? <button type="button" className={styles.publishVersion} disabled={working || Boolean(publishingPanelId)} onClick={() => void publishAssetVersion(panel, version.reference)}>{publishingPanelId === panel.id ? "Preparing proposal…" : "Publish alternate to GitHub"}</button> : null}
                         </article>
                       ))}

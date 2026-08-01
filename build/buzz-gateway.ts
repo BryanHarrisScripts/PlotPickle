@@ -48,6 +48,7 @@ type BuzzConnection = {
   cliPath: string;
   privateKey: string;
   verifiedAt: string;
+  verificationVersion?: 2;
 };
 
 type ManagedSecrets = {
@@ -180,6 +181,7 @@ function publicConnection(connection: BuzzConnection | null) {
     identityLabel: connection.identityLabel,
     cliPath: connection.cliPath,
     identityConfigured: Boolean(connection.privateKey),
+    identityVerified: connection.verificationVersion === 2 && Boolean(connection.verifiedAt),
     verifiedAt: connection.verifiedAt,
   } : {
     configured: false,
@@ -189,6 +191,7 @@ function publicConnection(connection: BuzzConnection | null) {
     identityLabel: "",
     cliPath: "",
     identityConfigured: false,
+    identityVerified: false,
     verifiedAt: "",
   };
 }
@@ -284,7 +287,7 @@ async function cliStatus(connection: BuzzConnection | null) {
 }
 
 async function runBuzz(connection: BuzzConnection, args: string[], options: { write?: boolean; input?: string } = {}) {
-  if (options.write && !connection.privateKey) throw new Error("Add an existing Buzz private identity key before creating rooms or sending messages.");
+  if (!connection.privateKey) throw new Error("Authorize PlotPickle with your Buzz private identity key before reading channels or sending messages.");
   const resolution = await resolveBuzzCliExecutable(connection.cliPath);
   const result = await command(resolution.executable, args, {
     env: {
@@ -609,7 +612,7 @@ async function startManagedRuntime() {
     identityLabel: existing?.identityLabel || "PlotPickle owner",
     cliPath: existing?.cliPath || "",
     privateKey: existing?.privateKey || "",
-    verifiedAt: new Date().toISOString(),
+    verifiedAt: "",
   } satisfies BuzzConnection);
   return status;
 }
@@ -737,6 +740,10 @@ async function saveConnection(body: Record<string, unknown>) {
   const relayUrl = mode === "managed" ? MANAGED_RELAY_URL : normalizeRelayUrl(body.relayUrl);
   const privateKeyInput = text(body.privateKey);
   if (privateKeyInput && !/^(nsec1[a-z0-9]+|[a-f0-9]{64})$/i.test(privateKeyInput)) throw new Error("The Buzz private identity key must be an nsec or 64-character hexadecimal key.");
+  const privateKey = privateKeyInput || existing?.privateKey || "";
+  const retainVerification = existing?.relayUrl === relayUrl
+    && existing.privateKey === privateKey
+    && existing.verificationVersion === 2;
   const connection: BuzzConnection = {
     version: 1,
     mode,
@@ -744,8 +751,9 @@ async function saveConnection(body: Record<string, unknown>) {
     community: text(body.community).slice(0, 120),
     identityLabel: text(body.identityLabel).slice(0, 120),
     cliPath: text(body.cliPath).slice(0, 500),
-    privateKey: privateKeyInput || existing?.privateKey || "",
-    verifiedAt: existing?.relayUrl === relayUrl ? existing.verifiedAt : "",
+    privateKey,
+    verifiedAt: retainVerification ? existing.verifiedAt : "",
+    verificationVersion: retainVerification ? 2 : undefined,
   };
   await writeCredentialJson(CONNECTION_FILE, connection);
   return publicConnection(connection);
@@ -756,12 +764,33 @@ async function testConnection() {
   if (!connection) throw new Error("Save a Buzz connection before testing it.");
   const relay = await probeRelay(connection.relayUrl);
   const cli = await cliStatus(connection);
-  const verified = relay.reachable;
+  let message = "";
+  let verified = false;
+  if (!relay.reachable) {
+    message = `Buzz community could not be reached. ${relay.detail}`;
+  } else if (!cli.available) {
+    message = `Buzz Desktop CLI could not be started. ${cli.error}`;
+  } else if (!connection.privateKey) {
+    message = "The community is reachable. Reveal your private key in Buzz Desktop under Settings > Profile > Identity, then authorize PlotPickle.";
+  } else {
+    try {
+      await runBuzz(connection, ["users", "get"]);
+      verified = true;
+      message = "Buzz community, Desktop CLI and identity verified. PlotPickle Story Rooms are ready.";
+    } catch (error) {
+      message = `Buzz rejected this identity or it is not a member of the community. ${safeError(error)}`;
+    }
+  }
   if (verified) {
     connection.verifiedAt = new Date().toISOString();
+    connection.verificationVersion = 2;
+    await writeCredentialJson(CONNECTION_FILE, connection);
+  } else if (connection.verifiedAt || connection.verificationVersion) {
+    connection.verifiedAt = "";
+    connection.verificationVersion = undefined;
     await writeCredentialJson(CONNECTION_FILE, connection);
   }
-  return { ok: verified, connection: publicConnection(connection), relay, cli, message: verified ? "Buzz relay reached successfully." : `Buzz relay could not be reached. ${relay.detail}` };
+  return { ok: verified, connection: publicConnection(connection), relay, cli, message };
 }
 
 async function listRooms(projectPrefix: string) {

@@ -463,12 +463,12 @@ async function main() {
       const clicked = await evaluate(client, String.raw`(() => {
         const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
         const submenu = document.querySelector("#settings-system-repos");
-        const button = submenu ? [...submenu.querySelectorAll("button")].find((item) => normalize(item.querySelector("b")?.innerText) === "GitHub Story Repository") : null;
+        const button = submenu ? [...submenu.querySelectorAll("button")].find((item) => normalize(item.querySelector("b")?.innerText) === "Repository & Collab") : null;
         if (!button) return false;
         button.click();
         return true;
       })()`);
-      if (!clicked) throw new Error("GitHub Story Repository was not found in Settings.");
+      if (!clicked) throw new Error("Repository & Collab was not found in Settings.");
       await waitFor(client, `document.body.innerText.includes("Keep story history and proposals under project-owner control.")`, 15_000, "Repository & Collab panel");
       await waitFor(client, `["The PlotPickle GitHub App is not configured in this build.", "Connect GitHub", "Signed in as"].some((text) => document.body.innerText.includes(text))`, 20_000, "GitHub status transition");
       const expanded = await evaluate(client, String.raw`(() => {

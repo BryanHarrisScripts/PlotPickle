@@ -1,12 +1,39 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import vm from "node:vm";
+import ts from "typescript";
 
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 async function readCopy() {
   return JSON.parse(await source("config/collaboration-copy.json"));
+}
+
+async function loadTranslator() {
+  const [adapter, copy] = await Promise.all([
+    source("app/writer-facing-collaboration-language.tsx"),
+    readCopy(),
+  ]);
+  const compiled = ts.transpileModule(adapter, {
+    compilerOptions: {
+      jsx: ts.JsxEmit.ReactJSX,
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2022,
+    },
+  }).outputText;
+  const module = { exports: {} };
+  vm.runInNewContext(compiled, {
+    exports: module.exports,
+    module,
+    require(specifier) {
+      if (specifier === "react") return { useEffect() {} };
+      if (specifier === "@/config/collaboration-copy.json") return { default: copy };
+      throw new Error(`Unexpected translator dependency: ${specifier}`);
+    },
+  }, { filename: "writer-facing-collaboration-language.js" });
+  return { copy, translate: module.exports.translate };
 }
 
 test("Step 5A mounts one JSON-backed collaboration language adapter", async () => {
@@ -30,6 +57,29 @@ test("Step 5A exposes and protects a stable Settings test key without hidden com
   assert.match(adapter, /const refreshCopy = \(root: ParentNode\) => \{[\s\S]*markStableCopyKeys\(root\);[\s\S]*translateTree\(root\);[\s\S]*markStableCopyKeys\(root\);[\s\S]*\};[\s\S]*refreshCopy\(document\.body\)/);
   assert.equal(copy.settings.repository.key, "settings.repository");
   assert.doesNotMatch(adapter, /smokeCompatibility|aria-hidden|clipPath|compatibilityLabel/);
+});
+
+test("Issue #208 keeps writer-facing translations stable across repeated observer passes", async () => {
+  const { copy, translate } = await loadTranslator();
+  const samples = [
+    "GitHub repository",
+    "GitHub repositories",
+    "repository connection",
+    "repository",
+    "repositories",
+    "Open the GitHub repository and check the repository connection.",
+    ...copy.replacements.map((item) => item.replacement),
+  ];
+
+  assert.equal(translate("GitHub repository"), "story repository");
+  assert.equal(translate("repository connection"), "story repository connection");
+  for (const sample of samples) {
+    const once = translate(sample);
+    let repeated = once;
+    for (let pass = 0; pass < 25; pass += 1) repeated = translate(repeated);
+    assert.equal(repeated, once, `Translation changed after the first pass: ${sample}`);
+    assert.doesNotMatch(repeated, /story story repository/i);
+  }
 });
 
 test("Step 5A keeps the Windows smoke label aligned with the JSON contract", async () => {

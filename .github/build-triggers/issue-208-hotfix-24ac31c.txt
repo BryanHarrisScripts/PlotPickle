@@ -1,0 +1,2 @@
+Temporary CI marker for building the post-PR #247 Windows installer from main commit 24ac31c124e64757d17073a1371c76ce9bf30e90.
+This branch and its pull request are not intended to merge.

@@ -5,20 +5,22 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("Settings starts with one table for the three Playhouse roles", async () => {
+test("Settings starts with one aligned comparison table for the three Playhouse modes", async () => {
   const panel = await source("app/settings-panel.tsx");
 
   assert.match(panel, /<table className=\{styles\.modeTable\}>/);
   assert.match(panel, /Local Story Mode/);
   assert.match(panel, /Writers’ Room Mode/);
-  assert.match(panel, /Repository Collaboration Mode/);
-  assert.match(panel, /What is needed/);
-  assert.match(panel, /No Buzz or GitHub account/);
+  assert.match(panel, /Cloud Collab Mode/);
+  assert.equal((panel.match(/PlotPickle installed locally/g) ?? []).length, 3);
+  assert.match(panel, /Afterglow: Reflections of Sentience/);
+  assert.match(panel, /81 self-paced modules/);
   assert.match(panel, /Buzz Desktop/);
   assert.match(panel, /wss:\/\/ community address/);
-  assert.match(panel, /Same Buzz identity nsec/);
   assert.match(panel, /GitHub sign-in/);
-  assert.match(panel, /Selected repository/);
+  for (const row of ["Status", "Primary role", "User experience", "Default storyline", "Learning", "AI &amp; agents", "Runtime", "Compute", "Data &amp; storage", "Collaboration", "Authentication &amp; API keys", "Connections", "Security &amp; control", "Cost profile", "Best for"]) {
+    assert.ok(panel.includes(`<strong>${row}</strong>`), `Missing comparison row: ${row}`);
+  }
 });
 
 test("each role opens a separate configuration surface", async () => {

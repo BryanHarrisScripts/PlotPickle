@@ -1,4 +1,5 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
@@ -44,7 +45,9 @@ const API_PATH = "/api/local-ai/connection";
 const CHECK_PATH = `${API_PATH}/check`;
 const TEXT_PATH = "/api/local-ai/generate/text";
 const IMAGE_PATH = "/api/local-ai/generate/image";
+const ASSET_INDEX_PATH = "/api/local-ai/assets";
 const ASSET_PATH = "/api/local-ai/assets/";
+const MAX_ASSET_BYTES = 20 * 1024 * 1024;
 const LIVE_PROVIDERS: LiveProvider[] = ["openai", "openai-compatible", "ollama"];
 
 function assetsDirectory() {
@@ -313,20 +316,54 @@ async function generateImage(connection: SavedAiConnection, input: ImageGenerati
     if (!imageResponse.ok) throw new Error("The generated image could not be downloaded for local storage.");
     bytes = Buffer.from(await imageResponse.arrayBuffer());
   }
-  if (!bytes.length || bytes.length > 20 * 1024 * 1024) throw new Error("The generated image file was empty or too large.");
+  if (!bytes.length || bytes.length > MAX_ASSET_BYTES) throw new Error("The generated image file was empty or too large.");
   const fileName = `${safeAssetStem(input.assetId || input.characterId)}-${Date.now()}.webp`;
   await mkdir(assetsDirectory(), { recursive: true, mode: 0o700 });
   await writeFile(path.join(assetsDirectory(), fileName), bytes, { mode: 0o600 });
   return { assetUrl: `${ASSET_PATH}${fileName}`, revisedPrompt: result.revised_prompt, referenceImagesUsed: references.length };
 }
 
+function safeAssetFileName(value: string) {
+  return /^[a-z0-9][a-z0-9._-]*\.(?:webp|png|jpe?g)$/i.test(value) ? value : "";
+}
+
+function assetMediaType(fileName: string) {
+  const extension = path.extname(fileName).toLowerCase();
+  return extension === ".png" ? "image/png" : extension === ".jpg" || extension === ".jpeg" ? "image/jpeg" : "image/webp";
+}
+
+async function listAssets() {
+  const directory = assetsDirectory();
+  await mkdir(directory, { recursive: true, mode: 0o700 });
+  const entries = await readdir(directory, { withFileTypes: true });
+  const assets = await Promise.all(entries.filter((entry) => entry.isFile() && safeAssetFileName(entry.name)).map(async (entry) => {
+    const fileName = safeAssetFileName(entry.name);
+    const filePath = path.join(directory, fileName);
+    const info = await stat(filePath);
+    if (!info.isFile() || !info.size || info.size > MAX_ASSET_BYTES) return null;
+    const bytes = await readFile(filePath);
+    return {
+      fileName,
+      url: `${ASSET_PATH}${fileName}`,
+      mediaType: assetMediaType(fileName),
+      bytes: bytes.length,
+      contentHash: `sha256:${createHash("sha256").update(bytes).digest("hex")}`,
+      modifiedAt: info.mtime.toISOString(),
+    };
+  }));
+  return {
+    directory,
+    assets: assets.filter(Boolean).sort((left, right) => right!.modifiedAt.localeCompare(left!.modifiedAt) || left!.fileName.localeCompare(right!.fileName)),
+  };
+}
+
 async function serveAsset(pathname: string, response: ServerResponse) {
   const fileName = pathname.slice(ASSET_PATH.length);
-  if (!/^[a-z0-9-]+\.(?:webp|png|jpe?g)$/i.test(fileName)) throw new Error("Invalid local asset path.");
+  if (!safeAssetFileName(fileName)) throw new Error("Invalid local asset path.");
   const bytes = await readFile(path.join(assetsDirectory(), fileName));
-  const extension = path.extname(fileName).toLowerCase();
+  if (!bytes.length || bytes.length > MAX_ASSET_BYTES) throw new Error("The local asset is empty or too large.");
   response.statusCode = 200;
-  response.setHeader("Content-Type", extension === ".png" ? "image/png" : extension === ".jpg" || extension === ".jpeg" ? "image/jpeg" : "image/webp");
+  response.setHeader("Content-Type", assetMediaType(fileName));
   response.setHeader("Cache-Control", "private, max-age=31536000, immutable");
   response.setHeader("X-Content-Type-Options", "nosniff");
   response.end(bytes);
@@ -414,6 +451,10 @@ async function handleGeneration(request: IncomingMessage, response: ServerRespon
     return;
   }
   try {
+    if (request.method === "GET" && pathname === ASSET_INDEX_PATH) {
+      sendJson(response, 200, { ok: true, ...(await listAssets()) });
+      return;
+    }
     if (request.method === "GET" && pathname.startsWith(ASSET_PATH)) {
       await serveAsset(pathname, response);
       return;
@@ -449,7 +490,7 @@ export function localAiGateway(): Plugin {
     configureServer(server) {
       server.middlewares.use((request, response, next) => {
         const pathname = request.url?.split("?", 1)[0];
-        if (!pathname || (pathname !== API_PATH && pathname !== CHECK_PATH && pathname !== TEXT_PATH && pathname !== IMAGE_PATH && !pathname.startsWith(ASSET_PATH))) {
+        if (!pathname || (pathname !== API_PATH && pathname !== CHECK_PATH && pathname !== TEXT_PATH && pathname !== IMAGE_PATH && pathname !== ASSET_INDEX_PATH && !pathname.startsWith(ASSET_PATH))) {
           next();
           return;
         }

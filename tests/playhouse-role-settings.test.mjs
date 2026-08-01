@@ -70,6 +70,8 @@ test("Community is a first-class workspace with hosted and desktop Buzz paths", 
   assert.doesNotMatch(community, /mfa-email-challenge|[?&]state=/);
   assert.match(community, /buzz:\/\/add-community/);
   assert.match(community, />Open in Buzz Desktop<\/a>/);
+  assert.match(community, /const desktopReady = Boolean\(desktopUrl && status\?\.cli\?\.available\)/);
+  assert.match(community, /disabled>Buzz Desktop needs setup<\/button>/);
   assert.match(community, /title="Buzz Communities"/);
   assert.match(community, /Writers’ Room setup/);
   assert.match(css, /\.communityChoices\s*\{[^}]*grid-template-columns: repeat\(3/s);

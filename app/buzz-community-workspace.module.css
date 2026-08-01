@@ -18,7 +18,7 @@
 }
 
 .heading p,
-.portalHeading span,
+.handoff span,
 .connectionBar span {
   margin: 0 0 6px;
   color: #208982;
@@ -185,48 +185,37 @@
   color: #785a20;
 }
 
-.portal {
-  overflow: hidden;
-  border: 1px solid #c7dedb;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 12px 32px rgb(24 75 73 / 8%);
-}
-
-.portalHeading {
+.handoff {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  padding: 12px 16px;
-  border-bottom: 1px solid #d8e8e6;
-  background: #f4f9f8;
+  gap: 24px;
+  padding: 20px;
+  border: 1px solid #c7dedb;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fff, #f1faf8);
+  box-shadow: 0 12px 32px rgb(24 75 73 / 8%);
 }
 
-.portalHeading h2 {
-  margin: 0;
+.handoff > div:first-child {
+  max-width: 780px;
+}
+
+.handoff h2 {
+  margin: 0 0 7px;
   color: #244f52;
-  font-size: 1rem;
+  font-size: 1.12rem;
 }
 
-.portalHeading small {
-  max-width: 600px;
+.handoff p {
+  margin: 0;
   color: #6d8182;
-  line-height: 1.4;
-  text-align: right;
-}
-
-.portal iframe {
-  display: block;
-  width: 100%;
-  height: max(680px, calc(100vh - 275px));
-  border: 0;
-  background: #f3f7f6;
+  line-height: 1.5;
 }
 
 @media (max-width: 860px) {
   .heading,
-  .portalHeading {
+  .handoff {
     display: grid;
   }
 
@@ -242,17 +231,10 @@
     justify-content: flex-start;
   }
 
-  .portalHeading small {
-    text-align: left;
-  }
 }
 
 @media (max-width: 560px) {
   .connectionBar {
     align-items: flex-start;
-  }
-
-  .portal iframe {
-    height: 650px;
   }
 }

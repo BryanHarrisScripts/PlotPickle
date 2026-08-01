@@ -24,6 +24,14 @@ import {
   type PlotPickleProject,
 } from "@/lib/project";
 import type { PublicConnectionStatus } from "@/lib/connection-status";
+import {
+  discoverLocalGraphicNovelVersions,
+  graphicNovelAssetVersions,
+  normalizeLocalGraphicNovelAssets,
+  prepareGraphicNovelRepositoryVersion,
+  selectGraphicNovelAssetVersion,
+} from "@/lib/graphic-novel-asset-versions";
+import type { ProjectAssetReference } from "@/lib/project-assets";
 import styles from "./ai-pitch-deck-workspace.module.css";
 
 type ImageQuality = "low" | "medium" | "high";
@@ -105,6 +113,10 @@ export default function AiPitchDeckWorkspace({
   const [acknowledged, setAcknowledged] = useState(false);
   const [working, setWorking] = useState(false);
   const [message, setMessage] = useState("");
+  const [assetDirectory, setAssetDirectory] = useState("");
+  const [assetMessage, setAssetMessage] = useState("");
+  const [assetBusy, setAssetBusy] = useState(false);
+  const [publishingPanelId, setPublishingPanelId] = useState("");
   const [selectedPage, setSelectedPage] = useState(1);
   const controllerRef = useRef<AbortController | null>(null);
   const runningRef = useRef(false);
@@ -268,6 +280,85 @@ export default function AiPitchDeckWorkspace({
     persist(updateComicPitchPanel(deck, panelId, patch));
   }
 
+  async function scanLocalAssetVersions() {
+    setAssetBusy(true);
+    setAssetMessage("Scanning the private PlotPickle asset folder…");
+    try {
+      const response = await fetch("/api/local-ai/assets", { headers: { Accept: "application/json" } });
+      const type = response.headers.get("content-type") || "";
+      if (!type.includes("application/json")) throw new Error("Local asset discovery is available in the downloaded PlotPickle server.");
+      const body = await response.json() as Record<string, unknown>;
+      if (!response.ok) throw new Error(typeof body.message === "string" ? body.message : "The local asset folder could not be scanned.");
+      const files = normalizeLocalGraphicNovelAssets(body.assets);
+      const discovered = discoverLocalGraphicNovelVersions(project, files);
+      setAssetDirectory(typeof body.directory === "string" ? body.directory : "");
+      onProjectChange(discovered.project);
+      setDeck(discovered.project.review.pitchPackage.comicDeck ?? deck);
+      setAssetMessage(discovered.matched
+        ? `${discovered.matched} local image${discovered.matched === 1 ? "" : "s"} matched to Graphic Novel panels. ${discovered.unmatched ? `${discovered.unmatched} other image${discovered.unmatched === 1 ? " was" : "s were"} left untouched.` : "No unrelated images were changed."}`
+        : `No files matched these stable panel IDs. ${files.length} local image${files.length === 1 ? " was" : "s were"} left untouched.`);
+    } catch (error) {
+      setAssetMessage(error instanceof Error ? error.message : "The local asset folder could not be scanned.");
+    } finally {
+      setAssetBusy(false);
+    }
+  }
+
+  function selectAssetVersion(panelId: string, reference: ProjectAssetReference) {
+    try {
+      const next = selectGraphicNovelAssetVersion(project, panelId, reference);
+      setDeck(next.review.pitchPackage.comicDeck ?? deck);
+      onProjectChange(next);
+      setAssetMessage("The preferred panel version changed. Every other version remains available.");
+    } catch (error) {
+      setAssetMessage(error instanceof Error ? error.message : "The image version could not be selected.");
+    }
+  }
+
+  async function publishAssetVersion(panel: ComicPitchPanel, reference: ProjectAssetReference) {
+    setPublishingPanelId(panel.id);
+    setAssetMessage("Preparing an immutable repository alternate and Story Proposal…");
+    try {
+      const prepared = prepareGraphicNovelRepositoryVersion(project, panel.id, reference);
+      const response = await fetch("/api/local-github/submit-proposal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          project: prepared.project,
+          title: `Graphic Novel alternate: ${panel.title}`,
+          note: `Publish the selected local image for Page ${panel.pageNumber}, Panel ${panel.panelNumber} as a non-destructive repository alternate.`,
+          baseRevision: project.collaboration.lastPulledCommit,
+          assetFiles: [prepared.assetFile],
+        }),
+      });
+      const type = response.headers.get("content-type") || "";
+      if (!type.includes("application/json")) throw new Error("GitHub asset publishing is available in the downloaded PlotPickle server.");
+      const body = await response.json() as Record<string, unknown>;
+      if (!response.ok) throw new Error(typeof body.message === "string" ? body.message : "The repository alternate could not be proposed.");
+      const commitSha = typeof body.commitSha === "string" ? body.commitSha : "";
+      const next = {
+        ...prepared.project,
+        collaboration: {
+          ...prepared.project.collaboration,
+          provider: "github" as const,
+          syncEnabled: true,
+          lastPushedCommit: commitSha,
+          updatedAt: new Date().toISOString(),
+        },
+      };
+      setDeck(next.review.pitchPackage.comicDeck ?? deck);
+      onProjectChange(next);
+      const number = Number(body.pullRequestNumber) || 0;
+      setAssetMessage(`Story Proposal #${number} contains the repository alternate. The approved story and original image are unchanged until Project Lead approval.`);
+      const url = typeof body.pullRequestUrl === "string" ? body.pullRequestUrl : "";
+      if (url) window.open(url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      setAssetMessage(error instanceof Error ? error.message : "The repository alternate could not be proposed.");
+    } finally {
+      setPublishingPanelId("");
+    }
+  }
+
   async function exportHtml(print = false) {
     const printWindow = print ? window.open("", "_blank") : null;
     setMessage("Embedding local panel images into the deck…");
@@ -337,6 +428,20 @@ export default function AiPitchDeckWorkspace({
         {message ? <p className={styles.status} role="status">{message}</p> : null}
       </section>
 
+      <section className={styles.assetLibrary} aria-labelledby="graphic-novel-assets-title">
+        <div>
+          <span>Asset versions</span>
+          <h2 id="graphic-novel-assets-title">Originals stay intact. Local alternates stay optional.</h2>
+          <p>PlotPickle matches files by stable panel ID, records a SHA-256 hash and adds each match as a version. Scanning never overwrites, deletes or publishes an image.</p>
+          <small>{assetDirectory || "Windows default: %LOCALAPPDATA%\\PlotPickle\\assets"}</small>
+        </div>
+        <div>
+          <button type="button" disabled={assetBusy || working} onClick={() => void scanLocalAssetVersions()}>{assetBusy ? "Scanning…" : "Scan local images"}</button>
+          <span>Publishing remains a separate per-version Story Proposal.</span>
+        </div>
+        {assetMessage ? <p className={styles.assetNotice} role="status" aria-live="polite">{assetMessage}</p> : null}
+      </section>
+
       <div className={styles.deckLayout}>
         <nav className={styles.pageRail} aria-label="Comic pitch pages">
           <strong>24-page story</strong>
@@ -363,6 +468,21 @@ export default function AiPitchDeckWorkspace({
                 <div className={styles.caption}><strong>{panel.title}</strong><p>{panel.narration}</p>{panel.narrationSource === "derived" ? <small>Derived fallback narration · review before export</small> : null}</div>
                 <details className={styles.editor}>
                   <summary>Edit panel {panelLabel(panel)}</summary>
+                  <section className={styles.versionPicker} aria-label={`Image versions for panel ${panelLabel(panel)}`}>
+                    <div><strong>Image versions</strong><span>Selecting one changes the preferred panel image, not the stored originals or alternates.</span></div>
+                    <div className={styles.versionGrid}>
+                      {graphicNovelAssetVersions(project, panel).map((version) => (
+                        <article key={`${version.reference.assetId}:${version.reference.variationId}`} data-origin={version.origin} data-selected={version.selected || undefined}>
+                          <div>{version.source ? <img src={version.source} alt="" /> : null}</div>
+                          <strong>{version.label}</strong>
+                          <small>{version.contentHash ? version.contentHash.slice(0, 20) + "…" : "Bundled reference"}</small>
+                          <button type="button" disabled={version.selected || working || Boolean(publishingPanelId)} onClick={() => selectAssetVersion(panel.id, version.reference)}>{version.selected ? "Selected" : "Use version"}</button>
+                          {version.origin === "local" ? <button type="button" className={styles.publishVersion} disabled={working || Boolean(publishingPanelId)} onClick={() => void publishAssetVersion(panel, version.reference)}>{publishingPanelId === panel.id ? "Preparing proposal…" : "Publish alternate to GitHub"}</button> : null}
+                        </article>
+                      ))}
+                      {!graphicNovelAssetVersions(project, panel).length ? <p>No registered versions yet. Scan local images or generate this panel.</p> : null}
+                    </div>
+                  </section>
                   <label><span>Narration</span><textarea value={panel.narration} onChange={(event) => updatePanel(panel.id, { narration: event.target.value, narrationSource: "derived" })} /></label>
                   <label><span>Directed shot</span><textarea value={panel.shotDirection} onChange={(event) => updatePanel(panel.id, { shotDirection: event.target.value })} /></label>
                   <label><span>Image prompt</span><textarea value={panel.prompt} onChange={(event) => updatePanel(panel.id, { prompt: event.target.value })} /></label>

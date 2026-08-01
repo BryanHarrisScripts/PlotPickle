@@ -57,7 +57,7 @@ export type ProjectAssetRegistry = {
   extensions: Record<string, unknown>;
 };
 
-type RegisterAssetInput = {
+export type RegisterAssetInput = {
   target: ProjectAssetTarget;
   source: string;
   kind?: ProjectAssetKind;
@@ -66,6 +66,8 @@ type RegisterAssetInput = {
   mediaType?: string;
   contentHash?: string;
   bytes?: number;
+  portablePath?: string;
+  variationExtensions?: Record<string, unknown>;
   provider?: string;
   model?: string;
   prompt?: string;
@@ -296,6 +298,15 @@ export function registerProjectAssetSource(
     const assets = registry.assets.map((asset) => asset.id === exact.asset.id ? {
       ...asset,
       targets: sortedTargets([...asset.targets, input.target]),
+      variations: asset.variations.map((variation) => variation.id === exact.variation.id ? {
+        ...variation,
+        portablePath: input.portablePath || variation.portablePath,
+        contentHash: input.contentHash || variation.contentHash,
+        mediaType: input.mediaType || variation.mediaType,
+        bytes: input.bytes === undefined ? variation.bytes : Math.max(0, Number(input.bytes) || 0),
+        generatedAt: input.generatedAt || variation.generatedAt,
+        extensions: { ...variation.extensions, ...record(input.variationExtensions) },
+      } : variation),
       updatedAt: updatedAt || asset.updatedAt,
     } : asset);
     return {
@@ -309,7 +320,7 @@ export function registerProjectAssetSource(
   const variation: ProjectAssetVariation = {
     id: variationId,
     source,
-    portablePath: portableAssetPath(source, fingerprint),
+    portablePath: input.portablePath || portableAssetPath(source, fingerprint),
     sourceFingerprint: fingerprint,
     contentHash: input.contentHash || "",
     mediaType: input.mediaType || sourceMediaType(source),
@@ -320,7 +331,7 @@ export function registerProjectAssetSource(
     generatedAt: input.generatedAt || "",
     provenanceIds: [...new Set(input.provenanceIds ?? [])].sort(),
     approval: input.approval || "unreviewed",
-    extensions: {},
+    extensions: record(input.variationExtensions),
   };
   const existing = registry.assets.find((asset) => asset.id === assetId);
   const asset: ProjectAsset = existing ? {

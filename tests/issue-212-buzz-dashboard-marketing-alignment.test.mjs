@@ -15,8 +15,8 @@ test("issue #212 makes Buzz configurable in Settings without faking packaged bin
 
   assert.match(settings, /Settings · Repository & Collab · Buzz/);
   assert.match(settings, /Managed local Buzz/);
-  assert.match(settings, /Existing Buzz relay/);
-  assert.match(settings, /Save encrypted connection/);
+  assert.match(settings, /Block-hosted Buzz community/);
+  assert.match(settings, /Save & verify all three pieces/);
   assert.match(settings, /Test Buzz connection/);
   assert.match(settings, /Remove connection and identity/);
   assert.match(settings, />Start</);

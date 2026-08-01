@@ -72,7 +72,7 @@ test("issue #182 keeps provider setup in Settings and uses split GitHub surfaces
   assert.match(workspace, /View GitHub connection settings/);
   assert.match(workspace, /Settings → Scheduling & Meetings/);
   assert.doesNotMatch(workspace, /Sign in with Google|Connect GitHub Account|fine-grained GitHub token/);
-  assert.match(collaboration, /"configuration" \| "approvals"/);
+  assert.match(collaboration, /"configuration" \| "repository-setup" \| "approvals"/);
   assert.match(base, /showConfiguration/);
   assert.match(base, /showApprovals/);
   assert.ok(base.indexOf("GitHubRecoveryCentre") < base.indexOf("showApprovals ?"), "Recovery must remain with Settings configuration");

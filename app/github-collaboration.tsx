@@ -17,7 +17,7 @@ import GitHubCollaborationBase from "./github-collaboration-base";
 import BuzzSettingsPanel from "./buzz-settings-panel";
 import modeStyles from "./project-mode-settings.module.css";
 
-type CollaborationSurface = "all" | "github" | "storage" | "configuration" | "approvals";
+type CollaborationSurface = "all" | "github" | "storage" | "configuration" | "repository-setup" | "approvals";
 
 type Props = {
   project: PlotPickleProject;
@@ -180,6 +180,8 @@ export default function GitHubCollaboration({
     onChange(next);
   }
 
+  const baseSurface = surface === "repository-setup" ? "configuration" : surface;
+
   return (
     <>
       {surface === "configuration" ? <ProjectModeSettings project={project} onChange={guardedChange} /> : null}
@@ -187,7 +189,7 @@ export default function GitHubCollaboration({
         project={project}
         onChange={guardedChange}
         onConnectionChange={onConnectionChange}
-        surface={surface}
+        surface={baseSurface}
         backupLimit={effectiveBackupLimit}
         backupOnSave={false}
       />

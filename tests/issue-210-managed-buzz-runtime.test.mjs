@@ -71,9 +71,9 @@ test("issue #210 keeps Settings, PPF and GitHub authority boundaries explicit", 
   assert.match(brief, /Buzz.*rooms, conversations, agents/s);
   assert.match(brief, /Feedback.*permanent structured review/s);
   assert.match(settings, /Settings · Repository & Collab · Buzz/);
-  assert.match(settings, /Existing Buzz relay/);
+  assert.match(settings, /Block-hosted Buzz community/);
   assert.match(settings, /Managed local Buzz/);
-  assert.match(settings, /Save encrypted connection/);
+  assert.match(settings, /Save & verify all three pieces/);
 });
 
 test("issue #210 does not pretend unverified native Buzz binaries are packaged", async () => {

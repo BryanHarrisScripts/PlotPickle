@@ -7,7 +7,7 @@ import styles from "./buzz-settings.module.css";
 const API = "/api/local-buzz";
 type ConnectionMode = "existing-relay" | "managed";
 type BuzzStatus = {
-  connection: { configured: boolean; mode: ConnectionMode; relayUrl: string; community: string; identityLabel: string; cliPath: string; identityConfigured: boolean; verifiedAt: string };
+  connection: { configured: boolean; mode: ConnectionMode; relayUrl: string; community: string; identityLabel: string; cliPath: string; identityConfigured: boolean; identityVerified: boolean; verifiedAt: string };
   relay: { reachable: boolean; checkedAt: string; latencyMs: number; detail: string };
   cli: { available: boolean; executable: string; version: string; error: string; source: "configured" | "environment" | "buzz-desktop" | "path"; discovered: boolean; releaseTag: string };
   managed: {
@@ -27,12 +27,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body;
 }
 
-function browserUrl(value: string) {
+function buzzDesktopUrl(value: string, name: string) {
   try {
     const url = new URL(value);
-    if (url.protocol === "ws:") url.protocol = "http:";
-    if (url.protocol === "wss:") url.protocol = "https:";
-    return ["http:", "https:"].includes(url.protocol) ? url.toString() : "";
+    if (!["ws:", "wss:"].includes(url.protocol)) return "";
+    url.hash = "";
+    url.search = "";
+    const query = new URLSearchParams({ relay: url.toString().replace(/\/$/, "") });
+    if (name.trim()) query.set("name", name.trim());
+    return `buzz://add-community?${query.toString()}`;
   } catch { return ""; }
 }
 
@@ -104,21 +107,22 @@ export default function BuzzSettingsPanel() {
   const reachable = Boolean(status?.relay.reachable);
   const cliAvailable = Boolean(status?.cli.available);
   const identityConfigured = Boolean(status?.connection.identityConfigured);
+  const identityVerified = Boolean(status?.connection.identityVerified);
   const connectionState: ConnectionState = !status
     ? "loading"
     : busy === "test" || busy === "save"
       ? "connecting"
       : !configured
         ? cliAvailable ? "detected" : "disconnected"
-        : reachable ? "connected" : "degraded";
-  const storyRoomReady = connectionState === "connected" && cliAvailable && identityConfigured;
+        : reachable && identityVerified ? "connected" : "degraded";
+  const storyRoomReady = connectionState === "connected" && cliAvailable && identityConfigured && identityVerified;
   const stateCopy = {
     loading: { title: "Checking Buzz", tone: "Checking", detail: "PlotPickle is looking for Buzz Desktop and any saved community." },
     disconnected: { title: "Buzz Desktop not detected", tone: "Setup needed", detail: "Install and open Buzz Desktop once, then refresh this screen." },
-    detected: { title: "Buzz Desktop detected", tone: "Desktop ready", detail: "The app is installed. Connect the Buzz community you create or join to finish setup." },
-    connecting: { title: "Testing Buzz", tone: "Connecting", detail: "PlotPickle is checking the saved community without exposing the private identity." },
-    connected: { title: storyRoomReady ? "Buzz is ready" : "Community connected", tone: storyRoomReady ? "Ready" : "One step remains", detail: storyRoomReady ? "PlotPickle can load messages and create signed Story Rooms." : "The community responded, but the CLI or encrypted identity still needs attention." },
-    degraded: { title: "Connection needs attention", tone: "Check community", detail: status?.relay.detail || "The saved community did not pass its latest reachability check." },
+    detected: { title: "Buzz Desktop detected", tone: "Desktop ready", detail: "Buzz is installed. Copy your hosted community address and explicitly authorize PlotPickle with the same Buzz identity." },
+    connecting: { title: "Verifying Buzz", tone: "Connecting", detail: "PlotPickle is checking the community, the Desktop CLI and your Buzz identity together." },
+    connected: { title: "Buzz is ready", tone: "Ready", detail: "The community, Desktop CLI and identity are verified. PlotPickle can now create signed Story Rooms." },
+    degraded: { title: reachable ? "PlotPickle is not authorized yet" : "Community cannot be reached", tone: reachable ? "Finish identity" : "Check address", detail: reachable ? "The hosted community responded, but the saved Buzz identity has not passed an authenticated check." : status?.relay.detail || "The saved community address did not respond." },
   }[connectionState];
   const managedState = {
     bundleAvailable: Boolean(status?.managed.bundle.available),
@@ -133,13 +137,13 @@ export default function BuzzSettingsPanel() {
   const managedActions = getBuzzManagedRuntimeActions(managedState);
   const managedCopy = describeBuzzManagedRuntime(managedState);
   const blocked = Boolean(busy);
-  const communityUrl = browserUrl(status?.connection.relayUrl || form.relayUrl);
+  const openInBuzzUrl = buzzDesktopUrl(status?.connection.relayUrl || form.relayUrl, status?.connection.community || form.community);
 
   return <div className={styles.page}>
     <header className={styles.heading}>
       <p>{"Settings · Repository & Collab · Buzz"}</p>
-      <h1>Set up Buzz for PlotPickle.</h1>
-      <span>Buzz Desktop, a Buzz community and your Buzz identity are three separate pieces. This screen checks each one and keeps the private identity encrypted for the current computer user.</span>
+      <h1>Connect PlotPickle to the Buzz community you already created.</h1>
+      <span>Buzz owns the community and identity. PlotPickle only stores the community&apos;s WebSocket address and an explicitly copied identity key, encrypted for the current Windows user.</span>
     </header>
 
     <section className={styles.statusCard}>
@@ -149,8 +153,8 @@ export default function BuzzSettingsPanel() {
 
     <section className={styles.setupGuide} aria-labelledby="buzz-settings-steps-title">
       <div className={styles.guideHeading}>
-        <span>What PlotPickle needs</span>
-        <h2 id="buzz-settings-steps-title">Three clear steps, checked in order.</h2>
+        <span>Match the Buzz screens</span>
+        <h2 id="buzz-settings-steps-title">Use the community and identity already shown in Buzz.</h2>
       </div>
       <div className={styles.setupSteps}>
         <article data-complete={cliAvailable ? "true" : "false"}>
@@ -159,29 +163,33 @@ export default function BuzzSettingsPanel() {
         </article>
         <article data-complete={reachable ? "true" : "false"}>
           <span>2</span>
-          <div><b>Buzz community</b><strong>{reachable ? "Connected" : configured ? "Saved, not reached" : "Create or join one"}</strong><p>Open Buzz Desktop and create or join a community. Its URL is the workspace address PlotPickle needs below.</p></div>
+          <div><b>Hosted community address</b><strong>{reachable ? "Reached" : configured ? "Saved, not reached" : "Copy from Communities"}</strong><p>On Buzz&apos;s Communities page, find your community and copy the address beside <strong>Open in Buzz</strong>. It begins with wss:// and ends with .communities.buzz.xyz.</p></div>
         </article>
-        <article data-complete={identityConfigured ? "true" : "false"}>
+        <article data-complete={identityVerified ? "true" : "false"}>
           <span>3</span>
-          <div><b>Buzz identity</b><strong>{identityConfigured ? "Encrypted locally" : "Identity key required"}</strong><p>Use Buzz Desktop&apos;s identity/key backup screen to copy your private identity key, then save it below. Never share that key with another person.</p></div>
+          <div><b>Authorize PlotPickle</b><strong>{identityVerified ? "Same identity verified" : identityConfigured ? "Saved, not verified" : "Private key required"}</strong><p>In Buzz Desktop, open your profile menu, then Settings &gt; Profile &gt; Identity &gt; Private key. Select Reveal, copy the nsec key and paste it below.</p></div>
         </article>
       </div>
       <aside className={styles.terminologyNote}>
-        <b>Channels, huddles and Story Rooms</b>
-        <p>Buzz uses <strong>channels</strong> for shared discussion and <strong>huddles</strong> for live voice. PlotPickle calls its six project channels Story Rooms. There is no separate Buzz Hangouts list to locate.</p>
+        <b>The npub shown on the Communities page is not the key PlotPickle needs</b>
+        <p>The npub is your public identity. PlotPickle needs the private nsec only because Buzz&apos;s CLI must sign channel and message actions. PlotPickle encrypts it locally and never puts it in a PPF, export or GitHub.</p>
+      </aside>
+      <aside className={styles.terminologyNote}>
+        <b>Buzz channels become PlotPickle Story Rooms</b>
+        <p>Buzz already uses <strong>channels</strong> for discussion and <strong>huddles</strong> for live voice. After verification, PlotPickle creates six private project channels and presents them as Story Rooms. There is no separate Hangouts feature to find.</p>
       </aside>
     </section>
 
     <section className={styles.runtimeGrid} aria-label="Buzz status details">
       <article><span>Buzz Desktop / CLI</span><strong>{cliAvailable ? "Detected" : "Not detected"}</strong><small>{status?.cli.executable || status?.cli.error || "Open Buzz Desktop once, then refresh."}</small></article>
       <article><span>Community</span><strong>{reachable ? `${status?.relay.latencyMs} ms` : configured ? "Not verified" : "Not connected"}</strong><small>{status?.connection.relayUrl || "No community URL saved"}</small></article>
-      <article><span>Encrypted identity</span><strong>{identityConfigured ? "Stored" : "Not stored"}</strong><small>{status?.connection.identityLabel || "Required to create rooms and send signed messages"}</small></article>
+      <article><span>Buzz identity authorization</span><strong>{identityVerified ? "Verified" : identityConfigured ? "Stored, not verified" : "Not authorized"}</strong><small>{status?.connection.identityLabel || "Required for signed channel and message actions"}</small></article>
     </section>
 
     <section className={styles.choiceGrid} aria-label="Buzz connection mode">
       <article className={form.mode === "existing-relay" ? styles.selectedChoice : undefined}>
-        <span>Recommended</span><h2>Buzz Desktop community</h2><p>Use the community you created or joined in Buzz Desktop. This is an Existing Buzz relay connection; PlotPickle does not start or own it.</p>
-        <button type="button" onClick={() => patch({ mode: "existing-relay" })}>Use Buzz Desktop community</button>
+        <span>Recommended</span><h2>Block-hosted Buzz community</h2><p>Use the wss:// address shown for your community on Buzz&apos;s Communities page. PlotPickle connects to it but does not create, host or own it.</p>
+        <button type="button" onClick={() => patch({ mode: "existing-relay" })}>Use my hosted community</button>
       </article>
       <article className={form.mode === "managed" ? styles.selectedChoice : undefined}>
         <span>Advanced</span><h2>Managed local Buzz</h2><p>Self-host the pinned Docker Compose bundle on this computer. Choose this only if you intentionally want to operate the Buzz relay yourself.</p>
@@ -190,12 +198,12 @@ export default function BuzzSettingsPanel() {
     </section>
 
     <section className={styles.formCard}>
-      <div><span>Secure connection details</span><h2>{form.mode === "managed" ? "Managed local community" : "Buzz Desktop community"}</h2><p>Installing the app does not fill these values automatically because Buzz communities and private identities belong to Buzz, not PlotPickle.</p></div>
+      <div><span>Secure connection details</span><h2>{form.mode === "managed" ? "Managed local community" : "Your existing Buzz community"}</h2><p>Installing Buzz lets PlotPickle find the CLI, but Buzz deliberately does not give another application its community or identity automatically. You choose both values below.</p></div>
       <div className={styles.formGrid}>
-        <label><span>Buzz community URL</span><input value={form.relayUrl} disabled={form.mode === "managed"} onChange={(event) => patch({ relayUrl: event.target.value })} placeholder="https://your-community.example" /><small>In Buzz Desktop, this is the address of the community you created or joined.</small></label>
-        <label><span>Community label (optional)</span><input value={form.community} onChange={(event) => patch({ community: event.target.value })} placeholder="Afterglow writers room" /><small>A friendly local label; it does not create a Buzz community.</small></label>
+        <label><span>Buzz community WebSocket address</span><input value={form.relayUrl} disabled={form.mode === "managed"} onChange={(event) => patch({ relayUrl: event.target.value })} placeholder="wss://plotpickleplayhouse.communities.buzz.xyz" /><small>Copy the complete wss:// address beside your community on Buzz&apos;s Communities page.</small></label>
+        <label><span>Community name (optional)</span><input value={form.community} onChange={(event) => patch({ community: event.target.value })} placeholder="plotpickleplayhouse" /><small>A friendly label in PlotPickle; it does not create or rename the Buzz community.</small></label>
         <label><span>Your identity label (optional)</span><input value={form.identityLabel} onChange={(event) => patch({ identityLabel: event.target.value })} placeholder="Bryan · PlotPickle" /><small>Shown in PlotPickle so you know which identity is connected.</small></label>
-        <label><span>Buzz private key</span><input type="password" autoComplete="off" value={form.privateKey} onChange={(event) => patch({ privateKey: event.target.value })} placeholder={identityConfigured ? "Leave blank to retain the saved encrypted key" : "nsec1… or 64-character private key"} /><small>Copy this from Buzz Desktop&apos;s identity/key backup screen. PlotPickle encrypts it locally and never writes it into a PPF.</small></label>
+        <label><span>Buzz private identity key</span><input type="password" autoComplete="off" value={form.privateKey} onChange={(event) => patch({ privateKey: event.target.value })} placeholder={identityConfigured ? "Leave blank to retain the saved encrypted key" : "nsec1…"} /><small>Buzz Desktop: profile menu &gt; Settings &gt; Profile &gt; Identity &gt; Private key &gt; Reveal. Do not paste the public npub shown on the Communities page.</small></label>
       </div>
       <details className={styles.advancedField}>
         <summary>Advanced: Buzz CLI path</summary>
@@ -204,15 +212,15 @@ export default function BuzzSettingsPanel() {
     </section>
 
     <section className={styles.actions}>
-      <button type="button" disabled={blocked || !form.relayUrl.trim()} onClick={() => void saveAndTest()}>{busy === "save" ? "Saving and testing…" : "Save encrypted connection & test"}</button>
+      <button type="button" disabled={blocked || !form.relayUrl.trim() || (!identityConfigured && !form.privateKey.trim())} onClick={() => void saveAndTest()}>{busy === "save" ? "Saving and verifying…" : "Save & verify all three pieces"}</button>
       <button type="button" disabled={!configured || blocked} onClick={() => void run("test", () => request("/test", { method: "POST" }))}>{busy === "test" ? "Testing…" : "Test Buzz connection"}</button>
       <button type="button" disabled={blocked} onClick={() => void run("refresh", async () => { await refresh(true); return { message: "Buzz status refreshed." }; })}>Refresh status</button>
       {storyRoomReady ? <a href="/buzz">Open Story Room</a> : <button type="button" disabled title="Complete all three setup steps before opening the live Story Room.">Story Room not ready</button>}
-      {communityUrl ? <a href={communityUrl} target="_blank" rel="noreferrer">Open Buzz community</a> : null}
+      {openInBuzzUrl ? <a href={openInBuzzUrl}>Open this community in Buzz Desktop</a> : null}
       <button className={styles.removeAction} type="button" disabled={!configured || blocked} onClick={() => void run("disconnect", () => request("/connection", { method: "DELETE" }))}>Remove connection and identity</button>
     </section>
 
-    {configured && reachable && (!cliAvailable || !identityConfigured) ? <section className={styles.boundary}><span>One step remains</span><h2>The community is connected, but Story Rooms are not ready.</h2><p>{!cliAvailable ? "Open Buzz Desktop or select a supported Buzz CLI. " : ""}{!identityConfigured ? "Save an encrypted Buzz private identity before creating rooms or sending messages." : ""}</p></section> : null}
+    {configured && reachable && (!cliAvailable || !identityVerified) ? <section className={styles.boundary}><span>One step remains</span><h2>The community address works, but PlotPickle is not authorized yet.</h2><p>{!cliAvailable ? "Open Buzz Desktop or select its supported CLI. " : ""}{!identityConfigured ? "Reveal and save the nsec key from Buzz Desktop. " : !identityVerified ? "Select Test Buzz connection to verify that this identity belongs to the community. " : ""}The public npub cannot sign these actions.</p></section> : null}
 
     {form.mode === "managed" ? <section className={styles.lifecycleCard}>
       <div><span>Managed runtime lifecycle</span><h2>{managedCopy.title}</h2><p>{managedCopy.detail}</p><small>{status?.managed.message || status?.managed.bundle.validationGate || "Managed Buzz remains optional."}</small></div>
@@ -228,7 +236,7 @@ export default function BuzzSettingsPanel() {
       </div>
     </section> : null}
 
-    <section className={styles.boundary}><span>Authority boundary</span><h2>Discussion does not become canon by itself.</h2><p>Buzz messages can be linked to story entities and converted into local proposals. Only an explicit human approval applies a selected proposal to the active PPF project.</p><ul><li>No Buzz service starts when PlotPickle is installed.</li><li>No identity or credential is created until the encrypted connection is saved.</li><li>Removing Buzz preserves PlotPickle projects and their approved canon.</li></ul></section>
+    <section className={styles.boundary}><span>Authority boundary</span><h2>Discussion does not become canon by itself.</h2><p>Buzz messages can be linked to story entities and converted into local proposals. Only an explicit human approval applies a selected proposal to the active PPF project.</p><ul><li>No Buzz service starts when PlotPickle is installed.</li><li>PlotPickle never creates or pairs a Buzz identity; it stores only the copy you explicitly authorize.</li><li>Removing Buzz preserves PlotPickle projects and their approved canon.</li></ul></section>
     {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
   </div>;
 }

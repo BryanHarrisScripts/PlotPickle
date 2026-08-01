@@ -5,6 +5,7 @@ import type { PlotPickleProject } from "@/lib/project";
 import type { ConnectionStatusSnapshot } from "@/lib/connection-status";
 import taxonomySource from "../config/settings-system-taxonomy.json";
 import BuzzSettingsPanel from "./buzz-settings-panel";
+import GitHubCollaboration from "./github-collaboration";
 import LegacySettingsPanel from "./settings-panel-legacy";
 import styles from "./settings-system-navigation.module.css";
 
@@ -22,6 +23,9 @@ type LegacySection =
   | "buzz"
   | "privacy"
   | "about";
+
+type PlayhouseView = "overview" | "local" | "writers-room" | "repository" | "advanced";
+type BuzzModeStatus = "checking" | "ready" | "setup" | "unavailable";
 
 type SystemStatus = "installed" | "configure" | "optional" | "planned" | "reference";
 
@@ -74,6 +78,13 @@ function itemForId(id: string) {
   return allItems.find((entry) => entry.item.id === id) ?? allItems[0];
 }
 
+function viewForTarget(target: string | null): PlayhouseView | null {
+  if (target === "buzz") return "writers-room";
+  if (target === "github") return "repository";
+  if (target === "local" || target === "storage") return "local";
+  return target ? "advanced" : null;
+}
+
 function SystemDetails({ item }: { item: NavigationItem }) {
   const hasExamples = Boolean(item.examples?.length);
   const hasMechanics = Boolean(item.mechanics?.length);
@@ -119,6 +130,8 @@ export default function SettingsPanel({
   onConnectionChange: () => void | Promise<void>;
 }) {
   const [ready, setReady] = useState(false);
+  const [playhouseView, setPlayhouseView] = useState<PlayhouseView>("overview");
+  const [buzzModeStatus, setBuzzModeStatus] = useState<BuzzModeStatus>("checking");
   const [activeId, setActiveId] = useState(taxonomy.workspace[0].id);
   const [expandedSystem, setExpandedSystem] = useState(taxonomy.systems[0].id);
   const internalTarget = useRef<string | null>(null);
@@ -130,6 +143,8 @@ export default function SettingsPanel({
         internalTarget.current = null;
         return;
       }
+      const requestedView = viewForTarget(target);
+      if (requestedView) setPlayhouseView(requestedView);
       const next = itemForTarget(target);
       if (!next) return;
       setActiveId(next.item.id);
@@ -140,6 +155,7 @@ export default function SettingsPanel({
     const timer = window.setTimeout(() => {
       const requested = window.sessionStorage.getItem(SETTINGS_SECTION_KEY);
       const requestedEntry = itemForTarget(requested);
+      setPlayhouseView(viewForTarget(requested) ?? "overview");
       const initial = requestedEntry ?? itemForId(taxonomy.workspace[0].id);
       setActiveId(initial.item.id);
       if (initial.system) setExpandedSystem(initial.system.id);
@@ -152,6 +168,23 @@ export default function SettingsPanel({
       window.removeEventListener("plotpickle:settings-section", handleSectionRequest);
     };
   }, []);
+
+  useEffect(() => {
+    if (!ready || playhouseView !== "overview") return;
+    let cancelled = false;
+    void fetch("/api/local-buzz/status", { headers: { Accept: "application/json" } })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Buzz status unavailable");
+        const body = await response.json() as {
+          connection?: { identityVerified?: boolean };
+          relay?: { reachable?: boolean };
+          cli?: { available?: boolean };
+        };
+        if (!cancelled) setBuzzModeStatus(body.connection?.identityVerified && body.relay?.reachable && body.cli?.available ? "ready" : "setup");
+      })
+      .catch(() => { if (!cancelled) setBuzzModeStatus("unavailable"); });
+    return () => { cancelled = true; };
+  }, [playhouseView, ready]);
 
   const activeEntry = useMemo(() => itemForId(activeId), [activeId]);
   const activeItem = activeEntry.item;
@@ -172,17 +205,105 @@ export default function SettingsPanel({
     if (opening && system.items.length) selectItem(system.items[0], system);
   }
 
+  function openAdvancedTarget(target: LegacySection) {
+    const next = itemForTarget(target);
+    setPlayhouseView("advanced");
+    if (!next) return;
+    setActiveId(next.item.id);
+    if (next.system) setExpandedSystem(next.system.id);
+  }
+
   if (!ready) return <div className={styles.loading}>Preparing Settings…</div>;
 
   return (
     <div className={styles.page}>
       <header className={styles.heading}>
-        <p>Settings</p>
-        <h1>Configure PlotPickle by system.</h1>
-        <span>Workspace holds personal preferences. Systems holds every app, service, repository, credential, package or runtime that may need configuration, installation or support.</span>
+        <p>Playhouse setup</p>
+        <h1>Choose the role PlotPickle plays.</h1>
+        <span>Start with one clear operating mode. Local files, Buzz and GitHub each get their own configuration screen, and none is required by another unless the table says so.</span>
       </header>
 
-      <div className={styles.layout}>
+      <nav className={styles.modeNav} aria-label="Playhouse operating modes">
+        {([
+          ["overview", "Compare roles"],
+          ["local", "Local Story"],
+          ["writers-room", "Writers’ Room"],
+          ["repository", "Repository"],
+        ] as Array<[PlayhouseView, string]>).map(([id, label]) => (
+          <button type="button" key={id} className={playhouseView === id ? styles.activeMode : undefined} onClick={() => setPlayhouseView(id)}>{label}</button>
+        ))}
+        <button type="button" className={playhouseView === "advanced" ? styles.activeMode : styles.advancedMode} onClick={() => setPlayhouseView("advanced")}>Other settings</button>
+      </nav>
+
+      {playhouseView === "overview" ? (
+        <main className={styles.modeContent}>
+          <header className={styles.modeHeading}>
+            <div><p>Three roles</p><h2>Pick how this Playhouse works today.</h2><span>You can change modes later. Your PPF remains the official story in every mode.</span></div>
+          </header>
+          <div className={styles.modeTableWrap}>
+            <table className={styles.modeTable}>
+              <thead><tr><th>Playhouse role</th><th>What PlotPickle does</th><th>What is needed</th><th>Status</th><th><span className={styles.visuallyHidden}>Configure</span></th></tr></thead>
+              <tbody>
+                <tr>
+                  <th scope="row"><strong>Local Story Mode</strong><span>Private writing on this computer</span></th>
+                  <td>Runs the Playhouse, saves the PPF and keeps local rolling backups.</td>
+                  <td><ul><li>PlotPickle Runtime</li><li>Local project folder</li><li>Rolling backups</li></ul><small>No Buzz or GitHub account.</small></td>
+                  <td><span className={styles.readyStatus}>Ready</span></td>
+                  <td><button type="button" onClick={() => setPlayhouseView("local")}>Open</button></td>
+                </tr>
+                <tr>
+                  <th scope="row"><strong>Writers’ Room Mode</strong><span>Story discussion through Buzz</span></th>
+                  <td>Keeps PPF canon local while Buzz carries channels, messages and huddles.</td>
+                  <td><ul><li>Buzz Desktop</li><li>wss:// community address</li><li>Same Buzz identity nsec</li></ul><small>GitHub is not required.</small></td>
+                  <td><span className={buzzModeStatus === "ready" ? styles.readyStatus : styles.setupStatus}>{buzzModeStatus === "checking" ? "Checking" : buzzModeStatus === "ready" ? "Ready" : "Setup needed"}</span></td>
+                  <td><button type="button" onClick={() => setPlayhouseView("writers-room")}>Configure</button></td>
+                </tr>
+                <tr>
+                  <th scope="row"><strong>Repository Collaboration Mode</strong><span>Reviewed multi-machine history</span></th>
+                  <td>Connects the PPF to GitHub proposals, revision history and owner-approved changes.</td>
+                  <td><ul><li>GitHub sign-in</li><li>Selected repository</li><li>Branch and approval controls</li></ul><small>Buzz is optional.</small></td>
+                  <td><span className={["connected", "configured"].includes(connections.items.github.state) ? styles.readyStatus : styles.setupStatus}>{connections.items.github.state === "connected" ? "Ready" : connections.items.github.state === "configured" ? "Configured" : "Setup needed"}</span></td>
+                  <td><button type="button" onClick={() => setPlayhouseView("repository")}>Configure</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </main>
+      ) : null}
+
+      {playhouseView === "local" ? (
+        <main className={styles.modeContent}>
+          <header className={styles.modeHeading}><div><p>Role 1</p><h2>Local Story Mode</h2><span>The complete PlotPickle writing workflow with no external collaboration service.</span></div><button type="button" onClick={() => setPlayhouseView("overview")}>Back to roles</button></header>
+          <div className={styles.requirementGrid}>
+            <article><span>Required</span><h3>PlotPickle Runtime</h3><p>The local Playhouse server and packaged web application.</p><strong>Installed</strong></article>
+            <article><span>Required</span><h3>PPF project files</h3><p>Your official story remains in local human-readable project storage.</p><strong>{connections.items.storage.state === "connected" ? "Ready" : "Check storage"}</strong></article>
+            <article><span>Recommended</span><h3>Rolling backups</h3><p>Recoverable local revisions under the current Windows user.</p><strong>{connections.items.backups.state === "connected" ? "Ready" : "Available"}</strong></article>
+          </div>
+          <section className={styles.modeDecision}><div><p>Nothing else to connect</p><h3>Local Story Mode is ready now.</h3><span>Buzz, GitHub, Google and AI providers remain optional and disconnected.</span></div><button type="button" onClick={() => openAdvancedTarget("storage")}>Storage & backup settings</button></section>
+        </main>
+      ) : null}
+
+      {playhouseView === "writers-room" ? (
+        <main className={styles.modeContent}>
+          <header className={styles.modeHeading}><div><p>Role 2</p><h2>Writers’ Room Mode</h2><span>Connect only the Buzz pieces needed for discussion. The PPF remains official canon.</span></div><button type="button" onClick={() => setPlayhouseView("overview")}>Back to roles</button></header>
+          <div className={styles.embeddedMode}><BuzzSettingsPanel /></div>
+        </main>
+      ) : null}
+
+      {playhouseView === "repository" ? (
+        <main className={styles.modeContent}>
+          <header className={styles.modeHeading}><div><p>Role 3</p><h2>Repository Collaboration Mode</h2><span>Configure GitHub history and owner-reviewed proposals without requiring Buzz.</span></div><button type="button" onClick={() => setPlayhouseView("overview")}>Back to roles</button></header>
+          <section className={styles.connectionSummary} data-state={connections.items.github.state}>
+            <div><span>GitHub connection</span><h3>{connections.items.github.identity || "No repository connected"}</h3><p>{connections.items.github.detail}</p></div>
+            <strong>{connections.items.github.state === "connected" ? "Ready" : connections.items.github.state === "configured" ? "Configured" : "Setup needed"}</strong>
+          </section>
+          <div className={styles.embeddedMode}>
+            <GitHubCollaboration project={project} onChange={onProjectChange} onConnectionChange={() => void onConnectionChange()} surface="repository-setup" />
+          </div>
+        </main>
+      ) : null}
+
+      {playhouseView === "advanced" ? <div className={styles.layout}>
         <nav className={styles.menu} aria-label="PlotPickle Settings systems">
           <section className={styles.menuGroup} aria-labelledby="settings-workspace-heading">
             <h2 id="settings-workspace-heading">Workspace</h2>
@@ -284,7 +405,7 @@ export default function SettingsPanel({
             <SystemDetails item={activeItem} />
           )}
         </main>
-      </div>
+      </div> : null}
     </div>
   );
 }

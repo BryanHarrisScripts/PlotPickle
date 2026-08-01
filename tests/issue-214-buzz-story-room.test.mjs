@@ -60,12 +60,16 @@ test("issue #214 connects Settings to encrypted Phase 1A controls", async () => 
     source("app/settings/buzz/page.tsx"),
     source("config/settings-system-taxonomy.json"),
   ]);
-  assert.match(settings, /Save encrypted connection/);
+  assert.match(settings, /Save & verify all three pieces/);
   assert.match(settings, /Test Buzz connection/);
   assert.match(settings, /Remove connection and identity/);
-  assert.match(settings, /Existing Buzz relay/);
-  assert.match(settings, /Buzz private key/);
-  assert.match(settings, /Buzz calls shared discussion spaces|Buzz uses <strong>channels/);
+  assert.match(settings, /Block-hosted Buzz community/);
+  assert.match(settings, /Buzz private identity key/);
+  assert.match(settings, /wss:\/\/plotpickleplayhouse\.communities\.buzz\.xyz/);
+  assert.match(settings, /Settings &gt; Profile &gt; Identity &gt; Private key/);
+  assert.match(settings, /Do not paste the public npub/);
+  assert.match(settings, /buzz:\/\/add-community\?\$\{query\.toString\(\)\}/);
+  assert.match(settings, /Buzz calls shared discussion spaces|Buzz (?:already )?uses <strong>channels/);
   assert.match(settings, /huddles/);
   assert.match(settings, /method: "PUT"/);
   assert.match(settings, /method: "DELETE"/);
@@ -75,6 +79,20 @@ test("issue #214 connects Settings to encrypted Phase 1A controls", async () => 
   assert.match(compatibilityRoute, /SETTINGS_SECTION_KEY, "buzz"/);
   assert.doesNotMatch(compatibilityRoute, /SETTINGS_SECTION_KEY, "github"/);
   assert.match(taxonomy, /"target": "buzz"/);
+});
+
+test("issue #214 verifies the hosted community, CLI and paired identity together", async () => {
+  const [settings, gateway] = await Promise.all([
+    source("app/buzz-settings-panel.tsx"),
+    source("build/buzz-gateway.ts"),
+  ]);
+  assert.match(gateway, /await runBuzz\(connection, \["users", "get"\]\)/);
+  assert.match(gateway, /verificationVersion: retainVerification \? 2 : undefined/);
+  assert.match(gateway, /identityVerified: connection\.verificationVersion === 2/);
+  assert.match(gateway, /Buzz rejected this identity or it is not a member of the community/);
+  assert.match(settings, /reachable && identityVerified \? "connected" : "degraded"/);
+  assert.match(settings, /Save & verify all three pieces/);
+  assert.match(settings, /The public npub cannot sign these actions/);
 });
 
 test("issue #214 exposes the managed Phase 1B lifecycle only behind verified prerequisites", async () => {

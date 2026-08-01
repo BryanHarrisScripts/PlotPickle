@@ -51,3 +51,7 @@ Buzz still lives in PlotPickle:
 - Settings owns detection, relay configuration, encrypted identity and connection testing.
 - Collab owns Buzz Story Rooms, messages and proposal creation.
 - Buzz Desktop supplies the local client/CLI dependency underneath those PlotPickle surfaces.
+
+## Release validation
+
+The deterministic packaged Windows smoke selects the JSON-backed `Repository & Collab` Settings label. This keeps the release gate aligned with the current product language rather than the retired `GitHub Story Repository` label.

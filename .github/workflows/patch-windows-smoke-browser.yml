@@ -1,0 +1,81 @@
+name: Patch Windows smoke browser isolation
+
+on:
+  push:
+    branches:
+      - agent/244-buzz-desktop-launcher-install
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/244-buzz-desktop-launcher-install
+      - name: Harden packaged smoke browser
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path("scripts/windows-release-smoke.mjs")
+          source = path.read_text(encoding="utf-8")
+          old = '''      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-gpu",
+      "--disable-extensions",
+      "--disable-sync",
+      "--disable-notifications",
+      "--disable-background-networking",
+      "--disable-component-update",
+      "--disable-features=TranslateUI,OptimizationHints,MediaRouter",
+      "--window-size=1440,1000",
+      "about:blank",
+    ], { cwd: root, windowsHide: true, env: { ...process.env, TEMP: temporaryRoot, TMP: temporaryRoot } }, path.join(reportDirectory, "browser.log"));'''
+          new = '''      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--disable-component-update",
+      "--disable-domain-reliability",
+      "--disable-default-apps",
+      "--disable-sync",
+      "--disable-notifications",
+      "--disable-popup-blocking",
+      "--disable-extensions",
+      "--disable-gpu",
+      "--disable-breakpad",
+      "--disable-features=CloudMessaging,PushMessaging,MediaRouter,OptimizationHints,TranslateUI",
+      "--metrics-recording-only",
+      "--no-pings",
+      "--password-store=basic",
+      "--use-mock-keychain",
+      "--window-size=1440,1000",
+      "about:blank",
+    ], {
+      cwd: root,
+      windowsHide: true,
+      env: {
+        ...process.env,
+        TEMP: temporaryRoot,
+        TMP: temporaryRoot,
+        GOOGLE_API_KEY: "",
+        GOOGLE_DEFAULT_CLIENT_ID: "",
+        GOOGLE_DEFAULT_CLIENT_SECRET: "",
+        CHROME_CRASHPAD_PIPE_NAME: "",
+      },
+    }, path.join(reportDirectory, "browser.log"));'''
+          if old not in source:
+              raise SystemExit("Expected browser launch block was not found; refusing an unsafe patch.")
+          path.write_text(source.replace(old, new, 1), encoding="utf-8")
+      - name: Commit patch and remove workflow
+        shell: bash
+        run: |
+          rm .github/workflows/patch-windows-smoke-browser.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/windows-release-smoke.mjs .github/workflows/patch-windows-smoke-browser.yml
+          git commit -m "Harden Windows smoke browser isolation"
+          git push origin HEAD:agent/244-buzz-desktop-launcher-install

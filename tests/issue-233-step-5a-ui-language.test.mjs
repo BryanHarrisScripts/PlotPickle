@@ -27,7 +27,7 @@ test("Step 5A exposes and protects a stable Settings test key without hidden com
   ]);
   assert.match(adapter, /button\.dataset\.uiCopyKey = collaborationCopy\.settings\.repository\.key/);
   assert.match(adapter, /\[data-ui-copy-key\]/);
-  assert.match(adapter, /markStableCopyKeys\(document\.body\);[\s\S]*translateTree\(document\.body\)/);
+  assert.match(adapter, /const refreshCopy = \(root: ParentNode\) => \{[\s\S]*markStableCopyKeys\(root\);[\s\S]*translateTree\(root\);[\s\S]*markStableCopyKeys\(root\);[\s\S]*\};[\s\S]*refreshCopy\(document\.body\)/);
   assert.equal(copy.settings.repository.key, "settings.repository");
   assert.doesNotMatch(adapter, /smokeCompatibility|aria-hidden|clipPath|compatibilityLabel/);
 });

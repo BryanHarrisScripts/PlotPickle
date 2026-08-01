@@ -1,0 +1,66 @@
+name: Issue 208 Windows Smoke
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: issue-208-windows-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  issue-208:
+    name: Issue #208 Windows smoke
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - name: Install packaging dependencies
+        run: npm ci
+      - name: Stage Windows package
+        run: node scripts/package-platform.mjs windows
+      - name: Verify staged package
+        run: node scripts/package-smoke.mjs releases/stage/PlotPickle-Windows
+      - name: Prepare clean packaged installation
+        shell: pwsh
+        run: |
+          $packageRoot = Join-Path $env:RUNNER_TEMP "PlotPickle-Windows"
+          if (Test-Path $packageRoot) { Remove-Item $packageRoot -Recurse -Force }
+          Copy-Item "releases/stage/PlotPickle-Windows" $packageRoot -Recurse
+          Set-Location $packageRoot
+          if (Test-Path "node_modules") { throw "The staged package must not contain node_modules." }
+          npm ci --no-audit --no-fund
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/package-smoke.mjs .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/windows-runtime.mjs verify-modules node_modules
+          if ($LASTEXITCODE -ne 0) {
+            node scripts/windows-runtime.mjs repair-native node_modules
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            node scripts/windows-runtime.mjs verify-modules node_modules
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - name: Run Issue #208 packaged Windows smoke
+        shell: pwsh
+        env:
+          EDGE_PATH: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
+          PLOTPICKLE_ISSUE_208_SMOKE_TIMEOUT_MS: "120000"
+        run: |
+          $packageRoot = Join-Path $env:RUNNER_TEMP "PlotPickle-Windows"
+          Set-Location $packageRoot
+          node scripts/windows-issue-208-smoke-runner.mjs . reports/windows-issue-208-smoke
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload Issue #208 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue-208-windows-smoke-${{ github.sha }}
+          path: ${{ runner.temp }}/PlotPickle-Windows/reports/windows-issue-208-smoke/
+          if-no-files-found: warn
+          retention-days: 14

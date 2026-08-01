@@ -13,6 +13,15 @@ const sellingPoints = [
   "Local-first ownership with optional connections",
 ];
 
+const readmePillars = [
+  "Self-learning modules beside the work",
+  "A story graph you can see",
+  "One open, portable PPF",
+  "Visual story logic",
+  "Visual writing and visual pitch",
+  "Community collaboration without accidental canon changes",
+];
+
 test("issue #90 front page uses the official repository and canonical product contract", async () => {
   const welcome = await source("app/welcome/page.tsx");
   assert.match(welcome, /PLOTPICKLE_REPOSITORY_URL/);
@@ -48,11 +57,11 @@ test("issue #90 explains complete local and web installations with role badges",
   assert.doesNotMatch(diagram, /Writer server|Director server|Producer server|Actor server/);
 });
 
-test("issue #85 final consistency contract reaches the README and completion record", async () => {
+test("issue #85 final consistency keeps the canonical contract and current README product story", async () => {
   const readme = await source("README.md");
   const docs = await source("docs/issue-85-product-direction.md");
-  for (const title of sellingPoints) assert.ok(readme.includes(title), `README missing selling point: ${title}`);
-  assert.match(readme, /81 learning modules|81-module learning system/);
+  for (const title of readmePillars) assert.ok(readme.includes(title), `README missing product pillar: ${title}`);
+  assert.match(readme, /81 guided modules|81-module learning library/);
   assert.match(readme, /complete local or private web-based PlotPickle installations/i);
   assert.match(readme, /Writer, Director, Producer, Actor and Reviewer are roles within PlotPickle/i);
   assert.match(docs, /#86.*complete|#86.*merged/i);

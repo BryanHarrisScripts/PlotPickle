@@ -9,6 +9,7 @@ import BuildWorkspace from "./build-workspace";
 import FeedbackWorkspace from "./feedback-workspace";
 import ReportsWorkspace from "./reports-workspace";
 import CollabWorkspace from "./collab-workspace";
+import BuzzCommunityWorkspace from "./buzz-community-workspace";
 import FeedbackContextBadge from "./feedback-context-badge";
 import AiPitchDeckWorkspace from "./ai-pitch-deck-workspace";
 import WorkspaceCapabilityShelf, { type CapabilityOwner } from "./workspace-capability-shelf";
@@ -76,6 +77,7 @@ const WORKSPACE_QUERY_TABS: Record<string, MainTab> = {
   refine: "engines",
   reports: "reports",
   collab: "collab",
+  community: "community",
   settings: "settings",
 };
 
@@ -1011,6 +1013,16 @@ export default function Home() {
             onOpenSettings={(section) => {
               window.sessionStorage.setItem("plotpickle.settings.section", section);
               window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: section }));
+              setActiveTab("settings");
+            }}
+          />
+        ) : null}
+
+        {activeTab === "community" ? (
+          <BuzzCommunityWorkspace
+            onOpenSettings={() => {
+              window.sessionStorage.setItem("plotpickle.settings.section", "buzz");
+              window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: "buzz" }));
               setActiveTab("settings");
             }}
           />

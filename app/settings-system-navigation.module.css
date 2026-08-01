@@ -155,7 +155,7 @@
 
 .modeTable {
   width: 100%;
-  min-width: 850px;
+  min-width: 1180px;
   border-collapse: collapse;
   color: #34595c;
   text-align: left;
@@ -176,6 +176,37 @@
   text-transform: uppercase;
 }
 
+.modeTable thead th:first-child {
+  width: 18%;
+}
+
+.modeTable thead th:not(:first-child) {
+  width: 27.333%;
+}
+
+.modeTable thead strong,
+.modeTable thead span {
+  display: block;
+}
+
+.modeTable thead strong {
+  color: #153f43;
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+.modeTable thead span {
+  min-height: 2.8em;
+  margin: 6px 0 13px;
+  color: #6b8182;
+  font-size: 0.67rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .modeTable tbody tr:last-child > * {
   border-bottom: 0;
 }
@@ -185,7 +216,11 @@
 }
 
 .modeTable tbody th {
-  width: 20%;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  width: 18%;
+  background: #f8fbfa;
 }
 
 .modeTable tbody th strong,
@@ -212,6 +247,10 @@
   gap: 4px;
   margin: 0;
   padding-left: 17px;
+}
+
+.modeTable td > small {
+  display: block;
 }
 
 .readyStatus,

@@ -72,6 +72,71 @@
   color: #7a8b8c;
 }
 
+.communityChoices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.communityChoices article {
+  display: flex;
+  min-height: 190px;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 18px;
+  border: 1px solid #c7dedb;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgb(24 75 73 / 6%);
+}
+
+.communityChoices .recommendedChoice {
+  border-color: #73bdb5;
+  background: #f2fbf9;
+}
+
+.communityChoices span {
+  margin-bottom: 8px;
+  color: #208982;
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.communityChoices h2 {
+  margin: 0;
+  color: #244f52;
+  font-size: 1.08rem;
+}
+
+.communityChoices p {
+  flex: 1;
+  margin: 9px 0 16px;
+  color: #617778;
+  line-height: 1.45;
+}
+
+.communityChoices a,
+.communityChoices button {
+  min-height: 40px;
+  padding: 10px 14px;
+  border: 1px solid #7ebeb7;
+  border-radius: 9px;
+  background: #edf8f6;
+  color: #176d69;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.recommendedChoice a {
+  border-color: #176d69;
+  background: #176d69;
+  color: #fff;
+}
+
 .connectionBar {
   display: flex;
   align-items: center;
@@ -163,6 +228,14 @@
   .heading,
   .portalHeading {
     display: grid;
+  }
+
+  .communityChoices {
+    grid-template-columns: 1fr;
+  }
+
+  .communityChoices article {
+    min-height: 0;
   }
 
   .actions {

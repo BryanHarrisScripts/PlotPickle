@@ -169,6 +169,8 @@ export function useCastIdentityQueue({
               status: identity.status,
               approvedPrompt: identity.approvedPrompt,
             },
+            requestCount: 1,
+            billingAcknowledged: confirmed,
           }),
         });
         const result = await response.json() as ImageResponse;

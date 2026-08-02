@@ -1,5 +1,6 @@
 import type { Plugin, ViteDevServer } from "vite";
 import { localAiGateway as legacyLocalAiGateway } from "./local-ai-gateway-base";
+import { registerWritingAssistantGateway } from "./writing-assistant-gateway";
 
 const IMAGE_PATH = "/api/local-ai/generate/image";
 const MAX_SINGLE_IMAGE_REQUEST_BYTES = 256 * 1024;
@@ -50,8 +51,9 @@ export function localAiGateway(): Plugin {
   const legacy = legacyLocalAiGateway();
   return {
     ...legacy,
-    name: "plotpickle-local-ai-gateway-single-image-boundary",
+    name: "plotpickle-local-ai-gateway-with-writing-assistant",
     configureServer(server) {
+      registerWritingAssistantGateway(server);
       registerSingleImageBoundary(server);
       if (typeof legacy.configureServer === "function") legacy.configureServer(server);
     },

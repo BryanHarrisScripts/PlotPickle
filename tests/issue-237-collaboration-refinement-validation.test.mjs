@@ -112,7 +112,7 @@ test("Step 7 validates the Settings selection path cannot call providers or muta
 
   assert.match(selection, /transitionCollaborationMode/);
   assert.match(selection, /window\.confirm/);
-  assert.ok(selection.indexOf("if (!confirmed) return") < selection.indexOf("onChange(result.project)"));
+  assert.ok(selection.indexOf("if (!confirmed) return") < selection.indexOf("onChange(next)"));
   assert.doesNotMatch(selection, /fetch\s*\(|connect|disconnect|sync|pull|push|publish|proposal|approve|canon/i);
   assert.doesNotMatch(modeModule.text, /\bfetch\s*\(|connectGitHub|disconnectGitHub|startBuzz|stopBuzz|syncProject|publishProject|createProposal|approveProposal/);
 });

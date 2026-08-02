@@ -123,7 +123,7 @@ PlotPickle's complete local creative core works without external accounts or API
 | **Repository & Collab** | Optional GitHub repository history, Story Proposals, approvals and recovery | Disconnected |
 | **Scheduling & Meetings** | Optional Google Calendar and Meet | Disconnected |
 | **Buzz** | Optional Story Rooms, encrypted relay identity and managed local relay | Not configured |
-| **Media & Film Engines** | ComfyUI detection and setup guidance; reviewed generation adapter remains future work | Unavailable |
+| **Media & Film Engines** | ComfyUI detection and setup guidance. Future extension; no active API connects it to Graphic Novel generation yet. | Unavailable |
 
 Provider-neutral render packages, automated returned-asset ingestion and third-party movie-rendering connectors are not active development commitments. Pika Labs, Runway and other media engines remain future extensions unless a separate verified implementation is approved.
 

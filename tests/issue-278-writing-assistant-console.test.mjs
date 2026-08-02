@@ -81,8 +81,7 @@ test("issue #278 mounts a conversational first-run console with truthful provide
   assert.doesNotMatch(consoleSource, /apiKey|Bearer |sk-[A-Za-z0-9]/);
 });
 
-test("issue #278 regression is registered", async () => {
-  const packageJson = JSON.parse(await source("package.json"));
-  assert.match(packageJson.scripts.test, /issue-278-writing-assistant-console\.test\.mjs/);
-  assert.equal(packageJson.scripts["test:writing-assistant"], "node --test tests/issue-278-writing-assistant-console.test.mjs");
+test("issue #278 regression is registered through the first-run setup suite", async () => {
+  const setupSuite = await source("tests/issue-256-setup-connections-dashboard.test.mjs");
+  assert.match(setupSuite, /import "\.\/issue-278-writing-assistant-console\.test\.mjs"/);
 });

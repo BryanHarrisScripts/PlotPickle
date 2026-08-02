@@ -18,7 +18,7 @@ test("issue #258 keeps collaboration modes separate from the three creative-comp
     "3 · No AI",
     "Local writing & planning · Ollama",
     "Local image generation · ComfyUI",
-    "Cloud image generation · OpenAI or another provider",
+    "Cloud images & video · OpenAI, MiniMax or another provider",
     "Manual image import",
     "Ready without AI",
   ]) assert.ok(setup.includes(phrase), `Missing creative-compute contract: ${phrase}`);

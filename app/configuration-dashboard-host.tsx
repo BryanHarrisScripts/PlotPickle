@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import ConfigurationDashboardOverview from "./configuration-dashboard-overview";
 import WritingAssistantConsole from "./writing-assistant-console";
+import MediaRoutingPanel from "./media-routing-panel";
 
 const SETUP_SELECTOR = "#dashboard-setup";
 
@@ -92,6 +93,7 @@ export default function ConfigurationDashboardHost() {
         detailsOpen={detailsOpen}
       />
       <WritingAssistantConsole onManage={openSettings} />
+      <MediaRoutingPanel onManage={openSettings} />
     </>,
     portalTarget,
   );

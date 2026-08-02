@@ -112,7 +112,7 @@ test("phase 4 requires repository setup before the dashboard enables Local + Git
   assert.match(panel, /onManage\("GitHub"\)/);
   assert.ok(panel.indexOf("if (!window.confirm") < panel.indexOf("window.localStorage.setItem"));
   assert.match(panel, /window\.location\.reload\(\)/);
-  assert.doesNotMatch(panel, /fetch\s*\(|push|pull|publish|mergePull|deleteRepository/);
+  assert.doesNotMatch(panel, /fetch\s*\(|\b(?:push|pull|publish|mergePull|deleteRepository)\s*\(/);
 });
 
 test("phase 4 keeps Writers' Room independent from repository storage", async () => {

@@ -41,15 +41,17 @@ export function projectStorageMode(collaboration: ProjectCollaboration): Project
     : "local-only";
 }
 
+function trimmedString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
 export function projectStorageModeSnapshot(project: PlotPickleProject): ProjectStorageModeSnapshot {
   const mode = projectStorageMode(project.collaboration);
   const githubConfigured = githubCollaborationServiceState(project.collaboration) === "configured";
-  const owner = typeof project.collaboration.owner === "string" ? project.collaboration.owner.trim() : "";
-  const repo = typeof project.collaboration.repo === "string" ? project.collaboration.repo.trim() : "";
+  const owner = trimmedString(project.collaboration.owner);
+  const repo = trimmedString(project.collaboration.repo);
+  const branch = trimmedString(project.collaboration.branch) || "main";
   const repository = owner && repo ? `${owner}/${repo}` : "No story repository configured";
-  const branch = typeof project.collaboration.branch === "string" && project.collaboration.branch.trim()
-    ? project.collaboration.branch.trim()
-    : "main";
 
   return {
     mode,

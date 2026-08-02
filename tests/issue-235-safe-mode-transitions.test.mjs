@@ -130,7 +130,10 @@ test("Step 6 keeps service checks read-only and cancellation before onChange", (
   assert.doesNotMatch(modeSource, /\bfetch\s*\(|connectGitHub|disconnectGitHub|startBuzz|stopBuzz|syncProject|publishProject|createProposal|approveProposal/);
   assert.match(uiSource, /transitionCollaborationMode\(project, mode/);
   assert.match(uiSource, /collaborationTransitionConfirmation\(result\.plan\)/);
-  assert.ok(uiSource.indexOf("if (!confirmed) return") < uiSource.indexOf("onChange(result.project)"));
+  const selectionStart = uiSource.indexOf("function selectMode");
+  const cancellation = uiSource.indexOf("if (!confirmed) return", selectionStart);
+  const change = uiSource.indexOf("onChange(next)", selectionStart);
+  assert.ok(selectionStart >= 0 && cancellation > selectionStart && change > cancellation);
   assert.doesNotMatch(uiSource, /onChange\(\{[\s\S]{0,200}withCollaborationMode/);
   assert.match(uiSource, /fetch\(BUZZ_STATUS_API/);
   assert.doesNotMatch(uiSource, /fetch\(BUZZ_STATUS_API[\s\S]{0,120}method:\s*"(?:POST|PUT|PATCH|DELETE)"/);

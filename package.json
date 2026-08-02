@@ -98,7 +98,8 @@
     "test:ppf-relationship-assets": "node --test tests/issue-194-ppf-relationship-assets.test.mjs",
     "test:storyworld-map": "node --test tests/issue-195-storyworld-map.test.mjs",
     "test:managed-buzz-runtime": "node --test tests/issue-210-managed-buzz-runtime.test.mjs",
-    "test:core-consolidation": "node --test tests/core-consolidation.test.mjs"
+    "test:core-consolidation": "node --test tests/core-consolidation.test.mjs",
+    "audit:public-readiness": "node scripts/public-readiness.mjs"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

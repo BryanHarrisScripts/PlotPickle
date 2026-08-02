@@ -10,37 +10,55 @@
 !.yarn/releases
 !.yarn/versions
 
-# PlotPickle local installation state
+# PlotPickle local installation and user state
 /.plotpickle/
+/projects/
+/user-data/
+/backups/
+/logs/
+/credentials/
+credentials.json
 
-# testing
+# testing and generated reports
 /coverage
 /reports/lighthouse/
 
-# next.js
+# next.js and build output
 /.next/
 /out/
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
-next-env.d.ts
 /dist/
 /.wrangler/
 /.sites-runtime/
 /outputs/
 /work/
+
+# operating-system and editor files
+.DS_Store
+Thumbs.db
+*.tmp
+
+# private keys, certificates, signing material and local secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+
+# debug logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# hosting
+.vercel
+
+# typescript
+next-env.d.ts

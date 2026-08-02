@@ -5,6 +5,7 @@
 import MarketingSplash from "./marketing-splash";
 import ApplicationShellHeader from "./application-shell-header";
 import DashboardCommandCentre from "./dashboard-command-centre";
+import AfterglowExampleBoundary from "./afterglow-example-boundary";
 import BuildWorkspace from "./build-workspace";
 import FeedbackWorkspace from "./feedback-workspace";
 import ReportsWorkspace from "./reports-workspace";
@@ -53,9 +54,13 @@ import type { ConsolidatedReportSection, ReportTarget } from "@/lib/consolidated
 import type { ProductionReportSection } from "@/lib/production-reports";
 import type { FeedbackTargetReference } from "@/lib/unified-feedback";
 import { reportsRuntimeConnections } from "@/lib/connection-status";
-import { AFTERGLOW_PROJECT_ID } from "@/lib/afterglow-persistence";
+import {
+  AFTERGLOW_EXAMPLE_ACTIVE_KEY,
+  afterglowCopyFileName,
+  createAfterglowEditableCopy,
+  isAfterglowExampleProject,
+} from "@/lib/afterglow-example";
 import { useConnectionStatus } from "./use-connection-status";
-import { useAfterglowPersistence } from "./use-afterglow-persistence";
 
 const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
@@ -340,9 +345,10 @@ export default function Home() {
   const [saveState, setSaveState] = useState("Saved on this device");
   const [toast, setToast] = useState("");
   const [showLanding, setShowLanding] = useState(true);
+  const [afterglowCopyWorking, setAfterglowCopyWorking] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const connectionState = useConnectionStatus(project, saveState);
-  const afterglowPersistence = useAfterglowPersistence(project.id);
+  const afterglowExample = isAfterglowExampleProject(project);
   const reportConnections = useMemo(
     () => reportsRuntimeConnections(connectionState.snapshot),
     [connectionState.snapshot],
@@ -361,7 +367,19 @@ export default function Home() {
         if (stored) {
           const parsed: unknown = JSON.parse(stored);
           const normalized = normalizePlotPickleProject(parsed);
-          if (normalized) setProject(synchronizeScreenplaySceneReferences(normalized, normalized.blocks));
+          if (normalized) {
+            const exampleWasDeliberatelyOpen = window.localStorage.getItem(AFTERGLOW_EXAMPLE_ACTIVE_KEY) === "true";
+            const restored = isAfterglowExampleProject(normalized) && !exampleWasDeliberatelyOpen
+              ? createAfterglowEditableCopy(normalized, { title: `${normalized.metadata.title} — Recovered Copy` })
+              : isAfterglowExampleProject(normalized)
+                ? createAfterglowProject()
+                : normalized;
+            setProject(synchronizeScreenplaySceneReferences(restored, restored.blocks));
+            if (isAfterglowExampleProject(normalized) && !exampleWasDeliberatelyOpen) {
+              window.localStorage.removeItem(AFTERGLOW_EXAMPLE_ACTIVE_KEY);
+              setToast("A previously editable Afterglow project was preserved as a new local copy. The bundled example is now read-only.");
+            }
+          }
         }
       } catch {
         setToast("The saved project could not be opened. A new project is ready instead.");
@@ -375,25 +393,18 @@ export default function Home() {
   useEffect(() => {
     if (!hydrated) return;
     const timer = window.setTimeout(() => {
+      if (isAfterglowExampleProject(project)) {
+        window.localStorage.setItem(AFTERGLOW_EXAMPLE_ACTIVE_KEY, "true");
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(createAfterglowProject()));
+        setSaveState("Read-only PlotPickle example");
+        return;
+      }
+      window.localStorage.removeItem(AFTERGLOW_EXAMPLE_ACTIVE_KEY);
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
       setSaveState("Saved on this device");
     }, 300);
     return () => window.clearTimeout(timer);
   }, [project, hydrated]);
-
-  useEffect(() => {
-    if (!hydrated || !afterglowPersistence.enabled || project.id !== AFTERGLOW_PROJECT_ID) return;
-    let cancelled = false;
-    const timer = window.setTimeout(() => {
-      void afterglowPersistence.save(project).then((saved) => {
-        if (saved && !cancelled) setSaveState("Saved in persistent Afterglow project folder");
-      });
-    }, 900);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [afterglowPersistence.enabled, afterglowPersistence.save, hydrated, project]);
 
   useEffect(() => {
     if (!toast) return;
@@ -413,6 +424,12 @@ export default function Home() {
   }
 
   function commit(next: PlotPickleProject) {
+    if (isAfterglowExampleProject(project) && isAfterglowExampleProject(next)) {
+      setSaveState("Read-only PlotPickle example");
+      setToast("Afterglow is a read-only example. Choose Make My Own Copy before changing canon, images, dialogue or project settings.");
+      return;
+    }
+    if (!isAfterglowExampleProject(next)) window.localStorage.removeItem(AFTERGLOW_EXAMPLE_ACTIVE_KEY);
     setSaveState("Saving…");
     const synchronized = synchronizeScreenplaySceneReferences(next, project.blocks);
     setProject({
@@ -482,6 +499,7 @@ export default function Home() {
   function createNewProject() {
     if (completion > 0 && !window.confirm("Start a new project? Export your current project first if you want a separate backup.")) return;
     const blank = createBlankProject();
+    window.localStorage.removeItem(AFTERGLOW_EXAMPLE_ACTIVE_KEY);
     setSaveState("Saving…");
     setProject(blank);
     setSelectedCharacterId("");
@@ -493,54 +511,75 @@ export default function Home() {
   }
 
   async function loadAfterglow() {
-    if (completion > 0 && project.id !== "afterglow-echoes-of-sentience" && !window.confirm("Replace the current project with the Afterglow example? Export first if you want a backup.")) return;
-    setSaveState(afterglowPersistence.enabled ? "Opening persistent Afterglow project…" : "Saving…");
+    if (completion > 0 && !isAfterglowExampleProject(project) && !window.confirm("Replace the current project with the read-only Afterglow example? Export first if you want a backup.")) return;
+    const candidate = createAfterglowProject();
+    const afterglow = synchronizeScreenplaySceneReferences(candidate, candidate.blocks);
+    window.localStorage.setItem(AFTERGLOW_EXAMPLE_ACTIVE_KEY, "true");
+    setProject(afterglow);
+    setSelectedCharacterId("ren");
+    setSelectedBlockNumber(1);
+    setSelectedMiniBlockNumber(1);
+    setActiveTab("planner");
+    setActiveSection("overview");
+    setSaveState("Read-only PlotPickle example");
+    setToast("Afterglow — PlotPickle Example Story is open read-only across the Story Planner, all 96 Treatment positions, and Visual Storyboard context. Unreconciled material is clearly marked. Choose Make My Own Copy before editing.");
+  }
+
+  async function saveProjectToLocalLibrary(next: PlotPickleProject) {
+    const response = await fetch("/api/local-projects/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ project: next, fileName: afterglowCopyFileName(next) }),
+    });
+    const contentType = response.headers.get("content-type") || "";
+    const payload = contentType.includes("application/json") ? await response.json() as { message?: string } : {};
+    if (!response.ok) throw new Error(payload.message || "The Afterglow copy could not be saved to the local project library.");
+  }
+
+  async function makeAfterglowCopy() {
+    if (!isAfterglowExampleProject(project) || afterglowCopyWorking) return;
+    setAfterglowCopyWorking(true);
+    setSaveState("Creating editable local copy…");
     try {
-      const persistent = await afterglowPersistence.load();
-      const candidate = persistent ? normalizePlotPickleProject(persistent.project) : createAfterglowProject();
-      if (!candidate) throw new Error("The saved Afterglow project could not be normalized and was not opened.");
-      const afterglow = synchronizeScreenplaySceneReferences(candidate, candidate.blocks);
-      setProject(afterglow);
-      setSelectedCharacterId("ren");
+      const copy = synchronizeScreenplaySceneReferences(createAfterglowEditableCopy(project), project.blocks);
+      await saveProjectToLocalLibrary(copy);
+      window.localStorage.removeItem(AFTERGLOW_EXAMPLE_ACTIVE_KEY);
+      setProject(copy);
+      setSelectedCharacterId(copy.characters[0]?.id ?? "");
       setSelectedBlockNumber(1);
       setSelectedMiniBlockNumber(1);
       setActiveTab("planner");
       setActiveSection("overview");
-      setSaveState(persistent ? "Saved in persistent Afterglow project folder" : "Saving…");
-      setToast(persistent?.message || "Afterglow loaded across the Story Planner, all 96 Treatment positions, and Visual Storyboard context. Unreconciled material is clearly marked.");
+      setSaveState("Saved in local project library");
+      setToast("Your editable Afterglow copy has a new project ID, local PPF and rolling-backup path. No GitHub repository is connected until you choose one.");
+      await connectionState.refresh();
     } catch (error) {
-      setSaveState("Saved on this device");
-      setToast(error instanceof Error ? error.message : "Afterglow could not be loaded.");
+      setSaveState("Read-only PlotPickle example");
+      setToast(error instanceof Error ? error.message : "The editable Afterglow copy could not be created.");
+    } finally {
+      setAfterglowCopyWorking(false);
     }
   }
 
-  async function toggleAfterglowGitHub(enabled: boolean) {
-    let target = project;
-    if (enabled && project.id !== AFTERGLOW_PROJECT_ID) {
-      if (completion > 0 && !window.confirm("Replace the current project with Afterglow and connect its GitHub repository? Export first if you want a backup.")) return;
-      target = createAfterglowProject();
-    }
-    setSaveState(enabled ? "Connecting Afterglow repository…" : "Returning Afterglow to local loading…");
-    try {
-      const next = enabled
-        ? await afterglowPersistence.enable(target)
-        : await afterglowPersistence.disable(project);
-      setProject(next);
-      if (enabled) {
-        setSelectedCharacterId("ren");
-        setSelectedBlockNumber(1);
-        setSelectedMiniBlockNumber(1);
-        setActiveSection("overview");
-      }
-      setSaveState(enabled ? "Saved in persistent Afterglow project folder" : "Saved on this device");
-      setToast(enabled
-        ? "Afterglow GitHub repository connected. Local edits are persistent; repository pull and publish remain reviewed actions."
-        : "Afterglow returned to local loading mode. Its persistent project and backups were kept.");
-      await connectionState.refresh();
-    } catch (error) {
-      setSaveState("Saved on this device");
-      setToast(error instanceof Error ? error.message : "The Afterglow persistence setting could not be changed.");
-    }
+  function resetAfterglow() {
+    if (!isAfterglowExampleProject(project)) return;
+    if (!window.confirm("Reset the bundled Afterglow example to its original PlotPickle state? Your separate copies are not affected.")) return;
+    const candidate = createAfterglowProject();
+    const reset = synchronizeScreenplaySceneReferences(candidate, candidate.blocks);
+    window.localStorage.setItem(AFTERGLOW_EXAMPLE_ACTIVE_KEY, "true");
+    setProject(reset);
+    setSelectedCharacterId("ren");
+    setSelectedBlockNumber(1);
+    setSelectedMiniBlockNumber(1);
+    setActiveTab("planner");
+    setActiveSection("overview");
+    setSaveState("Read-only PlotPickle example");
+    setToast("The bundled Afterglow example was reset. Your local copies and repositories were not changed.");
+  }
+
+  function openAfterglowGraphicNovel() {
+    setActiveTab("pitch");
+    setToast("Opened Afterglow’s sample Graphic Novel workspace. The example remains read-only until you make a copy.");
   }
 
   function exportProject() {
@@ -561,6 +600,7 @@ export default function Home() {
     const hasCurrentWork = completion > 0 || Boolean(project.screenplay.sourceText);
     if (hasCurrentWork && !window.confirm(`Replace “${project.metadata.title}” with ${screenplay.fileName}? Export first if you want a separate backup.`)) return false;
     const imported = createProjectFromScreenplay(screenplay);
+    window.localStorage.removeItem(AFTERGLOW_EXAMPLE_ACTIVE_KEY);
     setSaveState("Saving…");
     const synchronized = synchronizeScreenplaySceneReferences(imported, imported.blocks);
     setProject(synchronized);
@@ -743,6 +783,15 @@ export default function Home() {
         </div>
       </div>
 
+      {afterglowExample ? (
+        <AfterglowExampleBoundary
+          working={afterglowCopyWorking}
+          onMakeCopy={() => { void makeAfterglowCopy(); }}
+          onReset={resetAfterglow}
+          onOpenGraphicNovel={openAfterglowGraphicNovel}
+        />
+      ) : null}
+
       {reportReturnSection && activeTab !== "reports" ? (
         <div className="project-strip" role="status">
           <div className="project-title">
@@ -773,16 +822,16 @@ export default function Home() {
             saveState={saveState}
             settings={connectionState.settings}
             connectionStatus={connectionState.snapshot}
-            afterglow={afterglowPersistence.dashboard}
-            afterglowWorking={afterglowPersistence.working}
-            afterglowMessage={afterglowPersistence.message}
+            afterglowCopyWorking={afterglowCopyWorking}
             onNavigate={(workspace, section) => {
               setActiveTab(workspace);
               if (workspace === "planner" && section) setActiveSection(section as StorySection);
             }}
             onOpenBlock={(number) => openBlock(number, "planner")}
             onLoadAfterglow={() => { void loadAfterglow(); }}
-            onToggleAfterglowGitHub={(enabled) => { void toggleAfterglowGitHub(enabled); }}
+            onMakeAfterglowCopy={() => { void makeAfterglowCopy(); }}
+            onResetAfterglow={resetAfterglow}
+            onOpenAfterglowGraphicNovel={openAfterglowGraphicNovel}
           />
         ) : null}
 

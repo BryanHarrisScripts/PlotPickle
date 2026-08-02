@@ -1,0 +1,64 @@
+name: Repomix PR 281
+
+on:
+  push:
+    branches:
+      - agent/afterglow-example-boundary
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/repomix-pr-281.yml'
+      - 'app/**'
+      - 'build/**'
+      - 'data/**'
+      - 'lib/**'
+      - 'server/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+
+permissions:
+  contents: read
+
+jobs:
+  pack:
+    name: Pack active Phase 5 branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out exact commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Pack repository with Repomix
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes repomix@latest \
+            --style xml \
+            --parsable-style \
+            --output-show-line-numbers \
+            --token-count-tree 1000 \
+            --output repomix-output.xml \
+            --ignore '.env,.env.*,**/.env,**/.env.*,**/*.pem,**/*.key,**/*.p12,**/*.pfx,**/credentials.json,**/secrets.json,**/.npmrc,**/.yarnrc,node_modules/**,dist/**,build/**,release/**,out/**,coverage/**,.next/**,.vite/**,.cache/**,artifacts/**,test-results/**,playwright-report/**,repomix-output.*'
+          test -s repomix-output.xml
+          sha256sum repomix-output.xml > repomix-output.sha256
+          wc -c repomix-output.xml > repomix-output.bytes.txt
+
+      - name: Upload private diagnostic artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: repomix-pr-281-${{ github.sha }}
+          path: |
+            repomix-output.xml
+            repomix-output.sha256
+            repomix-output.bytes.txt
+          retention-days: 7
+          if-no-files-found: error

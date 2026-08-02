@@ -26,7 +26,9 @@ test("provider choices preserve OpenAI focus without provider lock-in", () => {
 
 test("OpenAI video is a replaceable unavailable capability", () => {
   assert.match(providers, /OPENAI_VIDEO_SUNSET = "2026-09-24"/);
-  assert.doesNotMatch(providers, /capabilities: \[[^\]]*"video-generation"/s);
+  const openAiPreset = providers.slice(providers.indexOf('kind: "openai"'), providers.indexOf('kind: "minimax"'));
+  assert.doesNotMatch(openAiPreset, /capabilities: \[[^\]]*"video-generation"/s);
+  assert.match(providers, /kind: "minimax"[\s\S]*capabilities: \[[^\]]*"video-generation"/);
   assert.match(adapters, /video-provider-unavailable/);
   assert.match(architecture, /replaceable asynchronous video-job contract/);
 });

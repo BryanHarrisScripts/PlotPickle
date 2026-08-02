@@ -29,6 +29,7 @@ for (const file of [
   "scripts/github-app-registration.mjs",
   "scripts/google-oauth-registration.mjs",
   "scripts/install-buzz-desktop.ps1",
+  "scripts/install-local-ai-tool.ps1",
   "scripts/windows-runtime.mjs",
   "scripts/windows-server-smoke.mjs",
 ]) {
@@ -101,6 +102,8 @@ assert.match(launcherSource, /config[\\/]google-oauth\.json/);
 assert.ok(!launcherSource.includes("0.0.0.0"), "Release launcher must remain loopback-only.");
 if (manifest.platform === "windows") {
   assert.match(launcherSource, /scripts\\install-buzz-desktop\.ps1/i);
+  assert.match(launcherSource, /scripts\\install-local-ai-tool\.ps1/i);
+  assert.match(launcherSource, /Install %LOCAL_AI_TOOL% now\? \[Y\/N\]:/);
   assert.match(launcherSource, /Install Buzz Desktop !BUZZ_DESKTOP_VERSION! now\? \[Y\/N\]:/);
   assert.match(launcherSource, /PlotPickle will continue normally/);
 }

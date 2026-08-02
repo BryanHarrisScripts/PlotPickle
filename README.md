@@ -97,17 +97,33 @@ PlotPickle does not embed or advertise unverified platform-native Buzz executabl
 
 Developer Mode and coding agents remain future explicit capabilities. Any later coding integration is limited to isolated worktrees, branch-only changes, test evidence and human-controlled GitHub publishing. Agents may not read the PlotPickle credential vault or unrelated PPF folders.
 
+## Three creative-compute paths
+
+Creative-compute choice is separate from Local Story, Writers' Room and Repository Collaboration modes. Every collaboration mode can use any of these three paths:
+
+| Path | Writing and planning | Graphic Novel images | Required setup |
+|---|---|---|---|
+| **Local AI** | Ollama on `127.0.0.1:11434` | ComfyUI on `127.0.0.1:8188` | Separate optional applications plus separately selected local models/checkpoints |
+| **Cloud AI** | OpenAI or another reviewed compatible provider | OpenAI or another reviewed image provider | The writer's own account, API key and provider billing |
+| **No AI** | Manual writing and planning | Manual image import, comparison and approval | Nothing beyond PlotPickle |
+
+The Windows launcher detects Ollama and ComfyUI separately and offers each missing application with its own Y/N choice. Declining, cancelling or failing either installation never prevents PlotPickle from starting. PlotPickle does not silently download language models, image checkpoints, custom nodes or workflows, and a local-service failure never activates cloud fallback.
+
+A green local readiness light means the loopback service responded and at least one relevant local model or checkpoint is available. A running service without a model/checkpoint remains yellow. Grey means optional and unused. Red is reserved for a previously verified service that later stops responding.
+
+ComfyUI installation and health detection do not yet claim a finished Graphic Novel generation adapter. Until a reviewed one-panel-at-a-time workflow is connected, manual image import and the existing reviewed cloud path remain the honest active image routes.
+
 ## Optional connections
 
 PlotPickle's complete local creative core works without external accounts or API keys.
 
 | Settings area | Purpose | Default |
 |---|---|---|
-| **Story & Art** | Optional OpenAI, compatible-server, Ollama, manual-prompt or no-AI operation | Disconnected |
+| **Story & Art** | Ollama for local writing, OpenAI/compatible cloud AI, or No AI | Disconnected |
 | **Repository & Collab** | Optional GitHub repository history, Story Proposals, approvals and recovery | Disconnected |
 | **Scheduling & Meetings** | Optional Google Calendar and Meet | Disconnected |
 | **Buzz** | Optional Story Rooms, encrypted relay identity and managed local relay | Not configured |
-| **Media & Film Engines** | Future extension; no active API | Unavailable |
+| **Media & Film Engines** | ComfyUI detection and setup guidance; reviewed generation adapter remains future work | Unavailable |
 
 Provider-neutral render packages, automated returned-asset ingestion and third-party movie-rendering connectors are not active development commitments. Pika Labs, Runway and other media engines remain future extensions unless a separate verified implementation is approved.
 
@@ -129,10 +145,13 @@ Each release candidate is built on its target operating system and published wit
 
 1. Download and extract the Windows archive.
 2. Double-click `Start-PlotPickle.bat`.
-3. Review the transparent dependency plan.
-4. Approve installation only when the required runtime is missing.
-5. Keep the command window open while using PlotPickle.
-6. Press `Ctrl+C` to stop the local server.
+3. Review the transparent PlotPickle dependency plan.
+4. Approve installation only when the required PlotPickle runtime is missing.
+5. Answer the separate Ollama Y/N offer for optional local writing and planning.
+6. Answer the separate ComfyUI Y/N offer for optional local image generation.
+7. Add language models or image checkpoints later inside their own applications; PlotPickle does not download them automatically.
+8. Keep the command window open while using PlotPickle.
+9. Press `Ctrl+C` to stop the local server.
 
 PlotPickle binds to `127.0.0.1`. Replaceable application files remain separate from persistent runtime packages, local projects, credentials, backups and optional Buzz data.
 

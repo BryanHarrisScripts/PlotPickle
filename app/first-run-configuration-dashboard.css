@@ -1,6 +1,7 @@
 /* Phase 1: make the live Configuration Dashboard the front door without removing existing diagnostics. */
 #dashboard-setup{order:-20}
 #dashboard-setup>.plotpickle-config-host{display:block}
+#dashboard-setup>.plotpickle-config-host>*+*{margin-top:18px}
 #dashboard-setup:not(.configuration-details-open)>:not(.plotpickle-config-host){display:none!important}
 #dashboard-setup.configuration-details-open>:not(.plotpickle-config-host){margin-top:20px}
 #dashboard-setup.configuration-details-open>header{display:flex}

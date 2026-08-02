@@ -94,7 +94,10 @@ test("phase 5 creates an independent editable copy with a new identity and no re
   assert.equal(copy.metadata.subtitle, "Personal PlotPickle project copied from the Afterglow example");
   assert.equal(copy.metadata.status, "Planning");
   assert.equal(copy.metadata.createdAt, "2026-08-02T20:30:00.000Z");
-  assert.notStrictEqual(copy.story, example.story);
+  assert.deepEqual(JSON.parse(JSON.stringify(copy.story)), { premise: "Example canon" });
+  copy.story.premise = "Changed only in copy";
+  assert.equal(copy.story.premise, "Changed only in copy");
+  assert.equal(example.story.premise, "Example canon");
   assert.deepEqual(JSON.parse(JSON.stringify(copy.collaboration)), {
     provider: "none",
     repositoryUrl: "",

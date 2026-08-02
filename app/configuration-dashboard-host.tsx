@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import ConfigurationDashboardOverview from "./configuration-dashboard-overview";
+import ProjectStorageModePanel from "./project-storage-mode-panel";
 import WritingAssistantConsole from "./writing-assistant-console";
 import MediaRoutingPanel from "./media-routing-panel";
 
@@ -92,6 +93,7 @@ export default function ConfigurationDashboardHost() {
         onToggleDetails={toggleDetails}
         detailsOpen={detailsOpen}
       />
+      <ProjectStorageModePanel onManage={openSettings} />
       <WritingAssistantConsole onManage={openSettings} />
       <MediaRoutingPanel onManage={openSettings} />
     </>,

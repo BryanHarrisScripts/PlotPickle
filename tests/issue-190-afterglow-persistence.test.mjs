@@ -201,3 +201,14 @@ test("phase 5 removes the old persistence hook while retaining the focused regre
     "node --test tests/issue-190-afterglow-persistence.test.mjs",
   );
 });
+
+test("phase 5 preserves shared dashboard accessibility and treatment guidance", async () => {
+  const [dashboard, page] = await Promise.all([
+    source("app/dashboard-command-centre.tsx"),
+    source("app/page.tsx"),
+  ]);
+  assert.match(dashboard, /RefreshAction/);
+  assert.match(dashboard, /source\.isBundledExample && afterglowMessage/);
+  assert.match(page, /all 96 Treatment positions/);
+  assert.match(page, /Unreconciled material is clearly marked/);
+});

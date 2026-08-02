@@ -52,54 +52,36 @@
 }
 
 .actions {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 14px;
-  align-items: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }
 
 .actions > button {
-  align-self: center;
-  border: 0;
+  border: 1px solid rgba(23, 63, 53, 0.2);
   border-radius: 12px;
   padding: 11px 15px;
-  background: #173f35;
-  color: #fff;
+  background: rgba(255, 255, 255, 0.9);
+  color: #173f35;
+  font: inherit;
   font-weight: 800;
   cursor: pointer;
+}
+
+.actions > button:first-child {
+  border-color: #173f35;
+  background: #173f35;
+  color: #fff;
+}
+
+.actions > button:hover:not(:disabled) {
+  border-color: #187a5a;
 }
 
 .actions > button:disabled {
   cursor: wait;
   opacity: 0.62;
-}
-
-.switch {
-  display: flex;
-  justify-content: space-between;
-  gap: 18px;
-  align-items: center;
-  padding: 13px 15px;
-  border-radius: 14px;
-  background: rgba(25, 63, 53, 0.045);
-}
-
-.switch > span {
-  display: grid;
-  gap: 4px;
-}
-
-.switch small {
-  color: var(--muted, #5e6d68);
-  line-height: 1.35;
-}
-
-.switch input {
-  width: 2.7rem;
-  height: 1.4rem;
-  flex: 0 0 auto;
-  accent-color: #187a5a;
-  cursor: pointer;
 }
 
 .notice {
@@ -110,14 +92,11 @@
 
 @media (max-width: 700px) {
   .actions {
-    grid-template-columns: 1fr;
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .actions > button {
-    justify-self: start;
-  }
-
-  .switch {
-    align-items: start;
+    width: 100%;
   }
 }

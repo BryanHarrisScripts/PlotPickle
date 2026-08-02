@@ -1,0 +1,76 @@
+name: Phase 5 failure diagnostics
+
+on:
+  push:
+    branches:
+      - agent/afterglow-example-boundary
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm run install:ci
+
+      - name: Reproduce build and tests
+        id: reproduce
+        shell: bash
+        run: |
+          set +e
+          npm run test:ci > phase5-test.log 2>&1
+          status=$?
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Extract sanitized failure context
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const lines = fs.readFileSync('phase5-test.log', 'utf8').split(/\r?\n/);
+          const markers = /(?:not ok|ERR_ASSERTION|AssertionError|failureType|error:|tests? failed|# fail\b)/i;
+          const picked = new Set();
+          for (let index = 0; index < lines.length; index += 1) {
+            if (!markers.test(lines[index])) continue;
+            for (let offset = Math.max(0, index - 8); offset <= Math.min(lines.length - 1, index + 24); offset += 1) {
+              picked.add(offset);
+            }
+          }
+          for (let index = Math.max(0, lines.length - 80); index < lines.length; index += 1) picked.add(index);
+          const excerpt = [...picked].sort((a, b) => a - b).map((index) => lines[index]).join('\n');
+          const safe = excerpt
+            .replace(/(?:sk-[A-Za-z0-9_-]{12,}|AIza[A-Za-z0-9_-]{20,})/g, '[redacted-key]')
+            .slice(0, 60000);
+          fs.writeFileSync('phase5-diagnostics.md', [
+            '### Temporary Phase 5 CI diagnostics',
+            '',
+            `Commit: ${process.env.GITHUB_SHA}`,
+            '',
+            '```text',
+            safe || 'No matching failure lines were captured.',
+            '```',
+          ].join('\n'));
+          NODE
+
+      - name: Post diagnostics to PR 281
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr comment 281 --body-file phase5-diagnostics.md
+
+      - name: Preserve failing status
+        if: steps.reproduce.outputs.exit_code != '0'
+        run: exit 1

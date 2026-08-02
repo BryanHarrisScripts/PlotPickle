@@ -46,6 +46,28 @@ export const providerPresets: ProviderPreset[] = [
     ],
   },
   {
+    kind: "minimax",
+    label: "MiniMax API",
+    description: "Optional BYOK cloud writing, image and H3 video provider. Charges go directly to the writer's MiniMax account.",
+    testedFocus: true,
+    defaultConfig: {
+      kind: "minimax",
+      baseUrl: "https://api.minimax.io",
+      enabled: true,
+      secretSource: "session",
+      capabilities: ["text", "image-generation", "image-editing", "video-generation", "prompt-export"],
+      models: {
+        text: "MiniMax-M3",
+        image: "image-01",
+        video: "MiniMax-H3",
+      },
+    },
+    limitations: [
+      "Bring your own provider account. Cloud AI charges are billed directly by MiniMax. PlotPickle does not supply credits or pay for generation.",
+      "MiniMax receives only the prompt and media named in the confirmation shown before a paid request.",
+    ],
+  },
+  {
     kind: "openai-compatible",
     label: "OpenAI-compatible server",
     description: "Connect a hosted or local server that implements a compatible chat-completions endpoint.",
@@ -125,6 +147,7 @@ export interface AiProviderAdapter {
   generateImage(request: AiImageRequest): Promise<AiImageResult>;
   createVideo(request: AiVideoRequest): Promise<AiVideoJob>;
   getVideoJob(id: string): Promise<AiVideoJob>;
+  cancelVideoJob(id: string): Promise<AiVideoJob>;
 }
 
 export function hasCapability(config: AiProviderConfig, capability: AiCapability) {

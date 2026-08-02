@@ -123,7 +123,8 @@ export default function SetupConnectionsDashboard({
   }, []);
 
   useEffect(() => {
-    void refreshBuzz();
+    const timer = window.setTimeout(() => { void refreshBuzz(); }, 0);
+    return () => window.clearTimeout(timer);
   }, [refreshBuzz]);
 
   async function testAllConnections() {

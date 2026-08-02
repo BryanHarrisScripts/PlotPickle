@@ -6,4 +6,6 @@
 #dashboard-setup.configuration-details-open>header{display:flex}
 #dashboard-setup.configuration-details-open>aside{display:flex}
 #dashboard-setup.configuration-details-open>.plotpickle-config-host{margin-bottom:8px}
+/* Afterglow is explained on the marketing preview, but a blank live user project must remain project-generic. */
+.plotpickle-config-host [data-variant="live"] aside>div:last-child{display:none!important}
 @media(max-width:700px){#dashboard-setup.configuration-details-open>header{display:grid}}

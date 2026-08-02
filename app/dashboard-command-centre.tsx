@@ -7,6 +7,7 @@ import type { ConnectionStatusSnapshot } from "@/lib/connection-status";
 import { createDashboardCommandCentreModel, type DashboardTarget, type DashboardTone } from "@/lib/dashboard-command-centre";
 import type { PlotPickleProject } from "@/lib/project";
 import type { ProductNavigationId } from "@/lib/product-direction";
+import RefreshAction from "./refresh-action";
 import SetupConnectionsDashboard from "./setup-connections-dashboard";
 import styles from "./dashboard-command-centre.module.css";
 import sourceStyles from "./dashboard-afterglow.module.css";
@@ -160,6 +161,9 @@ export default function DashboardCommandCentre({
     () => currentProjectSource(project, saveState, connectionStatus),
     [project, saveState, connectionStatus],
   );
+  const afterglowMessage = source.isBundledExample
+    ? "The original Afterglow project ID, bundled assets and source repository remain protected. Your copy receives a new ID and starts with no GitHub destination."
+    : "";
 
   function openTarget(target: DashboardTarget) {
     if (target.blockNumber) {
@@ -233,10 +237,10 @@ export default function DashboardCommandCentre({
                 </button>
                 <button type="button" onClick={onOpenAfterglowGraphicNovel}>Open Sample Graphic Novel</button>
                 <button type="button" onClick={onResetAfterglow}>Reset Example</button>
-                <button type="button" onClick={onLoadAfterglow}>Reload Bundled Example</button>
+                <RefreshAction label="Reload bundled example" working={afterglowCopyWorking} onClick={onLoadAfterglow} />
               </div>
             ) : null}
-            {source.isBundledExample ? <p className={sourceStyles.notice}>The original Afterglow project ID, bundled assets and source repository remain protected. Your copy receives a new ID and starts with no GitHub destination.</p> : null}
+            {source.isBundledExample && afterglowMessage ? <p className={sourceStyles.notice}>{afterglowMessage}</p> : null}
           </article>
         </section>
 

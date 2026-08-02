@@ -522,7 +522,7 @@ export default function Home() {
     setActiveTab("planner");
     setActiveSection("overview");
     setSaveState("Read-only PlotPickle example");
-    setToast("Afterglow — PlotPickle Example Story is open read-only. Explore freely, then choose Make My Own Copy before editing.");
+    setToast("Afterglow — PlotPickle Example Story is open read-only across the Story Planner, all 96 Treatment positions, and Visual Storyboard context. Unreconciled material is clearly marked. Choose Make My Own Copy before editing.");
   }
 
   async function saveProjectToLocalLibrary(next: PlotPickleProject) {

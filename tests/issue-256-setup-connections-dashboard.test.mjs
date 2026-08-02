@@ -75,6 +75,40 @@ test("issue #256 uses verified lifecycle semantics and tests all real connection
   assert.match(setup, /connection\.state === "error" && connection\.lastSuccessfulConnection/);
 });
 
+test("first-run configuration overview is shared by marketing and the live Dashboard", async () => {
+  const overview = await source("app/configuration-dashboard-overview.tsx");
+  const host = await source("app/configuration-dashboard-host.tsx");
+  const splash = await source("app/marketing-splash.tsx");
+  const layout = await source("app/layout.tsx");
+  const ordering = await source("app/first-run-configuration-dashboard.css");
+
+  for (const phrase of [
+    "Local Story Mode",
+    "Writers’ Room Mode",
+    "Repository Collaboration Mode",
+    "Ollama Local LLM",
+    "OpenAI API",
+    "MiniMax-M3 text · image-01 · MiniMax-H3 video",
+    "ComfyUI",
+    "GitHub Story Repository",
+    "Buzz Account & Community",
+    "Google Calendar & Meet",
+    "Afterglow is an example story",
+    "Show detailed setup and tests",
+  ]) assert.ok(overview.includes(phrase), `First-run overview is missing: ${phrase}`);
+
+  assert.doesNotMatch(overview, /Anthropic|Modal|Runway|Pika Labs|future provider/i);
+  assert.match(host, /createPortal/);
+  assert.match(host, /#dashboard-setup/);
+  assert.match(host, /test all connections/i);
+  assert.match(splash, /ConfigurationDashboardOverview/);
+  assert.match(splash, /children: \[children\[0\], preview/);
+  assert.match(layout, /ConfigurationDashboardHost/);
+  assert.match(layout, /first-run-configuration-dashboard\.css/);
+  assert.match(ordering, /#dashboard-setup\{order:-20\}/);
+  assert.match(ordering, /configuration-details-open/);
+});
+
 test("issue #256 setup Dashboard test is registered", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   assert.match(packageJson.scripts.test, /issue-256-setup-connections-dashboard\.test\.mjs/);

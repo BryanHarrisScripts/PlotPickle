@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import CollaborationWorkspaceRouter from "./collaboration-workspace-router";
+import ConfigurationDashboardHost from "./configuration-dashboard-host";
 import CurrentDownloadLinks from "./current-download-links";
 import GitHubAppReleaseGuidance from "./github-app-release-guidance";
 import GraphicNovelTerminology from "./graphic-novel-terminology";
@@ -13,6 +14,7 @@ import "./engine-ux-cleanup.css";
 import "./premium-ui.css";
 import "./minimal-navigation.css";
 import "./issue-208-polish.css";
+import "./first-run-configuration-dashboard.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle — Visual Storyworld Collaboration and Previsualization",
@@ -48,6 +50,7 @@ export default function RootLayout({
         } as React.CSSProperties}
       >
         {children}
+        <ConfigurationDashboardHost />
         <WriterFacingCollaborationLanguage />
         <GraphicNovelTerminology />
         <GitHubAppReleaseGuidance />

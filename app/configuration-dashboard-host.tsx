@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import ConfigurationDashboardOverview from "./configuration-dashboard-overview";
+import WritingAssistantConsole from "./writing-assistant-console";
 
 const SETUP_SELECTOR = "#dashboard-setup";
 
@@ -81,14 +82,17 @@ export default function ConfigurationDashboardHost() {
   if (!portalTarget || !setupRoot) return null;
 
   return createPortal(
-    <ConfigurationDashboardOverview
-      variant="live"
-      sourceRoot={setupRoot}
-      onManage={openSettings}
-      onTest={testConnections}
-      onToggleDetails={toggleDetails}
-      detailsOpen={detailsOpen}
-    />,
+    <>
+      <ConfigurationDashboardOverview
+        variant="live"
+        sourceRoot={setupRoot}
+        onManage={openSettings}
+        onTest={testConnections}
+        onToggleDetails={toggleDetails}
+        detailsOpen={detailsOpen}
+      />
+      <WritingAssistantConsole onManage={openSettings} />
+    </>,
     portalTarget,
   );
 }

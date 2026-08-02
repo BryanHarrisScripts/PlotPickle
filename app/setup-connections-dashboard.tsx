@@ -258,7 +258,7 @@ export default function SetupConnectionsDashboard({
             id: "cloud-ai",
             label: "Cloud images & video · OpenAI, MiniMax or another provider",
             requirement: "Optional",
-            detail: `${cloudAi.detail} ChatGPT Plus does not include OpenAI API usage; API keys and billing are separate.`,
+            detail: `${cloudAi.detail} Cloud image generation · OpenAI or another provider remains supported, while MiniMax adds image-01 and H3 video. ChatGPT Plus does not include OpenAI API usage; API keys and billing are separate.`,
             settingsSection: "ai",
             links: [
               { label: "Create OpenAI API key", href: OPENAI_KEYS_URL },

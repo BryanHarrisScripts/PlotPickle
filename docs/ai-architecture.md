@@ -10,6 +10,20 @@ The interface may label the primary tested connection as **ChatGPT / OpenAI API*
 
 Users may instead select an OpenAI-compatible endpoint, a local Ollama server, manual prompt export, or no AI.
 
+## Three creative-compute paths
+
+Collaboration mode and creative-compute path are independent settings. Local Story, Writers' Room and Repository Collaboration projects may each use:
+
+1. **Local AI:** Ollama for writing and planning plus ComfyUI for local image generation. The applications, language models, image checkpoints, custom nodes and workflows remain separate installations. PlotPickle probes only `127.0.0.1:11434` and `127.0.0.1:8188`; it does not silently fall back to cloud services.
+2. **Cloud AI:** OpenAI or another reviewed compatible provider using the writer's own account, API key and billing.
+3. **No AI:** manual writing, planning and image import with no provider, model or account.
+
+The Windows launcher may offer the Ollama and ComfyUI applications separately with explicit Y/N consent. It never bundles or automatically downloads model weights, checkpoints or custom nodes. macOS and Linux expose official setup guidance until equivalent platform-specific installer flows are validated.
+
+A local service is green only when its loopback API responds and a relevant model or checkpoint is available. A running service without a model is yellow. An unused service is grey. Red requires a previously successful check followed by failure.
+
+ComfyUI installation, endpoint detection and checkpoint discovery are prerequisites, not a finished Graphic Novel connector. A later reviewed adapter must generate one panel at a time, support cancellation, preserve prompt/seed/workflow provenance, use approved references and require human approval before an asset becomes canonical.
+
 ## Five separations
 
 1. The PlotPickle project stores creative truth: story, characters, continuity, knowledge references, prompts, approved assets, and provenance.

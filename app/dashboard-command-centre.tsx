@@ -3,12 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import type { PlotPickleSettings } from "@/lib/ai/settings";
 import { AFTERGLOW_PROJECT_ID } from "@/lib/afterglow-persistence";
-import type { AfterglowDashboardState } from "@/lib/afterglow-persistence";
 import type { ConnectionStatusSnapshot } from "@/lib/connection-status";
 import { createDashboardCommandCentreModel, type DashboardTarget, type DashboardTone } from "@/lib/dashboard-command-centre";
 import type { PlotPickleProject } from "@/lib/project";
 import type { ProductNavigationId } from "@/lib/product-direction";
-import RefreshAction from "./refresh-action";
 import SetupConnectionsDashboard from "./setup-connections-dashboard";
 import styles from "./dashboard-command-centre.module.css";
 import sourceStyles from "./dashboard-afterglow.module.css";
@@ -26,13 +24,13 @@ type Props = {
   saveState: string;
   settings: PlotPickleSettings;
   connectionStatus: ConnectionStatusSnapshot;
-  afterglow: AfterglowDashboardState;
-  afterglowWorking: boolean;
-  afterglowMessage: string;
+  afterglowCopyWorking: boolean;
   onNavigate: (workspace: ProductNavigationId, section?: string) => void;
   onOpenBlock: (blockNumber: number) => void;
   onLoadAfterglow: () => void;
-  onToggleAfterglowGitHub: (enabled: boolean) => void;
+  onMakeAfterglowCopy: () => void;
+  onResetAfterglow: () => void;
+  onOpenAfterglowGraphicNovel: () => void;
 };
 
 function formatDate(value: string) {
@@ -52,7 +50,6 @@ function currentProjectSource(
   project: PlotPickleProject,
   saveState: string,
   connectionStatus: ConnectionStatusSnapshot,
-  afterglow: AfterglowDashboardState,
 ) {
   const isBundledExample = project.id === AFTERGLOW_PROJECT_ID;
   const collaboration = project.collaboration;
@@ -64,35 +61,17 @@ function currentProjectSource(
   const approvedCommit = collaboration.lastPulledCommit;
   const proposedCommit = collaboration.lastPushedCommit;
 
-  if (isBundledExample && afterglow.id === "github-repository-connected") {
-    return {
-      isBundledExample,
-      tone: repositoryHealthy && localHealthy ? "green" as const : "red" as const,
-      label: "GitHub repository working copy",
-      detail: repositoryHealthy && localHealthy
-        ? `The loaded story is the persistent local working copy linked to ${repository} on ${branch}.`
-        : "The GitHub-backed example is selected, but its local folder or repository connection needs repair.",
-      repository,
-      branch,
-      local: saveState,
-      approved: approvedCommit ? `Approved commit ${approvedCommit.slice(0, 10)}` : "Approved story refresh required",
-      changes: proposedCommit && proposedCommit !== approvedCommit ? "A proposal or unpublished revision is recorded" : "No separate proposal is recorded",
-    };
-  }
-
   if (isBundledExample) {
     return {
       isBundledExample,
-      tone: localHealthy ? "green" as const : "red" as const,
-      label: "Bundled example loaded locally",
-      detail: localHealthy
-        ? "The current story is PlotPickle’s bundled example saved on this device. A configured repository does not change the loaded source until the user explicitly switches it."
-        : "The bundled example is selected, but local project storage is unavailable.",
-      repository,
-      branch,
-      local: saveState,
-      approved: repositoryConnected ? "Repository configured; approved story not loaded" : "No approved GitHub story selected",
-      changes: "Current edits remain local",
+      tone: "green" as const,
+      label: "Afterglow — PlotPickle Example Story",
+      detail: "This bundled project is read-only. Explore how its blocks, screenplay, characters and visuals connect, then choose Make My Own Copy before editing.",
+      repository: "Example source only — never a user destination",
+      branch: "",
+      local: "Read-only bundled example",
+      approved: "Bundled canonical example",
+      changes: "No edits, autosaves, pulls or publishes are allowed",
     };
   }
 
@@ -148,13 +127,13 @@ export default function DashboardCommandCentre({
   saveState,
   settings,
   connectionStatus,
-  afterglow,
-  afterglowWorking,
-  afterglowMessage,
+  afterglowCopyWorking,
   onNavigate,
   onOpenBlock,
   onLoadAfterglow,
-  onToggleAfterglowGitHub,
+  onMakeAfterglowCopy,
+  onResetAfterglow,
+  onOpenAfterglowGraphicNovel,
 }: Props) {
   const [learningCompleted, setLearningCompleted] = useState(0);
 
@@ -178,8 +157,8 @@ export default function DashboardCommandCentre({
     connectionStatus,
   }), [project, saveState, learningCompleted, settings, connectionStatus]);
   const source = useMemo(
-    () => currentProjectSource(project, saveState, connectionStatus, afterglow),
-    [project, saveState, connectionStatus, afterglow],
+    () => currentProjectSource(project, saveState, connectionStatus),
+    [project, saveState, connectionStatus],
   );
 
   function openTarget(target: DashboardTarget) {
@@ -243,29 +222,21 @@ export default function DashboardCommandCentre({
             <dl className={styles.projectDetails}>
               <div><dt>Project</dt><dd>{project.metadata.title || "Untitled project"}</dd></div>
               <div><dt>Local storage</dt><dd>{source.local}</dd></div>
-              <div><dt>GitHub repository</dt><dd>{source.repository}{source.repository !== "No repository connected" ? ` · ${source.branch}` : ""}</dd></div>
+              <div><dt>GitHub repository</dt><dd>{source.repository}{source.branch ? ` · ${source.branch}` : ""}</dd></div>
               <div><dt>Approved story</dt><dd>{source.approved}</dd></div>
               <div><dt>Working changes</dt><dd>{source.changes}</dd></div>
             </dl>
             {source.isBundledExample ? (
               <div className={sourceStyles.actions}>
-                <RefreshAction label={afterglow.id === "not-loaded" ? "Load bundled example" : "Reload current example source"} working={afterglowWorking} onClick={onLoadAfterglow} />
-                <label className={sourceStyles.switch}>
-                  <span>
-                    <strong>Use the example’s GitHub working copy</strong>
-                    <small>Turning this on explicitly switches the example to its persistent local folder and linked repository. It never changes another project.</small>
-                  </span>
-                  <input
-                    type="checkbox"
-                    role="switch"
-                    checked={afterglow.enabled}
-                    disabled={afterglowWorking || !afterglow.available}
-                    onChange={(event) => onToggleAfterglowGitHub(event.target.checked)}
-                  />
-                </label>
+                <button type="button" onClick={onMakeAfterglowCopy} disabled={afterglowCopyWorking}>
+                  {afterglowCopyWorking ? "Creating local copy…" : "Make My Own Copy"}
+                </button>
+                <button type="button" onClick={onOpenAfterglowGraphicNovel}>Open Sample Graphic Novel</button>
+                <button type="button" onClick={onResetAfterglow}>Reset Example</button>
+                <button type="button" onClick={onLoadAfterglow}>Reload Bundled Example</button>
               </div>
             ) : null}
-            {source.isBundledExample && afterglowMessage ? <p className={sourceStyles.notice}>{afterglowMessage}</p> : null}
+            {source.isBundledExample ? <p className={sourceStyles.notice}>The original Afterglow project ID, bundled assets and source repository remain protected. Your copy receives a new ID and starts with no GitHub destination.</p> : null}
           </article>
         </section>
 

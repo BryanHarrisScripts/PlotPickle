@@ -27,6 +27,15 @@ const CONNECTIONS_API = "/api/local-connections";
 const CREDENTIALS_API = `${CONNECTIONS_API}/credentials`;
 const GOOGLE_API = "/api/local-google/connection";
 
+const OLLAMA_TAGS_URL = "http://127.0.0.1:11434/api/tags";
+const COMFYUI_SYSTEM_URL = "http://127.0.0.1:8188/system_stats";
+const COMFYUI_CHECKPOINTS_URL = "http://127.0.0.1:8188/object_info/CheckpointLoaderSimple";
+const LOCAL_SERVICE_TIMEOUT_MS = 1_500;
+
+type LocalCreativeServiceId = "ollama" | "comfyui";
+type LocalCreativeServiceStatus = Omit<PublicConnectionStatus, "id"> & { id: LocalCreativeServiceId };
+const localServiceLastVerified: Record<LocalCreativeServiceId, string> = { ollama: "", comfyui: "" };
+
 type AiConnection = {
   version: 1;
   provider: string;
@@ -114,6 +123,135 @@ function status(
   };
 }
 
+function localServiceStatus(
+  id: LocalCreativeServiceId,
+  label: string,
+  patch: Partial<Omit<LocalCreativeServiceStatus, "id" | "label" | "optional">>,
+): LocalCreativeServiceStatus {
+  return {
+    id,
+    label,
+    state: "disconnected",
+    identity: "",
+    detail: "Optional local service is not running.",
+    lastSuccessfulConnection: localServiceLastVerified[id],
+    error: "",
+    repairGuidance: "Start the local application or use its official installer.",
+    dataShared: [],
+    scopes: [],
+    permissions: [],
+    optional: true,
+    ...patch,
+  };
+}
+
+async function fetchLoopbackJson(endpoint: string): Promise<Record<string, unknown>> {
+  const url = new URL(endpoint);
+  if (url.protocol !== "http:" || url.hostname !== "127.0.0.1") {
+    throw new Error("Local creative-service checks are restricted to 127.0.0.1.");
+  }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), LOCAL_SERVICE_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(`Local service returned HTTP ${response.status}.`);
+    const body = await response.json();
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("Local service returned an invalid response.");
+    return body as Record<string, unknown>;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function probeOllama(): Promise<LocalCreativeServiceStatus> {
+  const checkedAt = new Date().toISOString();
+  try {
+    const body = await fetchLoopbackJson(OLLAMA_TAGS_URL);
+    const models = Array.isArray(body.models)
+      ? body.models.filter((model): model is Record<string, unknown> => Boolean(model && typeof model === "object"))
+      : [];
+    if (models.length) localServiceLastVerified.ollama = checkedAt;
+    return localServiceStatus("ollama", "Ollama", {
+      state: models.length ? "connected" : "configured",
+      identity: models.length
+        ? models.map((model) => String(model.name || model.model || "")).filter(Boolean).slice(0, 3).join(", ")
+        : "Ollama is running",
+      detail: models.length
+        ? `${models.length} installed local writing model${models.length === 1 ? "" : "s"} available.`
+        : "Ollama is running, but no local writing model is installed yet.",
+      lastSuccessfulConnection: models.length ? checkedAt : localServiceLastVerified.ollama,
+      repairGuidance: models.length
+        ? "Select an installed Ollama model in Story & Art."
+        : "Install a compatible local model in Ollama, then test connections again.",
+      dataShared: ["Only explicitly selected story context; requests remain on 127.0.0.1"],
+      scopes: ["Local writing", "Story planning"],
+    });
+  } catch (error) {
+    const previous = localServiceLastVerified.ollama;
+    return localServiceStatus("ollama", "Ollama", {
+      state: previous ? "error" : "disconnected",
+      identity: previous ? "Previously verified on 127.0.0.1:11434" : "Not running on 127.0.0.1:11434",
+      detail: previous ? "The previously verified Ollama service is no longer responding." : "Ollama is optional and was not detected.",
+      lastSuccessfulConnection: previous,
+      error: error instanceof Error ? error.message : "Ollama health check failed.",
+    });
+  }
+}
+
+function comfyCheckpointNames(body: Record<string, unknown>) {
+  const loader = body.CheckpointLoaderSimple;
+  if (!loader || typeof loader !== "object" || Array.isArray(loader)) return [];
+  const input = (loader as Record<string, unknown>).input;
+  if (!input || typeof input !== "object" || Array.isArray(input)) return [];
+  const required = (input as Record<string, unknown>).required;
+  if (!required || typeof required !== "object" || Array.isArray(required)) return [];
+  const checkpoint = (required as Record<string, unknown>).ckpt_name;
+  if (!Array.isArray(checkpoint) || !Array.isArray(checkpoint[0])) return [];
+  return checkpoint[0].filter((name): name is string => typeof name === "string" && Boolean(name.trim()));
+}
+
+async function probeComfyUI(): Promise<LocalCreativeServiceStatus> {
+  const checkedAt = new Date().toISOString();
+  try {
+    const [system, loaders] = await Promise.all([
+      fetchLoopbackJson(COMFYUI_SYSTEM_URL),
+      fetchLoopbackJson(COMFYUI_CHECKPOINTS_URL),
+    ]);
+    const checkpoints = comfyCheckpointNames(loaders);
+    const systemInfo = system.system;
+    const version = systemInfo && typeof systemInfo === "object" && !Array.isArray(systemInfo)
+      ? String((systemInfo as Record<string, unknown>).comfyui_version || "")
+      : "";
+    if (checkpoints.length) localServiceLastVerified.comfyui = checkedAt;
+    return localServiceStatus("comfyui", "ComfyUI", {
+      state: checkpoints.length ? "connected" : "configured",
+      identity: [version ? `ComfyUI ${version}` : "ComfyUI is running", "127.0.0.1:8188"].join(" · "),
+      detail: checkpoints.length
+        ? `${checkpoints.length} local image checkpoint${checkpoints.length === 1 ? "" : "s"} available for reviewed workflows.`
+        : "ComfyUI is running, but no image checkpoint is available yet.",
+      lastSuccessfulConnection: checkpoints.length ? checkedAt : localServiceLastVerified.comfyui,
+      repairGuidance: checkpoints.length
+        ? "The local image engine is ready for a future reviewed Graphic Novel workflow."
+        : "Install an image checkpoint in ComfyUI, then test connections again.",
+      dataShared: ["Only explicitly submitted prompts and approved references; requests remain on 127.0.0.1"],
+      scopes: ["Local image generation"],
+    });
+  } catch (error) {
+    const previous = localServiceLastVerified.comfyui;
+    return localServiceStatus("comfyui", "ComfyUI", {
+      state: previous ? "error" : "disconnected",
+      identity: previous ? "Previously verified on 127.0.0.1:8188" : "Not running on 127.0.0.1:8188",
+      detail: previous ? "The previously verified ComfyUI service is no longer responding." : "ComfyUI is optional and was not detected.",
+      lastSuccessfulConnection: previous,
+      error: error instanceof Error ? error.message : "ComfyUI health check failed.",
+    });
+  }
+}
+
 async function countFiles(directory: string, extension: string) {
   try {
     return (await readdir(directory, { withFileTypes: true })).filter((entry) => entry.isFile() && entry.name.endsWith(extension)).length;
@@ -124,12 +262,14 @@ async function countFiles(directory: string, extension: string) {
 }
 
 async function aggregateStatus() {
-  const [ai, github, google, projectCount, backupCount] = await Promise.all([
+  const [ai, github, google, projectCount, backupCount, ollama, comfyui] = await Promise.all([
     readCredentialJson<AiConnection>(aiConnectionFile()),
     readCredentialJson<GitHubConnection>(githubConnectionFile()),
     readPublicGoogleConnection(),
     countFiles(projectsDirectory(), ".ppf"),
     countFiles(backupsDirectory(), ".ppf"),
+    probeOllama(),
+    probeComfyUI(),
   ]);
   const aiStatus = ai?.version === 1 && ai.provider ? status("ai", "AI providers", {
     state: "connected",
@@ -164,6 +304,8 @@ async function aggregateStatus() {
     github: githubStatus,
     ai: aiStatus,
     google,
+    ollama,
+    comfyui,
     storage: status("storage", "Storage", {
       state: "connected",
       identity: "This computer account",

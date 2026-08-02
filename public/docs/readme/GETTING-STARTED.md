@@ -27,6 +27,26 @@ PlotPickle requires Node.js 22.13 or newer. The first successful launch installs
 
 The command window is PlotPickle’s private local server. Closing it stops the application. The launcher binds to `127.0.0.1`, so the default local edition is available only on that computer.
 
+## Optional local AI choices
+
+After the required PlotPickle runtime is ready, the Windows launcher checks two separate optional applications:
+
+- **Ollama** for local writing and planning;
+- **ComfyUI** for local image generation.
+
+If either application is missing, PlotPickle displays a separate Y/N choice. No answer, cancellation or installer failure blocks PlotPickle. The visible installer uses the reviewed Windows Package Manager identity when available and otherwise opens the official vendor download page.
+
+Installing an application does not install its models. Ollama requires a separately selected language model. ComfyUI requires separately selected image checkpoints and reviewed workflows. These files can use substantial disk space. PlotPickle does not automatically install custom nodes, enable cloud fallback or send a local project to either service.
+
+The Setup & Connections dashboard reports:
+
+- green when the loopback service responds and a relevant model or checkpoint is available;
+- yellow when the service runs but still needs a model/checkpoint;
+- grey when the optional service is unused; and
+- red only when a previously verified service stops responding.
+
+Choose **No AI** to keep writing, planning and importing Graphic Novel images manually without any provider account, key or local model.
+
 ## Easy upgrades without reinstalling everything
 
 Application files and installed packages are separated:

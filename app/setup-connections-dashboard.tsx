@@ -14,6 +14,11 @@ const GITHUB_SIGNUP_URL = "https://github.com/signup";
 const GITHUB_NEW_REPOSITORY_URL = "https://github.com/new";
 const GOOGLE_CREDENTIALS_URL = "https://console.cloud.google.com/apis/credentials";
 const BUZZ_STATUS_API = "/api/local-buzz/status";
+const CONNECTIONS_STATUS_API = "/api/local-connections";
+const OLLAMA_SETUP_URL = "https://ollama.com/download";
+const OLLAMA_DOCS_URL = "https://docs.ollama.com/windows";
+const COMFYUI_SETUP_URL = "https://comfy.org/download";
+const COMFYUI_DOCS_URL = "https://docs.comfy.org/installation/desktop/windows";
 
 type SetupTone = "green" | "grey" | "yellow" | "red";
 
@@ -28,6 +33,19 @@ type BuzzStatus = {
   };
   relay?: { reachable?: boolean; checkedAt?: string; detail?: string };
   cli?: { available?: boolean; version?: string };
+};
+
+type SetupConnection = Omit<PublicConnectionStatus, "id"> & { id: string };
+type LocalCreativeServices = {
+  checkedAt?: string;
+  ollama?: SetupConnection;
+  comfyui?: SetupConnection;
+};
+type CreativePath = {
+  id: "local" | "cloud" | "manual";
+  title: string;
+  summary: string;
+  rows: SetupRow[];
 };
 
 type SetupLink = { label: string; href: string };
@@ -59,7 +77,7 @@ function formatCheckedAt(value: string) {
   return new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeStyle: "short" }).format(timestamp);
 }
 
-function toneForConnection(connection: PublicConnectionStatus): SetupTone {
+function toneForConnection(connection: SetupConnection): SetupTone {
   if (connection.state === "connected") return "green";
   if (connection.state === "error" && connection.lastSuccessfulConnection) return "red";
   if (["configured", "checking", "error", "unavailable"].includes(connection.state)) return "yellow";
@@ -77,7 +95,7 @@ function stateLabel(state: ConnectionState, optional = true) {
 }
 
 function rowFromConnection(
-  connection: PublicConnectionStatus,
+  connection: SetupConnection,
   patch: Partial<SetupRow> & Pick<SetupRow, "id" | "label" | "requirement">,
 ): SetupRow {
   return {
@@ -91,11 +109,6 @@ function rowFromConnection(
   };
 }
 
-function livePluginTone(connection: PublicConnectionStatus): SetupTone {
-  if (connection.state !== "connected") return toneForConnection(connection);
-  return connection.lastSuccessfulConnection ? "green" : "yellow";
-}
-
 export default function SetupConnectionsDashboard({
   connectionStatus,
   onOpenSettings,
@@ -106,6 +119,7 @@ export default function SetupConnectionsDashboard({
   const [buzz, setBuzz] = useState<BuzzStatus | null>(null);
   const [buzzError, setBuzzError] = useState("");
   const [buzzPreviouslyConnected, setBuzzPreviouslyConnected] = useState(false);
+  const [localServices, setLocalServices] = useState<LocalCreativeServices | null>(null);
   const [testing, setTesting] = useState(false);
 
   const refreshBuzz = useCallback(async () => {
@@ -122,15 +136,27 @@ export default function SetupConnectionsDashboard({
     }
   }, []);
 
+  const refreshLocalServices = useCallback(async () => {
+    try {
+      const response = await fetch(CONNECTIONS_STATUS_API, { headers: { Accept: "application/json" }, cache: "no-store" });
+      if (!response.ok) throw new Error("Local creative-service checks are unavailable.");
+      setLocalServices(await response.json() as LocalCreativeServices);
+    } catch {
+      setLocalServices(null);
+    }
+  }, []);
+
   useEffect(() => {
-    const timer = window.setTimeout(() => { void refreshBuzz(); }, 0);
+    const timer = window.setTimeout(() => {
+      void Promise.all([refreshBuzz(), refreshLocalServices()]);
+    }, 0);
     return () => window.clearTimeout(timer);
-  }, [refreshBuzz]);
+  }, [refreshBuzz, refreshLocalServices]);
 
   async function testAllConnections() {
     setTesting(true);
     requestConnectionStatusRefresh();
-    await refreshBuzz();
+    await Promise.all([refreshBuzz(), refreshLocalServices()]);
     window.setTimeout(() => setTesting(false), 700);
   }
 
@@ -163,11 +189,105 @@ export default function SetupConnectionsDashboard({
     ];
   }, [connectionStatus]);
 
+  const creativePaths = useMemo<CreativePath[]>(() => {
+    const fallback = (id: "ollama" | "comfyui", label: string, endpoint: string): SetupConnection => ({
+      id,
+      label,
+      state: "disconnected",
+      identity: `Not running on ${endpoint}`,
+      detail: `${label} is optional and was not detected.`,
+      lastSuccessfulConnection: "",
+      error: "",
+      repairGuidance: `Install or start ${label}, then test connections again.`,
+      dataShared: [],
+      scopes: [],
+      permissions: [],
+      optional: true,
+    });
+    const ollama = localServices?.ollama ?? fallback("ollama", "Ollama", "127.0.0.1:11434");
+    const comfyui = localServices?.comfyui ?? fallback("comfyui", "ComfyUI", "127.0.0.1:8188");
+    const savedAi = connectionStatus.items.ai;
+    const cloudProviderSelected = !/ollama|lm studio|local|manual|disabled|no ai/i.test(savedAi.identity);
+    const cloudAi: SetupConnection = cloudProviderSelected ? savedAi : {
+      ...savedAi,
+      state: "disconnected",
+      identity: "No cloud provider selected",
+      detail: "A local provider is selected. Cloud generation remains off unless the writer deliberately configures it.",
+      lastSuccessfulConnection: "",
+    };
+
+    return [
+      {
+        id: "local",
+        title: "1 · Local AI",
+        summary: "Keep writing context and image generation on this computer. Ollama and ComfyUI are installed and tested separately.",
+        rows: [
+          rowFromConnection(ollama, {
+            id: "ollama",
+            label: "Local writing & planning · Ollama",
+            requirement: "Optional",
+            detail: `${ollama.detail} PlotPickle offers a separate Y/N installation choice on Windows; language models are selected and downloaded separately.`,
+            settingsSection: "ai",
+            links: [
+              { label: "Download Ollama", href: OLLAMA_SETUP_URL },
+              { label: "Ollama Windows guide", href: OLLAMA_DOCS_URL },
+            ],
+          }),
+          rowFromConnection(comfyui, {
+            id: "comfyui",
+            label: "Local image generation · ComfyUI",
+            requirement: "Optional",
+            detail: `${comfyui.detail} PlotPickle offers a separate Y/N installation choice on Windows; checkpoints and reviewed workflows are configured separately.`,
+            settingsSection: "plugins",
+            links: [
+              { label: "Download ComfyUI", href: COMFYUI_SETUP_URL },
+              { label: "ComfyUI Windows guide", href: COMFYUI_DOCS_URL },
+            ],
+          }),
+        ],
+      },
+      {
+        id: "cloud",
+        title: "2 · Cloud AI",
+        summary: "Use OpenAI or another reviewed provider for optional cloud writing or image generation with the writer's own account and billing.",
+        rows: [
+          rowFromConnection(cloudAi, {
+            id: "cloud-ai",
+            label: "Cloud image generation · OpenAI or another provider",
+            requirement: "Optional",
+            detail: `${cloudAi.detail} ChatGPT Plus does not include OpenAI API usage; API keys and billing are separate.`,
+            settingsSection: "ai",
+            links: [
+              { label: "Create OpenAI API key", href: OPENAI_KEYS_URL },
+              { label: "OpenAI API billing", href: OPENAI_BILLING_URL },
+              { label: "OpenAI API quickstart", href: OPENAI_QUICKSTART_URL },
+            ],
+          }),
+        ],
+      },
+      {
+        id: "manual",
+        title: "3 · No AI",
+        summary: "Write, plan and build the Graphic Novel manually. No account, API key, local model or checkpoint is required.",
+        rows: [
+          {
+            id: "manual-import",
+            label: "Manual image import",
+            requirement: "Included",
+            tone: "green",
+            status: "Ready without AI",
+            detail: "Import, compare, replace and approve images manually. PlotPickle remains fully usable when every optional AI choice is declined.",
+            identity: "This PlotPickle installation",
+            checkedAt: connectionStatus.checkedAt,
+          },
+        ],
+      },
+    ];
+  }, [connectionStatus, localServices]);
+
   const optional = useMemo<SetupRow[]>(() => {
-    const ai = connectionStatus.items.ai;
     const github = connectionStatus.items.github;
     const google = connectionStatus.items.google;
-    const plugins = connectionStatus.items.plugins;
     const buzzConnected = Boolean(buzz?.connection?.configured && buzz.connection.identityVerified && buzz.relay?.reachable && buzz.cli?.available);
     const buzzPartiallyConfigured = Boolean(buzz?.connection?.configured || buzz?.cli?.available || buzz?.connection?.identityVerified);
     const buzzTone: SetupTone = buzzConnected
@@ -187,18 +307,6 @@ export default function SetupConnectionsDashboard({
           : "Optional — not configured";
 
     return [
-      rowFromConnection(ai, {
-        id: "ai",
-        label: "AI provider",
-        requirement: "Optional",
-        detail: `${ai.detail} ChatGPT Plus does not include OpenAI API usage; API keys and billing are separate.`,
-        settingsSection: "ai",
-        links: [
-          { label: "Create OpenAI API key", href: OPENAI_KEYS_URL },
-          { label: "OpenAI API billing", href: OPENAI_BILLING_URL },
-          { label: "OpenAI API quickstart", href: OPENAI_QUICKSTART_URL },
-        ],
-      }),
       {
         id: "buzz",
         label: "Buzz community",
@@ -234,18 +342,6 @@ export default function SetupConnectionsDashboard({
         settingsSection: "google",
         links: [{ label: "Google OAuth credentials", href: GOOGLE_CREDENTIALS_URL }],
       }),
-      {
-        ...rowFromConnection(plugins, {
-          id: "plugins",
-          label: "Local or external media engines",
-          requirement: "Optional",
-          settingsSection: "plugins",
-        }),
-        tone: livePluginTone(plugins),
-        status: plugins.state === "connected" && !plugins.lastSuccessfulConnection
-          ? "Enabled — live verification unavailable"
-          : stateLabel(plugins.state),
-      },
     ];
   }, [buzz, buzzError, buzzPreviouslyConnected, connectionStatus]);
 
@@ -301,7 +397,19 @@ export default function SetupConnectionsDashboard({
       </div>
 
       <div className={styles.group}>
-        <div className={styles.groupHeading}><span>Configured by the user when needed</span><strong>Optional accounts, keys or local services</strong></div>
+        <div className={styles.groupHeading}><span>Choose one of three creative-compute paths</span><strong>Local AI · Cloud AI · No AI</strong></div>
+        <div className={styles.pathGrid}>
+          {creativePaths.map((path) => (
+            <section className={styles.path} data-path={path.id} key={path.id}>
+              <header><h3>{path.title}</h3><p>{path.summary}</p></header>
+              <div className={styles.rows}>{path.rows.map(renderRow)}</div>
+            </section>
+          ))}
+        </div>
+      </div>
+
+      <div className={styles.group}>
+        <div className={styles.groupHeading}><span>Collaboration and scheduling services</span><strong>Configured separately when needed</strong></div>
         <div className={styles.rows}>{optional.map(renderRow)}</div>
       </div>
 

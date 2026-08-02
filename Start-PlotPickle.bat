@@ -9,6 +9,7 @@ set "VITE_CMD=node_modules\.bin\vite.cmd"
 set "SETUP_REPORT=scripts\windows-setup-report.mjs"
 set "RUNTIME_MANAGER=scripts\windows-runtime.mjs"
 set "BUZZ_INSTALLER=scripts\install-buzz-desktop.ps1"
+set "LOCAL_AI_INSTALLER=scripts\install-local-ai-tool.ps1"
 set "BUZZ_DESKTOP_VERSION=0.5.3"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
 set "INSTALL_PERFORMED=0"
@@ -35,7 +36,9 @@ echo ============================================================
 echo.
 echo PlotPickle runs on this computer and opens in your web browser.
 echo It does not install a Windows service and does not require Administrator rights.
-echo Buzz Desktop is optional; when missing, this launcher can offer its official visible installer.
+echo Ollama, ComfyUI, and Buzz Desktop are optional separate applications.
+echo When missing, this launcher can offer each reviewed visible installer with a separate Y/N choice.
+echo Language models, image checkpoints, custom nodes, and cloud fallback are never installed automatically.
 echo The local address 127.0.0.1 is private to this computer.
 echo Keep this window open while using PlotPickle; closing it stops the server.
 echo.
@@ -123,7 +126,7 @@ if "!SETUP_RESULT!"=="2" (
 if not "!SETUP_RESULT!"=="0" goto :setup_failed
 
 echo.
-echo [STEP 3 OF 4] Verifying installed components and checking optional Buzz Desktop...
+echo [STEP 3 OF 4] Verifying components and checking optional local tools...
 echo.
 if "!INSTALL_PERFORMED!"=="1" (
   node "%SETUP_REPORT%" success
@@ -132,6 +135,7 @@ if "!INSTALL_PERFORMED!"=="1" (
 )
 if errorlevel 1 goto :setup_failed
 
+call :ensure_local_creative_tools
 call :ensure_buzz_desktop
 
 echo.
@@ -155,6 +159,70 @@ if not "%EXIT_CODE%"=="0" (
 )
 pause
 exit /b %EXIT_CODE%
+
+:ensure_local_creative_tools
+if not exist "%LOCAL_AI_INSTALLER%" (
+  echo [INFO] The optional Ollama and ComfyUI installer helper is not included in this download.
+  echo PlotPickle will continue normally; both applications can still be installed separately.
+  exit /b 0
+)
+
+if not exist "%PLOTPICKLE_HOME%\setup" mkdir "%PLOTPICKLE_HOME%\setup" >nul 2>&1
+call :ensure_local_ai_tool Ollama "local writing and planning" "The Ollama application needs about 4 GB; language models can require tens to hundreds of GB." ollama
+call :ensure_local_ai_tool ComfyUI "local image generation" "Comfy Desktop needs at least 4.85 GB; checkpoints, outputs, and workflows need additional space." comfyui
+exit /b 0
+
+:ensure_local_ai_tool
+set "LOCAL_AI_TOOL=%~1"
+set "LOCAL_AI_PURPOSE=%~2"
+set "LOCAL_AI_SPACE=%~3"
+set "LOCAL_AI_MARKER=%PLOTPICKLE_HOME%\setup\%~4-offer-v1.txt"
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%LOCAL_AI_INSTALLER%" -Tool "%LOCAL_AI_TOOL%" -CheckOnly
+set "LOCAL_AI_CHECK_RESULT=!ERRORLEVEL!"
+if "!LOCAL_AI_CHECK_RESULT!"=="0" (
+  echo [OK] %LOCAL_AI_TOOL% detected for %LOCAL_AI_PURPOSE%.
+  exit /b 0
+)
+if not "!LOCAL_AI_CHECK_RESULT!"=="3" (
+  echo [WARNING] PlotPickle could not determine whether %LOCAL_AI_TOOL% is installed.
+  echo PlotPickle will continue without changing %LOCAL_AI_TOOL%.
+  exit /b 0
+)
+if exist "%LOCAL_AI_MARKER%" (
+  echo [INFO] %LOCAL_AI_TOOL% is not installed. The first-run offer was already answered.
+  echo Install it later from PlotPickle Setup and Connections if needed.
+  exit /b 0
+)
+
+echo.
+echo %LOCAL_AI_TOOL% is optional and provides %LOCAL_AI_PURPOSE%.
+echo %LOCAL_AI_SPACE%
+echo Models, checkpoints, custom nodes, and workflows are separate and will not be downloaded now.
+echo PlotPickle remains fully usable with No AI and manual image import.
+echo.
+choice /C YN /N /M "Install %LOCAL_AI_TOOL% now? [Y/N]: "
+if errorlevel 2 (
+  >"%LOCAL_AI_MARKER%" echo declined
+  echo [INFO] %LOCAL_AI_TOOL% installation skipped. PlotPickle will continue normally.
+  exit /b 0
+)
+
+echo.
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%LOCAL_AI_INSTALLER%" -Tool "%LOCAL_AI_TOOL%" -Install
+set "LOCAL_AI_INSTALL_RESULT=!ERRORLEVEL!"
+if "!LOCAL_AI_INSTALL_RESULT!"=="0" (
+  >"%LOCAL_AI_MARKER%" echo accepted
+  echo [SUCCESS] %LOCAL_AI_TOOL% installation step completed.
+  echo Start the application and add a model or checkpoint before expecting a green readiness light.
+) else if "!LOCAL_AI_INSTALL_RESULT!"=="5" (
+  >"%LOCAL_AI_MARKER%" echo official-download-opened
+  echo [INFO] The official %LOCAL_AI_TOOL% download page was opened for visible manual installation.
+) else (
+  echo [WARNING] %LOCAL_AI_TOOL% installation was not completed.
+  echo PlotPickle will continue normally and offer this optional step again next time.
+)
+exit /b 0
 
 :ensure_buzz_desktop
 if not exist "%BUZZ_INSTALLER%" (

@@ -1,157 +1,197 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
-import { stripTypeScriptTypes } from "node:module";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
+import vm from "node:vm";
+import ts from "typescript";
 
 const root = new URL("..", import.meta.url);
 const source = (filePath) => readFile(new URL(filePath, root), "utf8");
 
-async function persistenceContract() {
-  const compiled = stripTypeScriptTypes(await source("lib/afterglow-persistence.ts"), { mode: "transform" });
-  return import(`data:text/javascript;base64,${Buffer.from(compiled, "utf8").toString("base64")}`);
+async function exampleContract() {
+  const sourceText = await source("lib/afterglow-example.ts");
+  const compiled = ts.transpileModule(sourceText, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2022,
+    },
+  }).outputText;
+  const runtimeModule = { exports: {} };
+  const originalProjectId = "afterglow-echoes-of-sentience";
+  vm.runInNewContext(compiled, {
+    module: runtimeModule,
+    exports: runtimeModule.exports,
+    require(specifier) {
+      if (specifier === "./afterglow-persistence") {
+        return {
+          AFTERGLOW_PROJECT_ID: originalProjectId,
+          AFTERGLOW_PROJECT_TITLE: "Afterglow: Reflections of Sentience",
+        };
+      }
+      if (specifier === "./project") {
+        return {
+          cloneProject: (value) => JSON.parse(JSON.stringify(value)),
+          createBlankCollaboration: () => ({
+            provider: "none",
+            repositoryUrl: "",
+            sourceRepositoryUrl: "",
+            owner: "",
+            repo: "",
+            branch: "main",
+            projectPath: "",
+            syncEnabled: false,
+            lastPulledCommit: "",
+            lastPushedCommit: "",
+            connectedAt: "",
+            updatedAt: "2026-08-02T20:00:00.000Z",
+          }),
+        };
+      }
+      throw new Error(`Unexpected test import: ${specifier}`);
+    },
+    Math,
+    Date,
+  });
+  return runtimeModule.exports;
 }
 
-test("issue #190 derives the three Afterglow Dashboard states from verified state", async () => {
-  const contract = await persistenceContract();
-  const empty = {
-    ...contract.EMPTY_AFTERGLOW_PERSISTENCE_STATUS,
-    available: true,
-  };
-
-  const notLoaded = contract.deriveAfterglowDashboardState("untitled-story", empty);
-  assert.equal(notLoaded.id, "not-loaded");
-  assert.equal(notLoaded.label, "Afterglow not loaded");
-  assert.equal(notLoaded.enabled, false);
-
-  const local = contract.deriveAfterglowDashboardState(contract.AFTERGLOW_PROJECT_ID, empty);
-  assert.equal(local.id, "loaded-locally");
-  assert.equal(local.label, "Afterglow loaded locally");
-  assert.match(local.detail, /today’s default/i);
-
-  const connectedStatus = contract.normalizeAfterglowPersistenceStatus({
-    available: true,
-    enabled: true,
-    repository: {
-      owner: contract.AFTERGLOW_REPOSITORY_OWNER,
-      repo: contract.AFTERGLOW_REPOSITORY_NAME,
-      branch: "main",
-      projectPath: contract.AFTERGLOW_REPOSITORY_PROJECT_PATH,
-      ready: true,
-      verifiedAt: "2026-07-29T10:00:00.000Z",
+function exampleProject() {
+  return {
+    id: "afterglow-echoes-of-sentience",
+    metadata: {
+      title: "Afterglow: Reflections of Sentience",
+      subtitle: "A 24 Blocks story project",
+      status: "Imported",
+      createdAt: "2026-07-20T12:00:00.000Z",
+      updatedAt: "2026-07-20T12:00:00.000Z",
     },
-  }, true);
-  const connected = contract.deriveAfterglowDashboardState(contract.AFTERGLOW_PROJECT_ID, connectedStatus);
-  assert.equal(connected.id, "github-repository-connected");
-  assert.equal(connected.label, "Afterglow GitHub repository connected");
-  assert.equal(connected.localProjectAvailable, true);
+    story: { premise: "Example canon" },
+    characters: [{ id: "ren", name: "Ren" }],
+    blocks: [{ id: "block-01", number: 1 }],
+    collaboration: {
+      provider: "github",
+      owner: "BryanHarrisScripts",
+      repo: "Afterglow-Echoes-of-Sentience",
+      branch: "main",
+      syncEnabled: true,
+    },
+    extensions: { retained: { value: true } },
+  };
+}
 
-  const wrongRepository = contract.normalizeAfterglowPersistenceStatus({
-    available: true,
-    enabled: true,
-    repository: { owner: "BryanHarrisScripts", repo: "Another-Story", ready: true },
-  }, true);
-  assert.equal(wrongRepository.repository.ready, false);
-  assert.equal(
-    contract.deriveAfterglowDashboardState(contract.AFTERGLOW_PROJECT_ID, wrongRepository).id,
-    "loaded-locally",
-  );
-});
+test("phase 5 creates an independent editable copy with a new identity and no repository destination", async () => {
+  const contract = await exampleContract();
+  const example = exampleProject();
+  const before = JSON.stringify(example);
+  const copy = contract.createAfterglowEditableCopy(example, {
+    id: "afterglow-copy-test",
+    now: "2026-08-02T20:30:00.000Z",
+    title: "My Afterglow Study",
+  });
 
-test("issue #190 accepts only the stable Afterglow project and repository identities", async () => {
-  const contract = await persistenceContract();
-  assert.equal(contract.isAfterglowProjectId("afterglow-echoes-of-sentience"), true);
-  assert.equal(contract.isAfterglowProjectId("afterglow-copy"), false);
-  assert.equal(
-    contract.isExpectedAfterglowRepository("bryanharrisscripts", "afterglow-echoes-of-sentience"),
-    true,
-  );
-  assert.equal(contract.isExpectedAfterglowRepository("BryanHarrisScripts", "PlotPickle"), false);
-  assert.throws(
-    () => contract.afterglowCollaborationPatch({ owner: "BryanHarrisScripts", repo: "PlotPickle", ready: true }),
-    /expected Afterglow repository/i,
-  );
-  const patch = contract.afterglowCollaborationPatch({
-    owner: contract.AFTERGLOW_REPOSITORY_OWNER,
-    repo: contract.AFTERGLOW_REPOSITORY_NAME,
-    ready: true,
+  assert.equal(JSON.stringify(example), before, "The bundled example was mutated");
+  assert.equal(copy.id, "afterglow-copy-test");
+  assert.equal(copy.metadata.title, "My Afterglow Study");
+  assert.equal(copy.metadata.subtitle, "Personal PlotPickle project copied from the Afterglow example");
+  assert.equal(copy.metadata.status, "Planning");
+  assert.equal(copy.metadata.createdAt, "2026-08-02T20:30:00.000Z");
+  assert.notStrictEqual(copy.story, example.story);
+  assert.deepEqual(JSON.parse(JSON.stringify(copy.collaboration)), {
+    provider: "none",
+    repositoryUrl: "",
+    sourceRepositoryUrl: "",
+    owner: "",
+    repo: "",
     branch: "main",
-  }, "2026-07-29T10:00:00.000Z");
-  assert.equal(patch.provider, "github");
-  assert.equal(patch.syncEnabled, true);
-  assert.equal(patch.repositoryUrl, contract.AFTERGLOW_REPOSITORY_URL);
+    projectPath: "",
+    syncEnabled: false,
+    lastPulledCommit: "",
+    lastPushedCommit: "",
+    connectedAt: "",
+    updatedAt: "2026-08-02T20:00:00.000Z",
+  });
+  assert.equal(copy.extensions[contract.AFTERGLOW_EXAMPLE_SOURCE_EXTENSION].projectId, example.id);
+  assert.equal(copy.extensions[contract.AFTERGLOW_EXAMPLE_SOURCE_EXTENSION].readOnlySource, true);
+  assert.equal(contract.isAfterglowExampleProject(example), true);
+  assert.equal(contract.isAfterglowExampleProject(copy), false);
+  assert.equal(contract.isAfterglowDerivedCopy(copy), true);
+  assert.equal(contract.afterglowCopyFileName(copy), "afterglow-copy-test.ppf");
+  assert.throws(
+    () => contract.createAfterglowEditableCopy(example, { id: example.id }),
+    /new project ID/i,
+  );
+  assert.throws(
+    () => contract.createAfterglowEditableCopy({ ...example, id: "another-project" }),
+    /Only the bundled Afterglow example/i,
+  );
 });
 
-test("issue #190 persists only the opt-in preference outside the installation", async () => {
-  const gateway = await source("build/afterglow-project-gateway.ts");
+test("phase 5 makes the fixed-ID example read-only and preserves legacy work as a recovered copy", async () => {
+  const page = await source("app/page.tsx");
   for (const contract of [
-    'const STATE_FILE = "afterglow-persistence.json"',
-    "process.env.LOCALAPPDATA",
-    "process.env.PLOTPICKLE_HOME",
-    "readCredentialJson<GitHubConnection>(GITHUB_CONNECTION_FILE)",
-    "isExpectedAfterglowRepository",
-    "readiness?.ready !== true",
-    "${API}/status",
-    "${API}/enable",
-    "${API}/disable",
-    "The persistent local project has not been removed",
-  ]) assert.ok(gateway.includes(contract), `Afterglow gateway contract is missing: ${contract}`);
-  assert.doesNotMatch(gateway, /response\.end\(JSON\.stringify\(connection\)\)/);
-  assert.doesNotMatch(gateway, /\brm\(|unlink|deleteFile/);
+    "AFTERGLOW_EXAMPLE_ACTIVE_KEY",
+    "A previously editable Afterglow project was preserved as a new local copy",
+    "createAfterglowEditableCopy(normalized, { title:",
+    "Read-only PlotPickle example",
+    "isAfterglowExampleProject(project) && isAfterglowExampleProject(next)",
+    "Choose Make My Own Copy before changing canon, images, dialogue or project settings",
+    "window.localStorage.setItem(STORAGE_KEY, JSON.stringify(createAfterglowProject()))",
+    "Replace the current project with the read-only Afterglow example",
+  ]) assert.ok(page.includes(contract), `Missing read-only or migration contract: ${contract}`);
+
+  assert.doesNotMatch(page, /useAfterglowPersistence|afterglowPersistence\.|toggleAfterglowGitHub/);
+  assert.doesNotMatch(page, /\/api\/local-afterglow\/(?:enable|disable)/);
 });
 
-test("issue #190 reuses guarded repository setup, local folders and reviewed synchronization", async () => {
-  const hook = await source("app/use-afterglow-persistence.ts");
+test("phase 5 saves Make My Own Copy through the normal local project service before opening it", async () => {
+  const page = await source("app/page.tsx");
   for (const contract of [
-    "/api/local-github-app/select",
-    "AFTERGLOW_REPOSITORY_FULL_NAME",
-    "initializeMissingManifest",
-    "Existing repository files will be preserved",
-    "/api/local-github/connection/check",
-    "/api/local-github-sync/preview",
-    "/api/local-github-sync/pull",
-    "/api/local-projects/save",
-    "/api/local-projects/load?file=",
-    "fileName: AFTERGLOW_PROJECT_FILE",
-    "Opening the existing persistent Afterglow project",
-    "was not overwritten",
-    "/api/local-afterglow/enable",
-    "/api/local-afterglow/disable",
-    "GitHub publication remains a reviewed action",
-    "persistent Afterglow project opened locally",
-  ]) assert.ok(hook.includes(contract), `Afterglow client contract is missing: ${contract}`);
-  assert.doesNotMatch(hook, /\/api\/local-github-sync\/publish/);
-  assert.doesNotMatch(hook, /force-push|--force/);
+    "async function saveProjectToLocalLibrary",
+    'fetch("/api/local-projects/save"',
+    "fileName: afterglowCopyFileName(next)",
+    "async function makeAfterglowCopy",
+    "createAfterglowEditableCopy(project)",
+    "await saveProjectToLocalLibrary(copy)",
+    "setProject(copy)",
+    "new project ID, local PPF and rolling-backup path",
+    "No GitHub repository is connected until you choose one",
+  ]) assert.ok(page.includes(contract), `Missing copy workflow contract: ${contract}`);
+  assert.ok(page.indexOf("await saveProjectToLocalLibrary(copy)") < page.indexOf("setProject(copy)"));
 });
 
-test("issue #190 keeps bundled loading explicit while the Dashboard stays project-generic", async () => {
-  const [page, dashboard] = await Promise.all([
-    source("app/page.tsx"),
+test("phase 5 exposes View, Copy, Reset and sample Graphic Novel actions without an original-repository switch", async () => {
+  const [banner, dashboard] = await Promise.all([
+    source("app/afterglow-example-boundary.tsx"),
     source("app/dashboard-command-centre.tsx"),
   ]);
   for (const phrase of [
-    "Current project source",
-    "Local project on this device",
-    "Repository configured; local project still loaded",
-    "GitHub repository working copy",
-    "Bundled example loaded locally",
-    "Use the example’s GitHub working copy",
-  ]) assert.ok(dashboard.includes(phrase), `Dashboard is missing: ${phrase}`);
-  assert.match(dashboard, /source\.isBundledExample/);
-  assert.match(dashboard, /type="checkbox"/);
-  assert.match(dashboard, /role="switch"/);
-  assert.match(page, /createAfterglowProject\(\)/);
-  assert.match(page, /afterglowPersistence\.load\(\)/);
-  assert.match(page, /afterglowPersistence\.save\(project\)/);
-  assert.match(page, /afterglowPersistence\.enable\(target\)/);
-  assert.match(page, /afterglowPersistence\.disable\(project\)/);
+    "Afterglow — PlotPickle Example Story",
+    "Make My Own Copy",
+    "Open Sample Graphic Novel",
+    "Reset Example",
+    "read-only",
+  ]) assert.ok(`${banner}\n${dashboard}`.includes(phrase), `Missing example action or label: ${phrase}`);
+  assert.match(dashboard, /Example source only — never a user destination/);
+  assert.match(dashboard, /No edits, autosaves, pulls or publishes are allowed/);
+  assert.doesNotMatch(`${banner}\n${dashboard}`, /Use the example’s GitHub working copy|role="switch"|type="checkbox"/);
 });
 
-test("issue #190 gateway and focused test are registered", async () => {
-  const [vite, packageJson] = await Promise.all([
-    source("vite.config.ts"),
-    source("package.json").then(JSON.parse),
-  ]);
-  assert.match(vite, /afterglowProjectGateway/);
+test("phase 5 locks the original Afterglow gateway and removes credential or write paths", async () => {
+  const gateway = await source("build/afterglow-project-gateway.ts");
+  for (const contract of [
+    'const API = "/api/local-afterglow"',
+    'request.method === "GET"',
+    "readOnly: true",
+    "Make My Own Copy",
+    "response, 409",
+    "cannot be enabled as a working project",
+    "without an Afterglow repository destination",
+  ]) assert.ok(gateway.includes(contract), `Missing locked gateway contract: ${contract}`);
+  assert.doesNotMatch(gateway, /readCredentialJson|writeState|mkdir|rename|\/api\/local-github-sync|github-connection\.json/);
+});
+
+test("phase 5 removes the old persistence hook while retaining the focused regression entry", async () => {
+  await assert.rejects(access(new URL("app/use-afterglow-persistence.ts", root)));
+  const packageJson = JSON.parse(await source("package.json"));
   assert.match(packageJson.scripts.test, /issue-190-afterglow-persistence\.test\.mjs/);
   assert.equal(
     packageJson.scripts["test:afterglow-persistence"],

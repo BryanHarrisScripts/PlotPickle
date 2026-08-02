@@ -18,15 +18,17 @@ test("issue #256 separates included local foundations from optional user configu
   for (const phrase of [
     "What is included—and what you configure yourself",
     "Comes with the open-source installation",
-    "Configured by the user when needed",
+    "Choose one of three creative-compute paths",
     "PlotPickle application",
     "Local PPF project storage",
     "Rolling local backups",
-    "AI provider",
+    "Local writing & planning · Ollama",
+    "Local image generation · ComfyUI",
+    "Cloud image generation · OpenAI or another provider",
+    "Manual image import",
     "Buzz community",
     "GitHub account & story repository",
     "Google Calendar & Meet",
-    "Local or external media engines",
   ]) assert.ok(setup.includes(phrase), `Setup Dashboard is missing: ${phrase}`);
   assert.match(setup, /PlotPickle works locally without any optional account/);
   assert.match(setup, /ChatGPT Plus does not include OpenAI API usage/);
@@ -39,6 +41,10 @@ test("issue #256 exposes safe direct account and service setup destinations", as
     "https://platform.openai.com/api-keys",
     "https://platform.openai.com/settings/organization/billing/overview",
     "https://developers.openai.com/api/docs/quickstart",
+    "https://ollama.com/download",
+    "https://docs.ollama.com/windows",
+    "https://comfy.org/download",
+    "https://docs.comfy.org/installation/desktop/windows",
     "https://plotpickleplayhouse.communities.buzz.xyz/invite/v2.tdZwBnmvMuZ_E3lh_cEjbo4qeJHdTvFogatjMfVgB-k",
     "https://app.builderlab.xyz/buzz",
     "https://github.com/signup",

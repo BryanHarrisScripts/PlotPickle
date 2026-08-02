@@ -29,7 +29,7 @@ async function loadTranslator() {
     module: cjsModule,
     require(specifier) {
       if (specifier === "react") return { useEffect() {} };
-      if (specifier === "@/config/collaboration-copy.json") return { default: copy };
+      if (specifier === "@/config/collaboration-copy.json") return { __esModule: true, default: copy };
       throw new Error(`Unexpected translator dependency: ${specifier}`);
     },
   }, { filename: "writer-facing-collaboration-language.js" });

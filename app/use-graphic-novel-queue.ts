@@ -142,6 +142,7 @@ export function useGraphicNovelQueue({ project, aiStatus, imageModel, onProjectC
         projectId: projectRef.current.id,
         queueItemId,
         requestCount: 1,
+        billingAcknowledged: acknowledged,
       }),
     });
     const result = await response.json() as ImageGenerationResponse;

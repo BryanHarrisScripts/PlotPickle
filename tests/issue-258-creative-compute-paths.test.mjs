@@ -127,22 +127,26 @@ test("phase 3 routes existing image and video endpoints without changing text ro
     "/api/local-ai/generate/image",
     "/api/local-ai/generate/video",
     "/api/local-ai/video/",
-    "/api/media-routing/status",
-    "/api/media-routing/routes",
-    "/api/media-routing/test/image",
-    "/api/media-routing/test/video",
     "generateCloudImage",
     "generateComfyImage",
     "createCloudVideo",
     "createComfyVideo",
   ]) assert.ok(gateway.includes(contract), `Missing media router contract: ${contract}`);
+  assert.match(gateway, /const API = "\/api\/media-routing"/);
+  assert.match(gateway, /const STATUS_PATH = `\$\{API\}\/status`/);
+  assert.match(gateway, /const ROUTES_PATH = `\$\{API\}\/routes`/);
+  assert.match(gateway, /const TEST_IMAGE_PATH = `\$\{API\}\/test\/image`/);
+  assert.match(gateway, /const TEST_VIDEO_PATH = `\$\{API\}\/test\/video`/);
   assert.doesNotMatch(gateway, /generate\/text/);
   assert.match(localGateway, /registerSingleImageBoundary\(server\)[\s\S]*registerMediaRoutingGateway\(server\)[\s\S]*registerWritingAssistantGateway\(server\)/);
   assert.match(localGateway, /\/api\/media-routing\/test\/image/);
 });
 
 test("phase 3 preserves direct OpenAI image and MiniMax image-01 and H3 execution contracts", async () => {
-  const provider = await source("build/cloud-media-provider.ts");
+  const [provider, common] = await Promise.all([
+    source("build/cloud-media-provider.ts"),
+    source("build/media-provider-common.ts"),
+  ]);
   for (const contract of [
     "/images/generations",
     "/images/edits",
@@ -160,7 +164,7 @@ test("phase 3 preserves direct OpenAI image and MiniMax image-01 and H3 executio
     "media-cloud-video-jobs.json",
   ]) assert.ok(provider.includes(contract), `Missing direct media contract: ${contract}`);
   assert.match(provider, /requestCount !== 1/);
-  assert.match(provider, /PlotPickle does not supply credits/);
+  assert.match(common, /PlotPickle does not supply credits/);
 });
 
 test("phase 3 runs a reviewed ComfyUI image workflow and captures returned assets", async () => {
@@ -218,7 +222,7 @@ test("phase 3 first-run panel exposes independent controls real tests and truthf
     source("app/media-routing-panel.module.css"),
   ]);
   for (const phrase of [
-    "Images & Video",
+    "Images &amp; Video",
     "ComfyUI",
     "OpenAI Images",
     "MiniMax image-01",
@@ -231,7 +235,7 @@ test("phase 3 first-run panel exposes independent controls real tests and truthf
     "Paid H3 test approval",
     "Hybrid prerequisite gate",
     "PlotPickle never falls back to a paid provider automatically",
-    "/api/media-routing/status",
+    "/api/media-routing",
     "/api/local-ai/video/",
   ]) assert.ok(panel.includes(phrase), `Missing first-run media control: ${phrase}`);
   assert.match(host, /MediaRoutingPanel/);

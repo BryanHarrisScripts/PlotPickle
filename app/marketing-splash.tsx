@@ -1,6 +1,7 @@
 "use client";
 
 import React, { cloneElement, isValidElement, type ReactNode } from "react";
+import ConfigurationDashboardOverview from "./configuration-dashboard-overview";
 import MarketingSplashBase from "./marketing-splash-base";
 import { graphicNovelText } from "@/lib/ai-pitch-deck";
 
@@ -35,16 +36,39 @@ function translateReactNode(node: ReactNode): ReactNode {
   return cloneElement(node as React.ReactElement<Record<string, unknown>>, patch);
 }
 
+function addConfigurationPreview(node: ReactNode, onEnter: () => void): ReactNode {
+  if (Array.isArray(node)) return React.Children.map(node, (child) => addConfigurationPreview(child, onEnter));
+  if (!isValidElement(node)) return node;
+  const props = node.props as Record<string, unknown> & { children?: ReactNode };
+  if (node.type === "main") {
+    const children = React.Children.toArray(props.children);
+    const preview = (
+      <ConfigurationDashboardOverview
+        key="marketing-configuration-dashboard"
+        variant="marketing"
+        onManage={() => onEnter()}
+      />
+    );
+    return cloneElement(node as React.ReactElement<Record<string, unknown>>, {
+      children: [children[0], preview, ...children.slice(1)],
+    });
+  }
+  if (!("children" in props)) return node;
+  return cloneElement(node as React.ReactElement<Record<string, unknown>>, {
+    children: addConfigurationPreview(props.children, onEnter),
+  });
+}
+
 export default function MarketingSplash(props: MarketingSplashProps) {
   React.useLayoutEffect(() => {
     const requestedWorkspace = new URLSearchParams(window.location.search).get("workspace");
     if (requestedWorkspace && DEEP_LINK_WORKSPACES.has(requestedWorkspace)) props.onEnter();
   }, [props.onEnter]);
 
-  const rendered = MarketingSplashBase(props);
+  const rendered = addConfigurationPreview(translateReactNode(MarketingSplashBase(props)), props.onEnter);
   return (
     <>
-      {translateReactNode(rendered)}
+      {rendered}
       <span hidden aria-hidden="true" data-legacy-contract="Automatic comic-book pitch deck" />
     </>
   );

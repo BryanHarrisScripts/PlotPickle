@@ -163,6 +163,8 @@ export default function AiPitchDeckWorkspace({
         quality,
         referenceImages: comicPitchReferenceImages(project, panel),
         identityLocks: comicPitchIdentityLocks(project, panel),
+        requestCount: 1,
+        billingAcknowledged: acknowledged,
       }),
     });
     const result = await response.json() as ImageGenerationResponse;

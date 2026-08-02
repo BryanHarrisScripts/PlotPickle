@@ -207,7 +207,7 @@ export default function SetupConnectionsDashboard({
     const ollama = localServices?.ollama ?? fallback("ollama", "Ollama", "127.0.0.1:11434");
     const comfyui = localServices?.comfyui ?? fallback("comfyui", "ComfyUI", "127.0.0.1:8188");
     const savedAi = connectionStatus.items.ai;
-    const cloudProviderSelected = !/ollama|lm studio|local/i.test(savedAi.identity);
+    const cloudProviderSelected = !/ollama|lm studio|local|manual|disabled|no ai/i.test(savedAi.identity);
     const cloudAi: SetupConnection = cloudProviderSelected ? savedAi : {
       ...savedAi,
       state: "disconnected",

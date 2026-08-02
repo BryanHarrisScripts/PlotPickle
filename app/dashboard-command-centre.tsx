@@ -9,6 +9,7 @@ import { createDashboardCommandCentreModel, type DashboardTarget, type Dashboard
 import type { PlotPickleProject } from "@/lib/project";
 import type { ProductNavigationId } from "@/lib/product-direction";
 import RefreshAction from "./refresh-action";
+import SetupConnectionsDashboard from "./setup-connections-dashboard";
 import styles from "./dashboard-command-centre.module.css";
 import sourceStyles from "./dashboard-afterglow.module.css";
 
@@ -200,7 +201,7 @@ export default function DashboardCommandCentre({
         <strong>Command centre</strong>
         <a href="#dashboard-readiness">Readiness</a>
         <a href="#dashboard-project-source">Project source</a>
-        <a href="#dashboard-connections">Connections</a>
+        <a href="#dashboard-setup">Setup &amp; connections</a>
         <a href="#dashboard-workflow">Workflow progress</a>
         <a href="#dashboard-attention">Attention required <span>{model.attention.length}</span></a>
         <a href="#dashboard-snapshot">Project snapshot</a>
@@ -268,21 +269,10 @@ export default function DashboardCommandCentre({
           </article>
         </section>
 
-        <section id="dashboard-connections" className={styles.section} aria-labelledby="connections-title">
-          <div className={styles.heading}>
-            <div><p className={styles.eyebrow}>Connections</p><h2 id="connections-title">Installation, project and collaboration status</h2><p>These cards reuse the same local settings, project collaboration metadata and storage rules used elsewhere.</p></div>
-          </div>
-          <div className={styles.connectionGrid}>
-            {model.connections.map((connection) => (
-              <button type="button" className={`${styles.connectionCard} ${styles[`tone-${connection.tone}`]}`} key={connection.id} onClick={() => openTarget(connection.target)}>
-                <span>{connection.label}</span>
-                <strong><i aria-hidden="true">{toneMeta[connection.tone].icon}</i>{connection.status}</strong>
-                <p>{connection.detail}</p>
-                <small>Open details →</small>
-              </button>
-            ))}
-          </div>
-        </section>
+        <SetupConnectionsDashboard
+          connectionStatus={connectionStatus}
+          onOpenSettings={(section) => openTarget({ workspace: "settings", section })}
+        />
 
         <section id="dashboard-workflow" className={styles.section} aria-labelledby="workflow-title">
           <div className={styles.heading}>

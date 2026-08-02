@@ -3,7 +3,7 @@ import { localAiGateway as legacyLocalAiGateway } from "./local-ai-gateway-base"
 import { registerWritingAssistantGateway } from "./writing-assistant-gateway";
 import { registerMediaRoutingGateway } from "./media-routing-gateway";
 
-const IMAGE_PATH = "/api/local-ai/generate/image";
+const IMAGE_PATHS = new Set(["/api/local-ai/generate/image", "/api/media-routing/test/image"]);
 const MAX_SINGLE_IMAGE_REQUEST_BYTES = 256 * 1024;
 let imageRequestActive = false;
 
@@ -17,8 +17,8 @@ function reject(response: import("node:http").ServerResponse, status: number, me
 
 function registerSingleImageBoundary(server: ViteDevServer) {
   server.middlewares.use((request, response, next) => {
-    const pathname = request.url?.split("?", 1)[0];
-    if (pathname !== IMAGE_PATH || request.method !== "POST") {
+    const pathname = request.url?.split("?", 1)[0] || "";
+    if (!IMAGE_PATHS.has(pathname) || request.method !== "POST") {
       next();
       return;
     }

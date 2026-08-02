@@ -20,32 +20,39 @@ export default function ConfigurationDashboardHost() {
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   useEffect(() => {
-    let host: HTMLElement | null = null;
-    let observer: MutationObserver | null = null;
+    let currentRoot: HTMLElement | null = null;
+    let currentHost: HTMLElement | null = null;
 
-    const mount = () => {
-      const root = document.querySelector<HTMLElement>(SETUP_SELECTOR);
-      if (!root || root.querySelector(":scope > .plotpickle-config-host")) return Boolean(root);
-      host = document.createElement("div");
-      host.className = "plotpickle-config-host";
-      root.prepend(host);
-      setSetupRoot(root);
-      setPortalTarget(host);
-      return true;
+    const sync = () => {
+      const nextRoot = document.querySelector<HTMLElement>(SETUP_SELECTOR);
+      if (nextRoot === currentRoot) return;
+
+      currentHost?.remove();
+      currentHost = null;
+      currentRoot = nextRoot;
+      setDetailsOpen(false);
+
+      if (!nextRoot) {
+        setSetupRoot(null);
+        setPortalTarget(null);
+        return;
+      }
+
+      const existing = nextRoot.querySelector<HTMLElement>(":scope > .plotpickle-config-host");
+      currentHost = existing || document.createElement("div");
+      currentHost.className = "plotpickle-config-host";
+      if (!existing) nextRoot.prepend(currentHost);
+      setSetupRoot(nextRoot);
+      setPortalTarget(currentHost);
     };
 
-    if (!mount()) {
-      observer = new MutationObserver(() => {
-        if (mount()) observer?.disconnect();
-      });
-      observer.observe(document.body, { childList: true, subtree: true });
-    }
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(document.body, { childList: true, subtree: true });
 
     return () => {
-      observer?.disconnect();
-      host?.remove();
-      setSetupRoot(null);
-      setPortalTarget(null);
+      observer.disconnect();
+      currentHost?.remove();
     };
   }, []);
 

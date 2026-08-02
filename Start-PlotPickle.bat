@@ -136,7 +136,31 @@ if "!INSTALL_PERFORMED!"=="1" (
 if errorlevel 1 goto :setup_failed
 
 call :ensure_local_creative_tools
-call :ensure_local_creative_tools
+call :ensure_buzz_desktop
+
+echo.
+echo [STEP 4 OF 4] Starting the private local server...
+echo.
+echo Address: %PLOTPICKLE_URL%
+echo Only this computer can use this 127.0.0.1 address.
+echo Your browser will open automatically.
+echo Press Ctrl+C in this window when you are finished.
+echo.
+
+start "" /b powershell.exe -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 4; Start-Process '%PLOTPICKLE_URL%'"
+call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT%
+
+set "EXIT_CODE=%ERRORLEVEL%"
+echo.
+if not "%EXIT_CODE%"=="0" (
+  echo [ERROR] PlotPickle stopped with an error. Review the messages above.
+) else (
+  echo PlotPickle has stopped. The local server is no longer running.
+)
+pause
+exit /b %EXIT_CODE%
+
+:ensure_local_creative_tools
 if not exist "%LOCAL_AI_INSTALLER%" (
   echo [INFO] The optional Ollama and ComfyUI installer helper is not included in this download.
   echo PlotPickle will continue normally; both applications can still be installed separately.
@@ -199,30 +223,6 @@ if "!LOCAL_AI_INSTALL_RESULT!"=="0" (
   echo PlotPickle will continue normally and offer this optional step again next time.
 )
 exit /b 0
-
-:ensure_buzz_desktop
-
-echo.
-echo [STEP 4 OF 4] Starting the private local server...
-echo.
-echo Address: %PLOTPICKLE_URL%
-echo Only this computer can use this 127.0.0.1 address.
-echo Your browser will open automatically.
-echo Press Ctrl+C in this window when you are finished.
-echo.
-
-start "" /b powershell.exe -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 4; Start-Process '%PLOTPICKLE_URL%'"
-call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT%
-
-set "EXIT_CODE=%ERRORLEVEL%"
-echo.
-if not "%EXIT_CODE%"=="0" (
-  echo [ERROR] PlotPickle stopped with an error. Review the messages above.
-) else (
-  echo PlotPickle has stopped. The local server is no longer running.
-)
-pause
-exit /b %EXIT_CODE%
 
 :ensure_buzz_desktop
 if not exist "%BUZZ_INSTALLER%" (

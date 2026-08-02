@@ -35,7 +35,7 @@ test("core consolidation presents four truthful optional connection areas", asyn
 
 test("core consolidation keeps media engines as migrated disabled placeholders", async () => {
   const settings = await source("lib/ai/settings.ts");
-  assert.match(settings, /SETTINGS_VERSION = "1\.2\.0"/);
+  assert.match(settings, /SETTINGS_VERSION = "1\.3\.0"/);
   for (const provider of ["Pika Labs", "Runway", "Additional media & film engines"]) {
     assert.ok(settings.includes(provider), `Missing future media-engine placeholder: ${provider}`);
   }

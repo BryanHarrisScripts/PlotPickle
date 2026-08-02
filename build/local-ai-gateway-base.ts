@@ -10,7 +10,7 @@ import {
   writeCredentialJson,
 } from "./local-credentials";
 
-type LiveProvider = "openai" | "openai-compatible" | "ollama";
+type LiveProvider = "openai" | "minimax" | "openai-compatible" | "ollama";
 
 type SavedAiConnection = {
   version: 1;
@@ -18,6 +18,7 @@ type SavedAiConnection = {
   baseUrl: string;
   textModel: string;
   imageModel: string;
+  videoModel?: string;
   apiKey: string;
   verifiedAt: string;
 };
@@ -27,6 +28,7 @@ type ConnectionInput = {
   baseUrl?: unknown;
   textModel?: unknown;
   imageModel?: unknown;
+  videoModel?: unknown;
   apiKey?: unknown;
 };
 
@@ -39,19 +41,74 @@ type ImageGenerationInput = {
   quality?: unknown;
   referenceImages?: unknown;
   identityLocks?: unknown;
+  billingAcknowledged?: unknown;
+  requestCount?: unknown;
+};
+
+type VideoGenerationInput = {
+  prompt?: unknown;
+  sourceAssetUrl?: unknown;
+  assetId?: unknown;
+  durationSeconds?: unknown;
+  aspectRatio?: unknown;
+  billingAcknowledged?: unknown;
+  dataSharingAcknowledged?: unknown;
+};
+
+type StoredVideoJob = {
+  id: string;
+  provider: "minimax";
+  model: string;
+  status: "queued" | "running" | "succeeded" | "failed" | "cancelled" | "expired";
+  prompt: string;
+  sourceAssetUrl: string;
+  assetId: string;
+  durationSeconds: number;
+  aspectRatio: "16:9" | "9:16" | "1:1";
+  outputAssetUrl: string;
+  error: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 const API_PATH = "/api/local-ai/connection";
 const CHECK_PATH = `${API_PATH}/check`;
 const TEXT_PATH = "/api/local-ai/generate/text";
 const IMAGE_PATH = "/api/local-ai/generate/image";
+const VIDEO_CREATE_PATH = "/api/local-ai/generate/video";
+const VIDEO_JOB_PATH = "/api/local-ai/video/";
 const ASSET_INDEX_PATH = "/api/local-ai/assets";
 const ASSET_PATH = "/api/local-ai/assets/";
 const MAX_ASSET_BYTES = 20 * 1024 * 1024;
-const LIVE_PROVIDERS: LiveProvider[] = ["openai", "openai-compatible", "ollama"];
+const MAX_VIDEO_BYTES = 150 * 1024 * 1024;
+const LIVE_PROVIDERS: LiveProvider[] = ["openai", "minimax", "openai-compatible", "ollama"];
 
 function assetsDirectory() {
   return path.join(persistentHome(), "assets");
+}
+
+function videoJobsPath() {
+  return path.join(persistentHome(), "video-jobs.json");
+}
+
+async function readVideoJobs(): Promise<StoredVideoJob[]> {
+  try {
+    const value = JSON.parse(await readFile(videoJobsPath(), "utf8")) as unknown;
+    return Array.isArray(value) ? value.filter((item): item is StoredVideoJob => Boolean(item && typeof item === "object" && typeof (item as StoredVideoJob).id === "string")) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function writeVideoJobs(jobs: StoredVideoJob[]) {
+  await mkdir(persistentHome(), { recursive: true, mode: 0o700 });
+  await writeFile(videoJobsPath(), `${JSON.stringify(jobs, null, 2)}\n`, { mode: 0o600 });
+}
+
+async function saveVideoJob(job: StoredVideoJob) {
+  const jobs = await readVideoJobs();
+  await writeVideoJobs([job, ...jobs.filter((item) => item.id !== job.id)].slice(0, 200));
+  return job;
 }
 
 function isLoopback(value: string | undefined) {
@@ -106,6 +163,7 @@ function isSavedConnection(value: unknown): value is SavedAiConnection {
     && typeof item.baseUrl === "string"
     && typeof item.textModel === "string"
     && typeof item.imageModel === "string"
+    && (typeof item.videoModel === "string" || typeof item.videoModel === "undefined")
     && typeof item.apiKey === "string"
     && typeof item.verifiedAt === "string";
 }
@@ -127,6 +185,7 @@ function publicConnection(value: SavedAiConnection | null) {
     baseUrl: value.baseUrl,
     textModel: value.textModel,
     imageModel: value.imageModel,
+    videoModel: value.videoModel ?? "",
     checkedAt: value.verifiedAt,
   } : { available: true, saved: false };
 }
@@ -145,6 +204,15 @@ function cleanProviderError(value: unknown) {
     if (typeof message === "string") return message.replace(/sk-[a-zA-Z0-9_-]+/g, "[redacted]").slice(0, 300);
   }
   return "The provider did not accept the connection check.";
+}
+
+function providerFailure(status: number, value: unknown) {
+  const detail = cleanProviderError(value);
+  if (status === 401 || status === 403) return new Error("The saved API key was rejected. Reconnect a key owned by the current user in Settings.");
+  if (status === 402 || /insufficient balance|\b1008\b/i.test(detail)) return new Error("This provider account has insufficient balance. Add funds to that user's account; PlotPickle does not supply credits.");
+  if (status === 429) return new Error("The provider rate limit was reached. Wait before retrying; PlotPickle will not switch to another paid provider automatically.");
+  if (status === 422 || /sensitive content|\b1026\b|\b1027\b/i.test(detail)) return new Error("The provider declined the prompt or reference media under its safety rules.");
+  return new Error(detail);
 }
 
 function providerHeaders(connection: SavedAiConnection) {
@@ -170,9 +238,21 @@ async function providerJson(url: string, connection: SavedAiConnection, body: Re
   let value: unknown = {};
   try { value = text ? JSON.parse(text) : {}; } catch { value = {}; }
   if (!providerResponse.ok) {
-    if (providerResponse.status === 401 || providerResponse.status === 403) throw new Error("The saved API key was rejected. Reconnect it in Settings.");
-    throw new Error(cleanProviderError(value));
+    throw providerFailure(providerResponse.status, value);
   }
+  return value as Record<string, unknown>;
+}
+
+async function providerRequest(url: string, connection: SavedAiConnection, method: "GET" | "DELETE", timeout = 30_000) {
+  const providerResponse = await fetch(url, {
+    method,
+    headers: providerHeaders(connection),
+    signal: AbortSignal.timeout(timeout),
+  });
+  const text = await providerResponse.text();
+  let value: unknown = {};
+  try { value = text ? JSON.parse(text) : {}; } catch { value = {}; }
+  if (!providerResponse.ok) throw providerFailure(providerResponse.status, value);
   return value as Record<string, unknown>;
 }
 
@@ -187,8 +267,7 @@ async function providerForm(url: string, connection: SavedAiConnection, body: Fo
   let value: unknown = {};
   try { value = text ? JSON.parse(text) : {}; } catch { value = {}; }
   if (!providerResponse.ok) {
-    if (providerResponse.status === 401 || providerResponse.status === 403) throw new Error("The saved API key was rejected. Reconnect it in Settings.");
-    throw new Error(cleanProviderError(value));
+    throw providerFailure(providerResponse.status, value);
   }
   return value as Record<string, unknown>;
 }
@@ -209,8 +288,9 @@ async function generateText(connection: SavedAiConnection, input: TextGeneration
     const value = await providerJson(`${baseUrl}/responses`, connection, { model: connection.textModel, instructions, input: prompt });
     return openAiOutputText(value);
   }
-  if (connection.provider === "openai-compatible") {
-    const value = await providerJson(`${baseUrl}/chat/completions`, connection, {
+  if (connection.provider === "openai-compatible" || connection.provider === "minimax") {
+    const endpoint = connection.provider === "minimax" ? `${baseUrl}/v1/chat/completions` : `${baseUrl}/chat/completions`;
+    const value = await providerJson(endpoint, connection, {
       model: connection.textModel,
       messages: [{ role: "system", content: instructions }, { role: "user", content: prompt }],
     });
@@ -277,12 +357,34 @@ async function generateImage(connection: SavedAiConnection, input: ImageGenerati
   const prompt = typeof input.prompt === "string" ? input.prompt.trim().slice(0, 30_000) : "";
   if (!prompt) throw new Error("Enter an image prompt before generating.");
   if (connection.provider === "ollama") throw new Error("The selected local text model does not provide image generation. Connect an image-capable provider in Settings.");
+  if (input.billingAcknowledged !== true || input.requestCount !== 1) {
+    throw new Error("Confirm this one paid image request and the selected story data before sending it to the cloud provider.");
+  }
   if (!connection.imageModel) throw new Error("Choose an image model in Settings.");
   const quality = input.quality === "low" || input.quality === "medium" || input.quality === "high" ? input.quality : "medium";
   const size = input.aspect === "landscape" ? "1536x1024" : "1024x1536";
-  const references = connection.provider === "openai" ? await referenceImages(input) : [];
+  const references = connection.provider === "openai" || connection.provider === "minimax" ? await referenceImages(input) : [];
   let value: Record<string, unknown>;
-  if (references.length) {
+  let base64 = "";
+  let outputUrl = "";
+  let revisedPrompt = "";
+  let providerRequestId = "";
+  let extension: ".webp" | ".jpg" = ".webp";
+  if (connection.provider === "minimax") {
+    value = await providerJson(`${normalizedUrl(connection.baseUrl)}/v1/image_generation`, connection, {
+      model: connection.imageModel,
+      prompt: prompt.slice(0, 1500),
+      aspect_ratio: input.aspect === "landscape" ? "16:9" : "9:16",
+      response_format: "base64",
+      n: 1,
+      ...(references[0] ? { subject_reference: [{ type: "character", image_file: references[0].bytes.toString("base64") }] } : {}),
+    }, 180_000);
+    const data = value.data && typeof value.data === "object" ? value.data as { image_base64?: string[]; image_urls?: string[] } : {};
+    base64 = data.image_base64?.[0] ?? "";
+    outputUrl = data.image_urls?.[0] ?? "";
+    providerRequestId = typeof value.id === "string" ? value.id : "";
+    extension = ".jpg";
+  } else if (references.length) {
     const form = new FormData();
     form.set("model", connection.imageModel);
     form.set("prompt", prompt);
@@ -305,31 +407,159 @@ async function generateImage(connection: SavedAiConnection, input: ImageGenerati
       n: 1,
     }, 180_000);
   }
-  const data = Array.isArray(value.data) ? value.data as Array<{ b64_json?: string; url?: string; revised_prompt?: string }> : [];
-  const result = data[0];
-  if (!result?.b64_json && !result?.url) throw new Error("The image provider returned no image.");
+  if (connection.provider !== "minimax") {
+    const data = Array.isArray(value.data) ? value.data as Array<{ b64_json?: string; url?: string; revised_prompt?: string }> : [];
+    const result = data[0];
+    base64 = result?.b64_json ?? "";
+    outputUrl = result?.url ?? "";
+    revisedPrompt = result?.revised_prompt ?? "";
+  }
+  if (!base64 && !outputUrl) throw new Error("The image provider returned no image.");
   let bytes: Buffer;
-  if (result.b64_json) {
-    bytes = Buffer.from(result.b64_json, "base64");
+  if (base64) {
+    bytes = Buffer.from(base64, "base64");
   } else {
-    const imageResponse = await fetch(result.url!, { signal: AbortSignal.timeout(60_000) });
+    const imageResponse = await fetch(outputUrl, { signal: AbortSignal.timeout(60_000) });
     if (!imageResponse.ok) throw new Error("The generated image could not be downloaded for local storage.");
     bytes = Buffer.from(await imageResponse.arrayBuffer());
   }
   if (!bytes.length || bytes.length > MAX_ASSET_BYTES) throw new Error("The generated image file was empty or too large.");
-  const fileName = `${safeAssetStem(input.assetId || input.characterId)}-${Date.now()}.webp`;
+  const fileName = `${safeAssetStem(input.assetId || input.characterId)}-${Date.now()}${extension}`;
   await mkdir(assetsDirectory(), { recursive: true, mode: 0o700 });
   await writeFile(path.join(assetsDirectory(), fileName), bytes, { mode: 0o600 });
-  return { assetUrl: `${ASSET_PATH}${fileName}`, revisedPrompt: result.revised_prompt, referenceImagesUsed: references.length };
+  return { assetUrl: `${ASSET_PATH}${fileName}`, revisedPrompt, referenceImagesUsed: Math.min(references.length, connection.provider === "minimax" ? 1 : references.length), providerRequestId };
+}
+
+function miniMaxVideoStatus(value: unknown): StoredVideoJob["status"] {
+  if (value === "queued" || value === "running" || value === "succeeded" || value === "failed" || value === "cancelled" || value === "expired") return value;
+  return "failed";
+}
+
+async function videoSourceReference(value: unknown) {
+  if (typeof value !== "string" || !value.trim()) return "";
+  const source = value.trim();
+  if (source.startsWith(ASSET_PATH)) {
+    const fileName = source.slice(ASSET_PATH.length);
+    if (!/^[a-z0-9][a-z0-9._-]*\.(?:webp|png|jpe?g)$/i.test(fileName)) throw new Error("Choose a saved PlotPickle image as the first video frame.");
+    const bytes = await readFile(path.join(assetsDirectory(), fileName));
+    if (!bytes.length || bytes.length > MAX_ASSET_BYTES) throw new Error("The selected first-frame image is empty or too large.");
+    return `data:${assetMediaType(fileName)};base64,${bytes.toString("base64")}`;
+  }
+  const url = new URL(source);
+  if (url.protocol !== "https:") throw new Error("External video references must use HTTPS.");
+  return url.toString();
+}
+
+async function createVideo(connection: SavedAiConnection, input: VideoGenerationInput) {
+  if (connection.provider !== "minimax") throw new Error("MiniMax is the supported cloud video provider for this H3 job endpoint.");
+  if (input.billingAcknowledged !== true || input.dataSharingAcknowledged !== true) {
+    throw new Error("Confirm the paid MiniMax video request and the exact prompt and first-frame image being uploaded.");
+  }
+  const prompt = typeof input.prompt === "string" ? input.prompt.trim().slice(0, 7_000) : "";
+  if (!prompt) throw new Error("Enter a motion prompt before creating a video job.");
+  const model = connection.videoModel || "MiniMax-H3";
+  const sourceAssetUrl = typeof input.sourceAssetUrl === "string" ? input.sourceAssetUrl.trim() : "";
+  const source = await videoSourceReference(sourceAssetUrl);
+  const durationSeconds = typeof input.durationSeconds === "number" && Number.isFinite(input.durationSeconds)
+    ? Math.max(4, Math.min(15, Math.round(input.durationSeconds)))
+    : 5;
+  const aspectRatio = input.aspectRatio === "9:16" || input.aspectRatio === "1:1" ? input.aspectRatio : "16:9";
+  const content: Array<Record<string, unknown>> = [{ type: "text", text: prompt }];
+  if (source) content.push({ type: "image_url", image_url: { url: source }, role: "first_frame" });
+  const value = await providerJson(`${normalizedUrl(connection.baseUrl)}/v2/video_generation`, connection, {
+    model,
+    content,
+    resolution: "2K",
+    duration: durationSeconds,
+    ...(!source ? { ratio: aspectRatio } : {}),
+  });
+  const id = typeof value.task_id === "string" ? value.task_id : "";
+  if (!id) throw new Error("MiniMax returned no video task ID.");
+  const now = new Date().toISOString();
+  return saveVideoJob({
+    id,
+    provider: "minimax",
+    model,
+    status: "queued",
+    prompt,
+    sourceAssetUrl,
+    assetId: safeAssetStem(input.assetId || `minimax-video-${id}`),
+    durationSeconds,
+    aspectRatio,
+    outputAssetUrl: "",
+    error: "",
+    createdAt: now,
+    updatedAt: now,
+  });
+}
+
+function publicVideoJob(job: StoredVideoJob) {
+  return {
+    id: job.id,
+    provider: job.provider,
+    model: job.model,
+    status: job.status,
+    durationSeconds: job.durationSeconds,
+    aspectRatio: job.aspectRatio,
+    sourceAssetUrl: job.sourceAssetUrl,
+    outputAssetUrl: job.outputAssetUrl,
+    error: job.error,
+    createdAt: job.createdAt,
+    updatedAt: job.updatedAt,
+    reviewState: "unreviewed",
+  };
+}
+
+async function downloadVideoOutput(job: StoredVideoJob, value: unknown) {
+  if (typeof value !== "string" || !value) return job;
+  const url = new URL(value);
+  if (url.protocol !== "https:") throw new Error("MiniMax returned an invalid video download URL.");
+  const providerResponse = await fetch(url, { signal: AbortSignal.timeout(120_000) });
+  if (!providerResponse.ok) throw new Error("The completed MiniMax video could not be downloaded into local PlotPickle storage.");
+  const bytes = Buffer.from(await providerResponse.arrayBuffer());
+  if (!bytes.length || bytes.length > MAX_VIDEO_BYTES) throw new Error("The completed MiniMax video was empty or too large for local storage.");
+  const fileName = `${job.assetId}-${Date.now()}.mp4`;
+  await mkdir(assetsDirectory(), { recursive: true, mode: 0o700 });
+  await writeFile(path.join(assetsDirectory(), fileName), bytes, { mode: 0o600 });
+  return { ...job, outputAssetUrl: `${ASSET_PATH}${fileName}` };
+}
+
+async function queryVideo(connection: SavedAiConnection, id: string) {
+  if (connection.provider !== "minimax") throw new Error("The saved provider cannot query MiniMax H3 jobs.");
+  const jobs = await readVideoJobs();
+  const existing = jobs.find((item) => item.id === id);
+  if (!existing) throw new Error("This MiniMax video job was not created by the current PlotPickle installation.");
+  const value = await providerRequest(`${normalizedUrl(connection.baseUrl)}/v2/query/video_generation/${encodeURIComponent(id)}`, connection, "GET");
+  const task = value.task && typeof value.task === "object" ? value.task as { status?: unknown; content?: { url?: unknown }; error?: unknown } : {};
+  const status = miniMaxVideoStatus(task.status);
+  const error = status === "failed" || status === "expired"
+    ? typeof task.error === "string" ? task.error.slice(0, 300) : `MiniMax video task ${status}.`
+    : "";
+  let updated: StoredVideoJob = { ...existing, status, error, updatedAt: new Date().toISOString() };
+  if (status === "succeeded" && !updated.outputAssetUrl) updated = await downloadVideoOutput(updated, task.content?.url);
+  await saveVideoJob(updated);
+  return updated;
+}
+
+async function cancelVideo(connection: SavedAiConnection, id: string) {
+  if (connection.provider !== "minimax") throw new Error("The saved provider cannot cancel MiniMax H3 jobs.");
+  const jobs = await readVideoJobs();
+  const existing = jobs.find((item) => item.id === id);
+  if (!existing) throw new Error("This MiniMax video job was not created by the current PlotPickle installation.");
+  if (existing.status !== "queued") throw new Error("MiniMax can cancel only a queued job. A running job may finish and may still be charged.");
+  const value = await providerRequest(`${normalizedUrl(connection.baseUrl)}/v2/video_generation/${encodeURIComponent(id)}`, connection, "DELETE");
+  const updated = { ...existing, status: miniMaxVideoStatus(value.status || "cancelled"), updatedAt: new Date().toISOString() };
+  await saveVideoJob(updated);
+  return updated;
 }
 
 function safeAssetFileName(value: string) {
-  return /^[a-z0-9][a-z0-9._-]*\.(?:webp|png|jpe?g)$/i.test(value) ? value : "";
+  return /^[a-z0-9][a-z0-9._-]*\.(?:webp|png|jpe?g|mp4)$/i.test(value) ? value : "";
 }
 
 function assetMediaType(fileName: string) {
   const extension = path.extname(fileName).toLowerCase();
-  return extension === ".png" ? "image/png" : extension === ".jpg" || extension === ".jpeg" ? "image/jpeg" : "image/webp";
+  return extension === ".mp4" ? "video/mp4" : extension === ".png" ? "image/png" : extension === ".jpg" || extension === ".jpeg" ? "image/jpeg" : "image/webp";
 }
 
 async function listAssets() {
@@ -340,7 +570,8 @@ async function listAssets() {
     const fileName = safeAssetFileName(entry.name);
     const filePath = path.join(directory, fileName);
     const info = await stat(filePath);
-    if (!info.isFile() || !info.size || info.size > MAX_ASSET_BYTES) return null;
+    const maximum = fileName.toLowerCase().endsWith(".mp4") ? MAX_VIDEO_BYTES : MAX_ASSET_BYTES;
+    if (!info.isFile() || !info.size || info.size > maximum) return null;
     const bytes = await readFile(filePath);
     return {
       fileName,
@@ -361,7 +592,8 @@ async function serveAsset(pathname: string, response: ServerResponse) {
   const fileName = pathname.slice(ASSET_PATH.length);
   if (!safeAssetFileName(fileName)) throw new Error("Invalid local asset path.");
   const bytes = await readFile(path.join(assetsDirectory(), fileName));
-  if (!bytes.length || bytes.length > MAX_ASSET_BYTES) throw new Error("The local asset is empty or too large.");
+  const maximum = fileName.toLowerCase().endsWith(".mp4") ? MAX_VIDEO_BYTES : MAX_ASSET_BYTES;
+  if (!bytes.length || bytes.length > maximum) throw new Error("The local asset is empty or too large.");
   response.statusCode = 200;
   response.setHeader("Content-Type", assetMediaType(fileName));
   response.setHeader("Cache-Control", "private, max-age=31536000, immutable");
@@ -370,9 +602,9 @@ async function serveAsset(pathname: string, response: ServerResponse) {
 }
 
 async function verifyConnection(value: Omit<SavedAiConnection, "verifiedAt">) {
-  if (value.provider === "openai" && !value.apiKey) throw new Error("Enter an OpenAI API key.");
+  if ((value.provider === "openai" || value.provider === "minimax") && !value.apiKey) throw new Error(`Enter a ${value.provider === "minimax" ? "MiniMax" : "OpenAI"} API key owned by the current user.`);
   const baseUrl = normalizedUrl(value.baseUrl);
-  const endpoint = value.provider === "ollama" ? `${baseUrl}/api/tags` : `${baseUrl}/models`;
+  const endpoint = value.provider === "ollama" ? `${baseUrl}/api/tags` : value.provider === "minimax" ? `${baseUrl}/v1/models` : `${baseUrl}/models`;
   const headers: Record<string, string> = { Accept: "application/json" };
   if (value.provider !== "ollama" && value.apiKey) headers.Authorization = `Bearer ${value.apiKey}`;
   const providerResponse = await fetch(endpoint, { headers, signal: AbortSignal.timeout(15_000) });
@@ -380,8 +612,7 @@ async function verifyConnection(value: Omit<SavedAiConnection, "verifiedAt">) {
   let body: unknown = {};
   try { body = text ? JSON.parse(text) : {}; } catch { body = {}; }
   if (!providerResponse.ok) {
-    if (providerResponse.status === 401 || providerResponse.status === 403) throw new Error("The API key was rejected. Check the key and try again.");
-    throw new Error(cleanProviderError(body));
+    throw providerFailure(providerResponse.status, body);
   }
   return new Date().toISOString();
 }
@@ -398,6 +629,7 @@ function parseInput(input: ConnectionInput, saved: SavedAiConnection | null): Om
     baseUrl: normalizedUrl(typeof input.baseUrl === "string" ? input.baseUrl : ""),
     textModel: typeof input.textModel === "string" ? input.textModel.trim() : "",
     imageModel: typeof input.imageModel === "string" ? input.imageModel.trim() : "",
+    videoModel: typeof input.videoModel === "string" ? input.videoModel.trim() : "",
     apiKey,
   };
 }
@@ -459,6 +691,15 @@ async function handleGeneration(request: IncomingMessage, response: ServerRespon
       await serveAsset(pathname, response);
       return;
     }
+    if (pathname.startsWith(VIDEO_JOB_PATH) && (request.method === "GET" || request.method === "DELETE")) {
+      const connection = await readConnection();
+      if (!connection) throw new Error("Connect MiniMax in Settings before managing a video job.");
+      const id = decodeURIComponent(pathname.slice(VIDEO_JOB_PATH.length));
+      if (!/^[A-Za-z0-9_-]{1,128}$/.test(id)) throw new Error("Invalid MiniMax video task ID.");
+      const job = request.method === "GET" ? await queryVideo(connection, id) : await cancelVideo(connection, id);
+      sendJson(response, 200, { ok: true, ...publicVideoJob(job) });
+      return;
+    }
     if (request.method !== "POST") {
       sendJson(response, 405, { ok: false, message: "Method not allowed." });
       return;
@@ -476,6 +717,11 @@ async function handleGeneration(request: IncomingMessage, response: ServerRespon
       sendJson(response, 200, { ok: true, ...result, provider: connection.provider, model: connection.imageModel });
       return;
     }
+    if (pathname === VIDEO_CREATE_PATH) {
+      const job = await createVideo(connection, await readBody(request, 128 * 1024) as VideoGenerationInput);
+      sendJson(response, 200, { ok: true, ...publicVideoJob(job) });
+      return;
+    }
     sendJson(response, 404, { ok: false, message: "Local AI operation not found." });
   } catch (error) {
     const message = error instanceof Error ? error.message.replace(/sk-[a-zA-Z0-9_-]+/g, "[redacted]") : "The local AI operation failed.";
@@ -490,7 +736,7 @@ export function localAiGateway(): Plugin {
     configureServer(server) {
       server.middlewares.use((request, response, next) => {
         const pathname = request.url?.split("?", 1)[0];
-        if (!pathname || (pathname !== API_PATH && pathname !== CHECK_PATH && pathname !== TEXT_PATH && pathname !== IMAGE_PATH && pathname !== ASSET_INDEX_PATH && !pathname.startsWith(ASSET_PATH))) {
+        if (!pathname || (pathname !== API_PATH && pathname !== CHECK_PATH && pathname !== TEXT_PATH && pathname !== IMAGE_PATH && pathname !== VIDEO_CREATE_PATH && pathname !== ASSET_INDEX_PATH && !pathname.startsWith(VIDEO_JOB_PATH) && !pathname.startsWith(ASSET_PATH))) {
           next();
           return;
         }

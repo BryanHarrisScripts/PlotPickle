@@ -253,6 +253,11 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
 
   async function generateImage() {
     if (working === "image" || working === "prompt") return;
+    const billingAcknowledged = window.confirm("Generate one storyboard image? A connected cloud provider may charge the API account saved by this user. PlotPickle does not supply credits or pay for generation.");
+    if (!billingAcknowledged) {
+      setMessage("Storyboard generation was cancelled. No provider request was made.");
+      return;
+    }
     const activePrompt = frame.prompt || prompt;
     setWorking("image");
     setMessage(identityWarnings.length ? "Generating with identity warnings. Review the result carefully before treating it as approved." : "Generating with the locked character identities and saving the frame locally…");
@@ -266,6 +271,8 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
           aspect: "landscape",
           referenceImages: unique(identityInputs.flatMap((identity) => identity.referenceImages)),
           identityLocks: identityInputs.map(({ diagnostic, ...identity }) => identity),
+          requestCount: 1,
+          billingAcknowledged,
         }),
       });
       const result = await response.json() as AiResponse;

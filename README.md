@@ -104,7 +104,7 @@ Creative-compute choice is separate from Local Story, Writers' Room and Reposito
 | Path | Writing and planning | Graphic Novel images | Required setup |
 |---|---|---|---|
 | **Local AI** | Ollama on `127.0.0.1:11434` | ComfyUI on `127.0.0.1:8188` | Separate optional applications plus separately selected local models/checkpoints |
-| **Cloud AI** | OpenAI or another reviewed compatible provider | OpenAI or another reviewed image provider | The writer's own account, API key and provider billing |
+| **Cloud AI** | OpenAI, MiniMax or another reviewed compatible provider | OpenAI or MiniMax `image-01`; MiniMax H3 video-job foundation | The writer's own account, API key and provider billing |
 | **No AI** | Manual writing and planning | Manual image import, comparison and approval | Nothing beyond PlotPickle |
 
 The Windows launcher detects Ollama and ComfyUI separately and offers each missing application with its own Y/N choice. Declining, cancelling or failing either installation never prevents PlotPickle from starting. PlotPickle does not silently download language models, image checkpoints, custom nodes or workflows, and a local-service failure never activates cloud fallback.
@@ -113,13 +113,17 @@ A green local readiness light means the loopback service responded and at least 
 
 ComfyUI installation and health detection do not yet claim a finished Graphic Novel generation adapter. Until a reviewed one-panel-at-a-time workflow is connected, manual image import and the existing reviewed cloud path remain the honest active image routes.
 
+MiniMax is the first supported BYOK cloud-video provider. Each writer creates and funds their own MiniMax account and saves their own key in the operating-system-user encrypted credential area. PlotPickle ships no MiniMax key, shared billing proxy or credits. Every paid image or H3 video request requires an explicit confirmation; missing confirmation is rejected locally, and no local failure triggers a paid cloud fallback. Successful provider media is copied into local asset storage before review.
+
+The MiniMax H3 create, query, queued-job cancellation and local MP4 download gateway is available as provider infrastructure. A polished **Animate Panel** / Visual Pitch review surface and final human-approved PPF video association remain the next UI increment and are not claimed as shipped here.
+
 ## Optional connections
 
 PlotPickle's complete local creative core works without external accounts or API keys.
 
 | Settings area | Purpose | Default |
 |---|---|---|
-| **Story & Art** | Ollama for local writing, OpenAI/compatible cloud AI, or No AI | Disconnected |
+| **Story & Art** | Ollama for local writing; OpenAI or BYOK MiniMax cloud AI; or No AI | Disconnected |
 | **Repository & Collab** | Optional GitHub repository history, Story Proposals, approvals and recovery | Disconnected |
 | **Scheduling & Meetings** | Optional Google Calendar and Meet | Disconnected |
 | **Buzz** | Optional Story Rooms, encrypted relay identity and managed local relay | Not configured |

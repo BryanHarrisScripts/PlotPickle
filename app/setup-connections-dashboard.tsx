@@ -8,6 +8,9 @@ import styles from "./setup-connections-dashboard.module.css";
 const OPENAI_KEYS_URL = "https://platform.openai.com/api-keys";
 const OPENAI_BILLING_URL = "https://platform.openai.com/settings/organization/billing/overview";
 const OPENAI_QUICKSTART_URL = "https://developers.openai.com/api/docs/quickstart";
+const MINIMAX_KEYS_URL = "https://platform.minimax.io/user-center/basic-information/interface-key";
+const MINIMAX_PRICING_URL = "https://platform.minimax.io/docs/pricing/overview";
+const MINIMAX_H3_URL = "https://platform.minimax.io/docs/guides/video-generation";
 const BUZZ_INVITE_URL = "https://plotpickleplayhouse.communities.buzz.xyz/invite/v2.tdZwBnmvMuZ_E3lh_cEjbo4qeJHdTvFogatjMfVgB-k";
 const BUZZ_COMMUNITIES_URL = "https://app.builderlab.xyz/buzz";
 const GITHUB_SIGNUP_URL = "https://github.com/signup";
@@ -249,18 +252,21 @@ export default function SetupConnectionsDashboard({
       {
         id: "cloud",
         title: "2 · Cloud AI",
-        summary: "Use OpenAI or another reviewed provider for optional cloud writing or image generation with the writer's own account and billing.",
+        summary: "Use OpenAI, MiniMax or another reviewed provider with the writer's own account, API key and provider billing. PlotPickle supplies no credits and never falls back to cloud automatically.",
         rows: [
           rowFromConnection(cloudAi, {
             id: "cloud-ai",
-            label: "Cloud image generation · OpenAI or another provider",
+            label: "Cloud images & video · OpenAI, MiniMax or another provider",
             requirement: "Optional",
-            detail: `${cloudAi.detail} ChatGPT Plus does not include OpenAI API usage; API keys and billing are separate.`,
+            detail: `${cloudAi.detail} Cloud image generation · OpenAI or another provider remains supported, while MiniMax adds image-01 and H3 video. ChatGPT Plus does not include OpenAI API usage; API keys and billing are separate.`,
             settingsSection: "ai",
             links: [
               { label: "Create OpenAI API key", href: OPENAI_KEYS_URL },
               { label: "OpenAI API billing", href: OPENAI_BILLING_URL },
               { label: "OpenAI API quickstart", href: OPENAI_QUICKSTART_URL },
+              { label: "Create MiniMax API key", href: MINIMAX_KEYS_URL },
+              { label: "MiniMax pricing", href: MINIMAX_PRICING_URL },
+              { label: "MiniMax H3 video guide", href: MINIMAX_H3_URL },
             ],
           }),
         ],

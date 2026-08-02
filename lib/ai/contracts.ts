@@ -11,7 +11,7 @@ export type AiCapability =
   | "video-generation"
   | "prompt-export";
 
-export type AiProviderKind = "openai" | "openai-compatible" | "ollama" | "manual" | "disabled";
+export type AiProviderKind = "openai" | "minimax" | "openai-compatible" | "ollama" | "manual" | "disabled";
 
 export type AiSecretSource = "session" | "environment" | "none";
 
@@ -68,6 +68,7 @@ export type AiImageRequest = {
   quality?: "low" | "medium" | "high" | "auto";
   outputFormat?: "png" | "jpeg" | "webp";
   referenceAssets?: AiAssetReference[];
+  billingConfirmation?: AiBillingConfirmation;
 };
 
 export type AiImageResult = {
@@ -86,16 +87,26 @@ export type AiVideoRequest = {
   durationSeconds?: number;
   aspectRatio?: "16:9" | "9:16" | "1:1";
   characterLookIds?: string[];
+  billingConfirmation?: AiBillingConfirmation;
 };
 
 export type AiVideoJob = {
   id: string;
   providerId: string;
   model: string;
-  status: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+  status: "queued" | "running" | "succeeded" | "failed" | "cancelled" | "expired";
   progress?: number;
   output?: AiAssetReference;
   error?: string;
+};
+
+export type AiBillingConfirmation = {
+  acknowledged: true;
+  providerId: string;
+  maximumRequests: number;
+  confirmedAt: string;
+  dataShared: string[];
+  userOwnedCredential: true;
 };
 
 export type AiAssetReference = {

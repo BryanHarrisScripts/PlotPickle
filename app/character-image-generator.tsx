@@ -94,6 +94,11 @@ export default function CharacterImageGenerator({ project, character, onImage }:
 
   async function generate() {
     if (!identity.draftPrompt.trim() || state === "working") return;
+    const billingAcknowledged = window.confirm("Generate one character-reference image? A connected cloud provider may charge the API account saved by this user. PlotPickle does not supply credits or pay for generation.");
+    if (!billingAcknowledged) {
+      setMessage("Image generation was cancelled. No provider request was made.");
+      return;
+    }
     setState("working");
     setMessage(`Generating the ${angle.replace("-", " ")} reference and saving it locally…`);
     try {
@@ -114,6 +119,8 @@ export default function CharacterImageGenerator({ project, character, onImage }:
           aspect: "portrait",
           referenceImages: identity.references.filter((reference) => reference.approved).map((reference) => reference.src),
           identityLock: { characterId: character.id, version: identity.version, status: identity.status, approvedPrompt: identity.approvedPrompt },
+          requestCount: 1,
+          billingAcknowledged,
         }),
       });
       const result = await response.json() as ImageResponse;

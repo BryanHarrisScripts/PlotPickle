@@ -9,6 +9,8 @@ type ServiceState = "connected" | "optional" | "error" | "supported";
 type ServiceId = "ollama" | "openai" | "minimax" | "comfyui" | "github" | "buzz" | "google";
 type ServiceSnapshot = Record<ServiceId, ServiceState>;
 
+const serviceIds: ServiceId[] = ["ollama", "openai", "minimax", "comfyui", "github", "buzz", "google"];
+
 const defaultLiveSnapshot: ServiceSnapshot = {
   ollama: "optional",
   openai: "optional",
@@ -88,6 +90,10 @@ function readLiveSnapshot(root: HTMLElement): ServiceSnapshot {
   };
 }
 
+function snapshotsMatch(current: ServiceSnapshot, next: ServiceSnapshot) {
+  return serviceIds.every((id) => current[id] === next[id]);
+}
+
 function modeState(service: ServiceState): ServiceState {
   if (service === "connected") return "connected";
   if (service === "error") return "error";
@@ -114,7 +120,10 @@ export default function ConfigurationDashboardOverview({
 
   useEffect(() => {
     if (variant !== "live" || !sourceRoot) return;
-    const refresh = () => setSnapshot(readLiveSnapshot(sourceRoot));
+    const refresh = () => {
+      const next = readLiveSnapshot(sourceRoot);
+      setSnapshot((current) => snapshotsMatch(current, next) ? current : next);
+    };
     const timer = window.setTimeout(refresh, 0);
     const observer = new MutationObserver(refresh);
     observer.observe(sourceRoot, { childList: true, subtree: true, characterData: true, attributes: true });

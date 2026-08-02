@@ -13,6 +13,13 @@ import {
   type CollaborationMode,
   type CollaborationServiceState,
 } from "@/lib/collaboration-mode";
+import {
+  PROJECT_STORAGE_MODES,
+  projectStorageModeSnapshot,
+  projectStorageTransitionConfirmation,
+  transitionProjectStorageMode,
+  type ProjectStorageMode,
+} from "@/lib/project-storage-mode";
 import GitHubCollaborationBase from "./github-collaboration-base";
 import BuzzSettingsPanel from "./buzz-settings-panel";
 import modeStyles from "./project-mode-settings.module.css";
@@ -34,6 +41,17 @@ type BuzzConfigurationStatus = {
 
 const BUZZ_STATUS_API = "/api/local-buzz/status";
 
+const STORAGE_MODE_COPY: Record<ProjectStorageMode, { title: string; summary: string }> = {
+  "local-only": {
+    title: "Local Only",
+    summary: "PPF, local assets and rolling backups on this device. Saved GitHub setup remains available but inactive.",
+  },
+  "local-github": {
+    title: "Local + GitHub",
+    summary: "The local working copy remains primary while GitHub adds history, proposals, recovery and collaboration.",
+  },
+};
+
 function safeBackupLimit(value: number | undefined) {
   return Math.min(100, Math.max(1, Math.round(Number(value) || 20)));
 }
@@ -47,6 +65,7 @@ function jsonError(message: string, status = 409) {
 
 function ProjectModeSettings({ project, onChange }: Pick<Props, "project" | "onChange">) {
   const collaboration = normalizeCollaborationModeRecord(project.collaboration);
+  const storage = projectStorageModeSnapshot(project);
   const [buzzState, setBuzzState] = useState<CollaborationServiceState>("unknown");
   const [transitionNotice, setTransitionNotice] = useState("");
 
@@ -66,6 +85,21 @@ function ProjectModeSettings({ project, onChange }: Pick<Props, "project" | "onC
     return () => { cancelled = true; };
   }, []);
 
+  function selectStorageMode(mode: ProjectStorageMode) {
+    if (mode === storage.mode) return;
+    const confirmed = window.confirm(projectStorageTransitionConfirmation(project, mode));
+    if (!confirmed) return;
+    const next = transitionProjectStorageMode(project, mode);
+    onChange(next);
+    setTransitionNotice(
+      mode === "local-github"
+        ? storage.githubConfigured
+          ? `Local + GitHub is selected for ${storage.repository}. The local working copy remains active.`
+          : "Local + GitHub is selected. Configure a GitHub story repository before synchronization or proposals can be used."
+        : "Local Only is selected. The local working copy and rolling backups remain active; saved GitHub setup was preserved.",
+    );
+  }
+
   function selectMode(mode: CollaborationMode) {
     if (mode === collaboration.mode) return;
     const result = transitionCollaborationMode(project, mode, {
@@ -74,7 +108,12 @@ function ProjectModeSettings({ project, onChange }: Pick<Props, "project" | "onC
     });
     const confirmed = window.confirm(collaborationTransitionConfirmation(result.plan));
     if (!confirmed) return;
-    onChange(result.project);
+    const next = mode === "repository-collaboration"
+      ? transitionProjectStorageMode(result.project, "local-github")
+      : mode === "local-story"
+        ? transitionProjectStorageMode(result.project, "local-only")
+        : result.project;
+    onChange(next);
     setTransitionNotice(result.plan.guidance);
   }
 
@@ -82,12 +121,47 @@ function ProjectModeSettings({ project, onChange }: Pick<Props, "project" | "onC
     <section className={modeStyles.panel} aria-labelledby="project-mode-settings-title">
       <header>
         <div>
-          <p>Project operating mode</p>
-          <h3 id="project-mode-settings-title">{COLLABORATION_MODE_COPY[collaboration.mode].title}</h3>
-          <span>{COLLABORATION_MODE_COPY[collaboration.mode].summary}</span>
+          <p>Project storage mode</p>
+          <h3 id="project-mode-settings-title">{STORAGE_MODE_COPY[storage.mode].title}</h3>
+          <span>{STORAGE_MODE_COPY[storage.mode].summary}</span>
         </div>
-        <strong>PPF remains canonical</strong>
+        <strong>Local working copy always active</strong>
       </header>
+      <div className={modeStyles.storageOptions} role="radiogroup" aria-label="Project storage mode">
+        {PROJECT_STORAGE_MODES.map((mode) => {
+          const copy = STORAGE_MODE_COPY[mode];
+          const active = storage.mode === mode;
+          return (
+            <button
+              type="button"
+              role="radio"
+              aria-checked={active}
+              className={active ? modeStyles.active : ""}
+              key={mode}
+              onClick={() => selectStorageMode(mode)}
+            >
+              <span>{active ? "Selected" : mode === "local-github" && !storage.githubConfigured ? "Repository setup required" : "Available"}</span>
+              <b>{copy.title}</b>
+              <small>{copy.summary}</small>
+            </button>
+          );
+        })}
+      </div>
+      <dl className={modeStyles.storageStatus}>
+        <div><dt>Local PPF</dt><dd>Always active</dd></div>
+        <div><dt>Rolling backups</dt><dd>Always retained</dd></div>
+        <div><dt>GitHub story repository</dt><dd>{storage.repository}</dd></div>
+        <div><dt>Branch</dt><dd>{storage.githubConfigured ? storage.branch : "Not configured"}</dd></div>
+      </dl>
+      <p className={modeStyles.boundary}>
+        GitHub supplements local storage. Switching modes never deletes the local project, repository, history or saved connection settings, and it never pushes or pulls automatically.
+      </p>
+
+      <div className={modeStyles.subsectionHeader}>
+        <p>Project operating mode</p>
+        <h4>{COLLABORATION_MODE_COPY[collaboration.mode].title}</h4>
+        <span>Choose the collaboration style separately. Writers’ Room discussion can remain independent from repository storage.</span>
+      </div>
       <div className={modeStyles.options} role="radiogroup" aria-label="Project operating mode">
         {COLLABORATION_MODES.map((mode) => {
           const copy = COLLABORATION_MODE_COPY[mode];

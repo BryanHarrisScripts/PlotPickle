@@ -81,6 +81,18 @@ function isMessage(value: unknown): value is Message {
     && typeof item.content === "string";
 }
 
+function initialMessages() {
+  if (typeof window === "undefined") return [] as Message[];
+  try {
+    const stored = window.sessionStorage.getItem(SESSION_KEY);
+    if (!stored) return [];
+    const parsed: unknown = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed.filter(isMessage).slice(-30) : [];
+  } catch {
+    return [];
+  }
+}
+
 async function jsonRequest<T>(path: string, method: "GET" | "POST" = "GET", body?: object) {
   const response = await fetch(path, {
     method,
@@ -110,7 +122,7 @@ function providerState(profile: ProviderStatus, provider: ProviderId, status: As
 
 export default function WritingAssistantConsole({ onManage }: { onManage: (target: string) => void }) {
   const [status, setStatus] = useState<AssistantStatus | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [prompt, setPrompt] = useState("");
   const [ollamaModel, setOllamaModel] = useState("");
   const [working, setWorking] = useState(false);
@@ -118,13 +130,6 @@ export default function WritingAssistantConsole({ onManage }: { onManage: (targe
   const [technicalOpen, setTechnicalOpen] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = window.sessionStorage.getItem(SESSION_KEY);
-      if (stored) {
-        const parsed: unknown = JSON.parse(stored);
-        if (Array.isArray(parsed)) setMessages(parsed.filter(isMessage).slice(-30));
-      }
-    } catch { /* A temporary console session can safely start empty. */ }
     void refreshStatus();
   }, []);
 

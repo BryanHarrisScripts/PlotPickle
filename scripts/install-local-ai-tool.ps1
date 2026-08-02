@@ -75,10 +75,14 @@ function Find-InstalledApplication {
   )
   foreach ($root in $registryRoots) {
     foreach ($entry in @(Get-ItemProperty -Path $root -ErrorAction SilentlyContinue)) {
-      if ([string]$entry.DisplayName -match $Pattern) {
-        if ($entry.InstallLocation) { return [string]$entry.InstallLocation }
-        return [string]$entry.DisplayName
-      }
+      $displayProperty = $entry.PSObject.Properties["DisplayName"]
+      if (-not $displayProperty) { continue }
+      $displayName = [string]$displayProperty.Value
+      if ($displayName -notmatch $Pattern) { continue }
+
+      $locationProperty = $entry.PSObject.Properties["InstallLocation"]
+      if ($locationProperty -and $locationProperty.Value) { return [string]$locationProperty.Value }
+      return $displayName
     }
   }
   return ""

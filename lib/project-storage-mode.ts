@@ -1,13 +1,16 @@
-import type { PlotPickleProject, ProjectCollaboration } from "./project";
 import {
   githubCollaborationServiceState,
   normalizeCollaborationModeRecord,
+  transitionCollaborationMode,
   withCollaborationMode,
 } from "./collaboration-mode";
 
 export const PROJECT_STORAGE_MODES = ["local-only", "local-github"] as const;
 
 export type ProjectStorageMode = (typeof PROJECT_STORAGE_MODES)[number];
+
+type PlotPickleProject = Parameters<typeof transitionCollaborationMode>[0];
+type ProjectCollaboration = PlotPickleProject["collaboration"];
 
 type StorageAwareCollaboration = ProjectCollaboration & {
   repositoryEnabled?: boolean;

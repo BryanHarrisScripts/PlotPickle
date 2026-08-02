@@ -134,7 +134,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload Windows interaction evidence
         if: always() && matrix.platform == 'windows'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: plotpickle-windows-smoke-${{ github.sha }}
           path: |
@@ -162,7 +162,7 @@ jobs:
         run: |
           cd releases
           if command -v sha256sum >/dev/null 2>&1; then sha256sum "${{ matrix.archive }}" > "${{ matrix.archive }}.sha256"; else shasum -a 256 "${{ matrix.archive }}" > "${{ matrix.archive }}.sha256"; fi
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: plotpickle-${{ matrix.platform }}-${{ github.sha }}
           path: |

@@ -1,6 +1,6 @@
 import type { AiProviderKind } from "./contracts";
 
-export const SETTINGS_VERSION = "1.2.0" as const;
+export const SETTINGS_VERSION = "1.3.0" as const;
 
 export type MusicService = "suno" | "udio";
 
@@ -43,6 +43,7 @@ export type PlotPickleSettings = {
     baseUrl: string;
     textModel: string;
     imageModel: string;
+    videoModel: string;
   };
   privacy: {
     diagnosticReports: boolean;
@@ -95,6 +96,7 @@ export const defaultPlotPickleSettings: PlotPickleSettings = {
     baseUrl: "",
     textModel: "",
     imageModel: "",
+    videoModel: "",
   },
   privacy: {
     diagnosticReports: false,
@@ -119,7 +121,7 @@ export function normalizePlotPickleSettings(value: unknown): PlotPickleSettings 
   const ai: Partial<PlotPickleSettings["ai"]> = candidate.ai && typeof candidate.ai === "object" ? candidate.ai : {};
   const privacy: Partial<PlotPickleSettings["privacy"]> = candidate.privacy && typeof candidate.privacy === "object" ? candidate.privacy : {};
   const accessibility: Partial<PlotPickleSettings["accessibility"]> = candidate.accessibility && typeof candidate.accessibility === "object" ? candidate.accessibility : {};
-  const providerChoices: AiProviderKind[] = ["openai", "openai-compatible", "ollama", "manual", "disabled"];
+  const providerChoices: AiProviderKind[] = ["openai", "minimax", "openai-compatible", "ollama", "manual", "disabled"];
   const provider = providerChoices.includes(ai.provider as AiProviderKind) ? ai.provider as AiProviderKind : "disabled";
   const music = Array.isArray(candidate.music)
     ? candidate.music.flatMap((item) => {
@@ -177,6 +179,7 @@ export function normalizePlotPickleSettings(value: unknown): PlotPickleSettings 
       baseUrl: typeof ai.baseUrl === "string" ? ai.baseUrl : "",
       textModel: typeof ai.textModel === "string" ? ai.textModel : "",
       imageModel: typeof ai.imageModel === "string" ? ai.imageModel : "",
+      videoModel: typeof ai.videoModel === "string" ? ai.videoModel : "",
     },
     privacy: {
       diagnosticReports: Boolean(privacy.diagnosticReports),

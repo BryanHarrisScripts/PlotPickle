@@ -1,9 +1,8 @@
 name: Phase 5 failure diagnostics
 
 on:
-  push:
-    branches:
-      - agent/afterglow-example-boundary
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: read

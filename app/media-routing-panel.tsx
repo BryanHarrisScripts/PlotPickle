@@ -110,7 +110,10 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
     }
   }
 
-  useEffect(() => { void refresh(); }, []);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void refresh(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const hybridCanTest = useMemo(() => {
     if (!status) return false;
@@ -284,11 +287,17 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
           <div className={styles.options}>
             {videoOptions.map((option) => {
               const configured = option.id === "none" || (option.id === "minimax-direct" ? status.profiles.minimax.configured : status.hybridGate.ready);
+              const directReady = Boolean(status.profiles.minimax.videoVerifiedAt);
+              const state = option.id === "minimax-comfyui"
+                ? status.hybridGate.ready ? "Ready" : "Locked"
+                : option.id === "minimax-direct"
+                  ? !configured ? "Setup needed" : directReady ? "Ready" : "Test needed"
+                  : "Off";
               return (
                 <div className={styles.option} data-active={status.videoRoute === option.id} key={option.id}>
                   <button type="button" className={styles.select} onClick={() => void chooseRoutes({ videoRoute: option.id })} disabled={Boolean(working) || !configured}>
                     <span><b>{option.label}</b><small>{option.detail}</small></span>
-                    <em>{option.id === "minimax-comfyui" ? status.hybridGate.ready ? "Ready" : "Locked" : configured ? "Available" : "Setup needed"}</em>
+                    <em>{state}</em>
                   </button>
                   {option.id !== "none" ? <button type="button" className={styles.test} onClick={() => void testVideo(option.id)} disabled={Boolean(working) || !status.profiles.minimax.configured || (option.id === "minimax-comfyui" && !hybridCanTest)}>{working === `video-${option.id}` ? "Testing…" : "Paid H3 test"}</button> : null}
                 </div>

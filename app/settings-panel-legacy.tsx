@@ -25,6 +25,9 @@ const AI_CONNECTION_API = "/api/local-ai/connection";
 const GOOGLE_CONNECTION_API = "/api/local-google/connection";
 const CREDENTIALS_API = "/api/local-connections/credentials";
 const SETTINGS_SECTION_KEY = "plotpickle.settings.section";
+const MINIMAX_KEYS_URL = "https://platform.minimax.io/user-center/basic-information/interface-key";
+const MINIMAX_PRICING_URL = "https://platform.minimax.io/docs/pricing/overview";
+const MINIMAX_VIDEO_DOCS_URL = "https://platform.minimax.io/docs/guides/video-generation";
 
 type SettingsSection =
   | "general"
@@ -58,6 +61,7 @@ type AiConnectionResponse = {
   baseUrl?: string;
   textModel?: string;
   imageModel?: string;
+  videoModel?: string;
   checkedAt?: string;
   message?: string;
 };
@@ -353,6 +357,7 @@ export default function SettingsPanel({
               baseUrl: saved.baseUrl!,
               textModel: saved.textModel ?? current.ai.textModel,
               imageModel: saved.imageModel ?? current.ai.imageModel,
+              videoModel: saved.videoModel ?? current.ai.videoModel,
             },
           }));
         }
@@ -409,6 +414,7 @@ export default function SettingsPanel({
         baseUrl: nextPreset?.defaultConfig.baseUrl ?? "",
         textModel: nextPreset?.defaultConfig.models.text ?? "",
         imageModel: nextPreset?.defaultConfig.models.image ?? "",
+        videoModel: nextPreset?.defaultConfig.models.video ?? "",
       },
     }));
     setSessionKey("");
@@ -420,7 +426,7 @@ export default function SettingsPanel({
     }));
   }
 
-  function updateAi(key: "baseUrl" | "textModel" | "imageModel", value: string) {
+  function updateAi(key: "baseUrl" | "textModel" | "imageModel" | "videoModel", value: string) {
     setSettings((current) => ({ ...current, ai: { ...current.ai, [key]: value } }));
     setAiConnection((current) => current.state === "connected"
       ? { ...current, state: "idle", message: "Connection details changed. Save and test again." }
@@ -444,6 +450,7 @@ export default function SettingsPanel({
         baseUrl: settings.ai.baseUrl,
         textModel: settings.ai.textModel,
         imageModel: settings.ai.imageModel,
+        videoModel: settings.ai.videoModel,
         apiKey: sessionKey,
       });
       window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
@@ -741,6 +748,7 @@ export default function SettingsPanel({
                     <label><span>Server address</span><input type="url" value={settings.ai.baseUrl} onChange={(event) => updateAi("baseUrl", event.target.value)} /></label>
                     <label><span>Text model</span><input value={settings.ai.textModel} onChange={(event) => updateAi("textModel", event.target.value)} placeholder="Choose or enter a model" /></label>
                     <label><span>Image model</span><input value={settings.ai.imageModel} onChange={(event) => updateAi("imageModel", event.target.value)} placeholder="Optional" /></label>
+                    <label><span>Video model</span><input value={settings.ai.videoModel} onChange={(event) => updateAi("videoModel", event.target.value)} placeholder="Optional" /></label>
                     <label><span>{settings.ai.provider === "ollama" ? "API key (usually not required)" : "API key"}</span><input type="password" autoComplete="off" value={sessionKey} onChange={(event) => { setSessionKey(event.target.value); setAiConnection((current) => ({ ...current, state: "idle", message: "Save and test the new key to connect." })); }} placeholder={aiConnection.saved && connectionMatchesProvider ? "Saved securely on this computer" : "Enter API key"} /></label>
                   </div>
                   <div className={`${styles.connectionPanel} ${aiConnection.state === "connected" && connectionMatchesProvider ? styles.connectionPanelConnected : aiConnection.state === "error" ? styles.connectionPanelError : ""}`}>
@@ -755,6 +763,17 @@ export default function SettingsPanel({
                     </div>
                   </div>
                   <p className={styles.note}>The key is saved in PlotPickle&apos;s private local-server data under your computer account. It is never written to browser settings, story projects, exports, reports, prompts, logs or GitHub.</p>
+                  {settings.ai.provider === "minimax" ? (
+                    <div className={styles.privacyBoundary}>
+                      <strong>Bring your own MiniMax account</strong>
+                      <p>Cloud AI charges are billed directly by MiniMax to this user&apos;s account. PlotPickle does not supply credits, share an owner key or pay for generation. Every paid image or video request requires a separate confirmation, and cloud fallback is never automatic.</p>
+                      <div className={styles.connectionActions}>
+                        <a href={MINIMAX_KEYS_URL} target="_blank" rel="noreferrer">Create or manage MiniMax API key</a>
+                        <a href={MINIMAX_PRICING_URL} target="_blank" rel="noreferrer">Review MiniMax pricing</a>
+                        <a href={MINIMAX_VIDEO_DOCS_URL} target="_blank" rel="noreferrer">MiniMax H3 guide</a>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
               {preset?.limitations.length ? <div className={styles.notice}>{preset.limitations.map((item) => <p key={item}>{item}</p>)}</div> : null}

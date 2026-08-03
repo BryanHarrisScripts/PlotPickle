@@ -82,7 +82,7 @@ export default function GraphicNovelViewer({ project, working, onProjectChange }
   const viewerRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<DragState | null>(null);
 
-  const panels = deck?.panels ?? [];
+  const panels = useMemo(() => deck?.panels ?? [], [deck?.panels]);
   const pagePanels = useMemo(
     () => panels.filter((panel) => panel.pageNumber === selectedPage).sort((left, right) => left.panelNumber - right.panelNumber),
     [panels, selectedPage],
@@ -90,18 +90,6 @@ export default function GraphicNovelViewer({ project, working, onProjectChange }
   const focusedPanel = pagePanels.find((panel) => panel.id === focusedPanelId) ?? pagePanels[0];
   const selectedDialogue = focusedPanel?.dialogue.find((dialogue) => dialogue.id === selectedDialogueId)
     ?? focusedPanel?.dialogue[0];
-
-  useEffect(() => {
-    if (!pagePanels.length) return;
-    if (!pagePanels.some((panel) => panel.id === focusedPanelId)) setFocusedPanelId(pagePanels[0].id);
-  }, [focusedPanelId, pagePanels]);
-
-  useEffect(() => {
-    if (!focusedPanel) return;
-    if (!focusedPanel.dialogue.some((dialogue) => dialogue.id === selectedDialogueId)) {
-      setSelectedDialogueId(focusedPanel.dialogue[0]?.id ?? "");
-    }
-  }, [focusedPanel, selectedDialogueId]);
 
   useEffect(() => {
     if (!viewerOpen) return;

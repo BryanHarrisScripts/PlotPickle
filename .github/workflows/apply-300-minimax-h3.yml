@@ -1,0 +1,35 @@
+name: Apply issue 300 native MiniMax H3
+
+on:
+  push:
+    branches:
+      - agent/300-minimax-h3-comfyui
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]' && hashFiles('scripts/issue-300-h3.patch.gz.b64') != '' && hashFiles('docs/.issue-300-trigger') != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: agent/300-minimax-h3-comfyui
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "24.15.0"
+      - name: Decode and apply the verified H3 patch
+        run: |
+          base64 -d scripts/issue-300-h3.patch.gz.b64 | gzip -d > "$RUNNER_TEMP/issue-300.patch"
+          git apply --check "$RUNNER_TEMP/issue-300.patch"
+          git apply "$RUNNER_TEMP/issue-300.patch"
+          node --test tests/issue-300-minimax-h3-comfyui.test.mjs tests/issue-258-creative-compute-paths.test.mjs tests/issue-260-minimax-byok.test.mjs
+      - name: Remove one-use staging files and commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm scripts/issue-300-h3.patch.gz.b64 .github/workflows/apply-300-minimax-h3.yml docs/.issue-300-trigger
+          git add app build config docs lib package.json tests
+          git commit -m "Add native MiniMax H3 through ComfyUI"
+          git push origin HEAD:agent/300-minimax-h3-comfyui

@@ -13,6 +13,7 @@ const requiredChecks = [
   "Package macos",
   "Package linux",
   "Full history audit",
+  "Credential boundary audit",
   "Audit UI/UX against Design Rules",
 ];
 

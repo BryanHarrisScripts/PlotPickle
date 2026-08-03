@@ -6,6 +6,7 @@ import ConfigurationDashboardOverview from "./configuration-dashboard-overview";
 import ProjectStorageModePanel from "./project-storage-mode-panel";
 import WritingAssistantConsole from "./writing-assistant-console";
 import MediaRoutingPanel from "./media-routing-panel";
+import H3NativePanel from "./h3-native-panel";
 
 const SETUP_SELECTOR = "#dashboard-setup";
 
@@ -106,6 +107,7 @@ export default function ConfigurationDashboardHost() {
       <ProjectStorageModePanel onManage={openSettings} />
       <WritingAssistantConsole onManage={openSettings} />
       <MediaRoutingPanel onManage={openSettings} />
+      <H3NativePanel />
     </>,
     portalTarget,
   );

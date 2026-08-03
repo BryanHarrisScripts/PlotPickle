@@ -13,11 +13,13 @@ const reportPanel = await readFile(new URL("../app/settings-project-tools.tsx", 
 const reports = await readFile(new URL("../lib/screenplay-reports.ts", import.meta.url), "utf8");
 const terms = await readFile(new URL("../lib/screenplay-terms.ts", import.meta.url), "utf8");
 
-test("settings keep AI, music, and future plugins in one local model", () => {
+test("settings keep AI, music, and plugin migration in one local model", () => {
   assert.match(settings, /type PlotPickleSettings/);
   assert.match(settings, /provider: AiProviderKind/);
   assert.match(settings, /service: MusicService/);
-  assert.match(settings, /status: "coming-soon"/);
+  assert.match(settings, /status: "enabled" \| "disabled" \| "coming-soon"/);
+  assert.match(settings, /defaultMediaEnginePlaceholders: PluginSetting\[\] = \[\]/);
+  assert.match(settings, /retiredPlaceholderIds/);
 });
 
 test("settings never include API-key storage", () => {

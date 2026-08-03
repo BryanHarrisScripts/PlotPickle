@@ -7,11 +7,13 @@ const text = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("credential registry documents every release credential boundary", async () => {
   const registry = JSON.parse(await text("config/credential-boundary.registry.json"));
+  const policy = JSON.parse(await text("config/credential-boundaries.json"));
   const ids = new Set(registry.credentials.map((entry) => entry.id));
   for (const required of [
     "github-app-authorization",
     "github-device-authorization",
     "github-selected-connection",
+    "github-project-sync-state",
     "google-desktop-oauth",
     "legacy-ai-connection",
     "writing-assistant-profiles",
@@ -26,6 +28,10 @@ test("credential registry documents every release credential boundary", async ()
   assert.equal(registry.encryption_contract.macos, "macos-keychain-current-user");
   assert.equal(registry.encryption_contract.linux_primary, "linux-systemd-creds-current-user");
   assert.equal(registry.encryption_contract.linux_fallback, "linux-secret-service-current-user");
+  const registeredFiles = new Set(registry.credentials.map((entry) => entry.file));
+  for (const item of policy.protectedFiles) assert.ok(registeredFiles.has(item.name), `Missing executable registry entry for ${item.name}`);
+  assert.ok(policy.publicConfigs.some((item) => item.path === "config/github-app.json"));
+  assert.ok(policy.publicConfigs.some((item) => item.path === "config/google-oauth.json"));
 
   for (const entry of registry.credentials) {
     assert.match(entry.file, /^[a-z0-9][a-z0-9-]*\.json$/);

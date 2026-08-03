@@ -244,6 +244,102 @@ test("phase 3 first-run panel exposes independent controls real tests and truthf
   assert.doesNotMatch(panel, /Authorization|Bearer |sk-[A-Za-z0-9]|apiKey/);
 });
 
+test("issue #300 adds a native H3 provider without cloud credentials or silent installation", async () => {
+  const [provider, gateway, localGateway] = await Promise.all([
+    source("build/comfyui-h3-native-provider.ts"),
+    source("build/comfyui-h3-native-gateway.ts"),
+    source("build/local-ai-gateway.ts"),
+  ]);
+  for (const contract of [
+    "minimax-h3-native",
+    "text-to-video",
+    "image-to-video",
+    "first-last-frame",
+    "reference-to-video",
+    "in-place-edit",
+    "minimumComfyUIVersion",
+    "requiredModels",
+    "/system_stats",
+    "/object_info/",
+    "/upload/image",
+    "/upload/file",
+    "/prompt",
+    "/history/",
+    "/view?",
+    "The official native H3 workflow must return an MP4 or WebM output",
+    "8 GB VRAM is experimental and may be impractical",
+    "PlotPickle does not promise 2K, 15 seconds or usable speed",
+  ]) assert.ok(provider.includes(contract), `Missing native H3 provider contract: ${contract}`);
+  for (const contract of [
+    "/api/media-routing/comfyui/h3/native",
+    "/api/local-ai/generate/video",
+    "/api/local-ai/video/",
+    "installsWeights: false",
+    "installsCustomNodes: false",
+    "executesDownloadedCode: false",
+    "registerNativeH3Gateway",
+  ]) assert.ok(`${gateway}\n${localGateway}`.includes(contract), `Missing native H3 gateway contract: ${contract}`);
+  assert.match(localGateway, /registerNativeH3Gateway\(server\)[\s\S]*registerMediaRoutingGateway\(server\)/);
+  assert.doesNotMatch(provider, /PLOTPICKLE_MINIMAX_KEY|Authorization:|Bearer \$\{/);
+  assert.doesNotMatch(gateway, /child_process|spawn\(|exec\(|git clone|pip install/i);
+});
+
+test("issue #300 exposes truthful native H3 status diagnostics and official setup guidance", async () => {
+  const [panel, css, host, docs, schema] = await Promise.all([
+    source("app/h3-native-panel.tsx"),
+    source("app/h3-native-panel.module.css"),
+    source("app/configuration-dashboard-host.tsx"),
+    source("docs/MINIMAX_H3_NATIVE_COMFYUI.md"),
+    source("config/minimax-h3-native.manifest.schema.json"),
+  ]);
+  for (const phrase of [
+    "MiniMax H3 · Native ComfyUI",
+    "No MiniMax cloud key",
+    "Official-source H3 manifest imported",
+    "Every user-owned model file is detected",
+    "8 GB compatibility acknowledgement",
+    "PlotPickle does not promise 2K or 15 seconds locally",
+    "Use native H3 for video",
+    "Run local H3 test",
+    "Waiting for official manifest",
+    "ComfyUI/models/",
+  ]) assert.ok(panel.includes(phrase), `Missing native H3 UI contract: ${phrase}`);
+  assert.match(host, /H3NativePanel/);
+  assert.match(css, /min-height: 2\.75rem/);
+  assert.match(css, /:focus-visible/);
+  assert.match(css, /prefers-reduced-motion/);
+  assert.match(docs, /does not bundle or redistribute H3 weights/);
+  assert.match(docs, /Cloud MiniMax remains available as a separate BYOK route/);
+  const parsed = JSON.parse(schema);
+  assert.equal(parsed.properties.model.const, "MiniMax-H3");
+  assert.equal(parsed.properties.workflowFamily.enum.length, 5);
+  assert.doesNotMatch(panel, /Authorization|Bearer |sk-[A-Za-z0-9]|apiKey/);
+});
+
+test("issue #300 validates official provenance workflow placeholders model directories and version gates", async () => {
+  const provider = await source("build/comfyui-h3-native-provider.ts");
+  for (const contract of [
+    "https://github.com/MiniMax-AI/",
+    "https://huggingface.co/MiniMaxAI/",
+    "https://github.com/Comfy-Org/ComfyUI/",
+    "https://docs.comfy.org/",
+    "{{PLOTPICKLE_PROMPT}}",
+    "{{PLOTPICKLE_SOURCE_IMAGE}}",
+    "{{PLOTPICKLE_FIRST_FRAME}}",
+    "{{PLOTPICKLE_LAST_FRAME}}",
+    "{{PLOTPICKLE_REFERENCE_ASSET}}",
+    "{{PLOTPICKLE_SOURCE_VIDEO}}",
+    "SAFE_MODEL_DIRECTORIES",
+    "UNSAFE_NODE_PATTERN",
+    "versionAtLeast",
+    "compatibleVersion",
+    "modelsReady",
+    "allowConstrainedVram",
+  ]) assert.ok(provider.includes(contract), `Missing native H3 validation contract: ${contract}`);
+  assert.match(provider, /Native H3 workflows must not contain a cloud API key or authorization field/);
+  assert.match(provider, /network, installer or code-execution node/);
+});
+
 test("issue #258 focused regression is registered", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   assert.match(packageJson.scripts.test, /issue-258-creative-compute-paths\.test\.mjs/);

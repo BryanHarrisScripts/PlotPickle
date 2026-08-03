@@ -280,7 +280,8 @@ test("issue #300 adds a native H3 provider without cloud credentials or silent i
     "registerNativeH3Gateway",
   ]) assert.ok(`${gateway}\n${localGateway}`.includes(contract), `Missing native H3 gateway contract: ${contract}`);
   assert.match(localGateway, /registerNativeH3Gateway\(server\)[\s\S]*registerMediaRoutingGateway\(server\)/);
-  assert.doesNotMatch(provider, /PLOTPICKLE_MINIMAX_KEY|Authorization:|Bearer \$\{/);
+  assert.doesNotMatch(provider, /process\.env\.PLOTPICKLE_MINIMAX_KEY|Authorization:\s*["'`]|Bearer\s+\$\{/);
+  assert.match(provider, /Native H3 workflows must not contain a cloud API key or authorization field/);
   assert.doesNotMatch(gateway, /child_process|spawn\(|exec\(|git clone|pip install/i);
 });
 

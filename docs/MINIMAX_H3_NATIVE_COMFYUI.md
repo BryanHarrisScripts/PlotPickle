@@ -24,7 +24,7 @@ Official source roots accepted by PlotPickle:
 - Checks expected model filenames through the declared ComfyUI loader inputs.
 - Sends the PlotPickle scene or storyboard prompt and selected local reference assets into the reviewed workflow.
 - Polls ComfyUI history and returns completed MP4 or WebM output to the original PlotPickle asset identifier.
-- Presents setup status and actions with semantic text elements, a heading-labelled readiness list and native button-state accessibility.
+- Presents setup status and actions with inline section-label text, a heading-labelled readiness list and native button-state accessibility.
 - Stores no MiniMax cloud key in the native H3 configuration.
 
 ## What PlotPickle never does
@@ -81,6 +81,6 @@ PlotPickle labels 8 GB VRAM as **constrained**, not supported or recommended. Th
 
 ## Accessibility validation
 
-The native H3 panel uses semantic text for its section label, links the readiness list to its visible heading, and avoids redundant button descriptions. These contracts are intentionally kept visible to the required UI/UX audit before merge.
+The native H3 panel uses inline semantics for its section label, links the readiness list to its visible heading, and avoids redundant button descriptions. These contracts are intentionally kept visible to the required UI/UX audit before merge.
 
 Cloud MiniMax remains available as a separate BYOK route. Its API key continues to use PlotPickle's encrypted local credential storage and is never inserted into a native H3 workflow.

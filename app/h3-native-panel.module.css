@@ -38,7 +38,7 @@
   line-height: 1.5;
 }
 
-.header > strong {
+.statusBadge {
   flex: none;
   min-width: 6.5rem;
   padding: 0.55rem 0.75rem;
@@ -46,10 +46,11 @@
   border-radius: 999px;
   background: var(--paper);
   color: var(--ink);
+  font-weight: 700;
   text-align: center;
 }
 
-.header > strong[data-ready="true"] {
+.statusBadge[data-ready="true"] {
   border-color: var(--pickle-dark);
   background: var(--pickle-pale);
   color: var(--ink);
@@ -175,9 +176,15 @@
 }
 
 .acknowledgement small,
-.models small {
+.models small,
+.field small {
   color: var(--ink-soft);
   line-height: 1.45;
+}
+
+.fieldError {
+  color: #8a1c1c !important;
+  font-weight: 700;
 }
 
 .actions {
@@ -209,11 +216,11 @@
   cursor: pointer;
 }
 
-.panel button:hover:not(:disabled) {
+.panel button:hover:not([aria-disabled="true"]) {
   background: var(--pickle-pale);
 }
 
-.panel button:disabled {
+.panel button[aria-disabled="true"] {
   cursor: not-allowed;
   opacity: 0.65;
 }
@@ -236,6 +243,11 @@
   border-radius: 0.65rem;
   background: var(--panel);
   color: var(--ink);
+}
+
+.field input[aria-invalid="true"] {
+  border-color: #8a1c1c;
+  box-shadow: 0 0 0 1px #8a1c1c;
 }
 
 .panel textarea {
@@ -357,7 +369,7 @@
     flex-direction: column;
   }
 
-  .header > strong {
+  .statusBadge {
     align-self: flex-start;
   }
 

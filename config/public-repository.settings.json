@@ -35,7 +35,8 @@
       "Pack active Phase 5 branch",
       "Package windows",
       "Package macos",
-      "Package linux"
+      "Package linux",
+      "Full history audit"
     ]
   }
 }

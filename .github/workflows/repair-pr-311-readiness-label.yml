@@ -1,0 +1,49 @@
+name: Repair PR 311 readiness label
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/300-native-minimax-h3-comfyui
+          fetch-depth: 0
+      - name: Link readiness list to visible heading
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          component = Path('app/h3-native-panel.tsx')
+          text = component.read_text(encoding='utf-8')
+          replacements = {
+              '<h3>Live readiness</h3>': '<h3 id="native-h3-readiness-heading">Live readiness</h3>',
+              'aria-label="Native H3 readiness requirements"': 'aria-labelledby="native-h3-readiness-heading"',
+          }
+          for old, new in replacements.items():
+              if text.count(old) != 1:
+                  raise SystemExit(f'Expected exactly one occurrence of {old!r}.')
+              text = text.replace(old, new)
+          component.write_text(text, encoding='utf-8')
+          Path('.github/workflows/repair-pr-311-readiness-label.yml').unlink()
+          PY
+          node --test tests/issue-258-creative-compute-paths.test.mjs
+      - name: Commit focused readiness-label repair
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/h3-native-panel.tsx .github/workflows/repair-pr-311-readiness-label.yml
+          git commit -m "Label native H3 readiness list semantically"
+          git fetch origin agent/300-native-minimax-h3-comfyui
+          git rebase origin/agent/300-native-minimax-h3-comfyui
+          git push origin HEAD:agent/300-native-minimax-h3-comfyui

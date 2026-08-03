@@ -22,7 +22,7 @@ PlotPickle does not claim that every computer can run every model, does not bund
 
 ## Focused validation
 
-The new issue-301 contract and the existing issue-169 splash and issue-212 Buzz marketing-alignment suites pass together: 16 tests, 16 passed.
+The new issue-301 contract and the existing issue-169 splash and issue-212 Buzz marketing-alignment suites pass together: 16 tests, 16 passed. Splash section introductions use semantic `header` containers around their visible eyebrow, heading and description.
 
 ## Final validation
 

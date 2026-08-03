@@ -8,6 +8,8 @@ const viewer = readFileSync(new URL("../app/graphic-novel-viewer.tsx", import.me
 const workspace = readFileSync(new URL("../app/ai-pitch-deck-workspace.tsx", import.meta.url), "utf8");
 const queue = readFileSync(new URL("../app/use-graphic-novel-queue.ts", import.meta.url), "utf8");
 const baseEditor = readFileSync(new URL("../app/ai-pitch-deck-workspace-base.tsx", import.meta.url), "utf8");
+const projectSource = readFileSync(new URL("../lib/project.ts", import.meta.url), "utf8");
+const storyBrief = readFileSync(new URL("../lib/graphic-novel-story-brief.ts", import.meta.url), "utf8");
 const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 
 test("Phase 7 stores non-destructive balloon and caption direction in a versioned PPF extension", () => {
@@ -18,6 +20,12 @@ test("Phase 7 stores non-destructive balloon and caption direction in a versione
   assert.match(dialogue, /sourceElementId/);
   assert.match(dialogue, /shortenGraphicNovelDialogue/);
   assert.match(dialogue, /graphicNovelDialogueIssues/);
+});
+
+test("Phase 7 preserves the PlotPickle 1.7 format and the Phase 6 Story Brief boundary", () => {
+  assert.match(projectSource, /schemaVersion: "1\.7\.0"/);
+  assert.match(storyBrief, /plotpickle\.graphicNovelStoryBrief\.v1/);
+  assert.doesNotMatch(dialogue, /schemaVersion\s*:/);
 });
 
 test("Phase 7 viewer supports cover, page, spread and panel reading modes", () => {

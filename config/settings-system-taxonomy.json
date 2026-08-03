@@ -26,6 +26,14 @@
       "description": "Starting format, target length and autosave behaviour.",
       "status": "configure",
       "target": "project-defaults"
+    },
+    {
+      "id": "sitemap",
+      "label": "Sitemap",
+      "helpTerm": "Sitemap",
+      "description": "Open every story, collaboration and configuration destination from one map.",
+      "status": "installed",
+      "target": "sitemap"
     }
   ],
   "systems": [
@@ -41,7 +49,14 @@
           "description": "The local Playhouse server, desktop runtime and installed web application packages.",
           "status": "installed",
           "target": "general",
-          "examples": ["PlotPickle Playhouse Server", "Node.js 24.15.0", "npm 11.12.1", "Next 16.2.6", "React 19.2.6", "Vite 8.0.13"]
+          "examples": [
+            "PlotPickle Playhouse Server",
+            "Node.js 24.15.0",
+            "npm 11.12.1",
+            "Next 16.2.6",
+            "React 19.2.6",
+            "Vite 8.0.13"
+          ]
         },
         {
           "id": "local-models",
@@ -50,8 +65,18 @@
           "description": "Self-hosted language models, model files and inference limits.",
           "status": "optional",
           "target": "ai",
-          "examples": ["Local LLMs", "GGUF", "EXL2", "Quantized inference", "Local context-window allocation"],
-          "mechanics": ["Prompting", "Tokens", "Model weights and formats"]
+          "examples": [
+            "Local LLMs",
+            "GGUF",
+            "EXL2",
+            "Quantized inference",
+            "Local context-window allocation"
+          ],
+          "mechanics": [
+            "Prompting",
+            "Tokens",
+            "Model weights and formats"
+          ]
         },
         {
           "id": "local-media",
@@ -60,8 +85,14 @@
           "description": "Image, audio, video and transcription applications installed on this computer.",
           "status": "optional",
           "target": "plugins",
-          "examples": ["ComfyUI", "Local media-generation nodes", "Transcription tools"],
-          "mechanics": ["Configure and test ComfyUI from Dashboard → Setup & connections"]
+          "examples": [
+            "ComfyUI",
+            "Local media-generation nodes",
+            "Transcription tools"
+          ],
+          "mechanics": [
+            "Configure and test ComfyUI from Dashboard → Setup & connections"
+          ]
         },
         {
           "id": "local-buzz",
@@ -70,7 +101,12 @@
           "description": "Detect Buzz Desktop, connect its community and prepare PlotPickle Story Rooms.",
           "status": "optional",
           "target": "buzz",
-          "examples": ["Buzz Desktop", "Community URL", "Buzz identity", "PlotPickle Story Rooms"]
+          "examples": [
+            "Buzz Desktop",
+            "Community URL",
+            "Buzz identity",
+            "PlotPickle Story Rooms"
+          ]
         }
       ]
     },
@@ -86,8 +122,16 @@
           "description": "Connect hosted language and image-model APIs.",
           "status": "optional",
           "target": "ai",
-          "examples": ["OpenAI API", "Anthropic API", "Hosted model inference"],
-          "mechanics": ["Token metering", "TTFT monitoring", "Structured outputs"]
+          "examples": [
+            "OpenAI API",
+            "Anthropic API",
+            "Hosted model inference"
+          ],
+          "mechanics": [
+            "Token metering",
+            "TTFT monitoring",
+            "Structured outputs"
+          ]
         },
         {
           "id": "cloud-compute",
@@ -95,7 +139,11 @@
           "helpTerm": "Cloud · Remote Compute",
           "description": "Configure hosted GPU jobs and serverless processing pipelines.",
           "status": "planned",
-          "examples": ["Modal", "Serverless GPU pipelines", "Remote rendering"]
+          "examples": [
+            "Modal",
+            "Serverless GPU pipelines",
+            "Remote rendering"
+          ]
         }
       ]
     },
@@ -111,7 +159,11 @@
           "description": "Manage canonical project files, rolling backups and recovery.",
           "status": "configure",
           "target": "storage",
-          "examples": ["Persistent .ppf projects", "Local app-data storage", "Rolling backups"]
+          "examples": [
+            "Persistent .ppf projects",
+            "Local app-data storage",
+            "Rolling backups"
+          ]
         },
         {
           "id": "data-database",
@@ -120,7 +172,11 @@
           "description": "Review local database runtimes, schema migrations and asset indexes.",
           "status": "reference",
           "target": "storage",
-          "examples": ["drizzle-orm 0.45.2", "drizzle-kit 0.31.10", "SQLite-compatible local state"]
+          "examples": [
+            "drizzle-orm 0.45.2",
+            "drizzle-kit 0.31.10",
+            "SQLite-compatible local state"
+          ]
         },
         {
           "id": "data-retrieval",
@@ -128,8 +184,17 @@
           "helpTerm": "Data · Retrieval & Embeddings",
           "description": "Plan semantic retrieval without mixing generated indexes into PPF canon.",
           "status": "planned",
-          "examples": ["RAG pipelines", "Embeddings", "Vector stores", "pgvector", "Chroma"],
-          "mechanics": ["Vector similarity search", "Context retrieval"]
+          "examples": [
+            "RAG pipelines",
+            "Embeddings",
+            "Vector stores",
+            "pgvector",
+            "Chroma"
+          ],
+          "mechanics": [
+            "Vector similarity search",
+            "Context retrieval"
+          ]
         },
         {
           "id": "data-cache",
@@ -137,7 +202,11 @@
           "helpTerm": "Data · Asset Cache",
           "description": "Manage derived previews, downloaded assets and replaceable local caches.",
           "status": "planned",
-          "examples": ["Image previews", "Media cache", "Generated indexes"]
+          "examples": [
+            "Image previews",
+            "Media cache",
+            "Generated indexes"
+          ]
         }
       ]
     },
@@ -152,7 +221,12 @@
           "helpTerm": "Deploy · Build Runtime",
           "description": "Review local-to-hosted build compatibility and runtime boundaries.",
           "status": "reference",
-          "examples": ["vinext 0.0.50", "Vite build", "Streaming responses", "Structured JSON schema outputs"]
+          "examples": [
+            "vinext 0.0.50",
+            "Vite build",
+            "Streaming responses",
+            "Structured JSON schema outputs"
+          ]
         },
         {
           "id": "deploy-cloudflare",
@@ -160,7 +234,11 @@
           "helpTerm": "Deploy · Cloudflare & Edge",
           "description": "Configure worker bindings and edge-hosting targets when deployment is enabled.",
           "status": "planned",
-          "examples": ["wrangler 4.92.0", "@cloudflare/vite-plugin 1.37.1", "Cloudflare Workers"]
+          "examples": [
+            "wrangler 4.92.0",
+            "@cloudflare/vite-plugin 1.37.1",
+            "Cloudflare Workers"
+          ]
         },
         {
           "id": "deploy-publishing",
@@ -168,7 +246,11 @@
           "helpTerm": "Deploy · Publishing Pipelines",
           "description": "Plan controlled local-to-cloud release and publishing workflows.",
           "status": "planned",
-          "examples": ["Hosted builds", "Worker environments", "Release packages"]
+          "examples": [
+            "Hosted builds",
+            "Worker environments",
+            "Release packages"
+          ]
         }
       ]
     },
@@ -184,7 +266,12 @@
           "description": "Connect project history, proposals, permissions and repository recovery.",
           "status": "optional",
           "target": "github",
-          "examples": ["GitHub", "Story proposals", "Revision history", "Multi-machine recovery"]
+          "examples": [
+            "GitHub",
+            "Story proposals",
+            "Revision history",
+            "Multi-machine recovery"
+          ]
         },
         {
           "id": "repos-code",
@@ -193,7 +280,11 @@
           "description": "Reference the application source, native bindings and release packages.",
           "status": "reference",
           "target": "about",
-          "examples": ["PlotPickle repository", "@rolldown/binding-win32-x64-msvc", "Release packages"]
+          "examples": [
+            "PlotPickle repository",
+            "@rolldown/binding-win32-x64-msvc",
+            "Release packages"
+          ]
         },
         {
           "id": "repos-afterglow",
@@ -202,7 +293,11 @@
           "description": "Connect or recover the optional Afterglow example-story repository.",
           "status": "optional",
           "target": "github",
-          "examples": ["Afterglow repository", "Example-story history", "Repository-backed persistence"]
+          "examples": [
+            "Afterglow repository",
+            "Example-story history",
+            "Repository-backed persistence"
+          ]
         },
         {
           "id": "repos-mcp",
@@ -210,7 +305,10 @@
           "helpTerm": "Repos · MCP Server Definitions",
           "description": "Track reviewed Model Context Protocol server definitions as source-controlled configuration.",
           "status": "planned",
-          "examples": ["MCP server definitions", "Shared tool protocols"]
+          "examples": [
+            "MCP server definitions",
+            "Shared tool protocols"
+          ]
         }
       ]
     },
@@ -226,7 +324,11 @@
           "description": "Authorize Calendar and Meet permissions through desktop OAuth.",
           "status": "optional",
           "target": "google",
-          "examples": ["Google Calendar", "Google Meet", "OAuth 2.0"]
+          "examples": [
+            "Google Calendar",
+            "Google Meet",
+            "OAuth 2.0"
+          ]
         },
         {
           "id": "auth-github",
@@ -235,7 +337,11 @@
           "description": "Manage GitHub App authorization and advanced token recovery.",
           "status": "optional",
           "target": "github",
-          "examples": ["GitHub OAuth", "GitHub App", "Fine-grained token"]
+          "examples": [
+            "GitHub OAuth",
+            "GitHub App",
+            "Fine-grained token"
+          ]
         },
         {
           "id": "auth-api-keys",
@@ -244,7 +350,10 @@
           "description": "Save, test or remove provider keys without placing them in a project.",
           "status": "optional",
           "target": "ai",
-          "examples": ["Provider API keys", "Local encrypted secret files"]
+          "examples": [
+            "Provider API keys",
+            "Local encrypted secret files"
+          ]
         },
         {
           "id": "auth-vault",
@@ -253,8 +362,14 @@
           "description": "Review OS-user encryption, permissions and credential removal.",
           "status": "configure",
           "target": "privacy",
-          "examples": ["Windows DPAPI", "macOS Keychain", "Linux Secret Service"],
-          "mechanics": ["Human-in-the-loop authorization gates"]
+          "examples": [
+            "Windows DPAPI",
+            "macOS Keychain",
+            "Linux Secret Service"
+          ],
+          "mechanics": [
+            "Human-in-the-loop authorization gates"
+          ]
         }
       ]
     },
@@ -270,7 +385,11 @@
           "description": "Manage the optional room, relay and signed-discussion runtime.",
           "status": "optional",
           "target": "buzz",
-          "examples": ["Buzz managed relay", "Rooms", "Signed discussion"]
+          "examples": [
+            "Buzz managed relay",
+            "Rooms",
+            "Signed discussion"
+          ]
         },
         {
           "id": "agents-docker",
@@ -279,7 +398,13 @@
           "description": "Review the current container prerequisite for managed Buzz services.",
           "status": "optional",
           "target": "buzz",
-          "examples": ["Docker Desktop", "Docker Compose", "Postgres", "Redis", "Object storage"]
+          "examples": [
+            "Docker Desktop",
+            "Docker Compose",
+            "Postgres",
+            "Redis",
+            "Object storage"
+          ]
         },
         {
           "id": "agents-worktrees",
@@ -287,7 +412,11 @@
           "helpTerm": "Agents · Agent Worktrees",
           "description": "Plan isolated repository workspaces for branch-only coding agents.",
           "status": "planned",
-          "examples": ["Isolated worktrees", "Branch-only changes", "Test evidence"]
+          "examples": [
+            "Isolated worktrees",
+            "Branch-only changes",
+            "Test evidence"
+          ]
         },
         {
           "id": "agents-reasoning",
@@ -295,8 +424,16 @@
           "helpTerm": "Agents · Prompts & Reasoning Loops",
           "description": "Define system prompts, planning steps and bounded autonomous execution.",
           "status": "planned",
-          "examples": ["System prompts", "ReAct loops", "Planning loops"],
-          "mechanics": ["Prompting", "ReAct", "Guarded execution"]
+          "examples": [
+            "System prompts",
+            "ReAct loops",
+            "Planning loops"
+          ],
+          "mechanics": [
+            "Prompting",
+            "ReAct",
+            "Guarded execution"
+          ]
         },
         {
           "id": "agents-tools",
@@ -304,8 +441,15 @@
           "helpTerm": "Agents · Tools & MCP Hosts",
           "description": "Configure callable tools, function execution and MCP client hosts.",
           "status": "planned",
-          "examples": ["Tool calling", "Function calling", "MCP client hosts"],
-          "mechanics": ["Function execution", "Model Context Protocol"]
+          "examples": [
+            "Tool calling",
+            "Function calling",
+            "MCP client hosts"
+          ],
+          "mechanics": [
+            "Function execution",
+            "Model Context Protocol"
+          ]
         }
       ]
     },
@@ -321,7 +465,12 @@
           "description": "Review the open packages that make up the installed PlotPickle build.",
           "status": "reference",
           "target": "about",
-          "examples": ["TypeScript 5.9.3", "ESLint 9.39.4", "Tailwind CSS 4.2.1", "React type definitions"]
+          "examples": [
+            "TypeScript 5.9.3",
+            "ESLint 9.39.4",
+            "Tailwind CSS 4.2.1",
+            "React type definitions"
+          ]
         },
         {
           "id": "open-source-models",
@@ -329,7 +478,12 @@
           "helpTerm": "Open Source · Model Hubs & Formats",
           "description": "Reference open-weight model sources and compatible local formats.",
           "status": "reference",
-          "examples": ["Hugging Face", "Civitai", "GGUF", "EXL2"]
+          "examples": [
+            "Hugging Face",
+            "Civitai",
+            "GGUF",
+            "EXL2"
+          ]
         },
         {
           "id": "open-source-licences",
@@ -338,7 +492,11 @@
           "description": "Review application, package and bundled-component licence obligations.",
           "status": "reference",
           "target": "about",
-          "examples": ["AGPL-3.0-or-later", "Third-party notices", "Attribution"]
+          "examples": [
+            "AGPL-3.0-or-later",
+            "Third-party notices",
+            "Attribution"
+          ]
         },
         {
           "id": "open-source-evals",
@@ -346,7 +504,11 @@
           "helpTerm": "Open Source · Guardrails & Evaluations",
           "description": "Plan reusable safety checks, quality gates and model evaluations.",
           "status": "planned",
-          "examples": ["Guardrails", "Evaluation suites", "Deterministic quality checks"]
+          "examples": [
+            "Guardrails",
+            "Evaluation suites",
+            "Deterministic quality checks"
+          ]
         }
       ]
     }

@@ -53,12 +53,14 @@ test("the shared header owns workflow groups, Collab, project actions and config
 });
 
 test("Suggest Report opens a separate sanitized GitHub draft", async () => {
-  const [navigation, route, workspace, issueForm] = await Promise.all([
+  const [navigation, route, workspace, feedback, issueForm] = await Promise.all([
     source("lib/support-navigation.ts"),
     source("app/suggest-report/page.tsx"),
     source("app/suggest-report-workspace.tsx"),
+    source("lib/product-feedback.ts"),
     source(".github/ISSUE_TEMPLATE/usability-report.yml"),
   ]);
+  const productSurface = `${workspace}\n${feedback}`;
   assert.match(navigation, /label: "Suggest \/ Report"/);
   assert.match(navigation, /href: "\/suggest-report"/);
   assert.match(route, /<SuggestReportWorkspace \/>/);
@@ -71,7 +73,7 @@ test("Suggest Report opens a separate sanitized GitHub draft", async () => {
     "Open GitHub Issue",
     "GitHub opens a draft, not a completed issue",
     "never approves code",
-  ]) assert.ok(workspace.includes(phrase), `Suggest / Report is missing: ${phrase}`);
+  ]) assert.ok(productSurface.includes(phrase), `Suggest / Report is missing: ${phrase}`);
   assert.match(workspace, /window\.open\(issue\.url, "_blank", "noopener,noreferrer"\)/);
   assert.doesNotMatch(workspace, /project\.metadata|project\.blocks|project\.screenplay/);
   assert.match(issueForm, /name: Usability or design report/);

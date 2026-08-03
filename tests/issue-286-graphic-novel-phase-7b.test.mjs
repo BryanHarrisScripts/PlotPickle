@@ -23,6 +23,7 @@ test("Phase 7B stores non-destructive writing direction in a versioned PPF exten
 
 test("Phase 7B completes cover, spread, panel, dialogue visibility and zoom reading", () => {
   assert.match(viewer, /Complete Graphic Novel Viewer/);
+  assert.match(viewer, /Full-screen Graphic Novel viewer and bubble editor/);
   assert.match(viewer, /Single page/);
   assert.match(viewer, /Two-page spread/);
   assert.match(viewer, /Panel-by-panel/);
@@ -56,6 +57,7 @@ test("Phase 7B provides interactive HTML, PDF and ordered image-sequence exports
   assert.match(workspace, /buildGraphicNovelViewerHtml/);
   assert.match(workspace, /downloadImageSequence/);
   assert.match(workspace, /graphicNovelImageFileName/);
+  assert.match(workspace, /Download self-contained HTML/);
   assert.match(html, /reader-bar/);
   assert.match(html, /spread-mode/);
   assert.match(html, /panel-mode/);

@@ -19,12 +19,17 @@ test("UI UX audit always reports a required pull-request status", async () => {
   assert.match(workflow, /actions\/setup-node@820762786026740c76f36085b0efc47a31fe5020/);
 });
 
-test("UI UX audit runner fails closed on findings or infrastructure errors", async () => {
+test("UI UX audit runner fails closed on evidence-backed findings or infrastructure errors", async () => {
   const runner = await text("scripts/ui-ux-code-audit.mjs");
   assert.match(runner, /const criteria = \[/);
   assert.equal((runner.match(/^  ".+",$/gm) || []).length >= 25, true);
   assert.match(runner, /verdict must be fail when any actual issue is found/);
-  assert.match(runner, /finalVerdict = verdict === "pass" && issues\.length === 0 \? "pass" : "fail"/);
+  assert.match(runner, /validateFindings/);
+  assert.match(runner, /exact contiguous source excerpt/);
+  assert.match(runner, /source\.includes\(finding\.evidence\)/);
+  assert.match(runner, /loading attribute is not a standard HTML video attribute/);
+  assert.match(runner, /CSS Modules are extracted and code-split/);
+  assert.match(runner, /issueCount === 0 \? "pass"/);
   assert.match(runner, /OPENAI_API_KEY is not configured for the required UI\/UX audit gate/);
   assert.match(runner, /The required audit did not complete successfully/);
   assert.match(runner, /No relevant UI files changed/);

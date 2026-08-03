@@ -61,15 +61,6 @@ if (!originalSend.test(source)) {
 }
 source = source.replace(originalSend, boundedSend);
 
-const originalShellWait = /async function waitForShell\(client, label, timeoutMs = 25_000\) \{\r?\n\s*await waitFor\(client, `\(\(\) => \{ \$\{normalizeFunction\} const active = \[\.\.\.document\.querySelectorAll\('\[role="tab"\]\[aria-selected="true"\]'\)\]\.some\(\(item\) => normalize\(item\.innerText\) === \$\{JSON\.stringify\(label\)\}\); return Boolean\(document\.querySelector\("\\\.application-shell-header"\) && active\); \}\)\(\)`, timeoutMs, `\$\{label\} application shell`\);\r?\n\}/;
-const currentShellWait = `async function waitForShell(client, label, timeoutMs = 25_000) {
-  await waitFor(client, \`(() => { \${normalizeFunction} const active = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => normalize(item.innerText) === \${JSON.stringify(label)}); const body = normalize(document.body?.innerText); return Boolean(active && body && !body.includes("See the whole movie before you make it.")); })()\`, timeoutMs, \`\${label} application shell\`);
-}`;
-if (!originalShellWait.test(source)) {
-  throw new Error("The Issue #208 application-shell readiness predicate could not be located.");
-}
-source = source.replace(originalShellWait, currentShellWait);
-
 const originalScenarioStart = /async function runScenario\(report, name, callback\) \{\r?\n\s*const startedAt = new Date\(\)\.toISOString\(\);/;
 const loggedScenarioStart = `async function runScenario(report, name, callback) {
   console.log(\`[issue-208] starting: \${name}\`);

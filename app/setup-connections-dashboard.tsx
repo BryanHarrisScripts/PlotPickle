@@ -11,7 +11,7 @@ const OPENAI_QUICKSTART_URL = "https://developers.openai.com/api/docs/quickstart
 const MINIMAX_KEYS_URL = "https://platform.minimax.io/user-center/basic-information/interface-key";
 const MINIMAX_PRICING_URL = "https://platform.minimax.io/docs/pricing/overview";
 const MINIMAX_H3_URL = "https://platform.minimax.io/docs/guides/video-generation";
-const BUZZ_INVITE_URL = "https://plotpickleplayhouse.communities.buzz.xyz/invite/v2.tdZwBnmvMuZ_E3lh_cEjbo4qeJHdTvFogatjMfVgB-k";
+const BUZZ_INVITE_URL = process.env.NEXT_PUBLIC_PLOTPICKLE_BUZZ_INVITE_URL?.trim() || "";
 const BUZZ_COMMUNITIES_URL = "https://app.builderlab.xyz/buzz";
 const GITHUB_SIGNUP_URL = "https://github.com/signup";
 const GITHUB_NEW_REPOSITORY_URL = "https://github.com/new";
@@ -331,7 +331,7 @@ export default function SetupConnectionsDashboard({
         checkedAt: buzz?.relay?.checkedAt || buzz?.connection?.verifiedAt || "",
         settingsSection: "buzz",
         links: [
-          { label: "Join PlotPickleServer", href: BUZZ_INVITE_URL },
+          ...(BUZZ_INVITE_URL ? [{ label: "Join PlotPickleServer", href: BUZZ_INVITE_URL }] : []),
           { label: "Set up Buzz account or community", href: BUZZ_COMMUNITIES_URL },
         ],
       },

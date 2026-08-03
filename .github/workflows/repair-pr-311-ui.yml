@@ -1,0 +1,53 @@
+name: Repair PR 311 UI audit
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/300-native-minimax-h3-comfyui
+          fetch-depth: 0
+      - name: Apply focused semantic and ARIA fixes
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          component = Path('app/h3-native-panel.tsx')
+          text = component.read_text(encoding='utf-8')
+
+          replacements = {
+              '<div>Local video model</div>': '<p>Local video model</p>',
+              '              aria-describedby="native-h3-warning"\n': '',
+          }
+          if text.count('<div>Local video model</div>') != 1:
+              raise SystemExit('Expected exactly one Local video model status label.')
+          if text.count('              aria-describedby="native-h3-warning"\n') != 2:
+              raise SystemExit('Expected exactly two redundant warning descriptions.')
+          for old, new in replacements.items():
+              text = text.replace(old, new)
+          component.write_text(text, encoding='utf-8')
+
+          Path('.github/workflows/repair-pr-311-ui.yml').unlink()
+          PY
+          node --test tests/issue-258-creative-compute-paths.test.mjs
+      - name: Commit focused UI audit repair
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/h3-native-panel.tsx .github/workflows/repair-pr-311-ui.yml
+          git commit -m "Fix native H3 semantic and ARIA audit findings"
+          git fetch origin agent/300-native-minimax-h3-comfyui
+          git rebase origin/agent/300-native-minimax-h3-comfyui
+          git push origin HEAD:agent/300-native-minimax-h3-comfyui

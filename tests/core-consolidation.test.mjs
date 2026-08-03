@@ -30,19 +30,23 @@ test("core consolidation presents four truthful optional connection areas", asyn
   assert.match(panel, /PlotPickle's complete visual storyworld remains usable with no AI connection/);
   assert.match(panel, /GitHub is the supported optional repository connection/);
   assert.match(panel, /disconnected until you choose them/);
-  assert.match(panel, /No connector, credential or API permission for these services is active/);
+  assert.match(panel, /Use only connections PlotPickle can actually configure and test/);
 });
 
-test("core consolidation keeps media engines as migrated disabled placeholders", async () => {
-  const settings = await source("lib/ai/settings.ts");
+test("core consolidation retires unsupported media-provider placeholders", async () => {
+  const [settings, panel, taxonomy] = await Promise.all([
+    source("lib/ai/settings.ts"),
+    source("app/settings-panel-legacy.tsx"),
+    source("config/settings-system-taxonomy.json"),
+  ]);
   assert.match(settings, /SETTINGS_VERSION = "1\.3\.0"/);
-  for (const provider of ["Pika Labs", "Runway", "Additional media & film engines"]) {
-    assert.ok(settings.includes(provider), `Missing future media-engine placeholder: ${provider}`);
+  assert.match(settings, /defaultMediaEnginePlaceholders: PluginSetting\[\] = \[\]/);
+  for (const legacy of ["future-knowledge", "future-publishing", "future-collaboration", "future-pika", "future-runway", "future-media-engine"]) {
+    assert.ok(settings.includes(legacy), `Missing safe placeholder retirement: ${legacy}`);
   }
-  for (const legacy of ["future-knowledge", "future-publishing", "future-collaboration"]) {
-    assert.ok(settings.includes(legacy), `Missing safe placeholder migration: ${legacy}`);
-  }
-  assert.match(settings, /status: "coming-soon"/);
+  assert.doesNotMatch(`${panel}
+${taxonomy}`, /Pika Labs|Runway|Additional media & film engines/);
+  assert.match(panel, /Unsupported provider placeholders are hidden until a working connector exists/);
 });
 
 test("core consolidation sells the completed Storyworld Map rather than an unfinished renderer roadmap", async () => {

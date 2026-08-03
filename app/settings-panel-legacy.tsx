@@ -140,7 +140,7 @@ const SETTINGS_GROUPS: Array<{
       { id: "ai", label: "Story & Art", description: "Optional LLM and image assistance, local models, manual prompts or no AI" },
       { id: "github", label: "Repository & Collab", description: "Optional GitHub history, proposals, permissions and recovery" },
       { id: "google", label: "Scheduling & Meetings", description: "Optional Google Calendar and Meet, disconnected until you choose" },
-      { id: "plugins", label: "Media & Film Engines", description: "Future Pika, Runway and video-engine extensions; no active API" },
+      { id: "plugins", label: "Media & Film Engines", description: "Supported local media routing and optional music references" },
     ],
   },
   {
@@ -790,17 +790,11 @@ export default function SettingsPanel({
 
           {section === "plugins" ? (
             <div className={styles.sectionStack}>
-              <SectionHeading eyebrow="Media & Film Engines" title="Keep rendering engines outside the required PlotPickle core." description="Pika Labs, Runway and additional video-generation engines are future extensions. No connector, credential or API permission for these services is active in this release." />
+              <SectionHeading eyebrow="Media & Film Engines" title="Use only connections PlotPickle can actually configure and test." description="ComfyUI is configured and tested from the Setup & Connections dashboard. Unsupported provider placeholders are hidden until a working connector exists." />
               <SharedConnectionCard status={connections.items.plugins} />
-              <div className={styles.pluginGrid}>
-                {settings.plugins.map((plugin) => (
-                  <article key={plugin.id}>
-                    <span>{plugin.status === "coming-soon" ? "Future extension · Not connected" : plugin.status}</span>
-                    <h3>{plugin.label}</h3>
-                    <p>{plugin.status === "coming-soon" ? "No API, credential, provider adapter or data-sharing permission is included." : "Review this plugin's declared permissions before enabling it."}</p>
-                    <button type="button" disabled={plugin.status === "coming-soon"} onClick={() => setSettings((current) => ({ ...current, plugins: current.plugins.map((item) => item.id === plugin.id ? { ...item, status: item.status === "enabled" ? "disabled" : "enabled" } : item) }))}>{plugin.status === "enabled" ? "Disable" : "Enable"}</button>
-                  </article>
-                ))}
+              <div className={styles.formCard}>
+                <h3>ComfyUI connection</h3>
+                <p className={styles.note}>Return to Dashboard → Setup &amp; connections to enter the local ComfyUI address, test the live service, choose a checkpoint and run a real test image. The connection light turns green only after the usable local route is verified.</p>
               </div>
               <div className={styles.formCard}>
                 <h3>Music service links</h3>

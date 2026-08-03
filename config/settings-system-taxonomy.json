@@ -60,7 +60,8 @@
           "description": "Image, audio, video and transcription applications installed on this computer.",
           "status": "optional",
           "target": "plugins",
-          "examples": ["ComfyUI", "Local media-generation nodes", "Transcription tools"]
+          "examples": ["ComfyUI", "Local media-generation nodes", "Transcription tools"],
+          "mechanics": ["Configure and test ComfyUI from Dashboard → Setup & connections"]
         },
         {
           "id": "local-buzz",
@@ -87,14 +88,6 @@
           "target": "ai",
           "examples": ["OpenAI API", "Anthropic API", "Hosted model inference"],
           "mechanics": ["Token metering", "TTFT monitoring", "Structured outputs"]
-        },
-        {
-          "id": "cloud-media",
-          "label": "Media Providers",
-          "helpTerm": "Cloud · Media Providers",
-          "description": "Connect hosted image, video, voice and audio-generation services.",
-          "status": "planned",
-          "examples": ["Runway", "Pika Labs", "AtlasCloud", "ElevenLabs", "modem.dev"]
         },
         {
           "id": "cloud-compute",

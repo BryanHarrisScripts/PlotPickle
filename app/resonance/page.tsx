@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import RefineReturnNav from "../refine-return-nav";
 import { useEffect, useMemo, useState } from "react";
 import {
   createBlankProject,
@@ -168,6 +169,7 @@ export default function ResonancePage() {
 
   return (
     <main className={styles.page}>
+      <RefineReturnNav />
       <div className={styles.shell}>
         <header className={styles.header}>
           <div>

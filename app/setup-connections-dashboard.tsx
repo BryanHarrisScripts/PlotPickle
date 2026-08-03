@@ -150,10 +150,15 @@ export default function SetupConnectionsDashboard({
   }, []);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void Promise.all([refreshBuzz(), refreshLocalServices()]);
-    }, 0);
-    return () => window.clearTimeout(timer);
+    const refreshDashboard = () => { void Promise.all([refreshBuzz(), refreshLocalServices()]); };
+    const timer = window.setTimeout(refreshDashboard, 0);
+    window.addEventListener("plotpickle:setup-status-refresh", refreshDashboard);
+    window.addEventListener("plotpickle:connection-status-refresh", refreshDashboard);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("plotpickle:setup-status-refresh", refreshDashboard);
+      window.removeEventListener("plotpickle:connection-status-refresh", refreshDashboard);
+    };
   }, [refreshBuzz, refreshLocalServices]);
 
   async function testAllConnections() {
@@ -241,7 +246,7 @@ export default function SetupConnectionsDashboard({
             label: "Local image generation · ComfyUI",
             requirement: "Optional",
             detail: `${comfyui.detail} PlotPickle offers a separate Y/N installation choice on Windows; checkpoints and reviewed workflows are configured separately.`,
-            settingsSection: "plugins",
+            settingsSection: "comfyui",
             links: [
               { label: "Download ComfyUI", href: COMFYUI_SETUP_URL },
               { label: "ComfyUI Windows guide", href: COMFYUI_DOCS_URL },
@@ -351,6 +356,10 @@ export default function SetupConnectionsDashboard({
     ];
   }, [buzz, buzzError, buzzPreviouslyConnected, connectionStatus]);
 
+  const dashboardRows = [...included, ...creativePaths.flatMap((path) => path.rows), ...optional];
+  const verifiedCount = dashboardRows.filter((row) => row.tone === "green").length;
+  const attentionCount = dashboardRows.filter((row) => row.tone === "yellow" || row.tone === "red").length;
+
   function renderRow(row: SetupRow) {
     const meta = toneCopy[row.tone];
     return (
@@ -382,14 +391,20 @@ export default function SetupConnectionsDashboard({
     <section id="dashboard-setup" className={styles.section} aria-labelledby="setup-connections-title">
       <header className={styles.header}>
         <div>
-          <p>PlotPickle setup &amp; connections</p>
+          <p>Connection dashboard</p>
           <h2 id="setup-connections-title">What is included—and what you configure yourself</h2>
-          <span>PlotPickle works locally without any optional account. Add only the services that match how you want to write, collaborate, meet or render.</span>
+          <span>PlotPickle works locally without any optional account. Keep this dashboard open while you connect services. Each light updates after its live test: green means verified and usable, yellow means one setup step remains.</span>
         </div>
         <button type="button" onClick={() => { void testAllConnections(); }} disabled={testing}>
           {testing ? "Testing connections…" : "Test all connections"}
         </button>
       </header>
+
+      <div className={styles.dashboardSummary} role="status" aria-live="polite">
+        <strong>{verifiedCount} verified</strong>
+        <span>{attentionCount ? `${attentionCount} connection${attentionCount === 1 ? "" : "s"} need attention` : "All configured connections are healthy"}</span>
+        <small>{dashboardRows.length} visible setup checks</small>
+      </div>
 
       <div className={styles.legend} aria-label="Connection-light meanings">
         {(Object.keys(toneCopy) as SetupTone[]).map((tone) => (

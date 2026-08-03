@@ -58,16 +58,15 @@ export type PlotPickleSettings = {
   plugins: PluginSetting[];
 };
 
-const defaultMediaEnginePlaceholders: PluginSetting[] = [
-  { id: "future-pika", label: "Pika Labs", status: "coming-soon" },
-  { id: "future-runway", label: "Runway", status: "coming-soon" },
-  { id: "future-media-engine", label: "Additional media & film engines", status: "coming-soon" },
-];
+const defaultMediaEnginePlaceholders: PluginSetting[] = [];
 
 const retiredPlaceholderIds = new Set([
   "future-knowledge",
   "future-publishing",
   "future-collaboration",
+  "future-pika",
+  "future-runway",
+  "future-media-engine",
 ]);
 
 export const defaultPlotPickleSettings: PlotPickleSettings = {
@@ -141,15 +140,12 @@ export function normalizePlotPickleSettings(value: unknown): PlotPickleSettings 
     ? candidate.plugins.flatMap((item) => {
       if (!item || typeof item !== "object") return [];
       const plugin = item as Partial<PluginSetting>;
-      if (typeof plugin.id !== "string" || typeof plugin.label !== "string") return [];
-      const status = plugin.status === "enabled" || plugin.status === "disabled" ? plugin.status : "coming-soon";
+      if (typeof plugin.id !== "string" || typeof plugin.label !== "string" || retiredPlaceholderIds.has(plugin.id)) return [];
+      const status: PluginSetting["status"] = plugin.status === "enabled" || plugin.status === "disabled" ? plugin.status : "coming-soon";
       return [{ id: plugin.id, label: plugin.label, status }];
     })
     : structuredClone(defaultPlotPickleSettings.plugins);
-  const plugins = normalizedPlugins.length > 0
-    && normalizedPlugins.every((plugin) => retiredPlaceholderIds.has(plugin.id))
-    ? structuredClone(defaultPlotPickleSettings.plugins)
-    : normalizedPlugins;
+  const plugins = normalizedPlugins;
 
   return {
     version: SETTINGS_VERSION,

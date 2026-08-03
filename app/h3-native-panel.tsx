@@ -240,10 +240,10 @@ export default function H3NativePanel() {
   const manifestUnavailable = Boolean(working) || !manifestText.trim();
 
   return (
-    <section className={styles.panel} aria-label="MiniMax H3 native ComfyUI settings">
+    <section className={styles.panel}>
       <header className={styles.header}>
         <div>
-          <p>Local video model</p>
+          <span>Local video model</span>
           <h2>MiniMax H3 · Native ComfyUI</h2>
           <span>Runs user-owned H3 weights locally. No MiniMax cloud key, automatic model download, custom-node installer or silent code execution.</span>
         </div>
@@ -251,7 +251,7 @@ export default function H3NativePanel() {
       </header>
 
       <div className={styles.grid}>
-        <article className={styles.card} aria-label="Native H3 live readiness">
+        <article className={styles.card}>
           <h3>Live readiness</h3>
           <ul className={styles.requirements} aria-label="Native H3 readiness requirements">
             {requirements.map((item) => <li key={item.label} data-ready={item.ready}><span className={styles.statusDot} aria-hidden="true" /><span>{item.label}</span><strong>{item.ready ? "Ready" : "Required"}</strong></li>)}
@@ -316,7 +316,7 @@ export default function H3NativePanel() {
           ) : null}
         </article>
 
-        <article className={styles.card} aria-label="Official native H3 workflow setup">
+        <article className={styles.card}>
           <h3>Official workflow setup</h3>
           <label className={styles.field}>
             <span>Local ComfyUI address</span>
@@ -370,7 +370,7 @@ export default function H3NativePanel() {
             {families.map(([id, label]) => <li key={id} data-available={status.workflowFamily === id}>{label}</li>)}
           </ul>
           {status.modelRequirements.length ? (
-            <section className={styles.models} aria-label="Required native H3 model files">
+            <section className={styles.models}>
               <h3>Required model files</h3>
               <ul>
                 {status.modelRequirements.map((item) => (

@@ -25,13 +25,13 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          from textwrap import dedent
 
           workflow = Path('.github/workflows/issue-301-apply.yml').read_text(encoding='utf-8')
           marker = "          python - <<'PY'\n"
           start = workflow.index(marker) + len(marker)
           end = workflow.index("\n          PY\n", start)
-          code = dedent(workflow[start:end])
+          lines = workflow[start:end].splitlines()
+          code = "\n".join(line[10:] if line.startswith("          ") else line for line in lines)
           exec(compile(code, 'issue-301-apply.py', 'exec'))
           PY
           node --test tests/issue-301-splash-readme-refresh.test.mjs tests/issue-169-splash-builds-open-source.test.mjs tests/issue-212-buzz-dashboard-marketing-alignment.test.mjs

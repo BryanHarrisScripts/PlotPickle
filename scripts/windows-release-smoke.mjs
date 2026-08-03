@@ -217,6 +217,13 @@ async function waitForHydratedButton(client, text, timeoutMs = 20_000) {
   await waitFor(client, hydratedButtonExpression(text), timeoutMs, `Hydrated ${text} button`);
 }
 
+async function openAdvancedSettings(client) {
+  await waitForHydratedButton(client, "Other settings");
+  const clicked = await evaluate(client, `(() => { ${browserNormalizeFunction()} const button = [...document.querySelectorAll("button")].find((item) => normalize(item.innerText) === "Other settings"); if (!button) return false; button.click(); return true; })()`);
+  if (!clicked) throw new Error("Other settings was not found in Settings.");
+  await waitFor(client, `document.body.innerText.includes("Configure PlotPickle by system.")`, 20_000, "Advanced Settings panel");
+}
+
 function shellReadyExpression(workspace) {
   const label = workspaceLabels[workspace];
   return `(() => { ${browserNormalizeFunction()} const header = document.querySelector(".application-shell-header"); const active = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].some((item) => normalize(item.innerText) === ${JSON.stringify(label)}); const body = normalize(document.body?.innerText); return Boolean(header && active && !body.includes("See the whole movie before you make it.")); })()`;
@@ -446,7 +453,7 @@ async function main() {
       const eventStart = events.length;
       await navigate(client, `${baseUrl}/?workspace=settings`);
       await waitForShell(client, "settings");
-      await waitFor(client, `document.body.innerText.includes("Configure PlotPickle by system.")`, 20_000, "Settings panel");
+      await openAdvancedSettings(client);
       await waitFor(client, String.raw`(() => {
         const repos = document.querySelector('button[aria-controls="settings-system-repos"]');
         if (!repos) return false;
@@ -496,7 +503,7 @@ async function main() {
       const eventStart = events.length;
       await navigate(client, `${baseUrl}/?workspace=settings`);
       await waitForShell(client, "settings");
-      await waitFor(client, `document.body.innerText.includes("Configure PlotPickle by system.")`, 20_000, "Settings panel");
+      await openAdvancedSettings(client);
       await evaluate(client, String.raw`(() => {
         const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
         const general = [...document.querySelectorAll("button")].find((item) => normalize(item.querySelector("b")?.innerText) === "General");

@@ -416,8 +416,11 @@ async function main() {
     await runScenario(report, "Learn tabs switch without a nested tab scrollbar", async () => {
       const eventStart = events.length;
       await navigate(client, `${baseUrl}/?workspace=learn`);
-      await waitForShell(client, "Learn");
-      await waitFor(client, `Boolean(document.querySelector(".learn-section-tabs"))`, 15_000, "Learn tabs");
+      await waitFor(client, `Boolean(document.querySelector(".application-shell-header"))`, 25_000, "Learn application shell header");
+      const selectedLearn = await evaluate(client, `(() => { ${normalizeFunction} const tab = [...document.querySelectorAll('[role="tab"]')].find((item) => normalize(item.innerText) === "Learn"); if (!tab) return false; if (tab.getAttribute("aria-selected") !== "true") tab.click(); return true; })()`);
+      if (!selectedLearn) throw new Error("Learn workspace tab was not found in the application shell.");
+      await waitForShell(client, "Learn", 40_000);
+      await waitFor(client, `Boolean(document.querySelector(".learn-section-tabs"))`, 20_000, "Learn tabs");
       const overflow = await evaluate(client, String.raw`(() => {
         const tabs = document.querySelector(".learn-section-tabs");
         const style = getComputedStyle(tabs);

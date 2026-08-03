@@ -243,7 +243,7 @@ export default function H3NativePanel() {
     <section className={styles.panel}>
       <header className={styles.header}>
         <div>
-          <p>Local video model</p>
+          <span>Local video model</span>
           <h2>MiniMax H3 · Native ComfyUI</h2>
           <span>Runs user-owned H3 weights locally. No MiniMax cloud key, automatic model download, custom-node installer or silent code execution.</span>
         </div>

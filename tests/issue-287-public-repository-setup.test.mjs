@@ -12,6 +12,7 @@ const requiredChecks = [
   "Package windows",
   "Package macos",
   "Package linux",
+  "Full history audit",
 ];
 
 test("public repository settings preserve the established green gates", async () => {

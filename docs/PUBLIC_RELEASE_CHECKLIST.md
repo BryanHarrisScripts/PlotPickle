@@ -5,8 +5,11 @@ Use this checklist before changing the repository from private to public. The co
 ## 1. Repository contents
 
 - [ ] `npm run audit:public-readiness` passes on the exact commit to publish.
-- [ ] Quality, Phase 1, Public Readiness, Release Candidate and Repomix are green.
-- [ ] No API keys, OAuth client secrets, tokens, signing keys, certificates or `.env` files exist in the working tree or Git history.
+- [ ] `Public history readiness / Full history audit` passes from a complete clone.
+- [ ] Quality, Phase 1, Public Readiness, Public Security, Release Candidate, Repomix and Full History are green.
+- [ ] No API keys, OAuth client secrets, tokens, signing keys, certificates or `.env` files exist in the working tree or reachable Git history.
+- [ ] Any invitation URL previously committed—including Buzz community invitations—has been revoked or rotated before a narrowly scoped historical exception is recorded.
+- [ ] Current public source contains no live community invitation; an optional invite may be supplied only through `NEXT_PUBLIC_PLOTPICKLE_BUZZ_INVITE_URL` in a controlled private build.
 - [ ] No unpublished story projects, PPF backups, private images, personal information or diagnostic archives are committed.
 - [ ] Afterglow is clearly identified as the read-only PlotPickle example and not as a destination for user work.
 - [ ] Licensing, trademarks, contribution terms and the security policy are current.
@@ -33,7 +36,7 @@ pwsh ./scripts/configure-public-repository.ps1 -Repository BryanHarrisScripts/Pl
 
 Confirm in GitHub Settings:
 
-- [ ] `main` requires pull requests and the seven established CI checks.
+- [ ] `main` requires pull requests and the eight required CI checks, including Full History Audit.
 - [ ] Force pushes and branch deletion are blocked.
 - [ ] Conversations must be resolved before merge.
 - [ ] Secret scanning and push protection are enabled.

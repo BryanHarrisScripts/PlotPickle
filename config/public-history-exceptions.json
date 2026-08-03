@@ -1,0 +1,30 @@
+{
+  "exceptions": [
+    {
+      "id": "plotpickle-playhouse-buzz-invite-2026-08",
+      "kind": "Buzz invitation token",
+      "status": "owner-accepted-risk",
+      "accepted_at": "2026-08-03T12:12:00Z",
+      "accepted_by": "BryanHarrisScripts",
+      "reason": "Repository owner directed that the existing PlotPickle Playhouse invitation remain unchanged. PR #292 removed it from current application code, tests and release packages. This exception accepts only the exact historical commit/path occurrences listed below and does not apply to any future invitation or credential occurrence.",
+      "tracking_issue": 294,
+      "occurrences": [
+        { "commit": "9b74120bb434", "path": "app/buzz-community-workspace.tsx" },
+        { "commit": "9b74120bb434", "path": "app/setup-connections-dashboard.tsx" },
+        { "commit": "9b74120bb434", "path": "tests/issue-256-setup-connections-dashboard.test.mjs" },
+        { "commit": "45d1951c3197", "path": "app/buzz-community-workspace.tsx" },
+        { "commit": "45d1951c3197", "path": "app/setup-connections-dashboard.tsx" },
+        { "commit": "45d1951c3197", "path": "tests/issue-256-setup-connections-dashboard.test.mjs" },
+        { "commit": "d9adbd8a9dd8", "path": "app/buzz-community-workspace.tsx" },
+        { "commit": "d9adbd8a9dd8", "path": "app/setup-connections-dashboard.tsx" },
+        { "commit": "d9adbd8a9dd8", "path": "tests/issue-256-setup-connections-dashboard.test.mjs" },
+        { "commit": "01843375de66", "path": "app/setup-connections-dashboard.tsx" },
+        { "commit": "01843375de66", "path": "tests/issue-256-setup-connections-dashboard.test.mjs" },
+        { "commit": "34bfdc6685e4", "path": "tests/issue-256-setup-connections-dashboard.test.mjs" },
+        { "commit": "6dac611f191e", "path": "app/setup-connections-dashboard.tsx" },
+        { "commit": "29ef21566fcb", "path": "app/buzz-community-workspace.tsx" },
+        { "commit": "9397d761e121", "path": "app/buzz-community-workspace.tsx" }
+      ]
+    }
+  ]
+}

@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - agent/300-native-minimax-h3-comfyui
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write

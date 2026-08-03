@@ -1,0 +1,291 @@
+name: Apply issue 301 splash refresh
+
+on:
+  push:
+    branches:
+      - agent/301-splash-readme-refresh
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/301-splash-readme-refresh
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+      - name: Refresh splash, README and focused contracts
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected one match, found {count}")
+              return text.replace(old, new, 1)
+
+          splash_path = Path('app/marketing-splash-base.tsx')
+          splash = splash_path.read_text(encoding='utf-8')
+          splash = replace_once(
+              splash,
+              '["06", "Invite feedback without losing canon", "Add Buzz community discussion or GitHub proposals when needed while every official change remains human-approved."],',
+              '["06", "Invite feedback without losing canon", "Use Buzz community discussion, GitHub Story Proposals or the sanitized Suggest / Report path while every official change remains human-approved."],',
+              'feedback reason',
+          )
+          splash = replace_once(
+              splash,
+              '  ["Optional · Buzz", "Add rooms and agents beside Collab", "Buzz provides rooms, media discussion and development activity. It remains dormant until configured under Settings → Integrations → Buzz."],\n  ["Available now · Local-first", "Stay productive while disconnected", "Open, develop, visualize, review and export a PPF project without an AI key, Google account, Buzz runtime or required PlotPickle cloud service."],',
+              '  ["Optional · Buzz", "Add rooms and agents beside Collab", "Buzz provides rooms, media discussion and development activity. It remains dormant until configured under Settings → Integrations → Buzz."],\n  ["Available now · Suggest / Report", "Turn feedback into a reviewed GitHub draft", "Create a sanitized feature, bug or usability report without attaching story files, local paths or credentials. The user reviews and submits it explicitly."],\n  ["Optional · ComfyUI + native H3", "Choose local creative compute deliberately", "Connect user-owned ComfyUI models and unlock native MiniMax H3 only when an official-source workflow, required nodes, model files and compatible hardware are verified."],\n  ["Available now · Local-first", "Stay productive while disconnected", "Open, develop, visualize, review and export a PPF project without an AI key, Google account, Buzz runtime or required PlotPickle cloud service."],',
+              'feature highlights',
+          )
+          splash = replace_once(
+              splash,
+              'const aiChoices = [\n  ["No AI", "Every core writing and project feature remains available."],\n  ["OpenAI API", "Connect your own key through the private local gateway."],\n  ["Local or compatible model", "Use Ollama or an OpenAI-compatible service."],\n  ["Manual prompt export", "Prepare context without giving a provider project access."],\n] as const;',
+              'const aiChoices = [\n  ["No AI", "Every core writing and project feature remains available."],\n  ["OpenAI API or MiniMax cloud", "Bring your own provider account, API key and billing through the encrypted local credential gateway."],\n  ["Local or compatible model", "Use Ollama or ComfyUI with user-owned models. Native MiniMax H3 stays locked until an official-source workflow is verified, and not every computer can run every model."],\n  ["Manual prompt export", "Prepare context without giving a provider project access."],\n  ["GitHub account", "Bring your own GitHub account and story repository for branches, Story Proposals and owner-approved merges."],\n  ["Buzz / BuilderLab account", "Bring your own Buzz or BuilderLab account when you choose Writers’ Room community discussion."],\n  ["Provider account and billing", "Bring your own cloud-provider account, key and billing only for the paid services you deliberately enable."],\n] as const;',
+              'ai choices',
+          )
+          splash = replace_once(
+              splash,
+              '<span>Portable PPF projects</span><span>Works without AI</span><span>Windows · macOS · Linux</span><span>Human-controlled approvals</span><span>Optional Buzz</span><span>GNU AGPLv3</span>',
+              '<span>Portable PPF projects</span><span>Works without AI</span><span>Windows · macOS · Linux</span><span>Encrypted local credentials</span><span>Human-controlled approvals</span><span>Optional Buzz</span><span>GNU AGPLv3</span>',
+              'trust row',
+          )
+          splash = replace_once(
+              splash,
+              '<article><small>Community feedback</small><strong>Buzz · GitHub · human approval</strong><span>Discuss freely without allowing conversation to rewrite canon</span></article>',
+              '<article><small>Community feedback</small><strong>Buzz · GitHub · Suggest / Report</strong><span>Discuss, propose or report without allowing conversation to rewrite canon</span></article>',
+              'story map feedback',
+          )
+          splash = replace_once(
+              splash,
+              '<div className={styles.projectFooter}><span>PPF is the creative source of truth</span><span>GitHub is code and merge authority</span><span>Settings owns every optional connection</span></div>',
+              '<div className={styles.projectFooter}><span>PPF is the creative source of truth</span><span>GitHub is code and merge authority</span><span>Settings owns every optional connection and credential</span></div>',
+              'project footer',
+          )
+          splash = replace_once(
+              splash,
+              '<div className={styles.aiCopy}><p className={styles.kicker}>Optional assistance with visible human control</p><h2>Choose the helper. Keep the decision.</h2><p>AI, GitHub, Google and Buzz remain disconnected until deliberately configured. Credentials stay outside PPF projects, and nothing becomes canonical until a person approves it.</p><div className={styles.guardrails}><span>Credentials stay outside projects</span><span>Prompts and suggestions remain reviewable</span><span>Failed connections never block writing</span><span>Buzz is dormant by default</span></div></div>',
+              '<div className={styles.aiCopy}><p className={styles.kicker}>Local ComfyUI · cloud providers · no AI</p><h2>Choose the compute path. Keep the decision.</h2><p>AI, GitHub, Google and Buzz remain disconnected until deliberately configured. Native MiniMax H3 activates only after official-source workflow, node, model-file and hardware checks pass; not every computer can run every model.</p><div className={styles.guardrails}><span>Credentials are encrypted for the current operating-system user</span><span>No silent model or custom-node downloads</span><span>No automatic paid cloud fallback</span><span>Every generated asset remains reviewable</span></div></div>',
+              'compute section',
+          )
+          splash = replace_once(
+              splash,
+              '<p>Collab owns GitHub Story Proposals, approvals, meetings and calendars. Buzz adds optional rooms, agents, media discussion and development activity. Feedback remains the permanent review record.</p>',
+              '<p>Collab owns GitHub Story Proposals, approvals, meetings and calendars. Buzz adds optional rooms, agents, media discussion and development activity. Suggest / Report creates a sanitized GitHub draft for community feedback, while Feedback remains the permanent review record.</p>',
+              'collaboration paragraph',
+          )
+          splash = replace_once(
+              splash,
+              '<li>Buzz messages and agent suggestions never become PPF canon automatically</li><li>Developer Mode uses isolated worktrees and branch-only publishing</li>',
+              '<li>Buzz messages and agent suggestions never become PPF canon automatically</li><li>Suggest / Report never attaches story files, credentials or local paths automatically</li><li>Developer Mode uses isolated worktrees and branch-only publishing</li>',
+              'collaboration safeguards',
+          )
+          splash = replace_once(
+              splash,
+              '<p>Use the complete local core now, learn through the example, and add Buzz, GitHub or AI only when the project truly needs them.</p>',
+              '<p>Use the complete local core now, learn through the example, and add ComfyUI, MiniMax H3, Buzz, GitHub or provider accounts only when the project truly needs them.</p>',
+              'final action copy',
+          )
+          splash_path.write_text(splash, encoding='utf-8')
+
+          readme_path = Path('README.md')
+          readme = readme_path.read_text(encoding='utf-8')
+          readme = replace_once(
+              readme,
+              'PlotPickle is a local-first, self-learning visual writing and pitch studio. It connects story education, a living story graph, 24 Blocks, 96 mini-blocks, screenplay material, Graphic Novel panels, Storyboard frames, feedback, production evidence and provenance in one portable PPF project.',
+              'PlotPickle is a local-first, self-learning visual writing and pitch studio. It connects story education, a living story graph, 24 Blocks, 96 mini-blocks, screenplay material, Graphic Novel panels, Storyboard frames, feedback, production evidence and provenance in one portable PPF project. Optional ComfyUI and MiniMax H3 workflows add local creative compute without making AI or a cloud account part of the core.',
+              'readme intro',
+          )
+          readme = replace_once(
+              readme,
+              'Start with **Afterglow: Reflections of Sentience** to see the full method in a working story. Then build your own privately, invite a Buzz community into a Writers’ Room, or add GitHub history and optional remote compute through Cloud Collab Mode. PlotPickle remains installed locally, and only a person can approve a change to canon.',
+              'Start with **Afterglow: Reflections of Sentience** to see the full method in a working story. Then build your own privately, invite a Buzz community into a Writers’ Room, add GitHub history and owner-approved Story Proposals, or use Suggest / Report to prepare a sanitized community-feedback draft. PlotPickle remains installed locally, and only a person can approve a change to canon.',
+              'readme opening modes',
+          )
+          readme = replace_once(
+              readme,
+              '6. **Community collaboration without accidental canon changes** — add Buzz discussion or GitHub proposals only when needed, with explicit human approval.',
+              '6. **Community collaboration without accidental canon changes** — add Buzz discussion, GitHub Story Proposals or the sanitized Suggest / Report path only when needed, with explicit human approval.',
+              'readme why collaboration',
+          )
+          readme = replace_once(
+              readme,
+              '- **Optional Buzz workspace:** rooms, agents, media discussion and development activity sit beside Collab and remain dormant until configured in Settings.',
+              '- **Optional Buzz workspace:** rooms, agents, media discussion and development activity sit beside Collab and remain dormant until configured in Settings.\n- **Local creative compute:** user-owned Ollama and ComfyUI models remain optional; native MiniMax H3 activates only after official-source workflow, node, model-file and hardware checks pass.\n- **Suggest / Report:** prepare a sanitized feature, bug or usability issue draft without automatically attaching story files, credentials or local paths.',
+              'readme capabilities',
+          )
+          readme = replace_once(
+              readme,
+              '`Dashboard · Learn · Plan · Storyboard · Write · Graphic Novel | Build · Feedback · Refine · Reports | Collab · Community | Settings`',
+              '`Dashboard · Learn · Plan · Storyboard · Write · Graphic Novel | Build · Feedback · Refine · Reports | Collab · Community | Suggest / Report · Settings`',
+              'readme navigation',
+          )
+          readme = replace_once(
+              readme,
+              '- **Community** brings BuilderLab community setup and Buzz Desktop access into PlotPickle; Buzz carries optional rooms, messages, huddles and development discussion.\n- **Settings** owns configuration, credentials, lifecycle, recovery, storage and removal for every optional connection.',
+              '- **Community** brings BuilderLab community setup and Buzz Desktop access into PlotPickle; Buzz carries optional rooms, messages, huddles and development discussion.\n- **Suggest / Report** prepares a sanitized GitHub issue draft for feature ideas, bugs and usability feedback; submission remains explicit and user-controlled.\n- **Settings** owns configuration, credentials, lifecycle, recovery, storage, the clickable sitemap and removal for every optional connection.',
+              'readme navigation bullets',
+          )
+          readme = replace_once(
+              readme,
+              '| **Local AI** | Ollama on `127.0.0.1:11434` | ComfyUI on `127.0.0.1:8188` | Separate optional applications plus separately selected local models/checkpoints |',
+              '| **Local AI** | Ollama on `127.0.0.1:11434` | ComfyUI images and guarded native MiniMax H3 video on `127.0.0.1:8188` | Separate optional applications, user-owned models/checkpoints and an official-source H3 manifest where available |',
+              'creative compute table',
+          )
+          readme = replace_once(
+              readme,
+              'ComfyUI installation and health detection do not yet claim a finished Graphic Novel generation adapter. Until a reviewed one-panel-at-a-time workflow is connected, manual image import and the existing reviewed cloud path remain the honest active image routes.',
+              'ComfyUI connection, health detection and reviewed local workflow routing are available. Native MiniMax H3 remains fail-closed until an imported official-source manifest identifies a compatible ComfyUI version, every required node, user-owned model files and the selected workflow family. An 8 GB VRAM system is treated as constrained rather than recommended, and PlotPickle does not claim that every computer can run every model.',
+              'readme comfyui status',
+          )
+          readme = replace_once(
+              readme,
+              'The MiniMax H3 create, query, queued-job cancellation and local MP4 download gateway is available as provider infrastructure. A polished **Animate Panel** / Visual Pitch review surface and final human-approved PPF video association remain the next UI increment and are not claimed as shipped here.',
+              'The MiniMax H3 cloud create, query, queued-job cancellation and local MP4 download gateway is available as provider infrastructure. The separate native H3 route runs only through verified local ComfyUI workflows and never receives a MiniMax cloud key. Final media remains subject to explicit human review before PPF association.',
+              'readme h3 gateway',
+          )
+          readme = replace_once(
+              readme,
+              '| **Media & Film Engines** | ComfyUI detection and setup guidance. Future extension; no active API connects it to Graphic Novel generation yet. | Unavailable |',
+              '| **Media & Film Engines** | ComfyUI connection, local workflow validation and guarded native MiniMax H3 setup; availability depends on user-owned models, official workflows and compatible hardware. | Disconnected |',
+              'optional connections media row',
+          )
+          readme = replace_once(
+              readme,
+              'Credentials remain in the private local-server credential area under the current operating-system user. They are never written into PPF projects, exports, reports, prompts, logs or GitHub commits.\n\n## Local-first desktop builds',
+              'Credentials remain in the private local-server credential area under the current operating-system user. They are never written into PPF projects, exports, reports, prompts, logs or GitHub commits.\n\n## What users provide for optional connections\n\n| Optional capability | User-provided requirement |\n|---|---|\n| **GitHub collaboration** | A GitHub account and one story repository for each independently managed storyworld |\n| **Buzz Writers’ Room** | A Buzz or BuilderLab account and a chosen community; Buzz remains dormant until configured |\n| **Cloud AI or MiniMax** | The user’s own provider account, API key, billing and explicit paid-request approval |\n| **Local Ollama or ComfyUI** | The separate local application plus user-selected models, checkpoints or official-source workflows |\n\nPlotPickle does not sell shared provider access, bundle third-party accounts or silently create external resources.\n\n## Local-first desktop builds',
+              'optional requirements table',
+          )
+          readme = replace_once(
+              readme,
+              '- owner-controlled Collab and optional GitHub connection;\n- optional Google Calendar and Meet setup boundaries;',
+              '- owner-controlled Collab and optional GitHub connection;\n- sanitized Suggest / Report issue drafting and a clickable Settings sitemap;\n- guarded native MiniMax H3 routing through verified local ComfyUI workflows;\n- optional Google Calendar and Meet setup boundaries;',
+              'available now additions',
+          )
+          readme = replace_once(
+              readme,
+              '- embedded platform-native Buzz binaries or the separate Buzz desktop client;\n- production coding-agent execution;',
+              '- embedded platform-native Buzz binaries or the separate Buzz desktop client;\n- universal native H3 support before official local weights/workflows and compatible hardware are available;\n- production coding-agent execution;',
+              'future packaging boundary',
+          )
+          readme_path.write_text(readme, encoding='utf-8')
+
+          package_path = Path('package.json')
+          package_text = package_path.read_text(encoding='utf-8')
+          package_text = replace_once(
+              package_text,
+              'tests/issue-299-local-credential-audit.test.mjs",',
+              'tests/issue-299-local-credential-audit.test.mjs tests/issue-301-splash-readme-refresh.test.mjs",',
+              'main test registration',
+          )
+          package_text = replace_once(
+              package_text,
+              '    "test:settings-sitemap": "node --test tests/issue-298-settings-sitemap.test.mjs",\n    "audit:credentials":',
+              '    "test:settings-sitemap": "node --test tests/issue-298-settings-sitemap.test.mjs",\n    "test:splash-readme-refresh": "node --test tests/issue-301-splash-readme-refresh.test.mjs",\n    "audit:credentials":',
+              'focused test script',
+          )
+          package_path.write_text(package_text, encoding='utf-8')
+
+          test_path = Path('tests/issue-301-splash-readme-refresh.test.mjs')
+          test_path.write_text('''import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+
+const root = new URL("..", import.meta.url);
+const source = (path) => readFile(new URL(path, root), "utf8");
+
+test("issue #301 preserves the AIDA story while adding the latest product capabilities", async () => {
+  const splash = await source("app/marketing-splash-base.tsx");
+  const sequence = [
+    "Stop losing the story",
+    "Learn the craft inside the story you are building.",
+    "Start privately. Add people only when the story needs them.",
+    "Load Afterglow",
+  ];
+  let cursor = -1;
+  for (const phrase of sequence) {
+    const next = splash.indexOf(phrase);
+    assert.ok(next > cursor, `AIDA sequence is missing or out of order: ${phrase}`);
+    cursor = next;
+  }
+  for (const phrase of [
+    "story graph",
+    "portable PPF",
+    "Visual writing",
+    "Visual pitch",
+    "81 guided modules",
+    "MiniMax H3",
+    "ComfyUI",
+    "Suggest / Report",
+  ]) assert.match(splash, new RegExp(phrase, "i"), `Missing refreshed splash capability: ${phrase}`);
+});
+
+test("issue #301 explains optional compute and account requirements without overclaiming", async () => {
+  const splash = await source("app/marketing-splash-base.tsx");
+  for (const phrase of [
+    "not every computer can run every model",
+    "official-source workflow",
+    "No silent model or custom-node downloads",
+    "No automatic paid cloud fallback",
+    "Bring your own GitHub account and story repository",
+    "Bring your own Buzz or BuilderLab account",
+    "Bring your own provider account, API key and billing",
+    "encrypted for the current operating-system user",
+  ]) assert.ok(splash.includes(phrase), `Missing setup or safety boundary: ${phrase}`);
+  assert.doesNotMatch(splash, /every computer can run every model|automatic cloud fallback|bundled provider account/i);
+});
+
+test("issue #301 keeps collaboration and feedback human controlled", async () => {
+  const splash = await source("app/marketing-splash-base.tsx");
+  for (const phrase of [
+    "GitHub Story Proposals",
+    "owner-approved merges",
+    "Buzz / BuilderLab account",
+    "sanitized Suggest / Report path",
+    "never attaches story files, credentials or local paths automatically",
+    "nothing becomes canonical until a person approves it",
+  ]) assert.ok(splash.includes(phrase), `Missing collaboration boundary: ${phrase}`);
+});
+
+test("issue #301 aligns README product truth with the splash", async () => {
+  const readme = await source("README.md");
+  for (const phrase of [
+    "Suggest / Report",
+    "clickable Settings sitemap",
+    "guarded native MiniMax H3",
+    "official-source manifest",
+    "8 GB VRAM system is treated as constrained",
+    "A GitHub account and one story repository",
+    "A Buzz or BuilderLab account",
+    "The user’s own provider account, API key, billing",
+    "Windows, macOS and Linux packaging validation",
+    "GNU AGPLv3 or later",
+  ]) assert.ok(readme.includes(phrase), `README is missing refreshed product truth: ${phrase}`);
+  assert.doesNotMatch(readme, /no active API connects it to Graphic Novel generation yet|Universal native H3 support is available/i);
+});
+
+test("issue #301 focused regression is registered", async () => {
+  const packageJson = JSON.parse(await source("package.json"));
+  assert.match(packageJson.scripts.test, /issue-301-splash-readme-refresh\.test\.mjs/);
+  assert.equal(packageJson.scripts["test:splash-readme-refresh"], "node --test tests/issue-301-splash-readme-refresh.test.mjs");
+});
+''', encoding='utf-8')
+          PY
+          node --test tests/issue-301-splash-readme-refresh.test.mjs tests/issue-169-splash-builds-open-source.test.mjs tests/issue-212-buzz-dashboard-marketing-alignment.test.mjs
+      - name: Commit focused issue 301 implementation
+        shell: bash
+        run: |
+          rm .github/workflows/issue-301-apply.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/marketing-splash-base.tsx README.md package.json tests/issue-301-splash-readme-refresh.test.mjs .github/workflows/issue-301-apply.yml
+          git commit -m "Refresh splash and README for current integrations"
+          git push origin HEAD:agent/301-splash-readme-refresh

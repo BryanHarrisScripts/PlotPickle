@@ -226,7 +226,7 @@ export default function H3NativePanel() {
         <article className={styles.card} aria-labelledby="native-h3-readiness-title">
           <h3 id="native-h3-readiness-title">Live readiness</h3>
           <ul className={styles.requirements} aria-label="Native H3 readiness requirements">
-            {requirements.map((item) => <li key={item.label} data-ready={item.ready}><i aria-hidden="true" /><span>{item.label}</span><b>{item.ready ? "Ready" : "Required"}</b></li>)}
+            {requirements.map((item) => <li key={item.label} data-ready={item.ready}><span className={styles.statusDot} aria-hidden="true" /><span>{item.label}</span><strong>{item.ready ? "Ready" : "Required"}</strong></li>)}
           </ul>
           <dl className={styles.facts}>
             <div><dt>ComfyUI</dt><dd>{status.reachable ? status.version || "Connected" : "Not connected"}</dd></div>
@@ -238,7 +238,7 @@ export default function H3NativePanel() {
           {status.vramProfile === "constrained" ? (
             <label className={styles.acknowledgement}>
               <input type="checkbox" checked={performanceAcknowledged} onChange={(event) => setPerformanceAcknowledged(event.target.checked)} aria-describedby="native-h3-warning" />
-              <span><b>8 GB compatibility acknowledgement</b><small>Generation may fail, take a very long time, or require a lower-resolution official workflow. PlotPickle does not promise 2K or 15 seconds locally.</small></span>
+              <span><strong>8 GB compatibility acknowledgement</strong><small>Generation may fail, take a very long time, or require a lower-resolution official workflow. PlotPickle does not promise 2K or 15 seconds locally.</small></span>
             </label>
           ) : null}
           <div className={styles.actions}>
@@ -251,11 +251,11 @@ export default function H3NativePanel() {
           </div>
           {job ? (
             <div className={styles.job} data-state={job.status}>
-              <b>{job.model}</b>
+              <strong>{job.model}</strong>
               <span>Job status: {job.status}</span>
               {job.outputAssetUrl ? (
                 <figure className={styles.preview}>
-                  <video src={job.outputAssetUrl} controls preload="none" playsInline aria-describedby="native-h3-preview-caption">
+                  <video src={job.outputAssetUrl} controls preload="none" playsInline aria-label="Locally generated MiniMax H3 video preview" aria-describedby="native-h3-preview-caption">
                     Your browser cannot preview this locally generated MiniMax H3 video.
                   </video>
                   <figcaption id="native-h3-preview-caption">Locally generated MiniMax H3 video preview returned to the current PlotPickle asset context.</figcaption>
@@ -294,8 +294,8 @@ export default function H3NativePanel() {
               <ul>
                 {status.modelRequirements.map((item) => (
                   <li key={item.id} data-ready={item.ready}>
-                    <span><b>{item.label}</b><small>ComfyUI/models/{item.directory} · {item.found || item.filenames.join(" or ")}</small></span>
-                    <em>{item.ready ? "Found" : "Missing"}</em>
+                    <span><strong>{item.label}</strong><small>ComfyUI/models/{item.directory} · {item.found || item.filenames.join(" or ")}</small></span>
+                    <span className={styles.modelState}>{item.ready ? "Found" : "Missing"}</span>
                   </li>
                 ))}
               </ul>

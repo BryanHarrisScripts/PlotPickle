@@ -243,7 +243,7 @@ export default function AiPitchDeckWorkspace(props: Props) {
 
       <section className={styles.exports} aria-labelledby="graphic-novel-export-title">
         <div><span>Export</span><h2 id="graphic-novel-export-title">Carry the Graphic Novel into the room</h2><p>Completed images are embedded into one portable HTML file. Dialogue balloons remain real text, and saved Phase 7 placement carries into HTML and PDF output.</p>{exportMessage ? <small>{exportMessage}</small> : null}</div>
-        <div><button type="button" disabled={!queue.counts.completed || queue.working || cast.working} onClick={() => void exportGraphicNovel(false)}>Download interactive HTML</button><button type="button" disabled={!queue.counts.completed || queue.working || cast.working} onClick={() => void exportGraphicNovel(true)}>Print / Save as PDF</button><button type="button" disabled={!queue.counts.completed || queue.working || cast.working} onClick={() => void downloadImageSequence()}>Download image sequence</button></div>
+        <div><button type="button" disabled={!queue.counts.completed || queue.working || cast.working} onClick={() => void exportGraphicNovel(false)}>Download self-contained HTML</button><button type="button" disabled={!queue.counts.completed || queue.working || cast.working} onClick={() => void exportGraphicNovel(true)}>Print / Save as PDF</button><button type="button" disabled={!queue.counts.completed || queue.working || cast.working} onClick={() => void downloadImageSequence()}>Download image sequence</button></div>
       </section>
     </section>
   );

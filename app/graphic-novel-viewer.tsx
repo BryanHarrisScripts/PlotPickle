@@ -165,7 +165,7 @@ export default function GraphicNovelViewer({
   if (!panels.length) {
     return (
       <section className={styles.empty} aria-labelledby="graphic-novel-viewer-title">
-        <span>Phase 7B · Complete reader and lettering</span>
+        <span>Phase 7B · Complete Graphic Novel Viewer</span>
         <h2 id="graphic-novel-viewer-title">Complete Graphic Novel Viewer</h2>
         <p>Build the 96-panel Graphic Novel plan first. The reader and bubble editor will appear here without requiring generated artwork.</p>
       </section>
@@ -481,7 +481,7 @@ export default function GraphicNovelViewer({
   return (
     <section className={styles.workspace} aria-labelledby="graphic-novel-viewer-title">
       <div className={styles.heading}>
-        <div><span>Phase 7B · Read, edit and export</span><h2 id="graphic-novel-viewer-title">Complete Graphic Novel Viewer</h2><p>Read the cover and all 24 pages, use a two-page spread or panel-by-panel mode, edit balloons in context, inspect unresolved panels, regenerate artwork and export an ordered image sequence.</p></div>
+        <div><span>Phase 7B · Complete Graphic Novel Viewer</span><h2 id="graphic-novel-viewer-title">Full-screen Graphic Novel viewer and bubble editor</h2><p>Read the cover and all 24 pages, use a two-page spread or panel-by-panel mode, edit balloons in context, inspect unresolved panels, regenerate artwork and export an ordered image sequence.</p></div>
         <div className={styles.summary}><strong>{summary.readyPanels}/{summary.panelCount}</strong><span>panels resolved</span><button type="button" className={styles.launch} onClick={() => openViewer()}>Open full-screen reader</button></div>
       </div>
       {renderReader(false)}

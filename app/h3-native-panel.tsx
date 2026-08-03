@@ -252,8 +252,8 @@ export default function H3NativePanel() {
 
       <div className={styles.grid}>
         <article className={styles.card}>
-          <h3>Live readiness</h3>
-          <ul className={styles.requirements} aria-label="Native H3 readiness requirements">
+          <h3 id="native-h3-readiness-heading">Live readiness</h3>
+          <ul className={styles.requirements} aria-labelledby="native-h3-readiness-heading">
             {requirements.map((item) => <li key={item.label} data-ready={item.ready}><span className={styles.statusDot} aria-hidden="true" /><span>{item.label}</span><strong>{item.ready ? "Ready" : "Required"}</strong></li>)}
           </ul>
           <dl className={styles.facts}>

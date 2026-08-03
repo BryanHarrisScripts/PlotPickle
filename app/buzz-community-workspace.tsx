@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import styles from "./buzz-community-workspace.module.css";
 
 const COMMUNITY_PORTAL_URL = "https://app.builderlab.xyz/buzz";
-const PLOTPICKLE_SERVER_INVITE_URL = "https://plotpickleplayhouse.communities.buzz.xyz/invite/v2.tdZwBnmvMuZ_E3lh_cEjbo4qeJHdTvFogatjMfVgB-k";
+const PLOTPICKLE_SERVER_INVITE_URL = process.env.NEXT_PUBLIC_PLOTPICKLE_BUZZ_INVITE_URL?.trim() || "";
 const BUZZ_STATUS_API = "/api/local-buzz/status";
 
 type BuzzCommunityStatus = {
@@ -73,7 +73,9 @@ export default function BuzzCommunityWorkspace({ onOpenSettings }: { onOpenSetti
           <span>Fastest start</span>
           <h2>Join PlotPickleServer</h2>
           <p>Accept the PlotPickle Playhouse invitation and add its ready-made community to Buzz.</p>
-          <a href={PLOTPICKLE_SERVER_INVITE_URL} target="_blank" rel="noreferrer">Join PlotPickleServer</a>
+          {PLOTPICKLE_SERVER_INVITE_URL
+            ? <a href={PLOTPICKLE_SERVER_INVITE_URL} target="_blank" rel="noreferrer">Join PlotPickleServer</a>
+            : <button type="button" disabled>Invite available from the community administrator</button>}
         </article>
         <article>
           <span>New Buzz account or community</span>

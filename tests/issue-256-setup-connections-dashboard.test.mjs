@@ -46,13 +46,14 @@ test("issue #256 exposes safe direct account and service setup destinations", as
     "https://docs.ollama.com/windows",
     "https://comfy.org/download",
     "https://docs.comfy.org/installation/desktop/windows",
-    "https://plotpickleplayhouse.communities.buzz.xyz/invite/v2.tdZwBnmvMuZ_E3lh_cEjbo4qeJHdTvFogatjMfVgB-k",
     "https://app.builderlab.xyz/buzz",
     "https://github.com/signup",
     "https://github.com/new",
     "https://console.cloud.google.com/apis/credentials",
   ]) assert.ok(setup.includes(url), `Setup Dashboard is missing destination: ${url}`);
   assert.match(setup, /target="_blank" rel="noreferrer"/);
+  assert.match(setup, /NEXT_PUBLIC_PLOTPICKLE_BUZZ_INVITE_URL/);
+  assert.doesNotMatch(setup, /communities\.buzz\.xyz\/invite\/v2\./);
   assert.doesNotMatch(setup, /nsec1|sk-[A-Za-z0-9]|privateKey|accessToken|refreshToken/);
 });
 

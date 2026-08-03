@@ -7,6 +7,7 @@ import taxonomySource from "../config/settings-system-taxonomy.json";
 import BuzzSettingsPanel from "./buzz-settings-panel";
 import GitHubCollaboration from "./github-collaboration";
 import LegacySettingsPanel from "./settings-panel-legacy";
+import SettingsSitemap from "./settings-sitemap";
 import styles from "./settings-system-navigation.module.css";
 
 const SETTINGS_SECTION_KEY = "plotpickle.settings.section";
@@ -24,7 +25,9 @@ type LegacySection =
   | "privacy"
   | "about";
 
-type PlayhouseView = "overview" | "local" | "writers-room" | "repository" | "advanced";
+type SettingsTarget = LegacySection | "sitemap";
+
+type PlayhouseView = "overview" | "local" | "writers-room" | "repository" | "sitemap" | "advanced";
 type BuzzModeStatus = "checking" | "ready" | "setup" | "unavailable";
 
 type SystemStatus = "installed" | "configure" | "optional" | "planned" | "reference";
@@ -35,7 +38,7 @@ type NavigationItem = {
   helpTerm: string;
   description: string;
   status: SystemStatus;
-  target?: LegacySection;
+  target?: SettingsTarget;
   href?: string;
   examples?: string[];
   mechanics?: string[];
@@ -79,6 +82,7 @@ function itemForId(id: string) {
 }
 
 function viewForTarget(target: string | null): PlayhouseView | null {
+  if (target === "sitemap") return "sitemap";
   if (target === "buzz") return "writers-room";
   if (target === "github") return "repository";
   if (target === "local" || target === "storage") return "local";
@@ -193,6 +197,11 @@ export default function SettingsPanel({
   function selectItem(item: NavigationItem, system: SystemGroup | null) {
     setActiveId(item.id);
     if (system) setExpandedSystem(system.id);
+    if (item.target === "sitemap") {
+      window.sessionStorage.setItem(SETTINGS_SECTION_KEY, item.target);
+      setPlayhouseView("sitemap");
+      return;
+    }
     if (!item.target) return;
     internalTarget.current = item.target;
     window.sessionStorage.setItem(SETTINGS_SECTION_KEY, item.target);
@@ -211,6 +220,26 @@ export default function SettingsPanel({
     if (!next) return;
     setActiveId(next.item.id);
     if (next.system) setExpandedSystem(next.system.id);
+  }
+
+  function openSitemapSettingsItem(id: string) {
+    const next = itemForId(id);
+    if (next.item.target === "sitemap") {
+      setPlayhouseView("sitemap");
+      return;
+    }
+    setPlayhouseView("advanced");
+    setActiveId(next.item.id);
+    if (next.system) setExpandedSystem(next.system.id);
+    if (next.item.target && next.item.target !== "sitemap") {
+      internalTarget.current = next.item.target;
+      window.sessionStorage.setItem(SETTINGS_SECTION_KEY, next.item.target);
+      window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: next.item.target }));
+    }
+  }
+
+  function openSitemapWorkspace(id: string) {
+    window.dispatchEvent(new CustomEvent("plotpickle:navigate-workspace", { detail: id }));
   }
 
   if (!ready) return <div className={styles.loading}>Preparing Settings…</div>;
@@ -232,6 +261,7 @@ export default function SettingsPanel({
         ] as Array<[PlayhouseView, string]>).map(([id, label]) => (
           <button type="button" key={id} className={playhouseView === id ? styles.activeMode : undefined} onClick={() => setPlayhouseView(id)}>{label}</button>
         ))}
+        <button type="button" className={playhouseView === "sitemap" ? styles.activeMode : undefined} onClick={() => setPlayhouseView("sitemap")}>Sitemap</button>
         <button type="button" className={playhouseView === "advanced" ? styles.activeMode : styles.advancedMode} onClick={() => setPlayhouseView("advanced")}>Other settings</button>
       </nav>
 
@@ -370,6 +400,17 @@ export default function SettingsPanel({
             <GitHubCollaboration project={project} onChange={onProjectChange} onConnectionChange={() => void onConnectionChange()} surface="repository-setup" />
           </div>
         </main>
+      ) : null}
+
+      {playhouseView === "sitemap" ? (
+        <SettingsSitemap
+          taxonomy={taxonomy}
+          connections={connections}
+          buzzStatus={buzzModeStatus}
+          onOpenWorkspace={(id) => openSitemapWorkspace(id)}
+          onOpenSettingsItem={openSitemapSettingsItem}
+          onOpenSettingsOverview={() => setPlayhouseView("overview")}
+        />
       ) : null}
 
       {playhouseView === "advanced" ? <div className={styles.layout}>

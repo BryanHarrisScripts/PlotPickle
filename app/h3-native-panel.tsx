@@ -207,19 +207,19 @@ export default function H3NativePanel() {
     }
   }
 
-  if (!status) return <section className={styles.panel} aria-live="polite"><p>{notice || "Checking native MiniMax H3 readiness…"}</p></section>;
+  if (!status) return <section className={styles.panel}><p>{notice || "Checking native MiniMax H3 readiness…"}</p></section>;
 
   const statusLabel = status.active && status.ready ? "Active" : status.ready ? "Ready" : "Setup required";
 
   return (
-    <section className={styles.panel} aria-labelledby="native-h3-title" aria-busy={Boolean(working)}>
+    <section className={styles.panel} aria-labelledby="native-h3-title">
       <header className={styles.header}>
         <div>
           <p>Local video model</p>
           <h2 id="native-h3-title">MiniMax H3 · Native ComfyUI</h2>
           <span>Runs user-owned H3 weights locally. No MiniMax cloud key, automatic model download, custom-node installer or silent code execution.</span>
         </div>
-        <strong role="status" aria-live="polite" aria-label={`Native H3 status: ${statusLabel}`} data-ready={status.active && status.ready}>{statusLabel}</strong>
+        <strong data-ready={status.active && status.ready}>Native H3 status: {statusLabel}</strong>
       </header>
 
       <div className={styles.grid}>
@@ -241,7 +241,7 @@ export default function H3NativePanel() {
               <span><b>8 GB compatibility acknowledgement</b><small>Generation may fail, take a very long time, or require a lower-resolution official workflow. PlotPickle does not promise 2K or 15 seconds locally.</small></span>
             </label>
           ) : null}
-          <div className={styles.actions} role="group" aria-label="Native H3 controls">
+          <div className={styles.actions}>
             <button type="button" onClick={() => void setActive(!status.active)} disabled={Boolean(working) || (!status.active && !status.ready)} aria-pressed={status.active} aria-describedby="native-h3-warning">
               {working === "activation" ? "Updating…" : status.active ? "Turn native H3 off" : "Use native H3 for video"}
             </button>
@@ -249,7 +249,20 @@ export default function H3NativePanel() {
               {working === "test" ? "Testing locally…" : "Run local H3 test"}
             </button>
           </div>
-          {job ? <div className={styles.job} data-state={job.status} role="status" aria-live="polite" aria-label={`Native H3 job ${job.status}`}><b>{job.model}</b><span>{job.status}</span>{job.outputAssetUrl ? <video src={job.outputAssetUrl} controls preload="metadata" aria-label="Native H3 generated video preview" /> : null}</div> : null}
+          {job ? (
+            <div className={styles.job} data-state={job.status}>
+              <b>{job.model}</b>
+              <span>Job status: {job.status}</span>
+              {job.outputAssetUrl ? (
+                <figure className={styles.preview}>
+                  <video src={job.outputAssetUrl} controls preload="none" playsInline aria-describedby="native-h3-preview-caption">
+                    Your browser cannot preview this locally generated MiniMax H3 video.
+                  </video>
+                  <figcaption id="native-h3-preview-caption">Locally generated MiniMax H3 video preview returned to the current PlotPickle asset context.</figcaption>
+                </figure>
+              ) : null}
+            </div>
+          ) : null}
         </article>
 
         <article className={styles.card} aria-labelledby="native-h3-setup-title">
@@ -277,7 +290,7 @@ export default function H3NativePanel() {
           </ul>
           {status.modelRequirements.length ? (
             <section className={styles.models} aria-labelledby="native-h3-models-title">
-              <h4 id="native-h3-models-title">Required model files</h4>
+              <h3 id="native-h3-models-title">Required model files</h3>
               <ul>
                 {status.modelRequirements.map((item) => (
                   <li key={item.id} data-ready={item.ready}>
@@ -294,7 +307,7 @@ export default function H3NativePanel() {
         </article>
       </div>
 
-      {notice || status.error || status.lastError ? <p className={styles.notice} role="status" aria-live="polite">{notice || status.error || status.lastError}</p> : null}
+      {notice || status.error || status.lastError ? <p className={styles.notice}>{notice || status.error || status.lastError}</p> : null}
     </section>
   );
 }

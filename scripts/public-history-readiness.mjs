@@ -39,15 +39,23 @@ for (const exception of exceptionConfig.exceptions || []) {
     exceptionProblems.push("Every history exception needs an id, kind and at least one occurrence.");
     continue;
   }
-  if (!["pending-revocation", "revoked"].includes(exception.status)) {
+  if (!["pending-revocation", "revoked", "owner-accepted-risk"].includes(exception.status)) {
     exceptionProblems.push(`History exception ${exception.id} has an unsupported status.`);
     continue;
   }
   if (exception.status === "revoked" && !Number.isFinite(Date.parse(exception.revoked_at || ""))) {
     exceptionProblems.push(`History exception ${exception.id} must record a valid revoked_at timestamp before approval.`);
   }
-  if (exception.status === "pending-revocation" && exception.revoked_at) {
-    exceptionProblems.push(`Pending history exception ${exception.id} must not claim a revoked_at timestamp.`);
+  if (exception.status === "pending-revocation" && (exception.revoked_at || exception.accepted_at)) {
+    exceptionProblems.push(`Pending history exception ${exception.id} must not claim a resolution timestamp.`);
+  }
+  if (exception.status === "owner-accepted-risk") {
+    if (!Number.isFinite(Date.parse(exception.accepted_at || ""))) {
+      exceptionProblems.push(`Owner-accepted history exception ${exception.id} must record a valid accepted_at timestamp.`);
+    }
+    if (!exception.accepted_by || !exception.reason) {
+      exceptionProblems.push(`Owner-accepted history exception ${exception.id} must record accepted_by and reason.`);
+    }
   }
   for (const occurrence of exception.occurrences) {
     if (!/^[0-9a-f]{12,40}$/i.test(occurrence.commit || "") || !occurrence.path || /[*?]/.test(occurrence.path)) {
@@ -57,10 +65,11 @@ for (const exception of exceptionConfig.exceptions || []) {
     const normalized = {
       id: exception.id,
       kind: exception.kind,
+      status: exception.status,
       commit: occurrence.commit.toLowerCase(),
       path: occurrence.path,
     };
-    (exception.status === "revoked" ? approvedOccurrences : pendingOccurrences).push(normalized);
+    (exception.status === "pending-revocation" ? pendingOccurrences : approvedOccurrences).push(normalized);
   }
 }
 
@@ -75,11 +84,12 @@ function matchingOccurrence(list, label, commit, path) {
   return list.find((item) => item.kind === label && normalizedCommit.startsWith(item.commit) && item.path === path);
 }
 
-let approvedCount = 0;
+const approvalCounts = new Map();
 
 function record(label, commit, path) {
-  if (matchingOccurrence(approvedOccurrences, label, commit, path)) {
-    approvedCount += 1;
+  const approved = matchingOccurrence(approvedOccurrences, label, commit, path);
+  if (approved) {
+    approvalCounts.set(approved.status, (approvalCounts.get(approved.status) || 0) + 1);
     return;
   }
   if (findings.size >= MAX_FINDINGS) return;
@@ -143,13 +153,16 @@ await gitLines(["log", "--all", "--no-ext-diff", "--no-renames", "--unified=0", 
 if (findings.size) {
   console.error("Public history audit failed. Potential private material exists in Git history:");
   for (const finding of findings.values()) {
-    const pending = finding.pendingId ? ` — exception ${finding.pendingId} is awaiting confirmed revocation` : "";
+    const pending = finding.pendingId ? ` — exception ${finding.pendingId} is awaiting resolution` : "";
     console.error(`- ${finding.label} at ${finding.commit} in ${finding.path}${pending}`);
   }
   if (findings.size >= MAX_FINDINGS) console.error(`- Output stopped after ${MAX_FINDINGS} findings.`);
-  console.error("No secret values are printed. Rotate any exposed credential before rewriting history or approving a narrowly scoped revoked-token exception.");
+  console.error("No secret values are printed. Rotate, rewrite, or explicitly accept only exact historical occurrences before publication.");
   process.exit(1);
 }
 
-if (approvedCount) console.log(`Approved ${approvedCount} exact occurrences belonging to confirmed revoked credentials.`);
+const revokedCount = approvalCounts.get("revoked") || 0;
+const acceptedRiskCount = approvalCounts.get("owner-accepted-risk") || 0;
+if (revokedCount) console.log(`Approved ${revokedCount} exact occurrences belonging to confirmed revoked credentials.`);
+if (acceptedRiskCount) console.log(`Approved ${acceptedRiskCount} exact occurrences under documented owner-accepted risk.`);
 console.log("Public history audit passed: no unapproved recognizable secrets or private filenames were found in reachable Git history.");

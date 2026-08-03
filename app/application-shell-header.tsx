@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { PRODUCT_NAVIGATION, PROJECT_ACTIONS, type ProductNavigationId } from "@/lib/product-direction";
+import { SUPPORT_NAVIGATION } from "@/lib/support-navigation";
 
 type ProjectActionId = (typeof PROJECT_ACTIONS)[number]["id"];
 
@@ -102,6 +103,11 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
       <ShellDivider />
 
       <nav className="main-tabs shell-zone-configuration" aria-label="Application configuration" role="tablist">
+        {SUPPORT_NAVIGATION.map((item) => (
+          <a className="text-button" key={item.id} href={item.href} title={item.description}>
+            {item.label}
+          </a>
+        ))}
         {configuration.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
       </nav>
 

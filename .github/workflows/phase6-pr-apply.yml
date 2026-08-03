@@ -1,0 +1,61 @@
+name: Apply Phase 6 from Draft PR
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.ref == 'agent/graphic-novel-story-brief'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out Phase 6 branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: agent/graphic-novel-story-brief
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.13.0
+          cache: npm
+
+      - name: Execute focused Phase 6 patch
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import textwrap
+
+          workflow = Path('.github/workflows/phase6-apply.yml').read_text(encoding='utf-8')
+          start = "          python <<'PY'\n"
+          end = "\n          PY\n\n      - name: Install dependencies"
+          if start not in workflow or end not in workflow:
+              raise SystemExit('The Phase 6 patch body could not be located.')
+          body = workflow.split(start, 1)[1].split(end, 1)[0]
+          exec(compile(textwrap.dedent(body), 'phase6-inline.py', 'exec'))
+          PY
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run focused Phase 6 regression
+        run: npm run test:graphic-novel-story-brief
+
+      - name: Lint Phase 6 implementation
+        run: npm run lint
+
+      - name: Commit implementation and remove temporary applicators
+        shell: bash
+        run: |
+          git config user.name "PlotPickle Phase 6 Builder"
+          git config user.email "actions@users.noreply.github.com"
+          git rm .github/workflows/phase6-apply.yml .github/workflows/phase6-pr-apply.yml
+          git add app/graphic-novel-story-brief.tsx app/graphic-novel-story-brief.module.css app/ai-pitch-deck-workspace.tsx app/use-graphic-novel-queue.ts lib/graphic-novel-story-brief.ts lib/ai-pitch-deck-base.ts tests/issue-282-graphic-novel-story-brief.test.mjs package.json
+          git commit -m "Add Graphic Novel Story Brief and emotional prompt engine"
+          git push origin HEAD:agent/graphic-novel-story-brief

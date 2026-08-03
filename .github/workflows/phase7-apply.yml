@@ -36,6 +36,19 @@ jobs:
           : > phase7-diagnostic.txt
           python scripts/phase7-apply.py >> phase7-diagnostic.txt 2>&1
           status=$?
+          if [ "$status" -eq 0 ]; then
+            python - <<'PY' >> phase7-diagnostic.txt 2>&1
+          from pathlib import Path
+          path = Path('tests/issue-283-graphic-novel-viewer.test.mjs')
+          value = path.read_text(encoding='utf-8')
+          old = 'assert.match(workspace, /Replace image \\/ open versions/);'
+          new = 'assert.match(viewer, /Replace image \\/ open versions/);'
+          if old not in value:
+              raise SystemExit('The stale Phase 7 assertion was not found.')
+          path.write_text(value.replace(old, new, 1), encoding='utf-8')
+          PY
+            status=$?
+          fi
           if [ "$status" -eq 0 ]; then npm ci >> phase7-diagnostic.txt 2>&1; status=$?; fi
           if [ "$status" -eq 0 ]; then npm run test:graphic-novel-viewer >> phase7-diagnostic.txt 2>&1; status=$?; fi
           if [ "$status" -eq 0 ]; then npm run lint >> phase7-diagnostic.txt 2>&1; status=$?; fi

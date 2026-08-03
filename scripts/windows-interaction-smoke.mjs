@@ -320,6 +320,15 @@ async function inspectPage(client, events, eventStart, expectedOrigin) {
 async function runRepositoryCollabScenario(client, events, baseUrl, baseOrigin) {
   const eventStart = events.length;
   await navigate(client, `${baseUrl}/?workspace=settings`, baseOrigin);
+  const advanced = await evaluate(client, String.raw`(() => {
+    const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const target = [...document.querySelectorAll("button,[role='button'],[role='tab']")].find((element) => normalize(element.innerText || element.getAttribute("aria-label")) === "Other settings");
+    if (!target) return false;
+    target.click();
+    return true;
+  })()`);
+  if (!advanced) return { passed: false, failures: ["Other settings control was not found in Settings."] };
+  await waitForReady(client, baseOrigin);
   const clicked = await evaluate(client, String.raw`(() => {
     const target = [...document.querySelectorAll("button,[role='button'],[role='tab']")].find((element) => String(element.innerText || element.getAttribute("aria-label") || "").replace(/\s+/g, " ").trim() === "Repository & Collab");
     if (!target) return false;

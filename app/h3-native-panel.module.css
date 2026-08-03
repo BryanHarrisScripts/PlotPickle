@@ -183,7 +183,7 @@
 }
 
 .fieldError {
-  color: #8a1c1c !important;
+  color: var(--ink) !important;
   font-weight: 700;
 }
 

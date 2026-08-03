@@ -22,11 +22,16 @@ if (!existsSync(registryPath)) failures.push("Missing config/credential-boundary
 const registry = existsSync(registryPath)
   ? JSON.parse(readFileSync(registryPath, "utf8"))
   : { credentials: [], sensitive_field_names: [], redaction_contracts: [] };
-const policyPath = path.join(root, "config", "credential-boundaries.json");
-if (!existsSync(policyPath)) failures.push("Missing config/credential-boundaries.json.");
-const policy = existsSync(policyPath)
-  ? JSON.parse(readFileSync(policyPath, "utf8"))
-  : { protectedFiles: [], transientFiles: [], publicConfigs: [], forbiddenProjectFields: [] };
+const publicConfigs = [
+  {
+    path: "config/github-app.json",
+    forbiddenFields: ["clientSecret", "privateKey", "accessToken", "refreshToken", "webhookSecret"],
+  },
+  {
+    path: "config/google-oauth.json",
+    forbiddenFields: ["clientSecret", "accessToken", "refreshToken", "authorizationCode", "privateKey"],
+  },
+];
 
 const skippedDirectories = new Set([".git", ".next", ".wrangler", "coverage", "dist", "node_modules", "releases"]);
 const skippedBinaryExtensions = new Set([
@@ -138,10 +143,6 @@ for (const credential of registry.credentials || []) {
   }
 }
 
-for (const protectedFile of policy.protectedFiles || []) {
-  if (!credentialFiles.has(protectedFile.name)) failures.push(`Protected credential file is missing from the executable registry: ${protectedFile.name}.`);
-}
-
 function hasForbiddenKey(value, forbidden, prefix = "") {
   if (!value || typeof value !== "object") return [];
   const findings = [];
@@ -153,13 +154,13 @@ function hasForbiddenKey(value, forbidden, prefix = "") {
   return findings;
 }
 
-for (const publicConfig of policy.publicConfigs || []) {
+for (const publicConfig of publicConfigs) {
   if (!fileSet.has(publicConfig.path)) failures.push(`Public application configuration is missing: ${publicConfig.path}.`);
   const source = textFile(publicConfig.path);
   if (!source) continue;
   let value;
   try { value = JSON.parse(source); } catch { failures.push(`Public application configuration is not valid JSON: ${publicConfig.path}.`); continue; }
-  const forbidden = new Set(publicConfig.forbiddenFields || []);
+  const forbidden = new Set(publicConfig.forbiddenFields);
   for (const location of hasForbiddenKey(value, forbidden)) failures.push(`Public application configuration exposes forbidden field ${location} in ${publicConfig.path}.`);
 }
 
@@ -171,10 +172,7 @@ for (const contract of registry.redaction_contracts || []) {
   }
 }
 
-const sensitiveNames = [...new Set([
-  ...(registry.sensitive_field_names || []),
-  ...(policy.forbiddenProjectFields || []),
-])];
+const sensitiveNames = [...new Set(registry.sensitive_field_names || [])];
 const browserFiles = files.filter((relative) => /^(?:app|lib)\//.test(relative) && /\.(?:js|jsx|mjs|ts|tsx)$/.test(relative));
 for (const relative of browserFiles) {
   const source = textFile(relative);

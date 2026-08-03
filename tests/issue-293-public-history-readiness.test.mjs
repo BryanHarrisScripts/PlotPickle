@@ -24,14 +24,14 @@ test("full history readiness uses a complete clone and exact documented exceptio
   assert.doesNotMatch(audit, /console\.error\(`[^`]*\$\{text\}/);
 
   assert.equal(exceptions.exceptions.length, 1);
-  const [accepted] = exceptions.exceptions;
-  assert.equal(accepted.status, "owner-accepted-risk");
-  assert.equal(accepted.accepted_by, "BryanHarrisScripts");
-  assert.ok(Number.isFinite(Date.parse(accepted.accepted_at)));
-  assert.equal(accepted.tracking_issue, 294);
-  assert.match(accepted.reason, /invitation remain unchanged/i);
-  assert.ok(accepted.occurrences.length >= 1);
-  for (const occurrence of accepted.occurrences) {
+  const [revoked] = exceptions.exceptions;
+  assert.equal(revoked.status, "revoked");
+  assert.equal(revoked.accepted_by, "BryanHarrisScripts");
+  assert.ok(Number.isFinite(Date.parse(revoked.revoked_at)));
+  assert.equal(revoked.tracking_issue, 294);
+  assert.match(revoked.reason, /revoked before public release/i);
+  assert.ok(revoked.occurrences.length >= 1);
+  for (const occurrence of revoked.occurrences) {
     assert.match(occurrence.commit, /^[0-9a-f]{12,40}$/);
     assert.ok(occurrence.path && !/[*?]/.test(occurrence.path));
   }

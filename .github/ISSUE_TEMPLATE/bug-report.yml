@@ -1,0 +1,52 @@
+name: Bug report
+description: Report a reproducible PlotPickle defect without including private story material or credentials.
+title: "[Bug]: "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Remove API keys, tokens, personal information, unpublished story text, and private repository details before submitting.
+  - type: input
+    id: version
+    attributes:
+      label: PlotPickle version
+      placeholder: 1.0.0-rc.3 or commit SHA
+    validations:
+      required: true
+  - type: dropdown
+    id: operating-system
+    attributes:
+      label: Operating system
+      options: [Windows, macOS, Linux, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the visible problem and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Open...
+        2. Select...
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized logs or screenshots
+      description: Attach only material that contains no secrets, personal story content, or private repository information.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed credentials, tokens, personal information and unpublished story material.
+          required: true

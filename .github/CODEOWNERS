@@ -1,0 +1,9 @@
+# Default owner review for all changes.
+* @BryanHarrisScripts
+
+# Security, release, licensing and repository administration require owner review.
+/.github/ @BryanHarrisScripts
+/scripts/ @BryanHarrisScripts
+/SECURITY.md @BryanHarrisScripts
+/LICENSE* @BryanHarrisScripts
+/TRADEMARKS.md @BryanHarrisScripts

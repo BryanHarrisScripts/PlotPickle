@@ -28,12 +28,19 @@ jobs:
 
           path = Path('tests/issue-258-creative-compute-paths.test.mjs')
           text = path.read_text(encoding='utf-8')
-          old = r'''  assert.doesNotMatch(provider, /PLOTPICKLE_MINIMAX_KEY|Authorization:|Bearer \${/);'''
-          new = r'''  assert.doesNotMatch(provider, /process\.env\.PLOTPICKLE_MINIMAX_KEY|Authorization:\s*["'`]|Bearer\s+\$\{/);
-          assert.match(provider, /Native H3 workflows must not contain a cloud API key or authorization field/);'''
-          if text.count(old) != 1:
-              raise SystemExit(f'Expected one assertion to replace, found {text.count(old)}')
-          path.write_text(text.replace(old, new), encoding='utf-8')
+          lines = text.splitlines()
+          matches = [
+              index for index, line in enumerate(lines)
+              if 'assert.doesNotMatch(provider, /PLOTPICKLE_MINIMAX_KEY|Authorization:' in line
+          ]
+          if len(matches) != 1:
+              raise SystemExit(f'Expected one assertion line to replace, found {len(matches)}')
+          index = matches[0]
+          lines[index:index + 1] = [
+              r'''  assert.doesNotMatch(provider, /process\.env\.PLOTPICKLE_MINIMAX_KEY|Authorization:\s*["'`]|Bearer\s+\$\{/);''',
+              r'''  assert.match(provider, /Native H3 workflows must not contain a cloud API key or authorization field/);''',
+          ]
+          path.write_text('\n'.join(lines) + ('\n' if text.endswith('\n') else ''), encoding='utf-8')
           PY
           node --test tests/issue-258-creative-compute-paths.test.mjs
       - name: Commit targeted repair

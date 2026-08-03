@@ -243,7 +243,7 @@ export default function H3NativePanel() {
     <section className={styles.panel}>
       <header className={styles.header}>
         <div>
-          <div>Local video model</div>
+          <p>Local video model</p>
           <h2>MiniMax H3 · Native ComfyUI</h2>
           <span>Runs user-owned H3 weights locally. No MiniMax cloud key, automatic model download, custom-node installer or silent code execution.</span>
         </div>
@@ -281,7 +281,6 @@ export default function H3NativePanel() {
               }}
               aria-disabled={activationUnavailable}
               aria-pressed={status.active}
-              aria-describedby="native-h3-warning"
             >
               {working === "activation" ? "Updating…" : status.active ? "Turn native H3 off" : "Use native H3 for video"}
             </button>
@@ -295,7 +294,6 @@ export default function H3NativePanel() {
                 void testNative();
               }}
               aria-disabled={testUnavailable}
-              aria-describedby="native-h3-warning"
             >
               {working === "test" ? "Testing locally…" : "Run local H3 test"}
             </button>

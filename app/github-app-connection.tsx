@@ -239,9 +239,9 @@ export default function GitHubAppConnection({
   useEffect(() => {
     if (nameEdited || !status.authenticated || !newOwner || !newTitle.trim()) return;
     const fallback = localRepositorySuggestion(newTitle, newOwner, repositories);
-    setNewName(fallback);
     let cancelled = false;
     const timer = window.setTimeout(() => {
+      setNewName(fallback);
       setNameSuggestionPending(true);
       void request("/api/local-github-app/name-suggestion", "POST", { owner: newOwner, name: newTitle })
         .then((result) => {

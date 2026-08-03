@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 import {
   createStoryProjectManifest,
+  nextAvailableRepositoryName,
   normalizeRepositoryName,
   parseStoryProjectManifest,
   safeCanonicalProjectPath,
@@ -388,6 +389,40 @@ async function availableOwners(): Promise<OwnerChoice[]> {
     .sort((left, right) => left.kind.localeCompare(right.kind) || left.login.localeCompare(right.login));
 }
 
+async function repositoryExists(accessToken: string, owner: string, name: string) {
+  try {
+    await githubRequest(accessToken, `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`);
+    return true;
+  } catch (error) {
+    if ((error as GitHubError).status === 404) return false;
+    throw error;
+  }
+}
+
+async function availableRepositoryName(accessToken: string, owner: string, requestedName: string) {
+  const base = validateRepositoryName(requestedName);
+  const occupied: string[] = [];
+  let candidate = base;
+  for (let attempt = 0; attempt < 10_000; attempt += 1) {
+    if (!await repositoryExists(accessToken, owner, candidate)) return candidate;
+    occupied.push(candidate);
+    candidate = nextAvailableRepositoryName(base, occupied);
+  }
+  throw new Error("PlotPickle could not find an available repository name for this owner.");
+}
+
+async function suggestRepositoryName(input: Record<string, unknown>) {
+  const authorization = await liveAuthorization();
+  const owner = typeof input.owner === "string" && input.owner.trim() ? input.owner.trim() : authorization.account.login;
+  const owners = await availableOwners();
+  if (!owners.some((choice) => choice.login.toLowerCase() === owner.toLowerCase())) {
+    throw new Error("Choose a personal account or organization available to the PlotPickle GitHub App.");
+  }
+  const requestedName = typeof input.name === "string" && input.name.trim() ? input.name.trim() : "Untitled Story";
+  const name = await availableRepositoryName(authorization.accessToken, owner, requestedName);
+  return { ok: true, owner, name, collisionAdjusted: name.toLowerCase() !== validateRepositoryName(requestedName).toLowerCase() };
+}
+
 async function availableRepositories(): Promise<RepositoryChoice[]> {
   const authorization = await liveAuthorization();
   const choices: RepositoryChoice[] = [];
@@ -539,7 +574,8 @@ async function createRepository(input: Record<string, unknown>) {
   }
   const title = typeof input.title === "string" && input.title.trim() ? input.title.trim() : "Untitled Story";
   const requestedName = typeof input.name === "string" && input.name.trim() ? input.name.trim() : title;
-  const name = validateRepositoryName(requestedName);
+  const validatedRequestedName = validateRepositoryName(requestedName);
+  const name = await availableRepositoryName(authorization.accessToken, owner, validatedRequestedName);
   const privateRepository = input.private !== false;
   const description = `PlotPickle story project: ${title}`;
   let created: unknown;
@@ -576,6 +612,9 @@ async function createRepository(input: Record<string, unknown>) {
   return {
     ok: true,
     created: true,
+    requestedName: validatedRequestedName,
+    resolvedName: repository.name,
+    collisionAdjusted: repository.name.toLowerCase() !== validatedRequestedName.toLowerCase(),
     creationMode: templateRepository() ? "template" : "bootstrap",
     repository,
     manifest,
@@ -651,6 +690,10 @@ async function handle(request: IncomingMessage, response: ServerResponse, url: U
   }
   if (request.method === "GET" && url.pathname === `${API}/repositories`) {
     sendJson(response, 200, { ok: true, repositories: await availableRepositories() });
+    return;
+  }
+  if (request.method === "POST" && url.pathname === `${API}/name-suggestion`) {
+    sendJson(response, 200, await suggestRepositoryName(await readBody(request)));
     return;
   }
   if (request.method === "POST" && url.pathname === `${API}/create`) {

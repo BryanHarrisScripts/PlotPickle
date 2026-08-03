@@ -75,13 +75,46 @@ function record(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
+export function repositoryNameFromInput(value: string) {
+  const trimmed = value.trim();
+  const sshMatch = trimmed.match(/^git@github\.com:([^/]+)\/(.+?)(?:\.git)?$/i);
+  if (sshMatch) return sshMatch[2];
+
+  const urlValue = /^github\.com\//i.test(trimmed) ? `https://${trimmed}` : trimmed;
+  if (/^(?:https?|ssh|git):\/\//i.test(urlValue)) {
+    try {
+      const url = new URL(urlValue);
+      if (["github.com", "www.github.com"].includes(url.hostname.toLowerCase())) {
+        const parts = url.pathname.split("/").filter(Boolean);
+        if (parts.length >= 2) return decodeURIComponent(parts[1]).replace(/\.git$/i, "");
+      }
+    } catch {
+      // Invalid URLs fall through to the normal repository-name sanitizer.
+    }
+  }
+  return trimmed;
+}
+
 export function normalizeRepositoryName(value: string) {
-  return value
+  return repositoryNameFromInput(value)
     .normalize("NFKD")
     .replace(/[^A-Za-z0-9._-]+/g, "-")
     .replace(/-{2,}/g, "-")
     .replace(/^[.-]+|[.-]+$/g, "")
     .slice(0, 100);
+}
+
+export function nextAvailableRepositoryName(value: string, existingNames: Iterable<string>) {
+  const base = validateRepositoryName(value);
+  const occupied = new Set(Array.from(existingNames, (name) => normalizeRepositoryName(name).toLowerCase()));
+  if (!occupied.has(base.toLowerCase())) return base;
+  for (let number = 2; number < 100_000; number += 1) {
+    const suffix = `-${number}`;
+    const stem = base.slice(0, 100 - suffix.length).replace(/[.-]+$/g, "") || "story";
+    const candidate = `${stem}${suffix}`;
+    if (!occupied.has(candidate.toLowerCase())) return candidate;
+  }
+  throw new Error("PlotPickle could not find an available sequential repository name.");
 }
 
 export function validateRepositoryName(value: string) {

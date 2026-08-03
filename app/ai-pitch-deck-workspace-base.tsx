@@ -468,7 +468,7 @@ export default function AiPitchDeckWorkspace({
                   <span className={`${styles.panelState} ${styles[panel.status]}`}>{panel.status}</span>
                 </div>
                 <div className={styles.caption}><strong>{panel.title}</strong><p>{panel.narration}</p>{panel.narrationSource === "derived" ? <small>Derived fallback narration · review before export</small> : null}</div>
-                <details className={styles.editor}>
+                <details id={`graphic-novel-panel-editor-${panel.id}`} className={styles.editor}>
                   <summary>Edit panel {panelLabel(panel)}</summary>
                   <section className={styles.versionPicker} aria-label={`Image versions for panel ${panelLabel(panel)}`}>
                     <div><strong>Image versions</strong><span>Selecting one changes the preferred panel image, not the stored originals or alternates.</span></div>

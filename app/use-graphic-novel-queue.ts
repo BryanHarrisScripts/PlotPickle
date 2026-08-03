@@ -320,6 +320,63 @@ export function useGraphicNovelQueue({ project, aiStatus, imageModel, onProjectC
       : "The Graphic Novel was rebuilt. All 96 panels are ready for a new queue.");
   }
 
+  async function regeneratePanel(panelId: string) {
+    if (runningRef.current || working) return;
+    if (!aiReady) {
+      setMessage("Connect and verify an image provider before regenerating this panel.");
+      return;
+    }
+    if (!acknowledged) {
+      setMessage("Confirm the image-provider cost acknowledgement before regenerating this panel.");
+      return;
+    }
+    const panel = deckRef.current.panels.find((item) => item.id === panelId);
+    if (!panel) {
+      setMessage("The selected Graphic Novel panel no longer exists.");
+      return;
+    }
+    if (comicPitchIdentityLocks(projectRef.current, panel).length !== panel.characterIds.length) {
+      setMessage("Lock every recurring character in this panel before regenerating it.");
+      return;
+    }
+
+    runningRef.current = true;
+    setWorking(true);
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    let activeDeck = updateComicPitchPanel(deckRef.current, panel.id, { status: "generating", error: "" }, "generating");
+    saveDeck(activeDeck);
+    setMessage(`${graphicNovelPanelLabel(panel)} is regenerating as one explicit image request.`);
+    try {
+      const result = await requestPanel(panel, `single-panel-${projectRef.current.id}`, `single-${panel.id}-${Date.now()}`, controller.signal);
+      const completedAt = timestamp();
+      activeDeck = updateComicPitchPanel(activeDeck, panel.id, {
+        imageSrc: result.assetUrl,
+        revisedPrompt: result.revisedPrompt || graphicNovelPrompt(panel.prompt),
+        prompt: graphicNovelPrompt(panel.prompt),
+        status: "complete",
+        error: "",
+        provider: result.provider || aiStatus.identity,
+        model: result.model || imageModel,
+        generatedAt: completedAt,
+      }, deckRef.current.status === "complete" ? "complete" : "paused");
+      saveDeck(activeDeck, true);
+      setMessage(`${graphicNovelPanelLabel(panel)} was regenerated. The previous asset remains available through image versions.`);
+    } catch (error) {
+      const aborted = controller.signal.aborted || (error instanceof DOMException && error.name === "AbortError");
+      activeDeck = updateComicPitchPanel(activeDeck, panel.id, {
+        status: aborted ? "pending" : "error",
+        error: aborted ? "" : safeQueueError(error),
+      }, "paused");
+      saveDeck(activeDeck);
+      setMessage(aborted ? "Single-panel regeneration stopped." : `${graphicNovelPanelLabel(panel)} could not be regenerated. The previous completed asset was not deleted.`);
+    } finally {
+      controllerRef.current = null;
+      runningRef.current = false;
+      setWorking(false);
+    }
+  }
+
   function applyStoryBrief(nextBrief: GraphicNovelStoryBrief) {
     if (working) return;
     const active = withGraphicNovelStoryBrief(projectRef.current, nextBrief);
@@ -338,6 +395,6 @@ export function useGraphicNovelQueue({ project, aiStatus, imageModel, onProjectC
 
   return {
     deck, queue, quality, setQuality, acknowledged, setAcknowledged, working, message, aiReady, preflight, brief,
-    counts, currentItem, currentPanel, progress, start, stop, retry, skip, refresh, applyStoryBrief, resetStoryBrief,
+    counts, currentItem, currentPanel, progress, start, stop, retry, skip, refresh, regeneratePanel, applyStoryBrief, resetStoryBrief,
   };
 }

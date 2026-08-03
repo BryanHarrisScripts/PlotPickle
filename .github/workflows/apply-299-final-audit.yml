@@ -1,0 +1,52 @@
+name: Apply final issue 299 credential audit
+
+on:
+  push:
+    branches:
+      - agent/299-credential-boundary-final
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: agent/299-credential-boundary-final
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "24.15.0"
+      - name: Transplant the finalized credential audit
+        run: |
+          git fetch origin agent/299-credential-boundary-audit
+          git checkout origin/agent/299-credential-boundary-audit -- \
+            .github/workflows/credential-boundary.yml \
+            config/credential-boundary.registry.json \
+            config/public-repository.settings.json \
+            docs/CREDENTIAL_BOUNDARY_AUDIT.md \
+            package.json \
+            scripts/credential-boundary-audit.mjs \
+            scripts/local-credential-audit.mjs \
+            scripts/package-platform.mjs \
+            tests/issue-287-public-repository-setup.test.mjs \
+            tests/issue-299-credential-boundary-audit.test.mjs \
+            tests/issue-299-local-credential-audit.test.mjs
+          git rm ".github/workflows/UI/Code Audit"
+          test ! -e config/credential-boundaries.json
+          node --check scripts/credential-boundary-audit.mjs
+          node --check scripts/local-credential-audit.mjs
+          node scripts/credential-boundary-audit.mjs --mode source
+          node scripts/local-credential-audit.mjs --root . --home "$RUNNER_TEMP/plotpickle-empty-home" --strict
+          node --test tests/issue-299-credential-boundary-audit.test.mjs tests/issue-299-local-credential-audit.test.mjs
+      - name: Remove one-use files and commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/apply-299-final-audit.yml docs/.issue-299-final-trigger
+          git add .
+          git commit -m "Complete final credential-boundary audit"
+          git push origin HEAD:agent/299-credential-boundary-final

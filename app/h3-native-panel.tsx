@@ -247,7 +247,7 @@ export default function H3NativePanel() {
           <h2>MiniMax H3 · Native ComfyUI</h2>
           <span>Runs user-owned H3 weights locally. No MiniMax cloud key, automatic model download, custom-node installer or silent code execution.</span>
         </div>
-        <span className={styles.statusBadge} data-ready={status.active && status.ready}>Native H3 status: {statusLabel}</span>
+        <p className={styles.statusBadge} data-ready={status.active && status.ready}>Native H3 status: {statusLabel}</p>
       </header>
 
       <div className={styles.grid}>
@@ -265,7 +265,7 @@ export default function H3NativePanel() {
           <p className={styles.warning} id="native-h3-warning">{status.vramWarning}</p>
           {status.vramProfile === "constrained" ? (
             <label className={styles.acknowledgement}>
-              <input type="checkbox" checked={performanceAcknowledged} onChange={(event) => setPerformanceAcknowledged(event.target.checked)} aria-describedby="native-h3-warning" />
+              <input type="checkbox" checked={performanceAcknowledged} onChange={(event) => setPerformanceAcknowledged(event.target.checked)} />
               <span><strong>8 GB compatibility acknowledgement</strong><small>Generation may fail, take a very long time, or require a lower-resolution official workflow. PlotPickle does not promise 2K or 15 seconds locally.</small></span>
             </label>
           ) : null}
@@ -330,7 +330,7 @@ export default function H3NativePanel() {
               aria-describedby={connectionError ? "native-h3-connection-help native-h3-connection-error" : "native-h3-connection-help"}
             />
             <small id="native-h3-connection-help">PlotPickle connects only to ComfyUI on this computer at port 8188.</small>
-            {connectionError ? <small id="native-h3-connection-error" className={styles.fieldError}>{connectionError}</small> : null}
+            {connectionError ? <small id="native-h3-connection-error" className={styles.fieldError} aria-live="polite">{connectionError}</small> : null}
           </label>
           <button
             type="button"

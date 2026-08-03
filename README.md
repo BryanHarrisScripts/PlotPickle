@@ -6,9 +6,9 @@
 
 **Learn the craft. See the story logic. Build one connected visual storyworld.**
 
-PlotPickle is a local-first, self-learning visual writing and pitch studio. It connects story education, a living story graph, 24 Blocks, 96 mini-blocks, screenplay material, Graphic Novel panels, Storyboard frames, feedback, production evidence and provenance in one portable PPF project.
+PlotPickle is a local-first, self-learning visual writing and pitch studio. It connects story education, a living story graph, 24 Blocks, 96 mini-blocks, screenplay material, Graphic Novel panels, Storyboard frames, feedback, production evidence and provenance in one portable PPF project. Optional ComfyUI and MiniMax H3 workflows add local creative compute without making AI or a cloud account part of the core.
 
-Start with **Afterglow: Reflections of Sentience** to see the full method in a working story. Then build your own privately, invite a Buzz community into a Writers’ Room, or add GitHub history and optional remote compute through Cloud Collab Mode. PlotPickle remains installed locally, and only a person can approve a change to canon.
+Start with **Afterglow: Reflections of Sentience** to see the full method in a working story. Then build your own privately, invite a Buzz community into a Writers’ Room, add GitHub history and owner-approved Story Proposals, or use Suggest / Report to prepare a sanitized community-feedback draft. PlotPickle remains installed locally, and only a person can approve a change to canon.
 
 [Getting Started](public/docs/readme/GETTING-STARTED.md) · [Writing & Production](public/docs/readme/WRITING-AND-PRODUCTION.md) · [Collaboration & Development](public/docs/readme/COLLABORATION-AND-DEVELOPMENT.md) · [Official repository](https://github.com/BryanHarrisScripts/PlotPickle) · [About PlotPickle](app/about/page.tsx) · [OpenStory history](docs/history/from-openstory-to-plotpickle.md)
 
@@ -19,7 +19,7 @@ Start with **Afterglow: Reflections of Sentience** to see the full method in a w
 3. **One open, portable PPF** — keep canon, story logic, screenplay material, visuals, feedback, approvals and provenance together.
 4. **Visual story logic** — use 24 Blocks and 96 mini-blocks to expose hooks, turning points, causality, pacing and unresolved decisions.
 5. **Visual writing and visual pitch** — move from structure to screenplay, Graphic Novel, Storyboard, Production Shots, Pitch and Reports without rebuilding the story each time.
-6. **Community collaboration without accidental canon changes** — add Buzz discussion or GitHub proposals only when needed, with explicit human approval.
+6. **Community collaboration without accidental canon changes** — add Buzz discussion, GitHub Story Proposals or the sanitized Suggest / Report path only when needed, with explicit human approval.
 
 ## Three ways to work
 
@@ -58,12 +58,14 @@ Available now:
 - **Evidence-led review:** Feedback, Pitch and Reports surface what is working, what is unresolved and what must be decided by people.
 - **Owner-controlled collaboration:** GitHub Story Proposals and approvals live in Collab; only a human merge changes canonical repository content.
 - **Optional Buzz workspace:** rooms, agents, media discussion and development activity sit beside Collab and remain dormant until configured in Settings.
+- **Local creative compute:** user-owned Ollama and ComfyUI models remain optional; native MiniMax H3 activates only after official-source workflow, node, model-file and hardware checks pass.
+- **Suggest / Report:** prepare a sanitized feature, bug or usability issue draft without automatically attaching story files, credentials or local paths.
 
 ## Current application model
 
 The primary application navigation is:
 
-`Dashboard · Learn · Plan · Storyboard · Write · Graphic Novel | Build · Feedback · Refine · Reports | Collab · Community | Settings`
+`Dashboard · Learn · Plan · Storyboard · Write · Graphic Novel | Build · Feedback · Refine · Reports | Collab · Community | Suggest / Report · Settings`
 
 - **Dashboard** shows the real current project, source authority, Storyworld Overview, writing progress, recent project evidence, GitHub state, Buzz state, storage and canon questions.
 - **Learn** contains the Introduction, complete 81-module learning library, terminology and screenplay study.
@@ -77,7 +79,8 @@ The primary application navigation is:
 - **Reports** measures screenplay, character, scene, production, continuity and readiness evidence.
 - **Collab** owns GitHub Story Proposals, approvals, meetings and calendar coordination.
 - **Community** brings BuilderLab community setup and Buzz Desktop access into PlotPickle; Buzz carries optional rooms, messages, huddles and development discussion.
-- **Settings** owns configuration, credentials, lifecycle, recovery, storage and removal for every optional connection.
+- **Suggest / Report** prepares a sanitized GitHub issue draft for feature ideas, bugs and usability feedback; submission remains explicit and user-controlled.
+- **Settings** owns configuration, credentials, lifecycle, recovery, storage, the clickable sitemap and removal for every optional connection.
 
 ## Buzz: optional and dormant by default
 
@@ -103,7 +106,7 @@ Creative-compute choice is separate from Local Story, Writers' Room and Reposito
 
 | Path | Writing and planning | Graphic Novel images | Required setup |
 |---|---|---|---|
-| **Local AI** | Ollama on `127.0.0.1:11434` | ComfyUI on `127.0.0.1:8188` | Separate optional applications plus separately selected local models/checkpoints |
+| **Local AI** | Ollama on `127.0.0.1:11434` | ComfyUI images and guarded native MiniMax H3 video on `127.0.0.1:8188` | Separate optional applications, user-owned models/checkpoints and an official-source H3 manifest where available |
 | **Cloud AI** | OpenAI, MiniMax or another reviewed compatible provider | OpenAI or MiniMax `image-01`; MiniMax H3 video-job foundation | The writer's own account, API key and provider billing |
 | **No AI** | Manual writing and planning | Manual image import, comparison and approval | Nothing beyond PlotPickle |
 
@@ -111,11 +114,11 @@ The Windows launcher detects Ollama and ComfyUI separately and offers each missi
 
 A green local readiness light means the loopback service responded and at least one relevant local model or checkpoint is available. A running service without a model/checkpoint remains yellow. Grey means optional and unused. Red is reserved for a previously verified service that later stops responding.
 
-ComfyUI installation and health detection do not yet claim a finished Graphic Novel generation adapter. Until a reviewed one-panel-at-a-time workflow is connected, manual image import and the existing reviewed cloud path remain the honest active image routes.
+ComfyUI connection, health detection and reviewed local workflow routing are available. Native MiniMax H3 remains fail-closed until an imported official-source manifest identifies a compatible ComfyUI version, every required node, user-owned model files and the selected workflow family. An 8 GB VRAM system is treated as constrained rather than recommended, and PlotPickle does not claim that every computer can run every model.
 
 MiniMax is the first supported BYOK cloud-video provider. Each writer creates and funds their own MiniMax account and saves their own key in the operating-system-user encrypted credential area. PlotPickle ships no MiniMax key, shared billing proxy or credits. Every paid image or H3 video request requires an explicit confirmation; missing confirmation is rejected locally, and no local failure triggers a paid cloud fallback. Successful provider media is copied into local asset storage before review.
 
-The MiniMax H3 create, query, queued-job cancellation and local MP4 download gateway is available as provider infrastructure. A polished **Animate Panel** / Visual Pitch review surface and final human-approved PPF video association remain the next UI increment and are not claimed as shipped here.
+The MiniMax H3 cloud create, query, queued-job cancellation and local MP4 download gateway is available as provider infrastructure. The separate native H3 route runs only through verified local ComfyUI workflows and never receives a MiniMax cloud key. Final media remains subject to explicit human review before PPF association.
 
 ## Optional connections
 
@@ -127,11 +130,22 @@ PlotPickle's complete local creative core works without external accounts or API
 | **Repository & Collab** | Optional GitHub repository history, Story Proposals, approvals and recovery | Disconnected |
 | **Scheduling & Meetings** | Optional Google Calendar and Meet | Disconnected |
 | **Buzz** | Optional Story Rooms, encrypted relay identity and managed local relay | Not configured |
-| **Media & Film Engines** | ComfyUI detection and setup guidance. Future extension; no active API connects it to Graphic Novel generation yet. | Unavailable |
+| **Media & Film Engines** | ComfyUI connection, local workflow validation and guarded native MiniMax H3 setup; availability depends on user-owned models, official workflows and compatible hardware. | Disconnected |
 
 Provider-neutral render packages, automated returned-asset ingestion and third-party movie-rendering connectors are not active development commitments. Pika Labs, Runway and other media engines remain future extensions unless a separate verified implementation is approved.
 
 Credentials remain in the private local-server credential area under the current operating-system user. They are never written into PPF projects, exports, reports, prompts, logs or GitHub commits.
+
+## What users provide for optional connections
+
+| Optional capability | User-provided requirement |
+|---|---|
+| **GitHub collaboration** | A GitHub account and one story repository for each independently managed storyworld |
+| **Buzz Writers’ Room** | A Buzz or BuilderLab account and a chosen community; Buzz remains dormant until configured |
+| **Cloud AI or MiniMax** | The user’s own provider account, API key, billing and explicit paid-request approval |
+| **Local Ollama or ComfyUI** | The separate local application plus user-selected models, checkpoints or official-source workflows |
+
+PlotPickle does not sell shared provider access, bundle third-party accounts or silently create external resources.
 
 ## Local-first desktop builds
 
@@ -189,6 +203,8 @@ Available now:
 - Dashboard, Learn, Plan, Storyboard, Write, Graphic Novel, Build, Feedback, Refine and Reports;
 - Storyworld Map, Production Shots, Animatic and Pitch evidence;
 - owner-controlled Collab and optional GitHub connection;
+- sanitized Suggest / Report issue drafting and a clickable Settings sitemap;
+- guarded native MiniMax H3 routing through verified local ComfyUI workflows;
 - optional Google Calendar and Meet setup boundaries;
 - project-specific Buzz Story Rooms, linked discussion excerpts and human-reviewed local PPF proposals;
 - encrypted existing-relay configuration, reachability testing and signed Buzz CLI room/message operations;
@@ -198,6 +214,7 @@ Available now:
 Not yet claimed as shipped:
 
 - embedded platform-native Buzz binaries or the separate Buzz desktop client;
+- universal native H3 support before official local weights/workflows and compatible hardware are available;
 - production coding-agent execution;
 - active Pika, Runway or other third-party rendering connectors.
 

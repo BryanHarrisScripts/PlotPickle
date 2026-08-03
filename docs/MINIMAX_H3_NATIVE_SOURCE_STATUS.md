@@ -20,3 +20,5 @@ Official source families used for verification:
 - https://huggingface.co/MiniMaxAI/
 - https://github.com/Comfy-Org/ComfyUI/
 - https://docs.comfy.org/
+
+The CI matrix validates this locked day-zero behavior and must remain green before merge.

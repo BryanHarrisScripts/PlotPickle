@@ -32,6 +32,18 @@ jobs:
           end = workflow.index("\n          PY\n", start)
           lines = workflow[start:end].splitlines()
           code = "\n".join(line[10:] if line.startswith("          ") else line for line in lines)
+          code = code.replace(
+              '<span>No automatic paid cloud fallback</span><span>Every generated asset remains reviewable</span>',
+              '<span>No automatic paid cloud fallback</span><span>Buzz is dormant by default</span><span>Every generated asset remains reviewable</span>',
+          )
+          code = code.replace(
+              'checks pass; not every computer can run every model.</p>',
+              'checks pass; not every computer can run every model, and nothing becomes canonical until a person approves it.</p>',
+          )
+          code = code.replace(
+              'assert.doesNotMatch(splash, /every computer can run every model|automatic cloud fallback|bundled provider account/i);',
+              'assert.doesNotMatch(splash, /automatic cloud fallback|bundled provider account|native H3 works on every computer/i);',
+          )
           exec(compile(code, 'issue-301-apply.py', 'exec'))
           PY
           node --test tests/issue-301-splash-readme-refresh.test.mjs tests/issue-169-splash-builds-open-source.test.mjs tests/issue-212-buzz-dashboard-marketing-alignment.test.mjs

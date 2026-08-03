@@ -117,4 +117,6 @@ test("owner checklist records the remaining manual release actions", async () =>
   assert.match(audit, /ComfyUI/i);
   assert.match(audit, /PPF/i);
   assert.match(audit, /release archives/i);
+  assert.match(audit, /audit:credentials:local/);
+  assert.match(audit, /owner-accepted historical risk/i);
 });

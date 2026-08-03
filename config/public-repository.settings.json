@@ -1,0 +1,41 @@
+{
+  "repository": {
+    "visibility": "public",
+    "has_issues": true,
+    "has_projects": false,
+    "has_wiki": false,
+    "has_discussions": true,
+    "delete_branch_on_merge": true,
+    "allow_squash_merge": true,
+    "allow_merge_commit": false,
+    "allow_rebase_merge": false,
+    "allow_auto_merge": true,
+    "allow_update_branch": true
+  },
+  "security": {
+    "vulnerability_alerts": true,
+    "automated_security_fixes": true,
+    "private_vulnerability_reporting": true,
+    "secret_scanning": true,
+    "secret_scanning_push_protection": true
+  },
+  "main_branch": {
+    "require_pull_request": true,
+    "required_approvals": 0,
+    "dismiss_stale_reviews": true,
+    "require_code_owner_review": false,
+    "require_conversation_resolution": true,
+    "require_linear_history": false,
+    "block_force_pushes": true,
+    "block_deletions": true,
+    "required_checks": [
+      "build-test-lint",
+      "validate",
+      "audit",
+      "Pack active Phase 5 branch",
+      "Package windows",
+      "Package macos",
+      "Package linux"
+    ]
+  }
+}

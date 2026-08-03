@@ -54,7 +54,7 @@ type NativeH3Job = {
   error?: string;
 };
 
-const API = "/api/media-routing/comfyui/h3-native";
+const API = "/api/media-routing/comfyui/h3/native";
 const families = [
   ["text-to-video", "Text to video"],
   ["image-to-video", "Image to video"],
@@ -207,54 +207,56 @@ export default function H3NativePanel() {
     }
   }
 
-  if (!status) return <section className={styles.panel}><p>{notice || "Checking native MiniMax H3 readiness…"}</p></section>;
+  if (!status) return <section className={styles.panel} aria-live="polite"><p>{notice || "Checking native MiniMax H3 readiness…"}</p></section>;
+
+  const statusLabel = status.active && status.ready ? "Active" : status.ready ? "Ready" : "Setup required";
 
   return (
-    <section className={styles.panel} aria-labelledby="native-h3-title">
+    <section className={styles.panel} aria-labelledby="native-h3-title" aria-busy={Boolean(working)}>
       <header className={styles.header}>
         <div>
           <p>Local video model</p>
           <h2 id="native-h3-title">MiniMax H3 · Native ComfyUI</h2>
           <span>Runs user-owned H3 weights locally. No MiniMax cloud key, automatic model download, custom-node installer or silent code execution.</span>
         </div>
-        <strong data-ready={status.active && status.ready}>{status.active && status.ready ? "Active" : status.ready ? "Ready" : "Setup required"}</strong>
+        <strong role="status" aria-live="polite" aria-label={`Native H3 status: ${statusLabel}`} data-ready={status.active && status.ready}>{statusLabel}</strong>
       </header>
 
       <div className={styles.grid}>
-        <article className={styles.card}>
-          <h3>Live readiness</h3>
-          <div className={styles.requirements}>
-            {requirements.map((item) => <div key={item.label} data-ready={item.ready}><i aria-hidden="true" /><span>{item.label}</span><b>{item.ready ? "Ready" : "Required"}</b></div>)}
-          </div>
+        <article className={styles.card} aria-labelledby="native-h3-readiness-title">
+          <h3 id="native-h3-readiness-title">Live readiness</h3>
+          <ul className={styles.requirements} aria-label="Native H3 readiness requirements">
+            {requirements.map((item) => <li key={item.label} data-ready={item.ready}><i aria-hidden="true" /><span>{item.label}</span><b>{item.ready ? "Ready" : "Required"}</b></li>)}
+          </ul>
           <dl className={styles.facts}>
             <div><dt>ComfyUI</dt><dd>{status.reachable ? status.version || "Connected" : "Not connected"}</dd></div>
             <div><dt>Workflow</dt><dd>{status.workflowFamily || "Waiting for official manifest"}</dd></div>
             <div><dt>VRAM</dt><dd>{status.vramGiB ? `${status.vramGiB} GB · ${status.vramProfile}` : "Not detected"}</dd></div>
             <div><dt>Last local output</dt><dd>{formatDate(status.verifiedAt)}</dd></div>
           </dl>
-          <p className={styles.warning}>{status.vramWarning}</p>
+          <p className={styles.warning} id="native-h3-warning">{status.vramWarning}</p>
           {status.vramProfile === "constrained" ? (
             <label className={styles.acknowledgement}>
-              <input type="checkbox" checked={performanceAcknowledged} onChange={(event) => setPerformanceAcknowledged(event.target.checked)} />
+              <input type="checkbox" checked={performanceAcknowledged} onChange={(event) => setPerformanceAcknowledged(event.target.checked)} aria-describedby="native-h3-warning" />
               <span><b>8 GB compatibility acknowledgement</b><small>Generation may fail, take a very long time, or require a lower-resolution official workflow. PlotPickle does not promise 2K or 15 seconds locally.</small></span>
             </label>
           ) : null}
-          <div className={styles.actions}>
-            <button type="button" onClick={() => void setActive(!status.active)} disabled={Boolean(working) || (!status.active && !status.ready)}>
+          <div className={styles.actions} role="group" aria-label="Native H3 controls">
+            <button type="button" onClick={() => void setActive(!status.active)} disabled={Boolean(working) || (!status.active && !status.ready)} aria-pressed={status.active} aria-describedby="native-h3-warning">
               {working === "activation" ? "Updating…" : status.active ? "Turn native H3 off" : "Use native H3 for video"}
             </button>
-            <button type="button" onClick={() => void testNative()} disabled={Boolean(working) || !status.active || !status.ready}>
+            <button type="button" onClick={() => void testNative()} disabled={Boolean(working) || !status.active || !status.ready} aria-describedby="native-h3-warning">
               {working === "test" ? "Testing locally…" : "Run local H3 test"}
             </button>
           </div>
-          {job ? <div className={styles.job} data-state={job.status}><b>{job.model}</b><span>{job.status}</span>{job.outputAssetUrl ? <video src={job.outputAssetUrl} controls preload="metadata" /> : null}</div> : null}
+          {job ? <div className={styles.job} data-state={job.status} role="status" aria-live="polite" aria-label={`Native H3 job ${job.status}`}><b>{job.model}</b><span>{job.status}</span>{job.outputAssetUrl ? <video src={job.outputAssetUrl} controls preload="metadata" aria-label="Native H3 generated video preview" /> : null}</div> : null}
         </article>
 
-        <article className={styles.card}>
-          <h3>Official workflow setup</h3>
+        <article className={styles.card} aria-labelledby="native-h3-setup-title">
+          <h3 id="native-h3-setup-title">Official workflow setup</h3>
           <label className={styles.field}>
             <span>Local ComfyUI address</span>
-            <input value={baseUrl} onChange={(event) => setBaseUrl(event.target.value)} spellCheck={false} />
+            <input value={baseUrl} onChange={(event) => setBaseUrl(event.target.value)} spellCheck={false} inputMode="url" autoComplete="url" />
           </label>
           <button type="button" onClick={() => void saveConnection()} disabled={Boolean(working) || !baseUrl.trim()}>
             {working === "connection" ? "Checking…" : "Save and inspect ComfyUI"}
@@ -262,24 +264,29 @@ export default function H3NativePanel() {
           <details>
             <summary>Import official H3 workflow manifest</summary>
             <p>The manifest must cite MiniMax or ComfyUI, declare the minimum compatible ComfyUI version, list expected model files and contain an API-format workflow. Cloud authorization fields and installer or network nodes are rejected.</p>
-            <textarea value={manifestText} onChange={(event) => setManifestText(event.target.value)} rows={10} placeholder='{"schemaVersion":1,"model":"MiniMax-H3","workflowFamily":"text-to-video","officialSource":"https://github.com/MiniMax-AI/...","minimumComfyUIVersion":"0.0.0","requiredModels":[],"workflow":{}}' />
+            <label className={styles.field}>
+              <span>Official workflow manifest JSON</span>
+              <textarea value={manifestText} onChange={(event) => setManifestText(event.target.value)} rows={10} spellCheck={false} placeholder='{"schemaVersion":1,"model":"MiniMax-H3","workflowFamily":"text-to-video","officialSource":"https://github.com/MiniMax-AI/...","minimumComfyUIVersion":"0.0.0","requiredModels":[],"workflow":{}}' />
+            </label>
             <button type="button" onClick={() => void importManifest()} disabled={working === "manifest" || !manifestText.trim()}>
               {working === "manifest" ? "Validating…" : "Validate and save manifest"}
             </button>
           </details>
-          <div className={styles.families} aria-label="Supported MiniMax H3 workflow families">
-            {families.map(([id, label]) => <span key={id} data-available={status.workflowFamily === id}>{label}</span>)}
-          </div>
+          <ul className={styles.families} aria-label="Supported MiniMax H3 workflow families">
+            {families.map(([id, label]) => <li key={id} data-available={status.workflowFamily === id}>{label}</li>)}
+          </ul>
           {status.modelRequirements.length ? (
-            <div className={styles.models}>
-              <h4>Required model files</h4>
-              {status.modelRequirements.map((item) => (
-                <div key={item.id} data-ready={item.ready}>
-                  <span><b>{item.label}</b><small>ComfyUI/models/{item.directory} · {item.found || item.filenames.join(" or ")}</small></span>
-                  <em>{item.ready ? "Found" : "Missing"}</em>
-                </div>
-              ))}
-            </div>
+            <section className={styles.models} aria-labelledby="native-h3-models-title">
+              <h4 id="native-h3-models-title">Required model files</h4>
+              <ul>
+                {status.modelRequirements.map((item) => (
+                  <li key={item.id} data-ready={item.ready}>
+                    <span><b>{item.label}</b><small>ComfyUI/models/{item.directory} · {item.found || item.filenames.join(" or ")}</small></span>
+                    <em>{item.ready ? "Found" : "Missing"}</em>
+                  </li>
+                ))}
+              </ul>
+            </section>
           ) : null}
           <nav className={styles.sources} aria-label="Official native H3 setup sources">
             {status.setup.officialSources.map((source) => <a href={source} target="_blank" rel="noreferrer" key={source}>{new URL(source).hostname}</a>)}
@@ -287,7 +294,7 @@ export default function H3NativePanel() {
         </article>
       </div>
 
-      {notice || status.error || status.lastError ? <p className={styles.notice} role="status">{notice || status.error || status.lastError}</p> : null}
+      {notice || status.error || status.lastError ? <p className={styles.notice} role="status" aria-live="polite">{notice || status.error || status.lastError}</p> : null}
     </section>
   );
 }

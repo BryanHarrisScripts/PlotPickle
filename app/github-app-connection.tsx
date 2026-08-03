@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { nextAvailableRepositoryName, normalizeRepositoryName } from "../lib/story-project-repository";
 import styles from "./github-collaboration.module.css";
 
 export type GitHubAppConnectedRepository = {
@@ -145,12 +146,15 @@ function ownerList(value: unknown): OwnerChoice[] {
 }
 
 function repositorySlug(value: string) {
-  return value
-    .normalize("NFKD")
-    .replace(/[^A-Za-z0-9._-]+/g, "-")
-    .replace(/-{2,}/g, "-")
-    .replace(/^[.-]+|[.-]+$/g, "")
-    .slice(0, 100);
+  return normalizeRepositoryName(value);
+}
+
+function localRepositorySuggestion(value: string, owner: string, repositories: RepositoryChoice[]) {
+  const normalized = repositorySlug(value);
+  if (!normalized) return "";
+  return nextAvailableRepositoryName(normalized, repositories
+    .filter((repository) => repository.owner.toLowerCase() === owner.toLowerCase())
+    .map((repository) => repository.name));
 }
 
 function projectId() {
@@ -192,6 +196,7 @@ export default function GitHubAppConnection({
   const [newTitle, setNewTitle] = useState("");
   const [newName, setNewName] = useState("");
   const [nameEdited, setNameEdited] = useState(false);
+  const [nameSuggestionPending, setNameSuggestionPending] = useState(false);
   const [newPrivate, setNewPrivate] = useState(true);
   const [pendingInitialization, setPendingInitialization] = useState<PendingInitialization | null>(null);
 
@@ -230,6 +235,28 @@ export default function GitHubAppConnection({
     // Initial GitHub App status is intentionally loaded once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (nameEdited || !status.authenticated || !newOwner || !newTitle.trim()) return;
+    const fallback = localRepositorySuggestion(newTitle, newOwner, repositories);
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      setNewName(fallback);
+      setNameSuggestionPending(true);
+      void request("/api/local-github-app/name-suggestion", "POST", { owner: newOwner, name: newTitle })
+        .then((result) => {
+          if (!cancelled && typeof result.name === "string") setNewName(result.name);
+        })
+        .catch(() => {
+          // The local repository list remains a safe fallback when GitHub cannot refresh a suggestion.
+        })
+        .finally(() => { if (!cancelled) setNameSuggestionPending(false); });
+    }, 200);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [nameEdited, newOwner, newTitle, repositories, status.authenticated]);
 
   useEffect(() => {
     if (!device) return;
@@ -364,8 +391,12 @@ export default function GitHubAppConnection({
       });
       await loadChoices();
       await finalizeConnection(result);
+      const repository = repositoryFrom(result.repository);
+      const createdName = repository?.name || String(result.resolvedName || name);
+      setNewName(createdName);
       const creationMode = result.creationMode === "template" ? "the configured PlotPickle template" : "the built-in PlotPickle bootstrap";
-      onMessage(`Created ${newOwner}/${name} using ${creationMode}. The story project is private by default and ready for collaboration.`);
+      const collisionNote = result.collisionAdjusted ? ` ${name} already existed, so PlotPickle used ${createdName}.` : "";
+      onMessage(`Created ${newOwner}/${createdName} using ${creationMode}.${collisionNote} The story project is private by default and ready for collaboration.`);
     } catch (error) {
       onMessage(error instanceof Error ? error.message : "The GitHub story project could not be created.");
     } finally {
@@ -375,7 +406,7 @@ export default function GitHubAppConnection({
 
   function updateTitle(value: string) {
     setNewTitle(value);
-    if (!nameEdited) setNewName(repositorySlug(value));
+    if (!nameEdited) setNewName(localRepositorySuggestion(value, newOwner, repositories));
   }
 
   return (
@@ -461,9 +492,9 @@ export default function GitHubAppConnection({
                 <p>PlotPickle creates a user-owned repository. Repository creation requires the GitHub App’s Administration permission; connecting an existing repository does not.</p>
               </div>
               <div className={styles.creationForm}>
-                <label><span>Project owner</span><select value={newOwner} onChange={(event) => setNewOwner(event.target.value)} disabled={disabled || busy}>{owners.map((owner) => <option key={owner.login} value={owner.login}>{owner.label} · {owner.kind === "organization" ? "Organization" : "Personal account"}</option>)}</select></label>
+                <label><span>Project owner</span><select value={newOwner} onChange={(event) => { setNameEdited(false); setNewOwner(event.target.value); }} disabled={disabled || busy}>{owners.map((owner) => <option key={owner.login} value={owner.login}>{owner.label} · {owner.kind === "organization" ? "Organization" : "Personal account"}</option>)}</select></label>
                 <label><span>Story title</span><input value={newTitle} onChange={(event) => updateTitle(event.target.value)} placeholder="Untitled Story" /></label>
-                <label><span>Repository name</span><input value={newName} spellCheck={false} onChange={(event) => { setNameEdited(true); setNewName(repositorySlug(event.target.value)); }} placeholder="untitled-story" /><small>{newOwner || status.identity?.login}/{newName || "repository-name"}</small></label>
+                <label><span>Repository name</span><input value={newName} spellCheck={false} onChange={(event) => { setNameEdited(true); setNewName(repositorySlug(event.target.value)); }} placeholder="untitled-story" /><small>{newOwner || status.identity?.login}/{newName || "repository-name"}{nameSuggestionPending ? " · checking availability…" : repositorySlug(newTitle) && newName.toLowerCase() !== repositorySlug(newTitle).toLowerCase() ? ` · ${repositorySlug(newTitle)} exists; next available name proposed` : " · available name shown before creation"}</small></label>
                 <label className={styles.privacyChoice}><input type="checkbox" checked={newPrivate} onChange={(event) => setNewPrivate(event.target.checked)} /><span>Keep this story project private</span></label>
               </div>
               <div className={styles.actions}>

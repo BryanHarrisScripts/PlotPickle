@@ -13,7 +13,7 @@ test("issue #120 exposes the complete Settings navigation", async () => {
     source("config/settings-system-taxonomy.json"),
   ]);
   const taxonomy = JSON.parse(taxonomyText);
-  assert.deepEqual(taxonomy.workspace.map((item) => item.label), ["General", "Appearance & Accessibility", "Project Defaults"]);
+  assert.deepEqual(taxonomy.workspace.map((item) => item.label), ["General", "Appearance & Accessibility", "Project Defaults", "Sitemap"]);
   assert.deepEqual(taxonomy.systems.map((system) => system.label), ["Local", "Cloud", "Data", "Deploy", "Repos", "Auth", "Agents", "Open Source"]);
   assert.match(panel, /aria-label="PlotPickle Settings systems"/);
   assert.match(panel, /taxonomy\.systems\.map/);

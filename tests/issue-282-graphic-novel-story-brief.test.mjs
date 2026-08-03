@@ -7,8 +7,8 @@ import ts from "typescript";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-async function briefRuntime() {
-  const text = await source("lib/graphic-novel-story-brief.ts");
+async function compileRuntime(path) {
+  const text = await source(path);
   const compiled = ts.transpileModule(text, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
@@ -22,11 +22,15 @@ async function briefRuntime() {
     },
     Date,
     Math,
+    Number,
     Set,
     Object,
   });
   return runtimeModule.exports;
 }
+
+const briefRuntime = () => compileRuntime("lib/graphic-novel-story-brief.ts");
+const bubbleRuntime = () => compileRuntime("lib/graphic-novel-bubbles.ts");
 
 function fixture() {
   return {
@@ -101,4 +105,81 @@ test("Phase 6 UI saves the brief and refreshes all prompts while preserving comp
   assert.match(queue, /withGraphicNovelStoryBrief/);
   assert.match(queue, /createGraphicNovelPlan\(active, deckRef\.current, true\)/);
   assert.match(queue, /Completed artwork and queue decisions were preserved/);
+});
+
+test("Phase 7 stores clamped per-balloon placement as a versioned PPF extension", async () => {
+  const runtime = await bubbleRuntime();
+  const project = fixture();
+  const original = JSON.stringify(project);
+  const panel = {
+    id: "comic-pitch-01-1",
+    dialogue: [
+      { id: "dialogue-1", characterName: "Ren", text: "Are you still there?" },
+      { id: "dialogue-2", characterName: "Machine", text: "I never left." },
+    ],
+  };
+  const first = runtime.graphicNovelBubblePlacement(project, panel, "dialogue-1", 0);
+  const second = runtime.graphicNovelBubblePlacement(project, panel, "dialogue-2", 1);
+  assert.equal(first.tail, "left");
+  assert.equal(second.tail, "right");
+  const next = runtime.withGraphicNovelBubblePlacement(project, panel.id, "dialogue-1", {
+    x: 200,
+    y: -10,
+    width: 90,
+    style: "caption",
+    tail: "none",
+  });
+  assert.equal(JSON.stringify(project), original);
+  const saved = runtime.graphicNovelBubblePlacement(next, panel, "dialogue-1", 0);
+  assert.equal(saved.width, 72);
+  assert.equal(saved.x, 28);
+  assert.equal(saved.y, 0);
+  assert.equal(saved.style, "caption");
+  assert.equal(saved.tail, "none");
+  assert.equal(next.extensions[runtime.GRAPHIC_NOVEL_BUBBLE_LAYOUT_EXTENSION].version, 1);
+  const reset = runtime.resetGraphicNovelPanelBubbleLayout(next, panel.id);
+  assert.equal(runtime.getGraphicNovelBubbleLayout(reset).panels[panel.id], undefined);
+});
+
+test("Phase 7 provides full-screen keyboard reading and direct drag lettering controls", async () => {
+  const [viewer, workspace, css] = await Promise.all([
+    source("app/graphic-novel-viewer.tsx"),
+    source("app/ai-pitch-deck-workspace.tsx"),
+    source("app/graphic-novel-viewer.module.css"),
+  ]);
+  for (const contract of [
+    "requestFullscreen",
+    "ArrowLeft",
+    "ArrowRight",
+    "ArrowUp",
+    "ArrowDown",
+    "setPointerCapture",
+    "Add balloon",
+    "Hide this balloon without deleting its text",
+    "Reset panel positions",
+    "Full-screen Graphic Novel viewer and bubble editor",
+  ]) assert.ok(viewer.includes(contract), `Missing Phase 7 viewer contract: ${contract}`);
+  assert.match(viewer, /withGraphicNovelBubblePlacement/);
+  assert.match(viewer, /updateComicPitchPanel/);
+  assert.match(viewer, /role="dialog" aria-modal="true"/);
+  assert.match(workspace, /GraphicNovelViewer/);
+  assert.match(workspace, /saved Phase 7 placement carries into HTML and PDF output/);
+  assert.match(css, /\.bubble\[data-style="thought"\]/);
+  assert.match(css, /\.overlay:fullscreen/);
+});
+
+test("Phase 7 HTML and PDF export preserve balloon coordinates, style, tails and editable text", async () => {
+  const exporter = await source("lib/ai-pitch-deck.ts");
+  for (const contract of [
+    "graphicNovelBubblePlacement",
+    "applyGraphicNovelBubbleLayouts",
+    "data-dialogue-id",
+    "data-style",
+    "data-tail",
+    "GRAPHIC_NOVEL_BUBBLE_EXPORT_CSS",
+    "position:absolute",
+  ]) assert.ok(exporter.includes(contract), `Missing Phase 7 export contract: ${contract}`);
+  assert.match(exporter, /placement\.hidden/);
+  assert.match(exporter, /left:\$\{placement\.x\}%/);
+  assert.match(exporter, /width:\$\{placement\.width\}%/);
 });

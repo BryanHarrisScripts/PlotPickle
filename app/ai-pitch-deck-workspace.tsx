@@ -9,6 +9,7 @@ import type { PublicConnectionStatus } from "@/lib/connection-status";
 import AiPitchDeckWorkspaceBase from "./ai-pitch-deck-workspace-base";
 import RefreshAction from "./refresh-action";
 import GraphicNovelStoryBriefEditor from "./graphic-novel-story-brief";
+import GraphicNovelViewer from "./graphic-novel-viewer";
 import { useCastIdentityQueue } from "./use-cast-identity-queue";
 import { useGraphicNovelQueue } from "./use-graphic-novel-queue";
 import castStyles from "./cast-identity-queue.module.css";
@@ -185,12 +186,18 @@ export default function AiPitchDeckWorkspace(props: Props) {
         </section>
       ) : null}
 
+      <GraphicNovelViewer
+        project={props.project}
+        working={queue.working || cast.working}
+        onProjectChange={props.onProjectChange}
+      />
+
       <div className={styles.legacyEditor}>
         <AiPitchDeckWorkspaceBase {...props} aiStatus={editorAiStatus} />
       </div>
 
       <section className={styles.exports} aria-labelledby="graphic-novel-export-title">
-        <div><span>Export</span><h2 id="graphic-novel-export-title">Carry the Graphic Novel into the room</h2><p>Completed images are embedded into one portable HTML file. Dialogue balloons remain real text, and the same layout prints as a landscape PDF.</p>{exportMessage ? <small>{exportMessage}</small> : null}</div>
+        <div><span>Export</span><h2 id="graphic-novel-export-title">Carry the Graphic Novel into the room</h2><p>Completed images are embedded into one portable HTML file. Dialogue balloons remain real text, and saved Phase 7 placement carries into HTML and PDF output.</p>{exportMessage ? <small>{exportMessage}</small> : null}</div>
         <div><button type="button" disabled={!queue.counts.completed || queue.working || cast.working} onClick={() => void exportGraphicNovel(false)}>Download self-contained HTML</button><button type="button" disabled={!queue.counts.completed || queue.working || cast.working} onClick={() => void exportGraphicNovel(true)}>Print / Save as PDF</button></div>
       </section>
     </section>

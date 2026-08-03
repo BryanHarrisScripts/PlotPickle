@@ -1,0 +1,101 @@
+name: UI/UX Code Audit
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ui-ux-code-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ui-ux-ai-audit:
+    name: Audit UI/UX against Design Rules
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Find changed UI files
+        id: changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base="${{ github.event.pull_request.base.sha }}"
+            head="${{ github.event.pull_request.head.sha }}"
+          else
+            git fetch origin main --no-tags
+            base="$(git merge-base HEAD origin/main)"
+            head="HEAD"
+          fi
+
+          files="$(git diff --name-only --diff-filter=ACMRT "$base" "$head" | grep -E '\.(html|css|scss|jsx|tsx|vue)$' || true)"
+          {
+            echo 'files<<PLOTPICKLE_UI_FILES'
+            printf '%s\n' "$files"
+            echo 'PLOTPICKLE_UI_FILES'
+            if [[ -n "$files" ]]; then echo 'has_ui=true'; else echo 'has_ui=false'; fi
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22.19.0"
+
+      - name: Run UI/UX audit
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_UI_AUDIT_MODEL: ${{ vars.OPENAI_UI_AUDIT_MODEL || 'gpt-4o' }}
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
+        run: node scripts/ui-ux-code-audit.mjs
+
+      - name: Publish audit summary
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f audit-report.md ]]; then cat audit-report.md >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Update pull request audit comment
+        if: always() && github.event_name == 'pull_request' && steps.changed.outputs.has_ui == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -f audit-report.md ]] || exit 0
+          marker='<!-- plotpickle-ui-ux-audit -->'
+          comment_id="$(gh api "repos/$REPOSITORY/issues/$PR_NUMBER/comments" --paginate --jq ".[] | select(.body | contains(\"$marker\")) | .id" | head -n 1 || true)"
+          if [[ -n "$comment_id" ]]; then
+            gh api --method PATCH "repos/$REPOSITORY/issues/comments/$comment_id" -F body=@audit-report.md >/dev/null
+          else
+            gh api --method POST "repos/$REPOSITORY/issues/$PR_NUMBER/comments" -F body=@audit-report.md >/dev/null
+          fi
+
+      - name: Enforce UI/UX audit gate
+        if: always()
+        shell: bash
+        run: |
+          node -e '
+            const fs = require("node:fs");
+            if (!fs.existsSync("audit-result.json")) {
+              console.error("UI/UX audit result is missing.");
+              process.exit(1);
+            }
+            const result = JSON.parse(fs.readFileSync("audit-result.json", "utf8"));
+            if (result.verdict !== "pass" || Number(result.issueCount) !== 0) {
+              console.error(`UI/UX audit blocked the merge with ${result.issueCount ?? "unknown"} issue(s): ${result.summary || "No summary"}`);
+              process.exit(1);
+            }
+            console.log(result.skipped ? "No UI files changed; required gate passed." : "UI/UX audit passed with no issues.");
+          '

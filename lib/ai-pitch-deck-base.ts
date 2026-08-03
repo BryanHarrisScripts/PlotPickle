@@ -20,6 +20,7 @@ import {
   resolveProjectAssetSource,
 } from "./project-assets";
 import type { MiniBlock, StoryScene } from "./structure";
+import { getGraphicNovelStoryBrief, graphicNovelStoryBriefPrompt } from "./graphic-novel-story-brief";
 
 export const COMIC_PITCH_PAGE_COUNT = 24;
 export const COMIC_PITCH_PANELS_PER_PAGE = 4;
@@ -165,6 +166,28 @@ function locationIdsFor(block: StoryBlock | undefined, scene: StoryScene | undef
   return unique([...(scene?.locationIds ?? []), ...(block?.locationIds ?? [])]);
 }
 
+function panelStoryContext(block: StoryBlock | undefined, scene: StoryScene | undefined, mini: MiniBlock | undefined) {
+  const purpose = [mini?.function, mini?.purpose, scene?.purpose, block?.purpose].map((value) => clip(value, 700)).find(Boolean);
+  const emotionalMovement = [
+    mini?.entryState && `Entry state: ${clip(mini.entryState, 360)}`,
+    mini?.exitState && `Exit state: ${clip(mini.exitState, 360)}`,
+    block?.emotionalTurn && `Block emotional turn: ${clip(block.emotionalTurn, 500)}`,
+  ].filter(Boolean).join(". ");
+  const objectivePressure = [
+    mini?.objective || scene?.objective || block?.goal,
+    mini?.resistance || scene?.opposition || scene?.conflict || block?.conflict,
+  ].map((value) => clip(value, 500)).filter(Boolean).join(" versus ");
+  const visibleTurn = [mini?.turn, mini?.revelation, scene?.reversal, scene?.turn, block?.consequence].map((value) => clip(value, 600)).find(Boolean);
+  const audienceShift = [block?.audienceExpectation, block?.pickleTurn].map((value) => clip(value, 500)).filter(Boolean).join(". ");
+  return [
+    purpose && `Panel dramatic purpose: ${purpose}.`,
+    emotionalMovement && `Emotional movement: ${emotionalMovement}.`,
+    objectivePressure && `Objective under pressure: ${objectivePressure}.`,
+    visibleTurn && `Visible turn or revelation: ${visibleTurn}.`,
+    audienceShift && `Audience expectation shift: ${audienceShift}.`,
+  ].filter(Boolean).join(" ");
+}
+
 function identityPromptFor(project: PlotPickleProject, characterIds: string[]) {
   return characterIds.slice(0, 4).flatMap((characterId) => {
     const character = project.characters.find((item) => item.id === characterId) as CharacterWithVisualIdentity | undefined;
@@ -183,6 +206,9 @@ function identityPromptFor(project: PlotPickleProject, characterIds: string[]) {
 function promptFor(
   project: PlotPickleProject,
   panel: Pick<ComicPitchPanel, "pageNumber" | "panelNumber" | "narration" | "characterIds" | "locationIds" | "shotDirection">,
+  block: StoryBlock | undefined,
+  scene: StoryScene | undefined,
+  mini: MiniBlock | undefined,
 ) {
   const characterNames = panel.characterIds.map((id) => project.characters.find((item) => item.id === id)?.name).filter(Boolean).join(", ");
   const locations = panel.locationIds.map((id) => project.world.locations.find((item) => item.id === id)).filter(Boolean);
@@ -190,6 +216,8 @@ function promptFor(
   return [
     STYLE_PROMPT,
     `Comic page ${panel.pageNumber}, panel ${panel.panelNumber}.`,
+    graphicNovelStoryBriefPrompt(getGraphicNovelStoryBrief(project)),
+    panelStoryContext(block, scene, mini),
     project.metadata.tone && `Story tone: ${clip(project.metadata.tone, 240)}.`,
     project.world.period && `Period: ${clip(project.world.period, 180)}.`,
     project.world.visualLanguage && `Project visual language: ${clip(project.world.visualLanguage, 900)}.`,
@@ -233,7 +261,7 @@ function createPanel(
   const keepGenerated = Boolean(retainedSource && existing?.status === "complete");
   return {
     ...panelBase,
-    prompt: promptFor(project, panelBase),
+    prompt: promptFor(project, panelBase, block, scene, mini),
     imageSrc: keepGenerated ? retainedSource : "",
     assetRef: keepGenerated ? existing?.assetRef : undefined,
     revisedPrompt: keepGenerated ? existing?.revisedPrompt ?? "" : "",

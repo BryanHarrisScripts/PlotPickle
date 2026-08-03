@@ -33,6 +33,12 @@ import {
   type PlotPickleProject,
 } from "@/lib/project";
 import type { PublicConnectionStatus } from "@/lib/connection-status";
+import {
+  deriveGraphicNovelStoryBrief,
+  getGraphicNovelStoryBrief,
+  withGraphicNovelStoryBrief,
+  type GraphicNovelStoryBrief,
+} from "@/lib/graphic-novel-story-brief";
 
 type ImageGenerationResponse = {
   assetUrl?: string;
@@ -76,6 +82,7 @@ export function useGraphicNovelQueue({ project, aiStatus, imageModel, onProjectC
 
   const aiReady = aiStatus.state === "connected" && Boolean(imageModel);
   const preflight = useMemo(() => comicPitchDeckPreflight(project, deck), [project, deck]);
+  const brief = useMemo(() => getGraphicNovelStoryBrief(project), [project]);
   const counts = queueCounts(queue);
   const currentItem = currentQueueItem(queue);
   const currentPanel = queuePanel(deck, currentItem);
@@ -313,8 +320,24 @@ export function useGraphicNovelQueue({ project, aiStatus, imageModel, onProjectC
       : "The Graphic Novel was rebuilt. All 96 panels are ready for a new queue.");
   }
 
+  function applyStoryBrief(nextBrief: GraphicNovelStoryBrief) {
+    if (working) return;
+    const active = withGraphicNovelStoryBrief(projectRef.current, nextBrief);
+    projectRef.current = active;
+    const nextDeck = createGraphicNovelPlan(active, deckRef.current, true);
+    deckRef.current = nextDeck;
+    setDeck(nextDeck);
+    onChangeRef.current(withComicPitchDeck(active, nextDeck));
+    saveQueue(buildGraphicNovelQueue(active.id, nextDeck, queueRef.current ?? undefined, quality, active.assets));
+    setMessage("The Story Brief was saved and all 96 prompts were refreshed. Completed artwork and queue decisions were preserved.");
+  }
+
+  function resetStoryBrief() {
+    applyStoryBrief(deriveGraphicNovelStoryBrief(projectRef.current));
+  }
+
   return {
-    deck, queue, quality, setQuality, acknowledged, setAcknowledged, working, message, aiReady, preflight,
-    counts, currentItem, currentPanel, progress, start, stop, retry, skip, refresh,
+    deck, queue, quality, setQuality, acknowledged, setAcknowledged, working, message, aiReady, preflight, brief,
+    counts, currentItem, currentPanel, progress, start, stop, retry, skip, refresh, applyStoryBrief, resetStoryBrief,
   };
 }

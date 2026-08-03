@@ -8,6 +8,7 @@ import type { PlotPickleProject } from "@/lib/project";
 import type { PublicConnectionStatus } from "@/lib/connection-status";
 import AiPitchDeckWorkspaceBase from "./ai-pitch-deck-workspace-base";
 import RefreshAction from "./refresh-action";
+import GraphicNovelStoryBriefEditor from "./graphic-novel-story-brief";
 import { useCastIdentityQueue } from "./use-cast-identity-queue";
 import { useGraphicNovelQueue } from "./use-graphic-novel-queue";
 import castStyles from "./cast-identity-queue.module.css";
@@ -93,6 +94,13 @@ export default function AiPitchDeckWorkspace(props: Props) {
       </header>
 
       <div className={styles.progress} aria-label={`${queue.progress}% of Graphic Novel queue completed`}><i style={{ width: `${queue.progress}%` }} /></div>
+
+      <GraphicNovelStoryBriefEditor
+        brief={queue.brief}
+        working={queue.working || cast.working}
+        onSave={queue.applyStoryBrief}
+        onReset={queue.resetStoryBrief}
+      />
 
       <section className={styles.controlPanel} aria-labelledby="graphic-novel-preflight">
         <div className={styles.heading}>

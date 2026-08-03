@@ -1,0 +1,36 @@
+name: Apply issue 298 Settings sitemap
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  apply-sitemap:
+    if: github.head_ref == 'agent/298-settings-sitemap'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+      - name: Apply verified Settings integration
+        run: node scripts/apply-298-settings-sitemap.mjs
+      - name: Validate focused contracts
+        run: node --test tests/settings-system-taxonomy.test.mjs tests/issue-120-settings-connections.test.mjs tests/proposed-primary-menu.test.mjs tests/issue-298-settings-sitemap.test.mjs
+      - name: Remove one-use staging files
+        run: rm scripts/apply-298-settings-sitemap.mjs .github/workflows/apply-298-settings-sitemap.yml
+      - name: Commit clean product change
+        run: |
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/settings-panel.tsx scripts/apply-298-settings-sitemap.mjs .github/workflows/apply-298-settings-sitemap.yml
+          git commit -m "Integrate Sitemap into Settings"
+          git push origin HEAD:${{ github.head_ref }}

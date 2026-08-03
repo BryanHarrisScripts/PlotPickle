@@ -12,6 +12,7 @@ const requiredChecks = [
   "Package windows",
   "Package macos",
   "Package linux",
+  "Full history audit",
 ];
 
 test("public repository settings preserve the established green gates", async () => {
@@ -34,6 +35,18 @@ test("security automation stays safe while private and activates when public", a
   assert.match(workflow, /github\/codeql-action\/analyze@9e0d7b8d25671d64c341c19c0152d693099fb5ba/);
   assert.match(workflow, /actions\/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294/);
   assert.match(workflow, /fail-on-severity: high/);
+});
+
+test("full history audit uses a complete clone and never prints secret values", async () => {
+  const workflow = await text(".github/workflows/public-history-readiness.yml");
+  const audit = await text("scripts/public-history-readiness.mjs");
+  assert.match(workflow, /name: Full history audit/);
+  assert.match(workflow, /fetch-depth: 0/);
+  assert.match(workflow, /node scripts\/public-history-readiness\.mjs/);
+  assert.match(audit, /--is-shallow-repository/);
+  assert.match(audit, /No secret values are printed/);
+  assert.match(audit, /Buzz invitation token/);
+  assert.doesNotMatch(audit, /console\.error\(`[^`]*\$\{text\}/);
 });
 
 test("administrator scripts default to dry-run and require an explicit publication switch", async () => {

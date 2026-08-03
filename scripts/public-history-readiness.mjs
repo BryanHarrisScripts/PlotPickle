@@ -1,8 +1,13 @@
 import { spawn } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { createInterface } from "node:readline";
 
 const findings = new Map();
 const MAX_FINDINGS = 50;
+const exceptionConfig = JSON.parse(readFileSync(new URL("../config/public-history-exceptions.json", import.meta.url), "utf8"));
+const approvedOccurrences = [];
+const pendingOccurrences = [];
+const exceptionProblems = [];
 
 const forbiddenNames = [
   /(^|\/)\.env(?:\.|$)/i,
@@ -29,12 +34,60 @@ const ignoredContentPaths = [
   /\.(?:png|jpe?g|gif|webp|ico|pdf|zip|7z|tar|gz|woff2?|ttf|otf|mp3|mp4|mov|wav)$/i,
 ];
 
+for (const exception of exceptionConfig.exceptions || []) {
+  if (!exception.id || !exception.kind || !Array.isArray(exception.occurrences) || !exception.occurrences.length) {
+    exceptionProblems.push("Every history exception needs an id, kind and at least one occurrence.");
+    continue;
+  }
+  if (!["pending-revocation", "revoked"].includes(exception.status)) {
+    exceptionProblems.push(`History exception ${exception.id} has an unsupported status.`);
+    continue;
+  }
+  if (exception.status === "revoked" && !Number.isFinite(Date.parse(exception.revoked_at || ""))) {
+    exceptionProblems.push(`History exception ${exception.id} must record a valid revoked_at timestamp before approval.`);
+  }
+  if (exception.status === "pending-revocation" && exception.revoked_at) {
+    exceptionProblems.push(`Pending history exception ${exception.id} must not claim a revoked_at timestamp.`);
+  }
+  for (const occurrence of exception.occurrences) {
+    if (!/^[0-9a-f]{12,40}$/i.test(occurrence.commit || "") || !occurrence.path || /[*?]/.test(occurrence.path)) {
+      exceptionProblems.push(`History exception ${exception.id} contains an invalid or broad occurrence.`);
+      continue;
+    }
+    const normalized = {
+      id: exception.id,
+      kind: exception.kind,
+      commit: occurrence.commit.toLowerCase(),
+      path: occurrence.path,
+    };
+    (exception.status === "revoked" ? approvedOccurrences : pendingOccurrences).push(normalized);
+  }
+}
+
+if (exceptionProblems.length) {
+  console.error("Public history exception configuration is invalid:");
+  for (const problem of exceptionProblems) console.error(`- ${problem}`);
+  process.exit(1);
+}
+
+function matchingOccurrence(list, label, commit, path) {
+  const normalizedCommit = (commit || "").toLowerCase();
+  return list.find((item) => item.kind === label && normalizedCommit.startsWith(item.commit) && item.path === path);
+}
+
+let approvedCount = 0;
+
 function record(label, commit, path) {
+  if (matchingOccurrence(approvedOccurrences, label, commit, path)) {
+    approvedCount += 1;
+    return;
+  }
   if (findings.size >= MAX_FINDINGS) return;
   const safeCommit = commit ? commit.slice(0, 12) : "unknown";
   const safePath = path || "unknown path";
+  const pending = matchingOccurrence(pendingOccurrences, label, commit, safePath);
   const key = `${label}|${safeCommit}|${safePath}`;
-  findings.set(key, { label, commit: safeCommit, path: safePath });
+  findings.set(key, { label, commit: safeCommit, path: safePath, pendingId: pending?.id || "" });
 }
 
 async function gitLines(args, onLine) {
@@ -90,11 +143,13 @@ await gitLines(["log", "--all", "--no-ext-diff", "--no-renames", "--unified=0", 
 if (findings.size) {
   console.error("Public history audit failed. Potential private material exists in Git history:");
   for (const finding of findings.values()) {
-    console.error(`- ${finding.label} at ${finding.commit} in ${finding.path}`);
+    const pending = finding.pendingId ? ` — exception ${finding.pendingId} is awaiting confirmed revocation` : "";
+    console.error(`- ${finding.label} at ${finding.commit} in ${finding.path}${pending}`);
   }
   if (findings.size >= MAX_FINDINGS) console.error(`- Output stopped after ${MAX_FINDINGS} findings.`);
-  console.error("No secret values are printed. Rotate any exposed credential before rewriting history or recording a narrowly scoped revoked-token exception.");
+  console.error("No secret values are printed. Rotate any exposed credential before rewriting history or approving a narrowly scoped revoked-token exception.");
   process.exit(1);
 }
 
-console.log("Public history audit passed: no recognizable secrets or private filenames were found in reachable Git history.");
+if (approvedCount) console.log(`Approved ${approvedCount} exact occurrences belonging to confirmed revoked credentials.`);
+console.log("Public history audit passed: no unapproved recognizable secrets or private filenames were found in reachable Git history.");

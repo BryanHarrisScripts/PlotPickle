@@ -20,6 +20,10 @@ Align the PlotPickle splash page and repository README with the capabilities mer
 
 PlotPickle does not claim that every computer can run every model, does not bundle third-party accounts or model weights, does not silently install custom nodes, and does not trigger automatic paid-cloud fallback. Native MiniMax H3 remains fail-closed until the official workflow and local prerequisites are verified.
 
-## Validation
+## Focused validation
 
-The focused issue-301 contract, existing splash contracts, PlotPickle Quality, Phase 1, UI/UX Code Audit, credential/public-readiness gates, Repomix and the complete Windows/macOS/Linux Release Candidate matrix must pass before merge.
+The new issue-301 contract and the existing issue-169 splash and issue-212 Buzz marketing-alignment suites pass together: 16 tests, 16 passed.
+
+## Final validation
+
+PlotPickle Quality, Phase 1, UI/UX Code Audit, credential/public-readiness gates, Repomix and the complete Windows/macOS/Linux Release Candidate matrix must pass before merge.

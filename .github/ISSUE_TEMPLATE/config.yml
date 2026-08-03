@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/BryanHarrisScripts/PlotPickle/security/advisories/new
+    about: Do not publish credentials, private story material, or vulnerability details in a public issue.
+  - name: PlotPickle discussions
+    url: https://github.com/BryanHarrisScripts/PlotPickle/discussions
+    about: Ask usage questions and share non-sensitive ideas after Discussions is enabled.

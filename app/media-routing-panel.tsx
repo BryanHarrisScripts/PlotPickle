@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { requestConnectionStatusRefresh } from "./use-connection-status";
 import styles from "./media-routing-panel.module.css";
 
 type ImageRoute = "comfyui" | "openai" | "minimax" | "manual";
@@ -21,6 +22,7 @@ type MediaStatus = {
   profiles: { openai: PublicProfile; minimax: PublicProfile };
   comfyui: {
     reachable: boolean;
+    baseUrl: string;
     version: string;
     checkpoints: string[];
     imageNodesReady: boolean;
@@ -99,12 +101,20 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
   const [paidImageConsent, setPaidImageConsent] = useState(false);
   const [paidVideoConsent, setPaidVideoConsent] = useState(false);
   const [workflowText, setWorkflowText] = useState("");
+  const [comfyBaseUrl, setComfyBaseUrl] = useState("http://127.0.0.1:8188");
   const [imageResult, setImageResult] = useState<ImageTestResult | null>(null);
   const [videoJob, setVideoJob] = useState<VideoJob | null>(null);
 
+  function refreshDashboardLights() {
+    requestConnectionStatusRefresh();
+    window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
+  }
+
   async function refresh() {
     try {
-      setStatus(await jsonRequest<MediaStatus>(`${API}/status`));
+      const next = await jsonRequest<MediaStatus>(`${API}/status`);
+      setStatus(next);
+      setComfyBaseUrl(next.comfyui.baseUrl || "http://127.0.0.1:8188");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Media routing status could not be checked.");
     }
@@ -139,12 +149,32 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
     }
   }
 
+  async function testComfyConnection() {
+    setWorking("comfy-connection");
+    setNotice("");
+    try {
+      const next = await jsonRequest<MediaStatus>(`${API}/comfyui/connection`, "POST", { baseUrl: comfyBaseUrl });
+      setStatus(next);
+      setComfyBaseUrl(next.comfyui.baseUrl);
+      setNotice(next.comfyui.reachable
+        ? `ComfyUI ${next.comfyui.version || "service"} responded. ${next.comfyui.checkpoints.length} checkpoint${next.comfyui.checkpoints.length === 1 ? "" : "s"} detected.`
+        : next.comfyui.error || "ComfyUI did not respond.");
+      refreshDashboardLights();
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "ComfyUI could not be checked.");
+      refreshDashboardLights();
+    } finally {
+      setWorking("");
+    }
+  }
+
   async function chooseCheckpoint(checkpoint: string) {
     setWorking("checkpoint");
     setNotice("");
     try {
       setStatus(await jsonRequest<MediaStatus>(`${API}/comfyui/checkpoint`, "POST", { checkpoint }));
       setImageResult(null);
+      refreshDashboardLights();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The checkpoint could not be selected.");
     } finally {
@@ -168,9 +198,11 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
       setImageResult(result);
       setNotice(`${imageOptions.find((item) => item.id === route)?.label} returned a real image to PlotPickle.`);
       await refresh();
+      refreshDashboardLights();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The image test failed.");
       await refresh();
+      refreshDashboardLights();
     } finally {
       setWorking("");
     }
@@ -274,8 +306,25 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
           <label className={styles.consent}><input type="checkbox" checked={paidImageConsent} onChange={(event) => setPaidImageConsent(event.target.checked)} /><span><b>Cloud image test approval</b><small>Allow one low-quality paid test through the selected OpenAI or MiniMax account.</small></span></label>
           <div className={styles.actions}>
             <button type="button" onClick={() => onManage("Cloud images & video")}>Configure OpenAI or MiniMax</button>
-            <button type="button" onClick={() => onManage("Local image generation · ComfyUI")}>Configure ComfyUI</button>
           </div>
+          <section id="plotpickle-comfyui-connection" className={styles.comfyConnection} aria-label="ComfyUI connection setup">
+            <header>
+              <span>Local ComfyUI connection</span>
+              <strong data-state={status.comfyui.reachable && status.comfyui.imageNodesReady && status.comfyui.checkpoint ? "ready" : "attention"}>
+                {status.comfyui.reachable ? status.comfyui.checkpoint ? "Connected" : "Checkpoint needed" : "Not connected"}
+              </strong>
+            </header>
+            <label>
+              <span>ComfyUI server address</span>
+              <input value={comfyBaseUrl} onChange={(event) => setComfyBaseUrl(event.target.value)} placeholder="http://127.0.0.1:8188" spellCheck={false} />
+            </label>
+            <button type="button" onClick={() => void testComfyConnection()} disabled={Boolean(working) || !comfyBaseUrl.trim()}>
+              {working === "comfy-connection" ? "Testing ComfyUI…" : "Save & test ComfyUI connection"}
+            </button>
+            <small>{status.comfyui.reachable
+              ? `${status.comfyui.version ? `Version ${status.comfyui.version} · ` : ""}${status.comfyui.imageNodesReady ? "required image nodes found" : `missing nodes: ${status.comfyui.missingImageNodes.join(", ")}`}`
+              : status.comfyui.error || "Start ComfyUI, then run this live connection test."}</small>
+          </section>
           {status.comfyui.checkpoints.length ? (
             <label className={styles.checkpoint}><span>ComfyUI checkpoint</span><select value={status.comfyui.checkpoint} onChange={(event) => void chooseCheckpoint(event.target.value)} disabled={Boolean(working)}>{status.comfyui.checkpoints.map((name) => <option value={name} key={name}>{name}</option>)}</select></label>
           ) : <p className={styles.warning}>ComfyUI is {status.comfyui.reachable ? "running, but no checkpoint is available" : "not responding on 127.0.0.1:8188"}.</p>}

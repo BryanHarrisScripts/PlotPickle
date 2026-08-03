@@ -759,6 +759,23 @@ async function saveConnection(body: Record<string, unknown>) {
   return publicConnection(connection);
 }
 
+async function verifyBuzzIdentity(connection: BuzzConnection) {
+  const failures: string[] = [];
+  try {
+    const result = await runBuzz(connection, ["users", "get"]);
+    return { result, command: "users get" };
+  } catch (error) {
+    failures.push(safeError(error));
+  }
+  try {
+    const result = await runBuzz(connection, ["channels", "list"]);
+    return { result, command: "channels list" };
+  } catch (error) {
+    failures.push(safeError(error));
+  }
+  throw new Error(failures.filter(Boolean).join(" · ") || "Buzz rejected the signed identity check.");
+}
+
 async function testConnection() {
   const connection = await readConnection();
   if (!connection) throw new Error("Save a Buzz connection before testing it.");
@@ -774,11 +791,14 @@ async function testConnection() {
     message = "The community is reachable. Reveal your private key in Buzz Desktop under Settings > Profile > Identity, then authorize PlotPickle.";
   } else {
     try {
-      await runBuzz(connection, ["users", "get"]);
+      const identity = await verifyBuzzIdentity(connection);
       verified = true;
-      message = "Buzz community, Desktop CLI and identity verified. PlotPickle Story Rooms are ready.";
+      message = `Buzz community, Desktop CLI and identity verified through ${identity.command}. PlotPickle Story Rooms are ready.`;
     } catch (error) {
-      message = `Buzz rejected this identity or it is not a member of the community. ${safeError(error)}`;
+      const detail = safeError(error);
+      message = /auth-required|verification failed|NIP-OA/i.test(detail)
+        ? "Buzz recognized the signed identity but this closed community requires its membership authorization. Open the same community in Buzz Desktop, confirm this identity is a member, then test again."
+        : `Buzz rejected this identity or it is not a member of the community. ${detail}`;
     }
   }
   if (verified) {

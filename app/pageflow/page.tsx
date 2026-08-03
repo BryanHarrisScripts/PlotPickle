@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import RefineReturnNav from "../refine-return-nav";
 import { useEffect, useMemo, useState } from "react";
 import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/project";
 import { scanPageFlowDraft } from "@/lib/pageflow";
@@ -64,6 +65,7 @@ export default function PageFlowPage() {
 
   return (
     <main className={styles.page}>
+      <RefineReturnNav />
       <div className={styles.shell}>
         <header className={styles.header}>
           <div>

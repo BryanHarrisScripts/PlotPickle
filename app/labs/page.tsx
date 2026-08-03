@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import RefineReturnNav from "../refine-return-nav";
 import { useEffect, useState } from "react";
 import SpecialistLabs, { type LabScope } from "../specialist-labs";
 import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/project";
@@ -48,6 +49,7 @@ export default function SpecialistLabsPage() {
 
   return (
     <main style={{ minHeight: "100vh", background: "#f7fbfa", padding: "24px" }}>
+      <RefineReturnNav />
       <div style={{ maxWidth: 1580, margin: "0 auto", display: "grid", gap: 18 }}>
         <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
           <Link href={`/?workspace=${returnWorkspace}`} style={{ color: "#163331", fontWeight: 800 }}>Back to {returnWorkspace[0].toUpperCase() + returnWorkspace.slice(1)}</Link>

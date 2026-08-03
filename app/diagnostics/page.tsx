@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import RefineReturnNav from "../refine-return-nav";
 import { useEffect, useState } from "react";
 import CraftDiagnosticsWorkspace from "../craft-diagnostics";
 import { createBlankProject, normalizePlotPickleProject, type PlotPickleProject } from "@/lib/project";
@@ -35,9 +36,10 @@ export default function DiagnosticCraftPage() {
 
   return (
     <main style={{ minHeight: "100vh", background: "#f7fbfa", padding: "24px" }}>
+      <RefineReturnNav />
       <div style={{ maxWidth: 1500, margin: "0 auto", display: "grid", gap: 18 }}>
         <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-          <Link href="/" style={{ color: "#163331", fontWeight: 800 }}>Back to PlotPickle</Link>
+          <Link href="/?workspace=refine" style={{ color: "#163331", fontWeight: 800 }}>Back to Refine</Link>
           <div style={{ display: "flex", gap: 12 }}><Link href="/structure">Structure</Link><Link href="/draftlens">DraftLens</Link></div>
         </nav>
         <CraftDiagnosticsWorkspace project={project} />

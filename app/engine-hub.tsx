@@ -17,7 +17,7 @@ const refineSections: RefineSection[] = [
   {
     code: "DQ",
     title: "Overview & Diagnostic Queue",
-    href: "/diagnostics",
+    href: "/diagnostics?return=refine",
     stage: "Choose the next pass",
     question: "Which evidence-backed problem should be diagnosed next?",
     summary: "Collect unresolved structural, story, character, dialogue, page and draft signals without opening another canonical editor.",

@@ -45,6 +45,11 @@ export default function BuzzSettingsPanel() {
   const [busy, setBusy] = useState("");
   const [notice, setNotice] = useState("");
 
+  function refreshDashboardLights() {
+    window.dispatchEvent(new CustomEvent("plotpickle:connection-status-refresh"));
+    window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
+  }
+
   function applyStatus(body: BuzzStatus) {
     setStatus(body);
     setForm((current) => ({
@@ -83,8 +88,11 @@ export default function BuzzSettingsPanel() {
     try {
       const result = await operation();
       await refresh();
+      refreshDashboardLights();
       setNotice(result.message || "Buzz operation completed.");
     } catch (error) {
+      await refresh().catch(() => undefined);
+      refreshDashboardLights();
       setNotice(error instanceof Error ? error.message : "Buzz operation failed.");
     } finally { setBusy(""); }
   }
@@ -96,9 +104,11 @@ export default function BuzzSettingsPanel() {
       await request("/connection", { method: "PUT", body: JSON.stringify(form) });
       const result = await request<{ message?: string }>("/test", { method: "POST" });
       await refresh();
+      refreshDashboardLights();
       setNotice(result.message || "Buzz was saved securely and connected successfully.");
     } catch (error) {
       await refresh().catch(() => undefined);
+      refreshDashboardLights();
       setNotice(error instanceof Error ? error.message : "Buzz could not be saved and tested.");
     } finally { setBusy(""); }
   }

@@ -61,6 +61,16 @@ export default function ConfigurationDashboardHost() {
 
   function openSettings(target: string) {
     if (!setupRoot) return;
+    if (/comfyui/i.test(target)) {
+      setDetailsOpen(true);
+      setupRoot.classList.add("configuration-details-open");
+      window.requestAnimationFrame(() => {
+        const panel = document.querySelector<HTMLElement>("#plotpickle-comfyui-connection");
+        panel?.scrollIntoView({ behavior: "smooth", block: "center" });
+        panel?.querySelector<HTMLInputElement>("input")?.focus();
+      });
+      return;
+    }
     const button = findSetupButton(setupRoot, target)
       || Array.from(setupRoot.querySelectorAll("button")).find((item) => /configure in plotpickle/i.test(item.textContent || "")) as HTMLButtonElement | undefined;
     button?.click();

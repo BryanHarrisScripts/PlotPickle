@@ -30,6 +30,7 @@ import type { ImageGenerationInput, VideoGenerationInput } from "./media-provide
 const API = "/api/media-routing";
 const STATUS_PATH = `${API}/status`;
 const ROUTES_PATH = `${API}/routes`;
+const COMFYUI_CONNECTION_PATH = `${API}/comfyui/connection`;
 const CHECKPOINT_PATH = `${API}/comfyui/checkpoint`;
 const WORKFLOW_PATH = `${API}/comfyui/h3-workflow`;
 const TEST_IMAGE_PATH = `${API}/test/image`;
@@ -76,6 +77,18 @@ async function readBody(request: IncomingMessage, maximum = 512 * 1024): Promise
   const body: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
   if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("Enter a valid media-routing request.");
   return body as Record<string, unknown>;
+}
+
+function normalizeComfyUIBaseUrl(value: unknown) {
+  const source = typeof value === "string" ? value.trim() : "";
+  const url = new URL(source || "http://127.0.0.1:8188");
+  if (url.protocol !== "http:" || !["127.0.0.1", "localhost"].includes(url.hostname) || url.port !== "8188") {
+    throw new Error("ComfyUI must use the local address http://127.0.0.1:8188.");
+  }
+  if (url.username || url.password || (url.pathname && url.pathname !== "/")) {
+    throw new Error("Enter only the local ComfyUI server address, without credentials or a path.");
+  }
+  return "http://127.0.0.1:8188";
 }
 
 function providerForImageRoute(route: ImageRoute) {
@@ -241,6 +254,19 @@ async function handleApi(request: IncomingMessage, response: ServerResponse, pat
           if (!status.hybridGate.ready) throw new Error("Complete every ComfyUI H3 prerequisite and successful paid test before enabling the hybrid route.");
         }
         store.videoRoute = route;
+      }
+      await writeMediaRoutingStore(store);
+      sendJson(response, 200, await mediaStatus(store));
+      return;
+    }
+    if (pathname === COMFYUI_CONNECTION_PATH && request.method === "POST") {
+      const body = await readBody(request);
+      const baseUrl = normalizeComfyUIBaseUrl(body.baseUrl);
+      if (store.comfyui.baseUrl !== baseUrl) {
+        store.comfyui.baseUrl = baseUrl;
+        store.comfyui.checkpoint = "";
+        store.comfyui.imageVerifiedAt = "";
+        store.comfyui.lastError = "";
       }
       await writeMediaRoutingStore(store);
       sendJson(response, 200, await mediaStatus(store));

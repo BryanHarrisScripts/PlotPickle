@@ -14,7 +14,9 @@ type Props = {
   onReset: () => void;
 };
 
-const fields: Array<{ name: keyof GraphicNovelStoryBrief; label: string; help: string }> = [
+type BriefField = Exclude<keyof GraphicNovelStoryBrief, "updatedAt">;
+
+const fields: Array<{ name: BriefField; label: string; help: string }> = [
   { name: "storyPromise", label: "Story promise", help: "What the complete visual story promises the audience." },
   { name: "audienceExperience", label: "Audience experience", help: "The feeling, tension and emotional flavour each page should sustain." },
   { name: "emotionalArc", label: "Emotional arc", help: "Where the protagonist begins, how pressure changes them and what the ending proves." },
@@ -34,7 +36,7 @@ export default function GraphicNovelStoryBriefEditor({ brief, working, onSave, o
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const value = (name: keyof GraphicNovelStoryBrief) => String(data.get(name) || "").trim();
+    const value = (name: BriefField) => String(data.get(name) || "").trim();
     onSave({
       storyPromise: value("storyPromise"),
       audienceExperience: value("audienceExperience"),
@@ -55,25 +57,36 @@ export default function GraphicNovelStoryBriefEditor({ brief, working, onSave, o
     <section className={styles.panel} aria-labelledby="graphic-novel-story-brief-title">
       <div className={styles.heading}>
         <div>
-<span>Phase 6 · Whole-story direction</span>
-<h2 id="graphic-novel-story-brief-title">Graphic Novel Story Brief</h2>
-<p>Set the visual and emotional rules once. PlotPickle combines this brief with each panel’s canonical action, character objective, resistance, turn, shot and continuity context.</p>
+          <span>Phase 6 · Whole-story direction</span>
+          <h2 id="graphic-novel-story-brief-title">Graphic Novel Story Brief</h2>
+          <p>Set the visual and emotional rules once. PlotPickle combines this brief with each panel’s canonical action, character objective, resistance, turn, shot and continuity context.</p>
         </div>
         <strong>{completion.completed}/{completion.total} directions · {completion.percent}%</strong>
       </div>
+
       <form key={brief.updatedAt} onSubmit={submit}>
         <div className={styles.grid}>
-{fields.map((field) => (
-  <label key={field.name}>
-    <span>{field.label}</span>
-    <small>{field.help}</small>
-    <textarea name={field.name} defaultValue={brief[field.name]} rows={4} disabled={working} />
-  </label>
-))}
+          {fields.map((field) => {
+            const helpId = `graphic-novel-brief-${field.name}-help`;
+            return (
+              <label key={field.name}>
+                <span>{field.label}</span>
+                <small id={helpId}>{field.help}</small>
+                <textarea
+                  name={field.name}
+                  defaultValue={brief[field.name]}
+                  rows={4}
+                  disabled={working}
+                  aria-describedby={helpId}
+                />
+              </label>
+            );
+          })}
         </div>
+
         <div className={styles.actions}>
-<button type="button" disabled={working} onClick={onReset}>Refill from canonical story</button>
-<button type="submit" className={styles.primary} disabled={working}>Save brief and refresh 96 prompts</button>
+          <button type="button" disabled={working} onClick={onReset}>Refill from canonical story</button>
+          <button type="submit" className={styles.primary} disabled={working}>Save brief and refresh 96 prompts</button>
         </div>
         <p className={styles.note}>Completed art and queue decisions are preserved. The Story Brief affects image prompts only; dialogue and captions remain separate editable text.</p>
       </form>

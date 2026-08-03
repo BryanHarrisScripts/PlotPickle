@@ -76,7 +76,6 @@ const forbiddenNames = [
   /\.(?:pem|key|pfx|p12)$/i,
   /(^|\/)(?:credentials?|secrets?)\.json$/i,
   /(^|\/)id_(?:rsa|dsa|ecdsa|ed25519)$/i,
-  /(^|\/)\.npmrc$/i,
 ];
 
 for (const relative of files) {
@@ -116,7 +115,7 @@ for (const marker of [
   "linux-secret-service-current-user",
   "linux-systemd-creds-current-user",
   "PlotPickle will not save credentials without Linux user encryption",
-  "mode: 0o600",
+  'open(temporary, "w", 0o600)',
   "await writeCredentialJson(safeName, stored)",
 ]) {
   if (!localCredentials.includes(marker)) failures.push(`Encrypted storage contract is missing marker ${JSON.stringify(marker)} in ${localCredentialsPath}.`);

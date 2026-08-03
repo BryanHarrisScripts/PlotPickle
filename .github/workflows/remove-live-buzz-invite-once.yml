@@ -1,0 +1,41 @@
+name: Remove live Buzz invite once
+
+on:
+  push:
+    branches: [agent/remove-live-buzz-invite]
+
+permissions:
+  contents: write
+
+jobs:
+  redact:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the active branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: agent/remove-live-buzz-invite
+          fetch-depth: 0
+      - name: Remove the current invitation credential
+        run: node scripts/remove-live-buzz-invite.mjs
+      - name: Verify focused contracts
+        run: |
+          node --test tests/issue-256-setup-connections-dashboard.test.mjs
+          npm run audit:public-readiness
+          if git grep -nE 'communities\.buzz\.xyz/invite/v2\.' -- app tests; then
+            echo 'A live Buzz invitation remains in current application or test source.' >&2
+            exit 1
+          fi
+      - name: Remove one-time migration files
+        run: |
+          rm scripts/remove-live-buzz-invite.mjs
+          rm .github/workflows/remove-live-buzz-invite-once.yml
+      - name: Commit the security fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/setup-connections-dashboard.tsx app/buzz-community-workspace.tsx tests/issue-256-setup-connections-dashboard.test.mjs scripts/public-readiness.mjs scripts/remove-live-buzz-invite.mjs .github/workflows/remove-live-buzz-invite-once.yml
+          git commit -m 'Remove live Buzz invitation from public source'
+          git push origin HEAD:agent/remove-live-buzz-invite

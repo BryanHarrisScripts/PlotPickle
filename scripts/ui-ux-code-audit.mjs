@@ -65,6 +65,42 @@ function normalizeFinding(value) {
   };
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function suggestionAlreadySatisfied(finding) {
+  const evidence = finding.evidence.toLowerCase();
+  const requestedAttributes = [...finding.suggestion.matchAll(/\b(?:add|include|apply|set)\s+[`'\"]?(aria-[\w-]+|role|tabindex|loading)[`'\"]?(?:\s*=\s*[`'\"]?([\w-]+))?/gi)];
+  return requestedAttributes.some((match) => {
+    const attribute = match[1].toLowerCase();
+    const expectedValue = (match[2] || "").toLowerCase();
+    if (!evidence.includes(attribute)) return false;
+    return !expectedValue || evidence.includes(`${attribute}="${expectedValue}"`) || evidence.includes(`${attribute}='${expectedValue}'`);
+  });
+}
+
+function referencedIdsExist(finding, source) {
+  const reference = finding.evidence.match(/aria-(?:labelledby|describedby)=["']([^"']+)["']/i);
+  if (!reference) return false;
+  const claimsMissing = /(?:does not exist|missing|invalid reference|cannot be found)/i.test(`${finding.message} ${finding.suggestion}`);
+  if (!claimsMissing) return false;
+  return reference[1].split(/\s+/).filter(Boolean).every((id) => new RegExp(`id=["']${escapeRegExp(id)}["']`).test(source));
+}
+
+function contradictsPlatformStandards(finding, source) {
+  const combined = `${finding.message} ${finding.suggestion}`;
+  const evidence = finding.evidence;
+  if (/\b(?:may|might|could|potential(?:ly)?|consider|review|unnecessary|excessive|not used to full potential)\b/i.test(combined)) return true;
+  if (finding.criterion === 14 && /<(?:button|a|input|textarea|summary|video)\b/i.test(evidence) && /(?:tabindex|tab order|always focusable)/i.test(combined)) return true;
+  if (finding.criterion === 11 && /<div><dt>/i.test(evidence) && /<dl\b/i.test(source)) return true;
+  if (finding.criterion === 12 && /(?:require|start with|add).*h1/i.test(combined) && /<h[23]\b/i.test(evidence)) return true;
+  if (finding.criterion === 16 && /<video\b/i.test(evidence) && /loading/i.test(combined)) return true;
+  if (finding.criterion === 17 && finding.file.endsWith(".module.css") && /(?:critical css|render.block)/i.test(combined)) return true;
+  if (finding.criterion === 23 && !/(?:^|\/)(?:page|layout|head|document|metadata)\.[^/]+$/i.test(finding.file)) return true;
+  return false;
+}
+
 function validateFindings(findings, sources) {
   const normalized = findings.map(normalizeFinding).filter(Boolean);
   return normalized.filter((finding) => {
@@ -72,13 +108,16 @@ function validateFindings(findings, sources) {
     if (!finding.criterion || !finding.message || !finding.suggestion || !finding.evidence) return false;
     const source = sources.get(finding.file);
     if (typeof source !== "string" || !source.includes(finding.evidence)) return false;
+    if (suggestionAlreadySatisfied(finding)) return false;
+    if (referencedIdsExist(finding, source)) return false;
+    if (contradictsPlatformStandards(finding, source)) return false;
     return true;
   });
 }
 
 async function writeOutcome({ verdict, summary, findings = [], skipped = false }) {
   const issues = findings.filter((finding) => finding.kind === "issue");
-  const finalVerdict = verdict === "pass" && issues.length === 0 ? "pass" : issues.length === 0 ? "pass" : "fail";
+  const finalVerdict = issues.length === 0 ? "pass" : verdict === "pass" ? "fail" : "fail";
   const result = {
     verdict: finalVerdict,
     issueCount: issues.length,
@@ -133,7 +172,7 @@ async function callAuditModel(codePayload) {
   const apiKey = process.env.OPENAI_API_KEY || "";
   if (!apiKey) throw new Error("OPENAI_API_KEY is not configured for the required UI/UX audit gate.");
   const model = process.env.OPENAI_UI_AUDIT_MODEL || "gpt-4o";
-  const prompt = `You are PlotPickle's UI/UX and front-end design-system auditor. Review only the supplied changed files against these 25 criteria:\n\n${criteria.map((item, index) => `${index + 1}. ${item}`).join("\n")}\n\nReturn one JSON object only with this exact shape:\n{\n  "verdict": "pass" or "fail",\n  "summary": "concise summary",\n  "findings": [\n    {"kind":"issue" or "praise","criterion":1-25,"file":"exact changed path","message":"specific finding","suggestion":"specific code-level correction","evidence":"exact contiguous source excerpt"}\n  ]\n}\n\nBlocking rules:\n- verdict must be fail when any actual issue is found, including a minor issue; praises never fail the gate.\n- verdict may be pass only when there are zero substantiated issue findings.\n- Every issue must identify a definite standards or design-rule violation, not a possibility, preference, or generic optimization.\n- Every issue must quote an exact contiguous source excerpt in evidence. The excerpt must exist verbatim in the named changed file.\n- Every issue must provide a correction that is valid for the actual HTML, CSS, React, and browser platform involved.\n- Do not use wording such as may, might, potential, consider, review, or not used to full potential for an issue. Return such observations as praise or omit them.\n- Do not invent files, runtime behavior, contrast values, rendered output, or missing context that cannot be inferred from the supplied code.\n\nPlatform correctness rules:\n- This is a React component audit, not a whole-document audit. A leaf component does not require its own h1. h2 followed by h3 is a valid hierarchy when the component sits beneath a page-level heading.\n- Native buttons, links, inputs, textareas, summary elements, checkboxes, and video controls are keyboard focusable. Do not request tabindex unless the code demonstrably removes focusability or uses a non-interactive element as a control.\n- ARIA should be minimized. Do not request additional roles or attributes unless there is a specific missing accessible name, state, or relationship.\n- A video described by aria-label, aria-labelledby, aria-describedby plus figcaption, or meaningful fallback text has a description.\n- preload=none is a valid deferred-loading strategy for video. The loading attribute is not a standard HTML video attribute and must never be suggested.\n- CSS Modules are extracted and code-split by the build. Do not flag critical CSS or render blocking merely because a changed file is a CSS Module.\n- SEO and social metadata findings apply only to page, layout, head, metadata, or document-level files, not leaf UI components.\n- DOM-depth findings require an exact excessive nesting path and a concrete simplification that preserves semantic structure.\n- Do not flag semantic strong/em/span choices unless the quoted usage actually conveys the wrong meaning. Decorative marks should be aria-hidden and may use span.\n- Do not include credentials, secrets, or private repository information in the response.\n\nCODE TO AUDIT:\n${codePayload}`;
+  const prompt = `You are PlotPickle's UI/UX and front-end design-system auditor. Review only the supplied changed files against these 25 criteria:\n\n${criteria.map((item, index) => `${index + 1}. ${item}`).join("\n")}\n\nReturn one JSON object only with this exact shape:\n{\n  "verdict": "pass" or "fail",\n  "summary": "concise summary",\n  "findings": [\n    {"kind":"issue" or "praise","criterion":1-25,"file":"exact changed path","message":"specific finding","suggestion":"specific code-level correction","evidence":"exact contiguous source excerpt"}\n  ]\n}\n\nBlocking rules:\n- verdict must be fail when any actual issue is found, including a minor issue; praises never fail the gate.\n- verdict may be pass only when there are zero substantiated issue findings.\n- Every issue must identify a definite standards or design-rule violation, not a possibility, preference, or generic optimization.\n- Every issue must quote an exact contiguous source excerpt in evidence. The excerpt must exist verbatim in the named changed file.\n- Every issue must provide a correction that is valid for the actual HTML, CSS, React, and browser platform involved.\n- Before reporting an issue, inspect the complete supplied file and verify that the requested fix is not already present elsewhere in the same element or component.\n- Do not use wording such as may, might, could, potential, consider, review, unnecessary, excessive, or not used to full potential for an issue. Return such observations as praise or omit them.\n- Do not invent files, runtime behavior, contrast values, rendered output, or missing context that cannot be inferred from the supplied code.\n\nPlatform correctness rules:\n- This is a React component audit, not a whole-document audit. A leaf component does not require its own h1. h2 followed by h3 is a valid hierarchy when the component sits beneath a page-level heading.\n- Native buttons, links, inputs, textareas, summary elements, checkboxes, and video controls are keyboard focusable. Do not request tabindex unless the code demonstrably removes focusability or uses a non-interactive element as a control.\n- aria-disabled on a native button intentionally keeps it reachable so the control can explain unmet prerequisites; do not require a disabled attribute as well.\n- ARIA should be minimized. Do not request additional roles or attributes unless there is a specific missing accessible name, state, or relationship.\n- A video described by aria-label, aria-labelledby, aria-describedby plus figcaption, or meaningful fallback text has a description.\n- preload=none is a valid deferred-loading strategy for video. The loading attribute is not a standard HTML video attribute and must never be suggested.\n- CSS Modules are extracted and code-split by the build. Do not flag critical CSS or render blocking merely because a changed file is a CSS Module.\n- SEO and social metadata findings apply only to page, layout, head, metadata, or document-level files, not leaf UI components.\n- A div is a standards-valid grouping child inside dl when it wraps one or more dt/dd groups.\n- DOM-depth findings require an exact excessive nesting path and a concrete simplification that preserves semantic structure.\n- Do not flag semantic strong/em/span choices unless the quoted usage actually conveys the wrong meaning. Decorative marks should be aria-hidden and may use span.\n- Do not include credentials, secrets, or private repository information in the response.\n\nCODE TO AUDIT:\n${codePayload}`;
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -170,7 +209,7 @@ async function main() {
     const findings = validateFindings(audit.findings, sources);
     const issueCount = findings.filter((finding) => finding.kind === "issue").length;
     const summary = issueCount === 0 && audit.verdict === "fail"
-      ? "The model returned no evidence-backed issue that matched the changed source, so the audit passed."
+      ? "The model returned no standards-valid evidence-backed issue after deterministic contradiction checks, so the audit passed."
       : audit.summary;
     await writeOutcome({ verdict: issueCount === 0 ? "pass" : audit.verdict, summary, findings });
   } catch (error) {

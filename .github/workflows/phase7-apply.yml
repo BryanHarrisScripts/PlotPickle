@@ -1,0 +1,51 @@
+name: Apply Phase 7 Graphic Novel Viewer
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.ref == 'agent/graphic-novel-viewer'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out Phase 7 branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: agent/graphic-novel-viewer
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.13.0
+          cache: npm
+
+      - name: Apply focused Phase 7 implementation
+        run: python scripts/phase7-apply.py
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run focused Phase 7 regression
+        run: npm run test:graphic-novel-viewer
+
+      - name: Lint Phase 7 implementation
+        run: npm run lint
+
+      - name: Build Phase 7 implementation
+        run: npm run build
+
+      - name: Commit implementation and remove temporary applicator
+        shell: bash
+        run: |
+          git config user.name "PlotPickle Phase 7 Builder"
+          git config user.email "actions@users.noreply.github.com"
+          git rm scripts/phase7-apply.py .github/workflows/phase7-apply.yml
+          git add app/ai-pitch-deck-workspace.tsx app/ai-pitch-deck-workspace-base.tsx app/use-graphic-novel-queue.ts app/graphic-novel-viewer.tsx app/graphic-novel-viewer.module.css lib/graphic-novel-dialogue.ts lib/graphic-novel-viewer.ts tests/issue-283-graphic-novel-viewer.test.mjs package.json
+          git commit -m "Add Graphic Novel bubble editor and complete viewer"
+          git push origin HEAD:agent/graphic-novel-viewer

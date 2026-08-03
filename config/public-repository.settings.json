@@ -36,7 +36,8 @@
       "Package windows",
       "Package macos",
       "Package linux",
-      "Full history audit"
+      "Full history audit",
+      "Audit UI/UX against Design Rules"
     ]
   }
 }

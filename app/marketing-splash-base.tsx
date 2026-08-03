@@ -159,7 +159,7 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
 
         <section className={`${styles.section} ${styles.studio}`} id="studio">
           <div className={styles.wrap}>
-            <div className={styles.sectionHeading}><p>From interest to proof</p><h2>Learn the craft inside the story you are building.</h2><span>PlotPickle connects learning, structure, writing, visualization, pitch and feedback so each step strengthens the same storyworld.</span></div>
+            <header className={styles.sectionHeading}><p>From interest to proof</p><h2>Learn the craft inside the story you are building.</h2><span>PlotPickle connects learning, structure, writing, visualization, pitch and feedback so each step strengthens the same storyworld.</span></header>
             <div className={styles.reasonGrid}>{reasons.map(([number, title, description]) => <article className={styles.reasonCard} key={number}><span>{number}</span><h3>{title}</h3><p>{description}</p></article>)}</div>
 
             <div className={styles.workflowHeading}><div><p>One connected application</p><h2>The complete current workspace model.</h2></div><span>Settings configures services. Collab and Buzz use those connections without becoming a second source of canon.</span></div>
@@ -174,7 +174,7 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
 
         <section className={`${styles.section} ${styles.modes}`} id="modes">
           <div className={styles.wrap}>
-            <div className={styles.sectionHeading}><p>One project · three ways to work</p><h2>Start privately. Add people only when the story needs them.</h2><span>PlotPickle remains installed locally in every mode. Afterglow, the Learn workspace and the PPF story model flow through all three.</span></div>
+            <header className={styles.sectionHeading}><p>One project · three ways to work</p><h2>Start privately. Add people only when the story needs them.</h2><span>PlotPickle remains installed locally in every mode. Afterglow, the Learn workspace and the PPF story model flow through all three.</span></header>
             <div className={styles.modeComparison}>
               {operatingModes.map((mode) => <article key={mode.title}>
                 <header><span>{mode.status}</span><h3>{mode.title}</h3><p>{mode.subtitle}</p></header>
@@ -213,7 +213,7 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
         </section>
 
         <section className={`${styles.section} ${styles.openSource}`} id="open-source">
-          <div className={styles.wrap}><div className={styles.sectionHeading}><p>Open source with clear boundaries</p><h2>Open software. Open method. Your story.</h2><span>PlotPickle separates software rights, educational material and each creator&apos;s original work.</span></div><div className={styles.openGrid}>{OPEN_SOURCE_FOUNDATIONS.map((foundation) => <article key={foundation.label}><span>{foundation.label}</span><h3>{foundation.title}</h3><p>{foundation.summary}</p></article>)}</div></div>
+          <div className={styles.wrap}><header className={styles.sectionHeading}><p>Open source with clear boundaries</p><h2>Open software. Open method. Your story.</h2><span>PlotPickle separates software rights, educational material and each creator&apos;s original work.</span></header><div className={styles.openGrid}>{OPEN_SOURCE_FOUNDATIONS.map((foundation) => <article key={foundation.label}><span>{foundation.label}</span><h3>{foundation.title}</h3><p>{foundation.summary}</p></article>)}</div></div>
         </section>
 
         <section className={styles.finalSection}><div className={`${styles.wrap} ${styles.finalCard}`}><div><span>Start with a working story</span><h2>Open Afterglow. See the graph. Then build your own.</h2><p>Use the complete local core now, learn through the example, and add ComfyUI, MiniMax H3, Buzz, GitHub or provider accounts only when the project truly needs them.</p></div><div className={styles.finalActions}><button className={styles.primaryButton} type="button" onClick={onEnter}>Load Afterglow</button><a className={styles.lightButton} href={downloadUrl} target="_blank" rel="noreferrer">Get the open-source build</a></div></div></section>

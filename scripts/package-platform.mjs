@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { chmodSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
@@ -129,4 +130,9 @@ function walk(folder) {
 }
 walk(destination);
 writeFileSync(path.join(destination, "FILES.txt"), `${files.join("\n")}\n`);
+execFileSync(process.execPath, [
+  path.join(root, "scripts", "credential-boundary-audit.mjs"),
+  "--root", destination,
+  "--mode", "package",
+], { stdio: "inherit" });
 console.log(destination);

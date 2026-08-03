@@ -1,0 +1,36 @@
+name: Apply issue 299 test registration
+
+on:
+  push:
+    branches:
+      - agent/299-credential-boundary-audit
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: agent/299-credential-boundary-audit
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "24.15.0"
+      - name: Apply asserted package and test registration
+        run: |
+          node --check scripts/apply-299-test-registration.mjs
+          node scripts/apply-299-test-registration.mjs
+          node --check scripts/local-credential-audit.mjs
+          node scripts/credential-boundary-audit.mjs --mode source
+          node --test tests/issue-299-credential-boundary-audit.test.mjs tests/issue-299-local-credential-audit.test.mjs
+      - name: Remove one-use files and commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm scripts/apply-299-test-registration.mjs .github/workflows/apply-299-test-registration.yml docs/.issue-299-registration-trigger
+          git add package.json tests/issue-299-credential-boundary-audit.test.mjs
+          git commit -m "Register final credential-boundary validation"
+          git push origin HEAD:agent/299-credential-boundary-audit

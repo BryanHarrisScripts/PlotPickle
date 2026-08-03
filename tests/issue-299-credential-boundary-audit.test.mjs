@@ -60,7 +60,7 @@ test("credential storage fails closed and public surfaces remain redacted", asyn
     assert.match(credentials, new RegExp(marker));
   }
   assert.match(credentials, /will not save credentials without Linux user encryption/);
-  assert.match(credentials, /mode: 0o600/);
+  assert.match(credentials, /open\(temporary, "w", 0o600\)/);
   assert.match(credentials, /legacy credential could not be migrated to encrypted storage/);
 
   assert.match(github, /function publicAuthorization/);

@@ -5,11 +5,13 @@ on:
     branches: [agent/remove-live-buzz-invite]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   redact:
     if: github.actor != 'github-actions[bot]'
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

@@ -3,9 +3,10 @@
     {
       "id": "plotpickle-playhouse-buzz-invite-2026-08",
       "kind": "Buzz invitation token",
-      "status": "pending-revocation",
-      "revoked_at": "",
-      "reason": "Former PlotPickle Playhouse invitation removed from current source by PR #292. It may be approved only after the community administrator confirms the old invitation was revoked or rotated.",
+      "status": "owner-accepted-risk",
+      "accepted_at": "2026-08-03T12:12:00Z",
+      "accepted_by": "BryanHarrisScripts",
+      "reason": "Repository owner directed that the existing PlotPickle Playhouse invitation remain unchanged. PR #292 removed it from current application code, tests and release packages. This exception accepts only the exact historical commit/path occurrences listed below and does not apply to any future invitation or credential occurrence.",
       "tracking_issue": 294,
       "occurrences": [
         { "commit": "9b74120bb434", "path": "app/buzz-community-workspace.tsx" },

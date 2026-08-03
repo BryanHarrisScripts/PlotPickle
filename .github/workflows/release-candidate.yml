@@ -119,7 +119,7 @@ jobs:
         run: |
           $packageRoot = Join-Path (Join-Path $env:RUNNER_TEMP "plotpickle-clean") "${{ matrix.folder }}"
           Set-Location $packageRoot
-          node scripts/windows-release-smoke.mjs . reports/windows-release-smoke
+          node scripts/windows-release-smoke-runner.mjs . reports/windows-release-smoke
       - name: Run Issue 208 packaged Windows smoke
         if: matrix.platform == 'windows'
         shell: pwsh
@@ -129,8 +129,8 @@ jobs:
         run: |
           $packageRoot = Join-Path (Join-Path $env:RUNNER_TEMP "plotpickle-clean") "${{ matrix.folder }}"
           Set-Location $packageRoot
-          # Contract source remains scripts/windows-issue-208-smoke.mjs; the runner applies stable packaged-browser interactions.
-          node scripts/windows-issue-208-smoke-runner.mjs . reports/windows-issue-208-smoke
+          # The wrapper updates only the obsolete application-shell readiness selector, then restores the source contract.
+          node scripts/windows-issue-208-current-shell-runner.mjs . reports/windows-issue-208-smoke
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload Windows interaction evidence
         if: always() && matrix.platform == 'windows'

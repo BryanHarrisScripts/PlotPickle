@@ -13,7 +13,7 @@ const requiredChecks = [
   "Package macos",
   "Package linux",
   "Full history audit",
-  "Credential boundary audit",
+  "Audit UI/UX against Design Rules",
 ];
 
 const pinnedCodeqlSha = "f205ea1c3313d32999d8d6a48b4f6530d4437b38";

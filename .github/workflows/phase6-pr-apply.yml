@@ -30,16 +30,14 @@ jobs:
         run: |
           python <<'PY'
           from pathlib import Path
-          import textwrap
 
           workflow = Path('.github/workflows/phase6-apply.yml').read_text(encoding='utf-8')
-          start = "          python <<'PY'\n"
-          end = "\n          PY\n\n      - name: Install dependencies"
-          if start not in workflow or end not in workflow:
-              raise SystemExit('The Phase 6 patch body could not be located.')
-          body = workflow.split(start, 1)[1].split(end, 1)[0]
-          exec(compile(textwrap.dedent(body), 'phase6-inline.py', 'exec'))
+          section = workflow.split('      - name: Apply focused Phase 6 changes\n', 1)[1].split('\n      - name: Install dependencies', 1)[0]
+          body = section.split('        run: |\n', 1)[1]
+          shell_lines = [line[10:] if line.startswith('          ') else line for line in body.splitlines()]
+          Path('/tmp/phase6-apply.sh').write_text('\n'.join(shell_lines) + '\n', encoding='utf-8')
           PY
+          bash /tmp/phase6-apply.sh
 
       - name: Install dependencies
         run: npm ci

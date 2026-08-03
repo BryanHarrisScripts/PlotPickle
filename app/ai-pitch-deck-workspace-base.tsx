@@ -119,6 +119,21 @@ export default function AiPitchDeckWorkspace({
   const [publishingPanelId, setPublishingPanelId] = useState("");
   const [selectedPage, setSelectedPage] = useState(1);
   const controllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    function openGraphicNovelPanel(event: Event) {
+      const detail = (event as CustomEvent<{ panelId?: string; pageNumber?: number }>).detail;
+      if (!detail?.panelId || !detail.pageNumber) return;
+      setSelectedPage(detail.pageNumber);
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          document.getElementById(`graphic-novel-panel-editor-${detail.panelId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+      });
+    }
+    window.addEventListener("plotpickle:open-graphic-novel-panel", openGraphicNovelPanel);
+    return () => window.removeEventListener("plotpickle:open-graphic-novel-panel", openGraphicNovelPanel);
+  }, []);
   const runningRef = useRef(false);
 
   useEffect(() => {
@@ -459,7 +474,7 @@ export default function AiPitchDeckWorkspace({
           <header><div><span>Page {selectedPage} of 24</span><h2 id={`comic-page-${selectedPage}`}>{project.blocks.find((block) => block.number === selectedPage)?.title || `Block ${selectedPage}`}</h2></div><strong>{selectedPanels.filter((panel) => panel.status === "complete").length}/4 complete</strong></header>
           <div className={styles.panelGrid}>
             {selectedPanels.map((panel) => (
-              <article className={styles.panel} key={panel.id}>
+              <article className={styles.panel} key={panel.id} id={`graphic-novel-panel-editor-${panel.id}`}>
                 <div className={styles.panelImage}>
                   {panel.imageSrc ? <img src={panel.imageSrc} alt={`${panel.title}: ${panel.narration}`} /> : <div className={styles.placeholder}><strong>{panelLabel(panel)}</strong><span>{panel.status === "generating" ? "Generating…" : panel.status === "error" ? "Generation failed" : "Ready for image"}</span></div>}
                   <div className={styles.bubbles}>

@@ -3,7 +3,8 @@
 /* eslint-disable @next/next/no-img-element -- Graphic Novel panels are local generated assets stored outside the application bundle. */
 
 import { useState } from "react";
-import { buildGraphicNovelHtml, graphicNovelFileName, withComicPitchDeck } from "@/lib/ai-pitch-deck";
+import { graphicNovelFileName, withComicPitchDeck } from "@/lib/ai-pitch-deck";
+import { buildGraphicNovelViewerHtml, graphicNovelImageFileName } from "@/lib/graphic-novel-viewer";
 import type { PlotPickleProject } from "@/lib/project";
 import type { PublicConnectionStatus } from "@/lib/connection-status";
 import AiPitchDeckWorkspaceBase from "./ai-pitch-deck-workspace-base";
@@ -60,12 +61,50 @@ export default function AiPitchDeckWorkspace(props: Props) {
     ? { ...props.aiStatus, state: "disconnected" as const }
     : props.aiStatus;
 
+  async function downloadImageSequence() {
+    const panels = queue.deck.panels
+      .filter((panel) => panel.imageSrc)
+      .sort((left, right) => left.pageNumber - right.pageNumber || left.panelNumber - right.panelNumber);
+    if (!panels.length) {
+      setExportMessage("Generate or import at least one panel image before exporting an image sequence.");
+      return;
+    }
+    setExportMessage(`Preparing ${panels.length} completed panel images in reading order…`);
+    try {
+      for (const panel of panels) {
+        const response = await fetch(panel.imageSrc);
+        if (!response.ok) throw new Error(`Page ${panel.pageNumber}, panel ${panel.panelNumber} could not be downloaded.`);
+        const blob = await response.blob();
+        const type = blob.type.toLowerCase();
+        const extension = type.includes("jpeg") ? "jpg" : type.includes("webp") ? "webp" : type.includes("gif") ? "gif" : "png";
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = graphicNovelImageFileName(panel, extension);
+        link.click();
+        URL.revokeObjectURL(url);
+        await new Promise((resolve) => window.setTimeout(resolve, 80));
+      }
+      setExportMessage(`${panels.length} panel images were exported in page and panel order.`);
+    } catch (error) {
+      setExportMessage(error instanceof Error ? error.message : "The image sequence could not be exported.");
+    }
+  }
+
+  function openPanelEditor(panelId: string) {
+    const panel = queue.deck.panels.find((item) => item.id === panelId);
+    if (!panel) return;
+    window.dispatchEvent(new CustomEvent("plotpickle:open-graphic-novel-panel", {
+      detail: { panelId, pageNumber: panel.pageNumber },
+    }));
+  }
+
   async function exportGraphicNovel(print = false) {
     const printWindow = print ? window.open("", "_blank") : null;
     setExportMessage("Embedding completed Graphic Novel images into the export…");
     try {
       const prepared = withComicPitchDeck(props.project, queue.deck);
-      const html = buildGraphicNovelHtml(prepared, await embeddedImages(prepared));
+      const html = buildGraphicNovelViewerHtml(prepared, await embeddedImages(prepared));
       if (print) {
         if (!printWindow) throw new Error("The print window was blocked. Allow pop-ups for this local PlotPickle page.");
         printWindow.document.open();
@@ -188,8 +227,14 @@ export default function AiPitchDeckWorkspace(props: Props) {
 
       <GraphicNovelViewer
         project={props.project}
+        deck={queue.deck}
         working={queue.working || cast.working}
+        aiReady={queue.aiReady}
+        acknowledged={queue.acknowledged}
         onProjectChange={props.onProjectChange}
+        onRegenerate={(panelId) => void queue.regeneratePanel(panelId)}
+        onOpenPanelEditor={openPanelEditor}
+        onDownloadImages={() => void downloadImageSequence()}
       />
 
       <div className={styles.legacyEditor}>
@@ -198,7 +243,7 @@ export default function AiPitchDeckWorkspace(props: Props) {
 
       <section className={styles.exports} aria-labelledby="graphic-novel-export-title">
         <div><span>Export</span><h2 id="graphic-novel-export-title">Carry the Graphic Novel into the room</h2><p>Completed images are embedded into one portable HTML file. Dialogue balloons remain real text, and saved Phase 7 placement carries into HTML and PDF output.</p>{exportMessage ? <small>{exportMessage}</small> : null}</div>
-        <div><button type="button" disabled={!queue.counts.completed || queue.working || cast.working} onClick={() => void exportGraphicNovel(false)}>Download self-contained HTML</button><button type="button" disabled={!queue.counts.completed || queue.working || cast.working} onClick={() => void exportGraphicNovel(true)}>Print / Save as PDF</button></div>
+        <div><button type="button" disabled={!queue.counts.completed || queue.working || cast.working} onClick={() => void exportGraphicNovel(false)}>Download self-contained HTML</button><button type="button" disabled={!queue.counts.completed || queue.working || cast.working} onClick={() => void exportGraphicNovel(true)}>Print / Save as PDF</button><button type="button" disabled={!queue.counts.completed || queue.working || cast.working} onClick={() => void downloadImageSequence()}>Download image sequence</button></div>
       </section>
     </section>
   );

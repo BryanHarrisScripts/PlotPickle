@@ -11,7 +11,8 @@ import {
   type H3NativeInput,
 } from "./comfyui-h3-native-provider";
 
-const API = "/api/media-routing/comfyui/h3-native";
+const API = "/api/media-routing/comfyui/h3/native";
+const LEGACY_API = "/api/media-routing/comfyui/h3-native";
 const STATUS_PATH = `${API}/status`;
 const MANIFEST_PATH = `${API}/manifest`;
 const CONNECTION_PATH = `${API}/connection`;
@@ -195,7 +196,8 @@ async function handleNativeApi(request: IncomingMessage, response: ServerRespons
 
 export function registerNativeH3Gateway(server: ViteDevServer) {
   server.middlewares.use(async (request, response, next) => {
-    const pathname = request.url?.split("?", 1)[0] || "";
+    let pathname = request.url?.split("?", 1)[0] || "";
+    if (pathname.startsWith(LEGACY_API)) pathname = `${API}${pathname.slice(LEGACY_API.length)}`;
     if (pathname.startsWith(API)) {
       if (!(await handleNativeApi(request, response, pathname))) next();
       return;

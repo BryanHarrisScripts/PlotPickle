@@ -330,11 +330,24 @@
   color: var(--ink);
 }
 
-.job video {
+.preview {
+  display: grid;
   grid-column: 1 / -1;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.preview video {
   width: 100%;
   max-height: 24rem;
   border-radius: 0.65rem;
+  background: #000;
+}
+
+.preview figcaption {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  line-height: 1.45;
 }
 
 @media (max-width: 42rem) {

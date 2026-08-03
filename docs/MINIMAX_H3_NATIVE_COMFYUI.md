@@ -24,6 +24,7 @@ Official source roots accepted by PlotPickle:
 - Checks expected model filenames through the declared ComfyUI loader inputs.
 - Sends the PlotPickle scene or storyboard prompt and selected local reference assets into the reviewed workflow.
 - Polls ComfyUI history and returns completed MP4 or WebM output to the original PlotPickle asset identifier.
+- Presents setup status and actions with semantic text elements and native button-state accessibility.
 - Stores no MiniMax cloud key in the native H3 configuration.
 
 ## What PlotPickle never does

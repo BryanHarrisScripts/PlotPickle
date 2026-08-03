@@ -13,6 +13,16 @@ permissions:
   contents: read
 
 jobs:
+  configuration-contract:
+    name: Public repository contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22.19.0"
+      - run: node --test tests/issue-287-public-repository-setup.test.mjs
+
   codeql:
     name: CodeQL analysis
     if: github.event.repository.private == false

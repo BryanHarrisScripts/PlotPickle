@@ -54,7 +54,8 @@ test("public contribution routes protect secrets and private story material", as
   const feature = await text(".github/ISSUE_TEMPLATE/feature-request.yml");
   const pullRequest = await text(".github/PULL_REQUEST_TEMPLATE.md");
   const checklist = await text("docs/PUBLIC_RELEASE_CHECKLIST.md");
-  assert.match(bug, /API keys, tokens, personal information and unpublished story material/);
+  assert.match(bug, /Remove API keys, tokens, personal information, unpublished story text/);
+  assert.match(bug, /unpublished story material/);
   assert.match(feature, /private story material/);
   assert.match(pullRequest, /No API keys, OAuth secrets, tokens, certificates or private keys/);
   assert.match(checklist, /Git history/);

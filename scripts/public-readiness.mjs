@@ -43,6 +43,7 @@ const secretPatterns = [
   ["Google API key", /AIza[0-9A-Za-z_-]{30,}/],
   ["AWS access key", /AKIA[0-9A-Z]{16}/],
   ["Slack token", /xox[baprs]-[A-Za-z0-9-]{20,}/],
+  ["Buzz invitation token", /communities\.buzz\.xyz\/invite\/v2\.[A-Za-z0-9_-]{20,}/],
 ];
 
 for (const file of tracked) {

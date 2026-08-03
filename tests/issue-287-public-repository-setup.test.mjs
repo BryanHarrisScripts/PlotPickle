@@ -15,6 +15,8 @@ const requiredChecks = [
   "Full history audit",
 ];
 
+const pinnedCodeqlSha = "f205ea1c3313d32999d8d6a48b4f6530d4437b38";
+
 test("public repository settings preserve the established green gates", async () => {
   const settings = JSON.parse(await text("config/public-repository.settings.json"));
   assert.equal(settings.repository.visibility, "public");
@@ -31,8 +33,8 @@ test("public repository settings preserve the established green gates", async ()
 test("security automation stays safe while private and activates when public", async () => {
   const workflow = await text(".github/workflows/public-security.yml");
   assert.match(workflow, /github\.event\.repository\.private == false/);
-  assert.match(workflow, /github\/codeql-action\/init@9e0d7b8d25671d64c341c19c0152d693099fb5ba/);
-  assert.match(workflow, /github\/codeql-action\/analyze@9e0d7b8d25671d64c341c19c0152d693099fb5ba/);
+  assert.match(workflow, new RegExp(`github/codeql-action/init@${pinnedCodeqlSha}`));
+  assert.match(workflow, new RegExp(`github/codeql-action/analyze@${pinnedCodeqlSha}`));
   assert.match(workflow, /actions\/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294/);
   assert.match(workflow, /fail-on-severity: high/);
 });

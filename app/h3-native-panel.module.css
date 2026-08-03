@@ -100,7 +100,7 @@
   color: var(--ink);
 }
 
-.requirements i {
+.statusDot {
   width: 0.75rem;
   height: 0.75rem;
   border: 2px solid var(--pickle-dark);
@@ -108,12 +108,12 @@
   background: transparent;
 }
 
-.requirements > li[data-ready="true"] i {
+.requirements > li[data-ready="true"] .statusDot {
   background: var(--pickle-dark);
 }
 
-.requirements b,
-.models em {
+.requirements strong,
+.modelState {
   color: var(--ink);
   font-size: 0.78rem;
   font-style: normal;

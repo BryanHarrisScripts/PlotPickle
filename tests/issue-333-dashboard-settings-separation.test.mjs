@@ -13,9 +13,11 @@ test("issues #329-#333 keep Dashboard read-only and tri-colour", async () => {
   assert.doesNotMatch(layout, /ConfigurationDashboardHost/);
   assert.match(dashboard, /type SetupTone = "green" \| "yellow" \| "red"/);
   assert.doesNotMatch(dashboard, /"grey"|Test all connections|<input|<select|<textarea/);
+  assert.doesNotMatch(dashboard, /target="_blank"/);
   assert.match(dashboard, /Open settings/);
-  assert.match(dashboard, /settingsSection: "openai"/);
-  assert.match(dashboard, /settingsSection: "minimax"/);
+  for (const target of ["ollama", "openai", "minimax", "comfyui"]) {
+    assert.match(dashboard, new RegExp(`settingsSection: "${target}"`));
+  }
 });
 
 test("issues #327-#331 provide stable independent component sections", async () => {
@@ -32,6 +34,7 @@ test("issues #327-#331 provide stable independent component sections", async () 
   assert.match(settings, /WritingAssistantConsole/);
   assert.match(settings, /MediaRoutingPanel/);
   assert.match(settings, /H3NativePanel/);
+  assert.match(settings, /window\.sessionStorage\.setItem\(SETTINGS_SECTION_KEY, target\)/);
   assert.match(legacy, /forcedSection/);
   assert.match(legacy, /forcedProvider/);
   assert.match(assistant, /focusProvider/);

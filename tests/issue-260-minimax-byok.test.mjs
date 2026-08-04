@@ -55,9 +55,9 @@ test("issue #260 settings and dashboard explain user-owned billing", async () =>
     "Review MiniMax pricing",
   ]) assert.ok(settings.includes(phrase), `Missing MiniMax settings copy: ${phrase}`);
   for (const phrase of [
-    "Cloud images & video · OpenAI, MiniMax or another provider",
-    "Create MiniMax API key",
-    "MiniMax H3 video guide",
+    "Cloud text, images & H3 video · MiniMax",
+    'settingsSection: "minimax"',
+    "writer's own account",
     "never falls back to cloud automatically",
   ]) assert.ok(dashboard.includes(phrase), `Missing MiniMax dashboard copy: ${phrase}`);
   assert.match(readme, /ships no MiniMax key, shared billing proxy or credits/);

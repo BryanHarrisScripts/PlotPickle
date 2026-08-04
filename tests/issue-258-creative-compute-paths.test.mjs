@@ -18,7 +18,8 @@ test("issue #258 keeps collaboration modes separate from the three creative-comp
     "3 · No AI",
     "Local writing & planning · Ollama",
     "Local image generation · ComfyUI",
-    "Cloud images & video · OpenAI, MiniMax or another provider",
+    "Cloud writing & images · OpenAI",
+    "Cloud text, images & H3 video · MiniMax",
     "Manual image import",
     "Ready without AI",
   ]) assert.ok(setup.includes(phrase), `Missing creative-compute contract: ${phrase}`);
@@ -89,9 +90,9 @@ test("issue #258 status copy distinguishes running software from model readiness
   for (const phrase of [
     "language models are selected and downloaded separately",
     "checkpoints and reviewed workflows are configured separately",
-    "No cloud provider selected",
+    'providerConnection("openai", "OpenAI")',
+    'providerConnection("minimax", "MiniMax")',
     "No account, API key, local model or checkpoint is required",
-    "Test all connections",
     "/api/local-connections",
   ]) assert.ok(setup.includes(phrase), `Missing readiness explanation: ${phrase}`);
 
@@ -218,7 +219,7 @@ test("phase 3 locks the ComfyUI H3 route behind verified nodes key and returned 
 test("phase 3 first-run panel exposes independent controls real tests and truthful cost consent", async () => {
   const [panel, host, css] = await Promise.all([
     source("app/media-routing-panel.tsx"),
-    source("app/configuration-dashboard-host.tsx"),
+    source("app/settings-panel.tsx"),
     source("app/media-routing-panel.module.css"),
   ]);
   for (const phrase of [
@@ -289,7 +290,7 @@ test("issue #300 exposes truthful native H3 status diagnostics and official setu
   const [panel, css, host, docs, schema] = await Promise.all([
     source("app/h3-native-panel.tsx"),
     source("app/h3-native-panel.module.css"),
-    source("app/configuration-dashboard-host.tsx"),
+    source("app/settings-panel.tsx"),
     source("docs/MINIMAX_H3_NATIVE_COMFYUI.md"),
     source("config/minimax-h3-native.manifest.schema.json"),
   ]);

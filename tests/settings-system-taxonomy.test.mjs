@@ -29,7 +29,7 @@ test("Settings uses the locked eight-bin system taxonomy", () => {
 test("every Settings submenu item has repeatable help language and an honest destination", () => {
   const ids = new Set();
   const allowedStatuses = new Set(["installed", "configure", "optional", "planned", "reference"]);
-  const allowedTargets = new Set(["general", "appearance", "project-defaults", "storage", "ai", "github", "plugins", "google", "buzz", "privacy", "about", "sitemap"]);
+  const allowedTargets = new Set(["general", "appearance", "project-defaults", "storage", "ai", "github", "plugins", "google", "buzz", "privacy", "about", "sitemap", "ollama", "openai", "minimax", "comfyui"]);
 
   for (const { item, system } of everyItem()) {
     assert.ok(item.id && !ids.has(item.id), `Duplicate or missing Settings item id: ${item.id}`);

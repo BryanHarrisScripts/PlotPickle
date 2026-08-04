@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ConnectionState, ConnectionStatusSnapshot, PublicConnectionStatus } from "@/lib/connection-status";
-import { requestConnectionStatusRefresh } from "./use-connection-status";
 import styles from "./setup-connections-dashboard.module.css";
 
 const OPENAI_KEYS_URL = "https://platform.openai.com/api-keys";
@@ -23,7 +22,7 @@ const OLLAMA_DOCS_URL = "https://docs.ollama.com/windows";
 const COMFYUI_SETUP_URL = "https://comfy.org/download";
 const COMFYUI_DOCS_URL = "https://docs.comfy.org/installation/desktop/windows";
 
-type SetupTone = "green" | "grey" | "yellow" | "red";
+type SetupTone = "green" | "yellow" | "red";
 
 type BuzzStatus = {
   connection?: {
@@ -68,7 +67,6 @@ type SetupRow = {
 
 const toneCopy: Record<SetupTone, { symbol: string; meaning: string }> = {
   green: { symbol: "✓", meaning: "Verified and working" },
-  grey: { symbol: "○", meaning: "Optional and not configured" },
   yellow: { symbol: "!", meaning: "Setup or verification needed" },
   red: { symbol: "×", meaning: "A previously working connection has failed" },
 };
@@ -84,7 +82,7 @@ function toneForConnection(connection: SetupConnection): SetupTone {
   if (connection.state === "connected") return "green";
   if (connection.state === "error" && connection.lastSuccessfulConnection) return "red";
   if (["configured", "checking", "error", "unavailable"].includes(connection.state)) return "yellow";
-  return "grey";
+  return "yellow";
 }
 
 function stateLabel(state: ConnectionState, optional = true) {
@@ -94,7 +92,7 @@ function stateLabel(state: ConnectionState, optional = true) {
   if (state === "error") return "Connection needs repair";
   if (state === "unavailable") return "Health check unavailable";
   if (state === "disabled") return optional ? "Optional — disabled" : "Disabled";
-  return optional ? "Optional — not configured" : "Not configured";
+  return optional ? "Setup available" : "Not configured";
 }
 
 function rowFromConnection(
@@ -123,7 +121,6 @@ export default function SetupConnectionsDashboard({
   const [buzzError, setBuzzError] = useState("");
   const [buzzPreviouslyConnected, setBuzzPreviouslyConnected] = useState(false);
   const [localServices, setLocalServices] = useState<LocalCreativeServices | null>(null);
-  const [testing, setTesting] = useState(false);
 
   const refreshBuzz = useCallback(async () => {
     try {
@@ -161,12 +158,6 @@ export default function SetupConnectionsDashboard({
     };
   }, [refreshBuzz, refreshLocalServices]);
 
-  async function testAllConnections() {
-    setTesting(true);
-    requestConnectionStatusRefresh();
-    await Promise.all([refreshBuzz(), refreshLocalServices()]);
-    window.setTimeout(() => setTesting(false), 700);
-  }
 
   const included = useMemo<SetupRow[]>(() => {
     const storage = connectionStatus.items.storage;
@@ -215,14 +206,16 @@ export default function SetupConnectionsDashboard({
     const ollama = localServices?.ollama ?? fallback("ollama", "Ollama", "127.0.0.1:11434");
     const comfyui = localServices?.comfyui ?? fallback("comfyui", "ComfyUI", "127.0.0.1:8188");
     const savedAi = connectionStatus.items.ai;
-    const cloudProviderSelected = !/ollama|lm studio|local|manual|disabled|no ai/i.test(savedAi.identity);
-    const cloudAi: SetupConnection = cloudProviderSelected ? savedAi : {
-      ...savedAi,
-      state: "disconnected",
-      identity: "No cloud provider selected",
-      detail: "A local provider is selected. Cloud generation remains off unless the writer deliberately configures it.",
-      lastSuccessfulConnection: "",
-    };
+    const providerConnection = (provider: "openai" | "minimax", label: string): SetupConnection =>
+      savedAi.identity.toLowerCase().includes(provider) ? savedAi : {
+        ...savedAi,
+        state: "disconnected",
+        identity: `No ${label} provider selected`,
+        detail: `${label} remains optional until its own Settings section is configured and tested.`,
+        lastSuccessfulConnection: "",
+      };
+    const openai = providerConnection("openai", "OpenAI");
+    const minimax = providerConnection("minimax", "MiniMax");
 
     return [
       {
@@ -235,7 +228,7 @@ export default function SetupConnectionsDashboard({
             label: "Local writing & planning · Ollama",
             requirement: "Optional",
             detail: `${ollama.detail} PlotPickle offers a separate Y/N installation choice on Windows; language models are selected and downloaded separately.`,
-            settingsSection: "ai",
+            settingsSection: "ollama",
             links: [
               { label: "Download Ollama", href: OLLAMA_SETUP_URL },
               { label: "Ollama Windows guide", href: OLLAMA_DOCS_URL },
@@ -259,20 +252,19 @@ export default function SetupConnectionsDashboard({
         title: "2 · Cloud AI",
         summary: "Use OpenAI, MiniMax or another reviewed provider with the writer's own account, API key and provider billing. PlotPickle supplies no credits and never falls back to cloud automatically.",
         rows: [
-          rowFromConnection(cloudAi, {
-            id: "cloud-ai",
-            label: "Cloud images & video · OpenAI, MiniMax or another provider",
+          rowFromConnection(openai, {
+            id: "openai",
+            label: "Cloud writing & images · OpenAI",
             requirement: "Optional",
-            detail: `${cloudAi.detail} Cloud image generation · OpenAI or another provider remains supported, while MiniMax adds image-01 and H3 video. ChatGPT Plus does not include OpenAI API usage; API keys and billing are separate.`,
-            settingsSection: "ai",
-            links: [
-              { label: "Create OpenAI API key", href: OPENAI_KEYS_URL },
-              { label: "OpenAI API billing", href: OPENAI_BILLING_URL },
-              { label: "OpenAI API quickstart", href: OPENAI_QUICKSTART_URL },
-              { label: "Create MiniMax API key", href: MINIMAX_KEYS_URL },
-              { label: "MiniMax pricing", href: MINIMAX_PRICING_URL },
-              { label: "MiniMax H3 video guide", href: MINIMAX_H3_URL },
-            ],
+            detail: `${openai.detail} ChatGPT Plus does not include OpenAI API usage; the API account and billing are separate.`,
+            settingsSection: "openai",
+          }),
+          rowFromConnection(minimax, {
+            id: "minimax",
+            label: "Cloud text, images & H3 video · MiniMax",
+            requirement: "Optional",
+            detail: `${minimax.detail} MiniMax uses the writer's own account and requires explicit consent before paid image or video tests.`,
+            settingsSection: "minimax",
           }),
         ],
       },
@@ -307,7 +299,7 @@ export default function SetupConnectionsDashboard({
         ? "red"
         : buzzError || buzzPartiallyConfigured
           ? "yellow"
-          : "grey";
+          : "yellow";
     const buzzIdentity = [buzz?.connection?.community, buzz?.connection?.identityLabel].filter(Boolean).join(" · ");
     const buzzStatus = buzzConnected
       ? "Verified and working"
@@ -315,7 +307,7 @@ export default function SetupConnectionsDashboard({
         ? "Health check unavailable"
         : buzzPartiallyConfigured
           ? "Setup or verification needed"
-          : "Optional — not configured";
+          : "Setup available";
 
     return [
       {
@@ -379,8 +371,7 @@ export default function SetupConnectionsDashboard({
             <div><dt>Last checked</dt><dd>{formatCheckedAt(row.checkedAt || connectionStatus.checkedAt)}</dd></div>
           </dl>
           <div className={styles.actions}>
-            {row.settingsSection ? <button type="button" onClick={() => onOpenSettings(row.settingsSection!)}>Configure in PlotPickle</button> : null}
-            {row.links?.map((link) => <a key={link.href} href={link.href} target="_blank" rel="noreferrer">{link.label}</a>)}
+            {row.settingsSection ? <button type="button" onClick={() => onOpenSettings(row.settingsSection!)}>Open settings</button> : null}
           </div>
         </div>
       </article>
@@ -393,11 +384,8 @@ export default function SetupConnectionsDashboard({
         <div>
           <p>Connection dashboard</p>
           <h2 id="setup-connections-title">What is included—and what you configure yourself</h2>
-          <span>PlotPickle works locally without any optional account. Keep this dashboard open while you connect services. Each light updates after its live test: green means verified and usable, yellow means one setup step remains.</span>
+          <span>PlotPickle works locally without any optional account. This is a read-only car-dashboard view: green is ready, yellow needs setup or testing, and red means a previously working component has failed. Open the exact Settings section to make changes.</span>
         </div>
-        <button type="button" onClick={() => { void testAllConnections(); }} disabled={testing}>
-          {testing ? "Testing connections…" : "Test all connections"}
-        </button>
       </header>
 
       <div className={styles.dashboardSummary} role="status" aria-live="polite">

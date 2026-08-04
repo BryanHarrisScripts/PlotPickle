@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import CollaborationWorkspaceRouter from "./collaboration-workspace-router";
-import ConfigurationDashboardHost from "./configuration-dashboard-host";
 import CurrentDownloadLinks from "./current-download-links";
 import GitHubAppReleaseGuidance from "./github-app-release-guidance";
 import GraphicNovelTerminology from "./graphic-novel-terminology";
@@ -50,7 +49,6 @@ export default function RootLayout({
         } as React.CSSProperties}
       >
         {children}
-        <ConfigurationDashboardHost />
         <WriterFacingCollaborationLanguage />
         <GraphicNovelTerminology />
         <GitHubAppReleaseGuidance />

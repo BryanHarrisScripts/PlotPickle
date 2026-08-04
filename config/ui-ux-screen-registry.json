@@ -1,0 +1,373 @@
+{
+  "schemaVersion": 1,
+  "programmeIssue": 336,
+  "foundationIssue": 337,
+  "lifecycle": [
+    "planned",
+    "in-progress",
+    "audited"
+  ],
+  "statusSemantics": {
+    "green": "Ready or connected",
+    "yellow": "Attention or setup required",
+    "red": "Unavailable or error"
+  },
+  "dashboardBoundary": "Dashboard is a read-only visual status surface. Configuration controls belong in the owning Settings screen and Dashboard cards link there.",
+  "requiredReviewDimensions": [
+    "visual-system",
+    "interaction-states",
+    "responsive-layout",
+    "keyboard-navigation",
+    "accessibility-semantics",
+    "loading-empty-success-warning-error",
+    "data-preservation",
+    "recovery-guidance"
+  ],
+  "screens": [
+    {
+      "id": "public-marketing-splash",
+      "label": "Marketing splash",
+      "area": "public",
+      "scope": "Public landing, product positioning and calls to action",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "responsive-layout", "keyboard-navigation", "accessibility-semantics"]
+    },
+    {
+      "id": "public-welcome-startup",
+      "label": "Welcome and startup",
+      "area": "public",
+      "scope": "Startup choice, returning-writer path and first-run guidance",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["interaction-states", "responsive-layout", "keyboard-navigation", "loading-empty-success-warning-error"]
+    },
+    {
+      "id": "public-about-support",
+      "label": "About, licensing and support",
+      "area": "public",
+      "scope": "About, open-source licensing, help and support destinations",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "responsive-layout", "accessibility-semantics", "recovery-guidance"]
+    },
+    {
+      "id": "shell-application-navigation",
+      "label": "Application shell and navigation",
+      "area": "shell",
+      "scope": "Global navigation, active state, project actions, page hierarchy and shared chrome",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "accessibility-semantics"]
+    },
+    {
+      "id": "shell-common-overlays",
+      "label": "Common overlays and feedback",
+      "area": "shell",
+      "scope": "Dialogs, drawers, menus, confirmations, toasts and shared progress feedback",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["interaction-states", "keyboard-navigation", "accessibility-semantics", "loading-empty-success-warning-error", "data-preservation"]
+    },
+    {
+      "id": "dashboard",
+      "label": "Dashboard",
+      "area": "workflow",
+      "scope": "Projects, visual connection status, storage and links to component Settings",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "responsive-layout", "loading-empty-success-warning-error", "recovery-guidance"]
+    },
+    {
+      "id": "learn",
+      "label": "Learn",
+      "area": "workflow",
+      "scope": "Learning modules, introduction, terminology and contextual instruction",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "responsive-layout", "keyboard-navigation", "accessibility-semantics"]
+    },
+    {
+      "id": "planner",
+      "label": "Plan",
+      "area": "workflow",
+      "scope": "Simple Start and story planning",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "responsive-layout", "data-preservation"]
+    },
+    {
+      "id": "visuals",
+      "label": "Storyboard",
+      "area": "workflow",
+      "scope": "Visual board, storyboard frames and continuity",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "data-preservation"]
+    },
+    {
+      "id": "script",
+      "label": "Write",
+      "area": "workflow",
+      "scope": "Outline, screenplay editor, scene navigation and revisions",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "data-preservation"]
+    },
+    {
+      "id": "pitch",
+      "label": "Graphic Novel",
+      "area": "workflow",
+      "scope": "Graphic Novel planning, panels, reader, dialogue and export",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "loading-empty-success-warning-error", "data-preservation"]
+    },
+    {
+      "id": "build",
+      "label": "Build",
+      "area": "workflow",
+      "scope": "24 Blocks, 96 mini-blocks and structural arrangement",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "data-preservation"]
+    },
+    {
+      "id": "feedback",
+      "label": "Feedback",
+      "area": "workflow",
+      "scope": "Review notes, evidence, proposals and decisions",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "responsive-layout", "loading-empty-success-warning-error", "recovery-guidance"]
+    },
+    {
+      "id": "engines",
+      "label": "Refine",
+      "area": "workflow",
+      "scope": "Specialist refinement engines and guided improvement",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "responsive-layout", "loading-empty-success-warning-error", "data-preservation"]
+    },
+    {
+      "id": "reports",
+      "label": "Reports",
+      "area": "workflow",
+      "scope": "Story, production, scheduling and readiness reports",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "responsive-layout", "keyboard-navigation", "accessibility-semantics", "loading-empty-success-warning-error"]
+    },
+    {
+      "id": "collab",
+      "label": "Collab",
+      "area": "collaboration",
+      "scope": "Repository approvals, meetings, calendar and collaborators",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "responsive-layout", "loading-empty-success-warning-error", "recovery-guidance"]
+    },
+    {
+      "id": "community",
+      "label": "Community",
+      "area": "collaboration",
+      "scope": "Buzz community status, rooms and Buzz Desktop handoff",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "responsive-layout", "loading-empty-success-warning-error", "recovery-guidance"]
+    },
+    {
+      "id": "suggest-report",
+      "label": "Suggest / Report",
+      "area": "collaboration",
+      "scope": "Structured product suggestions and issue reporting",
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "recovery-guidance"]
+    },
+    {
+      "id": "settings-overview-sitemap",
+      "label": "Settings overview and Sitemap",
+      "area": "settings",
+      "scope": "Settings information architecture, search, overview and complete Sitemap",
+      "targets": ["sitemap"],
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "accessibility-semantics"]
+    },
+    {
+      "id": "settings-general",
+      "label": "General and Project Defaults",
+      "area": "settings",
+      "scope": "General preferences, startup behaviour and project defaults",
+      "targets": ["general", "project-defaults"],
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "responsive-layout", "data-preservation"]
+    },
+    {
+      "id": "settings-appearance-accessibility",
+      "label": "Appearance & Accessibility",
+      "area": "settings",
+      "scope": "Theme, density, contrast, motion and interface text",
+      "targets": ["appearance"],
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "accessibility-semantics", "data-preservation"]
+    },
+    {
+      "id": "settings-runtime",
+      "label": "PlotPickle Runtime",
+      "area": "settings",
+      "scope": "Local runtime status, versions, repair and update guidance",
+      "targets": ["runtime"],
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance"]
+    },
+    {
+      "id": "settings-ollama",
+      "label": "Ollama",
+      "area": "settings",
+      "scope": "Local service status, model selection, testing and repair",
+      "targets": ["ollama"],
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+    },
+    {
+      "id": "settings-comfyui",
+      "label": "ComfyUI",
+      "area": "settings",
+      "scope": "Endpoint, checkpoints, workflows, live tests and repair",
+      "targets": ["comfyui"],
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+    },
+    {
+      "id": "settings-buzz",
+      "label": "Buzz installation and runtime",
+      "area": "settings",
+      "scope": "Buzz Desktop detection, identity, community, rooms and runtime repair",
+      "targets": ["buzz"],
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+    },
+    {
+      "id": "settings-openai",
+      "label": "OpenAI",
+      "area": "settings",
+      "scope": "API credentials, model choices, testing and provider repair",
+      "targets": ["openai", "ai"],
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+    },
+    {
+      "id": "settings-minimax",
+      "label": "MiniMax",
+      "area": "settings",
+      "scope": "Text, image and video model configuration and paid-test consent",
+      "targets": ["minimax"],
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+    },
+    {
+      "id": "settings-github",
+      "label": "GitHub repository and authorization",
+      "area": "settings",
+      "scope": "GitHub App authorization, story repositories, proposals, approvals and recovery",
+      "targets": ["github"],
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+    },
+    {
+      "id": "settings-google",
+      "label": "Google account, Calendar and Meet",
+      "area": "settings",
+      "scope": "Desktop OAuth, account status, Calendar and Meet permissions",
+      "targets": ["google"],
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+    },
+    {
+      "id": "settings-storage-recovery",
+      "label": "Storage, projects, backups and recovery",
+      "area": "settings",
+      "scope": "Canonical project files, assets, rolling backups, restore and recovery",
+      "targets": ["storage"],
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+    },
+    {
+      "id": "settings-plugins-connections",
+      "label": "Plugins and connections",
+      "area": "settings",
+      "scope": "Installed plugins, permissions and optional connection management",
+      "targets": ["plugins"],
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+    },
+    {
+      "id": "settings-privacy-credentials",
+      "label": "Privacy, permissions and credential vault",
+      "area": "settings",
+      "scope": "Credential storage, permissions, removal and privacy boundaries",
+      "targets": ["privacy"],
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "interaction-states", "keyboard-navigation", "accessibility-semantics", "recovery-guidance", "data-preservation"]
+    },
+    {
+      "id": "settings-about-licensing",
+      "label": "About and licensing",
+      "area": "settings",
+      "scope": "Version, repository, open-source terms and licence boundaries",
+      "targets": ["about"],
+      "status": "planned",
+      "issue": null,
+      "pullRequest": null,
+      "requirements": ["visual-system", "responsive-layout", "keyboard-navigation", "accessibility-semantics"]
+    }
+  ]
+}

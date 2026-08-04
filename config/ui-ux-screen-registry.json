@@ -29,9 +29,9 @@
       "label": "Marketing splash",
       "area": "public",
       "scope": "Public landing, product positioning and calls to action",
-      "status": "planned",
-      "issue": null,
-      "pullRequest": null,
+      "status": "audited",
+      "issue": 343,
+      "pullRequest": 344,
       "requirements": ["visual-system", "responsive-layout", "keyboard-navigation", "accessibility-semantics"]
     },
     {

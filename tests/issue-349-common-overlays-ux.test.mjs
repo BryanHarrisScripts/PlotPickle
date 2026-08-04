@@ -98,5 +98,5 @@ test("issue #349 is recorded in the canonical UI/UX registry", async () => {
   assert.ok(entry);
   assert.equal(entry.issue, 349);
   assert.equal(entry.status, "in-progress");
-  assert.equal(entry.pullRequest, null);
+  assert.equal(entry.pullRequest, 350);
 });

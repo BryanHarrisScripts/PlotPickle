@@ -30,6 +30,21 @@ function unique(values: Array<string | undefined>) {
   return [...new Set(values.filter((value): value is string => Boolean(value?.trim())).map((value) => value.trim()))];
 }
 
+function windowsBuzzCliCandidates(root: string) {
+  const join = path.win32.join;
+  const targetBinary = "buzz-x86_64-pc-windows-msvc.exe";
+
+  return [
+    join(root, "binaries", targetBinary),
+    join(root, "resources", "binaries", targetBinary),
+    join(root, "resources", targetBinary),
+    join(root, targetBinary),
+    join(root, "binaries", "buzz.exe"),
+    join(root, "resources", "binaries", "buzz.exe"),
+    join(root, "resources", "buzz.exe"),
+  ];
+}
+
 export function buzzDesktopCliCandidates(
   platform: NodeJS.Platform = process.platform,
   env: NodeJS.ProcessEnv = process.env,
@@ -46,20 +61,20 @@ export function buzzDesktopCliCandidates(
       programFiles ? join(programFiles, "Buzz") : undefined,
       programFilesX86 ? join(programFilesX86, "Buzz") : undefined,
     ]);
-    return unique(roots.flatMap((root) => [
-      join(root, "buzz.exe"),
-      join(root, "resources", "buzz.exe"),
-      join(root, "buzz-x86_64-pc-windows-msvc.exe"),
-      join(root, "resources", "buzz-x86_64-pc-windows-msvc.exe"),
-    ]));
+
+    // Buzz Desktop's GUI is normally installed as Buzz.exe in the root folder.
+    // Windows paths are case-insensitive, so probing root\buzz.exe can launch the
+    // GUI instead of the bundled CLI. Only search sidecar-specific names and
+    // directories here; a separately installed CLI remains available through PATH.
+    return unique(roots.flatMap(windowsBuzzCliCandidates));
   }
 
   const join = path.posix.join;
   if (platform === "darwin") {
     return unique([
-      "/Applications/Buzz.app/Contents/MacOS/buzz",
+      "/Applications/Buzz.app/Contents/Resources/binaries/buzz",
       "/Applications/Buzz.app/Contents/Resources/buzz",
-      join(home, "Applications", "Buzz.app", "Contents", "MacOS", "buzz"),
+      join(home, "Applications", "Buzz.app", "Contents", "Resources", "binaries", "buzz"),
       join(home, "Applications", "Buzz.app", "Contents", "Resources", "buzz"),
     ]);
   }
@@ -68,8 +83,10 @@ export function buzzDesktopCliCandidates(
     join(home, ".local", "bin", "buzz"),
     "/usr/local/bin/buzz",
     "/usr/bin/buzz",
-    "/opt/Buzz/buzz",
+    "/opt/Buzz/binaries/buzz",
+    "/opt/Buzz/resources/binaries/buzz",
     "/opt/Buzz/resources/buzz",
+    "/usr/lib/buzz/binaries/buzz",
     "/usr/lib/buzz/buzz",
   ]);
 }

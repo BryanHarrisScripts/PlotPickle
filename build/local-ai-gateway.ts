@@ -1,5 +1,6 @@
 import type { Plugin, ViteDevServer } from "vite";
 import { localAiGateway as legacyLocalAiGateway } from "./local-ai-gateway-base";
+import { registerAiRoutingGateway } from "./ai-routing-gateway";
 import { registerWritingAssistantGateway } from "./writing-assistant-gateway";
 import { registerNativeH3Gateway } from "./comfyui-h3-native-gateway";
 import { registerMediaRoutingGateway } from "./media-routing-gateway";
@@ -56,6 +57,7 @@ export function localAiGateway(): Plugin {
     name: "plotpickle-local-ai-gateway-with-routing",
     configureServer(server) {
       registerSingleImageBoundary(server);
+      registerAiRoutingGateway(server);
       registerNativeH3Gateway(server);
       registerMediaRoutingGateway(server);
       registerWritingAssistantGateway(server);

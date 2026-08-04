@@ -33,16 +33,17 @@ export const providerPresets: ProviderPreset[] = [
       baseUrl: "https://api.openai.com/v1",
       enabled: true,
       secretSource: "session",
-      capabilities: ["text", "structured-output", "vision", "image-generation", "image-editing", "knowledge-search", "prompt-export"],
+      capabilities: ["text", "structured-output", "vision", "image-generation", "image-editing", "video-generation", "knowledge-search", "prompt-export"],
       models: {
         text: "gpt-5.6",
         vision: "gpt-5.6",
         image: "gpt-image-2",
+        video: "sora-2",
       },
     },
     limitations: [
       "ChatGPT subscriptions and OpenAI API billing are separate.",
-      `OpenAI video is not enabled because the current Sora 2 Videos API is scheduled to shut down on ${OPENAI_VIDEO_SUNSET}.`,
+      `OpenAI video remains an explicit BYOK choice because the current Sora 2 Videos API is scheduled to shut down on ${OPENAI_VIDEO_SUNSET}. PlotPickle will not fall back to it automatically.`,
     ],
   },
   {
@@ -169,4 +170,3 @@ export function safeErrorMessage(value: unknown) {
   if (value instanceof Error) return value.message.replace(/sk-[a-zA-Z0-9_-]+/g, "[redacted]");
   return "The AI provider returned an unknown error.";
 }
-

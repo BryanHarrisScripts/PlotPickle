@@ -226,6 +226,13 @@ export default function SettingsSitemap({
       <section className={styles.section} aria-labelledby="sitemap-configuration">
         <header><span>03</span><div><h2 id="sitemap-configuration">Configuration</h2><p>Open every Settings area, including local runtime, storage, credentials, GitHub, Google, Buzz, AI and media-engine boundaries.</p></div></header>
         <div className={styles.grid}>
+          <SiteCard
+            label="AI Routing"
+            description="Choose one provider independently for text, images and video, including low-cost local routes, paid cloud routes and Off states."
+            meta="AI & Media"
+            status={{ label: "Configure", tone: "ready", detail: "Routing choices are stored locally and never silently fall back to a paid provider." }}
+            action={<Link href="/ai-routing">Open AI Routing</Link>}
+          />
           {settingsItems.map(({ item, group }) => (
             <SiteCard
               key={`${group}-${item.id}`}

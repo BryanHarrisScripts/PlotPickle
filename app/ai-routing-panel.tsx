@@ -188,7 +188,7 @@ export default function AiRoutingPanel() {
                   const label = OPTION_LABELS[capability][route];
                   const pending = working === `${capability}:${route}`;
                   return (
-                    <article className={styles.option} data-selected={selected} data-ready={option.ready} key={route}>
+                    <div className={styles.option} data-selected={selected} data-ready={option.ready} key={route}>
                       <label>
                         <input
                           type="radio"
@@ -211,7 +211,7 @@ export default function AiRoutingPanel() {
                       </dl>
                       {selected && !option.ready ? <p className={styles.warning}>{option.error || "This route is selected but still needs configuration or a successful test."}</p> : null}
                       {option.settingsTarget ? <button type="button" className={styles.settingsLink} onClick={() => openSettings(option.settingsTarget)}>Open {label.title.split(" · ")[0]} Settings</button> : null}
-                    </article>
+                    </div>
                   );
                 })}
               </div>
@@ -225,7 +225,7 @@ export default function AiRoutingPanel() {
         <p>API keys remain outside PPF story projects. Changing a route does not delete another provider’s key, model, checkpoint or workflow.</p>
       </footer>
 
-      <p className={styles.notice} role="status">{notice}</p>
+      <p className={styles.notice} aria-live="polite">{notice}</p>
     </section>
   );
 }

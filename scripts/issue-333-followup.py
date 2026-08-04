@@ -136,7 +136,7 @@ path = "tests/issue-256-setup-connections-dashboard.test.mjs"
 source = read(path)
 source = source.replace(
     '    "Cloud images & video · OpenAI, MiniMax or another provider",\n',
-    '    "Cloud writing & images · OpenAI",\n    "    Cloud text, images & H3 video · MiniMax",\n',
+    '    "Cloud writing & images · OpenAI",\n    "Cloud text, images & H3 video · MiniMax",\n',
     1,
 )
 source = replace_once(

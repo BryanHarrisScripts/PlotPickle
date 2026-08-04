@@ -40,18 +40,18 @@ test("issue #242 records the supported Buzz Desktop v0.5.3 boundary", () => {
   assert.equal(discovery.exports.BUZZ_DESKTOP_COMPATIBILITY.windowsAsset, "Buzz_0.5.3_x64-setup_alpha-unsigned.exe");
 });
 
-test("issue #317 searches Windows Buzz CLI sidecars without selecting the desktop GUI", () => {
+test("issue #320 includes the installed root Buzz CLI sidecar and alternate packaged layouts", () => {
   const candidates = discovery.exports.buzzDesktopCliCandidates("win32", {
     LOCALAPPDATA: "C:\\Users\\Bryan\\AppData\\Local",
     ProgramFiles: "C:\\Program Files",
     "ProgramFiles(x86)": "C:\\Program Files (x86)",
   }, "C:\\Users\\Bryan");
 
-  assert.equal(candidates[0], "C:\\Users\\Bryan\\AppData\\Local\\Buzz\\binaries\\buzz-x86_64-pc-windows-msvc.exe");
+  assert.equal(candidates[0], "C:\\Users\\Bryan\\AppData\\Local\\Buzz\\buzz.exe");
+  assert.ok(candidates.includes("C:\\Users\\Bryan\\AppData\\Local\\Buzz\\buzz-x86_64-pc-windows-msvc.exe"));
   assert.ok(candidates.includes("C:\\Users\\Bryan\\AppData\\Local\\Programs\\Buzz\\resources\\binaries\\buzz.exe"));
   assert.ok(candidates.includes("C:\\Program Files\\Buzz\\resources\\buzz.exe"));
-  assert.ok(!candidates.some((candidate) => candidate.toLowerCase() === "c:\\users\\bryan\\appdata\\local\\buzz\\buzz.exe"));
-  assert.ok(!candidates.some((candidate) => candidate.toLowerCase() === "c:\\program files\\buzz\\buzz.exe"));
+  assert.ok(!candidates.some((candidate) => candidate.toLowerCase().endsWith("\\buzz-desktop.exe")));
   assert.equal(new Set(candidates).size, candidates.length);
 });
 
@@ -73,9 +73,9 @@ test("issue #242 preserves explicit configuration and environment precedence", a
   assert.equal(environment.source, "environment");
 });
 
-test("issue #317 discovers the bundled CLI sidecar and skips the case-insensitive GUI path", async () => {
-  const desktopGuiPath = "C:\\Users\\Bryan\\AppData\\Local\\Programs\\Buzz\\Buzz.exe";
-  const sidecarPath = "C:\\Users\\Bryan\\AppData\\Local\\Programs\\Buzz\\resources\\binaries\\buzz.exe";
+test("issue #320 discovers the root packaged CLI before PATH fallback", async () => {
+  const desktopGuiPath = "C:\\Users\\Bryan\\AppData\\Local\\Programs\\Buzz\\buzz-desktop.exe";
+  const sidecarPath = "C:\\Users\\Bryan\\AppData\\Local\\Programs\\Buzz\\buzz.exe";
   const checked = [];
   const discovered = await discovery.exports.resolveBuzzCliExecutable("", {
     platform: "win32",
@@ -91,6 +91,7 @@ test("issue #317 discovers the bundled CLI sidecar and skips the case-insensitiv
   assert.equal(discovered.source, "buzz-desktop");
   assert.equal(discovered.discovered, true);
   assert.equal(discovered.releaseTag, "desktop-v0.5.3");
+  assert.ok(checked.some((candidate) => candidate.toLowerCase() === sidecarPath.toLowerCase()));
   assert.ok(!checked.some((candidate) => candidate.toLowerCase() === desktopGuiPath.toLowerCase()));
 
   const missing = await discovery.exports.resolveBuzzCliExecutable("", {

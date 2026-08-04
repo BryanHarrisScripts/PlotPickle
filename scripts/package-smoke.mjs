@@ -101,10 +101,21 @@ assert.match(launcherSource, /PLOTPICKLE_GOOGLE_OAUTH_CONFIG/);
 assert.match(launcherSource, /config[\\/]google-oauth\.json/);
 assert.ok(!launcherSource.includes("0.0.0.0"), "Release launcher must remain loopback-only.");
 if (manifest.platform === "windows") {
-  assert.match(launcherSource, /scripts\\install-buzz-desktop\.ps1/i);
-  assert.match(launcherSource, /scripts\\install-local-ai-tool\.ps1/i);
-  assert.match(launcherSource, /Install %LOCAL_AI_TOOL% now\? \[Y\/N\]:/);
-  assert.match(launcherSource, /Install Buzz Desktop !BUZZ_DESKTOP_VERSION! now\? \[Y\/N\]:/);
-  assert.match(launcherSource, /PlotPickle will continue normally/);
+  const executableLauncher = launcherSource
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !/^rem(?:\s|$)/i.test(line) && !/^::/.test(line))
+    .join("\n");
+
+  assert.match(launcherSource, /title PlotPickle - Local App/);
+  assert.match(launcherSource, /\[STEP 1 OF 3\] Preparing the required local runtime/);
+  assert.match(launcherSource, /\[STEP 2 OF 3\] Checking required PlotPickle components/);
+  assert.match(launcherSource, /\[STEP 3 OF 3\] Starting the private local server/);
+  assert.match(launcherSource, /PlotPickle is already running/);
+  assert.match(launcherSource, /--strictPort/);
+  assert.match(launcherSource, /READY_TIMEOUT_SECONDS=60/);
+  assert.match(launcherSource, /independent Settings pages/);
+  assert.doesNotMatch(executableLauncher, /install-buzz-desktop\.ps1|install-local-ai-tool\.ps1/i);
+  assert.doesNotMatch(executableLauncher, /Install (?:Ollama|ComfyUI|Buzz Desktop).*\[Y\/N\]/i);
 }
 console.log(`Verified ${manifest.platform} PlotPickle ${manifest.version} package at ${folder}`);

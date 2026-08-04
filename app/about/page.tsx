@@ -35,14 +35,14 @@ export default function AboutPlotPicklePage() {
             <p>
               PlotPickle is a local-first visual storyworld collaboration and previsualization engine built around Bryan Harris&apos;s 24 Blocks method. It connects story logic, canon, characters, visuals, shots and sound in one portable PPF project and interactive map so a creative team can see, test and present the whole movie before full production.
             </p>
-            <div className={styles.actions} aria-label="About PlotPickle actions">
+            <nav className={styles.actions} aria-label="About PlotPickle actions">
               <Link className={styles.primaryAction} href="/">Open PlotPickle</Link>
               <Link href="/read-learn?module=why-plotpickle-works-in-layers">Learn why the layers connect</Link>
               <Link href="/legal">Copyright and licensing</Link>
               <Link href="/suggest-report">Suggest or report a problem</Link>
-            </div>
+            </nav>
           </div>
-          <aside aria-label="Human approval boundary">
+          <aside>
             <strong>The writer&apos;s decisions define the work.</strong>
             <p>Tools may organize, diagnose, compare or propose. Nothing becomes canon until the writer or authorized project owner accepts it.</p>
           </aside>
@@ -96,9 +96,16 @@ export default function AboutPlotPicklePage() {
 
         <section className={styles.panel}>
           <header><span>Legacy feature convergence</span><h2>How the separate experiments were absorbed</h2><p>Deferred or retired experiments are not silently added to the roadmap.</p></header>
-          <div className={styles.table} role="table" aria-label="Legacy feature convergence map">
-            <div className={styles.tableHeader} role="row"><strong role="columnheader">Legacy concept</strong><strong role="columnheader">PlotPickle evolution</strong></div>
-            {convergenceMap.map(([legacy, current]) => <div role="row" key={legacy}><span role="cell">{legacy}</span><span role="cell">{current}</span></div>)}
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <caption className={styles.srOnly}>Legacy feature convergence map</caption>
+              <thead>
+                <tr><th scope="col">Legacy concept</th><th scope="col">PlotPickle evolution</th></tr>
+              </thead>
+              <tbody>
+                {convergenceMap.map(([legacy, current]) => <tr key={legacy}><th scope="row">{legacy}</th><td>{current}</td></tr>)}
+              </tbody>
+            </table>
           </div>
         </section>
 

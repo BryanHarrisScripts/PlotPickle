@@ -69,7 +69,7 @@ test("issue #301 aligns README product truth with the splash", async () => {
     "8 GB VRAM system is treated as constrained",
     "A GitHub account and one story repository",
     "A Buzz or BuilderLab account",
-    "The user’s own provider account, API key and billing",
+    "The user’s own provider account, API key, billing",
     "Windows, macOS and Linux packaging validation",
     "GNU AGPLv3 or later",
   ]) assert.ok(readme.includes(phrase), `README is missing refreshed product truth: ${phrase}`);

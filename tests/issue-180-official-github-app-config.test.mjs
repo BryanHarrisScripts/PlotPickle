@@ -24,7 +24,8 @@ test("issue #180 commits one registered non-secret GitHub App identity", async (
   assert.equal(config.product, "PlotPickle");
   assert.equal(config.registrationStatus, "registered");
   assert.match(config.clientId, /^[A-Za-z0-9._-]{8,200}$/);
-  assert.match(config.slug, /^[a-z0-9-]+$/);
+  assert.equal(config.slug, "plotpickle-github-app");
+  assert.equal(config.installUrl, "https://github.com/apps/plotpickle-github-app/installations/new");
   assert.equal(config.installUrl, `https://github.com/apps/${config.slug}/installations/new`);
   assert.equal(config.deviceFlow, true);
   assert.equal(config.expiringUserTokens, true);
@@ -82,11 +83,13 @@ test("issue #180 provides one owner registration helper and user-facing release 
   ]);
   for (const contract of [
     "https://github.com/settings/apps/new",
+    'url.searchParams.set("name", "PlotPickle GitHub App")',
     'url.searchParams.set("contents", "write")',
     'url.searchParams.set("pull_requests", "write")',
     'url.searchParams.set("administration", "write")',
     'url.searchParams.set("webhook_active", "false")',
     "configure <client-id> <app-slug>",
+    "https://github.com/apps/plotpickle-github-app",
   ]) assert.ok(`${registration}\n${docs}`.includes(contract), `Registration helper is missing: ${contract}`);
   assert.doesNotMatch(registration, /client_secret|private_key|webhook_secret/);
   assert.match(guidance, /GitHub connection is unavailable in this download/);

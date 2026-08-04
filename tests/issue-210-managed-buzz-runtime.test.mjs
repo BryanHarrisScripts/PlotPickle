@@ -5,6 +5,7 @@ import "./issue-212-buzz-dashboard-marketing-alignment.test.mjs";
 import "./issue-214-buzz-story-room.test.mjs";
 import "./issue-216-buzz-integration-fix.test.mjs";
 import "./issue-242-buzz-desktop-discovery.test.mjs";
+import "./issue-324-buzz-cli-capability.test.mjs";
 
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");

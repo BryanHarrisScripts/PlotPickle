@@ -1,3 +1,4 @@
+// Shared loopback-only ComfyUI endpoint contract for dashboard and media routing.
 export const DEFAULT_COMFYUI_BASE_URL = "http://127.0.0.1:8188";
 
 export function normalizeComfyUIBaseUrl(value: unknown) {

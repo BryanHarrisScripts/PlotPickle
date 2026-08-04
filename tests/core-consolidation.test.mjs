@@ -14,7 +14,7 @@ const integrationLabels = [
 
 test("core consolidation describes the completed visual storyworld core", async () => {
   const [contract, splash, about, welcome, readme] = await Promise.all([
-    source("lib/product-contract.ts"),
+    source("lib/product-direction.ts"),
     source("app/marketing-splash.tsx"),
     source("app/about/page.tsx"),
     source("app/welcome-page.tsx"),

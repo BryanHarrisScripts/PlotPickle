@@ -182,13 +182,13 @@ export default function AiRoutingPanel() {
             <fieldset className={styles.group} key={capability}>
               <legend>{title}</legend>
               <p>{description}</p>
-              <div className={styles.options}>
+              <ul className={styles.options}>
                 {Object.entries(group.options).map(([route, option]) => {
                   const selected = group.selected === route;
                   const label = OPTION_LABELS[capability][route];
                   const pending = working === `${capability}:${route}`;
                   return (
-                    <div className={styles.option} data-selected={selected} data-ready={option.ready} key={route}>
+                    <li className={styles.option} data-selected={selected} data-ready={option.ready} key={route}>
                       <label>
                         <input
                           type="radio"
@@ -211,10 +211,10 @@ export default function AiRoutingPanel() {
                       </dl>
                       {selected && !option.ready ? <p className={styles.warning}>{option.error || "This route is selected but still needs configuration or a successful test."}</p> : null}
                       {option.settingsTarget ? <button type="button" className={styles.settingsLink} onClick={() => openSettings(option.settingsTarget)}>Open {label.title.split(" · ")[0]} Settings</button> : null}
-                    </div>
+                    </li>
                   );
                 })}
-              </div>
+              </ul>
             </fieldset>
           );
         })}

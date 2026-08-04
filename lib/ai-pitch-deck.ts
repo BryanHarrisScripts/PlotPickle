@@ -1,5 +1,6 @@
 import type { ComicPitchDeck, ComicPitchPanel, PlotPickleProject } from "./project";
 import * as legacy from "./ai-pitch-deck-base";
+import { isAfterglowProject } from "./afterglow-legacy-visuals";
 import { graphicNovelBubblePlacement } from "./graphic-novel-bubbles";
 
 export * from "./ai-pitch-deck-base";
@@ -18,6 +19,10 @@ const TERMINOLOGY_REPLACEMENTS: ReadonlyArray<readonly [RegExp, string]> = [
   [/comic pitch/gi, "Graphic Novel"],
 ];
 
+const BUNDLED_AFTERGLOW_ASSET_PREFIX = "/afterglow/storyboard/";
+const BUNDLED_AFTERGLOW_PROVIDER = "PlotPickle bundled sample";
+const BUNDLED_AFTERGLOW_MODEL = "Afterglow storyboard";
+
 const GRAPHIC_NOVEL_BUBBLE_EXPORT_CSS = `
 .bubbles{position:absolute;inset:0;display:block;pointer-events:none}
 .bubbles blockquote{position:absolute;max-width:none;margin:0;padding:8px 11px;border:2px solid #111;border-radius:48% 52% 46% 54%/55% 44% 56% 45%;background:#fff;color:#111;text-align:center;box-shadow:2px 2px 0 #111;transform:none}
@@ -30,6 +35,43 @@ const GRAPHIC_NOVEL_BUBBLE_EXPORT_CSS = `
 .bubbles blockquote[data-style="caption"]::after,.bubbles blockquote[data-tail="none"]::after{display:none}
 .bubbles strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bubbles p{overflow-wrap:anywhere}
 `;
+
+function bundledAfterglowPanelSource(project: PlotPickleProject, panel: ComicPitchPanel) {
+  if (!isAfterglowProject(project)) return "";
+  const block = project.blocks.find((item) => item.number === panel.blockNumber);
+  const source = block?.visuals.find((item) => item.miniBlockNumber === panel.miniBlockNumber)?.src ?? "";
+  return source.startsWith(BUNDLED_AFTERGLOW_ASSET_PREFIX) ? source : "";
+}
+
+export function withBundledAfterglowGraphicNovel(
+  project: PlotPickleProject,
+  deck: ComicPitchDeck,
+  enabled = true,
+): ComicPitchDeck {
+  if (!enabled || !isAfterglowProject(project)) return deck;
+  const panels = deck.panels.map((panel) => {
+    if (panel.imageSrc) return panel;
+    const source = bundledAfterglowPanelSource(project, panel);
+    if (!source) return panel;
+    return {
+      ...panel,
+      imageSrc: source,
+      revisedPrompt: panel.revisedPrompt || panel.prompt,
+      status: "complete" as const,
+      error: "",
+      provider: BUNDLED_AFTERGLOW_PROVIDER,
+      model: BUNDLED_AFTERGLOW_MODEL,
+      generatedAt: panel.generatedAt || project.metadata.updatedAt || deck.createdAt,
+    };
+  });
+  return {
+    ...deck,
+    status: panels.length && panels.every((panel) => panel.status === "complete" && panel.imageSrc)
+      ? "complete"
+      : deck.status,
+    panels,
+  };
+}
 
 export function graphicNovelText(value: string) {
   return TERMINOLOGY_REPLACEMENTS.reduce(
@@ -92,22 +134,75 @@ export function createComicPitchDeckPlan(
   previous?: ComicPitchDeck,
   preserveCompleted = true,
 ): ComicPitchDeck {
-  return normalizeDeckTerminology(legacy.createComicPitchDeckPlan(project, previous, preserveCompleted));
+  const planned = legacy.createComicPitchDeckPlan(project, previous, preserveCompleted);
+  return normalizeDeckTerminology(withBundledAfterglowGraphicNovel(project, planned, preserveCompleted));
 }
 
 export const createGraphicNovelPlan = createComicPitchDeckPlan;
+
+export function comicPitchReferenceImages(project: PlotPickleProject, panel: ComicPitchPanel) {
+  const references = legacy.comicPitchReferenceImages(project, panel);
+  if (references.length) return references;
+  const bundled = bundledAfterglowPanelSource(project, panel) || panel.imageSrc;
+  return bundled.startsWith(BUNDLED_AFTERGLOW_ASSET_PREFIX) ? [bundled] : [];
+}
+
+export function comicPitchIdentityLocks(project: PlotPickleProject, panel: ComicPitchPanel) {
+  const locked = legacy.comicPitchIdentityLocks(project, panel);
+  const bundled = bundledAfterglowPanelSource(project, panel) || panel.imageSrc;
+  if (!bundled.startsWith(BUNDLED_AFTERGLOW_ASSET_PREFIX) || locked.length === panel.characterIds.length) return locked;
+  const byCharacter = new Map(locked.map((item) => [item.characterId, item]));
+  return panel.characterIds.flatMap((characterId) => {
+    const existing = byCharacter.get(characterId);
+    if (existing) return [existing];
+    const character = project.characters.find((item) => item.id === characterId);
+    if (!character) return [];
+    return [{
+      characterId,
+      characterName: character.name,
+      version: 1,
+      approvedPrompt: [
+        `Bundled Afterglow demonstration identity for ${character.name}.`,
+        character.description,
+        "Use the packaged storyboard frame as the editable sample reference and preserve the established design while experimenting.",
+      ].filter(Boolean).join(" "),
+    }];
+  });
+}
+
+export function comicPitchDeckPreflight(project: PlotPickleProject, deck: ComicPitchDeck) {
+  const hydrated = withBundledAfterglowGraphicNovel(project, deck);
+  const result = legacy.comicPitchDeckPreflight(project, hydrated);
+  if (!isAfterglowProject(project)) return result;
+  const bundledCharacterIds = new Set(
+    hydrated.panels
+      .filter((panel) => panel.imageSrc.startsWith(BUNDLED_AFTERGLOW_ASSET_PREFIX))
+      .flatMap((panel) => panel.characterIds),
+  );
+  return {
+    ...result,
+    completePanels: hydrated.panels.filter((panel) => panel.status === "complete" && panel.imageSrc).length,
+    remainingImages: hydrated.panels.filter((panel) => panel.status !== "complete" || !panel.imageSrc).length,
+    lockedCharacterCount: result.relevantCharacterCount,
+    missingCharacterLocks: [],
+    approvedReferenceCount: Math.max(result.approvedReferenceCount, bundledCharacterIds.size),
+    ready: result.panelCount === 96 && result.canonicalPositionCount === 96,
+  };
+}
 
 export function buildComicPitchDeckHtml(
   project: PlotPickleProject,
   imageDataByPanel: Record<string, string> = {},
 ) {
-  const deck = normalizeDeckTerminology(
+  const deck = normalizeDeckTerminology(withBundledAfterglowGraphicNovel(
+    project,
     project.review.pitchPackage.comicDeck ?? legacy.createComicPitchDeckPlan(project),
-  );
-  const html = graphicNovelText(legacy.buildComicPitchDeckHtml(project, imageDataByPanel))
+  ));
+  const prepared = legacy.withComicPitchDeck(project, deck);
+  const html = graphicNovelText(legacy.buildComicPitchDeckHtml(prepared, imageDataByPanel))
     .replace(/PlotPickle Graphic Novel Deck/gi, "PlotPickle Graphic Novel")
     .replace(/— Graphic Novel Deck/gi, "— Graphic Novel");
-  return applyGraphicNovelBubbleLayouts(html, project, deck);
+  return applyGraphicNovelBubbleLayouts(html, prepared, deck);
 }
 
 export const buildGraphicNovelHtml = buildComicPitchDeckHtml;

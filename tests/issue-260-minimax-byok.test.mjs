@@ -6,27 +6,27 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #260 registers MiniMax as a native BYOK provider", async () => {
-  const [registry, provider, route, project] = await Promise.all([
-    source("lib/ai-provider-registry.ts"),
-    source("lib/minimax.ts"),
-    source("app/api/ai/minimax/route.ts"),
-    source("lib/project.ts"),
+  const [registry, provider, gateway] = await Promise.all([
+    source("lib/ai/providers.ts"),
+    source("build/cloud-media-provider.ts"),
+    source("build/media-routing-gateway.ts"),
   ]);
-  assert.match(registry, /minimax/);
-  assert.match(registry, /MiniMax/);
-  assert.match(provider, /api\.minimax\.io/);
-  assert.match(provider, /image-01/);
-  assert.match(provider, /H3/);
-  assert.match(route, /createMinimaxImage/);
-  assert.match(route, /createMinimaxVideo/);
-  assert.match(project, /minimax/);
+  assert.match(registry, /kind: "minimax"/);
+  assert.match(registry, /MiniMax API/);
+  assert.match(registry, /api\.minimax\.io/);
+  assert.match(registry, /image-01/);
+  assert.match(registry, /MiniMax-H3/);
+  assert.match(provider, /\/v1\/image_generation/);
+  assert.match(provider, /createCloudVideo/);
+  assert.match(provider, /\/v2\/video_generation/);
+  assert.match(gateway, /generateCloudImage/);
+  assert.match(gateway, /createCloudVideo/);
 });
 
 test("issue #260 enforces explicit billing acknowledgement and one request at a time", async () => {
-  const route = await source("app/api/ai/minimax/route.ts");
-  assert.match(route, /billingAcknowledged !== true/);
-  assert.match(route, /requestCount !== 1/);
-  assert.match(route, /PAID_REQUEST_NOT_CONFIRMED/);
+  const provider = await source("build/cloud-media-provider.ts");
+  assert.match(provider, /input\.billingAcknowledged !== true \|\| input\.requestCount !== 1/);
+  assert.match(provider, /Confirm this one paid image request/);
   const paths = [
     "app/use-graphic-novel-queue.ts",
     "app/use-cast-identity-queue.ts",

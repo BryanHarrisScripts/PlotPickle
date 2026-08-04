@@ -52,7 +52,7 @@ function WorkspaceButton({
 }
 
 function ShellDivider() {
-  return <span className="shell-divider" aria-hidden="true" />;
+  return <hr className="shell-divider" aria-hidden="true" />;
 }
 
 export default function ApplicationShellHeader({ activeTab, onNavigate, onProjectAction, onOpenLanding }: ApplicationShellHeaderProps) {

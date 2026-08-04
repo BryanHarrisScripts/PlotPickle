@@ -108,11 +108,10 @@ test("the shared contract preserves status meaning and the Dashboard-to-Settings
   assert.match(contract, /navigation does not silently discard edits/);
 });
 
-test("the foundation regression is registered in the complete test suite", async () => {
-  const packageJson = JSON.parse(await source("package.json"));
-  assert.match(packageJson.scripts.test, /issue-337-ui-ux-consistency-foundation\.test\.mjs/);
-  assert.equal(
-    packageJson.scripts["test:ui-ux-consistency-foundation"],
-    "node --test tests/issue-337-ui-ux-consistency-foundation.test.mjs",
-  );
+test("the foundation regression is enforced by a focused pull-request workflow", async () => {
+  const workflow = await source(".github/workflows/ui-ux-consistency-foundation.yml");
+  assert.match(workflow, /name: UI\/UX consistency foundation/);
+  assert.match(workflow, /pull_request:/);
+  assert.match(workflow, /tests\/issue-337-ui-ux-consistency-foundation\.test\.mjs/);
+  assert.match(workflow, /Screen registry contract/);
 });

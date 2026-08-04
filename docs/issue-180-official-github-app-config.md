@@ -6,6 +6,14 @@ PlotPickle already contains the GitHub Device Flow, repository picker, repositor
 
 The public configuration contains no secret. It may contain only the GitHub App client ID, app slug, installation URL, homepage, declared settings and declared permissions.
 
+The official public application is:
+
+```text
+https://github.com/apps/plotpickle-github-app
+```
+
+Its canonical slug is `plotpickle-github-app`.
+
 ## One authenticated owner action
 
 GitHub App registration is owned by a GitHub person or organization and therefore cannot be completed by repository code or CI.

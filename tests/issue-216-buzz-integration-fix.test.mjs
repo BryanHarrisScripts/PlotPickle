@@ -22,14 +22,22 @@ test("issue #216 makes Buzz hydration deterministic", async () => {
   assert.match(route, /window\.sessionStorage\.setItem\(COLLAB_SECTION_KEY, "buzz"\)/);
 });
 
-test("issue #216 normalizes Windows text line endings without weakening checksums", async () => {
-  const [normalizer, gateway, vite] = await Promise.all([source("build/buzz-bundle-normalizer.ts"), source("build/buzz-gateway.ts"), source("vite.config.ts")]);
+test("issue #216 canonicalizes Windows text line endings without rewriting tracked files", async () => {
+  const [normalizer, gateway, vite, attributes] = await Promise.all([
+    source("build/buzz-bundle-normalizer.ts"),
+    source("build/buzz-gateway.ts"),
+    source("vite.config.ts"),
+    source(".gitattributes"),
+  ]);
   assert.match(normalizer, /canonicalBuzzText/);
+  assert.match(normalizer, /canonicalBuzzBytes/);
   assert.match(normalizer, /replace\(\/\\r\\n\?\/g, "\\n"\)/);
-  assert.match(normalizer, /configureServer/);
-  assert.match(normalizer, /configurePreviewServer/);
+  assert.doesNotMatch(normalizer, /writeFile|configureServer|configurePreviewServer/);
   assert.match(vite, /buzzBundleNormalizer\(\),\s*buzzGateway\(\)/);
   assert.match(gateway, /file\.byteLength === item\.bytes && sha256\(file\) === item\.sha256/);
+  assert.match(attributes, /runtime\/buzz\/compose\.yml text eol=lf/);
+  assert.match(attributes, /runtime\/buzz\/README\.md text eol=lf/);
+  assert.match(attributes, /runtime\/buzz\/LICENSE\.buzz\.txt text eol=lf/);
 });
 
 test("issue #216 packages and validates the complete Buzz trust bundle", async () => {

@@ -13,12 +13,18 @@ def patch(path: str, replacements: list[tuple[str, str]]) -> None:
 
 patch("tests/issue-258-creative-compute-paths.test.mjs", [
     (
-        '    "Cloud images & video · OpenAI, MiniMax or another provider",\n',
-        '    "Cloud writing & images · OpenAI",\n    "Cloud text, images & H3 video · MiniMax",\n',
+        '''    "Cloud images & video · OpenAI, MiniMax or another provider",
+''',
+        '''    "Cloud writing & images · OpenAI",
+    "Cloud text, images & H3 video · MiniMax",
+''',
     ),
     (
-        '    "No cloud provider selected",\n',
-        '    "No OpenAI provider selected",\n    "No MiniMax provider selected",\n',
+        '''    "No cloud provider selected",
+''',
+        '''    "No OpenAI provider selected",
+    "No MiniMax provider selected",
+''',
     ),
 ])
 

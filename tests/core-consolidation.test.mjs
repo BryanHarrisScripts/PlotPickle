@@ -17,7 +17,7 @@ test("core consolidation describes the completed visual storyworld core", async 
     source("lib/product-direction.ts"),
     source("app/marketing-splash.tsx"),
     source("app/about/page.tsx"),
-    source("app/welcome-page.tsx"),
+    source("app/welcome/page.tsx"),
     source("README.md"),
   ]);
   const publicCopy = `${contract}\n${splash}\n${about}\n${welcome}\n${readme}`;

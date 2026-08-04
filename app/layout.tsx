@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import CollaborationWorkspaceRouter from "./collaboration-workspace-router";
+import CommonOverlayLayer from "./common-overlay-layer";
 import CurrentDownloadLinks from "./current-download-links";
 import GitHubAppReleaseGuidance from "./github-app-release-guidance";
 import GraphicNovelTerminology from "./graphic-novel-terminology";
@@ -49,6 +50,7 @@ export default function RootLayout({
         } as React.CSSProperties}
       >
         {children}
+        <CommonOverlayLayer />
         <WriterFacingCollaborationLanguage />
         <GraphicNovelTerminology />
         <GitHubAppReleaseGuidance />

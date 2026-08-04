@@ -7,6 +7,9 @@ import taxonomySource from "../config/settings-system-taxonomy.json";
 import BuzzSettingsPanel from "./buzz-settings-panel";
 import GitHubCollaboration from "./github-collaboration";
 import LegacySettingsPanel from "./settings-panel-legacy";
+import WritingAssistantConsole from "./writing-assistant-console";
+import MediaRoutingPanel from "./media-routing-panel";
+import H3NativePanel from "./h3-native-panel";
 import SettingsSitemap from "./settings-sitemap";
 import styles from "./settings-system-navigation.module.css";
 
@@ -25,7 +28,8 @@ type LegacySection =
   | "privacy"
   | "about";
 
-type SettingsTarget = LegacySection | "sitemap";
+type ComponentSection = "ollama" | "openai" | "minimax" | "comfyui";
+type SettingsTarget = LegacySection | ComponentSection | "sitemap";
 
 type PlayhouseView = "overview" | "local" | "writers-room" | "repository" | "sitemap" | "advanced";
 type BuzzModeStatus = "checking" | "ready" | "setup" | "unavailable";
@@ -240,6 +244,25 @@ export default function SettingsPanel({
 
   function openSitemapWorkspace(id: string) {
     window.dispatchEvent(new CustomEvent("plotpickle:navigate-workspace", { detail: id }));
+  }
+
+  function openComponentTarget(value: string) {
+    const normalized = value.toLowerCase();
+    const target: ComponentSection = normalized.includes("ollama")
+      ? "ollama"
+      : normalized.includes("minimax")
+        ? "minimax"
+        : normalized.includes("comfy")
+          ? "comfyui"
+          : "openai";
+    const next = itemForTarget(target);
+    if (!next) return;
+    setPlayhouseView("advanced");
+    setActiveId(next.item.id);
+    if (next.system) setExpandedSystem(next.system.id);
+    internalTarget.current = target;
+    window.sessionStorage.setItem(SETTINGS_SECTION_KEY, target);
+    window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: target }));
   }
 
   if (!ready) return <div className={styles.loading}>Preparing Settings…</div>;
@@ -494,7 +517,40 @@ export default function SettingsPanel({
             </div>
           ) : null}
 
-          {activeItem.href ? (
+          {activeItem.target === "ollama" ? (
+            <div className={styles.embeddedMode} id="settings-component-ollama">
+              <WritingAssistantConsole onManage={openComponentTarget} focusProvider="ollama" />
+            </div>
+          ) : activeItem.target === "openai" ? (
+            <div className={styles.embeddedMode} id="settings-component-openai">
+              <LegacySettingsPanel
+                project={project}
+                onProjectChange={onProjectChange}
+                connections={connections}
+                onConnectionChange={onConnectionChange}
+                forcedSection="ai"
+                forcedProvider="openai"
+              />
+              <WritingAssistantConsole onManage={openComponentTarget} focusProvider="openai" />
+            </div>
+          ) : activeItem.target === "minimax" ? (
+            <div className={styles.embeddedMode} id="settings-component-minimax">
+              <LegacySettingsPanel
+                project={project}
+                onProjectChange={onProjectChange}
+                connections={connections}
+                onConnectionChange={onConnectionChange}
+                forcedSection="ai"
+                forcedProvider="minimax"
+              />
+              <WritingAssistantConsole onManage={openComponentTarget} focusProvider="minimax" />
+            </div>
+          ) : activeItem.target === "comfyui" ? (
+            <div className={styles.embeddedMode} id="settings-component-comfyui">
+              <MediaRoutingPanel onManage={openComponentTarget} />
+              <H3NativePanel />
+            </div>
+          ) : activeItem.href ? (
             <section className={styles.routeCard}>
               <div><p>Separate configuration workspace</p><h3>{activeItem.label}</h3><span>{activeItem.description}</span></div>
               <a href={activeItem.href}>Open {activeItem.label}</a>

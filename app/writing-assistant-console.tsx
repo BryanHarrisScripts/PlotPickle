@@ -120,7 +120,7 @@ function providerState(profile: ProviderStatus, provider: ProviderId, status: As
   return "optional";
 }
 
-export default function WritingAssistantConsole({ onManage }: { onManage: (target: string) => void }) {
+export default function WritingAssistantConsole({ onManage, focusProvider }: { onManage: (target: string) => void; focusProvider?: ProviderId }) {
   const [status, setStatus] = useState<AssistantStatus | null>(null);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [prompt, setPrompt] = useState("");
@@ -146,6 +146,8 @@ export default function WritingAssistantConsole({ onManage }: { onManage: (targe
       setNotice(error instanceof Error ? error.message : "Writing Assistant status could not be checked.");
     }
   }
+
+  const visibleProviders = focusProvider ? [focusProvider] : providerOrder;
 
   const activeProfile = useMemo(() => {
     if (!status || status.activeProvider === "disabled") return null;
@@ -255,7 +257,7 @@ export default function WritingAssistantConsole({ onManage }: { onManage: (targe
       <header className={styles.header}>
         <div>
           <p>Ask while you learn PlotPickle</p>
-          <h2 id="writing-assistant-title">Writing Assistant</h2>
+          <h2 id="writing-assistant-title">{focusProvider ? `${providerCopy[focusProvider].label} Settings` : "Writing Assistant"}</h2>
           <span>Choose one text engine. The selection also routes existing PlotPickle text assistance across Learn, Plan, Write, Feedback and Refine.</span>
         </div>
         <div className={styles.headerActions}>
@@ -265,7 +267,7 @@ export default function WritingAssistantConsole({ onManage }: { onManage: (targe
       </header>
 
       <div className={styles.providerGrid} aria-label="Writing Assistant text engine">
-        {providerOrder.map((provider) => {
+        {visibleProviders.map((provider) => {
           const profile = status?.providers[provider] ?? { configured: false, ready: false, active: false };
           const state = status ? providerState(profile, provider, status) : "optional";
           return (
@@ -280,13 +282,15 @@ export default function WritingAssistantConsole({ onManage }: { onManage: (targe
             </article>
           );
         })}
-        <article data-state={status?.activeProvider === "disabled" ? "off" : "optional"} data-active={status?.activeProvider === "disabled" || undefined}>
-          <button type="button" className={styles.providerButton} onClick={() => void selectProvider("disabled")} disabled={working || !status}>
-            <span className={styles.providerLight} aria-hidden="true" />
-            <span><strong>Off</strong><small>Use PlotPickle manually without text generation.</small></span>
-            <em>{status?.activeProvider === "disabled" ? "Selected" : "Available"}</em>
-          </button>
-        </article>
+        {!focusProvider ? (
+          <article data-state={status?.activeProvider === "disabled" ? "off" : "optional"} data-active={status?.activeProvider === "disabled" || undefined}>
+            <button type="button" className={styles.providerButton} onClick={() => void selectProvider("disabled")} disabled={working || !status}>
+              <span className={styles.providerLight} aria-hidden="true" />
+              <span><strong>Off</strong><small>Use PlotPickle manually without text generation.</small></span>
+              <em>{status?.activeProvider === "disabled" ? "Selected" : "Available"}</em>
+            </button>
+          </article>
+        ) : null}
       </div>
 
       {status?.ollama.detected && !status.providers.ollama.configured ? (

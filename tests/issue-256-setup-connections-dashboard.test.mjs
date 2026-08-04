@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import "./issue-278-writing-assistant-console.test.mjs";
+import "./issue-333-dashboard-settings-separation.test.mjs";
 
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
@@ -25,7 +26,8 @@ test("issue #256 separates included local foundations from optional user configu
     "Rolling local backups",
     "Local writing & planning · Ollama",
     "Local image generation · ComfyUI",
-    "Cloud image generation · OpenAI or another provider",
+    "Cloud writing & images · OpenAI",
+    "Cloud text, images & H3 video · MiniMax",
     "Manual image import",
     "Buzz community",
     "GitHub account & story repository",
@@ -36,24 +38,12 @@ test("issue #256 separates included local foundations from optional user configu
   assert.match(setup, /One repository per story is recommended/);
 });
 
-test("issue #256 exposes safe direct account and service setup destinations", async () => {
+test("issue #256 exposes one direct internal Settings route per component", async () => {
   const setup = await source("app/setup-connections-dashboard.tsx");
-  for (const url of [
-    "https://platform.openai.com/api-keys",
-    "https://platform.openai.com/settings/organization/billing/overview",
-    "https://developers.openai.com/api/docs/quickstart",
-    "https://ollama.com/download",
-    "https://docs.ollama.com/windows",
-    "https://comfy.org/download",
-    "https://docs.comfy.org/installation/desktop/windows",
-    "https://app.builderlab.xyz/buzz",
-    "https://github.com/signup",
-    "https://github.com/new",
-    "https://console.cloud.google.com/apis/credentials",
-  ]) assert.ok(setup.includes(url), `Setup Dashboard is missing destination: ${url}`);
-  assert.match(setup, /target="_blank" rel="noreferrer"/);
-  assert.match(setup, /NEXT_PUBLIC_PLOTPICKLE_BUZZ_INVITE_URL/);
-  assert.doesNotMatch(setup, /communities\.buzz\.xyz\/invite\/v2\./);
+  for (const target of ["ollama", "openai", "minimax", "comfyui", "github", "google", "buzz", "storage"]) {
+    assert.ok(setup.includes(`settingsSection: "${target}"`), `Setup Dashboard is missing Settings target: ${target}`);
+  }
+  assert.doesNotMatch(setup, /target="_blank" rel="noreferrer"/);
   assert.doesNotMatch(setup, /nsec1|sk-[A-Za-z0-9]|privateKey|accessToken|refreshToken/);
 });
 
@@ -61,11 +51,8 @@ test("issue #256 uses verified lifecycle semantics and tests all real connection
   const setup = await source("app/setup-connections-dashboard.tsx");
   for (const phrase of [
     "Verified and working",
-    "Optional and not configured",
     "Setup or verification needed",
     "A previously working connection has failed",
-    "Test all connections",
-    "requestConnectionStatusRefresh",
     "/api/local-buzz/status",
     "identityVerified",
     "relay?.reachable",
@@ -101,14 +88,11 @@ test("first-run configuration overview is shared by marketing and the live Dashb
 
   assert.doesNotMatch(overview, /Anthropic|Modal|Runway|Pika Labs|future provider/i);
   assert.match(host, /createPortal/);
-  assert.match(host, /#dashboard-setup/);
-  assert.match(host, /test all connections/i);
+  assert.doesNotMatch(layout, /ConfigurationDashboardHost/);
   assert.match(splash, /ConfigurationDashboardOverview/);
   assert.match(splash, /children: \[children\[0\], preview/);
-  assert.match(layout, /ConfigurationDashboardHost/);
   assert.match(layout, /first-run-configuration-dashboard\.css/);
   assert.match(ordering, /#dashboard-setup\{order:-20\}/);
-  assert.match(ordering, /configuration-details-open/);
 });
 
 test("issue #256 setup Dashboard test is registered", async () => {

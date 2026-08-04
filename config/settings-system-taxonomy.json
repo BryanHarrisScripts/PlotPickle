@@ -59,39 +59,48 @@
           ]
         },
         {
-          "id": "local-models",
-          "label": "Local Models",
-          "helpTerm": "Local · Local Models",
-          "description": "Self-hosted language models, model files and inference limits.",
+          "id": "local-ollama",
+          "label": "Ollama",
+          "helpTerm": "Local · Ollama",
+          "description": "Run, select and test a local writing model without leaving the Ollama section.",
           "status": "optional",
-          "target": "ai",
+          "target": "ollama",
           "examples": [
-            "Local LLMs",
-            "GGUF",
-            "EXL2",
-            "Quantized inference",
-            "Local context-window allocation"
+            "Ollama service",
+            "Installed LLMs",
+            "Selected writing model",
+            "Local response test"
           ],
           "mechanics": [
+            "Status",
+            "Model selection",
+            "Test response",
+            "Repair guidance",
             "Prompting",
             "Tokens",
-            "Model weights and formats"
+            "GGUF",
+            "EXL2"
           ]
         },
         {
-          "id": "local-media",
-          "label": "Local Media & Transcription",
-          "helpTerm": "Local · Local Media & Transcription",
-          "description": "Image, audio, video and transcription applications installed on this computer.",
+          "id": "local-comfyui",
+          "label": "ComfyUI",
+          "helpTerm": "Local · ComfyUI",
+          "description": "Configure the local server, checkpoints, workflows and live image tests.",
           "status": "optional",
-          "target": "plugins",
+          "target": "comfyui",
           "examples": [
-            "ComfyUI",
-            "Local media-generation nodes",
-            "Transcription tools"
+            "ComfyUI Desktop",
+            "Local checkpoints",
+            "Reviewed workflows",
+            "Native H3"
           ],
           "mechanics": [
-            "Configure and test ComfyUI from Dashboard → Setup & connections"
+            "Status",
+            "Endpoint",
+            "Checkpoint",
+            "Test image",
+            "Repair guidance"
           ]
         },
         {
@@ -116,21 +125,44 @@
       "description": "External AI, media and remote-compute services.",
       "items": [
         {
-          "id": "cloud-ai",
-          "label": "AI Providers",
-          "helpTerm": "Cloud · AI Providers",
-          "description": "Connect hosted language and image-model APIs.",
+          "id": "cloud-openai",
+          "label": "OpenAI",
+          "helpTerm": "Cloud · OpenAI",
+          "description": "Configure the OpenAI API account, models and live tests independently.",
           "status": "optional",
-          "target": "ai",
+          "target": "openai",
           "examples": [
-            "OpenAI API",
-            "Anthropic API",
-            "Hosted model inference"
+            "OpenAI API key",
+            "Text model",
+            "Image model",
+            "Live response test"
           ],
           "mechanics": [
-            "Token metering",
-            "TTFT monitoring",
-            "Structured outputs"
+            "Status",
+            "Configuration",
+            "Test/update",
+            "Repair guidance",
+            "TTFT monitoring"
+          ]
+        },
+        {
+          "id": "cloud-minimax",
+          "label": "MiniMax",
+          "helpTerm": "Cloud · MiniMax",
+          "description": "Configure MiniMax text, image and H3 video models independently.",
+          "status": "optional",
+          "target": "minimax",
+          "examples": [
+            "MiniMax API key",
+            "M3 text",
+            "image-01",
+            "H3 video"
+          ],
+          "mechanics": [
+            "Status",
+            "Configuration",
+            "Paid test consent",
+            "Repair guidance"
           ]
         },
         {
@@ -345,11 +377,11 @@
         },
         {
           "id": "auth-api-keys",
-          "label": "AI API Keys",
-          "helpTerm": "Auth · AI API Keys",
-          "description": "Save, test or remove provider keys without placing them in a project.",
+          "label": "OpenAI Credentials",
+          "helpTerm": "Auth · OpenAI Credentials",
+          "description": "Save, test or remove the OpenAI API key without placing it in a project.",
           "status": "optional",
-          "target": "ai",
+          "target": "openai",
           "examples": [
             "Provider API keys",
             "Local encrypted secret files"

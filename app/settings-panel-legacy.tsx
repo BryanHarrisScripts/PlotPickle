@@ -265,13 +265,17 @@ export default function SettingsPanel({
   onProjectChange,
   connections,
   onConnectionChange,
+  forcedSection,
+  forcedProvider,
 }: {
   project: PlotPickleProject;
   onProjectChange: (project: PlotPickleProject) => void;
   connections: ConnectionStatusSnapshot;
   onConnectionChange: () => void | Promise<void>;
+  forcedSection?: SettingsSection;
+  forcedProvider?: PlotPickleSettings["ai"]["provider"];
 }) {
-  const [section, setSection] = useState<SettingsSection>("general");
+  const [section, setSection] = useState<SettingsSection>(forcedSection ?? "general");
   const [settings, setSettings] = useState<PlotPickleSettings>(() => structuredClone(defaultPlotPickleSettings));
   const [sessionKey, setSessionKey] = useState("");
   const [hydrated, setHydrated] = useState(false);
@@ -289,6 +293,10 @@ export default function SettingsPanel({
   });
 
   useEffect(() => {
+    if (forcedSection) {
+      setSection(forcedSection);
+      return;
+    }
     function selectRequestedSection(value: string | null) {
       const aliases: Record<string, SettingsSection> = {
         collaboration: "github",
@@ -303,7 +311,7 @@ export default function SettingsPanel({
     const handleSectionRequest = (event: Event) => selectRequestedSection((event as CustomEvent<string>).detail);
     window.addEventListener("plotpickle:settings-section", handleSectionRequest);
     return () => window.removeEventListener("plotpickle:settings-section", handleSectionRequest);
-  }, []);
+  }, [forcedSection]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -391,6 +399,23 @@ export default function SettingsPanel({
   );
   const liveProvider = settings.ai.provider !== "disabled" && settings.ai.provider !== "manual";
   const connectionMatchesProvider = aiConnection.provider === settings.ai.provider;
+
+  useEffect(() => {
+    if (!hydrated || !forcedProvider || settings.ai.provider === forcedProvider) return;
+    const nextPreset = providerPresets.find((item) => item.kind === forcedProvider);
+    setSettings((current) => ({
+      ...current,
+      ai: {
+        provider: forcedProvider,
+        baseUrl: nextPreset?.defaultConfig.baseUrl ?? "",
+        textModel: nextPreset?.defaultConfig.models.text ?? "",
+        imageModel: nextPreset?.defaultConfig.models.image ?? "",
+        videoModel: nextPreset?.defaultConfig.models.video ?? "",
+      },
+    }));
+    setSessionKey("");
+    setNotice("");
+  }, [forcedProvider, hydrated, settings.ai.provider]);
 
   function saveSettings() {
     if (!hydrated) return;
@@ -730,10 +755,10 @@ export default function SettingsPanel({
 
           {section === "ai" ? (
             <div className={styles.sectionStack}>
-              <SectionHeading eyebrow="Story & Art" title="Explore ideas and develop visuals only when you choose." description="Optional LLM and text-to-image assistance can support story ideas, plot points, character designs, storyboards and concept art. PlotPickle's complete visual storyworld remains usable with no AI connection." />
+              <SectionHeading eyebrow={forcedProvider ? `${preset?.label || forcedProvider} settings` : "Story & Art"} title={forcedProvider ? `Configure and test ${preset?.label || forcedProvider}.` : "Explore ideas and develop visuals only when you choose."} description="Connection details, models, testing and repair guidance stay inside this provider section. PlotPickle remains usable with no AI connection." />
               <SharedConnectionCard status={connections.items.ai} />
               <div className={styles.providerGrid}>
-                {providerPresets.map((item) => (
+                {providerPresets.filter((item) => !forcedProvider || item.kind === forcedProvider).map((item) => (
                   <button type="button" key={item.kind} className={settings.ai.provider === item.kind ? styles.selectedCard : styles.card} onClick={() => selectProvider(item.kind)}>
                     <span>{item.testedFocus ? "Primary testing" : item.kind === "disabled" ? "Always available" : "Optional"}</span>
                     <b>{item.label}</b>

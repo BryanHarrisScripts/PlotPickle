@@ -27,218 +27,152 @@ type LegacySection =
   | "buzz"
   | "privacy"
   | "about";
-
 type ComponentSection = "ollama" | "openai" | "minimax" | "comfyui";
 type SettingsTarget = LegacySection | ComponentSection | "sitemap";
-
-type PlayhouseView = "overview" | "local" | "writers-room" | "repository" | "sitemap" | "advanced";
-type BuzzModeStatus = "checking" | "ready" | "setup" | "unavailable";
-
-type SystemStatus = "installed" | "configure" | "optional" | "planned" | "reference";
-
-type NavigationItem = {
+type SettingsStatus = "installed" | "configure" | "planned" | "optional";
+type SettingsItem = {
   id: string;
   label: string;
   helpTerm: string;
   description: string;
-  status: SystemStatus;
+  status: SettingsStatus;
   target?: SettingsTarget;
   href?: string;
   examples?: string[];
   mechanics?: string[];
 };
-
-type SystemGroup = {
+type SettingsSystem = {
   id: string;
   label: string;
+  helpTerm: string;
   description: string;
-  items: NavigationItem[];
+  status: SettingsStatus;
+  section: string;
+  items: SettingsItem[];
 };
-
-type SettingsSystemTaxonomy = {
-  schemaVersion: number;
-  groupLabel: string;
-  helpText: string;
-  workspace: NavigationItem[];
-  systems: SystemGroup[];
+type SettingsTaxonomy = {
+  version: number;
+  groups: Array<{ id: string; label: string; description: string }>;
+  systems: SettingsSystem[];
 };
+type SettingsView = "playhouse" | "advanced";
 
-const taxonomy = taxonomySource as SettingsSystemTaxonomy;
-const allItems = [
-  ...taxonomy.workspace.map((item) => ({ item, system: null as SystemGroup | null })),
-  ...taxonomy.systems.flatMap((system) => system.items.map((item) => ({ item, system }))),
-];
-
-const STATUS_LABELS: Record<SystemStatus, string> = {
-  installed: "Installed",
-  configure: "Configure",
-  optional: "Optional",
-  planned: "Planned",
-  reference: "Reference",
-};
-
-function itemForTarget(target: string | null) {
-  return allItems.find((entry) => entry.item.target === target) ?? null;
-}
-
-function itemForId(id: string) {
-  return allItems.find((entry) => entry.item.id === id) ?? allItems[0];
-}
-
-function viewForTarget(target: string | null): PlayhouseView | null {
-  if (target === "sitemap") return "sitemap";
-  if (target === "buzz") return "writers-room";
-  if (target === "github") return "repository";
-  if (target === "local" || target === "storage") return "local";
-  return target ? "advanced" : null;
-}
-
-function SystemDetails({ item }: { item: NavigationItem }) {
-  const hasExamples = Boolean(item.examples?.length);
-  const hasMechanics = Boolean(item.mechanics?.length);
-
-  return (
-    <section className={styles.details} aria-labelledby="settings-system-detail-title">
-      <div>
-        <p>{item.status === "planned" ? "Planned system" : "System reference"}</p>
-        <h3 id="settings-system-detail-title">{item.label}</h3>
-        <span>{item.description}</span>
-      </div>
-      {hasExamples ? (
-        <div className={styles.detailBlock}>
-          <h4>Included here</h4>
-          <ul>{item.examples?.map((example) => <li key={example}>{example}</li>)}</ul>
-        </div>
-      ) : null}
-      {hasMechanics ? (
-        <div className={styles.detailBlock}>
-          <h4>Mechanics</h4>
-          <ul>{item.mechanics?.map((mechanic) => <li key={mechanic}>{mechanic}</li>)}</ul>
-        </div>
-      ) : null}
-      <div className={styles.boundary}>
-        <strong>{item.status === "planned" ? "No configuration is active yet." : "This is an installed-system reference."}</strong>
-        <p>{item.status === "planned"
-          ? "PlotPickle names the system now so installation, permissions and testing can be planned without implying that a connector already exists."
-          : "Use the exact help term shown above when reporting an installation, package or compatibility problem."}</p>
-      </div>
-    </section>
-  );
-}
-
-export default function SettingsPanel({
-  project,
-  onProjectChange,
-  connections,
-  onConnectionChange,
-}: {
+type Props = {
   project: PlotPickleProject;
   onProjectChange: (project: PlotPickleProject) => void;
   connections: ConnectionStatusSnapshot;
   onConnectionChange: () => void | Promise<void>;
-}) {
-  const [ready, setReady] = useState(false);
-  const [playhouseView, setPlayhouseView] = useState<PlayhouseView>("overview");
-  const [buzzModeStatus, setBuzzModeStatus] = useState<BuzzModeStatus>("checking");
-  const [activeId, setActiveId] = useState(taxonomy.workspace[0].id);
-  const [expandedSystem, setExpandedSystem] = useState(taxonomy.systems[0].id);
-  const internalTarget = useRef<string | null>(null);
+};
+
+const STATUS_LABELS: Record<SettingsStatus, string> = {
+  installed: "Included",
+  configure: "Configure",
+  planned: "Planned",
+  optional: "Optional",
+};
+
+const PLAYHOUSE_SYSTEMS = new Set(["workspace", "local", "collab", "auth"]);
+
+function firstItem(taxonomy: SettingsTaxonomy) {
+  return taxonomy.systems[0]?.items[0] ?? null;
+}
+
+function itemById(taxonomy: SettingsTaxonomy, id: string) {
+  for (const system of taxonomy.systems) {
+    const item = system.items.find((candidate) => candidate.id === id);
+    if (item) return { item, system };
+  }
+  return null;
+}
+
+export default function SettingsPanel({ project, onProjectChange, connections, onConnectionChange }: Props) {
+  const taxonomy = taxonomySource as SettingsTaxonomy;
+  const defaultItem = firstItem(taxonomy);
+  const [activeId, setActiveId] = useState(defaultItem?.id ?? "");
+  const [expandedSystem, setExpandedSystem] = useState(taxonomy.systems[0]?.id ?? "");
+  const [playhouseView, setPlayhouseView] = useState<SettingsView>("playhouse");
+  const [buzzModeStatus, setBuzzModeStatus] = useState<"ready" | "checking" | "setup">("checking");
+  const internalTarget = useRef<SettingsTarget | null>(null);
+
+  const visibleSystems = useMemo(
+    () => playhouseView === "playhouse"
+      ? taxonomy.systems.filter((system) => PLAYHOUSE_SYSTEMS.has(system.id))
+      : taxonomy.systems,
+    [playhouseView, taxonomy.systems],
+  );
+
+  const active = useMemo(() => itemById(taxonomy, activeId), [activeId, taxonomy]);
+  const activeItem = active?.item ?? defaultItem!;
+  const activeSystem = active?.system ?? taxonomy.systems[0];
+  const activeGroupLabel = taxonomy.groups.find((group) => group.id === activeSystem?.section)?.label ?? "Settings";
+
+  function itemForTarget(target: SettingsTarget) {
+    for (const system of taxonomy.systems) {
+      const item = system.items.find((candidate) => candidate.target === target);
+      if (item) return { item, system };
+    }
+    return null;
+  }
 
   useEffect(() => {
-    const handleSectionRequest = (event: Event) => {
-      const target = (event as CustomEvent<string>).detail;
-      if (internalTarget.current === target) {
-        internalTarget.current = null;
-        return;
-      }
-      const requestedView = viewForTarget(target);
-      if (requestedView) setPlayhouseView(requestedView);
-      const next = itemForTarget(target);
-      if (!next) return;
-      setActiveId(next.item.id);
-      if (next.system) setExpandedSystem(next.system.id);
-    };
-    window.addEventListener("plotpickle:settings-section", handleSectionRequest);
-
-    const timer = window.setTimeout(() => {
-      const requested = window.sessionStorage.getItem(SETTINGS_SECTION_KEY);
-      const requestedEntry = itemForTarget(requested);
-      setPlayhouseView(viewForTarget(requested) ?? "overview");
-      const initial = requestedEntry ?? itemForId(taxonomy.workspace[0].id);
-      setActiveId(initial.item.id);
-      if (initial.system) setExpandedSystem(initial.system.id);
-      if (initial.item.target) window.sessionStorage.setItem(SETTINGS_SECTION_KEY, initial.item.target);
-      setReady(true);
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener("plotpickle:settings-section", handleSectionRequest);
-    };
+    const requested = window.sessionStorage.getItem(SETTINGS_SECTION_KEY) as SettingsTarget | null;
+    if (!requested) return;
+    const next = itemForTarget(requested);
+    if (!next) return;
+    setPlayhouseView("advanced");
+    setActiveId(next.item.id);
+    setExpandedSystem(next.system.id);
+    internalTarget.current = requested;
   }, []);
 
   useEffect(() => {
-    if (!ready || playhouseView !== "overview") return;
-    let cancelled = false;
-    void fetch("/api/local-buzz/status", { headers: { Accept: "application/json" } })
-      .then(async (response) => {
+    const handler = (event: Event) => {
+      const target = (event as CustomEvent<string>).detail as SettingsTarget;
+      const next = itemForTarget(target);
+      if (!next) return;
+      setPlayhouseView("advanced");
+      setActiveId(next.item.id);
+      setExpandedSystem(next.system.id);
+      internalTarget.current = target;
+    };
+    window.addEventListener("plotpickle:settings-section", handler);
+    return () => window.removeEventListener("plotpickle:settings-section", handler);
+  }, []);
+
+  useEffect(() => {
+    if (!activeItem.target || internalTarget.current === activeItem.target) return;
+    internalTarget.current = activeItem.target;
+    window.sessionStorage.setItem(SETTINGS_SECTION_KEY, activeItem.target);
+    window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: activeItem.target }));
+  }, [activeItem.target]);
+
+  useEffect(() => {
+    let activeRequest = true;
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch("/api/local-buzz/status", { headers: { Accept: "application/json" }, cache: "no-store" });
         if (!response.ok) throw new Error("Buzz status unavailable");
-        const body = await response.json() as {
-          connection?: { identityVerified?: boolean };
-          relay?: { reachable?: boolean };
-          cli?: { available?: boolean };
-        };
-        if (!cancelled) setBuzzModeStatus(body.connection?.identityVerified && body.relay?.reachable && body.cli?.available ? "ready" : "setup");
-      })
-      .catch(() => { if (!cancelled) setBuzzModeStatus("unavailable"); });
-    return () => { cancelled = true; };
-  }, [playhouseView, ready]);
+        const body = await response.json() as { connection?: { configured?: boolean; identityVerified?: boolean }; relay?: { reachable?: boolean }; cli?: { available?: boolean } };
+        if (!activeRequest) return;
+        const ready = Boolean(body.connection?.configured && body.connection.identityVerified && body.relay?.reachable && body.cli?.available);
+        setBuzzModeStatus(ready ? "ready" : "setup");
+      } catch {
+        if (activeRequest) setBuzzModeStatus("setup");
+      }
+    }, 0);
+    return () => {
+      activeRequest = false;
+      window.clearTimeout(timer);
+    };
+  }, []);
 
-  const activeEntry = useMemo(() => itemForId(activeId), [activeId]);
-  const activeItem = activeEntry.item;
-  const activeGroupLabel = activeEntry.system?.label ?? "Workspace";
-
-  function selectItem(item: NavigationItem, system: SystemGroup | null) {
+  function selectItem(item: SettingsItem, system: SettingsSystem) {
     setActiveId(item.id);
-    if (system) setExpandedSystem(system.id);
-    if (item.target === "sitemap") {
+    setExpandedSystem(system.id);
+    if (item.target) {
+      internalTarget.current = item.target;
       window.sessionStorage.setItem(SETTINGS_SECTION_KEY, item.target);
-      setPlayhouseView("sitemap");
-      return;
-    }
-    if (!item.target) return;
-    internalTarget.current = item.target;
-    window.sessionStorage.setItem(SETTINGS_SECTION_KEY, item.target);
-    window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: item.target }));
-  }
-
-  function selectSystem(system: SystemGroup) {
-    const opening = expandedSystem !== system.id;
-    setExpandedSystem(opening ? system.id : "");
-    if (opening && system.items.length) selectItem(system.items[0], system);
-  }
-
-  function openAdvancedTarget(target: LegacySection) {
-    const next = itemForTarget(target);
-    setPlayhouseView("advanced");
-    if (!next) return;
-    setActiveId(next.item.id);
-    if (next.system) setExpandedSystem(next.system.id);
-  }
-
-  function openSitemapSettingsItem(id: string) {
-    const next = itemForId(id);
-    if (next.item.target === "sitemap") {
-      setPlayhouseView("sitemap");
-      return;
-    }
-    setPlayhouseView("advanced");
-    setActiveId(next.item.id);
-    if (next.system) setExpandedSystem(next.system.id);
-    if (next.item.target && next.item.target !== "sitemap") {
-      internalTarget.current = next.item.target;
-      window.sessionStorage.setItem(SETTINGS_SECTION_KEY, next.item.target);
-      window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: next.item.target }));
+      window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: item.target }));
     }
   }
 
@@ -265,38 +199,63 @@ export default function SettingsPanel({
     window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: target }));
   }
 
-  if (!ready) return <div className={styles.loading}>Preparing Settings…</div>;
+  const selectedMode = activeItem.id === "workspace-modes";
+  const modeRows = [
+    {
+      label: "What is included",
+      local: ["PlotPickle Playhouse", "Afterglow example", "Local project storage", "Learning modules", "Manual workflow"],
+      writers: ["Everything in Local Story", "Buzz Community", "Buzz Desktop", "Community rooms", "Community feedback"],
+      cloud: ["Everything in Local Story", "GitHub repository", "Story Proposals", "Repository history", "Optional cloud compute"],
+    },
+    {
+      label: "What you configure",
+      local: ["Nothing required", "Optional local models", "Optional local media tools"],
+      writers: ["Buzz account", "Community membership", "Buzz Desktop identity"],
+      cloud: ["GitHub account", "One story repository", "Optional provider keys"],
+    },
+  ];
 
   return (
-    <div className={styles.page}>
-      <header className={styles.heading}>
-        <p>Playhouse modes</p>
-        <h1>Choose how PlotPickle works today.</h1>
-        <span>Start locally, add a Buzz Writers’ Room, or connect GitHub and optional remote compute. The PPF remains official story canon in every mode.</span>
-      </header>
+    <section className={styles.page} aria-labelledby="settings-page-title">
+      <div className={styles.pageHeading}>
+        <div>
+          <p>Configuration centre</p>
+          <h1 id="settings-page-title">Settings</h1>
+          <span>Choose a PlotPickle component, see its current state, then configure and test it without losing your place.</span>
+        </div>
+        <div className={styles.viewToggle} aria-label="Settings navigation detail">
+          <button type="button" className={playhouseView === "playhouse" ? styles.viewActive : ""} onClick={() => setPlayhouseView("playhouse")}>Playhouse</button>
+          <button type="button" className={playhouseView === "advanced" ? styles.viewActive : ""} onClick={() => setPlayhouseView("advanced")}>Advanced</button>
+        </div>
+      </div>
 
-      <nav className={styles.modeNav} aria-label="Playhouse operating modes">
-        {([
-          ["overview", "Compare roles"],
-          ["local", "Local Story"],
-          ["writers-room", "Writers’ Room"],
-          ["repository", "Cloud Collab"],
-        ] as Array<[PlayhouseView, string]>).map(([id, label]) => (
-          <button type="button" key={id} className={playhouseView === id ? styles.activeMode : undefined} onClick={() => setPlayhouseView(id)}>{label}</button>
-        ))}
-        <button type="button" className={playhouseView === "sitemap" ? styles.activeMode : undefined} onClick={() => setPlayhouseView("sitemap")}>Sitemap</button>
-        <button type="button" className={playhouseView === "advanced" ? styles.activeMode : styles.advancedMode} onClick={() => setPlayhouseView("advanced")}>Other settings</button>
-      </nav>
-
-      {playhouseView === "overview" ? (
-        <main className={styles.modeContent}>
-          <header className={styles.modeHeading}>
-            <div><p>One PlotPickle · three modes</p><h2>Compare the complete story workflow.</h2><span>PlotPickle is installed locally in every mode. Afterglow, your own story, Learning and the PPF remain available as you add Buzz or GitHub.</span></div>
-          </header>
-          <div className={styles.modeTableWrap}>
+      {selectedMode ? (
+        <section className={styles.modeSection} aria-labelledby="settings-modes-title">
+          <div className={styles.modeHeading}>
+            <p>Three ways to use PlotPickle</p>
+            <h2 id="settings-modes-title">Choose the workflow that fits your story.</h2>
+            <span>Each mode keeps the local PlotPickle core. Collaboration and external services are added only when you choose them.</span>
+          </div>
+          <div className={styles.modeComparison}>
             <table className={styles.modeTable}>
-              <thead><tr><th>Compare</th><th><strong>Local Story Mode</strong><span>Private local creation</span><button type="button" onClick={() => setPlayhouseView("local")}>Open local setup</button></th><th><strong>Writers’ Room Mode</strong><span>Buzz community collaboration</span><button type="button" onClick={() => setPlayhouseView("writers-room")}>Open Writers’ Room setup</button></th><th><strong>Cloud Collab Mode</strong><span>GitHub history and optional remote compute</span><button type="button" onClick={() => setPlayhouseView("repository")}>Open cloud setup</button></th></tr></thead>
+              <caption className={styles.visuallyHidden}>PlotPickle mode comparison</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Feature</th>
+                  <th scope="col"><strong>Local Story Mode</strong><span>Private, local and independent</span></th>
+                  <th scope="col"><strong>Writers’ Room Mode</strong><span>Buzz community collaboration</span></th>
+                  <th scope="col"><strong>Repository Collaboration Mode</strong><span>GitHub proposals and history</span></th>
+                </tr>
+              </thead>
               <tbody>
+                {modeRows.map((row) => (
+                  <tr key={row.label}>
+                    <th scope="row">{row.label}</th>
+                    <td><ul>{row.local.map((item) => <li key={item}>{item}</li>)}</ul></td>
+                    <td><ul>{row.writers.map((item) => <li key={item}>{item}</li>)}</ul></td>
+                    <td><ul>{row.cloud.map((item) => <li key={item}>{item}</li>)}</ul></td>
+                  </tr>
+                ))}
                 <tr>
                   <th scope="row"><strong>Status</strong><span>What is active now</span></th>
                   <td><span className={styles.readyStatus}>PlotPickle installed locally</span></td>
@@ -390,93 +349,35 @@ export default function SettingsPanel({
               </tbody>
             </table>
           </div>
-        </main>
-      ) : null}
-
-      {playhouseView === "local" ? (
-        <main className={styles.modeContent}>
-          <header className={styles.modeHeading}><div><p>Mode 1</p><h2>Local Story Mode</h2><span>The complete PlotPickle learning and writing workflow with no external collaboration service.</span></div><button type="button" onClick={() => setPlayhouseView("overview")}>Back to modes</button></header>
-          <div className={styles.requirementGrid}>
-            <article><span>Required</span><h3>PlotPickle Runtime</h3><p>The local Playhouse server and packaged web application.</p><strong>Installed</strong></article>
-            <article><span>Required</span><h3>PPF project files</h3><p>Your official story remains in local human-readable project storage.</p><strong>{connections.items.storage.state === "connected" ? "Ready" : "Check storage"}</strong></article>
-            <article><span>Recommended</span><h3>Rolling backups</h3><p>Recoverable local revisions under the current Windows user.</p><strong>{connections.items.backups.state === "connected" ? "Ready" : "Available"}</strong></article>
+          <div className={styles.modeDecision}>
+            <div><strong>Start local. Add collaboration only when it serves the story.</strong><span>Every mode keeps the complete local PlotPickle workflow.</span></div>
+            <button type="button" onClick={() => setPlayhouseView("advanced")}>Open advanced settings</button>
           </div>
-          <section className={styles.modeDecision}><div><p>Nothing else to connect</p><h3>Local Story Mode is ready now.</h3><span>Buzz, GitHub, Google and AI providers remain optional and disconnected.</span></div><button type="button" onClick={() => openAdvancedTarget("storage")}>Storage & backup settings</button></section>
-        </main>
-      ) : null}
-
-      {playhouseView === "writers-room" ? (
-        <main className={styles.modeContent}>
-          <header className={styles.modeHeading}><div><p>Mode 2</p><h2>Writers’ Room Mode</h2><span>Connect only the Buzz pieces needed for community discussion and feedback. The PPF remains official canon.</span></div><button type="button" onClick={() => setPlayhouseView("overview")}>Back to modes</button></header>
-          <div className={styles.embeddedMode}><BuzzSettingsPanel /></div>
-        </main>
-      ) : null}
-
-      {playhouseView === "repository" ? (
-        <main className={styles.modeContent}>
-          <header className={styles.modeHeading}><div><p>Mode 3</p><h2>Cloud Collab Mode</h2><span>Connect GitHub for history and owner-reviewed proposals, then add remote compute only when it is useful.</span></div><button type="button" onClick={() => setPlayhouseView("overview")}>Back to modes</button></header>
-          <section className={styles.connectionSummary} data-state={connections.items.github.state}>
-            <div><span>GitHub connection</span><h3>{connections.items.github.identity || "No repository connected"}</h3><p>{connections.items.github.detail}</p></div>
-            <strong>{connections.items.github.state === "connected" ? "Ready" : connections.items.github.state === "configured" ? "Configured" : "Setup needed"}</strong>
-          </section>
-          <div className={styles.embeddedMode}>
-            <GitHubCollaboration project={project} onChange={onProjectChange} onConnectionChange={() => void onConnectionChange()} surface="repository-setup" />
-          </div>
-        </main>
-      ) : null}
-
-      {playhouseView === "sitemap" ? (
-        <SettingsSitemap
-          taxonomy={taxonomy}
-          connections={connections}
-          buzzStatus={buzzModeStatus}
-          onOpenWorkspace={(id) => openSitemapWorkspace(id)}
-          onOpenSettingsItem={openSitemapSettingsItem}
-          onOpenSettingsOverview={() => setPlayhouseView("overview")}
-        />
-      ) : null}
-
-      {playhouseView === "advanced" ? <div className={styles.layout}>
-        <nav className={styles.menu} aria-label="PlotPickle Settings systems">
-          <section className={styles.menuGroup} aria-labelledby="settings-workspace-heading">
-            <h2 id="settings-workspace-heading">Workspace</h2>
-            <div className={styles.workspaceItems}>
-              {taxonomy.workspace.map((item) => (
-                <button
-                  type="button"
-                  key={item.id}
-                  className={activeItem.id === item.id ? styles.activeItem : styles.menuItem}
-                  aria-current={activeItem.id === item.id ? "page" : undefined}
-                  onClick={() => selectItem(item, null)}
-                >
-                  <b>{item.label}</b>
-                  <span>{item.description}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <section className={styles.menuGroup} aria-labelledby="settings-systems-heading">
-            <h2 id="settings-systems-heading">{taxonomy.groupLabel}</h2>
-            <p className={styles.helpText}>{taxonomy.helpText}</p>
+        </section>
+      ) : (
+        <div className={styles.layout}>
+          <nav className={styles.navigation} aria-label="Settings systems">
+            <section className={styles.quickNavigation} aria-label="Settings navigation mode">
+              <p>Navigation</p>
+              <button type="button" className={playhouseView === "playhouse" ? styles.quickActive : ""} onClick={() => setPlayhouseView("playhouse")}>Playhouse essentials</button>
+              <button type="button" className={playhouseView === "advanced" ? styles.quickActive : ""} onClick={() => setPlayhouseView("advanced")}>All settings</button>
+            </section>
             <div className={styles.systemList}>
-              {taxonomy.systems.map((system) => {
+              {visibleSystems.map((system) => {
                 const expanded = expandedSystem === system.id;
-                const systemActive = activeEntry.system?.id === system.id;
                 return (
-                  <section className={systemActive ? styles.activeSystem : styles.system} key={system.id}>
+                  <section className={styles.system} key={system.id}>
                     <button
                       type="button"
-                      className={styles.systemButton}
+                      className={expanded ? styles.systemButtonActive : styles.systemButton}
                       aria-expanded={expanded}
-                      aria-controls={`settings-system-${system.id}`}
-                      onClick={() => selectSystem(system)}
+                      onClick={() => setExpandedSystem(expanded ? "" : system.id)}
                     >
                       <span><b>{system.label}</b><small>{system.description}</small></span>
-                      <em>{expanded ? "Close" : "Open"}</em>
+                      <em data-status={system.status}>{STATUS_LABELS[system.status]}</em>
                     </button>
                     {expanded ? (
-                      <div className={styles.submenu} id={`settings-system-${system.id}`}>
+                      <div className={styles.submenu}>
                         {system.items.map((item) => (
                           <button
                             type="button"
@@ -495,83 +396,93 @@ export default function SettingsPanel({
                 );
               })}
             </div>
-          </section>
-        </nav>
+          </nav>
 
-        <main className={styles.content}>
-          <header className={styles.context}>
-            <div>
-              <p>{activeGroupLabel}</p>
-              <h2>{activeItem.label}</h2>
-              <span>{activeItem.description}</span>
-            </div>
-            <div className={styles.contextMeta}>
-              <span data-status={activeItem.status}>{STATUS_LABELS[activeItem.status]}</span>
-              <code>{activeItem.helpTerm}</code>
-            </div>
-          </header>
+          <main className={styles.content}>
+            <header className={styles.context}>
+              <div>
+                <p>{activeGroupLabel}</p>
+                <h1>{activeItem.label}</h1>
+                <span>{activeItem.description}</span>
+              </div>
+              <div className={styles.contextMeta}>
+                <span data-status={activeItem.status}>{STATUS_LABELS[activeItem.status]}</span>
+                <code>{activeItem.helpTerm}</code>
+              </div>
+            </header>
 
-          {activeItem.examples?.length ? (
-            <div className={styles.scope} aria-label={`${activeItem.label} examples`}>
-              {activeItem.examples.slice(0, 6).map((example) => <span key={example}>{example}</span>)}
-            </div>
-          ) : null}
+            {activeItem.examples?.length ? (
+              <div className={styles.scope} aria-label={`${activeItem.label} examples`}>
+                {activeItem.examples.slice(0, 6).map((example) => <span key={example}>{example}</span>)}
+              </div>
+            ) : null}
 
-          {activeItem.target === "ollama" ? (
-            <div className={styles.embeddedMode} id="settings-component-ollama">
-              <WritingAssistantConsole onManage={openComponentTarget} focusProvider="ollama" />
-            </div>
-          ) : activeItem.target === "openai" ? (
-            <div className={styles.embeddedMode} id="settings-component-openai">
-              <LegacySettingsPanel
-                project={project}
-                onProjectChange={onProjectChange}
-                connections={connections}
-                onConnectionChange={onConnectionChange}
-                forcedSection="ai"
-                forcedProvider="openai"
-              />
-              <WritingAssistantConsole onManage={openComponentTarget} focusProvider="openai" />
-            </div>
-          ) : activeItem.target === "minimax" ? (
-            <div className={styles.embeddedMode} id="settings-component-minimax">
-              <LegacySettingsPanel
-                project={project}
-                onProjectChange={onProjectChange}
-                connections={connections}
-                onConnectionChange={onConnectionChange}
-                forcedSection="ai"
-                forcedProvider="minimax"
-              />
-              <WritingAssistantConsole onManage={openComponentTarget} focusProvider="minimax" />
-            </div>
-          ) : activeItem.target === "comfyui" ? (
-            <div className={styles.embeddedMode} id="settings-component-comfyui">
-              <MediaRoutingPanel onManage={openComponentTarget} />
-              <H3NativePanel />
-            </div>
-          ) : activeItem.href ? (
-            <section className={styles.routeCard}>
-              <div><p>Separate configuration workspace</p><h3>{activeItem.label}</h3><span>{activeItem.description}</span></div>
-              <a href={activeItem.href}>Open {activeItem.label}</a>
-              {activeItem.mechanics?.length ? <p>{activeItem.mechanics.join(" · ")}</p> : null}
-            </section>
-          ) : activeItem.target === "buzz" ? (
-            <BuzzSettingsPanel />
-          ) : activeItem.target ? (
-            <div className={styles.legacy}>
-              <LegacySettingsPanel
-                project={project}
-                onProjectChange={onProjectChange}
-                connections={connections}
-                onConnectionChange={onConnectionChange}
-              />
-            </div>
-          ) : (
-            <SystemDetails item={activeItem} />
-          )}
-        </main>
-      </div> : null}
-    </div>
+            {activeItem.target === "ollama" ? (
+              <div className={styles.embeddedMode} id="settings-component-ollama">
+                <WritingAssistantConsole onManage={openComponentTarget} focusProvider="ollama" />
+              </div>
+            ) : activeItem.target === "openai" ? (
+              <div className={styles.embeddedMode} id="settings-component-openai">
+                <LegacySettingsPanel
+                  project={project}
+                  onProjectChange={onProjectChange}
+                  connections={connections}
+                  onConnectionChange={onConnectionChange}
+                  forcedSection="ai"
+                  forcedProvider="openai"
+                />
+                <WritingAssistantConsole onManage={openComponentTarget} focusProvider="openai" />
+              </div>
+            ) : activeItem.target === "minimax" ? (
+              <div className={styles.embeddedMode} id="settings-component-minimax">
+                <LegacySettingsPanel
+                  project={project}
+                  onProjectChange={onProjectChange}
+                  connections={connections}
+                  onConnectionChange={onConnectionChange}
+                  forcedSection="ai"
+                  forcedProvider="minimax"
+                />
+                <WritingAssistantConsole onManage={openComponentTarget} focusProvider="minimax" />
+              </div>
+            ) : activeItem.target === "comfyui" ? (
+              <div className={styles.embeddedMode} id="settings-component-comfyui">
+                <MediaRoutingPanel onManage={openComponentTarget} />
+                <H3NativePanel />
+              </div>
+            ) : activeItem.href ? (
+              <section className={styles.routeCard}>
+                <div><p>Separate configuration workspace</p><h3>{activeItem.label}</h3><span>{activeItem.description}</span></div>
+                <a href={activeItem.href}>Open {activeItem.label}</a>
+                {activeItem.mechanics?.length ? <p>{activeItem.mechanics.join(" · ")}</p> : null}
+              </section>
+            ) : activeItem.target === "buzz" ? (
+              <BuzzSettingsPanel />
+            ) : activeItem.target ? (
+              <div className={styles.legacy}>
+                <LegacySettingsPanel
+                  project={project}
+                  onProjectChange={onProjectChange}
+                  connections={connections}
+                  onConnectionChange={onConnectionChange}
+                />
+              </div>
+            ) : (
+              <section className={styles.details}>
+                <div>
+                  <p>Settings system</p>
+                  <h3>{activeItem.label}</h3>
+                  <span>{activeItem.description}</span>
+                </div>
+                {activeItem.examples?.length ? <p>{activeItem.examples.join(" · ")}</p> : null}
+                {activeItem.mechanics?.length ? <p>{activeItem.mechanics.join(" · ")}</p> : null}
+              </section>
+            )}
+
+            <SettingsSitemap activeId={activeItem.id} onOpenWorkspace={openSitemapWorkspace} />
+          </main>
+        </div>
+      )}
+    </section>
   );
 }

@@ -1,20 +1,18 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"
-title PlotPickle Playhouse Local Server
+title PlotPickle - Local App
 
 set "PLOTPICKLE_PORT=4173"
 set "PLOTPICKLE_URL=http://127.0.0.1:%PLOTPICKLE_PORT%"
 set "VITE_CMD=node_modules\.bin\vite.cmd"
 set "SETUP_REPORT=scripts\windows-setup-report.mjs"
 set "RUNTIME_MANAGER=scripts\windows-runtime.mjs"
-set "BUZZ_INSTALLER=scripts\install-buzz-desktop.ps1"
-set "LOCAL_AI_INSTALLER=scripts\install-local-ai-tool.ps1"
-set "BUZZ_DESKTOP_VERSION=0.5.3"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
 set "INSTALL_PERFORMED=0"
+set "READY_TIMEOUT_SECONDS=60"
 
-rem Make installation and upgrades tolerant, visible, and cache-friendly.
+rem Make required runtime installation and upgrades tolerant, visible, and cache-friendly.
 set "NODE_ENV=development"
 set "npm_config_fetch_retries=5"
 set "npm_config_fetch_retry_factor=2"
@@ -31,18 +29,37 @@ set "FORCE_COLOR=1"
 cls
 echo.
 echo ============================================================
-echo   PlotPickle Playhouse - Local Server
+echo   PlotPickle - Local App
 echo ============================================================
 echo.
-echo PlotPickle runs on this computer and opens in your web browser.
+echo PlotPickle runs privately on this computer and opens in your web browser.
 echo It does not install a Windows service and does not require Administrator rights.
-echo Ollama, ComfyUI, and Buzz Desktop are optional separate applications.
-echo When missing, this launcher can offer each reviewed visible installer with a separate Y/N choice.
-echo Language models, image checkpoints, custom nodes, and cloud fallback are never installed automatically.
-echo The local address 127.0.0.1 is private to this computer.
-echo Keep this window open while using PlotPickle; closing it stops the server.
+echo Ollama, ComfyUI, Buzz, cloud providers, and other optional connections are configured inside PlotPickle Settings.
+echo The local address 127.0.0.1 is available only to this computer.
+echo Keep this window open while using the server started here; closing it stops only that server.
 echo.
-echo [STEP 1 OF 4] Checking Node.js, npm, and the reusable runtime...
+echo [CHECK] Looking for an existing PlotPickle session...
+call :probe_existing
+set "PROBE_RESULT=!ERRORLEVEL!"
+if "!PROBE_RESULT!"=="0" (
+  echo [READY] PlotPickle is already running at %PLOTPICKLE_URL%.
+  echo Opening the existing session. No second server will be started.
+  start "" "%PLOTPICKLE_URL%"
+  exit /b 0
+)
+if "!PROBE_RESULT!"=="2" (
+  echo.
+  echo [ERROR] Port %PLOTPICKLE_PORT% is already being used by another application.
+  echo Close the application using that port, or stop the other local server, then run Start-PlotPickle.bat again.
+  echo PlotPickle did not install, change, or stop anything.
+  echo.
+  pause
+  exit /b 1
+)
+
+echo [OK] No conflicting local server was found.
+echo.
+echo [STEP 1 OF 3] Preparing the required local runtime...
 echo.
 
 where node >nul 2>&1
@@ -52,7 +69,7 @@ if errorlevel 1 (
   echo Install Node.js 22.13 or newer, then run this file again:
   echo https://nodejs.org/
   echo.
-  start "" "https://nodejs.org/"
+  echo No download was opened or installed automatically.
   pause
   exit /b 1
 )
@@ -65,7 +82,7 @@ if errorlevel 1 (
   echo Download the current Node.js version here:
   echo https://nodejs.org/
   echo.
-  start "" "https://nodejs.org/"
+  echo No download was opened or installed automatically.
   pause
   exit /b 1
 )
@@ -105,14 +122,13 @@ set "npm_config_cache=%PLOTPICKLE_NPM_CACHE%"
 for /f %%V in ('npm --version') do set "NPM_VERSION=%%V"
 for /f %%V in ('node -p "require('./package.json').version"') do set "PLOTPICKLE_VERSION=%%V"
 echo [OK] PlotPickle !PLOTPICKLE_VERSION!
-echo [OK] Node.js !NODE_VERSION!
-echo [OK] npm !NPM_VERSION!
+echo [OK] Node.js !NODE_VERSION! and npm !NPM_VERSION!
 echo [OK] Dependency fingerprint !PLOTPICKLE_LOCK_HASH!
 echo [OK] Runtime fingerprint !PLOTPICKLE_RUNTIME_FINGERPRINT!
 echo [OK] Runtime platform !PLOTPICKLE_RUNTIME_PLATFORM! !PLOTPICKLE_RUNTIME_ARCH!
 echo [OK] Persistent runtime !PLOTPICKLE_RUNTIME_DIR!
 if defined PLOTPICKLE_NATIVE_BINDING echo [OK] Required native binding !PLOTPICKLE_NATIVE_BINDING!
-if "!PLOTPICKLE_RUNTIME_MIGRATED!"=="1" echo [OK] Your previous local packages were moved into the reusable runtime.
+if "!PLOTPICKLE_RUNTIME_MIGRATED!"=="1" echo [OK] Previous local packages were moved into the reusable runtime.
 echo.
 
 call :ensure_dependencies
@@ -125,9 +141,6 @@ if "!SETUP_RESULT!"=="2" (
 )
 if not "!SETUP_RESULT!"=="0" goto :setup_failed
 
-echo.
-echo [STEP 3 OF 4] Verifying components and checking optional local tools...
-echo.
 if "!INSTALL_PERFORMED!"=="1" (
   node "%SETUP_REPORT%" success
 ) else (
@@ -135,139 +148,39 @@ if "!INSTALL_PERFORMED!"=="1" (
 )
 if errorlevel 1 goto :setup_failed
 
-call :ensure_local_creative_tools
-call :ensure_buzz_desktop
-
 echo.
-echo [STEP 4 OF 4] Starting the private local server...
+echo [STEP 3 OF 3] Starting the private local server...
 echo.
 echo Address: %PLOTPICKLE_URL%
-echo Only this computer can use this 127.0.0.1 address.
-echo Your browser will open automatically.
+echo The browser will open after PlotPickle confirms that it is ready.
+echo Optional services remain available from their independent Settings pages.
 echo Press Ctrl+C in this window when you are finished.
 echo.
 
-start "" /b powershell.exe -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 4; Start-Process '%PLOTPICKLE_URL%'"
-call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT%
+call :open_when_ready
+call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort
 
 set "EXIT_CODE=%ERRORLEVEL%"
 echo.
 if not "%EXIT_CODE%"=="0" (
   echo [ERROR] PlotPickle stopped with an error. Review the messages above.
+  echo If the same runtime error returns, run Repair-PlotPickle.bat.
 ) else (
-  echo PlotPickle has stopped. The local server is no longer running.
+  echo PlotPickle has stopped. The local server started by this window is no longer running.
 )
 pause
 exit /b %EXIT_CODE%
 
-:ensure_local_creative_tools
-if not exist "%LOCAL_AI_INSTALLER%" (
-  echo [INFO] The optional Ollama and ComfyUI installer helper is not included in this download.
-  echo PlotPickle will continue normally; both applications can still be installed separately.
-  exit /b 0
-)
+:probe_existing
+powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; try { $response=Invoke-WebRequest -UseBasicParsing -Uri '%PLOTPICKLE_URL%' -TimeoutSec 2; if ($response.StatusCode -ge 200 -and $response.Content -match 'PlotPickle') { exit 0 }; exit 2 } catch { try { $client=New-Object System.Net.Sockets.TcpClient; $pending=$client.BeginConnect('127.0.0.1', %PLOTPICKLE_PORT%, $null, $null); if ($pending.AsyncWaitHandle.WaitOne(500) -and $client.Connected) { $client.Close(); exit 2 }; $client.Close(); exit 1 } catch { exit 1 } }" >nul 2>&1
+exit /b !ERRORLEVEL!
 
-if not exist "%PLOTPICKLE_HOME%\setup" mkdir "%PLOTPICKLE_HOME%\setup" >nul 2>&1
-call :ensure_local_ai_tool Ollama "local writing and planning" "The Ollama application needs about 4 GB; language models can require tens to hundreds of GB." ollama
-call :ensure_local_ai_tool ComfyUI "local image generation" "Comfy Desktop needs at least 4.85 GB; checkpoints, outputs, and workflows need additional space." comfyui
-exit /b 0
-
-:ensure_local_ai_tool
-set "LOCAL_AI_TOOL=%~1"
-set "LOCAL_AI_PURPOSE=%~2"
-set "LOCAL_AI_SPACE=%~3"
-set "LOCAL_AI_MARKER=%PLOTPICKLE_HOME%\setup\%~4-offer-v1.txt"
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%LOCAL_AI_INSTALLER%" -Tool "%LOCAL_AI_TOOL%" -CheckOnly
-set "LOCAL_AI_CHECK_RESULT=!ERRORLEVEL!"
-if "!LOCAL_AI_CHECK_RESULT!"=="0" (
-  echo [OK] %LOCAL_AI_TOOL% detected for %LOCAL_AI_PURPOSE%.
-  exit /b 0
-)
-if not "!LOCAL_AI_CHECK_RESULT!"=="3" (
-  echo [WARNING] PlotPickle could not determine whether %LOCAL_AI_TOOL% is installed.
-  echo PlotPickle will continue without changing %LOCAL_AI_TOOL%.
-  exit /b 0
-)
-if exist "%LOCAL_AI_MARKER%" (
-  echo [INFO] %LOCAL_AI_TOOL% is not installed. The first-run offer was already answered.
-  echo Install it later from PlotPickle Setup and Connections if needed.
-  exit /b 0
-)
-
-echo.
-echo %LOCAL_AI_TOOL% is optional and provides %LOCAL_AI_PURPOSE%.
-echo %LOCAL_AI_SPACE%
-echo Models, checkpoints, custom nodes, and workflows are separate and will not be downloaded now.
-echo PlotPickle remains fully usable with No AI and manual image import.
-echo.
-choice /C YN /N /M "Install %LOCAL_AI_TOOL% now? [Y/N]: "
-if errorlevel 2 (
-  >"%LOCAL_AI_MARKER%" echo declined
-  echo [INFO] %LOCAL_AI_TOOL% installation skipped. PlotPickle will continue normally.
-  exit /b 0
-)
-
-echo.
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%LOCAL_AI_INSTALLER%" -Tool "%LOCAL_AI_TOOL%" -Install
-set "LOCAL_AI_INSTALL_RESULT=!ERRORLEVEL!"
-if "!LOCAL_AI_INSTALL_RESULT!"=="0" (
-  >"%LOCAL_AI_MARKER%" echo accepted
-  echo [SUCCESS] %LOCAL_AI_TOOL% installation step completed.
-  echo Start the application and add a model or checkpoint before expecting a green readiness light.
-) else if "!LOCAL_AI_INSTALL_RESULT!"=="5" (
-  >"%LOCAL_AI_MARKER%" echo official-download-opened
-  echo [INFO] The official %LOCAL_AI_TOOL% download page was opened for visible manual installation.
-) else (
-  echo [WARNING] %LOCAL_AI_TOOL% installation was not completed.
-  echo PlotPickle will continue normally and offer this optional step again next time.
-)
-exit /b 0
-
-:ensure_buzz_desktop
-if not exist "%BUZZ_INSTALLER%" (
-  echo [INFO] The optional Buzz Desktop installer helper is not included in this download.
-  echo PlotPickle will continue normally; Buzz can still be installed separately.
-  exit /b 0
-)
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%BUZZ_INSTALLER%" -CheckOnly
-set "BUZZ_CHECK_RESULT=!ERRORLEVEL!"
-if "!BUZZ_CHECK_RESULT!"=="0" (
-  echo [OK] Buzz Desktop !BUZZ_DESKTOP_VERSION! CLI detected. Buzz remains available inside PlotPickle Settings and Collab.
-  exit /b 0
-)
-if not "!BUZZ_CHECK_RESULT!"=="3" (
-  echo [WARNING] PlotPickle could not determine whether Buzz Desktop is installed.
-  echo PlotPickle will continue without changing Buzz.
-  exit /b 0
-)
-
-echo.
-echo Buzz Desktop !BUZZ_DESKTOP_VERSION! is optional and is used for Buzz Story Rooms.
-echo Buzz remains inside the PlotPickle UI; this only installs the local Buzz Desktop dependency.
-echo The current Windows installer is published by block/buzz and is labelled alpha-unsigned.
-echo Windows SmartScreen may ask you to confirm before it opens.
-echo.
-choice /C YN /N /M "Install Buzz Desktop !BUZZ_DESKTOP_VERSION! now? [Y/N]: "
-if errorlevel 2 (
-  echo [INFO] Buzz Desktop installation skipped. PlotPickle will continue normally.
-  exit /b 0
-)
-
-echo.
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%BUZZ_INSTALLER%" -Install
-set "BUZZ_INSTALL_RESULT=!ERRORLEVEL!"
-if "!BUZZ_INSTALL_RESULT!"=="0" (
-  echo [SUCCESS] Buzz Desktop !BUZZ_DESKTOP_VERSION! is installed and its CLI was detected.
-) else (
-  echo [WARNING] Buzz Desktop installation was not completed.
-  echo PlotPickle will continue normally. Run Start-PlotPickle.bat again to retry.
-)
+:open_when_ready
+start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri '%PLOTPICKLE_URL%' -TimeoutSec 2; if ($response.StatusCode -ge 200 -and $response.Content -match 'PlotPickle') { Start-Process '%PLOTPICKLE_URL%'; exit 0 } } catch {}; Start-Sleep -Milliseconds 500 }; Write-Host '[WARNING] PlotPickle did not become ready within %READY_TIMEOUT_SECONDS% seconds. Review the server messages in this window.'; exit 1"
 exit /b 0
 
 :ensure_dependencies
-echo [STEP 2 OF 4] Checking PlotPickle components...
+echo [STEP 2 OF 3] Checking required PlotPickle components...
 echo.
 call :dependencies_ready
 if not errorlevel 1 (
@@ -304,7 +217,7 @@ if errorlevel 1 (
   exit /b 1
 )
 echo.
-echo This step may install a new runtime or repair the matching runtime if its native binding is incomplete.
+echo This required step may install a new runtime or repair the matching runtime if its native binding is incomplete.
 choice /C YN /N /M "Continue with this local runtime installation? [Y/N]: "
 if errorlevel 2 exit /b 2
 
@@ -394,6 +307,7 @@ echo ============================================================
 echo.
 echo The required local components or Windows native binding are still missing or incomplete.
 echo Nothing was installed as a Windows service, and no server was started.
+echo Optional Ollama, ComfyUI, Buzz, GitHub, Google, and cloud-provider settings were not changed.
 echo.
 echo 1. Confirm that your internet connection is stable.
 echo 2. Confirm that at least 2 GB of disk space is free.

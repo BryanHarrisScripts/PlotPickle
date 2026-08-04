@@ -115,7 +115,7 @@ export default function AiRoutingPanel() {
     }
   }
 
-  async function useLocalPreset() {
+  async function selectLocalPreset() {
     setWorking("local-preset");
     setNotice("");
     try {
@@ -155,7 +155,7 @@ export default function AiRoutingPanel() {
           <h1 id="ai-routing-title">Choose where text, images and video are created.</h1>
           <span>Each capability has one active route. PlotPickle never switches to a paid provider automatically.</span>
         </div>
-        <button type="button" onClick={() => void useLocalPreset()} disabled={Boolean(working)}>
+        <button type="button" onClick={() => void selectLocalPreset()} disabled={Boolean(working)}>
           {working === "local-preset" ? "Selecting local routes…" : "Use low-cost local setup"}
         </button>
       </header>

@@ -16,6 +16,18 @@ test("issue #345 gives About and licensing surfaces keyboard entry points", asyn
   assert.match(legal, /aria-label="Licensing page sections"/);
 });
 
+test("issue #345 uses native landmarks and table semantics", async () => {
+  const about = await source("app/about/page.tsx");
+  assert.match(about, /<nav className=\{styles\.actions\} aria-label="About PlotPickle actions">/);
+  assert.match(about, /<aside>/);
+  assert.doesNotMatch(about, /<aside aria-label=/);
+  assert.match(about, /<table className=\{styles\.table\}>/);
+  assert.match(about, /<caption className=\{styles\.srOnly\}>Legacy feature convergence map<\/caption>/);
+  assert.match(about, /<th scope="col">Legacy concept<\/th>/);
+  assert.match(about, /<th scope="row">\{legacy\}<\/th>/);
+  assert.doesNotMatch(about, /role="table"/);
+});
+
 test("issue #345 separates product, learning, legal and support destinations", async () => {
   const about = await source("app/about/page.tsx");
   const legal = await source("app/legal/page.tsx");
@@ -53,4 +65,6 @@ test("issue #345 protects touch targets, safe areas, focus and reduced motion", 
     assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
     assert.match(css, /scroll-margin-top/);
   }
+  assert.match(aboutCss, /\.tableWrap \{/);
+  assert.match(aboutCss, /overflow-x: auto/);
 });

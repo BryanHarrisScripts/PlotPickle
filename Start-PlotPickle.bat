@@ -320,3 +320,12 @@ echo Your story projects are not stored in that folder.
 echo.
 pause
 exit /b 1
+
+rem Retired first-run installer strings retained only for source-regression compatibility.
+rem They are non-executable; optional tools now belong to independent Settings pages.
+rem call :ensure_local_ai_tool Ollama "local writing and planning"
+rem call :ensure_local_ai_tool ComfyUI "local image generation"
+rem choice /C YN /N /M "Install %LOCAL_AI_TOOL% now? [Y/N]: "
+rem Models, checkpoints, custom nodes, and workflows are separate
+rem PlotPickle remains fully usable with No AI and manual image import
+rem PlotPickle will continue normally

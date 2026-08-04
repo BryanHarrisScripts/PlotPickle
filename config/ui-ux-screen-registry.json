@@ -59,9 +59,9 @@
       "label": "Application shell and navigation",
       "area": "shell",
       "scope": "Global navigation, active state, project actions, page hierarchy and shared chrome",
-      "status": "planned",
-      "issue": null,
-      "pullRequest": null,
+      "status": "audited",
+      "issue": 339,
+      "pullRequest": 340,
       "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "accessibility-semantics"]
     },
     {

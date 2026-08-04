@@ -9,7 +9,7 @@ const forbiddenKeys = new Set(["clientSecret", "webhookSecret", "privateKey", "a
 
 function registrationUrl() {
   const url = new URL("https://github.com/settings/apps/new");
-  url.searchParams.set("name", "PlotPickle");
+  url.searchParams.set("name", "PlotPickle GitHub App");
   url.searchParams.set("description", "Local-first story collaboration for PlotPickle projects.");
   url.searchParams.set("url", "https://github.com/BryanHarrisScripts/PlotPickle");
   url.searchParams.set("public", "true");

@@ -43,7 +43,7 @@ The OpenAI adapter is the primary development and test target:
 - provider-hosted file search as an optional knowledge accelerator, never the only copy of project knowledge; and
 - no permanent dependency on the current Sora Videos API.
 
-OpenAI's Sora 2 Videos API is scheduled to shut down on September 24, 2026. Video therefore enters PlotPickle only through the replaceable asynchronous video-job contract. The initial OpenAI preset reports video as unavailable and explains why.
+OpenAI's Sora 2 Videos API is scheduled to shut down on September 24, 2026. Video therefore enters PlotPickle only through the replaceable asynchronous video-job contract. The OpenAI preset exposes it only as an explicit BYOK choice, requires one-request cost and data-sharing confirmation, and never becomes an automatic paid fallback.
 
 MiniMax is the first supported BYOK cloud-video implementation of that contract. A connection check calls the non-generating `/v1/models` endpoint. Still images use `image-01`; H3 video uses the asynchronous `/v2/video_generation` create, query and queued-job cancellation endpoints. Every request uses the current writer's encrypted local key and provider billing. PlotPickle contains no owner key, shared proxy, bundled credit pool or automatic paid fallback.
 

@@ -315,35 +315,60 @@
   background: #edf8f5;
 }
 
-.table {
-  overflow: hidden;
+.tableWrap {
+  overflow-x: auto;
   border: 1px solid #c9ddda;
   border-radius: 11px;
 }
 
-.table > div {
-  display: grid;
-  grid-template-columns: minmax(180px, 0.35fr) minmax(0, 1fr);
+.table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  text-align: left;
 }
 
-.table > div + div {
+.table th,
+.table td {
+  padding: 12px 14px;
+  line-height: 1.5;
+  vertical-align: top;
+}
+
+.table thead {
+  background: #dff0ec;
+}
+
+.table thead th {
+  color: #173f45;
+  font-weight: 900;
+}
+
+.table tbody tr {
   border-top: 1px solid #dbe7e5;
 }
 
-.table span,
-.table strong {
-  padding: 12px 14px;
-  line-height: 1.5;
-}
-
-.table span:first-child {
+.table tbody th {
+  width: 35%;
   color: #385f63;
   font-weight: 800;
   background: #f5faf9;
 }
 
-.tableHeader {
-  background: #dff0ec;
+.table tbody td {
+  color: #486a6e;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .systemCard {
@@ -459,14 +484,6 @@
   .supportPanel[id] {
     scroll-margin-top: 82px;
   }
-
-  .table > div {
-    grid-template-columns: 1fr;
-  }
-
-  .table span + span {
-    border-top: 1px dashed #dbe7e5;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -474,7 +491,8 @@
     transition: none;
   }
 
-  .sectionNav {
+  .sectionNav,
+  .tableWrap {
     scroll-behavior: auto;
   }
 }

@@ -48,7 +48,7 @@ test("issue #349 contains modal focus, Escape and legacy-toast behaviour", async
     "FOCUSABLE_SELECTOR",
     "MutationObserver",
     'dialog[open], [role=\'dialog\'][aria-modal=\'true\']',
-    'event.key === "Tab"',
+    'event.key !== "Tab"',
     'event.key === "Escape"',
     "plotpickle:overlay-dismiss",
     "plotpickle-overlay-active",

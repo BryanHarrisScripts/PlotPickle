@@ -1,29 +1,23 @@
-import { readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
 import type { Plugin } from "vite";
 
-const BUZZ_TEXT_FILES = ["compose.yml", "README.md", "LICENSE.buzz.txt"] as const;
+const BUZZ_TEXT_FILE = /\.(?:ya?ml|md|txt)$/i;
 
 export function canonicalBuzzText(source: string) {
   return source.replace(/\r\n?/g, "\n");
 }
 
-async function normalizeBuzzTrustFiles() {
-  const bundle = path.resolve(process.cwd(), "runtime", "buzz");
-  await Promise.all(BUZZ_TEXT_FILES.map(async (fileName) => {
-    const filePath = path.join(bundle, fileName);
-    const source = await readFile(filePath, "utf8");
-    const canonical = canonicalBuzzText(source);
-    if (canonical !== source) await writeFile(filePath, canonical, "utf8");
-  }));
+export function canonicalBuzzBytes(filePath: string, source: Buffer | string) {
+  const bytes = typeof source === "string" ? Buffer.from(source, "utf8") : source;
+  if (!BUZZ_TEXT_FILE.test(filePath)) return bytes;
+  return Buffer.from(canonicalBuzzText(bytes.toString("utf8")), "utf8");
 }
 
 export function buzzBundleNormalizer(): Plugin {
-  const normalize = () => normalizeBuzzTrustFiles();
+  // Compatibility plugin retained for the existing Vite ordering contract.
+  // Trust files are canonicalized in memory by verification code and are never
+  // rewritten in the source checkout when PlotPickle starts or tests Buzz.
   return {
     name: "plotpickle-buzz-bundle-normalizer",
     enforce: "pre",
-    async configureServer() { await normalize(); },
-    async configurePreviewServer() { await normalize(); },
   };
 }

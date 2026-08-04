@@ -31,7 +31,9 @@ test("issue #212 makes Buzz configurable in Settings without faking packaged bin
   assert.match(gateway, /127\.0\.0\.1/);
   assert.doesNotMatch(header, /Buzz Setup|\/settings\/buzz/);
   assert.match(header, /data-legacy-workspace-label="pitch"/);
-  assert.match(header, /hidden[\s\S]*aria-hidden="true"[\s\S]*role="tab"[\s\S]*aria-selected=\{activeTab === "pitch"\}[\s\S]*onClick=\{\(\) => onNavigate\("pitch"\)\}[\s\S]*Pitch[\s\S]*<\/button>/);
+  assert.match(header, /className="shell-release-smoke-active"[\s\S]*role="tab"[\s\S]*aria-selected="true"[\s\S]*aria-hidden="true"/);
+  assert.match(header, /<button[\s\S]*hidden[\s\S]*aria-hidden="true"[\s\S]*data-legacy-workspace-label="pitch"[\s\S]*onClick=\{\(\) => onNavigate\("pitch"\)\}[\s\S]*Pitch[\s\S]*<\/button>/);
+  assert.doesNotMatch(header, /data-legacy-workspace-label="pitch"[\s\S]{0,180}role="tab"/);
   assert.match(runtime, /packaged: false/);
   assert.match(runtime, /processRunning: false/);
   assert.match(runtime, /relayListening: false/);

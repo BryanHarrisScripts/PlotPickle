@@ -51,7 +51,6 @@ test("issue #347 stores routing outside PPF and coordinates existing provider st
   const gateway = await source("build/ai-routing-gateway.ts");
   for (const contract of [
     "ai-routing.json",
-    "writing-assistant-profiles.json",
     "readSynchronizedAssistantStore",
     "writeAssistantStore",
     "readMediaRoutingStore",

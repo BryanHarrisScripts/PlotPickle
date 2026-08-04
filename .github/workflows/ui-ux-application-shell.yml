@@ -1,0 +1,28 @@
+name: UI/UX application shell
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ui-ux-application-shell-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  application-shell-contract:
+    name: Application shell UX contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22.19.0"
+      - run: node --test tests/issue-339-application-shell-ui-ux.test.mjs
+      - run: node --check scripts/windows-release-smoke.mjs
+      - run: node --check scripts/windows-issue-208-smoke.mjs

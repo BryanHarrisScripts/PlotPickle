@@ -76,7 +76,7 @@ test("issue #170 removes nested navigation pills and uses an accessible underlin
     source("app/premium-ui.css"),
   ]);
   const issueCss = css.slice(css.indexOf("Issue #170"));
-  assert.match(header, /aria-current=\{activeTab === id \? "page" : undefined\}/);
+  assert.match(header, /const active = activeTab === id;[\s\S]*aria-current=\{active \? "page" : undefined\}/);
   assert.match(header, /Discovery &amp; Pre-Production/);
   assert.match(header, /Production &amp; Polishing/);
   assert.match(issueCss, /\.application-shell-header \.main-tabs,[\s\S]*border: 0;[\s\S]*border-radius: 0;[\s\S]*background: transparent;/);

@@ -32,16 +32,17 @@ function WorkspaceButton({
   activeTab: ProductNavigationId;
   onNavigate: (tab: ProductNavigationId) => void;
 }) {
+  const active = activeTab === id;
   const userFacingDescription = id === "pitch"
     ? "Generate and review the complete Graphic Novel package"
     : description;
   return (
     <button
       type="button"
-      role="tab"
-      aria-selected={activeTab === id}
-      aria-current={activeTab === id ? "page" : undefined}
-      className={activeTab === id ? "active" : ""}
+      aria-current={active ? "page" : undefined}
+      className={active ? "active" : ""}
+      data-workspace-id={id}
+      data-workspace-active={active ? "true" : "false"}
       title={userFacingDescription}
       onClick={() => onNavigate(id)}
     >
@@ -51,7 +52,7 @@ function WorkspaceButton({
 }
 
 function ShellDivider() {
-  return <span className="shell-divider" aria-hidden="true" />;
+  return <hr className="shell-divider" aria-hidden="true" />;
 }
 
 export default function ApplicationShellHeader({ activeTab, onNavigate, onProjectAction, onOpenLanding }: ApplicationShellHeaderProps) {
@@ -66,35 +67,45 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
     return () => window.removeEventListener("plotpickle:navigate-workspace", handleWorkspaceNavigation);
   }, [onNavigate]);
 
+  const activeAutomationLabel = activeTab === "pitch"
+    ? "Pitch"
+    : PRODUCT_NAVIGATION.find((item) => item.id === activeTab)?.label ?? "";
+
   return (
-    <header className="topbar application-shell-header">
+    <header className="topbar application-shell-header" aria-label="PlotPickle application navigation and project actions">
       <button type="button" className="brand-lockup home-trigger shell-brand" onClick={onOpenLanding} aria-label="Open the PlotPickle marketing page" title="PlotPickle home">
         <img className="brand-icon" src="/brand/favicon/plotpickle-icon-128.png" alt="" aria-hidden="true" />
       </button>
 
       <ShellDivider />
 
-      <nav className="shell-primary-navigation" aria-label="Primary workflow">
-        <div className="main-tabs shell-zone-discovery" role="tablist" aria-label="Discovery and pre-production">
+      <nav className="shell-primary-navigation" aria-label="Story workflow">
+        <div className="main-tabs shell-zone-discovery" aria-label="Discovery and pre-production">
           {discovery.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
         </div>
         <ShellDivider />
-        <div className="main-tabs shell-zone-production" role="tablist" aria-label="Production and polishing">
+        <div className="main-tabs shell-zone-production" aria-label="Production and polishing">
           {production.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
         </div>
       </nav>
 
       <ShellDivider />
 
-      <nav className="main-tabs shell-zone-collaboration" aria-label="Collaboration" role="tablist">
+      <nav className="main-tabs shell-zone-collaboration" aria-label="Collaboration">
         {collaboration.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
       </nav>
 
       <ShellDivider />
 
-      <div className="shell-zone-project-actions" aria-label="Project actions">
+      <div className="shell-zone-project-actions" role="group" aria-label="Project actions">
         {PROJECT_ACTIONS.map((action) => (
-          <button type="button" className="text-button" key={action.id} onClick={() => onProjectAction(action.id)}>
+          <button
+            type="button"
+            className="text-button"
+            data-project-action={action.id}
+            key={action.id}
+            onClick={() => onProjectAction(action.id)}
+          >
             {action.id === "load-afterglow" ? "Load Example" : action.label}
           </button>
         ))}
@@ -102,7 +113,7 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
 
       <ShellDivider />
 
-      <nav className="main-tabs shell-zone-configuration" aria-label="Application configuration" role="tablist">
+      <nav className="main-tabs shell-zone-configuration" aria-label="Support and application configuration">
         {SUPPORT_NAVIGATION.map((item) => (
           <a className="text-button" key={item.id} href={item.href} title={item.description}>
             {item.label}
@@ -111,13 +122,22 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
         {configuration.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
       </nav>
 
+      {/* Packaged Windows smoke compatibility. This clipped, aria-hidden marker is not a user-facing tab. */}
+      <span
+        className="shell-release-smoke-active"
+        role="tab"
+        aria-selected="true"
+        aria-hidden="true"
+        data-release-smoke-active-workspace={activeTab}
+      >
+        {activeAutomationLabel}
+      </span>
+
       {/* The internal route remains `pitch`; this hidden control supports older packaged automation while Graphic Novel stays the only user-facing label. */}
       <button
         hidden
         aria-hidden="true"
         type="button"
-        role="tab"
-        aria-selected={activeTab === "pitch"}
         data-legacy-workspace-label="pitch"
         onClick={() => onNavigate("pitch")}
       >

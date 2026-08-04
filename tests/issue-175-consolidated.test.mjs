@@ -43,6 +43,6 @@ test("PR #175 uses compact navigation without visible workflow containers", asyn
   assert.doesNotMatch(header, /primary-button compact/);
   assert.match(css, /border-radius: 0/);
   assert.match(css, /background: transparent/);
-  assert.match(css, /inset 0 -2px 0 #79d1c0/);
+  assert.match(css, /\.application-shell-header \.main-tabs button\.active::after\s*\{\s*background: var\(--shell-accent\);/);
   assert.match(layout, /minimal-navigation\.css/);
 });

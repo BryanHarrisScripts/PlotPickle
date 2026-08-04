@@ -22,8 +22,8 @@ patch("tests/issue-258-creative-compute-paths.test.mjs", [
     (
         '''    "No cloud provider selected",
 ''',
-        '''    "No OpenAI provider selected",
-    "No MiniMax provider selected",
+        '''    'providerConnection("openai", "OpenAI")',
+    'providerConnection("minimax", "MiniMax")',
 ''',
     ),
 ])

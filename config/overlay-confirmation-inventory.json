@@ -20,6 +20,11 @@
       "registryScreen": "collab"
     },
     {
+      "path": "app/core-model-studio.tsx",
+      "owner": "Plan core-model records",
+      "registryScreen": "planner"
+    },
+    {
       "path": "app/github-collaboration-base.tsx",
       "owner": "GitHub collaboration setup",
       "registryScreen": "collab"

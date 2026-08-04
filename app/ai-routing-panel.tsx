@@ -225,7 +225,7 @@ export default function AiRoutingPanel() {
         <p>API keys remain outside PPF story projects. Changing a route does not delete another provider’s key, model, checkpoint or workflow.</p>
       </footer>
 
-      <p className={styles.notice} role="status" aria-live="polite">{notice}</p>
+      <p className={styles.notice} role="status">{notice}</p>
     </section>
   );
 }

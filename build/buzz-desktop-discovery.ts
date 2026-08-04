@@ -35,10 +35,11 @@ function windowsBuzzCliCandidates(root: string) {
   const targetBinary = "buzz-x86_64-pc-windows-msvc.exe";
 
   return [
+    join(root, "buzz.exe"),
+    join(root, targetBinary),
     join(root, "binaries", targetBinary),
     join(root, "resources", "binaries", targetBinary),
     join(root, "resources", targetBinary),
-    join(root, targetBinary),
     join(root, "binaries", "buzz.exe"),
     join(root, "resources", "binaries", "buzz.exe"),
     join(root, "resources", "buzz.exe"),
@@ -62,10 +63,9 @@ export function buzzDesktopCliCandidates(
       programFilesX86 ? join(programFilesX86, "Buzz") : undefined,
     ]);
 
-    // Buzz Desktop's GUI is normally installed as Buzz.exe in the root folder.
-    // Windows paths are case-insensitive, so probing root\buzz.exe can launch the
-    // GUI instead of the bundled CLI. Only search sidecar-specific names and
-    // directories here; a separately installed CLI remains available through PATH.
+    // Buzz Desktop's Tauri package is named buzz-desktop, so its GUI executable
+    // is buzz-desktop.exe. The bundled CLI may legitimately be root\buzz.exe;
+    // search that installed sidecar before falling back to PATH.
     return unique(roots.flatMap(windowsBuzzCliCandidates));
   }
 

@@ -263,11 +263,15 @@ async function cliStatus(connection: BuzzConnection | null) {
   const resolution = await resolveBuzzCliExecutable(connection?.cliPath ?? "");
   const executable = resolution.executable;
   try {
-    const result = await command(executable, ["--version"], { timeoutMs: 8_000 });
+    const result = await command(executable, ["--help"], { timeoutMs: 8_000 });
+    const help = `${result.stdout}\n${result.stderr}`.trim();
+    if (!/Buzz CLI/i.test(help) || !/\bchannels\b/i.test(help) || !/\busers\b/i.test(help)) {
+      throw new Error(`${path.basename(executable)} started but does not expose the required Buzz CLI commands.`);
+    }
     return {
       available: true,
       executable,
-      version: result.stdout || result.stderr || "Available",
+      version: resolution.releaseTag ? `Buzz CLI ${resolution.releaseTag}` : "Buzz CLI available",
       error: "",
       source: resolution.source,
       discovered: resolution.discovered,

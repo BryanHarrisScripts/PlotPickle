@@ -24,13 +24,18 @@ test("provider choices preserve OpenAI focus without provider lock-in", () => {
   assert.match(providers, /ChatGPT \/ OpenAI API/);
 });
 
-test("OpenAI video is a replaceable unavailable capability", () => {
+test("OpenAI video is an explicit replaceable BYOK capability", () => {
   assert.match(providers, /OPENAI_VIDEO_SUNSET = "2026-09-24"/);
   const openAiPreset = providers.slice(providers.indexOf('kind: "openai"'), providers.indexOf('kind: "minimax"'));
-  assert.doesNotMatch(openAiPreset, /capabilities: \[[^\]]*"video-generation"/s);
+  assert.match(openAiPreset, /capabilities: \[[^\]]*"video-generation"/s);
+  assert.match(openAiPreset, /video: "sora-2"/);
+  assert.match(openAiPreset, /explicit BYOK choice/);
+  assert.match(openAiPreset, /will not fall back to it automatically/);
   assert.match(providers, /kind: "minimax"[\s\S]*capabilities: \[[^\]]*"video-generation"/);
   assert.match(adapters, /video-provider-unavailable/);
   assert.match(architecture, /replaceable asynchronous video-job contract/);
+  assert.match(architecture, /explicit BYOK choice/);
+  assert.doesNotMatch(architecture, /initial OpenAI preset reports video as unavailable/);
 });
 
 test("provider configuration never contains an API key", () => {

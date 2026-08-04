@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - agent/333-dashboard-settings-separation
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write

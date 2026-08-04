@@ -11,6 +11,14 @@ const root = new URL("..", import.meta.url);
 const source = (file) => readFile(new URL(file, root), "utf8");
 const require = createRequire(import.meta.url);
 
+function executableBatchLines(batch) {
+  return batch
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !/^rem(?:\s|$)/i.test(line) && !/^::/.test(line))
+    .join("\n");
+}
+
 async function compileDiscovery() {
   const text = await source("build/buzz-desktop-discovery.ts");
   const compiled = ts.transpileModule(text, {
@@ -120,7 +128,7 @@ test("issue #242 wires discovery into the gateway and explains blank-path behavi
   assert.doesNotMatch(discovery.text, /spawn\s*\(|writeFile|privateKey|relayUrl/);
 });
 
-test("issue #244 offers the pinned Buzz Desktop installer without moving Buzz out of PlotPickle", async () => {
+test("issues #244 and #341 keep the pinned Buzz installer available while Settings owns setup", async () => {
   const [launcher, installer, configText, packageSmoke, settings] = await Promise.all([
     source("Start-PlotPickle.bat"),
     source("scripts/install-buzz-desktop.ps1"),
@@ -129,6 +137,7 @@ test("issue #244 offers the pinned Buzz Desktop installer without moving Buzz ou
     source("app/buzz-settings-panel.tsx"),
   ]);
   const config = JSON.parse(configText);
+  const executableLauncher = executableBatchLines(launcher);
 
   assert.equal(config.releaseTag, discovery.exports.BUZZ_DESKTOP_COMPATIBILITY.releaseTag);
   assert.equal(config.version, discovery.exports.BUZZ_DESKTOP_COMPATIBILITY.version);
@@ -137,12 +146,10 @@ test("issue #244 offers the pinned Buzz Desktop installer without moving Buzz ou
   assert.equal(config.windows.downloadUrl, "https://github.com/block/buzz/releases/download/desktop-v0.5.3/Buzz_0.5.3_x64-setup_alpha-unsigned.exe");
   assert.equal(config.windows.unsigned, true);
 
-  assert.match(launcher, /BUZZ_INSTALLER=scripts\\install-buzz-desktop\.ps1/);
-  assert.match(launcher, /-File "%BUZZ_INSTALLER%" -CheckOnly/);
-  assert.match(launcher, /Install Buzz Desktop !BUZZ_DESKTOP_VERSION! now\? \[Y\/N\]:/);
-  assert.match(launcher, /-File "%BUZZ_INSTALLER%" -Install/);
-  assert.match(launcher, /Buzz remains inside the PlotPickle UI/);
-  assert.match(launcher, /Buzz Desktop installation was not completed[\s\S]*PlotPickle will continue normally/);
+  assert.match(launcher, /optional connections are configured inside PlotPickle Settings/i);
+  assert.match(launcher, /Optional services remain available from their independent Settings pages/);
+  assert.doesNotMatch(executableLauncher, /BUZZ_INSTALLER|install-buzz-desktop\.ps1|ensure_buzz_desktop/i);
+  assert.doesNotMatch(executableLauncher, /Install Buzz Desktop.*\[Y\/N\]/i);
 
   assert.match(installer, /Invoke-WebRequest -Uri \$downloadUrl -OutFile \$installerPath/);
   assert.match(installer, /Start-Process -FilePath \$installerPath -Wait -PassThru/);
@@ -154,6 +161,8 @@ test("issue #244 offers the pinned Buzz Desktop installer without moving Buzz ou
 
   assert.match(packageSmoke, /scripts\/install-buzz-desktop\.ps1/);
   assert.match(packageSmoke, /config\/buzz-desktop\.json/);
+  assert.match(settings, /Buzz Desktop not detected/);
+  assert.match(settings, /Install and open Buzz Desktop once, then refresh this screen/);
   assert.match(settings, /Buzz CLI path \(optional\)/);
   assert.match(settings, /Open Story Room/);
 });

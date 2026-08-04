@@ -39,10 +39,10 @@
       "label": "Welcome and startup",
       "area": "public",
       "scope": "Startup choice, returning-writer path and first-run guidance",
-      "status": "planned",
-      "issue": null,
-      "pullRequest": null,
-      "requirements": ["interaction-states", "responsive-layout", "keyboard-navigation", "loading-empty-success-warning-error"]
+      "status": "audited",
+      "issue": 341,
+      "pullRequest": 342,
+      "requirements": ["interaction-states", "responsive-layout", "keyboard-navigation", "loading-empty-success-warning-error", "recovery-guidance"]
     },
     {
       "id": "public-about-support",

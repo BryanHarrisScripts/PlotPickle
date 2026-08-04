@@ -1,0 +1,36 @@
+name: UI/UX consistency foundation
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "config/ui-ux-screen-registry.json"
+      - "docs/UI-UX-CONSISTENCY-PROGRAM.md"
+      - "tests/issue-337-ui-ux-consistency-foundation.test.mjs"
+      - "lib/product-direction.ts"
+      - "config/settings-system-taxonomy.json"
+      - ".github/workflows/ui-ux-consistency-foundation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ui-ux-consistency-foundation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  registry-contract:
+    name: Screen registry contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22.19.0"
+      - name: Validate screen registry and shared contract
+        run: node --test tests/issue-337-ui-ux-consistency-foundation.test.mjs

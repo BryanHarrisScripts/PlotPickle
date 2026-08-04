@@ -58,7 +58,28 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_UI_AUDIT_MODEL: ${{ vars.OPENAI_UI_AUDIT_MODEL || 'gpt-4o' }}
           CHANGED_FILES: ${{ steps.changed.outputs.files }}
-        run: node scripts/ui-ux-code-audit.mjs
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            node scripts/ui-ux-code-audit.mjs
+            if ! node -e '
+              const fs = require("node:fs");
+              const result = JSON.parse(fs.readFileSync("audit-result.json", "utf8"));
+              const transient = /HTTP (?:429|5\d\d)\b/.test(String(result.summary || ""));
+              process.exit(transient ? 0 : 1);
+            '; then
+              break
+            fi
+            if [[ "$attempt" -eq 3 ]]; then
+              echo "UI/UX audit provider remained unavailable after three attempts."
+              break
+            fi
+            delay=$((attempt * 20))
+            echo "Transient UI/UX audit provider response; retrying in ${delay} seconds."
+            rm -f audit-result.json audit-report.md
+            sleep "$delay"
+          done
 
       - name: Publish audit summary
         if: always()

@@ -97,6 +97,6 @@ test("issue #349 is recorded in the canonical UI/UX registry", async () => {
   const entry = registry.screens.find((screen) => screen.id === "shell-common-overlays");
   assert.ok(entry);
   assert.equal(entry.issue, 349);
-  assert.equal(entry.status, "in-progress");
+  assert.equal(entry.status, "audited");
   assert.equal(entry.pullRequest, 350);
 });

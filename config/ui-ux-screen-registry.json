@@ -49,9 +49,9 @@
       "label": "About, licensing and support",
       "area": "public",
       "scope": "About, open-source licensing, help and support destinations",
-      "status": "planned",
-      "issue": null,
-      "pullRequest": null,
+      "status": "audited",
+      "issue": 345,
+      "pullRequest": 346,
       "requirements": ["visual-system", "responsive-layout", "accessibility-semantics", "recovery-guidance"]
     },
     {

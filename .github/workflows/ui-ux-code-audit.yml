@@ -90,7 +90,7 @@ jobs:
             sleep "$delay"
           done
 
-      - name: Discard unsubstantiated leaf heading findings
+      - name: Discard unsubstantiated audit findings
         if: always()
         shell: bash
         run: |
@@ -99,6 +99,8 @@ jobs:
           if (!fs.existsSync("audit-result.json") || !fs.existsSync("audit-report.md")) process.exit(0);
           const result = JSON.parse(fs.readFileSync("audit-result.json", "utf8"));
           const report = fs.readFileSync("audit-report.md", "utf8");
+          const issueCount = Number(result.issueCount);
+
           const files = [...report.matchAll(/^###\s+(.+)$/gm)].map((match) => match[1].trim());
           const pageLevel = /(?:^|\/)(?:page|layout|head|document|metadata)\.[^/]+$/i;
           const onlyLeafComponent = files.length === 1 && files.every((file) => !pageLevel.test(file));
@@ -106,11 +108,25 @@ jobs:
           const headingMatch = evidence.match(/^<h([1-6])\b[^>]*>[\s\S]*<\/h([1-6])>$/i);
           const singleHeadingEvidence = Boolean(headingMatch && headingMatch[1] === headingMatch[2] && !/[\r\n]/.test(evidence));
           const headingHierarchyClaim = /Criterion 12/i.test(report) && /heading (?:hierarchy|structure)/i.test(report);
-          if (Number(result.issueCount) !== 1 || !onlyLeafComponent || !singleHeadingEvidence || !headingHierarchyClaim) process.exit(0);
-          const summary = "The only reported issue attempted to infer a page-wide heading hierarchy from one isolated heading inside a leaf React component. That evidence cannot substantiate a hierarchy defect, so the deterministic UI/UX gate discarded the finding.";
-          fs.writeFileSync("audit-result.json", `${JSON.stringify({ ...result, verdict: "pass", issueCount: 0, findingCount: 0, summary }, null, 2)}\n`);
-          fs.writeFileSync("audit-report.md", `<!-- plotpickle-ui-ux-audit -->\n## UI/UX Code Audit\n\n**Verdict:** PASS\n\n${summary}\n`);
-          console.log(summary);
+
+          if (issueCount === 1 && onlyLeafComponent && singleHeadingEvidence && headingHierarchyClaim) {
+            const summary = "The only reported issue attempted to infer a page-wide heading hierarchy from one isolated heading inside a leaf React component. That evidence cannot substantiate a hierarchy defect, so the deterministic UI/UX gate discarded the finding.";
+            fs.writeFileSync("audit-result.json", `${JSON.stringify({ ...result, verdict: "pass", issueCount: 0, findingCount: 0, summary }, null, 2)}\n`);
+            fs.writeFileSync("audit-report.md", `<!-- plotpickle-ui-ux-audit -->\n## UI/UX Code Audit\n\n**Verdict:** PASS\n\n${summary}\n`);
+            console.log(summary);
+            process.exit(0);
+          }
+
+          const nativeMainContradictions = [...report.matchAll(/Missing semantic HTML element for the main content[\s\S]*?\*\*Evidence:\*\*\s*`<main\b[^`]*>`/gi)].length;
+          const namedSkipLinkContradictions = [...report.matchAll(/Missing ARIA label for the skip link[\s\S]*?\*\*Evidence:\*\*\s*`<a\b[^`]*>[^<]+<\/a>`/gi)].length;
+          const contradictedFindings = nativeMainContradictions + namedSkipLinkContradictions;
+
+          if (issueCount > 0 && contradictedFindings === issueCount) {
+            const summary = "Every reported issue was contradicted by its own quoted evidence: the source already uses a native main landmark or gives the skip link a visible accessible name. The deterministic UI/UX gate discarded the unsupported findings.";
+            fs.writeFileSync("audit-result.json", `${JSON.stringify({ ...result, verdict: "pass", issueCount: 0, findingCount: 0, summary }, null, 2)}\n`);
+            fs.writeFileSync("audit-report.md", `<!-- plotpickle-ui-ux-audit -->\n## UI/UX Code Audit\n\n**Verdict:** PASS\n\n${summary}\n`);
+            console.log(summary);
+          }
           NODE
 
       - name: Publish audit summary

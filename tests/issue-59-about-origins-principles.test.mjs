@@ -1,3 +1,4 @@
+import "./issue-345-about-support-ux.test.mjs";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";

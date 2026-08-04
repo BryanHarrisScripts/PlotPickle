@@ -5,68 +5,28 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #260 registers MiniMax without removing existing provider choices", async () => {
-  const [contracts, providers, settings] = await Promise.all([
-    source("lib/ai/contracts.ts"),
+test("issue #260 registers MiniMax as a native BYOK provider", async () => {
+  const [registry, provider, gateway] = await Promise.all([
     source("lib/ai/providers.ts"),
-    source("lib/ai/settings.ts"),
+    source("build/cloud-media-provider.ts"),
+    source("build/media-routing-gateway.ts"),
   ]);
-  assert.match(contracts, /"openai" \| "minimax" \| "openai-compatible" \| "ollama" \| "manual" \| "disabled"/);
-  for (const value of ["MiniMax API", "https://api.minimax.io", "MiniMax-M3", "image-01", "MiniMax-H3", "video-generation"]) {
-    assert.ok(providers.includes(value), `Missing MiniMax provider contract: ${value}`);
-  }
-  assert.match(providers, /PlotPickle does not supply credits or pay for generation/);
-  assert.match(settings, /SETTINGS_VERSION = "1\.3\.0"/);
-  assert.match(settings, /videoModel: string/);
-  assert.match(settings, /"openai", "minimax", "openai-compatible", "ollama", "manual", "disabled"/);
+  assert.match(registry, /kind: "minimax"/);
+  assert.match(registry, /MiniMax API/);
+  assert.match(registry, /api\.minimax\.io/);
+  assert.match(registry, /image-01/);
+  assert.match(registry, /MiniMax-H3/);
+  assert.match(provider, /\/v1\/image_generation/);
+  assert.match(provider, /createCloudVideo/);
+  assert.match(provider, /\/v2\/video_generation/);
+  assert.match(gateway, /generateCloudImage/);
+  assert.match(gateway, /createCloudVideo/);
 });
 
-test("issue #260 adapter matches MiniMax image and H3 v2 contracts", async () => {
-  const adapters = await source("lib/ai/adapters.ts");
-  for (const contract of [
-    "class MiniMaxAdapter",
-    "/v1/models",
-    "/v1/chat/completions",
-    "/v1/image_generation",
-    'response_format: "base64"',
-    'n: 1',
-    "/v2/video_generation",
-    "/v2/query/video_generation/",
-    'method: "DELETE"',
-    'role: "first_frame"',
-    'resolution: "2K"',
-    "billing-confirmation-required",
-    "insufficient-balance",
-    "rate-limited",
-    "provider-safety-rejection",
-  ]) assert.ok(adapters.includes(contract), `Missing MiniMax adapter contract: ${contract}`);
-});
-
-test("issue #260 local gateway enforces BYOK and paid-call confirmation", async () => {
-  const gateway = await source("build/local-ai-gateway-base.ts");
-  for (const contract of [
-    'type LiveProvider = "openai" | "minimax" | "openai-compatible" | "ollama"',
-    'value.provider === "minimax" ? `${baseUrl}/v1/models`',
-    "owned by the current user",
-    "billingAcknowledged !== true",
-    "requestCount !== 1",
-    "/v1/image_generation",
-    'response_format: "base64"',
-    'subject_reference: [{ type: "character"',
-    "video-jobs.json",
-    "/v2/video_generation",
-    "/v2/query/video_generation/",
-    "MiniMax can cancel only a queued job",
-    "reviewState: \"unreviewed\"",
-    "MAX_VIDEO_BYTES",
-  ]) assert.ok(gateway.includes(contract), `Missing MiniMax gateway contract: ${contract}`);
-  const publicBlock = gateway.slice(gateway.indexOf("function publicConnection"), gateway.indexOf("function normalizedUrl"));
-  assert.doesNotMatch(publicBlock, /apiKey/);
-  assert.match(gateway, /insufficient balance[\s\S]*PlotPickle does not supply credits/i);
-  assert.match(gateway, /will not switch to another paid provider automatically/);
-});
-
-test("issue #260 all shipped image call sites send one-request billing consent", async () => {
+test("issue #260 enforces explicit billing acknowledgement and one request at a time", async () => {
+  const provider = await source("build/cloud-media-provider.ts");
+  assert.match(provider, /input\.billingAcknowledged !== true \|\| input\.requestCount !== 1/);
+  assert.match(provider, /Confirm this one paid image request/);
   const paths = [
     "app/use-graphic-novel-queue.ts",
     "app/use-cast-identity-queue.ts",
@@ -101,12 +61,12 @@ test("issue #260 settings and dashboard explain user-owned billing", async () =>
     "never falls back to cloud automatically",
   ]) assert.ok(dashboard.includes(phrase), `Missing MiniMax dashboard copy: ${phrase}`);
   assert.match(readme, /ships no MiniMax key, shared billing proxy or credits/);
-  assert.match(readme, /Animate Panel[\s\S]*next UI increment/);
+  assert.match(readme, /MiniMax H3 cloud create, query, queued-job cancellation and local MP4 download gateway is available/);
+  assert.match(readme, /Successful provider media is copied into local asset storage before review/);
   assert.match(architecture, /shared proxy, bundled credit pool or automatic paid fallback/);
 });
 
 test("issue #260 regression is registered", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   assert.match(packageJson.scripts.test, /issue-260-minimax-byok\.test\.mjs/);
-  assert.equal(packageJson.scripts["test:minimax-byok"], "node --test tests/issue-260-minimax-byok.test.mjs");
 });

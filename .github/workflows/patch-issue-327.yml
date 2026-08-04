@@ -1,0 +1,171 @@
+name: Patch issue 327
+
+on:
+  push:
+    branches:
+      - agent/327-comfyui-actionable-setup
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/327-comfyui-actionable-setup
+          fetch-depth: 0
+      - name: Patch ComfyUI setup
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          def write(path, source):
+              Path(path).write_text(source, encoding="utf-8")
+
+          # Shared safe loopback endpoint in the media provider.
+          p = Path("build/comfyui-media-provider.ts")
+          s = p.read_text(encoding="utf-8")
+          s = s.replace('import { persistentHome } from "./local-credentials";\n', 'import { persistentHome } from "./local-credentials";\nimport { comfyUIUrl, normalizeComfyUIBaseUrl } from "./comfyui-endpoint";\n', 1)
+          s = s.replace('const DEFAULT_BASE_URL = "http://127.0.0.1:8188";\n', '', 1)
+          s, n = re.subn(r'\nfunction normalizeBaseUrl\(value: string\) \{.*?\n\}\n', '\n', s, count=1, flags=re.S)
+          if n != 1: raise SystemExit("normalizeBaseUrl not found")
+          s = s.replace('  const root = normalizeBaseUrl(baseUrl);\n  const response = await fetch(`${root}${pathname}`, {', '  const response = await fetch(comfyUIUrl(baseUrl, pathname), {', 1)
+          s = s.replace('  const root = normalizeBaseUrl(baseUrl);\n  const query = new URLSearchParams({', '  const root = normalizeComfyUIBaseUrl(baseUrl);\n  const query = new URLSearchParams({', 1)
+          write(p, s)
+
+          # Media routing uses the same endpoint contract and reports check time.
+          p = Path("build/media-routing-gateway.ts")
+          s = p.read_text(encoding="utf-8")
+          s = s.replace('import type { ImageGenerationInput, VideoGenerationInput } from "./media-provider-common";\n', 'import type { ImageGenerationInput, VideoGenerationInput } from "./media-provider-common";\nimport { normalizeComfyUIBaseUrl } from "./comfyui-endpoint";\n', 1)
+          s, n = re.subn(r'\nfunction normalizeComfyUIBaseUrl\(value: unknown\) \{.*?\n\}\n', '\n', s, count=1, flags=re.S)
+          if n != 1: raise SystemExit("gateway normalizer not found")
+          s = s.replace('    comfyui: {\n      ...comfy,', '    comfyui: {\n      ...comfy,\n      checkedAt: new Date().toISOString(),', 1)
+          s = s.replace('{ id: "comfyui", label: "ComfyUI responds on 127.0.0.1:8188", ready: comfy.reachable },', '{ id: "comfyui", label: `ComfyUI responds on ${store.comfyui.baseUrl}`, ready: comfy.reachable },', 1)
+          write(p, s)
+
+          # Setup dashboard reads the same encrypted endpoint and readiness probe.
+          p = Path("build/local-connections-gateway.ts")
+          s = p.read_text(encoding="utf-8")
+          s = s.replace('import type { PublicConnectionStatus } from "../lib/connection-status";\n', 'import type { PublicConnectionStatus } from "../lib/connection-status";\nimport { probeComfyUI as probeComfyMediaService } from "./comfyui-media-provider";\nimport { readMediaRoutingStore } from "./media-routing-store";\n', 1)
+          s = s.replace('const COMFYUI_SYSTEM_URL = "http://127.0.0.1:8188/system_stats";\nconst COMFYUI_CHECKPOINTS_URL = "http://127.0.0.1:8188/object_info/CheckpointLoaderSimple";\n', '', 1)
+          replacement = '''
+async function probeComfyUI(): Promise<LocalCreativeServiceStatus> {
+  const checkedAt = new Date().toISOString();
+  const store = await readMediaRoutingStore();
+  const baseUrl = store.comfyui.baseUrl;
+  const previous = localServiceLastVerified.comfyui;
+  try {
+    const probe = await probeComfyMediaService(baseUrl, store.comfyui.h3Workflow);
+    const ready = probe.reachable && probe.checkpoints.length > 0 && probe.imageNodesReady;
+    if (ready) localServiceLastVerified.comfyui = checkedAt;
+    const detail = ready
+      ? `${probe.checkpoints.length} local image checkpoint${probe.checkpoints.length === 1 ? "" : "s"} and all required image nodes are available.`
+      : !probe.reachable
+        ? "ComfyUI was not detected at the saved local address. It may be installed but not running."
+        : !probe.checkpoints.length
+          ? "ComfyUI is running, but no image checkpoint is available yet."
+          : `ComfyUI is running, but required image nodes are missing: ${probe.missingImageNodes.join(", ")}.`;
+    return localServiceStatus("comfyui", "ComfyUI", {
+      state: ready ? "connected" : probe.reachable ? "configured" : previous ? "error" : "disconnected",
+      identity: [probe.version ? `ComfyUI ${probe.version}` : probe.reachable ? "ComfyUI is running" : "ComfyUI not responding", baseUrl].join(" · "),
+      detail,
+      lastSuccessfulConnection: ready ? checkedAt : previous,
+      error: probe.error,
+      repairGuidance: ready
+        ? "ComfyUI is ready for local image generation."
+        : !probe.reachable
+          ? `Open ComfyUI Desktop, start its server, confirm ${baseUrl}, then test again.`
+          : !probe.checkpoints.length
+            ? "Install at least one compatible image checkpoint in ComfyUI, restart it if requested, then test again."
+            : "Update or repair ComfyUI so the standard image nodes are available, then test again.",
+      dataShared: ["Only explicitly submitted prompts and approved references; requests remain on the saved loopback address"],
+      scopes: ["Local image generation"],
+    });
+  } catch (error) {
+    return localServiceStatus("comfyui", "ComfyUI", {
+      state: previous ? "error" : "disconnected",
+      identity: previous ? `Previously verified on ${baseUrl}` : `Not running on ${baseUrl}`,
+      detail: previous ? "The previously verified ComfyUI service is no longer responding." : "ComfyUI may be installed, but its local server was not detected.",
+      lastSuccessfulConnection: previous,
+      error: error instanceof Error ? error.message : "ComfyUI health check failed.",
+      repairGuidance: `Open ComfyUI Desktop, start its server, confirm ${baseUrl}, then test again.`,
+    });
+  }
+}
+
+async function countFiles'''
+          s, n = re.subn(r'\nfunction comfyCheckpointNames\(.*?\nasync function countFiles', replacement, s, count=1, flags=re.S)
+          if n != 1: raise SystemExit("legacy ComfyUI probe not found")
+          write(p, s)
+
+          # Explain the actionable next step in Setup.
+          p = Path("app/setup-connections-dashboard.tsx")
+          s = p.read_text(encoding="utf-8")
+          before = '            detail: `${comfyui.detail} PlotPickle offers a separate Y/N installation choice on Windows; checkpoints and reviewed workflows are configured separately.`,'
+          after = '            detail: [comfyui.detail, comfyui.error ? `Error: ${comfyui.error}` : "", comfyui.repairGuidance, "ComfyUI Desktop must be open and its local server must be running; installation alone is not enough."].filter(Boolean).join(" "),'
+          if before not in s: raise SystemExit("setup ComfyUI detail not found")
+          write(p, s.replace(before, after, 1))
+
+          # Dedicated panel shows the live endpoint check time.
+          p = Path("app/media-routing-panel.tsx")
+          s = p.read_text(encoding="utf-8")
+          s = s.replace('    reachable: boolean;\n    baseUrl: string;', '    reachable: boolean;\n    checkedAt: string;\n    baseUrl: string;', 1)
+          s = s.replace(': status.comfyui.error || "Start ComfyUI, then run this live connection test."}</small>', ': status.comfyui.error || "Open ComfyUI Desktop, start its local server, then run this live connection test."} Last checked: {formatDate(status.comfyui.checkedAt)}</small>', 1)
+          write(p, s)
+
+          Path("tests/issue-327-comfyui-actionable-setup.test.mjs").write_text('''import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+const root = new URL("..", import.meta.url);
+const source = (path) => readFile(new URL(path, root), "utf8");
+
+test("issue #327 shares one safe saved ComfyUI endpoint", async () => {
+  const [endpoint, media, routing, local] = await Promise.all([
+    source("build/comfyui-endpoint.ts"),
+    source("build/comfyui-media-provider.ts"),
+    source("build/media-routing-gateway.ts"),
+    source("build/local-connections-gateway.ts"),
+  ]);
+  assert.match(endpoint, /127\.0\.0\.1|localhost/);
+  assert.match(endpoint, /port between 1 and 65535/);
+  assert.match(media, /comfyUIUrl/);
+  assert.match(routing, /normalizeComfyUIBaseUrl/);
+  assert.match(local, /readMediaRoutingStore/);
+  assert.match(local, /probeComfyMediaService/);
+  assert.doesNotMatch(local, /COMFYUI_SYSTEM_URL|COMFYUI_CHECKPOINTS_URL/);
+});
+
+test("issue #327 makes installed versus running versus ready visible", async () => {
+  const [setup, panel, local] = await Promise.all([
+    source("app/setup-connections-dashboard.tsx"),
+    source("app/media-routing-panel.tsx"),
+    source("build/local-connections-gateway.ts"),
+  ]);
+  assert.match(setup, /installation alone is not enough/);
+  assert.match(setup, /comfyui\.repairGuidance/);
+  assert.match(panel, /start its local server/);
+  assert.match(panel, /Last checked/);
+  assert.match(local, /installed but not running|installed, but its local server was not detected/i);
+  assert.match(local, /no image checkpoint is available/);
+  assert.match(local, /required image nodes are missing/);
+  assert.match(local, /state: ready \? "connected" : probe\.reachable \? "configured"/);
+});
+''', encoding="utf-8")
+
+          p = Path("tests/issue-258-creative-compute-paths.test.mjs")
+          s = p.read_text(encoding="utf-8")
+          marker = 'import test from "node:test";\n'
+          if 'issue-327-comfyui-actionable-setup' not in s:
+              s = s.replace(marker, marker + 'import "./issue-327-comfyui-actionable-setup.test.mjs";\n', 1)
+          write(p, s)
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add build app tests
+          git commit -m "Make ComfyUI setup actionable"
+          git push origin HEAD:agent/327-comfyui-actionable-setup

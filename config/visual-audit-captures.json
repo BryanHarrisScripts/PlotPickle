@@ -31,7 +31,7 @@
     { "screenId": "settings-general", "label": "General", "route": "/?workspace=settings", "settingsTarget": "general", "variant": "general", "expectedText": "General Settings" },
     { "screenId": "settings-general", "label": "Project Defaults", "route": "/?workspace=settings", "settingsTarget": "project-defaults", "variant": "project-defaults", "expectedText": "Project Defaults" },
     { "screenId": "settings-appearance-accessibility", "label": "Appearance & Accessibility", "route": "/?workspace=settings", "settingsTarget": "appearance", "expectedText": "Appearance & Accessibility" },
-    { "screenId": "settings-runtime", "label": "PlotPickle Runtime", "route": "/?workspace=settings", "settingsTarget": "general", "clickText": "PlotPickle Runtime", "expectedText": "PlotPickle Runtime" },
+    { "screenId": "settings-runtime", "label": "PlotPickle Runtime", "route": "/?workspace=settings", "settingsTarget": "local", "expectedText": "Local Story Mode" },
     { "screenId": "settings-ollama", "label": "Ollama", "route": "/?workspace=settings", "settingsTarget": "ollama", "expectedText": "Ollama" },
     { "screenId": "settings-comfyui", "label": "ComfyUI", "route": "/?workspace=settings", "settingsTarget": "comfyui", "expectedText": "ComfyUI" },
     { "screenId": "settings-buzz", "label": "Buzz installation and runtime", "route": "/?workspace=settings", "settingsTarget": "buzz", "expectedText": "Writers’ Room Mode" },

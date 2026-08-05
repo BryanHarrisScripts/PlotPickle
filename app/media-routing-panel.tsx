@@ -16,36 +16,42 @@ type PublicProfile = {
   lastError?: string;
 };
 type Requirement = { id: string; label: string; ready: boolean };
+type ComfyUiStatus = {
+  reachable: boolean;
+  serviceReady?: boolean;
+  baseUrl: string;
+  version: string;
+  checkpoints: string[];
+  imageNodesReady: boolean;
+  missingImageNodes: string[];
+  workflowNodesReady: boolean;
+  missingWorkflowNodes: string[];
+  checkedAt?: string;
+  latencyMs?: number;
+  error: string;
+  capabilityError?: string;
+  checkpoint: string;
+  selectedCheckpoint: string;
+  imageVerifiedAt: string;
+  lastError: string;
+  h3Workflow: {
+    configured: boolean;
+    hash?: string;
+    nodeClasses?: string[];
+    configuredAt?: string;
+    verifiedAt?: string;
+    verifiedHash?: string;
+    lastError?: string;
+  };
+};
 type MediaStatus = {
   imageRoute: ImageRoute;
   videoRoute: VideoRoute;
   profiles: { openai: PublicProfile; minimax: PublicProfile };
-  comfyui: {
-    reachable: boolean;
-    baseUrl: string;
-    version: string;
-    checkpoints: string[];
-    imageNodesReady: boolean;
-    missingImageNodes: string[];
-    workflowNodesReady: boolean;
-    missingWorkflowNodes: string[];
-    error: string;
-    checkpoint: string;
-    selectedCheckpoint: string;
-    imageVerifiedAt: string;
-    lastError: string;
-    h3Workflow: {
-      configured: boolean;
-      hash?: string;
-      nodeClasses?: string[];
-      configuredAt?: string;
-      verifiedAt?: string;
-      verifiedHash?: string;
-      lastError?: string;
-    };
-  };
+  comfyui: ComfyUiStatus;
   hybridGate: { ready: boolean; requirements: Requirement[] };
 };
+type DiagnosticResponse = { comfyui: Partial<ComfyUiStatus> & Pick<ComfyUiStatus, "reachable" | "baseUrl" | "checkpoints" | "imageNodesReady" | "missingImageNodes" | "workflowNodesReady" | "missingWorkflowNodes" | "error"> };
 type ImageTestResult = { assetUrl: string; route: ImageRoute; providerRequestId?: string };
 type VideoJob = {
   id: string;
@@ -57,6 +63,7 @@ type VideoJob = {
 };
 
 const API = "/api/media-routing";
+const DIAGNOSTICS_API = "/api/provider-diagnostics/comfyui";
 const imageOptions: Array<{ id: ImageRoute; label: string; detail: string }> = [
   { id: "comfyui", label: "ComfyUI", detail: "Local reviewed workflow on this computer" },
   { id: "openai", label: "OpenAI Images", detail: "Cloud generation using your OpenAI API account" },
@@ -94,6 +101,11 @@ function imageVerified(status: MediaStatus, route: ImageRoute) {
   return route === "manual" ? "manual" : "";
 }
 
+function mergeDiagnostic(status: MediaStatus, diagnostic: DiagnosticResponse | null) {
+  if (!diagnostic) return status;
+  return { ...status, comfyui: { ...status.comfyui, ...diagnostic.comfyui } };
+}
+
 export default function MediaRoutingPanel({ onManage }: { onManage: (target: string) => void }) {
   const [status, setStatus] = useState<MediaStatus | null>(null);
   const [working, setWorking] = useState("");
@@ -113,8 +125,10 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
   async function refresh() {
     try {
       const next = await jsonRequest<MediaStatus>(`${API}/status`);
-      setStatus(next);
-      setComfyBaseUrl(next.comfyui.baseUrl || "http://127.0.0.1:8188");
+      const diagnostic = await jsonRequest<DiagnosticResponse>(DIAGNOSTICS_API, "POST", { baseUrl: next.comfyui.baseUrl }).catch(() => null);
+      const merged = mergeDiagnostic(next, diagnostic);
+      setStatus(merged);
+      setComfyBaseUrl(merged.comfyui.baseUrl || "http://127.0.0.1:8188");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Media routing status could not be checked.");
     }
@@ -142,6 +156,7 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
     setNotice("");
     try {
       setStatus(await jsonRequest<MediaStatus>(`${API}/routes`, "POST", body));
+      refreshDashboardLights();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The route could not be selected.");
     } finally {
@@ -153,12 +168,16 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
     setWorking("comfy-connection");
     setNotice("");
     try {
-      const next = await jsonRequest<MediaStatus>(`${API}/comfyui/connection`, "POST", { baseUrl: comfyBaseUrl });
-      setStatus(next);
-      setComfyBaseUrl(next.comfyui.baseUrl);
-      setNotice(next.comfyui.reachable
-        ? `ComfyUI ${next.comfyui.version || "service"} responded. ${next.comfyui.checkpoints.length} checkpoint${next.comfyui.checkpoints.length === 1 ? "" : "s"} detected.`
-        : next.comfyui.error || "ComfyUI did not respond.");
+      const diagnostic = await jsonRequest<DiagnosticResponse>(DIAGNOSTICS_API, "POST", { baseUrl: comfyBaseUrl });
+      const next = await jsonRequest<MediaStatus>(`${API}/status`);
+      const merged = mergeDiagnostic(next, diagnostic);
+      setStatus(merged);
+      setComfyBaseUrl(merged.comfyui.baseUrl);
+      setNotice(!merged.comfyui.reachable
+        ? merged.comfyui.error || "ComfyUI did not respond."
+        : merged.comfyui.capabilityError
+          ? merged.comfyui.capabilityError
+          : `ComfyUI ${merged.comfyui.version || "service"} responded in ${merged.comfyui.latencyMs ?? 0} ms. ${merged.comfyui.checkpoints.length} checkpoint${merged.comfyui.checkpoints.length === 1 ? "" : "s"} detected.`);
       refreshDashboardLights();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "ComfyUI could not be checked.");
@@ -174,6 +193,7 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
     try {
       setStatus(await jsonRequest<MediaStatus>(`${API}/comfyui/checkpoint`, "POST", { checkpoint }));
       setImageResult(null);
+      setNotice(`${checkpoint} is now the selected ComfyUI image checkpoint. Run Test image before the route turns green.`);
       refreshDashboardLights();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The checkpoint could not be selected.");
@@ -270,6 +290,10 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
     return <section className={styles.panel}><p>{notice || "Checking image and video engines…"}</p></section>;
   }
 
+  const comfyReady = status.comfyui.reachable && status.comfyui.imageNodesReady && Boolean(status.comfyui.checkpoint);
+  const comfyState = comfyReady ? "ready" : status.comfyui.reachable ? "attention" : "error";
+  const comfyStateLabel = comfyReady ? "Ready" : status.comfyui.reachable ? "Running · setup needed" : "Not connected";
+
   return (
     <section className={styles.panel} aria-labelledby="media-routing-title">
       <header className={styles.header}>
@@ -310,24 +334,23 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
           <section id="plotpickle-comfyui-connection" className={styles.comfyConnection} aria-label="ComfyUI connection setup">
             <header>
               <span>Local ComfyUI connection</span>
-              <strong data-state={status.comfyui.reachable && status.comfyui.imageNodesReady && status.comfyui.checkpoint ? "ready" : "attention"}>
-                {status.comfyui.reachable ? status.comfyui.checkpoint ? "Connected" : "Checkpoint needed" : "Not connected"}
-              </strong>
+              <strong data-state={comfyState}>{comfyStateLabel}</strong>
             </header>
             <label>
               <span>ComfyUI server address</span>
               <input value={comfyBaseUrl} onChange={(event) => setComfyBaseUrl(event.target.value)} placeholder="http://127.0.0.1:8188" spellCheck={false} />
             </label>
             <button type="button" onClick={() => void testComfyConnection()} disabled={Boolean(working) || !comfyBaseUrl.trim()}>
-              {working === "comfy-connection" ? "Testing ComfyUI…" : "Save & test ComfyUI connection"}
+              {working === "comfy-connection" ? "Running live diagnostic…" : "Save & run live ComfyUI diagnostic"}
             </button>
             <small>{status.comfyui.reachable
-              ? `${status.comfyui.version ? `Version ${status.comfyui.version} · ` : ""}${status.comfyui.imageNodesReady ? "required image nodes found" : `missing nodes: ${status.comfyui.missingImageNodes.join(", ")}`}`
-              : status.comfyui.error || "Start ComfyUI, then run this live connection test."}</small>
+              ? status.comfyui.capabilityError || `${status.comfyui.version ? `Version ${status.comfyui.version} · ` : ""}service responded${status.comfyui.latencyMs !== undefined ? ` in ${status.comfyui.latencyMs} ms` : ""}. ${status.comfyui.imageNodesReady ? "Required image nodes found." : `Missing nodes: ${status.comfyui.missingImageNodes.join(", ")}.`}`
+              : status.comfyui.error || "Start ComfyUI, wait for port 8188, then run this live diagnostic."}</small>
+            {status.comfyui.checkedAt ? <small>Last checked {formatDate(status.comfyui.checkedAt)}.</small> : null}
           </section>
           {status.comfyui.checkpoints.length ? (
             <label className={styles.checkpoint}><span>ComfyUI checkpoint</span><select value={status.comfyui.checkpoint} onChange={(event) => void chooseCheckpoint(event.target.value)} disabled={Boolean(working)}>{status.comfyui.checkpoints.map((name) => <option value={name} key={name}>{name}</option>)}</select></label>
-          ) : <p className={styles.warning}>ComfyUI is {status.comfyui.reachable ? "running, but no checkpoint is available" : "not responding on 127.0.0.1:8188"}.</p>}
+          ) : <p className={styles.warning}>{status.comfyui.reachable ? status.comfyui.capabilityError || "ComfyUI is running, but no checkpoint is available." : status.comfyui.error || "ComfyUI is not responding on port 8188."}</p>}
           {imageResult ? <figure className={styles.preview}><img src={imageResult.assetUrl} alt="Generated media route connection test" /><figcaption>{imageResult.route} test asset stored locally</figcaption></figure> : null}
         </article>
 

@@ -107,9 +107,9 @@
       "label": "Dashboard",
       "area": "workflow",
       "scope": "Projects, visual connection status, storage and links to component Settings",
-      "status": "in-progress",
+      "status": "audited",
       "issue": 355,
-      "pullRequest": null,
+      "pullRequest": 356,
       "requirements": [
         "visual-system",
         "interaction-states",

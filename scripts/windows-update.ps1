@@ -10,6 +10,7 @@ $ProgressPreference = "Continue"
 $downloadUrl = "https://github.com/BryanHarrisScripts/PlotPickle/archive/refs/heads/main.zip"
 $preservedDirectories = @("node_modules", ".git", ".next", "dist", ".wrangler", ".plotpickle", "projects", "exports", "user-data", "backups")
 $preservedRootFiles = @(".env", ".env.local", ".env.development.local", ".env.production.local")
+$bootstrapModel = if ($env:PLOTPICKLE_OLLAMA_BOOTSTRAP_MODEL) { $env:PLOTPICKLE_OLLAMA_BOOTSTRAP_MODEL } else { "smollm:135m" }
 
 function Write-Heading([string]$Text) {
   Write-Host ""
@@ -77,13 +78,17 @@ if (-not $currentManifest -or $currentManifest.name -ne "plotpickle") {
   throw "This updater must be run from an existing PlotPickle folder."
 }
 
-Write-Heading "PlotPickle Playhouse - Guided Update"
+Write-Heading "PlotPickle - Guided Update"
 Write-Host "This updater replaces PlotPickle program files only." -ForegroundColor White
 Write-Host "It preserves:" -ForegroundColor White
 Write-Host "  - the persistent package runtime in %LOCALAPPDATA%\PlotPickle" -ForegroundColor Green
 Write-Host "  - browser-stored PlotPickle projects" -ForegroundColor Green
 Write-Host "  - exported .plotpickle.json files" -ForegroundColor Green
 Write-Host "  - local .env configuration and user-owned folders" -ForegroundColor Green
+Write-Host ""
+Write-Host "After program replacement, the updater lists supported companion software," -ForegroundColor White
+Write-Host "checks exact reviewed winget packages for upgrades, and gives an empty Ollama" -ForegroundColor White
+Write-Host "installation the $bootstrapModel local starter model." -ForegroundColor White
 Write-Host ""
 Write-Host "Current installation: $InstallRoot"
 Write-Host "Current version:      $($currentManifest.version)"
@@ -111,7 +116,7 @@ $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("PlotPickle-Update-" + 
 New-Item -ItemType Directory -Path $tempRoot | Out-Null
 
 try {
-  Write-Heading "STEP 1 OF 4 - Validating the update package"
+  Write-Heading "STEP 1 OF 5 - Validating the update package"
   Write-Host "ZIP: $ZipPath"
   Expand-Archive -LiteralPath $ZipPath -DestinationPath $tempRoot -Force
   $sourceRoot = Find-SourceRoot $tempRoot
@@ -124,7 +129,7 @@ try {
   Write-Host "[OK] Valid PlotPickle package found." -ForegroundColor Green
   Write-Host "New version: $newVersion"
 
-  Write-Heading "STEP 2 OF 4 - Preserving local data"
+  Write-Heading "STEP 2 OF 5 - Preserving local data"
   $localHome = if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "PlotPickle" } else { Join-Path $env:USERPROFILE ".plotpickle" }
   New-Item -ItemType Directory -Path $localHome -Force | Out-Null
   $history = Join-Path $localHome "update-history.log"
@@ -135,7 +140,7 @@ try {
   Write-Host "[OK] User-owned projects, exports, user-data, and backups folders are preserved." -ForegroundColor Green
   Write-Host "[OK] Local update history: $history" -ForegroundColor Green
 
-  Write-Heading "STEP 3 OF 4 - Updating PlotPickle program files"
+  Write-Heading "STEP 3 OF 5 - Updating PlotPickle program files"
   Get-ChildItem -LiteralPath $sourceRoot -Directory -Force | ForEach-Object {
     if (-not ($preservedDirectories -contains $_.Name)) {
       $target = Join-Path $InstallRoot $_.Name
@@ -159,7 +164,20 @@ try {
   Write-Host "[OK] Program files updated in place." -ForegroundColor Green
   Write-Host "[OK] node_modules was not downloaded or copied." -ForegroundColor Green
 
-  Write-Heading "STEP 4 OF 4 - Update completed successfully"
+  Write-Heading "STEP 4 OF 5 - Maintaining installed companion software"
+  $companionManager = Join-Path $InstallRoot "scripts\windows-companion-software.ps1"
+  if (Test-Path -LiteralPath $companionManager) {
+    try {
+      & $companionManager -Mode Maintain -BootstrapModel $bootstrapModel
+    } catch {
+      Write-Host "[WARNING] Companion maintenance could not finish: $($_.Exception.Message)" -ForegroundColor Yellow
+      Write-Host "PlotPickle update will continue; no story data or credentials were changed." -ForegroundColor Yellow
+    }
+  } else {
+    Write-Host "[WARNING] Companion maintenance script is missing. PlotPickle itself was still updated." -ForegroundColor Yellow
+  }
+
+  Write-Heading "STEP 5 OF 5 - Update completed successfully"
   $installedManifest = Read-Manifest $InstallRoot
   if (-not $installedManifest -or $installedManifest.name -ne "plotpickle" -or $installedManifest.version -ne $newVersion) {
     throw "Version verification failed after file replacement."
@@ -169,7 +187,8 @@ try {
   Write-Host "On the next start:" -ForegroundColor White
   Write-Host "  - the launcher reconnects to the matching persistent runtime;" -ForegroundColor White
   Write-Host "  - no package installation occurs when package-lock.json is unchanged;" -ForegroundColor White
-  Write-Host "  - only a genuinely new dependency set creates a new runtime." -ForegroundColor White
+  Write-Host "  - only a genuinely new dependency set creates a new runtime;" -ForegroundColor White
+  Write-Host "  - ordinary startup lists companions but does not update or download them." -ForegroundColor White
   Write-Host ""
 
   $answer = Read-Host "Start PlotPickle now? [Y/N]"

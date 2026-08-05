@@ -28,17 +28,18 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: "24.15.0"
-      - name: Apply reviewed implementation patch
+      - name: Install reviewed implementation files
         run: node scripts/apply-issue-367-patch.mjs
       - name: Run focused Creative Director contract
         run: node --test tests/issue-367-creative-director-actions.test.mjs
       - name: Check patch whitespace
         run: git diff --check
-      - name: Commit final implementation and remove temporary applicator
+      - name: Commit tested product implementation
         shell: bash
         run: |
-          git rm scripts/apply-issue-367-patch.mjs .github/workflows/apply-issue-367-patch.yml docs/.issue-367-pr-marker
-          git add app/creative-director-actions.tsx app/creative-director-actions.module.css app/visual-storyboard.tsx app/visual-storyboard.module.css lib/project.ts tests/issue-367-creative-director-actions.test.mjs .github/workflows/creative-director-actions.yml
+          git restore .github/workflows/creative-director-actions.yml
+          git rm docs/.issue-367-pr-marker
+          git add app/creative-director-actions.tsx app/creative-director-actions.module.css app/visual-storyboard.tsx app/visual-storyboard.module.css lib/project.ts tests/issue-367-creative-director-actions.test.mjs
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Complete Storyboard Creative Director integration"

@@ -41,3 +41,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Complete Storyboard Creative Director integration"
           git push origin HEAD:agent/367-storyboard-creative-director
+
+# Trigger the reviewed patch after the workflow exists on the branch.

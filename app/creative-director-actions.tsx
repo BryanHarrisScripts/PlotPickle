@@ -40,9 +40,9 @@ export default function CreativeDirectorActions({
         <p>{storyMoment || "Add the visible action or dramatic turn in the story block before directing this moment."}</p>
       </header>
 
-      <div className={styles.preview}>
-        {currentVisual ?? <figure className={styles.empty}><figcaption><strong>No approved visual yet</strong><span>PlotPickle will build the direction from the story automatically.</span></figcaption></figure>}
-      </div>
+      <figure className={styles.preview}>
+        {currentVisual ?? <figcaption className={styles.empty}><strong>No approved visual yet</strong><span>PlotPickle will build the direction from the story automatically.</span></figcaption>}
+      </figure>
 
       {identityWarning ? <p className={styles.warning}><strong>Continuity needs attention.</strong> {identityWarning}</p> : null}
 

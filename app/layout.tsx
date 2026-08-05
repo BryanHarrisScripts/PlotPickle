@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AppearanceRuntime from "./appearance-runtime";
 import CollaborationWorkspaceRouter from "./collaboration-workspace-router";
 import CommonOverlayLayer from "./common-overlay-layer";
 import CurrentDownloadLinks from "./current-download-links";
@@ -15,6 +16,7 @@ import "./premium-ui.css";
 import "./minimal-navigation.css";
 import "./issue-208-polish.css";
 import "./first-run-configuration-dashboard.css";
+import "./appearance-runtime.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle — Visual Storyworld Collaboration and Previsualization",
@@ -41,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-plotpickle-theme="dark" suppressHydrationWarning>
       <body
         className="antialiased"
         style={{
@@ -49,6 +51,7 @@ export default function RootLayout({
           "--font-geist-mono": '"Courier New", Courier, monospace',
         } as React.CSSProperties}
       >
+        <AppearanceRuntime />
         {children}
         <CommonOverlayLayer />
         <WriterFacingCollaborationLanguage />

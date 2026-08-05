@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import hostingConfig from "./.openai/hosting.json";
 import { localAiGateway } from "./build/local-ai-gateway";
 import { localConnectionsGateway } from "./build/local-connections-gateway";
+import { localSystemStatusGateway } from "./build/local-system-status-gateway";
 import { buzzGateway } from "./build/buzz-gateway";
 import { buzzBundleNormalizer } from "./build/buzz-bundle-normalizer";
 import { googleCalendarGateway } from "./build/google-calendar-gateway";
@@ -53,6 +54,7 @@ export default defineConfig(async () => {
       localConnectionsGateway(),
       buzzBundleNormalizer(),
       buzzGateway(),
+      localSystemStatusGateway(),
       googleCalendarGateway(),
       githubAppGateway(),
       githubCommandGateway(),

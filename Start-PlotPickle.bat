@@ -8,6 +8,7 @@ set "PLOTPICKLE_URL=http://127.0.0.1:%PLOTPICKLE_PORT%"
 set "VITE_CMD=node_modules\.bin\vite.cmd"
 set "SETUP_REPORT=scripts\windows-setup-report.mjs"
 set "RUNTIME_MANAGER=scripts\windows-runtime.mjs"
+set "COMPANION_MANAGER=scripts\windows-companion-software.ps1"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
 set "INSTALL_PERFORMED=0"
 set "READY_TIMEOUT_SECONDS=60"
@@ -34,7 +35,8 @@ echo ============================================================
 echo.
 echo PlotPickle runs privately on this computer and opens in your web browser.
 echo It does not install a Windows service and does not require Administrator rights.
-echo Ollama, ComfyUI, Buzz, cloud providers, and other optional connections are configured inside PlotPickle Settings.
+echo The installer inventories PlotPickle-relevant companion software and performs reviewed best-effort updates.
+echo Ollama, ComfyUI, Buzz, cloud providers, and other optional connections remain independently configurable in PlotPickle Settings.
 echo The local address 127.0.0.1 is available only to this computer.
 echo Keep this window open while using the server started here; closing it stops only that server.
 echo.
@@ -147,6 +149,15 @@ if "!INSTALL_PERFORMED!"=="1" (
   node "%SETUP_REPORT%" ready
 )
 if errorlevel 1 goto :setup_failed
+
+if exist "%COMPANION_MANAGER%" (
+  echo.
+  echo [COMPANION CHECK] Listing PlotPickle-relevant software, applying reviewed updates, and verifying Ollama models...
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%COMPANION_MANAGER%" -Mode Maintain
+  if errorlevel 1 echo [WARNING] Companion maintenance did not complete. PlotPickle will continue and No AI mode remains available.
+) else (
+  echo [WARNING] The companion-software inventory is missing. PlotPickle will continue with its required runtime.
+)
 
 echo.
 echo [STEP 3 OF 3] Starting the private local server...
@@ -322,7 +333,6 @@ pause
 exit /b 1
 
 rem Retired first-run installer strings retained only for source-regression compatibility.
-rem They are non-executable; optional tools now belong to independent Settings pages.
 rem call :ensure_local_ai_tool Ollama "local writing and planning"
 rem call :ensure_local_ai_tool ComfyUI "local image generation"
 rem choice /C YN /N /M "Install %LOCAL_AI_TOOL% now? [Y/N]: "

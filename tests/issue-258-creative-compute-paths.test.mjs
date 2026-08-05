@@ -79,10 +79,13 @@ test("issue #258 offers two independent visible Windows installation choices", a
     "--accept-source-agreements",
     "--accept-package-agreements",
     "Models, checkpoints and workflows remain separate",
+    '"http://127.0.0.1:11434/api/pull"',
+    'model = $StarterModel; stream = $false',
   ]) assert.ok(installer.includes(contract), `Missing installer contract: ${contract}`);
 
   assert.doesNotMatch(installer, /--silent|--quiet|Invoke-Expression|iex\b/i);
-  assert.doesNotMatch(installer, /ollama\s+(pull|run)|pip\s+install|git\s+clone/i);
+  assert.doesNotMatch(installer, /ollama\s+run|pip\s+install|git\s+clone/i);
+  assert.doesNotMatch(installer, /param\([\s\S]*\$Model\b|requestedModel|body\.model/i);
 });
 
 test("issue #258 status copy distinguishes running software from model readiness", async () => {

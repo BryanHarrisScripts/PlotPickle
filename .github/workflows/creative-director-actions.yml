@@ -1,0 +1,23 @@
+name: Creative Director actions
+
+on:
+  pull_request:
+    paths:
+      - "app/creative-director-actions.tsx"
+      - "app/creative-director-actions.module.css"
+      - "tests/issue-367-creative-director-actions.test.mjs"
+      - ".github/workflows/creative-director-actions.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  creative-director-actions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test tests/issue-367-creative-director-actions.test.mjs

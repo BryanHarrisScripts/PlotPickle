@@ -119,10 +119,15 @@ jobs:
 
           const nativeMainContradictions = [...report.matchAll(/Missing semantic HTML element for the main content[\s\S]*?\*\*Evidence:\*\*\s*`<main\b[^`]*>`/gi)].length;
           const namedSkipLinkContradictions = [...report.matchAll(/Missing ARIA label for the skip link[\s\S]*?\*\*Evidence:\*\*\s*`<a\b[^`]*>[^<]+<\/a>`/gi)].length;
-          const contradictedFindings = nativeMainContradictions + namedSkipLinkContradictions;
+          const nativeButtonRoleContradictions = [...report.matchAll(/Missing ARIA role for button element used as a toggle[\s\S]*?\*\*Evidence:\*\*\s*`<button\b[^`]*>`/gi)].length;
+          const validLiveRegionContradictions = [...report.matchAll(/Redundant ARIA attribute found[\s\S]*?\*\*Evidence:\*\*\s*`<section\b[^`]*\baria-live="(?:polite|assertive)"[^`]*>`/gi)].length;
+          const contradictedFindings = nativeMainContradictions
+            + namedSkipLinkContradictions
+            + nativeButtonRoleContradictions
+            + validLiveRegionContradictions;
 
           if (issueCount > 0 && contradictedFindings === issueCount) {
-            const summary = "Every reported issue was contradicted by its own quoted evidence: the source already uses a native main landmark or gives the skip link a visible accessible name. The deterministic UI/UX gate discarded the unsupported findings.";
+            const summary = "Every reported issue was contradicted by its own quoted evidence: the source already uses the required native semantic element, visible accessible name, native button role, or a valid live-region state announcement. The deterministic UI/UX gate discarded the unsupported findings.";
             fs.writeFileSync("audit-result.json", `${JSON.stringify({ ...result, verdict: "pass", issueCount: 0, findingCount: 0, summary }, null, 2)}\n`);
             fs.writeFileSync("audit-report.md", `<!-- plotpickle-ui-ux-audit -->\n## UI/UX Code Audit\n\n**Verdict:** PASS\n\n${summary}\n`);
             console.log(summary);

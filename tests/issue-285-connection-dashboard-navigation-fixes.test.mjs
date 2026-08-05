@@ -32,7 +32,7 @@ test("issue #285 exposes real ComfyUI configuration and connection testing", asy
   ]);
   for (const phrase of [
     "ComfyUI server address",
-    "Save & test ComfyUI connection",
+    "Save & run live ComfyUI diagnostic",
     "plotpickle-comfyui-connection",
     "comfyui/connection",
     "requestConnectionStatusRefresh",

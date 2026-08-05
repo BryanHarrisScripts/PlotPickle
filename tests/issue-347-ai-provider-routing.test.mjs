@@ -18,14 +18,14 @@ test("issue #347 provides independent mutually exclusive text image and video sw
     "ComfyUI H3 · Local",
     "MiniMax H3 · Cloud",
     "OpenAI Video · Cloud",
-    "Use low-cost local setup",
+    "Use local-first setup",
     "PlotPickle never switches to a paid provider automatically",
   ]) assert.ok(panel.includes(phrase), `Missing routing choice: ${phrase}`);
   assert.match(panel, /type="radio"/);
   assert.match(panel, /name=\{`ai-route-\$\{capability\}`\}/);
   assert.match(panel, /checked=\{selected\}/);
   assert.match(panel, /route: "ollama"/);
-  assert.match(panel, /route: "comfyui"/);
+  assert.match(panel, /route: "ollama-comfyui"/);
   assert.match(panel, /route: "comfyui-native"/);
 });
 
@@ -87,7 +87,7 @@ test("issue #347 adds the official asynchronous OpenAI video job lifecycle", asy
 
 test("issue #347 registers routing before native and cloud media gateways", async () => {
   const localGateway = await source("build/local-ai-gateway.ts");
-  assert.match(localGateway, /registerAiRoutingGateway\(server\)[\s\S]*registerNativeH3Gateway\(server\)[\s\S]*registerMediaRoutingGateway\(server\)[\s\S]*registerWritingAssistantGateway\(server\)/);
+  assert.match(localGateway, /registerAiRoutingGateway\(server\)[\s\S]*registerNativeH3Gateway\(server\)[\s\S]*registerProviderDiagnosticsGateway\(server\)[\s\S]*registerMediaRoutingGateway\(server\)[\s\S]*registerWritingAssistantGateway\(server\)/);
   assert.match(localGateway, /import \{ registerAiRoutingGateway \} from "\.\/ai-routing-gateway"/);
 });
 

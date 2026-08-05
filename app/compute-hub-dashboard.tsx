@@ -127,7 +127,8 @@ async function requestJson<T>(path: string) {
 
 function providerCard(provider: "openai" | "minimax", routing: RoutingStatus | null): ServiceCard {
   const options = routing
-    ? [routing.text.options[provider], routing.image.options[provider], routing.video.options[provider]].filter(Boolean)
+    ? [routing.text.options[provider], routing.image.options[provider], routing.video.options[provider]]
+      .filter((option): option is RouteOption => Boolean(option))
     : [];
   const ready = options.some((option) => option.ready);
   const configured = options.some((option) => option.configured);
@@ -297,15 +298,15 @@ export default function ComputeHubDashboard({
         <button type="button" onClick={() => void refresh()} disabled={refreshing}>{refreshing ? "Checking…" : "Refresh status"}</button>
       </header>
 
-      <p className={styles.notice} role="status" aria-live="polite">{notice}</p>
+      <p className={styles.notice} role="status" aria-live="polite" aria-label="Compute Hub status">{notice}</p>
 
       <div className={styles.routeGrid} aria-label="Current compute routes">
         {routeSummary.map((item) => (
-          <article key={item.capability} data-mode={item.mode}>
+          <div key={item.capability} data-mode={item.mode}>
             <span>{item.capability}</span>
             <strong>{modeLabel(item.mode)}</strong>
             <small>{item.route || "Not selected"}</small>
-          </article>
+          </div>
         ))}
       </div>
 

@@ -438,10 +438,10 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
             <p>{message.content}</p>
           </article>
         )) : (
-          <div className={styles.emptyConversation}>
+          <p className={styles.emptyConversation}>
             <strong>Ask about PlotPickle, your story structure, or what to do next.</strong>
             <span>Run a provider test first. The answer appears here so you know the connection genuinely works.</span>
-          </div>
+          </p>
         )}
         {working ? <p className={styles.thinking}>Waiting for the selected model…</p> : null}
       </div>

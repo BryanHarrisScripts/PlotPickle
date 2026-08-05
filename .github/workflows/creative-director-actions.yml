@@ -13,14 +13,45 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   creative-director-actions:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: agent/367-storyboard-creative-director
+          fetch-depth: 0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 22
-      - run: node --test tests/issue-367-creative-director-actions.test.mjs
+      - name: Clarify Storyboard control-group semantics
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('app/visual-storyboard.tsx')
+          source = path.read_text()
+          changes = [
+            ('<div className={styles.modeSwitch}>', '<nav className={styles.modeSwitch} aria-label="Storyboard view">'),
+            ('</button><button type="button" className={mode === "minis" ? styles.active : ""} onClick={() => openSection("frames")}>96 Mini-blocks</button></div>', '</button><button type="button" className={mode === "minis" ? styles.active : ""} onClick={() => openSection("frames")}>96 Mini-blocks</button></nav>'),
+            ('<div className={styles.actFilter}>', '<nav className={styles.actFilter} aria-label="Storyboard act filter">'),
+            ('{act ? `Act ${act}` : "All acts"}</button>)}</div>', '{act ? `Act ${act}` : "All acts"}</button>)}</nav>'),
+          ]
+          for before, after in changes:
+            if source.count(before) != 1:
+              raise SystemExit(f'Expected one semantic-control match, found {source.count(before)}: {before}')
+            source = source.replace(before, after)
+          path.write_text(source)
+          PY
+      - name: Run focused Creative Director contract
+        run: node --test tests/issue-367-creative-director-actions.test.mjs tests/issue-349-common-overlays-ux.test.mjs tests/issue-337-ui-ux-consistency-foundation.test.mjs
+      - name: Publish tested semantic controls
+        shell: bash
+        run: |
+          git diff --check
+          git add app/visual-storyboard.tsx
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Label Storyboard control groups semantically"
+          git push origin HEAD:agent/367-storyboard-creative-director

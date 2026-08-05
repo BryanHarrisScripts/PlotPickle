@@ -8,9 +8,11 @@ set "PLOTPICKLE_URL=http://127.0.0.1:%PLOTPICKLE_PORT%"
 set "VITE_CMD=node_modules\.bin\vite.cmd"
 set "SETUP_REPORT=scripts\windows-setup-report.mjs"
 set "RUNTIME_MANAGER=scripts\windows-runtime.mjs"
+set "COMPANION_MANAGER=scripts\windows-companion-software.ps1"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
 set "INSTALL_PERFORMED=0"
 set "READY_TIMEOUT_SECONDS=60"
+if not defined PLOTPICKLE_OLLAMA_BOOTSTRAP_MODEL set "PLOTPICKLE_OLLAMA_BOOTSTRAP_MODEL=smollm:135m"
 
 rem Make required runtime installation and upgrades tolerant, visible, and cache-friendly.
 set "NODE_ENV=development"
@@ -35,6 +37,9 @@ echo.
 echo PlotPickle runs privately on this computer and opens in your web browser.
 echo It does not install a Windows service and does not require Administrator rights.
 echo Ollama, ComfyUI, Buzz, cloud providers, and other optional connections are configured inside PlotPickle Settings.
+echo During an explicit first-time runtime install, PlotPickle lists supported companion software,
+echo safely updates exact reviewed winget packages, and gives an empty Ollama install the tiny local starter model.
+echo Ordinary starts only report companion status and never update or download optional software.
 echo The local address 127.0.0.1 is available only to this computer.
 echo Keep this window open while using the server started here; closing it stops only that server.
 echo.
@@ -148,12 +153,26 @@ if "!INSTALL_PERFORMED!"=="1" (
 )
 if errorlevel 1 goto :setup_failed
 
+if exist "%COMPANION_MANAGER%" (
+  if "!INSTALL_PERFORMED!"=="1" (
+    echo.
+    echo [COMPANIONS] Running explicit install-time companion maintenance...
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%COMPANION_MANAGER%" -Mode Maintain -BootstrapModel "%PLOTPICKLE_OLLAMA_BOOTSTRAP_MODEL%"
+  ) else (
+    echo.
+    echo [COMPANIONS] Reporting installed companion software. No updates or downloads will run.
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%COMPANION_MANAGER%" -Mode Inventory -BootstrapModel "%PLOTPICKLE_OLLAMA_BOOTSTRAP_MODEL%"
+  )
+) else (
+  echo [WARNING] Companion-software inventory is unavailable because %COMPANION_MANAGER% is missing.
+)
+
 echo.
 echo [STEP 3 OF 3] Starting the private local server...
 echo.
 echo Address: %PLOTPICKLE_URL%
 echo The browser will open after PlotPickle confirms that it is ready.
-echo Optional services remain available from their independent Settings pages.
+echo Optional services remain configurable from their independent Settings pages.
 echo Press Ctrl+C in this window when you are finished.
 echo.
 

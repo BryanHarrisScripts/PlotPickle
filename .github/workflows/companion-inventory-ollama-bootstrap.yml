@@ -58,7 +58,7 @@ jobs:
             $parseErrors = $null
             [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path), [ref]$tokens, [ref]$parseErrors)
             if ($parseErrors.Count) {
-              $errors += $parseErrors | ForEach-Object { "$path: $($_.Message)" }
+              $errors += $parseErrors | ForEach-Object { "${path}: $($_.Message)" }
             }
           }
           if ($errors.Count) { throw ($errors -join [Environment]::NewLine) }

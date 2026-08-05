@@ -57,7 +57,7 @@ test("issue #371 rejects screenshots of the wrong application screen", async () 
     "Public marketing splash was captured instead of the requested application screen",
     "visual-audit-validation.json",
     "Screenshot missing",
-    "reference evidence only",
+    "Reference evidence only",
   ]) assert.ok(validator.includes(contract), `Missing screen-identity validation contract: ${contract}`);
 });
 

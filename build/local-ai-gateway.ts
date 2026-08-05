@@ -5,6 +5,7 @@ import { registerWritingAssistantGateway } from "./writing-assistant-gateway";
 import { registerNativeH3Gateway } from "./comfyui-h3-native-gateway";
 import { registerProviderDiagnosticsGateway } from "./provider-diagnostics-gateway";
 import { registerMediaRoutingGateway } from "./media-routing-gateway";
+import { registerOllamaBootstrapGateway } from "./ollama-bootstrap-gateway";
 
 const IMAGE_PATHS = new Set(["/api/local-ai/generate/image", "/api/media-routing/test/image"]);
 const MAX_SINGLE_IMAGE_REQUEST_BYTES = 256 * 1024;
@@ -62,6 +63,7 @@ export function localAiGateway(): Plugin {
       registerNativeH3Gateway(server);
       registerProviderDiagnosticsGateway(server);
       registerMediaRoutingGateway(server);
+      registerOllamaBootstrapGateway(server);
       registerWritingAssistantGateway(server);
       if (typeof legacy.configureServer === "function") legacy.configureServer(server);
     },

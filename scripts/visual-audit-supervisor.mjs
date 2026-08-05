@@ -11,6 +11,7 @@ const configPath = path.join(root, "config", "visual-audit-captures.json");
 const registryPath = path.join(root, "config", "ui-ux-screen-registry.json");
 const runnerPath = path.join(root, "scripts", "visual-audit-capture.mjs");
 const batchSize = Math.max(1, Math.min(Number(process.env.PLOTPICKLE_VISUAL_BATCH_SIZE || 6), 8));
+const warmupScreenId = "__visual-audit-warmup";
 
 const originalConfigText = await readFile(configPath, "utf8");
 const originalRegistryText = await readFile(registryPath, "utf8");
@@ -50,11 +51,12 @@ async function writeCombinedIndex(manifest) {
       <header><strong>${htmlEscape(item.label)}</strong><span>${htmlEscape(item.screenId)} · ${htmlEscape(item.viewport)}</span></header>
       <a href="${htmlEscape(item.filename)}"><img src="${htmlEscape(item.filename)}" alt="${htmlEscape(item.label)} at ${htmlEscape(item.viewport)} viewport"></a>
       <p>${htmlEscape(item.headings?.join(" · ") || item.title || item.url)}</p>
+      ${item.referenceOnly ? "<p class=\"reference\">Reference evidence: no independent destination is currently exposed.</p>" : ""}
       ${item.horizontalOverflow ? "<p class=\"warning\">Horizontal overflow detected.</p>" : ""}
     </article>`).join("\n");
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PlotPickle visual audit</title>
-<style>body{font:14px/1.45 system-ui;margin:0;background:#111;color:#eee}header.top{padding:24px;position:sticky;top:0;background:#111;border-bottom:1px solid #444;z-index:2}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;padding:18px}article{background:#1d1d1d;border:1px solid #3a3a3a;border-radius:12px;overflow:hidden}article header{display:flex;justify-content:space-between;gap:12px;padding:12px}article header span{color:#aaa}img{display:block;width:100%;height:320px;object-fit:contain;object-position:top;background:#fff}p{padding:0 12px 12px;margin:8px 0;color:#bbb}.warning{color:#ffca63}</style></head>
+<style>body{font:14px/1.45 system-ui;margin:0;background:#111;color:#eee}header.top{padding:24px;position:sticky;top:0;background:#111;border-bottom:1px solid #444;z-index:2}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;padding:18px}article{background:#1d1d1d;border:1px solid #3a3a3a;border-radius:12px;overflow:hidden}article header{display:flex;justify-content:space-between;gap:12px;padding:12px}article header span{color:#aaa}img{display:block;width:100%;height:320px;object-fit:contain;object-position:top;background:#fff}p{padding:0 12px 12px;margin:8px 0;color:#bbb}.warning{color:#ffca63}.reference{color:#8bc9ff}</style></head>
 <body><header class="top"><h1>PlotPickle visual audit</h1><p>${manifest.items.length} screenshots · ${manifest.coveredScreens}/${manifest.registryScreens} registry screens · ${manifest.batches} isolated batches</p></header><main class="grid">${cards}</main></body></html>`;
   await writeFile(path.join(outputDirectory, "index.html"), html);
   await writeFile(path.join(outputDirectory, "README.md"), [
@@ -67,7 +69,7 @@ async function writeCombinedIndex(manifest) {
     "",
     "## Review order",
     "",
-    ...manifest.items.map((item) => `- [${item.label} · ${item.viewport}](${item.filename})${item.horizontalOverflow ? " — horizontal overflow detected" : ""}`),
+    ...manifest.items.map((item) => `- [${item.label} · ${item.viewport}](${item.filename})${item.referenceOnly ? " — reference evidence only" : ""}${item.horizontalOverflow ? " — horizontal overflow detected" : ""}`),
     "",
   ].join("\n"));
 }
@@ -77,7 +79,7 @@ async function main() {
   await mkdir(outputDirectory, { recursive: true });
   const batches = chunks(captures, batchSize);
   const combined = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt: new Date().toISOString(),
     registryScreens: fullRegistry.screens.length,
     coveredScreens: 0,
@@ -95,7 +97,14 @@ async function main() {
       const batchName = `batch-${batchNumber}`;
       const batchDirectory = path.join(outputDirectory, batchName);
       const screenIds = new Set(batch.map((capture) => capture.screenId));
-      const batchConfig = { ...fullConfig, captures: batch };
+      const warmupCapture = {
+        screenId: warmupScreenId,
+        label: "Internal application warmup",
+        route: "/?workspace=dashboard",
+        variant: "warmup",
+        viewports: ["desktop"],
+      };
+      const batchConfig = { ...fullConfig, captures: [warmupCapture, ...batch] };
       const batchRegistry = { ...fullRegistry, screens: fullRegistry.screens.filter((screen) => screenIds.has(screen.id)) };
       await writeFile(configPath, `${JSON.stringify(batchConfig, null, 2)}\n`);
       await writeFile(registryPath, `${JSON.stringify(batchRegistry, null, 2)}\n`);
@@ -115,11 +124,25 @@ async function main() {
         });
         continue;
       }
+      const batchCaptureByKey = new Map(batch.map((capture) => [
+        `${capture.screenId}::${capture.variant ?? capture.settingsTarget ?? ""}`,
+        capture,
+      ]));
       for (const item of batchManifest.items ?? []) {
-        combined.items.push({ ...item, batch: batchName, filename: `${batchName}/${item.filename}` });
+        if (item.screenId === warmupScreenId) continue;
+        const sourceCapture = batchCaptureByKey.get(`${item.screenId}::${item.variant ?? ""}`);
+        combined.items.push({
+          ...item,
+          batch: batchName,
+          filename: `${batchName}/${item.filename}`,
+          expectedText: sourceCapture?.expectedText ?? null,
+          referenceOnly: Boolean(sourceCapture?.referenceOnly),
+        });
       }
-      for (const failure of batchManifest.failures ?? []) combined.failures.push({ ...failure, batch: batchName });
-      if (code !== 0 && !(batchManifest.failures?.length)) {
+      for (const failure of batchManifest.failures ?? []) {
+        if (failure.screenId !== warmupScreenId) combined.failures.push({ ...failure, batch: batchName });
+      }
+      if (code !== 0 && !(batchManifest.failures?.filter((failure) => failure.screenId !== warmupScreenId).length)) {
         combined.failures.push({ batch: batchName, error: `Capture runner exited with code ${code}.` });
       }
     }

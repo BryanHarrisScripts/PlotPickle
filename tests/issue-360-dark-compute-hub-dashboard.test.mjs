@@ -71,8 +71,12 @@ test("issue #360 keeps Compute Hub read-only and routes every service card to Se
   assert.match(hub, /GPU \/ VRAM/);
   assert.match(hub, /No decorative activity/);
   assert.match(hub, /Recent local events/);
+  assert.match(hub, /aria-label="Compute Hub status"/);
+  assert.match(hub, /<div key=\{item\.capability\} data-mode=\{item\.mode\}>/);
+  assert.doesNotMatch(hub, /<article key=\{item\.capability\}/);
   assert.doesNotMatch(hub, /<input|<select|type="password"|apiKey|endpoint editor/i);
   assert.match(css, /grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+  assert.match(css, /\.routeGrid>div\{/);
   assert.match(css, /@media\(max-width:760px\)/);
   assert.match(css, /@media\(forced-colors:active\)/);
   assert.match(css, /@media\(prefers-reduced-motion:reduce\)/);

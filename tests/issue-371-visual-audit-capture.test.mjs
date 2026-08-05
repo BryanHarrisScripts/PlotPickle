@@ -15,6 +15,7 @@ test("issue #371 covers every canonical UI/UX registry screen", async () => {
   assert.deepEqual(missing, []);
   assert.deepEqual(Object.keys(captures.viewports), ["desktop", "tablet", "mobile"]);
   assert.equal(captures.settingsSessionKey, "plotpickle.settings.section");
+  assert.ok(captures.captures.every((capture) => capture.expectedText), "Every capture needs a screen-identity assertion");
 });
 
 test("issue #371 captures real rendered pages through Chrome DevTools", async () => {
@@ -32,12 +33,14 @@ test("issue #371 captures real rendered pages through Chrome DevTools", async ()
   assert.doesNotMatch(script, /lighthouse|puppeteer|playwright/i);
 });
 
-test("issue #371 isolates long Windows captures into restartable batches", async () => {
+test("issue #371 isolates long Windows captures and warms each new app session", async () => {
   const supervisor = await source("scripts/visual-audit-supervisor.mjs");
   for (const contract of [
     "PLOTPICKLE_VISUAL_BATCH_SIZE",
     "visual-audit-capture.mjs",
     "batch-${batchNumber}",
+    "__visual-audit-warmup",
+    'route: "/?workspace=dashboard"',
     "originalConfigText",
     "originalRegistryText",
     "await writeFile(configPath, originalConfigText)",
@@ -45,6 +48,17 @@ test("issue #371 isolates long Windows captures into restartable batches", async
     "visual-audit-manifest.json",
   ]) assert.ok(supervisor.includes(contract), `Missing isolated-batch contract: ${contract}`);
   assert.match(supervisor, /Math\.min\(Number\(process\.env\.PLOTPICKLE_VISUAL_BATCH_SIZE \|\| 6\), 8\)/);
+});
+
+test("issue #371 rejects screenshots of the wrong application screen", async () => {
+  const validator = await source("scripts/visual-audit-validate.mjs");
+  for (const contract of [
+    "expectedText",
+    "Public marketing splash was captured instead of the requested application screen",
+    "visual-audit-validation.json",
+    "Screenshot missing",
+    "reference evidence only",
+  ]) assert.ok(validator.includes(contract), `Missing screen-identity validation contract: ${contract}`);
 });
 
 test("issue #371 redacts sensitive values and local user paths", async () => {
@@ -59,36 +73,26 @@ test("issue #371 redacts sensitive values and local user paths", async () => {
   ]) assert.ok(script.includes(contract), `Missing redaction contract: ${contract}`);
 });
 
-test("issue #371 includes every configurable component in visual evidence", async () => {
+test("issue #371 captures direct provider screens and records unresolved references honestly", async () => {
   const captures = JSON.parse(await source("config/visual-audit-captures.json"));
-  const targets = new Set(captures.captures.map((capture) => capture.settingsTarget).filter(Boolean));
-  for (const target of [
-    "sitemap",
-    "general",
-    "project-defaults",
-    "appearance",
-    "runtime",
-    "ollama",
-    "comfyui",
-    "buzz",
-    "openai",
-    "ai",
-    "minimax",
-    "github",
-    "google",
-    "storage",
-    "plugins",
-    "privacy",
-    "about",
-  ]) assert.ok(targets.has(target), `Missing Settings visual target: ${target}`);
+  const directRoutes = new Map(captures.captures.map((capture) => [capture.label, capture.route]));
+  assert.equal(directRoutes.get("AI routing"), "/ai-routing");
+  for (const target of ["ollama", "comfyui", "buzz", "openai", "minimax", "github", "google", "storage", "privacy", "about"]) {
+    assert.ok(captures.captures.some((capture) => capture.settingsTarget === target), `Missing Settings visual target: ${target}`);
+  }
+  const plugins = captures.captures.find((capture) => capture.screenId === "settings-plugins-connections");
+  assert.equal(plugins?.referenceOnly, true);
+  assert.equal(plugins?.settingsTarget, "sitemap");
 });
 
-test("issue #371 publishes visual evidence as a CI artifact", async () => {
+test("issue #371 publishes and validates visual evidence in CI", async () => {
   const workflow = await source(".github/workflows/visual-audit-capture.yml");
   for (const contract of [
     "node scripts/visual-audit-supervisor.mjs",
+    "node scripts/visual-audit-validate.mjs",
     "node --check scripts/visual-audit-capture.mjs",
     "node --check scripts/visual-audit-supervisor.mjs",
+    "node --check scripts/visual-audit-validate.mjs",
     "PLOTPICKLE_VISUAL_BATCH_SIZE: \"6\"",
     "tests/issue-371-visual-audit-capture.test.mjs",
     "actions/upload-artifact",

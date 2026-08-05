@@ -480,8 +480,8 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
 
           <section id={`visual-${mode === "blocks" ? "blocks" : "frames"}`} data-visual-section={mode === "blocks" ? "blocks" : "frames"} className={styles.storyboardSection} tabIndex={-1}>
             <div className={styles.toolbar}>
-              <div className={styles.modeSwitch}><button type="button" className={mode === "blocks" ? styles.active : ""} onClick={() => openSection("blocks")}>24 Blocks</button><button type="button" className={mode === "minis" ? styles.active : ""} onClick={() => openSection("frames")}>96 Mini-blocks</button></div>
-              <div className={styles.actFilter}>{[0, 1, 2, 3, 4].map((act) => <button type="button" className={visualAct === act ? styles.active : ""} key={act} onClick={() => onVisualActChange(act)}>{act ? `Act ${act}` : "All acts"}</button>)}</div>
+              <nav className={styles.modeSwitch} aria-label="Storyboard view"><button type="button" className={mode === "blocks" ? styles.active : ""} onClick={() => openSection("blocks")}>24 Blocks</button><button type="button" className={mode === "minis" ? styles.active : ""} onClick={() => openSection("frames")}>96 Mini-blocks</button></nav>
+              <nav className={styles.actFilter} aria-label="Storyboard act filter">{[0, 1, 2, 3, 4].map((act) => <button type="button" className={visualAct === act ? styles.active : ""} key={act} onClick={() => onVisualActChange(act)}>{act ? `Act ${act}` : "All acts"}</button>)}</nav>
             </div>
             <div className={styles.workspace}>
               <main className={styles.board}>

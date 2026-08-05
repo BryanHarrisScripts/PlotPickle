@@ -5,8 +5,8 @@ import {
   DEFAULT_OLLAMA_URL,
   conversationPrompt,
   generateAssistantText,
-  listOllamaModels,
   normalizedProviderUrl,
+  probeOllama,
   testAssistantProfile,
   type ConversationMessage,
 } from "./writing-assistant-provider";
@@ -24,6 +24,7 @@ const ACTIVE_PATH = `${API_ROOT}/active`;
 const TEST_PATH = `${API_ROOT}/test`;
 const CHAT_PATH = `${API_ROOT}/chat`;
 const OLLAMA_PATH = `${API_ROOT}/ollama`;
+const OLLAMA_CONNECTION_PATH = `${OLLAMA_PATH}/connection`;
 const TEXT_PATH = "/api/local-ai/generate/text";
 
 function isLoopback(value: string | undefined) {
@@ -66,7 +67,8 @@ async function readBody(request: IncomingMessage, maximum = 64 * 1024): Promise<
 async function handleStatus(response: ServerResponse) {
   const { store } = await readSynchronizedAssistantStore();
   const ollamaProfile = store.profiles.ollama;
-  const models = await listOllamaModels(ollamaProfile?.baseUrl || DEFAULT_OLLAMA_URL);
+  const baseUrl = store.ollamaBaseUrl || ollamaProfile?.baseUrl || DEFAULT_OLLAMA_URL;
+  const probe = await probeOllama(baseUrl);
   sendJson(response, 200, {
     ok: true,
     activeProvider: store.activeProvider,
@@ -77,9 +79,14 @@ async function handleStatus(response: ServerResponse) {
       minimax: publicProfile(store.profiles.minimax, store.activeProvider),
     },
     ollama: {
-      detected: models.length > 0,
-      models,
-      baseUrl: ollamaProfile?.baseUrl || DEFAULT_OLLAMA_URL,
+      detected: probe.reachable,
+      reachable: probe.reachable,
+      models: probe.models,
+      baseUrl: probe.baseUrl,
+      version: probe.version,
+      latencyMs: probe.latencyMs,
+      checkedAt: probe.checkedAt,
+      error: probe.error,
     },
   });
 }
@@ -112,6 +119,29 @@ async function handleTest(request: IncomingMessage, response: ServerResponse) {
   });
 }
 
+async function handleOllamaConnection(request: IncomingMessage, response: ServerResponse) {
+  const body = await readBody(request);
+  const baseUrl = typeof body.baseUrl === "string" && body.baseUrl.trim()
+    ? normalizedProviderUrl(body.baseUrl)
+    : DEFAULT_OLLAMA_URL;
+  const probe = await probeOllama(baseUrl);
+  const { store } = await readSynchronizedAssistantStore();
+  store.ollamaBaseUrl = probe.baseUrl;
+  if (store.profiles.ollama && store.profiles.ollama.baseUrl !== probe.baseUrl) {
+    store.profiles.ollama = {
+      ...store.profiles.ollama,
+      baseUrl: probe.baseUrl,
+      assistantVerifiedAt: "",
+      lastAttemptAt: probe.checkedAt,
+      lastLatencyMs: probe.latencyMs,
+      lastPreview: "",
+      lastError: probe.error,
+    };
+  }
+  await writeAssistantStore(store);
+  sendJson(response, probe.reachable ? 200 : 400, { ok: probe.reachable, ...probe });
+}
+
 async function handleOllama(request: IncomingMessage, response: ServerResponse) {
   const body = await readBody(request);
   const model = typeof body.model === "string" ? body.model.trim() : "";
@@ -119,21 +149,23 @@ async function handleOllama(request: IncomingMessage, response: ServerResponse) 
   const baseUrl = typeof body.baseUrl === "string" && body.baseUrl.trim()
     ? normalizedProviderUrl(body.baseUrl)
     : DEFAULT_OLLAMA_URL;
-  const models = await listOllamaModels(baseUrl);
-  if (!models.includes(model)) throw new Error("That Ollama model is not currently available from the local service.");
+  const probe = await probeOllama(baseUrl);
+  if (!probe.reachable) throw new Error(probe.error || "Ollama is not reachable.");
+  if (!probe.models.includes(model)) throw new Error("That Ollama model is not currently available from the local service. Refresh installed models and choose again.");
   const { store } = await readSynchronizedAssistantStore();
   const profile: ProviderProfile = {
     provider: "ollama",
-    baseUrl,
+    baseUrl: probe.baseUrl,
     textModel: model,
     apiKey: "",
     configuredAt: new Date().toISOString(),
     assistantVerifiedAt: "",
-    lastAttemptAt: "",
-    lastLatencyMs: 0,
+    lastAttemptAt: probe.checkedAt,
+    lastLatencyMs: probe.latencyMs,
     lastPreview: "",
     lastError: "",
   };
+  store.ollamaBaseUrl = probe.baseUrl;
   store.profiles.ollama = profile;
   store.activeProvider = "ollama";
   store.explicitlyDisabled = false;
@@ -221,6 +253,7 @@ async function routeAssistant(request: IncomingMessage, response: ServerResponse
     if (pathname === ACTIVE_PATH && request.method === "POST") return await handleActive(request, response);
     if (pathname === TEST_PATH && request.method === "POST") return await handleTest(request, response);
     if (pathname === CHAT_PATH && request.method === "POST") return await handleChat(request, response);
+    if (pathname === OLLAMA_CONNECTION_PATH && request.method === "POST") return await handleOllamaConnection(request, response);
     if (pathname === OLLAMA_PATH && request.method === "POST") return await handleOllama(request, response);
     sendJson(response, 404, { ok: false, message: "Writing Assistant operation not found." });
   } catch (error) {

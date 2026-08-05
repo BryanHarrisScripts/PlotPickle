@@ -33,7 +33,7 @@ export default function CreativeDirectorActions({
   const busy = state === "illustrating" || state === "animating";
 
   return (
-    <section className={styles.panel} aria-label={`Direct ${storyLabel}: ${storyTitle}`}>
+    <section className={styles.panel}>
       <header className={styles.header}>
         <span>{storyLabel}</span>
         <h2>{storyTitle}</h2>

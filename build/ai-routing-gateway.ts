@@ -6,7 +6,8 @@ import {
   readNativeH3Store,
   writeNativeH3Store,
 } from "./comfyui-h3-native-provider";
-import { probeComfyUI } from "./comfyui-media-provider";
+import { diagnoseComfyUI } from "./comfyui-connection-diagnostics";
+import { generateComfyImage } from "./comfyui-media-provider";
 import {
   readMediaRoutingStore,
   writeMediaRoutingStore,
@@ -16,7 +17,9 @@ import {
   readSynchronizedAssistantStore,
   writeAssistantStore,
   type ActiveTextProvider,
+  type ProviderProfile,
 } from "./writing-assistant-store";
+import { generateAssistantText } from "./writing-assistant-provider";
 import {
   normalizedUrl,
   providerForm,
@@ -24,11 +27,12 @@ import {
   safeAssetStem,
   saveGeneratedAsset,
   videoSourceReference,
+  type ImageGenerationInput,
   type VideoGenerationInput,
 } from "./media-provider-common";
 
-export type TextRoute = "ollama" | "openai" | "off";
-export type ImageRoute = "comfyui" | "openai" | "minimax" | "manual";
+export type TextRoute = "ollama" | "openai" | "minimax" | "off";
+export type ImageRoute = "comfyui" | "ollama-comfyui" | "openai" | "minimax" | "manual";
 export type VideoRoute = "comfyui-native" | "minimax" | "openai" | "off";
 
 type RoutingChoice = {
@@ -61,6 +65,7 @@ type OpenAiVideoJob = {
 const API = "/api/ai-routing";
 const STATUS_PATH = `${API}/status`;
 const SELECT_PATH = `${API}/select`;
+const IMAGE_PATH = "/api/local-ai/generate/image";
 const VIDEO_PATH = "/api/local-ai/generate/video";
 const VIDEO_JOB_PATH = "/api/local-ai/video/";
 const ROUTING_FILE = "ai-routing.json";
@@ -107,7 +112,7 @@ async function readBody(request: IncomingMessage, maximum = 256 * 1024): Promise
 }
 
 function textRoute(value: ActiveTextProvider): TextRoute | null {
-  if (value === "ollama" || value === "openai") return value;
+  if (value === "ollama" || value === "openai" || value === "minimax") return value;
   if (value === "disabled") return "off";
   return null;
 }
@@ -115,8 +120,8 @@ function textRoute(value: ActiveTextProvider): TextRoute | null {
 function normalizeChoice(value: unknown): RoutingChoice | null {
   if (!value || typeof value !== "object") return null;
   const item = value as Partial<RoutingChoice>;
-  if (!["ollama", "openai", "off"].includes(String(item.text))) return null;
-  if (!["comfyui", "openai", "minimax", "manual"].includes(String(item.image))) return null;
+  if (!["ollama", "openai", "minimax", "off"].includes(String(item.text))) return null;
+  if (!["comfyui", "ollama-comfyui", "openai", "minimax", "manual"].includes(String(item.image))) return null;
   if (!["comfyui-native", "minimax", "openai", "off"].includes(String(item.video))) return null;
   return {
     version: 1,
@@ -149,7 +154,8 @@ async function readRoutingChoice() {
     inferred.text = assistantSelection;
     changed = true;
   }
-  if (inferred.image !== media.imageRoute) {
+  const hybridImageUsesComfy = inferred.image === "ollama-comfyui" && media.imageRoute === "comfyui";
+  if (!hybridImageUsesComfy && inferred.image !== media.imageRoute) {
     inferred.image = media.imageRoute;
     changed = true;
   }
@@ -184,6 +190,16 @@ function profileState(profile: MediaProfile | undefined, kind: "image" | "video"
   };
 }
 
+function textProfileState(profile: ProviderProfile | undefined) {
+  return {
+    configured: Boolean(profile?.textModel && (profile.provider === "ollama" || profile.apiKey)),
+    ready: Boolean(profile?.assistantVerifiedAt),
+    model: profile?.textModel || "",
+    verifiedAt: profile?.assistantVerifiedAt || "",
+    error: profile?.lastError || "",
+  };
+}
+
 async function statusBody() {
   const [choice, assistantResult, media, native] = await Promise.all([
     readRoutingChoice(),
@@ -192,14 +208,18 @@ async function statusBody() {
     readNativeH3Store(),
   ]);
   const [comfy, nativeProbe] = await Promise.all([
-    probeComfyUI(media.comfyui.baseUrl, media.comfyui.h3Workflow),
+    diagnoseComfyUI(media.comfyui.baseUrl, media.comfyui.h3Workflow),
     probeNativeH3(native),
   ]);
   const assistant = assistantResult.store;
   const ollama = assistant.profiles.ollama;
   const openAiText = assistant.profiles.openai;
-  const comfyImageConfigured = Boolean(comfy.reachable && (media.comfyui.checkpoint || comfy.checkpoints[0]));
+  const minimaxText = assistant.profiles.minimax;
+  const checkpoint = media.comfyui.checkpoint || comfy.checkpoints[0] || "";
+  const comfyImageConfigured = Boolean(comfy.reachable && checkpoint);
   const comfyImageReady = Boolean(comfyImageConfigured && comfy.imageNodesReady && media.comfyui.imageVerifiedAt);
+  const ollamaImageConfigured = Boolean(ollama?.textModel && comfyImageConfigured);
+  const ollamaImageReady = Boolean(ollama?.assistantVerifiedAt && comfyImageReady);
   return {
     ok: true,
     choice,
@@ -212,27 +232,28 @@ async function statusBody() {
       selected: choice.text,
       options: {
         ollama: {
-          configured: Boolean(ollama?.textModel),
-          ready: Boolean(ollama?.assistantVerifiedAt),
-          model: ollama?.textModel || "",
-          error: ollama?.lastError || "",
+          ...textProfileState(ollama),
           locality: "local",
           cost: "No per-request provider charge",
           settingsTarget: "ollama",
         },
         openai: {
-          configured: Boolean(openAiText?.apiKey && openAiText?.textModel),
-          ready: Boolean(openAiText?.assistantVerifiedAt),
-          model: openAiText?.textModel || "",
-          error: openAiText?.lastError || "",
+          ...textProfileState(openAiText),
           locality: "cloud",
           cost: "Paid API usage",
           settingsTarget: "openai",
+        },
+        minimax: {
+          ...textProfileState(minimaxText),
+          locality: "cloud",
+          cost: "Paid API usage",
+          settingsTarget: "minimax",
         },
         off: {
           configured: true,
           ready: true,
           model: "",
+          verifiedAt: "",
           error: "",
           locality: "off",
           cost: "No AI cost",
@@ -246,11 +267,22 @@ async function statusBody() {
         comfyui: {
           configured: comfyImageConfigured,
           ready: comfyImageReady,
-          model: media.comfyui.checkpoint || comfy.checkpoints[0] || "",
-          error: media.comfyui.lastError || comfy.error,
+          model: checkpoint,
+          verifiedAt: media.comfyui.imageVerifiedAt,
+          error: media.comfyui.lastError || comfy.error || comfy.capabilityError,
           locality: "local",
           cost: "No per-request provider charge",
           settingsTarget: "comfyui",
+        },
+        "ollama-comfyui": {
+          configured: ollamaImageConfigured,
+          ready: ollamaImageReady,
+          model: [ollama?.textModel, checkpoint].filter(Boolean).join(" → "),
+          verifiedAt: ollamaImageReady ? media.comfyui.imageVerifiedAt : "",
+          error: ollama?.lastError || media.comfyui.lastError || comfy.error || comfy.capabilityError || (!ollama?.textModel ? "Select and test an Ollama LLM first." : ""),
+          locality: "local",
+          cost: "No per-request provider charge",
+          settingsTarget: "ollama",
         },
         openai: { ...profileState(media.profiles.openai, "image"), locality: "cloud", cost: "Paid API usage", settingsTarget: "openai" },
         minimax: { ...profileState(media.profiles.minimax, "image"), locality: "cloud", cost: "Paid API usage", settingsTarget: "minimax" },
@@ -273,6 +305,7 @@ async function statusBody() {
           configured: nativeProbe.manifestConfigured,
           ready: nativeProbe.ready,
           model: "MiniMax-H3",
+          verifiedAt: native.verifiedAt || "",
           error: native.lastError || nativeProbe.error,
           locality: "local",
           cost: "No per-request provider charge",
@@ -312,16 +345,16 @@ async function selectRoute(body: Record<string, unknown>) {
   ]);
 
   if (capability === "text") {
-    if (route !== "ollama" && route !== "openai" && route !== "off") throw new Error("Choose Ollama, OpenAI or Off for text.");
-    if (route === "openai") requirePaidConsent(body);
+    if (route !== "ollama" && route !== "openai" && route !== "minimax" && route !== "off") throw new Error("Choose Ollama, OpenAI, MiniMax or Off for text.");
+    if (route === "openai" || route === "minimax") requirePaidConsent(body);
     assistantResult.store.activeProvider = route === "off" ? "disabled" : route;
     assistantResult.store.explicitlyDisabled = route === "off";
     choice.text = route;
     await writeAssistantStore(assistantResult.store);
   } else if (capability === "image") {
-    if (route !== "comfyui" && route !== "openai" && route !== "minimax" && route !== "manual") throw new Error("Choose ComfyUI, OpenAI, MiniMax or Manual for images.");
+    if (route !== "comfyui" && route !== "ollama-comfyui" && route !== "openai" && route !== "minimax" && route !== "manual") throw new Error("Choose ComfyUI, Ollama + ComfyUI, OpenAI, MiniMax or Manual for images.");
     if (route === "openai" || route === "minimax") requirePaidConsent(body);
-    media.imageRoute = route;
+    media.imageRoute = route === "ollama-comfyui" ? "comfyui" : route;
     choice.image = route;
     await writeMediaRoutingStore(media);
   } else if (capability === "video") {
@@ -345,6 +378,51 @@ async function selectRoute(body: Record<string, unknown>) {
 
   await writeRoutingChoice(choice);
   return statusBody();
+}
+
+function imageInput(body: Record<string, unknown>): ImageGenerationInput {
+  return {
+    prompt: typeof body.prompt === "string" ? body.prompt : "",
+    characterId: typeof body.characterId === "string" ? body.characterId : undefined,
+    assetId: typeof body.assetId === "string" ? body.assetId : undefined,
+    aspect: body.aspect === "portrait" ? "portrait" : "landscape",
+    quality: body.quality === "high" ? "high" : "low",
+    billingAcknowledged: false,
+    requestCount: 1,
+  };
+}
+
+async function createOllamaComfyImage(body: Record<string, unknown>) {
+  const input = imageInput(body);
+  if (!input.prompt.trim()) throw new Error("Enter an image prompt before generating.");
+  const [assistantResult, media] = await Promise.all([
+    readSynchronizedAssistantStore(),
+    readMediaRoutingStore(),
+  ]);
+  const ollama = assistantResult.store.profiles.ollama;
+  if (!ollama?.assistantVerifiedAt) throw new Error("Ollama + ComfyUI is selected, but the Ollama LLM has not passed its response test. Open Ollama Settings.");
+  const comfy = await diagnoseComfyUI(media.comfyui.baseUrl, media.comfyui.h3Workflow);
+  const checkpoint = media.comfyui.checkpoint || comfy.checkpoints[0] || "";
+  if (!comfy.reachable) throw new Error(comfy.error || "ComfyUI is not reachable.");
+  if (!comfy.imageNodesReady || !checkpoint) throw new Error(comfy.capabilityError || "ComfyUI is running but its image workflow is not ready.");
+  const revisedPrompt = await generateAssistantText(
+    ollama,
+    "Rewrite the writer's request as one concise cinematic image-generation prompt. Preserve names, setting, action, emotion and continuity. Return only the improved prompt.",
+    input.prompt,
+  );
+  if (!revisedPrompt) throw new Error("The selected Ollama model returned no image prompt.");
+  try {
+    const result = await generateComfyImage(media.comfyui.baseUrl, checkpoint, { ...input, prompt: revisedPrompt });
+    media.comfyui.checkpoint = checkpoint;
+    media.comfyui.imageVerifiedAt = new Date().toISOString();
+    media.comfyui.lastError = "";
+    await writeMediaRoutingStore(media);
+    return { ...result, revisedPrompt, promptModel: ollama.textModel };
+  } catch (error) {
+    media.comfyui.lastError = error instanceof Error ? error.message : "The Ollama + ComfyUI image route failed.";
+    await writeMediaRoutingStore(media);
+    throw error;
+  }
 }
 
 function openAiJobStatus(value: unknown): OpenAiVideoStatus {
@@ -488,6 +566,25 @@ export function registerAiRoutingGateway(server: ViteDevServer) {
     const pathname = request.url?.split("?", 1)[0] || "";
     if (pathname.startsWith(API)) {
       await handleRoutingApi(request, response, pathname);
+      return;
+    }
+    if (pathname === IMAGE_PATH && request.method === "POST") {
+      const choice = await readRoutingChoice();
+      if (choice.image !== "ollama-comfyui") {
+        next();
+        return;
+      }
+      if (!isLocalRequest(request)) {
+        sendJson(response, 403, { ok: false, message: "Image generation is available only from this local PlotPickle server." });
+        return;
+      }
+      try {
+        const body = await readBody(request);
+        const result = await createOllamaComfyImage(body);
+        sendJson(response, 200, { ok: true, route: "ollama-comfyui", ...result });
+      } catch (error) {
+        sendJson(response, 400, { ok: false, message: error instanceof Error ? error.message : "The Ollama + ComfyUI image route failed." });
+      }
       return;
     }
     if (pathname === VIDEO_PATH && request.method === "POST") {

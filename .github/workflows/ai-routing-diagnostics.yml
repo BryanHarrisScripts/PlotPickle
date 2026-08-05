@@ -1,0 +1,44 @@
+name: AI routing diagnostics
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "app/ai-routing-panel.tsx"
+      - "app/ai-routing-panel.module.css"
+      - "app/writing-assistant-console.tsx"
+      - "app/writing-assistant-console.module.css"
+      - "app/media-routing-panel.tsx"
+      - "build/ai-routing-gateway.ts"
+      - "build/writing-assistant-provider.ts"
+      - "build/writing-assistant-store.ts"
+      - "build/writing-assistant-gateway.ts"
+      - "build/comfyui-connection-diagnostics.ts"
+      - "build/provider-diagnostics-gateway.ts"
+      - "build/local-ai-gateway.ts"
+      - "docs/AI-ROUTING-DIAGNOSTICS.md"
+      - "tests/issue-347-ai-provider-routing.test.mjs"
+      - "tests/issue-353-ai-routing-diagnostics.test.mjs"
+      - ".github/workflows/ai-routing-diagnostics.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-routing-diagnostics-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  routing-diagnostics-contract:
+    name: AI routing and diagnostics contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22.19.0"
+      - run: node --test tests/issue-347-ai-provider-routing.test.mjs tests/issue-353-ai-routing-diagnostics.test.mjs tests/issue-258-creative-compute-paths.test.mjs
+      - run: node --check tests/issue-353-ai-routing-diagnostics.test.mjs

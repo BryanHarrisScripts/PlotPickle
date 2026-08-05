@@ -19,3 +19,5 @@ const before = inventory.entries.length;
 inventory.entries = inventory.entries.filter((entry) => entry.path !== "app/visual-storyboard.tsx");
 if (inventory.entries.length !== before - 1) throw new Error("Storyboard confirmation inventory entry was not found exactly once.");
 await writeFile(inventoryPath, `${JSON.stringify(inventory, null, 2)}\n`, "utf8");
+
+// Synchronization trigger: the focused fixer workflow now exists on this branch.

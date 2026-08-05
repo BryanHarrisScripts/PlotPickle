@@ -30,6 +30,23 @@ function Find-OllamaExecutable {
   return ""
 }
 
+function Get-OptionalPropertyValue {
+  param(
+    [AllowNull()][object]$InputObject,
+    [Parameter(Mandatory = $true)][string]$Name
+  )
+
+  if ($null -eq $InputObject) { return $null }
+  try {
+    $property = $InputObject.PSObject.Properties[$Name]
+    if ($null -eq $property) { return $null }
+    return $property.Value
+  }
+  catch {
+    return $null
+  }
+}
+
 function Find-InstalledApplication {
   param([Parameter(Mandatory = $true)][string]$Pattern)
 
@@ -40,10 +57,10 @@ function Find-InstalledApplication {
   )
   foreach ($root in $registryRoots) {
     foreach ($entry in @(Get-ItemProperty -Path $root -ErrorAction SilentlyContinue)) {
-      $displayName = [string]($entry.PSObject.Properties["DisplayName"].Value)
+      $displayName = [string](Get-OptionalPropertyValue -InputObject $entry -Name "DisplayName")
       if (-not $displayName -or $displayName -notmatch $Pattern) { continue }
-      $displayVersion = [string]($entry.PSObject.Properties["DisplayVersion"].Value)
-      $installLocation = [string]($entry.PSObject.Properties["InstallLocation"].Value)
+      $displayVersion = [string](Get-OptionalPropertyValue -InputObject $entry -Name "DisplayVersion")
+      $installLocation = [string](Get-OptionalPropertyValue -InputObject $entry -Name "InstallLocation")
       return [pscustomobject]@{
         Name = $displayName
         Version = $displayVersion

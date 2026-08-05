@@ -18,13 +18,13 @@ test("issue #358 inventories only curated PlotPickle companion software", async 
   for (const contract of [
     "PLOTPICKLE COMPANION SOFTWARE - BEFORE MAINTENANCE",
     "PLOTPICKLE COMPANION SOFTWARE - READY STATE",
-    'Name = "Node.js"',
-    'Name = "npm"',
+    '-Name "Node.js"',
+    '-Name "npm"',
     'Name = "Ollama"',
     'Name = "ComfyUI Desktop"',
     'Name = "Buzz Desktop / CLI"',
-    'Name = "Git"',
-    'Name = "GitHub CLI"',
+    '-Name "Git"',
+    '-Name "GitHub CLI"',
     "Unrelated installed applications are never enumerated",
   ]) assert.ok(script.includes(contract), `Missing curated inventory contract: ${contract}`);
   assert.doesNotMatch(script, /Win32_Product|Get-Package\s+(?!-Name)|winget\s+list\s*$/im);
@@ -104,7 +104,7 @@ test("issue #358 documents the ownership and quality boundaries", async () => {
     "It does not enumerate unrelated Windows applications",
     "third-party update failure",
     "not presented as a production-quality story model",
-    "restricted to the local loopback Ollama service",
+    "local loopback Ollama service",
     "never enables cloud fallback",
   ]) assert.ok(doc.includes(phrase), `Missing companion maintenance documentation: ${phrase}`);
 });

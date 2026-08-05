@@ -19,13 +19,28 @@ The retired Lighthouse runner is not restored. The capture pipeline uses the sam
 - the Settings overview, Sitemap and every independently configurable component;
 - desktop, tablet and mobile viewports.
 
-The capture system stores stable full-page PNG files, a JSON manifest, a Markdown review list and an HTML contact sheet.
+The capture system stores stable full-page PNG files, a JSON manifest, a Markdown review list, an HTML contact sheet and an identity-validation report.
 
 ## Windows capture stability
 
 Very long full-page capture sessions can exhaust or destabilize the native Windows development-server process. `scripts/visual-audit-supervisor.mjs` therefore divides the complete inventory into small isolated batches. Each batch receives a fresh PlotPickle server, a clean browser profile and a bounded screen subset. The supervisor then combines all batch manifests into one complete visual inventory.
 
+Each new batch first opens an internal Dashboard warmup route. This allows the application bundle and workspace-query effect to settle before the first requested screenshot. Without the warmup, the first screen in a fresh batch can briefly render the public splash even when the URL requests Learn, Feedback or Settings.
+
 This isolation prevents one native process failure from erasing later screenshots and makes the exact failing batch visible. The canonical capture and screen registries are restored after every run, including failed runs.
+
+## Screen identity validation
+
+A screenshot existing is not enough. Every capture definition includes a rendered heading that uniquely identifies its intended screen. After all batches complete, `scripts/visual-audit-validate.mjs` verifies every requested viewport and rejects:
+
+- missing screenshots;
+- screenshots whose headings do not identify the requested screen;
+- the public marketing splash appearing in place of an application workspace;
+- silent fallback from a requested Settings component to General.
+
+The validator writes `visual-audit-validation.json` into the artifact. CI does not pass merely because PNG files were produced.
+
+AI Routing uses its real independent `/ai-routing` route. PlotPickle Runtime uses the currently exposed Local Story Mode surface. Plugins and connections currently has no independent destination, so its Sitemap evidence is marked reference-only rather than being misrepresented as a completed component screen. That gap remains visible for follow-up product work.
 
 ## Privacy boundary
 
@@ -37,6 +52,7 @@ Install the normal repository dependencies, make Chrome or Edge available, then 
 
 ```text
 node scripts/visual-audit-supervisor.mjs . reports/visual-audit
+node scripts/visual-audit-validate.mjs config/visual-audit-captures.json reports/visual-audit/visual-audit-manifest.json
 ```
 
 The default batch size is six capture definitions. It can be adjusted between one and eight with `PLOTPICKLE_VISUAL_BATCH_SIZE`. `CHROME_PATH` or `EDGE_PATH` can point to a browser executable when automatic discovery is insufficient.
@@ -49,7 +65,7 @@ node scripts/visual-audit-capture.mjs . reports/visual-audit-single
 
 ## CI evidence
 
-The Visual audit capture workflow runs for interface-related pull requests and can also be started manually. It uploads `reports/visual-audit/` as a GitHub Actions artifact. The artifact is intended for direct human and AI visual inspection before a UI/UX pull request is approved.
+The Visual audit capture workflow runs for interface-related pull requests and can also be started manually. It uploads `reports/visual-audit/` as a five-day GitHub Actions artifact. The artifact is intended for direct human and AI visual inspection before a UI/UX pull request is approved.
 
 ## Review expectations
 

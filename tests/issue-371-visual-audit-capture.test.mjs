@@ -38,7 +38,7 @@ test("issue #371 redacts sensitive values and local user paths", async () => {
     "input[type=password]",
     "data-visual-audit-redact",
     "PRIVATE KEY",
-    "C:\\\\Users\\\\",
+    "[A-Za-z]:\\\\Users\\\\",
     "/home/[user]",
     "/Users/[user]",
   ]) assert.ok(script.includes(contract), `Missing redaction contract: ${contract}`);

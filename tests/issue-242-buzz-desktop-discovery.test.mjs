@@ -146,7 +146,7 @@ test("issues #244 and #341 keep the pinned Buzz installer available while Settin
   assert.equal(config.windows.downloadUrl, "https://github.com/block/buzz/releases/download/desktop-v0.5.3/Buzz_0.5.3_x64-setup_alpha-unsigned.exe");
   assert.equal(config.windows.unsigned, true);
 
-  assert.match(launcher, /optional connections are configured inside PlotPickle Settings/i);
+  assert.match(launcher, /optional connections remain independently configurable in PlotPickle Settings/i);
   assert.match(launcher, /Optional services remain available from their independent Settings pages/);
   assert.doesNotMatch(executableLauncher, /BUZZ_INSTALLER|install-buzz-desktop\.ps1|ensure_buzz_desktop/i);
   assert.doesNotMatch(executableLauncher, /Install Buzz Desktop.*\[Y\/N\]/i);

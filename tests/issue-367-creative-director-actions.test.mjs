@@ -7,8 +7,8 @@ const styles = fs.readFileSync(new URL("../app/creative-director-actions.module.
 
 test("Creative Director actions keep story and intent ahead of provider configuration", () => {
   assert.match(source, /storyMoment/);
-  assert.match(source, />Illustrate</);
-  assert.match(source, />Animate</);
+  assert.match(source, /"Illustrate"/);
+  assert.match(source, /"Animate"/);
   assert.match(source, /Advanced direction/);
   assert.match(source, /Provider, model, checkpoint and workflow choices stay in Settings/);
   assert.doesNotMatch(source, /OpenAI|Ollama|ComfyUI|MiniMax/);
@@ -18,6 +18,8 @@ test("Creative Director actions expose plain-language recovery and accessible st
   assert.match(source, /Open generation settings/);
   assert.match(source, /role="status"/);
   assert.match(source, /aria-label="Direct this story moment"/);
+  assert.match(source, /aria-label={`Direct \${storyLabel}: \${storyTitle}`}/);
+  assert.match(source, /<figure className={styles\.empty}>/);
   assert.match(source, /disabled={busy}/);
 });
 

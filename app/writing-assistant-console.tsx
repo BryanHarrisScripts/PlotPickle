@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { requestConnectionStatusRefresh } from "./use-connection-status";
 import styles from "./writing-assistant-console.module.css";
 
 type ProviderId = "ollama" | "openai" | "minimax";
@@ -32,7 +33,16 @@ type AssistantStatus = {
   activeProvider: ActiveProvider;
   explicitlyDisabled: boolean;
   providers: Record<ProviderId, ProviderStatus>;
-  ollama: { detected: boolean; models: string[]; baseUrl: string };
+  ollama: {
+    detected: boolean;
+    reachable: boolean;
+    models: string[];
+    baseUrl: string;
+    version: string;
+    latencyMs: number;
+    checkedAt: string;
+    error: string;
+  };
 };
 
 type AssistantResponse = {
@@ -41,6 +51,16 @@ type AssistantResponse = {
   text: string;
   latencyMs: number;
   verifiedAt: string;
+};
+
+type OllamaConnectionResponse = {
+  reachable: boolean;
+  baseUrl: string;
+  models: string[];
+  version: string;
+  latencyMs: number;
+  checkedAt: string;
+  error: string;
 };
 
 const STATUS_PATH = "/api/writing-assistant/status";
@@ -62,9 +82,9 @@ const providerCopy: Record<ProviderId, { label: string; short: string; descripti
     settingsTarget: "Cloud images & video",
   },
   minimax: {
-    label: "MiniMax M3",
+    label: "MiniMax Text",
     short: "MiniMax",
-    description: "Cloud writing assistance using your MiniMax API account.",
+    description: "Cloud writing assistance using the MiniMax account that can also provide H3 video.",
     settingsTarget: "Cloud images & video",
   },
 };
@@ -116,7 +136,7 @@ function providerState(profile: ProviderStatus, provider: ProviderId, status: As
   if (profile.ready) return "ready";
   if (profile.error) return "error";
   if (profile.configured) return "configured";
-  if (provider === "ollama" && status.ollama.detected) return "detected";
+  if (provider === "ollama" && status.ollama.reachable) return "detected";
   return "optional";
 }
 
@@ -125,6 +145,7 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [prompt, setPrompt] = useState("");
   const [ollamaModel, setOllamaModel] = useState("");
+  const [ollamaBaseUrl, setOllamaBaseUrl] = useState("http://127.0.0.1:11434");
   const [working, setWorking] = useState(false);
   const [notice, setNotice] = useState("");
   const [technicalOpen, setTechnicalOpen] = useState(false);
@@ -137,11 +158,21 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
     try { window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(messages.slice(-30))); } catch { /* Session persistence is optional. */ }
   }, [messages]);
 
+  function refreshDashboardLights() {
+    requestConnectionStatusRefresh();
+    window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
+  }
+
   async function refreshStatus() {
     try {
       const next = await jsonRequest<AssistantStatus>(STATUS_PATH);
       setStatus(next);
-      setOllamaModel((current) => current || next.providers.ollama.model || next.ollama.models[0] || "");
+      setOllamaBaseUrl(next.ollama.baseUrl || "http://127.0.0.1:11434");
+      setOllamaModel((current) => {
+        const preferred = next.providers.ollama.model || current;
+        if (preferred && next.ollama.models.includes(preferred)) return preferred;
+        return next.ollama.models[0] || preferred || "";
+      });
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Writing Assistant status could not be checked.");
     }
@@ -157,8 +188,10 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
   async function selectProvider(provider: ActiveProvider) {
     if (!status || working) return;
     if (provider !== "disabled" && !status.providers[provider].configured) {
-      if (provider === "ollama" && status.ollama.detected) {
-        setNotice("Choose an installed Ollama model, then select Use this model.");
+      if (provider === "ollama") {
+        setNotice(status.ollama.reachable
+          ? "Choose an installed Ollama model, then save and test it."
+          : "Test the Ollama connection, then choose an installed model.");
         return;
       }
       onManage(providerCopy[provider].settingsTarget);
@@ -169,8 +202,29 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
     try {
       await jsonRequest("/api/writing-assistant/active", "POST", { provider });
       await refreshStatus();
+      refreshDashboardLights();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The text engine could not be selected.");
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function testOllamaConnection() {
+    if (working || !ollamaBaseUrl.trim()) return;
+    setWorking(true);
+    setNotice("Checking the Ollama service and installed models…");
+    try {
+      const result = await jsonRequest<OllamaConnectionResponse>("/api/writing-assistant/ollama/connection", "POST", { baseUrl: ollamaBaseUrl });
+      setNotice(result.models.length
+        ? `Ollama ${result.version || "service"} responded in ${result.latencyMs} ms. ${result.models.length} installed model${result.models.length === 1 ? "" : "s"} found.`
+        : result.error || "Ollama is running, but no installed models were found.");
+      await refreshStatus();
+      refreshDashboardLights();
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "The Ollama connection test failed.");
+      await refreshStatus();
+      refreshDashboardLights();
     } finally {
       setWorking(false);
     }
@@ -179,21 +233,23 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
   async function configureOllama() {
     if (!ollamaModel || working) return;
     setWorking(true);
-    setNotice("Testing the selected Ollama model…");
+    setNotice("Saving and testing the selected Ollama model…");
     try {
       const result = await jsonRequest<AssistantResponse>("/api/writing-assistant/ollama", "POST", {
         model: ollamaModel,
-        baseUrl: status?.ollama.baseUrl,
+        baseUrl: ollamaBaseUrl,
       });
       setMessages((current) => [...current,
         { id: messageId(), role: "user", content: TEST_PROMPT },
         { id: messageId(), role: "assistant", content: result.text, provider: result.provider, model: result.model },
       ].slice(-30));
-      setNotice(`${result.model} responded in ${result.latencyMs} ms. Ollama is ready.`);
+      setNotice(`${result.model} responded in ${result.latencyMs} ms. Ollama is selected and ready.`);
       await refreshStatus();
+      refreshDashboardLights();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The Ollama model test failed.");
       await refreshStatus();
+      refreshDashboardLights();
     } finally {
       setWorking(false);
     }
@@ -211,9 +267,11 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
       ].slice(-30));
       setNotice(`${result.model} responded in ${result.latencyMs} ms. The connection is ready.`);
       await refreshStatus();
+      refreshDashboardLights();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The provider test failed.");
       await refreshStatus();
+      refreshDashboardLights();
     } finally {
       setWorking(false);
     }
@@ -240,6 +298,7 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
       }].slice(-30));
       setNotice(`${providerCopy[result.provider].short} · ${result.model} · ${result.latencyMs} ms`);
       await refreshStatus();
+      refreshDashboardLights();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The Writing Assistant could not answer.");
     } finally {
@@ -251,6 +310,8 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
     setMessages([]);
     setNotice("Temporary assistant conversation cleared. No story canon was changed.");
   }
+
+  const showOllamaSetup = focusProvider === "ollama" || Boolean(status?.ollama.reachable || status?.providers.ollama.configured);
 
   return (
     <section className={styles.console} aria-labelledby="writing-assistant-title">
@@ -275,7 +336,7 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
               <button type="button" className={styles.providerButton} onClick={() => void selectProvider(provider)} disabled={working || !status}>
                 <span className={styles.providerLight} aria-hidden="true" />
                 <span><strong>{providerCopy[provider].label}</strong><small>{providerCopy[provider].description}</small></span>
-                <em>{profile.ready ? "Ready" : profile.configured ? "Test needed" : provider === "ollama" && status?.ollama.detected ? "Detected" : "Configure"}</em>
+                <em>{profile.ready ? "Ready" : profile.configured ? "Test needed" : provider === "ollama" && status?.ollama.reachable ? "Service detected" : "Configure"}</em>
               </button>
               {profile.configured ? <button type="button" className={styles.testButton} onClick={() => void testProvider(provider)} disabled={working}>Test response</button> : null}
               {!profile.configured && provider !== "ollama" ? <button type="button" className={styles.testButton} onClick={() => onManage(providerCopy[provider].settingsTarget)}>Open setup</button> : null}
@@ -293,12 +354,38 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
         ) : null}
       </div>
 
-      {status?.ollama.detected && !status.providers.ollama.configured ? (
-        <div className={styles.ollamaSetup}>
-          <div><strong>Ollama is running.</strong><span>Select an installed model and PlotPickle will send a real test question before showing green.</span></div>
-          <label>Installed model<select value={ollamaModel} onChange={(event) => setOllamaModel(event.target.value)}>{status.ollama.models.map((model) => <option key={model} value={model}>{model}</option>)}</select></label>
-          <button type="button" onClick={() => void configureOllama()} disabled={working || !ollamaModel}>Use this model</button>
-        </div>
+      {showOllamaSetup ? (
+        <section className={styles.ollamaSetup} aria-labelledby="ollama-model-settings-title">
+          <div>
+            <strong id="ollama-model-settings-title">Ollama connection and model</strong>
+            <span>The service can be running while no usable LLM is selected. PlotPickle turns green only after the selected model answers a real test prompt.</span>
+          </div>
+          <label>
+            Ollama server address
+            <input value={ollamaBaseUrl} onChange={(event) => setOllamaBaseUrl(event.target.value)} placeholder="http://127.0.0.1:11434" spellCheck={false} />
+          </label>
+          <div className={styles.headerActions}>
+            <button type="button" onClick={() => void testOllamaConnection()} disabled={working || !ollamaBaseUrl.trim()}>Test connection</button>
+            <button type="button" onClick={() => void refreshStatus()} disabled={working}>Refresh models</button>
+          </div>
+          <label>
+            Installed Ollama LLM
+            <select value={ollamaModel} onChange={(event) => setOllamaModel(event.target.value)} disabled={working || !status?.ollama.models.length}>
+              {!status?.ollama.models.length ? <option value="">No installed models found</option> : null}
+              {status?.ollama.models.map((model) => <option key={model} value={model}>{model}</option>)}
+            </select>
+          </label>
+          <button type="button" onClick={() => void configureOllama()} disabled={working || !ollamaModel}>Save, select &amp; test this model</button>
+          <dl>
+            <div><dt>Service</dt><dd>{status?.ollama.reachable ? "Running" : "Not reachable"}</dd></div>
+            <div><dt>Version</dt><dd>{status?.ollama.version || "Not reported"}</dd></div>
+            <div><dt>Installed models</dt><dd>{status?.ollama.models.length ?? 0}</dd></div>
+            <div><dt>Selected model</dt><dd>{status?.providers.ollama.model || "None"}</dd></div>
+            <div><dt>Last connection check</dt><dd>{formatDate(status?.ollama.checkedAt)}</dd></div>
+            <div><dt>Connection latency</dt><dd>{status?.ollama.latencyMs ? `${status.ollama.latencyMs} ms` : "Not measured"}</dd></div>
+          </dl>
+          {status?.ollama.error ? <p className={styles.notice}>{status.ollama.error}</p> : null}
+        </section>
       ) : null}
 
       <div className={styles.conversation} aria-live="polite">
@@ -330,7 +417,7 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
           <dl>
             <div><dt>Active text engine</dt><dd>{status?.activeProvider === "disabled" ? "Off" : status ? providerCopy[status.activeProvider].label : "Checking"}</dd></div>
             <div><dt>Model</dt><dd>{activeProfile?.model || "No active model"}</dd></div>
-            <div><dt>Endpoint</dt><dd>{activeProfile?.baseUrl || "No active endpoint"}</dd></div>
+            <div><dt>Endpoint</dt><dd>{activeProfile?.baseUrl || (status?.activeProvider === "ollama" ? status.ollama.baseUrl : "No active endpoint")}</dd></div>
             <div><dt>Last successful response</dt><dd>{formatDate(activeProfile?.verifiedAt)}</dd></div>
             <div><dt>Last latency</dt><dd>{activeProfile?.latencyMs ? `${activeProfile.latencyMs} ms` : "Not measured"}</dd></div>
             <div><dt>Last error</dt><dd>{activeProfile?.error || "None"}</dd></div>

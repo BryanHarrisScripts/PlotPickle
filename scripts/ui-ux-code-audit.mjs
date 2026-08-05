@@ -132,6 +132,7 @@ function contradictsPlatformStandards(finding, source, context) {
   const evidence = finding.evidence;
   if (/\b(?:may|might|could|potential(?:ly)?|consider|review|unnecessary|excessive|not used to full potential)\b/i.test(combined)) return true;
   if (contrastClaimIsUnsubstantiated(finding, context)) return true;
+  if ((finding.criterion === 11 || finding.criterion === 15) && /<div\b[^>]*\brole=["']status["']/i.test(evidence) && /(?:non-semantic|use a semantic element|<status>|aria-live.*static|static content)/i.test(combined)) return true;
   if (finding.criterion === 11 && /<span\b/i.test(evidence) && /(?:block-level|replace\s+<span>\s+with\s+<div>|use\s+<div>)/i.test(combined)) return true;
   if (finding.criterion === 14 && /<(?:button|a|input|textarea|summary|video)\b/i.test(evidence) && /(?:tabindex|tab order|always focusable)/i.test(combined)) return true;
   if (finding.criterion === 11 && /<div><dt>/i.test(evidence) && /<dl\b/i.test(source)) return true;

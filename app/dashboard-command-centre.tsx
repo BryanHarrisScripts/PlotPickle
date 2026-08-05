@@ -179,9 +179,9 @@ export default function DashboardCommandCentre({
 
   return (
     <div className={styles.shell}>
-      <aside className={styles.subnav} aria-label="Dashboard sections">
+      <nav className={styles.subnav} aria-labelledby="dashboard-sections-title">
         <p className={styles.eyebrow}>Dashboard</p>
-        <strong>Command centre</strong>
+        <h2 id="dashboard-sections-title">Command centre</h2>
         <a href="#dashboard-readiness">Readiness</a>
         <a href="#dashboard-project-source">Project source</a>
         <a href="#dashboard-setup">Setup &amp; connections</a>
@@ -193,14 +193,18 @@ export default function DashboardCommandCentre({
             <span key={tone} className={styles[`tone-${tone}`]}><i aria-hidden="true">{toneMeta[tone].icon}</i>{toneMeta[tone].label}</span>
           ))}
         </div>
-      </aside>
+      </nav>
 
       <div className={styles.main}>
-        <section id="dashboard-readiness" className={`${styles.readiness} ${styles[`tone-${model.readiness}`]}`}>
+        <section
+          id="dashboard-readiness"
+          className={`${styles.readiness} ${styles[`tone-${model.readiness}`]}`}
+          aria-labelledby="dashboard-readiness-title"
+        >
           <div className={styles.readinessIcon} aria-hidden="true">{toneMeta[model.readiness].icon}</div>
-          <div>
+          <div role="status" aria-live="polite" aria-atomic="true">
             <p className={styles.eyebrow}>Five-second readiness check</p>
-            <h1>{model.readinessLabel}</h1>
+            <h1 id="dashboard-readiness-title">{model.readinessLabel}</h1>
             <p>{model.recommendedAction ? model.recommendedAction.detail : "No tracked blocker or review item currently needs attention."}</p>
           </div>
           {model.recommendedAction ? <button type="button" onClick={() => openTarget(model.recommendedAction!.target)}>Recommended: {model.recommendedAction.title}</button> : <button type="button" onClick={() => onNavigate("planner", "overview")}>Continue project</button>}
@@ -259,7 +263,17 @@ export default function DashboardCommandCentre({
               return (
                 <article className={styles.workflowCard} key={workflow.id}>
                   <header><span>{workflow.label}</span><strong className={styles[`tone-${tone}`]}>{workflow.completion}%</strong></header>
-                  <div className={styles.progressTrack} aria-label={`${workflow.label}: ${workflow.completion}% complete`}><i style={{ width: `${workflow.completion}%` }} /></div>
+                  <div
+                    className={styles.progressTrack}
+                    role="progressbar"
+                    aria-label={`${workflow.label} completion`}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={workflow.completion}
+                    aria-valuetext={`${workflow.completion}% complete`}
+                  >
+                    <i aria-hidden="true" style={{ width: `${workflow.completion}%` }} />
+                  </div>
                   <dl><div><dt>Unresolved</dt><dd>{workflow.unresolved}</dd></div><div><dt>Last activity</dt><dd>{formatDate(workflow.lastActivity)}</dd></div></dl>
                   <p>{workflow.nextStep}</p>
                   <button type="button" onClick={() => openTarget(workflow.target)}>Continue {workflow.label}</button>

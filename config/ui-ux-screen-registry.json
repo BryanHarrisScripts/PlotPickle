@@ -32,7 +32,12 @@
       "status": "audited",
       "issue": 343,
       "pullRequest": 344,
-      "requirements": ["visual-system", "responsive-layout", "keyboard-navigation", "accessibility-semantics"]
+      "requirements": [
+        "visual-system",
+        "responsive-layout",
+        "keyboard-navigation",
+        "accessibility-semantics"
+      ]
     },
     {
       "id": "public-welcome-startup",
@@ -42,7 +47,13 @@
       "status": "audited",
       "issue": 341,
       "pullRequest": 342,
-      "requirements": ["interaction-states", "responsive-layout", "keyboard-navigation", "loading-empty-success-warning-error", "recovery-guidance"]
+      "requirements": [
+        "interaction-states",
+        "responsive-layout",
+        "keyboard-navigation",
+        "loading-empty-success-warning-error",
+        "recovery-guidance"
+      ]
     },
     {
       "id": "public-about-support",
@@ -52,7 +63,12 @@
       "status": "audited",
       "issue": 345,
       "pullRequest": 346,
-      "requirements": ["visual-system", "responsive-layout", "accessibility-semantics", "recovery-guidance"]
+      "requirements": [
+        "visual-system",
+        "responsive-layout",
+        "accessibility-semantics",
+        "recovery-guidance"
+      ]
     },
     {
       "id": "shell-application-navigation",
@@ -62,7 +78,13 @@
       "status": "audited",
       "issue": 339,
       "pullRequest": 340,
-      "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "accessibility-semantics"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "keyboard-navigation",
+        "accessibility-semantics"
+      ]
     },
     {
       "id": "shell-common-overlays",
@@ -72,17 +94,29 @@
       "status": "audited",
       "issue": 349,
       "pullRequest": 350,
-      "requirements": ["interaction-states", "keyboard-navigation", "accessibility-semantics", "loading-empty-success-warning-error", "data-preservation"]
+      "requirements": [
+        "interaction-states",
+        "keyboard-navigation",
+        "accessibility-semantics",
+        "loading-empty-success-warning-error",
+        "data-preservation"
+      ]
     },
     {
       "id": "dashboard",
       "label": "Dashboard",
       "area": "workflow",
       "scope": "Projects, visual connection status, storage and links to component Settings",
-      "status": "planned",
-      "issue": null,
-      "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "responsive-layout", "loading-empty-success-warning-error", "recovery-guidance"]
+      "status": "audited",
+      "issue": 355,
+      "pullRequest": 356,
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "loading-empty-success-warning-error",
+        "recovery-guidance"
+      ]
     },
     {
       "id": "learn",
@@ -92,7 +126,12 @@
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "responsive-layout", "keyboard-navigation", "accessibility-semantics"]
+      "requirements": [
+        "visual-system",
+        "responsive-layout",
+        "keyboard-navigation",
+        "accessibility-semantics"
+      ]
     },
     {
       "id": "planner",
@@ -102,7 +141,12 @@
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "responsive-layout", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "data-preservation"
+      ]
     },
     {
       "id": "visuals",
@@ -112,7 +156,13 @@
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "keyboard-navigation",
+        "data-preservation"
+      ]
     },
     {
       "id": "script",
@@ -122,7 +172,13 @@
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "keyboard-navigation",
+        "data-preservation"
+      ]
     },
     {
       "id": "pitch",
@@ -132,17 +188,30 @@
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "loading-empty-success-warning-error", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "keyboard-navigation",
+        "loading-empty-success-warning-error",
+        "data-preservation"
+      ]
     },
     {
       "id": "build",
       "label": "Build",
       "area": "workflow",
       "scope": "24 Blocks, 96 mini-blocks and structural arrangement",
-      "status": "in-progress",
+      "status": "audited",
       "issue": 351,
-      "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "data-preservation"]
+      "pullRequest": 352,
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "keyboard-navigation",
+        "data-preservation"
+      ]
     },
     {
       "id": "feedback",
@@ -152,7 +221,13 @@
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "responsive-layout", "loading-empty-success-warning-error", "recovery-guidance"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "loading-empty-success-warning-error",
+        "recovery-guidance"
+      ]
     },
     {
       "id": "engines",
@@ -162,7 +237,13 @@
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "responsive-layout", "loading-empty-success-warning-error", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "loading-empty-success-warning-error",
+        "data-preservation"
+      ]
     },
     {
       "id": "reports",
@@ -172,7 +253,13 @@
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "responsive-layout", "keyboard-navigation", "accessibility-semantics", "loading-empty-success-warning-error"]
+      "requirements": [
+        "visual-system",
+        "responsive-layout",
+        "keyboard-navigation",
+        "accessibility-semantics",
+        "loading-empty-success-warning-error"
+      ]
     },
     {
       "id": "collab",
@@ -182,7 +269,13 @@
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "responsive-layout", "loading-empty-success-warning-error", "recovery-guidance"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "loading-empty-success-warning-error",
+        "recovery-guidance"
+      ]
     },
     {
       "id": "community",
@@ -192,7 +285,13 @@
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "responsive-layout", "loading-empty-success-warning-error", "recovery-guidance"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "loading-empty-success-warning-error",
+        "recovery-guidance"
+      ]
     },
     {
       "id": "suggest-report",
@@ -202,172 +301,299 @@
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "recovery-guidance"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "keyboard-navigation",
+        "recovery-guidance"
+      ]
     },
     {
       "id": "settings-overview-sitemap",
       "label": "Settings overview and Sitemap",
       "area": "settings",
       "scope": "Settings information architecture, search, overview and complete Sitemap",
-      "targets": ["sitemap"],
+      "targets": [
+        "sitemap"
+      ],
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "accessibility-semantics"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "keyboard-navigation",
+        "accessibility-semantics"
+      ]
     },
     {
       "id": "settings-general",
       "label": "General and Project Defaults",
       "area": "settings",
       "scope": "General preferences, startup behaviour and project defaults",
-      "targets": ["general", "project-defaults"],
+      "targets": [
+        "general",
+        "project-defaults"
+      ],
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "responsive-layout", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "data-preservation"
+      ]
     },
     {
       "id": "settings-appearance-accessibility",
       "label": "Appearance & Accessibility",
       "area": "settings",
       "scope": "Theme, density, contrast, motion and interface text",
-      "targets": ["appearance"],
+      "targets": [
+        "appearance"
+      ],
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "responsive-layout", "keyboard-navigation", "accessibility-semantics", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "keyboard-navigation",
+        "accessibility-semantics",
+        "data-preservation"
+      ]
     },
     {
       "id": "settings-runtime",
       "label": "PlotPickle Runtime",
       "area": "settings",
       "scope": "Local runtime status, versions, repair and update guidance",
-      "targets": ["runtime"],
+      "targets": [
+        "runtime"
+      ],
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "loading-empty-success-warning-error",
+        "recovery-guidance"
+      ]
     },
     {
       "id": "settings-ollama",
       "label": "Ollama",
       "area": "settings",
       "scope": "Local service status, model selection, testing and repair",
-      "targets": ["ollama"],
+      "targets": [
+        "ollama"
+      ],
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "loading-empty-success-warning-error",
+        "recovery-guidance",
+        "data-preservation"
+      ]
     },
     {
       "id": "settings-comfyui",
       "label": "ComfyUI",
       "area": "settings",
       "scope": "Endpoint, checkpoints, workflows, live tests and repair",
-      "targets": ["comfyui"],
+      "targets": [
+        "comfyui"
+      ],
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "loading-empty-success-warning-error",
+        "recovery-guidance",
+        "data-preservation"
+      ]
     },
     {
       "id": "settings-buzz",
       "label": "Buzz installation and runtime",
       "area": "settings",
       "scope": "Buzz Desktop detection, identity, community, rooms and runtime repair",
-      "targets": ["buzz"],
+      "targets": [
+        "buzz"
+      ],
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "loading-empty-success-warning-error",
+        "recovery-guidance",
+        "data-preservation"
+      ]
     },
     {
       "id": "settings-openai",
       "label": "OpenAI",
       "area": "settings",
       "scope": "API credentials, model choices, testing and provider repair",
-      "targets": ["openai", "ai"],
+      "targets": [
+        "openai",
+        "ai"
+      ],
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "loading-empty-success-warning-error",
+        "recovery-guidance",
+        "data-preservation"
+      ]
     },
     {
       "id": "settings-minimax",
       "label": "MiniMax",
       "area": "settings",
       "scope": "Text, image and video model configuration and paid-test consent",
-      "targets": ["minimax"],
+      "targets": [
+        "minimax"
+      ],
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "loading-empty-success-warning-error",
+        "recovery-guidance",
+        "data-preservation"
+      ]
     },
     {
       "id": "settings-github",
       "label": "GitHub repository and authorization",
       "area": "settings",
       "scope": "GitHub App authorization, story repositories, proposals, approvals and recovery",
-      "targets": ["github"],
+      "targets": [
+        "github"
+      ],
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "loading-empty-success-warning-error",
+        "recovery-guidance",
+        "data-preservation"
+      ]
     },
     {
       "id": "settings-google",
       "label": "Google account, Calendar and Meet",
       "area": "settings",
       "scope": "Desktop OAuth, account status, Calendar and Meet permissions",
-      "targets": ["google"],
+      "targets": [
+        "google"
+      ],
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "loading-empty-success-warning-error",
+        "recovery-guidance",
+        "data-preservation"
+      ]
     },
     {
       "id": "settings-storage-recovery",
       "label": "Storage, projects, backups and recovery",
       "area": "settings",
       "scope": "Canonical project files, assets, rolling backups, restore and recovery",
-      "targets": ["storage"],
+      "targets": [
+        "storage"
+      ],
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "loading-empty-success-warning-error",
+        "recovery-guidance",
+        "data-preservation"
+      ]
     },
     {
       "id": "settings-plugins-connections",
       "label": "Plugins and connections",
       "area": "settings",
       "scope": "Installed plugins, permissions and optional connection management",
-      "targets": ["plugins"],
+      "targets": [
+        "plugins"
+      ],
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "loading-empty-success-warning-error", "recovery-guidance", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "loading-empty-success-warning-error",
+        "recovery-guidance",
+        "data-preservation"
+      ]
     },
     {
       "id": "settings-privacy-credentials",
       "label": "Privacy, permissions and credential vault",
       "area": "settings",
       "scope": "Credential storage, permissions, removal and privacy boundaries",
-      "targets": ["privacy"],
+      "targets": [
+        "privacy"
+      ],
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "interaction-states", "keyboard-navigation", "accessibility-semantics", "recovery-guidance", "data-preservation"]
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "keyboard-navigation",
+        "accessibility-semantics",
+        "recovery-guidance",
+        "data-preservation"
+      ]
     },
     {
       "id": "settings-about-licensing",
       "label": "About and licensing",
       "area": "settings",
       "scope": "Version, repository, open-source terms and licence boundaries",
-      "targets": ["about"],
+      "targets": [
+        "about"
+      ],
       "status": "planned",
       "issue": null,
       "pullRequest": null,
-      "requirements": ["visual-system", "responsive-layout", "keyboard-navigation", "accessibility-semantics"]
+      "requirements": [
+        "visual-system",
+        "responsive-layout",
+        "keyboard-navigation",
+        "accessibility-semantics"
+      ]
     }
   ]
 }

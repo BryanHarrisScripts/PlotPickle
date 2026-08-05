@@ -33,15 +33,15 @@ export default function CreativeDirectorActions({
   const busy = state === "illustrating" || state === "animating";
 
   return (
-    <section className={styles.panel} aria-labelledby="creative-director-title">
+    <section className={styles.panel} aria-label={`Direct ${storyLabel}: ${storyTitle}`}>
       <header className={styles.header}>
         <span>{storyLabel}</span>
-        <h2 id="creative-director-title">{storyTitle}</h2>
+        <h2>{storyTitle}</h2>
         <p>{storyMoment || "Add the visible action or dramatic turn in the story block before directing this moment."}</p>
       </header>
 
       <div className={styles.preview}>
-        {currentVisual ?? <div className={styles.empty}><strong>No approved visual yet</strong><span>PlotPickle will build the direction from the story automatically.</span></div>}
+        {currentVisual ?? <figure className={styles.empty}><figcaption><strong>No approved visual yet</strong><span>PlotPickle will build the direction from the story automatically.</span></figcaption></figure>}
       </div>
 
       {identityWarning ? <p className={styles.warning}><strong>Continuity needs attention.</strong> {identityWarning}</p> : null}

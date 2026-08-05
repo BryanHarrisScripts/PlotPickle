@@ -30,7 +30,7 @@ The fixed starter model is `smollm2:135m-instruct-q2_K`. It is approximately 88 
 
 The starter may be installed only when:
 
-- Ollama is reachable on loopback;
+- Ollama is reachable through the local loopback Ollama service;
 - no installed Ollama model is available, or the writer explicitly chooses the Settings action;
 - the requested model exactly matches the allowlisted starter model.
 

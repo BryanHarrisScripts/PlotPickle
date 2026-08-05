@@ -77,7 +77,7 @@ export const defaultPlotPickleSettings: PlotPickleSettings = {
     confirmDestructiveActions: true,
   },
   appearance: {
-    theme: "system",
+    theme: "dark",
     density: "comfortable",
     reduceTransparency: false,
   },
@@ -155,7 +155,9 @@ export function normalizePlotPickleSettings(value: unknown): PlotPickleSettings 
       confirmDestructiveActions: typeof general.confirmDestructiveActions === "boolean" ? general.confirmDestructiveActions : true,
     },
     appearance: {
-      theme: appearance.theme === "light" || appearance.theme === "dark" ? appearance.theme : "system",
+      theme: appearance.theme === "system" || appearance.theme === "light" || appearance.theme === "dark"
+        ? appearance.theme
+        : defaultPlotPickleSettings.appearance.theme,
       density: appearance.density === "compact" ? "compact" : "comfortable",
       reduceTransparency: Boolean(appearance.reduceTransparency),
     },

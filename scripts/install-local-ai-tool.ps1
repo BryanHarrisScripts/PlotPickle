@@ -28,6 +28,8 @@ $Definitions = @{
     DisplayPattern = "^(ComfyUI|Comfy Desktop)"
   }
 }
+$CompanionManager = Join-Path $PSScriptRoot "windows-companion-software.ps1"
+$BootstrapModel = if ($env:PLOTPICKLE_OLLAMA_BOOTSTRAP_MODEL) { $env:PLOTPICKLE_OLLAMA_BOOTSTRAP_MODEL } else { "smollm:135m" }
 
 function Write-ToolStatus {
   param(
@@ -99,16 +101,30 @@ function Find-Tool {
   return Find-InstalledApplication -Pattern ([string]$definition.DisplayPattern)
 }
 
+function Invoke-OllamaBootstrap {
+  if ($Tool -ne "Ollama" -or -not $Install) { return }
+  if (-not (Test-Path -LiteralPath $CompanionManager -PathType Leaf)) {
+    Write-Warning "Ollama was detected, but PlotPickle's companion maintenance script is missing."
+    return
+  }
+  Write-Host "Checking Ollama model readiness."
+  & $CompanionManager -Mode BootstrapOllama -BootstrapModel $BootstrapModel
+}
+
 $definition = $Definitions[$Tool]
 $existing = Find-Tool
 if ($existing) {
   Write-Host "[OK] $Tool detected at $existing"
+  Invoke-OllamaBootstrap
   Write-ToolStatus -Status "detected" -Location $existing
   exit 0
 }
 
 if ($CheckOnly -or -not $Install) {
   Write-Host "[INFO] $Tool was not detected. It remains optional."
+  if ($Tool -eq "Ollama") {
+    Write-Host "Install Ollama, then revisit this installer so PlotPickle can add the $BootstrapModel starter model."
+  }
   Write-ToolStatus -Status "missing"
   exit 3
 }
@@ -137,7 +153,11 @@ if (-not $winget) {
 
 Write-Host "Opening the visible Windows Package Manager installation for $Tool."
 Write-Host "Package: $($definition.PackageId)"
-Write-Host "PlotPickle does not request a silent install, download models, or enable cloud fallback."
+if ($Tool -eq "Ollama") {
+  Write-Host "After Ollama is installed and responding, PlotPickle will pull $BootstrapModel only when no local model exists."
+} else {
+  Write-Host "PlotPickle does not download checkpoints, custom nodes, workflows, or enable cloud fallback."
+}
 & $winget.Source install --id ([string]$definition.PackageId) --exact --source winget --interactive --accept-source-agreements --accept-package-agreements
 $wingetExit = $LASTEXITCODE
 if ($wingetExit -ne 0) {
@@ -151,11 +171,16 @@ Start-Sleep -Seconds 2
 $installed = Find-Tool
 if ($installed) {
   Write-Host "[SUCCESS] $Tool is installed or running at $installed"
+  Invoke-OllamaBootstrap
   Write-ToolStatus -Status "installed" -Location $installed
   exit 0
 }
 
 Write-Host "[INFO] The $Tool installer completed, but the application is not running yet."
-Write-Host "Models, checkpoints and workflows remain separate and were not downloaded."
+if ($Tool -eq "Ollama") {
+  Write-Host "Start Ollama, then rerun this installer so PlotPickle can pull $BootstrapModel when the model list is empty."
+} else {
+  Write-Host "Checkpoints, custom nodes and workflows remain separate and were not downloaded."
+}
 Write-ToolStatus -Status "installed-not-running"
 exit 0

@@ -224,6 +224,16 @@ export type Location = {
   image: string;
 };
 
+export type VisualMediaVersion = {
+  id: string;
+  kind: "image" | "video";
+  src: string;
+  prompt: string;
+  sourceImageSrc?: string;
+  status: "candidate" | "approved" | "archived";
+  createdAt: string;
+};
+
 export type VisualFrame = {
   id: string;
   miniBlockNumber: number;
@@ -234,6 +244,9 @@ export type VisualFrame = {
   prompt: string;
   shot: string;
   continuity: string;
+  versions?: VisualMediaVersion[];
+  approvedImageVersionId?: string;
+  approvedVideoVersionId?: string;
 };
 
 export type StoryBlock = {
@@ -1040,6 +1053,9 @@ export function createStoryboardFrame(blockNumber: number, miniBlockNumber: numb
     prompt: "",
     shot: "",
     continuity: "",
+    versions: [],
+    approvedImageVersionId: "",
+    approvedVideoVersionId: "",
   };
 }
 
@@ -1063,6 +1079,24 @@ function normalizeStoryboardFrames(value: unknown, blockNumber: number): VisualF
       prompt: typeof frame.prompt === "string" ? frame.prompt : "",
       shot: typeof frame.shot === "string" ? frame.shot : "",
       continuity: typeof frame.continuity === "string" ? frame.continuity : "",
+      versions: Array.isArray(frame.versions) ? frame.versions.flatMap((item, versionIndex) => {
+        if (!item || typeof item !== "object") return [];
+        const version = item as Partial<VisualMediaVersion>;
+        const kind = version.kind === "video" ? "video" : "image";
+        const src = typeof version.src === "string" ? version.src : "";
+        if (!src) return [];
+        return [{
+          id: typeof version.id === "string" && version.id ? version.id : `${frame.id || `frame-${index + 1}`}-${kind}-${versionIndex + 1}`,
+          kind,
+          src,
+          prompt: typeof version.prompt === "string" ? version.prompt : "",
+          sourceImageSrc: typeof version.sourceImageSrc === "string" ? version.sourceImageSrc : undefined,
+          status: version.status === "approved" || version.status === "archived" ? version.status : "candidate",
+          createdAt: typeof version.createdAt === "string" ? version.createdAt : "",
+        }];
+      }) : [],
+      approvedImageVersionId: typeof frame.approvedImageVersionId === "string" ? frame.approvedImageVersionId : "",
+      approvedVideoVersionId: typeof frame.approvedVideoVersionId === "string" ? frame.approvedVideoVersionId : "",
     }];
   });
   const missing = [1, 2, 3, 4]

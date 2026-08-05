@@ -16,6 +16,7 @@ on:
       - "app/writing-assistant-console.module.css"
       - "docs/ISSUE-358-COMPANION-SOFTWARE.md"
       - "tests/issue-358-companion-inventory-ollama-bootstrap.test.mjs"
+      - "tests/issue-369-windows-companion-registry-values.test.ps1"
       - ".github/workflows/companion-inventory-ollama-bootstrap.yml"
   workflow_dispatch:
 
@@ -62,3 +63,6 @@ jobs:
             }
           }
           if ($errors.Count) { throw ($errors -join [Environment]::NewLine) }
+      - name: Test malformed registry property handling
+        shell: pwsh
+        run: '& "./tests/issue-369-windows-companion-registry-values.test.ps1"'

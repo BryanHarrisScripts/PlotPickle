@@ -32,6 +32,21 @@ test("issue #371 captures real rendered pages through Chrome DevTools", async ()
   assert.doesNotMatch(script, /lighthouse|puppeteer|playwright/i);
 });
 
+test("issue #371 isolates long Windows captures into restartable batches", async () => {
+  const supervisor = await source("scripts/visual-audit-supervisor.mjs");
+  for (const contract of [
+    "PLOTPICKLE_VISUAL_BATCH_SIZE",
+    "visual-audit-capture.mjs",
+    "batch-${batchNumber}",
+    "originalConfigText",
+    "originalRegistryText",
+    "await writeFile(configPath, originalConfigText)",
+    "await writeFile(registryPath, originalRegistryText)",
+    "visual-audit-manifest.json",
+  ]) assert.ok(supervisor.includes(contract), `Missing isolated-batch contract: ${contract}`);
+  assert.match(supervisor, /Math\.min\(Number\(process\.env\.PLOTPICKLE_VISUAL_BATCH_SIZE \|\| 6\), 8\)/);
+});
+
 test("issue #371 redacts sensitive values and local user paths", async () => {
   const script = await source("scripts/visual-audit-capture.mjs");
   for (const contract of [
@@ -71,8 +86,10 @@ test("issue #371 includes every configurable component in visual evidence", asyn
 test("issue #371 publishes visual evidence as a CI artifact", async () => {
   const workflow = await source(".github/workflows/visual-audit-capture.yml");
   for (const contract of [
-    "node scripts/visual-audit-capture.mjs",
+    "node scripts/visual-audit-supervisor.mjs",
     "node --check scripts/visual-audit-capture.mjs",
+    "node --check scripts/visual-audit-supervisor.mjs",
+    "PLOTPICKLE_VISUAL_BATCH_SIZE: \"6\"",
     "tests/issue-371-visual-audit-capture.test.mjs",
     "actions/upload-artifact",
     "reports/visual-audit/",

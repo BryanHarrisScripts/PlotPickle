@@ -61,7 +61,7 @@ test("issue #278 mounts a conversational first-run console with truthful provide
     "Writing Assistant",
     "Ollama Local",
     "OpenAI API",
-    "MiniMax M3",
+    "MiniMax Text",
     "Off",
     "Test response",
     "Use this model",

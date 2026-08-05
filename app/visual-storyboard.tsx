@@ -444,7 +444,7 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
 
       <div className={styles.visualLayout}>
         <nav className={styles.visualNav} aria-label="Visual Board sections">
-          <div className={styles.visualNavHead}><strong>Visual production</strong><span>{continuityWarnings + missingReferences} items to review</span></div>
+          <header className={styles.visualNavHead}><strong>Visual production</strong><span>{continuityWarnings + missingReferences} items to review</span></header>
           {navigation.map((item) => <button type="button" key={item.id} className={activeSection === item.id ? styles.navActive : ""} aria-current={activeSection === item.id ? "location" : undefined} onClick={() => openSection(item.id)}>
             <span><strong>{item.label}</strong><small>{item.detail}</small></span><b>{item.count}</b>
           </button>)}
@@ -501,11 +501,12 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
                       const current = version.kind === "image"
                         ? version.id === frame.approvedImageVersionId
                         : version.id === frame.approvedVideoVersionId;
+                      const versionLabelId = `storyboard-version-${version.id}-label`;
                       return <article className={styles.versionCard} data-status={version.status} key={version.id}>
                         {version.kind === "image"
                           ? <img src={version.src} alt={`${version.status} image version for Block ${block.number}.${miniBlockNumber}`} />
-                          : <video src={version.src} controls preload="metadata" playsInline aria-label={`${version.status} video version for Block ${block.number}.${miniBlockNumber}`} />}
-                        <div><strong>{version.kind === "image" ? "Image" : "Video"} version</strong><span>{current ? "Current approved" : version.status === "candidate" ? "Ready for review" : "Previous version"} · {version.createdAt ? new Date(version.createdAt).toLocaleString() : "Saved locally"}</span></div>
+                          : <video src={version.src} controls preload="metadata" playsInline aria-labelledby={versionLabelId} />}
+                        <div><strong id={versionLabelId}>{version.kind === "image" ? "Image" : "Video"} version</strong><span>{current ? "Current approved" : version.status === "candidate" ? "Ready for review" : "Previous version"} · {version.createdAt ? new Date(version.createdAt).toLocaleString() : "Saved locally"}</span></div>
                         {version.status === "candidate" ? <div className={styles.versionActions}><button type="button" onClick={() => approveVersion(version)}>Approve {version.kind}</button><button type="button" onClick={() => keepCurrent(version)}>Keep current</button></div> : null}
                       </article>;
                     })}

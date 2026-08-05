@@ -64,7 +64,7 @@ test("issue #278 mounts a conversational first-run console with truthful provide
     "MiniMax Text",
     "Off",
     "Test response",
-    "Use this model",
+    "Save, select &amp; test this model",
     "Technical log",
     "Answers do not become story canon automatically",
     "/api/writing-assistant/status",

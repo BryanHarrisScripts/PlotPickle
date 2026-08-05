@@ -77,7 +77,7 @@ export default function BuildHealthMap({
             <section className={styles.act} aria-labelledby={`build-health-act-${actNumber}`} key={actNumber}>
               <header>
                 <span>Act {actNumber}</span>
-                <strong id={`build-health-act-${actNumber}`}>{ACT_LABELS[actNumber - 1]}</strong>
+                <h3 id={`build-health-act-${actNumber}`}>{ACT_LABELS[actNumber - 1]}</h3>
                 <small>{actReady} of 6 ready</small>
               </header>
               <div className={styles.tiles}>

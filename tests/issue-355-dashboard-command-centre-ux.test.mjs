@@ -74,7 +74,7 @@ test("issue #355 records Dashboard work and the completed Build audit", async ()
   const build = registry.screens.find((screen) => screen.id === "build");
   assert.deepEqual(
     { status: dashboard.status, issue: dashboard.issue, pullRequest: dashboard.pullRequest },
-    { status: "in-progress", issue: 355, pullRequest: null },
+    { status: "audited", issue: 355, pullRequest: 356 },
   );
   assert.deepEqual(
     { status: build.status, issue: build.issue, pullRequest: build.pullRequest },

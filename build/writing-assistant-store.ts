@@ -20,6 +20,7 @@ export type ProfileStore = {
   version: 1;
   activeProvider: ActiveTextProvider;
   explicitlyDisabled: boolean;
+  ollamaBaseUrl: string;
   profiles: Partial<Record<TextProvider, ProviderProfile>>;
 };
 
@@ -40,7 +41,13 @@ export function isTextProvider(value: unknown): value is TextProvider {
 }
 
 function emptyStore(): ProfileStore {
-  return { version: 1, activeProvider: "disabled", explicitlyDisabled: false, profiles: {} };
+  return {
+    version: 1,
+    activeProvider: "disabled",
+    explicitlyDisabled: false,
+    ollamaBaseUrl: "http://127.0.0.1:11434",
+    profiles: {},
+  };
 }
 
 function normalizeProfile(value: unknown, provider: TextProvider): ProviderProfile | null {
@@ -62,7 +69,8 @@ function normalizeProfile(value: unknown, provider: TextProvider): ProviderProfi
 }
 
 function normalizeStore(value: unknown): ProfileStore {
-  if (!value || typeof value !== "object") return emptyStore();
+  const fallback = emptyStore();
+  if (!value || typeof value !== "object") return fallback;
   const item = value as Partial<ProfileStore>;
   const profiles: Partial<Record<TextProvider, ProviderProfile>> = {};
   for (const provider of TEXT_PROVIDERS) {
@@ -73,6 +81,9 @@ function normalizeStore(value: unknown): ProfileStore {
     version: 1,
     activeProvider: item.activeProvider === "disabled" || isTextProvider(item.activeProvider) ? item.activeProvider : "disabled",
     explicitlyDisabled: item.explicitlyDisabled === true,
+    ollamaBaseUrl: typeof item.ollamaBaseUrl === "string" && item.ollamaBaseUrl.trim()
+      ? item.ollamaBaseUrl.trim()
+      : profiles.ollama?.baseUrl || fallback.ollamaBaseUrl,
     profiles,
   };
 }
@@ -116,6 +127,10 @@ export async function readSynchronizedAssistantStore() {
       store.profiles[imported.provider] = imported;
       changed = true;
     }
+    if (imported.provider === "ollama" && store.ollamaBaseUrl !== imported.baseUrl) {
+      store.ollamaBaseUrl = imported.baseUrl;
+      changed = true;
+    }
     if ((!existed || !isTextProvider(store.activeProvider) || !store.profiles[store.activeProvider]) && !store.explicitlyDisabled) {
       store.activeProvider = imported.provider;
       changed = true;
@@ -133,7 +148,7 @@ export async function writeAssistantStore(store: ProfileStore) {
 export function publicProfile(profile: ProviderProfile | undefined, activeProvider: ActiveTextProvider) {
   if (!profile) return { configured: false, ready: false, active: false };
   return {
-    configured: true,
+    configured: Boolean(profile.textModel),
     ready: Boolean(profile.assistantVerifiedAt),
     active: activeProvider === profile.provider,
     provider: profile.provider,

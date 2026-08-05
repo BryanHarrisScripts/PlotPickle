@@ -69,9 +69,9 @@
       "label": "Common overlays and feedback",
       "area": "shell",
       "scope": "Dialogs, drawers, menus, confirmations, toasts and shared progress feedback",
-      "status": "planned",
-      "issue": null,
-      "pullRequest": null,
+      "status": "audited",
+      "issue": 349,
+      "pullRequest": 350,
       "requirements": ["interaction-states", "keyboard-navigation", "accessibility-semantics", "loading-empty-success-warning-error", "data-preservation"]
     },
     {

@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "programmeIssue": 336,
+  "auditIssue": 349,
+  "policy": "New raw synchronous confirmations are prohibited. Existing entries remain behavior-preserving migration work owned by their screen-specific UI/UX audit.",
+  "entries": [
+    {
+      "path": "app/build-workspace.tsx",
+      "owner": "Build workspace",
+      "registryScreen": "build"
+    },
+    {
+      "path": "app/character-image-generator.tsx",
+      "owner": "Storyboard character image generation",
+      "registryScreen": "visuals"
+    },
+    {
+      "path": "app/collaboration-invitations.tsx",
+      "owner": "Collaboration invitations",
+      "registryScreen": "collab"
+    },
+    {
+      "path": "app/core-model-studio.tsx",
+      "owner": "Plan core-model records",
+      "registryScreen": "planner"
+    },
+    {
+      "path": "app/github-collaboration-base.tsx",
+      "owner": "GitHub collaboration setup",
+      "registryScreen": "collab"
+    },
+    {
+      "path": "app/github-collaboration.tsx",
+      "owner": "GitHub collaboration actions",
+      "registryScreen": "collab"
+    },
+    {
+      "path": "app/github-command-recovery-centre.tsx",
+      "owner": "GitHub recovery centre",
+      "registryScreen": "settings-github"
+    },
+    {
+      "path": "app/media-routing-panel.tsx",
+      "owner": "Media routing and paid-provider actions",
+      "registryScreen": "settings-openai"
+    },
+    {
+      "path": "app/mini-block-wall.tsx",
+      "owner": "Mini-block wall",
+      "registryScreen": "build"
+    },
+    {
+      "path": "app/page.tsx",
+      "owner": "Project creation, replacement and import actions",
+      "registryScreen": "dashboard"
+    },
+    {
+      "path": "app/production-draft-panel.tsx",
+      "owner": "Production draft editing",
+      "registryScreen": "script"
+    },
+    {
+      "path": "app/project-storage-mode-panel.tsx",
+      "owner": "Project storage mode",
+      "registryScreen": "settings-storage-recovery"
+    },
+    {
+      "path": "app/settings-panel-legacy.tsx",
+      "owner": "Legacy Settings compatibility surfaces",
+      "registryScreen": "settings-overview-sitemap"
+    },
+    {
+      "path": "app/specialist-labs.tsx",
+      "owner": "Refine specialist labs",
+      "registryScreen": "engines"
+    },
+    {
+      "path": "app/story-proposals.tsx",
+      "owner": "Story proposal decisions",
+      "registryScreen": "collab"
+    },
+    {
+      "path": "app/use-cast-identity-queue.ts",
+      "owner": "Graphic Novel cast identity queue",
+      "registryScreen": "pitch"
+    },
+    {
+      "path": "app/visual-storyboard.tsx",
+      "owner": "Storyboard frame actions",
+      "registryScreen": "visuals"
+    }
+  ]
+}

@@ -1,10 +1,8 @@
-[CmdletBinding(DefaultParameterSetName = "Check")]
+[CmdletBinding()]
 param(
-  [Parameter(ParameterSetName = "Check")]
   [switch]$CheckOnly,
-
-  [Parameter(ParameterSetName = "Install")]
-  [switch]$Install
+  [switch]$Install,
+  [switch]$Maintain
 )
 
 Set-StrictMode -Version Latest
@@ -19,11 +17,8 @@ function Write-PlotPickleBuzzStatus {
     [Parameter(Mandatory = $true)][string]$Status,
     [string]$Executable = ""
   )
-
   Write-Output "PLOTPICKLE_BUZZ_STATUS=$Status"
-  if ($Executable) {
-    Write-Output "PLOTPICKLE_BUZZ_CLI=$Executable"
-  }
+  if ($Executable) { Write-Output "PLOTPICKLE_BUZZ_CLI=$Executable" }
 }
 
 function Get-BuzzCliCandidates {
@@ -32,12 +27,8 @@ function Get-BuzzCliCandidates {
     $roots.Add((Join-Path $env:LOCALAPPDATA "Buzz"))
     $roots.Add((Join-Path $env:LOCALAPPDATA "Programs\Buzz"))
   }
-  if ($env:ProgramFiles) {
-    $roots.Add((Join-Path $env:ProgramFiles "Buzz"))
-  }
-  if (${env:ProgramFiles(x86)}) {
-    $roots.Add((Join-Path ${env:ProgramFiles(x86)} "Buzz"))
-  }
+  if ($env:ProgramFiles) { $roots.Add((Join-Path $env:ProgramFiles "Buzz")) }
+  if (${env:ProgramFiles(x86)}) { $roots.Add((Join-Path ${env:ProgramFiles(x86)} "Buzz")) }
 
   $relativeExecutables = @(
     "buzz.exe",
@@ -45,7 +36,6 @@ function Get-BuzzCliCandidates {
     "buzz-x86_64-pc-windows-msvc.exe",
     "resources\buzz-x86_64-pc-windows-msvc.exe"
   )
-
   $candidates = New-Object System.Collections.Generic.List[string]
   foreach ($rootPath in $roots) {
     foreach ($relativeExecutable in $relativeExecutables) {
@@ -64,6 +54,19 @@ function Find-BuzzCli {
   return ""
 }
 
+function Get-BuzzVersion {
+  param([string]$Executable)
+  if (-not $Executable -or -not (Test-Path -LiteralPath $Executable -PathType Leaf)) { return "" }
+  try {
+    $item = Get-Item -LiteralPath $Executable
+    foreach ($value in @($item.VersionInfo.ProductVersion, $item.VersionInfo.FileVersion)) {
+      if ($value -and [string]$value -match "\d+(?:\.\d+){1,3}") { return $Matches[0] }
+    }
+  }
+  catch { }
+  return ""
+}
+
 if (-not (Test-Path -LiteralPath $ConfigPath -PathType Leaf)) {
   Write-Warning "The packaged Buzz Desktop compatibility file is missing: $ConfigPath"
   Write-PlotPickleBuzzStatus -Status "configuration-missing"
@@ -78,12 +81,17 @@ $downloadUrl = [string]$config.windows.downloadUrl
 
 $existingCli = Find-BuzzCli
 if ($existingCli) {
-  Write-Host "[OK] Buzz Desktop $version CLI detected at $existingCli"
-  Write-PlotPickleBuzzStatus -Status "detected" -Executable $existingCli
-  exit 0
+  $installedVersion = Get-BuzzVersion -Executable $existingCli
+  if (-not $Maintain -or $installedVersion -eq $version) {
+    $versionLabel = if ($installedVersion) { $installedVersion } else { $version }
+    Write-Host "[OK] Buzz Desktop $versionLabel CLI detected at $existingCli"
+    Write-PlotPickleBuzzStatus -Status "detected" -Executable $existingCli
+    exit 0
+  }
+  Write-Host "[UPDATE] Buzz Desktop $installedVersion is installed; PlotPickle's reviewed package is $version."
 }
 
-if ($CheckOnly -or -not $Install) {
+if ($CheckOnly -or (-not $Install -and -not $Maintain)) {
   Write-Host "[INFO] Buzz Desktop $version was not detected in a supported Windows installation folder."
   Write-PlotPickleBuzzStatus -Status "missing"
   exit 3
@@ -111,9 +119,7 @@ $downloadRoot = Join-Path ([IO.Path]::GetTempPath()) "PlotPickle\BuzzDesktop-$ve
 $installerPath = Join-Path $downloadRoot $assetName
 
 try {
-  if (Test-Path -LiteralPath $downloadRoot) {
-    Remove-Item -LiteralPath $downloadRoot -Recurse -Force
-  }
+  if (Test-Path -LiteralPath $downloadRoot) { Remove-Item -LiteralPath $downloadRoot -Recurse -Force }
   New-Item -ItemType Directory -Path $downloadRoot -Force | Out-Null
 
   Write-Host "Downloading the official Buzz Desktop $version installer from block/buzz..."
@@ -121,19 +127,13 @@ try {
   Invoke-WebRequest -Uri $downloadUrl -OutFile $installerPath -UseBasicParsing -MaximumRedirection 10
 
   $downloaded = Get-Item -LiteralPath $installerPath
-  if ($downloaded.Length -lt 1MB) {
-    throw "The downloaded installer is unexpectedly small."
-  }
+  if ($downloaded.Length -lt 1MB) { throw "The downloaded installer is unexpectedly small." }
 
   $stream = [IO.File]::OpenRead($installerPath)
   try {
-    if ($stream.ReadByte() -ne 0x4D -or $stream.ReadByte() -ne 0x5A) {
-      throw "The downloaded file is not a Windows executable."
-    }
+    if ($stream.ReadByte() -ne 0x4D -or $stream.ReadByte() -ne 0x5A) { throw "The downloaded file is not a Windows executable." }
   }
-  finally {
-    $stream.Dispose()
-  }
+  finally { $stream.Dispose() }
 
   $hash = (Get-FileHash -LiteralPath $installerPath -Algorithm SHA256).Hash
   Write-Host "Downloaded $assetName"
@@ -148,7 +148,7 @@ try {
   $installedCli = Find-BuzzCli
   if ($installedCli) {
     Write-Host "[SUCCESS] Buzz Desktop $version CLI detected at $installedCli"
-    Write-PlotPickleBuzzStatus -Status "installed" -Executable $installedCli
+    Write-PlotPickleBuzzStatus -Status $(if ($Maintain) { "updated" } else { "installed" }) -Executable $installedCli
     exit 0
   }
 

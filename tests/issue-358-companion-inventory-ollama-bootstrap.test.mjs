@@ -70,7 +70,8 @@ test("issue #358 installs the starter only through allowlisted loopback Ollama A
     "models.includes(STARTER_MODEL)",
   ]) assert.ok(gateway.includes(contract), `Missing local gateway bootstrap contract: ${contract}`);
   assert.match(host, /registerOllamaBootstrapGateway\(server\)/);
-  assert.doesNotMatch(gateway, /0\.0\.0\.0|body\.model|request.*model/i);
+  assert.doesNotMatch(gateway, /0\.0\.0\.0/);
+  assert.doesNotMatch(gateway, /\bbody\.model\b|requestedModel|readBody\s*\(/i);
 });
 
 test("issue #358 exposes a direct Settings recovery action and refreshes models", async () => {

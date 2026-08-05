@@ -55,7 +55,8 @@ test("issue #100 long dashboard and reports workspaces use left-side section nav
     source("app/settings-project-tools.tsx"),
     source("app/settings-project-tools.module.css"),
   ]);
-  assert.match(dashboard, /aria-label="Dashboard sections"/);
+  assert.match(dashboard, /<nav className=\{styles\.subnav\} aria-labelledby="dashboard-sections-title">/);
+  assert.match(dashboard, /<h2 id="dashboard-sections-title">Command centre<\/h2>/);
   assert.match(dashboard, /className=\{styles\.subnav\}/);
   assert.match(dashboardCss, /\.subnav\{position:sticky/);
   assert.match(reports, /reportLayout/);

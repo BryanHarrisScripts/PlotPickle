@@ -120,9 +120,12 @@ export default function SetupConnectionsDashboard({
   const [buzz, setBuzz] = useState<BuzzStatus | null>(null);
   const [buzzError, setBuzzError] = useState("");
   const [buzzPreviouslyConnected, setBuzzPreviouslyConnected] = useState(false);
+  const [buzzChecking, setBuzzChecking] = useState(true);
   const [localServices, setLocalServices] = useState<LocalCreativeServices | null>(null);
+  const [localServicesChecking, setLocalServicesChecking] = useState(true);
 
   const refreshBuzz = useCallback(async () => {
+    setBuzzChecking(true);
     try {
       const response = await fetch(BUZZ_STATUS_API, { headers: { Accept: "application/json" }, cache: "no-store" });
       if (!response.ok) throw new Error("Buzz health check is unavailable.");
@@ -133,16 +136,21 @@ export default function SetupConnectionsDashboard({
       setBuzzError("");
     } catch (error) {
       setBuzzError(error instanceof Error ? error.message : "Buzz health check is unavailable.");
+    } finally {
+      setBuzzChecking(false);
     }
   }, []);
 
   const refreshLocalServices = useCallback(async () => {
+    setLocalServicesChecking(true);
     try {
       const response = await fetch(CONNECTIONS_STATUS_API, { headers: { Accept: "application/json" }, cache: "no-store" });
       if (!response.ok) throw new Error("Local creative-service checks are unavailable.");
       setLocalServices(await response.json() as LocalCreativeServices);
     } catch {
       setLocalServices(null);
+    } finally {
+      setLocalServicesChecking(false);
     }
   }, []);
 
@@ -157,7 +165,6 @@ export default function SetupConnectionsDashboard({
       window.removeEventListener("plotpickle:connection-status-refresh", refreshDashboard);
     };
   }, [refreshBuzz, refreshLocalServices]);
-
 
   const included = useMemo<SetupRow[]>(() => {
     const storage = connectionStatus.items.storage;
@@ -192,9 +199,9 @@ export default function SetupConnectionsDashboard({
     const fallback = (id: "ollama" | "comfyui", label: string, endpoint: string): SetupConnection => ({
       id,
       label,
-      state: "disconnected",
-      identity: `Not running on ${endpoint}`,
-      detail: `${label} is optional and was not detected.`,
+      state: localServicesChecking ? "checking" : "disconnected",
+      identity: localServicesChecking ? `Checking ${endpoint}` : `Not running on ${endpoint}`,
+      detail: localServicesChecking ? `PlotPickle is checking the local ${label} service.` : `${label} is optional and was not detected.`,
       lastSuccessfulConnection: "",
       error: "",
       repairGuidance: `Install or start ${label}, then test connections again.`,
@@ -286,7 +293,7 @@ export default function SetupConnectionsDashboard({
         ],
       },
     ];
-  }, [connectionStatus, localServices]);
+  }, [connectionStatus, localServices, localServicesChecking]);
 
   const optional = useMemo<SetupRow[]>(() => {
     const github = connectionStatus.items.github;
@@ -301,13 +308,15 @@ export default function SetupConnectionsDashboard({
           ? "yellow"
           : "yellow";
     const buzzIdentity = [buzz?.connection?.community, buzz?.connection?.identityLabel].filter(Boolean).join(" · ");
-    const buzzStatus = buzzConnected
-      ? "Verified and working"
-      : buzzError
-        ? "Health check unavailable"
-        : buzzPartiallyConfigured
-          ? "Setup or verification needed"
-          : "Setup available";
+    const buzzStatus = buzzChecking
+      ? "Checking now"
+      : buzzConnected
+        ? "Verified and working"
+        : buzzError
+          ? "Health check unavailable"
+          : buzzPartiallyConfigured
+            ? "Setup or verification needed"
+            : "Setup available";
 
     return [
       {
@@ -316,9 +325,11 @@ export default function SetupConnectionsDashboard({
         requirement: "Optional",
         tone: buzzTone,
         status: buzzStatus,
-        detail: buzzConnected
-          ? "Buzz Desktop, the community relay and the authorized identity all passed their live checks."
-          : buzz?.relay?.detail || "Use the PlotPickle community or create your own Buzz community, then connect Buzz Desktop and authorize PlotPickle.",
+        detail: buzzChecking
+          ? "PlotPickle is checking Buzz Desktop, the community relay and the authorized identity."
+          : buzzConnected
+            ? "Buzz Desktop, the community relay and the authorized identity all passed their live checks."
+            : buzz?.relay?.detail || "Use the PlotPickle community or create your own Buzz community, then connect Buzz Desktop and authorize PlotPickle.",
         identity: buzzIdentity,
         checkedAt: buzz?.relay?.checkedAt || buzz?.connection?.verifiedAt || "",
         settingsSection: "buzz",
@@ -346,11 +357,12 @@ export default function SetupConnectionsDashboard({
         links: [{ label: "Google OAuth credentials", href: GOOGLE_CREDENTIALS_URL }],
       }),
     ];
-  }, [buzz, buzzError, buzzPreviouslyConnected, connectionStatus]);
+  }, [buzz, buzzChecking, buzzError, buzzPreviouslyConnected, connectionStatus]);
 
   const dashboardRows = [...included, ...creativePaths.flatMap((path) => path.rows), ...optional];
   const verifiedCount = dashboardRows.filter((row) => row.tone === "green").length;
   const attentionCount = dashboardRows.filter((row) => row.tone === "yellow" || row.tone === "red").length;
+  const checkingConnections = buzzChecking || localServicesChecking;
 
   function renderRow(row: SetupRow) {
     const meta = toneCopy[row.tone];
@@ -371,7 +383,7 @@ export default function SetupConnectionsDashboard({
             <div><dt>Last checked</dt><dd>{formatCheckedAt(row.checkedAt || connectionStatus.checkedAt)}</dd></div>
           </dl>
           <div className={styles.actions}>
-            {row.settingsSection ? <button type="button" onClick={() => onOpenSettings(row.settingsSection!)}>Open settings</button> : null}
+            {row.settingsSection ? <button type="button" aria-label={`Open ${row.label} settings`} onClick={() => onOpenSettings(row.settingsSection!)}>Open settings</button> : null}
           </div>
         </div>
       </article>
@@ -379,7 +391,12 @@ export default function SetupConnectionsDashboard({
   }
 
   return (
-    <section id="dashboard-setup" className={styles.section} aria-labelledby="setup-connections-title">
+    <section
+      id="dashboard-setup"
+      className={styles.section}
+      aria-labelledby="setup-connections-title"
+      aria-busy={checkingConnections}
+    >
       <header className={styles.header}>
         <div>
           <p>Connection dashboard</p>
@@ -388,10 +405,20 @@ export default function SetupConnectionsDashboard({
         </div>
       </header>
 
-      <div className={styles.dashboardSummary} role="status" aria-live="polite">
-        <strong>{verifiedCount} verified</strong>
-        <span>{attentionCount ? `${attentionCount} connection${attentionCount === 1 ? "" : "s"} need attention` : "All configured connections are healthy"}</span>
-        <small>{dashboardRows.length} visible setup checks</small>
+      <div className={styles.dashboardSummary} role="status" aria-live="polite" aria-atomic="true">
+        {checkingConnections ? (
+          <>
+            <strong>Checking live connections…</strong>
+            <span>Current saved status remains visible while local services and Buzz complete their checks.</span>
+            <small>{dashboardRows.length} visible setup checks</small>
+          </>
+        ) : (
+          <>
+            <strong>{verifiedCount} verified</strong>
+            <span>{attentionCount ? `${attentionCount} connection${attentionCount === 1 ? "" : "s"} need attention` : "All configured connections are healthy"}</span>
+            <small>{dashboardRows.length} visible setup checks</small>
+          </>
+        )}
       </div>
 
       <div className={styles.legend} aria-label="Connection-light meanings">

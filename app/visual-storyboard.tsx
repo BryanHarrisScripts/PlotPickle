@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- Storyboard assets are served by PlotPickle's private local gateway or supplied by the writer. */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createStoryboardFrame, type MiniBlock, type PlotPickleProject, type StoryBlock, type StoryScene, type VisualFrame, type VisualMediaVersion } from "@/lib/project";
 import { migrateLegacyAssetReferences, resolveProjectAssetSource } from "@/lib/project-assets";
 import {
@@ -143,12 +143,11 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
   const frameSource = resolveProjectAssetSource(project.assets, frame.assetRef, frame.src);
   const versions = storyboardVersions(frame);
   const latestImageCandidate = newestVersion(frame, "image", "candidate");
-  const latestVideoCandidate = newestVersion(frame, "video", "candidate");
   const approvedVideo = versions.find((version) => version.id === frame.approvedVideoVersionId)
     ?? newestVersion(frame, "video", "approved");
   const previewSource = latestImageCandidate?.src || frameSource;
-  const prompt = useMemo(() => storyboardPrompt(project, block, scene, mini, frame), [project, block, scene, mini, frame]);
-  const identityInputs = useMemo(() => storyboardIdentityInputs(project, block, scene, mini), [project, block, scene, mini]);
+  const prompt = storyboardPrompt(project, block, scene, mini, frame);
+  const identityInputs = storyboardIdentityInputs(project, block, scene, mini);
   const identityWarnings = identityInputs.filter((identity) => identity.diagnostic.severity !== "clear");
   const visibleBlocks = visualAct ? project.blocks.filter((item) => item.act === visualAct) : project.blocks;
   const visibleMinis = visibleBlocks.flatMap((item) => [1, 2, 3, 4].map((number) => ({ block: item, mini: miniBlockFor(item, number), frame: primaryFrame(item, number) })));
@@ -330,7 +329,7 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
           assetId: `storyboard-block-${block.number}-mini-${miniBlockNumber}`,
           aspect: "landscape",
           referenceImages: unique(identityInputs.flatMap((identity) => identity.referenceImages)),
-          identityLocks: identityInputs.map(({ diagnostic, ...identity }) => identity),
+          identityLocks: identityInputs.map(({ diagnostic, ...identity }) => { void diagnostic; return identity; }),
           requestCount: 1,
           billingAcknowledged,
         }),
@@ -338,7 +337,7 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
       const result = await response.json() as AiResponse;
       if (!response.ok || !result.assetUrl) throw new Error(result.message || "The image route returned no image.");
       appendVersion({
-        id: `${frame.id}-image-${Date.now()}`,
+        id: `${frame.id}-image-${versionTimestamp()}`,
         kind: "image",
         src: result.assetUrl,
         prompt: result.revisedPrompt || activePrompt,
@@ -415,7 +414,7 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
       if (!response.ok || !job.id) throw new Error(job.message || "The video route did not accept the animation.");
       const result = await pollVideo(job);
       appendVersion({
-        id: `${frame.id}-video-${Date.now()}`,
+        id: `${frame.id}-video-${versionTimestamp()}`,
         kind: "video",
         src: result.outputAssetUrl!,
         prompt: videoPrompt,

@@ -1,14 +1,12 @@
-[CmdletBinding(DefaultParameterSetName = "Check")]
+[CmdletBinding()]
 param(
   [Parameter(Mandatory = $true)]
   [ValidateSet("Ollama", "ComfyUI")]
   [string]$Tool,
 
-  [Parameter(ParameterSetName = "Check")]
   [switch]$CheckOnly,
-
-  [Parameter(ParameterSetName = "Install")]
-  [switch]$Install
+  [switch]$Install,
+  [switch]$Maintain
 )
 
 Set-StrictMode -Version Latest
@@ -28,6 +26,9 @@ $Definitions = @{
     DisplayPattern = "^(ComfyUI|Comfy Desktop)"
   }
 }
+$StarterModel = "smollm2:135m-instruct-q2_K"
+$OllamaTagsUrl = "http://127.0.0.1:11434/api/tags"
+$OllamaPullUrl = "http://127.0.0.1:11434/api/pull"
 
 function Write-ToolStatus {
   param(
@@ -50,15 +51,57 @@ function Test-LoopbackService {
   }
 }
 
+function Get-OllamaModels {
+  try {
+    $response = Invoke-RestMethod -Uri $OllamaTagsUrl -Method Get -TimeoutSec 4
+    return @($response.models | ForEach-Object {
+      if ($_.name) { [string]$_.name } elseif ($_.model) { [string]$_.model }
+    } | Where-Object { $_ })
+  }
+  catch {
+    return @()
+  }
+}
+
+function Install-OllamaStarterModel {
+  if (-not (Test-LoopbackService -Endpoint $OllamaTagsUrl)) {
+    Write-Warning "Ollama is installed but not running. Start Ollama, then revisit PlotPickle Settings or run Start-PlotPickle.bat again."
+    return $false
+  }
+
+  $existingModels = @(Get-OllamaModels)
+  if ($existingModels.Count -gt 0) {
+    Write-Host "[OK] Ollama already reports $($existingModels.Count) installed model(s)."
+    return $true
+  }
+
+  Write-Host "[MODEL] Ollama is running without a model. Installing PlotPickle's reviewed starter model: $StarterModel"
+  Write-Host "        This approximately 88 MB model verifies the lowest-resource local path; it is not the recommended final writing model."
+  try {
+    $body = @{ model = $StarterModel; stream = $false } | ConvertTo-Json -Compress
+    $result = Invoke-RestMethod -Uri $OllamaPullUrl -Method Post -ContentType "application/json" -Body $body -TimeoutSec 900
+    if ([string]$result.status -ne "success") {
+      throw "Ollama did not report a successful model pull."
+    }
+    $refreshed = @(Get-OllamaModels)
+    if ($refreshed -notcontains $StarterModel) {
+      throw "The starter-model pull completed, but /api/tags did not report $StarterModel."
+    }
+    Write-Host "[SUCCESS] Ollama starter model installed and verified: $StarterModel"
+    return $true
+  }
+  catch {
+    Write-Warning "The Ollama starter model could not be installed: $($_.Exception.Message)"
+    Write-Host "PlotPickle will continue in No AI mode. Retry from Settings > Ollama."
+    return $false
+  }
+}
+
 function Find-Ollama {
   $command = Get-Command "ollama.exe" -ErrorAction SilentlyContinue
   if ($command) { return $command.Source }
-
-  $candidates = @()
   if ($env:LOCALAPPDATA) {
-    $candidates += (Join-Path $env:LOCALAPPDATA "Programs\Ollama\ollama.exe")
-  }
-  foreach ($candidate in $candidates) {
+    $candidate = Join-Path $env:LOCALAPPDATA "Programs\Ollama\ollama.exe"
     if (Test-Path -LiteralPath $candidate -PathType Leaf) {
       return (Resolve-Path -LiteralPath $candidate).Path
     }
@@ -79,7 +122,6 @@ function Find-InstalledApplication {
       if (-not $displayProperty) { continue }
       $displayName = [string]$displayProperty.Value
       if ($displayName -notmatch $Pattern) { continue }
-
       $locationProperty = $entry.PSObject.Properties["InstallLocation"]
       if ($locationProperty -and $locationProperty.Value) { return [string]$locationProperty.Value }
       return $displayName
@@ -90,25 +132,48 @@ function Find-InstalledApplication {
 
 function Find-Tool {
   $definition = $Definitions[$Tool]
-  if (Test-LoopbackService -Endpoint ([string]$definition.Endpoint)) {
-    return [string]$definition.Endpoint
-  }
-  if ($Tool -eq "Ollama") {
-    return Find-Ollama
-  }
+  if (Test-LoopbackService -Endpoint ([string]$definition.Endpoint)) { return [string]$definition.Endpoint }
+  if ($Tool -eq "Ollama") { return Find-Ollama }
   return Find-InstalledApplication -Pattern ([string]$definition.DisplayPattern)
+}
+
+function Invoke-ReviewedUpgrade {
+  param([Parameter(Mandatory = $true)][string]$PackageId)
+  $winget = Get-Command "winget.exe" -ErrorAction SilentlyContinue
+  if (-not $winget) {
+    Write-Host "[SKIP] Windows Package Manager is unavailable; $Tool remains user-managed."
+    return
+  }
+  Write-Host "[UPDATE] Checking $Tool through reviewed package $PackageId..."
+  try {
+    & $winget.Source upgrade --id $PackageId --exact --source winget --include-unknown --accept-source-agreements --accept-package-agreements --disable-interactivity
+    if ($LASTEXITCODE -ne 0) { Write-Warning "$Tool update check exited with code $LASTEXITCODE. PlotPickle will continue." }
+  }
+  catch {
+    Write-Warning "$Tool update check failed: $($_.Exception.Message). PlotPickle will continue."
+  }
 }
 
 $definition = $Definitions[$Tool]
 $existing = Find-Tool
 if ($existing) {
   Write-Host "[OK] $Tool detected at $existing"
+  if ($Maintain) {
+    Invoke-ReviewedUpgrade -PackageId ([string]$definition.PackageId)
+    if ($Tool -eq "Ollama") { [void](Install-OllamaStarterModel) }
+  }
   Write-ToolStatus -Status "detected" -Location $existing
   exit 0
 }
 
-if ($CheckOnly -or -not $Install) {
+if ($CheckOnly -or (-not $Install -and -not $Maintain)) {
   Write-Host "[INFO] $Tool was not detected. It remains optional."
+  Write-ToolStatus -Status "missing"
+  exit 3
+}
+
+if ($Maintain -and -not $Install) {
+  Write-Host "[INFO] $Tool is not installed, so automatic maintenance was skipped."
   Write-ToolStatus -Status "missing"
   exit 3
 }
@@ -137,7 +202,7 @@ if (-not $winget) {
 
 Write-Host "Opening the visible Windows Package Manager installation for $Tool."
 Write-Host "Package: $($definition.PackageId)"
-Write-Host "PlotPickle does not request a silent install, download models, or enable cloud fallback."
+Write-Host "PlotPickle does not request a silent install or enable cloud fallback."
 & $winget.Source install --id ([string]$definition.PackageId) --exact --source winget --interactive --accept-source-agreements --accept-package-agreements
 $wingetExit = $LASTEXITCODE
 if ($wingetExit -ne 0) {
@@ -151,11 +216,20 @@ Start-Sleep -Seconds 2
 $installed = Find-Tool
 if ($installed) {
   Write-Host "[SUCCESS] $Tool is installed or running at $installed"
+  if ($Tool -eq "Ollama") {
+    [void](Install-OllamaStarterModel)
+  } else {
+    Write-Host "Models, checkpoints and workflows remain separate and were not downloaded."
+  }
   Write-ToolStatus -Status "installed" -Location $installed
   exit 0
 }
 
 Write-Host "[INFO] The $Tool installer completed, but the application is not running yet."
-Write-Host "Models, checkpoints and workflows remain separate and were not downloaded."
+if ($Tool -eq "Ollama") {
+  Write-Host "[REVISIT] Start Ollama, then run Start-PlotPickle.bat again so the starter model can be installed."
+} else {
+  Write-Host "Models, checkpoints and workflows remain separate and were not downloaded."
+}
 Write-ToolStatus -Status "installed-not-running"
 exit 0

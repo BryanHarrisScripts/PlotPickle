@@ -18,8 +18,8 @@ test("Creative Director actions expose plain-language recovery and accessible st
   assert.match(source, /Open generation settings/);
   assert.match(source, /role="status"/);
   assert.match(source, /aria-label="Direct this story moment"/);
-  assert.match(source, /aria-label={`Direct \${storyLabel}: \${storyTitle}`}/);
-  assert.match(source, /<figure className={styles\.empty}>/);
+  assert.match(source, /<figure className={styles\.preview}>/);
+  assert.match(source, /<figcaption className={styles\.empty}>/);
   assert.match(source, /disabled={busy}/);
 });
 

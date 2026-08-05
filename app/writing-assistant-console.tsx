@@ -63,7 +63,17 @@ type OllamaConnectionResponse = {
   error: string;
 };
 
+type StarterModelResponse = {
+  model: string;
+  displayName: string;
+  qualityBoundary: string;
+  installed: boolean;
+  alreadyInstalled: boolean;
+  models: string[];
+};
+
 const STATUS_PATH = "/api/writing-assistant/status";
+const STARTER_MODEL_PATH = "/api/ollama-bootstrap/starter-model";
 const SESSION_KEY = "plotpickle.writing-assistant.session";
 const TEST_PROMPT = "Introduce yourself to a new PlotPickle writer.";
 const providerOrder: ProviderId[] = ["ollama", "openai", "minimax"];
@@ -230,6 +240,27 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
     }
   }
 
+  async function installStarterModel() {
+    if (working || !status?.ollama.reachable) return;
+    setWorking(true);
+    setNotice("Installing the reviewed 88 MB Ollama starter model…");
+    try {
+      const result = await jsonRequest<StarterModelResponse>(STARTER_MODEL_PATH, "POST");
+      setNotice(result.alreadyInstalled
+        ? `${result.displayName} is already installed. Refreshing the model list.`
+        : `${result.displayName} was installed. ${result.qualityBoundary}`);
+      await refreshStatus();
+      setOllamaModel((current) => current || result.model);
+      refreshDashboardLights();
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "The Ollama starter model could not be installed.");
+      await refreshStatus();
+      refreshDashboardLights();
+    } finally {
+      setWorking(false);
+    }
+  }
+
   async function configureOllama() {
     if (!ollamaModel || working) return;
     setWorking(true);
@@ -367,7 +398,13 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
           <div className={styles.headerActions}>
             <button type="button" onClick={() => void testOllamaConnection()} disabled={working || !ollamaBaseUrl.trim()}>Test connection</button>
             <button type="button" onClick={() => void refreshStatus()} disabled={working}>Refresh models</button>
+            {status?.ollama.reachable && !status.ollama.models.length ? (
+              <button type="button" onClick={() => void installStarterModel()} disabled={working}>Install starter model</button>
+            ) : null}
           </div>
+          {status?.ollama.reachable && !status.ollama.models.length ? (
+            <p className={styles.starterNote}>Install the reviewed 88 MB SmolLM2 starter to verify the lowest-resource local path. It is a setup model, not the recommended final writing model.</p>
+          ) : null}
           <label>
             Installed Ollama LLM
             <select value={ollamaModel} onChange={(event) => setOllamaModel(event.target.value)} disabled={working || !status?.ollama.models.length}>

@@ -13,52 +13,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   creative-director-actions:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: agent/367-storyboard-creative-director
-          fetch-depth: 0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          node-version: "22.13.0"
-          cache: npm
-      - run: npm ci
-      - name: Fix Storyboard React compiler contracts
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('app/visual-storyboard.tsx')
-          source = path.read_text()
-          changes = [
-            ('import { useEffect, useMemo, useRef, useState } from "react";', 'import { useEffect, useRef, useState } from "react";'),
-            ('  const latestVideoCandidate = newestVersion(frame, "video", "candidate");\n', ''),
-            ('  const prompt = useMemo(() => storyboardPrompt(project, block, scene, mini, frame), [project, block, scene, mini, frame]);', '  const prompt = storyboardPrompt(project, block, scene, mini, frame);'),
-            ('  const identityInputs = useMemo(() => storyboardIdentityInputs(project, block, scene, mini), [project, block, scene, mini]);', '  const identityInputs = storyboardIdentityInputs(project, block, scene, mini);'),
-            ('          identityLocks: identityInputs.map(({ diagnostic, ...identity }) => identity),', '          identityLocks: identityInputs.map(({ diagnostic, ...identity }) => { void diagnostic; return identity; }),'),
-            ('        id: `${frame.id}-image-${Date.now()}`,', '        id: `${frame.id}-image-${versionTimestamp()}`,'),
-            ('        id: `${frame.id}-video-${Date.now()}`,', '        id: `${frame.id}-video-${versionTimestamp()}`,'),
-          ]
-          for before, after in changes:
-            if source.count(before) != 1:
-              raise SystemExit(f'Expected one React compiler match, found {source.count(before)}: {before}')
-            source = source.replace(before, after)
-          path.write_text(source)
-          PY
-      - name: Run full lint
-        run: npm run lint
-      - name: Run focused regression suites
-        run: node --test tests/issue-367-creative-director-actions.test.mjs tests/issue-349-common-overlays-ux.test.mjs tests/issue-337-ui-ux-consistency-foundation.test.mjs
-      - name: Publish tested compiler fixes
-        shell: bash
-        run: |
-          git diff --check
-          git add app/visual-storyboard.tsx
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Satisfy Storyboard React compiler contracts"
-          git push origin HEAD:agent/367-storyboard-creative-director
+          node-version: 22
+      - run: node --test tests/issue-367-creative-director-actions.test.mjs

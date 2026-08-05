@@ -52,9 +52,9 @@ export default defineConfig(async () => {
     },
     plugins: [
       localConnectionsGateway(),
-      localSystemStatusGateway(),
       buzzBundleNormalizer(),
       buzzGateway(),
+      localSystemStatusGateway(),
       googleCalendarGateway(),
       githubAppGateway(),
       githubCommandGateway(),

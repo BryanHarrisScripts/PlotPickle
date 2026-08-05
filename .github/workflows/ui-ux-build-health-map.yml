@@ -1,0 +1,38 @@
+name: UI/UX Build health map
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "app/build-health-map.tsx"
+      - "app/build-health-map.module.css"
+      - "app/build-workspace.tsx"
+      - "app/build-workspace.module.css"
+      - "lib/build-workspace-model.ts"
+      - "config/overlay-confirmation-inventory.json"
+      - "config/ui-ux-screen-registry.json"
+      - "docs/BUILD-24-BLOCK-HEALTH-MAP.md"
+      - "tests/issue-351-build-health-map.test.mjs"
+      - ".github/workflows/ui-ux-build-health-map.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ui-ux-build-health-map-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-health-map-contract:
+    name: Build 24-Block health map contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22.19.0"
+      - run: node --test tests/issue-351-build-health-map.test.mjs tests/issue-349-common-overlays-ux.test.mjs tests/issue-337-ui-ux-consistency-foundation.test.mjs
+      - run: node --check tests/issue-351-build-health-map.test.mjs

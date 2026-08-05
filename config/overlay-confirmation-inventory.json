@@ -5,11 +5,6 @@
   "policy": "New raw synchronous confirmations are prohibited. Existing entries remain behavior-preserving migration work owned by their screen-specific UI/UX audit.",
   "entries": [
     {
-      "path": "app/build-workspace.tsx",
-      "owner": "Build workspace",
-      "registryScreen": "build"
-    },
-    {
       "path": "app/character-image-generator.tsx",
       "owner": "Storyboard character image generation",
       "registryScreen": "visuals"

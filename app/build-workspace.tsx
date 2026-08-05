@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import styles from "./build-workspace.module.css";
 import MiniBlockWall from "./mini-block-wall";
 import FeedbackContextBadge from "./feedback-context-badge";
+import BuildHealthMap from "./build-health-map";
+import { requestPlotPickleConfirmation } from "./common-overlay-layer";
 import {
   createBuildWorkspaceModel,
   updateCanonicalBuildBlock,
@@ -69,6 +71,7 @@ function BlockCard({
 }) {
   return (
     <button
+      id={`build-block-${card.id}`}
       type="button"
       draggable
       className={`${styles.blockCard} ${selected ? styles.blockCardSelected : ""}`}
@@ -87,6 +90,7 @@ function BlockCard({
         if (sourceId && sourceId !== card.id) onMove(sourceId, card.number);
       }}
       aria-pressed={selected}
+      aria-label={`Block ${card.number}: ${card.title || "Untitled Block"}. ${statusLabel(card.status)}.`}
       title="Select this Block, or drag it onto another Block to move it."
     >
       <span className={styles.cardTopline}>
@@ -212,6 +216,20 @@ export default function BuildWorkspace({ project, initialTargetId, onProjectChan
     moveBlock(selectedBlock.id, targetNumber);
   }
 
+  function selectFromHealthMap(card: BuildBlockCard) {
+    setSelectedBlockId(card.id);
+    setView("blocks");
+    setQuery("");
+    setAct(0);
+    setSequence(0);
+    setStatus("all");
+    setLabel("");
+    setMovementStatus(`Selected Block ${card.number} from the 24-Block health map.`);
+    window.requestAnimationFrame(() => {
+      document.getElementById(`build-block-${card.id}`)?.focus({ preventScroll: false });
+    });
+  }
+
   function undoMove() {
     const previousOrder = undoOrders.at(-1);
     if (!previousOrder) return;
@@ -236,13 +254,19 @@ export default function BuildWorkspace({ project, initialTargetId, onProjectChan
     onProjectChange(next);
   }
 
-  function restoreRecovery() {
+  async function restoreRecovery() {
     const recovery = loadArrangementRecovery(project.id);
     if (!recovery) {
       setMovementStatus("No earlier Build recovery snapshot is available.");
       return;
     }
-    if (!window.confirm(`Restore the Build arrangement saved ${recovery.savedAt ? new Date(recovery.savedAt).toLocaleString() : "before the last move"}? The current arrangement will remain available through normal project backups.`)) return;
+    const confirmed = await requestPlotPickleConfirmation({
+      title: "Restore the earlier Build arrangement?",
+      description: `Restore the Build arrangement saved ${recovery.savedAt ? new Date(recovery.savedAt).toLocaleString() : "before the last move"}? The current arrangement remains available through normal project backups.`,
+      confirmLabel: "Restore arrangement",
+      cancelLabel: "Keep current arrangement",
+    });
+    if (!confirmed) return;
     setUndoOrders((orders) => [...orders.slice(-19), canonicalBuildOrder(project)]);
     setRedoOrders([]);
     setMovementStatus("Restored the last Build recovery snapshot.");
@@ -322,6 +346,8 @@ export default function BuildWorkspace({ project, initialTargetId, onProjectChan
             <div className={styles.heroMetric}><strong>{model.visibleCards.length}</strong><span>visible Blocks</span></div>
           </header>
 
+          <BuildHealthMap cards={model.cards} selectedId={selectedBlock?.id ?? ""} onSelect={selectFromHealthMap} />
+
           <section className={styles.filters} aria-label="Build filters">
             <label><span>Search</span><input type="search" value={query} placeholder="Title, purpose, character, setup…" onChange={(event) => setQuery(event.target.value)} /></label>
             <label><span>Act</span><select value={act} onChange={(event) => setAct(Number(event.target.value))}><option value={0}>All acts</option>{[1, 2, 3, 4].map((value) => <option value={value} key={value}>Act {value}</option>)}</select></label>
@@ -352,7 +378,7 @@ export default function BuildWorkspace({ project, initialTargetId, onProjectChan
                 <button type="button" disabled={!undoOrders.length} onClick={undoMove}>Undo move</button>
                 <button type="button" disabled={!redoOrders.length} onClick={redoMove}>Redo move</button>
               </div>
-              <button type="button" className={styles.recoveryButton} onClick={restoreRecovery}>Restore last arrangement</button>
+              <button type="button" className={styles.recoveryButton} onClick={() => { void restoreRecovery(); }}>Restore last arrangement</button>
               <p role="status" aria-live="polite">{movementStatus}</p>
               <p>Keyboard-safe movement updates canonical ordering and every linked block-number reference atomically.</p>
             </section>

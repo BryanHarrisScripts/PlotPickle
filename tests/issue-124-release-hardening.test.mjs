@@ -90,7 +90,8 @@ test("issue #124 hardens autosave recovery and destructive restore", async () =>
   ]) assert.ok(recovery.includes(contract), `Build recovery is missing: ${contract}`);
   assert.match(build, /captureArrangementRecovery\(project, "block-move"\)/);
   assert.match(wall, /captureArrangementRecovery\(project, "mini-block-move"\)/);
-  assert.match(build, /window\.confirm/);
+  assert.match(build, /requestPlotPickleConfirmation/);
+  assert.doesNotMatch(build, /\bwindow\.confirm\s*\(/);
   assert.match(wall, /window\.confirm/);
   assert.match(build + wall, /Restore last arrangement/);
   assert.doesNotMatch(recovery, /apiKey|accessToken|refreshToken|clientSecret/);

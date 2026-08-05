@@ -3,6 +3,16 @@ import { writeAssistantStore } from "./writing-assistant-store";
 
 export type ConversationMessage = { role: "user" | "assistant"; content: string };
 
+export type OllamaProbe = {
+  reachable: boolean;
+  baseUrl: string;
+  models: string[];
+  version: string;
+  latencyMs: number;
+  checkedAt: string;
+  error: string;
+};
+
 export const DEFAULT_OLLAMA_URL = "http://127.0.0.1:11434";
 export const TEST_PROMPT = "Introduce yourself to a new PlotPickle writer.";
 export const ASSISTANT_INSTRUCTIONS = [
@@ -127,21 +137,69 @@ export async function testAssistantProfile(store: ProfileStore, provider: TextPr
   }
 }
 
-export async function listOllamaModels(baseUrl = DEFAULT_OLLAMA_URL) {
+function ollamaError(error: unknown) {
+  if (error instanceof DOMException && error.name === "TimeoutError") {
+    return "Ollama did not answer before the three-second connection timeout. Start Ollama and verify the server address.";
+  }
+  if (error instanceof Error) {
+    if (/fetch failed|ECONNREFUSED|connect/i.test(error.message)) {
+      return "Ollama is not reachable at this address. Start Ollama, then test the connection again.";
+    }
+    return error.message.slice(0, 300);
+  }
+  return "Ollama could not be checked.";
+}
+
+export async function probeOllama(baseUrl = DEFAULT_OLLAMA_URL): Promise<OllamaProbe> {
+  const normalized = normalizedProviderUrl(baseUrl || DEFAULT_OLLAMA_URL);
+  const started = Date.now();
+  const checkedAt = new Date().toISOString();
   try {
-    const result = await fetch(`${normalizedProviderUrl(baseUrl)}/api/tags`, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(3_000),
-    });
-    if (!result.ok) return [];
-    const value = await result.json() as { models?: Array<{ name?: unknown; model?: unknown }> };
-    return (value.models ?? [])
+    const [tagsResponse, versionResponse] = await Promise.all([
+      fetch(`${normalized}/api/tags`, {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(3_000),
+      }),
+      fetch(`${normalized}/api/version`, {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(3_000),
+      }).catch(() => null),
+    ]);
+    if (!tagsResponse.ok) throw new Error(`Ollama returned HTTP ${tagsResponse.status} from /api/tags.`);
+    const value = await tagsResponse.json() as { models?: Array<{ name?: unknown; model?: unknown }> };
+    const models = (value.models ?? [])
       .map((item) => typeof item.name === "string" ? item.name : typeof item.model === "string" ? item.model : "")
       .filter(Boolean)
       .slice(0, 100);
-  } catch {
-    return [];
+    let version = "";
+    if (versionResponse?.ok) {
+      const versionValue = await versionResponse.json().catch(() => ({})) as { version?: unknown };
+      version = typeof versionValue.version === "string" ? versionValue.version : "";
+    }
+    return {
+      reachable: true,
+      baseUrl: normalized,
+      models,
+      version,
+      latencyMs: Date.now() - started,
+      checkedAt,
+      error: models.length ? "" : "Ollama is running, but no installed models were reported. Pull a model, then refresh the list.",
+    };
+  } catch (error) {
+    return {
+      reachable: false,
+      baseUrl: normalized,
+      models: [],
+      version: "",
+      latencyMs: Date.now() - started,
+      checkedAt,
+      error: ollamaError(error),
+    };
   }
+}
+
+export async function listOllamaModels(baseUrl = DEFAULT_OLLAMA_URL) {
+  return (await probeOllama(baseUrl)).models;
 }
 
 export function conversationPrompt(history: ConversationMessage[], message: string) {

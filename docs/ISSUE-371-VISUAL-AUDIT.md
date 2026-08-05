@@ -19,25 +19,37 @@ The retired Lighthouse runner is not restored. The capture pipeline uses the sam
 - the Settings overview, Sitemap and every independently configurable component;
 - desktop, tablet and mobile viewports.
 
-The capture runner stores stable full-page PNG files, a JSON manifest, a Markdown review list and an HTML contact sheet.
+The capture system stores stable full-page PNG files, a JSON manifest, a Markdown review list and an HTML contact sheet.
+
+## Windows capture stability
+
+Very long full-page capture sessions can exhaust or destabilize the native Windows development-server process. `scripts/visual-audit-supervisor.mjs` therefore divides the complete inventory into small isolated batches. Each batch receives a fresh PlotPickle server, a clean browser profile and a bounded screen subset. The supervisor then combines all batch manifests into one complete visual inventory.
+
+This isolation prevents one native process failure from erasing later screenshots and makes the exact failing batch visible. The canonical capture and screen registries are restored after every run, including failed runs.
 
 ## Privacy boundary
 
-The runner uses a temporary PlotPickle home and a clean browser profile. It does not load a user's normal project or browser data. Before each screenshot it clears password and credential-like fields, masks secret-labelled controls and replaces common local user path prefixes. A credential-shaped value remaining in visible text fails the capture.
+Each batch uses a temporary PlotPickle home and a clean browser profile. It does not load a user's normal project or browser data. Before each screenshot it clears password and credential-like fields, masks secret-labelled controls and replaces common local user path prefixes. A credential-shaped value remaining in visible text fails the capture.
 
 ## Running locally
 
 Install the normal repository dependencies, make Chrome or Edge available, then run:
 
 ```text
-node scripts/visual-audit-capture.mjs . reports/visual-audit
+node scripts/visual-audit-supervisor.mjs . reports/visual-audit
 ```
 
-`CHROME_PATH` or `EDGE_PATH` can point to a browser executable when automatic discovery is insufficient.
+The default batch size is six capture definitions. It can be adjusted between one and eight with `PLOTPICKLE_VISUAL_BATCH_SIZE`. `CHROME_PATH` or `EDGE_PATH` can point to a browser executable when automatic discovery is insufficient.
+
+The lower-level single-batch runner remains available for diagnosis:
+
+```text
+node scripts/visual-audit-capture.mjs . reports/visual-audit-single
+```
 
 ## CI evidence
 
-The Visual audit capture workflow runs for interface-related pull requests and can also be started manually. It uploads `reports/visual-audit/` as a 30-day GitHub Actions artifact. The artifact is intended for direct human and AI visual inspection before a UI/UX pull request is approved.
+The Visual audit capture workflow runs for interface-related pull requests and can also be started manually. It uploads `reports/visual-audit/` as a GitHub Actions artifact. The artifact is intended for direct human and AI visual inspection before a UI/UX pull request is approved.
 
 ## Review expectations
 

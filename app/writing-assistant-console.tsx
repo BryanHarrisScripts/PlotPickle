@@ -365,7 +365,7 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
           return (
             <article key={provider} data-state={state} data-active={status?.activeProvider === provider || undefined}>
               <button type="button" className={styles.providerButton} onClick={() => void selectProvider(provider)} disabled={working || !status}>
-                <span className={styles.providerLight} aria-hidden="true" />
+                <i className={styles.providerLight} aria-hidden="true" />
                 <span><strong>{providerCopy[provider].label}</strong><small>{providerCopy[provider].description}</small></span>
                 <em>{profile.ready ? "Ready" : profile.configured ? "Test needed" : provider === "ollama" && status?.ollama.reachable ? "Service detected" : "Configure"}</em>
               </button>
@@ -377,7 +377,7 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
         {!focusProvider ? (
           <article data-state={status?.activeProvider === "disabled" ? "off" : "optional"} data-active={status?.activeProvider === "disabled" || undefined}>
             <button type="button" className={styles.providerButton} onClick={() => void selectProvider("disabled")} disabled={working || !status}>
-              <span className={styles.providerLight} aria-hidden="true" />
+              <i className={styles.providerLight} aria-hidden="true" />
               <span><strong>Off</strong><small>Use PlotPickle manually without text generation.</small></span>
               <em>{status?.activeProvider === "disabled" ? "Selected" : "Available"}</em>
             </button>
@@ -425,7 +425,13 @@ export default function WritingAssistantConsole({ onManage, focusProvider }: { o
         </section>
       ) : null}
 
-      <div className={styles.conversation} aria-live="polite">
+      <div
+        className={styles.conversation}
+        role="log"
+        aria-label="Writing Assistant conversation"
+        aria-live="polite"
+        aria-relevant="additions text"
+      >
         {messages.length ? messages.map((message) => (
           <article key={message.id} data-role={message.role}>
             <header><strong>{message.role === "user" ? "You" : "PlotPickle Assistant"}</strong>{message.provider ? <span>{providerCopy[message.provider].short} · {message.model}</span> : null}</header>

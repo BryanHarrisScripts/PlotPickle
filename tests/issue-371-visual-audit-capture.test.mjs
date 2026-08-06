@@ -74,6 +74,7 @@ test("issue #371 isolates Windows-heavy captures, settles ports and warms each b
     "await writeFile(configPath, originalConfigText)",
     "await writeFile(registryPath, originalRegistryText)",
     "visual-audit-manifest.json",
+    "Capture runner exited with code",
     "capture.isolated",
     "result.push([capture])",
   ]) assert.ok(supervisor.includes(contract), `Missing isolated-batch contract: ${contract}`);

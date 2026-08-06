@@ -172,7 +172,8 @@ async function main() {
         const result = await readBatchManifest(batchDirectory);
         batchManifest = result.manifest;
         manifestError = result.error || manifestError;
-        if (batchManifest) break;
+        if (batchManifest && (code === 0 || attempt === batchRetryCount)) break;
+        if (batchManifest) manifestError = `Capture runner exited with code ${code}.`;
       }
 
       if (!batchManifest) {

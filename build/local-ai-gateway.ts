@@ -6,6 +6,7 @@ import { registerNativeH3Gateway } from "./comfyui-h3-native-gateway";
 import { registerProviderDiagnosticsGateway } from "./provider-diagnostics-gateway";
 import { registerMediaRoutingGateway } from "./media-routing-gateway";
 import { registerOllamaBootstrapGateway } from "./ollama-bootstrap-gateway";
+import { registerLocalAiInstallationGateway } from "./local-ai-installation-gateway";
 
 const IMAGE_PATHS = new Set(["/api/local-ai/generate/image", "/api/media-routing/test/image"]);
 const MAX_SINGLE_IMAGE_REQUEST_BYTES = 256 * 1024;
@@ -59,6 +60,7 @@ export function localAiGateway(): Plugin {
     name: "plotpickle-local-ai-gateway-with-routing",
     configureServer(server) {
       registerSingleImageBoundary(server);
+      registerLocalAiInstallationGateway(server);
       registerAiRoutingGateway(server);
       registerNativeH3Gateway(server);
       registerProviderDiagnosticsGateway(server);

@@ -36,5 +36,6 @@ test("issue #371 retries only a crashed browser batch before abandoning captured
   ]) assert.ok(supervisor.includes(contract), `Missing crashed-batch recovery contract: ${contract}`);
 
   assert.ok(supervisor.includes("for (let attempt = 0; attempt <= batchRetryCount; attempt += 1)"), "The supervisor must use a bounded retry loop");
-  assert.ok(supervisor.includes("if (batchManifest) break"), "The supervisor must stop retrying as soon as evidence is produced");
+  assert.ok(supervisor.includes("if (batchManifest && (code === 0 || attempt === batchRetryCount)) break"), "The supervisor must retry partial evidence after a failed runner and stop after successful or final evidence");
+  assert.ok(supervisor.includes("if (batchManifest) manifestError = `Capture runner exited with code ${code}.`;"), "The supervisor must retain the failed-runner reason when partial evidence is written");
 });

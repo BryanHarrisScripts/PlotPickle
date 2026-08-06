@@ -24,7 +24,8 @@ test("Creative Director actions expose plain-language recovery and accessible st
   assert.match(source, /<legend className={styles\.actionLegend}>Direct this story moment<\/legend>/);
   assert.doesNotMatch(source, /role="group"/);
   assert.match(source, /<figure className={styles\.preview}>/);
-  assert.match(source, /<div className={styles\.empty}>/);
+  assert.match(source, /<p className={styles\.empty}>/);
+  assert.doesNotMatch(source, /<div className={styles\.empty}>/);
   assert.doesNotMatch(source, /<figcaption className={styles\.empty}>/);
   assert.match(source, /disabled={busy}/);
 });

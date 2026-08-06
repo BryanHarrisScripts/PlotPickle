@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const root = new URL("..", import.meta.url);
+const routingPanel = await readFile(new URL("app/ai-routing-panel.tsx", root), "utf8");
 
 async function readRegistry() {
   return JSON.parse(
@@ -15,7 +16,12 @@ test("global AI source registry is modular JSON with stable extension points", a
 
   assert.equal(registry.schemaVersion, 1);
   assert.equal(registry.registryId, "plotpickle.global-ai-sources");
-  assert.deepEqual(registry.extensionPoints.routeGroups, ["writing", "images", "video"]);
+  assert.deepEqual(registry.extensionPoints.routeGroups, ["text", "image", "video"]);
+  assert.deepEqual(registry.capabilities, [
+    { id: "text", label: "Writing" },
+    { id: "image", label: "Images" },
+    { id: "video", label: "Video" },
+  ]);
   assert.match(registry.extensionPoints.providerModules, /\{providerId\}/);
   assert.ok(registry.extensionPoints.uiConsumers.includes("app/ai-routing-panel.tsx"));
 });
@@ -25,29 +31,42 @@ test("global AI source registry preserves the full route matrix", async () => {
   const routeIds = new Set(registry.routes.map((route) => route.id));
 
   for (const routeId of [
-    "writing.off",
-    "writing.ollama",
-    "writing.openai",
-    "writing.minimax-text",
-    "images.manual",
-    "images.comfyui",
-    "images.ollama-comfyui",
-    "images.openai",
-    "images.minimax",
+    "text.off",
+    "text.ollama",
+    "text.openai",
+    "text.minimax",
+    "image.manual",
+    "image.comfyui",
+    "image.ollama-comfyui",
+    "image.openai",
+    "image.minimax",
     "video.off",
-    "video.comfyui-h3",
+    "video.comfyui-native",
     "video.openai",
-    "video.minimax-h3",
+    "video.minimax",
   ]) {
     assert.ok(routeIds.has(routeId), `Missing route ${routeId}`);
   }
 
-  for (const capability of ["writing", "images", "video"]) {
+  for (const capability of ["text", "image", "video"]) {
     assert.ok(
       registry.routes.some((route) => route.capability === capability),
       `Missing capability ${capability}`,
     );
   }
+});
+
+test("global AI source registry uses the live routing identifiers", async () => {
+  const registry = await readRegistry();
+  assert.match(routingPanel, /type Capability = "text" \| "image" \| "video"/);
+  assert.match(routingPanel, /text: "ollama" \| "openai" \| "minimax" \| "off"/);
+  assert.match(routingPanel, /image: "comfyui" \| "ollama-comfyui" \| "openai" \| "minimax" \| "manual"/);
+  assert.match(routingPanel, /video: "comfyui-native" \| "minimax" \| "openai" \| "off"/);
+
+  assert.deepEqual(
+    registry.routes.map(({ capability, id }) => id.replace(`${capability}.`, "")),
+    ["off", "ollama", "openai", "minimax", "manual", "comfyui", "ollama-comfyui", "openai", "minimax", "off", "comfyui-native", "openai", "minimax"],
+  );
 });
 
 test("global AI source registry keeps cloud cost and local probe boundaries explicit", async () => {
@@ -85,4 +104,3 @@ test("global AI source registry prevents paid automatic defaults", async () => {
     assert.equal(route.selectableWhen, "always");
   }
 });
-

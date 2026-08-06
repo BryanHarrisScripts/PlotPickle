@@ -228,25 +228,45 @@ async function waitForDocument(client) {
   throw new Error(`Timed out waiting for the rendered page: ${JSON.stringify(lastState)}`);
 }
 
-async function waitForExpectedText(client, expectedText) {
+async function waitForExpectedText(client, expectedText, screenId) {
   if (!expectedText) return;
   const stopAt = Date.now() + pageTimeoutMs;
   const expected = String(expectedText).toLowerCase();
+  const allowMarketing = screenId === "public-marketing-splash";
+  const allowDashboard = ["public-welcome-startup", "shell-application-navigation", "dashboard"].includes(screenId);
   let lastState = null;
   while (Date.now() < stopAt) {
     try {
       lastState = await evaluate(client, `(() => {
+        const visible = (element) => {
+          const style = getComputedStyle(element);
+          const rect = element.getBoundingClientRect();
+          return style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || 1) !== 0 && rect.width > 0 && rect.height > 0;
+        };
         const body = String(document.body?.innerText || "").replace(/\\s+/g, " ").trim().toLowerCase();
-        return { found: body.includes(${JSON.stringify(expected)}), sample: body.slice(0, 500) };
+        const headings = [...document.querySelectorAll("h1,h2,h3,[role='heading']")]
+          .filter(visible)
+          .map((element) => String(element.innerText || "").replace(/\\s+/g, " ").trim().toLowerCase());
+        const marketingVisible = headings.some((heading) => heading.includes("stop losing the story between the notes, drafts and visuals"));
+        const dashboardVisible = headings.some((heading) => heading.includes("command centre"));
+        return {
+          found: body.includes(${JSON.stringify(expected)}),
+          marketingVisible,
+          dashboardVisible,
+          headings: headings.slice(0, 12),
+          sample: body.slice(0, 500),
+        };
       })()`);
-      if (lastState?.found) {
+      const wrongMarketing = !allowMarketing && lastState?.marketingVisible;
+      const wrongDashboard = !allowDashboard && lastState?.dashboardVisible;
+      if (lastState?.found && !wrongMarketing && !wrongDashboard) {
         await delay(300);
         return;
       }
     } catch {}
     await delay(250);
   }
-  throw new Error(`Timed out waiting for screen identity ${JSON.stringify(expectedText)}: ${JSON.stringify(lastState)}`);
+  throw new Error(`Timed out waiting for visible screen identity ${JSON.stringify(expectedText)} for ${screenId}: ${JSON.stringify(lastState)}`);
 }
 
 async function navigate(client, url) {
@@ -463,7 +483,7 @@ async function main() {
         }
         const url = new URL(capture.route, `${baseUrl}/`).href;
         await navigate(client, url);
-        await waitForExpectedText(client, capture.expectedText);
+        await waitForExpectedText(client, capture.expectedText, capture.screenId);
         const redaction = await evaluate(client, redactScript);
         if (redaction?.leakedSecret) throw new Error("A credential-like value remained visible after redaction.");
 
@@ -472,6 +492,7 @@ async function main() {
           const viewport = viewports[viewportName];
           if (!viewport) throw new Error(`Unknown viewport ${viewportName}.`);
           await setViewport(client, viewport);
+          await waitForExpectedText(client, capture.expectedText, capture.screenId);
           const summary = await pageSummary(client, viewport);
           const suffix = capture.variant ? `--${safeName(capture.variant)}` : capture.settingsTarget ? `--${safeName(capture.settingsTarget)}` : "";
           const filename = `${safeName(capture.screenId)}${suffix}--${safeName(viewportName)}.png`;

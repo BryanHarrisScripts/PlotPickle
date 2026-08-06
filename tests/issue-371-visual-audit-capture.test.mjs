@@ -35,15 +35,20 @@ test("issue #371 captures real rendered pages through Chrome DevTools", async ()
   assert.doesNotMatch(script, /lighthouse|puppeteer|playwright/i);
 });
 
-test("issue #371 waits for the requested rendered screen before sampling metadata or pixels", async () => {
+test("issue #371 waits for the requested visible screen before sampling metadata or pixels", async () => {
   const script = await source("scripts/visual-audit-capture.mjs");
   for (const contract of [
     "async function waitForExpectedText",
     "body.includes(${JSON.stringify(expected)})",
-    "Timed out waiting for screen identity",
-    "await waitForExpectedText(client, capture.expectedText)",
-  ]) assert.ok(script.includes(contract), `Missing screen readiness contract: ${contract}`);
-  assert.ok(script.indexOf("await waitForExpectedText(client, capture.expectedText)") < script.indexOf("const redaction = await evaluate(client, redactScript)"));
+    "marketingVisible",
+    "dashboardVisible",
+    "Timed out waiting for visible screen identity",
+    "await waitForExpectedText(client, capture.expectedText, capture.screenId)",
+  ]) assert.ok(script.includes(contract), `Missing visible-screen readiness contract: ${contract}`);
+  const readiness = "await waitForExpectedText(client, capture.expectedText, capture.screenId)";
+  assert.ok((script.match(/await waitForExpectedText\(client, capture\.expectedText, capture\.screenId\)/g) ?? []).length >= 2, "Every route and viewport must revalidate its visible screen identity");
+  assert.ok(script.indexOf(readiness) < script.indexOf("const redaction = await evaluate(client, redactScript)"));
+  assert.ok(script.lastIndexOf(readiness) < script.indexOf("const summary = await pageSummary(client, viewport)"));
 });
 
 test("issue #371 isolates long Windows captures, settles ports and warms each batch on its first destination", async () => {

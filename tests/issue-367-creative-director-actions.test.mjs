@@ -20,9 +20,10 @@ test("Creative Director actions keep story and intent ahead of provider configur
 test("Creative Director actions expose plain-language recovery and accessible status", () => {
   assert.match(source, /Open generation settings/);
   assert.match(source, /role="status"/);
-  assert.match(source, /aria-label="Direct this story moment"/);
+  assert.match(source, /role="group" aria-label="Direct this story moment"/);
   assert.match(source, /<figure className={styles\.preview}>/);
-  assert.match(source, /<figcaption className={styles\.empty}>/);
+  assert.match(source, /<div className={styles\.empty}>/);
+  assert.doesNotMatch(source, /<figcaption className={styles\.empty}>/);
   assert.match(source, /disabled={busy}/);
 });
 

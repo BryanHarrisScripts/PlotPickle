@@ -311,13 +311,13 @@ export default function AiRoutingPanel() {
           <span>Each capability has one active route. PlotPickle never switches to a paid provider automatically.</span>
         </div>
         <div className={styles.presetActions}>
-          <button type="button" onClick={() => void applyPreset("local")} disabled={Boolean(working)}>
+          <button type="button" aria-label="Use local-first AI routing setup" onClick={() => void applyPreset("local")} disabled={Boolean(working)}>
             {working === "local-preset" ? "Selecting local routes…" : "Use local-first setup"}
           </button>
-          <button type="button" onClick={() => void applyPreset("cloud")} disabled={Boolean(working)}>
+          <button type="button" aria-label="Switch to cloud AI routing setup" onClick={() => void applyPreset("cloud")} disabled={Boolean(working)}>
             {working === "cloud-preset" ? "Selecting cloud routes…" : "Switch to cloud setup"}
           </button>
-          <button type="button" className={styles.secondaryButton} onClick={() => void refresh()} disabled={Boolean(working)}>Refresh current configuration</button>
+          <button type="button" className={styles.secondaryButton} aria-label="Refresh current AI routing configuration" onClick={() => void refresh()} disabled={Boolean(working)}>Refresh current configuration</button>
         </div>
       </header>
 
@@ -353,7 +353,7 @@ export default function AiRoutingPanel() {
                   <div><dt>Cost</dt><dd>{option.cost}</dd></div>
                 </dl>
                 {!option.ready ? <p>{option.error || "This active route still needs setup or a successful test."}</p> : null}
-                {option.settingsTarget ? <button type="button" onClick={() => openSettings(option.settingsTarget)}>Open {label.title.split(" · ")[0]} Settings</button> : null}
+                {option.settingsTarget ? <button type="button" aria-label={`Open ${label.title.split(" · ")[0]} settings for active ${title.toLowerCase()} route`} onClick={() => openSettings(option.settingsTarget)}>Open {label.title.split(" · ")[0]} Settings</button> : null}
               </article>
             );
           })}
@@ -377,7 +377,7 @@ export default function AiRoutingPanel() {
                   <span data-on={provider.activeCount > 0}>{provider.activeCount ? `${provider.activeCount} active` : "Off"}</span>
                 </div>
                 <p>{provider.detail}</p>
-                <button type="button" onClick={() => openSettings(provider.target)}>{provider.installed ? "Configure or test" : provider.kind === "Cloud account" ? "Configure account" : "Install or repair"}</button>
+                <button type="button" aria-label={`${provider.installed ? "Configure or test" : provider.kind === "Cloud account" ? "Configure account" : "Install or repair"} ${provider.title}`} onClick={() => openSettings(provider.target)}>{provider.installed ? "Configure or test" : provider.kind === "Cloud account" ? "Configure account" : "Install or repair"}</button>
               </article>
             );
           })}
@@ -405,6 +405,7 @@ export default function AiRoutingPanel() {
           return (
             <fieldset className={styles.group} key={capability}>
               <legend>{title}</legend>
+              <span className={styles.srOnly}>Active now</span>
               <p>{description}</p>
               <ul className={styles.options}>
                 {Object.entries(group.options).map(([route, option]) => {
@@ -443,7 +444,7 @@ export default function AiRoutingPanel() {
                         <div><dt>Last test</dt><dd>{formatDate(option.verifiedAt)}</dd></div>
                       </dl>
                       {!selectable ? <p className={styles.warning}>{option.error || "Complete installation, configuration and a successful test before turning this route on."}</p> : selected && !option.ready ? <p className={styles.warning}>{option.error || "This route is active but still needs configuration or a successful test."}</p> : null}
-                      {option.settingsTarget ? <button type="button" className={styles.settingsLink} onClick={() => openSettings(option.settingsTarget)}>{selectable ? "Open" : "Set up"} {label.title.split(" · ")[0]} Settings</button> : null}
+                      {option.settingsTarget ? <button type="button" className={styles.settingsLink} aria-label={`${selectable ? "Open" : "Set up"} ${label.title.split(" · ")[0]} settings for ${title.toLowerCase()}`} onClick={() => openSettings(option.settingsTarget)}>{selectable ? "Open" : "Set up"} {label.title.split(" · ")[0]} Settings</button> : null}
                     </li>
                   );
                 })}

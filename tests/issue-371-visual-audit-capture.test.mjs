@@ -33,13 +33,17 @@ test("issue #371 captures real rendered pages through Chrome DevTools", async ()
   assert.doesNotMatch(script, /lighthouse|puppeteer|playwright/i);
 });
 
-test("issue #371 isolates long Windows captures and warms each new app session", async () => {
+test("issue #371 isolates long Windows captures, settles ports and warms each new app session", async () => {
   const [supervisor, captures] = await Promise.all([
     source("scripts/visual-audit-supervisor.mjs"),
     source("config/visual-audit-captures.json").then(JSON.parse),
   ]);
   for (const contract of [
     "PLOTPICKLE_VISUAL_BATCH_SIZE",
+    "PLOTPICKLE_VISUAL_BATCH_SETTLE_MS",
+    'process.platform === "win32" ? 3500 : 1000',
+    "await pause(batchSettleMs)",
+    "previous preview server and browser ports to close",
     "visual-audit-capture.mjs",
     "batch-${batchNumber}",
     "__visual-audit-warmup",

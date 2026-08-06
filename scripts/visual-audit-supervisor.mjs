@@ -12,6 +12,8 @@ const registryPath = path.join(root, "config", "ui-ux-screen-registry.json");
 const runnerPath = path.join(root, "scripts", "visual-audit-capture.mjs");
 const batchSize = Math.max(1, Math.min(Number(process.env.PLOTPICKLE_VISUAL_BATCH_SIZE || 6), 8));
 const batchSettleMs = Math.max(0, Number(process.env.PLOTPICKLE_VISUAL_BATCH_SETTLE_MS || (process.platform === "win32" ? 3500 : 1000)));
+const batchRetryCount = Math.max(0, Math.min(Number(process.env.PLOTPICKLE_VISUAL_BATCH_RETRY_COUNT || 1), 3));
+const batchRetrySettleMs = Math.max(batchSettleMs, Number(process.env.PLOTPICKLE_VISUAL_BATCH_RETRY_SETTLE_MS || (process.platform === "win32" ? 8000 : 2500)));
 const warmupScreenId = "__visual-audit-warmup";
 
 const originalConfigText = await readFile(configPath, "utf8");
@@ -94,6 +96,20 @@ async function writeCombinedIndex(manifest) {
   ].join("\n"));
 }
 
+async function readBatchManifest(batchDirectory) {
+  try {
+    return {
+      manifest: JSON.parse(await readFile(path.join(batchDirectory, "visual-audit-manifest.json"), "utf8")),
+      error: null,
+    };
+  } catch (error) {
+    return {
+      manifest: null,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
 async function main() {
   await rm(outputDirectory, { recursive: true, force: true });
   await mkdir(outputDirectory, { recursive: true });
@@ -106,6 +122,8 @@ async function main() {
     batches: batches.length,
     batchSize,
     batchSettleMs,
+    batchRetryCount,
+    batchRetrySettleMs,
     viewports: fullConfig.viewports,
     items: [],
     failures: [],
@@ -135,22 +153,36 @@ async function main() {
       const batchRegistry = { ...fullRegistry, screens: fullRegistry.screens.filter((screen) => screenIds.has(screen.id)) };
       await writeFile(configPath, `${JSON.stringify(batchConfig, null, 2)}\n`);
       await writeFile(registryPath, `${JSON.stringify(batchRegistry, null, 2)}\n`);
-      console.log(`Capturing ${batchName}: ${[...screenIds].join(", ")}`);
-      const code = await run(process.execPath, [runnerPath, root, batchDirectory], {
-        cwd: root,
-        env: { ...process.env },
-        windowsHide: true,
-      });
-      let batchManifest;
-      try {
-        batchManifest = JSON.parse(await readFile(path.join(batchDirectory, "visual-audit-manifest.json"), "utf8"));
-      } catch (error) {
+
+      let code = 1;
+      let batchManifest = null;
+      let manifestError = "Batch manifest was not produced.";
+      for (let attempt = 0; attempt <= batchRetryCount; attempt += 1) {
+        if (attempt > 0) {
+          console.log(`Retrying ${batchName} after ${batchRetrySettleMs}ms because its capture process ended before producing a manifest.`);
+          await rm(batchDirectory, { recursive: true, force: true });
+          await pause(batchRetrySettleMs);
+        }
+        console.log(`Capturing ${batchName}${attempt ? ` (attempt ${attempt + 1})` : ""}: ${[...screenIds].join(", ")}`);
+        code = await run(process.execPath, [runnerPath, root, batchDirectory], {
+          cwd: root,
+          env: { ...process.env },
+          windowsHide: true,
+        });
+        const result = await readBatchManifest(batchDirectory);
+        batchManifest = result.manifest;
+        manifestError = result.error || manifestError;
+        if (batchManifest) break;
+      }
+
+      if (!batchManifest) {
         combined.failures.push({
           batch: batchName,
-          error: `Batch manifest was not produced: ${error instanceof Error ? error.message : String(error)}`,
+          error: `Batch manifest was not produced after ${batchRetryCount + 1} attempt(s): ${manifestError}`,
         });
         continue;
       }
+
       const batchCaptureByKey = new Map(batch.map((capture) => [
         `${capture.screenId}::${capture.variant ?? capture.settingsTarget ?? ""}`,
         capture,

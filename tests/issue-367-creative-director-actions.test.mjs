@@ -6,7 +6,7 @@ const source = fs.readFileSync(new URL("../app/creative-director-actions.tsx", i
 const styles = fs.readFileSync(new URL("../app/creative-director-actions.module.css", import.meta.url), "utf8");
 const storyboard = fs.readFileSync(new URL("../app/visual-storyboard.tsx", import.meta.url), "utf8");
 const storyboardStyles = fs.readFileSync(new URL("../app/visual-storyboard.module.css", import.meta.url), "utf8");
-const project = fs.readFileSync(new URL("../lib/project.ts", import.meta.url), "utf8");
+const project = fs.readFileSync(new URL("../lib/project.ts", import.meta.url), "utf8");\nconst workflow = fs.readFileSync(new URL("../.github/workflows/creative-director-actions.yml", import.meta.url), "utf8");
 
 test("Creative Director actions keep story and intent ahead of provider configuration", () => {
   assert.match(source, /storyMoment/);
@@ -81,3 +81,12 @@ test("Storyboard version review remains responsive and keyboard visible", () => 
   assert.match(storyboardStyles, /@media\(max-width:640px\)/);
   assert.match(storyboardStyles, /:focus-visible/);
 });
+
+test("Creative Director CI covers the integrated Storyboard flow with immutable action pins", () => {
+  assert.match(workflow, /app\/visual-storyboard\\.tsx/);
+  assert.match(workflow, /app\/visual-storyboard\\.module\\.css/);
+  assert.match(workflow, /lib\/project\\.ts/);
+  assert.match(workflow, /actions\/checkout@[0-9a-f]{40}/);
+  assert.match(workflow, /actions\/setup-node@[0-9a-f]{40}/);
+  assert.match(workflow, /node --test tests\/issue-367-creative-director-actions\\.test\\.mjs/);
+});\n

@@ -228,6 +228,27 @@ async function waitForDocument(client) {
   throw new Error(`Timed out waiting for the rendered page: ${JSON.stringify(lastState)}`);
 }
 
+async function waitForExpectedText(client, expectedText) {
+  if (!expectedText) return;
+  const stopAt = Date.now() + pageTimeoutMs;
+  const expected = String(expectedText).toLowerCase();
+  let lastState = null;
+  while (Date.now() < stopAt) {
+    try {
+      lastState = await evaluate(client, `(() => {
+        const body = String(document.body?.innerText || "").replace(/\\s+/g, " ").trim().toLowerCase();
+        return { found: body.includes(${JSON.stringify(expected)}), sample: body.slice(0, 500) };
+      })()`);
+      if (lastState?.found) {
+        await delay(300);
+        return;
+      }
+    } catch {}
+    await delay(250);
+  }
+  throw new Error(`Timed out waiting for screen identity ${JSON.stringify(expectedText)}: ${JSON.stringify(lastState)}`);
+}
+
 async function navigate(client, url) {
   const result = await client.send("Page.navigate", { url });
   if (result.errorText) throw new Error(`Navigation failed for ${url}: ${result.errorText}`);
@@ -442,6 +463,7 @@ async function main() {
         }
         const url = new URL(capture.route, `${baseUrl}/`).href;
         await navigate(client, url);
+        await waitForExpectedText(client, capture.expectedText);
         const redaction = await evaluate(client, redactScript);
         if (redaction?.leakedSecret) throw new Error("A credential-like value remained visible after redaction.");
 

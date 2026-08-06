@@ -10,6 +10,7 @@ export default function CreativeDirectorActions({
   storyTitle,
   storyMoment,
   currentVisual,
+  versions,
   identityWarning,
   state,
   message,
@@ -22,6 +23,7 @@ export default function CreativeDirectorActions({
   storyTitle: string;
   storyMoment: string;
   currentVisual?: ReactNode;
+  versions?: ReactNode;
   identityWarning?: string;
   state: CreativeDirectorActionState;
   message?: string;
@@ -41,12 +43,15 @@ export default function CreativeDirectorActions({
       </header>
 
       <figure className={styles.preview}>
-        {currentVisual ?? <figcaption className={styles.empty}><strong>No approved visual yet</strong><span>PlotPickle will build the direction from the story automatically.</span></figcaption>}
+        {currentVisual ?? <p className={styles.empty}><strong>No approved visual yet</strong><span>PlotPickle will build the direction from the story automatically.</span></p>}
       </figure>
+
+      {versions ? <div className={styles.versions}>{versions}</div> : null}
 
       {identityWarning ? <p className={styles.warning}><strong>Continuity needs attention.</strong> {identityWarning}</p> : null}
 
-      <div className={styles.actions} aria-label="Direct this story moment">
+      <fieldset className={styles.actions}>
+        <legend className={styles.actionLegend}>Direct this story moment</legend>
         <button type="button" className={styles.primary} disabled={busy} onClick={onIllustrate}>
           <strong>{state === "illustrating" ? "Illustrating…" : "Illustrate"}</strong>
           <span>Create or try another image for this exact story moment.</span>
@@ -55,7 +60,7 @@ export default function CreativeDirectorActions({
           <strong>{state === "animating" ? "Animating…" : "Animate"}</strong>
           <span>Turn the current approved image and story action into a video.</span>
         </button>
-      </div>
+      </fieldset>
 
       {message ? <p className={state === "error" ? styles.error : styles.message} role="status">{message}</p> : null}
 

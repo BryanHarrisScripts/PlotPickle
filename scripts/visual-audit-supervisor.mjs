@@ -11,8 +11,9 @@ const configPath = path.join(root, "config", "visual-audit-captures.json");
 const registryPath = path.join(root, "config", "ui-ux-screen-registry.json");
 const runnerPath = path.join(root, "scripts", "visual-audit-capture.mjs");
 const batchSize = Math.max(1, Math.min(Number(process.env.PLOTPICKLE_VISUAL_BATCH_SIZE || 6), 8));
-const batchRetries = Math.max(0, Math.min(Number(process.env.PLOTPICKLE_VISUAL_BATCH_RETRIES || 1), 2));
-const batchCooldownMs = Math.max(0, Math.min(Number(process.env.PLOTPICKLE_VISUAL_BATCH_COOLDOWN_MS || 5_000), 30_000));
+const batchSettleMs = Math.max(0, Number(process.env.PLOTPICKLE_VISUAL_BATCH_SETTLE_MS || (process.platform === "win32" ? 3500 : 1000)));
+const batchRetryCount = Math.max(0, Math.min(Number(process.env.PLOTPICKLE_VISUAL_BATCH_RETRY_COUNT || 1), 3));
+const batchRetrySettleMs = Math.max(batchSettleMs, Number(process.env.PLOTPICKLE_VISUAL_BATCH_RETRY_SETTLE_MS || (process.platform === "win32" ? 8000 : 2500)));
 const warmupScreenId = "__visual-audit-warmup";
 
 const originalConfigText = await readFile(configPath, "utf8");
@@ -21,9 +22,24 @@ const fullConfig = JSON.parse(originalConfigText);
 const fullRegistry = JSON.parse(originalRegistryText);
 const captures = fullConfig.captures ?? [];
 
-function chunks(values, size) {
+function captureBatches(values, size) {
   const result = [];
-  for (let index = 0; index < values.length; index += size) result.push(values.slice(index, index + size));
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    result.push(current);
+    current = [];
+  };
+  for (const capture of values) {
+    if (capture.isolated) {
+      flush();
+      result.push([capture]);
+      continue;
+    }
+    current.push(capture);
+    if (current.length >= size) flush();
+  }
+  flush();
   return result;
 }
 
@@ -38,7 +54,9 @@ function run(command, args, options) {
   });
 }
 
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+function pause(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
 
 function htmlEscape(value) {
   return String(value ?? "")
@@ -78,10 +96,24 @@ async function writeCombinedIndex(manifest) {
   ].join("\n"));
 }
 
+async function readBatchManifest(batchDirectory) {
+  try {
+    return {
+      manifest: JSON.parse(await readFile(path.join(batchDirectory, "visual-audit-manifest.json"), "utf8")),
+      error: null,
+    };
+  } catch (error) {
+    return {
+      manifest: null,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
 async function main() {
   await rm(outputDirectory, { recursive: true, force: true });
   await mkdir(outputDirectory, { recursive: true });
-  const batches = chunks(captures, batchSize);
+  const batches = captureBatches(captures, batchSize);
   const combined = {
     schemaVersion: 2,
     generatedAt: new Date().toISOString(),
@@ -89,6 +121,9 @@ async function main() {
     coveredScreens: 0,
     batches: batches.length,
     batchSize,
+    batchSettleMs,
+    batchRetryCount,
+    batchRetrySettleMs,
     viewports: fullConfig.viewports,
     items: [],
     failures: [],
@@ -96,15 +131,21 @@ async function main() {
 
   try {
     for (let index = 0; index < batches.length; index += 1) {
+      if (index > 0 && batchSettleMs > 0) {
+        console.log(`Waiting ${batchSettleMs}ms for the previous preview server and browser ports to close.`);
+        await pause(batchSettleMs);
+      }
       const batch = batches[index];
       const batchNumber = String(index + 1).padStart(2, "0");
       const batchName = `batch-${batchNumber}`;
       const batchDirectory = path.join(outputDirectory, batchName);
       const screenIds = new Set(batch.map((capture) => capture.screenId));
+      const firstCapture = batch[0];
       const warmupCapture = {
         screenId: warmupScreenId,
-        label: "Internal application warmup",
-        route: "/?workspace=dashboard",
+        label: `Internal warmup for ${firstCapture.label}`,
+        route: firstCapture.route,
+        settingsTarget: firstCapture.settingsTarget,
         variant: "warmup",
         viewports: ["desktop"],
       };
@@ -112,37 +153,37 @@ async function main() {
       const batchRegistry = { ...fullRegistry, screens: fullRegistry.screens.filter((screen) => screenIds.has(screen.id)) };
       await writeFile(configPath, `${JSON.stringify(batchConfig, null, 2)}\n`);
       await writeFile(registryPath, `${JSON.stringify(batchRegistry, null, 2)}\n`);
+
       let code = 1;
       let batchManifest = null;
-      let manifestError = null;
-      for (let attempt = 0; attempt <= batchRetries; attempt += 1) {
+      let manifestError = "Batch manifest was not produced.";
+      for (let attempt = 0; attempt <= batchRetryCount; attempt += 1) {
         if (attempt > 0) {
-          console.log(`Retrying ${batchName} after missing visual manifest or failed capture runner.`);
+          console.log(`Retrying ${batchName} after ${batchRetrySettleMs}ms because its capture process ended before producing a manifest.`);
           await rm(batchDirectory, { recursive: true, force: true });
-          await delay(batchCooldownMs);
+          await pause(batchRetrySettleMs);
         }
-        console.log(`Capturing ${batchName}: ${[...screenIds].join(", ")}`);
+        console.log(`Capturing ${batchName}${attempt ? ` (attempt ${attempt + 1})` : ""}: ${[...screenIds].join(", ")}`);
         code = await run(process.execPath, [runnerPath, root, batchDirectory], {
           cwd: root,
           env: { ...process.env },
           windowsHide: true,
         });
-        try {
-          batchManifest = JSON.parse(await readFile(path.join(batchDirectory, "visual-audit-manifest.json"), "utf8"));
-          manifestError = null;
-          if (code === 0 || attempt === batchRetries) break;
-          manifestError = new Error(`Capture runner exited with code ${code}.`);
-        } catch (error) {
-          manifestError = error;
-        }
+        const result = await readBatchManifest(batchDirectory);
+        batchManifest = result.manifest;
+        manifestError = result.error || manifestError;
+        if (batchManifest && (code === 0 || attempt === batchRetryCount)) break;
+        if (batchManifest) manifestError = `Capture runner exited with code ${code}.`;
       }
+
       if (!batchManifest) {
         combined.failures.push({
           batch: batchName,
-          error: `Batch manifest was not produced after ${batchRetries + 1} attempt(s): ${manifestError instanceof Error ? manifestError.message : String(manifestError)}`,
+          error: `Batch manifest was not produced after ${batchRetryCount + 1} attempt(s): ${manifestError}`,
         });
         continue;
       }
+
       const batchCaptureByKey = new Map(batch.map((capture) => [
         `${capture.screenId}::${capture.variant ?? capture.settingsTarget ?? ""}`,
         capture,
@@ -164,7 +205,6 @@ async function main() {
       if (code !== 0 && !(batchManifest.failures?.filter((failure) => failure.screenId !== warmupScreenId).length)) {
         combined.failures.push({ batch: batchName, error: `Capture runner exited with code ${code}.` });
       }
-      if (index < batches.length - 1 && batchCooldownMs > 0) await delay(batchCooldownMs);
     }
   } finally {
     await writeFile(configPath, originalConfigText);

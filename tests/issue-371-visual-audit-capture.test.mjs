@@ -51,7 +51,7 @@ test("issue #371 waits for the requested visible screen before sampling metadata
   assert.ok(script.lastIndexOf(readiness) < script.indexOf("const summary = await pageSummary(client, viewport)"));
 });
 
-test("issue #371 isolates long Windows captures, settles ports and warms each batch on its first destination", async () => {
+test("issue #371 isolates Windows-heavy captures, settles ports and warms each batch on its first destination", async () => {
   const [supervisor, captures] = await Promise.all([
     source("scripts/visual-audit-supervisor.mjs"),
     source("config/visual-audit-captures.json").then(JSON.parse),
@@ -79,9 +79,27 @@ test("issue #371 isolates long Windows captures, settles ports and warms each ba
   ]) assert.ok(supervisor.includes(contract), `Missing isolated-batch contract: ${contract}`);
   assert.match(supervisor, /Math\.min\(Number\(process\.env\.PLOTPICKLE_VISUAL_BATCH_SIZE \|\| 6\), 8\)/);
   assert.doesNotMatch(supervisor, /route: "\/\?workspace=dashboard"/);
-  for (const screenId of ["feedback", "engines"]) {
+  const isolatedDestinations = [
+    "learn",
+    "planner",
+    "visuals",
+    "script",
+    "pitch",
+    "build",
+    "feedback",
+    "engines",
+    "settings-appearance-accessibility",
+    "settings-runtime",
+    "settings-ollama",
+    "settings-comfyui",
+  ];
+  for (const screenId of isolatedDestinations) {
     const capture = captures.captures.find((item) => item.screenId === screenId);
-    assert.equal(capture?.isolated, true, `${screenId} must run in its own browser/server batch after producing very tall multi-viewport evidence`);
+    assert.equal(capture?.isolated, true, `${screenId} must run in its own browser/server batch on Windows`);
+  }
+  for (const variant of ["general", "project-defaults"]) {
+    const capture = captures.captures.find((item) => item.screenId === "settings-general" && item.variant === variant);
+    assert.equal(capture?.isolated, true, `settings-general ${variant} must run in its own browser/server batch on Windows`);
   }
 });
 

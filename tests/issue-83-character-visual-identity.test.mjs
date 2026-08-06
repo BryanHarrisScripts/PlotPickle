@@ -7,6 +7,7 @@ const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "
 const model = read("lib/character-visual-identity.ts");
 const generator = read("app/character-image-generator.tsx");
 const storyboard = read("app/visual-storyboard.tsx");
+const directorActions = read("app/creative-director-actions.tsx");
 
 test("character visual identity model stores immutable traits, references and approval state", () => {
   for (const field of ["approvedPrompt", "draftPrompt", "negativePrompt", "traits", "references", "wardrobeVariants", "sceneContinuityNotes", "approvedAt", "lockedAt", "pendingRevision"]) assert.match(model, new RegExp(field));
@@ -58,7 +59,7 @@ test("storyboard generation hands reference images and identity locks to provide
   assert.match(storyboard, /referenceImages: unique\(identityInputs\.flatMap/);
   assert.match(storyboard, /identityLocks: identityInputs\.map/);
   assert.match(storyboard, /Character identity status/);
-  assert.match(storyboard, /Identity review needed/);
+  assert.match(directorActions, /Continuity needs attention/);
 });
 
 test("continuity diagnostics distinguish missing, review and clear states", () => {

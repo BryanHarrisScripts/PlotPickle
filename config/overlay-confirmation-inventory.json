@@ -78,11 +78,6 @@
       "path": "app/use-cast-identity-queue.ts",
       "owner": "Graphic Novel cast identity queue",
       "registryScreen": "pitch"
-    },
-    {
-      "path": "app/visual-storyboard.tsx",
-      "owner": "Storyboard frame actions",
-      "registryScreen": "visuals"
     }
   ]
 }

@@ -10,6 +10,7 @@ export default function CreativeDirectorActions({
   storyTitle,
   storyMoment,
   currentVisual,
+  versions,
   identityWarning,
   state,
   message,
@@ -22,6 +23,7 @@ export default function CreativeDirectorActions({
   storyTitle: string;
   storyMoment: string;
   currentVisual?: ReactNode;
+  versions?: ReactNode;
   identityWarning?: string;
   state: CreativeDirectorActionState;
   message?: string;
@@ -43,6 +45,8 @@ export default function CreativeDirectorActions({
       <figure className={styles.preview}>
         {currentVisual ?? <figcaption className={styles.empty}><strong>No approved visual yet</strong><span>PlotPickle will build the direction from the story automatically.</span></figcaption>}
       </figure>
+
+      {versions ? <div className={styles.versions}>{versions}</div> : null}
 
       {identityWarning ? <p className={styles.warning}><strong>Continuity needs attention.</strong> {identityWarning}</p> : null}
 

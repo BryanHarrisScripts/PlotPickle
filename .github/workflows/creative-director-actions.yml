@@ -5,6 +5,9 @@ on:
     paths:
       - "app/creative-director-actions.tsx"
       - "app/creative-director-actions.module.css"
+      - "app/visual-storyboard.tsx"
+      - "app/visual-storyboard.module.css"
+      - "lib/project.ts"
       - "tests/issue-367-creative-director-actions.test.mjs"
       - ".github/workflows/creative-director-actions.yml"
   workflow_dispatch:

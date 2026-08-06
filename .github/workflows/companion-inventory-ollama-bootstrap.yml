@@ -12,6 +12,8 @@ on:
       - "config/ollama-starter-model.json"
       - "build/ollama-bootstrap-gateway.ts"
       - "build/local-ai-gateway.ts"
+      - "build/local-ai-installation-gateway.ts"
+      - "build/local-ai-installation-status.ts"
       - "app/writing-assistant-console.tsx"
       - "app/writing-assistant-console.module.css"
       - "docs/ISSUE-358-COMPANION-SOFTWARE.md"

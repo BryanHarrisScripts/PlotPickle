@@ -33,7 +33,7 @@ test("issue #371 captures real rendered pages through Chrome DevTools", async ()
   assert.doesNotMatch(script, /lighthouse|puppeteer|playwright/i);
 });
 
-test("issue #371 isolates long Windows captures, settles ports and warms each new app session", async () => {
+test("issue #371 isolates long Windows captures, settles ports and warms each batch on its first destination", async () => {
   const [supervisor, captures] = await Promise.all([
     source("scripts/visual-audit-supervisor.mjs"),
     source("config/visual-audit-captures.json").then(JSON.parse),
@@ -47,7 +47,10 @@ test("issue #371 isolates long Windows captures, settles ports and warms each ne
     "visual-audit-capture.mjs",
     "batch-${batchNumber}",
     "__visual-audit-warmup",
-    'route: "/?workspace=dashboard"',
+    "const firstCapture = batch[0]",
+    "route: firstCapture.route",
+    "settingsTarget: firstCapture.settingsTarget",
+    "Internal warmup for ${firstCapture.label}",
     "originalConfigText",
     "originalRegistryText",
     "await writeFile(configPath, originalConfigText)",
@@ -57,6 +60,7 @@ test("issue #371 isolates long Windows captures, settles ports and warms each ne
     "result.push([capture])",
   ]) assert.ok(supervisor.includes(contract), `Missing isolated-batch contract: ${contract}`);
   assert.match(supervisor, /Math\.min\(Number\(process\.env\.PLOTPICKLE_VISUAL_BATCH_SIZE \|\| 6\), 8\)/);
+  assert.doesNotMatch(supervisor, /route: "\/\?workspace=dashboard"/);
   for (const screenId of ["feedback", "engines"]) {
     const capture = captures.captures.find((item) => item.screenId === screenId);
     assert.equal(capture?.isolated, true, `${screenId} must run in its own browser/server batch after producing very tall multi-viewport evidence`);

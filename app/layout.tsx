@@ -47,8 +47,10 @@ export default function RootLayout({
       <body
         className="antialiased"
         style={{
-          "--font-geist-sans": "Arial, Helvetica, sans-serif",
-          "--font-geist-mono": '"Courier New", Courier, monospace',
+          "--font-geist-sans":
+            '"Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace',
+          "--font-geist-mono":
+            '"Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace',
         } as React.CSSProperties}
       >
         <AppearanceRuntime />

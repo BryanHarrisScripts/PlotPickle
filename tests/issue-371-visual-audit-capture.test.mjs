@@ -46,6 +46,7 @@ test("issue #371 isolates long Windows captures and warms each new app session",
     "await writeFile(configPath, originalConfigText)",
     "await writeFile(registryPath, originalRegistryText)",
     "visual-audit-manifest.json",
+    "Capture runner exited with code",
   ]) assert.ok(supervisor.includes(contract), `Missing isolated-batch contract: ${contract}`);
   assert.match(supervisor, /Math\.min\(Number\(process\.env\.PLOTPICKLE_VISUAL_BATCH_SIZE \|\| 6\), 8\)/);
 });

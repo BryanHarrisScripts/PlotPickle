@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { AI_SOURCE_GROUPS, AI_SOURCE_OPTION_LABELS, type AiSourceCapability } from "../lib/ai/source-registry";
 import { requestConnectionStatusRefresh } from "./use-connection-status";
 import styles from "./ai-routing-panel.module.css";
 import consoleStyles from "./ai-routing-source-console.module.css";
 
-type Capability = "text" | "image" | "video";
+type Capability = AiSourceCapability;
 type OptionState = {
   configured: boolean;
   ready: boolean;
@@ -43,34 +44,6 @@ type InstallationStatus = {
 
 const API = "/api/ai-routing";
 const INSTALLATIONS_API = "/api/local-ai/installations";
-
-const OPTION_LABELS: Record<Capability, Record<string, { title: string; description: string }>> = {
-  text: {
-    ollama: { title: "Ollama · Local", description: "Use the selected Ollama LLM installed on this computer." },
-    openai: { title: "OpenAI · Cloud", description: "Use the selected OpenAI text model through the user-owned API account." },
-    minimax: { title: "MiniMax Text · Cloud", description: "Use the MiniMax text model configured with the same account that can provide H3 video." },
-    off: { title: "Off", description: "Keep writing assistance off. PlotPickle remains fully usable." },
-  },
-  image: {
-    comfyui: { title: "ComfyUI · Local", description: "Generate images through the selected local checkpoint and reviewed workflow." },
-    "ollama-comfyui": { title: "Ollama + ComfyUI · Local", description: "Use the selected Ollama LLM to refine the visual prompt, then generate locally through ComfyUI." },
-    openai: { title: "OpenAI Images · Cloud", description: "Generate or edit images through the configured OpenAI image model." },
-    minimax: { title: "MiniMax Images · Cloud", description: "Use the configured MiniMax image model through the user-owned account." },
-    manual: { title: "Manual Import", description: "Create images elsewhere and import them without an AI request." },
-  },
-  video: {
-    "comfyui-native": { title: "ComfyUI H3 · Local", description: "Run user-owned MiniMax H3 weights locally through a reviewed ComfyUI workflow." },
-    minimax: { title: "MiniMax H3 · Cloud", description: "Send one approved video request to the configured MiniMax account." },
-    openai: { title: "OpenAI Video · Cloud", description: "Create an asynchronous OpenAI video job through the configured account." },
-    off: { title: "Off", description: "Do not generate video. Existing and imported video assets remain available." },
-  },
-};
-
-const GROUPS: Array<{ capability: Capability; title: string; description: string }> = [
-  { capability: "text", title: "Writing", description: "Choose one writing and planning engine: Ollama, OpenAI, MiniMax Text, or Off." },
-  { capability: "image", title: "Images", description: "Choose ComfyUI, Ollama-assisted ComfyUI, OpenAI, MiniMax, or Manual Import." },
-  { capability: "video", title: "Video", description: "Choose local ComfyUI H3, OpenAI Video, MiniMax H3 cloud, or Off." },
-];
 
 async function request<T>(path: string, method: "GET" | "POST" = "GET", body?: object) {
   const response = await fetch(path, {
@@ -161,7 +134,7 @@ export default function AiRoutingPanel() {
     const option = status?.[capability].options[route];
     if (!option) return;
     if (!routeCanRun(route, option)) {
-      setNotice(`${OPTION_LABELS[capability][route].title} cannot be turned on yet. Use its setup action, complete the test, then return here.`);
+      setNotice(`${AI_SOURCE_OPTION_LABELS[capability][route].title} cannot be turned on yet. Use its setup action, complete the test, then return here.`);
       return;
     }
     const cloud = option.locality === "cloud";
@@ -183,7 +156,7 @@ export default function AiRoutingPanel() {
         dataSharingAcknowledged: capability === "video" && cloud ? dataSharingAcknowledged : false,
       });
       setStatus(next);
-      setNotice(`${OPTION_LABELS[capability][route].title} is now active for ${capability === "text" ? "writing" : capability}.`);
+      setNotice(`${AI_SOURCE_OPTION_LABELS[capability][route].title} is now active for ${capability === "text" ? "writing" : capability}.`);
       refreshDashboardLights();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The route could not be selected.");
@@ -211,7 +184,7 @@ export default function AiRoutingPanel() {
         ] as const;
     const unavailable = choices.filter((item) => !routeCanRun(item.route, status[item.capability].options[item.route]));
     if (unavailable.length) {
-      setNotice(`${kind === "local" ? "Local-first" : "Cloud"} setup is not ready. Complete setup and testing for ${unavailable.map((item) => OPTION_LABELS[item.capability][item.route].title).join(", ")} first.`);
+      setNotice(`${kind === "local" ? "Local-first" : "Cloud"} setup is not ready. Complete setup and testing for ${unavailable.map((item) => AI_SOURCE_OPTION_LABELS[item.capability][item.route].title).join(", ")} first.`);
       return;
     }
     setWorking(`${kind}-preset`);
@@ -297,7 +270,7 @@ export default function AiRoutingPanel() {
     return <section className={styles.loading} aria-live="polite">{notice || "Checking AI routing…"}</section>;
   }
 
-  const activeOptions = GROUPS.map(({ capability }) => status[capability].options[status[capability].selected]);
+  const activeOptions = AI_SOURCE_GROUPS.map(({ capability }) => status[capability].options[status[capability].selected]);
   const localActive = activeOptions.filter((option) => option.locality === "local").length;
   const cloudActive = activeOptions.filter((option) => option.locality === "cloud").length;
   const sourceMode = localActive && cloudActive ? "HYBRID" : localActive ? "LOCAL" : cloudActive ? "CLOUD" : "NO AI / MANUAL";
@@ -336,11 +309,11 @@ export default function AiRoutingPanel() {
           </div>
         </div>
         <div className={styles.activeGrid}>
-          {GROUPS.map(({ capability, title }) => {
+          {AI_SOURCE_GROUPS.map(({ capability, title }) => {
             const group = status[capability];
             const selected = group.selected;
             const option = group.options[selected];
-            const label = OPTION_LABELS[capability][selected];
+            const label = AI_SOURCE_OPTION_LABELS[capability][selected];
             const tone = activeTone(option);
             return (
               <article data-tone={tone} key={capability}>
@@ -400,7 +373,7 @@ export default function AiRoutingPanel() {
       </section>
 
       <div className={styles.groups}>
-        {GROUPS.map(({ capability, title, description }) => {
+        {AI_SOURCE_GROUPS.map(({ capability, title, description }) => {
           const group = status[capability];
           return (
             <fieldset className={styles.group} key={capability}>
@@ -410,7 +383,7 @@ export default function AiRoutingPanel() {
               <ul className={styles.options}>
                 {Object.entries(group.options).map(([route, option]) => {
                   const selected = group.selected === route;
-                  const label = OPTION_LABELS[capability][route];
+                  const label = AI_SOURCE_OPTION_LABELS[capability][route];
                   const pending = working === `${capability}:${route}`;
                   const availability = installationForRoute(capability, route, option, installations);
                   const selectable = routeCanRun(route, option);

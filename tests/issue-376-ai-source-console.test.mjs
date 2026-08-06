@@ -6,7 +6,11 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #376 exposes the complete supported writing image and video matrix", async () => {
-  const panel = await source("app/ai-routing-panel.tsx");
+  const [panel, registrySource] = await Promise.all([
+    source("app/ai-routing-panel.tsx"),
+    source("config/ai-source-registry.json"),
+  ]);
+  const routeLabels = new Set(JSON.parse(registrySource).routes.map(({ label }) => label));
   for (const route of [
     "Ollama · Local",
     "OpenAI · Cloud",
@@ -20,7 +24,7 @@ test("issue #376 exposes the complete supported writing image and video matrix",
     "ComfyUI H3 · Local",
     "OpenAI Video · Cloud",
     "MiniMax H3 · Cloud",
-  ]) assert.ok(panel.includes(route), `Missing supported route: ${route}`);
+  ]) assert.ok(routeLabels.has(route), `Missing supported route: ${route}`);
   assert.match(panel, /name=\{`ai-route-\$\{capability\}`\}/);
   assert.match(panel, /type="radio"/);
   assert.doesNotMatch(panel, /type="checkbox"[^>]*name=\{`ai-route/);

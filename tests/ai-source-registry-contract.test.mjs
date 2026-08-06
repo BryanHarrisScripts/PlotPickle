@@ -17,11 +17,12 @@ test("global AI source registry is modular JSON with stable extension points", a
   assert.equal(registry.schemaVersion, 1);
   assert.equal(registry.registryId, "plotpickle.global-ai-sources");
   assert.deepEqual(registry.extensionPoints.routeGroups, ["text", "image", "video"]);
-  assert.deepEqual(registry.capabilities, [
+  assert.deepEqual(registry.capabilities.map(({ id, label }) => ({ id, label })), [
     { id: "text", label: "Writing" },
     { id: "image", label: "Images" },
     { id: "video", label: "Video" },
   ]);
+  assert.ok(registry.capabilities.every(({ description }) => description.length > 20));
   assert.match(registry.extensionPoints.providerModules, /\{providerId\}/);
   assert.ok(registry.extensionPoints.uiConsumers.includes("app/ai-routing-panel.tsx"));
 });
@@ -58,7 +59,7 @@ test("global AI source registry preserves the full route matrix", async () => {
 
 test("global AI source registry uses the live routing identifiers", async () => {
   const registry = await readRegistry();
-  assert.match(routingPanel, /type Capability = "text" \| "image" \| "video"/);
+  assert.match(routingPanel, /type Capability = AiSourceCapability/);
   assert.match(routingPanel, /text: "ollama" \| "openai" \| "minimax" \| "off"/);
   assert.match(routingPanel, /image: "comfyui" \| "ollama-comfyui" \| "openai" \| "minimax" \| "manual"/);
   assert.match(routingPanel, /video: "comfyui-native" \| "minimax" \| "openai" \| "off"/);

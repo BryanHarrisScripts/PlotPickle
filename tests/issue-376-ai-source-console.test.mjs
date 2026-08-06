@@ -70,7 +70,7 @@ test("issue #376 detects only reviewed local Ollama and ComfyUI installations", 
   ]);
   for (const contract of [
     "detectLocalAiInstallations",
-    "Programs\", \"Ollama\", \"ollama.exe",
+    'path.join(process.env.LOCALAPPDATA, "Programs", "Ollama", "ollama.exe")',
     "ComfyUI Desktop",
     "^(ComfyUI|Comfy Desktop)",
     "where.exe",

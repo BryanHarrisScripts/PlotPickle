@@ -53,8 +53,10 @@ test("issue #371 isolates long Windows captures and warms each new app session",
     "result.push([capture])",
   ]) assert.ok(supervisor.includes(contract), `Missing isolated-batch contract: ${contract}`);
   assert.match(supervisor, /Math\.min\(Number\(process\.env\.PLOTPICKLE_VISUAL_BATCH_SIZE \|\| 6\), 8\)/);
-  const feedback = captures.captures.find((capture) => capture.screenId === "feedback");
-  assert.equal(feedback?.isolated, true, "The exceptionally tall Feedback screen must run in its own browser/server batch");
+  for (const screenId of ["feedback", "engines"]) {
+    const capture = captures.captures.find((item) => item.screenId === screenId);
+    assert.equal(capture?.isolated, true, `${screenId} must run in its own browser/server batch after producing very tall multi-viewport evidence`);
+  }
 });
 
 test("issue #371 rejects screenshots of the wrong application screen", async () => {

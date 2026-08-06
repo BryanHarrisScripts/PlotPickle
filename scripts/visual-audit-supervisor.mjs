@@ -122,10 +122,12 @@ async function main() {
       const batchName = `batch-${batchNumber}`;
       const batchDirectory = path.join(outputDirectory, batchName);
       const screenIds = new Set(batch.map((capture) => capture.screenId));
+      const firstCapture = batch[0];
       const warmupCapture = {
         screenId: warmupScreenId,
-        label: "Internal application warmup",
-        route: "/?workspace=dashboard",
+        label: `Internal warmup for ${firstCapture.label}`,
+        route: firstCapture.route,
+        settingsTarget: firstCapture.settingsTarget,
         variant: "warmup",
         viewports: ["desktop"],
       };

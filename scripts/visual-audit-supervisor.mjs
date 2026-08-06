@@ -19,9 +19,24 @@ const fullConfig = JSON.parse(originalConfigText);
 const fullRegistry = JSON.parse(originalRegistryText);
 const captures = fullConfig.captures ?? [];
 
-function chunks(values, size) {
+function captureBatches(values, size) {
   const result = [];
-  for (let index = 0; index < values.length; index += size) result.push(values.slice(index, index + size));
+  let current = [];
+  const flush = () => {
+    if (!current.length) return;
+    result.push(current);
+    current = [];
+  };
+  for (const capture of values) {
+    if (capture.isolated) {
+      flush();
+      result.push([capture]);
+      continue;
+    }
+    current.push(capture);
+    if (current.length >= size) flush();
+  }
+  flush();
   return result;
 }
 
@@ -77,7 +92,7 @@ async function writeCombinedIndex(manifest) {
 async function main() {
   await rm(outputDirectory, { recursive: true, force: true });
   await mkdir(outputDirectory, { recursive: true });
-  const batches = chunks(captures, batchSize);
+  const batches = captureBatches(captures, batchSize);
   const combined = {
     schemaVersion: 2,
     generatedAt: new Date().toISOString(),

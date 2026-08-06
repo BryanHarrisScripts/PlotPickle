@@ -34,7 +34,10 @@ test("issue #371 captures real rendered pages through Chrome DevTools", async ()
 });
 
 test("issue #371 isolates long Windows captures and warms each new app session", async () => {
-  const supervisor = await source("scripts/visual-audit-supervisor.mjs");
+  const [supervisor, captures] = await Promise.all([
+    source("scripts/visual-audit-supervisor.mjs"),
+    source("config/visual-audit-captures.json").then(JSON.parse),
+  ]);
   for (const contract of [
     "PLOTPICKLE_VISUAL_BATCH_SIZE",
     "visual-audit-capture.mjs",
@@ -46,8 +49,12 @@ test("issue #371 isolates long Windows captures and warms each new app session",
     "await writeFile(configPath, originalConfigText)",
     "await writeFile(registryPath, originalRegistryText)",
     "visual-audit-manifest.json",
+    "capture.isolated",
+    "result.push([capture])",
   ]) assert.ok(supervisor.includes(contract), `Missing isolated-batch contract: ${contract}`);
   assert.match(supervisor, /Math\.min\(Number\(process\.env\.PLOTPICKLE_VISUAL_BATCH_SIZE \|\| 6\), 8\)/);
+  const feedback = captures.captures.find((capture) => capture.screenId === "feedback");
+  assert.equal(feedback?.isolated, true, "The exceptionally tall Feedback screen must run in its own browser/server batch");
 });
 
 test("issue #371 rejects screenshots of the wrong application screen", async () => {

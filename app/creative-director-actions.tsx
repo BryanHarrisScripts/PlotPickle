@@ -43,7 +43,7 @@ export default function CreativeDirectorActions({
       </header>
 
       <figure className={styles.preview}>
-        {currentVisual ?? <div className={styles.empty}><strong>No approved visual yet</strong><span>PlotPickle will build the direction from the story automatically.</span></div>}
+        {currentVisual ?? <p className={styles.empty}><strong>No approved visual yet</strong><span>PlotPickle will build the direction from the story automatically.</span></p>}
       </figure>
 
       {versions ? <div className={styles.versions}>{versions}</div> : null}

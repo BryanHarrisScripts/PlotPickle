@@ -43,14 +43,14 @@ export default function CreativeDirectorActions({
       </header>
 
       <figure className={styles.preview}>
-        {currentVisual ?? <figcaption className={styles.empty}><strong>No approved visual yet</strong><span>PlotPickle will build the direction from the story automatically.</span></figcaption>}
+        {currentVisual ?? <div className={styles.empty}><strong>No approved visual yet</strong><span>PlotPickle will build the direction from the story automatically.</span></div>}
       </figure>
 
       {versions ? <div className={styles.versions}>{versions}</div> : null}
 
       {identityWarning ? <p className={styles.warning}><strong>Continuity needs attention.</strong> {identityWarning}</p> : null}
 
-      <div className={styles.actions} aria-label="Direct this story moment">
+      <div className={styles.actions} role="group" aria-label="Direct this story moment">
         <button type="button" className={styles.primary} disabled={busy} onClick={onIllustrate}>
           <strong>{state === "illustrating" ? "Illustrating…" : "Illustrate"}</strong>
           <span>Create or try another image for this exact story moment.</span>

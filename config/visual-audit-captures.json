@@ -20,7 +20,7 @@
     { "screenId": "script", "label": "Write", "route": "/?workspace=write", "expectedText": "Write owns screenplay text" },
     { "screenId": "pitch", "label": "Graphic Novel", "route": "/?workspace=pitch", "expectedText": "Complete Graphic Novel" },
     { "screenId": "build", "label": "Build", "route": "/?workspace=build", "expectedText": "Build owns production planning" },
-    { "screenId": "feedback", "label": "Feedback", "route": "/?workspace=feedback", "expectedText": "Collect, compare and resolve feedback around the current work" },
+    { "screenId": "feedback", "label": "Feedback", "route": "/?workspace=feedback", "expectedText": "Collect, compare and resolve feedback around the current work", "isolated": true },
     { "screenId": "engines", "label": "Refine", "route": "/?workspace=refine", "expectedText": "Diagnose and propose" },
     { "screenId": "reports", "label": "Reports", "route": "/?workspace=reports", "expectedText": "Reports owns read-only summaries" },
     { "screenId": "collab", "label": "Collab", "route": "/?workspace=collab", "expectedText": "Shared work without mixing setup into the story" },

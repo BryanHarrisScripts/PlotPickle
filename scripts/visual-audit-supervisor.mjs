@@ -11,6 +11,7 @@ const configPath = path.join(root, "config", "visual-audit-captures.json");
 const registryPath = path.join(root, "config", "ui-ux-screen-registry.json");
 const runnerPath = path.join(root, "scripts", "visual-audit-capture.mjs");
 const batchSize = Math.max(1, Math.min(Number(process.env.PLOTPICKLE_VISUAL_BATCH_SIZE || 6), 8));
+const batchSettleMs = Math.max(0, Number(process.env.PLOTPICKLE_VISUAL_BATCH_SETTLE_MS || (process.platform === "win32" ? 3500 : 1000)));
 const warmupScreenId = "__visual-audit-warmup";
 
 const originalConfigText = await readFile(configPath, "utf8");
@@ -49,6 +50,10 @@ function run(command, args, options) {
     });
     child.once("exit", (code) => resolve(code ?? 1));
   });
+}
+
+function pause(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
 function htmlEscape(value) {
@@ -100,6 +105,7 @@ async function main() {
     coveredScreens: 0,
     batches: batches.length,
     batchSize,
+    batchSettleMs,
     viewports: fullConfig.viewports,
     items: [],
     failures: [],
@@ -107,6 +113,10 @@ async function main() {
 
   try {
     for (let index = 0; index < batches.length; index += 1) {
+      if (index > 0 && batchSettleMs > 0) {
+        console.log(`Waiting ${batchSettleMs}ms for the previous preview server and browser ports to close.`);
+        await pause(batchSettleMs);
+      }
       const batch = batches[index];
       const batchNumber = String(index + 1).padStart(2, "0");
       const batchName = `batch-${batchNumber}`;

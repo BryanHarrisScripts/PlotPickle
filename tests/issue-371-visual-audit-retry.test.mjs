@@ -11,6 +11,8 @@ test("issue #371 retries failed screen identity validation with isolated capture
   for (const contract of [
     "timeout-minutes: 40",
     'PLOTPICKLE_VISUAL_BATCH_SIZE: "6"',
+    'PLOTPICKLE_VISUAL_BATCH_RETRY_COUNT: "1"',
+    'PLOTPICKLE_VISUAL_BATCH_RETRY_SETTLE_MS: "8000"',
     'PLOTPICKLE_VISUAL_RETRY_BATCH_SIZE: "1"',
     '$PSNativeCommandUseErrorActionPreference = $false',
     "$initialValidation = $LASTEXITCODE",
@@ -20,4 +22,19 @@ test("issue #371 retries failed screen identity validation with isolated capture
 
   assert.ok((workflow.match(/node scripts\/visual-audit-supervisor\.mjs/g) ?? []).length >= 2, "The workflow must recapture after an identity failure");
   assert.ok((workflow.match(/node scripts\/visual-audit-validate\.mjs/g) ?? []).length >= 3, "The workflow must validate the initial, recovered and final evidence sets");
+});
+
+test("issue #371 retries only a crashed browser batch before abandoning captured evidence", async () => {
+  const supervisor = await source("scripts/visual-audit-supervisor.mjs");
+
+  for (const contract of [
+    "PLOTPICKLE_VISUAL_BATCH_RETRY_COUNT",
+    "PLOTPICKLE_VISUAL_BATCH_RETRY_SETTLE_MS",
+    "Retrying ${batchName}",
+    "await rm(batchDirectory, { recursive: true, force: true })",
+    "Batch manifest was not produced after ${batchRetryCount + 1} attempt(s)",
+  ]) assert.ok(supervisor.includes(contract), `Missing crashed-batch recovery contract: ${contract}`);
+
+  assert.ok(supervisor.includes("for (let attempt = 0; attempt <= batchRetryCount; attempt += 1)"), "The supervisor must use a bounded retry loop");
+  assert.ok(supervisor.includes("if (batchManifest) break"), "The supervisor must stop retrying as soon as evidence is produced");
 });

@@ -130,7 +130,8 @@ async function main() {
         try {
           batchManifest = JSON.parse(await readFile(path.join(batchDirectory, "visual-audit-manifest.json"), "utf8"));
           manifestError = null;
-          break;
+          if (code === 0 || attempt === batchRetries) break;
+          manifestError = new Error(`Capture runner exited with code ${code}.`);
         } catch (error) {
           manifestError = error;
         }

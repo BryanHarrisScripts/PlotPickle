@@ -16,6 +16,8 @@ test("issue #371 covers every canonical UI/UX registry screen", async () => {
   assert.deepEqual(Object.keys(captures.viewports), ["desktop", "tablet", "mobile"]);
   assert.equal(captures.settingsSessionKey, "plotpickle.settings.section");
   assert.ok(captures.captures.every((capture) => capture.expectedText), "Every capture needs a screen-identity assertion");
+  const overview = captures.captures.find((capture) => capture.screenId === "settings-overview-sitemap" && capture.variant === "overview");
+  assert.equal(overview?.expectedText, "Choose how PlotPickle works today.");
 });
 
 test("issue #371 captures real rendered pages through Chrome DevTools", async () => {
@@ -31,6 +33,17 @@ test("issue #371 captures real rendered pages through Chrome DevTools", async ()
     "captureBeyondViewport: true",
   ]) assert.ok(script.includes(contract), `Missing visual capture contract: ${contract}`);
   assert.doesNotMatch(script, /lighthouse|puppeteer|playwright/i);
+});
+
+test("issue #371 waits for the requested rendered screen before sampling metadata or pixels", async () => {
+  const script = await source("scripts/visual-audit-capture.mjs");
+  for (const contract of [
+    "async function waitForExpectedText",
+    "body.includes(${JSON.stringify(expected)})",
+    "Timed out waiting for screen identity",
+    "await waitForExpectedText(client, capture.expectedText)",
+  ]) assert.ok(script.includes(contract), `Missing screen readiness contract: ${contract}`);
+  assert.ok(script.indexOf("await waitForExpectedText(client, capture.expectedText)") < script.indexOf("const redaction = await evaluate(client, redactScript)"));
 });
 
 test("issue #371 isolates long Windows captures, settles ports and warms each batch on its first destination", async () => {

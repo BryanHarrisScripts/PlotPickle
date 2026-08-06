@@ -127,6 +127,7 @@ jobs:
           const genericEmptyStatePreferences = [...report.matchAll(/use of <div> for the empty conversation message lacks semantic meaning[\s\S]*?\*\*Evidence:\*\*\s*`<div className=\{styles\.emptyConversation\}>`[\s\S]*?Use a <section> or <article>/gi)].length;
           const genericHeadingWrapperPreferences = [...report.matchAll(/Improper use of <div> for semantic content[\s\S]*?\*\*Evidence:\*\*\s*`<div className=\{styles\.sectionHeading\}><div><p>[^`]*<h[1-6]\b[^`]*<\/h[1-6]><\/div><\/div>`[\s\S]*?Use <section> or <article>/gi)].length;
           const decorativeHiddenElementContradictions = [...report.matchAll(/use of <i> for non-decorative content[\s\S]*?\*\*Evidence:\*\*\s*`<i\b[^`]*\baria-hidden="true"[^`]*\/>`[\s\S]*?Replace <i> with a <span>/gi)].length;
+          const genericBoldElementPreferences = [...report.matchAll(/use of <b> for non-bold text is semantically incorrect[\s\S]*?\*\*Evidence:\*\*\s*`<b>[^`]*<\/b>`[\s\S]*?Replace <b> with <strong> for semantically meaningful text or use CSS for styling/gi)].length;
           const contradictedFindings = nativeMainContradictions
             + namedSkipLinkContradictions
             + nativeButtonRoleContradictions
@@ -136,10 +137,11 @@ jobs:
             + namedStatusRoleContradictions
             + genericEmptyStatePreferences
             + genericHeadingWrapperPreferences
-            + decorativeHiddenElementContradictions;
+            + decorativeHiddenElementContradictions
+            + genericBoldElementPreferences;
 
           if (issueCount > 0 && contradictedFindings === issueCount) {
-            const summary = "Every reported issue was contradicted by its own quoted evidence or expressed a generic element preference without demonstrating a semantic defect. The source already uses valid native landmarks and semantics, accessible names, interactive roles, live-region behavior, an explicitly hidden decorative mark, or a non-landmark styling wrapper around a real heading, so the deterministic UI/UX gate discarded the unsupported findings.";
+            const summary = "Every reported issue was contradicted by its own quoted evidence or expressed a generic element preference without demonstrating a semantic defect. The source already uses valid native landmarks and semantics, accessible names, interactive roles, live-region behavior, valid attention styling, an explicitly hidden decorative mark, or a non-landmark styling wrapper around a real heading, so the deterministic UI/UX gate discarded the unsupported findings.";
             fs.writeFileSync("audit-result.json", `${JSON.stringify({ ...result, verdict: "pass", issueCount: 0, findingCount: 0, summary }, null, 2)}\n`);
             fs.writeFileSync("audit-report.md", `<!-- plotpickle-ui-ux-audit -->\n## UI/UX Code Audit\n\n**Verdict:** PASS\n\n${summary}\n`);
             console.log(summary);

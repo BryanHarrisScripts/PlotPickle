@@ -52,6 +52,8 @@ jobs:
           PLOTPICKLE_VISUAL_PAGE_TIMEOUT_MS: "45000"
           PLOTPICKLE_VISUAL_MAX_HEIGHT: "20000"
           PLOTPICKLE_VISUAL_BATCH_SIZE: "6"
+          PLOTPICKLE_VISUAL_BATCH_RETRY_COUNT: "1"
+          PLOTPICKLE_VISUAL_BATCH_RETRY_SETTLE_MS: "8000"
           PLOTPICKLE_VISUAL_RETRY_BATCH_SIZE: "1"
         run: |
           $PSNativeCommandUseErrorActionPreference = $false

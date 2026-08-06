@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "registryId": "plotpickle.global-ai-sources",
+  "defaults": {
+    "text": "off",
+    "image": "manual",
+    "video": "off"
+  },
+  "capabilities": [
+    { "id": "text", "label": "Writing" },
+    { "id": "image", "label": "Images" },
+    { "id": "video", "label": "Video" }
+  ],
+  "principles": [
+    "A route is active per capability, not through one global local/cloud switch.",
+    "Local and cloud routes can be mixed and reported as hybrid.",
+    "Installed or configured is not the same as ready.",
+    "No paid or cloud provider is selected automatically.",
+    "Local installation detection uses reviewed local probes only."
+  ],
+  "states": [
+    "installed",
+    "configured",
+    "running",
+    "tested",
+    "ready",
+    "active",
+    "off"
+  ],
+  "providers": [
+    {
+      "id": "none",
+      "label": "No AI",
+      "kind": "none",
+      "cost": "free",
+      "requiresConsent": false,
+      "probe": null
+    },
+    {
+      "id": "manual-import",
+      "label": "Manual Import",
+      "kind": "manual",
+      "cost": "free",
+      "requiresConsent": false,
+      "probe": null
+    },
+    {
+      "id": "ollama",
+      "label": "Ollama",
+      "kind": "local",
+      "cost": "free",
+      "requiresConsent": false,
+      "probe": {
+        "installation": "reviewed-local-path-or-path-lookup",
+        "health": "http://127.0.0.1:11434/api/tags"
+      }
+    },
+    {
+      "id": "comfyui",
+      "label": "ComfyUI",
+      "kind": "local",
+      "cost": "free",
+      "requiresConsent": false,
+      "probe": {
+        "installation": "reviewed-local-path-or-windows-uninstall-registration",
+        "health": "http://127.0.0.1:8188/system_stats"
+      }
+    },
+    {
+      "id": "openai",
+      "label": "OpenAI",
+      "kind": "cloud",
+      "cost": "paid",
+      "requiresConsent": true,
+      "probe": {
+        "configuration": "encrypted-local-api-key",
+        "health": "provider-account-test"
+      }
+    },
+    {
+      "id": "minimax",
+      "label": "MiniMax",
+      "kind": "cloud",
+      "cost": "paid",
+      "requiresConsent": true,
+      "probe": {
+        "configuration": "encrypted-local-api-key",
+        "health": "provider-account-test"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "id": "text.off",
+      "capability": "text",
+      "label": "Off",
+      "providerIds": ["none"],
+      "selectableWhen": "always"
+    },
+    {
+      "id": "text.ollama",
+      "capability": "text",
+      "label": "Ollama local",
+      "providerIds": ["ollama"],
+      "selectableWhen": "ready"
+    },
+    {
+      "id": "text.openai",
+      "capability": "text",
+      "label": "OpenAI cloud",
+      "providerIds": ["openai"],
+      "selectableWhen": "ready"
+    },
+    {
+      "id": "text.minimax",
+      "capability": "text",
+      "label": "MiniMax Text cloud",
+      "providerIds": ["minimax"],
+      "selectableWhen": "ready"
+    },
+    {
+      "id": "image.manual",
+      "capability": "image",
+      "label": "Manual Import",
+      "providerIds": ["manual-import"],
+      "selectableWhen": "always"
+    },
+    {
+      "id": "image.comfyui",
+      "capability": "image",
+      "label": "ComfyUI local",
+      "providerIds": ["comfyui"],
+      "selectableWhen": "ready"
+    },
+    {
+      "id": "image.ollama-comfyui",
+      "capability": "image",
+      "label": "Ollama plus ComfyUI local",
+      "providerIds": ["ollama", "comfyui"],
+      "selectableWhen": "ready"
+    },
+    {
+      "id": "image.openai",
+      "capability": "image",
+      "label": "OpenAI Images cloud",
+      "providerIds": ["openai"],
+      "selectableWhen": "ready"
+    },
+    {
+      "id": "image.minimax",
+      "capability": "image",
+      "label": "MiniMax Images cloud",
+      "providerIds": ["minimax"],
+      "selectableWhen": "ready"
+    },
+    {
+      "id": "video.off",
+      "capability": "video",
+      "label": "Off",
+      "providerIds": ["none"],
+      "selectableWhen": "always"
+    },
+    {
+      "id": "video.comfyui-native",
+      "capability": "video",
+      "label": "ComfyUI H3 local",
+      "providerIds": ["comfyui"],
+      "selectableWhen": "ready"
+    },
+    {
+      "id": "video.openai",
+      "capability": "video",
+      "label": "OpenAI Video cloud",
+      "providerIds": ["openai"],
+      "selectableWhen": "ready"
+    },
+    {
+      "id": "video.minimax",
+      "capability": "video",
+      "label": "MiniMax H3 cloud",
+      "providerIds": ["minimax"],
+      "selectableWhen": "ready"
+    }
+  ],
+  "extensionPoints": {
+    "providerModules": "build/ai-source-probes/{providerId}.ts",
+    "routeGroups": ["text", "image", "video"],
+    "uiConsumers": ["app/ai-routing-panel.tsx"],
+    "diagnosticConsumers": ["build/ai-routing-gateway.ts", "build/local-ai-installation-gateway.ts"]
+  }
+}

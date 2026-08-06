@@ -122,7 +122,7 @@ test("issue #353 separates ComfyUI service reachability from capability readines
     "missingImageNodes",
     "missingWorkflowNodes",
     "checkpoints",
-    'requestJson(baseUrl, "/system_stats")',
+    'requestJson(candidate, "/system_stats")',
     "ComfyUI is running, but PlotPickle is not ready to generate yet",
     "localhost:8188",
   ]) assert.ok(diagnostics.includes(contract), `Missing ComfyUI diagnostic contract: ${contract}`);

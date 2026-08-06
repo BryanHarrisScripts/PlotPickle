@@ -2,10 +2,15 @@
   "schemaVersion": 1,
   "registryId": "plotpickle.global-ai-sources",
   "defaults": {
-    "writing": "off",
-    "images": "manual",
+    "text": "off",
+    "image": "manual",
     "video": "off"
   },
+  "capabilities": [
+    { "id": "text", "label": "Writing" },
+    { "id": "image", "label": "Images" },
+    { "id": "video", "label": "Video" }
+  ],
   "principles": [
     "A route is active per capability, not through one global local/cloud switch.",
     "Local and cloud routes can be mixed and reported as hybrid.",
@@ -86,64 +91,64 @@
   ],
   "routes": [
     {
-      "id": "writing.off",
-      "capability": "writing",
+      "id": "text.off",
+      "capability": "text",
       "label": "Off",
       "providerIds": ["none"],
       "selectableWhen": "always"
     },
     {
-      "id": "writing.ollama",
-      "capability": "writing",
+      "id": "text.ollama",
+      "capability": "text",
       "label": "Ollama local",
       "providerIds": ["ollama"],
       "selectableWhen": "ready"
     },
     {
-      "id": "writing.openai",
-      "capability": "writing",
+      "id": "text.openai",
+      "capability": "text",
       "label": "OpenAI cloud",
       "providerIds": ["openai"],
       "selectableWhen": "ready"
     },
     {
-      "id": "writing.minimax-text",
-      "capability": "writing",
+      "id": "text.minimax",
+      "capability": "text",
       "label": "MiniMax Text cloud",
       "providerIds": ["minimax"],
       "selectableWhen": "ready"
     },
     {
-      "id": "images.manual",
-      "capability": "images",
+      "id": "image.manual",
+      "capability": "image",
       "label": "Manual Import",
       "providerIds": ["manual-import"],
       "selectableWhen": "always"
     },
     {
-      "id": "images.comfyui",
-      "capability": "images",
+      "id": "image.comfyui",
+      "capability": "image",
       "label": "ComfyUI local",
       "providerIds": ["comfyui"],
       "selectableWhen": "ready"
     },
     {
-      "id": "images.ollama-comfyui",
-      "capability": "images",
+      "id": "image.ollama-comfyui",
+      "capability": "image",
       "label": "Ollama plus ComfyUI local",
       "providerIds": ["ollama", "comfyui"],
       "selectableWhen": "ready"
     },
     {
-      "id": "images.openai",
-      "capability": "images",
+      "id": "image.openai",
+      "capability": "image",
       "label": "OpenAI Images cloud",
       "providerIds": ["openai"],
       "selectableWhen": "ready"
     },
     {
-      "id": "images.minimax",
-      "capability": "images",
+      "id": "image.minimax",
+      "capability": "image",
       "label": "MiniMax Images cloud",
       "providerIds": ["minimax"],
       "selectableWhen": "ready"
@@ -156,7 +161,7 @@
       "selectableWhen": "always"
     },
     {
-      "id": "video.comfyui-h3",
+      "id": "video.comfyui-native",
       "capability": "video",
       "label": "ComfyUI H3 local",
       "providerIds": ["comfyui"],
@@ -170,7 +175,7 @@
       "selectableWhen": "ready"
     },
     {
-      "id": "video.minimax-h3",
+      "id": "video.minimax",
       "capability": "video",
       "label": "MiniMax H3 cloud",
       "providerIds": ["minimax"],
@@ -179,7 +184,7 @@
   ],
   "extensionPoints": {
     "providerModules": "build/ai-source-probes/{providerId}.ts",
-    "routeGroups": ["writing", "images", "video"],
+    "routeGroups": ["text", "image", "video"],
     "uiConsumers": ["app/ai-routing-panel.tsx"],
     "diagnosticConsumers": ["build/ai-routing-gateway.ts", "build/local-ai-installation-gateway.ts"]
   }

@@ -26,7 +26,7 @@
     { "screenId": "collab", "label": "Collab", "route": "/?workspace=collab", "expectedText": "Shared work without mixing setup into the story" },
     { "screenId": "community", "label": "Community", "route": "/?workspace=community", "expectedText": "Your Buzz community" },
     { "screenId": "suggest-report", "label": "Suggest / Report", "route": "/?workspace=collab", "variant": "support-entry", "expectedText": "Shared work without mixing setup into the story" },
-    { "screenId": "settings-overview-sitemap", "label": "Settings overview", "route": "/?workspace=settings", "variant": "overview", "expectedText": "Compare the complete story workflow" },
+    { "screenId": "settings-overview-sitemap", "label": "Settings overview", "route": "/?workspace=settings", "variant": "overview", "expectedText": "Choose how PlotPickle works today." },
     { "screenId": "settings-overview-sitemap", "label": "Settings Sitemap", "route": "/?workspace=settings", "settingsTarget": "sitemap", "variant": "sitemap", "expectedText": "Open any PlotPickle workspace from one map" },
     { "screenId": "settings-general", "label": "General", "route": "/?workspace=settings", "settingsTarget": "general", "variant": "general", "expectedText": "General" },
     { "screenId": "settings-general", "label": "Project Defaults", "route": "/?workspace=settings", "settingsTarget": "project-defaults", "variant": "project-defaults", "expectedText": "Project Defaults" },

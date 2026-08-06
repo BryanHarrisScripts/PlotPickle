@@ -124,6 +124,7 @@ jobs:
           const validLiveRegionContradictions = [...report.matchAll(/Redundant ARIA attribute found[\s\S]*?\*\*Evidence:\*\*\s*`<section\b[^`]*\baria-live="(?:polite|assertive)"[^`]*>`/gi)].length;
           const existingStatusRoleContradictions = [...report.matchAll(/Missing ARIA role[\s\S]*?\*\*Evidence:\*\*\s*`[^`]*\brole="status"[^`]*`[\s\S]*?\*\*Suggested fix:\*\*\s*Add role="alert"/gi)].length;
           const namedStatusRoleContradictions = [...report.matchAll(/ARIA role ['"]status['"] used without a valid accessible name[\s\S]*?\*\*Evidence:\*\*\s*`[^`]*\brole="status"[^`]*\baria-label="[^"]+"[^`]*`/gi)].length;
+          const paragraphStatusContradictions = [...report.matchAll(/Redundant ARIA role ['"]status['"] on <p> element[\s\S]*?\*\*Evidence:\*\*\s*`<p\b[^`]*\brole="status"[^`]*>`[\s\S]*?\*\*Suggested fix:\*\*\s*Remove the role attribute as <p> is not a live region by default/gi)].length;
           const genericEmptyStatePreferences = [...report.matchAll(/use of <div> for the empty conversation message lacks semantic meaning[\s\S]*?\*\*Evidence:\*\*\s*`<div className=\{styles\.emptyConversation\}>`[\s\S]*?Use a <section> or <article>/gi)].length;
           const genericHeadingWrapperPreferences = [...report.matchAll(/Improper use of <div> for semantic content[\s\S]*?\*\*Evidence:\*\*\s*`<div className=\{styles\.sectionHeading\}><div><p>[^`]*<h[1-6]\b[^`]*<\/h[1-6]><\/div><\/div>`[\s\S]*?Use <section> or <article>/gi)].length;
           const decorativeHiddenElementContradictions = [...report.matchAll(/use of <i> for non-decorative content[\s\S]*?\*\*Evidence:\*\*\s*`<i\b[^`]*\baria-hidden="true"[^`]*\/>`[\s\S]*?Replace <i> with a <span>/gi)].length;
@@ -135,6 +136,7 @@ jobs:
             + validLiveRegionContradictions
             + existingStatusRoleContradictions
             + namedStatusRoleContradictions
+            + paragraphStatusContradictions
             + genericEmptyStatePreferences
             + genericHeadingWrapperPreferences
             + decorativeHiddenElementContradictions

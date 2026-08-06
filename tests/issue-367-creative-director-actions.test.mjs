@@ -20,7 +20,9 @@ test("Creative Director actions keep story and intent ahead of provider configur
 test("Creative Director actions expose plain-language recovery and accessible status", () => {
   assert.match(source, /Open generation settings/);
   assert.match(source, /role="status"/);
-  assert.match(source, /role="group" aria-label="Direct this story moment"/);
+  assert.match(source, /<fieldset className={styles\.actions}>/);
+  assert.match(source, /<legend className={styles\.actionLegend}>Direct this story moment<\/legend>/);
+  assert.doesNotMatch(source, /role="group"/);
   assert.match(source, /<figure className={styles\.preview}>/);
   assert.match(source, /<div className={styles\.empty}>/);
   assert.doesNotMatch(source, /<figcaption className={styles\.empty}>/);
@@ -33,6 +35,8 @@ test("Creative Director actions protect responsive, focus, reduced-motion and fo
   assert.match(styles, /@media\(prefers-reduced-motion:reduce\)/);
   assert.match(styles, /@media\(forced-colors:active\)/);
   assert.match(styles, /min-height:44px/);
+  assert.match(styles, /\.actionLegend\{position:absolute/);
+  assert.match(styles, /min-inline-size:0/);
 });
 
 test("Creative Director actions are the primary Storyboard inspector flow", () => {

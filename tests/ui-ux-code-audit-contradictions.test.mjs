@@ -22,3 +22,9 @@ test("UI audit does not invent controls or application roles", () => {
   assert.match(source, /Native video controls expose their own accessible interaction model/);
   assert.match(source, /A non-interactive presentation container without an event handler is not a button/);
 });
+
+test("UI audit resolves JSX variable ARIA references", () => {
+  assert.match(source, /expressionReference = finding\.evidence\.match/);
+  assert.match(source, /id=\\\\\{/);
+  assert.match(source, /A JSX aria-labelledby or aria-describedby expression may validly reference/);
+});

@@ -50,7 +50,8 @@ export default function CreativeDirectorActions({
 
       {identityWarning ? <p className={styles.warning}><strong>Continuity needs attention.</strong> {identityWarning}</p> : null}
 
-      <div className={styles.actions} role="group" aria-label="Direct this story moment">
+      <fieldset className={styles.actions}>
+        <legend className={styles.actionLegend}>Direct this story moment</legend>
         <button type="button" className={styles.primary} disabled={busy} onClick={onIllustrate}>
           <strong>{state === "illustrating" ? "Illustrating…" : "Illustrate"}</strong>
           <span>Create or try another image for this exact story moment.</span>
@@ -59,7 +60,7 @@ export default function CreativeDirectorActions({
           <strong>{state === "animating" ? "Animating…" : "Animate"}</strong>
           <span>Turn the current approved image and story action into a video.</span>
         </button>
-      </div>
+      </fieldset>
 
       {message ? <p className={state === "error" ? styles.error : styles.message} role="status">{message}</p> : null}
 

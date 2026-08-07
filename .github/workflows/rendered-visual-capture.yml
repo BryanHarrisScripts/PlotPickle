@@ -37,7 +37,7 @@ jobs:
             base="$(git merge-base HEAD origin/main)"
             head="HEAD"
           fi
-          files="$(git diff --name-only --diff-filter=ACMRT "$base" "$head" | grep -E '\.(html|css|scss|jsx|tsx|vue)$|^config/visual-capture-registry\.json$|^scripts/visual-capture\.mjs$' || true)"
+          files="$(git diff --name-only --diff-filter=ACMRT "$base" "$head" | grep -E '\.(html|css|scss|jsx|tsx|vue)$|^config/visual-capture-registry\.json$|^scripts/visual-capture\.mjs$|^\.github/workflows/rendered-visual-capture\.yml$' || true)"
           if [[ -n "$files" ]]; then echo 'has_ui=true' >> "$GITHUB_OUTPUT"; else echo 'has_ui=false' >> "$GITHUB_OUTPUT"; fi
 
       - name: Set up Node

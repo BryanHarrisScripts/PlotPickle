@@ -11,7 +11,7 @@
     { "id": "plan", "path": "/?workspace=plan" },
     { "id": "storyboard", "path": "/?workspace=storyboard" },
     { "id": "write", "path": "/?workspace=write" },
-    { "id": "graphic-novel", "path": "/?workspace=graphic-novel" },
+    { "id": "graphic-novel", "path": "/?workspace=pitch" },
     { "id": "build", "path": "/?workspace=build" },
     { "id": "feedback", "path": "/?workspace=feedback" },
     { "id": "refine", "path": "/?workspace=refine" },

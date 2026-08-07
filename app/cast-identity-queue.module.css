@@ -122,6 +122,53 @@
 .queue span { color: #667f7b; font-size: 10px; text-transform: capitalize; }
 .queue small { grid-column: 1 / -1; color: #97554a; }
 
+:global(html[data-plotpickle-theme="dark"]) .panel {
+  border-color: #2b4050;
+  background: linear-gradient(135deg, #111b25, #0d1822);
+  color: #e8f5f6;
+}
+
+:global(html[data-plotpickle-theme="dark"]) .heading span {
+  color: #4ecfe1;
+}
+
+:global(html[data-plotpickle-theme="dark"]) .heading p,
+:global(html[data-plotpickle-theme="dark"]) .notice,
+:global(html[data-plotpickle-theme="dark"]) .metrics span,
+:global(html[data-plotpickle-theme="dark"]) .queue span {
+  color: #9fb5ba;
+}
+
+:global(html[data-plotpickle-theme="dark"]) .metrics div,
+:global(html[data-plotpickle-theme="dark"]) .queue li,
+:global(html[data-plotpickle-theme="dark"]) .actions button {
+  border-color: #314a5b;
+  background: #0d1822;
+  color: #e8f5f6;
+}
+
+:global(html[data-plotpickle-theme="dark"]) .confirmation {
+  border-color: #66572e;
+  background: #2b2415;
+  color: #e6d9ad;
+}
+
+:global(html[data-plotpickle-theme="dark"]) .actions .primary {
+  border-color: #32d4df;
+  background: #123640;
+  color: #d9ffff;
+}
+
+:global(html[data-plotpickle-theme="dark"]) .actions .stop {
+  border-color: #9b554d;
+  background: #2a1918;
+  color: #ffc1b9;
+}
+
+:global(html[data-plotpickle-theme="dark"]) .queue small {
+  color: #ffaaa0;
+}
+
 @media (max-width: 760px) {
   .heading { display: grid; }
   .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }

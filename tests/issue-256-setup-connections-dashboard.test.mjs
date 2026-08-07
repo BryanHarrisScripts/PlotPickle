@@ -64,10 +64,11 @@ test("issue #256 uses verified lifecycle semantics and tests all real connection
   assert.match(setup, /connection\.state === "error" && connection\.lastSuccessfulConnection/);
 });
 
-test("first-run configuration overview is shared by marketing and the live Dashboard", async () => {
+test("first-run configuration remains available in the live product without interrupting the public visual-storytelling splash", async () => {
   const overview = await source("app/configuration-dashboard-overview.tsx");
   const host = await source("app/configuration-dashboard-host.tsx");
   const splash = await source("app/marketing-splash.tsx");
+  const base = await source("app/marketing-splash-base.tsx");
   const layout = await source("app/layout.tsx");
   const ordering = await source("app/first-run-configuration-dashboard.css");
 
@@ -89,8 +90,10 @@ test("first-run configuration overview is shared by marketing and the live Dashb
   assert.doesNotMatch(overview, /Anthropic|Modal|Runway|Pika Labs|future provider/i);
   assert.match(host, /createPortal/);
   assert.doesNotMatch(layout, /ConfigurationDashboardHost/);
-  assert.match(splash, /ConfigurationDashboardOverview/);
-  assert.match(splash, /children: \[children\[0\], preview/);
+  assert.doesNotMatch(splash, /ConfigurationDashboardOverview/);
+  assert.doesNotMatch(splash, /children: \[children\[0\], preview/);
+  assert.match(base, /Storytelling<br \/>Has Changed\./);
+  assert.match(base, /provider, model, endpoint and billing details stay in Settings/i);
   assert.match(layout, /first-run-configuration-dashboard\.css/);
   assert.match(ordering, /#dashboard-setup\{order:-20\}/);
 });

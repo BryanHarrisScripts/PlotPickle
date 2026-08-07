@@ -180,11 +180,11 @@ export default function ScriptWorkspace({ project, mode, initialBlockNumber, ini
         }),
       });
       const result = await response.json() as AiResponse;
-      if (!response.ok || !result.text) throw new Error(result.message || "AI returned no suggestion.");
+      if (!response.ok || !result.text) throw new Error("Writing assistance is unavailable. Open Settings to check the writing setup.");
       setAiSuggestion(result.text);
       setAiState("idle");
-    } catch (error) {
-      setAiSuggestion(error instanceof Error ? error.message : "AI assistance is unavailable.");
+    } catch {
+      setAiSuggestion("Writing assistance is unavailable. Open Settings to check the writing setup.");
       setAiState("error");
     }
   }
@@ -315,11 +315,11 @@ export default function ScriptWorkspace({ project, mode, initialBlockNumber, ini
           <div className={styles.miniBrief}><span>Current mini-block</span><strong>{block.number}.{mini.number} {mini.label}</strong><p>{mini.function}</p><dl><div><dt>Objective</dt><dd>{mini.objective || "Open in the Block plan to answer."}</dd></div><div><dt>Resistance</dt><dd>{mini.resistance || block.conflict || "Not answered yet."}</dd></div><div><dt>Turn</dt><dd>{mini.turn || block.choice || "Not answered yet."}</dd></div><div><dt>Dialogue intention</dt><dd>{mini.dialogueIntention || "Not answered yet."}</dd></div></dl></div>
           <CraftDiagnosticSummary project={project} focus={{ blockNumber, sceneId: currentSceneEntry?.sceneId }} />
           <div className={styles.aiCard}>
-            <span>Optional AI assistant</span><h2>Ask from this exact story position.</h2><p>PlotPickle sends the current Block, mini-block and character context through the provider connected in Settings.</p>
+            <span>Optional writing assistant</span><h2>Develop this exact story moment.</h2><p>PlotPickle already has the current Block, mini-block and character context. Describe what you want to write next.</p>
             <textarea value={aiDirection} onChange={(event) => setAiDirection(event.target.value)} placeholder="For example: Draft a tense exchange where Mara hides what she learned." rows={5} />
-            <button type="button" onClick={askAi} disabled={!aiDirection.trim() || aiState === "working"}>{aiState === "working" ? "Generating…" : "Generate suggestion"}</button>
-            {aiSuggestion ? <div className={aiState === "error" ? styles.aiError : styles.aiResult}><p>{aiSuggestion}</p>{aiState !== "error" ? <div><button type="button" onClick={() => applyAi("action")}>Insert as action</button><button type="button" onClick={() => applyAi("dialogue")}>Insert as dialogue</button></div> : null}</div> : null}
-            <small>Nothing is inserted until you approve it. AI is optional.</small>
+            <button type="button" onClick={askAi} disabled={!aiDirection.trim() || aiState === "working"}>{aiState === "working" ? "Writing…" : "Suggest a version"}</button>
+            {aiSuggestion ? <div className={aiState === "error" ? styles.aiError : styles.aiResult}><p>{aiSuggestion}</p>{aiState !== "error" ? <div><button type="button" onClick={() => applyAi("action")}>Insert as action</button><button type="button" onClick={() => applyAi("dialogue")}>Insert as dialogue</button></div> : <button type="button" onClick={() => window.location.assign("/ai-routing")}>Open Settings</button>}</div> : null}
+            <small>Nothing is added to the screenplay until you choose to insert it. Writing assistance is optional.</small>
           </div>
           {selected ? <div className={styles.assignmentCard}>
             <span>Selected element</span>

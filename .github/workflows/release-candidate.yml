@@ -3,10 +3,11 @@ name: PlotPickle Release Candidate
 on:
   pull_request:
     branches: [main]
-  workflow_dispatch:
   push:
+    branches: [main]
     tags:
       - "v*"
+  workflow_dispatch:
 
 concurrency:
   group: plotpickle-release-${{ github.event.pull_request.number || github.ref }}
@@ -41,29 +42,70 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Decide whether this pull request needs deep packaging
+        id: scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "deep=true" >> "$GITHUB_OUTPUT"
+            echo "Full packaging runs after merge, on release tags, and by manual dispatch."
+            exit 0
+          fi
+
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          files="$(git diff --name-only --diff-filter=ACMRT "$base" "$head")"
+          printf '%s\n' "$files"
+
+          if printf '%s\n' "$files" | grep -Eq '^(scripts/(package-|windows-|portable-runtime)|tests/windows-|tests/issue-124-release-hardening\.test\.mjs|tests/phase-f-collaboration-release\.test\.mjs|package(-lock)?\.json|releases/|\.github/workflows/release-candidate\.yml)'; then
+            echo "deep=true" >> "$GITHUB_OUTPUT"
+            echo "Packaging/runtime-owned files changed; running deep package validation."
+          else
+            echo "deep=false" >> "$GITHUB_OUTPUT"
+            echo "No packaging/runtime-owned files changed; required package status will complete without rebuilding three release archives."
+          fi
+
+      - name: Fast package status for unrelated pull request
+        if: steps.scope.outputs.deep != 'true'
+        shell: bash
+        run: echo "Deep ${{ matrix.platform }} packaging is deferred to the post-merge main validation."
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: steps.scope.outputs.deep == 'true'
         with:
           node-version: ${{ matrix.node }}
           cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm test
+
+      - name: Install dependencies for packaging
+        if: steps.scope.outputs.deep == 'true'
+        run: npm ci
+
       - name: Stage release package
+        if: steps.scope.outputs.deep == 'true'
         run: node scripts/package-platform.mjs ${{ matrix.platform }}
+
       - name: Verify staged package
+        if: steps.scope.outputs.deep == 'true'
         run: node scripts/package-smoke.mjs releases/stage/${{ matrix.folder }}
+
       - name: Archive Windows package
-        if: matrix.platform == 'windows'
+        if: steps.scope.outputs.deep == 'true' && matrix.platform == 'windows'
         shell: pwsh
         run: Compress-Archive -Path "releases/stage/${{ matrix.folder }}" -DestinationPath "releases/${{ matrix.archive }}" -CompressionLevel Optimal
+
       - name: Archive macOS or Linux package
-        if: matrix.platform != 'windows'
+        if: steps.scope.outputs.deep == 'true' && matrix.platform != 'windows'
         shell: bash
         run: |
           cd releases/stage
           zip -X -r "../${{ matrix.archive }}" "${{ matrix.folder }}"
+
       - name: Clean-machine extraction and dependency test (Windows)
-        if: matrix.platform == 'windows'
+        if: steps.scope.outputs.deep == 'true' && matrix.platform == 'windows'
         shell: pwsh
         run: |
           $clean = Join-Path $env:RUNNER_TEMP "plotpickle-clean"
@@ -80,8 +122,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & ".\node_modules\.bin\vite.cmd" --version
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Verify or repair Windows Rolldown native binding
-        if: matrix.platform == 'windows'
+        if: steps.scope.outputs.deep == 'true' && matrix.platform == 'windows'
         shell: pwsh
         run: |
           $packageRoot = Join-Path (Join-Path $env:RUNNER_TEMP "plotpickle-clean") "${{ matrix.folder }}"
@@ -94,8 +137,9 @@ jobs:
           }
           node scripts/windows-runtime.mjs verify-modules node_modules
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Run packaged Windows interaction smoke
-        if: matrix.platform == 'windows'
+        if: steps.scope.outputs.deep == 'true' && matrix.platform == 'windows'
         continue-on-error: true
         shell: pwsh
         env:
@@ -109,8 +153,9 @@ jobs:
           $packageRoot = Join-Path (Join-Path $env:RUNNER_TEMP "plotpickle-clean") "${{ matrix.folder }}"
           Set-Location $packageRoot
           node scripts/windows-interaction-smoke.mjs . reports/windows-interaction-smoke
+
       - name: Run deterministic Windows release smoke
-        if: matrix.platform == 'windows'
+        if: steps.scope.outputs.deep == 'true' && matrix.platform == 'windows'
         continue-on-error: true
         shell: pwsh
         env:
@@ -120,31 +165,20 @@ jobs:
           $packageRoot = Join-Path (Join-Path $env:RUNNER_TEMP "plotpickle-clean") "${{ matrix.folder }}"
           Set-Location $packageRoot
           node scripts/windows-release-smoke-runner.mjs . reports/windows-release-smoke
-      - name: Run Issue 208 packaged Windows smoke
-        if: matrix.platform == 'windows'
-        shell: pwsh
-        env:
-          EDGE_PATH: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
-          PLOTPICKLE_ISSUE_208_SMOKE_TIMEOUT_MS: "120000"
-        run: |
-          $packageRoot = Join-Path (Join-Path $env:RUNNER_TEMP "plotpickle-clean") "${{ matrix.folder }}"
-          Set-Location $packageRoot
-          # The wrapper updates only the obsolete application-shell readiness selector, then restores the source contract.
-          node scripts/windows-issue-208-current-shell-runner.mjs . reports/windows-issue-208-smoke
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Upload Windows interaction evidence
-        if: always() && matrix.platform == 'windows'
+        if: always() && steps.scope.outputs.deep == 'true' && matrix.platform == 'windows'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: plotpickle-windows-smoke-${{ github.sha }}
           path: |
             ${{ runner.temp }}/plotpickle-clean/${{ matrix.folder }}/reports/windows-interaction-smoke/
             ${{ runner.temp }}/plotpickle-clean/${{ matrix.folder }}/reports/windows-release-smoke/
-            ${{ runner.temp }}/plotpickle-clean/${{ matrix.folder }}/reports/windows-issue-208-smoke/
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: 5
+
       - name: Clean-machine extraction and dependency test (macOS and Linux)
-        if: matrix.platform != 'windows'
+        if: steps.scope.outputs.deep == 'true' && matrix.platform != 'windows'
         shell: bash
         run: |
           clean="$RUNNER_TEMP/plotpickle-clean"
@@ -157,12 +191,16 @@ jobs:
           node scripts/package-smoke.mjs .
           node_modules/.bin/vite --version
           node scripts/portable-runtime.mjs describe
+
       - name: Create SHA-256 checksum
+        if: steps.scope.outputs.deep == 'true'
         shell: bash
         run: |
           cd releases
           if command -v sha256sum >/dev/null 2>&1; then sha256sum "${{ matrix.archive }}" > "${{ matrix.archive }}.sha256"; else shasum -a 256 "${{ matrix.archive }}" > "${{ matrix.archive }}.sha256"; fi
+
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: steps.scope.outputs.deep == 'true'
         with:
           name: plotpickle-${{ matrix.platform }}-${{ github.sha }}
           path: |

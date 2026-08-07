@@ -5,6 +5,17 @@ import styles from "./creative-director-actions.module.css";
 
 export type CreativeDirectorActionState = "idle" | "illustrating" | "animating" | "error";
 
+function writerFacingMessage(message?: string) {
+  if (!message) return "";
+  return message
+    .replace(/MiniMax H3/gi, "the active video route")
+    .replace(/Open generation settings/gi, "Open Settings")
+    .replace(/provider job/gi, "generation job")
+    .replace(/provider request/gi, "generation request")
+    .replace(/configured provider/gi, "configured route")
+    .replace(/providers?/gi, "routes");
+}
+
 export default function CreativeDirectorActions({
   storyLabel,
   storyTitle,
@@ -33,6 +44,7 @@ export default function CreativeDirectorActions({
   advanced: ReactNode;
 }) {
   const busy = state === "illustrating" || state === "animating";
+  const visibleMessage = writerFacingMessage(message);
 
   return (
     <section className={styles.panel}>
@@ -54,25 +66,25 @@ export default function CreativeDirectorActions({
         <legend className={styles.actionLegend}>Direct this story moment</legend>
         <button type="button" className={styles.primary} disabled={busy} onClick={onIllustrate}>
           <strong>{state === "illustrating" ? "Illustrating…" : "Illustrate"}</strong>
-          <span>Create or try another image for this exact story moment.</span>
+          <span>Create or try another image from this story moment and its approved visual rules.</span>
         </button>
         <button type="button" className={styles.secondary} disabled={busy} onClick={onAnimate}>
           <strong>{state === "animating" ? "Animating…" : "Animate"}</strong>
-          <span>Turn the current approved image and story action into a video.</span>
+          <span>Turn the current approved image and story action into a moving version.</span>
         </button>
       </fieldset>
 
-      {message ? <p className={state === "error" ? styles.error : styles.message} role="status">{message}</p> : null}
+      {visibleMessage ? <p className={state === "error" ? styles.error : styles.message} role="status">{visibleMessage}</p> : null}
 
       <details className={styles.advanced}>
         <summary>Advanced direction</summary>
-        <p>Optional camera, continuity and prompt controls. PlotPickle already uses the story, character identities, locations and visual language automatically.</p>
+        <p>Optional camera, continuity and generation-direction controls. PlotPickle already uses the story, character identities, locations and visual language automatically.</p>
         {advanced}
       </details>
 
       <footer className={styles.footer}>
-        <span>Provider, model, checkpoint and workflow choices stay in Settings.</span>
-        <button type="button" onClick={onOpenSettings}>Open generation settings</button>
+        <span>Generation and routing details stay out of the creative flow unless you choose to change them.</span>
+        <button type="button" onClick={onOpenSettings}>Open Settings</button>
       </footer>
     </section>
   );

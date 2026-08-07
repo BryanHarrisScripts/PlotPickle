@@ -667,7 +667,23 @@ export type RevisionSnapshot = {
   payload: Record<string, unknown>;
 };
 
+export type ConceptCanvasTargetKind = "project" | "character" | "location" | "block" | "mini-block" | "scene";
+
+export type ConceptCanvas = {
+  conceptText: string;
+  emotionalPurpose: string;
+  audienceExperience: string;
+  desiredVisualImpact: string;
+  mustKeepConstraints: string;
+  openExploration: string;
+  targetKind: ConceptCanvasTargetKind;
+  targetId: string;
+  targetLabel: string;
+  updatedAt: string;
+};
+
 export type ProjectDevelopment = {
+  conceptCanvas: ConceptCanvas;
   storySetup: {
     audience: string;
     contentRating: string;
@@ -979,6 +995,18 @@ export function createBlankCollaboration(): ProjectCollaboration {
 
 export function createBlankDevelopment(): ProjectDevelopment {
   return {
+    conceptCanvas: {
+      conceptText: "",
+      emotionalPurpose: "",
+      audienceExperience: "",
+      desiredVisualImpact: "",
+      mustKeepConstraints: "",
+      openExploration: "",
+      targetKind: "project",
+      targetId: "project",
+      targetLabel: "Whole project",
+      updatedAt: "",
+    },
     storySetup: { audience: "", contentRating: "", language: "", scope: "", collaborators: "" },
     pitch: { oneSentence: "", shortPitch: "", audiencePromise: "", emotionalExperience: "", comparableTitles: "", visualVision: "" },
     ghost: { centralWound: "", origin: "", lie: "", trigger: "", presentPattern: "", truth: "" },
@@ -1009,6 +1037,32 @@ export function createBlankDevelopment(): ProjectDevelopment {
       fieldworkNotes: "",
     },
     notes: { general: "", research: "", openQuestions: "", continuity: "", revisions: "", sources: "" },
+  };
+}
+
+const conceptCanvasTargetKinds = new Set<ConceptCanvasTargetKind>(["project", "character", "location", "block", "mini-block", "scene"]);
+
+function stringValue(value: unknown) {
+  return typeof value === "string" ? value : "";
+}
+
+function normalizeConceptCanvas(value: unknown, defaults: ConceptCanvas): ConceptCanvas {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return defaults;
+  const canvas = value as Partial<Record<keyof ConceptCanvas, unknown>>;
+  const targetKind = typeof canvas.targetKind === "string" && conceptCanvasTargetKinds.has(canvas.targetKind as ConceptCanvasTargetKind)
+    ? canvas.targetKind as ConceptCanvasTargetKind
+    : defaults.targetKind;
+  return {
+    conceptText: stringValue(canvas.conceptText),
+    emotionalPurpose: stringValue(canvas.emotionalPurpose),
+    audienceExperience: stringValue(canvas.audienceExperience),
+    desiredVisualImpact: stringValue(canvas.desiredVisualImpact),
+    mustKeepConstraints: stringValue(canvas.mustKeepConstraints),
+    openExploration: stringValue(canvas.openExploration),
+    targetKind,
+    targetId: stringValue(canvas.targetId) || defaults.targetId,
+    targetLabel: stringValue(canvas.targetLabel) || defaults.targetLabel,
+    updatedAt: stringValue(canvas.updatedAt),
   };
 }
 
@@ -1826,6 +1880,7 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     world: candidate.world,
     screenplay: normalizeScreenplay(candidate.screenplay),
     development: {
+      conceptCanvas: normalizeConceptCanvas(development.conceptCanvas, defaults.conceptCanvas),
       storySetup: { ...defaults.storySetup, ...development.storySetup },
       pitch: { ...defaults.pitch, ...development.pitch },
       ghost: { ...defaults.ghost, ...development.ghost },

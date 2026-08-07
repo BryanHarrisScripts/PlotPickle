@@ -118,6 +118,7 @@ jobs:
           }
 
           const nativeMainContradictions = [...report.matchAll(/Missing semantic HTML element for the main content[\s\S]*?\*\*Evidence:\*\*\s*`<main\b[^`]*>`/gi)].length;
+          const nativeNavContradictions = [...report.matchAll(/Missing semantic HTML for the main navigation[\s\S]*?\*\*Evidence:\*\*\s*`<nav\b[^`]*>`[\s\S]*?\*\*Suggested fix:\*\*\s*Use <nav> elements?/gi)].length;
           const namedSkipLinkContradictions = [...report.matchAll(/Missing ARIA label for the skip link[\s\S]*?\*\*Evidence:\*\*\s*`<a\b[^`]*>[^<]+<\/a>`/gi)].length;
           const nativeButtonRoleContradictions = [...report.matchAll(/Missing ARIA role for button element used as a toggle[\s\S]*?\*\*Evidence:\*\*\s*`<button\b[^`]*>`/gi)].length;
           const semanticNavContradictions = [...report.matchAll(/Non-semantic element used for button[\s\S]*?\*\*Evidence:\*\*\s*`<nav\b[^`]*>`[\s\S]*?\*\*Suggested fix:\*\*\s*Use a <button> element instead of a <div>/gi)].length;
@@ -132,6 +133,7 @@ jobs:
           const genericBoldElementPreferences = [...report.matchAll(/use of <b> for non-bold text is semantically incorrect[\s\S]*?\*\*Evidence:\*\*\s*`<b>[^`]*<\/b>`[\s\S]*?Replace <b> with <strong> for semantically meaningful text or use CSS for styling/gi)].length;
           const passiveThumbnailPreferences = [...report.matchAll(/Non-interactive element used as a button[\s\S]*?className=\{styles\.miniImage\}[\s\S]*?\*\*Suggested fix:\*\*[\s\S]*?Use a <button> element for interactive controls/gi)].length;
           const contradictedFindings = nativeMainContradictions
+            + nativeNavContradictions
             + namedSkipLinkContradictions
             + nativeButtonRoleContradictions
             + semanticNavContradictions

@@ -327,7 +327,7 @@ p {
   gap: 10px;
 }
 
-.progress-block > span {
+.progress-block > output {
   color: var(--ink-soft);
   font-size: 10px;
   font-weight: 700;
@@ -339,14 +339,35 @@ p {
   height: 5px;
   border-radius: 8px;
   background: #e3e6df;
+  border: 0;
+  appearance: none;
 }
 
-.progress-track i {
-  display: block;
+.progress-track::-webkit-progress-bar {
+  border-radius: inherit;
+  background: #e3e6df;
+}
+
+.progress-track::-webkit-progress-value {
+  border-radius: inherit;
+  background: var(--pickle);
+  transition: width 240ms ease;
+}
+
+.progress-track::-moz-progress-bar {
   height: 100%;
   border-radius: inherit;
   background: var(--pickle);
   transition: width 240ms ease;
+}
+
+html[data-plotpickle-theme="dark"] .progress-track::-webkit-progress-bar {
+  background: #20313c;
+}
+
+html[data-plotpickle-theme="dark"] .progress-track::-webkit-progress-value,
+html[data-plotpickle-theme="dark"] .progress-track::-moz-progress-bar {
+  background: #32d4df;
 }
 
 .workspace {
@@ -370,7 +391,7 @@ p {
   margin-bottom: 34px;
 }
 
-.section-heading h2 {
+.section-heading h1 {
   max-width: 850px;
   margin-bottom: 9px;
   font-size: clamp(28px, 4vw, 43px);
@@ -1047,6 +1068,15 @@ p {
   color: #718076;
   font-size: 9px;
   line-height: 1.45;
+}
+
+.field-feedback {
+  order: 4;
+  margin-top: 5px;
+  color: #53735d;
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1.4;
 }
 
 .form-field input,
@@ -2228,7 +2258,7 @@ p {
 @media (max-width: 700px) {
   .brand-lockup span:last-child,
   .main-tabs small,
-  .project-strip .progress-block > span {
+  .project-strip .progress-block > output {
     display: none;
   }
 

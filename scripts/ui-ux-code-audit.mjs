@@ -151,6 +151,7 @@ function contradictsPlatformStandards(finding, source, context) {
   if (finding.criterion === 11 && /<div><dt>/i.test(evidence) && /<dl\b/i.test(source)) return true;
   if (finding.criterion === 12 && /(?:require|start with|add).*h1/i.test(combined) && /<h[23]\b/i.test(evidence)) return true;
   if (finding.criterion === 15 && /<nav\b[^>]*\baria-(?:label|labelledby)=/i.test(evidence) && /(?:remove|redundant|unnecessar)/i.test(combined)) return true;
+  if (finding.criterion === 15 && /<a\b[^>]*\baria-label=["'][^"']*opens in a new tab[^"']*["'][^>]*>/i.test(evidence) && /(?:remove|redundant|duplicate)/i.test(combined)) return true;
   if (finding.criterion === 15 && /remove\s+aria-label/i.test(combined) && !/\baria-label\s*=/.test(evidence)) return true;
   if (finding.criterion === 15 && /<video\b[^>]*\bcontrols\b/i.test(evidence) && /role=["']application["']/i.test(combined)) return true;
   if (finding.criterion === 16 && /<video\b/i.test(evidence) && /loading/i.test(combined)) return true;

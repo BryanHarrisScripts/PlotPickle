@@ -43,3 +43,43 @@ test("issue #343 preserves the current product story and truth boundaries", asyn
     "nothing becomes canonical until a person approves it",
   ]) assert.ok(base.includes(phrase), `Marketing audit removed required product truth: ${phrase}`);
 });
+
+test("issue #408 makes the splash the visual-storytelling design foundation", async () => {
+  const [base, css, design, reference] = await Promise.all([
+    source("app/marketing-splash-base.tsx"),
+    source("app/marketing-splash.module.css"),
+    source("docs/design/VISUAL-STORYTELLING-SPLASH.md"),
+    source("docs/design/plotpickle-splash-direction-reference.svg"),
+  ]);
+
+  for (const phrase of [
+    "Storytelling<br />Has Changed.",
+    "Write the narrative. Shape the vision.",
+    "The writer is no longer only writing the story",
+    "they are directing the storyworld.",
+    "Narrative First",
+    "World & Character Vision",
+    "Storyboard Thinking",
+    "Human-Led Creative Direction",
+    "From Concept to Visual Canon",
+  ]) assert.ok(base.includes(phrase), `New splash narrative missing: ${phrase}`);
+
+  for (const asset of [
+    "/design/plotpickle-splash-character.svg",
+    "/design/plotpickle-splash-world.svg",
+    "/design/plotpickle-splash-storyboard.svg",
+  ]) assert.ok(base.includes(asset), `New splash visual missing: ${asset}`);
+
+  for (const token of ["#090909", "#ece7dc", "#b98745", "#d3a15d", "Courier New"]) {
+    assert.ok(css.includes(token), `New splash visual token missing: ${token}`);
+  }
+
+  assert.match(css, /\.heroVisual/);
+  assert.match(css, /\.scriptPanel/);
+  assert.match(css, /\.characterPanel/);
+  assert.match(css, /\.worldPanel/);
+  assert.match(css, /\.storyboardPanel/);
+  assert.match(design, /Traditional storytelling has changed/);
+  assert.match(design, /Concept -> Explore -> Compare -> Direct -> Refine -> Approve -> Reuse/);
+  assert.match(reference, /PlotPickle approved splash direction/);
+});

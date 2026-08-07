@@ -111,7 +111,10 @@
 .application-shell-header .main-tabs button:focus-visible,
 .application-shell-header .shell-zone-project-actions button:focus-visible,
 .application-shell-header .shell-zone-configuration a:focus-visible,
-.application-shell-header .shell-brand:focus-visible {
+.application-shell-header .shell-brand:focus-visible,
+.application-shell-header .shell-mobile-navigation summary:focus-visible,
+.application-shell-header .shell-mobile-navigation button:focus-visible,
+.application-shell-header .shell-mobile-navigation a:focus-visible {
   outline: 3px solid var(--shell-focus-ring);
   outline-offset: -3px;
 }
@@ -137,6 +140,10 @@
   flex: 0 0 1px;
   border: 0;
   background: var(--shell-divider-color);
+}
+
+.application-shell-header .shell-mobile-navigation {
+  display: none;
 }
 
 .application-shell-header .shell-release-smoke-active {
@@ -185,11 +192,13 @@
 
 @media (max-width: 760px) {
   .application-shell-header {
-    position: static;
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
     min-height: 62px;
-    padding-block: 4px;
+    padding-block: 6px;
     padding-inline: max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-right));
-    scroll-padding-inline: max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-right));
+    overflow: visible;
   }
 
   .application-shell-header .brand-icon {
@@ -198,17 +207,119 @@
     flex-basis: 34px;
   }
 
-  .application-shell-header .main-tabs button,
-  .application-shell-header .shell-zone-project-actions button,
-  .application-shell-header .shell-zone-configuration a {
-    min-width: 44px;
+  .application-shell-header > .shell-divider,
+  .application-shell-header > .shell-primary-navigation,
+  .application-shell-header > .shell-zone-collaboration,
+  .application-shell-header > .shell-zone-project-actions,
+  .application-shell-header > .shell-zone-configuration {
+    display: none;
+  }
+
+  .application-shell-header .shell-mobile-navigation {
+    position: static;
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .application-shell-header .shell-mobile-navigation summary {
+    display: flex;
     min-height: 44px;
-    padding-inline: 7px;
-    font-size: 0.67rem;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 12px;
+    border: 1px solid rgba(185, 203, 209, 0.32);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--shell-text-active);
+    cursor: pointer;
+    font-size: 0.76rem;
+    font-weight: 820;
+    list-style: none;
+    touch-action: manipulation;
+  }
+
+  .application-shell-header .shell-mobile-navigation summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .application-shell-header .shell-mobile-navigation summary span:last-child {
+    color: var(--shell-accent);
+    font-size: 0.68rem;
+  }
+
+  .application-shell-header .shell-mobile-menu-panel {
+    position: absolute;
+    z-index: 90;
+    top: calc(100% - 2px);
+    right: max(10px, env(safe-area-inset-right));
+    left: max(10px, env(safe-area-inset-left));
+    display: grid;
+    max-height: min(76vh, 620px);
+    gap: 10px;
+    overflow-y: auto;
+    padding: 12px;
+    border: 1px solid #35515f;
+    border-radius: 12px;
+    background: #0d1923;
+    box-shadow: 0 22px 55px rgba(0, 0, 0, 0.46);
+  }
+
+  .application-shell-header .shell-mobile-menu-panel nav,
+  .application-shell-header .shell-mobile-project-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .application-shell-header .shell-mobile-menu-panel button,
+  .application-shell-header .shell-mobile-menu-panel a {
+    display: flex;
+    min-width: 0;
+    min-height: 44px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 9px 10px;
+    border: 1px solid #29404d;
+    border-radius: 8px;
+    background: #111f2a;
+    color: #d9e8eb;
+    font-size: 0.72rem;
+    font-weight: 760;
+    text-decoration: none;
+    text-align: left;
+  }
+
+  .application-shell-header .shell-mobile-menu-panel button[aria-current="page"] {
+    border-color: #75cdbf;
+    background: #173037;
+    color: #fff;
+  }
+
+  .application-shell-header .shell-mobile-menu-panel small {
+    color: var(--shell-accent);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+  }
+
+  .application-shell-header .shell-mobile-project-actions,
+  .application-shell-header .shell-mobile-support {
+    padding-top: 10px;
+    border-top: 1px solid #2b424f;
   }
 
   .project-strip {
     top: 0;
+  }
+}
+
+@media (max-width: 430px) {
+  .application-shell-header .shell-mobile-menu-panel nav,
+  .application-shell-header .shell-mobile-project-actions {
+    grid-template-columns: 1fr;
   }
 }
 

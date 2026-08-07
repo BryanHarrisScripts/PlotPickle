@@ -3,6 +3,7 @@ import { completionFor, type PlotPickleProject, type StoryBlock } from "./projec
 export type ProjectProgressSection =
   | "overview"
   | "storySetup"
+  | "concept"
   | "pitch"
   | "world"
   | "characters"
@@ -19,6 +20,7 @@ export type ProjectProgressSection =
 
 export const recommendedSectionOrder: ProjectProgressSection[] = [
   "storySetup",
+  "concept",
   "pitch",
   "world",
   "characters",
@@ -132,6 +134,15 @@ export function projectSectionProgress(project: PlotPickleProject): Record<Proje
       project.development.storySetup.language,
       project.development.storySetup.scope,
       project.development.storySetup.collaborators,
+    ]),
+    concept: score([
+      project.development.conceptCanvas.conceptText,
+      project.development.conceptCanvas.emotionalPurpose,
+      project.development.conceptCanvas.audienceExperience,
+      project.development.conceptCanvas.desiredVisualImpact,
+      project.development.conceptCanvas.mustKeepConstraints,
+      project.development.conceptCanvas.openExploration,
+      project.development.conceptCanvas.targetLabel,
     ]),
     pitch: score([
       project.story.premise,

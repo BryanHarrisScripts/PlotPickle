@@ -14,7 +14,7 @@ import BuzzCommunityWorkspace from "./buzz-community-workspace";
 import FeedbackContextBadge from "./feedback-context-badge";
 import AiPitchDeckWorkspace from "./ai-pitch-deck-workspace";
 import WorkspaceCapabilityShelf, { type CapabilityOwner } from "./workspace-capability-shelf";
-import { ChangeEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, KeyboardEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { createAfterglowProject } from "@/data/afterglow";
 import EngineHub from "./engine-hub";
 import ProjectOverview from "./project-overview";
@@ -66,7 +66,7 @@ const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
 
 type MainTab = ProductNavigationId;
-type StorySection = "simpleStart" | "overview" | "storySetup" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "coreModel" | "structureMap" | "blocks" | "storyboard" | "notes";
+type StorySection = "simpleStart" | "overview" | "storySetup" | "concept" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "coreModel" | "structureMap" | "blocks" | "storyboard" | "notes";
 type StorySectionGroup = "Project" | "Foundation" | "Structure" | "Production";
 type LearnSection = "introduction" | "library" | "terminology" | "screenplay";
 
@@ -102,6 +102,7 @@ const storySections: { id: StorySection; code: string; label: string; group: Sto
   { id: "simpleStart", code: "SS", label: "Simple Start", group: "Project" },
   { id: "overview", code: "OV", label: "Project Overview", group: "Project" },
   { id: "storySetup", code: "01", label: "Story Setup", group: "Foundation" },
+  { id: "concept", code: "CC", label: "Concept Canvas", group: "Foundation" },
   { id: "pitch", code: "PV", label: "Pitch & Vision", group: "Foundation" },
   { id: "world", code: "WD", label: "World", group: "Foundation" },
   { id: "characters", code: "CH", label: "Characters", group: "Foundation" },
@@ -138,6 +139,13 @@ const sectionGuides: Record<StorySection, { title: string; description: string; 
     questions: ["What are you making and how long is it?", "Who is the story for?", "What practical limits or collaborators shape the work?"],
     deliverable: "A clear project identity and production-sized creative container.",
     connection: "Pitch, world, block pacing, and visual scale all inherit these decisions.",
+  },
+  concept: {
+    title: "Catch the creative seed before it becomes a prompt.",
+    description: "Record the incomplete idea, emotional purpose, audience experience, visual impact, constraints, and open space without choosing a provider.",
+    questions: ["What is the raw idea or fragment?", "What must remain true?", "What are you still free to explore visually or narratively?"],
+    deliverable: "A saved concept attached to a project target and ready for later exploration.",
+    connection: "The concept can attach to the whole project, a character, location, Block, mini-block, or scene while keeping provider details in Settings.",
   },
   pitch: {
     title: "Make the promise visible in a few sentences.",
@@ -257,12 +265,19 @@ function fieldCompletion(block: StoryBlock) {
   return Math.round((values.filter(Boolean).length / values.length) * 100);
 }
 
+function handleButtonKeyboard(event: KeyboardEvent<HTMLButtonElement>, action: () => void) {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  event.preventDefault();
+  action();
+}
+
 function FormField({
   label,
   value,
   onChange,
   placeholder,
   help,
+  feedback = "Ready.",
   multiline = true,
   type = "text",
 }: {
@@ -271,17 +286,22 @@ function FormField({
   onChange: (value: string) => void;
   placeholder?: string;
   help?: string;
+  feedback?: string;
   multiline?: boolean;
   type?: string;
 }) {
   const id = `field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+  const helpId = help ? `${id}-help` : undefined;
+  const statusId = `${id}-status`;
+  const describedBy = [helpId, statusId].filter(Boolean).join(" ") || undefined;
   return (
-    <label className="form-field" htmlFor={id}>
-      <span className="field-label">{label}</span>
-      {help ? <span className="field-help">{help}</span> : null}
+    <div className="form-field">
+      <label className="field-label" htmlFor={id}>{label}</label>
+      {help ? <span className="field-help" id={helpId}>{help}</span> : null}
       {multiline ? (
         <textarea
           id={id}
+          aria-describedby={describedBy}
           value={value}
           placeholder={placeholder}
           rows={4}
@@ -290,26 +310,28 @@ function FormField({
       ) : (
         <input
           id={id}
+          aria-describedby={describedBy}
           type={type}
           value={value}
           placeholder={placeholder}
           onChange={(event) => onChange(event.target.value)}
         />
       )}
-    </label>
+      <span className="field-feedback" id={statusId} role="status">{feedback}</span>
+    </div>
   );
 }
 
 function SectionHeading({ eyebrow, title, description, action }: { eyebrow: string; title: string; description: string; action?: ReactNode }) {
   return (
-    <div className="section-heading">
+    <header className="section-heading">
       <div>
         <p className="eyebrow">{eyebrow}</p>
-        <h2>{title}</h2>
+        <h1>{title}</h1>
         <p>{description}</p>
       </div>
       {action ? <div className="section-action">{action}</div> : null}
-    </div>
+    </header>
   );
 }
 
@@ -453,11 +475,32 @@ export default function Home() {
   }
 
   function updateDevelopment(section: keyof PlotPickleProject["development"], key: string, value: string) {
+    const currentSection = project.development[section];
     commit({
       ...project,
       development: {
         ...project.development,
-        [section]: { ...project.development[section], [key]: value },
+        [section]: {
+          ...currentSection,
+          [key]: value,
+          ...(section === "conceptCanvas" ? { updatedAt: new Date().toISOString() } : {}),
+        },
+      },
+    });
+  }
+
+  function updateConceptCanvasTarget(kind: PlotPickleProject["development"]["conceptCanvas"]["targetKind"], id: string, label: string) {
+    commit({
+      ...project,
+      development: {
+        ...project.development,
+        conceptCanvas: {
+          ...project.development.conceptCanvas,
+          targetKind: kind,
+          targetId: id,
+          targetLabel: label,
+          updatedAt: new Date().toISOString(),
+        },
       },
     });
   }
@@ -778,8 +821,8 @@ export default function Home() {
         <div className="save-state">{saveState}</div>
         {project.screenplay.analysisStatus === "suggested" ? <div className="save-state">Script-derived suggestions <button type="button" className="text-button" onClick={confirmImportedSuggestions}>Mark reviewed</button></div> : null}
         <div className="progress-block" aria-label={`${completion}% story planning complete`}>
-          <span>{completion}% complete</span>
-          <div className="progress-track"><i style={{ width: `${completion}%` }} /></div>
+          <output>{completion}% complete</output>
+          <progress className="progress-track" value={completion} max="100">{completion}%</progress>
         </div>
       </div>
 
@@ -883,6 +926,14 @@ export default function Home() {
               ) : null}
               {activeSection === "storySetup" ? (
                 <StorySetupEditor project={project} updateMetadata={updateMetadata} updateDevelopment={updateDevelopment} />
+              ) : null}
+              {activeSection === "concept" ? (
+                <ConceptCanvasEditor
+                  project={project}
+                  updateDevelopment={updateDevelopment}
+                  updateTarget={updateConceptCanvasTarget}
+                  startExploration={() => setActiveTab("visuals")}
+                />
               ) : null}
               {activeSection === "pitch" ? (
                 <PitchVisionEditor project={project} updateMetadata={updateMetadata} updateStory={updateStory} updateDevelopment={updateDevelopment} />
@@ -1098,7 +1149,7 @@ function StoryRail({ project, workspace, activeSection, selectSection }: { proje
         <strong>Story columns</strong>
         <span>One story. Five connected workspaces.</span>
       </div>
-      <nav aria-label={`${workspace} story sections`}>
+      <nav aria-label="Story sections">
         {groups.map((group) => (
           <div className="story-rail-group" key={group}>
             <p className="story-rail-group-label">{group}</p>
@@ -1108,7 +1159,7 @@ function StoryRail({ project, workspace, activeSection, selectSection }: { proje
               const symbol = alert ? "!" : sectionProgress >= 70 ? "✓" : sectionProgress > 0 ? "◐" : "○";
               const status = alert ? "Open question or continuity item" : sectionProgress >= 70 ? "Substantially complete" : sectionProgress > 0 ? "In progress" : "Not started";
               return (
-                <button type="button" className={activeSection === section.id ? "active" : ""} key={section.id} onClick={() => selectSection(section.id)}>
+                <button type="button" aria-current={activeSection === section.id ? "page" : undefined} className={activeSection === section.id ? "active" : ""} key={section.id} onClick={() => selectSection(section.id)}>
                   <span>{section.code}</span>
                   <strong>{section.label}</strong>
                   <i className={alert ? "rail-progress alert" : "rail-progress"} aria-label={`${status}: ${sectionProgress}%`}>{symbol}</i>
@@ -1165,12 +1216,86 @@ function Introduction({ project, activeSection, selectSection, onStart, onLoadAf
   );
 }
 
+function ConceptCanvasEditor({
+  project,
+  updateDevelopment,
+  updateTarget,
+  startExploration,
+}: {
+  project: PlotPickleProject;
+  updateDevelopment: DevelopmentUpdater;
+  updateTarget: (kind: PlotPickleProject["development"]["conceptCanvas"]["targetKind"], id: string, label: string) => void;
+  startExploration: () => void;
+}) {
+  const canvas = project.development.conceptCanvas;
+  const targetHelpId = "concept-canvas-target-help";
+  const targetOptions = [
+    { kind: "project" as const, id: "project", label: "Whole project" },
+    ...project.characters.map((character) => ({ kind: "character" as const, id: character.id, label: `Character · ${character.name}` })),
+    ...project.world.locations.map((location) => ({ kind: "location" as const, id: location.id, label: `Location · ${location.name}` })),
+    ...project.blocks.map((block) => ({ kind: "block" as const, id: block.id, label: `Block ${block.number} · ${block.title}` })),
+    ...project.blocks.flatMap((block) => block.visuals.map((frame) => ({
+      kind: "mini-block" as const,
+      id: `${block.id}:mini-${frame.miniBlockNumber}`,
+      label: `Mini-block ${block.number}.${frame.miniBlockNumber} · ${block.title}`,
+    }))),
+    ...project.blocks.flatMap((block) => block.scenes.map((scene) => ({
+      kind: "scene" as const,
+      id: scene.id,
+      label: `Scene · ${scene.heading || `Block ${block.number}`}`,
+    }))),
+  ];
+  const selectedTarget = targetOptions.find((option) => option.kind === canvas.targetKind && option.id === canvas.targetId) ?? targetOptions[0];
+  const targetLabelId = "concept-canvas-target-label";
+
+  return (
+    <div className="editor-page concept-canvas-page">
+      <SectionHeading
+        eyebrow="CC · Concept Canvas"
+        title="Start with the creative seed."
+        description="Capture loose intent, image fragments and constraints before turning them into structured prompts, screenplay text or canon."
+        action={<button type="button" className="small-button" onClick={startExploration}>Start exploration</button>}
+      />
+      <div className="form-grid two-columns">
+        <fieldset className="form-section signal-section">
+          <legend className="subsection-title"><span>Attach the idea</span></legend>
+          <div className="form-field">
+            <span className="field-label" id={targetLabelId}>Story target</span>
+            <span className="field-help" id={targetHelpId}>The canvas stays useful with AI disabled and can later seed exploration for this exact target.</span>
+            <select
+              aria-labelledby={targetLabelId}
+              aria-describedby={targetHelpId}
+              id="concept-canvas-target"
+              value={`${selectedTarget.kind}:${selectedTarget.id}`}
+              onChange={(event) => {
+                const next = targetOptions.find((option) => `${option.kind}:${option.id}` === event.target.value) ?? targetOptions[0];
+                updateTarget(next.kind, next.id, next.label);
+              }}
+            >
+              {targetOptions.map((option) => <option key={`${option.kind}:${option.id}`} value={`${option.kind}:${option.id}`}>{option.label}</option>)}
+            </select>
+          </div>
+          <p className="field-help">Provider, model, workflow and billing settings stay out of the canvas and remain in Settings.</p>
+        </fieldset>
+
+        <FormField label="Concept seed" value={canvas.conceptText} onChange={(value) => updateDevelopment("conceptCanvas", "conceptText", value)} help="A fragment, question, image, situation, contradiction, title, feeling or unfinished idea." />
+        <FormField label="Emotional purpose" value={canvas.emotionalPurpose} onChange={(value) => updateDevelopment("conceptCanvas", "emotionalPurpose", value)} help="What should the audience feel, fear, hope, understand or carry away?" />
+        <FormField label="Audience experience" value={canvas.audienceExperience} onChange={(value) => updateDevelopment("conceptCanvas", "audienceExperience", value)} help="Describe the ride: suspense, intimacy, wonder, dread, discovery, momentum or release." />
+        <FormField label="Desired visual impact" value={canvas.desiredVisualImpact} onChange={(value) => updateDevelopment("conceptCanvas", "desiredVisualImpact", value)} help="Light, colour, texture, composition, motion, scale, point of view or recurring image." />
+        <FormField label="Must-keep constraints" value={canvas.mustKeepConstraints} onChange={(value) => updateDevelopment("conceptCanvas", "mustKeepConstraints", value)} help="Facts, rights, tone, identity, continuity, production limits or story promises that must remain true." />
+        <FormField label="Open exploration" value={canvas.openExploration} onChange={(value) => updateDevelopment("conceptCanvas", "openExploration", value)} help="What PlotPickle may vary later: mood, staging, palette, approach, structure, visual metaphor or story angle." />
+      </div>
+    </div>
+  );
+}
+
 function StorySetupEditor({ project, updateMetadata, updateDevelopment }: { project: PlotPickleProject; updateMetadata: (key: keyof PlotPickleProject["metadata"], value: string) => void; updateDevelopment: DevelopmentUpdater }) {
   const setup = project.development.storySetup;
+  const titleFeedback = project.metadata.title ? "Title ready." : "Add a title before sharing or exporting.";
   return <div className="editor-page">
     <SectionHeading eyebrow="01 · Story Setup" title="Define the creative container." description="Set the practical and audience-facing decisions that every later column will inherit." />
     <div className="form-section"><h3>Project identity</h3><div className="form-grid three-columns">
-      <FormField label="Title" value={project.metadata.title} onChange={(value) => updateMetadata("title", value)} multiline={false} />
+      <FormField label="Title" value={project.metadata.title} onChange={(value) => updateMetadata("title", value)} multiline={false} feedback={titleFeedback} />
       <FormField label="Subtitle" value={project.metadata.subtitle} onChange={(value) => updateMetadata("subtitle", value)} multiline={false} />
       <FormField label="Status" value={project.metadata.status} onChange={(value) => updateMetadata("status", value)} multiline={false} />
       <FormField label="Format" value={project.metadata.format} onChange={(value) => updateMetadata("format", value)} multiline={false} />
@@ -1392,7 +1517,7 @@ function CharacterEditor({
         <div className="character-workspace">
           <div className="character-roster" aria-label="Character roster">
             {project.characters.map((character) => (
-              <button type="button" className={selected.id === character.id ? "active" : ""} key={character.id} onClick={() => select(character.id)}>
+              <button type="button" aria-pressed={selected.id === character.id} className={selected.id === character.id ? "active" : ""} key={character.id} onClick={() => select(character.id)} onKeyDown={(event) => handleButtonKeyboard(event, () => select(character.id))}>
                 <Portrait character={character} size="small" />
                 <span><strong>{character.name}</strong><small>{character.role}</small></span>
               </button>
@@ -1459,7 +1584,7 @@ function BlocksEditor({
             <header><span>Act {act}</span><strong>{actNames[act - 1]}</strong><small>Blocks {(act - 1) * 6 + 1}–{act * 6}</small></header>
             <div>
               {project.blocks.filter((block) => block.act === act).map((block) => (
-                <button type="button" className={selectedBlock.number === block.number ? "block-card active" : "block-card"} key={block.id} onClick={() => openBlock(block.number)}>
+                <button type="button" aria-pressed={selectedBlock.number === block.number} className={selectedBlock.number === block.number ? "block-card active" : "block-card"} key={block.id} onClick={() => openBlock(block.number)}>
                   <span className="block-number">{String(block.number).padStart(2, "0")}</span>
                   <strong>{block.title}</strong>
                   <p>{block.summary || block.purpose}</p>
@@ -1494,8 +1619,8 @@ function BlocksEditor({
           <FormField label="The Pickle turn" value={selectedBlock.pickleTurn} onChange={(value) => updateBlock(selectedBlock.number, "pickleTurn", value)} help="The clue, reversal, complication, near-answer, or reframe that refreshes the central tension." />
         </div>
         <div className="reference-grid">
-          <div><span className="field-label">Characters in this block</span><div className="chip-list">{project.characters.map((character) => <button type="button" className={selectedBlock.characterIds.includes(character.id) ? "active" : ""} key={character.id} onClick={() => toggleReference("characterIds", character.id)}>{character.name}</button>)}</div></div>
-          <div><span className="field-label">Locations in this block</span><div className="chip-list">{project.world.locations.map((location) => <button type="button" className={selectedBlock.locationIds.includes(location.id) ? "active" : ""} key={location.id} onClick={() => toggleReference("locationIds", location.id)}>{location.name}</button>)}</div></div>
+          <div><span className="field-label">Characters in this block</span><div className="chip-list">{project.characters.map((character) => <button type="button" aria-pressed={selectedBlock.characterIds.includes(character.id)} className={selectedBlock.characterIds.includes(character.id) ? "active" : ""} key={character.id} onClick={() => toggleReference("characterIds", character.id)}>{character.name}</button>)}</div></div>
+          <div><span className="field-label">Locations in this block</span><div className="chip-list">{project.world.locations.map((location) => <button type="button" aria-pressed={selectedBlock.locationIds.includes(location.id)} className={selectedBlock.locationIds.includes(location.id) ? "active" : ""} key={location.id} onClick={() => toggleReference("locationIds", location.id)}>{location.name}</button>)}</div></div>
         </div>
         <div className="form-grid two-columns block-writing-grid">
           <FormField label="Setup" value={selectedBlock.setup} onChange={(value) => updateBlock(selectedBlock.number, "setup", value)} />
@@ -1517,7 +1642,7 @@ function StoryboardPlanner({ project, selectedBlock, openBlock, updateBlock, ope
       <div className="storyboard-planner-workspace">
         <div className="storyboard-block-list">
           {project.blocks.map((block) => (
-            <button type="button" className={selectedBlock.number === block.number ? `active act-${block.act}` : `act-${block.act}`} key={block.id} onClick={() => openBlock(block.number)}>
+            <button type="button" aria-pressed={selectedBlock.number === block.number} className={selectedBlock.number === block.number ? `active act-${block.act}` : `act-${block.act}`} key={block.id} onClick={() => openBlock(block.number)}>
               <span>{String(block.number).padStart(2, "0")}</span>
               <strong>{block.title}</strong>
               <small>{block.visuals.length}/4 visuals</small>

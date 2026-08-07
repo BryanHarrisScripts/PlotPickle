@@ -31,26 +31,33 @@ async function render(pathname) {
   return response.text();
 }
 
-test("renders the approved product-authentic startup splash and preserves the local-first workspace contract", async () => {
+test("renders the visual-storytelling startup splash and preserves the local-first workspace contract", async () => {
   const html = await render("/");
   assert.match(html, developmentPreviewMeta);
   for (const phrase of [
     "PlotPickle",
-    "Stop losing the story",
-    "between the notes, drafts and visuals.",
-    "Product-authentic PlotPickle Dashboard preview",
-    "One living story graph",
-    "Afterglow demonstrates the complete path",
+    "Storytelling",
+    "Has Changed.",
+    "Write the narrative. Shape the vision.",
+    "Build worlds, characters and story",
+    "The writer is no longer only writing the story",
+    "they are directing the storyworld.",
+    "Narrative First",
+    "World &amp; Character Vision",
+    "Storyboard Thinking",
+    "Human-Led Creative Direction",
+    "From Concept to Visual Canon",
+    "Start privately. Add people only when the story needs them.",
+    "Load Afterglow",
     "Graphic Novel",
-    "One application. Three desktop packages.",
     "Works without AI",
-    "There is no required PlotPickle cloud account",
-    "Open software. Open method. Your story.",
-    "Open Afterglow. See the graph. Then build your own.",
+    "AI can help you see possibilities. It does not get final cut.",
   ]) {
     assert.ok(html.includes(phrase), "Rendered splash is missing: " + phrase);
   }
-  assert.match(html, /\/brand\/favicon\/plotpickle-icon-128\.png/);
+  assert.match(html, /\/design\/plotpickle-splash-character\.svg/);
+  assert.match(html, /\/design\/plotpickle-splash-world\.svg/);
+  assert.match(html, /\/design\/plotpickle-splash-storyboard\.svg/);
 
   const [source, navigation, splash] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),

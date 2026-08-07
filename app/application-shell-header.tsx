@@ -55,64 +55,6 @@ function ShellDivider() {
   return <hr className="shell-divider" aria-hidden="true" />;
 }
 
-function MobileNavigation({
-  activeTab,
-  onNavigate,
-  onProjectAction,
-}: {
-  activeTab: ProductNavigationId;
-  onNavigate: (tab: ProductNavigationId) => void;
-  onProjectAction: (action: ProjectActionId) => void;
-}) {
-  const current = PRODUCT_NAVIGATION.find((item) => item.id === activeTab)?.label ?? "Workspace";
-  return (
-    <details className="shell-mobile-navigation">
-      <summary aria-label={`Open application menu. Current workspace: ${current}`}>
-        <span>{current}</span>
-        <span aria-hidden="true">Menu</span>
-      </summary>
-      <div className="shell-mobile-menu-panel">
-        <nav aria-label="Story workflow mobile menu">
-          {PRODUCT_NAVIGATION.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              aria-current={activeTab === item.id ? "page" : undefined}
-              data-workspace-id={item.id}
-              onClick={(event) => {
-                onNavigate(item.id);
-                event.currentTarget.closest("details")?.removeAttribute("open");
-              }}
-            >
-              <span>{item.label}</span>
-              {activeTab === item.id ? <small>Current</small> : null}
-            </button>
-          ))}
-        </nav>
-        <div className="shell-mobile-project-actions" role="group" aria-label="Project actions">
-          {PROJECT_ACTIONS.map((action) => (
-            <button
-              type="button"
-              key={action.id}
-              onClick={(event) => {
-                onProjectAction(action.id);
-                event.currentTarget.closest("details")?.removeAttribute("open");
-              }}
-            >
-              {action.id === "load-afterglow" ? "Load Example" : action.label}
-            </button>
-          ))}
-        </div>
-        <nav className="shell-mobile-support" aria-label="Support">
-          {SUPPORT_NAVIGATION.map((item) => (
-            <a key={item.id} href={item.href} title={item.description}>{item.label}</a>
-          ))}
-        </nav>
-      </div>
-    </details>
-  );
-}
-
 export default function ApplicationShellHeader({ activeTab, onNavigate, onProjectAction, onOpenLanding }: ApplicationShellHeaderProps) {
   useEffect(() => {
     const handleWorkspaceNavigation = (event: Event) => {
@@ -134,8 +76,6 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
       <button type="button" className="brand-lockup home-trigger shell-brand" onClick={onOpenLanding} aria-label="Open the PlotPickle marketing page" title="PlotPickle home">
         <img className="brand-icon" src="/brand/favicon/plotpickle-icon-128.png" alt="" aria-hidden="true" />
       </button>
-
-      <MobileNavigation activeTab={activeTab} onNavigate={onNavigate} onProjectAction={onProjectAction} />
 
       <ShellDivider />
 

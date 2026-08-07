@@ -3,10 +3,10 @@
   gap: 14px;
   margin: 0 0 20px;
   padding: 18px;
-  border: 1px solid #cfe2df;
+  border: 1px solid var(--line);
   border-radius: 16px;
-  background: linear-gradient(135deg, #f6fbfa, #f1f8f6);
-  color: #173f42;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--panel) 94%, var(--ice-green)), var(--panel));
+  color: var(--ink);
 }
 
 .shelf > header {
@@ -18,7 +18,7 @@
 
 .shelf header span,
 .shelf article > span {
-  color: #237f78;
+  color: var(--pickle);
   font-size: 0.68rem;
   font-weight: 850;
   letter-spacing: 0.1em;
@@ -38,7 +38,7 @@
 
 .shelf > header > p,
 .shelf article p {
-  color: #617878;
+  color: var(--ink-soft);
   font-size: 0.78rem;
   line-height: 1.5;
 }
@@ -54,9 +54,9 @@
   align-content: start;
   gap: 7px;
   padding: 14px;
-  border: 1px solid #d7e7e4;
+  border: 1px solid var(--line);
   border-radius: 12px;
-  background: #fff;
+  background: color-mix(in srgb, var(--panel) 96%, var(--paper));
 }
 
 .grid h3 {
@@ -66,7 +66,7 @@
 .grid a,
 .grid small {
   margin-top: 4px;
-  color: #176d69;
+  color: var(--pickle);
   font-size: 0.74rem;
   font-weight: 800;
   text-decoration: none;

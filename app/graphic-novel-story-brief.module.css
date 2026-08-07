@@ -137,6 +137,51 @@
   line-height: 1.45;
 }
 
+:global(html[data-plotpickle-theme="dark"]) .panel {
+  border-color: #2b4050;
+  background: linear-gradient(145deg, #111b25, #0d1822);
+  color: #e8f5f6;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+:global(html[data-plotpickle-theme="dark"]) .heading span {
+  color: #4ecfe1;
+}
+
+:global(html[data-plotpickle-theme="dark"]) .heading h2,
+:global(html[data-plotpickle-theme="dark"]) .grid label > span {
+  color: #e8f5f6;
+}
+
+:global(html[data-plotpickle-theme="dark"]) .heading p,
+:global(html[data-plotpickle-theme="dark"]) .grid small,
+:global(html[data-plotpickle-theme="dark"]) .note {
+  color: #9fb5ba;
+}
+
+:global(html[data-plotpickle-theme="dark"]) .heading > strong {
+  background: #12332e;
+  color: #b7fff1;
+}
+
+:global(html[data-plotpickle-theme="dark"]) .grid textarea,
+:global(html[data-plotpickle-theme="dark"]) .actions button {
+  border-color: #314a5b;
+  background: #0d1822;
+  color: #e8f5f6;
+}
+
+:global(html[data-plotpickle-theme="dark"]) .grid textarea:focus {
+  border-color: #32d4df;
+  outline-color: rgba(50, 212, 223, 0.18);
+}
+
+:global(html[data-plotpickle-theme="dark"]) .actions .primary {
+  border-color: #32d4df;
+  background: #123640;
+  color: #d9ffff;
+}
+
 @media (max-width: 860px) {
   .heading {
     align-items: stretch;

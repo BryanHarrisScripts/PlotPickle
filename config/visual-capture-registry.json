@@ -1,9 +1,7 @@
 {
   "schemaVersion": 1,
   "viewports": [
-    { "id": "desktop", "width": 1440, "height": 1000 },
-    { "id": "tablet", "width": 1024, "height": 900 },
-    { "id": "mobile", "width": 390, "height": 844 }
+    { "id": "desktop", "width": 1440, "height": 1000 }
   ],
   "screens": [
     { "id": "dashboard", "path": "/?workspace=dashboard" },

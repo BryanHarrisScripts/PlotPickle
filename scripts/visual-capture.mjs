@@ -80,6 +80,8 @@ async function capture(browser, screen, viewport) {
     '--disable-gpu',
     '--hide-scrollbars',
     '--force-device-scale-factor=1',
+    '--virtual-time-budget=3000',
+    '--timeout=10000',
     `--window-size=${viewport.width},${viewport.height}`,
     `--user-data-dir=${userDataDirectory}`,
     `--screenshot=${filepath}`,

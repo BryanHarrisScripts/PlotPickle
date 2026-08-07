@@ -31,6 +31,7 @@ import ReadmeTabs from "./readme-tabs";
 import SimpleStart from "./simple-start";
 import { TerminologyIndex } from "./settings-project-tools";
 import { projectSectionProgress, sectionHasAlert } from "@/lib/project-progress";
+import { assembleVisualStoryContext } from "@/lib/visual-context";
 import { createProjectFromScreenplay, markScreenplayAnalysisReviewed } from "@/lib/screenplay-import";
 import { screenplayFormatForFile } from "@/lib/screenplay";
 import {
@@ -1382,6 +1383,7 @@ function VisualReferenceEditor({
 }) {
   const references = project.development.visualReferences;
   const selected = references.find((reference) => reference.id === selectedId) ?? references[0];
+  const context = assembleVisualStoryContext(project, selected ? { kind: selected.targetKind, id: selected.targetId, label: selected.targetLabel } : undefined);
   const targetOptions = [
     { kind: "project" as const, id: "project", label: "Whole project" },
     ...project.characters.map((character) => ({ kind: "character" as const, id: character.id, label: `Character · ${character.name}` })),
@@ -1472,6 +1474,19 @@ function VisualReferenceEditor({
               <FormField label="Reference notes" value={selected.notes} onChange={(value) => update(selected.id, "notes", value)} help="Describe what later visual work may inherit from this reference." />
             </div>
             <p className="field-help">References remain candidate guidance until a later human approval flow promotes them into visual canon.</p>
+            <aside className="context-preview" aria-label="Automatic story context preview">
+              <div>
+                <span>Context package</span>
+                <strong>{context.target.label}</strong>
+              </div>
+              <dl>
+                <div><dt>Sources</dt><dd>{context.sources.length}</dd></div>
+                <div><dt>References</dt><dd>{context.references.length}</dd></div>
+                <div><dt>Characters</dt><dd>{context.characters.length}</dd></div>
+                <div><dt>Locations</dt><dd>{context.locations.length}</dd></div>
+              </dl>
+              <p>Provider-neutral context includes story, world, target, references, continuity and source labels. Credentials, provider configuration and private local paths are excluded.</p>
+            </aside>
           </section>
         ) : (
           <section className="empty-state"><p>Add a visual reference to record source, purpose, rights and story target.</p></section>

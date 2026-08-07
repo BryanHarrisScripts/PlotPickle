@@ -1422,6 +1422,63 @@ html[data-plotpickle-theme="dark"] .progress-track::-moz-progress-bar {
   box-shadow: 0 16px 45px rgba(38, 53, 42, 0.06);
 }
 
+.context-preview {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid #dce8df;
+  border-radius: 8px;
+  background: #f8fbf8;
+}
+
+.context-preview div {
+  display: grid;
+  gap: 4px;
+}
+
+.context-preview span,
+.context-preview dt {
+  color: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.context-preview strong {
+  color: var(--ink);
+  font-size: 18px;
+}
+
+.context-preview dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.context-preview dl div {
+  min-height: 58px;
+  padding: 10px;
+  border: 1px solid #e4e7e1;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.context-preview dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.context-preview p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 /* 24 Blocks */
 
 .blocks-page {

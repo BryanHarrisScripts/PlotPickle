@@ -12,20 +12,42 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: public-security-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   configuration-contract:
     name: Public repository contract
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Detect public-repository contract changes
+        id: scope
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          if git diff --quiet "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- .github config/public-repository.settings.json tests/issue-287-public-repository-setup.test.mjs; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: github.event_name != 'pull_request' || steps.scope.outputs.changed == 'true'
         with:
           node-version: "22.19.0"
-      - run: node --test tests/issue-287-public-repository-setup.test.mjs
+      - name: Validate public repository contract
+        if: github.event_name != 'pull_request' || steps.scope.outputs.changed == 'true'
+        run: node --test tests/issue-287-public-repository-setup.test.mjs
+      - name: Fast public-security status for unrelated pull request
+        if: github.event_name == 'pull_request' && steps.scope.outputs.changed != 'true'
+        run: echo "Public repository policy files are unchanged."
 
   codeql:
     name: CodeQL analysis
-    if: github.event.repository.private == false
+    if: github.event_name != 'pull_request' && github.event.repository.private == false
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -62,3 +84,6 @@ jobs:
         with:
           fail-on-severity: high
           deny-licenses: GPL-2.0, LGPL-2.0
+      - name: Skip unchanged dependency review
+        if: steps.dependency-files.outputs.changed != 'true'
+        run: echo "Dependency manifests are unchanged."

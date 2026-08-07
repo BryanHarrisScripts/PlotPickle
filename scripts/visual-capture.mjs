@@ -91,6 +91,36 @@ async function capture(browser, screen, viewport) {
   return { screen: screen.id, viewport: viewport.id, width: viewport.width, height: viewport.height, url, file: filename }
 }
 
+function visualEvidenceIndex(manifest) {
+  const lines = [
+    '# PlotPickle rendered visual evidence',
+    '',
+    'Use this index to review the actual rendered desktop product before approving a UI/UX pull request.',
+    '',
+    `Generated: ${manifest.generatedAt}`,
+    `Browser: ${manifest.browser}`,
+    `Captured views: ${manifest.captures.length}`,
+    '',
+    '| Workspace | Viewport | Size | Route | Screenshot |',
+    '| --- | --- | ---: | --- | --- |',
+  ]
+
+  for (const capture of manifest.captures) {
+    const route = new URL(capture.url).pathname + new URL(capture.url).search
+    lines.push(`| ${capture.screen} | ${capture.viewport} | ${capture.width}×${capture.height} | \`${route}\` | [${capture.file}](./${capture.file}) |`)
+  }
+
+  lines.push(
+    '',
+    'Review for hierarchy, spacing, typography, density, contrast, status clarity, discoverability, plain-language recovery and technical-provider leakage.',
+    '',
+    'The screenshots and manifest are deterministic review evidence; they do not contain credentials, API keys or private provider payloads.',
+    '',
+  )
+
+  return lines.join('\n')
+}
+
 async function main() {
   const registry = JSON.parse(await readFile(registryPath, 'utf8'))
   await mkdir(outputDirectory, { recursive: true })
@@ -111,6 +141,7 @@ async function main() {
     captures,
   }
   await writeFile(path.join(outputDirectory, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
+  await writeFile(path.join(outputDirectory, 'REVIEW.md'), visualEvidenceIndex(manifest), 'utf8')
   console.log(`Captured ${captures.length} deterministic PlotPickle views in ${outputDirectory}`)
 }
 

@@ -6,9 +6,13 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #347 provides independent mutually exclusive text image and video switches", async () => {
-  const panel = await source("app/ai-routing-panel.tsx");
+  const [panel, registrySource] = await Promise.all([
+    source("app/ai-routing-panel.tsx"),
+    source("config/ai-source-registry.json"),
+  ]);
+  const registry = JSON.parse(registrySource);
+  const routeLabels = new Set(registry.routes.map((route) => route.label));
   for (const phrase of [
-    "Choose where text, images and video are created",
     "Ollama · Local",
     "OpenAI · Cloud",
     "ComfyUI · Local",
@@ -18,9 +22,14 @@ test("issue #347 provides independent mutually exclusive text image and video sw
     "ComfyUI H3 · Local",
     "MiniMax H3 · Cloud",
     "OpenAI Video · Cloud",
+  ]) assert.ok(routeLabels.has(phrase), `Missing routing choice: ${phrase}`);
+  for (const phrase of [
+    "Choose where text, images and video are created",
     "Use local-first setup",
     "PlotPickle never switches to a paid provider automatically",
   ]) assert.ok(panel.includes(phrase), `Missing routing choice: ${phrase}`);
+  assert.match(panel, /AI_SOURCE_GROUPS/);
+  assert.match(panel, /AI_SOURCE_OPTION_LABELS/);
   assert.match(panel, /type="radio"/);
   assert.match(panel, /name=\{`ai-route-\$\{capability\}`\}/);
   assert.match(panel, /checked=\{selected\}/);

@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import hostingConfig from "./.openai/hosting.json";
 import { localAiGateway } from "./build/local-ai-gateway";
 import { localConnectionsGateway } from "./build/local-connections-gateway";
+import { localSystemStatusGateway } from "./build/local-system-status-gateway";
 import { buzzGateway } from "./build/buzz-gateway";
 import { buzzBundleNormalizer } from "./build/buzz-bundle-normalizer";
 import { googleCalendarGateway } from "./build/google-calendar-gateway";
@@ -27,6 +28,11 @@ const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
 
 const { d1, r2 } = hostingConfig;
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
+const ignoredWatchPaths = [
+  "**/reports/visual-audit/**",
+  "**/plotpickle-visual-audit-*/**",
+  "**/plotpickle-visual-audit-*.zip",
+];
 
 const localBindingConfig = {
   main: "./worker/index.ts",
@@ -47,12 +53,16 @@ export default defineConfig(async () => {
     server: {
       host: "0.0.0.0",
       allowedHosts: ["terminal.local"],
-      ...(isCodexSeatbeltSandbox ? { watch: { useFsEvents: false, usePolling: true } } : {}),
+      watch: {
+        ignored: ignoredWatchPaths,
+        ...(isCodexSeatbeltSandbox ? { useFsEvents: false, usePolling: true } : {}),
+      },
     },
     plugins: [
       localConnectionsGateway(),
       buzzBundleNormalizer(),
       buzzGateway(),
+      localSystemStatusGateway(),
       googleCalendarGateway(),
       githubAppGateway(),
       githubCommandGateway(),

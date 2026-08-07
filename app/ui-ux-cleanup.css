@@ -536,3 +536,211 @@ textarea::placeholder {
     width: 100%;
   }
 }
+
+/* Compact typewriter workspace pass */
+:root {
+  --workspace-max: min(1920px, calc(100vw - 24px));
+  --control-height: 36px;
+}
+
+html {
+  font-size: 14px;
+}
+
+body {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+body :is(h1, h2, h3, h4, p, li, label, input, textarea, select, button, a, small, strong, span) {
+  letter-spacing: 0;
+}
+
+body :is(p, li) {
+  line-height: 1.48;
+}
+
+body :is(.eyebrow, small, code, kbd, pre) {
+  font-family: var(--font-mono);
+}
+
+.topbar {
+  min-height: 58px;
+  padding-inline: 12px;
+}
+
+.brand-icon {
+  width: 34px;
+  height: 34px;
+  flex-basis: 34px;
+}
+
+.brand-lockup strong,
+.main-tabs span {
+  font-size: 12px;
+}
+
+.main-tabs button {
+  min-height: 58px;
+  padding: 7px clamp(8px, 1vw, 14px);
+}
+
+.main-tabs small,
+.brand-lockup span:last-child,
+.project-title span:last-child,
+.save-state,
+.eyebrow {
+  font-size: 9px;
+}
+
+.project-strip {
+  top: 58px;
+  min-height: 48px;
+  padding: 6px 18px;
+}
+
+.text-button,
+.primary-button,
+.secondary-button,
+.dashboard-actions .text-button {
+  min-height: 34px;
+  padding: 8px 11px;
+  font-size: 11px;
+}
+
+.studio-layout,
+.planner-layout,
+.dashboard-actions,
+.workflow-section,
+.act-guide,
+.guide-hero,
+.guide-grid,
+.compact-act-guide,
+.editor-page,
+.marketing-header,
+.marketing-hero,
+.marketing-section,
+.download-section,
+.marketing-footer {
+  width: var(--workspace-max);
+  max-width: none;
+}
+
+.studio-layout,
+.planner-layout {
+  grid-template-columns: 210px minmax(0, 1fr);
+}
+
+.story-rail {
+  top: 106px;
+  min-height: calc(100vh - 106px);
+  max-height: calc(100vh - 106px);
+  padding: 14px 10px 18px;
+}
+
+.workspace,
+.studio-layout,
+.planner-layout {
+  min-height: calc(100vh - 106px);
+}
+
+.guide-page,
+.editor-page {
+  padding: 26px 12px 56px;
+}
+
+.guide-hero,
+.guide-card,
+.form-section,
+.workflow-grid article,
+.act-card {
+  padding: 18px;
+}
+
+.section-heading {
+  gap: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+}
+
+.section-heading h2,
+.guide-hero h1,
+.planner-nav h1 {
+  font-size: clamp(24px, 2.4vw, 34px);
+  line-height: 1.08;
+}
+
+.instructions-hero h1,
+.marketing-hero h1 {
+  font-size: clamp(38px, 4.8vw, 64px);
+  line-height: 0.98;
+}
+
+.workflow-grid h3,
+.act-card h3,
+.guide-card h2,
+.feature-grid h3 {
+  font-size: 17px;
+}
+
+.hero-copy,
+.marketing-lede,
+.section-heading > div > p:last-child,
+.guide-hero > div:first-child > p:not(.eyebrow),
+.marketing-section-heading > p:last-child,
+.story-system-copy > p:not(.marketing-kicker),
+.download-section > div:first-child > p:not(.marketing-kicker) {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.form-grid {
+  gap: 14px;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea,
+.subsection-title select {
+  min-height: var(--control-height);
+  padding: 8px 10px;
+  font-size: 11px;
+  line-height: 1.42;
+}
+
+.form-field textarea {
+  min-height: 92px;
+}
+
+@media (max-width: 1120px) {
+  .studio-layout,
+  .planner-layout {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .story-rail {
+    top: auto;
+    min-height: 0;
+    max-height: none;
+  }
+}
+
+@media (max-width: 780px) {
+  :root {
+    --workspace-max: min(100% - 16px, 1920px);
+  }
+
+  html {
+    font-size: 13px;
+  }
+
+  .topbar {
+    min-height: 54px;
+  }
+
+  .main-tabs button {
+    min-height: 50px;
+  }
+}

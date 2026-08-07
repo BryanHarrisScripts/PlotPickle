@@ -7,6 +7,7 @@ import type { ConnectionStatusSnapshot } from "@/lib/connection-status";
 import { createDashboardCommandCentreModel, type DashboardTarget, type DashboardTone } from "@/lib/dashboard-command-centre";
 import type { PlotPickleProject } from "@/lib/project";
 import type { ProductNavigationId } from "@/lib/product-direction";
+import ComputeHubDashboard from "./compute-hub-dashboard";
 import RefreshAction from "./refresh-action";
 import SetupConnectionsDashboard from "./setup-connections-dashboard";
 import styles from "./dashboard-command-centre.module.css";
@@ -183,6 +184,7 @@ export default function DashboardCommandCentre({
         <p className={styles.eyebrow}>Dashboard</p>
         <h2 id="dashboard-sections-title">Command centre</h2>
         <a href="#dashboard-readiness">Readiness</a>
+        <a href="#dashboard-compute-hub">Compute Hub</a>
         <a href="#dashboard-project-source">Project source</a>
         <a href="#dashboard-setup">Setup &amp; connections</a>
         <a href="#dashboard-workflow">Workflow progress</a>
@@ -209,6 +211,12 @@ export default function DashboardCommandCentre({
           </div>
           {model.recommendedAction ? <button type="button" onClick={() => openTarget(model.recommendedAction!.target)}>Recommended: {model.recommendedAction.title}</button> : <button type="button" onClick={() => onNavigate("planner", "overview")}>Continue project</button>}
         </section>
+
+        <ComputeHubDashboard
+          settings={settings}
+          connectionStatus={connectionStatus}
+          onOpenSettings={(section) => openTarget({ workspace: "settings", section })}
+        />
 
         <section id="dashboard-project-source" className={styles.section} aria-labelledby="project-source-title">
           <div className={styles.heading}>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AppearanceRuntime from "./appearance-runtime";
 import CollaborationWorkspaceRouter from "./collaboration-workspace-router";
 import CommonOverlayLayer from "./common-overlay-layer";
 import CurrentDownloadLinks from "./current-download-links";
@@ -15,11 +16,12 @@ import "./premium-ui.css";
 import "./minimal-navigation.css";
 import "./issue-208-polish.css";
 import "./first-run-configuration-dashboard.css";
+import "./appearance-runtime.css";
 
 export const metadata: Metadata = {
-  title: "PlotPickle — Visual Storyworld Collaboration and Previsualization",
+  title: "PlotPickle - AI-native Visual Writing and Creative Direction",
   description:
-    "See the whole movie before you make it. PlotPickle is a visual storyworld collaboration and previsualization engine connecting story logic, canon, characters, scenes and visual direction in one portable PPF project and interactive Storyworld Map.",
+    "Shape the story, see the world and direct what comes next. PlotPickle connects concepts, writing, visual exploration, human approval and reusable storyworld canon in one portable PPF project.",
   other: {
     "codex-preview": "development",
   },
@@ -41,14 +43,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-plotpickle-theme="dark" suppressHydrationWarning>
       <body
         className="antialiased"
         style={{
-          "--font-geist-sans": "Arial, Helvetica, sans-serif",
-          "--font-geist-mono": '"Courier New", Courier, monospace',
+          "--font-geist-sans":
+            '"Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace',
+          "--font-geist-mono":
+            '"Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace',
         } as React.CSSProperties}
       >
+        <AppearanceRuntime />
         {children}
         <CommonOverlayLayer />
         <WriterFacingCollaborationLanguage />

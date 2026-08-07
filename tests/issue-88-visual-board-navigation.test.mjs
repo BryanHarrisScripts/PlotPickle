@@ -45,9 +45,11 @@ test("issue #88 keeps the visual navigator sticky, responsive and keyboard visib
 
 test("issue #88 storyboard controls remain functional", async () => {
   const board = await source("app/visual-storyboard.tsx");
+  const directorActions = await source("app/creative-director-actions.tsx");
   assert.match(board, /onClick=\{\(\) => openSection\("blocks"\)\}/);
   assert.match(board, /onClick=\{\(\) => openSection\("frames"\)\}/);
   assert.match(board, /onClick=\{\(\) => choose\(item\.number/);
   assert.match(board, /onOpenPlannerBlock\(block\.number\)/);
-  assert.match(board, /Generate storyboard image/);
+  assert.match(directorActions, /onClick=\{onIllustrate\}/);
+  assert.match(directorActions, /Create or try another image for this exact story moment/);
 });

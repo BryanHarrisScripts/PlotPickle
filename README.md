@@ -4,13 +4,25 @@
 
 # PlotPickle
 
-**Learn the craft. See the story logic. Build one connected visual storyworld.**
+**Shape the story. See the world. Direct what comes next.**
 
-PlotPickle is a local-first, self-learning visual writing and pitch studio. It connects story education, a living story graph, 24 Blocks, 96 mini-blocks, screenplay material, Graphic Novel panels, Storyboard frames, feedback, production evidence and provenance in one portable PPF project. Optional ComfyUI and MiniMax H3 workflows add local creative compute without making AI or a cloud account part of the core.
+PlotPickle is a local-first, AI-native visual writing and creative direction studio. A writer can begin with a concept, fragment or visual reference; explore possibilities; compare and direct revisions; approve what belongs; and reuse those decisions across a living story graph, 24 Blocks, 96 mini-blocks, screenplay material, Graphic Novel panels and Storyboard frames. AI provides responsive creative material, while the writer remains the author, visual director and final authority over canon.
 
 Start with **Afterglow: Reflections of Sentience** to see the full method in a working story. Then build your own privately, invite a Buzz community into a Writers’ Room, add GitHub history and owner-approved Story Proposals, or use Suggest / Report to prepare a sanitized community-feedback draft. PlotPickle remains installed locally, and only a person can approve a change to canon.
 
 [Getting Started](public/docs/readme/GETTING-STARTED.md) · [Writing & Production](public/docs/readme/WRITING-AND-PRODUCTION.md) · [Collaboration & Development](public/docs/readme/COLLABORATION-AND-DEVELOPMENT.md) · [Official repository](https://github.com/BryanHarrisScripts/PlotPickle) · [About PlotPickle](app/about/page.tsx) · [OpenStory history](docs/history/from-openstory-to-plotpickle.md)
+
+## AI-native visual writing
+
+The canonical creative loop is:
+
+`Concept -> Explore -> Compare -> Direct -> Refine -> Approve -> Reuse`
+
+Normal creative controls describe intention: **Keep, Change, Try, Compare, Combine and Approve**. Provider, model, endpoint and workflow configuration remains in Settings. Generated and imported possibilities stay versioned candidates until a person approves them for a character, location, Block, scene, mini-block, Storyboard frame or Graphic Novel panel.
+
+Visual development is part of writing. Character studies can clarify identity and movement; location studies can expose world rules; scene images can reveal weak staging; panels can test whether action reads; and visual discoveries can return as reviewable story proposals. No visual analysis rewrites canonical story material automatically.
+
+See [AI-native visual writing and creative direction](docs/AI-NATIVE-VISUAL-WRITING.md) and programme [#382](https://github.com/BryanHarrisScripts/PlotPickle/issues/382).
 
 ## Why PlotPickle
 

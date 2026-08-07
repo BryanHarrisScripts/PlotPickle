@@ -8,8 +8,8 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 test("issue #193 defines the completed visual storyworld product contract", async () => {
   const contract = await source("lib/product-direction.ts");
   for (const phrase of [
-    "Visual storyworld collaboration and previsualization engine",
-    "See the whole movie before you make it.",
+    "AI-native visual writing and creative direction studio",
+    "Shape the story. See the world. Direct what comes next.",
     "portable creative source of truth",
     "Interactive Storyworld Map",
     "Graphic Novel + Storyboard",
@@ -99,11 +99,12 @@ test("issue #193 updates metadata and top-level product documentation", async ()
     source("README.md"),
     source("docs/PRODUCT-DEVELOPER-BRIEF-07-26.md"),
   ]);
-  for (const text of [layout, welcome, brief]) {
-    assert.match(text, /visual storyworld collaboration and previsualization engine/i);
+  for (const text of [layout, welcome]) {
+    assert.match(text, /AI-native visual writing and creative direction/i);
   }
-  assert.match(readme, /local-first, self-learning visual writing and pitch studio/i);
-  assert.match(layout, /See the whole movie before you make it/);
+  assert.match(brief, /visual storyworld collaboration and previsualization engine/i);
+  assert.match(readme, /local-first, AI-native visual writing and creative direction studio/i);
+  assert.match(layout, /Shape the story, see the world and direct what comes next/i);
   assert.match(welcome, /From first idea to a visible storyworld/);
   assert.match(readme, /PPF is the portable creative source of truth/);
   assert.match(readme, /Buzz: optional and dormant by default/);

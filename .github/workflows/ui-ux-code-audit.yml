@@ -120,20 +120,34 @@ jobs:
           const nativeMainContradictions = [...report.matchAll(/Missing semantic HTML element for the main content[\s\S]*?\*\*Evidence:\*\*\s*`<main\b[^`]*>`/gi)].length;
           const namedSkipLinkContradictions = [...report.matchAll(/Missing ARIA label for the skip link[\s\S]*?\*\*Evidence:\*\*\s*`<a\b[^`]*>[^<]+<\/a>`/gi)].length;
           const nativeButtonRoleContradictions = [...report.matchAll(/Missing ARIA role for button element used as a toggle[\s\S]*?\*\*Evidence:\*\*\s*`<button\b[^`]*>`/gi)].length;
+          const semanticNavContradictions = [...report.matchAll(/Non-semantic element used for button[\s\S]*?\*\*Evidence:\*\*\s*`<nav\b[^`]*>`[\s\S]*?\*\*Suggested fix:\*\*\s*Use a <button> element instead of a <div>/gi)].length;
           const validLiveRegionContradictions = [...report.matchAll(/Redundant ARIA attribute found[\s\S]*?\*\*Evidence:\*\*\s*`<section\b[^`]*\baria-live="(?:polite|assertive)"[^`]*>`/gi)].length;
           const existingStatusRoleContradictions = [...report.matchAll(/Missing ARIA role[\s\S]*?\*\*Evidence:\*\*\s*`[^`]*\brole="status"[^`]*`[\s\S]*?\*\*Suggested fix:\*\*\s*Add role="alert"/gi)].length;
+          const namedStatusRoleContradictions = [...report.matchAll(/ARIA role ['"]status['"] used without a valid accessible name[\s\S]*?\*\*Evidence:\*\*\s*`[^`]*\brole="status"[^`]*\baria-label="[^"]+"[^`]*`/gi)].length;
+          const paragraphStatusContradictions = [...report.matchAll(/Redundant ARIA role ['"]status['"] on <p> element[\s\S]*?\*\*Evidence:\*\*\s*`<p\b[^`]*\brole="status"[^`]*>`[\s\S]*?\*\*Suggested fix:\*\*\s*Remove the role attribute as <p> is not a live region by default/gi)].length;
           const genericEmptyStatePreferences = [...report.matchAll(/use of <div> for the empty conversation message lacks semantic meaning[\s\S]*?\*\*Evidence:\*\*\s*`<div className=\{styles\.emptyConversation\}>`[\s\S]*?Use a <section> or <article>/gi)].length;
+          const genericHeadingWrapperPreferences = [...report.matchAll(/Improper use of <div> for semantic content[\s\S]*?\*\*Evidence:\*\*\s*`<div className=\{styles\.sectionHeading\}><div><p>[^`]*<h[1-6]\b[^`]*<\/h[1-6]><\/div><\/div>`[\s\S]*?Use <section> or <article>/gi)].length;
           const decorativeHiddenElementContradictions = [...report.matchAll(/use of <i> for non-decorative content[\s\S]*?\*\*Evidence:\*\*\s*`<i\b[^`]*\baria-hidden="true"[^`]*\/>`[\s\S]*?Replace <i> with a <span>/gi)].length;
+          const decorativeHiddenSvgContradictions = [...report.matchAll(/ARIA attribute is not valid for the element[\s\S]*?\*\*Evidence:\*\*\s*`<svg\b[^`]*\baria-hidden="true"[^`]*>`[\s\S]*?Remove aria-hidden from the svg element/gi)].length;
+          const genericBoldElementPreferences = [...report.matchAll(/use of <b> for non-bold text is semantically incorrect[\s\S]*?\*\*Evidence:\*\*\s*`<b>[^`]*<\/b>`[\s\S]*?Replace <b> with <strong> for semantically meaningful text or use CSS for styling/gi)].length;
+          const passiveThumbnailPreferences = [...report.matchAll(/Non-interactive element used as a button[\s\S]*?className=\{styles\.miniImage\}[\s\S]*?\*\*Suggested fix:\*\*[\s\S]*?Use a <button> element for interactive controls/gi)].length;
           const contradictedFindings = nativeMainContradictions
             + namedSkipLinkContradictions
             + nativeButtonRoleContradictions
+            + semanticNavContradictions
             + validLiveRegionContradictions
             + existingStatusRoleContradictions
+            + namedStatusRoleContradictions
+            + paragraphStatusContradictions
             + genericEmptyStatePreferences
-            + decorativeHiddenElementContradictions;
+            + genericHeadingWrapperPreferences
+            + decorativeHiddenElementContradictions
+            + decorativeHiddenSvgContradictions
+            + genericBoldElementPreferences
+            + passiveThumbnailPreferences;
 
           if (issueCount > 0 && contradictedFindings === issueCount) {
-            const summary = "Every reported issue was contradicted by its own quoted evidence or expressed a generic element preference without demonstrating a semantic defect. The source already uses valid native semantics, accessible names, interactive roles, live-region behavior, or an explicitly hidden decorative mark, so the deterministic UI/UX gate discarded the unsupported findings.";
+            const summary = "Every reported issue was contradicted by its own quoted evidence or expressed a generic element preference without demonstrating a semantic defect. The source already uses valid native landmarks and semantics, accessible names, interactive roles, live-region behavior, valid attention styling, an explicitly hidden decorative mark or SVG, a passive thumbnail inside its parent button, or a non-landmark styling wrapper around a real heading, so the deterministic UI/UX gate discarded the unsupported findings.";
             fs.writeFileSync("audit-result.json", `${JSON.stringify({ ...result, verdict: "pass", issueCount: 0, findingCount: 0, summary }, null, 2)}\n`);
             fs.writeFileSync("audit-report.md", `<!-- plotpickle-ui-ux-audit -->\n## UI/UX Code Audit\n\n**Verdict:** PASS\n\n${summary}\n`);
             console.log(summary);

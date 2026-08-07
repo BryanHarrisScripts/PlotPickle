@@ -75,7 +75,7 @@ test("overview pitch visual bible and storyboard integrations keep approval boun
   assert.ok(labs.includes('mode="gallery"'));
   assert.ok(labs.includes('mode="pitch"'));
   assert.ok(storyboard.includes('mode="block"'));
-  assert.match(storyboard, /current approved storyboard/i);
+  assert.match(storyboard, /current approved (?:storyboard )?image/i);
   assert.match(labs, /bundled legacy source visual/i);
 });
 

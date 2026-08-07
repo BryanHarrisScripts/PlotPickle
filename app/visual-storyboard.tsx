@@ -2,8 +2,8 @@
 
 /* eslint-disable @next/next/no-img-element -- Storyboard assets are served by PlotPickle's private local gateway or supplied by the writer. */
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { createStoryboardFrame, type MiniBlock, type PlotPickleProject, type StoryBlock, type StoryScene, type VisualFrame } from "@/lib/project";
+import { useEffect, useRef, useState } from "react";
+import { createStoryboardFrame, type MiniBlock, type PlotPickleProject, type StoryBlock, type StoryScene, type VisualFrame, type VisualMediaVersion } from "@/lib/project";
 import { migrateLegacyAssetReferences, resolveProjectAssetSource } from "@/lib/project-assets";
 import {
   approvedCharacterIdentityPrompt,
@@ -13,12 +13,20 @@ import {
   type CharacterWithVisualIdentity,
 } from "@/lib/character-visual-identity";
 import AfterglowLegacyVisuals from "./afterglow-legacy-visuals";
+import CreativeDirectorActions from "./creative-director-actions";
+import { requestPlotPickleConfirmation } from "./common-overlay-layer";
 import styles from "./visual-storyboard.module.css";
 
 type BoardMode = "blocks" | "minis";
 type VisualSection = "overview" | "characters" | "locations" | "assets" | "language" | "blocks" | "frames" | "pitch" | "diagnostics";
-type WorkingState = "idle" | "prompt" | "image" | "error";
+type WorkingState = "idle" | "prompt" | "image" | "video" | "error";
 type AiResponse = { text?: string; assetUrl?: string; revisedPrompt?: string; message?: string };
+type VideoJob = {
+  id: string;
+  status: "queued" | "running" | "succeeded" | "failed" | "cancelled" | "expired";
+  outputAssetUrl?: string;
+  error?: string;
+};
 
 function miniBlockFor(block: StoryBlock, miniBlockNumber: number) {
   return block.scenes.flatMap((scene) => scene.miniBlocks).find((mini) => mini.number === miniBlockNumber) ?? block.scenes[0].miniBlocks[0];
@@ -35,6 +43,19 @@ function primaryFrame(block: StoryBlock, miniBlockNumber: number) {
 
 function unique(values: string[]) {
   return [...new Set(values.filter(Boolean))];
+}
+
+
+function storyboardVersions(frame: VisualFrame) {
+  return frame.versions ?? [];
+}
+
+function newestVersion(frame: VisualFrame, kind: VisualMediaVersion["kind"], status?: VisualMediaVersion["status"]) {
+  return [...storyboardVersions(frame)].reverse().find((version) => version.kind === kind && (!status || version.status === status));
+}
+
+function versionTimestamp() {
+  return new Date().toISOString();
 }
 
 function charactersForVisual(project: PlotPickleProject, block: StoryBlock, scene: StoryScene, mini: MiniBlock) {
@@ -120,8 +141,13 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
   const scene = sceneFor(block, miniBlockNumber);
   const frame = primaryFrame(block, miniBlockNumber);
   const frameSource = resolveProjectAssetSource(project.assets, frame.assetRef, frame.src);
-  const prompt = useMemo(() => storyboardPrompt(project, block, scene, mini, frame), [project, block, scene, mini, frame]);
-  const identityInputs = useMemo(() => storyboardIdentityInputs(project, block, scene, mini), [project, block, scene, mini]);
+  const versions = storyboardVersions(frame);
+  const latestImageCandidate = newestVersion(frame, "image", "candidate");
+  const approvedVideo = versions.find((version) => version.id === frame.approvedVideoVersionId)
+    ?? newestVersion(frame, "video", "approved");
+  const previewSource = latestImageCandidate?.src || frameSource;
+  const prompt = storyboardPrompt(project, block, scene, mini, frame);
+  const identityInputs = storyboardIdentityInputs(project, block, scene, mini);
   const identityWarnings = identityInputs.filter((identity) => identity.diagnostic.severity !== "clear");
   const visibleBlocks = visualAct ? project.blocks.filter((item) => item.act === visualAct) : project.blocks;
   const visibleMinis = visibleBlocks.flatMap((item) => [1, 2, 3, 4].map((number) => ({ block: item, mini: miniBlockFor(item, number), frame: primaryFrame(item, number) })));
@@ -228,7 +254,7 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
   }
 
   async function refinePrompt() {
-    if (working !== "idle") return;
+    if (working !== "idle" && working !== "error") return;
     setWorking("prompt");
     setMessage("Refining the prompt while preserving the approved identity locks…");
     try {
@@ -251,16 +277,49 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
     }
   }
 
+  function appendVersion(version: VisualMediaVersion) {
+    updateFrame({ versions: [...versions, version] });
+  }
+
+  function approveVersion(version: VisualMediaVersion) {
+    const nextVersions = versions.map((item) => item.kind === version.kind
+      ? { ...item, status: item.id === version.id ? "approved" as const : "archived" as const }
+      : item);
+    if (version.kind === "image") {
+      updateFrame({
+        src: version.src,
+        prompt: version.prompt || frame.prompt || prompt,
+        alt: frame.alt || `${project.metadata.title}, Block ${block.number}, mini-block ${miniBlockNumber}: ${mini.visualBeat || mini.function}`,
+        versions: nextVersions,
+        approvedImageVersionId: version.id,
+      });
+      setMessage("This image version is now approved for the selected story moment.");
+      return;
+    }
+    updateFrame({ versions: nextVersions, approvedVideoVersionId: version.id });
+    setMessage("This video version is now approved for the selected story moment.");
+  }
+
+  function keepCurrent(version: VisualMediaVersion) {
+    updateFrame({ versions: versions.filter((item) => item.id !== version.id) });
+    setMessage(`The current approved ${version.kind} was kept. The unapproved version was removed.`);
+  }
+
   async function generateImage() {
-    if (working === "image" || working === "prompt") return;
-    const billingAcknowledged = window.confirm("Generate one storyboard image? A connected cloud provider may charge the API account saved by this user. PlotPickle does not supply credits or pay for generation.");
+    if (working !== "idle" && working !== "error") return;
+    const billingAcknowledged = await requestPlotPickleConfirmation({
+      title: "Illustrate this story moment?",
+      description: "PlotPickle will use the active image route. A configured cloud route may charge the API account saved by this user; PlotPickle never supplies credits or silently changes providers.",
+      confirmLabel: "Illustrate",
+    });
     if (!billingAcknowledged) {
-      setMessage("Storyboard generation was cancelled. No provider request was made.");
+      setWorking("idle");
+      setMessage("Illustration was cancelled. No provider request was made.");
       return;
     }
     const activePrompt = frame.prompt || prompt;
     setWorking("image");
-    setMessage(identityWarnings.length ? "Generating with identity warnings. Review the result carefully before treating it as approved." : "Generating with the locked character identities and saving the frame locally…");
+    setMessage(identityWarnings.length ? "Illustrating with continuity warnings. Review the returned version before approval." : "Illustrating from the story, identity locks and continuity context…");
     try {
       const response = await fetch("/api/local-ai/generate/image", {
         method: "POST",
@@ -270,20 +329,109 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
           assetId: `storyboard-block-${block.number}-mini-${miniBlockNumber}`,
           aspect: "landscape",
           referenceImages: unique(identityInputs.flatMap((identity) => identity.referenceImages)),
-          identityLocks: identityInputs.map(({ diagnostic, ...identity }) => identity),
+          identityLocks: identityInputs.map(({ diagnostic, ...identity }) => { void diagnostic; return identity; }),
           requestCount: 1,
           billingAcknowledged,
         }),
       });
       const result = await response.json() as AiResponse;
-      if (!response.ok || !result.assetUrl) throw new Error(result.message || "The image provider returned no image.");
-      updateFrame({ src: result.assetUrl, prompt: result.revisedPrompt || activePrompt, alt: frame.alt || `${project.metadata.title}, Block ${block.number}, mini-block ${miniBlockNumber}: ${mini.visualBeat || mini.function}` });
+      if (!response.ok || !result.assetUrl) throw new Error(result.message || "The image route returned no image.");
+      appendVersion({
+        id: `${frame.id}-image-${versionTimestamp()}`,
+        kind: "image",
+        src: result.assetUrl,
+        prompt: result.revisedPrompt || activePrompt,
+        status: "candidate",
+        createdAt: versionTimestamp(),
+      });
       setWorking("idle");
-      setMessage("Storyboard frame generated, saved locally and attached to this mini-block. Identity locks remain available for the next frame.");
+      setMessage("A new image version is ready. Approve it, keep the current image or illustrate again.");
     } catch (error) {
       setWorking("error");
-      setMessage(error instanceof Error ? error.message : "Image generation is unavailable.");
+      setMessage(error instanceof Error ? error.message : "Illustration is unavailable. Open generation settings to repair the active route.");
     }
+  }
+
+  async function pollVideo(job: VideoJob) {
+    let current = job;
+    for (let attempt = 0; attempt < 160 && (current.status === "queued" || current.status === "running"); attempt += 1) {
+      await new Promise((resolve) => window.setTimeout(resolve, 3_000));
+      const response = await fetch(`/api/local-ai/video/${encodeURIComponent(current.id)}`);
+      const result = await response.json() as VideoJob & { message?: string };
+      if (!response.ok) throw new Error(result.message || "The video route could not report its progress.");
+      current = result;
+    }
+    if (current.status === "succeeded" && current.outputAssetUrl) return current;
+    if (current.status === "queued" || current.status === "running") {
+      throw new Error("The video is still running after the review window. Its provider job remains available.");
+    }
+    throw new Error(current.error || `The video route ended with status ${current.status}.`);
+  }
+
+  async function animateVideo() {
+    if (working !== "idle" && working !== "error") return;
+    if (!frameSource) {
+      setWorking("error");
+      setMessage("Approve an image version first. Animate always begins from the current approved image.");
+      return;
+    }
+    const billingAcknowledged = await requestPlotPickleConfirmation({
+      title: "Animate this approved image?",
+      description: "PlotPickle will send the approved image and this story moment to the active video route. MiniMax H3 routes may charge the user-owned account and share this media with that configured provider.",
+      confirmLabel: "Animate",
+    });
+    if (!billingAcknowledged) {
+      setWorking("idle");
+      setMessage("Animation was cancelled. No provider request was made.");
+      return;
+    }
+    const videoPrompt = [
+      `Animate the approved storyboard image for ${project.metadata.title}.`,
+      `Block ${block.number}.${miniBlockNumber}: ${block.title} — ${mini.label}.`,
+      `Visible action: ${mini.action || mini.visualBeat || mini.purpose || mini.function}.`,
+      scene.turn && `Dramatic turn: ${scene.turn}.`,
+      frame.continuity && `Continuity lock: ${frame.continuity}.`,
+      frame.shot && `Camera direction: ${frame.shot}.`,
+      "Preserve the approved image composition, identities, wardrobe, props, geography and screen direction. Add natural performance, environmental motion and one restrained cinematic camera move. No text or new characters.",
+    ].filter(Boolean).join("\n");
+    setWorking("video");
+    setMessage("Animating the approved image with this story moment and continuity context…");
+    try {
+      const response = await fetch("/api/local-ai/generate/video", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: videoPrompt,
+          sourceAssetUrl: frameSource,
+          assetId: `storyboard-block-${block.number}-mini-${miniBlockNumber}-video`,
+          durationSeconds: 4,
+          aspectRatio: "16:9",
+          billingAcknowledged: true,
+          dataSharingAcknowledged: true,
+        }),
+      });
+      const job = await response.json() as VideoJob & { message?: string };
+      if (!response.ok || !job.id) throw new Error(job.message || "The video route did not accept the animation.");
+      const result = await pollVideo(job);
+      appendVersion({
+        id: `${frame.id}-video-${versionTimestamp()}`,
+        kind: "video",
+        src: result.outputAssetUrl!,
+        prompt: videoPrompt,
+        sourceImageSrc: frameSource,
+        status: "candidate",
+        createdAt: versionTimestamp(),
+      });
+      setWorking("idle");
+      setMessage("A new video version is ready. Approve it or keep the current video.");
+    } catch (error) {
+      setWorking("error");
+      setMessage(error instanceof Error ? error.message : "Animation is unavailable. Open generation settings to repair the active route.");
+    }
+  }
+
+  function openGenerationSettings() {
+    window.location.assign("/ai-routing");
   }
 
   return (
@@ -295,7 +443,7 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
 
       <div className={styles.visualLayout}>
         <nav className={styles.visualNav} aria-label="Visual Board sections">
-          <div className={styles.visualNavHead}><strong>Visual production</strong><span>{continuityWarnings + missingReferences} items to review</span></div>
+          <header className={styles.visualNavHead}><strong>Visual production</strong><span>{continuityWarnings + missingReferences} items to review</span></header>
           {navigation.map((item) => <button type="button" key={item.id} className={activeSection === item.id ? styles.navActive : ""} aria-current={activeSection === item.id ? "location" : undefined} onClick={() => openSection(item.id)}>
             <span><strong>{item.label}</strong><small>{item.detail}</small></span><b>{item.count}</b>
           </button>)}
@@ -331,31 +479,56 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
 
           <section id={`visual-${mode === "blocks" ? "blocks" : "frames"}`} data-visual-section={mode === "blocks" ? "blocks" : "frames"} className={styles.storyboardSection} tabIndex={-1}>
             <div className={styles.toolbar}>
-              <div className={styles.modeSwitch}><button type="button" className={mode === "blocks" ? styles.active : ""} onClick={() => openSection("blocks")}>24 Blocks</button><button type="button" className={mode === "minis" ? styles.active : ""} onClick={() => openSection("frames")}>96 Mini-blocks</button></div>
-              <div className={styles.actFilter}>{[0, 1, 2, 3, 4].map((act) => <button type="button" className={visualAct === act ? styles.active : ""} key={act} onClick={() => onVisualActChange(act)}>{act ? `Act ${act}` : "All acts"}</button>)}</div>
+              <nav className={styles.modeSwitch} aria-label="Storyboard view"><button type="button" className={mode === "blocks" ? styles.active : ""} onClick={() => openSection("blocks")}>24 Blocks</button><button type="button" className={mode === "minis" ? styles.active : ""} onClick={() => openSection("frames")}>96 Mini-blocks</button></nav>
+              <nav className={styles.actFilter} aria-label="Storyboard act filter">{[0, 1, 2, 3, 4].map((act) => <button type="button" className={visualAct === act ? styles.active : ""} key={act} onClick={() => onVisualActChange(act)}>{act ? `Act ${act}` : "All acts"}</button>)}</nav>
             </div>
             <div className={styles.workspace}>
               <main className={styles.board}>
                 {mode === "blocks" ? <div className={styles.blockGrid}>{visibleBlocks.map((item) => { const frames = [1, 2, 3, 4].map((number) => primaryFrame(item, number)); const hero = frames.find((visual) => visual.src); const count = frames.filter((visual) => visual.src).length; return <button type="button" className={`${styles.blockCard} ${styles[`act${item.act}`]} ${item.number === block.number ? styles.selected : ""}`} key={item.id} onClick={() => choose(item.number)}><div className={styles.blockImage}>{hero?.src ? <img src={hero.src} alt={hero.alt || `Block ${item.number}`} /> : <span>{String(item.number).padStart(2, "0")}</span>}<b>{count}/4</b></div><div><small>Block {item.number} · Sequence {item.sequenceNumber}</small><strong>{item.title}</strong><p>{item.summary || item.purpose}</p></div><div className={styles.miniDots}>{frames.map((visual, index) => <i className={visual.src ? styles.done : visual.prompt ? styles.ready : ""} key={visual.id || index} />)}</div></button>; })}</div> : <div className={styles.miniGrid}>{visibleMinis.map(({ block: item, mini: itemMini, frame: itemFrame }) => <button type="button" className={`${styles.miniCard} ${item.number === block.number && itemMini.number === miniBlockNumber ? styles.selected : ""}`} key={`${item.id}-${itemMini.number}`} onClick={() => choose(item.number, itemMini.number)}><div className={styles.miniImage}>{itemFrame.src ? <img src={itemFrame.src} alt={itemFrame.alt || `Block ${item.number}.${itemMini.number}`} /> : <span><b>{item.number}.{itemMini.number}</b><small>{itemMini.label}</small></span>}</div><div><small>Act {item.act} · Block {item.number}</small><strong>{itemMini.label}</strong><p>{itemMini.visualBeat || itemMini.purpose || itemMini.function}</p><em>{itemFrame.src ? "Image complete" : itemFrame.prompt ? "Prompt ready" : "Ready to develop"}</em></div></button>)}</div>}
               </main>
               <aside className={styles.inspector}>
-                <p><strong>Current approved storyboard</strong> frames remain separate from historical source art.</p>
-                <AfterglowLegacyVisuals project={project} mode="block" blockNumber={block.number} />
-                <div className={styles.inspectorHead}><div><span>Selected visual</span><h2>Block {block.number}.{miniBlockNumber}</h2><strong>{block.title} · {mini.label}</strong></div><button type="button" onClick={() => onOpenPlannerBlock(block.number)}>Open story block</button></div>
+                <div className={styles.inspectorHead}><div><span>Selected story moment</span><h2>Block {block.number}.{miniBlockNumber}</h2><strong>{block.title} · {mini.label}</strong></div><button type="button" onClick={() => onOpenPlannerBlock(block.number)}>Open story block</button></div>
                 <div className={styles.turnStrip}>{[1, 2, 3, 4].map((number) => { const itemMini = miniBlockFor(block, number); const itemFrame = primaryFrame(block, number); return <button type="button" className={number === miniBlockNumber ? styles.active : ""} onClick={() => choose(block.number, number)} key={number}><span>{number}</span><strong>{itemMini.label}</strong><i className={itemFrame.src ? styles.done : itemFrame.prompt ? styles.ready : ""} /></button>; })}</div>
-                <div className={styles.context}><small>Scene purpose</small><p>{scene.purpose || "Add the scene purpose in the Structure Map or Block editor."}</p><small>Mini-block purpose</small><p>{mini.visualBeat || mini.purpose || mini.function}</p></div>
-                {identityInputs.length ? <div className={styles.context}><small>Character identity status</small>{identityInputs.map((identity) => <p key={identity.characterId}><strong>{identity.name}</strong> · {identity.status} v{identity.version} · {identity.referenceImages.length} approved reference{identity.referenceImages.length === 1 ? "" : "s"}{identity.diagnostic.severity !== "clear" ? ` — ${identity.diagnostic.message}` : ""}</p>)}</div> : null}
-                {identityWarnings.length ? <p className={styles.note}><strong>Identity review needed:</strong> {identityWarnings.map((identity) => identity.name).join(", ")}.</p> : null}
-                <div className={styles.preview}>{frameSource ? <img src={frameSource} alt={frame.alt || `Block ${block.number}.${miniBlockNumber} storyboard`} /> : <div><strong>No image yet</strong><span>The complete default prompt is ready below.</span></div>}</div>
-                <label><span>Image prompt</span><textarea rows={12} value={frame.prompt || prompt} onChange={(event) => updateFrame({ prompt: event.target.value })} /></label>
-                <div className={styles.promptActions}><button type="button" onClick={() => updateFrame({ prompt })}>Rebuild from story</button><button type="button" onClick={copyPrompt}>Copy prompt</button><button type="button" disabled={working === "prompt" || working === "image"} onClick={refinePrompt}>{working === "prompt" ? "Refining…" : "Refine with AI"}</button></div>
-                <label><span>Shot and lens</span><input value={frame.shot} onChange={(event) => updateFrame({ shot: event.target.value })} placeholder="Wide two-shot, 35mm lens, low eye line…" /></label>
-                <label><span>Continuity lock</span><textarea rows={3} value={frame.continuity} onChange={(event) => updateFrame({ continuity: event.target.value })} placeholder="Wardrobe, props, injuries, time of day, screen direction…" /></label>
-                <label><span>Caption</span><input value={frame.caption} onChange={(event) => updateFrame({ caption: event.target.value })} placeholder="What changes in this image?" /></label>
-                <label><span>Accessible description</span><input value={frame.alt} onChange={(event) => updateFrame({ alt: event.target.value })} /></label>
-                <button type="button" className={styles.generate} disabled={working === "image" || working === "prompt"} onClick={generateImage}>{working === "image" ? "Generating image…" : frameSource ? "Regenerate storyboard image" : "Generate storyboard image"}</button>
-                {message ? <p className={working === "error" ? styles.error : styles.message} role="status">{message}</p> : null}
-                <p className={styles.note}>AI is optional. The generated image is saved by the private local server; the prompt and structured reference list can also be used with another image tool.</p>
+                <CreativeDirectorActions
+                  storyLabel={`Block ${block.number}.${miniBlockNumber} · ${scene.title || `Scene ${scene.number}`}`}
+                  storyTitle={`${block.title} · ${mini.label}`}
+                  storyMoment={[mini.action || mini.visualBeat || mini.purpose || mini.function, scene.turn && `Turn: ${scene.turn}`, scene.outcome && `Outcome: ${scene.outcome}`].filter(Boolean).join(" ")}
+                  currentVisual={previewSource ? <div className={styles.directorPreview}><span>{latestImageCandidate ? "Latest image version · review before approval" : "Current approved image"}</span><img src={previewSource} alt={frame.alt || `Block ${block.number}.${miniBlockNumber} storyboard`} /></div> : undefined}
+                  versions={versions.length ? <div className={styles.versionQueue} aria-label="Review generated versions">
+                    <div className={styles.versionQueueHead}><strong>Versions attached to this story moment</strong><span>{versions.length} saved</span></div>
+                    {[...versions].reverse().slice(0, 6).map((version) => {
+                      const current = version.kind === "image"
+                        ? version.id === frame.approvedImageVersionId
+                        : version.id === frame.approvedVideoVersionId;
+                      const versionLabelId = `storyboard-version-${version.id}-label`;
+                      return <article className={styles.versionCard} data-status={version.status} key={version.id}>
+                        {version.kind === "image"
+                          ? <img src={version.src} alt={`${version.status} image version for Block ${block.number}.${miniBlockNumber}`} />
+                          : <video src={version.src} controls preload="metadata" playsInline aria-labelledby={versionLabelId} />}
+                        <div><strong id={versionLabelId}>{version.kind === "image" ? "Image" : "Video"} version</strong><span>{current ? "Current approved" : version.status === "candidate" ? "Ready for review" : "Previous version"} · {version.createdAt ? new Date(version.createdAt).toLocaleString() : "Saved locally"}</span></div>
+                        {version.status === "candidate" ? <div className={styles.versionActions}><button type="button" onClick={() => approveVersion(version)}>Approve {version.kind}</button><button type="button" onClick={() => keepCurrent(version)}>Keep current</button></div> : null}
+                      </article>;
+                    })}
+                  </div> : undefined}
+                  identityWarning={identityWarnings.length ? identityWarnings.map((identity) => `${identity.name}: ${identity.diagnostic.message}`).join(" ") : undefined}
+                  state={working === "image" ? "illustrating" : working === "video" ? "animating" : working === "error" ? "error" : "idle"}
+                  message={message}
+                  onIllustrate={() => void generateImage()}
+                  onAnimate={() => void animateVideo()}
+                  onOpenSettings={openGenerationSettings}
+                  advanced={<div className={styles.advancedDirection}>
+                    <div className={styles.context}><small>Scene purpose</small><p>{scene.purpose || "Add the scene purpose in the Structure Map or Block editor."}</p><small>Mini-block purpose</small><p>{mini.visualBeat || mini.purpose || mini.function}</p></div>
+                    {identityInputs.length ? <div className={styles.context}><small>Character identity status</small>{identityInputs.map((identity) => <p key={identity.characterId}><strong>{identity.name}</strong> · {identity.status} v{identity.version} · {identity.referenceImages.length} approved reference{identity.referenceImages.length === 1 ? "" : "s"}</p>)}</div> : null}
+                    <label><span>Image prompt</span><textarea rows={8} value={frame.prompt || prompt} onChange={(event) => updateFrame({ prompt: event.target.value })} /></label>
+                    <div className={styles.promptActions}><button type="button" onClick={() => updateFrame({ prompt })}>Rebuild from story</button><button type="button" onClick={copyPrompt}>Copy prompt</button><button type="button" disabled={working !== "idle" && working !== "error"} onClick={refinePrompt}>{working === "prompt" ? "Refining…" : "Refine with AI"}</button></div>
+                    <label><span>Shot and lens</span><input value={frame.shot} onChange={(event) => updateFrame({ shot: event.target.value })} placeholder="Wide two-shot, 35mm lens, low eye line…" /></label>
+                    <label><span>Continuity lock</span><textarea rows={3} value={frame.continuity} onChange={(event) => updateFrame({ continuity: event.target.value })} placeholder="Wardrobe, props, injuries, time of day, screen direction…" /></label>
+                    <label><span>Caption</span><input value={frame.caption} onChange={(event) => updateFrame({ caption: event.target.value })} placeholder="What changes in this image?" /></label>
+                    <label><span>Accessible description</span><input value={frame.alt} onChange={(event) => updateFrame({ alt: event.target.value })} /></label>
+                    <div className={styles.legacyReference}><p><strong>Original source-art reference</strong> remains separate from the approved PlotPickle versions.</p><AfterglowLegacyVisuals project={project} mode="block" blockNumber={block.number} /></div>
+                    {approvedVideo ? <p className={styles.note}><strong>Approved animation:</strong> This story moment has a current approved video version.</p> : null}
+                  </div>}
+                />
               </aside>
             </div>
           </section>

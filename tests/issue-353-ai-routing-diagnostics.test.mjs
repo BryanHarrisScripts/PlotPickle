@@ -6,10 +6,13 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #353 exposes the requested text image and video provider matrix", async () => {
-  const [panel, gateway] = await Promise.all([
+  const [panel, gateway, registrySource] = await Promise.all([
     source("app/ai-routing-panel.tsx"),
     source("build/ai-routing-gateway.ts"),
+    source("config/ai-source-registry.json"),
   ]);
+  const registry = JSON.parse(registrySource);
+  const routeLabels = new Set(registry.routes.map((route) => route.label));
   for (const phrase of [
     "Ollama · Local",
     "OpenAI · Cloud",
@@ -21,7 +24,9 @@ test("issue #353 exposes the requested text image and video provider matrix", as
     "ComfyUI H3 · Local",
     "OpenAI Video · Cloud",
     "MiniMax H3 · Cloud",
-  ]) assert.ok(panel.includes(phrase), `Missing provider switch: ${phrase}`);
+  ]) assert.ok(routeLabels.has(phrase), `Missing provider switch: ${phrase}`);
+  assert.match(panel, /AI_SOURCE_GROUPS/);
+  assert.match(panel, /AI_SOURCE_OPTION_LABELS/);
   for (const contract of [
     'export type TextRoute = "ollama" | "openai" | "minimax" | "off"',
     'export type ImageRoute = "comfyui" | "ollama-comfyui" | "openai" | "minimax" | "manual"',

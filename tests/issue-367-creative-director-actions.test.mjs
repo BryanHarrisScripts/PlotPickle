@@ -14,12 +14,16 @@ test("Creative Director actions keep story and intent ahead of provider configur
   assert.match(source, /"Illustrate"/);
   assert.match(source, /"Animate"/);
   assert.match(source, /Advanced direction/);
-  assert.match(source, /Provider, model, checkpoint and workflow choices stay in Settings/);
+  assert.match(source, /Generation and routing details stay out of the creative flow/);
+  assert.match(source, />Open Settings</);
   assert.doesNotMatch(source, /OpenAI|Ollama|ComfyUI|MiniMax/);
 });
 
 test("Creative Director actions expose plain-language recovery and accessible status", () => {
-  assert.match(source, /Open generation settings/);
+  assert.match(source, /Open Settings/);
+  assert.match(source, /writerFacingMessage/);
+  assert.match(source, /generation request/);
+  assert.match(source, /generation job/);
   assert.match(source, /role="status"/);
   assert.match(source, /<fieldset className={styles\.actions}>/);
   assert.match(source, /<legend className={styles\.actionLegend}>Direct this story moment<\/legend>/);

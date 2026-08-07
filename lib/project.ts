@@ -682,8 +682,31 @@ export type ConceptCanvas = {
   updatedAt: string;
 };
 
+export type VisualReferencePurpose = "inspiration" | "identity" | "continuity" | "composition";
+export type VisualReferenceRightsStatus = "unknown" | "owned" | "licensed" | "public-domain" | "permission-needed";
+
+export type VisualReference = {
+  id: string;
+  title: string;
+  sourceUrl: string;
+  importFileName: string;
+  sourceType: "link" | "manual-import" | "note";
+  purpose: VisualReferencePurpose;
+  rightsStatus: VisualReferenceRightsStatus;
+  ownershipNotes: string;
+  permittedUse: string;
+  attribution: string;
+  targetKind: ConceptCanvasTargetKind;
+  targetId: string;
+  targetLabel: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type ProjectDevelopment = {
   conceptCanvas: ConceptCanvas;
+  visualReferences: VisualReference[];
   storySetup: {
     audience: string;
     contentRating: string;
@@ -1007,6 +1030,7 @@ export function createBlankDevelopment(): ProjectDevelopment {
       targetLabel: "Whole project",
       updatedAt: "",
     },
+    visualReferences: [],
     storySetup: { audience: "", contentRating: "", language: "", scope: "", collaborators: "" },
     pitch: { oneSentence: "", shortPitch: "", audiencePromise: "", emotionalExperience: "", comparableTitles: "", visualVision: "" },
     ghost: { centralWound: "", origin: "", lie: "", trigger: "", presentPattern: "", truth: "" },
@@ -1041,9 +1065,29 @@ export function createBlankDevelopment(): ProjectDevelopment {
 }
 
 const conceptCanvasTargetKinds = new Set<ConceptCanvasTargetKind>(["project", "character", "location", "block", "mini-block", "scene"]);
+const visualReferencePurposes = new Set<VisualReferencePurpose>(["inspiration", "identity", "continuity", "composition"]);
+const visualReferenceRightsStatuses = new Set<VisualReferenceRightsStatus>(["unknown", "owned", "licensed", "public-domain", "permission-needed"]);
 
 function stringValue(value: unknown) {
   return typeof value === "string" ? value : "";
+}
+
+function safeReferenceUrl(value: unknown) {
+  const source = stringValue(value).trim();
+  if (!source || /^(?:file|[a-z]):/i.test(source) || /^[/\\]/.test(source)) return "";
+  try {
+    const url = new URL(source);
+    if (url.username || url.password) return "";
+    return source;
+  } catch {
+    return source.includes("\\") ? "" : source;
+  }
+}
+
+function safeImportFileName(value: unknown) {
+  const source = stringValue(value).trim();
+  if (!source || source.includes("/") || source.includes("\\") || /^file:/i.test(source)) return "";
+  return source;
 }
 
 function normalizeConceptCanvas(value: unknown, defaults: ConceptCanvas): ConceptCanvas {
@@ -1063,6 +1107,38 @@ function normalizeConceptCanvas(value: unknown, defaults: ConceptCanvas): Concep
     targetId: stringValue(canvas.targetId) || defaults.targetId,
     targetLabel: stringValue(canvas.targetLabel) || defaults.targetLabel,
     updatedAt: stringValue(canvas.updatedAt),
+  };
+}
+
+function normalizeVisualReference(value: unknown): VisualReference | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const reference = value as Partial<Record<keyof VisualReference, unknown>>;
+  const purpose = typeof reference.purpose === "string" && visualReferencePurposes.has(reference.purpose as VisualReferencePurpose)
+    ? reference.purpose as VisualReferencePurpose
+    : "inspiration";
+  const rightsStatus = typeof reference.rightsStatus === "string" && visualReferenceRightsStatuses.has(reference.rightsStatus as VisualReferenceRightsStatus)
+    ? reference.rightsStatus as VisualReferenceRightsStatus
+    : "unknown";
+  const targetKind = typeof reference.targetKind === "string" && conceptCanvasTargetKinds.has(reference.targetKind as ConceptCanvasTargetKind)
+    ? reference.targetKind as ConceptCanvasTargetKind
+    : "project";
+  return {
+    id: stringValue(reference.id) || "reference-imported",
+    title: stringValue(reference.title),
+    sourceUrl: safeReferenceUrl(reference.sourceUrl),
+    importFileName: safeImportFileName(reference.importFileName),
+    sourceType: reference.sourceType === "manual-import" || reference.sourceType === "note" ? reference.sourceType : "link",
+    purpose,
+    rightsStatus,
+    ownershipNotes: stringValue(reference.ownershipNotes),
+    permittedUse: stringValue(reference.permittedUse),
+    attribution: stringValue(reference.attribution),
+    targetKind,
+    targetId: stringValue(reference.targetId) || "project",
+    targetLabel: stringValue(reference.targetLabel) || "Whole project",
+    notes: stringValue(reference.notes),
+    createdAt: stringValue(reference.createdAt),
+    updatedAt: stringValue(reference.updatedAt),
   };
 }
 
@@ -1881,6 +1957,9 @@ export function normalizePlotPickleProject(value: unknown): PlotPickleProject | 
     screenplay: normalizeScreenplay(candidate.screenplay),
     development: {
       conceptCanvas: normalizeConceptCanvas(development.conceptCanvas, defaults.conceptCanvas),
+      visualReferences: Array.isArray(development.visualReferences)
+        ? development.visualReferences.map(normalizeVisualReference).filter((reference): reference is VisualReference => Boolean(reference))
+        : defaults.visualReferences,
       storySetup: { ...defaults.storySetup, ...development.storySetup },
       pitch: { ...defaults.pitch, ...development.pitch },
       ghost: { ...defaults.ghost, ...development.ghost },

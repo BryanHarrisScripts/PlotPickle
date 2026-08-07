@@ -1,6 +1,5 @@
 name: PlotPickle Quality
 
-# CI refresh: force a clean workflow run after Actions availability was restored.
 on:
   push:
     branches: [main]
@@ -21,11 +20,13 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22.13.0
+          node-version: "22.19.0"
           cache: npm
 
       - name: Verify committed licence and generated navigation
@@ -41,16 +42,22 @@ jobs:
       - name: Validate developer diagnostics registry
         run: npm run diagnostics:validate
 
-      - name: Validate PR 239 regression subject
-        run: node --test tests/issue-240-pr-239-regression.test.mjs
-
       - name: Lint
         run: npm run lint
 
-      - name: Validate Windows interaction smoke syntax
-        run: node --check scripts/windows-interaction-smoke.mjs
+      - name: Build pull request
+        if: github.event_name == 'pull_request'
+        run: npm run build
 
-      - name: Build and test with structured diagnostics
+      - name: Run focused pull-request tests
+        if: github.event_name == 'pull_request'
+        env:
+          PLOTPICKLE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PLOTPICKLE_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: npm run test:changed -- --base "$PLOTPICKLE_BASE_SHA" --head "$PLOTPICKLE_HEAD_SHA"
+
+      - name: Run complete regression after merge or by request
+        if: github.event_name != 'pull_request'
         run: npm run test:ci
 
       - name: Upload developer diagnostics

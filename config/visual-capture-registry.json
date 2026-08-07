@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "viewports": [
+    { "id": "desktop", "width": 1440, "height": 1000 },
+    { "id": "tablet", "width": 1024, "height": 900 },
+    { "id": "mobile", "width": 390, "height": 844 }
+  ],
+  "screens": [
+    { "id": "dashboard", "path": "/?workspace=dashboard" },
+    { "id": "learn", "path": "/?workspace=learn" },
+    { "id": "plan", "path": "/?workspace=plan" },
+    { "id": "storyboard", "path": "/?workspace=storyboard" },
+    { "id": "write", "path": "/?workspace=write" },
+    { "id": "graphic-novel", "path": "/?workspace=graphic-novel" },
+    { "id": "build", "path": "/?workspace=build" },
+    { "id": "feedback", "path": "/?workspace=feedback" },
+    { "id": "refine", "path": "/?workspace=refine" },
+    { "id": "reports", "path": "/?workspace=reports" },
+    { "id": "collab", "path": "/?workspace=collab" },
+    { "id": "community", "path": "/?workspace=community" },
+    { "id": "settings", "path": "/?workspace=settings" }
+  ]
+}

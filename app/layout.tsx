@@ -19,9 +19,9 @@ import "./first-run-configuration-dashboard.css";
 import "./appearance-runtime.css";
 
 export const metadata: Metadata = {
-  title: "PlotPickle — Visual Storyworld Collaboration and Previsualization",
+  title: "PlotPickle - AI-native Visual Writing and Creative Direction",
   description:
-    "See the whole movie before you make it. PlotPickle is a visual storyworld collaboration and previsualization engine connecting story logic, canon, characters, scenes and visual direction in one portable PPF project and interactive Storyworld Map.",
+    "Shape the story, see the world and direct what comes next. PlotPickle connects concepts, writing, visual exploration, human approval and reusable storyworld canon in one portable PPF project.",
   other: {
     "codex-preview": "development",
   },

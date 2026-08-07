@@ -71,8 +71,8 @@ export default function WelcomePage() {
       <header className={styles.hero}>
         <div className={styles.brand}>PlotPickle</div>
         <p className={styles.eyebrow}>Simple Start · optional guided entry</p>
-        <h1>A visual storyworld for seeing the movie before full production.</h1>
-        <p className={styles.lede}>PlotPickle is a visual storyworld collaboration and previsualization engine that connects story logic, canon, characters, screenplay material, visuals, shots and sound in one portable PPF project. Use the interactive Storyworld Map and connected visual workspaces now, without linking an external API, and keep every canonical decision under project-owner control.</p>
+        <h1>Shape the story, see the world and direct what comes next.</h1>
+        <p className={styles.lede}>PlotPickle is an AI-native visual writing and creative direction studio that connects concepts, story logic, characters, screenplay material and visual exploration in one portable PPF project. Begin manually or with optional creative compute, compare possibilities, and keep every canonical decision under writer control.</p>
         <a className={styles.repositoryLink} href={PLOTPICKLE_REPOSITORY_URL} target="_blank" rel="noreferrer">
           <GitHubMark />
           <span>Official PlotPickle GitHub repository</span>
@@ -133,7 +133,7 @@ export default function WelcomePage() {
                 <span>Complete product</span>
                 <strong>{server.installation}</strong>
                 <p>{server.label}</p>
-                <div>{server.roles.map((role) => <b key={role}>{role}</b>)}</div>
+                <div>{server.roles.map((role) => <span key={role}>{role}</span>)}</div>
               </article>
             ))}
           </div>

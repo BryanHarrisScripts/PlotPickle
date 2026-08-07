@@ -116,7 +116,7 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
             <div className={styles.heroCopy}>
               <p className={styles.kicker}>Learn the craft · see the logic · own the story</p>
               <h1>Stop losing the story<span>between the notes, drafts and visuals.</span></h1>
-              <p className={styles.lede}>PlotPickle is a self-learning visual story studio. Build one connected story graph, preserve it in a portable PPF, test the logic, write visually, shape the pitch and invite feedback without surrendering canon.</p>
+              <p className={styles.lede}>PlotPickle is an AI-native visual writing studio. Begin with a concept or reference, explore possibilities, direct the material in creative language, and approve what belongs to one connected portable storyworld.</p>
               <div className={styles.heroActions}>
                 <button className={styles.primaryButton} type="button" onClick={onEnter}>Open PlotPickle</button>
                 <a className={styles.lightButton} href="#studio">See what connects</a>
@@ -219,7 +219,7 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
         <section className={styles.finalSection}><div className={`${styles.wrap} ${styles.finalCard}`}><div><span>Start with a working story</span><h2>Open Afterglow. See the graph. Then build your own.</h2><p>Use the complete local core now, learn through the example, and add ComfyUI, MiniMax H3, Buzz, GitHub or provider accounts only when the project truly needs them.</p></div><div className={styles.finalActions}><button className={styles.primaryButton} type="button" onClick={onEnter}>Load Afterglow</button><a className={styles.lightButton} href={downloadUrl} target="_blank" rel="noreferrer">Get the open-source build</a></div></div></section>
       </main>
 
-      <footer className={styles.footer}><div className={styles.wrap}><span>Visual storyworld collaboration and previsualization engine</span><nav aria-label="PlotPickle information"><a href="/about">About</a><a href="/legal">Licensing</a><a href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">Source</a></nav><span>Windows · macOS · Linux</span></div></footer>
+      <footer className={styles.footer}><div className={styles.wrap}><span>{PLOTPICKLE_POSITIONING.category}</span><nav aria-label="PlotPickle information"><a href="/about">About</a><a href="/legal">Licensing</a><a href="https://github.com/BryanHarrisScripts/PlotPickle" target="_blank" rel="noreferrer">Source</a></nav><span>Windows · macOS · Linux</span></div></footer>
     </div>
   );
 }

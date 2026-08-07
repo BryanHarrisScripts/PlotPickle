@@ -31,9 +31,9 @@ export default function AboutPlotPicklePage() {
         <header className={styles.hero}>
           <div>
             <span>About · Origins · Product Principles</span>
-            <h1>See the whole movie before you make it.</h1>
+            <h1>{PLOTPICKLE_POSITIONING.hero}</h1>
             <p>
-              PlotPickle is a local-first visual storyworld collaboration and previsualization engine built around Bryan Harris&apos;s 24 Blocks method. It connects story logic, canon, characters, visuals, shots and sound in one portable PPF project and interactive map so a creative team can see, test and present the whole movie before full production.
+              PlotPickle is a local-first, AI-native visual writing and creative direction studio built around Bryan Harris&apos;s 24 Blocks method. Writers shape concepts, words, images and cinematic possibilities in one portable PPF project, then decide what becomes reusable storyworld canon.
             </p>
             <nav className={styles.actions} aria-label="About PlotPickle actions">
               <Link className={styles.primaryAction} href="/">Open PlotPickle</Link>

@@ -4,6 +4,7 @@ export type ProjectProgressSection =
   | "overview"
   | "storySetup"
   | "concept"
+  | "references"
   | "pitch"
   | "world"
   | "characters"
@@ -21,6 +22,7 @@ export type ProjectProgressSection =
 export const recommendedSectionOrder: ProjectProgressSection[] = [
   "storySetup",
   "concept",
+  "references",
   "pitch",
   "world",
   "characters",
@@ -143,6 +145,16 @@ export function projectSectionProgress(project: PlotPickleProject): Record<Proje
       project.development.conceptCanvas.mustKeepConstraints,
       project.development.conceptCanvas.openExploration,
       project.development.conceptCanvas.targetLabel,
+    ]),
+    references: score([
+      project.development.visualReferences.length,
+      project.development.visualReferences.some((reference) => isFilled(reference.title)),
+      project.development.visualReferences.some((reference) => isFilled(reference.sourceUrl) || isFilled(reference.importFileName)),
+      project.development.visualReferences.some((reference) => reference.purpose !== "inspiration"),
+      project.development.visualReferences.some((reference) => reference.rightsStatus !== "unknown"),
+      project.development.visualReferences.some((reference) => isFilled(reference.permittedUse)),
+      project.development.visualReferences.some((reference) => isFilled(reference.attribution)),
+      project.development.visualReferences.some((reference) => isFilled(reference.targetLabel)),
     ]),
     pitch: score([
       project.story.premise,

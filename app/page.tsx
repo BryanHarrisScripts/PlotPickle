@@ -46,6 +46,7 @@ import {
   type PlotPickleProject,
   type ScreenplayDocument,
   type StoryBlock,
+  type VisualReference,
 } from "@/lib/project";
 import { synchronizeScreenplaySceneReferences } from "@/lib/scene-management";
 import { PRODUCT_COMPONENTS, type ProductNavigationId } from "@/lib/product-direction";
@@ -66,7 +67,7 @@ const STORAGE_KEY = "plotpickle.project.v1";
 const WINDOWS_DOWNLOAD_URL = "https://github.com/BryanHarrisScripts/PlotPickle/releases/latest";
 
 type MainTab = ProductNavigationId;
-type StorySection = "simpleStart" | "overview" | "storySetup" | "concept" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "coreModel" | "structureMap" | "blocks" | "storyboard" | "notes";
+type StorySection = "simpleStart" | "overview" | "storySetup" | "concept" | "references" | "pitch" | "world" | "characters" | "ghost" | "catalyst" | "foundations" | "pickle" | "dialogue" | "coreModel" | "structureMap" | "blocks" | "storyboard" | "notes";
 type StorySectionGroup = "Project" | "Foundation" | "Structure" | "Production";
 type LearnSection = "introduction" | "library" | "terminology" | "screenplay";
 
@@ -103,6 +104,7 @@ const storySections: { id: StorySection; code: string; label: string; group: Sto
   { id: "overview", code: "OV", label: "Project Overview", group: "Project" },
   { id: "storySetup", code: "01", label: "Story Setup", group: "Foundation" },
   { id: "concept", code: "CC", label: "Concept Canvas", group: "Foundation" },
+  { id: "references", code: "VR", label: "Visual References", group: "Foundation" },
   { id: "pitch", code: "PV", label: "Pitch & Vision", group: "Foundation" },
   { id: "world", code: "WD", label: "World", group: "Foundation" },
   { id: "characters", code: "CH", label: "Characters", group: "Foundation" },
@@ -146,6 +148,13 @@ const sectionGuides: Record<StorySection, { title: string; description: string; 
     questions: ["What is the raw idea or fragment?", "What must remain true?", "What are you still free to explore visually or narratively?"],
     deliverable: "A saved concept attached to a project target and ready for later exploration.",
     connection: "The concept can attach to the whole project, a character, location, Block, mini-block, or scene while keeping provider details in Settings.",
+  },
+  references: {
+    title: "Collect visual references with permission context.",
+    description: "Import or link photographs, sketches, palettes and prior assets as story-targeted reference material with rights and provenance attached.",
+    questions: ["What is the reference for?", "Who owns it or what permission applies?", "Which story target should later visual work inherit it from?"],
+    deliverable: "A reference library that distinguishes inspiration, identity, continuity and composition guidance.",
+    connection: "Later context assembly can use the purpose and rights state without exposing private local paths, credentials or provider fields.",
   },
   pitch: {
     title: "Make the promise visible in a few sentences.",
@@ -355,6 +364,7 @@ export default function Home() {
   const [selectedCharacterId, setSelectedCharacterId] = useState("");
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
   const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(1);
+  const [selectedVisualReferenceId, setSelectedVisualReferenceId] = useState("");
   const [feedbackTargetId, setFeedbackTargetId] = useState("");
   const [reportSection, setReportSection] = useState<ConsolidatedReportSection>("project");
   const [productionReportSection, setProductionReportSection] = useState<ProductionReportSection>("overview");
@@ -505,6 +515,60 @@ export default function Home() {
     });
   }
 
+  function addVisualReference() {
+    const now = new Date().toISOString();
+    const reference: VisualReference = {
+      id: `visual-reference-${now.replace(/[^0-9]/g, "")}`,
+      title: "Untitled reference",
+      sourceUrl: "",
+      importFileName: "",
+      sourceType: "note",
+      purpose: "inspiration",
+      rightsStatus: "unknown",
+      ownershipNotes: "",
+      permittedUse: "",
+      attribution: "",
+      targetKind: "project",
+      targetId: "project",
+      targetLabel: "Whole project",
+      notes: "",
+      createdAt: now,
+      updatedAt: now,
+    };
+    setSelectedVisualReferenceId(reference.id);
+    commit({
+      ...project,
+      development: {
+        ...project.development,
+        visualReferences: [...project.development.visualReferences, reference],
+      },
+    });
+  }
+
+  function updateVisualReference(id: string, key: keyof VisualReference, value: string) {
+    commit({
+      ...project,
+      development: {
+        ...project.development,
+        visualReferences: project.development.visualReferences.map((reference) =>
+          reference.id === id ? { ...reference, [key]: value, updatedAt: new Date().toISOString() } : reference,
+        ),
+      },
+    });
+  }
+
+  function updateVisualReferenceTarget(id: string, kind: VisualReference["targetKind"], targetId: string, targetLabel: string) {
+    commit({
+      ...project,
+      development: {
+        ...project.development,
+        visualReferences: project.development.visualReferences.map((reference) =>
+          reference.id === id ? { ...reference, targetKind: kind, targetId, targetLabel, updatedAt: new Date().toISOString() } : reference,
+        ),
+      },
+    });
+  }
+
   function updateWorld(key: Exclude<keyof PlotPickleProject["world"], "locations">, value: string) {
     commit({ ...project, world: { ...project.world, [key]: value } });
   }
@@ -548,6 +612,7 @@ export default function Home() {
     setSelectedCharacterId("");
     setSelectedBlockNumber(1);
     setSelectedMiniBlockNumber(1);
+    setSelectedVisualReferenceId("");
     setActiveTab("planner");
     setActiveSection("storySetup");
     setToast("A blank feature screenplay is ready. Begin with Story Setup, then build the 24 Blocks and 96 mini-blocks.");
@@ -670,6 +735,7 @@ export default function Home() {
         commit(cloneProject(normalized));
         setSelectedCharacterId(normalized.characters[0]?.id ?? "");
         setSelectedBlockNumber(1);
+        setSelectedVisualReferenceId(normalized.development.visualReferences[0]?.id ?? "");
         setToast("Project imported and connected to all PlotPickle workspaces.");
         return;
       }
@@ -933,6 +999,16 @@ export default function Home() {
                   updateDevelopment={updateDevelopment}
                   updateTarget={updateConceptCanvasTarget}
                   startExploration={() => setActiveTab("visuals")}
+                />
+              ) : null}
+              {activeSection === "references" ? (
+                <VisualReferenceEditor
+                  project={project}
+                  selectedId={selectedVisualReferenceId}
+                  select={setSelectedVisualReferenceId}
+                  add={addVisualReference}
+                  update={updateVisualReference}
+                  updateTarget={updateVisualReferenceTarget}
                 />
               ) : null}
               {activeSection === "pitch" ? (
@@ -1284,6 +1360,122 @@ function ConceptCanvasEditor({
         <FormField label="Desired visual impact" value={canvas.desiredVisualImpact} onChange={(value) => updateDevelopment("conceptCanvas", "desiredVisualImpact", value)} help="Light, colour, texture, composition, motion, scale, point of view or recurring image." />
         <FormField label="Must-keep constraints" value={canvas.mustKeepConstraints} onChange={(value) => updateDevelopment("conceptCanvas", "mustKeepConstraints", value)} help="Facts, rights, tone, identity, continuity, production limits or story promises that must remain true." />
         <FormField label="Open exploration" value={canvas.openExploration} onChange={(value) => updateDevelopment("conceptCanvas", "openExploration", value)} help="What PlotPickle may vary later: mood, staging, palette, approach, structure, visual metaphor or story angle." />
+      </div>
+    </div>
+  );
+}
+
+function VisualReferenceEditor({
+  project,
+  selectedId,
+  select,
+  add,
+  update,
+  updateTarget,
+}: {
+  project: PlotPickleProject;
+  selectedId: string;
+  select: (id: string) => void;
+  add: () => void;
+  update: (id: string, key: keyof VisualReference, value: string) => void;
+  updateTarget: (id: string, kind: VisualReference["targetKind"], targetId: string, targetLabel: string) => void;
+}) {
+  const references = project.development.visualReferences;
+  const selected = references.find((reference) => reference.id === selectedId) ?? references[0];
+  const targetOptions = [
+    { kind: "project" as const, id: "project", label: "Whole project" },
+    ...project.characters.map((character) => ({ kind: "character" as const, id: character.id, label: `Character · ${character.name}` })),
+    ...project.world.locations.map((location) => ({ kind: "location" as const, id: location.id, label: `Location · ${location.name}` })),
+    ...project.blocks.map((block) => ({ kind: "block" as const, id: block.id, label: `Block ${block.number} · ${block.title}` })),
+    ...project.blocks.flatMap((block) => block.visuals.map((frame) => ({
+      kind: "mini-block" as const,
+      id: `${block.id}:mini-${frame.miniBlockNumber}`,
+      label: `Mini-block ${block.number}.${frame.miniBlockNumber} · ${block.title}`,
+    }))),
+    ...project.blocks.flatMap((block) => block.scenes.map((scene) => ({
+      kind: "scene" as const,
+      id: scene.id,
+      label: `Scene · ${scene.heading || `Block ${block.number}`}`,
+    }))),
+  ];
+  const selectedTarget = selected
+    ? targetOptions.find((option) => option.kind === selected.targetKind && option.id === selected.targetId) ?? targetOptions[0]
+    : targetOptions[0];
+
+  return (
+    <div className="editor-page visual-references-page">
+      <SectionHeading
+        eyebrow="VR · Visual References"
+        title="Collect references with rights attached."
+        description="Import or link images as inspiration, identity, continuity or composition guidance while keeping private paths and provider details out of project data."
+        action={<button type="button" className="small-button" onClick={add}>Add reference</button>}
+      />
+      <div className="reference-workspace">
+        <aside className="reference-roster" aria-label="Visual references">
+          {references.length ? references.map((reference) => (
+            <button type="button" aria-pressed={selected?.id === reference.id} className={selected?.id === reference.id ? "active" : ""} key={reference.id} onClick={() => select(reference.id)}>
+              <strong>{reference.title || "Untitled reference"}</strong>
+              <span>{reference.purpose} · {reference.rightsStatus}</span>
+              <small>{reference.targetLabel}</small>
+            </button>
+          )) : <p>No visual references yet.</p>}
+        </aside>
+        {selected ? (
+          <section className="reference-detail" aria-label="Selected visual reference">
+            <div className="form-grid two-columns">
+              <FormField label="Reference title" value={selected.title} onChange={(value) => update(selected.id, "title", value)} multiline={false} />
+              <FormField label="Source URL" value={selected.sourceUrl} onChange={(value) => update(selected.id, "sourceUrl", value)} multiline={false} help="Use a shareable link, not a private local path or credential-bearing URL." />
+              <FormField label="Imported filename" value={selected.importFileName} onChange={(value) => update(selected.id, "importFileName", value)} multiline={false} help="Store the filename only. PlotPickle never exports private local folders." />
+              <div className="form-field">
+                <label className="field-label" htmlFor="visual-reference-source-type">Source type</label>
+                <select id="visual-reference-source-type" value={selected.sourceType} onChange={(event) => update(selected.id, "sourceType", event.target.value)}>
+                  <option value="link">Linked reference</option>
+                  <option value="manual-import">Manual import</option>
+                  <option value="note">Reference note</option>
+                </select>
+              </div>
+              <div className="form-field">
+                <label className="field-label" htmlFor="visual-reference-purpose">Reference purpose</label>
+                <select id="visual-reference-purpose" value={selected.purpose} onChange={(event) => update(selected.id, "purpose", event.target.value)}>
+                  <option value="inspiration">Inspiration</option>
+                  <option value="identity">Identity</option>
+                  <option value="continuity">Continuity</option>
+                  <option value="composition">Composition</option>
+                </select>
+              </div>
+              <div className="form-field">
+                <label className="field-label" htmlFor="visual-reference-rights">Rights status</label>
+                <select id="visual-reference-rights" value={selected.rightsStatus} onChange={(event) => update(selected.id, "rightsStatus", event.target.value)}>
+                  <option value="unknown">Unknown</option>
+                  <option value="owned">Owned by project</option>
+                  <option value="licensed">Licensed</option>
+                  <option value="public-domain">Public domain</option>
+                  <option value="permission-needed">Permission needed</option>
+                </select>
+              </div>
+              <div className="form-field">
+                <label className="field-label" htmlFor="visual-reference-target">Story target</label>
+                <select
+                  id="visual-reference-target"
+                  value={`${selectedTarget.kind}:${selectedTarget.id}`}
+                  onChange={(event) => {
+                    const next = targetOptions.find((option) => `${option.kind}:${option.id}` === event.target.value) ?? targetOptions[0];
+                    updateTarget(selected.id, next.kind, next.id, next.label);
+                  }}
+                >
+                  {targetOptions.map((option) => <option key={`${option.kind}:${option.id}`} value={`${option.kind}:${option.id}`}>{option.label}</option>)}
+                </select>
+              </div>
+              <FormField label="Permitted use" value={selected.permittedUse} onChange={(value) => update(selected.id, "permittedUse", value)} help="Example: inspiration only, internal continuity, licensed pitch use, or project-owned identity reference." />
+              <FormField label="Attribution" value={selected.attribution} onChange={(value) => update(selected.id, "attribution", value)} help="Credit, creator, licence or permission reference that should travel with the PPF." />
+              <FormField label="Ownership notes" value={selected.ownershipNotes} onChange={(value) => update(selected.id, "ownershipNotes", value)} />
+              <FormField label="Reference notes" value={selected.notes} onChange={(value) => update(selected.id, "notes", value)} help="Describe what later visual work may inherit from this reference." />
+            </div>
+            <p className="field-help">References remain candidate guidance until a later human approval flow promotes them into visual canon.</p>
+          </section>
+        ) : (
+          <section className="empty-state"><p>Add a visual reference to record source, purpose, rights and story target.</p></section>
+        )}
       </div>
     </div>
   );

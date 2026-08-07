@@ -1081,6 +1081,7 @@ html[data-plotpickle-theme="dark"] .progress-track::-moz-progress-bar {
 
 .form-field input,
 .form-field textarea,
+.form-field select,
 .subsection-title select {
   width: 100%;
   border: 1px solid #c1dce0;
@@ -1110,12 +1111,14 @@ html[data-plotpickle-theme="dark"] .progress-track::-moz-progress-bar {
 }
 
 .form-field input:hover,
-.form-field textarea:hover {
+.form-field textarea:hover,
+.form-field select:hover {
   border-color: #92c2ca;
 }
 
 .form-field input:focus,
-.form-field textarea:focus {
+.form-field textarea:focus,
+.form-field select:focus {
   border-color: var(--pickle);
   box-shadow: 0 0 0 3px rgba(60, 148, 168, 0.12);
   outline: none;
@@ -1124,6 +1127,11 @@ html[data-plotpickle-theme="dark"] .progress-track::-moz-progress-bar {
 .form-field input::placeholder,
 .form-field textarea::placeholder {
   color: #9ca69e;
+}
+
+.form-field select {
+  min-height: 42px;
+  padding: 9px 11px;
 }
 
 .subsection-title {
@@ -1353,6 +1361,65 @@ html[data-plotpickle-theme="dark"] .progress-track::-moz-progress-bar {
   margin: 0;
   color: var(--ink-soft);
   line-height: 1.5;
+}
+
+/* Visual References */
+
+.reference-workspace {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.reference-roster {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #f1f2ec;
+}
+
+.reference-roster button {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  padding: 11px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.reference-roster button:hover,
+.reference-roster button.active {
+  background: #fff;
+}
+
+.reference-roster button.active {
+  border-color: #b9dfe2;
+  box-shadow: 0 4px 12px rgba(38, 53, 42, 0.05);
+}
+
+.reference-roster strong {
+  font-size: 12px;
+}
+
+.reference-roster span,
+.reference-roster small {
+  color: var(--ink-soft);
+  font-size: 9px;
+}
+
+.reference-detail {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: 0 16px 45px rgba(38, 53, 42, 0.06);
 }
 
 /* 24 Blocks */

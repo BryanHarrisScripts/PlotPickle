@@ -64,6 +64,22 @@ function Get-BuzzVersion {
     }
   }
   catch { }
+
+  $registryRoots = @(
+    "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
+    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
+    "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+  )
+  foreach ($root in $registryRoots) {
+    foreach ($entry in @(Get-ItemProperty -Path $root -ErrorAction SilentlyContinue)) {
+      $nameProperty = $entry.PSObject.Properties["DisplayName"]
+      $versionProperty = $entry.PSObject.Properties["DisplayVersion"]
+      if ($nameProperty -and [string]$nameProperty.Value -match "^Buzz(?: Desktop)?$") {
+        $registryVersion = [string]$(if ($versionProperty) { $versionProperty.Value } else { "" })
+        if ($registryVersion -match "\d+(?:\.\d+){1,3}") { return $Matches[0] }
+      }
+    }
+  }
   return ""
 }
 
@@ -82,9 +98,13 @@ $downloadUrl = [string]$config.windows.downloadUrl
 $existingCli = Find-BuzzCli
 if ($existingCli) {
   $installedVersion = Get-BuzzVersion -Executable $existingCli
-  if (-not $Maintain -or $installedVersion -eq $version) {
-    $versionLabel = if ($installedVersion) { $installedVersion } else { $version }
+  $updateRequired = $Maintain -and $installedVersion -and $installedVersion -ne $version
+  if (-not $updateRequired) {
+    $versionLabel = if ($installedVersion) { $installedVersion } else { "version unknown" }
     Write-Host "[OK] Buzz Desktop $versionLabel CLI detected at $existingCli"
+    if ($Maintain -and -not $installedVersion) {
+      Write-Warning "Buzz Desktop is installed, but its version could not be verified. Automatic reinstallation was skipped."
+    }
     Write-PlotPickleBuzzStatus -Status "detected" -Executable $existingCli
     exit 0
   }

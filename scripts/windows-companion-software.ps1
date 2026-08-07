@@ -91,6 +91,24 @@ function Find-BuzzCli {
   return ""
 }
 
+function Find-GitHubCli {
+  $command = Get-Command "gh.exe" -ErrorAction SilentlyContinue
+  if ($command) { return $command.Source }
+
+  $candidates = New-Object System.Collections.Generic.List[string]
+  if ($env:ProgramFiles) { $candidates.Add((Join-Path $env:ProgramFiles "GitHub CLI\gh.exe")) }
+  if ($env:LOCALAPPDATA) {
+    $candidates.Add((Join-Path $env:LOCALAPPDATA "Programs\GitHub CLI\gh.exe"))
+    $candidates.Add((Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Links\gh.exe"))
+  }
+  foreach ($candidate in $candidates) {
+    if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+      return (Resolve-Path -LiteralPath $candidate).Path
+    }
+  }
+  return ""
+}
+
 function Get-FileVersion {
   param([string]$Path)
   if (-not $Path -or -not (Test-Path -LiteralPath $Path -PathType Leaf)) { return "" }
@@ -191,7 +209,20 @@ function Get-CuratedInventory {
   })
 
   $items.Add((Get-CommandInventory -Name "Git" -CommandName "git.exe" -VersionArguments @("--version")))
-  $items.Add((Get-CommandInventory -Name "GitHub CLI" -CommandName "gh.exe" -VersionArguments @("--version")))
+  $githubCli = Find-GitHubCli
+  $githubCliVersion = ""
+  if ($githubCli) {
+    try {
+      $githubCliVersion = [string](& $githubCli --version 2>$null | Select-Object -First 1)
+    }
+    catch { }
+  }
+  $items.Add([pscustomobject]@{
+    Name = "GitHub CLI"
+    Installed = [bool]$githubCli
+    Version = $githubCliVersion.Trim()
+    Detail = if ($githubCli) { $githubCli } else { "Not detected" }
+  })
   return $items
 }
 
@@ -250,6 +281,37 @@ function Invoke-WingetUpgrade {
   }
 }
 
+function Install-OptionalWingetPackage {
+  param(
+    [Parameter(Mandatory = $true)][string]$Label,
+    [Parameter(Mandatory = $true)][string]$PackageId,
+    [Parameter(Mandatory = $true)][string]$ManualUrl
+  )
+
+  if (-not $Winget) {
+    Write-Warning "$Label cannot be installed automatically because Windows Package Manager is unavailable."
+    Write-Host "Install it manually from $ManualUrl"
+    return 1
+  }
+
+  Write-Host "Opening the visible Windows Package Manager installation for $Label."
+  Write-Host "PlotPickle uses only the reviewed package ID $PackageId and does not sign in on your behalf."
+  try {
+    & $Winget.Source install --id $PackageId --exact --source winget --interactive --accept-source-agreements --accept-package-agreements
+    $code = $LASTEXITCODE
+    if ($code -ne 0) {
+      Write-Warning "$Label installation exited with code $code. PlotPickle will continue."
+      return $code
+    }
+    Write-Host "[OK] $Label installation completed."
+    return 0
+  }
+  catch {
+    Write-Warning "$Label installation failed: $($_.Exception.Message). PlotPickle will continue."
+    return 1
+  }
+}
+
 function Invoke-ReviewedScript {
   param(
     [Parameter(Mandatory = $true)][string]$Path,
@@ -286,6 +348,25 @@ if ($Mode -eq "Maintain") {
   Invoke-WingetUpgrade -Label "Node.js" -PackageIds @("OpenJS.NodeJS.LTS", "OpenJS.NodeJS")
   Invoke-WingetUpgrade -Label "Git" -PackageIds @("Git.Git")
   Invoke-WingetUpgrade -Label "GitHub CLI" -PackageIds @("GitHub.cli")
+
+  $githubCli = Find-GitHubCli
+  if (-not $githubCli) {
+    Write-Host "[ACTION] GitHub CLI is not installed. It remains optional for repository and CI workflows."
+    if (-not $NoPrompt) {
+      $answer = Read-Host "Install GitHub CLI now? [Y/N]"
+      if ($answer -match "^(?i:y|yes)$") {
+        [void](Install-OptionalWingetPackage -Label "GitHub CLI" -PackageId "GitHub.cli" -ManualUrl "https://cli.github.com/")
+      }
+    }
+    $githubCli = Find-GitHubCli
+    if ($githubCli) {
+      Write-Host "[SUCCESS] GitHub CLI is available at $githubCli"
+      Write-Host "[NEXT] Run 'gh auth login' yourself when you are ready to connect a GitHub account."
+    } else {
+      Write-Host "[SKIP] GitHub CLI was not installed. PlotPickle will continue normally."
+      Write-Host "       Install later from https://cli.github.com/ and then run 'gh auth login'."
+    }
+  }
 
   $ollama = Get-OllamaInventory
   if ($ollama.Installed) {

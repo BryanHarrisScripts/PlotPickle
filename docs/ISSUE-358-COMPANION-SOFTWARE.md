@@ -24,6 +24,14 @@ Automatic maintenance is best-effort and restricted to reviewed Windows Package 
 
 PlotPickle does not claim ownership of third-party configuration, models, checkpoints, custom nodes, accounts or credentials.
 
+Buzz maintenance reads the installed version from the executable metadata and then the exact Windows uninstall-registry entry. If Buzz is detected but neither source reports a reliable version, PlotPickle keeps the installed application and skips automatic reinstallation. A maintenance install runs only when a known installed version differs from the reviewed package version.
+
+## GitHub CLI helper
+
+GitHub CLI is separately optional. When `gh.exe` is not detected, the Windows companion routine offers one explicit Y/N installation choice. Accepting uses the reviewed `GitHub.cli` package through an interactive Windows Package Manager window. Declining, cancelling or failing the installation never prevents PlotPickle from starting.
+
+PlotPickle does not authenticate GitHub CLI or open an account session automatically. After installation, the user runs `gh auth login` themselves when repository or CI workflows require it. GitHub CLI can also be installed later from `https://cli.github.com/`.
+
 ## Ollama starter model
 
 The fixed starter model is `smollm2:135m-instruct-q2_K`. It is approximately 88 MB and exists to verify the lowest-resource local Ollama path. It is not presented as a production-quality story model.

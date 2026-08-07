@@ -15,7 +15,7 @@ test("Windows release uses deterministic scenarios plus non-blocking exploratory
   assert.match(workflow, /name: Run packaged Windows interaction smoke/);
   assert.match(workflow, /continue-on-error: true/);
   assert.match(workflow, /name: Run deterministic Windows release smoke/);
-  assert.match(workflow, /node scripts\/windows-release-smoke\.mjs/);
+  assert.match(workflow, /node scripts\/windows-release-smoke-runner\.mjs/);
   assert.ok(workflow.indexOf("Run deterministic Windows release smoke") > workflow.indexOf("Run packaged Windows interaction smoke"));
   assert.match(workflow, /reports\/windows-release-smoke\//);
   assert.match(crawler, /skippedActions/);

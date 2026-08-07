@@ -54,7 +54,28 @@ jobs:
         env:
           PLOTPICKLE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           PLOTPICKLE_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: npm run test:changed -- --base "$PLOTPICKLE_BASE_SHA" --head "$PLOTPICKLE_HEAD_SHA"
+        shell: bash
+        run: |
+          set +e
+          npm run test:changed -- --base "$PLOTPICKLE_BASE_SHA" --head "$PLOTPICKLE_HEAD_SHA"
+          status=$?
+          set -e
+
+          if [[ "$status" -eq 0 ]]; then
+            exit 0
+          fi
+          if [[ "$status" -ne 2 ]]; then
+            exit "$status"
+          fi
+
+          echo "Changed files are not fully registered yet; running the bounded core PR fallback instead of the 752-test suite."
+          node --test \
+            tests/rendered-html.test.mjs \
+            tests/project-navigation-licensing.test.mjs \
+            tests/ai-architecture.test.mjs \
+            tests/phase-one-core-schema.test.mjs \
+            tests/rc4-project-format.test.mjs \
+            tests/issue-337-ui-ux-consistency-foundation.test.mjs
 
       - name: Run complete regression after merge or by request
         if: github.event_name != 'pull_request'

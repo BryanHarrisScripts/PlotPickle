@@ -2,7 +2,7 @@
 
 Issue: #408
 
-This document locks the public splash page as the first reference surface for PlotPickle's next visual direction. Later application-wide UI work should derive its tone from this foundation rather than independently inventing another theme.
+This document locks the public splash page as the first reference surface for PlotPickle's next visual direction. Later application-wide UI work should derive its tone from this foundation rather than independently inventing another theme. This foundation is also the visual baseline for reviewing each subsequent workspace redesign so the product evolves as one system rather than a collection of unrelated screens.
 
 ## Narrative
 

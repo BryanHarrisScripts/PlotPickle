@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: public-readiness-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   audit:
     runs-on: ubuntu-latest
@@ -17,12 +21,27 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: "22.13.0"
-          cache: npm
+          node-version: "22.19.0"
       - name: Validate repository publication boundaries
         run: npm run audit:public-readiness
+      - name: Detect production dependency changes
+        id: dependencies
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          if git diff --quiet "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- package.json package-lock.json npm-shrinkwrap.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
       - name: Audit production dependencies for critical vulnerabilities
+        if: github.event_name != 'pull_request' || steps.dependencies.outputs.changed == 'true'
         run: npm audit --omit=dev --audit-level=critical
+      - name: Skip unchanged dependency audit
+        if: github.event_name == 'pull_request' && steps.dependencies.outputs.changed != 'true'
+        run: echo "Dependency manifests are unchanged; production vulnerability audit runs on main and dependency-changing pull requests."

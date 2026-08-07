@@ -4,6 +4,15 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "app/about/**"
+      - "app/about-*.tsx"
+      - "app/about*.tsx"
+      - "docs/ABOUT*"
+      - "docs/*origins*"
+      - "docs/*principles*"
+      - "tests/issue-59-about-origins-principles.test.mjs"
+      - ".github/workflows/ui-ux-about-support.yml"
   workflow_dispatch:
 
 permissions:

@@ -59,7 +59,7 @@ test("issue #86 gates the clean extracted Windows package on the interaction cra
   assert.match(workflow, /reports\/windows-interaction-smoke\//);
 });
 
-test("issue #86 keeps CI bounded and does not run Lighthouse", async () => {
+test("issue #86 keeps pull-request CI bounded and leaves Windows smoke to the release gate", async () => {
   const [quality, release] = await Promise.all([
     source(".github/workflows/quality.yml"),
     source(".github/workflows/release-candidate.yml"),
@@ -67,7 +67,10 @@ test("issue #86 keeps CI bounded and does not run Lighthouse", async () => {
 
   assert.match(quality, /cancel-in-progress: true/);
   assert.match(quality, /timeout-minutes: 20/);
-  assert.match(quality, /node --check scripts\/windows-interaction-smoke\.mjs/);
+  assert.match(quality, /npm run test:changed/);
+  assert.match(quality, /npm run build/);
+  assert.doesNotMatch(quality, /node --check scripts\/windows-interaction-smoke\.mjs/);
+  assert.match(release, /node scripts\/windows-interaction-smoke\.mjs/);
   assert.match(release, /cancel-in-progress: true/);
   assert.match(release, /timeout-minutes: 30/);
   assert.doesNotMatch(`${quality}\n${release}`, /npm run audit:lighthouse|Lighthouse all-route smoke/);

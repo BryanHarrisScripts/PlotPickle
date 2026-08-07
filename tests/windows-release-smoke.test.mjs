@@ -5,18 +5,21 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (file) => readFile(new URL(file, root), "utf8");
 
-test("Windows release uses deterministic scenarios plus non-blocking exploratory evidence", async () => {
+test("Windows release keeps browser smoke post-merge while PR package validation stays bounded", async () => {
   const [workflow, releaseSmoke, crawler] = await Promise.all([
     source(".github/workflows/release-candidate.yml"),
     source("scripts/windows-release-smoke.mjs"),
     source("scripts/windows-interaction-smoke.mjs"),
   ]);
 
-  assert.match(workflow, /name: Run packaged Windows interaction smoke/);
-  assert.match(workflow, /continue-on-error: true/);
-  assert.match(workflow, /name: Run deterministic Windows release smoke/);
+  assert.match(workflow, /name: Run packaged Windows interaction smoke after merge/);
+  assert.match(workflow, /name: Run deterministic Windows release smoke after merge/);
+  assert.match(workflow, /github\.event_name != 'pull_request'/);
+  assert.doesNotMatch(workflow, /continue-on-error: true/);
   assert.match(workflow, /node scripts\/windows-release-smoke-runner\.mjs/);
-  assert.ok(workflow.indexOf("Run deterministic Windows release smoke") > workflow.indexOf("Run packaged Windows interaction smoke"));
+  assert.ok(workflow.indexOf("Run deterministic Windows release smoke after merge") > workflow.indexOf("Run packaged Windows interaction smoke after merge"));
+  assert.match(workflow, /Clean-machine extraction and dependency test \(Windows\)/);
+  assert.match(workflow, /Verify or repair Windows Rolldown native binding/);
   assert.match(workflow, /reports\/windows-release-smoke\//);
   assert.match(crawler, /skippedActions/);
 

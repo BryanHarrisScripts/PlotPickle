@@ -1,9 +1,8 @@
 name: Visual audit capture
 
 on:
-  pull_request:
+  push:
     branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "app/**"
       - "lib/**"
@@ -22,7 +21,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: visual-audit-capture-${{ github.event.pull_request.number || github.ref }}
+  group: visual-audit-capture-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

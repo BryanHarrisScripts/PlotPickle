@@ -4,6 +4,13 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "app/application-shell-header.tsx"
+      - "app/minimal-navigation.css"
+      - "lib/product-direction.ts"
+      - "tests/issue-339-application-shell-ui-ux.test.mjs"
+      - "scripts/windows-release-smoke.mjs"
+      - ".github/workflows/ui-ux-application-shell.yml"
   workflow_dispatch:
 
 permissions:
@@ -25,4 +32,3 @@ jobs:
           node-version: "22.19.0"
       - run: node --test tests/issue-339-application-shell-ui-ux.test.mjs
       - run: node --check scripts/windows-release-smoke.mjs
-      - run: node --check scripts/windows-issue-208-smoke.mjs

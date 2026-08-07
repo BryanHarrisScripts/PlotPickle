@@ -2,7 +2,7 @@ name: Phase 1 validation
 
 on:
   push:
-    branches: [agent/phase-1-core-schema]
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -10,25 +10,49 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: phase-one-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Decide whether Phase 1 contracts changed
+        id: scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          files="$(git diff --name-only --diff-filter=ACMRT "$base" "$head")"
+          if printf '%s\n' "$files" | grep -Eq '^(schema/|lib/(project|structure|story-dependencies|project-assets|project-modules)|tests/(phase-one-core-schema|phase-two-dynamic-scenes|dynamic-scenes)\.test\.mjs|\.github/workflows/phase-one-ci\.yml)'; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "relevant=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fast Phase 1 status for unrelated pull request
+        if: steps.scope.outputs.relevant != 'true'
+        run: echo "No Phase 1 schema/core-model contracts changed. Quality owns the general PR build and focused regression."
 
       - name: Use Node.js 22
+        if: steps.scope.outputs.relevant == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22.13.0
-          cache: npm
+          node-version: "22.19.0"
 
-      - name: Install dependencies
-        run: npm ci --silent
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Build and test
-        run: npm test
+      - name: Validate focused Phase 1 contracts
+        if: steps.scope.outputs.relevant == 'true'
+        run: node --test tests/phase-one-core-schema.test.mjs tests/dynamic-scenes.test.mjs tests/phase-two-dynamic-scenes.test.mjs

@@ -65,7 +65,9 @@ node scripts/visual-audit-capture.mjs . reports/visual-audit-single
 
 ## CI evidence
 
-The Visual audit capture workflow runs for interface-related pull requests and can also be started manually. It uploads `reports/visual-audit/` as a five-day GitHub Actions artifact. The artifact is intended for direct human and AI visual inspection before a UI/UX pull request is approved.
+The full Visual audit capture workflow runs after interface-related changes land on `main`, and it can also be manually dispatched on a feature branch when a reviewer specifically wants complete visual evidence before merge. It uploads `reports/visual-audit/` as a five-day GitHub Actions artifact.
+
+This keeps the direct visual review capability without making every UI edit wait for a full-product Windows screenshot inventory. Focused source, accessibility, build and workspace-contract checks remain in the pull-request loop; full visual evidence remains part of canonical main validation.
 
 ## Review expectations
 

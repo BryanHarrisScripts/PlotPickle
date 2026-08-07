@@ -2,6 +2,15 @@ import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { createInterface } from "node:readline";
 
+const rangeIndex = process.argv.indexOf("--range");
+const requestedRange = rangeIndex >= 0 ? process.argv[rangeIndex + 1] : "";
+if (rangeIndex >= 0 && (!requestedRange || requestedRange.startsWith("--"))) {
+  console.error("Public history audit --range requires a Git revision range such as base..head.");
+  process.exit(2);
+}
+const historyScope = requestedRange || "--all";
+const pullRequestRange = Boolean(requestedRange);
+
 const findings = new Map();
 const MAX_FINDINGS = 50;
 const exceptionConfig = JSON.parse(readFileSync(new URL("../config/public-history-exceptions.json", import.meta.url), "utf8"));
@@ -119,7 +128,7 @@ if (shallow === "true") {
 }
 
 let commit = "";
-await gitLines(["log", "--all", "--name-only", "--format=@@commit:%H"], (line) => {
+await gitLines(["log", historyScope, "--name-only", "--format=@@commit:%H"], (line) => {
   if (line.startsWith("@@commit:")) {
     commit = line.slice(9).trim();
     return;
@@ -131,7 +140,7 @@ await gitLines(["log", "--all", "--name-only", "--format=@@commit:%H"], (line) =
 
 commit = "";
 let path = "";
-await gitLines(["log", "--all", "--no-ext-diff", "--no-renames", "--unified=0", "--format=@@commit:%H", "-p"], (line) => {
+await gitLines(["log", historyScope, "--no-ext-diff", "--no-renames", "--unified=0", "--format=@@commit:%H", "-p"], (line) => {
   if (line.startsWith("@@commit:")) {
     commit = line.slice(9).trim();
     path = "";
@@ -143,6 +152,7 @@ await gitLines(["log", "--all", "--no-ext-diff", "--no-renames", "--unified=0", 
     return;
   }
   if (!path || ignoredContentPaths.some((pattern) => pattern.test(path))) return;
+  if (pullRequestRange && line.startsWith("-")) return;
   if ((!line.startsWith("+") && !line.startsWith("-")) || line.startsWith("+++") || line.startsWith("---")) return;
   const text = line.slice(1);
   for (const [label, pattern] of secretPatterns) {
@@ -165,4 +175,8 @@ const revokedCount = approvalCounts.get("revoked") || 0;
 const acceptedRiskCount = approvalCounts.get("owner-accepted-risk") || 0;
 if (revokedCount) console.log(`Approved ${revokedCount} exact occurrences belonging to confirmed revoked credentials.`);
 if (acceptedRiskCount) console.log(`Approved ${acceptedRiskCount} exact occurrences under documented owner-accepted risk.`);
-console.log("Public history audit passed: no unapproved recognizable secrets or private filenames were found in reachable Git history.");
+if (pullRequestRange) {
+  console.log(`Public history PR audit passed for ${requestedRange}: no recognizable secrets or private filenames were introduced.`);
+} else {
+  console.log("Public history audit passed: no unapproved recognizable secrets or private filenames were found in reachable Git history.");
+}

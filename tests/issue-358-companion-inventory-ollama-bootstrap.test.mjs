@@ -24,7 +24,7 @@ test("issue #358 inventories only curated PlotPickle companion software", async 
     'Name = "ComfyUI Desktop"',
     'Name = "Buzz Desktop / CLI"',
     '-Name "Git"',
-    '-Name "GitHub CLI"',
+    'Name = "GitHub CLI"',
     "Unrelated installed applications are never enumerated",
   ]) assert.ok(script.includes(contract), `Missing curated inventory contract: ${contract}`);
   assert.doesNotMatch(script, /Win32_Product|Get-Package\s+(?!-Name)|winget\s+list\s*$/im);
@@ -44,6 +44,22 @@ test("issue #358 performs bounded best-effort companion maintenance", async () =
   assert.match(buzz, /\[switch\]\$Maintain/);
   assert.match(buzz, /reviewed package is \$version/);
   assert.doesNotMatch(`${manager}\n${localAi}\n${buzz}`, /Invoke-Expression|\biex\b|--silent|--quiet/i);
+});
+
+test("issue #358 offers a reviewed optional GitHub CLI installation", async () => {
+  const manager = await source("scripts/windows-companion-software.ps1");
+  for (const contract of [
+    "function Find-GitHubCli",
+    "function Install-OptionalWingetPackage",
+    'Read-Host "Install GitHub CLI now? [Y/N]"',
+    '-PackageId "GitHub.cli"',
+    '--exact --source winget --interactive',
+    "does not sign in on your behalf",
+    "gh auth login",
+    "PlotPickle will continue normally",
+  ]) assert.ok(manager.includes(contract), `Missing optional GitHub CLI installer contract: ${contract}`);
+  assert.match(manager, /if \(-not \$NoPrompt\)/);
+  assert.doesNotMatch(manager, /&\s*\$?githubCli\s+auth\s+login|gh\s+auth\s+login\s+--/i);
 });
 
 test("issue #358 installs the starter only through allowlisted loopback Ollama APIs", async () => {
@@ -104,6 +120,7 @@ test("issue #358 documents the ownership and quality boundaries", async () => {
   for (const phrase of [
     "It does not enumerate unrelated Windows applications",
     "third-party update failure",
+    "GitHub CLI is separately optional",
     "not presented as a production-quality story model",
     "local loopback Ollama service",
     "never enables cloud fallback",

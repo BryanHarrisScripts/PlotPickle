@@ -8,7 +8,6 @@ export type CreativeDirectorActionState = "idle" | "illustrating" | "animating" 
 function writerFacingMessage(message?: string) {
   if (!message) return "";
   return message
-    .replace(/MiniMax H3/gi, "the active video route")
     .replace(/Open generation settings/gi, "Open Settings")
     .replace(/provider job/gi, "generation job")
     .replace(/provider request/gi, "generation request")

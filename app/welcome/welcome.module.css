@@ -323,7 +323,7 @@
   margin-top: .35rem;
 }
 
-.serverCard b {
+.serverCard div span {
   padding: .28rem .46rem;
   border-radius: 999px;
   color: #365f5a;

@@ -30,6 +30,7 @@ test("UI UX audit runner fails closed on evidence-backed findings or infrastruct
   assert.match(runner, /source\.includes\(finding\.evidence\)/);
   assert.match(runner, /loading attribute is not a standard HTML video attribute/);
   assert.match(runner, /CSS Modules are extracted and code-split/);
+  assert.match(runner, /remove\\s\+aria-label/);
   assert.match(runner, /issueCount === 0 \? "pass"/);
   assert.match(runner, /OPENAI_API_KEY is not configured for the required UI\/UX audit gate/);
   assert.match(runner, /The required audit did not complete successfully/);

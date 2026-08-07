@@ -133,7 +133,7 @@ export default function WelcomePage() {
                 <span>Complete product</span>
                 <strong>{server.installation}</strong>
                 <p>{server.label}</p>
-                <div>{server.roles.map((role) => <b key={role}>{role}</b>)}</div>
+                <div>{server.roles.map((role) => <span key={role}>{role}</span>)}</div>
               </article>
             ))}
           </div>

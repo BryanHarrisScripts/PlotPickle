@@ -63,7 +63,7 @@ jobs:
 
           if printf '%s\n' "$files" | grep -Eq '^(scripts/(package-|windows-|portable-runtime)|tests/windows-|tests/issue-124-release-hardening\.test\.mjs|tests/phase-f-collaboration-release\.test\.mjs|package(-lock)?\.json|releases/|\.github/workflows/release-candidate\.yml)'; then
             echo "deep=true" >> "$GITHUB_OUTPUT"
-            echo "Packaging/runtime-owned files changed; running deep package validation."
+            echo "Packaging/runtime-owned files changed; running package construction and clean-machine validation."
           else
             echo "deep=false" >> "$GITHUB_OUTPUT"
             echo "No packaging/runtime-owned files changed; required package status will complete without rebuilding three release archives."
@@ -138,9 +138,8 @@ jobs:
           node scripts/windows-runtime.mjs verify-modules node_modules
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Run packaged Windows interaction smoke
-        if: steps.scope.outputs.deep == 'true' && matrix.platform == 'windows'
-        continue-on-error: true
+      - name: Run packaged Windows interaction smoke after merge
+        if: steps.scope.outputs.deep == 'true' && matrix.platform == 'windows' && github.event_name != 'pull_request'
         shell: pwsh
         env:
           EDGE_PATH: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
@@ -154,9 +153,8 @@ jobs:
           Set-Location $packageRoot
           node scripts/windows-interaction-smoke.mjs . reports/windows-interaction-smoke
 
-      - name: Run deterministic Windows release smoke
-        if: steps.scope.outputs.deep == 'true' && matrix.platform == 'windows'
-        continue-on-error: true
+      - name: Run deterministic Windows release smoke after merge
+        if: steps.scope.outputs.deep == 'true' && matrix.platform == 'windows' && github.event_name != 'pull_request'
         shell: pwsh
         env:
           EDGE_PATH: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
@@ -167,7 +165,7 @@ jobs:
           node scripts/windows-release-smoke-runner.mjs . reports/windows-release-smoke
 
       - name: Upload Windows interaction evidence
-        if: always() && steps.scope.outputs.deep == 'true' && matrix.platform == 'windows'
+        if: always() && steps.scope.outputs.deep == 'true' && matrix.platform == 'windows' && github.event_name != 'pull_request'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: plotpickle-windows-smoke-${{ github.sha }}

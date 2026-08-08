@@ -63,7 +63,7 @@ test("section progress model covers every visible story section", async () => {
 });
 
 test("Studio Dashboard and structure summary explain their contracts before deeper work", async () => {
-  const overview = await source("app/project-overview.tsx");
+  const overview = await source("app/dashboard-story-library.tsx");
   const structure = await source("app/structure-map-summary.tsx");
   for (const phrase of [
     "PlotPickle Studio",

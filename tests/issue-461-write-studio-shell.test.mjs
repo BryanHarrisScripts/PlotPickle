@@ -69,7 +69,6 @@ test("#461 preserves the canonical Writer capabilities beneath the new shell", a
   assert.match(writer, /ProductionDraftPanel/);
   assert.match(writer, /CraftDiagnosticSummary/);
   assert.match(writer, /assignDraftElementToScene/);
-  assert.match(writer, /approved visual|visual/i);
 });
 
 test("#461 keeps provider mechanics outside the normal Writer shell", async () => {

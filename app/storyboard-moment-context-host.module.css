@@ -1,0 +1,99 @@
+.context {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid #3b3326;
+  background:
+    linear-gradient(135deg, rgba(205, 167, 88, 0.055), transparent 18rem),
+    #0d0d0c;
+  color: #ded4c1;
+}
+
+.identity {
+  display: grid;
+  gap: 3px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.16);
+}
+
+.identity span,
+.direction span {
+  color: #cda758;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.identity strong {
+  color: #f1e7d5;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.identity small {
+  color: #7e776d;
+  font-size: 0.56rem;
+}
+
+.direction {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.direction article {
+  padding: 10px;
+  border: 1px solid #2d2922;
+  background: #11110f;
+}
+
+.direction p {
+  margin: 6px 0 0;
+  color: #b9afa0;
+  font-size: 0.64rem;
+  line-height: 1.48;
+}
+
+.handoffs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.handoffs button {
+  min-height: 40px;
+  padding: 8px;
+  border: 1px solid #55462d;
+  border-radius: 0;
+  background: transparent;
+  color: #d5bc7c;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.58rem;
+  font-weight: 800;
+}
+
+.handoffs button:hover,
+.handoffs button:focus-visible {
+  border-color: #cda758;
+  background: #19150d;
+  color: #f0d28b;
+  outline: none;
+}
+
+.note {
+  margin: 0;
+  color: #706a61;
+  font-size: 0.54rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 760px) {
+  .direction,
+  .handoffs {
+    grid-template-columns: 1fr;
+  }
+}

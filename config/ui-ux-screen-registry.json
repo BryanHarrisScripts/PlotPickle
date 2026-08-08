@@ -181,6 +181,22 @@
       ]
     },
     {
+      "id": "edit",
+      "label": "Edit",
+      "area": "workflow",
+      "scope": "Scene, dialogue, action, pacing and continuity review of the canonical screenplay",
+      "status": "in-progress",
+      "issue": 461,
+      "pullRequest": null,
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "keyboard-navigation",
+        "data-preservation"
+      ]
+    },
+    {
       "id": "pitch",
       "label": "Graphic Novel",
       "area": "workflow",

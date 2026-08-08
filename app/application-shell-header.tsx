@@ -44,7 +44,13 @@ function WorkspaceButton({
       data-workspace-id={id}
       data-workspace-active={active ? "true" : "false"}
       title={userFacingDescription}
-      onClick={() => onNavigate(id)}
+      onClick={() => {
+        if (id === "edit") {
+          window.location.assign("/edit");
+          return;
+        }
+        onNavigate(id);
+      }}
     >
       <span>{label}</span>
     </button>
@@ -61,7 +67,12 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
       const requested = (event as CustomEvent<unknown>).detail;
       if (typeof requested !== "string") return;
       const workspace = PRODUCT_NAVIGATION.find((item) => item.id === requested);
-      if (workspace) onNavigate(workspace.id);
+      if (!workspace) return;
+      if (workspace.id === "edit") {
+        window.location.assign("/edit");
+        return;
+      }
+      onNavigate(workspace.id);
     };
     window.addEventListener("plotpickle:navigate-workspace", handleWorkspaceNavigation);
     return () => window.removeEventListener("plotpickle:navigate-workspace", handleWorkspaceNavigation);

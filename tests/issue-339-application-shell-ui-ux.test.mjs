@@ -18,7 +18,7 @@ test("application shell preserves the canonical workspace and project-action reg
   ]);
 
   assert.deepEqual(direction.PRIMARY_WORKFLOW_NAVIGATION.map((item) => item.label), [
-    "Dashboard", "Learn", "Plan", "Storyboard", "Write", "Graphic Novel", "Build", "Feedback", "Refine", "Reports",
+    "Dashboard", "Learn", "Plan", "Storyboard", "Write", "Edit", "Graphic Novel", "Build", "Feedback", "Refine", "Reports",
   ]);
   assert.deepEqual(direction.COLLABORATION_NAVIGATION.map((item) => item.label), ["Collab", "Community"]);
   assert.deepEqual(direction.PROJECT_ACTIONS.map((item) => item.label), ["New Project", "Import", "Export", "Load Example"]);

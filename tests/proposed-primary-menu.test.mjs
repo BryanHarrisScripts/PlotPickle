@@ -18,7 +18,7 @@ test("the primary menu uses the approved short labels in order", async () => {
     contract.indexOf("export const PRIMARY_WORKFLOW_NAVIGATION"),
     contract.indexOf("export const COLLABORATION_NAVIGATION"),
   );
-  const labels = ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Graphic Novel", "Build", "Feedback", "Refine", "Reports"];
+  const labels = ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Edit", "Graphic Novel", "Build", "Feedback", "Refine", "Reports"];
   let lastIndex = -1;
   for (const label of labels) {
     const index = primary.indexOf(`label: "${label}"`);
@@ -50,6 +50,8 @@ test("the shared header owns workflow groups, Collab, project actions and config
   assert.match(shell, /PROJECT_ACTIONS\.map/);
   assert.match(shell, /SUPPORT_NAVIGATION\.map/);
   assert.match(shell, /Open the PlotPickle marketing page/);
+  assert.match(shell, /id === "edit"/);
+  assert.match(shell, /window\.location\.assign\("\/edit"\)/);
 });
 
 test("Suggest Report opens a separate sanitized GitHub draft", async () => {

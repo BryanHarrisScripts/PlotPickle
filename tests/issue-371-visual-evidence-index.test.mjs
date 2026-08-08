@@ -14,7 +14,7 @@ test('visual capture emits a reviewer-facing evidence index', () => {
 
 test('evidence index keeps every registered desktop workspace and key story-context state reviewable', () => {
   assert.deepEqual(registry.viewports, [{ id: 'desktop', width: 1440, height: 1000 }])
-  assert.equal(registry.screens.length, 18)
+  assert.equal(registry.screens.length, 19)
   assert.deepEqual(
     registry.screens.filter((screen) => screen.id.startsWith('plan')).map((screen) => screen.path),
     [
@@ -25,6 +25,7 @@ test('evidence index keeps every registered desktop workspace and key story-cont
     ],
   )
   assert.ok(registry.screens.some((screen) => screen.id === 'storyboard-plan-context' && screen.path === '/?workspace=storyboard&block=7&mini=3&visualSection=frames'))
+  assert.ok(registry.screens.some((screen) => screen.id === 'storyboard-decisions' && screen.path === '/?workspace=storyboard&block=7&mini=3&visualSection=frames&decision=review'))
   assert.ok(registry.screens.some((screen) => screen.id === 'write-plan-context' && screen.path === '/?workspace=write&block=7&mini=3'))
   for (const screen of registry.screens) {
     assert.match(screen.id, /^[a-z0-9-]+$/)

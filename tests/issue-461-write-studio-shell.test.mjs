@@ -60,15 +60,16 @@ test("#461 gives the existing Writer a matte-black warm-gold Studio shell", asyn
 test("#461 Treatment and craft diagnostics stay inside the same dark Writer system", async () => {
   const styles = await source("app/write-studio-treatment.css");
 
-  assert.match(styles, /treatment-editor/);
+  assert.match(styles, /workspaceShell/);
+  assert.match(styles, /> \[class\*="page"\]/);
   assert.match(styles, /editorCard/);
   assert.match(styles, /previewContent/);
-  assert.match(styles, /activeMini/);
   assert.match(styles, /#090909/i);
   assert.match(styles, /#cda758/i);
   assert.match(styles, /Diagnostic craft summary/);
   assert.match(styles, /summaryCounts/);
   assert.match(styles, /finding/);
+  assert.doesNotMatch(styles, /treatment-editor/);
 });
 
 test("#461 preserves the canonical Writer capabilities beneath the new shell", async () => {

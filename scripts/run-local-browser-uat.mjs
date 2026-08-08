@@ -74,16 +74,80 @@ function extractRef(text, label) {
   return "";
 }
 
+function extractFirstJsonObject(text) {
+  const raw = String(text || "");
+  for (let start = raw.indexOf("{"); start >= 0; start = raw.indexOf("{", start + 1)) {
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    for (let index = start; index < raw.length; index += 1) {
+      const char = raw[index];
+      if (inString) {
+        if (escaped) escaped = false;
+        else if (char === "\\") escaped = true;
+        else if (char === '"') inString = false;
+        continue;
+      }
+      if (char === '"') {
+        inString = true;
+        continue;
+      }
+      if (char === "{") depth += 1;
+      else if (char === "}") {
+        depth -= 1;
+        if (depth === 0) {
+          try {
+            return JSON.parse(raw.slice(start, index + 1));
+          } catch {
+            break;
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
 function extractPageState(text) {
   const raw = String(text || "");
-  const open = raw.indexOf("{");
-  const close = raw.lastIndexOf("}");
-  if (open >= 0 && close > open) {
-    try {
-      return JSON.parse(raw.slice(open, close + 1));
-    } catch {}
-  }
+  const marker = "### Result";
+  const markerIndex = raw.indexOf(marker);
+  const resultSection = markerIndex >= 0
+    ? raw.slice(markerIndex + marker.length).split(/\r?\n###\s/)[0]
+    : raw;
+  const parsed = extractFirstJsonObject(resultSection) || extractFirstJsonObject(raw);
+  if (parsed && typeof parsed === "object") return parsed;
   return { url: "", activeId: "", activeLabel: "", mainLength: 0, title: "" };
+}
+
+function consoleHasErrors(text) {
+  const raw = String(text || "").trim();
+  if (!raw) return false;
+  const count = raw.match(/\bErrors:\s*(\d+)\b/i);
+  if (count) return Number(count[1]) > 0;
+  if (/Returning\s+0\s+messages\s+for\s+level\s+["']?error["']?/i.test(raw)) return false;
+  return /(?:^|\n)\s*(?:\[?error\]?\s*[:\-]?|Error:|Uncaught\b|Unhandled\b)/im.test(raw);
+}
+
+function stateMatchesScreen(screen, state) {
+  const activeId = String(state?.activeId || "");
+  const urlText = String(state?.url || "");
+  if (screen.id === "edit") {
+    try {
+      return new URL(urlText).pathname === "/edit";
+    } catch {
+      return urlText.includes("/edit");
+    }
+  }
+  if (activeId) return activeId === screen.id;
+  try {
+    const url = new URL(urlText);
+    const workspace = url.searchParams.get("workspace");
+    if (workspace) return workspace === screen.query;
+    return screen.id === "dashboard" && url.pathname === "/";
+  } catch {
+    return false;
+  }
 }
 
 function parseParameterBillions(value) {
@@ -417,12 +481,10 @@ async function main() {
       }
       const state = reached ? await pageState() : {};
       const consoleText = reached ? await consoleMessages() : "";
-      const routeMatches = screen.id === "edit"
-        ? String(state.url || "").includes("/edit")
-        : !state.activeId || state.activeId === screen.id;
+      const routeMatches = stateMatchesScreen(screen, state);
       const substantive = Number(state.mainLength || 0) > 40 || currentSnapshot.length > 200;
       let status = reached && routeMatches && substantive ? "PASS" : "FAIL";
-      if (status === "PASS" && (method === "direct recovery navigation" || !screenshotOk || /error/i.test(consoleText))) status = "WARN";
+      if (status === "PASS" && (method === "direct recovery navigation" || !screenshotOk || consoleHasErrors(consoleText))) status = "WARN";
 
       evidence.push({ ...screen, status, method, note, screenshotOk, pageState: state, consoleText });
     }
@@ -469,12 +531,13 @@ async function main() {
     lines.push("", "## Blocking runner error", "", deterministicError.message);
   }
 
-  const notes = evidence.filter((item) => item.note || (item.consoleText && /error/i.test(item.consoleText)));
+  const notes = evidence.filter((item) => item.note || consoleHasErrors(item.consoleText));
   if (notes.length) {
     lines.push("", "## Findings", "");
     for (const item of notes) {
+      const hasConsoleError = consoleHasErrors(item.consoleText);
       lines.push(`- ${item.status} ${item.label}: ${item.note || "Browser console reported an error."}`);
-      if (item.consoleText && /error/i.test(item.consoleText)) lines.push(`  Console: ${item.consoleText.replace(/\s+/g, " ").slice(0, 600)}`);
+      if (hasConsoleError) lines.push(`  Console: ${item.consoleText.replace(/\s+/g, " ").slice(0, 600)}`);
     }
   }
 

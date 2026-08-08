@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import AppearanceRuntime from "./appearance-runtime";
+import BuildAssemblyStudio from "./build-assembly-studio";
 import CollaborationWorkspaceRouter from "./collaboration-workspace-router";
 import CommonOverlayLayer from "./common-overlay-layer";
 import CurrentDownloadLinks from "./current-download-links";
@@ -45,6 +46,7 @@ import "./write-edit-handoff.css";
 import "./edit-decision-panel.css";
 import "./graphic-novel-studio.css";
 import "./graphic-novel-build-handoff.css";
+import "./build-assembly-studio.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",
@@ -89,6 +91,7 @@ export default function RootLayout({
         <GraphicNovelTerminology />
         <GraphicNovelStudioHost />
         <GraphicNovelBuildHandoff />
+        <BuildAssemblyStudio />
         <GitHubAppReleaseGuidance />
         <CollaborationWorkspaceRouter />
         <PlanStudioRailHost />

@@ -44,6 +44,13 @@ jobs:
       PLOTPICKLE_AGENT_PLUGIN_DATA: ${{ runner.temp }}/plotpickle-agent-plugin
 
     steps:
+      - name: Publish UAT RUNNING status
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 490 --repo "$GITHUB_REPOSITORY" --body "UAT RUNNING — run $GITHUB_RUN_ID has started. Scope: $PLOTPICKLE_ACCEPTANCE_SCOPE. Commit: $GITHUB_SHA. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -141,7 +148,7 @@ jobs:
           COMMENT="$RUNNER_TEMP/plotpickle-agent-run/acceptance-issue-comment.md"
           mkdir -p "$(dirname "$COMMENT")"
           {
-            echo "## Human acceptance run $GITHUB_RUN_ID"
+            echo "## UAT FINAL — run $GITHUB_RUN_ID"
             echo
             echo "Scope: $PLOTPICKLE_ACCEPTANCE_SCOPE"
             echo "Commit: $GITHUB_SHA"

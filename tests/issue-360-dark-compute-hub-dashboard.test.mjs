@@ -59,7 +59,7 @@ test("issue #360 keeps Compute Hub read-only and available without mounting it i
   ]);
 
   assert.doesNotMatch(dashboard, /ComputeHubDashboard|dashboard-compute-hub/);
-  assert.match(dashboard, /<ProjectOverview/);
+  assert.match(dashboard, /<DashboardStoryLibrary/);
   assert.match(hub, /id="dashboard-compute-hub"/);
   assert.match(hub, /Dashboard is read-only/);
   assert.match(hub, /\/api\/ai-routing\/status/);

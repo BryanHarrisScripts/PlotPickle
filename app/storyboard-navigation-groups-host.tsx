@@ -48,11 +48,20 @@ function applySectionConfig(button: HTMLButtonElement) {
 
 function makeVersionsButton() {
   const button = document.createElement("button");
+  const text = document.createElement("span");
+  const label = document.createElement("strong");
+  const detail = document.createElement("small");
+  const count = document.createElement("b");
+
   button.type = "button";
   button.dataset.storyboardArea = "versions";
   button.dataset.storyboardRole = "primary";
   button.dataset.storyboardVersions = "true";
-  button.innerHTML = "<span><strong>Versions</strong><small>Approved and alternate takes</small></span><b>Review</b>";
+  label.textContent = "Versions";
+  detail.textContent = "Approved and alternate takes";
+  count.textContent = "Review";
+  text.append(label, detail);
+  button.append(text, count);
   return button;
 }
 

@@ -1,0 +1,394 @@
+/* Issue #461 — Write Studio visual boundary.
+   The existing ScriptWorkspace remains canonical. This layer changes only its
+   presentation so writing feels like the same Studio as Plan and Storyboard. */
+
+.workspace[data-write-studio="true"] {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(205, 167, 88, 0.045), transparent 27rem),
+    #090909 !important;
+  color: #e9e0d0;
+}
+
+.workspace[data-write-studio="true"] > section[aria-label$="capabilities"],
+.workspace[data-write-studio="true"] > button[aria-label*="feedback records"] {
+  display: none !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] {
+  color: #e9e0d0 !important;
+  background: #090909 !important;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+}
+
+.workspace[data-write-studio="true"] [class*="modeBar"] {
+  top: 0 !important;
+  min-height: 52px !important;
+  padding: 9px clamp(20px, 3vw, 42px) !important;
+  border-color: rgba(205, 167, 88, 0.2) !important;
+  background: rgba(12, 12, 11, 0.97) !important;
+  box-shadow: none !important;
+}
+
+.workspace[data-write-studio="true"] [class*="modeBar"] strong {
+  color: #f2eadc !important;
+}
+
+.workspace[data-write-studio="true"] [class*="modeBar"] span {
+  color: #746d63 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="modeBar"] > div:last-child {
+  border-color: #3a3328 !important;
+  border-radius: 0 !important;
+  background: #11110f !important;
+}
+
+.workspace[data-write-studio="true"] [class*="modeBar"] button {
+  border-color: #3a3328 !important;
+  background: #11110f !important;
+  color: #998d7a !important;
+}
+
+.workspace[data-write-studio="true"] [class*="modeBar"] [class*="activeMode"] {
+  background: #cda758 !important;
+  color: #090806 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="writerHeader"] {
+  padding: 28px clamp(24px, 3vw, 46px) 22px !important;
+  border-color: rgba(205, 167, 88, 0.2) !important;
+  background:
+    linear-gradient(115deg, rgba(205, 167, 88, 0.045), transparent 40%),
+    #0d0d0c !important;
+}
+
+.workspace[data-write-studio="true"] [class*="writerHeader"] p,
+.workspace[data-write-studio="true"] [class*="miniNavigator"] > div:first-child > span,
+.workspace[data-write-studio="true"] [class*="miniBrief"] > span,
+.workspace[data-write-studio="true"] [class*="aiCard"] > span,
+.workspace[data-write-studio="true"] [class*="assignmentCard"] > span {
+  color: #cda758 !important;
+  font-size: 8px !important;
+  letter-spacing: 0.16em !important;
+}
+
+.workspace[data-write-studio="true"] [class*="writerHeader"] h1 {
+  color: #f6efe3 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: clamp(34px, 4vw, 58px) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.035em;
+}
+
+.workspace[data-write-studio="true"] [class*="writerHeader"] > div > span {
+  color: #777168 !important;
+  font-size: 9px !important;
+}
+
+.workspace[data-write-studio="true"] [class*="exportActions"] button,
+.workspace[data-write-studio="true"] [class*="formatToolbar"] button,
+.workspace[data-write-studio="true"] [class*="openPlan"],
+.workspace[data-write-studio="true"] [class*="convertCard"] button,
+.workspace[data-write-studio="true"] [class*="blankPage"] button,
+.workspace[data-write-studio="true"] [class*="productionDraftPanel"] button,
+.workspace[data-write-studio="true"] [class*="aiCard"] > button,
+.workspace[data-write-studio="true"] [class*="aiResult"] button {
+  border: 1px solid rgba(205, 167, 88, 0.32) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #d7c49d !important;
+  font-family: inherit !important;
+  font-size: 8px !important;
+  font-weight: 800 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="exportActions"] button:hover,
+.workspace[data-write-studio="true"] [class*="formatToolbar"] button:hover,
+.workspace[data-write-studio="true"] [class*="openPlan"]:hover,
+.workspace[data-write-studio="true"] [class*="productionDraftPanel"] button:hover {
+  border-color: #cda758 !important;
+  background: #19150d !important;
+  color: #f0d28b !important;
+}
+
+.workspace[data-write-studio="true"] [class*="productionDraftPanel"] {
+  padding: 12px clamp(24px, 3vw, 46px) !important;
+  border-color: #28241e !important;
+  background: #0b0b0a !important;
+  color: #938b80 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="productionDraftPanel"] > div:first-child > span,
+.workspace[data-write-studio="true"] [class*="productionDraftPanel"] header span {
+  color: #8e7440 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="productionDraftPanel"] p,
+.workspace[data-write-studio="true"] [class*="productionDraftPanel"] label,
+.workspace[data-write-studio="true"] [class*="productionHistory"] li {
+  color: #777168 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="productionDraftPanel"] input,
+.workspace[data-write-studio="true"] [class*="productionDraftPanel"] select,
+.workspace[data-write-studio="true"] [class*="productionDraftPanel"] textarea,
+.workspace[data-write-studio="true"] [class*="productionGrid"] > div {
+  border-color: #332e26 !important;
+  border-radius: 0 !important;
+  background: #11110f !important;
+  color: #d7cfc2 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="writerLayout"] {
+  grid-template-columns: 210px minmax(560px, 1fr) 310px !important;
+  background: #090909 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="blockRail"] {
+  top: 52px !important;
+  min-height: calc(100vh - 52px) !important;
+  max-height: calc(100vh - 52px) !important;
+  border-color: rgba(205, 167, 88, 0.18) !important;
+  background: #0d0d0c !important;
+}
+
+.workspace[data-write-studio="true"] [class*="blockRail"] > div {
+  border-color: #28241e !important;
+}
+
+.workspace[data-write-studio="true"] [class*="blockRail"] > div span,
+.workspace[data-write-studio="true"] [class*="formatToolbar"] > span {
+  color: #cda758 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="blockRail"] > div strong {
+  color: #e6ddce !important;
+}
+
+.workspace[data-write-studio="true"] [class*="blockRail"] > div small,
+.workspace[data-write-studio="true"] [class*="blockRail"] nav button small {
+  color: #676158 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="blockRail"] nav {
+  max-height: calc(100vh - 146px) !important;
+}
+
+.workspace[data-write-studio="true"] [class*="blockRail"] nav button {
+  border-radius: 0 !important;
+  color: #91897d !important;
+}
+
+.workspace[data-write-studio="true"] [class*="blockRail"] nav button:hover {
+  border-color: #4b402c !important;
+  background: #14120e !important;
+}
+
+.workspace[data-write-studio="true"] [class*="blockRail"] nav button > span {
+  color: #8c713e !important;
+}
+
+.workspace[data-write-studio="true"] [class*="blockRail"] nav [class*="activeBlock"] {
+  border-color: rgba(205, 167, 88, 0.5) !important;
+  background: #19150d !important;
+  color: #f0d28b !important;
+  box-shadow: inset 3px 0 #cda758 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="writerMain"] {
+  padding: 20px clamp(22px, 3vw, 38px) 72px !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(205, 167, 88, 0.025), transparent 34rem),
+    #090909 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="miniNavigator"] {
+  max-width: 980px !important;
+  border-color: #302a22 !important;
+  border-radius: 0 !important;
+  background: #0f0f0e !important;
+  box-shadow: none !important;
+}
+
+.workspace[data-write-studio="true"] [class*="miniNavigator"] h2 {
+  color: #eee5d7 !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px !important;
+  font-weight: 500;
+}
+
+.workspace[data-write-studio="true"] [class*="miniNavigator"] p {
+  color: #7e776d !important;
+}
+
+.workspace[data-write-studio="true"] [class*="miniGrid"] button {
+  border-color: #332e26 !important;
+  border-radius: 0 !important;
+  background: #0b0b0a !important;
+  color: #9a9286 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="miniGrid"] button:hover {
+  border-color: #836a39 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="miniGrid"] span {
+  color: #a58443 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="miniGrid"] small,
+.workspace[data-write-studio="true"] [class*="miniGrid"] i {
+  color: #676158 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="miniGrid"] [class*="activeMini"] {
+  border-color: #cda758 !important;
+  background: #1a160e !important;
+  color: #efd18a !important;
+  box-shadow: 0 0 0 1px rgba(205, 167, 88, 0.18) !important;
+}
+
+.workspace[data-write-studio="true"] [class*="formatToolbar"] {
+  max-width: 980px !important;
+  border-color: #302a22 !important;
+  border-radius: 0 !important;
+  background: #0d0d0c !important;
+}
+
+.workspace[data-write-studio="true"] [class*="scriptPaper"] {
+  max-width: 980px !important;
+  min-height: 1050px !important;
+  border-color: #393228 !important;
+  background: #11110f !important;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34) !important;
+}
+
+.workspace[data-write-studio="true"] [class*="scriptElement"] {
+  border-radius: 0 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="scriptElement"]:hover {
+  border-color: #393228 !important;
+  background: #16130f !important;
+}
+
+.workspace[data-write-studio="true"] [class*="selectedElement"] {
+  border-color: rgba(205, 167, 88, 0.6) !important;
+  background: #1a160e !important;
+  box-shadow: 0 0 0 2px rgba(205, 167, 88, 0.08) !important;
+}
+
+.workspace[data-write-studio="true"] [class*="scriptElement"] textarea {
+  color: #efe9df !important;
+  caret-color: #d8b45f;
+}
+
+.workspace[data-write-studio="true"] [class*="elementMeta"] {
+  border-color: #463b29 !important;
+  border-radius: 0 !important;
+  background: #11110f !important;
+  box-shadow: 0 9px 24px rgba(0, 0, 0, 0.34) !important;
+}
+
+.workspace[data-write-studio="true"] [class*="elementMeta"] span {
+  color: #c39c4f !important;
+}
+
+.workspace[data-write-studio="true"] [class*="elementMeta"] select,
+.workspace[data-write-studio="true"] [class*="elementMeta"] button {
+  border-color: #463b29 !important;
+  border-radius: 0 !important;
+  background: #0c0c0b !important;
+  color: #d4c9b7 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="blankPage"],
+.workspace[data-write-studio="true"] [class*="convertCard"] {
+  border-color: #342e25 !important;
+  border-radius: 0 !important;
+  background: #10100f !important;
+  color: #d9d0c2 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="blankPage"] p,
+.workspace[data-write-studio="true"] [class*="convertCard"] p,
+.workspace[data-write-studio="true"] [class*="keyboardHint"] {
+  color: #746d63 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="assistantPanel"] {
+  top: 52px !important;
+  max-height: calc(100vh - 52px) !important;
+  border-color: rgba(205, 167, 88, 0.18) !important;
+  background: #0c0c0b !important;
+}
+
+.workspace[data-write-studio="true"] [class*="miniBrief"],
+.workspace[data-write-studio="true"] [class*="aiCard"],
+.workspace[data-write-studio="true"] [class*="assignmentCard"] {
+  border-color: #332e26 !important;
+  border-radius: 0 !important;
+  background: #11110f !important;
+  color: #d4cab9 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="miniBrief"] > p,
+.workspace[data-write-studio="true"] [class*="aiCard"] > p,
+.workspace[data-write-studio="true"] [class*="miniBrief"] dd,
+.workspace[data-write-studio="true"] [class*="aiCard"] > small {
+  color: #777168 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="miniBrief"] dl div {
+  border-color: #2b2721 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="miniBrief"] dt,
+.workspace[data-write-studio="true"] [class*="assignmentCard"] label {
+  color: #aa8844 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="aiCard"] textarea,
+.workspace[data-write-studio="true"] [class*="assignmentCard"] select {
+  border-color: #403729 !important;
+  border-radius: 0 !important;
+  background: #0b0b0a !important;
+  color: #ddd3c3 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="aiCard"] > button {
+  border-color: #cda758 !important;
+  background: #cda758 !important;
+  color: #090806 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="aiResult"] {
+  border-radius: 0 !important;
+  background: #15130e !important;
+}
+
+.workspace[data-write-studio="true"] [class*="aiError"] {
+  border-radius: 0 !important;
+  background: #21120f !important;
+  color: #d39a8d !important;
+}
+
+@media (max-width: 1280px) {
+  .workspace[data-write-studio="true"] [class*="writerLayout"] {
+    grid-template-columns: 205px minmax(520px, 1fr) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .workspace[data-write-studio="true"] [class*="writerLayout"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .workspace[data-write-studio="true"] [class*="blockRail"],
+  .workspace[data-write-studio="true"] [class*="assistantPanel"] {
+    position: relative !important;
+    top: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+}

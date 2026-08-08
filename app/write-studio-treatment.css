@@ -1,0 +1,212 @@
+/* Issue #461 — Treatment and diagnostic continuity inside Write Studio.
+   TreatmentEditor uses generic CSS-module class names, so scope through the
+   canonical ScriptWorkspace structure instead of generated module filenames. */
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] {
+  color: #e9e0d0 !important;
+  background: #090909 !important;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] > [class*="header"] {
+  padding: 28px clamp(24px, 3vw, 46px) 24px !important;
+  border-color: rgba(205, 167, 88, 0.2) !important;
+  background:
+    linear-gradient(115deg, rgba(205, 167, 88, 0.045), transparent 40%),
+    #0d0d0c !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] > [class*="header"] span,
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="context"] > div:first-child > span,
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="toolbar"] > span {
+  color: #cda758 !important;
+  font-size: 8px !important;
+  letter-spacing: 0.16em !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] > [class*="header"] h1 {
+  color: #f6efe3 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: clamp(34px, 4vw, 58px) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] > [class*="header"] p,
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="stats"] small {
+  color: #777168 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="stats"] {
+  border-color: #3a3328 !important;
+  border-radius: 0 !important;
+  background: #11110f !important;
+  color: #d8cfbf !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="stats"] strong {
+  color: #e7c26e !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] > [class*="layout"] {
+  grid-template-columns: 230px minmax(0, 1fr) !important;
+  background: #090909 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="main"] {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(205, 167, 88, 0.025), transparent 34rem),
+    #090909 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="context"] {
+  border-color: #302a22 !important;
+  border-radius: 0 !important;
+  background: #0f0f0e !important;
+  color: #d8cfbf !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="context"] h2 {
+  color: #eee5d7 !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px !important;
+  font-weight: 500;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="context"] p {
+  color: #7e776d !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] :is(
+  [class*="context"] > button,
+  [class*="toolbar"] button,
+  [class*="actions"] button,
+  [class*="aiReview"] button,
+  [class*="aiError"] button
+) {
+  border: 1px solid rgba(205, 167, 88, 0.32) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #d7c49d !important;
+  font-family: inherit !important;
+  font-size: 8px !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="editorCard"] {
+  border-color: #393228 !important;
+  border-radius: 0 !important;
+  background: #11110f !important;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34) !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="toolbar"] {
+  border-color: #302a22 !important;
+  background: #0d0d0c !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="toolbar"] [class*="active"] {
+  border-color: #cda758 !important;
+  background: #19150d !important;
+  color: #efd18a !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="editorSplit"] > textarea,
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="editorOnly"] > textarea {
+  background: #10110f !important;
+  color: #e9e0d0 !important;
+  caret-color: #d8b45f;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="editorSplit"] > textarea:focus,
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="editorOnly"] > textarea:focus {
+  box-shadow: inset 0 0 0 2px rgba(205, 167, 88, 0.55) !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="preview"] {
+  border-color: #302a22 !important;
+  background: #11110f !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="previewContent"],
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="previewContent"] :is(h1, h2, h3) {
+  color: #e9e0d0 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="previewContent"] blockquote,
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="previewContent"] code {
+  border-color: #4b402c !important;
+  background: #19150d !important;
+  color: #d9cbaf !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="emptyPreview"],
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="ownership"] {
+  background: #11110f !important;
+  color: #777168 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="emptyPreview"] strong {
+  color: #d1b36e !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="actions"] {
+  border-color: #302a22 !important;
+  background: #0d0d0c !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="actions"] [class*="primary"] {
+  border-color: #cda758 !important;
+  background: #cda758 !important;
+  color: #090806 !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="aiReview"] {
+  border-color: #453a28 !important;
+  border-radius: 0 !important;
+  background: #15130e !important;
+  color: #d8cfbf !important;
+}
+
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="aiError"] {
+  border-color: #694039 !important;
+  border-radius: 0 !important;
+  background: #21120f !important;
+  color: #d39a8d !important;
+}
+
+/* CraftDiagnosticSummary is shared elsewhere, so only recolour it while nested in Write. */
+.workspace[data-write-studio="true"] section[aria-label="Diagnostic craft summary"] {
+  --line: #332e26 !important;
+  --ink: #e9e0d0 !important;
+  --muted: #777168 !important;
+  --ice: #11110f !important;
+  --blue: #11110f !important;
+  border-color: #332e26 !important;
+  border-radius: 0 !important;
+  background: #11110f !important;
+  color: #e9e0d0 !important;
+}
+
+.workspace[data-write-studio="true"] section[aria-label="Diagnostic craft summary"] a {
+  color: #d7b761 !important;
+}
+
+.workspace[data-write-studio="true"] section[aria-label="Diagnostic craft summary"] [class*="summaryCounts"] > div,
+.workspace[data-write-studio="true"] section[aria-label="Diagnostic craft summary"] [class*="finding"] {
+  border-color: #393228 !important;
+  border-radius: 0 !important;
+  background: #0b0b0a !important;
+  color: #d8cfbf !important;
+}
+
+.workspace[data-write-studio="true"] section[aria-label="Diagnostic craft summary"] [class*="finding"] p,
+.workspace[data-write-studio="true"] section[aria-label="Diagnostic craft summary"] [class*="summaryCounts"] span {
+  color: #777168 !important;
+}
+
+@media (max-width: 920px) {
+  .workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] > [class*="layout"] {
+    display: block !important;
+  }
+}

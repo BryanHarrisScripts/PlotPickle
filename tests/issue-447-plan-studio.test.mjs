@@ -70,6 +70,21 @@ test("#447 keeps Dashboard and Plan as separate Studio surfaces", async () => {
   assert.match(plan, /Plan · Story Architecture/);
 });
 
+test("#447 gives Plan a dedicated matte-black Studio boundary without recolouring other workspaces", async () => {
+  const [layout, boundary] = await Promise.all([
+    source("app/layout.tsx"),
+    source("app/plan-studio-phase-c.css"),
+  ]);
+
+  assert.match(layout, /plan-studio-phase-c\.css/);
+  assert.match(boundary, /\.workspace:has\(\.planner-content\)/);
+  assert.match(boundary, /section\[aria-label\$="capabilities"\]/);
+  assert.match(boundary, /\.story-rail/);
+  assert.match(boundary, /#090909/i);
+  assert.match(boundary, /#cda758/i);
+  assert.match(boundary, /background:\s*#19150d/i);
+});
+
 test("#447 keeps provider mechanics outside normal Plan", async () => {
   const plan = await source("app/project-overview.tsx");
   assert.doesNotMatch(plan, /Ollama|ComfyUI|MiniMax|checkpoint|endpoint|apiKey/i);

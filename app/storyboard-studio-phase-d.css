@@ -36,8 +36,331 @@
   border-color: rgba(205, 167, 88, 0.25) !important;
 }
 
+/* Storyboard page language. Natural image/video colour remains untouched; all
+   application chrome is quiet black/gold so the story image owns attention. */
+.visual-studio-layout > div > div:last-child {
+  color: #e9e0d0 !important;
+  background: #090909 !important;
+}
+
+.visual-studio-layout > div > div:last-child > header {
+  margin: 0 !important;
+  padding: 30px clamp(24px, 3.4vw, 54px) 24px !important;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.22) !important;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(205, 167, 88, 0.06), transparent 24rem),
+    #090909 !important;
+}
+
+.visual-studio-layout > div > div:last-child > header span,
+.visual-studio-layout [data-visual-section] span,
+.visual-studio-layout nav[aria-label="Visual Board sections"] header span {
+  color: #cda758 !important;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase;
+}
+
+.visual-studio-layout > div > div:last-child > header h1,
+.visual-studio-layout [data-visual-section] h2,
+.visual-studio-layout [data-visual-section] h3 {
+  color: #f4efe6 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-weight: 500 !important;
+}
+
+.visual-studio-layout > div > div:last-child > header h1 {
+  max-width: 940px;
+  margin-top: 7px !important;
+  font-size: clamp(34px, 4vw, 58px) !important;
+  line-height: 1 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.visual-studio-layout > div > div:last-child > header p,
+.visual-studio-layout [data-visual-section] p,
+.visual-studio-layout [data-visual-section] small,
+.visual-studio-layout nav[aria-label="Visual Board sections"] small {
+  color: #847e74 !important;
+}
+
+.visual-studio-layout > div > div:last-child > header > div:last-child {
+  border: 1px solid rgba(205, 167, 88, 0.28) !important;
+  border-radius: 0 !important;
+  background: #10100e !important;
+  box-shadow: none !important;
+}
+
+.visual-studio-layout > div > div:last-child > header > div:last-child strong {
+  color: #d9b863 !important;
+}
+
+.visual-studio-layout > div > div:last-child > header > div:last-child div {
+  background: #27231d !important;
+}
+
+.visual-studio-layout > div > div:last-child > header > div:last-child i {
+  background: #cda758 !important;
+}
+
+/* Internal Storyboard navigation remains the capability index for this first
+   slice, but now reads as part of the same Studio instead of a teal utility. */
+.visual-studio-layout nav[aria-label="Visual Board sections"] {
+  top: 128px !important;
+  padding: 16px 12px !important;
+  border: 1px solid #2c2821 !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(180deg, rgba(205, 167, 88, 0.035), transparent 14rem),
+    #0d0d0c !important;
+  box-shadow: none !important;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] header {
+  padding: 5px 8px 15px !important;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.16) !important;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] header strong {
+  color: #eee4d2 !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button {
+  min-height: 46px !important;
+  padding: 9px 8px !important;
+  border: 1px solid transparent !important;
+  border-bottom-color: #25221d !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #928b80 !important;
+  box-shadow: none !important;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button:hover,
+.visual-studio-layout nav[aria-label="Visual Board sections"] button:focus-visible,
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[aria-current] {
+  border-color: rgba(205, 167, 88, 0.42) !important;
+  background: #19150d !important;
+  color: #efd18a !important;
+  outline: none !important;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button strong {
+  color: inherit !important;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button b {
+  border: 1px solid #443a28 !important;
+  border-radius: 0 !important;
+  background: #11100d !important;
+  color: #cda758 !important;
+}
+
+/* All content panels share the Plan-like editorial surface. */
+.visual-studio-layout [data-visual-section] {
+  scroll-margin-top: 145px;
+  border: 1px solid #2b2721 !important;
+  border-radius: 0 !important;
+  background: #0f0f0e !important;
+  color: #e9e0d0 !important;
+  box-shadow: none !important;
+}
+
+.visual-studio-layout [data-visual-section]:focus {
+  outline: 1px solid #cda758 !important;
+  outline-offset: 3px;
+}
+
+.visual-studio-layout [data-visual-section] article {
+  border-color: #302b23 !important;
+  border-radius: 0 !important;
+  background: #11110f !important;
+  color: #ddd2bd !important;
+  box-shadow: none !important;
+}
+
+.visual-studio-layout [data-visual-section] article strong {
+  color: #eadfc9 !important;
+}
+
+.visual-studio-layout [data-visual-section] article > span,
+.visual-studio-layout [data-visual-section] article em {
+  color: #c5a458 !important;
+}
+
+.visual-studio-layout [data-visual-section] > div:first-child > b,
+.visual-studio-layout [data-visual-section] header > b {
+  border: 1px solid #493d28 !important;
+  border-radius: 0 !important;
+  background: #15130e !important;
+  color: #d6b25e !important;
+}
+
+/* View and Act selectors are story-position controls, not coloured UI tabs. */
+.visual-studio-layout nav[aria-label="Storyboard view"],
+.visual-studio-layout nav[aria-label="Storyboard act filter"] {
+  gap: 5px !important;
+}
+
+.visual-studio-layout nav[aria-label="Storyboard view"] button,
+.visual-studio-layout nav[aria-label="Storyboard act filter"] button,
+.visual-studio-layout [data-visual-section] > div > button,
+.visual-studio-layout [data-visual-section] aside button {
+  border: 1px solid #493d28 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #c8bda8 !important;
+  box-shadow: none !important;
+}
+
+.visual-studio-layout nav[aria-label="Storyboard view"] button:hover,
+.visual-studio-layout nav[aria-label="Storyboard act filter"] button:hover,
+.visual-studio-layout nav[aria-label="Storyboard view"] button:focus-visible,
+.visual-studio-layout nav[aria-label="Storyboard act filter"] button:focus-visible,
+.visual-studio-layout nav[aria-label="Storyboard view"] button[class*="active"],
+.visual-studio-layout nav[aria-label="Storyboard act filter"] button[class*="active"] {
+  border-color: #cda758 !important;
+  background: #1a160e !important;
+  color: #efca72 !important;
+  outline: none !important;
+}
+
+.visual-studio-layout [data-visual-section="blocks"] > div:first-child,
+.visual-studio-layout [data-visual-section="frames"] > div:first-child {
+  top: 128px !important;
+  border: 1px solid #302a21 !important;
+  border-radius: 0 !important;
+  background: rgba(13, 13, 12, 0.96) !important;
+  box-shadow: none !important;
+}
+
+/* Block and mini-block cards: one quiet visual system for all four Acts. */
+.visual-studio-layout [data-visual-section="blocks"] main button,
+.visual-studio-layout [data-visual-section="frames"] main button {
+  border: 1px solid #302b23 !important;
+  border-top-color: #4f432f !important;
+  border-radius: 0 !important;
+  background: #10100f !important;
+  color: #ddd2bd !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.visual-studio-layout [data-visual-section="blocks"] main button:hover,
+.visual-studio-layout [data-visual-section="frames"] main button:hover,
+.visual-studio-layout [data-visual-section="blocks"] main button:focus-visible,
+.visual-studio-layout [data-visual-section="frames"] main button:focus-visible {
+  border-color: #856d3d !important;
+  background: #15130e !important;
+  outline: none !important;
+}
+
+.visual-studio-layout [data-visual-section="blocks"] main button[class*="selected"],
+.visual-studio-layout [data-visual-section="frames"] main button[class*="selected"] {
+  border-color: #cda758 !important;
+  background: #19150d !important;
+  box-shadow: inset 0 0 0 1px rgba(205, 167, 88, 0.09) !important;
+}
+
+.visual-studio-layout [data-visual-section="blocks"] main button > div:first-child,
+.visual-studio-layout [data-visual-section="frames"] main button > div:first-child {
+  background:
+    linear-gradient(135deg, rgba(205, 167, 88, 0.055), transparent),
+    #0b0b0a !important;
+}
+
+.visual-studio-layout [data-visual-section="blocks"] main button > div:first-child > span,
+.visual-studio-layout [data-visual-section="frames"] main button > div:first-child b {
+  color: #cda758 !important;
+}
+
+/* The inspector is the selected visual story moment, not a settings panel. */
+.visual-studio-layout [data-visual-section="blocks"] aside,
+.visual-studio-layout [data-visual-section="frames"] aside {
+  top: 182px !important;
+  border: 1px solid #3b3326 !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(180deg, rgba(205, 167, 88, 0.04), transparent 16rem),
+    #11110f !important;
+  color: #e9e0d0 !important;
+  box-shadow: none !important;
+}
+
+.visual-studio-layout [data-visual-section="blocks"] aside h2,
+.visual-studio-layout [data-visual-section="frames"] aside h2 {
+  color: #f4efe6 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 24px !important;
+  font-weight: 500 !important;
+}
+
+.visual-studio-layout [data-visual-section="blocks"] aside input,
+.visual-studio-layout [data-visual-section="blocks"] aside textarea,
+.visual-studio-layout [data-visual-section="frames"] aside input,
+.visual-studio-layout [data-visual-section="frames"] aside textarea,
+.visual-studio-layout [data-visual-section="blocks"] aside select,
+.visual-studio-layout [data-visual-section="frames"] aside select {
+  border: 1px solid #4b4030 !important;
+  border-radius: 0 !important;
+  background: #0c0c0b !important;
+  color: #e8decc !important;
+  box-shadow: none !important;
+}
+
+.visual-studio-layout [data-visual-section="blocks"] aside input:focus,
+.visual-studio-layout [data-visual-section="blocks"] aside textarea:focus,
+.visual-studio-layout [data-visual-section="frames"] aside input:focus,
+.visual-studio-layout [data-visual-section="frames"] aside textarea:focus {
+  border-color: #cda758 !important;
+  outline: none !important;
+}
+
+/* Candidate / approved version history stays attached to the story moment. */
+.visual-studio-layout [aria-label="Review generated versions"] article {
+  border: 1px solid #3a3429 !important;
+  border-radius: 0 !important;
+  background: #0d0d0c !important;
+}
+
+.visual-studio-layout [aria-label="Review generated versions"] article[data-status="candidate"] {
+  border-color: #9d7e3e !important;
+  background: #16130d !important;
+}
+
+.visual-studio-layout [aria-label="Review generated versions"] button:first-child {
+  border-color: #cda758 !important;
+  background: #cda758 !important;
+  color: #090806 !important;
+}
+
+.visual-studio-layout details {
+  border-color: #302b23 !important;
+}
+
+.visual-studio-layout details summary {
+  color: #d2b467 !important;
+}
+
+.visual-studio-layout a,
+.visual-studio-layout button {
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+}
+
 @media (max-width: 920px) {
   .visual-studio-layout {
     min-height: 0;
+  }
+
+  .visual-studio-layout nav[aria-label="Visual Board sections"] {
+    top: 116px !important;
+  }
+
+  .visual-studio-layout [data-visual-section="blocks"] > div:first-child,
+  .visual-studio-layout [data-visual-section="frames"] > div:first-child {
+    top: auto !important;
   }
 }

@@ -1,0 +1,36 @@
+/* Issue #452 — selected-moment review mode.
+   A review deep link keeps the canonical story moment selected but gives the
+   human decision panel the full canvas instead of competing with the 96-card wall. */
+
+.visual-studio-layout[data-storyboard-decision-focus="review"] [data-visual-section="frames"] > div:last-child {
+  display: block !important;
+}
+
+.visual-studio-layout[data-storyboard-decision-focus="review"] [data-visual-section="frames"] > div:last-child > main {
+  display: none !important;
+}
+
+.visual-studio-layout[data-storyboard-decision-focus="review"] [data-visual-section="frames"] > div:last-child > aside {
+  position: relative !important;
+  top: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.visual-studio-layout[data-storyboard-decision-focus="review"] [aria-label="Direct selected story moment"] {
+  max-width: 1120px;
+  margin-inline: auto;
+}
+
+.visual-studio-layout[data-storyboard-decision-focus="review"] [aria-label="Direct selected story moment"] figure,
+.visual-studio-layout[data-storyboard-decision-focus="review"] [aria-label="Direct selected story moment"] figure > p {
+  min-height: 8rem !important;
+  max-height: 12rem;
+}
+
+.visual-studio-layout[data-storyboard-decision-focus="review"] [aria-label="Direct selected story moment"] figure img,
+.visual-studio-layout[data-storyboard-decision-focus="review"] [aria-label="Direct selected story moment"] figure video {
+  max-height: 12rem !important;
+}

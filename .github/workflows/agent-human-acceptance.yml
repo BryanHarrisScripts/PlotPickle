@@ -23,7 +23,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 concurrency:
   group: agent-human-acceptance-${{ github.ref }}
@@ -34,6 +33,9 @@ jobs:
     name: Human-like PlotPickle workflow
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    permissions:
+      contents: read
+      issues: write
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       PLOTPICKLE_ACCEPTANCE_URL: ${{ inputs.base_url || 'http://127.0.0.1:4173' }}

@@ -29,12 +29,14 @@ test("#452 Storyboard wireframe follows the #444 Studio and continuity contract"
 });
 
 test("#452 gives Storyboard a full-width matte-black Studio boundary without changing other modules", async () => {
-  const [layout, styles] = await Promise.all([
+  const [layout, styles, polish] = await Promise.all([
     source("app/layout.tsx"),
     source("app/storyboard-studio-phase-d.css"),
+    source("app/storyboard-studio-polish.css"),
   ]);
 
   assert.match(layout, /storyboard-studio-phase-d\.css/);
+  assert.match(layout, /storyboard-studio-polish\.css/);
   assert.match(styles, /\.workspace:has\(\.visual-studio-layout\)/);
   assert.match(styles, /> \.story-rail\s*\{[\s\S]*display:\s*none/i);
   assert.match(styles, /section\[aria-label\$="capabilities"\]/);
@@ -43,6 +45,8 @@ test("#452 gives Storyboard a full-width matte-black Studio boundary without cha
   assert.match(styles, /nav\[aria-label="Visual Board sections"\]/);
   assert.match(styles, /data-visual-section="blocks"/);
   assert.match(styles, /data-visual-section="frames"/);
+  assert.match(polish, /feedback records/);
+  assert.match(polish, /display:\s*none/i);
 });
 
 test("#452 preserves the existing canonical Storyboard identity and deep-link machinery", async () => {
@@ -58,6 +62,22 @@ test("#452 preserves the existing canonical Storyboard identity and deep-link ma
   assert.match(storyboard, /approvedVideoVersionId/);
   assert.match(storyboard, /status:\s*"candidate"/);
   assert.match(storyboard, /requestPlotPickleConfirmation/);
+});
+
+test("#452 waits for a deep-linked Storyboard section before focusing it", async () => {
+  const [layout, host] = await Promise.all([
+    source("app/layout.tsx"),
+    source("app/storyboard-studio-host.tsx"),
+  ]);
+
+  assert.match(layout, /import StoryboardStudioHost/);
+  assert.match(layout, /<StoryboardStudioHost \/>/);
+  assert.match(host, /workspace\) !== "storyboard"/);
+  assert.match(host, /visualSection/);
+  assert.match(host, /document\.getElementById\(`visual-\$\{requestedSection\}`\)/);
+  assert.match(host, /MutationObserver/);
+  assert.match(host, /scrollIntoView\(\{ block: "start" \}\)/);
+  assert.doesNotMatch(host, /setProject|localStorage|sessionStorage|provider|apiKey/i);
 });
 
 test("#452 keeps image and video assets visually primary while application chrome stays restrained", async () => {

@@ -34,6 +34,7 @@ import "./storyboard-studio-polish.css";
 import "./storyboard-studio-deeplink.css";
 import "./storyboard-navigation-groups.css";
 import "./storyboard-write-handoff.css";
+import "./write-studio-phase-e.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",

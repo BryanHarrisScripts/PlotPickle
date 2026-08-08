@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import type { PlotPickleProject, ScreenplayDraftElement } from "@/lib/project";
 import { createBlankProject, normalizePlotPickleProject } from "@/lib/project";
+import { createRevisionSnapshot } from "@/lib/core-model";
 import { buildGlobalSceneIndex } from "@/lib/scene-management";
 import { reconcileProductionDraft } from "@/lib/production-draft";
 import { isAfterglowExampleProject } from "@/lib/afterglow-example";
 import ApplicationShellHeader from "./application-shell-header";
+import EditDecisionPanel from "./edit-decision-panel";
 import styles from "./edit-workspace.module.css";
 
 const STORAGE_KEY = "plotpickle.project.v1";
@@ -82,6 +84,11 @@ export default function EditWorkspace() {
   ));
   const dialogue = elements.filter((element) => element.type === "dialogue");
   const action = elements.filter((element) => element.type === "action");
+  const reviewElement = lens === "dialogue"
+    ? dialogue[0] ?? elements[0] ?? null
+    : lens === "action"
+      ? action[0] ?? elements[0] ?? null
+      : elements.find((element) => element.type === "action" || element.type === "dialogue") ?? elements[0] ?? null;
   const characters = (scene?.characterIds ?? [])
     .map((id) => project.characters.find((character) => character.id === id)?.name)
     .filter(Boolean);
@@ -90,7 +97,7 @@ export default function EditWorkspace() {
     .filter(Boolean);
   const readOnly = isAfterglowExampleProject(project);
 
-  function persist(next: PlotPickleProject) {
+  function persist(next: PlotPickleProject, successMessage = "Saved to the same canonical screenplay used by Write.") {
     if (readOnly) {
       setMessage("Afterglow is a read-only example. Make your own copy before changing screenplay text.");
       return;
@@ -101,7 +108,7 @@ export default function EditWorkspace() {
     };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(stamped));
     setProject(stamped);
-    setMessage("Saved to the same canonical screenplay used by Write.");
+    setMessage(successMessage);
   }
 
   function updateElement(id: string, text: string) {
@@ -112,6 +119,32 @@ export default function EditWorkspace() {
       ...project,
       screenplay: reconcileProductionDraft(project.screenplay, nextElements),
     });
+  }
+
+  function acceptProposal(id: string, proposedText: string) {
+    const target = project.screenplay.draftElements.find((element) => element.id === id);
+    if (!target || target.locked || readOnly || proposedText === target.text) return;
+    const baseline = createRevisionSnapshot(
+      project,
+      `Before Edit acceptance · Block ${blockNumber}.${miniBlockNumber}`,
+      `Recoverable snapshot before accepting an Edit proposal for screenplay element ${id}.`,
+    );
+    const now = new Date().toISOString();
+    const nextElements = baseline.screenplay.draftElements.map((element) => element.id === id
+      ? { ...element, text: proposedText, updatedAt: now }
+      : element);
+    persist({
+      ...baseline,
+      screenplay: reconcileProductionDraft(baseline.screenplay, nextElements),
+    }, `Accepted change to the same screenplay element in Block ${blockNumber}.${miniBlockNumber}; a recoverable revision snapshot was recorded first.`);
+  }
+
+  function rewriteElement(id: string) {
+    const target = [...document.querySelectorAll<HTMLTextAreaElement>("textarea[data-edit-element-id]")]
+      .find((textarea) => textarea.dataset.editElementId === id);
+    target?.focus();
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setMessage(`Rewrite mode: editing the same canonical screenplay element in Block ${blockNumber}.${miniBlockNumber}.`);
   }
 
   function selectMoment(nextBlock: number, nextMini: number) {
@@ -145,7 +178,7 @@ export default function EditWorkspace() {
     characters.length ? `Characters: ${characters.join(", ")}.` : "No character continuity assignments are recorded for this scene.",
     locations.length ? `Locations: ${locations.join(", ")}.` : "No location continuity assignment is recorded for this scene.",
     scene?.threadIds?.length ? `${scene.threadIds.length} story thread${scene.threadIds.length === 1 ? "" : "s"} attached to this scene.` : "No story threads are attached to this scene.",
-    "Approved Storyboard visual decisions remain attached to the same Block/mini-block; this Edit slice does not duplicate or replace them.",
+    "Approved Storyboard visual decisions remain attached to the same Block/mini-block; Edit does not duplicate or replace them.",
   ];
 
   const writeHref = `/?workspace=write&block=${blockNumber}&mini=${miniBlockNumber}`;
@@ -191,18 +224,26 @@ export default function EditWorkspace() {
             {!elements.length ? <div className={styles.empty}><strong>No screenplay text is attached here yet.</strong><p>Return to Write to create the scene. Edit never creates a shadow draft.</p><a href={writeHref}>Write this moment</a></div> : null}
             {elements.map((element) => <article className={styles.element} key={element.id}>
               <div><span>{elementLabel(element)}</span><small>S{element.sceneNumber} · B{element.blockNumber}.{element.miniBlockNumber}</small></div>
-              <textarea aria-label={`Edit ${elementLabel(element)} ${element.id}`} value={element.text} rows={Math.max(2, Math.ceil(element.text.length / 70))} readOnly={readOnly || element.locked} onChange={(event) => updateElement(element.id, event.target.value)} />
+              <textarea data-edit-element-id={element.id} aria-label={`Edit ${elementLabel(element)} ${element.id}`} value={element.text} rows={Math.max(2, Math.ceil(element.text.length / 70))} readOnly={readOnly || element.locked} onChange={(event) => updateElement(element.id, event.target.value)} />
               {element.locked ? <small>Locked in the production draft. Return to Write/Production controls to unlock.</small> : null}
             </article>)}
           </section>
         </section>
 
         <aside className={styles.reviewPanel}>
-          <header><span>{LENSES.find((item) => item.id === lens)?.label} review</span><h2>What deserves attention?</h2><p>This slice diagnoses existing material only. It does not generate or apply replacement wording.</p></header>
+          <header><span>{LENSES.find((item) => item.id === lens)?.label} review</span><h2>What deserves attention?</h2><p>Edit diagnoses and proposes; the writer decides whether any wording becomes canon.</p></header>
           <div className={styles.findings}>{findings.map((finding) => <p key={finding}>{finding}</p>)}</div>
+          <EditDecisionPanel
+            key={`${lens}:${blockNumber}.${miniBlockNumber}:${reviewElement?.id ?? "empty"}`}
+            element={reviewElement}
+            lens={lens}
+            disabled={readOnly || Boolean(reviewElement?.locked)}
+            onAccept={acceptProposal}
+            onRewrite={rewriteElement}
+          />
           <section className={styles.contextCard}><span>Story context</span><dl><div><dt>Objective</dt><dd>{mini?.objective || scene?.objective || "Not recorded yet."}</dd></div><div><dt>Resistance</dt><dd>{mini?.resistance || scene?.conflict || block?.conflict || "Not recorded yet."}</dd></div><div><dt>Turn</dt><dd>{mini?.turn || scene?.turn || block?.choice || "Not recorded yet."}</dd></div><div><dt>Outcome</dt><dd>{scene?.outcome || block?.consequence || "Not recorded yet."}</dd></div></dl></section>
           <p className={styles.status} role="status">{message}</p>
-          <small>Manual edits save to the same local screenplay. AI suggestions and Accept / Rewrite / Ignore / Compare arrive in the next #461 slice.</small>
+          <small>Accept change records a recoverable snapshot before updating the same screenplay element. Ignore changes nothing; Compare remains non-destructive.</small>
         </aside>
       </main>
     </div>

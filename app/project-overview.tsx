@@ -1,14 +1,10 @@
-import { completionFor, type PlotPickleProject } from "@/lib/project";
-import { createAfterglowProject } from "@/data/afterglow";
-import { AFTERGLOW_EXAMPLE_ACTIVE_KEY } from "@/lib/afterglow-example";
+import type { PlotPickleProject } from "@/lib/project";
 import {
   nextRecommendedSection,
   projectSectionProgress,
   type ProjectProgressSection,
 } from "@/lib/project-progress";
 import styles from "./project-overview.module.css";
-
-const STORAGE_KEY = "plotpickle.project.v1";
 
 const sectionLabels: Record<ProjectProgressSection, string> = {
   overview: "Project Overview",
@@ -27,22 +23,54 @@ const sectionLabels: Record<ProjectProgressSection, string> = {
   notes: "Notes",
 };
 
-function storyPoster(project: PlotPickleProject) {
-  const panel = project.review.pitchPackage.comicDeck?.panels?.find((entry) => entry.imageSrc)?.imageSrc;
-  if (panel) return panel;
-  const character = project.characters.find((entry) => entry.image)?.image;
-  return character || "";
+const planGroups: {
+  label: string;
+  description: string;
+  destination: ProjectProgressSection;
+  sections: ProjectProgressSection[];
+}[] = [
+  {
+    label: "Story",
+    description: "Premise, setup, concept, pitch and visual intention.",
+    destination: "storySetup",
+    sections: ["storySetup", "pitch"],
+  },
+  {
+    label: "World & Cast",
+    description: "World rules, locations, characters, relationships and references.",
+    destination: "characters",
+    sections: ["world", "characters"],
+  },
+  {
+    label: "Story Engine",
+    description: "Ghost, catalyst, foundations, Pickle, dialogue, stakes and change.",
+    destination: "foundations",
+    sections: ["ghost", "catalyst", "foundations", "pickle", "dialogue"],
+  },
+  {
+    label: "Structure",
+    description: "Four Acts, twenty-four Blocks, ninety-six mini-blocks and scenes.",
+    destination: "blocks",
+    sections: ["structureMap", "blocks", "storyboard"],
+  },
+  {
+    label: "Canon & Notes",
+    description: "Continuity, provenance, revision context and working notes.",
+    destination: "notes",
+    sections: ["notes"],
+  },
+];
+
+function averageProgress(
+  sections: ProjectProgressSection[],
+  progress: Record<ProjectProgressSection, number>,
+) {
+  if (!sections.length) return 0;
+  return Math.round(sections.reduce((total, section) => total + progress[section], 0) / sections.length);
 }
 
-function openWorkspace(workspace: string, section?: string) {
-  if (section) window.sessionStorage.setItem("plotpickle.settings.section", section);
-  window.location.assign(`/?workspace=${encodeURIComponent(workspace)}`);
-}
-
-function loadAfterglow() {
-  window.localStorage.setItem(AFTERGLOW_EXAMPLE_ACTIVE_KEY, "true");
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(createAfterglowProject()));
-  window.location.assign("/?workspace=dashboard");
+function blockHasWork(block: PlotPickleProject["blocks"][number]) {
+  return Boolean(block.summary || block.goal || block.conflict || block.scenes.length);
 }
 
 export default function ProjectOverview({
@@ -56,117 +84,161 @@ export default function ProjectOverview({
   onOpenEngines: () => void;
   onOpenBlock: (number: number) => void;
 }) {
-  const overall = completionFor(project);
   const progress = projectSectionProgress(project);
   const nextSection = nextRecommendedSection(project);
-  const poster = storyPoster(project);
-  const hasStarted = Boolean(project.metadata.title || project.story.premise || project.characters.length || project.world.locations.length);
-  const scenes = project.blocks.flatMap((block) => block.scenes);
-  const miniBlocks = scenes.flatMap((scene) => scene.miniBlocks);
-  const currentBlock = project.blocks.find((block) => block.summary || block.goal || block.conflict) ?? project.blocks[0];
-  const currentAct = Math.max(1, Math.min(4, Math.ceil((currentBlock?.number || 1) / 6)));
+  const developedBlocks = project.blocks.filter(blockHasWork);
+  const currentBlock = developedBlocks[developedBlocks.length - 1] ?? project.blocks[0];
+  const currentAct = Math.max(1, Math.min(4, currentBlock?.act || Math.ceil((currentBlock?.number || 1) / 6)));
+  const currentScenes = currentBlock?.scenes ?? [];
+  const currentMiniBlocks = currentScenes.flatMap((scene) => scene.miniBlocks);
+  const allScenes = project.blocks.flatMap((block) => block.scenes);
+  const allMiniBlocks = allScenes.flatMap((scene) => scene.miniBlocks);
+  const visualIntention = project.development.conceptCanvas.desiredVisualImpact?.trim();
+  const storyPromise = project.story.premise?.trim() || "Define the central story promise, pressure and transformation.";
 
   return (
-    <main className={styles.page} aria-label="PlotPickle Studio Dashboard">
-      <header className={styles.studioHeader}>
+    <main className={styles.page} aria-label="Plan story architecture">
+      <header className={styles.planHeader}>
         <div>
-          <p className={styles.kicker}>PlotPickle Studio</p>
-          <h1>Your stories.</h1>
-          <p className={styles.lede}>Start here. Open a story, create something new, or explore the Afterglow example. The same story continues through Plan, Storyboard, Write, Edit, Graphic Novel, Build, Feedback and Refine.</p>
+          <p className={styles.kicker}>Plan · Story Architecture</p>
+          <h1>{project.metadata.title || "Untitled Story"}</h1>
+          <p className={styles.storyPromise}>{storyPromise}</p>
         </div>
-        <div className={styles.studioActions}>
-          <button type="button" className={styles.primaryAction} onClick={() => onOpenSection("storySetup")}>+ New Project</button>
-          <button type="button" onClick={() => openWorkspace("planner")}>Import Project</button>
+        <div className={styles.headerContext}>
+          <span>Current position</span>
+          <strong>Act {currentAct} · Block {currentBlock?.number || 1}</strong>
+          <small>{allScenes.length} scenes · {allMiniBlocks.length || 96} developed mini-block records</small>
         </div>
       </header>
 
-      <section className={styles.library} aria-labelledby="story-library-title">
-        <div className={styles.sectionTitle}>
-          <div><p className={styles.kicker}>Story Library</p><h2 id="story-library-title">Available stories</h2></div>
-          <span>Poster artwork becomes each story’s visual identity.</span>
+      <section className={styles.intentionGrid} aria-label="Story direction">
+        <article className={styles.directionCard}>
+          <p className={styles.kicker}>The Story</p>
+          <h2>What is this story really about?</h2>
+          <p>{storyPromise}</p>
+          <button type="button" onClick={() => onOpenSection("pitch")}>Shape premise & pitch</button>
+        </article>
+        <article className={styles.directionCard}>
+          <p className={styles.kicker}>Visual Intention</p>
+          <h2>What should the audience see and feel?</h2>
+          <p>{visualIntention || "Add the light, texture, scale, point of view or recurring image that should guide Storyboard and later visual work."}</p>
+          <button type="button" onClick={() => onOpenSection("pitch")}>Set visual direction</button>
+        </article>
+        <article className={`${styles.directionCard} ${styles.nextCard}`}>
+          <p className={styles.kicker}>Next Useful Task</p>
+          <h2>{sectionLabels[nextSection]}</h2>
+          <p>PlotPickle can suggest the next planning step, but it never changes canon or advances the story without you.</p>
+          <button type="button" className={styles.primaryAction} onClick={() => onOpenSection(nextSection)}>Continue</button>
+        </article>
+      </section>
+
+      <section className={styles.groupSection} aria-labelledby="plan-groups-title">
+        <div className={styles.sectionHeading}>
+          <div>
+            <p className={styles.kicker}>Creative Areas</p>
+            <h2 id="plan-groups-title">Five places to shape one story.</h2>
+          </div>
+          <span>Existing Plan tools remain available; the hierarchy is simpler.</span>
         </div>
-
-        <div className={styles.posterGrid}>
-          {hasStarted ? (
-            <article className={`${styles.storyCard} ${styles.currentStory}`}>
-              <div className={styles.poster}>
-                {poster ? <img src={poster} alt="" /> : <div className={styles.posterPlaceholder}><span>{project.metadata.title || "Untitled Story"}</span></div>}
-                <span className={styles.currentBadge}>Current story</span>
-              </div>
-              <div className={styles.storyMeta}>
-                <p className={styles.kicker}>Local project</p>
-                <h3>{project.metadata.title || "Untitled Story"}</h3>
-                <p>{project.story.premise || "Continue shaping the premise, world, characters and visual intention."}</p>
-                <div className={styles.cardFooter}><span>{overall}% developed</span><button type="button" onClick={() => onOpenSection(nextSection)}>Continue</button></div>
-              </div>
-            </article>
-          ) : (
-            <article className={`${styles.storyCard} ${styles.newStoryCard}`}>
-              <div className={`${styles.poster} ${styles.emptyPoster}`}><span>+</span></div>
-              <div className={styles.storyMeta}>
-                <p className={styles.kicker}>Create</p>
-                <h3>Start a new story</h3>
-                <p>Begin with concept, title and visual intention. Your first approved image becomes the project poster.</p>
-                <div className={styles.cardFooter}><span>Local-first</span><button type="button" onClick={() => onOpenSection("storySetup")}>Create story</button></div>
-              </div>
-            </article>
-          )}
-
-          <article className={styles.storyCard}>
-            <div className={`${styles.poster} ${styles.afterglowPoster}`}>
-              <div className={styles.afterglowArt}><span>AFTERGLOW</span><small>Reflections of Sentience</small></div>
-              <span className={styles.exampleBadge}>Example story</span>
-            </div>
-            <div className={styles.storyMeta}>
-              <p className={styles.kicker}>PlotPickle example</p>
-              <h3>Afterglow</h3>
-              <p>Explore a complete story structure and visual workflow. It is available here, but never loaded automatically.</p>
-              <div className={styles.cardFooter}><span>Read-only source</span><button type="button" onClick={loadAfterglow}>Load Afterglow</button></div>
-            </div>
-          </article>
+        <div className={styles.groupGrid}>
+          {planGroups.map((group, index) => {
+            const value = averageProgress(group.sections, progress);
+            return (
+              <button type="button" className={styles.groupCard} key={group.label} onClick={() => onOpenSection(group.destination)}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <strong>{group.label}</strong>
+                <p>{group.description}</p>
+                <div><i style={{ width: `${value}%` }} /><small>{value}%</small></div>
+              </button>
+            );
+          })}
         </div>
       </section>
 
-      {hasStarted ? (
-        <section className={styles.storyStatus} aria-label="Current story position">
-          <div className={styles.storyIdentity}>
-            <p className={styles.kicker}>Continue your story</p>
-            <h2>{project.metadata.title || "Untitled Story"}</h2>
-            <p>{sectionLabels[nextSection]} is the next suggested step. Suggestions guide the workflow but never change canon automatically.</p>
-            <div className={styles.storyActions}>
-              <button type="button" className={styles.primaryAction} onClick={() => onOpenSection(nextSection)}>Continue to {sectionLabels[nextSection]}</button>
-              <button type="button" onClick={() => onOpenSection("structureMap")}>Open Story Map</button>
+      <section className={styles.architectureSection} aria-labelledby="architecture-title">
+        <div className={styles.sectionHeading}>
+          <div>
+            <p className={styles.kicker}>4 Acts · 24 Blocks · 96 Mini-blocks</p>
+            <h2 id="architecture-title">The whole story stays visible.</h2>
+          </div>
+          <button type="button" className={styles.textAction} onClick={() => onOpenSection("structureMap")}>Open structure map</button>
+        </div>
+
+        <div className={styles.actGrid}>
+          {[1, 2, 3, 4].map((act) => {
+            const blocks = project.blocks.filter((block) => block.act === act || Math.ceil(block.number / 6) === act);
+            return (
+              <article className={act === currentAct ? `${styles.actCard} ${styles.activeAct}` : styles.actCard} key={act}>
+                <div className={styles.actHeading}>
+                  <span>ACT {act}</span>
+                  <small>Blocks {(act - 1) * 6 + 1}–{act * 6}</small>
+                </div>
+                <div className={styles.blockGrid}>
+                  {blocks.map((block) => {
+                    const active = block.number === currentBlock?.number;
+                    const started = blockHasWork(block);
+                    return (
+                      <button
+                        type="button"
+                        aria-current={active ? "step" : undefined}
+                        className={active ? styles.activeBlock : started ? styles.startedBlock : ""}
+                        key={block.id}
+                        onClick={() => onOpenBlock(block.number)}
+                        title={block.title || block.summary || `Block ${block.number}`}
+                      >
+                        <span>{String(block.number).padStart(2, "0")}</span>
+                        <i />
+                      </button>
+                    );
+                  })}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      {currentBlock ? (
+        <section className={styles.selectedUnit} aria-label={`Selected story unit Block ${currentBlock.number}`}>
+          <div className={styles.selectedStory}>
+            <p className={styles.kicker}>Selected Story Unit</p>
+            <h2>Block {currentBlock.number}{currentBlock.title ? ` · ${currentBlock.title}` : ""}</h2>
+            <p>{currentBlock.summary || currentBlock.goal || "Give this Block a clear goal, conflict, choice, action, consequence and emotional turn."}</p>
+            <div className={styles.blockActions}>
+              <button type="button" className={styles.primaryAction} onClick={() => onOpenBlock(currentBlock.number)}>Edit Block {currentBlock.number}</button>
+              <button type="button" onClick={() => onOpenSection("storyboard")}>Plan visual moments</button>
+              <button type="button" onClick={() => onOpenSection("notes")}>Open canon & notes</button>
             </div>
           </div>
 
-          <div className={styles.architecture} aria-label="Four Act 24 Block 96 mini-block architecture">
-            <div className={styles.architectureTop}><span>Story architecture</span><strong>4 Acts · 24 Blocks · 96 mini-blocks</strong></div>
-            <div className={styles.actRail}>
-              {[1, 2, 3, 4].map((act) => (
-                <div key={act} className={act === currentAct ? styles.activeAct : ""}>
-                  <span>ACT {act}</span>
-                  <div className={styles.blockDots}>{Array.from({ length: 6 }, (_, index) => <i key={index} />)}</div>
-                </div>
-              ))}
+          <div className={styles.miniPanel}>
+            <div className={styles.miniHeading}>
+              <span>Mini-blocks for Block {currentBlock.number}</span>
+              <strong>4 story beats</strong>
             </div>
-            <div className={styles.positionLine}>
-              <span>Current position</span>
-              <strong>Act {currentAct} · Block {currentBlock?.number || 1}</strong>
-              <small>{scenes.length} scenes · {miniBlocks.length || 96} mini-block positions</small>
+            <div className={styles.miniGrid}>
+              {[1, 2, 3, 4].map((mini) => {
+                const existing = currentMiniBlocks.find((entry) => entry.number === mini);
+                return (
+                  <div className={existing ? styles.miniStarted : ""} key={mini}>
+                    <span>{String((currentBlock.number - 1) * 4 + mini).padStart(2, "0")}</span>
+                    <strong>Mini {mini}</strong>
+                    <small>{existing ? "Story context attached" : "Ready to shape"}</small>
+                  </div>
+                );
+              })}
             </div>
+            <p>These four beats keep the same identity when the Block moves into Storyboard, Write, Edit, Graphic Novel, Build, Feedback and Refine.</p>
           </div>
         </section>
       ) : null}
 
-      <section className={styles.workflowStrip} aria-label="PlotPickle workflow">
-        {[
-          "Dashboard", "Learn", "Plan", "Storyboard", "Write", "Edit", "Graphic Novel", "Build", "Feedback", "Refine", "Reports",
-        ].map((label, index) => <div key={label} className={index === 0 ? styles.workflowActive : ""}><span>{String(index + 1).padStart(2, "0")}</span><strong>{label}</strong></div>)}
-      </section>
-
-      <footer className={styles.dashboardFooter}>
-        <span>PlotPickle Studio keeps story, canon, assets and versions connected.</span>
-        <div><button type="button" onClick={() => openWorkspace("settings")}>Settings</button><button type="button" onClick={onOpenEngines}>Creative tools</button>{currentBlock ? <button type="button" onClick={() => onOpenBlock(currentBlock.number)}>Block {currentBlock.number}</button> : null}</div>
+      <footer className={styles.planFooter}>
+        <span>Same PPF story · same canon · same asset lineage · saved locally</span>
+        <div>
+          <button type="button" onClick={() => onOpenSection("notes")}>Canon & notes</button>
+          <button type="button" onClick={onOpenEngines}>Settings</button>
+        </div>
       </footer>
     </main>
   );

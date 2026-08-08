@@ -93,7 +93,7 @@ export default function CreativeDirectorActions({
 
       {identityWarning ? <p className={styles.warning}><strong>Continuity needs attention.</strong> {identityWarning}</p> : null}
 
-      <fieldset className={styles.actions}>
+      <fieldset id="storyboard-decisions" className={styles.actions}>
         <legend className={styles.actionLegend}>Decide what happens to this visual</legend>
         <button type="button" className={styles.primary} disabled={busy} onClick={keepCurrent}>
           <strong>Keep</strong>

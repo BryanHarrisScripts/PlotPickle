@@ -11,6 +11,7 @@
     { "id": "plan-blocks", "path": "/?workspace=plan&section=blocks" },
     { "id": "plan-block-07", "path": "/?workspace=plan&section=blocks&block=7" },
     { "id": "storyboard", "path": "/?workspace=storyboard" },
+    { "id": "storyboard-story-world", "path": "/?workspace=storyboard&visualSection=characters" },
     { "id": "storyboard-plan-context", "path": "/?workspace=storyboard&block=7&mini=3&visualSection=frames" },
     { "id": "storyboard-decisions", "path": "/?workspace=storyboard&block=7&mini=3&visualSection=frames&decision=review" },
     { "id": "write", "path": "/?workspace=write" },

@@ -30,10 +30,14 @@ function addText(parent: HTMLElement, tag: keyof HTMLElementTagNameMap, text: st
 }
 
 function buildContext(root: HTMLElement) {
-  root.querySelector("[data-graphic-novel-studio-context]")?.remove();
   const project = loadProject();
   const blockNumber = requestedNumber("block", 1, 1, 24);
   const miniBlockNumber = requestedNumber("mini", 1, 1, 4);
+  const contextKey = `${blockNumber}:${miniBlockNumber}:${project.metadata.updatedAt}`;
+  const existing = root.querySelector<HTMLElement>("[data-graphic-novel-studio-context]");
+  if (existing?.dataset.contextKey === contextKey) return;
+  existing?.remove();
+
   const block = project.blocks[blockNumber - 1] ?? project.blocks[0];
   const minis = block?.scenes.flatMap((scene) => scene.miniBlocks) ?? [];
   const mini = minis.find((item) => item.number === miniBlockNumber) ?? minis[0];
@@ -46,6 +50,7 @@ function buildContext(root: HTMLElement) {
 
   const context = document.createElement("section");
   context.dataset.graphicNovelStudioContext = "true";
+  context.dataset.contextKey = contextKey;
   context.className = "graphic-novel-studio-context";
 
   const heading = document.createElement("div");

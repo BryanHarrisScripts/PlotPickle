@@ -74,7 +74,7 @@ function sourceItems(project: PlotPickleProject, blockNumber: number, miniBlockN
     items.push({ id: `shot:${shot.id}`, kind: "shot", title: `Shot ${shot.shotNumber} · ${shot.shotSize || "Planned shot"}`, detail: `${shot.durationSeconds || 0}s · ${shot.purpose || shot.composition || "Production shot"}`, sourceId: shot.id });
   }
 
-  for (const cue of project.production.sonicCues.filter((item) => item.blockNumber === blockNumber && (!sceneId || item.sceneId === sceneId))) {
+  for (const cue of project.production.cues.filter((item) => item.blockNumber === blockNumber && (!sceneId || item.sceneId === sceneId))) {
     items.push({ id: `audio:${cue.id}`, kind: "audio", title: cue.title || `Audio cue ${cue.cueNumber}`, detail: `${cue.type} · ${cue.durationSeconds || 0}s · ${cue.purpose || cue.motif || "Audio cue"}`, sourceId: cue.id });
   }
   return items;

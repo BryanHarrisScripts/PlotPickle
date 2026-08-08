@@ -10,7 +10,8 @@ $ProgressPreference = "SilentlyContinue"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $repoRoot
 
-$artifactRoot = Join-Path $repoRoot ".artifacts\local-uat"
+$localRoot = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { Join-Path $env:USERPROFILE "AppData\Local" }
+$artifactRoot = Join-Path $localRoot "PlotPickle\uat"
 $codexHome = Join-Path $artifactRoot "codex-home"
 $pluginData = Join-Path $artifactRoot "agent-plugin"
 $reportPath = Join-Path $artifactRoot "acceptance-report.md"
@@ -23,14 +24,42 @@ $env:PLOTPICKLE_AGENT_PLUGIN_DATA = $pluginData
 $env:PLOTPICKLE_ACCEPTANCE_URL = $BaseUrl
 $env:PLOTPICKLE_ACCEPTANCE_SCOPE = $Scope
 
+function Write-UatStatus([string]$Message) {
+  Write-Host $Message
+  Add-Content -Path $logPath -Value "[$(Get-Date -Format o)] $Message"
+}
+
+function Stop-Uat([string]$Message, [int]$Code = 1) {
+  Write-UatStatus "FAIL: $Message"
+  Write-Host ""
+  Write-Host "Log:    $logPath"
+  Write-Host "Trace:  $tracePath"
+  Write-Host "Report: $reportPath"
+  Write-Host ""
+  Read-Host "Press Enter to close the UAT window"
+  exit $Code
+}
+
+trap {
+  Stop-Uat $_.Exception.Message 1
+}
+
 "[$(Get-Date -Format o)] UAT requested. Scope=$Scope URL=$BaseUrl" | Set-Content -Path $logPath -Encoding UTF8
+Write-Host "============================================================"
+Write-Host " PlotPickle Human Acceptance Test"
+Write-Host "============================================================"
+Write-Host "Scope: $Scope"
+Write-Host "Target: $BaseUrl"
+Write-Host "Status: STARTING"
+Write-Host "Workspace: $artifactRoot"
+Write-Host ""
 
 $deadline = (Get-Date).AddSeconds(90)
 while ((Get-Date) -lt $deadline) {
   try {
     $response = Invoke-WebRequest -UseBasicParsing -Uri $BaseUrl -TimeoutSec 2
     if ($response.StatusCode -ge 200 -and $response.Content -match "PlotPickle") {
-      Add-Content -Path $logPath -Value "[$(Get-Date -Format o)] PlotPickle is ready."
+      Write-UatStatus "PlotPickle is ready."
       break
     }
   } catch {}
@@ -38,11 +67,14 @@ while ((Get-Date) -lt $deadline) {
 }
 
 if ((Get-Date) -ge $deadline) {
-  Add-Content -Path $logPath -Value "[$(Get-Date -Format o)] FAIL: PlotPickle did not become ready within 90 seconds."
-  exit 1
+  Stop-Uat "PlotPickle did not become ready within 90 seconds."
 }
 
+Write-UatStatus "Preparing Agent Plugins and Playwright MCP."
 node "scripts\prepare-agent-plugin-runner.mjs" | Out-Null
+if ($LASTEXITCODE -ne 0) {
+  Stop-Uat "Agent Plugins runner preparation failed with exit code $LASTEXITCODE."
+}
 
 $skill = "tools/agent-plugins/plotpickle-workflow-tester/skills/plotpickle-human-acceptance/SKILL.md"
 $checklist = "tools/agent-plugins/plotpickle-workflow-tester/skills/plotpickle-human-acceptance/references/workflow-checklist.md"
@@ -66,27 +98,30 @@ if ($codex) {
 } else {
   $npx = Get-Command npx -ErrorAction SilentlyContinue
   if (-not $npx) {
-    Add-Content -Path $logPath -Value "[$(Get-Date -Format o)] FAIL: Neither codex nor npx is available."
-    exit 1
+    Stop-Uat "Neither codex nor npx is available."
   }
   $command = $npx.Source
   $arguments = @("--yes", "@openai/codex", "exec", "--json", "--sandbox", "read-only", "--output-last-message", $reportPath, $prompt)
 }
 
-Add-Content -Path $logPath -Value "[$(Get-Date -Format o)] Starting Codex UAT agent."
+Write-UatStatus "Status: RUNNING - Codex UAT agent started."
 & $command @arguments 2>&1 | Tee-Object -FilePath $tracePath
 $exitCode = $LASTEXITCODE
 
-if (Test-Path $reportPath) {
-  Add-Content -Path $logPath -Value "[$(Get-Date -Format o)] UAT finished. Report: $reportPath"
-} else {
-  Add-Content -Path $logPath -Value "[$(Get-Date -Format o)] FAIL: UAT ended without producing a report."
+if ($exitCode -ne 0) {
+  Stop-Uat "Codex UAT agent exited with code $exitCode. Review the trace above and at $tracePath." $exitCode
 }
+
+if (-not (Test-Path $reportPath)) {
+  Stop-Uat "UAT ended without producing an acceptance report."
+}
+
+Write-UatStatus "Status: COMPLETE - acceptance report produced."
 
 if (Get-Command gh -ErrorAction SilentlyContinue) {
   try {
     gh auth status 2>$null | Out-Null
-    if ($LASTEXITCODE -eq 0 -and (Test-Path $reportPath)) {
+    if ($LASTEXITCODE -eq 0) {
       $body = @"
 ## LOCAL UAT FINAL
 
@@ -98,11 +133,19 @@ $(Get-Content -Raw $reportPath)
       $tempComment = Join-Path $artifactRoot "issue-comment.md"
       $body | Set-Content -Path $tempComment -Encoding UTF8
       gh issue comment 490 --repo "BryanHarrisScripts/PlotPickle" --body-file $tempComment | Out-Null
-      Add-Content -Path $logPath -Value "[$(Get-Date -Format o)] Posted UAT report to issue #490."
+      Write-UatStatus "Posted UAT report to issue #490."
     }
   } catch {
-    Add-Content -Path $logPath -Value "[$(Get-Date -Format o)] GitHub posting skipped: $($_.Exception.Message)"
+    Write-UatStatus "GitHub posting skipped: $($_.Exception.Message)"
   }
 }
 
-exit $exitCode
+Write-Host ""
+Write-Host "Report: $reportPath"
+Write-Host "Trace:  $tracePath"
+Write-Host "Log:    $logPath"
+Write-Host ""
+Write-Host (Get-Content -Raw $reportPath)
+Write-Host ""
+Read-Host "Press Enter to close the UAT window"
+exit 0

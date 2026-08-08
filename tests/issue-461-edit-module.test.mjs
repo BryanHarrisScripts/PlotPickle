@@ -61,13 +61,11 @@ test("#461 Write hands its current canonical story position to Edit", async () =
   assert.doesNotMatch(handoff, /setProject|fetch\(|provider|apiKey/i);
 });
 
-test("#461 Edit exposes the five approved deterministic review lenses without AI replacement text", async () => {
+test("#461 Edit exposes the five approved deterministic review lenses without provider plumbing", async () => {
   const edit = await source("app/edit-workspace.tsx");
 
   for (const label of ["Scene", "Dialogue", "Action", "Pacing", "Continuity"]) assert.ok(edit.includes(`label: "${label}"`), `Missing Edit lens: ${label}`);
-  assert.match(edit, /This slice diagnoses existing material only/);
-  assert.match(edit, /does not generate or apply replacement wording/);
-  assert.match(edit, /AI suggestions and Accept \/ Rewrite \/ Ignore \/ Compare arrive in the next #461 slice/);
+  assert.match(edit, /Edit diagnoses and proposes; the writer decides whether any wording becomes canon/);
   assert.doesNotMatch(edit, /\/api\/local-ai|fetch\(|Ollama|ComfyUI|MiniMax|checkpoint|endpoint|apiKey/i);
 });
 
@@ -81,8 +79,29 @@ test("#461 Edit manual changes preserve human control and the read-only example 
   assert.match(edit, /Locked in the production draft/);
 });
 
+test("#461 explicit proposal decisions never silently replace canon", async () => {
+  const [edit, decisions] = await Promise.all([
+    source("app/edit-workspace.tsx"),
+    source("app/edit-decision-panel.tsx"),
+  ]);
+
+  for (const action of ["Accept change", "Rewrite myself", "Ignore", "Compare"]) assert.ok(decisions.includes(action), `Missing Edit decision: ${action}`);
+  assert.match(decisions, /Nothing changes until Accept change is pressed/);
+  assert.match(decisions, /setIgnored\(true\)/);
+  assert.match(decisions, /aria-pressed=\{compare\}/);
+  assert.match(edit, /createRevisionSnapshot\(/);
+  assert.match(edit, /Before Edit acceptance/);
+  assert.match(edit, /reconcileProductionDraft\(baseline\.screenplay, nextElements\)/);
+  assert.match(edit, /data-edit-element-id=\{element\.id\}/);
+  assert.match(edit, /target\?\.focus\(\)/);
+  assert.match(edit, /disabled=\{readOnly \|\| Boolean\(reviewElement\?\.locked\)\}/);
+});
+
 test("#461 Edit visually follows the matte-black warm-gold Studio system", async () => {
-  const styles = await source("app/edit-workspace.module.css");
+  const [styles, decisions] = await Promise.all([
+    source("app/edit-workspace.module.css"),
+    source("app/edit-decision-panel.css"),
+  ]);
 
   assert.match(styles, /#090909/i);
   assert.match(styles, /#cda758/i);
@@ -92,11 +111,14 @@ test("#461 Edit visually follows the matte-black warm-gold Studio system", async
   assert.match(styles, /scriptPanel/);
   assert.match(styles, /reviewPanel/);
   assert.match(styles, /@media\(max-width:820px\)/);
+  assert.match(decisions, /#cda758/i);
+  assert.match(decisions, /edit-decision-compare/);
 });
 
-test("#461 mounts the Write to Edit handoff without replacing Writer state", async () => {
+test("#461 mounts the Write to Edit handoff and decision styling without replacing Writer state", async () => {
   const layout = await source("app/layout.tsx");
   assert.match(layout, /import WriteEditHandoff/);
   assert.match(layout, /<WriteEditHandoff \/>/);
   assert.match(layout, /write-edit-handoff\.css/);
+  assert.match(layout, /edit-decision-panel\.css/);
 });

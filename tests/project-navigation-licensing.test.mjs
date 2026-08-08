@@ -62,17 +62,17 @@ test("section progress model covers every visible story section", async () => {
   assert.ok(progress.includes("continuity"));
 });
 
-test("overview and structure summary explain their contracts before deeper work", async () => {
+test("Studio Dashboard and structure summary explain their contracts before deeper work", async () => {
   const overview = await source("app/project-overview.tsx");
   const structure = await source("app/structure-map-summary.tsx");
   for (const phrase of [
-    "Overall planning coverage",
-    "Progress by section",
-    "Structure snapshot",
-    "Open questions",
-    "Your story remains yours",
+    "PlotPickle Studio",
+    "Your stories.",
+    "Available stories",
+    "4 Acts · 24 Blocks · 96 mini-blocks",
+    "Load Afterglow",
   ]) {
-    assert.ok(overview.includes(phrase), `Project Overview is missing: ${phrase}`);
+    assert.ok(overview.includes(phrase), `Studio Dashboard is missing: ${phrase}`);
   }
   for (const phrase of [
     "Structure Map",

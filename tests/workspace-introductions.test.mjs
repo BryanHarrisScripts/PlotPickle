@@ -54,6 +54,7 @@ test("existing introductions remain the source of truth for the other workspaces
 
   assert.match(instructionsAndPlanner, /guide-hero/);
   assert.match(learning, /The complete PlotPickle screenwriting course/);
-  assert.match(planner, /Re-enter the story from one clear dashboard/);
+  assert.match(planner, /Plan · Story Architecture/);
+  assert.match(planner, /The whole story stays visible\./);
   assert.match(engines, /Choose the right engine for the next story problem/);
 });

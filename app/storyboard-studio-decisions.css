@@ -34,3 +34,18 @@
 .visual-studio-layout[data-storyboard-decision-focus="review"] [aria-label="Direct selected story moment"] figure video {
   max-height: 12rem !important;
 }
+
+/* Shared Storyboard button rules are intentionally quiet, but Keep is the one
+   action that commits a reviewed candidate to the approved visual lineage. */
+.visual-studio-layout [aria-label="Visual decision"] button:first-of-type {
+  border-color: #cda758 !important;
+  background: #cda758 !important;
+  color: #090806 !important;
+}
+
+.visual-studio-layout [aria-label="Visual decision"] button:first-of-type:hover,
+.visual-studio-layout [aria-label="Visual decision"] button:first-of-type:focus-visible {
+  border-color: #e3c577 !important;
+  background: #e3c577 !important;
+  color: #090806 !important;
+}

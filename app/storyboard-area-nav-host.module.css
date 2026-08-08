@@ -1,0 +1,172 @@
+.rail {
+  position: sticky;
+  top: 128px;
+  display: grid;
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+  padding: 18px 12px 16px;
+  border: 1px solid #2c2821;
+  background:
+    linear-gradient(180deg, rgba(205, 167, 88, 0.04), transparent 14rem),
+    #0d0d0c;
+  color: #ded4c1;
+}
+
+.header {
+  padding: 2px 7px 17px;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.18);
+}
+
+.header p,
+.tools > p {
+  margin: 0;
+  color: #cda758;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.header h2 {
+  margin: 6px 0 4px;
+  color: #f2eadd;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.18rem;
+  font-weight: 500;
+}
+
+.header span {
+  color: #777168;
+  font-size: 0.52rem;
+  line-height: 1.5;
+}
+
+.areas {
+  display: grid;
+  gap: 4px;
+  padding-top: 14px;
+}
+
+.areas button {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 2px 7px;
+  width: 100%;
+  min-height: 58px;
+  padding: 8px 7px;
+  border: 1px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: #918a7f;
+  text-align: left;
+}
+
+.areas button > span {
+  grid-row: 1 / span 2;
+  color: #705c36;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.58rem;
+  font-weight: 800;
+}
+
+.areas strong {
+  color: inherit;
+  font-size: 0.66rem;
+}
+
+.areas small {
+  color: #6e685f;
+  font-size: 0.5rem;
+  line-height: 1.35;
+}
+
+.areas button:hover,
+.areas button:focus-visible,
+.activeArea {
+  border-color: rgba(205, 167, 88, 0.38) !important;
+  background: #18140d !important;
+  color: #efd08a !important;
+  outline: none;
+}
+
+.activeArea > span {
+  color: #cda758 !important;
+}
+
+.tools {
+  display: grid;
+  gap: 4px;
+  margin-top: 15px;
+  padding: 14px 5px 0;
+  border-top: 1px solid rgba(205, 167, 88, 0.15);
+}
+
+.tools > p {
+  margin-bottom: 5px;
+}
+
+.tools button {
+  min-height: 34px;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: #817a70;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.55rem;
+  text-align: left;
+}
+
+.tools button:hover,
+.tools button:focus-visible,
+.activeTool {
+  border-color: #58482d !important;
+  background: #11100d !important;
+  color: #d3b66f !important;
+  outline: none;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 17px;
+  padding: 13px 5px 0;
+  border-top: 1px solid rgba(205, 167, 88, 0.14);
+}
+
+.footer span {
+  padding: 4px 6px;
+  border: 1px solid #3c3325;
+  color: #8d8069;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.47rem;
+  text-transform: uppercase;
+}
+
+@media (max-width: 920px) {
+  .rail {
+    position: relative;
+    top: auto;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .header,
+  .tools,
+  .footer {
+    display: none;
+  }
+
+  .areas {
+    display: flex;
+    width: max-content;
+    padding-top: 0;
+  }
+
+  .areas button {
+    min-width: 140px;
+  }
+}

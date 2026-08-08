@@ -46,6 +46,8 @@ test("#452 gives Storyboard a full-width matte-black Studio boundary without cha
   assert.match(styles, /data-visual-section="blocks"/);
   assert.match(styles, /data-visual-section="frames"/);
   assert.match(polish, /feedback records/);
+  assert.match(polish, /button:nth-of-type\(7\)\[aria-current\]/);
+  assert.match(polish, /data-visual-section="frames"/);
   assert.match(polish, /display:\s*none/i);
 });
 

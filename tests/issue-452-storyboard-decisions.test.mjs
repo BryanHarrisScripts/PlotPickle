@@ -8,7 +8,7 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 test("#452 makes Keep, Change, Try Again and Compare the primary Storyboard decisions", async () => {
   const actions = await source("app/creative-director-actions.tsx");
 
-  for (const label of [">Keep<", ">Change<", ">Try Again<", ">Compare<"]) {
+  for (const label of [">Keep<", ">Change<", '"Try Again"', ">Compare<"]) {
     assert.ok(actions.includes(label), `Missing Storyboard decision ${label}`);
   }
 
@@ -18,6 +18,7 @@ test("#452 makes Keep, Change, Try Again and Compare the primary Storyboard deci
   assert.match(actions, /compareVersions/);
   assert.match(actions, /onIllustrate\(\)/);
   assert.match(actions, /onAnimate/);
+  assert.match(actions, /id="storyboard-decisions"/);
 });
 
 test("#452 keeps alternatives unapproved until the writer explicitly chooses one", async () => {

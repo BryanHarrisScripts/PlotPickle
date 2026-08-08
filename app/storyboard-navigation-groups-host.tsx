@@ -42,8 +42,8 @@ function applySectionConfig(button: HTMLButtonElement) {
   button.dataset.storyboardRole = config.role;
   const label = button.querySelector("strong");
   const detail = button.querySelector("small");
-  if (config.label && label) label.textContent = config.label;
-  if (config.detail && detail) detail.textContent = config.detail;
+  if (config.label && label && label.textContent !== config.label) label.textContent = config.label;
+  if (config.detail && detail && detail.textContent !== config.detail) detail.textContent = config.detail;
 }
 
 function makeVersionsButton() {
@@ -117,7 +117,7 @@ export default function StoryboardNavigationGroupsHost() {
       for (const button of canonicalButtons()) applySectionConfig(button);
 
       const heading = nav.querySelector("header strong");
-      if (heading) heading.textContent = "Direct the story";
+      if (heading && heading.textContent !== "Direct the story") heading.textContent = "Direct the story";
 
       versionsButton = nav.querySelector<HTMLButtonElement>("button[data-storyboard-versions]");
       if (!versionsButton) {

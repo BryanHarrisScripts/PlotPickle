@@ -60,10 +60,13 @@ export default function EditWorkspace() {
   const [message, setMessage] = useState("Edit reads the same canonical screenplay saved by Write.");
 
   useEffect(() => {
-    setProject(loadStoredProject());
-    setBlockNumber(requestedNumber("block", 1, 1, 24));
-    setMiniBlockNumber(requestedNumber("mini", 1, 1, 4));
-    setHydrated(true);
+    const hydrationTimer = window.setTimeout(() => {
+      setProject(loadStoredProject());
+      setBlockNumber(requestedNumber("block", 1, 1, 24));
+      setMiniBlockNumber(requestedNumber("mini", 1, 1, 4));
+      setHydrated(true);
+    }, 0);
+    return () => window.clearTimeout(hydrationTimer);
   }, []);
 
   const block = project.blocks[blockNumber - 1] ?? project.blocks[0];

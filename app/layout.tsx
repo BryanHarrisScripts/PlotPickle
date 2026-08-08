@@ -5,6 +5,7 @@ import CommonOverlayLayer from "./common-overlay-layer";
 import CurrentDownloadLinks from "./current-download-links";
 import GitHubAppReleaseGuidance from "./github-app-release-guidance";
 import GraphicNovelTerminology from "./graphic-novel-terminology";
+import LearnEntryRouter from "./learn-entry-router";
 import WorkspaceIntroHost from "./workspace-intro-host";
 import WriterFacingCollaborationLanguage from "./writer-facing-collaboration-language";
 import "./globals.css";
@@ -57,6 +58,7 @@ export default function RootLayout({
       >
         <AppearanceRuntime />
         {children}
+        <LearnEntryRouter />
         <CommonOverlayLayer />
         <WriterFacingCollaborationLanguage />
         <GraphicNovelTerminology />

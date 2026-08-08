@@ -31,3 +31,12 @@ test("local UAT remains read-only and bounded to smoke/full acceptance scopes", 
   assert.match(runner, /do not spend money/i);
   assert.match(runner, /do not perform external writes/i);
 });
+
+test("local UAT stores Codex work outside the Vite repository tree and keeps failures visible", () => {
+  assert.match(runner, /\$env:LOCALAPPDATA/);
+  assert.match(runner, /PlotPickle\\uat/);
+  assert.doesNotMatch(runner, /\$repoRoot "\.artifacts\\local-uat"/);
+  assert.match(runner, /Status: RUNNING - Codex UAT agent started/);
+  assert.match(runner, /Codex UAT agent exited with code/);
+  assert.match(runner, /Read-Host "Press Enter to close the UAT window"/);
+});

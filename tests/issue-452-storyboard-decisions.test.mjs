@@ -13,6 +13,7 @@ test("#452 makes human Storyboard decisions primary", async () => {
   }
 
   assert.match(actions, /What do you want to do with this visual\?/);
+  assert.match(actions, /aria-label="Visual decision"/);
   assert.match(actions, /Approve the newest candidate for this exact story moment/);
   assert.match(actions, /Adjust composition, action, mood, continuity or visual emphasis/);
   assert.match(actions, /Create another image candidate from the same story context/);
@@ -46,7 +47,7 @@ test("#452 Try Again uses the existing illustration route and generation remains
   assert.match(actions, /className=\{styles\.generationActions\}/);
 });
 
-test("#452 review deep link gives the decision panel the canvas for rendered inspection", async () => {
+test("#452 review deep link gives the decision panel the canvas and keeps Keep visually primary", async () => {
   const [layout, host, styles] = await Promise.all([
     source("app/layout.tsx"),
     source("app/storyboard-studio-host.tsx"),
@@ -60,4 +61,6 @@ test("#452 review deep link gives the decision panel the canvas for rendered ins
   assert.match(styles, /data-storyboard-decision-focus="review"/);
   assert.match(styles, /> main[\s\S]*display:\s*none/i);
   assert.match(styles, /> aside[\s\S]*max-height:\s*none/i);
+  assert.match(styles, /\[aria-label="Visual decision"\] button:first-of-type/);
+  assert.match(styles, /background:\s*#cda758\s*!important/i);
 });

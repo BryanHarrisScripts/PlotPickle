@@ -5,7 +5,7 @@ export const PLOTPICKLE_POSITIONING = {
   category: "AI-native visual writing and creative direction studio",
   hero: "Shape the story. See the world. Direct what comes next.",
   summary:
-    "PlotPickle lets writers shape words, images and cinematic possibilities as one connected storyworld. Begin with a concept, explore and compare directions, refine the material, approve what belongs, and reuse those decisions across Plan, Write, Storyboard and Graphic Novel without giving up local canon control.",
+    "PlotPickle lets writers shape words, images and cinematic possibilities as one connected storyworld. Begin with a concept, explore and compare directions, refine the material, approve what belongs, and reuse those decisions across Plan, Write, Edit, Storyboard and Graphic Novel without giving up local canon control.",
   ppf:
     "PPF is the portable creative source of truth that keeps structure, canon, screenplay material, visual decisions, production assets, approvals and provenance connected. The canonical local project folder remains authoritative while .ppf packages carry that same project model for exchange.",
   boundary:
@@ -88,6 +88,7 @@ export const PRIMARY_WORKFLOW_NAVIGATION = [
   { id: "planner", label: "Plan", description: "Simple Start and story planning", zone: "discovery" },
   { id: "visuals", label: "Storyboard", description: "See and preserve the film", zone: "discovery" },
   { id: "script", label: "Write", description: "Outline and write", zone: "discovery" },
+  { id: "edit", label: "Edit", description: "Review and improve the canonical screenplay", zone: "discovery" },
   { id: "pitch", label: "Graphic Novel", description: "Generate and review the complete Graphic Novel package", zone: "discovery" },
   { id: "build", label: "Build", description: "Arrange 24 Blocks and 96 mini-blocks", zone: "production" },
   { id: "feedback", label: "Feedback", description: "Review notes, proposals and decisions", zone: "production" },

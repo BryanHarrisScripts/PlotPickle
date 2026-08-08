@@ -12,6 +12,7 @@
     { "id": "plan-block-07", "path": "/?workspace=plan&section=blocks&block=7" },
     { "id": "storyboard", "path": "/?workspace=storyboard" },
     { "id": "storyboard-plan-context", "path": "/?workspace=storyboard&block=7&mini=3&visualSection=frames" },
+    { "id": "storyboard-decisions", "path": "/?workspace=storyboard&block=7&mini=3&visualSection=frames&decision=review" },
     { "id": "write", "path": "/?workspace=write" },
     { "id": "write-plan-context", "path": "/?workspace=write&block=7&mini=3" },
     { "id": "graphic-novel", "path": "/?workspace=pitch" },

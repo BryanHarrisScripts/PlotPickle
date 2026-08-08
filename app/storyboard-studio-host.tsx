@@ -51,6 +51,15 @@ export default function StoryboardStudioHost() {
           if (document.documentElement.contains(target)) target.scrollIntoView({ block: "start" });
         }, delay));
       }
+
+      if (params.get("decision") === "review") {
+        for (const delay of [1350, 1900, 2500]) {
+          timers.push(window.setTimeout(() => {
+            const decisions = document.getElementById("storyboard-decisions");
+            if (decisions) decisions.scrollIntoView({ block: "center" });
+          }, delay));
+        }
+      }
     };
 
     const handleClick = (event: MouseEvent) => {

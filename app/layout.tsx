@@ -8,6 +8,7 @@ import GraphicNovelTerminology from "./graphic-novel-terminology";
 import LearnEntryRouter from "./learn-entry-router";
 import PlanStudioRailHost from "./plan-studio-rail-host";
 import StoryboardNavigationGroupsHost from "./storyboard-navigation-groups-host";
+import StoryboardPlanIntentionHost from "./storyboard-plan-intention-host";
 import StoryboardStudioHost from "./storyboard-studio-host";
 import StoryboardWriteHandoff from "./storyboard-write-handoff";
 import WorkspaceIntroHost from "./workspace-intro-host";
@@ -80,6 +81,7 @@ export default function RootLayout({
         <PlanStudioRailHost />
         <StoryboardStudioHost />
         <StoryboardNavigationGroupsHost />
+        <StoryboardPlanIntentionHost />
         <StoryboardWriteHandoff />
         <WorkspaceIntroHost />
         <CurrentDownloadLinks />

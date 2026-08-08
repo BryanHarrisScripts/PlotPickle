@@ -15,6 +15,11 @@ on:
         options:
           - smoke
           - full
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/agent-human-acceptance.yml
 
 permissions:
   contents: read
@@ -30,8 +35,8 @@ jobs:
     timeout-minutes: 45
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      PLOTPICKLE_ACCEPTANCE_URL: ${{ inputs.base_url }}
-      PLOTPICKLE_ACCEPTANCE_SCOPE: ${{ inputs.scope }}
+      PLOTPICKLE_ACCEPTANCE_URL: ${{ inputs.base_url || 'http://127.0.0.1:4173' }}
+      PLOTPICKLE_ACCEPTANCE_SCOPE: ${{ inputs.scope || 'smoke' }}
       CODEX_HOME: ${{ runner.temp }}/plotpickle-codex-home
       PLOTPICKLE_AGENT_PLUGIN_DATA: ${{ runner.temp }}/plotpickle-agent-plugin
 
@@ -49,7 +54,7 @@ jobs:
         shell: bash
         run: |
           if [ -z "$OPENAI_API_KEY" ]; then
-            echo "OPENAI_API_KEY is required for the on-demand Codex acceptance agent." >&2
+            echo "OPENAI_API_KEY is required for the Codex human-acceptance agent." >&2
             exit 1
           fi
 

@@ -31,11 +31,12 @@ export default function WriteStudioHost() {
         return;
       }
 
-      const modeBar = Array.from(document.querySelectorAll<HTMLElement>("div"))
-        .find((element) => normalized(element.querySelector("strong")?.textContent) === "writer"
-          && Array.from(element.querySelectorAll("button")).some((button) => normalized(button.textContent) === "screenplay"));
+      const modeBar = document.querySelector<HTMLElement>('[class*="modeBar"]');
       const nextShell = modeBar?.parentElement as HTMLElement | null;
-      if (!modeBar || !nextShell) return;
+      const hasWriterIdentity = normalized(modeBar?.querySelector("strong")?.textContent) === "writer";
+      const hasScreenplayMode = Boolean(Array.from(modeBar?.querySelectorAll("button") ?? [])
+        .some((button) => normalized(button.textContent) === "screenplay"));
+      if (!modeBar || !nextShell || !hasWriterIdentity || !hasScreenplayMode) return;
 
       if (activeShell && activeShell !== nextShell) {
         activeShell.removeAttribute("data-write-studio");

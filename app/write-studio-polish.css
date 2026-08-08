@@ -1,0 +1,65 @@
+/* Rendered-review polish for #464.
+   The Writer shell is marked by WriteStudioHost in both Treatment and Screenplay modes. */
+
+.workspace:has([data-write-studio="true"]) > section[aria-label$="capabilities"],
+.workspace:has([data-write-studio="true"]) > button[aria-label*="feedback records"] {
+  display: none !important;
+}
+
+[data-write-studio="true"] {
+  background: #090909 !important;
+  color: #e9e0d0 !important;
+}
+
+/* Export and production controls remain fully functional, but are disclosed only when requested. */
+[data-write-studio="true"] [class*="exportActions"],
+[data-write-studio="true"] [class*="productionDraftPanel"] {
+  display: none !important;
+}
+
+[data-write-studio="true"][data-write-more="open"] [class*="exportActions"] {
+  display: flex !important;
+}
+
+[data-write-studio="true"][data-write-more="open"] [class*="productionDraftPanel"] {
+  display: block !important;
+}
+
+[data-write-studio="true"] [class*="writerHeader"] {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+[data-write-studio="true"][data-write-more="open"] [class*="writerHeader"] {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+}
+
+/* If the writer deliberately switches to Treatment, retain the same Studio shell. */
+[data-write-studio="true"] [class*="treatmentPage"],
+[data-write-studio="true"] [class*="treatmentWorkspace"],
+[data-write-studio="true"] [class*="treatmentMain"],
+[data-write-studio="true"] [class*="editorPage"] {
+  background: #090909 !important;
+  color: #e9e0d0 !important;
+}
+
+[data-write-studio="true"] [class*="treatmentPage"] article,
+[data-write-studio="true"] [class*="treatmentWorkspace"] article,
+[data-write-studio="true"] [class*="treatmentMain"] article,
+[data-write-studio="true"] [class*="treatmentPage"] section,
+[data-write-studio="true"] [class*="treatmentWorkspace"] section,
+[data-write-studio="true"] [class*="treatmentMain"] section {
+  border-color: #302b23 !important;
+  border-radius: 0 !important;
+  background: #11110f !important;
+  color: #d8cebd !important;
+  box-shadow: none !important;
+}
+
+[data-write-studio="true"] [class*="treatmentPage"] button,
+[data-write-studio="true"] [class*="treatmentWorkspace"] button,
+[data-write-studio="true"] [class*="treatmentMain"] button {
+  border-color: #51432c !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #cfb675 !important;
+}

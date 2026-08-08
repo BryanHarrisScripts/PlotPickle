@@ -29,6 +29,7 @@ $Definitions = @{
 $StarterModel = "smollm2:135m-instruct-q2_K"
 $OllamaTagsUrl = "http://127.0.0.1:11434/api/tags"
 $OllamaPullUrl = "http://127.0.0.1:11434/api/pull"
+$ComfyStarter = Join-Path $PSScriptRoot "start-comfyui-background.ps1"
 
 function Write-ToolStatus {
   param(
@@ -97,6 +98,27 @@ function Install-OllamaStarterModel {
   }
 }
 
+function Start-ComfyUIForPlotPickle {
+  if (-not (Test-Path -LiteralPath $ComfyStarter -PathType Leaf)) {
+    Write-Warning "The ComfyUI background starter is missing. PlotPickle will continue and ComfyUI can still be started manually."
+    return $false
+  }
+  $baseUrl = if ($env:PLOTPICKLE_COMFYUI_URL) { $env:PLOTPICKLE_COMFYUI_URL } else { "http://127.0.0.1:8188" }
+  Write-Host "[STARTUP] Ensuring installed ComfyUI is available as a local background backend at $baseUrl..."
+  try {
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $ComfyStarter -BaseUrl $baseUrl
+    if ($LASTEXITCODE -ne 0) {
+      Write-Warning "ComfyUI background startup exited with code $LASTEXITCODE. PlotPickle will continue; review the PlotPickle ComfyUI startup logs or start ComfyUI manually."
+      return $false
+    }
+    return $true
+  }
+  catch {
+    Write-Warning "ComfyUI background startup failed: $($_.Exception.Message). PlotPickle will continue."
+    return $false
+  }
+}
+
 function Find-Ollama {
   $command = Get-Command "ollama.exe" -ErrorAction SilentlyContinue
   if ($command) { return $command.Source }
@@ -161,6 +183,7 @@ if ($existing) {
   if ($Maintain) {
     Invoke-ReviewedUpgrade -PackageId ([string]$definition.PackageId)
     if ($Tool -eq "Ollama") { [void](Install-OllamaStarterModel) }
+    if ($Tool -eq "ComfyUI") { [void](Start-ComfyUIForPlotPickle) }
   }
   Write-ToolStatus -Status "detected" -Location $existing
   exit 0
@@ -220,6 +243,7 @@ if ($installed) {
     [void](Install-OllamaStarterModel)
   } else {
     Write-Host "Models, checkpoints and workflows remain separate and were not downloaded."
+    if ($Tool -eq "ComfyUI") { [void](Start-ComfyUIForPlotPickle) }
   }
   Write-ToolStatus -Status "installed" -Location $installed
   exit 0

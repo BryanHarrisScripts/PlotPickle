@@ -5,7 +5,7 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #113 reuses canonical project, progress, storage and settings sources", async () => {
+test("issue #113 retains canonical dashboard model sources for downstream reporting", async () => {
   const model = await source("lib/dashboard-command-centre.ts");
   for (const contract of [
     "completionFor",
@@ -21,39 +21,32 @@ test("issue #113 reuses canonical project, progress, storage and settings source
   assert.doesNotMatch(model, /apiKey|secretValue|accessToken/);
 });
 
-test("issue #113 dashboard presents connections, workflow, attention and project snapshot", async () => {
-  const [dashboard, model] = await Promise.all([
+test("issue #113 dashboard entry now presents the #444 story-first Studio Dashboard", async () => {
+  const [entry, studio] = await Promise.all([
     source("app/dashboard-command-centre.tsx"),
-    source("lib/dashboard-command-centre.ts"),
+    source("app/project-overview.tsx"),
   ]);
-  const surface = `${dashboard}\n${model}`;
+  assert.match(entry, /<ProjectOverview/);
+  assert.doesNotMatch(entry, /Five-second readiness check|ComputeHubDashboard|SetupConnectionsDashboard/);
   for (const phrase of [
-    "Five-second readiness check",
-    "Connections",
-    "Workflow progress",
-    "Attention required",
-    "Project snapshot",
-    "Repository & Collab",
-    "Story & Art",
-    "Media & Film Engines",
-    "Scheduling & Meetings",
-    "Storage and backup",
-    "Collaboration",
+    "PlotPickle Studio",
+    "Your stories.",
+    "Available stories",
+    "Load Afterglow",
+    "4 Acts · 24 Blocks · 96 mini-blocks",
     "Learn",
     "Plan",
-    "Build",
-    "Write",
     "Storyboard",
+    "Write",
+    "Edit",
+    "Graphic Novel",
+    "Build",
+    "Feedback",
     "Refine",
-    "Estimated pages",
-    "Canonical / branch state",
-  ]) assert.ok(surface.includes(phrase), `Dashboard surface is missing: ${phrase}`);
-  assert.match(dashboard, /toneMeta/);
-  assert.match(dashboard, /aria-label/);
-  assert.doesNotMatch(dashboard, />New Project<|>Import<|>Export<|>Load Afterglow</);
+  ]) assert.ok(studio.includes(phrase), `Studio Dashboard is missing: ${phrase}`);
 });
 
-test("issue #113 moves project actions to the persistent shell and replaces the legacy Dashboard", async () => {
+test("issue #113 keeps project actions in the persistent shell and uses the Studio Dashboard entry", async () => {
   const [page, shell, direction] = await Promise.all([
     source("app/page.tsx"),
     source("app/application-shell-header.tsx"),
@@ -62,18 +55,17 @@ test("issue #113 moves project actions to the persistent shell and replaces the 
   assert.match(page, /<ApplicationShellHeader/);
   assert.match(page, /<DashboardCommandCentre/);
   assert.doesNotMatch(page, /className="dashboard-actions"/);
-  assert.doesNotMatch(page, /const dashboardStatuses/);
   assert.match(shell, /PROJECT_ACTIONS\.map/);
   for (const action of ["New Project", "Import", "Export", "Load Example"]) assert.ok(shell.includes(action) || direction.includes(action));
 });
 
-test("issue #113 Dashboard links can request the exact Settings subsection", async () => {
+test("issue #113 keeps Settings configuration outside the story-first Dashboard", async () => {
   const [dashboard, settings] = await Promise.all([
-    source("app/dashboard-command-centre.tsx"),
+    source("app/project-overview.tsx"),
     source("app/settings-panel.tsx"),
   ]);
-  assert.match(dashboard, /plotpickle\.settings\.section/);
-  assert.match(dashboard, /plotpickle:settings-section/);
+  assert.match(dashboard, /openWorkspace\("settings"\)/);
+  assert.doesNotMatch(dashboard, /apiKey|endpoint|Ollama|ComfyUI|MiniMax/i);
   assert.match(settings, /plotpickle\.settings\.section/);
   assert.match(settings, /plotpickle:settings-section/);
 });

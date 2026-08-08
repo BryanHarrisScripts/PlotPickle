@@ -22,6 +22,7 @@ export default function StoryboardStudioHost() {
     const clearFocus = () => {
       if (!focusedRoot) return;
       delete focusedRoot.dataset.storyboardFocus;
+      delete focusedRoot.dataset.storyboardDecisionFocus;
       focusedRoot = null;
     };
 
@@ -42,13 +43,22 @@ export default function StoryboardStudioHost() {
       const target = document.getElementById(`visual-${requestedSection}`);
       if (!root || !target) return;
 
-      if (focusedRoot && focusedRoot !== root) delete focusedRoot.dataset.storyboardFocus;
+      if (focusedRoot && focusedRoot !== root) {
+        delete focusedRoot.dataset.storyboardFocus;
+        delete focusedRoot.dataset.storyboardDecisionFocus;
+      }
       focusedRoot = root;
       root.dataset.storyboardFocus = requestedSection;
+      if (params.get("review") === "1") root.dataset.storyboardDecisionFocus = "review";
+      else delete root.dataset.storyboardDecisionFocus;
 
       for (const delay of [80, 420, 1100]) {
         timers.push(window.setTimeout(() => {
-          if (document.documentElement.contains(target)) target.scrollIntoView({ block: "start" });
+          if (!document.documentElement.contains(target)) return;
+          const reviewPanel = root.dataset.storyboardDecisionFocus === "review"
+            ? root.querySelector<HTMLElement>('[aria-label="Direct selected story moment"]')
+            : null;
+          (reviewPanel ?? target).scrollIntoView({ block: "start" });
         }, delay));
       }
     };

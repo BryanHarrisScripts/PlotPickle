@@ -63,11 +63,16 @@ function safeSlug(value) {
   return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function extractRef(text, label) {
   const lines = String(text || "").split(/\r?\n/);
-  const normalizedLabel = label.toLowerCase();
-  const candidates = lines.filter((line) => line.toLowerCase().includes(normalizedLabel));
-  for (const line of [...candidates, ...lines]) {
+  const exactControl = new RegExp(`\\b(?:button|link|tab)\\s+["']${escapeRegex(label)}["']`, "i");
+  const exactCandidates = lines.filter((line) => exactControl.test(line));
+  const labelCandidates = lines.filter((line) => line.toLowerCase().includes(String(label).toLowerCase()));
+  for (const line of [...exactCandidates, ...labelCandidates, ...lines]) {
     const match = line.match(/\[ref=([^\]]+)\]/i) || line.match(/\bref[=:]\s*([A-Za-z0-9_-]+)/i);
     if (match) return match[1];
   }
@@ -117,7 +122,15 @@ function extractPageState(text) {
     : raw;
   const parsed = extractFirstJsonObject(resultSection) || extractFirstJsonObject(raw);
   if (parsed && typeof parsed === "object") return parsed;
-  return { url: "", activeId: "", activeLabel: "", mainLength: 0, title: "" };
+  return {
+    url: "",
+    activeId: "",
+    activeLabel: "",
+    mainLength: 0,
+    title: "",
+    shellWorkspaceCount: 0,
+    splashVisible: false,
+  };
 }
 
 function consoleHasErrors(text) {
@@ -143,16 +156,14 @@ function stateMatchesScreen(screen, state) {
   try {
     const url = new URL(urlText);
     const workspace = url.searchParams.get("workspace");
-    if (workspace) return workspace === screen.query;
-    return screen.id === "dashboard" && url.pathname === "/";
+    return workspace === screen.query && Number(state?.shellWorkspaceCount || 0) > 0;
   } catch {
     return false;
   }
 }
 
 function parseParameterBillions(value) {
-  if (!value) return 0;
-  const match = String(value).match(/([0-9]+(?:\.[0-9]+)?)\s*([BM])/i);
+  const match = String(value || "").match(/([0-9]+(?:\.[0-9]+)?)\s*([BM])/i);
   if (!match) return 0;
   const number = Number(match[1]);
   return match[2].toUpperCase() === "B" ? number : number / 1000;
@@ -161,7 +172,6 @@ function parseParameterBillions(value) {
 function chooseOllamaModel(models) {
   const override = process.env.PLOTPICKLE_UAT_OLLAMA_MODEL?.trim();
   if (override && models.some((model) => model.name === override || model.model === override)) return override;
-
   const scored = models.map((model) => {
     const name = String(model.name || model.model || "");
     const size = parseParameterBillions(model?.details?.parameter_size) || parseParameterBillions(name);
@@ -171,9 +181,8 @@ function chooseOllamaModel(models) {
     if (/qwen|llama|mistral|gemma|phi|deepseek|gpt-oss/.test(lower)) score += 20;
     if (/instruct|chat/.test(lower)) score += 10;
     if (/vision|embed/.test(lower)) score -= 15;
-    return { name, size, score };
+    return { name, score };
   }).filter(Boolean).sort((a, b) => b.score - a.score);
-
   return scored[0]?.name || "";
 }
 
@@ -184,19 +193,15 @@ async function optionalOllamaReview(evidence) {
     const tags = await tagsResponse.json();
     const model = chooseOllamaModel(Array.isArray(tags.models) ? tags.models : []);
     if (!model) return { status: "skipped", reason: "No suitable installed Ollama instruction model of roughly 3B-32B was found." };
-
     const compactEvidence = evidence.map((item) => ({
       screen: item.label,
       status: item.status,
-      method: item.method,
+      navigation: item.method,
       activeId: item.pageState?.activeId || "",
-      activeLabel: item.pageState?.activeLabel || "",
       url: item.pageState?.url || "",
-      mainLength: item.pageState?.mainLength || 0,
-      console: item.consoleText ? item.consoleText.slice(0, 1200) : "",
       note: item.note || "",
+      console: item.consoleText ? item.consoleText.slice(0, 1000) : "",
     }));
-
     const response = await fetch("http://127.0.0.1:11434/api/chat", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -206,12 +211,9 @@ async function optionalOllamaReview(evidence) {
         messages: [
           {
             role: "system",
-            content: "You are a read-only PlotPickle usability reviewer. Review only the supplied deterministic browser evidence. Do not invent actions or failures. Return concise Markdown with Overall, WARN findings, and PASS observations. A local AI opinion never overrides deterministic FAIL/PASS results.",
+            content: "You are a read-only PlotPickle usability reviewer. Review only supplied deterministic browser evidence. Return concise Markdown with Overall, WARN findings, and PASS observations. This optional review never changes the deterministic verdict.",
           },
-          {
-            role: "user",
-            content: `Scope: ${scope}\nDeterministic browser evidence:\n${JSON.stringify(compactEvidence, null, 2)}`,
-          },
+          { role: "user", content: `Scope: ${scope}\nEvidence:\n${JSON.stringify(compactEvidence, null, 2)}` },
         ],
         options: { temperature: 0.1, num_predict: 700 },
       }),
@@ -241,7 +243,6 @@ class McpClient {
       stdio: ["pipe", "pipe", "pipe"],
       windowsHide: true,
     });
-
     this.child.stdout.setEncoding("utf8");
     this.child.stderr.setEncoding("utf8");
     this.child.stdout.on("data", (chunk) => this.onStdout(chunk));
@@ -306,7 +307,7 @@ class McpClient {
     const result = await this.request("initialize", {
       protocolVersion: "2025-06-18",
       capabilities: {},
-      clientInfo: { name: "plotpickle-local-uat", version: "1.0.0" },
+      clientInfo: { name: "plotpickle-local-uat", version: "1.1.0" },
     });
     this.notify("notifications/initialized");
     return result;
@@ -346,12 +347,14 @@ async function main() {
 
   const mcpConfig = JSON.parse(await readFile(path.join(pluginRoot, "mcp.json"), "utf8"));
   const server = mcpConfig?.mcpServers?.playwright;
-  if (!server || server.type !== "stdio" || typeof server.command !== "string") throw new Error("PlotPickle local UAT requires the Playwright stdio MCP server from the Agent Plugin.");
+  if (!server || server.type !== "stdio" || typeof server.command !== "string") {
+    throw new Error("PlotPickle local UAT requires the Playwright stdio MCP server from the Agent Plugin.");
+  }
 
   const expand = (value) => String(value)
     .replaceAll("${PLUGIN_ROOT}", pluginRoot)
     .replaceAll("${PLUGIN_DATA}", pluginData);
-  const command = process.platform === "win32" && server.command.toLowerCase() === "npx" ? "npx.cmd" : expand(server.command);
+  const command = expand(server.command);
   const commandArgs = Array.isArray(server.args) ? server.args.map(expand) : [];
   const commandEnv = Object.fromEntries(Object.entries(server.env || {}).map(([key, value]) => [key, expand(value)]));
   const client = new McpClient(command, commandArgs, { cwd: expand(server.cwd || pluginRoot), env: commandEnv });
@@ -373,7 +376,7 @@ async function main() {
     const pageState = async () => {
       if (!has("browser_evaluate")) return {};
       const result = await client.call("browser_evaluate", {
-        function: "() => ({ url: location.href, title: document.title, activeId: document.querySelector('[data-workspace-active=\\\"true\\\"]')?.getAttribute('data-workspace-id') || '', activeLabel: document.querySelector('[data-workspace-active=\\\"true\\\"]')?.textContent?.trim() || '', mainLength: (document.querySelector('main')?.innerText || document.body.innerText || '').trim().length })",
+        function: "() => ({ url: location.href, title: document.title, activeId: document.querySelector('[data-workspace-active=\\\"true\\\"]')?.getAttribute('data-workspace-id') || '', activeLabel: document.querySelector('[data-workspace-active=\\\"true\\\"]')?.textContent?.trim() || '', mainLength: (document.querySelector('main')?.innerText || document.body.innerText || '').trim().length, shellWorkspaceCount: document.querySelectorAll('[data-workspace-id]').length, splashVisible: Boolean(document.querySelector('nav[aria-label=\\\"Splash page navigation\\\"]')) })",
       });
       return extractPageState(resultText(result));
     };
@@ -389,27 +392,24 @@ async function main() {
       const screenshotArgs = toolArguments(toolMap.get("browser_take_screenshot"), { type: "png", filename, fullPage: true });
       return client.call("browser_take_screenshot", screenshotArgs);
     };
-    const findRef = async (label, currentSnapshot) => {
-      if (has("browser_find")) {
-        try {
-          const found = resultText(await client.call("browser_find", { text: label }));
-          const ref = extractRef(found, label);
-          if (ref) return ref;
-        } catch {}
-      }
-      return extractRef(currentSnapshot, label);
-    };
     const clickRef = async (label, ref) => {
       if (!has("browser_click") || !ref) return false;
-      const clickTool = toolMap.get("browser_click");
-      const properties = clickTool?.inputSchema?.properties || {};
+      const properties = toolMap.get("browser_click")?.inputSchema?.properties || {};
       const clickArgs = { element: `${label} navigation control` };
-      if ("target" in properties) clickArgs.target = ref;
-      else if ("ref" in properties) clickArgs.ref = ref;
+      if ("ref" in properties) clickArgs.ref = ref;
+      else if ("target" in properties) clickArgs.target = ref;
       else return false;
       await client.call("browser_click", clickArgs);
       return true;
     };
+    const clickVisibleControl = async (label, currentSnapshot) => {
+      const ref = extractRef(currentSnapshot, label);
+      if (!ref) return false;
+      return clickRef(label, ref);
+    };
+    const recoveryUrl = (screen) => screen.path
+      ? new URL(screen.path, baseUrl).toString()
+      : new URL(`/?workspace=${screen.query}`, baseUrl).toString();
 
     await navigate(baseUrl);
     await delay(400);
@@ -417,57 +417,73 @@ async function main() {
     await writeFile(path.join(snapshotRoot, "00-splash.md"), splashSnapshot, "utf8");
     await takeScreenshot("00-splash.png");
 
-    let enteredByClick = false;
-    const enterRef = await findRef("Enter", splashSnapshot);
-    if (enterRef) {
-      try {
-        enteredByClick = await clickRef("Enter", enterRef);
-        if (enteredByClick) await delay(500);
-      } catch {}
-    }
-    if (!enteredByClick) {
-      await navigate(new URL("/?workspace=dashboard", baseUrl).toString());
-      await delay(500);
+    const dashboard = journey[0];
+    let dashboardMethod = "visible Enter control";
+    let dashboardNote = "";
+    let dashboardClicked = false;
+    try {
+      dashboardClicked = await clickVisibleControl("Enter", splashSnapshot);
+      if (dashboardClicked) await delay(500);
+    } catch (error) {
+      dashboardNote = `Visible Enter click failed: ${error instanceof Error ? error.message : String(error)}`;
     }
 
-    let currentSnapshot = await snapshot();
+    let dashboardState = dashboardClicked ? await pageState() : {};
+    let dashboardReached = dashboardClicked
+      && Number(dashboardState.shellWorkspaceCount || 0) > 0
+      && stateMatchesScreen(dashboard, dashboardState);
+
+    if (!dashboardReached) {
+      dashboardMethod = "direct recovery navigation";
+      dashboardNote = dashboardNote || "The visible Enter click completed but the application shell did not become active, so the deterministic runner used the documented Dashboard deep link.";
+      await navigate(recoveryUrl(dashboard));
+      await delay(500);
+      dashboardState = await pageState();
+      dashboardReached = Number(dashboardState.shellWorkspaceCount || 0) > 0 && stateMatchesScreen(dashboard, dashboardState);
+    }
+
+    let currentSnapshot = dashboardReached ? await snapshot() : "";
+
     for (let index = 0; index < journey.length; index += 1) {
       const screen = journey[index];
-      let method = index === 0 && enteredByClick ? "visible Enter control" : "visible workspace control";
-      let note = "";
-      let reached = false;
+      let method = index === 0 ? dashboardMethod : "visible workspace control";
+      let note = index === 0 ? dashboardNote : "";
+      let reached = index === 0 ? dashboardReached : false;
+      let state = index === 0 ? dashboardState : {};
 
-      if (index > 0 || screen.id !== "dashboard") {
-        const ref = await findRef(screen.label, currentSnapshot);
-        if (ref) {
+      if (index > 0) {
+        currentSnapshot = await snapshot();
+        let clicked = false;
+        try {
+          clicked = await clickVisibleControl(screen.label, currentSnapshot);
+          if (clicked) await delay(500);
+        } catch (error) {
+          note = `Visible navigation failed: ${error instanceof Error ? error.message : String(error)}`;
+        }
+
+        state = clicked ? await pageState() : {};
+        reached = clicked && stateMatchesScreen(screen, state);
+
+        if (!reached) {
+          method = "direct recovery navigation";
+          if (!note) {
+            note = clicked
+              ? `The visible ${screen.label} control accepted the click but did not activate the target workspace; the deterministic runner used the documented local recovery route.`
+              : `The visible ${screen.label} control could not be used; the deterministic runner used the documented local recovery route.`;
+          }
           try {
-            reached = await clickRef(screen.label, ref);
-            if (reached) await delay(500);
+            await navigate(recoveryUrl(screen));
+            await delay(500);
+            state = await pageState();
+            reached = stateMatchesScreen(screen, state);
+            if (!reached) note += " Recovery navigation also failed to activate the expected workspace.";
           } catch (error) {
-            note = `Visible navigation failed: ${error instanceof Error ? error.message : String(error)}`;
+            note += ` Recovery navigation failed: ${error instanceof Error ? error.message : String(error)}`;
           }
         }
-      } else {
-        reached = true;
       }
 
-      if (!reached && screen.id === "dashboard") reached = true;
-      if (!reached) {
-        method = "direct recovery navigation";
-        const fallbackUrl = screen.path
-          ? new URL(screen.path, baseUrl).toString()
-          : new URL(`/?workspace=${screen.query}`, baseUrl).toString();
-        try {
-          await navigate(fallbackUrl);
-          await delay(500);
-          reached = true;
-          note = note || "The visible workspace control was not usable, so the deterministic runner used the documented local route as a recovery path.";
-        } catch (error) {
-          note = `${note ? `${note} ` : ""}Recovery navigation failed: ${error instanceof Error ? error.message : String(error)}`;
-        }
-      }
-
-      currentSnapshot = reached ? await snapshot() : "";
+      currentSnapshot = reached ? await snapshot() : currentSnapshot;
       const filename = `${String(index + 1).padStart(2, "0")}-${safeSlug(screen.label)}`;
       if (currentSnapshot) await writeFile(path.join(snapshotRoot, `${filename}.md`), currentSnapshot, "utf8");
       let screenshotOk = false;
@@ -479,13 +495,12 @@ async function main() {
           note = `${note ? `${note} ` : ""}Screenshot failed: ${error instanceof Error ? error.message : String(error)}`;
         }
       }
-      const state = reached ? await pageState() : {};
+      if (reached && (!state || !state.url)) state = await pageState();
       const consoleText = reached ? await consoleMessages() : "";
       const routeMatches = stateMatchesScreen(screen, state);
-      const substantive = Number(state.mainLength || 0) > 40 || currentSnapshot.length > 200;
+      const substantive = Number(state?.mainLength || 0) > 40 || currentSnapshot.length > 200;
       let status = reached && routeMatches && substantive ? "PASS" : "FAIL";
       if (status === "PASS" && (method === "direct recovery navigation" || !screenshotOk || consoleHasErrors(consoleText))) status = "WARN";
-
       evidence.push({ ...screen, status, method, note, screenshotOk, pageState: state, consoleText });
     }
   } catch (error) {
@@ -527,9 +542,7 @@ async function main() {
     lines.push(`| ${item.label} | ${item.status} | ${item.method} | ${String(location).replaceAll("|", "\\|")} | ${item.screenshotOk ? "captured" : "missing"} |`);
   }
 
-  if (deterministicError) {
-    lines.push("", "## Blocking runner error", "", deterministicError.message);
-  }
+  if (deterministicError) lines.push("", "## Blocking runner error", "", deterministicError.message);
 
   const notes = evidence.filter((item) => item.note || consoleHasErrors(item.consoleText));
   if (notes.length) {
@@ -542,11 +555,8 @@ async function main() {
   }
 
   lines.push("", "## Optional local AI review", "");
-  if (ollama.status === "complete") {
-    lines.push(`Ollama model: ${ollama.model}`, "", ollama.review);
-  } else {
-    lines.push(`Skipped: ${ollama.reason || "No local reviewer was available."}`);
-  }
+  if (ollama.status === "complete") lines.push(`Ollama model: ${ollama.model}`, "", ollama.review);
+  else lines.push(`Skipped: ${ollama.reason || "No local reviewer was available."}`);
 
   lines.push(
     "",

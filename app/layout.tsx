@@ -38,6 +38,7 @@ import "./storyboard-navigation-groups.css";
 import "./storyboard-write-handoff.css";
 import "./write-studio-phase-c.css";
 import "./write-studio-treatment.css";
+import "./write-studio-progressive.css";
 import "./write-edit-handoff.css";
 
 export const metadata: Metadata = {

@@ -9,6 +9,8 @@
         "@playwright/mcp@0.0.78",
         "--headless",
         "--isolated",
+        "--browser",
+        "chrome",
         "--console-level",
         "warning",
         "--output-dir",

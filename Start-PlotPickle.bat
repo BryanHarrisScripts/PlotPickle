@@ -9,8 +9,10 @@ set "VITE_CMD=node_modules\.bin\vite.cmd"
 set "SETUP_REPORT=scripts\windows-setup-report.mjs"
 set "RUNTIME_MANAGER=scripts\windows-runtime.mjs"
 set "COMPANION_MANAGER=scripts\windows-companion-software.ps1"
+set "UAT_RUNNER=scripts\run-local-uat.ps1"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
 set "INSTALL_PERFORMED=0"
+set "RUN_UAT=0"
 set "READY_TIMEOUT_SECONDS=60"
 
 rem Make required runtime installation and upgrades tolerant, visible, and cache-friendly.
@@ -47,6 +49,11 @@ if "!PROBE_RESULT!"=="0" (
   echo [READY] PlotPickle is already running at %PLOTPICKLE_URL%.
   echo Opening the existing session. No second server will be started.
   start "" "%PLOTPICKLE_URL%"
+  if exist "%UAT_RUNNER%" (
+    echo.
+    choice /C YN /N /M "TESTING: Run the human-like UAT agent against this session? [Y/N]: "
+    if not errorlevel 2 start "PlotPickle UAT Agent" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%UAT_RUNNER%" -BaseUrl "%PLOTPICKLE_URL%" -Scope smoke
+  )
   exit /b 0
 )
 if "!PROBE_RESULT!"=="2" (
@@ -159,16 +166,30 @@ if exist "%COMPANION_MANAGER%" (
   echo [WARNING] The companion-software inventory is missing. PlotPickle will continue with its required runtime.
 )
 
+if exist "%UAT_RUNNER%" (
+  echo.
+  echo ------------------------------------------------------------
+  echo   USER ACCEPTANCE TESTING - TEMPORARY TEST CONTROL
+  echo ------------------------------------------------------------
+  echo The UAT agent uses Agent Plugins, Codex, and Playwright to walk
+  echo PlotPickle through the visible workflow like a first-time user.
+  echo Choosing N starts PlotPickle normally and changes nothing else.
+  choice /C YN /N /M "Run the human-like UAT agent after PlotPickle starts? [Y/N]: "
+  if not errorlevel 2 set "RUN_UAT=1"
+)
+
 echo.
 echo [STEP 3 OF 3] Starting the private local server...
 echo.
 echo Address: %PLOTPICKLE_URL%
 echo The browser will open after PlotPickle confirms that it is ready.
 echo Optional services remain available from their independent Settings pages.
+if "!RUN_UAT!"=="1" echo The UAT agent will start in a separate window after the server becomes reachable.
 echo Press Ctrl+C in this window when you are finished.
 echo.
 
 call :open_when_ready
+if "!RUN_UAT!"=="1" start "PlotPickle UAT Agent" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%UAT_RUNNER%" -BaseUrl "%PLOTPICKLE_URL%" -Scope smoke
 call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort
 
 set "EXIT_CODE=%ERRORLEVEL%"

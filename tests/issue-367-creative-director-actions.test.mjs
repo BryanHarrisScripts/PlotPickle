@@ -13,7 +13,7 @@ test("Creative Director actions keep story decisions ahead of provider configura
   assert.match(source, /storyMoment/);
   assert.match(source, />Keep</);
   assert.match(source, />Change</);
-  assert.match(source, />Try Again</);
+  assert.match(source, /"Try Again"/);
   assert.match(source, />Compare</);
   assert.match(source, /Animate approved visual/);
   assert.match(source, /Change direction \/ Advanced/);
@@ -28,7 +28,7 @@ test("Creative Director actions expose plain-language recovery and accessible st
   assert.match(source, /generation request/);
   assert.match(source, /generation job/);
   assert.match(source, /role="status"/);
-  assert.match(source, /<fieldset className={styles\.actions}>/);
+  assert.match(source, /<fieldset id="storyboard-decisions" className={styles\.actions}>/);
   assert.match(source, /<legend className={styles\.actionLegend}>Decide what happens to this visual<\/legend>/);
   assert.doesNotMatch(source, /role="group"/);
   assert.match(source, /<figure className={styles\.preview}>/);

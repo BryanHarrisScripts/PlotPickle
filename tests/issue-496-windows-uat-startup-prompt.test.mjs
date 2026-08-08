@@ -42,7 +42,7 @@ test("local UAT stores Codex work outside the Vite repository tree and keeps fai
 });
 
 test("local UAT prefers the user's existing Codex ChatGPT login", () => {
-  assert.match(runner, /login status/);
+  assert.match(runner, /login", "status/);
   assert.match(runner, /Logged in using ChatGPT/);
   assert.match(runner, /Copy-Item -Force \$normalAuthPath \$tempAuthPath/);
   assert.match(runner, /Remove-Item Env:OPENAI_API_KEY/);
@@ -54,4 +54,14 @@ test("local UAT refuses implicit API-key billing and cleans temporary credential
   assert.match(runner, /will not use billable API-key auth by default/);
   assert.match(runner, /Clear-UatAuth/);
   assert.match(runner, /Remove-Item -Force \$script:tempAuthPath/);
+});
+
+test("local UAT does not treat normal Codex stderr as a terminating Windows PowerShell failure", () => {
+  assert.match(runner, /function Invoke-NativeCapture/);
+  assert.match(runner, /\$ErrorActionPreference = "Continue"/);
+  assert.match(runner, /ForEach-Object \{ \$_\.ToString\(\) \}/);
+  assert.match(runner, /\$authResult = Invoke-NativeCapture/);
+  assert.match(runner, /\$authExitCode = \$authResult\.ExitCode/);
+  assert.match(runner, /Tee-Object -FilePath \$tracePath/);
+  assert.match(runner, /\$exitCode = \$LASTEXITCODE/);
 });

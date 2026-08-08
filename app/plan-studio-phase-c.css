@@ -1,6 +1,7 @@
-/* Issue #447 / PR #448 — Plan Studio visual boundary.
-   Keep this Plan-only. The legacy editor routes remain functional while the
-   new story-architecture canvas becomes the default Plan experience. */
+/* Issue #447 — Plan Studio boundary and native five-area rail.
+   Plan now uses the canonical StoryRail buttons directly; no duplicate hidden
+   routing rail is rendered. The visual grouping below only changes hierarchy
+   and presentation, never story state or PPF identity. */
 
 .workspace:has(.planner-content) {
   background:
@@ -8,8 +9,6 @@
     #090909 !important;
 }
 
-/* The old ownership shelf duplicates the new Plan architecture summary and
-   materially breaks the approved full-screen wireframe. Other workspaces keep it. */
 .workspace:has(.planner-content) > section[aria-label$="capabilities"] {
   display: none !important;
 }
@@ -46,14 +45,19 @@
   border-bottom: 1px solid rgba(205, 167, 88, 0.18);
 }
 
-.workspace:has(.planner-content) .story-rail-heading .eyebrow,
-.workspace:has(.planner-content) .story-rail-group-label {
+.workspace:has(.planner-content) .story-rail-heading .eyebrow {
+  margin: 0;
   color: #cda758 !important;
-  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
-  font-size: 8px !important;
+  font-size: 0 !important;
   font-weight: 800 !important;
   letter-spacing: 0.16em !important;
   text-transform: uppercase;
+}
+
+.workspace:has(.planner-content) .story-rail-heading .eyebrow::after {
+  content: "Plan";
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 8px;
 }
 
 .workspace:has(.planner-content) .story-rail-heading strong {
@@ -61,22 +65,48 @@
   margin-top: 5px;
   color: #f4efe6 !important;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 21px;
+  font-size: 0 !important;
   font-weight: 500;
 }
 
-.workspace:has(.planner-content) .story-rail-heading span,
-.workspace:has(.planner-content) .method-note p {
+.workspace:has(.planner-content) .story-rail-heading strong::after {
+  content: "Shape the story.";
+  font-size: 21px;
+}
+
+.workspace:has(.planner-content) .story-rail-heading > span {
+  display: block;
+  margin-top: 4px;
   color: #777168 !important;
-  font-size: 8px !important;
+  font-size: 0 !important;
   line-height: 1.55;
 }
 
+.workspace:has(.planner-content) .story-rail-heading > span::after {
+  content: "One canon. Five creative areas.";
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 8px;
+}
+
+/* Flatten the old four implementation buckets so the actual canonical buttons
+   can be presented in the approved five creative areas. */
+.workspace:has(.planner-content) .story-rail nav {
+  display: grid !important;
+  gap: 0 !important;
+  padding-top: 22px;
+}
+
 .workspace:has(.planner-content) .story-rail-group {
-  margin-top: 17px;
+  display: contents !important;
+  margin: 0 !important;
+}
+
+.workspace:has(.planner-content) .story-rail-group-label {
+  display: none !important;
 }
 
 .workspace:has(.planner-content) .story-rail nav button {
+  position: relative;
   width: 100%;
   min-height: 40px;
   margin: 3px 0;
@@ -88,6 +118,68 @@
   box-shadow: none !important;
   font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
 }
+
+/* Story */
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(1) button:nth-of-type(1) { order: 1; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(1) button:nth-of-type(2) { order: 2; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(1) { order: 3; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(2) { order: 4; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(4) { order: 5; }
+
+/* World & Cast */
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(3) { order: 6; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(5) { order: 7; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(6) { order: 8; }
+
+/* Story Engine */
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(7) { order: 9; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(8) { order: 10; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(9) { order: 11; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(10) { order: 12; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(11) { order: 13; }
+
+/* Structure */
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(3) button:nth-of-type(1) { order: 14; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(3) button:nth-of-type(2) { order: 15; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(4) button:nth-of-type(1) { order: 16; }
+
+/* Canon & Notes */
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(12) { order: 17; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(4) button:nth-of-type(2) { order: 18; }
+
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(1) button:nth-of-type(1),
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(3),
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(7),
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(3) button:nth-of-type(1),
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(12) {
+  margin-top: 28px;
+}
+
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(1) button:nth-of-type(1) {
+  margin-top: 10px;
+}
+
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(1) button:nth-of-type(1)::before,
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(3)::before,
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(7)::before,
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(3) button:nth-of-type(1)::before,
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(12)::before {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 2px;
+  color: #cda758;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(1) button:nth-of-type(1)::before { content: "Story"; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(3)::before { content: "World & Cast"; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(7)::before { content: "Story Engine"; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(3) button:nth-of-type(1)::before { content: "Structure"; }
+.workspace:has(.planner-content) .story-rail-group:nth-of-type(2) button:nth-of-type(12)::before { content: "Canon & Notes"; }
 
 .workspace:has(.planner-content) .story-rail nav button:hover,
 .workspace:has(.planner-content) .story-rail nav button:focus-visible {
@@ -127,7 +219,7 @@
 }
 
 .workspace:has(.planner-content) .story-rail .method-note {
-  margin-top: 22px !important;
+  margin-top: 24px !important;
   padding: 16px 8px 0 !important;
   border-top: 1px solid rgba(205, 167, 88, 0.16) !important;
   background: transparent !important;
@@ -147,8 +239,12 @@
   font-size: 9px !important;
 }
 
-/* Existing Plan editors inherit the Studio canvas while their underlying
-   fields and behaviour remain unchanged. */
+.workspace:has(.planner-content) .story-rail .method-note p {
+  color: #777168 !important;
+  font-size: 8px !important;
+  line-height: 1.55;
+}
+
 .workspace:has(.planner-content) .editor-page {
   background: #090909 !important;
   color: #e9e0d0;
@@ -169,5 +265,23 @@
     max-height: none;
     border-right: 0 !important;
     border-bottom: 1px solid rgba(205, 167, 88, 0.22) !important;
+  }
+
+  .workspace:has(.planner-content) .story-rail nav {
+    display: flex !important;
+    width: max-content;
+    min-width: 100%;
+    gap: 6px !important;
+    padding-top: 0;
+  }
+
+  .workspace:has(.planner-content) .story-rail nav button {
+    order: initial !important;
+    min-width: 150px;
+    margin-top: 3px !important;
+  }
+
+  .workspace:has(.planner-content) .story-rail nav button::before {
+    content: none !important;
   }
 }

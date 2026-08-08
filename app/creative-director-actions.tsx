@@ -100,7 +100,7 @@ export default function CreativeDirectorActions({
 
       {identityWarning ? <p className={styles.warning}><strong>Continuity needs attention.</strong> {identityWarning}</p> : null}
 
-      <fieldset className={styles.decisions}>
+      <fieldset className={styles.decisions} aria-label="Visual decision">
         <legend>What do you want to do with this visual?</legend>
         <button type="button" className={styles.keep} disabled={busy} onClick={keepNewestCandidate}>
           <strong>Keep</strong>

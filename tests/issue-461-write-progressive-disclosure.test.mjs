@@ -17,7 +17,7 @@ test("#461 keeps advanced Write capability but moves it behind one deliberate di
 
   assert.match(host, /More writing tools/);
   assert.match(host, /Exports and Shooting Script controls stay available here when you need them/);
-  assert.match(host, /data-write-advanced-tools/);
+  assert.match(host, /host\.dataset\.writeAdvancedTools = "true"/);
 });
 
 test("#461 hides export and production panels until More writing tools is opened", async () => {

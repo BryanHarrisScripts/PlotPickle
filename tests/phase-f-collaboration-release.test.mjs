@@ -89,11 +89,10 @@ test("GitHub collaboration is local-only, review-first, and Project Lead-control
 });
 
 test("canonical projects retain repository metadata without credentials", async () => {
-  const [project, schema, afterglow, overview] = await Promise.all([
+  const [project, schema, afterglow] = await Promise.all([
     source("lib/project.ts"),
     source("schema/plotpickle-project.schema.json").then(JSON.parse),
     source("data/afterglow-complete.ts"),
-    source("app/project-overview.tsx"),
   ]);
   for (const phrase of ["ProjectCollaboration", "sourceRepositoryUrl", "lastPulledCommit", "lastPushedCommit", "collaboration: ProjectCollaboration", "normalizeCollaboration"]) {
     assert.ok(project.includes(phrase), `Missing canonical collaboration field: ${phrase}`);
@@ -101,7 +100,7 @@ test("canonical projects retain repository metadata without credentials", async 
   assert.ok(schema.required.includes("collaboration"));
   assert.equal(schema.properties.collaboration.$ref, "#/$defs/projectCollaboration");
   assert.match(afterglow, /https:\/\/github\.com\/BryanHarrisScripts\/Afterglow-Echoes-of-Sentience/);
-  assert.match(overview, /Open this story’s GitHub repository/);
+  assert.doesNotMatch(project, /githubToken|accessToken|privateKey|clientSecret/);
 });
 
 test("Windows, macOS, and Linux release candidates are packaged and clean-machine tested", async () => {

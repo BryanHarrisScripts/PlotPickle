@@ -5,6 +5,7 @@ import CommonOverlayLayer from "./common-overlay-layer";
 import CurrentDownloadLinks from "./current-download-links";
 import GitHubAppReleaseGuidance from "./github-app-release-guidance";
 import GraphicNovelTerminology from "./graphic-novel-terminology";
+import LearnEntryRouter from "./learn-entry-router";
 import WorkspaceIntroHost from "./workspace-intro-host";
 import WriterFacingCollaborationLanguage from "./writer-facing-collaboration-language";
 import "./globals.css";
@@ -18,6 +19,8 @@ import "./issue-208-polish.css";
 import "./first-run-configuration-dashboard.css";
 import "./appearance-runtime.css";
 import "./studio-shell-phase-a.css";
+import "./learning-studio-phase-b.css";
+import "./learning-studio-phase-b-compat.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",
@@ -49,13 +52,14 @@ export default function RootLayout({
         className="antialiased"
         style={{
           "--font-geist-sans":
-            '"Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace',
+            '\"Courier New\", \"Lucida Console\", \"Liberation Mono\", Consolas, monospace',
           "--font-geist-mono":
-            '"Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace',
+            '\"Courier New\", \"Lucida Console\", \"Liberation Mono\", Consolas, monospace',
         } as React.CSSProperties}
       >
         <AppearanceRuntime />
         {children}
+        <LearnEntryRouter />
         <CommonOverlayLayer />
         <WriterFacingCollaborationLanguage />
         <GraphicNovelTerminology />

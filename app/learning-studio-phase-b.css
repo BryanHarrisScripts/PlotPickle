@@ -1,0 +1,270 @@
+/* #444 Phase B — approved Learn wireframe direction */
+html[data-plotpickle-theme="dark"] [class*="learning-studio_page"] {
+  min-height: calc(100vh - 90px);
+  padding: 0 34px 64px 300px;
+  color: #eee9df;
+  background: #080808;
+  font-family: var(--font-mono);
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_header"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, .45fr);
+  max-width: none;
+  min-height: 250px;
+  gap: 24px;
+  margin: 0;
+  padding: 38px 0 26px;
+  border-bottom: 1px solid rgba(205,167,88,.18);
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_header"] > div:first-child {
+  display: flex;
+  min-height: 210px;
+  flex-direction: column;
+  justify-content: flex-end;
+  max-width: none;
+  padding: 30px 34px;
+  border: 1px solid rgba(205,167,88,.24);
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, rgba(6,6,6,.96), rgba(6,6,6,.65)),
+    radial-gradient(circle at 80% 20%, rgba(205,167,88,.12), transparent 25rem),
+    #0c0b0a;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_header"] h1 {
+  max-width: 900px;
+  margin: 8px 0 12px;
+  color: #fffaf0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 5.2vw, 72px);
+  font-weight: 500;
+  letter-spacing: -.045em;
+  line-height: .98;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_header"] p,
+html[data-plotpickle-theme="dark"] [class*="learning-studio_sectionIntro"] p {
+  max-width: 820px;
+  color: #9c978e;
+  line-height: 1.65;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_header"] span,
+html[data-plotpickle-theme="dark"] [class*="learning-studio_position"] span,
+html[data-plotpickle-theme="dark"] [class*="learning-studio_courseStatus"] span,
+html[data-plotpickle-theme="dark"] [class*="learning-studio_anatomy"] span,
+html[data-plotpickle-theme="dark"] [class*="learning-studio_sectionIntro"] span,
+html[data-plotpickle-theme="dark"] [class*="learning-studio_moduleMeta"] span {
+  color: #cda758;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_licence"] {
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid rgba(205,167,88,.2);
+  border-radius: 0;
+  background: #0d0d0c;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_licence"] small {
+  color: #777269;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_viewTabs"] {
+  position: fixed;
+  z-index: 22;
+  top: 90px;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  width: 270px;
+  max-width: none;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 28px 18px;
+  border: 0;
+  border-right: 1px solid rgba(205,167,88,.16);
+  border-radius: 0;
+  background: #0a0a09;
+  box-shadow: none;
+  backdrop-filter: none;
+  overflow-y: auto;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_viewTabs"]::before {
+  display: block;
+  margin: 0 8px 16px;
+  color: #cda758;
+  content: "LEARN";
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .18em;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_viewTabs"] button {
+  min-height: 34px;
+  padding: 9px 10px;
+  border: 0;
+  border-left: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: #8d887e;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  text-align: left;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_viewTabs"] button:hover {
+  background: rgba(205,167,88,.04);
+  color: #eee9df;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_viewTabs"] [class*="active"] {
+  border-left-color: #cda758;
+  background: rgba(205,167,88,.06);
+  color: #d9bd78;
+  box-shadow: none;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_position"],
+html[data-plotpickle-theme="dark"] [class*="learning-studio_courseStatus"],
+html[data-plotpickle-theme="dark"] [class*="learning-studio_anatomy"] {
+  max-width: none;
+  margin: 18px 0 0;
+  border: 1px solid rgba(205,167,88,.16);
+  border-radius: 0;
+  background: #0c0c0b;
+  color: #dcd6ca;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_position"] {
+  grid-template-columns: minmax(0, 1fr) 210px 210px;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_position"] p,
+html[data-plotpickle-theme="dark"] [class*="learning-studio_position"] label {
+  color: #817b72;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_position"] select,
+html[data-plotpickle-theme="dark"] [class*="learning-studio_filters"] input {
+  border: 1px solid rgba(205,167,88,.22);
+  border-radius: 0;
+  background: #090909;
+  color: #ddd6c8;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_courseStatus"] {
+  grid-template-columns: 280px minmax(180px,1fr) 54px;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_progressTrack"] {
+  height: 4px;
+  border-radius: 0;
+  background: #201d18;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_progressTrack"] i {
+  border-radius: 0;
+  background: #cda758;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_anatomy"] {
+  grid-template-columns: 250px minmax(0, 1fr);
+  padding: 18px 20px;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_anatomy"] li {
+  color: #aaa398;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_anatomy"] li b {
+  border: 1px solid rgba(205,167,88,.24);
+  border-radius: 0;
+  background: #090909;
+  color: #cda758;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_guidance"],
+html[data-plotpickle-theme="dark"] [class*="learning-studio_library"] {
+  max-width: none;
+  margin: 34px 0 0;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_sectionIntro"] {
+  max-width: 920px;
+  margin: 0 0 18px;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_sectionIntro"] h2 {
+  margin: 5px 0 8px;
+  color: #f4efe6;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+  font-weight: 500;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_recommendedGrid"],
+html[data-plotpickle-theme="dark"] [class*="learning-studio_moduleGrid"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_moduleCard"] {
+  min-height: 220px;
+  padding: 18px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 0;
+  background: #0f0f0e;
+  color: #d8d2c7;
+  box-shadow: none;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_moduleCard"]:hover,
+html[data-plotpickle-theme="dark"] [class*="learning-studio_moduleCard"][class*="recommended"] {
+  border-color: rgba(205,167,88,.5);
+  box-shadow: none;
+  transform: none;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_moduleCard"] h3 {
+  color: #f0ebe1;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_moduleCard"] p,
+html[data-plotpickle-theme="dark"] [class*="learning-studio_moduleCard"] small {
+  color: #888177;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_moduleMeta"] strong {
+  border-radius: 0;
+  background: rgba(205,167,88,.1);
+  color: #d9bd78;
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_cardActions"] button,
+html[data-plotpickle-theme="dark"] [class*="learning-studio_browseAll"] {
+  border: 1px solid rgba(205,167,88,.34);
+  border-radius: 0;
+  background: transparent;
+  color: #d9bd78;
+  font-family: var(--font-mono);
+}
+
+html[data-plotpickle-theme="dark"] [class*="learning-studio_filters"] {
+  border-color: rgba(205,167,88,.14);
+  background: #0b0b0a;
+}
+
+@media (max-width: 1450px) {
+  html[data-plotpickle-theme="dark"] [class*="learning-studio_page"] { padding-left: 250px; padding-right: 22px; }
+  html[data-plotpickle-theme="dark"] [class*="learning-studio_viewTabs"] { width: 226px; }
+  html[data-plotpickle-theme="dark"] [class*="learning-studio_moduleGrid"],
+  html[data-plotpickle-theme="dark"] [class*="learning-studio_recommendedGrid"] { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}

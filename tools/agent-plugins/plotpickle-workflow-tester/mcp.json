@@ -3,8 +3,9 @@
   "mcpServers": {
     "playwright": {
       "type": "stdio",
-      "command": "npx",
+      "command": "node",
       "args": [
+        "${PLUGIN_ROOT}/../../../scripts/run-npx-stdio.mjs",
         "-y",
         "@playwright/mcp@0.0.78",
         "--headless",

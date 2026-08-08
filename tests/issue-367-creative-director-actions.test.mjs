@@ -9,11 +9,14 @@ const storyboardStyles = fs.readFileSync(new URL("../app/visual-storyboard.modul
 const project = fs.readFileSync(new URL("../lib/project.ts", import.meta.url), "utf8");
 const workflow = fs.readFileSync(new URL("../.github/workflows/creative-director-actions.yml", import.meta.url), "utf8");
 
-test("Creative Director actions keep story and intent ahead of provider configuration", () => {
+test("Creative Director actions keep story decisions ahead of provider configuration", () => {
   assert.match(source, /storyMoment/);
-  assert.match(source, /"Illustrate"/);
-  assert.match(source, /"Animate"/);
-  assert.match(source, /Advanced direction/);
+  assert.match(source, />Keep</);
+  assert.match(source, />Change</);
+  assert.match(source, />Try Again</);
+  assert.match(source, />Compare</);
+  assert.match(source, /Animate approved visual/);
+  assert.match(source, /Change direction \/ Advanced/);
   assert.match(source, /Generation and routing details stay out of the creative flow/);
   assert.match(source, />Open Settings</);
   assert.doesNotMatch(source, /OpenAI|Ollama|ComfyUI|MiniMax/);
@@ -26,7 +29,7 @@ test("Creative Director actions expose plain-language recovery and accessible st
   assert.match(source, /generation job/);
   assert.match(source, /role="status"/);
   assert.match(source, /<fieldset className={styles\.actions}>/);
-  assert.match(source, /<legend className={styles\.actionLegend}>Direct this story moment<\/legend>/);
+  assert.match(source, /<legend className={styles\.actionLegend}>Decide what happens to this visual<\/legend>/);
   assert.doesNotMatch(source, /role="group"/);
   assert.match(source, /<figure className={styles\.preview}>/);
   assert.match(source, /<p className={styles\.empty}>/);
@@ -45,7 +48,7 @@ test("Creative Director actions protect responsive, focus, reduced-motion and fo
   assert.match(styles, /min-inline-size:0/);
 });
 
-test("Creative Director actions are the primary Storyboard inspector flow", () => {
+test("Creative Director actions remain the primary Storyboard inspector flow", () => {
   assert.match(storyboard, /<CreativeDirectorActions/);
   assert.match(storyboard, /storyMoment=/);
   assert.match(storyboard, /onIllustrate=\{\(\) => void generateImage\(\)\}/);

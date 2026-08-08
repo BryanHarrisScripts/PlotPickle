@@ -1,410 +1,453 @@
 .page {
   width: 100%;
   min-height: calc(100vh - 96px);
-  padding: 34px clamp(28px, 4vw, 70px) 44px;
+  padding: 30px clamp(24px, 3.2vw, 54px) 42px;
   color: #f4efe6;
   background:
-    radial-gradient(circle at 12% 8%, rgba(196, 156, 78, 0.06), transparent 26rem),
-    linear-gradient(180deg, #090909 0%, #0b0b0b 52%, #080808 100%);
+    radial-gradient(circle at 12% 6%, rgba(205, 167, 88, 0.07), transparent 25rem),
+    linear-gradient(180deg, #090909 0%, #0c0c0b 50%, #080808 100%);
   font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
-}
-
-.studioHeader {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 40px;
-  align-items: end;
-  max-width: 1760px;
-  margin: 0 auto 32px;
-  padding-bottom: 26px;
-  border-bottom: 1px solid rgba(205, 167, 88, 0.24);
 }
 
 .kicker {
   margin: 0 0 8px;
   color: #cda758;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
-.studioHeader h1 {
+.planHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 30px;
+  align-items: end;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.24);
+}
+
+.planHeader h1 {
   margin: 0;
   color: #fffaf0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(54px, 7vw, 94px);
+  font-size: clamp(42px, 5.4vw, 76px);
   font-weight: 500;
-  letter-spacing: -0.055em;
-  line-height: 0.92;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
 }
 
-.lede {
-  max-width: 860px;
-  margin: 18px 0 0;
-  color: #9c978e;
-  font-size: 13px;
+.storyPromise {
+  max-width: 900px;
+  margin: 14px 0 0;
+  color: #aaa297;
+  font-size: 12px;
   line-height: 1.7;
 }
 
-.studioActions,
-.storyActions,
-.dashboardFooter div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.studioActions button,
-.storyActions button,
-.cardFooter button,
-.dashboardFooter button {
-  min-height: 42px;
-  padding: 10px 14px;
-  border: 1px solid rgba(205, 167, 88, 0.32);
-  background: transparent;
-  color: #e7dbc0;
-  font: inherit;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-}
-
-.primaryAction,
-.cardFooter button {
-  border-color: #cda758 !important;
-  background: #cda758 !important;
-  color: #0a0907 !important;
-}
-
-.library,
-.storyStatus,
-.workflowStrip,
-.dashboardFooter {
-  max-width: 1760px;
-  margin-inline: auto;
-}
-
-.library {
-  margin-bottom: 34px;
-}
-
-.sectionTitle {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 28px;
-  margin-bottom: 16px;
-}
-
-.sectionTitle h2,
-.storyIdentity h2 {
-  margin: 0;
-  color: #f4efe6;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 30px;
-  font-weight: 500;
-}
-
-.sectionTitle > span {
-  color: #706c65;
-  font-size: 10px;
-}
-
-.posterGrid {
+.headerContext {
   display: grid;
-  grid-template-columns: repeat(2, minmax(320px, 1fr));
-  gap: 18px;
+  min-width: 230px;
+  gap: 5px;
+  padding: 16px 18px;
+  border: 1px solid #2a261f;
+  background: #10100e;
 }
 
-.storyCard {
+.headerContext span,
+.headerContext small {
+  color: #736d63;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.headerContext strong {
+  color: #d8b563;
+  font-size: 12px;
+}
+
+.intentionGrid {
   display: grid;
-  grid-template-columns: minmax(220px, 0.95fr) minmax(260px, 1.05fr);
-  min-height: 330px;
-  overflow: hidden;
-  border: 1px solid #26231e;
+  grid-template-columns: 1fr 1fr 0.82fr;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.directionCard {
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid #29251f;
   background: #10100f;
 }
 
-.currentStory {
-  border-color: rgba(205, 167, 88, 0.42);
-}
-
-.poster {
-  position: relative;
-  min-height: 330px;
-  overflow: hidden;
-  background: #15130f;
-}
-
-.poster img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: saturate(0.85) contrast(1.04);
-}
-
-.poster::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.58));
-  pointer-events: none;
-}
-
-.posterPlaceholder,
-.afterglowArt,
-.emptyPoster {
-  display: grid;
-  height: 100%;
-  min-height: 330px;
-  place-content: center;
-  text-align: center;
-}
-
-.posterPlaceholder {
-  background:
-    radial-gradient(circle at 50% 22%, rgba(205, 167, 88, 0.16), transparent 16rem),
-    linear-gradient(145deg, #171510, #0a0a09);
-}
-
-.posterPlaceholder span {
-  max-width: 14ch;
-  color: #ded2b8;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 34px;
-}
-
-.afterglowArt {
-  background:
-    linear-gradient(180deg, rgba(11, 10, 8, 0.1), rgba(7, 6, 5, 0.65)),
-    radial-gradient(circle at 55% 20%, rgba(226, 190, 109, 0.22), transparent 14rem),
-    linear-gradient(145deg, #262018, #0b0b0b 65%);
-}
-
-.afterglowArt span {
-  color: #e1bd6b;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(34px, 4vw, 58px);
-  letter-spacing: 0.08em;
-}
-
-.afterglowArt small {
-  margin-top: 8px;
-  color: #8e7d5b;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.emptyPoster {
-  color: #cda758;
-  font-size: 74px;
-  background: repeating-linear-gradient(135deg, #111, #111 12px, #0d0d0d 12px, #0d0d0d 24px);
-}
-
-.currentBadge,
-.exampleBadge {
-  position: absolute;
-  z-index: 2;
-  top: 14px;
-  left: 14px;
-  padding: 7px 9px;
-  border: 1px solid rgba(205, 167, 88, 0.48);
-  background: rgba(7, 7, 6, 0.82);
-  color: #d7b668;
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.storyMeta {
-  display: grid;
-  align-content: center;
-  min-width: 0;
-  padding: clamp(24px, 3vw, 42px);
-}
-
-.storyMeta h3 {
+.directionCard h2,
+.sectionHeading h2,
+.selectedStory h2 {
   margin: 0;
-  color: #fffaf0;
+  color: #f5efe3;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 36px;
   font-weight: 500;
 }
 
-.storyMeta > p:not(.kicker),
-.storyIdentity > p:not(.kicker) {
-  color: #8d887f;
-  font-size: 11px;
-  line-height: 1.7;
+.directionCard h2 {
+  font-size: 23px;
 }
 
-.cardFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  margin-top: 22px;
-  padding-top: 18px;
-  border-top: 1px solid #28241d;
+.directionCard > p:not(.kicker),
+.selectedStory > p:not(.kicker),
+.miniPanel > p {
+  color: #8e887e;
+  font-size: 10px;
+  line-height: 1.65;
 }
 
-.cardFooter > span {
-  color: #756c5c;
+.nextCard {
+  border-color: rgba(205, 167, 88, 0.42);
+  background: linear-gradient(145deg, #17140d, #0f0f0e 70%);
+}
+
+.directionCard button,
+.textAction,
+.blockActions button,
+.planFooter button {
+  min-height: 38px;
+  margin-top: 10px;
+  padding: 9px 12px;
+  border: 1px solid rgba(205, 167, 88, 0.3);
+  background: transparent;
+  color: #dfd1b2;
+  font: inherit;
   font-size: 9px;
-  text-transform: uppercase;
+  font-weight: 800;
+  cursor: pointer;
 }
 
-.storyStatus {
+.primaryAction {
+  border-color: #cda758 !important;
+  background: #cda758 !important;
+  color: #090806 !important;
+}
+
+.groupSection,
+.architectureSection,
+.selectedUnit,
+.planFooter {
+  margin-top: 24px;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 12px;
+}
+
+.sectionHeading h2 {
+  font-size: 28px;
+}
+
+.sectionHeading > span {
+  color: #6f6a61;
+  font-size: 9px;
+}
+
+.groupGrid {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(520px, 1.2fr);
-  gap: 18px;
-  margin-bottom: 26px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border: 1px solid #28241e;
+  background: #0d0d0c;
 }
 
-.storyIdentity,
-.architecture {
-  border: 1px solid #28241d;
+.groupCard {
+  display: grid;
+  min-width: 0;
+  min-height: 160px;
+  align-content: start;
+  padding: 18px;
+  border: 0;
+  border-right: 1px solid #28241e;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.groupCard:last-child {
+  border-right: 0;
+}
+
+.groupCard:hover,
+.groupCard:focus-visible {
+  background: #15130e;
+  outline: none;
+}
+
+.groupCard > span {
+  color: #655e52;
+  font-size: 9px;
+}
+
+.groupCard > strong {
+  margin-top: 9px;
+  color: #e0d4bd;
+  font-size: 12px;
+}
+
+.groupCard > p {
+  min-height: 48px;
+  color: #777168;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.groupCard > div {
+  position: relative;
+  height: 3px;
+  margin-top: auto;
+  background: #27231d;
+}
+
+.groupCard > div i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: block;
+  background: #b69043;
+}
+
+.groupCard > div small {
+  position: absolute;
+  right: 0;
+  bottom: 7px;
+  color: #746b5b;
+  font-size: 8px;
+}
+
+.architectureSection {
+  padding: 22px;
+  border: 1px solid #29251f;
   background: #0e0e0d;
-  padding: 28px;
 }
 
-.architecture {
-  display: grid;
-  align-content: center;
-  gap: 18px;
+.textAction {
+  margin: 0;
 }
 
-.architectureTop,
-.positionLine {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.architectureTop span,
-.positionLine span,
-.positionLine small {
-  color: #766f62;
-  font-size: 9px;
-  text-transform: uppercase;
-}
-
-.architectureTop strong,
-.positionLine strong {
-  color: #d7b668;
-  font-size: 11px;
-}
-
-.actRail {
+.actGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 
-.actRail > div {
-  padding: 12px;
-  border: 1px solid #2a2721;
-  background: #11100e;
+.actCard {
+  padding: 14px;
+  border: 1px solid #2a261f;
+  background: #11110f;
 }
 
-.actRail > div > span {
-  color: #777168;
+.activeAct {
+  border-color: #a8833e;
+  background: #17140d;
+  box-shadow: inset 0 0 0 1px rgba(205, 167, 88, 0.08);
+}
+
+.actHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.actHeading span {
+  color: #d4ad5c;
   font-size: 9px;
   font-weight: 800;
 }
 
-.actRail .activeAct {
-  border-color: #b69043;
-  background: #17140d;
-}
-
-.actRail .activeAct > span {
-  color: #e0bb67;
-}
-
-.blockDots {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 5px;
-  margin-top: 10px;
-}
-
-.blockDots i {
-  height: 4px;
-  background: #3a352d;
-}
-
-.activeAct .blockDots i {
-  background: #8e7139;
-}
-
-.workflowStrip {
-  display: grid;
-  grid-template-columns: repeat(11, minmax(88px, 1fr));
-  margin-bottom: 24px;
-  border: 1px solid #24211c;
-  background: #0c0c0b;
-}
-
-.workflowStrip > div {
-  min-width: 0;
-  padding: 14px 12px;
-  border-right: 1px solid #24211c;
-}
-
-.workflowStrip > div:last-child {
-  border-right: 0;
-}
-
-.workflowStrip span {
-  display: block;
-  color: #5c574f;
+.actHeading small {
+  color: #676159;
   font-size: 8px;
 }
 
-.workflowStrip strong {
-  display: block;
-  overflow: hidden;
-  margin-top: 3px;
-  color: #8b857b;
-  font-size: 9px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.blockGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 14px;
 }
 
-.workflowActive {
-  background: #18150e;
+.blockGrid button {
+  display: grid;
+  min-width: 0;
+  min-height: 48px;
+  place-items: center;
+  gap: 5px;
+  padding: 6px 3px;
+  border: 1px solid #2e2a23;
+  background: #0d0d0c;
+  color: #716b62;
+  font: inherit;
+  font-size: 8px;
+  cursor: pointer;
 }
 
-.workflowActive span,
-.workflowActive strong {
-  color: #d4ad5c !important;
+.blockGrid button:hover,
+.blockGrid button:focus-visible {
+  border-color: #7e6534;
+  color: #d7b668;
+  outline: none;
 }
 
-.dashboardFooter {
+.blockGrid button i {
+  width: 70%;
+  height: 3px;
+  background: #343029;
+}
+
+.startedBlock {
+  color: #b7aa91 !important;
+}
+
+.startedBlock i {
+  background: #746039 !important;
+}
+
+.activeBlock {
+  border-color: #cda758 !important;
+  background: #1a160e !important;
+  color: #efc96e !important;
+}
+
+.activeBlock i {
+  background: #cda758 !important;
+}
+
+.selectedUnit {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(480px, 1.08fr);
+  gap: 12px;
+}
+
+.selectedStory,
+.miniPanel {
+  padding: 24px;
+  border: 1px solid #29251f;
+  background: #10100f;
+}
+
+.selectedStory h2 {
+  font-size: 28px;
+}
+
+.blockActions,
+.planFooter div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.miniHeading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  padding-top: 18px;
-  border-top: 1px solid #24211c;
-  color: #68635b;
+  gap: 14px;
+  color: #827b70;
   font-size: 9px;
+  text-transform: uppercase;
 }
 
-@media (max-width: 1180px) {
-  .studioHeader,
-  .storyStatus {
+.miniHeading strong {
+  color: #d3ad5b;
+}
+
+.miniGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.miniGrid > div {
+  display: grid;
+  gap: 6px;
+  min-height: 92px;
+  align-content: center;
+  padding: 12px;
+  border: 1px solid #2a261f;
+  background: #0c0c0b;
+}
+
+.miniGrid span {
+  color: #5f5a52;
+  font-size: 8px;
+}
+
+.miniGrid strong {
+  color: #b6aa93;
+  font-size: 10px;
+}
+
+.miniGrid small {
+  color: #666057;
+  font-size: 8px;
+}
+
+.miniStarted {
+  border-color: #796335 !important;
+  background: #15130e !important;
+}
+
+.miniStarted strong {
+  color: #dfbd6e;
+}
+
+.planFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #25221d;
+  color: #686259;
+  font-size: 8px;
+  letter-spacing: 0.03em;
+}
+
+@media (max-width: 1260px) {
+  .intentionGrid,
+  .selectedUnit {
     grid-template-columns: 1fr;
   }
-  .posterGrid {
+
+  .groupGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .groupCard {
+    border-bottom: 1px solid #28241e;
+  }
+
+  .actGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .planHeader,
+  .sectionHeading,
+  .planFooter {
+    display: grid;
     grid-template-columns: 1fr;
   }
-  .workflowStrip {
-    grid-template-columns: repeat(6, 1fr);
+
+  .groupGrid,
+  .actGrid,
+  .miniGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .groupCard {
+    border-right: 0;
   }
 }

@@ -68,21 +68,24 @@ test("#488 Codex adapter expands Agent Plugins runtime paths and keeps the agent
   assert.match(adapter, /mcp\.json/);
   assert.match(adapter, /replaceAll\("\$\{PLUGIN_ROOT\}"/);
   assert.match(adapter, /replaceAll\("\$\{PLUGIN_DATA\}"/);
-  assert.match(adapter, /approval_policy = \\"never\\"/);
-  assert.match(adapter, /sandbox_mode = \\"read-only\\"/);
+  assert.match(adapter, /approval_policy = \"never\"/);
+  assert.match(adapter, /sandbox_mode = \"read-only\"/);
   assert.match(adapter, /\[mcp_servers\.playwright\]/);
 });
 
-test("#488 autonomous workflow is manual-only and preserves evidence", async () => {
+test("#488 autonomous workflow is deliberate, first-run bounded and preserves evidence", async () => {
   const workflow = await readRepo(".github/workflows/agent-human-acceptance.yml");
   assert.match(workflow, /workflow_dispatch:/);
   assert.doesNotMatch(workflow, /pull_request:/);
   assert.doesNotMatch(workflow, /schedule:/);
+  assert.match(workflow, /push:\s*[\s\S]*branches:\s*[\s\S]*- main[\s\S]*paths:\s*[\s\S]*agent-human-acceptance\.yml/);
   assert.match(workflow, /OPENAI_API_KEY/);
   assert.match(workflow, /codex exec --json --sandbox read-only/);
   assert.match(workflow, /Playwright MCP browser server/);
   assert.match(workflow, /acceptance-report\.md/);
   assert.match(workflow, /codex-trace\.jsonl/);
-  assert.match(workflow, /actions\/upload-artifact@v4/);
+  assert.match(workflow, /actions\/checkout@[0-9a-f]{40}/);
+  assert.match(workflow, /actions\/setup-node@[0-9a-f]{40}/);
+  assert.match(workflow, /actions\/upload-artifact@[0-9a-f]{40}/);
   assert.match(workflow, /Do not fix issues during this run/);
 });

@@ -40,3 +40,18 @@ test("local UAT stores Codex work outside the Vite repository tree and keeps fai
   assert.match(runner, /Codex UAT agent exited with code/);
   assert.match(runner, /Read-Host "Press Enter to close the UAT window"/);
 });
+
+test("local UAT prefers the user's existing Codex ChatGPT login", () => {
+  assert.match(runner, /login status/);
+  assert.match(runner, /Logged in using ChatGPT/);
+  assert.match(runner, /Copy-Item -Force \$normalAuthPath \$tempAuthPath/);
+  assert.match(runner, /Remove-Item Env:OPENAI_API_KEY/);
+  assert.match(runner, /Authentication: ChatGPT login detected/);
+});
+
+test("local UAT refuses implicit API-key billing and cleans temporary credentials", () => {
+  assert.match(runner, /PLOTPICKLE_UAT_ALLOW_API_KEY/);
+  assert.match(runner, /will not use billable API-key auth by default/);
+  assert.match(runner, /Clear-UatAuth/);
+  assert.match(runner, /Remove-Item -Force \$script:tempAuthPath/);
+});

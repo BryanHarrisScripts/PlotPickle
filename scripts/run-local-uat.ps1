@@ -17,20 +17,39 @@ $pluginData = Join-Path $artifactRoot "agent-plugin"
 $reportPath = Join-Path $artifactRoot "acceptance-report.md"
 $tracePath = Join-Path $artifactRoot "codex-trace.jsonl"
 $logPath = Join-Path $artifactRoot "local-uat.log"
+$tempAuthPath = Join-Path $codexHome "auth.json"
+$originalCodexHome = $env:CODEX_HOME
+$normalCodexHome = if ($originalCodexHome) { $originalCodexHome } else { Join-Path $env:USERPROFILE ".codex" }
+$normalAuthPath = Join-Path $normalCodexHome "auth.json"
+$originalApiKey = $env:OPENAI_API_KEY
+$copiedAuth = $false
 
 New-Item -ItemType Directory -Force -Path $artifactRoot | Out-Null
-$env:CODEX_HOME = $codexHome
-$env:PLOTPICKLE_AGENT_PLUGIN_DATA = $pluginData
-$env:PLOTPICKLE_ACCEPTANCE_URL = $BaseUrl
-$env:PLOTPICKLE_ACCEPTANCE_SCOPE = $Scope
 
 function Write-UatStatus([string]$Message) {
   Write-Host $Message
   Add-Content -Path $logPath -Value "[$(Get-Date -Format o)] $Message"
 }
 
+function Clear-UatAuth {
+  if ($script:copiedAuth -and (Test-Path $script:tempAuthPath)) {
+    Remove-Item -Force $script:tempAuthPath -ErrorAction SilentlyContinue
+  }
+  if ($null -eq $script:originalApiKey) {
+    Remove-Item Env:OPENAI_API_KEY -ErrorAction SilentlyContinue
+  } else {
+    $env:OPENAI_API_KEY = $script:originalApiKey
+  }
+  if ($null -eq $script:originalCodexHome) {
+    Remove-Item Env:CODEX_HOME -ErrorAction SilentlyContinue
+  } else {
+    $env:CODEX_HOME = $script:originalCodexHome
+  }
+}
+
 function Stop-Uat([string]$Message, [int]$Code = 1) {
   Write-UatStatus "FAIL: $Message"
+  Clear-UatAuth
   Write-Host ""
   Write-Host "Log:    $logPath"
   Write-Host "Trace:  $tracePath"
@@ -70,6 +89,54 @@ if ((Get-Date) -ge $deadline) {
   Stop-Uat "PlotPickle did not become ready within 90 seconds."
 }
 
+$codex = Get-Command codex -ErrorAction SilentlyContinue
+if (-not $codex) {
+  $npx = Get-Command npx -ErrorAction SilentlyContinue
+  if (-not $npx) {
+    Stop-Uat "Neither codex nor npx is available. Install Codex CLI and sign in with ChatGPT."
+  }
+  Write-UatStatus "Codex CLI is not installed globally. Preparing the current Codex CLI with npx for authentication check."
+  $codexCommand = $npx.Source
+  $codexPrefix = @("--yes", "@openai/codex")
+} else {
+  $codexCommand = $codex.Source
+  $codexPrefix = @()
+}
+
+# Check authentication against the user's normal Codex profile before switching
+# to PlotPickle's isolated UAT CODEX_HOME.
+$env:CODEX_HOME = $normalCodexHome
+$authOutput = (& $codexCommand @codexPrefix login status 2>&1 | Out-String).Trim()
+$authExitCode = $LASTEXITCODE
+Write-UatStatus "Codex authentication check: $authOutput"
+
+if ($authExitCode -ne 0 -or $authOutput -match "Not logged in") {
+  Stop-Uat "Codex is not signed in. Run 'codex --login' once and choose Sign in with ChatGPT, then start PlotPickle and choose Y again."
+}
+
+if ($authOutput -match "Logged in using ChatGPT") {
+  if (-not (Test-Path $normalAuthPath)) {
+    Stop-Uat "Codex reports a ChatGPT login, but its reusable local auth file was not found at $normalAuthPath. Run 'codex --login' once to refresh the local login."
+  }
+  New-Item -ItemType Directory -Force -Path $codexHome | Out-Null
+  Copy-Item -Force $normalAuthPath $tempAuthPath
+  $copiedAuth = $true
+  Remove-Item Env:OPENAI_API_KEY -ErrorAction SilentlyContinue
+  Write-UatStatus "Authentication: ChatGPT login detected and isolated for this UAT run."
+} elseif ($authOutput -match "Logged in using an API key") {
+  if ($env:PLOTPICKLE_UAT_ALLOW_API_KEY -ne "1") {
+    Stop-Uat "Codex is currently using API-key authentication. PlotPickle UAT will not use billable API-key auth by default. Run 'codex logout' followed by 'codex --login' and choose Sign in with ChatGPT."
+  }
+  Write-UatStatus "Authentication: API-key mode explicitly allowed by PLOTPICKLE_UAT_ALLOW_API_KEY=1."
+} else {
+  Stop-Uat "Codex authentication mode was not recognized: $authOutput"
+}
+
+$env:CODEX_HOME = $codexHome
+$env:PLOTPICKLE_AGENT_PLUGIN_DATA = $pluginData
+$env:PLOTPICKLE_ACCEPTANCE_URL = $BaseUrl
+$env:PLOTPICKLE_ACCEPTANCE_SCOPE = $Scope
+
 Write-UatStatus "Preparing Agent Plugins and Playwright MCP."
 node "scripts\prepare-agent-plugin-runner.mjs" | Out-Null
 if ($LASTEXITCODE -ne 0) {
@@ -91,16 +158,11 @@ For smoke scope, complete splash/dashboard, project safety, Plan -> Storyboard -
 Take screenshots at major screens and on every WARN or FAIL. Judge usability as well as technical function. End with a structured PASS/WARN/FAIL report including reproduction steps, story position, screenshot names and console/runtime errors. Do not fix issues during this run.
 "@
 
-$codex = Get-Command codex -ErrorAction SilentlyContinue
 if ($codex) {
   $command = $codex.Source
   $arguments = @("exec", "--json", "--sandbox", "read-only", "--output-last-message", $reportPath, $prompt)
 } else {
-  $npx = Get-Command npx -ErrorAction SilentlyContinue
-  if (-not $npx) {
-    Stop-Uat "Neither codex nor npx is available."
-  }
-  $command = $npx.Source
+  $command = $codexCommand
   $arguments = @("--yes", "@openai/codex", "exec", "--json", "--sandbox", "read-only", "--output-last-message", $reportPath, $prompt)
 }
 
@@ -140,6 +202,7 @@ $(Get-Content -Raw $reportPath)
   }
 }
 
+Clear-UatAuth
 Write-Host ""
 Write-Host "Report: $reportPath"
 Write-Host "Trace:  $tracePath"

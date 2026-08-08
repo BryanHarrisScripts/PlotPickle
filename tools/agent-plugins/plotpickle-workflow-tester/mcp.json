@@ -1,0 +1,25 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@0.0.78",
+        "--headless",
+        "--isolated",
+        "--console-level",
+        "warning",
+        "--output-dir",
+        "${PLUGIN_DATA}/artifacts",
+        "--allowed-origins",
+        "http://127.0.0.1:*;http://localhost:*"
+      ],
+      "env": {
+        "PLOTPICKLE_ACCEPTANCE_MODE": "1"
+      },
+      "cwd": "${PLUGIN_ROOT}"
+    }
+  }
+}

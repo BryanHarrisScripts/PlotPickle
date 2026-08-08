@@ -9,12 +9,13 @@ const storyboardStyles = fs.readFileSync(new URL("../app/visual-storyboard.modul
 const project = fs.readFileSync(new URL("../lib/project.ts", import.meta.url), "utf8");
 const workflow = fs.readFileSync(new URL("../.github/workflows/creative-director-actions.yml", import.meta.url), "utf8");
 
-test("Creative Director actions keep story and intent ahead of provider configuration", () => {
+test("Creative Director actions keep story and human decisions ahead of provider configuration", () => {
   assert.match(source, /storyMoment/);
-  assert.match(source, /"Illustrate"/);
-  assert.match(source, /"Animate"/);
-  assert.match(source, /Advanced direction/);
-  assert.match(source, /Generation and routing details stay out of the creative flow/);
+  for (const decision of ["Keep", "Change Direction", "Try Again", "Compare"]) assert.match(source, new RegExp(decision));
+  assert.match(source, /Illustrate this moment/);
+  assert.match(source, /Animate approved image/);
+  assert.match(source, /Creative direction/);
+  assert.match(source, /Technical routing stays in Settings/);
   assert.match(source, />Open Settings</);
   assert.doesNotMatch(source, /OpenAI|Ollama|ComfyUI|MiniMax/);
 });
@@ -25,24 +26,27 @@ test("Creative Director actions expose plain-language recovery and accessible st
   assert.match(source, /generation request/);
   assert.match(source, /generation job/);
   assert.match(source, /role="status"/);
-  assert.match(source, /<fieldset className={styles\.actions}>/);
-  assert.match(source, /<legend className={styles\.actionLegend}>Direct this story moment<\/legend>/);
+  assert.match(source, /<fieldset className=\{styles\.decisions\}>/);
+  assert.match(source, /<legend>What do you want to do with this visual\?<\/legend>/);
+  assert.match(source, /<fieldset className=\{styles\.generationActions\}>/);
+  assert.match(source, /<legend className=\{styles\.actionLegend\}>Create another visual version<\/legend>/);
   assert.doesNotMatch(source, /role="group"/);
-  assert.match(source, /<figure className={styles\.preview}>/);
-  assert.match(source, /<p className={styles\.empty}>/);
-  assert.doesNotMatch(source, /<div className={styles\.empty}>/);
-  assert.doesNotMatch(source, /<figcaption className={styles\.empty}>/);
-  assert.match(source, /disabled={busy}/);
+  assert.match(source, /<figure className=\{styles\.preview\}>/);
+  assert.match(source, /<p className=\{styles\.empty\}>/);
+  assert.doesNotMatch(source, /<div className=\{styles\.empty\}>/);
+  assert.doesNotMatch(source, /<figcaption className=\{styles\.empty\}>/);
+  assert.match(source, /disabled=\{busy\}/);
 });
 
 test("Creative Director actions protect responsive, focus, reduced-motion and forced-colour behaviour", () => {
-  assert.match(styles, /@media\(max-width:720px\)/);
+  assert.match(styles, /@media \(max-width: 720px\)/);
   assert.match(styles, /:focus-visible/);
-  assert.match(styles, /@media\(prefers-reduced-motion:reduce\)/);
-  assert.match(styles, /@media\(forced-colors:active\)/);
-  assert.match(styles, /min-height:44px/);
-  assert.match(styles, /\.actionLegend\{position:absolute/);
-  assert.match(styles, /min-inline-size:0/);
+  assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(styles, /@media \(forced-colors: active\)/);
+  assert.match(styles, /min-height: 44px/);
+  assert.match(styles, /\.actionLegend\s*\{[\s\S]*position:\s*absolute/);
+  assert.match(styles, /min-inline-size:\s*0/);
+  assert.match(styles, /\.decisions\s*\{[\s\S]*grid-template-columns:\s*repeat\(4/);
 });
 
 test("Creative Director actions are the primary Storyboard inspector flow", () => {
@@ -66,6 +70,8 @@ test("Storyboard illustration and animation remain reviewable versions", () => {
   assert.match(storyboard, /A new image version is ready/);
   assert.match(storyboard, /A new video version is ready/);
   assert.match(storyboard, /Versions attached to this story moment/);
+  assert.match(source, /approveButton\.click\(\)/);
+  assert.doesNotMatch(source, /approvedImageVersionId|approvedVideoVersionId|setProject/);
 });
 
 test("Animate starts from the approved image and polls the configured video route", () => {

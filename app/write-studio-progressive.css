@@ -1,0 +1,30 @@
+/* Issue #461 — progressive disclosure for advanced Write controls.
+   Export and production-draft functions remain mounted and unchanged; they are
+   revealed only when the writer deliberately opens More writing tools. */
+
+.workspace[data-write-studio="true"] [class*="exportActions"],
+.workspace[data-write-studio="true"] [class*="productionDraftPanel"] {
+  display: none !important;
+}
+
+.workspace[data-write-studio="true"] [class*="writerHeader"] {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.workspace[data-write-studio="true"][data-write-advanced="open"] [class*="exportActions"] {
+  display: flex !important;
+}
+
+.workspace[data-write-studio="true"][data-write-advanced="open"] [class*="productionDraftPanel"] {
+  display: block !important;
+}
+
+.workspace[data-write-studio="true"][data-write-advanced="open"] [class*="writerHeader"] {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+}
+
+@media (max-width: 760px) {
+  .workspace[data-write-studio="true"][data-write-advanced="open"] [class*="writerHeader"] {
+    grid-template-columns: 1fr !important;
+  }
+}

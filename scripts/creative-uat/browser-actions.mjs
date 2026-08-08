@@ -1,0 +1,166 @@
+import { consoleHasErrors, delay, extractPageState, extractRef, resultText, slug, toolArguments } from "./mcp-runtime.mjs";
+
+export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, evidence }) {
+  const toolMap = new Map(tools.map((tool) => [tool.name, tool]));
+  const has = (name) => toolMap.has(name);
+  for (const required of ["browser_navigate", "browser_snapshot", "browser_click", "browser_evaluate", "browser_take_screenshot"]) {
+    if (!has(required)) throw new Error(`Playwright MCP is missing required tool ${required}.`);
+  }
+
+  const navigate = async (url) => client.call("browser_navigate", { url });
+  const snapshot = async () => resultText(await client.call("browser_snapshot", {}));
+  const evaluate = async (fn) => extractPageState(resultText(await client.call("browser_evaluate", { function: fn })));
+  const currentState = async () => evaluate(`() => {
+    let project = null;
+    try { project = JSON.parse(localStorage.getItem('plotpickle.project.v1') || 'null'); } catch {}
+    const active = document.querySelector('[data-workspace-active="true"]');
+    return {
+      url: location.href,
+      activeId: active?.getAttribute('data-workspace-id') || '',
+      title: project?.metadata?.title || '',
+      updatedAt: project?.metadata?.updatedAt || '',
+      characterCount: project?.characters?.length || 0,
+      locationCount: project?.world?.locations?.length || 0,
+      blockTitle: project?.blocks?.[0]?.title || '',
+      blockSummary: project?.blocks?.[0]?.summary || '',
+      screenplayCount: project?.screenplay?.draftElements?.length || 0,
+      graphicNovelPanels: project?.review?.pitchPackage?.comicDeck?.panels?.length || 0,
+      reviewThreads: project?.review?.threads?.length || 0,
+      bodyText: (document.body.innerText || '').slice(0, 10000)
+    };
+  }`);
+
+  const consoleMessages = async () => {
+    if (!has("browser_console_messages")) return "";
+    try {
+      return resultText(await client.call("browser_console_messages", toolArguments(toolMap.get("browser_console_messages"), { level: "error", all: false })));
+    } catch {
+      return "";
+    }
+  };
+
+  const screenshot = async (name) => client.call(
+    "browser_take_screenshot",
+    toolArguments(toolMap.get("browser_take_screenshot"), { type: "png", filename: `creative-writer/${name}.png`, fullPage: true }),
+  );
+
+  async function clickVisible(label, roles = ["button", "link", "tab"]) {
+    const snap = await snapshot();
+    const ref = extractRef(snap, label, roles);
+    if (!ref) return false;
+    const tool = toolMap.get("browser_click");
+    const props = tool?.inputSchema?.properties || {};
+    const values = { element: `${label} visible control` };
+    if ("ref" in props) values.ref = ref;
+    else if ("target" in props) values.target = ref;
+    else return false;
+    await client.call("browser_click", toolArguments(tool, values));
+    await delay(350);
+    return true;
+  }
+
+  async function fillByLabel(label, value) {
+    const snap = await snapshot();
+    const ref = extractRef(snap, label, ["textbox", "combobox", "spinbutton"]);
+    if (ref && has("browser_type")) {
+      const tool = toolMap.get("browser_type");
+      const props = tool?.inputSchema?.properties || {};
+      const values = { element: `${label} field`, text: String(value), slowly: false, submit: false };
+      if ("ref" in props) values.ref = ref;
+      else if ("target" in props) values.target = ref;
+      try {
+        await client.call("browser_type", toolArguments(tool, values));
+        await delay(380);
+        return { ok: true, method: "visible Playwright typing" };
+      } catch (error) {
+        runnerFindings.push(`browser_type failed for ${label}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+
+    const encodedLabel = JSON.stringify(String(label));
+    const encodedValue = JSON.stringify(String(value));
+    const result = await evaluate(`() => {
+      const wanted = ${encodedLabel};
+      const value = ${encodedValue};
+      const nodes = [...document.querySelectorAll('label, .field-label, label > span')];
+      const labelNode = nodes.find((node) => (node.textContent || '').trim() === wanted);
+      let control = null;
+      if (labelNode?.tagName === 'LABEL' && labelNode.htmlFor) control = document.getElementById(labelNode.htmlFor);
+      if (!control && labelNode?.closest('label')) control = labelNode.closest('label').querySelector('input, textarea, select');
+      if (!control && labelNode?.nextElementSibling?.matches?.('input, textarea, select')) control = labelNode.nextElementSibling;
+      if (!control) return { ok: false };
+      const proto = control instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : control instanceof HTMLSelectElement ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
+      const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+      if (setter) setter.call(control, value); else control.value = value;
+      control.focus();
+      control.dispatchEvent(new Event('input', { bubbles: true }));
+      control.dispatchEvent(new Event('change', { bubbles: true }));
+      return { ok: true };
+    }`);
+    await delay(420);
+    if (result.ok) {
+      runnerFindings.push(`Used DOM input fallback for ${label} because this Playwright MCP build did not expose a compatible typing action.`);
+      return { ok: true, method: "DOM input fallback" };
+    }
+    return { ok: false, method: "unavailable" };
+  }
+
+  async function fillDraft(value) {
+    const encodedValue = JSON.stringify(value);
+    const result = await evaluate(`() => {
+      const controls = [...document.querySelectorAll('textarea[id^="draft-"]')];
+      const control = controls.at(-1);
+      if (!control) return { ok: false };
+      const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
+      if (setter) setter.call(control, ${encodedValue}); else control.value = ${encodedValue};
+      control.focus();
+      control.dispatchEvent(new Event('input', { bubbles: true }));
+      control.dispatchEvent(new Event('change', { bubbles: true }));
+      return { ok: true };
+    }`);
+    await delay(450);
+    if (result.ok) runnerFindings.push("Used DOM input fallback for the dynamic screenplay textarea; all surrounding actions still use visible controls.");
+    return Boolean(result.ok);
+  }
+
+  async function record(stage, label, status = "PASS", note = "") {
+    const state = await currentState();
+    const consoleText = await consoleMessages();
+    let finalStatus = status;
+    let finalNote = note;
+    if (consoleHasErrors(consoleText) && finalStatus === "PASS") {
+      finalStatus = "WARN";
+      finalNote = `${finalNote ? `${finalNote} ` : ""}Browser console reported errors.`;
+    }
+    try { await screenshot(`${String(stage).padStart(2, "0")}-${slug(label)}`); }
+    catch (error) {
+      if (finalStatus === "PASS") finalStatus = "WARN";
+      finalNote = `${finalNote ? `${finalNote} ` : ""}Screenshot failed: ${error instanceof Error ? error.message : String(error)}`;
+    }
+    evidence.push({ stage, label, status: finalStatus, note: finalNote, state, consoleText });
+    return state;
+  }
+
+  async function gotoWorkspace(label, expectedId, query, pathName = "") {
+    let clicked = false;
+    try { clicked = await clickVisible(label); } catch {}
+    let state = clicked ? await currentState() : {};
+    const matches = pathName ? String(state.url || "").includes(pathName) : state.activeId === expectedId;
+    if (clicked && matches) return { ok: true, method: "visible workspace control", state };
+    const url = pathName ? new URL(pathName, baseUrl).toString() : new URL(`/?workspace=${query}`, baseUrl).toString();
+    await navigate(url);
+    await delay(500);
+    state = await currentState();
+    const recovered = pathName ? String(state.url || "").includes(pathName) : state.activeId === expectedId;
+    return { ok: recovered, method: "direct recovery navigation", state };
+  }
+
+  async function gotoStorySection(label) {
+    const clicked = await clickVisible(label);
+    await delay(350);
+    const snap = await snapshot();
+    return clicked && snap.toLowerCase().includes(label.toLowerCase());
+  }
+
+  return { clickVisible, currentState, fillByLabel, fillDraft, gotoStorySection, gotoWorkspace, navigate, record, screenshot, snapshot };
+}

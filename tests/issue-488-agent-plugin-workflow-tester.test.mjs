@@ -6,6 +6,7 @@ const root = new URL("..", import.meta.url);
 const pluginRoot = new URL("tools/agent-plugins/plotpickle-workflow-tester/", root);
 const readText = (path) => readFile(new URL(path, pluginRoot), "utf8");
 const readJson = async (path) => JSON.parse(await readText(path));
+const readRepo = (path) => readFile(new URL(path, root), "utf8");
 
 test("#488 Agent Plugins manifest targets the v1 portable schema", async () => {
   const manifest = await readJson("plugin.json");
@@ -60,4 +61,28 @@ test("#488 visual contract preserves the reviewed PlotPickle family", async () =
   assert.match(contract, /warm-gold/i);
   assert.match(contract, /Settings and integrations remain global utilities/i);
   assert.match(contract, /No module should introduce unrelated purple\/blue product chrome/i);
+});
+
+test("#488 Codex adapter expands Agent Plugins runtime paths and keeps the agent read-only", async () => {
+  const adapter = await readRepo("scripts/prepare-agent-plugin-runner.mjs");
+  assert.match(adapter, /mcp\.json/);
+  assert.match(adapter, /replaceAll\("\$\{PLUGIN_ROOT\}"/);
+  assert.match(adapter, /replaceAll\("\$\{PLUGIN_DATA\}"/);
+  assert.match(adapter, /approval_policy = \\"never\\"/);
+  assert.match(adapter, /sandbox_mode = \\"read-only\\"/);
+  assert.match(adapter, /\[mcp_servers\.playwright\]/);
+});
+
+test("#488 autonomous workflow is manual-only and preserves evidence", async () => {
+  const workflow = await readRepo(".github/workflows/agent-human-acceptance.yml");
+  assert.match(workflow, /workflow_dispatch:/);
+  assert.doesNotMatch(workflow, /pull_request:/);
+  assert.doesNotMatch(workflow, /schedule:/);
+  assert.match(workflow, /OPENAI_API_KEY/);
+  assert.match(workflow, /codex exec --json --sandbox read-only/);
+  assert.match(workflow, /Playwright MCP browser server/);
+  assert.match(workflow, /acceptance-report\.md/);
+  assert.match(workflow, /codex-trace\.jsonl/);
+  assert.match(workflow, /actions\/upload-artifact@v4/);
+  assert.match(workflow, /Do not fix issues during this run/);
 });

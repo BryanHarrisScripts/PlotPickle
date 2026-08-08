@@ -17,6 +17,7 @@ import "./minimal-navigation.css";
 import "./issue-208-polish.css";
 import "./first-run-configuration-dashboard.css";
 import "./appearance-runtime.css";
+import "./studio-shell-phase-a.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",

@@ -66,19 +66,26 @@ test("#452 preserves the existing canonical Storyboard identity and deep-link ma
   assert.match(storyboard, /requestPlotPickleConfirmation/);
 });
 
-test("#452 waits for a deep-linked Storyboard section before focusing it", async () => {
-  const [layout, host] = await Promise.all([
+test("#452 makes a deep-linked Storyboard section visibly first, not just selected off-screen", async () => {
+  const [layout, host, focusStyles] = await Promise.all([
     source("app/layout.tsx"),
     source("app/storyboard-studio-host.tsx"),
+    source("app/storyboard-studio-deeplink.css"),
   ]);
 
   assert.match(layout, /import StoryboardStudioHost/);
   assert.match(layout, /<StoryboardStudioHost \/>/);
+  assert.match(layout, /storyboard-studio-deeplink\.css/);
   assert.match(host, /workspace\) !== "storyboard"/);
   assert.match(host, /visualSection/);
+  assert.match(host, /dataset\.storyboardFocus = requestedSection/);
   assert.match(host, /document\.getElementById\(`visual-\$\{requestedSection\}`\)/);
   assert.match(host, /MutationObserver/);
+  assert.match(host, /\[80, 420, 1100\]/);
   assert.match(host, /scrollIntoView\(\{ block: "start" \}\)/);
+  assert.match(focusStyles, /data-storyboard-focus="frames"/);
+  assert.match(focusStyles, /data-visual-section="frames"/);
+  assert.match(focusStyles, /order:\s*-10/);
   assert.doesNotMatch(host, /setProject|localStorage|sessionStorage|provider|apiKey/i);
 });
 

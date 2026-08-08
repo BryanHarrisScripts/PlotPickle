@@ -33,7 +33,12 @@ function normalized(text: string | null | undefined) {
   return (text || "").replace(/\s+/g, " ").trim().toLowerCase();
 }
 
-function buttons(root: ParentNode) {
+function queryNumber(name: string, minimum: number, maximum: number) {
+  const value = Number(new URLSearchParams(window.location.search).get(name));
+  return Number.isInteger(value) && value >= minimum && value <= maximum ? value : 0;
+}
+
+function planButtons(root: ParentNode) {
   return Array.from(root.querySelectorAll<HTMLButtonElement>(".story-rail nav button"));
 }
 
@@ -50,10 +55,24 @@ function requestedItem() {
 
 function applyRequestedSection(root: ParentNode) {
   const requested = requestedItem();
-  if (!requested) return;
+  if (!requested) return false;
   const target = normalized(requested.legacyLabel || requested.label);
-  const button = buttons(root).find((candidate) => normalized(candidate.textContent).includes(target));
-  if (button && button.getAttribute("aria-current") !== "page") button.click();
+  const button = planButtons(root).find((candidate) => normalized(candidate.textContent).includes(target));
+  if (!button) return false;
+  if (button.getAttribute("aria-current") !== "page") button.click();
+  return true;
+}
+
+function applyRequestedPlanBlock(root: ParentNode) {
+  const requestedBlock = queryNumber("block", 1, 24);
+  if (!requestedBlock) return true;
+  const cards = Array.from(root.querySelectorAll<HTMLButtonElement>(".block-card"));
+  if (!cards.length) return false;
+  const padded = String(requestedBlock).padStart(2, "0");
+  const target = cards.find((button) => normalized(button.querySelector(".block-number")?.textContent) === normalized(padded));
+  if (!target) return false;
+  if (target.getAttribute("aria-pressed") !== "true") target.click();
+  return true;
 }
 
 function syncSectionUrl(root: ParentNode) {
@@ -69,43 +88,71 @@ function syncSectionUrl(root: ParentNode) {
   window.history.replaceState({}, "", url);
 }
 
+function applyRequestedWriteMoment() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("workspace") !== "write") return true;
+  const block = queryNumber("block", 1, 24);
+  const mini = queryNumber("mini", 1, 4);
+  if (!block) return true;
+
+  const screenplayMode = Array.from(document.querySelectorAll<HTMLButtonElement>("button"))
+    .find((button) => normalized(button.textContent) === "screenplay");
+  const blockButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('nav[aria-label="Screenplay blocks"] button'));
+
+  if (!blockButtons.length) {
+    screenplayMode?.click();
+    return false;
+  }
+
+  const blockButton = blockButtons[block - 1];
+  if (blockButton) blockButton.click();
+  if (!mini) return true;
+
+  const miniPrefix = `${block}.${mini}`;
+  const miniButton = Array.from(document.querySelectorAll<HTMLButtonElement>("button"))
+    .find((button) => normalized(button.textContent).startsWith(normalized(miniPrefix)));
+  if (!miniButton) return false;
+  miniButton.click();
+  return true;
+}
+
 export default function PlanStudioRailHost() {
   useEffect(() => {
     let activeRail: HTMLElement | null = null;
     let activeObserver: MutationObserver | null = null;
     let requestedSectionApplied = false;
+    let requestedBlockApplied = false;
+    let requestedWriteApplied = false;
 
     const sync = () => {
       const plannerContent = document.querySelector<HTMLElement>(".planner-content");
       const studioLayout = plannerContent?.closest<HTMLElement>(".studio-layout") || null;
       const rail = studioLayout?.querySelector<HTMLElement>(".story-rail") || null;
 
-      if (!plannerContent || !studioLayout || !rail) {
+      if (plannerContent && studioLayout && rail) {
+        if (!requestedSectionApplied) requestedSectionApplied = applyRequestedSection(studioLayout);
+        if (!requestedBlockApplied) requestedBlockApplied = applyRequestedPlanBlock(studioLayout);
+        syncSectionUrl(studioLayout);
+
+        if (activeRail !== rail) {
+          activeObserver?.disconnect();
+          activeRail = rail;
+          activeObserver = new MutationObserver(() => syncSectionUrl(studioLayout));
+          activeObserver.observe(rail, {
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["class", "aria-current"],
+          });
+        }
+      } else {
         activeObserver?.disconnect();
         activeObserver = null;
         activeRail = null;
         requestedSectionApplied = false;
-        return;
+        requestedBlockApplied = false;
       }
 
-      if (!requestedSectionApplied) {
-        requestedSectionApplied = true;
-        window.setTimeout(() => {
-          applyRequestedSection(studioLayout);
-          syncSectionUrl(studioLayout);
-        }, 0);
-      }
-
-      if (activeRail !== rail) {
-        activeObserver?.disconnect();
-        activeRail = rail;
-        activeObserver = new MutationObserver(() => syncSectionUrl(studioLayout));
-        activeObserver.observe(rail, {
-          subtree: true,
-          attributes: true,
-          attributeFilter: ["class", "aria-current"],
-        });
-      }
+      if (!requestedWriteApplied) requestedWriteApplied = applyRequestedWriteMoment();
     };
 
     sync();

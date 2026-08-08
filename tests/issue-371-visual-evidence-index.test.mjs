@@ -12,9 +12,13 @@ test('visual capture emits a reviewer-facing evidence index', () => {
   assert.match(script, /writeFile\(path\.join\(outputDirectory, 'REVIEW\.md'\)/)
 })
 
-test('evidence index keeps every registered desktop workspace reviewable', () => {
+test('evidence index keeps every registered desktop workspace and key Plan editor state reviewable', () => {
   assert.deepEqual(registry.viewports, [{ id: 'desktop', width: 1440, height: 1000 }])
-  assert.equal(registry.screens.length, 13)
+  assert.equal(registry.screens.length, 15)
+  assert.deepEqual(
+    registry.screens.filter((screen) => screen.id.startsWith('plan')).map((screen) => screen.path),
+    ['/?workspace=plan', '/?workspace=plan&section=storySetup', '/?workspace=plan&section=blocks'],
+  )
   for (const screen of registry.screens) {
     assert.match(screen.id, /^[a-z0-9-]+$/)
     assert.match(screen.path, /^\//)

@@ -9,6 +9,7 @@ import LearnEntryRouter from "./learn-entry-router";
 import PlanStudioRailHost from "./plan-studio-rail-host";
 import StoryboardNavigationGroupsHost from "./storyboard-navigation-groups-host";
 import StoryboardStudioHost from "./storyboard-studio-host";
+import StoryboardWriteHandoff from "./storyboard-write-handoff";
 import WorkspaceIntroHost from "./workspace-intro-host";
 import WriterFacingCollaborationLanguage from "./writer-facing-collaboration-language";
 import "./globals.css";
@@ -31,6 +32,7 @@ import "./storyboard-studio-phase-d.css";
 import "./storyboard-studio-polish.css";
 import "./storyboard-studio-deeplink.css";
 import "./storyboard-navigation-groups.css";
+import "./storyboard-write-handoff.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",
@@ -78,6 +80,7 @@ export default function RootLayout({
         <PlanStudioRailHost />
         <StoryboardStudioHost />
         <StoryboardNavigationGroupsHost />
+        <StoryboardWriteHandoff />
         <WorkspaceIntroHost />
         <CurrentDownloadLinks />
       </body>

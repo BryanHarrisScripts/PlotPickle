@@ -1,0 +1,74 @@
+.storyboard-write-handoff {
+  position: fixed;
+  z-index: 80;
+  right: 22px;
+  bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: min(430px, calc(100vw - 44px));
+  padding: 10px 11px 10px 14px;
+  border: 1px solid rgba(205, 167, 88, 0.46);
+  background: rgba(14, 14, 13, 0.96);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
+  color: #d8cfbf;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  backdrop-filter: blur(14px);
+}
+
+.storyboard-write-handoff > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.storyboard-write-handoff span,
+.storyboard-write-handoff small {
+  color: #81796d;
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.storyboard-write-handoff strong {
+  color: #e7c26e;
+  font-size: 10px;
+}
+
+.storyboard-write-handoff a {
+  flex: 0 0 auto;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 11px;
+  border: 1px solid #cda758;
+  background: #cda758;
+  color: #090806;
+  font-size: 8px;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.storyboard-write-handoff a:hover,
+.storyboard-write-handoff a:focus-visible {
+  background: #e0bc68;
+  outline: 2px solid #e8c975;
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .storyboard-write-handoff {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    max-width: none;
+    justify-content: space-between;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .storyboard-write-handoff * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}

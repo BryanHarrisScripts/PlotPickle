@@ -4,6 +4,38 @@
    tools become secondary choices, and Versions becomes a review lens over the
    selected canonical moment. */
 
+.visual-studio-layout nav[aria-label="Visual Board sections"] > header {
+  order: 0;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-area="overview"][data-storyboard-role="primary"] {
+  order: 10;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-area="world"][data-storyboard-role="primary"] {
+  order: 20;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-area="world"][data-storyboard-role="secondary"] {
+  order: 21;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-area="moments"][data-storyboard-role="primary"] {
+  order: 30;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-area="moments"][data-storyboard-role="secondary"] {
+  order: 31;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-area="continuity"][data-storyboard-role="primary"] {
+  order: 40;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-versions="true"] {
+  order: 50;
+}
+
 .visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-role="secondary"] {
   display: none !important;
   min-height: 36px !important;

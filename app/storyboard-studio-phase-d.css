@@ -1,0 +1,43 @@
+/* Issue #452 — Storyboard Studio boundary.
+   Storyboard owns one full-width visual-directing workspace. The old generic
+   ownership shelf and shared story rail are removed only while Storyboard is active. */
+
+.workspace:has(.visual-studio-layout) {
+  background:
+    radial-gradient(circle at 10% 0%, rgba(205, 167, 88, 0.045), transparent 26rem),
+    #090909 !important;
+}
+
+.workspace:has(.visual-studio-layout) > section[aria-label$="capabilities"] {
+  display: none !important;
+}
+
+.visual-studio-layout {
+  display: block !important;
+  min-height: calc(100vh - 128px);
+  background: #090909 !important;
+  color: #e9e0d0;
+  --text: #e9e0d0;
+  --surface: #11110f;
+  --accent: #cda758;
+  --focus: #cda758;
+}
+
+.visual-studio-layout > .story-rail {
+  display: none !important;
+}
+
+.visual-studio-layout > div {
+  min-width: 0;
+}
+
+.visual-studio-layout .feedback-context-badge,
+.visual-studio-layout [class*="feedbackContextBadge"] {
+  border-color: rgba(205, 167, 88, 0.25) !important;
+}
+
+@media (max-width: 920px) {
+  .visual-studio-layout {
+    min-height: 0;
+  }
+}

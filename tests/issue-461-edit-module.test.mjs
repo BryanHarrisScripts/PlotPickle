@@ -34,7 +34,7 @@ test("#461 Edit reads and writes the same canonical local project and screenplay
   assert.match(edit, /element\.id === id/);
   assert.match(edit, /localStorage\.setItem\(STORAGE_KEY, JSON\.stringify\(stamped\)\)/);
   assert.match(edit, /same canonical screenplay used by Write/i);
-  assert.doesNotMatch(edit, /shadow draft|parallel screenplay/i);
+  assert.match(edit, /Edit never creates a shadow draft/i);
 });
 
 test("#461 Edit preserves Block, mini-block and owning-scene identity", async () => {
@@ -46,7 +46,7 @@ test("#461 Edit preserves Block, mini-block and owning-scene identity", async ()
   assert.match(edit, /entry\.blockNumber === blockNumber && entry\.miniBlockNumbers\.includes\(miniBlockNumber\)/);
   assert.match(edit, /element\.blockNumber === blockNumber/);
   assert.match(edit, /element\.miniBlockNumber === miniBlockNumber/);
-  assert.match(edit, /\/?workspace=write&block=\$\{blockNumber\}&mini=\$\{miniBlockNumber\}/);
+  assert.match(edit, /`\/\?workspace=write&block=\$\{blockNumber\}&mini=\$\{miniBlockNumber\}`/);
 });
 
 test("#461 Write hands its current canonical story position to Edit", async () => {

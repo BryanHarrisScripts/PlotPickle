@@ -8,7 +8,7 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 test("issue #355 preserves the read-only Dashboard boundary", async () => {
   const [dashboard, studio, setup, registryText] = await Promise.all([
     source("app/dashboard-command-centre.tsx"),
-    source("app/project-overview.tsx"),
+    source("app/dashboard-story-library.tsx"),
     source("app/setup-connections-dashboard.tsx"),
     source("config/ui-ux-screen-registry.json"),
   ]);
@@ -37,9 +37,9 @@ test("issue #355 retains truthful loading and live-check states in the setup sur
 test("issue #355 supplies semantic Studio Dashboard navigation and story architecture", async () => {
   const [entry, studio] = await Promise.all([
     source("app/dashboard-command-centre.tsx"),
-    source("app/project-overview.tsx"),
+    source("app/dashboard-story-library.tsx"),
   ]);
-  assert.match(entry, /<ProjectOverview/);
+  assert.match(entry, /<DashboardStoryLibrary/);
   assert.match(studio, /aria-label="PlotPickle Studio Dashboard"/);
   assert.match(studio, /aria-labelledby="story-library-title"/);
   assert.match(studio, /aria-label="Current story position"/);

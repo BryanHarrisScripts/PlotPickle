@@ -7,6 +7,7 @@ import GitHubAppReleaseGuidance from "./github-app-release-guidance";
 import GraphicNovelTerminology from "./graphic-novel-terminology";
 import LearnEntryRouter from "./learn-entry-router";
 import PlanStudioRailHost from "./plan-studio-rail-host";
+import StoryboardMomentContextHost from "./storyboard-moment-context-host";
 import StoryboardNavigationGroupsHost from "./storyboard-navigation-groups-host";
 import StoryboardStudioHost from "./storyboard-studio-host";
 import WorkspaceIntroHost from "./workspace-intro-host";
@@ -78,6 +79,7 @@ export default function RootLayout({
         <PlanStudioRailHost />
         <StoryboardStudioHost />
         <StoryboardNavigationGroupsHost />
+        <StoryboardMomentContextHost />
         <WorkspaceIntroHost />
         <CurrentDownloadLinks />
       </body>

@@ -1,0 +1,5 @@
+/* Storyboard rendered-review polish. Feedback remains available from the global
+   Feedback module; this old floating badge should not interrupt visual direction. */
+.visual-studio-layout > div > button[aria-label*="feedback records"] {
+  display: none !important;
+}

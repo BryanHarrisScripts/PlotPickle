@@ -43,8 +43,6 @@ export default function WriteStudioHost() {
       }
       activeShell = nextShell;
       activeShell.dataset.writeStudio = "true";
-      if (moreOpen) activeShell.dataset.writeMore = "open";
-      else delete activeShell.dataset.writeMore;
       setShell(activeShell);
 
       if (!defaultApplied) {
@@ -76,15 +74,21 @@ export default function WriteStudioHost() {
       activeShell?.removeAttribute("data-write-studio");
       activeShell?.removeAttribute("data-write-more");
     };
-  }, [moreOpen]);
+  }, []);
 
   if (!target || !shell) return null;
+
+  function toggleMore(open: boolean) {
+    setMoreOpen(open);
+    if (open) shell!.dataset.writeMore = "open";
+    else delete shell!.dataset.writeMore;
+  }
 
   return createPortal(
     <details
       className={styles.more}
       open={moreOpen}
-      onToggle={(event) => setMoreOpen(event.currentTarget.open)}
+      onToggle={(event) => toggleMore(event.currentTarget.open)}
     >
       <summary>More writing tools</summary>
       <p>Exports and production-draft controls remain available here when you need them. They stay out of the main drafting flow.</p>

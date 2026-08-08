@@ -3,3 +3,27 @@
 .visual-studio-layout > div > button[aria-label*="feedback records"] {
   display: none !important;
 }
+
+/* The selected Storyboard area owns the canvas. This uses the existing
+   canonical Visual Board navigation state rather than introducing another
+   workspace model, and makes deep-linked story moments deterministic. */
+.visual-studio-layout:has(nav[aria-label="Visual Board sections"] button:nth-of-type(1)[aria-current])
+  [data-visual-section]:not([data-visual-section="overview"]),
+.visual-studio-layout:has(nav[aria-label="Visual Board sections"] button:nth-of-type(2)[aria-current])
+  [data-visual-section]:not([data-visual-section="characters"]),
+.visual-studio-layout:has(nav[aria-label="Visual Board sections"] button:nth-of-type(3)[aria-current])
+  [data-visual-section]:not([data-visual-section="locations"]),
+.visual-studio-layout:has(nav[aria-label="Visual Board sections"] button:nth-of-type(4)[aria-current])
+  [data-visual-section]:not([data-visual-section="assets"]),
+.visual-studio-layout:has(nav[aria-label="Visual Board sections"] button:nth-of-type(5)[aria-current])
+  [data-visual-section]:not([data-visual-section="language"]),
+.visual-studio-layout:has(nav[aria-label="Visual Board sections"] button:nth-of-type(6)[aria-current])
+  [data-visual-section]:not([data-visual-section="blocks"]),
+.visual-studio-layout:has(nav[aria-label="Visual Board sections"] button:nth-of-type(7)[aria-current])
+  [data-visual-section]:not([data-visual-section="frames"]),
+.visual-studio-layout:has(nav[aria-label="Visual Board sections"] button:nth-of-type(8)[aria-current])
+  [data-visual-section]:not([data-visual-section="pitch"]),
+.visual-studio-layout:has(nav[aria-label="Visual Board sections"] button:nth-of-type(9)[aria-current])
+  [data-visual-section]:not([data-visual-section="diagnostics"]) {
+  display: none !important;
+}

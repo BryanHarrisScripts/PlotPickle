@@ -73,6 +73,17 @@ function blockHasWork(block: PlotPickleProject["blocks"][number]) {
   return Boolean(block.summary || block.goal || block.conflict || block.scenes.length);
 }
 
+function openStoryMoment(workspace: "storyboard" | "write", blockNumber: number, miniBlockNumber: number, sceneId = "") {
+  const url = new URL(window.location.href);
+  url.search = "";
+  url.searchParams.set("workspace", workspace);
+  url.searchParams.set("block", String(blockNumber));
+  url.searchParams.set("mini", String(miniBlockNumber));
+  if (sceneId) url.searchParams.set("scene", sceneId);
+  if (workspace === "storyboard") url.searchParams.set("visualSection", "frames");
+  window.location.assign(url);
+}
+
 export default function ProjectOverview({
   project,
   onOpenSection,
@@ -219,16 +230,32 @@ export default function ProjectOverview({
             <div className={styles.miniGrid}>
               {[1, 2, 3, 4].map((mini) => {
                 const existing = currentMiniBlocks.find((entry) => entry.number === mini);
+                const scene = currentScenes.find((entry) => entry.miniBlocks.some((candidate) => candidate.number === mini));
                 return (
                   <div className={existing ? styles.miniStarted : ""} key={mini}>
                     <span>{String((currentBlock.number - 1) * 4 + mini).padStart(2, "0")}</span>
                     <strong>Mini {mini}</strong>
-                    <small>{existing ? "Story context attached" : "Ready to shape"}</small>
+                    <small>{existing ? `${scene ? `Scene ${scene.number} · ` : ""}Story context attached` : "Ready to shape"}</small>
+                    <div className={styles.blockActions}>
+                      <button
+                        type="button"
+                        className={styles.primaryAction}
+                        onClick={() => openStoryMoment("storyboard", currentBlock.number, mini, scene?.id)}
+                      >
+                        Storyboard
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openStoryMoment("write", currentBlock.number, mini, scene?.id)}
+                      >
+                        Write
+                      </button>
+                    </div>
                   </div>
                 );
               })}
             </div>
-            <p>These four beats keep the same identity when the Block moves into Storyboard, Write, Edit, Graphic Novel, Build, Feedback and Refine.</p>
+            <p>Choose a beat and PlotPickle carries the same Block, mini-block and scene identity into Storyboard or Write.</p>
           </div>
         </section>
       ) : null}

@@ -12,7 +12,7 @@ test("#452 makes Keep, Change, Try Again and Compare the primary Storyboard deci
     assert.ok(actions.includes(label), `Missing Storyboard decision ${label}`);
   }
 
-  assert.match(actions, /keepCurrent/);
+  assert.match(actions, /keepCandidate/);
   assert.match(actions, /changeDirection/);
   assert.match(actions, /tryAgain/);
   assert.match(actions, /compareVersions/);
@@ -21,11 +21,21 @@ test("#452 makes Keep, Change, Try Again and Compare the primary Storyboard deci
   assert.match(actions, /id="storyboard-decisions"/);
 });
 
-test("#452 keeps alternatives unapproved until the writer explicitly chooses one", async () => {
+test("#452 Keep explicitly approves the newest reviewed candidate through the existing version control", async () => {
   const actions = await source("app/creative-director-actions.tsx");
 
-  assert.match(actions, /alternatives remain unapproved until you choose one/i);
-  assert.match(actions, /Nothing becomes approved until you explicitly choose it/i);
+  assert.match(actions, /versionsRef\.current\?\.querySelectorAll<HTMLButtonElement>\("button"\)/);
+  assert.match(actions, /\^Approve \(\?:image\|video\)\$/i);
+  assert.match(actions, /approveButton\.click\(\)/);
+  assert.match(actions, /Approve the newest candidate for this exact story moment/);
+  assert.match(actions, /No new candidate is waiting for approval/);
+  assert.doesNotMatch(actions, /approvedImageVersionId|approvedVideoVersionId|setProject|commit\(/);
+});
+
+test("#452 keeps alternatives unapproved until the writer explicitly chooses Keep", async () => {
+  const actions = await source("app/creative-director-actions.tsx");
+
+  assert.match(actions, /Nothing becomes approved until you explicitly choose Keep/i);
   assert.doesNotMatch(actions, /auto.?approve|automatically approve|silent fallback/i);
 });
 

@@ -4,7 +4,7 @@ import type { PlotPickleSettings } from "@/lib/ai/settings";
 import type { ConnectionStatusSnapshot } from "@/lib/connection-status";
 import type { PlotPickleProject } from "@/lib/project";
 import type { ProductNavigationId } from "@/lib/product-direction";
-import ProjectOverview from "./project-overview";
+import DashboardStoryLibrary from "./dashboard-story-library";
 
 type Props = {
   project: PlotPickleProject;
@@ -26,7 +26,7 @@ export default function DashboardCommandCentre({
   onOpenBlock,
 }: Props) {
   return (
-    <ProjectOverview
+    <DashboardStoryLibrary
       project={project}
       onOpenSection={(section) => onNavigate("planner", section)}
       onOpenEngines={() => onNavigate("settings")}

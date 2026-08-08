@@ -1,0 +1,67 @@
+.context {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid #3b3326;
+  background:
+    linear-gradient(135deg, rgba(205, 167, 88, 0.055), transparent 18rem),
+    #0d0d0c;
+  color: #ded4c1;
+}
+
+.context > header {
+  display: grid;
+  gap: 3px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.16);
+}
+
+.context > header span,
+.context article span {
+  color: #cda758;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.context > header strong {
+  color: #f1e7d5;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.context > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.context article {
+  padding: 9px 10px;
+  border: 1px solid #2d2922;
+  background: #11110f;
+}
+
+.context article p {
+  margin: 5px 0 0;
+  color: #b9afa0;
+  font-size: 0.62rem;
+  line-height: 1.48;
+}
+
+.context > p {
+  margin: 0;
+  color: #706a61;
+  font-size: 0.52rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 760px) {
+  .context > div {
+    grid-template-columns: 1fr;
+  }
+}

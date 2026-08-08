@@ -40,6 +40,7 @@ import "./write-studio-phase-c.css";
 import "./write-studio-treatment.css";
 import "./write-studio-progressive.css";
 import "./write-edit-handoff.css";
+import "./edit-decision-panel.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",

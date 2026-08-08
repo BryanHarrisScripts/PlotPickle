@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import styles from "./plan-studio-rail-host.module.css";
 
 type RailItem = {
+  id: string;
   label: string;
   short: string;
   legacyLabel?: string;
@@ -19,47 +20,49 @@ const PLAN_GROUPS: RailGroup[] = [
   {
     label: "Story",
     items: [
-      { label: "Simple Start", short: "SS" },
-      { label: "Project Overview", short: "OV" },
-      { label: "Story Setup", short: "01" },
-      { label: "Concept Canvas", short: "CC" },
-      { label: "Pitch & Vision", short: "PV" },
+      { id: "simpleStart", label: "Simple Start", short: "SS" },
+      { id: "overview", label: "Project Overview", short: "OV" },
+      { id: "storySetup", label: "Story Setup", short: "01" },
+      { id: "concept", label: "Concept Canvas", short: "CC" },
+      { id: "pitch", label: "Pitch & Vision", short: "PV" },
     ],
   },
   {
     label: "World & Cast",
     items: [
-      { label: "Visual References", short: "VR" },
-      { label: "World", short: "WD" },
-      { label: "Characters", short: "CH" },
+      { id: "references", label: "Visual References", short: "VR" },
+      { id: "world", label: "World", short: "WD" },
+      { id: "characters", label: "Characters", short: "CH" },
     ],
   },
   {
     label: "Story Engine",
     items: [
-      { label: "Ghost", short: "GH" },
-      { label: "Catalyst", short: "CA" },
-      { label: "Foundations", short: "FN" },
-      { label: "The Pickle", short: "PK" },
-      { label: "Dialogue", short: "DL" },
+      { id: "ghost", label: "Ghost", short: "GH" },
+      { id: "catalyst", label: "Catalyst", short: "CA" },
+      { id: "foundations", label: "Foundations", short: "FN" },
+      { id: "pickle", label: "The Pickle", short: "PK" },
+      { id: "dialogue", label: "Dialogue", short: "DL" },
     ],
   },
   {
     label: "Structure",
     items: [
-      { label: "Structure Map", short: "ST" },
-      { label: "24 Blocks", short: "24" },
-      { label: "Storyboard Handoff", short: "SB", legacyLabel: "Storyboard" },
+      { id: "structureMap", label: "Structure Map", short: "ST" },
+      { id: "blocks", label: "24 Blocks", short: "24" },
+      { id: "storyboard", label: "Storyboard Handoff", short: "SB", legacyLabel: "Storyboard" },
     ],
   },
   {
     label: "Canon & Notes",
     items: [
-      { label: "Core Model", short: "CM" },
-      { label: "Notes", short: "NT" },
+      { id: "coreModel", label: "Core Model", short: "CM" },
+      { id: "notes", label: "Notes", short: "NT" },
     ],
   },
 ];
+
+const PLAN_ITEMS = PLAN_GROUPS.flatMap((group) => group.items);
 
 function normalized(text: string | null | undefined) {
   return (text || "").replace(/\s+/g, " ").trim().toLowerCase();
@@ -82,6 +85,11 @@ function clickLegacyDestination(root: ParentNode, item: RailItem) {
   button?.click();
 }
 
+function requestedPlanItem() {
+  const requested = new URLSearchParams(window.location.search).get("section");
+  return requested ? PLAN_ITEMS.find((item) => item.id === requested) ?? null : null;
+}
+
 export default function PlanStudioRailHost() {
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const [workspaceRoot, setWorkspaceRoot] = useState<HTMLElement | null>(null);
@@ -91,6 +99,7 @@ export default function PlanStudioRailHost() {
     let mountedHost: HTMLElement | null = null;
     let hiddenLegacyRail: HTMLElement | null = null;
     let activeObserver: MutationObserver | null = null;
+    let requestedSectionApplied = false;
 
     const sync = () => {
       const plannerContent = document.querySelector<HTMLElement>(".planner-content");
@@ -126,6 +135,14 @@ export default function PlanStudioRailHost() {
 
       setWorkspaceRoot(studioLayout);
       setActiveText(activeLegacyLabel(studioLayout));
+
+      if (!requestedSectionApplied) {
+        requestedSectionApplied = true;
+        const requested = requestedPlanItem();
+        if (requested) {
+          window.setTimeout(() => clickLegacyDestination(studioLayout, requested), 0);
+        }
+      }
 
       if (!activeObserver) {
         activeObserver = new MutationObserver(() => setActiveText(activeLegacyLabel(studioLayout)));
@@ -180,7 +197,7 @@ export default function PlanStudioRailHost() {
                 const active = activeDestination === item.label;
                 return (
                   <button
-                    key={item.label}
+                    key={item.id}
                     type="button"
                     aria-current={active ? "page" : undefined}
                     className={active ? styles.active : ""}

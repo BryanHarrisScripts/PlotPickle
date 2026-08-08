@@ -85,6 +85,26 @@ test("#447 gives Plan a dedicated matte-black Studio boundary without recolourin
   assert.match(boundary, /background:\s*#19150d/i);
 });
 
+test("#447 keeps existing Plan editors but brings them into the same Studio visual system", async () => {
+  const [layout, editors] = await Promise.all([
+    source("app/layout.tsx"),
+    source("app/plan-studio-editors.css"),
+  ]);
+
+  assert.match(layout, /plan-studio-editors\.css/);
+  assert.match(editors, /\.workspace:has\(\.planner-content\) \.editor-page/);
+  assert.match(editors, /\.form-section/);
+  assert.match(editors, /\.character-workspace/);
+  assert.match(editors, /\.location-card/);
+  assert.match(editors, /\.block-card/);
+  assert.match(editors, /\.storyboard-block-list/);
+  assert.match(editors, /\.block-inspector/);
+  assert.match(editors, /max-width:\s*none/i);
+  assert.match(editors, /#090909/i);
+  assert.match(editors, /#cda758/i);
+  assert.match(editors, /Georgia/);
+});
+
 test("#447 keeps provider mechanics outside normal Plan", async () => {
   const plan = await source("app/project-overview.tsx");
   assert.doesNotMatch(plan, /Ollama|ComfyUI|MiniMax|checkpoint|endpoint|apiKey/i);

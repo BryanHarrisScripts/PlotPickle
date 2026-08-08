@@ -23,6 +23,8 @@ import "./studio-shell-phase-a.css";
 import "./learning-studio-phase-b.css";
 import "./learning-studio-phase-b-compat.css";
 import "./plan-studio-phase-c.css";
+import "./plan-studio-editors.css";
+import "./plan-studio-editor-polish.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",

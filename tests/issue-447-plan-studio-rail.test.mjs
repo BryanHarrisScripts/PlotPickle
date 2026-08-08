@@ -46,6 +46,17 @@ test("#447 Plan rail reuses the canonical legacy section routing instead of crea
   assert.doesNotMatch(rail, /setActiveSection|setProject|localStorage|sessionStorage/);
 });
 
+test("#447 Plan rail supports safe section deep links through the same canonical routing", async () => {
+  const rail = await source("app/plan-studio-rail-host.tsx");
+
+  for (const id of ["storySetup", "characters", "foundations", "blocks", "coreModel"]) {
+    assert.ok(rail.includes(`id: "${id}"`), `Missing deep-link id: ${id}`);
+  }
+  assert.match(rail, /new URLSearchParams\(window\.location\.search\)\.get\("section"\)/);
+  assert.match(rail, /PLAN_ITEMS\.find\(\(item\) => item\.id === requested\)/);
+  assert.match(rail, /clickLegacyDestination\(studioLayout, requested\)/);
+});
+
 test("#447 Plan rail is mounted globally but activates only around planner content", async () => {
   const [layout, rail] = await Promise.all([
     source("app/layout.tsx"),

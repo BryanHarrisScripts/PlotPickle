@@ -1,0 +1,23 @@
+/* Final Plan-only accent cleanup after rendered editor review. */
+.workspace:has(.planner-content) .secondary-button,
+.workspace:has(.planner-content) button.secondary-button {
+  border-color: #6f5b32 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #d7ba76 !important;
+  box-shadow: none !important;
+}
+
+.workspace:has(.planner-content) .secondary-button:hover,
+.workspace:has(.planner-content) .secondary-button:focus-visible,
+.workspace:has(.planner-content) button.secondary-button:hover,
+.workspace:has(.planner-content) button.secondary-button:focus-visible {
+  border-color: #cda758 !important;
+  background: #19150d !important;
+  color: #f0d28b !important;
+  outline: none !important;
+}
+
+.workspace:has(.planner-content) .block-index {
+  border-bottom-color: #cda758 !important;
+}

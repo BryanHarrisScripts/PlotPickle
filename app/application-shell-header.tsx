@@ -75,6 +75,10 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
     <header className="topbar application-shell-header" aria-label="PlotPickle application navigation and project actions">
       <button type="button" className="brand-lockup home-trigger shell-brand" onClick={onOpenLanding} aria-label="Open the PlotPickle marketing page" title="PlotPickle home">
         <img className="brand-icon" src="/brand/favicon/plotpickle-icon-128.png" alt="" aria-hidden="true" />
+        <span className="studio-brand-copy">
+          <strong>PlotPickle</strong>
+          <small>Visual Writing Studio</small>
+        </span>
       </button>
 
       <ShellDivider />
@@ -122,7 +126,6 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
         {configuration.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
       </nav>
 
-      {/* Packaged Windows smoke compatibility. This clipped, aria-hidden marker is not a user-facing tab. */}
       <span
         className="shell-release-smoke-active"
         role="tab"
@@ -133,7 +136,6 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
         {activeAutomationLabel}
       </span>
 
-      {/* The internal route remains `pitch`; this hidden control supports older packaged automation while Graphic Novel stays the only user-facing label. */}
       <button
         hidden
         aria-hidden="true"

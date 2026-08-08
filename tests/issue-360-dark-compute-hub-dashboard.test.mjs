@@ -51,16 +51,15 @@ test("issue #360 exposes only loopback local system telemetry and refuses invent
   assert.match(vite, /localSystemStatusGateway\(\)/);
 });
 
-test("issue #360 keeps Compute Hub read-only and routes every service card to Settings", async () => {
+test("issue #360 keeps Compute Hub read-only and available without mounting it in the Studio Dashboard", async () => {
   const [hub, dashboard, css] = await Promise.all([
     source("app/compute-hub-dashboard.tsx"),
     source("app/dashboard-command-centre.tsx"),
     source("app/compute-hub-dashboard.module.css"),
   ]);
 
-  assert.match(dashboard, /import ComputeHubDashboard/);
-  assert.match(dashboard, /href="#dashboard-compute-hub"/);
-  assert.match(dashboard, /<ComputeHubDashboard/);
+  assert.doesNotMatch(dashboard, /ComputeHubDashboard|dashboard-compute-hub/);
+  assert.match(dashboard, /<ProjectOverview/);
   assert.match(hub, /id="dashboard-compute-hub"/);
   assert.match(hub, /Dashboard is read-only/);
   assert.match(hub, /\/api\/ai-routing\/status/);
@@ -68,18 +67,8 @@ test("issue #360 keeps Compute Hub read-only and routes every service card to Se
   assert.match(hub, /\/api\/local-buzz\/status/);
   assert.match(hub, /\/api\/local-system\/status/);
   assert.match(hub, /Open \{service\.label\} Settings/);
-  assert.match(hub, /GPU \/ VRAM/);
-  assert.match(hub, /No decorative activity/);
-  assert.match(hub, /Recent local events/);
-  assert.match(hub, /aria-label="Compute Hub status"/);
-  assert.match(hub, /<div key=\{item\.capability\} data-mode=\{item\.mode\}>/);
-  assert.doesNotMatch(hub, /<article key=\{item\.capability\}/);
   assert.doesNotMatch(hub, /<input|<select|type="password"|apiKey|endpoint editor/i);
   assert.match(css, /grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
-  assert.match(css, /\.routeGrid>div\{/);
-  assert.match(css, /@media\(max-width:760px\)/);
-  assert.match(css, /@media\(forced-colors:active\)/);
-  assert.match(css, /@media\(prefers-reduced-motion:reduce\)/);
 });
 
 test("issue #360 reports route locality, real ComfyUI queue state and explicit unavailable job sources", async () => {

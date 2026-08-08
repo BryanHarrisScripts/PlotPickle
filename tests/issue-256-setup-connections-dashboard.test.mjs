@@ -7,12 +7,14 @@ import "./issue-333-dashboard-settings-separation.test.mjs";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #256 replaces the generic Dashboard connection grid with a first-class setup section", async () => {
-  const dashboard = await source("app/dashboard-command-centre.tsx");
-  assert.match(dashboard, /SetupConnectionsDashboard/);
-  assert.match(dashboard, /#dashboard-setup/);
-  assert.match(dashboard, /Setup &amp; connections/);
-  assert.doesNotMatch(dashboard, /id="dashboard-connections"/);
+test("issue #256 keeps setup and connections out of the story-first Dashboard", async () => {
+  const [dashboard, studio] = await Promise.all([
+    source("app/dashboard-command-centre.tsx"),
+    source("app/project-overview.tsx"),
+  ]);
+  assert.doesNotMatch(dashboard, /SetupConnectionsDashboard|dashboard-setup|Setup &amp; connections/);
+  assert.match(studio, /openWorkspace\("settings"\)/);
+  assert.doesNotMatch(studio, /Ollama|ComfyUI|MiniMax|apiKey|endpoint/i);
 });
 
 test("issue #256 separates included local foundations from optional user configuration", async () => {
@@ -32,7 +34,7 @@ test("issue #256 separates included local foundations from optional user configu
     "Buzz community",
     "GitHub account & story repository",
     "Google Calendar & Meet",
-  ]) assert.ok(setup.includes(phrase), `Setup Dashboard is missing: ${phrase}`);
+  ]) assert.ok(setup.includes(phrase), `Setup surface is missing: ${phrase}`);
   assert.match(setup, /PlotPickle works locally without any optional account/);
   assert.match(setup, /ChatGPT Plus does not include OpenAI API usage/);
   assert.match(setup, /One repository per story is recommended/);
@@ -41,7 +43,7 @@ test("issue #256 separates included local foundations from optional user configu
 test("issue #256 exposes one direct internal Settings route per component", async () => {
   const setup = await source("app/setup-connections-dashboard.tsx");
   for (const target of ["ollama", "openai", "minimax", "comfyui", "github", "google", "buzz", "storage"]) {
-    assert.ok(setup.includes(`settingsSection: "${target}"`), `Setup Dashboard is missing Settings target: ${target}`);
+    assert.ok(setup.includes(`settingsSection: "${target}"`), `Setup surface is missing Settings target: ${target}`);
   }
   assert.doesNotMatch(setup, /target="_blank" rel="noreferrer"/);
   assert.doesNotMatch(setup, /nsec1|sk-[A-Za-z0-9]|privateKey|accessToken|refreshToken/);
@@ -64,13 +66,12 @@ test("issue #256 uses verified lifecycle semantics and tests all real connection
   assert.match(setup, /connection\.state === "error" && connection\.lastSuccessfulConnection/);
 });
 
-test("first-run configuration remains available in the live product without interrupting the public visual-storytelling splash", async () => {
+test("first-run configuration remains available without interrupting the visual-storytelling splash or Dashboard", async () => {
   const overview = await source("app/configuration-dashboard-overview.tsx");
   const host = await source("app/configuration-dashboard-host.tsx");
   const splash = await source("app/marketing-splash.tsx");
   const base = await source("app/marketing-splash-base.tsx");
   const layout = await source("app/layout.tsx");
-  const ordering = await source("app/first-run-configuration-dashboard.css");
 
   for (const phrase of [
     "Local Story Mode",
@@ -91,11 +92,8 @@ test("first-run configuration remains available in the live product without inte
   assert.match(host, /createPortal/);
   assert.doesNotMatch(layout, /ConfigurationDashboardHost/);
   assert.doesNotMatch(splash, /ConfigurationDashboardOverview/);
-  assert.doesNotMatch(splash, /children: \[children\[0\], preview/);
   assert.match(base, /Storytelling<br \/>Has Changed\./);
   assert.match(base, /provider, model, endpoint and billing details stay in Settings/i);
-  assert.match(layout, /first-run-configuration-dashboard\.css/);
-  assert.match(ordering, /#dashboard-setup\{order:-20\}/);
 });
 
 test("issue #256 setup Dashboard test is registered", async () => {

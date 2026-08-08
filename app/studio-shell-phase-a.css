@@ -1,0 +1,233 @@
+/* #444 Phase A — persistent desktop Studio shell visual direction */
+html[data-plotpickle-theme="dark"],
+html[data-plotpickle-theme="dark"] body,
+html[data-plotpickle-theme="dark"] .app-shell,
+html[data-plotpickle-theme="dark"] .workspace {
+  background: #080808;
+  color: #f1eee6;
+}
+
+html[data-plotpickle-theme="dark"] body {
+  background-image: none;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header {
+  min-height: 56px;
+  padding: 0 22px;
+  grid-template-columns: 188px 1px minmax(0, 1fr) 1px auto 1px auto;
+  gap: 10px;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.18);
+  background: rgba(7, 7, 7, 0.985);
+  color: #f1eee6;
+  backdrop-filter: blur(14px);
+  box-shadow: none;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .brand-icon {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border: 1px solid rgba(205, 167, 88, 0.32);
+  background: #0b0b0b;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .studio-brand-copy {
+  display: grid;
+  gap: 1px;
+  line-height: 1;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .studio-brand-copy strong {
+  color: #f3efe6;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .studio-brand-copy small {
+  color: #777269;
+  font-family: var(--font-mono);
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0;
+  border: 0;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-primary-navigation,
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-zone-collaboration,
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-zone-configuration,
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-zone-project-actions {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-primary-navigation {
+  overflow: hidden;
+  justify-content: flex-start;
+  gap: 5px;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs {
+  align-self: stretch;
+  gap: 0;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs button,
+html[data-plotpickle-theme="dark"] .application-shell-header .text-button,
+html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs a {
+  min-width: 0;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #8f8a80;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.035em;
+  text-decoration: none;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs button::after {
+  right: 7px;
+  bottom: 5px;
+  left: 7px;
+  height: 1px;
+  border-radius: 0;
+  background: #cda758;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs button:hover,
+html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs button.active,
+html[data-plotpickle-theme="dark"] .application-shell-header .text-button:hover,
+html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs a:hover {
+  background: transparent;
+  color: #f1eee6;
+  transform: none;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs button.active {
+  color: #d8b769;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-zone-project-actions {
+  gap: 0;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-zone-project-actions .text-button {
+  color: #aaa397;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-zone-configuration {
+  justify-content: flex-end;
+}
+
+html[data-plotpickle-theme="dark"] .project-strip {
+  grid-template-columns: minmax(0, 1fr) auto minmax(180px, 280px);
+  min-height: 34px;
+  padding: 4px 22px;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.1);
+  background: #090909;
+  color: #e9e4da;
+}
+
+html[data-plotpickle-theme="dark"] .project-strip .project-title {
+  gap: 8px;
+}
+
+html[data-plotpickle-theme="dark"] .project-strip .project-title strong {
+  color: #d8d2c7;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+html[data-plotpickle-theme="dark"] .project-strip .project-title span:last-child,
+html[data-plotpickle-theme="dark"] .project-strip .save-state,
+html[data-plotpickle-theme="dark"] .project-strip .progress-block > output {
+  color: #6f6a62;
+  font-family: var(--font-mono);
+  font-size: 8px;
+}
+
+html[data-plotpickle-theme="dark"] .project-strip .save-state {
+  padding: 0 14px;
+}
+
+html[data-plotpickle-theme="dark"] .project-strip .status-dot {
+  width: 5px;
+  height: 5px;
+  background: #cda758;
+  box-shadow: none;
+}
+
+html[data-plotpickle-theme="dark"] .project-strip .progress-block {
+  gap: 7px;
+}
+
+html[data-plotpickle-theme="dark"] .project-strip .progress-track {
+  height: 2px;
+  background: #1a1917;
+}
+
+html[data-plotpickle-theme="dark"] .project-strip .progress-track::-webkit-progress-bar {
+  background: #1a1917;
+}
+
+html[data-plotpickle-theme="dark"] .project-strip .progress-track::-webkit-progress-value,
+html[data-plotpickle-theme="dark"] .project-strip .progress-track::-moz-progress-bar {
+  background: #cda758;
+}
+
+html[data-plotpickle-theme="dark"] .workspace {
+  min-height: calc(100vh - 90px);
+}
+
+@media (max-width: 1320px) {
+  html[data-plotpickle-theme="dark"] .application-shell-header {
+    padding: 0 14px;
+    grid-template-columns: 158px 1px minmax(0, 1fr) 1px auto 1px auto;
+    gap: 6px;
+  }
+
+  html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs button,
+  html[data-plotpickle-theme="dark"] .application-shell-header .text-button,
+  html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs a {
+    padding-right: 5px;
+    padding-left: 5px;
+    font-size: 7px;
+    letter-spacing: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-plotpickle-theme="dark"] .application-shell-header * {
+    transition: none !important;
+  }
+}

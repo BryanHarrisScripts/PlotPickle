@@ -21,6 +21,7 @@ import "./appearance-runtime.css";
 import "./studio-shell-phase-a.css";
 import "./learning-studio-phase-b.css";
 import "./learning-studio-phase-b-compat.css";
+import "./plan-studio-phase-c.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",

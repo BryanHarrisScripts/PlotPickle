@@ -7,8 +7,8 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("#444 Phase A Dashboard follows approved PlotPickle Studio wireframe", async () => {
   const [dashboard, styles, entry] = await Promise.all([
-    source("app/project-overview.tsx"),
-    source("app/project-overview.module.css"),
+    source("app/dashboard-story-library.tsx"),
+    source("app/dashboard-story-library.module.css"),
     source("app/dashboard-command-centre.tsx"),
   ]);
 
@@ -29,7 +29,7 @@ test("#444 Phase A Dashboard follows approved PlotPickle Studio wireframe", asyn
     "Refine",
   ]) assert.ok(dashboard.includes(contract), `Missing Studio Dashboard contract: ${contract}`);
 
-  assert.match(entry, /<ProjectOverview/);
+  assert.match(entry, /<DashboardStoryLibrary/);
   assert.doesNotMatch(entry, /ComputeHubDashboard|SetupConnectionsDashboard|Five-second readiness check/);
   assert.match(dashboard, /createAfterglowProject/);
   assert.match(dashboard, /AFTERGLOW_EXAMPLE_ACTIVE_KEY/);
@@ -40,7 +40,7 @@ test("#444 Phase A Dashboard follows approved PlotPickle Studio wireframe", asyn
 });
 
 test("#444 Phase A keeps technical configuration outside the primary story cards", async () => {
-  const dashboard = await source("app/project-overview.tsx");
+  const dashboard = await source("app/dashboard-story-library.tsx");
   assert.doesNotMatch(dashboard, /Ollama|ComfyUI|MiniMax|checkpoint|endpoint/i);
   assert.match(dashboard, /openWorkspace\("settings"\)/);
 });

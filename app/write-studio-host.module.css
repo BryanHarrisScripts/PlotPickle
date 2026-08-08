@@ -1,0 +1,33 @@
+.more {
+  margin: 10px clamp(24px, 3.5vw, 54px) 0;
+  padding: 0;
+  border: 1px solid #393126;
+  background: #0d0d0c;
+  color: #b8ae9e;
+}
+
+.more summary {
+  min-height: 42px;
+  padding: 11px 13px;
+  color: #d6bb79;
+  cursor: pointer;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.more summary:hover,
+.more summary:focus-visible {
+  background: #17140e;
+  color: #f0d28b;
+  outline: none;
+}
+
+.more p {
+  margin: 0;
+  padding: 0 13px 12px;
+  color: #776f65;
+  font-size: 0.58rem;
+  line-height: 1.45;
+}

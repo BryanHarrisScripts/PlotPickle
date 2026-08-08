@@ -16,31 +16,61 @@ const STORYBOARD_SECTIONS = new Set([
 
 export default function StoryboardStudioHost() {
   useEffect(() => {
-    let focused = false;
-    let timer = 0;
+    const timers: number[] = [];
+    let focusedRoot: HTMLElement | null = null;
+
+    const clearFocus = () => {
+      if (!focusedRoot) return;
+      delete focusedRoot.dataset.storyboardFocus;
+      focusedRoot = null;
+    };
 
     const focusRequestedMoment = () => {
-      if (focused) return;
       const params = new URLSearchParams(window.location.search);
-      if (params.get("workspace") !== "storyboard") return;
-      const requestedSection = params.get("visualSection");
-      if (!requestedSection || !STORYBOARD_SECTIONS.has(requestedSection)) return;
-      const target = document.getElementById(`visual-${requestedSection}`);
-      if (!target) return;
+      if (params.get("workspace") !== "storyboard") {
+        clearFocus();
+        return;
+      }
 
-      focused = true;
-      timer = window.setTimeout(() => {
-        target.scrollIntoView({ block: "start" });
-      }, 80);
+      const requestedSection = params.get("visualSection");
+      if (!requestedSection || !STORYBOARD_SECTIONS.has(requestedSection)) {
+        clearFocus();
+        return;
+      }
+
+      const root = document.querySelector<HTMLElement>(".visual-studio-layout");
+      const target = document.getElementById(`visual-${requestedSection}`);
+      if (!root || !target) return;
+
+      if (focusedRoot && focusedRoot !== root) delete focusedRoot.dataset.storyboardFocus;
+      focusedRoot = root;
+      root.dataset.storyboardFocus = requestedSection;
+
+      for (const delay of [80, 420, 1100]) {
+        timers.push(window.setTimeout(() => {
+          if (document.documentElement.contains(target)) target.scrollIntoView({ block: "start" });
+        }, delay));
+      }
+    };
+
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as Element | null;
+      if (!target?.closest('nav[aria-label="Visual Board sections"] button')) return;
+      clearFocus();
     };
 
     focusRequestedMoment();
     const observer = new MutationObserver(focusRequestedMoment);
     observer.observe(document.body, { childList: true, subtree: true });
+    document.addEventListener("click", handleClick);
+    window.addEventListener("popstate", focusRequestedMoment);
 
     return () => {
       observer.disconnect();
-      window.clearTimeout(timer);
+      document.removeEventListener("click", handleClick);
+      window.removeEventListener("popstate", focusRequestedMoment);
+      timers.forEach((timer) => window.clearTimeout(timer));
+      clearFocus();
     };
   }, []);
 

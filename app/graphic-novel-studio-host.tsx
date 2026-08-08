@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+import { approveGraphicNovelAssetVersion } from "@/lib/graphic-novel-approval";
+import { graphicNovelAssetVersions } from "@/lib/graphic-novel-asset-versions";
 import { buildGlobalSceneIndex } from "@/lib/scene-management";
 import { createBlankProject, normalizePlotPickleProject } from "@/lib/project";
 
@@ -27,6 +29,144 @@ function addText(parent: HTMLElement, tag: keyof HTMLElementTagNameMap, text: st
   element.textContent = text;
   parent.appendChild(element);
   return element;
+}
+
+function addDecisionPanel(context: HTMLElement, project: ReturnType<typeof loadProject>, blockNumber: number, miniBlockNumber: number) {
+  const deck = project.review.pitchPackage.comicDeck;
+  const panel = deck?.panels.find((item) => item.blockNumber === blockNumber && item.miniBlockNumber === miniBlockNumber);
+  const decision = document.createElement("section");
+  decision.className = "graphic-novel-decisions";
+  decision.dataset.graphicNovelDecisions = "true";
+
+  const header = document.createElement("div");
+  addText(header, "span", "Human decision", "graphic-novel-studio-eyebrow");
+  addText(header, "h2", "Choose what becomes visual canon.");
+  addText(header, "p", "Keep, Change, Try and Compare stay outside canon. Only Approve promotes the selected candidate.");
+  decision.appendChild(header);
+
+  if (!panel) {
+    addText(decision, "p", "No Graphic Novel panel is attached to this exact story moment yet. Existing planning and generation tools remain available below.", "graphic-novel-decision-empty");
+    context.appendChild(decision);
+    return;
+  }
+
+  const versions = graphicNovelAssetVersions(project, panel);
+  if (!versions.length) {
+    addText(decision, "p", "This panel has no image candidate yet. Create or import a candidate with the existing Graphic Novel tools below; nothing is approved automatically.", "graphic-novel-decision-empty");
+    context.appendChild(decision);
+    return;
+  }
+
+  const reviewKey = `plotpickle.graphicNovelReview.${panel.id}`;
+  let saved: { index?: number; direction?: string; kept?: boolean } = {};
+  try { saved = JSON.parse(window.sessionStorage.getItem(reviewKey) || "{}"); } catch { saved = {}; }
+  let selectedIndex = Number.isInteger(saved.index) ? Math.max(0, Math.min(versions.length - 1, saved.index ?? 0)) : Math.max(0, versions.findIndex((item) => item.selected));
+  let compareOpen = false;
+
+  const candidate = document.createElement("div");
+  candidate.className = "graphic-novel-candidate";
+  const primary = document.createElement("img");
+  primary.alt = `${panel.title} candidate`;
+  candidate.appendChild(primary);
+  const compare = document.createElement("img");
+  compare.alt = `${panel.title} comparison candidate`;
+  compare.hidden = true;
+  candidate.appendChild(compare);
+  const metadata = document.createElement("div");
+  const candidateLabel = addText(metadata, "strong", "");
+  const candidateState = addText(metadata, "span", "Candidate · not canon");
+  candidate.appendChild(metadata);
+  decision.appendChild(candidate);
+
+  const direction = document.createElement("textarea");
+  direction.rows = 2;
+  direction.placeholder = "Describe what should change while preserving the source lineage…";
+  direction.value = saved.direction || "";
+  direction.setAttribute("aria-label", "Graphic Novel change direction");
+  decision.appendChild(direction);
+
+  const controls = document.createElement("div");
+  controls.className = "graphic-novel-decision-actions";
+  const status = document.createElement("p");
+  status.className = "graphic-novel-decision-status";
+  status.setAttribute("role", "status");
+
+  function saveReview(kept = saved.kept ?? false) {
+    saved = { index: selectedIndex, direction: direction.value.trim(), kept };
+    window.sessionStorage.setItem(reviewKey, JSON.stringify(saved));
+  }
+
+  function renderCandidate() {
+    const version = versions[selectedIndex];
+    primary.src = version.source;
+    candidateLabel.textContent = `${panel.title} · ${version.label}`;
+    const asset = project.assets.assets.find((item) => item.id === version.reference.assetId);
+    const approved = asset?.approvedVariationId === version.reference.variationId;
+    candidateState.textContent = approved ? "Approved visual canon" : saved.kept ? "Kept candidate · not canon" : "Candidate · not canon";
+    candidate.dataset.approved = approved ? "true" : "false";
+    if (compareOpen && versions.length > 1) {
+      const alternate = versions[(selectedIndex + 1) % versions.length];
+      compare.src = alternate.source;
+      compare.hidden = false;
+    } else {
+      compare.hidden = true;
+    }
+  }
+
+  function button(label: string, action: () => void, primaryAction = false) {
+    const control = document.createElement("button");
+    control.type = "button";
+    control.textContent = label;
+    if (primaryAction) control.className = "primary";
+    control.addEventListener("click", action);
+    controls.appendChild(control);
+  }
+
+  button("Keep", () => {
+    saveReview(true);
+    status.textContent = "Candidate kept for this review. Canon is unchanged until Approve.";
+    renderCandidate();
+  });
+  button("Change", () => {
+    saveReview(false);
+    status.textContent = direction.value.trim()
+      ? "Change direction saved for this review. Approved canon is unchanged."
+      : "Describe what should change first. No canon was modified.";
+  });
+  button("Try", () => {
+    if (versions.length < 2) {
+      status.textContent = "No alternate candidate exists yet. Use the existing Graphic Novel tools to create one; Try never starts a paid request silently.";
+      return;
+    }
+    selectedIndex = (selectedIndex + 1) % versions.length;
+    saved.kept = false;
+    saveReview(false);
+    status.textContent = `Trying ${versions[selectedIndex].label}. Canon is unchanged.`;
+    renderCandidate();
+  });
+  button("Compare", () => {
+    if (versions.length < 2) {
+      status.textContent = "A second candidate is required for side-by-side comparison.";
+      return;
+    }
+    compareOpen = !compareOpen;
+    status.textContent = compareOpen ? "Comparing two candidates side by side. No canon changed." : "Comparison closed.";
+    renderCandidate();
+  });
+  button("Approve", () => {
+    const version = versions[selectedIndex];
+    const approved = approveGraphicNovelAssetVersion(project, panel.id, version.reference);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(approved));
+    window.sessionStorage.removeItem(reviewKey);
+    status.textContent = `${version.label} approved. Updating the canonical Graphic Novel asset…`;
+    window.setTimeout(() => window.location.reload(), 260);
+  }, true);
+
+  direction.addEventListener("input", () => saveReview(saved.kept ?? false));
+  decision.appendChild(controls);
+  decision.appendChild(status);
+  renderCandidate();
+  context.appendChild(decision);
 }
 
 function buildContext(root: HTMLElement) {
@@ -90,11 +230,11 @@ function buildContext(root: HTMLElement) {
     addText(group, "span", `Act ${act}`);
     const first = (act - 1) * 6 + 1;
     for (let number = first; number < first + 6; number += 1) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = String(number).padStart(2, "0");
-      if (number === blockNumber) button.setAttribute("aria-current", "page");
-      button.addEventListener("click", () => {
+      const control = document.createElement("button");
+      control.type = "button";
+      control.textContent = String(number).padStart(2, "0");
+      if (number === blockNumber) control.setAttribute("aria-current", "page");
+      control.addEventListener("click", () => {
         const url = new URL(window.location.href);
         url.searchParams.set("workspace", "pitch");
         url.searchParams.set("block", String(number));
@@ -102,7 +242,7 @@ function buildContext(root: HTMLElement) {
         window.history.replaceState({}, "", url);
         buildContext(root);
       });
-      group.appendChild(button);
+      group.appendChild(control);
     }
     actRail.appendChild(group);
   }
@@ -111,12 +251,12 @@ function buildContext(root: HTMLElement) {
   const miniRail = document.createElement("div");
   miniRail.className = "graphic-novel-mini-rail";
   for (let number = 1; number <= 4; number += 1) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = number === miniBlockNumber ? "active" : "";
+    const control = document.createElement("button");
+    control.type = "button";
+    control.className = number === miniBlockNumber ? "active" : "";
     const label = minis.find((item) => item.number === number)?.label || `Mini ${number}`;
-    button.textContent = `${blockNumber}.${number} · ${label}`;
-    button.addEventListener("click", () => {
+    control.textContent = `${blockNumber}.${number} · ${label}`;
+    control.addEventListener("click", () => {
       const url = new URL(window.location.href);
       url.searchParams.set("workspace", "pitch");
       url.searchParams.set("block", String(blockNumber));
@@ -124,10 +264,11 @@ function buildContext(root: HTMLElement) {
       window.history.replaceState({}, "", url);
       buildContext(root);
     });
-    miniRail.appendChild(button);
+    miniRail.appendChild(control);
   }
   context.appendChild(miniRail);
 
+  addDecisionPanel(context, project, blockNumber, miniBlockNumber);
   root.prepend(context);
 }
 

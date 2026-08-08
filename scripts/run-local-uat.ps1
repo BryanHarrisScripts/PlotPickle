@@ -59,6 +59,25 @@ function Stop-Uat([string]$Message, [int]$Code = 1) {
   exit $Code
 }
 
+function Invoke-NativeCapture([string]$Command, [object[]]$Arguments) {
+  $previousErrorActionPreference = $ErrorActionPreference
+  try {
+    # Windows PowerShell can promote a native program's stderr to a terminating
+    # NativeCommandError when ErrorActionPreference is Stop. Codex legitimately
+    # writes status/progress to stderr, so judge it by exit code after capture.
+    $ErrorActionPreference = "Continue"
+    $output = (& $Command @Arguments 2>&1 | ForEach-Object { $_.ToString() } | Out-String).Trim()
+    $exitCode = $LASTEXITCODE
+  } finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+  }
+
+  return [pscustomobject]@{
+    Output = $output
+    ExitCode = $exitCode
+  }
+}
+
 trap {
   Stop-Uat $_.Exception.Message 1
 }
@@ -106,8 +125,9 @@ if (-not $codex) {
 # Check authentication against the user's normal Codex profile before switching
 # to PlotPickle's isolated UAT CODEX_HOME.
 $env:CODEX_HOME = $normalCodexHome
-$authOutput = (& $codexCommand @codexPrefix login status 2>&1 | Out-String).Trim()
-$authExitCode = $LASTEXITCODE
+$authResult = Invoke-NativeCapture -Command $codexCommand -Arguments (@($codexPrefix) + @("login", "status"))
+$authOutput = $authResult.Output
+$authExitCode = $authResult.ExitCode
 Write-UatStatus "Codex authentication check: $authOutput"
 
 if ($authExitCode -ne 0 -or $authOutput -match "Not logged in") {
@@ -167,8 +187,16 @@ if ($codex) {
 }
 
 Write-UatStatus "Status: RUNNING - Codex UAT agent started."
-& $command @arguments 2>&1 | Tee-Object -FilePath $tracePath
-$exitCode = $LASTEXITCODE
+$previousErrorActionPreference = $ErrorActionPreference
+try {
+  # Keep normal Codex stderr/progress visible and in the trace without allowing
+  # Windows PowerShell to convert it into a terminating NativeCommandError.
+  $ErrorActionPreference = "Continue"
+  & $command @arguments 2>&1 | ForEach-Object { $_.ToString() } | Tee-Object -FilePath $tracePath
+  $exitCode = $LASTEXITCODE
+} finally {
+  $ErrorActionPreference = $previousErrorActionPreference
+}
 
 if ($exitCode -ne 0) {
   Stop-Uat "Codex UAT agent exited with code $exitCode. Review the trace above and at $tracePath." $exitCode

@@ -33,6 +33,9 @@ jobs:
     name: Human-like PlotPickle workflow
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    permissions:
+      contents: read
+      issues: write
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       PLOTPICKLE_ACCEPTANCE_URL: ${{ inputs.base_url || 'http://127.0.0.1:4173' }}
@@ -127,3 +130,34 @@ jobs:
             tools/agent-plugins/plotpickle-workflow-tester/*.webp
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Publish acceptance report to findings inbox
+        if: always()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          REPORT="$PLOTPICKLE_AGENT_PLUGIN_DATA/artifacts/acceptance-report.md"
+          COMMENT="$RUNNER_TEMP/plotpickle-agent-run/acceptance-issue-comment.md"
+          mkdir -p "$(dirname "$COMMENT")"
+          {
+            echo "## Human acceptance run $GITHUB_RUN_ID"
+            echo
+            echo "Scope: $PLOTPICKLE_ACCEPTANCE_SCOPE"
+            echo "Commit: $GITHUB_SHA"
+            echo "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo
+            if [ -s "$REPORT" ]; then
+              head -c 55000 "$REPORT"
+            else
+              echo "FAIL — the human acceptance runner did not produce an acceptance report. Inspect the Actions run and uploaded app/agent logs before retrying."
+              if [ -s "$PLOTPICKLE_AGENT_PLUGIN_DATA/artifacts/plotpickle-app.log" ]; then
+                echo
+                echo "### PlotPickle app log tail"
+                echo '```text'
+                tail -n 80 "$PLOTPICKLE_AGENT_PLUGIN_DATA/artifacts/plotpickle-app.log"
+                echo '```'
+              fi
+            fi
+          } > "$COMMENT"
+          gh issue comment 490 --repo "$GITHUB_REPOSITORY" --body-file "$COMMENT"

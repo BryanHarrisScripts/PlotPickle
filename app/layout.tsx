@@ -4,6 +4,7 @@ import CollaborationWorkspaceRouter from "./collaboration-workspace-router";
 import CommonOverlayLayer from "./common-overlay-layer";
 import CurrentDownloadLinks from "./current-download-links";
 import GitHubAppReleaseGuidance from "./github-app-release-guidance";
+import GraphicNovelBuildHandoff from "./graphic-novel-build-handoff";
 import GraphicNovelStudioHost from "./graphic-novel-studio-host";
 import GraphicNovelTerminology from "./graphic-novel-terminology";
 import LearnEntryRouter from "./learn-entry-router";
@@ -43,6 +44,7 @@ import "./write-studio-progressive.css";
 import "./write-edit-handoff.css";
 import "./edit-decision-panel.css";
 import "./graphic-novel-studio.css";
+import "./graphic-novel-build-handoff.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",
@@ -86,6 +88,7 @@ export default function RootLayout({
         <WriterFacingCollaborationLanguage />
         <GraphicNovelTerminology />
         <GraphicNovelStudioHost />
+        <GraphicNovelBuildHandoff />
         <GitHubAppReleaseGuidance />
         <CollaborationWorkspaceRouter />
         <PlanStudioRailHost />

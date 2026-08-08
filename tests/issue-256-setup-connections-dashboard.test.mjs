@@ -10,7 +10,7 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 test("issue #256 keeps setup and connections out of the story-first Dashboard", async () => {
   const [dashboard, studio] = await Promise.all([
     source("app/dashboard-command-centre.tsx"),
-    source("app/project-overview.tsx"),
+    source("app/dashboard-story-library.tsx"),
   ]);
   assert.doesNotMatch(dashboard, /SetupConnectionsDashboard|dashboard-setup|Setup &amp; connections/);
   assert.match(studio, /openWorkspace\("settings"\)/);

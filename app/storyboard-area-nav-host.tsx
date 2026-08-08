@@ -73,7 +73,7 @@ function activeLegacyButton(root: ParentNode) {
 
 function areaFor(root: ParentNode) {
   const params = new URLSearchParams(window.location.search);
-  if (params.get("review") === "1") return "Versions";
+  if (params.get("decision") === "review") return "Versions";
   const active = legacyLabel(activeLegacyButton(root));
   for (const area of AREAS) {
     for (const tool of area.tools) {
@@ -87,16 +87,16 @@ function areaFor(root: ParentNode) {
 
 function activeToolFor(root: ParentNode, area: Area) {
   const params = new URLSearchParams(window.location.search);
-  if (area.label === "Versions" && params.get("review") === "1") return "Selected moment versions";
+  if (area.label === "Versions" && params.get("decision") === "review") return "Selected moment versions";
   const active = legacyLabel(activeLegacyButton(root));
   const match = area.tools.find((tool) => !tool.virtual && active.includes(normalized(tool.legacyLabel || tool.label)));
   return match?.label || "";
 }
 
-function clearReviewFlag() {
+function clearDecisionFlag() {
   const url = new URL(window.location.href);
-  if (!url.searchParams.has("review")) return;
-  url.searchParams.delete("review");
+  if (!url.searchParams.has("decision")) return;
+  url.searchParams.delete("decision");
   window.history.replaceState({}, "", url);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
@@ -108,11 +108,11 @@ function clickLegacy(root: ParentNode, tool: Tool) {
 }
 
 function openVersions(root: ParentNode) {
-  clearReviewFlag();
+  clearDecisionFlag();
   clickLegacy(root, { label: "96 Mini-blocks", legacyLabel: "96 mini-block frames" });
   const url = new URL(window.location.href);
   url.searchParams.set("visualSection", "frames");
-  url.searchParams.set("review", "1");
+  url.searchParams.set("decision", "review");
   window.history.replaceState({}, "", url);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
@@ -200,7 +200,7 @@ export default function StoryboardAreaNavHost() {
       setActiveTool("Selected moment versions");
       return;
     }
-    clearReviewFlag();
+    clearDecisionFlag();
     const preferred = area.label === "Moments" ? area.tools[1] : area.tools[0];
     clickLegacy(root!, preferred);
     setAreaLabel(area.label);
@@ -213,7 +213,7 @@ export default function StoryboardAreaNavHost() {
       setActiveTool(tool.label);
       return;
     }
-    clearReviewFlag();
+    clearDecisionFlag();
     clickLegacy(root!, tool);
     setActiveTool(tool.label);
   }

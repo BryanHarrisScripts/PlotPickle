@@ -1,0 +1,208 @@
+/* #444 Phase A — persistent desktop Studio shell visual direction */
+html[data-plotpickle-theme="dark"] .application-shell-header {
+  min-height: 64px;
+  padding: 0 24px;
+  grid-template-columns: auto auto minmax(0, 1fr) auto auto auto auto;
+  gap: 14px;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.18);
+  background: rgba(7, 7, 7, 0.97);
+  color: #f1eee6;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 190px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .brand-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border: 1px solid rgba(205, 167, 88, 0.32);
+  background: #0b0b0b;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .studio-brand-copy {
+  display: grid;
+  gap: 1px;
+  line-height: 1;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .studio-brand-copy strong {
+  color: #f3efe6;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .studio-brand-copy small {
+  color: #8e887b;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-divider {
+  width: 1px;
+  height: 24px;
+  margin: 0;
+  border: 0;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-primary-navigation,
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-zone-collaboration,
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-zone-configuration,
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-zone-project-actions {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-primary-navigation {
+  overflow: hidden;
+  justify-content: center;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs {
+  align-self: stretch;
+  gap: 2px;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs button,
+html[data-plotpickle-theme="dark"] .application-shell-header .text-button,
+html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs a {
+  min-width: 0;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #8f8a80;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-decoration: none;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs button::after {
+  right: 10px;
+  bottom: 7px;
+  left: 10px;
+  height: 1px;
+  border-radius: 0;
+  background: #cda758;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs button:hover,
+html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs button.active,
+html[data-plotpickle-theme="dark"] .application-shell-header .text-button:hover,
+html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs a:hover {
+  background: transparent;
+  color: #f1eee6;
+  transform: none;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs button.active {
+  color: #d8b769;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-zone-project-actions {
+  gap: 2px;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-zone-project-actions .text-button {
+  color: #aaa397;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-zone-configuration {
+  justify-content: flex-end;
+}
+
+html[data-plotpickle-theme="dark"] .project-strip {
+  min-height: 46px;
+  padding: 7px 24px;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.12);
+  background: #0b0b0b;
+  color: #e9e4da;
+}
+
+html[data-plotpickle-theme="dark"] .project-strip .project-title strong {
+  color: #ede8de;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+html[data-plotpickle-theme="dark"] .project-strip .project-title span:last-child,
+html[data-plotpickle-theme="dark"] .project-strip .save-state,
+html[data-plotpickle-theme="dark"] .project-strip .progress-block > output {
+  color: #777269;
+  font-family: var(--font-mono);
+}
+
+html[data-plotpickle-theme="dark"] .project-strip .status-dot {
+  width: 6px;
+  height: 6px;
+  background: #cda758;
+  box-shadow: 0 0 0 3px rgba(205, 167, 88, 0.1);
+}
+
+html[data-plotpickle-theme="dark"] .project-strip .progress-track {
+  height: 3px;
+  background: #1a1917;
+}
+
+html[data-plotpickle-theme="dark"] .project-strip .progress-track::-webkit-progress-bar {
+  background: #1a1917;
+}
+
+html[data-plotpickle-theme="dark"] .project-strip .progress-track::-webkit-progress-value,
+html[data-plotpickle-theme="dark"] .project-strip .progress-track::-moz-progress-bar {
+  background: #cda758;
+}
+
+html[data-plotpickle-theme="dark"] .workspace {
+  min-height: calc(100vh - 110px);
+}
+
+@media (max-width: 1320px) {
+  html[data-plotpickle-theme="dark"] .application-shell-header {
+    padding: 0 16px;
+    gap: 9px;
+  }
+
+  html[data-plotpickle-theme="dark"] .application-shell-header .shell-brand {
+    min-width: 154px;
+  }
+
+  html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs button,
+  html[data-plotpickle-theme="dark"] .application-shell-header .text-button,
+  html[data-plotpickle-theme="dark"] .application-shell-header .main-tabs a {
+    padding-right: 7px;
+    padding-left: 7px;
+    font-size: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-plotpickle-theme="dark"] .application-shell-header * {
+    transition: none !important;
+  }
+}

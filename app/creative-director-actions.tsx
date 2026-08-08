@@ -15,6 +15,10 @@ function writerFacingMessage(message?: string) {
     .replace(/providers?/gi, "routes");
 }
 
+function buttonText(button: HTMLButtonElement) {
+  return (button.textContent || "").replace(/\s+/g, " ").trim();
+}
+
 export default function CreativeDirectorActions({
   storyLabel,
   storyTitle,
@@ -49,14 +53,15 @@ export default function CreativeDirectorActions({
   const advancedRef = useRef<HTMLDetailsElement>(null);
   const visibleMessage = writerFacingMessage(message) || decisionMessage;
 
-  function keepCurrent() {
-    if (!currentVisual) {
-      setDecisionMessage("There is no approved visual to keep yet. Try Again to create a first version.");
+  function keepCandidate() {
+    const approveButton = Array.from(versionsRef.current?.querySelectorAll<HTMLButtonElement>("button") ?? [])
+      .find((button) => /^Approve (?:image|video)$/i.test(buttonText(button)));
+    if (!approveButton) {
+      setDecisionMessage("No new candidate is waiting for approval. Use Try Again to create one, or Compare the saved versions.");
       return;
     }
-    setDecisionMessage(versions
-      ? "Keep selected. The current approved visual stays in place; any alternatives remain unapproved until you choose one."
-      : "Keep selected. The current approved visual stays attached to this story moment.");
+    setDecisionMessage("Keep selected. The reviewed candidate is now being approved for this exact story moment.");
+    approveButton.click();
   }
 
   function changeDirection() {
@@ -75,7 +80,7 @@ export default function CreativeDirectorActions({
       setDecisionMessage("There is only one visual state to review. Use Try Again to create an alternative, then Compare will show the saved versions here.");
       return;
     }
-    setDecisionMessage("Compare the saved versions below. Nothing becomes approved until you explicitly choose it.");
+    setDecisionMessage("Compare the saved versions below. Nothing becomes approved until you explicitly choose Keep.");
     window.setTimeout(() => versionsRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 0);
   }
 
@@ -95,9 +100,9 @@ export default function CreativeDirectorActions({
 
       <fieldset id="storyboard-decisions" className={styles.actions}>
         <legend className={styles.actionLegend}>Decide what happens to this visual</legend>
-        <button type="button" className={styles.primary} disabled={busy} onClick={keepCurrent}>
+        <button type="button" className={styles.primary} disabled={busy} onClick={keepCandidate}>
           <strong>Keep</strong>
-          <span>Keep the current approved visual as the story choice.</span>
+          <span>Approve the newest candidate for this exact story moment.</span>
         </button>
         <button type="button" className={styles.secondary} disabled={busy} onClick={changeDirection}>
           <strong>Change</strong>
@@ -115,7 +120,7 @@ export default function CreativeDirectorActions({
 
       {visibleMessage ? <p className={state === "error" ? styles.error : styles.message} role="status">{visibleMessage}</p> : null}
 
-      {versions ? <div className={styles.versions} ref={versionsRef}>{versions}</div> : null}
+      {versions ? <div className={styles.versions} ref={versionsRef}>{versions}</div> : <div ref={versionsRef} />}
 
       <div className={styles.motionAction}>
         <div><strong>Make it move</strong><span>Use the approved image as the starting point for motion.</span></div>

@@ -1,0 +1,103 @@
+/* Issue #452 — five Storyboard creative areas.
+   The existing canonical section buttons remain the actual destinations. This
+   layer changes hierarchy only: four become area entries, existing supporting
+   tools become secondary choices, and Versions becomes a review lens over the
+   selected canonical moment. */
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] > header {
+  order: 0;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-area="overview"][data-storyboard-role="primary"] {
+  order: 10;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-area="world"][data-storyboard-role="primary"] {
+  order: 20;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-area="world"][data-storyboard-role="secondary"] {
+  order: 21;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-area="moments"][data-storyboard-role="primary"] {
+  order: 30;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-area="moments"][data-storyboard-role="secondary"] {
+  order: 31;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-area="continuity"][data-storyboard-role="primary"] {
+  order: 40;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-versions="true"] {
+  order: 50;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-role="secondary"] {
+  display: none !important;
+  min-height: 36px !important;
+  margin-left: 18px !important;
+  width: calc(100% - 18px) !important;
+  padding: 7px 8px !important;
+  border-left-color: rgba(205, 167, 88, 0.2) !important;
+  color: #777168 !important;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"][data-storyboard-area="world"]
+  button[data-storyboard-area="world"][data-storyboard-role="secondary"],
+.visual-studio-layout nav[aria-label="Visual Board sections"][data-storyboard-area="moments"]
+  button[data-storyboard-area="moments"][data-storyboard-role="secondary"] {
+  display: flex !important;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-role="primary"] {
+  min-height: 48px !important;
+  margin-top: 6px !important;
+  border-top-color: rgba(205, 167, 88, 0.12) !important;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-role="primary"] strong {
+  font-size: 10px !important;
+  letter-spacing: 0.02em;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-role="primary"] small {
+  color: #6f685d !important;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"][data-storyboard-area="overview"]
+  button[data-storyboard-area="overview"][data-storyboard-role="primary"],
+.visual-studio-layout nav[aria-label="Visual Board sections"][data-storyboard-area="world"]
+  button[data-storyboard-area="world"][data-storyboard-role="primary"],
+.visual-studio-layout nav[aria-label="Visual Board sections"][data-storyboard-area="moments"]
+  button[data-storyboard-area="moments"][data-storyboard-role="primary"],
+.visual-studio-layout nav[aria-label="Visual Board sections"][data-storyboard-area="continuity"]
+  button[data-storyboard-area="continuity"][data-storyboard-role="primary"],
+.visual-studio-layout nav[aria-label="Visual Board sections"][data-storyboard-versions-active="true"]
+  button[data-storyboard-versions="true"] {
+  border-color: rgba(205, 167, 88, 0.52) !important;
+  background: #19150d !important;
+  color: #efd18a !important;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"][data-storyboard-versions-active="true"]
+  button[data-storyboard-area="moments"][data-storyboard-role="primary"] {
+  border-color: transparent !important;
+  border-bottom-color: #25221d !important;
+  background: transparent !important;
+  color: #928b80 !important;
+}
+
+.visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-versions="true"] b {
+  color: #d5ae5b !important;
+}
+
+@media (max-width: 920px) {
+  .visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-role="secondary"] {
+    margin-left: 0 !important;
+    width: auto !important;
+  }
+}

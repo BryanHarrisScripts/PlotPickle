@@ -1,0 +1,373 @@
+/* Issue #464 — Write Studio visual boundary.
+   Keep all screenplay data and behavior intact while making the canonical scene
+   and story position the visual center of the drafting experience. */
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) {
+  background:
+    radial-gradient(circle at 8% 0%, rgba(205, 167, 88, 0.045), transparent 25rem),
+    #090909 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) > section[aria-label$="capabilities"] {
+  display: none !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) > button[aria-label*="feedback records"] {
+  display: none !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="workspaceShell"] {
+  min-height: calc(100vh - 128px);
+  background: #090909 !important;
+  color: #e9e0d0 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="modeBar"] {
+  top: 128px !important;
+  min-height: 48px;
+  padding: 8px 22px !important;
+  border-top: 1px solid rgba(205, 167, 88, 0.14) !important;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.22) !important;
+  background: rgba(12, 12, 11, 0.97) !important;
+  color: #ded5c5 !important;
+  box-shadow: none !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="modeBar"] strong {
+  color: #f0e7d8 !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="modeBar"] span {
+  color: #777168 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="modeBar"] > div:last-child {
+  border: 1px solid #4a3e2a !important;
+  border-radius: 0 !important;
+  background: #0d0d0c !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="modeBar"] button {
+  border-color: #4a3e2a !important;
+  background: transparent !important;
+  color: #a59a89 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="modeBar"] button[class*="activeMode"] {
+  background: #cda758 !important;
+  color: #090806 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="writerHeader"] {
+  padding: 24px clamp(24px, 3.5vw, 54px) !important;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.18) !important;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(205, 167, 88, 0.055), transparent 23rem),
+    #090909 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="writerHeader"] p,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="miniNavigator"] > div:first-child > span,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="blockRail"] > div span,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="formatToolbar"] > span {
+  color: #cda758 !important;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="writerHeader"] h1 {
+  color: #f4efe6 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: clamp(2rem, 3.4vw, 3.6rem) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.045em;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="writerHeader"] > div > span {
+  color: #817a70 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="exportActions"] button,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="openPlan"],
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="formatToolbar"] button,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="productionDraftPanel"] button {
+  border: 1px solid #54462e !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #d0b775 !important;
+  box-shadow: none !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="exportActions"] button:hover,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="openPlan"]:hover,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="formatToolbar"] button:hover,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="formatToolbar"] button:focus-visible {
+  border-color: #cda758 !important;
+  background: #19150d !important;
+  color: #f0d28b !important;
+  outline: none !important;
+}
+
+/* Production draft capability is preserved, but visually recedes behind drafting. */
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="productionDraftPanel"] {
+  padding: 11px clamp(24px, 3.5vw, 54px) !important;
+  border-bottom: 1px solid #27231d !important;
+  background: #0d0d0c !important;
+  color: #a99f90 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="productionDraftPanel"] span,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="productionDraftPanel"] p,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="productionDraftPanel"] label {
+  color: #777168 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="productionDraftPanel"] h2,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="productionDraftPanel"] h3 {
+  color: #c7bcaa !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="productionDraftPanel"] input,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="productionDraftPanel"] select,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="productionDraftPanel"] textarea,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="productionDraftPanel"] [class*="productionGrid"] > div,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="productionDraftPanel"] [class*="productionMetrics"] b {
+  border-color: #393229 !important;
+  border-radius: 0 !important;
+  background: #11110f !important;
+  color: #a99f90 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="writerLayout"] {
+  grid-template-columns: 220px minmax(560px, 1fr) 300px !important;
+  min-height: calc(100vh - 220px);
+  background: #090909 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="blockRail"] {
+  top: 176px !important;
+  min-height: calc(100vh - 176px) !important;
+  max-height: calc(100vh - 176px) !important;
+  border-right: 1px solid rgba(205, 167, 88, 0.2) !important;
+  background:
+    linear-gradient(180deg, rgba(205, 167, 88, 0.035), transparent 14rem),
+    #0d0d0c !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="blockRail"] > div {
+  border-bottom-color: rgba(205, 167, 88, 0.16) !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="blockRail"] > div strong {
+  color: #ece2d0 !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="blockRail"] > div small,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="blockRail"] nav button small {
+  color: #6f695f !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="blockRail"] nav button {
+  border: 1px solid transparent !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #968e82 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="blockRail"] nav button > span {
+  color: #78633b !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="blockRail"] nav button:hover,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="blockRail"] nav button:focus-visible {
+  border-color: #51432c !important;
+  background: #13110d !important;
+  outline: none !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="blockRail"] nav button[class*="activeBlock"] {
+  border-color: #cda758 !important;
+  background: #19150d !important;
+  color: #f0d28b !important;
+  box-shadow: inset 3px 0 #cda758 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="writerMain"] {
+  padding: 18px clamp(18px, 2.5vw, 30px) 70px !important;
+  background: #090909 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="miniNavigator"] {
+  max-width: 980px !important;
+  border: 1px solid #3a3226 !important;
+  border-radius: 0 !important;
+  background: #0f0f0e !important;
+  color: #e5dac7 !important;
+  box-shadow: none !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="miniNavigator"] h2 {
+  color: #f0e7d8 !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="miniNavigator"] p {
+  color: #81786d !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="miniGrid"] button {
+  border: 1px solid #343029 !important;
+  border-radius: 0 !important;
+  background: #11110f !important;
+  color: #bcb2a1 !important;
+  box-shadow: none !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="miniGrid"] button span {
+  color: #927846 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="miniGrid"] button small,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="miniGrid"] button i {
+  color: #746e65 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="miniGrid"] button[class*="activeMini"] {
+  border-color: #cda758 !important;
+  background: #19150d !important;
+  color: #f0d28b !important;
+  box-shadow: inset 0 0 0 1px rgba(205, 167, 88, 0.08) !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="formatToolbar"] {
+  max-width: 980px !important;
+  border: 1px solid #383127 !important;
+  border-radius: 0 !important;
+  background: #0d0d0c !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="scriptPaper"] {
+  max-width: 980px !important;
+  min-height: 1050px;
+  padding: 66px clamp(44px, 7vw, 96px) 90px !important;
+  border: 1px solid #3b3429 !important;
+  background: #121211 !important;
+  color: #eee6d8 !important;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32) !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="scriptElement"] {
+  border-radius: 0 !important;
+  color: #eee6d8 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="scriptElement"]:hover {
+  border-color: #433b2e !important;
+  background: #171612 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="scriptElement"][class*="selectedElement"] {
+  border-color: #a98746 !important;
+  background: #1b1811 !important;
+  box-shadow: inset 3px 0 #cda758 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="scriptElement"] textarea,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="scriptElement"] select,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="scriptElement"] input {
+  background: transparent !important;
+  color: #eee6d8 !important;
+  caret-color: #cda758;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="scriptElement"] textarea:focus,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="scriptElement"] select:focus {
+  outline-color: #cda758 !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="blankPage"],
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="convertCard"] {
+  max-width: 980px !important;
+  border: 1px solid #433a2d !important;
+  border-radius: 0 !important;
+  background: #11110f !important;
+  color: #e1d7c5 !important;
+}
+
+/* Existing right-side writing context stays visible but visually subordinate. */
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="writerLayout"] > aside:last-child {
+  position: sticky;
+  top: 176px;
+  max-height: calc(100vh - 190px);
+  overflow-y: auto;
+  border-left: 1px solid rgba(205, 167, 88, 0.18) !important;
+  background: #0d0d0c !important;
+  color: #b8ae9e !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="writerLayout"] > aside:last-child article,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="writerLayout"] > aside:last-child section,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="writerLayout"] > aside:last-child div {
+  border-color: #312b23 !important;
+  border-radius: 0 !important;
+  background: #11110f !important;
+  color: #b8ae9e !important;
+  box-shadow: none !important;
+}
+
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="writerLayout"] > aside:last-child h2,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="writerLayout"] > aside:last-child h3,
+.workspace:has(nav[aria-label="Screenplay blocks"]) [class*="writerLayout"] > aside:last-child strong {
+  color: #e5dac7 !important;
+}
+
+@media (max-width: 1120px) {
+  .workspace:has(nav[aria-label="Screenplay blocks"]) [class*="writerLayout"] {
+    grid-template-columns: 190px minmax(0, 1fr) !important;
+  }
+
+  .workspace:has(nav[aria-label="Screenplay blocks"]) [class*="writerLayout"] > aside:last-child {
+    grid-column: 1 / -1;
+    position: relative;
+    top: auto;
+    max-height: none;
+    border-left: 0 !important;
+    border-top: 1px solid rgba(205, 167, 88, 0.18) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace:has(nav[aria-label="Screenplay blocks"]) [class*="writerLayout"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .workspace:has(nav[aria-label="Screenplay blocks"]) [class*="blockRail"] {
+    position: relative;
+    top: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(205, 167, 88, 0.18) !important;
+  }
+
+  .workspace:has(nav[aria-label="Screenplay blocks"]) [class*="blockRail"] nav {
+    display: flex;
+    max-height: none;
+    overflow-x: auto;
+  }
+
+  .workspace:has(nav[aria-label="Screenplay blocks"]) [class*="blockRail"] nav button {
+    min-width: 150px;
+  }
+
+  .workspace:has(nav[aria-label="Screenplay blocks"]) [class*="scriptPaper"] {
+    min-height: 760px;
+    padding: 36px 24px 60px !important;
+  }
+}

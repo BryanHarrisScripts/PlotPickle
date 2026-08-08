@@ -1,0 +1,275 @@
+/* Issue #447 — bring the existing Plan editors into the approved Studio shell
+   without changing their canonical PPF fields or editor behaviour. */
+
+.workspace:has(.planner-content) .editor-page {
+  width: 100%;
+  max-width: none !important;
+  margin: 0;
+  padding: 30px clamp(28px, 3.5vw, 58px) 72px !important;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(205, 167, 88, 0.035), transparent 24rem),
+    #090909 !important;
+  color: #e9e0d0 !important;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+}
+
+.workspace:has(.planner-content) .section-heading {
+  align-items: end !important;
+  margin-bottom: 22px !important;
+  padding-bottom: 20px !important;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.2) !important;
+}
+
+.workspace:has(.planner-content) .section-heading h1,
+.workspace:has(.planner-content) .section-heading h2,
+.workspace:has(.planner-content) .form-section > h3,
+.workspace:has(.planner-content) .subsection-title h3,
+.workspace:has(.planner-content) .relationship-list h3,
+.workspace:has(.planner-content) .inspector-head h2 {
+  color: #f4efe6 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-weight: 500 !important;
+}
+
+.workspace:has(.planner-content) .section-heading h2 {
+  font-size: clamp(32px, 4vw, 54px) !important;
+  letter-spacing: -0.045em !important;
+}
+
+.workspace:has(.planner-content) .section-heading p,
+.workspace:has(.planner-content) .subsection-title p,
+.workspace:has(.planner-content) .inspector-head p:last-child,
+.workspace:has(.planner-content) .block-purpose-copy {
+  color: #827c72 !important;
+}
+
+.workspace:has(.planner-content) .eyebrow,
+.workspace:has(.planner-content) .block-number,
+.workspace:has(.planner-content) .storyboard-block-list button > span {
+  color: #cda758 !important;
+}
+
+.workspace:has(.planner-content) .form-section,
+.workspace:has(.planner-content) .signal-section,
+.workspace:has(.planner-content) .location-card,
+.workspace:has(.planner-content) .character-workspace,
+.workspace:has(.planner-content) .block-inspector,
+.workspace:has(.planner-content) .storyboard-direction-panel,
+.workspace:has(.planner-content) .story-motion-grid,
+.workspace:has(.planner-content) .context-preview dl div {
+  border: 1px solid #2b271f !important;
+  border-radius: 0 !important;
+  background: #10100f !important;
+  color: #e9e0d0 !important;
+  box-shadow: none !important;
+}
+
+.workspace:has(.planner-content) .form-section {
+  margin-top: 14px !important;
+  padding: clamp(20px, 2.4vw, 30px) !important;
+}
+
+.workspace:has(.planner-content) .signal-section,
+.workspace:has(.planner-content) .story-motion-grid {
+  border-color: rgba(205, 167, 88, 0.34) !important;
+  background:
+    linear-gradient(145deg, rgba(205, 167, 88, 0.055), transparent 70%),
+    #11100e !important;
+}
+
+.workspace:has(.planner-content) .field-label {
+  color: #d8cdb9 !important;
+  font-size: 10px !important;
+  letter-spacing: 0.015em;
+}
+
+.workspace:has(.planner-content) .field-help,
+.workspace:has(.planner-content) .field-feedback,
+.workspace:has(.planner-content) .character-roster small,
+.workspace:has(.planner-content) .act-row > header span,
+.workspace:has(.planner-content) .act-row > header small,
+.workspace:has(.planner-content) .block-card > p,
+.workspace:has(.planner-content) .block-card > small,
+.workspace:has(.planner-content) .storyboard-block-list button small,
+.workspace:has(.planner-content) .context-preview p {
+  color: #777168 !important;
+}
+
+.workspace:has(.planner-content) .form-field input,
+.workspace:has(.planner-content) .form-field textarea,
+.workspace:has(.planner-content) .form-field select,
+.workspace:has(.planner-content) .subsection-title select {
+  border: 1px solid #393329 !important;
+  border-radius: 0 !important;
+  background: #0b0b0a !important;
+  color: #eee5d6 !important;
+  box-shadow: none !important;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace !important;
+}
+
+.workspace:has(.planner-content) .form-field input:hover,
+.workspace:has(.planner-content) .form-field textarea:hover,
+.workspace:has(.planner-content) .form-field select:hover,
+.workspace:has(.planner-content) .subsection-title select:hover {
+  border-color: #7d6638 !important;
+}
+
+.workspace:has(.planner-content) .form-field input:focus,
+.workspace:has(.planner-content) .form-field textarea:focus,
+.workspace:has(.planner-content) .form-field select:focus,
+.workspace:has(.planner-content) .subsection-title select:focus {
+  border-color: #cda758 !important;
+  box-shadow: 0 0 0 2px rgba(205, 167, 88, 0.13) !important;
+  outline: none !important;
+}
+
+.workspace:has(.planner-content) .form-field input::placeholder,
+.workspace:has(.planner-content) .form-field textarea::placeholder {
+  color: #625d55 !important;
+}
+
+.workspace:has(.planner-content) .location-image,
+.workspace:has(.planner-content) .empty-state,
+.workspace:has(.planner-content) .empty-frame,
+.workspace:has(.planner-content) .portrait {
+  border-color: #342f27 !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(145deg, rgba(205, 167, 88, 0.05), transparent),
+    #0c0c0b !important;
+  color: #776f61 !important;
+}
+
+.workspace:has(.planner-content) .character-roster {
+  border-right: 1px solid #2b271f !important;
+  background: #0c0c0b !important;
+}
+
+.workspace:has(.planner-content) .character-roster button {
+  border-radius: 0 !important;
+  color: #90897e !important;
+}
+
+.workspace:has(.planner-content) .character-roster button:hover,
+.workspace:has(.planner-content) .character-roster button.active {
+  border-color: rgba(205, 167, 88, 0.38) !important;
+  background: #18150f !important;
+  color: #efdcae !important;
+  box-shadow: none !important;
+}
+
+.workspace:has(.planner-content) .character-profile-head {
+  border-color: #2b271f !important;
+}
+
+.workspace:has(.planner-content) .context-preview dd {
+  color: #e8d7ad !important;
+}
+
+.workspace:has(.planner-content) .act-row {
+  border-color: #2d2922 !important;
+  border-radius: 0 !important;
+  background: #0f0f0e !important;
+}
+
+.workspace:has(.planner-content) .act-row > header strong {
+  color: #ded2bc !important;
+}
+
+.workspace:has(.planner-content) .block-card,
+.workspace:has(.planner-content) .storyboard-block-list button {
+  border: 1px solid #302c24 !important;
+  border-radius: 0 !important;
+  background: #11110f !important;
+  color: #d9cfbd !important;
+  box-shadow: none !important;
+}
+
+.workspace:has(.planner-content) .block-card:hover,
+.workspace:has(.planner-content) .storyboard-block-list button:hover {
+  border-color: #806a3d !important;
+  background: #15130f !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.workspace:has(.planner-content) .block-card.active,
+.workspace:has(.planner-content) .storyboard-block-list button.active {
+  border-color: #cda758 !important;
+  background:
+    linear-gradient(145deg, rgba(205, 167, 88, 0.075), transparent 70%),
+    #17140d !important;
+  box-shadow: inset 0 0 0 1px rgba(205, 167, 88, 0.08) !important;
+}
+
+.workspace:has(.planner-content) .block-card > i {
+  background: #302b23 !important;
+}
+
+.workspace:has(.planner-content) .block-card > i b {
+  background: #cda758 !important;
+}
+
+.workspace:has(.planner-content) .block-inspector,
+.workspace:has(.planner-content) .storyboard-direction-panel {
+  top: 20px !important;
+  max-height: calc(100vh - 48px) !important;
+}
+
+.workspace:has(.planner-content) .inspector-head {
+  border-color: #2b271f !important;
+}
+
+.workspace:has(.planner-content) .block-index {
+  border-radius: 0 !important;
+  background: #191712 !important;
+  color: #eac872 !important;
+}
+
+.workspace:has(.planner-content) .chip-list button {
+  border: 1px solid #393329 !important;
+  border-radius: 0 !important;
+  background: #0c0c0b !important;
+  color: #90897d !important;
+}
+
+.workspace:has(.planner-content) .chip-list button:hover,
+.workspace:has(.planner-content) .chip-list button.active {
+  border-color: #cda758 !important;
+  background: #19150d !important;
+  color: #efd28c !important;
+}
+
+.workspace:has(.planner-content) .primary-button,
+.workspace:has(.planner-content) button.primary-button {
+  border-color: #cda758 !important;
+  border-radius: 0 !important;
+  background: #cda758 !important;
+  color: #090806 !important;
+  box-shadow: none !important;
+}
+
+.workspace:has(.planner-content) .text-button,
+.workspace:has(.planner-content) button.text-button {
+  border-radius: 0 !important;
+}
+
+@media (max-width: 1180px) {
+  .workspace:has(.planner-content) .blocks-workspace,
+  .workspace:has(.planner-content) .storyboard-planner-workspace,
+  .workspace:has(.planner-content) .character-workspace {
+    grid-template-columns: 1fr !important;
+  }
+
+  .workspace:has(.planner-content) .block-inspector,
+  .workspace:has(.planner-content) .storyboard-direction-panel {
+    position: relative !important;
+    top: auto !important;
+    max-height: none !important;
+  }
+
+  .workspace:has(.planner-content) .character-roster {
+    border-right: 0 !important;
+    border-bottom: 1px solid #2b271f !important;
+  }
+}

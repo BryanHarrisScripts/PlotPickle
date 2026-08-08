@@ -65,9 +65,19 @@ const ROLE_OPTIONS = [
 ] as const;
 
 const RESOLVED_STATUSES: FeedbackStatus[] = ["accepted", "partially-accepted", "rejected", "resolved"];
+const REVIEW_STATES: { label: string; status: FeedbackStatus }[] = [
+  { label: "Open", status: "open" },
+  { label: "Considered", status: "under-review" },
+  { label: "Deferred", status: "deferred" },
+  { label: "Resolved", status: "resolved" },
+];
 
 function titleCase(value: string) {
   return value.replaceAll("-", " ").replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function feedbackStatusLabel(status: FeedbackStatus) {
+  return status === "under-review" ? "Considered" : titleCase(status);
 }
 
 function recordBelongsToSection(record: UnifiedFeedbackRecord, section: FeedbackSection) {
@@ -92,7 +102,7 @@ function RecordCard({ record, selected, onSelect }: { record: UnifiedFeedbackRec
     <button type="button" className={`${styles.recordCard} ${record.source === "ai" || record.source === "diagnostic" ? styles.aiRecord : styles.humanRecord} ${selected ? styles.selectedRecord : ""}`} onClick={onSelect} aria-pressed={selected}>
       <span className={styles.recordTopline}>
         <i className={styles[`priority${titleCase(record.priority)}`]}>{record.priority}</i>
-        <b>{titleCase(record.status)}</b>
+        <b>{feedbackStatusLabel(record.status)}</b>
       </span>
       <strong>{record.title}</strong>
       <span>{record.target.label}</span>
@@ -174,6 +184,24 @@ export default function FeedbackWorkspace({ project, onProjectChange, onOpenTarg
     if (!selectedRecord || selectedRecord.synthetic || !commentBody.trim()) return;
     onProjectChange(addFeedbackComment(project, selectedRecord.id, "Local reviewer", commentBody));
     setCommentBody("");
+  }
+
+  function openRefine(record: UnifiedFeedbackRecord) {
+    const block = project.blocks.find((candidate) => candidate.id === record.target.blockId)
+      ?? project.blocks.find((candidate) => candidate.scenes.some((scene) => scene.id === record.target.sceneId || scene.miniBlocks.some((mini) => mini.id === record.target.miniBlockId)))
+      ?? project.blocks.find((candidate) => candidate.number === project.screenplay.draftElements.find((element) => element.id === record.target.screenplayElementId)?.blockNumber);
+    const mini = record.target.miniBlockId && block
+      ? block.scenes.flatMap((scene) => scene.miniBlocks).find((candidate) => candidate.id === record.target.miniBlockId)
+      : project.screenplay.draftElements.find((element) => element.id === record.target.screenplayElementId);
+    const blockNumber = block?.number ?? 1;
+    const miniBlockNumber = mini && "number" in mini ? mini.number : mini?.miniBlockNumber ?? 1;
+    const url = new URL(window.location.href);
+    url.searchParams.set("workspace", "refine");
+    url.searchParams.set("block", String(blockNumber));
+    url.searchParams.set("mini", String(miniBlockNumber));
+    url.searchParams.set("feedback", record.id);
+    url.searchParams.set("target", record.target.targetId);
+    window.location.assign(`${url.pathname}?${url.searchParams.toString()}`);
   }
 
   function createRecord() {
@@ -261,7 +289,7 @@ export default function FeedbackWorkspace({ project, onProjectChange, onOpenTarg
 
         <section className={styles.filters} aria-label="Feedback filters">
           <label><span>Search</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Title, body, target, author…" /></label>
-          <label><span>Status</span><select value={status} onChange={(event) => setStatus(event.target.value as FeedbackStatus | "")}><option value="">All statuses</option>{FEEDBACK_STATUSES.map((item) => <option key={item} value={item}>{titleCase(item)}</option>)}</select></label>
+          <label><span>Status</span><select value={status} onChange={(event) => setStatus(event.target.value as FeedbackStatus | "")}><option value="">All statuses</option>{FEEDBACK_STATUSES.map((item) => <option key={item} value={item}>{feedbackStatusLabel(item)}</option>)}</select></label>
           <label><span>Source</span><select value={source} onChange={(event) => setSource(event.target.value as FeedbackSource | "")}>{SOURCE_OPTIONS.map((item) => <option key={item.id || "all"} value={item.id}>{item.label}</option>)}</select></label>
           <label><span>Priority</span><select value={priority} onChange={(event) => setPriority(event.target.value as ReviewPriority | "")}>{PRIORITIES.map((item) => <option key={item.id || "all"} value={item.id}>{item.label}</option>)}</select></label>
           <label><span>Category</span><select value={category} onChange={(event) => setCategory(event.target.value as FeedbackCategory | "")}><option value="">All categories</option>{CATEGORIES.map((item) => <option key={item} value={item}>{titleCase(item)}</option>)}</select></label>
@@ -277,7 +305,7 @@ export default function FeedbackWorkspace({ project, onProjectChange, onOpenTarg
 
           <aside className={styles.inspector} aria-label="Feedback record detail">
             {selectedRecord ? <>
-              <header><div><p>{titleCase(selectedRecord.source)}</p><h2>{selectedRecord.title}</h2></div><span>{titleCase(selectedRecord.status)}</span></header>
+              <header><div><p>{titleCase(selectedRecord.source)}</p><h2>{selectedRecord.title}</h2></div><span>{feedbackStatusLabel(selectedRecord.status)}</span></header>
               <button type="button" className={styles.targetButton} onClick={() => onOpenTarget?.(selectedRecord.target)}><strong>{selectedRecord.target.label}</strong><span>Open in {titleCase(selectedRecord.target.workspace)}</span></button>
               <div className={styles.metaGrid}>
                 <span><b>Author</b>{selectedRecord.author}</span><span><b>Role</b>{titleCase(selectedRecord.role)}</span><span><b>Category</b>{titleCase(selectedRecord.category)}</span><span><b>Priority</b>{titleCase(selectedRecord.priority)}</span>
@@ -285,9 +313,18 @@ export default function FeedbackWorkspace({ project, onProjectChange, onOpenTarg
               <section className={styles.bodyPanel}><strong>Feedback</strong><p>{selectedRecord.body}</p></section>
               {selectedRecord.proposedChange ? <section className={styles.proposal}><strong>Proposed change</strong><p>{selectedRecord.proposedChange}</p><span>Review before applying. Feedback never changes canon automatically.</span></section> : null}
 
+              <section className={styles.bodyPanel} aria-label="Feedback decision state">
+                <strong>Review state</strong>
+                <p>Classify this note without changing the story. Refine receives this same feedback record and target.</p>
+                <div className={styles.formGrid}>
+                  {REVIEW_STATES.map((item) => <button type="button" key={item.status} disabled={selectedRecord.synthetic} aria-pressed={selectedRecord.status === item.status} onClick={() => updateSelected({ status: item.status })}>{item.label}</button>)}
+                </div>
+                <button type="button" className={styles.primary} onClick={() => openRefine(selectedRecord)}>Continue to Refine</button>
+              </section>
+
               {selectedRecord.synthetic ? <div className={styles.readOnly}>Imported diagnostic or revision evidence is read-only. Create a human thread to record a decision.</div> : <>
                 <div className={styles.formGrid}>
-                  <label><span>Status</span><select value={selectedRecord.status} onChange={(event) => updateSelected({ status: event.target.value as FeedbackStatus })}>{FEEDBACK_STATUSES.map((item) => <option key={item} value={item}>{titleCase(item)}</option>)}</select></label>
+                  <label><span>Status</span><select value={selectedRecord.status} onChange={(event) => updateSelected({ status: event.target.value as FeedbackStatus })}>{FEEDBACK_STATUSES.map((item) => <option key={item} value={item}>{feedbackStatusLabel(item)}</option>)}</select></label>
                   <label><span>Priority</span><select value={selectedRecord.priority} onChange={(event) => updateSelected({ priority: event.target.value as ReviewPriority })}>{PRIORITIES.filter((item) => item.id).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
                   <label><span>Category</span><select value={selectedRecord.category} onChange={(event) => updateSelected({ category: event.target.value as FeedbackCategory })}>{CATEGORIES.map((item) => <option key={item} value={item}>{titleCase(item)}</option>)}</select></label>
                   <label><span>Role</span><select value={selectedRecord.role} onChange={(event) => updateSelected({ role: event.target.value as (typeof ROLE_OPTIONS)[number] })}>{ROLE_OPTIONS.map((item) => <option key={item} value={item}>{titleCase(item)}</option>)}</select></label>

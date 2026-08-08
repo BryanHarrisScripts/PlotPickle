@@ -50,3 +50,14 @@ test("Ollama usability review is optional, local and cannot block deterministic 
   assert.match(localRunner, /optional and never changes the deterministic verdict/i);
   assert.doesNotMatch(localRunner, /OPENAI_API_KEY|api\.openai\.com/);
 });
+
+test("real Playwright evidence is parsed without false console errors", () => {
+  assert.match(localRunner, /function extractFirstJsonObject/);
+  assert.match(localRunner, /const marker = "### Result"/);
+  assert.match(localRunner, /function consoleHasErrors/);
+  assert.match(localRunner, /Errors:\\s\*\(\\d\+\)/);
+  assert.match(localRunner, /Returning\\s\+0\\s\+messages/);
+  assert.match(localRunner, /const routeMatches = stateMatchesScreen\(screen, state\)/);
+  assert.doesNotMatch(localRunner, /!state\.activeId \|\| state\.activeId === screen\.id/);
+  assert.doesNotMatch(localRunner, /\/error\/i\.test\(consoleText\)/);
+});

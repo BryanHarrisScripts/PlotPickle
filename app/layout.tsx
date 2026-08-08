@@ -18,6 +18,7 @@ import "./issue-208-polish.css";
 import "./first-run-configuration-dashboard.css";
 import "./appearance-runtime.css";
 import "./studio-shell-phase-a.css";
+import "./learning-studio-phase-b.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",
@@ -49,9 +50,9 @@ export default function RootLayout({
         className="antialiased"
         style={{
           "--font-geist-sans":
-            '"Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace',
+            '\"Courier New\", \"Lucida Console\", \"Liberation Mono\", Consolas, monospace',
           "--font-geist-mono":
-            '"Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace',
+            '\"Courier New\", \"Lucida Console\", \"Liberation Mono\", Consolas, monospace',
         } as React.CSSProperties}
       >
         <AppearanceRuntime />

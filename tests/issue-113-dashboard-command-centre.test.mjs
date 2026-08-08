@@ -24,9 +24,9 @@ test("issue #113 retains canonical dashboard model sources for downstream report
 test("issue #113 dashboard entry now presents the #444 story-first Studio Dashboard", async () => {
   const [entry, studio] = await Promise.all([
     source("app/dashboard-command-centre.tsx"),
-    source("app/project-overview.tsx"),
+    source("app/dashboard-story-library.tsx"),
   ]);
-  assert.match(entry, /<ProjectOverview/);
+  assert.match(entry, /<DashboardStoryLibrary/);
   assert.doesNotMatch(entry, /Five-second readiness check|ComputeHubDashboard|SetupConnectionsDashboard/);
   for (const phrase of [
     "PlotPickle Studio",
@@ -61,7 +61,7 @@ test("issue #113 keeps project actions in the persistent shell and uses the Stud
 
 test("issue #113 keeps Settings configuration outside the story-first Dashboard", async () => {
   const [dashboard, settings] = await Promise.all([
-    source("app/project-overview.tsx"),
+    source("app/dashboard-story-library.tsx"),
     source("app/settings-panel.tsx"),
   ]);
   assert.match(dashboard, /openWorkspace\("settings"\)/);

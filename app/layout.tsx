@@ -7,6 +7,7 @@ import GitHubAppReleaseGuidance from "./github-app-release-guidance";
 import GraphicNovelTerminology from "./graphic-novel-terminology";
 import LearnEntryRouter from "./learn-entry-router";
 import PlanStudioRailHost from "./plan-studio-rail-host";
+import StoryboardStudioHost from "./storyboard-studio-host";
 import WorkspaceIntroHost from "./workspace-intro-host";
 import WriterFacingCollaborationLanguage from "./writer-facing-collaboration-language";
 import "./globals.css";
@@ -25,6 +26,9 @@ import "./learning-studio-phase-b-compat.css";
 import "./plan-studio-phase-c.css";
 import "./plan-studio-editors.css";
 import "./plan-studio-editor-polish.css";
+import "./storyboard-studio-phase-d.css";
+import "./storyboard-studio-polish.css";
+import "./storyboard-studio-deeplink.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",
@@ -70,6 +74,7 @@ export default function RootLayout({
         <GitHubAppReleaseGuidance />
         <CollaborationWorkspaceRouter />
         <PlanStudioRailHost />
+        <StoryboardStudioHost />
         <WorkspaceIntroHost />
         <CurrentDownloadLinks />
       </body>

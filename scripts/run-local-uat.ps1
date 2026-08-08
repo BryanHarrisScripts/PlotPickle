@@ -1,7 +1,9 @@
 param(
   [string]$BaseUrl = "http://127.0.0.1:4173",
   [ValidateSet("smoke", "full")]
-  [string]$Scope = "smoke"
+  [string]$Scope = "smoke",
+  [ValidateSet("local", "codex")]
+  [string]$Engine = "local"
 )
 
 $ErrorActionPreference = "Stop"
@@ -12,10 +14,11 @@ Set-Location $repoRoot
 
 $localRoot = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { Join-Path $env:USERPROFILE "AppData\Local" }
 $artifactRoot = Join-Path $localRoot "PlotPickle\uat"
+$localRunner = Join-Path $PSScriptRoot "run-local-browser-uat.mjs"
 $codexHome = Join-Path $artifactRoot "codex-home"
 $pluginData = Join-Path $artifactRoot "agent-plugin"
 $reportPath = Join-Path $artifactRoot "acceptance-report.md"
-$tracePath = Join-Path $artifactRoot "codex-trace.jsonl"
+$tracePath = if ($Engine -eq "codex") { Join-Path $artifactRoot "codex-trace.jsonl" } else { Join-Path $artifactRoot "local-browser-trace.jsonl" }
 $logPath = Join-Path $artifactRoot "local-uat.log"
 $tempAuthPath = Join-Path $codexHome "auth.json"
 $originalCodexHome = $env:CODEX_HOME
@@ -62,9 +65,6 @@ function Stop-Uat([string]$Message, [int]$Code = 1) {
 function Invoke-NativeCapture([string]$Command, [object[]]$Arguments) {
   $previousErrorActionPreference = $ErrorActionPreference
   try {
-    # Windows PowerShell can promote a native program's stderr to a terminating
-    # NativeCommandError when ErrorActionPreference is Stop. Codex legitimately
-    # writes status/progress to stderr, so judge it by exit code after capture.
     $ErrorActionPreference = "Continue"
     $output = (& $Command @Arguments 2>&1 | ForEach-Object { $_.ToString() } | Out-String).Trim()
     $exitCode = $LASTEXITCODE
@@ -78,15 +78,51 @@ function Invoke-NativeCapture([string]$Command, [object[]]$Arguments) {
   }
 }
 
+function Show-UatResult {
+  Write-Host ""
+  Write-Host "Report: $reportPath"
+  Write-Host "Trace:  $tracePath"
+  Write-Host "Log:    $logPath"
+  Write-Host ""
+  if (Test-Path $reportPath) { Write-Host (Get-Content -Raw $reportPath) }
+  Write-Host ""
+  Read-Host "Press Enter to close the UAT window"
+}
+
+function Post-UatResult {
+  if (-not (Test-Path $reportPath)) { return }
+  if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { return }
+  try {
+    gh auth status 2>$null | Out-Null
+    if ($LASTEXITCODE -ne 0) { return }
+    $body = @"
+## LOCAL UAT FINAL
+
+Scope: $Scope
+Engine: $Engine
+Source: Windows Start-PlotPickle.bat testing prompt
+
+$(Get-Content -Raw $reportPath)
+"@
+    $tempComment = Join-Path $artifactRoot "issue-comment.md"
+    $body | Set-Content -Path $tempComment -Encoding UTF8
+    gh issue comment 490 --repo "BryanHarrisScripts/PlotPickle" --body-file $tempComment | Out-Null
+    Write-UatStatus "Posted UAT report to issue #490."
+  } catch {
+    Write-UatStatus "GitHub posting skipped: $($_.Exception.Message)"
+  }
+}
+
 trap {
   Stop-Uat $_.Exception.Message 1
 }
 
-"[$(Get-Date -Format o)] UAT requested. Scope=$Scope URL=$BaseUrl" | Set-Content -Path $logPath -Encoding UTF8
+"[$(Get-Date -Format o)] UAT requested. Engine=$Engine Scope=$Scope URL=$BaseUrl" | Set-Content -Path $logPath -Encoding UTF8
 Write-Host "============================================================"
 Write-Host " PlotPickle Human Acceptance Test"
 Write-Host "============================================================"
 Write-Host "Scope: $Scope"
+Write-Host "Engine: $Engine"
 Write-Host "Target: $BaseUrl"
 Write-Host "Status: STARTING"
 Write-Host "Workspace: $artifactRoot"
@@ -108,6 +144,40 @@ if ((Get-Date) -ge $deadline) {
   Stop-Uat "PlotPickle did not become ready within 90 seconds."
 }
 
+if ($Engine -eq "local") {
+  if (-not (Test-Path $localRunner)) {
+    Stop-Uat "The deterministic local browser UAT runner is missing: $localRunner"
+  }
+
+  Write-UatStatus "Engine: LOCAL - Agent Plugin + Playwright MCP. No ChatGPT/Codex quota is required."
+  Write-UatStatus "Ollama review is optional and will be skipped if no suitable installed local model is available."
+  Write-UatStatus "Status: RUNNING - local deterministic UAT started."
+
+  $previousErrorActionPreference = $ErrorActionPreference
+  try {
+    $ErrorActionPreference = "Continue"
+    & node $localRunner --base-url $BaseUrl --scope $Scope --artifact-root $artifactRoot
+    $exitCode = $LASTEXITCODE
+  } finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+  }
+
+  if (-not (Test-Path $reportPath)) {
+    Stop-Uat "Local UAT ended without producing an acceptance report."
+  }
+  if ($exitCode -ne 0) {
+    Post-UatResult
+    Stop-Uat "Local deterministic UAT reported a blocking failure. Review the report and trace above." $exitCode
+  }
+
+  Write-UatStatus "Status: COMPLETE - local acceptance report produced."
+  Post-UatResult
+  Show-UatResult
+  exit 0
+}
+
+Write-UatStatus "Engine: CODEX - optional exploratory UAT. ChatGPT/Codex usage limits apply."
+
 $codex = Get-Command codex -ErrorAction SilentlyContinue
 if (-not $codex) {
   $npx = Get-Command npx -ErrorAction SilentlyContinue
@@ -122,8 +192,6 @@ if (-not $codex) {
   $codexPrefix = @()
 }
 
-# Check authentication against the user's normal Codex profile before switching
-# to PlotPickle's isolated UAT CODEX_HOME.
 $env:CODEX_HOME = $normalCodexHome
 $authResult = Invoke-NativeCapture -Command $codexCommand -Arguments (@($codexPrefix) + @("login", "status"))
 $authOutput = $authResult.Output
@@ -131,7 +199,7 @@ $authExitCode = $authResult.ExitCode
 Write-UatStatus "Codex authentication check: $authOutput"
 
 if ($authExitCode -ne 0 -or $authOutput -match "Not logged in") {
-  Stop-Uat "Codex is not signed in. Run 'codex --login' once and choose Sign in with ChatGPT, then start PlotPickle and choose Y again."
+  Stop-Uat "Codex is not signed in. Run 'codex --login' once and choose Sign in with ChatGPT, then run the Codex engine again."
 }
 
 if ($authOutput -match "Logged in using ChatGPT") {
@@ -186,11 +254,9 @@ if ($codex) {
   $arguments = @("--yes", "@openai/codex", "exec", "--json", "--sandbox", "read-only", "--output-last-message", $reportPath, $prompt)
 }
 
-Write-UatStatus "Status: RUNNING - Codex UAT agent started."
+Write-UatStatus "Status: RUNNING - Codex exploratory UAT agent started."
 $previousErrorActionPreference = $ErrorActionPreference
 try {
-  # Keep normal Codex stderr/progress visible and in the trace without allowing
-  # Windows PowerShell to convert it into a terminating NativeCommandError.
   $ErrorActionPreference = "Continue"
   & $command @arguments 2>&1 | ForEach-Object { $_.ToString() } | Tee-Object -FilePath $tracePath
   $exitCode = $LASTEXITCODE
@@ -199,44 +265,15 @@ try {
 }
 
 if ($exitCode -ne 0) {
-  Stop-Uat "Codex UAT agent exited with code $exitCode. Review the trace above and at $tracePath." $exitCode
+  Stop-Uat "Codex exploratory UAT agent exited with code $exitCode. Review the trace above and at $tracePath." $exitCode
 }
 
 if (-not (Test-Path $reportPath)) {
-  Stop-Uat "UAT ended without producing an acceptance report."
+  Stop-Uat "Codex UAT ended without producing an acceptance report."
 }
 
-Write-UatStatus "Status: COMPLETE - acceptance report produced."
-
-if (Get-Command gh -ErrorAction SilentlyContinue) {
-  try {
-    gh auth status 2>$null | Out-Null
-    if ($LASTEXITCODE -eq 0) {
-      $body = @"
-## LOCAL UAT FINAL
-
-Scope: $Scope
-Source: Windows Start-PlotPickle.bat testing prompt
-
-$(Get-Content -Raw $reportPath)
-"@
-      $tempComment = Join-Path $artifactRoot "issue-comment.md"
-      $body | Set-Content -Path $tempComment -Encoding UTF8
-      gh issue comment 490 --repo "BryanHarrisScripts/PlotPickle" --body-file $tempComment | Out-Null
-      Write-UatStatus "Posted UAT report to issue #490."
-    }
-  } catch {
-    Write-UatStatus "GitHub posting skipped: $($_.Exception.Message)"
-  }
-}
-
+Write-UatStatus "Status: COMPLETE - Codex exploratory acceptance report produced."
+Post-UatResult
 Clear-UatAuth
-Write-Host ""
-Write-Host "Report: $reportPath"
-Write-Host "Trace:  $tracePath"
-Write-Host "Log:    $logPath"
-Write-Host ""
-Write-Host (Get-Content -Raw $reportPath)
-Write-Host ""
-Read-Host "Press Enter to close the UAT window"
+Show-UatResult
 exit 0

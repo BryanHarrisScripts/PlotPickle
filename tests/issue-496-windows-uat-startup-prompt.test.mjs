@@ -25,9 +25,18 @@ test("local UAT runner waits for PlotPickle and invokes the existing agent packa
   assert.match(runner, /acceptance-report\.md/);
 });
 
-test("local UAT remains read-only and bounded to smoke/full acceptance scopes", () => {
+test("local UAT remains read-only and bounded to smoke\/full acceptance scopes", () => {
   assert.match(runner, /ValidateSet\("smoke", "full"\)/);
   assert.match(runner, /--sandbox", "read-only"/);
   assert.match(runner, /do not spend money/i);
   assert.match(runner, /do not perform external writes/i);
+});
+
+test("local UAT state lives outside the Vite watched repository and keeps failures visible", () => {
+  assert.match(runner, /LocalApplicationData/);
+  assert.match(runner, /PlotPickle\\uat\\current/);
+  assert.doesNotMatch(runner, /repoRoot ".artifacts\\local-uat"/);
+  assert.match(runner, /RUNNING - Codex UAT agent is starting the Playwright user journey/);
+  assert.match(runner, /UAT FAILED OR STOPPED EARLY/);
+  assert.match(runner, /Press Enter to close this UAT window/);
 });

@@ -6,9 +6,10 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("#444 Phase A Dashboard follows approved PlotPickle Studio wireframe", async () => {
-  const [dashboard, styles] = await Promise.all([
+  const [dashboard, styles, entry] = await Promise.all([
     source("app/project-overview.tsx"),
     source("app/project-overview.module.css"),
+    source("app/dashboard-command-centre.tsx"),
   ]);
 
   for (const contract of [
@@ -28,6 +29,8 @@ test("#444 Phase A Dashboard follows approved PlotPickle Studio wireframe", asyn
     "Refine",
   ]) assert.ok(dashboard.includes(contract), `Missing Studio Dashboard contract: ${contract}`);
 
+  assert.match(entry, /<ProjectOverview/);
+  assert.doesNotMatch(entry, /ComputeHubDashboard|SetupConnectionsDashboard|Five-second readiness check/);
   assert.match(dashboard, /createAfterglowProject/);
   assert.match(dashboard, /AFTERGLOW_EXAMPLE_ACTIVE_KEY/);
   assert.match(dashboard, /storyPoster\(project\)/);

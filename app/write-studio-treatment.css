@@ -1,12 +1,14 @@
-/* Issue #461 — Treatment and diagnostic continuity inside Write Studio. */
+/* Issue #461 — Treatment and diagnostic continuity inside Write Studio.
+   TreatmentEditor uses generic CSS-module class names, so scope through the
+   canonical ScriptWorkspace structure instead of generated module filenames. */
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"] {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] {
   color: #e9e0d0 !important;
   background: #090909 !important;
   font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="header"] {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] > [class*="header"] {
   padding: 28px clamp(24px, 3vw, 46px) 24px !important;
   border-color: rgba(205, 167, 88, 0.2) !important;
   background:
@@ -14,18 +16,15 @@
     #0d0d0c !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="header"] span,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="context"] > div:first-child > span,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="blockRail"] > div span,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="toolbar"] > span,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="aiReview"] span,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="aiError"] span {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] > [class*="header"] span,
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="context"] > div:first-child > span,
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="toolbar"] > span {
   color: #cda758 !important;
   font-size: 8px !important;
   letter-spacing: 0.16em !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="header"] h1 {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] > [class*="header"] h1 {
   color: #f6efe3 !important;
   font-family: Georgia, "Times New Roman", serif !important;
   font-size: clamp(34px, 4vw, 58px) !important;
@@ -34,95 +33,58 @@
   line-height: 1.05;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="header"] p,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="stats"] small {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] > [class*="header"] p,
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="stats"] small {
   color: #777168 !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="stats"] {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="stats"] {
   border-color: #3a3328 !important;
   border-radius: 0 !important;
   background: #11110f !important;
+  color: #d8cfbf !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="stats"] strong {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="stats"] strong {
   color: #e7c26e !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="layout"] {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] > [class*="layout"] {
   grid-template-columns: 230px minmax(0, 1fr) !important;
   background: #090909 !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="blockRail"] {
-  border-color: rgba(205, 167, 88, 0.18) !important;
-  background: #0d0d0c !important;
-}
-
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="blockRail"] > div {
-  border-color: #28241e !important;
-}
-
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="blockRail"] > div strong {
-  color: #e6ddce !important;
-}
-
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="blockRail"] > div small,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="blockRail"] nav button small {
-  color: #676158 !important;
-}
-
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="blockRail"] nav button {
-  border: 1px solid transparent !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  color: #91897d !important;
-}
-
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="blockRail"] nav button:hover {
-  border-color: #4b402c !important;
-  background: #14120e !important;
-}
-
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="blockRail"] nav button > span {
-  color: #8c713e !important;
-}
-
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="blockRail"] nav [class*="activeBlock"] {
-  border-color: rgba(205, 167, 88, 0.5) !important;
-  background: #19150d !important;
-  color: #f0d28b !important;
-  box-shadow: inset 3px 0 #cda758 !important;
-}
-
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="main"] {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="main"] {
   background:
     radial-gradient(circle at 50% 0%, rgba(205, 167, 88, 0.025), transparent 34rem),
     #090909 !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="context"] {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="context"] {
   border-color: #302a22 !important;
   border-radius: 0 !important;
   background: #0f0f0e !important;
+  color: #d8cfbf !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="context"] h2 {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="context"] h2 {
   color: #eee5d7 !important;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 22px !important;
   font-weight: 500;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="context"] p {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="context"] p {
   color: #7e776d !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="context"] > button,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="toolbar"] button,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="actions"] button,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="aiReview"] button,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="aiError"] button {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] :is(
+  [class*="context"] > button,
+  [class*="toolbar"] button,
+  [class*="actions"] button,
+  [class*="aiReview"] button,
+  [class*="aiError"] button
+) {
   border: 1px solid rgba(205, 167, 88, 0.32) !important;
   border-radius: 0 !important;
   background: transparent !important;
@@ -131,107 +93,82 @@
   font-size: 8px !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="miniGrid"] button {
-  border-color: #332e26 !important;
-  border-radius: 0 !important;
-  background: #0b0b0a !important;
-  color: #9a9286 !important;
-}
-
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="miniGrid"] span {
-  color: #a58443 !important;
-}
-
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="miniGrid"] small,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="miniGrid"] i {
-  color: #676158 !important;
-}
-
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="miniGrid"] [class*="activeMini"] {
-  border-color: #cda758 !important;
-  background: #1a160e !important;
-  color: #efd18a !important;
-  box-shadow: 0 0 0 1px rgba(205, 167, 88, 0.18) !important;
-}
-
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="editorCard"] {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="editorCard"] {
   border-color: #393228 !important;
   border-radius: 0 !important;
   background: #11110f !important;
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34) !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="toolbar"] {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="toolbar"] {
   border-color: #302a22 !important;
   background: #0d0d0c !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="toolbar"] [class*="active"] {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="toolbar"] [class*="active"] {
   border-color: #cda758 !important;
   background: #19150d !important;
   color: #efd18a !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="editorSplit"] > textarea,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="editorOnly"] > textarea {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="editorSplit"] > textarea,
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="editorOnly"] > textarea {
   background: #10110f !important;
   color: #e9e0d0 !important;
   caret-color: #d8b45f;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="editorSplit"] > textarea:focus,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="editorOnly"] > textarea:focus {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="editorSplit"] > textarea:focus,
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="editorOnly"] > textarea:focus {
   box-shadow: inset 0 0 0 2px rgba(205, 167, 88, 0.55) !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="preview"] {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="preview"] {
   border-color: #302a22 !important;
   background: #11110f !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="previewContent"],
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="previewContent"] h1,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="previewContent"] h2,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="previewContent"] h3 {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="previewContent"],
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="previewContent"] :is(h1, h2, h3) {
   color: #e9e0d0 !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="previewContent"] blockquote,
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="previewContent"] code {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="previewContent"] blockquote,
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="previewContent"] code {
   border-color: #4b402c !important;
   background: #19150d !important;
-  color: #d9cbaF !important;
+  color: #d9cbaf !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="emptyPreview"],
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="ownership"] {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="emptyPreview"],
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="ownership"] {
   background: #11110f !important;
   color: #777168 !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="emptyPreview"] strong {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="emptyPreview"] strong {
   color: #d1b36e !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="actions"] {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="actions"] {
   border-color: #302a22 !important;
   background: #0d0d0c !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="actions"] [class*="primary"] {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="actions"] [class*="primary"] {
   border-color: #cda758 !important;
   background: #cda758 !important;
   color: #090806 !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="aiReview"] {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="aiReview"] {
   border-color: #453a28 !important;
   border-radius: 0 !important;
   background: #15130e !important;
   color: #d8cfbf !important;
 }
 
-.workspace[data-write-studio="true"] [class*="treatment-editor"][class*="aiError"] {
+.workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="aiError"] {
   border-color: #694039 !important;
   border-radius: 0 !important;
   background: #21120f !important;
@@ -269,7 +206,7 @@
 }
 
 @media (max-width: 920px) {
-  .workspace[data-write-studio="true"] [class*="treatment-editor"][class*="layout"] {
+  .workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] > [class*="layout"] {
     display: block !important;
   }
 }

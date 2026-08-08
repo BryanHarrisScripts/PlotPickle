@@ -57,6 +57,20 @@ test("#461 gives the existing Writer a matte-black warm-gold Studio shell", asyn
   assert.match(styles, /feedback records/);
 });
 
+test("#461 Treatment and craft diagnostics stay inside the same dark Writer system", async () => {
+  const styles = await source("app/write-studio-treatment.css");
+
+  assert.match(styles, /treatment-editor/);
+  assert.match(styles, /editorCard/);
+  assert.match(styles, /previewContent/);
+  assert.match(styles, /activeMini/);
+  assert.match(styles, /#090909/i);
+  assert.match(styles, /#cda758/i);
+  assert.match(styles, /Diagnostic craft summary/);
+  assert.match(styles, /summaryCounts/);
+  assert.match(styles, /finding/);
+});
+
 test("#461 preserves the canonical Writer capabilities beneath the new shell", async () => {
   const writer = await source("app/script-workspace.tsx");
 
@@ -73,9 +87,11 @@ test("#461 preserves the canonical Writer capabilities beneath the new shell", a
 
 test("#461 keeps provider mechanics outside the normal Writer shell", async () => {
   const styles = await source("app/write-studio-phase-c.css");
+  const treatment = await source("app/write-studio-treatment.css");
   const host = await source("app/write-studio-host.tsx");
 
   assert.doesNotMatch(styles, /Ollama|ComfyUI|MiniMax|endpoint|checkpoint|apiKey/i);
+  assert.doesNotMatch(treatment, /Ollama|ComfyUI|MiniMax|endpoint|checkpoint|apiKey/i);
   assert.doesNotMatch(host, /Ollama|ComfyUI|MiniMax|endpoint|checkpoint|apiKey/i);
 });
 
@@ -85,5 +101,6 @@ test("#461 mounts the Write Studio host and styles globally without replacing Sc
   assert.match(layout, /import WriteStudioHost/);
   assert.match(layout, /<WriteStudioHost \/>/);
   assert.match(layout, /write-studio-phase-c\.css/);
+  assert.match(layout, /write-studio-treatment\.css/);
   assert.match(layout, /StoryboardWriteHandoff/);
 });

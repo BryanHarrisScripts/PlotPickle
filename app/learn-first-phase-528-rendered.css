@@ -123,14 +123,14 @@ html[data-plotpickle-learn-screen="true"] nav[aria-label="Learning Studio views"
 }
 
 html[data-plotpickle-learn-screen="true"] nav[aria-label="Learning Studio views"] button {
-  min-height: 37px !important;
-  padding: 10px 11px !important;
+  min-height: 44px !important;
+  padding: 12px 11px !important;
   border: 0 !important;
   border-left: 1px solid transparent !important;
   border-radius: 0 !important;
   background: transparent !important;
   color: #898278 !important;
-  font-size: 9px !important;
+  font-size: 12px !important;
   font-weight: 600 !important;
   text-align: left !important;
   box-shadow: none !important;
@@ -191,6 +191,16 @@ html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Stu
   box-shadow: none !important;
 }
 
+html[data-plotpickle-learn-screen="true"] #learning-module-reader > header {
+  border: 1px solid rgba(205,167,88,.2) !important;
+  background: #10100f !important;
+  color: #d8d0c3 !important;
+}
+
+html[data-plotpickle-learn-screen="true"] #learning-module-reader > header :is(h2,p,small) {
+  color: #d8d0c3 !important;
+}
+
 html[data-plotpickle-learn-screen="true"] [aria-label="Learning progress"] {
   background: #0b0b0a !important;
 }
@@ -248,6 +258,14 @@ html[data-plotpickle-core-learn="true"] main article {
 html[data-plotpickle-core-learn="true"] main article {
   border: 1px solid rgba(255,255,255,.09) !important;
   background: #10100f !important;
+}
+
+html[data-plotpickle-core-learn="true"] main section section,
+html[data-plotpickle-core-learn="true"] main section form,
+html[data-plotpickle-core-learn="true"] main section aside {
+  border-color: rgba(205,167,88,.17) !important;
+  background: #10100f !important;
+  color: #dcd4c7 !important;
 }
 
 html[data-plotpickle-core-learn="true"] main :is(h2,h3,h4) {

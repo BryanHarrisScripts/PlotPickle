@@ -22,6 +22,13 @@ export default function LearnEntryRouter() {
     const routeLearnEntry = () => {
       if (stopped) return;
 
+      const learningStudio = document.querySelector<HTMLElement>('nav[aria-label="Learning Studio views"]');
+      if (learningStudio) document.documentElement.dataset.plotpickleLearnScreen = "true";
+      else delete document.documentElement.dataset.plotpickleLearnScreen;
+
+      if (window.location.pathname === "/core-curriculum") document.documentElement.dataset.plotpickleCoreLearn = "true";
+      else delete document.documentElement.dataset.plotpickleCoreLearn;
+
       for (const anchor of document.querySelectorAll<HTMLAnchorElement>('a[href^="/read-learn"]')) {
         const nextHref = studioLearnHref(anchor.getAttribute("href") || "");
         if (nextHref && anchor.getAttribute("href") !== nextHref) anchor.setAttribute("href", nextHref);
@@ -46,6 +53,8 @@ export default function LearnEntryRouter() {
     return () => {
       stopped = true;
       observer.disconnect();
+      delete document.documentElement.dataset.plotpickleLearnScreen;
+      delete document.documentElement.dataset.plotpickleCoreLearn;
     };
   }, []);
 

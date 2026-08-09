@@ -32,6 +32,7 @@ import "./appearance-runtime.css";
 import "./studio-shell-phase-a.css";
 import "./learning-studio-phase-b.css";
 import "./learning-studio-phase-b-compat.css";
+import "./learn-first-phase-528.css";
 import "./plan-studio-phase-c.css";
 import "./plan-studio-editors.css";
 import "./plan-studio-editor-polish.css";

@@ -1,5 +1,34 @@
-/* #528 final Core Curriculum visual pass: remove legacy pale/teal surfaces that
-   survive the broad Learn-first treatment. */
+/* #528 final Learn/Core visual pass: remove legacy pale/teal surfaces and keep
+   active learning accents in the approved antique-gold family. */
+
+html[data-plotpickle-learn-screen="true"] .application-shell-header button[data-workspace-id="learn"][aria-current="page"] {
+  border-color: #cda758 !important;
+  color: #e1ba64 !important;
+  box-shadow: inset 0 -3px 0 #cda758 !important;
+}
+
+html[data-plotpickle-learn-screen="true"] .application-shell-header button[data-workspace-id="learn"][aria-current="page"]::before,
+html[data-plotpickle-learn-screen="true"] .application-shell-header button[data-workspace-id="learn"][aria-current="page"]::after {
+  background: #cda758 !important;
+  border-color: #cda758 !important;
+}
+
+html[data-plotpickle-learn-screen="true"] [aria-label="Learning progress"] > div:has(> i) {
+  height: 4px !important;
+  overflow: hidden !important;
+  border-radius: 0 !important;
+  background: #211e18 !important;
+}
+
+html[data-plotpickle-learn-screen="true"] [aria-label="Learning progress"] > div:has(> i) > i {
+  display: block !important;
+  height: 100% !important;
+  background: #cda758 !important;
+}
+
+html[data-plotpickle-learn-screen="true"] [aria-label="Learning progress"] > b {
+  color: #e1ba64 !important;
+}
 
 html[data-plotpickle-core-learn="true"] main > section:first-of-type > :is(a, div) {
   border: 1px solid rgba(205, 167, 88, .22) !important;

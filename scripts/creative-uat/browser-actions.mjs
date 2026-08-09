@@ -14,9 +14,10 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
     let project = null;
     try { project = JSON.parse(localStorage.getItem('plotpickle.project.v1') || 'null'); } catch {}
     const active = document.querySelector('[data-workspace-active="true"]');
+    const dashboardVisible = Boolean(document.querySelector('main[aria-label="PlotPickle Studio Dashboard"]'));
     return {
       url: location.href,
-      activeId: active?.getAttribute('data-workspace-id') || '',
+      activeId: active?.getAttribute('data-workspace-id') || (dashboardVisible ? 'dashboard' : ''),
       title: project?.metadata?.title || '',
       updatedAt: project?.metadata?.updatedAt || '',
       characterCount: project?.characters?.length || 0,
@@ -26,6 +27,7 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
       screenplayCount: project?.screenplay?.draftElements?.length || 0,
       graphicNovelPanels: project?.review?.pitchPackage?.comicDeck?.panels?.length || 0,
       reviewThreads: project?.review?.threads?.length || 0,
+      dashboardVisible,
       bodyText: (document.body.innerText || '').slice(0, 10000)
     };
   }`);
@@ -44,7 +46,24 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
     toolArguments(toolMap.get("browser_take_screenshot"), { type: "png", filename: `creative-writer/${name}.png`, fullPage: true }),
   );
 
+  async function visibleControlState(label) {
+    const encoded = JSON.stringify(String(label));
+    return evaluate(`() => {
+      const wanted = ${encoded}.trim().toLowerCase();
+      const controls = [...document.querySelectorAll('button, a, [role="button"], [role="tab"]')];
+      const control = controls.find((node) => (node.textContent || '').trim().toLowerCase() === wanted);
+      if (!control) return { found: false, disabled: false };
+      const disabled = control instanceof HTMLButtonElement ? control.disabled : control.getAttribute('aria-disabled') === 'true';
+      return { found: true, disabled };
+    }`);
+  }
+
   async function clickVisible(label, roles = ["button", "link", "tab"]) {
+    const availability = await visibleControlState(label);
+    if (availability.found && availability.disabled) {
+      runnerFindings.push(`Skipped disabled visible control: ${label}.`);
+      return false;
+    }
     const snap = await snapshot();
     const ref = extractRef(snap, label, roles);
     if (!ref) return false;
@@ -82,25 +101,27 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
     const result = await evaluate(`() => {
       const wanted = ${encodedLabel};
       const value = ${encodedValue};
-      const nodes = [...document.querySelectorAll('label, .field-label, label > span')];
-      const labelNode = nodes.find((node) => (node.textContent || '').trim() === wanted);
-      let control = null;
-      if (labelNode?.tagName === 'LABEL' && labelNode.htmlFor) control = document.getElementById(labelNode.htmlFor);
-      if (!control && labelNode?.closest('label')) control = labelNode.closest('label').querySelector('input, textarea, select');
-      if (!control && labelNode?.nextElementSibling?.matches?.('input, textarea, select')) control = labelNode.nextElementSibling;
-      if (!control) return { ok: false };
+      const generatedId = 'field-' + wanted.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      let control = document.getElementById(generatedId);
+      if (!control) {
+        const labels = [...document.querySelectorAll('label')];
+        const labelNode = labels.find((node) => (node.textContent || '').trim() === wanted);
+        if (labelNode?.htmlFor) control = document.getElementById(labelNode.htmlFor);
+        if (!control && labelNode) control = labelNode.querySelector('input, textarea, select');
+      }
+      if (!control || !control.matches('input, textarea, select')) return { ok: false };
       const proto = control instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : control instanceof HTMLSelectElement ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
       const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
       if (setter) setter.call(control, value); else control.value = value;
       control.focus();
       control.dispatchEvent(new Event('input', { bubbles: true }));
       control.dispatchEvent(new Event('change', { bubbles: true }));
-      return { ok: true };
+      return { ok: true, id: control.id || '' };
     }`);
     await delay(420);
     if (result.ok) {
-      runnerFindings.push(`Used DOM input fallback for ${label} because this Playwright MCP build did not expose a compatible typing action.`);
-      return { ok: true, method: "DOM input fallback" };
+      runnerFindings.push(`Used exact labelled DOM input fallback for ${label}${result.id ? ` (${result.id})` : ""} because Playwright did not expose a compatible field ref.`);
+      return { ok: true, method: "exact labelled DOM input fallback" };
     }
     return { ok: false, method: "unavailable" };
   }

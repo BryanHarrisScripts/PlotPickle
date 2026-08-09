@@ -332,6 +332,46 @@
       ]
     },
     {
+      "id": "startup-agent-windows",
+      "label": "Persistent startup agent windows",
+      "patterns": [
+        "Start-PlotPickle.bat",
+        "lib/agent-window-status.mjs",
+        "scripts/full-story-builder-agent.mjs",
+        "scripts/ui-continuity-agent.mjs",
+        "scripts/run-creative-writer-uat.ps1",
+        "tests/issue-514-creative-uat-visible-result.test.mjs",
+        "tests/issue-542-full-story-builder.test.mjs",
+        "tests/issue-544-ui-continuity-agent.test.mjs",
+        "tests/issue-548-persistent-agent-windows.test.mjs"
+      ],
+      "suites": [
+        "tests/issue-548-persistent-agent-windows.test.mjs",
+        "tests/issue-514-creative-uat-visible-result.test.mjs",
+        "tests/issue-542-full-story-builder.test.mjs",
+        "tests/issue-544-ui-continuity-agent.test.mjs",
+        "tests/issue-540-uat-continuity.test.mjs",
+        "tests/windows-native-runtime.test.mjs"
+      ],
+      "contracts": [
+        "startup.agent-windows"
+      ],
+      "allowedPaths": [
+        "Start-PlotPickle.bat",
+        "lib/agent-window-status.mjs",
+        "scripts/full-story-builder-agent.mjs",
+        "scripts/ui-continuity-agent.mjs",
+        "scripts/run-creative-writer-uat.ps1",
+        "tests/issue-514-creative-uat-visible-result.test.mjs",
+        "tests/issue-542-full-story-builder.test.mjs",
+        "tests/issue-544-ui-continuity-agent.test.mjs",
+        "tests/issue-548-persistent-agent-windows.test.mjs",
+        "package.json",
+        ".github/workflows/visual.yml",
+        "config/developer-diagnostics.json"
+      ]
+    },
+    {
       "id": "developer-diagnostics",
       "label": "Developer diagnostics",
       "patterns": [
@@ -666,6 +706,33 @@
       "tests": [
         "tests/issue-544-ui-continuity-agent.test.mjs",
         "tests/issue-546-complete-visual-migration.test.mjs"
+      ]
+    },
+    "startup.agent-windows": {
+      "owners": [
+        {
+          "path": "Start-PlotPickle.bat",
+          "optional": false
+        },
+        {
+          "path": "lib/agent-window-status.mjs",
+          "optional": false
+        },
+        {
+          "path": "scripts/full-story-builder-agent.mjs",
+          "optional": false
+        },
+        {
+          "path": "scripts/ui-continuity-agent.mjs",
+          "optional": false
+        },
+        {
+          "path": "scripts/run-creative-writer-uat.ps1",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-548-persistent-agent-windows.test.mjs"
       ]
     },
     "diagnostics.registry": {

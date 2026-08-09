@@ -36,7 +36,8 @@ function Show-CreativeUatResult {
 }
 
 function Stop-CreativeUat([string]$Message, [int]$Code = 1) {
-  Write-CreativeUatStatus "FAIL: $Message"
+  Write-CreativeUatStatus "AGENT NEEDS ATTENTION"
+  Write-CreativeUatStatus "Result: $Message"
   Show-CreativeUatResult
   exit $Code
 }
@@ -48,13 +49,16 @@ trap {
 "[$(Get-Date -Format o)] Creative Writer UAT requested. URL=$BaseUrl" | Set-Content -Path $logPath -Encoding UTF8
 
 Write-Host "============================================================"
-Write-Host " PlotPickle Creative Writer Acceptance Test"
+Write-Host " AGENT LOADED: PlotPickle Creative Writer UAT"
 Write-Host "============================================================"
+Write-Host "Purpose: Run the complete 30-stage local creative-writing acceptance journey."
+Write-Host "Instructions required: No - this agent runs automatically after you select Yes in Start-PlotPickle.bat."
+Write-Host "Instructions: Review this window when the run completes; do not type test instructions here."
 Write-Host "Scope: creative"
 Write-Host "Target: $BaseUrl"
 Write-Host "Engine: local Agent Plugin + Playwright MCP"
 Write-Host "Cloud AI required: no"
-Write-Host "Status: STARTING"
+Write-Host "STATUS: WAITING FOR PLOTPICKLE"
 Write-Host "Workspace: $artifactRoot"
 Write-Host ""
 
@@ -72,7 +76,7 @@ while ((Get-Date) -lt $deadline) {
 if ((Get-Date) -ge $deadline) { Stop-CreativeUat "PlotPickle did not become ready within 90 seconds." }
 if (-not (Test-Path $runner)) { Stop-CreativeUat "Creative Writer UAT runner is missing: $runner" }
 
-Write-CreativeUatStatus "Status: RUNNING - creating a disposable visual-writing story locally."
+Write-CreativeUatStatus "STATUS: WORKING AUTOMATICALLY - creating a disposable visual-writing story locally."
 $previous = $ErrorActionPreference
 try {
   $ErrorActionPreference = "Continue"
@@ -89,6 +93,7 @@ if ($exitCode -ne 0) {
   Stop-CreativeUat "Creative Writer UAT reported a blocking product-flow failure. Review the report and trace above." $exitCode
 }
 
-Write-CreativeUatStatus "Status: COMPLETE - Creative Writer acceptance report produced."
+Write-CreativeUatStatus "AGENT COMPLETED"
+Write-CreativeUatStatus "Result: Creative Writer acceptance report produced successfully."
 Show-CreativeUatResult
 exit 0

@@ -6,6 +6,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { auditContinuitySnapshot, continuityReport } from "../lib/ui-continuity-audit.mjs";
+import { agentCompleted, agentLoaded, agentNeedsAttention, agentStatus, keepAgentWindowOpen } from "../lib/agent-window-status.mjs";
 import { delay, extractPageState, McpClient, resultText } from "./creative-uat/mcp-runtime.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -159,6 +160,13 @@ async function inspectScreen(client, screen) {
 }
 
 async function main() {
+  agentLoaded({
+    name: "PlotPickle UI Continuity Agent",
+    purpose: "Inspect PlotPickle screens for the shared layout, approved visual system, return paths, and navigation overlap.",
+    instructions: "None. This read-only audit starts automatically and never changes your story or source files.",
+    automatic: true,
+  });
+  agentStatus("WORKING AUTOMATICALLY", "Waiting for PlotPickle, then inspecting every registered screen.");
   const registry = JSON.parse(await readFile(registryPath, "utf8"));
   if (registry.mode !== "read-only" || registry.autoFix !== false || registry.fixApprovalRequired !== true) {
     throw new Error("UI Continuity Agent registry must preserve the read-only, approval-required boundary.");
@@ -201,14 +209,21 @@ async function main() {
   await writeFile(reportPath, report, "utf8");
   const findings = results.reduce((count, result) => count + result.findings.length, 0);
   process.stdout.write(`UI Continuity Agent inspected ${results.length} screens and recorded ${findings} finding${findings === 1 ? "" : "s"}. Report: ${reportPath}\n`);
+  return { findings, screens: results.length };
 }
 
-main().catch(async (error) => {
+const stayOpen = argv.includes("--stay-open");
+
+main().then(async ({ findings, screens }) => {
+  agentCompleted(`Inspected ${screens} screens and recorded ${findings} finding${findings === 1 ? "" : "s"}. Report: ${reportPath}`);
+  if (stayOpen) await keepAgentWindowOpen("UI Continuity Agent");
+}).catch(async (error) => {
   const message = error instanceof Error ? error.message : String(error);
   try {
     await mkdir(path.dirname(reportPath), { recursive: true });
     await writeFile(reportPath, continuityReport({ generatedAt: new Date().toISOString(), server: server.origin, results: [], runtimeError: message }), "utf8");
   } catch {}
-  console.error(message);
+  agentNeedsAttention(`${message}\nReport: ${reportPath}`);
   process.exitCode = 1;
+  if (stayOpen) await keepAgentWindowOpen("UI Continuity Agent");
 });

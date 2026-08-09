@@ -9,6 +9,7 @@ import {
 import styles from "./dashboard-story-library.module.css";
 
 const STORAGE_KEY = "plotpickle.project.v1";
+const ARCHITECTURE_LABEL = "4 Acts · 24 Blocks · 96 mini-blocks";
 
 const sectionLabels: Record<ProjectProgressSection, string> = {
   overview: "Project Overview",
@@ -196,7 +197,7 @@ export default function DashboardStoryLibrary({
       </section>
 
       <footer className={styles.dashboardFooter}>
-        <span>One story. Four acts. Twenty-four blocks. Ninety-six mini-blocks.</span>
+        <span>{ARCHITECTURE_LABEL} · One Story.</span>
         <div><button type="button" onClick={() => openWorkspace("settings")}>Settings</button><button type="button" onClick={() => onOpenSection("structureMap")}>Story Map</button></div>
       </footer>
     </main>

@@ -1,4 +1,4 @@
-name: PlotPickle Release Candidate
+name: PlotPickle Release Readiness Gate
 
 on:
   pull_request:
@@ -17,7 +17,43 @@ permissions:
   contents: read
 
 jobs:
+  release-readiness:
+    name: Release readiness
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Detect packaging and runtime changes
+        id: scope
+        shell: bash
+        run: |
+          files="$(git diff --name-only --diff-filter=ACMRT '${{ github.event.pull_request.base.sha }}' '${{ github.event.pull_request.head.sha }}')"
+          if printf '%s\n' "$files" | grep -Eq '^(scripts/(package-|windows-|portable-runtime)|tests/windows-|tests/issue-124-release-hardening\.test\.mjs|tests/phase-f-collaboration-release\.test\.mjs|package(-lock)?\.json|releases/|\.github/workflows/release-candidate\.yml)'; then
+            echo "deep=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deep=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22.19.0"
+          cache: npm
+      - run: npm ci
+      - name: Validate release contracts
+        run: node --test tests/issue-86-lighthouse-audit.test.mjs tests/issue-124-release-hardening.test.mjs tests/phase-f-collaboration-release.test.mjs tests/windows-native-runtime.test.mjs tests/issue-538-ci-consolidation.test.mjs
+      - name: Stage and smoke-test one representative package when packaging changed
+        if: steps.scope.outputs.deep == 'true'
+        run: |
+          node scripts/package-platform.mjs linux
+          node scripts/package-smoke.mjs releases/stage/PlotPickle-Linux
+      - name: Fast release status for unrelated changes
+        if: steps.scope.outputs.deep != 'true'
+        run: echo "Runtime and packaging files are unchanged; full cross-platform packaging remains a post-merge gate."
+
   package:
+    if: github.event_name != 'pull_request'
     name: Package ${{ matrix.platform }}
     strategy:
       fail-fast: false

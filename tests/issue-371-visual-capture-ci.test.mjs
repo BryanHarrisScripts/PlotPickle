@@ -2,11 +2,11 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
-const workflow = await readFile(new URL('../.github/workflows/rendered-visual-capture.yml', import.meta.url), 'utf8')
+const workflow = await readFile(new URL('../.github/workflows/visual.yml', import.meta.url), 'utf8')
 
 test('rendered visual capture runs only for UI-relevant pull request changes', () => {
-  assert.match(workflow, /Find changed UI files/)
-  assert.match(workflow, /has_ui=true/)
+  assert.match(workflow, /Find changed visual files/)
+  assert.match(workflow, /has_visual=true/)
   assert.match(workflow, /\.\(html\|css\|scss\|jsx\|tsx\|vue\)/)
 })
 

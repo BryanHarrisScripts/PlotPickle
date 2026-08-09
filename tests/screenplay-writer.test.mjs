@@ -59,7 +59,7 @@ test("AI writing and character images use the private local gateway and require 
   const character = await source("app/character-image-generator.tsx");
   const gateway = await source("build/local-ai-gateway.ts");
   assert.match(workspace, /\/api\/local-ai\/generate\/text/);
-  assert.match(workspace, /Nothing is inserted until you approve it/);
+  assert.match(workspace, /Nothing is added to the screenplay until you choose to insert it/);
   assert.match(character, /\/api\/local-ai\/generate\/image/);
   assert.match(character, /Generate \$\{angle\.replace\("-", " "\)\} reference/);
   assert.match(character, /Approve and lock identity/);

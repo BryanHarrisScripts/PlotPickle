@@ -1,15 +1,7 @@
-name: Issue 208 Windows Smoke
+name: Windows installed acceptance
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-    types: [ready_for_review]
-    paths:
-      - ".github/workflows/issue-208-windows-smoke.yml"
-      - "app/writer-facing-collaboration-language.tsx"
-      - "scripts/windows-issue-208-smoke-runner.mjs"
-      - "scripts/windows-release-smoke.mjs"
 
 concurrency:
   group: issue-208-windows-smoke-${{ github.ref }}
@@ -19,8 +11,8 @@ permissions:
   contents: read
 
 jobs:
-  issue-208:
-    name: Issue #208 Windows smoke
+  installed-acceptance:
+    name: Installed Windows product acceptance
     runs-on: windows-latest
     timeout-minutes: 15
     steps:

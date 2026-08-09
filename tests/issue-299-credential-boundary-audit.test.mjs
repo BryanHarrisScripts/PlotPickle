@@ -97,15 +97,15 @@ test("credential storage fails closed and public surfaces remain redacted", asyn
 
 test("source credential-boundary audit passes and package staging invokes package mode", async () => {
   const packageScript = await text("scripts/package-platform.mjs");
-  const workflow = await text(".github/workflows/credential-boundary.yml");
+  const workflow = await text(".github/workflows/safety.yml");
   const settings = JSON.parse(await text("config/public-repository.settings.json"));
 
   assert.match(packageScript, /credential-boundary-audit\.mjs/);
   assert.match(packageScript, /--mode", "package"/);
-  assert.match(workflow, /name: Credential boundary audit/);
+  assert.match(workflow, /name: PlotPickle Safety Gate/);
   assert.match(workflow, /node scripts\/credential-boundary-audit\.mjs --mode source/);
-  assert.match(workflow, /node --test tests\/issue-299-credential-boundary-audit\.test\.mjs/);
-  assert.ok(settings.main_branch.required_checks.includes("Credential boundary audit"));
+  assert.match(workflow, /tests\/issue-299-credential-boundary-audit\.test\.mjs/);
+  assert.ok(settings.main_branch.required_checks.includes("Safety"));
 
   const output = execFileSync(process.execPath, ["scripts/credential-boundary-audit.mjs", "--mode", "source"], {
     cwd: new URL("..", import.meta.url),

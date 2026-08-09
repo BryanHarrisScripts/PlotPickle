@@ -140,7 +140,7 @@ test("issue #371 captures direct provider screens and records unresolved referen
 });
 
 test("issue #371 publishes and validates visual evidence in CI", async () => {
-  const workflow = await source(".github/workflows/visual-audit-capture.yml");
+  const workflow = await source(".github/workflows/visual.yml");
   for (const contract of [
     "node scripts/visual-audit-supervisor.mjs",
     "node scripts/visual-audit-validate.mjs",

@@ -6,7 +6,7 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #371 retries failed screen identity validation with isolated captures", async () => {
-  const workflow = await source(".github/workflows/visual-audit-capture.yml");
+  const workflow = await source(".github/workflows/visual.yml");
 
   for (const contract of [
     "timeout-minutes: 40",

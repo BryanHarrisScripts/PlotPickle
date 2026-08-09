@@ -108,10 +108,10 @@ test("the shared contract preserves status meaning and the Dashboard-to-Settings
   assert.match(contract, /navigation does not silently discard edits/);
 });
 
-test("the foundation regression is enforced by a focused pull-request workflow", async () => {
-  const workflow = await source(".github/workflows/ui-ux-consistency-foundation.yml");
-  assert.match(workflow, /name: UI\/UX consistency foundation/);
+test("the foundation regression is enforced by the consolidated Visual gate", async () => {
+  const workflow = await source(".github/workflows/visual.yml");
+  assert.match(workflow, /name: PlotPickle Visual Gate/);
   assert.match(workflow, /pull_request:/);
   assert.match(workflow, /tests\/issue-337-ui-ux-consistency-foundation\.test\.mjs/);
-  assert.match(workflow, /Screen registry contract/);
+  assert.match(workflow, /Run deterministic visual contracts/);
 });

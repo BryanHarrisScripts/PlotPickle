@@ -4,18 +4,17 @@ import test from "node:test";
 
 const text = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("UI UX audit always reports a required pull-request status", async () => {
-  const workflow = await text(".github/workflows/ui-ux-code-audit.yml");
-  assert.match(workflow, /^name: UI\/UX Code Audit/m);
+test("the consolidated Visual gate keeps deterministic review blocking and AI review advisory", async () => {
+  const workflow = await text(".github/workflows/visual.yml");
+  assert.match(workflow, /^name: PlotPickle Visual Gate/m);
   assert.match(workflow, /pull_request:\r?\n\s+branches: \[main\]/);
-  assert.doesNotMatch(workflow, /pull_request:[\s\S]*?\n\s+paths:/);
-  assert.match(workflow, /name: Audit UI\/UX against Design Rules/);
-  assert.match(workflow, /No UI files changed; required gate passed/);
-  assert.match(workflow, /Enforce UI\/UX audit gate/);
-  assert.match(workflow, /process\.exit\(1\)/);
+  assert.match(workflow, /name: Visual/);
+  assert.match(workflow, /Run deterministic visual contracts/);
+  assert.match(workflow, /No visual files changed; the Visual gate passed/);
+  assert.match(workflow, /Run advisory AI design review/);
+  assert.match(workflow, /continue-on-error: true/);
   assert.match(workflow, /secrets\.OPENAI_API_KEY/);
   assert.match(workflow, /scripts\/ui-ux-code-audit\.mjs/);
-  assert.match(workflow, /decorativeHiddenSvgContradictions/);
   assert.match(workflow, /actions\/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1/);
   assert.match(workflow, /actions\/setup-node@820762786026740c76f36085b0efc47a31fe5020/);
 });

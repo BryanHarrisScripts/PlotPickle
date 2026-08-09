@@ -1,9 +1,11 @@
-name: PlotPickle Quality
+name: PlotPickle Quality Gate
 
 on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 concurrency:
@@ -14,7 +16,8 @@ permissions:
   contents: read
 
 jobs:
-  build-test-lint:
+  quality:
+    name: Quality
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -25,33 +28,27 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "22.19.0"
           cache: npm
-
       - name: Verify committed licence and generated navigation
         run: |
           test -f LICENSE
           grep -q "GNU AFFERO GENERAL PUBLIC LICENSE" LICENSE
           grep -q 'id: "overview", code: "OV", label: "Project Overview"' app/page.tsx
           grep -q 'id: "structureMap", code: "ST", label: "Structure Map"' app/page.tsx
-
       - name: Install dependencies
         run: npm ci
-
-      - name: Validate developer diagnostics registry
-        run: npm run diagnostics:validate
-
+      - name: Validate CI and developer diagnostics registries
+        run: |
+          npm run diagnostics:validate
+          node --test tests/issue-538-ci-consolidation.test.mjs
       - name: Lint
         run: npm run lint
-
-      - name: Build pull request
-        if: github.event_name == 'pull_request'
+      - name: Build
         run: npm run build
-
       - name: Run focused pull-request tests
         if: github.event_name == 'pull_request'
         env:
@@ -59,25 +56,13 @@ jobs:
           PLOTPICKLE_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         shell: bash
         run: |
-          changed_files="$(git diff --name-only "$PLOTPICKLE_BASE_SHA" "$PLOTPICKLE_HEAD_SHA")"
-          if printf '%s\n' "$changed_files" | grep -Eq '^(app/learning-|app/core-curriculum/|app/learn-first-phase-528\.css$|app/learn-entry-router\.tsx$|scripts/run-creative-writer-uat\.mjs$|config/visual-capture-registry\.json$|docs/wireframes/issue-528-|tests/issue-528-)'; then
-            echo "Learn / Creative Writer files changed; running issue #528 contract first."
-            node --test tests/issue-528-learn-first-uat.test.mjs
-          fi
-
           set +e
           npm run test:changed -- --base "$PLOTPICKLE_BASE_SHA" --head "$PLOTPICKLE_HEAD_SHA"
           status=$?
           set -e
-
-          if [[ "$status" -eq 0 ]]; then
-            exit 0
-          fi
-          if [[ "$status" -ne 2 ]]; then
-            exit "$status"
-          fi
-
-          echo "Changed files are not fully registered yet; running the bounded core PR fallback instead of the 752-test suite."
+          if [[ "$status" -eq 0 ]]; then exit 0; fi
+          if [[ "$status" -ne 2 ]]; then exit "$status"; fi
+          echo "Unregistered files detected; running the bounded core PR fallback."
           node --test \
             tests/rendered-html.test.mjs \
             tests/project-navigation-licensing.test.mjs \
@@ -88,18 +73,18 @@ jobs:
             tests/issue-509-creative-writer-uat.test.mjs \
             tests/issue-526-phase-b-visual-screens.test.mjs \
             tests/issue-528-learn-first-uat.test.mjs \
-            tests/issue-529-storyboard-decision-discoverability.test.mjs
-
+            tests/issue-529-storyboard-decision-discoverability.test.mjs \
+            tests/issue-536-navigation-visual-uat.test.mjs \
+            tests/issue-538-ci-consolidation.test.mjs
       - name: Run complete regression after merge or by request
         if: github.event_name != 'pull_request'
         run: npm run test:ci
-
       - name: Dispatch smoke UAT after successful main regression
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
+        shell: bash
         run: |
           curl --fail-with-body --silent --show-error \
             --request POST \
@@ -108,8 +93,6 @@ jobs:
             --header "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/$REPOSITORY/actions/workflows/agent-human-acceptance.yml/dispatches" \
             --data '{"ref":"main","inputs":{"scope":"smoke"}}'
-          echo "Dispatched Agent human acceptance smoke UAT from PlotPickle Quality run $GITHUB_RUN_ID."
-
       - name: Upload developer diagnostics
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

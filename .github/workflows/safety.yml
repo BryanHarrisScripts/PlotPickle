@@ -1,0 +1,92 @@
+name: PlotPickle Safety Gate
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 8 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: plotpickle-safety-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  safety:
+    name: Safety
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out complete history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22.19.0"
+          cache: npm
+      - name: Validate safety contracts
+        run: |
+          node --test \
+            tests/issue-287-public-repository-setup.test.mjs \
+            tests/issue-293-public-history-readiness.test.mjs \
+            tests/issue-299-credential-boundary-audit.test.mjs \
+            tests/issue-299-local-credential-audit.test.mjs \
+            tests/issue-300-native-h3-credential-registry.test.mjs \
+            tests/issue-538-ci-consolidation.test.mjs
+      - name: Audit source and credential registry
+        run: node scripts/credential-boundary-audit.mjs --mode source
+      - name: Verify value-free local audit on an empty home
+        run: node scripts/local-credential-audit.mjs --root . --home "$RUNNER_TEMP/plotpickle-empty-home" --strict
+      - name: Validate repository publication boundaries
+        run: npm run audit:public-readiness
+      - name: Scan commits introduced by pull request
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/public-history-readiness.mjs --range "$BASE_SHA..$HEAD_SHA"
+      - name: Scan complete reachable Git history after merge or by request
+        if: github.event_name != 'pull_request'
+        run: node scripts/public-history-readiness.mjs
+      - name: Detect dependency changes
+        id: dependencies
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          if git diff --quiet "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- package.json package-lock.json npm-shrinkwrap.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Audit production dependencies
+        if: github.event_name != 'pull_request' || steps.dependencies.outputs.changed == 'true'
+        run: npm audit --omit=dev --audit-level=critical
+      - name: Dependency review
+        if: github.event_name == 'pull_request' && steps.dependencies.outputs.changed == 'true' && github.event.repository.private == false
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-2.0, LGPL-2.0
+
+  codeql:
+    name: Scheduled CodeQL analysis
+    if: github.event_name != 'pull_request' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      packages: read
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: github/codeql-action/init@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4.37.4
+        with:
+          languages: javascript-typescript
+      - uses: github/codeql-action/analyze@f205ea1c3313d32999d8d6a48b4f6530d4437b38 # v4.37.4

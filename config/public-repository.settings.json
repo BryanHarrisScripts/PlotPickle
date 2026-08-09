@@ -29,16 +29,10 @@
     "block_force_pushes": true,
     "block_deletions": true,
     "required_checks": [
-      "build-test-lint",
-      "validate",
-      "audit",
-      "Pack active Phase 5 branch",
-      "Package windows",
-      "Package macos",
-      "Package linux",
-      "Full history audit",
-      "Credential boundary audit",
-      "Audit UI/UX against Design Rules"
+      "Quality",
+      "Safety",
+      "Visual",
+      "Release readiness"
     ]
   }
 }

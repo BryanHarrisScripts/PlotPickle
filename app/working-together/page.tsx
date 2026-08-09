@@ -247,8 +247,8 @@ export default function WorkingTogetherPage() {
   const feedbackRecords = records.filter((item) => item.record.kind === "feedback");
   const decisionRecords = records.filter((item) => item.record.kind === "decision");
 
-  return <main className={styles.page}>
-    <header className={styles.hero}><div><span>Contributor onboarding and review handbook</span><h1>Working Together in PlotPickle</h1><p>Define the human agreement, create a welcome card and bounded brief, review changes in story language and record canon decisions without requiring GitHub, public access, AI or an open licence.</p></div><nav><Link href="/">Back to PlotPickle</Link><Link href="/read-learn">Read & Learn</Link><Link href="/pitch-review">Pitch & Review</Link></nav></header>
+  return <main className={`${styles.page} standalone-studio-surface`}>
+    <header className={styles.hero}><div><span>Contributor onboarding and review handbook</span><h1>Working Together in PlotPickle</h1><p>Define the human agreement, create a welcome card and bounded brief, review changes in story language and record canon decisions without requiring GitHub, public access, AI or an open licence.</p></div><nav><Link href="/?workspace=learn">Back to Learn</Link><Link href="/?workspace=learn">Read & Learn</Link><Link href="/pitch-review">Pitch & Review</Link></nav></header>
     <p className={styles.notice} aria-live="polite">{notice}</p>
 
     <section className={styles.panel}><header><span>1 · Collaboration model</span><h2>Define the operating agreement</h2><p>Access, repository permissions, collaboration status, ownership and creative licensing are separate decisions.</p></header>

@@ -275,7 +275,7 @@ export default function StoryCraftEssentialsPage() {
     }
   }
 
-  return <main className={styles.page}>
+  return <main className={`${styles.page} standalone-studio-surface`}>
     <RefineReturnNav />
     <header className={styles.hero}><div><span>{scope === "plan" ? "Plan · story intent" : scope === "refine" ? "Refine · essential audit" : "Learn · craft lessons and practice"}</span><h1>{scope === "plan" ? "Story Experience, Theme & Motifs" : scope === "refine" ? "Essential Craft Audit" : "Story Craft Essentials"}</h1><p>{scope === "plan" ? "Plan the audience contract, competing thematic answers and motif continuity in the active canonical project." : scope === "refine" ? "Diagnose evidence, separate root cause from symptom and prepare one bounded revision priority." : "Study pacing, scene movement, screen evidence, advanced screenplay forms and audience-effect techniques without changing the story automatically."}</p></div><nav><Link href={`/?workspace=${returnWorkspace}`}>Back to {returnWorkspace[0].toUpperCase() + returnWorkspace.slice(1)}</Link><Link href="/read-learn">Read & Learn</Link>{scope === "refine" ? <Link href="/draftlens?return=refine">DraftLens</Link> : null}</nav></header>
     <p className={styles.notice} aria-live="polite">{notice}</p>

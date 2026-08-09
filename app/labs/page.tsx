@@ -48,7 +48,7 @@ export default function SpecialistLabsPage() {
   }
 
   return (
-    <main style={{ minHeight: "100vh", background: "#f7fbfa", padding: "24px" }}>
+    <main className="standalone-studio-surface" style={{ minHeight: "100vh", padding: "24px" }}>
       <RefineReturnNav />
       <div style={{ maxWidth: 1580, margin: "0 auto", display: "grid", gap: 18 }}>
         <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>

@@ -54,6 +54,7 @@ import "./build-assembly-studio.css";
 import "./feedback-studio.css";
 import "./learn-first-phase-528-rendered.css";
 import "./learn-first-phase-528-core-polish.css";
+import "./studio-surface-continuity.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",

@@ -86,6 +86,14 @@ const WORKSPACE_QUERY_TABS: Record<string, MainTab> = {
   collab: "collab",
   community: "community",
   settings: "settings",
+  // Compatibility for older Start Here, readiness and learning links that
+  // used `?workspace=1&tab=<internal id>` before the public workspace names
+  // became canonical.
+  planner: "planner",
+  visuals: "visuals",
+  script: "script",
+  engines: "engines",
+  instructions: "instructions",
 };
 
 const CAPABILITY_OWNER_BY_TAB: Partial<Record<MainTab, CapabilityOwner>> = {
@@ -389,12 +397,26 @@ export default function Home() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const requestedWorkspace = new URLSearchParams(window.location.search).get("workspace");
-      const requestedTab = requestedWorkspace ? WORKSPACE_QUERY_TABS[requestedWorkspace] : undefined;
+      const parameters = new URLSearchParams(window.location.search);
+      const requestedWorkspace = parameters.get("workspace");
+      const requestedLegacyTab = parameters.get("tab");
+      const requestedTab = (requestedWorkspace ? WORKSPACE_QUERY_TABS[requestedWorkspace] : undefined)
+        ?? (requestedLegacyTab ? WORKSPACE_QUERY_TABS[requestedLegacyTab] : undefined);
       if (requestedTab) {
         setActiveTab(requestedTab);
         setShowLanding(false);
       }
+      const requestedSection = parameters.get("section");
+      if (requestedSection && storySections.some((section) => section.id === requestedSection)) {
+        setActiveSection(requestedSection as StorySection);
+      }
+      const requestedBlock = Number(parameters.get("block"));
+      if (Number.isInteger(requestedBlock) && requestedBlock >= 1 && requestedBlock <= 24) setSelectedBlockNumber(requestedBlock);
+      const requestedMiniBlock = Number(parameters.get("mini"));
+      if (Number.isInteger(requestedMiniBlock) && requestedMiniBlock >= 1 && requestedMiniBlock <= 4) setSelectedMiniBlockNumber(requestedMiniBlock);
+      const requestedView = parameters.get("view");
+      if (requestedView === "treatment") setWriterMode("treatment");
+      if (requestedView === "writer" || requestedView === "reader" || requestedView === "screenplay") setWriterMode("screenplay");
       try {
         const stored = window.localStorage.getItem(STORAGE_KEY);
         if (stored) {
@@ -857,7 +879,7 @@ export default function Home() {
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-active-workspace={activeTab}>
       <ApplicationShellHeader
         activeTab={activeTab}
         onNavigate={(tab) => {
@@ -866,7 +888,11 @@ export default function Home() {
           if (tab === "reports") setReportReturnSection("");
           setActiveTab(tab);
         }}
-        onOpenLanding={() => setShowLanding(true)}
+        onOpenLanding={() => {
+          setShowLanding(false);
+          setReportReturnSection("");
+          setActiveTab("dashboard");
+        }}
         onProjectAction={(action) => {
           if (action === "new-project") createNewProject();
           else if (action === "import") fileInputRef.current?.click();

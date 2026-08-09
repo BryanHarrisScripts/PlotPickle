@@ -84,7 +84,7 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
 
   return (
     <header className="topbar application-shell-header" aria-label="PlotPickle application navigation and project actions">
-      <button type="button" className="brand-lockup home-trigger shell-brand" onClick={onOpenLanding} aria-label="Open the PlotPickle marketing page" title="PlotPickle home">
+      <button type="button" className="brand-lockup home-trigger shell-brand" onClick={onOpenLanding} aria-label="Return to PlotPickle Dashboard" title="Dashboard">
         <img className="brand-icon" src="/brand/favicon/plotpickle-icon-128.png" alt="" aria-hidden="true" />
         <span className="studio-brand-copy">
           <strong>PlotPickle</strong>

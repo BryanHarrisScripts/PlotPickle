@@ -263,6 +263,7 @@ export default function ProjectOverview({
       <footer className={styles.planFooter}>
         <span>Same PPF story · same canon · same asset lineage · saved locally</span>
         <div>
+          <a href="/about">Why PlotPickle</a>
           <button type="button" onClick={() => onOpenSection("notes")}>Canon & notes</button>
           <button type="button" onClick={onOpenEngines}>Settings</button>
         </div>

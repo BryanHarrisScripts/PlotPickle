@@ -17,9 +17,9 @@ export default function LegalPage() {
   return (
     <>
       <a className={styles.skipLink} href="#legal-main">Skip to main content</a>
-      <main className={styles.page} id="legal-main" tabIndex={-1}>
+      <main className={`${styles.page} standalone-studio-surface`} id="legal-main" tabIndex={-1}>
         <header className={styles.header}>
-          <Link href="/" className={styles.backLink}>← Return to PlotPickle</Link>
+          <Link href="/?workspace=settings" className={styles.backLink}>← Back to Settings</Link>
           <p className={styles.eyebrow}>Copyright, licensing, and ownership</p>
           <h1>Open software. Shared method. Your story remains yours.</h1>
           <p>

@@ -51,7 +51,7 @@ export default function PitchReviewPage() {
   }
 
   return (
-    <main style={{ minHeight: "100vh", background: "#f4fbf9", padding: "24px" }}>
+    <main className="standalone-studio-surface" style={{ minHeight: "100vh", padding: "24px" }}>
       <div style={{ maxWidth: 1620, margin: "0 auto", display: "grid", gap: 18 }}>
         <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <Link href={`/?workspace=${returnWorkspace}`} style={{ color: "#163331", fontWeight: 800 }}>Back to {returnWorkspace === "plan" ? "Plan" : "Pitch"}</Link>

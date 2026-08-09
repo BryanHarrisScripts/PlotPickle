@@ -207,7 +207,7 @@ export default function DraftLensPage() {
     .join(" → ");
 
   return (
-    <main className={styles.page}>
+    <main className={`${styles.page} standalone-studio-surface`}>
       <RefineReturnNav />
       <div className={styles.shell}>
         <header className={styles.header}>

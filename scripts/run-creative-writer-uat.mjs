@@ -328,6 +328,68 @@ async function main() {
     learnState = await learningState();
     ok = nav.ok && state.title === fixture.title && state.characterCount >= 1 && state.locationCount >= 1 && state.screenplayCount >= 2 && learnState.completed.includes("pitch") && learnState.coreEvidenceCount >= 1;
     await record(24, "Return to Graphic Novel", ok ? (nav.method === "direct recovery navigation" ? "WARN" : "PASS") : "FAIL", ok ? "The story returned to Graphic Novel with project, learning, character/world and screenplay continuity after Feedback and Refine." : "The creative loop returned with missing or inconsistent project or learning context.");
+
+    const dashboardClicked = await clickVisible("Return to PlotPickle Dashboard");
+    await delay(500);
+    state = await currentState();
+    ok = dashboardClicked && state.activeId === "dashboard" && state.dashboardVisible && !/Storytelling Has Changed/i.test(state.bodyText || "");
+    await record(25, "Exit Returns to Dashboard", ok ? "PASS" : "FAIL", ok ? "The PlotPickle brand returned to Dashboard and did not reopen the marketing splash." : "The application exit/home control did not return to Dashboard.");
+
+    const visibleJourney = [
+      ["Learn", "learn", "learn"], ["Plan", "planner", "plan"], ["Storyboard", "visuals", "storyboard"],
+      ["Write", "script", "write"],
+    ];
+    const navigationMethods = [];
+    for (const [label, id, query] of visibleJourney) {
+      nav = await gotoWorkspace(label, id, query);
+      navigationMethods.push(`${label}: ${nav.method}`);
+      if (!nav.ok || nav.method !== "visible workspace control") break;
+    }
+    nav = await gotoWorkspace("Edit", "edit", "edit", "/edit");
+    navigationMethods.push(`Edit: ${nav.method}`);
+    const returnedFromEdit = nav.ok && nav.method === "visible workspace control" && await clickVisible("Back to Write 1.1");
+    await delay(500);
+    state = await currentState();
+    ok = navigationMethods.every((entry) => entry.endsWith("visible workspace control")) && returnedFromEdit && state.activeId === "script";
+    await record(26, "Top Navigation Forward and Back", ok ? "PASS" : "FAIL", `${navigationMethods.join(" · ")}. ${returnedFromEdit ? "Back to Write returned to the named workspace." : "The Edit return failed."}`);
+
+    nav = await gotoWorkspace("Plan", "planner", "plan");
+    const openedStructureMap = nav.ok && nav.method === "visible workspace control" && await gotoStorySection("Structure Map");
+    const openedStructureEngine = openedStructureMap && await clickVisible("Open full Structure Engine");
+    await delay(650);
+    const returnedToPlan = openedStructureEngine && await clickVisible("Back to Plan");
+    await delay(650);
+    state = await currentState();
+    ok = returnedToPlan && state.activeId === "planner" && state.activeStorySection === "Structure Map" && state.title === fixture.title;
+    await record(27, "Plan Rabbit Hole Return", ok ? "PASS" : "FAIL", ok ? "Plan → Structure Map → Structure Engine → Back to Plan returned to the named Structure Map with the same project." : "The Plan rabbit-hole return lost its named destination or project context.");
+
+    nav = await gotoWorkspace("Refine", "engines", "refine");
+    const openedDiagnostic = nav.ok && nav.method === "visible workspace control" && await clickVisible("Open diagnostic");
+    await delay(650);
+    const returnedToRefine = openedDiagnostic && await clickVisible("Back to Refine");
+    await delay(650);
+    state = await currentState();
+    ok = returnedToRefine && state.activeId === "engines" && state.title === fixture.title;
+    await record(28, "Refine Rabbit Hole Return", ok ? "PASS" : "FAIL", ok ? "Refine → Diagnostic Queue → Back to Refine returned to the named owner and retained the project." : "The Refine diagnostic return did not return to Refine with the same project.");
+
+    nav = await gotoWorkspace("Reports", "reports", "reports");
+    const openedReportContext = nav.ok && nav.method === "visible workspace control" && await clickVisible("Open context");
+    await delay(650);
+    const returnedToReport = openedReportContext && await clickVisible("Return to Project report");
+    await delay(650);
+    state = await currentState();
+    ok = returnedToReport && state.activeId === "reports" && state.title === fixture.title;
+    await record(29, "Reports Context Return", ok ? "PASS" : "FAIL", ok ? "A Reports context drill-down returned to the named Project report with the same project." : "The report drill-down could not return to its named report.");
+
+    nav = await gotoWorkspace("Settings", "settings", "settings");
+    const openedLocalMode = nav.ok && nav.method === "visible workspace control" && await clickVisible("Open local setup");
+    await delay(500);
+    const returnedToModes = openedLocalMode && await clickVisible("Back to modes");
+    await delay(500);
+    snap = await snapshot();
+    state = await currentState();
+    ok = returnedToModes && state.activeId === "settings" && /Compare the complete story workflow/i.test(snap) && state.title === fixture.title;
+    await record(30, "Settings Rabbit Hole Return", ok ? "PASS" : "FAIL", ok ? "Settings → Local Story Mode → Back to modes returned to the named comparison view without leaving the project." : "The Settings return did not restore the modes overview.");
   } catch (error) {
     deterministicError = error instanceof Error ? error : new Error(String(error));
   } finally {

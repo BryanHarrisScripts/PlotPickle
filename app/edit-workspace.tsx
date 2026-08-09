@@ -191,7 +191,7 @@ export default function EditWorkspace() {
         activeTab="edit"
         onNavigate={(id) => window.location.assign(workspaceHref(id))}
         onProjectAction={() => window.location.assign("/?workspace=dashboard")}
-        onOpenLanding={() => window.location.assign("/")}
+        onOpenLanding={() => window.location.assign("/?workspace=dashboard")}
       />
 
       <div className={styles.projectStrip}>

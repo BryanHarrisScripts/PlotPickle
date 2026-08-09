@@ -79,7 +79,8 @@ jobs:
             tests/phase-one-core-schema.test.mjs \
             tests/rc4-project-format.test.mjs \
             tests/issue-337-ui-ux-consistency-foundation.test.mjs \
-            tests/issue-509-creative-writer-uat.test.mjs
+            tests/issue-509-creative-writer-uat.test.mjs \
+            tests/issue-526-phase-b-visual-screens.test.mjs
 
       - name: Run complete regression after merge or by request
         if: github.event_name != 'pull_request'

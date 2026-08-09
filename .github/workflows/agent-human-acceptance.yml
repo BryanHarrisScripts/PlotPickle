@@ -15,10 +15,6 @@ on:
         options:
           - smoke
           - full
-  push:
-    branches:
-      - main
-
 permissions:
   contents: read
 

@@ -5,16 +5,10 @@ import test from "node:test";
 const text = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 const requiredChecks = [
-  "build-test-lint",
-  "validate",
-  "audit",
-  "Pack active Phase 5 branch",
-  "Package windows",
-  "Package macos",
-  "Package linux",
-  "Full history audit",
-  "Credential boundary audit",
-  "Audit UI/UX against Design Rules",
+  "Quality",
+  "Safety",
+  "Visual",
+  "Release readiness",
 ];
 
 const pinnedCodeqlSha = "f205ea1c3313d32999d8d6a48b4f6530d4437b38";
@@ -33,7 +27,7 @@ test("public repository settings preserve the established green gates", async ()
 });
 
 test("security automation stays safe while private and activates when public", async () => {
-  const workflow = await text(".github/workflows/public-security.yml");
+  const workflow = await text(".github/workflows/safety.yml");
   assert.match(workflow, /github\.event\.repository\.private == false/);
   assert.match(workflow, new RegExp(`github/codeql-action/init@${pinnedCodeqlSha}`));
   assert.match(workflow, new RegExp(`github/codeql-action/analyze@${pinnedCodeqlSha}`));

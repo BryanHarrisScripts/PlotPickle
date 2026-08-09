@@ -114,4 +114,4 @@ Do not add real values to this document as proof of completion.
 
 ## CI evidence required for merge
 
-The pull request may merge only after Credential boundary audit, Public readiness, Public security, Public history readiness, PlotPickle Quality, Phase 1 validation, Repomix and the complete Windows, macOS and Linux Release Candidate matrix are green.
+The pull request may merge only after Quality, Safety, Visual and Release readiness are green. Repomix, complete history scanning and full Windows, macOS and Linux packaging run after merge or by manual request.

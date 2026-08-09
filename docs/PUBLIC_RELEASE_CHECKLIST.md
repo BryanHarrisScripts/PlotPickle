@@ -6,7 +6,7 @@ Use this checklist before changing the repository from private to public. The co
 
 - [ ] `npm run audit:public-readiness` passes on the exact commit to publish.
 - [ ] `Public history readiness / Full history audit` passes from a complete clone.
-- [ ] Quality, Phase 1, Public Readiness, Public Security, Release Candidate, Repomix and Full History are green.
+- [ ] Quality, Safety, Visual and Release readiness are green; post-merge Repomix and deep release evidence are available.
 - [ ] No API keys, OAuth client secrets, tokens, signing keys, certificates or `.env` files exist in the working tree or reachable Git history.
 - [ ] Any invitation URL previously committed—including Buzz community invitations—has been revoked or rotated before a narrowly scoped historical exception is recorded.
 - [ ] Current public source contains no live community invitation; an optional invite may be supplied only through `NEXT_PUBLIC_PLOTPICKLE_BUZZ_INVITE_URL` in a controlled private build.

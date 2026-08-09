@@ -42,8 +42,8 @@ test("issue #355 supplies semantic Studio Dashboard navigation and story archite
   assert.match(entry, /<DashboardStoryLibrary/);
   assert.match(studio, /aria-label="PlotPickle Studio Dashboard"/);
   assert.match(studio, /aria-labelledby="story-library-title"/);
-  assert.match(studio, /aria-label="Current story position"/);
-  assert.match(studio, /aria-label="Four Act 24 Block 96 mini-block architecture"/);
+  assert.match(studio, /aria-label="Current story context and quick actions"/);
+  assert.match(studio, /aria-label="Story overview"/);
   assert.match(studio, /aria-label="PlotPickle workflow"/);
   assert.match(studio, /4 Acts · 24 Blocks · 96 mini-blocks/);
 });
@@ -67,10 +67,10 @@ test("issue #355 records Dashboard work and the completed Build audit", async ()
   assert.equal(build.status, "audited");
 });
 
-test("issue #355 focused Dashboard audit workflow remains registered", async () => {
-  const workflow = await source(".github/workflows/ui-ux-dashboard-command-centre.yml");
-  assert.match(workflow, /name: UI\/UX Dashboard command centre/);
-  assert.match(workflow, /Dashboard command-centre contract/);
+test("issue #355 Dashboard contracts remain registered in the consolidated Visual gate", async () => {
+  const workflow = await source(".github/workflows/visual.yml");
+  assert.match(workflow, /name: PlotPickle Visual Gate/);
+  assert.match(workflow, /Run deterministic visual contracts/);
   assert.match(workflow, /issue-355-dashboard-command-centre-ux\.test\.mjs/);
   assert.match(workflow, /issue-113-dashboard-command-centre\.test\.mjs/);
   assert.match(workflow, /issue-256-setup-connections-dashboard\.test\.mjs/);

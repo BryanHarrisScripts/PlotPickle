@@ -18,6 +18,7 @@
     { "screenId": "planner", "label": "Plan", "route": "/?workspace=plan", "expectedText": "Plan owns story intent", "isolated": true },
     { "screenId": "visuals", "label": "Storyboard", "route": "/?workspace=storyboard", "expectedText": "Storyboard owns visual direction", "isolated": true },
     { "screenId": "script", "label": "Write", "route": "/?workspace=write", "expectedText": "Write owns screenplay text", "isolated": true },
+    { "screenId": "edit", "label": "Edit", "route": "/edit", "expectedText": "Review the writing.", "isolated": true },
     { "screenId": "pitch", "label": "Graphic Novel", "route": "/?workspace=pitch", "expectedText": "Complete Graphic Novel", "isolated": true },
     { "screenId": "build", "label": "Build", "route": "/?workspace=build", "expectedText": "Build owns production planning", "isolated": true },
     { "screenId": "feedback", "label": "Feedback", "route": "/?workspace=feedback", "expectedText": "Collect, compare and resolve feedback around the current work", "isolated": true },

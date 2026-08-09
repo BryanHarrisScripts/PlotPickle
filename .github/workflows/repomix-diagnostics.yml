@@ -1,9 +1,7 @@
-name: Repomix PR 281
+name: Repomix diagnostics
 
 on:
   push:
-    branches: [main]
-  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -16,28 +14,21 @@ concurrency:
 
 jobs:
   pack:
-    name: Pack active Phase 5 branch
+    name: Pack repository diagnostic
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
-      - name: Fast Repomix status for pull requests
-        if: github.event_name == 'pull_request'
-        run: echo "Repomix is diagnostic evidence, not a feature-merge gate. Full repository packing runs on main or by manual dispatch."
-
       - name: Check out exact commit
-        if: github.event_name != 'pull_request'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Use Node.js 24
-        if: github.event_name != 'pull_request'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '24'
           cache: npm
 
       - name: Pack repository with Repomix
-        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
@@ -53,10 +44,9 @@ jobs:
           wc -c repomix-output.xml > repomix-output.bytes.txt
 
       - name: Upload private diagnostic artifact
-        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: repomix-pr-281-${{ github.sha }}
+          name: repomix-diagnostic-${{ github.sha }}
           path: |
             repomix-output.xml
             repomix-output.sha256

@@ -212,12 +212,14 @@
         "scripts/build-*.mjs",
         ".github/workflows/*.yml",
         "package.json",
-        "package-lock.json"
+        "package-lock.json",
+        "tests/issue-538-ci-consolidation.test.mjs"
       ],
       "suites": [
         "tests/issue-124-release-hardening.test.mjs",
         "tests/phase-f-collaboration-release.test.mjs",
-        "tests/windows-native-runtime.test.mjs"
+        "tests/windows-native-runtime.test.mjs",
+        "tests/issue-538-ci-consolidation.test.mjs"
       ],
       "contracts": [
         "packaging.shared",
@@ -231,7 +233,8 @@
         "package-lock.json",
         "tests/issue-124-release-hardening.test.mjs",
         "tests/phase-f-collaboration-release.test.mjs",
-        "tests/windows-native-runtime.test.mjs"
+        "tests/windows-native-runtime.test.mjs",
+        "tests/issue-538-ci-consolidation.test.mjs"
       ]
     },
     {
@@ -495,7 +498,11 @@
           "optional": false
         },
         {
-          "path": ".github/workflows/phase-one-ci.yml",
+          "path": ".github/workflows/safety.yml",
+          "optional": false
+        },
+        {
+          "path": ".github/workflows/visual.yml",
           "optional": false
         },
         {
@@ -504,7 +511,8 @@
         }
       ],
       "tests": [
-        "tests/issue-124-release-hardening.test.mjs"
+        "tests/issue-124-release-hardening.test.mjs",
+        "tests/issue-538-ci-consolidation.test.mjs"
       ]
     },
     "diagnostics.registry": {

@@ -389,7 +389,9 @@ async function main() {
     await record(29, "Reports Context Return", ok ? "PASS" : "FAIL", ok ? "A Reports context drill-down returned to the named Project report with the same project." : "The report drill-down could not return to its named report.");
 
     nav = await gotoWorkspace("Settings", "settings", "settings");
-    const openedLocalMode = nav.ok && nav.method === "visible workspace control" && await clickVisible("Open local setup");
+    const openedModeComparison = nav.ok && nav.method === "visible workspace control" && await clickVisible("Compare roles");
+    await delay(500);
+    const openedLocalMode = openedModeComparison && await clickVisible("Open local setup");
     await delay(500);
     const returnedToModes = openedLocalMode && await clickVisible("Back to modes");
     await delay(500);

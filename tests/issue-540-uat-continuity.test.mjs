@@ -62,6 +62,13 @@ test("#540 verifies splash entry after hydration and links the captured evidence
   assert.match(runner, /agent-plugin\/creative-writer\/\$\{String\(item\.stage\)/);
 });
 
+test("#540 enters the remembered Settings view through the visible mode tab", async () => {
+  const runner = await source("scripts/run-creative-writer-uat.mjs");
+
+  assert.match(runner, /const openedModeComparison = .*clickVisible\("Compare roles"\)/);
+  assert.match(runner, /const openedLocalMode = openedModeComparison && await clickVisible\("Open local setup"\)/);
+});
+
 test("#540 makes the exact 30-stage UAT part of the blocking Visual gate", async () => {
   const workflow = await source(".github/workflows/visual.yml");
   assert.match(workflow, /Run exact 30-stage Creative Writer UAT/);

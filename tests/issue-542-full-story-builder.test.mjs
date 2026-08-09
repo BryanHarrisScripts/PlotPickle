@@ -112,7 +112,7 @@ test("#542 launches a second agent beside the Windows server and preserves its m
     read("Start-PlotPickle.bat"), read("vite.config.ts"), read("build/full-story-builder-gateway.ts"), read("scripts/full-story-builder-agent.mjs"), read("lib/project-folder.ts"), read("package.json"),
   ]);
   assert.match(batch, /set "STORY_BUILDER_AGENT=scripts\\full-story-builder-agent\.mjs"/);
-  assert.match(batch, /start "PlotPickle Full Story Builder" \/min node "%STORY_BUILDER_AGENT%" --server "%PLOTPICKLE_URL%"/);
+  assert.match(batch, /start "PlotPickle Full Story Builder" node "%STORY_BUILDER_AGENT%" --server "%PLOTPICKLE_URL%" --stay-open/);
   assert.ok(batch.indexOf("call :start_full_story_builder") < batch.indexOf('call "%VITE_CMD%"'));
   assert.match(vite, /fullStoryBuilderGateway\(\)/);
   assert.match(gateway, /persistentHome\(\), "full-story-builder", "jobs\.json"/);

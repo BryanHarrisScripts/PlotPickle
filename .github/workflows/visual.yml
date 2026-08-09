@@ -80,6 +80,7 @@ jobs:
             tests/issue-540-uat-continuity.test.mjs \
             tests/issue-544-ui-continuity-agent.test.mjs \
             tests/issue-546-complete-visual-migration.test.mjs \
+            tests/issue-548-persistent-agent-windows.test.mjs \
             tests/ui-ux-code-audit-workflow.test.mjs \
             tests/ui-ux-code-audit-required-check.test.mjs \
             tests/windows-native-runtime.test.mjs

@@ -2,6 +2,7 @@ import process from "node:process";
 import os from "node:os";
 import { pathToFileURL } from "node:url";
 import { attachGeneratedVisual, createFullStoryProject, fullStorySummary } from "../lib/full-story-builder.mjs";
+import { agentCompleted, agentLoaded, agentNeedsAttention, agentStatus, keepAgentWindowOpen } from "../lib/agent-window-status.mjs";
 
 const DEFAULT_SERVER = "http://127.0.0.1:4173";
 const POLL_MS = 2_000;
@@ -152,7 +153,11 @@ export async function runAgent({ server = DEFAULT_SERVER, once = false, fetchImp
   let wasReady = false;
   let unavailableSince = 0;
   let nextHeartbeat = 0;
-  process.stdout.write("PlotPickle Full Story Builder agent\n");
+  agentLoaded({
+    name: "PlotPickle Full Story Builder",
+    purpose: "Build a complete local 120-page-target story across 24 Blocks and 96 mini-blocks.",
+    instructions: "In PlotPickle, open Learn > Full Story Builder, choose Set up a story, enter the brief, and select Build the complete story.",
+  });
   process.stdout.write(`Local server: ${server}\n`);
   process.stdout.write("Cloud text generation is disabled. Paid visuals require exact per-job consent.\n\n");
   while (true) {
@@ -162,20 +167,22 @@ export async function runAgent({ server = DEFAULT_SERVER, once = false, fetchImp
         await jsonRequest(server, "/api/full-story-builder/worker/heartbeat", "POST", { workerId }, fetchImpl);
         nextHeartbeat = now + HEARTBEAT_MS;
       }
-      if (!wasReady) process.stdout.write("Agent ready. Waiting for a Learn Workspace story brief.\n");
+      if (!wasReady) agentStatus("WAITING FOR INSTRUCTIONS", "Submit a story brief in Learn > Full Story Builder. Do not type instructions into this window.");
       wasReady = true;
       unavailableSince = 0;
       const claimed = await jsonRequest(server, "/api/full-story-builder/jobs/claim", "POST", { workerId }, fetchImpl);
       if (claimed.job) {
-        process.stdout.write(`Building ${claimed.job.brief?.title || "a new original story"}...\n`);
+        agentStatus("WORKING", `Building ${claimed.job.brief?.title || "a new original story"}...`);
         const result = await processClaimedJob(server, claimed.job, workerId, fetchImpl);
-        process.stdout.write(result.ok ? `Saved ${result.fileName}.\n` : `Stopped safely: ${result.error}\n`);
+        if (result.ok) agentCompleted(`Saved ${result.fileName}. Return to Learn and select Open completed story.`);
+        else agentNeedsAttention(`The story job stopped safely: ${result.error}`);
         if (once) return result.ok ? 0 : 1;
+        agentStatus("WAITING FOR INSTRUCTIONS", "The completed result remains above. Submit another brief in Learn when ready.");
       } else if (once) return 0;
     } catch {
       if (!unavailableSince) unavailableSince = Date.now();
       if (wasReady && Date.now() - unavailableSince > 60_000) {
-        process.stdout.write("PlotPickle has stopped. Full Story Builder agent is closing.\n");
+        agentCompleted("PlotPickle stopped, so local story-job monitoring ended.");
         return 0;
       }
       wasReady = false;
@@ -186,10 +193,15 @@ export async function runAgent({ server = DEFAULT_SERVER, once = false, fetchImp
 
 const invokedPath = process.argv[1] ? pathToFileURL(process.argv[1]).href : "";
 if (import.meta.url === invokedPath) {
+  const stayOpen = process.argv.includes("--stay-open");
   runAgent({ server: argument("--server", DEFAULT_SERVER), once: process.argv.includes("--once") })
-    .then((code) => { process.exitCode = code; })
-    .catch((error) => {
-      process.stderr.write(`${error instanceof Error ? error.message : error}\n`);
+    .then(async (code) => {
+      process.exitCode = code;
+      if (stayOpen) await keepAgentWindowOpen("Full Story Builder");
+    })
+    .catch(async (error) => {
+      agentNeedsAttention(error instanceof Error ? error.message : String(error));
       process.exitCode = 1;
+      if (stayOpen) await keepAgentWindowOpen("Full Story Builder");
     });
 }

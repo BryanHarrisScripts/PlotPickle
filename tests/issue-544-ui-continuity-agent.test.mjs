@@ -94,7 +94,7 @@ test("#544 launches concurrently beside the Full Story Builder and saves one loc
     read("docs/issue-544-ui-continuity-agent.md"),
   ]);
   assert.match(batch, /set "UI_CONTINUITY_AGENT=scripts\\ui-continuity-agent\.mjs"/);
-  assert.match(batch, /start "PlotPickle UI Continuity Agent" \/min node "%UI_CONTINUITY_AGENT%" --server "%PLOTPICKLE_URL%"/);
+  assert.match(batch, /start "PlotPickle UI Continuity Agent" node "%UI_CONTINUITY_AGENT%" --server "%PLOTPICKLE_URL%" --stay-open/);
   assert.ok(batch.indexOf("call :start_full_story_builder") < batch.lastIndexOf('call "%VITE_CMD%"'));
   assert.ok(batch.indexOf("call :start_ui_continuity_agent") < batch.lastIndexOf('call "%VITE_CMD%"'));
   assert.match(agent, /ui-continuity-report\.md/);

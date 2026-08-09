@@ -56,7 +56,12 @@ if "!PROBE_RESULT!"=="0" (
   if exist "%UAT_RUNNER%" (
     echo.
     choice /C YN /N /M "TESTING: Run the Creative Writer UAT against this session? [Y/N]: "
-    if not errorlevel 2 start "PlotPickle Creative Writer UAT" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%UAT_RUNNER%" -BaseUrl "%PLOTPICKLE_URL%"
+    if not errorlevel 2 (
+      start "PlotPickle Creative Writer UAT" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%UAT_RUNNER%" -BaseUrl "%PLOTPICKLE_URL%"
+      echo [AGENT 3 OF 3 STARTED] Creative Writer UAT. Its result window stays open until you press Enter.
+    ) else (
+      echo [AGENT 3 OF 3 NOT REQUESTED] Creative Writer UAT remains available the next time PlotPickle starts.
+    )
   )
   exit /b 0
 )
@@ -198,7 +203,12 @@ echo.
 call :start_full_story_builder
 call :start_ui_continuity_agent
 call :open_when_ready
-if "!RUN_UAT!"=="1" start "PlotPickle Creative Writer UAT" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%UAT_RUNNER%" -BaseUrl "%PLOTPICKLE_URL%"
+if "!RUN_UAT!"=="1" (
+  start "PlotPickle Creative Writer UAT" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%UAT_RUNNER%" -BaseUrl "%PLOTPICKLE_URL%"
+  echo [AGENT 3 OF 3 STARTED] Creative Writer UAT. Its result window stays open until you press Enter.
+) else (
+  echo [AGENT 3 OF 3 NOT REQUESTED] Creative Writer UAT remains available the next time PlotPickle starts.
+)
 call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort
 
 set "EXIT_CODE=%ERRORLEVEL%"
@@ -230,8 +240,8 @@ if not errorlevel 1 (
   echo [READY] The independent Full Story Builder agent is already running.
   exit /b 0
 )
-start "PlotPickle Full Story Builder" /min node "%STORY_BUILDER_AGENT%" --server "%PLOTPICKLE_URL%"
-echo [STARTED] Full Story Builder agent. It will wait locally for a Learn Workspace brief.
+start "PlotPickle Full Story Builder" node "%STORY_BUILDER_AGENT%" --server "%PLOTPICKLE_URL%" --stay-open
+echo [AGENT 1 OF 3 STARTED] Full Story Builder. Its window confirms where to provide instructions.
 exit /b 0
 
 :start_ui_continuity_agent
@@ -239,8 +249,8 @@ if not exist "%UI_CONTINUITY_AGENT%" (
   echo [WARNING] The UI Continuity Agent is missing. PlotPickle will continue without its read-only layout audit.
   exit /b 0
 )
-start "PlotPickle UI Continuity Agent" /min node "%UI_CONTINUITY_AGENT%" --server "%PLOTPICKLE_URL%"
-echo [STARTED] UI Continuity Agent. It will inspect rendered screens read-only and save one local report.
+start "PlotPickle UI Continuity Agent" node "%UI_CONTINUITY_AGENT%" --server "%PLOTPICKLE_URL%" --stay-open
+echo [AGENT 2 OF 3 STARTED] UI Continuity Agent. Its window stays open after the report is complete.
 exit /b 0
 
 :ensure_dependencies

@@ -43,6 +43,15 @@ test("creative UAT uses visible controls first and verifies persisted project ev
   assert.match(runner, /state\.screenplayCount >= 2/);
 });
 
+test("World and Location activation is verified before downstream continuity checks", () => {
+  assert.match(actions, /activeStorySection/);
+  assert.match(actions, /visibleLocationCount/);
+  assert.match(actions, /async function clickExactStorySection/);
+  assert.match(actions, /Used exact Story Rail control/);
+  assert.match(actions, /Retried visible \$\{label\} control through the DOM because Playwright reported success without creating a location/);
+  assert.match(actions, /label === "Create the first location" \|\| label === "Add location"/);
+});
+
 test("character and world visuals are first-class writing inputs", () => {
   assert.match(runner, /World and Location/);
   assert.match(runner, /Character Identity/);

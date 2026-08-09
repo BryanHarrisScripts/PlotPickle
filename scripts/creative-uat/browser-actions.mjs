@@ -58,24 +58,61 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
     }`);
   }
 
+  async function clickExactDomControl(label) {
+    const encoded = JSON.stringify(String(label));
+    return evaluate(`() => {
+      const wanted = ${encoded}.trim().toLowerCase();
+      const controls = [...document.querySelectorAll('button, a, [role="button"], [role="tab"]')];
+      const control = controls.find((node) => {
+        const text = (node.textContent || '').trim().toLowerCase();
+        if (text !== wanted) return false;
+        const style = getComputedStyle(node);
+        return style.display !== 'none' && style.visibility !== 'hidden' && node.getClientRects().length > 0;
+      });
+      if (!control) return { clicked: false, disabled: false };
+      const disabled = control instanceof HTMLButtonElement ? control.disabled : control.getAttribute('aria-disabled') === 'true';
+      if (disabled) return { clicked: false, disabled: true };
+      control.click();
+      return { clicked: true, disabled: false, tag: control.tagName.toLowerCase() };
+    }`);
+  }
+
   async function clickVisible(label, roles = ["button", "link", "tab"]) {
     const availability = await visibleControlState(label);
     if (availability.found && availability.disabled) {
       runnerFindings.push(`Skipped disabled visible control: ${label}.`);
       return false;
     }
+
     const snap = await snapshot();
     const ref = extractRef(snap, label, roles);
-    if (!ref) return false;
-    const tool = toolMap.get("browser_click");
-    const props = tool?.inputSchema?.properties || {};
-    const values = { element: `${label} visible control` };
-    if ("ref" in props) values.ref = ref;
-    else if ("target" in props) values.target = ref;
-    else return false;
-    await client.call("browser_click", toolArguments(tool, values));
-    await delay(350);
-    return true;
+    if (ref) {
+      const tool = toolMap.get("browser_click");
+      const props = tool?.inputSchema?.properties || {};
+      const values = { element: `${label} visible control` };
+      if ("ref" in props) values.ref = ref;
+      else if ("target" in props) values.target = ref;
+      else return false;
+      try {
+        await client.call("browser_click", toolArguments(tool, values));
+        await delay(350);
+        return true;
+      } catch (error) {
+        runnerFindings.push(`browser_click failed for ${label}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+
+    const fallback = await clickExactDomControl(label);
+    if (fallback.disabled) {
+      runnerFindings.push(`Skipped disabled visible control: ${label}.`);
+      return false;
+    }
+    if (fallback.clicked) {
+      runnerFindings.push(`Used exact visible DOM click fallback for ${label} because Playwright did not expose a usable control ref.`);
+      await delay(350);
+      return true;
+    }
+    return false;
   }
 
   async function fillByLabel(label, value) {

@@ -1,0 +1,399 @@
+/* Issue #522 — approved Phase A visual-writing screen language.
+   These rules intentionally affect creative surfaces only. Provider/model/billing
+   controls stay in Settings and natural story imagery is never recoloured. */
+
+:root {
+  --pp-matte: #070707;
+  --pp-panel: #0b0b0a;
+  --pp-panel-raised: #10100e;
+  --pp-line: rgba(205, 167, 88, 0.22);
+  --pp-line-strong: rgba(205, 167, 88, 0.48);
+  --pp-gold: #cda758;
+  --pp-gold-bright: #e1ba64;
+  --pp-paper: #eee8dc;
+  --pp-muted: #817b71;
+  --pp-dim: #5f5a53;
+}
+
+/* Shared creative-screen typography and chrome. */
+html[data-plotpickle-theme="dark"] .workspace:has(.planner-content),
+html[data-plotpickle-theme="dark"] .visual-studio-layout {
+  font-family: var(--font-mono), "Courier New", Consolas, monospace;
+}
+
+html[data-plotpickle-theme="dark"] .workspace:has(.planner-content) button,
+html[data-plotpickle-theme="dark"] .workspace:has(.planner-content) input,
+html[data-plotpickle-theme="dark"] .workspace:has(.planner-content) textarea,
+html[data-plotpickle-theme="dark"] .workspace:has(.planner-content) select,
+html[data-plotpickle-theme="dark"] .visual-studio-layout button,
+html[data-plotpickle-theme="dark"] .visual-studio-layout input,
+html[data-plotpickle-theme="dark"] .visual-studio-layout textarea,
+html[data-plotpickle-theme="dark"] .visual-studio-layout select {
+  font-family: inherit !important;
+}
+
+/* --------------------------------------------------------------------------
+   WORLD + LOCATION — this is story material, not a Settings form.
+   -------------------------------------------------------------------------- */
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) {
+  padding: 24px clamp(20px, 3vw, 44px) 42px !important;
+  background: var(--pp-matte) !important;
+  color: var(--pp-paper) !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) > .section-heading {
+  margin-bottom: 16px !important;
+  padding-bottom: 14px !important;
+  border-bottom: 1px solid var(--pp-line) !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .section-heading h1 {
+  color: var(--pp-paper) !important;
+  font-family: inherit !important;
+  font-size: clamp(24px, 3vw, 38px) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.025em !important;
+  text-transform: uppercase;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .section-heading .eyebrow,
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) h3,
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .field-label {
+  color: var(--pp-gold) !important;
+  font-family: inherit !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) > .form-section:first-of-type {
+  border: 1px solid var(--pp-line) !important;
+  background: var(--pp-panel) !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .form-section {
+  margin-bottom: 14px !important;
+  padding: 16px !important;
+  border: 1px solid var(--pp-line) !important;
+  border-radius: 0 !important;
+  background: var(--pp-panel) !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .form-grid {
+  gap: 10px !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) input,
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) textarea,
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) select {
+  border: 1px solid #373126 !important;
+  border-radius: 0 !important;
+  background: #080808 !important;
+  color: #e8e1d5 !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) input:focus,
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) textarea:focus,
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) select:focus {
+  border-color: var(--pp-gold) !important;
+  outline: 1px solid rgba(205, 167, 88, 0.25) !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .field-help {
+  color: #716b62 !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .subsection-title {
+  align-items: center !important;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.14);
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .subsection-title p {
+  color: var(--pp-muted) !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .primary-button,
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .secondary-button {
+  border: 1px solid var(--pp-gold) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--pp-gold-bright) !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .primary-button:hover,
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .secondary-button:hover {
+  background: var(--pp-gold) !important;
+  color: #090806 !important;
+  transform: none !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .empty-state {
+  min-height: 180px;
+  border: 1px dashed var(--pp-line-strong) !important;
+  border-radius: 0 !important;
+  background: #090909 !important;
+  color: var(--pp-muted) !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .location-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+  gap: 10px !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .location-card {
+  overflow: hidden;
+  padding: 0 12px 12px !important;
+  border: 1px solid #312b22 !important;
+  border-radius: 0 !important;
+  background: #0d0d0c !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .location-image {
+  min-height: 150px !important;
+  margin: 0 -12px 12px;
+  border: 0 !important;
+  border-bottom: 1px solid #312b22 !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(145deg, rgba(205, 167, 88, 0.05), transparent),
+    #0a0a09 !important;
+  color: #6f6656 !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .location-image img {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  filter: saturate(0.78) contrast(1.04);
+}
+
+/* --------------------------------------------------------------------------
+   CHARACTER IDENTITY — portrait first, then motive, ghost, arc and relations.
+   -------------------------------------------------------------------------- */
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster),
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-profile-head) {
+  padding: 24px clamp(20px, 3vw, 44px) 42px !important;
+  background: var(--pp-matte) !important;
+  color: var(--pp-paper) !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) > .section-heading,
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-profile-head) > .section-heading {
+  margin-bottom: 16px !important;
+  padding-bottom: 14px !important;
+  border-bottom: 1px solid var(--pp-line) !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .section-heading h1,
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-profile-head) .section-heading h1 {
+  color: var(--pp-paper) !important;
+  font-family: inherit !important;
+  font-size: clamp(24px, 3vw, 38px) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.025em !important;
+  text-transform: uppercase;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .section-heading .eyebrow,
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .field-label,
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) h3,
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-profile-head) .field-label,
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-profile-head) h3 {
+  color: var(--pp-gold) !important;
+  font-family: inherit !important;
+  letter-spacing: 0.075em !important;
+  text-transform: uppercase;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .character-workspace {
+  display: grid !important;
+  grid-template-columns: 220px minmax(0, 1fr) !important;
+  gap: 12px !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .character-roster {
+  align-self: start;
+  padding: 8px !important;
+  border: 1px solid var(--pp-line) !important;
+  border-radius: 0 !important;
+  background: var(--pp-panel) !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .character-roster button {
+  min-height: 48px;
+  border: 1px solid transparent !important;
+  border-bottom-color: #25211b !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #9b958b !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .character-roster button:hover,
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .character-roster button.active,
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .character-roster button[aria-pressed="true"] {
+  border-color: var(--pp-line-strong) !important;
+  background: #15120c !important;
+  color: #f0d08a !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .character-detail {
+  padding: 14px !important;
+  border: 1px solid var(--pp-line) !important;
+  border-radius: 0 !important;
+  background: var(--pp-panel) !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .character-profile-head {
+  display: grid !important;
+  grid-template-columns: minmax(190px, 0.42fr) minmax(0, 1fr) !important;
+  gap: 14px !important;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #2b271f;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) input,
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) textarea,
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) select {
+  border: 1px solid #373126 !important;
+  border-radius: 0 !important;
+  background: #080808 !important;
+  color: #e8e1d5 !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) input:focus,
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) textarea:focus,
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) select:focus {
+  border-color: var(--pp-gold) !important;
+  outline: 1px solid rgba(205, 167, 88, 0.25) !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .character-core-grid,
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .form-grid {
+  gap: 10px !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .character-core-grid > *,
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .relationship-list,
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .relationship-list article {
+  border-color: #302b23 !important;
+  border-radius: 0 !important;
+  background: #0d0d0c !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .relationship-list article strong {
+  color: #e6d9bf !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .relationship-list article span {
+  color: var(--pp-gold) !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .primary-button {
+  border: 1px solid var(--pp-gold) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--pp-gold-bright) !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .primary-button:hover {
+  background: var(--pp-gold) !important;
+  color: #090806 !important;
+  transform: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   STORYBOARD / VISUAL BOARD — visual direction owns the screen.
+   -------------------------------------------------------------------------- */
+html[data-plotpickle-theme="dark"] .visual-studio-layout {
+  background: var(--pp-matte) !important;
+}
+
+html[data-plotpickle-theme="dark"] .visual-studio-layout > div > div:last-child > header {
+  padding-top: 22px !important;
+  padding-bottom: 18px !important;
+  background: #080808 !important;
+}
+
+html[data-plotpickle-theme="dark"] .visual-studio-layout > div > div:last-child > header h1 {
+  font-family: inherit !important;
+  font-size: clamp(28px, 3vw, 44px) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.025em !important;
+  text-transform: uppercase;
+}
+
+html[data-plotpickle-theme="dark"] .visual-studio-layout nav[aria-label="Visual Board sections"] {
+  border-color: var(--pp-line) !important;
+  background: var(--pp-panel) !important;
+}
+
+html[data-plotpickle-theme="dark"] .visual-studio-layout nav[aria-label="Visual Board sections"] header strong,
+html[data-plotpickle-theme="dark"] .visual-studio-layout [data-visual-section] h2,
+html[data-plotpickle-theme="dark"] .visual-studio-layout [data-visual-section] h3 {
+  font-family: inherit !important;
+  letter-spacing: 0.025em !important;
+}
+
+html[data-plotpickle-theme="dark"] .visual-studio-layout [data-visual-section] {
+  border-color: var(--pp-line) !important;
+  background: var(--pp-panel) !important;
+}
+
+html[data-plotpickle-theme="dark"] .visual-studio-layout [data-visual-section="blocks"] main,
+html[data-plotpickle-theme="dark"] .visual-studio-layout [data-visual-section="frames"] main {
+  gap: 9px !important;
+}
+
+html[data-plotpickle-theme="dark"] .visual-studio-layout [data-visual-section="blocks"] main button,
+html[data-plotpickle-theme="dark"] .visual-studio-layout [data-visual-section="frames"] main button {
+  min-height: 210px;
+  border-color: #302b23 !important;
+  background: #0b0b0a !important;
+}
+
+html[data-plotpickle-theme="dark"] .visual-studio-layout [data-visual-section="blocks"] main button img,
+html[data-plotpickle-theme="dark"] .visual-studio-layout [data-visual-section="frames"] main button img {
+  width: 100%;
+  object-fit: cover;
+  filter: saturate(0.8) contrast(1.05);
+}
+
+html[data-plotpickle-theme="dark"] .visual-studio-layout [aria-label="Review generated versions"] article[data-status="candidate"]::before {
+  content: "CANDIDATE";
+  display: block;
+  padding: 5px 7px;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.25);
+  color: var(--pp-gold);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+}
+
+html[data-plotpickle-theme="dark"] .visual-studio-layout [aria-label="Review generated versions"] article[data-status="approved"]::before {
+  content: "APPROVED CANON";
+  display: block;
+  padding: 5px 7px;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.25);
+  color: #e2c77c;
+  font-size: 8px;
+  letter-spacing: 0.12em;
+}
+
+@media (max-width: 980px) {
+  html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .character-workspace,
+  html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .character-profile-head {
+    grid-template-columns: 1fr !important;
+  }
+
+  html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .character-roster {
+    position: static;
+  }
+}

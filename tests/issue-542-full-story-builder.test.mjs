@@ -133,4 +133,6 @@ test("#542 Learn panel exposes the complete brief, local fallback and explicit c
   assert.match(panel, /Cloud text is never used by this agent/);
   assert.match(panel, /It does not replace the active story, connect GitHub, publish, send mail or approve generated material/);
   assert.match(panel, /window\.localStorage\.setItem\(PROJECT_KEY, JSON\.stringify\(result\.project\)\)/);
+  assert.match(panel, /requestPlotPickleConfirmation/);
+  assert.doesNotMatch(panel, /window\.confirm/);
 });

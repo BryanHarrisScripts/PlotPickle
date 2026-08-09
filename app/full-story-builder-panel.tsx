@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { requestPlotPickleConfirmation } from "./common-overlay-layer";
 import styles from "./full-story-builder-panel.module.css";
 
 const ACTIVE_JOB_KEY = "plotpickle.full-story-builder.job.v1";
@@ -129,7 +130,13 @@ export default function FullStoryBuilderPanel() {
 
   async function openCompletedProject() {
     if (!job?.fileName || working) return;
-    if (!window.confirm("Open the completed Full Story Builder project? Your current project remains saved separately in the local library.")) return;
+    const confirmed = await requestPlotPickleConfirmation({
+      title: "Open the completed Full Story Builder project?",
+      description: "Your current project remains saved separately in the local library.",
+      confirmLabel: "Open completed story",
+      cancelLabel: "Keep current story open",
+    });
+    if (!confirmed) return;
     setWorking(true);
     setNotice("");
     try {

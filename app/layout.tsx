@@ -37,6 +37,7 @@ import "./plan-studio-editors.css";
 import "./plan-studio-editor-polish.css";
 import "./storyboard-studio-phase-d.css";
 import "./phase-a-visual-writing-screens.css";
+import "./phase-b-visual-writing-screens.css";
 import "./storyboard-studio-polish.css";
 import "./storyboard-studio-deeplink.css";
 import "./storyboard-navigation-groups.css";

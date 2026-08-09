@@ -15,14 +15,14 @@
         "--console-level",
         "warning",
         "--output-dir",
-        "${PLUGIN_DATA}/artifacts",
+        "${PLUGIN_DATA}/creative-writer",
         "--allowed-origins",
         "http://127.0.0.1:*;http://localhost:*"
       ],
       "env": {
         "PLOTPICKLE_ACCEPTANCE_MODE": "1"
       },
-      "cwd": "${PLUGIN_ROOT}"
+      "cwd": "${PLUGIN_DATA}"
     }
   }
 }

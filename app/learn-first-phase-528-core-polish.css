@@ -1,0 +1,39 @@
+/* #528 final Core Curriculum visual pass: remove legacy pale/teal surfaces that
+   survive the broad Learn-first treatment. */
+
+html[data-plotpickle-core-learn="true"] main > section:first-of-type > :is(a, div) {
+  border: 1px solid rgba(205, 167, 88, .22) !important;
+  border-radius: 0 !important;
+  background: #0f0e0b !important;
+  color: #d9d1c4 !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-core-learn="true"] main > p[aria-live="polite"] {
+  padding: 13px 16px !important;
+  border: 1px solid rgba(205, 167, 88, .19) !important;
+  border-left: 3px solid #cda758 !important;
+  border-radius: 0 !important;
+  background: #0d0c0a !important;
+  color: #9f978a !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-core-learn="true"] main [aria-label="Core curriculum progress"] article strong {
+  color: #e1ba64 !important;
+}
+
+html[data-plotpickle-core-learn="true"] main > header span,
+html[data-plotpickle-core-learn="true"] main > section > header span,
+html[data-plotpickle-core-learn="true"] main > section:first-of-type strong,
+html[data-plotpickle-core-learn="true"] main [aria-label="Core curriculum progress"] span {
+  color: #cda758 !important;
+}
+
+html[data-plotpickle-core-learn="true"] main > section:first-of-type :is(span, p) {
+  color: #928a7e !important;
+}
+
+html[data-plotpickle-core-learn="true"] main > section:first-of-type strong {
+  color: #e1ba64 !important;
+}

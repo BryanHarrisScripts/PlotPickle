@@ -22,6 +22,9 @@ test("#540 keeps accessible names usable in the visible-control fallback", async
   assert.ok((browser.match(/getAttribute\('aria-label'\) \|\| node\.textContent/g) ?? []).length >= 2);
   assert.match(browser, /style\.display !== 'none'/);
   assert.match(browser, /node\.getClientRects\(\)\.length > 0/);
+  assert.match(browser, /\["textbox", "searchbox", "combobox", "spinbutton"\]/);
+  assert.match(browser, /querySelectorAll\('input, textarea, select'\).*getAttribute\('aria-label'\)/);
+  assert.match(browser, /waitForCurrentState\(matchesExpected\)/);
 });
 
 test("#540 makes World and Storyboard direction discoverable on first entry", async () => {

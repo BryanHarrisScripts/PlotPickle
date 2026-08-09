@@ -83,7 +83,23 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
     : PRODUCT_NAVIGATION.find((item) => item.id === activeTab)?.label ?? "";
 
   return (
-    <header className="topbar application-shell-header" aria-label="PlotPickle application navigation and project actions">
+    <header
+      className="topbar application-shell-header"
+      aria-label="PlotPickle application navigation and project actions"
+      data-ui-continuity-shell="v1"
+      data-ui-continuity-theme="matte-black-antique-gold"
+    >
+      <button
+        type="button"
+        className="shell-agent-settings-anchor"
+        data-ui-continuity-anchor="agent-settings"
+        aria-label="Open Agent and Settings"
+        title="Agent and Settings"
+        onClick={() => onNavigate("settings")}
+      >
+        <span aria-hidden="true">A</span>
+      </button>
+
       <button type="button" className="brand-lockup home-trigger shell-brand" onClick={onOpenLanding} aria-label="Return to PlotPickle Dashboard" title="Dashboard">
         <img className="brand-icon" src="/brand/favicon/plotpickle-icon-128.png" alt="" aria-hidden="true" />
         <span className="studio-brand-copy">

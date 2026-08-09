@@ -280,6 +280,49 @@
       ]
     },
     {
+      "id": "ui-continuity-agent",
+      "label": "UI Continuity Agent",
+      "patterns": [
+        "app/application-shell-header.tsx",
+        "app/ui-continuity-anchor.tsx",
+        "app/ui-continuity-anchor.css",
+        "app/layout.tsx",
+        "config/ui-continuity-agent-registry.json",
+        "lib/ui-continuity-audit.mjs",
+        "scripts/ui-continuity-agent.mjs",
+        "Start-PlotPickle.bat",
+        ".github/workflows/visual.yml",
+        "docs/issue-544-ui-continuity-agent.md",
+        "tests/issue-544-ui-continuity-agent.test.mjs"
+      ],
+      "suites": [
+        "tests/issue-544-ui-continuity-agent.test.mjs",
+        "tests/issue-542-full-story-builder.test.mjs",
+        "tests/issue-540-uat-continuity.test.mjs",
+        "tests/issue-536-navigation-depth.test.mjs",
+        "tests/issue-339-application-shell-ui-ux.test.mjs",
+        "tests/windows-native-runtime.test.mjs"
+      ],
+      "contracts": [
+        "ui.continuity-agent"
+      ],
+      "allowedPaths": [
+        "app/application-shell-header.tsx",
+        "app/ui-continuity-anchor.tsx",
+        "app/ui-continuity-anchor.css",
+        "app/layout.tsx",
+        "config/ui-continuity-agent-registry.json",
+        "config/developer-diagnostics.json",
+        "lib/ui-continuity-audit.mjs",
+        "scripts/ui-continuity-agent.mjs",
+        "Start-PlotPickle.bat",
+        ".github/workflows/visual.yml",
+        "docs/issue-544-ui-continuity-agent.md",
+        "tests/issue-544-ui-continuity-agent.test.mjs",
+        "package.json"
+      ]
+    },
+    {
       "id": "developer-diagnostics",
       "label": "Developer diagnostics",
       "patterns": [
@@ -586,6 +629,33 @@
       ],
       "tests": [
         "tests/issue-542-full-story-builder.test.mjs"
+      ]
+    },
+    "ui.continuity-agent": {
+      "owners": [
+        {
+          "path": "config/ui-continuity-agent-registry.json",
+          "optional": false
+        },
+        {
+          "path": "lib/ui-continuity-audit.mjs",
+          "optional": false
+        },
+        {
+          "path": "scripts/ui-continuity-agent.mjs",
+          "optional": false
+        },
+        {
+          "path": "app/ui-continuity-anchor.tsx",
+          "optional": false
+        },
+        {
+          "path": "Start-PlotPickle.bat",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-544-ui-continuity-agent.test.mjs"
       ]
     },
     "diagnostics.registry": {

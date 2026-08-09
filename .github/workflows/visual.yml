@@ -78,6 +78,7 @@ jobs:
             tests/issue-367-creative-director-actions.test.mjs \
             tests/issue-371-visual-capture-ci.test.mjs \
             tests/issue-540-uat-continuity.test.mjs \
+            tests/issue-544-ui-continuity-agent.test.mjs \
             tests/ui-ux-code-audit-workflow.test.mjs \
             tests/ui-ux-code-audit-required-check.test.mjs \
             tests/windows-native-runtime.test.mjs
@@ -108,6 +109,9 @@ jobs:
           TMPDIR="$RUNNER_TEMP" node scripts/run-creative-writer-uat.mjs \
             --base-url http://127.0.0.1:4173 \
             --artifact-root reports/creative-writer-uat
+          TMPDIR="$RUNNER_TEMP" node scripts/ui-continuity-agent.mjs \
+            --server http://127.0.0.1:4173 \
+            --report reports/ui-continuity-agent/ui-continuity-report.md
       - name: Upload rendered visual artifact
         if: always() && (steps.changed.outputs.has_visual == 'true' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -116,6 +120,7 @@ jobs:
           path: |
             reports/visual-capture/
             reports/creative-writer-uat/
+            reports/ui-continuity-agent/
           if-no-files-found: error
           retention-days: 14
       - name: Run advisory AI design review

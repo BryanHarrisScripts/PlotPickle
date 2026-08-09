@@ -1,0 +1,56 @@
+/* #544 — one predictable Agent & Settings anchor across shared and standalone screens. */
+html[data-plotpickle-theme="dark"] .application-shell-header {
+  grid-template-columns: 34px 178px 1px minmax(0, 1fr) 1px auto 1px auto 1px auto;
+}
+
+.shell-agent-settings-anchor,
+.standalone-agent-settings-anchor {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid rgba(205, 167, 88, 0.52);
+  border-radius: 4px;
+  background: #0b0b0b;
+  color: #d8b769;
+  font-family: var(--font-mono), "Courier New", monospace;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.shell-agent-settings-anchor:hover,
+.standalone-agent-settings-anchor:hover {
+  border-color: #d8b769;
+  background: #15130f;
+  color: #f1eee6;
+}
+
+.shell-agent-settings-anchor:focus-visible,
+.standalone-agent-settings-anchor:focus-visible {
+  outline: 2px solid #e1ba64;
+  outline-offset: 3px;
+}
+
+.standalone-agent-settings-anchor {
+  position: fixed;
+  z-index: 1000;
+  top: 12px;
+  left: 12px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.42);
+}
+
+@media (max-width: 1320px) {
+  html[data-plotpickle-theme="dark"] .application-shell-header {
+    grid-template-columns: 32px 140px 1px minmax(0, 1fr) 1px auto 1px auto 1px auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-agent-settings-anchor,
+  .standalone-agent-settings-anchor {
+    transition: none;
+  }
+}

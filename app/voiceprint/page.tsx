@@ -168,7 +168,7 @@ export default function VoiceprintPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <main className={`${styles.page} standalone-studio-surface`}>
       <div className={styles.shell}>
         <header className={styles.header}>
           <div>

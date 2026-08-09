@@ -5,7 +5,7 @@ export default function SuggestReportPage() {
   return (
     <main>
       <div style={{ padding: "18px 22px 0" }}>
-        <Link href="/">← Back to PlotPickle</Link>
+        <Link href="/?workspace=dashboard">← Back to Dashboard</Link>
       </div>
       <SuggestReportWorkspace />
     </main>

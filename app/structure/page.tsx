@@ -389,7 +389,7 @@ export default function StructureEnginePage() {
   }
 
   return (
-    <main className={styles.page}>
+    <main className={`${styles.page} standalone-studio-surface`}>
       <div className={styles.shell}>
         <header className={styles.header}>
           <div>
@@ -398,7 +398,7 @@ export default function StructureEnginePage() {
             <p>Start with forty-eight scenes, then add, remove, duplicate, reorder or move scenes until the structure matches the film. The template is guidance, not a restriction.</p>
           </div>
           <div className={styles.actions}>
-            <Link href="/" className={styles.secondary}>Back to PlotPickle</Link>
+            <Link href="/?workspace=plan&section=structureMap" className={styles.secondary}>Back to Plan</Link>
             <Link href="/craftloop" className={styles.secondary}>CraftLoop</Link>
             <Link href="/pageflow" className={styles.secondary}>PageFlow</Link>
             <button type="button" onClick={exportProject}>Export project</button>

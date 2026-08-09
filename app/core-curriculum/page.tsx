@@ -199,7 +199,7 @@ export default function CoreCurriculumPage() {
     window.setTimeout(() => document.getElementById("core-module-detail")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   }
 
-  return <main className={styles.page}>
+  return <main className={`${styles.page} standalone-studio-surface`}>
     <header className={styles.hero}>
       <div>
         <span>PlotPickle learning-router spine</span>
@@ -208,7 +208,7 @@ export default function CoreCurriculumPage() {
       </div>
       <nav>
         <Link className={styles.primaryLink} href="/?workspace=learn&view=library">Complete Learning Library</Link>
-        <Link href="/">Back to PlotPickle</Link>
+        <Link href="/?workspace=learn">Back to Learn</Link>
       </nav>
     </header>
 

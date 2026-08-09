@@ -49,7 +49,7 @@ test("the shared header owns workflow groups, Collab, project actions and config
   assert.match(shell, /onOpenLanding/);
   assert.match(shell, /PROJECT_ACTIONS\.map/);
   assert.match(shell, /SUPPORT_NAVIGATION\.map/);
-  assert.match(shell, /Open the PlotPickle marketing page/);
+  assert.match(shell, /aria-label="Return to PlotPickle Dashboard"/);
   assert.match(shell, /id === "edit"/);
   assert.match(shell, /window\.location\.assign\("\/edit"\)/);
 });

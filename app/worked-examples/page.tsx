@@ -21,7 +21,7 @@ export default function WorkedExamplesPage() {
     localStorage.setItem(key, JSON.stringify([...new Set([...current, id])]));
   }
 
-  return <main className={styles.page}>
+  return <main className={`${styles.page} standalone-studio-surface`}>
     <header><Link href="/start-here">Start Here</Link><h1>Worked examples</h1><p>Each example shows one possible improvement, not the only correct formula. Use the reasoning, then make the material belong to your movie.</p></header>
     <section className={styles.filters}><input aria-label="Search examples" placeholder="Search premise, scene, dialogue, continuity…" value={query} onChange={(e) => setQuery(e.target.value)} /><select value={category} onChange={(e) => setCategory(e.target.value)}>{categories.map((item) => <option key={item}>{item}</option>)}</select></section>
     <section className={styles.grid}>{filtered.map((example) => <article key={example.id} id={example.id}>

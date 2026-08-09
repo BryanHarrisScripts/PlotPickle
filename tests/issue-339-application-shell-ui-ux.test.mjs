@@ -49,7 +49,7 @@ test("project actions remain a distinct labelled control group", async () => {
   assert.match(shell, /className="shell-zone-project-actions" role="group" aria-label="Project actions"/);
   assert.match(shell, /data-project-action=\{action\.id\}/);
   assert.match(shell, /action\.id === "load-afterglow" \? "Load Example" : action\.label/);
-  assert.match(shell, /Open the PlotPickle marketing page/);
+  assert.match(shell, /aria-label="Return to PlotPickle Dashboard"/);
 });
 
 test("shell controls meet touch, focus, overflow and safe-area requirements", async () => {

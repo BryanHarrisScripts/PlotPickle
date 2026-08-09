@@ -5,7 +5,7 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #87 keeps Dashboard ready behind the startup splash and Simple Start optional", async () => {
+test("issue #87 keeps Dashboard ready behind the startup splash, makes app exit return there and keeps Simple Start optional", async () => {
   const [page, shell, middleware] = await Promise.all([
     source("app/page.tsx"),
     source("app/application-shell-header.tsx"),
@@ -15,8 +15,8 @@ test("issue #87 keeps Dashboard ready behind the startup splash and Simple Start
   assert.match(page, /useState\(true\)/);
   assert.match(page, /id: "simpleStart"[\s\S]*label: "Simple Start"/);
   assert.match(page, /<SimpleStart/);
-  assert.match(page, /<ApplicationShellHeader[\s\S]*onOpenLanding=\{\(\) => setShowLanding\(true\)\}/);
-  assert.match(shell, /Open the PlotPickle marketing page/);
+  assert.match(page, /<ApplicationShellHeader[\s\S]*onOpenLanding=\{\(\) => \{[\s\S]*setShowLanding\(false\)[\s\S]*setActiveTab\("dashboard"\)/);
+  assert.match(shell, /aria-label="Return to PlotPickle Dashboard"/);
   assert.doesNotMatch(middleware, /NextResponse\.redirect/);
   assert.doesNotMatch(middleware, /plotpickle-open-last/);
 });

@@ -27,7 +27,7 @@ export default function AboutPlotPicklePage() {
   return (
     <>
       <a className={styles.skipLink} href="#about-main">Skip to main content</a>
-      <main className={styles.page} id="about-main" tabIndex={-1}>
+      <main className={`${styles.page} standalone-studio-surface`} id="about-main" tabIndex={-1}>
         <header className={styles.hero}>
           <div>
             <span>About · Origins · Product Principles</span>
@@ -36,7 +36,7 @@ export default function AboutPlotPicklePage() {
               PlotPickle is a local-first, AI-native visual writing and creative direction studio built around Bryan Harris&apos;s 24 Blocks method. Writers shape concepts, words, images and cinematic possibilities in one portable PPF project, then decide what becomes reusable storyworld canon.
             </p>
             <nav className={styles.actions} aria-label="About PlotPickle actions">
-              <Link className={styles.primaryAction} href="/">Open PlotPickle</Link>
+              <Link className={styles.primaryAction} href="/?workspace=dashboard">Back to Dashboard</Link>
               <Link href="/read-learn?module=why-plotpickle-works-in-layers">Learn why the layers connect</Link>
               <Link href="/legal">Copyright and licensing</Link>
               <Link href="/suggest-report">Suggest or report a problem</Link>

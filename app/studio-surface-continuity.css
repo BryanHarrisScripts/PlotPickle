@@ -1,0 +1,104 @@
+/* #536 — keep every current workflow and rabbit-hole surface inside the
+   approved matte-black / antique-gold PlotPickle wireframe language. */
+.standalone-studio-surface,
+:is(
+  .app-shell[data-active-workspace="engines"],
+  .app-shell[data-active-workspace="reports"],
+  .app-shell[data-active-workspace="settings"],
+  .app-shell[data-active-workspace="collab"],
+  .app-shell[data-active-workspace="community"]
+) .workspace {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 48% 0%, rgba(205, 167, 88, .055), transparent 34rem),
+    #090909 !important;
+  color: #eee7d8 !important;
+  font-family: "Courier New", "Lucida Console", Consolas, monospace !important;
+}
+
+:is(
+  .standalone-studio-surface,
+  .app-shell[data-active-workspace="engines"] .workspace,
+  .app-shell[data-active-workspace="reports"] .workspace,
+  .app-shell[data-active-workspace="settings"] .workspace,
+  .app-shell[data-active-workspace="collab"] .workspace,
+  .app-shell[data-active-workspace="community"] .workspace
+) :is(section, article, aside, details, nav) {
+  border-color: rgba(205, 167, 88, .22) !important;
+  background-color: #0f0f0e !important;
+  color: #e9e0d0 !important;
+  box-shadow: none !important;
+}
+
+:is(
+  .standalone-studio-surface,
+  .app-shell[data-active-workspace="engines"] .workspace,
+  .app-shell[data-active-workspace="reports"] .workspace,
+  .app-shell[data-active-workspace="settings"] .workspace,
+  .app-shell[data-active-workspace="collab"] .workspace,
+  .app-shell[data-active-workspace="community"] .workspace
+) :is(h1, h2, h3, h4, strong, th) {
+  color: #f1e8d9 !important;
+}
+
+:is(
+  .standalone-studio-surface,
+  .app-shell[data-active-workspace="engines"] .workspace,
+  .app-shell[data-active-workspace="reports"] .workspace,
+  .app-shell[data-active-workspace="settings"] .workspace,
+  .app-shell[data-active-workspace="collab"] .workspace,
+  .app-shell[data-active-workspace="community"] .workspace
+) :is(p, small, dd, td, li) {
+  color: #aaa296 !important;
+}
+
+:is(
+  .standalone-studio-surface,
+  .app-shell[data-active-workspace="engines"] .workspace,
+  .app-shell[data-active-workspace="reports"] .workspace,
+  .app-shell[data-active-workspace="settings"] .workspace,
+  .app-shell[data-active-workspace="collab"] .workspace,
+  .app-shell[data-active-workspace="community"] .workspace
+) :is(input, textarea, select) {
+  border-color: #3a3328 !important;
+  background: #0b0b0a !important;
+  color: #eee6d9 !important;
+  caret-color: #d8b45f;
+}
+
+:is(
+  .standalone-studio-surface,
+  .app-shell[data-active-workspace="engines"] .workspace,
+  .app-shell[data-active-workspace="reports"] .workspace,
+  .app-shell[data-active-workspace="settings"] .workspace,
+  .app-shell[data-active-workspace="collab"] .workspace,
+  .app-shell[data-active-workspace="community"] .workspace
+) :is(a, button) {
+  border-color: rgba(205, 167, 88, .34) !important;
+  background-color: #12110e !important;
+  color: #e5c77f !important;
+}
+
+:is(
+  .standalone-studio-surface,
+  .app-shell[data-active-workspace="engines"] .workspace,
+  .app-shell[data-active-workspace="reports"] .workspace,
+  .app-shell[data-active-workspace="settings"] .workspace,
+  .app-shell[data-active-workspace="collab"] .workspace,
+  .app-shell[data-active-workspace="community"] .workspace
+) :is(a, button):focus-visible {
+  outline: 2px solid #cda758 !important;
+  outline-offset: 2px;
+}
+
+:is(
+  .standalone-studio-surface,
+  .app-shell[data-active-workspace="engines"] .workspace,
+  .app-shell[data-active-workspace="reports"] .workspace,
+  .app-shell[data-active-workspace="settings"] .workspace,
+  .app-shell[data-active-workspace="collab"] .workspace,
+  .app-shell[data-active-workspace="community"] .workspace
+) :is(table, tr, td, th) {
+  border-color: #302a22 !important;
+  background-color: #0d0d0c !important;
+}

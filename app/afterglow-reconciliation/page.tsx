@@ -47,14 +47,14 @@ export default function AfterglowReconciliationPage() {
   const confirmed = afterglowSourceClaims.filter((claim) => claim.status === "confirmed").length;
 
   return (
-    <main className={styles.page}>
+    <main className={`${styles.page} standalone-studio-surface`}>
       <header className={styles.hero}>
         <div>
           <span>Afterglow source-of-truth workspace</span>
           <h1>{AFTERGLOW_CURRENT_TITLE}</h1>
           <p>Reconcile the legacy folder, complete v9 baseline, partial v10 opening rewrite, current working draft, poster and CC attribution without silently changing canon.</p>
         </div>
-        <nav><Link href="/">Open PlotPickle</Link><Link href="/about">About PlotPickle</Link><Link href="/legal">Rights and licensing</Link></nav>
+        <nav><Link href="/?workspace=dashboard">Back to Dashboard</Link><Link href="/about">About PlotPickle</Link><Link href="/legal">Rights and licensing</Link></nav>
       </header>
 
       <section className={styles.metrics}>

@@ -117,7 +117,7 @@ export default function CharactersInMotionPage() {
   }
 
   if (!project || !character || !block) {
-    return <main className={styles.empty}><h1>Characters in Motion</h1><p>{notice || "Loading the active PlotPickle project…"}</p><Link href="/">Return to PlotPickle</Link></main>;
+    return <main className={`${styles.empty} standalone-studio-surface`}><h1>Characters in Motion</h1><p>{notice || "Loading the active PlotPickle project…"}</p><Link href="/?workspace=learn">Back to Learn</Link></main>;
   }
 
   const act = block.act;
@@ -163,10 +163,10 @@ export default function CharactersInMotionPage() {
     return { character: item, blocks, scenes: sceneCoverage, threads, functions };
   });
 
-  return <main className={styles.page}>
+  return <main className={`${styles.page} standalone-studio-surface`}>
     <header className={styles.hero}>
       <div><span>Characters in Motion</span><h1>Compare planned character claims with story evidence.</h1><p>Learn through behaviour, pressure, relationships and proof. This workspace reports gaps and contradictions; it never rewrites, merges or applies changes automatically.</p></div>
-      <div className={styles.heroActions}><Link href="/">Open Story Planner</Link><Link href="/voiceprint">Voiceprint</Link><Link href="/draftlens">DraftLens</Link><Link href="/resonance">Resonance</Link></div>
+      <div className={styles.heroActions}><Link href="/?workspace=plan&section=characters">Open Story Planner</Link><Link href="/voiceprint">Voiceprint</Link><Link href="/draftlens">DraftLens</Link><Link href="/resonance">Resonance</Link></div>
     </header>
 
     <section className={styles.controls} aria-label="Character evidence context">
@@ -239,6 +239,6 @@ export default function CharactersInMotionPage() {
       <div className={styles.guideGrid}>{fieldGuides.map((guide) => <article key={guide.term}><h3>{guide.term}</h3><p><strong>Difference:</strong> {guide.differs}</p><p><strong>Active-story question:</strong> {guide.question}</p><p><strong>Evidence:</strong> {guide.evidence}</p></article>)}</div>
     </section>
 
-    <footer className={styles.footer}><Link href="/">Story Planner</Link><Link href="/voiceprint">Voiceprint Engine</Link><Link href="/labs">Dialogue Lab and AI Prompt Lab</Link><Link href="/draftlens">DraftLens</Link><Link href="/resonance">Resonance</Link></footer>
+    <footer className={styles.footer}><Link href="/?workspace=plan&section=characters">Story Planner</Link><Link href="/voiceprint">Voiceprint Engine</Link><Link href="/labs">Dialogue Lab and AI Prompt Lab</Link><Link href="/draftlens">DraftLens</Link><Link href="/resonance">Resonance</Link></footer>
   </main>;
 }

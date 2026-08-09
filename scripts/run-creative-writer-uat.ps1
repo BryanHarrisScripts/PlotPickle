@@ -4,6 +4,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[Console]::OutputEncoding = $utf8NoBom
+$OutputEncoding = $utf8NoBom
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $repoRoot
@@ -18,7 +21,7 @@ New-Item -ItemType Directory -Force -Path $artifactRoot | Out-Null
 
 function Write-CreativeUatStatus([string]$Message) {
   Write-Host $Message
-  Add-Content -Path $logPath -Value "[$(Get-Date -Format o)] $Message"
+  Add-Content -Path $logPath -Value "[$(Get-Date -Format o)] $Message" -Encoding UTF8
 }
 
 function Show-CreativeUatResult {
@@ -27,7 +30,7 @@ function Show-CreativeUatResult {
   Write-Host "Trace:  $tracePath"
   Write-Host "Log:    $logPath"
   Write-Host ""
-  if (Test-Path $reportPath) { Write-Host (Get-Content -Raw $reportPath) }
+  if (Test-Path $reportPath) { Write-Host (Get-Content -Raw -Encoding UTF8 $reportPath) }
   Write-Host ""
   Read-Host "Press Enter to close the Creative Writer UAT window"
 }

@@ -21,8 +21,10 @@ function escapeRegex(value) {
 export function extractRef(snapshot, label, roles = ["button", "link", "tab", "textbox", "combobox", "spinbutton"]) {
   const lines = String(snapshot || "").split(/\r?\n/);
   const rolePart = roles.map(escapeRegex).join("|");
+  const roleToken = new RegExp(`\\b(?:${rolePart})\\b`, "i");
   const exact = new RegExp(`\\b(?:${rolePart})\\s+["']${escapeRegex(label)}["']`, "i");
-  for (const line of [...lines.filter((item) => exact.test(item)), ...lines.filter((item) => item.toLowerCase().includes(String(label).toLowerCase()))]) {
+  const roleCandidates = lines.filter((item) => roleToken.test(item) && item.toLowerCase().includes(String(label).toLowerCase()));
+  for (const line of [...lines.filter((item) => exact.test(item)), ...roleCandidates]) {
     const match = line.match(/\[ref=([^\]]+)\]/i) || line.match(/\bref[=:]\s*([A-Za-z0-9_-]+)/i);
     if (match) return match[1];
   }

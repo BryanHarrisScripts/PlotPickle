@@ -45,6 +45,12 @@ function loadAfterglow() {
   window.location.assign("/?workspace=dashboard");
 }
 
+function startNewProject() {
+  const canonicalAction = document.querySelector<HTMLButtonElement>('[data-project-action="new-project"]');
+  if (!canonicalAction) throw new Error("PlotPickle's canonical New Project action is unavailable.");
+  canonicalAction.click();
+}
+
 export default function DashboardStoryLibrary({
   project,
   onOpenSection,
@@ -75,7 +81,7 @@ export default function DashboardStoryLibrary({
           <p className={styles.lede}>Start here. Open a story, create something new, or explore the Afterglow example. The same story continues through Plan, Storyboard, Write, Edit, Graphic Novel, Build, Feedback and Refine.</p>
         </div>
         <div className={styles.studioActions}>
-          <button type="button" className={styles.primaryAction} onClick={() => onOpenSection("storySetup")}>+ New Project</button>
+          <button type="button" className={styles.primaryAction} onClick={startNewProject}>+ New Project</button>
           <button type="button" onClick={() => openWorkspace("planner")}>Import Project</button>
         </div>
       </header>
@@ -107,7 +113,7 @@ export default function DashboardStoryLibrary({
                 <p className={styles.kicker}>Create</p>
                 <h3>Start a new story</h3>
                 <p>Begin with concept, title and visual intention. Your first approved image becomes the project poster.</p>
-                <div className={styles.cardFooter}><span>Local-first</span><button type="button" onClick={() => onOpenSection("storySetup")}>Create story</button></div>
+                <div className={styles.cardFooter}><span>Local-first</span><button type="button" onClick={startNewProject}>Create story</button></div>
               </div>
             </article>
           )}

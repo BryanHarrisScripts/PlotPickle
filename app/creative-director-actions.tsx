@@ -92,14 +92,9 @@ export default function CreativeDirectorActions({
         <p>{storyMoment || "Add the visible action or dramatic turn in the story block before directing this moment."}</p>
       </header>
 
-      <figure className={styles.preview}>
-        {currentVisual ?? <p className={styles.empty}><strong>No approved visual yet</strong><span>PlotPickle will build the direction from the story automatically.</span></p>}
-      </figure>
-
-      {identityWarning ? <p className={styles.warning}><strong>Continuity needs attention.</strong> {identityWarning}</p> : null}
-
       <fieldset id="storyboard-decisions" className={styles.actions}>
         <legend className={styles.actionLegend}>Decide what happens to this visual</legend>
+        <p className={styles.actionIntro}>Keep what works, change the direction, try another version, or compare alternatives. Nothing becomes canon until you explicitly approve it.</p>
         <button type="button" className={styles.primary} disabled={busy} onClick={keepCandidate}>
           <strong>Keep</strong>
           <span>Approve the newest candidate for this exact story moment.</span>
@@ -117,6 +112,12 @@ export default function CreativeDirectorActions({
           <span>Review alternatives side by side in the saved version queue.</span>
         </button>
       </fieldset>
+
+      <figure className={styles.preview}>
+        {currentVisual ?? <p className={styles.empty}><strong>No approved visual yet</strong><span>The story moment is ready to direct. Use the choices above before generating anything.</span></p>}
+      </figure>
+
+      {identityWarning ? <p className={styles.warning}><strong>Continuity needs attention.</strong> {identityWarning}</p> : null}
 
       {visibleMessage ? <p className={state === "error" ? styles.error : styles.message} role="status">{visibleMessage}</p> : null}
 

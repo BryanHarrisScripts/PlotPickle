@@ -39,13 +39,15 @@ test("Creative Director actions expose plain-language recovery and accessible st
 });
 
 test("Creative Director actions protect responsive, focus, reduced-motion and forced-colour behaviour", () => {
-  assert.match(styles, /@media\(max-width:720px\)/);
+  assert.match(styles, /@media\s*\(max-width:\s*720px\)/);
   assert.match(styles, /:focus-visible/);
-  assert.match(styles, /@media\(prefers-reduced-motion:reduce\)/);
-  assert.match(styles, /@media\(forced-colors:active\)/);
-  assert.match(styles, /min-height:44px/);
-  assert.match(styles, /\.actionLegend\{position:absolute/);
-  assert.match(styles, /min-inline-size:0/);
+  assert.match(styles, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
+  assert.match(styles, /@media\s*\(forced-colors:\s*active\)/);
+  assert.match(styles, /min-height:\s*44px/);
+  assert.match(styles, /\.actionLegend\s*\{/);
+  assert.match(styles, /\.actionLegend\s*\{[^}]*width:\s*auto/s);
+  assert.doesNotMatch(styles, /\.actionLegend\s*\{[^}]*position:\s*absolute/s);
+  assert.match(styles, /min-inline-size:\s*0/);
 });
 
 test("Creative Director actions remain the primary Storyboard inspector flow", () => {

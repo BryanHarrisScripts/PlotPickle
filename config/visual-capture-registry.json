@@ -6,6 +6,8 @@
   "screens": [
     { "id": "dashboard", "path": "/?workspace=dashboard" },
     { "id": "learn", "path": "/?workspace=learn" },
+    { "id": "learn-library", "path": "/?workspace=learn&view=library&module=pitch" },
+    { "id": "learn-core", "path": "/core-curriculum" },
     { "id": "plan", "path": "/?workspace=plan" },
     { "id": "plan-story-setup", "path": "/?workspace=plan&section=storySetup" },
     { "id": "plan-blocks", "path": "/?workspace=plan&section=blocks" },

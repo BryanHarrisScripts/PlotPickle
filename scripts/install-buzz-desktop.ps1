@@ -83,6 +83,22 @@ function Get-BuzzVersion {
   return ""
 }
 
+function Compare-BuzzVersion {
+  param(
+    [Parameter(Mandatory = $true)][string]$Installed,
+    [Parameter(Mandatory = $true)][string]$Reviewed
+  )
+
+  try {
+    $installedVersion = [Version]$Installed
+    $reviewedVersion = [Version]$Reviewed
+    return $installedVersion.CompareTo($reviewedVersion)
+  }
+  catch {
+    return $null
+  }
+}
+
 if (-not (Test-Path -LiteralPath $ConfigPath -PathType Leaf)) {
   Write-Warning "The packaged Buzz Desktop compatibility file is missing: $ConfigPath"
   Write-PlotPickleBuzzStatus -Status "configuration-missing"
@@ -98,12 +114,24 @@ $downloadUrl = [string]$config.windows.downloadUrl
 $existingCli = Find-BuzzCli
 if ($existingCli) {
   $installedVersion = Get-BuzzVersion -Executable $existingCli
-  $updateRequired = $Maintain -and $installedVersion -and $installedVersion -ne $version
+  $comparison = if ($installedVersion) { Compare-BuzzVersion -Installed $installedVersion -Reviewed $version } else { $null }
+
+  if ($Maintain -and $installedVersion -and $null -ne $comparison -and $comparison -gt 0) {
+    Write-Host "[OK] Buzz Desktop $installedVersion is newer than PlotPickle's reviewed package $version."
+    Write-Host "Keeping the installed version and skipping the pinned installer."
+    Write-PlotPickleBuzzStatus -Status "detected" -Executable $existingCli
+    exit 0
+  }
+
+  $updateRequired = $Maintain -and $installedVersion -and $null -ne $comparison -and $comparison -lt 0
   if (-not $updateRequired) {
     $versionLabel = if ($installedVersion) { $installedVersion } else { "version unknown" }
     Write-Host "[OK] Buzz Desktop $versionLabel CLI detected at $existingCli"
     if ($Maintain -and -not $installedVersion) {
       Write-Warning "Buzz Desktop is installed, but its version could not be verified. Automatic reinstallation was skipped."
+    }
+    if ($Maintain -and $installedVersion -and $null -eq $comparison) {
+      Write-Warning "Buzz Desktop is installed, but its version could not be compared safely. Automatic reinstallation was skipped."
     }
     Write-PlotPickleBuzzStatus -Status "detected" -Executable $existingCli
     exit 0

@@ -57,3 +57,14 @@ test("#540 makes the exact 30-stage UAT part of the blocking Visual gate", async
   assert.match(workflow, /--artifact-root reports\/creative-writer-uat/);
   assert.match(workflow, /reports\/creative-writer-uat\//);
 });
+
+test("#540 only invokes dependency review for dependency graph changes", async () => {
+  const workflow = await source(".github/workflows/safety.yml");
+  const detection = workflow.slice(
+    workflow.indexOf("- name: Detect dependency graph changes"),
+    workflow.indexOf("- name: Audit production dependencies"),
+  );
+
+  assert.match(detection, /-- package-lock\.json npm-shrinkwrap\.json/);
+  assert.doesNotMatch(detection, /-- package\.json/);
+});

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "issue": 544,
+  "mode": "read-only",
+  "autoFix": false,
+  "fixApprovalRequired": true,
+  "designSystem": "matte-black-antique-gold",
+  "screens": [
+    { "id": "dashboard", "label": "Dashboard", "path": "/?workspace=dashboard", "kind": "workspace", "activeWorkspace": "dashboard" },
+    { "id": "learn", "label": "Learn", "path": "/?workspace=learn", "kind": "workspace", "activeWorkspace": "learn" },
+    { "id": "plan", "label": "Plan", "path": "/?workspace=plan", "kind": "workspace", "activeWorkspace": "planner" },
+    { "id": "plan-world", "label": "Plan · World", "path": "/?workspace=plan&section=world", "kind": "nested-workspace", "activeWorkspace": "planner" },
+    { "id": "plan-blocks", "label": "Plan · 24 Blocks", "path": "/?workspace=plan&section=blocks&block=7", "kind": "nested-workspace", "activeWorkspace": "planner" },
+    { "id": "storyboard", "label": "Storyboard", "path": "/?workspace=storyboard", "kind": "workspace", "activeWorkspace": "visuals" },
+    { "id": "write", "label": "Write", "path": "/?workspace=write", "kind": "workspace", "activeWorkspace": "script" },
+    { "id": "edit", "label": "Edit", "path": "/edit", "kind": "nested-workspace", "activeWorkspace": "edit", "returnDestination": "Write" },
+    { "id": "graphic-novel", "label": "Graphic Novel", "path": "/?workspace=pitch", "kind": "workspace", "activeWorkspace": "pitch" },
+    { "id": "build", "label": "Build", "path": "/?workspace=build", "kind": "workspace", "activeWorkspace": "build" },
+    { "id": "feedback", "label": "Feedback", "path": "/?workspace=feedback", "kind": "workspace", "activeWorkspace": "feedback" },
+    { "id": "refine", "label": "Refine", "path": "/?workspace=refine", "kind": "workspace", "activeWorkspace": "engines" },
+    { "id": "reports", "label": "Reports", "path": "/?workspace=reports", "kind": "workspace", "activeWorkspace": "reports" },
+    { "id": "collab", "label": "Collab", "path": "/?workspace=collab", "kind": "workspace", "activeWorkspace": "collab" },
+    { "id": "community", "label": "Community", "path": "/?workspace=community", "kind": "workspace", "activeWorkspace": "community" },
+    { "id": "settings", "label": "Settings", "path": "/?workspace=settings", "kind": "workspace", "activeWorkspace": "settings" },
+    { "id": "core-curriculum", "label": "Core Curriculum", "path": "/core-curriculum", "kind": "standalone", "returnDestination": "Learn" },
+    { "id": "ai-routing", "label": "AI Routing", "path": "/ai-routing", "kind": "standalone", "returnDestination": "PlotPickle Settings" }
+  ]
+}

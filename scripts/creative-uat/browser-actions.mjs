@@ -15,13 +15,17 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
     try { project = JSON.parse(localStorage.getItem('plotpickle.project.v1') || 'null'); } catch {}
     const active = document.querySelector('[data-workspace-active="true"]');
     const dashboardVisible = Boolean(document.querySelector('main[aria-label="PlotPickle Studio Dashboard"]'));
+    const activeStoryLabel = document.querySelector('.story-rail button[aria-current="page"] strong');
+    const visibleLocationCount = document.querySelectorAll('.location-card').length;
     return {
       url: location.href,
       activeId: active?.getAttribute('data-workspace-id') || (dashboardVisible ? 'dashboard' : ''),
+      activeStorySection: (activeStoryLabel?.textContent || '').trim(),
       title: project?.metadata?.title || '',
       updatedAt: project?.metadata?.updatedAt || '',
       characterCount: project?.characters?.length || 0,
       locationCount: project?.world?.locations?.length || 0,
+      visibleLocationCount,
       blockTitle: project?.blocks?.[0]?.title || '',
       blockSummary: project?.blocks?.[0]?.summary || '',
       screenplayCount: project?.screenplay?.draftElements?.length || 0,
@@ -77,6 +81,24 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
     }`);
   }
 
+  async function clickExactStorySection(label) {
+    const encoded = JSON.stringify(String(label));
+    return evaluate(`() => {
+      const wanted = ${encoded}.trim().toLowerCase();
+      const buttons = [...document.querySelectorAll('.story-rail button')];
+      const control = buttons.find((node) => {
+        const strong = node.querySelector('strong');
+        const text = (strong?.textContent || '').trim().toLowerCase();
+        if (text !== wanted) return false;
+        const style = getComputedStyle(node);
+        return style.display !== 'none' && style.visibility !== 'hidden' && node.getClientRects().length > 0;
+      });
+      if (!control) return { clicked: false };
+      control.click();
+      return { clicked: true };
+    }`);
+  }
+
   async function clickVisible(label, roles = ["button", "link", "tab"]) {
     const availability = await visibleControlState(label);
     if (availability.found && availability.disabled) {
@@ -96,6 +118,17 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
       try {
         await client.call("browser_click", toolArguments(tool, values));
         await delay(350);
+
+        if (label === "Create the first location" || label === "Add location") {
+          const state = await currentState();
+          if ((state.locationCount || 0) < 1 && (state.visibleLocationCount || 0) < 1) {
+            const retry = await clickExactDomControl(label);
+            if (retry.clicked) {
+              runnerFindings.push(`Retried visible ${label} control through the DOM because Playwright reported success without creating a location.`);
+              await delay(650);
+            }
+          }
+        }
         return true;
       } catch (error) {
         runnerFindings.push(`browser_click failed for ${label}: ${error instanceof Error ? error.message : String(error)}`);
@@ -214,10 +247,20 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
   }
 
   async function gotoStorySection(label) {
-    const clicked = await clickVisible(label);
-    await delay(350);
-    const snap = await snapshot();
-    return clicked && snap.toLowerCase().includes(label.toLowerCase());
+    const wanted = String(label).trim().toLowerCase();
+    let clicked = await clickVisible(label);
+    await delay(450);
+    let state = await currentState();
+    if (clicked && String(state.activeStorySection || "").trim().toLowerCase() === wanted) return true;
+
+    const recovered = await clickExactStorySection(label);
+    if (recovered.clicked) {
+      runnerFindings.push(`Used exact Story Rail control for ${label} because the first visible-control click did not activate that section.`);
+      clicked = true;
+      await delay(500);
+      state = await currentState();
+    }
+    return clicked && String(state.activeStorySection || "").trim().toLowerCase() === wanted;
   }
 
   return { clickVisible, currentState, fillByLabel, fillDraft, gotoStorySection, gotoWorkspace, navigate, record, screenshot, snapshot };

@@ -1,0 +1,228 @@
+/* Issue #546 — the final shared visual system for every active PlotPickle
+   product surface. This file is intentionally last in the root layout so
+   historical module styles cannot reintroduce the retired teal/light UI. */
+
+html[data-plotpickle-theme="dark"] {
+  color-scheme: dark;
+  background: var(--pp-matte);
+}
+
+html[data-plotpickle-theme="dark"] body,
+html[data-plotpickle-theme="dark"] .app-shell,
+html[data-plotpickle-theme="dark"] .workspace,
+html[data-plotpickle-theme="dark"] .editor-page,
+html[data-plotpickle-theme="dark"] .standalone-studio-surface {
+  background-color: var(--pp-matte) !important;
+  color: var(--pp-text) !important;
+  font-family: var(--pp-font-body) !important;
+}
+
+html[data-plotpickle-theme="dark"] .workspace,
+html[data-plotpickle-theme="dark"] .editor-page,
+html[data-plotpickle-theme="dark"] .standalone-studio-surface {
+  background-image: radial-gradient(circle at 50% 0%, rgba(205, 167, 88, 0.045), transparent 32rem) !important;
+}
+
+/* Shared-shell layout recipe. Navigation zones retain their intrinsic width;
+   constrained windows scroll the header instead of stacking click targets. */
+html[data-plotpickle-theme="dark"] .application-shell-header {
+  display: flex !important;
+  min-height: 56px;
+  align-items: center;
+  gap: var(--pp-space-2);
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  background: rgba(7, 7, 7, 0.985) !important;
+  scrollbar-width: thin;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header > * {
+  position: relative;
+  z-index: var(--pp-z-base);
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-primary-navigation {
+  display: flex;
+  flex: 0 0 auto !important;
+  align-items: stretch;
+  overflow: visible !important;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header :is(.main-tabs, .shell-zone-project-actions) {
+  flex: 0 0 auto;
+}
+
+html[data-plotpickle-theme="dark"] .application-shell-header .shell-release-smoke-active {
+  position: absolute;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .workspace,
+  .editor-page,
+  .standalone-studio-surface,
+  [role="dialog"]
+) :is(section, article, aside, details, nav, fieldset, [class*="card"], [class*="panel"], [class*="surface"], [class*="drawer"], [class*="modal"], [class*="empty"]):not([class*="statusDot"]) {
+  border-color: var(--pp-line) !important;
+  border-radius: var(--pp-radius-panel) !important;
+  background-color: var(--pp-surface) !important;
+  background-image: none !important;
+  color: var(--pp-text) !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .workspace,
+  .editor-page,
+  .standalone-studio-surface,
+  [role="dialog"]
+) :is(h1, h2, h3, h4, h5, h6, legend, strong, th) {
+  color: var(--pp-paper) !important;
+  font-family: inherit !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .workspace,
+  .editor-page,
+  .standalone-studio-surface,
+  [role="dialog"]
+) :is(p, small, dd, td, li, label) {
+  color: var(--pp-muted) !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .workspace,
+  .editor-page,
+  .standalone-studio-surface,
+  [role="dialog"]
+) :is(.eyebrow, [class*="eyebrow"], [class*="kicker"], [class*="label"], dt) {
+  color: var(--pp-gold) !important;
+  letter-spacing: 0.075em;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .workspace,
+  .editor-page,
+  .standalone-studio-surface,
+  [role="dialog"]
+) :is(input, textarea, select, [contenteditable="true"]) {
+  border: 1px solid var(--pp-line-strong) !important;
+  border-radius: var(--pp-radius-panel) !important;
+  background: #080808 !important;
+  color: var(--pp-text) !important;
+  caret-color: var(--pp-gold-bright) !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .workspace,
+  .editor-page,
+  .standalone-studio-surface,
+  [role="dialog"]
+) :is(input, textarea)::placeholder {
+  color: var(--pp-dim) !important;
+  opacity: 1;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .workspace,
+  .editor-page,
+  .standalone-studio-surface,
+  [role="dialog"]
+) :is(button, a, [role="button"], summary) {
+  border-color: var(--pp-line-strong) !important;
+  border-radius: var(--pp-radius-panel) !important;
+  color: var(--pp-gold-bright) !important;
+  box-shadow: none !important;
+  font-family: inherit !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .workspace,
+  .editor-page,
+  .standalone-studio-surface,
+  [role="dialog"]
+) :is(button, [role="button"], summary):not([class*="primary"]):not([aria-pressed="true"]):not([aria-selected="true"]) {
+  background-color: var(--pp-surface-raised) !important;
+  background-image: none !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .workspace,
+  .editor-page,
+  .standalone-studio-surface,
+  [role="dialog"]
+) :is(button, a, [role="button"], summary):hover {
+  border-color: var(--pp-gold) !important;
+  background-color: var(--pp-surface-hover) !important;
+  color: var(--pp-paper) !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .workspace,
+  .editor-page,
+  .standalone-studio-surface,
+  [role="dialog"]
+) :is(.primary-button, [class*="primary"], [aria-pressed="true"], [aria-selected="true"]) {
+  border-color: var(--pp-gold) !important;
+  background-color: var(--pp-gold) !important;
+  background-image: none !important;
+  color: #090806 !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .workspace,
+  .editor-page,
+  .standalone-studio-surface,
+  [role="dialog"]
+) :is(hr, table, tr, td, th) {
+  border-color: var(--pp-line) !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .workspace,
+  .editor-page,
+  .standalone-studio-surface,
+  [role="dialog"]
+) :is(progress, meter) {
+  accent-color: var(--pp-gold);
+}
+
+/* Red/yellow/green remain reserved for truthful system state. */
+html[data-plotpickle-theme="dark"] :is([data-status="green"], .status-green, .status-ready, .status-connected) {
+  --status-colour: var(--pp-success);
+}
+
+html[data-plotpickle-theme="dark"] :is([data-status="yellow"], .status-yellow, .status-warning, .status-attention) {
+  --status-colour: var(--pp-warning);
+}
+
+html[data-plotpickle-theme="dark"] :is([data-status="red"], .status-red, .status-error, .status-unavailable) {
+  --status-colour: var(--pp-danger);
+}
+
+html[data-plotpickle-theme="dark"] :is(.status-dot, [class*="statusDot"]) {
+  background-color: var(--status-colour, var(--pp-dim));
+}
+
+html[data-plotpickle-theme="dark"] :is(img, video, canvas, svg) {
+  color-scheme: normal;
+}
+
+@media (max-width: 760px) {
+  html[data-plotpickle-theme="dark"] :is(.workspace, .editor-page, .standalone-studio-surface) {
+    background-image: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-plotpickle-theme="dark"] *,
+  html[data-plotpickle-theme="dark"] *::before,
+  html[data-plotpickle-theme="dark"] *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

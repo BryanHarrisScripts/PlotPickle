@@ -1,0 +1,133 @@
+/* PlotPickle global design tokens
+   Screens consume semantic variables from this file and do not define their
+   own product palettes, typography systems, radii, shadows or motion rules. */
+
+:root {
+  /* Colour: canvas and surfaces */
+  --pp-matte: #070707;
+  --pp-surface: #0b0b0a;
+  --pp-surface-raised: #10100e;
+  --pp-surface-hover: #15130e;
+
+  /* Colour: type and emphasis */
+  --pp-paper: #eee8dc;
+  --pp-text: #e9e0d0;
+  --pp-muted: #aaa296;
+  --pp-dim: #777168;
+  --pp-gold: #cda758;
+  --pp-gold-bright: #e1ba64;
+
+  /* Colour: boundaries and focus */
+  --pp-line: rgba(205, 167, 88, 0.22);
+  --pp-line-strong: rgba(205, 167, 88, 0.48);
+  --pp-focus: rgba(205, 167, 88, 0.32);
+
+  /* Colour: truthful status only */
+  --pp-success: #4f8d68;
+  --pp-warning: #cda758;
+  --pp-danger: #a9574f;
+
+  /* Typography */
+  --pp-font-display: var(--font-geist-mono), "Courier New", "Lucida Console", Consolas, monospace;
+  --pp-font-body: var(--font-geist-mono), "Courier New", "Lucida Console", Consolas, monospace;
+  --pp-font-code: var(--font-geist-mono), "Courier New", Consolas, monospace;
+  --pp-text-xs: 0.6875rem;
+  --pp-text-sm: 0.8125rem;
+  --pp-text-md: 0.9375rem;
+  --pp-text-lg: 1.125rem;
+  --pp-leading-tight: 1.15;
+  --pp-leading-body: 1.6;
+  --pp-tracking-label: 0.075em;
+
+  /* Spacing: four-pixel base */
+  --pp-space-1: 0.25rem;
+  --pp-space-2: 0.5rem;
+  --pp-space-3: 0.75rem;
+  --pp-space-4: 1rem;
+  --pp-space-5: 1.25rem;
+  --pp-space-6: 1.5rem;
+  --pp-space-8: 2rem;
+  --pp-space-10: 2.5rem;
+  --pp-space-12: 3rem;
+
+  /* Component sizing and readable layout */
+  --pp-control-height-sm: 2rem;
+  --pp-control-height-md: 2.5rem;
+  --pp-control-height-lg: 3rem;
+  --pp-touch-target: 2.75rem;
+  --pp-icon-sm: 1rem;
+  --pp-icon-md: 1.25rem;
+  --pp-icon-lg: 1.5rem;
+  --pp-width-reading: 46rem;
+  --pp-width-editor: 72rem;
+  --pp-width-board: 96rem;
+  --pp-width-inspector: 22rem;
+
+  /* Layering */
+  --pp-z-base: 0;
+  --pp-z-sticky: 20;
+  --pp-z-shell: 40;
+  --pp-z-drawer: 60;
+  --pp-z-dialog: 80;
+  --pp-z-notification: 100;
+
+  /* Shape, elevation and motion */
+  --pp-radius-control: 2px;
+  --pp-radius-panel: 2px;
+  --pp-shadow: none;
+  --pp-motion-fast: 120ms;
+  --pp-motion-standard: 180ms;
+
+  /* Temporary compatibility aliases for historical class rules. All aliases
+     resolve to the approved system, so they cannot reintroduce an old theme. */
+  --ink: var(--pp-text);
+  --ink-soft: var(--pp-muted);
+  --paper: var(--pp-matte);
+  --panel: var(--pp-surface);
+  --line: var(--pp-line);
+  --line-strong: var(--pp-line-strong);
+  --pickle: var(--pp-gold);
+  --pickle-dark: var(--pp-gold-bright);
+  --pickle-pale: var(--pp-surface-raised);
+  --ice-blue: var(--pp-surface-raised);
+  --ice-green: var(--pp-surface-raised);
+  --mustard: var(--pp-gold);
+  --rose: var(--pp-gold);
+  --blue: var(--pp-gold);
+  --violet: var(--pp-gold);
+  --shadow: var(--pp-shadow);
+  --radius-sm: var(--pp-radius-control);
+  --radius: var(--pp-radius-panel);
+  --radius-lg: var(--pp-radius-panel);
+  --font-sans: var(--pp-font-body);
+  --font-mono: var(--pp-font-code);
+}
+
+html[data-plotpickle-contrast="high"] {
+  --pp-text: #fffaf0;
+  --pp-muted: #d8d0c2;
+  --pp-dim: #b8afa1;
+  --pp-line: rgba(225, 186, 100, 0.48);
+  --pp-line-strong: rgba(225, 186, 100, 0.78);
+  --pp-focus: rgba(225, 186, 100, 0.62);
+}
+
+html[data-plotpickle-type="large"] {
+  font-size: 112.5%;
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --pp-text: #fffaf0;
+    --pp-muted: #d8d0c2;
+    --pp-line: rgba(225, 186, 100, 0.48);
+    --pp-line-strong: rgba(225, 186, 100, 0.78);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --pp-motion-fast: 0.01ms;
+    --pp-motion-standard: 0.01ms;
+  }
+}

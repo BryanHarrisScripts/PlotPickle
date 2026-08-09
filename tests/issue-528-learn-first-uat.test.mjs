@@ -6,18 +6,27 @@ const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
 test("issue #528 locks the reviewed Learn-first matte-black antique-gold wireframe", async () => {
-  const [layout, css, wireframe] = await Promise.all([
+  const [layout, css, renderedCss, router, wireframe] = await Promise.all([
     source("app/layout.tsx"),
     source("app/learn-first-phase-528.css"),
+    source("app/learn-first-phase-528-rendered.css"),
+    source("app/learn-entry-router.tsx"),
     source("docs/wireframes/issue-528-learn-first.md"),
   ]);
 
   assert.match(layout, /import "\.\/learn-first-phase-528\.css";/);
+  assert.match(layout, /import "\.\/learn-first-phase-528-rendered\.css";/);
   assert.ok(layout.indexOf("learning-studio-phase-b-compat.css") < layout.indexOf("learn-first-phase-528.css"), "Issue #528 treatment must load after legacy Learn compatibility CSS");
-  for (const contract of ["#070706", "#cda758", "#e1ba64", "#8c6f35", "Courier New", "LEARN / STORY CRAFT", "core-curriculum-module__"]) {
-    assert.ok(css.includes(contract), `Learn-first styling is missing: ${contract}`);
+  assert.ok(layout.indexOf("feedback-studio.css") < layout.indexOf("learn-first-phase-528-rendered.css"), "Rendered Learn correction must load last");
+  for (const contract of ["#070706", "#cda758", "#e1ba64", "#8c6f35", "Courier New", "LEARN / STORY CRAFT"]) {
+    assert.ok(`${css}\n${renderedCss}`.includes(contract), `Learn-first styling is missing: ${contract}`);
   }
-  assert.doesNotMatch(css, /#2f7d7a|#286f73|#3c8385|purple|#7c3aed/i);
+  assert.match(renderedCss, /data-plotpickle-learn-screen/);
+  assert.match(renderedCss, /data-plotpickle-core-learn/);
+  assert.match(renderedCss, /nav\[aria-label="Learning Studio views"\]/);
+  assert.match(router, /plotpickleLearnScreen/);
+  assert.match(router, /plotpickleCoreLearn/);
+  assert.doesNotMatch(renderedCss, /#2f7d7a|#286f73|#3c8385|purple|#7c3aed/i);
   for (const phrase of ["matte black", "muted antique-gold", "81 modules", "Current story position", "Core Curriculum", "UAT acceptance path"]) {
     assert.match(wireframe, new RegExp(phrase, "i"));
   }

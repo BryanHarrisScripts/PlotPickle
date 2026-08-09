@@ -83,7 +83,7 @@ async function renderedSnapshot(client) {
     }
     const anchorBox = rect(anchor);
     const rgb = (value) => {
-      const match = String(value || '').match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+      const match = String(value || '').match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/i);
       return match ? match.slice(1, 4).map(Number) : null;
     };
     const hueAndSaturation = ([red, green, blue]) => {

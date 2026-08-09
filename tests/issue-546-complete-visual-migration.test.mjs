@@ -72,6 +72,11 @@ test("#546 turns a visible retired colour into a blocking continuity error", () 
   assert.equal(result.findings.some((finding) => finding.id === "legacy-palette" && finding.severity === "error"), true);
 });
 
+test("#546 preserves palette-regex escapes inside the serialized browser audit", async () => {
+  const agent = await read("scripts/ui-continuity-agent.mjs");
+  assert.match(agent, /rgba\?\\\\\(\(\\\\d\+\),\\\\s\*/);
+});
+
 test("#546 audits every standalone route as well as the canonical workspaces", async () => {
   const registry = JSON.parse(await read("config/ui-continuity-agent-registry.json"));
   const registered = new Set(registry.screens.map((screen) => screen.path.split("?")[0]));

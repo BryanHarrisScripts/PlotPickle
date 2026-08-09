@@ -7,7 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { createCreativeBrowser } from "./creative-uat/browser-actions.mjs";
 import { creativeWriterFixture } from "./creative-uat/fixture.mjs";
-import { delay, McpClient, slug } from "./creative-uat/mcp-runtime.mjs";
+import { delay, extractPageState, McpClient, resultText, slug } from "./creative-uat/mcp-runtime.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
@@ -50,6 +50,38 @@ async function main() {
     tools = await client.tools();
     const browser = createCreativeBrowser(client, tools, { baseUrl, runnerFindings, evidence });
     const { clickVisible, currentState, fillByLabel, fillDraft, gotoStorySection, gotoWorkspace, navigate, record, screenshot, snapshot } = browser;
+
+    const learningState = async () => extractPageState(resultText(await client.call("browser_evaluate", { function: `() => {
+      let project = null;
+      try { project = JSON.parse(localStorage.getItem('plotpickle.project.v1') || 'null'); } catch {}
+      const projectId = project?.id || '';
+      const readJson = (key, fallback) => {
+        try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; }
+      };
+      const completed = projectId ? readJson('plotpickle-learning-progress:' + projectId, []) : [];
+      const workflowChoice = projectId ? (localStorage.getItem('plotpickle-workflow-choice:' + projectId) || '') : '';
+      const coreRoute = projectId ? (localStorage.getItem('plotpickle-core-route:' + projectId) || '') : '';
+      const coreReading = readJson('plotpickle-core-reading.v1', []);
+      const coreEvidenceCount = (project?.review?.threads || []).filter((thread) => (thread?.comments?.[0]?.body || '').startsWith('PLOTPICKLE_CORE_LEARNING_RECORD\\n')).length;
+      return {
+        pathName: location.pathname,
+        search: location.search,
+        projectId,
+        title: project?.metadata?.title || '',
+        characterCount: project?.characters?.length || 0,
+        locationCount: project?.world?.locations?.length || 0,
+        blockTitle: project?.blocks?.[0]?.title || '',
+        screenplayCount: project?.screenplay?.draftElements?.length || 0,
+        completed,
+        completedCount: Array.isArray(completed) ? completed.length : 0,
+        workflowChoice,
+        coreRoute,
+        coreReading,
+        coreReadingCount: Array.isArray(coreReading) ? coreReading.length : 0,
+        coreEvidenceCount,
+        bodyText: (document.body.innerText || '').slice(0, 16000)
+      };
+    }` })));
 
     await navigate(baseUrl);
     await delay(400);
@@ -123,14 +155,87 @@ async function main() {
     ok = state.title === fixture.title && state.characterCount >= 1 && state.locationCount >= 1 && state.blockTitle === fixture.blockTitle;
     await record(8, "Persistence Check", ok ? "PASS" : "FAIL", ok ? "Project, character, location and Block 1 survived a full browser reload." : "Creative project data did not survive reload consistently.");
 
-    let nav = await gotoWorkspace("Storyboard", "visuals", "storyboard");
+    let nav = await gotoWorkspace("Learn", "learn", "learn");
     let snap = await snapshot();
     let status = nav.ok ? (nav.method === "direct recovery navigation" ? "WARN" : "PASS") : "FAIL";
-    let note = nav.method === "direct recovery navigation" ? "Visible Storyboard navigation needed recovery. " : "";
+    let note = nav.method === "direct recovery navigation" ? "Visible Learn navigation needed recovery. " : "";
+    if (nav.ok && /complete PlotPickle screenwriting course/i.test(snap) && /modules complete/i.test(snap)) note += "Learn opened as a full creative workspace with story position and course progress visible.";
+    else if (nav.ok) { status = "FAIL"; note += "Learn opened without the expected course, story-position and progress surfaces."; }
+    await record(9, "Learn Entry", status, note);
+
+    await navigate(new URL("/?workspace=learn&view=workflow", baseUrl).toString());
+    await delay(700);
+    const choseRoute = await clickVisible("Choose this path");
+    await delay(500);
+    let learnState = await learningState();
+    ok = choseRoute && learnState.workflowChoice === "local-only" && learnState.title === fixture.title;
+    await record(10, "Learning Route", ok ? "PASS" : "FAIL", ok ? "A local-only learning/workflow route was chosen without connecting an account, provider or paid service." : "The visible learning route did not persist for the active project.");
+
+    await navigate(new URL("/?workspace=learn&view=library&module=pitch", baseUrl).toString());
+    await delay(700);
+    snap = await snapshot();
+    const openedLesson = /The Pitch/i.test(snap) && /Mark module complete/i.test(snap);
+    const completedLesson = openedLesson && await clickVisible("Mark module complete");
+    await delay(450);
+    learnState = await learningState();
+    ok = completedLesson && Array.isArray(learnState.completed) && learnState.completed.includes("pitch");
+    await record(11, "Learn Module", ok ? "PASS" : "FAIL", ok ? "The Pitch opened in the 81-module learning engine and was marked complete for this project." : "A representative module could not be opened and completed through the Learn workspace.");
+
+    await navigate(new URL("/?workspace=learn&view=library&module=pitch", baseUrl).toString());
+    await delay(750);
+    learnState = await learningState();
+    snap = await snapshot();
+    ok = Array.isArray(learnState.completed) && learnState.completed.includes("pitch") && /Completed/i.test(snap) && learnState.title === fixture.title;
+    await record(12, "Learning Progress Persistence", ok ? "PASS" : "FAIL", ok ? `Project-specific Learn progress survived reload (${learnState.completedCount} module${learnState.completedCount === 1 ? "" : "s"} complete).` : "Learning completion or active-project continuity was lost after reload.");
+
+    const appliedLesson = await clickVisible("Open Pitch & Review");
+    await delay(700);
+    learnState = await learningState();
+    ok = appliedLesson && learnState.pathName === "/pitch-review" && learnState.title === fixture.title && learnState.characterCount >= 1 && learnState.locationCount >= 1 && learnState.blockTitle === fixture.blockTitle;
+    await record(13, "Apply Lesson to Story", ok ? "PASS" : "FAIL", ok ? "The lesson routed into the same active story context without creating a parallel project or changing canon automatically." : "The learning-to-workspace handoff lost the active story context.");
+
+    await navigate(new URL("/core-curriculum", baseUrl).toString());
+    await delay(750);
+    const choseCoreRoute = await clickVisible("I have an idea");
+    await delay(350);
+    learnState = await learningState();
+    snap = await snapshot();
+    ok = /Core Curriculum/i.test(snap) && learnState.title === fixture.title && (!choseCoreRoute || learnState.coreRoute === "idea");
+    await record(14, "Core Curriculum", ok ? "PASS" : "FAIL", ok ? "Core Curriculum opened against the same local project and retained an advisory learning route." : "Core Curriculum did not retain the active project or route context.");
+
+    const exerciseFilled = (await fillByLabel("Exercise note or decision", "The pitch needs a clear protagonist, pressure and visual promise for this story moment.")).ok;
+    const applicationFilled = (await fillByLabel("Applied-to-project evidence", `Act 1 Block 1: ${fixture.blockTitle} carries the current story promise and visual direction.`)).ok;
+    const markedRead = await clickVisible("Mark Read");
+    const savedExercise = exerciseFilled && await clickVisible("Save exercise attempted");
+    await delay(450);
+    const savedApplication = applicationFilled && await clickVisible("Mark Applied to project");
+    await delay(650);
+    learnState = await learningState();
+    ok = markedRead && savedExercise && savedApplication && learnState.coreReading.includes("pitch") && learnState.coreEvidenceCount >= 1 && learnState.title === fixture.title;
+    await record(15, "Core Learning Evidence", ok ? "PASS" : "FAIL", ok ? "Read status plus private exercise/application evidence were saved to the active project without changing story canon." : "Core Curriculum learning evidence did not persist correctly to the active project.");
+
+    let returnedToLearn = await clickVisible("Complete Learning Library");
+    await delay(700);
+    state = await currentState();
+    if (!returnedToLearn || state.activeId !== "learn") {
+      await navigate(new URL("/?workspace=learn&view=library&module=pitch", baseUrl).toString());
+      await delay(650);
+      state = await currentState();
+      returnedToLearn = state.activeId === "learn";
+      if (returnedToLearn) runnerFindings.push("Core Curriculum return to Learn needed direct local recovery navigation.");
+    }
+    learnState = await learningState();
+    ok = returnedToLearn && state.activeId === "learn" && learnState.completed.includes("pitch") && learnState.coreEvidenceCount >= 1 && learnState.title === fixture.title && learnState.characterCount >= 1 && learnState.locationCount >= 1;
+    await record(16, "Return to Learn", ok ? "PASS" : "FAIL", ok ? "Learn returned with project-specific completion, Core evidence and story continuity intact." : "Returning from Core Curriculum lost learning or story continuity.");
+
+    nav = await gotoWorkspace("Storyboard", "visuals", "storyboard");
+    snap = await snapshot();
+    status = nav.ok ? (nav.method === "direct recovery navigation" ? "WARN" : "PASS") : "FAIL";
+    note = nav.method === "direct recovery navigation" ? "Visible Storyboard navigation needed recovery. " : "";
     const decisions = /Decide what happens to this visual|\bKeep\b/i.test(snap) && /\bChange\b/i.test(snap) && /\bCompare\b/i.test(snap);
     if (nav.ok && !decisions) { status = "WARN"; note += "Keep / Change / Compare was not discoverable for this blank-project story moment."; }
     else if (nav.ok) { await clickVisible("Change"); await clickVisible("Compare"); note += "Creative-direction controls were available without provider selection."; }
-    await record(9, "Storyboard Direction", status, note);
+    await record(17, "Storyboard Direction", status, note);
 
     nav = await gotoWorkspace("Write", "script", "write");
     status = nav.ok ? (nav.method === "direct recovery navigation" ? "WARN" : "PASS") : "FAIL";
@@ -145,7 +250,7 @@ async function main() {
       if (!heading || !action || state.screenplayCount < 2) { status = "FAIL"; note += "Representative screenplay material could not be created."; }
       else note += "Scene heading and action were added to the same project.";
     }
-    await record(10, "Write Screenplay", status, note);
+    await record(18, "Write Screenplay", status, note);
 
     nav = await gotoWorkspace("Edit", "edit", "edit", "/edit");
     status = nav.ok ? (nav.method === "direct recovery navigation" ? "WARN" : "PASS") : "FAIL";
@@ -156,7 +261,7 @@ async function main() {
       if (!revisionChoices.length) { status = "WARN"; note += "No candidate revision controls were available without first creating a suggestion; canon remained unchanged."; }
       else note += `Revision choices visible: ${revisionChoices.join(", ")}.`;
     }
-    await record(11, "Edit and Revision", status, note);
+    await record(19, "Edit and Revision", status, note);
 
     nav = await gotoWorkspace("Graphic Novel", "pitch", "pitch");
     status = nav.ok ? (nav.method === "direct recovery navigation" ? "WARN" : "PASS") : "FAIL";
@@ -168,10 +273,10 @@ async function main() {
       if (!snap.includes("Approve")) { status = "WARN"; note += "No local visual candidate existed to approve without generation; no paid or provider-dependent request was triggered."; }
       else note += "Candidate review and explicit approval controls were available; no silent canon promotion was observed.";
     }
-    await record(12, "Graphic Novel", status, note);
+    await record(20, "Graphic Novel", status, note);
 
     nav = await gotoWorkspace("Build", "build", "build");
-    await record(13, "Build", nav.ok ? (nav.method === "direct recovery navigation" ? "WARN" : "PASS") : "FAIL", nav.ok ? "Story context remained available for downstream assembly." : "Build could not be reached with the current story context.");
+    await record(21, "Build", nav.ok ? (nav.method === "direct recovery navigation" ? "WARN" : "PASS") : "FAIL", nav.ok ? "Story context remained available for downstream assembly." : "Build could not be reached with the current story context.");
 
     nav = await gotoWorkspace("Feedback", "feedback", "feedback");
     status = nav.ok ? (nav.method === "direct recovery navigation" ? "WARN" : "PASS") : "FAIL";
@@ -185,7 +290,7 @@ async function main() {
       if (!title || !body || !proposal || !saved) { status = "FAIL"; note += "Anchored feedback could not be created."; }
       else { await clickVisible("Considered"); note += "Anchored feedback was created and classified without mutating source material."; }
     }
-    await record(14, "Feedback", status, note);
+    await record(22, "Feedback", status, note);
 
     let refineStatus = "FAIL";
     let refineNote = "Feedback could not continue into Refine.";
@@ -199,12 +304,13 @@ async function main() {
         if (nav.ok) { refineStatus = "WARN"; refineNote = "Continue to Refine needed local recovery navigation."; }
       }
     }
-    await record(15, "Refine", refineStatus, refineNote);
+    await record(23, "Refine", refineStatus, refineNote);
 
     nav = await gotoWorkspace("Graphic Novel", "pitch", "pitch");
     state = await currentState();
-    ok = nav.ok && state.title === fixture.title && state.characterCount >= 1 && state.locationCount >= 1 && state.screenplayCount >= 2;
-    await record(16, "Return to Graphic Novel", ok ? (nav.method === "direct recovery navigation" ? "WARN" : "PASS") : "FAIL", ok ? "The story returned to Graphic Novel with project, character/world and screenplay continuity after Feedback and Refine." : "The creative loop returned with missing or inconsistent project context.");
+    learnState = await learningState();
+    ok = nav.ok && state.title === fixture.title && state.characterCount >= 1 && state.locationCount >= 1 && state.screenplayCount >= 2 && learnState.completed.includes("pitch") && learnState.coreEvidenceCount >= 1;
+    await record(24, "Return to Graphic Novel", ok ? (nav.method === "direct recovery navigation" ? "WARN" : "PASS") : "FAIL", ok ? "The story returned to Graphic Novel with project, learning, character/world and screenplay continuity after Feedback and Refine." : "The creative loop returned with missing or inconsistent project or learning context.");
   } catch (error) {
     deterministicError = error instanceof Error ? error : new Error(String(error));
   } finally {
@@ -218,7 +324,7 @@ async function main() {
   const warnings = evidence.filter((item) => item.status === "WARN");
   const overall = deterministicError || failures.length ? "FAIL" : warnings.length ? "WARN" : "PASS";
   const lines = [
-    "# PlotPickle Creative Writer Acceptance Test", "", `Overall: ${overall}`, "Scope: creative", `Target: ${baseUrl}`,
+    "# PlotPickle Creative Writer Acceptance Test", "", `Overall: ${overall}`, "Scope: creative + Learn", `Target: ${baseUrl}`,
     `Disposable project: ${fixture.title}`, "Persona: first-time visual creative writer/director", "Cloud AI required: no", "Codex required: no", "",
     "## Creative journey", "", "| Stage | Result | Project / story evidence | Screenshot |", "| --- | --- | --- | --- |",
   ];
@@ -227,9 +333,13 @@ async function main() {
     const context = [state.title, state.activeId, state.blockTitle, `characters ${state.characterCount ?? 0}`, `locations ${state.locationCount ?? 0}`, `script ${state.screenplayCount ?? 0}`].filter(Boolean).join(" · ");
     lines.push(`| ${item.label} | ${item.status} | ${String(context).replaceAll("|", "\\|")} | creative-writer/${String(item.stage).padStart(2, "0")}-${slug(item.label)}.png |`);
   }
+  lines.push("", "## Learn journey findings", "");
+  const learningFindings = evidence.filter((item) => item.stage >= 9 && item.stage <= 16);
+  if (learningFindings.length && learningFindings.every((item) => item.status === "PASS")) lines.push("- PASS: Learn, project-specific completion, Core Curriculum evidence and the return to the same story all completed without recovery.");
+  else for (const item of learningFindings.filter((item) => item.status !== "PASS")) lines.push(`- ${item.status} ${item.label}: ${item.note || "No additional note."}`);
   lines.push("", "## Product Flow findings", "");
   const productFindings = evidence.filter((item) => item.status !== "PASS" || item.note);
-  if (!productFindings.length) lines.push("- PASS: The complete visual-writing loop was understandable and completed without recovery.");
+  if (!productFindings.length) lines.push("- PASS: The complete visual-writing and learning loop was understandable and completed without recovery.");
   else for (const item of productFindings) lines.push(`- ${item.status} ${item.label}: ${item.note || "No additional note."}`);
   lines.push("", "## Runner / Infrastructure findings", "");
   if (deterministicError) lines.push(`- FAIL: ${deterministicError.message}`);
@@ -237,8 +347,8 @@ async function main() {
   if (!deterministicError && !runnerFindings.length) lines.push("- PASS: Playwright MCP supported all required visible actions and evidence capture directly.");
   lines.push(
     "", "## Creative-direction contract", "",
-    "The run follows Concept -> Explore -> Compare -> Direct -> Refine -> Approve -> Reuse where the current local product exposes those decisions. Missing candidate-generation material is reported as a product WARN rather than silently invoking an AI provider or paid request.", "",
-    "Character identity and Location/World direction are treated as writing, not Settings. Provider/model/billing configuration is never required to complete the deterministic baseline.", "",
+    "The run follows Concept -> Learn -> Explore -> Compare -> Direct -> Refine -> Approve -> Reuse where the current local product exposes those decisions. Learning remains optional and project-connected; missing candidate-generation material is reported as a product WARN rather than silently invoking an AI provider or paid request.", "",
+    "Character identity and Location/World direction are treated as writing, not Settings. Provider/model/billing configuration is never required to complete the deterministic baseline or the Learn journey.", "",
     "## Safety boundary", "",
     "This Creative Writer UAT runs in Playwright MCP's isolated local browser context against 127.0.0.1 only. It creates a disposable browser-local project, performs no external writes, uses no real credentials, triggers no paid generation, and never edits repository files. Existing user projects outside the isolated UAT browser context are not modified.", "",
   );

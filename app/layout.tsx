@@ -32,6 +32,7 @@ import "./appearance-runtime.css";
 import "./studio-shell-phase-a.css";
 import "./learning-studio-phase-b.css";
 import "./learning-studio-phase-b-compat.css";
+import "./learn-first-phase-528.css";
 import "./plan-studio-phase-c.css";
 import "./plan-studio-editors.css";
 import "./plan-studio-editor-polish.css";
@@ -51,6 +52,8 @@ import "./graphic-novel-studio.css";
 import "./graphic-novel-build-handoff.css";
 import "./build-assembly-studio.css";
 import "./feedback-studio.css";
+import "./learn-first-phase-528-rendered.css";
+import "./learn-first-phase-528-core-polish.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",

@@ -1,0 +1,293 @@
+/* #528 rendered visual correction.
+   Stable DOM hooks are supplied by LearnEntryRouter because hashed CSS-module
+   names are not a reliable global styling contract. */
+
+html[data-plotpickle-learn-screen="true"] body,
+html[data-plotpickle-core-learn="true"] body {
+  background: #070706 !important;
+  color: #eee8dc !important;
+}
+
+/* The ownership shelf duplicates the reviewed Learn wireframe and visually
+   separates Learn from the rest of the Studio. Keep ownership in code, but
+   let the learning workspace itself be the primary surface. */
+html[data-plotpickle-learn-screen="true"] section[aria-label^="Learn owns instruction"] {
+  display: none !important;
+}
+
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) {
+  box-sizing: border-box !important;
+  min-height: calc(100vh - 90px) !important;
+  padding: 0 38px 78px 304px !important;
+  background: #070706 !important;
+  color: #eee8dc !important;
+  font-family: "Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace !important;
+}
+
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) * {
+  box-sizing: border-box;
+}
+
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) :is(h1,h2,h3,h4,strong,b,button,a,input,select,textarea) {
+  font-family: "Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace !important;
+}
+
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) > header {
+  display: grid !important;
+  grid-template-columns: minmax(0,1.48fr) minmax(250px,.42fr) !important;
+  gap: 18px !important;
+  max-width: none !important;
+  min-height: 238px !important;
+  margin: 0 !important;
+  padding: 38px 0 24px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(205,167,88,.2) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) > header > div:first-child {
+  display: flex !important;
+  min-height: 210px !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  padding: 30px 34px !important;
+  border: 1px solid rgba(205,167,88,.28) !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(90deg,rgba(5,5,5,.98),rgba(8,7,6,.76)),
+    radial-gradient(circle at 82% 18%,rgba(205,167,88,.11),transparent 25rem),
+    #090908 !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) > header > div:last-child {
+  padding: 25px !important;
+  border: 1px solid rgba(205,167,88,.2) !important;
+  border-radius: 0 !important;
+  background: #0c0c0b !important;
+  color: #d9d1c3 !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) > header h1 {
+  max-width: 920px !important;
+  margin: 9px 0 14px !important;
+  color: #fff7ea !important;
+  font-size: clamp(38px,4.7vw,64px) !important;
+  font-weight: 500 !important;
+  letter-spacing: -.045em !important;
+  line-height: 1 !important;
+}
+
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) :is(p,small,label,li,dd) {
+  color: #90897e !important;
+  line-height: 1.65 !important;
+}
+
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) :is(span,dt) {
+  color: #cda758 !important;
+}
+
+html[data-plotpickle-learn-screen="true"] nav[aria-label="Learning Studio views"] {
+  position: fixed !important;
+  z-index: 30 !important;
+  top: 136px !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  display: flex !important;
+  width: 274px !important;
+  max-width: none !important;
+  flex-direction: column !important;
+  gap: 1px !important;
+  margin: 0 !important;
+  padding: 30px 18px 44px !important;
+  overflow-y: auto !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(205,167,88,.19) !important;
+  border-radius: 0 !important;
+  background: #090908 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+html[data-plotpickle-learn-screen="true"] nav[aria-label="Learning Studio views"]::before {
+  display: block !important;
+  margin: 0 10px 17px !important;
+  color: #cda758 !important;
+  content: "LEARN / STORY CRAFT" !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .18em !important;
+}
+
+html[data-plotpickle-learn-screen="true"] nav[aria-label="Learning Studio views"] button {
+  min-height: 37px !important;
+  padding: 10px 11px !important;
+  border: 0 !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #898278 !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  text-align: left !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-learn-screen="true"] nav[aria-label="Learning Studio views"] button:hover,
+html[data-plotpickle-learn-screen="true"] nav[aria-label="Learning Studio views"] button[class*="active"] {
+  border-left-color: #cda758 !important;
+  background: rgba(205,167,88,.06) !important;
+  color: #e1ba64 !important;
+}
+
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) > section {
+  max-width: none !important;
+  margin: 16px 0 0 !important;
+  border: 1px solid rgba(205,167,88,.17) !important;
+  border-radius: 0 !important;
+  background: #0b0b0a !important;
+  color: #dcd4c7 !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) > section:has(> main),
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) > section:has(article) {
+  margin-top: 30px !important;
+  padding: 22px !important;
+  background: transparent !important;
+}
+
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) article,
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) section section,
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) aside > section {
+  border: 1px solid rgba(255,255,255,.09) !important;
+  border-radius: 0 !important;
+  background: #10100f !important;
+  color: #d8d0c3 !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) :is(h2,h3,h4) {
+  color: #f2eadc !important;
+  font-weight: 500 !important;
+}
+
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) :is(button,a) {
+  border-color: rgba(205,167,88,.36) !important;
+  border-radius: 0 !important;
+  background: rgba(205,167,88,.055) !important;
+  color: #e1ba64 !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) :is(input,select,textarea) {
+  border: 1px solid rgba(205,167,88,.25) !important;
+  border-radius: 0 !important;
+  background: #080807 !important;
+  color: #e7dfd1 !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-learn-screen="true"] [aria-label="Learning progress"] {
+  background: #0b0b0a !important;
+}
+html[data-plotpickle-learn-screen="true"] [aria-label="Learning progress"] i {
+  background: #cda758 !important;
+}
+
+/* Core Curriculum — same visual system on its dedicated route. */
+html[data-plotpickle-core-learn="true"] main {
+  box-sizing: border-box !important;
+  min-height: 100vh !important;
+  max-width: none !important;
+  padding: 34px clamp(22px,4vw,62px) 82px !important;
+  background: #070706 !important;
+  color: #eee8dc !important;
+  font-family: "Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace !important;
+}
+
+html[data-plotpickle-core-learn="true"] main * { box-sizing: border-box; }
+html[data-plotpickle-core-learn="true"] main :is(h1,h2,h3,h4,strong,b,button,a,input,select,textarea) {
+  font-family: "Courier New", "Lucida Console", "Liberation Mono", Consolas, monospace !important;
+}
+
+html[data-plotpickle-core-learn="true"] main > header {
+  max-width: 1440px !important;
+  margin: 0 auto !important;
+  padding: 32px !important;
+  border: 1px solid rgba(205,167,88,.27) !important;
+  border-radius: 0 !important;
+  background: linear-gradient(100deg,#090908,#100f0c) !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-core-learn="true"] main h1 {
+  color: #fff7e9 !important;
+  font-size: clamp(38px,5vw,66px) !important;
+  font-weight: 500 !important;
+  letter-spacing: -.045em !important;
+}
+
+html[data-plotpickle-core-learn="true"] main > :is(section,div,footer),
+html[data-plotpickle-core-learn="true"] main article {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-core-learn="true"] main > section,
+html[data-plotpickle-core-learn="true"] main > div,
+html[data-plotpickle-core-learn="true"] main article {
+  border-color: rgba(205,167,88,.17) !important;
+  background: #0b0b0a !important;
+  color: #dcd4c7 !important;
+}
+
+html[data-plotpickle-core-learn="true"] main article {
+  border: 1px solid rgba(255,255,255,.09) !important;
+  background: #10100f !important;
+}
+
+html[data-plotpickle-core-learn="true"] main :is(h2,h3,h4) {
+  color: #f2eadc !important;
+  font-weight: 500 !important;
+}
+html[data-plotpickle-core-learn="true"] main :is(p,small,li,span,label) {
+  color: #918a7f !important;
+  line-height: 1.65 !important;
+}
+html[data-plotpickle-core-learn="true"] main :is(header > span, section > span, article > span) {
+  color: #cda758 !important;
+}
+html[data-plotpickle-core-learn="true"] main :is(a,button) {
+  border: 1px solid rgba(205,167,88,.38) !important;
+  border-radius: 0 !important;
+  background: rgba(205,167,88,.055) !important;
+  color: #e1ba64 !important;
+  box-shadow: none !important;
+}
+html[data-plotpickle-core-learn="true"] main :is(input,select,textarea) {
+  border: 1px solid rgba(205,167,88,.25) !important;
+  border-radius: 0 !important;
+  background: #080807 !important;
+  color: #e7dfd1 !important;
+}
+
+@media (max-width: 900px) {
+  html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) {
+    padding: 18px 15px 64px !important;
+  }
+  html[data-plotpickle-learn-screen="true"] nav[aria-label="Learning Studio views"] {
+    position: static !important;
+    width: auto !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    border: 1px solid rgba(205,167,88,.19) !important;
+  }
+  html[data-plotpickle-learn-screen="true"] nav[aria-label="Learning Studio views"]::before { width: 100% !important; }
+  html[data-plotpickle-learn-screen="true"] div:has(> nav[aria-label="Learning Studio views"]) > header {
+    grid-template-columns: 1fr !important;
+  }
+}

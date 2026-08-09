@@ -1,0 +1,480 @@
+/* Issue #528 — Learn-first Creative Writer screen system.
+   Loaded after the legacy Learn/Core CSS so the approved matte-black / antique-gold
+   editorial treatment is the final desktop presentation without replacing the 81-module engine. */
+
+:root {
+  --pp-learn-black: #070706;
+  --pp-learn-panel: #0b0b0a;
+  --pp-learn-panel-raised: #10100f;
+  --pp-learn-gold: #cda758;
+  --pp-learn-gold-hi: #e1ba64;
+  --pp-learn-gold-deep: #8c6f35;
+  --pp-learn-ink: #eee8dc;
+  --pp-learn-muted: #8e887d;
+  --pp-learn-line: rgba(205, 167, 88, .19);
+  --pp-learn-line-soft: rgba(255, 255, 255, .09);
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__page"],
+  [class*="learning-studio_page"]
+) {
+  min-height: calc(100vh - 90px) !important;
+  padding: 0 38px 74px 302px !important;
+  background: var(--pp-learn-black) !important;
+  color: var(--pp-learn-ink) !important;
+  font-family: var(--font-mono), "Courier New", Consolas, monospace !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__page"],
+  [class*="learning-studio_page"]
+) :is(h1, h2, h3, h4, strong, button, input, select, textarea) {
+  font-family: var(--font-mono), "Courier New", Consolas, monospace !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__header"],
+  [class*="learning-studio_header"]
+) {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.45fr) minmax(250px, .42fr) !important;
+  gap: 18px !important;
+  max-width: none !important;
+  min-height: 238px !important;
+  margin: 0 !important;
+  padding: 38px 0 24px !important;
+  border-bottom: 1px solid var(--pp-learn-line) !important;
+  background: transparent !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__header"],
+  [class*="learning-studio_header"]
+) > div:first-child {
+  display: flex !important;
+  min-height: 210px !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  max-width: none !important;
+  padding: 28px 32px !important;
+  border: 1px solid rgba(205, 167, 88, .28) !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(90deg, rgba(5, 5, 5, .98), rgba(9, 8, 6, .78)),
+    radial-gradient(circle at 84% 18%, rgba(205, 167, 88, .10), transparent 24rem),
+    #090908 !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__header"],
+  [class*="learning-studio_header"]
+) h1 {
+  max-width: 920px !important;
+  margin: 9px 0 12px !important;
+  color: #fff9ed !important;
+  font-size: clamp(37px, 4.6vw, 64px) !important;
+  font-weight: 500 !important;
+  letter-spacing: -.045em !important;
+  line-height: 1 !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__header"],
+  [class*="learning-studio_header"]
+) p {
+  max-width: 860px !important;
+  color: var(--pp-learn-muted) !important;
+  font-size: .86rem !important;
+  line-height: 1.72 !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__licence"],
+  [class*="learning-studio_licence"]
+) {
+  min-width: 0 !important;
+  padding: 24px !important;
+  border: 1px solid var(--pp-learn-line) !important;
+  border-radius: 0 !important;
+  background: #0c0c0b !important;
+  color: #d9d2c4 !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__licence"],
+  [class*="learning-studio_licence"]
+) :is(span, small) { color: #7f796f !important; }
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__viewTabs"],
+  [class*="learning-studio_viewTabs"]
+) {
+  position: fixed !important;
+  z-index: 22 !important;
+  inset: 90px auto 0 0 !important;
+  display: flex !important;
+  width: 272px !important;
+  max-width: none !important;
+  flex-direction: column !important;
+  gap: 1px !important;
+  margin: 0 !important;
+  padding: 28px 18px 40px !important;
+  overflow-y: auto !important;
+  border: 0 !important;
+  border-right: 1px solid var(--pp-learn-line) !important;
+  border-radius: 0 !important;
+  background: #090908 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__viewTabs"],
+  [class*="learning-studio_viewTabs"]
+)::before {
+  display: block !important;
+  margin: 0 9px 18px !important;
+  color: var(--pp-learn-gold) !important;
+  content: "LEARN / STORY CRAFT" !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .17em !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__viewTabs"],
+  [class*="learning-studio_viewTabs"]
+) button {
+  min-height: 36px !important;
+  padding: 10px 10px !important;
+  border: 0 !important;
+  border-left: 1px solid transparent !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #898378 !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  letter-spacing: .02em !important;
+  text-align: left !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__viewTabs"],
+  [class*="learning-studio_viewTabs"]
+) button:hover {
+  border-left-color: var(--pp-learn-gold-deep) !important;
+  background: rgba(205, 167, 88, .035) !important;
+  color: #e8dfcf !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__viewTabs"],
+  [class*="learning-studio_viewTabs"]
+) [class*="active"] {
+  border-left-color: var(--pp-learn-gold) !important;
+  background: rgba(205, 167, 88, .065) !important;
+  color: var(--pp-learn-gold-hi) !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__position"],
+  [class*="learning-studio_position"],
+  [class*="learning-studio-module__"][class*="__courseStatus"],
+  [class*="learning-studio_courseStatus"],
+  [class*="learning-studio-module__"][class*="__anatomy"],
+  [class*="learning-studio_anatomy"]
+) {
+  max-width: none !important;
+  margin: 16px 0 0 !important;
+  border: 1px solid var(--pp-learn-line) !important;
+  border-radius: 0 !important;
+  background: var(--pp-learn-panel) !important;
+  color: #d7d0c3 !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__position"],
+  [class*="learning-studio_position"]
+) {
+  grid-template-columns: minmax(0, 1fr) 205px 205px !important;
+  padding: 17px 18px !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__position"],
+  [class*="learning-studio_position"]
+) :is(p, label) { color: #817b71 !important; }
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__position"],
+  [class*="learning-studio_position"]
+) select,
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__filters"],
+  [class*="learning-studio_filters"]
+) input {
+  min-height: 42px !important;
+  border: 1px solid rgba(205, 167, 88, .24) !important;
+  border-radius: 0 !important;
+  background: #080807 !important;
+  color: #ded6c8 !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__courseStatus"],
+  [class*="learning-studio_courseStatus"]
+) {
+  grid-template-columns: 290px minmax(180px, 1fr) 54px !important;
+  padding: 14px 18px !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__progressTrack"],
+  [class*="learning-studio_progressTrack"]
+) {
+  height: 3px !important;
+  border-radius: 0 !important;
+  background: #211e18 !important;
+}
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__progressTrack"],
+  [class*="learning-studio_progressTrack"]
+) i { border-radius: 0 !important; background: var(--pp-learn-gold) !important; }
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__header"],
+  [class*="learning-studio_header"],
+  [class*="learning-studio-module__"][class*="__position"],
+  [class*="learning-studio_position"],
+  [class*="learning-studio-module__"][class*="__courseStatus"],
+  [class*="learning-studio_courseStatus"],
+  [class*="learning-studio-module__"][class*="__anatomy"],
+  [class*="learning-studio_anatomy"],
+  [class*="learning-studio-module__"][class*="__sectionIntro"],
+  [class*="learning-studio_sectionIntro"],
+  [class*="learning-studio-module__"][class*="__moduleMeta"],
+  [class*="learning-studio_moduleMeta"]
+) span { color: var(--pp-learn-gold) !important; }
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__guidance"],
+  [class*="learning-studio_guidance"],
+  [class*="learning-studio-module__"][class*="__library"],
+  [class*="learning-studio_library"]
+) {
+  max-width: none !important;
+  margin: 32px 0 0 !important;
+  background: transparent !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__sectionIntro"],
+  [class*="learning-studio_sectionIntro"]
+) h2 {
+  margin: 6px 0 9px !important;
+  color: #f6efe3 !important;
+  font-size: clamp(25px, 2.3vw, 34px) !important;
+  font-weight: 500 !important;
+  letter-spacing: -.035em !important;
+}
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__sectionIntro"],
+  [class*="learning-studio_sectionIntro"]
+) p { color: #827c72 !important; line-height: 1.7 !important; }
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__recommendedGrid"],
+  [class*="learning-studio_recommendedGrid"],
+  [class*="learning-studio-module__"][class*="__moduleGrid"],
+  [class*="learning-studio_moduleGrid"]
+) { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 12px !important; }
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__moduleCard"],
+  [class*="learning-studio_moduleCard"]
+) {
+  min-height: 218px !important;
+  padding: 18px !important;
+  border: 1px solid var(--pp-learn-line-soft) !important;
+  border-radius: 0 !important;
+  background: var(--pp-learn-panel-raised) !important;
+  color: #d8d1c5 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__moduleCard"],
+  [class*="learning-studio_moduleCard"]
+):hover,
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__moduleCard"],
+  [class*="learning-studio_moduleCard"]
+)[class*="recommended"] { border-color: rgba(205, 167, 88, .48) !important; }
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__moduleCard"],
+  [class*="learning-studio_moduleCard"]
+) h3 { color: #f1eadf !important; font-weight: 500 !important; }
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__moduleCard"],
+  [class*="learning-studio_moduleCard"]
+) :is(p, small) { color: #888176 !important; }
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__cardActions"],
+  [class*="learning-studio_cardActions"]
+) button,
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__browseAll"],
+  [class*="learning-studio_browseAll"]
+),
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__reader"],
+  [class*="learning-studio_reader"]
+) button,
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__exercise"],
+  [class*="learning-studio_exercise"]
+) button {
+  border: 1px solid rgba(205, 167, 88, .38) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--pp-learn-gold-hi) !important;
+  box-shadow: none !important;
+}
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__cardActions"],
+  [class*="learning-studio_cardActions"]
+) button:first-child,
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__browseAll"],
+  [class*="learning-studio_browseAll"]
+),
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__exercise"],
+  [class*="learning-studio_exercise"]
+) button { background: rgba(205, 167, 88, .08) !important; }
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__reader"],
+  [class*="learning-studio_reader"]
+) {
+  overflow: hidden !important;
+  max-width: none !important;
+  border: 1px solid rgba(205, 167, 88, .25) !important;
+  border-radius: 0 !important;
+  background: #090908 !important;
+  color: #d9d1c4 !important;
+  box-shadow: none !important;
+}
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__readerTop"],
+  [class*="learning-studio_readerTop"]
+) { border-bottom-color: var(--pp-learn-line) !important; background: #0d0d0c !important; }
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__readerHeader"],
+  [class*="learning-studio_readerHeader"]
+) { background: linear-gradient(100deg, #0d0c09, #11100d) !important; border-bottom: 1px solid var(--pp-learn-line) !important; }
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__readerHeader"],
+  [class*="learning-studio_readerHeader"]
+) h2 { color: #fff5e6 !important; }
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__lessonSection"],
+  [class*="learning-studio_lessonSection"]
+) { border-bottom-color: rgba(255,255,255,.08) !important; }
+html[data-plotpickle-theme="dark"] :is(
+  [class*="learning-studio-module__"][class*="__objectives"],
+  [class*="learning-studio_objectives"],
+  [class*="learning-studio-module__"][class*="__example"],
+  [class*="learning-studio_example"],
+  [class*="learning-studio-module__"][class*="__exercise"],
+  [class*="learning-studio_exercise"]
+) { border-color: var(--pp-learn-line) !important; border-radius: 0 !important; background: #0f0e0b !important; }
+
+/* Core Curriculum inherits the same Learn-first screen language. */
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"][class*="__page"] {
+  min-height: 100vh !important;
+  padding: 34px clamp(20px, 4vw, 58px) 80px !important;
+  background: var(--pp-learn-black) !important;
+  color: var(--pp-learn-ink) !important;
+  font-family: var(--font-mono), "Courier New", Consolas, monospace !important;
+}
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"][class*="__page"] :is(h1,h2,h3,h4,strong,a,button,input,select,textarea) { font-family: var(--font-mono), "Courier New", Consolas, monospace !important; }
+
+html[data-plotpickle-theme="dark"] :is(
+  [class*="core-curriculum-module__"][class*="__hero"],
+  [class*="core-curriculum-module__"][class*="__orientation"],
+  [class*="core-curriculum-module__"][class*="__progress"],
+  [class*="core-curriculum-module__"][class*="__panel"],
+  [class*="core-curriculum-module__"][class*="__recommendation"],
+  [class*="core-curriculum-module__"][class*="__detail"]
+) { max-width: 1440px !important; }
+
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"][class*="__hero"] {
+  padding: 30px !important;
+  border: 1px solid rgba(205,167,88,.27) !important;
+  border-radius: 0 !important;
+  background: linear-gradient(100deg, #090908, #100f0c) !important;
+  box-shadow: none !important;
+}
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"][class*="__hero"] h1 { color: #fff7e9 !important; font-size: clamp(38px, 5vw, 66px) !important; font-weight: 500 !important; }
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"][class*="__hero"] :is(span,a),
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"] [class*="__panel"] > header > span,
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"] [class*="__detail"] > header > span,
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"] [class*="__recommendation"] span { color: var(--pp-learn-gold) !important; }
+
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"][class*="__orientation"] > *,
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"][class*="__progress"] article,
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"][class*="__panel"],
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"][class*="__detail"],
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"][class*="__recommendation"] {
+  border: 1px solid var(--pp-learn-line) !important;
+  border-radius: 0 !important;
+  background: var(--pp-learn-panel) !important;
+  color: #dcd4c7 !important;
+  box-shadow: none !important;
+}
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"] :is(p, small, li, span) { color: #8b857a; }
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"] :is(h2,h3,h4) { color: #f1eadd !important; font-weight: 500 !important; }
+
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"][class*="__routeGrid"] button,
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"][class*="__moduleGrid"] article,
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"][class*="__applicationGrid"] article,
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"][class*="__sourceMap"] article {
+  border: 1px solid var(--pp-learn-line-soft) !important;
+  border-radius: 0 !important;
+  background: #0f0f0e !important;
+  color: #d9d2c6 !important;
+  box-shadow: none !important;
+}
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"][class*="__routeGrid"] [class*="activeRoute"] { border-color: var(--pp-learn-gold) !important; background: rgba(205,167,88,.07) !important; box-shadow: inset 0 0 0 1px rgba(205,167,88,.22) !important; }
+
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"] :is(a, button) {
+  border: 1px solid rgba(205,167,88,.36) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--pp-learn-gold-hi) !important;
+  box-shadow: none !important;
+}
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"] [class*="primaryLink"] { background: rgba(205,167,88,.10) !important; color: #f0d797 !important; }
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"] :is(select,textarea,input) { border: 1px solid rgba(205,167,88,.24) !important; border-radius: 0 !important; background: #080807 !important; color: #ddd4c5 !important; }
+html[data-plotpickle-theme="dark"] [class*="core-curriculum-module__"][class*="__notice"] { border-left-color: var(--pp-learn-gold) !important; border-radius: 0 !important; background: #0f0e0b !important; color: #a59d90 !important; }
+
+@media (max-width: 1450px) {
+  html[data-plotpickle-theme="dark"] :is([class*="learning-studio-module__"][class*="__page"], [class*="learning-studio_page"]) { padding-left: 248px !important; padding-right: 24px !important; }
+  html[data-plotpickle-theme="dark"] :is([class*="learning-studio-module__"][class*="__viewTabs"], [class*="learning-studio_viewTabs"]) { width: 224px !important; }
+  html[data-plotpickle-theme="dark"] :is([class*="learning-studio-module__"][class*="__recommendedGrid"], [class*="learning-studio_recommendedGrid"], [class*="learning-studio-module__"][class*="__moduleGrid"], [class*="learning-studio_moduleGrid"]) { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+}
+
+@media (max-width: 900px) {
+  html[data-plotpickle-theme="dark"] :is([class*="learning-studio-module__"][class*="__page"], [class*="learning-studio_page"]) { padding: 20px 16px 60px !important; }
+  html[data-plotpickle-theme="dark"] :is([class*="learning-studio-module__"][class*="__viewTabs"], [class*="learning-studio_viewTabs"]) { position: static !important; width: auto !important; flex-direction: row !important; flex-wrap: wrap !important; border: 1px solid var(--pp-learn-line) !important; }
+  html[data-plotpickle-theme="dark"] :is([class*="learning-studio-module__"][class*="__viewTabs"], [class*="learning-studio_viewTabs"])::before { width: 100% !important; }
+  html[data-plotpickle-theme="dark"] :is([class*="learning-studio-module__"][class*="__header"], [class*="learning-studio_header"], [class*="learning-studio-module__"][class*="__position"], [class*="learning-studio_position"], [class*="learning-studio-module__"][class*="__courseStatus"], [class*="learning-studio_courseStatus"]) { grid-template-columns: 1fr !important; }
+  html[data-plotpickle-theme="dark"] :is([class*="learning-studio-module__"][class*="__recommendedGrid"], [class*="learning-studio_recommendedGrid"], [class*="learning-studio-module__"][class*="__moduleGrid"], [class*="learning-studio_moduleGrid"]) { grid-template-columns: 1fr !important; }
+}

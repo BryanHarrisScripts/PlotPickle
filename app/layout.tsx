@@ -52,6 +52,7 @@ import "./graphic-novel-studio.css";
 import "./graphic-novel-build-handoff.css";
 import "./build-assembly-studio.css";
 import "./feedback-studio.css";
+import "./learn-first-phase-528-rendered.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",

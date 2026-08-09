@@ -24,11 +24,12 @@ test("Creative Writer UAT modules parse as valid JavaScript", () => {
 test("creative UAT follows one disposable visual-writing story end to end", () => {
   for (const stage of [
     "New Project", "Story Setup", "Concept Canvas", "World and Location", "Character Identity", "Story Moment",
-    "Persistence Check", "Storyboard Direction", "Write Screenplay", "Edit and Revision", "Graphic Novel", "Build",
-    "Feedback", "Refine", "Return to Graphic Novel",
+    "Persistence Check", "Learn Entry", "Learning Route", "Learn Module", "Learning Progress Persistence",
+    "Apply Lesson to Story", "Core Curriculum", "Core Learning Evidence", "Return to Learn", "Storyboard Direction",
+    "Write Screenplay", "Edit and Revision", "Graphic Novel", "Build", "Feedback", "Refine", "Return to Graphic Novel",
   ]) assert.match(runner, new RegExp(stage.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(runner, /first-time visual creative writer\/director/);
-  assert.match(runner, /Concept -> Explore -> Compare -> Direct -> Refine -> Approve -> Reuse/);
+  assert.match(runner, /Concept -> (?:Learn -> )?Explore -> Compare -> Direct -> Refine -> Approve -> Reuse/);
 });
 
 test("creative UAT uses visible controls first and verifies persisted project evidence", () => {
@@ -62,7 +63,7 @@ test("character and world visuals are first-class writing inputs", () => {
 test("creative UAT is local-only and separates product findings from runner findings", () => {
   assert.match(runner, /## Product Flow findings/);
   assert.match(runner, /## Runner \/ Infrastructure findings/);
-  assert.match(runner, /Missing candidate-generation material is reported as a product WARN/);
+  assert.match(runner, /missing candidate-generation material is reported as a product WARN/i);
   assert.match(runner, /Existing user projects outside the isolated UAT browser context are not modified/);
   assert.doesNotMatch(`${runner}\n${actions}\n${runtime}`, /OPENAI_API_KEY|api\.openai\.com/);
 });

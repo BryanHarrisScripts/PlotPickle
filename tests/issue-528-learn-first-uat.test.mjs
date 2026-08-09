@@ -18,7 +18,7 @@ test("issue #528 locks the reviewed Learn-first matte-black antique-gold wirefra
     assert.ok(css.includes(contract), `Learn-first styling is missing: ${contract}`);
   }
   assert.doesNotMatch(css, /#2f7d7a|#286f73|#3c8385|purple|#7c3aed/i);
-  for (const phrase of ["matte black", "muted antique-gold", "81 modules", "Scenario", "Core Curriculum", "UAT acceptance path"]) {
+  for (const phrase of ["matte black", "muted antique-gold", "81 modules", "Current story position", "Core Curriculum", "UAT acceptance path"]) {
     assert.match(wireframe, new RegExp(phrase, "i"));
   }
 });

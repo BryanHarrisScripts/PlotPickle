@@ -207,13 +207,13 @@ export default function CoreCurriculumPage() {
         <p>The existing fourteen General modules now form a five-stage map into every PlotPickle workspace and deeper craft collection. Start anywhere, skip anything that is not useful and return when the project evidence changes.</p>
       </div>
       <nav>
-        <Link className={styles.primaryLink} href="/read-learn">Complete Learning Library</Link>
+        <Link className={styles.primaryLink} href="/?workspace=learn&view=library">Complete Learning Library</Link>
         <Link href="/">Back to PlotPickle</Link>
       </nav>
     </header>
 
     <section className={styles.orientation}>
-      <Link href="/read-learn"><strong>Browse the Complete Learning Library</strong><span>All modules and specialized collections remain immediately available.</span></Link>
+      <Link href="/?workspace=learn&view=library"><strong>Browse the Complete Learning Library</strong><span>All modules and specialized collections remain immediately available.</span></Link>
       <div><strong>Use the Core Curriculum</strong><span>Choose a route and receive project-evidence explanations without onboarding locks.</span></div>
     </section>
 
@@ -288,6 +288,6 @@ export default function CoreCurriculumPage() {
       <div className={styles.sourceMap}>{coreSourceMap.map((item) => <article key={item.legacy}><strong>{item.legacy}</strong><span>→ {moduleTitle(item.moduleId)}</span><p>{item.change}</p></article>)}</div>
     </section>
 
-    <footer className={styles.footer}><Link className={styles.primaryLink} href="/read-learn">Complete Learning Library</Link><Link href="/story-craft-essentials">Story Craft Essentials</Link><Link href="/working-together">Working Together</Link><Link href="/dialogue-in-motion">Dialogue in Motion</Link></footer>
+    <footer className={styles.footer}><Link className={styles.primaryLink} href="/?workspace=learn&view=library">Complete Learning Library</Link><Link href="/story-craft-essentials">Story Craft Essentials</Link><Link href="/working-together">Working Together</Link><Link href="/dialogue-in-motion">Dialogue in Motion</Link></footer>
   </main>;
 }

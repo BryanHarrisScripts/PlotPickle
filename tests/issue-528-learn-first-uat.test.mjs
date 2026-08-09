@@ -50,6 +50,7 @@ test("issue #528 keeps Learn inside the same PlotPickle story and repairs legacy
 
   assert.match(router, /a\[href\^="\/read-learn"\]/);
   assert.match(router, /workspace", "learn"/);
+  assert.match(router, /view", "library"/);
   assert.match(router, /source\.searchParams\.forEach/);
 });
 

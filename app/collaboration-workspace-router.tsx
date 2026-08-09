@@ -30,6 +30,7 @@ export default function CollaborationWorkspaceRouter() {
       if (!(target instanceof HTMLAnchorElement)) return;
       const url = new URL(target.href, window.location.href);
       if (url.origin !== window.location.origin) return;
+      if (url.pathname === "/" && url.searchParams.has("workspace")) return;
       const workspace = COLLABORATION_WORKSPACES[url.pathname];
       if (!workspace) return;
       event.preventDefault();

@@ -8,7 +8,14 @@ function studioLearnHref(rawHref: string) {
     if (source.pathname !== "/read-learn") return null;
     const destination = new URL("/", window.location.origin);
     destination.searchParams.set("workspace", "learn");
-    source.searchParams.forEach((value, key) => destination.searchParams.set(key, value));
+    destination.searchParams.set("view", "library");
+    const legacyView = source.searchParams.get("view");
+    source.searchParams.forEach((value, key) => {
+      if (key === "view") return;
+      if (key === "lesson" && !source.searchParams.has("module")) destination.searchParams.set("module", value);
+      else destination.searchParams.set(key, value);
+    });
+    if (legacyView && legacyView !== "library") destination.searchParams.set("collection", legacyView);
     return `${destination.pathname}${destination.search}${source.hash}`;
   } catch {
     return null;
@@ -35,15 +42,7 @@ export default function LearnEntryRouter() {
       }
 
       const navigation = document.querySelector<HTMLElement>('nav[aria-label="Learn sections"]');
-      if (!navigation || navigation.dataset.plotpickleLearnRouted === "true") return;
-
-      const libraryButton = Array.from(navigation.querySelectorAll<HTMLButtonElement>("button"))
-        .find((button) => button.textContent?.includes("Complete Learning Library"));
-      if (!libraryButton) return;
-
-      navigation.dataset.plotpickleLearnRouted = "true";
-      const current = navigation.querySelector<HTMLButtonElement>('button[aria-current="page"]');
-      if (current?.textContent?.includes("Introduction")) libraryButton.click();
+      if (navigation) navigation.dataset.plotpickleLearnRouted = "true";
     };
 
     routeLearnEntry();

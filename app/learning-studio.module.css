@@ -218,6 +218,16 @@
   color: #347b7b;
 }
 
+.libraryPrimary,
+.curriculumSecondary {
+  padding: 7px;
+  border: 1px solid #b8d8d4;
+}
+
+.curriculumSecondary {
+  opacity: 0.82;
+}
+
 .viewTabs {
   position: sticky;
   z-index: 13;
@@ -259,6 +269,83 @@
 .library {
   max-width: 1260px;
   margin: 0 auto;
+}
+
+.libraryHeading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.collectionActions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.collectionActions button {
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #b8d8d4;
+  background: #fff;
+  color: #31595e;
+  font-weight: 800;
+}
+
+.collectionList {
+  display: grid;
+  gap: 14px;
+}
+
+.collectionGroup {
+  overflow: hidden;
+  border: 1px solid #c6dcda;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.collectionToggle {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.collectionToggle > span:nth-child(2) {
+  display: grid;
+  gap: 4px;
+}
+
+.collectionToggle small {
+  color: #627c80;
+  font-weight: 500;
+}
+
+.collectionToggle b {
+  color: #398187;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.chevron {
+  color: #398187;
+  font-size: 1.5rem;
+  transform: rotate(0deg);
+  transition: transform 140ms ease;
+}
+
+.collectionToggle[aria-expanded="true"] .chevron {
+  transform: rotate(90deg);
+}
+
+.collectionGroup > .moduleGrid {
+  padding: 0 16px 16px;
 }
 
 .sectionIntro {

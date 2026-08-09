@@ -48,21 +48,22 @@ test("issue #112 context model preserves required working selections", async () 
   assert.match(context, /previous: history\.current/);
 });
 
-test("issue #170 makes Introduction the first visible Learn section without adding a primary step", async () => {
+test("issue #534 makes the Complete Learning Library the first visible Learn section without adding a primary step", async () => {
   const [page, direction] = await Promise.all([
     source("app/page.tsx"),
     source("lib/product-direction.ts"),
   ]);
   const primary = direction.slice(direction.indexOf("PRIMARY_WORKFLOW_NAVIGATION"), direction.indexOf("COLLABORATION_NAVIGATION"));
   const labels = [...primary.matchAll(/label: "([^"]+)"/g)].map((match) => match[1]);
-  assert.deepEqual(labels, ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Graphic Novel", "Build", "Feedback", "Refine", "Reports"]);
+  assert.deepEqual(labels, ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Edit", "Graphic Novel", "Build", "Feedback", "Refine", "Reports"]);
   assert.doesNotMatch(primary, /Introduction|instructions/);
   assert.match(page, /type LearnSection = "introduction" \| "library" \| "terminology" \| "screenplay"/);
-  assert.match(page, /useState<LearnSection>\("introduction"\)/);
+  assert.match(page, /useState<LearnSection>\("library"\)/);
   const learnStart = page.indexOf('aria-label="Learn sections"');
   const learnTabs = page.slice(learnStart, page.indexOf("</nav>", learnStart));
   assert.ok(learnTabs.indexOf(">Introduction<") < learnTabs.indexOf(">Complete Learning Library<"));
   assert.ok(learnTabs.indexOf(">Complete Learning Library<") < learnTabs.indexOf(">Terminology<"));
+  assert.match(page, /useState<LearnSection>\("library"\)[\s\S]*learnSection === "introduction"/);
   assert.match(page, /activeTab === "instructions"[\s\S]*<Introduction/);
   assert.match(page, /function Introduction/);
   assert.match(page, /workspace="Introduction"/);

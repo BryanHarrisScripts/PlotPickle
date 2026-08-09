@@ -361,7 +361,7 @@ export default function Home() {
   const [project, setProject] = useState<PlotPickleProject>(() => createBlankProject());
   const [activeTab, setActiveTab] = useState<MainTab>("dashboard");
   const [activeSection, setActiveSection] = useState<StorySection>("overview");
-  const [learnSection, setLearnSection] = useState<LearnSection>("introduction");
+  const [learnSection, setLearnSection] = useState<LearnSection>("library");
   const [selectedCharacterId, setSelectedCharacterId] = useState("");
   const [selectedBlockNumber, setSelectedBlockNumber] = useState(1);
   const [selectedMiniBlockNumber, setSelectedMiniBlockNumber] = useState(1);

@@ -159,33 +159,53 @@ async function main() {
     let snap = await snapshot();
     let status = nav.ok ? (nav.method === "direct recovery navigation" ? "WARN" : "PASS") : "FAIL";
     let note = nav.method === "direct recovery navigation" ? "Visible Learn navigation needed recovery. " : "";
-    if (nav.ok && /complete PlotPickle screenwriting course/i.test(snap) && /modules complete/i.test(snap)) note += "Learn opened as a full creative workspace with story position and course progress visible.";
+    const libraryCollectionsVisible = [
+      "Screenwriting Foundations", "Visual Writing & PlotPickle", "The 24 Blocks Method", "AI-Assisted Revision",
+      "Characters in Motion", "Dialogue in Motion", "Story Craft Essentials", "Working Together", "Collaboration, Formats & Ownership",
+    ].every((label) => snap.includes(label));
+    const collectionCountsVisible = ["14 modules", "4 modules", "10 modules", "5 modules", "9 modules", "8 modules"].every((label) => snap.includes(label));
+    const collapsedLibrary = await clickVisible("Collapse all collections");
+    const expandedLibrary = collapsedLibrary && await clickVisible("Expand all collections");
+    snap = await snapshot();
+    if (nav.ok && /complete PlotPickle screenwriting course/i.test(snap) && /All 81 full learning modules/i.test(snap) && /modules complete/i.test(snap) && libraryCollectionsVisible && collectionCountsVisible && collapsedLibrary && expandedLibrary) {
+      note += "Learn opened on the complete 81-module library; all nine counted collections were discoverable and expandable through visible controls.";
+    }
     else if (nav.ok) { status = "FAIL"; note += "Learn opened without the expected course, story-position and progress surfaces."; }
     await record(9, "Learn Entry", status, note);
 
-    await navigate(new URL("/?workspace=learn&view=workflow", baseUrl).toString());
-    await delay(700);
+    const openedWorkflowChooser = await clickVisible("Choose Your Workflow");
+    await delay(450);
     const choseRoute = await clickVisible("Choose this path");
     await delay(500);
     let learnState = await learningState();
-    ok = choseRoute && learnState.workflowChoice === "local-only" && learnState.title === fixture.title;
+    ok = openedWorkflowChooser && choseRoute && learnState.workflowChoice === "local-only" && learnState.title === fixture.title;
     await record(10, "Learning Route", ok ? "PASS" : "FAIL", ok ? "A local-only learning/workflow route was chosen without connecting an account, provider or paid service." : "The visible learning route did not persist for the active project.");
 
-    await navigate(new URL("/?workspace=learn&view=library&module=pitch", baseUrl).toString());
-    await delay(700);
+    await clickVisible("Close module");
+    const returnedToLibrary = await clickVisible("Complete Learning Library");
+    const searchedLibrary = returnedToLibrary && (await fillByLabel("Search screenwriting lessons", "The Pitch")).ok;
+    await delay(500);
+    const openedFromSearch = searchedLibrary && await clickVisible("Read full module");
+    await delay(450);
     snap = await snapshot();
-    const openedLesson = /The Pitch/i.test(snap) && /Mark module complete/i.test(snap);
+    const openedLesson = openedFromSearch && /The Pitch/i.test(snap) && /Mark module complete/i.test(snap);
     const completedLesson = openedLesson && await clickVisible("Mark module complete");
     await delay(450);
     learnState = await learningState();
     ok = completedLesson && Array.isArray(learnState.completed) && learnState.completed.includes("pitch");
     await record(11, "Learn Module", ok ? "PASS" : "FAIL", ok ? "The Pitch opened in the 81-module learning engine and was marked complete for this project." : "A representative module could not be opened and completed through the Learn workspace.");
 
-    await navigate(new URL("/?workspace=learn&view=library&module=pitch", baseUrl).toString());
-    await delay(750);
+    state = await currentState();
+    await navigate(state.url);
+    await delay(650);
+    nav = await gotoWorkspace("Learn", "learn", "learn");
+    await delay(500);
+    const reSearchedLibrary = nav.ok && (await fillByLabel("Search screenwriting lessons", "The Pitch")).ok;
+    const reopenedAfterReload = reSearchedLibrary && await clickVisible("Read full module");
+    await delay(450);
     learnState = await learningState();
     snap = await snapshot();
-    ok = Array.isArray(learnState.completed) && learnState.completed.includes("pitch") && /Completed/i.test(snap) && learnState.title === fixture.title;
+    ok = reopenedAfterReload && Array.isArray(learnState.completed) && learnState.completed.includes("pitch") && /Completed/i.test(snap) && learnState.title === fixture.title;
     await record(12, "Learning Progress Persistence", ok ? "PASS" : "FAIL", ok ? `Project-specific Learn progress survived reload (${learnState.completedCount} module${learnState.completedCount === 1 ? "" : "s"} complete).` : "Learning completion or active-project continuity was lost after reload.");
 
     const appliedLesson = await clickVisible("Open Pitch & Review");
@@ -194,13 +214,14 @@ async function main() {
     ok = appliedLesson && learnState.pathName === "/pitch-review" && learnState.title === fixture.title && learnState.characterCount >= 1 && learnState.locationCount >= 1 && learnState.blockTitle === fixture.blockTitle;
     await record(13, "Apply Lesson to Story", ok ? "PASS" : "FAIL", ok ? "The lesson routed into the same active story context without creating a parallel project or changing canon automatically." : "The learning-to-workspace handoff lost the active story context.");
 
-    await navigate(new URL("/core-curriculum", baseUrl).toString());
+    nav = await gotoWorkspace("Learn", "learn", "learn");
+    const openedCoreCurriculum = nav.ok && await clickVisible("Core Curriculum");
     await delay(750);
     const choseCoreRoute = await clickVisible("I have an idea");
     await delay(350);
     learnState = await learningState();
     snap = await snapshot();
-    ok = /Core Curriculum/i.test(snap) && learnState.title === fixture.title && (!choseCoreRoute || learnState.coreRoute === "idea");
+    ok = openedCoreCurriculum && /Core Curriculum/i.test(snap) && learnState.title === fixture.title && (!choseCoreRoute || learnState.coreRoute === "idea");
     await record(14, "Core Curriculum", ok ? "PASS" : "FAIL", ok ? "Core Curriculum opened against the same local project and retained an advisory learning route." : "Core Curriculum did not retain the active project or route context.");
 
     const exerciseFilled = (await fillByLabel("Exercise note or decision", "The pitch needs a clear protagonist, pressure and visual promise for this story moment.")).ok;
@@ -218,11 +239,7 @@ async function main() {
     await delay(700);
     state = await currentState();
     if (!returnedToLearn || state.activeId !== "learn") {
-      await navigate(new URL("/?workspace=learn&view=library&module=pitch", baseUrl).toString());
-      await delay(650);
-      state = await currentState();
-      returnedToLearn = state.activeId === "learn";
-      if (returnedToLearn) runnerFindings.push("Core Curriculum return to Learn needed direct local recovery navigation.");
+      runnerFindings.push("Core Curriculum return to Learn was unavailable through the visible Complete Learning Library link.");
     }
     learnState = await learningState();
     ok = returnedToLearn && state.activeId === "learn" && learnState.completed.includes("pitch") && learnState.coreEvidenceCount >= 1 && learnState.title === fixture.title && learnState.characterCount >= 1 && learnState.locationCount >= 1;

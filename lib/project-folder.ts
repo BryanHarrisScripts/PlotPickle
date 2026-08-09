@@ -98,6 +98,7 @@ export function createProjectFolder(project: PlotPickleProject, applicationVersi
       assetIdentity: "1.0.0",
       canonBinder: "1.0.0",
       exchangeFormat: "1.0.0",
+      projectExtensions: project.extensions ?? {},
     },
   };
 
@@ -211,6 +212,9 @@ export function parseProjectFolder(files: ProjectFolderFiles): PlotPickleProject
 
   const identity = object(files["project/identity.json"]);
   const structureIndex = object(files["24-blocks/index.json"]);
+  const manifestExtensions = manifest.extensions && typeof manifest.extensions === "object" && !Array.isArray(manifest.extensions)
+    ? manifest.extensions as Record<string, unknown>
+    : {};
   const candidate = {
     schemaVersion: identity.schemaVersion,
     id: identity.id,
@@ -229,6 +233,9 @@ export function parseProjectFolder(files: ProjectFolderFiles): PlotPickleProject
     revisions: files["reports/revisions.json"],
     collaboration: files["collaboration/module.json"],
     rights: files["canon/legal/rights.json"] ?? files["canon/rights.json"],
+    extensions: manifestExtensions.projectExtensions && typeof manifestExtensions.projectExtensions === "object" && !Array.isArray(manifestExtensions.projectExtensions)
+      ? manifestExtensions.projectExtensions
+      : {},
   };
   const normalized = normalizePlotPickleProject(candidate);
   if (!normalized) throw new Error("The modular project folder could not be normalized to the current PlotPickle schema.");

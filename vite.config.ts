@@ -21,6 +21,7 @@ import { folderProjectGateway } from "./build/folder-project-gateway";
 import { nativeGitGateway } from "./build/native-git-gateway";
 import { localProjectGateway } from "./build/local-project-gateway";
 import { localStorageSafetyGateway } from "./build/local-storage-safety-gateway";
+import { fullStoryBuilderGateway } from "./build/full-story-builder-gateway";
 import { sites } from "./build/sites-vite-plugin";
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
@@ -75,6 +76,7 @@ export default defineConfig(async () => {
       folderProjectGateway(),
       nativeGitGateway(),
       localStorageSafetyGateway(),
+      fullStoryBuilderGateway(),
       localProjectGateway(),
       localAiGateway(),
       vinext(),

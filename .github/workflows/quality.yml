@@ -81,6 +81,7 @@ jobs:
             tests/issue-337-ui-ux-consistency-foundation.test.mjs \
             tests/issue-509-creative-writer-uat.test.mjs \
             tests/issue-526-phase-b-visual-screens.test.mjs \
+            tests/issue-528-learn-first-uat.test.mjs \
             tests/issue-529-storyboard-decision-discoverability.test.mjs
 
       - name: Run complete regression after merge or by request

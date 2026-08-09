@@ -25,6 +25,7 @@ import { moodColourVisualLanguage } from "./learning-mood-colour-visual-language
 import { earlyVisualDevelopmentLesson, earlyVisualDevelopmentSearchText } from "./learning-early-visual-development";
 import { whyPlotPickleWorksInLayers, whyPlotPickleSearchText } from "./learning-why-plotpickle";
 import { twentyFourBlocksLessons, twentyFourBlocksSearchText, type TwentyFourBlocksLesson } from "./learning-24-blocks";
+import FullStoryBuilderPanel from "./full-story-builder-panel";
 import styles from "./learning-studio.module.css";
 
 type Props = {
@@ -434,6 +435,8 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
       <div className={styles.progressTrack}><i style={{ width: `${progress}%` }} /></div>
       <b>{progress}%</b>
     </section>
+
+    <FullStoryBuilderPanel />
 
     <section className={styles.anatomy} aria-label="Learning entry points">
       <div><span>Start with the complete library</span><strong>All {courseModules.length} modules are grouped and searchable below</strong></div>

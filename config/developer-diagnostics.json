@@ -238,6 +238,48 @@
       ]
     },
     {
+      "id": "full-story-builder",
+      "label": "Full Story Builder",
+      "patterns": [
+        "app/full-story-builder-panel.tsx",
+        "app/full-story-builder-panel.module.css",
+        "app/learning-studio.tsx",
+        "build/full-story-builder-gateway.ts",
+        "lib/full-story-builder.mjs",
+        "lib/project-folder.ts",
+        "scripts/full-story-builder-agent.mjs",
+        "Start-PlotPickle.bat",
+        "vite.config.ts",
+        "package.json",
+        "tests/issue-542-full-story-builder.test.mjs"
+      ],
+      "suites": [
+        "tests/issue-542-full-story-builder.test.mjs",
+        "tests/issue-534-learn-library-discoverability.test.mjs",
+        "tests/windows-native-runtime.test.mjs",
+        "tests/ai-architecture.test.mjs",
+        "tests/phase-one-core-schema.test.mjs",
+        "tests/rc4-project-format.test.mjs"
+      ],
+      "contracts": [
+        "story-builder.local-agent"
+      ],
+      "allowedPaths": [
+        "app/full-story-builder-panel.tsx",
+        "app/full-story-builder-panel.module.css",
+        "app/learning-studio.tsx",
+        "build/full-story-builder-gateway.ts",
+        "lib/full-story-builder.mjs",
+        "lib/project-folder.ts",
+        "scripts/full-story-builder-agent.mjs",
+        "Start-PlotPickle.bat",
+        "vite.config.ts",
+        "package.json",
+        "tests/issue-542-full-story-builder.test.mjs",
+        "config/developer-diagnostics.json"
+      ]
+    },
+    {
       "id": "developer-diagnostics",
       "label": "Developer diagnostics",
       "patterns": [
@@ -513,6 +555,37 @@
       "tests": [
         "tests/issue-124-release-hardening.test.mjs",
         "tests/issue-538-ci-consolidation.test.mjs"
+      ]
+    },
+    "story-builder.local-agent": {
+      "owners": [
+        {
+          "path": "lib/full-story-builder.mjs",
+          "optional": false
+        },
+        {
+          "path": "lib/project-folder.ts",
+          "optional": false
+        },
+        {
+          "path": "scripts/full-story-builder-agent.mjs",
+          "optional": false
+        },
+        {
+          "path": "build/full-story-builder-gateway.ts",
+          "optional": false
+        },
+        {
+          "path": "app/full-story-builder-panel.tsx",
+          "optional": false
+        },
+        {
+          "path": "Start-PlotPickle.bat",
+          "optional": false
+        }
+      ],
+      "tests": [
+        "tests/issue-542-full-story-builder.test.mjs"
       ]
     },
     "diagnostics.registry": {

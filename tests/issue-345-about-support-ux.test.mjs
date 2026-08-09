@@ -32,7 +32,7 @@ test("issue #345 separates product, learning, legal and support destinations", a
   const about = await source("app/about/page.tsx");
   const legal = await source("app/legal/page.tsx");
   for (const destination of [
-    'href="/"',
+    'href="/?workspace=dashboard"',
     'href="/read-learn?module=why-plotpickle-works-in-layers"',
     'href="/legal"',
     'href="/suggest-report"',

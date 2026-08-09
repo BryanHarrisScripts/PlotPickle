@@ -20,6 +20,7 @@ import WriteStudioHost from "./write-studio-host";
 import WorkspaceIntroHost from "./workspace-intro-host";
 import WriterFacingCollaborationLanguage from "./writer-facing-collaboration-language";
 import UiContinuityAnchor from "./ui-continuity-anchor";
+import "./design-tokens.css";
 import "./globals.css";
 import "./engines-workspace-overrides.css";
 import "./navigation-additions.css";
@@ -57,6 +58,7 @@ import "./learn-first-phase-528-rendered.css";
 import "./learn-first-phase-528-core-polish.css";
 import "./studio-surface-continuity.css";
 import "./ui-continuity-anchor.css";
+import "./approved-visual-system.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",

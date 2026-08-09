@@ -1,36 +1,12 @@
 @import "tailwindcss";
 
-:root {
-  --ink: #123442;
-  --ink-soft: #54727d;
-  --paper: #f2fbfc;
-  --panel: #fbffff;
-  --line: #cce4e7;
-  --line-strong: #a8cfd5;
-  --pickle: #3c94a8;
-  --pickle-dark: #176274;
-  --pickle-pale: #dcf5ef;
-  --ice-blue: #dff4ff;
-  --ice-green: #d9f6ea;
-  --mustard: #69b8cc;
-  --rose: #79c8ba;
-  --blue: #5ca6ce;
-  --violet: #86a9d2;
-  --shadow: 0 24px 70px rgba(34, 91, 105, 0.12);
-  --radius-sm: 10px;
-  --radius: 16px;
-  --radius-lg: 24px;
-  --font-sans: var(--font-geist-sans), Arial, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
-}
-
 * {
   box-sizing: border-box;
 }
 
 html {
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--pp-matte);
+  color: var(--pp-text);
   scroll-behavior: smooth;
 }
 
@@ -38,10 +14,9 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    radial-gradient(circle at 5% 4%, rgba(91, 192, 190, 0.13), transparent 23rem),
-    radial-gradient(circle at 92% 6%, rgba(112, 185, 224, 0.11), transparent 28rem),
-    var(--paper);
-  color: var(--ink);
+    radial-gradient(circle at 50% 0%, rgba(205, 167, 88, 0.055), transparent 34rem),
+    var(--pp-matte);
+  color: var(--pp-text);
   font-family: var(--font-sans);
 }
 
@@ -60,7 +35,7 @@ button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 3px solid rgba(60, 148, 168, 0.3);
+  outline: 2px solid var(--pp-gold);
   outline-offset: 2px;
 }
 
@@ -102,7 +77,7 @@ p {
   min-height: 76px;
   padding: 0 28px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(13, 43, 57, 0.97);
+  background: rgba(7, 7, 7, 0.97);
   color: #f5ffff;
   backdrop-filter: blur(16px);
 }
@@ -145,7 +120,7 @@ p {
 }
 
 .brand-lockup span:last-child {
-  color: #a8c7d2;
+  color: #aaa296;
   font-size: 10px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -165,7 +140,7 @@ p {
   padding: 10px 22px;
   border: 0;
   background: transparent;
-  color: #abcbd4;
+  color: #aaa296;
   cursor: pointer;
 }
 
@@ -281,7 +256,7 @@ p {
   min-height: 58px;
   padding: 9px 32px;
   border-bottom: 1px solid var(--line);
-  background: rgba(251, 255, 255, 0.92);
+  background: rgba(11, 11, 10, 0.96);
 }
 
 .project-title {
@@ -362,12 +337,12 @@ p {
 }
 
 html[data-plotpickle-theme="dark"] .progress-track::-webkit-progress-bar {
-  background: #20313c;
+  background: #15130e;
 }
 
 html[data-plotpickle-theme="dark"] .progress-track::-webkit-progress-value,
 html[data-plotpickle-theme="dark"] .progress-track::-moz-progress-bar {
-  background: #32d4df;
+  background: #cda758;
 }
 
 .workspace {
@@ -719,7 +694,7 @@ html[data-plotpickle-theme="dark"] .progress-track::-moz-progress-bar {
 .story-rail nav button.active > span {
   border-color: rgba(38, 111, 128, 0.26);
   background: rgba(255, 255, 255, 0.42);
-  color: #176274;
+  color: #e1ba64;
 }
 
 .story-rail nav button strong {
@@ -2737,9 +2712,9 @@ html[data-plotpickle-theme="dark"] .progress-track::-moz-progress-bar {
   gap: 13px;
   min-width: 250px;
   padding: 13px 18px 13px 13px;
-  border: 1px solid #176274;
+  border: 1px solid #e1ba64;
   border-radius: 14px;
-  background: #176274;
+  background: #e1ba64;
   color: #fff;
   box-shadow: 0 16px 36px rgba(23, 98, 116, 0.2);
   text-decoration: none;
@@ -2827,7 +2802,7 @@ html[data-plotpickle-theme="dark"] .progress-track::-moz-progress-bar {
   overflow: hidden;
   border: 1px solid rgba(120, 175, 186, 0.44);
   border-radius: 22px;
-  background: #fbffff;
+  background: #0b0b0a;
   box-shadow: 0 34px 90px rgba(32, 91, 105, 0.2), 0 2px 0 rgba(255, 255, 255, 0.9) inset;
   transform: perspective(1200px) rotateY(-2deg) rotateX(1deg);
 }
@@ -3262,7 +3237,7 @@ html[data-plotpickle-theme="dark"] .progress-track::-moz-progress-bar {
   margin-bottom: 45px;
   place-items: center;
   border-radius: 50%;
-  background: #dff4ff;
+  background: #10100e;
   color: #32758a;
   font-family: var(--font-mono);
   font-size: 10px;
@@ -3339,8 +3314,8 @@ html[data-plotpickle-theme="dark"] .progress-track::-moz-progress-bar {
   overflow: hidden;
   place-items: center;
   border-radius: 18px 18px 18px 4px;
-  background: #d9f6ea;
-  color: #176274;
+  background: #10100e;
+  color: #e1ba64;
   font-size: 28px;
   font-weight: 800;
 }
@@ -3384,7 +3359,7 @@ html[data-plotpickle-theme="dark"] .progress-track::-moz-progress-bar {
 
 .download-card .download-icon {
   border-color: #b8ded7;
-  background: #d9f6ea;
+  background: #10100e;
 }
 
 .download-card .marketing-text-link {

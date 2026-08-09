@@ -63,16 +63,71 @@ async function renderedSnapshot(client) {
     const navigation = [...document.querySelectorAll('.application-shell-header [data-workspace-id]')]
       .filter(visible)
       .map((node) => (node.textContent || '').replace(/\\s+/g, ' ').trim());
+    const navigationControls = [...document.querySelectorAll('.application-shell-header [data-workspace-id]')].filter(visible);
+    const navigationOverlaps = [];
+    for (let first = 0; first < navigationControls.length; first += 1) {
+      const a = navigationControls[first].getBoundingClientRect();
+      for (let second = first + 1; second < navigationControls.length; second += 1) {
+        const b = navigationControls[second].getBoundingClientRect();
+        const overlapWidth = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+        const overlapHeight = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+        if (overlapWidth > 2 && overlapHeight > 2) {
+          navigationOverlaps.push({
+            first: (navigationControls[first].textContent || '').trim(),
+            second: (navigationControls[second].textContent || '').trim(),
+            width: Math.round(overlapWidth),
+            height: Math.round(overlapHeight)
+          });
+        }
+      }
+    }
     const anchorBox = rect(anchor);
+    const rgb = (value) => {
+      const match = String(value || '').match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/i);
+      return match ? match.slice(1, 4).map(Number) : null;
+    };
+    const hueAndSaturation = ([red, green, blue]) => {
+      const r = red / 255, g = green / 255, b = blue / 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b), delta = max - min;
+      let hue = 0;
+      if (delta) {
+        if (max === r) hue = 60 * (((g - b) / delta) % 6);
+        else if (max === g) hue = 60 * ((b - r) / delta + 2);
+        else hue = 60 * ((r - g) / delta + 4);
+      }
+      if (hue < 0) hue += 360;
+      const lightness = (max + min) / 2;
+      const saturation = delta ? delta / (1 - Math.abs(2 * lightness - 1)) : 0;
+      return { hue, saturation, lightness };
+    };
+    const legacyPalette = [];
+    const properties = ['color', 'backgroundColor', 'borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor'];
+    for (const node of [...document.querySelectorAll('body *')]) {
+      if (!visible(node) || node.matches('img,video,canvas,svg,[data-status],[class*="statusDot"],[class*="status-"]')) continue;
+      const style = getComputedStyle(node);
+      for (const property of properties) {
+        const value = style[property];
+        const channels = rgb(value);
+        if (!channels) continue;
+        const { hue, saturation, lightness } = hueAndSaturation(channels);
+        const retiredCoolColour = saturation > 0.14 && lightness > 0.08 && ((hue >= 158 && hue <= 245) || (hue >= 255 && hue <= 315));
+        if (!retiredCoolColour) continue;
+        legacyPalette.push({ property, value, element: node.tagName.toLowerCase() });
+        if (legacyPalette.length >= 12) break;
+      }
+      if (legacyPalette.length >= 12) break;
+    }
     return {
       rendered: Boolean(document.querySelector('main, [role="main"], .workspace')) && Boolean((document.body.innerText || '').trim()),
       url: location.href,
       theme: document.documentElement.dataset.plotpickleTheme || '',
       activeWorkspace: active?.getAttribute('data-workspace-id') || '',
       navigation,
+      navigationOverlaps,
       projectStrip: visible(document.querySelector('.project-strip, [class*="projectStrip"]')),
       statusSignals: [...document.querySelectorAll('[role="status"], progress, .status-dot, [aria-live]')].filter(visible).length,
       returnControls,
+      legacyPalette,
       anchor: {
         visible: visible(anchor),
         name: anchor ? (anchor.getAttribute('aria-label') || '').trim() : '',

@@ -286,6 +286,9 @@
         "app/application-shell-header.tsx",
         "app/ui-continuity-anchor.tsx",
         "app/ui-continuity-anchor.css",
+        "app/design-tokens.css",
+        "app/approved-visual-system.css",
+        "app/globals.css",
         "app/layout.tsx",
         "config/ui-continuity-agent-registry.json",
         "lib/ui-continuity-audit.mjs",
@@ -293,10 +296,12 @@
         "Start-PlotPickle.bat",
         ".github/workflows/visual.yml",
         "docs/issue-544-ui-continuity-agent.md",
-        "tests/issue-544-ui-continuity-agent.test.mjs"
+        "tests/issue-544-ui-continuity-agent.test.mjs",
+        "tests/issue-546-complete-visual-migration.test.mjs"
       ],
       "suites": [
         "tests/issue-544-ui-continuity-agent.test.mjs",
+        "tests/issue-546-complete-visual-migration.test.mjs",
         "tests/issue-542-full-story-builder.test.mjs",
         "tests/issue-540-uat-continuity.test.mjs",
         "tests/issue-536-navigation-depth.test.mjs",
@@ -310,6 +315,9 @@
         "app/application-shell-header.tsx",
         "app/ui-continuity-anchor.tsx",
         "app/ui-continuity-anchor.css",
+        "app/design-tokens.css",
+        "app/approved-visual-system.css",
+        "app/globals.css",
         "app/layout.tsx",
         "config/ui-continuity-agent-registry.json",
         "config/developer-diagnostics.json",
@@ -319,6 +327,7 @@
         ".github/workflows/visual.yml",
         "docs/issue-544-ui-continuity-agent.md",
         "tests/issue-544-ui-continuity-agent.test.mjs",
+        "tests/issue-546-complete-visual-migration.test.mjs",
         "package.json"
       ]
     },
@@ -655,7 +664,8 @@
         }
       ],
       "tests": [
-        "tests/issue-544-ui-continuity-agent.test.mjs"
+        "tests/issue-544-ui-continuity-agent.test.mjs",
+        "tests/issue-546-complete-visual-migration.test.mjs"
       ]
     },
     "diagnostics.registry": {

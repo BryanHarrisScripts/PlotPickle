@@ -1,0 +1,421 @@
+/* Issue #526 — Phase B creative screens.
+   Continue the approved PlotPickle matte-black / antique-gold / typewriter system.
+   Story imagery stays natural; provider, model and billing controls remain in Settings. */
+
+/* Shared Story Setup / Concept Canvas / 24 Blocks language. */
+html[data-plotpickle-theme="dark"] :is(
+  .editor-page:has(#field-primary-audience),
+  .concept-canvas-page,
+  .blocks-page
+) {
+  color: var(--pp-paper);
+  background: var(--pp-matte) !important;
+  font-family: var(--font-mono), "Courier New", Consolas, monospace;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .editor-page:has(#field-primary-audience),
+  .concept-canvas-page,
+  .blocks-page
+) > .section-heading {
+  margin-bottom: 16px !important;
+  padding: 0 0 14px !important;
+  border-bottom: 1px solid var(--pp-line) !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .editor-page:has(#field-primary-audience),
+  .concept-canvas-page,
+  .blocks-page
+) .section-heading h1 {
+  color: var(--pp-paper) !important;
+  font-family: inherit !important;
+  font-size: clamp(24px, 3vw, 38px) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.025em !important;
+  text-transform: uppercase;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .editor-page:has(#field-primary-audience),
+  .concept-canvas-page,
+  .blocks-page
+) :is(.eyebrow, h3, .field-label, .subsection-title) {
+  color: var(--pp-gold) !important;
+  font-family: inherit !important;
+  letter-spacing: 0.075em !important;
+  text-transform: uppercase;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .editor-page:has(#field-primary-audience),
+  .concept-canvas-page,
+  .blocks-page
+) :is(input, textarea, select) {
+  border: 1px solid #373126 !important;
+  border-radius: 0 !important;
+  background: #080808 !important;
+  color: #e8e1d5 !important;
+  box-shadow: none !important;
+  font-family: inherit !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .editor-page:has(#field-primary-audience),
+  .concept-canvas-page,
+  .blocks-page
+) :is(input, textarea, select):focus {
+  border-color: var(--pp-gold) !important;
+  outline: 1px solid rgba(205, 167, 88, 0.24) !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .editor-page:has(#field-primary-audience),
+  .concept-canvas-page,
+  .blocks-page
+) .field-help {
+  color: #716b62 !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .editor-page:has(#field-primary-audience),
+  .concept-canvas-page,
+  .blocks-page
+) :is(.primary-button, .secondary-button, .small-button) {
+  border: 1px solid var(--pp-gold) !important;
+  border-radius: 0 !important;
+  background: #0b0b0a !important;
+  color: var(--pp-gold-bright) !important;
+  box-shadow: none !important;
+  font-family: inherit !important;
+}
+
+html[data-plotpickle-theme="dark"] :is(
+  .editor-page:has(#field-primary-audience),
+  .concept-canvas-page,
+  .blocks-page
+) :is(.primary-button, .small-button):hover {
+  background: var(--pp-gold) !important;
+  color: #090806 !important;
+  transform: none !important;
+}
+
+/* STORY SETUP — a creative brief, not a configuration form. */
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-primary-audience) {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
+  gap: 12px;
+  padding: 24px clamp(20px, 3vw, 44px) 42px !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-primary-audience) > .section-heading {
+  grid-column: 1 / -1;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-primary-audience) > .form-section {
+  min-width: 0;
+  margin: 0 !important;
+  padding: 16px !important;
+  border: 1px solid var(--pp-line) !important;
+  border-radius: 0 !important;
+  background: var(--pp-panel) !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-primary-audience) > .form-section:first-of-type {
+  border-color: var(--pp-line-strong) !important;
+  background: linear-gradient(180deg, rgba(205, 167, 88, 0.035), transparent 120px), var(--pp-panel) !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-primary-audience) .form-section h3 {
+  margin: 0 0 13px !important;
+  padding-bottom: 9px;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.14);
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-primary-audience) .form-grid {
+  gap: 10px !important;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-primary-audience) .form-field {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #27231c;
+  background: #0a0a09;
+}
+
+html[data-plotpickle-theme="dark"] .editor-page:has(#field-primary-audience) #field-title {
+  border-color: rgba(205, 167, 88, 0.48) !important;
+}
+
+/* CONCEPT CANVAS — preserve incomplete ideas and visual intent before prompting. */
+html[data-plotpickle-theme="dark"] .concept-canvas-page {
+  padding: 24px clamp(20px, 3vw, 44px) 42px !important;
+}
+
+html[data-plotpickle-theme="dark"] .concept-canvas-page > .form-grid {
+  display: grid !important;
+  grid-template-columns: minmax(300px, 0.72fr) minmax(0, 1.28fr) !important;
+  gap: 10px !important;
+}
+
+html[data-plotpickle-theme="dark"] .concept-canvas-page .form-section,
+html[data-plotpickle-theme="dark"] .concept-canvas-page .form-field {
+  min-width: 0;
+  margin: 0 !important;
+  padding: 13px !important;
+  border: 1px solid #2c281f !important;
+  border-radius: 0 !important;
+  background: #0b0b0a !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-theme="dark"] .concept-canvas-page .signal-section {
+  border-color: var(--pp-line-strong) !important;
+  background: linear-gradient(180deg, rgba(205, 167, 88, 0.04), transparent 120px), #0b0b0a !important;
+}
+
+html[data-plotpickle-theme="dark"] .concept-canvas-page .form-field:has(#field-concept-seed) {
+  border-color: rgba(205, 167, 88, 0.52) !important;
+  background: #0d0c09 !important;
+}
+
+html[data-plotpickle-theme="dark"] .concept-canvas-page .form-field:has(#field-concept-seed) textarea {
+  min-height: 150px;
+}
+
+html[data-plotpickle-theme="dark"] .concept-canvas-page .section-heading .small-button {
+  min-height: 36px;
+  padding: 8px 14px !important;
+  background: linear-gradient(180deg, #d0aa58 0%, #a9823b 100%) !important;
+  color: #090806 !important;
+}
+
+html[data-plotpickle-theme="dark"] .concept-canvas-page .subsection-title {
+  padding: 0 0 10px;
+  border-bottom: 1px solid rgba(205, 167, 88, 0.15);
+}
+
+/* 24 BLOCKS / STORY MOMENT — story architecture beside the selected moment. */
+html[data-plotpickle-theme="dark"] .blocks-page {
+  padding: 24px clamp(18px, 2.4vw, 36px) 42px !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .blocks-workspace {
+  display: grid !important;
+  grid-template-columns: minmax(370px, 0.74fr) minmax(0, 1.26fr) !important;
+  gap: 12px !important;
+  align-items: start;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .blocks-map,
+html[data-plotpickle-theme="dark"] .blocks-page .block-inspector {
+  min-width: 0;
+  border: 1px solid var(--pp-line) !important;
+  border-radius: 0 !important;
+  background: var(--pp-panel) !important;
+  box-shadow: none !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .blocks-map {
+  overflow: hidden;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .act-row {
+  margin: 0 !important;
+  padding: 10px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #2a261e !important;
+  border-radius: 0 !important;
+  background: #0a0a09 !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .act-row:last-child {
+  border-bottom: 0 !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .act-row header {
+  display: grid !important;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .act-row header span,
+html[data-plotpickle-theme="dark"] .blocks-page .act-row header small {
+  color: #796f5d !important;
+  font-size: 8px !important;
+  text-transform: uppercase;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .act-row header strong {
+  color: #d7b665 !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .act-row > div {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .block-card {
+  min-width: 0;
+  min-height: 116px;
+  padding: 9px !important;
+  border: 1px solid #2e2a22 !important;
+  border-radius: 0 !important;
+  background: #0c0c0b !important;
+  color: #a39d92 !important;
+  box-shadow: none !important;
+  text-align: left;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .block-card:hover {
+  border-color: rgba(205, 167, 88, 0.42) !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .block-card.active,
+html[data-plotpickle-theme="dark"] .blocks-page .block-card[aria-pressed="true"] {
+  border-color: var(--pp-gold) !important;
+  background: #15120c !important;
+  color: #eee1c2 !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .block-card .block-number {
+  color: var(--pp-gold) !important;
+  font-size: 10px !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .block-card strong {
+  display: block;
+  margin: 5px 0;
+  color: #ddd5c7 !important;
+  font-size: 9px !important;
+  font-weight: 500 !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .block-card p,
+html[data-plotpickle-theme="dark"] .blocks-page .block-card small {
+  color: #6f6a62 !important;
+  font-size: 7px !important;
+  line-height: 1.45;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .block-card i {
+  background: #211f1a !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .block-card i b {
+  background: #9b7937 !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .block-inspector {
+  padding: 14px !important;
+  position: sticky;
+  top: 82px;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .inspector-head {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px !important;
+  align-items: center !important;
+  margin-bottom: 13px !important;
+  padding-bottom: 12px !important;
+  border-bottom: 1px solid #2b271f;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .block-index {
+  display: grid;
+  width: 52px !important;
+  height: 52px !important;
+  place-items: center;
+  border: 1px solid var(--pp-gold) !important;
+  border-radius: 50% !important;
+  background: #0a0907 !important;
+  color: var(--pp-gold-bright) !important;
+  font-size: 17px !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .inspector-head h2 {
+  color: var(--pp-paper) !important;
+  font-family: inherit !important;
+  font-size: 20px !important;
+  font-weight: 500 !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .inspector-head .secondary-button {
+  background: linear-gradient(180deg, #d0aa58 0%, #a9823b 100%) !important;
+  color: #090806 !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page :is(.story-motion-grid, .form-grid, .reference-grid) {
+  gap: 8px !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .form-field,
+html[data-plotpickle-theme="dark"] .blocks-page .reference-grid > div {
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid #29251e;
+  background: #0a0a09;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .reference-grid {
+  margin: 9px 0 !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .chip-list button {
+  border: 1px solid #343027 !important;
+  border-radius: 0 !important;
+  background: #090909 !important;
+  color: #898278 !important;
+  font-family: inherit !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .chip-list button.active,
+html[data-plotpickle-theme="dark"] .blocks-page .chip-list button[aria-pressed="true"] {
+  border-color: var(--pp-gold) !important;
+  background: #15120c !important;
+  color: #e2c47e !important;
+}
+
+html[data-plotpickle-theme="dark"] .blocks-page .form-field:has(#field-story-text),
+html[data-plotpickle-theme="dark"] .blocks-page .form-field:has(#field-storyboard-direction) {
+  border-color: rgba(205, 167, 88, 0.42) !important;
+}
+
+@media (max-width: 1180px) {
+  html[data-plotpickle-theme="dark"] .editor-page:has(#field-primary-audience),
+  html[data-plotpickle-theme="dark"] .concept-canvas-page > .form-grid,
+  html[data-plotpickle-theme="dark"] .blocks-page .blocks-workspace {
+    grid-template-columns: 1fr !important;
+  }
+
+  html[data-plotpickle-theme="dark"] .blocks-page .block-inspector {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  html[data-plotpickle-theme="dark"] .concept-canvas-page > .form-grid,
+  html[data-plotpickle-theme="dark"] .blocks-page .act-row > div {
+    grid-template-columns: 1fr !important;
+  }
+
+  html[data-plotpickle-theme="dark"] .blocks-page .inspector-head {
+    grid-template-columns: auto 1fr !important;
+  }
+
+  html[data-plotpickle-theme="dark"] .blocks-page .inspector-head .secondary-button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}

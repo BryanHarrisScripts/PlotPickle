@@ -55,7 +55,11 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
     return evaluate(`() => {
       const wanted = ${encoded}.trim().toLowerCase();
       const controls = [...document.querySelectorAll('button, a, [role="button"], [role="tab"]')];
-      const control = controls.find((node) => (node.textContent || '').trim().toLowerCase() === wanted);
+      const control = controls.find((node) => {
+        const name = (node.getAttribute('aria-label') || node.textContent || '').trim().toLowerCase();
+        const style = getComputedStyle(node);
+        return name === wanted && style.display !== 'none' && style.visibility !== 'hidden' && node.getClientRects().length > 0;
+      });
       if (!control) return { found: false, disabled: false };
       const disabled = control instanceof HTMLButtonElement ? control.disabled : control.getAttribute('aria-disabled') === 'true';
       return { found: true, disabled };
@@ -68,8 +72,8 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
       const wanted = ${encoded}.trim().toLowerCase();
       const controls = [...document.querySelectorAll('button, a, [role="button"], [role="tab"]')];
       const control = controls.find((node) => {
-        const text = (node.textContent || '').trim().toLowerCase();
-        if (text !== wanted) return false;
+        const name = (node.getAttribute('aria-label') || node.textContent || '').trim().toLowerCase();
+        if (name !== wanted) return false;
         const style = getComputedStyle(node);
         return style.display !== 'none' && style.visibility !== 'hidden' && node.getClientRects().length > 0;
       });

@@ -185,7 +185,7 @@ async function main() {
     const returnedToLibrary = await clickVisible("Complete Learning Library");
     const searchedLibrary = returnedToLibrary && (await fillByLabel("Search screenwriting lessons", "The Pitch")).ok;
     await delay(500);
-    const openedFromSearch = searchedLibrary && await clickVisible("Read full module");
+    const openedFromSearch = searchedLibrary && await clickVisible("Read full module: The Pitch");
     await delay(450);
     snap = await snapshot();
     const openedLesson = openedFromSearch && /The Pitch/i.test(snap) && /Mark module complete/i.test(snap);
@@ -201,7 +201,7 @@ async function main() {
     nav = await gotoWorkspace("Learn", "learn", "learn");
     await delay(500);
     const reSearchedLibrary = nav.ok && (await fillByLabel("Search screenwriting lessons", "The Pitch")).ok;
-    const reopenedAfterReload = reSearchedLibrary && await clickVisible("Read full module");
+    const reopenedAfterReload = reSearchedLibrary && await clickVisible("Read full module: The Pitch");
     await delay(450);
     learnState = await learningState();
     snap = await snapshot();
@@ -432,7 +432,8 @@ async function main() {
     "This Creative Writer UAT runs in Playwright MCP's isolated local browser context against 127.0.0.1 only. It creates a disposable browser-local project, performs no external writes, uses no real credentials, triggers no paid generation, and never edits repository files. Existing user projects outside the isolated UAT browser context are not modified.", "",
   );
   await writeFile(reportPath, lines.join("\n"), "utf8");
-  process.stdout.write(`${lines.join("\n")}\n`);
+  const passed = evidence.filter((item) => item.status === "PASS").length;
+  process.stdout.write(`Creative Writer UAT ${overall}: ${passed} of ${evidence.length} stages passed. Report: ${reportPath}\n`);
   process.exitCode = overall === "FAIL" ? 1 : 0;
 }
 

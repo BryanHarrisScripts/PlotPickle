@@ -50,6 +50,15 @@ test("#540 emits each acceptance report once", async () => {
   assert.equal((launcher.match(/Get-Content -Raw -Encoding UTF8 \$reportPath/g) ?? []).length, 1);
 });
 
+test("#540 verifies splash entry after hydration and links the captured evidence", async () => {
+  const runner = await source("scripts/run-creative-writer-uat.mjs");
+
+  assert.match(runner, /for \(let attempt = 0; attempt < 3; attempt \+= 1\)/);
+  assert.match(runner, /if \(state\.activeId === "dashboard"\) break/);
+  assert.match(runner, /state\?\.activeId !== "dashboard"/);
+  assert.match(runner, /agent-plugin\/creative-writer\/\$\{String\(item\.stage\)/);
+});
+
 test("#540 makes the exact 30-stage UAT part of the blocking Visual gate", async () => {
   const workflow = await source(".github/workflows/visual.yml");
   assert.match(workflow, /Run exact 30-stage Creative Writer UAT/);

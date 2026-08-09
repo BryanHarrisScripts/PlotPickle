@@ -86,12 +86,19 @@ async function main() {
     await navigate(baseUrl);
     await delay(400);
     await screenshot("00-splash");
-    if (!await clickVisible("Enter")) {
+    let state;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await clickVisible("Enter");
+      await delay(750);
+      state = await currentState();
+      if (state.activeId === "dashboard") break;
+    }
+    if (state?.activeId !== "dashboard") {
       await navigate(new URL("/?workspace=dashboard", baseUrl).toString());
       await delay(450);
-      runnerFindings.push("Splash Enter was unavailable; Dashboard deep-link recovery was used.");
+      state = await currentState();
+      runnerFindings.push("Splash Enter did not finish during initial hydration; Dashboard deep-link recovery was used.");
     }
-    let state = await currentState();
     await record(1, "Dashboard", state.activeId === "dashboard" ? "PASS" : "FAIL", "Enter PlotPickle as a first-time visual writer.");
 
     const newProjectClicked = await clickVisible("New Project");
@@ -410,7 +417,7 @@ async function main() {
   for (const item of evidence) {
     const state = item.state || {};
     const context = [state.title, state.activeId, state.blockTitle, `characters ${state.characterCount ?? 0}`, `locations ${state.locationCount ?? 0}`, `script ${state.screenplayCount ?? 0}`].filter(Boolean).join(" · ");
-    lines.push(`| ${item.label} | ${item.status} | ${String(context).replaceAll("|", "\\|")} | creative-writer/${String(item.stage).padStart(2, "0")}-${slug(item.label)}.png |`);
+    lines.push(`| ${item.label} | ${item.status} | ${String(context).replaceAll("|", "\\|")} | agent-plugin/creative-writer/${String(item.stage).padStart(2, "0")}-${slug(item.label)}.png |`);
   }
   lines.push("", "## Learn journey findings", "");
   const learningFindings = evidence.filter((item) => item.stage >= 9 && item.stage <= 16);

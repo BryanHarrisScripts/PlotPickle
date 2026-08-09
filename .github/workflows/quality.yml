@@ -59,6 +59,12 @@ jobs:
           PLOTPICKLE_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         shell: bash
         run: |
+          changed_files="$(git diff --name-only "$PLOTPICKLE_BASE_SHA" "$PLOTPICKLE_HEAD_SHA")"
+          if printf '%s\n' "$changed_files" | grep -Eq '^(app/learning-|app/core-curriculum/|app/learn-first-phase-528\.css$|app/learn-entry-router\.tsx$|scripts/run-creative-writer-uat\.mjs$|config/visual-capture-registry\.json$|docs/wireframes/issue-528-|tests/issue-528-)'; then
+            echo "Learn / Creative Writer files changed; running issue #528 contract first."
+            node --test tests/issue-528-learn-first-uat.test.mjs
+          fi
+
           set +e
           npm run test:changed -- --base "$PLOTPICKLE_BASE_SHA" --head "$PLOTPICKLE_HEAD_SHA"
           status=$?

@@ -547,7 +547,7 @@ function ModuleCard({ module, complete, recommended, onOpen, onToggle }: { modul
     <h3>{module.title}</h3>
     <p>{module.overview}</p>
     <div className={styles.cardStats}><span>{module.duration}</span><span>{module.sections.length} lessons</span>{isAiRevisionLesson(module) ? <span>{module.defaultOperation}</span> : isCollaborationLesson(module) || isWorkingTogetherLesson(module) || isDialogueLesson(module) || isStoryCraftLesson(module) || isCharacterMotionLesson(module) ? <span>{module.workspaceLabel}</span> : <span>Exercise</span>}</div>
-    <div className={styles.cardActions}><button type="button" onClick={onOpen}>Read full module</button><button type="button" className={complete ? styles.complete : ""} onClick={onToggle}>{complete ? "Completed" : "Mark complete"}</button></div>
+    <div className={styles.cardActions}><button type="button" aria-label={`Read full module: ${module.title}`} onClick={onOpen}>Read full module</button><button type="button" aria-label={`${complete ? "Mark incomplete" : "Mark complete"}: ${module.title}`} className={complete ? styles.complete : ""} onClick={onToggle}>{complete ? "Completed" : "Mark complete"}</button></div>
   </article>;
 }
 

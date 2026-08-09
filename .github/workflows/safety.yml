@@ -56,12 +56,12 @@ jobs:
       - name: Scan complete reachable Git history after merge or by request
         if: github.event_name != 'pull_request'
         run: node scripts/public-history-readiness.mjs
-      - name: Detect dependency changes
+      - name: Detect dependency graph changes
         id: dependencies
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
-          if git diff --quiet "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- package.json package-lock.json npm-shrinkwrap.json; then
+          if git diff --quiet "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- package-lock.json npm-shrinkwrap.json; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"

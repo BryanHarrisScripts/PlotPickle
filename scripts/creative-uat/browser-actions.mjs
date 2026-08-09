@@ -36,6 +36,16 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
     };
   }`);
 
+  async function waitForCurrentState(predicate, attempts = 8) {
+    let state = {};
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      state = await currentState();
+      if (predicate(state)) return state;
+      await delay(350);
+    }
+    return state;
+  }
+
   const consoleMessages = async () => {
     if (!has("browser_console_messages")) return "";
     try {
@@ -55,7 +65,11 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
     return evaluate(`() => {
       const wanted = ${encoded}.trim().toLowerCase();
       const controls = [...document.querySelectorAll('button, a, [role="button"], [role="tab"]')];
-      const control = controls.find((node) => (node.textContent || '').trim().toLowerCase() === wanted);
+      const control = controls.find((node) => {
+        const name = (node.getAttribute('aria-label') || node.textContent || '').trim().toLowerCase();
+        const style = getComputedStyle(node);
+        return name === wanted && style.display !== 'none' && style.visibility !== 'hidden' && node.getClientRects().length > 0;
+      });
       if (!control) return { found: false, disabled: false };
       const disabled = control instanceof HTMLButtonElement ? control.disabled : control.getAttribute('aria-disabled') === 'true';
       return { found: true, disabled };
@@ -68,8 +82,8 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
       const wanted = ${encoded}.trim().toLowerCase();
       const controls = [...document.querySelectorAll('button, a, [role="button"], [role="tab"]')];
       const control = controls.find((node) => {
-        const text = (node.textContent || '').trim().toLowerCase();
-        if (text !== wanted) return false;
+        const name = (node.getAttribute('aria-label') || node.textContent || '').trim().toLowerCase();
+        if (name !== wanted) return false;
         const style = getComputedStyle(node);
         return style.display !== 'none' && style.visibility !== 'hidden' && node.getClientRects().length > 0;
       });
@@ -150,7 +164,7 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
 
   async function fillByLabel(label, value) {
     const snap = await snapshot();
-    const ref = extractRef(snap, label, ["textbox", "combobox", "spinbutton"]);
+    const ref = extractRef(snap, label, ["textbox", "searchbox", "combobox", "spinbutton"]);
     if (ref && has("browser_type")) {
       const tool = toolMap.get("browser_type");
       const props = tool?.inputSchema?.properties || {};
@@ -173,6 +187,7 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
       const value = ${encodedValue};
       const generatedId = 'field-' + wanted.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       let control = document.getElementById(generatedId);
+      if (!control) control = [...document.querySelectorAll('input, textarea, select')].find((node) => (node.getAttribute('aria-label') || '').trim() === wanted);
       if (!control) {
         const labels = [...document.querySelectorAll('label')];
         const labelNode = labels.find((node) => (node.textContent || '').trim() === wanted);
@@ -233,16 +248,15 @@ export function createCreativeBrowser(client, tools, { baseUrl, runnerFindings, 
   }
 
   async function gotoWorkspace(label, expectedId, query, pathName = "") {
+    const matchesExpected = (state) => pathName ? String(state.url || "").includes(pathName) : state.activeId === expectedId;
     let clicked = false;
     try { clicked = await clickVisible(label); } catch {}
-    let state = clicked ? await currentState() : {};
-    const matches = pathName ? String(state.url || "").includes(pathName) : state.activeId === expectedId;
-    if (clicked && matches) return { ok: true, method: "visible workspace control", state };
+    let state = clicked ? await waitForCurrentState(matchesExpected) : {};
+    if (clicked && matchesExpected(state)) return { ok: true, method: "visible workspace control", state };
     const url = pathName ? new URL(pathName, baseUrl).toString() : new URL(`/?workspace=${query}`, baseUrl).toString();
     await navigate(url);
-    await delay(500);
-    state = await currentState();
-    const recovered = pathName ? String(state.url || "").includes(pathName) : state.activeId === expectedId;
+    state = await waitForCurrentState(matchesExpected);
+    const recovered = matchesExpected(state);
     return { ok: recovered, method: "direct recovery navigation", state };
   }
 

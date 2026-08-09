@@ -77,6 +77,7 @@ jobs:
             tests/issue-360-dark-compute-hub-dashboard.test.mjs \
             tests/issue-367-creative-director-actions.test.mjs \
             tests/issue-371-visual-capture-ci.test.mjs \
+            tests/issue-540-uat-continuity.test.mjs \
             tests/ui-ux-code-audit-workflow.test.mjs \
             tests/ui-ux-code-audit-required-check.test.mjs \
             tests/windows-native-runtime.test.mjs
@@ -90,12 +91,31 @@ jobs:
       - name: Capture rendered visual inventory
         if: steps.changed.outputs.has_visual == 'true' || github.event_name == 'workflow_dispatch'
         run: node scripts/visual-capture.mjs
+      - name: Run exact 30-stage Creative Writer UAT
+        if: steps.changed.outputs.has_visual == 'true' || github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports/creative-writer-uat
+          npm run dev:local -- --host 127.0.0.1 --port 4173 > reports/creative-writer-uat/app.log 2>&1 &
+          app_pid=$!
+          trap 'kill "$app_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 90); do
+            if curl --fail --silent --show-error http://127.0.0.1:4173 >/dev/null; then break; fi
+            if [[ "$attempt" -eq 90 ]]; then cat reports/creative-writer-uat/app.log; exit 1; fi
+            sleep 1
+          done
+          TMPDIR="$RUNNER_TEMP" node scripts/run-creative-writer-uat.mjs \
+            --base-url http://127.0.0.1:4173 \
+            --artifact-root reports/creative-writer-uat
       - name: Upload rendered visual artifact
         if: always() && (steps.changed.outputs.has_visual == 'true' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: plotpickle-rendered-visuals-${{ github.sha }}
-          path: reports/visual-capture/
+          path: |
+            reports/visual-capture/
+            reports/creative-writer-uat/
           if-no-files-found: error
           retention-days: 14
       - name: Run advisory AI design review

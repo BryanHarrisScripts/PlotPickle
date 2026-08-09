@@ -129,7 +129,7 @@ export default function VisualStoryboard({ project, initialBlockNumber, visualAc
   onChange: (project: PlotPickleProject) => void;
 }) {
   const [mode, setMode] = useState<BoardMode>("blocks");
-  const [activeSection, setActiveSection] = useState<VisualSection>("overview");
+  const [activeSection, setActiveSection] = useState<VisualSection>("blocks");
   const [blockNumber, setBlockNumber] = useState(initialBlockNumber);
   const [miniBlockNumber, setMiniBlockNumber] = useState(1);
   const [working, setWorking] = useState<WorkingState>("idle");

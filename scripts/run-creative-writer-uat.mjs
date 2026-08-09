@@ -86,12 +86,19 @@ async function main() {
     await navigate(baseUrl);
     await delay(400);
     await screenshot("00-splash");
-    if (!await clickVisible("Enter")) {
+    let state;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await clickVisible("Enter");
+      await delay(750);
+      state = await currentState();
+      if (state.activeId === "dashboard") break;
+    }
+    if (state?.activeId !== "dashboard") {
       await navigate(new URL("/?workspace=dashboard", baseUrl).toString());
       await delay(450);
-      runnerFindings.push("Splash Enter was unavailable; Dashboard deep-link recovery was used.");
+      state = await currentState();
+      runnerFindings.push("Splash Enter did not finish during initial hydration; Dashboard deep-link recovery was used.");
     }
-    let state = await currentState();
     await record(1, "Dashboard", state.activeId === "dashboard" ? "PASS" : "FAIL", "Enter PlotPickle as a first-time visual writer.");
 
     const newProjectClicked = await clickVisible("New Project");
@@ -185,7 +192,7 @@ async function main() {
     const returnedToLibrary = await clickVisible("Complete Learning Library");
     const searchedLibrary = returnedToLibrary && (await fillByLabel("Search screenwriting lessons", "The Pitch")).ok;
     await delay(500);
-    const openedFromSearch = searchedLibrary && await clickVisible("Read full module");
+    const openedFromSearch = searchedLibrary && await clickVisible("Read full module: The Pitch");
     await delay(450);
     snap = await snapshot();
     const openedLesson = openedFromSearch && /The Pitch/i.test(snap) && /Mark module complete/i.test(snap);
@@ -201,7 +208,7 @@ async function main() {
     nav = await gotoWorkspace("Learn", "learn", "learn");
     await delay(500);
     const reSearchedLibrary = nav.ok && (await fillByLabel("Search screenwriting lessons", "The Pitch")).ok;
-    const reopenedAfterReload = reSearchedLibrary && await clickVisible("Read full module");
+    const reopenedAfterReload = reSearchedLibrary && await clickVisible("Read full module: The Pitch");
     await delay(450);
     learnState = await learningState();
     snap = await snapshot();
@@ -382,7 +389,9 @@ async function main() {
     await record(29, "Reports Context Return", ok ? "PASS" : "FAIL", ok ? "A Reports context drill-down returned to the named Project report with the same project." : "The report drill-down could not return to its named report.");
 
     nav = await gotoWorkspace("Settings", "settings", "settings");
-    const openedLocalMode = nav.ok && nav.method === "visible workspace control" && await clickVisible("Open local setup");
+    const openedModeComparison = nav.ok && nav.method === "visible workspace control" && await clickVisible("Compare roles");
+    await delay(500);
+    const openedLocalMode = openedModeComparison && await clickVisible("Open local setup");
     await delay(500);
     const returnedToModes = openedLocalMode && await clickVisible("Back to modes");
     await delay(500);
@@ -410,7 +419,7 @@ async function main() {
   for (const item of evidence) {
     const state = item.state || {};
     const context = [state.title, state.activeId, state.blockTitle, `characters ${state.characterCount ?? 0}`, `locations ${state.locationCount ?? 0}`, `script ${state.screenplayCount ?? 0}`].filter(Boolean).join(" · ");
-    lines.push(`| ${item.label} | ${item.status} | ${String(context).replaceAll("|", "\\|")} | creative-writer/${String(item.stage).padStart(2, "0")}-${slug(item.label)}.png |`);
+    lines.push(`| ${item.label} | ${item.status} | ${String(context).replaceAll("|", "\\|")} | agent-plugin/creative-writer/${String(item.stage).padStart(2, "0")}-${slug(item.label)}.png |`);
   }
   lines.push("", "## Learn journey findings", "");
   const learningFindings = evidence.filter((item) => item.stage >= 9 && item.stage <= 16);
@@ -432,7 +441,8 @@ async function main() {
     "This Creative Writer UAT runs in Playwright MCP's isolated local browser context against 127.0.0.1 only. It creates a disposable browser-local project, performs no external writes, uses no real credentials, triggers no paid generation, and never edits repository files. Existing user projects outside the isolated UAT browser context are not modified.", "",
   );
   await writeFile(reportPath, lines.join("\n"), "utf8");
-  process.stdout.write(`${lines.join("\n")}\n`);
+  const passed = evidence.filter((item) => item.status === "PASS").length;
+  process.stdout.write(`Creative Writer UAT ${overall}: ${passed} of ${evidence.length} stages passed. Report: ${reportPath}\n`);
   process.exitCode = overall === "FAIL" ? 1 : 0;
 }
 

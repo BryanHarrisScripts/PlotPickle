@@ -1262,7 +1262,7 @@ function StoryRail({ project, workspace, activeSection, selectSection }: { proje
               const symbol = alert ? "!" : sectionProgress >= 70 ? "✓" : sectionProgress > 0 ? "◐" : "○";
               const status = alert ? "Open question or continuity item" : sectionProgress >= 70 ? "Substantially complete" : sectionProgress > 0 ? "In progress" : "Not started";
               return (
-                <button type="button" aria-current={activeSection === section.id ? "page" : undefined} className={activeSection === section.id ? "active" : ""} key={section.id} onClick={() => selectSection(section.id)}>
+                <button type="button" aria-label={section.label} aria-current={activeSection === section.id ? "page" : undefined} className={activeSection === section.id ? "active" : ""} key={section.id} onClick={() => selectSection(section.id)}>
                   <span>{section.code}</span>
                   <strong>{section.label}</strong>
                   <i className={alert ? "rail-progress alert" : "rail-progress"} aria-label={`${status}: ${sectionProgress}%`}>{symbol}</i>

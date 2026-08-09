@@ -75,6 +75,7 @@ jobs:
             tests/issue-528-learn-first-uat.test.mjs \
             tests/issue-529-storyboard-decision-discoverability.test.mjs \
             tests/issue-536-navigation-visual-uat.test.mjs \
+            tests/issue-540-uat-continuity.test.mjs \
             tests/issue-538-ci-consolidation.test.mjs
       - name: Run complete regression after merge or by request
         if: github.event_name != 'pull_request'

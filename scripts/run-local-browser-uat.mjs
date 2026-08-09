@@ -567,7 +567,8 @@ async function main() {
   );
 
   await writeFile(reportPath, lines.join("\n"), "utf8");
-  process.stdout.write(`${lines.join("\n")}\n`);
+  const passed = evidence.filter((item) => item.status === "PASS").length;
+  process.stdout.write(`Local Human UAT ${overall}: ${passed} of ${evidence.length} stages passed. Report: ${reportPath}\n`);
   process.exitCode = overall === "FAIL" ? 1 : 0;
 }
 

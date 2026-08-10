@@ -70,6 +70,16 @@ test("issue #113 keeps Settings configuration outside the story-first Dashboard"
   assert.match(settings, /plotpickle:settings-section/);
 });
 
+test("issue #113 dashboard progress tolerates legacy projects missing Concept Canvas data", async () => {
+  const progress = await source("lib/project-progress.ts");
+  assert.match(progress, /createBlankDevelopment/);
+  assert.match(progress, /developmentWithDefaults/);
+  assert.match(progress, /development\.conceptCanvas\.conceptText/);
+  assert.doesNotMatch(progress, /project\.development\.conceptCanvas\.conceptText/);
+  assert.match(progress, /development\.visualReferences/);
+  assert.match(progress, /const notes = developmentWithDefaults\(project\)\.notes/);
+});
+
 test("issue #113 test is registered", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   assert.match(packageJson.scripts.test, /issue-113-dashboard-command-centre\.test\.mjs/);

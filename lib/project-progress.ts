@@ -1,4 +1,4 @@
-import { completionFor, type PlotPickleProject, type StoryBlock } from "./project";
+import { completionFor, createBlankDevelopment, type PlotPickleProject, type StoryBlock } from "./project";
 
 export type ProjectProgressSection =
   | "overview"
@@ -69,8 +69,31 @@ function blockProgress(block: StoryBlock) {
   ]);
 }
 
+function developmentWithDefaults(project: PlotPickleProject) {
+  const defaults = createBlankDevelopment();
+  const development = project.development ?? defaults;
+  return {
+    conceptCanvas: { ...defaults.conceptCanvas, ...(development.conceptCanvas ?? {}) },
+    visualReferences: Array.isArray(development.visualReferences) ? development.visualReferences : [],
+    storySetup: { ...defaults.storySetup, ...(development.storySetup ?? {}) },
+    pitch: { ...defaults.pitch, ...(development.pitch ?? {}) },
+    ghost: { ...defaults.ghost, ...(development.ghost ?? {}) },
+    catalyst: { ...defaults.catalyst, ...(development.catalyst ?? {}) },
+    foundations: { ...defaults.foundations, ...(development.foundations ?? {}) },
+    pickle: { ...defaults.pickle, ...(development.pickle ?? {}) },
+    dialogue: { ...defaults.dialogue, ...(development.dialogue ?? {}) },
+    notes: { ...defaults.notes, ...(development.notes ?? {}) },
+  };
+}
+
 export function projectSectionProgress(project: PlotPickleProject): Record<ProjectProgressSection, number> {
-  const characterScores = project.characters.map((character) =>
+  const development = developmentWithDefaults(project);
+  const safeProject = { ...project, development } as PlotPickleProject;
+  const characters = Array.isArray(project.characters) ? project.characters : [];
+  const blocks = Array.isArray(project.blocks) ? project.blocks : [];
+  const sequences = Array.isArray(project.structure?.sequences) ? project.structure.sequences : [];
+
+  const characterScores = characters.map((character) =>
     score([
       character.name,
       character.role,
@@ -84,7 +107,7 @@ export function projectSectionProgress(project: PlotPickleProject): Record<Proje
     ]),
   );
 
-  const sequenceScores = project.structure.sequences.map((sequence) =>
+  const sequenceScores = sequences.map((sequence) =>
     score([
       sequence.question,
       sequence.promise,
@@ -95,15 +118,15 @@ export function projectSectionProgress(project: PlotPickleProject): Record<Proje
     ]),
   );
 
-  const sceneScores = project.blocks.flatMap((block) =>
-    block.scenes.map((scene) =>
+  const sceneScores = blocks.flatMap((block) =>
+    (Array.isArray(block.scenes) ? block.scenes : []).map((scene) =>
       score([scene.objective, scene.conflict, scene.turn, scene.resolution, scene.outcome]),
     ),
   );
 
-  const miniBlockScores = project.blocks.flatMap((block) =>
-    block.scenes.flatMap((scene) =>
-      scene.miniBlocks.map((mini) =>
+  const miniBlockScores = blocks.flatMap((block) =>
+    (Array.isArray(block.scenes) ? block.scenes : []).flatMap((scene) =>
+      (Array.isArray(scene.miniBlocks) ? scene.miniBlocks : []).map((mini) =>
         score([
           mini.purpose,
           mini.objective,
@@ -118,127 +141,134 @@ export function projectSectionProgress(project: PlotPickleProject): Record<Proje
     ),
   );
 
-  const storyboardScores = project.blocks.map((block) => {
-    const frameScore = block.visuals.length
-      ? average(block.visuals.map((frame) => score([frame.caption, frame.prompt, frame.shot, frame.continuity])))
+  const storyboardScores = blocks.map((block) => {
+    const visuals = Array.isArray(block.visuals) ? block.visuals : [];
+    const frameScore = visuals.length
+      ? average(visuals.map((frame) => score([frame.caption, frame.prompt, frame.shot, frame.continuity])))
       : 0;
     return average([score([block.storyboardDirection]), frameScore]);
   });
 
+  const metadata = project.metadata ?? ({} as PlotPickleProject["metadata"]);
+  const story = project.story ?? ({} as PlotPickleProject["story"]);
+  const world = project.world ?? ({} as PlotPickleProject["world"]);
+  const locations = Array.isArray(world.locations) ? world.locations : [];
+  const storyThreads = Array.isArray(project.storyThreads) ? project.storyThreads : [];
+  const revisions = Array.isArray(project.revisions) ? project.revisions : [];
+  const rights = project.rights ?? ({} as PlotPickleProject["rights"]);
+
   return {
-    overview: completionFor(project),
+    overview: completionFor(safeProject),
     storySetup: score([
-      project.metadata.title,
-      project.metadata.format,
-      project.metadata.targetMinutes,
-      project.development.storySetup.audience,
-      project.development.storySetup.contentRating,
-      project.development.storySetup.language,
-      project.development.storySetup.scope,
-      project.development.storySetup.collaborators,
+      metadata.title,
+      metadata.format,
+      metadata.targetMinutes,
+      development.storySetup.audience,
+      development.storySetup.contentRating,
+      development.storySetup.language,
+      development.storySetup.scope,
+      development.storySetup.collaborators,
     ]),
     concept: score([
-      project.development.conceptCanvas.conceptText,
-      project.development.conceptCanvas.emotionalPurpose,
-      project.development.conceptCanvas.audienceExperience,
-      project.development.conceptCanvas.desiredVisualImpact,
-      project.development.conceptCanvas.mustKeepConstraints,
-      project.development.conceptCanvas.openExploration,
-      project.development.conceptCanvas.targetLabel,
+      development.conceptCanvas.conceptText,
+      development.conceptCanvas.emotionalPurpose,
+      development.conceptCanvas.audienceExperience,
+      development.conceptCanvas.desiredVisualImpact,
+      development.conceptCanvas.mustKeepConstraints,
+      development.conceptCanvas.openExploration,
+      development.conceptCanvas.targetLabel,
     ]),
     references: score([
-      project.development.visualReferences.length,
-      project.development.visualReferences.some((reference) => isFilled(reference.title)),
-      project.development.visualReferences.some((reference) => isFilled(reference.sourceUrl) || isFilled(reference.importFileName)),
-      project.development.visualReferences.some((reference) => reference.purpose !== "inspiration"),
-      project.development.visualReferences.some((reference) => reference.rightsStatus !== "unknown"),
-      project.development.visualReferences.some((reference) => isFilled(reference.permittedUse)),
-      project.development.visualReferences.some((reference) => isFilled(reference.attribution)),
-      project.development.visualReferences.some((reference) => isFilled(reference.targetLabel)),
+      development.visualReferences.length,
+      development.visualReferences.some((reference) => isFilled(reference.title)),
+      development.visualReferences.some((reference) => isFilled(reference.sourceUrl) || isFilled(reference.importFileName)),
+      development.visualReferences.some((reference) => reference.purpose !== "inspiration"),
+      development.visualReferences.some((reference) => reference.rightsStatus !== "unknown"),
+      development.visualReferences.some((reference) => isFilled(reference.permittedUse)),
+      development.visualReferences.some((reference) => isFilled(reference.attribution)),
+      development.visualReferences.some((reference) => isFilled(reference.targetLabel)),
     ]),
     pitch: score([
-      project.story.premise,
-      project.story.logline,
-      project.development.pitch.oneSentence,
-      project.development.pitch.shortPitch,
-      project.development.pitch.audiencePromise,
-      project.development.pitch.emotionalExperience,
-      project.development.pitch.comparableTitles,
-      project.development.pitch.visualVision,
+      story.premise,
+      story.logline,
+      development.pitch.oneSentence,
+      development.pitch.shortPitch,
+      development.pitch.audiencePromise,
+      development.pitch.emotionalExperience,
+      development.pitch.comparableTitles,
+      development.pitch.visualVision,
     ]),
     world: score([
-      project.world.ordinaryWorld,
-      project.world.newWorld,
-      project.world.period,
-      project.world.history,
-      project.world.cultures,
-      project.world.rules,
-      project.world.technology,
-      project.world.visualLanguage,
-      project.world.locations.some((location) => isFilled(location.description)),
+      world.ordinaryWorld,
+      world.newWorld,
+      world.period,
+      world.history,
+      world.cultures,
+      world.rules,
+      world.technology,
+      world.visualLanguage,
+      locations.some((location) => isFilled(location.description)),
     ]),
     characters: average(characterScores),
     ghost: score([
-      project.development.ghost.centralWound,
-      project.development.ghost.origin,
-      project.development.ghost.lie,
-      project.development.ghost.trigger,
-      project.development.ghost.presentPattern,
-      project.development.ghost.truth,
+      development.ghost.centralWound,
+      development.ghost.origin,
+      development.ghost.lie,
+      development.ghost.trigger,
+      development.ghost.presentPattern,
+      development.ghost.truth,
     ]),
     catalyst: score([
-      project.story.catalyst,
-      project.development.catalyst.event,
-      project.development.catalyst.timing,
-      project.development.catalyst.immediateImpact,
-      project.development.catalyst.choiceForced,
-      project.development.catalyst.resistance,
-      project.development.catalyst.doorway,
+      story.catalyst,
+      development.catalyst.event,
+      development.catalyst.timing,
+      development.catalyst.immediateImpact,
+      development.catalyst.choiceForced,
+      development.catalyst.resistance,
+      development.catalyst.doorway,
     ]),
     foundations: score([
-      project.development.foundations.protagonist,
-      project.development.foundations.objective,
-      project.development.foundations.opposition,
-      project.development.foundations.urgency,
-      project.development.foundations.storyEngine,
-      project.development.foundations.transformation,
-      project.development.foundations.endingProof,
-      project.story.theme,
-      project.story.dramaticQuestion,
-      project.story.stakes,
+      development.foundations.protagonist,
+      development.foundations.objective,
+      development.foundations.opposition,
+      development.foundations.urgency,
+      development.foundations.storyEngine,
+      development.foundations.transformation,
+      development.foundations.endingProof,
+      story.theme,
+      story.dramaticQuestion,
+      story.stakes,
     ]),
-    pickle: score(Object.values(project.development.pickle)),
+    pickle: score(Object.values(development.pickle)),
     dialogue: score([
-      project.development.dialogue.principles,
-      project.development.dialogue.voiceContrast,
-      project.development.dialogue.subtext,
-      project.development.dialogue.expositionRules,
-      project.development.dialogue.recurringLanguage,
-      project.development.dialogue.worldVernacular,
-      project.development.dialogue.monologueRules,
-      project.development.dialogue.subtextSeeds,
-      project.development.dialogue.fieldworkNotes,
-      project.characters.some((character) => isFilled(character.voice)),
+      development.dialogue.principles,
+      development.dialogue.voiceContrast,
+      development.dialogue.subtext,
+      development.dialogue.expositionRules,
+      development.dialogue.recurringLanguage,
+      development.dialogue.worldVernacular,
+      development.dialogue.monologueRules,
+      development.dialogue.subtextSeeds,
+      development.dialogue.fieldworkNotes,
+      characters.some((character) => isFilled(character.voice)),
     ]),
     coreModel: average([
-      score([project.storyThreads.length]),
-      average(project.characters.map((character) => score(Object.values(character.arcMatrix ?? {})))),
-      score([project.rights.projectOwner, project.rights.rightsStatement, project.rights.defaultCreativeLicence]),
-      score([project.revisions.length]),
+      score([storyThreads.length]),
+      average(characters.map((character) => score(Object.values(character.arcMatrix ?? {})))),
+      score([rights.projectOwner, rights.rightsStatement, rights.defaultCreativeLicence]),
+      score([revisions.length]),
     ]),
     structureMap: average([...sequenceScores, ...sceneScores, ...miniBlockScores]),
-    blocks: average(project.blocks.map(blockProgress)),
+    blocks: average(blocks.map(blockProgress)),
     storyboard: average(storyboardScores),
-    notes: score(Object.values(project.development.notes)),
+    notes: score(Object.values(development.notes)),
   };
 }
 
 export function sectionHasAlert(project: PlotPickleProject, section: ProjectProgressSection) {
   if (section !== "notes") return false;
-  return Boolean(
-    project.development.notes.openQuestions.trim() ||
-      project.development.notes.continuity.trim(),
-  );
+  const notes = developmentWithDefaults(project).notes;
+  return Boolean(notes.openQuestions.trim() || notes.continuity.trim());
 }
 
 export function nextRecommendedSection(project: PlotPickleProject) {

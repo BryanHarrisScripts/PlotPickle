@@ -140,7 +140,7 @@ export async function runAgent({ server = DEFAULT_SERVER, once = false, fetchImp
   agentLoaded({
     name: "PlotPickle Full Story Builder",
     purpose: "Continue the active Learn story into a complete local 120-page-target project across 24 Blocks and 96 mini-blocks.",
-    instructions: "In PlotPickle, develop your story in Learn, then use Full Story Builder to complete that same story and save it into the local Story Archive.",
+    instructions: "In PlotPickle, develop your story in Learn > Full Story Builder, then complete that same story and save it into the local Story Archive.",
   });
   process.stdout.write(`Local server: ${server}\n`);
   process.stdout.write("Cloud text generation is disabled. Paid visuals require exact per-job consent.\n\n");
@@ -151,7 +151,7 @@ export async function runAgent({ server = DEFAULT_SERVER, once = false, fetchImp
         await jsonRequest(server, "/api/full-story-builder/worker/heartbeat", "POST", { workerId }, fetchImpl);
         nextHeartbeat = now + HEARTBEAT_MS;
       }
-      if (!wasReady) agentStatus("WAITING FOR INSTRUCTIONS", "Develop a story in Learn, then select Build the complete story. Do not type instructions into this window.");
+      if (!wasReady) agentStatus("WAITING FOR INSTRUCTIONS", "Open Learn > Full Story Builder, develop your story, then select Build the complete story. Do not type instructions into this window.");
       wasReady = true;
       unavailableSince = 0;
       const claimed = await jsonRequest(server, "/api/full-story-builder/jobs/claim", "POST", { workerId }, fetchImpl);

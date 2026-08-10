@@ -10,6 +10,7 @@ const PROJECT_KEY = "plotpickle.project.v1";
 type VisualMode = "prompts-only" | "local-if-available" | "paid-cloud";
 type PublicJob = { id: string; status: "queued" | "running" | "completed" | "failed"; title: string; stage: string; progress: number; warnings: string[]; error: string; fileName: string; result: null | { targetPages?: number; estimatedPages?: number; blockCount?: number; miniBlockCount?: number; screenplayWordCount?: number; visualCount?: number; archived?: boolean; continuedProjectId?: string } };
 type BuilderStatus = { available: boolean; worker: null | { id: string; lastSeenAt: string }; jobs: PublicJob[] };
+type UnknownRecord = Record<string, unknown>;
 
 const initialBrief = {
   title: "", premise: "", genre: "Character-driven speculative mystery", tone: "Tense, intimate and visually tactile, with earned warmth", protagonist: "", protagonistGoal: "", opposition: "", theme: "", setting: "", visualLanguage: "Matte charcoal interiors, weathered brass, hard window light, handmade maps and restrained amber accents", audience: "Adult and crossover audiences", contentRating: "PG-13", language: "English", projectOwner: "",
@@ -22,12 +23,12 @@ async function requestJson(pathname: string, init?: RequestInit) {
   return body as Record<string, unknown>;
 }
 
-function object(value: unknown): Record<string, any> { return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, any> : {}; }
+function object(value: unknown): UnknownRecord { return value && typeof value === "object" && !Array.isArray(value) ? value as UnknownRecord : {}; }
 function text(value: unknown, fallback = "") { return typeof value === "string" && value.trim() ? value.trim() : fallback; }
 function activeProjectBrief(projectInput: unknown, fallback: typeof initialBrief) {
   const project = object(projectInput); const story = object(project.story); const world = object(project.world); const metadata = object(project.metadata); const rights = object(project.rights);
-  const characters = Array.isArray(project.characters) ? project.characters : []; const protagonist = characters.find((item) => /protagonist/i.test(String(item?.role || ""))) || characters[0] || {};
-  const locations = Array.isArray(world.locations) ? world.locations : []; const location = locations[0] || {};
+  const characters = Array.isArray(project.characters) ? project.characters.map(object) : []; const protagonist = characters.find((item) => /protagonist/i.test(String(item.role || ""))) || characters[0] || {};
+  const locations = Array.isArray(world.locations) ? world.locations.map(object) : []; const location = locations[0] || {};
   return {
     title: text(metadata.title || project.title || story.title, fallback.title), premise: text(story.premise || story.logline, fallback.premise), genre: text(metadata.genre || story.genre, fallback.genre), tone: text(story.tone || world.tone, fallback.tone), protagonist: text(protagonist.name, fallback.protagonist), protagonistGoal: text(protagonist.want || story.protagonistGoal, fallback.protagonistGoal), opposition: text(story.opposition || story.antagonist, fallback.opposition), theme: text(story.theme, fallback.theme), setting: text(location.name || world.ordinaryWorld || world.newWorld, fallback.setting), visualLanguage: text(world.visualLanguage, fallback.visualLanguage), audience: text(metadata.audience || story.audience, fallback.audience), contentRating: text(metadata.contentRating, fallback.contentRating), language: text(metadata.language, fallback.language), projectOwner: text(rights.projectOwner, fallback.projectOwner),
   };

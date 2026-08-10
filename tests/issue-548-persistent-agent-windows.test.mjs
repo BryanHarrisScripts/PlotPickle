@@ -45,6 +45,21 @@ test("#548 keeps companion windows open without blocking the PlotPickle server",
   assert.match(uat, /Read-Host "Press Enter to close the Creative Writer UAT window"/);
 });
 
+test("#550 Production Supervisor keeps video preparation visible and paid generation consent-gated", async () => {
+  const [launcher, supervisor, video] = await Promise.all([
+    read("Start-Production-Supervisor.bat"),
+    read("scripts/production-supervisor-agent.mjs"),
+    read("scripts/video-production-agent.mjs"),
+  ]);
+  assert.match(launcher, /VIDEO_AGENT=scripts\\video-production-agent\.mjs/);
+  assert.match(launcher, /start "PlotPickle Video Production Agent" node "%VIDEO_AGENT%" --server "%PLOTPICKLE_URL%" --stay-open/);
+  assert.match(launcher, /does not .*authorize paid generation/i);
+  assert.match(supervisor, /video-and-animatic-production/);
+  assert.match(video, /Automatic startup never grants paid consent or data-sharing consent/);
+  assert.match(video, /Submission remains a separate explicit production action/);
+  assert.doesNotMatch(video, /method:\s*["']POST["'][\s\S]{0,160}\/api\/local-ai\/generate\/video/);
+});
+
 test("#548 is registered in the complete suite, diagnostics and Visual gate", async () => {
   const [packageJson, diagnostics, workflow] = await Promise.all([
     read("package.json"),

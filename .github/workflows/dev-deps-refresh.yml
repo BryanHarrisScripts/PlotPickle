@@ -1,0 +1,52 @@
+name: Refresh grouped development dependencies
+
+on:
+  push:
+    branches: [deps/dev-dependencies-2026-08-10]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: deps/dev-dependencies-2026-08-10
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22.19.0"
+      - name: Refresh package metadata and lockfile
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = 'package.json';
+          const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const target = {
+            '@cloudflare/vite-plugin': '1.51.1',
+            '@vitejs/plugin-rsc': '0.5.34',
+            'eslint-config-next': '16.3.0',
+            'vite': '8.2.1',
+            'wrangler': '4.120.0'
+          };
+          const alreadyCurrent = Object.entries(target).every(([name, version]) => pkg.devDependencies?.[name] === version);
+          if (alreadyCurrent) {
+            fs.writeFileSync('.deps-already-current', 'yes');
+            process.exit(0);
+          }
+          for (const [name, version] of Object.entries(target)) pkg.devDependencies[name] = version;
+          fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
+          NODE
+          if [ -f .deps-already-current ]; then
+            echo "Grouped development dependencies already refreshed."
+            exit 0
+          fi
+          npm install --package-lock-only --ignore-scripts
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore(deps): refresh grouped development dependencies"
+          git push origin HEAD:deps/dev-dependencies-2026-08-10

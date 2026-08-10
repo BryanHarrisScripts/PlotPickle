@@ -20,6 +20,7 @@ if (server.protocol !== "http:" || !["127.0.0.1", "localhost"].includes(server.h
 
 const registry = [
   { agentId: "full-story-builder", capability: "story-build", script: "scripts/full-story-builder-agent.mjs", acceptedJobTypes: ["story-build", "follow-up"] },
+  { agentId: "visual-production", capability: "poster-and-image-production", script: "scripts/visual-production-agent.mjs", acceptedJobTypes: ["image", "follow-up"] },
   { agentId: "ui-continuity", capability: "ui-continuity", script: "scripts/ui-continuity-agent.mjs", acceptedJobTypes: ["ui-continuity", "follow-up"] },
   { agentId: "creative-writer-uat", capability: "uat", script: "scripts/run-creative-writer-uat.ps1", acceptedJobTypes: ["uat", "follow-up"] },
 ];

@@ -80,6 +80,16 @@ test("issue #113 dashboard progress tolerates legacy projects missing Concept Ca
   assert.match(progress, /const notes = developmentWithDefaults\(project\)\.notes/);
 });
 
+test("issue #113 Project Overview tolerates legacy projects missing Concept Canvas and nested scene arrays", async () => {
+  const overview = await source("app/project-overview.tsx");
+  assert.match(overview, /createBlankDevelopment/);
+  assert.match(overview, /project\.development\?\.conceptCanvas \?\?/);
+  assert.match(overview, /conceptCanvas\.desiredVisualImpact\?\.trim\(\) \?\? ""/);
+  assert.doesNotMatch(overview, /project\.development\.conceptCanvas\.desiredVisualImpact/);
+  assert.match(overview, /block\.scenes \?\? \[\]/);
+  assert.match(overview, /scene\.miniBlocks \?\? \[\]/);
+});
+
 test("issue #113 test is registered", async () => {
   const packageJson = JSON.parse(await source("package.json"));
   assert.match(packageJson.scripts.test, /issue-113-dashboard-command-centre\.test\.mjs/);

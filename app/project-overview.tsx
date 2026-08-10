@@ -1,4 +1,4 @@
-import type { PlotPickleProject } from "@/lib/project";
+import { createBlankDevelopment, type PlotPickleProject } from "@/lib/project";
 import {
   nextRecommendedSection,
   projectSectionProgress,
@@ -70,7 +70,7 @@ function averageProgress(
 }
 
 function blockHasWork(block: PlotPickleProject["blocks"][number]) {
-  return Boolean(block.summary || block.goal || block.conflict || block.scenes.length);
+  return Boolean(block.summary || block.goal || block.conflict || (block.scenes?.length ?? 0));
 }
 
 function openStoryMoment(workspace: "storyboard" | "write", blockNumber: number, miniBlockNumber: number, sceneId = "") {
@@ -101,10 +101,12 @@ export default function ProjectOverview({
   const currentBlock = developedBlocks[developedBlocks.length - 1] ?? project.blocks[0];
   const currentAct = Math.max(1, Math.min(4, currentBlock?.act || Math.ceil((currentBlock?.number || 1) / 6)));
   const currentScenes = currentBlock?.scenes ?? [];
-  const currentMiniBlocks = currentScenes.flatMap((scene) => scene.miniBlocks);
-  const allScenes = project.blocks.flatMap((block) => block.scenes);
-  const allMiniBlocks = allScenes.flatMap((scene) => scene.miniBlocks);
-  const visualIntention = project.development.conceptCanvas.desiredVisualImpact?.trim();
+  const currentMiniBlocks = currentScenes.flatMap((scene) => scene.miniBlocks ?? []);
+  const allScenes = project.blocks.flatMap((block) => block.scenes ?? []);
+  const allMiniBlocks = allScenes.flatMap((scene) => scene.miniBlocks ?? []);
+  const developmentDefaults = createBlankDevelopment();
+  const conceptCanvas = project.development?.conceptCanvas ?? developmentDefaults.conceptCanvas;
+  const visualIntention = conceptCanvas.desiredVisualImpact?.trim() ?? "";
   const storyPromise = project.story.premise?.trim() || "Define the central story promise, pressure and transformation.";
 
   return (
@@ -230,7 +232,7 @@ export default function ProjectOverview({
             <div className={styles.miniGrid}>
               {[1, 2, 3, 4].map((mini) => {
                 const existing = currentMiniBlocks.find((entry) => entry.number === mini);
-                const scene = currentScenes.find((entry) => entry.miniBlocks.some((candidate) => candidate.number === mini));
+                const scene = currentScenes.find((entry) => (entry.miniBlocks ?? []).some((candidate) => candidate.number === mini));
                 return (
                   <div className={existing ? styles.miniStarted : ""} key={mini}>
                     <span>{String((currentBlock.number - 1) * 4 + mini).padStart(2, "0")}</span>

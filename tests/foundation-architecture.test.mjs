@@ -70,3 +70,16 @@ test("the LEARN module owns the interaction without importing legacy app code", 
   assert.match(workspace, /localStorage/);
   assert.doesNotMatch(workspace, /from ["'](?:@\/)?app\//);
 });
+
+test("Creative Room retrieval is injected and searches the complete curriculum", async () => {
+  const [page, guide, workspace] = await Promise.all([
+    read("app/page.tsx"),
+    read("modules/creative-room/curriculum-guide.ts"),
+    read("modules/learn/ui/learn-workspace.tsx"),
+  ]);
+  assert.match(page, /guide=\{answerFromCurriculum\}/);
+  assert.match(guide, /curriculum\.map/);
+  assert.match(guide, /sourceLessonIds/);
+  assert.match(workspace, /readonly guide: CurriculumGuide/);
+  assert.doesNotMatch(workspace, /modules\/creative-room/);
+});

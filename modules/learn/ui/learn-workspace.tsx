@@ -9,7 +9,7 @@ import { createEmptyProject, type PPFProject } from "../../../core/project/proje
 import styles from "./learn-workspace.module.css";
 
 const PROJECT_KEY = "plotpickle.foundation.project.v1";
-const THREAD_PREFIX = "plotpickle.foundation.thread.";
+const THREAD_PREFIX = "plotpickle.foundation.thread.v2.";
 
 const WORKFLOW_STAGES = [
   { id: "dashboard", mark: "D", label: "Dashboard", detail: "Start here" },
@@ -29,6 +29,7 @@ type Message = {
   readonly id: string;
   readonly role: "writer" | "guide";
   readonly text: string;
+  readonly sourceLessonIds?: readonly string[];
 };
 
 function newId(prefix: string) {
@@ -52,7 +53,14 @@ function loadProject(): PPFProject {
 function loadMessages(threadId: string): Message[] {
   try {
     const saved = localStorage.getItem(`${THREAD_PREFIX}${threadId}`);
-    return saved ? (JSON.parse(saved) as Message[]) : [];
+    if (!saved) return [];
+    const parsed = JSON.parse(saved) as Message[];
+    return parsed.filter((message) => (
+      message
+      && (message.role === "writer" || message.role === "guide")
+      && typeof message.text === "string"
+      && message.text.length <= 2_400
+    )).slice(-30);
   } catch {
     return [];
   }
@@ -116,6 +124,14 @@ export default function LearnWorkspace({
     });
   }
 
+  function startFreshConversation() {
+    if (!project?.creativeRoom.threadId || working) return;
+    localStorage.removeItem(`${THREAD_PREFIX}${project.creativeRoom.threadId}`);
+    setMessages([]);
+    setQuestion("");
+    setGuideError("");
+  }
+
   async function askGuide(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!activeLesson || !project?.creativeRoom.threadId || !question.trim() || working) return;
@@ -151,7 +167,12 @@ export default function LearnWorkspace({
       });
       const next = [
         ...pending,
-        { id: newId("message"), role: "guide" as const, text: answer.text },
+        {
+          id: newId("message"),
+          role: "guide" as const,
+          text: answer.text,
+          sourceLessonIds: answer.sourceLessonIds,
+        },
       ];
       setMessages(next);
       localStorage.setItem(`${THREAD_PREFIX}${project.creativeRoom.threadId}`, JSON.stringify(next));
@@ -289,31 +310,58 @@ export default function LearnWorkspace({
             />
             <div>
               <span>Creative Room</span>
-              <h2>Your PlotPickle Curriculum Guide</h2>
-              <p>Ask anything about the lesson. He can explain it simply, give you an example, or help apply it to your story.</p>
+              <h2>Curriculum Guide</h2>
+              <p>Plain-language help with the lesson and your active story.</p>
             </div>
           </div>
+          <button className={styles.freshButton} disabled={working} onClick={startFreshConversation} type="button">
+            Start fresh
+          </button>
         </header>
         <div className={styles.messages} aria-live="polite">
-          {messages.length ? messages.map((message) => (
-            <div className={message.role === "writer" ? styles.writerMessage : styles.guideMessage} key={message.id}>
-              <strong>{message.role === "writer" ? "You" : "Your Guide"}</strong>
-              <p>{message.text}</p>
+          {messages.length ? messages.map((message) => {
+            const sourceTitles = message.sourceLessonIds?.map((lessonId) => (
+              curriculum.find((lesson) => lesson.id === lessonId)?.title
+            )).filter(Boolean);
+            return (
+              <div className={message.role === "writer" ? styles.writerMessage : styles.guideMessage} key={message.id}>
+                <strong>{message.role === "writer" ? "You" : "Guide"}</strong>
+                <p>{message.text}</p>
+                {sourceTitles?.length ? (
+                  <small className={styles.messageSources}>Curriculum: {sourceTitles.join(" · ")}</small>
+                ) : null}
+              </div>
+            );
+          }) : (
+            <div className={styles.welcomeMessage}>
+              <strong>Let’s make this clear.</strong>
+              <p>You’re reading “{activeLesson.title}.” Ask a question in your own words and I’ll answer simply.</p>
             </div>
-          )) : null}
+          )}
+          {working ? (
+            <div className={styles.guideMessage}>
+              <strong>Guide</strong>
+              <p className={styles.thinking}>Thinking about your question…</p>
+            </div>
+          ) : null}
         </div>
         <form className={styles.composer} onSubmit={askGuide}>
-          <label htmlFor="creative-room-question">Talk with your guide</label>
+          <label htmlFor="creative-room-question">Ask in your own words</label>
+          <div className={styles.promptStarters} aria-label="Question starters">
+            <button onClick={() => setQuestion("Explain this simply.")} type="button">Explain simply</button>
+            <button onClick={() => setQuestion("Give me a short example.")} type="button">Give an example</button>
+            <button onClick={() => setQuestion("How does this apply to my story?")} type="button">Use my story</button>
+          </div>
           <textarea
             id="creative-room-question"
             onChange={(event) => setQuestion(event.target.value)}
-            placeholder="Ask for an explanation, an example, or help with your story…"
-            rows={4}
+            placeholder="For example: Does the inciting event usually happen in the first five minutes?"
+            rows={3}
             value={question}
           />
-          {guideError ? <p role="alert">{guideError}</p> : null}
+          {guideError ? <p className={styles.guideError} role="alert">{guideError}</p> : null}
           <button disabled={working || !question.trim()} type="submit">
-            {working ? "Guide is thinking…" : "Ask the Guide"}
+            {working ? "Thinking…" : "Ask the Guide"}
           </button>
         </form>
       </aside>

@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useMemo, useState } from "react";
+import { FormEvent, ReactNode, useEffect, useMemo, useState } from "react";
 import type { PlotPickleProject } from "@/lib/project";
 import styles from "./learn-three-column-shell.module.css";
 
@@ -9,10 +9,21 @@ type Props = {
   blockNumber: number;
   miniBlockNumber: number;
   children: ReactNode;
+  toolbar: ReactNode;
+  onOpenSettings: () => void;
 };
 
 type AgentId = "creative-director" | "story-architect" | "character" | "world" | "continuity" | "visual-director" | "screenwriter" | "graphic-novel" | "production" | "critic";
 type ToneId = "collaborative" | "direct" | "curious" | "challenging" | "gentle";
+type ProviderId = "ollama" | "openai" | "minimax";
+type RoomMessage = { id: string; role: "user" | "assistant"; content: string; agent?: string };
+type AssistantStatus = {
+  activeProvider: ProviderId | "disabled";
+  explicitlyDisabled: boolean;
+  providers: Record<ProviderId, { configured: boolean; model?: string }>;
+  ollama: { reachable: boolean; models: string[]; baseUrl: string };
+};
+type AssistantResponse = { provider: ProviderId; model: string; text: string; latencyMs: number };
 
 const agents: { id: AgentId; label: string; role: string }[] = [
   { id: "creative-director", label: "Creative Director", role: "Coordinates the room and keeps the story moving." },
@@ -59,11 +70,29 @@ function starterReply(agent: AgentId, block: number, mini: number, title: string
   return replies[agent];
 }
 
-export default function LearnThreeColumnShell({ project, blockNumber, miniBlockNumber, children }: Props) {
+function messageId() {
+  return globalThis.crypto?.randomUUID?.() ?? `room-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+async function jsonRequest<T>(path: string, method: "GET" | "POST" = "GET", body?: object) {
+  const response = await fetch(path, {
+    method,
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const value = await response.json() as T & { message?: string };
+  if (!response.ok) throw new Error(value.message || "The Creative Room could not reach the Writing Assistant.");
+  return value;
+}
+
+export default function LearnThreeColumnShell({ project, blockNumber, miniBlockNumber, children, toolbar, onOpenSettings }: Props) {
   const [agent, setAgent] = useState<AgentId>("creative-director");
   const [tone, setTone] = useState<ToneId>("collaborative");
   const [draft, setDraft] = useState("");
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<RoomMessage[]>([]);
+  const [status, setStatus] = useState<AssistantStatus | null>(null);
+  const [notice, setNotice] = useState("Connecting to the selected writing engine…");
+  const [working, setWorking] = useState(false);
   const activeAgent = agents.find((item) => item.id === agent) ?? agents[0];
   const block = project.blocks[blockNumber - 1];
   const minis = block?.scenes.flatMap((scene) => scene.miniBlocks) ?? [];
@@ -71,11 +100,55 @@ export default function LearnThreeColumnShell({ project, blockNumber, miniBlockN
   const act = actForBlock(blockNumber);
   const contextLabel = useMemo(() => `Act ${act} · Block ${blockNumber}.${miniBlockNumber}`, [act, blockNumber, miniBlockNumber]);
 
-  function send() {
+  useEffect(() => {
+    let active = true;
+    void jsonRequest<AssistantStatus>("/api/writing-assistant/status")
+      .then((next) => {
+        if (!active) return;
+        setStatus(next);
+        setNotice(next.activeProvider === "disabled"
+          ? next.explicitlyDisabled
+            ? "Writing assistance is Off by choice. Turn it on in Settings to talk with the room."
+            : "No local or cloud writing engine is ready. Open Settings to connect one."
+          : `${next.activeProvider === "ollama" ? "Ollama" : next.activeProvider === "openai" ? "OpenAI" : "MiniMax"} · ${next.providers[next.activeProvider].model || "configured model"}`);
+      })
+      .catch((error) => {
+        if (!active) return;
+        setNotice(error instanceof Error ? error.message : "The Creative Room connection could not be checked.");
+      });
+    return () => { active = false; };
+  }, []);
+
+  async function send(event: FormEvent) {
+    event.preventDefault();
     const text = draft.trim();
-    if (!text) return;
-    setMessages((current) => [...current, `You: ${text}`, `${activeAgent.label}: ${starterReply(agent, blockNumber, miniBlockNumber, project.metadata.title || "this story")}`]);
+    if (!text || working || !status || status.activeProvider === "disabled") return;
+    const userMessage: RoomMessage = { id: messageId(), role: "user", content: text };
+    const history = messages.map(({ role, content }) => ({ role, content }));
+    const blockTitle = block?.title || "Untitled story block";
+    const miniLabel = mini?.label || "Untitled story movement";
+    const contextualPrompt = [
+      `Speak as PlotPickle's ${activeAgent.label}.`,
+      `Specialist role: ${activeAgent.role}`,
+      `Conversation tone: ${tone}.`,
+      `Active story: ${project.metadata.title || "Untitled Story"}.`,
+      `Story position: Act ${act}, Block ${blockNumber} (${blockTitle}), Mini-Block ${blockNumber}.${miniBlockNumber} (${miniLabel}).`,
+      "Treat existing project material as canon. Offer advice or candidates; do not claim to have changed the story.",
+      `Writer: ${text}`,
+    ].join("\n");
+    setMessages((current) => [...current, userMessage]);
     setDraft("");
+    setWorking(true);
+    setNotice(`Asking ${activeAgent.label}…`);
+    try {
+      const result = await jsonRequest<AssistantResponse>("/api/writing-assistant/chat", "POST", { message: contextualPrompt, history });
+      setMessages((current) => [...current, { id: messageId(), role: "assistant", content: result.text, agent: activeAgent.label }]);
+      setNotice(`${result.provider === "ollama" ? "Ollama" : result.provider === "openai" ? "OpenAI" : "MiniMax"} · ${result.model} · ${result.latencyMs} ms`);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "The selected Creative Room agent could not answer.");
+    } finally {
+      setWorking(false);
+    }
   }
 
   return (
@@ -92,7 +165,10 @@ export default function LearnThreeColumnShell({ project, blockNumber, miniBlockN
         <div className={styles.rule}><span>Story contract</span><p>Learning stays attached to this project. Suggestions remain candidates until you approve them.</p></div>
       </aside>
 
-      <main className={styles.canvas} aria-label="Learn Creative Canvas">{children}</main>
+      <main className={styles.canvas} aria-label="Learn Creative Canvas">
+        <div className={styles.canvasToolbar}>{toolbar}</div>
+        {children}
+      </main>
 
       <aside className={styles.room} aria-label="Creative Room">
         <div className={styles.roomHeading}><span>CREATIVE ROOM · ONLINE</span><h2>In a plot pickle? Bring in the room.</h2><p>Choose who you want to talk with. The room works from the active story and does not silently change canon.</p></div>
@@ -101,13 +177,16 @@ export default function LearnThreeColumnShell({ project, blockNumber, miniBlockN
         <div className={styles.agentCard}><strong>{activeAgent.label}</strong><span>{activeAgent.role}</span><small>{tone} tone · advisory · PPF-aware boundary</small></div>
         <div className={styles.thread} aria-live="polite">
           <p className={styles.agentMessage}>{starterReply(agent, blockNumber, miniBlockNumber, project.metadata.title || "this story")}</p>
-          {messages.map((message, index) => <p className={message.startsWith("You:") ? styles.userMessage : styles.agentMessage} key={`${message}-${index}`}>{message}</p>)}
+          {messages.map((message) => <p className={message.role === "user" ? styles.userMessage : styles.agentMessage} key={message.id}><strong>{message.role === "user" ? "You" : message.agent}</strong>{message.content}</p>)}
+          {working ? <p className={styles.thinking}>The room is considering this story moment…</p> : null}
         </div>
-        <div className={styles.composer}>
-          <textarea aria-label={`Message ${activeAgent.label}`} value={draft} onChange={(event) => setDraft(event.target.value)} placeholder={`Ask ${activeAgent.label} about this story…`} />
-          <button type="button" onClick={send}>Send to {activeAgent.label}</button>
-        </div>
-        <footer><span>Local room preview</span><span>No paid generation</span><span>Canon requires approval</span></footer>
+        {status?.activeProvider === "disabled" ? <div className={styles.connectionNotice}><p>{notice}</p><button type="button" onClick={onOpenSettings}>Open Writing Assistant Settings</button></div> : null}
+        <form className={styles.composer} onSubmit={send}>
+          <textarea aria-label={`Message ${activeAgent.label}`} value={draft} onChange={(event) => setDraft(event.target.value)} placeholder={status?.activeProvider === "disabled" ? "Connect a writing engine in Settings to begin." : `Ask ${activeAgent.label} about this story…`} disabled={working || !status || status.activeProvider === "disabled"} />
+          <button type="submit" disabled={working || !draft.trim() || !status || status.activeProvider === "disabled"}>Send to {activeAgent.label}</button>
+        </form>
+        <p className={styles.status} role="status">{notice}</p>
+        <footer><span>Configured text engine</span><span>No paid generation without your selected provider</span><span>Canon requires approval</span></footer>
       </aside>
     </section>
   );

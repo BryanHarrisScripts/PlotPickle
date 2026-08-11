@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { CurriculumLesson } from "../../../core/contracts/curriculum";
+import type { CurriculumGuide } from "../../../core/contracts/curriculum-guide";
 import { applyStoryCommand } from "../../../core/project/apply-command";
 import { createEmptyProject, type PPFProject } from "../../../core/project/project";
 import styles from "./learn-workspace.module.css";
@@ -42,22 +43,12 @@ function loadMessages(threadId: string): Message[] {
   }
 }
 
-function curriculumReply(lesson: CurriculumLesson, question: string) {
-  const focus = lesson.objectives[0] ?? lesson.overview;
-  return [
-    `For “${lesson.title},” the curriculum focus is: ${focus}`,
-    lesson.overview,
-    `A useful next step: ${lesson.exercise}`,
-    question.trim()
-      ? "I have kept your question in this Creative Room thread so we can continue from it."
-      : "",
-  ].filter(Boolean).join("\n\n");
-}
-
 export default function LearnWorkspace({
   curriculum,
+  guide,
 }: {
   readonly curriculum: readonly CurriculumLesson[];
+  readonly guide: CurriculumGuide;
 }) {
   const [project, setProject] = useState<PPFProject | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -117,7 +108,11 @@ export default function LearnWorkspace({
       {
         id: newId("message"),
         role: "guide" as const,
-        text: curriculumReply(activeLesson, question),
+        text: guide({
+          curriculum,
+          activeLessonId: activeLesson.id,
+          question,
+        }).text,
       },
     ];
     setMessages(next);

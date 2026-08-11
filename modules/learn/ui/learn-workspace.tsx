@@ -68,6 +68,8 @@ export default function LearnWorkspace({
   const [project, setProject] = useState<PPFProject | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState("");
+  const [working, setWorking] = useState(false);
+  const [guideError, setGuideError] = useState("");
 
   useEffect(() => {
     let current = loadProject();
@@ -114,28 +116,53 @@ export default function LearnWorkspace({
     });
   }
 
-  function askGuide(event: FormEvent<HTMLFormElement>) {
+  async function askGuide(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!activeLesson || !project?.creativeRoom.threadId || !question.trim()) return;
-    const next = [
+    if (!activeLesson || !project?.creativeRoom.threadId || !question.trim() || working) return;
+    const submitted = question.trim();
+    const writerMessage = { id: newId("message"), role: "writer" as const, text: submitted };
+    const pending = [
       ...messages,
-      { id: newId("message"), role: "writer" as const, text: question.trim() },
-      {
-        id: newId("message"),
-        role: "guide" as const,
-        text: guide({
-          curriculum,
-          activeLessonId: activeLesson.id,
-          question,
-        }).text,
-      },
+      writerMessage,
     ];
-    setMessages(next);
+    setMessages(pending);
     localStorage.setItem(
       `${THREAD_PREFIX}${project.creativeRoom.threadId}`,
-      JSON.stringify(next),
+      JSON.stringify(pending),
     );
     setQuestion("");
+    setGuideError("");
+    setWorking(true);
+    try {
+      const answer = await guide({
+        curriculum,
+        activeLessonId: activeLesson.id,
+        question: submitted,
+        conversation: messages.map((message) => ({
+          role: message.role,
+          content: message.text,
+        })),
+        projectMemory: {
+          id: project.id,
+          title: project.title,
+          revision: project.revision,
+          completedLessonIds: project.learning.completedLessonIds,
+        },
+      });
+      const next = [
+        ...pending,
+        { id: newId("message"), role: "guide" as const, text: answer.text },
+      ];
+      setMessages(next);
+      localStorage.setItem(`${THREAD_PREFIX}${project.creativeRoom.threadId}`, JSON.stringify(next));
+    } catch (error) {
+      setMessages(messages);
+      localStorage.setItem(`${THREAD_PREFIX}${project.creativeRoom.threadId}`, JSON.stringify(messages));
+      setQuestion(submitted);
+      setGuideError(error instanceof Error ? error.message : "The Curriculum Guide could not answer.");
+    } finally {
+      setWorking(false);
+    }
   }
 
   if (!project || !activeLesson) {
@@ -284,7 +311,10 @@ export default function LearnWorkspace({
             rows={4}
             value={question}
           />
-          <button type="submit">Ask the Guide</button>
+          {guideError ? <p role="alert">{guideError}</p> : null}
+          <button disabled={working || !question.trim()} type="submit">
+            {working ? "Guide is thinking…" : "Ask the Guide"}
+          </button>
         </form>
       </aside>
       </main>

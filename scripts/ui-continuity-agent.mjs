@@ -159,6 +159,21 @@ async function inspectScreen(client, screen) {
   return snapshot;
 }
 
+async function cleanupPluginData(pluginData) {
+  let lastError = null;
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    try {
+      await rm(pluginData, { recursive: true, force: true, maxRetries: 2, retryDelay: 250 });
+      return { cleaned: true, warning: "" };
+    } catch (error) {
+      lastError = error;
+      await delay(300 * (attempt + 1));
+    }
+  }
+  const message = lastError instanceof Error ? lastError.message : String(lastError || "unknown cleanup error");
+  return { cleaned: false, warning: "Temporary Playwright workspace is still locked by Windows and will be reclaimed later: " + message };
+}
+
 async function main() {
   agentLoaded({
     name: "PlotPickle UI Continuity Agent",
@@ -202,8 +217,10 @@ async function main() {
     }
   } finally {
     await client.close();
-    await rm(pluginData, { recursive: true, force: true });
   }
+
+  const cleanup = await cleanupPluginData(pluginData);
+  if (cleanup.warning) process.stdout.write("UI Continuity Agent cleanup warning: " + cleanup.warning + "\n");
 
   const report = continuityReport({ generatedAt: new Date().toISOString(), server: server.origin, results });
   await writeFile(reportPath, report, "utf8");

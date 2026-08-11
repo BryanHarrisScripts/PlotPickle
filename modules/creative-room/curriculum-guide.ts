@@ -61,14 +61,24 @@ export const answerFromCurriculum: CurriculumGuide = ({
     .map(({ lesson }) => lesson);
 
   const sources = ranked.length ? ranked : curriculum.slice(0, 3);
-  const text = sources.map((lesson, index) => [
-    `${index + 1}. ${lesson.title}`,
-    lesson.overview,
-    `Try: ${lesson.exercise}`,
-  ].join("\n")).join("\n\n");
+  const primary = sources[0];
+  const matchedDefinition = primary.definitions.find((definition) => {
+    const definitionTerms = terms(definition.term);
+    return definitionTerms.some((term) => queryTerms.includes(term));
+  });
+  const explanation = matchedDefinition?.meaning
+    ?? primary.sections[0]?.paragraphs[0]
+    ?? primary.overview;
+  const nextStep = primary.exercise || primary.apply || primary.checklist[0];
 
   return {
-    text: `The PlotPickle curriculum connects your question to:\n\n${text}`,
+    text: [
+      "Absolutely — let’s work through it together.",
+      explanation,
+      `Why it matters: ${primary.overview}`,
+      nextStep ? `A useful next step: ${nextStep}` : "",
+      "What would help most now: a simple example, a step-by-step walkthrough, or help applying this to your story?",
+    ].filter(Boolean).join("\n\n"),
     sourceLessonIds: sources.map((lesson) => lesson.id),
   };
 };

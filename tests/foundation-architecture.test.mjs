@@ -127,3 +127,18 @@ test("LEARN exposes the future PlotPickle workflow navigation", async () => {
   assert.match(workspace, /aria-label="PlotPickle workflow"/);
   assert.match(workspace, /aria-current=\{stage\.id === "learn"/);
 });
+
+
+test("the curriculum guide teaches instead of returning lesson bookmarks", async () => {
+  const [guide, workspace] = await Promise.all([
+    read("modules/creative-room/curriculum-guide.ts"),
+    read("modules/learn/ui/learn-workspace.tsx"),
+  ]);
+  assert.match(guide, /let’s work through it together/);
+  assert.match(guide, /Why it matters/);
+  assert.match(guide, /simple example, a step-by-step walkthrough/);
+  assert.doesNotMatch(guide, /curriculum connects your question to/);
+  assert.match(workspace, /Your PlotPickle Curriculum Guide/);
+  assert.match(workspace, /Talk with your guide/);
+  assert.match(workspace, /Ask the Guide/);
+});

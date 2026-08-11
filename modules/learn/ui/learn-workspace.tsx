@@ -262,29 +262,29 @@ export default function LearnWorkspace({
             />
             <div>
               <span>Creative Room</span>
-              <h2>PlotPickle Curriculum Guide</h2>
-              <p>Ask about the active lesson. This conversation stays with your workspace.</p>
+              <h2>Your PlotPickle Curriculum Guide</h2>
+              <p>Ask anything about the lesson. He can explain it simply, give you an example, or help apply it to your story.</p>
             </div>
           </div>
         </header>
         <div className={styles.messages} aria-live="polite">
           {messages.length ? messages.map((message) => (
             <div className={message.role === "writer" ? styles.writerMessage : styles.guideMessage} key={message.id}>
-              <strong>{message.role === "writer" ? "You" : "PlotPickle"}</strong>
+              <strong>{message.role === "writer" ? "You" : "Your Guide"}</strong>
               <p>{message.text}</p>
             </div>
           )) : null}
         </div>
         <form className={styles.composer} onSubmit={askGuide}>
-          <label htmlFor="creative-room-question">Ask the curriculum guide</label>
+          <label htmlFor="creative-room-question">Talk with your guide</label>
           <textarea
             id="creative-room-question"
             onChange={(event) => setQuestion(event.target.value)}
-            placeholder="Ask a question about this lesson…"
+            placeholder="Ask for an explanation, an example, or help with your story…"
             rows={4}
             value={question}
           />
-          <button type="submit">Ask PlotPickle</button>
+          <button type="submit">Ask the Guide</button>
         </form>
       </aside>
       </main>

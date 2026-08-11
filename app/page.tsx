@@ -1094,12 +1094,12 @@ export default function Home() {
 
         {activeTab === "learn" ? (
           <div className={writerStyles.workspaceShell}>
-            <nav className="learn-section-tabs" aria-label="Learn sections">
+            {learnSection !== "library" ? <nav className="learn-section-tabs" aria-label="Learn sections">
               <button type="button" aria-current={learnSection === "introduction" ? "page" : undefined} className={learnSection === "introduction" ? "active" : ""} onClick={() => setLearnSection("introduction")}>Introduction</button>
               <button type="button" aria-current={learnSection === "library" ? "page" : undefined} className={learnSection === "library" ? "active" : ""} onClick={() => setLearnSection("library")}>Complete Learning Library</button>
               <button type="button" aria-current={learnSection === "terminology" ? "page" : undefined} className={learnSection === "terminology" ? "active" : ""} onClick={() => setLearnSection("terminology")}>Terminology</button>
               <button type="button" aria-current={learnSection === "screenplay" ? "page" : undefined} className={learnSection === "screenplay" ? "active" : ""} onClick={() => setLearnSection("screenplay")}>Screenplay Study</button>
-            </nav>
+            </nav> : null}
             {learnSection === "introduction" ? (
               <Introduction
                 project={project}
@@ -1110,7 +1110,18 @@ export default function Home() {
               />
             ) : null}
             {learnSection === "library" ? (
-              <LearnThreeColumnShell project={project} blockNumber={selectedBlockNumber} miniBlockNumber={selectedMiniBlockNumber}>
+              <LearnThreeColumnShell
+                project={project}
+                blockNumber={selectedBlockNumber}
+                miniBlockNumber={selectedMiniBlockNumber}
+                onOpenSettings={() => setActiveTab("settings")}
+                toolbar={<nav className="learn-section-tabs" aria-label="Learn sections">
+                  <button type="button" onClick={() => setLearnSection("introduction")}>Introduction</button>
+                  <button type="button" aria-current="page" className="active">Complete Learning Library</button>
+                  <button type="button" onClick={() => setLearnSection("terminology")}>Terminology</button>
+                  <button type="button" onClick={() => setLearnSection("screenplay")}>Screenplay Study</button>
+                </nav>}
+              >
               <LearningStudio
                 project={project}
                 blockNumber={selectedBlockNumber}

@@ -69,6 +69,26 @@ async function handleStatus(response: ServerResponse) {
   const ollamaProfile = store.profiles.ollama;
   const baseUrl = store.ollamaBaseUrl || ollamaProfile?.baseUrl || DEFAULT_OLLAMA_URL;
   const probe = await probeOllama(baseUrl);
+  if (probe.reachable && probe.models.length > 0 && store.activeProvider === "disabled" && !store.explicitlyDisabled) {
+    const model = ollamaProfile?.textModel && probe.models.includes(ollamaProfile.textModel)
+      ? ollamaProfile.textModel
+      : probe.models[0];
+    store.ollamaBaseUrl = probe.baseUrl;
+    store.profiles.ollama = {
+      provider: "ollama",
+      baseUrl: probe.baseUrl,
+      textModel: model,
+      apiKey: "",
+      configuredAt: ollamaProfile?.configuredAt || probe.checkedAt,
+      assistantVerifiedAt: ollamaProfile?.assistantVerifiedAt || "",
+      lastAttemptAt: ollamaProfile?.lastAttemptAt || probe.checkedAt,
+      lastLatencyMs: ollamaProfile?.lastLatencyMs || probe.latencyMs,
+      lastPreview: ollamaProfile?.lastPreview || "",
+      lastError: "",
+    };
+    store.activeProvider = "ollama";
+    await writeAssistantStore(store);
+  }
   sendJson(response, 200, {
     ok: true,
     activeProvider: store.activeProvider,

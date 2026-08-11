@@ -90,10 +90,10 @@ export default function LearnWorkspace({
     });
   }
 
-  function completeLesson() {
+  function setLessonUnderstood(understood: boolean) {
     if (!activeLesson) return;
     commit({
-      type: "lesson.complete",
+      type: understood ? "lesson.complete" : "lesson.uncomplete",
       lessonId: activeLesson.id,
       occurredAt: new Date().toISOString(),
     });
@@ -133,7 +133,6 @@ export default function LearnWorkspace({
     <main className={styles.workspace}>
       <aside className={styles.curriculum} aria-label="PlotPickle curriculum">
         <header className={styles.brand}>
-          <span>PlotPickle</span>
           <strong>LEARN</strong>
           <small>{curriculum.length} curriculum modules</small>
         </header>
@@ -151,7 +150,7 @@ export default function LearnWorkspace({
                 <small>{lesson.path} · {lesson.duration}</small>
               </span>
               <b aria-label={completed.has(lesson.id) ? "Completed" : "Not completed"}>
-                {completed.has(lesson.id) ? "✓" : ""}
+                {completed.has(lesson.id) ? "☑" : ""}
               </b>
             </button>
           ))}
@@ -165,6 +164,14 @@ export default function LearnWorkspace({
         </div>
         <h1>{activeLesson.title}</h1>
         <p className={styles.overview}>{activeLesson.overview}</p>
+        <label className={styles.understood}>
+          <input
+            checked={completed.has(activeLesson.id)}
+            onChange={(event) => setLessonUnderstood(event.target.checked)}
+            type="checkbox"
+          />
+          <span>I understand this module</span>
+        </label>
         <section>
           <h2>What you will learn</h2>
           <ul>
@@ -180,13 +187,32 @@ export default function LearnWorkspace({
             ) : null}
           </section>
         ))}
-        <section className={styles.exercise}>
-          <span>Practice</span>
-          <h2>Apply this lesson</h2>
-          <p>{activeLesson.exercise}</p>
-          <button type="button" onClick={completeLesson}>
-            {completed.has(activeLesson.id) ? "Lesson completed" : "Mark lesson complete"}
-          </button>
+        <section>
+          <h2>Key terms</h2>
+          <dl className={styles.definitions}>
+            {activeLesson.definitions.map((definition) => (
+              <div key={definition.term}>
+                <dt>{definition.term}</dt>
+                <dd>{definition.meaning}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+        <section>
+          <h2>{activeLesson.example.title}</h2>
+          <p>{activeLesson.example.text}</p>
+        </section>
+        <section>
+          <h2>Lesson checklist</h2>
+          <ul>
+            {activeLesson.checklist.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </section>
+        <section>
+          <h2>Common mistakes</h2>
+          <ul>
+            {activeLesson.mistakes.map((mistake) => <li key={mistake}>{mistake}</li>)}
+          </ul>
         </section>
       </article>
 
@@ -202,12 +228,7 @@ export default function LearnWorkspace({
               <strong>{message.role === "writer" ? "You" : "PlotPickle"}</strong>
               <p>{message.text}</p>
             </div>
-          )) : (
-            <div className={styles.guideMessage}>
-              <strong>PlotPickle</strong>
-              <p>We are working in “{activeLesson.title}.” What would you like to understand or try?</p>
-            </div>
-          )}
+          )) : null}
         </div>
         <form className={styles.composer} onSubmit={askGuide}>
           <label htmlFor="creative-room-question">Ask the curriculum guide</label>

@@ -11,6 +11,20 @@ import styles from "./learn-workspace.module.css";
 const PROJECT_KEY = "plotpickle.foundation.project.v1";
 const THREAD_PREFIX = "plotpickle.foundation.thread.";
 
+const WORKFLOW_STAGES = [
+  { id: "dashboard", mark: "D", label: "Dashboard", detail: "Start here" },
+  { id: "learn", mark: "L", label: "Learn", detail: "Guides & tools" },
+  { id: "plan", mark: "P", label: "Plan", detail: "Story design" },
+  { id: "storyboard", mark: "S", label: "Storyboard", detail: "Visual direction" },
+  { id: "write", mark: "W", label: "Write", detail: "Screenplay" },
+  { id: "edit", mark: "E", label: "Edit", detail: "Refine copy" },
+  { id: "graphic-novel", mark: "G", label: "Graphic Novel", detail: "Pages & panels" },
+  { id: "build", mark: "B", label: "Build", detail: "Assemble" },
+  { id: "feedback", mark: "F", label: "Feedback", detail: "AI & team" },
+  { id: "refine", mark: "R", label: "Refine", detail: "Review & decide" },
+  { id: "reports", mark: "X", label: "Reports / Export", detail: "Deliver story" },
+] as const;
+
 type Message = {
   readonly id: string;
   readonly role: "writer" | "guide";
@@ -131,7 +145,25 @@ export default function LearnWorkspace({
   const completed = new Set(project.learning.completedLessonIds);
 
   return (
-    <main className={styles.workspace}>
+    <div className={styles.learnScreen}>
+      <nav className={styles.workflowNav} aria-label="PlotPickle workflow">
+        <ol>
+          {WORKFLOW_STAGES.map((stage) => (
+            <li
+              aria-current={stage.id === "learn" ? "page" : undefined}
+              className={stage.id === "learn" ? styles.currentStage : undefined}
+              key={stage.id}
+            >
+              <span aria-hidden="true" className={styles.stageMark}>{stage.mark}</span>
+              <span className={styles.stageCopy}>
+                <strong>{stage.label}</strong>
+                <small>{stage.detail}</small>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </nav>
+      <main className={styles.workspace}>
       <aside className={styles.curriculum} aria-label="PlotPickle curriculum">
         <header className={styles.brand}>
           <strong>LEARN</strong>
@@ -255,6 +287,7 @@ export default function LearnWorkspace({
           <button type="submit">Ask PlotPickle</button>
         </form>
       </aside>
-    </main>
+      </main>
+    </div>
   );
 }

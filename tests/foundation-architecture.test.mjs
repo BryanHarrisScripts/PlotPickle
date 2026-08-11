@@ -117,3 +117,13 @@ test("LEARN presents the Master Storyteller curriculum guide", async () => {
   assert.match(workspace, /alt="Master Storyteller, PlotPickle Curriculum Guide"/);
   assert.match(workspace, /styles\.guidePortrait/);
 });
+
+
+test("LEARN exposes the future PlotPickle workflow navigation", async () => {
+  const workspace = await read("modules/learn/ui/learn-workspace.tsx");
+  for (const label of ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Edit", "Graphic Novel", "Build", "Feedback", "Refine", "Reports / Export"]) {
+    assert.match(workspace, new RegExp(label.replace("/", "\\/")));
+  }
+  assert.match(workspace, /aria-label="PlotPickle workflow"/);
+  assert.match(workspace, /aria-current=\{stage\.id === "learn"/);
+});

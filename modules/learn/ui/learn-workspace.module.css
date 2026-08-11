@@ -45,7 +45,7 @@
   border-bottom: 1px solid var(--line);
 }
 
-.room header > span {
+.guideIdentity span {
   color: var(--orange);
   font-size: 11px;
   letter-spacing: 0.14em;
@@ -180,6 +180,26 @@
 .room header {
   padding: 22px 18px;
   border-bottom: 1px solid var(--line);
+}
+
+.guideIdentity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.guideIdentity > div {
+  min-width: 0;
+}
+
+.guidePortrait {
+  width: 96px;
+  height: 96px;
+  flex: 0 0 96px;
+  object-fit: contain;
+  border: 1px solid rgba(53, 201, 184, 0.35);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(53, 201, 184, 0.11), transparent 70%);
 }
 
 .room h2 {

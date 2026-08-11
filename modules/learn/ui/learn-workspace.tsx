@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { CurriculumLesson } from "../../../core/contracts/curriculum";
 import type { CurriculumGuide } from "../../../core/contracts/curriculum-guide";
@@ -218,9 +219,21 @@ export default function LearnWorkspace({
 
       <aside className={styles.room} aria-label="Persistent Creative Room">
         <header>
-          <span>Creative Room</span>
-          <h2>PlotPickle Curriculum Guide</h2>
-          <p>Ask about the active lesson. This conversation stays with your workspace.</p>
+          <div className={styles.guideIdentity}>
+            <Image
+              alt="Master Storyteller, PlotPickle Curriculum Guide"
+              className={styles.guidePortrait}
+              height={96}
+              priority
+              src="/assets/curriculum-guide-master-storyteller.png"
+              width={96}
+            />
+            <div>
+              <span>Creative Room</span>
+              <h2>PlotPickle Curriculum Guide</h2>
+              <p>Ask about the active lesson. This conversation stays with your workspace.</p>
+            </div>
+          </div>
         </header>
         <div className={styles.messages} aria-live="polite">
           {messages.length ? messages.map((message) => (

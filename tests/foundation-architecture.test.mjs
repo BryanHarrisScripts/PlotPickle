@@ -109,3 +109,11 @@ test("LEARN preserves full lessons and uses user-controlled understanding", asyn
   assert.match(commands, /lesson\.uncomplete/);
   assert.match(reducer, /case "lesson\.uncomplete"/);
 });
+
+
+test("LEARN presents the Master Storyteller curriculum guide", async () => {
+  const workspace = await read("modules/learn/ui/learn-workspace.tsx");
+  assert.match(workspace, /curriculum-guide-master-storyteller\.png/);
+  assert.match(workspace, /alt="Master Storyteller, PlotPickle Curriculum Guide"/);
+  assert.match(workspace, /styles\.guidePortrait/);
+});

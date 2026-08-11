@@ -83,3 +83,29 @@ test("Creative Room retrieval is injected and searches the complete curriculum",
   assert.match(workspace, /readonly guide: CurriculumGuide/);
   assert.doesNotMatch(workspace, /modules\/creative-room/);
 });
+
+test("LEARN preserves full lessons and uses user-controlled understanding", async () => {
+  const [contract, adapter, workspace, guide, commands, reducer] = await Promise.all([
+    read("core/contracts/curriculum.ts"),
+    read("adapters/curriculum/current-catalog.ts"),
+    read("modules/learn/ui/learn-workspace.tsx"),
+    read("modules/creative-room/curriculum-guide.ts"),
+    read("core/contracts/story-command.ts"),
+    read("core/project/apply-command.ts"),
+  ]);
+
+  for (const field of ["definitions", "example", "checklist", "mistakes", "apply", "tags"]) {
+    assert.match(contract, new RegExp(field));
+    assert.match(adapter, new RegExp(field));
+  }
+  assert.match(workspace, /I understand this module/);
+  assert.match(workspace, /type="checkbox"/);
+  assert.match(workspace, /Key terms/);
+  assert.match(workspace, /Lesson checklist/);
+  assert.match(workspace, /Common mistakes/);
+  assert.doesNotMatch(workspace, /Apply this lesson|We are working in/);
+  assert.match(guide, /lesson\.definitions/);
+  assert.match(guide, /lesson\.tags/);
+  assert.match(commands, /lesson\.uncomplete/);
+  assert.match(reducer, /case "lesson\.uncomplete"/);
+});

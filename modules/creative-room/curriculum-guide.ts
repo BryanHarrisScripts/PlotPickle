@@ -29,7 +29,14 @@ function searchable(lesson: CurriculumLesson) {
       ...section.paragraphs,
       ...(section.points ?? []),
     ]),
+    ...lesson.definitions.flatMap((definition) => [definition.term, definition.meaning]),
+    lesson.example.title,
+    lesson.example.text,
+    ...lesson.checklist,
+    ...lesson.mistakes,
     lesson.exercise,
+    lesson.apply,
+    ...lesson.tags,
   ].join(" ").toLowerCase();
 }
 
@@ -37,6 +44,8 @@ export const answerFromCurriculum: CurriculumGuide = ({
   curriculum,
   activeLessonId,
   question,
+  conversation,
+  projectMemory,
 }) => {
   const queryTerms = terms(question);
   const ranked = curriculum
@@ -54,14 +63,63 @@ export const answerFromCurriculum: CurriculumGuide = ({
     .map(({ lesson }) => lesson);
 
   const sources = ranked.length ? ranked : curriculum.slice(0, 3);
-  const text = sources.map((lesson, index) => [
-    `${index + 1}. ${lesson.title}`,
-    lesson.overview,
-    `Try: ${lesson.exercise}`,
-  ].join("\n")).join("\n\n");
+  const sourceLessonIds = sources.map((lesson) => lesson.id);
+  const knowledge = sources.map((lesson) => [
+    `LESSON: ${lesson.title} (${lesson.id})`,
+    `Overview: ${lesson.overview}`,
+    `Objectives: ${lesson.objectives.join("; ")}`,
+    ...lesson.sections.map((section) => [
+      section.heading,
+      ...section.paragraphs,
+      ...(section.points ?? []),
+    ].join("\n")),
+    `Key terms: ${lesson.definitions.map(({ term, meaning }) => `${term}: ${meaning}`).join("; ")}`,
+    `Example — ${lesson.example.title}: ${lesson.example.text}`,
+    `Checklist: ${lesson.checklist.join("; ")}`,
+    `Common mistakes: ${lesson.mistakes.join("; ")}`,
+    `Exercise: ${lesson.exercise}`,
+    `Apply: ${lesson.apply}`,
+  ].join("\n").slice(0, 3_500)).join("\n\n---\n\n");
 
-  return {
-    text: `The PlotPickle curriculum connects your question to:\n\n${text}`,
-    sourceLessonIds: sources.map((lesson) => lesson.id),
-  };
+  const message = [
+    "Use the retrieved PlotPickle curriculum below as your teaching knowledge.",
+    "Answer the writer's actual question, explain ideas plainly, and coach rather than merely listing lessons.",
+    "When useful, give a concrete story example and numbered steps. End with one focused question that moves the writer forward.",
+    "Do not invent curriculum facts. If the excerpts are insufficient, say what is missing and ask a clarifying question.",
+    `Active lesson: ${activeLessonId}.`,
+    `Project memory: ${projectMemory.title} (${projectMemory.id}), revision ${projectMemory.revision}; completed lessons: ${projectMemory.completedLessonIds.join(", ") || "none"}.`,
+    `Retrieved curriculum:\n${knowledge}`,
+    `Writer's question: ${question.trim()}`,
+  ].join("\n\n");
+
+  return fetch("/api/writing-assistant/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      agentId: "curriculum-guide",
+      provider: "ollama",
+      tone: "gentle",
+      message,
+      history: conversation.slice(-12).map((item) => ({
+        role: item.role === "writer" ? "user" : "assistant",
+        content: item.content,
+      })),
+    }),
+  }).then(async (response) => {
+    const result = await response.json() as {
+      readonly message?: string;
+      readonly model?: string;
+      readonly provider?: string;
+      readonly text?: string;
+    };
+    if (!response.ok || !result.text) {
+      throw new Error(result.message || "The Curriculum Guide could not reach Ollama.");
+    }
+    return {
+      text: result.text,
+      sourceLessonIds,
+      provider: "ollama" as const,
+      model: result.model || "configured Ollama model",
+    };
+  });
 };

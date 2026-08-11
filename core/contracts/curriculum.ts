@@ -11,5 +11,17 @@ export interface CurriculumLesson {
     readonly paragraphs: readonly string[];
     readonly points?: readonly string[];
   }[];
+  readonly definitions: readonly {
+    readonly term: string;
+    readonly meaning: string;
+  }[];
+  readonly example: {
+    readonly title: string;
+    readonly text: string;
+  };
+  readonly checklist: readonly string[];
+  readonly mistakes: readonly string[];
   readonly exercise: string;
+  readonly apply: string;
+  readonly tags: readonly string[];
 }

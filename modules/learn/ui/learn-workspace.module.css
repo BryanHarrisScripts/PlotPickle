@@ -1,3 +1,101 @@
+.learnScreen {
+  --matte: #090a0b;
+  --panel: #111315;
+  --panel-raised: #171a1c;
+  --line: #2b3033;
+  --text: #f1eee7;
+  --muted: #aaa398;
+  --teal: #35c9b8;
+  --orange: #f08a4b;
+  display: flex;
+  width: 100%;
+  height: 100dvh;
+  min-height: 640px;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--matte);
+  color: var(--text);
+  font-family: var(--font-mono, "Courier New", monospace);
+}
+
+.workflowNav {
+  flex: 0 0 auto;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--line);
+  background: #08090a;
+  scrollbar-width: none;
+}
+
+.workflowNav::-webkit-scrollbar {
+  display: none;
+}
+
+.workflowNav ol {
+  display: grid;
+  min-width: 1040px;
+  grid-template-columns: repeat(11, minmax(82px, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 10px 12px 9px;
+  list-style: none;
+}
+
+.workflowNav li {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  color: #837d73;
+  text-align: center;
+}
+
+.workflowNav li:not(:last-child)::after {
+  position: absolute;
+  top: 16px;
+  right: -4px;
+  color: rgba(240, 138, 75, 0.62);
+  content: "›";
+}
+
+.stageMark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid #75613a;
+  border-radius: 50%;
+  color: #c39a50;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.stageCopy {
+  display: grid;
+  gap: 2px;
+}
+
+.stageCopy strong {
+  color: #b6b0a7;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.stageCopy small {
+  color: #777168;
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.currentStage .stageMark {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(53, 201, 184, 0.09);
+  color: var(--teal);
+}
+
+.currentStage .stageCopy strong {
+  color: var(--text);
+}
+
 .workspace {
   --matte: #090a0b;
   --panel: #111315;
@@ -10,8 +108,8 @@
   display: grid;
   grid-template-columns: minmax(240px, 19%) minmax(440px, 56%) minmax(310px, 25%);
   width: 100%;
-  height: 100dvh;
-  min-height: 640px;
+  min-height: 0;
+  flex: 1;
   overflow: hidden;
   background: var(--matte);
   color: var(--text);
@@ -45,9 +143,7 @@
   border-bottom: 1px solid var(--line);
 }
 
-.brand span,
-.room header > span,
-.exercise > span {
+.guideIdentity span {
   color: var(--orange);
   font-size: 11px;
   letter-spacing: 0.14em;
@@ -164,13 +260,6 @@
   line-height: 1.75;
 }
 
-.exercise {
-  padding: 24px;
-  border: 1px solid rgba(240, 138, 75, 0.55);
-  background: rgba(240, 138, 75, 0.06);
-}
-
-.exercise button,
 .composer button {
   padding: 11px 15px;
   border: 1px solid var(--teal);
@@ -189,6 +278,26 @@
 .room header {
   padding: 22px 18px;
   border-bottom: 1px solid var(--line);
+}
+
+.guideIdentity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.guideIdentity > div {
+  min-width: 0;
+}
+
+.guidePortrait {
+  width: 96px;
+  height: 96px;
+  flex: 0 0 96px;
+  object-fit: contain;
+  border: 1px solid rgba(53, 201, 184, 0.35);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(53, 201, 184, 0.11), transparent 70%);
 }
 
 .room h2 {
@@ -268,6 +377,12 @@
 }
 
 @media (max-width: 820px) {
+  .learnScreen {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
   .workspace {
     height: auto;
     min-height: 100dvh;
@@ -286,4 +401,54 @@
   .messages {
     overflow: visible;
   }
+}
+
+.lessonList,
+.lesson,
+.messages {
+  scrollbar-width: none;
+}
+
+.lessonList::-webkit-scrollbar,
+.lesson::-webkit-scrollbar,
+.messages::-webkit-scrollbar {
+  display: none;
+}
+
+.understood {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.understood input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--teal);
+}
+
+.definitions {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+}
+
+.definitions div {
+  display: grid;
+  gap: 5px;
+}
+
+.definitions dt {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.definitions dd {
+  margin: 0;
+  color: #c3bdb3;
+  line-height: 1.75;
 }

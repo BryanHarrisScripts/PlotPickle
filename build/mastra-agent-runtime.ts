@@ -3,6 +3,7 @@ import { Mastra } from "@mastra/core/mastra";
 import type { ProviderProfile } from "./writing-assistant-store";
 
 export const PLOTPICKLE_AGENT_ROLES = {
+  "curriculum-guide": "Be a warm, patient PlotPickle teacher. Ground every answer in the supplied curriculum excerpts and project memory. Hold a real teaching dialogue: answer the question directly, explain unfamiliar ideas plainly, use concrete story examples, offer numbered step-by-step coaching when useful, and finish with one focused question. Never invent curriculum material or pretend to remember information that was not supplied.",
   "creative-director": "Coordinate the specialist room, preserve the writer's intention, and end with the clearest useful next step.",
   "story-architect": "Test structure, causality, stakes, and the 24 Block / 96 Mini-Block story map.",
   character: "Focus on motivation, pressure, choice, relationships, arc, behaviour, and voice.",

@@ -158,3 +158,36 @@ test("the curriculum guide is an Ollama-backed teaching agent with memory", asyn
   assert.match(workspace, /Talk with your guide/);
   assert.match(workspace, /Ask the Guide/);
 });
+
+
+test("LEARN and GUIDE share one complete JSON curriculum", async () => {
+  const [catalogSource, rawCurriculum, guide, workspace, runtime, gateway] = await Promise.all([
+    read("adapters/curriculum/current-catalog.ts"),
+    read("data/curriculum/plotpickle-curriculum.json"),
+    read("modules/creative-room/curriculum-guide.ts"),
+    read("modules/learn/ui/learn-workspace.tsx"),
+    read("build/mastra-agent-runtime.ts"),
+    read("build/writing-assistant-gateway.ts"),
+  ]);
+  const catalog = JSON.parse(rawCurriculum);
+  assert.equal(catalog.schemaVersion, "1.0");
+  assert.equal(catalog.lessonCount, 81);
+  assert.equal(catalog.lessons.length, 81);
+  for (const lesson of catalog.lessons) {
+    for (const field of ["id", "number", "path", "title", "duration", "overview", "objectives", "sections", "definitions", "example", "checklist", "mistakes", "exercise", "apply", "tags"]) {
+      assert.ok(field in lesson, `${lesson.id || "unknown lesson"} is missing ${field}`);
+    }
+  }
+  assert.match(catalogSource, /plotpickle-curriculum\.json/);
+  assert.doesNotMatch(catalogSource, /learning-library|learning-24-blocks/);
+  assert.match(guide, /under 140 words/);
+  assert.match(guide, /begin with Yes, No, or Not necessarily/);
+  assert.match(guide, /conversation\.slice\(-6\)/);
+  assert.match(guide, /content\.slice\(0, 900\)/);
+  assert.match(guide, /cleanGuideAnswer/);
+  assert.match(runtime, /Stay under 140 words/);
+  assert.match(gateway, /content\.length <= 2_000/);
+  assert.match(workspace, /Start fresh/);
+  assert.match(workspace, /THREAD_PREFIX = "plotpickle\.foundation\.thread\.v2\."/);
+  assert.match(workspace, /Curriculum:/);
+});

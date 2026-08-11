@@ -214,8 +214,12 @@ function safeHistory(value: unknown): ConversationMessage[] {
     item
     && typeof item === "object"
     && ((item as ConversationMessage).role === "user" || (item as ConversationMessage).role === "assistant")
-    && typeof (item as ConversationMessage).content === "string",
-  )).slice(-10);
+    && typeof (item as ConversationMessage).content === "string"
+    && (item as ConversationMessage).content.length <= 2_000,
+  )).slice(-6).map((item) => ({
+    role: item.role,
+    content: item.content.slice(0, 900),
+  }));
 }
 
 async function handleChat(request: IncomingMessage, response: ServerResponse) {

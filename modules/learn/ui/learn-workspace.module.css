@@ -45,9 +45,7 @@
   border-bottom: 1px solid var(--line);
 }
 
-.brand span,
-.room header > span,
-.exercise > span {
+.room header > span {
   color: var(--orange);
   font-size: 11px;
   letter-spacing: 0.14em;
@@ -164,13 +162,6 @@
   line-height: 1.75;
 }
 
-.exercise {
-  padding: 24px;
-  border: 1px solid rgba(240, 138, 75, 0.55);
-  background: rgba(240, 138, 75, 0.06);
-}
-
-.exercise button,
 .composer button {
   padding: 11px 15px;
   border: 1px solid var(--teal);
@@ -286,4 +277,54 @@
   .messages {
     overflow: visible;
   }
+}
+
+.lessonList,
+.lesson,
+.messages {
+  scrollbar-width: none;
+}
+
+.lessonList::-webkit-scrollbar,
+.lesson::-webkit-scrollbar,
+.messages::-webkit-scrollbar {
+  display: none;
+}
+
+.understood {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.understood input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--teal);
+}
+
+.definitions {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+}
+
+.definitions div {
+  display: grid;
+  gap: 5px;
+}
+
+.definitions dt {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.definitions dd {
+  margin: 0;
+  color: #c3bdb3;
+  line-height: 1.75;
 }

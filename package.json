@@ -124,6 +124,8 @@
     "test:persistent-agent-windows": "node --test tests/issue-548-persistent-agent-windows.test.mjs"
   },
   "dependencies": {
+    "@mastra/core": "1.57.0",
+    "ai": "7.0.59",
     "drizzle-orm": "0.45.2",
     "next": "16.3.0",
     "react": "19.2.8",

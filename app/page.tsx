@@ -22,6 +22,7 @@ import StructureMapSummary from "./structure-map-summary";
 import SettingsPanel from "./settings-panel";
 import ScriptWorkspace, { type WriterViewMode } from "./script-workspace";
 import LearningStudio from "./learning-studio";
+import LearnThreeColumnShell from "./learn-three-column-shell";
 import ScriptViewer from "./script-viewer";
 import writerStyles from "./script-workspace.module.css";
 import CharacterImageGenerator from "./character-image-generator";
@@ -1109,6 +1110,7 @@ export default function Home() {
               />
             ) : null}
             {learnSection === "library" ? (
+              <LearnThreeColumnShell project={project} blockNumber={selectedBlockNumber} miniBlockNumber={selectedMiniBlockNumber}>
               <LearningStudio
                 project={project}
                 blockNumber={selectedBlockNumber}
@@ -1125,6 +1127,7 @@ export default function Home() {
                 }}
                 onOpenBlock={(number) => openBlock(number, "planner")}
               />
+              </LearnThreeColumnShell>
             ) : null}
             {learnSection === "terminology" ? (
               <details className={writerStyles.scriptStudy} open>

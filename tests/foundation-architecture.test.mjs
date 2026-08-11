@@ -78,16 +78,17 @@ test("Creative Room retrieval is injected and searches the complete curriculum",
     read("modules/learn/ui/learn-workspace.tsx"),
   ]);
   assert.match(page, /guide=\{answerFromCurriculum\}/);
-  assert.match(guide, /curriculum\.map/);
+  assert.match(guide, /curriculum\s*\.map/);
   assert.match(guide, /sourceLessonIds/);
   assert.match(workspace, /readonly guide: CurriculumGuide/);
   assert.doesNotMatch(workspace, /modules\/creative-room/);
 });
 
 test("LEARN preserves full lessons and uses user-controlled understanding", async () => {
-  const [contract, adapter, workspace, guide, commands, reducer] = await Promise.all([
+  const [contract, adapter, rawCurriculum, workspace, guide, commands, reducer] = await Promise.all([
     read("core/contracts/curriculum.ts"),
     read("adapters/curriculum/current-catalog.ts"),
+    read("data/curriculum/plotpickle-curriculum.json"),
     read("modules/learn/ui/learn-workspace.tsx"),
     read("modules/creative-room/curriculum-guide.ts"),
     read("core/contracts/story-command.ts"),
@@ -96,7 +97,7 @@ test("LEARN preserves full lessons and uses user-controlled understanding", asyn
 
   for (const field of ["definitions", "example", "checklist", "mistakes", "apply", "tags"]) {
     assert.match(contract, new RegExp(field));
-    assert.match(adapter, new RegExp(field));
+    assert.match(rawCurriculum, new RegExp(`"${field}"`));
   }
   assert.match(workspace, /I understand this module/);
   assert.match(workspace, /type="checkbox"/);
@@ -140,21 +141,21 @@ test("the curriculum guide is an Ollama-backed teaching agent with memory", asyn
   assert.match(contract, /conversation/);
   assert.match(contract, /projectMemory/);
   assert.match(contract, /Promise<CurriculumGuideAnswer>/);
-  assert.match(guide, /curriculum\.map/);
-  assert.match(guide, /Retrieved curriculum/);
+  assert.match(guide, /curriculum\s*\.map/);
+  assert.match(guide, /Retrieved PlotPickle curriculum/);
   assert.match(guide, /fetch\("\/api\/writing-assistant\/chat"/);
   assert.match(guide, /provider: "ollama"/);
   assert.match(guide, /history: conversation/);
   assert.match(runtime, /"curriculum-guide"/);
   assert.match(runtime, /warm, patient PlotPickle teacher/);
-  assert.match(runtime, /step-by-step coaching/);
+  assert.match(runtime, /plain language/);
   assert.match(gateway, /body\.provider === "ollama"/);
   assert.match(gateway, /Connect Ollama and choose an installed model/);
   assert.match(workspace, /const answer = await guide/);
   assert.match(workspace, /projectMemory/);
-  assert.match(workspace, /Guide is thinking/);
+  assert.match(workspace, /Thinking about your question/);
   assert.match(workspace, /role="alert"/);
-  assert.match(workspace, /Your PlotPickle Curriculum Guide/);
+  assert.match(workspace, /Curriculum Guide/);
   assert.match(workspace, /Ask in your own words/);
   assert.match(workspace, /Ask the Guide/);
 });

@@ -121,7 +121,8 @@
     "test:full-story-builder": "node --test tests/issue-542-full-story-builder.test.mjs",
     "test:ui-continuity-agent": "node --test tests/issue-544-ui-continuity-agent.test.mjs",
     "test:complete-visual-migration": "node --test tests/issue-546-complete-visual-migration.test.mjs",
-    "test:persistent-agent-windows": "node --test tests/issue-548-persistent-agent-windows.test.mjs"
+    "test:persistent-agent-windows": "node --test tests/issue-548-persistent-agent-windows.test.mjs",
+    "test:mastra-learn-agents": "node --test tests/issue-570-mastra-learn-agents.test.mjs"
   },
   "dependencies": {
     "@mastra/core": "1.57.0",

@@ -1,6 +1,6 @@
 /* Issue #546 — the final shared visual system for every active PlotPickle
    product surface. This file is intentionally last in the root layout so
-   historical module styles cannot reintroduce the retired teal/light UI. */
+   historical module styles cannot reintroduce the retired light blue/green UI. */
 
 html[data-plotpickle-theme="dark"] {
   color-scheme: dark;
@@ -20,7 +20,7 @@ html[data-plotpickle-theme="dark"] .standalone-studio-surface {
 html[data-plotpickle-theme="dark"] .workspace,
 html[data-plotpickle-theme="dark"] .editor-page,
 html[data-plotpickle-theme="dark"] .standalone-studio-surface {
-  background-image: radial-gradient(circle at 50% 0%, rgba(205, 167, 88, 0.045), transparent 32rem) !important;
+  background-image: radial-gradient(circle at 50% 0%, rgba(34, 191, 174, 0.055), transparent 32rem) !important;
 }
 
 /* Shared-shell layout recipe. Navigation zones retain their intrinsic width;
@@ -97,7 +97,7 @@ html[data-plotpickle-theme="dark"] :is(
   .standalone-studio-surface,
   [role="dialog"]
 ) :is(.eyebrow, [class*="eyebrow"], [class*="kicker"], [class*="label"], dt) {
-  color: var(--pp-gold) !important;
+  color: var(--pp-orange) !important;
   letter-spacing: 0.075em;
 }
 
@@ -111,7 +111,7 @@ html[data-plotpickle-theme="dark"] :is(
   border-radius: var(--pp-radius-panel) !important;
   background: #080808 !important;
   color: var(--pp-text) !important;
-  caret-color: var(--pp-gold-bright) !important;
+  caret-color: var(--pp-orange-bright) !important;
   box-shadow: none !important;
 }
 
@@ -133,7 +133,7 @@ html[data-plotpickle-theme="dark"] :is(
 ) :is(button, a, [role="button"], summary) {
   border-color: var(--pp-line-strong) !important;
   border-radius: var(--pp-radius-panel) !important;
-  color: var(--pp-gold-bright) !important;
+  color: var(--pp-teal-bright) !important;
   box-shadow: none !important;
   font-family: inherit !important;
 }
@@ -154,7 +154,7 @@ html[data-plotpickle-theme="dark"] :is(
   .standalone-studio-surface,
   [role="dialog"]
 ) :is(button, a, [role="button"], summary):hover {
-  border-color: var(--pp-gold) !important;
+  border-color: var(--pp-orange) !important;
   background-color: var(--pp-surface-hover) !important;
   color: var(--pp-paper) !important;
 }
@@ -165,8 +165,8 @@ html[data-plotpickle-theme="dark"] :is(
   .standalone-studio-surface,
   [role="dialog"]
 ) :is(.primary-button, [class*="primary"], [aria-pressed="true"], [aria-selected="true"]) {
-  border-color: var(--pp-gold) !important;
-  background-color: var(--pp-gold) !important;
+  border-color: var(--pp-teal) !important;
+  background-color: var(--pp-teal) !important;
   background-image: none !important;
   color: #090806 !important;
 }
@@ -186,7 +186,7 @@ html[data-plotpickle-theme="dark"] :is(
   .standalone-studio-surface,
   [role="dialog"]
 ) :is(progress, meter) {
-  accent-color: var(--pp-gold);
+  accent-color: var(--pp-teal);
 }
 
 /* Red/yellow/green remain reserved for truthful system state. */

@@ -4,7 +4,7 @@
 
 .workspace[data-write-studio="true"] {
   background:
-    radial-gradient(circle at 12% 0%, rgba(205, 167, 88, 0.045), transparent 27rem),
+    radial-gradient(circle at 12% 0%, rgba(34, 191, 174, 0.045), transparent 27rem),
     #090909 !important;
   color: #e9e0d0;
 }
@@ -24,7 +24,7 @@
   top: 0 !important;
   min-height: 52px !important;
   padding: 9px clamp(20px, 3vw, 42px) !important;
-  border-color: rgba(205, 167, 88, 0.2) !important;
+  border-color: rgba(34, 191, 174, 0.2) !important;
   background: rgba(12, 12, 11, 0.97) !important;
   box-shadow: none !important;
 }
@@ -50,15 +50,15 @@
 }
 
 .workspace[data-write-studio="true"] [class*="modeBar"] [class*="activeMode"] {
-  background: #cda758 !important;
+  background: #22bfae !important;
   color: #090806 !important;
 }
 
 .workspace[data-write-studio="true"] [class*="writerHeader"] {
   padding: 28px clamp(24px, 3vw, 46px) 22px !important;
-  border-color: rgba(205, 167, 88, 0.2) !important;
+  border-color: rgba(34, 191, 174, 0.2) !important;
   background:
-    linear-gradient(115deg, rgba(205, 167, 88, 0.045), transparent 40%),
+    linear-gradient(115deg, rgba(34, 191, 174, 0.045), transparent 40%),
     #0d0d0c !important;
 }
 
@@ -67,7 +67,7 @@
 .workspace[data-write-studio="true"] [class*="miniBrief"] > span,
 .workspace[data-write-studio="true"] [class*="aiCard"] > span,
 .workspace[data-write-studio="true"] [class*="assignmentCard"] > span {
-  color: #cda758 !important;
+  color: #22bfae !important;
   font-size: 8px !important;
   letter-spacing: 0.16em !important;
 }
@@ -93,7 +93,7 @@
 .workspace[data-write-studio="true"] [class*="productionDraftPanel"] button,
 .workspace[data-write-studio="true"] [class*="aiCard"] > button,
 .workspace[data-write-studio="true"] [class*="aiResult"] button {
-  border: 1px solid rgba(205, 167, 88, 0.32) !important;
+  border: 1px solid rgba(34, 191, 174, 0.32) !important;
   border-radius: 0 !important;
   background: transparent !important;
   color: #d7c49d !important;
@@ -106,7 +106,7 @@
 .workspace[data-write-studio="true"] [class*="formatToolbar"] button:hover,
 .workspace[data-write-studio="true"] [class*="openPlan"]:hover,
 .workspace[data-write-studio="true"] [class*="productionDraftPanel"] button:hover {
-  border-color: #cda758 !important;
+  border-color: #22bfae !important;
   background: #19150d !important;
   color: #f0d28b !important;
 }
@@ -148,7 +148,7 @@
   top: 52px !important;
   min-height: calc(100vh - 52px) !important;
   max-height: calc(100vh - 52px) !important;
-  border-color: rgba(205, 167, 88, 0.18) !important;
+  border-color: rgba(34, 191, 174, 0.18) !important;
   background: #0d0d0c !important;
 }
 
@@ -158,7 +158,7 @@
 
 .workspace[data-write-studio="true"] [class*="blockRail"] > div span,
 .workspace[data-write-studio="true"] [class*="formatToolbar"] > span {
-  color: #cda758 !important;
+  color: #22bfae !important;
 }
 
 .workspace[data-write-studio="true"] [class*="blockRail"] > div strong {
@@ -189,16 +189,16 @@
 }
 
 .workspace[data-write-studio="true"] [class*="blockRail"] nav [class*="activeBlock"] {
-  border-color: rgba(205, 167, 88, 0.5) !important;
+  border-color: rgba(34, 191, 174, 0.5) !important;
   background: #19150d !important;
   color: #f0d28b !important;
-  box-shadow: inset 3px 0 #cda758 !important;
+  box-shadow: inset 3px 0 #22bfae !important;
 }
 
 .workspace[data-write-studio="true"] [class*="writerMain"] {
   padding: 20px clamp(22px, 3vw, 38px) 72px !important;
   background:
-    radial-gradient(circle at 50% 0%, rgba(205, 167, 88, 0.025), transparent 34rem),
+    radial-gradient(circle at 50% 0%, rgba(34, 191, 174, 0.025), transparent 34rem),
     #090909 !important;
 }
 
@@ -242,10 +242,10 @@
 }
 
 .workspace[data-write-studio="true"] [class*="miniGrid"] [class*="activeMini"] {
-  border-color: #cda758 !important;
+  border-color: #22bfae !important;
   background: #1a160e !important;
   color: #efd18a !important;
-  box-shadow: 0 0 0 1px rgba(205, 167, 88, 0.18) !important;
+  box-shadow: 0 0 0 1px rgba(34, 191, 174, 0.18) !important;
 }
 
 .workspace[data-write-studio="true"] [class*="formatToolbar"] {
@@ -273,9 +273,9 @@
 }
 
 .workspace[data-write-studio="true"] [class*="selectedElement"] {
-  border-color: rgba(205, 167, 88, 0.6) !important;
+  border-color: rgba(34, 191, 174, 0.6) !important;
   background: #1a160e !important;
-  box-shadow: 0 0 0 2px rgba(205, 167, 88, 0.08) !important;
+  box-shadow: 0 0 0 2px rgba(34, 191, 174, 0.08) !important;
 }
 
 .workspace[data-write-studio="true"] [class*="scriptElement"] textarea {
@@ -319,7 +319,7 @@
 .workspace[data-write-studio="true"] [class*="assistantPanel"] {
   top: 52px !important;
   max-height: calc(100vh - 52px) !important;
-  border-color: rgba(205, 167, 88, 0.18) !important;
+  border-color: rgba(34, 191, 174, 0.18) !important;
   background: #0c0c0b !important;
 }
 
@@ -357,8 +357,8 @@
 }
 
 .workspace[data-write-studio="true"] [class*="aiCard"] > button {
-  border-color: #cda758 !important;
-  background: #cda758 !important;
+  border-color: #22bfae !important;
+  background: #22bfae !important;
   color: #090806 !important;
 }
 

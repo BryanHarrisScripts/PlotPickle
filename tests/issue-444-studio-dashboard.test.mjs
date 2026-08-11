@@ -34,7 +34,7 @@ test("#444 Phase A Dashboard follows approved PlotPickle Studio wireframe", asyn
   assert.match(dashboard, /createAfterglowProject/);
   assert.match(dashboard, /AFTERGLOW_EXAMPLE_ACTIVE_KEY/);
   assert.match(dashboard, /storyPoster\(project\)/);
-  assert.match(styles, /#cda758/i, "gold accent token should be present");
+  assert.match(styles, /#22bfae/i, "teal accent token should be present");
   assert.match(styles, /min-height:\s*calc\(100vh/i, "Dashboard should use the available desktop height");
   assert.match(styles, /grid-template-columns:\s*repeat\(11/i, "workflow strip should expose the complete module sequence");
 });

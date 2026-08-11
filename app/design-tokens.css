@@ -14,17 +14,20 @@
   --pp-text: #e9e0d0;
   --pp-muted: #aaa296;
   --pp-dim: #777168;
-  --pp-gold: #cda758;
-  --pp-gold-bright: #e1ba64;
+  --pp-teal: #22bfae;
+  --pp-teal-bright: #45d7c7;
+  --pp-teal-deep: #0f776e;
+  --pp-orange: #ff7a3d;
+  --pp-orange-bright: #ffad73;
 
   /* Colour: boundaries and focus */
-  --pp-line: rgba(205, 167, 88, 0.22);
-  --pp-line-strong: rgba(205, 167, 88, 0.48);
-  --pp-focus: rgba(205, 167, 88, 0.32);
+  --pp-line: rgba(34, 191, 174, 0.22);
+  --pp-line-strong: rgba(34, 191, 174, 0.48);
+  --pp-focus: rgba(34, 191, 174, 0.32);
 
   /* Colour: truthful status only */
   --pp-success: #4f8d68;
-  --pp-warning: #cda758;
+  --pp-warning: #ff9b57;
   --pp-danger: #a9574f;
 
   /* Typography */
@@ -86,15 +89,15 @@
   --panel: var(--pp-surface);
   --line: var(--pp-line);
   --line-strong: var(--pp-line-strong);
-  --pickle: var(--pp-gold);
-  --pickle-dark: var(--pp-gold-bright);
+  --pickle: var(--pp-teal);
+  --pickle-dark: var(--pp-teal-bright);
   --pickle-pale: var(--pp-surface-raised);
   --ice-blue: var(--pp-surface-raised);
   --ice-green: var(--pp-surface-raised);
-  --mustard: var(--pp-gold);
-  --rose: var(--pp-gold);
-  --blue: var(--pp-gold);
-  --violet: var(--pp-gold);
+  --mustard: var(--pp-orange);
+  --rose: var(--pp-orange-bright);
+  --blue: var(--pp-teal);
+  --violet: var(--pp-teal-bright);
   --shadow: var(--pp-shadow);
   --radius-sm: var(--pp-radius-control);
   --radius: var(--pp-radius-panel);
@@ -107,9 +110,9 @@ html[data-plotpickle-contrast="high"] {
   --pp-text: #fffaf0;
   --pp-muted: #d8d0c2;
   --pp-dim: #b8afa1;
-  --pp-line: rgba(225, 186, 100, 0.48);
-  --pp-line-strong: rgba(225, 186, 100, 0.78);
-  --pp-focus: rgba(225, 186, 100, 0.62);
+  --pp-line: rgba(69, 215, 199, 0.48);
+  --pp-line-strong: rgba(69, 215, 199, 0.78);
+  --pp-focus: rgba(255, 122, 61, 0.62);
 }
 
 html[data-plotpickle-type="large"] {
@@ -120,8 +123,8 @@ html[data-plotpickle-type="large"] {
   :root {
     --pp-text: #fffaf0;
     --pp-muted: #d8d0c2;
-    --pp-line: rgba(225, 186, 100, 0.48);
-    --pp-line-strong: rgba(225, 186, 100, 0.78);
+    --pp-line: rgba(69, 215, 199, 0.48);
+    --pp-line-strong: rgba(69, 215, 199, 0.78);
   }
 }
 

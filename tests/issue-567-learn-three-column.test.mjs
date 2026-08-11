@@ -17,7 +17,8 @@ test("Learn uses the locked three-column Creative Room contract", async () => {
   assert.match(shell, /Canon requires approval/);
   assert.match(css, /grid-template-columns/);
   assert.match(css, /--charcoal-0/);
-  assert.match(css, /--tungsten-4/);
+  assert.match(css, /--room-teal/);
+  assert.match(css, /--room-orange/);
 });
 
 test("UI Continuity cleanup does not turn a completed audit into a runtime failure", async () => {

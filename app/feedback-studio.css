@@ -9,7 +9,7 @@
   gap: 16px;
   margin: 0 0 18px;
   padding: 22px;
-  border: 1px solid rgba(205, 167, 88, .28);
+  border: 1px solid rgba(34, 191, 174, .28);
   border-radius: 12px;
   background: linear-gradient(180deg, #111 0%, #0b0b0b 100%);
   box-shadow: 0 18px 48px rgba(0, 0, 0, .28);
@@ -31,7 +31,7 @@
 }
 
 .feedback-studio-eyebrow {
-  color: #cda758;
+  color: #22bfae;
   font-size: .72rem;
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -43,7 +43,7 @@
   justify-content: center;
   gap: 6px;
   padding: 16px;
-  border: 1px solid rgba(205, 167, 88, .22);
+  border: 1px solid rgba(34, 191, 174, .22);
   border-radius: 10px;
   background: #0d0d0d;
 }
@@ -82,7 +82,7 @@
 
 .feedback-category-rail span {
   padding: 7px 10px;
-  border: 1px solid rgba(205, 167, 88, .22);
+  border: 1px solid rgba(34, 191, 174, .22);
   border-radius: 999px;
   color: #d8c9a4;
   background: #0b0b0b;
@@ -99,7 +99,7 @@
 .feedback-studio-actions button {
   min-height: 40px;
   padding: 0 14px;
-  border: 1px solid rgba(205, 167, 88, .35);
+  border: 1px solid rgba(34, 191, 174, .35);
   border-radius: 8px;
   color: #e7d7b1;
   background: #111;
@@ -108,13 +108,13 @@
 
 .feedback-studio-actions button.primary {
   color: #17130b;
-  background: #cda758;
-  border-color: #cda758;
+  background: #22bfae;
+  border-color: #22bfae;
   font-weight: 700;
 }
 
 .feedback-studio-shell button:focus-visible {
-  outline: 2px solid #cda758;
+  outline: 2px solid #22bfae;
   outline-offset: 2px;
 }
 

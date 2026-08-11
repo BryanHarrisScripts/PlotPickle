@@ -8,7 +8,7 @@ const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 test("#546 replaces the retired global palette with one semantic matte-black system", async () => {
   const globals = await read("app/globals.css");
   const tokens = await read("app/design-tokens.css");
-  for (const token of ["--pp-matte: #070707", "--pp-gold: #cda758", "--pp-paper: #eee8dc", "--pp-success", "--pp-warning", "--pp-danger"]) {
+  for (const token of ["--pp-matte: #070707", "--pp-teal: #22bfae", "--pp-orange: #ff7a3d", "--pp-paper: #eee8dc", "--pp-success", "--pp-warning", "--pp-danger"]) {
     assert.match(tokens, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
   }
   for (const retired of ["#123442", "#f2fbfc", "#3c94a8", "#176274", "#dcf5ef", "#dff4ff", "#86a9d2"]) {
@@ -28,7 +28,7 @@ test("#546 loads the authoritative visual system after all historical workspace 
   const approved = layout.indexOf('import "./approved-visual-system.css"');
   assert.ok(continuity >= 0 && approved > continuity);
   const styles = await read("app/approved-visual-system.css");
-  for (const contract of [".workspace", ".editor-page", ".standalone-studio-surface", "[role=\"dialog\"]", "--pp-line", "--pp-gold"]) {
+  for (const contract of [".workspace", ".editor-page", ".standalone-studio-surface", "[role=\"dialog\"]", "--pp-line", "--pp-teal", "--pp-orange"]) {
     assert.ok(styles.includes(contract), `missing complete-migration contract ${contract}`);
   }
   assert.match(styles, /Red\/yellow\/green remain reserved for truthful system state/i);
@@ -44,7 +44,7 @@ test("#546 blocks overlapping shared-shell navigation targets", () => {
     legacyPalette: [],
     navigationOverlaps: [{ first: "Reports", second: "Community", width: 38, height: 28 }],
     anchor: { visible: true, name: "Open Agent and Settings", x: 8, y: 8 },
-    shell: { contract: "v1", designSystem: "matte-black-antique-gold", height: 56, background: "rgb(7, 7, 7)", borderBottom: "rgba(205, 167, 88, 0.18)", fontFamily: "Courier New" },
+    shell: { contract: "v1", designSystem: "matte-black-teal-orange", height: 56, background: "rgb(7, 7, 7)", borderBottom: "rgba(34, 191, 174, 0.18)", fontFamily: "Courier New" },
     activeWorkspace: "reports",
     projectStrip: true,
     statusSignals: 1,
@@ -61,7 +61,7 @@ test("#546 turns a visible retired colour into a blocking continuity error", () 
     theme: "dark",
     legacyPalette: [{ property: "backgroundColor", value: "rgb(60, 148, 168)", element: "section" }],
     anchor: { visible: true, name: "Open Agent and Settings", x: 8, y: 8 },
-    shell: { contract: "v1", designSystem: "matte-black-antique-gold", height: 56, background: "rgb(7, 7, 7)", borderBottom: "rgba(205, 167, 88, 0.18)", fontFamily: "Courier New" },
+    shell: { contract: "v1", designSystem: "matte-black-teal-orange", height: 56, background: "rgb(7, 7, 7)", borderBottom: "rgba(34, 191, 174, 0.18)", fontFamily: "Courier New" },
     activeWorkspace: "learn",
     projectStrip: true,
     statusSignals: 1,

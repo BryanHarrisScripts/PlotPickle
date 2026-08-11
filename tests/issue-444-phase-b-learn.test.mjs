@@ -16,7 +16,7 @@ test("issue #444 Phase B keeps Learn inside the Studio shell and preserves the l
   assert.match(layout, /learning-studio-phase-b\.css/);
   for (const contract of [
     "#080808",
-    "#cda758",
+    "#22bfae",
     "position: fixed",
     "learning-studio_viewTabs",
     "learning-studio_header",

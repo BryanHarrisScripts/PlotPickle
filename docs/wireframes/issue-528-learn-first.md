@@ -1,6 +1,6 @@
 # Issue #528 — Learn-first Creative Writer wireframe
 
-Approved direction: Learn is a full PlotPickle Studio creative module, not a settings/help page. It uses the same matte-black, muted antique-gold, typewriter/editorial system already approved for Dashboard, Plan, Storyboard and the rest of the visual-writing journey.
+Approved direction: Learn is a full PlotPickle Studio creative module, not a settings/help page. It uses the same matte-black, muted teal-orange, typewriter/editorial system used across Dashboard, Plan, Storyboard and the rest of the visual-writing journey.
 
 ## Desktop wireframe
 
@@ -39,14 +39,14 @@ Opening a lesson keeps the same story position visible and expands the lesson be
 
 ## Core Curriculum state
 
-Core Curriculum uses the same PlotPickle Studio visual grammar: matte-black canvas, muted antique-gold dividers and actions, typewriter typography, square editorial panels and restrained hierarchy. It may record private exercise/application evidence into the active project review record, but it never locks the writer into a route.
+Core Curriculum uses the same PlotPickle Studio visual grammar: matte-black canvas, teal dividers and actions, restrained orange emphasis, typewriter typography, square editorial panels and clear hierarchy. It may record private exercise/application evidence into the active project review record, but it never locks the writer into a route.
 
 ## Visual contract
 
 - canvas: matte black / near-black (`#070706`, `#0b0b0a`, `#10100f`)
-- accent: muted antique gold between brass and yellow-gold (`#cda758`, lighter highlight `#e1ba64`, deeper trim `#8c6f35`)
-- typography: typewriter/monospaced throughout; no teal, bright blue, white-card or rounded SaaS styling
-- thin gold/neutral borders, square or nearly square panels, generous negative space
+- accent: teal for navigation, selections and primary actions (`#22bfae`, lighter highlight `#45d7c7`, deeper trim `#0f776e`); orange for prompts, focus and emphasis (`#ff7a3d`, lighter highlight `#ffad73`)
+- typography: typewriter/monospaced throughout; no yellow/gold chrome, bright blue, white-card or rounded SaaS styling
+- thin teal/neutral borders, restrained orange emphasis, square or nearly square panels and generous negative space
 - current story position and learning progress remain visible and secondary to the lesson itself
 - left Learn rail is persistent on desktop and collapses naturally on narrower screens
 

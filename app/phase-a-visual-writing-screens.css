@@ -6,10 +6,10 @@
   --pp-matte: #070707;
   --pp-panel: #0b0b0a;
   --pp-panel-raised: #10100e;
-  --pp-line: rgba(205, 167, 88, 0.22);
-  --pp-line-strong: rgba(205, 167, 88, 0.48);
-  --pp-gold: #cda758;
-  --pp-gold-bright: #e1ba64;
+  --pp-line: rgba(34, 191, 174, 0.22);
+  --pp-line-strong: rgba(34, 191, 174, 0.48);
+  --pp-teal: #22bfae;
+  --pp-orange-bright: #ffad73;
   --pp-paper: #eee8dc;
   --pp-muted: #817b71;
   --pp-dim: #5f5a53;
@@ -59,7 +59,7 @@ html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .sect
 html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .section-heading .eyebrow,
 html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) h3,
 html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .field-label {
-  color: var(--pp-gold) !important;
+  color: var(--pp-teal) !important;
   font-family: inherit !important;
   font-weight: 600 !important;
   letter-spacing: 0.08em !important;
@@ -97,8 +97,8 @@ html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) selec
 html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) input:focus,
 html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) textarea:focus,
 html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) select:focus {
-  border-color: var(--pp-gold) !important;
-  outline: 1px solid rgba(205, 167, 88, 0.25) !important;
+  border-color: var(--pp-teal) !important;
+  outline: 1px solid rgba(34, 191, 174, 0.25) !important;
 }
 
 html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .field-help {
@@ -108,7 +108,7 @@ html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .fiel
 html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .subsection-title {
   align-items: center !important;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(205, 167, 88, 0.14);
+  border-bottom: 1px solid rgba(34, 191, 174, 0.14);
 }
 
 html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .subsection-title p {
@@ -117,16 +117,16 @@ html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .subs
 
 html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .primary-button,
 html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .secondary-button {
-  border: 1px solid var(--pp-gold) !important;
+  border: 1px solid var(--pp-teal) !important;
   border-radius: 0 !important;
   background: transparent !important;
-  color: var(--pp-gold-bright) !important;
+  color: var(--pp-orange-bright) !important;
   box-shadow: none !important;
 }
 
 html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .primary-button:hover,
 html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .secondary-button:hover {
-  background: var(--pp-gold) !important;
+  background: var(--pp-teal) !important;
   color: #090806 !important;
   transform: none !important;
 }
@@ -161,7 +161,7 @@ html[data-plotpickle-theme="dark"] .editor-page:has(#field-ordinary-world) .loca
   border-bottom: 1px solid #312b22 !important;
   border-radius: 0 !important;
   background:
-    linear-gradient(145deg, rgba(205, 167, 88, 0.05), transparent),
+    linear-gradient(145deg, rgba(34, 191, 174, 0.05), transparent),
     #0a0a09 !important;
   color: #6f6656 !important;
 }
@@ -205,7 +205,7 @@ html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .field-la
 html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) h3,
 html[data-plotpickle-theme="dark"] .editor-page:has(.character-profile-head) .field-label,
 html[data-plotpickle-theme="dark"] .editor-page:has(.character-profile-head) h3 {
-  color: var(--pp-gold) !important;
+  color: var(--pp-teal) !important;
   font-family: inherit !important;
   letter-spacing: 0.075em !important;
   text-transform: uppercase;
@@ -270,8 +270,8 @@ html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) select {
 html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) input:focus,
 html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) textarea:focus,
 html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) select:focus {
-  border-color: var(--pp-gold) !important;
-  outline: 1px solid rgba(205, 167, 88, 0.25) !important;
+  border-color: var(--pp-teal) !important;
+  outline: 1px solid rgba(34, 191, 174, 0.25) !important;
 }
 
 html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .character-core-grid,
@@ -293,19 +293,19 @@ html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .relation
 }
 
 html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .relationship-list article span {
-  color: var(--pp-gold) !important;
+  color: var(--pp-teal) !important;
 }
 
 html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .primary-button {
-  border: 1px solid var(--pp-gold) !important;
+  border: 1px solid var(--pp-teal) !important;
   border-radius: 0 !important;
   background: transparent !important;
-  color: var(--pp-gold-bright) !important;
+  color: var(--pp-orange-bright) !important;
   box-shadow: none !important;
 }
 
 html[data-plotpickle-theme="dark"] .editor-page:has(.character-roster) .primary-button:hover {
-  background: var(--pp-gold) !important;
+  background: var(--pp-teal) !important;
   color: #090806 !important;
   transform: none !important;
 }
@@ -371,8 +371,8 @@ html[data-plotpickle-theme="dark"] .visual-studio-layout [aria-label="Review gen
   content: "CANDIDATE";
   display: block;
   padding: 5px 7px;
-  border-bottom: 1px solid rgba(205, 167, 88, 0.25);
-  color: var(--pp-gold);
+  border-bottom: 1px solid rgba(34, 191, 174, 0.25);
+  color: var(--pp-teal);
   font-size: 8px;
   letter-spacing: 0.12em;
 }
@@ -381,7 +381,7 @@ html[data-plotpickle-theme="dark"] .visual-studio-layout [aria-label="Review gen
   content: "APPROVED CANON";
   display: block;
   padding: 5px 7px;
-  border-bottom: 1px solid rgba(205, 167, 88, 0.25);
+  border-bottom: 1px solid rgba(34, 191, 174, 0.25);
   color: #e2c77c;
   font-size: 8px;
   letter-spacing: 0.12em;

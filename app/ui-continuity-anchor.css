@@ -9,10 +9,10 @@ html[data-plotpickle-theme="dark"] .application-shell-header {
   width: 30px;
   height: 30px;
   place-items: center;
-  border: 1px solid rgba(205, 167, 88, 0.52);
+  border: 1px solid rgba(34, 191, 174, 0.52);
   border-radius: 4px;
   background: #0b0b0b;
-  color: #d8b769;
+  color: #ff8a4c;
   font-family: var(--font-mono), "Courier New", monospace;
   font-size: 12px;
   font-weight: 700;
@@ -23,14 +23,14 @@ html[data-plotpickle-theme="dark"] .application-shell-header {
 
 .shell-agent-settings-anchor:hover,
 .standalone-agent-settings-anchor:hover {
-  border-color: #d8b769;
-  background: #15130f;
+  border-color: #22bfae;
+  background: #0d1918;
   color: #f1eee6;
 }
 
 .shell-agent-settings-anchor:focus-visible,
 .standalone-agent-settings-anchor:focus-visible {
-  outline: 2px solid #e1ba64;
+  outline: 2px solid #ff7a3d;
   outline-offset: 3px;
 }
 

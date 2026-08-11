@@ -7,7 +7,7 @@
   margin: 0;
   padding: 30px clamp(28px, 3.5vw, 58px) 72px !important;
   background:
-    radial-gradient(circle at 10% 0%, rgba(205, 167, 88, 0.035), transparent 24rem),
+    radial-gradient(circle at 10% 0%, rgba(34, 191, 174, 0.035), transparent 24rem),
     #090909 !important;
   color: #e9e0d0 !important;
   font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
@@ -17,7 +17,7 @@
   align-items: end !important;
   margin-bottom: 22px !important;
   padding-bottom: 20px !important;
-  border-bottom: 1px solid rgba(205, 167, 88, 0.2) !important;
+  border-bottom: 1px solid rgba(34, 191, 174, 0.2) !important;
 }
 
 .workspace:has(.planner-content) .section-heading h1,
@@ -46,7 +46,7 @@
 .workspace:has(.planner-content) .eyebrow,
 .workspace:has(.planner-content) .block-number,
 .workspace:has(.planner-content) .storyboard-block-list button > span {
-  color: #cda758 !important;
+  color: #22bfae !important;
 }
 
 .workspace:has(.planner-content) .form-section,
@@ -71,9 +71,9 @@
 
 .workspace:has(.planner-content) .signal-section,
 .workspace:has(.planner-content) .story-motion-grid {
-  border-color: rgba(205, 167, 88, 0.34) !important;
+  border-color: rgba(34, 191, 174, 0.34) !important;
   background:
-    linear-gradient(145deg, rgba(205, 167, 88, 0.055), transparent 70%),
+    linear-gradient(145deg, rgba(34, 191, 174, 0.055), transparent 70%),
     #11100e !important;
 }
 
@@ -118,8 +118,8 @@
 .workspace:has(.planner-content) .form-field textarea:focus,
 .workspace:has(.planner-content) .form-field select:focus,
 .workspace:has(.planner-content) .subsection-title select:focus {
-  border-color: #cda758 !important;
-  box-shadow: 0 0 0 2px rgba(205, 167, 88, 0.13) !important;
+  border-color: #22bfae !important;
+  box-shadow: 0 0 0 2px rgba(34, 191, 174, 0.13) !important;
   outline: none !important;
 }
 
@@ -135,7 +135,7 @@
   border-color: #342f27 !important;
   border-radius: 0 !important;
   background:
-    linear-gradient(145deg, rgba(205, 167, 88, 0.05), transparent),
+    linear-gradient(145deg, rgba(34, 191, 174, 0.05), transparent),
     #0c0c0b !important;
   color: #776f61 !important;
 }
@@ -152,7 +152,7 @@
 
 .workspace:has(.planner-content) .character-roster button:hover,
 .workspace:has(.planner-content) .character-roster button.active {
-  border-color: rgba(205, 167, 88, 0.38) !important;
+  border-color: rgba(34, 191, 174, 0.38) !important;
   background: #18150f !important;
   color: #efdcae !important;
   box-shadow: none !important;
@@ -195,11 +195,11 @@
 
 .workspace:has(.planner-content) .block-card.active,
 .workspace:has(.planner-content) .storyboard-block-list button.active {
-  border-color: #cda758 !important;
+  border-color: #22bfae !important;
   background:
-    linear-gradient(145deg, rgba(205, 167, 88, 0.075), transparent 70%),
+    linear-gradient(145deg, rgba(34, 191, 174, 0.075), transparent 70%),
     #17140d !important;
-  box-shadow: inset 0 0 0 1px rgba(205, 167, 88, 0.08) !important;
+  box-shadow: inset 0 0 0 1px rgba(34, 191, 174, 0.08) !important;
 }
 
 .workspace:has(.planner-content) .block-card > i {
@@ -207,7 +207,7 @@
 }
 
 .workspace:has(.planner-content) .block-card > i b {
-  background: #cda758 !important;
+  background: #22bfae !important;
 }
 
 .workspace:has(.planner-content) .block-inspector,
@@ -235,16 +235,16 @@
 
 .workspace:has(.planner-content) .chip-list button:hover,
 .workspace:has(.planner-content) .chip-list button.active {
-  border-color: #cda758 !important;
+  border-color: #22bfae !important;
   background: #19150d !important;
   color: #efd28c !important;
 }
 
 .workspace:has(.planner-content) .primary-button,
 .workspace:has(.planner-content) button.primary-button {
-  border-color: #cda758 !important;
+  border-color: #22bfae !important;
   border-radius: 0 !important;
-  background: #cda758 !important;
+  background: #22bfae !important;
   color: #090806 !important;
   box-shadow: none !important;
 }

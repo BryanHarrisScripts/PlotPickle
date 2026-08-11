@@ -12,12 +12,12 @@
 .workspace:has(.planner-content) .secondary-button:focus-visible,
 .workspace:has(.planner-content) button.secondary-button:hover,
 .workspace:has(.planner-content) button.secondary-button:focus-visible {
-  border-color: #cda758 !important;
+  border-color: #22bfae !important;
   background: #19150d !important;
   color: #f0d28b !important;
   outline: none !important;
 }
 
 .workspace:has(.planner-content) .block-index {
-  border-bottom-color: #cda758 !important;
+  border-bottom-color: #22bfae !important;
 }

@@ -4,7 +4,7 @@
   "mode": "read-only",
   "autoFix": false,
   "fixApprovalRequired": true,
-  "designSystem": "matte-black-antique-gold",
+  "designSystem": "matte-black-teal-orange",
   "screens": [
     { "id": "dashboard", "label": "Dashboard", "path": "/?workspace=dashboard", "kind": "workspace", "activeWorkspace": "dashboard" },
     { "id": "learn", "label": "Learn", "path": "/?workspace=learn", "kind": "workspace", "activeWorkspace": "learn" },

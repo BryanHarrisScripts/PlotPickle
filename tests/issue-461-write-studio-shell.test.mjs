@@ -42,12 +42,12 @@ test("#461 activates the Write Studio boundary only for the Write workspace", as
   assert.doesNotMatch(host, /setProject|onChange|localStorage|sessionStorage|fetch\(|provider|apiKey/i);
 });
 
-test("#461 gives the existing Writer a matte-black warm-gold Studio shell", async () => {
+test("#461 gives the existing Writer a matte-black teal-orange Studio shell", async () => {
   const styles = await source("app/write-studio-phase-c.css");
 
   assert.match(styles, /\.workspace\[data-write-studio="true"\]/);
   assert.match(styles, /#090909/i);
-  assert.match(styles, /#cda758/i);
+  assert.match(styles, /#22bfae/i);
   assert.match(styles, /Georgia/);
   assert.match(styles, /nav button/);
   assert.match(styles, /activeMini/);
@@ -65,7 +65,7 @@ test("#461 Treatment and craft diagnostics stay inside the same dark Writer syst
   assert.match(styles, /editorCard/);
   assert.match(styles, /previewContent/);
   assert.match(styles, /#090909/i);
-  assert.match(styles, /#cda758/i);
+  assert.match(styles, /#22bfae/i);
   assert.match(styles, /Diagnostic craft summary/);
   assert.match(styles, /summaryCounts/);
   assert.match(styles, /finding/);

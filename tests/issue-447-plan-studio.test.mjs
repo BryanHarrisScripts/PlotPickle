@@ -51,7 +51,7 @@ test("#447 Plan default canvas exposes story direction and the 4\/24\/96 archite
   assert.match(plan, /project\.development\.conceptCanvas\.desiredVisualImpact/);
   assert.match(plan, /project\.blocks\.filter/);
   assert.match(plan, /onOpenBlock\(block\.number\)/);
-  assert.match(styles, /#cda758/i);
+  assert.match(styles, /#22bfae/i);
   assert.match(styles, /grid-template-columns:\s*repeat\(4/i);
   assert.match(styles, /grid-template-columns:\s*repeat\(5/i);
 });
@@ -81,7 +81,7 @@ test("#447 gives Plan a dedicated matte-black Studio boundary without recolourin
   assert.match(boundary, /section\[aria-label\$="capabilities"\]/);
   assert.match(boundary, /\.story-rail/);
   assert.match(boundary, /#090909/i);
-  assert.match(boundary, /#cda758/i);
+  assert.match(boundary, /#22bfae/i);
   assert.match(boundary, /background:\s*#19150d/i);
 });
 
@@ -101,7 +101,7 @@ test("#447 keeps existing Plan editors but brings them into the same Studio visu
   assert.match(editors, /\.block-inspector/);
   assert.match(editors, /max-width:\s*none/i);
   assert.match(editors, /#090909/i);
-  assert.match(editors, /#cda758/i);
+  assert.match(editors, /#22bfae/i);
   assert.match(editors, /Georgia/);
 });
 

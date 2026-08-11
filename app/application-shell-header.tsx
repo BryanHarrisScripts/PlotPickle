@@ -87,7 +87,7 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
       className="topbar application-shell-header"
       aria-label="PlotPickle application navigation and project actions"
       data-ui-continuity-shell="v1"
-      data-ui-continuity-theme="matte-black-antique-gold"
+      data-ui-continuity-theme="matte-black-teal-orange"
     >
       <button
         type="button"

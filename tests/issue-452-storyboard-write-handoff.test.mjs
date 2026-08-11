@@ -48,7 +48,7 @@ test("#452 Write handoff remains compact, keyboard visible and mobile safe", asy
   const styles = await source("app/storyboard-write-handoff.css");
 
   assert.match(styles, /position:\s*fixed/);
-  assert.match(styles, /#cda758/i);
+  assert.match(styles, /#22bfae/i);
   assert.match(styles, /:focus-visible/);
   assert.match(styles, /@media \(max-width:\s*720px\)/);
   assert.match(styles, /@media \(prefers-reduced-motion:\s*reduce\)/);

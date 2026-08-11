@@ -129,15 +129,31 @@ test("LEARN exposes the future PlotPickle workflow navigation", async () => {
 });
 
 
-test("the curriculum guide teaches instead of returning lesson bookmarks", async () => {
-  const [guide, workspace] = await Promise.all([
+test("the curriculum guide is an Ollama-backed teaching agent with memory", async () => {
+  const [contract, guide, workspace, runtime, gateway] = await Promise.all([
+    read("core/contracts/curriculum-guide.ts"),
     read("modules/creative-room/curriculum-guide.ts"),
     read("modules/learn/ui/learn-workspace.tsx"),
+    read("build/mastra-agent-runtime.ts"),
+    read("build/writing-assistant-gateway.ts"),
   ]);
-  assert.match(guide, /let’s work through it together/);
-  assert.match(guide, /Why it matters/);
-  assert.match(guide, /simple example, a step-by-step walkthrough/);
-  assert.doesNotMatch(guide, /curriculum connects your question to/);
+  assert.match(contract, /conversation/);
+  assert.match(contract, /projectMemory/);
+  assert.match(contract, /Promise<CurriculumGuideAnswer>/);
+  assert.match(guide, /curriculum\.map/);
+  assert.match(guide, /Retrieved curriculum/);
+  assert.match(guide, /fetch\("\/api\/writing-assistant\/chat"/);
+  assert.match(guide, /provider: "ollama"/);
+  assert.match(guide, /history: conversation/);
+  assert.match(runtime, /"curriculum-guide"/);
+  assert.match(runtime, /warm, patient PlotPickle teacher/);
+  assert.match(runtime, /step-by-step coaching/);
+  assert.match(gateway, /body\.provider === "ollama"/);
+  assert.match(gateway, /Connect Ollama and choose an installed model/);
+  assert.match(workspace, /const answer = await guide/);
+  assert.match(workspace, /projectMemory/);
+  assert.match(workspace, /Guide is thinking/);
+  assert.match(workspace, /role="alert"/);
   assert.match(workspace, /Your PlotPickle Curriculum Guide/);
   assert.match(workspace, /Talk with your guide/);
   assert.match(workspace, /Ask the Guide/);

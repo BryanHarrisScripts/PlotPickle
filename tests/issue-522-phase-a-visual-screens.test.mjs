@@ -8,12 +8,12 @@ const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "ut
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 const browserActions = await readFile(new URL("../scripts/creative-uat/browser-actions.mjs", import.meta.url), "utf8");
 
-test("approved Phase A screens use the matte-black, muted-gold, typewriter visual contract", () => {
+test("approved Phase A screens use the matte-black, teal-orange, typewriter visual contract", () => {
   assert.match(dashboard, /background:\s*#070707/);
   assert.match(dashboard, /font-family:\s*ui-monospace/);
-  assert.match(dashboard, /#cda758/i);
+  assert.match(dashboard, /#22bfae/i);
   assert.match(phaseA, /--pp-matte:\s*#070707/);
-  assert.match(phaseA, /--pp-gold:\s*#cda758/);
+  assert.match(phaseA, /--pp-teal:\s*#22bfae/);
   assert.match(phaseA, /font-family:\s*var\(--font-mono\)/);
   assert.doesNotMatch(`${dashboard}\n${phaseA}`, /purple|#7c3aed|#8b5cf6/i);
 });

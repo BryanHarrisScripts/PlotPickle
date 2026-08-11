@@ -59,11 +59,11 @@ test("#483 exposes the approved Feedback categories and exact-position workflow 
   assert.match(host, /workspace=refine&block=\$\{blockNumber\}&mini=\$\{miniBlockNumber\}/);
 });
 
-test("#483 follows the reviewed matte-black warm-gold PlotPickle visual contract", async () => {
+test("#483 follows the reviewed matte-black teal-orange PlotPickle visual contract", async () => {
   const styles = await source("app/feedback-studio.css");
 
   assert.match(styles, /#090909/i);
-  assert.match(styles, /#cda758/i);
+  assert.match(styles, /#22bfae/i);
   assert.match(styles, /Georgia/);
   assert.match(styles, /feedback-studio-context/);
   assert.match(styles, /feedback-category-rail/);

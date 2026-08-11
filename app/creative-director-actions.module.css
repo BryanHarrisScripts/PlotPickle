@@ -2,7 +2,7 @@
   display: grid;
   gap: 1rem;
   padding: 1.1rem;
-  border: 1px solid var(--pp-line, rgba(205, 167, 88, 0.22));
+  border: 1px solid var(--pp-line, rgba(34, 191, 174, 0.22));
   border-radius: 0;
   background: var(--pp-panel, #0b0b0a);
   color: var(--pp-paper, #eee8dc);
@@ -13,11 +13,11 @@
   display: grid;
   gap: .35rem;
   padding-bottom: .85rem;
-  border-bottom: 1px solid var(--pp-line, rgba(205, 167, 88, 0.22));
+  border-bottom: 1px solid var(--pp-line, rgba(34, 191, 174, 0.22));
 }
 
 .header > span {
-  color: var(--pp-gold, #cda758);
+  color: var(--pp-teal, #22bfae);
   font-size: .75rem;
   font-weight: 800;
   letter-spacing: .08em;
@@ -44,7 +44,7 @@
   gap: .6rem;
   margin: 0;
   padding: .9rem;
-  border: 1px solid var(--pp-line-strong, rgba(205, 167, 88, 0.48));
+  border: 1px solid var(--pp-line-strong, rgba(34, 191, 174, 0.48));
   min-inline-size: 0;
   background: #090908;
 }
@@ -54,7 +54,7 @@
   width: auto;
   margin: 0;
   padding: 0 .35rem;
-  color: var(--pp-gold-bright, #e1ba64);
+  color: var(--pp-orange-bright, #ffad73);
   font-size: .78rem;
   font-weight: 800;
   letter-spacing: .09em;
@@ -83,12 +83,12 @@
 }
 
 .actions button:hover:not(:disabled) {
-  border-color: var(--pp-gold, #cda758);
+  border-color: var(--pp-teal, #22bfae);
   background: #15120c;
 }
 
 .actions button strong {
-  color: var(--pp-gold-bright, #e1ba64);
+  color: var(--pp-orange-bright, #ffad73);
   font-size: 1rem;
 }
 
@@ -99,8 +99,8 @@
 }
 
 .primary {
-  border-color: var(--pp-gold, #cda758) !important;
-  background: rgba(205, 167, 88, 0.09) !important;
+  border-color: var(--pp-teal, #22bfae) !important;
+  background: rgba(34, 191, 174, 0.09) !important;
 }
 
 .secondary {
@@ -155,7 +155,7 @@
 .motionAction button:focus-visible,
 .footer button:focus-visible,
 .advanced summary:focus-visible {
-  outline: 2px solid var(--pp-gold-bright, #e1ba64);
+  outline: 2px solid var(--pp-orange-bright, #ffad73);
   outline-offset: 3px;
 }
 
@@ -169,7 +169,7 @@
 
 .warning {
   border: 1px solid rgba(225, 186, 100, .35);
-  background: rgba(205, 167, 88, .08);
+  background: rgba(34, 191, 174, .08);
 }
 
 .message {
@@ -188,8 +188,8 @@
   justify-content: space-between;
   gap: .8rem;
   padding: .85rem 0;
-  border-top: 1px solid var(--pp-line, rgba(205, 167, 88, 0.22));
-  border-bottom: 1px solid var(--pp-line, rgba(205, 167, 88, 0.22));
+  border-top: 1px solid var(--pp-line, rgba(34, 191, 174, 0.22));
+  border-bottom: 1px solid var(--pp-line, rgba(34, 191, 174, 0.22));
 }
 
 .motionAction > div {
@@ -215,7 +215,7 @@
   border: 1px solid #3a3122;
   border-radius: 0;
   background: transparent;
-  color: var(--pp-gold-bright, #e1ba64);
+  color: var(--pp-orange-bright, #ffad73);
   font: inherit;
 }
 
@@ -228,7 +228,7 @@
   min-height: 44px;
   display: flex;
   align-items: center;
-  color: var(--pp-gold, #cda758);
+  color: var(--pp-teal, #22bfae);
   font-weight: 750;
 }
 

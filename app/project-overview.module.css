@@ -4,14 +4,14 @@
   padding: 30px clamp(24px, 3.2vw, 54px) 42px;
   color: #f4efe6;
   background:
-    radial-gradient(circle at 12% 6%, rgba(205, 167, 88, 0.07), transparent 25rem),
+    radial-gradient(circle at 12% 6%, rgba(34, 191, 174, 0.07), transparent 25rem),
     linear-gradient(180deg, #090909 0%, #0c0c0b 50%, #080808 100%);
   font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
 }
 
 .kicker {
   margin: 0 0 8px;
-  color: #cda758;
+  color: #22bfae;
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.18em;
@@ -24,7 +24,7 @@
   gap: 30px;
   align-items: end;
   padding-bottom: 24px;
-  border-bottom: 1px solid rgba(205, 167, 88, 0.24);
+  border-bottom: 1px solid rgba(34, 191, 174, 0.24);
 }
 
 .planHeader h1 {
@@ -103,7 +103,7 @@
 }
 
 .nextCard {
-  border-color: rgba(205, 167, 88, 0.42);
+  border-color: rgba(34, 191, 174, 0.42);
   background: linear-gradient(145deg, #17140d, #0f0f0e 70%);
 }
 
@@ -114,7 +114,7 @@
   min-height: 38px;
   margin-top: 10px;
   padding: 9px 12px;
-  border: 1px solid rgba(205, 167, 88, 0.3);
+  border: 1px solid rgba(34, 191, 174, 0.3);
   background: transparent;
   color: #dfd1b2;
   font: inherit;
@@ -124,8 +124,8 @@
 }
 
 .primaryAction {
-  border-color: #cda758 !important;
-  background: #cda758 !important;
+  border-color: #22bfae !important;
+  background: #22bfae !important;
   color: #090806 !important;
 }
 
@@ -249,7 +249,7 @@
 .activeAct {
   border-color: #a8833e;
   background: #17140d;
-  box-shadow: inset 0 0 0 1px rgba(205, 167, 88, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(34, 191, 174, 0.08);
 }
 
 .actHeading {
@@ -314,13 +314,13 @@
 }
 
 .activeBlock {
-  border-color: #cda758 !important;
+  border-color: #22bfae !important;
   background: #1a160e !important;
   color: #efc96e !important;
 }
 
 .activeBlock i {
-  background: #cda758 !important;
+  background: #22bfae !important;
 }
 
 .selectedUnit {

@@ -8,7 +8,7 @@
   gap: 16px;
   max-width: min(430px, calc(100vw - 44px));
   padding: 10px 11px 10px 14px;
-  border: 1px solid rgba(205, 167, 88, 0.46);
+  border: 1px solid rgba(34, 191, 174, 0.46);
   background: rgba(14, 14, 13, 0.96);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
   color: #d8cfbf;
@@ -41,8 +41,8 @@
   display: inline-flex;
   align-items: center;
   padding: 8px 11px;
-  border: 1px solid #cda758;
-  background: #cda758;
+  border: 1px solid #22bfae;
+  background: #22bfae;
   color: #090806;
   font-size: 8px;
   font-weight: 850;

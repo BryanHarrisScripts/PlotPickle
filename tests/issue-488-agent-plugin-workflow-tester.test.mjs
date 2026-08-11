@@ -58,7 +58,7 @@ test("#488 checklist covers persistence, local AI recovery and every canonical h
 test("#488 visual contract preserves the reviewed PlotPickle family", async () => {
   const contract = await readText("skills/plotpickle-human-acceptance/references/visual-continuity-contract.md");
   assert.match(contract, /Matte-black \/ charcoal/i);
-  assert.match(contract, /warm-gold/i);
+  assert.match(contract, /teal-orange/i);
   assert.match(contract, /Settings and integrations remain global utilities/i);
   assert.match(contract, /No module should introduce unrelated purple\/blue product chrome/i);
 });

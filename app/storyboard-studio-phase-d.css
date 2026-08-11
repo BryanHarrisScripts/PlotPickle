@@ -4,7 +4,7 @@
 
 .workspace:has(.visual-studio-layout) {
   background:
-    radial-gradient(circle at 10% 0%, rgba(205, 167, 88, 0.045), transparent 26rem),
+    radial-gradient(circle at 10% 0%, rgba(34, 191, 174, 0.045), transparent 26rem),
     #090909 !important;
 }
 
@@ -19,8 +19,8 @@
   color: #e9e0d0;
   --text: #e9e0d0;
   --surface: #11110f;
-  --accent: #cda758;
-  --focus: #cda758;
+  --accent: #22bfae;
+  --focus: #22bfae;
 }
 
 .visual-studio-layout > .story-rail {
@@ -33,11 +33,11 @@
 
 .visual-studio-layout .feedback-context-badge,
 .visual-studio-layout [class*="feedbackContextBadge"] {
-  border-color: rgba(205, 167, 88, 0.25) !important;
+  border-color: rgba(34, 191, 174, 0.25) !important;
 }
 
 /* Storyboard page language. Natural image/video colour remains untouched; all
-   application chrome is quiet black/gold so the story image owns attention. */
+   application chrome is quiet black/teal-orange so the story image owns attention. */
 .visual-studio-layout > div > div:last-child {
   color: #e9e0d0 !important;
   background: #090909 !important;
@@ -46,16 +46,16 @@
 .visual-studio-layout > div > div:last-child > header {
   margin: 0 !important;
   padding: 30px clamp(24px, 3.4vw, 54px) 24px !important;
-  border-bottom: 1px solid rgba(205, 167, 88, 0.22) !important;
+  border-bottom: 1px solid rgba(34, 191, 174, 0.22) !important;
   background:
-    radial-gradient(circle at 8% 0%, rgba(205, 167, 88, 0.06), transparent 24rem),
+    radial-gradient(circle at 8% 0%, rgba(34, 191, 174, 0.06), transparent 24rem),
     #090909 !important;
 }
 
 .visual-studio-layout > div > div:last-child > header span,
 .visual-studio-layout [data-visual-section] span,
 .visual-studio-layout nav[aria-label="Visual Board sections"] header span {
-  color: #cda758 !important;
+  color: #22bfae !important;
   font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
   letter-spacing: 0.14em !important;
   text-transform: uppercase;
@@ -85,7 +85,7 @@
 }
 
 .visual-studio-layout > div > div:last-child > header > div:last-child {
-  border: 1px solid rgba(205, 167, 88, 0.28) !important;
+  border: 1px solid rgba(34, 191, 174, 0.28) !important;
   border-radius: 0 !important;
   background: #10100e !important;
   box-shadow: none !important;
@@ -100,7 +100,7 @@
 }
 
 .visual-studio-layout > div > div:last-child > header > div:last-child i {
-  background: #cda758 !important;
+  background: #22bfae !important;
 }
 
 /* Internal Storyboard navigation remains the capability index for this first
@@ -111,14 +111,14 @@
   border: 1px solid #2c2821 !important;
   border-radius: 0 !important;
   background:
-    linear-gradient(180deg, rgba(205, 167, 88, 0.035), transparent 14rem),
+    linear-gradient(180deg, rgba(34, 191, 174, 0.035), transparent 14rem),
     #0d0d0c !important;
   box-shadow: none !important;
 }
 
 .visual-studio-layout nav[aria-label="Visual Board sections"] header {
   padding: 5px 8px 15px !important;
-  border-bottom: 1px solid rgba(205, 167, 88, 0.16) !important;
+  border-bottom: 1px solid rgba(34, 191, 174, 0.16) !important;
 }
 
 .visual-studio-layout nav[aria-label="Visual Board sections"] header strong {
@@ -142,7 +142,7 @@
 .visual-studio-layout nav[aria-label="Visual Board sections"] button:hover,
 .visual-studio-layout nav[aria-label="Visual Board sections"] button:focus-visible,
 .visual-studio-layout nav[aria-label="Visual Board sections"] button[aria-current] {
-  border-color: rgba(205, 167, 88, 0.42) !important;
+  border-color: rgba(34, 191, 174, 0.42) !important;
   background: #19150d !important;
   color: #efd18a !important;
   outline: none !important;
@@ -156,7 +156,7 @@
   border: 1px solid #443a28 !important;
   border-radius: 0 !important;
   background: #11100d !important;
-  color: #cda758 !important;
+  color: #22bfae !important;
 }
 
 /* All content panels share the Plan-like editorial surface. */
@@ -170,7 +170,7 @@
 }
 
 .visual-studio-layout [data-visual-section]:focus {
-  outline: 1px solid #cda758 !important;
+  outline: 1px solid #22bfae !important;
   outline-offset: 3px;
 }
 
@@ -222,7 +222,7 @@
 .visual-studio-layout nav[aria-label="Storyboard act filter"] button:focus-visible,
 .visual-studio-layout nav[aria-label="Storyboard view"] button[class*="active"],
 .visual-studio-layout nav[aria-label="Storyboard act filter"] button[class*="active"] {
-  border-color: #cda758 !important;
+  border-color: #22bfae !important;
   background: #1a160e !important;
   color: #efca72 !important;
   outline: none !important;
@@ -260,21 +260,21 @@
 
 .visual-studio-layout [data-visual-section="blocks"] main button[class*="selected"],
 .visual-studio-layout [data-visual-section="frames"] main button[class*="selected"] {
-  border-color: #cda758 !important;
+  border-color: #22bfae !important;
   background: #19150d !important;
-  box-shadow: inset 0 0 0 1px rgba(205, 167, 88, 0.09) !important;
+  box-shadow: inset 0 0 0 1px rgba(34, 191, 174, 0.09) !important;
 }
 
 .visual-studio-layout [data-visual-section="blocks"] main button > div:first-child,
 .visual-studio-layout [data-visual-section="frames"] main button > div:first-child {
   background:
-    linear-gradient(135deg, rgba(205, 167, 88, 0.055), transparent),
+    linear-gradient(135deg, rgba(34, 191, 174, 0.055), transparent),
     #0b0b0a !important;
 }
 
 .visual-studio-layout [data-visual-section="blocks"] main button > div:first-child > span,
 .visual-studio-layout [data-visual-section="frames"] main button > div:first-child b {
-  color: #cda758 !important;
+  color: #22bfae !important;
 }
 
 /* The inspector is the selected visual story moment, not a settings panel. */
@@ -284,7 +284,7 @@
   border: 1px solid #3b3326 !important;
   border-radius: 0 !important;
   background:
-    linear-gradient(180deg, rgba(205, 167, 88, 0.04), transparent 16rem),
+    linear-gradient(180deg, rgba(34, 191, 174, 0.04), transparent 16rem),
     #11110f !important;
   color: #e9e0d0 !important;
   box-shadow: none !important;
@@ -315,7 +315,7 @@
 .visual-studio-layout [data-visual-section="blocks"] aside textarea:focus,
 .visual-studio-layout [data-visual-section="frames"] aside input:focus,
 .visual-studio-layout [data-visual-section="frames"] aside textarea:focus {
-  border-color: #cda758 !important;
+  border-color: #22bfae !important;
   outline: none !important;
 }
 
@@ -332,8 +332,8 @@
 }
 
 .visual-studio-layout [aria-label="Review generated versions"] button:first-child {
-  border-color: #cda758 !important;
-  background: #cda758 !important;
+  border-color: #22bfae !important;
+  background: #22bfae !important;
   color: #090806 !important;
 }
 

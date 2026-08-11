@@ -17,7 +17,7 @@ function snapshot(overrides = {}) {
     statusSignals: 2,
     returnControls: [],
     anchor: { visible: true, name: "Open Agent and Settings", x: 12, y: 12 },
-    shell: { contract: "v1", designSystem: "matte-black-antique-gold", height: 56, background: "rgb(7, 7, 7)", borderBottom: "rgba(205, 167, 88, 0.18)", fontFamily: "Courier New" },
+    shell: { contract: "v1", designSystem: "matte-black-teal-orange", height: 56, background: "rgb(7, 7, 7)", borderBottom: "rgba(34, 191, 174, 0.18)", fontFamily: "Courier New" },
     ...overrides,
   };
 }
@@ -60,7 +60,7 @@ test("#544 registers canonical top-level and nested routes with read-only policy
   assert.equal(registry.mode, "read-only");
   assert.equal(registry.autoFix, false);
   assert.equal(registry.fixApprovalRequired, true);
-  assert.equal(registry.designSystem, "matte-black-antique-gold");
+  assert.equal(registry.designSystem, "matte-black-teal-orange");
   for (const id of ["dashboard", "learn", "plan", "plan-world", "storyboard", "write", "edit", "graphic-novel", "build", "feedback", "refine", "reports", "settings", "core-curriculum", "ai-routing"]) {
     assert.ok(registry.screens.some((screen) => screen.id === id), `Missing registered screen ${id}`);
   }
@@ -75,7 +75,7 @@ test("#544 keeps the Agent & Settings control fixed in the shared shell and stan
     read("app/layout.tsx"),
   ]);
   assert.match(header, /data-ui-continuity-shell="v1"/);
-  assert.match(header, /data-ui-continuity-theme="matte-black-antique-gold"/);
+  assert.match(header, /data-ui-continuity-theme="matte-black-teal-orange"/);
   assert.match(header, /data-ui-continuity-anchor="agent-settings"/);
   assert.match(header, /aria-label="Open Agent and Settings"/);
   assert.ok(header.indexOf("shell-agent-settings-anchor") < header.indexOf("shell-brand"));
@@ -83,7 +83,7 @@ test("#544 keeps the Agent & Settings control fixed in the shared shell and stan
   assert.match(styles, /position: fixed/);
   assert.match(styles, /top: 12px/);
   assert.match(styles, /left: 12px/);
-  assert.match(styles, /#cda758|#d8b769/);
+  assert.match(styles, /#22bfae|#d8b769/);
   assert.match(layout, /<UiContinuityAnchor \/>/);
 });
 

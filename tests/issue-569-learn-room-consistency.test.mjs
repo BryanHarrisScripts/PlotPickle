@@ -54,12 +54,23 @@ test("the three-column room and composer remain inside the desktop viewport", as
   assert.match(css, /\.composer \{[^}]*flex: 0 0 auto/s);
 });
 
-test("the approved matte-black, antique-gold and typewriter system wins inside Learn", async () => {
+test("the approved matte-black, teal-orange and typewriter system wins inside Learn", async () => {
   const css = await readFile(cssPath, "utf8");
   assert.match(css, /--charcoal-0: #080a0b/);
-  assert.match(css, /--tungsten-4: #f0d28a/);
+  assert.match(css, /--room-teal: #22bfae/);
+  assert.match(css, /--room-orange: #ff7a3d/);
   assert.match(css, /"Courier New", Consolas, monospace/);
   assert.match(css, /background-color: #10100f !important/);
   assert.match(css, /border-radius: 0 !important/);
-  assert.doesNotMatch(css, /#(?:398187|4da29d|73b7aa|32d4df|bfeef1)/i);
+  assert.doesNotMatch(css, /#(?:cda758|e1ba64|f0d28a|d9ad5b|b98a3d|8a6428|5c421c)/i);
+});
+
+test("Creative Room preserves timed-out questions and offers recovery", async () => {
+  const shell = await readFile(shellPath, "utf8");
+  const provider = await readFile("build/writing-assistant-provider.ts", "utf8");
+  assert.match(provider, /profile\.provider === "ollama" \? 300_000 : 180_000/);
+  assert.match(provider, /took too long to answer\. Your question was kept/);
+  assert.match(shell, /setDraft\(text\)/);
+  assert.match(shell, />Try again</);
+  assert.match(shell, />Choose a faster model</);
 });

@@ -6,10 +6,10 @@ const phaseB = await readFile(new URL("../app/phase-b-visual-writing-screens.css
 const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
 const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
 
-test("Phase B keeps the approved matte-black antique-gold typewriter visual contract", () => {
+test("Phase B keeps the approved matte-black teal-orange typewriter visual contract", () => {
   assert.match(phaseB, /var\(--pp-matte\)/);
-  assert.match(phaseB, /var\(--pp-gold\)/);
-  assert.match(phaseB, /var\(--pp-gold-bright\)/);
+  assert.match(phaseB, /var\(--pp-teal\)/);
+  assert.match(phaseB, /var\(--pp-orange-bright\)/);
   assert.match(phaseB, /Courier New/);
   assert.match(phaseB, /#a9823b/i);
   assert.doesNotMatch(phaseB, /purple|#7c3aed|#8b5cf6/i);

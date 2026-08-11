@@ -30,12 +30,12 @@ test("#529 keeps decision language visible even when no candidate exists", async
   assert.doesNotMatch(styles, /\.actionLegend\s*\{[^}]*width:\s*1px/s);
 });
 
-test("#529 uses the locked matte-black and muted antique-gold visual language", async () => {
+test("#529 uses the locked matte-black and muted teal-orange visual language", async () => {
   const styles = await source("app/creative-director-actions.module.css");
 
   assert.match(styles, /#0b0b0a/);
-  assert.match(styles, /#cda758/i);
-  assert.match(styles, /#e1ba64/i);
+  assert.match(styles, /#22bfae/i);
+  assert.match(styles, /#ffad73/i);
   assert.match(styles, /Courier New/);
   assert.match(styles, /grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/);
 });

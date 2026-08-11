@@ -15,7 +15,7 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio_header"] {
   gap: 24px;
   margin: 0;
   padding: 38px 0 26px;
-  border-bottom: 1px solid rgba(205,167,88,.18);
+  border-bottom: 1px solid rgba(34, 191, 174,.18);
 }
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio_header"] > div:first-child {
@@ -25,11 +25,11 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio_header"] > div:first
   justify-content: flex-end;
   max-width: none;
   padding: 30px 34px;
-  border: 1px solid rgba(205,167,88,.24);
+  border: 1px solid rgba(34, 191, 174,.24);
   border-radius: 0;
   background:
     linear-gradient(90deg, rgba(6,6,6,.96), rgba(6,6,6,.65)),
-    radial-gradient(circle at 80% 20%, rgba(205,167,88,.12), transparent 25rem),
+    radial-gradient(circle at 80% 20%, rgba(34, 191, 174,.12), transparent 25rem),
     #0c0b0a;
 }
 
@@ -57,13 +57,13 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio_courseStatus"] span,
 html[data-plotpickle-theme="dark"] [class*="learning-studio_anatomy"] span,
 html[data-plotpickle-theme="dark"] [class*="learning-studio_sectionIntro"] span,
 html[data-plotpickle-theme="dark"] [class*="learning-studio_moduleMeta"] span {
-  color: #cda758;
+  color: #22bfae;
 }
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio_licence"] {
   min-width: 0;
   padding: 24px;
-  border: 1px solid rgba(205,167,88,.2);
+  border: 1px solid rgba(34, 191, 174,.2);
   border-radius: 0;
   background: #0d0d0c;
 }
@@ -86,7 +86,7 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio_viewTabs"] {
   margin: 0;
   padding: 28px 18px;
   border: 0;
-  border-right: 1px solid rgba(205,167,88,.16);
+  border-right: 1px solid rgba(34, 191, 174,.16);
   border-radius: 0;
   background: #0a0a09;
   box-shadow: none;
@@ -97,7 +97,7 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio_viewTabs"] {
 html[data-plotpickle-theme="dark"] [class*="learning-studio_viewTabs"]::before {
   display: block;
   margin: 0 8px 16px;
-  color: #cda758;
+  color: #22bfae;
   content: "LEARN";
   font-size: 10px;
   font-weight: 800;
@@ -119,13 +119,13 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio_viewTabs"] button {
 }
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio_viewTabs"] button:hover {
-  background: rgba(205,167,88,.04);
+  background: rgba(34, 191, 174,.04);
   color: #eee9df;
 }
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio_viewTabs"] [class*="active"] {
-  border-left-color: #cda758;
-  background: rgba(205,167,88,.06);
+  border-left-color: #22bfae;
+  background: rgba(34, 191, 174,.06);
   color: #d9bd78;
   box-shadow: none;
 }
@@ -135,7 +135,7 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio_courseStatus"],
 html[data-plotpickle-theme="dark"] [class*="learning-studio_anatomy"] {
   max-width: none;
   margin: 18px 0 0;
-  border: 1px solid rgba(205,167,88,.16);
+  border: 1px solid rgba(34, 191, 174,.16);
   border-radius: 0;
   background: #0c0c0b;
   color: #dcd6ca;
@@ -152,7 +152,7 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio_position"] label {
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio_position"] select,
 html[data-plotpickle-theme="dark"] [class*="learning-studio_filters"] input {
-  border: 1px solid rgba(205,167,88,.22);
+  border: 1px solid rgba(34, 191, 174,.22);
   border-radius: 0;
   background: #090909;
   color: #ddd6c8;
@@ -170,7 +170,7 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio_progressTrack"] {
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio_progressTrack"] i {
   border-radius: 0;
-  background: #cda758;
+  background: #22bfae;
 }
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio_anatomy"] {
@@ -183,10 +183,10 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio_anatomy"] li {
 }
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio_anatomy"] li b {
-  border: 1px solid rgba(205,167,88,.24);
+  border: 1px solid rgba(34, 191, 174,.24);
   border-radius: 0;
   background: #090909;
-  color: #cda758;
+  color: #22bfae;
 }
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio_guidance"],
@@ -226,7 +226,7 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio_moduleCard"] {
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio_moduleCard"]:hover,
 html[data-plotpickle-theme="dark"] [class*="learning-studio_moduleCard"][class*="recommended"] {
-  border-color: rgba(205,167,88,.5);
+  border-color: rgba(34, 191, 174,.5);
   box-shadow: none;
   transform: none;
 }
@@ -244,13 +244,13 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio_moduleCard"] small {
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio_moduleMeta"] strong {
   border-radius: 0;
-  background: rgba(205,167,88,.1);
+  background: rgba(34, 191, 174,.1);
   color: #d9bd78;
 }
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio_cardActions"] button,
 html[data-plotpickle-theme="dark"] [class*="learning-studio_browseAll"] {
-  border: 1px solid rgba(205,167,88,.34);
+  border: 1px solid rgba(34, 191, 174,.34);
   border-radius: 0;
   background: transparent;
   color: #d9bd78;
@@ -258,7 +258,7 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio_browseAll"] {
 }
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio_filters"] {
-  border-color: rgba(205,167,88,.14);
+  border-color: rgba(34, 191, 174,.14);
   background: #0b0b0a;
 }
 

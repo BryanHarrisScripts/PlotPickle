@@ -5,7 +5,7 @@
 
 .workspace:has(.planner-content) {
   background:
-    radial-gradient(circle at 8% 0%, rgba(205, 167, 88, 0.045), transparent 24rem),
+    radial-gradient(circle at 8% 0%, rgba(34, 191, 174, 0.045), transparent 24rem),
     #090909 !important;
 }
 
@@ -32,9 +32,9 @@
   max-height: calc(100vh - 128px);
   overflow-y: auto;
   padding: 24px 14px 28px !important;
-  border-right: 1px solid rgba(205, 167, 88, 0.22) !important;
+  border-right: 1px solid rgba(34, 191, 174, 0.22) !important;
   background:
-    linear-gradient(180deg, rgba(205, 167, 88, 0.04), transparent 15rem),
+    linear-gradient(180deg, rgba(34, 191, 174, 0.04), transparent 15rem),
     #0c0c0b !important;
   color: #e9e0d0 !important;
   box-shadow: none !important;
@@ -42,12 +42,12 @@
 
 .workspace:has(.planner-content) .story-rail-heading {
   padding: 0 7px 18px;
-  border-bottom: 1px solid rgba(205, 167, 88, 0.18);
+  border-bottom: 1px solid rgba(34, 191, 174, 0.18);
 }
 
 .workspace:has(.planner-content) .story-rail-heading .eyebrow {
   margin: 0;
-  color: #cda758 !important;
+  color: #22bfae !important;
   font-size: 0 !important;
   font-weight: 800 !important;
   letter-spacing: 0.16em !important;
@@ -167,7 +167,7 @@
   position: absolute;
   bottom: calc(100% + 6px);
   left: 2px;
-  color: #cda758;
+  color: #22bfae;
   font-size: 8px;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -183,7 +183,7 @@
 
 .workspace:has(.planner-content) .story-rail nav button:hover,
 .workspace:has(.planner-content) .story-rail nav button:focus-visible {
-  border-color: rgba(205, 167, 88, 0.32) !important;
+  border-color: rgba(34, 191, 174, 0.32) !important;
   background: #13110d !important;
   color: #e3d8c1 !important;
   outline: none !important;
@@ -191,7 +191,7 @@
 
 .workspace:has(.planner-content) .story-rail nav button.active,
 .workspace:has(.planner-content) .story-rail nav button[aria-current="page"] {
-  border-color: rgba(205, 167, 88, 0.48) !important;
+  border-color: rgba(34, 191, 174, 0.48) !important;
   background: #19150d !important;
   color: #f0d28b !important;
 }
@@ -221,7 +221,7 @@
 .workspace:has(.planner-content) .story-rail .method-note {
   margin-top: 24px !important;
   padding: 16px 8px 0 !important;
-  border-top: 1px solid rgba(205, 167, 88, 0.16) !important;
+  border-top: 1px solid rgba(34, 191, 174, 0.16) !important;
   background: transparent !important;
 }
 
@@ -235,7 +235,7 @@
 .workspace:has(.planner-content) .story-rail .method-note strong {
   display: block;
   margin-top: 6px;
-  color: #cda758 !important;
+  color: #22bfae !important;
   font-size: 9px !important;
 }
 
@@ -251,7 +251,7 @@
 }
 
 .workspace:has(.planner-content) .section-heading {
-  border-color: rgba(205, 167, 88, 0.18) !important;
+  border-color: rgba(34, 191, 174, 0.18) !important;
 }
 
 @media (max-width: 1120px) {
@@ -264,7 +264,7 @@
     min-height: 0;
     max-height: none;
     border-right: 0 !important;
-    border-bottom: 1px solid rgba(205, 167, 88, 0.22) !important;
+    border-bottom: 1px solid rgba(34, 191, 174, 0.22) !important;
   }
 
   .workspace:has(.planner-content) .story-rail nav {

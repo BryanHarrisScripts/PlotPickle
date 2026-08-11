@@ -40,12 +40,22 @@ function cleanProviderError(value: unknown) {
 async function providerJson(url: string, profile: ProviderProfile, body: Record<string, unknown>) {
   const headers: Record<string, string> = { Accept: "application/json", "Content-Type": "application/json" };
   if (profile.provider !== "ollama" && profile.apiKey) headers.Authorization = `Bearer ${profile.apiKey}`;
-  const result = await fetch(url, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(120_000),
-  });
+  const timeoutMs = profile.provider === "ollama" ? 300_000 : 180_000;
+  let result: Response;
+  try {
+    result = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch (error) {
+    if (error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError")) {
+      const providerName = profile.provider === "ollama" ? "Ollama" : profile.provider === "openai" ? "OpenAI" : "MiniMax";
+      throw new Error(`${providerName} took too long to answer. Your question was kept so you can try again or choose a faster text model in Settings.`);
+    }
+    throw error;
+  }
   const source = await result.text();
   let value: unknown = {};
   try { value = source ? JSON.parse(source) : {}; } catch { value = {}; }

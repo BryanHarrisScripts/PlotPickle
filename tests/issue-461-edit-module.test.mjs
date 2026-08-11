@@ -97,21 +97,21 @@ test("#461 explicit proposal decisions never silently replace canon", async () =
   assert.match(edit, /disabled=\{readOnly \|\| Boolean\(reviewElement\?\.locked\)\}/);
 });
 
-test("#461 Edit visually follows the matte-black warm-gold Studio system", async () => {
+test("#461 Edit visually follows the matte-black teal-orange Studio system", async () => {
   const [styles, decisions] = await Promise.all([
     source("app/edit-workspace.module.css"),
     source("app/edit-decision-panel.css"),
   ]);
 
   assert.match(styles, /#090909/i);
-  assert.match(styles, /#cda758/i);
+  assert.match(styles, /#22bfae/i);
   assert.match(styles, /Georgia/);
   assert.match(styles, /grid-template-columns:210px minmax\(560px,1fr\) 310px/);
   assert.match(styles, /activeLens/);
   assert.match(styles, /scriptPanel/);
   assert.match(styles, /reviewPanel/);
   assert.match(styles, /@media\(max-width:820px\)/);
-  assert.match(decisions, /#cda758/i);
+  assert.match(decisions, /#22bfae/i);
   assert.match(decisions, /edit-decision-compare/);
 });
 

@@ -1,5 +1,5 @@
 /* Issue #526 — Phase B creative screens.
-   Continue the approved PlotPickle matte-black / antique-gold / typewriter system.
+   Continue the approved PlotPickle matte-black / teal-orange / typewriter system.
    Story imagery stays natural; provider, model and billing controls remain in Settings. */
 
 /* Shared Story Setup / Concept Canvas / 24 Blocks language. */
@@ -41,7 +41,7 @@ html[data-plotpickle-theme="dark"] :is(
   .concept-canvas-page,
   .blocks-page
 ) :is(.eyebrow, h3, .field-label, .subsection-title) {
-  color: var(--pp-gold) !important;
+  color: var(--pp-teal) !important;
   font-family: inherit !important;
   letter-spacing: 0.075em !important;
   text-transform: uppercase;
@@ -65,8 +65,8 @@ html[data-plotpickle-theme="dark"] :is(
   .concept-canvas-page,
   .blocks-page
 ) :is(input, textarea, select):focus {
-  border-color: var(--pp-gold) !important;
-  outline: 1px solid rgba(205, 167, 88, 0.24) !important;
+  border-color: var(--pp-teal) !important;
+  outline: 1px solid rgba(34, 191, 174, 0.24) !important;
 }
 
 html[data-plotpickle-theme="dark"] :is(
@@ -82,10 +82,10 @@ html[data-plotpickle-theme="dark"] :is(
   .concept-canvas-page,
   .blocks-page
 ) :is(.primary-button, .secondary-button, .small-button) {
-  border: 1px solid var(--pp-gold) !important;
+  border: 1px solid var(--pp-teal) !important;
   border-radius: 0 !important;
   background: #0b0b0a !important;
-  color: var(--pp-gold-bright) !important;
+  color: var(--pp-orange-bright) !important;
   box-shadow: none !important;
   font-family: inherit !important;
 }
@@ -95,7 +95,7 @@ html[data-plotpickle-theme="dark"] :is(
   .concept-canvas-page,
   .blocks-page
 ) :is(.primary-button, .small-button):hover {
-  background: var(--pp-gold) !important;
+  background: var(--pp-teal) !important;
   color: #090806 !important;
   transform: none !important;
 }
@@ -124,13 +124,13 @@ html[data-plotpickle-theme="dark"] .editor-page:has(#field-primary-audience) > .
 
 html[data-plotpickle-theme="dark"] .editor-page:has(#field-primary-audience) > .form-section:first-of-type {
   border-color: var(--pp-line-strong) !important;
-  background: linear-gradient(180deg, rgba(205, 167, 88, 0.035), transparent 120px), var(--pp-panel) !important;
+  background: linear-gradient(180deg, rgba(34, 191, 174, 0.035), transparent 120px), var(--pp-panel) !important;
 }
 
 html[data-plotpickle-theme="dark"] .editor-page:has(#field-primary-audience) .form-section h3 {
   margin: 0 0 13px !important;
   padding-bottom: 9px;
-  border-bottom: 1px solid rgba(205, 167, 88, 0.14);
+  border-bottom: 1px solid rgba(34, 191, 174, 0.14);
   font-size: 11px !important;
   font-weight: 600 !important;
 }
@@ -147,7 +147,7 @@ html[data-plotpickle-theme="dark"] .editor-page:has(#field-primary-audience) .fo
 }
 
 html[data-plotpickle-theme="dark"] .editor-page:has(#field-primary-audience) #field-title {
-  border-color: rgba(205, 167, 88, 0.48) !important;
+  border-color: rgba(34, 191, 174, 0.48) !important;
 }
 
 /* CONCEPT CANVAS — preserve incomplete ideas and visual intent before prompting. */
@@ -174,11 +174,11 @@ html[data-plotpickle-theme="dark"] .concept-canvas-page .form-field {
 
 html[data-plotpickle-theme="dark"] .concept-canvas-page .signal-section {
   border-color: var(--pp-line-strong) !important;
-  background: linear-gradient(180deg, rgba(205, 167, 88, 0.04), transparent 120px), #0b0b0a !important;
+  background: linear-gradient(180deg, rgba(34, 191, 174, 0.04), transparent 120px), #0b0b0a !important;
 }
 
 html[data-plotpickle-theme="dark"] .concept-canvas-page .form-field:has(#field-concept-seed) {
-  border-color: rgba(205, 167, 88, 0.52) !important;
+  border-color: rgba(34, 191, 174, 0.52) !important;
   background: #0d0c09 !important;
 }
 
@@ -195,7 +195,7 @@ html[data-plotpickle-theme="dark"] .concept-canvas-page .section-heading .small-
 
 html[data-plotpickle-theme="dark"] .concept-canvas-page .subsection-title {
   padding: 0 0 10px;
-  border-bottom: 1px solid rgba(205, 167, 88, 0.15);
+  border-bottom: 1px solid rgba(34, 191, 174, 0.15);
 }
 
 /* 24 BLOCKS / STORY MOMENT — story architecture beside the selected moment. */
@@ -278,18 +278,18 @@ html[data-plotpickle-theme="dark"] .blocks-page .block-card {
 }
 
 html[data-plotpickle-theme="dark"] .blocks-page .block-card:hover {
-  border-color: rgba(205, 167, 88, 0.42) !important;
+  border-color: rgba(34, 191, 174, 0.42) !important;
 }
 
 html[data-plotpickle-theme="dark"] .blocks-page .block-card.active,
 html[data-plotpickle-theme="dark"] .blocks-page .block-card[aria-pressed="true"] {
-  border-color: var(--pp-gold) !important;
+  border-color: var(--pp-teal) !important;
   background: #15120c !important;
   color: #eee1c2 !important;
 }
 
 html[data-plotpickle-theme="dark"] .blocks-page .block-card .block-number {
-  color: var(--pp-gold) !important;
+  color: var(--pp-teal) !important;
   font-size: 10px !important;
 }
 
@@ -337,10 +337,10 @@ html[data-plotpickle-theme="dark"] .blocks-page .block-index {
   width: 52px !important;
   height: 52px !important;
   place-items: center;
-  border: 1px solid var(--pp-gold) !important;
+  border: 1px solid var(--pp-teal) !important;
   border-radius: 50% !important;
   background: #0a0907 !important;
-  color: var(--pp-gold-bright) !important;
+  color: var(--pp-orange-bright) !important;
   font-size: 17px !important;
 }
 
@@ -382,14 +382,14 @@ html[data-plotpickle-theme="dark"] .blocks-page .chip-list button {
 
 html[data-plotpickle-theme="dark"] .blocks-page .chip-list button.active,
 html[data-plotpickle-theme="dark"] .blocks-page .chip-list button[aria-pressed="true"] {
-  border-color: var(--pp-gold) !important;
+  border-color: var(--pp-teal) !important;
   background: #15120c !important;
   color: #e2c47e !important;
 }
 
 html[data-plotpickle-theme="dark"] .blocks-page .form-field:has(#field-story-text),
 html[data-plotpickle-theme="dark"] .blocks-page .form-field:has(#field-storyboard-direction) {
-  border-color: rgba(205, 167, 88, 0.42) !important;
+  border-color: rgba(34, 191, 174, 0.42) !important;
 }
 
 @media (max-width: 1180px) {

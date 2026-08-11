@@ -3,7 +3,6 @@ import type { ViteDevServer } from "vite";
 import {
   ASSISTANT_INSTRUCTIONS,
   DEFAULT_OLLAMA_URL,
-  conversationPrompt,
   generateAssistantText,
   normalizedProviderUrl,
   probeOllama,
@@ -17,6 +16,13 @@ import {
   writeAssistantStore,
   type ProviderProfile,
 } from "./writing-assistant-store";
+import {
+  PLOTPICKLE_AGENT_ROLES,
+  askPlotPickleAgent,
+  mastraRuntimeStatus,
+  type PlotPickleAgentId,
+  type PlotPickleTone,
+} from "./mastra-agent-runtime";
 
 const API_ROOT = "/api/writing-assistant";
 const STATUS_PATH = `${API_ROOT}/status`;
@@ -108,6 +114,7 @@ async function handleStatus(response: ServerResponse) {
       checkedAt: probe.checkedAt,
       error: probe.error,
     },
+    mastra: mastraRuntimeStatus(),
   });
 }
 
@@ -219,8 +226,15 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
   if (!isTextProvider(store.activeProvider)) throw new Error("The Writing Assistant is off. Select Ollama, OpenAI or MiniMax first.");
   const profile = store.profiles[store.activeProvider];
   if (!profile) throw new Error("The selected Writing Assistant provider is not configured.");
+  const agentId = typeof body.agentId === "string" && body.agentId in PLOTPICKLE_AGENT_ROLES
+    ? body.agentId as PlotPickleAgentId
+    : "creative-director";
+  const allowedTones = new Set<PlotPickleTone>(["collaborative", "direct", "curious", "challenging", "gentle"]);
+  const tone = typeof body.tone === "string" && allowedTones.has(body.tone as PlotPickleTone)
+    ? body.tone as PlotPickleTone
+    : "collaborative";
   const started = Date.now();
-  const text = await generateAssistantText(profile, ASSISTANT_INSTRUCTIONS, conversationPrompt(safeHistory(body.history), message));
+  const text = await askPlotPickleAgent({ profile, agentId, tone, message, history: safeHistory(body.history) });
   if (!text) throw new Error("The provider returned no text.");
   const updated: ProviderProfile = {
     ...profile,
@@ -236,6 +250,8 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
     ok: true,
     provider: updated.provider,
     model: updated.textModel,
+    runtime: "mastra",
+    agentId,
     text,
     latencyMs: updated.lastLatencyMs,
     verifiedAt: updated.assistantVerifiedAt,

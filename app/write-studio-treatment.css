@@ -10,16 +10,16 @@
 
 .workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] > [class*="header"] {
   padding: 28px clamp(24px, 3vw, 46px) 24px !important;
-  border-color: rgba(205, 167, 88, 0.2) !important;
+  border-color: rgba(34, 191, 174, 0.2) !important;
   background:
-    linear-gradient(115deg, rgba(205, 167, 88, 0.045), transparent 40%),
+    linear-gradient(115deg, rgba(34, 191, 174, 0.045), transparent 40%),
     #0d0d0c !important;
 }
 
 .workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] > [class*="header"] span,
 .workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="context"] > div:first-child > span,
 .workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="toolbar"] > span {
-  color: #cda758 !important;
+  color: #22bfae !important;
   font-size: 8px !important;
   letter-spacing: 0.16em !important;
 }
@@ -56,7 +56,7 @@
 
 .workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="main"] {
   background:
-    radial-gradient(circle at 50% 0%, rgba(205, 167, 88, 0.025), transparent 34rem),
+    radial-gradient(circle at 50% 0%, rgba(34, 191, 174, 0.025), transparent 34rem),
     #090909 !important;
 }
 
@@ -85,7 +85,7 @@
   [class*="aiReview"] button,
   [class*="aiError"] button
 ) {
-  border: 1px solid rgba(205, 167, 88, 0.32) !important;
+  border: 1px solid rgba(34, 191, 174, 0.32) !important;
   border-radius: 0 !important;
   background: transparent !important;
   color: #d7c49d !important;
@@ -106,7 +106,7 @@
 }
 
 .workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="toolbar"] [class*="active"] {
-  border-color: #cda758 !important;
+  border-color: #22bfae !important;
   background: #19150d !important;
   color: #efd18a !important;
 }
@@ -120,7 +120,7 @@
 
 .workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="editorSplit"] > textarea:focus,
 .workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="editorOnly"] > textarea:focus {
-  box-shadow: inset 0 0 0 2px rgba(205, 167, 88, 0.55) !important;
+  box-shadow: inset 0 0 0 2px rgba(34, 191, 174, 0.55) !important;
 }
 
 .workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="preview"] {
@@ -156,8 +156,8 @@
 }
 
 .workspace[data-write-studio="true"] [class*="workspaceShell"] > [class*="page"] [class*="actions"] [class*="primary"] {
-  border-color: #cda758 !important;
-  background: #cda758 !important;
+  border-color: #22bfae !important;
+  background: #22bfae !important;
   color: #090806 !important;
 }
 

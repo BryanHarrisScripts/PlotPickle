@@ -5,7 +5,7 @@
   padding: 12px;
   border: 1px solid #3b3326;
   background:
-    linear-gradient(135deg, rgba(205, 167, 88, 0.055), transparent 18rem),
+    linear-gradient(135deg, rgba(34, 191, 174, 0.055), transparent 18rem),
     #0d0d0c;
   color: #ded4c1;
 }
@@ -14,12 +14,12 @@
   display: grid;
   gap: 3px;
   padding-bottom: 9px;
-  border-bottom: 1px solid rgba(205, 167, 88, 0.16);
+  border-bottom: 1px solid rgba(34, 191, 174, 0.16);
 }
 
 .context > header span,
 .context article span {
-  color: #cda758;
+  color: #22bfae;
   font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
   font-size: 0.5rem;
   font-weight: 800;

@@ -63,11 +63,11 @@ test("#477 routes source corrections back to the owning module and same story po
   assert.match(assembly, /Send back/);
 });
 
-test("#477 follows the reviewed matte-black warm-gold Build visual contract", async () => {
+test("#477 follows the reviewed matte-black teal-orange Build visual contract", async () => {
   const styles = await source("app/build-assembly-studio.css");
 
   assert.match(styles, /#0b0b0a/i);
-  assert.match(styles, /#cda758/i);
+  assert.match(styles, /#22bfae/i);
   assert.match(styles, /Georgia/);
   assert.match(styles, /build-assembly-body/);
   assert.match(styles, /build-sequence-preview/);

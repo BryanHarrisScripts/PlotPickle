@@ -20,7 +20,7 @@
   max-width: 1760px;
   margin: 0 auto 22px;
   padding: 0 0 20px;
-  border-bottom: 1px solid rgba(205, 167, 88, 0.22);
+  border-bottom: 1px solid rgba(34, 191, 174, 0.22);
 }
 
 .kicker {
@@ -70,7 +70,7 @@
 .textAction {
   min-height: 34px;
   padding: 8px 11px;
-  border: 1px solid rgba(205, 167, 88, 0.34);
+  border: 1px solid rgba(34, 191, 174, 0.34);
   border-radius: 0;
   background: #0b0b0b;
   color: #d3c8b2;
@@ -85,13 +85,13 @@
 .cardFooter button:hover,
 .dashboardFooter button:hover,
 .textAction:hover {
-  border-color: #cda758;
+  border-color: #22bfae;
   color: #f1c867;
 }
 
 .primaryAction,
 .cardFooter button {
-  border-color: #cda758 !important;
+  border-color: #22bfae !important;
   background: linear-gradient(180deg, #e2bd68 0%, #c69c43 100%) !important;
   color: #0b0906 !important;
 }
@@ -119,7 +119,7 @@
 .contextRail > section,
 .workflowStrip,
 .dashboardFooter {
-  border: 1px solid rgba(205, 167, 88, 0.22);
+  border: 1px solid rgba(34, 191, 174, 0.22);
   background: #0a0a0a;
 }
 
@@ -174,7 +174,7 @@
 }
 
 .currentStory {
-  border-color: rgba(205, 167, 88, 0.48);
+  border-color: rgba(34, 191, 174, 0.48);
 }
 
 .newStoryCard {
@@ -251,7 +251,7 @@
 
 .emptyPoster {
   min-height: 286px;
-  border: 1px dashed rgba(205, 167, 88, 0.52);
+  border: 1px dashed rgba(34, 191, 174, 0.52);
   background: #090909;
   cursor: pointer;
 }
@@ -288,7 +288,7 @@
   top: 9px;
   left: 9px;
   padding: 4px 6px;
-  border: 1px solid rgba(205, 167, 88, 0.48);
+  border: 1px solid rgba(34, 191, 174, 0.48);
   background: rgba(7, 7, 6, 0.9);
   color: #d9b45f;
   font-size: 7px;
@@ -427,7 +427,7 @@
 }
 
 .activeAct .blockDots i {
-  background: #8c6f35;
+  background: #0f776e;
 }
 
 .contextRail {

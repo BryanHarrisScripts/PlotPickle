@@ -53,11 +53,11 @@ test("#476 preserves the exact return path to Graphic Novel and screenplay sourc
   assert.match(handoff, /`\/edit\?block=\$\{blockNumber\}&mini=\$\{miniBlockNumber\}`/);
 });
 
-test("#476 keeps Build in the reviewed matte-black and restrained warm-gold design system", async () => {
+test("#476 keeps Build in the reviewed matte-black and restrained teal-orange design system", async () => {
   const styles = await source("app/graphic-novel-build-handoff.css");
 
   assert.match(styles, /#090909/i);
-  assert.match(styles, /#cda758/i);
+  assert.match(styles, /#22bfae/i);
   assert.match(styles, /Georgia/);
   assert.match(styles, /build-studio-context/);
   assert.match(styles, /@media\(max-width:820px\)/);

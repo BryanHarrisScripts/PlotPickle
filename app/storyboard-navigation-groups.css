@@ -42,7 +42,7 @@
   margin-left: 18px !important;
   width: calc(100% - 18px) !important;
   padding: 7px 8px !important;
-  border-left-color: rgba(205, 167, 88, 0.2) !important;
+  border-left-color: rgba(34, 191, 174, 0.2) !important;
   color: #777168 !important;
 }
 
@@ -56,7 +56,7 @@
 .visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-role="primary"] {
   min-height: 48px !important;
   margin-top: 6px !important;
-  border-top-color: rgba(205, 167, 88, 0.12) !important;
+  border-top-color: rgba(34, 191, 174, 0.12) !important;
 }
 
 .visual-studio-layout nav[aria-label="Visual Board sections"] button[data-storyboard-role="primary"] strong {
@@ -78,7 +78,7 @@
   button[data-storyboard-area="continuity"][data-storyboard-role="primary"],
 .visual-studio-layout nav[aria-label="Visual Board sections"][data-storyboard-versions-active="true"]
   button[data-storyboard-versions="true"] {
-  border-color: rgba(205, 167, 88, 0.52) !important;
+  border-color: rgba(34, 191, 174, 0.52) !important;
   background: #19150d !important;
   color: #efd18a !important;
 }

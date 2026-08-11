@@ -41,7 +41,7 @@ test("#452 gives Storyboard a full-width matte-black Studio boundary without cha
   assert.match(styles, /> \.story-rail\s*\{[\s\S]*display:\s*none/i);
   assert.match(styles, /section\[aria-label\$="capabilities"\]/);
   assert.match(styles, /#090909/i);
-  assert.match(styles, /#cda758/i);
+  assert.match(styles, /#22bfae/i);
   assert.match(styles, /nav\[aria-label="Visual Board sections"\]/);
   assert.match(styles, /data-visual-section="blocks"/);
   assert.match(styles, /data-visual-section="frames"/);

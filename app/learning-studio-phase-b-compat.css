@@ -24,7 +24,7 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="_
   gap: 24px !important;
   margin: 0 !important;
   padding: 38px 0 26px !important;
-  border-bottom: 1px solid rgba(205,167,88,.18) !important;
+  border-bottom: 1px solid rgba(34, 191, 174,.18) !important;
   background: transparent !important;
 }
 
@@ -35,9 +35,9 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="_
   justify-content: flex-end !important;
   max-width: none !important;
   padding: 30px 34px !important;
-  border: 1px solid rgba(205,167,88,.24) !important;
+  border: 1px solid rgba(34, 191, 174,.24) !important;
   border-radius: 0 !important;
-  background: linear-gradient(90deg,rgba(6,6,6,.96),rgba(6,6,6,.65)),radial-gradient(circle at 80% 20%,rgba(205,167,88,.12),transparent 25rem),#0c0b0a !important;
+  background: linear-gradient(90deg,rgba(6,6,6,.96),rgba(6,6,6,.65)),radial-gradient(circle at 80% 20%,rgba(34, 191, 174,.12),transparent 25rem),#0c0b0a !important;
 }
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="__header"] h1 {
@@ -57,7 +57,7 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="_
 }
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="__licence"] {
-  border: 1px solid rgba(205,167,88,.2) !important;
+  border: 1px solid rgba(34, 191, 174,.2) !important;
   border-radius: 0 !important;
   background: #0d0d0c !important;
   color: #dcd6ca !important;
@@ -77,7 +77,7 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="_
   margin: 0 !important;
   padding: 28px 18px !important;
   border: 0 !important;
-  border-right: 1px solid rgba(205,167,88,.16) !important;
+  border-right: 1px solid rgba(34, 191, 174,.16) !important;
   border-radius: 0 !important;
   background: #0a0a09 !important;
   box-shadow: none !important;
@@ -87,7 +87,7 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="_
 html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="__viewTabs"]::before {
   display: block !important;
   margin: 0 8px 16px !important;
-  color: #cda758 !important;
+  color: #22bfae !important;
   content: "LEARN" !important;
   font-size: 10px !important;
   font-weight: 800 !important;
@@ -108,8 +108,8 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="_
 }
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="__viewTabs"] [class*="active"] {
-  border-left-color: #cda758 !important;
-  background: rgba(205,167,88,.06) !important;
+  border-left-color: #22bfae !important;
+  background: rgba(34, 191, 174,.06) !important;
   color: #d9bd78 !important;
 }
 
@@ -118,7 +118,7 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="_
 html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="__anatomy"],
 html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="__filters"] {
   max-width: none !important;
-  border: 1px solid rgba(205,167,88,.16) !important;
+  border: 1px solid rgba(34, 191, 174,.16) !important;
   border-radius: 0 !important;
   background: #0c0c0b !important;
   color: #dcd6ca !important;
@@ -126,7 +126,7 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="_
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="__position"] select,
 html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="__filters"] input {
-  border: 1px solid rgba(205,167,88,.22) !important;
+  border: 1px solid rgba(34, 191, 174,.22) !important;
   border-radius: 0 !important;
   background: #090909 !important;
   color: #ddd6c8 !important;
@@ -167,7 +167,7 @@ html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="_
 }
 
 html[data-plotpickle-theme="dark"] [class*="learning-studio-module__"][class*="__progressTrack"] i {
-  background: #cda758 !important;
+  background: #22bfae !important;
 }
 
 @media (max-width:1450px) {

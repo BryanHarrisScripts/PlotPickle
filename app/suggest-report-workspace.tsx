@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   PRODUCT_FEEDBACK_KINDS,
   buildProductFeedbackIssue,
@@ -29,6 +29,24 @@ export default function SuggestReportWorkspace() {
   const [includeDiagnostics, setIncludeDiagnostics] = useState(false);
   const [privacyConfirmed, setPrivacyConfirmed] = useState(false);
   const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    const source = new URLSearchParams(window.location.search).get("source");
+    if (source !== "workflow-change-agent") return;
+    const timer = window.setTimeout(() => {
+      try {
+        const draft = JSON.parse(sessionStorage.getItem("plotpickle.workflow-change-draft.v1") || "{}") as Record<string, unknown>;
+        if (typeof draft.title === "string") setTitle(draft.title);
+        if (typeof draft.description === "string") setDescription(draft.description);
+        if (typeof draft.reproduction === "string") setReproduction(draft.reproduction);
+        if (typeof draft.expected === "string") setExpected(draft.expected);
+        setNotice("The Workflow Change Agent prepared this draft. Review it, remove private story material, and confirm privacy before opening GitHub.");
+      } catch {
+        setNotice("The Workflow Change Agent draft could not be loaded. You can still prepare the request here.");
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const issue = useMemo(() => buildProductFeedbackIssue({
     kind,

@@ -45,12 +45,12 @@ test("#475 decision state stays outside canonical project until approval", async
   assert.match(host, /graphicNovelAssetVersions\(project, panel\)/);
 });
 
-test("#475 decision UI stays within the reviewed dark gold PlotPickle system", async () => {
+test("#475 decision UI stays within the reviewed dark teal-orange PlotPickle system", async () => {
   const styles = await source("app/graphic-novel-studio.css");
   assert.match(styles, /graphic-novel-decisions/);
   assert.match(styles, /graphic-novel-candidate/);
   assert.match(styles, /graphic-novel-decision-actions/);
-  assert.match(styles, /background:#cda758!important/);
+  assert.match(styles, /background:#22bfae!important/);
   assert.match(styles, /color:#8abf78/);
   assert.doesNotMatch(styles, /purple|violet|#7c3aed|#8b5cf6/i);
 });

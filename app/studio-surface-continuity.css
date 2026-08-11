@@ -1,5 +1,5 @@
 /* #536 — keep every current workflow and rabbit-hole surface inside the
-   approved matte-black / antique-gold PlotPickle wireframe language. */
+   approved matte-black / teal-orange PlotPickle wireframe language. */
 .standalone-studio-surface,
 :is(
   .app-shell[data-active-workspace="engines"],
@@ -10,7 +10,7 @@
 ) .workspace {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 48% 0%, rgba(205, 167, 88, .055), transparent 34rem),
+    radial-gradient(circle at 48% 0%, rgba(34, 191, 174, .055), transparent 34rem),
     #090909 !important;
   color: #eee7d8 !important;
   font-family: "Courier New", "Lucida Console", Consolas, monospace !important;
@@ -24,7 +24,7 @@
   .app-shell[data-active-workspace="collab"] .workspace,
   .app-shell[data-active-workspace="community"] .workspace
 ) :is(section, article, aside, details, nav) {
-  border-color: rgba(205, 167, 88, .22) !important;
+  border-color: rgba(34, 191, 174, .22) !important;
   background-color: #0f0f0e !important;
   color: #e9e0d0 !important;
   box-shadow: none !important;
@@ -74,7 +74,7 @@
   .app-shell[data-active-workspace="collab"] .workspace,
   .app-shell[data-active-workspace="community"] .workspace
 ) :is(a, button) {
-  border-color: rgba(205, 167, 88, .34) !important;
+  border-color: rgba(34, 191, 174, .34) !important;
   background-color: #12110e !important;
   color: #e5c77f !important;
 }
@@ -87,7 +87,7 @@
   .app-shell[data-active-workspace="collab"] .workspace,
   .app-shell[data-active-workspace="community"] .workspace
 ) :is(a, button):focus-visible {
-  outline: 2px solid #cda758 !important;
+  outline: 2px solid #22bfae !important;
   outline-offset: 2px;
 }
 

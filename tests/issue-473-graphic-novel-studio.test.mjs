@@ -56,11 +56,11 @@ test("#473 preserves source-module return paths for the exact selected moment", 
   assert.match(host, /workspace=storyboard&block=\$\{blockNumber\}&mini=\$\{miniBlockNumber\}/);
 });
 
-test("#473 follows the reviewed matte-black warm-gold PlotPickle Studio visual contract", async () => {
+test("#473 follows the reviewed matte-black teal-orange PlotPickle Studio visual contract", async () => {
   const styles = await source("app/graphic-novel-studio.css");
 
   assert.match(styles, /#090909/i);
-  assert.match(styles, /#cda758/i);
+  assert.match(styles, /#22bfae/i);
   assert.match(styles, /Georgia/);
   assert.match(styles, /graphic-novel-studio-context/);
   assert.match(styles, /graphic-novel-act-rail/);

@@ -4,7 +4,7 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#536 keeps the canonical top navigation order and makes the brand return to Dashboard", async () => {
+test("#536 preserves the canonical navigation registry and makes the Studio brand return to Learn", async () => {
   const [direction, header, page] = await Promise.all([read("lib/product-direction.ts"), read("app/application-shell-header.tsx"), read("app/page.tsx")]);
   const labels = ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Edit", "Graphic Novel", "Build", "Feedback", "Refine", "Reports"];
   let cursor = -1;
@@ -13,9 +13,9 @@ test("#536 keeps the canonical top navigation order and makes the brand return t
     assert.ok(next > cursor, `${label} must remain in the canonical visible order`);
     cursor = next;
   }
-  assert.match(header, /aria-label="Return to PlotPickle Dashboard"/);
+  assert.match(header, /aria-label="Return to PlotPickle Studio Learn"/);
   assert.doesNotMatch(header, /Open the PlotPickle marketing page/);
-  assert.match(page, /onOpenLanding=\{\(\) => \{[\s\S]*setShowLanding\(false\)[\s\S]*setActiveTab\("dashboard"\)/);
+  assert.match(page, /onOpenLanding=\{\(\) => \{[\s\S]*setShowLanding\(false\)[\s\S]*setActiveTab\("learn"\)/);
   assert.match(page, /data-active-workspace=\{activeTab\}/);
 });
 

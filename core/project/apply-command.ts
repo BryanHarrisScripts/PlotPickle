@@ -30,6 +30,16 @@ export function applyStoryCommand(
             : [...project.learning.completedLessonIds, command.lessonId],
         },
       };
+    case "lesson.uncomplete":
+      return {
+        ...base,
+        learning: {
+          activeLessonId: command.lessonId,
+          completedLessonIds: project.learning.completedLessonIds.filter(
+            (lessonId) => lessonId !== command.lessonId,
+          ),
+        },
+      };
     case "creative-room.thread.attach":
       return {
         ...base,

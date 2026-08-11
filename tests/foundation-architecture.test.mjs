@@ -155,7 +155,7 @@ test("the curriculum guide is an Ollama-backed teaching agent with memory", asyn
   assert.match(workspace, /Guide is thinking/);
   assert.match(workspace, /role="alert"/);
   assert.match(workspace, /Your PlotPickle Curriculum Guide/);
-  assert.match(workspace, /Talk with your guide/);
+  assert.match(workspace, /Ask in your own words/);
   assert.match(workspace, /Ask the Guide/);
 });
 

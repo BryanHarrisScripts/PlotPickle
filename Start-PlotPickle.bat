@@ -166,6 +166,9 @@ if "!INSTALL_PERFORMED!"=="1" (
 )
 if errorlevel 1 goto :setup_failed
 
+for /f %%V in ('node -p "require('./node_modules/@mastra/core/package.json').version"') do set "MASTRA_VERSION=%%V"
+echo [OK] Mastra !MASTRA_VERSION! is installed and ready for PlotPickle agents.
+
 if exist "%COMPANION_MANAGER%" (
   echo.
   echo [COMPANION CHECK] Listing PlotPickle-relevant software, applying reviewed updates, and verifying Ollama models...
@@ -365,6 +368,7 @@ if not exist "%VITE_CMD%" exit /b 1
 if not exist "node_modules\vite\package.json" exit /b 1
 if not exist "node_modules\next\package.json" exit /b 1
 if not exist "node_modules\react\package.json" exit /b 1
+if not exist "node_modules\@mastra\core\package.json" exit /b 1
 if not exist "node_modules\vinext\package.json" exit /b 1
 if not exist "node_modules\rolldown\package.json" exit /b 1
 node "%RUNTIME_MANAGER%" verify-runtime >nul 2>&1

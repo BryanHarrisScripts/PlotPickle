@@ -10,6 +10,11 @@ export type StoryCommand =
       readonly occurredAt: string;
     }
   | {
+      readonly type: "lesson.uncomplete";
+      readonly lessonId: string;
+      readonly occurredAt: string;
+    }
+  | {
       readonly type: "creative-room.thread.attach";
       readonly threadId: string;
       readonly occurredAt: string;

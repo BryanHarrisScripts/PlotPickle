@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import type { CurriculumLesson } from "../../../core/contracts/curriculum";
+import type { CurriculumKnowledgeSource, CurriculumLesson } from "../../../core/contracts/curriculum";
 import type { CurriculumGuide } from "../../../core/contracts/curriculum-guide";
 import { applyStoryCommand } from "../../../core/project/apply-command";
 import { createEmptyProject, type PPFProject } from "../../../core/project/project";
@@ -30,6 +30,7 @@ type Message = {
   readonly role: "writer" | "guide";
   readonly text: string;
   readonly sourceLessonIds?: readonly string[];
+  readonly sourceReferenceIds?: readonly string[];
 };
 
 function newId(prefix: string) {
@@ -69,15 +70,20 @@ function loadMessages(threadId: string): Message[] {
 export default function LearnWorkspace({
   curriculum,
   guide,
+  knowledgeSources,
 }: {
   readonly curriculum: readonly CurriculumLesson[];
   readonly guide: CurriculumGuide;
+  readonly knowledgeSources: readonly CurriculumKnowledgeSource[];
 }) {
   const [project, setProject] = useState<PPFProject | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState("");
   const [working, setWorking] = useState(false);
   const [guideError, setGuideError] = useState("");
+  const [catalogMode, setCatalogMode] = useState<"lessons" | "sources">("lessons");
+  const [sourceSearch, setSourceSearch] = useState("");
+  const [activeSourceId, setActiveSourceId] = useState<string | null>(null);
 
   useEffect(() => {
     let current = loadProject();
@@ -98,6 +104,21 @@ export default function LearnWorkspace({
     return curriculum.find((lesson) => lesson.id === project?.learning.activeLessonId) ?? curriculum[0];
   }, [curriculum, project?.learning.activeLessonId]);
 
+  const activeSource = useMemo(() => (
+    knowledgeSources.find((source) => source.id === activeSourceId) ?? null
+  ), [activeSourceId, knowledgeSources]);
+
+  const visibleSources = useMemo(() => {
+    const query = sourceSearch.trim().toLowerCase();
+    if (!query) return knowledgeSources;
+    return knowledgeSources.filter((source) => [
+      source.title,
+      source.repository,
+      source.path,
+      source.content,
+    ].some((value) => value.toLowerCase().includes(query)));
+  }, [knowledgeSources, sourceSearch]);
+
   function commit(command: Parameters<typeof applyStoryCommand>[1]) {
     setProject((current) => {
       if (!current) return current;
@@ -108,11 +129,16 @@ export default function LearnWorkspace({
   }
 
   function openLesson(lessonId: string) {
+    setActiveSourceId(null);
     commit({
       type: "lesson.open",
       lessonId,
       occurredAt: new Date().toISOString(),
     });
+  }
+
+  function openSource(sourceId: string) {
+    setActiveSourceId(sourceId);
   }
 
   function setLessonUnderstood(understood: boolean) {
@@ -152,6 +178,7 @@ export default function LearnWorkspace({
     try {
       const answer = await guide({
         curriculum,
+        knowledgeSources,
         activeLessonId: activeLesson.id,
         question: submitted,
         conversation: messages.map((message) => ({
@@ -172,6 +199,7 @@ export default function LearnWorkspace({
           role: "guide" as const,
           text: answer.text,
           sourceLessonIds: answer.sourceLessonIds,
+          sourceReferenceIds: answer.sourceReferenceIds,
         },
       ];
       setMessages(next);
@@ -215,30 +243,74 @@ export default function LearnWorkspace({
       <aside className={styles.curriculum} aria-label="PlotPickle curriculum">
         <header className={styles.brand}>
           <strong>LEARN</strong>
-          <small>{curriculum.length} curriculum modules</small>
+          <small>{curriculum.length} modules · {knowledgeSources.length} source references</small>
         </header>
-        <nav className={styles.lessonList} aria-label="Curriculum lessons">
-          {curriculum.map((lesson) => (
-            <button
-              className={lesson.id === activeLesson.id ? styles.activeLesson : undefined}
-              key={lesson.id}
-              onClick={() => openLesson(lesson.id)}
-              type="button"
-            >
-              <span>{String(lesson.number).padStart(2, "0")}</span>
-              <span>
-                <strong>{lesson.title}</strong>
-                <small>{lesson.path} · {lesson.duration}</small>
-              </span>
-              <b aria-label={completed.has(lesson.id) ? "Completed" : "Not completed"}>
-                {completed.has(lesson.id) ? "☑" : ""}
-              </b>
-            </button>
-          ))}
-        </nav>
+        <div className={styles.catalogTabs} role="tablist" aria-label="Learning library">
+          <button aria-selected={catalogMode === "lessons"} onClick={() => setCatalogMode("lessons")} role="tab" type="button">Lessons</button>
+          <button aria-selected={catalogMode === "sources"} onClick={() => setCatalogMode("sources")} role="tab" type="button">Source library</button>
+        </div>
+        {catalogMode === "lessons" ? (
+          <nav className={styles.lessonList} aria-label="Curriculum lessons">
+            {curriculum.map((lesson) => (
+              <button
+                className={!activeSource && lesson.id === activeLesson.id ? styles.activeLesson : undefined}
+                key={lesson.id}
+                onClick={() => openLesson(lesson.id)}
+                type="button"
+              >
+                <span>{String(lesson.number).padStart(2, "0")}</span>
+                <span>
+                  <strong>{lesson.title}</strong>
+                  <small>{lesson.path} · {lesson.duration}</small>
+                </span>
+                <b aria-label={completed.has(lesson.id) ? "Completed" : "Not completed"}>
+                  {completed.has(lesson.id) ? "☑" : ""}
+                </b>
+              </button>
+            ))}
+          </nav>
+        ) : (
+          <div className={styles.sourceLibrary}>
+            <label htmlFor="source-library-search">Search all learning sources</label>
+            <input
+              id="source-library-search"
+              onChange={(event) => setSourceSearch(event.target.value)}
+              placeholder="Try dialogue, character or pacing"
+              type="search"
+              value={sourceSearch}
+            />
+            <small>{visibleSources.length} of {knowledgeSources.length} sources</small>
+            <nav className={styles.sourceList} aria-label="Curriculum source references">
+              {visibleSources.map((source) => (
+                <button
+                  className={source.id === activeSource?.id ? styles.activeSource : undefined}
+                  key={source.id}
+                  onClick={() => openSource(source.id)}
+                  type="button"
+                >
+                  <strong>{source.title}</strong>
+                  <small>{source.repository} · {source.path}</small>
+                </button>
+              ))}
+            </nav>
+          </div>
+        )}
       </aside>
 
       <article className={styles.lesson} aria-label="Active lesson">
+        {activeSource ? (
+          <>
+            <div className={styles.lessonMeta}>
+              <span>Source library</span>
+              <span>{activeSource.repository}</span>
+            </div>
+            <h1>{activeSource.title}</h1>
+            <p className={styles.overview}>{activeSource.scopeNote}</p>
+            <p className={styles.sourcePath}>{activeSource.path}</p>
+            <pre className={styles.sourceContent}>{activeSource.content}</pre>
+          </>
+        ) : (
+        <>
         <div className={styles.lessonMeta}>
           <span>{activeLesson.path}</span>
           <span>{activeLesson.duration}</span>
@@ -295,6 +367,8 @@ export default function LearnWorkspace({
             {activeLesson.mistakes.map((mistake) => <li key={mistake}>{mistake}</li>)}
           </ul>
         </section>
+        </>
+        )}
       </article>
 
       <aside className={styles.room} aria-label="Persistent Creative Room">
@@ -323,12 +397,18 @@ export default function LearnWorkspace({
             const sourceTitles = message.sourceLessonIds?.map((lessonId) => (
               curriculum.find((lesson) => lesson.id === lessonId)?.title
             )).filter(Boolean);
+            const referenceTitles = message.sourceReferenceIds?.map((sourceId) => (
+              knowledgeSources.find((source) => source.id === sourceId)?.title
+            )).filter(Boolean);
             return (
               <div className={message.role === "writer" ? styles.writerMessage : styles.guideMessage} key={message.id}>
                 <strong>{message.role === "writer" ? "You" : "Guide"}</strong>
                 <p>{message.text}</p>
                 {sourceTitles?.length ? (
                   <small className={styles.messageSources}>Curriculum: {sourceTitles.join(" · ")}</small>
+                ) : null}
+                {referenceTitles?.length ? (
+                  <small className={styles.messageSources}>Source library: {referenceTitles.join(" · ")}</small>
                 ) : null}
               </div>
             );

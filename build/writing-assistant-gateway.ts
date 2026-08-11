@@ -223,9 +223,14 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
   const message = typeof body.message === "string" ? body.message.trim().slice(0, 12_000) : "";
   if (!message) throw new Error("Enter a question for the Writing Assistant.");
   const { store } = await readSynchronizedAssistantStore();
-  if (!isTextProvider(store.activeProvider)) throw new Error("The Writing Assistant is off. Select Ollama, OpenAI or MiniMax first.");
-  const profile = store.profiles[store.activeProvider];
-  if (!profile) throw new Error("The selected Writing Assistant provider is not configured.");
+  const requestedProvider = body.provider === "ollama" ? "ollama" : store.activeProvider;
+  if (!isTextProvider(requestedProvider)) throw new Error("The Writing Assistant is off. Select Ollama, OpenAI or MiniMax first.");
+  const profile = store.profiles[requestedProvider];
+  if (!profile) {
+    throw new Error(requestedProvider === "ollama"
+      ? "Connect Ollama and choose an installed model in Settings before using the Curriculum Guide."
+      : "The selected Writing Assistant provider is not configured.");
+  }
   const agentId = typeof body.agentId === "string" && body.agentId in PLOTPICKLE_AGENT_ROLES
     ? body.agentId as PlotPickleAgentId
     : "creative-director";
@@ -244,7 +249,7 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
     lastPreview: text.slice(0, 600),
     lastError: "",
   };
-  store.profiles[store.activeProvider] = updated;
+  store.profiles[requestedProvider] = updated;
   await writeAssistantStore(store);
   sendJson(response, 200, {
     ok: true,

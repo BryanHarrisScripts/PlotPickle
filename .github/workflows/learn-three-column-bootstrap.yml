@@ -1,0 +1,75 @@
+name: Learn Three Column Bootstrap
+
+on:
+  push:
+    branches:
+      - feature/learn-three-column-agent-room
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    if: ${{ !contains(github.event.head_commit.message, '[learn-bootstrap-complete]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/learn-three-column-agent-room
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Apply focused source patches
+        run: node scripts/apply-learn-three-column.mjs
+      - name: Install candidate agent runtime layers
+        run: npm install --save-exact ai@latest @mastra/core@latest
+      - name: Add regression contract
+        run: |
+          cat > tests/issue-567-learn-three-column.test.mjs <<'TEST'
+          import test from "node:test";
+          import assert from "node:assert/strict";
+          import { readFile } from "node:fs/promises";
+
+          test("Learn uses the locked three-column Creative Room contract", async () => {
+            const page = await readFile("app/page.tsx", "utf8");
+            const shell = await readFile("app/learn-three-column-shell.tsx", "utf8");
+            const css = await readFile("app/learn-three-column-shell.module.css", "utf8");
+            assert.match(page, /LearnThreeColumnShell/);
+            assert.match(shell, /Story Navigator/);
+            assert.match(shell, /Learn Creative Canvas/);
+            assert.match(shell, /Creative Room/);
+            assert.match(shell, /Creative Director/);
+            assert.match(shell, /Creative Room agent/);
+            assert.match(shell, /Creative Room tone/);
+            assert.match(shell, /No paid generation/);
+            assert.match(shell, /Canon requires approval/);
+            assert.match(css, /grid-template-columns/);
+            assert.match(css, /--charcoal-0/);
+            assert.match(css, /--tungsten-4/);
+          });
+
+          test("UI Continuity cleanup does not turn a completed audit into a runtime failure", async () => {
+            const source = await readFile("scripts/ui-continuity-agent.mjs", "utf8");
+            assert.match(source, /cleanupPluginData/);
+            assert.match(source, /maxRetries/);
+            assert.match(source, /cleanup warning/);
+            assert.doesNotMatch(source, /await client\.close\(\);\s*await rm\(pluginData/);
+          });
+
+          test("candidate Vercel AI SDK and Mastra runtime packages are installed", async () => {
+            const pkg = JSON.parse(await readFile("package.json", "utf8"));
+            assert.ok(pkg.dependencies?.ai, "ai dependency should be installed");
+            assert.ok(pkg.dependencies?.["@mastra/core"], "@mastra/core dependency should be installed");
+          });
+          TEST
+      - name: Remove one-time bootstrap files
+        run: rm scripts/apply-learn-three-column.mjs .github/workflows/learn-three-column-bootstrap.yml
+      - name: Commit generated dependency lock and implementation patch
+        run: |
+          git config user.name "PlotPickle Build Agent"
+          git config user.email "actions@users.noreply.github.com"
+          git add app/page.tsx app/learn-three-column-shell.tsx app/learn-three-column-shell.module.css scripts/ui-continuity-agent.mjs package.json package-lock.json tests/issue-567-learn-three-column.test.mjs scripts/apply-learn-three-column.mjs .github/workflows/learn-three-column-bootstrap.yml
+          git commit -m "feat: migrate Learn to three-column Creative Room [learn-bootstrap-complete]"
+          git push origin HEAD:feature/learn-three-column-agent-room

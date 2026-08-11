@@ -36,7 +36,13 @@ export const plotPickleCurriculum: readonly CurriculumLesson[] = currentSources.
   overview: lesson.overview,
   objectives: lesson.objectives,
   sections: lesson.sections,
+  definitions: lesson.definitions,
+  example: lesson.example,
+  checklist: lesson.checklist,
+  mistakes: lesson.mistakes,
   exercise: lesson.exercise,
+  apply: lesson.apply,
+  tags: lesson.tags,
 }));
 
 if (plotPickleCurriculum.length !== 81) {

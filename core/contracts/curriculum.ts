@@ -25,3 +25,14 @@ export interface CurriculumLesson {
   readonly apply: string;
   readonly tags: readonly string[];
 }
+
+export interface CurriculumKnowledgeSource {
+  readonly id: string;
+  readonly repository: "24-Blocks" | "Afterglow" | "BryanHarrisScripts.github.io";
+  readonly path: string;
+  readonly title: string;
+  readonly kind: string;
+  readonly scopeNote: string;
+  readonly url: string;
+  readonly content: string;
+}

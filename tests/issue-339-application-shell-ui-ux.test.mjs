@@ -11,7 +11,7 @@ async function importSource(path) {
   return import(`data:text/javascript;base64,${Buffer.from(compiled, "utf8").toString("base64")}`);
 }
 
-test("application shell preserves the canonical workspace and project-action registries", async () => {
+test("application shell preserves canonical registries while exposing only Learn in Studio", async () => {
   const [shell, direction] = await Promise.all([
     source("app/application-shell-header.tsx"),
     importSource("lib/product-direction.ts"),
@@ -22,10 +22,11 @@ test("application shell preserves the canonical workspace and project-action reg
   ]);
   assert.deepEqual(direction.COLLABORATION_NAVIGATION.map((item) => item.label), ["Collab", "Community"]);
   assert.deepEqual(direction.PROJECT_ACTIONS.map((item) => item.label), ["New Project", "Import", "Export", "Load Example"]);
-  assert.match(shell, /PRODUCT_NAVIGATION\.filter\(\(item\) => item\.zone === "discovery"\)/);
-  assert.match(shell, /PRODUCT_NAVIGATION\.filter\(\(item\) => item\.zone === "production"\)/);
-  assert.match(shell, /PRODUCT_NAVIGATION\.filter\(\(item\) => item\.zone === "collaboration"\)/);
-  assert.match(shell, /PROJECT_ACTIONS\.map/);
+  assert.match(shell, /const studioLearn = PRODUCT_NAVIGATION\.find\(\(item\) => item\.id === "learn"\)/);
+  assert.match(shell, /<WorkspaceButton \{\.\.\.studioLearn\}/);
+  assert.match(shell, /data-studio-project-actions=\{PROJECT_ACTIONS\.length\}/);
+  assert.doesNotMatch(shell, /PRODUCT_NAVIGATION\.filter/);
+  assert.doesNotMatch(shell, /PROJECT_ACTIONS\.map/);
 });
 
 test("workspace navigation uses link-like current-page semantics instead of disconnected ARIA tabs", async () => {
@@ -36,20 +37,20 @@ test("workspace navigation uses link-like current-page semantics instead of disc
   assert.doesNotMatch(shell, /<button[\s\S]{0,240}role="tab"/);
   assert.doesNotMatch(shell, /role="tablist"/);
   assert.doesNotMatch(shell, /aria-selected=\{activeTab === id\}/);
-  assert.match(shell, /aria-label="Story workflow"/);
-  assert.match(shell, /aria-label="Discovery and pre-production"/);
-  assert.match(shell, /aria-label="Production and polishing"/);
-  assert.match(shell, /aria-label="Collaboration"/);
-  assert.match(shell, /aria-label="Support and application configuration"/);
+  assert.match(shell, /aria-label="PlotPickle Studio workspace"/);
+  assert.match(shell, /className="main-tabs shell-zone-discovery"/);
+  assert.match(shell, /81-module visual writing curriculum/);
+  assert.doesNotMatch(shell, /aria-label="Production and polishing"/);
+  assert.doesNotMatch(shell, /aria-label="Collaboration"/);
 });
 
-test("project actions remain a distinct labelled control group", async () => {
+test("project actions remain registered but dormant during the Learn-only foundation", async () => {
   const shell = await source("app/application-shell-header.tsx");
 
-  assert.match(shell, /className="shell-zone-project-actions" role="group" aria-label="Project actions"/);
-  assert.match(shell, /data-project-action=\{action\.id\}/);
-  assert.match(shell, /action\.id === "load-afterglow" \? "Load Example" : action\.label/);
-  assert.match(shell, /aria-label="Return to PlotPickle Dashboard"/);
+  assert.match(shell, /data-studio-project-actions=\{PROJECT_ACTIONS\.length\}/);
+  assert.doesNotMatch(shell, /className="shell-zone-project-actions"/);
+  assert.doesNotMatch(shell, /data-project-action=\{action\.id\}/);
+  assert.match(shell, /aria-label="Return to PlotPickle Studio Learn"/);
 });
 
 test("shell controls meet touch, focus, overflow and safe-area requirements", async () => {

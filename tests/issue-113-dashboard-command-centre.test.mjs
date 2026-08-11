@@ -46,7 +46,7 @@ test("issue #113 dashboard entry now presents the #444 story-first Studio Dashbo
   ]) assert.ok(studio.includes(phrase), `Studio Dashboard is missing: ${phrase}`);
 });
 
-test("issue #113 keeps project actions in the persistent shell and uses the Studio Dashboard entry", async () => {
+test("issue #113 preserves project actions for later Studio phases while Learn remains the only visible entry", async () => {
   const [page, shell, direction] = await Promise.all([
     source("app/page.tsx"),
     source("app/application-shell-header.tsx"),
@@ -55,7 +55,9 @@ test("issue #113 keeps project actions in the persistent shell and uses the Stud
   assert.match(page, /<ApplicationShellHeader/);
   assert.match(page, /<DashboardCommandCentre/);
   assert.doesNotMatch(page, /className="dashboard-actions"/);
-  assert.match(shell, /PROJECT_ACTIONS\.map/);
+  assert.match(shell, /data-studio-project-actions=\{PROJECT_ACTIONS\.length\}/);
+  assert.doesNotMatch(shell, /PROJECT_ACTIONS\.map/);
+  assert.match(shell, /const studioLearn = PRODUCT_NAVIGATION\.find/);
   for (const action of ["New Project", "Import", "Export", "Load Example"]) assert.ok(shell.includes(action) || direction.includes(action));
 });
 

@@ -192,3 +192,32 @@ test("LEARN and GUIDE share one complete JSON curriculum", async () => {
   assert.match(workspace, /THREAD_PREFIX = "plotpickle\.foundation\.thread\.v2\."/);
   assert.match(workspace, /Curriculum:/);
 });
+
+test("LEARN and GUIDE share the audited repository source library", async () => {
+  const [catalogSource, rawLibrary, guide, workspace, page, launcher] = await Promise.all([
+    read("adapters/curriculum/current-catalog.ts"),
+    read("data/curriculum/plotpickle-source-library.json"),
+    read("modules/creative-room/curriculum-guide.ts"),
+    read("modules/learn/ui/learn-workspace.tsx"),
+    read("app/page.tsx"),
+    read("Start-PlotPickle.bat"),
+  ]);
+  const library = JSON.parse(rawLibrary);
+  assert.equal(library.sourceCount, 95);
+  assert.equal(library.sources.length, 95);
+  assert.deepEqual(library.repositories, ["24-Blocks", "Afterglow", "BryanHarrisScripts.github.io"]);
+  const afterglow = library.sources.filter((source) => source.repository === "Afterglow");
+  assert.deepEqual(afterglow.map((source) => source.path).sort(), ["CONTRIBUTING.md", "README.md#instructional-sections"]);
+  assert.ok(afterglow.every((source) => !source.path.includes("Storyboard Blocks")));
+  assert.match(library.afterglowBoundary, /not an active project or default example/i);
+  assert.match(catalogSource, /plotpickle-source-library\.json/);
+  assert.match(catalogSource, /plotPickleKnowledgeSources/);
+  assert.match(page, /knowledgeSources=\{plotPickleKnowledgeSources\}/);
+  assert.match(workspace, /Source library/);
+  assert.match(workspace, /Search all learning sources/);
+  assert.match(workspace, /sourceReferenceIds/);
+  assert.match(guide, /selectReferenceSources/);
+  assert.match(guide, /Afterglow material is historical teaching context only/);
+  assert.match(launcher, /@mastra\\core\\package\.json/);
+  assert.match(launcher, /Mastra !MASTRA_VERSION! is installed and ready for PlotPickle agents/);
+});

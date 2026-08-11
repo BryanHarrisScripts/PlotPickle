@@ -368,7 +368,7 @@ function LandingPage({ onEnter }: { onEnter: () => void }) {
 
 export default function Home() {
   const [project, setProject] = useState<PlotPickleProject>(() => createBlankProject());
-  const [activeTab, setActiveTab] = useState<MainTab>("dashboard");
+  const [activeTab, setActiveTab] = useState<MainTab>("learn");
   const [activeSection, setActiveSection] = useState<StorySection>("overview");
   const [learnSection, setLearnSection] = useState<LearnSection>("library");
   const [selectedCharacterId, setSelectedCharacterId] = useState("");
@@ -386,7 +386,7 @@ export default function Home() {
   const [hydrated, setHydrated] = useState(false);
   const [saveState, setSaveState] = useState("Saved on this device");
   const [toast, setToast] = useState("");
-  const [showLanding, setShowLanding] = useState(true);
+  const [showLanding, setShowLanding] = useState(false);
   const [afterglowCopyWorking, setAfterglowCopyWorking] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const connectionState = useConnectionStatus(project, saveState);
@@ -892,7 +892,7 @@ export default function Home() {
         onOpenLanding={() => {
           setShowLanding(false);
           setReportReturnSection("");
-          setActiveTab("dashboard");
+          setActiveTab("learn");
         }}
         onProjectAction={(action) => {
           if (action === "new-project") createNewProject();
@@ -951,7 +951,7 @@ export default function Home() {
       ) : null}
 
       <main className="workspace">
-        {capabilityOwner ? <WorkspaceCapabilityShelf workspace={capabilityOwner} /> : null}
+        {capabilityOwner && activeTab !== "learn" ? <WorkspaceCapabilityShelf workspace={capabilityOwner} /> : null}
 
         {activeTab === "dashboard" ? (
           <DashboardCommandCentre

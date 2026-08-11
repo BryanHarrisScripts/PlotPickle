@@ -7,6 +7,71 @@
     #f6faf9;
 }
 
+.home {
+  min-height: 100%;
+  padding: 18px 18px 52px;
+  background: #101315;
+  color: #eee8dc;
+  font-family: var(--font-mono), "Courier New", Consolas, monospace;
+}
+
+.welcomeHero {
+  display: grid;
+  grid-template-columns: minmax(220px, .92fr) minmax(280px, 1.55fr) minmax(210px, .8fr);
+  min-height: 228px;
+  overflow: hidden;
+  border: 1px solid rgba(34, 191, 174, .28);
+  background: #0b0b0a;
+}
+
+.welcomeHero > div:first-child { align-self: center; padding: 28px; }
+.welcomeHero span { color: #ffad73; font-size: 10px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+.welcomeHero h1 { margin: 8px 0 10px; color: #f4efe4; font-size: clamp(26px, 3vw, 40px); line-height: 1; }
+.welcomeHero p { margin: 0; color: #aaa295; font-size: 13px; line-height: 1.6; }
+.welcomeHero > div:first-child button,
+.homeSection header button { margin-top: 16px; border: 0; background: transparent; color: #45d7c7; font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
+.heroImage { min-height: 228px; background: linear-gradient(90deg, #0b0b0a 0%, transparent 30%, transparent 78%, #0b0b0a 100%), linear-gradient(0deg, rgba(8,10,11,.25), rgba(8,10,11,.2)), url("/visual-references/card/bohemian-artist.webp") center/cover; }
+.welcomeHero blockquote { display: flex; flex-direction: column; justify-content: center; margin: 0; padding: 24px; border-left: 1px solid rgba(34,191,174,.18); background: linear-gradient(145deg, #161a1c, #0b0b0a); }
+.welcomeHero blockquote b { color: #ff7a3d; font-size: 34px; line-height: .6; }
+.welcomeHero blockquote p { color: #ddd6ca; }
+.welcomeHero blockquote cite { margin-top: 22px; color: #45d7c7; font-size: 10px; font-style: normal; }
+
+.homeSection { margin-top: 20px; }
+.homeSection > header { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 10px; }
+.homeSection h2 { margin: 0 0 3px; color: #f4efe4; font-size: 18px; }
+.homeSection header p { margin: 0; color: #8f887e; font-size: 11px; }
+.homeSection header button { margin: 0; }
+
+.pathCards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.pathCards button { display: grid; min-width: 0; overflow: hidden; padding: 0 0 12px; border: 1px solid rgba(34,191,174,.22); background: #0b0b0a; color: #eee8dc; text-align: left; cursor: pointer; }
+.pathCards button:hover { border-color: #22bfae; transform: translateY(-1px); }
+.pathCards img { width: 100%; height: 110px; object-fit: cover; filter: saturate(.78) brightness(.72); }
+.pathCards strong, .pathCards span, .pathCards small { margin-inline: 12px; }
+.pathCards strong { margin-top: 11px; color: #f4efe4; font-size: 13px; }
+.pathCards span { min-height: 34px; margin-top: 5px; color: #aaa295; font-size: 10px; line-height: 1.45; }
+.pathCards small { margin-top: 8px; color: #ffad73; font-size: 8px; }
+
+.quickLessons { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.quickLessons button { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 10px; padding: 11px; border: 1px solid rgba(255,122,61,.28); background: #0b0b0a; color: #eee8dc; text-align: left; cursor: pointer; }
+.quickLessons button:hover { border-color: #ff7a3d; }
+.quickLessons b { display: grid; width: 32px; height: 32px; place-items: center; border: 1px solid #0f776e; color: #45d7c7; font-size: 10px; }
+.quickLessons span { display: grid; gap: 3px; }
+.quickLessons strong { color: #eee8dc; font-size: 10px; }
+.quickLessons small { color: #8f887e; font-size: 8px; }
+
+@media (max-width: 1180px) {
+  .welcomeHero { grid-template-columns: 1fr 1.2fr; }
+  .welcomeHero blockquote { display: none; }
+  .pathCards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .quickLessons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 680px) {
+  .welcomeHero { grid-template-columns: 1fr; }
+  .heroImage { min-height: 180px; }
+  .pathCards, .quickLessons { grid-template-columns: 1fr; }
+}
+
 .header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(230px, 0.34fr);

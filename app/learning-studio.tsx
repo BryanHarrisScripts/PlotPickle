@@ -39,7 +39,7 @@ type Props = {
   onOpenBlock: (blockNumber: number) => void;
 };
 
-type ViewMode = "workflow" | "guide" | "library" | "method" | "ai-revision" | "collaboration" | "working-together" | "characters" | "dialogue" | "story-craft";
+type ViewMode = "home" | "workflow" | "guide" | "library" | "method" | "ai-revision" | "collaboration" | "working-together" | "characters" | "dialogue" | "story-craft";
 type CourseModule = LearningModule | TwentyFourBlocksLesson | AiRevisionLesson | CollaborationOwnershipLesson | CharacterMotionLesson | WorkingTogetherLesson | DialogueLesson | StoryCraftLesson;
 
 const courseModules: CourseModule[] = [
@@ -223,7 +223,7 @@ function clickNamedNavigationButton(navLabel: string, buttonLabel: string) {
 export default function LearningStudio({ project, blockNumber, miniBlockNumber, onBlockChange, onMiniBlockChange, onOpenTreatment, onOpenScreenplay, onOpenBlock }: Props) {
   const [query, setQuery] = useState("");
   const [path, setPath] = useState<(typeof learningPaths)[number]>("All");
-  const [view, setView] = useState<ViewMode>("library");
+  const [view, setView] = useState<ViewMode>("home");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [workflowChoiceId, setWorkflowChoiceId] = useState<WorkflowChoice["id"] | null>(null);
@@ -246,15 +246,15 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
         const requestedView = params.get("view") as ViewMode | null;
         const requestedModule = params.get("module") ?? params.get("lesson");
         const requestedCollection = params.get("collection");
-        const validViews: ViewMode[] = ["workflow", "guide", "library", "method", "ai-revision", "collaboration", "working-together", "characters", "dialogue", "story-craft"];
+        const validViews: ViewMode[] = ["home", "workflow", "guide", "library", "method", "ai-revision", "collaboration", "working-together", "characters", "dialogue", "story-craft"];
         if (requestedView && validViews.includes(requestedView)) {
           setView(requestedView);
         } else if (savedWorkflow && workflowChoices.some((choice) => choice.id === savedWorkflow)) {
           setWorkflowChoiceId(savedWorkflow);
-          setView("library");
+          setView("home");
         } else {
           setWorkflowChoiceId(null);
-          setView("library");
+          setView("home");
         }
         if (requestedModule && courseModules.some((module) => module.id === requestedModule)) {
           setSelectedId(requestedModule);
@@ -272,6 +272,16 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
     }, 0);
     return () => window.clearTimeout(loadProgress);
   }, [storageKey, workflowStorageKey]);
+
+  useEffect(() => {
+    const changeView = (event: Event) => {
+      const requested = (event as CustomEvent<unknown>).detail;
+      const validViews: ViewMode[] = ["home", "workflow", "guide", "library", "method", "ai-revision", "collaboration", "working-together", "characters", "dialogue", "story-craft"];
+      if (typeof requested === "string" && validViews.includes(requested as ViewMode)) setView(requested as ViewMode);
+    };
+    window.addEventListener("plotpickle:learn-view", changeView);
+    return () => window.removeEventListener("plotpickle:learn-view", changeView);
+  }, []);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -417,6 +427,36 @@ export default function LearningStudio({ project, blockNumber, miniBlockNumber, 
   }
 
   const progress = Math.round((completed.size / courseModules.length) * 100);
+
+  if (view === "home") return <div className={`${styles.page} ${styles.home}`}>
+    <section className={styles.welcomeHero}>
+      <div><span>PlotPickle Studio · Learn</span><h1>Welcome to Learn</h1><p>Everything you need to master visual storytelling with PlotPickle. Learn at your pace. Build with purpose.</p><button type="button" onClick={() => setView("library")}>Explore all 81 modules</button></div>
+      <div className={styles.heroImage} role="img" aria-label="A writer developing a visual storyworld" />
+      <blockquote><b>“</b><p>We don’t just write stories.<br />We design experiences.<br />One block at a time.</p><cite>— PlotPickle Studio</cite></blockquote>
+    </section>
+
+    <section className={styles.homeSection}>
+      <header><div><h2>Learning Paths</h2><p>Follow a guided path or jump to what you need.</p></div><button type="button" onClick={() => setView("library")}>View all paths →</button></header>
+      <div className={styles.pathCards}>
+        <button type="button" onClick={() => setView("library")}><img src="/visual-references/card/mystical-fantasy-world.webp" alt="" /><strong>New to PlotPickle</strong><span>Start with the foundations of visual writing.</span><small>Foundations · 81 modules available</small></button>
+        <button type="button" onClick={() => setView("characters")}><img src="/visual-references/card/bohemian-artist.webp" alt="" /><strong>Build Your Storyworld</strong><span>Create vivid worlds, characters and settings.</span><small>Characters · World · Visual language</small></button>
+        <button type="button" onClick={() => setView("method")}><img src="/visual-references/card/urban-life-in-sketches.webp" alt="" /><strong>Structure Your Story</strong><span>Use 4 Acts, 24 Blocks and 96 Mini-Blocks.</span><small>The complete PlotPickle method</small></button>
+        <button type="button" onClick={() => setView("story-craft")}><img src="/visual-references/card/rain-soaked-futuristic-noir.webp" alt="" /><strong>Write What You See</strong><span>Turn story intention into a visual experience.</span><small>Visual writing · Craft · Page flow</small></button>
+      </div>
+    </section>
+
+    <section className={styles.homeSection}>
+      <header><div><h2>Quick Lessons</h2><p>Short, focused starting points you can use immediately.</p></div><button type="button" onClick={() => setView("guide")}>Guidance for Block {block.number}.{mini.number} →</button></header>
+      <div className={styles.quickLessons}>
+        <button type="button" onClick={() => openModule("24b-principle-three")}><b>01</b><span><strong>What is a Block?</strong><small>Learn the dramatic unit</small></span></button>
+        <button type="button" onClick={() => openModule("24b-structure-guide")}><b>24</b><span><strong>The 24 Block Overview</strong><small>See the full architecture</small></span></button>
+        <button type="button" onClick={() => openModule("24b-story-beats")}><b>96</b><span><strong>Mini-Blocks Explained</strong><small>Plan four movements per Block</small></span></button>
+        <button type="button" onClick={() => setView("characters")}><b>CH</b><span><strong>Characters That Drive Story</strong><small>Pressure, choice and proof</small></span></button>
+      </div>
+    </section>
+
+    {selected ? <ModuleReader module={selected} complete={completed.has(selected.id)} blockNumber={block.number} miniBlockNumber={mini.number} first={selected.id === courseModules[0]?.id} last={selected.id === courseModules.at(-1)?.id} onClose={() => setSelectedId(null)} onPrevious={() => moveModule(-1)} onNext={() => moveModule(1)} onToggle={() => toggleComplete(selected.id)} onApply={() => applyModule(selected)} /> : null}
+  </div>;
 
   return <div className={styles.page}>
     <header className={styles.header}>

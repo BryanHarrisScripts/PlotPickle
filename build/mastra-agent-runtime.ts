@@ -1,8 +1,10 @@
 import { Agent } from "@mastra/core/agent";
 import { Mastra } from "@mastra/core/mastra";
 import type { ProviderProfile } from "./writing-assistant-store";
+import { PLOTPICKLE_CURRICULUM, curriculumContext } from "./plotpickle-curriculum";
 
 export const PLOTPICKLE_AGENT_ROLES = {
+  "curriculum-guide": "Teach from the complete PlotPickle curriculum, connect the most relevant lessons to the active story, name the lessons used, and end with one practical next step.",
   "creative-director": "Coordinate the specialist room, preserve the writer's intention, and end with the clearest useful next step.",
   "story-architect": "Test structure, causality, stakes, and the 24 Block / 96 Mini-Block story map.",
   character: "Focus on motivation, pressure, choice, relationships, arc, behaviour, and voice.",
@@ -71,6 +73,9 @@ export async function askPlotPickleAgent(input: {
     .join("\n");
   const prompt = [
     `Conversation tone: ${input.tone}.`,
+    input.agentId === "curriculum-guide"
+      ? `PlotPickle curriculum index: ${PLOTPICKLE_CURRICULUM.length} modules are available. Base the answer on these retrieved sources, name the lesson titles used, and say when the curriculum does not establish an answer.\n\n${curriculumContext(input.message)}`
+      : "",
     transcript ? `Recent conversation:\n${transcript}` : "",
     `Writer: ${input.message}`,
   ].filter(Boolean).join("\n\n");

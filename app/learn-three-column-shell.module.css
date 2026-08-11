@@ -9,7 +9,7 @@
   --room-teal-bright: #45d7c7;
   --room-orange: #ff7a3d;
   --room-orange-bright: #ffad73;
-  height: calc(100dvh - 148px);
+  height: calc(100dvh - 132px);
   min-height: 620px;
   display: grid;
   grid-template-columns: minmax(210px, 18%) minmax(0, 58%) minmax(280px, 24%);
@@ -21,27 +21,27 @@
 }
 .shell :is(h1, h2, h3, h4, strong, button, input, select, textarea) { font-family: inherit; }
 .navigator, .room { background: linear-gradient(180deg, var(--charcoal-1), var(--charcoal-0)); }
-.navigator { border-right: 1px solid var(--charcoal-3); padding: 20px 16px; overflow-y: auto; }
+.navigator { border-right: 1px solid var(--charcoal-3); padding: 20px 12px; overflow-y: auto; }
 .room { border-left: 1px solid var(--charcoal-3); padding: 18px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 .canvas { min-width: 0; min-height: 0; overflow: auto; background: var(--charcoal-1); }
 .canvasToolbar { position: sticky; z-index: 30; top: 0; padding: 10px 14px; border-bottom: 1px solid var(--charcoal-3); background: rgba(8,10,11,.96); }
 .canvasToolbar :global(.learn-section-tabs) { width: 100%; margin: 0; border: 0; background: transparent; }
-.brand { display: grid; gap: 4px; padding-bottom: 18px; border-bottom: 1px solid var(--charcoal-3); }
+.brand { display: grid; gap: 4px; padding: 0 8px 18px; border-bottom: 1px solid var(--charcoal-3); }
 .brand span, .roomHeading span, .projectCard span, .rule span { color: var(--room-orange); font-size: 11px; letter-spacing: .13em; text-transform: uppercase; }
 .brand strong { font-size: 18px; color: var(--room-teal-bright); }
 .brand small { color: #d7d0c3; }
-.projectCard { padding: 20px 0 14px; }
-.projectCard h2 { margin: 6px 0; font-size: 18px; }
-.projectCard p { color: #bcb5aa; margin: 0; }
-.storyNav { display: grid; gap: 7px; }
-.storyNav button { text-align: left; border: 1px solid var(--charcoal-3); background: var(--charcoal-2); color: #ddd6ca; border-radius: 0; padding: 10px 11px; }
+.storyNav { display: grid; gap: 2px; padding-top: 12px; }
+.storyNav button { display: grid; grid-template-columns: 26px minmax(0, 1fr); align-items: center; gap: 7px; text-align: left; border: 1px solid transparent; border-bottom-color: var(--charcoal-3); background: transparent; color: #ddd6ca; border-radius: 0; padding: 10px 8px; cursor: pointer; }
+.storyNav button > b { color: var(--room-orange); font-size: 15px; text-align: center; }
+.storyNav button > span { display: grid; gap: 3px; min-width: 0; }
+.storyNav button strong { color: #eee8dc; font-size: 12px; }
+.storyNav button small { overflow: hidden; color: #8f887e; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.storyNav button:hover { border-color: rgba(34,191,174,.35); background: rgba(34,191,174,.06); }
 .storyNav button.active { border-color: var(--room-teal); color: var(--room-teal-bright); background: linear-gradient(90deg, rgba(34,191,174,.18), var(--charcoal-2)); }
 .rule { margin-top: 18px; border-top: 1px solid var(--charcoal-3); padding-top: 14px; }
 .rule p { color: #a9a197; font-size: 12px; line-height: 1.55; }
 .roomHeading h2 { margin: 7px 0 8px; color: var(--room-teal-bright); font-size: 20px; line-height: 1.2; }
 .roomHeading p { margin: 0 0 15px; color: #bcb5aa; font-size: 13px; line-height: 1.5; }
-.control { display: grid; gap: 6px; color: #bcb5aa; font-size: 12px; margin-bottom: 10px; }
-.control select { width: 100%; background: var(--charcoal-2); color: #f4efe4; border: 1px solid var(--charcoal-4); border-radius: 0; padding: 9px 10px; }
 .agentCard { display: grid; gap: 4px; padding: 11px 12px; border: 1px solid var(--room-teal-deep); background: rgba(34,191,174,.09); border-radius: 0; margin: 4px 0 10px; }
 .agentCard strong { color: var(--room-teal-bright); }
 .agentCard span { color: #d8d0c2; font-size: 12px; line-height: 1.45; }

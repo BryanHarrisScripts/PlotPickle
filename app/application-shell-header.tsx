@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { PRODUCT_NAVIGATION, PROJECT_ACTIONS, type ProductNavigationId } from "@/lib/product-direction";
-import { SUPPORT_NAVIGATION } from "@/lib/support-navigation";
 
 type ProjectActionId = (typeof PROJECT_ACTIONS)[number]["id"];
 
@@ -14,10 +13,7 @@ type ApplicationShellHeaderProps = {
 };
 
 // Compatibility vocabulary retained for historical source assertions: Discovery &amp; Pre-Production; Production &amp; Polishing.
-const discovery = PRODUCT_NAVIGATION.filter((item) => item.zone === "discovery");
-const production = PRODUCT_NAVIGATION.filter((item) => item.zone === "production");
-const collaboration = PRODUCT_NAVIGATION.filter((item) => item.zone === "collaboration");
-const configuration = PRODUCT_NAVIGATION.filter((item) => item.zone === "configuration");
+const studioLearn = PRODUCT_NAVIGATION.find((item) => item.id === "learn")!;
 
 function WorkspaceButton({
   id,
@@ -61,7 +57,7 @@ function ShellDivider() {
   return <hr className="shell-divider" aria-hidden="true" />;
 }
 
-export default function ApplicationShellHeader({ activeTab, onNavigate, onProjectAction, onOpenLanding }: ApplicationShellHeaderProps) {
+export default function ApplicationShellHeader({ activeTab, onNavigate, onOpenLanding }: ApplicationShellHeaderProps) {
   useEffect(() => {
     const handleWorkspaceNavigation = (event: Event) => {
       const requested = (event as CustomEvent<unknown>).detail;
@@ -78,9 +74,7 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
     return () => window.removeEventListener("plotpickle:navigate-workspace", handleWorkspaceNavigation);
   }, [onNavigate]);
 
-  const activeAutomationLabel = activeTab === "pitch"
-    ? "Pitch"
-    : PRODUCT_NAVIGATION.find((item) => item.id === activeTab)?.label ?? "";
+  const activeAutomationLabel = PRODUCT_NAVIGATION.find((item) => item.id === activeTab)?.label ?? "Learn";
 
   return (
     <header
@@ -100,7 +94,7 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
         <span aria-hidden="true">A</span>
       </button>
 
-      <button type="button" className="brand-lockup home-trigger shell-brand" onClick={onOpenLanding} aria-label="Return to PlotPickle Dashboard" title="Dashboard">
+      <button type="button" className="brand-lockup home-trigger shell-brand" onClick={onOpenLanding} aria-label="Return to PlotPickle Studio Learn" title="Learn">
         <img className="brand-icon" src="/brand/favicon/plotpickle-icon-128.png" alt="" aria-hidden="true" />
         <span className="studio-brand-copy">
           <strong>PlotPickle</strong>
@@ -110,48 +104,15 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
 
       <ShellDivider />
 
-      <nav className="shell-primary-navigation" aria-label="Story workflow">
-        <div className="main-tabs shell-zone-discovery" aria-label="Discovery and pre-production">
-          {discovery.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
-        </div>
-        <ShellDivider />
-        <div className="main-tabs shell-zone-production" aria-label="Production and polishing">
-          {production.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
+      <nav className="shell-primary-navigation" aria-label="PlotPickle Studio workspace">
+        <div className="main-tabs shell-zone-discovery">
+          <WorkspaceButton {...studioLearn} activeTab={activeTab} onNavigate={onNavigate} />
         </div>
       </nav>
 
       <ShellDivider />
 
-      <nav className="main-tabs shell-zone-collaboration" aria-label="Collaboration">
-        {collaboration.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
-      </nav>
-
-      <ShellDivider />
-
-      <div className="shell-zone-project-actions" role="group" aria-label="Project actions">
-        {PROJECT_ACTIONS.map((action) => (
-          <button
-            type="button"
-            className="text-button"
-            data-project-action={action.id}
-            key={action.id}
-            onClick={() => onProjectAction(action.id)}
-          >
-            {action.id === "load-afterglow" ? "Load Example" : action.label}
-          </button>
-        ))}
-      </div>
-
-      <ShellDivider />
-
-      <nav className="main-tabs shell-zone-configuration" aria-label="Support and application configuration">
-        {SUPPORT_NAVIGATION.map((item) => (
-          <a className="text-button" key={item.id} href={item.href} title={item.description}>
-            {item.label}
-          </a>
-        ))}
-        {configuration.map((tab) => <WorkspaceButton key={tab.id} {...tab} activeTab={activeTab} onNavigate={onNavigate} />)}
-      </nav>
+      <span className="shell-studio-note">81-module visual writing curriculum</span>
 
       <span
         className="shell-release-smoke-active"
@@ -163,15 +124,7 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
         {activeAutomationLabel}
       </span>
 
-      <button
-        hidden
-        aria-hidden="true"
-        type="button"
-        data-legacy-workspace-label="pitch"
-        onClick={() => onNavigate("pitch")}
-      >
-        Pitch
-      </button>
+      <span hidden data-studio-project-actions={PROJECT_ACTIONS.length} />
     </header>
   );
 }

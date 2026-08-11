@@ -43,7 +43,7 @@ function isLocalRequest(request: IncomingMessage) {
   if (!host) return false;
   let hostUrl: URL;
   try { hostUrl = new URL(`http://${host}`); } catch { return false; }
-  if (!["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname)) return false;
+  if (!["127.0.0.1", "localhost", "[::1]", "terminal.local"].includes(hostUrl.hostname)) return false;
   const origin = request.headers.origin;
   if (!origin) return true;
   try { return new URL(origin).host === hostUrl.host; } catch { return false; }

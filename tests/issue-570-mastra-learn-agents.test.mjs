@@ -16,21 +16,21 @@ test("Mastra is the live Learn agent runtime", async () => {
   assert.match(runtime, /agent\.generate\(prompt\)/);
   assert.match(gateway, /askPlotPickleAgent/);
   assert.match(gateway, /mastraRuntimeStatus/);
-  assert.match(shell, /Mastra · \$\{status\.mastra\.agents\.length\} agents ready/);
+  assert.match(shell, /Curriculum agent ready/);
   assert.equal(JSON.parse(pkg).dependencies["@mastra/core"], "1.57.0");
 });
 
-test("Learn exposes a Workflow Change Agent with a human review boundary", async () => {
-  const [runtime, shell, feedback] = await Promise.all([
+test("Learn exposes one curriculum-wide guide backed by a versioned 81-module index", async () => {
+  const [runtime, shell, curriculum, index] = await Promise.all([
     read("build/mastra-agent-runtime.ts"),
     read("app/learn-three-column-shell.tsx"),
-    read("app/suggest-report-workspace.tsx"),
+    read("build/plotpickle-curriculum.ts"),
+    read("build/plotpickle-curriculum-index.json"),
   ]);
-  assert.match(runtime, /"workflow-change"/);
-  assert.match(runtime, /never claim it was submitted/i);
-  assert.match(shell, /Workflow Change Agent/);
-  assert.match(shell, /Prepare reviewable change request/);
-  assert.match(shell, /plotpickle\.workflow-change-draft\.v1/);
-  assert.match(feedback, /source !== "workflow-change-agent"/);
-  assert.match(feedback, /Review it, remove private story material/);
+  assert.match(runtime, /"curriculum-guide"/);
+  assert.match(runtime, /curriculumContext\(input\.message\)/);
+  assert.match(shell, /agentId: "curriculum-guide"/);
+  assert.match(shell, /81 modules indexed/);
+  assert.match(curriculum, /retrieveCurriculum/);
+  assert.equal(JSON.parse(index).length, 81);
 });

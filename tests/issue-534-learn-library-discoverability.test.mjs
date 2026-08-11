@@ -5,10 +5,11 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #534 makes the complete library the default Learn experience", async () => {
+test("Studio Learn starts at the visual curriculum home with the complete library one action away", async () => {
   const [page, studio] = await Promise.all([source("app/page.tsx"), source("app/learning-studio.tsx")]);
   assert.match(page, /useState<LearnSection>\("library"\)/);
-  assert.match(studio, /useState<ViewMode>\("library"\)/);
+  assert.match(studio, /useState<ViewMode>\("home"\)/);
+  assert.match(studio, /Explore all 81 modules/);
   assert.match(studio, /All \{courseModules\.length\} full learning modules/);
   assert.match(studio, /Choose Your Workflow/);
   assert.match(studio, /Start with the PlotPickle Core Curriculum: guided path/);

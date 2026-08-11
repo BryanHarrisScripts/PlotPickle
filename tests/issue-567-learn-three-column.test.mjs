@@ -10,10 +10,10 @@ test("Learn uses the locked three-column Creative Room contract", async () => {
   assert.match(shell, /Story Navigator/);
   assert.match(shell, /Learn Creative Canvas/);
   assert.match(shell, /Creative Room/);
-  assert.match(shell, /Creative Director/);
-  assert.match(shell, /Creative Room agent/);
-  assert.match(shell, /Creative Room tone/);
-  assert.match(shell, /No paid generation/);
+  assert.match(shell, /PlotPickle Curriculum Guide/);
+  assert.match(shell, /PlotPickle curriculum/);
+  assert.match(shell, /81 complete modules/);
+  assert.match(shell, /Ask PlotPickle/);
   assert.match(shell, /Canon requires approval/);
   assert.match(css, /grid-template-columns/);
   assert.match(css, /--charcoal-0/);

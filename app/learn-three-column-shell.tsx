@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, ReactNode, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import type { PlotPickleProject } from "@/lib/project";
 import styles from "./learn-three-column-shell.module.css";
 
@@ -14,8 +13,7 @@ type Props = {
   onOpenSettings: () => void;
 };
 
-type AgentId = "creative-director" | "story-architect" | "character" | "world" | "continuity" | "visual-director" | "screenwriter" | "graphic-novel" | "production" | "critic" | "workflow-change";
-type ToneId = "collaborative" | "direct" | "curious" | "challenging" | "gentle";
+type AgentId = "curriculum-guide" | "creative-director" | "story-architect" | "character" | "world" | "continuity" | "visual-director" | "screenwriter" | "graphic-novel" | "production" | "critic" | "workflow-change";
 type ProviderId = "ollama" | "openai" | "minimax";
 type RoomMessage = { id: string; role: "user" | "assistant"; content: string; agent?: string };
 type AssistantStatus = {
@@ -27,51 +25,23 @@ type AssistantStatus = {
 };
 type AssistantResponse = { provider: ProviderId; model: string; runtime: "mastra"; agentId: AgentId; text: string; latencyMs: number };
 
-const agents: { id: AgentId; label: string; role: string }[] = [
-  { id: "creative-director", label: "Creative Director", role: "Coordinates the room and keeps the story moving." },
-  { id: "story-architect", label: "Story Architect", role: "Structure, causality, stakes and the 24/96 story map." },
-  { id: "character", label: "Character", role: "Motivation, choice, relationships, arc and voice." },
-  { id: "world", label: "World", role: "Locations, rules, atmosphere and story-world coherence." },
-  { id: "continuity", label: "Continuity", role: "Canon, timeline, contradictions and carried details." },
-  { id: "visual-director", label: "Visual Director", role: "Composition, visual language, imagery and screen intention." },
-  { id: "screenwriter", label: "Screenwriter", role: "Scenes, action, dialogue and screenplay craft." },
-  { id: "graphic-novel", label: "Graphic Novel", role: "Panels, page flow and visual narrative beats." },
-  { id: "production", label: "Production", role: "Turns approved direction into provider-ready production work." },
-  { id: "critic", label: "Feedback / Critic", role: "Tests clarity and story strength without rewriting canon." },
-  { id: "workflow-change", label: "Workflow Change Agent", role: "Turns a visible PlotPickle problem or requested improvement into a reviewable change request." },
-];
-
-const tones: { id: ToneId; label: string }[] = [
-  { id: "collaborative", label: "Collaborative" },
-  { id: "direct", label: "Direct" },
-  { id: "curious", label: "Curious" },
-  { id: "challenging", label: "Challenging" },
-  { id: "gentle", label: "Gentle" },
-];
+const curriculumNavigation = [
+  { icon: "▶", label: "Start Here", detail: "Begin your learning journey", view: "home" },
+  { icon: "▱", label: "The PlotPickle Method", detail: "Our visual writing approach", view: "method" },
+  { icon: "●", label: "Core Concepts", detail: "Story, structure, and logic", view: "library" },
+  { icon: "▦", label: "Story Architecture", detail: "4 Acts · 24 Blocks · 96 Mini-Blocks", view: "method" },
+  { icon: "▧", label: "Visual Writing", detail: "Write in pictures, not just words", view: "library" },
+  { icon: "⌘", label: "Tools & Workspaces", detail: "Learn the PlotPickle workflow", view: "workflow" },
+  { icon: "◇", label: "Guides & Tutorials", detail: "Step-by-step walkthroughs", view: "guide" },
+  { icon: "✦", label: "Examples & Case Studies", detail: "See the method in action", view: "library" },
+  { icon: "◎", label: "Community", detail: "Learn and create together", view: "working-together" },
+] as const;
 
 function actForBlock(block: number) {
   if (block <= 6) return 1;
   if (block <= 12) return 2;
   if (block <= 18) return 3;
   return 4;
-}
-
-function starterReply(agent: AgentId, block: number, mini: number, title: string) {
-  const position = `Block ${block}.${mini}`;
-  const replies: Record<AgentId, string> = {
-    "creative-director": `We are working in ${position}. I can bring the right specialist into the room while keeping ${title} as the same active story. What are you trying to discover, strengthen or see?`,
-    "story-architect": `${position} is our structural address. Tell me what this moment must change, and I’ll test its cause, consequence and place in the larger 24/96 movement.`,
-    character: `Tell me whose choice matters most in ${position}. I’ll focus on motivation, pressure and behaviour rather than changing canon for you.`,
-    world: `Let’s make ${position} feel physically specific. Tell me what the audience should notice first about the place, rules or atmosphere.`,
-    continuity: `I’ll treat the current PPF as canon and flag conflicts as proposals. What detail in ${position} do you want checked against the rest of the story?`,
-    "visual-director": `Describe the feeling you want from ${position}. I’ll translate it into framing, visual language and image direction while the writing is still evolving.`,
-    screenwriter: `Give me the dramatic job of ${position}. I’ll help shape playable action and dialogue without silently replacing your accepted story.`,
-    "graphic-novel": `Let’s turn ${position} into readable visual beats. I can explore panel emphasis, reveals and page rhythm as candidates for you to approve.`,
-    production: `I’ll work only from approved creative direction. We can prepare local-first image/video work without triggering paid generation silently.`,
-    critic: `I’ll pressure-test ${position} for clarity, stakes and audience experience, then return observations rather than overwrite your source material.`,
-    "workflow-change": "Tell me what felt confusing, slow, broken or missing in PlotPickle. I’ll help turn it into a clear, reviewable workflow change without submitting anything until you approve it.",
-  };
-  return replies[agent];
 }
 
 function messageId() {
@@ -90,21 +60,32 @@ async function jsonRequest<T>(path: string, method: "GET" | "POST" = "GET", body
 }
 
 export default function LearnThreeColumnShell({ project, blockNumber, miniBlockNumber, children, toolbar, onOpenSettings }: Props) {
-  const router = useRouter();
-  const [agent, setAgent] = useState<AgentId>("creative-director");
-  const [tone, setTone] = useState<ToneId>("collaborative");
   const [draft, setDraft] = useState("");
   const [messages, setMessages] = useState<RoomMessage[]>([]);
   const [status, setStatus] = useState<AssistantStatus | null>(null);
   const [notice, setNotice] = useState("Connecting to the selected writing engine…");
   const [roomError, setRoomError] = useState("");
   const [working, setWorking] = useState(false);
-  const activeAgent = agents.find((item) => item.id === agent) ?? agents[0];
+  const [currentView, setCurrentView] = useState("home");
   const block = project.blocks[blockNumber - 1];
   const minis = block?.scenes.flatMap((scene) => scene.miniBlocks) ?? [];
   const mini = minis[miniBlockNumber - 1];
   const act = actForBlock(blockNumber);
   const contextLabel = useMemo(() => `Act ${act} · Block ${blockNumber}.${miniBlockNumber}`, [act, blockNumber, miniBlockNumber]);
+
+  function openLearnView(view: string) {
+    setCurrentView(view);
+    window.dispatchEvent(new CustomEvent("plotpickle:learn-view", { detail: view }));
+  }
+
+  useEffect(() => {
+    const reflectView = (event: Event) => {
+      const requested = (event as CustomEvent<unknown>).detail;
+      if (typeof requested === "string") setCurrentView(requested);
+    };
+    window.addEventListener("plotpickle:learn-view", reflectView);
+    return () => window.removeEventListener("plotpickle:learn-view", reflectView);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -133,9 +114,8 @@ export default function LearnThreeColumnShell({ project, blockNumber, miniBlockN
     const blockTitle = block?.title || "Untitled story block";
     const miniLabel = mini?.label || "Untitled story movement";
     const contextualPrompt = [
-      `Speak as PlotPickle's ${activeAgent.label}.`,
-      `Specialist role: ${activeAgent.role}`,
-      `Conversation tone: ${tone}.`,
+      "Speak as the PlotPickle Curriculum Guide.",
+      "Use the most relevant retrieved lessons from the complete 81-module curriculum.",
       `Active story: ${project.metadata.title || "Untitled Story"}.`,
       `Story position: Act ${act}, Block ${blockNumber} (${blockTitle}), Mini-Block ${blockNumber}.${miniBlockNumber} (${miniLabel}).`,
       "Treat existing project material as canon. Offer advice or candidates; do not claim to have changed the story.",
@@ -145,10 +125,10 @@ export default function LearnThreeColumnShell({ project, blockNumber, miniBlockN
     setDraft("");
     setRoomError("");
     setWorking(true);
-    setNotice(`Asking ${activeAgent.label}…`);
+    setNotice("Searching the PlotPickle curriculum…");
     try {
-      const result = await jsonRequest<AssistantResponse>("/api/writing-assistant/chat", "POST", { agentId, tone, message: contextualPrompt, history });
-      setMessages((current) => [...current, { id: messageId(), role: "assistant", content: result.text, agent: activeAgent.label }]);
+      const result = await jsonRequest<AssistantResponse>("/api/writing-assistant/chat", "POST", { agentId: "curriculum-guide", tone: "collaborative", message: contextualPrompt, history });
+      setMessages((current) => [...current, { id: messageId(), role: "assistant", content: result.text, agent: "PlotPickle Guide" }]);
       setNotice(`Mastra · ${result.provider === "ollama" ? "Ollama" : result.provider === "openai" ? "OpenAI" : "MiniMax"} · ${result.model} · ${result.latencyMs} ms`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "The selected Creative Room agent could not answer.";
@@ -165,31 +145,14 @@ export default function LearnThreeColumnShell({ project, blockNumber, miniBlockN
     await askRoom(draft.trim());
   }
 
-  function prepareWorkflowChange() {
-    const userMessage = [...messages].reverse().find((message) => message.role === "user")?.content || draft.trim();
-    const agentMessage = [...messages].reverse().find((message) => message.role === "assistant")?.content || "";
-    if (!userMessage) return;
-    sessionStorage.setItem("plotpickle.workflow-change-draft.v1", JSON.stringify({
-      title: userMessage.split(/[.!?\n]/, 1)[0].slice(0, 180),
-      description: userMessage,
-      expected: agentMessage,
-      reproduction: `Learn → Creative Room → Workflow Change Agent\n\nAffected story position: ${contextLabel}`,
-    }));
-    router.push("/suggest-report?source=workflow-change-agent");
-  }
-
   return (
     <section className={styles.shell} data-learn-three-column="v1" aria-label="Learn visual creative writing room">
       <aside className={styles.navigator} aria-label="Story Navigator">
-        <div className={styles.brand}><span>PLOTPICKLE</span><strong>Words to Worlds.</strong><small>Write What You See.</small></div>
-        <div className={styles.projectCard}><span>Active story</span><h2>{project.metadata.title || "Untitled Story"}</h2><p>{contextLabel}</p></div>
-        <nav className={styles.storyNav} aria-label="Learn story context">
-          <button type="button" className={styles.active}>Learn</button>
-          <button type="button">Act {act}</button>
-          <button type="button">Block {blockNumber} · {block?.title || "Story Block"}</button>
-          <button type="button">Mini {blockNumber}.{miniBlockNumber} · {mini?.label || "Story movement"}</button>
+        <div className={styles.brand}><span>LEARN</span><strong>Master the craft.</strong><small>Build visual stories that connect.</small></div>
+        <nav className={styles.storyNav} aria-label="PlotPickle curriculum">
+          {curriculumNavigation.map((item) => <button type="button" className={currentView === item.view ? styles.active : ""} aria-current={currentView === item.view ? "page" : undefined} onClick={() => openLearnView(item.view)} key={item.label}><b aria-hidden="true">{item.icon}</b><span><strong>{item.label}</strong><small>{item.detail}</small></span></button>)}
         </nav>
-        <div className={styles.rule}><span>Story contract</span><p>Learning stays attached to this project. Suggestions remain candidates until you approve them.</p></div>
+        <div className={styles.rule}><span>81 complete modules</span><p>Your progress stays with this project. Lessons and agent guidance never alter canon automatically.</p></div>
       </aside>
 
       <main className={styles.canvas} aria-label="Learn Creative Canvas">
@@ -198,24 +161,21 @@ export default function LearnThreeColumnShell({ project, blockNumber, miniBlockN
       </main>
 
       <aside className={styles.room} aria-label="Creative Room">
-        <div className={styles.roomHeading}><span>CREATIVE ROOM · ONLINE</span><h2>In a plot pickle? Bring in the room.</h2><p>Choose who you want to talk with. The room works from the active story and does not silently change canon.</p></div>
-        <label className={styles.control}>Talk with<select aria-label="Creative Room agent" value={agent} onChange={(event) => setAgent(event.target.value as AgentId)}>{agents.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>
-        <label className={styles.control}>Conversation tone<select aria-label="Creative Room tone" value={tone} onChange={(event) => setTone(event.target.value as ToneId)}>{tones.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>
-        <div className={styles.agentCard}><strong>{activeAgent.label}</strong><span>{activeAgent.role}</span><small>{tone} tone · advisory · PPF-aware boundary</small></div>
+        <div className={styles.roomHeading}><span>PLOTPICKLE GUIDE · 81 MODULES</span><h2>Ask while you learn.</h2><p>Your curriculum guide searches the complete PlotPickle course and answers in the context of the active story.</p></div>
+        <div className={styles.agentCard}><strong>PlotPickle Curriculum Guide</strong><span>Story craft, visual writing, the 24/96 method, characters, dialogue, revision, collaboration and responsible AI.</span><small>{contextLabel} · advisory · canon-safe</small></div>
         <div className={styles.thread} aria-live="polite">
-          <p className={styles.agentMessage}>{starterReply(agent, blockNumber, miniBlockNumber, project.metadata.title || "this story")}</p>
+          <p className={styles.agentMessage}>Ask me anything about the PlotPickle method or how a lesson applies to {project.metadata.title || "your story"}. I’ll use the relevant curriculum material and show you a practical next step.</p>
           {messages.map((message) => <p className={message.role === "user" ? styles.userMessage : styles.agentMessage} key={message.id}><strong>{message.role === "user" ? "You" : message.agent}</strong>{message.content}</p>)}
           {working ? <p className={styles.thinking}>The room is considering this story moment…</p> : null}
         </div>
         {status?.activeProvider === "disabled" ? <div className={styles.connectionNotice}><p>{notice}</p><div><button type="button" onClick={onOpenSettings}>Open Writing Assistant Settings</button></div></div> : null}
         {roomError ? <div className={styles.connectionNotice} role="alert"><p>{roomError}</p><div><button type="button" disabled={working || !draft.trim()} onClick={() => void askRoom(draft.trim(), false)}>Try again</button><button type="button" onClick={onOpenSettings}>Choose a faster model</button></div></div> : null}
         <form className={styles.composer} onSubmit={send}>
-          <textarea aria-label={`Message ${activeAgent.label}`} value={draft} onChange={(event) => setDraft(event.target.value)} placeholder={status?.activeProvider === "disabled" ? "Connect a writing engine in Settings to begin." : `Ask ${activeAgent.label} about this story…`} disabled={working || !status || status.activeProvider === "disabled"} />
-          <button type="submit" disabled={working || !draft.trim() || !status || status.activeProvider === "disabled"}>Send to {activeAgent.label}</button>
+          <textarea aria-label="Ask the PlotPickle Curriculum Guide" value={draft} onChange={(event) => setDraft(event.target.value)} placeholder={status?.activeProvider === "disabled" ? "Connect a writing engine in Settings to begin." : "Ask about story, structure, visual writing, characters, dialogue or the 24/96 method…"} disabled={working || !status || status.activeProvider === "disabled"} />
+          <button type="submit" disabled={working || !draft.trim() || !status || status.activeProvider === "disabled"}>Ask PlotPickle</button>
         </form>
-        {agent === "workflow-change" && (messages.some((message) => message.role === "assistant") || draft.trim()) ? <button type="button" className={styles.changeRequest} onClick={prepareWorkflowChange}>Prepare reviewable change request</button> : null}
         <p className={styles.status} role="status">{notice}</p>
-        <footer><span>{status?.mastra?.ready ? `Mastra · ${status.mastra.agents.length} agents ready` : "Agent runtime connecting"}</span><span>No paid generation without your selected provider</span><span>Canon requires approval</span></footer>
+        <footer><span>{status?.mastra?.ready ? "Curriculum agent ready" : "Agent runtime connecting"}</span><span>81 modules indexed</span><span>Canon requires approval</span></footer>
       </aside>
     </section>
   );

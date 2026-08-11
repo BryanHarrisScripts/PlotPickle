@@ -1,0 +1,60 @@
+.shell {
+  --charcoal-0: #080a0b;
+  --charcoal-1: #101315;
+  --charcoal-2: #181c1f;
+  --charcoal-3: #252b2f;
+  --charcoal-4: #394147;
+  --tungsten-0: #5c421c;
+  --tungsten-1: #8a6428;
+  --tungsten-2: #b98a3d;
+  --tungsten-3: #d9ad5b;
+  --tungsten-4: #f0d28a;
+  min-height: calc(100vh - 150px);
+  display: grid;
+  grid-template-columns: minmax(210px, 18%) minmax(0, 58%) minmax(280px, 24%);
+  background: var(--charcoal-0);
+  color: #f4efe4;
+  border: 1px solid var(--charcoal-3);
+  overflow: hidden;
+}
+.navigator, .room { background: linear-gradient(180deg, var(--charcoal-1), var(--charcoal-0)); }
+.navigator { border-right: 1px solid var(--charcoal-3); padding: 20px 16px; }
+.room { border-left: 1px solid var(--charcoal-3); padding: 20px; display: flex; flex-direction: column; min-height: 0; }
+.canvas { min-width: 0; overflow: auto; background: var(--charcoal-1); }
+.brand { display: grid; gap: 4px; padding-bottom: 18px; border-bottom: 1px solid var(--charcoal-3); }
+.brand span, .roomHeading span, .projectCard span, .rule span { color: var(--tungsten-3); font-size: 11px; letter-spacing: .13em; text-transform: uppercase; }
+.brand strong { font-size: 18px; color: var(--tungsten-4); }
+.brand small { color: #d7d0c3; }
+.projectCard { padding: 20px 0 14px; }
+.projectCard h2 { margin: 6px 0; font-size: 18px; }
+.projectCard p { color: #bcb5aa; margin: 0; }
+.storyNav { display: grid; gap: 7px; }
+.storyNav button { text-align: left; border: 1px solid var(--charcoal-3); background: var(--charcoal-2); color: #ddd6ca; border-radius: 8px; padding: 10px 11px; }
+.storyNav button.active { border-color: var(--tungsten-2); color: var(--tungsten-4); background: linear-gradient(90deg, rgba(185,138,61,.18), var(--charcoal-2)); }
+.rule { margin-top: 18px; border-top: 1px solid var(--charcoal-3); padding-top: 14px; }
+.rule p { color: #a9a197; font-size: 12px; line-height: 1.55; }
+.roomHeading h2 { margin: 7px 0 8px; color: var(--tungsten-4); font-size: 20px; line-height: 1.2; }
+.roomHeading p { margin: 0 0 15px; color: #bcb5aa; font-size: 13px; line-height: 1.5; }
+.control { display: grid; gap: 6px; color: #bcb5aa; font-size: 12px; margin-bottom: 10px; }
+.control select { width: 100%; background: var(--charcoal-2); color: #f4efe4; border: 1px solid var(--charcoal-4); border-radius: 7px; padding: 9px 10px; }
+.agentCard { display: grid; gap: 4px; padding: 11px 12px; border: 1px solid var(--tungsten-0); background: rgba(92,66,28,.18); border-radius: 9px; margin: 4px 0 12px; }
+.agentCard strong { color: var(--tungsten-4); }
+.agentCard span { color: #d8d0c2; font-size: 12px; line-height: 1.45; }
+.agentCard small { color: #9f978b; text-transform: capitalize; }
+.thread { flex: 1; min-height: 170px; overflow: auto; padding: 4px 1px 12px; }
+.thread p { border-radius: 10px; padding: 10px 11px; margin: 0 0 8px; line-height: 1.45; font-size: 13px; }
+.agentMessage { background: var(--charcoal-2); border: 1px solid var(--charcoal-3); color: #e5ded2; }
+.userMessage { background: rgba(185,138,61,.14); border: 1px solid var(--tungsten-0); color: #f1dfbc; margin-left: 18px !important; }
+.composer { border-top: 1px solid var(--charcoal-3); padding-top: 12px; display: grid; gap: 8px; }
+.composer textarea { min-height: 76px; resize: vertical; border-radius: 9px; border: 1px solid var(--charcoal-4); background: var(--charcoal-2); color: #f4efe4; padding: 10px; }
+.composer button { border: 1px solid var(--tungsten-2); background: var(--tungsten-1); color: #fff7e8; border-radius: 8px; padding: 10px 12px; font-weight: 700; }
+.room footer { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 10px; }
+.room footer span { border: 1px solid var(--charcoal-3); border-radius: 999px; padding: 4px 7px; color: #9f978b; font-size: 10px; }
+@media (max-width: 1120px) {
+  .shell { grid-template-columns: 190px minmax(0, 1fr) 280px; }
+}
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .navigator, .room { border: 0; border-bottom: 1px solid var(--charcoal-3); }
+  .room { border-top: 1px solid var(--charcoal-3); }
+}

@@ -260,7 +260,7 @@
   line-height: 1.75;
 }
 
-.composer button {
+.composer > button {
   padding: 11px 15px;
   border: 1px solid var(--teal);
   background: var(--teal);
@@ -276,7 +276,11 @@
 }
 
 .room header {
-  padding: 22px 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -291,9 +295,9 @@
 }
 
 .guidePortrait {
-  width: 96px;
-  height: 96px;
-  flex: 0 0 96px;
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
   object-fit: contain;
   border: 1px solid rgba(53, 201, 184, 0.35);
   border-radius: 50%;
@@ -343,8 +347,10 @@
 
 .messages p {
   margin: 7px 0 0;
-  color: #cbc5ba;
-  line-height: 1.55;
+  color: #ded8ce;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
   white-space: pre-wrap;
 }
 
@@ -363,11 +369,20 @@
 .composer textarea {
   width: 100%;
   resize: vertical;
-  border: 1px solid var(--line);
-  border-radius: 0;
-  background: #090a0b;
+  border: 1px solid #3b4447;
+  border-radius: 4px;
+  background: #0d1114;
   color: var(--text);
-  padding: 11px;
+  padding: 12px;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.composer textarea:focus {
+  border-color: var(--teal);
+  outline: 2px solid rgba(53, 201, 184, 0.14);
+  outline-offset: 0;
 }
 
 @media (max-width: 1050px) {
@@ -451,4 +466,80 @@
   margin: 0;
   color: #c3bdb3;
   line-height: 1.75;
+}
+
+
+.freshButton {
+  flex: 0 0 auto;
+  padding: 6px 8px;
+  border: 1px solid #3b4447;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.freshButton:hover:not(:disabled) {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.welcomeMessage {
+  padding: 15px;
+  border: 1px solid rgba(53, 201, 184, 0.3);
+  background: rgba(53, 201, 184, 0.06);
+}
+
+.welcomeMessage strong {
+  color: var(--teal);
+}
+
+.messageSources {
+  display: block;
+  margin-top: 10px;
+  color: #8b9795;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.thinking {
+  color: var(--muted) !important;
+  font-style: italic;
+}
+
+.promptStarters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.promptStarters button {
+  padding: 6px 8px;
+  border: 1px solid #364044;
+  border-radius: 999px;
+  background: #11181a;
+  color: #b9c3c1;
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.promptStarters button:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.guideError {
+  margin: 0;
+  color: #f0a06e;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.composer > button:disabled,
+.freshButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }

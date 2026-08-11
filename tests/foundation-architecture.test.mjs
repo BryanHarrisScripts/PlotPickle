@@ -47,3 +47,26 @@ test("one canonical project carries lesson and Creative Room state", async () =>
   assert.match(reducer, /revision: project\.revision \+ 1/);
   assert.match(storage, /expectedRevision/);
 });
+
+test("the application composition root opens only the modular LEARN workspace", async () => {
+  const page = await read("app/page.tsx");
+  assert.match(page, /LearnWorkspace/);
+  assert.match(page, /plotPickleCurriculum/);
+  assert.doesNotMatch(page, /MarketingSplash|DashboardCommandCentre|createAfterglowProject/);
+});
+
+test("the curriculum migration adapter exposes all 81 modules", async () => {
+  const adapter = await read("adapters/curriculum/current-catalog.ts");
+  assert.match(adapter, /plotPickleCurriculum\.length !== 81/);
+  assert.match(adapter, /CurriculumLesson/);
+});
+
+test("the LEARN module owns the interaction without importing legacy app code", async () => {
+  const workspace = await read("modules/learn/ui/learn-workspace.tsx");
+  assert.match(workspace, /aria-label="PlotPickle curriculum"/);
+  assert.match(workspace, /aria-label="Active lesson"/);
+  assert.match(workspace, /aria-label="Persistent Creative Room"/);
+  assert.match(workspace, /applyStoryCommand/);
+  assert.match(workspace, /localStorage/);
+  assert.doesNotMatch(workspace, /from ["'](?:@\/)?app\//);
+});

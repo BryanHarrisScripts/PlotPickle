@@ -29,7 +29,14 @@ function searchable(lesson: CurriculumLesson) {
       ...section.paragraphs,
       ...(section.points ?? []),
     ]),
+    ...lesson.definitions.flatMap((definition) => [definition.term, definition.meaning]),
+    lesson.example.title,
+    lesson.example.text,
+    ...lesson.checklist,
+    ...lesson.mistakes,
     lesson.exercise,
+    lesson.apply,
+    ...lesson.tags,
   ].join(" ").toLowerCase();
 }
 

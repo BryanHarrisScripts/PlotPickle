@@ -1,0 +1,121 @@
+article[aria-label="Active lesson"] > section {
+  position: relative;
+  padding: 24px 26px 26px;
+  border: 1px solid rgba(125, 95, 51, 0.46);
+  border-radius: 12px;
+  background:
+    linear-gradient(145deg, rgba(200, 148, 70, 0.055), transparent 45%),
+    rgba(15, 17, 18, 0.82);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.018),
+    0 12px 30px rgba(0, 0, 0, 0.16);
+}
+
+article[aria-label="Active lesson"] > section + section {
+  margin-top: 24px;
+}
+
+article[aria-label="Active lesson"] > section > h2 {
+  margin: 0 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(53, 201, 184, 0.18);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+}
+
+article[aria-label="Active lesson"] > section > p,
+article[aria-label="Active lesson"] > section > ul,
+article[aria-label="Active lesson"] > section dd {
+  max-width: 70ch;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 15px;
+}
+
+article[aria-label="Active lesson"] > section > p {
+  margin: 0;
+  color: #d1cbc1;
+  line-height: 1.78;
+}
+
+article[aria-label="Active lesson"] > section > p + p {
+  margin-top: 16px;
+}
+
+article[aria-label="Active lesson"] > section > ul {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+article[aria-label="Active lesson"] > section > ul > li {
+  position: relative;
+  padding: 10px 12px 10px 34px;
+  border: 1px solid rgba(43, 48, 51, 0.9);
+  border-radius: 8px;
+  background: rgba(9, 10, 11, 0.54);
+  color: #cbc5bb;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.58;
+}
+
+article[aria-label="Active lesson"] > section > ul > li::before {
+  position: absolute;
+  top: 11px;
+  left: 13px;
+  color: #35c9b8;
+  content: "◆";
+  font-size: 8px;
+}
+
+article[aria-label="Active lesson"] dl > div {
+  padding: 14px 16px;
+  border: 1px solid rgba(43, 48, 51, 0.92);
+  border-radius: 8px;
+  background: rgba(9, 10, 11, 0.48);
+}
+
+article[aria-label="Active lesson"] dl dt {
+  color: #f0d39c;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+article[aria-label="Active lesson"] dl dd {
+  margin-top: 6px;
+  line-height: 1.62;
+}
+
+article[aria-label="Active lesson"] > section:first-of-type {
+  border-color: rgba(53, 201, 184, 0.3);
+  background:
+    linear-gradient(145deg, rgba(53, 201, 184, 0.08), transparent 52%),
+    rgba(15, 17, 18, 0.84);
+}
+
+article[aria-label="Active lesson"] > section:last-of-type:not(:has(details)) {
+  display: none;
+}
+
+article[aria-label="Active lesson"] details pre {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+@media (max-width: 820px) {
+  article[aria-label="Active lesson"] > section {
+    padding: 20px;
+    border-radius: 9px;
+  }
+
+  article[aria-label="Active lesson"] > section > p,
+  article[aria-label="Active lesson"] > section > ul,
+  article[aria-label="Active lesson"] > section dd {
+    font-size: 14px;
+  }
+}

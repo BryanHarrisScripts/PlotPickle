@@ -5,9 +5,10 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("Foundations promotes all seven embedded references into standalone lessons", async () => {
-  const [catalog, promoted] = await Promise.all([
+  const [catalog, promoted, deep] = await Promise.all([
     read("adapters/curriculum/current-catalog.ts"),
     read("adapters/curriculum/foundation-reference-lessons.ts"),
+    read("adapters/curriculum/foundation-deep-learning.ts"),
   ]);
 
   for (const sourceId of [
@@ -22,12 +23,13 @@ test("Foundations promotes all seven embedded references into standalone lessons
     assert.match(promoted, new RegExp(sourceId));
   }
 
-  assert.match(catalog, /buildFoundationCurriculum/);
+  assert.match(catalog, /buildDeepFoundationCurriculum/);
+  assert.match(deep, /buildFoundationCurriculum/);
   assert.match(catalog, /standaloneFoundations\.length !== 11/);
   assert.match(catalog, /standaloneFoundations\.some\(\(lesson\) => lesson\.sources\.length !== 0\)/);
   assert.match(catalog, /standalonePlotPickleCurriculum\.length !== 88/);
   assert.match(promoted, /sources: \[\]/);
-  assert.match(promoted, /Foundations now contains eleven standalone lessons/);
+  assert.match(deep, /eleven-lesson learning path/);
 });
 
 test("promoted source material is parsed into headings, paragraphs, points, and lesson scaffolding", async () => {

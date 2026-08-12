@@ -1,3 +1,8 @@
+import {
+  createEmptyFoundationBuilderState,
+  type FoundationBuilderState,
+} from "../contracts/foundation-builder";
+
 export const PPF_FOUNDATION_VERSION = "2.0-foundation" as const;
 
 export interface PPFProject {
@@ -14,6 +19,7 @@ export interface PPFProject {
   readonly creativeRoom: {
     readonly threadId: string | null;
   };
+  readonly foundations: FoundationBuilderState;
 }
 
 export function createEmptyProject(input: {
@@ -34,6 +40,17 @@ export function createEmptyProject(input: {
     },
     creativeRoom: {
       threadId: null,
+    },
+    foundations: createEmptyFoundationBuilderState(),
+  };
+}
+
+export function normalizeFoundationProject(project: PPFProject): PPFProject {
+  return {
+    ...project,
+    foundations: {
+      ...createEmptyFoundationBuilderState(),
+      ...(project.foundations ?? {}),
     },
   };
 }

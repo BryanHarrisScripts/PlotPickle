@@ -100,8 +100,8 @@ test("LEARN preserves full lessons and uses user-controlled understanding", asyn
     assert.match(contract, new RegExp(field));
     assert.match(rawCurriculum, new RegExp(`"${field}"`));
   }
-  assert.match(workspace, /I understand this module/);
-  assert.match(workspace, /type="checkbox"/);
+  assert.match(workspace, /toggleLessonCompletion/);
+  assert.match(workspace, /aria-pressed=\{isCompleted\}/);
   assert.match(workspace, /Key terms/);
   assert.match(workspace, /Lesson checklist/);
   assert.match(workspace, /Common mistakes/);
@@ -113,10 +113,11 @@ test("LEARN preserves full lessons and uses user-controlled understanding", asyn
 });
 
 
-test("LEARN presents the Master Storyteller curriculum guide", async () => {
+test("LEARN presents Sage Brinewick as the curriculum guide", async () => {
   const workspace = await read("modules/learn/ui/learn-workspace.tsx");
   assert.match(workspace, /curriculum-guide-master-storyteller\.png/);
-  assert.match(workspace, /alt="Master Storyteller, PlotPickle Curriculum Guide"/);
+  assert.match(workspace, /alt="Sage Brinewick, PlotPickle Curriculum Guide"/);
+  assert.match(workspace, /<h2>Sage Brinewick<\/h2>/);
   assert.match(workspace, /styles\.guidePortrait/);
 });
 
@@ -126,7 +127,7 @@ test("LEARN exposes the future PlotPickle workflow navigation", async () => {
     read("modules/learn/ui/learn-workspace.tsx"),
     read("modules/learn/ui/learn-workspace.module.css"),
   ]);
-  for (const label of ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Edit", "Graphic Novel", "Build", "Feedback", "Refine", "Reports / Export"]) {
+  for (const label of ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Edit", "Synthfiction", "Build", "Feedback", "Refine", "Reports"]) {
     assert.match(workspace, new RegExp(label.replace("/", "\\/")));
   }
   assert.match(workspace, /aria-label="PlotPickle workflow"/);
@@ -219,8 +220,8 @@ test("LEARN and GUIDE share one topic-based JSON curriculum", async () => {
   assert.match(guide, /\.slice\(0, 1\)/);
   assert.match(guide, /cleanGuideAnswer/);
   assert.match(gateway, /content\.length <= 2_000/);
-  assert.match(workspace, /Start fresh/);
-  assert.match(workspace, /THREAD_PREFIX = "plotpickle\.foundation\.thread\.v2\."/);
+  assert.doesNotMatch(workspace, /Start fresh/);
+  assert.doesNotMatch(workspace, /THREAD_PREFIX/);
   assert.match(workspace, /Curriculum:/);
 });
 

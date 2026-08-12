@@ -2,7 +2,7 @@
   "schemaVersion": "2.0",
   "lessonCount": 81,
   "sourceCount": 95,
-  "lessonContentSha256": "178ec6f9bf2dfc0642b956d3e7e7e864953b0d1a1aecaf482f274e0ae29c0943",
+  "lessonContentSha256": "66a9ca2f1ab799c5c7160d3a52d4221dedccc79c4699c80459ca86a165fdeaf2",
   "sourceContentSha256": "da0e4ea5146019a19d472787d78505faf74993f69e82c0460125143cadeb4343",
   "afterglowBoundary": "Instructional material only. Afterglow story, characters, scenes and canon are not an active project or default example.",
   "files": [
@@ -11,14 +11,14 @@
       "title": "Foundations",
       "file": "foundations.json",
       "lessonCount": 4,
-      "sourceCount": 11
+      "sourceCount": 7
     },
     {
       "topic": "industry",
       "title": "Industry",
       "file": "industry.json",
       "lessonCount": 2,
-      "sourceCount": 1
+      "sourceCount": 2
     },
     {
       "topic": "theme",
@@ -81,14 +81,14 @@
       "title": "Responsible AI",
       "file": "responsible-ai.json",
       "lessonCount": 3,
-      "sourceCount": 6
+      "sourceCount": 8
     },
     {
       "topic": "collaboration",
       "title": "Collaboration",
       "file": "collaboration.json",
       "lessonCount": 12,
-      "sourceCount": 17
+      "sourceCount": 18
     }
   ]
 }

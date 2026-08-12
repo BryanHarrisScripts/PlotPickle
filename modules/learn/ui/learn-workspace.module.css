@@ -138,13 +138,6 @@
   border-bottom: 1px solid var(--line);
 }
 
-.guideIdentity span {
-  color: var(--orange);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
 .brand strong {
   color: var(--teal);
   font-family: Georgia, "Times New Roman", serif;
@@ -336,6 +329,38 @@
 .lessonCompleteMark:focus-visible {
   border-color: #46d6ad;
   outline: none;
+}
+
+.applyLearningRow {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 10px;
+  min-height: 50px;
+  align-items: center;
+  padding: 9px 18px 9px 26px;
+  border-bottom: 1px solid rgba(200, 148, 70, 0.34);
+  background:
+    linear-gradient(90deg, rgba(200, 148, 70, 0.09), transparent 70%),
+    #0d0f10;
+  color: #d9c49c;
+}
+
+.applyLearningGlyph {
+  color: var(--parchment-gold);
+  font-size: 13px;
+}
+
+.applyLearningRow strong {
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.applyLearningRow small {
+  color: #847b6c;
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .lesson {

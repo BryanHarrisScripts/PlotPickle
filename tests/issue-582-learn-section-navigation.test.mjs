@@ -73,3 +73,75 @@ test("LEARN removes settings, workflow separators, durations and suggested quest
   assert.doesNotMatch(css, /workflowNav li:not\(:last-child\)::after/);
   assert.doesNotMatch(css, /\.promptStarters/);
 });
+
+test("every expanded curriculum section ends with an apply-learning placeholder", async () => {
+  const workspace = await readFile(workspacePath, "utf8");
+  const css = await readFile(cssPath, "utf8");
+
+  assert.match(workspace, /lessonGroups\.map/);
+  assert.match(workspace, /collapsed \? null : \(\s*<div className=\{styles\.applyLearningRow\}/s);
+  assert.match(workspace, /Apply what you have learned/);
+  assert.match(workspace, /Coming soon/);
+  assert.doesNotMatch(workspace, /className=\{styles\.applyLearningRow\}[^>]*onClick/s);
+  assert.match(css, /\.applyLearningRow \{/);
+});
+
+test("the curriculum wizard has a character name without a visible Creative Room title", async () => {
+  const workspace = await readFile(workspacePath, "utf8");
+
+  assert.match(workspace, /<h2>Sage Brinewick<\/h2>/);
+  assert.match(workspace, /PlotPickle Curriculum Guide for your lesson and active story\./);
+  assert.match(workspace, /alt="Sage Brinewick, PlotPickle Curriculum Guide"/);
+  assert.doesNotMatch(workspace, /<span>Creative Room<\/span>/);
+});
+
+test("workflow navigation uses one-word subtitles", async () => {
+  const workspace = await readFile(workspacePath, "utf8");
+  const details = [...workspace.matchAll(/detail: "([^"]+)"/g)].map((match) => match[1]);
+
+  assert.equal(details.length, 11);
+  assert.deepEqual(details, [
+    "Start", "Guides", "Design", "Visualize", "Draft", "Polish",
+    "Pages", "Assemble", "Review", "Decide", "Deliver",
+  ]);
+  assert.ok(details.every((detail) => !detail.includes(" ")));
+});
+
+test("workflow navigation uses the approved Synthfiction and Reports labels", async () => {
+  const workspace = await readFile(workspacePath, "utf8");
+
+  assert.match(workspace, /label: "Synthfiction"/);
+  assert.match(workspace, /label: "Reports"/);
+  assert.doesNotMatch(workspace, /label: "Graphic Novel"/);
+  assert.doesNotMatch(workspace, /label: "Reports \/ Export"/);
+});
+
+test("The Pitch integrates Foundations material and routes specialized sources to their owners", async () => {
+  const foundations = JSON.parse(await readFile("learn/foundations.json", "utf8"));
+  const responsibleAi = JSON.parse(await readFile("learn/responsible-ai.json", "utf8"));
+  const industry = JSON.parse(await readFile("learn/industry.json", "utf8"));
+  const collaboration = JSON.parse(await readFile("learn/collaboration.json", "utf8"));
+  const pitch = foundations.lessons.find((lesson) => lesson.id === "pitch");
+
+  assert.equal(pitch.sections[0].heading, "Foundations table of contents");
+  assert.deepEqual(
+    pitch.sections[0].points.map((point) => point.match(/^\d{2}/)?.[0]).filter(Boolean),
+    ["01", "02", "03", "04"],
+  );
+  assert.match(pitch.exercise, /Foundations pitch card/);
+  assert.equal(pitch.sources.length, 2);
+  assert.deepEqual(
+    pitch.sources.map((source) => source.id),
+    ["24-blocks-general-general-the-pitch-md", "24-blocks-general-readme-md"],
+  );
+
+  const ownerBySource = new Map([
+    ...responsibleAi.lessons.flatMap((lesson) => lesson.sources.map((source) => [source.id, "responsible-ai"])),
+    ...industry.lessons.flatMap((lesson) => lesson.sources.map((source) => [source.id, "industry"])),
+    ...collaboration.lessons.flatMap((lesson) => lesson.sources.map((source) => [source.id, "collaboration"])),
+  ]);
+  assert.equal(ownerBySource.get("24-blocks-general-general-ai-framework-ideas-md"), "responsible-ai");
+  assert.equal(ownerBySource.get("24-blocks-experiment-learnings-md"), "responsible-ai");
+  assert.equal(ownerBySource.get("24-blocks-general-general-the-film-industry-md"), "industry");
+  assert.equal(ownerBySource.get("24-blocks-readme-md"), "collaboration");
+});

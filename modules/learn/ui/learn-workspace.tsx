@@ -11,17 +11,17 @@ import styles from "./learn-workspace.module.css";
 const PROJECT_KEY = "plotpickle.foundation.project.v1";
 
 const WORKFLOW_STAGES = [
-  { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "Start here" },
-  { id: "learn", relic: "/assets/workflow-relics/learn.webp", label: "Learn", detail: "Guides & tools" },
-  { id: "plan", relic: "/assets/workflow-relics/plan.webp", label: "Plan", detail: "Story design" },
-  { id: "storyboard", relic: "/assets/workflow-relics/storyboard.webp", label: "Storyboard", detail: "Visual direction" },
-  { id: "write", relic: "/assets/workflow-relics/write.webp", label: "Write", detail: "Screenplay" },
-  { id: "edit", relic: "/assets/workflow-relics/edit.webp", label: "Edit", detail: "Refine copy" },
-  { id: "graphic-novel", relic: "/assets/workflow-relics/graphic-novel.webp", label: "Graphic Novel", detail: "Pages & panels" },
+  { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "Start" },
+  { id: "learn", relic: "/assets/workflow-relics/learn.webp", label: "Learn", detail: "Guides" },
+  { id: "plan", relic: "/assets/workflow-relics/plan.webp", label: "Plan", detail: "Design" },
+  { id: "storyboard", relic: "/assets/workflow-relics/storyboard.webp", label: "Storyboard", detail: "Visualize" },
+  { id: "write", relic: "/assets/workflow-relics/write.webp", label: "Write", detail: "Draft" },
+  { id: "edit", relic: "/assets/workflow-relics/edit.webp", label: "Edit", detail: "Polish" },
+  { id: "graphic-novel", relic: "/assets/workflow-relics/graphic-novel.webp", label: "Synthfiction", detail: "Pages" },
   { id: "build", relic: "/assets/workflow-relics/build.webp", label: "Build", detail: "Assemble" },
-  { id: "feedback", relic: "/assets/workflow-relics/feedback.webp", label: "Feedback", detail: "AI & team" },
-  { id: "refine", relic: "/assets/workflow-relics/refine.webp", label: "Refine", detail: "Review & decide" },
-  { id: "reports", relic: "/assets/workflow-relics/reports.webp", label: "Reports / Export", detail: "Deliver story" },
+  { id: "feedback", relic: "/assets/workflow-relics/feedback.webp", label: "Feedback", detail: "Review" },
+  { id: "refine", relic: "/assets/workflow-relics/refine.webp", label: "Refine", detail: "Decide" },
+  { id: "reports", relic: "/assets/workflow-relics/reports.webp", label: "Reports", detail: "Deliver" },
 ] as const;
 
 type Message = {
@@ -325,6 +325,13 @@ export default function LearnWorkspace({
                 </div>
                 );
               })}
+              {collapsed ? null : (
+                <div className={styles.applyLearningRow} aria-label={`Apply what you have learned in ${topicName(group.topic)}`}>
+                  <span aria-hidden="true" className={styles.applyLearningGlyph}>✦</span>
+                  <strong>Apply what you have learned</strong>
+                  <small>Coming soon</small>
+                </div>
+              )}
               </div>
             </section>
             );
@@ -429,7 +436,7 @@ export default function LearnWorkspace({
         <header>
           <div className={styles.guideIdentity}>
             <Image
-              alt="Master Storyteller, PlotPickle Curriculum Guide"
+              alt="Sage Brinewick, PlotPickle Curriculum Guide"
               className={styles.guidePortrait}
               height={96}
               priority
@@ -437,9 +444,8 @@ export default function LearnWorkspace({
               width={96}
             />
             <div>
-              <span>Creative Room</span>
-              <h2>Curriculum Guide</h2>
-              <p>Plain-language help with the lesson and your active story.</p>
+              <h2>Sage Brinewick</h2>
+              <p>PlotPickle Curriculum Guide for your lesson and active story.</p>
             </div>
           </div>
         </header>

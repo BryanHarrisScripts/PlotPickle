@@ -25,7 +25,10 @@ test("LEARN keeps completion marks in the list and removes crossed-out lesson st
 
   assert.match(workspace, /lessonCompleteMark/);
   assert.match(workspace, /aria-label=\{completed\.has\(lesson\.id\) \? "Completed" : "Not completed"\}/);
+  assert.doesNotMatch(workspace, /I understand this module/);
+  assert.doesNotMatch(workspace, /setLessonUnderstood/);
   assert.match(css, /\.lessonCompleteMark \{[^}]*text-decoration: none/s);
+  assert.doesNotMatch(css, /\.understood/);
   assert.doesNotMatch(css, /line-through/);
 });
 
@@ -35,7 +38,20 @@ test("LEARN Creative Room uses parchment frames instead of thin right-panel bord
   assert.match(css, /--parchment-edge/);
   assert.match(css, /--parchment-gold/);
   assert.match(css, /\.room \{[^}]*border-left: 0/s);
-  assert.match(css, /\.room \{[^}]*inset 5px 0 rgba\(125, 95, 51, 0\.34\)/s);
-  assert.match(css, /\.writerMessage,\s*\.guideMessage \{[^}]*border: 2px double rgba\(200, 148, 70, 0\.42\)/s);
-  assert.match(css, /\.composer \{[^}]*border-top: 2px double rgba\(200, 148, 70, 0\.55\)/s);
+  assert.match(css, /\.curriculum \{[^}]*border-right: 0/s);
+  assert.match(css, /\.room \{[^}]*box-shadow: none/s);
+  assert.match(css, /border-image-source: url\("\/assets\/learn\/curriculum-scroll-frame\.png"\)/);
+  assert.match(css, /url\("\/assets\/learn\/dark-parchment-paper\.png"\)/);
+  assert.match(css, /\.composer \{[^}]*border-top: 0/s);
+});
+
+test("Creative Room starts fresh without a visible reset control", async () => {
+  const workspace = await readFile(workspacePath, "utf8");
+
+  assert.doesNotMatch(workspace, /THREAD_PREFIX/);
+  assert.doesNotMatch(workspace, /loadMessages/);
+  assert.doesNotMatch(workspace, /startFreshConversation/);
+  assert.doesNotMatch(workspace, /Start fresh/);
+  assert.match(workspace, /composerField/);
+  assert.match(workspace, /aria-label="Ask the Guide"/);
 });

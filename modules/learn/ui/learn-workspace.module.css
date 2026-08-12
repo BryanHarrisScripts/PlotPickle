@@ -136,7 +136,7 @@
 .curriculum {
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--line);
+  border-right: 0;
 }
 
 .brand {
@@ -536,40 +536,20 @@
   white-space: pre-wrap;
 }
 
-.composer > button {
-  padding: 11px 15px;
-  border: 1px solid var(--teal);
-  background: var(--teal);
-  color: #07100f;
-  font-weight: 800;
-  cursor: pointer;
-}
-
 .room {
   display: flex;
   flex-direction: column;
   border-left: 0;
-  box-shadow:
-    inset 1px 0 rgba(200, 148, 70, 0.72),
-    inset 5px 0 rgba(125, 95, 51, 0.34),
-    -16px 0 34px rgba(0, 0, 0, 0.24);
+  background: var(--matte);
+  box-shadow: none;
 }
 
 .room header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 18px;
-  border: 1px solid rgba(200, 148, 70, 0.56);
-  border-left: 0;
-  border-right: 0;
-  background:
-    linear-gradient(90deg, rgba(200, 148, 70, 0.18), transparent 12px, transparent calc(100% - 12px), rgba(200, 148, 70, 0.14)),
-    #10100f;
-  box-shadow:
-    inset 0 1px rgba(241, 221, 174, 0.16),
-    inset 0 -1px rgba(63, 45, 22, 0.72);
+  display: block;
+  padding: 16px 18px 12px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .guideIdentity {
@@ -583,9 +563,9 @@
 }
 
 .guidePortrait {
-  width: 72px;
-  height: 72px;
-  flex: 0 0 72px;
+  width: 68px;
+  height: 68px;
+  flex: 0 0 68px;
   object-fit: contain;
   border: 2px double rgba(200, 148, 70, 0.64);
   border-radius: 50%;
@@ -593,9 +573,11 @@
 }
 
 .room h2 {
-  margin: 8px 0;
+  margin: 6px 0 4px;
   color: var(--teal);
   font-size: 20px;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .messages {
@@ -605,58 +587,34 @@
   flex-direction: column;
   gap: 12px;
   overflow-y: auto;
-  padding: 18px;
-  background:
-    linear-gradient(90deg, rgba(125, 95, 51, 0.12), transparent 18px, transparent calc(100% - 18px), rgba(125, 95, 51, 0.12)),
-    #0d0f10;
+  padding: 8px 18px 14px;
+  background: transparent;
 }
 
 .writerMessage,
 .guideMessage {
   position: relative;
-  padding: 12px;
-  border: 2px double rgba(200, 148, 70, 0.42);
+  padding: 10px 12px;
+  border: 14px solid transparent;
+  border-image-source: url("/assets/learn/curriculum-scroll-frame.png");
+  border-image-slice: 150;
+  border-image-width: 18px;
+  border-image-outset: 3px;
+  border-image-repeat: stretch;
   background:
-    linear-gradient(180deg, rgba(241, 221, 174, 0.035), transparent),
-    #10100f;
-}
-
-.writerMessage::before,
-.writerMessage::after,
-.guideMessage::before,
-.guideMessage::after {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  border-color: rgba(200, 148, 70, 0.68);
-  content: "";
-  pointer-events: none;
-}
-
-.writerMessage::before,
-.guideMessage::before {
-  top: -4px;
-  left: -4px;
-  border-top: 2px solid;
-  border-left: 2px solid;
-}
-
-.writerMessage::after,
-.guideMessage::after {
-  right: -4px;
-  bottom: -4px;
-  border-right: 2px solid;
-  border-bottom: 2px solid;
+    linear-gradient(rgba(8, 8, 7, 0.42), rgba(8, 8, 7, 0.42)),
+    url("/assets/learn/dark-parchment-paper.png") center / cover;
+  box-shadow:
+    inset 0 0 24px rgba(0, 0, 0, 0.46),
+    0 5px 14px rgba(0, 0, 0, 0.22);
 }
 
 .writerMessage {
-  margin-left: 24px;
-  border-color: rgba(240, 138, 75, 0.45);
+  color: #e0b96c;
 }
 
 .guideMessage {
-  margin-right: 24px;
-  border-color: rgba(53, 201, 184, 0.45);
+  color: var(--teal);
 }
 
 .writerMessage strong {
@@ -679,11 +637,9 @@
 .composer {
   display: grid;
   gap: 8px;
-  padding: 16px 18px 20px;
-  border-top: 2px double rgba(200, 148, 70, 0.55);
-  background:
-    linear-gradient(90deg, rgba(200, 148, 70, 0.14), transparent 16px, transparent calc(100% - 16px), rgba(200, 148, 70, 0.14)),
-    #10100f;
+  padding: 10px 18px 18px;
+  border-top: 0;
+  background: transparent;
 }
 
 .composer label {
@@ -691,23 +647,57 @@
   font-size: 11px;
 }
 
+.composerField {
+  position: relative;
+}
+
 .composer textarea {
   width: 100%;
-  resize: vertical;
-  border: 1px solid #3b4447;
-  border-radius: 4px;
-  background: #0d1114;
+  min-height: 88px;
+  resize: none;
+  border: 1px solid rgba(139, 101, 48, 0.78);
+  border-radius: 6px;
+  background: #0d1116;
   color: var(--text);
-  padding: 12px;
+  padding: 12px 46px 12px 12px;
   font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
   font-size: 14px;
   line-height: 1.5;
 }
 
 .composer textarea:focus {
-  border-color: var(--teal);
-  outline: 2px solid rgba(53, 201, 184, 0.14);
+  border-color: var(--parchment-gold);
+  outline: 2px solid rgba(200, 148, 70, 0.12);
   outline-offset: 0;
+}
+
+.composerField > button {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--parchment-gold);
+  cursor: pointer;
+}
+
+.composerField > button svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.composerField > button:hover:not(:disabled) {
+  color: #f0d39c;
 }
 
 @media (max-width: 1050px) {
@@ -755,22 +745,6 @@
   display: none;
 }
 
-.understood {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 22px;
-  color: var(--text);
-  cursor: pointer;
-}
-
-.understood input {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  accent-color: var(--teal);
-}
-
 .definitions {
   display: grid;
   gap: 16px;
@@ -794,26 +768,8 @@
 }
 
 
-.freshButton {
-  flex: 0 0 auto;
-  padding: 6px 8px;
-  border: 1px solid #3b4447;
-  background: transparent;
-  color: var(--muted);
-  font: inherit;
-  font-size: 10px;
-  cursor: pointer;
-}
-
-.freshButton:hover:not(:disabled) {
-  border-color: var(--teal);
-  color: var(--teal);
-}
-
 .welcomeMessage {
-  padding: 15px;
-  border: 1px solid rgba(53, 201, 184, 0.3);
-  background: rgba(53, 201, 184, 0.06);
+  margin: 0;
 }
 
 .welcomeMessage strong {
@@ -863,8 +819,7 @@
   line-height: 1.45;
 }
 
-.composer > button:disabled,
-.freshButton:disabled {
+.composerField > button:disabled {
   cursor: not-allowed;
-  opacity: 0.55;
+  opacity: 0.35;
 }

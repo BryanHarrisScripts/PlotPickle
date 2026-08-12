@@ -9,7 +9,6 @@ import { createEmptyProject, type PPFProject } from "../../../core/project/proje
 import styles from "./learn-workspace.module.css";
 
 const PROJECT_KEY = "plotpickle.foundation.project.v1";
-const THREAD_PREFIX = "plotpickle.foundation.thread.v2.";
 
 const WORKFLOW_STAGES = [
   { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "Start here" },
@@ -55,22 +54,6 @@ function loadProject(): PPFProject {
     id: newId("project"),
     now: new Date().toISOString(),
   });
-}
-
-function loadMessages(threadId: string): Message[] {
-  try {
-    const saved = localStorage.getItem(`${THREAD_PREFIX}${threadId}`);
-    if (!saved) return [];
-    const parsed = JSON.parse(saved) as Message[];
-    return parsed.filter((message) => (
-      message
-      && (message.role === "writer" || message.role === "guide")
-      && typeof message.text === "string"
-      && message.text.length <= 2_400
-    )).slice(-30);
-  } catch {
-    return [];
-  }
 }
 
 function FantasyWayfinderGlyph({ direction }: { readonly direction: "previous" | "next" }) {
@@ -133,7 +116,6 @@ export default function LearnWorkspace({
       localStorage.setItem(PROJECT_KEY, JSON.stringify(current));
     }
     setProject(current);
-    setMessages(loadMessages(current.creativeRoom.threadId!));
   }, []);
 
   const activeLesson = useMemo(() => {
@@ -195,23 +177,6 @@ export default function LearnWorkspace({
     ));
   }
 
-  function setLessonUnderstood(understood: boolean) {
-    if (!activeLesson) return;
-    commit({
-      type: understood ? "lesson.complete" : "lesson.uncomplete",
-      lessonId: activeLesson.id,
-      occurredAt: new Date().toISOString(),
-    });
-  }
-
-  function startFreshConversation() {
-    if (!project?.creativeRoom.threadId || working) return;
-    localStorage.removeItem(`${THREAD_PREFIX}${project.creativeRoom.threadId}`);
-    setMessages([]);
-    setQuestion("");
-    setGuideError("");
-  }
-
   async function askGuide(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!activeLesson || !project?.creativeRoom.threadId || !question.trim() || working) return;
@@ -222,10 +187,6 @@ export default function LearnWorkspace({
       writerMessage,
     ];
     setMessages(pending);
-    localStorage.setItem(
-      `${THREAD_PREFIX}${project.creativeRoom.threadId}`,
-      JSON.stringify(pending),
-    );
     setQuestion("");
     setGuideError("");
     setWorking(true);
@@ -256,10 +217,8 @@ export default function LearnWorkspace({
         },
       ];
       setMessages(next);
-      localStorage.setItem(`${THREAD_PREFIX}${project.creativeRoom.threadId}`, JSON.stringify(next));
     } catch (error) {
       setMessages(messages);
-      localStorage.setItem(`${THREAD_PREFIX}${project.creativeRoom.threadId}`, JSON.stringify(messages));
       setQuestion(submitted);
       setGuideError(error instanceof Error ? error.message : "The Curriculum Guide could not answer.");
     } finally {
@@ -389,14 +348,6 @@ export default function LearnWorkspace({
         </div>
         <h1>{activeLesson.title}</h1>
         <p className={styles.overview}>{activeLesson.overview}</p>
-        <label className={styles.understood}>
-          <input
-            checked={completed.has(activeLesson.id)}
-            onChange={(event) => setLessonUnderstood(event.target.checked)}
-            type="checkbox"
-          />
-          <span>I understand this module</span>
-        </label>
         <section>
           <h2>What you will learn</h2>
           <ul>
@@ -476,9 +427,6 @@ export default function LearnWorkspace({
               <p>Plain-language help with the lesson and your active story.</p>
             </div>
           </div>
-          <button className={styles.freshButton} disabled={working} onClick={startFreshConversation} type="button">
-            Start fresh
-          </button>
         </header>
         <div className={styles.messages} aria-live="polite">
           {messages.length ? messages.map((message) => {
@@ -501,8 +449,8 @@ export default function LearnWorkspace({
               </div>
             );
           }) : (
-            <div className={styles.welcomeMessage}>
-              <strong>Let’s make this clear.</strong>
+            <div className={`${styles.guideMessage} ${styles.welcomeMessage}`}>
+              <strong>Guide</strong>
               <p>You’re reading “{activeLesson.title}.” Ask a question in your own words and I’ll answer simply.</p>
             </div>
           )}
@@ -516,21 +464,26 @@ export default function LearnWorkspace({
         <form className={styles.composer} onSubmit={askGuide}>
           <label htmlFor="creative-room-question">Ask in your own words</label>
           <div className={styles.promptStarters} aria-label="Question starters">
-            <button onClick={() => setQuestion("Explain this simply.")} type="button">Explain simply</button>
+            <button onClick={() => setQuestion("Simplify this further.")} type="button">Simplify more</button>
             <button onClick={() => setQuestion("Give me a short example.")} type="button">Give an example</button>
-            <button onClick={() => setQuestion("How does this apply to my story?")} type="button">Use my story</button>
+            <button onClick={() => setQuestion("I have a follow-up question: ")} type="button">Ask a follow-up</button>
           </div>
-          <textarea
-            id="creative-room-question"
-            onChange={(event) => setQuestion(event.target.value)}
-            placeholder="For example: Does the inciting event usually happen in the first five minutes?"
-            rows={3}
-            value={question}
-          />
+          <div className={styles.composerField}>
+            <textarea
+              id="creative-room-question"
+              onChange={(event) => setQuestion(event.target.value)}
+              placeholder="For example: Does the inciting event usually happen in the first five minutes?"
+              rows={3}
+              value={question}
+            />
+            <button aria-label="Ask the Guide" disabled={working || !question.trim()} title="Ask the Guide" type="submit">
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                <path d="m3.5 11 16.5-7-7 16.5-2.5-7Z" />
+                <path d="m10.5 13.5 4-4" />
+              </svg>
+            </button>
+          </div>
           {guideError ? <p className={styles.guideError} role="alert">{guideError}</p> : null}
-          <button disabled={working || !question.trim()} type="submit">
-            {working ? "Thinking…" : "Ask the Guide"}
-          </button>
         </form>
       </aside>
       </main>

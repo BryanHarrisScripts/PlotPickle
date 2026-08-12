@@ -15,14 +15,20 @@ test("Mastra readiness probes the embedded runtime instead of returning a hard-c
   assert.match(runtime, /The embedded Mastra runtime could not initialize/);
 });
 
-test("Curriculum Guide preflights Mastra and Ollama and bounds local generation time", async () => {
-  const guide = await read("modules/creative-room/curriculum-guide.ts");
+test("Mastra execution and the Curriculum Guide stay inside a 30-second user response budget", async () => {
+  const [runtime, guide] = await Promise.all([
+    read("build/mastra-agent-runtime.ts"),
+    read("modules/creative-room/curriculum-guide.ts"),
+  ]);
 
+  assert.match(runtime, /MASTRA_AGENT_TIMEOUT_MS = 25_000/);
+  assert.match(runtime, /abortSignal: AbortSignal\.timeout\(MASTRA_AGENT_TIMEOUT_MS\)/);
+  assert.match(runtime, /30-second response limit/);
   assert.match(guide, /\/api\/writing-assistant\/status/);
   assert.match(guide, /status\.mastra\?\.ready/);
   assert.match(guide, /status\.ollama\?\.reachable/);
   assert.match(guide, /status\.ollama\.models\?\.length/);
-  assert.match(guide, /AbortSignal\.timeout\(5_000\)/);
-  assert.match(guide, /AbortSignal\.timeout\(120_000\)/);
-  assert.match(guide, /reached Mastra and Ollama/);
+  assert.match(guide, /AbortSignal\.timeout\(3_000\)/);
+  assert.match(guide, /AbortSignal\.timeout\(27_000\)/);
+  assert.match(guide, /30-second response limit/);
 });

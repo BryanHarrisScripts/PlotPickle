@@ -59,6 +59,7 @@ import "./learn-first-phase-528-core-polish.css";
 import "./studio-surface-continuity.css";
 import "./ui-continuity-anchor.css";
 import "./approved-visual-system.css";
+import "./learn-lesson-formatting.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",

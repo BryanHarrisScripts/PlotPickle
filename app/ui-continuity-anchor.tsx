@@ -7,7 +7,10 @@ export default function UiContinuityAnchor() {
   const [standalone, setStandalone] = useState(false);
 
   useEffect(() => {
-    const refresh = () => setStandalone(!document.querySelector('[data-ui-continuity-shell="v1"]'));
+    const refresh = () => setStandalone(Boolean(
+      !document.querySelector('[data-ui-continuity-shell="v1"]')
+      && !document.querySelector('[data-hide-agent-settings-anchor="true"]'),
+    ));
     refresh();
     const observer = new MutationObserver(refresh);
     observer.observe(document.body, { childList: true, subtree: true });

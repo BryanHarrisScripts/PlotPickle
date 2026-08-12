@@ -177,6 +177,14 @@ export default function LearnWorkspace({
     ));
   }
 
+  function toggleLessonCompletion(lessonId: string, isCompleted: boolean) {
+    commit({
+      type: isCompleted ? "lesson.uncomplete" : "lesson.complete",
+      lessonId,
+      occurredAt: new Date().toISOString(),
+    });
+  }
+
   async function askGuide(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!activeLesson || !project?.creativeRoom.threadId || !question.trim() || working) return;
@@ -233,7 +241,7 @@ export default function LearnWorkspace({
   const completed = new Set(project.learning.completedLessonIds);
 
   return (
-    <div className={styles.learnScreen}>
+    <div className={styles.learnScreen} data-hide-agent-settings-anchor="true">
       <nav className={styles.workflowNav} aria-label="PlotPickle workflow">
         <ol>
           {WORKFLOW_STAGES.map((stage) => (
@@ -292,23 +300,31 @@ export default function LearnWorkspace({
                 <small>{group.lessons.length}</small>
               </button>
               <div className={styles.topicLessons} id={`learn-topic-${group.topic}`}>
-              {collapsed ? null : group.lessons.map((lesson, lessonIndex) => (
-                <button
-                  className={lesson.id === activeLesson.id ? styles.activeLesson : undefined}
+              {collapsed ? null : group.lessons.map((lesson, lessonIndex) => {
+                const isCompleted = completed.has(lesson.id);
+                return (
+                <div
+                  className={`${styles.lessonRow} ${lesson.id === activeLesson.id ? styles.activeLesson : ""}`}
                   key={lesson.id}
-                  onClick={() => openLesson(lesson.id)}
-                  type="button"
                 >
-                  <span>{String(lessonIndex + 1).padStart(2, "0")}</span>
-                  <span>
+                  <span className={styles.lessonNumber}>{String(lessonIndex + 1).padStart(2, "0")}</span>
+                  <button className={styles.lessonOpen} onClick={() => openLesson(lesson.id)} type="button">
                     <strong>{lesson.title}</strong>
-                    <small>{lesson.duration} · {lesson.sources.length} references</small>
-                  </span>
-                  <b className={styles.lessonCompleteMark} aria-label={completed.has(lesson.id) ? "Completed" : "Not completed"}>
-                    {completed.has(lesson.id) ? "☑" : ""}
-                  </b>
-                </button>
-              ))}
+                    <small>{lesson.sources.length} references</small>
+                  </button>
+                  <button
+                    aria-label={isCompleted ? `Mark ${lesson.title} incomplete` : `Mark ${lesson.title} complete`}
+                    aria-pressed={isCompleted}
+                    className={styles.lessonCompleteMark}
+                    onClick={() => toggleLessonCompletion(lesson.id, isCompleted)}
+                    title={isCompleted ? "Completed" : "Mark complete"}
+                    type="button"
+                  >
+                    <span aria-hidden="true">{isCompleted ? "✓" : ""}</span>
+                  </button>
+                </div>
+                );
+              })}
               </div>
             </section>
             );
@@ -344,7 +360,6 @@ export default function LearnWorkspace({
         <>
         <div className={styles.lessonMeta}>
           <span>{topicName(activeLesson.topic)}</span>
-          <span>{activeLesson.duration}</span>
         </div>
         <h1>{activeLesson.title}</h1>
         <p className={styles.overview}>{activeLesson.overview}</p>
@@ -463,11 +478,6 @@ export default function LearnWorkspace({
         </div>
         <form className={styles.composer} onSubmit={askGuide}>
           <label htmlFor="creative-room-question">Ask in your own words</label>
-          <div className={styles.promptStarters} aria-label="Question starters">
-            <button onClick={() => setQuestion("Simplify this further.")} type="button">Simplify more</button>
-            <button onClick={() => setQuestion("Give me a short example.")} type="button">Give an example</button>
-            <button onClick={() => setQuestion("I have a follow-up question: ")} type="button">Ask a follow-up</button>
-          </div>
           <div className={styles.composerField}>
             <textarea
               id="creative-room-question"

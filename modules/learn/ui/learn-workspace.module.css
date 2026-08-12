@@ -53,14 +53,6 @@
   text-align: center;
 }
 
-.workflowNav li:not(:last-child)::after {
-  position: absolute;
-  top: 20px;
-  right: -7px;
-  color: rgba(240, 138, 75, 0.62);
-  content: "›";
-}
-
 .stageRelic {
   display: block;
   width: 44px;
@@ -262,7 +254,7 @@
   display: grid;
 }
 
-.lessonList .topicLessons > button {
+.lessonRow {
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr) 24px;
   gap: 10px;
@@ -270,15 +262,13 @@
   align-items: center;
   min-height: 54px;
   padding: 9px 18px 9px 26px;
-  border: 0;
   border-bottom: 1px solid var(--line);
   background: transparent;
   color: var(--text);
   text-align: left;
-  cursor: pointer;
 }
 
-.lessonList .topicLessons > button:hover,
+.lessonRow:hover,
 .lessonList .activeLesson {
   background: rgba(53, 201, 184, 0.1);
 }
@@ -289,14 +279,22 @@
   box-shadow: inset 3px 0 rgba(53, 201, 184, 0.7);
 }
 
-.lessonList .topicLessons > button > span:first-child {
+.lessonNumber {
   color: var(--parchment-gold);
   font-size: 12px;
 }
 
-.lessonList .topicLessons > button > span:nth-child(2) {
+.lessonOpen {
   display: grid;
   gap: 3px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .lessonList small {
@@ -316,12 +314,28 @@
   width: 22px;
   height: 22px;
   place-items: center;
+  padding: 0;
   border: 2px solid rgba(200, 148, 70, 0.7);
   border-radius: 50%;
-  color: #f0d39c;
+  background: transparent;
+  color: #46d6ad;
+  cursor: pointer;
   font-size: 12px;
+  font-weight: 900;
   line-height: 1;
   text-decoration: none;
+}
+
+.lessonCompleteMark[aria-pressed="true"] {
+  border-color: #46d6ad;
+  background: rgba(70, 214, 173, 0.1);
+  box-shadow: 0 0 10px rgba(70, 214, 173, 0.16);
+}
+
+.lessonCompleteMark:hover,
+.lessonCompleteMark:focus-visible {
+  border-color: #46d6ad;
+  outline: none;
 }
 
 .lesson {
@@ -649,15 +663,25 @@
 
 .composerField {
   position: relative;
+  border: 14px solid transparent;
+  border-image-source: url("/assets/learn/curriculum-scroll-frame.png");
+  border-image-slice: 150;
+  border-image-width: 18px;
+  border-image-outset: 3px;
+  border-image-repeat: stretch;
+  background:
+    linear-gradient(rgba(8, 8, 7, 0.32), rgba(8, 8, 7, 0.32)),
+    url("/assets/learn/dark-parchment-paper.png") center / cover;
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.42);
 }
 
 .composer textarea {
   width: 100%;
   min-height: 88px;
   resize: none;
-  border: 1px solid rgba(139, 101, 48, 0.78);
-  border-radius: 6px;
-  background: #0d1116;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--text);
   padding: 12px 46px 12px 12px;
   font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -666,9 +690,7 @@
 }
 
 .composer textarea:focus {
-  border-color: var(--parchment-gold);
-  outline: 2px solid rgba(200, 148, 70, 0.12);
-  outline-offset: 0;
+  outline: none;
 }
 
 .composerField > button {
@@ -787,28 +809,6 @@
 .thinking {
   color: var(--muted) !important;
   font-style: italic;
-}
-
-.promptStarters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.promptStarters button {
-  padding: 6px 8px;
-  border: 1px solid #364044;
-  border-radius: 999px;
-  background: #11181a;
-  color: #b9c3c1;
-  font: inherit;
-  font-size: 10px;
-  cursor: pointer;
-}
-
-.promptStarters button:hover {
-  border-color: var(--teal);
-  color: var(--teal);
 }
 
 .guideError {

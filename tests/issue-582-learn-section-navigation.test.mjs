@@ -24,10 +24,15 @@ test("LEARN keeps completion marks in the list and removes crossed-out lesson st
   const css = await readFile(cssPath, "utf8");
 
   assert.match(workspace, /lessonCompleteMark/);
-  assert.match(workspace, /aria-label=\{completed\.has\(lesson\.id\) \? "Completed" : "Not completed"\}/);
+  assert.match(workspace, /toggleLessonCompletion/);
+  assert.match(workspace, /type: isCompleted \? "lesson\.uncomplete" : "lesson\.complete"/);
+  assert.match(workspace, /aria-pressed=\{isCompleted\}/);
+  assert.match(workspace, /isCompleted \? "✓" : ""/);
+  assert.match(workspace, /localStorage\.setItem\(PROJECT_KEY/);
   assert.doesNotMatch(workspace, /I understand this module/);
   assert.doesNotMatch(workspace, /setLessonUnderstood/);
   assert.match(css, /\.lessonCompleteMark \{[^}]*text-decoration: none/s);
+  assert.match(css, /\.lessonCompleteMark\[aria-pressed="true"\] \{[^}]*border-color: #46d6ad/s);
   assert.doesNotMatch(css, /\.understood/);
   assert.doesNotMatch(css, /line-through/);
 });
@@ -42,6 +47,7 @@ test("LEARN Creative Room uses parchment frames instead of thin right-panel bord
   assert.match(css, /\.room \{[^}]*box-shadow: none/s);
   assert.match(css, /border-image-source: url\("\/assets\/learn\/curriculum-scroll-frame\.png"\)/);
   assert.match(css, /url\("\/assets\/learn\/dark-parchment-paper\.png"\)/);
+  assert.match(css, /\.composerField \{[^}]*border-image-source: url\("\/assets\/learn\/curriculum-scroll-frame\.png"\)/s);
   assert.match(css, /\.composer \{[^}]*border-top: 0/s);
 });
 
@@ -54,4 +60,16 @@ test("Creative Room starts fresh without a visible reset control", async () => {
   assert.doesNotMatch(workspace, /Start fresh/);
   assert.match(workspace, /composerField/);
   assert.match(workspace, /aria-label="Ask the Guide"/);
+});
+
+test("LEARN removes settings, workflow separators, durations and suggested questions", async () => {
+  const workspace = await readFile(workspacePath, "utf8");
+  const css = await readFile(cssPath, "utf8");
+
+  assert.match(workspace, /data-hide-agent-settings-anchor="true"/);
+  assert.doesNotMatch(workspace, /lesson\.duration/);
+  assert.doesNotMatch(workspace, /activeLesson\.duration/);
+  assert.doesNotMatch(workspace, /promptStarters/);
+  assert.doesNotMatch(css, /workflowNav li:not\(:last-child\)::after/);
+  assert.doesNotMatch(css, /\.promptStarters/);
 });

@@ -10,6 +10,7 @@ import GraphicNovelBuildHandoff from "./graphic-novel-build-handoff";
 import GraphicNovelStudioHost from "./graphic-novel-studio-host";
 import GraphicNovelTerminology from "./graphic-novel-terminology";
 import LearnEntryRouter from "./learn-entry-router";
+import LearnPlanHandoff from "./learn-plan-handoff";
 import PlanStudioRailHost from "./plan-studio-rail-host";
 import StoryboardNavigationGroupsHost from "./storyboard-navigation-groups-host";
 import StoryboardPlanIntentionHost from "./storyboard-plan-intention-host";
@@ -60,6 +61,7 @@ import "./studio-surface-continuity.css";
 import "./ui-continuity-anchor.css";
 import "./approved-visual-system.css";
 import "./learn-lesson-formatting.css";
+import "./learn-plan-handoff.css";
 
 export const metadata: Metadata = {
   title: "PlotPickle - AI-native Visual Writing and Creative Direction",
@@ -100,6 +102,7 @@ export default function RootLayout({
         {children}
         <UiContinuityAnchor />
         <LearnEntryRouter />
+        <LearnPlanHandoff />
         <CommonOverlayLayer />
         <WriterFacingCollaborationLanguage />
         <GraphicNovelTerminology />

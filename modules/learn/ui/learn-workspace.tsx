@@ -73,6 +73,40 @@ function loadMessages(threadId: string): Message[] {
   }
 }
 
+function FantasyWayfinderGlyph({ direction }: { readonly direction: "previous" | "next" }) {
+  const arrow = direction === "previous"
+    ? "M17.5 8.5 11 14l6.5 5.5M11 14h10"
+    : "M10.5 8.5 17 14l-6.5 5.5M7 14h10";
+
+  return (
+    <svg
+      aria-hidden="true"
+      className={styles.questGlyph}
+      focusable="false"
+      viewBox="0 0 28 28"
+    >
+      <path className={styles.glyphFrame} d="M14 2.75 24 8.5v11L14 25.25 4 19.5v-11Z" />
+      <path className={styles.glyphRune} d={arrow} />
+      <path className={styles.glyphAccent} d="M14 4.75v3M14 20.25v3" />
+    </svg>
+  );
+}
+
+function FantasyCompassGlyph() {
+  return (
+    <svg
+      aria-hidden="true"
+      className={styles.compassGlyph}
+      focusable="false"
+      viewBox="0 0 32 32"
+    >
+      <circle cx="16" cy="16" r="12.5" />
+      <path d="m16 5 3.25 7.75L27 16l-7.75 3.25L16 27l-3.25-7.75L5 16l7.75-3.25Z" />
+      <circle cx="16" cy="16" r="2.25" />
+    </svg>
+  );
+}
+
 export default function LearnWorkspace({
   curriculum,
   guide,
@@ -300,12 +334,11 @@ export default function LearnWorkspace({
             title={previousLesson ? `Previous: ${previousLesson.title}` : "This is the first lesson"}
             type="button"
           >
-            <span aria-hidden="true" className={styles.runeSeal}>ᚲ</span>
-            <span aria-hidden="true">←</span>
+            <FantasyWayfinderGlyph direction="previous" />
             <span>Previous</span>
           </button>
           <div className={styles.lessonPosition} aria-label={`Lesson ${activeLessonIndex + 1} of ${curriculum.length}`}>
-            <span aria-hidden="true">ᛟ</span>
+            <FantasyCompassGlyph />
             <small>{activeLessonIndex + 1} / {curriculum.length}</small>
           </div>
           <button
@@ -315,8 +348,7 @@ export default function LearnWorkspace({
             type="button"
           >
             <span>Next</span>
-            <span aria-hidden="true">→</span>
-            <span aria-hidden="true" className={styles.runeSeal}>ᚱ</span>
+            <FantasyWayfinderGlyph direction="next" />
           </button>
         </nav>
         <>

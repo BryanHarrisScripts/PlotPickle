@@ -4,15 +4,21 @@ import { useEffect } from "react";
 
 const FOUNDATION_APPLY_SELECTOR = '[aria-label="Apply what you have learned in Foundations"]';
 
-function prepareApplyAction() {
+function prepareFoundations() {
   const target = document.querySelector<HTMLElement>(FOUNDATION_APPLY_SELECTOR);
   if (!target) return;
+
   target.dataset.planHandoff = "true";
   target.setAttribute("role", "button");
   target.setAttribute("tabindex", "0");
   target.setAttribute("title", "Open PLAN and build your Foundations Brief");
   const status = target.querySelector<HTMLElement>("small");
   if (status) status.textContent = "Open PLAN";
+
+  const group = target.closest("section");
+  for (const detail of group?.querySelectorAll<HTMLElement>("button small") ?? []) {
+    if (detail.textContent?.trim() === "0 references") detail.textContent = "Deep lesson";
+  }
 }
 
 function openPlan() {
@@ -21,8 +27,8 @@ function openPlan() {
 
 export default function LearnPlanHandoff() {
   useEffect(() => {
-    prepareApplyAction();
-    const observer = new MutationObserver(prepareApplyAction);
+    prepareFoundations();
+    const observer = new MutationObserver(prepareFoundations);
     observer.observe(document.body, { childList: true, subtree: true });
 
     const onClick = (event: MouseEvent) => {

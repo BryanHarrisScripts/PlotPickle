@@ -28,6 +28,8 @@ const BASE_INSTRUCTIONS = [
   "Do not trigger paid generation or external submission.",
 ].join(" ");
 
+const MASTRA_AGENT_TIMEOUT_MS = 25_000;
+
 const HEALTH_CHECK_PROFILE: ProviderProfile = {
   provider: "ollama",
   baseUrl: "http://127.0.0.1:11434",
@@ -90,13 +92,24 @@ export async function askPlotPickleAgent(input: {
     transcript ? `Recent conversation:\n${transcript}` : "",
     `Writer: ${input.message}`,
   ].filter(Boolean).join("\n\n");
-  const result = await agent.generate(prompt, input.agentId === "curriculum-guide" ? {
-    modelSettings: {
-      temperature: 0.2,
-      maxOutputTokens: 320,
-    },
-  } : undefined);
-  return result.text.trim();
+  const abortSignal = AbortSignal.timeout(MASTRA_AGENT_TIMEOUT_MS);
+  try {
+    const result = await agent.generate(prompt, {
+      abortSignal,
+      ...(input.agentId === "curriculum-guide" ? {
+        modelSettings: {
+          temperature: 0.2,
+          maxOutputTokens: 320,
+        },
+      } : {}),
+    });
+    return result.text.trim();
+  } catch (error) {
+    if (abortSignal.aborted) {
+      throw new Error("The Mastra agent did not finish within PlotPickle's 30-second response limit. Try again or choose a faster local model.");
+    }
+    throw error;
+  }
 }
 
 export function mastraRuntimeStatus() {

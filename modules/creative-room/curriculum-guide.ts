@@ -183,6 +183,38 @@ function cleanGuideAnswer(value: string) {
   return `${clipped.slice(0, sentenceEnd > 900 ? sentenceEnd + 1 : 1_800).trim()}…`;
 }
 
+function isTimeout(error: unknown) {
+  return error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError");
+}
+
+async function preflightGuideRuntime() {
+  let response: Response;
+  try {
+    response = await fetch("/api/writing-assistant/status", {
+      cache: "no-store",
+      signal: AbortSignal.timeout(3_000),
+    });
+  } catch (error) {
+    if (isTimeout(error)) throw new Error("PlotPickle could not verify the Mastra agent runtime within three seconds.");
+    throw error;
+  }
+  const status = await response.json() as {
+    readonly message?: string;
+    readonly mastra?: { readonly ready?: boolean; readonly error?: string };
+    readonly ollama?: { readonly reachable?: boolean; readonly models?: readonly string[]; readonly error?: string };
+  };
+  if (!response.ok) throw new Error(status.message || "PlotPickle could not verify the agent runtime.");
+  if (!status.mastra?.ready) {
+    throw new Error(status.mastra?.error || "The embedded Mastra agent runtime is not ready.");
+  }
+  if (!status.ollama?.reachable) {
+    throw new Error(status.ollama?.error || "Ollama is not reachable. Start Ollama, then ask the Curriculum Guide again.");
+  }
+  if (!status.ollama.models?.length) {
+    throw new Error(status.ollama?.error || "Ollama is running, but no installed model is available to the Curriculum Guide.");
+  }
+}
+
 export const answerFromCurriculum: CurriculumGuide = async ({
   curriculum,
   activeLessonId,
@@ -190,6 +222,8 @@ export const answerFromCurriculum: CurriculumGuide = async ({
   conversation,
   projectMemory,
 }) => {
+  await preflightGuideRuntime();
+
   const sources = selectSources(curriculum, activeLessonId, question);
   const sourceLessonIds = sources.map((lesson) => lesson.id);
   const knowledge = sources.map(lessonKnowledge).join("\n\n---\n\n");
@@ -224,16 +258,25 @@ export const answerFromCurriculum: CurriculumGuide = async ({
     "</student_question>",
   ].filter(Boolean).join("\n\n");
 
-  const response = await fetch("/api/writing-assistant/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      agentId: "curriculum-guide",
-      provider: "ollama",
-      tone: "gentle",
-      message,
-    }),
-  });
+  let response: Response;
+  try {
+    response = await fetch("/api/writing-assistant/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        agentId: "curriculum-guide",
+        provider: "ollama",
+        tone: "gentle",
+        message,
+      }),
+      signal: AbortSignal.timeout(27_000),
+    });
+  } catch (error) {
+    if (isTimeout(error)) {
+      throw new Error("The Curriculum Guide did not answer within PlotPickle's 30-second response limit. Your question was kept so you can try again or choose a faster Ollama model.");
+    }
+    throw error;
+  }
   const result = await response.json() as {
     readonly message?: string;
     readonly model?: string;

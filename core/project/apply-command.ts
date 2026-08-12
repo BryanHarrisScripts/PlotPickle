@@ -1,3 +1,4 @@
+import { createEmptyFoundationBuilderState } from "../contracts/foundation-builder";
 import type { StoryCommand } from "../contracts/story-command";
 import type { PPFProject } from "./project";
 
@@ -45,6 +46,15 @@ export function applyStoryCommand(
         ...base,
         creativeRoom: {
           threadId: command.threadId,
+        },
+      };
+    case "foundations.field.update":
+      return {
+        ...base,
+        foundations: {
+          ...createEmptyFoundationBuilderState(),
+          ...(project.foundations ?? {}),
+          [command.field]: command.value,
         },
       };
   }

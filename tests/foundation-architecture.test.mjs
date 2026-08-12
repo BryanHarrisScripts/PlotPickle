@@ -138,6 +138,8 @@ test("LEARN exposes the future PlotPickle workflow navigation", async () => {
   assert.match(workspace, /styles\.stageRelic/);
   assert.match(styles, /workflow-magic-relics\.webp/);
   assert.match(styles, /background-size: 1100% auto/);
+  assert.match(styles, /background-color: transparent/);
+  assert.match(styles, /drop-shadow/);
 });
 
 

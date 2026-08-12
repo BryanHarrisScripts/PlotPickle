@@ -1,0 +1,968 @@
+{
+  "schemaVersion": "2.0",
+  "topic": {
+    "id": "dialogue",
+    "title": "Dialogue"
+  },
+  "lessonCount": 10,
+  "sourceCount": 13,
+  "lessons": [
+    {
+      "id": "ai-revision-dialogue-voiceprint",
+      "number": 34,
+      "topic": "dialogue",
+      "title": "Dialogue and Voiceprint pass",
+      "duration": "15–25 min",
+      "overview": "Dialogue communicates information but does not sound character-specific, playable or pressured.",
+      "objectives": [
+        "Recognize when the dialogue and voiceprint pass is the smallest useful revision pass.",
+        "Choose an explicit operation and canonical scope before sharing project context.",
+        "Evaluate the response before routing approved work to Dialogue Lab."
+      ],
+      "sections": [
+        {
+          "heading": "When this pass helps",
+          "paragraphs": [
+            "Start with the craft problem, not with a request to rewrite. Confirm that the selected pass matches the evidence currently visible in the project."
+          ],
+          "points": [
+            "Characters sound interchangeable.",
+            "Lines state intention directly.",
+            "Rhythm, vocabulary or sentence shape drift from the approved voiceprint."
+          ]
+        },
+        {
+          "heading": "When to choose another pass",
+          "paragraphs": [
+            "A guided pass should remain narrow. If the underlying story layer is unstable, move upward to diagnosis or structure before polishing local language."
+          ],
+          "points": [
+            "The scene objective or turn is still unresolved."
+          ]
+        },
+        {
+          "heading": "Set the operation and scope",
+          "paragraphs": [
+            "The recommended starting operation is “Suggest alternatives.” Revision text remains opt-in; critique, questions, evidence, alternatives and checklists can be requested without asking the system to rewrite anything.",
+            "Use only the canonical context required for the task. This pass is designed for: Selected screenplay elements, Character or relationship, Scene."
+          ],
+          "points": [
+            "Layer: Craft Layer",
+            "Default operation: Suggest alternatives",
+            "Canonical scope: Selected screenplay elements · Character or relationship · Scene",
+            "Recommended destination: Dialogue Lab"
+          ]
+        },
+        {
+          "heading": "Review the response before approval",
+          "paragraphs": [
+            "PlotPickle separates evidence, diagnosis, questions, optional suggestions, canon risk and human verification. A proposed change must preserve the original beside the alternative and must never be applied automatically."
+          ],
+          "points": [
+            "Project evidence",
+            "Diagnosis",
+            "Unanswered questions",
+            "Optional suggestions",
+            "Continuity or canon risks",
+            "Material requiring human verification",
+            "Proposed changes only when requested"
+          ]
+        },
+        {
+          "heading": "Recognize predictable AI failure modes",
+          "paragraphs": [
+            "A confident answer is not the same as a useful answer. Reject output that invents canon, replaces writer intent, hides uncertainty or expands beyond the selected pass."
+          ],
+          "points": [
+            "Quippy homogenization",
+            "Invented slang",
+            "Changing story facts",
+            "Rewriting the entire scene"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Operation",
+          "meaning": "The exact kind of assistance requested, such as questions, critique, evidence, alternatives, comparison, checklist or a revision proposed for review."
+        },
+        {
+          "term": "Canonical scope",
+          "meaning": "The smallest approved project area supplied to the pass, from the complete project down to selected screenplay elements."
+        },
+        {
+          "term": "Approval boundary",
+          "meaning": "The rule that generated or suggested material remains separate until the writer explicitly reviews and accepts it."
+        }
+      ],
+      "example": {
+        "title": "Dialogue and Voiceprint pass setup",
+        "text": "Select “Suggest alternatives,” include only Selected screenplay elements and Character or relationship, state the writer’s goal, then require labelled evidence, diagnosis, questions, suggestions, risks and verification needs. Route approved next steps to Dialogue Lab."
+      },
+      "checklist": [
+        "Voice distinctions are observable.",
+        "Subtext and status remain playable.",
+        "Facts and intention are preserved.",
+        "Alternatives are small enough to review."
+      ],
+      "mistakes": [
+        "Quippy homogenization",
+        "Invented slang",
+        "Changing story facts",
+        "Rewriting the entire scene"
+      ],
+      "exercise": "Open the active project and identify one piece of evidence that supports this problem: Dialogue communicates information but does not sound character-specific, playable or pressured. Choose the smallest scope, keep the default operation unless a different one is necessary, and prepare the prompt without applying any change.",
+      "apply": "Screenplay",
+      "tags": [
+        "dialogue",
+        "voiceprint",
+        "voice",
+        "subtext",
+        "status",
+        "rhythm",
+        "Dialogue",
+        "Individual Fine-Tuning",
+        "Craft Layer",
+        "Suggest alternatives",
+        "Dialogue Lab"
+      ],
+      "original": {
+        "number": 30,
+        "path": "Responsible AI"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-ai-prompts-24-blocks-dialogue-md",
+          "repository": "24-Blocks",
+          "path": "AI Prompts/24 Blocks - Dialogue.md",
+          "title": "Dialogue",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/AI%20Prompts/24%20Blocks%20-%20Dialogue.md",
+          "content": "# Dialogue\n\n**Prompt:**\nI've written a draft for a screenplay and I'm looking for advice and suggestions to improve my dialogue. I want to make sure my characters have distinctive voices that reflect their personalities, backgrounds, and relationships. I want the dialogue to advance the plot, reveal character traits, and add tension where needed. I also aim to show, rather than tell, using subtext where appropriate. I want the dialogue to sound natural and be concise and to the point. I also want to avoid unnecessary exposition and create meaningful conflict through dialogue. Could you provide your input and suggestions on how I can improve the dialogue following these guidelines? Here is a portion of my script: \n\n### Understanding Dialogue\nWriting effective dialogue for a screenplay is a skill that often takes time and practice to master. Here are some general tips and strategies to help guide your writing:\n\n1. **Understand Your Characters:** Your characters should have their own distinctive voice. This is built through their background, personality, experiences, and relationships with other characters. Dialogue should reflect these elements. An easygoing surfer will speak differently than a stern military general, for instance.\n\n2. **Advance the Plot:** Dialogue isn't just about filling the silence; it should push the story forward. Each line should have a purpose, such as revealing character traits, adding tension, or moving the plot.\n\n3. **Show, Don't Tell:** Just as in any other form of writing, this principle applies to screenplay dialogue too. Rather than having characters state their feelings or intentions directly, show it through their choice of words, tone, and subtext.\n\n4. **Keep It Brief and to the Point:** Screenplay dialogue needs to be efficient. Unlike a novel, you don't have pages to explain a character's thoughts or feelings. Each line needs to be concise and relevant. \n\n5. **Use Subtext:** In real life, people often don't say exactly what they mean. They imply, hint, or say one thing while meaning another. In the same way, good dialogue often involves characters talking around the subject, rather than addressing it directly. This can add depth and intrigue.\n\n6. **Make It Natural:** Try to capture the way people actually talk. This means using contractions, interrupting, trailing off, and occasionally using incorrect grammar. Of course, depending on the character or the setting, you might adjust the dialogue to sound more formal or stylized.\n\n7. **Read It Aloud:** This is the best way to know if the dialogue sounds authentic and flows naturally. If it sounds awkward or forced when spoken, it will likely come across the same way on the screen.\n\n8. **Avoid Exposition Dump:** While sometimes necessary, try to avoid having characters spell out backstory or plot details through dialogue. It's often more engaging to reveal these details through action or subtext.\n\n9. **Create Conflict:** Conflict is the engine of any story, and dialogue is a great place to create and escalate it. Characters should have different wants, perspectives, and goals, and these should come into conflict in their dialogue.\n\n10. **Revision is Key:** Rarely will the first draft of your dialogue be the best. Be prepared to rewrite, edit, and refine the dialogue until it feels right.\n\n11. **Research and Observation:** Listening to real-life conversations can provide insight into how people speak and interact, including the rhythms, natural interruptions, and variations in speech. This can also help with creating distinct character voices. Studying film dialogue can be equally illuminating. It's useful to read and watch a diverse range of films to understand different styles and approaches.\n\n12. **Use Dialogue as Characterization:** Dialogue is a powerful tool for characterization. The way a character speaks can tell us a lot about who they are. Their vocabulary, sentence structure, and even the topics they choose to discuss can reveal their education, background, personality, and values.\n\n13. **Balance Dialogue and Action:** While dialogue is important, it shouldn't carry the whole story. Remember that film is a visual medium and make sure to balance dialogue with action. Show us what the characters are doing, not just what they are saying.\n\n14. **Dialogue Tags:** When writing a screenplay, it's common to use minimal dialogue tags (he said, she said). This is because it's usually clear who's speaking based on the screenplay format. If the speaker isn't obvious, it's often better to use an action line to clarify who's speaking rather than adding a tag.\n\n15. **Embrace Silence:** Sometimes, what isn't said can be as important as what is said. Don't be afraid to let your characters be silent, to let their actions and reactions speak for them.\n\n16. **Dialogue Is Not Real Speech:** Despite the advice to make dialogue natural, it's important to remember that dialogue in a screenplay isn't exactly like real-life speech. Real conversations have a lot of filler — ums, ahs, likes, and you knows — that aren't usually included in dialogue (unless it's important for characterizing). Screenplay dialogue is a crafted version of speech.\n\n17. **Conflict and Tension:** Remember, conflict and tension make dialogue interesting. Characters should want different things, have secrets, misunderstand each other, lie, argue, tease, and joke. This helps create dynamic, engaging dialogue. \n\n18. **Read Professional Screenplays:** This can't be stressed enough. The more screenplays you read, the more you'll get a sense of how professional screenwriters handle dialogue. You'll see how they balance dialogue with action, how they use subtext, and how they reveal character through dialogue.\n\nRemember, there are no hard and fast rules in writing, only guidelines. What's most important is to find your own voice and tell the story you want to tell. The more you write, the better you'll get!\n\nThese tips are starting points. You'll find your own style and voice as you practice writing more. It can be helpful to read successful screenplays to see how professional screenwriters handle dialogue. Remember, writing is subjective and there's always room for creativity and experimentation.\n\n---"
+        },
+        {
+          "id": "24-blocks-dialogue-readme-md",
+          "repository": "24-Blocks",
+          "path": "Dialogue/README.md",
+          "title": "Table of Contents",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Dialogue/README.md",
+          "content": "<div align=\"right\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n<a href=\"https://24blocks.openstorystudio.com/\">Home</a>\n\n<div align=\"center\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n  \n# Table of Contents\n\n<table>\n  <tr>\n    <td valign=\"top\">\n<ol>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Dialogue/24%20Blocks%20-%20Different%20Genres.md\">24 Blocks - Different Genres</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Dialogue/24%20Blocks%20-%20Conflict.md\">24 Blocks - Conflict</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Dialogue/24%20Blocks%20-%20Balancing%20Action.md\">24 Blocks - Balancing Action</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Dialogue/24%20Blocks%20-%20Distinctive%20Voices.md\">24 Blocks - Distinctive Voices</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Dialogue/24%20Blocks%20-%20Realistic%20Dialogue.md\">24 Blocks - Realistic Dialogue</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Dialogue/24%20Blocks%20-%20Dialogue%20Pitfalls.md\">24 Blocks - Dialogue Pitfalls</a></li>\n</ol>\n    </td>\n    <td valign=\"top\">\n<ol start=\"7\">\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Dialogue/24%20Blocks%20-%20Tags%20and%20Beats.md\">24 Blocks - Tags and Beats</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Dialogue/24%20Blocks%20-%20Subtext.md\">24 Blocks - Subtext</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Dialogue/24%20Blocks%20-%20Reveal%20Character.md\">24 Blocks - Reveal Character</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Dialogue/24%20Blocks%20-%20Refining%20Dialogue.md\">24 Blocks - Refining Dialogue</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Dialogue/24%20Blocks%20-%20Art%20of%20Silence.md\">24 Blocks - Art of Silence</a></li>\n</ol>\n    </td>\n  </tr>\n</table>\n\n<div align=\"left\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n# Basics of Dialogue Writing\n\nWelcome to the start of our comprehensive guide on dialogue writing. This first post will introduce you to the basics of dialogue writing. Dialogue, the spoken words between characters, is a key aspect of scripts that can breathe life into your characters, propel the plot forward, and immerse your audience in your story.\n\nThe core components of effective dialogue include naturalism, subtext, conflict, character voice, and exposition.\n\n* **Naturalism**: The language of your characters should feel natural and believable. Avoid jargon, overly formal language, or anachronisms, unless these serve your characters or story.\n\n* **Subtext**: Subtext is what lies beneath the surface. It's what the characters are thinking but not explicitly stating. It can add depth and complexity to your characters and scenes.\n\n* **Conflict**: Dialogue isn't just idle chat; it's a tool to create and escalate conflict. Whether it's a heated argument or a subtle disagreement, conflict in dialogue propels the story forward and heightens interest.\n\n* **Character Voice**: Each character should have a distinctive voice. The way a character speaks should reflect their personality, background, and beliefs.\n\n* **Exposition**: Dialogue can deliver important information to the audience, but be careful not to make it feel forced or unnatural. \"As you know, Bob\" moments can pull the audience out of the story.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "ai-revision-subtext-status-silence",
+      "number": 35,
+      "topic": "dialogue",
+      "title": "Subtext, status and silence pass",
+      "duration": "15–25 min",
+      "overview": "Characters say exactly what they mean, status remains static, or silence carries no dramatic action.",
+      "objectives": [
+        "Recognize when the subtext, status and silence pass is the smallest useful revision pass.",
+        "Choose an explicit operation and canonical scope before sharing project context.",
+        "Evaluate the response before routing approved work to Voiceprint."
+      ],
+      "sections": [
+        {
+          "heading": "When this pass helps",
+          "paragraphs": [
+            "Start with the craft problem, not with a request to rewrite. Confirm that the selected pass matches the evidence currently visible in the project."
+          ],
+          "points": [
+            "Dialogue explains emotion.",
+            "Power shifts are not audible or visible.",
+            "Pauses and omissions could carry pressure."
+          ]
+        },
+        {
+          "heading": "When to choose another pass",
+          "paragraphs": [
+            "A guided pass should remain narrow. If the underlying story layer is unstable, move upward to diagnosis or structure before polishing local language."
+          ],
+          "points": [
+            "Clarity is the central requirement and concealment would confuse essential plot facts."
+          ]
+        },
+        {
+          "heading": "Set the operation and scope",
+          "paragraphs": [
+            "The recommended starting operation is “Suggest alternatives.” Revision text remains opt-in; critique, questions, evidence, alternatives and checklists can be requested without asking the system to rewrite anything.",
+            "Use only the canonical context required for the task. This pass is designed for: Scene, Selected screenplay elements, Character or relationship."
+          ],
+          "points": [
+            "Layer: Craft Layer",
+            "Default operation: Suggest alternatives",
+            "Canonical scope: Scene · Selected screenplay elements · Character or relationship",
+            "Recommended destination: Voiceprint"
+          ]
+        },
+        {
+          "heading": "Review the response before approval",
+          "paragraphs": [
+            "PlotPickle separates evidence, diagnosis, questions, optional suggestions, canon risk and human verification. A proposed change must preserve the original beside the alternative and must never be applied automatically."
+          ],
+          "points": [
+            "Project evidence",
+            "Diagnosis",
+            "Unanswered questions",
+            "Optional suggestions",
+            "Continuity or canon risks",
+            "Material requiring human verification",
+            "Proposed changes only when requested"
+          ]
+        },
+        {
+          "heading": "Recognize predictable AI failure modes",
+          "paragraphs": [
+            "A confident answer is not the same as a useful answer. Reject output that invents canon, replaces writer intent, hides uncertainty or expands beyond the selected pass."
+          ],
+          "points": [
+            "Making every line cryptic",
+            "Replacing clarity with vagueness",
+            "Using ellipses as fake subtext",
+            "Ignoring performance context"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Operation",
+          "meaning": "The exact kind of assistance requested, such as questions, critique, evidence, alternatives, comparison, checklist or a revision proposed for review."
+        },
+        {
+          "term": "Canonical scope",
+          "meaning": "The smallest approved project area supplied to the pass, from the complete project down to selected screenplay elements."
+        },
+        {
+          "term": "Approval boundary",
+          "meaning": "The rule that generated or suggested material remains separate until the writer explicitly reviews and accepts it."
+        }
+      ],
+      "example": {
+        "title": "Subtext, status and silence pass setup",
+        "text": "Select “Suggest alternatives,” include only Scene and Selected screenplay elements, state the writer’s goal, then require labelled evidence, diagnosis, questions, suggestions, risks and verification needs. Route approved next steps to Voiceprint."
+      },
+      "checklist": [
+        "The audience can infer the hidden intention.",
+        "Status changes during the exchange.",
+        "Silence has an objective or consequence.",
+        "Clarity is preserved where required."
+      ],
+      "mistakes": [
+        "Making every line cryptic",
+        "Replacing clarity with vagueness",
+        "Using ellipses as fake subtext",
+        "Ignoring performance context"
+      ],
+      "exercise": "Open the active project and identify one piece of evidence that supports this problem: Characters say exactly what they mean, status remains static, or silence carries no dramatic action. Choose the smallest scope, keep the default operation unless a different one is necessary, and prepare the prompt without applying any change.",
+      "apply": "Screenplay",
+      "tags": [
+        "subtext",
+        "status",
+        "silence",
+        "power",
+        "indirect dialogue",
+        "Dialogue",
+        "Individual Fine-Tuning",
+        "Craft Layer",
+        "Suggest alternatives",
+        "Voiceprint"
+      ],
+      "original": {
+        "number": 31,
+        "path": "Responsible AI"
+      },
+      "sources": []
+    },
+    {
+      "id": "dialogue-action",
+      "number": 65,
+      "topic": "dialogue",
+      "title": "Dialogue Is Action",
+      "duration": "25–35 min",
+      "overview": "Treat every exchange as behaviour: speech, silence and physical action used to pursue an objective under pressure.",
+      "objectives": [
+        "Map objectives, tactics and resistance.",
+        "Track information and leverage.",
+        "End with a changed condition."
+      ],
+      "sections": [
+        {
+          "heading": "The playable exchange",
+          "paragraphs": [
+            "A line is not merely information. It may pressure, evade, seduce, test, accuse, bargain, distract, conceal, provoke, reassure, recruit, threaten, surrender or change the subject.",
+            "Begin with relationship condition, each objective, each belief about the other, tactic, resistance, information held or withheld, status, spoken action, physical action, turn and changed exit condition."
+          ],
+          "points": [
+            "Possible spoken or silent action: pressure",
+            "Possible spoken or silent action: evade",
+            "Possible spoken or silent action: reveal",
+            "Possible spoken or silent action: conceal",
+            "Possible spoken or silent action: test",
+            "Possible spoken or silent action: persuade",
+            "Possible spoken or silent action: threaten",
+            "Possible spoken or silent action: bond",
+            "Possible spoken or silent action: deflect",
+            "Possible spoken or silent action: explain",
+            "Possible spoken or silent action: joke",
+            "Possible spoken or silent action: surrender",
+            "Possible spoken or silent action: change topic",
+            "Possible spoken or silent action: silence/reaction"
+          ]
+        },
+        {
+          "heading": "Selected reality",
+          "paragraphs": [
+            "Realistic dialogue is selected reality. Literal conversation contains filler, repetition and dead space; screenplay naturalism shapes truthful behaviour for purpose, rhythm and performance.",
+            "Not every line must advance plot. A line may reveal relationship, regulate pace, establish tone, create anticipation, release pressure or make later action meaningful."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Tactic",
+          "meaning": "The playable strategy used to pursue an immediate objective."
+        },
+        {
+          "term": "Exit condition",
+          "meaning": "What is materially different when the exchange ends."
+        }
+      ],
+      "example": {
+        "title": "The request that becomes a test",
+        "text": "A character asks for a ride, but the actual objective is to test whether an estranged sibling will show up. A delayed answer changes the relationship before either discusses it directly."
+      },
+      "checklist": [
+        "Each participant wants something now.",
+        "Resistance is active.",
+        "A tactic changes.",
+        "The exit differs from the entry."
+      ],
+      "mistakes": [
+        "Using dialogue only to transfer facts.",
+        "Polishing isolated lines before designing the exchange.",
+        "Equating realism with transcription."
+      ],
+      "exercise": "Create a Dialogue Blueprint for the active scene or mini-block and label the first tactic, resistance and turn.",
+      "apply": "Screenplay",
+      "tags": [
+        "Realistic Dialogue",
+        "natural dialogue",
+        "dialogue action",
+        "objective",
+        "tactic",
+        "turn"
+      ],
+      "original": {
+        "number": 61,
+        "path": "Craft"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-dialogue-24-blocks-realistic-dialogue-md",
+          "repository": "24-Blocks",
+          "path": "Dialogue/24 Blocks - Realistic Dialogue.md",
+          "title": "Writing Realistic Dialogue",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Dialogue/24%20Blocks%20-%20Realistic%20Dialogue.md",
+          "content": "# Writing Realistic Dialogue\n\nWriting realistic dialogue is key to creating believable characters and immersive stories. Here are some tips and exercises to help you master this:\n\n**Tips:**\n\n- **Listen to Real Conversations**: Pay attention to how people speak in real life. Note the interruptions, the ums and ahs, and the incomplete sentences. But remember, real dialogue isn't always perfect for scripts—realism should serve the story and character, not hinder them.\n\n- **Use Contractions**: Most people use contractions when they speak. It's more natural to say \"I'm\" than \"I am\" in casual conversation.\n\n- **Use Subtext**: Remember that people often don't say exactly what they mean. Using subtext can make your dialogue feel more authentic and layered.\n\n**Exercises:**\n\n- **Dialogue Observations**: Spend some time in a public place, like a coffee shop, and discreetly listen to conversations. Write down interesting phrases or patterns of speech.\n\n- **Dialogue Revision**: Take a page of dialogue from your script and revise it to make it more realistic. Cut unnecessary words, add contractions, and incorporate interruptions or nonverbal communication.\n\nRemember, the goal isn't to perfectly replicate real speech, but to capture its essence and make your characters' dialogue feel believable.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "dialogue-voiceprint",
+      "number": 66,
+      "topic": "dialogue",
+      "title": "Build a Playable Voiceprint",
+      "duration": "30–40 min",
+      "overview": "Connect Voiceprint tendencies to perception, rhythm, vocabulary, emotional access, status and persuasion without reducing voice to accent or catchphrase.",
+      "objectives": [
+        "Turn character fields into playable tendencies.",
+        "Compare voices with evidence.",
+        "Allow motivated variation."
+      ],
+      "sections": [
+        {
+          "heading": "Voice is perception plus strategy",
+          "paragraphs": [
+            "Voice is what a character notices, how they organize thought and how they try to affect another person. Use sentence rhythm, vocabulary and metaphor families, directness, humour and defence, emotional access, silence patterns, persuasion and status behaviour.",
+            "A believable voice changes with audience, power, fear, intimacy, deception, exhaustion and growth. Consistency does not mean sameness."
+          ],
+          "points": [
+            "Origin and environment",
+            "Social context",
+            "Education and expertise",
+            "Worldview boundaries",
+            "Rhythm and sentence shape",
+            "Vocabulary and metaphors",
+            "Verbal fingerprints",
+            "Emotional access",
+            "Status shifts",
+            "Persuasion strategy"
+          ]
+        },
+        {
+          "heading": "Accent and dialect require care",
+          "paragraphs": [
+            "Do not use phonetic spelling or demographic shorthand as a substitute for character. Prioritize researched syntax, vocabulary, rhythm, worldview and context, and seek informed human review where appropriate.",
+            "AI may surface comparison questions but cannot certify cultural authenticity or imitate a real performer without permission."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Voiceprint",
+          "meaning": "A flexible pattern of perception, language and strategy supported by screenplay evidence."
+        }
+      ],
+      "example": {
+        "title": "Shared profession, different tactic",
+        "text": "Two surgeons share technical vocabulary. One compresses language to control status; the other uses precise questions to slow decisions and expose risk."
+      },
+      "checklist": [
+        "Tendencies are playable.",
+        "Relationship variation is motivated.",
+        "Shared language is allowed.",
+        "Dialect is researched."
+      ],
+      "mistakes": [
+        "Treating accent as voice.",
+        "Flagging every variation as inconsistency.",
+        "Repeating catchphrases mechanically."
+      ],
+      "exercise": "Compare two active characters across rhythm, directness, metaphor, emotional access, status and persuasion, then find supporting lines.",
+      "apply": "Screenplay",
+      "tags": [
+        "Distinctive Voices",
+        "Reveal Character",
+        "Voiceprint",
+        "accent",
+        "dialect",
+        "verbal fingerprints"
+      ],
+      "original": {
+        "number": 62,
+        "path": "Craft"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-dialogue-24-blocks-distinctive-voices-md",
+          "repository": "24-Blocks",
+          "path": "Dialogue/24 Blocks - Distinctive Voices.md",
+          "title": "Creating Distinctive Voices",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Dialogue/24%20Blocks%20-%20Distinctive%20Voices.md",
+          "content": "# Creating Distinctive Voices\n\nGiving each character a unique and consistent voice is a vital part of dialogue writing. It makes characters memorable and helps the audience distinguish between characters. Here are some techniques to create distinctive voices:\n\n- **Background**: Consider the character's background. Their upbringing, education, and home region can all affect how they speak. A character from a rural area might speak differently than one from a big city.\n\n- **Personality**: A character's personality should influence their dialogue. Outgoing characters might talk more and use more expressive language, while introverted characters might be more reserved and thoughtful in their speech.\n\n- **Beliefs and Values**: A character's beliefs, values, and motivations can also influence their dialogue. They might frequently reference their values or use language that reinforces their worldview.\n\n- **Verbal Tics**: Characters can also have unique verbal tics or phrases they use often. Just make sure it doesn't become annoying or distracting.\n\nRemember, consistency is key. Once you've established a voice for a character, make sure it stays consistent throughout your script.\n\n---"
+        },
+        {
+          "id": "24-blocks-dialogue-24-blocks-reveal-character-md",
+          "repository": "24-Blocks",
+          "path": "Dialogue/24 Blocks - Reveal Character.md",
+          "title": "Using Dialogue to Reveal Character",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Dialogue/24%20Blocks%20-%20Reveal%20Character.md",
+          "content": "# Using Dialogue to Reveal Character\n\nOne of the most powerful tools in a writer's arsenal is the use of dialogue to reveal character. This aspect of dialogue writing allows us to show, not tell, aspects of a character's personality, background, motivations, and beliefs.\n\nCharacters are brought to life by their words and actions. Here's how you can use dialogue to craft complex, engaging characters:\n\n- **Personality**: Use dialogue to hint at a character’s temperament. A bubbly character might speak in long, enthusiastic sentences, while a gruff character might communicate in terse, direct statements.\n\n- **Background**: Dialogue can also give insights into a character's history and background. Accents, dialects, and language choice can reveal where a character comes from or what kind of education they had.\n\n- **Motivations**: Characters often say what they desire. But remember, people don't always say what they mean, or mean what they say. Use dialogue and subtext to show conflicting motivations or hidden desires.\n\n- **Beliefs**: Characters' beliefs and ideologies can also be revealed through their dialogue. How a character talks about others or responds to situations can give hints about their moral compass and worldview.\n\nRemember, revealing character through dialogue should feel natural and not forced. Avoid information dumps and make the dialogue serve the story.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "dialogue-subtext",
+      "number": 67,
+      "topic": "dialogue",
+      "title": "Write Subtext and Withheld Information",
+      "duration": "25–35 min",
+      "overview": "Create subtext from objectives, relationships, protected facts and the cost of direct speech rather than cryptic wording.",
+      "objectives": [
+        "Separate spoken and private subjects.",
+        "Track audience knowledge and interpretation.",
+        "Design reveal or misread turns."
+      ],
+      "sections": [
+        {
+          "heading": "The pressure system",
+          "paragraphs": [
+            "Map the spoken subject, actual objective, hidden feeling or belief, protected fact, audience knowledge, the other character's interpretation, cost of direct speech, indirect tactic and reveal, misread or turn.",
+            "Use irony, avoidance, deflection, euphemism, implication, denial, testing, strategic misunderstanding and behaviour that contradicts the words. Not every line needs hidden meaning."
+          ],
+          "points": [
+            "Public topic",
+            "Private subject",
+            "Protected fact",
+            "Cost of direct speech",
+            "Indirect tactic",
+            "Other character's interpretation",
+            "Audience knowledge",
+            "Reveal or misread"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Subtext",
+          "meaning": "Meaning created by the gap among words, objective, feeling, knowledge and behaviour."
+        }
+      ],
+      "example": {
+        "title": "Talking about the thermostat",
+        "text": "A couple debates room temperature while testing who still expects to share the house. Moving a suitcase becomes the actual answer."
+      },
+      "checklist": [
+        "A direct statement has a cost.",
+        "The indirect tactic is purposeful.",
+        "The audience can track enough meaning.",
+        "Behaviour contributes."
+      ],
+      "mistakes": [
+        "Making every line obscure.",
+        "Adding vague pauses instead of playable evidence.",
+        "Confusing withheld information with arbitrary concealment."
+      ],
+      "exercise": "Write the public topic and private subject for the active exchange, then identify one protected fact and one visible contradiction.",
+      "apply": "Screenplay",
+      "tags": [
+        "Subtext",
+        "on-the-nose",
+        "withheld information",
+        "irony",
+        "deflection"
+      ],
+      "original": {
+        "number": 63,
+        "path": "Craft"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-dialogue-24-blocks-subtext-md",
+          "repository": "24-Blocks",
+          "path": "Dialogue/24 Blocks - Subtext.md",
+          "title": "Writing Subtext in Dialogue",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Dialogue/24%20Blocks%20-%20Subtext.md",
+          "content": "# Writing Subtext in Dialogue\n\nSubtext is a subtle and potent tool in dialogue writing. It refers to what's being communicated beneath the surface, the unspoken thoughts, feelings, and intentions that are conveyed indirectly. Here are some ways to integrate subtext into your dialogue:\n\n- **Say One Thing, Mean Another**: Characters often don't say what they really think or feel. They might use irony, sarcasm, or implication to express themselves without saying it outright.\n\n- **Hidden Motives**: Characters may have ulterior motives that they hide beneath seemingly innocuous dialogue. The audience may know or suspect what the character is really after, adding tension.\n\n- **Avoidance**: Characters may avoid discussing uncomfortable or painful subjects, instead talking around them or changing the subject. The unsaid words can carry a heavy weight.\n\n- **Nonverbal Communication**: Remember that communication isn't just about words. Characters can convey a lot through body language, facial expressions, and tone of voice.\n\nSubtext can add depth, complexity, and realism to your dialogue. It allows for more nuanced communication and can make your characters feel more multi-dimensional and human.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "dialogue-conflict",
+      "number": 68,
+      "topic": "dialogue",
+      "title": "Create Conflict Without Constant Arguments",
+      "duration": "25–35 min",
+      "overview": "Build dialogue conflict from incompatible objectives, unequal knowledge, status, affection, delay, refusal and changing tactics.",
+      "objectives": [
+        "Broaden conflict beyond shouting.",
+        "Escalate by changing conditions.",
+        "Use relationship cost."
+      ],
+      "sections": [
+        {
+          "heading": "Conflict can be polite",
+          "paragraphs": [
+            "Agreement may conceal conflict; politeness may be a weapon; silence may be refusal; affection may increase the cost of disagreement. Use incompatible objectives, competing interpretations, unequal information, moral disagreement, negotiation, lies, half-truths, refusal, delay and changing tactics.",
+            "Escalation should alter leverage, cost, exposure, time, relationship or available options, not only volume."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Leverage",
+          "meaning": "Information, status, access, need or consequence that changes available choices."
+        }
+      ],
+      "example": {
+        "title": "The friendly interview",
+        "text": "A detective remains courteous while narrowing the witness's options. The escalation is a revealed photograph, not louder speech."
+      },
+      "checklist": [
+        "Objectives conflict.",
+        "Leverage changes.",
+        "Affection or status affects tactics.",
+        "Escalation changes conditions."
+      ],
+      "mistakes": [
+        "Making every conflict an argument.",
+        "Repeating the same tactic louder.",
+        "Using hostility where strategic agreement is stronger."
+      ],
+      "exercise": "Identify the active exchange's incompatible objectives and design one escalation that changes options rather than volume.",
+      "apply": "Block plan",
+      "tags": [
+        "Conflict",
+        "dialogue conflict",
+        "status",
+        "leverage",
+        "negotiation",
+        "half-truth"
+      ],
+      "original": {
+        "number": 64,
+        "path": "Craft"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-dialogue-24-blocks-conflict-md",
+          "repository": "24-Blocks",
+          "path": "Dialogue/24 Blocks - Conflict.md",
+          "title": "Dialogue and Conflict",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Dialogue/24%20Blocks%20-%20Conflict.md",
+          "content": "# Dialogue and Conflict\n\nConflict is the engine that drives your story forward. It creates tension, interest, and propels your characters into action. And dialogue is one of the most powerful ways to convey and escalate conflict.\n\nConflict in dialogue isn't just about shouting matches or arguments (though it can be). It's about any kind of disagreement, big or small, that reveals character and pushes the plot forward. Here are some ways you can use dialogue to create effective conflict:\n\n- **Verbal Sparring**: Characters can have a heated exchange where they challenge each other's beliefs or desires. This can create immediate tension and drama.\n\n- **Subtle Disagreement**: Conflict doesn't always have to be loud. A character can subtly express disagreement or discontent, creating an undercurrent of tension.\n\n- **Hiding the Truth**: If a character is hiding something, their dialogue can create conflict through lies, evasions, or half-truths.\n\n- **Conflicting Goals**: If characters have conflicting goals or desires, their dialogue will reflect that conflict. They might argue about the best course of action or try to persuade each other to change their plans.\n\nRemember, conflict doesn't always mean characters are at each other's throats. It's about the push and pull, the disagreements and differences, that create tension and keep the story moving.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "dialogue-speech-silence-action",
+      "number": 69,
+      "topic": "dialogue",
+      "title": "Balance Speech, Silence and Physical Action",
+      "duration": "25–35 min",
+      "overview": "Use visible behaviour, reactions, tasks, interruption, distance and silence as parts of the exchange and teach accurate screenplay form.",
+      "objectives": [
+        "Replace unnecessary speech with action.",
+        "Make silence playable.",
+        "Use screenplay elements correctly."
+      ],
+      "sections": [
+        {
+          "heading": "The answer may be physical",
+          "paragraphs": [
+            "Action can change a line's meaning or replace it. Silence may be refusal, processing, control, fear, intimacy, judgement or uncertainty. Props, tasks, entrances, exits, distance, interruptions, overlap and unfinished thoughts can carry pressure.",
+            "Avoid abstract instructions such as an awkward silence when a withheld action, changed distance or delayed answer can make the event playable."
+          ]
+        },
+        {
+          "heading": "Screenplay form",
+          "paragraphs": [
+            "Character cues identify the speaker. Dialogue contains spoken text. Action lines carry visible behaviour. Parentheticals are brief and necessary. Extensions clarify off-screen or voice-over delivery when needed. Dual dialogue indicates simultaneous speech. Prose tags such as he said or she asked are generally not screenplay dialogue formatting.",
+            "Write a pause only when the dramatic event matters, not as routine performance control."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Character cue",
+          "meaning": "The screenplay element identifying who speaks."
+        },
+        {
+          "term": "Parenthetical",
+          "meaning": "A brief, necessary performance or delivery clarification."
+        },
+        {
+          "term": "Dual dialogue",
+          "meaning": "Two speeches formatted to occur simultaneously."
+        }
+      ],
+      "example": {
+        "title": "The unsigned form",
+        "text": "Instead of saying I don't trust you, the character caps the pen and slides the form back."
+      },
+      "checklist": [
+        "Action changes meaning.",
+        "Silence has a playable cause.",
+        "Parentheticals are necessary.",
+        "No prose dialogue tags."
+      ],
+      "mistakes": [
+        "Writing he said in screenplay dialogue.",
+        "Using parentheticals for every emotion.",
+        "Calling silence awkward without evidence."
+      ],
+      "exercise": "Replace one explanatory line with a visible reaction or task, then verify character cue, action, parenthetical and dialogue formatting.",
+      "apply": "Screenplay",
+      "tags": [
+        "Balancing Action",
+        "Tags and Beats",
+        "Art of Silence",
+        "dialogue tags",
+        "action beats",
+        "parenthetical",
+        "dual dialogue"
+      ],
+      "original": {
+        "number": 65,
+        "path": "Craft"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-dialogue-24-blocks-art-of-silence-md",
+          "repository": "24-Blocks",
+          "path": "Dialogue/24 Blocks - Art of Silence.md",
+          "title": "The Art of Silence",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Dialogue/24%20Blocks%20-%20Art%20of%20Silence.md",
+          "content": "# The Art of Silence\n\nSilence can be just as powerful as dialogue in a script. It can add dramatic tension, reveal character emotions, and create space for audience interpretation. Here's how and when to use silence effectively:\n\n- **Tension**: Silence can be used to build tension. A pause in dialogue can heighten anticipation or signal a significant moment.\n\n- **Reveal Character**: A character's silence can say a lot about their personality or emotional state. For instance, a character who remains silent in the face of accusation might signal guilt or defiance.\n\n- **Subtext**: In some cases, what isn't said can be more telling than what is said. Silence can be used to convey unsaid feelings or thoughts.\n\n- **Pacing**: Moments of silence can also affect pacing. A pause can provide a breather after a fast-paced scene, or slow down the pace to emphasize a moment.\n\nRemember, silence is a tool in your toolkit—use it intentionally and sparingly. \n\n---"
+        },
+        {
+          "id": "24-blocks-dialogue-24-blocks-balancing-action-md",
+          "repository": "24-Blocks",
+          "path": "Dialogue/24 Blocks - Balancing Action.md",
+          "title": "Balancing Dialogue and Action",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Dialogue/24%20Blocks%20-%20Balancing%20Action.md",
+          "content": "# Balancing Dialogue and Action\n\nWhile dialogue is a powerful tool in storytelling, it shouldn't be the sole method of conveying your story. It's important to strike a balance between dialogue and action to maintain a dynamic and engaging narrative.\n\nHere are some ways to maintain balance:\n\n- **Show, Don't Tell**: Instead of using dialogue to relay key information, see if there's a way to 'show' it through character actions or events. This principle helps maintain a dynamic and engaging story.\n\n- **Break Up Dialogue**: Punctuate dialogue with action to maintain pacing and interest. Long stretches of dialogue can slow down the pace and lose audience interest.\n\n- **Use Action to Elevate Dialogue**: The actions of a character can lend more weight to their words. For instance, a character professing love while avoiding eye contact can create an interesting contrast.\n\n- **Nonverbal Communication**: Remember that a lot of communication is nonverbal. Use character actions and body language to convey feelings and thoughts.\n\n- **Active Dialogue**: Try to make your dialogue active. Instead of having characters sit and talk, have them do something relevant to the scene or plot.\n\n---"
+        },
+        {
+          "id": "24-blocks-dialogue-24-blocks-tags-and-beats-md",
+          "repository": "24-Blocks",
+          "path": "Dialogue/24 Blocks - Tags and Beats.md",
+          "title": "Dialogue Tags and Beats",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Dialogue/24%20Blocks%20-%20Tags%20and%20Beats.md",
+          "content": "# Dialogue Tags and Beats\n\nDialogue tags and action beats are two tools that can aid in making your dialogue more engaging and dynamic. They provide clarity, break up the dialogue, and offer insights into characters' emotions and actions.\n\n- **Dialogue Tags**: These are the \"he said\" or \"she asked\" tags that identify the speaker. They should be used judiciously—often, a simple \"said\" is less distracting than more expressive tags like \"exclaimed\" or \"shouted\". Remember, you don't always need dialogue tags, especially in a two-person conversation where it's clear who's speaking.\n\n- **Action Beats**: These are the small bits of action interspersed with dialogue. They can serve multiple purposes: break up dialogue, reveal character traits, convey emotion, or control pacing. For instance, a character may tap their fingers while speaking, indicating nervousness.\n\nHere's an example of using both:\n\n> \"I don't know about this, John,\" Sarah said, wringing her hands. \"It doesn't feel right.\"\n\nThe dialogue tag (\"Sarah said\") clarifies the speaker, while the action beat (\"wringing her hands\") adds emotional context.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "dialogue-exposition-genre",
+      "number": 70,
+      "topic": "dialogue",
+      "title": "Handle Exposition, World and Genre",
+      "duration": "30–40 min",
+      "overview": "Attach needed information to conflict, task, urgency and relationship while using genre as pressure rather than a voice stereotype.",
+      "objectives": [
+        "Determine what is needed now.",
+        "Reveal rules through use and consequence.",
+        "Avoid genre stereotypes."
+      ],
+      "sections": [
+        {
+          "heading": "Information under pressure",
+          "paragraphs": [
+            "Identify what the audience must know now, who wants it understood, hidden, distorted or acted upon, and whether both characters already know it. Attach information to conflict, task, urgency, misunderstanding or consequence.",
+            "Reveal world rules through use and consequence. Repeat crucial information through changed meaning rather than identical explanation."
+          ]
+        },
+        {
+          "heading": "Genre affects pressure",
+          "paragraphs": [
+            "Comedy may use rhythm, reversal, status and consequence; horror denial, incomplete knowledge, dread and silence; thriller concealment, interrogation, clocks and unstable alliances; romance desire, vulnerability, avoidance and changing intimacy; speculative stories unfamiliar terms with clear human objectives.",
+            "Genre does not dictate one dialogue style. Comedy is not always banter, drama need not be formal and science fiction does not require jargon."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Exposition",
+          "meaning": "Information the audience needs to understand story conditions, choices or consequences."
+        },
+        {
+          "term": "Exposition dump",
+          "meaning": "A concentration of information detached from active dramatic need."
+        }
+      ],
+      "example": {
+        "title": "A rule revealed by failure",
+        "text": "Instead of explaining the city's memory tax, a character attempts a purchase and loses access to a sibling's name."
+      },
+      "checklist": [
+        "Information is needed now.",
+        "Knowledge imbalance is credible.",
+        "World terms have consequence.",
+        "Genre pressure avoids cliché."
+      ],
+      "mistakes": [
+        "Characters explaining shared facts.",
+        "Using jargon instead of objective.",
+        "Making every comedy line witty."
+      ],
+      "exercise": "Find one explanatory exchange and attach its essential information to an objective, task or consequence.",
+      "apply": "Screenplay",
+      "tags": [
+        "Different Genres",
+        "exposition dump",
+        "world terms",
+        "genre dialogue",
+        "jargon"
+      ],
+      "original": {
+        "number": 66,
+        "path": "Craft"
+      },
+      "sources": []
+    },
+    {
+      "id": "dialogue-exchange-turn",
+      "number": 71,
+      "topic": "dialogue",
+      "title": "Shape the Exchange and Scene Turn",
+      "duration": "25–35 min",
+      "overview": "Design complete dialogue movements—entry tension, tactic, resistance, tactic change, reveal, status shift, irreversible action, turn and exit consequence.",
+      "objectives": [
+        "Plan the movement.",
+        "Handle group patterns.",
+        "Link to scene and Story Thread turns."
+      ],
+      "sections": [
+        {
+          "heading": "Movement before polish",
+          "paragraphs": [
+            "Plan the entry question or tension, first tactic, response and resistance, tactic change, reveal or misinterpretation, status shift, irreversible line or action, turn and exit question or consequence.",
+            "Two-person, ensemble, interrogation, argument, confession, negotiation, seduction, comic, remote, overlapping and one-sided conversations are patterns, not formulas."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Exchange turn",
+          "meaning": "The point where leverage, understanding, commitment or relationship condition changes."
+        }
+      ],
+      "example": {
+        "title": "Group agreement that isolates one person",
+        "text": "A planning meeting appears cooperative until each practical concession removes the protagonist's authority."
+      },
+      "checklist": [
+        "Entry tension clear.",
+        "Tactic changes.",
+        "Status shifts.",
+        "Exit creates consequence."
+      ],
+      "mistakes": [
+        "Polishing lines without a turn.",
+        "Giving every participant the same understanding.",
+        "Ending when the facts are delivered."
+      ],
+      "exercise": "Map the active scene from entry tension to exit consequence and mark the irreversible line or action.",
+      "apply": "Block plan",
+      "tags": [
+        "scene turn",
+        "interrogation",
+        "confession",
+        "negotiation",
+        "overlap",
+        "ensemble dialogue"
+      ],
+      "original": {
+        "number": 67,
+        "path": "Craft"
+      },
+      "sources": []
+    },
+    {
+      "id": "dialogue-revision",
+      "number": 72,
+      "topic": "dialogue",
+      "title": "Revise for Voice, Purpose and Performance",
+      "duration": "35–45 min",
+      "overview": "Diagnose the exchange before rewriting, then use focused passes for purpose, tactic, voice, subtext, exposition, status, action, rhythm, continuity and performance.",
+      "objectives": [
+        "Run bounded passes.",
+        "Use evidence-based diagnostics.",
+        "Preserve original and approval controls."
+      ],
+      "sections": [
+        {
+          "heading": "Twelve focused passes",
+          "paragraphs": [
+            "Review purpose and movement; objective and tactic; voice separation; subtext; exposition and repetition; status and escalation; action and silence; rhythm and breath; concision; continuity, arc and relationship; formatting and production clarity; read-aloud response.",
+            "A diagnostic question is not a universal failure rule. A long speech, repeated phrase, dialogue-heavy scene or shared vocabulary may be deliberate and effective."
+          ]
+        },
+        {
+          "heading": "Manual and optional AI workflows",
+          "paragraphs": [
+            "Writers can perform every pass manually. AI suggestions must be optional, bounded and reviewable. Preserve the original, proposed version, explanation, affected continuity, provenance and explicit approve/discard controls.",
+            "Synthetic voices must remain optional and must not imitate a real performer without permission."
+          ],
+          "points": [
+            "Critique only: Diagnose purpose, objective, voice, subtext, status, action and scene movement. Do not rewrite.",
+            "Voice separation: Compare rhythm, vocabulary, directness, metaphor, humour, emotional access and persuasion. Preserve deliberate shared language.",
+            "Objective and tactic: Clarify what each participant wants, the tactic used, resistance and the tactic change.",
+            "Subtext: Strengthen the gap between public topic, actual objective, protected fact and cost of direct speech without making every line cryptic.",
+            "Status and leverage: Track status at entry, leverage changes, exposure, options and the resulting turn.",
+            "Conflict escalation: Escalate through changed conditions, cost, information, relationship or available options rather than volume alone.",
+            "Exposition reduction: Keep only information needed now and attach it to conflict, task, urgency, misunderstanding or consequence.",
+            "Action and silence alternatives: Find visible behaviour, reaction, interruption, task, distance, entrance or exit that can carry meaning without explanatory speech.",
+            "Rhythm and concision: Improve exchange rhythm, interruption, breath, readability and performance while preserving purposeful release or repetition.",
+            "Genre expectation: Support the intended audience experience through pressure and information control without imposing a genre stereotype.",
+            "Continuity and arc consistency: Check facts, relationship state, Voiceprint tendencies and arc evidence while allowing motivated variation under pressure.",
+            "Compare two approaches: Offer two materially different playable strategies, explain tradeoffs and keep the original separate."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Dialogue pass",
+          "meaning": "A focused diagnostic or revision operation with a defined craft goal."
+        },
+        {
+          "term": "Table read",
+          "meaning": "A performance-oriented reading used to test clarity, rhythm, intention and response."
+        }
+      ],
+      "example": {
+        "title": "Diagnose before cutting",
+        "text": "A repeated line appears redundant until the table read shows that its third use reverses status and completes a motif."
+      },
+      "checklist": [
+        "Problem diagnosed.",
+        "Pass bounded.",
+        "Original preserved.",
+        "Evidence compared.",
+        "Writer approves explicitly."
+      ],
+      "mistakes": [
+        "Cutting every line that does not advance plot.",
+        "Applying AI output automatically.",
+        "Treating diagnostic counts as grades."
+      ],
+      "exercise": "Run one guided pass on the selected exchange, read it aloud and record what changed in objective, tactic, rhythm or performance.",
+      "apply": "Screenplay",
+      "tags": [
+        "Dialogue Pitfalls",
+        "Refining Dialogue",
+        "read aloud",
+        "table read",
+        "dialogue diagnostics",
+        "approval"
+      ],
+      "original": {
+        "number": 68,
+        "path": "Drafting"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-dialogue-24-blocks-dialogue-pitfalls-md",
+          "repository": "24-Blocks",
+          "path": "Dialogue/24 Blocks - Dialogue Pitfalls.md",
+          "title": "Avoiding Common Dialogue Pitfalls",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Dialogue/24%20Blocks%20-%20Dialogue%20Pitfalls.md",
+          "content": "# Avoiding Common Dialogue Pitfalls\n\nDialogue writing can be tricky, and there are common pitfalls that many writers fall into. Identifying these can help you steer clear and improve the quality of your dialogue. Here are some mistakes to avoid:\n\n- **On-The-Nose Dialogue**: Characters say exactly what they feel or think, which often feels unnatural and lacks subtext. Instead, try to convey emotions or intentions indirectly.\n\n- **Unnatural Phrasing**: Dialogue should feel natural and realistic. Be careful with overly formal language, complex sentences, or technical jargon, unless it's appropriate for the character or situation.\n\n- **Info Dump**: Using dialogue to deliver large amounts of information can feel forced and slow the pace. Try to \"show\" instead of \"tell\" or sprinkle information throughout the story.\n\n- **Lack of Character Voice**: Every character should have a distinctive voice. If all characters sound the same, they might feel flat and uninteresting.\n\n- **Lack of Conflict**: Dialogue should often serve to create or escalate conflict. If every conversation is friendly and agreeable, the story might lack tension and interest.\n\n---"
+        },
+        {
+          "id": "24-blocks-dialogue-24-blocks-different-genres-md",
+          "repository": "24-Blocks",
+          "path": "Dialogue/24 Blocks - Different Genres.md",
+          "title": "Writing Dialogue for Different Genres",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Dialogue/24%20Blocks%20-%20Different%20Genres.md",
+          "content": "# Writing Dialogue for Different Genres\n\nWhen writing dialogue, it's crucial to consider the genre of your story. The genre can influence the tone, style, and content of your characters' dialogue. Let's take a look at a few genres and how dialogue works within them.\n\n- **Comedy**: Comedy relies on witty, clever dialogue. Wordplay, puns, quick back-and-forth exchanges, and comedic timing are all essential. The humor can arise from character quirks, situational comedy, or even absurdity.\n\n- **Drama**: In dramas, dialogue often delves into complex emotions and deep conversations. The dialogue may be more formal and may explore philosophical or moral questions.\n\n- **Horror**: In horror, dialogue can build suspense and fear. Characters may describe the indescribable, express fear, or even use denial to heighten the sense of dread.\n\n- **Sci-Fi**: In science fiction, dialogue may involve technical jargon and futuristic slang. It can also explore big ideas about technology, space, and humanity's future.\n\n- **Romance**: Romantic dialogue might be full of emotions, intimate conversations, and tension-filled exchanges. Subtext can be particularly important in expressing desire and conflict.\n\nThe key is to make the dialogue feel natural and suitable for the genre while avoiding cliches and stereotypes. \n\n---"
+        },
+        {
+          "id": "24-blocks-dialogue-24-blocks-refining-dialogue-md",
+          "repository": "24-Blocks",
+          "path": "Dialogue/24 Blocks - Refining Dialogue.md",
+          "title": "Editing and Refining Dialogue",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Dialogue/24%20Blocks%20-%20Refining%20Dialogue.md",
+          "content": "# Editing and Refining Dialogue\n\nWriting dialogue is only the first step. Like all aspects of your script, dialogue will need to be reviewed, revised, and polished in subsequent drafts to make it more effective. Here are some tips for editing and refining your dialogue:\n\n- **Read Aloud**: Dialogue is meant to be spoken. Reading your dialogue aloud can help you catch awkward phrasing, long sentences, or unnatural language.\n\n- **Check Consistency**: Ensure each character's voice stays consistent throughout the script. Look out for changes in speech patterns, vocabulary, or tone that don't align with the character's established voice.\n\n- **Cut Unnecessary Words**: Realistic dialogue often involves cutting unnecessary words. See if you can make the dialogue more succinct without losing its essence.\n\n- **Clarify Purpose**: Each line of dialogue should serve a purpose—whether it's advancing the plot, revealing character, or establishing mood. If a line doesn't serve a purpose, consider cutting or revising it.\n\n- **Get Feedback**: Have someone else read your dialogue to get an outside perspective. They can help you identify areas of confusion, awkwardness, or inconsistency.\n\nRemember, writing is rewriting. Don't be discouraged if your first draft isn't perfect. With time and effort, you can hone your dialogue into something that truly shines.\n\n---"
+        }
+      ]
+    }
+  ]
+}

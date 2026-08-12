@@ -1,7 +1,7 @@
 export interface CurriculumLesson {
   readonly id: string;
   readonly number: number;
-  readonly path: string;
+  readonly topic: string;
   readonly title: string;
   readonly duration: string;
   readonly overview: string;
@@ -24,9 +24,14 @@ export interface CurriculumLesson {
   readonly exercise: string;
   readonly apply: string;
   readonly tags: readonly string[];
+  readonly original: {
+    readonly number: number;
+    readonly path: string;
+  };
+  readonly sources: readonly CurriculumSource[];
 }
 
-export interface CurriculumKnowledgeSource {
+export interface CurriculumSource {
   readonly id: string;
   readonly repository: "24-Blocks" | "Afterglow" | "BryanHarrisScripts.github.io";
   readonly path: string;

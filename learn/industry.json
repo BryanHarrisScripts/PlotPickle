@@ -1,0 +1,239 @@
+{
+  "schemaVersion": "2.0",
+  "topic": {
+    "id": "industry",
+    "title": "Industry"
+  },
+  "lessonCount": 2,
+  "sourceCount": 1,
+  "lessons": [
+    {
+      "id": "industry",
+      "number": 13,
+      "topic": "industry",
+      "title": "The Film Industry",
+      "duration": "35–45 min",
+      "overview": "Understand the broad roles of guilds, unions, professional associations, funders, festivals, distributors and production collaborators, while verifying current rules with official sources.",
+      "objectives": [
+        "Distinguish creative, labour, professional and market organizations.",
+        "Identify when jurisdiction and current agreements matter.",
+        "Prepare a project for professional conversations without treating a directory as strategy."
+      ],
+      "sections": [
+        {
+          "heading": "A collaborative production system",
+          "paragraphs": [
+            "A screenplay may pass through development, financing, packaging, pre-production, production, post-production, sales, distribution and exhibition. Writers interact with producers, directors, performers, department heads, editors, agents, managers, lawyers, funders and distributors at different stages.",
+            "Titles can mean different things across budgets and jurisdictions. Ask what authority, deliverable and decision a person actually holds on the project."
+          ],
+          "points": [
+            "Development tests and packages the project.",
+            "Production plans and captures the work.",
+            "Post-production shapes picture, sound and effects.",
+            "Sales and distribution connect the film with buyers and audiences."
+          ]
+        },
+        {
+          "heading": "Organizations and jurisdiction",
+          "paragraphs": [
+            "Guilds and unions represent labour and negotiate agreements or working conditions. Professional associations may provide standards, education, advocacy or recognition. Academies, institutes, cinematheques and festivals can preserve, develop, celebrate or exhibit screen culture. Funders and tax-credit bodies support qualifying work under specific rules.",
+            "Organizations such as the WGA, DGA, SAG-AFTRA, IATSE, PGA, AMPAS, BFI, BAFTA and comparable Canadian and international bodies have different mandates. Eligibility, rates, credits and agreements change. PlotPickle should teach the categories and questions, then direct users to current official information rather than freezing live rules into software."
+          ],
+          "points": [
+            "Which country, province/state and agreement govern the work?",
+            "Is the body a union, guild, association, funder, regulator, academy or exhibitor?",
+            "Does membership apply to the person, company or production?",
+            "Which current official document controls rates, credit or eligibility?"
+          ]
+        },
+        {
+          "heading": "Professional preparation",
+          "paragraphs": [
+            "Before a conversation, know the project's title, format, genre, audience, status, rights position and requested next step. Keep a clean screenplay export, concise pitch, contact information and truthful statement of attachments or financing.",
+            "Do not imply representation, membership, rights or commitments that do not exist. Keep written records of submissions and agreements, and obtain professional legal or business advice for contracts and rights decisions."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Guild or union",
+          "meaning": "An organization representing workers or creators, often through collective agreements and working standards."
+        },
+        {
+          "term": "Packaging",
+          "meaning": "Assembling elements such as script, producer, director, cast, financing or representation to advance a project."
+        },
+        {
+          "term": "Chain of title",
+          "meaning": "Documentation showing how the rights required for a production are owned or controlled."
+        }
+      ],
+      "example": {
+        "title": "A useful industry question",
+        "text": "Instead of asking whether a screenplay is 'WGA approved,' ask whether the hiring company is signatory, which agreement and jurisdiction apply, and which official current schedule governs compensation and credit."
+      },
+      "checklist": [
+        "Project status and requested next step are clear.",
+        "Rights claims are accurate.",
+        "The relevant jurisdiction is known.",
+        "Current rules are verified through official sources.",
+        "Submissions and agreements are documented.",
+        "Professional advice is sought for material contracts."
+      ],
+      "mistakes": [
+        "Treating every organization as a regulator.",
+        "Relying on old rates, eligibility rules or contact lists.",
+        "Claiming attachments or rights prematurely.",
+        "Sending the same material without regard to role or request."
+      ],
+      "exercise": "Create a one-page professional readiness sheet for the active project: status, rights, format, audience, attachments, jurisdiction questions, five likely collaborators and the exact next action requested.",
+      "apply": "Treatment",
+      "tags": [
+        "industry",
+        "guild",
+        "union",
+        "producer",
+        "director",
+        "actor",
+        "funding",
+        "festival",
+        "distribution",
+        "rights",
+        "chain of title"
+      ],
+      "original": {
+        "number": 13,
+        "path": "Industry"
+      },
+      "sources": []
+    },
+    {
+      "id": "collaboration-ownership-sharing",
+      "number": 46,
+      "topic": "industry",
+      "title": "Ownership, Licences and Sharing Choices",
+      "duration": "30–40 min",
+      "overview": "Separate copyright ownership, collaboration access, public visibility and reuse permission so a deliberate sharing choice does not accidentally become a claim about rights or protection.",
+      "objectives": [
+        "Distinguish ownership from a licence and access from reuse permission.",
+        "Separate software, educational material, user work, third-party material and brand rights.",
+        "Document collaborator contributions, permissions and credits before high-stakes sharing or commercial decisions."
+      ],
+      "sections": [
+        {
+          "heading": "Ownership and licences answer different questions",
+          "paragraphs": [
+            "Copyright ownership concerns who holds rights in a work. A licence is permission from a rights holder for specified uses under stated conditions. Sharing a file, inviting a reviewer, publishing a repository and applying an open licence are separate decisions.",
+            "PlotPickle provides practical education, not legal advice. A licence does not guarantee attribution, payment, discovery, production, enforcement or practical control over every reuse."
+          ],
+          "points": [
+            "Private access does not grant reuse rights.",
+            "Public visibility does not automatically grant reuse rights.",
+            "An open licence grants defined permissions; it is not merely a visibility setting.",
+            "Only someone with the necessary rights should grant a licence."
+          ]
+        },
+        {
+          "heading": "Keep PlotPickle's rights layers separate",
+          "paragraphs": [
+            "Open-source software does not open-source the user's screenplay. Educational-content terms do not automatically apply to a story. Third-party assets and trademarks may carry restrictions that neither the software licence nor the writer's chosen story licence can override."
+          ],
+          "points": [
+            "PlotPickle software: AGPL-3.0-or-later.",
+            "Reusable method and educational documentation: CC BY-SA 4.0 unless otherwise marked.",
+            "User-created stories and screenplays: remain the user's work and are not automatically licensed to PlotPickle or the public.",
+            "Third-party text, images, music, likenesses and reference material: governed by their own permissions and licences.",
+            "PlotPickle names, logos and brand assets: governed separately from the software and educational material."
+          ]
+        },
+        {
+          "heading": "Document collaboration before publication",
+          "paragraphs": [
+            "Record who contributed what, whether the contribution was commissioned or collaborative, how credit will appear, who may approve changes, what may be shared and who may grant licences. For music, images, likenesses, research interviews and cultural material, record permissions and limits rather than assuming inclusion proves clearance.",
+            "Meaningful commercial, employment, union, privacy, defamation, chain-of-title or licensing decisions should be reviewed by a qualified professional in the relevant jurisdiction."
+          ]
+        },
+        {
+          "heading": "Choose access, publication and reuse separately",
+          "paragraphs": [
+            "A private collaborator can receive access without publication. A public reading copy can be visible while remaining conventionally copyrighted. An openly licensed screenplay can permit reuse under specified terms. The project should record which choice was made and by whom."
+          ],
+          "points": [
+            "Access: who can see or review.",
+            "Publication: whether the work is made public.",
+            "Licence: what reuse is permitted.",
+            "Credit: how contributors and sources are acknowledged.",
+            "Provenance: where retained material came from and who approved it."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Copyright",
+          "meaning": "The legal rights that may arise in original expression, subject to jurisdiction, authorship and other facts."
+        },
+        {
+          "term": "Licence",
+          "meaning": "Permission from a rights holder for specified uses under stated terms."
+        },
+        {
+          "term": "Provenance",
+          "meaning": "A record of where material came from, who contributed it and how it entered the approved project."
+        }
+      ],
+      "example": {
+        "title": "Private review without open licensing",
+        "text": "A writer sends a watermarked PDF to an invited reviewer under a confidentiality agreement, records the reviewer's notes in PlotPickle and retains conventional copyright. The file was shared for review; it was not published and no reuse licence was granted."
+      },
+      "checklist": [
+        "The rights holder or decision maker is identified.",
+        "Access, publication and reuse permissions are recorded separately.",
+        "Collaborator contributions and credits are documented.",
+        "Third-party material has its own permission record.",
+        "The selected licence matches the intended reuse and is granted by someone with authority.",
+        "High-stakes decisions receive qualified review."
+      ],
+      "mistakes": [
+        "Assuming PlotPickle's AGPL licence applies to a screenplay.",
+        "Using public visibility as a substitute for a licence.",
+        "Applying an open licence without all necessary rights.",
+        "Promising that a licence guarantees payment or practical control.",
+        "Treating a version history as complete chain-of-title documentation."
+      ],
+      "exercise": "For the active project, write separate statements for ownership, private access, public visibility, permitted reuse, collaborator credit and third-party material. Mark every statement that requires professional review.",
+      "apply": "Treatment",
+      "tags": [
+        "ownership",
+        "copyright",
+        "licence",
+        "license",
+        "sharing",
+        "public access",
+        "open-source screenplay",
+        "AGPL-3.0-or-later",
+        "CC BY-SA 4.0",
+        "third-party material",
+        "trademark",
+        "brand rights",
+        "Open-Sourcing Licensing and Protection",
+        "Open-Sourcing Your Screenplay"
+      ],
+      "original": {
+        "number": 42,
+        "path": "Industry"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-ai-prompts-24-blocks-copywriting-and-marketing-md",
+          "repository": "24-Blocks",
+          "path": "AI Prompts/24 Blocks - Copywriting and Marketing.md",
+          "title": "Copywriting Formulas",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/AI%20Prompts/24%20Blocks%20-%20Copywriting%20and%20Marketing.md",
+          "content": "## Copywriting Formulas\n\nThe document introduces various copywriting formulas, each with unique characteristics suitable for different marketing and sales contexts. These formulas encompass techniques to identify and solve problems, illustrate transformations, guide customers through the stages of attention and action, emphasize product features, prepare audiences for a message, and qualify prospects. The choice of one formula over another depends on the specific goal of the message, the audience, and the medium of communication.\n\n### Prompt Example for PAS (Problem-Agitation-Solution):\n\n- Compose a marketing email for a time management app using the PAS (Problem-Agitation-Solution) copywriting formula. Start with identifying the problem of inefficient time management that leads to stress and productivity loss. Agitate the issue by emphasizing its consequences, such as missed deadlines and work-life imbalance. Finally, present the app as a solution that enables efficient time tracking and task prioritization, promoting a balanced, productive lifestyle.\n\n**Note: Ask me the questions so you can write the post.**\n\n1. **PAS (Problem-Agitation-Solution)**: This is a classic copywriting formula that identifies a problem, agitates that problem, and then offers a solution. It's especially effective in sales and marketing contexts because it resonates with the audience's pain points and offers a clear resolution.\n\n2. **BAB (Before-After-Bridge)**: As you've already used, this framework describes a situation before a product/service was used (the problem), the situation after it was used (the solution), and how to get from Before to After (the bridge, which is typically the product/service). It's great for illustrating transformations and inspiring action.\n\n3. **AIDA (Attention-Interest-Desire-Action)**: This model is designed to guide potential customers through a series of experiences towards making a purchase or taking action. First, you grab their attention, then you build their interest and desire, and finally, you encourage them to take action. It's a comprehensive approach for sales, marketing, and promotional materials.\n\n4. **FAB (Features-Advantages-Benefits)**: This model emphasizes the features of a product/service, explains their advantages, and then elaborates on the benefits the customer can experience. It's a great framework for product descriptions and sales presentations.\n\n5. **SOFTEN (Show-Opportunity-Future-Takeaway-Easy-Now)**: This structure is geared towards making an audience ready to accept your message. You first show them a reality, offer an opportunity, paint a picture of a better future, provide a key takeaway, explain how it's easy to reach that future, and finally push them to act now. It's perfect for persuasive speeches or motivational presentations.\n\n6. **QUEST (Qualify-Understand-Educate-Stimulate-Tie it up)**: A sales-focused model that seeks to qualify the prospect, understand their needs, educate them on the solution, stimulate interest, and tie it all together with a compelling conclusion or call to action. It's effective for sales pitches or consultative selling scenarios.\n\n7. **AIDA-BAB Hybrid Approach**: Attention: Start by grabbing the reader's attention with a compelling statement or question related to the emotional impact of the song or the screenplay. Interest: Build interest by talking about the unique aspects of the song and screenplay, perhaps drawing connections between them if applicable. Desire: Create desire by painting a vivid picture of the emotional journey the audience will experience through the song and screenplay. Bridge: Illustrate the transformation that happens from the beginning to the end of the screenplay and how the song complements that journey. Action: Finally, provide a clear call to action - where they can listen to the song and view the screenplay.\n\nWhy you'd choose one over another depends on the specific goal of your message, your audience, and the medium in which you're communicating. You might choose AIDA for a marketing email campaign, BAB for a product landing page, or FAB for a product datasheet. Experimenting with different approaches will also help you find what works best in your context.\n\n---"
+        }
+      ]
+    }
+  ]
+}

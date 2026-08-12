@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import {
   ASSISTANT_INSTRUCTIONS,
+  curriculumGuideOllamaProfile,
   DEFAULT_OLLAMA_URL,
   generateAssistantText,
   normalizedProviderUrl,
@@ -243,7 +244,16 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
     ? body.tone as PlotPickleTone
     : "collaborative";
   const started = Date.now();
-  const text = await askPlotPickleAgent({ profile, agentId, tone, message, history: safeHistory(body.history) });
+  const executionProfile = agentId === "curriculum-guide"
+    ? await curriculumGuideOllamaProfile(profile)
+    : profile;
+  const text = await askPlotPickleAgent({
+    profile: executionProfile,
+    agentId,
+    tone,
+    message,
+    history: safeHistory(body.history),
+  });
   if (!text) throw new Error("The provider returned no text.");
   const updated: ProviderProfile = {
     ...profile,

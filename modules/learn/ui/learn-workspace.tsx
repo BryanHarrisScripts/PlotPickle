@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import type { CurriculumKnowledgeSource, CurriculumLesson } from "../../../core/contracts/curriculum";
+import type { CurriculumLesson } from "../../../core/contracts/curriculum";
 import type { CurriculumGuide } from "../../../core/contracts/curriculum-guide";
 import { applyStoryCommand } from "../../../core/project/apply-command";
 import { createEmptyProject, type PPFProject } from "../../../core/project/project";
@@ -35,6 +35,12 @@ type Message = {
 
 function newId(prefix: string) {
   return globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function topicName(topic: string) {
+  if (topic === "responsible-ai") return "Responsible AI";
+  if (topic === "visual-storytelling") return "Visual Storytelling";
+  return topic.replaceAll("-", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function loadProject(): PPFProject {
@@ -70,20 +76,16 @@ function loadMessages(threadId: string): Message[] {
 export default function LearnWorkspace({
   curriculum,
   guide,
-  knowledgeSources,
 }: {
   readonly curriculum: readonly CurriculumLesson[];
   readonly guide: CurriculumGuide;
-  readonly knowledgeSources: readonly CurriculumKnowledgeSource[];
 }) {
   const [project, setProject] = useState<PPFProject | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState("");
   const [working, setWorking] = useState(false);
   const [guideError, setGuideError] = useState("");
-  const [catalogMode, setCatalogMode] = useState<"lessons" | "sources">("lessons");
-  const [sourceSearch, setSourceSearch] = useState("");
-  const [activeSourceId, setActiveSourceId] = useState<string | null>(null);
+  const [lessonSearch, setLessonSearch] = useState("");
 
   useEffect(() => {
     let current = loadProject();
@@ -104,20 +106,34 @@ export default function LearnWorkspace({
     return curriculum.find((lesson) => lesson.id === project?.learning.activeLessonId) ?? curriculum[0];
   }, [curriculum, project?.learning.activeLessonId]);
 
-  const activeSource = useMemo(() => (
-    knowledgeSources.find((source) => source.id === activeSourceId) ?? null
-  ), [activeSourceId, knowledgeSources]);
+  const activeLessonIndex = curriculum.findIndex((lesson) => lesson.id === activeLesson?.id);
+  const previousLesson = activeLessonIndex > 0 ? curriculum[activeLessonIndex - 1] : null;
+  const nextLesson = activeLessonIndex >= 0 && activeLessonIndex < curriculum.length - 1
+    ? curriculum[activeLessonIndex + 1]
+    : null;
 
-  const visibleSources = useMemo(() => {
-    const query = sourceSearch.trim().toLowerCase();
-    if (!query) return knowledgeSources;
-    return knowledgeSources.filter((source) => [
-      source.title,
-      source.repository,
-      source.path,
-      source.content,
+  const sourceCount = useMemo(() => (
+    curriculum.reduce((total, lesson) => total + lesson.sources.length, 0)
+  ), [curriculum]);
+
+  const visibleLessons = useMemo(() => {
+    const query = lessonSearch.trim().toLowerCase();
+    if (!query) return curriculum;
+    return curriculum.filter((lesson) => [
+      lesson.title,
+      lesson.topic,
+      lesson.overview,
+      ...lesson.tags,
+      ...lesson.sources.flatMap((source) => [source.title, source.path, source.content]),
     ].some((value) => value.toLowerCase().includes(query)));
-  }, [knowledgeSources, sourceSearch]);
+  }, [curriculum, lessonSearch]);
+
+  const lessonGroups = useMemo(() => (
+    [...new Set(curriculum.map((lesson) => lesson.topic))].map((topic) => ({
+      topic,
+      lessons: visibleLessons.filter((lesson) => lesson.topic === topic),
+    })).filter((group) => group.lessons.length)
+  ), [curriculum, visibleLessons]);
 
   function commit(command: Parameters<typeof applyStoryCommand>[1]) {
     setProject((current) => {
@@ -129,16 +145,11 @@ export default function LearnWorkspace({
   }
 
   function openLesson(lessonId: string) {
-    setActiveSourceId(null);
     commit({
       type: "lesson.open",
       lessonId,
       occurredAt: new Date().toISOString(),
     });
-  }
-
-  function openSource(sourceId: string) {
-    setActiveSourceId(sourceId);
   }
 
   function setLessonUnderstood(understood: boolean) {
@@ -178,7 +189,6 @@ export default function LearnWorkspace({
     try {
       const answer = await guide({
         curriculum,
-        knowledgeSources,
         activeLessonId: activeLesson.id,
         question: submitted,
         conversation: messages.map((message) => ({
@@ -243,76 +253,75 @@ export default function LearnWorkspace({
       <aside className={styles.curriculum} aria-label="PlotPickle curriculum">
         <header className={styles.brand}>
           <strong>LEARN</strong>
-          <small>{curriculum.length} modules · {knowledgeSources.length} source references</small>
+          <small>{curriculum.length} lessons · {sourceCount} embedded references</small>
         </header>
-        <div className={styles.catalogTabs} role="tablist" aria-label="Learning library">
-          <button aria-selected={catalogMode === "lessons"} onClick={() => setCatalogMode("lessons")} role="tab" type="button">Lessons</button>
-          <button aria-selected={catalogMode === "sources"} onClick={() => setCatalogMode("sources")} role="tab" type="button">Source library</button>
+        <div className={styles.lessonSearch}>
+          <label htmlFor="lesson-search">Search every lesson</label>
+          <input
+            id="lesson-search"
+            onChange={(event) => setLessonSearch(event.target.value)}
+            placeholder="Try theme, dialogue or pacing"
+            type="search"
+            value={lessonSearch}
+          />
+          <small>{visibleLessons.length} of {curriculum.length} lessons</small>
         </div>
-        {catalogMode === "lessons" ? (
-          <nav className={styles.lessonList} aria-label="Curriculum lessons">
-            {curriculum.map((lesson) => (
-              <button
-                className={!activeSource && lesson.id === activeLesson.id ? styles.activeLesson : undefined}
-                key={lesson.id}
-                onClick={() => openLesson(lesson.id)}
-                type="button"
-              >
-                <span>{String(lesson.number).padStart(2, "0")}</span>
-                <span>
-                  <strong>{lesson.title}</strong>
-                  <small>{lesson.path} · {lesson.duration}</small>
-                </span>
-                <b aria-label={completed.has(lesson.id) ? "Completed" : "Not completed"}>
-                  {completed.has(lesson.id) ? "☑" : ""}
-                </b>
-              </button>
-            ))}
-          </nav>
-        ) : (
-          <div className={styles.sourceLibrary}>
-            <label htmlFor="source-library-search">Search all learning sources</label>
-            <input
-              id="source-library-search"
-              onChange={(event) => setSourceSearch(event.target.value)}
-              placeholder="Try dialogue, character or pacing"
-              type="search"
-              value={sourceSearch}
-            />
-            <small>{visibleSources.length} of {knowledgeSources.length} sources</small>
-            <nav className={styles.sourceList} aria-label="Curriculum source references">
-              {visibleSources.map((source) => (
+        <nav className={styles.lessonList} aria-label="Curriculum lessons">
+          {lessonGroups.map((group) => (
+            <section className={styles.topicGroup} key={group.topic}>
+              <h2>{topicName(group.topic)}</h2>
+              {group.lessons.map((lesson) => (
                 <button
-                  className={source.id === activeSource?.id ? styles.activeSource : undefined}
-                  key={source.id}
-                  onClick={() => openSource(source.id)}
+                  className={lesson.id === activeLesson.id ? styles.activeLesson : undefined}
+                  key={lesson.id}
+                  onClick={() => openLesson(lesson.id)}
                   type="button"
                 >
-                  <strong>{source.title}</strong>
-                  <small>{source.repository} · {source.path}</small>
+                  <span>{String(lesson.number).padStart(2, "0")}</span>
+                  <span>
+                    <strong>{lesson.title}</strong>
+                    <small>{lesson.duration} · {lesson.sources.length} references</small>
+                  </span>
+                  <b aria-label={completed.has(lesson.id) ? "Completed" : "Not completed"}>
+                    {completed.has(lesson.id) ? "☑" : ""}
+                  </b>
                 </button>
               ))}
-            </nav>
-          </div>
-        )}
+            </section>
+          ))}
+        </nav>
       </aside>
 
       <article className={styles.lesson} aria-label="Active lesson">
-        {activeSource ? (
-          <>
-            <div className={styles.lessonMeta}>
-              <span>Source library</span>
-              <span>{activeSource.repository}</span>
-            </div>
-            <h1>{activeSource.title}</h1>
-            <p className={styles.overview}>{activeSource.scopeNote}</p>
-            <p className={styles.sourcePath}>{activeSource.path}</p>
-            <pre className={styles.sourceContent}>{activeSource.content}</pre>
-          </>
-        ) : (
+        <nav className={styles.lessonNavigation} aria-label="Lesson navigation">
+          <button
+            disabled={!previousLesson}
+            onClick={() => previousLesson && openLesson(previousLesson.id)}
+            title={previousLesson ? `Previous: ${previousLesson.title}` : "This is the first lesson"}
+            type="button"
+          >
+            <span aria-hidden="true" className={styles.runeSeal}>ᚲ</span>
+            <span aria-hidden="true">←</span>
+            <span>Previous</span>
+          </button>
+          <div className={styles.lessonPosition} aria-label={`Lesson ${activeLessonIndex + 1} of ${curriculum.length}`}>
+            <span aria-hidden="true">ᛟ</span>
+            <small>{activeLessonIndex + 1} / {curriculum.length}</small>
+          </div>
+          <button
+            disabled={!nextLesson}
+            onClick={() => nextLesson && openLesson(nextLesson.id)}
+            title={nextLesson ? `Next: ${nextLesson.title}` : "This is the final lesson"}
+            type="button"
+          >
+            <span>Next</span>
+            <span aria-hidden="true">→</span>
+            <span aria-hidden="true" className={styles.runeSeal}>ᚱ</span>
+          </button>
+        </nav>
         <>
         <div className={styles.lessonMeta}>
-          <span>{activeLesson.path}</span>
+          <span>{topicName(activeLesson.topic)}</span>
           <span>{activeLesson.duration}</span>
         </div>
         <h1>{activeLesson.title}</h1>
@@ -367,8 +376,24 @@ export default function LearnWorkspace({
             {activeLesson.mistakes.map((mistake) => <li key={mistake}>{mistake}</li>)}
           </ul>
         </section>
+        <section>
+          <h2>Supporting lesson material</h2>
+          {activeLesson.sources.length ? (
+            <div className={styles.lessonSources}>
+              {activeLesson.sources.map((source) => (
+                <details key={source.id}>
+                  <summary>
+                    <strong>{source.title}</strong>
+                    <small>{source.repository} · {source.path}</small>
+                  </summary>
+                  <p>{source.scopeNote}</p>
+                  <pre>{source.content}</pre>
+                </details>
+              ))}
+            </div>
+          ) : <p>This lesson is complete without an additional repository reference.</p>}
+        </section>
         </>
-        )}
       </article>
 
       <aside className={styles.room} aria-label="Persistent Creative Room">
@@ -398,7 +423,7 @@ export default function LearnWorkspace({
               curriculum.find((lesson) => lesson.id === lessonId)?.title
             )).filter(Boolean);
             const referenceTitles = message.sourceReferenceIds?.map((sourceId) => (
-              knowledgeSources.find((source) => source.id === sourceId)?.title
+              curriculum.flatMap((lesson) => lesson.sources).find((source) => source.id === sourceId)?.title
             )).filter(Boolean);
             return (
               <div className={message.role === "writer" ? styles.writerMessage : styles.guideMessage} key={message.id}>
@@ -408,7 +433,7 @@ export default function LearnWorkspace({
                   <small className={styles.messageSources}>Curriculum: {sourceTitles.join(" · ")}</small>
                 ) : null}
                 {referenceTitles?.length ? (
-                  <small className={styles.messageSources}>Source library: {referenceTitles.join(" · ")}</small>
+                  <small className={styles.messageSources}>Lesson references: {referenceTitles.join(" · ")}</small>
                 ) : null}
               </div>
             );

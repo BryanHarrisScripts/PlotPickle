@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "2.0",
+  "lessonCount": 81,
+  "sourceCount": 95,
+  "lessonContentSha256": "178ec6f9bf2dfc0642b956d3e7e7e864953b0d1a1aecaf482f274e0ae29c0943",
+  "sourceContentSha256": "da0e4ea5146019a19d472787d78505faf74993f69e82c0460125143cadeb4343",
+  "afterglowBoundary": "Instructional material only. Afterglow story, characters, scenes and canon are not an active project or default example.",
+  "files": [
+    {
+      "topic": "foundations",
+      "title": "Foundations",
+      "file": "foundations.json",
+      "lessonCount": 4,
+      "sourceCount": 11
+    },
+    {
+      "topic": "industry",
+      "title": "Industry",
+      "file": "industry.json",
+      "lessonCount": 2,
+      "sourceCount": 1
+    },
+    {
+      "topic": "theme",
+      "title": "Theme, Tone and Motif",
+      "file": "theme.json",
+      "lessonCount": 5,
+      "sourceCount": 2
+    },
+    {
+      "topic": "character",
+      "title": "Character",
+      "file": "character.json",
+      "lessonCount": 10,
+      "sourceCount": 14
+    },
+    {
+      "topic": "world",
+      "title": "World and Genre",
+      "file": "world.json",
+      "lessonCount": 5,
+      "sourceCount": 4
+    },
+    {
+      "topic": "structure",
+      "title": "Structure and 24 Blocks",
+      "file": "structure.json",
+      "lessonCount": 11,
+      "sourceCount": 11
+    },
+    {
+      "topic": "dialogue",
+      "title": "Dialogue",
+      "file": "dialogue.json",
+      "lessonCount": 10,
+      "sourceCount": 13
+    },
+    {
+      "topic": "visual-storytelling",
+      "title": "Visual Storytelling",
+      "file": "visual-storytelling.json",
+      "lessonCount": 3,
+      "sourceCount": 3
+    },
+    {
+      "topic": "drafting",
+      "title": "Drafting",
+      "file": "drafting.json",
+      "lessonCount": 8,
+      "sourceCount": 8
+    },
+    {
+      "topic": "revision",
+      "title": "Revision",
+      "file": "revision.json",
+      "lessonCount": 8,
+      "sourceCount": 5
+    },
+    {
+      "topic": "responsible-ai",
+      "title": "Responsible AI",
+      "file": "responsible-ai.json",
+      "lessonCount": 3,
+      "sourceCount": 6
+    },
+    {
+      "topic": "collaboration",
+      "title": "Collaboration",
+      "file": "collaboration.json",
+      "lessonCount": 12,
+      "sourceCount": 17
+    }
+  ]
+}

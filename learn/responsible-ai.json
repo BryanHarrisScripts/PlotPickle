@@ -1,0 +1,383 @@
+{
+  "schemaVersion": "2.0",
+  "topic": {
+    "id": "responsible-ai",
+    "title": "Responsible AI"
+  },
+  "lessonCount": 3,
+  "sourceCount": 6,
+  "lessons": [
+    {
+      "id": "responsible-ai",
+      "number": 14,
+      "topic": "responsible-ai",
+      "title": "Responsible AI-Assisted Writing",
+      "duration": "40–55 min",
+      "overview": "Use optional AI as a bounded assistant for questions, alternatives, critique and visuals while protecting privacy, authorship, cultural care, continuity and human approval.",
+      "objectives": [
+        "Choose AI tasks that support rather than replace creative responsibility.",
+        "Build prompts from bounded project context.",
+        "Review outputs for accuracy, bias, originality, consent and continuity."
+      ],
+      "sections": [
+        {
+          "heading": "Define the job before the prompt",
+          "paragraphs": [
+            "AI is most useful when the writer names the exact task: generate five obstacles that obey established world rules, compare two scene objectives, identify repeated exposition or translate an approved character profile into a storyboard prompt. A request to 'make it better' has no shared definition of success.",
+            "Keep authorship decisions human-led. An output is a proposal, not project truth. PlotPickle should insert or save nothing creative until the user reviews and approves it."
+          ],
+          "points": [
+            "State the role, task and intended audience.",
+            "Provide only the relevant project context.",
+            "List constraints and protected facts.",
+            "Request alternatives or questions when certainty would be false.",
+            "Define how the response will be evaluated."
+          ]
+        },
+        {
+          "heading": "Privacy, rights and provenance",
+          "paragraphs": [
+            "Do not include secrets, unnecessary personal information, confidential drafts or third-party material in an external service without understanding its terms and having authority to do so. Keep API keys separate from project data and never place them in prompts, exports or source control.",
+            "Record where generated assets came from, the prompt or settings used and which human approved the result. Do not request imitation of a living artist or use a person's likeness or private material without appropriate rights and consent."
+          ],
+          "points": [
+            "Minimize shared context.",
+            "Separate connection credentials from creative files.",
+            "Preserve source and generation records.",
+            "Verify licences and permissions for reference material."
+          ]
+        },
+        {
+          "heading": "Bias, culture and human review",
+          "paragraphs": [
+            "Generated suggestions can reproduce stereotypes, erase cultural differences or present invented claims as fact. Review whose perspective is treated as normal, who has agency, which traits are associated with harm and whether a community has been flattened into aesthetic decoration.",
+            "Research and informed human readers remain important. AI cannot grant authenticity, consent or permission. It can help surface questions, but the writer remains responsible for choices and consequences."
+          ],
+          "points": [
+            "Check factual claims against reliable sources.",
+            "Inspect patterns across all characters, not only one response.",
+            "Seek lived-experience or expert review when the stakes warrant it.",
+            "Revise harmful assumptions rather than masking them with softer language."
+          ]
+        },
+        {
+          "heading": "Continuity and approval",
+          "paragraphs": [
+            "A strong AI workflow sends a small context pack containing the active Block, mini-block, relevant characters, location, visual language and continuity locks. The writer compares the result with canonical project data before accepting it.",
+            "Maintain an approval boundary: generated, reviewed, revised, approved and canonical are different states. Optional AI must never prevent manual writing, copying a prompt to another provider or working with no AI at all."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Context pack",
+          "meaning": "A bounded selection of project information relevant to one AI task."
+        },
+        {
+          "term": "Provenance",
+          "meaning": "A record of an asset's source, generation process, edits and approval."
+        },
+        {
+          "term": "Human review",
+          "meaning": "Deliberate evaluation and responsibility by a person before an output affects the work."
+        }
+      ],
+      "example": {
+        "title": "Bounded storyboard request",
+        "text": "Task: propose three landscape compositions for Block 8.2. Locks: Mara's approved coat and scar; winter dawn; no new characters. Purpose: show that the ally has become a threat without revealing the weapon. Return composition, lens feel, lighting and continuity risks."
+      },
+      "checklist": [
+        "The task and success criteria are specific.",
+        "Only necessary context is shared.",
+        "Rights and consent are considered.",
+        "Facts and cultural assumptions are reviewed.",
+        "Continuity locks are checked.",
+        "Nothing becomes canonical without approval.",
+        "A no-AI route remains available."
+      ],
+      "mistakes": [
+        "Sharing an entire private project for a small task.",
+        "Treating fluent output as factual or original by default.",
+        "Using AI to imitate a living creator.",
+        "Accepting a visual that breaks character continuity.",
+        "Hiding AI use where disclosure is required or appropriate."
+      ],
+      "exercise": "Choose one current story task. Write a bounded prompt with goal, context, constraints, approval criteria and privacy exclusions. Then create a seven-point human-review checklist before using any result.",
+      "apply": "Treatment",
+      "tags": [
+        "ai",
+        "privacy",
+        "plagiarism",
+        "bias",
+        "culture",
+        "human review",
+        "prompt",
+        "provenance",
+        "continuity",
+        "approval"
+      ],
+      "original": {
+        "number": 14,
+        "path": "Responsible AI"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-24-blocks-24-blocks-blocks-with-ai-md",
+          "repository": "24-Blocks",
+          "path": "24 Blocks/24 Blocks - Blocks with AI.md",
+          "title": "24 Blocks with AI: A Screenwriting Guide",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/24%20Blocks/24%20Blocks%20-%20Blocks%20with%20AI.md",
+          "content": "# 24 Blocks with AI: A Screenwriting Guide\n\nThis guide is designed to bridge the gap between traditional screenwriting techniques and innovative artificial intelligence technology. It's a valuable resource for a diverse audience - from educators, film students, and professional screenwriters to anyone interested in the filmmaking process. Regardless of your technological know-how, prior experience with AI, or screenwriting prowess, this guide offers a fresh, dynamic method to hone your scripts.\n\n#### The Process\n\nThe backbone of this methodology merges the 24 Blocks Process, a scriptwriting strategy that segments the screenplay into manageable blocks, each focusing on a specific narrative point or event, with OpenAI's ChatGPT, an artificial intelligence model capable of generating detailed responses based on user-defined prompts. This symbiotic blend provides a structured yet flexible framework for script development.\n\n#### Role of the User and AI\n\nYou, the user, generate prompts pertinent to the specific narrative block you're working on. Whether it's character development, pacing adjustments, theme exploration, foreshadowing, or any other narrative aspect, you drive the focus. The responses provided by ChatGPT based on your prompts allow for a granular, tailored approach to scriptwriting. You control the narrative elements, while ChatGPT contributes its ability to weave intricate narratives and provide nuanced insights, aiding character development, scene crafting, narrative arcs, and world-building. It also offers useful suggestions for fine-tuning your script in terms of pacing, rhythm, and language style.\n\n#### Iterative Approach to Scriptwriting\n\nThis combined methodology encourages an iterative process. You can revisit each block independently, experimenting with, refining, and perfecting each narrative element until you achieve the desired outcome. This approach ensures each narrative aspect receives the necessary attention and refinement. The AI, guided by your prompts, assists you in this iterative process, helping you attain narrative coherence and depth.\n\nIn conclusion, the marriage of the 24 Blocks Process and ChatGPT's dynamic response generation creates a novel, interactive, and iterative approach to scriptwriting. It leverages the best of artificial intelligence, allowing you to refine and enhance your vision for the screen. This user-guided methodology promotes precision, emotional resonance, and narrative depth in storytelling, creating a comprehensive tool that can benefit both novices and seasoned screenwriters.\n\n---"
+        },
+        {
+          "id": "24-blocks-ai-prompts-24-blocks-chatgpt-tips-md",
+          "repository": "24-Blocks",
+          "path": "AI Prompts/24 Blocks - ChatGPT Tips.md",
+          "title": "ChatGPT Tips",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/AI%20Prompts/24%20Blocks%20-%20ChatGPT%20Tips.md",
+          "content": "# ChatGPT Tips\n\nWhen crafting prompts for ChatGPT, here are some tips to get the most out of your interaction:\n\n1. **Be Explicit**: Clearly state what you want from the model. If you need information, a story, a joke, or any specific response, make sure to specify it in the prompt.\n\n2. **Provide Context**: If your question or request refers to something you've asked before or relies on certain knowledge, be sure to include that context in the prompt. As of its training cutoff in September 2021, GPT-4 doesn't have the capability to remember past interactions or learn new information after the training data.\n\n3. **Use Correct Formatting**: If you want a specific format for the response (like a list or a script), set up your prompt in the same format.\n\n4. **Direct the Tone and Style**: If you want a response in a particular style (like formal or casual) or tone (like funny or serious), make sure to specify this in your prompt.\n\n5. **Control the Length**: If you want a shorter or longer response, you can indicate this in your prompt.\n\n6. **Iterate**: If the model doesn’t give you what you want in the first try, feel free to adjust and refine your prompt, or ask the model to try again.\n\n**Here's an example of a well-constructed prompt**:\n\n\"Write a brief, formal introduction to a presentation about the importance of environmental sustainability in urban planning.\"\nAs always, the more specific you are with your prompts, the better the results will be.\n\n### Additional:\n\n1. **Guided Conversation**: It's okay to ask one question at a time to guide the conversation. For instance, you could ask \"Can I ask you a question?\" then wait for the response before proceeding with your main question. This can help when trying to get more specific or complicated information.\n\n2. **Prompt Hierarchy**: If you have multiple queries, order them strategically. Start with general questions and gradually move to more specific ones. This allows the model to better understand the context and provide more accurate responses.\n\n3. **Set Expectations**: If you're looking for creative output like a story or poem, give some guidance on the content you want. For instance, you could specify the genre, character types, or the kind of twist you want in the plot.\n\n4. **Nudge Towards a Different Perspective**: If you're unsatisfied with the answer you've received, try asking the same question but from a different angle or perspective. This will challenge the model to generate diverse responses.\n\n5. **Use Keywords**: Be sure to include important keywords in your prompt. For instance, if you want information about climate change, words like 'global warming', 'carbon emissions', 'greenhouse gases' might help the model understand the context better.\n\nRemember, refining the art of asking the right questions takes practice, so don't be disheartened if you don't get perfect results right away. Keep experimenting with your prompts until you get the response you desire.\n\n---"
+        },
+        {
+          "id": "24-blocks-ai-prompts-24-blocks-principle-of-three-md",
+          "repository": "24-Blocks",
+          "path": "AI Prompts/24 Blocks - Principle of Three.md",
+          "title": "Principle of Three Prompt",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/AI%20Prompts/24%20Blocks%20-%20Principle%20of%20Three.md",
+          "content": "# Principle of Three Prompt\n\nHere are several pages of a screenplay. Please analyze the provided material according to the following criteria:\n\nDoes the narrative replace 'and then' with 'therefore' or 'but' between key events to emphasize causation and make the story engaging?\nCan you identify instances where the 'Promise, Progress, Payoff' strategy is utilized, reflecting a cycle of expectation and resolution?\nAre the events in the story a series of interconnected 'but / because / therefore' moments rather than a collection of random occurrences?\nDo the terms 'And,' 'But,' and 'Therefore' serve their intended roles in the narrative structure - 'And' for continuation, 'But' for conflict introduction, and 'Therefore' for progress indication?\nIs the prose purposefully structured with each event building upon the previous one, as opposed to being merely decorative?\"\n\n---"
+        },
+        {
+          "id": "24-blocks-ai-prompts-24-blocks-suggested-additions-md",
+          "repository": "24-Blocks",
+          "path": "AI Prompts/24-Blocks - Suggested Additions.md",
+          "title": "Suggested Additions",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/AI%20Prompts/24-Blocks%20-%20Suggested%20Additions.md",
+          "content": "# Suggested Additions\n\n**Action & Dialogue:**\n\nAsk me one question at a time so I can answer before the next one. Then use the answers to finish the prompt.\n\nTo better enhance this scene with appropriate actions and dialogue.\n\nSome additional questions to be asked:\n\n- Scene's Theme: What central idea or message is this scene meant to convey?\n- How does it contribute to the overall themes of your screenplay?\n- Plot Context: Where does this scene fit into the overall narrative? \n- Is it a turning point, a moment of revelation, a buildup of tension, etc.?\n- Character Details: What are the crucial character traits, histories, or relationships that this scene is intended to highlight or develop?\n- Scene Goals: What specific outcomes are you hoping to achieve with this scene? \n- Are there any emotions or reactions you're aiming to elicit from your audience?\n\nBy understanding these elements, I can provide more accurate and useful suggestions for additions to the action and dialogue in this scene.\n\nPlease provide as much detail as you feel is relevant.\n\n- Write out a new version of the script edited using the above guidelines.\n- Write a brief 500-character summary of the changes in this new version.\n- What additional additions would you suggest after this edit?\n- Show the character count of the original screenplay input, the revised screenplay output and the total difference.\n\n---"
+        },
+        {
+          "id": "24-blocks-ai-prompts-readme-md",
+          "repository": "24-Blocks",
+          "path": "AI Prompts/README.md",
+          "title": "Table of Contents",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/AI%20Prompts/README.md",
+          "content": "<div align=\"right\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n<a href=\"https://24blocks.openstorystudio.com/\">Home</a>\n\n<div align=\"center\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n<img src=\"../Images/AfterglowPrompts.png\" />\n\n# Table of Contents\n\n<table>\n  <tr>\n    <td valign=\"top\">\n      \n1. [24 Blocks - ChatGPT Tips](https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/AI%20Prompts/24%20Blocks%20-%20ChatGPT%20Tips.md)\n2. [24 Blocks - Individual Critical](https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/AI%20Prompts/24%20Blocks%20-%20Individual%20Critical.md)\n3. [24 Blocks - Individual Intermediate](https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/AI%20Prompts/24%20Blocks%20-%20Individual%20Intermediate.md)\n4. [24 Blocks - Individual Fine-Tuning](https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/AI%20Prompts/24%20Blocks%20-%20Individual%20Fine-Tuning.md)\n5. [24 Blocks - Critique and Pacing](https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/AI%20Prompts/24%20Blocks%20-%20Critique%20and%20Pacing.md)\n    </td>\n    <td valign=\"top\">\n<ol start=\"6\">\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/AI%20Prompts/24%20Blocks%20-%20Copywriting%20and%20Marketing.md\">24 Blocks - Copywriting and Marketing</a></li> \n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/AI%20Prompts/24%20Blocks%20-%20Redundancy%20and%20Streamlining.md\">24 Blocks - Redundancy and Streamlining</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/AI%20Prompts/24%20Blocks%20-%20Structure%20and%20Characters.md\">24 Blocks - Structure and Characters</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/AI%20Prompts/24-Blocks%20-%20Suggested%20Additions.md\">24 Blocks - Suggested Additions</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/AI%20Prompts/24%20Blocks%20-%20Dialogue.md\">24 Blocks - Dialogue</a></li>\n</ol>\n    </td>\n  </tr>\n</table>\n\n<div align=\"left\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n# Harnessing AI in the Creative Process\n\n### Refining Your Screenplay with ChatGPT and 12 Essential Techniques\n\nScreenwriting is an intricate dance of creativity and technique. The artistry lies in the details - a meticulously chosen word, a well-structured narrative, or a character brought to life with compelling dialogues. In this post, we'll delve into twelve key techniques screenwriters can use to refine their work and discuss how artificial intelligence, specifically OpenAI's ChatGPT, can provide valuable assistance in this process.\n\n**1. Precision in Word Choice**\n\nWords are the building blocks of your screenplay, and each word holds immense power. The right word can not only convey the plot but also establish the desired mood and atmosphere. Leverage ChatGPT's linguistic capabilities to help you find just the right word or phrase.\n\n_ChatGPT prompts:_\n- \"ChatGPT, could you suggest a word that conveys extreme joy more effectively than 'happy' in this dialogue?\"\n- \"How can I express 'disgust' more creatively in this sentence?\"\n- \"Can you help me find a more powerful verb for this action scene?\"\n\n**2. Mastering Narrative Techniques**\n\nScreenwriting is more than dialogues. It involves employing various narrative techniques such as flashbacks, parallel editing, and non-linear storytelling to enrich and layer the story. ChatGPT can provide advice on how to best use these narrative tools.\n\n_ChatGPT prompts:_\n- \"How can I incorporate a flashback into this scene to provide more context?\"\n- \"Could you suggest a way to use parallel editing in this sequence?\"\n- \"How can I rewrite this section using non-linear storytelling?\"\n\n**3. Structural Thinking**\n\nA screenplay requires a solid structure to stand—like a building needs a blueprint. Understanding the structure of your screenplay - including character arcs, plot progression, and thematic elements - is crucial. ChatGPT can assist you in analyzing and refining your screenplay's structure.\n\n_ChatGPT prompts:_\n- \"Can you help me identify the three-act structure in my screenplay?\"\n- \"How can I ensure a smooth transition between these two scenes?\"\n- \"Could you suggest a way to strengthen this character's arc?\"\n\n**4. Creating a Mental Cinema**\n\nA well-written screenplay crafts a vivid movie in the reader's mind. It requires clear and compelling scene descriptions, engaging dialogues, and well-rounded characters. ChatGPT can guide you to enhance the visual appeal of your screenplay.\n\n_ChatGPT prompts:_\n- \"Can you suggest how to make this scene more immersive and vivid?\"\n- \"Could you help me describe this character's emotion in a more engaging way?\"\n- \"How can I better describe this location to enhance the mood of the scene?\"\n\n**5. Crafting a Narrative Vision**\n\nEach line in your screenplay should contribute to the overall tone, atmosphere, and feel of the envisioned movie. Use ChatGPT to ensure every scene and every word aligns with your narrative vision.\n\n_ChatGPT prompts:_\n- \"Could you suggest a way to align this scene with the overall tone of my screenplay?\"\n- \"How can I rewrite this dialogue to better match the atmosphere of the movie?\"\n- \"What changes can I make to this scene to enhance the overall narrative vision?\"\n\n**6. Show, Don't Tell**\n\nIn screenwriting, visual storytelling takes precedence over narration. Convey story points, character emotions, and situations through visual actions and dialogues instead of mere descriptions. ChatGPT can guide you on how to show rather than tell.\n\n_ChatGPT prompts:_\n- \"Can you help me show this character's anxiety instead of telling it?\"\n- \"How can I visually convey this story point?\"\n- \"Can you suggest a way to demonstrate the passage of time visually in this scene?\"\n\n**7. Foreshadowing**\n\nForeshadowing is a subtle art of hinting at future events in the story. It builds anticipation and keeps the readers engaged. ChatGPT can help you weave subtle foreshadowing clues into your narrative.\n\n_ChatGPT prompts:_\n- \"Could you suggest a subtle hint I could add to foreshadow this event?\"\n- \"How can I introduce foreshadowing into this dialogue?\"\n- \"Can you help me weave in a clue to this upcoming plot twist?\"\n\n**8. Conflict**\n\nConflict is the driving force of any story. It creates tension, drives the narrative, and engages the reader. Every scene should incorporate some form of conflict. ChatGPT can guide you on how to effectively introduce and resolve conflicts.\n\n_ChatGPT prompts:_\n- \"How can I introduce conflict into this scene to make it more engaging?\"\n- \"Can you suggest a way to escalate this conflict?\"\n- \"How can I resolve this conflict in a satisfying manner?\"\n\n**9. Pacing**\n\nThe pacing of your screenplay influences the rhythm and mood of your story. It needs to vary according to the narrative requirements. ChatGPT can assist you in adjusting the pacing of your scenes.\n\n_ChatGPT prompts:_\n- \"Can you suggest how to slow down the pacing in this scene?\"\n- \"How can I speed up the pace of this sequence to build tension?\"\n- \"Can you help me find a balance in pacing in this section?\"\n\n**10. Subtext**\n\nSubtext refers to the underlying meanings that aren't explicitly stated. It adds depth and layers to your screenplay, making it more engaging. ChatGPT can help you incorporate subtext into your dialogues and scenes.\n\n_ChatGPT prompts:_\n- \"Could you help me add subtext to this dialogue exchange?\"\n- \"How can I subtly hint at this character's past without stating it outright?\"\n- \"Can you suggest a way to add layers to this scene through subtext?\"\n\n**11. Character Development**\n\nKeeping track of your character's development throughout the screenplay is essential. ChatGPT can assist you in ensuring that your characters' actions align with their development and growth.\n\n_ChatGPT prompts:_\n- \"Can you help me track this character's development throughout the screenplay?\"\n- \"How can I depict this character's growth more effectively?\"\n- \"Could you suggest a meaningful character arc for this supporting character?\"\n\n**12. Theme**\n\nThe theme of your screenplay is the underlying message or the central idea. It should be subtly incorporated throughout the narrative. ChatGPT can assist you in integrating the theme seamlessly into your screenplay.\n\n_ChatGPT prompts:_\n- \"How can I weave the theme into this scene in a more seamless way?\"\n- \"Can you suggest a way to express the theme through this character's journey?\"\n- \"How can I ensure that the theme is consistently explored throughout the screenplay?\"\n\nBy harnessing the power of these twelve techniques and utilizing the assistance of AI like ChatGPT, your screenplay can evolve into a finely-crafted narrative that grips your audience. Remember, every detail counts - both in individual scenes and the screenplay as a whole. Ensure that every word, every scene, and every narrative choice aligns with your overall vision, serving your story and characters effectively. \n\n---"
+        }
+      ]
+    },
+    {
+      "id": "24b-ai",
+      "number": 27,
+      "topic": "responsible-ai",
+      "title": "AI at Every Structural Level",
+      "duration": "30–40 min",
+      "overview": "Use optional AI to question, compare and propose at beat, scene, mini-block, Block, sequence and act levels while keeping approval, authorship and canon with the writer.",
+      "objectives": [
+        "Choose the correct structural level for an AI task.",
+        "Bound context and constraints.",
+        "Preserve human approval and project truth."
+      ],
+      "sections": [
+        {
+          "heading": "Match the request to the level",
+          "paragraphs": [
+            "A scene-dialogue problem needs different context than an act-level escalation problem. Smaller, clearer context packs reduce invention and make review easier."
+          ],
+          "points": [
+            "Beat: tactics or subtext alternatives.",
+            "Scene: objective, opposition and turn.",
+            "Mini-block: movement options.",
+            "Block: escalation and payoff.",
+            "Sequence: local arc.",
+            "Act: phase-level diagnosis."
+          ]
+        },
+        {
+          "heading": "How PlotPickle applies this",
+          "paragraphs": [
+            "AI remains optional. PlotPickle can prepare bounded prompts from the active level, but nothing enters the project or becomes canonical until the writer approves it."
+          ],
+          "points": [
+            "Generated",
+            "Reviewed",
+            "Revised",
+            "Approved",
+            "Canonical"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Context pack",
+          "meaning": "Only the project information needed for one bounded task."
+        },
+        {
+          "term": "Approval boundary",
+          "meaning": "The separation between a generated proposal and writer-approved project truth."
+        }
+      ],
+      "example": {
+        "title": "Block-level request",
+        "text": "Propose three Pressure movements for Block 9 using the approved objective, antagonist strategy and world rules. Do not add characters or change the promised Payoff."
+      },
+      "checklist": [
+        "The structural level is named.",
+        "Context is minimal and relevant.",
+        "Canon locks are explicit.",
+        "Alternatives are reviewed.",
+        "No-AI work remains possible."
+      ],
+      "mistakes": [
+        "Sending the entire project for a local question.",
+        "Accepting fluent output as canon.",
+        "Asking AI to decide authorship-level choices without review."
+      ],
+      "exercise": "Write one bounded AI prompt for the active Block and a second no-AI diagnostic that solves the same problem manually.",
+      "apply": "Block plan",
+      "tags": [
+        "Blocks with AI",
+        "AI",
+        "writer approval",
+        "authorship",
+        "context pack",
+        "canon"
+      ],
+      "original": {
+        "number": 23,
+        "path": "Responsible AI"
+      },
+      "sources": []
+    },
+    {
+      "id": "collaboration-ai-github-publishing",
+      "number": 47,
+      "topic": "responsible-ai",
+      "title": "AI, GitHub and Public Publishing as Optional Tools",
+      "duration": "25–35 min",
+      "overview": "Use AI assistance, private version control, social serialization and public repositories as separate optional choices while protecting context, consent, continuity, provenance and writer approval.",
+      "objectives": [
+        "Distinguish AI-assisted, AI-generated and no-AI workflows without claiming one universal legal classification.",
+        "Use provider-independent AI with bounded context, provenance and explicit approval.",
+        "Separate private collaboration from public publishing and promotional serialization."
+      ],
+      "sections": [
+        {
+          "heading": "Choose the tool after defining the task",
+          "paragraphs": [
+            "AI can ask questions, critique, identify evidence, compare alternatives or propose a revision for review. GitHub can preserve proposed versions and discussion. Social platforms can publish or serialize selected material. None of these tools is required to use the 24 Blocks method or write a screenplay in PlotPickle.",
+            "Avoid treating AI-assisted, AI-generated and no-AI as universal legal categories. Record what actually happened: the provider, task, supplied context, output retained, human changes and approval decision."
+          ]
+        },
+        {
+          "heading": "Bound context and preserve approval",
+          "paragraphs": [
+            "Share the smallest canonical scope needed for the task. Do not send confidential collaborator material, private research, personal data, culturally sensitive material or third-party content without permission and a reasoned provider choice.",
+            "Keep generated output separate from the original. The writer reviews evidence, invented facts, continuity risk, voice drift and rights concerns before retaining anything."
+          ],
+          "points": [
+            "Provider-independent setup",
+            "Smallest useful context",
+            "Task and operation named",
+            "Provenance recorded",
+            "Original preserved",
+            "Explicit writer approval"
+          ]
+        },
+        {
+          "heading": "Collaboration is not publication",
+          "paragraphs": [
+            "A private repository supports invited collaboration. A public repository makes material visible. A social post serializes or promotes selected material. An open licence grants stated reuse permissions. These controls should never be collapsed into one public/private switch."
+          ],
+          "points": [
+            "Private team access",
+            "Public source access",
+            "Promotional publishing",
+            "Openly licensed reuse"
+          ]
+        },
+        {
+          "heading": "Route craft work to guided revision",
+          "paragraphs": [
+            "Detailed AI craft instruction belongs in PlotPickle's AI-Assisted Revision collection from issue #49. Choose a focused pass, operation and canonical scope, then route only approved work to the relevant specialist engine or lab.",
+            "Public publishing decisions should also consider confidentiality, consent, cultural care, continuity, third-party rights, platform terms and whether early disclosure harms later submission or commercial plans."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "AI-assisted",
+          "meaning": "A workflow in which a person uses an AI system for defined support while retaining responsibility for selection, revision and approval."
+        },
+        {
+          "term": "Bounded context",
+          "meaning": "Only the smallest approved project material needed for the task is supplied to a provider."
+        },
+        {
+          "term": "Serialization",
+          "meaning": "Publishing a work in selected instalments or posts rather than sharing the complete private project."
+        }
+      ],
+      "example": {
+        "title": "Private diagnosis, no automatic rewrite",
+        "text": "The writer sends one scene and its character goals to a chosen provider, requests critique only, records the provider and date, rejects an invented backstory and retains two questions. The screenplay remains private; nothing is posted publicly or merged automatically."
+      },
+      "checklist": [
+        "The task can be explained without naming a model brand.",
+        "The smallest canonical scope is selected.",
+        "Confidentiality, consent and provider terms are considered.",
+        "The original remains visible beside any proposal.",
+        "Retained material has provenance and explicit approval.",
+        "Private collaboration, public publishing and open licensing are separate decisions."
+      ],
+      "mistakes": [
+        "Sending the complete project when one scene is enough.",
+        "Treating confident output as verified evidence.",
+        "Using a public repository for private review by accident.",
+        "Assuming a social post grants or protects rights.",
+        "Repeating generic prompt advice instead of using the guided revision playbooks."
+      ],
+      "exercise": "Choose one optional tool for the active project: AI, private GitHub, public repository or social serialization. State the exact purpose, context boundary, access level, approval step and reason the other tools are not required for this task.",
+      "apply": "Screenplay",
+      "tags": [
+        "AI-assisted",
+        "AI-generated",
+        "no-AI",
+        "provider-independent",
+        "bounded context",
+        "GitHub",
+        "public publishing",
+        "serialization",
+        "privacy",
+        "consent",
+        "provenance",
+        "AI-Assisted Revision",
+        "LLMs, Twitter, GitHub, and AI",
+        "LLMs and AI Navigation"
+      ],
+      "original": {
+        "number": 43,
+        "path": "Responsible AI"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-ai-prompts-24-blocks-structure-and-characters-md",
+          "repository": "24-Blocks",
+          "path": "AI Prompts/24 Blocks - Structure and Characters.md",
+          "title": "Structure, Characters, Conflict, & Beyond",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/AI%20Prompts/24%20Blocks%20-%20Structure%20and%20Characters.md",
+          "content": "# Structure, Characters, Conflict, & Beyond\n\n### 24 Blocks Summary:\n\nThis AI-prompt acts as a comprehensive resource for effectively leveraging ChatGPT to refine your screenplay. Given ChatGPT's data limitations, the focus is on creating impactful, inclusive, and engaging 5-page segments.\n\nThe prompt offers a detailed roadmap to enhance crucial aspects of your screenplay. It emphasizes Story Outline and Structure, Character Development, Emotion and Conflict, and Dialogue Enhancement, recommending an efficient yet thorough editing process for each segment.\n\nFurthermore, this resource advocates users' feedback, consistent review of theme portrayal, and persistent visual imagery for a captivating reader experience. It urges users to verify character motivations' consistency and assess each scene's contribution to the narrative arc. The exploration of genre-specific elements, symbolism, setting nuances, sensory details, and the importance of foreshadowing and subtext for enriching the story, are also underscored.\n\nSimultaneously, it guides users to maintain an efficient use of space within each 5-page sequence and focuses on crafting a cohesive and engaging narrative, ensuring inclusivity and authenticity in dialogue and character representation.\n\nThe ultimate goal of this AI-prompt is to eliminate redundancy, improve screenplay formatting, and maintain visual and auditory impact. By adhering to these key elements, users can elevate their screenplay, effectively bringing their story to life on the page, and crafting a screenplay that genuinely resonates with readers.\n\n#### Prompt:\n\nEnsure the story beats and plot points flow logically and maintain coherence.\nEvaluate the pacing to create tension and suspense.\n\nEmotion and Conflict: Evaluate how emotions are portrayed through character actions and dialogue.\nAssess the level of conflict and tension within each segment to keep the story engaging.\n\nCharacter Development: Assess the depth and consistency of character traits within the given segment.\nVerify that character actions and decisions align with their established personalities.\n\nDialogue Enhancement: Review the authenticity and uniqueness of dialogue for each character.\nIdentify and eliminate any repetitive or redundant lines to maintain efficiency.\n\nScript Analysis and Feedback: Look for inconsistencies in character motivations or plot points that need further development.\n\nTheme, Irony, and Prose: Evaluate how themes are explored within the segment, ensuring inclusivity.\nPolish the prose, eliminating excessive exposition and heavy-handed storytelling.\nVisual Imagery:\n\nRetain visual descriptions that enhance the reader's understanding and immersion.\nConsider opportunities to strengthen visual metaphors or symbolism within the segment.\n\nCharacter Motivations: Review character motivations for consistency.\nClarify any actions or decisions that may require further development or explanation.\n\nScene Analysis and Narrative Arc: Analyze each scene's contribution to the overall story arc. Remove scenes that do not advance the plot, develop characters, or provide necessary information.\n\nGenre-Specific Elements & World-Building: Ensure adherence to genre conventions while introducing innovative elements. Strengthen world-building by incorporating relevant details within the segment.\n\nSymbolism and Setting: Identify and reinforce any symbolic elements within the given segment.\nEnhance the setting descriptions to create a vivid and immersive experience.\n\nSensory Details: Infuse sensory details that engage the reader's imagination.\nConsider how each scene appeals to various senses, enhancing the overall experience.\n\nForeshadowing: Identify opportunities for subtle foreshadowing within the segment.\nAvoid heavy-handed hints, maintaining an element of surprise and anticipation.\n\nSubtext: Explore opportunities to add subtext to the dialogue and character interactions.\n\nCreate layers of meaning that enrich the story and character dynamics.\n\n- Write a brief 500-character summary of the changes in this new version.\n- What additional additions would you suggest after this edit?\n- Show the character count of the original screenplay input, the revised screenplay output and the total difference.\n\n---"
+        }
+      ]
+    }
+  ]
+}

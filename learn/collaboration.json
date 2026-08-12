@@ -1,0 +1,1091 @@
+{
+  "schemaVersion": "2.0",
+  "topic": {
+    "id": "collaboration",
+    "title": "Collaboration"
+  },
+  "lessonCount": 12,
+  "sourceCount": 17,
+  "lessons": [
+    {
+      "id": "collaboration-choose-workflow",
+      "number": 43,
+      "topic": "collaboration",
+      "title": "Choose Your PlotPickle Workflow",
+      "duration": "15–20 min",
+      "overview": "Compare five valid ways to write with PlotPickle and choose the least complicated workflow that protects the project, supports the people involved and matches the intended level of technology and openness.",
+      "objectives": [
+        "Compare local-only, file exchange, AI-assisted, private GitHub and public/open workflows.",
+        "Separate the writing method from optional infrastructure and publishing choices.",
+        "Record one canonical project, one owner-approved version and one backup plan."
+      ],
+      "sections": [
+        {
+          "heading": "Begin with the creative relationship",
+          "paragraphs": [
+            "The correct workflow is not the one with the most tools. It is the smallest system that lets the writer create, recover work, invite the right people and make decisions without losing the source of truth.",
+            "Solo local use is a complete PlotPickle workflow. GitHub, an AI provider, a public repository and an open licence are optional paths rather than requirements for normal writing."
+          ],
+          "points": [
+            "Solo and entirely local: Write, plan, revise and back up the project on your own device. No cloud account, GitHub repository or AI provider is required.",
+            "Local with file exchange: Keep one approved project file, exchange named .ppf copies with trusted collaborators and compare changes before adopting them.",
+            "Local with optional AI assistance: Connect a provider only for bounded tasks, preserve provenance and require explicit writer approval before retaining suggestions.",
+            "Private team collaboration: Use an owner-controlled private repository for proposed alternate versions, anchored review and approved merges without making the screenplay public.",
+            "Public or openly licensed project: Publish or license only after separating access, reuse permission, contributor rights, third-party material and brand restrictions."
+          ]
+        },
+        {
+          "heading": "Name the canonical project",
+          "paragraphs": [
+            "Choose the file or controlled project home that represents the approved story. Draft copies, review exports and proposed alternatives should be named as such rather than silently replacing it.",
+            "A backup protects against loss. A proposal protects against unwanted replacement. A public copy provides access. These are different functions and may use different tools."
+          ],
+          "points": [
+            "Canonical project",
+            "Named working copy",
+            "Recovery backup",
+            "Review copy",
+            "Publication copy"
+          ]
+        },
+        {
+          "heading": "Choose only what the project needs",
+          "paragraphs": [
+            "Add file exchange when another person needs to work independently. Add private version control when multiple contributors need reviewable proposals and history. Add AI only for a defined task with bounded context. Publish only when public access is itself part of the plan."
+          ],
+          "points": [
+            "No online account is required for local writing.",
+            "No AI provider is required for drafting or revision.",
+            "A private collaboration space is not public access.",
+            "Public visibility is not permission to reuse."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Canonical project",
+          "meaning": "The owner-approved project version treated as the current source of truth."
+        },
+        {
+          "term": "Workflow",
+          "meaning": "The repeatable path used to create, save, review, approve, exchange and publish work."
+        },
+        {
+          "term": "Infrastructure",
+          "meaning": "Optional supporting tools such as cloud storage, GitHub or an AI provider; not the story method itself."
+        }
+      ],
+      "example": {
+        "title": "A two-writer feature without public access",
+        "text": "The owner keeps the canonical .ppf project locally, exchanges dated proposal files with the co-writer, uses a private GitHub repository only when review volume grows, and exports PDF copies for readers. The screenplay is never public and no open licence is applied."
+      },
+      "checklist": [
+        "The owner and decision maker are named.",
+        "The canonical project is identifiable.",
+        "The backup and recovery method is defined.",
+        "Each collaborator knows whether they may edit, comment, approve or publish.",
+        "Optional AI, GitHub and public-sharing choices are documented separately."
+      ],
+      "mistakes": [
+        "Assuming every writer needs GitHub.",
+        "Calling every copy the final version.",
+        "Treating a backup as a collaboration workflow.",
+        "Publishing because sharing privately feels inconvenient.",
+        "Adding AI before defining the task and approval boundary."
+      ],
+      "exercise": "Choose one of the five workflow paths for the active project. Write one sentence naming the canonical file, one sentence naming who can approve changes and one sentence naming the recovery backup.",
+      "apply": "Treatment",
+      "tags": [
+        "workflow",
+        "local-first",
+        "file exchange",
+        "AI-assisted",
+        "private GitHub",
+        "public repository",
+        "open licence",
+        "canonical project",
+        "GitHub for Screenwriters"
+      ],
+      "original": {
+        "number": 39,
+        "path": "Development"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-blog-github-for-screenwriters-md",
+          "repository": "24-Blocks",
+          "path": "Blog/Github for Screenwriters.md",
+          "title": "GitHub for Screenwriters: A Step-by-Step Guide",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Blog/Github%20for%20Screenwriters.md",
+          "content": "# GitHub for Screenwriters: A Step-by-Step Guide\n\nScreenwriting, like all forms of art, is continuously evolving. The digital age has brought about new tools and practices that have profoundly impacted the craft, and one such innovation is the use of GitHub. While primarily a tool for developers, GitHub's potential for screenwriting is immense.\n\nIn this blog post, we will explore how to harness the power of GitHub for screenwriting, making the screenwriting process more collaborative, organized, and innovative.\n\n### What is GitHub?\n\nGitHub is a web-based hosting service for version control using Git. It allows multiple people to work on projects concurrently, making it an ideal platform for collaboration. While traditionally used for code, it can also be used for any text-based work, including screenplays.\n\n### Getting Started with GitHub\n\n1. **Create an Account**: First, visit the [GitHub website](https://github.com/) and create an account. Choose a username that represents you or your project, and select a plan. The free plan should be enough for most screenwriters.\n\n2. **Install Git**: You need to install Git on your computer. It's the tool that will allow you to track changes in your screenplay. You can download it from the [official Git website](https://git-scm.com/downloads).\n\n3. **Create a Repository**: Once your account is set up, create a new repository. You can think of a repository as a project folder. Name it appropriately, and write a brief description of your screenplay. Make sure to initialize the repository with a README file, which can include information about the screenplay, the characters, or any other relevant information.\n\n4. **Upload your Screenplay**: You can write your screenplay directly on GitHub, but it's more likely you'll write it using a dedicated screenwriting software. If that's the case, save it as a text file and upload it to the repository. To do this, click on 'Upload files' in your repository, drag and drop the files, and click on 'Commit changes'.\n\n*Note:* For scripts and screenplays, the most common plain text format is Fountain (.fountain). Fountain is a plain text markup language for screenwriting that lets you write, edit, and read screenplay scripts on any device, and it's compatible with several screenwriting software applications, including Final Draft. \n\n### Collaborating with GitHub\n\nOne of GitHub's greatest strengths is its collaborative capabilities. Here's how to use them:\n\n1. **Invite Collaborators**: You can invite other writers to collaborate on your screenplay by navigating to the 'Settings' of your repository, then to the 'Manage Access' tab, and finally, clicking on 'Invite a collaborator'.\n\n2. **Use Branches**: In GitHub, the main version of your screenplay is on the 'main' branch. You can create additional branches for different versions of the screenplay. This is useful for experimenting with different plot developments or characters. You can create a new branch using the branch dropdown menu in your repository.\n\n3. **Merge Changes**: Once you're happy with the changes made on a branch, you can merge them back into the main branch. This can be done through a pull request, which is essentially a proposal to merge changes from one branch to another.\n\n4. **Resolve Conflicts**: If different people make conflicting changes to the screenplay, GitHub will highlight these conflicts. You can then discuss the changes and decide which ones to keep.\n\n### Screenwriting in the Open Source World\n\nBy using GitHub, you're joining a large and diverse community. It's important to remember the open-source ethos: share, collaborate, and give credit. To ensure you get proper credit for your work, consider adding a license to your screenplay. This allows others to use and modify your work, as long as they give you credit. GitHub makes it easy to add a license when you create a new repository.\n\nScreenwriting with GitHub may seem daunting, but the benefits it brings are immense. With GitHub, your screenplay can evolve in ways you may not have imagined, shaped by different perspectives and ideas. It's a new frontier in screenwriting, one that can lead to richer, more nuanced storytelling.\n\n### Markdown for Formatting\n\nGitHub uses a lightweight markup language called Markdown for text formatting. While you won't be able to match the exact format of a screenplay, you can still create a clear, easy-to-read document. You can use headers for scene locations, bold text for character names, and lists for dialogues.\n\n### Commenting and Discussing\n\nAnother important aspect of collaboration on GitHub is commenting. Each line of a script can be commented on, facilitating discussion between collaborators. To comment on a line, navigate to the 'Files changed' tab in a pull request and click on the line you want to comment on.\n\n### Staying Organized\n\nWhen working on a screenplay, especially with others, it's crucial to stay organized. GitHub offers several features to help with this:\n\n1. **Issues**: Issues are a way to track tasks, enhancements, and bugs for your projects. You could create an issue for each scene that needs to be written, or for any major changes you're considering.\n\n2. **Projects**: The Projects feature is a kanban board, a visual way to track issues. You can create columns (for example, 'To do', 'In progress', 'Done') and move issues between them as work progresses.\n\n3. **Labels and Milestones**: You can use labels and milestones to categorize and filter your work, making it easy to see the status of different parts of your screenplay at a glance.\n\n### Engaging the Community\n\nRemember, one of the main advantages of GitHub is its vibrant community. Engage with your fellow writers, ask for feedback, and be responsive to comments and suggestions. Building a strong community around your project can lead to a better end product, and it's a great way to network with other screenwriters.\n\nIn conclusion, GitHub brings an array of opportunities to screenwriters, from collaboration to version control, making the creative process more interactive and dynamic. Embracing these digital tools can lead to exciting, unexpected developments in your work, pushing your storytelling to new frontiers. Happy writing!\n\n---"
+        },
+        {
+          "id": "24-blocks-blog-open-sourcing-your-screenplay-md",
+          "repository": "24-Blocks",
+          "path": "Blog/Open-Sourcing Your Screenplay.md",
+          "title": "Open-Sourcing Your Screenplay",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Blog/Open-Sourcing%20Your%20Screenplay.md",
+          "content": "# Open-Sourcing Your Screenplay\n### A Path Towards Collaboration, Innovation, and Visibility\n\nThere's a quiet revolution taking place in the world of content creation. It's happening in various sectors, from software development to scientific research, and now it's knocking on the doors of the entertainment industry. The revolution in question? Open-sourcing.\n\nIn the world of software development, open-source has been transformative. It's a principle that has led to the creation of highly successful projects like Linux, Python, and indeed, GitHub itself. Now, it's time to discuss how this practice could revolutionize another industry: scriptwriting. \n\n### What is Open-Source?\n\nBefore we jump in, let's clarify what open-source means. Open-source projects are those that are freely available for anyone to view, use, modify, and distribute. The term originated from the software industry, where developers would share their code openly, allowing others to use and improve upon it. This approach encourages collaboration and innovation, resulting in more robust, efficient, and successful projects.\n\n### Why Open-Source Your Screenplay?\n\n### 1. Collaboration\n\nBy open-sourcing your screenplay on GitHub, you open the door to an unprecedented level of collaboration. Other writers, directors, and creatives can provide feedback, suggest changes, or even contribute directly to your work. This type of collaboration can lead to the development of richer, more nuanced, and diverse scripts.\n\n### 2. Innovation\n\nOpen-source projects thrive on innovation. With more minds working on a project, new ideas and perspectives will inevitably arise. By making your script open-source, you may find others bringing innovative solutions to plot problems, character development, and thematic elements you hadn't thought of.\n\n### 3. Skill Development \n\nBy open-sourcing your work, you expose yourself to the feedback and ideas of a global community. This feedback can lead to tremendous growth as a writer. It's akin to having a team of mentors providing different viewpoints, all of which can contribute to your understanding and skill as a screenwriter.\n\n### 4. Greater Visibility\n\nOpen-sourcing your screenplay can result in increased exposure. By placing your work on a platform like GitHub, your screenplay can be viewed by a wider audience, attracting interest from producers, directors, or other creatives who might want to work with you or use your screenplay.\n\n## Using GitHub for Your Screenplay\n\nGitHub may seem like an unconventional choice for screenwriters, but its strengths lie in its robust version control and collaborative capabilities. Here are a few reasons to consider using GitHub:\n\n### 1. Version Control\n\nEvery time you make changes to your screenplay, GitHub keeps track of these changes. This is called version control. It allows you to see the evolution of your screenplay over time and even revert to an earlier version if needed.\n\n### 2. Branching and Merging\n\nWith GitHub, different versions of a screenplay can be developed concurrently. These different versions, known as branches, can later be merged. This feature allows for experimentation without affecting the original screenplay.\n\n### 3. Pull Requests\n\nGitHub's pull request feature allows other users to propose changes to your screenplay. You can then review these changes, have a discussion about them, and decide whether to include them in your project.\n\n### 4. Community\n\nGitHub hosts a large community of creatives and technologists. By sharing your screenplay on this platform, you're likely to connect with others who have a passion for storytelling and may want to contribute to your project.\n\nIn conclusion, open-sourcing your screenplay is a bold and innovative step. It invites collaboration, promotes innovation, fosters skill development, and increases visibility. With platforms like GitHub, the process becomes manageable and productive. By embracing the open-source approach, we might just be ushering in a new era ofcollective creativity and inclusivity in screenwriting.\n\nBy open-sourcing, we break down traditional barriers in the creative process, allowing for a more democratic approach to content creation. In an era where the demand for diverse, fresh, and engaging stories is at its peak, this method allows everyone, from anywhere, to contribute to the narrative. This opens up a world of possibilities, pushing the boundaries of traditional storytelling and setting the stage for stories that are truly global and representative of our shared human experience.\n\nOpen-source culture in screenplay writing could also lead to the democratization of access to the filmmaking process. Traditionally, breaking into screenwriting or film production can be a challenge due to various barriers like geographical location, access to industry connections, and opportunities. Open-sourcing screenplays could potentially level the playing field, providing new writers with a platform to showcase their talents and make meaningful connections within the industry.\n\nFinally, consider the potential for learning and teaching. An open-source screenplay can act as a living document, serving as a teaching tool for other aspiring writers. They can observe the development process, learn from the changes and decisions made, and perhaps even participate in its evolution. \n\nIn a rapidly digitizing world, the open-source movement is just one example of how we can use technology to push boundaries, foster collaboration, and drive innovation. By opening up our creative processes, we're not just creating better screenplays; we're also creating a more inclusive, collaborative, and dynamic creative culture. So, why not give open-sourcing a try? It could change the way you write — and the way the world tells stories.of collective\n\n---"
+        },
+        {
+          "id": "24-blocks-blog-readme-md",
+          "repository": "24-Blocks",
+          "path": "Blog/README.md",
+          "title": "Table of Contents",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Blog/README.md",
+          "content": "<div align=\"right\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n<a href=\"https://24blocks.openstorystudio.com/\">Home</a>\n\n<div align=\"center\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n# Table of Contents\n\n<table>\n  <tr>\n    <td valign=\"top\">\n      \n1. [Github for Screenwriters](https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Blog/Github%20for%20Screenwriters.md)\n2. [Github Collaborative Writing](https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Blog/Github%20Collaborative%20Writing.md)\n3. [Github Mastering Markdown](https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Blog/Github%20Mastering%20Markdown.md)\n4. [Github Merging Final Draft and Text](https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Blog/Github%20Merging%20Final%20Draft%20and%20Text.md)\n    </td>\n    <td valign=\"top\">\n<ol start=\"5\">\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Blog/Open-Sourcing%20Licensing%20and%20Protection.md\">Open-Sourcing Licensing and Protection</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Blog/Open-Sourcing%20Your%20Screenplay.md\">Open-Sourcing Your Screenplay</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Blog/LLMs%2C%20Twitter%2C%20Github%2C%20and%20AI.md\">LLMs, Twitter, Github, and AI</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/Blog/LLMs%20and%20AI%20Navigation.md\">LLMs and AI Navigation</a></li>\n</ol>\n    </td>\n  </tr>\n</table>\n\n---"
+        },
+        {
+          "id": "24-blocks-collaborators-readme-md",
+          "repository": "24-Blocks",
+          "path": "Collaborators/README.md",
+          "title": "Your Role And Key Questions",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Collaborators/README.md",
+          "content": "<div align=\"right\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n<a href=\"https://24blocks.openstorystudio.com/\">Home</a>\n\n<div align=\"left\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n# Your Role And Key Questions \n\nGreetings, fellow creators!\n\nI'm thrilled to welcome you to Afterglow, a unique open-source storytelling project. As a solo endeavor, your insights and creative sparks play an invaluable role in bringing the narrative to life. Let's shed some light on how you can contribute and what to expect throughout this collaborative process.\n\n### Blocks and Acts\nWithin each act of Afterglow, you'll find 'blocks' - important narrative milestones akin to book chapters. These blocks are accessible via our GitHub page. Feel free to explore, consider the guiding questions, and share your unique insights directly on the platform.\n\n### The Process Post-Submission\nAs the sole manager of Afterglow, every piece of your feedback goes through me. I personally review each contribution, assessing its alignment with the story's overall direction. Though this might mean a slower response time, please rest assured your input is never overlooked.\n\n### Feedback and Communication\nThere may be instances where some suggestions won't find a place in the current narrative. In these cases, I'll do my best to provide constructive feedback and explain the decisions made. I believe in maintaining an open, honest dialogue with all contributors.\n\n### Unlimited Contributions\nFeel free to contribute to any number of blocks in any order. Whether you're deep-diving into one block at a time or juggling multiple, it's entirely up to you!\n\n### Embracing the Creative Commons \nRemember, as an open-source project, Afterglow grants you the freedom to adapt and build upon the narrative, creating your own version of the story. All we ask is that you adhere to the Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) agreement, ensuring the spirit of collaborative storytelling thrives.\n\nScreenwriters typically have traditional copyrights for their works, which means they reserve all rights to the content they have created. This allows them to control how the work is used, distributed, and modified, often through legal agreements with studios and producers.\n\nOpen Source licensing, such as the Creative Commons ShareAlike 4.0 (CC BY-SA 4.0), is different. This type of license allows others to share, modify, and even build upon the work, provided they give proper attribution to the original author and license their new creations under the identical terms. It's a more permissive way of sharing creative works.\n\nIn most professional screenwriting contexts, the traditional copyright model would be more common, while the open-source model would be more aligned with collaborative or community-driven projects. They serve different purposes and are used in different contexts based on the creator's intent and the nature of the project.\n\n### Evolving Together \nShould the day come when a million brilliant minds converge on Afterglow (a problem I'd be thrilled to have!), the process will certainly need revisiting. However, without immediate resources for scaling, we'll cross that bridge when we come to it. For now, let's focus on weaving our narrative tapestry together.\n\nThank you for joining me on this creative journey. Your imagination, collaboration, and patience truly make Afterglow glow. Together, let's craft a narrative that's as luminous and inspiring as its name suggests. \n\n# Key Questions To Consider\n\nIn storytelling, the four-act structure serves as a blueprint, guiding us through distinct narrative phases. For Afterglow, these acts are subdivided into sections known as 'blocks'. As a contributor, it's crucial to understand the purpose of each act to shape and enhance the story effectively. Here are some key questions you might want to consider for each act:\n\n**Act 1: Setup**\nThe first act introduces us to the world and characters. In this act, ask yourself:\n1. \"Do the characters' introductions set the right tone for the narrative?\"\n2. \"Are the characters compelling and believable?\"\n3. \"Does the initial setting effectively immerse the reader in the story's world?\"\n4. \"Are there hints at the conflicts or challenges the characters might face?\"\n5. \"Does the end of Act 1 incite curiosity and anticipation for what's to come?\"\n6. \"Does the act, overall, provide a solid foundation for the story?\"\n\n**Act 2: Confrontation**\nAct 2 sees our characters responding to the 'Call to Adventure'. Key questions include:\n1. \"How effective is the 'Call to Adventure'?\"\n2. \"Are the characters' reactions to the call believable and in line with their introduced personas?\"\n3. \"Do the challenges introduced evoke suspense and excitement?\"\n4. \"Is there a noticeable escalation in the story's stakes?\"\n5. \"Do the complications introduced thicken the plot and deepen character development?\"\n6. \"Does Act 2 end with a strong midpoint that further complicates matters?\"\n\n**Act 3: Building Action**\nThis act builds upon the confrontation and develops the plot further. Consider the following:\n1. \"Is the narrative's pacing consistent and engaging?\"\n2. \"Do the characters evolve with the rising action and conflicts?\"\n3. \"How well does this act present additional twists or complications?\"\n4. \"Do the events and character reactions keep the audience invested?\"\n5. \"Is there a clear build-up to the climax?\"\n6. \"Does Act 3 successfully set up for a satisfying resolution?\"\n\n**Act 4: Resolution**\nFinally, Act 4 is where we find our climax and resolution. Reflect on these points:\n1. \"Does the story reach a compelling and satisfying climax?\"\n2. \"Are the primary conflicts and challenges resolved convincingly?\"\n3. \"Do the characters demonstrate growth from their experiences?\"\n4. \"Does the resolution align with the narrative's themes and overall trajectory?\"\n5. \"Are there any loose ends that need tying up?\"\n6. \"Does the story end on a satisfying note, considering its previous developments?\"\n\nBy considering these questions, you can provide valuable insight to make Afterglow a richer and more engaging narrative experience.\n\n---"
+        },
+        {
+          "id": "24-blocks-opensource-1-million-voices-md",
+          "repository": "24-Blocks",
+          "path": "OpenSource/1 Million Voices.md",
+          "title": "1 MILLION CREATORS, COLLABORATORS, VOICES",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/OpenSource/1%20Million%20Voices.md",
+          "content": "<div align=\"right\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n<a href=\"https://24blocks.openstorystudio.com/\">Home</a>\n\n<div align=\"left\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n<a id=\"top\"></a>\n\n<div align=\"center\">\n  \n<table>\n  <tr>\n    <h3>Table of Contents</h3>\n    <td>\n      <ol>\n        <li><a href=\"#introduction\">Introduction</a></li>\n        <li><a href=\"#connect-grow-impact\">Connect, Grow, Impact</a></li>\n        <li>\n          <a href=\"#how-to-participate\">How to Participate</a>\n          <ul>    \n            <li><a href=\"#disclaimer-regarding-contributions-and-copyright\">Contributions & Copyright</a></li>\n            <li><a href=\"#contribute-to-the-original-afterglow\">Contribute To The Original 'Afterglow'</a></li>\n            <li><a href=\"#create-your-own-afterglow-version\">Create Your Own 'Afterglow' Version</a></li>\n          </ul>\n        </li>\n      </ol>\n    </td>\n    <td>\n      <ol start=\"4\">\n        <li><a href=\"#benefits-for-collaborators\">Benefits for Collaborators</a></li>\n        <ul>  \n        <li><a href=\"#the-impact\">The Impact</a></li>\n        <li><a href=\"#the-open-source-process\">The Open-source Process</a></li>\n         </ul>\n        <li><a href=\"#traditional-vs-innovation\">Traditional vs Innovation</a></li>\n        <li><a href=\"#disclaimer\">Disclaimer</a></li>\n      </ol>\n    </td>\n  </tr>\n</table>\n\n</div>\n\n<br>\n\n---\n\n## 1 MILLION CREATORS, COLLABORATORS, VOICES\n\nA Personal Journey: I want to be transparent—it's currently just me behind this initiative. But every big dream starts with a single step, and I'm taking that step with hope and vision for a collaborative future. Your voice, feedback, and participation can make a world of difference. Let's embark on this journey together, and see how far we can go.\n\n---\n\n### Clarifying the Vision Behind \"1 Million Voices\"\n\nI understand that terms like \"1 Million Voices\" can carry weight, expectations, and potential misconceptions. I'd like to take a moment to provide clarity and address some of the potential concerns you might have:\n\n1. **Potential Overpromise**: The name \"1 Million Voices\" symbolizes an aspirational vision of inclusivity and broad reach. While we'd love to touch a million lives, we recognize the enormity of this goal. Our focus is on the quality of collaboration and the value of each voice, rather than just sheer numbers.\n\n2. **Marketing and Branding**: While \"1 Million Voices\" is indeed catchy and memorable, we want to assure you that our project isn't based on marketing gimmicks. Our intention is to foster genuine collaboration and creativity, and the name represents our hope for a vast, inclusive community.\n\n3. **Ambiguity Resolved**: \"1 Million Voices\" is metaphorical. It's a representation of our desire to hear from as many diverse voices as possible. We hope to build a community where everyone feels heard and valued, irrespective of whether we reach the literal number.\n\n4. **Expectation Management**: I acknowledge that setting out with such a bold name might create certain expectations. We're committed to being transparent about our progress, successes, and challenges. Our primary goal is to nurture a vibrant, open-source community that values every single contribution, whether we're ten voices strong or a million.\n\nI understand the skepticism surrounding ambitious projects, especially in today's digital age. Rest assured, our project's core is built on authenticity, transparency, and a genuine desire to innovate in the realm of collaborative creation. We welcome questions, feedback, and open dialogue. Together, let's redefine what collaboration can achieve.\n\nBryan\n\n---\n\n### An Open Source Experiment\n\n### Introduction\n\nIn a world driven by innovation, the boundaries of creativity are continually expanding. The convergence of technology and artistry gives birth to new ways of thinking, creating, and sharing. This experiment is more than a novel approach to managing intellectual property (IP); it's a blueprint for anyone seeking to navigate the complexities of the digital age.\n\nThe experiment's multifaceted objective encompasses not only artistic innovation but a reimagining of monetization. It's about building a brand around a screenplay called \"Afterglow,\" connecting with one million followers, activating ad revenue, and attempting to bring the story to life as a movie. But it goes beyond that. The goal is to utilize new ways to monetize, through the gig economy, ad revenues, and creator economy, even leveraging cryptocurrency and smart contracts. This is a living example that anticipates and adapts to future monetization changes in the world.\n\nBy intertwining AI, blockchain, smart contracts, and open-source principles into a 4th wave industrial evolution, this approach forges a community that fosters collaboration and showcases how AI is revolutionizing creativity. It's an invitation for writers, developers, artists, hobbyists, students, and anyone intrigued by innovation to participate, innovate, and explore. Through platforms like GitHub for revision control and exclusive posting on social media platform X, the core values of Storytelling Excellence, Creativity and Innovation, Integrity and Ethical Practice, Collaboration and Teamwork, Respect for Artistic Vision, Audience Engagement, and Sustainability are embraced. Technology here opens new paths, not replaces traditional methods.\n\nThe application of the Creative Commons Attribution-ShareAlike 4.0 International (CC-BY-SA-4.0) license to an open-source screenplay fosters global access and collaboration while ensuring recognition of the original work. Together, we're setting the stage for how AI scripts can translate to video and television, reducing costs and time. The acceleration of AI graphics in videos is merely one facet of this groundbreaking innovation.\n\nThis is not just an experiment. It's a model, a guide, and an inspiration, laying down a path for creativity in the new world - a path that anyone can follow.\n\n```\nAuthor: Original Author (anonymous for the experiment)  \nAssisted by: OpenAI's language model, ChatGPT-4\nLicense: https://creativecommons.org/licenses/by-sa/4.0\nOriginal Work: [Link to the original work]\nModifications:\n```\n\n<a href=\"#top\">Back to Top</a>\n\n---\n\n# Connect, Grow, Impact\n\n**The overarching aim is to gather a community of `1 million followers` around the project. If the project can attract a significant following, it can help promote the original work and provide a framework to grow and impact a vast audience.**\n\n**If successful, this experiment could demonstrate a potential method for managing and promoting creative work in the digital age. It could provide a `blueprint` for artists to grow their audience, impact a broad community, and foster collaborative creativity.**\n\nThis project is about more than just amassing followers; it's about building a community around a shared creative endeavour. The larger the community, the greater the collective creativity, the more significant the impact.\n\n**`Every voice counts. Join us, and be one of the million!`**\n\n<a href=\"#top\">Back to Top</a>\n\n---\n# How to Participate \n\nParticipation in this unique experiment is simple and open to everyone, whether you're a seasoned screenplay writer, an avid reader, or just curious about open-source creativity. Here's how to get involved:\n\n### Understand the License\nThis work falls under the [Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) license](https://creativecommons.org/licenses/by-sa/4.0). You can adapt and even use the work commercially, but you must:\n- **Attribute:** Mention the original creator, Bryan Elgin Harris.\n- **Include License Link:** Add the [CC BY-SA 4.0 license](https://creativecommons.org/licenses/by-sa/4.0) link.\n- **Note Modifications:** Indicate any changes to the original work.\n- **Link to Original Work:** Provide a link to the original GitHub repository.\n\nScreenwriters typically have traditional copyrights for their works, which means they reserve all rights to the content they have created. This allows them to control how the work is used, distributed, and modified, often through legal agreements with studios and producers.\n\nOpen Source licensing, such as the Creative Commons ShareAlike 4.0 (CC BY-SA 4.0), is different. This type of license allows others to share, modify, and even build upon the work, provided they give proper attribution to the original author and license their new creations under the identical terms. It's a more permissive way of sharing creative works.\n\nIn most professional screenwriting contexts, the traditional copyright model would be more common, while the open-source model would be more aligned with collaborative or community-driven projects. They serve different purposes and are used in different contexts based on the creator's intent and the nature of the project.\n\n<a href=\"#top\">Back to Top</a>\n  \n### Disclaimer Regarding Contributions and Copyright\n\nThis disclaimer governs the relationship between the parties regarding contributions and feedback on the specified social media platform X (exclusive to X).\n\n1. **Copyright Ownership**: The user contributing feedback or modifications on X retains the copyright to their specific contributions. The original owner of the screenplay for Afterglow maintains copyright over the entire work, including any derivative works created by incorporating the user's contributions.\n\n2. **Integration and Attribution**: By providing feedback or modifications to the screenplay for Afterglow, the user agrees that such contributions may be integrated into the original work, creating a derivative work. Attribution for such contributions will be handled in a manner agreed upon between the parties or as stated in the applicable license (e.g., naming in the credits, providing a link to the contributor's profile, monetization, etc.).\n\n3. **No Specific Agreement**: In the absence of a specific agreement or terms of service addressing the matter, this disclaimer shall apply. You retain your copyright, and nothing will be updated to the original screenplay for Afterglow without proper agreement.\n\n4. **Future Agreements**: Should the original owner of Afterglow decide to use the user's contributions in the original work, the parties will review a Contributor License Agreement (CLA) and mutually agree on the details concerning the usage of the contribution, including but not limited to, licensing, attribution, remuneration, and other relevant terms.\n\n5. **No Warranties**: The contributions are provided \"as is\" without warranty of any kind, either expressed or implied.\n\n**Note:** While you retain copyright over your contribution, by contributing to this project, you agree to license your work under CC BY-SA 4.0. This allows others to remix, adapt, and build upon your contribution, even for commercial purposes, provided they give appropriate credit and license their derivative works under the same terms. Please ensure you understand the terms of this license before contributing.\n\n<a href=\"#top\">Back to Top</a>\n\n---\n\n### Contribute To The Original 'Afterglow'\nJoin the interactive dialogue on [👉🏼 To Afterglow on X](https://github.com/BryanHarrisScripts/Afterglow-Echoes-of-Sentience/blob/main/Afterglow/README.md) to share suggestions, ideas, and feedback. Your involvement can shape this project and contribute to an innovative experiment in open-source creativity. By contributing to Afterglow, the user acknowledges and agrees to the terms set forth in this disclaimer and understands the (CC BY-SA 4.0) License.\n\n### Create Your Own 'Afterglow' Version\nAdd your unique adaptation to the 'Contributors' directory on Github, following the attribution guidelines above. Your contributions, big or small, are key to the evolution of this project. Dive in and help redefine collaboration and creativity in the digital age! By creating your own version of Afterglow, the user acknowledges and agrees to the terms set forth in this disclaimer and understands the (CC BY-SA 4.0) License.\n\nShare your insights and improvements through:\n- **Professional Software:** Use tools like Final Draft if you're comfortable with them.\n- **Fountain Format:** Contribute using the `.fountain` plain text markup for screenplay writing.\n\n<a href=\"#top\">Back to Top</a>\n\n---\n\n### Benefits for Collaborators\n\nParticipating in this experiment not only provides an opportunity for creative expression but also serves as a blueprint for understanding and utilizing open-source collaboration:\n\n- **Gaining Exposure:** By contributing, collaborators can showcase their skills and ideas to a broad audience, potentially opening doors for further opportunities.\n\n- **Adapting and Experimenting:** This project offers a replicable blueprint. Collaborators can follow, adapt, or even reinvent this process to suit their personal or professional needs, fostering a culture of innovation.\n\n- **Learning and Growing:** Engaging with diverse talents from around the world offers a unique educational experience, fostering professional growth and a deeper understanding of open-source collaboration.\n\n<a href=\"#top\">Back to Top</a>\n\n### The Impact\n\nThis is more than just a screenplay project; it's a pathway to new creative horizons:\n\n- **Universal Application:** The principles here apply to any creative domain, offering fresh avenues for creation and sharing in our digitally connected world.\n\n- **Demonstrating Open-Source Power:** This experiment stands as a testament to what open-source principles can achieve, building on successful examples like [Project Gutenberg](https://www.gutenberg.org/).\n\n- **Ensuring Recognition and Respect:** By employing the CC-BY-SA-4.0 license and fostering an inclusive environment, we recognize all contributions and promote respectful collaboration.\n\n<a href=\"#top\">Back to Top</a>\n\n### The Open-source Process\n\nThis step-by-step guide illustrates how to initiate, develop, and sustain an open-source creative project. By understanding and engaging in this process, collaborators can apply these practices to their projects, adapting them to their specific needs and objectives.\n\n- **Release the Work:** Start by licensing your work under the CC-BY-SA-4.0 license.\n- **Build an Online Presence:** Create an engaging online hub for your project to grow and thrive.\n- **Promote and Connect:** Reach out to potential collaborators, utilizing strategic promotions.\n- **Foster Collaboration:** Welcome remixes, adaptations, and new ideas.\n- **Monitor and Adapt:** Stay flexible, evaluating and adjusting your strategies based on feedback and trends.\n\n<a href=\"#top\">Back to Top</a>\n\n---\n\n### Traditional vs Innovation\n\n| Aspect                         | Traditional Approach                                                                                                                                                     | Innovative Approach                                                                                                                                   |\n|--------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|\n| **Script Development**         | Script developed by individual writers or a team, often with multiple rounds of edits and revisions. Writers are generally hired and paid for their work.                 | Open collaboration and use of AI for enhancing language. Version control through GitHub and collaborative inputs under a clear legal framework.      |\n| **Legal Agreements and IP**    | Comprehensive contracts governing rights, royalties, credit, and other legal aspects. Union guidelines must be adhered to.                                                 | Use of Creative Commons licenses and possibly a Contributor License Agreement (CLA) to manage collaboration and intellectual property.                 |\n| **Quality Control**            | Multiple rounds of review with producers, directors, and possibly studio executives.                                                                                      | Collaborative editing and use of AI for linguistic enhancement, with version control through GitHub.                                                   |\n| **Funding**                    | Typically financed through production companies, investors, or studios. Strict oversight on budget and timelines.                                                           | Potential use of crowdfunding, cryptocurrency, and community-driven funding approaches.                                                                |\n| **Community and Collaboration**| Hierarchical collaboration with well-defined roles and responsibilities. Writers, directors, producers, and other key players work in defined capacities.                  | Open collaboration, possibly with the wider community. Transparent and inclusive processes, managed through platforms like GitHub.                      |\n| **Monetization and Revenue**   | Revenue distributed through contracts, with unions potentially governing certain aspects.                                                                                 | Transparent revenue-sharing model, possibly automated through smart contracts.                                                                         |\n| **Technology and Innovation**  | Limited scope for leveraging AI and open-source collaboration. Technology used mainly in production and post-production.                                                  | Embracing AI for script refinement, utilizing open-source principles, and exploring technologies like blockchain for monetization.                       |\n| **Ethical and Regulatory**     | Adherence to union guidelines, industry standards, and legal regulations.                                                                                                 | Compliance with Creative Commons licensing, data protection laws, and development of ethical guidelines for collaboration.                               |\n| **Market Acceptance**          | Established pathways to market, distribution channels, and audience engagement.                                                                                          | Potential need to forge new pathways and gain acceptance for a non-traditional approach to content creation.                                            |\n\n<a href=\"#top\">Back to Top</a>\n\n#\n### Disclaimer\n\nThis experiment is hypothetical and theoretical. It's an exploration of possibilities and doesn't guarantee success. It's crucial to consult with a legal professional before deciding to adopt an open-source model for managing creative works.\n#\n\n<div align=\"center\">\n<h3>1 MILLION CREATORS, COLLABORATORS, VOICES</h3>\n<h4>YOUR NAME, YOUR BRAND, YOUR CREATIVITY!</h4>\n</div>\n\n<a href=\"#top\">Back to Top</a>\n\n------"
+        },
+        {
+          "id": "24-blocks-opensource-centralvsdecentral-md",
+          "repository": "24-Blocks",
+          "path": "OpenSource/centralvsdecentral.md",
+          "title": "Introduction to OpenStorytelling:",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/OpenSource/centralvsdecentral.md",
+          "content": "<div align=\"right\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n<a href=\"https://openstorystudio.com\">Home</a>\n\n<div align=\"left\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n## Introduction to OpenStorytelling:\nOpenStorytelling.com, led by Bryan Harris, is a pioneering platform blending AI technologies to transform storytelling, particularly in screenplay development and visualization. It serves a broad audience including screenwriters, educators, students, and hobbyists, offering a novel approach to crafting stories.\n\n**Key Features of OpenStorytelling.com:**\n1. **Script Segmentation System**: This AI and NLP-powered system breaks down a screenplay into 24 significant segments for narrative and plot development.\n2. **2D Visualization Interface**: Converts script segments into 2D visuals like digital drawings and storyboards, enhancing script comprehension and appeal.\n3. **AI Agent Integration (CrewAI)**: Brings characters to life within the 2D images, offering a dynamic storytelling experience.\n4. **Interactive Features**: Enables real-time script interactions and modifications.\n5. **Compiling the Visual Story**: Assembles segments into a cohesive visual story format.\n6. **OpenStorytelling Architect & Plus**: Aids in building story environments and focuses on creative writing and character development.\n7. **OpenStorytelling Visualizer**: Uses AI to transform scripts into visual storyboards.\n\n**Enhancement Strategies for User Experience and Engagement:**\n1. **Interactive Storytelling Features**: Allows users to create and share stories with AI tools for plot and character development, boosting engagement.\n2. **Customizable User Dashboards**: Offers personalized progress tracking and recommendations.\n3. **Community Forums and Collaboration Spaces**: Encourages user collaboration and feedback.\n4. **Gamification Elements**: Adds challenges and rewards to the storytelling process.\n5. **Regular Updates Based on User Feedback**: Ensures platform evolution according to user preferences.\n\n**Conducting Competitive Analysis:**\n1. **Market Research and Analysis Tools**: Involves using tools like SWOT analysis and platforms like SEMrush for insights into competitors.\n2. **User Experience Benchmarking**: Compares usability and satisfaction with competitors.\n3. **Analysis of Competitors’ Content and Features**: Regularly reviews competitor platforms for new trends.\n4. **Customer Reviews and Feedback**: Analyzes feedback on competitor platforms for market insights.\n5. **Partnerships and Collaborations**: Looks into partnerships for a competitive edge.\n\n**Decentralized vs. Centralized Approach:**\nCentralized setup uses Microsoft technologies like Azure AI and GitHub, while a decentralized approach could involve blockchain-based story databases and cryptocurrency, presenting different advantages and challenges.\n\n**Conclusion:**\nOpenStorytelling.com aims to redefine AI-driven scriptwriting and visualization, focusing on user experience and competitive positioning in the digital storytelling arena.\n\n---\n\n### Centralized Approach\n\n| Feature/Tool                            | Centralized Solution (Microsoft Technologies) | Description / Usage                     | Missing Components/Gaps                 |\n|-----------------------------------------|----------------------------------------------|-----------------------------------------|-----------------------------------------|\n| **Script Segmentation System**          | Azure AI (NLP)                               | Analyzes and segments script.           | None                                    |\n| **2D Visualization Interface**          | Azure AI (Image Generation)                  | Generates 2D visual representations.    | None                                    |\n| **AI Agent Integration (CrewAI)**       | Azure AI (Machine Learning)                  | Animates characters within images.      | None                                    |\n| **Interactive Features**                | Azure Services (Real-Time Editing)           | Allows real-time script interactions.   | None                                    |\n| **Compiling the Visual Story**          | -                                           | Compiles story into a visual format.    | Centralized storage solutions          |\n| **OpenStorytelling Architect**          | Azure AI (World-Building)                    | Assists in environment creation.        | None                                    |\n| **OpenStorytelling Plus**               | GitHub                                       | Facilitates writing and collaboration.  | None                                    |\n| **OpenStorytelling Visualizer**         | Azure AI (Script Interpretation)             | Converts scripts into visual storyboards| None                                    |\n| **CrewAI Core**                         | Azure AI (Agent Management)                  | Manages AI agents for screenplay.       | None                                    |\n| **GitHub Integration**                  | GitHub                                       | Manages code and collaborative work.    | None                                    |\n| **Azure AI and Cognitive Services**     | Azure AI                                     | Provides AI capabilities for platform.  | None                                    |\n| **Micropayments**                       | Microsoft Azure (Payment Processing)         | Manages micropayments for content.      | Cryptocurrency integration             |\n| **Story Visualization (VR/AR)**         | Microsoft Mesh/Azure Mixed Reality           | For immersive script experiences.       | None                                    |\n| **Job Boards**                          | LinkedIn Integration                         | For screenwriting opportunities.        | Decentralized job listing options      |\n| **NFTs and Smart Contracts**            | Azure Blockchain Service                     | Manages script ownership and copyright. | None                                    |\n| **Tokens and Blockchain**               | Azure Blockchain Service                     | Handles transactions and tokens.        | More diverse blockchain options        |\n| **Governance and DAO**                  | Microsoft Tools for DAOs                     | Decision-making in platform governance. | Fully decentralized governance systems |\n| **Community Engagement**                | Microsoft Teams/Yammer                       | Fosters collaboration and feedback.     | Decentralized community platforms      |\n\n### Decentralized Approach\n\n| Feature/Tool                            | Decentralized Solution                    | Description / Usage                        | Missing Components/Gaps                     |\n|-----------------------------------------|------------------------------------------|--------------------------------------------|---------------------------------------------|\n| **Script Segmentation System**          | Open-Source NLP Tools                     | Script analysis and segmentation.          | Integration and scalability issues          |\n| **2D Visualization Interface**          | Stability AI's Stable Diffusion          | Generates 2D visuals for scripts.          | Comprehensive integration with platform     |\n| **AI Agent Integration (CrewAI)**       | Alternative AI Platforms                  | Animates characters in visual stories.     | Equivalent AI performance as Azure          |\n| **Interactive Features**                | Decentralized Collaborative Tools         | Enables script interaction and editing.    | Real-time performance and user interface    |\n| **Compiling the Visual Story**          | Decentralized Storage Solutions           | Compiles story into a visual format.       | Integration with other platform features    |\n| **OpenStorytelling Architect**          | Bespoke AI Solutions                      | Builds detailed story environments.        | Development and maintenance challenges      |\n| **OpenStorytelling Plus**               | Decentralized Code Repositories           | Supports writing and collaboration.        | Feature parity with GitHub                  |\n| **OpenStorytelling Visualizer**         | Stability AI's Tools                      | Transforms scripts into visuals.           | Integration and customization challenges    |\n| **CrewAI Core**                         | Decentralized AI Frameworks               | Manages AI agents for screenplay creation. | Development complexity and efficiency       |\n| **Micropayments**                       | Cryptocurrencies (Ethereum, Bitcoin)      | Manages content micropayments.             | Stability and regulatory compliance         |\n| **Story Visualization (VR/AR)**         | Decentralized VR/AR Platforms             | For immersive script experiences.          | Technical and user experience challenges    |\n| **Job Boards**                          | Blockchain Platforms for Job Listings     | Decentralized job listing options.         | User adoption and accessibility             |\n| **NFTs for Script Ownership**           | Ethereum Blockchain (NFTs, Contracts)     | Manages script rights and royalties.       | Technical and legal complexities            |\n| **Tokens for Community Engagement**     | Blockchain Platforms (Token Creation)     | Creates platform-specific tokens.          | Market acceptance and utility               |\n| **DAO for Platform Governance**         | DAO Platforms (Aragon, DAOstack)          | For community-driven decision-making.      | Operational and governance challenges       |\n| **Decentralized Community Tools**       | Platforms like Radicle, OrbitDB           | Tools for community collaboration.         | Feature parity with centralized platforms   |\n\n## Centralized vs Decentralized\n\nComparing the two approaches, the centralized method using Microsoft technologies offers comprehensive solutions with minimal gaps. In contrast, the decentralized approach, while innovative, faces challenges in achieving feature parity with centralized solutions, particularly in integration, scalability, real-time performance, and user interface. The decentralized method also grapples with regulatory, technical, and user adoption challenges.\n\n---\n\n## Additional Detailed Considerations for OpenStorytelling\n\n#### Implementation Challenges\n- **Technological Complexity**: Integrating advanced AI, NLP, and blockchain technologies presents significant technical challenges. Ensuring seamless operation, user-friendly interfaces, and reliable performance are key hurdles.\n- **Decentralization Barriers**: Implementing a decentralized approach involves overcoming regulatory, scalability, and interoperability challenges, especially in relation to blockchain and cryptocurrency technologies.\n\n#### Technological Integration\n- **AI and NLP Synergy**: Detailing the integration process between AI-driven script segmentation, NLP for narrative analysis, and visualization tools will clarify operational dynamics.\n- **Inter-platform Compatibility**: Exploring how different technologies (Microsoft Azure, decentralized tools) will cohesively function within the platform to provide a seamless user experience.\n\n#### User Adoption and Market Strategy\n- **Target Audience Engagement**: Strategies for engaging diverse groups such as screenwriters, educators, and hobbyists, including marketing tactics, partnerships, and community-building initiatives.\n- **Competitive Positioning**: Plans for establishing a unique market position in the digital storytelling landscape, focusing on the platform's innovative features and user benefits.\n\n#### Monetization and Business Model\n- **Revenue Streams**: Detailed exploration of revenue models including micropayments, subscription services, NFT sales, and potential advertising.\n- **Blockchain Utilization**: How blockchain technology not only supports creative rights management through NFTs but also opens new revenue channels.\n\n#### Scalability and Future Expansion\n- **Growth Roadmap**: Outlining a roadmap for scaling the platform, including technological upgrades, market expansion, and content diversity.\n- **Long-Term Sustainability**: Discussing plans for sustainable growth, including adapting to evolving technologies and changing market trends.\n\n#### User Data Privacy and Security\n- **Privacy Protections**: Measures to safeguard user data, especially in script development and sharing.\n- **Security Framework**: Implementation of robust security protocols, particularly in relation to decentralized features like blockchain and NFTs.\n\n#### Community and Collaboration\n- **Community Building**: Detailed approach to nurturing a collaborative and supportive environment for users, including moderation policies and community engagement programs.\n- **Collaboration Tools**: Exploration of tools and features that facilitate user interaction, feedback, and collaborative storytelling projects.\n\n---"
+        },
+        {
+          "id": "afterglow-readme-md-instructional-sections",
+          "repository": "Afterglow",
+          "path": "README.md#instructional-sections",
+          "title": "A New Way",
+          "kind": "historical-teaching",
+          "scopeNote": "Instructional history only. Afterglow story, characters, scenes and canon are deliberately excluded and are never loaded as the active project.",
+          "url": "https://github.com/BryanHarrisScripts/Afterglow/blob/main/README.md%23instructional-sections",
+          "content": "# A New Way\n\nImagine a platform tailored for open-source scripts, merging Github's collaborative nature with the intricacies of screenwriting — now with an AI companion to guide and nurture. Picture a space where writers not only unite to polish their stories but also receive AI-powered suggestions to hone their unique voice. Essential to this is a robust system, one that can efficiently offer feedback, track edits, shield intellectual property, and encourage sincere cooperation.\n\nEnvision layering this with web3 technology.\n\nBy integrating web3, the platform becomes decentralized, providing writers authentic ownership of their content through cryptographic tokens. It safeguards their intellectual property while unveiling avenues for earning. Feedback, both from the community and AI insights, can be incentivized with token rewards. Plus, smart contracts facilitate the automated management of permissions, rights, and even the splitting of profits from collaborative endeavors.\n\nMelding open-source collaboration, AI support, and web3's decentralized advantages, we're on the verge of a revolutionary evolution in scriptwriting. This convergence can redefine how narratives are developed, shared, and refined.\n\n### From Page to Screen\n\nIn Hollywood's vibrant core, where cinematic aspirations abound, the journey is daunting. Every year, over 50,000 screenplays get registered with the Writers Guild of America (WGA). Yet, as evidenced by 2019, the U.S. produces a mere 800 movies annually, highlighting the fierce rivalry.\n\nBeing optimistic, if every movie came from a fresh script of that year, a mere 1.6% would materialize on screen. And this is generous, given many films are sequels, novel adaptations, or scripts that have waited long for their spotlight. Moreover, the 50,000 doesn't encompass all; numerous scripts never get to the WGA, staying concealed.\n\nHowever, the value of a screenplay isn't only in its realization on screen. For numerous individuals, it's an entry to the movie world. An engaging script, even if not made into a film, can pave the way for other ventures. For emerging screenwriters, perfecting their craft is paramount. AI can assist here, helping writers refine their scripts, ensuring they not only stand out in numbers but also in quality. Remember, every renowned screenwriter commenced with a sole vision and an untouched page.\n\n<a href=\"#top\">Back to Top</a>\n\n\n\n# The Unseen Editor\n### An AI-Assisted Adventure\n\nIn my current project, I've been rewriting a script with the help of artificial intelligence. If this technology truly holds value, why aren't studios knocking at my door or expressing interest in the script? I've released it as open-source and have been persistently refining it with AI, making this the second AI-assisted rewrite...\n\n**I wrote the Afterglow script in 2017**, which was later rewritten with AI assistance in 2023.\n\n> James Cameron once said, \"I just don’t personally believe that a disembodied mind that’s just regurgitating\nwhat other embodied minds have said — about the life that they’ve had, about love, about lying, about fear,\nabout mortality — and just put it all together into a word salad and then regurgitate it…I don’t believe that’s\never going to have something that’s going to move an audience. You have to be human to write that. I don’t know\nanyone that’s even thinking about having AI write a screenplay.\" - Variety\n\nI'm in agreement with James Cameron. \n\nWhile creating scripts entirely with AI may be challenging without human intervention, I believe that **human-written scripts** edited with AI assistance, as I'm currently doing, are indeed feasible.\n\n<a href=\"#top\">Back to Top</a>\n\n## AI in Screenwriting: A New Tool, Not a Co-Author\n\nThe ChatGPT-4 language model served as an integral tool during the development process of 'Afterglow'. Its primary function was not to generate independent ideas, but to aid in language optimization, text refinement, and the articulation of existing concepts.\n\nConsider it akin to the role of a skilled editor: enhancing clarity, eliminating redundancy, and presenting ideas in a more coherent and engaging manner. Yet, unlike a human editor, AI does not bring its own ideas or creative inputs. All original thought, from core narrative decisions to thematic development, character creation, and plot structuring, originated from me.\n\nThe contributions of ChatGPT-4 should be viewed as a rephrasing and restructuring of my original ideas - a way to present my thoughts using better linguistic structure without altering the core essence. Its role was to elevate the communication of my narrative, much like how Robert Kearns improved the windshield wiper without changing its original function.\n\nAs per current legal and ethical considerations (as of September 2021), AI systems cannot be attributed with authorship rights, nor can they be credited or held accountable for the content they assist in producing. AI's involvement is purely facilitative, acting as a sophisticated tool to enhance the writer's original creative vision.\n\n<a href=\"#top\">Back to Top</a>\n\n## AI in Creativity: A Disclaimer\n\nConsider your personal comfort, creative needs, and ethical viewpoints. As this field is novel and constantly evolving, legal consultation or intellectual property rights expertise may be required.\n\n**Note**: As per legal and ethical considerations up until September 2021, AI systems, such as ChatGPT-4, do not possess authorship rights or assume responsibility for the content they aid in generating. Their function is akin to that of a sophisticated editorial tool, aiding in language optimization and text refinement without contributing original ideas or themes.\n\n- In this context, the primary authorship of 'Afterglow' remains under my name, Bryan Harris. The utilization of AI in this project does not imply a co-authorship situation but rather an advanced tool assisting in the creative process. Hence, despite the engagement of AI, this does not constitute plagiarism but a modern approach to enhancing original work.\n\n- Current guidelines dictate that AI does not have authorship rights. Therefore, while it is instrumental in the process of creation, it does not bear the role of a co-creator or independent author. Consequently, the ultimate ownership and credit of the final work rest with the human author.\n\n**Note**: The outcomes of using AI in screenwriting are not guaranteed. Any losses or damages incurred due to your use of AI technology are your responsibility.\n\nJoin me as we journey into this new creative frontier, with open minds, critical thinking, and a spirit of collaboration. Let's tell compelling stories and bring them to life, with or without the aid of AI.\n\nWelcome aboard the 'Afterglow' journey!\n\n<a href=\"#top\">Back to Top</a>\n\n---\n\n## Licensing and Attribution\n\nThis work is under the Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) license. It allows you to remix, adapt, and build upon this work, even for commercial purposes. However, you should give appropriate credit to the original author, include a link to the license, and note any modifications made. Any derivative work you make must also be licensed under the same license.\n\n- **Attribution**: State that the work was originally created by Bryan Elgin Harris.\n- **License link**: Include a link to the Creative Commons Attribution-ShareAlike 4.0 International License, available [here](https://creativecommons.org/licenses/by-sa/4.0/).\n- **Indicate modifications**: Note if you've made changes to the original work.\n- **Link to original work**: Include a link to the original GitHub repository for Bryan Harris' scripts, which can be found [here](https://github.com/BryanHarrisScripts/Afterglow-Echoes-of-Sentience).\n\n````\nAuthor: Bryan Elgin Harris  \nAssisted by: OpenAI's language model, ChatGPT-4\nLicense: https://creativecommons.org/licenses/by-sa/4.0\nOriginal Work: https://github.com/BryanHarrisScripts/Afterglow-Echoes-of-Sentience\nModifications:\n````\n\n<a href=\"#top\">Back to Top</a>\n\n## Understanding Copyright \n\n#### Traditional Copyright vs Open Source Licensing\n\n**Screenwriters typically have traditional copyrights for their works**, which means they reserve all rights to the content they have created. This allows them to control how the work is used, distributed, and modified, often through legal agreements with studios and producers.\n\n**Open Source licensing, such as the Creative Commons ShareAlike 4.0 (CC BY-SA 4.0), is different.** This type of license allows others to share, modify, and even build upon the work, provided they give proper attribution to the original author and license their new creations under the identical terms. It's a more permissive way of sharing creative works.\n\nIn most professional screenwriting contexts, the traditional copyright model would be more common, while the open-source model would be more aligned with collaborative or community-driven projects. They serve different purposes and are used in different contexts based on the creator's intent and the nature of the project.\n\nhttps://creativecommons.org/get-cc-savvy/copyright-creativecommons-are-friends/\n\n#### User Contributions and Ownership\n\nIf a user provides feedback, such as suggestions, ideas, or specific textual contributions, the ownership of the copyright for that material can vary based on the context and any agreements in place.\n\n1. **No Specific Agreement**: If there's no specific agreement or terms of service that address the issue, the user generally retains copyright of their original material.\n2. **Terms of Service Agreement**: Many platforms and services include clauses in their terms of service that users agree to upon participating. These may stipulate that any contributions, including feedback, become the property of the platform or may be used by the platform in various ways. In such cases, the user might relinquish some or all rights to their contributions.\n3. **Formal Collaboration or Contract**: If the feedback is part of a formal collaboration or under a specific contract, the ownership of the copyright would be defined by that agreement.\n\n#### Collaboration Under CC BY-SA 4.0\n\nIf you update your original work with someone else's change and want to acknowledge them, they would typically be considered a contributor to that specific change or modification. Under the Creative Commons ShareAlike 4.0 (CC BY-SA 4.0) license, the new combined work would still be shared under the same license.\n\nThe key provisions of CC BY-SA 4.0 are:\n- **Attribution**: Users must give appropriate credit, provide a link to the license, and indicate if changes were made.\n- **ShareAlike**: If a user remixes, transforms, or builds upon the material, they must distribute their contributions under the same license as the original.\n\n1. So, if someone modifies your work under this license, they own the copyright to the changes they made, but they must also license their derivative work under the same terms (CC BY-SA 4.0). This ensures that the derivative work remains open and accessible in the same way as the original, creating a collaborative chain where each contributor retains rights to their contributions while adhering to the shared principles of the license.\n\n2. The contributor does not have ownership over the entire updated work but retains copyright over their specific contribution. By integrating their change into your original work, you are essentially creating a derivative work, and you would usually attribute them in the way you both agree upon or as stated in the license (e.g., naming them in the credits, providing a link to their profile, etc.). **Note:** I will communicate with the contributor to make sure we both understand and agree on how the contribution will be used and credited.\n\n**Note**: While you retain copyright over your contribution, by contributing to this project, you agree to license your work under CC BY-SA 4.0. This allows others to remix, adapt, and build upon your contribution, even for commercial purposes, provided they give appropriate credit and license their derivative works under the same terms. Please ensure you understand the terms of this license before contributing.\n\nPlease note that while this outlines general principles related to copyright and collaboration, it is not a substitute for legal advice. If you have specific legal concerns or require a tailored agreement, please consult with a legal professional specializing in intellectual property law in your jurisdiction.\n\n<a href=\"#top\">Back to Top</a>\n\n---\n\n**Disclaimer:** This content has been generated using an AI language model. It may include information, phrases, or ideas that could resemble existing copyrighted material, even though the specific sources are unknown. The AI is used for creative and informational purposes. Any resemblance to other works is coincidental, and this content is not intended to infringe upon the rights of any copyright holders.\n\n[Legal Disclaimer](https://github.com/BryanHarrisScripts/Afterglow-Echoes-of-Sentience/blob/main/LegalDisclaimer.md)\n\n---\n\n<a href=\"#top\">Back to Top</a>"
+        },
+        {
+          "id": "bryanharrisscripts-github-io-readme-md",
+          "repository": "BryanHarrisScripts.github.io",
+          "path": "README.md",
+          "title": "Table of Contents",
+          "kind": "teaching",
+          "scopeNote": "OpenStory and visual-storytelling background material.",
+          "url": "https://github.com/BryanHarrisScripts/BryanHarrisScripts.github.io/blob/main/README.md",
+          "content": "<img src=\"/StorytellersCollective-0-Storyteller's Collective.png\"/>\n\n<div align=\"center\">\n\n<a href=\"https://docs.github.com/en/site-policy/github-terms/github-community-guidelines\">Guidelines</a> | <a href=\"https://twitter.com/i/communities/1669222125591318528\">Community 𝕏</a> | <a href=\"https://twitter.com/i/lists/1675490119095140352\">List 𝕏</a> | <a href=\"https://twitter.com/OpenStoryStudio/bio\" target=\"_blank\">Bio 𝕏\n</a> | <a href=\"https://discord.gg/KqHXpVm3uN\" target=\"_blank\">Discord 🆕</a><br><br>\n\nJoin the Open 🆂🆃🅾️🆁🆈 Studio, Δi Team Hub: <a href=\"https://discord.gg/KqHXpVm3uN\" target=\"_blank\">Discord 🆕</a><br>\nBryanHarrisScripts Github Profile: <a href=\"https://github.com/BryanHarrisScripts\" target=\"_blank\">Github Profile</a>\n\n<br><br>\n\n</div>\n\n<!-- <img src=\"./images/Untitled-8.png\"/> -->\n<!-- <img src=\"/OBS-Reimagined_19_Banner.png\"/> -->\n\n<div align=\"left\">\n\n</div>\n\nOpen 🆂🆃🅾️🆁🆈 aims to serve the creative community by providing a central hub for artists, offering a decentralized alternative to traditional creative routes. This platform encourages creatives to share, collaborate, and explore new pathways to success, fostering diversity and innovation.\n\nOpenStoryStudio.com, created by Bryan Harris, utilizes a 24 Blocks structure and GPTs (Generative Pre-trained Transformers) with AI visual tools to enhance the scriptwriting process. The platform converts scripts into visual scenes and breaks them down into manageable parts, making it ideal for scriptwriters and creatives. By bringing characters to life and enabling collaborative storytelling, Open Story Studio blends cutting-edge technology with narrative creation.\n\nThe primary purpose behind establishing Open Source Storytelling was to share the script of my screenplay, \"Afterglow,\" with the world. Realizing that many of my creations were confined to a computer hard drive, it made sense to share them under an open-source license. As I delved deeper into the editing process, I began consulting books and interacting with ChatGPT, which prompted me to construct a resource for budding screenwriters on GitHub. GitHub serves as a suitable platform because it is not only a repository for my scripts but also offers a revision control system, allowing for structured and organized management. Thus, this website is more than a space to share my work; it is a comprehensive resource for amateur screenwriters, providing valuable references and insights.\n\nOpenStory Studio is built around the 24 Blocks structure, including the Story Education Menu for architecture, screenplay techniques, and writing resources. The 24-Blocks in 4-Acts offers a structured approach to storytelling, while Mood Boards provide creative ideation tools, and Loglines assist with AI prompt help for crafting loglines. OpenStory GPTs provide tools like Architect for designing story worlds, Plus for AI-driven writing and character development, and Visualizer for formatting scripts, storyboarding, and image generation. BRYΔN'S STORY features \"Afterglow,\" with a 24-Block storyboard, soundtrack, and character profiles. \n\nThe heart of OpenStory Studio is its community, where OpenStory Teams foster collaboration, support, and connection among creatives, emphasizing the importance of working together with AI to share and develop their work. Open Story Studio fosters a vibrant, supportive community where creatives can thrive, share their work, and build lasting connections.\n\n<a id=\"table-of-contents\"></a>\n\n# Table of Contents\n\n<!-- <h2><img src=\"favicon.ico\" width=\"18\" height=\"18\"> 🆂🆃🅾️🆁🆈 GPTs:</h2> -->\n<!-- <h2><img src=\"github-mark.png\" width=\"18\" height=\"18\"> BRYΔN's 🆂🆃🅾️🆁🆈:</h2> -->\n\n<h2>1.) 24 Block Structure | A Common Language for Δi ↗️</h2>\n\nWhy Use a Common Language? Creating screenplays involves complex storytelling that benefits from a structured approach. The 24 Block Structure provides a clear framework, making it easier for both human writers and AI tools to collaborate effectively.\n\n1. [24-Blocks Story Education Menu](https://24blocks.openstorystudio.com/) - Architecture, Screenplay Techniques, Writing Resources\n2. [24-Blocks in 4-Acts 🔥](https://github.com/BryanHarrisScripts/24-Blocks-openstorystudio/blob/main/24%20Blocks/24%20Blocks%20-%20Structure%20Guide.md) - A Common Language for AI\n3. [24-Blocks Mood Boards](https://github.com/BryanHarrisScripts/24-Blocks-openstorystudio/blob/main/MoodBoard/README.md) - Mood Boards for Creative Ideation\n4. [24-Blocks Loglines](https://github.com/BryanHarrisScripts/24-Blocks-openstorystudio/blob/main/Loglines/Loglines.md) - Logline AI Prompt Help<br>\n\n- Clarity: A shared structure ensures everyone, including AI, understands the story's flow.\n- Consistency: It helps maintain a uniform approach throughout the screenplay.\n- Efficiency: Simplifies the writing process, saving time and reducing confusion.<br><br>\n\n<h2>2.) OpenStory GPTs | A New Δi Tool for All Writers ↗️</h2>\n\nOpenStory GPTs are advanced AI-driven tools designed to help writers navigate and utilize OpenAI's models with ease. These tools act as a front-end interface to the GitHub Open Story repositories, offering a simpler way to access and use AI for creative writing and screenplay development. To use OpenStory GPTs, you'll need a subscription to OpenAI. Here's a closer look at the tools:\n\n1. [OpenStory Δi Architect](https://chat.openai.com/g/g-6j0ljNlup-openstorystudio-architect) - Start Building your Fake Dream Home (Your New World) openstorystudio Architect: AI-Driven Architect for openstorystudio: Design a storybook home through story, creating your new world. — inspired by Chrissie @pressmanc\n2. [OpenStory Δi Plus 🔥](https://chat.openai.com/g/g-LppT0lwkB-openstorystudio-plus) - How to Start Living in Your New World: openstorystudio Plus: AI-Driven Creative Writing & Screenplay Tool: Ideation, Outlining, Character, Scenes, Subtext for Stories, Books, Film Scripts & More. \n3. [OpenStory Δi Visualizer](https://chat.openai.com/g/g-11aRa0n1p-openstorystudio-visualizer) - Let's Visualize the World Around You: openstorystudio Visualizer: AI tool for script formatting, storyboarding, image generation, enhancing screenplay development and visualization.<br><br>\n\n<h2>3.) BRYΔN'S STORY | AFTERGLOW ↗️</h2>\n\nSet in a future where AI and humans coexist, ‘Afterglow: Echoes of Sentience’ follows Ren and Summer as they navigate life’s challenges and evaluate AI-human coexistence. The adaptable script can fit genres like comedy, horror, or drama. Feel free to transform it into your unique film—just acknowledge the original work and share your version under the same open-source license. Your creative license is only limited by your imagination!\n\n1. [Afterglow Main Menu ](https://afterglow.openstorystudio.com) - The 'AFTERGLOW' Repo\n2. [Storyboard 🔥](https://github.com/BryanHarrisScripts/Afterglow-Echoes-of-Sentience/blob/main/Afterglow%20Storyboard%20Blocks/README.md) - The 24-Block 'AFTERGLOW' Storyboard \n3. [Soundtrack ](https://github.com/BryanHarrisScripts/Afterglow-Echoes-of-Sentience/blob/main/Afterglow%20Sound%20Track/README.md) - The 'AFTERGLOW' Soundtrack \n4. [Character Profiles 🔥](https://github.com/BryanHarrisScripts/Afterglow-Echoes-of-Sentience/blob/main/Afterglow%20Storyboard%20Blocks/Character.md) - The 'AFTERGLOW' Characters<br><br> \n\n<h2>4.) 🆕 Δi Teams & Community | 🆂🆃🅾️🆁🆈 Teams—Phase 1 ↗️</h2>\n\nWelcome to the OpenStory Δi Team Hub! Our community focuses on collaboration rather than isolation, harnessing the power of AI to enhance creativity and productivity in film production. Join us on Discord to connect with other creators and explore the benefits of AI-human teamwork. This approach shows how Production and Support Teams can use AI to boost efficiency and creativity while maintaining human oversight for artistic integrity.\n\n1. [OpenStory Δi Team Hub 🔥](https://discord.gg/KqHXpVm3uN) - OpenStory Discord Δi Team Focus\n2. [Collaboration vs Isolation](https://github.com/BryanHarrisScripts/BryanHarrisScripts.github.io/blob/main/AI-Teams/Collaboration.md) - Why isolate yourself with AI?\n  \n#### Production Team with AI Tools:\n**Scriptwriters**: Enhance storylines and characters. **Visual Artists**: Rapid concept art and style experimentation. **Sound Artists**: Craft soundscapes and music. **Visual Editors**: Efficiently edit footage and apply effects. **Directors**: Visualize scenes and actor performances.\n\n#### Support Team with AI Integration:\n**Executive Producer**: Project management and budget tracking. **Technical Support**: Maintain AI tools and platforms. **Data Analysis**: Market trends and audience feedback. **Legal and Ethics**: Compliance and ethical standards. **Distribution and Marketing**: AI-driven strategies for reach and impact.\n<br><br>\n\n## 5.) OpenStory Studio | Long Term Vision ↗️\n1. [Open Source Licensing in Screenwriting](https://github.com/BryanHarrisScripts/24-Blocks-OpenStoryStudio/blob/main/OpenSource/Open%20Source%20Collaboration.md) - Unleashing the Power of Collaboration!\n2. [Why Creative Commons](https://github.com/BryanHarrisScripts/24-Blocks-OpenStoryStudio/blob/main/Experiment%20Learnings.md) - Why CC and Copyrights?\n3. [Copyrights](https://24blocks.openstorystudio.com/#understanding-copyright) - Understanding CC and Copyrights\n4. [Decentralized vs Centralized](https://github.com/BryanHarrisScripts/24-Blocks-openstorystudio/blob/main/OpenSource/centralvsdecentral.md) - A System for Every Creative\n5. [Scripts to Screens Pitch](https://twitter.com/BryanRebooted/bio)\n\n<br>\n\n<img src=\"/StorytellersCollective-2-Storyteller's Collective.png\"/>\n\n## OpenStory: Elevating Scriptwriting in the Digital Age\n\nopenstorystudio.com is a unique platform revolutionizing scriptwriting by integrating smart technology. It simplifies the process, turning scripts into visual scenes and enabling collaborative storytelling. With a focus on AI, the platform enhances scripts and opens new digital revenue opportunities for writers. It's not just a concept but a working prototype, giving unseen scripts a chance to become visual, valuable digital assets. openstorystudio embodies the future of scriptwriting, where every story and voice finds its screen and audience.\n\n## Future Vision for 🆂🆃🅾️🆁🆈\n\n#### Embracing Modern Technologies and Trends\n- **Micropayments**: Integration of micropayment systems could offer new ways for writers to monetize their work, providing direct income for each view or download.\n- **Story Visualization**: Advanced tools for story visualization, possibly using VR/AR, could bring screenplays to life, offering a more immersive way to experience scripts.\n- **Job Boards**: The site could host job boards for screenwriting opportunities and connect writers enhancing professional network building.\n- **NFTs and Smart Contracts**: Leveraging blockchain technology for NFTs (Non-Fungible Tokens) and smart contracts could revolutionize script ownership and copyright, ensuring writers' rights and royalties are protected.\n- **Tokens and Blockchain**: Implementing blockchain for secure, transparent transactions and possibly introducing platform-specific tokens could offer new ways to engage with and reward the community.\n- **Governance and DAO (Decentralized Autonomous Organization)**: The platform could evolve into a DAO, where decisions about the site's future are made democratically by its community members, ensuring that it evolves in ways that best serve their needs.\n- **Community Engagement**: A more tightly coupled community feature could foster collaboration, feedback, and support among screenwriters, enhancing the creative process.\n\n## Overview of OpenStory\n\n| **Category**           | **Details**                                                                                                                                                 |\n|------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|\n| **Vision for Screenwriting** |                                                                                                                                                         |\n| Open-Source Sharing    | \"Afterglow\" is released under an open-source license by Bryan Harris, fostering a community-driven approach to screenwriting.                                 |\n| Educational Shift      | The site evolves from script sharing to a broader educational resource, focusing on nurturing screenwriting talent.                                            |\n| AI's Role              | The use of AI, especially ChatGPT, underlines its importance in creating educational content for screenwriters.                                                |\n| **GitHub's Role**      |                                                                                                                                                         |\n| Beyond Storage         | GitHub is utilized for its revision control capabilities, highlighting its role in structured screenplay management.                                           |\n| Holistic Resource      | Aiming beyond script sharing, the site is designed to be a comprehensive guide for amateur screenwriters, offering various tools and educational content.      |\n| **Key Offerings**      |                                                                                                                                                         |\n| Varied Tools           | The site features tools like openstorystudio Architect, Plus, and Visualizer, each catering to different screenplay development needs.                        |\n| Learning Resources     | It provides educational material and techniques, such as storyboarding, to enhance screenwriting skills.                                                      |\n| Creative Content       | Scripts, story challenges, and AI films are available for practical learning and skill development.                                                           |\n| **Summary**            | openstorystudio.com integrates technology with creative and educational resources, forming a supportive community for screenwriters.                         |\n\n[Back to Top](#table-of-contents)\n\n---\n\n## Detailed System Architecture\n\nTo streamline the Script Visualization and AI Integration process for openstorystudio.com, let's focus on eliminating overlap and redundancy while clearly defining each component's role:\n\n## Script Visualization and AI Integration\n\n1. **Script Segmentation System**:\n\nThe full screenplay is divided into 24 segments using the Script Segmentation System, each representing roughly 5 minutes of the story, cumulatively covering the 2-hour narrative. Key elements of each segment, such as main characters, significant actions, and crucial dialogues, are identified for visualization.\n\n   - **Algorithm**: Employ a combination of NLP techniques and AI models to segment screenplays. Utilize text analysis to identify narrative structure, scene transitions, and plot points.\n   - **Implementation**: Integrate Python-based NLP libraries (like NLTK or spaCy) to process script text and identify key elements for segmentation.\n   -  [Example: 24-Block Process Architecture](https://github.com/BryanHarrisScripts/24-Blocks-openstorystudio/blob/main/24%20Blocks/24%20Blocks%20-%20Structure%20Guide.md) \n\n2. **2D Visualization Interface**:\n\nFor each of the 24 segments, a 2D image or a series of images is created. These images visually represent the script's key elements in each segment. These images could be in the form of digital drawings, storyboards, or graphical representations that convey the narrative, settings, and character interactions.\n\n   - **Technology Stack**: Utilize web development frameworks (React or Angular) for frontend development. Backend services can be implemented in Python or Node.js.\n   - **Functionality**: Interface to display segmented scripts and visualize key elements. Incorporate features for user interaction with the script segments.\n   - [Example: 24-Block 2D Image Process](https://github.com/BryanHarrisScripts/Afterglow-Echoes-of-Sentience/blob/main/Afterglow%20Storyboard%20Blocks/Block_1/Keyframes.md) \n\n3. **AI Agent Integration (CrewAI)**:\n\nCrewAI's role-playing AI agents are used to bring life to the characters within these 2D images. They can be programmed to act out the script's actions and dialogues within the constraints of 2D visualization. These AI agents help to create a more dynamic and interactive storytelling experience, even within the 2D format.\n\n   - **Integration**: Use REST API or WebSocket for communication between the interface and CrewAI agents. \n   - **Role of Agents**: CrewAI agents are designed to interpret script segments, animate characters, and simulate environments based on script data.\n   - **Training**: Agents are trained using machine learning algorithms to understand narrative contexts and character dynamics.\n\n4. **Interactive Features**:\n\nScreenwriters, directors, or viewers can interact with these 2D visualizations. They can explore different parts of the story, see alternative actions or dialogues played out by AI agents, and get a sense of the narrative flow. Interactive features allow for real-time feedback and modifications, making it a valuable tool for script development and storytelling.\n\n   - **Real-time Editing**: Implement WebSocket for live updates and collaborative editing. Version control systems ensure script integrity during concurrent edits.\n   - **User Interaction**: Enable users to modify script elements, with changes reflected in real-time through dynamic AI agent responses.\n\n5. **Compiling the Visual Story**:\n\nOnce all segments are finalized, they are compiled into a sequential format, creating a continuous 2-hour visual story. This compilation could be presented as an interactive digital book, a slide show, or a similar format that allows viewers to progress through the story at their own pace. The final outcome is a comprehensive visual representation of the entire script, offering an innovative way to experience, analyze, and share a 2-hour story through engaging 2D imagery and interactive elements. Designing the system to use CrewAI for creating a cohesive visual story involves structuring the architecture to focus on collaborative AI agent functionality. \n\n[Back to Top](#table-of-contents)\n\n## OpenSource and CrewAI-Driven Storytelling Tools\n\n1. **OpenStory Architect**:\n   - **Function**: A tool for building detailed story environments, leveraging AI for contextual understanding and environmental setup.\n   - **CrewAI Edition**: Enhances the tool by integrating CrewAI agents for more dynamic and responsive world-building based on user inputs.\n   - [Prototype: openstorystudio Architect](https://chat.openai.com/g/g-6j0ljNlup-openstorystudio-architect) \n\n2. **OpenStory Plus**:\n   - **Function**: Focuses on creative writing, ideation, and character development, using AI for language processing and idea generation.\n   - **CrewAI Edition**: CrewAI agents assist in deeper narrative structuring, offering suggestions and generating ideas in response to user inputs.\n   - [Prototype: openstorystudio Plus ](https://chat.openai.com/g/g-LppT0lwkB-openstorystudio-plus)\n\n3. **OpenStory Visualizer**:\n   - **Function**: Transforms scripts into visual storyboards or 2D imagery, using AI for image generation and script interpretation.\n   - **CrewAI Edition**: Incorporates CrewAI agents to create dynamic visual representations that adapt to script changes and user interactions.\n   - [Prototype: openstorystudio Visualizer ](https://chat.openai.com/g/g-11aRa0n1p-openstorystudio-visualizer)\n   - [Examples: Afterglow Storyboard ](https://github.com/BryanHarrisScripts/Afterglow-Echoes-of-Sentience/blob/main/Afterglow%20Storyboard%20Blocks/README.md) - The 24-Block 'AFTERGLOW' Storyboard \n   - [Examples: Afterglow Soundtrack ](https://github.com/BryanHarrisScripts/Afterglow-Echoes-of-Sentience/blob/main/Afterglow%20Sound%20Track/README.md) - 'AFTERGLOW' Soundtrack \n  \n[Back to Top](#table-of-contents)\n\n## CrewAI System: AI-driven Framework for Creating Visual Screenplays\n\n1. **CrewAI Core**:\n   - **Function**: Acts as the central coordinator for all AI agents.\n   - **Responsibilities**: Assigns roles to agents based on script segments, manages communication and synchronization between agents, and ensures that their output aligns with the overall story narrative.\n\n2. **AI Agent Groups**:\n   - **Division**: Agents are grouped by their roles in story elements like characters, environments, and dialogues.\n   - **Functionality**:\n     - **Character Agents**: Handle character movements and expressions.\n     - **Environment Agents**: Create and modify 2D settings and backgrounds.\n     - **Narrative Agents**: Manage plot progression and continuity.\n     - **Dialogue Agents**: Oversee script dialogues and can generate text or speech bubbles.\n\n3. **Script Processing and Segmentation**:\n   - **Process**: The script is analyzed, divided into segments, and key elements are tagged for visualization.\n   - **Integration with CrewAI**: The segmented script is input into CrewAI for task assignment to appropriate agent groups.\n\n4. **2D Visualization and Rendering**:\n   - **Collaborative Rendering**: Each agent group works on its tasks, contributing to the overall 2D visualization.\n   - **Composition**: A rendering engine compiles outputs from all agent groups to create a coherent visual representation of each segment.\n\n5. **Interactive and Dynamic Adaptation**:\n   - **User Interaction**: Allows users to interact with and alter the visualized story or explore different narrative paths.\n   - **Adaptive Response**: CrewAI dynamically adjusts agents' outputs based on user interactions to maintain story cohesion.\n\n6. **Final Compilation**:\n   - **Sequential Assembly**: Segments are assembled in sequence to create a continuous 2-hour visual story.\n   - **Output Format**: The final product can be presented in various formats, like an interactive digital narrative, an animated storyboard, or a visual script.\n\n**System Architecture Visualization**:\nThe system can be visualized as a centralized structure with CrewAI at its core. Surrounding AI agent groups interact with the script segments and contribute to the 2D visualization, culminating in the final story output. This design showcases CrewAI's ability to manage collaborative AI agents for seamless and dynamic storytelling in a 2D visual format.\n\n[Back to Top](#table-of-contents)\n  \n## A, I, Human Manifesto\n\n**Your Actions Define You**\n\nI navigate life with a purpose that extends beyond self, celebrating the collective journey shaped by passions, family ties, and shared wisdom. My family, especially my grandkids, are my constant beacon, reminding me of the legacies we craft and inherit.\n\nIn every endeavour, I bridge the digital with the tangible, upholding a commitment to integrity and professionalism, ever mindful of the trust others place in me. \"Afterglow\" isn't just about individual triumphs; it's a testament to the unwavering support and collaborations that have uplifted me in moments of doubt.\n\nStories are not solely mine. They weave in memories, mentorships, and collective innovation, even as I, like many, navigate moments of self-doubt. Guided by tools like ChatGPT, I'm reminded of our shared achievements and aspirations. Digital connections, for me, are echoes of teamwork, shared laughter, and heartfelt moments with family.\n\nMy journey, marked by peaks and valleys, is a shared testament. It aims to inspire, with roots deep in authenticity and a commitment to mutual respect and growth. Every step I take is enriched by the wisdom and guidance of those around me.\n\nHarnessing technology, I and many others craft tales that merge human emotions with digital nuances, always prioritizing collective well-being and genuine connections. Hand in hand with those who've been my pillars, our narrative is one of mutual growth, gratitude, and evolution.\n\nThis narrative, more than just words, is a shared compass. It illuminates every collaborative effort, family bond, and collective stride, crafted with love and mutual respect.\n\nTogether, in every endeavour, we reflect a symphony of values, dedication, and the steadfast support of our cherished community.\n\n## Guiding Manifesto\n\nAlways forge ahead, seizing every thought, recognizing its origin and intent. Transform the triggers, and resist the urge to interpret unsaid words or emotions in spaces I occupy.\n\nRecognize that thoughts shape emotions, which in turn guide actions. Stay anchored in motivations that fuel my spirit. When tangled in thoughts, question their authenticity—do they stand the test of truth?\n\n**Your Actions Define You.**\n\n## Guiding Stars\n\nMy true north is shaped by values and skills, both innate and learned and a relentless pursuit of genuine joy and pleasure.\n\n**Developed by a Human**: [Bryan Harris (24 Blocks / Afterglow Screenplay / Prompts)](#licensing-and-attribution)\n\n---\n\n**Disclaimer:** This content has been generated using an AI language model. It may include information, phrases, or ideas that could resemble existing copyrighted material, even though the specific sources are unknown. The AI is used for creative and informational purposes. Any resemblance to other works is coincidental, and this content is not intended to infringe upon the rights of any copyright holders.\n\n[Legal Disclaimer](https://github.com/BryanHarrisScripts/BryanHarrisScripts.github.io/blob/main/LegalDisclaimer.md)\n\n---\n\n[Back to Top](#table-of-contents)"
+        }
+      ]
+    },
+    {
+      "id": "collaboration-source-of-truth",
+      "number": 44,
+      "topic": "collaboration",
+      "title": "Collaborate Without Losing the Source of Truth",
+      "duration": "25–35 min",
+      "overview": "Turn collaboration into reviewable proposals, anchored discussion and explicit owner approval while preserving attribution, intent, provenance and the approved project version.",
+      "objectives": [
+        "Define owner, writer, reviewer and contributor roles before edits begin.",
+        "Translate Git concepts into plain screenwriting decisions.",
+        "Compare proposed revisions before accepting, rejecting or combining them."
+      ],
+      "sections": [
+        {
+          "heading": "Define roles and decision ownership",
+          "paragraphs": [
+            "The owner controls the canonical project and the final adoption decision. A writer may propose changes. A reviewer reports reader experience and craft evidence. A contributor supplies defined material or expertise. One person may hold several roles, but the permissions should still be explicit.",
+            "Contribution does not automatically settle ownership, credit, payment or reuse permission. Record those understandings separately and early."
+          ],
+          "points": [
+            "Owner: controls the canonical version and approval.",
+            "Writer: creates or revises story material.",
+            "Reviewer: comments without silently replacing.",
+            "Contributor: supplies a bounded contribution under agreed terms."
+          ]
+        },
+        {
+          "heading": "Propose rather than overwrite",
+          "paragraphs": [
+            "Keep the approved version intact while another version is being considered. Use stable anchors, named revisions and before/after comparison so a comment remains connected to the relevant Block, scene, character, Story Thread or screenplay element.",
+            "A disagreement should return to evidence, writer intent, continuity and decision ownership. Merging is the final approval step, not the beginning of collaboration."
+          ],
+          "points": [
+            "State the purpose of the proposal.",
+            "Show the original beside the alternative.",
+            "Identify affected canon and downstream work.",
+            "Resolve comments or record why they remain open.",
+            "Merge only after explicit approval."
+          ]
+        },
+        {
+          "heading": "Git concepts in writer language",
+          "paragraphs": [
+            "Git terminology is useful when a team chooses GitHub, but the creative decisions come first. The same principles can be followed through named .ppf files and a written review log."
+          ],
+          "points": [
+            "Repository → Project home: The controlled location that stores the project and its history.",
+            "Branch → Proposed alternate version: A separate line of changes that does not replace the approved version.",
+            "Commit → Saved change set: A named snapshot describing a coherent group of edits.",
+            "Pull request → Reviewable change proposal: A place to compare, discuss and approve a proposed version before adoption.",
+            "Merge → Owner-approved adoption: The deliberate act of adding an approved proposal to the canonical project.",
+            "Conflict → Competing changes requiring a decision: Two edits affect the same material and cannot be combined safely without human judgment."
+          ]
+        },
+        {
+          "heading": "Preserve history and attribution",
+          "paragraphs": [
+            "A useful revision record says who proposed the change, what it intended to solve, what evidence supported it, who approved it and which version adopted it. This history supports continuity and credit, but it does not replace a written rights or compensation agreement."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Repository — Project home",
+          "meaning": "The controlled location that stores the project and its history."
+        },
+        {
+          "term": "Branch — Proposed alternate version",
+          "meaning": "A separate line of changes that does not replace the approved version."
+        },
+        {
+          "term": "Commit — Saved change set",
+          "meaning": "A named snapshot describing a coherent group of edits."
+        }
+      ],
+      "example": {
+        "title": "Reviewing a new ending",
+        "text": "A co-writer creates a proposed alternate version rather than replacing the final act. The review identifies three changed setups, compares the emotional proof of each ending and records the owner-approved choice. The rejected version remains in history without becoming canon."
+      },
+      "checklist": [
+        "Roles and permissions are explicit.",
+        "The canonical project is protected.",
+        "Every proposal has a purpose and author.",
+        "Comments use stable story anchors.",
+        "Before and after versions can be compared.",
+        "Attribution and approval are recorded."
+      ],
+      "mistakes": [
+        "Letting the newest file become canonical by accident.",
+        "Using comments without identifying the affected version.",
+        "Treating reviewer suggestions as instructions.",
+        "Merging unresolved continuity conflicts.",
+        "Assuming version history is a complete ownership agreement."
+      ],
+      "exercise": "Choose one active Block or scene. Name its approved version, create a clearly labelled proposed alternative, list the evidence supporting the proposal and state who can approve its adoption.",
+      "apply": "Treatment",
+      "tags": [
+        "collaboration",
+        "source of truth",
+        "branch",
+        "commit",
+        "pull request",
+        "merge",
+        "conflict",
+        "review",
+        "attribution",
+        "GitHub Collaborative Writing"
+      ],
+      "original": {
+        "number": 40,
+        "path": "Development"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-blog-github-collaborative-writing-md",
+          "repository": "24-Blocks",
+          "path": "Blog/Github Collaborative Writing.md",
+          "title": "The Art of Collaborative Writing",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Blog/Github%20Collaborative%20Writing.md",
+          "content": "# The Art of Collaborative Writing\n\n### Strategies and Tips\n\nWriting is often viewed as a solitary act, a communion between a writer and their thoughts. But when we step into the realm of collaborative writing, we discover a different dynamic, one that opens the doors to shared creativity, diverse perspectives, and robust discussions. Collaborative writing comes with its unique set of challenges, requiring not just creativity, but also strong communication, organization, and conflict resolution skills. In this blog post, we'll delve into strategies for effective collaborative writing and discuss how GitHub's features can facilitate this process.\n\n## Strategies for Effective Collaborative Writing\n\n### Clear Communication\nTransparent and regular communication forms the backbone of any collaborative effort. It becomes vital to ensure that every member of the team has a clear understanding of the project's goals, individual roles, and timelines. Frequent check-ins and updates help keep everyone on the same page.\n\n### Balance Creativity with Consistency\nOne of the joys of collaborative writing is the blend of various writing styles and creative visions. However, it's essential to strike a balance between individual creativity and a consistent narrative voice for the project. Regular discussions about the project's tone, style, and structure can help achieve this balance.\n\n### Embrace and Resolve Conflicts Constructively\nWith multiple voices contributing to a project, conflicts are inevitable. The key is to view them as opportunities for growth rather than roadblocks. Open discussions and constructive feedback can lead to creative breakthroughs and stronger narratives.\n\n### Develop a Workflow\nEstablishing a consistent workflow can streamline the collaborative writing process. This can include steps like brainstorming, outlining, drafting, revising, and editing, with clear expectations for what should be achieved in each stage.\n\n### How GitHub Facilitates Collaborative Writing\n\nGitHub, typically known for hosting coding projects, can be a powerful platform for collaborative writing. Its features are designed to manage and streamline the process of working together.\n\n### Commenting on Lines\nYou can comment on specific lines in a script, making it easy to provide precise feedback or start a discussion about a particular passage. This feature allows for focused and context-specific conversations.\n\n### Resolving Merge Conflicts\nWhen multiple people are working on the same part of a script, conflicts can arise. GitHub has a built-in feature for resolving these \"merge conflicts\", allowing you to compare the conflicting versions and choose which changes to incorporate.\n\n### Version Control\nOne of the strongest aspects of GitHub is its version control capabilities. Every change made to a document is tracked, and you can always go back to a previous version if needed. This feature provides a safety net, making it easier to experiment with changes without fear of losing original work.\n\n### Pull Requests\nPull requests are a way to propose changes that others can review. This feature encourages peer review and ensures that no change is made in isolation, fostering a collective sense of ownership over the project.\n\n### Wrapping Up\n\nCollaborative writing can be a rewarding journey, brimming with shared creativity and collective wisdom. With the right strategies and tools, such as GitHub, the process can be smooth and productive. Remember, effective collaboration hinges on open communication, respect for diverse perspectives, and a willingness to embrace and resolve conflicts. So as you embark on your collaborative writing project, keep these strategies in mind, leverage the power of GitHub, and let your collective narratives unfold.\n\n---"
+        },
+        {
+          "id": "24-blocks-opensource-open-source-collaboration-md",
+          "repository": "24-Blocks",
+          "path": "OpenSource/Open Source Collaboration.md",
+          "title": "Unleashing the Power of Collaboration",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/OpenSource/Open%20Source%20Collaboration.md",
+          "content": "<div align=\"right\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n<a href=\"https://24blocks.openstorystudio.com/\">Home</a>\n\n<div align=\"left\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n# Unleashing the Power of Collaboration \n\n### Open Source Licensing in Screenwriting\n\n### Introduction\n\nOpen-source licensing has emerged as an innovative strategy for managing intellectual property (IP) in the digital age. Particularly for IPs like screenplays, this method fosters collaborative creativity while preserving the original author's recognition. Though this approach presents unique challenges, it also opens up opportunities for a vibrant, shared creative space. \n\nThis discussion explores the application of the Creative Commons Attribution-ShareAlike 4.0 International (CC-BY-SA-4.0) license to an open-source screenplay. This licensing model facilitates global access, extensive collaborations, and ensures recognition of the original work.\n\n### Understanding the CC-BY-SA-4.0 License\n\nThe CC BY-SA 4.0 license grants freedom to share, remix, adapt, and even commercially use a work, as long as the original creator is credited and new creations are shared under identical terms. This license nurtures a creative ecosystem promoting sharing, adaptation, and collaboration, and ensures the original creator's recognition and open-source sharing of any subsequent adaptations.\n\n````\nAuthor: Bryan Elgin Harris  \nAssisted by: OpenAI's language model, ChatGPT-4\nLicense: https://creativecommons.org/licenses/by-sa/4.0\nOriginal Work: https://github.com/BryanHarrisScripts/Afterglow-Echoes-of-Sentience\nModifications:\n````\n\n### Application of CC-BY-SA-4.0 License to IPs\n\nApplying the CC-BY-SA-4.0 license to IPs allows the author to maintain copyright, yet encourages innovative engagements with the work. This balancing act between protection and accessibility amplifies the creative impact and fosters communal creativity. \n\n**Note:** While you retain copyright over your contribution, by contributing to this project, you agree to license your work under CC BY-SA 4.0. This allows others to remix, adapt, and build upon your contribution, even for commercial purposes, provided they give appropriate credit, and license their derivative works under the same terms. Please ensure you understand the terms of this license before contributing.\n\n### Summary\n\n1. **Open-source Screenwriting:** An open-source model for screenwriting allows global creativity and collaboration. This approach broadens the influence and reach of original works.\n\n2. **CC-BY-SA-4.0 License Role:** This license fosters creativity and collaboration, ensuring the author's recognition and continued sharing and collaboration through all versions of the work.\n\n3. **Personal Branding and Attribution:** The CC-BY-SA-4.0 license bolsters the author's reputation by ensuring their work is always credited.\n\n4. **Legal Safeguards:** The license balances creativity, collaboration, and protection for the original creator, with clear terms of use.\n\n6. **Cultural Exchange and Global Reach:** Inviting worldwide adaptations and sharing of work promotes cultural exchange and broadens the original creator's global reach.\n\n**Disclaimer**: This summary highlights the potential benefits of using the open-source model and CC-BY-SA-4.0 license in screenwriting. It's recommended to consult with a legal professional before adopting this approach. \n\nOpen-source licensing provides an alternative path for managing creative works, promoting shared creativity, wide exposure, and community building. However, it requires careful selection of the licensing terms to align with the creator's goals and protections for the original work.\n\nProtective measures, such as trademarking, regular usage monitoring, and legal consultation, are necessary to ensure appropriate usage and protect the creator's rights. With thoughtful consideration and planning, open-source licensing can offer a rewarding journey for screenwriters. \n\n### Positive Outcomes of Open-sourcing a Screenplay:\n\n1. **Collaborative Community:** Open-sourcing fosters a community around the project, promoting networking and future collaborations.\n\n2. **Innovation and Creative Diversity:** This approach encourages creative diversity and innovation.\n\n3. **Increased Visibility:** Open-sourcing enhances a screenplay's accessibility and visibility, possibly leading to industry recognition.\n\n4. **Personal Branding:** Association with an open-source project enhances the screenwriter's personal brand.\n\n5. **Educational Opportunities:** Open-source projects serve as learning resources for budding screenwriters.\n\n6. **Commercial Opportunities:** Open-sourcing may lead to unforeseen commercial interests and revenue generation.\n\n**DISCLAIMER:** This approach is a suggestion and doesn't guarantee success. Individuals should consider their comfort with the inherent risks, conduct appropriate research, and consult with a legal professional before proceeding.\n\n# Hypothetical Scenarios for Open Source Projects\n\nLet's consider a few hypothetical scenarios to understand how the CC-BY-SA-4.0 License can apply in the context of open-source projects.\n\n### Scenario 1: Collaborative Adaptation\n\nAlice, a fellow screenwriter, stumbles upon Bryan's 'Afterglow' on GitHub. She is intrigued by the concept and decides to adapt it into a dark comedy. Under the terms of the CC-BY-SA-4.0 License, Alice is permitted to adapt 'Afterglow,' provided she gives appropriate credit to Bryan, indicates the changes she has made, and releases her adaptation under the same license. The collaborative nature of open-sourcing is thus maintained, fostering innovation while recognizing original authorship.\n\n### Scenario 2: Unauthorized Commercial Use\n\nBob, an independent filmmaker, discovers 'Afterglow' and decides to make a full-length feature film based on it. However, Bob does not give Bryan any credit and releases the film under a standard copyright license. This use of 'Afterglow' is in violation of the CC-BY-SA-4.0 License, as Bob has failed to provide appropriate credit and has not maintained the share-alike requirement. In this case, Bryan has the right to seek legal redress.\n\n### Scenario 3: Translation and Cultural Adaptation\n\nCarlos, a Spanish playwright, is fascinated by 'Afterglow.' He decides to translate it into Spanish and adapt it for a local theater production, making adjustments to suit his cultural context. As long as Carlos acknowledges Bryan as the original creator, indicates the changes made, and shares his adapted work under a CC-BY-SA-4.0 License, he remains compliant with the license terms. This scenario showcases how open-source projects can promote cultural exchange and global reach.\n\n### Scenario 4: Educational Use\n\nDiana, a film studies teacher, comes across 'Afterglow' and decides to use it as a study material in her scriptwriting class. She can distribute the script to her students, use it for analysis, and even encourage them to make their own adaptations, provided she credits Bryan as the original author and any adaptations made by students are shared under the same license.\n\nThese hypothetical scenarios underscore the practical implications of the CC-BY-SA-4.0 License in various contexts. It's essential for creators and users alike to understand these nuances to foster a healthy, collaborative, and respectful open-source culture.\n\n---"
+        },
+        {
+          "id": "bryanharrisscripts-github-io-ai-teams-collaboration-md",
+          "repository": "BryanHarrisScripts.github.io",
+          "path": "AI-Teams/Collaboration.md",
+          "title": "Collaboration Over Isolation",
+          "kind": "teaching",
+          "scopeNote": "OpenStory and visual-storytelling background material.",
+          "url": "https://github.com/BryanHarrisScripts/BryanHarrisScripts.github.io/blob/main/AI-Teams/Collaboration.md",
+          "content": "<!-- Main container with right alignment -->\n<div style=\"margin: 0; padding: 0;\"></div>\n <div align=\"right\" style=\"display: flex; flex-wrap: wrap; justify-content: right; align-items: right; gap: 1em; margin: 1em 0;\">\n   <a href=\"https://openstorystudio.com\">Home</a><br><br>\n  <div align=\"left\" style=\"display: flex; flex-wrap: wrap; justify-content: right; align-items: right; gap: 1em; margin: 1em 0;\">\n  </div>\n </div>\n</div>\n\n# Collaboration Over Isolation\n### Hierarchy of Human-AI Integration:\n\n1. **AI User**:\n   - **Characteristics**: Individuals at this level utilize AI tools and applications primarily for personal or work-related tasks. They may not have deep technical knowledge of AI but understand how to use these tools effectively.\n   - **Activities**: Using AI for productivity enhancement, such as writing assistants, automated data analysis, or creative generation tools. Engages with AI through user-friendly interfaces.\n   - **Impact**: Enhances personal or team productivity and efficiency. Limited influence on the development or customization of AI tools.\n\n2. **AI Collaborator**:\n   - **Characteristics**: These individuals actively collaborate with AI systems to co-create and co-develop projects. They have a good understanding of how AI works and can customize AI tools to better fit their needs.\n   - **Activities**: Working alongside AI for complex tasks such as data modeling, advanced creative projects, and semi-automated decision-making processes. May tweak or fine-tune AI models for specific applications.\n   - **Impact**: Significant contribution to enhancing workflows and achieving innovative outcomes by combining human creativity and intuition with AI's analytical capabilities.\n\n3. **AI Integrator**:\n   - **Characteristics**: Professionals who integrate AI solutions into larger systems and workflows. They have a strong understanding of AI principles and can develop custom solutions tailored to specific business or project needs.\n   - **Activities**: Designing and implementing AI systems, ensuring seamless integration with existing processes, and addressing issues related to scalability, ethics, and data privacy.\n   - **Impact**: High impact on organizational efficiency and innovation. Plays a crucial role in driving the adoption and strategic implementation of AI technologies.\n\n4. **AI Developer**:\n   - **Characteristics**: Individuals with deep technical expertise in AI, including data scientists, machine learning engineers, and researchers. They develop new AI models, algorithms, and applications.\n   - **Activities**: Creating and improving AI models, conducting research on new AI techniques, and developing proprietary AI technologies. Contributing to the broader AI community through research publications and open-source projects.\n   - **Impact**: Very high, as their work directly influences the advancement of AI technologies and methodologies. Often drives the cutting-edge developments in the field.\n\n5. **AI Visionary**:\n   - **Characteristics**: Thought leaders and pioneers in the AI field who envision and shape the future of AI technology and its societal impacts. They combine technical expertise with strategic foresight.\n   - **Activities**: Setting long-term goals for AI development, advocating for ethical AI practices, influencing policy and regulatory frameworks, and leading large-scale AI initiatives.\n   - **Impact**: Transformative, with a broad influence on the direction of AI research, development, and its integration into society. Their work often defines the ethical and strategic landscape of AI.\n\n### Implications of This Model:\n\n1. **Collaboration Over Isolation**: This model emphasizes the collaborative potential of AI, where each level involves increasing degrees of interaction and integration with AI systems.\n2. **Continuous Learning and Adaptation**: As AI technologies evolve, individuals at all levels must continuously learn and adapt to new tools, methods, and ethical considerations.\n3. **Broader Impact and Responsibility**: Higher levels in this hierarchy involve not only technical skills but also strategic thinking and ethical responsibility, highlighting the broader implications of AI on society.\n\nBy focusing on integration and collaboration, this hierarchy underscores the dynamic relationship between humans and AI, where the ultimate goal is to leverage AI to enhance human capabilities and address complex challenges.\n\n---\n\n## The Universal Model:\n\n### Generalized Hierarchy of Expertise and Roles:\n\n1. **Enthusiast (Hobbyist)**:\n   - **Characteristics**: Driven by personal interest and passion, often self-taught, learning through informal methods.\n   - **Activities**: Engages in personal projects, experiments, participates in communities and forums.\n   - **Impact**: Limited to personal satisfaction and small communities.\n\n2. **Novice (Amateur)**:\n   - **Characteristics**: More structured learning, often transitioning from enthusiast to professional, may have some formal education or certifications.\n   - **Activities**: Works on more complex projects, collaborates with others, starts freelancing or part-time work, engages in competitions and collaborative projects.\n   - **Impact**: Moderate, contributions start gaining recognition beyond personal circles.\n\n3. **Practitioner (Professional)**:\n   - **Characteristics**: Formal education, substantial experience, often employed in the field, continuously learning and staying updated with the latest advancements.\n   - **Activities**: Works on advanced projects, leads teams, mentors others, significantly contributes to industry practices and advancements.\n   - **Impact**: High, influencing industry practices, driving innovation, and advancing the field.\n\n4. **Specialist**:\n   - **Characteristics**: Deep knowledge in a specific area within the field, often with unique skills and experience.\n   - **Activities**: Focuses on niche projects requiring specialized expertise, consults on specialized topics, provides critical insights and advancements in their area of specialization.\n   - **Impact**: Significant within their specialization, offering depth and advanced solutions to specific challenges.\n\n5. **Integrator**:\n   - **Characteristics**: Strong understanding of core principles, integrates solutions into larger systems and workflows, ensuring seamless adoption and addressing issues related to scalability, ethics, and strategy.\n   - **Activities**: Designs and implements systems, ensures integration with existing processes, manages projects, addresses strategic and ethical considerations.\n   - **Impact**: High, enhancing organizational efficiency and innovation through strategic implementation.\n\n6. **Researcher/Innovator**:\n   - **Characteristics**: Deep technical or theoretical expertise, focuses on advancing the state of knowledge through research and development.\n   - **Activities**: Develops new models, techniques, or products, conducts cutting-edge research, publishes findings, contributes to the academic and research community.\n   - **Impact**: Very high, driving the frontiers of the field and contributing to foundational advancements.\n\n7. **Mentor/Educator**:\n   - **Characteristics**: Combines expertise with a passion for teaching and mentoring the next generation of professionals.\n   - **Activities**: Teaches courses, mentors students and junior professionals, develops educational content, builds and nurtures communities.\n   - **Impact**: Significant, shaping the future workforce and spreading knowledge throughout the field.\n\n8. **Ethical Leader**:\n   - **Characteristics**: Focuses on the ethical implications and responsible practice within the field, advocating for ethical standards and practices.\n   - **Activities**: Develops ethical guidelines, advises on responsible practice, influences policy and regulatory frameworks, raises awareness about ethical considerations.\n   - **Impact**: Transformative, ensuring responsible development and implementation, influencing public and policy discourse.\n\n9. **Visionary/Thought Leader**:\n   - **Characteristics**: Combines deep expertise with strategic foresight, recognized as a leader and influencer within the field.\n   - **Activities**: Sets long-term goals, leads large-scale initiatives, advocates for ethical practices, influences industry standards and policy.\n   - **Impact**: Transformative, shaping the future direction, driving innovation, and influencing broader societal impacts.\n\n### Conclusion:\n\nThis generalized hierarchy captures the progression of roles and expertise levels applicable to any field. It recognizes the diverse contributions individuals can make, from enthusiasts to visionaries, and highlights the importance of different perspectives and expertise in driving the field forward. The model emphasizes continuous learning, collaboration, ethical considerations, and strategic thinking as key components at all levels."
+        }
+      ]
+    },
+    {
+      "id": "collaboration-formats-that-travel",
+      "number": 45,
+      "topic": "collaboration",
+      "title": "Formats That Travel",
+      "duration": "25–35 min",
+      "overview": "Choose the right format for complete project exchange, screenplay interchange, stable reading, documentation or presentation without confusing a convenient export with the canonical source.",
+      "objectives": [
+        "Distinguish .ppf, PlotPickle JSON, Markdown, Fountain, FDX, PDF and presentation exports.",
+        "Replace outdated Final Draft-to-text workarounds with direct import and export.",
+        "Anticipate what may be lost or changed during a round trip."
+      ],
+      "sections": [
+        {
+          "heading": "Choose by purpose, not familiarity",
+          "paragraphs": [
+            "No single format is best for every task. Use .ppf for a complete PlotPickle project, structured PlotPickle JSON where machine-readable interchange is required, Fountain or FDX for editable screenplay interchange, PDF for stable reading and Markdown or HTML for treatments, notes and pitch presentation."
+          ],
+          "points": [
+            ".ppf: Complete portable PlotPickle projects and routine project exchange.",
+            ".plotpickle.json: Canonical structured project export, inspection, migration and integrations where available.",
+            "Markdown: Treatments, notes, documentation, credits and presentation-ready pitch text.",
+            "Fountain: Portable plain-text screenplay interchange and version comparison.",
+            "FDX: Interchange with Final Draft and other applications that support Final Draft XML.",
+            "PDF: Stable reading copies, submissions, review and printing.",
+            "HTML and Markdown presentation exports: Pitch packages, browser viewing and portable presentation material."
+          ]
+        },
+        {
+          "heading": "Markdown is not screenplay formatting",
+          "paragraphs": [
+            "Markdown is excellent for headings, notes, treatment sections, documentation, credits and pitch copy. It does not encode screenplay elements with the same purpose as Fountain or FDX and should not be taught as a substitute for a screenplay document.",
+            "PlotPickle connects the Markdown Treatment to all 96 mini-blocks while keeping screenplay interchange in screenplay formats."
+          ]
+        },
+        {
+          "heading": "Use direct Final Draft interchange",
+          "paragraphs": [
+            "PlotPickle can import Final Draft FDX directly and export FDX or Fountain. Writers should not be sent through WriterDuet, copied plain text or Markdown conversion merely to move between Final Draft and a review workflow.",
+            "After any interchange, compare scene order, element types, character names, revisions and page-sensitive material before continuing."
+          ],
+          "points": [
+            "Import FDX directly.",
+            "Export FDX for Final Draft interchange.",
+            "Export Fountain for portable screenplay text.",
+            "Keep the PlotPickle project as the complete source when project-only data matters."
+          ]
+        },
+        {
+          "heading": "Plan for round trips",
+          "paragraphs": [
+            "A round trip means exporting to another format, editing elsewhere and importing back. Every round trip should have a named source version, a comparison step and a decision about which application-specific information is allowed to be omitted."
+          ],
+          "points": [
+            ".ppf caution: Treat one named copy as canonical. Confirm version and ownership before replacing an active project.",
+            ".plotpickle.json caution: Manual edits can break schema relationships. Re-import and validate before treating a changed file as authoritative.",
+            "Markdown caution: Markdown is not screenplay formatting. It does not replace Fountain or FDX for screenplay interchange.",
+            "Fountain caution: Application-specific metadata, complex revisions and some layout choices may not round-trip exactly.",
+            "FDX caution: Software-specific metadata, revision colours, production data and unsupported extensions can differ after a round trip.",
+            "PDF caution: PDF is a reading endpoint, not the preferred editable source. Importing it back can be lossy.",
+            "HTML and Markdown presentation exports caution: A pitch export is not the complete project and should not be mistaken for the canonical screenplay or rights record."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Interchange format",
+          "meaning": "A format chosen to move editable material between applications."
+        },
+        {
+          "term": "Reading format",
+          "meaning": "A stable output such as PDF intended for review rather than continued structured editing."
+        },
+        {
+          "term": "Round trip",
+          "meaning": "Exporting, editing in another tool and importing back while checking what changed or was lost."
+        }
+      ],
+      "example": {
+        "title": "Sending a screenplay to a Final Draft collaborator",
+        "text": "Export FDX from the named PlotPickle version, let the collaborator revise that copy, import the returned FDX as a proposal and compare it before adoption. Keep the .ppf project as the source for Blocks, notes, provenance and other PlotPickle-only data."
+      },
+      "checklist": [
+        "The purpose of the export is named.",
+        "The format preserves the required information.",
+        "The canonical project remains identifiable.",
+        "The recipient knows whether the file is editable, review-only or publishable.",
+        "Round-trip differences are reviewed before replacement."
+      ],
+      "mistakes": [
+        "Using Markdown as screenplay formatting.",
+        "Treating PDF as an editable master.",
+        "Assuming all FDX metadata round-trips identically.",
+        "Replacing the complete project with a screenplay-only export.",
+        "Using old text-conversion workarounds when direct import/export exists."
+      ],
+      "exercise": "Choose one active-project exchange task. Select the best format, list what it preserves, list what it omits and define the comparison step required before the returned material can become canonical.",
+      "apply": "Screenplay",
+      "tags": [
+        "format chooser",
+        ".ppf",
+        ".plotpickle.json",
+        "Markdown",
+        "Fountain",
+        "FDX",
+        "Final Draft",
+        "PDF",
+        "HTML",
+        "pitch deck",
+        "round trip",
+        "GitHub Mastering Markdown",
+        "GitHub Merging Final Draft and Text"
+      ],
+      "original": {
+        "number": 41,
+        "path": "Drafting"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-blog-github-mastering-markdown-md",
+          "repository": "24-Blocks",
+          "path": "Blog/Github Mastering Markdown.md",
+          "title": "Mastering Markdown for GitHub",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Blog/Github%20Mastering%20Markdown.md",
+          "content": "# Mastering Markdown for GitHub\n\n### A Screenwriter's Guide\n\nIn the realm of collaborative screenwriting, learning to navigate GitHub and its formatting tool, Markdown, can give you a significant edge. Markdown, a simple yet potent text formatting syntax, simplifies the process of writing, editing, and collaborating on GitHub. In this guide, we aim to cover the basics of Markdown and GitHub Flavored Markdown (GFM), providing examples of how to format text, create lists, add links, and more.\n\n### What is Markdown?\n\nMarkdown is a lightweight markup language that adds formatting elements to plaintext text documents. Developed by John Gruber and Aaron Swartz in 2004, it allows writers to apply formatting to text using a range of simple characters like #, *, and -.\n\n### The Basics of Markdown\n\nMarkdown's key strength lies in its simplicity. Here's a look at some basic syntax:\n\n1. **Headers**: Add from one to six # symbols before your heading text. The more symbols, the smaller the heading. For instance, '# The largest heading' generates an h1 heading, '###### The smallest heading' creates an h6.\n\n2. **Emphasis**: Use asterisks (*) or underscores (_) to create italic or bold text. Single for italics '*This text will be italic*', double for bold '**This text will be bold**'.\n\n3. **Lists**: Create unordered lists using the hyphen (-) or asterisk (*) as bullet points. Ordered lists can be made by numbering your items '- Item 1 - Item 2 - Item 3' or '1. Item 1 2. Item 2 3. Item 3'.\n\n4. **Links**: Form a link by enclosing your link text in square brackets ([]), then the URL in parentheses (()), like this: '[GitHub](http://github.com)'.\n\n5. **Images**: To add images, use the same syntax as for links, but add an exclamation mark (!) before the square brackets.\n\n6. **Blockquotes**: Quote a piece of text by using the > character before the text you want to quote: '> This is a quote.'\n\n### GitHub Flavored Markdown (GFM)\n\nIn addition to standard Markdown, GitHub supports its own version, known as GitHub Flavored Markdown (GFM). GFM offers a range of useful features for the collaborative writer:\n\n1. **Username Mentions**: Tag someone in a discussion or draw their attention to a specific part of your work using '@' followed by their GitHub username. '@username Great work on this scene, but I think it could use a bit more suspense.'\n\n2. **Task Lists**: Track progress by creating task lists. Create a task using '-' followed by a space, then square brackets with a space in between, followed by the task. To mark a task as complete, add an 'x' in between the brackets. '- [ ] Write Act 1' or '- [x] Write Act 1'\n\n3. **Fenced Code Blocks**: Although not typically used in screenwriting, you could use fenced code blocks when discussing technical elements in your screenplay or project's documentation. Create a fenced code block by wrapping your code in triple backticks (`).\n\n4. **Tables**: Make tables by assembling a list of words and dividing them with hyphens - (for the first row), and then separating each column with a pipe |. 'Character | Dialogue --- | --- John Doe | \"Hello, world!\"'\n\n5. **Strikethrough**: Cross out a word by wrapping it with two tildes ~~. '~~Mistaken text.~~'\n\nTo use GFM, simply write in Markdown as you normally would in your .md or .markdown file and upload it to GitHub. The platform will automatically recognize and apply the GFM formatting.\n\n### Making the Most of Markdown and GFM on GitHub\n\nAs a screenwriter, using Markdown and GFM on GitHub can add efficiency and organization to your writing process. You can use these tools to structure your scripts, discuss revisions, track your writing progress, and collaborate more effectively with others.\n\nFor instance, with task lists, you can break down your writing process into manageable tasks and keep track of what you have completed and what's left to do. With username mentions, you can request input from your collaborators, alerting them to the specific sections you want them to review. Tables can come in handy for organizing your characters' dialogues or tracking the narrative arc of your screenplay. Fenced code blocks, while more relevant to coding, can be used creatively in your screenwriting projects, perhaps to separate different sections or to present an alternate formatting.\n\n### Wrapping Up\n\nAs you step into the world of collaborative screenwriting on GitHub, mastering Markdown and GFM can provide you with a valuable skill set. While it may seem challenging at first, over time you will find these tools to be straightforward and highly beneficial to your writing process. They not only bring structure and readability to your scripts but also open up avenues for seamless collaboration and creative discussions. So embrace the power of Markdown and GFM, and let your scripts tell compelling stories in a space that fosters collaborative creativity.\n\n---"
+        },
+        {
+          "id": "24-blocks-blog-github-merging-final-draft-and-text-md",
+          "repository": "24-Blocks",
+          "path": "Blog/Github Merging Final Draft and Text.md",
+          "title": "An Experiment in Collaboration:",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Blog/Github%20Merging%20Final%20Draft%20and%20Text.md",
+          "content": "# An Experiment in Collaboration: \n### Merging Final Draft, Text Files, and GitHub\n\nThe art of screenwriting often thrives on collaboration. Yet, in this digital age, facilitating a seamless, efficient process for joint script development can be a daunting task. Tools like Final Draft dominate the market, providing excellent scriptwriting environments. On the other hand, platforms like GitHub offer robust version control and collaboration options. The question is - can we bring them together?\n\nLet's embark on an experimental journey to try and marry Final Draft with GitHub using intermediary text file formats. Given the differences in these tools, there will inevitably be workarounds and compromises. Still, the potential for streamlined, trackable collaboration is enticing. \n\nLet's look at the possibilities:\n\n### 1. Exporting Scripts as Plain Text Files\n\nThe simplest method is to export your Final Draft script as a plain text file (.txt) and upload it to GitHub. \n\n- Write your script in Final Draft.\n- Export your script from Final Draft as a plain text file (.txt).\n- Upload your plain text file to GitHub.\n- Collaborators can download the .txt file, make changes, and submit revisions.\n\nThough simple, the drawback is formatting loss in the conversion process. The plain text file will strip out special scriptwriting formatting which may affect the readability of your script.\n\n### 2. Utilizing Avid or Tab Delimited Dialogue Formats\n\nAn upgrade on the plain text option is to use the Avid script-based editing or tab delimited dialogue formats. Both formats will preserve some element of the script layout and formatting.\n\n- Write your script in Final Draft.\n- Export your script as either Avid or tab delimited dialogue format (.txt).\n- Upload this text file to GitHub.\n- Collaborators can download the file, make changes, and submit revisions.\n\nWhile this method retains more formatting, it may still lose some of Final Draft's features and require some manual adjustment.\n\n### 3. Using WriterDuet to Convert .fdx to .fountain\n\nAnother route is to use another scriptwriting tool that supports both Final Draft (.fdx) and Fountain (.fountain) formats. WriterDuet is an example.\n\n- Write your script in Final Draft.\n- Export your script from Final Draft as an .fdx file.\n- Open WriterDuet and import your .fdx file.\n- Export your script from WriterDuet to .fountain.\n- Upload the .fountain file to GitHub.\n- Collaborators can download the .fountain file, make changes, and submit revisions.\n\nThough slightly complex, this method makes use of Fountain's compatibility with GitHub and retains much of Final Draft's rich formatting.\n\n### 4. Using Final Draft's Script Reports Feature\n\nFinal Draft has a reports option that allows you to create a script report and export it as a text file. Although it might not follow strict Fountain syntax, it's an option worth exploring.\n\n- Write your script in Final Draft.\n- Use Final Draft's reports feature to create a script report.\n- Export the script report as a text file.\n- Upload this text file to GitHub.\n- Collaborators can download the file, make changes, and submit revisions.\n\nThis workaround might generate a text file that somewhat resembles the Fountain format. However, compatibility with other software that supports Fountain should be tested.\n\n### Summary\n\nGiven these options, it appears the WriterDuet method may be the most effective at preserving formatting and ensuring compatibility with GitHub. It leverages Fountain, the preferred text format for GitHub, which is designed specifically for screenplays. However, it does require using an additional software and a few more steps than other methods.\n\nRemember, this is an experiment, a journey where we're learning as we go. The workarounds might be intricate, and there might be some bumps along the road. But the potential reward is a collaborative, efficient, and transparent scriptwriting process that allows us to focus more on the art of storytelling and less on the logistics of collaboration. \n\nAfter careful consideration, we recommend the method involving WriterDuet as potentially the most effective for preserving the integrity of the script while maintaining collaborative functionality. However, the best method will always be the one that suits your specific needs and circumstances.\n\n- Are you focused on preserving as much formatting as possible? Utilize WriterDuet to convert your script to .fountain format.\n- Do you prefer to keep it simple and minimize software usage? Exporting as a plain text or Avid/tab delimited dialogue might work better.\n- Want to explore Final Draft's full features? Try using the script reports function.\n\nThere isn't a one-size-fits-all solution, and that's okay. The goal is to find a balance between preserving the formatting and nuances of your screenplay and facilitating a smooth collaboration process.\n\nThe script is set, the characters are ready - let's start this adventure together. As we experiment, we look forward to hearing your experiences and insights. After all, collaboration extends beyond the script - it's integral to our creative community.\n\nHappy writing and collaborating!\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "working-together-model",
+      "number": 48,
+      "topic": "collaboration",
+      "title": "Choose the Collaboration Model",
+      "duration": "20–30 min",
+      "overview": "Define ownership, access, proposal rights, approval authority, privacy, credit and licensing before inviting anyone.",
+      "objectives": [
+        "Compare eight models.",
+        "Separate access, ownership and reuse.",
+        "Set response and confidentiality expectations."
+      ],
+      "sections": [
+        {
+          "heading": "The operating agreement",
+          "paragraphs": [
+            "The model defines who owns the current project, who may view, comment or propose, who decides canon and what credit, compensation, ownership, confidentiality or licence expectations apply.",
+            "Ordinary collaboration may remain local-only or use file exchange. GitHub, AI, public publishing and an open licence remain optional tools and separate decisions."
+          ],
+          "points": [
+            "Solo project with occasional feedback: One project owner; Local or private by default; No open licence implied.",
+            "Private reviewer access: One project owner; Confidential/private; No reuse right implied.",
+            "Invited contributor: One project owner; Defined by the brief; Only recorded permission applies.",
+            "Co-writing partnership: Shared or agreement-defined; Usually private during development; Joint licensing requires relevant owners.",
+            "Commissioned rewrite or specialist service: Commissioning party or agreement-defined; Usually confidential; Contract or permission controls reuse.",
+            "Production-team collaboration: Producer, company or agreement-defined; Production policy; Asset-specific permission required.",
+            "Public feedback project: Named project owner; Public material only; Separate explicit licence decision.",
+            "Openly licensed community project: Named owner or governance group; Public; Recorded open licence governs covered material only."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Collaboration model",
+          "meaning": "The agreed structure for access, contribution, authority, privacy, credit, ownership and reuse."
+        }
+      ],
+      "example": {
+        "title": "Private reader versus open community",
+        "text": "Both may use PlotPickle; only the second uses explicit open contributor terms."
+      },
+      "checklist": [
+        "Owner named.",
+        "Canon authority defined.",
+        "Privacy and licence explicit."
+      ],
+      "mistakes": [
+        "Assuming feedback creates ownership.",
+        "Confusing public visibility with reuse permission."
+      ],
+      "exercise": "Choose the active project's collaboration model.",
+      "apply": "Treatment",
+      "tags": [
+        "Your Role and Key Questions",
+        "Afterglow collaborator guide",
+        "private review",
+        "co-writing",
+        "commissioned",
+        "open licence"
+      ],
+      "original": {
+        "number": 52,
+        "path": "Industry"
+      },
+      "sources": [
+        {
+          "id": "afterglow-contributing-md",
+          "repository": "Afterglow",
+          "path": "CONTRIBUTING.md",
+          "title": "Contributing to Afterglow",
+          "kind": "collaboration-guidance",
+          "scopeNote": "General contribution guidance only; no Afterglow story or canon is included.",
+          "url": "https://github.com/BryanHarrisScripts/Afterglow/blob/main/CONTRIBUTING.md",
+          "content": "# Contributing to Afterglow\n\nAfterglow accepts focused corrections, accessibility improvements, metadata repairs, PlotPickle compatibility fixes and clearly licensed creative proposals.\n\n## Before contributing\n\n- Do not include credentials, private contact information, unpublished third-party work or material you do not have permission to share.\n- Identify every new image, font, audio file, video file or substantial excerpt and document its creator, source and licence.\n- Keep generated media separate from human-authored source material and state how it was produced.\n- Use a branch and pull request. Do not change main directly.\n- Complete the privacy, rights and attribution checklist in the pull-request template.\n\n## Current licence boundary\n\nThe repository's README and LICENSE currently name different Creative Commons licences. Until the maintainer resolves that conflict and publishes one canonical licence scope, do not submit new creative material for redistribution. Corrections that do not add creative content may still be proposed.\n\nSubmitting a pull request does not transfer ownership of unrelated work. A contributor must have the right to submit every copyrightable contribution and must accept the canonical contribution licence once it is resolved.\n\n## Review\n\nA proposal should explain what changed, why it belongs in Afterglow, which files and assets are affected, and how the result was validated. Only the repository owner or an authorized maintainer may merge a proposal."
+        }
+      ]
+    },
+    {
+      "id": "working-together-authority",
+      "number": 49,
+      "topic": "collaboration",
+      "title": "Define Roles and Decision Authority",
+      "duration": "20–30 min",
+      "overview": "Translate creative roles into an authority matrix without confusing them with GitHub permissions.",
+      "objectives": [
+        "Define roles.",
+        "Assign authority.",
+        "Separate technical permission."
+      ],
+      "sections": [
+        {
+          "heading": "Responsibility and enforcement",
+          "paragraphs": [
+            "A role states what someone is asked to do and may decide. Technical permission states what an account can do.",
+            "The owner retains final canon authority unless a written agreement establishes shared or delegated authority."
+          ],
+          "points": [
+            "Project Owner: Controls canon, repository connection, rights settings and final acceptance unless a written agreement shares authority.",
+            "Co-owner / Maintainer: May share final approval, licence or invitation authority only when explicitly authorized.",
+            "Writer / Co-writer: Creates story or screenplay material within an agreed scope; ownership and approval remain separate questions.",
+            "Contributor: Proposes bounded additions or changes without automatically controlling canon.",
+            "Reviewer: Comments and identifies questions without changing the approved project.",
+            "Story Editor: Diagnoses and recommends revisions but does not automatically own, approve or merge them.",
+            "Research / Continuity Contributor: Supplies sourced facts, canon checks or continuity findings with provenance.",
+            "Visual, Music or Production Contributor: Supplies specialist assets with permission, credit and provenance information."
+          ]
+        },
+        {
+          "heading": "Authority matrix",
+          "paragraphs": [
+            "Record view, comment, thread, proposal, rights, asset, merge, licence and invitation authority."
+          ],
+          "points": [
+            "Authority choice: View",
+            "Authority choice: Comment",
+            "Authority choice: Create review threads",
+            "Authority choice: Propose changes",
+            "Authority choice: Edit collaborator records",
+            "Authority choice: Approve specialist assets",
+            "Authority choice: Merge into canon",
+            "Authority choice: Change licences",
+            "Authority choice: Invite or remove collaborators"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Creative authority",
+          "meaning": "The agreed right to make a project decision."
+        },
+        {
+          "term": "Technical permission",
+          "meaning": "The capability to perform an action in a tool."
+        }
+      ],
+      "example": {
+        "title": "Story editor with write access",
+        "text": "The editor may propose while the owner still decides canon."
+      },
+      "checklist": [
+        "Role named.",
+        "Scope defined.",
+        "Permissions verified separately."
+      ],
+      "mistakes": [
+        "Assuming write access means merge authority."
+      ],
+      "exercise": "Audit one collaborator's authority.",
+      "apply": "Treatment",
+      "tags": [
+        "roles",
+        "authority matrix",
+        "GitHub permissions"
+      ],
+      "original": {
+        "number": 53,
+        "path": "Industry"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-blog-llms-twitter-github-and-ai-md",
+          "repository": "24-Blocks",
+          "path": "Blog/LLMs, Twitter, Github, and AI.md",
+          "title": "LLMs Twitter, Github, and AI",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Blog/LLMs%2C%20Twitter%2C%20Github%2C%20and%20AI.md",
+          "content": "# LLMs Twitter, Github, and AI\n\nCreativity knows no bounds, especially in this digital age where technology and imagination intertwine in fascinating ways. I've embarked on a project that blends conventional screenwriting tools with unexpected platforms: Twitter, Github, and artificial intelligence. At first glance, it may seem a strange combination. However, it might just be the change we need in how we approach our creative processes.\n\n### Posting a Screenplay on Twitter: Serialized Storytelling for the Digital Age\n\nTwitter, the social media platform known for short, snappy information sharing, can also serve as an innovative platform for serializing a screenplay. For this project, I divided my screenplay into 'blocks.' Each block represents approximately five minutes of screen time, and every block has a unique title encapsulating its essence. This process allows followers to digest the screenplay in small increments, fostering real-time engagement with the story.\n\n### Breathing Life into Characters with ChatGPT\n\nWriting dialogue is often challenging, especially when aiming to create dialogue that resonates with the characters' personalities and moves the plot forward. Here's where artificial intelligence, specifically ChatGPT developed by OpenAI, steps in. The AI model allowed me to explore new dialogues, bringing the characters to life in ways that were initially daunting. The AI model, trained with character bios and plot outlines, generated unique and insightful dialogues that stayed true to the characters and plot.\n\n### Github as a Collaborative Space for Creatives\n\nOften associated with software development, Github might be an unexpected resource for writers. In my project, I attempted to approach my screenplay as an open-source and collaborative project, creating a space for like-minded creatives to contribute their insights and edits. The \"pull request\" feature in Github could potentially enable writers to suggest changes, and the \"Discussions\" feature could facilitate targeted discussions on the screenplay's various aspects. However, this innovative use for this project still remains to be tested.\n\n### The Open-Source Screenplay: A Venture into Uncharted Territories\n\nOpen-sourcing a screenplay is no small endeavor but an exciting prospect for fostering creativity and innovation. This approach enables others to build upon the initial work, infusing it with their unique perspectives, enriching the story in unanticipated ways. This collective approach to creation holds immense potential, although it's yet to be widely explored.\n\n### Will This Approach Suit Everyone?\n\nThis process, blending the traditional tools like Final Draft, Adobe, and Sticky Notes with innovative platforms like Twitter, Github, and AI, might not be for everyone. It's unorthodox and requires a certain level of comfort with technology. Nevertheless, for those willing to explore and step outside the traditional boundaries, it could present a unique and rewarding creative experience.\n\n### A Potential Synergy: Final Draft and Github\n\nThe integration of Final Draft, a popular screenwriting software, with Github is an interesting proposition. Theoretically, one could save a Final Draft file as plain text or a Fountain file, upload it to Github, and invite others to view and suggest edits. However, this integration is yet to be practically tested within this project's context.\n\n### Exploring Github for Screenwriting: A Journey Yet to Begin\n\nWriters intrigued by this approach will need a Github account and a fundamental understanding of the platform. Knowledge on creating repositories and managing pull requests and discussions will be crucial. However, the effectiveness of these features within screenwriting is yet to be explored and tested.\n\n### A Call to Innovators: Is There Potential Interest?\n\nOpen-sourcing a screenplay on a platform like Github may seem like a niche idea. However, I believe there is a community of writers and creatives out there who would appreciate and embrace such an innovative approach. The collaboration and dialogue opportunities this format offers could present a fresh avenue to explore, test, and possibly pioneer as a new method for screenwriting in the digital era.\n\n### Harnessing the Tools: What's Required?\n\nTo effectively utilize Github for this new approach, writers will need more than just a Github account. A basic understanding of the platform is essential, along with knowledge on how to create repositories, handle pull requests, and manage discussions. Fortunately, many online tutorials can guide you through this learning process. However, the applicability of these tools to screenwriting and their effectiveness are areas that remain to be tested.\n\nNote: under the Blog directory there are resources to help guide through various topics of Github.\n\n### The Power of a New Process\n\nEmbarking on this unique venture has opened up fascinating possibilities. By blending traditional tools like Final Draft, Adobe, and Sticky Notes with platforms like Twitter, Github, and AI, the screenwriting process becomes a dynamic and interactive experience. Yes, this approach is not for everyone. It's unconventional, untested, and demands a certain level of technical comfort. However, for those willing to venture out of their comfort zones, it offers an exciting blend of creativity and innovation.\n\nThis new method doesn't replace traditional screenwriting but rather augments it, bringing together a diverse set of tools that could revolutionize how we approach creative writing projects. The potential for open-source collaboration and real-time engagement might just be the shift we need in screenwriting. And even if this specific process doesn't become mainstream, it opens the door for thinking about how we can continue to push the boundaries of creativity in the digital age.\n\nWhile there are still many untested elements and the outcomes remain uncertain, this venture into uncharted territories is a testament to the exciting possibilities that emerge when technology and creativity intersect. Only time will tell if these tools and approaches gain traction. But as we continue to explore and innovate, one thing is for sure: the landscape of screenwriting is evolving, and we're just at the beginning of this exciting journey.\n\n---"
+        },
+        {
+          "id": "24-blocks-blog-open-sourcing-licensing-and-protection-md",
+          "repository": "24-Blocks",
+          "path": "Blog/Open-Sourcing Licensing and Protection.md",
+          "title": "Licensing and Protection",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Blog/Open-Sourcing%20Licensing%20and%20Protection.md",
+          "content": "# Licensing and Protection\n\nWhile the concept of open-sourcing your screenplay may seem like you're giving away your work for free, it's important to understand the nuances of open-source licensing. GitHub provides a platform for establishing an open-source license, which helps set the terms on how others can use, modify, or distribute your work.\n\nThe most common open-source licenses ensure that the original creator's work is recognized, even when it's modified or improved by others. By open-sourcing under a proper license, you can ensure that you retain control over your intellectual property, even while benefiting from the collaboration and innovation that open sourcing provides. This gives you the peace of mind to share your work with the world, without worrying about losing credit or control over your creation.\n\n### Creative Commons\n\nOne popular open-source licensing choice for creative work is Creative Commons. Creative Commons licenses are flexible and versatile, allowing you to specify the terms of use for your screenplay. For instance, you can choose a license that allows others to modify your work, but only if they give you credit and use their derived works non-commercially. You can even specify that any derivatives must be shared under the same license, further ensuring the open nature of your work.\n\n### GPL for Creative Work\n\nAnother choice, albeit a less traditional one, is the General Public License (GPL). Originally designed for software, GPL can be used for any kind of work and guarantees that derivatives of your work must also be open-sourced. This could be an interesting choice if you want to ensure the open-source spirit is maintained in all subsequent adaptations of your screenplay.\n\n### Attribution and Recognition\n\nRegardless of the type of license you choose, the common factor is attribution. When your work is used or modified, you will always be credited as the original author. This allows you to share your work with a wide audience and gain recognition in the industry, even when others contribute to or adapt your work.\n\n### Conclusion\n\nThe world of screenplay writing is ripe for innovation. By open-sourcing your screenplay and using platforms like GitHub, you can become a part of this revolutionary shift towards greater collaboration, inclusivity, and creativity in storytelling. Open-source licensing protects your rights as an author while allowing you to benefit from the collective wisdom and talent of the global writing community. It's a brave new world out there for screenwriters, and we're excited to see the amazing stories that will come from this open-source revolution in screenwriting.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "working-together-brief",
+      "number": 50,
+      "topic": "collaboration",
+      "title": "Create a Contribution Brief",
+      "duration": "25–35 min",
+      "overview": "Turn an open invitation into a bounded assignment with purpose, locks, freedom, rights and acceptance criteria.",
+      "objectives": [
+        "Name the problem.",
+        "Anchor the target.",
+        "Record continuity and rights."
+      ],
+      "sections": [
+        {
+          "heading": "Brief the work",
+          "paragraphs": [
+            "Name the contributor, role, decision-maker, target, problem, audience effect, canon locks, elements that must not change, output, freedom, due date, review window, sharing, credit, compensation, ownership, licence and acceptance criteria."
+          ],
+          "points": [
+            "Template: Feedback only",
+            "Template: Rewrite proposal",
+            "Template: Alternative scene or Block",
+            "Template: Dialogue pass",
+            "Template: Character or world contribution",
+            "Template: Research or continuity check",
+            "Template: Storyboard, music or production asset",
+            "Template: Pitch or marketing material"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Contribution brief",
+          "meaning": "A structured request defining scope, purpose, locks, deliverable, rights and acceptance."
+        }
+      ],
+      "example": {
+        "title": "Alternative crisis scene",
+        "text": "The brief locks earlier facts and requires a changed choice with a new consequence."
+      },
+      "checklist": [
+        "Target anchored.",
+        "Locks listed.",
+        "Acceptance testable.",
+        "Rights referenced."
+      ],
+      "mistakes": [
+        "Asking someone to improve the story.",
+        "Discussing ownership only after acceptance."
+      ],
+      "exercise": "Create one brief for the active selection.",
+      "apply": "Block plan",
+      "tags": [
+        "contribution brief",
+        "continuity locks",
+        "acceptance criteria"
+      ],
+      "original": {
+        "number": 54,
+        "path": "Industry"
+      },
+      "sources": []
+    },
+    {
+      "id": "working-together-canon",
+      "number": 51,
+      "topic": "collaboration",
+      "title": "Start From the Approved Story",
+      "duration": "15–25 min",
+      "overview": "Pull or exchange the approved project, work locally and submit a bounded proposal instead of writing directly to canon.",
+      "objectives": [
+        "Identify the approved base.",
+        "Work locally.",
+        "Handle stale bases deliberately."
+      ],
+      "sections": [
+        {
+          "heading": "Safe sequence",
+          "paragraphs": [
+            "Pull the approved canonical version for review, compare and deliberately apply it, read the brief and locks, work locally, save backups and submit a bounded proposal. Local-only and file-based collaboration remain fully supported.",
+            "A stale base requires a newly approved pull and human reconsideration; complete creative versions cannot always be mechanically merged."
+          ],
+          "points": [
+            "Approved story → local draft → proposal → review → decision → canon."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Stale base",
+          "meaning": "A proposal based on an older canonical revision."
+        }
+      ],
+      "example": {
+        "title": "Another ending merged first",
+        "text": "Pull the new canon and reconsider causality, character and continuity before resubmitting."
+      },
+      "checklist": [
+        "Approved base known.",
+        "Incoming project compared.",
+        "Backup saved."
+      ],
+      "mistakes": [
+        "Writing directly to canon.",
+        "Forcing a creative merge."
+      ],
+      "exercise": "Identify the next proposal's exact scope.",
+      "apply": "Block plan",
+      "tags": [
+        "Process Post-Submission",
+        "approved story",
+        "stale base",
+        ".ppf"
+      ],
+      "original": {
+        "number": 55,
+        "path": "Industry"
+      },
+      "sources": []
+    },
+    {
+      "id": "working-together-proposal",
+      "number": 52,
+      "topic": "collaboration",
+      "title": "Submit a Reviewable Proposal",
+      "duration": "20–30 min",
+      "overview": "Package purpose, scope, evidence, dependencies, questions and provenance before opening GitHub.",
+      "objectives": [
+        "Explain what changed.",
+        "Name dependencies.",
+        "Surface rights and questions."
+      ],
+      "sections": [
+        {
+          "heading": "Proposal packet",
+          "paragraphs": [
+            "Explain what changed and why, audience effect, exact areas, source brief, before-and-after evidence, consequences for characters, continuity, Story Threads, runtime, production and rights, new assumptions, unresolved questions, alternatives, provenance, credit and inspection areas.",
+            "The proposal must be understandable inside PlotPickle before the owner opens GitHub."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Proposal packet",
+          "meaning": "Creative context for a reviewable change."
+        }
+      ],
+      "example": {
+        "title": "Dialogue pass",
+        "text": "The packet identifies changed scenes, relationship effects, a new canon fact and a permission question."
+      },
+      "checklist": [
+        "Purpose clear.",
+        "Dependencies listed.",
+        "Rights reviewed."
+      ],
+      "mistakes": [
+        "Using only a vague proposal title.",
+        "Hiding canon assumptions."
+      ],
+      "exercise": "Create a packet for the active local change.",
+      "apply": "Screenplay",
+      "tags": [
+        "proposal packet",
+        "before and after",
+        "provenance"
+      ],
+      "original": {
+        "number": 56,
+        "path": "Industry"
+      },
+      "sources": []
+    },
+    {
+      "id": "working-together-review",
+      "number": 53,
+      "topic": "collaboration",
+      "title": "Review the Change, Not the Person",
+      "duration": "25–35 min",
+      "overview": "Anchor evidence-based feedback, categorize its purpose and separate project requirements from preference.",
+      "objectives": [
+        "Categorize feedback.",
+        "Anchor comments.",
+        "Close the loop."
+      ],
+      "sections": [
+        {
+          "heading": "Evidence first",
+          "paragraphs": [
+            "Anchor to a story field, Block, scene, screenplay element or character. Describe audience experience or factual conflict before prescribing a fix. Explain reason and intended outcome and acknowledge retained strengths.",
+            "Act and Block questions are optional lenses that adapt to the active structure; they do not impose one fixed legacy Act model."
+          ],
+          "points": [
+            "Feedback category: required",
+            "Feedback category: continuity",
+            "Feedback category: rights",
+            "Feedback category: craft",
+            "Feedback category: question",
+            "Feedback category: preference",
+            "Feedback category: praise"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Anchored feedback",
+          "meaning": "A review note linked to a canonical project element."
+        }
+      ],
+      "example": {
+        "title": "Continuity before prescription",
+        "text": "Mark when a character cannot know a fact and name the intended audience uncertainty."
+      },
+      "checklist": [
+        "Anchor selected.",
+        "Category selected.",
+        "Evidence specific."
+      ],
+      "mistakes": [
+        "Reviewing the person.",
+        "Treating taste as a requirement."
+      ],
+      "exercise": "Create one anchored review note.",
+      "apply": "Screenplay",
+      "tags": [
+        "Feedback and Communication",
+        "Act review questions",
+        "required",
+        "continuity",
+        "preference",
+        "praise"
+      ],
+      "original": {
+        "number": 57,
+        "path": "Industry"
+      },
+      "sources": []
+    },
+    {
+      "id": "working-together-disagreements",
+      "number": 54,
+      "topic": "collaboration",
+      "title": "Decide, Disagree and Record Canon",
+      "duration": "25–35 min",
+      "overview": "Separate discussion, approval and canon and record merge, decline, defer, withdraw or supersede decisions.",
+      "objectives": [
+        "Use a decision lifecycle.",
+        "Resolve disagreements by evidence.",
+        "Record rationale."
+      ],
+      "sections": [
+        {
+          "heading": "Explicit decision",
+          "paragraphs": [
+            "Local draft → proposal → review → changes requested or approved → owner/maintainer merge → canonical pull.",
+            "Restate the goal and brief, isolate the disagreement, separate continuity from preference, compare audience effect, causality, character, theme, feasibility and rights, identify final authority and record the decision."
+          ],
+          "points": [
+            "Outcome: accepted",
+            "Outcome: changes-requested",
+            "Outcome: question",
+            "Outcome: deferred",
+            "Outcome: declined",
+            "Outcome: superseded",
+            "Outcome: withdrawn",
+            "Outcome: resolved-without-change"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Decision log",
+          "meaning": "A dated outcome, decision-maker, rationale, rights update and follow-up record."
+        }
+      ],
+      "example": {
+        "title": "Two climax approaches",
+        "text": "Test both, choose under the authority model and preserve the declined proposal history."
+      },
+      "checklist": [
+        "Authority confirmed.",
+        "Rationale recorded.",
+        "Follow-up created."
+      ],
+      "mistakes": [
+        "Assuming consensus is required.",
+        "Closing without a reason."
+      ],
+      "exercise": "Record one proposal decision.",
+      "apply": "Treatment",
+      "tags": [
+        "Evolving Together",
+        "decision log",
+        "declined",
+        "deferred",
+        "withdrawn",
+        "superseded"
+      ],
+      "original": {
+        "number": 58,
+        "path": "Industry"
+      },
+      "sources": []
+    },
+    {
+      "id": "working-together-rights",
+      "number": 55,
+      "topic": "collaboration",
+      "title": "Record Credit, Ownership and Permissions",
+      "duration": "25–35 min",
+      "overview": "Connect accepted work to contributor, agreement, ownership, licence, permission and provenance records.",
+      "objectives": [
+        "Record the contributor.",
+        "Separate contribution and ownership.",
+        "Link accepted work."
+      ],
+      "sections": [
+        {
+          "heading": "Rights distinctions",
+          "paragraphs": [
+            "Feedback does not automatically create ownership. A contribution does not automatically transfer copyright. A pull request is not an employment, assignment or licence agreement. A public repository is not an open licence. PlotPickle software and documentation licences do not automatically apply to the user's screenplay.",
+            "Record name, credited-as name, role, contribution, ownership share if any, compensation or commissioned status when documented, agreement or permission reference, linked work and acceptance date."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Agreement reference",
+          "meaning": "A pointer to written terms governing role, payment, ownership, credit or permission."
+        }
+      ],
+      "example": {
+        "title": "Accepted storyboard frames",
+        "text": "Record artist, asset IDs, fee agreement, permission and acceptance date."
+      },
+      "checklist": [
+        "Contributor linked.",
+        "Agreement referenced.",
+        "Provenance checked."
+      ],
+      "mistakes": [
+        "Treating a pull request as copyright transfer."
+      ],
+      "exercise": "Audit one accepted contribution.",
+      "apply": "Treatment",
+      "tags": [
+        "credit",
+        "ownership",
+        "permissions",
+        "copyright",
+        "licence"
+      ],
+      "original": {
+        "number": 59,
+        "path": "Industry"
+      },
+      "sources": []
+    },
+    {
+      "id": "working-together-scale",
+      "number": 56,
+      "topic": "collaboration",
+      "title": "Protect Privacy and Scale the Review Queue",
+      "duration": "25–35 min",
+      "overview": "Keep unfinished work private and scale through briefs, area owners, statuses, dependencies and explicit canon decisions.",
+      "objectives": [
+        "Protect local work.",
+        "Set review capacity.",
+        "Scale bounded proposals."
+      ],
+      "sections": [
+        {
+          "heading": "Privacy and scale",
+          "paragraphs": [
+            "Local drafts, autosaves, AI prompts and private assets do not leave the computer merely because GitHub is connected. Credentials remain outside the .ppf. Only intentionally submitted proposal material is shared.",
+            "Assign briefs, define review owners, limit simultaneous high-risk proposals, track dependencies, group review rounds, archive superseded work and publish realistic response expectations. Unlimited Contributions remains searchable, but projects may define capacity, deadlines and closed areas."
+          ],
+          "points": [
+            "Community feedback is not automatically an authorized contribution.",
+            "GitHub manages the technical queue; PlotPickle presents creative-project meaning."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Review capacity",
+          "meaning": "The realistic volume and timing a project can assess."
+        }
+      ],
+      "example": {
+        "title": "Production team",
+        "text": "Area leads review visual, audio, continuity and screenplay briefs while the canon path stays short."
+      },
+      "checklist": [
+        "Privacy defined.",
+        "Capacity realistic.",
+        "Dependencies visible."
+      ],
+      "mistakes": [
+        "Promising detailed feedback on every submission.",
+        "Uploading third-party material without authority."
+      ],
+      "exercise": "Define privacy, review owners and proposal limits.",
+      "apply": "Treatment",
+      "tags": [
+        "Unlimited Contributions",
+        "privacy",
+        "local drafts",
+        "AI prompts",
+        "review queue"
+      ],
+      "original": {
+        "number": 60,
+        "path": "Industry"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-blog-llms-and-ai-navigation-md",
+          "repository": "24-Blocks",
+          "path": "Blog/LLMs and AI Navigation.md",
+          "title": "The Future of Writing: LLMs and AI Navigation",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/Blog/LLMs%20and%20AI%20Navigation.md",
+          "content": "# The Future of Writing: LLMs and AI Navigation\n\nThe arena of writing and storytelling is transforming, with technology, particularly Artificial Intelligence (AI), playing a pivotal role. Tools such as Large Language Models (LLMs), like GPT-4 developed by OpenAI, are revolutionizing the way we write and produce content, opening up a fascinating blend of opportunities, challenges, and ethical dilemmas.\n\nFirstly, let's define the key terms:\n\n- **Large Language Models (LLMs)**: These are AI models designed to understand and generate text akin to human language. They learn from a significant corpus of data from the internet, absorbing nuances of language, context, and cultural references.\n\n- **AI-Assisted Writing**: In this context, LLMs function akin to professional editors, offering help in enhancing structure, character development, plot, theme, foreshadowing, etc. They don't create the entire content but assist in refining it.\n\n- **AI-Generated Content**: This includes entire works generated by AI. Given a few inputs, AI models like LLMs can fabricate a complete story, article, or screenplay.\n\nFor the purpose of our discussion, we can segregate the use of AI in writing into the following 'buckets':\n\n1. **LLMs for General Needs**: Models like ChatGPT fall under this category. They offer a broad range of applications, from generating creative text to providing automated customer service.\n\n2. **Proprietary LLMs for Defined Needs**: These are specialized AI models designed for specific tasks such as screenwriting or book writing.\n\nWhile fully AI-generated content will likely fall under the defined needs bucket, models like ChatGPT have limitations, such as generating only about five pages of text at once, making them unsuitable for producing an entire book in one go.\n\nIn each bucket, several critical questions and concerns surface:\n\n- How do we handle copyright for AI-generated content?\n- In AI-assisted writing, how much of an impact does the AI have on the final work?\n- What ethical considerations arise from the use of LLMs?\n- How should we approach disclosure?\n- Should all AI-assisted or AI-generated work be labelled?\n\nAdditional concerns include:\n\n- **Training and Transparency**: The quality and diversity of the training data impact the AI’s output, emphasizing the need for transparency in the AI training process.\n\n- **AI Literacy and Accessibility**: As AI becomes integral to our lives, it's crucial for people to use these tools effectively and ethically. Equitable access to these technologies can prevent a 'digital divide'.\n\n- **Regulation**: The increasing prevalence of AI in creative fields calls for comprehensive, standardized regulations around disclosure, copyright, and other legal considerations.\n\n- **Impact on Creative Process**: Far from detracting from the human element of storytelling, my personal experience with AI-assisted writing has been empowering. It has helped me gain confidence in my voice, enhance my knowledge and skills, and add a layer of fun and pleasure to the creative process.\n\nThe growth of AI and LLMs in writing brings a new era of opportunities. While some job roles may evolve, it's more likely that AI will create different opportunities rather than eliminate jobs. Envision a world where anyone can share their stories on a global platform. Far from being a threat, AI can enrich the world of storytelling, amplifying the voices of millions.\n\nIn the end, the union of AI and writing isn't about creating divisions but offering choices and augmenting human creativity. As we navigate this AI-integrated writing world, we must do so with fairness, openness, and a focus on enhancing the richness of our collective storytelling.\n\n---"
+        }
+      ]
+    }
+  ]
+}

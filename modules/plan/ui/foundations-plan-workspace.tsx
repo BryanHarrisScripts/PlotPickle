@@ -85,7 +85,7 @@ export default function FoundationsPlanWorkspace({
   }
 
   function openLearn(lessonId?: string) {
-    if (lessonId) {
+    if (lessonId && project) {
       const next = applyStoryCommand(project, {
         type: "lesson.open",
         lessonId,
@@ -95,6 +95,8 @@ export default function FoundationsPlanWorkspace({
     }
     window.location.assign("/?workspace=learn");
   }
+
+  if (!project) return <main className={styles.loading}>Opening PLAN…</main>;
 
   const activeIndex = FOUNDATION_BUILDER_STEPS.findIndex((step) => step.id === activeField);
   const previous = activeIndex > 0 ? FOUNDATION_BUILDER_STEPS[activeIndex - 1] : null;

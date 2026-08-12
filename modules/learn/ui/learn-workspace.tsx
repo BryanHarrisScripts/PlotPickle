@@ -120,6 +120,7 @@ export default function LearnWorkspace({
   const [working, setWorking] = useState(false);
   const [guideError, setGuideError] = useState("");
   const [lessonSearch, setLessonSearch] = useState("");
+  const [collapsedTopics, setCollapsedTopics] = useState<readonly string[]>([]);
 
   useEffect(() => {
     let current = loadProject();
@@ -184,6 +185,14 @@ export default function LearnWorkspace({
       lessonId,
       occurredAt: new Date().toISOString(),
     });
+  }
+
+  function toggleTopic(topic: string) {
+    setCollapsedTopics((current) => (
+      current.includes(topic)
+        ? current.filter((currentTopic) => currentTopic !== topic)
+        : [...current, topic]
+    ));
   }
 
   function setLessonUnderstood(understood: boolean) {
@@ -308,28 +317,43 @@ export default function LearnWorkspace({
           <small>{visibleLessons.length} of {curriculum.length} lessons</small>
         </div>
         <nav className={styles.lessonList} aria-label="Curriculum lessons">
-          {lessonGroups.map((group) => (
-            <section className={styles.topicGroup} key={group.topic}>
-              <h2>{topicName(group.topic)}</h2>
-              {group.lessons.map((lesson) => (
+          {lessonGroups.map((group) => {
+            const collapsed = collapsedTopics.includes(group.topic);
+            return (
+            <section className={styles.topicGroup} data-collapsed={collapsed ? "true" : "false"} key={group.topic}>
+              <button
+                aria-controls={`learn-topic-${group.topic}`}
+                aria-expanded={!collapsed}
+                className={styles.topicToggle}
+                onClick={() => toggleTopic(group.topic)}
+                type="button"
+              >
+                <span aria-hidden="true" className={styles.topicChevron}>›</span>
+                <span>{topicName(group.topic)}</span>
+                <small>{group.lessons.length}</small>
+              </button>
+              <div className={styles.topicLessons} id={`learn-topic-${group.topic}`}>
+              {collapsed ? null : group.lessons.map((lesson, lessonIndex) => (
                 <button
                   className={lesson.id === activeLesson.id ? styles.activeLesson : undefined}
                   key={lesson.id}
                   onClick={() => openLesson(lesson.id)}
                   type="button"
                 >
-                  <span>{String(lesson.number).padStart(2, "0")}</span>
+                  <span>{String(lessonIndex + 1).padStart(2, "0")}</span>
                   <span>
                     <strong>{lesson.title}</strong>
                     <small>{lesson.duration} · {lesson.sources.length} references</small>
                   </span>
-                  <b aria-label={completed.has(lesson.id) ? "Completed" : "Not completed"}>
+                  <b className={styles.lessonCompleteMark} aria-label={completed.has(lesson.id) ? "Completed" : "Not completed"}>
                     {completed.has(lesson.id) ? "☑" : ""}
                   </b>
                 </button>
               ))}
+              </div>
             </section>
-          ))}
+            );
+          })}
         </nav>
       </aside>
 

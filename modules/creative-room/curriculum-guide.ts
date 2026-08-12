@@ -192,10 +192,10 @@ async function preflightGuideRuntime() {
   try {
     response = await fetch("/api/writing-assistant/status", {
       cache: "no-store",
-      signal: AbortSignal.timeout(5_000),
+      signal: AbortSignal.timeout(3_000),
     });
   } catch (error) {
-    if (isTimeout(error)) throw new Error("PlotPickle could not verify the Mastra agent runtime within five seconds.");
+    if (isTimeout(error)) throw new Error("PlotPickle could not verify the Mastra agent runtime within three seconds.");
     throw error;
   }
   const status = await response.json() as {
@@ -269,11 +269,11 @@ export const answerFromCurriculum: CurriculumGuide = async ({
         tone: "gentle",
         message,
       }),
-      signal: AbortSignal.timeout(120_000),
+      signal: AbortSignal.timeout(27_000),
     });
   } catch (error) {
     if (isTimeout(error)) {
-      throw new Error("The Curriculum Guide reached Mastra and Ollama, but the local model did not finish within two minutes. Your question was kept so you can try again or choose a faster Ollama model.");
+      throw new Error("The Curriculum Guide did not answer within PlotPickle's 30-second response limit. Your question was kept so you can try again or choose a faster Ollama model.");
     }
     throw error;
   }

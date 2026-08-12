@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
@@ -134,12 +134,16 @@ test("LEARN exposes the future PlotPickle workflow navigation", async () => {
   assert.match(workspace, /aria-label="Lesson navigation"/);
   assert.match(workspace, /previousLesson/);
   assert.match(workspace, /nextLesson/);
-  assert.match(workspace, /relicPosition/);
+  assert.match(workspace, /src=\{stage\.relic\}/);
   assert.match(workspace, /styles\.stageRelic/);
-  assert.match(styles, /workflow-magic-relics\.webp/);
-  assert.match(styles, /background-size: 1100% auto/);
-  assert.match(styles, /background-color: transparent/);
+  assert.match(workspace, /workflow-relics\/dashboard\.webp/);
+  assert.match(workspace, /workflow-relics\/reports\.webp/);
+  assert.match(styles, /object-fit: contain/);
+  assert.match(styles, /background: transparent/);
   assert.match(styles, /drop-shadow/);
+  for (const relic of ["dashboard", "learn", "plan", "storyboard", "write", "edit", "graphic-novel", "build", "feedback", "refine", "reports"]) {
+    await assert.doesNotReject(() => access(new URL(`../public/assets/workflow-relics/${relic}.webp`, import.meta.url)));
+  }
 });
 
 

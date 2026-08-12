@@ -122,7 +122,10 @@ test("LEARN presents the Master Storyteller curriculum guide", async () => {
 
 
 test("LEARN exposes the future PlotPickle workflow navigation", async () => {
-  const workspace = await read("modules/learn/ui/learn-workspace.tsx");
+  const [workspace, styles] = await Promise.all([
+    read("modules/learn/ui/learn-workspace.tsx"),
+    read("modules/learn/ui/learn-workspace.module.css"),
+  ]);
   for (const label of ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Edit", "Graphic Novel", "Build", "Feedback", "Refine", "Reports / Export"]) {
     assert.match(workspace, new RegExp(label.replace("/", "\\/")));
   }
@@ -131,8 +134,10 @@ test("LEARN exposes the future PlotPickle workflow navigation", async () => {
   assert.match(workspace, /aria-label="Lesson navigation"/);
   assert.match(workspace, /previousLesson/);
   assert.match(workspace, /nextLesson/);
-  assert.match(workspace, /ᚲ/);
-  assert.match(workspace, /ᚱ/);
+  assert.match(workspace, /relicPosition/);
+  assert.match(workspace, /styles\.stageRelic/);
+  assert.match(styles, /workflow-magic-relics\.webp/);
+  assert.match(styles, /background-size: 1100% auto/);
 });
 
 

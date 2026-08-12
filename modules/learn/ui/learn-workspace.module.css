@@ -31,12 +31,13 @@
 }
 
 .workflowNav ol {
-  display: grid;
-  min-width: 1040px;
-  grid-template-columns: repeat(11, minmax(82px, 1fr));
-  gap: 0;
-  margin: 0;
-  padding: 10px 12px 9px;
+  display: flex;
+  width: max-content;
+  min-width: 920px;
+  justify-content: center;
+  gap: 6px;
+  margin: 0 auto;
+  padding: 7px 12px 8px;
   list-style: none;
 }
 
@@ -44,29 +45,31 @@
   position: relative;
   display: grid;
   justify-items: center;
-  gap: 5px;
+  width: 78px;
+  gap: 2px;
   color: #837d73;
   text-align: center;
 }
 
 .workflowNav li:not(:last-child)::after {
   position: absolute;
-  top: 16px;
-  right: -4px;
+  top: 20px;
+  right: -7px;
   color: rgba(240, 138, 75, 0.62);
   content: "›";
 }
 
-.stageMark {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border: 1px solid #75613a;
-  border-radius: 50%;
-  color: #c39a50;
-  font-size: 12px;
-  font-weight: 800;
+.stageRelic {
+  display: block;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 12px;
+  background-image: url("/assets/workflow-magic-relics.webp");
+  background-repeat: no-repeat;
+  background-size: 1100% auto;
+  filter: saturate(0.82) brightness(0.84);
+  transition: filter 160ms ease, transform 160ms ease;
 }
 
 .stageCopy {
@@ -86,10 +89,10 @@
   white-space: nowrap;
 }
 
-.currentStage .stageMark {
-  border-color: var(--teal);
-  box-shadow: 0 0 0 3px rgba(53, 201, 184, 0.09);
-  color: var(--teal);
+.currentStage .stageRelic {
+  box-shadow: 0 0 0 1px rgba(53, 201, 184, 0.5), 0 0 16px rgba(53, 201, 184, 0.24);
+  filter: saturate(1.12) brightness(1.08);
+  transform: translateY(-1px) scale(1.04);
 }
 
 .currentStage .stageCopy strong {

@@ -12,17 +12,17 @@ const PROJECT_KEY = "plotpickle.foundation.project.v1";
 const THREAD_PREFIX = "plotpickle.foundation.thread.v2.";
 
 const WORKFLOW_STAGES = [
-  { id: "dashboard", mark: "D", label: "Dashboard", detail: "Start here" },
-  { id: "learn", mark: "L", label: "Learn", detail: "Guides & tools" },
-  { id: "plan", mark: "P", label: "Plan", detail: "Story design" },
-  { id: "storyboard", mark: "S", label: "Storyboard", detail: "Visual direction" },
-  { id: "write", mark: "W", label: "Write", detail: "Screenplay" },
-  { id: "edit", mark: "E", label: "Edit", detail: "Refine copy" },
-  { id: "graphic-novel", mark: "G", label: "Graphic Novel", detail: "Pages & panels" },
-  { id: "build", mark: "B", label: "Build", detail: "Assemble" },
-  { id: "feedback", mark: "F", label: "Feedback", detail: "AI & team" },
-  { id: "refine", mark: "R", label: "Refine", detail: "Review & decide" },
-  { id: "reports", mark: "X", label: "Reports / Export", detail: "Deliver story" },
+  { id: "dashboard", relicPosition: 0, label: "Dashboard", detail: "Start here" },
+  { id: "learn", relicPosition: 10, label: "Learn", detail: "Guides & tools" },
+  { id: "plan", relicPosition: 20, label: "Plan", detail: "Story design" },
+  { id: "storyboard", relicPosition: 30, label: "Storyboard", detail: "Visual direction" },
+  { id: "write", relicPosition: 40, label: "Write", detail: "Screenplay" },
+  { id: "edit", relicPosition: 50, label: "Edit", detail: "Refine copy" },
+  { id: "graphic-novel", relicPosition: 60, label: "Graphic Novel", detail: "Pages & panels" },
+  { id: "build", relicPosition: 70, label: "Build", detail: "Assemble" },
+  { id: "feedback", relicPosition: 80, label: "Feedback", detail: "AI & team" },
+  { id: "refine", relicPosition: 90, label: "Refine", detail: "Review & decide" },
+  { id: "reports", relicPosition: 100, label: "Reports / Export", detail: "Deliver story" },
 ] as const;
 
 type Message = {
@@ -274,7 +274,11 @@ export default function LearnWorkspace({
               className={stage.id === "learn" ? styles.currentStage : undefined}
               key={stage.id}
             >
-              <span aria-hidden="true" className={styles.stageMark}>{stage.mark}</span>
+              <span
+                aria-hidden="true"
+                className={styles.stageRelic}
+                style={{ backgroundPosition: `${stage.relicPosition}% 50%` }}
+              />
               <span className={styles.stageCopy}>
                 <strong>{stage.label}</strong>
                 <small>{stage.detail}</small>

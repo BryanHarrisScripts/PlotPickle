@@ -36,3 +36,5 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+# Validation workflow intentionally kept small for the LEARN-first reset.

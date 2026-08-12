@@ -28,6 +28,19 @@ const BASE_INSTRUCTIONS = [
   "Do not trigger paid generation or external submission.",
 ].join(" ");
 
+const HEALTH_CHECK_PROFILE: ProviderProfile = {
+  provider: "ollama",
+  baseUrl: "http://127.0.0.1:11434",
+  textModel: "plotpickle-health-check",
+  apiKey: "",
+  configuredAt: "",
+  assistantVerifiedAt: "",
+  lastAttemptAt: "",
+  lastLatencyMs: 0,
+  lastPreview: "",
+  lastError: "",
+};
+
 function providerUrl(profile: ProviderProfile) {
   const base = profile.baseUrl.replace(/\/$/, "");
   return /\/v1$/i.test(base) ? base : `${base}/v1`;
@@ -87,10 +100,29 @@ export async function askPlotPickleAgent(input: {
 }
 
 export function mastraRuntimeStatus() {
-  return {
-    runtime: "mastra",
-    version: "1.57.0",
-    ready: true,
-    agents: Object.keys(PLOTPICKLE_AGENT_ROLES),
-  };
+  const agents = Object.keys(PLOTPICKLE_AGENT_ROLES) as PlotPickleAgentId[];
+  const checkedAt = new Date().toISOString();
+  try {
+    const mastra = createPlotPickleMastra(HEALTH_CHECK_PROFILE);
+    for (const id of agents) mastra.getAgent(id);
+    return {
+      runtime: "mastra",
+      mode: "embedded",
+      version: "1.57.0",
+      ready: true,
+      agents,
+      checkedAt,
+      error: "",
+    };
+  } catch (error) {
+    return {
+      runtime: "mastra",
+      mode: "embedded",
+      version: "1.57.0",
+      ready: false,
+      agents,
+      checkedAt,
+      error: error instanceof Error ? error.message.slice(0, 300) : "The embedded Mastra runtime could not initialize.",
+    };
+  }
 }

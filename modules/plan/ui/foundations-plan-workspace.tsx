@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import {
   FOUNDATION_BUILDER_STEPS,
-  createEmptyFoundationBuilderState,
   type FoundationBuilderField,
 } from "../../../core/contracts/foundation-builder";
 import type { CurriculumLesson } from "../../../core/contracts/curriculum";
@@ -85,11 +84,17 @@ export default function FoundationsPlanWorkspace({
     });
   }
 
-  function openLearn() {
+  function openLearn(lessonId?: string) {
+    if (lessonId) {
+      const next = applyStoryCommand(project, {
+        type: "lesson.open",
+        lessonId,
+        occurredAt: new Date().toISOString(),
+      });
+      localStorage.setItem(PROJECT_KEY, JSON.stringify(next));
+    }
     window.location.assign("/?workspace=learn");
   }
-
-  if (!project) return <main className={styles.loading}>Opening PLAN…</main>;
 
   const activeIndex = FOUNDATION_BUILDER_STEPS.findIndex((step) => step.id === activeField);
   const previous = activeIndex > 0 ? FOUNDATION_BUILDER_STEPS[activeIndex - 1] : null;
@@ -118,7 +123,7 @@ export default function FoundationsPlanWorkspace({
             <strong>PLAN</strong>
             <small>Foundations · {completedBuilder}/11 working answers</small>
           </header>
-          <button className={styles.returnLearn} onClick={openLearn} type="button">Return to LEARN</button>
+          <button className={styles.returnLearn} onClick={() => openLearn()} type="button">Return to LEARN</button>
           <nav aria-label="Foundation builder steps">
             {FOUNDATION_BUILDER_STEPS.map((step) => {
               const hasAnswer = Boolean(project.foundations[step.id].trim());
@@ -151,7 +156,7 @@ export default function FoundationsPlanWorkspace({
                 <h2>{activeLesson.title}</h2>
                 <p>{activeLesson.overview}</p>
               </div>
-              <button onClick={openLearn} type="button">Review lesson</button>
+              <button onClick={() => openLearn(activeLesson.id)} type="button">Review lesson</button>
             </section>
           ) : null}
 

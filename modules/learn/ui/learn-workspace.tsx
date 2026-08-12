@@ -12,17 +12,17 @@ const PROJECT_KEY = "plotpickle.foundation.project.v1";
 const THREAD_PREFIX = "plotpickle.foundation.thread.v2.";
 
 const WORKFLOW_STAGES = [
-  { id: "dashboard", relicPosition: 0, label: "Dashboard", detail: "Start here" },
-  { id: "learn", relicPosition: 10, label: "Learn", detail: "Guides & tools" },
-  { id: "plan", relicPosition: 20, label: "Plan", detail: "Story design" },
-  { id: "storyboard", relicPosition: 30, label: "Storyboard", detail: "Visual direction" },
-  { id: "write", relicPosition: 40, label: "Write", detail: "Screenplay" },
-  { id: "edit", relicPosition: 50, label: "Edit", detail: "Refine copy" },
-  { id: "graphic-novel", relicPosition: 60, label: "Graphic Novel", detail: "Pages & panels" },
-  { id: "build", relicPosition: 70, label: "Build", detail: "Assemble" },
-  { id: "feedback", relicPosition: 80, label: "Feedback", detail: "AI & team" },
-  { id: "refine", relicPosition: 90, label: "Refine", detail: "Review & decide" },
-  { id: "reports", relicPosition: 100, label: "Reports / Export", detail: "Deliver story" },
+  { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "Start here" },
+  { id: "learn", relic: "/assets/workflow-relics/learn.webp", label: "Learn", detail: "Guides & tools" },
+  { id: "plan", relic: "/assets/workflow-relics/plan.webp", label: "Plan", detail: "Story design" },
+  { id: "storyboard", relic: "/assets/workflow-relics/storyboard.webp", label: "Storyboard", detail: "Visual direction" },
+  { id: "write", relic: "/assets/workflow-relics/write.webp", label: "Write", detail: "Screenplay" },
+  { id: "edit", relic: "/assets/workflow-relics/edit.webp", label: "Edit", detail: "Refine copy" },
+  { id: "graphic-novel", relic: "/assets/workflow-relics/graphic-novel.webp", label: "Graphic Novel", detail: "Pages & panels" },
+  { id: "build", relic: "/assets/workflow-relics/build.webp", label: "Build", detail: "Assemble" },
+  { id: "feedback", relic: "/assets/workflow-relics/feedback.webp", label: "Feedback", detail: "AI & team" },
+  { id: "refine", relic: "/assets/workflow-relics/refine.webp", label: "Refine", detail: "Review & decide" },
+  { id: "reports", relic: "/assets/workflow-relics/reports.webp", label: "Reports / Export", detail: "Deliver story" },
 ] as const;
 
 type Message = {
@@ -274,10 +274,13 @@ export default function LearnWorkspace({
               className={stage.id === "learn" ? styles.currentStage : undefined}
               key={stage.id}
             >
-              <span
+              <Image
                 aria-hidden="true"
+                alt=""
                 className={styles.stageRelic}
-                style={{ backgroundPosition: `${stage.relicPosition}% 50%` }}
+                height={56}
+                src={stage.relic}
+                width={56}
               />
               <span className={styles.stageCopy}>
                 <strong>{stage.label}</strong>

@@ -50,9 +50,8 @@ for (const document of topicDocuments) {
   }
 }
 
-// Keep the audited v2 JSON archive intact. The presentation curriculum below
-// promotes the seven Foundations references into standalone lessons without
-// changing or discarding the original source records used for provenance.
+// Keep the audited v2 JSON archive intact. It is still validated in its
+// original order and with all 95 embedded source records for provenance.
 const plotPickleCurriculum = topicDocuments
   .flatMap((document) => document.lessons)
   .sort((left, right) => left.number - right.number);
@@ -65,13 +64,15 @@ if (sourceIds.length !== index.sourceCount || sourceIds.length !== 95 || new Set
   throw new Error(`Expected ${index.sourceCount} unique embedded lesson sources, found ${sourceIds.length}.`);
 }
 
-const standalonePlotPickleCurriculum: readonly CurriculumLesson[] = topicDocuments
-  .flatMap((document) => (
-    document.topic.id === "foundations"
-      ? buildDeepFoundationCurriculum(document.lessons)
-      : document.lessons
-  ))
-  .sort((left, right) => left.number - right.number);
+// Presentation order is section-first. This keeps all eleven Foundations
+// lessons together for Previous/Next navigation before moving into Industry,
+// Theme, Character and the remaining curriculum sections.
+const standalonePlotPickleCurriculum: readonly CurriculumLesson[] = topicDocuments.flatMap((document) => {
+  const lessons = document.topic.id === "foundations"
+    ? buildDeepFoundationCurriculum(document.lessons)
+    : document.lessons;
+  return [...lessons].sort((left, right) => left.number - right.number);
+});
 
 const standaloneFoundations = standalonePlotPickleCurriculum.filter((lesson) => lesson.topic === "foundations");
 const standaloneSourceIds = standalonePlotPickleCurriculum.flatMap((lesson) => lesson.sources.map((source) => source.id));

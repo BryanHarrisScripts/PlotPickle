@@ -31,10 +31,10 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
 
-      - name: Validate LEARN foundation, lesson formatting, Mastra readiness, and startup UAT contract
-        run: node --test tests/foundation-architecture.test.mjs tests/issue-583-foundations-lessons-formatting.test.mjs tests/issue-580-mastra-runtime-readiness.test.mjs tests/issue-581-learn-uat-startup.test.mjs
+      - name: Validate LEARN foundation, deep lessons, PLAN handoff, Mastra readiness, and startup UAT contract
+        run: node --test tests/foundation-architecture.test.mjs tests/issue-583-foundations-lessons-formatting.test.mjs tests/issue-584-foundations-learning-plan-handoff.test.mjs tests/issue-580-mastra-runtime-readiness.test.mjs tests/issue-581-learn-uat-startup.test.mjs
 
       - name: Production build
         run: npm run build
 
-# Validation workflow intentionally kept small for the LEARN-first reset.
+# Validation workflow intentionally kept small for the LEARN-first modular reset.

@@ -298,9 +298,46 @@
   cursor: default;
 }
 
-.runeSeal {
-  color: #cc9d4b;
-  font-size: 16px;
+.questGlyph {
+  width: 27px;
+  height: 27px;
+  flex: 0 0 27px;
+  overflow: visible;
+}
+
+.glyphFrame,
+.glyphRune,
+.glyphAccent {
+  vector-effect: non-scaling-stroke;
+}
+
+.glyphFrame {
+  fill: rgba(204, 157, 75, 0.06);
+  stroke: #9d783d;
+  stroke-width: 1;
+}
+
+.glyphRune {
+  fill: none;
+  stroke: #e1b35f;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.65;
+}
+
+.glyphAccent {
+  fill: none;
+  stroke: #35c9b8;
+  stroke-linecap: round;
+  stroke-width: 1.1;
+}
+
+.lessonNavigation button:hover:not(:disabled) .glyphFrame {
+  stroke: var(--teal);
+}
+
+.lessonNavigation button:hover:not(:disabled) .glyphRune {
+  stroke: #f0d39c;
 }
 
 .lessonPosition {
@@ -315,9 +352,29 @@
   color: #cc9d4b;
 }
 
-.lessonPosition span {
-  margin-bottom: -4px;
-  font-size: 15px;
+.compassGlyph {
+  width: 25px;
+  height: 25px;
+  margin-bottom: -3px;
+  overflow: visible;
+}
+
+.compassGlyph circle,
+.compassGlyph path {
+  fill: none;
+  stroke: #cc9d4b;
+  stroke-linejoin: round;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.compassGlyph path {
+  fill: rgba(204, 157, 75, 0.12);
+}
+
+.compassGlyph circle:last-child {
+  fill: var(--teal);
+  stroke: var(--teal);
 }
 
 .lessonPosition small {

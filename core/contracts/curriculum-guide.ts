@@ -1,8 +1,7 @@
-import type { CurriculumKnowledgeSource, CurriculumLesson } from "./curriculum";
+import type { CurriculumLesson } from "./curriculum";
 
 export interface CurriculumGuideRequest {
   readonly curriculum: readonly CurriculumLesson[];
-  readonly knowledgeSources: readonly CurriculumKnowledgeSource[];
   readonly activeLessonId: string;
   readonly question: string;
   readonly conversation: readonly {

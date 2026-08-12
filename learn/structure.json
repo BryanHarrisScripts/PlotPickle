@@ -1,0 +1,1039 @@
+{
+  "schemaVersion": "2.0",
+  "topic": {
+    "id": "structure",
+    "title": "Structure and 24 Blocks"
+  },
+  "lessonCount": 11,
+  "sourceCount": 11,
+  "lessons": [
+    {
+      "id": "structures",
+      "number": 3,
+      "topic": "structure",
+      "title": "Story Structures: Screenplays to Improv",
+      "duration": "40–50 min",
+      "overview": "Understand multiple structural traditions so the 24 Blocks can support the story's natural movement instead of becoming a mechanical formula.",
+      "objectives": [
+        "Compare act, journey, episodic and non-linear structures.",
+        "Choose structure by dramatic need and audience experience.",
+        "Translate another structure into PlotPickle's 24-block planning grid."
+      ],
+      "sections": [
+        {
+          "heading": "Structure organizes change",
+          "paragraphs": [
+            "Structure is the arrangement of pressure, choice, consequence and revelation. It helps the audience understand what matters now, remember what matters later and feel that the ending was both surprising and prepared.",
+            "The 24 Blocks are a resolution tool: they make movement visible at a useful scale. They do not require every story to have identical turns, equal scene counts or a single theory underneath it."
+          ],
+          "points": [
+            "Three-act: setup, confrontation and resolution.",
+            "Five-act: introduction, rising action, climax, falling action and resolution.",
+            "Seven-act or sequence approaches: smaller escalating movements with distinct turns.",
+            "Hero's Journey: departure, initiation and return expressed through recurring stages."
+          ]
+        },
+        {
+          "heading": "Alternative forms",
+          "paragraphs": [
+            "Non-linear stories reorder events to control meaning, not simply to appear complex. Parallel narratives create comparison or collision between separate lines. Circular stories return to an opening condition with transformed context. Framing devices place one narrative inside another. Episodic structures gain unity through character, theme, setting, task or accumulation rather than one continuous objective.",
+            "Improvisational forms offer useful lessons. Repetition with variation trains escalation. Returning to a shared game or pattern creates cohesion. Status changes, offers and consequences reveal how story can emerge from active listening rather than preplanned explanation."
+          ],
+          "points": [
+            "Chronology and revelation order are different tools.",
+            "Every parallel line needs its own movement and a reason to share the film.",
+            "A frame must alter how the inner story is understood.",
+            "Episodes need a cumulative promise, not merely separate incidents."
+          ]
+        },
+        {
+          "heading": "Choose and map",
+          "paragraphs": [
+            "Select the structure that best controls the audience's questions. A mystery may hide chronology while preserving causal clarity. A relationship drama may use parallel viewpoints. A journey may use repeated trials that progressively expose the protagonist's belief.",
+            "Map major structural turns to Blocks first, then test the movement between them. If a theory demands a turn the story has not earned, revise the map or the theory—not the characters' behaviour merely to hit a label."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Causality",
+          "meaning": "The relationship in which one decision or event meaningfully produces the next."
+        },
+        {
+          "term": "Non-linear",
+          "meaning": "A presentation order that differs from chronological order for a deliberate dramatic effect."
+        },
+        {
+          "term": "Framing device",
+          "meaning": "An outer narrative context that contains and changes the interpretation of another story."
+        }
+      ],
+      "example": {
+        "title": "One event, three structures",
+        "text": "A reunion can be linear as old friends confront a present betrayal; parallel as each travels there with a different secret; or circular as the closing image repeats the group's old photograph after one person has been removed."
+      },
+      "checklist": [
+        "The structure supports the central dramatic question.",
+        "Each major movement changes conditions.",
+        "Reordered information has a clear purpose.",
+        "Parallel or episodic lines accumulate.",
+        "The ending resolves the form as well as the plot."
+      ],
+      "mistakes": [
+        "Treating structural labels as events.",
+        "Using non-linearity to hide weak causality.",
+        "Giving every movement equal intensity.",
+        "Forcing a character decision only because a template demands a turn."
+      ],
+      "exercise": "Describe the active story in three structural forms. Choose the form that produces the clearest emotional build, then place its eight most important turns across the 24 Blocks.",
+      "apply": "Block plan",
+      "tags": [
+        "structure",
+        "three act",
+        "five act",
+        "seven act",
+        "hero journey",
+        "non-linear",
+        "parallel",
+        "circular",
+        "episodic",
+        "improv"
+      ],
+      "original": {
+        "number": 3,
+        "path": "Foundations"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-24-blocks-readme-md",
+          "repository": "24-Blocks",
+          "path": "24 Blocks/README.md",
+          "title": "Screenwriting: 24 Blocks in 5-Minutes",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/24%20Blocks/README.md",
+          "content": "<div align=\"right\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n<a href=\"https://24blocks.openstorystudio.com/\">Home</a>\n\n<div align=\"center\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n# Screenwriting: 24 Blocks in 5-Minutes \n\n\n# Table of Contents\n\n<table>\n  <tr>\n    <td valign=\"top\">\n      \n1. [24 Blocks - A New Spin](https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/24%20Blocks/24%20Blocks%20-%20A%20New%20Spin.md)\n2. [24 Blocks - Structure Guide*](https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/24%20Blocks/24%20Blocks%20-%20Structure%20Guide.md)\n3. [24 Blocks - Structure's Role](https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/24%20Blocks/24%20Blocks%20-%20Structures%20Role.md)\n4. [24 Blocks - Story Beats](https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/24%20Blocks/24%20Blocks%20-%20Story%20Beats.md)\n5. [24 Blocks - Principle of Three](https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/24%20Blocks/24%20Blocks%20-%20Principle%20of%20Three.md)\n    </td>\n    <td valign=\"top\">\n<ol start=\"6\">\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/24%20Blocks/24%20Blocks%20-%20Dramatic%20Question.md\">24 Blocks - Dramatic Question</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/24%20Blocks/24%20Blocks%20-%20Structure%20Diversity.md\">24 Blocks - Structure Diversity</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/24%20Blocks/24%20Blocks%20-%20Reflection.md\">24 Blocks - Reflection</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/24%20Blocks/24%20Blocks%20-%20Blocks%20with%20AI.md\">24 Blocks - Blocks with AI</a></li>\n<li><a href=\"https://github.com/BryanHarrisScripts/24-Blocks-OpenStorytelling/blob/main/24%20Blocks/24%20Blocks%20-%20Dynamic%20Scenes.md\">24 Blocks - Dynamic Scenes</a></li>\n</ol>\n    </td>\n  </tr>\n</table>\n\n<div align=\"left\" style=\"display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1em; margin: 4em 0;\">\n\n## Streamlining Narrative Progression\n\n#### The Blueprint: The \"24 Blocks\" Approach\n\nThe \"24 Blocks in 5-Minutes\" technique is a structured framework for screenwriting. It segments a screenplay into 24 blocks, each approximating five minutes of screen time. This division creates digestible narrative units in a 120-minute feature film, accommodating varying degrees of narrative complexity.\n\nThis method suggests a visual layout of four rows with six blocks each, representing a four-act structure. It allows for an organized tracking of the narrative's pacing and progression.\n\n#### Constructing the Narrative\n\nThe \"24 Blocks\" technique encourages the strategic placement of key events and sequences within the structured framework. Each block contributes to the narrative arc, facilitating the story's progression and the evolution of characters.\n\nThis technique also promotes a four-act structure, offering an alternative to the traditional three-act system and adding depth to storytelling.\n\n#### The 24 Blocks Breakdown\n\nThe \"24 Blocks\" technique helps maintain a consistent narrative rhythm by breaking down a script into 24 distinct parts, each corresponding to around 5 minutes of screen time. This aids in visualizing the storyline's progression.\n\nEach block represents a key story beat or event, creating an interconnected cinematic narrative. This process serves as a guide, ensuring the story unfolds in an organized yet fluid manner.\n\nThe 24 blocks can theoretically span 5 pages each, based on a standard 120-page script. However, the actual page count for each plot point may vary depending on the specific story and writing style.\n\nAct/Block | Block | Block | Block | Block | Block | Block\n--- | --- | --- | --- | --- | --- | ---\nAct 1 | Block01 | Block02 | Block03 | Block04 | Block05 | Block06\nAct 2 | Block07 | Block08 | Block09 | Block10 | Block11 | Block12\nAct 3 | Block13 | Block14 | Block15 | Block16 | Block17 | Block18\nAct 4 | Block19 | Block20 | Block21 | Block22 | Block23 | Block24\n\n#### Maintaining Narrative Flow\n\nThe \"24 Blocks\" technique provides a solution for scriptwriters to ensure a steady narrative pace throughout a standard feature film. By segmenting the script into 24 significant story beats or events, writers can construct a compelling narrative with a clear trajectory. \n\n#### Embracing the 24 Blocks Approach\n\nThe \"24 Blocks in 5-Minutes\" technique is a strategic tool for managing narratives. It encourages innovative storytelling by maintaining narrative progression while allowing creative flexibility.\n\nWhile the \"24 Blocks\" technique offers a blueprint, the actual creation of a compelling narrative is the writer's responsibility. It should inspire and assist the screenwriting journey, not hinder it.\n\n#### Evaluation\n\nThe \"24 Blocks\" approach simplifies screenwriting, making it accessible while providing a clear roadmap for narrative construction. However, potential concerns include oversimplification of storytelling, potential rigidity, and the assumption of a standard feature film length. \n\nDespite its potential limitations, this method's strengths in offering a clear, structured, and flexible guide to crafting a narrative make it a valuable resource for screenwriters.\n\n## 24 Blocks in 5-Minutes - Examples\n\n### Streamlining Narrative Progression \n\n- Block 1: The Beginning - Introducing the Protagonist (Pages 1-5)\n- Block 2: New Opportunity - A Life-Changing Event (Pages 6-10)\n- Block 3: The Reluctant Hero - Protagonist's Hesitation (Pages 11-15)\n- Block 4: Crossing the Threshold - Entering a New World (Pages 16-20)\n- Block 5: Meeting the Mentor - Guidance and Wisdom (Pages 21-25)\n- Block 6: The First Test - Protagonist Faces Challenges (Pages 26-30)\n- Block 7: Allies and Enemies - New Relationships Emerge (Pages 31-35)\n- Block 8: The Training Montage - Preparing for the Journey (Pages 36-40)\n- Block 9: The Plan - Formulating a Strategy (Pages 41-45)\n- Block 10: The First Setback - Unexpected Obstacles (Pages 46-50)\n- Block 11: Regrouping - Learning from Failure (Pages 51-55)\n- Block 12: The Midpoint Twist - A Surprise Revelation (Pages 56-60)\n- Block 13: Raising the Stakes - Intensifying the Conflict (Pages 61-65)\n- Block 14: The Second Test - Overcoming Doubts (Pages 66-70)\n- Block 15: The Darkest Hour - Facing the Ultimate Crisis (Pages 71-75)\n- Block 16: A Glimmer of Hope - New Insights and Ideas (Pages 76-80)\n- Block 17: The Final Preparation - Gathering Resources (Pages 81-85)\n- Block 18: Rallying the Troops - Inspiring Others (Pages 86-90)\n- Block 19: The Climax Begins - Confronting the Antagonist (Pages 91-95)\n- Block 20: The Battle Rages - High-Stakes Action (Pages 96-100)\n- Block 21: The Hero's Sacrifice - A Personal Cost (Pages 101-105)\n- Block 22: The Turning Point - Gaining the Upper Hand (Pages 106-110)\n- Block 23: The Resolution - Defeating the Antagonist (Pages 111-115)\n- Block 24: The New Normal - Returning to a Transformed World (Pages 116-120)\n\n---"
+        },
+        {
+          "id": "24-blocks-general-general-screenplays-to-improv-md",
+          "repository": "24-Blocks",
+          "path": "General/General - Screenplays to Improv.md",
+          "title": "The Diversity of Structures",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/General/General%20-%20Screenplays%20to%20Improv.md",
+          "content": "# The Diversity of Structures\n\n### From Screenplays to Improv \n\nStorytelling, as an integral part of human communication, manifests in a multitude of formats. Beyond the realm of improvisation and screenplays, there exists a cornucopia of mediums, each with unique rules, conventions, and formats for scripting and storytelling. This blog post aims to delve into these diverse formats to facilitate a broader understanding for educators, students, and hobbyists alike.\n\n## Storytelling Mediums\n\n1. **Stage Plays**: Scripts crafted for live theatre vary in size from one-act plays to full-length productions. Unlike screenplays, play scripts place a greater emphasis on dialogue rather than visual elements.\n\n2. **Novels and Short Stories**: These written prose forms offer more scope for interior monologue and exposition. Their structure can range from the simple to the complex, per the author's discretion.\n\n3. **Poetry**: Often abstract, focusing on language and emotion, poetry tells a story in a highly condensed form.\n\n4. **Radio Plays/Podcasts**: The resurgence of podcasts underscores the vitality of audio storytelling. The scripting for these formats, akin to screenplays, concentrates solely on the audio experience.\n\n5. **Graphic Novels and Comic Books**: These visual storytelling mediums amalgamate elements of prose and screenwriting, with an accent on the visual art.\n\n6. **Video Games**: Many contemporary video games feature intricate stories, complete with scripted dialogue and events. These scripts, similar to screenplays, also account for interactive elements and varying outcomes based on player choices.\n\n7. **Web Series**: These scripted videos released online often share the script format with screenplays or TV scripts.\n\n8. **Music**: In formats like Operas, Musicals, Concept Albums, and Music Videos, the story is narrated through a blend of music, lyrics, and occasionally scripted dialogue or visual elements.\n\n9. **Animations**: Scripts for this medium resemble screenplays but must also include descriptions of visual elements and actions set for animation.\n\n10. **Non-Fiction**: In formats such as Biography, Documentary, and News Reporting, storytelling, while adhering to facts, employs many of the same narrative structures and techniques.\n\n## Improvisational Theatre Structures\n\nImprovisational theatre, akin to scripted theatre or film, offers a variety of structures:\n\n1. **Armando**: This format begins with a monologue which inspires the following scenes.\n\n2. **La Ronde**: Each scene introduces one character from the preceding scene and one new character, creating a \"round\" of interconnected scenes.\n\n3. **Living Room**: This format commonly starts with an informal conversation among the players, serving as a springboard for scene ideas.\n\n4. **Mono Scene**: The entire performance unfolds in one location in real time, without scene edits.\n\n5. **Narrative Long-Form**: This format endeavours to improvise a complete \"play\", frequently in a specific genre, comprising plot, characters, and thematic development.\n\nAnd many more. Like Harold, each of these structures boasts unique elements, with different groups often developing their own variations on each format. \n\nThe \"Harold\" is a format typically used in improv theatre, rather than in pre-written film or television scripts. Improv is a form of live theatre in which the plot, characters, and dialogue of a game, scene, or story are made up in the moment.\n\nThe structures listed in the previous response are generally used for scripted works - movies, TV shows, and plays that have been pre-written. While a Harold could potentially be adapted for a scripted format, it's fundamentally designed for improv. (Example: Seinfeld)\n\nHarold's unique structure of opening, beats, group games, and closing allows for spontaneity and immediate audience interaction, which are cornerstones of improv. The flexibility and in-the-moment creativity fostered by the Harold structure make it less suitable for scripted media, where dialogue and scenes are usually carefully crafted and rehearsed ahead of time. \n\n## Film and Television Structures\n\nFilm and television storytelling employ a host of different structures:\n\n1. **Three-Act Structure**: The conventional format divides a screenplay into Setup, Confrontation, and Resolution.\n\n2. **Five-Act Structure**: Traditionally used in plays, the five acts encompass Exposition, Rising Action, Climax, Falling Action, and Denouement.\n\n3. **Seven-Act Structure**: Often utilized for television dramas, it can pace out the story to suit commercial breaks.\n\n4. **Hero's Journey**: This twelve-stage structure draws inspiration from Joseph Campbell's work and is used in adventure, fantasy, and sci-fi films.\n\n5. **Non-linear Structure**: This presents events out of chronological order, with Quentin Tarantino's \"Pulp Fiction\" serving as a notable example.\n\n6. **Parallel Structure**: This involves the simultaneous narration of two equally important stories, toggling between the two.\n\n7. **Circular Structure**: In this format, the story concludes where it begins, providing a neat narrative closure.\n\n8. **Framing Structure**: Here, the story is encapsulated within a different narrative that provides context, akin to a story within a story.\n\n9. **Episodic Structure**: Frequently employed in television, each episode tells a discrete story while contributing to a larger narrative arc across the series.\n\nIt's worth noting that this list is not exhaustive. Many films and TV shows integrate elements from different structures, creating a composite narrative format. Additionally, structures can significantly vary across cultures and filmmaking styles, attesting to the infinite versatility and adaptability of storytelling. \n\nIn conclusion, whether you are an educator looking for ways to explain the structures of storytelling, a student studying the art and science of narrative, or a hobbyist interested in the ways stories are told across different media, understanding the formats and structures of storytelling can provide valuable insights. The myriad formats, from the stage to the screen, from written prose to improv theatre, contribute to the richness of narrative traditions. As we continue to create and consume stories, these structures serve as guideposts, helping us navigate the boundless landscapes of human imagination.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "24b-new-spin",
+      "number": 19,
+      "topic": "structure",
+      "title": "Why 24 Blocks Work",
+      "duration": "20–30 min",
+      "overview": "See the feature screenplay as four acts of six manageable movements: large enough to carry consequence, small enough to revise without losing the whole story.",
+      "objectives": [
+        "Explain the four-act, six-block rhythm.",
+        "Use Blocks as planning containers rather than fixed beats.",
+        "Connect Blocks to PlotPickle’s 12 sequences and 96 mini-blocks."
+      ],
+      "sections": [
+        {
+          "heading": "Story reason first",
+          "paragraphs": [
+            "A feature becomes easier to design when the writer can see twenty-four meaningful changes instead of one enormous middle. Each Block should alter the dramatic situation through pressure, choice, discovery or consequence."
+          ],
+          "points": [
+            "Act I: orient and disrupt.",
+            "Act II: pursue and complicate.",
+            "Act III: intensify and transform.",
+            "Act IV: confront and resolve."
+          ]
+        },
+        {
+          "heading": "How PlotPickle applies this",
+          "paragraphs": [
+            "PlotPickle groups six Blocks into each act, two Blocks into each sequence and four mini-blocks into each Block. Scenes remain flexible: a Block may contain one long scene, several short scenes or intercut material."
+          ],
+          "points": [
+            "4 acts",
+            "12 sequences",
+            "24 Blocks",
+            "96 mini-blocks",
+            "Flexible scene count"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Block",
+          "meaning": "A planning movement that changes the story’s dramatic condition."
+        },
+        {
+          "term": "Sequence",
+          "meaning": "A paired set of Blocks with a local objective and turn."
+        }
+      ],
+      "example": {
+        "title": "Afterglow orientation",
+        "text": "A Block does not mean one scene. An Afterglow Block can move from discovery to denial through several locations while still serving one dramatic movement."
+      },
+      "checklist": [
+        "The Block changes conditions.",
+        "The protagonist must respond.",
+        "The movement belongs in its act.",
+        "Scene count follows the story."
+      ],
+      "mistakes": [
+        "Treating every Block as equal length.",
+        "Confusing a label with an event.",
+        "Adding filler to occupy a grid cell."
+      ],
+      "exercise": "Name the dramatic change in the active Block in one sentence, then list the scenes needed to earn it.",
+      "apply": "Block plan",
+      "tags": [
+        "A New Spin",
+        "24 Blocks",
+        "four acts",
+        "six blocks",
+        "sequence",
+        "planning resolution"
+      ],
+      "original": {
+        "number": 15,
+        "path": "Foundations"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-24-blocks-24-blocks-a-new-spin-md",
+          "repository": "24-Blocks",
+          "path": "24 Blocks/24 Blocks - A New Spin.md",
+          "title": "24 Blocks - A New Spin on Screenwriting",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/24%20Blocks/24%20Blocks%20-%20A%20New%20Spin.md",
+          "content": "# 24 Blocks - A New Spin on Screenwriting\n\nHey there! Let me introduce you to something I stumbled upon while writing the script for 'Afterglow' back in 2017. I ended up crafting a method that I called 'Blocks', and you know what? It turned out to be a great tool for writing scripts! It works for me!\n\n#### What's with the 'Blocks' System?\n\nSo, what's the deal with this 'Blocks' system? It's a technique that makes the screenplay writing process easier, especially when you're trying to balance your wild imagination with some sort of order and structure. The 'Blocks' system breaks down your script into 24 chunks or 'blocks'. Think of each block as a mini-story that moves your entire narrative forward. \n\n#### Why Blocks? \n\nWell, it's all about pacing and sequencing your story. While we all love characters (and they're super important!), this method helps to plan out how your events will unfold and at what rhythm. Each block is like a signpost on your storytelling journey, guiding you along your narrative path. \n\nDon't worry; this isn't a rigid system that chains your creativity. Think of it more like a helpful guide that keeps you on track, makes sure you don't get lost, and helps you pace your story to keep your audience on the edge of their seats.\n\n#### Give It a Go!\n\nThere you have it, the 'Blocks' system in a nutshell. It's a fun, visual way to construct your screenplay and might just give you some new insights into your storytelling process. Remember, it's just a tool, so use it if it works for you, tweak it to suit your style, or drop it if it's not your cup of tea. \n\n#### It's All About Diversity\n\nUltimately, the magic of creativity lies in our unique perspectives. Our narratives should reflect the rich tapestry of our experiences, ideas, and beliefs. So, whether it's the 'Blocks' method or something else, the important thing is to create art that challenges, questions, and celebrates the diversity of human life.\n\nFeel free to dive in, explore, and collaborate in this space. Let's learn, grow, and create compelling stories together using whatever tools and methods work best for us. \n\n---"
+        }
+      ]
+    },
+    {
+      "id": "24b-structure-guide",
+      "number": 20,
+      "topic": "structure",
+      "title": "The Grid Is a Guide, Not a Cage",
+      "duration": "20–30 min",
+      "overview": "Use the 24-block grid to expose missing movement and weak causality without forcing every screenplay into identical timing or content.",
+      "objectives": [
+        "Separate structural function from formula.",
+        "Diagnose empty or overloaded Blocks.",
+        "Adjust density while preserving causal movement."
+      ],
+      "sections": [
+        {
+          "heading": "A visible thinking surface",
+          "paragraphs": [
+            "The grid helps writers compare what changes, where pressure rises and whether the audience receives enough orientation. It is a diagnostic surface, not a mandatory beat sheet."
+          ],
+          "points": [
+            "Move a turn when the story earns it.",
+            "Combine Blocks when one movement carries both jobs.",
+            "Split an overloaded Block when several irreversible changes compete."
+          ]
+        },
+        {
+          "heading": "How PlotPickle applies this",
+          "paragraphs": [
+            "PlotPickle stores the structural purpose separately from scenes, treatment and screenplay pages. You can revise one layer without pretending the others are identical."
+          ],
+          "points": [
+            "Block function",
+            "Mini-block movement",
+            "Treatment evidence",
+            "Screenplay execution"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Planning resolution",
+          "meaning": "The level of detail used to see and revise story movement."
+        },
+        {
+          "term": "Structural function",
+          "meaning": "The dramatic job a movement performs, regardless of its surface events."
+        }
+      ],
+      "example": {
+        "title": "Uneven but coherent",
+        "text": "A quiet relationship Block may occupy eight pages while an action pursuit spans three Blocks in ten pages. The grid tracks change, not stopwatch equality."
+      },
+      "checklist": [
+        "Every Block has a function.",
+        "Adjacent Blocks cause or complicate one another.",
+        "Length follows dramatic need.",
+        "No event exists only to satisfy the template."
+      ],
+      "mistakes": [
+        "Assuming each Block must contain the same number of scenes.",
+        "Forcing a midpoint because a chart says so.",
+        "Mistaking symmetry for meaning."
+      ],
+      "exercise": "Mark one active Block as thin, balanced or overloaded. Revise its function before changing its scenes.",
+      "apply": "Block plan",
+      "tags": [
+        "Structure Guide",
+        "grid",
+        "formula",
+        "flexible scenes",
+        "diagnostic"
+      ],
+      "original": {
+        "number": 16,
+        "path": "Foundations"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-24-blocks-24-blocks-structure-guide-md",
+          "repository": "24-Blocks",
+          "path": "24 Blocks/24 Blocks - Structure Guide.md",
+          "title": "Structure Guide: Blocks in Four-Acts",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/24%20Blocks/24%20Blocks%20-%20Structure%20Guide.md",
+          "content": "<!-- Main container with right alignment -->\n<div style=\"margin: 0; padding: 0;\"></div>\n<div align=\"right\" style=\"display: flex; flex-wrap: wrap; justify-content: right; align-items: right; gap: 1em; margin: 1em 0;\">\n    <a href=\"https://openstorystudio.com\">Home</a><br><br>\n</div>\n\n# Structure Guide: Blocks in Four-Acts\n\n## Introduction\n\n<img src=\"/StorytellersCollective-1-Storyteller's Collective.png\"/>\n\nScreenwriting often adheres to the conventional three-act format. This guide introduces an alternative approach, the four-act structure. This method divides each act into six blocks, each designed to propel the story and cultivate character development. This adaptable structure can cater to a wide range of genres and narratives, resulting in a well-structured and engaging screenplay.\n\nThe four-act structure is a storytelling tool used in novels, plays, films, and TV series. It's based on classic storytelling principles, following a setup, confrontation, complication, and resolution progression. Each act is characterized by a key narrative function, collectively forming a dramatic narrative arc:\n\n- Act 1: Setup - Establishes characters, their objectives, and the setting.\n- Act 2: Confrontation - Explores main conflicts, often increasing challenges for the protagonist.\n- Act 3: Complication - Introduces additional problems or obstacles, escalating the situation towards the climax.\n- Act 4: Resolution - Concludes the storyline, resolves main conflicts, and provides an ending to the characters' journeys.\n\nIn the context of a screenplay, the four-act structure divides each act into six blocks, which could be approximately five minutes in screen time. Below is a template using this structure:\n\n<table>\n  <tr>\n    <th align=\"center\">B1: Act 1</th>\n    <th align=\"center\">B2: SQ</th>\n    <th align=\"center\">B3: II</th>\n    <th align=\"center\">B4: CA</th>\n    <th align=\"center\">B5: RC</th>\n    <th align=\"center\">B6: TP</th>\n  </tr>\n  <tr>\n    <td align=\"center\">The Beginning - Introduce the protagonist. <br> (External Plot A, Internal Subplot B)</td>\n    <td align=\"center\">New Opportunity - Present a life-changing event. <br> (External Plot A)</td>\n    <td align=\"center\">The Reluctant Hero - Display the protagonist's hesitation. <br> (External Plot A, Internal Subplot B)</td>\n    <td align=\"center\">Crossing the Threshold - Enter a new world. <br> (External Plot A)</td>\n    <td align=\"center\">Meeting the Mentor - Protagonist receives guidance and wisdom. <br> (External Plot A)</td>\n    <td align=\"center\">The First Test - Protagonist faces challenges. <br> (Plot Point 1 / Act 1 / First Major Turn, External Plot A)</td>\n  </tr>\n  <tr>\n    <th align=\"center\">B7: Act2</th>\n    <th align=\"center\">B8: TAE</th>\n    <th align=\"center\">B9: AIC</th>\n    <th align=\"center\">B10: MP</th>\n    <th align=\"center\">B11: RA</th>\n    <th align=\"center\">B12: TP</th>\n  </tr>\n  <tr>\n    <td align=\"center\">Allies and Enemies - New relationships emerge. <br> (External Plot A, Relationship Subplot C)</td>\n    <td align=\"center\">The Training Montage - Protagonist prepares for the journey. <br> (External Plot A)</td>\n    <td align=\"center\">The Plan - Protagonist formulates a strategy. <br> (External Plot A)</td>\n    <td align=\"center\">The First Setback - Protagonist encounters unexpected obstacles. <br> (External Plot A)</td>\n    <td align=\"center\">Regrouping - Protagonist learns from failure. <br> (External Plot A, Internal Subplot B)</td>\n    <td align=\"center\">The Midpoint Twist - A surprise revelation occurs. <br> (Plot Point 2 / Act 2 / Major Turn, External Plot A)</td>\n  </tr>\n  <tr>\n    <th align=\"center\">B13: Act 3</th>\n    <th align=\"center\">B14: MS</th>\n    <th align=\"center\">B15: DNS</th>\n    <th align=\"center\">B16: RV</th>\n    <th align=\"center\">B17: FP</th>\n    <th align=\"center\">B18: TP</th>\n  </tr>\n  <tr>\n    <td align=\"center\">Raising the Stakes - Conflict intensifies. <br> (External Plot A)</td>\n    <td align=\"center\">The Second Test - Protagonist overcomes doubts. <br> (External Plot A)</td>\n    <td align=\"center\">The Darkest Hour - Protagonist faces the ultimate crisis. <br> (External Plot A)</td>\n    <td align=\"center\">A Glimmer of Hope - New insights and ideas emerge. <br> (External Plot A)</td>\n    <td align=\"center\">The Final Preparation - Protagonist gathers resources. <br> (External Plot A)</td>\n    <td align=\"center\">Rallying the Troops - Protagonist inspires others. <br> (Plot Point 3 / Act 3 / Major Turn, External Plot A)</td>\n  </tr>\n  <tr>\n    <th align=\"center\">B19: Act 4</th>\n    <th align=\"center\">B20: CC</th>\n    <th align=\"center\">B21: HS</th>\n    <th align=\"center\">B22: TP</th>\n    <th align=\"center\">B23: FA</th>\n    <th align=\"center\">B24: NN</th>\n  </tr>\n  <tr>\n    <td align=\"center\">The Climax Begins - Protagonist confronts the antagonist. <br> (Plot Point 3 / Act 3 / Major Turn, External Plot A)</td>\n    <td align=\"center\">The Battle Rages - High-stakes action takes place. <br> (External Plot A)</td>\n    <td align=\"center\">The Hero's Sacrifice - Protagonist pays a personal cost. <br> (External Plot A)</td>\n    <td align=\"center\">The Turning Point - Protagonist gains the upper hand. <br> (External Plot A)</td>\n    <td align=\"center\">The Resolution - Antagonist is defeated. <br> (External Plot A)</td>\n    <td align=\"center\">The New Normal - Protagonist returns to a transformed world. <br> (External Plot A)</td>\n  </tr>\n</table>\n\n### Agenda\n\n<table>\n  <tr>\n    <td>B2: Status Quo (SQ)<br>\n        B3: Inciting Incident (II)<br>\n        B4: Call to Adventure (CA)<br>\n        B5: Refusal of the Call (RC)<br>\n        B6: Meeting the Mentor (MM)<br>\n        B7: Crossing the Threshold (CT)<br>\n        B8: Tests, Allies, and Enemies (TAE)<br>\n        B9: Approach to Inmost Cave (AIC)</td>\n    <td>B10: Midpoint / First Culmination (MP)<br>\n        B11: Reaction / Aftermath (RA)<br>\n        B12: Second Act Break (SAB)<br>\n        B13: Complications (CMP)<br>\n        B14: Major Setback (MS)<br>\n        B15: Dark Night of the Soul (DNS)<br>\n        B16: Revelation (RV)<br>\n        B17: Final Preparations (FP)</td>\n    <td>B18: Turning Point (TP)<br>\n        B19: Climax Begins (CB)<br>\n        B20: Climax Continues (CC)<br>\n        B21: Hero's Sacrifice (HS)<br>\n        B22: Climax Resolution (CR)<br>\n        B23: Falling Action (FA)<br>\n        B24: New Normal (NN)<br>\n        </td>\n  </tr>\n</table>\n\n---\n\n<img src=\"/StorytellersCollective-3-ACT1 Block1_2.png\"/>\n<img src=\"/StorytellersCollective-4-ACT1 Block3_4.png\"/>\n\n# The Four-Act Structure in Blocks\n\n**Act 1: Setup**\n\n- Block 1: The Beginning - Introduce the protagonist.\n- Block 2: New Opportunity - Present a life-changing event.\n- Block 3: The Reluctant Hero - Display the protagonist's hesitation.\n- Block 4: Crossing the Threshold - Enter a new world.\n- Block 5: Meeting the Mentor - Protagonist receives guidance and wisdom.\n- Block 6: The First Test - Protagonist faces challenges.\n\n<img src=\"/StorytellersCollective-5-ACT1 Block5_6.png\"/>\n<img src=\"/StorytellersCollective-6-ACT1 Summary.png\"/>\n\n**Act 2: Confrontation**\n\n- Block 1: Allies and Enemies - New relationships emerge.\n- Block 2: The Training Montage - Protagonist prepares for the journey.\n- Block 3: The Plan - Protagonist formulates a strategy.\n- Block 4: The First Setback - Protagonist encounters unexpected obstacles.\n- Block 5: Regrouping - Protagonist learns from failure.\n- Block 6: The Midpoint Twist - A surprise revelation occurs.\n\n**Act 3: Complication**\n\n- Block 1: Raising the Stakes - Conflict intensifies.\n- Block 2: The Second Test - Protagonist overcomes doubts.\n- Block 3: The Darkest Hour - Protagonist faces the ultimate crisis.\n- Block 4: A Glimmer of Hope - New insights and ideas emerge.\n- Block 5: The Final Preparation - Protagonist gathers resources.\n- Block 6: Rallying the Troops - Protagonist inspires others.\n\n**Act 4: Resolution**\n\n- Block 1: The Climax Begins - Protagonist confronts the antagonist.\n- Block 2: The Battle Rages - High-stakes action takes place.\n- Block 3: The Hero's Sacrifice - Protagonist pays a personal cost.\n- Block 4: The Turning Point - Protagonist gains the upper hand.\n- Block 5: The Resolution - Antagonist is defeated.\n- Block 6: The New Normal - Protagonist returns to a transformed world.\n\n\"A Life-Changing Event\" describes a critical moment significantly altering the protagonist's life, propelling them into the story's main plot. Depending on the story, this event can vary greatly. This four-act structure, with six blocks per act, can be adjusted to your screenplay's specific needs. Block titles provide a rough guide and can be tailored to fit different genres or storylines.\n\n### Summary\n\nThe \"Screenwriting in Blocks: A Four-Act Structure Guide\" presents an innovative scripting approach. This guide deconstructs the traditional narrative arc into four distinctive acts, each containing six blocks, to create a dynamic and engaging story. These blocks provide a clear roadmap for consistent pacing and smooth narrative unfolding. While useful, not all stories will fit perfectly into this structure. It's a flexible tool meant to be adapted to a story's specific needs. As a guide, it should serve as a foundation, not a strict rule, for creating compelling screenplays.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "24b-structures-role",
+      "number": 21,
+      "topic": "structure",
+      "title": "Structure Creates Pressure and Choice",
+      "duration": "25–35 min",
+      "overview": "Understand structure as the arrangement of pressure, decisions, causality and audience orientation—not a list of prescribed incidents.",
+      "objectives": [
+        "Track cause and consequence.",
+        "Use structure to sharpen choices.",
+        "Control what the audience understands and expects."
+      ],
+      "sections": [
+        {
+          "heading": "Pressure produces decisions",
+          "paragraphs": [
+            "Structure becomes dramatic when changing conditions narrow or complicate a character’s choices. Events matter because someone must interpret and answer them."
+          ],
+          "points": [
+            "New information changes the plan.",
+            "Opposition raises the cost.",
+            "A decision creates the next problem.",
+            "Consequences prevent reset."
+          ]
+        },
+        {
+          "heading": "How PlotPickle applies this",
+          "paragraphs": [
+            "Block and scene fields separate objective, opposition, turn and consequence so the writer can inspect the causal chain."
+          ],
+          "points": [
+            "Objective",
+            "Opposition",
+            "Turn",
+            "Consequence",
+            "Handoff"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Causality",
+          "meaning": "A meaningful relationship in which one action or decision produces the next condition."
+        },
+        {
+          "term": "Audience orientation",
+          "meaning": "The information and expectations that help viewers understand what matters now."
+        }
+      ],
+      "example": {
+        "title": "Afterglow consequence chain",
+        "text": "A discovery matters only when it changes what the protagonist believes, forces a choice and makes the next Block unavoidable."
+      },
+      "checklist": [
+        "The protagonist faces a real choice.",
+        "The choice changes conditions.",
+        "The next movement grows from the consequence.",
+        "The audience knows what is at stake."
+      ],
+      "mistakes": [
+        "Using coincidence to replace causality.",
+        "Escalating spectacle without changing choices.",
+        "Withholding basic orientation to manufacture confusion."
+      ],
+      "exercise": "Write the current Block as Because → Therefore → But → So. Repair any step that depends on ‘and then.’",
+      "apply": "Block plan",
+      "tags": [
+        "Structure’s Role",
+        "pressure",
+        "choice",
+        "causality",
+        "audience orientation"
+      ],
+      "original": {
+        "number": 17,
+        "path": "Craft"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-24-blocks-24-blocks-reflection-md",
+          "repository": "24-Blocks",
+          "path": "24 Blocks/24 Blocks - Reflection.md",
+          "title": "Reflection and Parallels: 24-Block Four-Act Structure",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/24%20Blocks/24%20Blocks%20-%20Reflection.md",
+          "content": "# Reflection and Parallels: 24-Block Four-Act Structure\n\n**Introduction**:\n\nIn the world of storytelling and screenwriting, we often talk about the hero's journey, the three-act structure, and the transformations that characters undergo. However, an intriguing narrative approach that isn't discussed as often is the use of reflection or mirroring in a four-act structure, specifically within a 24-block framework. This method is all about creating a parallel narrative structure that enhances character arcs and offers satisfying payoffs to audiences.\n\n**The 24-Block Four-Act Structure**:\n\nA 24-block four-act structure allows for a nuanced and detailed progression of a story and character development. Each act contains six blocks, serving distinct purposes within the overarching narrative:\n\n**Act 1 (Blocks 1-6):** Character introduction, the setup of their world, and the inciting incident.\n\n**Act 2 (Blocks 7-12):** The character's reaction to the initial conflict, their approach to solving it, and escalation of tension.\n\n**Act 3 (Blocks 13-18):** Further complications, the climax, and the initial fallout.\n\n**Act 4 (Blocks 19-24):** Resolving the story, exploring the aftermath, and establishing the new normal.\n\n**Reflection in a Four-Act Structure**:\n\nReflection, in a storytelling context, refers to the mirroring of narrative elements from one act to another, creating a satisfying parallel that strengthens the story. In a four-act structure, elements introduced in Act 1 (Blocks 1-6) find a mirror in Act 3 (Blocks 13-18), illustrating the change in the protagonist and their world. Similarly, elements of Act 2 (Blocks 7-12) are echoed in Act 4 (Blocks 19-24), showing the consequences of the character's actions.\n\n**Applying Reflection to the 24-Block Four-Act Structure**:\n\nApplying the reflection technique to our 24-block structure would mean that the character's experiences and lessons learned in Acts 1 and 2 would inform and be reflected in Acts 3 and 4. \n\nFor instance, a fear or flaw established in Act 1 could be confronted or resolved in Act 3, demonstrating character growth. Similarly, the character's actions and decisions made in Act 2 to address the conflict could have direct repercussions in Act 4, influencing the story's climax and resolution.\n\n**Conclusion**:\n\nThe use of reflection or parallels in a 24-block four-act structure adds an interesting layer to storytelling. It makes for a more cohesive narrative and offers the opportunity for deeper character development. By showing the change in a character or situation from Act 1 to Act 3, and the consequences of actions taken in Act 2 through Act 4, writers can provide their audiences with a satisfying narrative arc and a deeper understanding of the protagonist's journey. \n\nHowever, it's essential to remember that these are guidelines, not rules. Each story is unique, and the beauty of storytelling lies in the freedom to create and explore. So, as you write, keep these concepts in mind but also allow your creativity to flow, leading your narrative in the direction it needs to go.\n\n---"
+        },
+        {
+          "id": "24-blocks-24-blocks-24-blocks-structures-role-md",
+          "repository": "24-Blocks",
+          "path": "24 Blocks/24 Blocks - Structures Role.md",
+          "title": "Structure's Role in Screenwriting",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/24%20Blocks/24%20Blocks%20-%20Structures%20Role.md",
+          "content": "# Structure's Role in Screenwriting\n\nScreenwriting, like any other form of storytelling, requires meticulous attention to detail, a vivid imagination, and a knack for creating believable, compelling characters. However, there's an ingredient that is often underappreciated yet is fundamental to the magic of storytelling – structure. Structure isn't just a framework; it's the lifeblood that breathes vitality into your narratives. It is the invisible scaffold that upholds your story, giving it form and logic.\n\n### A Reliable Blueprint for Your Narrative\n\nScreenwriting can sometimes feel like trying to navigate through a dense, unmarked forest. However, a well-defined structure acts as a compass, a reliable blueprint guiding you through the thickets of your narrative. It ensures a seamless flow to your story, from the inciting incident to the climactic showdown, and finally to the resolution.\n\n### Ensuring Narrative Cohesion and Flow\n\nStructure is the invisible glue that binds different scenes together into a cohesive whole. It prevents your story from being a random collection of scenes, instead guiding the audience through a logically progressing narrative. Without it, the narrative can seem disjointed and confusing, causing your viewers to lose interest and disconnect from the story.\n\n### A Tool for Efficient Storytelling and Pace Maintenance\n\nStructure serves as a vital tool for maintaining the right pace in your screenplay. It helps to trim the fat, eliminating unnecessary scenes or elements that don't drive the story forward. Too slow a pace, and you risk boring your audience; too fast, and you might lose them. The proper structure allows you to strike the right balance, ensuring that each scene contributes meaningfully to the overall narrative.\n\n### The Guiding Light for Character Development\n\nCharacters don't exist in a vacuum; they grow and change as the story unfolds. A well-structured screenplay outlines this character development, showcasing how characters evolve over time. It ensures that character arcs are believable and relatable, encouraging your audience to invest emotionally in their journeys.\n\n### Building Dramatic Tension and Facilitating Emotional Engagement\n\nOne of the main goals in screenwriting is to elicit an emotional response from the audience. Structure plays an instrumental role in this, creating dramatic peaks and troughs that tug at the viewers' emotions. By orchestrating the build-up and release of tension at precise structural points, screenwriters can heighten emotional impact, making their stories resonate powerfully with audiences.\n\n### A Platform for Expressing Themes\n\nStructure also provides an opportunity to express and explore themes within your story. By positioning key scenes and plot developments strategically within the structure, you can guide your audience towards contemplating deeper issues, enriching their viewing experience.\n\n### Commercial Considerations and Industry Standards\n\nIn the film industry, particularly in Hollywood, there is a generally accepted structure, known as the Three-Act Structure, that most mainstream movies follow. Adherence to this structure can increase a screenplay's chances of being accepted and produced.\n\nIn conclusion, structure is far from a mere formality in screenwriting; it's an invaluable asset in the screenwriter's toolkit. It is an essential element that guides the narrative journey, ensuring cohesion, controlling pace, directing character development, facilitating emotional engagement, and enabling thematic exploration. When used effectively, it has the power to transform your screenplay into a compelling, resonant, and unforgettable story.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "24b-story-beats",
+      "number": 22,
+      "topic": "structure",
+      "title": "From Beat to Act",
+      "duration": "25–35 min",
+      "overview": "Understand how beats, scenes, mini-blocks, Blocks, sequences and acts nest without treating the levels as interchangeable.",
+      "objectives": [
+        "Name each structural level.",
+        "Choose the right planning scale.",
+        "Trace a local turn into a feature-level movement."
+      ],
+      "sections": [
+        {
+          "heading": "The hierarchy",
+          "paragraphs": [
+            "A beat is the smallest perceptible shift. Beats form scenes; scenes can serve mini-blocks; four mini-block movements complete a Block; paired Blocks form a sequence; six Blocks form an act."
+          ],
+          "points": [
+            "Beat: moment-to-moment change.",
+            "Scene: continuous dramatic encounter.",
+            "Mini-block: quarter movement.",
+            "Block: meaningful story movement.",
+            "Sequence: local arc.",
+            "Act: major phase of the feature."
+          ]
+        },
+        {
+          "heading": "How PlotPickle applies this",
+          "paragraphs": [
+            "PlotPickle lets the writer move between hierarchy levels while preserving links. A screenplay scene can be traced back to its mini-block and Block purpose."
+          ],
+          "points": [
+            "Navigate without flattening.",
+            "Diagnose at the smallest useful level.",
+            "Keep top-level intent visible while drafting."
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Beat",
+          "meaning": "A small shift in tactic, information, emotion, power or intention."
+        },
+        {
+          "term": "Handoff",
+          "meaning": "The consequence or unresolved pressure that launches the next unit."
+        }
+      ],
+      "example": {
+        "title": "One reveal at six scales",
+        "text": "A glance is a beat; the confrontation is a scene; the reveal completes a mini-block; the changed alliance completes a Block; the failed escape completes a sequence; the act ends with a new goal."
+      },
+      "checklist": [
+        "Each level has a distinct job.",
+        "Scenes serve a larger movement.",
+        "Blocks contain change, not summaries.",
+        "Act turns alter the feature’s direction."
+      ],
+      "mistakes": [
+        "Calling every event a beat.",
+        "Treating one scene as automatically equal to one Block.",
+        "Drafting pages without a larger handoff."
+      ],
+      "exercise": "Take the active scene and write its beat turn, mini-block function, Block change, sequence movement and act purpose.",
+      "apply": "Screenplay",
+      "tags": [
+        "Story Beats",
+        "beat",
+        "scene",
+        "mini-block",
+        "sequence",
+        "act",
+        "hierarchy"
+      ],
+      "original": {
+        "number": 18,
+        "path": "Craft"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-24-blocks-24-blocks-story-beats-md",
+          "repository": "24-Blocks",
+          "path": "24 Blocks/24 Blocks - Story Beats.md",
+          "title": "Block by Block: Building Your Screenplay in 24 Beats",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/24%20Blocks/24%20Blocks%20-%20Story%20Beats.md",
+          "content": "# Block by Block: Building Your Screenplay in 24 Beats\n\nThe \"24 Blocks in 5-Minutes\" screenplay structure provides a framework for crafting a compelling narrative. It segments a typical 120-minute screenplay into 24 blocks, each approximately five minutes of screen time, offering an organized way to track the narrative's pacing and progression.\n\nHowever, this 24-block structure should not be viewed as a strict formula, but rather a flexible guideline to assist in story construction. It provides a visual scaffolding to organize key elements of your story, including hooks, problems, conflicts, choices, actions, and resolutions. These elements can be plugged into the blocks in various ways to fit the unique needs of your narrative.\n\nThe detailed 24-block structure outlined here takes into consideration a myriad of story elements, such as stakes, philosophical conflicts, anti-themes, plans, and more, allowing for varied narrative complexity. Each block serves as a mini-story within the overall narrative, building upon the previous and setting up the next.\n\nHowever, it's important to remember that every story is unique and might not conform perfectly to this structure. It is a guide, not a rigid rule. Its strength lies in its adaptability - you can modify, rearrange, or even skip blocks based on your story's specific needs.\n\nIn essence, this 24-block structure is a tool that can help you build a cohesive, engaging screenplay. It can provide a roadmap from the inciting incident in Act One to the final resolution in Act Four, but it is up to you, the writer, to fill in the specifics. Your characters, their dialogue, the world they inhabit, and the unique twists and turns of your plot are what will truly bring your screenplay to life.\n\n# Story Beats: Act 1\n\n**Block 1** - Hook, Introduction, and Catalyst\n- **Hook**: The script opens with an engaging scene that captures the audience's attention and sets the tone of the story.\n- **Introduction**: The protagonist and their ordinary world are established, including key relationships and dynamics.\n- **Catalyst (Inciting Incident)**: A significant event happens that disrupts the protagonist's ordinary world and sets the story in motion.\n\n**Block 2** - Problem, Stakes, and Philosophical Conflict\n- **Problem**: The protagonist is confronted with a major problem or challenge connected to the Catalyst.\n- **Stakes**: The potential losses and consequences the protagonist will face if they do not solve the problem are defined.\n- **Philosophical Conflict**: The problem introduces a thematic or philosophical question that challenges the protagonist's worldview.\n\n**Block 3** - Anti-Theme, Want, and Choice\n- **Anti-Theme**: An opposing viewpoint or argument to the main theme of the story is presented.\n- **Want**: The protagonist identifies a goal or desire that they believe will solve their problem.\n- **Choice**: The protagonist makes a decision that pushes them out of their ordinary world and into a new, conflict-filled situation.\n\n**Block 4** - Initial Plan, Action, and New Problem\n- **Plan**: The protagonist devises an initial strategy to achieve their goal.\n- **Action**: The protagonist begins to execute their plan.\n- **New Problem**: An unexpected obstacle or setback arises, complicating the protagonist's situation.\n\n**Block 5** - Adaptation, Revised Plan, and Raised Stakes\n- **Adaptation**: The protagonist adjusts or changes their approach in response to the new problem.\n- **Revised Plan**: The protagonist formulates a new plan based on their adaptation.\n- **Raised Stakes**: The consequences of failure become even greater, heightening the story's tension.\n\n**Block 6** - Choice, Action, and Antagonist Hint\n- **Choice**: The protagonist makes another crucial decision in response to the increased stakes.\n- **Action**: The protagonist takes action according to their revised plan, moving the story into Act Two.\n- **Antagonist** Hint: A hint or introduction to the primary antagonist or opposing force, providing a glimpse of the larger conflict to come.\n\n# Story Beats: Act 2\n\n**Block 7** - New World and Exploration\n- **New World**: The protagonist fully enters the new world or situation.\n- **Exploration**: The protagonist starts to explore, understand, or adjust to the new rules, opportunities, and challenges.\n\n**Block 8** - Actions, Rising Tension, and More Problems\n- **Actions**: The protagonist takes actions in line with their plan.\n- **Rising Tension**: As a result, there is rising tension or complications.\n- **More Problems**: New problems or obstacles present themselves.\n\n**Block 9** - Therefore, Choices and Adjusted Plan\n- **Therefore**: The new problems force the protagonist to adapt.\n- **Choices**: They make further choices in response to these problems.\n- **Adjusted Plan**: They adjust their plan accordingly.\n\n**Block 10** - Raised Stakes, Deepened Question, and Actions\n- **Raised Stakes**: The stakes increase yet again, adding more tension and urgency.\n- **Deepened Question**: The raised stakes deepen the existing question or introduce a new question.\n- **Actions**: The protagonist takes actions according to their revised plan.\n\n**Block 11** - Revelations, Problems and Therefore\n- **Revelations**: There are key revelations or changes in the protagonist's understanding.\n- **Problems**: However, these lead to new problems or complications.\n- **Therefore**: These complications force the protagonist to adjust yet again.\n\n**Block 12** - Choice, Plan, Raised Stakes, Question and Action\n- **Choice**: The protagonist makes another choice in response to the new problem.\n- **Plan**: They devise a new plan based on this choice.\n- **Raised Stakes**: The stakes are even higher now, increasing the tension.\n- **Question**: The raised stakes deepen the existing question or introduce a new question.\n- **Action**: The protagonist takes action according to their revised plan, closing out the first half of Act Two.\n  \n# Story Beats: Act 3\n\n**Block 13** - Consequences and Further Complications\n- **Consequences**: The protagonist deals with the consequences of their actions and choices so far.\n- **Further Complications**: More problems or obstacles arise, complicating the protagonist's situation further.\n\n**Block 14** - Therefore, Choices and Adjusted Plan\n- **Therefore**: The protagonist has to adapt due to these further complications.\n- **Choices**: They make further choices in response to these problems.\n- **Adjusted Plan**: The protagonist adjusts their plan accordingly.\n\n**Block 15** - Actions, Major Crisis, and All is Lost\n- **Actions**: The protagonist takes actions according to their revised plan.\n- **Major Crisis**: They face a major crisis or conflict, often known as the \"All is Lost\" moment where everything seems to go wrong.\n- **All is Lost**: The stakes are at their highest, and the situation seems impossible to overcome.\n\n**Block 16** - Dark Night of the Soul, Questions and Revelation\n- **Dark Night of the Soul**: The protagonist undergoes a period of reflection, self-doubt, or despair.\n- **Questions**: They question their choices, beliefs, and their ability to solve the problem.\n- **Revelation**: A revelation or insight occurs, providing the protagonist with a new understanding or a new approach.\n\n**Block 17** - Choices, New Plan and Preparation\n- **Choices**: Based on their new understanding, the protagonist makes a new choice.\n- **New Plan**: They formulate a new plan based on this choice.\n- **Preparation**: The protagonist begins to prepare for the final confrontation or climax.\n\n**Block 18** - Action, Climax, and Resolution\n- **Action**: The protagonist puts their plan into action, leading to the climax.\n- **Climax**: The story reaches its highest point of tension, with the protagonist facing their biggest challenge.\n- **Resolution**: The immediate result of the climax is shown, providing a resolution or a setup for the final act (Act Four in this structure).\n\n# Story Beats: Act 4\n\n**Block 19** - Fallout and New Normal\n- **Fallout**: The protagonist deals with the immediate aftermath of the climax, for better or worse.\n- **New Normal**: The new status quo is established, showing how the world has changed after the climax.\n\n**Block 20** - Remaining Questions and Actions\n- **Remaining Questions**: Any lingering questions or unresolved issues are addressed.\n- **Actions**: The protagonist takes action to resolve these issues.\n\n**Block 21** - Final Choices and Last-Ditch Attempts\n- **Final Choices**: The protagonist makes their final choices, which reflect the character growth they've experienced.\n- **Last-Ditch Attempts**: There might be one final obstacle or surprise that the protagonist has to overcome.\n\n**Block 22** - Final Actions, Ultimate Stakes, and Climax\n- **Final Actions**: The protagonist takes final actions according to their choices.\n- **Ultimate Stakes**: The ultimate stakes are revealed, if they differ from the climax of Act Three.\n- **Climax**: There might be a secondary climax related to the character's internal journey or a subplot.\n\n**Block 23** - Resolution and New Equilibrium\n- **Resolution**: The results of the protagonist's final actions are revealed, and the story's remaining conflicts are resolved.\n- **New Equilibrium**: The new status quo is further solidified, showing the long-term effects of the story's events.\n\n**Block 24** - Final Reflections and Closing Image\n- **Final Reflections**: The story's themes are further explored or reflected upon. This could involve a final decision or a lesson that the protagonist has learned.\n- **Closing Image**: The script ends with a closing image or scene that typically mirrors or contrasts with the opening image, emphasizing how much the protagonist and the world have changed.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "24b-principle-three",
+      "number": 23,
+      "topic": "structure",
+      "title": "Promise, Progress, Pressure, Payoff",
+      "duration": "25–35 min",
+      "overview": "Preserve the original Promise–Progress–Payoff foundation while using PlotPickle’s added Pressure step to strengthen escalation across four mini-blocks.",
+      "objectives": [
+        "Explain the original triad.",
+        "Distinguish PlotPickle’s added Pressure step.",
+        "Use all four movements without mechanical repetition."
+      ],
+      "sections": [
+        {
+          "heading": "The original foundation",
+          "paragraphs": [
+            "Promise establishes the dramatic expectation. Progress develops or complicates it. Payoff fulfils, reverses or meaningfully reframes it. That three-part principle remains the conceptual foundation."
+          ],
+          "points": [
+            "Promise",
+            "Progress",
+            "Payoff"
+          ]
+        },
+        {
+          "heading": "PlotPickle’s expansion",
+          "paragraphs": [
+            "PlotPickle adds Pressure between Progress and Payoff. Pressure is the escalation that makes the outcome costly, uncertain or irreversible. It extends the original method; it does not replace or obscure it."
+          ],
+          "points": [
+            "Promise: establish.",
+            "Progress: develop.",
+            "Pressure: escalate.",
+            "Payoff: deliver and hand off."
+          ]
+        },
+        {
+          "heading": "How PlotPickle applies this",
+          "paragraphs": [
+            "Each Block’s four mini-block positions carry this movement pattern by default, while writers may adapt the surface events and scene count."
+          ],
+          "points": [
+            "96 positions across 24 Blocks",
+            "Writer approval",
+            "Flexible scene execution"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Promise",
+          "meaning": "An expectation the story deliberately creates."
+        },
+        {
+          "term": "Pressure",
+          "meaning": "PlotPickle’s added escalation step that intensifies the path to payoff."
+        },
+        {
+          "term": "Payoff",
+          "meaning": "A fulfilment, reversal or reframing prepared by earlier story evidence."
+        }
+      ],
+      "example": {
+        "title": "Afterglow mini-block movement",
+        "text": "Promise: a recovered signal may prove consciousness survived. Progress: the signal answers. Pressure: answering exposes the team. Payoff: the response identifies someone believed dead."
+      },
+      "checklist": [
+        "The Promise is legible.",
+        "Progress changes understanding.",
+        "Pressure raises cost or uncertainty.",
+        "Payoff uses established evidence.",
+        "The Payoff launches new movement."
+      ],
+      "mistakes": [
+        "Presenting Pressure as part of the original triad.",
+        "Repeating the same information as Progress.",
+        "Delivering a payoff that was never promised."
+      ],
+      "exercise": "Label the four mini-blocks in the active Block as Promise, Progress, Pressure and Payoff. Rewrite the weakest transition.",
+      "apply": "Block plan",
+      "tags": [
+        "Principle of Three",
+        "Promise",
+        "Progress",
+        "Pressure",
+        "Payoff",
+        "96 mini-blocks"
+      ],
+      "original": {
+        "number": 19,
+        "path": "Foundations"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-24-blocks-24-blocks-principle-of-three-md",
+          "repository": "24-Blocks",
+          "path": "24 Blocks/24 Blocks - Principle of Three.md",
+          "title": "Fractal Storytelling: Principle of Three Meets 24 Blocks",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/24%20Blocks/24%20Blocks%20-%20Principle%20of%20Three.md",
+          "content": "# Fractal Storytelling: Principle of Three Meets 24 Blocks\n\nIn the evolving field of narrative construction, we delve into two techniques which, when utilized together, provide a fascinating new approach to structuring screenplays. This post explores the 'Principle of Three' and the '24 Blocks Technique', demonstrating their potential integration to create a resonant fractal narrative.\n\n**The Principle of Three: Promise, Progress, Payoff**\n\n- The Principle of Three revolves around the cyclical triad of 'Promise, Progress, Payoff,' offering a robust narrative arc.\n    - The 'Promise' introduces the stakes or poses a central question.\n    - The 'Progress' component illustrates advancement towards a resolution.\n    - The 'Payoff' embodies the climax, where the promise is fulfilled or the question answered.\n\n- Transforming the 'and then' narrative connector into 'therefore' or 'but' creates a sense of causation, resulting in a series of interconnected moments rather than a sequence of random occurrences.\n\n| Level of Narrative | 'Promise' Application | 'Progress' Application | 'Payoff' Application |\n|---|---|---|---|\n| Act Level | The act introduces the stakes or poses a central question for that portion of the narrative. | The act illustrates advancement towards a resolution of the posed stakes or question. | The act embodies the climax, where the promise of the act is fulfilled or the question answered. |\n| Block Level | Each block introduces a miniature promise or question that contributes to the overall act's stakes. | Each block shows progress towards the resolution of its specific promise or question. | Each block provides a payoff where its promise is fulfilled or question answered, contributing to the overarching act climax. |\n| Scene Level | Each scene within a block poses a minor promise or question contributing to the block's overall promise. | Each scene shows progress towards answering its promise or question. | The climax of each scene where its promise is fulfilled or question answered contributes to the payoff of the block. |\n| Beat Level | Each beat poses a tiny promise or question contributing to the scene's overall promise. | Each beat makes a small advancement towards resolving its own promise or question. | The resolution or payoff of each beat's promise or question contributes to the climax of the scene. |\n\n**The 24 Blocks Technique: Structuring the Narrative**\n\n- The 24 Blocks technique presents a strategy for organizing your narrative. Although initially designed for screenplays, it can be adapted to other narrative forms.\n\n    - The narrative is divided into 24 distinct blocks, each corresponding to approximately five minutes of screen time or five pages of a traditional script.\n    - The technique follows a four-act structure, with each act composed of six blocks. Each block symbolizes a vital story beat or event, contributing to the overarching narrative and character development.\n\n**The Integration of the Principle of Three and the 24 Blocks Technique**\n\n- When combined, the Principle of Three and the 24 Blocks technique yield a dynamic, suspenseful narrative filled with anticipation and payoff.\n  \n    - The Principle of Three can be applied within each block or can span over multiple blocks depending on the complexity and pace of the narrative.\n    - For instance, in a suspenseful thriller, each block might contain a Promise, Progress, Payoff cycle, creating constant suspense. In contrast, a more intricate drama could extend the cycle across multiple blocks, allowing for complex character development and slower-paced story beats.\n    - The four-act structure inherent to the 24 Blocks can also host larger cycles of Promise, Progress, and Payoff, thus crafting a fractal-like narrative structure. Each act promises a development, progresses towards it, and then delivers the payoff, mirroring the smaller cycles within the blocks.\n\n**Conclusion and Implications**\n\n- Integrating the Principle of Three with the 24 Blocks technique offers a clear and flexible framework for constructing compelling narratives, maintaining consistent pacing and interconnectedness.\n- While these techniques provide valuable guiding principles, they are not prescriptive; the creative process of crafting a compelling narrative remains a fluid and dynamic process.\n- These tools should serve as aids, supporting the writer's creativity without imposing constraints.\n\n**Practical Application to Narrative Levels**\n\n- Narrative can be examined at several levels, including acts, scenes, and beats.\n  \n    - An 'act' is a major division in a screenplay, typically forming part of a larger sequence.\n    - A 'scene' is a sequence of continuous action in a play, movie, opera, or book.\n    - A 'beat' is the smallest dramatic unit and represents a single moment or event that changes the course of a scene.\n\n- Each level of narrative within a 4-act, 24-block structure can be considered in terms of Promise, Progress, and Payoff:\n    - **Act Level**: Each act might have its own promise, progress, and payoff, echoing the overall narrative structure.\n    - **Block Level**: Each block within an act could also follow this cycle, reflecting the act structure on a smaller scale.\n    - **Scene Level**: Scenes within a block could contain their own miniature narrative arcs, aligning with the block's structure.\n    - **Beat Level**: Even individual beats can adhere to this structure, each beat reflecting the structure of the scene in which it resides. \n      \n| Level of Narrative | Application of Principle of Three | Application of 24 Blocks Technique |\n|---|---|---|\n| Act Level | Each act has its own promise, progress, and payoff, echoing the overall narrative structure. | The narrative is divided into four acts, with each act containing six blocks. |\n| Block Level | Each block within an act could follow this cycle, reflecting the act structure on a smaller scale. | Each block symbolizes a vital story beat or event, contributing to the overarching narrative and character development. |\n| Scene Level | Scenes within a block could contain their own miniature narrative arcs, aligning with the block's structure. | Although not directly mentioned, the blocks could be further divided into scenes, each serving a particular purpose in the narrative. |\n| Beat Level | Even individual beats can adhere to this structure, each beat reflecting the structure of the scene in which it resides. | The beats within a scene contribute to the respective block, further enhancing the narrative's structure and pacing. |\n\nIn summary, this layered application of the Principle of Three and the 24 Blocks technique can potentially yield a richly intricate narrative, echoing its key themes and conflicts at every level. These tools, however, require careful planning and execution to prevent narratives from becoming confusing or repetitious. The balance between repetition and variation remains crucial to compelling storytelling.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "24b-dramatic-question",
+      "number": 24,
+      "topic": "structure",
+      "title": "Questions That Pull the Story Forward",
+      "duration": "25–35 min",
+      "overview": "Build nested dramatic questions at story, act, sequence, Block and scene levels so curiosity and emotional investment survive between major turns.",
+      "objectives": [
+        "Write the central story question.",
+        "Create nested local questions.",
+        "Resolve or transform questions deliberately."
+      ],
+      "sections": [
+        {
+          "heading": "Nested curiosity",
+          "paragraphs": [
+            "The central question organizes the feature, but viewers also need nearer questions they can track. Each level should matter on its own while contributing to the larger uncertainty."
+          ],
+          "points": [
+            "Story: can the protagonist achieve the defining objective?",
+            "Act: can they survive or complete this phase?",
+            "Sequence: can the local plan work?",
+            "Block: what changes now?",
+            "Scene: who gets what they want in this encounter?"
+          ]
+        },
+        {
+          "heading": "How PlotPickle applies this",
+          "paragraphs": [
+            "PlotPickle connects project-level conflict to Block and Dynamic Scene fields so local questions can be audited against the feature’s central pull."
+          ],
+          "points": [
+            "Central dramatic question",
+            "Sequence question",
+            "Block question",
+            "Scene question"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Dramatic question",
+          "meaning": "An uncertainty whose answer matters emotionally and causally."
+        },
+        {
+          "term": "Question handoff",
+          "meaning": "The way one resolved uncertainty creates or sharpens the next."
+        }
+      ],
+      "example": {
+        "title": "Nested Afterglow questions",
+        "text": "Story: can consciousness outlive the body? Sequence: can the team verify the signal? Block: will the test remain secret? Scene: will Mara reveal what she heard?"
+      },
+      "checklist": [
+        "The central question is answerable by the ending.",
+        "Local questions are concrete.",
+        "Answers change conditions.",
+        "Questions do not rely only on withheld exposition."
+      ],
+      "mistakes": [
+        "Confusing theme with a yes/no plot question.",
+        "Keeping every question open until the ending.",
+        "Using vagueness instead of uncertainty."
+      ],
+      "exercise": "Write one question each for the active story, act, sequence, Block and scene. Confirm that each answer changes the next level.",
+      "apply": "Block plan",
+      "tags": [
+        "Dramatic Question",
+        "story question",
+        "act question",
+        "sequence question",
+        "block question",
+        "scene question"
+      ],
+      "original": {
+        "number": 20,
+        "path": "Craft"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-24-blocks-24-blocks-dramatic-question-md",
+          "repository": "24-Blocks",
+          "path": "24 Blocks/24 Blocks - Dramatic Question.md",
+          "title": "Table of Contents",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/24%20Blocks/24%20Blocks%20-%20Dramatic%20Question.md",
+          "content": "## Table of Contents\n\n1. [Dramatic Question in Screenwriting](#dramatic-question-in-screenwriting)\n2. [24-Block Process](#24-block-process)\n3. [Act 1: Introducing the Dramatic Question](#1-introducing-the-dramatic-question)\n4. [Act 2: Exploring & Complicating](#2-exploring-and-complicating)\n5. [Act 3: Rising Stakes & Reassessments](#act-3-rising-stakes--reassessments)\n6. [Act 4: Answering the Dramatic Question](#act-4-answering-the-dramatic-question)\n7. [Principle of Three](#principle-of-three)\n8. [Art of Storytelling](#art-of-storytelling)\n\n---\n\n## Dramatic Question in Screenwriting\n\nIf you're a budding screenwriter, the craft may sometimes feel overwhelmingly vast. One foundational concept is the \"dramatic question.\" This question essentially underpins the entire narrative: Will the hero save the day? Will the lovers unite? Will the detective solve the mystery?\n\n### 24-Block Process\n \nWhen integrating the dramatic question into the 24-block process, where a screenplay is divided into 4 acts with 6 blocks per act and each block lasting approximately 5 minutes, it becomes a guiding light. Here's a breakdown:\n\n### 1. Introducing the Dramatic Question\n**Act 1 (Blocks 1-6)**\n* **Block 1**: Introduce your protagonist and the world they inhabit. The status quo.\n* **Block 2**: An event disrupts the status quo. \n* **Block 3**: The protagonist reacts to this disruption.\n* **Block 4**: The stakes become clear. What will be gained or lost?\n* **Block 5**: The protagonist makes a choice to pursue a goal.\n* **Block 6**: This goal, and the obstacles in its path, solidify the dramatic question. \n\n### 2. Exploring and Complicating\n**Act 2 (Blocks 7-12)**\n* **Block 7**: Our protagonist takes initial steps to achieve the goal.\n* **Block 8**: Obstacles emerge. The journey isn’t as simple as it seems.\n* **Block 9**: New allies and enemies might appear.\n* **Block 10**: The protagonist's commitment is tested.\n* **Block 11**: A significant setback makes the goal seem almost impossible.\n* **Block 12**: A twist or revelation reshapes the journey.\n\n### Act 3: Rising Stakes & Reassessments\n**Act 3 (Blocks 13-18)**\n* **Block 13**: The protagonist reassesses their strategy.\n* **Block 14**: New plans are set into motion. \n* **Block 15**: Progress is made, but new, more significant obstacles arise.\n* **Block 16**: The stakes are heightened, the dramatic question is ever looming.\n* **Block 17**: All seems lost, the darkest moment.\n* **Block 18**: A glimmer of hope, a new solution, or a last-ditch effort.\n\n### Act 4. Answering the Dramatic Question\n**Act 4 (Blocks 19-24)**\n* **Block 19**: The final push. Gathering resources, making plans.\n* **Block 20**: Confronting the main antagonist or obstacle.\n* **Block 21**: The climax. The dramatic question is on the brink of being answered.\n* **Block 22**: The immediate fallout of the climax. \n* **Block 23**: The world starts to return to a new equilibrium.\n* **Block 24**: The dramatic question is conclusively answered. The narrative closes with a reflection on the journey.\n\nThroughout this journey, the dramatic question remains the anchor, reminding viewers what's at stake. By addressing it consistently across your screenplay, you ensure that the audience remains engaged, rooting for your protagonist, and eager to see how the story unfolds.\n\nSo, whether you're a student, teacher, hobbyist, or new screenwriter, always remember the dramatic question is the heart of your story. Shape it well, and let it guide your narrative from the opening scene to the final fade out.\n\nThe dramatic question for the entire screenplay provides an overarching narrative thrust. However, within the larger structure, each block can also have its own mini dramatic question or a set of smaller objectives and conflicts that feed into the main dramatic question. This aids in keeping the audience engaged throughout the journey, ensuring that each 5-minute block is meaningful and pushes the story forward.\n\n### Principle of Three\n\nIntegrating the Principle of Three: **Promise, Progress, Payoff** within each block is a great way to structure each mini-narrative:\n\n**1. Promise:** This sets up the expectation. What is this block's mini-objective or conflict? It's a micro-setup for what's about to happen in this block.\n\n**2. Progress:** Here, you show the steps or actions taken to fulfill the promise. The protagonist might face some challenges or make some advancements.\n\n**3. Payoff:** The climax or resolution for this block's mini-objective or conflict. It delivers on the promise, concluding the block's narrative, while also setting up the next block.\n\nDividing each block into the Principle of Three can help keep the pacing and the narrative tension consistent. It's roughly dividing each 5-minute block into about 1.67 minutes (5/3) for each of the Promise, Progress, and Payoff.\n\n### For instance:\n\n- **Block 1**\n  - **Promise** (1.67 minutes): Introduce the protagonist in their natural environment.\n  - **Progress** (1.67 minutes): Something feels off or different today.\n  - **Payoff** (1.67 minutes): A mysterious letter arrives, hinting at an upcoming adventure.\n\nSuch structuring ensures that each block is self-contained with its own mini narrative arc while contributing to the overarching dramatic question and storyline.\n\n### Art of Storytelling\n\nHowever, it's essential to remember that while these are useful guiding principles, storytelling is also an art. The exact duration or the strict adherence to these divisions can be adjusted as per the needs of your story.The dramatic question for the entire screenplay provides an overarching narrative thrust. However, within the larger structure, each block can also have its own mini dramatic question or a set of smaller objectives and conflicts that feed into the main dramatic question. This aids in keeping the audience engaged throughout the journey, ensuring that each 5-minute block is meaningful and pushes the story forward.\n\nHowever, it's essential to remember that while these are useful guiding principles, storytelling is also an art. The exact duration or the strict adherence to these divisions can be adjusted as per the needs of your story.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "24b-structure-diversity",
+      "number": 25,
+      "topic": "structure",
+      "title": "One Grid, Many Story Shapes",
+      "duration": "30–40 min",
+      "overview": "Adapt the 24-block planning resolution to nonlinear, parallel, episodic, circular, framed and other structures without forcing chronological or formulaic sameness.",
+      "objectives": [
+        "Map presentation order separately from chronology.",
+        "Track parallel and episodic lines.",
+        "Use the grid as resolution rather than beat prescription."
+      ],
+      "sections": [
+        {
+          "heading": "Different shapes, same need for movement",
+          "paragraphs": [
+            "Stories can reorder time, alternate protagonists, repeat cycles or accumulate episodes. The audience still needs intelligible changes, controlled questions and meaningful consequences."
+          ],
+          "points": [
+            "Nonlinear",
+            "Parallel",
+            "Episodic",
+            "Circular",
+            "Framed",
+            "Anthology or mosaic"
+          ]
+        },
+        {
+          "heading": "How PlotPickle applies this",
+          "paragraphs": [
+            "Blocks represent dramatic movement in presentation order. Timeline and canon tools can separately preserve chronology, character continuity and cross-thread dependencies."
+          ],
+          "points": [
+            "Presentation order",
+            "Story chronology",
+            "Thread ownership",
+            "Convergence points"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Presentation order",
+          "meaning": "The order in which the audience receives events."
+        },
+        {
+          "term": "Chronology",
+          "meaning": "The order in which events occur inside the story world."
+        }
+      ],
+      "example": {
+        "title": "Parallel Afterglow",
+        "text": "Two consciousness threads can alternate across Blocks while each maintains its own objective, pressure and payoff before converging in the final act."
+      },
+      "checklist": [
+        "The form has a dramatic reason.",
+        "Each thread changes.",
+        "Reordered information alters meaning.",
+        "The audience can track essential causality.",
+        "Convergence is prepared."
+      ],
+      "mistakes": [
+        "Using nonlinear order to hide weak causality.",
+        "Giving parallel threads no reason to share the film.",
+        "Treating episodes as unrelated incidents."
+      ],
+      "exercise": "Remap the active story as linear, parallel and circular. Choose the version that creates the strongest audience experience and explain why.",
+      "apply": "Block plan",
+      "tags": [
+        "Structure Diversity",
+        "nonlinear",
+        "parallel",
+        "episodic",
+        "circular",
+        "planning resolution"
+      ],
+      "original": {
+        "number": 21,
+        "path": "Foundations"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-24-blocks-24-blocks-structure-diversity-md",
+          "repository": "24-Blocks",
+          "path": "24 Blocks/24 Blocks - Structure Diversity.md",
+          "title": "Structure Diversity",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/24%20Blocks/24%20Blocks%20-%20Structure%20Diversity.md",
+          "content": "# Structure Diversity \n\nStorytelling, in its essence, is the art of communicating events and experiences in a structured manner. While stories traditionally followed a linear progression, an increasing number of narratives today experiment with different structures, including nonlinear ones. This post will explore several story structures and delve into the intricacies of nonlinear narratives, providing useful insights for hobbyists and writers.\n\n## From Linearity to Complexity: Understanding Different Story Structures \n\nStory structures serve as the backbone of any narrative, providing a framework that guides the sequence of events. Let's delve into some intriguing ones, including nonlinear structures:\n\n1. **Nonlinear Structure:** Nonlinear storytelling presents events out of chronological order, featuring flashbacks, flash-forwards, or parallel storylines that intersect intermittently. Movies such as _Memento_, _Mulholland Drive_, and _Eternal Sunshine of the Spotless Mind_ are classic examples that employ this structure.\n\n2. **Three-Act Structure:** This traditional narrative structure consists of setup (Act 1), confrontation (Act 2), and resolution (Act 3). This structure is omnipresent in Hollywood films.\n\n3. **Hero's Journey:** Popularized by Joseph Campbell, this structure follows a hero on an adventure, battling challenges, and returning home transformed. Films like _Star Wars_, _The Lord of the Rings_, and _The Lion King_ epitomize this structure.\n\n4. **Episodic Structure:** This structure presents the narrative as a series of self-contained episodes or vignettes, with each episode having its own mini-arc while contributing to the overall narrative. Films like _Pulp Fiction_, _Magnolia_, and _Amores Perros_ employ this structure.\n\n5. **Framed Narrative:** This structure uses the main story as a container for one or more embedded stories. _The Princess Bride_ is an excellent example where a grandfather narrates a fairytale, with the main story acting as a frame.\n\n6. **Circular Structure:** This structure concludes a story where it started, creating a sense of closure or repetition. Movies like _Groundhog Day_, _The Prestige_, and _The Great Gatsby_ use this structure to explore themes of repetition and fate.\n\n7. **Rashomon Effect:** This narrative structure involves presenting the same events from multiple perspectives, each providing conflicting accounts of the truth, as seen in the film _Rashomon_. Examples: _Rashomon_, _The Girl on the Train_\n\n8. **Split Narrative:** This structure divides the story into multiple parallel storylines that may or may not intersect, with each narrative strand exploring different characters or events. Examples: _Babel_, _Cloud Atlas_\n\n9. **In Medias Res:** Meaning \"in the middle of things,\" this structure starts the story in the middle of the action, and the preceding events are revealed through flashbacks or exposition. Examples: _Inception_, _Sunset Boulevard_\n\n10. **Unreliable Narrator:** This narrative structure employs a storyteller or protagonist who provides a biased or unreliable account of events, leading the audience to question the accuracy of the narrative. Examples: _Fight Club_, _A Beautiful Mind_\n\n11. **Kishōtenketsu:** A traditional East Asian narrative structure that focuses on four acts—Introduction (ki), Development (shō), Twist (ten), and Conclusion (ketsu)—without relying on conflict or resolution as in Western storytelling. Examples: _Spirited Away_, _Pulp Fiction_\n\nThese narrative structures offer fresh ways to tell stories and engage the audience.\n\n## Crafting Nonlinear Screenplays: The 24-Block Structure \n\nNonlinear storytelling allows for complexity, suspense, varying perspectives, and thematic exploration. By manipulating time and narrative structure, filmmakers can engage audiences in unique ways, as demonstrated by movies like _Pulp Fiction_, _Memento_, _Inception_, and _Cloud Atlas_.\n\nConsider a nonlinear screenplay that uses a 4-act structure, with each act divided into six 5-minute blocks. These blocks can be arranged non-chronologically to align with the story's structure and pacing. Here's a potential arrangement for the 24 blocks:\n\n\n| Act               | Block            | Content                                          |\n|-------------------|------------------|--------------------------------------------------|\n| Act 1             | Block 1          | Introduction to Character A                      |\n|                   | Block 2          | Introduction to Character B                      |\n|                   | Block 3          | Introduction to Setting X                        |\n|                   | Block 4          | Initial conflict for Character A                 |\n| Act 2             | Block 5          | Resolution for Character B's conflict            |\n|                   | Block 6          | Flashback revealing Character A's backstory      |\n|                   | Block 7          | Character A and Character B meet                 |\n|                   | Block 8          | Introduction to Setting Y                        |\n| Act 3             | Block 9          | Climactic scene from the middle of the story     |\n|                   | Block 10         | Confrontation between Character A and Character B|\n|                   | Block 11         | Introduction to Character C                      |\n|                   | Block 12         | Character A's realization and change of heart    |\n| Act 4             | Block 13         | Resolution for Character A's conflict            |\n|                   | Block 14         | Flash-forward to a future event                  |\n|                   | Block 15         | Introduction to Setting Z                        |\n|                   | Block 16         | Climactic scene from the end of the story        |\n| Act 1 (continued) | Block 17         | Character C's backstory                          |\n|                   | Block 18         | Initial conflict for Character C                 |\n| Act 2 (continued) | Block 19         | Character A's encounter with Character C         |\n|                   | Block 20         | Resolution for Character C's conflict            |\n|                   | Block 21         | Introduction to Setting W                        |\n| Act 3 (continued) | Block 22         | Climactic scene involving all three characters   |\n|                   | Block 23         | Resolution for Character A and Character B's conflict |\n|                   | Block 24         | Conclusion and final scene                       |\n\n\nThis arrangement is just a possible illustration. The specific order and content of each block would depend on your narrative, offering a flexible approach to nonlinear storytelling.\n\nFrom conventional structures to fragmented narratives, the art of storytelling continues to evolve, providing filmmakers and writers with varied ways to weave their tales. As we continue exploring this art, the possibilities seem endless, bounded only by the limits of our imagination.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "24b-reflection",
+      "number": 26,
+      "topic": "structure",
+      "title": "Setup, Payoff and the Closing Image",
+      "duration": "25–35 min",
+      "overview": "Design reflection as setup, payoff, consequence and meaning—not merely a repeated image—so the ending reveals how the story changed its world and characters.",
+      "objectives": [
+        "Plant usable setup.",
+        "Create consequential payoff.",
+        "Relate opening and closing images through changed meaning."
+      ],
+      "sections": [
+        {
+          "heading": "Reflection is transformation",
+          "paragraphs": [
+            "A closing image gains force when it recalls an earlier condition and proves what changed. Repetition alone is decorative; reflection carries consequence and meaning."
+          ],
+          "points": [
+            "Setup",
+            "Development",
+            "Consequence",
+            "Payoff",
+            "Meaning"
+          ]
+        },
+        {
+          "heading": "How PlotPickle applies this",
+          "paragraphs": [
+            "Canon, motif and continuity tools can connect early evidence to later payoffs, while the Block grid reveals whether the closing movement answers the opening promise."
+          ],
+          "points": [
+            "Opening image",
+            "Motif",
+            "Setup evidence",
+            "Closing image",
+            "Changed context"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Setup",
+          "meaning": "Information, behaviour or imagery established so a later development can feel earned."
+        },
+        {
+          "term": "Reflection",
+          "meaning": "A later moment that recalls an earlier one while revealing changed meaning or consequence."
+        }
+      ],
+      "example": {
+        "title": "Afterglow closing relationship",
+        "text": "An opening image of a silent machine becomes a closing image of the same machine choosing silence. The composition repeats; the meaning reverses."
+      },
+      "checklist": [
+        "The payoff has prior evidence.",
+        "The consequence changes interpretation.",
+        "The closing image relates to the opening.",
+        "The ending answers the central dramatic question."
+      ],
+      "mistakes": [
+        "Repeating an image without changed meaning.",
+        "Planting setup immediately before payoff.",
+        "Using symbolism instead of resolving consequence."
+      ],
+      "exercise": "Pair the active project’s opening and closing images. Write what remains visually similar and what the audience now understands differently.",
+      "apply": "Treatment",
+      "tags": [
+        "Reflection",
+        "setup",
+        "payoff",
+        "consequence",
+        "closing image",
+        "motif"
+      ],
+      "original": {
+        "number": 22,
+        "path": "Craft"
+      },
+      "sources": []
+    },
+    {
+      "id": "24b-dynamic-scenes",
+      "number": 28,
+      "topic": "structure",
+      "title": "Scenes That Turn and Hand Off",
+      "duration": "30–40 min",
+      "overview": "Build scenes around objective, opposition, action, reversal, turn, consequence and handoff so every scene changes the story rather than merely explaining it.",
+      "objectives": [
+        "Give the scene an active objective.",
+        "Create opposition and tactical change.",
+        "End with consequence and a handoff."
+      ],
+      "sections": [
+        {
+          "heading": "The dynamic scene chain",
+          "paragraphs": [
+            "A scene begins with someone pursuing something under current conditions. Opposition forces action and adjustment. A reversal or turn changes power, information, emotion or direction. The consequence prevents the screenplay from resetting."
+          ],
+          "points": [
+            "Objective",
+            "Opposition",
+            "Action",
+            "Reversal",
+            "Turn",
+            "Consequence",
+            "Handoff"
+          ]
+        },
+        {
+          "heading": "How PlotPickle applies this",
+          "paragraphs": [
+            "Dynamic Scene fields make the chain explicit and connect the scene’s handoff to the next scene or mini-block."
+          ],
+          "points": [
+            "Scene purpose",
+            "Character tactics",
+            "Visible change",
+            "Next pressure"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Turn",
+          "meaning": "The scene’s decisive change in power, knowledge, emotion, commitment or direction."
+        },
+        {
+          "term": "Handoff",
+          "meaning": "The consequence, question or pressure carried into the next unit."
+        }
+      ],
+      "example": {
+        "title": "Afterglow scene turn",
+        "text": "Mara enters to conceal the signal. Opposition forces her to play it. The reversal is that it speaks in her own voice. She leaves with a new objective, and the team now distrusts her."
+      },
+      "checklist": [
+        "Someone wants something now.",
+        "Opposition is active.",
+        "Tactics change.",
+        "The scene turns.",
+        "A consequence survives the cut.",
+        "The next unit inherits pressure."
+      ],
+      "mistakes": [
+        "Writing a scene only to deliver information.",
+        "Ending where the scene began.",
+        "Using argument volume instead of tactical change.",
+        "Cutting away before consequence."
+      ],
+      "exercise": "Complete the Dynamic Scene chain for the active scene. Rewrite the ending so its consequence launches the next mini-block.",
+      "apply": "Screenplay",
+      "tags": [
+        "Dynamic Scenes",
+        "objective",
+        "opposition",
+        "reversal",
+        "turn",
+        "consequence",
+        "handoff"
+      ],
+      "original": {
+        "number": 24,
+        "path": "Craft"
+      },
+      "sources": [
+        {
+          "id": "24-blocks-24-blocks-24-blocks-dynamic-scenes-md",
+          "repository": "24-Blocks",
+          "path": "24 Blocks/24 Blocks - Dynamic Scenes.md",
+          "title": "Building Dynamic Scenes",
+          "kind": "teaching",
+          "scopeNote": "Canonical background teaching for PlotPickle lessons.",
+          "url": "https://github.com/BryanHarrisScripts/24-Blocks/blob/main/24%20Blocks/24%20Blocks%20-%20Dynamic%20Scenes.md",
+          "content": "# Building Dynamic Scenes\n\n### Within 24-Block Structure\n\nUnderstanding the structure of scenes and their role within a screenplay is crucial for screenwriters, students, and enthusiasts alike. Crafting a compelling narrative involves careful consideration of scene count, pacing, and overall act structure, especially within the confines of a standard 120-minute movie. The unique nature and function of scenes significantly influence audience engagement and the forward momentum of the story.\n\nA typical 120-minute movie, delineated into 24 five-minute blocks, can hold a varying range of scenes. This depends largely on the style and pace of the film: slower, more contemplative movies might feature fewer, lengthier scenes, while a rapid-paced action film might contain numerous shorter scenes. On average, most films contain between 40 to 60 scenes.\n\nScreenplays often rely on a four-act structure to shape the narrative, including Act 1: Setup, Act 2: Confrontation, Act 3: Climax, and Act 4: Resolution. These acts are distributed across the 24 five-minute blocks as follows:\n\n- **Act 1 - Setup (6 blocks)**: Introduces the main characters, their world, and their goals, culminating in the point of no return where the protagonist is committed to their goal.\n\n- **Act 2 - Confrontation (8 blocks)**: The protagonist faces escalating challenges, their initial strategies begin to falter, leading to new approaches.\n\n- **Act 3 - Climax (6 blocks)**: The tension crescendos as the protagonist faces their ultimate challenge, resulting in success or failure.\n\n- **Act 4 - Resolution (4 blocks)**: The final act provides a satisfying conclusion to the narrative, tying up loose ends, and offering character and audience understanding.\n\nEach 5-minute block within these acts contains one or more scenes that develop the characters or advance the plot. The division of blocks is adaptable to meet the narrative's needs, and the evolving and escalating story should lead to a satisfying resolution.\n\nEach scene within these blocks follows a particular structure and serves a specific purpose, acting as a mini-story that propels the plot and develops characters. A well-structured scene typically encompasses the following components:\n\n- **Establishing Shot**: This sets the scene by showing the audience where and often when the action is happening.\n\n- **Objective**: The main character in the scene should have a clear goal or objective.\n\n- **Conflict**: Obstacles hinder the characters' objectives, creating drama and conflict.\n\n- **Action**: Characters strive to overcome these obstacles and achieve their objectives through action.\n\n- **Turn or Reversal**: A surprise or revelation that alters the nature of the conflict or the character's objective.\n\n- **Resolution**: The scene ends with some form of resolution, even if it's temporary.\n\n- **Outcome**: The outcome of each scene should have a consequence that propels the story into the next scene, creating a domino effect throughout the screenplay.\n\nUnderstanding this structure provides a useful framework for crafting compelling scenes. However, it's important to remember that not all scenes must strictly adhere to this structure. More experimental or non-linear narratives might intentionally subvert these conventions, but the key to an engaging narrative is ensuring each scene contributes to the story's advancement and character development. \n\nAs you construct your scenes within the 24-block structure, this understanding will guide you in creating an immersive world and compelling narrative that captivates your audience.\n\n---"
+        }
+      ]
+    },
+    {
+      "id": "essentials-pacing",
+      "number": 74,
+      "topic": "structure",
+      "title": "Control Pacing Through Change",
+      "duration": "30–40 min",
+      "overview": "Measure pacing by the rate and pattern of meaningful change—not genre speed, action quantity or page count alone.",
+      "objectives": [
+        "Track meaningful change.",
+        "Use compression, expansion and release.",
+        "Compare planned and observed movement."
+      ],
+      "sections": [
+        {
+          "heading": "Change creates pace",
+          "paragraphs": [
+            "Track frequency and size of condition changes, urgency, information reveal or reinterpretation, tactic changes, reversals, sentence and scene density, visual duration, silence, transitions, handoffs and audience processing time.",
+            "A quiet scene may move quickly if a relationship changes irreversibly. An action sequence may feel slow when it repeats the same obstacle without changing strategy, cost or information."
+          ],
+          "points": [
+            "Compression",
+            "Expansion",
+            "Acceleration",
+            "Release",
+            "Anticipation",
+            "Processing time",
+            "Handoff"
+          ]
+        }
+      ],
+      "definitions": [
+        {
+          "term": "Pacing",
+          "meaning": "The rate and pattern at which meaningful conditions, information, pressure and anticipation change."
+        },
+        {
+          "term": "Release",
+          "meaning": "Deliberate space that lets the audience process, contrast or anticipate."
+        }
+      ],
+      "example": {
+        "title": "Fast quiet scene",
+        "text": "A mother silently signs away guardianship in forty seconds. Nothing physically large happens, but status, belonging and future options change at once."
+      },
+      "checklist": [
+        "Each movement changes conditions.",
+        "Stillness is deliberate.",
+        "Repeated obstacles change strategy or cost.",
+        "Handoffs sustain anticipation."
+      ],
+      "mistakes": [
+        "Assuming comedy is fast and drama slow.",
+        "Treating constant intensity as good pacing.",
+        "Using estimated length as the only signal."
+      ],
+      "exercise": "Map pressure, information change, emotional intensity, tone and handoff across the active Block's scenes.",
+      "apply": "Block plan",
+      "tags": [
+        "Storytelling Dynamics",
+        "pacing",
+        "Story Clock",
+        "compression",
+        "expansion",
+        "Scene Pulse"
+      ],
+      "original": {
+        "number": 70,
+        "path": "Structure"
+      },
+      "sources": []
+    }
+  ]
+}

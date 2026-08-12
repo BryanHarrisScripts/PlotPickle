@@ -13,7 +13,8 @@ test("Mastra is the live Learn agent runtime", async () => {
   ]);
   assert.match(runtime, /from "@mastra\/core\/agent"/);
   assert.match(runtime, /new Mastra\(\{ agents/);
-  assert.match(runtime, /agent\.generate\(prompt\)/);
+  assert.match(runtime, /agent\.generate\(prompt,/);
+  assert.match(runtime, /temperature: 0\.2/);
   assert.match(gateway, /askPlotPickleAgent/);
   assert.match(gateway, /mastraRuntimeStatus/);
   assert.match(shell, /Mastra · \$\{status\.mastra\.agents\.length\} agents ready/);

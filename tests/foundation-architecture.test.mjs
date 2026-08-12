@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
@@ -88,7 +89,7 @@ test("LEARN preserves full lessons and uses user-controlled understanding", asyn
   const [contract, adapter, rawCurriculum, workspace, guide, commands, reducer] = await Promise.all([
     read("core/contracts/curriculum.ts"),
     read("adapters/curriculum/current-catalog.ts"),
-    read("data/curriculum/plotpickle-curriculum.json"),
+    read("learn/foundations.json"),
     read("modules/learn/ui/learn-workspace.tsx"),
     read("modules/creative-room/curriculum-guide.ts"),
     read("core/contracts/story-command.ts"),
@@ -127,6 +128,11 @@ test("LEARN exposes the future PlotPickle workflow navigation", async () => {
   }
   assert.match(workspace, /aria-label="PlotPickle workflow"/);
   assert.match(workspace, /aria-current=\{stage\.id === "learn"/);
+  assert.match(workspace, /aria-label="Lesson navigation"/);
+  assert.match(workspace, /previousLesson/);
+  assert.match(workspace, /nextLesson/);
+  assert.match(workspace, /ᚲ/);
+  assert.match(workspace, /ᚱ/);
 });
 
 
@@ -142,14 +148,20 @@ test("the curriculum guide is an Ollama-backed teaching agent with memory", asyn
   assert.match(contract, /projectMemory/);
   assert.match(contract, /Promise<CurriculumGuideAnswer>/);
   assert.match(guide, /curriculum\s*\.map/);
-  assert.match(guide, /Retrieved PlotPickle curriculum/);
+  assert.match(guide, /<curriculum_context>/);
+  assert.match(guide, /<conversation_memory>/);
+  assert.match(guide, /<project_memory>/);
+  assert.match(guide, /<student_question>/);
   assert.match(guide, /fetch\("\/api\/writing-assistant\/chat"/);
   assert.match(guide, /provider: "ollama"/);
-  assert.match(guide, /history: conversation/);
+  assert.doesNotMatch(guide, /history: conversation/);
   assert.match(runtime, /"curriculum-guide"/);
   assert.match(runtime, /warm, patient PlotPickle teacher/);
   assert.match(runtime, /plain language/);
+  assert.match(runtime, /temperature: 0\.2/);
+  assert.match(runtime, /I don't have that in our current curriculum/);
   assert.match(gateway, /body\.provider === "ollama"/);
+  assert.match(gateway, /curriculumGuideOllamaProfile/);
   assert.match(gateway, /Connect Ollama and choose an installed model/);
   assert.match(workspace, /const answer = await guide/);
   assert.match(workspace, /projectMemory/);
@@ -161,63 +173,111 @@ test("the curriculum guide is an Ollama-backed teaching agent with memory", asyn
 });
 
 
-test("LEARN and GUIDE share one complete JSON curriculum", async () => {
-  const [catalogSource, rawCurriculum, guide, workspace, runtime, gateway] = await Promise.all([
+test("LEARN and GUIDE share one topic-based JSON curriculum", async () => {
+  const [catalogSource, rawIndex, guide, workspace, runtime, gateway] = await Promise.all([
     read("adapters/curriculum/current-catalog.ts"),
-    read("data/curriculum/plotpickle-curriculum.json"),
+    read("learn/index.json"),
     read("modules/creative-room/curriculum-guide.ts"),
     read("modules/learn/ui/learn-workspace.tsx"),
     read("build/mastra-agent-runtime.ts"),
     read("build/writing-assistant-gateway.ts"),
   ]);
-  const catalog = JSON.parse(rawCurriculum);
-  assert.equal(catalog.schemaVersion, "1.0");
-  assert.equal(catalog.lessonCount, 81);
-  assert.equal(catalog.lessons.length, 81);
-  for (const lesson of catalog.lessons) {
-    for (const field of ["id", "number", "path", "title", "duration", "overview", "objectives", "sections", "definitions", "example", "checklist", "mistakes", "exercise", "apply", "tags"]) {
+  const index = JSON.parse(rawIndex);
+  assert.equal(index.schemaVersion, "2.0");
+  assert.equal(index.lessonCount, 81);
+  assert.equal(index.sourceCount, 95);
+  assert.ok(index.files.some((file) => file.file === "industry.json"));
+  assert.ok(index.files.some((file) => file.file === "theme.json"));
+  const documents = await Promise.all(index.files.map(async (file) => JSON.parse(await read(`learn/${file.file}`))));
+  const lessons = documents.flatMap((document) => document.lessons).sort((left, right) => left.number - right.number);
+  assert.equal(lessons.length, 81);
+  for (const lesson of lessons) {
+    for (const field of ["id", "number", "topic", "title", "duration", "overview", "objectives", "sections", "definitions", "example", "checklist", "mistakes", "exercise", "apply", "tags", "original", "sources"]) {
       assert.ok(field in lesson, `${lesson.id || "unknown lesson"} is missing ${field}`);
     }
   }
-  assert.match(catalogSource, /plotpickle-curriculum\.json/);
+  assert.match(catalogSource, /learn\/industry\.json/);
+  assert.match(catalogSource, /learn\/theme\.json/);
+  assert.doesNotMatch(catalogSource, /plotpickle-curriculum|plotpickle-source-library/);
   assert.doesNotMatch(catalogSource, /learning-library|learning-24-blocks/);
-  assert.match(guide, /under 140 words/);
-  assert.match(guide, /begin with Yes, No, or Not necessarily/);
+  assert.match(runtime, /Stay under 140 words/);
+  assert.match(runtime, /begin with Yes, No, or Not necessarily/);
   assert.match(guide, /conversation\.slice\(-6\)/);
   assert.match(guide, /content\.slice\(0, 900\)/);
+  assert.match(guide, /\.slice\(0, 2\)/);
+  assert.match(guide, /\.slice\(0, 1\)/);
   assert.match(guide, /cleanGuideAnswer/);
-  assert.match(runtime, /Stay under 140 words/);
   assert.match(gateway, /content\.length <= 2_000/);
   assert.match(workspace, /Start fresh/);
   assert.match(workspace, /THREAD_PREFIX = "plotpickle\.foundation\.thread\.v2\."/);
   assert.match(workspace, /Curriculum:/);
 });
 
-test("LEARN and GUIDE share the audited repository source library", async () => {
-  const [catalogSource, rawLibrary, guide, workspace, page, launcher] = await Promise.all([
+test("all audited source records are embedded losslessly in lessons", async () => {
+  const [catalogSource, rawIndex, guide, workspace, page, launcher] = await Promise.all([
     read("adapters/curriculum/current-catalog.ts"),
-    read("data/curriculum/plotpickle-source-library.json"),
+    read("learn/index.json"),
     read("modules/creative-room/curriculum-guide.ts"),
     read("modules/learn/ui/learn-workspace.tsx"),
     read("app/page.tsx"),
     read("Start-PlotPickle.bat"),
   ]);
-  const library = JSON.parse(rawLibrary);
-  assert.equal(library.sourceCount, 95);
-  assert.equal(library.sources.length, 95);
-  assert.deepEqual(library.repositories, ["24-Blocks", "Afterglow", "BryanHarrisScripts.github.io"]);
-  const afterglow = library.sources.filter((source) => source.repository === "Afterglow");
+  const index = JSON.parse(rawIndex);
+  const documents = await Promise.all(index.files.map(async (file) => JSON.parse(await read(`learn/${file.file}`))));
+  const lessons = documents.flatMap((document) => document.lessons).sort((left, right) => left.number - right.number);
+  const sources = lessons.flatMap((lesson) => lesson.sources).sort((left, right) => left.id.localeCompare(right.id));
+  assert.equal(sources.length, 95);
+  assert.equal(new Set(sources.map((source) => source.id)).size, 95);
+  assert.equal(createHash("sha256").update(JSON.stringify(sources)).digest("hex"), index.sourceContentSha256);
+  const originalLessons = lessons.map((lesson) => ({
+    id: lesson.id,
+    number: lesson.original.number,
+    path: lesson.original.path,
+    title: lesson.title,
+    duration: lesson.duration,
+    overview: lesson.overview,
+    objectives: lesson.objectives,
+    sections: lesson.sections,
+    definitions: lesson.definitions,
+    example: lesson.example,
+    checklist: lesson.checklist,
+    mistakes: lesson.mistakes,
+    exercise: lesson.exercise,
+    apply: lesson.apply,
+    tags: lesson.tags,
+  }));
+  assert.equal(createHash("sha256").update(JSON.stringify(originalLessons)).digest("hex"), index.lessonContentSha256);
+  const afterglow = sources.filter((source) => source.repository === "Afterglow");
   assert.deepEqual(afterglow.map((source) => source.path).sort(), ["CONTRIBUTING.md", "README.md#instructional-sections"]);
   assert.ok(afterglow.every((source) => !source.path.includes("Storyboard Blocks")));
-  assert.match(library.afterglowBoundary, /not an active project or default example/i);
-  assert.match(catalogSource, /plotpickle-source-library\.json/);
-  assert.match(catalogSource, /plotPickleKnowledgeSources/);
-  assert.match(page, /knowledgeSources=\{plotPickleKnowledgeSources\}/);
-  assert.match(workspace, /Source library/);
-  assert.match(workspace, /Search all learning sources/);
+  assert.match(index.afterglowBoundary, /not an active project or default example/i);
+  assert.match(catalogSource, /lesson\.sources/);
+  assert.doesNotMatch(page, /knowledgeSources/);
+  assert.doesNotMatch(workspace, /Source library/);
+  assert.match(workspace, /Search every lesson/);
+  assert.match(workspace, /Supporting lesson material/);
   assert.match(workspace, /sourceReferenceIds/);
   assert.match(guide, /selectReferenceSources/);
-  assert.match(guide, /Afterglow material is historical teaching context only/);
+  assert.match(guide, /curriculum\.flatMap\(\(lesson\) => lesson\.sources\)/);
+  assert.match(await read("build/mastra-agent-runtime.ts"), /curriculum_context is the only source of truth/);
   assert.match(launcher, /@mastra\\core\\package\.json/);
   assert.match(launcher, /Mastra !MASTRA_VERSION! is installed and ready for PlotPickle agents/);
+});
+
+test("the GUIDE uses a grounded 8K Ollama profile", async () => {
+  const [provider, gateway, runtime, guide] = await Promise.all([
+    read("build/writing-assistant-provider.ts"),
+    read("build/writing-assistant-gateway.ts"),
+    read("build/mastra-agent-runtime.ts"),
+    read("modules/creative-room/curriculum-guide.ts"),
+  ]);
+  assert.match(provider, /CURRICULUM_GUIDE_CONTEXT = 8_192/);
+  assert.match(provider, /CURRICULUM_GUIDE_TEMPERATURE = 0\.2/);
+  assert.match(provider, /\/api\/create/);
+  assert.match(provider, /num_ctx: CURRICULUM_GUIDE_CONTEXT/);
+  assert.match(gateway, /agentId === "curriculum-guide"/);
+  assert.match(runtime, /temperature: 0\.2/);
+  assert.match(runtime, /maxOutputTokens: 320/);
+  assert.match(guide, /<curriculum_context>/);
+  assert.match(guide, /conversation\.slice\(-6\)/);
 });

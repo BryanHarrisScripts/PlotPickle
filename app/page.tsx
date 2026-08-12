@@ -1,6 +1,6 @@
 "use client";
 
-import { plotPickleCurriculum, plotPickleKnowledgeSources } from "../adapters/curriculum/current-catalog";
+import { plotPickleCurriculum } from "../adapters/curriculum/current-catalog";
 import { answerFromCurriculum } from "../modules/creative-room/curriculum-guide";
 import LearnWorkspace from "../modules/learn/ui/learn-workspace";
 
@@ -9,7 +9,6 @@ export default function Home() {
     <LearnWorkspace
       curriculum={plotPickleCurriculum}
       guide={answerFromCurriculum}
-      knowledgeSources={plotPickleKnowledgeSources}
     />
   );
 }

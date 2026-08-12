@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { ProfileStore, ProviderProfile, TextProvider } from "./writing-assistant-store";
 import { writeAssistantStore } from "./writing-assistant-store";
 
@@ -15,6 +16,8 @@ export type OllamaProbe = {
 
 export const DEFAULT_OLLAMA_URL = "http://127.0.0.1:11434";
 export const TEST_PROMPT = "Introduce yourself to a new PlotPickle writer.";
+export const CURRICULUM_GUIDE_CONTEXT = 8_192;
+export const CURRICULUM_GUIDE_TEMPERATURE = 0.2;
 export const ASSISTANT_INSTRUCTIONS = [
   "You are the active PlotPickle Writing Assistant.",
   "Help the writer understand PlotPickle, develop story ideas, organize story logic, and decide a clear next action.",
@@ -210,6 +213,27 @@ export async function probeOllama(baseUrl = DEFAULT_OLLAMA_URL): Promise<OllamaP
 
 export async function listOllamaModels(baseUrl = DEFAULT_OLLAMA_URL) {
   return (await probeOllama(baseUrl)).models;
+}
+
+export async function curriculumGuideOllamaProfile(profile: ProviderProfile) {
+  if (profile.provider !== "ollama") return profile;
+  const baseUrl = normalizedProviderUrl(profile.baseUrl);
+  const suffix = createHash("sha256").update(profile.textModel).digest("hex").slice(0, 10);
+  const model = `plotpickle-guide-${suffix}`;
+  const probe = await probeOllama(baseUrl);
+  if (!probe.reachable) throw new Error(probe.error || "Ollama is not reachable.");
+  if (!probe.models.includes(model)) {
+    await providerJson(`${baseUrl}/api/create`, profile, {
+      model,
+      from: profile.textModel,
+      parameters: {
+        num_ctx: CURRICULUM_GUIDE_CONTEXT,
+        temperature: CURRICULUM_GUIDE_TEMPERATURE,
+      },
+      stream: false,
+    });
+  }
+  return { ...profile, textModel: model };
 }
 
 export function conversationPrompt(history: ConversationMessage[], message: string) {

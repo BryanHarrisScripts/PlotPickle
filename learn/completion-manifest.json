@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "1.0",
+  "contract": {
+    "runtimeDelivery": "bundled-local-only",
+    "externalRepositoryAccessRequired": false,
+    "studentFacingExternalSourceLinks": false,
+    "exactSourceTextRetained": true,
+    "currentTeachingMayRehomeSourceConcepts": true,
+    "sageRuntime": "mastra-local-ollama",
+    "sageKnowledgeBoundary": "bundled-curriculum-only",
+    "cannedTeachingResponsesAllowed": false,
+    "learnRemainsReadableWithoutSage": true,
+    "lessonChangeStartsAtTop": true,
+    "lessonTopControlRequired": true,
+    "planMirrorsCompletedLearnTopics": true,
+    "planManualCompletionWithoutAi": true,
+    "aiPlanDraftRequiresExplicitAcceptance": true
+  },
+  "statusLifecycle": [
+    "source-discovered",
+    "source-imported",
+    "concepts-mapped",
+    "lessons-curated",
+    "rag-indexed",
+    "offline-verified",
+    "complete"
+  ],
+  "completionGates": [
+    "local-content",
+    "concept-coverage",
+    "local-links",
+    "continuous-reading-ui",
+    "rag-chunk-coverage",
+    "mastra-ollama-generation",
+    "learn-plan-application-path",
+    "offline-runtime",
+    "automated-tests",
+    "live-browser"
+  ],
+  "topics": [
+    {
+      "id": "foundations",
+      "title": "Foundations",
+      "status": "complete",
+      "archiveLessonCount": 4,
+      "presentationLessonCount": 11,
+      "sourceCount": 7,
+      "courseMaterial": "adapters/curriculum/foundation-course-material.ts",
+      "conceptCoverage": "adapters/curriculum/foundation-content-coverage.ts",
+      "ragInventory": "modules/creative-room/curriculum-retrieval.ts"
+    },
+    { "id": "industry", "title": "Industry", "status": "source-imported" },
+    { "id": "theme", "title": "Theme, Tone and Motif", "status": "source-imported" },
+    { "id": "character", "title": "Character", "status": "source-imported" },
+    { "id": "world", "title": "World and Genre", "status": "source-imported" },
+    { "id": "structure", "title": "Structure and 24 Blocks", "status": "source-imported" },
+    { "id": "dialogue", "title": "Dialogue", "status": "source-imported" },
+    { "id": "visual-storytelling", "title": "Visual Storytelling", "status": "source-imported" },
+    { "id": "drafting", "title": "Drafting", "status": "source-imported" },
+    { "id": "revision", "title": "Revision", "status": "source-imported" },
+    { "id": "responsible-ai", "title": "Responsible AI", "status": "source-imported" },
+    { "id": "collaboration", "title": "Collaboration", "status": "source-imported" }
+  ]
+}

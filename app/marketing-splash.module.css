@@ -71,14 +71,10 @@ align-items: center;
 gap: 13px;
 }
 .brandMark {
-display: grid;
 width: 32px;
 height: 38px;
-place-items: center;
 border: 1px solid rgba(185, 135, 69, 0.45);
-color: var(--amber-bright);
-font-family: Georgia, serif;
-font-size: 1.15rem;
+object-fit: contain;
 }
 .brand > span:last-child {
 display: grid;

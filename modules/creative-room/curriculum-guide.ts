@@ -1,171 +1,60 @@
-import type { CurriculumGuide } from "../../core/contracts/curriculum-guide";
-import type { CurriculumLesson, CurriculumSource } from "../../core/contracts/curriculum";
+import type { CurriculumGuide, CurriculumGuideRequest } from "../../core/contracts/curriculum-guide";
+import { retrieveCurriculumContext, type CurriculumRetrieval } from "./curriculum-retrieval";
 
-const ignoredTerms = new Set([
-  "about",
-  "correct",
-  "does",
-  "from",
-  "have",
-  "plotpickle",
-  "should",
-  "story",
-  "that",
-  "this",
-  "what",
-  "when",
-  "with",
-  "would",
-]);
-
-const relatedTerms: Readonly<Record<string, readonly string[]>> = {
-  beginning: ["opening", "setup", "hook", "inciting", "catalyst"],
-  event: ["change", "turn", "inciting", "catalyst", "disruption"],
-  first: ["opening", "setup", "early"],
-  minutes: ["timing", "pace", "opening", "pages"],
-  start: ["opening", "setup", "hook", "inciting"],
-  happens: ["change", "turn", "event", "consequence"],
-  character: ["protagonist", "motivation", "choice", "arc"],
-  ending: ["payoff", "resolution", "closing", "consequence"],
-  image: ["visual", "composition", "motif", "opening", "closing"],
+export type CurriculumGuideModelRequest = {
+  readonly message: string;
+  readonly retrieval: CurriculumRetrieval;
 };
-
-function terms(value: string) {
-  const direct = (value.toLowerCase().match(/[a-z0-9'-]{3,}/g) ?? [])
-    .filter((term) => !ignoredTerms.has(term));
-  return [...new Set(direct.flatMap((term) => [term, ...(relatedTerms[term] ?? [])]))];
-}
-
-function lessonFields(lesson: CurriculumLesson) {
-  return {
-    title: lesson.title.toLowerCase(),
-    tags: lesson.tags.join(" ").toLowerCase(),
-    definitions: lesson.definitions
-      .flatMap((definition) => [definition.term, definition.meaning])
-      .join(" ")
-      .toLowerCase(),
-    body: [
-      lesson.overview,
-      ...lesson.objectives,
-      ...lesson.sections.flatMap((section) => [
-        section.heading,
-        ...section.paragraphs,
-        ...(section.points ?? []),
-      ]),
-      lesson.example.title,
-      lesson.example.text,
-      ...lesson.checklist,
-      ...lesson.mistakes,
-      lesson.exercise,
-      lesson.apply,
-    ].join(" ").toLowerCase(),
-  };
-}
-
-function scoreLesson(lesson: CurriculumLesson, queryTerms: readonly string[]) {
-  const fields = lessonFields(lesson);
-  return queryTerms.reduce((score, term) => (
-    score
-    + (fields.title.includes(term) ? 8 : 0)
-    + (fields.tags.includes(term) ? 5 : 0)
-    + (fields.definitions.includes(term) ? 3 : 0)
-    + (fields.body.includes(term) ? 1 : 0)
-  ), 0);
-}
-
-function sourcePlainText(source: CurriculumSource) {
-  return source.content
-    .replace(/<!--[\s\S]*?-->/g, " ")
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/[#*_>`|]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function scoreSource(source: CurriculumSource, queryTerms: readonly string[]) {
-  const title = source.title.toLowerCase();
-  const path = source.path.toLowerCase();
-  const body = sourcePlainText(source).toLowerCase();
-  return queryTerms.reduce((score, term) => (
-    score
-    + (title.includes(term) ? 8 : 0)
-    + (path.includes(term) ? 5 : 0)
-    + (body.includes(term) ? 1 : 0)
-  ), 0);
-}
-
-function selectReferenceSources(
-  curriculum: readonly CurriculumLesson[],
-  question: string,
-) {
-  const queryTerms = terms(question);
-  return curriculum.flatMap((lesson) => lesson.sources)
-    .map((source) => ({ source, score: scoreSource(source, queryTerms) }))
-    .filter(({ score }) => score > 0)
-    .sort((left, right) => right.score - left.score)
-    .slice(0, 1)
-    .map(({ source }) => source);
-}
-
-function sourceKnowledge(source: CurriculumSource, question: string) {
-  const plain = sourcePlainText(source);
-  const queryTerms = terms(question);
-  const firstMatch = queryTerms
-    .map((term) => plain.toLowerCase().indexOf(term))
-    .filter((index) => index >= 0)
-    .sort((left, right) => left - right)[0] ?? 0;
-  const start = Math.max(0, firstMatch - 300);
-  const excerpt = plain.slice(start, start + 1_500);
-  return [
-    `SOURCE: ${source.title}`,
-    `Repository: ${source.repository}; path: ${source.path}; classification: ${source.kind}`,
-    `Boundary: ${source.scopeNote}`,
-    `Excerpt: ${start ? "…" : ""}${excerpt}${start + excerpt.length < plain.length ? "…" : ""}`,
-  ].join("\n");
-}
-
-function selectSources(
-  curriculum: readonly CurriculumLesson[],
-  activeLessonId: string,
-  question: string,
-) {
-  const active = curriculum.find((lesson) => lesson.id === activeLessonId);
-  const queryTerms = terms(question);
-  const relevant = curriculum
-    .map((lesson) => ({ lesson, score: scoreLesson(lesson, queryTerms) }))
-    .filter(({ score }) => score > 0)
-    .sort((left, right) => right.score - left.score)
-    .map(({ lesson }) => lesson);
-
-  return [...new Map(
-    [active, ...relevant].filter((lesson): lesson is CurriculumLesson => Boolean(lesson))
-      .map((lesson) => [lesson.id, lesson]),
-  ).values()].slice(0, 2);
-}
 
 function xmlText(value: string) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
-function lessonKnowledge(lesson: CurriculumLesson) {
-  return [
-    `LESSON: ${lesson.title} (${lesson.id})`,
-    `Overview: ${lesson.overview}`,
-    `Objectives: ${lesson.objectives.join("; ")}`,
-    ...lesson.sections.map((section) => [
-      section.heading,
-      ...section.paragraphs,
-      ...(section.points ?? []),
-    ].join("\n")),
-    `Key terms: ${lesson.definitions.map(({ term, meaning }) => `${term}: ${meaning}`).join("; ")}`,
-    `Example — ${lesson.example.title}: ${lesson.example.text}`,
-    `Checklist: ${lesson.checklist.join("; ")}`,
-    `Common mistakes: ${lesson.mistakes.join("; ")}`,
-    `Exercise: ${lesson.exercise}`,
-    `Apply: ${lesson.apply}`,
-  ].join("\n").slice(0, 2_400);
+/**
+ * Builds the bounded, local-only RAG request sent to Mastra. The student's
+ * question is always included verbatim (within the documented input limit),
+ * after the complete structured context. No answer or suggested response is
+ * selected here; the local Ollama model generates the answer.
+ */
+export function buildCurriculumGuideModelRequest({
+  curriculum,
+  activeLessonId,
+  question,
+  conversation,
+  projectMemory,
+}: CurriculumGuideRequest): CurriculumGuideModelRequest {
+  const studentQuestion = question.trim().slice(0, 2_000);
+  const retrieval = retrieveCurriculumContext(curriculum, activeLessonId, studentQuestion);
+  const conversationMemory = conversation.slice(-4).map((item) => (
+    `${item.role === "writer" ? "Writer" : "Guide"}: ${item.content.slice(0, 300)}`
+  )).join("\n");
+  const projectContext = JSON.stringify({
+    id: projectMemory.id,
+    title: projectMemory.title.slice(0, 200),
+    revision: projectMemory.revision,
+    completedLessonCount: projectMemory.completedLessonIds.length,
+    activeLessonId,
+  });
+
+  const message = [
+    "<conversation_memory>",
+    xmlText(conversationMemory || "No previous conversation."),
+    "</conversation_memory>",
+    "<project_memory>",
+    xmlText(projectContext),
+    "</project_memory>",
+    "<curriculum_context>",
+    xmlText(retrieval.context),
+    "</curriculum_context>",
+    "<student_question>",
+    xmlText(studentQuestion),
+    "</student_question>",
+  ].join("\n\n");
+
+  if (message.length > 12_000) {
+    throw new Error("The local curriculum request exceeded PlotPickle's verified context boundary.");
+  }
+  return { message, retrieval };
 }
 
 function cleanGuideAnswer(value: string) {
@@ -215,48 +104,9 @@ async function preflightGuideRuntime() {
   }
 }
 
-export const answerFromCurriculum: CurriculumGuide = async ({
-  curriculum,
-  activeLessonId,
-  question,
-  conversation,
-  projectMemory,
-}) => {
+export const answerFromCurriculum: CurriculumGuide = async (request) => {
   await preflightGuideRuntime();
-
-  const sources = selectSources(curriculum, activeLessonId, question);
-  const sourceLessonIds = sources.map((lesson) => lesson.id);
-  const knowledge = sources.map(lessonKnowledge).join("\n\n---\n\n");
-  const referenceSources = selectReferenceSources(curriculum, question);
-  const sourceReferenceIds = referenceSources.map((source) => source.id);
-  const referenceKnowledge = referenceSources
-    .map((source) => sourceKnowledge(source, question))
-    .join("\n\n---\n\n");
-  const conversationMemory = conversation.slice(-6).map((item) => (
-    `${item.role === "writer" ? "Writer" : "Guide"}: ${item.content.slice(0, 900)}`
-  )).join("\n");
-
-  const message = [
-    "<conversation_memory>",
-    xmlText(conversationMemory || "No previous conversation."),
-    "</conversation_memory>",
-    "<project_memory>",
-    xmlText(JSON.stringify({
-      id: projectMemory.id,
-      title: projectMemory.title,
-      revision: projectMemory.revision,
-      completedLessonIds: projectMemory.completedLessonIds,
-      activeLessonId,
-    })),
-    "</project_memory>",
-    "<curriculum_context>",
-    `<lesson_excerpts>${xmlText(knowledge)}</lesson_excerpts>`,
-    referenceKnowledge ? `<supporting_excerpts>${xmlText(referenceKnowledge)}</supporting_excerpts>` : "",
-    "</curriculum_context>",
-    "<student_question>",
-    xmlText(question.trim()),
-    "</student_question>",
-  ].filter(Boolean).join("\n\n");
+  const { message, retrieval } = buildCurriculumGuideModelRequest(request);
 
   let response: Response;
   try {
@@ -290,8 +140,8 @@ export const answerFromCurriculum: CurriculumGuide = async ({
 
   return {
     text,
-    sourceLessonIds,
-    sourceReferenceIds,
+    sourceLessonIds: retrieval.lessonIds,
+    sourceReferenceIds: retrieval.sourceIds,
     provider: "ollama" as const,
     model: result.model || "configured Ollama model",
   };

@@ -4,27 +4,33 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("LEARN uses the detailed eleven-lesson Foundations path without restoring PLAN", async () => {
-  const [catalog, deep, page] = await Promise.all([
+test("LEARN keeps its detailed eleven-lesson curriculum while the matched PLAN path is routed separately", async () => {
+  const [catalog, deep, material, page] = await Promise.all([
     read("adapters/curriculum/current-catalog.ts"),
     read("adapters/curriculum/foundation-deep-learning.ts"),
+    read("adapters/curriculum/foundation-course-material.ts"),
     read("app/page.tsx"),
   ]);
 
   assert.match(catalog, /buildDeepFoundationCurriculum/);
   assert.match(catalog, /lesson\.number !== index \+ 1/);
-  assert.match(deep, /A screenplay is a system, not a pile of categories/);
-  assert.match(deep, /A development logline must carry the middle/);
-  assert.match(deep, /Theme becomes dramatic when credible answers collide/);
+  assert.match(deep, /FOUNDATION_LESSON_MATERIAL/);
   assert.match(deep, /Apply this to your story/);
   assert.match(deep, /storyOutputs/);
+  assert.doesNotMatch(deep, /\.\.\.lesson\.sections/);
+  assert.match(material, /A screenplay is a connected story system/);
+  assert.match(material, /A development logline must carry the middle/);
+  assert.match(material, /Turn theme into a question with credible answers/);
+  assert.match(material, /Worked example: Mara's Foundations Brief/);
+  assert.match(material, /ending-proof test/);
   assert.doesNotMatch(deep, /\bPLAN\b|planOutput/);
-  assert.doesNotMatch(page, /FoundationsPlanWorkspace|workspace=plan/);
+  assert.match(page, /FoundationsPlanWorkspace/);
+  assert.match(page, /workspace.*=== "plan"/s);
 });
 
-test("Foundations follows a beginner-first sequence without dropping lesson practice", async () => {
-  const [deep, workspace] = await Promise.all([
-    read("adapters/curriculum/foundation-deep-learning.ts"),
+test("Foundations follows a beginner-first sequence with explicit transitions and practice", async () => {
+  const [material, workspace] = await Promise.all([
+    read("adapters/curriculum/foundation-course-material.ts"),
     read("modules/learn/ui/learn-workspace.tsx"),
   ]);
 
@@ -43,11 +49,16 @@ test("Foundations follows a beginner-first sequence without dropping lesson prac
   ];
   let priorIndex = -1;
   for (const title of sequence) {
-    const index = deep.indexOf(`  "${title}",`, priorIndex + 1);
+    const index = material.indexOf(`  "${title}",`, priorIndex + 1);
     assert.ok(index > priorIndex, `${title} should follow the previous beginner lesson`);
     priorIndex = index;
   }
 
+  assert.match(material, /Welcome to Foundations/);
+  assert.match(material, /provisional baseline/);
+  assert.match(material, /Lessons 5 and 6/);
+  assert.match(material, /Use the 24-Block grid as a working resolution, not a timing law/);
+  assert.match(material, /Use the outputs from Lessons 1–10/);
   assert.match(workspace, /Practice: apply this lesson/);
   assert.match(workspace, /activeLesson\.exercise/);
   assert.match(workspace, /activeLesson\.apply/);

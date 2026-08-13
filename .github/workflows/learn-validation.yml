@@ -31,10 +31,13 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
 
-      - name: Validate LEARN foundation, lesson formatting, Mastra readiness, and startup defaults
-        run: node --test tests/foundation-architecture.test.mjs tests/issue-583-foundations-lessons-formatting.test.mjs tests/issue-580-mastra-runtime-readiness.test.mjs tests/issue-590-windows-startup-defaults.test.mjs
+      - name: Validate the bundled LEARN curriculum
+        run: npm run validate:learn
+
+      - name: Validate Foundations, local RAG, PLAN handoff, branding, and startup
+        run: node --test tests/foundation-architecture.test.mjs tests/issue-583-foundations-lessons-formatting.test.mjs tests/issue-580-mastra-runtime-readiness.test.mjs tests/issue-590-windows-startup-defaults.test.mjs tests/issue-591-startup-readiness-gate.test.mjs tests/issue-592-foundations-reading-ui.test.mjs tests/issue-593-foundations-depth-and-placement.test.mjs tests/issue-594-local-learn-rag-and-brand.test.mjs tests/issue-595-foundations-plan-starter.test.mjs
 
       - name: Production build
         run: npm run build
 
-# Validation workflow intentionally kept small for the LEARN-first reset.
+# This is the reusable completion gate for every local LEARN topic and its PLAN handoff.

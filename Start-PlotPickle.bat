@@ -5,6 +5,7 @@ title PlotPickle - Local App
 
 set "PLOTPICKLE_PORT=4173"
 set "PLOTPICKLE_URL=http://127.0.0.1:%PLOTPICKLE_PORT%"
+set "PLOTPICKLE_STARTUP_MARKER=plotpickle-startup-v3"
 set "VITE_CMD=node_modules\.bin\vite.cmd"
 set "SETUP_REPORT=scripts\windows-setup-report.mjs"
 set "RUNTIME_MANAGER=scripts\windows-runtime.mjs"
@@ -12,9 +13,12 @@ set "COMPANION_MANAGER=scripts\windows-companion-software.ps1"
 set "UAT_RUNNER=scripts\run-creative-writer-uat.ps1"
 set "STORY_BUILDER_AGENT=scripts\full-story-builder-agent.mjs"
 set "UI_CONTINUITY_AGENT=scripts\ui-continuity-agent.mjs"
+set "SOURCE_SYNC=scripts\windows-source-sync.mjs"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
+set "SOURCE_ENV=%TEMP%\plotpickle-source-%RANDOM%-%RANDOM%.cmd"
 set "INSTALL_PERFORMED=0"
 set "RUN_UAT=0"
+set "COMPANION_WARNINGS=0"
 set "READY_TIMEOUT_SECONDS=60"
 
 rem Make required runtime installation and upgrades tolerant, visible, and cache-friendly.
@@ -44,12 +48,43 @@ echo Ollama, ComfyUI, Buzz, cloud providers, and other optional connections rema
 echo The local address 127.0.0.1 is available only to this computer.
 echo Keep this window open while using the server started here; closing it stops only that server.
 echo.
+
+rem A clean Git checkout updates before localhost is inspected. Downloaded,
+rem dirty, diverged, and non-main copies are reported but never overwritten.
+echo [UPDATE CHECK] Checking whether PlotPickle itself is current...
+where node >nul 2>&1
+if not errorlevel 1 if exist "%SOURCE_SYNC%" (
+  node "%SOURCE_SYNC%" "%SOURCE_ENV%"
+  if exist "%SOURCE_ENV%" (
+    call "%SOURCE_ENV%"
+    del /q "%SOURCE_ENV%" >nul 2>&1
+  )
+)
+if "!PLOTPICKLE_SOURCE_UPDATED!"=="1" (
+  echo [UPDATED] PlotPickle fast-forwarded to !PLOTPICKLE_SOURCE_SHA!.
+  echo Restarting startup so the new checks and application source are used...
+  echo.
+  call "%~f0" --source-current
+  exit /b !ERRORLEVEL!
+)
+if "!PLOTPICKLE_SOURCE_MODE!"=="git" echo [READY] PlotPickle source is current at !PLOTPICKLE_SOURCE_SHA!.
+if "!PLOTPICKLE_SOURCE_MODE!"=="download" echo [READY] Downloaded PlotPickle copy detected; application updates remain available through Update-PlotPickle.bat.
+if "!PLOTPICKLE_SOURCE_MODE!"=="git-unavailable" echo [READY WITH WARNINGS] Git is unavailable; continuing without an application update check.
+if "!PLOTPICKLE_SOURCE_MODE!"=="non-main" echo [READY WITH WARNINGS] Application update skipped because this checkout is on !PLOTPICKLE_SOURCE_BRANCH!.
+if "!PLOTPICKLE_SOURCE_MODE!"=="dirty" echo [READY WITH WARNINGS] Application update skipped because tracked local changes are present.
+if "!PLOTPICKLE_SOURCE_MODE!"=="fetch-failed" echo [READY WITH WARNINGS] GitHub could not be checked; continuing with local source !PLOTPICKLE_SOURCE_SHA!.
+if "!PLOTPICKLE_SOURCE_MODE!"=="diverged" echo [READY WITH WARNINGS] Local main has diverged from origin/main; no source files were changed.
+if "!PLOTPICKLE_SOURCE_MODE!"=="sync-error" echo [READY WITH WARNINGS] The application update check could not finish; no source files were changed.
+if defined PLOTPICKLE_SOURCE_SHA if not "!PLOTPICKLE_SOURCE_SHA!"=="unknown" set "PLOTPICKLE_STARTUP_MARKER=plotpickle-startup-v3-!PLOTPICKLE_SOURCE_SHA!"
+echo.
+
 echo [CHECK] Looking for an existing PlotPickle session...
 call :probe_existing
 set "PROBE_RESULT=!ERRORLEVEL!"
 if "!PROBE_RESULT!"=="0" (
-  echo [READY] PlotPickle is already running at %PLOTPICKLE_URL%.
-  echo Opening the existing session. No second server will be started.
+  echo [READY] The current PlotPickle build is already running at %PLOTPICKLE_URL%.
+  echo Its startup contract confirms that required checks completed before that server opened.
+  echo Opening the verified session. No second server or maintenance pass will be started.
   call :start_full_story_builder
   call :start_ui_continuity_agent
   start "" "%PLOTPICKLE_URL%"
@@ -64,6 +99,16 @@ if "!PROBE_RESULT!"=="0" (
     )
   )
   exit /b 0
+)
+if "!PROBE_RESULT!"=="3" (
+  echo.
+  echo [STALE OR UNVERIFIED SESSION] A PlotPickle page is already using port %PLOTPICKLE_PORT%,
+  echo but it was not started with the current completed startup contract.
+  echo Close the older PlotPickle command window with Ctrl+C, then run Start-PlotPickle.bat again.
+  echo The launcher will not open it or replace dependencies underneath a running server.
+  echo.
+  pause
+  exit /b 1
 )
 if "!PROBE_RESULT!"=="2" (
   echo.
@@ -173,9 +218,17 @@ if exist "%COMPANION_MANAGER%" (
   echo.
   echo [COMPANION CHECK] Listing PlotPickle-relevant software, applying reviewed updates, and verifying Ollama models...
   powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%COMPANION_MANAGER%" -Mode Maintain
-  if errorlevel 1 echo [WARNING] Companion maintenance did not complete. PlotPickle will continue and No AI mode remains available.
+  set "COMPANION_RESULT=!ERRORLEVEL!"
+  if "!COMPANION_RESULT!"=="0" (
+    echo [READY] Companion inventory and reviewed update checks finished.
+  ) else (
+    set "COMPANION_WARNINGS=1"
+    echo [READY WITH WARNINGS] Companion checks finished with optional maintenance warnings.
+    echo PlotPickle will continue and No AI mode remains available. Review the warning lines above.
+  )
 ) else (
-  echo [WARNING] The companion-software inventory is missing. PlotPickle will continue with its required runtime.
+  set "COMPANION_WARNINGS=1"
+  echo [READY WITH WARNINGS] The companion-software inventory is missing. PlotPickle will continue with its required runtime.
 )
 
 if exist "%UAT_RUNNER%" (
@@ -193,6 +246,16 @@ if exist "%UAT_RUNNER%" (
 
 echo.
 echo [STEP 3 OF 3] Starting the private local server...
+echo.
+echo [READY] Required PlotPickle dependencies are loaded and verified.
+echo [READY] Mastra and the local agent runtime are loaded and verified.
+if "!COMPANION_WARNINGS!"=="0" (
+  echo [READY] Companion inventory and reviewed software-update checks have finished.
+) else (
+  echo [READY WITH WARNINGS] Companion inventory and update checks finished; optional maintenance needs attention above.
+)
+echo [STARTUP CHECKS COMPLETE] PlotPickle can now start.
+set "PLOTPICKLE_STARTUP_CONTRACT=!PLOTPICKLE_STARTUP_MARKER!"
 echo.
 echo Address: %PLOTPICKLE_URL%
 echo The browser will open after PlotPickle confirms that it is ready.
@@ -226,11 +289,11 @@ pause
 exit /b %EXIT_CODE%
 
 :probe_existing
-powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; try { $response=Invoke-WebRequest -UseBasicParsing -Uri '%PLOTPICKLE_URL%' -TimeoutSec 2; if ($response.StatusCode -ge 200 -and $response.Content -match 'PlotPickle') { exit 0 }; exit 2 } catch { try { $client=New-Object System.Net.Sockets.TcpClient; $pending=$client.BeginConnect('127.0.0.1', %PLOTPICKLE_PORT%, $null, $null); if ($pending.AsyncWaitHandle.WaitOne(500) -and $client.Connected) { $client.Close(); exit 2 }; $client.Close(); exit 1 } catch { exit 1 } }" >nul 2>&1
+powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; try { $response=Invoke-WebRequest -UseBasicParsing -Uri '%PLOTPICKLE_URL%' -TimeoutSec 2; if ($response.StatusCode -ge 200 -and $response.Content -match 'PlotPickle') { if ($response.Content -match '%PLOTPICKLE_STARTUP_MARKER%') { exit 0 }; exit 3 }; exit 2 } catch { try { $client=New-Object System.Net.Sockets.TcpClient; $pending=$client.BeginConnect('127.0.0.1', %PLOTPICKLE_PORT%, $null, $null); if ($pending.AsyncWaitHandle.WaitOne(500) -and $client.Connected) { $client.Close(); exit 2 }; $client.Close(); exit 1 } catch { exit 1 } }" >nul 2>&1
 exit /b !ERRORLEVEL!
 
 :open_when_ready
-start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri '%PLOTPICKLE_URL%' -TimeoutSec 2; if ($response.StatusCode -ge 200 -and $response.Content -match 'PlotPickle') { Start-Process '%PLOTPICKLE_URL%'; exit 0 } } catch {}; Start-Sleep -Milliseconds 500 }; Write-Host '[WARNING] PlotPickle did not become ready within %READY_TIMEOUT_SECONDS% seconds. Review the server messages in this window.'; exit 1"
+start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri '%PLOTPICKLE_URL%' -TimeoutSec 2; if ($response.StatusCode -ge 200 -and $response.Content -match '%PLOTPICKLE_STARTUP_MARKER%') { Start-Process '%PLOTPICKLE_URL%'; exit 0 } } catch {}; Start-Sleep -Milliseconds 500 }; Write-Host '[WARNING] PlotPickle did not become ready with the completed startup contract within %READY_TIMEOUT_SECONDS% seconds. Review the server messages in this window.'; exit 1"
 exit /b 0
 
 :start_full_story_builder

@@ -82,8 +82,8 @@ export default function MarketingSplash({ onEnter, downloadUrl, components }: Ma
     <div className={styles.page}>
       <header className={styles.header}>
         <a className={styles.brand} href="#top" aria-label="PlotPickle home">
-          <span className={styles.brandMark} aria-hidden="true">P</span>
-          <span><strong>PlotPickle</strong><small>Visual writing studio</small></span>
+          <img className={styles.brandMark} src="/brand/favicon/plotpickle-ouroboros-v2-128.png" alt="" aria-hidden="true" />
+          <span><strong>PlotPickle</strong><small>The eternal cycle of narrative twists</small></span>
         </a>
         <nav className={styles.nav} aria-label="Splash page navigation">
           <a href="#studio">Vision</a>

@@ -135,16 +135,16 @@ const FOUNDATION_REFERENCE_LESSON_PLANS: readonly FoundationReferenceLessonPlan[
     sourceId: "24-blocks-essentials-essential-aspects-2-md",
     number: 18.2,
     title: "Story Essentials: Theme, Plot, Character and Stakes",
-    duration: "30–40 min",
-    overview: "Trace the relationships among theme and anti-theme, escalating plot, internal and relationship subplots, character wounds and objectives, world pressure and transforming stakes.",
+    duration: "35–45 min",
+    overview: "Build one connected story engine from a contested thematic question, character strategy, external pursuit, active opposition, relationship pressure, transforming stakes and ending proof.",
     objectives: [
-      "Connect theme to character choices and opposing belief systems.",
-      "Build plot escalation through action, reaction, turns and subplots.",
-      "Track how character desire, flaw, history, relationships and world conditions change the stakes.",
+      "Distinguish concept, premise, plot, story, structure and theme without separating them into unrelated checklists.",
+      "Build external, internal and relationship movement around choices and consequences.",
+      "Escalate by transforming leverage, options and personal cost rather than only making the threat louder.",
     ],
     example: {
-      title: "Theme becomes pressure",
-      text: "If the theme asks whether security is worth surrendering freedom, the antagonist can embody the anti-theme, the protagonist's wound can make security tempting, and each plot turn can increase the personal cost of choosing either value.",
+      title: "A thematic question creates competing strategies",
+      text: "If the story asks whether safety purchased through concealment can remain moral, Mara protects people by controlling information, the police chief protects his institution through managed truth and Dev argues that trust requires chosen vulnerability. Plot pressure makes each answer costly enough to test.",
     },
     checklist: [
       "Theme appears through choices and consequences rather than speeches alone.",
@@ -153,151 +153,73 @@ const FOUNDATION_REFERENCE_LESSON_PLANS: readonly FoundationReferenceLessonPlan[
       "Stakes evolve as the character learns more and has more to lose.",
     ],
     mistakes: [
-      "Treating theme as a slogan placed on top of the plot.",
+      "Treating theme as a message the story merely announces or assigning one simple opposite answer to the villain.",
       "Building subplots that never change the main dramatic line.",
       "Increasing stakes only by making the external threat larger.",
     ],
-    exercise: "Map one protagonist across four columns: external objective, internal pressure, relationship pressure and thematic choice. Add the plot turn that changes each column in every Act.",
+    exercise: "Map one protagonist across four columns: external objective, protective strategy, relationship pressure and thematic choice. Add the action, reaction and consequence that transform each column at three major turns.",
     tags: ["theme", "anti-theme", "plot", "character", "subplots", "stakes", "world-building"],
   },
   {
     sourceId: "24-blocks-essentials-readme-md",
     number: 18.3,
     title: "The Screenwriting Essentials Roadmap",
-    duration: "10–15 min",
-    overview: "Use the Essentials collection as a learning map that connects storytelling dynamics, thematic components, screenplay fundamentals, scene writing, symbolic technique and advanced visual writing.",
+    duration: "25–35 min",
+    overview: "See how the eleven Foundations lessons build one usable brief, then choose a learning route from the story evidence and root problem instead of following a table of contents mechanically.",
     objectives: [
-      "See how the Essentials material progresses from foundational craft to advanced technique.",
-      "Choose the next craft area based on the story problem you are solving.",
-      "Avoid treating a table of contents as a mandatory writing sequence.",
+      "Understand what each Foundations lesson contributes to the final brief.",
+      "Distinguish a reader-experience symptom from its likely craft cause.",
+      "Design a small revision experiment and a three-risk learning route for the active story.",
     ],
     example: {
-      title: "Choose the lesson from the problem",
-      text: "A flat midpoint may need Storytelling Dynamics or structure work; an unclear moral argument may need Thematic Components; a visually repetitive draft may benefit from Symbolic Techniques or Beyond Sluglines.",
+      title: "Move from symptom to experiment",
+      text: "If Block 14 feels slow and three scenes repeat that a key is missing, the root problem may be unchanged strategy rather than pace. Let each search change leverage, trust or cost, then compare the audience experience.",
     },
     checklist: [
-      "The current story problem is named before choosing a craft lesson.",
-      "Related craft areas are considered when one fix affects another system.",
-      "The roadmap supports iteration rather than a single required order.",
+      "The observed audience or reader experience is stated before a solution is chosen.",
+      "Evidence, likely root cause and a small revision experiment are recorded separately.",
+      "The learning route names three project risks without turning the course into locked prerequisites.",
     ],
     mistakes: [
       "Reading every craft topic before returning to the actual screenplay.",
-      "Assuming advanced terminology automatically produces stronger storytelling.",
-      "Fixing one craft category without checking its effect on the rest of the story.",
+      "Treating the first visible symptom as the root cause.",
+      "Changing several craft systems at once so the experiment teaches nothing.",
     ],
-    exercise: "Name the three biggest problems in your current project and match each one to the most relevant Essentials area. Work on the highest-impact problem first.",
+    exercise: "Name the three highest-risk uncertainties in your current project. For each, record the observed evidence, the likely root cause, the Foundations lesson that can help and the smallest experiment that could teach you something.",
     tags: ["essentials", "learning path", "craft", "scene writing", "theme", "symbolism"],
   },
   {
     sourceId: "24-blocks-essentials-storytelling-dynamics-md",
     number: 19.1,
     title: "Pacing and Tone: Storytelling Dynamics",
-    duration: "25–35 min",
-    overview: "Control the audience's emotional journey by varying narrative speed, intensity and tonal attitude while using dialogue, description, genre expectations and scene transitions deliberately.",
+    duration: "30–40 min",
+    overview: "Shape the audience's emotional journey through patterns of meaningful change, processing time and a coherent attitude toward people and consequences—not genre speed rules or a single unchanging mood.",
     objectives: [
-      "Recognize pacing as variation in narrative rhythm rather than constant speed.",
-      "Maintain tonal coherence while allowing meaningful shifts and contrast.",
-      "Use pacing and tone together to shape suspense, relief, intimacy, surprise and emphasis.",
+      "Recognize pacing as the rhythm of meaningful change rather than raw speed.",
+      "Distinguish the story's tonal attitude from the local mood of a scene.",
+      "Use compression, expansion, contrast and processing time to shape anticipation and consequence.",
     ],
     example: {
-      title: "Contrast creates rhythm",
-      text: "A thriller can follow rapid cross-cut action with a quiet, visually sparse scene. The slower pace gives the audience time to absorb the cost of the action while a darker tone prepares the next escalation.",
+      title: "Quiet can move quickly",
+      text: "A mother silently signs away guardianship. Almost no physical action occurs, yet status, relationship, options and future consequence change within seconds. The scene is quiet in volume and fast in meaningful change.",
     },
     checklist: [
-      "Fast and slow passages are chosen for audience effect rather than habit.",
-      "Tone is recognizable across dialogue, action, setting and visual language.",
-      "Tonal shifts are motivated by story or character change.",
-      "The pace creates room for both tension and emotional processing.",
+      "Each sequence changes pressure, information, tactic, status, relationship, cost or anticipation.",
+      "Compression and expansion are chosen for audience effect rather than genre stereotype.",
+      "Tone remains legible through behavior, language, image, sound, rhythm and consequence.",
+      "Tonal variation changes the emotional register without violating the story's attitude.",
     ],
     mistakes: [
-      "Equating good pacing with making every scene faster.",
-      "Keeping tone so uniform that the story becomes emotionally flat.",
-      "Using an abrupt tonal shift that has no character, plot or thematic motivation.",
+      "Calling action automatically fast and drama automatically slow.",
+      "Using tone and mood as interchangeable words.",
+      "Mistaking tonal consistency for one emotional register or using rupture without consequence.",
     ],
-    exercise: "Chart the pace and tone of eight consecutive scenes using one word for speed and one for mood. Revise the sequence if the emotional rhythm never changes or changes without a dramatic reason.",
+    exercise: "Chart eight consecutive scenes by meaningful change, compression or expansion, local mood, tonal attitude and audience question. Revise one transition where nothing changes or where a tonal turn lacks story evidence.",
     tags: ["pacing", "tone", "mood", "rhythm", "genre", "dialogue", "audience"],
   },
 ] as const;
 
 export const FOUNDATION_PROMOTED_SOURCE_IDS = FOUNDATION_REFERENCE_LESSON_PLANS.map((plan) => plan.sourceId);
-
-function cleanInline(value: string) {
-  return value
-    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1")
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    .replace(/<br\s*\/?\s*>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/[*_`~]/g, "")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function sourceContentToSections(source: CurriculumSource) {
-  const sections: { heading: string; paragraphs: string[]; points: string[] }[] = [];
-  let current = { heading: "Source lesson", paragraphs: [] as string[], points: [] as string[] };
-  let paragraphParts: string[] = [];
-  let skippedDocumentTitle = false;
-
-  const flushParagraph = () => {
-    if (!paragraphParts.length) return;
-    const paragraph = cleanInline(paragraphParts.join(" "));
-    if (paragraph) current.paragraphs.push(paragraph);
-    paragraphParts = [];
-  };
-
-  const flushSection = () => {
-    flushParagraph();
-    if (current.paragraphs.length || current.points.length) sections.push(current);
-  };
-
-  for (const rawLine of source.content.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (!line) {
-      flushParagraph();
-      continue;
-    }
-    if (/^---+$/.test(line)) continue;
-
-    const markdownHeading = line.match(/^(#{1,6})\s+(.+)$/);
-    const emphasizedHeading = line.match(/^\*\*([^*]+)\*\*$/);
-    if (markdownHeading || emphasizedHeading) {
-      const heading = cleanInline(markdownHeading?.[2] ?? emphasizedHeading?.[1] ?? "");
-      if (!skippedDocumentTitle && markdownHeading?.[1] === "#") {
-        skippedDocumentTitle = true;
-        continue;
-      }
-      flushSection();
-      current = { heading: heading || "Lesson notes", paragraphs: [], points: [] };
-      continue;
-    }
-
-    const listItem = line.match(/^(?:[-*+]\s+|\d+[.)]\s+)(.+)$/);
-    const htmlListItem = line.match(/<li[^>]*>(.*?)<\/li>/i);
-    if (listItem || htmlListItem) {
-      flushParagraph();
-      const point = cleanInline(listItem?.[1] ?? htmlListItem?.[1] ?? "");
-      if (point) current.points.push(point);
-      continue;
-    }
-
-    if (line.includes("|") && !/^\|?\s*:?-{3,}/.test(line)) {
-      flushParagraph();
-      const cells = line.split("|").map(cleanInline).filter(Boolean);
-      if (cells.length) current.points.push(cells.join(" — "));
-      continue;
-    }
-
-    const cleaned = cleanInline(line.replace(/^>\s?/, ""));
-    if (cleaned) paragraphParts.push(cleaned);
-  }
-
-  flushSection();
-  return sections.length ? sections : [{ heading: "Lesson notes", paragraphs: [source.scopeNote], points: [] }];
-}
 
 function promoteSource(source: CurriculumSource, plan: FoundationReferenceLessonPlan): CurriculumLesson {
   return {
@@ -308,7 +230,10 @@ function promoteSource(source: CurriculumSource, plan: FoundationReferenceLesson
     duration: plan.duration,
     overview: plan.overview,
     objectives: plan.objectives,
-    sections: sourceContentToSections(source),
+    // The beginner-facing teaching is curated in foundation-course-material.ts.
+    // Keep the canonical Markdown intact as provenance instead of flattening its
+    // headings, ordered steps, links, tables and quotations into generic points.
+    sections: [],
     definitions: [],
     example: plan.example,
     checklist: plan.checklist,
@@ -320,32 +245,8 @@ function promoteSource(source: CurriculumSource, plan: FoundationReferenceLesson
       number: plan.number,
       path: `Foundations / ${source.path}`,
     },
-    sources: [],
+    sources: [source],
   };
-}
-
-function replaceFoundationsTableOfContents(lessons: readonly CurriculumLesson[]) {
-  const points = lessons.map((lesson, index) => (
-    `${String(index + 1).padStart(2, "0")} — ${lesson.title}`
-  ));
-
-  return lessons.map((lesson) => {
-    if (lesson.id !== "pitch") return lesson;
-    return {
-      ...lesson,
-      sections: lesson.sections.map((section) => (
-        section.heading === "Foundations table of contents"
-          ? {
-              ...section,
-              paragraphs: [
-                "Foundations now contains eleven standalone lessons. The former embedded references have been promoted into the curriculum so you can read, complete and revisit each craft topic like any other lesson.",
-              ],
-              points,
-            }
-          : section
-      )),
-    };
-  });
 }
 
 export function buildFoundationCurriculum(baseLessons: readonly CurriculumLesson[]): readonly CurriculumLesson[] {
@@ -365,6 +266,5 @@ export function buildFoundationCurriculum(baseLessons: readonly CurriculumLesson
   });
 
   const standaloneBaseLessons = baseLessons.map((lesson) => ({ ...lesson, sources: [] }));
-  const combined = [...standaloneBaseLessons, ...promotedLessons].sort((left, right) => left.number - right.number);
-  return replaceFoundationsTableOfContents(combined);
+  return [...standaloneBaseLessons, ...promotedLessons].sort((left, right) => left.number - right.number);
 }

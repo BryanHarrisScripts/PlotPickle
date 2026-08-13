@@ -34,7 +34,7 @@ const MASTRA_AGENT_TIMEOUT_MS = 25_000;
 
 function foundationProposalSchema(fieldIds: readonly string[]) {
   const fields = Object.fromEntries(fieldIds.map((fieldId) => [fieldId, {
-    type: "string",
+    type: "string" as const,
     minLength: 1,
   }]));
   return jsonSchema<{ values: Record<string, string> }>({

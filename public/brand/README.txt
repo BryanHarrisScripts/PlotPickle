@@ -1,6 +1,32 @@
 PLOTPICKLE PLAYHOUSE LOGO KIT
 =============================
 
+CURRENT IN-APPLICATION IDENTITY (V2)
+------------------------------------
+plotpickle-ouroboros-v2.png
+  Text-free 800 x 800 dragon-cycle, compass and fountain-pen emblem.
+
+favicon/plotpickle-ouroboros-v2-16.png through plotpickle-ouroboros-v2-512.png
+  Local favicon, application-shell and PWA derivatives.
+  The 16, 32, 48 and 64 pixel files use a deliberately simplified local
+  ouroboros-and-nib drawing so the identity remains legible at favicon size.
+  The 128 pixel and larger files retain the detailed generated emblem.
+
+favicon/plotpickle-ouroboros-v2.ico
+  Multi-size browser shortcut icon.
+
+The application renders "PlotPickle" and "The eternal cycle of narrative
+twists" as real text. Do not copy the AI-rendered lettering from the visual
+reference into a runtime image. Sage Brinewick is a separate character asset
+at public/assets/sage-brinewick-v2.png.
+
+V2 PALETTE
+----------
+Matte black: #090A0B
+Dragon olive: #75804A
+Nib gold: #C4A86A
+Story teal: #35C9B8
+
 PRIMARY LOGOS
 -------------
 plotpickle-logo-original.png

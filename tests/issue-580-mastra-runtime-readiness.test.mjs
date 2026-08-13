@@ -23,7 +23,10 @@ test("Mastra execution and the Curriculum Guide stay inside a 30-second user res
 
   assert.match(runtime, /MASTRA_AGENT_TIMEOUT_MS = 25_000/);
   assert.match(runtime, /const abortSignal = AbortSignal\.timeout\(MASTRA_AGENT_TIMEOUT_MS\)/);
-  assert.match(runtime, /agent\.generate\(prompt, \{[\s\S]*abortSignal,/);
+  assert.match(runtime, /const executionOptions = \{[\s\S]*abortSignal,/);
+  assert.match(runtime, /agent\.generate\(prompt, (?:\{[\s\S]*\.\.\.executionOptions|executionOptions)\)/);
+  assert.match(runtime, /structuredOutput: \{[\s\S]*foundationProposalSchema/);
+  assert.match(runtime, /jsonPromptInjection: false/);
   assert.match(runtime, /30-second response limit/);
   assert.match(guide, /\/api\/writing-assistant\/status/);
   assert.match(guide, /status\.mastra\?\.ready/);

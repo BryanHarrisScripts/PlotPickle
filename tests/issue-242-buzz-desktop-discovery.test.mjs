@@ -158,7 +158,10 @@ test("issues #244 and #341 keep the pinned Buzz installer available while Settin
   assert.match(installer, /PLOTPICKLE_BUZZ_STATUS=/);
   assert.match(installer, /Windows\\CurrentVersion\\Uninstall\\\*/);
   assert.match(installer, /DisplayVersion/);
-  assert.match(installer, /\$updateRequired = \$Maintain -and \$installedVersion -and \$installedVersion -ne \$version/);
+  assert.match(installer, /function Compare-BuzzVersion/);
+  assert.match(installer, /\$comparison -lt 0/);
+  assert.match(installer, /\$comparison -gt 0/);
+  assert.match(installer, /newer than PlotPickle's reviewed package/);
   assert.match(installer, /Automatic reinstallation was skipped/);
   assert.doesNotMatch(installer, /-Verb\s+RunAs|--silent|\/S(?:\s|$)|Invoke-Expression|\biex\b/i);
   assert.doesNotMatch(installer, /privateKey|relayUrl|writeCredential|canon|\.ppf/i);

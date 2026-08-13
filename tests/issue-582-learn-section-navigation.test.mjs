@@ -14,8 +14,8 @@ test("LEARN curriculum sections collapse, expand and number lessons locally", as
   assert.match(workspace, /toggleTopic/);
   assert.match(workspace, /aria-expanded=\{!collapsed\}/);
   assert.match(workspace, /topicChevron/);
-  assert.match(workspace, /group\.lessons\.map\(\(lesson, lessonIndex\)/);
-  assert.match(workspace, /String\(lessonIndex \+ 1\)\.padStart\(2, "0"\)/);
+  assert.match(workspace, /group\.lessons\.map\(\(lesson\)/);
+  assert.match(workspace, /topicLessonNumbers\.get\(lesson\.id\)/);
   assert.doesNotMatch(workspace, /String\(lesson\.number\)\.padStart\(2, "0"\)/);
 });
 

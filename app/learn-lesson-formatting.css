@@ -1,128 +1,309 @@
+article[aria-label="Active lesson"] {
+  --lesson-copy: #d4cec4;
+  --lesson-muted: #aaa398;
+  --lesson-rule: rgba(125, 95, 51, 0.42);
+  --lesson-teal: #35c9b8;
+  --lesson-gold: #d3aa63;
+}
+
+/*
+ * Lessons read as one continuous document. Teaching sections deliberately do
+ * not become cards and ordinary bullets deliberately do not become pills.
+ */
 article[aria-label="Active lesson"] > section {
   position: relative;
-  padding: 24px 26px 26px;
-  border: 1px solid rgba(125, 95, 51, 0.46);
-  border-radius: 12px;
-  background:
-    linear-gradient(145deg, rgba(200, 148, 70, 0.055), transparent 45%),
-    rgba(15, 17, 18, 0.82);
-  box-shadow:
-    inset 0 1px rgba(255, 255, 255, 0.018),
-    0 12px 30px rgba(0, 0, 0, 0.16);
+  width: 100%;
+  max-width: 74ch;
+  margin-top: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
 }
 
 article[aria-label="Active lesson"] > section + section {
-  margin-top: 24px;
+  margin-top: 46px;
 }
 
 article[aria-label="Active lesson"] > section > h2 {
-  margin: 0 0 16px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(53, 201, 184, 0.18);
+  margin: 0 0 18px;
+  padding: 0 0 9px;
+  border-bottom: 1px solid rgba(53, 201, 184, 0.2);
+  color: var(--lesson-teal);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 21px;
+  font-size: clamp(22px, 2.2vw, 27px);
   font-weight: 500;
-  line-height: 1.2;
-  letter-spacing: 0.01em;
+  line-height: 1.22;
+  letter-spacing: 0.005em;
 }
 
 article[aria-label="Active lesson"] > section > p,
 article[aria-label="Active lesson"] > section > ul,
+article[aria-label="Active lesson"] > section > ol,
 article[aria-label="Active lesson"] > section dd {
-  max-width: 70ch;
+  max-width: 74ch;
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 15px;
+  font-size: 17px;
 }
 
 article[aria-label="Active lesson"] > section > p {
   margin: 0;
-  color: #d1cbc1;
-  line-height: 1.78;
+  color: var(--lesson-copy);
+  line-height: 1.74;
 }
 
 article[aria-label="Active lesson"] > section > p + p {
-  margin-top: 16px;
+  margin-top: 18px;
 }
 
-article[aria-label="Active lesson"] > section > ul {
-  display: grid;
-  gap: 10px;
+article[aria-label="Active lesson"] > section > ul,
+article[aria-label="Active lesson"] > section > ol {
   margin: 18px 0 0;
-  padding: 0;
-  list-style: none;
+  padding-inline-start: 1.45em;
+  color: var(--lesson-copy);
+  line-height: 1.68;
 }
 
-article[aria-label="Active lesson"] > section > ul > li {
-  position: relative;
-  padding: 10px 12px 10px 34px;
-  border: 1px solid rgba(43, 48, 51, 0.9);
-  border-radius: 8px;
-  background: rgba(9, 10, 11, 0.54);
-  color: #cbc5bb;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 14px;
-  line-height: 1.58;
+article[aria-label="Active lesson"] > section > ul > li,
+article[aria-label="Active lesson"] > section > ol > li {
+  margin: 0;
+  padding: 0 0 0 0.35em;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
 }
 
-article[aria-label="Active lesson"] > section > ul > li::before {
-  position: absolute;
-  top: 11px;
-  left: 13px;
-  color: #35c9b8;
-  content: "◆";
-  font-size: 8px;
+article[aria-label="Active lesson"] > section > ul > li + li,
+article[aria-label="Active lesson"] > section > ol > li + li {
+  margin-top: 10px;
+}
+
+article[aria-label="Active lesson"] > section > ul > li::marker,
+article[aria-label="Active lesson"] > section > ol > li::marker {
+  color: var(--lesson-teal);
+  font-weight: 700;
+}
+
+/* A few functional blocks receive restrained emphasis inside the document. */
+article[aria-label="Active lesson"] > section:is(
+  [data-lesson-block="objectives"],
+  [data-lesson-block="example"],
+  [data-lesson-block="checklist"],
+  [data-lesson-block="mistakes"],
+  [data-lesson-block="exercise"]
+) {
+  padding: 20px 22px;
+  border-left: 3px solid rgba(53, 201, 184, 0.54);
+  background: linear-gradient(90deg, rgba(53, 201, 184, 0.065), transparent 78%);
+}
+
+article[aria-label="Active lesson"] > section[data-lesson-block="exercise"] {
+  border-left-color: rgba(211, 170, 99, 0.78);
+  background: linear-gradient(90deg, rgba(211, 170, 99, 0.09), transparent 82%);
+}
+
+article[aria-label="Active lesson"] > section[data-lesson-block="mistakes"] {
+  border-left-color: rgba(240, 138, 75, 0.62);
+  background: linear-gradient(90deg, rgba(240, 138, 75, 0.06), transparent 78%);
+}
+
+article[aria-label="Active lesson"] dl {
+  display: block;
+  margin: 0;
 }
 
 article[aria-label="Active lesson"] dl > div {
-  padding: 14px 16px;
-  border: 1px solid rgba(43, 48, 51, 0.92);
-  border-radius: 8px;
-  background: rgba(9, 10, 11, 0.48);
+  padding: 14px 0 16px;
+  border: 0;
+  border-bottom: 1px solid rgba(125, 95, 51, 0.32);
+  border-radius: 0;
+  background: none;
+}
+
+article[aria-label="Active lesson"] dl > div:first-child {
+  padding-top: 0;
 }
 
 article[aria-label="Active lesson"] dl dt {
-  color: #f0d39c;
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  color: var(--lesson-gold);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: 0.035em;
 }
 
 article[aria-label="Active lesson"] dl dd {
-  margin-top: 6px;
-  line-height: 1.62;
+  margin: 7px 0 0;
+  color: var(--lesson-copy);
+  line-height: 1.68;
 }
 
-article[aria-label="Active lesson"] > section:first-of-type {
-  border-color: rgba(53, 201, 184, 0.3);
-  background:
-    linear-gradient(145deg, rgba(53, 201, 184, 0.08), transparent 52%),
-    rgba(15, 17, 18, 0.84);
+/* Imported teaching uses the same continuous typography as authored teaching. */
+article[aria-label="Active lesson"] > section[data-integrated-curriculum-section] {
+  margin-top: 46px;
 }
 
-article[aria-label="Active lesson"] > section[class*="lessonExercise"] {
-  border-color: rgba(204, 157, 75, 0.58);
-  background:
-    linear-gradient(145deg, rgba(204, 157, 75, 0.12), transparent 55%),
-    rgba(15, 17, 18, 0.88);
+article[aria-label="Active lesson"] [data-source-local-link] {
+  display: inline;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: #65d8cb;
+  font: inherit;
+  text-align: inherit;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  cursor: pointer;
 }
 
-article[aria-label="Active lesson"] > section:last-of-type:not(:has(details)) {
-  display: none;
+article[aria-label="Active lesson"] [data-source-local-link]:focus-visible {
+  outline: 2px solid #65d8cb;
+  outline-offset: 3px;
 }
 
-article[aria-label="Active lesson"] details pre {
+article[aria-label="Active lesson"] [data-source-recorded-reference] {
+  color: inherit;
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] {
+  color: var(--lesson-copy);
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 17px;
+  line-height: 1.72;
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] h2,
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] h3,
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] h4,
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] h5 {
+  margin: 2em 0 0.7em;
+  color: #eee7da;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] h3 {
+  font-size: 28px;
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] h2 {
+  margin-top: 0;
+  padding-bottom: 9px;
+  border-bottom: 1px solid rgba(53, 201, 184, 0.2);
+  color: var(--lesson-teal);
+  font-size: clamp(22px, 2.2vw, 27px);
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] h4 {
+  font-size: 22px;
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] h5 {
+  font-size: 18px;
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] p {
+  margin: 0 0 1em;
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] ul,
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] ol {
+  margin: 0.9em 0 1.35em;
+  padding-inline-start: 1.55em;
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] li {
+  padding-left: 0.25em;
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] li + li {
+  margin-top: 0.62em;
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] li::marker {
+  color: var(--lesson-teal);
+  font-weight: 700;
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] blockquote {
+  margin: 1.5em 0;
+  padding: 0.1em 0 0.1em 1.2em;
+  border-left: 3px solid rgba(211, 170, 99, 0.62);
+  color: #c9c1b5;
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] hr {
+  margin: 2.4em 0;
+  border: 0;
+  border-top: 1px solid var(--lesson-rule);
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] code {
+  color: #e8d4a9;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.9em;
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] pre {
+  max-height: none;
+  margin: 1.4em 0;
+  overflow: auto;
+  padding: 16px;
+  border-left: 3px solid rgba(53, 201, 184, 0.45);
+  background: #0a0c0d;
+  white-space: pre;
+}
+
+article[aria-label="Active lesson"] [data-source-table-scroll] {
+  overflow-x: auto;
+  margin: 1.5em 0;
+}
+
+article[aria-label="Active lesson"] [data-source-table-scroll] table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+article[aria-label="Active lesson"] [data-source-table-scroll] th,
+article[aria-label="Active lesson"] [data-source-table-scroll] td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(125, 95, 51, 0.38);
+  text-align: left;
+  vertical-align: top;
+}
+
+article[aria-label="Active lesson"] [data-source-table-scroll] th {
+  color: var(--lesson-gold);
 }
 
 @media (max-width: 820px) {
   article[aria-label="Active lesson"] > section {
-    padding: 20px;
-    border-radius: 9px;
+    margin-top: 34px;
   }
 
   article[aria-label="Active lesson"] > section > p,
   article[aria-label="Active lesson"] > section > ul,
-  article[aria-label="Active lesson"] > section dd {
-    font-size: 14px;
+  article[aria-label="Active lesson"] > section > ol,
+  article[aria-label="Active lesson"] > section dd,
+  article[aria-label="Active lesson"] [data-integrated-curriculum-content] {
+    font-size: 16px;
+  }
+
+  article[aria-label="Active lesson"] > section:is(
+    [data-lesson-block="objectives"],
+    [data-lesson-block="example"],
+    [data-lesson-block="checklist"],
+    [data-lesson-block="mistakes"],
+    [data-lesson-block="exercise"]
+  ) {
+    padding: 17px 16px;
   }
 }

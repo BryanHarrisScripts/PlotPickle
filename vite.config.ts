@@ -51,6 +51,14 @@ export default defineConfig(async () => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
+    // Vinext compiles both the client and server component graphs. Inject the
+    // launcher's exact per-checkout contract at transform time; reading a
+    // custom process.env value directly from a component is normalized away.
+    define: {
+      __PLOTPICKLE_STARTUP_CONTRACT__: JSON.stringify(
+        process.env.PLOTPICKLE_STARTUP_CONTRACT ?? "plotpickle-unverified-startup",
+      ),
+    },
     server: {
       host: "0.0.0.0",
       allowedHosts: ["terminal.local"],

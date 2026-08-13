@@ -14,7 +14,7 @@ const REPLACEMENT_OUTPUTS = [...new Set(collaborationCopy.replacements.map((item
 function isProtectedCopy(node: Text) {
   const element = node.parentElement;
   if (!element) return false;
-  return Boolean(element.closest("details, code, pre, input, textarea, select, [data-technical-language], [data-ui-copy-key], [aria-label*='Advanced']"));
+  return Boolean(element.closest("details, code, pre, input, textarea, select, [data-technical-language], [data-preserve-story-language], [data-ui-copy-key], [aria-label*='Advanced']"));
 }
 
 function tokenFor(index: number) {

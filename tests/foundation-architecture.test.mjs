@@ -73,25 +73,28 @@ test("the LEARN module owns the interaction without importing legacy app code", 
 });
 
 test("Creative Room retrieval is injected and searches the complete curriculum", async () => {
-  const [page, guide, workspace] = await Promise.all([
+  const [page, guide, retrieval, workspace] = await Promise.all([
     read("app/page.tsx"),
     read("modules/creative-room/curriculum-guide.ts"),
+    read("modules/creative-room/curriculum-retrieval.ts"),
     read("modules/learn/ui/learn-workspace.tsx"),
   ]);
   assert.match(page, /guide=\{answerFromCurriculum\}/);
-  assert.match(guide, /curriculum\s*\.map/);
+  assert.match(guide, /retrieveCurriculumContext/);
+  assert.match(retrieval, /buildCurriculumRagInventory/);
+  assert.match(retrieval, /for \(const lesson of curriculum\)/);
   assert.match(guide, /sourceLessonIds/);
   assert.match(workspace, /readonly guide: CurriculumGuide/);
   assert.doesNotMatch(workspace, /modules\/creative-room/);
 });
 
 test("LEARN preserves full lessons and uses user-controlled understanding", async () => {
-  const [contract, adapter, rawCurriculum, workspace, guide, commands, reducer] = await Promise.all([
+  const [contract, adapter, rawCurriculum, workspace, retrieval, commands, reducer] = await Promise.all([
     read("core/contracts/curriculum.ts"),
     read("adapters/curriculum/current-catalog.ts"),
     read("learn/foundations.json"),
     read("modules/learn/ui/learn-workspace.tsx"),
-    read("modules/creative-room/curriculum-guide.ts"),
+    read("modules/creative-room/curriculum-retrieval.ts"),
     read("core/contracts/story-command.ts"),
     read("core/project/apply-command.ts"),
   ]);
@@ -106,8 +109,8 @@ test("LEARN preserves full lessons and uses user-controlled understanding", asyn
   assert.match(workspace, /Lesson checklist/);
   assert.match(workspace, /Common mistakes/);
   assert.doesNotMatch(workspace, /Apply this lesson|We are working in/);
-  assert.match(guide, /lesson\.definitions/);
-  assert.match(guide, /lesson\.tags/);
+  assert.match(retrieval, /lesson\.definitions/);
+  assert.match(retrieval, /lesson\.sections/);
   assert.match(commands, /lesson\.uncomplete/);
   assert.match(reducer, /case "lesson\.uncomplete"/);
 });
@@ -115,7 +118,7 @@ test("LEARN preserves full lessons and uses user-controlled understanding", asyn
 
 test("LEARN presents Sage Brinewick as the curriculum guide", async () => {
   const workspace = await read("modules/learn/ui/learn-workspace.tsx");
-  assert.match(workspace, /curriculum-guide-master-storyteller\.png/);
+  assert.match(workspace, /sage-brinewick-v2\.png/);
   assert.match(workspace, /alt="Sage Brinewick, PlotPickle Curriculum Guide"/);
   assert.match(workspace, /<h2>Sage Brinewick<\/h2>/);
   assert.match(workspace, /styles\.guidePortrait/);
@@ -159,7 +162,7 @@ test("the curriculum guide is an Ollama-backed teaching agent with memory", asyn
   assert.match(contract, /conversation/);
   assert.match(contract, /projectMemory/);
   assert.match(contract, /Promise<CurriculumGuideAnswer>/);
-  assert.match(guide, /curriculum\s*\.map/);
+  assert.match(guide, /retrieveCurriculumContext/);
   assert.match(guide, /<curriculum_context>/);
   assert.match(guide, /<conversation_memory>/);
   assert.match(guide, /<project_memory>/);
@@ -214,10 +217,10 @@ test("LEARN and GUIDE share one topic-based JSON curriculum", async () => {
   assert.doesNotMatch(catalogSource, /learning-library|learning-24-blocks/);
   assert.match(runtime, /Stay under 140 words/);
   assert.match(runtime, /begin with Yes, No, or Not necessarily/);
-  assert.match(guide, /conversation\.slice\(-6\)/);
-  assert.match(guide, /content\.slice\(0, 900\)/);
-  assert.match(guide, /\.slice\(0, 2\)/);
-  assert.match(guide, /\.slice\(0, 1\)/);
+  assert.match(guide, /conversation\.slice\(-4\)/);
+  assert.match(guide, /content\.slice\(0, 300\)/);
+  assert.match(guide, /message\.length > 12_000/);
+  assert.match(guide, /buildCurriculumGuideModelRequest/);
   assert.match(guide, /cleanGuideAnswer/);
   assert.match(gateway, /content\.length <= 2_000/);
   assert.doesNotMatch(workspace, /Start fresh/);
@@ -267,10 +270,10 @@ test("all audited source records are embedded losslessly in lessons", async () =
   assert.doesNotMatch(page, /knowledgeSources/);
   assert.doesNotMatch(workspace, /Source library/);
   assert.match(workspace, /Search every lesson/);
-  assert.match(workspace, /Supporting lesson material/);
+  assert.match(workspace, /data-integrated-curriculum-section/);
   assert.match(workspace, /sourceReferenceIds/);
-  assert.match(guide, /selectReferenceSources/);
-  assert.match(guide, /curriculum\.flatMap\(\(lesson\) => lesson\.sources\)/);
+  assert.match(guide, /retrieveCurriculumContext/);
+  assert.match(await read("modules/creative-room/curriculum-retrieval.ts"), /lesson\.sources\.forEach/);
   assert.match(await read("build/mastra-agent-runtime.ts"), /curriculum_context is the only source of truth/);
   assert.match(launcher, /@mastra\\core\\package\.json/);
   assert.match(launcher, /Mastra !MASTRA_VERSION! is installed and ready for PlotPickle agents/);
@@ -289,7 +292,7 @@ test("the GUIDE uses a grounded 8K Ollama profile", async () => {
   assert.match(provider, /num_ctx: CURRICULUM_GUIDE_CONTEXT/);
   assert.match(gateway, /agentId === "curriculum-guide"/);
   assert.match(runtime, /temperature: 0\.2/);
-  assert.match(runtime, /maxOutputTokens: 320/);
+  assert.match(runtime, /maxOutputTokens:[^\n]*(?:320|\? 720 : 320)/);
   assert.match(guide, /<curriculum_context>/);
-  assert.match(guide, /conversation\.slice\(-6\)/);
+  assert.match(guide, /conversation\.slice\(-4\)/);
 });

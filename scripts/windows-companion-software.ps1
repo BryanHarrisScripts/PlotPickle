@@ -17,6 +17,13 @@ $OllamaTagsUrl = "http://127.0.0.1:11434/api/tags"
 $OllamaVersionUrl = "http://127.0.0.1:11434/api/version"
 $PowerShell = Get-Command "powershell.exe" -ErrorAction SilentlyContinue
 $Winget = Get-Command "winget.exe" -ErrorAction SilentlyContinue
+$script:MaintenanceWarningCount = 0
+
+function Write-MaintenanceWarning {
+  param([Parameter(Mandatory = $true)][string]$Message)
+  $script:MaintenanceWarningCount += 1
+  Write-Warning $Message
+}
 
 function Find-OllamaExecutable {
   $command = Get-Command "ollama.exe" -ErrorAction SilentlyContinue
@@ -273,11 +280,11 @@ function Invoke-WingetUpgrade {
     if ($LASTEXITCODE -eq 0) {
       Write-Host "[OK] $Label update check completed."
     } else {
-      Write-Warning "$Label update check exited with code $LASTEXITCODE. PlotPickle will continue."
+      Write-MaintenanceWarning "$Label update check exited with code $LASTEXITCODE. PlotPickle will continue."
     }
   }
   catch {
-    Write-Warning "$Label update check failed: $($_.Exception.Message). PlotPickle will continue."
+    Write-MaintenanceWarning "$Label update check failed: $($_.Exception.Message). PlotPickle will continue."
   }
 }
 
@@ -289,7 +296,7 @@ function Install-OptionalWingetPackage {
   )
 
   if (-not $Winget) {
-    Write-Warning "$Label cannot be installed automatically because Windows Package Manager is unavailable."
+    Write-MaintenanceWarning "$Label cannot be installed automatically because Windows Package Manager is unavailable."
     Write-Host "Install it manually from $ManualUrl"
     return 1
   }
@@ -300,14 +307,14 @@ function Install-OptionalWingetPackage {
     & $Winget.Source install --id $PackageId --exact --source winget --interactive --accept-source-agreements --accept-package-agreements
     $code = $LASTEXITCODE
     if ($code -ne 0) {
-      Write-Warning "$Label installation exited with code $code. PlotPickle will continue."
+      Write-MaintenanceWarning "$Label installation exited with code $code. PlotPickle will continue."
       return $code
     }
     Write-Host "[OK] $Label installation completed."
     return 0
   }
   catch {
-    Write-Warning "$Label installation failed: $($_.Exception.Message). PlotPickle will continue."
+    Write-MaintenanceWarning "$Label installation failed: $($_.Exception.Message). PlotPickle will continue."
     return 1
   }
 }
@@ -320,18 +327,18 @@ function Invoke-ReviewedScript {
   )
 
   if (-not $PowerShell -or -not (Test-Path -LiteralPath $Path -PathType Leaf)) {
-    Write-Warning "$Label maintenance script is unavailable. PlotPickle will continue."
+    Write-MaintenanceWarning "$Label maintenance script is unavailable. PlotPickle will continue."
     return 1
   }
   try {
     $allArguments = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $Path) + $Arguments
     & $PowerShell.Source @allArguments
     $code = $LASTEXITCODE
-    if ($code -ne 0) { Write-Warning "$Label maintenance exited with code $code. PlotPickle will continue." }
+    if ($code -ne 0) { Write-MaintenanceWarning "$Label maintenance exited with code $code. PlotPickle will continue." }
     return $code
   }
   catch {
-    Write-Warning "$Label maintenance failed: $($_.Exception.Message). PlotPickle will continue."
+    Write-MaintenanceWarning "$Label maintenance failed: $($_.Exception.Message). PlotPickle will continue."
     return 1
   }
 }
@@ -404,10 +411,16 @@ if ($Mode -eq "Maintain") {
 Write-Inventory -Heading "PLOTPICKLE COMPANION SOFTWARE - READY STATE"
 $finalOllama = Get-OllamaInventory
 if ($finalOllama.Running -and -not $finalOllama.Models.Count) {
-  Write-Warning "Ollama is running but still has no installed model. The reviewed starter is $StarterModel."
+  Write-MaintenanceWarning "Ollama is running but still has no installed model. The reviewed starter is $StarterModel."
   Write-Host "Open Settings > Local writing & planning > Ollama and choose Install starter model, or rerun this installer."
 }
 
 Write-Host ""
-Write-Host "Companion inventory and maintenance completed. PlotPickle will continue."
+if ($script:MaintenanceWarningCount -gt 0) {
+  Write-Host "[READY WITH WARNINGS] Companion inventory and maintenance finished with $($script:MaintenanceWarningCount) warning(s)."
+  Write-Host "PlotPickle can continue; No AI mode and manual workflows remain available."
+  exit 10
+}
+
+Write-Host "[READY] Companion inventory and reviewed maintenance finished without detected failures."
 exit 0

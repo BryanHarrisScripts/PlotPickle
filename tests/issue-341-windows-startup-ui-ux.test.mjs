@@ -41,17 +41,20 @@ test("routine startup inventories companions while configuration remains in inde
   assert.doesNotMatch(executable, /start\s+""\s+"https:\/\/nodejs\.org\//i);
 });
 
-test("startup reuses an existing PlotPickle session and rejects a foreign port owner", async () => {
+test("startup reuses only a current verified PlotPickle session and rejects stale or foreign port owners", async () => {
   const launcher = await source("Start-PlotPickle.bat");
 
   for (const contract of [
     ":probe_existing",
     "Invoke-WebRequest",
     "$response.Content -match 'PlotPickle'",
+    "$response.Content -match '%PLOTPICKLE_STARTUP_MARKER%'",
     "System.Net.Sockets.TcpClient",
     'if "!PROBE_RESULT!"=="0"',
-    "PlotPickle is already running",
-    "No second server will be started",
+    "The current PlotPickle build is already running",
+    "No second server or maintenance pass will be started",
+    'if "!PROBE_RESULT!"=="3"',
+    "STALE OR UNVERIFIED SESSION",
     'if "!PROBE_RESULT!"=="2"',
     "Port %PLOTPICKLE_PORT% is already being used by another application",
   ]) assert.ok(launcher.includes(contract), `Missing duplicate-instance contract: ${contract}`);
@@ -66,7 +69,7 @@ test("browser launch waits for confirmed loopback readiness with a bounded timeo
     "AddSeconds(%READY_TIMEOUT_SECONDS%)",
     "Start-Sleep -Milliseconds 500",
     "Start-Process '%PLOTPICKLE_URL%'",
-    "did not become ready within %READY_TIMEOUT_SECONDS% seconds",
+    "did not become ready with the completed startup contract within %READY_TIMEOUT_SECONDS% seconds",
     'call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort',
   ]) assert.ok(launcher.includes(contract), `Missing readiness contract: ${contract}`);
 

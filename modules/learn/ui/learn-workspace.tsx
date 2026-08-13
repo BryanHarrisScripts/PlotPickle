@@ -1,12 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { CurriculumLesson } from "../../../core/contracts/curriculum";
 import type { CurriculumGuide } from "../../../core/contracts/curriculum-guide";
 import { applyStoryCommand } from "../../../core/project/apply-command";
 import { createEmptyProject, type PPFProject } from "../../../core/project/project";
+import { buildLocalCurriculumSourceIndex, localCurriculumSourceKey } from "../model/local-curriculum-links";
 import styles from "./learn-workspace.module.css";
+import { CurriculumMaterial } from "./curriculum-material";
 
 const PROJECT_KEY = "plotpickle.foundation.project.v1";
 
@@ -40,6 +42,30 @@ function topicName(topic: string) {
   if (topic === "responsible-ai") return "Responsible AI";
   if (topic === "visual-storytelling") return "Visual Storytelling";
   return topic.replaceAll("-", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function searchableLessonText(lesson: CurriculumLesson) {
+  return [
+    lesson.title,
+    lesson.topic,
+    lesson.overview,
+    ...lesson.objectives,
+    ...lesson.sections.flatMap((section) => [section.heading, ...section.paragraphs, ...(section.points ?? [])]),
+    ...lesson.definitions.flatMap((definition) => [definition.term, definition.meaning]),
+    lesson.example.title,
+    lesson.example.text,
+    ...lesson.checklist,
+    ...lesson.mistakes,
+    lesson.exercise,
+    lesson.apply,
+    ...lesson.tags,
+    ...lesson.sources.flatMap((source) => [
+      source.title,
+      source.kind,
+      source.scopeNote,
+      source.content,
+    ]),
+  ];
 }
 
 function loadProject(): PPFProject {
@@ -90,12 +116,23 @@ function FantasyCompassGlyph() {
   );
 }
 
+function LessonTopGlyph() {
+  return (
+    <svg aria-hidden="true" focusable="false" viewBox="0 0 28 28">
+      <path d="M7.5 17.5 14 11l6.5 6.5" />
+      <path d="M8 7.5h12" />
+    </svg>
+  );
+}
+
 export default function LearnWorkspace({
   curriculum,
   guide,
+  onOpenFoundationsPlan,
 }: {
   readonly curriculum: readonly CurriculumLesson[];
   readonly guide: CurriculumGuide;
+  readonly onOpenFoundationsPlan?: (lessonId?: string) => void;
 }) {
   const [project, setProject] = useState<PPFProject | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -104,6 +141,8 @@ export default function LearnWorkspace({
   const [guideError, setGuideError] = useState("");
   const [lessonSearch, setLessonSearch] = useState("");
   const [collapsedTopics, setCollapsedTopics] = useState<readonly string[]>([]);
+  const lessonArticleRef = useRef<HTMLElement>(null);
+  const lessonHeadingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     let current = loadProject();
@@ -123,27 +162,47 @@ export default function LearnWorkspace({
     return curriculum.find((lesson) => lesson.id === project?.learning.activeLessonId) ?? curriculum[0];
   }, [curriculum, project?.learning.activeLessonId]);
 
-  const activeLessonIndex = curriculum.findIndex((lesson) => lesson.id === activeLesson?.id);
-  const previousLesson = activeLessonIndex > 0 ? curriculum[activeLessonIndex - 1] : null;
-  const nextLesson = activeLessonIndex >= 0 && activeLessonIndex < curriculum.length - 1
-    ? curriculum[activeLessonIndex + 1]
-    : null;
+  useEffect(() => {
+    const article = lessonArticleRef.current;
+    if (!article || !activeLesson) return;
+    article.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    if (window.matchMedia("(max-width: 820px)").matches) {
+      article.scrollIntoView({ block: "start", behavior: "auto" });
+    }
+  }, [activeLesson?.id]);
 
-  const sourceCount = useMemo(() => (
-    curriculum.reduce((total, lesson) => total + lesson.sources.length, 0)
-  ), [curriculum]);
+  const activeTopicLessons = useMemo(() => (
+    activeLesson ? curriculum.filter((lesson) => lesson.topic === activeLesson.topic) : []
+  ), [activeLesson, curriculum]);
+  const activeTopicLessonIndex = activeTopicLessons.findIndex((lesson) => lesson.id === activeLesson?.id);
+  const previousLesson = activeTopicLessonIndex > 0 ? activeTopicLessons[activeTopicLessonIndex - 1] : null;
+  const nextLesson = activeTopicLessonIndex >= 0 && activeTopicLessonIndex < activeTopicLessons.length - 1
+    ? activeTopicLessons[activeTopicLessonIndex + 1]
+    : null;
+  const integratedContentIndex = activeLesson?.sections.at(-1)?.heading === "Apply this to your story"
+    ? activeLesson.sections.length - 1
+    : activeLesson?.sections.length ?? 0;
+
+  const localSourceIndex = useMemo(() => buildLocalCurriculumSourceIndex(curriculum), [curriculum]);
 
   const visibleLessons = useMemo(() => {
     const query = lessonSearch.trim().toLowerCase();
     if (!query) return curriculum;
-    return curriculum.filter((lesson) => [
-      lesson.title,
-      lesson.topic,
-      lesson.overview,
-      ...lesson.tags,
-      ...lesson.sources.flatMap((source) => [source.title, source.path, source.content]),
-    ].some((value) => value.toLowerCase().includes(query)));
+    return curriculum.filter((lesson) => (
+      searchableLessonText(lesson).some((value) => value.toLowerCase().includes(query))
+    ));
   }, [curriculum, lessonSearch]);
+
+  const topicLessonNumbers = useMemo(() => {
+    const positions = new Map<string, number>();
+    const nextPosition = new Map<string, number>();
+    curriculum.forEach((lesson) => {
+      const number = (nextPosition.get(lesson.topic) ?? 0) + 1;
+      nextPosition.set(lesson.topic, number);
+      positions.set(lesson.id, number);
+    });
+    return positions;
+  }, [curriculum]);
 
   const lessonGroups = useMemo(() => (
     [...new Set(curriculum.map((lesson) => lesson.topic))].map((topic) => ({
@@ -167,6 +226,16 @@ export default function LearnWorkspace({
       lessonId,
       occurredAt: new Date().toISOString(),
     });
+  }
+
+  function returnToLessonTop() {
+    const article = lessonArticleRef.current;
+    if (!article) return;
+    article.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    if (window.matchMedia("(max-width: 820px)").matches) {
+      article.scrollIntoView({ block: "start", behavior: "smooth" });
+    }
+    lessonHeadingRef.current?.focus({ preventScroll: true });
   }
 
   function toggleTopic(topic: string) {
@@ -265,12 +334,20 @@ export default function LearnWorkspace({
             </li>
           ))}
         </ol>
+        <Image
+          alt="PlotPickle"
+          className={styles.workspaceBrandMark}
+          height={64}
+          priority
+          src="/brand/favicon/plotpickle-ouroboros-v2-128.png"
+          width={64}
+        />
       </nav>
-      <main className={styles.workspace}>
+      <main className={styles.workspace} data-preserve-story-language="true">
       <aside className={styles.curriculum} aria-label="PlotPickle curriculum">
         <header className={styles.brand}>
           <strong>LEARN</strong>
-          <small>{curriculum.length} lessons · {sourceCount} embedded references</small>
+          <small>{curriculum.length} complete local lessons</small>
         </header>
         <div className={styles.lessonSearch}>
           <label htmlFor="lesson-search">Search every lesson</label>
@@ -300,17 +377,17 @@ export default function LearnWorkspace({
                 <small>{group.lessons.length}</small>
               </button>
               <div className={styles.topicLessons} id={`learn-topic-${group.topic}`}>
-              {collapsed ? null : group.lessons.map((lesson, lessonIndex) => {
+              {collapsed ? null : group.lessons.map((lesson) => {
                 const isCompleted = completed.has(lesson.id);
                 return (
                 <div
                   className={`${styles.lessonRow} ${lesson.id === activeLesson.id ? styles.activeLesson : ""}`}
                   key={lesson.id}
                 >
-                  <span className={styles.lessonNumber}>{String(lessonIndex + 1).padStart(2, "0")}</span>
+                  <span className={styles.lessonNumber}>{String(topicLessonNumbers.get(lesson.id) ?? 1).padStart(2, "0")}</span>
                   <button className={styles.lessonOpen} onClick={() => openLesson(lesson.id)} type="button">
                     <strong>{lesson.title}</strong>
-                    <small>{lesson.sources.length} references</small>
+                    <small>PlotPickle lesson</small>
                   </button>
                   <button
                     aria-label={isCompleted ? `Mark ${lesson.title} incomplete` : `Mark ${lesson.title} complete`}
@@ -325,7 +402,20 @@ export default function LearnWorkspace({
                 </div>
                 );
               })}
-              {collapsed ? null : (
+              {collapsed ? null : group.topic === "foundations" && onOpenFoundationsPlan ? (
+                <button
+                  aria-label="Apply what you have learned in Foundations"
+                  className={`${styles.applyLearningRow} ${styles.applyLearningAction}`}
+                  onClick={() => onOpenFoundationsPlan(
+                    activeLesson.topic === "foundations" ? activeLesson.id : undefined,
+                  )}
+                  type="button"
+                >
+                  <span aria-hidden="true" className={styles.applyLearningGlyph}>✦</span>
+                  <strong>Apply what you have learned</strong>
+                  <small>Open PLAN</small>
+                </button>
+              ) : collapsed ? null : (
                 <div className={styles.applyLearningRow} aria-label={`Apply what you have learned in ${topicName(group.topic)}`}>
                   <span aria-hidden="true" className={styles.applyLearningGlyph}>✦</span>
                   <strong>Apply what you have learned</strong>
@@ -339,7 +429,17 @@ export default function LearnWorkspace({
         </nav>
       </aside>
 
-      <article className={styles.lesson} aria-label="Active lesson">
+      <article className={styles.lesson} aria-label="Active lesson" ref={lessonArticleRef}>
+        <button
+          aria-label="Return to the top of this lesson"
+          className={styles.lessonTopButton}
+          onClick={returnToLessonTop}
+          title="Return to lesson top"
+          type="button"
+        >
+          <LessonTopGlyph />
+          <span>Top</span>
+        </button>
         <nav className={styles.lessonNavigation} aria-label="Lesson navigation">
           <button
             disabled={!previousLesson}
@@ -350,9 +450,9 @@ export default function LearnWorkspace({
             <FantasyWayfinderGlyph direction="previous" />
             <span>Previous</span>
           </button>
-          <div className={styles.lessonPosition} aria-label={`Lesson ${activeLessonIndex + 1} of ${curriculum.length}`}>
+          <div className={styles.lessonPosition} aria-label={`${topicName(activeLesson.topic)} lesson ${activeTopicLessonIndex + 1} of ${activeTopicLessons.length}`}>
             <FantasyCompassGlyph />
-            <small>{activeLessonIndex + 1} / {curriculum.length}</small>
+            <small>{activeTopicLessonIndex + 1} / {activeTopicLessons.length}</small>
           </div>
           <button
             disabled={!nextLesson}
@@ -368,16 +468,34 @@ export default function LearnWorkspace({
         <div className={styles.lessonMeta}>
           <span>{topicName(activeLesson.topic)}</span>
         </div>
-        <h1>{activeLesson.title}</h1>
+        <h1 ref={lessonHeadingRef} tabIndex={-1}>{activeLesson.title}</h1>
         <p className={styles.overview}>{activeLesson.overview}</p>
-        <section>
+        <section data-lesson-block="objectives">
           <h2>What you will learn</h2>
           <ul>
             {activeLesson.objectives.map((objective) => <li key={objective}>{objective}</li>)}
           </ul>
         </section>
-        {activeLesson.sections.map((section) => (
-          <section key={section.heading}>
+        {activeLesson.sections.slice(0, integratedContentIndex).map((section, sectionIndex) => (
+          <section data-lesson-block="teaching" key={`${sectionIndex}-${section.heading}`}>
+            <h2>{section.heading}</h2>
+            {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            {section.points?.length ? (
+              <ul>{section.points.map((point) => <li key={point}>{point}</li>)}</ul>
+            ) : null}
+          </section>
+        ))}
+        {activeLesson.sources.map((source) => (
+          <section data-integrated-curriculum-section data-lesson-block="teaching" key={source.id}>
+            <CurriculumMaterial
+              onOpenLesson={openLesson}
+              resolveLocalReference={(href) => localSourceIndex.get(localCurriculumSourceKey(href))}
+              source={source}
+            />
+          </section>
+        ))}
+        {activeLesson.sections.slice(integratedContentIndex).map((section, sectionIndex) => (
+          <section data-lesson-block="teaching" key={`${integratedContentIndex + sectionIndex}-${section.heading}`}>
             <h2>{section.heading}</h2>
             {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
             {section.points?.length ? (
@@ -386,7 +504,7 @@ export default function LearnWorkspace({
           </section>
         ))}
         {activeLesson.definitions.length ? (
-          <section>
+          <section data-lesson-block="definitions">
             <h2>Key terms</h2>
             <dl className={styles.definitions}>
               {activeLesson.definitions.map((definition) => (
@@ -398,43 +516,26 @@ export default function LearnWorkspace({
             </dl>
           </section>
         ) : null}
-        <section>
+        <section data-lesson-block="example">
           <h2>{activeLesson.example.title}</h2>
           <p>{activeLesson.example.text}</p>
         </section>
-        <section>
+        <section data-lesson-block="checklist">
           <h2>Lesson checklist</h2>
           <ul>
             {activeLesson.checklist.map((item) => <li key={item}>{item}</li>)}
           </ul>
         </section>
-        <section>
+        <section data-lesson-block="mistakes">
           <h2>Common mistakes</h2>
           <ul>
             {activeLesson.mistakes.map((mistake) => <li key={mistake}>{mistake}</li>)}
           </ul>
         </section>
-        <section className={styles.lessonExercise}>
+        <section className={styles.lessonExercise} data-lesson-block="exercise">
           <h2>Practice: apply this lesson</h2>
           <p>{activeLesson.exercise}</p>
           <p><strong>Save this work to:</strong> {activeLesson.apply}</p>
-        </section>
-        <section>
-          <h2>Supporting lesson material</h2>
-          {activeLesson.sources.length ? (
-            <div className={styles.lessonSources}>
-              {activeLesson.sources.map((source) => (
-                <details key={source.id}>
-                  <summary>
-                    <strong>{source.title}</strong>
-                    <small>{source.repository} · {source.path}</small>
-                  </summary>
-                  <p>{source.scopeNote}</p>
-                  <pre>{source.content}</pre>
-                </details>
-              ))}
-            </div>
-          ) : <p>This lesson is complete without an additional repository reference.</p>}
         </section>
         </>
       </article>
@@ -447,7 +548,7 @@ export default function LearnWorkspace({
               className={styles.guidePortrait}
               height={96}
               priority
-              src="/assets/curriculum-guide-master-storyteller.png"
+              src="/assets/sage-brinewick-v2.png"
               width={96}
             />
             <div>

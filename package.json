@@ -21,6 +21,7 @@
     "test:creative-compute-paths": "node --test tests/issue-258-creative-compute-paths.test.mjs",
     "test:minimax-byok": "node --test tests/issue-260-minimax-byok.test.mjs",
     "diagnostics:validate": "node scripts/developer-diagnostics/validate-registry.mjs",
+    "validate:learn": "node scripts/validate-learn-curriculum.mjs",
     "diagnostics:agent": "node scripts/developer-diagnostics/agent-diagnose.mjs",
     "test:24-blocks-learning": "node --test tests/issue-48-24-blocks-learning.test.mjs",
     "test:guided-ai-revision": "node --test tests/issue-49-guided-ai-revision.test.mjs",

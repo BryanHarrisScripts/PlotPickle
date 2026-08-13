@@ -12,7 +12,9 @@ import theme from "../../learn/theme.json";
 import visualStorytelling from "../../learn/visual-storytelling.json";
 import world from "../../learn/world.json";
 import type { CurriculumLesson } from "../../core/contracts/curriculum";
+import { FOUNDATION_SOURCE_COVERAGE } from "./foundation-content-coverage";
 import { buildDeepFoundationCurriculum } from "./foundation-deep-learning";
+import { FOUNDATION_PROMOTED_SOURCE_IDS } from "./foundation-reference-lessons";
 
 type TopicDocument = {
   readonly schemaVersion: string;
@@ -74,18 +76,32 @@ const standalonePlotPickleCurriculum: readonly CurriculumLesson[] = topicDocumen
   .sort((left, right) => left.number - right.number);
 
 const standaloneFoundations = standalonePlotPickleCurriculum.filter((lesson) => lesson.topic === "foundations");
+const foundationSourceIds = standaloneFoundations.flatMap((lesson) => lesson.sources.map((source) => source.id));
 const standaloneSourceIds = standalonePlotPickleCurriculum.flatMap((lesson) => lesson.sources.map((source) => source.id));
 if (standalonePlotPickleCurriculum.length !== 88 || standaloneFoundations.length !== 11) {
   throw new Error(`Expected 88 presentation lessons with 11 Foundations lessons, found ${standalonePlotPickleCurriculum.length} and ${standaloneFoundations.length}.`);
 }
-if (standaloneFoundations.some((lesson) => lesson.sources.length !== 0)) {
-  throw new Error("Foundations presentation lessons must not contain embedded references.");
+if (
+  foundationSourceIds.length !== FOUNDATION_PROMOTED_SOURCE_IDS.length
+  || new Set(foundationSourceIds).size !== foundationSourceIds.length
+  || FOUNDATION_PROMOTED_SOURCE_IDS.some((sourceId) => !foundationSourceIds.includes(sourceId))
+) {
+  throw new Error(`Expected all ${FOUNDATION_PROMOTED_SOURCE_IDS.length} canonical Foundations sources to remain attached to their presentation lessons.`);
+}
+for (const sourceId of FOUNDATION_PROMOTED_SOURCE_IDS) {
+  const archiveLesson = standaloneFoundations.find((lesson) => (
+    lesson.sources.some((source) => source.id === sourceId)
+  ));
+  const coverage = FOUNDATION_SOURCE_COVERAGE[sourceId];
+  if (!archiveLesson || !coverage || archiveLesson.title !== coverage.archiveLesson) {
+    throw new Error(`Foundations source ${sourceId} is missing its audited archive and teaching-destination coverage.`);
+  }
 }
 if (standaloneFoundations.some((lesson, index) => lesson.number !== index + 1)) {
   throw new Error("Foundations presentation lessons must be numbered sequentially from 1 to 11.");
 }
-if (standaloneSourceIds.length !== 88 || new Set(standaloneSourceIds).size !== standaloneSourceIds.length) {
-  throw new Error(`Expected 88 remaining embedded presentation references, found ${standaloneSourceIds.length}.`);
+if (standaloneSourceIds.length !== 95 || new Set(standaloneSourceIds).size !== standaloneSourceIds.length) {
+  throw new Error(`Expected all 95 unique embedded presentation references, found ${standaloneSourceIds.length}.`);
 }
 
 export { standalonePlotPickleCurriculum as plotPickleCurriculum };

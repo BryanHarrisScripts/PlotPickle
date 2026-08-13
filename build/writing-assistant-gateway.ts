@@ -243,6 +243,11 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
   const tone = typeof body.tone === "string" && allowedTones.has(body.tone as PlotPickleTone)
     ? body.tone as PlotPickleTone
     : "collaborative";
+  const foundationFieldIds = agentId === "foundations-planner" && Array.isArray(body.foundationFieldIds)
+    ? body.foundationFieldIds.filter((value): value is string => (
+      typeof value === "string" && /^output-[1-9][0-9]?$/.test(value)
+    )).slice(0, 12)
+    : [];
   const started = Date.now();
   const executionProfile = agentId === "curriculum-guide"
     ? await curriculumGuideOllamaProfile(profile)
@@ -253,6 +258,7 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
     tone,
     message,
     history: safeHistory(body.history),
+    foundationFieldIds,
   });
   if (!text) throw new Error("The provider returned no text.");
   const updated: ProviderProfile = {

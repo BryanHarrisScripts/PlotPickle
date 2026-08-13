@@ -101,7 +101,7 @@ export default function ApplicationShellHeader({ activeTab, onNavigate, onProjec
       </button>
 
       <button type="button" className="brand-lockup home-trigger shell-brand" onClick={onOpenLanding} aria-label="Return to PlotPickle Dashboard" title="Dashboard">
-        <img className="brand-icon" src="/brand/favicon/plotpickle-icon-128.png" alt="" aria-hidden="true" />
+        <img className="brand-icon" src="/brand/favicon/plotpickle-ouroboros-v2-128.png" alt="" aria-hidden="true" />
         <span className="studio-brand-copy">
           <strong>PlotPickle</strong>
           <small>Visual Writing Studio</small>

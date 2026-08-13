@@ -12,7 +12,7 @@ import theme from "../../learn/theme.json";
 import visualStorytelling from "../../learn/visual-storytelling.json";
 import world from "../../learn/world.json";
 import type { CurriculumLesson } from "../../core/contracts/curriculum";
-import { buildFoundationCurriculum } from "./foundation-reference-lessons";
+import { buildDeepFoundationCurriculum } from "./foundation-deep-learning";
 
 type TopicDocument = {
   readonly schemaVersion: string;
@@ -68,7 +68,7 @@ if (sourceIds.length !== index.sourceCount || sourceIds.length !== 95 || new Set
 const standalonePlotPickleCurriculum: readonly CurriculumLesson[] = topicDocuments
   .flatMap((document) => (
     document.topic.id === "foundations"
-      ? buildFoundationCurriculum(document.lessons)
+      ? buildDeepFoundationCurriculum(document.lessons)
       : document.lessons
   ))
   .sort((left, right) => left.number - right.number);
@@ -80,6 +80,9 @@ if (standalonePlotPickleCurriculum.length !== 88 || standaloneFoundations.length
 }
 if (standaloneFoundations.some((lesson) => lesson.sources.length !== 0)) {
   throw new Error("Foundations presentation lessons must not contain embedded references.");
+}
+if (standaloneFoundations.some((lesson, index) => lesson.number !== index + 1)) {
+  throw new Error("Foundations presentation lessons must be numbered sequentially from 1 to 11.");
 }
 if (standaloneSourceIds.length !== 88 || new Set(standaloneSourceIds).size !== standaloneSourceIds.length) {
   throw new Error(`Expected 88 remaining embedded presentation references, found ${standaloneSourceIds.length}.`);

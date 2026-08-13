@@ -22,7 +22,8 @@ test("Foundations promotes all seven embedded references into standalone lessons
     assert.match(promoted, new RegExp(sourceId));
   }
 
-  assert.match(catalog, /buildFoundationCurriculum/);
+  assert.match(catalog, /buildDeepFoundationCurriculum/);
+  assert.match(catalog, /lesson\.number !== index \+ 1/);
   assert.match(catalog, /standaloneFoundations\.length !== 11/);
   assert.match(catalog, /standaloneFoundations\.some\(\(lesson\) => lesson\.sources\.length !== 0\)/);
   assert.match(catalog, /standalonePlotPickleCurriculum\.length !== 88/);

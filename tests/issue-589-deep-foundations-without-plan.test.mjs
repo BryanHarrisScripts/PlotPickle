@@ -21,3 +21,34 @@ test("LEARN uses the detailed eleven-lesson Foundations path without restoring P
   assert.doesNotMatch(deep, /\bPLAN\b|planOutput/);
   assert.doesNotMatch(page, /FoundationsPlanWorkspace|workspace=plan/);
 });
+
+test("Foundations follows a beginner-first sequence without dropping lesson practice", async () => {
+  const [deep, workspace] = await Promise.all([
+    read("adapters/curriculum/foundation-deep-learning.ts"),
+    read("modules/learn/ui/learn-workspace.tsx"),
+  ]);
+
+  const sequence = [
+    "The Anatomy of a Screenplay",
+    "The Screenwriting Essentials Roadmap",
+    "Story Essentials: Theme, Plot, Character and Stakes",
+    "The Pitch",
+    "Loglines That Carry the Movie",
+    "Crafting and Testing Loglines",
+    "Why PlotPickle Works in Layers",
+    "Screenplay Essentials: Structure, Dialogue and Visuals",
+    "Pacing and Tone: Storytelling Dynamics",
+    "Pitch Components and Project Positioning",
+    "Build the Story Experience",
+  ];
+  let priorIndex = -1;
+  for (const title of sequence) {
+    const index = deep.indexOf(`  "${title}",`, priorIndex + 1);
+    assert.ok(index > priorIndex, `${title} should follow the previous beginner lesson`);
+    priorIndex = index;
+  }
+
+  assert.match(workspace, /Practice: apply this lesson/);
+  assert.match(workspace, /activeLesson\.exercise/);
+  assert.match(workspace, /activeLesson\.apply/);
+});

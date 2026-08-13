@@ -99,6 +99,13 @@ article[aria-label="Active lesson"] > section:first-of-type {
     rgba(15, 17, 18, 0.84);
 }
 
+article[aria-label="Active lesson"] > section[class*="lessonExercise"] {
+  border-color: rgba(204, 157, 75, 0.58);
+  background:
+    linear-gradient(145deg, rgba(204, 157, 75, 0.12), transparent 55%),
+    rgba(15, 17, 18, 0.88);
+}
+
 article[aria-label="Active lesson"] > section:last-of-type:not(:has(details)) {
   display: none;
 }

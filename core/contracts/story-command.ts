@@ -1,5 +1,3 @@
-import type { FoundationBuilderField } from "./foundation-builder";
-
 export type StoryCommand =
   | {
       readonly type: "lesson.open";
@@ -19,12 +17,6 @@ export type StoryCommand =
   | {
       readonly type: "creative-room.thread.attach";
       readonly threadId: string;
-      readonly occurredAt: string;
-    }
-  | {
-      readonly type: "foundations.field.update";
-      readonly field: FoundationBuilderField;
-      readonly value: string;
       readonly occurredAt: string;
     };
 

@@ -41,37 +41,32 @@ test("routine startup inventories companions while configuration remains in inde
   assert.doesNotMatch(executable, /start\s+""\s+"https:\/\/nodejs\.org\//i);
 });
 
-test("startup reuses only a current PlotPickle session and rejects stale or foreign port owners", async () => {
+test("startup reuses an existing PlotPickle session and rejects a foreign port owner", async () => {
   const launcher = await source("Start-PlotPickle.bat");
 
   for (const contract of [
     ":probe_existing",
     "Invoke-WebRequest",
     "$response.Content -match 'PlotPickle'",
-    "%PLOTPICKLE_STARTUP_MARKER%",
     "System.Net.Sockets.TcpClient",
     'if "!PROBE_RESULT!"=="0"',
-    "The current PlotPickle build is already running",
+    "PlotPickle is already running",
     "No second server will be started",
-    'if "!PROBE_RESULT!"=="3"',
-    "[STALE SESSION] An older PlotPickle build is still running",
-    "does not contain the current startup contract",
     'if "!PROBE_RESULT!"=="2"',
     "Port %PLOTPICKLE_PORT% is already being used by another application",
   ]) assert.ok(launcher.includes(contract), `Missing duplicate-instance contract: ${contract}`);
 });
 
-test("browser launch waits for the current loopback startup contract with a bounded timeout", async () => {
+test("browser launch waits for confirmed loopback readiness with a bounded timeout", async () => {
   const launcher = await source("Start-PlotPickle.bat");
 
   for (const contract of [
     'set "READY_TIMEOUT_SECONDS=60"',
-    'set "PLOTPICKLE_STARTUP_MARKER=plotpickle-startup-v2"',
     ":open_when_ready",
     "AddSeconds(%READY_TIMEOUT_SECONDS%)",
     "Start-Sleep -Milliseconds 500",
     "Start-Process '%PLOTPICKLE_URL%'",
-    "did not become ready with the current startup contract within %READY_TIMEOUT_SECONDS% seconds",
+    "did not become ready within %READY_TIMEOUT_SECONDS% seconds",
     'call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort',
   ]) assert.ok(launcher.includes(contract), `Missing readiness contract: ${contract}`);
 

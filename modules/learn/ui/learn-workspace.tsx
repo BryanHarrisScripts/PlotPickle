@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { CurriculumLesson } from "../../../core/contracts/curriculum";
 import type { CurriculumGuide } from "../../../core/contracts/curriculum-guide";
 import { applyStoryCommand } from "../../../core/project/apply-command";
@@ -31,6 +31,14 @@ type Message = {
   readonly sourceLessonIds?: readonly string[];
   readonly sourceReferenceIds?: readonly string[];
 };
+
+type Reflection = {
+  readonly lessonId: string;
+  readonly questions: readonly string[];
+  readonly source: "agent" | "lesson-fallback";
+};
+
+const REFLECTION_REFRESH_MS = 3 * 60 * 1_000;
 
 function newId(prefix: string) {
   return globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -104,6 +112,15 @@ export default function LearnWorkspace({
   const [guideError, setGuideError] = useState("");
   const [lessonSearch, setLessonSearch] = useState("");
   const [collapsedTopics, setCollapsedTopics] = useState<readonly string[]>([]);
+  const [reflection, setReflection] = useState<Reflection | null>(null);
+  const [reflectionHistory, setReflectionHistory] = useState<readonly string[]>([]);
+  const [reflectionWorking, setReflectionWorking] = useState(false);
+  const [reflectionError, setReflectionError] = useState("");
+  const lessonRef = useRef<HTMLElement>(null);
+  const reflectionRequestRef = useRef(0);
+  const projectRef = useRef<PPFProject | null>(null);
+
+  projectRef.current = project;
 
   useEffect(() => {
     let current = loadProject();
@@ -169,6 +186,96 @@ export default function LearnWorkspace({
     });
   }
 
+  function scrollLessonToTop() {
+    lessonRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    if (window.matchMedia("(max-width: 820px)").matches) {
+      lessonRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+    }
+  }
+
+  useEffect(() => {
+    if (!activeLesson || !project?.creativeRoom.threadId) return;
+    const requestId = ++reflectionRequestRef.current;
+    setMessages([]);
+    setQuestion("");
+    setGuideError("");
+    setReflection(null);
+    setReflectionHistory([]);
+    setReflectionError("");
+    setReflectionWorking(true);
+    const lessonId = activeLesson.id;
+    const frame = window.requestAnimationFrame(() => {
+      lessonRef.current?.scrollTo({ top: 0 });
+      if (window.matchMedia("(max-width: 820px)").matches) window.scrollTo({ top: 0 });
+    });
+    const reflectionTimer = window.setTimeout(() => {
+      const currentProject = projectRef.current;
+      if (!currentProject?.creativeRoom.threadId || requestId !== reflectionRequestRef.current) return;
+      void guide({
+        intent: "reflection",
+        curriculum,
+        activeLessonId: lessonId,
+        question: "Prepare this lesson’s reflection questions.",
+        previousQuestions: [],
+        conversation: [],
+        projectMemory: {
+          id: currentProject.id,
+          title: currentProject.title,
+          revision: currentProject.revision,
+          completedLessonIds: currentProject.learning.completedLessonIds,
+        },
+      }).then((answer) => {
+        if (requestId !== reflectionRequestRef.current || !answer.questions?.length) return;
+        setReflection({ lessonId, questions: answer.questions, source: answer.reflectionSource || "agent" });
+        setReflectionHistory(answer.questions);
+      }).catch((error) => {
+        if (requestId !== reflectionRequestRef.current) return;
+        setReflectionError(error instanceof Error ? error.message : "Sage could not prepare this reflection.");
+      }).finally(() => {
+        if (requestId === reflectionRequestRef.current) setReflectionWorking(false);
+      });
+    }, 0);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(reflectionTimer);
+      reflectionRequestRef.current += 1;
+    };
+  }, [activeLesson?.id, curriculum, guide, project?.creativeRoom.threadId]);
+
+  useEffect(() => {
+    if (!reflection || !activeLesson || !project?.creativeRoom.threadId) return;
+    const timeout = window.setTimeout(() => {
+      const requestId = ++reflectionRequestRef.current;
+      setReflectionWorking(true);
+      setReflectionError("");
+      void guide({
+        intent: "reflection",
+        curriculum,
+        activeLessonId: activeLesson.id,
+        question: "Prepare a fresh reflection set for this lesson.",
+        previousQuestions: reflectionHistory,
+        conversation: [],
+        projectMemory: {
+          id: project.id,
+          title: project.title,
+          revision: project.revision,
+          completedLessonIds: project.learning.completedLessonIds,
+        },
+      }).then((answer) => {
+        if (requestId !== reflectionRequestRef.current || !answer.questions?.length) return;
+        setReflection({ lessonId: activeLesson.id, questions: answer.questions, source: answer.reflectionSource || "agent" });
+        setReflectionHistory((current) => [...current, ...answer.questions!]);
+      }).catch((error) => {
+        if (requestId !== reflectionRequestRef.current) return;
+        setReflectionError(error instanceof Error ? error.message : "Sage could not refresh this reflection.");
+      }).finally(() => {
+        if (requestId === reflectionRequestRef.current) setReflectionWorking(false);
+      });
+    }, REFLECTION_REFRESH_MS);
+    return () => window.clearTimeout(timeout);
+  }, [activeLesson, curriculum, guide, project, reflection, reflectionHistory]);
+
   function toggleTopic(topic: string) {
     setCollapsedTopics((current) => (
       current.includes(topic)
@@ -200,6 +307,7 @@ export default function LearnWorkspace({
     setWorking(true);
     try {
       const answer = await guide({
+        intent: "answer",
         curriculum,
         activeLessonId: activeLesson.id,
         question: submitted,
@@ -339,7 +447,7 @@ export default function LearnWorkspace({
         </nav>
       </aside>
 
-      <article className={styles.lesson} aria-label="Active lesson">
+      <article className={styles.lesson} aria-label="Active lesson" ref={lessonRef}>
         <nav className={styles.lessonNavigation} aria-label="Lesson navigation">
           <button
             disabled={!previousLesson}
@@ -429,6 +537,10 @@ export default function LearnWorkspace({
             </div>
           ) : <p>This lesson is complete without an additional repository reference.</p>}
         </section>
+        <button className={styles.topOfPage} onClick={scrollLessonToTop} type="button">
+          <span aria-hidden="true">⌃</span>
+          Top of page
+        </button>
         </>
       </article>
 
@@ -450,6 +562,17 @@ export default function LearnWorkspace({
           </div>
         </header>
         <div className={styles.messages} aria-live="polite">
+          {reflection?.lessonId === activeLesson.id ? (
+            <section className={styles.reflection} aria-label="Three-minute reflection">
+              <div className={styles.reflectionHeading}>
+                <strong>Three-minute reflection</strong>
+                <small>{reflection.source === "agent" ? "Asked by Sage" : "Lesson-grounded fallback"}</small>
+              </div>
+              <ol>{reflection.questions.map((item) => <li key={item}>{item}</li>)}</ol>
+            </section>
+          ) : null}
+          {reflectionWorking ? <p className={styles.reflectionStatus}>Sage is preparing questions for this lesson…</p> : null}
+          {reflectionError ? <p className={styles.guideError} role="status">{reflectionError}</p> : null}
           {messages.length ? messages.map((message) => {
             const sourceTitles = message.sourceLessonIds?.map((lessonId) => (
               curriculum.find((lesson) => lesson.id === lessonId)?.title

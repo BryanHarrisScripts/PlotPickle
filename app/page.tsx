@@ -10,6 +10,7 @@ import { normalizeFoundationProject, type PPFProject } from "../core/project/pro
 type Workspace = "learn" | "plan";
 
 const PROJECT_KEY = "plotpickle.foundation.project.v1";
+const STARTUP_CONTRACT = "plotpickle-startup-v2";
 
 function requestedWorkspace(): Workspace {
   if (typeof window === "undefined") return "learn";
@@ -54,7 +55,14 @@ export default function Home() {
   }, []);
 
   if (!storageReady) {
-    return <main style={{ minHeight: "100dvh", display: "grid", placeItems: "center", background: "#090a0b", color: "#35c9b8" }}>Opening PlotPickle…</main>;
+    return (
+      <main
+        data-plotpickle-startup={STARTUP_CONTRACT}
+        style={{ minHeight: "100dvh", display: "grid", placeItems: "center", background: "#090a0b", color: "#35c9b8" }}
+      >
+        Opening PlotPickle…
+      </main>
+    );
   }
 
   if (workspace === "plan") {

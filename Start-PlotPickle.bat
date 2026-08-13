@@ -6,7 +6,7 @@ title PlotPickle - Local App
 set "PLOTPICKLE_PORT=4173"
 set "PLOTPICKLE_URL=http://127.0.0.1:%PLOTPICKLE_PORT%"
 set "PLOTPICKLE_STARTUP_MARKER=plotpickle-startup-v2"
-set "VITE_CMD=node_modules\.bin\vite.cmd"
+set "VINEXT_CMD=node_modules\.bin\vinext.cmd"
 set "SETUP_REPORT=scripts\windows-setup-report.mjs"
 set "RUNTIME_MANAGER=scripts\windows-runtime.mjs"
 set "COMPANION_MANAGER=scripts\windows-companion-software.ps1"
@@ -233,11 +233,21 @@ echo.
 echo [STEP 3 OF 3] Starting the private local server...
 echo.
 echo Address: %PLOTPICKLE_URL%
+echo Building the current PlotPickle source before startup...
 echo The browser will open after PlotPickle confirms that it is ready.
 echo Optional services remain available from their independent Settings pages.
 if "!RUN_UAT!"=="1" echo The LEARN UAT will start in one separate window after the server becomes reachable.
 echo Press Ctrl+C in this window when you are finished.
 echo.
+
+call npm run build
+if errorlevel 1 (
+  echo.
+  echo [ERROR] PlotPickle could not build the current source.
+  echo Review the build messages above, then run Start-PlotPickle.bat again.
+  pause
+  exit /b 1
+)
 
 call :open_when_ready
 if "!RUN_UAT!"=="1" (
@@ -246,7 +256,7 @@ if "!RUN_UAT!"=="1" (
 ) else (
   echo [LEARN UAT NOT REQUESTED] It remains available the next time PlotPickle starts.
 )
-call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort
+call "%VINEXT_CMD%" start --host 127.0.0.1 --port %PLOTPICKLE_PORT%
 
 set "EXIT_CODE=%ERRORLEVEL%"
 echo.
@@ -375,7 +385,7 @@ if not errorlevel 1 (
 exit /b 1
 
 :dependencies_ready
-if not exist "%VITE_CMD%" exit /b 1
+if not exist "%VINEXT_CMD%" exit /b 1
 if not exist "node_modules\vite\package.json" exit /b 1
 if not exist "node_modules\next\package.json" exit /b 1
 if not exist "node_modules\react\package.json" exit /b 1
@@ -384,7 +394,7 @@ if not exist "node_modules\vinext\package.json" exit /b 1
 if not exist "node_modules\rolldown\package.json" exit /b 1
 node "%RUNTIME_MANAGER%" verify-runtime >nul 2>&1
 if errorlevel 1 exit /b 1
-call "%VITE_CMD%" --version >nul 2>&1
+call "%VINEXT_CMD%" --version >nul 2>&1
 if errorlevel 1 exit /b 1
 exit /b 0
 

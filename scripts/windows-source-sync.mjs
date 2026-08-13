@@ -72,10 +72,13 @@ try {
     process.exit(0);
   }
 
-  const dirty = git(["status", "--porcelain", "--untracked-files=normal"], { quiet: true });
+  // Protect tracked local work, while allowing generated/untracked runtime files.
+  // Git's own fast-forward operation still refuses to overwrite a conflicting
+  // untracked path, so this remains non-destructive.
+  const dirty = git(["status", "--porcelain", "--untracked-files=no"], { quiet: true });
   if (dirty) {
     result.mode = "dirty";
-    result.message = "Source update skipped because this checkout has local changes; nothing was overwritten.";
+    result.message = "Source update skipped because this checkout has tracked local changes; nothing was overwritten.";
     writeEnv();
     process.exit(0);
   }

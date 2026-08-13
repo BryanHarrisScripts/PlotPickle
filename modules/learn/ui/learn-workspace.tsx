@@ -385,17 +385,19 @@ export default function LearnWorkspace({
             ) : null}
           </section>
         ))}
-        <section>
-          <h2>Key terms</h2>
-          <dl className={styles.definitions}>
-            {activeLesson.definitions.map((definition) => (
-              <div key={definition.term}>
-                <dt>{definition.term}</dt>
-                <dd>{definition.meaning}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
+        {activeLesson.definitions.length ? (
+          <section>
+            <h2>Key terms</h2>
+            <dl className={styles.definitions}>
+              {activeLesson.definitions.map((definition) => (
+                <div key={definition.term}>
+                  <dt>{definition.term}</dt>
+                  <dd>{definition.meaning}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        ) : null}
         <section>
           <h2>{activeLesson.example.title}</h2>
           <p>{activeLesson.example.text}</p>
@@ -411,6 +413,11 @@ export default function LearnWorkspace({
           <ul>
             {activeLesson.mistakes.map((mistake) => <li key={mistake}>{mistake}</li>)}
           </ul>
+        </section>
+        <section className={styles.lessonExercise}>
+          <h2>Practice: apply this lesson</h2>
+          <p>{activeLesson.exercise}</p>
+          <p><strong>Save this work to:</strong> {activeLesson.apply}</p>
         </section>
         <section>
           <h2>Supporting lesson material</h2>

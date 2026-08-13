@@ -10,16 +10,16 @@ type LessonEnrichment = {
 };
 
 const FOUNDATION_SEQUENCE = [
-  "The Pitch",
-  "Pitch Components and Project Positioning",
   "The Anatomy of a Screenplay",
+  "The Screenwriting Essentials Roadmap",
+  "Story Essentials: Theme, Plot, Character and Stakes",
+  "The Pitch",
   "Loglines That Carry the Movie",
   "Crafting and Testing Loglines",
   "Why PlotPickle Works in Layers",
   "Screenplay Essentials: Structure, Dialogue and Visuals",
-  "Story Essentials: Theme, Plot, Character and Stakes",
-  "The Screenwriting Essentials Roadmap",
   "Pacing and Tone: Storytelling Dynamics",
+  "Pitch Components and Project Positioning",
   "Build the Story Experience",
 ] as const;
 

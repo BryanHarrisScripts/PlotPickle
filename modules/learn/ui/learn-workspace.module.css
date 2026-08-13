@@ -575,28 +575,6 @@
   white-space: pre-wrap;
 }
 
-.topOfPage {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: 46px 0 0;
-  padding: 9px 14px;
-  border: 1px solid rgba(204, 157, 75, 0.55);
-  border-radius: 999px;
-  background: #0d0f10;
-  color: #e1b35f;
-  font: inherit;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.topOfPage:hover,
-.topOfPage:focus-visible {
-  border-color: var(--teal);
-  color: var(--teal);
-  outline: none;
-}
-
 .room {
   display: flex;
   flex-direction: column;
@@ -651,31 +629,6 @@
   padding: 8px 18px 14px;
   background: transparent;
 }
-
-.reflection {
-  padding: 12px 14px 14px;
-  border: 14px solid transparent;
-  border-image-source: url("/assets/learn/curriculum-scroll-frame.png");
-  border-image-slice: 150;
-  border-image-width: 18px;
-  border-image-outset: 3px;
-  background:
-    linear-gradient(rgba(8, 8, 7, 0.32), rgba(8, 8, 7, 0.32)),
-    url("/assets/learn/dark-parchment-paper.png") center / cover;
-}
-
-.reflectionHeading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.reflectionHeading strong { color: var(--teal); }
-.reflectionHeading small { color: var(--muted); font-size: 9px; }
-.reflection ol { margin: 12px 0 0; padding-left: 20px; }
-.reflection li { margin-top: 8px; color: #ded8ce; font-size: 13px; line-height: 1.55; }
-.reflectionStatus { margin: 0; color: var(--muted); font-size: 11px; font-style: italic; }
 
 .writerMessage,
 .guideMessage {

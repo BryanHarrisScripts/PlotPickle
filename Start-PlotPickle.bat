@@ -9,7 +9,9 @@ set "VITE_CMD=node_modules\.bin\vite.cmd"
 set "SETUP_REPORT=scripts\windows-setup-report.mjs"
 set "RUNTIME_MANAGER=scripts\windows-runtime.mjs"
 set "COMPANION_MANAGER=scripts\windows-companion-software.ps1"
-set "UAT_RUNNER=scripts\run-learn-uat.ps1"
+set "UAT_RUNNER=scripts\run-creative-writer-uat.ps1"
+set "STORY_BUILDER_AGENT=scripts\full-story-builder-agent.mjs"
+set "UI_CONTINUITY_AGENT=scripts\ui-continuity-agent.mjs"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
 set "INSTALL_PERFORMED=0"
 set "RUN_UAT=0"
@@ -48,15 +50,17 @@ set "PROBE_RESULT=!ERRORLEVEL!"
 if "!PROBE_RESULT!"=="0" (
   echo [READY] PlotPickle is already running at %PLOTPICKLE_URL%.
   echo Opening the existing session. No second server will be started.
+  call :start_full_story_builder
+  call :start_ui_continuity_agent
   start "" "%PLOTPICKLE_URL%"
   if exist "%UAT_RUNNER%" (
     echo.
-    choice /C YN /N /M "TESTING: Run the LEARN UAT against this session? [Y/N]: "
+    choice /C YN /N /M "TESTING: Run the Creative Writer UAT against this session? [Y/N]: "
     if not errorlevel 2 (
-      start "PlotPickle LEARN UAT" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%UAT_RUNNER%" -BaseUrl "%PLOTPICKLE_URL%"
-      echo [LEARN UAT STARTED] The result window stays open until you press Enter.
+      start "PlotPickle Creative Writer UAT" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%UAT_RUNNER%" -BaseUrl "%PLOTPICKLE_URL%"
+      echo [AGENT 3 OF 3 STARTED] Creative Writer UAT. Its result window stays open until you press Enter.
     ) else (
-      echo [LEARN UAT NOT REQUESTED] It remains available the next time PlotPickle starts.
+      echo [AGENT 3 OF 3 NOT REQUESTED] Creative Writer UAT remains available the next time PlotPickle starts.
     )
   )
   exit /b 0
@@ -177,13 +181,13 @@ if exist "%COMPANION_MANAGER%" (
 if exist "%UAT_RUNNER%" (
   echo.
   echo ------------------------------------------------------------
-  echo   LEARN USER ACCEPTANCE TEST
+  echo   USER ACCEPTANCE TESTING - TEMPORARY TEST CONTROL
   echo ------------------------------------------------------------
-  echo The LEARN UAT checks the rebuilt LEARN-first experience, canonical curriculum,
-  echo Mastra readiness, Writing Assistant recovery state, and Curriculum Guide engine.
-  echo It runs locally and writes a PASS / WARN / FAIL report under PlotPickle\uat\learn.
+  echo The default UAT uses Agent Plugins and Playwright locally to create
+  echo and revise a disposable visual story from New Project through Graphic Novel.
+  echo It does not require ChatGPT or Codex quota and does not trigger paid generation.
   echo Choosing N starts PlotPickle normally and changes nothing else.
-  choice /C YN /N /M "Run the LEARN UAT after PlotPickle starts? [Y/N]: "
+  choice /C YN /N /M "Run the Creative Writer UAT after PlotPickle starts? [Y/N]: "
   if not errorlevel 2 set "RUN_UAT=1"
 )
 
@@ -192,17 +196,21 @@ echo [STEP 3 OF 3] Starting the private local server...
 echo.
 echo Address: %PLOTPICKLE_URL%
 echo The browser will open after PlotPickle confirms that it is ready.
+echo The independent Full Story Builder agent will wait for Learn Workspace jobs in a separate local window.
+echo The read-only UI Continuity Agent will audit shared layout and save one local report.
 echo Optional services remain available from their independent Settings pages.
-if "!RUN_UAT!"=="1" echo The LEARN UAT will start in one separate window after the server becomes reachable.
+if "!RUN_UAT!"=="1" echo The Creative Writer UAT will start in a separate window after the server becomes reachable.
 echo Press Ctrl+C in this window when you are finished.
 echo.
 
+call :start_full_story_builder
+call :start_ui_continuity_agent
 call :open_when_ready
 if "!RUN_UAT!"=="1" (
-  start "PlotPickle LEARN UAT" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%UAT_RUNNER%" -BaseUrl "%PLOTPICKLE_URL%"
-  echo [LEARN UAT STARTED] The result window stays open until you press Enter.
+  start "PlotPickle Creative Writer UAT" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%UAT_RUNNER%" -BaseUrl "%PLOTPICKLE_URL%"
+  echo [AGENT 3 OF 3 STARTED] Creative Writer UAT. Its result window stays open until you press Enter.
 ) else (
-  echo [LEARN UAT NOT REQUESTED] It remains available the next time PlotPickle starts.
+  echo [AGENT 3 OF 3 NOT REQUESTED] Creative Writer UAT remains available the next time PlotPickle starts.
 )
 call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort
 
@@ -223,6 +231,29 @@ exit /b !ERRORLEVEL!
 
 :open_when_ready
 start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri '%PLOTPICKLE_URL%' -TimeoutSec 2; if ($response.StatusCode -ge 200 -and $response.Content -match 'PlotPickle') { Start-Process '%PLOTPICKLE_URL%'; exit 0 } } catch {}; Start-Sleep -Milliseconds 500 }; Write-Host '[WARNING] PlotPickle did not become ready within %READY_TIMEOUT_SECONDS% seconds. Review the server messages in this window.'; exit 1"
+exit /b 0
+
+:start_full_story_builder
+if not exist "%STORY_BUILDER_AGENT%" (
+  echo [WARNING] The Full Story Builder agent is missing. PlotPickle will continue without it.
+  exit /b 0
+)
+powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; try { $status=Invoke-RestMethod -Uri '%PLOTPICKLE_URL%/api/full-story-builder/status' -TimeoutSec 2; if ($status.worker) { exit 0 }; exit 1 } catch { exit 1 }" >nul 2>&1
+if not errorlevel 1 (
+  echo [READY] The independent Full Story Builder agent is already running.
+  exit /b 0
+)
+start "PlotPickle Full Story Builder" node "%STORY_BUILDER_AGENT%" --server "%PLOTPICKLE_URL%" --stay-open
+echo [AGENT 1 OF 3 STARTED] Full Story Builder. Its window confirms where to provide instructions.
+exit /b 0
+
+:start_ui_continuity_agent
+if not exist "%UI_CONTINUITY_AGENT%" (
+  echo [WARNING] The UI Continuity Agent is missing. PlotPickle will continue without its read-only layout audit.
+  exit /b 0
+)
+start "PlotPickle UI Continuity Agent" node "%UI_CONTINUITY_AGENT%" --server "%PLOTPICKLE_URL%" --stay-open
+echo [AGENT 2 OF 3 STARTED] UI Continuity Agent. Its window stays open after the report is complete.
 exit /b 0
 
 :ensure_dependencies

@@ -1,4 +1,4 @@
-/* PlotPickle logo: image only, transparent, larger than workflow glyphs, with a restrained brand glow. */
+/* PlotPickle logo: approved transparent icon-only asset, larger than workflow glyphs, with a pixel-following glow. */
 nav[aria-label="PlotPickle workflow"] > img[alt="PlotPickle"] {
   position: absolute !important;
   z-index: 2 !important;
@@ -17,10 +17,23 @@ nav[aria-label="PlotPickle workflow"] > img[alt="PlotPickle"] {
   box-shadow: none !important;
   object-fit: contain !important;
   object-position: center !important;
-  opacity: 1 !important;
+  opacity: 0 !important;
+  filter: none !important;
+}
+
+nav[aria-label="PlotPickle workflow"]::before {
+  position: absolute;
+  z-index: 3;
+  top: 1px;
+  left: 12px;
+  width: 68px;
+  height: 68px;
+  background: center / contain no-repeat url("/brand/plotpickle-icon-master-transparent.png");
+  content: "";
   filter:
     drop-shadow(0 0 6px rgba(53, 201, 184, 0.62))
-    drop-shadow(0 0 13px rgba(211, 170, 99, 0.3)) !important;
+    drop-shadow(0 0 13px rgba(211, 170, 99, 0.3));
+  pointer-events: none;
 }
 
 /* Improve the reading hierarchy without removing, shortening, or hiding lesson copy. */
@@ -148,6 +161,13 @@ article[aria-label="Active lesson"] strong[data-key-term-label] u {
     left: 9px !important;
     width: 58px !important;
     height: 58px !important;
+  }
+
+  nav[aria-label="PlotPickle workflow"]::before {
+    top: 4px;
+    left: 9px;
+    width: 58px;
+    height: 58px;
   }
 }
 

@@ -63,7 +63,7 @@ test("the reusable LEARN local-completion validator passes Foundations", async (
   const { stdout } = await execFileAsync(process.execPath, ["scripts/validate-learn-curriculum.mjs"], { cwd: root });
   assert.match(stdout, /81 archived lessons and 95 bundled source documents/);
   assert.match(stdout, /foundations: complete; 21 linked teaching documents resolve to bundled local sources/);
-  assert.match(stdout, /Mastra curriculum agent -> local Ollama generation; no canned teaching bank/);
+  assert.match(stdout, /CPU semantic retrieval\/reranking -> Mastra Fast local role -> OpenAI-compatible local generation/);
 
   const manifest = JSON.parse(await read("learn/completion-manifest.json"));
   assert.equal(manifest.topics.length, 12);
@@ -71,6 +71,7 @@ test("the reusable LEARN local-completion validator passes Foundations", async (
   assert.ok(manifest.topics.filter((topic) => topic.id !== "foundations").every((topic) => topic.status === "source-imported"));
   assert.equal(manifest.contract.externalRepositoryAccessRequired, false);
   assert.equal(manifest.contract.cannedTeachingResponsesAllowed, false);
+  assert.equal(manifest.contract.sageRuntime, "mastra-local-openai-compatible");
 });
 
 test("every Foundations field and bundled-source passage enters the stable local RAG inventory", () => {
@@ -179,8 +180,12 @@ test("Sage sends the student's real question through bounded local RAG without a
   assert.match(guide, /xmlText\(studentQuestion\)/);
   assert.match(guide, /<\/student_question>/);
   assert.match(guide, /message\.length > 12_000/);
+  assert.match(guide, /semanticCurriculumRetrieval/);
+  assert.match(guide, /\/api\/local-ai\/curriculum-rag/);
   assert.match(guide, /agentId: "curriculum-guide"/);
-  assert.match(guide, /provider: "ollama"/);
+  assert.match(guide, /provider: "local"/);
+  assert.match(guide, /modelRole: "fast"/);
+  assert.doesNotMatch(guide, /provider: "ollama"/);
   assert.match(runtime, /agent\.generate\(prompt/);
   assert.match(runtime, /current governing-course teaching outranks adapted supporting curriculum/);
   assert.match(runtime, /historical wording is usable only with its paired current correction/);

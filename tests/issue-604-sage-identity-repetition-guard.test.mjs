@@ -4,7 +4,7 @@ import test from "node:test";
 
 const read = (path) => readFile(path, "utf8");
 
-test("Sage identity is explicit and cannot invent a production biography", async () => {
+test("Sage identity facts are explicit but every reply still uses the active LLM", async () => {
   const [playbook, guide] = await Promise.all([
     read("agents/sage-brinewick.md"),
     read("modules/creative-room/curriculum-guide.ts"),
@@ -12,15 +12,17 @@ test("Sage identity is explicit and cannot invent a production biography", async
 
   assert.match(playbook, /not a real-world person/i);
   assert.match(playbook, /no personal résumé, production credits, awards, employers, years of professional experience/i);
-  assert.match(playbook, /I’m Sage Brinewick, PlotPickle’s Curriculum Guide/i);
-  assert.match(playbook, /Never invent any of those details/i);
+  assert.match(playbook, /PlotPickle’s Curriculum Guide/i);
+  assert.match(playbook, /answer naturally through the active language model/i);
+  assert.match(playbook, /Do not return a hard-coded sentence or a response-bank entry/i);
   assert.doesNotMatch(playbook, /spent a lifetime around scripts/i);
 
-  assert.match(guide, /const SAGE_IDENTITY_TEXT = "I'm Sage Brinewick, PlotPickle's Curriculum Guide/);
-  assert.match(guide, /export function sageIdentityReply/);
-  assert.match(guide, /who are you\|who is sage brinewick\|what is your role\|what do you do\|tell me about yourself/);
-  assert.match(guide, /model: "Sage identity contract"/);
-  assert.ok(guide.indexOf("const identity = sageIdentityReply(studentQuestion)") < guide.indexOf("await preflightGuideRuntime()"));
+  assert.match(guide, /Every Sage reply, including identity and odd conversational questions/);
+  assert.match(guide, /await preflightGuideRuntime\(\)/);
+  assert.match(guide, /requestGuideModel\(message, 45_000, "fast"\)/);
+  assert.doesNotMatch(guide, /SAGE_IDENTITY_TEXT/);
+  assert.doesNotMatch(guide, /sageIdentityReply/);
+  assert.doesNotMatch(guide, /model: "Sage identity contract"/);
 });
 
 test("Sage rejects runaway phrase loops before rendering them", async () => {
@@ -30,9 +32,10 @@ test("Sage rejects runaway phrase loops before rendering them", async () => {
   assert.match(guide, /words\.slice\(index, index \+ 5\)\.join\(" "\)/);
   assert.match(guide, /if \(next >= 3\) return true/);
   assert.match(guide, /if \(guideAnswerHasRunawayRepetition\(answer\)\) return true/);
-  assert.match(guide, /entered a repetition loop/);
-  assert.match(guide, /Do not invent credentials, years of experience, job titles, production credits, awards, employers, biography, or personal history for Sage/);
-  assert.match(guide, /repeated, looped, or failed to answer the question twice/);
+  assert.match(guide, /RESPONSE QUALITY RETRY/);
+  assert.match(guide, /Do not invent credentials, years of experience, job titles, production credits, awards, employers, biography, memories, or a physical body for Sage/);
+  assert.match(guide, /SAGE_QUALITY_ESCALATION_INSTRUCTION/);
+  assert.match(guide, /failed to answer the question after repair/);
 });
 
 test("startup health also fails Sage repetition loops instead of reporting healthy", async () => {

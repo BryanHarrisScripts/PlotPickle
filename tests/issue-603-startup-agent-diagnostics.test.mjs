@@ -4,15 +4,19 @@ import { readFile } from "node:fs/promises";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
+const readDiagnostics = () => read("build/startup-agent-diagnostics-runtime.ts");
+
 test("normal local startup registers the read-only Mastra and agent health console", async () => {
-  const [config, diagnostic] = await Promise.all([
+  const [config, entrypoint, diagnostic] = await Promise.all([
     read("vite.config.ts"),
     read("build/startup-agent-diagnostics.ts"),
+    readDiagnostics(),
   ]);
 
   assert.match(config, /startupAgentDiagnosticsPlugin/);
   assert.match(config, /startupAgentDiagnosticsPlugin\(\)/);
   assert.match(config, /VITE_CONFIG_NATIVE_IGNORE_WARNING/);
+  assert.match(entrypoint, /startup-agent-diagnostics-runtime/);
 
   assert.match(diagnostic, /PlotPickle - Mastra and Agent Health Check/);
   assert.match(diagnostic, /Mastra runtime/);
@@ -31,7 +35,7 @@ test("normal local startup registers the read-only Mastra and agent health conso
 });
 
 test("startup diagnostics color PASS green, warnings yellow, and failures red", async () => {
-  const diagnostic = await read("build/startup-agent-diagnostics.ts");
+  const diagnostic = await readDiagnostics();
 
   assert.match(diagnostic, /green: "\\u001b\[92m"/);
   assert.match(diagnostic, /yellow: "\\u001b\[93m"/);
@@ -41,7 +45,7 @@ test("startup diagnostics color PASS green, warnings yellow, and failures red", 
 });
 
 test("startup diagnostics exercise the real local routes without exposing a shell", async () => {
-  const diagnostic = await read("build/startup-agent-diagnostics.ts");
+  const diagnostic = await readDiagnostics();
 
   assert.match(diagnostic, /\/api\/writing-assistant\/status/);
   assert.match(diagnostic, /\/api\/local-ai\/runtime\/model\/\$\{role\}\/load/);
@@ -56,15 +60,28 @@ test("startup diagnostics exercise the real local routes without exposing a shel
   assert.match(diagnostic, /candidate\[fieldId\]/);
   assert.match(diagnostic, /antiEchoPass/);
   assert.match(diagnostic, /groundingPass/);
-  assert.match(diagnostic, /GROUNDING_PROBE_PHRASE = "copper lighthouse"/);
-  assert.match(diagnostic, /Startup health example motif/);
+  assert.match(diagnostic, /SAGE_GROUNDING_CONCEPTS/);
+  assert.match(diagnostic, /"essentials-theme"/);
+  assert.match(diagnostic, /live question or contested proposition tested through choices and consequences/);
   assert.match(diagnostic, /learn\/theme\.json/);
+  assert.doesNotMatch(diagnostic, /copper lighthouse/i);
 
   assert.doesNotMatch(diagnostic, /child_process|execSync|spawn\(|powershell|cmd\.exe/i);
 });
 
+test("Sage startup health cleans raw model scaffolding before judging repetition and grounding", async () => {
+  const diagnostic = await readDiagnostics();
+
+  assert.match(diagnostic, /function stripInternalScaffolding/);
+  assert.match(diagnostic, /function cleanDiagnosticSageAnswer/);
+  assert.match(diagnostic, /INTERNAL_SCAFFOLD_LINE/);
+  assert.match(diagnostic, /const text = cleanDiagnosticSageAnswer\(result\.text\?\.trim\(\) \|\| ""\)/);
+  assert.match(diagnostic, /repetitionSafe: repetitionPass\(text\)/);
+  assert.match(diagnostic, /grounded: groundingPass\(text\)/);
+});
+
 test("Sage startup health mirrors the real Fast retry and optional Quality recovery path", async () => {
-  const diagnostic = await read("build/startup-agent-diagnostics.ts");
+  const diagnostic = await readDiagnostics();
 
   assert.match(diagnostic, /SAGE_DIAGNOSTIC_REPAIR_INSTRUCTION/);
   assert.match(diagnostic, /SAGE_DIAGNOSTIC_QUALITY_INSTRUCTION/);
@@ -80,7 +97,7 @@ test("Sage startup health mirrors the real Fast retry and optional Quality recov
 
 test("diagnostic JSON validation mirrors PLAN's accepted wrapped-or-direct field shapes", async () => {
   const [diagnostic, drafter] = await Promise.all([
-    read("build/startup-agent-diagnostics.ts"),
+    readDiagnostics(),
     read("modules/plan/foundations-plan-drafter.ts"),
   ]);
 
@@ -107,7 +124,7 @@ test("Vite native-loader advisories are saved locally instead of flooding the st
 });
 
 test("diagnostics are advisory and do not block the Vite server from listening", async () => {
-  const diagnostic = await read("build/startup-agent-diagnostics.ts");
+  const diagnostic = await readDiagnostics();
 
   assert.match(diagnostic, /server\.httpServer\?\.once\("listening"/);
   assert.match(diagnostic, /setTimeout\(\(\) =>/);

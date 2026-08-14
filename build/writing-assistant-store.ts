@@ -1,6 +1,7 @@
 import { readCredentialJson, writeCredentialJson } from "./local-credentials";
+import type { LocalRuntimeKind } from "../lib/ai/local-runtime";
 
-export type TextProvider = "ollama" | "openai" | "minimax";
+export type TextProvider = "local" | "ollama" | "openai" | "minimax";
 export type ActiveTextProvider = TextProvider | "disabled";
 
 export type ProviderProfile = {
@@ -14,6 +15,8 @@ export type ProviderProfile = {
   lastLatencyMs: number;
   lastPreview: string;
   lastError: string;
+  runtime?: LocalRuntimeKind;
+  contextTokens?: 16384 | 32768;
 };
 
 export type ProfileStore = {
@@ -34,7 +37,7 @@ type LegacyAiConnection = {
 
 const STORE_FILE = "writing-assistant-profiles.json";
 const LEGACY_FILE = "ai-connection.json";
-export const TEXT_PROVIDERS: TextProvider[] = ["ollama", "openai", "minimax"];
+export const TEXT_PROVIDERS: TextProvider[] = ["local", "ollama", "openai", "minimax"];
 
 export function isTextProvider(value: unknown): value is TextProvider {
   return typeof value === "string" && TEXT_PROVIDERS.includes(value as TextProvider);
@@ -48,6 +51,10 @@ function emptyStore(): ProfileStore {
     ollamaBaseUrl: "http://127.0.0.1:11434",
     profiles: {},
   };
+}
+
+function localRuntimeKind(value: unknown): LocalRuntimeKind | undefined {
+  return value === "llama.cpp" || value === "lm-studio" || value === "ollama" || value === "openai-compatible" ? value : undefined;
 }
 
 function normalizeProfile(value: unknown, provider: TextProvider): ProviderProfile | null {
@@ -65,6 +72,8 @@ function normalizeProfile(value: unknown, provider: TextProvider): ProviderProfi
     lastLatencyMs: typeof item.lastLatencyMs === "number" && Number.isFinite(item.lastLatencyMs) ? item.lastLatencyMs : 0,
     lastPreview: typeof item.lastPreview === "string" ? item.lastPreview : "",
     lastError: typeof item.lastError === "string" ? item.lastError : "",
+    runtime: localRuntimeKind(item.runtime),
+    contextTokens: item.contextTokens === 32768 ? 32768 : item.contextTokens === 16384 ? 16384 : undefined,
   };
 }
 
@@ -91,7 +100,11 @@ function normalizeStore(value: unknown): ProfileStore {
 function legacyProfile(value: unknown): ProviderProfile | null {
   if (!value || typeof value !== "object") return null;
   const item = value as LegacyAiConnection;
-  if (!isTextProvider(item.provider) || typeof item.baseUrl !== "string" || typeof item.textModel !== "string" || !item.textModel.trim() || typeof item.apiKey !== "string") return null;
+  if ((item.provider !== "ollama" && item.provider !== "openai" && item.provider !== "minimax")
+    || typeof item.baseUrl !== "string"
+    || typeof item.textModel !== "string"
+    || !item.textModel.trim()
+    || typeof item.apiKey !== "string") return null;
   return {
     provider: item.provider,
     baseUrl: item.baseUrl,
@@ -152,8 +165,10 @@ export function publicProfile(profile: ProviderProfile | undefined, activeProvid
     ready: Boolean(profile.assistantVerifiedAt),
     active: activeProvider === profile.provider,
     provider: profile.provider,
+    runtime: profile.runtime,
     baseUrl: profile.baseUrl,
     model: profile.textModel,
+    contextTokens: profile.contextTokens,
     configuredAt: profile.configuredAt,
     verifiedAt: profile.assistantVerifiedAt,
     lastAttemptAt: profile.lastAttemptAt,

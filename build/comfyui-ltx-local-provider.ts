@@ -182,7 +182,8 @@ function modelNamesFromObjectInfo(value: unknown): string[] {
   return [...names];
 }
 
-export async function probeLtxVideo(store = await readLtxStore()) {
+export async function probeLtxVideo(store?: LtxStore) {
+  store ??= await readLtxStore();
   try {
     const [system, objectInfo] = await Promise.all([
       comfyJson(store.baseUrl, "/system_stats"),

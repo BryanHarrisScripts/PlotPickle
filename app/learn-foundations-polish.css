@@ -1,7 +1,7 @@
-/* PlotPickle header identity: supplied transparent dragon ouroboros/compass/nib mark at relic weight. */
+/* PlotPickle header identity: render the transparent dragon ouroboros/compass/nib artwork on the real image element. */
 nav[aria-label="PlotPickle workflow"] > img[alt="PlotPickle"] {
   position: absolute !important;
-  z-index: 2 !important;
+  z-index: 3 !important;
   top: 0 !important;
   right: auto !important;
   left: 9px !important;
@@ -15,29 +15,23 @@ nav[aria-label="PlotPickle workflow"] > img[alt="PlotPickle"] {
   background-color: rgba(0, 0, 0, 0) !important;
   clip-path: none !important;
   box-shadow: none !important;
+  content: url("/brand/plotpickle-ouroboros-v3-transparent.png") !important;
   object-fit: contain !important;
   object-position: center !important;
-  opacity: 0 !important;
-  filter: none !important;
-}
-
-nav[aria-label="PlotPickle workflow"]::before {
-  position: absolute;
-  z-index: 3;
-  top: 0;
-  left: 9px;
-  width: 76px;
-  height: 76px;
-  background: center / contain no-repeat url("/brand/plotpickle-ouroboros-v3-transparent.png");
-  content: "";
+  opacity: 1 !important;
   filter:
     saturate(1.34)
     brightness(1.2)
     contrast(1.06)
     drop-shadow(0 0 6px rgba(53, 201, 184, 0.62))
     drop-shadow(0 0 13px rgba(211, 170, 99, 0.5))
-    drop-shadow(0 0 21px rgba(53, 201, 184, 0.18));
-  pointer-events: none;
+    drop-shadow(0 0 21px rgba(53, 201, 184, 0.18)) !important;
+}
+
+/* The old pseudo-element workaround could disappear behind the scrollable nav; the real image now owns the logo. */
+nav[aria-label="PlotPickle workflow"]::before {
+  display: none !important;
+  content: none !important;
 }
 
 /* Improve the reading hierarchy without removing, shortening, or hiding lesson copy. */
@@ -165,13 +159,6 @@ article[aria-label="Active lesson"] strong[data-key-term-label] u {
     left: 5px !important;
     width: 66px !important;
     height: 66px !important;
-  }
-
-  nav[aria-label="PlotPickle workflow"]::before {
-    top: 3px;
-    left: 5px;
-    width: 66px;
-    height: 66px;
   }
 }
 

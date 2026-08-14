@@ -21,6 +21,7 @@ test("normal local startup registers the read-only Mastra and agent health conso
   assert.match(diagnostic, /Sage Brinewick registered/);
   assert.match(diagnostic, /Sage response/);
   assert.match(diagnostic, /Sage anti-echo check/);
+  assert.match(diagnostic, /Sage repetition guard/);
   assert.match(diagnostic, /Curriculum grounding/);
   assert.match(diagnostic, /Quality model/);
   assert.match(diagnostic, /Foundations Planner/);
@@ -46,7 +47,7 @@ test("startup diagnostics exercise the real local routes without exposing a shel
   assert.match(diagnostic, /\/api\/local-ai\/runtime\/model\/\$\{role\}\/load/);
   assert.match(diagnostic, /\/api\/writing-assistant\/chat/);
   assert.match(diagnostic, /agentId: "curriculum-guide"/);
-  assert.match(diagnostic, /modelRole: "fast"/);
+  assert.match(diagnostic, /modelRole,/);
   assert.match(diagnostic, /agentId: "foundations-planner"/);
   assert.match(diagnostic, /modelRole: "quality"/);
   assert.match(diagnostic, /foundationFieldIds: \["output-1", "output-2"\]/);
@@ -60,6 +61,21 @@ test("startup diagnostics exercise the real local routes without exposing a shel
   assert.match(diagnostic, /learn\/theme\.json/);
 
   assert.doesNotMatch(diagnostic, /child_process|execSync|spawn\(|powershell|cmd\.exe/i);
+});
+
+test("Sage startup health mirrors the real Fast retry and optional Quality recovery path", async () => {
+  const diagnostic = await read("build/startup-agent-diagnostics.ts");
+
+  assert.match(diagnostic, /SAGE_DIAGNOSTIC_REPAIR_INSTRUCTION/);
+  assert.match(diagnostic, /SAGE_DIAGNOSTIC_QUALITY_INSTRUCTION/);
+  assert.match(diagnostic, /requestSageProbeAttempt\(baseUrl, message, question, "fast", 60_000\)/);
+  assert.match(diagnostic, /SAGE_DIAGNOSTIC_REPAIR_INSTRUCTION[\s\S]*"fast"[\s\S]*45_000/);
+  assert.match(diagnostic, /await loadRole\(baseUrl, "quality"\)/);
+  assert.match(diagnostic, /SAGE_DIAGNOSTIC_QUALITY_INSTRUCTION[\s\S]*"quality"[\s\S]*75_000/);
+  assert.match(diagnostic, /route: "Fast retry"/);
+  assert.match(diagnostic, /route: "Quality fallback"/);
+  assert.match(diagnostic, /recovered via \$\{sage\.route\}/);
+  assert.match(diagnostic, /failed \|= !responsePass \|\| !sage\.antiEcho \|\| !sage\.repetitionSafe \|\| !sage\.grounded/);
 });
 
 test("diagnostic JSON validation mirrors PLAN's accepted wrapped-or-direct field shapes", async () => {

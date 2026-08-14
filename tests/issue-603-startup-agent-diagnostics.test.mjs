@@ -25,7 +25,18 @@ test("normal local startup registers the read-only Mastra and agent health conso
   assert.match(diagnostic, /Quality model/);
   assert.match(diagnostic, /Foundations Planner/);
   assert.match(diagnostic, /Structured JSON/);
+  assert.match(diagnostic, /overallColor/);
   assert.match(diagnostic, /OVERALL: \$\{overall\}/);
+});
+
+test("startup diagnostics color PASS green, warnings yellow, and failures red", async () => {
+  const diagnostic = await read("build/startup-agent-diagnostics.ts");
+
+  assert.match(diagnostic, /green: "\\u001b\[92m"/);
+  assert.match(diagnostic, /yellow: "\\u001b\[93m"/);
+  assert.match(diagnostic, /red: "\\u001b\[91m"/);
+  assert.match(diagnostic, /if \(state === "PASS"\) return ANSI\.green/);
+  assert.match(diagnostic, /if \(state === "FAIL"\) return ANSI\.red/);
 });
 
 test("startup diagnostics exercise the real local routes without exposing a shell", async () => {
@@ -62,6 +73,21 @@ test("diagnostic JSON validation mirrors PLAN's accepted wrapped-or-direct field
   assert.match(drafter, /const candidate = root\.values && typeof root\.values === "object"/);
   assert.match(drafter, /: root;/);
   assert.match(diagnostic, /response did not contain both requested fields/);
+});
+
+test("Vite native-loader advisories are saved locally instead of flooding the startup window", async () => {
+  const [launcher, report] = await Promise.all([
+    read("Start-PlotPickle.bat"),
+    read("scripts/vite-native-config-report.mjs"),
+  ]);
+
+  assert.match(launcher, /set "VITE_CONFIG_NATIVE_IGNORE_WARNING=true"/);
+  assert.match(launcher, /VITE_NATIVE_REPORT=scripts\\vite-native-config-report\.mjs/);
+  assert.match(launcher, /node "%VITE_NATIVE_REPORT%"/);
+  assert.match(report, /vite-native-config-warnings\.log/);
+  assert.match(report, /without a file extension/);
+  assert.match(report, /JSON import/);
+  assert.match(report, /kept out of the normal PlotPickle command window/);
 });
 
 test("diagnostics are advisory and do not block the Vite server from listening", async () => {

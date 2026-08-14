@@ -10,8 +10,8 @@ test("startup checks application updates before deciding whether localhost is re
     read("scripts/windows-source-sync.mjs"),
   ]);
 
-  const updateCheck = launcher.indexOf("[UPDATE CHECK] Checking whether PlotPickle itself is current");
-  const sessionCheck = launcher.indexOf("[CHECK] Looking for an existing PlotPickle session");
+  const updateCheck = launcher.indexOf("[UPDATE CHECK]");
+  const sessionCheck = launcher.indexOf("[CHECK]");
   assert.ok(updateCheck >= 0 && sessionCheck > updateCheck);
   assert.match(launcher, /SOURCE_SYNC=scripts\\windows-source-sync\.mjs/);
   assert.match(launcher, /PLOTPICKLE_SOURCE_UPDATED/);
@@ -45,7 +45,7 @@ test("only a server carrying the completed current startup contract may open", a
   assert.match(launcher, /PLOTPICKLE_STARTUP_CONTRACT=!PLOTPICKLE_STARTUP_MARKER!/);
   assert.match(launcher, /\$response\.Content -match '%PLOTPICKLE_STARTUP_MARKER%'/);
   assert.match(launcher, /exit 3/);
-  assert.match(launcher, /\[STALE OR UNVERIFIED SESSION\]/);
+  assert.match(launcher, /stale or unverified/i);
   assert.match(launcher, /will not open it or replace dependencies underneath a running server/);
 });
 
@@ -55,14 +55,15 @@ test("browser launch follows dependency, companion and aggregate readiness repor
   const report = launcher.indexOf('node "%SETUP_REPORT%" ready');
   const mastra = launcher.indexOf("Mastra !MASTRA_VERSION! is installed and ready");
   const companions = launcher.indexOf('-File "%COMPANION_MANAGER%" -Mode Maintain');
-  const complete = launcher.indexOf("[STARTUP CHECKS COMPLETE] PlotPickle can now start");
+  const complete = launcher.indexOf("Startup checks complete. PlotPickle can now start");
+  const compatibilityReport = launcher.indexOf('node "%VITE_NATIVE_REPORT%"');
   const watcher = launcher.indexOf("call :open_when_ready");
   const server = launcher.indexOf('call "%VITE_CMD%" --host 127.0.0.1');
 
   assert.ok(required >= 0 && report > required && mastra > report && companions > mastra);
-  assert.ok(complete > companions && watcher > complete && server > watcher);
-  assert.match(launcher, /\[READY\] Required PlotPickle dependencies are loaded and verified/);
-  assert.match(launcher, /\[READY WITH WARNINGS\] Companion checks finished with optional maintenance warnings/);
+  assert.ok(complete > companions && compatibilityReport > complete && watcher > compatibilityReport && server > watcher);
+  assert.match(launcher, /echo !READY! Required PlotPickle dependencies are loaded and verified/);
+  assert.match(launcher, /echo !READY_WARN! Companion checks finished with optional maintenance warnings/);
 });
 
 test("companion maintenance reports optional failures truthfully without blocking core mode", async () => {

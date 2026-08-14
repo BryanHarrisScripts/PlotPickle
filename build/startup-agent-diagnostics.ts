@@ -28,14 +28,28 @@ type ChatResult = {
 
 const DISPLAY_WIDTH = 34;
 const GROUNDING_PROBE_PHRASE = "copper lighthouse";
+const ANSI = {
+  green: "\u001b[92m",
+  yellow: "\u001b[93m",
+  red: "\u001b[91m",
+  cyan: "\u001b[96m",
+  reset: "\u001b[0m",
+} as const;
 
 function clock() {
   return new Date().toTimeString().slice(0, 8);
 }
 
+function stateColor(state: "PASS" | "FAIL" | "WARN" | "SKIP") {
+  if (state === "PASS") return ANSI.green;
+  if (state === "FAIL") return ANSI.red;
+  return ANSI.yellow;
+}
+
 function printResult(label: string, state: "PASS" | "FAIL" | "WARN" | "SKIP", detail = "") {
   const dots = ".".repeat(Math.max(3, DISPLAY_WIDTH - label.length));
-  console.log(`[${clock()}] ${label} ${dots} ${state}${detail ? `  ${detail}` : ""}`);
+  const coloredState = `${stateColor(state)}${state}${ANSI.reset}`;
+  console.log(`[${clock()}] ${label} ${dots} ${coloredState}${detail ? `  ${detail}` : ""}`);
 }
 
 function comparableText(value: string) {
@@ -200,9 +214,9 @@ async function runFoundationsProbe(baseUrl: string) {
 }
 
 export async function runStartupAgentDiagnostics(baseUrl: string) {
-  console.log("\n============================================================");
-  console.log("  PlotPickle - Mastra and Agent Health Check");
-  console.log("============================================================\n");
+  console.log(`\n${ANSI.cyan}============================================================${ANSI.reset}`);
+  console.log(`${ANSI.cyan}  PlotPickle - Mastra and Agent Health Check${ANSI.reset}`);
+  console.log(`${ANSI.cyan}============================================================${ANSI.reset}\n`);
 
   let failed = false;
   let warned = false;
@@ -223,7 +237,7 @@ export async function runStartupAgentDiagnostics(baseUrl: string) {
     printResult("Quality model", "FAIL");
     printResult("Foundations Planner", "SKIP");
     printResult("Structured JSON", "SKIP");
-    console.log("\nOVERALL: NEEDS ATTENTION\n");
+    console.log(`\n${ANSI.red}OVERALL: NEEDS ATTENTION${ANSI.reset}\n`);
     return { healthy: false, warnings: false };
   }
 
@@ -305,7 +319,8 @@ export async function runStartupAgentDiagnostics(baseUrl: string) {
   }
 
   const overall = failed ? "NEEDS ATTENTION" : warned ? "HEALTHY WITH OPTIONAL WARNINGS" : "HEALTHY";
-  console.log(`\nOVERALL: ${overall}\n`);
+  const overallColor = failed ? ANSI.red : warned ? ANSI.yellow : ANSI.green;
+  console.log(`\n${overallColor}OVERALL: ${overall}${ANSI.reset}\n`);
   return { healthy: !failed, warnings: warned };
 }
 
@@ -319,8 +334,8 @@ export function startupAgentDiagnosticsPlugin(): Plugin {
         setTimeout(() => {
           void runStartupAgentDiagnostics(baseUrl).catch((error) => {
             const message = error instanceof Error ? error.message : "unexpected diagnostic failure";
-            console.error(`[${clock()}] Agent health check ................. FAIL  ${message}`);
-            console.error("\nOVERALL: NEEDS ATTENTION\n");
+            console.error(`${ANSI.red}[${clock()}] Agent health check ................. FAIL  ${message}${ANSI.reset}`);
+            console.error(`\n${ANSI.red}OVERALL: NEEDS ATTENTION${ANSI.reset}\n`);
           });
         }, 750);
       });

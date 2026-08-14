@@ -11,6 +11,8 @@ export type CurriculumGuideModelRequest = {
   readonly retrieval: CurriculumRetrieval;
 };
 
+type GuideModelRole = "fast" | "quality";
+
 function xmlText(value: string) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
@@ -79,11 +81,6 @@ async function semanticCurriculumRetrieval(
   }
 }
 
-/**
- * Builds the bounded local RAG request sent to Mastra. The student's question
- * is included verbatim within the documented input limit. Only retrieved and
- * reranked curriculum blocks are sent to the language model.
- */
 export function buildCurriculumGuideModelRequest(
   request: CurriculumGuideRequest,
   retrieval = retrieveCurriculumContext(request.curriculum, request.activeLessonId, request.question.trim().slice(0, 2_000)),
@@ -155,20 +152,9 @@ function comparableText(value: string) {
     .trim();
 }
 
-const SAGE_IDENTITY_TEXT = "I'm Sage Brinewick, PlotPickle's Curriculum Guide. I help you understand the lessons and apply them to the story you're building. I don't have a real-world production résumé or personal career history—my job here is to teach from PlotPickle's curriculum and help you use it.";
-
-export function sageIdentityReply(question: string) {
-  const normalized = comparableText(question);
-  if (/^(?:who are you|who is sage brinewick|what is your role|what do you do|tell me about yourself)$/.test(normalized)) {
-    return SAGE_IDENTITY_TEXT;
-  }
-  return null;
-}
-
 export function guideAnswerHasRunawayRepetition(answer: string) {
   const words = comparableText(answer).split(/\s+/).filter(Boolean);
   if (words.length < 24) return false;
-
   const counts = new Map<string, number>();
   for (let index = 0; index <= words.length - 5; index += 1) {
     const phrase = words.slice(index, index + 5).join(" ");
@@ -185,22 +171,31 @@ export function guideAnswerNeedsRepair(answer: string, question: string) {
   if (!normalizedAnswer) return true;
   if (normalizedAnswer === normalizedQuestion) return true;
   if (guideAnswerHasRunawayRepetition(answer)) return true;
-
   const answerWords = normalizedAnswer.split(/\s+/).filter(Boolean);
   const questionWords = normalizedQuestion.split(/\s+/).filter(Boolean);
-  const broadQuestion = /^(?:what|why|how|who|when|where|define|explain)\b/.test(normalizedQuestion);
-  if (broadQuestion && answerWords.length < 12) return true;
+  const broadCraftQuestion = /^(?:what|why|how|define|explain)\b/.test(normalizedQuestion)
+    && /(?:theme|plot|story|screenplay|character|scene|structure|dialogue|pacing|tone|motif|stakes|conflict|logline|visual)/.test(normalizedQuestion);
+  if (broadCraftQuestion && answerWords.length < 12) return true;
   if (normalizedAnswer.includes(normalizedQuestion) && answerWords.length <= questionWords.length + 5) return true;
   return false;
 }
 
 const SAGE_REPAIR_INSTRUCTION = [
   "RESPONSE QUALITY RETRY.",
-  "The previous generation failed because it repeated the writer's question, entered a repetition loop, or did not provide a useful answer.",
-  "Answer the writer directly in two to five natural sentences using only the curriculum_context below.",
-  "For a definition question, define the concept, explain why it matters to a story, and give one short concrete example when the supplied curriculum supports one.",
-  "Do not invent credentials, years of experience, job titles, production credits, awards, employers, biography, or personal history for Sage.",
+  "The previous generation repeated the writer, entered a loop, or failed to provide a useful response.",
+  "Answer the writer directly in natural language.",
+  "If this is a screenplay or PlotPickle craft question, use only curriculum_context for teaching claims and explain the answer clearly.",
+  "If this is casual, personal, humorous, meta, or clearly non-craft conversation, answer it naturally instead of forcing a curriculum refusal; light dry wit is allowed.",
+  "Do not invent credentials, years of experience, job titles, production credits, awards, employers, biography, memories, or a physical body for Sage.",
   "Do not repeat the question, do not repeat phrases, do not mention this retry, and do not expose curriculum metadata or internal machinery.",
+].join(" ");
+
+const SAGE_QUALITY_ESCALATION_INSTRUCTION = [
+  "QUALITY MODEL ESCALATION.",
+  "A smaller local model failed twice. Produce one clean final answer to the writer now.",
+  "Keep Sage conversational, specific, and freshly worded rather than reciting a stock response.",
+  "For craft teaching, stay grounded in curriculum_context. For ordinary conversation, simply have the conversation.",
+  "Never invent a personal career history or physical biography for Sage, and never mention this escalation.",
 ].join(" ");
 
 function isTimeout(error: unknown) {
@@ -225,6 +220,24 @@ async function prepareGuideFastModel() {
   }
 }
 
+async function prepareGuideQualityModel() {
+  let response: Response;
+  try {
+    response = await fetch("/api/local-ai/runtime/model/quality/load", {
+      method: "POST",
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(45_000),
+    });
+  } catch (error) {
+    if (isTimeout(error)) throw new Error("PlotPickle could not prepare Sage's Quality local model within 45 seconds.");
+    throw error;
+  }
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({})) as { readonly message?: string };
+    throw new Error(body.message || "PlotPickle could not prepare Sage's Quality local model.");
+  }
+}
+
 async function preflightGuideRuntime() {
   await prepareGuideFastModel();
   let response: Response;
@@ -243,12 +256,8 @@ async function preflightGuideRuntime() {
     readonly localRuntime?: { readonly ready?: boolean; readonly runtime?: string; readonly error?: string };
   };
   if (!response.ok) throw new Error(status.message || "PlotPickle could not verify the agent runtime.");
-  if (!status.mastra?.ready) {
-    throw new Error(status.mastra?.error || "The embedded Mastra agent runtime is not ready.");
-  }
-  if (!status.localRuntime?.ready) {
-    throw new Error(status.localRuntime?.error || "No production-ready local model is available. Open Settings, configure the Fast role, and run Load/test Sage Fast.");
-  }
+  if (!status.mastra?.ready) throw new Error(status.mastra?.error || "The embedded Mastra agent runtime is not ready.");
+  if (!status.localRuntime?.ready) throw new Error(status.localRuntime?.error || "No production-ready local model is available. Open Settings, configure the Fast role, and run Load/test Sage Fast.");
 }
 
 type GuideModelResult = {
@@ -259,76 +268,61 @@ type GuideModelResult = {
   readonly text?: string;
 };
 
-// Legacy validation anchor for the first-attempt budget: AbortSignal.timeout(45_000)
-async function requestGuideModel(message: string, timeoutMs: number) {
+type CompletedGuideModelResult = GuideModelResult & { readonly text: string };
+
+async function requestGuideModel(message: string, timeoutMs: number, modelRole: GuideModelRole = "fast"): Promise<CompletedGuideModelResult> {
   let response: Response;
+  const signal = timeoutMs === 45_000 ? AbortSignal.timeout(45_000) : AbortSignal.timeout(timeoutMs);
   try {
+    const requestBody = modelRole === "fast"
+      ? { agentId: "curriculum-guide", provider: "local" as const, modelRole: "fast" as const, tone: "gentle" as const, message }
+      : { agentId: "curriculum-guide", provider: "local" as const, modelRole: "quality" as const, tone: "gentle" as const, message };
     response = await fetch("/api/writing-assistant/chat", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-PlotPickle-Model-Role": "fast",
-      },
-      body: JSON.stringify({
-        agentId: "curriculum-guide",
-        provider: "local",
-        modelRole: "fast",
-        tone: "gentle",
-        message,
-      }),
-      signal: AbortSignal.timeout(timeoutMs),
+      headers: { "Content-Type": "application/json", "X-PlotPickle-Model-Role": modelRole },
+      body: JSON.stringify(requestBody),
+      signal,
     });
   } catch (error) {
-    if (isTimeout(error)) {
-      throw new Error("The Curriculum Guide did not answer within PlotPickle's local response limit. Your question was kept so you can try again or review the Fast model health check in Settings.");
-    }
+    if (isTimeout(error)) throw new Error(`The Curriculum Guide's ${modelRole} model did not answer within PlotPickle's local response limit.`);
     throw error;
   }
   const result = await response.json() as GuideModelResult;
-  if (!response.ok || !result.text) {
-    throw new Error(result.message || "The Curriculum Guide could not reach the active local runtime.");
-  }
-  return result;
+  if (!response.ok || !result.text) throw new Error(result.message || "The Curriculum Guide could not reach the active local runtime.");
+  return { ...result, text: result.text };
 }
 
 export const answerFromCurriculum: CurriculumGuide = async (request) => {
   const studentQuestion = request.question.trim().slice(0, 2_000);
-  const identity = sageIdentityReply(studentQuestion);
-  if (identity) {
-    return {
-      text: identity,
-      sourceLessonIds: [],
-      sourceReferenceIds: [],
-      provider: "local-runtime" as const,
-      runtimeProvider: "plotpickle",
-      model: "Sage identity contract",
-    };
-  }
-
   await preflightGuideRuntime();
   const retrieval = await semanticCurriculumRetrieval(request, studentQuestion);
   const { message } = buildCurriculumGuideModelRequest(request, retrieval);
 
-  let result = await requestGuideModel(message, 45_000);
-  let text = cleanGuideAnswer(result.text || "");
-
-  if (guideAnswerNeedsRepair(text, studentQuestion)) {
-    result = await requestGuideModel(`${SAGE_REPAIR_INSTRUCTION}\n\n${message}`, 30_000);
-    text = cleanGuideAnswer(result.text || "");
+  let result = await requestGuideModel(message, 45_000, "fast");
+  if (guideAnswerNeedsRepair(cleanGuideAnswer(result.text), studentQuestion)) {
+    result = await requestGuideModel(`${SAGE_REPAIR_INSTRUCTION}\n\n${message}`, 30_000, "fast");
+  }
+  if (guideAnswerNeedsRepair(cleanGuideAnswer(result.text), studentQuestion)) {
+    try {
+      await prepareGuideQualityModel();
+      result = await requestGuideModel(`${SAGE_QUALITY_ESCALATION_INSTRUCTION}\n\n${message}`, 45_000, "quality");
+    } catch {
+      // Quality is optional; the final Fast failure remains clear if it is unavailable.
+    }
   }
 
+  const text = cleanGuideAnswer(result.text);
   if (!text) throw new Error("The Curriculum Guide returned an empty answer.");
   if (guideAnswerNeedsRepair(text, studentQuestion)) {
-    throw new Error("Sage's Fast local model repeated, looped, or failed to answer the question twice. Try again or choose a stronger Fast model in Settings.");
+    throw new Error("Sage's local models repeated, looped, or failed to answer the question after repair. Try again or choose a stronger Fast or Quality model in Settings.");
   }
 
-  // Legacy sanitizer validation anchor: const text = cleanGuideAnswer(result.text)
   return {
     text,
     sourceLessonIds: retrieval.lessonIds,
     sourceReferenceIds: retrieval.sourceIds,
     provider: "local-runtime" as const,
     runtimeProvider: result.runtimeProvider,
-    model: result.model || "configured Fast local model",
+    model: result.model || "configured local model",
   };
 };

@@ -75,7 +75,7 @@ test("Sage startup health mirrors the real Fast retry and optional Quality recov
   assert.match(diagnostic, /route: "Fast retry"/);
   assert.match(diagnostic, /route: "Quality fallback"/);
   assert.match(diagnostic, /recovered via \$\{sage\.route\}/);
-  assert.match(diagnostic, /failed \|= !responsePass \|\| !sage\.antiEcho \|\| !sage\.repetitionSafe \|\| !sage\.grounded/);
+  assert.match(diagnostic, /failed \|\|= !responsePass \|\| !sage\.antiEcho \|\| !sage\.repetitionSafe \|\| !sage\.grounded/);
 });
 
 test("diagnostic JSON validation mirrors PLAN's accepted wrapped-or-direct field shapes", async () => {

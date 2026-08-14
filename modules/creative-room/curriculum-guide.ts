@@ -155,11 +155,36 @@ function comparableText(value: string) {
     .trim();
 }
 
+const SAGE_IDENTITY_TEXT = "I'm Sage Brinewick, PlotPickle's Curriculum Guide. I help you understand the lessons and apply them to the story you're building. I don't have a real-world production résumé or personal career history—my job here is to teach from PlotPickle's curriculum and help you use it.";
+
+export function sageIdentityReply(question: string) {
+  const normalized = comparableText(question);
+  if (/^(?:who are you|who is sage brinewick|what is your role|what do you do|tell me about yourself)$/.test(normalized)) {
+    return SAGE_IDENTITY_TEXT;
+  }
+  return null;
+}
+
+export function guideAnswerHasRunawayRepetition(answer: string) {
+  const words = comparableText(answer).split(/\s+/).filter(Boolean);
+  if (words.length < 24) return false;
+
+  const counts = new Map<string, number>();
+  for (let index = 0; index <= words.length - 5; index += 1) {
+    const phrase = words.slice(index, index + 5).join(" ");
+    const next = (counts.get(phrase) || 0) + 1;
+    if (next >= 3) return true;
+    counts.set(phrase, next);
+  }
+  return false;
+}
+
 export function guideAnswerNeedsRepair(answer: string, question: string) {
   const normalizedAnswer = comparableText(answer);
   const normalizedQuestion = comparableText(question);
   if (!normalizedAnswer) return true;
   if (normalizedAnswer === normalizedQuestion) return true;
+  if (guideAnswerHasRunawayRepetition(answer)) return true;
 
   const answerWords = normalizedAnswer.split(/\s+/).filter(Boolean);
   const questionWords = normalizedQuestion.split(/\s+/).filter(Boolean);
@@ -171,10 +196,11 @@ export function guideAnswerNeedsRepair(answer: string, question: string) {
 
 const SAGE_REPAIR_INSTRUCTION = [
   "RESPONSE QUALITY RETRY.",
-  "The previous generation failed because it repeated the writer's question or did not provide a useful answer.",
+  "The previous generation failed because it repeated the writer's question, entered a repetition loop, or did not provide a useful answer.",
   "Answer the writer directly in two to five natural sentences using only the curriculum_context below.",
   "For a definition question, define the concept, explain why it matters to a story, and give one short concrete example when the supplied curriculum supports one.",
-  "Do not repeat the question, do not mention this retry, and do not expose curriculum metadata or internal machinery.",
+  "Do not invent credentials, years of experience, job titles, production credits, awards, employers, biography, or personal history for Sage.",
+  "Do not repeat the question, do not repeat phrases, do not mention this retry, and do not expose curriculum metadata or internal machinery.",
 ].join(" ");
 
 function isTimeout(error: unknown) {
@@ -266,8 +292,20 @@ async function requestGuideModel(message: string, timeoutMs: number) {
 }
 
 export const answerFromCurriculum: CurriculumGuide = async (request) => {
-  await preflightGuideRuntime();
   const studentQuestion = request.question.trim().slice(0, 2_000);
+  const identity = sageIdentityReply(studentQuestion);
+  if (identity) {
+    return {
+      text: identity,
+      sourceLessonIds: [],
+      sourceReferenceIds: [],
+      provider: "local-runtime" as const,
+      runtimeProvider: "plotpickle",
+      model: "Sage identity contract",
+    };
+  }
+
+  await preflightGuideRuntime();
   const retrieval = await semanticCurriculumRetrieval(request, studentQuestion);
   const { message } = buildCurriculumGuideModelRequest(request, retrieval);
 
@@ -281,7 +319,7 @@ export const answerFromCurriculum: CurriculumGuide = async (request) => {
 
   if (!text) throw new Error("The Curriculum Guide returned an empty answer.");
   if (guideAnswerNeedsRepair(text, studentQuestion)) {
-    throw new Error("Sage's Fast local model repeated or failed to answer the question twice. Try again or choose a stronger Fast model in Settings.");
+    throw new Error("Sage's Fast local model repeated, looped, or failed to answer the question twice. Try again or choose a stronger Fast model in Settings.");
   }
 
   // Legacy sanitizer validation anchor: const text = cleanGuideAnswer(result.text)

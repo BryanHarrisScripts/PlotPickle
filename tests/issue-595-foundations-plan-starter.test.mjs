@@ -11,6 +11,40 @@ const ts = require("typescript");
 const root = fileURLToPath(new URL("..", import.meta.url));
 const moduleCache = new Map();
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+const workflowOrder = [
+  "Dashboard",
+  "Learn",
+  "Plan",
+  "Build",
+  "Storyboard",
+  "Synthfiction",
+  "Write",
+  "Edit",
+  "Feedback",
+  "Refine",
+  "Reports",
+];
+
+function assertWorkflowNavigation(source) {
+  const start = source.indexOf("const WORKFLOW_STAGES = [");
+  const end = source.indexOf("] as const;", start);
+  assert.ok(start >= 0 && end > start, "workflow stage definition should exist");
+  const stages = source.slice(start, end);
+  let previous = -1;
+  for (const label of workflowOrder) {
+    const index = stages.indexOf(`label: "${label}"`);
+    assert.ok(index > previous, `${label} should follow the requested workflow order`);
+    previous = index;
+  }
+  assert.equal((stages.match(/selectable: true/g) ?? []).length, 2);
+  assert.match(stages, /id: "learn"[^\n]+selectable: true/);
+  assert.match(stages, /id: "plan"[^\n]+selectable: true/);
+  assert.equal((stages.match(/gapAfter: true/g) ?? []).length, 2);
+  assert.match(stages, /id: "dashboard"[^\n]+gapAfter: true/);
+  assert.match(stages, /id: "graphic-novel"[^\n]+gapAfter: true/);
+  assert.match(source, /style=\{\{ marginRight: stage\.gapAfter \? 44 : undefined \}\}/);
+  assert.match(source, /<ol style=\{\{ minWidth: 920 \}\}>/);
+}
 
 function resolveLocalModule(parentPath, request) {
   const requested = resolve(dirname(parentPath), request);
@@ -141,6 +175,12 @@ test("the PLAN screen keeps manual work primary and uses opt-in local Mastra pro
   assert.match(learn, /aria-label="Apply what you have learned in Foundations"/);
   assert.match(learn, /type="button"/);
   assert.match(learn, /onOpenFoundationsPlan/);
+  assertWorkflowNavigation(learn);
+  assertWorkflowNavigation(plan);
+  assert.match(learn, /disabled=\{unavailable\}/);
+  assert.match(learn, /stageId === "plan" && onOpenFoundationsPlan/);
+  assert.match(plan, /disabled=\{!stage\.selectable\}/);
+  assert.match(plan, /stageId === "learn"\) openLearn\(activeLesson\.id\)/);
   assert.match(contract, /buildFoundationPlanLessons/);
   assert.match(contract, /heading\.trim\(\)\.toLowerCase\(\) === "apply this to your story"/);
   assert.doesNotMatch(contract, /The Anatomy of a Screenplay|Loglines That Carry the Movie/);

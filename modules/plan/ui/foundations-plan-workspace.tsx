@@ -20,17 +20,17 @@ import { draftFoundationLesson } from "../foundations-plan-drafter";
 import styles from "./foundations-plan-workspace.module.css";
 
 const WORKFLOW_STAGES = [
-  { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "Start" },
-  { id: "learn", relic: "/assets/workflow-relics/learn.webp", label: "Learn", detail: "Guides" },
-  { id: "plan", relic: "/assets/workflow-relics/plan.webp", label: "Plan", detail: "Design" },
-  { id: "storyboard", relic: "/assets/workflow-relics/storyboard.webp", label: "Storyboard", detail: "Visualize" },
-  { id: "write", relic: "/assets/workflow-relics/write.webp", label: "Write", detail: "Draft" },
-  { id: "edit", relic: "/assets/workflow-relics/edit.webp", label: "Edit", detail: "Polish" },
-  { id: "graphic-novel", relic: "/assets/workflow-relics/graphic-novel.webp", label: "Synthfiction", detail: "Pages" },
-  { id: "build", relic: "/assets/workflow-relics/build.webp", label: "Build", detail: "Assemble" },
-  { id: "feedback", relic: "/assets/workflow-relics/feedback.webp", label: "Feedback", detail: "Review" },
-  { id: "refine", relic: "/assets/workflow-relics/refine.webp", label: "Refine", detail: "Decide" },
-  { id: "reports", relic: "/assets/workflow-relics/reports.webp", label: "Reports", detail: "Deliver" },
+  { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "Start", selectable: false, gapAfter: true },
+  { id: "learn", relic: "/assets/workflow-relics/learn.webp", label: "Learn", detail: "Guides", selectable: true, gapAfter: false },
+  { id: "plan", relic: "/assets/workflow-relics/plan.webp", label: "Plan", detail: "Design", selectable: true, gapAfter: false },
+  { id: "build", relic: "/assets/workflow-relics/build.webp", label: "Build", detail: "Assemble", selectable: false, gapAfter: false },
+  { id: "storyboard", relic: "/assets/workflow-relics/storyboard.webp", label: "Storyboard", detail: "Visualize", selectable: false, gapAfter: false },
+  { id: "graphic-novel", relic: "/assets/workflow-relics/graphic-novel.webp", label: "Synthfiction", detail: "Pages", selectable: false, gapAfter: true },
+  { id: "write", relic: "/assets/workflow-relics/write.webp", label: "Write", detail: "Draft", selectable: false, gapAfter: false },
+  { id: "edit", relic: "/assets/workflow-relics/edit.webp", label: "Edit", detail: "Polish", selectable: false, gapAfter: false },
+  { id: "feedback", relic: "/assets/workflow-relics/feedback.webp", label: "Feedback", detail: "Review", selectable: false, gapAfter: false },
+  { id: "refine", relic: "/assets/workflow-relics/refine.webp", label: "Refine", detail: "Decide", selectable: false, gapAfter: false },
+  { id: "reports", relic: "/assets/workflow-relics/reports.webp", label: "Reports", detail: "Deliver", selectable: false, gapAfter: false },
 ] as const;
 
 function requestedLessonId() {
@@ -186,18 +186,47 @@ export default function FoundationsPlanWorkspace({
   const proposal = activeAnswers.proposal;
   const briefSaved = briefDraft === project.foundations.brief.content;
 
+  function selectWorkflowStage(stageId: (typeof WORKFLOW_STAGES)[number]["id"]) {
+    if (stageId === "learn") openLearn(activeLesson.id);
+  }
+
   return (
     <div className={styles.screen} data-hide-agent-settings-anchor="true">
       <nav className={styles.workflowNav} aria-label="PlotPickle workflow">
-        <ol>
+        <ol style={{ minWidth: 920 }}>
           {WORKFLOW_STAGES.map((stage) => (
             <li
               aria-current={stage.id === "plan" ? "page" : undefined}
               className={stage.id === "plan" ? styles.currentStage : undefined}
               key={stage.id}
+              style={{ marginRight: stage.gapAfter ? 44 : undefined }}
             >
-              <Image aria-hidden="true" alt="" height={56} src={stage.relic} width={56} />
-              <span><strong>{stage.label}</strong><small>{stage.detail}</small></span>
+              <button
+                aria-label={stage.label}
+                disabled={!stage.selectable}
+                onClick={() => selectWorkflowStage(stage.id)}
+                style={{
+                  WebkitAppearance: "none",
+                  appearance: "none",
+                  display: "grid",
+                  width: "100%",
+                  justifyItems: "center",
+                  gap: 2,
+                  padding: 0,
+                  border: 0,
+                  background: "transparent",
+                  color: "inherit",
+                  cursor: stage.selectable ? "pointer" : "default",
+                  font: "inherit",
+                  opacity: stage.selectable ? 1 : 0.62,
+                  textAlign: "center",
+                }}
+                title={stage.selectable ? `Open ${stage.label}` : `${stage.label} is not available yet`}
+                type="button"
+              >
+                <Image aria-hidden="true" alt="" height={56} src={stage.relic} width={56} />
+                <span><strong>{stage.label}</strong><small>{stage.detail}</small></span>
+              </button>
             </li>
           ))}
         </ol>

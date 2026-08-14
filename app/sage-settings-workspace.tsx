@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import LocalRuntimePanel from "./local-runtime-panel";
+import SageFastModelSetup from "./sage-fast-model-setup";
 import styles from "./sage-settings-workspace.module.css";
 
 export default function SageSettingsWorkspace() {
@@ -37,6 +38,7 @@ export default function SageSettingsWorkspace() {
         </p>
       </section>
 
+      <SageFastModelSetup />
       <LocalRuntimePanel />
     </main>
   );

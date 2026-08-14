@@ -3,7 +3,9 @@ import type { ViteDevServer } from "vite";
 import { detectLocalAiInstallations } from "./local-ai-installation-status";
 
 const API_PATH = "/api/local-ai/installations";
-const OLLAMA_URL = "http://127.0.0.1:11434/api/tags";
+const LLAMA_CPP_URL = "http://127.0.0.1:8080/v1/models";
+const LM_STUDIO_URL = "http://127.0.0.1:1234/v1/models";
+const OLLAMA_COMPAT_URL = "http://127.0.0.1:11434/v1/models";
 const COMFYUI_URL = "http://127.0.0.1:8188/system_stats";
 
 function isLoopback(value: string | undefined) {
@@ -45,22 +47,26 @@ async function responds(url: string) {
 }
 
 async function installationSnapshot() {
-  const [ollamaRunning, comfyuiRunning] = await Promise.all([
-    responds(OLLAMA_URL),
+  const [llamaCppRunning, lmStudioRunning, ollamaRunning, comfyuiRunning] = await Promise.all([
+    responds(LLAMA_CPP_URL),
+    responds(LM_STUDIO_URL),
+    responds(OLLAMA_COMPAT_URL),
     responds(COMFYUI_URL),
   ]);
-  const installations = await detectLocalAiInstallations({ ollamaRunning, comfyuiRunning });
+  const installations = await detectLocalAiInstallations({
+    llamaCppRunning,
+    lmStudioRunning,
+    ollamaRunning,
+    comfyuiRunning,
+  });
   return {
     ok: true,
     checkedAt: installations.checkedAt,
-    ollama: {
-      ...installations.ollama,
-      running: ollamaRunning,
-    },
-    comfyui: {
-      ...installations.comfyui,
-      running: comfyuiRunning,
-    },
+    preferredRuntime: "llama.cpp",
+    llamaCpp: { ...installations.llamaCpp, running: llamaCppRunning },
+    lmStudio: { ...installations.lmStudio, running: lmStudioRunning },
+    ollama: { ...installations.ollama, running: ollamaRunning, optionalRuntime: true },
+    comfyui: { ...installations.comfyui, running: comfyuiRunning },
   };
 }
 

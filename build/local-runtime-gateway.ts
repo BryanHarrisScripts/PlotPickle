@@ -1,10 +1,12 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
+import type { LocalTextRole } from "../lib/ai/local-runtime";
 import { localGpuSchedulerState } from "./local-gpu-resource-manager";
 import {
   localRuntimeSnapshot,
   managedLlamaInstallPlan,
   readLocalRuntimeSettings,
+  startManagedLlama,
   writeLocalRuntimeSettings,
   type LocalRuntimeSettings,
 } from "./local-runtime-manager";
@@ -12,6 +14,7 @@ import {
 const API_ROOT = "/api/local-ai/runtime";
 const SETTINGS_PATH = `${API_ROOT}/settings`;
 const INSTALL_PLAN_PATH = `${API_ROOT}/install-plan`;
+const ROLE_LOAD_PREFIX = `${API_ROOT}/model/`;
 
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
@@ -29,6 +32,12 @@ function isLocalRequest(request: IncomingMessage) {
   } catch {
     return false;
   }
+}
+
+function requestedRole(pathname: string): LocalTextRole | null {
+  if (!pathname.startsWith(ROLE_LOAD_PREFIX) || !pathname.endsWith("/load")) return null;
+  const role = pathname.slice(ROLE_LOAD_PREFIX.length, -"/load".length);
+  return role === "fast" || role === "quality" || role === "deep" ? role : null;
 }
 
 function sendJson(response: ServerResponse, status: number, body: Record<string, unknown>) {
@@ -81,7 +90,8 @@ async function saveSettings(body: Record<string, unknown>) {
 export function registerLocalRuntimeGateway(server: ViteDevServer) {
   server.middlewares.use((request, response, next) => {
     const pathname = request.url?.split("?", 1)[0] || "";
-    if (pathname !== API_ROOT && pathname !== SETTINGS_PATH && pathname !== INSTALL_PLAN_PATH) {
+    const roleToLoad = requestedRole(pathname);
+    if (pathname !== API_ROOT && pathname !== SETTINGS_PATH && pathname !== INSTALL_PLAN_PATH && !roleToLoad) {
       next();
       return;
     }
@@ -99,6 +109,19 @@ export function registerLocalRuntimeGateway(server: ViteDevServer) {
         await saveSettings(await readBody(request));
         const snapshot = await localRuntimeSnapshot();
         sendJson(response, 200, { ok: true, ...snapshot, scheduler: localGpuSchedulerState() });
+        return;
+      }
+      if (roleToLoad && request.method === "POST") {
+        const managedStarted = await startManagedLlama(roleToLoad);
+        const snapshot = await localRuntimeSnapshot();
+        sendJson(response, 200, {
+          ok: true,
+          role: roleToLoad,
+          managedStarted,
+          roleStatus: snapshot.roles[roleToLoad],
+          ...snapshot,
+          scheduler: localGpuSchedulerState(),
+        });
         return;
       }
       if (pathname === INSTALL_PLAN_PATH && request.method === "GET") {

@@ -81,6 +81,7 @@ async function semanticCurriculumRetrieval(
     if (!response.ok || !value.retrieval?.context) throw new Error("Semantic curriculum retrieval is unavailable.");
     return value.retrieval;
   } catch {
+    // The lexical retriever remains a bounded, authority-aware local fallback while semantic retrieval is unavailable.
     return retrieveCurriculumContext(request.curriculum, request.activeLessonId, question);
   }
 }
@@ -370,17 +371,14 @@ type CompletedGuideModelResult = GuideModelResult & { readonly text: string };
 
 async function requestGuideModel(message: string, timeoutMs: number, modelRole: GuideModelRole = "fast"): Promise<CompletedGuideModelResult> {
   let response: Response;
+  const requestBody = modelRole === "fast"
+    ? { agentId: "curriculum-guide", provider: "local" as const, modelRole: "fast" as const, tone: "gentle" as const, message }
+    : { agentId: "curriculum-guide", provider: "local" as const, modelRole: "quality" as const, tone: "gentle" as const, message };
   try {
     response = await fetch("/api/writing-assistant/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-PlotPickle-Model-Role": modelRole },
-      body: JSON.stringify({
-        agentId: "curriculum-guide",
-        provider: "local" as const,
-        modelRole,
-        tone: "gentle" as const,
-        message,
-      }),
+      body: JSON.stringify(requestBody),
       signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (error) {

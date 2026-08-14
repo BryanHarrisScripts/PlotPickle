@@ -51,13 +51,14 @@ const workspace = await read("modules/learn/ui/learn-workspace.tsx");
 const guide = await read("modules/creative-room/curriculum-guide.ts");
 const retrieval = await read("modules/creative-room/curriculum-retrieval.ts");
 const runtime = await read("build/mastra-agent-runtime.ts");
+const localRuntime = await read("build/local-runtime-manager.ts");
 
 check(index.files.length === 12, `Expected 12 LEARN topic documents, found ${index.files.length}.`);
 check(completion.topics.length === index.files.length, "The completion manifest must describe every LEARN topic.");
 check(completion.contract.runtimeDelivery === "bundled-local-only", "LEARN must declare bundled-local-only runtime delivery.");
 check(completion.contract.externalRepositoryAccessRequired === false, "LEARN must not require external repository access.");
 check(completion.contract.studentFacingExternalSourceLinks === false, "LEARN source links must stay inside PlotPickle.");
-check(completion.contract.sageRuntime === "mastra-local-ollama", "Sage must use the local Mastra/Ollama runtime.");
+check(completion.contract.sageRuntime === "mastra-local-openai-compatible", "Sage must use Mastra through PlotPickle's provider-independent local OpenAI-compatible runtime.");
 check(completion.contract.cannedTeachingResponsesAllowed === false, "Canned Sage teaching responses must remain forbidden.");
 check(completion.contract.lessonChangeStartsAtTop === true, "Every opened lesson must start at the top.");
 check(completion.contract.lessonTopControlRequired === true, "Every lesson must expose a top control.");
@@ -144,10 +145,12 @@ for (const requiredField of [
   check(retrieval.includes(requiredField), `The RAG inventory does not include ${requiredField}.`);
 }
 check(/MAX_CHUNK_CHARACTERS = 900/.test(retrieval), "RAG blocks must stay inside the verified local chunk boundary.");
-check(/retrieveCurriculumContext/.test(guide), "Sage must retrieve from the local curriculum inventory.");
+check(/retrieveCurriculumContext/.test(guide), "Sage must preserve the bounded local curriculum fallback.");
+check(/semanticCurriculumRetrieval/.test(guide) && /\/api\/local-ai\/curriculum-rag/.test(guide), "Sage must use local semantic retrieval and reranking before generation when the CPU service is ready.");
 check(/<student_question>/.test(guide) && /<\/student_question>/.test(guide), "Sage must preserve the student's live question in a complete structured block.");
 check(!/Repository:|source\.repository|source\.path|source\.url/.test(guide), "Sage's runtime prompt must not expose repository provenance.");
-check(/agentId: "curriculum-guide"/.test(guide) && /provider: "ollama"/.test(guide), "Sage must request the local Mastra curriculum agent through Ollama.");
+check(/agentId: "curriculum-guide"/.test(guide) && /provider: "local"/.test(guide) && /modelRole: "fast"/.test(guide), "Sage must request the Fast local Mastra curriculum agent through the provider-independent runtime.");
+check(/runtimePreference/.test(localRuntime) && /llama\.cpp/.test(localRuntime) && /lm-studio/.test(localRuntime) && /ollama/.test(localRuntime), "The local runtime must preserve interchangeable llama.cpp, LM Studio and Ollama support.");
 check(/agent\.generate\(prompt/.test(runtime), "Mastra must generate Sage's response through the selected local model.");
 check(!/promptStarters|answerBank|fixedResponses|cannedResponses/.test(workspace + guide), "The Sage answer path must not contain canned response banks.");
 
@@ -158,5 +161,5 @@ if (failures.length) {
 } else {
   console.log(`LEARN local curriculum contract passed: ${archivedLessons.length} archived lessons and ${allSources.length} bundled source documents.`);
   notes.forEach((note) => console.log(note));
-  console.log("Sage uses complete local chunk inventory -> Mastra curriculum agent -> local Ollama generation; no canned teaching bank.");
+  console.log("Sage uses complete local chunk inventory -> CPU semantic retrieval/reranking -> Mastra Fast local role -> OpenAI-compatible local generation; no canned teaching bank.");
 }

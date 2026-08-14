@@ -27,9 +27,7 @@ type ChatResult = {
 };
 
 const DISPLAY_WIDTH = 34;
-const STOP_WORDS = new Set([
-  "about", "after", "again", "also", "because", "before", "being", "between", "could", "from", "have", "into", "more", "only", "other", "should", "story", "than", "that", "their", "theme", "there", "these", "they", "this", "through", "what", "when", "where", "which", "with", "would", "your",
-]);
+const GROUNDING_PROBE_PHRASE = "copper lighthouse";
 
 function clock() {
   return new Date().toTimeString().slice(0, 8);
@@ -66,20 +64,33 @@ function repetitionPass(answer: string) {
   return true;
 }
 
-function meaningfulTokens(value: string) {
-  return new Set(comparableText(value)
-    .split(/\s+/)
-    .filter((word) => word.length >= 5 && !STOP_WORDS.has(word)));
+function groundingPass(answer: string) {
+  return comparableText(answer).includes(GROUNDING_PROBE_PHRASE);
 }
 
-function groundingPass(answer: string, curriculumContext: string) {
-  const answerTokens = meaningfulTokens(answer);
-  const contextTokens = meaningfulTokens(curriculumContext);
-  let overlap = 0;
-  for (const token of answerTokens) {
-    if (contextTokens.has(token)) overlap += 1;
+function structuredFoundationPass(value: string) {
+  const unfenced = value
+    .replace(/^\s*```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/i, "")
+    .trim();
+  const firstBrace = unfenced.indexOf("{");
+  const lastBrace = unfenced.lastIndexOf("}");
+  if (firstBrace < 0 || lastBrace <= firstBrace) return false;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(unfenced.slice(firstBrace, lastBrace + 1));
+  } catch {
+    return false;
   }
-  return overlap >= 2;
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return false;
+  const root = parsed as Record<string, unknown>;
+  const candidate = root.values && typeof root.values === "object" && !Array.isArray(root.values)
+    ? root.values as Record<string, unknown>
+    : root;
+  return ["output-1", "output-2"].every((fieldId) => (
+    typeof candidate[fieldId] === "string" && Boolean((candidate[fieldId] as string).trim())
+  ));
 }
 
 async function fetchJson<T>(url: string, init?: RequestInit, timeoutMs = 10_000): Promise<T> {
@@ -111,26 +122,23 @@ async function loadThemeProbe() {
   const themeDefinition = lessons
     .flatMap((lesson) => lesson.definitions || [])
     .find((definition) => definition.term?.trim().toLowerCase() === "theme");
-  if (themeDefinition?.meaning) {
-    return {
-      question: "What is theme?",
-      context: `Theme: ${themeDefinition.meaning}`,
-    };
-  }
   const lesson = lessons.find((item) => /theme/i.test(item.title || "")) || lessons[0];
-  const context = [
-    lesson?.title,
-    lesson?.overview,
-    ...(lesson?.sections || []).flatMap((section) => [
-      section.heading,
-      ...(section.paragraphs || []),
-      ...(section.points || []),
-    ]),
-    ...(lesson?.definitions || []).map((definition) => `${definition.term}: ${definition.meaning}`),
-  ].filter(Boolean).join("\n").slice(0, 5_000);
+  const curriculumText = themeDefinition?.meaning
+    ? `Theme: ${themeDefinition.meaning}`
+    : [
+      lesson?.title,
+      lesson?.overview,
+      ...(lesson?.sections || []).flatMap((section) => [
+        section.heading,
+        ...(section.paragraphs || []),
+        ...(section.points || []),
+      ]),
+      ...(lesson?.definitions || []).map((definition) => `${definition.term}: ${definition.meaning}`),
+    ].filter(Boolean).join("\n").slice(0, 5_000);
+
   return {
-    question: "What is theme?",
-    context,
+    question: "What is theme, and what example motif does this curriculum context name?",
+    context: `${curriculumText}\nStartup health example motif: ${GROUNDING_PROBE_PHRASE}.`,
   };
 }
 
@@ -167,7 +175,7 @@ async function runSageProbe(baseUrl: string) {
     latencyMs: result.latencyMs || Date.now() - started,
     antiEcho: antiEchoPass(text, question),
     repetitionSafe: repetitionPass(text),
-    grounded: groundingPass(text, context),
+    grounded: groundingPass(text),
   };
 }
 
@@ -185,16 +193,9 @@ async function runFoundationsProbe(baseUrl: string) {
     }),
   }, 75_000);
   const text = result.text?.trim() || "";
-  let structured = false;
-  try {
-    const parsed = JSON.parse(text) as { readonly values?: Record<string, string> };
-    structured = Boolean(parsed.values?.["output-1"]?.trim() && parsed.values?.["output-2"]?.trim());
-  } catch {
-    structured = false;
-  }
   return {
     latencyMs: result.latencyMs || Date.now() - started,
-    structured,
+    structured: structuredFoundationPass(text),
   };
 }
 
@@ -255,7 +256,7 @@ export async function runStartupAgentDiagnostics(baseUrl: string) {
       printResult("Sage response", responsePass ? "PASS" : "FAIL", `${(sage.latencyMs / 1000).toFixed(1)}s`);
       printResult("Sage anti-echo check", sage.antiEcho ? "PASS" : "FAIL");
       printResult("Sage repetition guard", sage.repetitionSafe ? "PASS" : "FAIL");
-      printResult("Curriculum grounding", sage.grounded ? "PASS" : "FAIL");
+      printResult("Curriculum grounding", sage.grounded ? "PASS" : "FAIL", sage.grounded ? "" : `missing '${GROUNDING_PROBE_PHRASE}' probe`);
       failed ||= !responsePass || !sage.antiEcho || !sage.repetitionSafe || !sage.grounded;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Sage probe failed";
@@ -290,7 +291,7 @@ export async function runStartupAgentDiagnostics(baseUrl: string) {
     try {
       const plan = await runFoundationsProbe(baseUrl);
       printResult("Foundations Planner response", "PASS", `${(plan.latencyMs / 1000).toFixed(1)}s`);
-      printResult("Structured JSON", plan.structured ? "PASS" : "FAIL");
+      printResult("Structured JSON", plan.structured ? "PASS" : "FAIL", plan.structured ? "" : "response did not contain both requested fields");
       failed ||= !plan.structured;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Foundations probe failed";

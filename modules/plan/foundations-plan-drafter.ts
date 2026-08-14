@@ -70,7 +70,26 @@ function parseProposal(
   return values;
 }
 
+async function preparePlanQualityModel() {
+  let response: Response;
+  try {
+    response = await fetch("/api/local-ai/runtime/model/quality/load", {
+      method: "POST",
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(35_000),
+    });
+  } catch (error) {
+    if (isTimeout(error)) throw new Error("PlotPickle could not prepare PLAN's Quality local model within 35 seconds. Open Settings and run Load/test PLAN Quality.");
+    throw error;
+  }
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({})) as { readonly message?: string };
+    throw new Error(body.message || "PlotPickle could not prepare PLAN's Quality local model. Open Settings and review the Quality role.");
+  }
+}
+
 async function preflightLocalRuntime() {
+  await preparePlanQualityModel();
   let response: Response;
   try {
     response = await fetch("/api/writing-assistant/status", {
@@ -100,11 +119,11 @@ async function preflightLocalRuntime() {
   if (!response.ok) throw new Error(status.message || "PlotPickle could not verify the local writing runtime.");
   if (!status.mastra?.ready) throw new Error(status.mastra?.error || "The embedded Mastra runtime is not ready.");
   if (!status.localRuntime?.ready) {
-    throw new Error(status.localRuntime?.error || "No production-ready local OpenAI-compatible runtime is available.");
+    throw new Error(status.localRuntime?.error || "No production-ready local OpenAI-compatible runtime is available. Open Settings and configure the Quality role.");
   }
   const quality = status.localRuntime.models?.quality;
   if (!quality?.available || !quality.selected) {
-    throw new Error(`${quality?.recommended || "The Quality local model"} is not available. Install it or choose an advanced Quality-model override in Settings; your fields were not changed.`);
+    throw new Error(`${quality?.recommended || "The Quality local model"} is not available. Open Settings, configure the Quality role, and run Load/test PLAN Quality; your fields were not changed.`);
   }
   return quality.selected;
 }

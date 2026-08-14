@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
+  <title id="title">Settings relic</title>
+  <desc id="desc">A transparent fantasy compass-and-gear relic with gold metalwork and a teal centre gem.</desc>
+  <defs>
+    <radialGradient id="gem" cx="38%" cy="32%" r="72%">
+      <stop offset="0" stop-color="#d9fff8"/>
+      <stop offset="0.22" stop-color="#6ee8d7"/>
+      <stop offset="0.58" stop-color="#238f86"/>
+      <stop offset="1" stop-color="#0b3937"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#725121"/>
+      <stop offset="0.26" stop-color="#f1d184"/>
+      <stop offset="0.52" stop-color="#8d6529"/>
+      <stop offset="0.76" stop-color="#e3bd68"/>
+      <stop offset="1" stop-color="#5e431d"/>
+    </linearGradient>
+    <linearGradient id="iron" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#39413f"/>
+      <stop offset="0.45" stop-color="#161c1c"/>
+      <stop offset="1" stop-color="#59615b"/>
+    </linearGradient>
+    <filter id="glow" x="-70%" y="-70%" width="240%" height="240%">
+      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M48 5 54 14 64 11 66 21 77 20 76 31 86 35 80 44 89 51 80 58 85 68 74 71 74 82 63 80 57 90 48 84 39 90 33 80 22 82 22 71 11 68 16 58 7 51 16 44 10 35 20 31 19 20 30 21 32 11 42 14Z" fill="url(#iron)" stroke="#2d3431" stroke-width="2"/>
+    <circle cx="48" cy="48" r="34" fill="#080b0b" stroke="url(#gold)" stroke-width="4"/>
+    <circle cx="48" cy="48" r="27" stroke="#8f6c31" stroke-width="1.5" opacity=".85"/>
+    <path d="M48 18 53 36 69 27 60 42 78 48 60 54 69 69 53 60 48 78 43 60 27 69 36 54 18 48 36 42 27 27 43 36Z" fill="#121817" stroke="url(#gold)" stroke-width="2.4"/>
+    <path d="M48 26 52 40 66 34 56 44 70 48 56 52 66 62 52 56 48 70 44 56 30 62 40 52 26 48 40 44 30 34 44 40Z" fill="none" stroke="#c99b49" stroke-width="1.2" opacity=".9"/>
+    <circle cx="48" cy="48" r="10" fill="url(#gem)" stroke="#d5bb75" stroke-width="2" filter="url(#glow)"/>
+    <path d="m48 40 4.5 5-1.5 7-6 3-4.5-5 1.5-7Z" fill="#7ce3d6" stroke="#dffcf6" stroke-width=".8" opacity=".95"/>
+    <circle cx="48" cy="48" r="3" fill="#eefcf8" opacity=".72"/>
+    <path d="M48 9v7M48 80v7M9 48h7M80 48h7M19 19l5 5M72 72l5 5M77 19l-5 5M24 72l-5 5" stroke="#d1a14f" stroke-width="2"/>
+  </g>
+</svg>

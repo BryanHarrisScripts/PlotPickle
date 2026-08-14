@@ -1,4 +1,4 @@
-/* PlotPickle logo: approved transparent icon-only asset, larger than workflow glyphs, with a pixel-following glow. */
+/* PlotPickle header identity: current V2 ouroboros/nib mark with a restrained glow. */
 nav[aria-label="PlotPickle workflow"] > img[alt="PlotPickle"] {
   position: absolute !important;
   z-index: 2 !important;
@@ -28,11 +28,11 @@ nav[aria-label="PlotPickle workflow"]::before {
   left: 12px;
   width: 68px;
   height: 68px;
-  background: center / contain no-repeat url("/brand/plotpickle-icon-master-transparent.png");
+  background: center / contain no-repeat url("/brand/plotpickle-ouroboros-v2.png");
   content: "";
   filter:
-    drop-shadow(0 0 6px rgba(53, 201, 184, 0.62))
-    drop-shadow(0 0 13px rgba(211, 170, 99, 0.3));
+    drop-shadow(0 0 6px rgba(53, 201, 184, 0.42))
+    drop-shadow(0 0 13px rgba(211, 170, 99, 0.32));
   pointer-events: none;
 }
 

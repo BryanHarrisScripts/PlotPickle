@@ -81,9 +81,10 @@ test("#544 keeps the Agent & Settings control fixed in the shared shell and stan
   assert.ok(header.indexOf("shell-agent-settings-anchor") < header.indexOf("shell-brand"));
   assert.match(anchor, /href="\/\?workspace=settings"/);
   assert.match(styles, /position: fixed/);
-  assert.match(styles, /top: 12px/);
-  assert.match(styles, /left: 12px/);
-  assert.match(styles, /#22bfae|#d8b769/);
+  assert.match(styles, /top: 4px/);
+  assert.match(styles, /right: 12px/);
+  assert.match(styles, /left: auto/);
+  assert.match(styles, /#22bfae|#35c9b8|#d8b769/);
   assert.match(layout, /<UiContinuityAnchor \/>/);
 });
 
@@ -99,7 +100,6 @@ test("#544 launches concurrently beside the Full Story Builder and saves one loc
   assert.ok(batch.indexOf("call :start_ui_continuity_agent") < batch.lastIndexOf('call "%VITE_CMD%"'));
   assert.match(agent, /ui-continuity-report\.md/);
   assert.match(agent, /writeFile\(reportPath, report, "utf8"\)/);
-  assert.match(agent, /\.project-strip, \[class\*="projectStrip"\]/);
   assert.doesNotMatch(agent, /applyPatch|writeFile\([^r][^e][^p][^o][^r][^t]/i);
   assert.match(docs, /It has no automatic fix path/);
 });

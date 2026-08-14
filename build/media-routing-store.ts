@@ -59,7 +59,7 @@ const videoRoutes: VideoRoute[] = ["minimax-direct", "minimax-comfyui", "none"];
 function emptyStore(): MediaRoutingStore {
   return {
     version: 1,
-    imageRoute: "manual",
+    imageRoute: "comfyui",
     videoRoute: "none",
     profiles: {},
     comfyui: {
@@ -147,7 +147,6 @@ export async function readMediaRoutingStore() {
   let changed = !stored;
   if (imported && !sameProfile(next.profiles[imported.provider], imported)) {
     next.profiles[imported.provider] = imported;
-    if (next.imageRoute === "manual") next.imageRoute = imported.provider;
     changed = true;
   }
   if (next.videoRoute === "minimax-comfyui") {

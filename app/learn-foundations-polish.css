@@ -1,1 +1,145 @@
-.workspaceBrandMarkPlaceholder { display: none; }
+/* PlotPickle logo: image only, with no frame, border, trim, plate, or glow. */
+nav[aria-label="PlotPickle workflow"] > img[alt="PlotPickle"] {
+  position: absolute !important;
+  z-index: 2 !important;
+  top: 7px !important;
+  right: auto !important;
+  left: 18px !important;
+  display: block !important;
+  width: 50px !important;
+  height: 50px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  clip-path: none !important;
+  box-shadow: none !important;
+  object-fit: contain !important;
+  filter: none !important;
+}
+
+/* Improve the reading hierarchy without removing, shortening, or hiding lesson copy. */
+article[aria-label="Active lesson"] > h1 {
+  max-width: 23ch;
+  margin-bottom: 16px;
+  text-wrap: balance;
+}
+
+article[aria-label="Active lesson"] > p {
+  max-width: 70ch;
+}
+
+article[aria-label="Active lesson"] > section[data-lesson-block="teaching"] {
+  padding-top: 8px;
+}
+
+article[aria-label="Active lesson"] > section[data-lesson-block="teaching"] > h2 {
+  position: relative;
+  padding-left: 18px;
+}
+
+article[aria-label="Active lesson"] > section[data-lesson-block="teaching"] > h2::before {
+  position: absolute;
+  top: 0.42em;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  border: 1px solid rgba(211, 170, 99, 0.8);
+  content: "";
+  transform: rotate(45deg);
+}
+
+article[aria-label="Active lesson"] > section[data-lesson-block="teaching"] > p:first-of-type {
+  color: #e3ddd3;
+  font-size: 18px;
+  line-height: 1.78;
+}
+
+article[aria-label="Active lesson"] > section[data-lesson-block="teaching"] > ul {
+  padding: 16px 20px 16px 2.4em;
+  border-top: 1px solid rgba(53, 201, 184, 0.14);
+  border-bottom: 1px solid rgba(53, 201, 184, 0.14);
+  background: linear-gradient(90deg, rgba(53, 201, 184, 0.045), transparent 72%);
+}
+
+article[aria-label="Active lesson"] > section[data-lesson-block="objectives"] > ul,
+article[aria-label="Active lesson"] > section[data-lesson-block="checklist"] > ul,
+article[aria-label="Active lesson"] > section[data-lesson-block="mistakes"] > ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 28px;
+  padding-inline-start: 1.4em;
+}
+
+article[aria-label="Active lesson"] > section[data-lesson-block="objectives"] li,
+article[aria-label="Active lesson"] > section[data-lesson-block="checklist"] li,
+article[aria-label="Active lesson"] > section[data-lesson-block="mistakes"] li {
+  margin-top: 0 !important;
+}
+
+article[aria-label="Active lesson"] > section[data-lesson-block="definitions"] dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 34px;
+}
+
+article[aria-label="Active lesson"] > section[data-lesson-block="definitions"] dl > div {
+  min-width: 0;
+}
+
+article[aria-label="Active lesson"] > section[data-lesson-block="example"] h2::before,
+article[aria-label="Active lesson"] > section[data-lesson-block="exercise"] h2::before {
+  display: inline-block;
+  margin-right: 9px;
+  color: #d3aa63;
+  content: "◆";
+  font-size: 0.55em;
+  vertical-align: 0.18em;
+}
+
+article[aria-label="Active lesson"] > section[data-lesson-block="exercise"] p:last-child {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(211, 170, 99, 0.3);
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] > h3,
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] > h4 {
+  position: relative;
+  padding-left: 14px;
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] > h3::before,
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] > h4::before {
+  position: absolute;
+  top: 0.55em;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  background: #35c9b8;
+  content: "";
+  transform: rotate(45deg);
+}
+
+article[aria-label="Active lesson"] [data-integrated-curriculum-content] strong {
+  color: #eee7da;
+  font-weight: 760;
+}
+
+@media (max-width: 920px) {
+  nav[aria-label="PlotPickle workflow"] > img[alt="PlotPickle"] {
+    top: 9px !important;
+    left: 12px !important;
+    width: 44px !important;
+    height: 44px !important;
+  }
+}
+
+@media (max-width: 820px) {
+  article[aria-label="Active lesson"] > section[data-lesson-block="objectives"] > ul,
+  article[aria-label="Active lesson"] > section[data-lesson-block="checklist"] > ul,
+  article[aria-label="Active lesson"] > section[data-lesson-block="mistakes"] > ul,
+  article[aria-label="Active lesson"] > section[data-lesson-block="definitions"] dl {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,16 +1,18 @@
 """PlotPickle local curriculum retrieval service.
 
-The service intentionally stays CPU-resident so the active text, image and video
-workflows can own the GPU. It uses Qwen3-Embedding-0.6B for first-pass semantic
-retrieval and Qwen3-Reranker-0.6B for the final ordering. The browser never sends
-all 81 modules to the generation model; only the bounded ranked passages returned
-by this service are assembled into the GUIDE prompt.
+Qwen3-Embedding-0.6B and Qwen3-Reranker-0.6B remain CPU-resident so creative
+GPU VRAM belongs to text, image or video one workload at a time. Curriculum
+embeddings are cached by corpus digest; only the query and rerank candidates are
+recomputed for each question. The generation model receives only bounded ranked
+passages, never the full 81-module curriculum.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
@@ -31,19 +33,28 @@ MAX_QUERY_CHARACTERS = 2000
 
 _embedding_model: SentenceTransformer | None = None
 _reranker_model: CrossEncoder | None = None
+_model_lock = threading.Lock()
+_cache_lock = threading.Lock()
+_cached_corpus_digest = ""
+_cached_documents: list[dict[str, str]] = []
+_cached_embeddings: np.ndarray | None = None
 
 
 def embedding_model() -> SentenceTransformer:
     global _embedding_model
     if _embedding_model is None:
-        _embedding_model = SentenceTransformer(EMBEDDING_MODEL_ID, device="cpu")
+        with _model_lock:
+            if _embedding_model is None:
+                _embedding_model = SentenceTransformer(EMBEDDING_MODEL_ID, device="cpu")
     return _embedding_model
 
 
 def reranker_model() -> CrossEncoder:
     global _reranker_model
     if _reranker_model is None:
-        _reranker_model = CrossEncoder(RERANKER_MODEL_ID, device="cpu")
+        with _model_lock:
+            if _reranker_model is None:
+                _reranker_model = CrossEncoder(RERANKER_MODEL_ID, device="cpu")
     return _reranker_model
 
 
@@ -65,6 +76,42 @@ def normalized_documents(value: Any) -> list[dict[str, str]]:
     return documents
 
 
+def corpus_digest(documents: list[dict[str, str]]) -> str:
+    digest = hashlib.sha256()
+    for document in documents:
+        digest.update(document["id"].encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(document["text"].encode("utf-8"))
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def document_embedding_inventory(
+    documents: list[dict[str, str]],
+) -> tuple[list[dict[str, str]], np.ndarray, bool]:
+    global _cached_corpus_digest, _cached_documents, _cached_embeddings
+    digest = corpus_digest(documents)
+    with _cache_lock:
+        if _cached_corpus_digest == digest and _cached_embeddings is not None:
+            return _cached_documents, _cached_embeddings, True
+
+    embeddings = np.asarray(
+        embedding_model().encode(
+            [item["text"] for item in documents],
+            normalize_embeddings=True,
+            convert_to_numpy=True,
+            batch_size=16,
+            show_progress_bar=False,
+        ),
+        dtype=np.float32,
+    )
+    with _cache_lock:
+        _cached_corpus_digest = digest
+        _cached_documents = documents
+        _cached_embeddings = embeddings
+    return documents, embeddings, False
+
+
 def cosine_scores(query: np.ndarray, documents: np.ndarray) -> np.ndarray:
     query_norm = np.linalg.norm(query)
     document_norms = np.linalg.norm(documents, axis=1)
@@ -82,20 +129,9 @@ def retrieve(payload: dict[str, Any]) -> dict[str, Any]:
     if not documents:
         raise ValueError("At least one curriculum passage is required.")
 
-    embedder = embedding_model()
-    document_texts = [item["text"] for item in documents]
+    documents, document_embeddings, cache_hit = document_embedding_inventory(documents)
     query_embedding = np.asarray(
-        embedder.encode([query], normalize_embeddings=True, convert_to_numpy=True)[0],
-        dtype=np.float32,
-    )
-    document_embeddings = np.asarray(
-        embedder.encode(
-            document_texts,
-            normalize_embeddings=True,
-            convert_to_numpy=True,
-            batch_size=16,
-            show_progress_bar=False,
-        ),
+        embedding_model().encode([query], normalize_embeddings=True, convert_to_numpy=True)[0],
         dtype=np.float32,
     )
     semantic_scores = cosine_scores(query_embedding, document_embeddings)
@@ -123,12 +159,13 @@ def retrieve(payload: dict[str, Any]) -> dict[str, Any]:
         "embeddingModel": EMBEDDING_MODEL_ID,
         "rerankerModel": RERANKER_MODEL_ID,
         "device": "cpu",
+        "corpusCacheHit": cache_hit,
         "results": results,
     }
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "PlotPickleCurriculumRAG/1.0"
+    server_version = "PlotPickleCurriculumRAG/1.1"
 
     def log_message(self, format: str, *args: Any) -> None:
         return
@@ -158,6 +195,7 @@ class Handler(BaseHTTPRequestHandler):
                     "embedding": _embedding_model is not None,
                     "reranker": _reranker_model is not None,
                 },
+                "corpusCached": _cached_embeddings is not None,
             },
         )
 
@@ -173,11 +211,15 @@ class Handler(BaseHTTPRequestHandler):
             if not isinstance(payload, dict):
                 raise ValueError("The retrieval payload must be an object.")
             self.send_json(200, retrieve(payload))
-        except Exception as error:  # noqa: BLE001 - boundary reports a clean local error
+        except Exception as error:  # noqa: BLE001 - local service boundary
             self.send_json(400, {"ok": False, "message": str(error)[:500]})
 
 
 def main() -> None:
+    if os.environ.get("PLOTPICKLE_RAG_PRELOAD", "1") != "0":
+        print("Loading PlotPickle curriculum retrieval models on CPU...", flush=True)
+        embedding_model()
+        reranker_model()
     server = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"PlotPickle curriculum RAG listening on http://{HOST}:{PORT}", flush=True)
     server.serve_forever()

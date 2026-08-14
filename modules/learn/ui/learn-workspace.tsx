@@ -44,6 +44,26 @@ function topicName(topic: string) {
   return topic.replaceAll("-", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function splitLeadingKeyLabel(text: string) {
+  const match = text.match(/^([^:\n]{1,96}:)(\s+)([\s\S]+)$/);
+  if (!match) return null;
+  const label = match[1];
+  if (!/[A-Za-z]/.test(label) || /[.!?]/.test(label)) return null;
+  return { label, remainder: match[3], separator: match[2] };
+}
+
+function KeyTakeawayText({ enabled, text }: { readonly enabled: boolean; readonly text: string }) {
+  const keyLabel = enabled ? splitLeadingKeyLabel(text) : null;
+  if (!keyLabel) return <>{text}</>;
+  return (
+    <>
+      <strong data-key-term-label><u>{keyLabel.label}</u></strong>
+      {keyLabel.separator}
+      {keyLabel.remainder}
+    </>
+  );
+}
+
 function searchableLessonText(lesson: CurriculumLesson) {
   return [
     lesson.title,
@@ -308,6 +328,7 @@ export default function LearnWorkspace({
   }
 
   const completed = new Set(project.learning.completedLessonIds);
+  const emphasizeFoundationsLabels = activeLesson.topic === "foundations";
 
   return (
     <div className={styles.learnScreen} data-hide-agent-settings-anchor="true">
@@ -337,10 +358,10 @@ export default function LearnWorkspace({
         <Image
           alt="PlotPickle"
           className={styles.workspaceBrandMark}
-          height={64}
+          height={80}
           priority
           src="/brand/favicon/plotpickle-ouroboros-v2-128.png"
-          width={64}
+          width={80}
         />
       </nav>
       <main className={styles.workspace} data-preserve-story-language="true">
@@ -469,25 +490,26 @@ export default function LearnWorkspace({
           <span>{topicName(activeLesson.topic)}</span>
         </div>
         <h1 ref={lessonHeadingRef} tabIndex={-1}>{activeLesson.title}</h1>
-        <p className={styles.overview}>{activeLesson.overview}</p>
+        <p className={styles.overview}><KeyTakeawayText enabled={emphasizeFoundationsLabels} text={activeLesson.overview} /></p>
         <section data-lesson-block="objectives">
           <h2>What you will learn</h2>
           <ul>
-            {activeLesson.objectives.map((objective) => <li key={objective}>{objective}</li>)}
+            {activeLesson.objectives.map((objective) => <li key={objective}><KeyTakeawayText enabled={emphasizeFoundationsLabels} text={objective} /></li>)}
           </ul>
         </section>
         {activeLesson.sections.slice(0, integratedContentIndex).map((section, sectionIndex) => (
           <section data-lesson-block="teaching" key={`${sectionIndex}-${section.heading}`}>
             <h2>{section.heading}</h2>
-            {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            {section.paragraphs.map((paragraph) => <p key={paragraph}><KeyTakeawayText enabled={emphasizeFoundationsLabels} text={paragraph} /></p>)}
             {section.points?.length ? (
-              <ul>{section.points.map((point) => <li key={point}>{point}</li>)}</ul>
+              <ul>{section.points.map((point) => <li key={point}><KeyTakeawayText enabled={emphasizeFoundationsLabels} text={point} /></li>)}</ul>
             ) : null}
           </section>
         ))}
         {activeLesson.sources.map((source) => (
           <section data-integrated-curriculum-section data-lesson-block="teaching" key={source.id}>
             <CurriculumMaterial
+              emphasizeKeyLabels={emphasizeFoundationsLabels}
               onOpenLesson={openLesson}
               resolveLocalReference={(href) => localSourceIndex.get(localCurriculumSourceKey(href))}
               source={source}
@@ -497,9 +519,9 @@ export default function LearnWorkspace({
         {activeLesson.sections.slice(integratedContentIndex).map((section, sectionIndex) => (
           <section data-lesson-block="teaching" key={`${integratedContentIndex + sectionIndex}-${section.heading}`}>
             <h2>{section.heading}</h2>
-            {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            {section.paragraphs.map((paragraph) => <p key={paragraph}><KeyTakeawayText enabled={emphasizeFoundationsLabels} text={paragraph} /></p>)}
             {section.points?.length ? (
-              <ul>{section.points.map((point) => <li key={point}>{point}</li>)}</ul>
+              <ul>{section.points.map((point) => <li key={point}><KeyTakeawayText enabled={emphasizeFoundationsLabels} text={point} /></li>)}</ul>
             ) : null}
           </section>
         ))}
@@ -510,7 +532,7 @@ export default function LearnWorkspace({
               {activeLesson.definitions.map((definition) => (
                 <div key={definition.term}>
                   <dt>{definition.term}</dt>
-                  <dd>{definition.meaning}</dd>
+                  <dd><KeyTakeawayText enabled={emphasizeFoundationsLabels} text={definition.meaning} /></dd>
                 </div>
               ))}
             </dl>
@@ -518,23 +540,23 @@ export default function LearnWorkspace({
         ) : null}
         <section data-lesson-block="example">
           <h2>{activeLesson.example.title}</h2>
-          <p>{activeLesson.example.text}</p>
+          <p><KeyTakeawayText enabled={emphasizeFoundationsLabels} text={activeLesson.example.text} /></p>
         </section>
         <section data-lesson-block="checklist">
           <h2>Lesson checklist</h2>
           <ul>
-            {activeLesson.checklist.map((item) => <li key={item}>{item}</li>)}
+            {activeLesson.checklist.map((item) => <li key={item}><KeyTakeawayText enabled={emphasizeFoundationsLabels} text={item} /></li>)}
           </ul>
         </section>
         <section data-lesson-block="mistakes">
           <h2>Common mistakes</h2>
           <ul>
-            {activeLesson.mistakes.map((mistake) => <li key={mistake}>{mistake}</li>)}
+            {activeLesson.mistakes.map((mistake) => <li key={mistake}><KeyTakeawayText enabled={emphasizeFoundationsLabels} text={mistake} /></li>)}
           </ul>
         </section>
         <section className={styles.lessonExercise} data-lesson-block="exercise">
           <h2>Practice: apply this lesson</h2>
-          <p>{activeLesson.exercise}</p>
+          <p><KeyTakeawayText enabled={emphasizeFoundationsLabels} text={activeLesson.exercise} /></p>
           <p><strong>Save this work to:</strong> {activeLesson.apply}</p>
         </section>
         </>

@@ -100,6 +100,7 @@ test("#544 launches concurrently beside the Full Story Builder and saves one loc
   assert.ok(batch.indexOf("call :start_ui_continuity_agent") < batch.lastIndexOf('call "%VITE_CMD%"'));
   assert.match(agent, /ui-continuity-report\.md/);
   assert.match(agent, /writeFile\(reportPath, report, "utf8"\)/);
+  assert.match(agent, /\.project-strip, \[class\*="projectStrip"\]/);
   assert.doesNotMatch(agent, /applyPatch|writeFile\([^r][^e][^p][^o][^r][^t]/i);
   assert.match(docs, /It has no automatic fix path/);
 });

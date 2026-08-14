@@ -23,7 +23,7 @@ import { localProjectGateway } from "./build/local-project-gateway";
 import { localStorageSafetyGateway } from "./build/local-storage-safety-gateway";
 import { fullStoryBuilderGateway } from "./build/full-story-builder-gateway";
 import { sites } from "./build/sites-vite-plugin";
-import { startupAgentDiagnosticsPlugin } from "./build/startup-agent-diagnostics.ts";
+import { startupAgentDiagnosticsPlugin } from "./build/startup-agent-diagnostics";
 
 // Vite currently uses the bundled config loader for PlotPickle. Its proactive
 // future-native-loader advisory is developer migration noise, not a startup
@@ -46,7 +46,7 @@ const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
   d1_databases: d1 ? [{ binding: d1, database_name: "site-creator-d1", database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID }] : [],
-  r2_buckets: r2 ? [{ binding: r2, bucket_name: "site-creator-r2" }] : [],
+  r2_buckets: r2 ? [{ binding: r2, bucket_name: "site-creator-r2", bucket_name: "site-creator-r2" }] : [],
 };
 
 export default defineConfig(async () => {

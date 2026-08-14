@@ -35,7 +35,7 @@ jobs:
         run: npm run validate:learn
 
       - name: Validate Foundations, local RAG, PLAN handoff, branding, Sage settings, startup, and presentation
-        run: node --test tests/foundation-architecture.test.mjs tests/learn-sage-settings-entry.test.mjs tests/issue-583-foundations-lessons-formatting.test.mjs tests/issue-580-mastra-runtime-readiness.test.mjs tests/issue-590-windows-startup-defaults.test.mjs tests/issue-591-startup-readiness-gate.test.mjs tests/issue-592-foundations-reading-ui.test.mjs tests/issue-593-foundations-depth-and-placement.test.mjs tests/issue-594-local-learn-rag-and-brand.test.mjs tests/issue-595-foundations-plan-starter.test.mjs tests/issue-596-learn-logo-and-formatting.test.mjs
+        run: node --test tests/foundation-architecture.test.mjs tests/learn-sage-settings-entry.test.mjs tests/issue-583-foundations-lessons-formatting.test.mjs tests/issue-580-mastra-runtime-readiness.test.mjs tests/issue-590-windows-startup-defaults.test.mjs tests/issue-591-startup-readiness-gate.test.mjs tests/issue-592-foundations-reading-ui.test.mjs tests/issue-593-foundations-depth-and-placement.test.mjs tests/issue-594-local-learn-rag-and-brand.test.mjs tests/issue-595-foundations-plan-starter.test.mjs tests/issue-596-learn-logo-and-formatting.test.mjs tests/issue-601-sage-personality-and-answer-quality.test.mjs
 
       - name: Production build
         run: npm run build

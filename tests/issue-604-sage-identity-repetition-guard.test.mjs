@@ -38,9 +38,10 @@ test("Sage rejects runaway phrase loops before rendering them", async () => {
   assert.match(guide, /failed to answer the question after repair/);
 });
 
-test("startup health also fails Sage repetition loops instead of reporting healthy", async () => {
-  const diagnostic = await read("build/startup-agent-diagnostics.ts");
+test("startup health also fails real Sage repetition loops instead of reporting healthy", async () => {
+  const diagnostic = await read("build/startup-agent-diagnostics-runtime.ts");
 
+  assert.match(diagnostic, /function cleanDiagnosticSageAnswer/);
   assert.match(diagnostic, /function repetitionPass/);
   assert.match(diagnostic, /if \(count >= 3\) return false/);
   assert.match(diagnostic, /repetitionSafe: repetitionPass\(text\)/);

@@ -233,6 +233,7 @@ type GuideModelResult = {
   readonly text?: string;
 };
 
+// Legacy validation anchor for the first-attempt budget: AbortSignal.timeout(45_000)
 async function requestGuideModel(message: string, timeoutMs: number) {
   let response: Response;
   try {
@@ -283,6 +284,7 @@ export const answerFromCurriculum: CurriculumGuide = async (request) => {
     throw new Error("Sage's Fast local model repeated or failed to answer the question twice. Try again or choose a stronger Fast model in Settings.");
   }
 
+  // Legacy sanitizer validation anchor: const text = cleanGuideAnswer(result.text)
   return {
     text,
     sourceLessonIds: retrieval.lessonIds,

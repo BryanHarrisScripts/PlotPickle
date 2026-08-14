@@ -12,7 +12,7 @@ export default function SageSettingsWorkspace() {
           <p className={styles.eyebrow}>Settings · Local AI</p>
           <h1>Make Sage and PLAN ready.</h1>
           <p className={styles.intro}>
-            Sage uses PlotPickle&apos;s Fast local role. PLAN draft proposals use the Quality local role. Configure both here, test them, then return to the story workspace.
+            Sage uses PlotPickle&apos;s Fast local role. PLAN draft proposals use the Quality local role. If Ollama or LM Studio is already running, choose models it actually reports. Use GGUF file paths only when you intentionally choose PlotPickle-managed llama.cpp.
           </p>
         </div>
         <div className={styles.actions}>
@@ -28,14 +28,14 @@ export default function SageSettingsWorkspace() {
           <h2 id="sage-readiness-title">What needs to be green</h2>
         </div>
         <ol>
-          <li><strong>Runtime:</strong> llama.cpp is preferred; LM Studio, Ollama, or another OpenAI-compatible local server also works.</li>
-          <li><strong>Sage / Fast:</strong> the Fast role must be available before Sage can answer in LEARN.</li>
-          <li><strong>PLAN / Quality:</strong> the Quality role must be available before PLAN can draft story-field proposals.</li>
-          <li><strong>8 GB GPUs:</strong> managed llama.cpp switches between Fast and Quality on demand instead of keeping both resident.</li>
+          <li><strong>Running runtime:</strong> if PlotPickle detects Ollama, LM Studio, llama.cpp, or another compatible server, use the detected-runtime mode and select exact reported model IDs.</li>
+          <li><strong>Sage / Fast:</strong> assign one reported model to the Fast role before Sage can answer in LEARN.</li>
+          <li><strong>PLAN / Quality:</strong> assign one reported model to the Quality role before PLAN can draft story-field proposals. The same model may be used temporarily for both roles.</li>
+          <li><strong>Managed llama.cpp:</strong> choose this mode only when you have real GGUF files on disk. PlotPickle will then switch Fast and Quality models on demand.</li>
           <li><strong>Context:</strong> keep 16K for the normal GTX 1080 profile; 32K remains an explicit override.</li>
         </ol>
         <p className={styles.note}>
-          Save the model settings below, then use <strong>Load/test Sage Fast</strong> and <strong>Load/test PLAN Quality</strong>. If a model is missing, use <strong>Review missing-runtime and model plan</strong> in the hardware panel for the reviewed local setup path.
+          Save the setup below, then test Sage Fast and PLAN Quality. A test now follows the selected runtime; it no longer tries to open a llama.cpp GGUF path when Ollama or LM Studio is the runtime you are using.
         </p>
       </section>
 

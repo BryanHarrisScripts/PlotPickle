@@ -39,12 +39,29 @@ test("startup diagnostics exercise the real local routes without exposing a shel
   assert.match(diagnostic, /agentId: "foundations-planner"/);
   assert.match(diagnostic, /modelRole: "quality"/);
   assert.match(diagnostic, /foundationFieldIds: \["output-1", "output-2"\]/);
-  assert.match(diagnostic, /JSON\.parse\(text\)/);
+  assert.match(diagnostic, /structuredFoundationPass/);
+  assert.match(diagnostic, /root\.values/);
+  assert.match(diagnostic, /candidate\[fieldId\]/);
   assert.match(diagnostic, /antiEchoPass/);
   assert.match(diagnostic, /groundingPass/);
+  assert.match(diagnostic, /GROUNDING_PROBE_PHRASE = "copper lighthouse"/);
+  assert.match(diagnostic, /Startup health example motif/);
   assert.match(diagnostic, /learn\/theme\.json/);
 
   assert.doesNotMatch(diagnostic, /child_process|execSync|spawn\(|powershell|cmd\.exe/i);
+});
+
+test("diagnostic JSON validation mirrors PLAN's accepted wrapped-or-direct field shapes", async () => {
+  const [diagnostic, drafter] = await Promise.all([
+    read("build/startup-agent-diagnostics.ts"),
+    read("modules/plan/foundations-plan-drafter.ts"),
+  ]);
+
+  assert.match(diagnostic, /const candidate = root\.values && typeof root\.values === "object"/);
+  assert.match(diagnostic, /: root;/);
+  assert.match(drafter, /const candidate = root\.values && typeof root\.values === "object"/);
+  assert.match(drafter, /: root;/);
+  assert.match(diagnostic, /response did not contain both requested fields/);
 });
 
 test("diagnostics are advisory and do not block the Vite server from listening", async () => {

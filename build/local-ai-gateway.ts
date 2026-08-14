@@ -7,6 +7,9 @@ import { registerProviderDiagnosticsGateway } from "./provider-diagnostics-gatew
 import { registerMediaRoutingGateway } from "./media-routing-gateway";
 import { registerOllamaBootstrapGateway } from "./ollama-bootstrap-gateway";
 import { registerLocalAiInstallationGateway } from "./local-ai-installation-gateway";
+import { registerLocalRuntimeGateway } from "./local-runtime-gateway";
+import { registerCurriculumRagGateway } from "./curriculum-rag-gateway";
+import { registerGpuResourceScheduler } from "./local-gpu-resource-manager";
 
 const IMAGE_PATHS = new Set(["/api/local-ai/generate/image", "/api/media-routing/test/image"]);
 const MAX_SINGLE_IMAGE_REQUEST_BYTES = 256 * 1024;
@@ -57,9 +60,12 @@ export function localAiGateway(): Plugin {
   const legacy = legacyLocalAiGateway();
   return {
     ...legacy,
-    name: "plotpickle-local-ai-gateway-with-routing",
+    name: "plotpickle-hardware-aware-local-ai-gateway",
     configureServer(server) {
       registerSingleImageBoundary(server);
+      registerGpuResourceScheduler(server);
+      registerLocalRuntimeGateway(server);
+      registerCurriculumRagGateway(server);
       registerLocalAiInstallationGateway(server);
       registerAiRoutingGateway(server);
       registerNativeH3Gateway(server);

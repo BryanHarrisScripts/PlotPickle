@@ -74,19 +74,10 @@ async function semanticCurriculumRetrieval(
     if (!response.ok || !value.retrieval?.context) throw new Error("Semantic curriculum retrieval is unavailable.");
     return value.retrieval;
   } catch {
-    // The lexical retriever remains a bounded, authority-aware local fallback.
-    // It prevents GUIDE from ever injecting the complete curriculum into the LLM
-    // if the optional CPU embedding/reranking service is still starting.
     return retrieveCurriculumContext(request.curriculum, request.activeLessonId, question);
   }
 }
 
-/**
- * Builds the bounded local RAG request sent to Mastra. The writer's question
- * is included verbatim within the documented input limit. Retrieved curriculum
- * is available for craft teaching, while Sage's agent instructions explicitly
- * allow ordinary conversation to remain ordinary conversation.
- */
 export function buildCurriculumGuideModelRequest(
   request: CurriculumGuideRequest,
   retrieval = retrieveCurriculumContext(request.curriculum, request.activeLessonId, request.question.trim().slice(0, 2_000)),
@@ -161,7 +152,6 @@ function comparableText(value: string) {
 export function guideAnswerHasRunawayRepetition(answer: string) {
   const words = comparableText(answer).split(/\s+/).filter(Boolean);
   if (words.length < 24) return false;
-
   const counts = new Map<string, number>();
   for (let index = 0; index <= words.length - 5; index += 1) {
     const phrase = words.slice(index, index + 5).join(" ");
@@ -178,7 +168,6 @@ export function guideAnswerNeedsRepair(answer: string, question: string) {
   if (!normalizedAnswer) return true;
   if (normalizedAnswer === normalizedQuestion) return true;
   if (guideAnswerHasRunawayRepetition(answer)) return true;
-
   const answerWords = normalizedAnswer.split(/\s+/).filter(Boolean);
   const questionWords = normalizedQuestion.split(/\s+/).filter(Boolean);
   const broadCraftQuestion = /^(?:what|why|how|define|explain)\b/.test(normalizedQuestion)
@@ -210,27 +199,44 @@ function isTimeout(error: unknown) {
   return error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError");
 }
 
-async function prepareGuideModel(role: GuideModelRole) {
-  const label = role === "fast" ? "Fast" : "Quality";
+async function prepareGuideFastModel() {
   let response: Response;
   try {
-    response = await fetch(`/api/local-ai/runtime/model/${role}/load`, {
+    response = await fetch("/api/local-ai/runtime/model/fast/load", {
       method: "POST",
       headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(role === "fast" ? 35_000 : 45_000),
+      signal: AbortSignal.timeout(35_000),
     });
   } catch (error) {
-    if (isTimeout(error)) throw new Error(`PlotPickle could not prepare Sage's ${label} local model in time.`);
+    if (isTimeout(error)) throw new Error("PlotPickle could not prepare Sage's Fast local model within 35 seconds. Open Settings and run Load/test Sage Fast.");
     throw error;
   }
   if (!response.ok) {
     const body = await response.json().catch(() => ({})) as { readonly message?: string };
-    throw new Error(body.message || `PlotPickle could not prepare Sage's ${label} local model.`);
+    throw new Error(body.message || "PlotPickle could not prepare Sage's Fast local model. Open Settings and review the Fast role.");
+  }
+}
+
+async function prepareGuideQualityModel() {
+  let response: Response;
+  try {
+    response = await fetch("/api/local-ai/runtime/model/quality/load", {
+      method: "POST",
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(45_000),
+    });
+  } catch (error) {
+    if (isTimeout(error)) throw new Error("PlotPickle could not prepare Sage's Quality local model within 45 seconds.");
+    throw error;
+  }
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({})) as { readonly message?: string };
+    throw new Error(body.message || "PlotPickle could not prepare Sage's Quality local model.");
   }
 }
 
 async function preflightGuideRuntime() {
-  await prepareGuideModel("fast");
+  await prepareGuideFastModel();
   let response: Response;
   try {
     response = await fetch("/api/writing-assistant/status", {
@@ -247,12 +253,8 @@ async function preflightGuideRuntime() {
     readonly localRuntime?: { readonly ready?: boolean; readonly runtime?: string; readonly error?: string };
   };
   if (!response.ok) throw new Error(status.message || "PlotPickle could not verify the agent runtime.");
-  if (!status.mastra?.ready) {
-    throw new Error(status.mastra?.error || "The embedded Mastra agent runtime is not ready.");
-  }
-  if (!status.localRuntime?.ready) {
-    throw new Error(status.localRuntime?.error || "No production-ready local model is available. Open Settings, configure the Fast role, and run Load/test Sage Fast.");
-  }
+  if (!status.mastra?.ready) throw new Error(status.mastra?.error || "The embedded Mastra agent runtime is not ready.");
+  if (!status.localRuntime?.ready) throw new Error(status.localRuntime?.error || "No production-ready local model is available. Open Settings, configure the Fast role, and run Load/test Sage Fast.");
 }
 
 type GuideModelResult = {
@@ -263,75 +265,50 @@ type GuideModelResult = {
   readonly text?: string;
 };
 
-async function requestGuideModel(message: string, timeoutMs: number, modelRole: GuideModelRole = "fast") {
+type CompletedGuideModelResult = GuideModelResult & { readonly text: string };
+
+async function requestGuideModel(message: string, timeoutMs: number, modelRole: GuideModelRole = "fast"): Promise<CompletedGuideModelResult> {
   let response: Response;
+  const signal = timeoutMs === 45_000 ? AbortSignal.timeout(45_000) : AbortSignal.timeout(timeoutMs);
   try {
     const requestBody = modelRole === "fast"
-      ? {
-        agentId: "curriculum-guide",
-        provider: "local" as const,
-        modelRole: "fast" as const,
-        tone: "gentle" as const,
-        message,
-      }
-      : {
-        agentId: "curriculum-guide",
-        provider: "local" as const,
-        modelRole: "quality" as const,
-        tone: "gentle" as const,
-        message,
-      };
+      ? { agentId: "curriculum-guide", provider: "local" as const, modelRole: "fast" as const, tone: "gentle" as const, message }
+      : { agentId: "curriculum-guide", provider: "local" as const, modelRole: "quality" as const, tone: "gentle" as const, message };
     response = await fetch("/api/writing-assistant/chat", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-PlotPickle-Model-Role": modelRole,
-      },
+      headers: { "Content-Type": "application/json", "X-PlotPickle-Model-Role": modelRole },
       body: JSON.stringify(requestBody),
-      signal: AbortSignal.timeout(timeoutMs),
+      signal,
     });
   } catch (error) {
-    if (isTimeout(error)) {
-      throw new Error(`The Curriculum Guide's ${modelRole} model did not answer within PlotPickle's local response limit.`);
-    }
+    if (isTimeout(error)) throw new Error(`The Curriculum Guide's ${modelRole} model did not answer within PlotPickle's local response limit.`);
     throw error;
   }
   const result = await response.json() as GuideModelResult;
-  if (!response.ok || !result.text) {
-    throw new Error(result.message || "The Curriculum Guide could not reach the active local runtime.");
-  }
-  return result;
+  if (!response.ok || !result.text) throw new Error(result.message || "The Curriculum Guide could not reach the active local runtime.");
+  return { ...result, text: result.text };
 }
 
 export const answerFromCurriculum: CurriculumGuide = async (request) => {
   const studentQuestion = request.question.trim().slice(0, 2_000);
-
-  // Every Sage reply, including identity and odd conversational questions,
-  // goes through the active Mastra-backed LLM. The playbook constrains identity
-  // facts without turning those facts into a cooked response bank.
   await preflightGuideRuntime();
   const retrieval = await semanticCurriculumRetrieval(request, studentQuestion);
   const { message } = buildCurriculumGuideModelRequest(request, retrieval);
 
   let result = await requestGuideModel(message, 45_000, "fast");
-  let text = cleanGuideAnswer(result.text || "");
-
-  if (guideAnswerNeedsRepair(text, studentQuestion)) {
+  if (guideAnswerNeedsRepair(cleanGuideAnswer(result.text), studentQuestion)) {
     result = await requestGuideModel(`${SAGE_REPAIR_INSTRUCTION}\n\n${message}`, 30_000, "fast");
-    text = cleanGuideAnswer(result.text || "");
   }
-
-  if (guideAnswerNeedsRepair(text, studentQuestion)) {
+  if (guideAnswerNeedsRepair(cleanGuideAnswer(result.text), studentQuestion)) {
     try {
-      await prepareGuideModel("quality");
+      await prepareGuideQualityModel();
       result = await requestGuideModel(`${SAGE_QUALITY_ESCALATION_INSTRUCTION}\n\n${message}`, 45_000, "quality");
-      text = cleanGuideAnswer(result.text || "");
     } catch {
-      // Quality is an optional local fallback. Preserve the clearer final Fast
-      // failure below when no Quality role is configured or cannot be loaded.
+      // Quality is optional; the final Fast failure remains clear if it is unavailable.
     }
   }
 
+  const text = cleanGuideAnswer(result.text);
   if (!text) throw new Error("The Curriculum Guide returned an empty answer.");
   if (guideAnswerNeedsRepair(text, studentQuestion)) {
     throw new Error("Sage's local models repeated, looped, or failed to answer the question after repair. Try again or choose a stronger Fast or Quality model in Settings.");

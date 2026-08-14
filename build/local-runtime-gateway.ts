@@ -112,16 +112,41 @@ export function registerLocalRuntimeGateway(server: ViteDevServer) {
         return;
       }
       if (roleToLoad && request.method === "POST") {
-        const managedStarted = await startManagedLlama(roleToLoad);
+        const settings = await readLocalRuntimeSettings();
+        const configuredManagedPath = settings.managedLlama.modelPaths[roleToLoad];
+        const shouldStartManaged = settings.managedLlama.enabled
+          && (settings.preferredRuntime === "auto" || settings.preferredRuntime === "llama.cpp")
+          && Boolean(configuredManagedPath);
+        const managedStarted = shouldStartManaged ? await startManagedLlama(roleToLoad) : false;
         const snapshot = await localRuntimeSnapshot();
-        sendJson(response, 200, {
-          ok: true,
+        const roleStatus = snapshot.roles[roleToLoad];
+        const common = {
           role: roleToLoad,
           managedStarted,
-          roleStatus: snapshot.roles[roleToLoad],
+          roleStatus,
           ...snapshot,
           scheduler: localGpuSchedulerState(),
-        });
+        };
+        if (!snapshot.activeRuntime.reachable) {
+          sendJson(response, 409, {
+            ok: false,
+            message: "No local OpenAI-compatible runtime is reachable. Start Ollama, LM Studio, llama.cpp, or the configured compatible server, then refresh readiness.",
+            ...common,
+          });
+          return;
+        }
+        if (!roleStatus.available) {
+          sendJson(response, 409, {
+            ok: false,
+            message: snapshot.activeRuntime.models.length
+              ? `The ${roleToLoad} role is not assigned to a model reported by ${snapshot.activeRuntime.label}. Choose one of the detected models in Settings and save before testing again.`
+              : `${snapshot.activeRuntime.label} is reachable but did not report any installed model. Load or install a model in that runtime, then refresh readiness.`,
+            availableModels: snapshot.activeRuntime.models,
+            ...common,
+          });
+          return;
+        }
+        sendJson(response, 200, { ok: true, ...common });
         return;
       }
       if (pathname === INSTALL_PLAN_PATH && request.method === "GET") {

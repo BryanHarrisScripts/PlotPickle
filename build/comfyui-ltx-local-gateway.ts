@@ -6,6 +6,7 @@ import {
   getLtxVideoJob,
   probeLtxVideo,
   readLtxStore,
+  type LtxJob,
 } from "./comfyui-ltx-local-provider";
 import { readMediaRoutingStore } from "./media-routing-store";
 import type { VideoGenerationInput } from "./media-provider-common";
@@ -15,6 +16,7 @@ const MANIFEST_PATH = `${PROFILE_PATH}/manifest`;
 const VIDEO_PATH = "/api/local-ai/generate/video";
 const TEST_VIDEO_PATH = "/api/media-routing/test/video";
 const VIDEO_JOB_PATH = "/api/local-ai/video/";
+const LOCAL_VIDEO_WAIT_MS = 30 * 60_000;
 
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
@@ -57,6 +59,18 @@ async function readBody(request: IncomingMessage, maximum = 256 * 1024): Promise
 async function usesDefaultLocalVideo() {
   const media = await readMediaRoutingStore();
   return media.videoRoute === "none";
+}
+
+async function waitForLocalVideo(job: LtxJob) {
+  const deadline = Date.now() + LOCAL_VIDEO_WAIT_MS;
+  let current = job;
+  while ((current.status === "queued" || current.status === "running") && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 1_500));
+    current = await getLtxVideoJob(job.id);
+  }
+  if (current.status === "failed") throw new Error(current.error || "The local LTX-Video render failed.");
+  if (current.status !== "succeeded") throw new Error("The local LTX-Video render exceeded PlotPickle's 30-minute GPU reservation window.");
+  return current;
 }
 
 export function registerLtxLocalVideoGateway(server: ViteDevServer) {
@@ -106,8 +120,8 @@ export function registerLtxLocalVideoGateway(server: ViteDevServer) {
           durationSeconds: 2,
           aspectRatio: "16:9",
         } : body;
-        const job = await createLtxVideo(input);
-        sendJson(response, job.status === "succeeded" ? 200 : 202, { ok: true, ...job });
+        const job = await waitForLocalVideo(await createLtxVideo(input));
+        sendJson(response, 200, { ok: true, ...job });
         return;
       }
       if (jobOperation && request.method === "GET") {

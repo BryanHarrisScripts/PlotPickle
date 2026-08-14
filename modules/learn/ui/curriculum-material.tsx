@@ -3,12 +3,13 @@ import type { CurriculumSource } from "../../../core/contracts/curriculum";
 import type { LocalCurriculumSourceTarget } from "../model/local-curriculum-links";
 
 type CurriculumMaterialProps = {
+  readonly emphasizeKeyLabels?: boolean;
   readonly onOpenLesson: (lessonId: string) => void;
   readonly resolveLocalReference: (href: string) => LocalCurriculumSourceTarget | undefined;
   readonly source: CurriculumSource;
 };
 
-type InlineRenderContext = Pick<CurriculumMaterialProps, "onOpenLesson" | "resolveLocalReference">;
+type InlineRenderContext = Pick<CurriculumMaterialProps, "emphasizeKeyLabels" | "onOpenLesson" | "resolveLocalReference">;
 
 type SourceBlock =
   | { readonly kind: "code"; readonly language: string; readonly text: string }
@@ -222,7 +223,15 @@ function localReference(
   );
 }
 
-function renderInline(text: string, context: InlineRenderContext): readonly ReactNode[] {
+function splitLeadingKeyLabel(text: string) {
+  const match = text.match(/^([^:\n]{1,96}:)(\s+)([\s\S]+)$/);
+  if (!match) return null;
+  const label = match[1];
+  if (!/[A-Za-z]/.test(label) || /[.!?]/.test(label)) return null;
+  return { label, remainder: match[3], separator: match[2] };
+}
+
+function renderInlineSegments(text: string, context: InlineRenderContext): readonly ReactNode[] {
   const parts = text.split(/(!?\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|__[^_]+__|`[^`]+`|\*[^*\n]+\*|_[^_\n]+_|https?:\/\/[^\s<]+)/g);
   return parts.filter(Boolean).map((part, index) => {
     const image = part.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
@@ -253,6 +262,18 @@ function renderInline(text: string, context: InlineRenderContext): readonly Reac
     }
     return part;
   });
+}
+
+function renderInline(text: string, context: InlineRenderContext): readonly ReactNode[] {
+  const keyLabel = context.emphasizeKeyLabels ? splitLeadingKeyLabel(text) : null;
+  if (!keyLabel) return renderInlineSegments(text, context);
+  return [
+    <strong data-key-term-label key={`key-label-${keyLabel.label}`}>
+      <u>{renderInlineSegments(keyLabel.label, context)}</u>
+    </strong>,
+    keyLabel.separator,
+    ...renderInlineSegments(keyLabel.remainder, context),
+  ];
 }
 
 function SourceBlocks({ content, ...context }: { readonly content: string } & InlineRenderContext) {
@@ -298,10 +319,20 @@ function SourceBlocks({ content, ...context }: { readonly content: string } & In
  * stays immutable in learn/*.json for integrity and local retrieval, but a
  * student never has to open a provenance card or leave PlotPickle to learn it.
  */
-export function CurriculumMaterial({ onOpenLesson, resolveLocalReference, source }: CurriculumMaterialProps) {
+export function CurriculumMaterial({
+  emphasizeKeyLabels = false,
+  onOpenLesson,
+  resolveLocalReference,
+  source,
+}: CurriculumMaterialProps) {
   return (
     <div data-integrated-curriculum-content data-source-id={source.id}>
-      <SourceBlocks content={curriculumContent(source)} onOpenLesson={onOpenLesson} resolveLocalReference={resolveLocalReference} />
+      <SourceBlocks
+        content={curriculumContent(source)}
+        emphasizeKeyLabels={emphasizeKeyLabels}
+        onOpenLesson={onOpenLesson}
+        resolveLocalReference={resolveLocalReference}
+      />
     </div>
   );
 }

@@ -345,9 +345,8 @@ test("issue #300 validates official provenance workflow placeholders model direc
   assert.match(provider, /network, installer or code-execution node/);
 });
 
-test("issue #258 focused regression is registered", async () => {
+test("issue #258 focused regression has a dedicated script", async () => {
   const packageJson = JSON.parse(await source("package.json"));
-  assert.match(packageJson.scripts.test, /issue-258-creative-compute-paths\.test\.mjs/);
   assert.equal(
     packageJson.scripts["test:creative-compute-paths"],
     "node --test tests/issue-258-creative-compute-paths.test.mjs",

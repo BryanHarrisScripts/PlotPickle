@@ -78,7 +78,7 @@ test("curriculum RAG uses CPU Qwen embedding and reranking with bounded assembly
   assert.match(gateway, /candidateK: 48/);
   assert.match(gateway, /topK: 12/);
   assert.match(guide, /semanticCurriculumRetrieval/);
-  assert.match(guide, /bounded lexical retriever/i);
+  assert.match(guide, /lexical retriever remains a bounded/i);
   assert.match(guide, /message\.length > 12_000/);
 });
 
@@ -105,7 +105,8 @@ test("the GPU scheduler enforces text-media residency transitions", async () => 
   assert.match(scheduler, /stopManagedLlama/);
   assert.match(scheduler, /finishLocalMediaTask/);
   assert.match(scheduler, /doTransition\("text", "fast"\)/);
-  assert.match(scheduler, /activeTask: "image"|activeTask: task/);
+  assert.match(scheduler, /mediaLeaseCount/);
+  assert.match(scheduler, /could not prove the text model released VRAM/);
 });
 
 test("SDXL is the default 8 GB image route and SD3.5 is only experimental", async () => {
@@ -133,22 +134,29 @@ test("LTX-Video 2B is the default lightweight local video path while H3 stays ov
   assert.match(ltx, /UNSAFE_NODE_PATTERN/);
   assert.match(gateway, /videoRoute === "none"/);
   assert.match(gateway, /waitForLocalVideo/);
+  assert.match(gateway, /holdLocalGpuMediaLease/);
   assert.match(composition, /registerLtxLocalVideoGateway/);
   assert.match(composition, /registerNativeH3Gateway/);
 });
 
-test("visual continuity controls remain above provider/model selection", async () => {
-  const [contracts, contextPack, common] = await Promise.all([
+test("visual continuity controls remain above provider/model selection and reach local SDXL", async () => {
+  const [contracts, common, sdxl] = await Promise.all([
     read("lib/ai/contracts.ts"),
-    read("lib/ai/context-pack.ts"),
     read("build/media-provider-common.ts"),
+    read("build/comfyui-sdxl-local-provider.ts"),
   ]);
   assert.match(contracts, /IdentityLock/);
-  assert.match(common, /referenceImages/);
+  assert.match(common, /approvedCharacterReferences/);
   assert.match(common, /identityLocks/);
-  assert.match(contextPack, /character|identity/i);
-  assert.match(contextPack, /wardrobe|look/i);
-  assert.match(contextPack, /negative|constraint/i);
+  assert.match(common, /wardrobeLookIds/);
+  assert.match(common, /composition/);
+  assert.match(common, /environmentReferences/);
+  assert.match(common, /negativeConstraints/);
+  assert.match(common, /continuityMetadata/);
+  assert.match(common, /visualContinuityEnvelope/);
+  assert.match(sdxl, /visualContinuityEnvelope/);
+  assert.match(sdxl, /uploadReference/);
+  assert.match(sdxl, /VAEEncode/);
 });
 
 test("settings detect multiple runtimes and expose advanced overrides", async () => {

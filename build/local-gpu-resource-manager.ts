@@ -16,8 +16,11 @@ export type LocalGpuSchedulerState = {
   updatedAt: string;
   lastAction: string;
   lastWarning: string;
+  mediaLeases: number;
 };
 
+let mediaLeaseCount = 0;
+let deferredMediaRelease = false;
 let state: LocalGpuSchedulerState = {
   activeTask: "idle",
   textRole: "",
@@ -25,6 +28,7 @@ let state: LocalGpuSchedulerState = {
   updatedAt: new Date().toISOString(),
   lastAction: "Scheduler initialized.",
   lastWarning: "",
+  mediaLeases: 0,
 };
 let transitionQueue: Promise<void> = Promise.resolve();
 
@@ -32,13 +36,14 @@ function update(patch: Partial<LocalGpuSchedulerState>) {
   state = {
     ...state,
     ...patch,
+    mediaLeases: mediaLeaseCount,
     transitionId: state.transitionId + 1,
     updatedAt: new Date().toISOString(),
   };
 }
 
 export function localGpuSchedulerState(): LocalGpuSchedulerState {
-  return { ...state };
+  return { ...state, mediaLeases: mediaLeaseCount };
 }
 
 function command(commandName: string, args: string[], timeoutMs = 5_000) {
@@ -120,6 +125,7 @@ async function releaseExternalTextRuntime() {
 
 async function doTransition(task: LocalGpuTask, role: LocalTextRole = "fast") {
   if (task === "text") {
+    if (mediaLeaseCount > 0) throw new Error("A local image or video render still owns the GPU. PlotPickle will not load a text model on top of it.");
     await freeComfyMemory();
     const snapshot = await localRuntimeSnapshot();
     if (snapshot.activeRuntime.kind === "llama.cpp" && snapshot.settings.managedLlama.enabled) {
@@ -134,7 +140,19 @@ async function doTransition(task: LocalGpuTask, role: LocalTextRole = "fast") {
     return;
   }
   if (task === "image" || task === "video") {
-    const release = await releaseExternalTextRuntime();
+    const [snapshot, release] = await Promise.all([
+      localRuntimeSnapshot(),
+      releaseExternalTextRuntime(),
+    ]);
+    const constrainedGpu = snapshot.hardware.vramGb > 0 && snapshot.hardware.vramGb <= 10;
+    if (constrainedGpu && !release.released) {
+      update({
+        activeTask: state.activeTask,
+        lastAction: `Blocked ${task} startup because PlotPickle could not prove the text model released VRAM.`,
+        lastWarning: release.warning,
+      });
+      throw new Error(`${release.warning} PlotPickle will not start ${task} generation on a ${snapshot.hardware.vramGb} GB GPU until text VRAM is released.`);
+    }
     await freeComfyMemory();
     update({
       activeTask: task,
@@ -157,10 +175,31 @@ export async function prepareLocalGpuTask(task: Exclude<LocalGpuTask, "idle">, r
 
 export async function finishLocalMediaTask() {
   transitionQueue = transitionQueue.then(async () => {
+    if (mediaLeaseCount > 0) {
+      deferredMediaRelease = true;
+      update({ lastAction: "Media response ended, but the active local render still owns the GPU." });
+      return;
+    }
+    deferredMediaRelease = false;
     await freeComfyMemory();
     await doTransition("text", "fast");
   });
   await transitionQueue;
+  return localGpuSchedulerState();
+}
+
+export function holdLocalGpuMediaLease() {
+  mediaLeaseCount += 1;
+  update({ mediaLeases: mediaLeaseCount, lastAction: "GPU media lease held for an active local render." });
+}
+
+export async function releaseLocalGpuMediaLease() {
+  mediaLeaseCount = Math.max(0, mediaLeaseCount - 1);
+  update({ mediaLeases: mediaLeaseCount, lastAction: "Local render released its GPU media lease." });
+  if (mediaLeaseCount === 0 && deferredMediaRelease) {
+    deferredMediaRelease = false;
+    return finishLocalMediaTask();
+  }
   return localGpuSchedulerState();
 }
 

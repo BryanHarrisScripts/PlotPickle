@@ -38,12 +38,12 @@ function requestedLessonId() {
   return new URLSearchParams(window.location.search).get("lesson") ?? "";
 }
 
-function earlierAnswerContext(
+function acceptedFoundationContext(
   lessons: readonly FoundationPlanLesson[],
-  activeIndex: number,
+  activeLessonId: string,
   project: PPFProject,
 ) {
-  return lessons.slice(0, activeIndex).flatMap((lesson) => {
+  return lessons.filter((lesson) => lesson.id !== activeLessonId).flatMap((lesson) => {
     const saved = project.foundations.lessons[lesson.id]?.answers ?? {};
     return lesson.fields.flatMap((field) => {
       const answer = saved[field.id]?.trim();
@@ -153,7 +153,7 @@ export default function FoundationsPlanWorkspace({
         lesson: activeLesson,
         curriculumLesson,
         currentAnswers: activeAnswers.answers,
-        priorStoryContext: earlierAnswerContext(lessons, activeIndex, project),
+        priorStoryContext: acceptedFoundationContext(lessons, activeLesson.id, project),
       });
       commit({
         type: "foundations.proposal.store",

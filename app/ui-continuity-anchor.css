@@ -95,7 +95,7 @@ html[data-plotpickle-theme="dark"] .application-shell-header {
   color: #35c9b8;
 }
 
-/* Shared shell brand: render only the transparent ouroboros/nib artwork, not a dark favicon tile. */
+/* Shared shell brand: render the supplied transparent dragon ouroboros/compass/nib artwork, not a dark favicon tile. */
 .application-shell-header .shell-brand {
   position: relative;
   min-height: 48px;
@@ -118,7 +118,7 @@ html[data-plotpickle-theme="dark"] .application-shell-header {
   left: 0;
   width: 48px;
   height: 48px;
-  background: center / contain no-repeat url("/brand/plotpickle-ouroboros-v2.png");
+  background: center / contain no-repeat url("/brand/plotpickle-ouroboros-v3-transparent.png");
   content: "";
   filter:
     saturate(1.3)
@@ -141,7 +141,7 @@ html[data-plotpickle-theme="dark"] .application-shell-header {
     drop-shadow(0 0 22px rgba(53, 201, 184, 0.22));
 }
 
-/* LEARN and PLAN use the full transparent V2 ouroboros/nib artwork at relic weight. */
+/* LEARN and PLAN use the supplied transparent dragon ouroboros artwork at relic weight. */
 nav[aria-label="PlotPickle workflow"] > img[alt="PlotPickle"] {
   opacity: 0;
 }
@@ -155,7 +155,7 @@ nav[aria-label="PlotPickle workflow"]::before {
   width: 76px;
   height: 76px;
   pointer-events: none;
-  background: center / contain no-repeat url("/brand/plotpickle-ouroboros-v2.png");
+  background: center / contain no-repeat url("/brand/plotpickle-ouroboros-v3-transparent.png");
   filter:
     saturate(1.34)
     brightness(1.2)

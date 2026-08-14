@@ -5,20 +5,21 @@ import test from "node:test";
 const root = new URL("../", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
 
-test("LEARN and PLAN use the current V2 PlotPickle identity with transparent presentation and brighter relic glow", async () => {
+test("LEARN and PLAN use the supplied transparent PlotPickle dragon ouroboros identity with brighter relic glow", async () => {
   const [anchorStyles, polish] = await Promise.all([
     read("app/ui-continuity-anchor.css"),
     read("app/learn-foundations-polish.css"),
   ]);
   for (const styles of [anchorStyles, polish]) {
-    assert.match(styles, /plotpickle-ouroboros-v2\.png/);
+    assert.match(styles, /plotpickle-ouroboros-v3-transparent\.png/);
+    assert.doesNotMatch(styles, /plotpickle-ouroboros-v2\.png/);
     assert.doesNotMatch(styles, /plotpickle-icon-master-transparent\.png/);
     assert.match(styles, /background:\s*transparent/);
     assert.match(styles, /saturate\(1\.(?:3|34)/);
     assert.match(styles, /brightness\(1\.2/);
     assert.match(styles, /drop-shadow/);
   }
-  assert.match(anchorStyles, /Shared shell brand: render only the transparent ouroboros\/nib artwork/);
+  assert.match(anchorStyles, /Shared shell brand: render the supplied transparent dragon ouroboros\/compass\/nib artwork/);
   assert.match(anchorStyles, /\.application-shell-header \.shell-brand::before/);
 });
 

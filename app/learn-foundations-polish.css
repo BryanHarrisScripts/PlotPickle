@@ -1,4 +1,4 @@
-/* PlotPickle header identity: full transparent V2 ouroboros/nib mark at relic weight. */
+/* PlotPickle header identity: supplied transparent dragon ouroboros/compass/nib mark at relic weight. */
 nav[aria-label="PlotPickle workflow"] > img[alt="PlotPickle"] {
   position: absolute !important;
   z-index: 2 !important;
@@ -28,7 +28,7 @@ nav[aria-label="PlotPickle workflow"]::before {
   left: 9px;
   width: 76px;
   height: 76px;
-  background: center / contain no-repeat url("/brand/plotpickle-ouroboros-v2.png");
+  background: center / contain no-repeat url("/brand/plotpickle-ouroboros-v3-transparent.png");
   content: "";
   filter:
     saturate(1.34)

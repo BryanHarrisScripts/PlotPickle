@@ -26,10 +26,10 @@ test("LEARN logo is transparent, larger than glyphs, glowing, and Foundations fo
   assert.match(polish, /background-color:\s*rgba\(0,\s*0,\s*0,\s*0\)\s*!important/);
   assert.match(polish, /clip-path:\s*none\s*!important/);
   assert.match(polish, /box-shadow:\s*none\s*!important/);
-  assert.match(polish, /width:\s*68px\s*!important/);
-  assert.match(polish, /height:\s*68px\s*!important/);
+  assert.match(polish, /width:\s*76px\s*!important/);
+  assert.match(polish, /height:\s*76px\s*!important/);
   assert.match(polish, /filter:[\s\S]*drop-shadow/);
-  assert.match(polish, /left:\s*12px\s*!important/);
+  assert.match(polish, /left:\s*9px\s*!important/);
   assert.match(workspaceCss, /\.stageRelic\s*\{[\s\S]*width:\s*44px/);
   assert.match(workspace, /alt="PlotPickle"[\s\S]*height=\{80\}[\s\S]*width=\{80\}/);
 

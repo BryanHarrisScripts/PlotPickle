@@ -53,6 +53,19 @@ function antiEchoPass(answer: string, question: string) {
   return !(normalizedAnswer.includes(normalizedQuestion) && answerWords.length <= questionWords.length + 5);
 }
 
+function repetitionPass(answer: string) {
+  const words = comparableText(answer).split(/\s+/).filter(Boolean);
+  if (words.length < 24) return true;
+  const counts = new Map<string, number>();
+  for (let index = 0; index <= words.length - 5; index += 1) {
+    const phrase = words.slice(index, index + 5).join(" ");
+    const count = (counts.get(phrase) || 0) + 1;
+    if (count >= 3) return false;
+    counts.set(phrase, count);
+  }
+  return true;
+}
+
 function meaningfulTokens(value: string) {
   return new Set(comparableText(value)
     .split(/\s+/)
@@ -153,6 +166,7 @@ async function runSageProbe(baseUrl: string) {
     text,
     latencyMs: result.latencyMs || Date.now() - started,
     antiEcho: antiEchoPass(text, question),
+    repetitionSafe: repetitionPass(text),
     grounded: groundingPass(text, context),
   };
 }
@@ -202,6 +216,7 @@ export async function runStartupAgentDiagnostics(baseUrl: string) {
     printResult("Sage Brinewick registered", "FAIL");
     printResult("Sage response", "SKIP");
     printResult("Sage anti-echo check", "SKIP");
+    printResult("Sage repetition guard", "SKIP");
     printResult("Curriculum grounding", "SKIP");
     console.log("");
     printResult("Quality model", "FAIL");
@@ -239,18 +254,21 @@ export async function runStartupAgentDiagnostics(baseUrl: string) {
       const responsePass = Boolean(sage.text);
       printResult("Sage response", responsePass ? "PASS" : "FAIL", `${(sage.latencyMs / 1000).toFixed(1)}s`);
       printResult("Sage anti-echo check", sage.antiEcho ? "PASS" : "FAIL");
+      printResult("Sage repetition guard", sage.repetitionSafe ? "PASS" : "FAIL");
       printResult("Curriculum grounding", sage.grounded ? "PASS" : "FAIL");
-      failed ||= !responsePass || !sage.antiEcho || !sage.grounded;
+      failed ||= !responsePass || !sage.antiEcho || !sage.repetitionSafe || !sage.grounded;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Sage probe failed";
       printResult("Sage response", "FAIL", message.slice(0, 90));
       printResult("Sage anti-echo check", "SKIP");
+      printResult("Sage repetition guard", "SKIP");
       printResult("Curriculum grounding", "SKIP");
       failed = true;
     }
   } else {
     printResult("Sage response", "SKIP");
     printResult("Sage anti-echo check", "SKIP");
+    printResult("Sage repetition guard", "SKIP");
     printResult("Curriculum grounding", "SKIP");
   }
 

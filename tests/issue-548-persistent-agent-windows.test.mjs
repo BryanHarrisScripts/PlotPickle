@@ -5,7 +5,7 @@ import test from "node:test";
 const root = new URL("../", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
 
-test("#548 gives all three startup agents a clear loaded, instruction and completion lifecycle", async () => {
+test("#548 helper implementations remain available for deliberate manual use", async () => {
   const [builder, continuity, uat, status] = await Promise.all([
     read("scripts/full-story-builder-agent.mjs"),
     read("scripts/ui-continuity-agent.mjs"),
@@ -20,32 +20,22 @@ test("#548 gives all three startup agents a clear loaded, instruction and comple
   assert.match(builder, /WAITING FOR INSTRUCTIONS/);
   assert.match(builder, /Open completed story/);
   assert.match(continuity, /WORKING AUTOMATICALLY/);
-  assert.match(continuity, /This read-only audit starts automatically/);
   assert.match(uat, /AGENT LOADED: PlotPickle Creative Writer UAT/);
-  assert.match(uat, /do not type test instructions here/);
 });
 
-test("#548 keeps companion windows open without blocking the PlotPickle server", async () => {
-  const [batch, builder, continuity, status, uat] = await Promise.all([
-    read("Start-PlotPickle.bat"),
-    read("scripts/full-story-builder-agent.mjs"),
-    read("scripts/ui-continuity-agent.mjs"),
-    read("lib/agent-window-status.mjs"),
-    read("scripts/run-creative-writer-uat.ps1"),
-  ]);
+test("normal PlotPickle startup no longer opens the three helper windows", async () => {
+  const batch = await read("Start-PlotPickle.bat");
+  const normalStartup = batch.slice(0, batch.indexOf(":probe_existing"));
 
-  assert.match(batch, /start "PlotPickle Full Story Builder" node .* --stay-open/);
-  assert.match(batch, /start "PlotPickle UI Continuity Agent" node .* --stay-open/);
-  assert.match(batch, /\[AGENT 3 OF 3 STARTED\] Creative Writer UAT/);
-  assert.match(batch, /\[AGENT 3 OF 3 NOT REQUESTED\] Creative Writer UAT/);
-  assert.doesNotMatch(batch, /start "PlotPickle (?:Full Story Builder|UI Continuity Agent)" \/wait/);
-  assert.match(builder, /process\.argv\.includes\("--stay-open"\)/);
-  assert.match(continuity, /argv\.includes\("--stay-open"\)/);
-  assert.match(status, /Press Enter when you want to close this window/);
-  assert.match(uat, /Read-Host "Press Enter to close the Creative Writer UAT window"/);
+  assert.doesNotMatch(normalStartup, /call :start_full_story_builder/);
+  assert.doesNotMatch(normalStartup, /call :start_ui_continuity_agent/);
+  assert.doesNotMatch(normalStartup, /start "PlotPickle Creative Writer UAT"/);
+  assert.doesNotMatch(normalStartup, /Run the Creative Writer UAT after PlotPickle starts/);
+  assert.doesNotMatch(normalStartup, /\[AGENT [123] OF 3/);
+  assert.match(batch, /retained as manual developer tools/);
 });
 
-test("#550 Production Supervisor keeps video preparation visible and paid generation consent-gated", async () => {
+test("#550 Production Supervisor remains separate and paid generation consent-gated", async () => {
   const [launcher, supervisor, video] = await Promise.all([
     read("Start-Production-Supervisor.bat"),
     read("scripts/production-supervisor-agent.mjs"),
@@ -60,16 +50,8 @@ test("#550 Production Supervisor keeps video preparation visible and paid genera
   assert.doesNotMatch(video, /method:\s*["']POST["'][\s\S]{0,160}\/api\/local-ai\/generate\/video/);
 });
 
-test("#548 is registered in the complete suite, diagnostics and Visual gate", async () => {
-  const [packageJson, diagnostics, workflow] = await Promise.all([
-    read("package.json"),
-    read("config/developer-diagnostics.json"),
-    read(".github/workflows/visual.yml"),
-  ]);
+test("#548 remains available as a focused manual-tool regression", async () => {
+  const packageJson = await read("package.json");
   const pkg = JSON.parse(packageJson);
-  assert.match(pkg.scripts.test, /tests\/issue-548-persistent-agent-windows\.test\.mjs/);
   assert.equal(pkg.scripts["test:persistent-agent-windows"], "node --test tests/issue-548-persistent-agent-windows.test.mjs");
-  assert.match(diagnostics, /"id": "startup-agent-windows"/);
-  assert.match(diagnostics, /"startup\.agent-windows"/);
-  assert.match(workflow, /tests\/issue-548-persistent-agent-windows\.test\.mjs/);
 });

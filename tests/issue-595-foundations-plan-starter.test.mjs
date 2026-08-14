@@ -124,7 +124,7 @@ test("manual answers, AI proposals and the saved brief have explicit project tra
   assert.equal(recovered.foundations.lessons.pitch.answers["output-1"], "Legacy writer material that must survive.");
 });
 
-test("the PLAN screen keeps manual work primary and uses opt-in local Mastra/Ollama proposals", async () => {
+test("the PLAN screen keeps manual work primary and uses opt-in local Mastra proposals", async () => {
   const [page, learn, plan, contract, drafter, runtime, planStyles] = await Promise.all([
     read("app/page.tsx"),
     read("modules/learn/ui/learn-workspace.tsx"),
@@ -152,8 +152,11 @@ test("the PLAN screen keeps manual work primary and uses opt-in local Mastra/Oll
   assert.match(plan, /Build from saved answers/);
   assert.match(plan, /Save Foundations Brief/);
   assert.match(drafter, /agentId: "foundations-planner"/);
-  assert.match(drafter, /provider: "ollama"/);
+  assert.match(drafter, /provider: "local"/);
+  assert.match(drafter, /modelRole: "quality"/);
+  assert.match(drafter, /models\?\.quality/);
   assert.match(drafter, /Your fields were not changed/);
+  assert.doesNotMatch(drafter, /provider: "ollama"/);
   assert.match(runtime, /"foundations-planner"/);
   assert.match(runtime, /Never invent a story fact/);
   assert.match(plan, /plotpickle-ouroboros-v2-128\.png/);

@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import {
   ASSISTANT_INSTRUCTIONS,
-  curriculumGuideOllamaProfile,
+  curriculumGuideLocalProfile,
   DEFAULT_OLLAMA_URL,
   generateAssistantText,
   normalizedProviderUrl,
@@ -16,7 +16,13 @@ import {
   readSynchronizedAssistantStore,
   writeAssistantStore,
   type ProviderProfile,
+  type TextProvider,
 } from "./writing-assistant-store";
+import {
+  localRuntimeSnapshot,
+  localTextExecutionProfile,
+} from "./local-runtime-manager";
+import type { LocalTextRole } from "../lib/ai/local-runtime";
 import {
   PLOTPICKLE_AGENT_ROLES,
   askPlotPickleAgent,
@@ -71,49 +77,71 @@ async function readBody(request: IncomingMessage, maximum = 64 * 1024): Promise<
   return parsed && typeof parsed === "object" ? parsed as Record<string, unknown> : {};
 }
 
+function localProfileFromExecution(
+  execution: Awaited<ReturnType<typeof localTextExecutionProfile>>,
+  existing?: ProviderProfile,
+): ProviderProfile {
+  return {
+    provider: "local",
+    runtime: execution.runtime,
+    baseUrl: execution.baseUrl,
+    textModel: execution.textModel,
+    apiKey: "",
+    contextTokens: execution.contextTokens,
+    configuredAt: existing?.configuredAt || new Date().toISOString(),
+    assistantVerifiedAt: existing?.assistantVerifiedAt || "",
+    lastAttemptAt: existing?.lastAttemptAt || "",
+    lastLatencyMs: existing?.lastLatencyMs || 0,
+    lastPreview: existing?.lastPreview || "",
+    lastError: existing?.lastError || "",
+  };
+}
+
+async function synchronizeLocalFastProfile(store: Awaited<ReturnType<typeof readSynchronizedAssistantStore>>["store"]) {
+  const snapshot = await localRuntimeSnapshot();
+  if (!snapshot.activeRuntime.reachable || !snapshot.roles.fast.available) return snapshot;
+  const execution = await localTextExecutionProfile("fast");
+  store.profiles.local = localProfileFromExecution(execution, store.profiles.local);
+  if (store.activeProvider === "disabled" && !store.explicitlyDisabled) store.activeProvider = "local";
+  await writeAssistantStore(store);
+  return snapshot;
+}
+
 async function handleStatus(response: ServerResponse) {
   const { store } = await readSynchronizedAssistantStore();
-  const ollamaProfile = store.profiles.ollama;
-  const baseUrl = store.ollamaBaseUrl || ollamaProfile?.baseUrl || DEFAULT_OLLAMA_URL;
-  const probe = await probeOllama(baseUrl);
-  if (probe.reachable && probe.models.length > 0 && store.activeProvider === "disabled" && !store.explicitlyDisabled) {
-    const model = ollamaProfile?.textModel && probe.models.includes(ollamaProfile.textModel)
-      ? ollamaProfile.textModel
-      : probe.models[0];
-    store.ollamaBaseUrl = probe.baseUrl;
-    store.profiles.ollama = {
-      provider: "ollama",
-      baseUrl: probe.baseUrl,
-      textModel: model,
-      apiKey: "",
-      configuredAt: ollamaProfile?.configuredAt || probe.checkedAt,
-      assistantVerifiedAt: ollamaProfile?.assistantVerifiedAt || "",
-      lastAttemptAt: ollamaProfile?.lastAttemptAt || probe.checkedAt,
-      lastLatencyMs: ollamaProfile?.lastLatencyMs || probe.latencyMs,
-      lastPreview: ollamaProfile?.lastPreview || "",
-      lastError: "",
-    };
-    store.activeProvider = "ollama";
-    await writeAssistantStore(store);
-  }
+  const [localRuntime, ollama] = await Promise.all([
+    synchronizeLocalFastProfile(store).catch(() => localRuntimeSnapshot()),
+    probeOllama(store.ollamaBaseUrl || store.profiles.ollama?.baseUrl || DEFAULT_OLLAMA_URL),
+  ]);
   sendJson(response, 200, {
     ok: true,
     activeProvider: store.activeProvider,
     explicitlyDisabled: store.explicitlyDisabled,
     providers: {
+      local: publicProfile(store.profiles.local, store.activeProvider),
       ollama: publicProfile(store.profiles.ollama, store.activeProvider),
       openai: publicProfile(store.profiles.openai, store.activeProvider),
       minimax: publicProfile(store.profiles.minimax, store.activeProvider),
     },
+    localRuntime: {
+      ready: localRuntime.activeRuntime.reachable && localRuntime.roles.fast.available,
+      runtime: localRuntime.activeRuntime.kind,
+      baseUrl: localRuntime.activeRuntime.baseUrl,
+      hardwareProfile: localRuntime.hardware.profile.id,
+      contextTokens: localRuntime.settings.contextTokens,
+      models: localRuntime.roles,
+      error: localRuntime.activeRuntime.reachable ? "" : localRuntime.activeRuntime.error,
+    },
     ollama: {
-      detected: probe.reachable,
-      reachable: probe.reachable,
-      models: probe.models,
-      baseUrl: probe.baseUrl,
-      version: probe.version,
-      latencyMs: probe.latencyMs,
-      checkedAt: probe.checkedAt,
-      error: probe.error,
+      detected: ollama.reachable,
+      reachable: ollama.reachable,
+      models: ollama.models,
+      baseUrl: ollama.baseUrl,
+      version: ollama.version,
+      latencyMs: ollama.latencyMs,
+      checkedAt: ollama.checkedAt,
+      error: ollama.error,
+      legacyOptionalRuntime: true,
     },
     mastra: mastraRuntimeStatus(),
   });
@@ -122,13 +150,25 @@ async function handleStatus(response: ServerResponse) {
 async function handleActive(request: IncomingMessage, response: ServerResponse) {
   const body = await readBody(request);
   const requested = body.provider;
-  if (requested !== "disabled" && !isTextProvider(requested)) throw new Error("Choose Ollama, OpenAI, MiniMax or Off.");
+  if (requested !== "disabled" && !isTextProvider(requested)) throw new Error("Choose Local Runtime, Ollama, OpenAI, MiniMax or Off.");
   const { store } = await readSynchronizedAssistantStore();
-  if (requested !== "disabled" && !store.profiles[requested]) throw new Error("Configure this provider before selecting it.");
+  if (requested === "local") {
+    const execution = await localTextExecutionProfile("fast");
+    store.profiles.local = localProfileFromExecution(execution, store.profiles.local);
+  } else if (requested !== "disabled" && !store.profiles[requested]) {
+    throw new Error("Configure this provider before selecting it.");
+  }
   store.activeProvider = requested;
   store.explicitlyDisabled = requested === "disabled";
   await writeAssistantStore(store);
   sendJson(response, 200, { ok: true, activeProvider: store.activeProvider });
+}
+
+async function refreshLocalProfile(store: Awaited<ReturnType<typeof readSynchronizedAssistantStore>>["store"], role: LocalTextRole) {
+  const execution = await localTextExecutionProfile(role);
+  const profile = localProfileFromExecution(execution, store.profiles.local);
+  store.profiles.local = profile;
+  return profile;
 }
 
 async function handleTest(request: IncomingMessage, response: ServerResponse) {
@@ -136,10 +176,12 @@ async function handleTest(request: IncomingMessage, response: ServerResponse) {
   const { store } = await readSynchronizedAssistantStore();
   const provider = isTextProvider(body.provider) ? body.provider : store.activeProvider;
   if (!isTextProvider(provider)) throw new Error("Choose a configured text provider before running the test.");
+  if (provider === "local") await refreshLocalProfile(store, "fast");
   const result = await testAssistantProfile(store, provider);
   sendJson(response, 200, {
     ok: true,
     provider,
+    runtimeProvider: result.profile.runtime || result.profile.provider,
     model: result.profile.textModel,
     text: result.text,
     latencyMs: result.profile.lastLatencyMs,
@@ -183,9 +225,11 @@ async function handleOllama(request: IncomingMessage, response: ServerResponse) 
   const { store } = await readSynchronizedAssistantStore();
   const profile: ProviderProfile = {
     provider: "ollama",
+    runtime: "ollama",
     baseUrl: probe.baseUrl,
     textModel: model,
     apiKey: "",
+    contextTokens: 16384,
     configuredAt: new Date().toISOString(),
     assistantVerifiedAt: "",
     lastAttemptAt: probe.checkedAt,
@@ -223,22 +267,39 @@ function safeHistory(value: unknown): ConversationMessage[] {
   }));
 }
 
+function requestedModelRole(body: Record<string, unknown>, agentId: PlotPickleAgentId): LocalTextRole {
+  if (body.modelRole === "deep") return "deep";
+  if (body.modelRole === "quality") return "quality";
+  if (body.modelRole === "fast") return "fast";
+  if (agentId === "curriculum-guide") return "fast";
+  return "fast";
+}
+
+async function profileForProvider(
+  store: Awaited<ReturnType<typeof readSynchronizedAssistantStore>>["store"],
+  provider: TextProvider,
+  role: LocalTextRole,
+) {
+  if (provider === "local") return refreshLocalProfile(store, role);
+  const profile = store.profiles[provider];
+  if (!profile) throw new Error("The selected Writing Assistant provider is not configured.");
+  return profile;
+}
+
 async function handleChat(request: IncomingMessage, response: ServerResponse) {
   const body = await readBody(request, 96 * 1024);
   const message = typeof body.message === "string" ? body.message.trim().slice(0, 12_000) : "";
   if (!message) throw new Error("Enter a question for the Writing Assistant.");
   const { store } = await readSynchronizedAssistantStore();
-  const requestedProvider = body.provider === "ollama" ? "ollama" : store.activeProvider;
-  if (!isTextProvider(requestedProvider)) throw new Error("The Writing Assistant is off. Select Ollama, OpenAI or MiniMax first.");
-  const profile = store.profiles[requestedProvider];
-  if (!profile) {
-    throw new Error(requestedProvider === "ollama"
-      ? "Connect Ollama and choose an installed model in Settings before using the Curriculum Guide."
-      : "The selected Writing Assistant provider is not configured.");
-  }
+  const explicit = isTextProvider(body.provider) ? body.provider : null;
+  const requestedProvider = explicit || store.activeProvider;
+  if (!isTextProvider(requestedProvider)) throw new Error("The Writing Assistant is off. Select Local Runtime, Ollama, OpenAI or MiniMax first.");
   const agentId = typeof body.agentId === "string" && body.agentId in PLOTPICKLE_AGENT_ROLES
     ? body.agentId as PlotPickleAgentId
     : "creative-director";
+  const role = requestedModelRole(body, agentId);
+  let profile = await profileForProvider(store, requestedProvider, role);
+  if (agentId === "curriculum-guide") profile = curriculumGuideLocalProfile(profile);
   const allowedTones = new Set<PlotPickleTone>(["collaborative", "direct", "curious", "challenging", "gentle"]);
   const tone = typeof body.tone === "string" && allowedTones.has(body.tone as PlotPickleTone)
     ? body.tone as PlotPickleTone
@@ -249,11 +310,8 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
     )).slice(0, 12)
     : [];
   const started = Date.now();
-  const executionProfile = agentId === "curriculum-guide"
-    ? await curriculumGuideOllamaProfile(profile)
-    : profile;
   const text = await askPlotPickleAgent({
-    profile: executionProfile,
+    profile,
     agentId,
     tone,
     message,
@@ -274,7 +332,10 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
   sendJson(response, 200, {
     ok: true,
     provider: updated.provider,
+    runtimeProvider: updated.runtime || updated.provider,
     model: updated.textModel,
+    modelRole: role,
+    contextTokens: updated.contextTokens,
     runtime: "mastra",
     agentId,
     text,
@@ -285,22 +346,26 @@ async function handleChat(request: IncomingMessage, response: ServerResponse) {
 
 async function handleTextOverride(request: IncomingMessage, response: ServerResponse) {
   const { store, available } = await readSynchronizedAssistantStore();
-  if (!available) return false;
+  if (!available && store.activeProvider !== "local") return false;
   if (!isTextProvider(store.activeProvider)) {
     sendJson(response, 409, { ok: false, message: "The Writing Assistant is off. Select a text engine on the Configuration Dashboard." });
     return true;
   }
-  const profile = store.profiles[store.activeProvider];
-  if (!profile) {
-    sendJson(response, 409, { ok: false, message: "The selected Writing Assistant provider is not configured." });
-    return true;
-  }
-  const body = await readBody(request, 48 * 1024);
+  const body = await readBody(request, 96 * 1024);
+  const role: LocalTextRole = body.modelRole === "deep" ? "deep" : body.modelRole === "quality" ? "quality" : "fast";
+  const profile = await profileForProvider(store, store.activeProvider, role);
   const instructions = typeof body.instructions === "string" ? body.instructions : ASSISTANT_INSTRUCTIONS;
   const prompt = typeof body.prompt === "string" ? body.prompt : "";
   const text = await generateAssistantText(profile, instructions, prompt);
   if (!text) throw new Error("The selected text provider returned no text.");
-  sendJson(response, 200, { ok: true, text, provider: profile.provider, model: profile.textModel });
+  sendJson(response, 200, {
+    ok: true,
+    text,
+    provider: profile.provider,
+    runtimeProvider: profile.runtime || profile.provider,
+    model: profile.textModel,
+    modelRole: role,
+  });
   return true;
 }
 

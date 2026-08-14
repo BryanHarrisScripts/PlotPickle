@@ -1,0 +1,44 @@
+name: Hardware-Aware Local AI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: local-ai-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  local-ai-validation:
+    name: Local AI Architecture, Providers and Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Validate hardware-aware local AI contracts
+        run: node --test tests/hardware-aware-local-ai-runtime.test.mjs tests/foundation-architecture.test.mjs
+
+      - name: Validate existing provider and creative-compute contracts
+        run: node --test tests/ai-architecture.test.mjs tests/issue-258-creative-compute-paths.test.mjs tests/issue-83-character-visual-identity.test.mjs
+
+      - name: Production build
+        run: npm run build
+
+# Runtime model downloads are intentionally excluded from CI. Live /models,
+# ComfyUI and curriculum-RAG health checks run on the user's detected hardware.

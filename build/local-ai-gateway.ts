@@ -4,6 +4,7 @@ import { registerAiRoutingGateway } from "./ai-routing-gateway";
 import { registerWritingAssistantGateway } from "./writing-assistant-gateway";
 import { registerNativeH3Gateway } from "./comfyui-h3-native-gateway";
 import { registerLtxLocalVideoGateway } from "./comfyui-ltx-local-gateway";
+import { registerSdxlLocalImageGateway } from "./comfyui-sdxl-local-gateway";
 import { registerProviderDiagnosticsGateway } from "./provider-diagnostics-gateway";
 import { registerMediaRoutingGateway } from "./media-routing-gateway";
 import { registerOllamaBootstrapGateway } from "./ollama-bootstrap-gateway";
@@ -71,6 +72,7 @@ export function localAiGateway(): Plugin {
       registerAiRoutingGateway(server);
       registerNativeH3Gateway(server);
       registerProviderDiagnosticsGateway(server);
+      registerSdxlLocalImageGateway(server);
       registerLtxLocalVideoGateway(server);
       registerMediaRoutingGateway(server);
       registerOllamaBootstrapGateway(server);

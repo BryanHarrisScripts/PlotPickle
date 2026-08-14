@@ -21,23 +21,19 @@ $CpuTorchIndex = "https://download.pytorch.org/whl/cpu"
 $PascalTorchIndex = "https://download.pytorch.org/whl/cu126"
 
 function Get-NvidiaProfile {
-  $result = [ordered]@{
-    Name = ""
-    VramMB = 0
-    ComputeCapability = ""
-    Generation = "none"
-  }
+  $result = [ordered]@{ Name = ""; VramMB = 0; ComputeCapability = ""; Generation = "none" }
   $smi = Get-Command "nvidia-smi.exe" -ErrorAction SilentlyContinue
   if (-not $smi) { $smi = Get-Command "nvidia-smi" -ErrorAction SilentlyContinue }
   if (-not $smi) { return [pscustomobject]$result }
   try {
     $line = (& $smi.Source --query-gpu=name,memory.total,compute_cap --format=csv,noheader,nounits 2>$null | Select-Object -First 1)
-    if (-not $line) {
-      $line = (& $smi.Source --query-gpu=name,memory.total --format=csv,noheader,nounits 2>$null | Select-Object -First 1)
-    }
+    if (-not $line) { $line = (& $smi.Source --query-gpu=name,memory.total --format=csv,noheader,nounits 2>$null | Select-Object -First 1) }
     $parts = @([string]$line -split "," | ForEach-Object { $_.Trim() })
     if ($parts.Count -ge 1) { $result.Name = $parts[0] }
-    if ($parts.Count -ge 2) { [void][int]::TryParse($parts[1], [ref]$result.VramMB) }
+    if ($parts.Count -ge 2) {
+      $parsedVram = 0
+      if ([int]::TryParse($parts[1], [ref]$parsedVram)) { $result.VramMB = $parsedVram }
+    }
     if ($parts.Count -ge 3) { $result.ComputeCapability = $parts[2] }
   }
   catch { return [pscustomobject]$result }
@@ -54,13 +50,8 @@ function Get-NvidiaProfile {
 }
 
 function Get-RamGB {
-  try {
-    $bytes = [double](Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory
-    return [math]::Round($bytes / 1GB, 1)
-  }
-  catch {
-    return [math]::Round(([double][GC]::GetGCMemoryInfo().TotalAvailableMemoryBytes) / 1GB, 1)
-  }
+  try { return [math]::Round(([double](Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory) / 1GB, 1) }
+  catch { return [math]::Round(([double][GC]::GetGCMemoryInfo().TotalAvailableMemoryBytes) / 1GB, 1) }
 }
 
 function Get-HardwareProfile {
@@ -68,7 +59,8 @@ function Get-HardwareProfile {
   $vramGB = [math]::Round($Gpu.VramMB / 1024, 1)
   if ($Gpu.Name -and $vramGB -ge 22) { return "nvidia-24gb-plus" }
   if ($Gpu.Name -and $vramGB -ge 14) { return "nvidia-16gb" }
-  if ($Gpu.Name -and $RamGB -ge 28 -and ($Gpu.Generation -eq "pascal" -or $vramGB -ge 6)) { return "nvidia-pascal-8gb-32gb" }
+  if ($Gpu.Name -and $Gpu.Generation -eq "pascal" -and $RamGB -ge 28) { return "nvidia-pascal-8gb-32gb" }
+  if ($Gpu.Name -and $vramGB -ge 6 -and $RamGB -ge 24) { return "nvidia-8gb-modern" }
   return "cpu-local"
 }
 
@@ -79,9 +71,7 @@ function Find-ComfyPython {
     $candidates.Add((Join-Path $env:LOCALAPPDATA "Programs\ComfyUI Desktop\resources\ComfyUI\.venv\Scripts\python.exe"))
     $candidates.Add((Join-Path $env:LOCALAPPDATA "ComfyUI\.venv\Scripts\python.exe"))
   }
-  foreach ($candidate in $candidates) {
-    if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
-  }
+  foreach ($candidate in $candidates) { if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate } }
   return ""
 }
 
@@ -102,9 +92,7 @@ function Invoke-Python {
 }
 
 function Configure-RetrievalService {
-  if (-not (Test-Path -LiteralPath $RagRequirements -PathType Leaf) -or -not (Test-Path -LiteralPath $RagServer -PathType Leaf)) {
-    throw "The PlotPickle curriculum RAG service files are missing."
-  }
+  if (-not (Test-Path -LiteralPath $RagRequirements -PathType Leaf) -or -not (Test-Path -LiteralPath $RagServer -PathType Leaf)) { throw "The PlotPickle curriculum RAG service files are missing." }
   $python = @(Find-Python)
   if (-not $python.Count) {
     Write-Warning "Python was not detected. Curriculum RAG will use the bounded lexical fallback until Python is installed."

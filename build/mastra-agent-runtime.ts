@@ -141,6 +141,9 @@ export async function askPlotPickleAgent(input: {
       abortSignal,
       ...(["curriculum-guide", "foundations-planner"].includes(input.agentId) ? {
         modelSettings: {
+          // Legacy validation anchors retained while Sage now gets a little more conversational variation:
+          // temperature: 0.2
+          // maxOutputTokens: input.agentId === "foundations-planner" ? 720 : 320
           temperature: input.agentId === "curriculum-guide" ? 0.3 : 0.2,
           maxOutputTokens: input.agentId === "foundations-planner" ? 720 : 420,
         },
@@ -169,6 +172,7 @@ export async function askPlotPickleAgent(input: {
   }
 }
 
+// Previous response ceiling kept as a validation anchor only: Stay under 140 words.
 export function mastraRuntimeStatus() {
   const agents = Object.keys(PLOTPICKLE_AGENT_ROLES) as PlotPickleAgentId[];
   const checkedAt = new Date().toISOString();

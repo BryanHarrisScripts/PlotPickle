@@ -74,6 +74,9 @@ async function semanticCurriculumRetrieval(
     if (!response.ok || !value.retrieval?.context) throw new Error("Semantic curriculum retrieval is unavailable.");
     return value.retrieval;
   } catch {
+    // The lexical retriever remains a bounded, authority-aware local fallback.
+    // It prevents GUIDE from ever injecting the complete curriculum into the LLM
+    // if the optional CPU embedding/reranking service is still starting.
     return retrieveCurriculumContext(request.curriculum, request.activeLessonId, question);
   }
 }

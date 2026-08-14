@@ -80,6 +80,7 @@ test("Creative Room retrieval is injected and searches the complete curriculum",
     read("modules/learn/ui/learn-workspace.tsx"),
   ]);
   assert.match(page, /guide=\{answerFromCurriculum\}/);
+  assert.match(guide, /semanticCurriculumRetrieval/);
   assert.match(guide, /retrieveCurriculumContext/);
   assert.match(retrieval, /buildCurriculumRagInventory/);
   assert.match(retrieval, /for \(const lesson of curriculum\)/);
@@ -151,7 +152,7 @@ test("LEARN exposes the future PlotPickle workflow navigation", async () => {
 });
 
 
-test("the curriculum guide is an Ollama-backed teaching agent with memory", async () => {
+test("the curriculum guide is a hardware-aware local teaching agent with memory", async () => {
   const [contract, guide, workspace, runtime, gateway] = await Promise.all([
     read("core/contracts/curriculum-guide.ts"),
     read("modules/creative-room/curriculum-guide.ts"),
@@ -162,22 +163,26 @@ test("the curriculum guide is an Ollama-backed teaching agent with memory", asyn
   assert.match(contract, /conversation/);
   assert.match(contract, /projectMemory/);
   assert.match(contract, /Promise<CurriculumGuideAnswer>/);
-  assert.match(guide, /retrieveCurriculumContext/);
+  assert.match(contract, /"local-runtime"/);
+  assert.match(guide, /semanticCurriculumRetrieval/);
+  assert.match(guide, /\/api\/local-ai\/curriculum-rag/);
   assert.match(guide, /<curriculum_context>/);
   assert.match(guide, /<conversation_memory>/);
   assert.match(guide, /<project_memory>/);
   assert.match(guide, /<student_question>/);
   assert.match(guide, /fetch\("\/api\/writing-assistant\/chat"/);
-  assert.match(guide, /provider: "ollama"/);
+  assert.match(guide, /provider: "local"/);
+  assert.match(guide, /modelRole: "fast"/);
+  assert.doesNotMatch(guide, /provider: "ollama"/);
   assert.doesNotMatch(guide, /history: conversation/);
   assert.match(runtime, /"curriculum-guide"/);
   assert.match(runtime, /warm, patient PlotPickle teacher/);
   assert.match(runtime, /plain language/);
   assert.match(runtime, /temperature: 0\.2/);
   assert.match(runtime, /I don't have that in our current curriculum/);
-  assert.match(gateway, /body\.provider === "ollama"/);
-  assert.match(gateway, /curriculumGuideOllamaProfile/);
-  assert.match(gateway, /Connect Ollama and choose an installed model/);
+  assert.match(gateway, /localTextExecutionProfile/);
+  assert.match(gateway, /requestedModelRole/);
+  assert.doesNotMatch(gateway, /curriculumGuideOllamaProfile/);
   assert.match(workspace, /const answer = await guide/);
   assert.match(workspace, /projectMemory/);
   assert.match(workspace, /Thinking about your question/);
@@ -279,18 +284,20 @@ test("all audited source records are embedded losslessly in lessons", async () =
   assert.match(launcher, /Mastra !MASTRA_VERSION! is installed and ready for PlotPickle agents/);
 });
 
-test("the GUIDE uses a grounded 8K Ollama profile", async () => {
+test("the GUIDE uses a grounded 16K hardware-aware local profile", async () => {
   const [provider, gateway, runtime, guide] = await Promise.all([
     read("build/writing-assistant-provider.ts"),
     read("build/writing-assistant-gateway.ts"),
     read("build/mastra-agent-runtime.ts"),
     read("modules/creative-room/curriculum-guide.ts"),
   ]);
-  assert.match(provider, /CURRICULUM_GUIDE_CONTEXT = 8_192/);
+  assert.match(provider, /CURRICULUM_GUIDE_CONTEXT = 16_384/);
+  assert.match(provider, /CURRICULUM_GUIDE_EXTENDED_CONTEXT = 32_768/);
   assert.match(provider, /CURRICULUM_GUIDE_TEMPERATURE = 0\.2/);
-  assert.match(provider, /\/api\/create/);
-  assert.match(provider, /num_ctx: CURRICULUM_GUIDE_CONTEXT/);
+  assert.match(provider, /\/chat\/completions/);
+  assert.doesNotMatch(provider, /\/api\/create/);
   assert.match(gateway, /agentId === "curriculum-guide"/);
+  assert.match(gateway, /role = requestedModelRole/);
   assert.match(runtime, /temperature: 0\.2/);
   assert.match(runtime, /maxOutputTokens:[^\n]*(?:320|\? 720 : 320)/);
   assert.match(guide, /<curriculum_context>/);

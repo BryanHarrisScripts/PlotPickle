@@ -1,0 +1,4 @@
+sentence-transformers>=5.4,<6
+numpy>=2,<3
+# Install PyTorch from the CPU wheel index for this service. It intentionally
+# remains CPU-resident and does not consume the creative GPU scheduler.

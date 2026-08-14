@@ -35,6 +35,6 @@ test("Sage rejects question echoes and retries once with a direct-answer contrac
   assert.match(guide, /define the concept, explain why it matters to a story, and give one short concrete example/i);
   assert.match(guide, /requestGuideModel\(message, 45_000\)/);
   assert.match(guide, /requestGuideModel\(`\$\{SAGE_REPAIR_INSTRUCTION\}\\n\\n\$\{message\}`, 30_000\)/);
-  assert.match(guide, /repeated or failed to answer the question twice/);
+  assert.match(guide, /repeated, looped, or failed to answer the question twice/);
   assert.doesNotMatch(guide, /answerBank|fixedResponses|cannedResponses/);
 });

@@ -151,6 +151,10 @@ test("the PLAN screen keeps manual work primary and uses opt-in local Mastra pro
   assert.match(plan, /Dismiss proposal/);
   assert.match(plan, /Build from saved answers/);
   assert.match(plan, /Save Foundations Brief/);
+  assert.match(plan, /function acceptedFoundationContext/);
+  assert.match(plan, /lessons\.filter\(\(lesson\) => lesson\.id !== activeLessonId\)/);
+  assert.doesNotMatch(plan, /lessons\.slice\(0, activeIndex\)/);
+  assert.match(plan, /priorStoryContext: acceptedFoundationContext\(lessons, activeLesson\.id, project\)/);
   assert.match(drafter, /agentId: "foundations-planner"/);
   assert.match(drafter, /provider: "local"/);
   assert.match(drafter, /modelRole: "quality"/);

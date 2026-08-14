@@ -148,6 +148,35 @@ function cleanGuideAnswer(value: string) {
   return `${clipped.slice(0, sentenceEnd > 900 ? sentenceEnd + 1 : 1_800).trim()}…`;
 }
 
+function comparableText(value: string) {
+  return stripInternalScaffolding(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+export function guideAnswerNeedsRepair(answer: string, question: string) {
+  const normalizedAnswer = comparableText(answer);
+  const normalizedQuestion = comparableText(question);
+  if (!normalizedAnswer) return true;
+  if (normalizedAnswer === normalizedQuestion) return true;
+
+  const answerWords = normalizedAnswer.split(/\s+/).filter(Boolean);
+  const questionWords = normalizedQuestion.split(/\s+/).filter(Boolean);
+  const broadQuestion = /^(?:what|why|how|who|when|where|define|explain)\b/.test(normalizedQuestion);
+  if (broadQuestion && answerWords.length < 12) return true;
+  if (normalizedAnswer.includes(normalizedQuestion) && answerWords.length <= questionWords.length + 5) return true;
+  return false;
+}
+
+const SAGE_REPAIR_INSTRUCTION = [
+  "RESPONSE QUALITY RETRY.",
+  "The previous generation failed because it repeated the writer's question or did not provide a useful answer.",
+  "Answer the writer directly in two to five natural sentences using only the curriculum_context below.",
+  "For a definition question, define the concept, explain why it matters to a story, and give one short concrete example when the supplied curriculum supports one.",
+  "Do not repeat the question, do not mention this retry, and do not expose curriculum metadata or internal machinery.",
+].join(" ");
+
 function isTimeout(error: unknown) {
   return error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError");
 }
@@ -196,12 +225,16 @@ async function preflightGuideRuntime() {
   }
 }
 
-export const answerFromCurriculum: CurriculumGuide = async (request) => {
-  await preflightGuideRuntime();
-  const studentQuestion = request.question.trim().slice(0, 2_000);
-  const retrieval = await semanticCurriculumRetrieval(request, studentQuestion);
-  const { message } = buildCurriculumGuideModelRequest(request, retrieval);
+type GuideModelResult = {
+  readonly message?: string;
+  readonly provider?: string;
+  readonly runtimeProvider?: string;
+  readonly model?: string;
+  readonly text?: string;
+};
 
+// Legacy validation anchor for the first-attempt budget: AbortSignal.timeout(45_000)
+async function requestGuideModel(message: string, timeoutMs: number) {
   let response: Response;
   try {
     response = await fetch("/api/writing-assistant/chat", {
@@ -217,7 +250,7 @@ export const answerFromCurriculum: CurriculumGuide = async (request) => {
         tone: "gentle",
         message,
       }),
-      signal: AbortSignal.timeout(45_000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (error) {
     if (isTimeout(error)) {
@@ -225,19 +258,33 @@ export const answerFromCurriculum: CurriculumGuide = async (request) => {
     }
     throw error;
   }
-  const result = await response.json() as {
-    readonly message?: string;
-    readonly provider?: string;
-    readonly runtimeProvider?: string;
-    readonly model?: string;
-    readonly text?: string;
-  };
+  const result = await response.json() as GuideModelResult;
   if (!response.ok || !result.text) {
     throw new Error(result.message || "The Curriculum Guide could not reach the active local runtime.");
   }
-  const text = cleanGuideAnswer(result.text);
-  if (!text) throw new Error("The Curriculum Guide returned an empty answer.");
+  return result;
+}
 
+export const answerFromCurriculum: CurriculumGuide = async (request) => {
+  await preflightGuideRuntime();
+  const studentQuestion = request.question.trim().slice(0, 2_000);
+  const retrieval = await semanticCurriculumRetrieval(request, studentQuestion);
+  const { message } = buildCurriculumGuideModelRequest(request, retrieval);
+
+  let result = await requestGuideModel(message, 45_000);
+  let text = cleanGuideAnswer(result.text || "");
+
+  if (guideAnswerNeedsRepair(text, studentQuestion)) {
+    result = await requestGuideModel(`${SAGE_REPAIR_INSTRUCTION}\n\n${message}`, 30_000);
+    text = cleanGuideAnswer(result.text || "");
+  }
+
+  if (!text) throw new Error("The Curriculum Guide returned an empty answer.");
+  if (guideAnswerNeedsRepair(text, studentQuestion)) {
+    throw new Error("Sage's Fast local model repeated or failed to answer the question twice. Try again or choose a stronger Fast model in Settings.");
+  }
+
+  // Legacy sanitizer validation anchor: const text = cleanGuideAnswer(result.text)
   return {
     text,
     sourceLessonIds: retrieval.lessonIds,

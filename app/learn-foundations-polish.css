@@ -1,21 +1,26 @@
-/* PlotPickle logo: image only, with no frame, border, trim, plate, or glow. */
+/* PlotPickle logo: image only, transparent, larger than workflow glyphs, with a restrained brand glow. */
 nav[aria-label="PlotPickle workflow"] > img[alt="PlotPickle"] {
   position: absolute !important;
   z-index: 2 !important;
-  top: 7px !important;
+  top: 1px !important;
   right: auto !important;
-  left: 18px !important;
+  left: 12px !important;
   display: block !important;
-  width: 50px !important;
-  height: 50px !important;
+  width: 68px !important;
+  height: 68px !important;
   padding: 0 !important;
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
+  background-color: rgba(0, 0, 0, 0) !important;
   clip-path: none !important;
   box-shadow: none !important;
   object-fit: contain !important;
-  filter: none !important;
+  object-position: center !important;
+  opacity: 1 !important;
+  filter:
+    drop-shadow(0 0 6px rgba(53, 201, 184, 0.62))
+    drop-shadow(0 0 13px rgba(211, 170, 99, 0.3)) !important;
 }
 
 /* Improve the reading hierarchy without removing, shortening, or hiding lesson copy. */
@@ -126,12 +131,23 @@ article[aria-label="Active lesson"] [data-integrated-curriculum-content] strong 
   font-weight: 760;
 }
 
+article[aria-label="Active lesson"] strong[data-key-term-label] {
+  color: #f0e8da;
+  font-weight: 800;
+}
+
+article[aria-label="Active lesson"] strong[data-key-term-label] u {
+  text-decoration-color: rgba(53, 201, 184, 0.76);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
 @media (max-width: 920px) {
   nav[aria-label="PlotPickle workflow"] > img[alt="PlotPickle"] {
-    top: 9px !important;
-    left: 12px !important;
-    width: 44px !important;
-    height: 44px !important;
+    top: 4px !important;
+    left: 9px !important;
+    width: 58px !important;
+    height: 58px !important;
   }
 }
 

@@ -175,7 +175,7 @@ test("Sage sanitizes prompt scaffolding before chat rendering and is instructed 
   assert.match(guide, /\\\\u003c/);
   assert.match(guide, /student_question\|conversation_memory\|project_memory\|curriculum_context/);
   assert.match(guide, /INTERNAL_SCAFFOLD_LINE/);
-  assert.match(guide, /const text = cleanGuideAnswer\(result\.text\)/);
+  assert.match(guide, /let text = cleanGuideAnswer\(result\.text\)/);
   assert.ok(guide.indexOf("cleanGuideAnswer(result.text)") < guide.indexOf("return {\n    text,"));
   assert.match(runtime, /Speak like a live mentor, not a prompt template or formatter/);
   assert.match(runtime, /answer it and then offer one useful choice for where to go next/);

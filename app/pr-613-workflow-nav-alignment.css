@@ -1,0 +1,14 @@
+/* PR #613: keep the shared workflow rail identical when LEARN and PLAN wrap relics in buttons. */
+nav[aria-label="PlotPickle workflow"] button > span {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  line-height: normal;
+}
+
+nav[aria-label="PlotPickle workflow"] button > span > strong,
+nav[aria-label="PlotPickle workflow"] button > span > small {
+  display: block;
+  margin: 0;
+  line-height: normal;
+}

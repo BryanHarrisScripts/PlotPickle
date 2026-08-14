@@ -12,6 +12,8 @@ export interface FoundationDraftRequest {
   readonly priorStoryContext: string;
 }
 
+class FoundationProposalQualityError extends Error {}
+
 function isTimeout(error: unknown) {
   return error instanceof DOMException
     && (error.name === "TimeoutError" || error.name === "AbortError");
@@ -32,17 +34,17 @@ function parseProposal(
   const firstBrace = unfenced.indexOf("{");
   const lastBrace = unfenced.lastIndexOf("}");
   if (firstBrace < 0 || lastBrace <= firstBrace) {
-    throw new Error("The local model did not return a structured proposal. Your fields were not changed.");
+    throw new FoundationProposalQualityError("The local model did not return a structured proposal.");
   }
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(unfenced.slice(firstBrace, lastBrace + 1));
   } catch {
-    throw new Error("The local model returned an unreadable proposal. Your fields were not changed.");
+    throw new FoundationProposalQualityError("The local model returned an unreadable proposal.");
   }
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    throw new Error("The local model returned an invalid proposal. Your fields were not changed.");
+    throw new FoundationProposalQualityError("The local model returned an invalid proposal.");
   }
   const root = parsed as Record<string, unknown>;
   const candidate = root.values && typeof root.values === "object" && !Array.isArray(root.values)
@@ -58,14 +60,14 @@ function parseProposal(
   );
   const missingFields = lesson.fields.filter((field) => !values[field.id]);
   if (missingFields.length) {
-    throw new Error("The local model did not propose an answer for every visible field. Your fields were not changed.");
+    throw new FoundationProposalQualityError("The local model did not propose an answer for every visible field.");
   }
   const copiedPrompts = lesson.fields.filter((field) => (
     values[field.id]?.replace(/\s+/g, " ").trim().toLocaleLowerCase()
     === field.prompt.replace(/\s+/g, " ").trim().toLocaleLowerCase()
   ));
   if (copiedPrompts.length) {
-    throw new Error("The local model repeated the planning questions instead of answering them. Add story detail or choose a stronger local model; your fields were not changed.");
+    throw new FoundationProposalQualityError("The local model repeated one or more planning questions instead of answering them.");
   }
   return values;
 }
@@ -141,6 +143,58 @@ function lessonContext(lesson: CurriculumLesson) {
   ].join("\n").slice(0, 6_500);
 }
 
+type DraftModelResult = {
+  readonly message?: string;
+  readonly model?: string;
+  readonly text?: string;
+};
+
+async function requestFoundationProposal(
+  message: string,
+  fieldIds: readonly string[],
+  timeoutMs: number,
+) {
+  let response: Response;
+  try {
+    response = await fetch("/api/writing-assistant/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-PlotPickle-Model-Role": "quality",
+      },
+      body: JSON.stringify({
+        agentId: "foundations-planner",
+        provider: "local",
+        modelRole: "quality",
+        tone: "collaborative",
+        foundationFieldIds: fieldIds,
+        message,
+      }),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch (error) {
+    if (isTimeout(error)) throw new Error("The local Foundations drafter did not answer within PlotPickle's local response limit. Your fields were not changed.");
+    throw error;
+  }
+  const result = await response.json() as DraftModelResult;
+  if (!response.ok || !result.text) {
+    throw new Error(result.message || "The local Foundations drafter could not reach the active OpenAI-compatible runtime.");
+  }
+  return result;
+}
+
+function repairInstruction() {
+  return [
+    "REPAIR THE PLAN PROPOSAL.",
+    "The previous proposal was unusable because it copied a planning question, omitted a field, or returned invalid structured output.",
+    "For every requested field ID, write an actual proposed answer. Never copy or lightly paraphrase the field question as the answer.",
+    "Use accepted writer material wherever it exists.",
+    "If the story does not yet contain enough evidence, write a short statement beginning with 'Provisional —' that names what is still unknown and the next useful story decision, using only the supplied lesson context.",
+    "Do not invent character names, events, settings, outcomes, or other story facts.",
+    "Return JSON only, in the exact requested values shape, with no commentary outside the JSON.",
+  ].join(" ");
+}
+
 export async function draftFoundationLesson(
   input: FoundationDraftRequest,
 ): Promise<FoundationDraftProposal> {
@@ -148,7 +202,7 @@ export async function draftFoundationLesson(
   const fieldShape = Object.fromEntries(input.lesson.fields.map((field) => [field.id, field.prompt]));
   const message = [
     "<task>",
-    "Draft a separate, reviewable proposal for each requested PLAN field. Use only the writer material and lesson context below. Do not invent story facts. When evidence is missing, write a useful provisional statement that clearly marks the unknown. Return JSON only in the exact shape {\"values\":{\"output-1\":\"...\"}} using only the supplied field IDs.",
+    "Draft a separate, reviewable proposal for each requested PLAN field. Use only the writer material and lesson context below. Do not invent story facts. Never copy or lightly paraphrase a requested planning question as its answer. When evidence is missing, write a useful statement beginning with 'Provisional —' that clearly names the unresolved story decision and the next useful decision the writer can make. Return JSON only in the exact shape {\"values\":{\"output-1\":\"...\"}} using only the supplied field IDs.",
     "</task>",
     "<project>",
     xmlText(input.projectTitle),
@@ -167,38 +221,26 @@ export async function draftFoundationLesson(
     "</accepted_prior_foundation_work>",
   ].join("\n");
 
-  let response: Response;
+  const fieldIds = input.lesson.fields.map((field) => field.id);
+  let result = await requestFoundationProposal(message, fieldIds, 27_000);
+  let values: Readonly<Record<string, string>>;
   try {
-    response = await fetch("/api/writing-assistant/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-PlotPickle-Model-Role": "quality",
-      },
-      body: JSON.stringify({
-        agentId: "foundations-planner",
-        provider: "local",
-        modelRole: "quality",
-        tone: "collaborative",
-        foundationFieldIds: input.lesson.fields.map((field) => field.id),
-        message,
-      }),
-      signal: AbortSignal.timeout(27_000),
-    });
+    values = parseProposal(result.text || "", input.lesson);
   } catch (error) {
-    if (isTimeout(error)) throw new Error("The local Foundations drafter did not answer within 30 seconds. Your fields were not changed.");
-    throw error;
+    if (!(error instanceof FoundationProposalQualityError)) throw error;
+    result = await requestFoundationProposal(`${repairInstruction()}\n\n${message}`, fieldIds, 27_000);
+    try {
+      values = parseProposal(result.text || "", input.lesson);
+    } catch (retryError) {
+      if (retryError instanceof FoundationProposalQualityError) {
+        throw new Error("PLAN's local AI could not produce usable field answers after two attempts. Add one sentence of story detail or choose a stronger Quality model; your fields were not changed.");
+      }
+      throw retryError;
+    }
   }
-  const result = await response.json() as {
-    readonly message?: string;
-    readonly model?: string;
-    readonly text?: string;
-  };
-  if (!response.ok || !result.text) {
-    throw new Error(result.message || "The local Foundations drafter could not reach the active OpenAI-compatible runtime.");
-  }
+
   return {
-    values: parseProposal(result.text, input.lesson),
+    values,
     model: result.model || configuredModel,
     generatedAt: new Date().toISOString(),
   };

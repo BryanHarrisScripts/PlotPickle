@@ -157,6 +157,12 @@ test("the PLAN screen keeps manual work primary and uses opt-in local Mastra pro
   assert.match(drafter, /models\?\.quality/);
   assert.match(drafter, /Your fields were not changed/);
   assert.doesNotMatch(drafter, /provider: "ollama"/);
+  assert.match(drafter, /class FoundationProposalQualityError extends Error/);
+  assert.match(drafter, /REPAIR THE PLAN PROPOSAL/);
+  assert.match(drafter, /Never copy or lightly paraphrase the field question as the answer/);
+  assert.match(drafter, /Provisional —/);
+  assert.match(drafter, /after two attempts/);
+  assert.ok((drafter.match(/requestFoundationProposal\(/g) ?? []).length >= 3);
   assert.match(runtime, /"foundations-planner"/);
   assert.match(runtime, /Never invent a story fact/);
   assert.match(plan, /plotpickle-ouroboros-v2-128\.png/);

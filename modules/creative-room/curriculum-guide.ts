@@ -121,10 +121,22 @@ export function buildCurriculumGuideModelRequest(
   return { message, retrieval };
 }
 
+const INTERNAL_SCAFFOLD_LINE = /^(?:\[LOCAL CURRICULUM BLOCK\b.*\]|Status:|Authority:|Lesson:|Section:|Bundled curriculum material:|Material type:|Curriculum scope:|Historical claim:|Current correction \().*$/i;
+
+export function stripInternalScaffolding(value: string) {
+  return value
+    .replace(/&lt;\s*\/?\s*[a-z][a-z0-9_-]*(?:\s+[^&\n]{0,120})?&gt;/gi, "")
+    .replace(/\\u003c\s*\/?\s*[a-z][a-z0-9_-]*(?:[^\\\n]{0,120})?\\u003e/gi, "")
+    .replace(/<\s*\/?\s*[a-z][a-z0-9_-]*(?:\s+[^>\n]{0,120})?>/gi, "")
+    .replace(/^\s*(?:student_question|conversation_memory|project_memory|curriculum_context)\s*:?\s*$/gim, "")
+    .replace(/\r/g, "");
+}
+
 function cleanGuideAnswer(value: string) {
   const uniqueLines: string[] = [];
-  for (const line of value.replace(/\r/g, "").split("\n")) {
+  for (const line of stripInternalScaffolding(value).split("\n")) {
     const normalized = line.trim();
+    if (INTERNAL_SCAFFOLD_LINE.test(normalized)) continue;
     if (!normalized && !uniqueLines.at(-1)) continue;
     if (normalized && normalized === uniqueLines.at(-1)?.trim()) continue;
     uniqueLines.push(line.trimEnd());

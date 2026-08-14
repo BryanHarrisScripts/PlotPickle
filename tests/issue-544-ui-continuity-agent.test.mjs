@@ -81,9 +81,10 @@ test("#544 keeps the Agent & Settings control fixed in the shared shell and stan
   assert.ok(header.indexOf("shell-agent-settings-anchor") < header.indexOf("shell-brand"));
   assert.match(anchor, /href="\/\?workspace=settings"/);
   assert.match(styles, /position: fixed/);
-  assert.match(styles, /top: 12px/);
-  assert.match(styles, /left: 12px/);
-  assert.match(styles, /#22bfae|#d8b769/);
+  assert.match(styles, /top: 4px/);
+  assert.match(styles, /right: 12px/);
+  assert.match(styles, /left: auto/);
+  assert.match(styles, /#22bfae|#35c9b8|#d8b769/);
   assert.match(layout, /<UiContinuityAnchor \/>/);
 });
 

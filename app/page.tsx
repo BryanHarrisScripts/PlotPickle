@@ -7,12 +7,16 @@ import { normalizeFoundationProject, type PPFProject } from "../core/project/pro
 import { answerFromCurriculum } from "../modules/creative-room/curriculum-guide";
 import LearnWorkspace from "../modules/learn/ui/learn-workspace";
 import FoundationsPlanWorkspace from "../modules/plan/ui/foundations-plan-workspace";
+import SageSettingsWorkspace from "./sage-settings-workspace";
 
-type Workspace = "learn" | "plan";
+type Workspace = "learn" | "plan" | "settings";
 
 function requestedWorkspace(): Workspace {
   if (typeof window === "undefined") return "learn";
-  return new URLSearchParams(window.location.search).get("workspace") === "plan" ? "plan" : "learn";
+  const requested = new URLSearchParams(window.location.search).get("workspace");
+  if (requested === "plan") return "plan";
+  if (requested === "settings") return "settings";
+  return "learn";
 }
 
 function repairPersistedProject() {
@@ -63,6 +67,10 @@ export default function Home() {
 
   if (!storageReady) {
     return <main style={{ minHeight: "100dvh", display: "grid", placeItems: "center" }}>Opening PlotPickle…</main>;
+  }
+
+  if (workspace === "settings") {
+    return <SageSettingsWorkspace />;
   }
 
   if (workspace === "plan") {

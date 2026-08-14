@@ -78,20 +78,35 @@ async function preflightLocalRuntime() {
       signal: AbortSignal.timeout(3_000),
     });
   } catch (error) {
-    if (isTimeout(error)) throw new Error("PlotPickle could not verify the local Mastra/Ollama runtime within three seconds.");
+    if (isTimeout(error)) throw new Error("PlotPickle could not verify the local Mastra runtime within three seconds.");
     throw error;
   }
   const status = await response.json() as {
     readonly message?: string;
     readonly mastra?: { readonly ready?: boolean; readonly error?: string };
-    readonly providers?: { readonly ollama?: { readonly model?: string } };
-    readonly ollama?: { readonly reachable?: boolean; readonly models?: readonly string[]; readonly error?: string };
+    readonly localRuntime?: {
+      readonly ready?: boolean;
+      readonly runtime?: string;
+      readonly error?: string;
+      readonly models?: {
+        readonly quality?: {
+          readonly recommended?: string;
+          readonly selected?: string;
+          readonly available?: boolean;
+        };
+      };
+    };
   };
   if (!response.ok) throw new Error(status.message || "PlotPickle could not verify the local writing runtime.");
   if (!status.mastra?.ready) throw new Error(status.mastra?.error || "The embedded Mastra runtime is not ready.");
-  if (!status.ollama?.reachable) throw new Error(status.ollama?.error || "Ollama is not reachable. Start Ollama and try again.");
-  if (!status.ollama.models?.length) throw new Error(status.ollama?.error || "Ollama is running, but no installed model is available.");
-  return status.providers?.ollama?.model || status.ollama.models[0] || "local Ollama model";
+  if (!status.localRuntime?.ready) {
+    throw new Error(status.localRuntime?.error || "No production-ready local OpenAI-compatible runtime is available.");
+  }
+  const quality = status.localRuntime.models?.quality;
+  if (!quality?.available || !quality.selected) {
+    throw new Error(`${quality?.recommended || "The Quality local model"} is not available. Install it or choose an advanced Quality-model override in Settings; your fields were not changed.`);
+  }
+  return quality.selected;
 }
 
 function lessonContext(lesson: CurriculumLesson) {
@@ -137,10 +152,14 @@ export async function draftFoundationLesson(
   try {
     response = await fetch("/api/writing-assistant/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-PlotPickle-Model-Role": "quality",
+      },
       body: JSON.stringify({
         agentId: "foundations-planner",
-        provider: "ollama",
+        provider: "local",
+        modelRole: "quality",
         tone: "collaborative",
         foundationFieldIds: input.lesson.fields.map((field) => field.id),
         message,
@@ -157,7 +176,7 @@ export async function draftFoundationLesson(
     readonly text?: string;
   };
   if (!response.ok || !result.text) {
-    throw new Error(result.message || "The local Foundations drafter could not reach Ollama.");
+    throw new Error(result.message || "The local Foundations drafter could not reach the active OpenAI-compatible runtime.");
   }
   return {
     values: parseProposal(result.text, input.lesson),

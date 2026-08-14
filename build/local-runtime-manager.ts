@@ -181,11 +181,26 @@ async function probeCompatible(kind: LocalRuntimeKind, baseUrl: string, timeoutM
   }
 }
 
+function modelKey(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
 function selectedModel(role: LocalTextRole, models: readonly string[], settings: LocalRuntimeSettings) {
+  const catalog = LOCAL_MODEL_CATALOG[role];
   const override = settings.modelOverrides[role];
-  if (override) return override;
-  const fragments = LOCAL_MODEL_CATALOG[role].expectedNameFragments;
-  return models.find((model) => fragments.some((fragment) => model.toLowerCase().includes(fragment))) || "";
+  if (override) {
+    const exact = models.find((model) => model === override || model.toLowerCase() === override.toLowerCase());
+    if (exact) return exact;
+    const normalizedOverride = modelKey(override);
+    const friendlyCatalogName = [catalog.label, catalog.family].some((value) => modelKey(value) === normalizedOverride);
+    if (!friendlyCatalogName) {
+      const normalizedMatch = models.find((model) => modelKey(model) === normalizedOverride);
+      return normalizedMatch || override;
+    }
+  }
+  return models.find((model) => (
+    catalog.expectedNameFragments.some((fragment) => modelKey(model).includes(modelKey(fragment)))
+  )) || "";
 }
 
 export async function localRuntimeSnapshot(): Promise<LocalRuntimeSnapshot> {

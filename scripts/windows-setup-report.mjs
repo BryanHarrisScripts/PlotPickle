@@ -10,6 +10,13 @@ const packageFile = path.join(projectRoot, "package.json");
 const lockFile = path.join(projectRoot, "package-lock.json");
 const manifest = JSON.parse(readFileSync(packageFile, "utf8"));
 const mode = process.argv[2] ?? "plan";
+const ANSI = {
+  green: "\u001b[92m",
+  yellow: "\u001b[93m",
+  red: "\u001b[91m",
+  reset: "\u001b[0m",
+};
+const status = (label, color) => `${color}[${label}]${ANSI.reset}`;
 
 const RECOMMENDED_FREE_BYTES = 2 * 1024 ** 3;
 const ESTIMATED_WORKING_BYTES = 1.5 * 1024 ** 3;
@@ -142,9 +149,9 @@ function printInstalledComponents() {
   for (const [purpose, packageName] of components) {
     const version = installedVersion(packageName);
     if (version) {
-      console.log(`  [OK] ${purpose}: ${packageName} ${version}`);
+      console.log(`  ${status("OK", ANSI.green)} ${purpose}: ${packageName} ${version}`);
     } else {
-      console.log(`  [MISSING] ${purpose}: ${packageName}`);
+      console.log(`  ${status("MISSING", ANSI.red)} ${purpose}: ${packageName}`);
       missing += 1;
     }
   }
@@ -187,7 +194,7 @@ function printPlan() {
   console.log("  - A new package-lock fingerprint creates a separate runtime only when dependencies change.");
   console.log(`  - Free space currently available: ${formatBytes(free)}`);
   if (Number.isFinite(free) && free < RECOMMENDED_FREE_BYTES) {
-    console.log("  [WARNING] Less than 2 GB is currently free. Setup may fail until space is available.");
+    console.log(`  ${status("WARNING", ANSI.yellow)} Less than 2 GB is currently free. Setup may fail until space is available.`);
   }
   console.log("");
   printSecurityExplanation();
@@ -199,8 +206,8 @@ function printSuccess(includeInstalledSize) {
   const installedFolder = dependencyDirectory();
   divider();
   console.log(includeInstalledSize
-    ? "  SUCCESS - PLOTPICKLE RUNTIME INSTALLATION COMPLETED"
-    : "  SUCCESS - PLOTPICKLE RUNTIME REUSED AND VERIFIED");
+    ? `  ${ANSI.green}SUCCESS - PLOTPICKLE RUNTIME INSTALLATION COMPLETED${ANSI.reset}`
+    : `  ${ANSI.green}SUCCESS - PLOTPICKLE RUNTIME REUSED AND VERIFIED${ANSI.reset}`);
   divider();
   console.log(`Application version: ${manifest.version}`);
   console.log(`Dependency fingerprint: ${dependencyHash()}`);
@@ -233,10 +240,10 @@ function printSuccess(includeInstalledSize) {
   printSecurityExplanation();
   console.log("");
   if (missing > 0) {
-    console.log(`[ERROR] ${missing} expected component(s) could not be verified.`);
+    console.log(`${status("ERROR", ANSI.red)} ${missing} expected component(s) could not be verified.`);
     process.exitCode = 1;
   } else {
-    console.log("All required components passed verification. PlotPickle can now start in private local mode.");
+    console.log(`${status("OK", ANSI.green)} All required components passed verification. PlotPickle can now start in private local mode.`);
   }
 }
 

@@ -23,6 +23,13 @@ import { localProjectGateway } from "./build/local-project-gateway";
 import { localStorageSafetyGateway } from "./build/local-storage-safety-gateway";
 import { fullStoryBuilderGateway } from "./build/full-story-builder-gateway";
 import { sites } from "./build/sites-vite-plugin";
+import { startupAgentDiagnosticsPlugin } from "./build/startup-agent-diagnostics.ts";
+
+// Vite currently uses the bundled config loader for PlotPickle. Its proactive
+// future-native-loader advisory is developer migration noise, not a startup
+// failure, so keep it out of the user-facing local-app command window while
+// CI continues to validate the real production build.
+process.env.VITE_CONFIG_NATIVE_IGNORE_WARNING ??= "true";
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "00000000-0000-4000-8000-000000000000";
@@ -87,6 +94,7 @@ export default defineConfig(async () => {
       fullStoryBuilderGateway(),
       localProjectGateway(),
       localAiGateway(),
+      startupAgentDiagnosticsPlugin(),
       vinext(),
       sites(),
       cloudflare({ viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] }, inspectorPort: false, config: localBindingConfig }),

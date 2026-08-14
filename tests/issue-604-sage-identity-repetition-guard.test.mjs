@@ -35,6 +35,16 @@ test("Sage rejects runaway phrase loops before rendering them", async () => {
   assert.match(guide, /repeated, looped, or failed to answer the question twice/);
 });
 
+test("startup health also fails Sage repetition loops instead of reporting healthy", async () => {
+  const diagnostic = await read("build/startup-agent-diagnostics.ts");
+
+  assert.match(diagnostic, /function repetitionPass/);
+  assert.match(diagnostic, /if \(count >= 3\) return false/);
+  assert.match(diagnostic, /repetitionSafe: repetitionPass\(text\)/);
+  assert.match(diagnostic, /Sage repetition guard/);
+  assert.match(diagnostic, /!sage\.repetitionSafe/);
+});
+
 test("the screenshot failure pattern would violate the repetition rule", () => {
   const sample = "I'm a Master of the Scripts, a Master of the Scripts, a Master of the Scripts. I've been involved in the editing process for over 10 years and have been involved in the editing process for over 10 years and have been involved in the editing process for over 10 years.";
   const words = sample.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/);

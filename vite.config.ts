@@ -66,6 +66,12 @@ export default defineConfig(async () => {
         process.env.PLOTPICKLE_STARTUP_CONTRACT ?? "plotpickle-unverified-startup",
       ),
     },
+    optimizeDeps: {
+      // Vinext marks this RSC client shim inconsistently across the client/RSC
+      // graphs. Excluding it keeps Vite from pre-optimizing one copy while
+      // leaving another raw, which removes the harmless but noisy startup warning.
+      exclude: ["vinext/dist/shims/internal/app-prefetch-fetch-queue.js"],
+    },
     server: {
       host: "0.0.0.0",
       allowedHosts: ["terminal.local"],

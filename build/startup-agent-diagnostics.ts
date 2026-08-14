@@ -26,8 +26,35 @@ type ChatResult = {
   readonly message?: string;
 };
 
+type SageProbeAttempt = {
+  readonly text: string;
+  readonly antiEcho: boolean;
+  readonly repetitionSafe: boolean;
+  readonly grounded: boolean;
+};
+
+type SageProbeResult = SageProbeAttempt & {
+  readonly latencyMs: number;
+  readonly route: "Fast" | "Fast retry" | "Quality fallback" | "Fast retry; Quality unavailable";
+  readonly recovered: boolean;
+};
+
 const DISPLAY_WIDTH = 34;
 const GROUNDING_PROBE_PHRASE = "copper lighthouse";
+const SAGE_DIAGNOSTIC_REPAIR_INSTRUCTION = [
+  "STARTUP HEALTH RETRY.",
+  "The previous Fast response repeated, echoed, or failed a grounding check.",
+  "Answer the student directly and freshly using the supplied curriculum_context.",
+  "Include the named example motif from the curriculum context exactly once.",
+  "Do not repeat the question or loop phrases, and do not mention this retry.",
+].join(" ");
+const SAGE_DIAGNOSTIC_QUALITY_INSTRUCTION = [
+  "STARTUP HEALTH QUALITY FALLBACK.",
+  "The Fast model failed the same response-quality checks twice.",
+  "Produce one clean final answer grounded in curriculum_context.",
+  "Include the named example motif from the curriculum context exactly once.",
+  "Do not repeat the question or loop phrases, and do not mention this fallback.",
+].join(" ");
 const ANSI = {
   green: "\u001b[92m",
   yellow: "\u001b[93m",
@@ -80,6 +107,10 @@ function repetitionPass(answer: string) {
 
 function groundingPass(answer: string) {
   return comparableText(answer).includes(GROUNDING_PROBE_PHRASE);
+}
+
+function sageAttemptPass(attempt: SageProbeAttempt) {
+  return Boolean(attempt.text) && attempt.antiEcho && attempt.repetitionSafe && attempt.grounded;
 }
 
 function structuredFoundationPass(value: string) {
@@ -162,7 +193,33 @@ async function loadRole(baseUrl: string, role: "fast" | "quality") {
   }, 40_000);
 }
 
-async function runSageProbe(baseUrl: string) {
+async function requestSageProbeAttempt(
+  baseUrl: string,
+  message: string,
+  question: string,
+  modelRole: "fast" | "quality",
+  timeoutMs: number,
+): Promise<SageProbeAttempt> {
+  const result = await fetchJson<ChatResult>(`${baseUrl}/api/writing-assistant/chat`, {
+    method: "POST",
+    body: JSON.stringify({
+      agentId: "curriculum-guide",
+      provider: "local",
+      modelRole,
+      tone: "gentle",
+      message,
+    }),
+  }, timeoutMs);
+  const text = result.text?.trim() || "";
+  return {
+    text,
+    antiEcho: antiEchoPass(text, question),
+    repetitionSafe: repetitionPass(text),
+    grounded: groundingPass(text),
+  };
+}
+
+async function runSageProbe(baseUrl: string): Promise<SageProbeResult> {
   const { question, context } = await loadThemeProbe();
   const message = [
     "<curriculum_context>",
@@ -173,23 +230,46 @@ async function runSageProbe(baseUrl: string) {
     "</student_question>",
   ].join("\n\n");
   const started = Date.now();
-  const result = await fetchJson<ChatResult>(`${baseUrl}/api/writing-assistant/chat`, {
-    method: "POST",
-    body: JSON.stringify({
-      agentId: "curriculum-guide",
-      provider: "local",
-      modelRole: "fast",
-      tone: "gentle",
-      message,
-    }),
-  }, 60_000);
-  const text = result.text?.trim() || "";
+
+  let attempt = await requestSageProbeAttempt(baseUrl, message, question, "fast", 60_000);
+  if (sageAttemptPass(attempt)) {
+    return { ...attempt, latencyMs: Date.now() - started, route: "Fast", recovered: false };
+  }
+
+  attempt = await requestSageProbeAttempt(
+    baseUrl,
+    `${SAGE_DIAGNOSTIC_REPAIR_INSTRUCTION}\n\n${message}`,
+    question,
+    "fast",
+    45_000,
+  );
+  if (sageAttemptPass(attempt)) {
+    return { ...attempt, latencyMs: Date.now() - started, route: "Fast retry", recovered: true };
+  }
+
+  try {
+    await loadRole(baseUrl, "quality");
+  } catch {
+    return {
+      ...attempt,
+      latencyMs: Date.now() - started,
+      route: "Fast retry; Quality unavailable",
+      recovered: false,
+    };
+  }
+
+  attempt = await requestSageProbeAttempt(
+    baseUrl,
+    `${SAGE_DIAGNOSTIC_QUALITY_INSTRUCTION}\n\n${message}`,
+    question,
+    "quality",
+    75_000,
+  );
   return {
-    text,
-    latencyMs: result.latencyMs || Date.now() - started,
-    antiEcho: antiEchoPass(text, question),
-    repetitionSafe: repetitionPass(text),
-    grounded: groundingPass(text),
+    ...attempt,
+    latencyMs: Date.now() - started,
+    route: "Quality fallback",
+    recovered: sageAttemptPass(attempt),
   };
 }
 
@@ -267,10 +347,12 @@ export async function runStartupAgentDiagnostics(baseUrl: string) {
     try {
       const sage = await runSageProbe(baseUrl);
       const responsePass = Boolean(sage.text);
-      printResult("Sage response", responsePass ? "PASS" : "FAIL", `${(sage.latencyMs / 1000).toFixed(1)}s`);
-      printResult("Sage anti-echo check", sage.antiEcho ? "PASS" : "FAIL");
-      printResult("Sage repetition guard", sage.repetitionSafe ? "PASS" : "FAIL");
-      printResult("Curriculum grounding", sage.grounded ? "PASS" : "FAIL", sage.grounded ? "" : `missing '${GROUNDING_PROBE_PHRASE}' probe`);
+      const routeDetail = sage.route === "Fast" ? "" : ` via ${sage.route}`;
+      const recoveryDetail = sage.recovered && sage.route !== "Fast" ? `recovered via ${sage.route}` : "";
+      printResult("Sage response", responsePass ? "PASS" : "FAIL", `${(sage.latencyMs / 1000).toFixed(1)}s${routeDetail}`);
+      printResult("Sage anti-echo check", sage.antiEcho ? "PASS" : "FAIL", sage.antiEcho ? recoveryDetail : "");
+      printResult("Sage repetition guard", sage.repetitionSafe ? "PASS" : "FAIL", sage.repetitionSafe ? recoveryDetail : "");
+      printResult("Curriculum grounding", sage.grounded ? "PASS" : "FAIL", sage.grounded ? recoveryDetail : `missing '${GROUNDING_PROBE_PHRASE}' probe`);
       failed ||= !responsePass || !sage.antiEcho || !sage.repetitionSafe || !sage.grounded;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Sage probe failed";

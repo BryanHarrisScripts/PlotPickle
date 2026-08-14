@@ -10,7 +10,13 @@ export type ImageGenerationInput = {
   aspect?: unknown;
   quality?: unknown;
   referenceImages?: unknown;
+  approvedCharacterReferences?: unknown;
+  environmentReferences?: unknown;
   identityLocks?: unknown;
+  wardrobeLookIds?: unknown;
+  composition?: unknown;
+  negativeConstraints?: unknown;
+  continuityMetadata?: unknown;
   billingAcknowledged?: unknown;
   requestCount?: unknown;
 };
@@ -21,8 +27,24 @@ export type VideoGenerationInput = {
   assetId?: unknown;
   durationSeconds?: unknown;
   aspectRatio?: unknown;
+  identityLocks?: unknown;
+  wardrobeLookIds?: unknown;
+  composition?: unknown;
+  environmentReferences?: unknown;
+  negativeConstraints?: unknown;
+  continuityMetadata?: unknown;
   billingAcknowledged?: unknown;
   dataSharingAcknowledged?: unknown;
+};
+
+export type VisualContinuityEnvelope = {
+  prompt: string;
+  negativePrompt: string;
+  references: unknown[];
+  identityLockCount: number;
+  wardrobeLookIds: string[];
+  composition: string;
+  continuity: string[];
 };
 
 export const ASSET_PATH = "/api/local-ai/assets/";
@@ -122,6 +144,101 @@ export async function providerForm(url: string, profile: MediaProfile, body: For
   return value as Record<string, unknown>;
 }
 
+function cleanString(value: unknown, maximum = 1_000) {
+  return typeof value === "string" ? value.replace(/\s+/g, " ").trim().slice(0, maximum) : "";
+}
+
+function cleanStringArray(value: unknown, maximumItems = 24, maximumCharacters = 500) {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, maximumItems).flatMap((item) => {
+    const text = cleanString(item, maximumCharacters);
+    return text ? [text] : [];
+  });
+}
+
+function recordLines(value: unknown, prefix: string) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+  const item = value as Record<string, unknown>;
+  const lines: string[] = [];
+  for (const [key, child] of Object.entries(item)) {
+    if (key === "canonicalReferenceAssetIds" || key === "referenceAssetIds" || key === "assetIds") continue;
+    if (Array.isArray(child)) {
+      const values = cleanStringArray(child, 20, 300);
+      if (values.length) lines.push(`${prefix} ${key}: ${values.join("; ")}`);
+    } else {
+      const text = cleanString(child, 500);
+      if (text) lines.push(`${prefix} ${key}: ${text}`);
+    }
+  }
+  return lines;
+}
+
+function referenceIdsFromRecord(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+  const item = value as Record<string, unknown>;
+  return [
+    ...cleanStringArray(item.canonicalReferenceAssetIds, 8, 300),
+    ...cleanStringArray(item.referenceAssetIds, 8, 300),
+    ...cleanStringArray(item.assetIds, 8, 300),
+  ];
+}
+
+function normalizeAssetReference(value: string) {
+  if (!value) return "";
+  if (value.startsWith(ASSET_PATH) || value.startsWith("data:image/")) return value;
+  if (/^[a-z0-9][a-z0-9._-]*\.(?:png|jpe?g|webp)$/i.test(value)) return `${ASSET_PATH}${value}`;
+  return "";
+}
+
+export function visualContinuityEnvelope(input: ImageGenerationInput): VisualContinuityEnvelope {
+  const basePrompt = cleanString(input.prompt, 30_000);
+  const identityLocks = Array.isArray(input.identityLocks) ? input.identityLocks.slice(0, 12) : input.identityLocks ? [input.identityLocks] : [];
+  const wardrobeLookIds = cleanStringArray(input.wardrobeLookIds, 12, 240);
+  const composition = cleanString(input.composition, 1_500);
+  const continuity = Array.isArray(input.continuityMetadata)
+    ? input.continuityMetadata.slice(0, 24).flatMap((item) => typeof item === "string" ? [cleanString(item, 700)] : recordLines(item, "Continuity"))
+    : input.continuityMetadata
+      ? (typeof input.continuityMetadata === "string" ? [cleanString(input.continuityMetadata, 1_500)] : recordLines(input.continuityMetadata, "Continuity"))
+      : [];
+  const identityLines = identityLocks.flatMap((lock) => recordLines(lock, "Identity lock"));
+  const neverChange = identityLocks.flatMap((lock) => {
+    if (!lock || typeof lock !== "object" || Array.isArray(lock)) return [];
+    return cleanStringArray((lock as Record<string, unknown>).neverChange, 24, 400);
+  });
+  const avoid = identityLocks.flatMap((lock) => {
+    if (!lock || typeof lock !== "object" || Array.isArray(lock)) return [];
+    return cleanStringArray((lock as Record<string, unknown>).avoid, 24, 400);
+  });
+  const negativeConstraints = cleanStringArray(input.negativeConstraints, 32, 500);
+  const promptParts = [
+    basePrompt,
+    identityLines.length ? `APPROVED CHARACTER IDENTITY — preserve exactly:\n${identityLines.join("\n")}` : "",
+    neverChange.length ? `NON-NEGOTIABLE IDENTITY FEATURES — do not alter: ${neverChange.join("; ")}` : "",
+    wardrobeLookIds.length ? `APPROVED WARDROBE / LOOK IDS: ${wardrobeLookIds.join("; ")}` : "",
+    composition ? `COMPOSITION: ${composition}` : "",
+    continuity.length ? `VISUAL CONTINUITY METADATA:\n${continuity.filter(Boolean).join("\n")}` : "",
+  ].filter(Boolean);
+  const references = [
+    ...(Array.isArray(input.approvedCharacterReferences) ? input.approvedCharacterReferences : []),
+    ...identityLocks.flatMap(referenceIdsFromRecord).map(normalizeAssetReference).filter(Boolean),
+    ...(Array.isArray(input.referenceImages) ? input.referenceImages : []),
+    ...(Array.isArray(input.environmentReferences) ? input.environmentReferences : []),
+  ];
+  return {
+    prompt: promptParts.join("\n\n").slice(0, 30_000),
+    negativePrompt: [
+      "text, watermark, logo, distorted anatomy, duplicate subject, identity drift, unintended wardrobe change, unintended environment change",
+      ...avoid,
+      ...negativeConstraints,
+    ].filter(Boolean).join(", ").slice(0, 6_000),
+    references: [...new Set(references.filter((value) => typeof value === "string" && value.trim()).map((value) => (value as string).trim()))].slice(0, 4),
+    identityLockCount: identityLocks.length,
+    wardrobeLookIds,
+    composition,
+    continuity: continuity.filter(Boolean),
+  };
+}
+
 export type LocalReferenceImage = {
   bytes: Buffer;
   mimeType: "image/png" | "image/jpeg" | "image/webp";
@@ -153,8 +270,8 @@ async function localReferenceImage(value: unknown, index: number): Promise<Local
 }
 
 export async function referenceImages(input: ImageGenerationInput) {
-  if (!Array.isArray(input.referenceImages)) return [];
-  const values = await Promise.all(input.referenceImages.slice(0, 4).map((value, index) => localReferenceImage(value, index).catch(() => null)));
+  const envelope = visualContinuityEnvelope(input);
+  const values = await Promise.all(envelope.references.map((value, index) => localReferenceImage(value, index).catch(() => null)));
   return values.filter((value): value is LocalReferenceImage => Boolean(value));
 }
 

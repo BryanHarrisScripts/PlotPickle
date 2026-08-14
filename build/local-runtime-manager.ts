@@ -42,28 +42,11 @@ export type LocalRuntimeSnapshot = {
   settings: LocalRuntimeSettings;
   runtimes: LocalRuntimeProbe[];
   activeRuntime: LocalRuntimeProbe;
-  roles: Record<LocalTextRole, {
-    recommended: string;
-    selected: string;
-    available: boolean;
-    production: true;
-  }>;
-  retrieval: {
-    embedding: string;
-    reranker: string;
-    cpuResident: true;
-  };
-  image: {
-    workflow: "SDXL 1.0";
-    experimental: "SD3.5 Medium";
-  };
-  video: {
-    workflow: "LTX-Video 2B 0.9.8 Distilled";
-  };
-  healthCheckModel: {
-    model: "SmolLM2 135M";
-    productionEligible: false;
-  };
+  roles: Record<LocalTextRole, { recommended: string; selected: string; available: boolean; production: true }>;
+  retrieval: { embedding: string; reranker: string; cpuResident: true };
+  image: { workflow: "SDXL 1.0"; experimental: "SD3.5 Medium" };
+  video: { workflow: "LTX-Video 2B 0.9.8 Distilled" };
+  healthCheckModel: { model: "SmolLM2 135M"; productionEligible: false };
 };
 
 const SETTINGS_FILE = "local-runtime.json";
@@ -119,13 +102,11 @@ function normalizeSettings(value: unknown): LocalRuntimeSettings {
     }
   }
   const modelOverrides: Partial<Record<LocalTextRole, string>> = {};
-  for (const role of ["fast", "quality", "deep"] as const) {
-    const raw = item.modelOverrides?.[role];
-    if (typeof raw === "string" && raw.trim()) modelOverrides[role] = raw.trim();
-  }
   const modelPaths: Partial<Record<LocalTextRole, string>> = {};
   const gpuLayers: Partial<Record<LocalTextRole, number>> = {};
   for (const role of ["fast", "quality", "deep"] as const) {
+    const override = item.modelOverrides?.[role];
+    if (typeof override === "string" && override.trim()) modelOverrides[role] = override.trim();
     const modelPath = managed.modelPaths?.[role];
     if (typeof modelPath === "string" && modelPath.trim()) modelPaths[role] = modelPath.trim();
     const layers = managed.gpuLayers?.[role];
@@ -164,12 +145,12 @@ function runtimeLabel(kind: LocalRuntimeKind) {
   return "OpenAI-compatible server";
 }
 
-async function probeCompatible(kind: LocalRuntimeKind, baseUrl: string): Promise<LocalRuntimeProbe> {
+async function probeCompatible(kind: LocalRuntimeKind, baseUrl: string, timeoutMs = 1_800): Promise<LocalRuntimeProbe> {
   const started = Date.now();
   try {
     const response = await fetch(`${baseUrl}/models`, {
       headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(1_800),
+      signal: AbortSignal.timeout(timeoutMs),
     });
     if (!response.ok) throw new Error(`HTTP ${response.status} from /models`);
     const body = await response.json() as { data?: Array<{ id?: unknown }> };
@@ -250,6 +231,10 @@ export async function localRuntimeSnapshot(): Promise<LocalRuntimeSnapshot> {
 }
 
 export async function localTextExecutionProfile(role: LocalTextRole) {
+  const settings = await readLocalRuntimeSettings();
+  if (settings.managedLlama.enabled && (settings.preferredRuntime === "auto" || settings.preferredRuntime === "llama.cpp")) {
+    await startManagedLlama(role);
+  }
   const snapshot = await localRuntimeSnapshot();
   if (!snapshot.activeRuntime.reachable) {
     throw new Error("No local OpenAI-compatible runtime is reachable. Start llama.cpp, LM Studio, Ollama, or another compatible server.");
@@ -306,6 +291,21 @@ export async function stopManagedLlama() {
   return true;
 }
 
+async function waitForManagedLlama(port: number, expectedModelPath: string) {
+  const baseUrl = `http://127.0.0.1:${port}/v1`;
+  const deadline = Date.now() + 30_000;
+  let lastError = "llama.cpp did not answer.";
+  while (Date.now() < deadline) {
+    if (!managedLlama || managedLlama.exitCode !== null) throw new Error("The managed llama.cpp process exited before becoming ready.");
+    const probe = await probeCompatible("llama.cpp", baseUrl, 1_500);
+    if (probe.reachable && probe.models.length) return true;
+    lastError = probe.error || lastError;
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  await stopManagedLlama();
+  throw new Error(`Managed llama.cpp did not become ready for ${path.basename(expectedModelPath)} within 30 seconds: ${lastError}`);
+}
+
 export async function startManagedLlama(role: LocalTextRole) {
   const settings = await readLocalRuntimeSettings();
   if (!settings.managedLlama.enabled) return false;
@@ -314,7 +314,7 @@ export async function startManagedLlama(role: LocalTextRole) {
   if (!modelPath || !(await existingFile(modelPath))) {
     throw new Error(`The managed llama.cpp ${role} model path is not configured or does not exist.`);
   }
-  if (managedLlama && managedRole === role && managedModel === modelPath) return true;
+  if (managedLlama && managedRole === role && managedModel === modelPath && managedLlama.exitCode === null) return true;
   await stopManagedLlama();
   const layers = settings.managedLlama.gpuLayers[role] ?? (role === "fast" ? 99 : role === "quality" ? 24 : 8);
   managedLlama = spawn(executable, [
@@ -330,14 +330,17 @@ export async function startManagedLlama(role: LocalTextRole) {
   });
   managedRole = role;
   managedModel = modelPath;
-  managedLlama.once("exit", () => {
+  const child = managedLlama;
+  child.once("exit", () => {
+    if (managedLlama !== child) return;
     managedLlama = null;
     managedRole = null;
     managedModel = "";
   });
+  await waitForManagedLlama(settings.managedLlama.port, modelPath);
   return true;
 }
 
 export function managedLlamaStatus() {
-  return { running: Boolean(managedLlama), role: managedRole, model: managedModel };
+  return { running: Boolean(managedLlama && managedLlama.exitCode === null), role: managedRole, model: managedModel };
 }

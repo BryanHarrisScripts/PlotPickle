@@ -17,7 +17,6 @@ set "SOURCE_SYNC=scripts\windows-source-sync.mjs"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
 set "SOURCE_ENV=%TEMP%\plotpickle-source-%RANDOM%-%RANDOM%.cmd"
 set "INSTALL_PERFORMED=0"
-set "RUN_UAT=0"
 set "COMPANION_WARNINGS=0"
 set "READY_TIMEOUT_SECONDS=60"
 
@@ -85,19 +84,7 @@ if "!PROBE_RESULT!"=="0" (
   echo [READY] The current PlotPickle build is already running at %PLOTPICKLE_URL%.
   echo Its startup contract confirms that required checks completed before that server opened.
   echo Opening the verified session. No second server or maintenance pass will be started.
-  call :start_full_story_builder
-  call :start_ui_continuity_agent
   start "" "%PLOTPICKLE_URL%"
-  if exist "%UAT_RUNNER%" (
-    echo.
-    choice /C YN /N /M "TESTING: Run the Creative Writer UAT against this session? [Y/N]: "
-    if not errorlevel 2 (
-      start "PlotPickle Creative Writer UAT" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%UAT_RUNNER%" -BaseUrl "%PLOTPICKLE_URL%"
-      echo [AGENT 3 OF 3 STARTED] Creative Writer UAT. Its result window stays open until you press Enter.
-    ) else (
-      echo [AGENT 3 OF 3 NOT REQUESTED] Creative Writer UAT remains available the next time PlotPickle starts.
-    )
-  )
   exit /b 0
 )
 if "!PROBE_RESULT!"=="3" (
@@ -231,19 +218,6 @@ if exist "%COMPANION_MANAGER%" (
   echo [READY WITH WARNINGS] The companion-software inventory is missing. PlotPickle will continue with its required runtime.
 )
 
-if exist "%UAT_RUNNER%" (
-  echo.
-  echo ------------------------------------------------------------
-  echo   USER ACCEPTANCE TESTING - TEMPORARY TEST CONTROL
-  echo ------------------------------------------------------------
-  echo The default UAT uses Agent Plugins and Playwright locally to create
-  echo and revise a disposable visual story from New Project through Graphic Novel.
-  echo It does not require ChatGPT or Codex quota and does not trigger paid generation.
-  echo Choosing N starts PlotPickle normally and changes nothing else.
-  choice /C YN /N /M "Run the Creative Writer UAT after PlotPickle starts? [Y/N]: "
-  if not errorlevel 2 set "RUN_UAT=1"
-)
-
 echo.
 echo [STEP 3 OF 3] Starting the private local server...
 echo.
@@ -259,22 +233,11 @@ set "PLOTPICKLE_STARTUP_CONTRACT=!PLOTPICKLE_STARTUP_MARKER!"
 echo.
 echo Address: %PLOTPICKLE_URL%
 echo The browser will open after PlotPickle confirms that it is ready.
-echo The independent Full Story Builder agent will wait for Learn Workspace jobs in a separate local window.
-echo The read-only UI Continuity Agent will audit shared layout and save one local report.
 echo Optional services remain available from their independent Settings pages.
-if "!RUN_UAT!"=="1" echo The Creative Writer UAT will start in a separate window after the server becomes reachable.
 echo Press Ctrl+C in this window when you are finished.
 echo.
 
-call :start_full_story_builder
-call :start_ui_continuity_agent
 call :open_when_ready
-if "!RUN_UAT!"=="1" (
-  start "PlotPickle Creative Writer UAT" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%UAT_RUNNER%" -BaseUrl "%PLOTPICKLE_URL%"
-  echo [AGENT 3 OF 3 STARTED] Creative Writer UAT. Its result window stays open until you press Enter.
-) else (
-  echo [AGENT 3 OF 3 NOT REQUESTED] Creative Writer UAT remains available the next time PlotPickle starts.
-)
 call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort
 
 set "EXIT_CODE=%ERRORLEVEL%"
@@ -296,6 +259,9 @@ exit /b !ERRORLEVEL!
 start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri '%PLOTPICKLE_URL%' -TimeoutSec 2; if ($response.StatusCode -ge 200 -and $response.Content -match '%PLOTPICKLE_STARTUP_MARKER%') { Start-Process '%PLOTPICKLE_URL%'; exit 0 } } catch {}; Start-Sleep -Milliseconds 500 }; Write-Host '[WARNING] PlotPickle did not become ready with the completed startup contract within %READY_TIMEOUT_SECONDS% seconds. Review the server messages in this window.'; exit 1"
 exit /b 0
 
+rem Full Story Builder, UI Continuity, and Creative Writer UAT are retained as manual developer tools.
+rem They are intentionally not launched by normal PlotPickle startup.
+
 :start_full_story_builder
 if not exist "%STORY_BUILDER_AGENT%" (
   echo [WARNING] The Full Story Builder agent is missing. PlotPickle will continue without it.
@@ -307,7 +273,7 @@ if not errorlevel 1 (
   exit /b 0
 )
 start "PlotPickle Full Story Builder" node "%STORY_BUILDER_AGENT%" --server "%PLOTPICKLE_URL%" --stay-open
-echo [AGENT 1 OF 3 STARTED] Full Story Builder. Its window confirms where to provide instructions.
+echo [MANUAL TOOL STARTED] Full Story Builder. Its window confirms where to provide instructions.
 exit /b 0
 
 :start_ui_continuity_agent
@@ -316,7 +282,7 @@ if not exist "%UI_CONTINUITY_AGENT%" (
   exit /b 0
 )
 start "PlotPickle UI Continuity Agent" node "%UI_CONTINUITY_AGENT%" --server "%PLOTPICKLE_URL%" --stay-open
-echo [AGENT 2 OF 3 STARTED] UI Continuity Agent. Its window stays open after the report is complete.
+echo [MANUAL TOOL STARTED] UI Continuity Agent. Its window stays open after the report is complete.
 exit /b 0
 
 :ensure_dependencies

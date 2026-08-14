@@ -118,6 +118,16 @@ export type LocalHardwareProfile = {
   experimental: readonly string[];
 };
 
+const defaultRoles: LocalHardwareProfile["defaultRoles"] = {
+  fast: LOCAL_MODEL_CATALOG.fast.id,
+  quality: LOCAL_MODEL_CATALOG.quality.id,
+  deep: LOCAL_MODEL_CATALOG.deep.id,
+  embedding: LOCAL_MODEL_CATALOG.embedding.id,
+  reranker: LOCAL_MODEL_CATALOG.reranker.id,
+  image: LOCAL_MODEL_CATALOG.image.id,
+  video: LOCAL_MODEL_CATALOG.video.id,
+};
+
 export const LOCAL_HARDWARE_PROFILES: readonly LocalHardwareProfile[] = [
   {
     id: "nvidia-pascal-8gb-32gb",
@@ -129,15 +139,20 @@ export const LOCAL_HARDWARE_PROFILES: readonly LocalHardwareProfile[] = [
     cudaPolicy: "cu126-pascal",
     allowVulkanFallback: true,
     cpuGpuSplit: true,
-    defaultRoles: {
-      fast: LOCAL_MODEL_CATALOG.fast.id,
-      quality: LOCAL_MODEL_CATALOG.quality.id,
-      deep: LOCAL_MODEL_CATALOG.deep.id,
-      embedding: LOCAL_MODEL_CATALOG.embedding.id,
-      reranker: LOCAL_MODEL_CATALOG.reranker.id,
-      image: LOCAL_MODEL_CATALOG.image.id,
-      video: LOCAL_MODEL_CATALOG.video.id,
-    },
+    defaultRoles,
+    experimental: ["SD3.5 Medium", "32K context"],
+  },
+  {
+    id: "nvidia-8gb-modern",
+    label: "NVIDIA 8 GB / modern CUDA",
+    minimumRamGb: 24,
+    runtimePreference: ["llama.cpp", "lm-studio", "openai-compatible", "ollama"],
+    defaultContextTokens: 16384,
+    extendedContextTokens: 32768,
+    cudaPolicy: "current-nvidia",
+    allowVulkanFallback: true,
+    cpuGpuSplit: true,
+    defaultRoles,
     experimental: ["SD3.5 Medium", "32K context"],
   },
   {
@@ -150,15 +165,7 @@ export const LOCAL_HARDWARE_PROFILES: readonly LocalHardwareProfile[] = [
     cudaPolicy: "current-nvidia",
     allowVulkanFallback: true,
     cpuGpuSplit: true,
-    defaultRoles: {
-      fast: LOCAL_MODEL_CATALOG.fast.id,
-      quality: LOCAL_MODEL_CATALOG.quality.id,
-      deep: LOCAL_MODEL_CATALOG.deep.id,
-      embedding: LOCAL_MODEL_CATALOG.embedding.id,
-      reranker: LOCAL_MODEL_CATALOG.reranker.id,
-      image: LOCAL_MODEL_CATALOG.image.id,
-      video: LOCAL_MODEL_CATALOG.video.id,
-    },
+    defaultRoles,
     experimental: ["larger image and video workflows", "32K context"],
   },
   {
@@ -171,15 +178,7 @@ export const LOCAL_HARDWARE_PROFILES: readonly LocalHardwareProfile[] = [
     cudaPolicy: "current-nvidia",
     allowVulkanFallback: true,
     cpuGpuSplit: true,
-    defaultRoles: {
-      fast: LOCAL_MODEL_CATALOG.fast.id,
-      quality: LOCAL_MODEL_CATALOG.quality.id,
-      deep: LOCAL_MODEL_CATALOG.deep.id,
-      embedding: LOCAL_MODEL_CATALOG.embedding.id,
-      reranker: LOCAL_MODEL_CATALOG.reranker.id,
-      image: LOCAL_MODEL_CATALOG.image.id,
-      video: LOCAL_MODEL_CATALOG.video.id,
-    },
+    defaultRoles,
     experimental: ["higher-quality image workflows", "larger video models", "larger local text models"],
   },
   {
@@ -192,15 +191,7 @@ export const LOCAL_HARDWARE_PROFILES: readonly LocalHardwareProfile[] = [
     cudaPolicy: "cpu",
     allowVulkanFallback: false,
     cpuGpuSplit: false,
-    defaultRoles: {
-      fast: LOCAL_MODEL_CATALOG.fast.id,
-      quality: LOCAL_MODEL_CATALOG.quality.id,
-      deep: LOCAL_MODEL_CATALOG.deep.id,
-      embedding: LOCAL_MODEL_CATALOG.embedding.id,
-      reranker: LOCAL_MODEL_CATALOG.reranker.id,
-      image: LOCAL_MODEL_CATALOG.image.id,
-      video: LOCAL_MODEL_CATALOG.video.id,
-    },
+    defaultRoles,
     experimental: [],
   },
 ] as const;
@@ -214,12 +205,12 @@ export type HardwareProfileInput = {
 
 export function selectLocalHardwareProfile(input: HardwareProfileInput): LocalHardwareProfile {
   const isNvidia = /nvidia|geforce|quadro|tesla|rtx|gtx/i.test(input.gpuName);
-  if (isNvidia && input.vramGb >= 22) return LOCAL_HARDWARE_PROFILES.find((item) => item.id === "nvidia-24gb-plus")!;
-  if (isNvidia && input.vramGb >= 14) return LOCAL_HARDWARE_PROFILES.find((item) => item.id === "nvidia-16gb")!;
-  if (isNvidia && (input.gpuGeneration === "pascal" || input.vramGb >= 6) && input.ramGb >= 28) {
-    return LOCAL_HARDWARE_PROFILES.find((item) => item.id === "nvidia-pascal-8gb-32gb")!;
-  }
-  return LOCAL_HARDWARE_PROFILES.find((item) => item.id === "cpu-local")!;
+  const profile = (id: string) => LOCAL_HARDWARE_PROFILES.find((item) => item.id === id)!;
+  if (isNvidia && input.vramGb >= 22) return profile("nvidia-24gb-plus");
+  if (isNvidia && input.vramGb >= 14) return profile("nvidia-16gb");
+  if (isNvidia && input.gpuGeneration === "pascal" && input.ramGb >= 28) return profile("nvidia-pascal-8gb-32gb");
+  if (isNvidia && input.vramGb >= 6 && input.ramGb >= 24) return profile("nvidia-8gb-modern");
+  return profile("cpu-local");
 }
 
 export function isProductionLocalModel(role: LocalModelRole) {

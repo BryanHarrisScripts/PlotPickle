@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import type { ProfileStore, ProviderProfile, TextProvider } from "./writing-assistant-store";
 import { writeAssistantStore } from "./writing-assistant-store";
 
@@ -16,7 +15,8 @@ export type OllamaProbe = {
 
 export const DEFAULT_OLLAMA_URL = "http://127.0.0.1:11434";
 export const TEST_PROMPT = "Introduce yourself to a new PlotPickle writer.";
-export const CURRICULUM_GUIDE_CONTEXT = 8_192;
+export const CURRICULUM_GUIDE_CONTEXT = 16_384;
+export const CURRICULUM_GUIDE_EXTENDED_CONTEXT = 32_768;
 export const CURRICULUM_GUIDE_TEMPERATURE = 0.2;
 export const ASSISTANT_INSTRUCTIONS = [
   "You are the active PlotPickle Writing Assistant.",
@@ -40,10 +40,23 @@ function cleanProviderError(value: unknown) {
   return "The selected text provider did not accept the request.";
 }
 
+function providerName(profile: ProviderProfile) {
+  if (profile.provider === "local") return profile.runtime === "llama.cpp"
+    ? "llama.cpp"
+    : profile.runtime === "lm-studio"
+      ? "LM Studio"
+      : profile.runtime === "ollama"
+        ? "Ollama"
+        : "local OpenAI-compatible runtime";
+  if (profile.provider === "ollama") return "Ollama";
+  if (profile.provider === "openai") return "OpenAI";
+  return "MiniMax";
+}
+
 async function providerJson(url: string, profile: ProviderProfile, body: Record<string, unknown>) {
   const headers: Record<string, string> = { Accept: "application/json", "Content-Type": "application/json" };
-  if (profile.provider !== "ollama" && profile.apiKey) headers.Authorization = `Bearer ${profile.apiKey}`;
-  const timeoutMs = profile.provider === "ollama" ? 300_000 : 180_000;
+  if (profile.provider !== "ollama" && profile.provider !== "local" && profile.apiKey) headers.Authorization = `Bearer ${profile.apiKey}`;
+  const timeoutMs = profile.provider === "local" || profile.provider === "ollama" ? 300_000 : 180_000;
   let result: Response;
   try {
     result = await fetch(url, {
@@ -54,8 +67,7 @@ async function providerJson(url: string, profile: ProviderProfile, body: Record<
     });
   } catch (error) {
     if (error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError")) {
-      const providerName = profile.provider === "ollama" ? "Ollama" : profile.provider === "openai" ? "OpenAI" : "MiniMax";
-      throw new Error(`${providerName} took too long to answer. Your question was kept so you can try again or choose a faster text model in Settings.`);
+      throw new Error(`${providerName(profile)} took too long to answer. Your question was kept so you can try again or choose a faster text role in Settings.`);
     }
     throw error;
   }
@@ -81,6 +93,24 @@ function openAiText(value: Record<string, unknown>) {
     .trim();
 }
 
+function chatCompletionText(value: Record<string, unknown>) {
+  const choices = Array.isArray(value.choices) ? value.choices as Array<{ message?: { content?: unknown } }> : [];
+  const content = choices[0]?.message?.content;
+  if (typeof content === "string") return content.trim();
+  if (Array.isArray(content)) {
+    return content.flatMap((part) => part && typeof part === "object" && "text" in part && typeof (part as { text?: unknown }).text === "string"
+      ? [(part as { text: string }).text]
+      : []).join("\n").trim();
+  }
+  return "";
+}
+
+function compatibleChatEndpoint(profile: ProviderProfile) {
+  const baseUrl = normalizedProviderUrl(profile.baseUrl);
+  if (profile.provider === "ollama" && !/\/v1$/i.test(baseUrl)) return `${baseUrl}/v1/chat/completions`;
+  return `${baseUrl}/chat/completions`;
+}
+
 export async function generateAssistantText(profile: ProviderProfile, instructions: string, prompt: string) {
   const baseUrl = normalizedProviderUrl(profile.baseUrl);
   if (!prompt.trim()) throw new Error("Enter a question before sending it to the Writing Assistant.");
@@ -90,7 +120,7 @@ export async function generateAssistantText(profile: ProviderProfile, instructio
     const value = await providerJson(`${baseUrl}/responses`, profile, {
       model: profile.textModel,
       instructions: instructions.slice(0, 6_000),
-      input: prompt.slice(0, 30_000),
+      input: prompt.slice(0, 64_000),
     });
     return openAiText(value);
   }
@@ -100,25 +130,30 @@ export async function generateAssistantText(profile: ProviderProfile, instructio
       model: profile.textModel,
       messages: [
         { role: "system", content: instructions.slice(0, 6_000) },
-        { role: "user", content: prompt.slice(0, 30_000) },
+        { role: "user", content: prompt.slice(0, 64_000) },
       ],
     });
-    const choices = Array.isArray(value.choices) ? value.choices as Array<{ message?: { content?: string } }> : [];
-    return choices[0]?.message?.content?.trim() ?? "";
+    return chatCompletionText(value);
   }
 
-  const value = await providerJson(`${baseUrl}/api/generate`, profile, {
+  // Every local runtime, including legacy Ollama, enters PlotPickle through the
+  // OpenAI-compatible chat-completions contract. Runtime-specific lifecycle and
+  // installation logic stays below this provider boundary.
+  const value = await providerJson(compatibleChatEndpoint(profile), profile, {
     model: profile.textModel,
-    system: instructions.slice(0, 6_000),
-    prompt: prompt.slice(0, 30_000),
+    messages: [
+      { role: "system", content: instructions.slice(0, 6_000) },
+      { role: "user", content: prompt.slice(0, 64_000) },
+    ],
     stream: false,
+    temperature: CURRICULUM_GUIDE_TEMPERATURE,
   });
-  return typeof value.response === "string" ? value.response.trim() : "";
+  return chatCompletionText(value);
 }
 
 export async function testAssistantProfile(store: ProfileStore, provider: TextProvider) {
   const profile = store.profiles[provider];
-  if (!profile) throw new Error(`Configure ${provider === "ollama" ? "Ollama" : provider === "openai" ? "OpenAI" : "MiniMax"} before testing it.`);
+  if (!profile) throw new Error(`Configure ${provider === "local" ? "a local runtime" : provider === "ollama" ? "Ollama" : provider === "openai" ? "OpenAI" : "MiniMax"} before testing it.`);
   const started = Date.now();
   const attemptedAt = new Date().toISOString();
   try {
@@ -164,7 +199,7 @@ function ollamaError(error: unknown) {
 }
 
 export async function probeOllama(baseUrl = DEFAULT_OLLAMA_URL): Promise<OllamaProbe> {
-  const normalized = normalizedProviderUrl(baseUrl || DEFAULT_OLLAMA_URL);
+  const normalized = normalizedProviderUrl(baseUrl || DEFAULT_OLLAMA_URL).replace(/\/v1$/i, "");
   const started = Date.now();
   const checkedAt = new Date().toISOString();
   try {
@@ -196,7 +231,7 @@ export async function probeOllama(baseUrl = DEFAULT_OLLAMA_URL): Promise<OllamaP
       version,
       latencyMs: Date.now() - started,
       checkedAt,
-      error: models.length ? "" : "Ollama is running, but no installed models were reported. Pull a model, then refresh the list.",
+      error: models.length ? "" : "Ollama is running, but no installed models were reported.",
     };
   } catch (error) {
     return {
@@ -215,25 +250,13 @@ export async function listOllamaModels(baseUrl = DEFAULT_OLLAMA_URL) {
   return (await probeOllama(baseUrl)).models;
 }
 
-export async function curriculumGuideOllamaProfile(profile: ProviderProfile) {
-  if (profile.provider !== "ollama") return profile;
-  const baseUrl = normalizedProviderUrl(profile.baseUrl);
-  const suffix = createHash("sha256").update(profile.textModel).digest("hex").slice(0, 10);
-  const model = `plotpickle-guide-${suffix}`;
-  const probe = await probeOllama(baseUrl);
-  if (!probe.reachable) throw new Error(probe.error || "Ollama is not reachable.");
-  if (!probe.models.includes(model)) {
-    await providerJson(`${baseUrl}/api/create`, profile, {
-      model,
-      from: profile.textModel,
-      parameters: {
-        num_ctx: CURRICULUM_GUIDE_CONTEXT,
-        temperature: CURRICULUM_GUIDE_TEMPERATURE,
-      },
-      stream: false,
-    });
-  }
-  return { ...profile, textModel: model };
+export function curriculumGuideLocalProfile(profile: ProviderProfile) {
+  return {
+    ...profile,
+    contextTokens: profile.contextTokens === CURRICULUM_GUIDE_EXTENDED_CONTEXT
+      ? CURRICULUM_GUIDE_EXTENDED_CONTEXT
+      : CURRICULUM_GUIDE_CONTEXT,
+  };
 }
 
 export function conversationPrompt(history: ConversationMessage[], message: string) {

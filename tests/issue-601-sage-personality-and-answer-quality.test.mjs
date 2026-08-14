@@ -24,23 +24,26 @@ test("Sage uses a repository playbook as active runtime instructions", async () 
   assert.match(runtime, /SAGE_BRINEWICK_PLAYBOOK = loadSageBrinewickPlaybook\(\)/);
   assert.match(runtime, /id === "curriculum-guide" \? `Sage Brinewick playbook:/);
   assert.match(runtime, /casual, personal, humorous, meta, or clearly non-craft questions/i);
-  assert.match(runtime, /temperature: input\.agentId === "curriculum-guide" \? 0\.45 : 0\.2/);
+  assert.match(runtime, /temperature: input\.agentId === "curriculum-guide" \? 0\.3 : 0\.2/);
   assert.match(runtime, /maxOutputTokens: input\.agentId === "foundations-planner" \? 720 : 480/);
 });
 
-test("Sage rejects bad Fast output, then can escalate to a stronger local Quality model", async () => {
+test("Sage rejects weak local output and can route conversational or broad questions through Quality", async () => {
   const guide = await read("modules/creative-room/curriculum-guide.ts");
 
   assert.match(guide, /export function guideAnswerNeedsRepair/);
-  assert.match(guide, /normalizedAnswer === normalizedQuestion/);
-  assert.match(guide, /broadCraftQuestion && answerWords\.length < 12/);
+  assert.match(guide, /normalizedAnswer === normalizedQuestionText/);
+  assert.match(guide, /shortSemanticEcho/);
+  assert.match(guide, /mode === "craft" && broadCraftQuestion\(question\) && answerWords\.length < 18/);
   assert.match(guide, /RESPONSE QUALITY RETRY/);
-  assert.match(guide, /casual, personal, humorous, meta, or clearly non-craft conversation/i);
+  assert.match(guide, /CONVERSATION MODE: ordinary conversation/);
   assert.match(guide, /requestGuideModel\(message, 45_000, "fast"\)/);
+  assert.match(guide, /preferQuality = mode !== "craft" \|\| broadCraftQuestion\(question\)/);
+  assert.match(guide, /requestGuideModel\(message, 45_000, "quality"\)/);
   assert.match(guide, /SAGE_QUALITY_ESCALATION_INSTRUCTION/);
   assert.match(guide, /prepareGuideQualityModel\(\)/);
   assert.match(guide, /\/api\/local-ai\/runtime\/model\/quality\/load/);
-  assert.match(guide, /requestGuideModel\(`\$\{SAGE_QUALITY_ESCALATION_INSTRUCTION\}\\n\\n\$\{message\}`, 45_000, "quality"\)/);
+  assert.match(guide, /fallbackRole: GuideModelRole = role === "quality" \? "fast" : "quality"/);
   assert.match(guide, /stronger Fast or Quality model in Settings/);
   assert.doesNotMatch(guide, /answerBank|fixedResponses|cannedResponses/);
 });

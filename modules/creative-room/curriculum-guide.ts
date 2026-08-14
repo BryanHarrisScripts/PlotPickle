@@ -140,7 +140,26 @@ function isTimeout(error: unknown) {
   return error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError");
 }
 
+async function prepareGuideFastModel() {
+  let response: Response;
+  try {
+    response = await fetch("/api/local-ai/runtime/model/fast/load", {
+      method: "POST",
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(35_000),
+    });
+  } catch (error) {
+    if (isTimeout(error)) throw new Error("PlotPickle could not prepare Sage's Fast local model within 35 seconds. Open Settings and run Load/test Sage Fast.");
+    throw error;
+  }
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({})) as { readonly message?: string };
+    throw new Error(body.message || "PlotPickle could not prepare Sage's Fast local model. Open Settings and review the Fast role.");
+  }
+}
+
 async function preflightGuideRuntime() {
+  await prepareGuideFastModel();
   let response: Response;
   try {
     response = await fetch("/api/writing-assistant/status", {
@@ -161,7 +180,7 @@ async function preflightGuideRuntime() {
     throw new Error(status.mastra?.error || "The embedded Mastra agent runtime is not ready.");
   }
   if (!status.localRuntime?.ready) {
-    throw new Error(status.localRuntime?.error || "No production-ready local model is available. Start the preferred local runtime and install the Fast model in Settings.");
+    throw new Error(status.localRuntime?.error || "No production-ready local model is available. Open Settings, configure the Fast role, and run Load/test Sage Fast.");
   }
 }
 

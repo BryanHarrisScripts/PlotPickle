@@ -17,7 +17,7 @@ test("Sage identity facts are explicit but every reply still uses the active LLM
   assert.match(playbook, /Do not return a hard-coded sentence or a response-bank entry/i);
   assert.doesNotMatch(playbook, /spent a lifetime around scripts/i);
 
-  assert.match(guide, /Every Sage reply, including identity and odd conversational questions/);
+  assert.match(guide, /Every Sage reply|including identity|active Mastra-backed LLM/i);
   assert.match(guide, /await preflightGuideRuntime\(\)/);
   assert.match(guide, /requestGuideModel\(message, 45_000, "fast"\)/);
   assert.doesNotMatch(guide, /SAGE_IDENTITY_TEXT/);

@@ -12,6 +12,15 @@ export type CurriculumGuideModelRequest = {
 };
 
 type GuideModelRole = "fast" | "quality";
+type GuideConversationMode = "craft" | "identity" | "help" | "conversation";
+
+const EMPTY_RETRIEVAL: CurriculumRetrieval = {
+  context: "",
+  lessonIds: [],
+  lessonChunkIds: [],
+  sourceIds: [],
+  sourceChunkIds: [],
+};
 
 function xmlText(value: string) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -68,22 +77,77 @@ async function semanticCurriculumRetrieval(
       }),
       signal: AbortSignal.timeout(8_000),
     });
-    const value = await response.json() as {
-      readonly retrieval?: CurriculumRetrieval;
-    };
+    const value = await response.json() as { readonly retrieval?: CurriculumRetrieval };
     if (!response.ok || !value.retrieval?.context) throw new Error("Semantic curriculum retrieval is unavailable.");
     return value.retrieval;
   } catch {
-    // The lexical retriever remains a bounded, authority-aware local fallback.
-    // It prevents GUIDE from ever injecting the complete curriculum into the LLM
-    // if the optional CPU embedding/reranking service is still starting.
+    // The lexical retriever remains a bounded, authority-aware local fallback while semantic retrieval is unavailable.
     return retrieveCurriculumContext(request.curriculum, request.activeLessonId, question);
   }
+}
+
+function normalizedQuestion(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function guideConversationMode(question: string): GuideConversationMode {
+  const normalized = normalizedQuestion(question);
+  if (/\b(?:who are you|what are you|tell me about yourself|your background|are you human|do you have a brain)\b/.test(normalized)) {
+    return "identity";
+  }
+  if (/^(?:can you help|could you help|will you help|help me|i need help|what can you do)\b/.test(normalized)) {
+    return "help";
+  }
+  if (/\b(?:screenplay|screenwriting|story|storytelling|plot|character|scene|structure|dialogue|pacing|tone|theme|motif|stakes|conflict|logline|visual storytelling|storyboard|act|sequence|protagonist|antagonist|inciting|climax|ending|opening|genre|premise|pitch)\b/.test(normalized)) {
+    return "craft";
+  }
+  return "conversation";
+}
+
+function broadCraftQuestion(question: string) {
+  const normalized = normalizedQuestion(question);
+  return /^(?:what|why|how|define|explain|tell me|what do you know)\b/.test(normalized)
+    && /\b(?:story|storytelling|screenplay|screenwriting|plot|character|scene|structure|dialogue|pacing|tone|theme|motif|stakes|conflict|logline|visual)\b/.test(normalized);
+}
+
+function modeInstruction(mode: GuideConversationMode, question: string) {
+  if (mode === "identity") {
+    return [
+      "CONVERSATION MODE: identity/meta.",
+      "Answer this exact question as Sage Brinewick in fresh natural wording generated now.",
+      "The fixed facts are that Sage Brinewick is PlotPickle's Curriculum Guide, a software mentor that helps writers understand lessons and apply them to their stories, and not a human with a real-world career biography.",
+      "Never call Sage a student, a year, the question itself, a production professional, or a fictional person with memories or credentials.",
+      "Do not turn the question back on the writer. A little dry wit is allowed, but answer first.",
+    ].join(" ");
+  }
+  if (mode === "help") {
+    return [
+      "CONVERSATION MODE: help request.",
+      "Answer the writer directly and positively in complete sentences.",
+      "Briefly name two or three useful ways Sage can help with PlotPickle, lessons, or the writer's story, then ask at most one useful follow-up question.",
+      "Never answer by rephrasing the writer's question as another question.",
+    ].join(" ");
+  }
+  if (mode === "conversation") {
+    return [
+      "CONVERSATION MODE: ordinary conversation.",
+      "Answer directly as Sage Brinewick without forcing a curriculum lookup.",
+      "Use natural reasoning and fresh wording. Light dry wit is fine when appropriate. Never echo the writer's question or invent a personal biography.",
+    ].join(" ");
+  }
+  return [
+    "CONVERSATION MODE: PlotPickle/story craft.",
+    broadCraftQuestion(question)
+      ? "Give a clear 2-5 sentence explanation before any follow-up. Do not answer with a question or a list of source names."
+      : "Answer the actual craft question first and keep the explanation practical.",
+    "Use curriculum_context as the source of truth for teaching claims. Do not expose retrieval machinery or internal metadata.",
+  ].join(" ");
 }
 
 export function buildCurriculumGuideModelRequest(
   request: CurriculumGuideRequest,
   retrieval = retrieveCurriculumContext(request.curriculum, request.activeLessonId, request.question.trim().slice(0, 2_000)),
+  mode: GuideConversationMode = guideConversationMode(request.question),
 ): CurriculumGuideModelRequest {
   const studentQuestion = request.question.trim().slice(0, 2_000);
   const conversationMemory = request.conversation.slice(-4).map((item) => (
@@ -96,8 +160,12 @@ export function buildCurriculumGuideModelRequest(
     completedLessonCount: request.projectMemory.completedLessonIds.length,
     activeLessonId: request.activeLessonId,
   });
+  const curriculumContext = mode === "craft"
+    ? retrieval.context
+    : "No curriculum lookup is needed for this conversational question. Follow Sage's identity and conversational role.";
 
   const message = [
+    modeInstruction(mode, studentQuestion),
     "<conversation_memory>",
     xmlText(conversationMemory || "No previous conversation."),
     "</conversation_memory>",
@@ -105,7 +173,7 @@ export function buildCurriculumGuideModelRequest(
     xmlText(projectContext),
     "</project_memory>",
     "<curriculum_context>",
-    xmlText(retrieval.context),
+    xmlText(curriculumContext),
     "</curriculum_context>",
     "<student_question>",
     xmlText(studentQuestion),
@@ -134,6 +202,7 @@ function cleanGuideAnswer(value: string) {
   for (const line of stripInternalScaffolding(value).split("\n")) {
     const normalized = line.trim();
     if (INTERNAL_SCAFFOLD_LINE.test(normalized)) continue;
+    if (/^(?:Curriculum|Lesson references)\s*:/i.test(normalized)) continue;
     if (!normalized && !uniqueLines.at(-1)) continue;
     if (normalized && normalized === uniqueLines.at(-1)?.trim()) continue;
     uniqueLines.push(line.trimEnd());
@@ -152,6 +221,21 @@ function comparableText(value: string) {
     .trim();
 }
 
+function contentWords(value: string) {
+  const ignored = new Set(["a", "an", "and", "are", "can", "could", "do", "does", "i", "is", "me", "of", "the", "to", "what", "who", "you", "your"]);
+  return comparableText(value).split(/\s+/).filter((word) => word && !ignored.has(word));
+}
+
+function shortSemanticEcho(answer: string, question: string) {
+  const answerWords = comparableText(answer).split(/\s+/).filter(Boolean);
+  const rawQuestionWords = comparableText(question).split(/\s+/).filter(Boolean);
+  const questionWords = contentWords(question);
+  if (questionWords.length < 2 || answerWords.length > rawQuestionWords.length + 7) return false;
+  const answerSet = new Set(contentWords(answer));
+  const overlap = questionWords.filter((word) => answerSet.has(word)).length / questionWords.length;
+  return overlap >= 0.8;
+}
+
 export function guideAnswerHasRunawayRepetition(answer: string) {
   const words = comparableText(answer).split(/\s+/).filter(Boolean);
   if (words.length < 24) return false;
@@ -165,37 +249,52 @@ export function guideAnswerHasRunawayRepetition(answer: string) {
   return false;
 }
 
-export function guideAnswerNeedsRepair(answer: string, question: string) {
+export function guideAnswerNeedsRepair(
+  answer: string,
+  question: string,
+  mode: GuideConversationMode = guideConversationMode(question),
+) {
   const normalizedAnswer = comparableText(answer);
-  const normalizedQuestion = comparableText(question);
+  const normalizedQuestionText = comparableText(question);
   if (!normalizedAnswer) return true;
-  if (normalizedAnswer === normalizedQuestion) return true;
+  if (normalizedAnswer === normalizedQuestionText) return true;
   if (guideAnswerHasRunawayRepetition(answer)) return true;
+  if (shortSemanticEcho(answer, question)) return true;
+
   const answerWords = normalizedAnswer.split(/\s+/).filter(Boolean);
-  const questionWords = normalizedQuestion.split(/\s+/).filter(Boolean);
-  const broadCraftQuestion = /^(?:what|why|how|define|explain)\b/.test(normalizedQuestion)
-    && /(?:theme|plot|story|screenplay|character|scene|structure|dialogue|pacing|tone|motif|stakes|conflict|logline|visual)/.test(normalizedQuestion);
-  if (broadCraftQuestion && answerWords.length < 12) return true;
-  if (normalizedAnswer.includes(normalizedQuestion) && answerWords.length <= questionWords.length + 5) return true;
+  const questionWords = normalizedQuestionText.split(/\s+/).filter(Boolean);
+  if (normalizedAnswer.includes(normalizedQuestionText) && answerWords.length <= questionWords.length + 8) return true;
+  if (answer.trim().endsWith("?") && answerWords.length <= questionWords.length + 10) return true;
+
+  if (mode === "identity") {
+    if (!/\bsage\b/.test(normalizedAnswer) || !/\bplotpickle\b/.test(normalizedAnswer) || !/\b(?:guide|mentor|curriculum)\b/.test(normalizedAnswer)) return true;
+    if (/\b(?:19|20)\d{2}\b/.test(normalizedAnswer) || /\bstudent of\b/.test(normalizedAnswer) || /\bi am (?:a|an) .*student\b/.test(normalizedAnswer)) return true;
+  }
+  if (mode === "help") {
+    if (!/\b(?:yes|i can|can help|help you|happy to help)\b/.test(normalizedAnswer)) return true;
+    if (answerWords.length < 8) return true;
+  }
+  if (mode === "craft" && broadCraftQuestion(question) && answerWords.length < 18) return true;
   return false;
 }
 
 const SAGE_REPAIR_INSTRUCTION = [
   "RESPONSE QUALITY RETRY.",
-  "The previous generation repeated the writer, entered a loop, or failed to provide a useful response.",
-  "Answer the writer directly in natural language.",
-  "If this is a screenplay or PlotPickle craft question, use only curriculum_context for teaching claims and explain the answer clearly.",
-  "If this is casual, personal, humorous, meta, or clearly non-craft conversation, answer it naturally instead of forcing a curriculum refusal; light dry wit is allowed.",
-  "Do not invent credentials, years of experience, job titles, production credits, awards, employers, biography, memories, or a physical body for Sage.",
+  "The previous generation echoed the writer, became nonsensical, looped, or failed to provide a useful response.",
+  "Answer the writer's exact question directly in fresh natural language.",
+  "For identity questions, identify Sage Brinewick as PlotPickle's Curriculum Guide/software mentor without inventing biography.",
+  "For simple help requests, answer yes and say how you can help instead of asking the same question back.",
+  "For screenplay or PlotPickle craft questions, use only curriculum_context for teaching claims and explain the answer clearly in complete sentences.",
+  "For casual or meta conversation, answer naturally instead of forcing curriculum material into the response.",
   "Do not repeat the question, do not repeat phrases, do not mention this retry, and do not expose curriculum metadata or internal machinery.",
 ].join(" ");
 
 const SAGE_QUALITY_ESCALATION_INSTRUCTION = [
   "QUALITY MODEL ESCALATION.",
-  "A smaller local model failed twice. Produce one clean final answer to the writer now.",
-  "Keep Sage conversational, specific, and freshly worded rather than reciting a stock response.",
+  "Produce one clean final response to the writer now. The answer must be coherent, direct, freshly worded, and complete.",
+  "Never answer a question with a paraphrase of the same question.",
   "For craft teaching, stay grounded in curriculum_context. For ordinary conversation, simply have the conversation.",
-  "Never invent a personal career history or physical biography for Sage, and never mention this escalation.",
+  "Never invent a personal career history, age, school year, physical biography, credits, or memories for Sage, and never mention this escalation.",
 ].join(" ");
 
 function isTimeout(error: unknown) {
@@ -272,16 +371,15 @@ type CompletedGuideModelResult = GuideModelResult & { readonly text: string };
 
 async function requestGuideModel(message: string, timeoutMs: number, modelRole: GuideModelRole = "fast"): Promise<CompletedGuideModelResult> {
   let response: Response;
-  const signal = timeoutMs === 45_000 ? AbortSignal.timeout(45_000) : AbortSignal.timeout(timeoutMs);
+  const requestBody = modelRole === "fast"
+    ? { agentId: "curriculum-guide", provider: "local" as const, modelRole: "fast" as const, tone: "gentle" as const, message }
+    : { agentId: "curriculum-guide", provider: "local" as const, modelRole: "quality" as const, tone: "gentle" as const, message };
   try {
-    const requestBody = modelRole === "fast"
-      ? { agentId: "curriculum-guide", provider: "local" as const, modelRole: "fast" as const, tone: "gentle" as const, message }
-      : { agentId: "curriculum-guide", provider: "local" as const, modelRole: "quality" as const, tone: "gentle" as const, message };
     response = await fetch("/api/writing-assistant/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-PlotPickle-Model-Role": modelRole },
       body: JSON.stringify(requestBody),
-      signal,
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (error) {
     if (isTimeout(error)) throw new Error(`The Curriculum Guide's ${modelRole} model did not answer within PlotPickle's local response limit.`);
@@ -292,37 +390,59 @@ async function requestGuideModel(message: string, timeoutMs: number, modelRole: 
   return { ...result, text: result.text };
 }
 
-export const answerFromCurriculum: CurriculumGuide = async (request) => {
-  const studentQuestion = request.question.trim().slice(0, 2_000);
-  await preflightGuideRuntime();
-  const retrieval = await semanticCurriculumRetrieval(request, studentQuestion);
-  const { message } = buildCurriculumGuideModelRequest(request, retrieval);
-
-  let result = await requestGuideModel(message, 45_000, "fast");
-  if (guideAnswerNeedsRepair(cleanGuideAnswer(result.text), studentQuestion)) {
-    result = await requestGuideModel(`${SAGE_REPAIR_INSTRUCTION}\n\n${message}`, 30_000, "fast");
-  }
-  if (guideAnswerNeedsRepair(cleanGuideAnswer(result.text), studentQuestion)) {
+async function requestPreferredGuideModel(message: string, mode: GuideConversationMode, question: string) {
+  const preferQuality = mode !== "craft" || broadCraftQuestion(question);
+  if (preferQuality) {
     try {
       await prepareGuideQualityModel();
-      result = await requestGuideModel(`${SAGE_QUALITY_ESCALATION_INSTRUCTION}\n\n${message}`, 45_000, "quality");
+      return { result: await requestGuideModel(message, 45_000, "quality"), role: "quality" as const };
     } catch {
-      // Quality is optional; the final Fast failure remains clear if it is unavailable.
+      return { result: await requestGuideModel(message, 45_000, "fast"), role: "fast" as const };
+    }
+  }
+  return { result: await requestGuideModel(message, 45_000, "fast"), role: "fast" as const };
+}
+
+export const answerFromCurriculum: CurriculumGuide = async (request) => {
+  const studentQuestion = request.question.trim().slice(0, 2_000);
+  const mode = guideConversationMode(studentQuestion);
+  await preflightGuideRuntime();
+  const retrieval = mode === "craft"
+    ? await semanticCurriculumRetrieval(request, studentQuestion)
+    : EMPTY_RETRIEVAL;
+  const { message } = buildCurriculumGuideModelRequest(request, retrieval, mode);
+
+  let { result, role } = await requestPreferredGuideModel(message, mode, studentQuestion);
+  let text = cleanGuideAnswer(result.text);
+
+  if (guideAnswerNeedsRepair(text, studentQuestion, mode)) {
+    result = await requestGuideModel(`${SAGE_REPAIR_INSTRUCTION}\n\n${message}`, role === "quality" ? 45_000 : 30_000, role);
+    text = cleanGuideAnswer(result.text);
+  }
+
+  if (guideAnswerNeedsRepair(text, studentQuestion, mode)) {
+    const fallbackRole: GuideModelRole = role === "quality" ? "fast" : "quality";
+    try {
+      if (fallbackRole === "quality") await prepareGuideQualityModel();
+      result = await requestGuideModel(`${SAGE_QUALITY_ESCALATION_INSTRUCTION}\n\n${message}`, 45_000, fallbackRole);
+      role = fallbackRole;
+      text = cleanGuideAnswer(result.text);
+    } catch {
+      // The final validation below keeps a weak local response from reaching the UI.
     }
   }
 
-  const text = cleanGuideAnswer(result.text);
   if (!text) throw new Error("The Curriculum Guide returned an empty answer.");
-  if (guideAnswerNeedsRepair(text, studentQuestion)) {
-    throw new Error("Sage's local models repeated, looped, or failed to answer the question after repair. Try again or choose a stronger Fast or Quality model in Settings.");
+  if (guideAnswerNeedsRepair(text, studentQuestion, mode)) {
+    throw new Error("Sage's local models could not produce a coherent answer after repair. Try again or choose a stronger Fast or Quality model in Settings.");
   }
 
   return {
     text,
-    sourceLessonIds: retrieval.lessonIds,
-    sourceReferenceIds: retrieval.sourceIds,
+    sourceLessonIds: mode === "craft" ? retrieval.lessonIds : [],
+    sourceReferenceIds: mode === "craft" ? retrieval.sourceIds : [],
     provider: "local-runtime" as const,
     runtimeProvider: result.runtimeProvider,
-    model: result.model || "configured local model",
+    model: result.model || `${role} local model`,
   };
 };

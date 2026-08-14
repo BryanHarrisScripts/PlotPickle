@@ -19,23 +19,26 @@ test("Sage identity facts are explicit but every reply still uses the active LLM
 
   assert.match(guide, /await preflightGuideRuntime\(\)/);
   assert.match(guide, /requestGuideModel\(message, 45_000, "fast"\)/);
+  assert.match(guide, /requestGuideModel\(message, 45_000, "quality"\)/);
   assert.match(guide, /prepareGuideQualityModel\(\)/);
+  assert.match(guide, /CONVERSATION MODE: identity\/meta/);
   assert.doesNotMatch(guide, /SAGE_IDENTITY_TEXT/);
   assert.doesNotMatch(guide, /sageIdentityReply/);
   assert.doesNotMatch(guide, /model: "Sage identity contract"/);
 });
 
-test("Sage rejects runaway phrase loops before rendering them", async () => {
+test("Sage rejects runaway phrase loops and short semantic echoes before rendering them", async () => {
   const guide = await read("modules/creative-room/curriculum-guide.ts");
 
   assert.match(guide, /export function guideAnswerHasRunawayRepetition/);
   assert.match(guide, /words\.slice\(index, index \+ 5\)\.join\(" "\)/);
   assert.match(guide, /if \(next >= 3\) return true/);
   assert.match(guide, /if \(guideAnswerHasRunawayRepetition\(answer\)\) return true/);
+  assert.match(guide, /shortSemanticEcho/);
   assert.match(guide, /RESPONSE QUALITY RETRY/);
-  assert.match(guide, /Do not invent credentials, years of experience, job titles, production credits, awards, employers, biography, memories, or a physical body for Sage/);
+  assert.match(guide, /Never call Sage a student, a year, the question itself/);
   assert.match(guide, /SAGE_QUALITY_ESCALATION_INSTRUCTION/);
-  assert.match(guide, /failed to answer the question after repair/);
+  assert.match(guide, /could not produce a coherent answer after repair/);
 });
 
 test("startup health also fails real Sage repetition loops instead of reporting healthy", async () => {

@@ -205,7 +205,8 @@ test("the PLAN screen keeps manual work primary and uses opt-in local Mastra pro
   assert.match(drafter, /REPAIR THE PLAN PROPOSAL/);
   assert.match(drafter, /Never copy or lightly paraphrase the field question as the answer/);
   assert.match(drafter, /Provisional —/);
-  assert.match(drafter, /after two attempts/);
+  assert.match(drafter, /recoverFieldsIndividually/);
+  assert.match(drafter, /recover each field as a smaller task/);
   assert.ok((drafter.match(/requestFoundationProposal\(/g) ?? []).length >= 3);
   assert.match(runtime, /"foundations-planner"/);
   assert.match(runtime, /Never invent a story fact/);

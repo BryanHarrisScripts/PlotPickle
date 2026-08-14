@@ -1,6 +1,7 @@
 import type { CurriculumLesson } from "../../core/contracts/curriculum";
 import type {
   FoundationDraftProposal,
+  FoundationPlanField,
   FoundationPlanLesson,
 } from "../../core/contracts/foundation-plan";
 
@@ -21,6 +22,27 @@ function isTimeout(error: unknown) {
 
 function xmlText(value: string) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+}
+
+function comparableText(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function contentWords(value: string) {
+  const ignored = new Set(["a", "an", "and", "are", "as", "at", "be", "for", "in", "is", "of", "on", "or", "the", "to", "what", "with", "you", "your"]);
+  return comparableText(value).split(/\s+/).filter((word) => word && !ignored.has(word));
+}
+
+function looksLikePromptEcho(answer: string, prompt: string) {
+  const normalizedAnswer = comparableText(answer);
+  const normalizedPrompt = comparableText(prompt);
+  if (!normalizedAnswer || normalizedAnswer === normalizedPrompt) return true;
+  const promptWords = contentWords(prompt);
+  const answerWords = contentWords(answer);
+  if (!promptWords.length || answerWords.length > promptWords.length + 10) return false;
+  const answerSet = new Set(answerWords);
+  const overlap = promptWords.filter((word) => answerSet.has(word)).length / promptWords.length;
+  return overlap >= 0.82;
 }
 
 function parseProposal(
@@ -62,10 +84,7 @@ function parseProposal(
   if (missingFields.length) {
     throw new FoundationProposalQualityError("The local model did not propose an answer for every visible field.");
   }
-  const copiedPrompts = lesson.fields.filter((field) => (
-    values[field.id]?.replace(/\s+/g, " ").trim().toLocaleLowerCase()
-    === field.prompt.replace(/\s+/g, " ").trim().toLocaleLowerCase()
-  ));
+  const copiedPrompts = lesson.fields.filter((field) => looksLikePromptEcho(values[field.id] || "", field.prompt));
   if (copiedPrompts.length) {
     throw new FoundationProposalQualityError("The local model repeated one or more planning questions instead of answering them.");
   }
@@ -189,20 +208,27 @@ function repairInstruction() {
     "The previous proposal was unusable because it copied a planning question, omitted a field, or returned invalid structured output.",
     "For every requested field ID, write an actual proposed answer. Never copy or lightly paraphrase the field question as the answer.",
     "Use accepted writer material wherever it exists.",
-    "If the story does not yet contain enough evidence, write a short statement beginning with 'Provisional —' that names what is still unknown and the next useful story decision, using only the supplied lesson context.",
-    "Do not invent character names, events, settings, outcomes, or other story facts.",
+    "Because this content is still an unaccepted proposal, when writer evidence is missing you may invent a plausible working candidate, but it MUST begin with 'Provisional —' and must be presented as a suggestion rather than existing canon.",
+    "Do not claim that provisional character names, events, settings, outcomes, or other candidate details already exist in the writer's story.",
     "Return JSON only, in the exact requested values shape, with no commentary outside the JSON.",
   ].join(" ");
 }
 
-export async function draftFoundationLesson(
-  input: FoundationDraftRequest,
-): Promise<FoundationDraftProposal> {
-  const configuredModel = await preflightLocalRuntime();
-  const fieldShape = Object.fromEntries(input.lesson.fields.map((field) => [field.id, field.prompt]));
-  const message = [
+function proposalTask() {
+  return [
+    "Draft a separate, reviewable proposal for each requested PLAN field.",
+    "Use accepted writer material as canon when it exists.",
+    "Never copy or lightly paraphrase a requested planning question as its answer.",
+    "If accepted story evidence is missing, create a useful plausible working candidate and begin that field with 'Provisional —'. Provisional candidate details are suggestions for review, not claims about existing canon.",
+    "The writer must still explicitly accept a proposal before PlotPickle changes project decisions.",
+    "Return JSON only in the exact shape {\"values\":{\"output-1\":\"...\"}} using only the supplied field IDs.",
+  ].join(" ");
+}
+
+function buildBatchMessage(input: FoundationDraftRequest, fieldShape: Readonly<Record<string, string>>) {
+  return [
     "<task>",
-    "Draft a separate, reviewable proposal for each requested PLAN field. Use only the writer material and lesson context below. Do not invent story facts. Never copy or lightly paraphrase a requested planning question as its answer. When evidence is missing, write a useful statement beginning with 'Provisional —' that clearly names the unresolved story decision and the next useful decision the writer can make. Return JSON only in the exact shape {\"values\":{\"output-1\":\"...\"}} using only the supplied field IDs.",
+    proposalTask(),
     "</task>",
     "<project>",
     xmlText(input.projectTitle),
@@ -217,31 +243,94 @@ export async function draftFoundationLesson(
     xmlText(JSON.stringify(input.currentAnswers)),
     "</current_writer_answers>",
     "<accepted_prior_foundation_work>",
-    xmlText(input.priorStoryContext.slice(0, 3_000) || "No earlier answers are available."),
+    xmlText(input.priorStoryContext.slice(0, 3_000) || "No accepted story answers are available yet."),
     "</accepted_prior_foundation_work>",
   ].join("\n");
+}
 
-  const fieldIds = input.lesson.fields.map((field) => field.id);
-  let result = await requestFoundationProposal(message, fieldIds, 27_000);
-  let values: Readonly<Record<string, string>>;
-  try {
-    values = parseProposal(result.text || "", input.lesson);
-  } catch (error) {
-    if (!(error instanceof FoundationProposalQualityError)) throw error;
-    result = await requestFoundationProposal(`${repairInstruction()}\n\n${message}`, fieldIds, 27_000);
+function safeProvisionalFallback(field: FoundationPlanField) {
+  return [
+    "Provisional — this story decision is still open because no accepted writer material produced a usable local-model answer.",
+    `Field focus: ${field.prompt}`,
+    "Treat this as a placeholder for a concrete working choice, then replace it with story-specific evidence before accepting it as canon.",
+  ].join(" ").slice(0, 1_800);
+}
+
+async function recoverFieldsIndividually(
+  input: FoundationDraftRequest,
+  configuredModel: string,
+) {
+  const values: Record<string, string> = {};
+  let usedSafetyFallback = false;
+  let lastModel = configuredModel;
+
+  for (const field of input.lesson.fields) {
+    const singleLesson: FoundationPlanLesson = { ...input.lesson, fields: [field] };
+    const compactMessage = [
+      "RECOVER ONE PLAN FIELD.",
+      proposalTask(),
+      `Field ID: ${field.id}`,
+      `Field question: ${field.prompt}`,
+      `Current writer answer: ${input.currentAnswers[field.id]?.trim() || "none"}`,
+      `Accepted story context: ${input.priorStoryContext.slice(0, 1_500) || "none"}`,
+      `Lesson guidance: ${lessonContext(input.curriculumLesson).slice(0, 2_500)}`,
+      `Return only {\"values\":{\"${field.id}\":\"...\"}}.`,
+    ].join("\n");
+
     try {
-      values = parseProposal(result.text || "", input.lesson);
-    } catch (retryError) {
-      if (retryError instanceof FoundationProposalQualityError) {
-        throw new Error("PLAN's local AI could not produce usable field answers after two attempts. Add one sentence of story detail or choose a stronger Quality model; your fields were not changed.");
-      }
-      throw retryError;
+      const result = await requestFoundationProposal(compactMessage, [field.id], 27_000);
+      const parsed = parseProposal(result.text || "", singleLesson);
+      values[field.id] = parsed[field.id];
+      lastModel = result.model || lastModel;
+    } catch {
+      usedSafetyFallback = true;
+      values[field.id] = safeProvisionalFallback(field);
     }
   }
 
   return {
     values,
-    model: result.model || configuredModel,
+    model: usedSafetyFallback ? `${lastModel} + provisional safety fallback` : lastModel,
+  };
+}
+
+export async function draftFoundationLesson(
+  input: FoundationDraftRequest,
+): Promise<FoundationDraftProposal> {
+  const configuredModel = await preflightLocalRuntime();
+  const fieldShape = Object.fromEntries(input.lesson.fields.map((field) => [field.id, field.prompt]));
+  const message = buildBatchMessage(input, fieldShape);
+  const fieldIds = input.lesson.fields.map((field) => field.id);
+
+  let result = await requestFoundationProposal(message, fieldIds, 27_000);
+  try {
+    const values = parseProposal(result.text || "", input.lesson);
+    return {
+      values,
+      model: result.model || configuredModel,
+      generatedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    if (!(error instanceof FoundationProposalQualityError)) throw error;
+  }
+
+  result = await requestFoundationProposal(`${repairInstruction()}\n\n${message}`, fieldIds, 27_000);
+  try {
+    const values = parseProposal(result.text || "", input.lesson);
+    return {
+      values,
+      model: result.model || configuredModel,
+      generatedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    if (!(error instanceof FoundationProposalQualityError)) throw error;
+  }
+
+  // After two attempts, recover each field as a smaller task instead of abandoning the whole proposal.
+  const recovered = await recoverFieldsIndividually(input, result.model || configuredModel);
+  return {
+    values: recovered.values,
+    model: recovered.model,
     generatedAt: new Date().toISOString(),
   };
 }

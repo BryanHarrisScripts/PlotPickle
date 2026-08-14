@@ -227,8 +227,9 @@ function contentWords(value: string) {
 
 function shortSemanticEcho(answer: string, question: string) {
   const answerWords = comparableText(answer).split(/\s+/).filter(Boolean);
+  const rawQuestionWords = comparableText(question).split(/\s+/).filter(Boolean);
   const questionWords = contentWords(question);
-  if (!questionWords.length || answerWords.length > 24) return false;
+  if (questionWords.length < 2 || answerWords.length > rawQuestionWords.length + 7) return false;
   const answerSet = new Set(contentWords(answer));
   const overlap = questionWords.filter((word) => answerSet.has(word)).length / questionWords.length;
   return overlap >= 0.8;

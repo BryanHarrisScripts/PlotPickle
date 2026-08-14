@@ -38,7 +38,8 @@ test("Sage rejects bad Fast output, then can escalate to a stronger local Qualit
   assert.match(guide, /casual, personal, humorous, meta, or clearly non-craft conversation/i);
   assert.match(guide, /requestGuideModel\(message, 45_000, "fast"\)/);
   assert.match(guide, /SAGE_QUALITY_ESCALATION_INSTRUCTION/);
-  assert.match(guide, /prepareGuideModel\("quality"\)/);
+  assert.match(guide, /prepareGuideQualityModel\(\)/);
+  assert.match(guide, /\/api\/local-ai\/runtime\/model\/quality\/load/);
   assert.match(guide, /requestGuideModel\(`\$\{SAGE_QUALITY_ESCALATION_INSTRUCTION\}\\n\\n\$\{message\}`, 45_000, "quality"\)/);
   assert.match(guide, /stronger Fast or Quality model in Settings/);
   assert.doesNotMatch(guide, /answerBank|fixedResponses|cannedResponses/);

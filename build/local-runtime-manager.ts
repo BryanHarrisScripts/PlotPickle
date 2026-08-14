@@ -247,7 +247,10 @@ export async function localRuntimeSnapshot(): Promise<LocalRuntimeSnapshot> {
 
 export async function localTextExecutionProfile(role: LocalTextRole) {
   const settings = await readLocalRuntimeSettings();
-  if (settings.managedLlama.enabled && (settings.preferredRuntime === "auto" || settings.preferredRuntime === "llama.cpp")) {
+  const managedPath = settings.managedLlama.modelPaths[role];
+  if (settings.managedLlama.enabled
+      && (settings.preferredRuntime === "auto" || settings.preferredRuntime === "llama.cpp")
+      && managedPath) {
     await startManagedLlama(role);
   }
   const snapshot = await localRuntimeSnapshot();

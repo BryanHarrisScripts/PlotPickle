@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
-import { generateComfyImage, probeComfyUI } from "./comfyui-media-provider";
+import { probeComfyUI } from "./comfyui-media-provider";
+import { generateSdxlImage } from "./comfyui-sdxl-local-provider";
 import { readMediaRoutingStore, writeMediaRoutingStore } from "./media-routing-store";
 import type { ImageGenerationInput } from "./media-provider-common";
 
@@ -91,7 +92,7 @@ export function registerSdxlLocalImageGateway(server: ViteDevServer) {
         requestCount: 1,
       } : body;
       try {
-        const result = await generateComfyImage(store.comfyui.baseUrl, checkpoint, input);
+        const result = await generateSdxlImage(store.comfyui.baseUrl, checkpoint, input);
         store.comfyui.imageVerifiedAt = new Date().toISOString();
         store.comfyui.lastError = "";
         await writeMediaRoutingStore(store);
@@ -100,6 +101,7 @@ export function registerSdxlLocalImageGateway(server: ViteDevServer) {
           route: "comfyui",
           localProfile: "SDXL 1.0",
           checkpoint,
+          continuityLayer: "provider-independent",
           ...result,
         });
       } catch (error) {

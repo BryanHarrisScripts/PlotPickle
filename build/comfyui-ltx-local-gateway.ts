@@ -8,6 +8,10 @@ import {
   readLtxStore,
   type LtxJob,
 } from "./comfyui-ltx-local-provider";
+import {
+  holdLocalGpuMediaLease,
+  releaseLocalGpuMediaLease,
+} from "./local-gpu-resource-manager";
 import { readMediaRoutingStore } from "./media-routing-store";
 import type { VideoGenerationInput } from "./media-provider-common";
 
@@ -73,6 +77,15 @@ async function waitForLocalVideo(job: LtxJob) {
   return current;
 }
 
+async function createVideoWithGpuLease(input: VideoGenerationInput) {
+  holdLocalGpuMediaLease();
+  try {
+    return await waitForLocalVideo(await createLtxVideo(input));
+  } finally {
+    await releaseLocalGpuMediaLease();
+  }
+}
+
 export function registerLtxLocalVideoGateway(server: ViteDevServer) {
   server.middlewares.use((request, response, next) => {
     const pathname = request.url?.split("?", 1)[0] || "";
@@ -120,7 +133,7 @@ export function registerLtxLocalVideoGateway(server: ViteDevServer) {
           durationSeconds: 2,
           aspectRatio: "16:9",
         } : body;
-        const job = await waitForLocalVideo(await createLtxVideo(input));
+        const job = await createVideoWithGpuLease(input);
         sendJson(response, 200, { ok: true, ...job });
         return;
       }

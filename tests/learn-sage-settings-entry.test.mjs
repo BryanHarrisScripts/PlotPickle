@@ -57,16 +57,51 @@ test("workspace=settings is a real local AI destination with explicit LEARN and 
   assert.match(settings, /<LocalRuntimePanel \/>/);
 });
 
-test("Settings configures both Sage Fast and PLAN Quality roles without overwriting Deep settings", async () => {
+test("Settings separates detected-runtime models from managed llama.cpp GGUF paths", async () => {
   const setup = await read("app/sage-fast-model-setup.tsx");
-  assert.match(setup, /\/api\/local-ai\/runtime\/settings/);
-  assert.match(setup, /Sage Fast model name override/);
-  assert.match(setup, /PLAN Quality model name override/);
-  assert.match(setup, /Let PlotPickle manage llama\.cpp role switching/);
+  assert.match(setup, /Use my running local runtime/);
+  assert.match(setup, /Let PlotPickle manage llama\.cpp GGUF files/);
+  assert.match(setup, /activeRuntime\.models/);
+  assert.match(setup, /Preferred runtime/);
+  assert.match(setup, /Sage Fast model/);
+  assert.match(setup, /PLAN Quality model/);
+  assert.match(setup, /Auto-detect the recommended Fast model/);
+  assert.match(setup, /Auto-detect the recommended Quality model/);
+  assert.match(setup, /Use this detected model for both Sage \+ PLAN/);
   assert.match(setup, /Sage Fast GGUF model path/);
   assert.match(setup, /PLAN Quality GGUF model path/);
-  assert.match(setup, /Fast GPU layers/);
-  assert.match(setup, /Quality GPU layers/);
+  assert.match(setup, /managedPathsExist/);
+  assert.match(setup, /body\.activeRuntime\.kind !== "llama\.cpp"/);
+});
+
+test("role testing saves the selected runtime/model IDs before testing and does not force managed llama.cpp", async () => {
+  const [setup, gateway] = await Promise.all([
+    read("app/sage-fast-model-setup.tsx"),
+    read("build/local-runtime-gateway.ts"),
+  ]);
+  assert.match(setup, /async function persistSetup/);
+  assert.match(setup, /await persistSetup\(\);[\s\S]*\/api\/local-ai\/runtime\/model\/\$\{role\}\/load/);
+  assert.match(setup, /preferredRuntime: managed \? "llama\.cpp" : preferredRuntime/);
+  assert.match(gateway, /configuredManagedPath/);
+  assert.match(gateway, /const shouldStartManaged = settings\.managedLlama\.enabled/);
+  assert.match(gateway, /Boolean\(configuredManagedPath\)/);
+  assert.match(gateway, /shouldStartManaged \? await startManagedLlama\(roleToLoad\) : false/);
+  assert.match(gateway, /availableModels: snapshot\.activeRuntime\.models/);
+  assert.match(gateway, /Choose one of the detected models in Settings/);
+});
+
+test("runtime model matching tolerates Ollama-style punctuation and friendly catalog labels", async () => {
+  const manager = await read("build/local-runtime-manager.ts");
+  assert.match(manager, /function modelKey/);
+  assert.match(manager, /replace\(\/\[\^a-z0-9\]\+\/g, ""\)/);
+  assert.match(manager, /friendlyCatalogName/);
+  assert.match(manager, /catalog\.expectedNameFragments\.some/);
+  assert.match(manager, /modelKey\(model\)\.includes\(modelKey\(fragment\)\)/);
+});
+
+test("managed and detected-runtime setup preserve Fast and Quality without overwriting Deep settings", async () => {
+  const setup = await read("app/sage-fast-model-setup.tsx");
+  assert.match(setup, /\/api\/local-ai\/runtime\/settings/);
   assert.match(setup, /\.\.\.status\.settings\.modelOverrides/);
   assert.match(setup, /\.\.\.status\.settings\.managedLlama/);
   assert.match(setup, /\.\.\.status\.settings\.managedLlama\.modelPaths/);
@@ -74,19 +109,18 @@ test("Settings configures both Sage Fast and PLAN Quality roles without overwrit
   assert.match(setup, /modelOverrides:[\s\S]*fast:[\s\S]*quality:/);
   assert.match(setup, /modelPaths:[\s\S]*fast:[\s\S]*quality:/);
   assert.match(setup, /gpuLayers:[\s\S]*fast:[\s\S]*quality:/);
-  assert.match(setup, /Load\/test Sage Fast/);
-  assert.match(setup, /Load\/test PLAN Quality/);
+  assert.match(setup, /Test Sage Fast/);
+  assert.match(setup, /Test PLAN Quality/);
 });
 
-test("managed local role preparation is exposed and used before Sage and PLAN preflights", async () => {
+test("local role preparation is used before Sage and PLAN preflights", async () => {
   const [gateway, guide, drafter] = await Promise.all([
     read("build/local-runtime-gateway.ts"),
     read("modules/creative-room/curriculum-guide.ts"),
     read("modules/plan/foundations-plan-drafter.ts"),
   ]);
   assert.match(gateway, /ROLE_LOAD_PREFIX/);
-  assert.match(gateway, /startManagedLlama\(roleToLoad\)/);
-  assert.match(gateway, /roleStatus: snapshot\.roles\[roleToLoad\]/);
+  assert.match(gateway, /roleStatus = snapshot\.roles\[roleToLoad\]/);
   assert.match(guide, /\/api\/local-ai\/runtime\/model\/fast\/load/);
   assert.ok(guide.indexOf("/api/local-ai/runtime/model/fast/load") < guide.indexOf("/api/writing-assistant/status"));
   assert.match(drafter, /\/api\/local-ai\/runtime\/model\/quality\/load/);

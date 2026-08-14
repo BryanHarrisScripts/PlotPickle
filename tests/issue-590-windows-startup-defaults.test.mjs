@@ -17,14 +17,24 @@ test("Windows startup opens PlotPickle without dormant companion-agent windows",
   assert.doesNotMatch(normalStartup, /\[AGENT [123] OF 3/);
 
   assert.match(launcher, /Mastra .* is installed and ready for PlotPickle agents/);
-  assert.match(launcher, /\[READY\] Mastra and the local agent runtime are loaded and verified/);
+  assert.match(launcher, /echo !READY! Mastra and the local agent runtime are loaded and verified/);
   assert.match(launcher, /call "%VITE_CMD%" --host 127\.0\.0\.1 --port %PLOTPICKLE_PORT% --strictPort/);
+});
+
+test("startup uses green/yellow/red/cyan status markers without hiding real failures", () => {
+  assert.match(launcher, /set "GREEN=!ESC!\[92m"/);
+  assert.match(launcher, /set "YELLOW=!ESC!\[93m"/);
+  assert.match(launcher, /set "RED=!ESC!\[91m"/);
+  assert.match(launcher, /set "CYAN=!ESC!\[96m"/);
+  assert.match(launcher, /set "OK=!GREEN!\[OK\]!RESET!"/);
+  assert.match(launcher, /set "READY_WARN=!YELLOW!\[READY WITH WARNINGS\]!RESET!"/);
+  assert.match(launcher, /set "ERROR_TAG=!RED!\[ERROR\]!RESET!"/);
 });
 
 test("retired startup helpers remain available only as manual developer tools", () => {
   assert.match(launcher, /Full Story Builder, UI Continuity, and Creative Writer UAT are retained as manual developer tools/);
   assert.match(launcher, /:start_full_story_builder/);
   assert.match(launcher, /:start_ui_continuity_agent/);
-  assert.match(launcher, /\[MANUAL TOOL STARTED\] Full Story Builder/);
-  assert.match(launcher, /\[MANUAL TOOL STARTED\] UI Continuity Agent/);
+  assert.match(launcher, /Full Story Builder started as a manual tool/);
+  assert.match(launcher, /UI Continuity Agent started as a manual tool/);
 });

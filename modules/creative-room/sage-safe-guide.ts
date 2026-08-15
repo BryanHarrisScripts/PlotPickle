@@ -1,7 +1,11 @@
 import type { CurriculumGuide, CurriculumGuideAnswer } from "../../core/contracts/curriculum-guide";
 import { answerFromCurriculum as answerFromCurriculumUnsafe } from "./curriculum-guide";
+import {
+  answerAsSageConversationSpecialist,
+  isSageCraftQuestion,
+} from "./sage-conversation-specialist";
 
-const INTERNAL_PROMPT_MARKERS = /(?:QUALITY MODEL ESCALATION|RESPONSE QUALITY RETRY|CONVERSATION MODE:|STARTUP HEALTH(?: QUALITY FALLBACK| RETRY)?|curriculum_context|project_memory|conversation_memory|student_question|LOCAL CURRICULUM BLOCK|Produce one clean final response to the writer now|Follow Sage'?s identity and conversational role)/i;
+const INTERNAL_PROMPT_MARKERS = /(?:QUALITY MODEL ESCALATION|RESPONSE QUALITY RETRY|CONVERSATION MODE:|STARTUP HEALTH(?: QUALITY FALLBACK| RETRY)?|curriculum_context|project_memory|conversation_memory|student_question|LOCAL CURRICULUM BLOCK|Produce one clean final response to the writer now|Follow Sage'?s identity and conversational role|SAGE CONVERSATION SPECIALIST)/i;
 const PROJECT_MEMORY_KEY = /"(?:id|title|revision|completedLessonCount|activeLessonId)"\s*:/g;
 
 function normalizedQuestion(question: string) {
@@ -91,6 +95,13 @@ function compactSentences(value: string, maximumSentences = 2, maximumCharacters
   return `${clipped.slice(0, boundary > maximumCharacters * 0.6 ? boundary : maximumCharacters).trim()}…`;
 }
 
+function visibleSageAnswer(result: CurriculumGuideAnswer) {
+  return {
+    ...result,
+    text: compactSentences(result.text, 4, 680),
+  };
+}
+
 function safeShorterAnswer(conversation: Parameters<CurriculumGuide>[0]["conversation"]) {
   const previous = [...conversation].reverse().find((item) => item.role === "guide" && item.content.trim());
   if (!previous) {
@@ -119,7 +130,9 @@ export const answerFromCurriculum: CurriculumGuide = async (request) => {
   if (isSageHelpQuestion(request.question)) return safeHelpAnswer();
   if (isSageShortenRequest(request.question)) return safeShorterAnswer(request.conversation);
 
-  const result = await answerFromCurriculumUnsafe(request);
+  const result = isSageCraftQuestion(request.question)
+    ? await answerFromCurriculumUnsafe(request)
+    : await answerAsSageConversationSpecialist(request);
   if (sageAnswerLeaksInternalScaffolding(result.text)) return safeLeakRecoveryAnswer();
-  return result;
+  return visibleSageAnswer(result);
 };

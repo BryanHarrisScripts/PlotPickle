@@ -335,7 +335,7 @@ export default function FoundationsPlanWorkspace({
               <div>
                 <small>OPTIONAL · LOCAL ONLY</small>
                 <h2>Ask Mastra + Ollama for a draft proposal</h2>
-                <p>Choose exactly which story decisions you want help with. Select one field, two fields, or all of them. Unselected fields are never generated or overwritten.</p>
+                <p>The proposal stays separate from your fields. Choose exactly which story decisions you want help with: one field, two fields, or all of them. Unselected fields are never generated or overwritten.</p>
               </div>
               <button
                 disabled={Boolean(draftingLessonId) || draftFieldIds.length === 0}

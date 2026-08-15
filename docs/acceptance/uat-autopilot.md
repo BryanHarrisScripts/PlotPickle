@@ -1,27 +1,31 @@
-# PlotPickle UAT Autopilot
+# PlotPickle Focused UAT Autopilot
 
-PlotPickle UAT Autopilot is the merge-oriented acceptance layer above the existing local Playwright/MCP runner, 30-stage Creative Writer UAT and UI Continuity Agent. It is intentionally local-first: the deterministic gate does not require paid AI, ChatGPT, Codex quota or an external cloud account.
+PlotPickle UAT Autopilot is intentionally narrow. It currently tests only the product areas under active development: Startup/local agents, Settings, Foundations/LEARN, PLAN, and the Wyrmwood game.
 
-Run it while PlotPickle is available at the normal private local address:
+The source of truth is `config/uat-autopilot-registry.json`. Each area owns its focused contract tests. Rendered areas also declare their canonical route, expected visible terms, and a minimum useful-content floor.
+
+CI runs:
+
+`node --test tests/issue-622-uat-autopilot.test.mjs`
+
+then:
+
+`node scripts/run-uat-autopilot.mjs --contracts-only`
+
+and finally the production build.
+
+For local live UAT while PlotPickle is running:
 
 `node scripts/run-uat-autopilot.mjs --base-url http://127.0.0.1:4173`
 
-The Autopilot runs the existing full browser journey, then runs the 30-stage Creative Writer virtual user. That fixture creates a disposable project and exercises Story Setup, Concept Canvas, World, Characters, 24 Blocks, LEARN, Storyboard, Write, Edit, Graphic Novel, Build, Feedback, Refine, Reports, Settings and named return paths. It then runs the UI Continuity Agent, verifies the canonical LEARN route, checks accessibility evidence depth, treats missing screenshots and browser console errors as blockers, and probes the registered Sage Brinewick and Foundations Planner agents when their local models are available.
+The live pass uses the existing local Playwright MCP runtime only for the registered rendered areas. It captures a screenshot and accessibility snapshot for Settings, Foundations/LEARN, PLAN, and Wyrmwood; checks visible-content depth and expected text; and fails on browser console errors.
 
-The live Foundations Planner probe requires both requested structured fields. A response that does not contain both `output-1` and `output-2` is a blocking UAT failure rather than a startup message that can be overlooked.
+Startup is tested through PlotPickle's own local status and agent routes. Mastra must be ready in embedded mode and Sage Brinewick plus Foundations Planner must be registered. If a Fast local model is available, Sage receives a live conversational probe. If a Quality local model is available, Foundations Planner receives a disposable structured-output probe and must return both requested PLAN fields.
 
-The deterministic Creative Writer screenshots also support a local approved visual baseline. The baseline is intentionally not self-approved. After a person visually reviews a known-good run once, approve it with:
+A missing optional local model is a warning rather than a false failure. A model that is available but returns a bad response is a failure.
 
-`node scripts/run-uat-autopilot.mjs --base-url http://127.0.0.1:4173 --approve-visual-baseline`
+Results are written as both `autopilot-report.md` and `autopilot-report.json` under the local PlotPickle focused-UAT folder.
 
-The approved screenshot hashes are kept under the user-owned PlotPickle local-app-data UAT baseline folder, separate from story/project data. Later deterministic runs fail when an approved screenshot is missing or changes and warn when a new screenshot needs approval. Because the comparison is intentionally strict, the baseline is meant for the same local Chrome/Playwright environment; UI Continuity remains the structural cross-run visual contract.
+This is designed to grow with the app instead of becoming a giant all-screen suite. When a new area becomes active, add one registry entry with its route, rendered expectations, and focused tests. Existing unrelated workspaces remain outside this UAT pass until we intentionally add them.
 
-Results are written under the local PlotPickle UAT folder as both `autopilot-report.md` and `autopilot-report.json`. The JSON report is the stable handoff for CI diagnostics and read-only review agents.
-
-Severity contract:
-
-- FAIL blocks acceptance: failed route/workspace state, a failed or incomplete 30-stage virtual-user journey, missing screenshot evidence, changed/missing approved visual screenshots, browser console errors, missing or placeholder-level accessibility evidence, error-level UI Continuity findings, LEARN render failure, missing Mastra/Sage/Foundations registration, failed Sage live response when the Fast model is available, or malformed Foundations Planner structured output when the Quality model is available.
-- WARN is visible but non-blocking: visible product navigation needed a recovery deep link, UI Continuity reported warning-only drift, no visual baseline has been approved yet, a new screenshot needs approval, or a local Fast/Quality model is not installed so its live AI probe cannot run.
-- PASS means the deterministic acceptance contract completed without a blocker or review warning.
-
-This changes the human UAT role. Repeatable functional, virtual-user, rendered-content, visual-regression, console and local-agent failures should be found by Autopilot first. Human review remains the final judgement for creative taste, clarity, usefulness and whether PlotPickle feels right.
+Human UAT remains useful for creative judgement and whether the experience feels right. Repeatable startup, rendering, console, Foundations/PLAN structured-output, and game contract failures should be caught automatically first.

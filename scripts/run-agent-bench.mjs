@@ -163,7 +163,7 @@ async function invokeAgent(agent, prompt, worktree) {
     });
   }
   if (agent === "cline") {
-    return run(executable("cline"), ["--json", "-y", prompt], {
+    return run(executable("cline"), ["--json", "--auto-approve", "true", "--cwd", worktree, prompt], {
       cwd: worktree,
       timeoutMs: 1_800_000,
     });
@@ -174,7 +174,7 @@ async function invokeAgent(agent, prompt, worktree) {
 function summarizeJsonLines(text) {
   let jsonEvents = 0;
   let toolEvents = 0;
-  let usage = { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, cost: 0 };
+  const usage = { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, cost: 0 };
   for (const line of String(text ?? "").split(/\r?\n/)) {
     const trimmed = line.trim();
     if (!trimmed.startsWith("{")) continue;
@@ -203,9 +203,12 @@ async function changedFiles(worktree) {
   if (status.exitCode !== 0) throw new Error(`Unable to read benchmark git status: ${status.stderr}`);
   return status.stdout
     .split(/\r?\n/)
-    .map((line) => line.trim())
     .filter(Boolean)
-    .map((line) => line.replace(/^..\s+/, "").replace(/^"|"$/g, ""));
+    .map((line) => {
+      const raw = line.length >= 4 ? line.slice(3) : line;
+      const renamed = raw.includes(" -> ") ? raw.split(" -> ").at(-1) : raw;
+      return String(renamed).replace(/^"|"$/g, "");
+    });
 }
 
 async function diffCheck(worktree) {
@@ -247,7 +250,6 @@ async function main() {
   await mkdir(artifactDir, { recursive: true });
 
   const { worktree, baselineSha } = await createWorktree(task, runId);
-  let report;
   try {
     if (!args.skipDeps) {
       console.log("Installing frozen-revision dependencies...");
@@ -272,10 +274,9 @@ async function main() {
     const verificationPassed = verification.length === task.verify.length && verification.every((entry) => entry.exitCode === 0);
     const success = agentResult.exitCode === 0 && files.length > 0 && testFilesChanged && check.exitCode === 0 && verificationPassed;
 
-    report = {
+    const report = {
       schemaVersion: 1,
       runId,
-      agent: args.agent,
       taskId: task.id,
       taskLabel: task.label,
       historicalIssues: task.historicalIssues ?? [],

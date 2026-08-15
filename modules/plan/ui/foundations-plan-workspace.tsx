@@ -66,6 +66,7 @@ export default function FoundationsPlanWorkspace({
   const [briefDraft, setBriefDraft] = useState("");
   const [draftingLessonId, setDraftingLessonId] = useState("");
   const [draftError, setDraftError] = useState("");
+  const [draftFieldIds, setDraftFieldIds] = useState<readonly string[]>([]);
 
   useEffect(() => {
     if (!lessons.length) return;
@@ -117,6 +118,7 @@ export default function FoundationsPlanWorkspace({
 
   function openPlanLesson(lessonId: string) {
     setDraftError("");
+    setDraftFieldIds([]);
     commit({
       type: "foundations.lesson.open",
       lessonId,
@@ -140,17 +142,34 @@ export default function FoundationsPlanWorkspace({
     window.location.assign("/?workspace=learn");
   }
 
+  function toggleDraftField(fieldId: string) {
+    setDraftError("");
+    setDraftFieldIds((current) => (
+      current.includes(fieldId)
+        ? current.filter((currentId) => currentId !== fieldId)
+        : [...current, fieldId]
+    ));
+  }
+
   async function requestLocalDraft() {
     if (!project || !activeLesson || draftingLessonId) return;
     const curriculumLesson = curriculumById.get(activeLesson.id);
     if (!curriculumLesson) return;
+    const selectedFields = activeLesson.fields.filter((field) => draftFieldIds.includes(field.id));
+    if (!selectedFields.length) {
+      setDraftError("Choose one or more PLAN fields for local AI before creating a proposal.");
+      return;
+    }
     const lessonId = activeLesson.id;
     setDraftError("");
     setDraftingLessonId(lessonId);
     try {
       const proposal = await draftFoundationLesson({
         projectTitle: project.title,
-        lesson: activeLesson,
+        lesson: {
+          ...activeLesson,
+          fields: selectedFields,
+        },
         curriculumLesson,
         currentAnswers: activeAnswers.answers,
         priorStoryContext: acceptedFoundationContext(lessons, activeLesson.id, project),
@@ -316,12 +335,67 @@ export default function FoundationsPlanWorkspace({
               <div>
                 <small>OPTIONAL · LOCAL ONLY</small>
                 <h2>Ask Mastra + Ollama for a draft proposal</h2>
-                <p>The proposal stays separate from your fields. PlotPickle changes your answers only after you choose to accept it.</p>
+                <p>Choose exactly which story decisions you want help with. Select one field, two fields, or all of them. Unselected fields are never generated or overwritten.</p>
               </div>
-              <button disabled={Boolean(draftingLessonId)} onClick={requestLocalDraft} type="button">
-                {draftingLessonId === activeLesson.id ? "Drafting locally…" : proposal ? "Create a new proposal" : "Draft with local AI"}
+              <button
+                disabled={Boolean(draftingLessonId) || draftFieldIds.length === 0}
+                onClick={requestLocalDraft}
+                type="button"
+              >
+                {draftingLessonId === activeLesson.id
+                  ? "Drafting selected fields…"
+                  : proposal
+                    ? `Create proposal for ${draftFieldIds.length} selected`
+                    : `Draft ${draftFieldIds.length || "selected"} with local AI`}
               </button>
             </div>
+
+            <fieldset
+              aria-label="Choose PLAN fields for local AI"
+              style={{
+                display: "grid",
+                gap: 10,
+                margin: "20px 0 0",
+                padding: "16px 18px",
+                border: "1px solid rgba(53, 201, 184, .28)",
+                borderRadius: 3,
+                background: "rgba(53, 201, 184, .035)",
+              }}
+            >
+              <legend style={{ padding: "0 8px", color: "#91e7dc", fontSize: 11, fontWeight: 800 }}>
+                Choose one, two, or all fields
+              </legend>
+              {activeLesson.fields.map((field, index) => (
+                <label
+                  key={field.id}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "20px 26px minmax(0, 1fr)",
+                    alignItems: "start",
+                    gap: 8,
+                    cursor: "pointer",
+                    color: "#ddd8cf",
+                    fontSize: 12,
+                    lineHeight: 1.45,
+                  }}
+                >
+                  <input
+                    aria-label={`Use local AI for field ${index + 1}: ${field.prompt}`}
+                    checked={draftFieldIds.includes(field.id)}
+                    onChange={() => toggleDraftField(field.id)}
+                    type="checkbox"
+                  />
+                  <b style={{ color: "#cf9c50" }}>{index + 1}</b>
+                  <span>{field.prompt}</span>
+                </label>
+              ))}
+              <small style={{ color: "#8f8a81", fontSize: 10 }}>
+                {draftFieldIds.length
+                  ? `${draftFieldIds.length} of ${activeLesson.fields.length} fields selected for this proposal.`
+                  : "Nothing selected. Your existing fields will not be sent for drafting until you choose."}
+              </small>
+            </fieldset>
+
             {draftError ? <p className={styles.error} role="alert">{draftError}</p> : null}
             {proposal ? (
               <div className={styles.proposal}>
@@ -345,7 +419,7 @@ export default function FoundationsPlanWorkspace({
                     })}
                     type="button"
                   >
-                    {activeAnswers.proposalAcceptedAt ? "Accepted — edit in your fields above" : "Accept proposal into my fields"}
+                    {activeAnswers.proposalAcceptedAt ? "Accepted — edit in your fields above" : "Accept selected proposal into my fields"}
                   </button>
                   <button onClick={() => commit({
                     type: "foundations.proposal.dismiss",

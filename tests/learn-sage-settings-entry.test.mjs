@@ -174,13 +174,14 @@ test("Sage sanitizes prompt scaffolding before chat rendering and is instructed 
     read("modules/creative-room/curriculum-guide.ts"),
     read("build/mastra-agent-runtime.ts"),
   ]);
+  const normalizedGuide = guide.replace(/\r\n/g, "\n");
   assert.match(guide, /export function stripInternalScaffolding/);
   assert.match(guide, /&lt;/);
   assert.match(guide, /\\\\u003c/);
   assert.match(guide, /student_question\|conversation_memory\|project_memory\|curriculum_context/);
   assert.match(guide, /INTERNAL_SCAFFOLD_LINE/);
   assert.match(guide, /let text = cleanGuideAnswer\(result\.text\)/);
-  assert.ok(guide.indexOf("cleanGuideAnswer(result.text)") < guide.indexOf("return {\n    text,"));
+  assert.ok(normalizedGuide.indexOf("cleanGuideAnswer(result.text)") < normalizedGuide.indexOf("return {\n    text,"));
   assert.match(runtime, /Speak like a live mentor, not a prompt template or formatter/);
   assert.match(runtime, /answer it and then offer one useful choice for where to go next/);
   assert.match(runtime, /offer two or three likely help paths and ask which one fits/);

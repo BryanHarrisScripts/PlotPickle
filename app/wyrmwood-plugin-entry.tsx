@@ -19,6 +19,7 @@ export default function WyrmwoodPluginEntry({ onOpen }: { readonly onOpen: () =>
         src="/assets/workflow-relics/game.webp"
         width={58}
       />
+      <span className={styles.label}>WYRMWOOD</span>
     </button>
   );
 }

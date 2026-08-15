@@ -4,17 +4,16 @@ import { readFile, stat } from "node:fs/promises";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("GAME navigation uses the approved standalone relic with no visible word label", async () => {
+test("GAME navigation uses the approved standalone relic with a separate WYRMWOOD UI title", async () => {
   const entry = await read("app/wyrmwood-plugin-entry.tsx");
 
   assert.match(entry, /src="\/assets\/workflow-relics\/game\.webp"/);
   assert.match(entry, /aria-label="Open GAME — Wyrmwood"/);
   assert.match(entry, /className=\{styles\.glyph\}/);
+  assert.match(entry, /className=\{styles\.label\}>WYRMWOOD<\/span>/);
   assert.doesNotMatch(entry, /plotpickle-ouroboros-v2-128\.png/);
   assert.doesNotMatch(entry, /<strong>PLAY<\/strong>/);
   assert.doesNotMatch(entry, /<small>Wyrmwood<\/small>/);
-  assert.doesNotMatch(entry, /<span>/);
-  assert.doesNotMatch(entry, /title=/);
 });
 
 test("GAME relic asset is a real WebP and navigation-sized source remains substantial", async () => {
@@ -32,6 +31,7 @@ test("GAME navigation keeps the transparent logo treatment without a backglow", 
   assert.match(css, /background:\s*transparent/);
   assert.match(css, /width:\s*58px/);
   assert.match(css, /height:\s*58px/);
+  assert.match(css, /\.label/);
   assert.doesNotMatch(css, /drop-shadow/);
   assert.match(css, /filter:\s*saturate\(1\.13\) brightness\(1\.08\)/);
   assert.match(css, /filter:\s*saturate\(1\.22\) brightness\(1\.18\)/);

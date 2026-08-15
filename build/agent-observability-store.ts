@@ -95,9 +95,23 @@ export function startAgentTrace(input: {
   appendAgentTraceEvent(trace.id, {
     type: "request.accepted",
     label: "Request accepted",
-    detail: `${trace.inputChars} input characters · ${trace.historyMessages} history messages`,
+    detail: trace.inputChars ? `${trace.inputChars} request bytes` : "Local agent request started",
   });
   return trace.id;
+}
+
+export function updateAgentTraceMetadata(id: string, input: Partial<Pick<MutableAgentTrace,
+  "agentId" | "provider" | "runtimeProvider" | "model" | "modelRole" | "structured" | "historyMessages"
+>>) {
+  const trace = findTrace(id);
+  if (!trace || trace.status !== "running") return;
+  if (typeof input.agentId === "string" && input.agentId) trace.agentId = safeDetail(input.agentId);
+  if (typeof input.provider === "string" && input.provider) trace.provider = safeDetail(input.provider);
+  if (typeof input.runtimeProvider === "string" && input.runtimeProvider) trace.runtimeProvider = safeDetail(input.runtimeProvider);
+  if (typeof input.model === "string" && input.model) trace.model = safeDetail(input.model);
+  if (typeof input.modelRole === "string" && input.modelRole) trace.modelRole = safeDetail(input.modelRole);
+  if (typeof input.structured === "boolean") trace.structured = input.structured;
+  if (typeof input.historyMessages === "number" && Number.isFinite(input.historyMessages)) trace.historyMessages = Math.max(0, Math.floor(input.historyMessages));
 }
 
 export function appendAgentTraceEvent(id: string, event: Omit<AgentTraceEvent, "at"> & { at?: string }) {

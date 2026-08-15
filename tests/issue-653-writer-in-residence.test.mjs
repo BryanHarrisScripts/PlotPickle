@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 const readJson = async (file) => JSON.parse(await read(file));
+const implementation = "scripts/run-writer-in-residence-v2.mjs";
 
 test("Writer-in-Residence is a disclosed synthetic writer with a real creative mission", async () => {
   const config = await readJson("config/writer-in-residence.json");
@@ -16,8 +18,14 @@ test("Writer-in-Residence is a disclosed synthetic writer with a real creative m
   assert.ok(config.journeyGoals.some((goal) => /Wyrmwood/i.test(goal)));
 });
 
+test("stable writer command delegates to the resilient journey implementation", async () => {
+  const entrypoint = await read("scripts/run-writer-in-residence.mjs");
+  assert.match(entrypoint, /run-writer-in-residence-v2\.mjs/);
+  execFileSync(process.execPath, ["--check", new URL(`../${implementation}`, import.meta.url).pathname], { stdio: "pipe" });
+});
+
 test("exploratory writer uses visible Playwright accessibility actions and never calls hidden browser state", async () => {
-  const runner = await read("scripts/run-writer-in-residence.mjs");
+  const runner = await read(implementation);
   assert.match(runner, /browser_snapshot/);
   assert.match(runner, /browser_click/);
   assert.match(runner, /browser_type/);
@@ -28,33 +36,36 @@ test("exploratory writer uses visible Playwright accessibility actions and never
   assert.doesNotMatch(runner, /document\.querySelector|document\.querySelectorAll|window\.localStorage/);
 });
 
-test("writer model receives only bounded visible snapshot context and cannot edit code or GitHub", async () => {
-  const runner = await read("scripts/run-writer-in-residence.mjs");
+test("writer model receives bounded visible context and chooses labels instead of fragile browser refs", async () => {
+  const runner = await read(implementation);
+  assert.match(runner, /CURRENT VISIBLE CONTROLS/);
   assert.match(runner, /VISIBLE ACCESSIBILITY SNAPSHOT/);
-  assert.match(runner, /maximum = 5_500/);
-  assert.match(runner, /Do not request browser_evaluate, source code, DOM inspection, localStorage, filesystem inspection, test files, logs, GitHub, or developer tools/);
+  assert.match(runner, /maximum = 5_000/);
+  assert.match(runner, /NEXT\|CLICK\|exact visible control name/);
+  assert.match(runner, /PlotPickle resolves the current browser ref itself/);
   assert.match(runner, /agentId:\s*"creative-director"/);
   assert.doesNotMatch(runner, /git\s+commit|git\s+push|gh\("issue"|gh\("pr"/);
 });
 
-test("writer decision format is repaired locally and malformed output cannot become product feedback", async () => {
-  const runner = await read("scripts/run-writer-in-residence.mjs");
-  assert.match(runner, /FORMAT REPAIR ONLY/);
-  assert.match(runner, /normalizeDecision\(repaired\.text\)/);
-  assert.match(runner, /recovery: "format-repair"/);
-  assert.match(runner, /recovery: "visible-ui-fallback"/);
-  assert.match(runner, /response\.recovery === "visible-ui-fallback"\s*\? \[\]/);
-  assert.match(runner, /runnerFindings/);
-  assert.match(runner, /finishedReason = "local-model-unavailable"/);
+test("failed or non-protocol writer actions recover without repeating stale controls", async () => {
+  const runner = await read(implementation);
+  assert.match(runner, /mentionedControl/);
+  assert.match(runner, /failedTargets/);
+  assert.match(runner, /nextSafeRoute/);
+  assert.match(runner, /safely moved to/);
+  assert.match(runner, /Local model ignored the compact NEXT protocol/);
+  assert.match(runner, /consecutiveTurnErrors >= 3/);
+  assert.match(runner, /Writer-in-Residence COMPLETE/);
 });
 
-test("writer feedback is kept locally first and only medium/high actionable findings are promoted", async () => {
+test("writer feedback is local-first and only explicit medium/high actionable observations are promoted", async () => {
   const [runner, config] = await Promise.all([
-    read("scripts/run-writer-in-residence.mjs"),
+    read(implementation),
     readJson("config/writer-in-residence.json"),
   ]);
   assert.equal(config.minimumPromotedSeverity, "medium");
   assert.equal(config.maxPromotedFindings, 5);
+  assert.match(runner, /OBS\|confusion\|medium\|true/);
   assert.match(runner, /item\.actionable && severityRank\[item\.severity\] >= minimumRank/);
   assert.match(runner, /writer-in-residence-report\.json/);
   assert.match(runner, /writer-in-residence-report\.md/);

@@ -1,6 +1,13 @@
 export type WyrmwoodCampaignId = "fundamentals";
 
-export type WyrmwoodRoundStatus = "ready" | "active" | "resolved";
+export type WyrmwoodRoundStatus = "ready" | "generating" | "active" | "resolved";
+
+export type WyrmwoodRivalId =
+  | "aiden-glowhart"
+  | "damien-darkmore"
+  | "barnaby-barnacle"
+  | "master-spirit-talker"
+  | "sienna-silvertongue";
 
 export interface WyrmwoodTrial {
   readonly id: string;
@@ -14,15 +21,58 @@ export interface WyrmwoodTrial {
   readonly pickleSeed: string;
 }
 
+export interface WyrmwoodGeneratedPickle {
+  readonly id: string;
+  readonly title: string;
+  readonly situation: string;
+  readonly goal: string;
+  readonly constraints: readonly string[];
+  readonly establishedElements: readonly string[];
+  readonly failurePressure: string;
+}
+
+export interface WyrmwoodRivalMove {
+  readonly action: string;
+  readonly complication: string;
+}
+
+export type WyrmwoodRivalMoves = Readonly<Record<WyrmwoodRivalId, WyrmwoodRivalMove>>;
+
+export interface WyrmwoodDirectorTurn {
+  readonly trialId: string;
+  readonly pickleNumber: number;
+  readonly oakenOpening: string;
+  readonly pickle: WyrmwoodGeneratedPickle;
+  readonly rivals: WyrmwoodRivalMoves;
+  readonly model: string;
+  readonly generatedAt: string;
+}
+
+export interface WyrmwoodPlayerTurn {
+  readonly trialId: string;
+  readonly pickleId: string;
+  readonly pickleNumber: number;
+  readonly response: string;
+  readonly submittedAt: string;
+}
+
+export interface WyrmwoodCompletedTurn {
+  readonly director: WyrmwoodDirectorTurn;
+  readonly player: WyrmwoodPlayerTurn;
+}
+
 export interface WyrmwoodGameState {
-  readonly schemaVersion: 1;
+  readonly schemaVersion: 2;
   readonly campaignId: WyrmwoodCampaignId;
   readonly trialIndex: number;
+  readonly pickleIndex: number;
   readonly roundStatus: WyrmwoodRoundStatus;
   readonly spotlight: number;
   readonly brineCoins: number;
   readonly xp: number;
   readonly completedTrialIds: readonly string[];
+  readonly currentDirectorTurn: WyrmwoodDirectorTurn | null;
+  readonly turnHistory: readonly WyrmwoodCompletedTurn[];
 }
 
 export interface WyrmwoodEvaluationDimensions {

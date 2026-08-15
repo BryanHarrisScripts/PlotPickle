@@ -42,7 +42,7 @@ test("the first Wyrmwood campaign is generated from LEARN Foundations", async ()
   assert.match(ui, /trial\.learningTargets/);
 });
 
-test("phase one exposes PLAY in the header without pretending the AI duel is finished", async () => {
+test("PLAY keeps the original isolated shell while Phase 2 activates the duel", async () => {
   const [entry, page, ui] = await Promise.all([
     read("app/wyrmwood-plugin-entry.tsx"),
     read("app/page.tsx"),
@@ -54,9 +54,9 @@ test("phase one exposes PLAY in the header without pretending the AI duel is fin
   assert.match(page, /<WyrmwoodPluginEntry onOpen=\{\(\) => navigateWorkspace\("wyrmwood"\)\}/);
   assert.match(ui, /Spellscribe response · practical logic only/);
   assert.match(ui, /150 words/);
-  assert.match(ui, /Rival duel \+ judgment arrives in Phase 2/);
-  assert.doesNotMatch(ui, /api\/writing-assistant\/chat/);
-  assert.doesNotMatch(ui, /spotlightDelta/);
+  assert.match(ui, /directWyrmwoodTurn/);
+  assert.match(ui, /WYRMWOOD_RIVALS/);
+  assert.doesNotMatch(ui, /applyStoryCommand|PPFProject|FOUNDATION_PROJECT_STORAGE_KEY/);
 });
 
 test("Wyrmwood state starts deterministic and cannot mutate the story project", async () => {

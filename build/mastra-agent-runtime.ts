@@ -7,6 +7,8 @@ import type { ProviderProfile } from "./writing-assistant-store";
 
 const SAGE_BRINEWICK_PLAYBOOK_PATH = resolve(process.cwd(), "agents/sage-brinewick.md");
 const SAGE_BRINEWICK_FALLBACK = "Be Sage Brinewick: answer the writer directly, use PlotPickle curriculum as the source of truth for craft teaching, answer ordinary conversational questions naturally, allow light dry wit when appropriate, never invent a personal biography, never echo the question as the answer, and keep internal machinery invisible.";
+const MASTER_OAKEN_VAGUE_PLAYBOOK_PATH = resolve(process.cwd(), "agents/master-oaken-vague.md");
+const MASTER_OAKEN_VAGUE_FALLBACK = "Be Master Oaken-Vague, Wyrmwood's impartial Rival Director. In one structured response create one playable curriculum-bound Pickle and distinct actions for all five trope rivals. The deterministic game engine owns Spotlight, rewards, progress and persistence. Never judge the player's answer in Phase 2.";
 
 export function loadSageBrinewickPlaybook() {
   try {
@@ -17,11 +19,22 @@ export function loadSageBrinewickPlaybook() {
   }
 }
 
+export function loadMasterOakenVaguePlaybook() {
+  try {
+    const playbook = readFileSync(MASTER_OAKEN_VAGUE_PLAYBOOK_PATH, "utf8").trim();
+    return playbook || MASTER_OAKEN_VAGUE_FALLBACK;
+  } catch {
+    return MASTER_OAKEN_VAGUE_FALLBACK;
+  }
+}
+
 const SAGE_BRINEWICK_PLAYBOOK = loadSageBrinewickPlaybook();
+const MASTER_OAKEN_VAGUE_PLAYBOOK = loadMasterOakenVaguePlaybook();
 
 export const PLOTPICKLE_AGENT_ROLES = {
   "curriculum-guide": "Be Sage Brinewick, a warm, patient PlotPickle teacher when teaching craft and a sharp, lightly witty creative-room mentor in conversation. Use natural plain language. For screenplay craft, PlotPickle lessons, story structure, theme, character, pacing, visual storytelling, or lesson application, curriculum_context is the only source of truth for teaching claims: current governing-course teaching outranks adapted supporting curriculum; historical wording is usable only with its paired current correction; navigation artifacts are never teaching. Do not present outside craft facts as PlotPickle teaching. For casual, personal, humorous, meta, or clearly non-craft questions, answer naturally like a capable conversational assistant instead of forcing a curriculum refusal. You may use ordinary reasoning and a little dry sarcasm when the writer invites it, but never invent a body, résumé, memories, credits, employers, awards, school year, student identity, or years of experience for Sage. If asked who you are, answer as Sage Brinewick and identify yourself as PlotPickle's Curriculum Guide/software mentor in fresh wording. If asked whether you can help, answer the request directly and say how you can help; never turn it back into the same question. Identity facts may be expressed in fresh wording rather than a canned response. Speak like a live mentor, not a prompt template or formatter. Answer the writer's actual question first in natural plain language. Reference the current lesson naturally when it helps, without saying retrieved context, source block, prompt, RAG, or system instructions. For confirmation questions, begin with Yes, No, or Not necessarily when that is natural. Stay under 180 words unless the writer explicitly asks for depth. Give a short example when it makes the idea easier to understand. If the writer asks a broad concept question, answer it and then offer one useful choice for where to go next. If the writer says they need help without naming the problem, offer two or three likely help paths and ask which one fits. Ask at most one useful follow-up question. Never output audits, unrelated lesson lists, raw retrieval, XML-like wrappers, escaped prompt tags, internal section labels, or system operations. Vary wording and examples; do not behave like a response bank.",
   "foundations-planner": "Draft concise, field-by-field Foundations proposals from the supplied lesson context and accepted writer material. Accepted writer material is canon. When accepted evidence is missing, you may invent a plausible working creative candidate only because the output is an unaccepted review proposal; label that field with 'Provisional —' and never present the candidate as an existing story fact. Never invent a story fact and present it as accepted canon. Never silently treat a proposal as canon. Follow the requested JSON shape exactly, answer every requested field, never copy the field question as the answer, and add no prose outside the structured result.",
+  "wyrmwood-rival-director": "Be Master Oaken-Vague, Wyrmwood's impartial Rival Director. Create exactly one fresh curriculum-bound narrative Pickle plus one distinct move for each of the five fixed trope rivals in a single structured inference. The rivals are deliberately flawed instincts: Aiden Glowhart reaches for prophecy or divine intervention; Damien Darkmore rejects teamwork for brooding isolation and unnecessary suffering; Barnaby Barnacle creates slapstick environmental mistakes; Master Spirit-Talker offers figurative but operationally unhelpful wisdom; Sienna Silvertongue uses charm, bribery or shortcuts that carry a cost. The Pickle must be absurd but internally playable, make practical cause-and-effect possible, expose established elements, state concrete constraints and failure pressure, and never be solvable by unexplained magic, coincidence, prophecy or a newly invented fact. Do not judge the player's response. Never alter or claim to alter Spotlight, coins, XP, inventory, rank, game-over, campaign progress or persistent state.",
   "creative-director": "Coordinate the specialist room, preserve the writer's intention, and end with the clearest useful next step.",
   "story-architect": "Test structure, causality, stakes, and the 24 Block / 96 Mini-Block story map.",
   character: "Focus on motivation, pressure, choice, relationships, arc, behaviour, and voice.",
@@ -70,6 +83,63 @@ function foundationProposalSchema(fieldIds: readonly string[]) {
   });
 }
 
+function wyrmwoodRivalDirectorSchema() {
+  const move = {
+    type: "object" as const,
+    properties: {
+      action: { type: "string" as const, minLength: 1 },
+      complication: { type: "string" as const, minLength: 1 },
+    },
+    required: ["action", "complication"],
+    additionalProperties: false,
+  };
+  const rivalIds = [
+    "aiden-glowhart",
+    "damien-darkmore",
+    "barnaby-barnacle",
+    "master-spirit-talker",
+    "sienna-silvertongue",
+  ] as const;
+  return jsonSchema<{
+    oakenOpening: string;
+    pickle: {
+      title: string;
+      situation: string;
+      goal: string;
+      constraints: string[];
+      establishedElements: string[];
+      failurePressure: string;
+    };
+    rivals: Record<(typeof rivalIds)[number], { action: string; complication: string }>;
+  }>({
+    type: "object",
+    properties: {
+      oakenOpening: { type: "string", minLength: 1 },
+      pickle: {
+        type: "object",
+        properties: {
+          title: { type: "string", minLength: 1 },
+          situation: { type: "string", minLength: 1 },
+          goal: { type: "string", minLength: 1 },
+          constraints: { type: "array", items: { type: "string", minLength: 1 }, minItems: 1, maxItems: 3 },
+          establishedElements: { type: "array", items: { type: "string", minLength: 1 }, minItems: 2, maxItems: 4 },
+          failurePressure: { type: "string", minLength: 1 },
+        },
+        required: ["title", "situation", "goal", "constraints", "establishedElements", "failurePressure"],
+        additionalProperties: false,
+      },
+      rivals: {
+        type: "object",
+        properties: Object.fromEntries(rivalIds.map((id) => [id, move])),
+        required: [...rivalIds],
+        additionalProperties: false,
+      },
+    },
+    required: ["oakenOpening", "pickle", "rivals"],
+    additionalProperties: false,
+  });
+}
+
 const HEALTH_CHECK_PROFILE: ProviderProfile = {
   provider: "ollama",
   baseUrl: "http://127.0.0.1:11434",
@@ -109,6 +179,7 @@ export function createPlotPickleMastra(profile: ProviderProfile) {
         BASE_INSTRUCTIONS,
         `Specialist responsibility: ${role}`,
         id === "curriculum-guide" ? `Sage Brinewick playbook:\n${SAGE_BRINEWICK_PLAYBOOK}` : "",
+        id === "wyrmwood-rival-director" ? `Master Oaken-Vague playbook:\n${MASTER_OAKEN_VAGUE_PLAYBOOK}` : "",
       ].filter(Boolean).join("\n\n"),
       model,
       maxRetries: 1,
@@ -141,13 +212,13 @@ export async function askPlotPickleAgent(input: {
   try {
     const executionOptions = {
       abortSignal,
-      ...(["curriculum-guide", "foundations-planner"].includes(input.agentId) ? {
+      ...(["curriculum-guide", "foundations-planner", "wyrmwood-rival-director"].includes(input.agentId) ? {
         modelSettings: {
           // Legacy validation anchors for the previous conservative profile:
           // temperature: 0.2
           // maxOutputTokens: input.agentId === "foundations-planner" ? 720 : 320
-          temperature: input.agentId === "curriculum-guide" ? 0.3 : 0.2,
-          maxOutputTokens: input.agentId === "foundations-planner" ? 720 : 480,
+          temperature: input.agentId === "curriculum-guide" ? 0.3 : input.agentId === "wyrmwood-rival-director" ? 0.55 : 0.2,
+          maxOutputTokens: input.agentId === "foundations-planner" ? 720 : input.agentId === "wyrmwood-rival-director" ? 1100 : 480,
         },
       } : {}),
     };
@@ -160,6 +231,17 @@ export async function askPlotPickleAgent(input: {
         },
       });
       if (!result.object) throw new Error("The local Foundations drafter did not return a structured proposal.");
+      return JSON.stringify(result.object);
+    }
+    if (input.agentId === "wyrmwood-rival-director") {
+      const result = await agent.generate(prompt, {
+        ...executionOptions,
+        structuredOutput: {
+          schema: wyrmwoodRivalDirectorSchema(),
+          jsonPromptInjection: false,
+        },
+      });
+      if (!result.object) throw new Error("Master Oaken-Vague did not return a structured Wyrmwood turn.");
       return JSON.stringify(result.object);
     }
     const result = await agent.generate(prompt, executionOptions);

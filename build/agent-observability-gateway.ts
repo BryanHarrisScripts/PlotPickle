@@ -69,10 +69,10 @@ function observeChatResponse(request: IncomingMessage, response: ServerResponse)
     detail: "Waiting for the selected local or configured model",
   });
 
-  const originalEnd = response.end.bind(response);
+  const originalEnd = response.end;
   let observed = false;
 
-  (response as ServerResponse & { end: (...args: unknown[]) => ServerResponse }).end = ((chunk?: unknown, ...args: unknown[]) => {
+  (response as any).end = function observedEnd(chunk?: unknown, encoding?: unknown, callback?: unknown) {
     if (!observed) {
       observed = true;
       const payload = responseJson(chunk);
@@ -109,8 +109,8 @@ function observeChatResponse(request: IncomingMessage, response: ServerResponse)
         failAgentTrace(traceId, message);
       }
     }
-    return originalEnd(chunk as never, ...(args as never[]));
-  }) as typeof response.end;
+    return (originalEnd as any).call(response, chunk, encoding, callback);
+  };
 
   response.once("close", () => {
     if (!observed) {

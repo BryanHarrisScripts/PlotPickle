@@ -2,47 +2,19 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
-  EXPECTED_BROWSER_SCREENS,
-  EXPECTED_CREATIVE_STAGES,
-  MIN_SNAPSHOT_LENGTH,
-  assessAutopilotEvidence,
-  compareVisualEvidence,
-  parseAcceptanceReport,
-  parseContinuityReport,
-  parseCreativeReport,
-  safeSlug,
+  assessFocusedUat,
+  assessRenderedArea,
+  contractTestsFromRegistry,
+  validateUatRegistry,
 } from "../lib/uat-autopilot.mjs";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+const readJson = async (path) => JSON.parse(await read(path));
 
-function browserReport({ status = "PASS", navigation = "visible workspace control", screenshot = "captured", consoleError = false } = {}) {
-  const rows = EXPECTED_BROWSER_SCREENS.map((screen) => `| ${screen} | ${status} | ${navigation} | ${safeSlug(screen)} / http://127.0.0.1:4173/ | ${screenshot} |`).join("\n");
-  return `# PlotPickle Local Human Acceptance Test\n\nOverall: ${status}\n\n| Screen | Result | Navigation | Active workspace / URL | Screenshot |\n| --- | --- | --- | --- | --- |\n${rows}${consoleError ? "\n\n- WARN Dashboard: Browser console reported an error.\n  Console: Error: test failure" : ""}\n`;
-}
-
-function creativeReport({ status = "PASS", failedStage = -1 } = {}) {
-  const rows = Array.from({ length: EXPECTED_CREATIVE_STAGES }, (_, index) => {
-    const stage = index + 1;
-    const rowStatus = stage === failedStage ? "FAIL" : status;
-    return `| Stage ${stage} | ${rowStatus} | deterministic fixture evidence | agent-plugin/creative-writer/${String(stage).padStart(2, "0")}-stage.png |`;
-  }).join("\n");
-  const overall = failedStage > 0 ? "FAIL" : status;
-  return `# PlotPickle Creative Writer Acceptance Test\n\nOverall: ${overall}\n\n| Stage | Result | Project / story evidence | Screenshot |\n| --- | --- | --- | --- |\n${rows}\n`;
-}
-
-function snapshotLengths() {
-  return Object.fromEntries(EXPECTED_BROWSER_SCREENS.map((screen, index) => [
-    `${String(index + 1).padStart(2, "0")}-${safeSlug(screen)}.md`,
-    MIN_SNAPSHOT_LENGTH + 100,
-  ]));
-}
-
-const continuityPass = `# PlotPickle UI Continuity Agent report\n\n## Summary\n\nScreens inspected: 15\nScreens with no findings: 15\nFindings: 0 (0 errors, 0 warnings)\n`;
-const visualPass = { approved: true, currentCount: EXPECTED_CREATIVE_STAGES, missing: [], changed: [], added: [] };
-
-const healthyAgents = {
+const healthyStartup = {
   statusOk: true,
   mastraReady: true,
+  embedded: true,
   sageRegistered: true,
   foundationsRegistered: true,
   fastAvailable: true,
@@ -53,111 +25,136 @@ const healthyAgents = {
   plannerPassed: true,
 };
 
-test("UAT autopilot parses browser, 30-stage virtual-user and UI continuity reports", () => {
-  const browser = parseAcceptanceReport(browserReport());
-  assert.equal(browser.overall, "PASS");
-  assert.equal(browser.rows.length, EXPECTED_BROWSER_SCREENS.length);
-  assert.equal(browser.consoleErrors, false);
+function renderedEvidence(registry) {
+  return registry.areas.filter((area) => area.route).map((area) => ({
+    id: area.id,
+    reached: true,
+    url: `http://127.0.0.1:4173${area.route}`,
+    bodyText: `${area.requiredTerms.join(" ")} ${"useful content ".repeat(150)}`,
+    bodyLength: Math.max(area.minimumTextLength + 100, 2200),
+    screenshotCaptured: true,
+    consoleErrors: false,
+  }));
+}
 
-  const creative = parseCreativeReport(creativeReport());
-  assert.equal(creative.overall, "PASS");
-  assert.equal(creative.rows.length, EXPECTED_CREATIVE_STAGES);
-  assert.equal(creative.failures, 0);
-
-  const continuity = parseContinuityReport(continuityPass);
-  assert.deepEqual(continuity, { screens: 15, findings: 0, errors: 0, warnings: 0, runtimeError: "" });
+test("the UAT registry is deliberately limited to startup, settings, foundations/LEARN, PLAN, and Wyrmwood", async () => {
+  const registry = await readJson("config/uat-autopilot-registry.json");
+  assert.deepEqual(registry.areas.map((area) => area.id), [
+    "startup",
+    "settings",
+    "foundations-learn",
+    "plan",
+    "wyrmwood",
+  ]);
+  assert.deepEqual(validateUatRegistry(registry), []);
+  assert.equal(registry.areas.find((area) => area.id === "settings").route, "/?workspace=settings");
+  assert.equal(registry.areas.find((area) => area.id === "foundations-learn").route, "/?workspace=learn");
+  assert.equal(registry.areas.find((area) => area.id === "plan").route, "/?workspace=plan&section=foundations");
+  assert.equal(registry.areas.find((area) => area.id === "wyrmwood").route, "/?workspace=wyrmwood");
 });
 
-test("a clean full evidence set passes without human rediscovery of deterministic defects", () => {
-  const result = assessAutopilotEvidence({
-    browser: parseAcceptanceReport(browserReport()),
-    creative: parseCreativeReport(creativeReport()),
-    continuity: parseContinuityReport(continuityPass),
-    visual: visualPass,
-    snapshotLengths: snapshotLengths(),
-    learn: { ok: true, status: 200, bodyLength: 12_000 },
-    agents: healthyAgents,
-  });
+test("each current area owns focused contract tests and the registry is the extension point", async () => {
+  const registry = await readJson("config/uat-autopilot-registry.json");
+  const tests = contractTestsFromRegistry(registry);
+  assert.ok(tests.includes("tests/issue-590-windows-startup-defaults.test.mjs"));
+  assert.ok(tests.includes("tests/learn-sage-settings-entry.test.mjs"));
+  assert.ok(tests.includes("tests/foundation-architecture.test.mjs"));
+  assert.ok(tests.includes("tests/issue-595-foundations-plan-starter.test.mjs"));
+  assert.ok(tests.includes("tests/wyrmwood-phase-3.test.mjs"));
+  assert.ok(tests.length >= 15);
+  assert.equal(new Set(tests).size, tests.length);
+});
 
+test("clean evidence across the focused registry passes", async () => {
+  const registry = await readJson("config/uat-autopilot-registry.json");
+  const result = assessFocusedUat({
+    registry,
+    contractExitCode: 0,
+    rendered: renderedEvidence(registry),
+    startup: healthyStartup,
+  });
   assert.equal(result.overall, "PASS");
   assert.deepEqual(result.blockers, []);
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.metrics.creativeStages, EXPECTED_CREATIVE_STAGES);
+  assert.equal(result.metrics.areasRegistered, 5);
+  assert.equal(result.metrics.renderedAreas, 4);
 });
 
-test("console errors, missing screenshots, thin content, virtual-user failures, visual drift and malformed planner JSON are merge blockers", () => {
-  const thinSnapshots = snapshotLengths();
-  thinSnapshots["03-storyboard.md"] = 10;
-  const continuity = parseContinuityReport(`Screens inspected: 15\nFindings: 2 (1 errors, 1 warnings)\n`);
-  const result = assessAutopilotEvidence({
-    browser: parseAcceptanceReport(browserReport({ screenshot: "missing", consoleError: true })),
-    creative: parseCreativeReport(creativeReport({ failedStage: 7 })),
-    continuity,
-    visual: { ...visualPass, changed: ["07-story-moment.png"] },
-    snapshotLengths: thinSnapshots,
-    learn: { ok: true, status: 200, bodyLength: 12_000 },
-    agents: { ...healthyAgents, plannerPassed: false, plannerMessage: "Structured JSON is missing output-2." },
+test("missing content, screenshot evidence, console cleanliness, or PLAN JSON blocks focused UAT", async () => {
+  const registry = await readJson("config/uat-autopilot-registry.json");
+  const rendered = renderedEvidence(registry);
+  const plan = rendered.find((entry) => entry.id === "plan");
+  plan.bodyText = "Plan only";
+  plan.bodyLength = 20;
+  plan.screenshotCaptured = false;
+  plan.consoleErrors = true;
+  const result = assessFocusedUat({
+    registry,
+    contractExitCode: 0,
+    rendered,
+    startup: {
+      ...healthyStartup,
+      plannerPassed: false,
+      plannerMessage: "Foundations Planner did not return both requested structured PLAN fields.",
+    },
   });
-
   assert.equal(result.overall, "FAIL");
-  assert.ok(result.blockers.some((item) => /console errors/i.test(item)));
-  assert.ok(result.blockers.some((item) => /missing screenshot evidence/i.test(item)));
-  assert.ok(result.blockers.some((item) => /Storyboard accessibility evidence/i.test(item)));
-  assert.ok(result.blockers.some((item) => /Creative Writer UAT/i.test(item)));
-  assert.ok(result.blockers.some((item) => /visual\/UX regression/i.test(item)));
-  assert.ok(result.blockers.some((item) => /visual baseline screenshot/i.test(item)));
-  assert.ok(result.blockers.some((item) => /Structured JSON is missing output-2/i.test(item)));
+  assert.ok(result.blockers.some((message) => /PLAN and Foundations handoff rendered too little/i.test(message)));
+  assert.ok(result.blockers.some((message) => /missing expected rendered text: Foundations/i.test(message)));
+  assert.ok(result.blockers.some((message) => /missing screenshot evidence/i.test(message)));
+  assert.ok(result.blockers.some((message) => /browser console error/i.test(message)));
+  assert.ok(result.blockers.some((message) => /both requested structured PLAN fields/i.test(message)));
 });
 
-test("recovery navigation, missing visual approval and unavailable optional local models remain visible warnings", () => {
-  const result = assessAutopilotEvidence({
-    browser: parseAcceptanceReport(browserReport({ status: "WARN", navigation: "direct recovery navigation" })),
-    creative: parseCreativeReport(creativeReport()),
-    continuity: parseContinuityReport(continuityPass),
-    visual: { approved: false, currentCount: EXPECTED_CREATIVE_STAGES, missing: [], changed: [], added: [] },
-    snapshotLengths: snapshotLengths(),
-    learn: { ok: true, status: 200, bodyLength: 12_000 },
-    agents: {
-      statusOk: true,
-      mastraReady: true,
-      sageRegistered: true,
-      foundationsRegistered: true,
+test("unavailable optional local models are warnings, not false failures", async () => {
+  const registry = await readJson("config/uat-autopilot-registry.json");
+  const result = assessFocusedUat({
+    registry,
+    contractExitCode: 0,
+    rendered: renderedEvidence(registry),
+    startup: {
+      ...healthyStartup,
       fastAvailable: false,
       qualityAvailable: false,
       sageAttempted: false,
       plannerAttempted: false,
     },
   });
-
   assert.equal(result.overall, "WARN");
-  assert.ok(result.warnings.some((item) => /recovery navigation/i.test(item)));
-  assert.ok(result.warnings.some((item) => /visual baseline/i.test(item)));
-  assert.ok(result.warnings.some((item) => /Fast local model is unavailable/i.test(item)));
-  assert.ok(result.warnings.some((item) => /Quality local model is unavailable/i.test(item)));
+  assert.ok(result.warnings.some((message) => /Fast local model is unavailable/i.test(message)));
+  assert.ok(result.warnings.some((message) => /Quality local model is unavailable/i.test(message)));
 });
 
-test("visual baseline comparison detects changed, missing and newly captured screenshots", () => {
-  const current = { "01-dashboard.png": "aaa", "02-learn.png": "bbb", "03-plan.png": "ccc" };
-  const baseline = { hashes: { "01-dashboard.png": "aaa", "02-learn.png": "old", "04-write.png": "ddd" } };
-  const result = compareVisualEvidence(current, baseline);
-  assert.equal(result.approved, true);
-  assert.deepEqual(result.changed, ["02-learn.png"]);
-  assert.deepEqual(result.missing, ["04-write.png"]);
-  assert.deepEqual(result.added, ["03-plan.png"]);
+test("a rendered area fails independently when a new regression appears", () => {
+  const area = {
+    id: "future-area",
+    label: "Future area",
+    route: "/?workspace=future",
+    requiredTerms: ["Future", "Ready"],
+    minimumTextLength: 300,
+    tests: ["tests/future.test.mjs"],
+  };
+  const result = assessRenderedArea(area, {
+    reached: true,
+    url: "http://127.0.0.1:4173/?workspace=future",
+    bodyText: "Future",
+    bodyLength: 40,
+    screenshotCaptured: false,
+    consoleErrors: true,
+  });
+  assert.ok(result.blockers.length >= 4);
 });
 
-test("the runner composes existing PlotPickle UAT instead of creating a second browser architecture", async () => {
+test("the runner reads the registry and does not pull the whole application into this UAT pass", async () => {
   const source = await read("scripts/run-uat-autopilot.mjs");
-  assert.match(source, /run-local-browser-uat\.mjs/);
-  assert.match(source, /run-creative-writer-uat\.mjs/);
-  assert.match(source, /ui-continuity-agent\.mjs/);
-  assert.match(source, /--scope", "full"/);
-  assert.match(source, /autopilot-report\.json/);
-  assert.match(source, /approve-visual-baseline/);
-  assert.match(source, /createHash\("sha256"\)/);
-  assert.match(source, /workspace=learn/);
+  assert.match(source, /uat-autopilot-registry\.json/);
+  assert.match(source, /--contracts-only/);
+  assert.match(source, /McpClient/);
+  assert.match(source, /browser_navigate/);
+  assert.match(source, /api\/writing-assistant\/status/);
   assert.match(source, /agentId: "curriculum-guide"/);
   assert.match(source, /agentId: "foundations-planner"/);
   assert.match(source, /foundationFieldIds: \["output-1", "output-2"\]/);
-  assert.doesNotMatch(source, /api\.openai\.com|anthropic\.com|paid/i);
+  assert.doesNotMatch(source, /run-local-browser-uat\.mjs|run-creative-writer-uat\.mjs|ui-continuity-agent\.mjs|visual-baseline/i);
+  assert.doesNotMatch(source, /api\.openai\.com|anthropic\.com/i);
 });

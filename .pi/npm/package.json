@@ -1,0 +1,10 @@
+{
+  "name": "pi-extensions",
+  "private": true,
+  "dependencies": {
+    "@dietrichgebert/ponytail": "^4.8.4",
+    "@ff-labs/pi-fff": "^0.10.1",
+    "pi-mcp-adapter": "^2.26.0",
+    "pi-subagents": "^0.35.1"
+  }
+}

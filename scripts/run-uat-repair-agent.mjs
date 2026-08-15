@@ -423,8 +423,7 @@ async function validateRepair(worktreeRoot) {
   if (!status) throw new Error("The UAT Repair Agent completed without changing the worktree.");
 
   await run(process.execPath, ["scripts/run-uat-autopilot.mjs", "--contracts-only", "--artifact-root", ".artifacts/uat-repair"], { cwd: worktreeRoot });
-  const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
-  await run(npmCommand, ["run", "build"], { cwd: worktreeRoot });
+  await runCli("npm", ["run", "build"], { cwd: worktreeRoot });
   return status;
 }
 
@@ -520,8 +519,7 @@ async function main() {
       return;
     }
 
-    const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
-    await run(npmCommand, ["ci", "--include=dev", "--no-audit", "--no-fund"], { cwd: worktreeRoot });
+    await runCli("npm", ["ci", "--include=dev", "--no-audit", "--no-fund"], { cwd: worktreeRoot });
     summary = await runAgent({ finding, runtime, worktreeRoot, worker });
     process.stdout.write("UAT Repair Agent ................... COMPLETE\n");
     await validateRepair(worktreeRoot);

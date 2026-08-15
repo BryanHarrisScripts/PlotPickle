@@ -89,6 +89,81 @@ async function chat(body, timeoutMs = 75_000) {
   }, timeoutMs);
 }
 
+function parsePlannerValues(value, fieldIds) {
+  const unfenced = String(value || "")
+    .replace(/^\s*```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/i, "")
+    .trim();
+  const firstBrace = unfenced.indexOf("{");
+  const lastBrace = unfenced.lastIndexOf("}");
+  if (firstBrace < 0 || lastBrace <= firstBrace) return null;
+  try {
+    const parsed = JSON.parse(unfenced.slice(firstBrace, lastBrace + 1));
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+    const candidate = parsed.values && typeof parsed.values === "object" && !Array.isArray(parsed.values)
+      ? parsed.values
+      : parsed;
+    const values = {};
+    for (const fieldId of fieldIds) {
+      const text = typeof candidate?.[fieldId] === "string" ? candidate[fieldId].trim() : "";
+      if (text.length < 20 || /^provisional\s*[—:-]?\s*$/i.test(text) || /placeholder for a concrete working choice/i.test(text)) return null;
+      values[fieldId] = text;
+    }
+    return values;
+  } catch {
+    return null;
+  }
+}
+
+async function plannerChat(fieldIds, message, timeoutMs = 75_000) {
+  return chat({
+    agentId: "foundations-planner",
+    provider: "local",
+    modelRole: "quality",
+    tone: "direct",
+    foundationFieldIds: fieldIds,
+    message,
+  }, timeoutMs);
+}
+
+async function probePlannerStructuredOutput() {
+  const fieldIds = ["output-1", "output-2"];
+  const facts = {
+    "output-1": "A cartographer discovers her coastal maps are changing overnight.",
+    "output-2": "She must decide whether to expose the impossible changes or protect the town that depends on her charts.",
+  };
+  const message = "Use only these disposable UAT facts. output-1: A cartographer discovers her coastal maps are changing overnight. output-2: She must decide whether to expose the impossible changes or protect the town that depends on her charts. Return JSON only as {\"values\":{\"output-1\":\"...\",\"output-2\":\"...\"}} with both fields answered substantively.";
+  const repair = "FOCUSED UAT PLAN STRUCTURED RETRY. Return JSON only in the exact requested values shape. Include every requested field ID with a substantive story answer. Do not omit fields, copy labels, return only Provisional, or add prose outside JSON.";
+  let attempts = 0;
+
+  for (const attemptMessage of [message, `${repair}\n\n${message}`]) {
+    const response = await plannerChat(fieldIds, attemptMessage);
+    attempts += 1;
+    if (parsePlannerValues(response?.text, fieldIds)) {
+      return { passed: true, route: attempts === 1 ? "Quality" : "Quality retry", attempts };
+    }
+  }
+
+  const recovered = {};
+  for (const fieldId of fieldIds) {
+    const oneField = `${repair}\nField ID: ${fieldId}\nDisposable UAT fact: ${facts[fieldId]}\nReturn only {\"values\":{\"${fieldId}\":\"a substantive answer\"}}.`;
+    let parsed = null;
+    for (const attemptMessage of [oneField, `${repair}\n\n${oneField}`]) {
+      const response = await plannerChat([fieldId], attemptMessage, 45_000);
+      attempts += 1;
+      parsed = parsePlannerValues(response?.text, [fieldId]);
+      if (parsed) break;
+    }
+    if (!parsed) return { passed: false, route: "failed", attempts };
+    recovered[fieldId] = parsed[fieldId];
+  }
+  return {
+    passed: fieldIds.every((fieldId) => Boolean(recovered[fieldId])),
+    route: "per-field recovery",
+    attempts,
+  };
+}
+
 async function probeStartup() {
   const result = {
     statusOk: false,
@@ -105,6 +180,7 @@ async function probeStartup() {
     plannerAttempted: false,
     plannerPassed: false,
     plannerMessage: "",
+    plannerRoute: "",
   };
 
   let status;
@@ -147,17 +223,10 @@ async function probeStartup() {
     result.plannerAttempted = true;
     try {
       await loadRole("quality");
-      const response = await chat({
-        agentId: "foundations-planner",
-        provider: "local",
-        modelRole: "quality",
-        tone: "direct",
-        foundationFieldIds: ["output-1", "output-2"],
-        message: "Use only these disposable UAT facts. output-1: A cartographer discovers her coastal maps are changing overnight. output-2: She must decide whether to expose the impossible changes or protect the town that depends on her charts. Return only the requested structured proposal.",
-      });
-      const parsed = JSON.parse(String(response?.text || ""));
-      result.plannerPassed = Boolean(parsed?.values?.["output-1"]?.trim() && parsed?.values?.["output-2"]?.trim());
-      if (!result.plannerPassed) result.plannerMessage = "Foundations Planner did not return both requested structured PLAN fields.";
+      const planner = await probePlannerStructuredOutput();
+      result.plannerPassed = planner.passed;
+      result.plannerRoute = planner.route;
+      if (!planner.passed) result.plannerMessage = `Foundations Planner did not return both requested structured PLAN fields after ${planner.attempts} recovery attempts.`;
     } catch (error) {
       result.plannerMessage = `Foundations Planner structured-output probe failed: ${error instanceof Error ? error.message : String(error)}`;
     }
@@ -264,7 +333,7 @@ function reportMarkdown({ registry, contractRun, startup, rendered, assessment, 
     `- Sage registered: ${startup.sageRegistered ? "yes" : "no"}`,
     `- Foundations Planner registered: ${startup.foundationsRegistered ? "yes" : "no"}`,
     `- Sage live response: ${startup.sageAttempted ? (startup.sagePassed ? "PASS" : "FAIL") : "SKIP"}`,
-    `- PLAN structured output: ${startup.plannerAttempted ? (startup.plannerPassed ? "PASS" : "FAIL") : "SKIP"}`,
+    `- PLAN structured output: ${startup.plannerAttempted ? (startup.plannerPassed ? `PASS${startup.plannerRoute ? ` via ${startup.plannerRoute}` : ""}` : "FAIL") : "SKIP"}`,
   );
   lines.push("", "## Blocking findings", "");
   if (assessment.blockers.length) lines.push(...assessment.blockers.map((message) => `- FAIL: ${message}`));

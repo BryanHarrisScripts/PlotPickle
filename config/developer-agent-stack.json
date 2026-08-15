@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "platform": "windows-native",
+  "sharedRules": "AGENTS.md",
+  "requiredAgents": [
+    {
+      "id": "pi",
+      "label": "Pi",
+      "role": "primary-or-reviewer",
+      "installCommand": "npm install -g --ignore-scripts @earendil-works/pi-coding-agent",
+      "projectSettings": ".pi/settings.json"
+    },
+    {
+      "id": "cline",
+      "label": "Cline",
+      "role": "primary-or-reviewer",
+      "installCommand": "npm install -g cline",
+      "projectSettings": ".cline"
+    }
+  ],
+  "excludedRequiredTools": ["OpenHands", "Herdr"],
+  "piPackages": [
+    "npm:@dietrichgebert/ponytail@4.8.4",
+    "npm:pi-subagents@0.35.1",
+    "npm:@ff-labs/pi-fff@0.10.1",
+    "npm:pi-mcp-adapter@2.26.0"
+  ],
+  "mcp": {
+    "sharedConfig": ".mcp.json",
+    "clineConfig": ".cline/mcp.json",
+    "server": "plotpickle-dev",
+    "command": "node",
+    "args": ["scripts/developer-agent-mcp.mjs"]
+  },
+  "agentBench": {
+    "runner": "scripts/run-agent-bench.mjs",
+    "tasks": "config/agent-bench/tasks.json",
+    "agents": ["pi", "cline"],
+    "artifactRoot": ".artifacts/agent-bench"
+  },
+  "gates": [
+    "node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused",
+    "npm run build"
+  ],
+  "mergePolicy": "green-exact-head-only"
+}

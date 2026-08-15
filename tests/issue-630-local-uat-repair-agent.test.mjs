@@ -70,7 +70,7 @@ test("closed-loop UAT preflights the developer repair worker and uses Pi by defa
 test("GitHub handoff no longer creates an empty placeholder repair PR", async () => {
   const workflow = await read(".github/workflows/uat-repair-handoff.yml");
 
-  assert.match(workflow, /run-uat-repair-agent\.mjs --issue/);
+  assert.match(workflow, /run-uat-repair-agent\.mjs --worker pi --issue/);
   assert.match(workflow, /GitHub Actions no longer creates an empty placeholder PR/);
   assert.doesNotMatch(workflow, /git checkout -b/);
   assert.doesNotMatch(workflow, /gh pr create/);

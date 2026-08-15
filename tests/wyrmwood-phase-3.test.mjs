@@ -39,7 +39,8 @@ test("the Curriculum Evaluator is a separate structured local agent and never ow
   assert.match(runtime, /consequences: score\(15\)/);
   assert.match(runtime, /rivalCounter: score\(10\)/);
   assert.match(runtime, /clarity: score\(10\)/);
-  assert.match(evaluator, /\/api\/local-ai\/runtime\/model\/quality\/load/);
+  assert.match(evaluator, /fetch\(`\/api\/local-ai\/runtime\/model\/\$\{role\}\/load`/);
+  assert.match(evaluator, /await prepareRole\("quality"\)/);
   assert.match(evaluator, /await prepareRole\("fast"\)/);
   assert.match(evaluator, /agentId: "wyrmwood-curriculum-evaluator"/);
   assert.match(evaluator, /Spellscribe response:/);

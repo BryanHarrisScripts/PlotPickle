@@ -66,7 +66,7 @@ test("live UAT exercises the actual Sage composer instead of only the raw chat e
   assert.match(runner, /sage-conversation-failure\.png/);
 });
 
-test("UAT findings persist to GitHub and are handed to the local repair agent", async () => {
+test("UAT findings persist to GitHub and are handed to the local repair worker", async () => {
   const [reporter, handoff, workflow, closedLoop] = await Promise.all([
     read("scripts/report-uat-findings.mjs"),
     read(".github/workflows/uat-repair-handoff.yml"),
@@ -78,7 +78,7 @@ test("UAT findings persist to GitHub and are handed to the local repair agent", 
   assert.match(reporter, /uat:auto-repair/);
   assert.match(reporter, /const url = await gh\([\s\S]*?"issue", "create"/);
   assert.match(handoff, /issues:\s*\n\s*types: \[labeled\]/);
-  assert.match(handoff, /run-uat-repair-agent\.mjs --issue/);
+  assert.match(handoff, /run-uat-repair-agent\.mjs --worker pi --issue/);
   assert.doesNotMatch(handoff, /gh pr create --draft/);
   assert.match(workflow, /actions\/upload-artifact@v4/);
   assert.match(workflow, /\.artifacts\/uat-focused/);

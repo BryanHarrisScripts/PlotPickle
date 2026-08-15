@@ -1,0 +1,440 @@
+.screen {
+  --bg: #07090a;
+  --panel: #101416;
+  --panel-raised: #151b1e;
+  --line: #263136;
+  --text: #f2eee5;
+  --muted: #a69f93;
+  --emerald: #35c9b8;
+  --gold: #d0a45b;
+  --warning: #f08a4b;
+  display: flex;
+  min-height: 100dvh;
+  flex-direction: column;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% -20%, rgba(53, 201, 184, 0.12), transparent 36%), var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono, "Courier New", monospace);
+}
+
+.loading {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  background: #07090a;
+  color: #35c9b8;
+}
+
+.topNav {
+  flex: 0 0 auto;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--line);
+  background: #060708;
+}
+
+.topNav ol {
+  display: flex;
+  width: max-content;
+  min-width: 900px;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 auto;
+  padding: 6px 16px 8px;
+  list-style: none;
+}
+
+.topNav li {
+  width: 72px;
+}
+
+.topNav li:last-child {
+  margin-left: 36px;
+}
+
+.topNav button {
+  display: grid;
+  width: 100%;
+  justify-items: center;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #817c72;
+  font: inherit;
+  text-align: center;
+}
+
+.topNav button:not(:disabled) {
+  cursor: pointer;
+}
+
+.topNav button:disabled {
+  opacity: 0.58;
+}
+
+.topNav button > span:last-child {
+  display: grid;
+  gap: 1px;
+}
+
+.topNav strong {
+  color: #b7b0a5;
+  font-size: 11px;
+}
+
+.topNav small {
+  color: #777168;
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.current img {
+  filter: saturate(1.15) brightness(1.14) drop-shadow(0 0 8px rgba(53, 201, 184, 0.62));
+}
+
+.current strong {
+  color: var(--text);
+}
+
+.navRune {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  color: #706d68;
+  font-family: Georgia, serif;
+  font-size: 24px;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(250px, 19%) minmax(500px, 56%) minmax(290px, 25%);
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.campaignRail,
+.debriefPanel {
+  min-height: 0;
+  overflow: auto;
+  background: linear-gradient(180deg, var(--panel-raised), var(--panel));
+}
+
+.campaignRail {
+  border-right: 1px solid var(--line);
+}
+
+.campaignRail > header,
+.debriefPanel section {
+  padding: 24px;
+}
+
+.campaignRail > header small,
+.debriefPanel section > small,
+.duelHeader small,
+.lessonBridge > small,
+.phaseCard > small {
+  color: var(--emerald);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.campaignRail h1,
+.duelHeader h2,
+.debriefPanel h2,
+.phaseCard h3 {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.campaignRail h1 {
+  margin: 8px 0 12px;
+  color: var(--gold);
+  font-size: 25px;
+  line-height: 1.05;
+}
+
+.campaignRail p,
+.debriefPanel p,
+.lessonBridge p,
+.phaseCard p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.resources {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  margin: 0 18px 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--line);
+}
+
+.resources div {
+  display: grid;
+  gap: 4px;
+  padding: 10px 8px;
+  background: #0d1113;
+  text-align: center;
+}
+
+.resources span {
+  color: var(--muted);
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.resources strong {
+  color: var(--gold);
+  font-size: 17px;
+}
+
+.trialList {
+  display: grid;
+  padding: 0 12px 28px;
+}
+
+.trialList button {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 10px;
+  border: 0;
+  border-bottom: 1px solid rgba(38, 49, 54, 0.8);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.trialList button span {
+  color: #726d64;
+  font-size: 10px;
+}
+
+.trialList button strong {
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.trialList .activeTrial {
+  background: linear-gradient(90deg, rgba(53, 201, 184, 0.14), transparent);
+  color: var(--text);
+}
+
+.trialList .activeTrial span {
+  color: var(--emerald);
+}
+
+.duelPanel {
+  min-height: 0;
+  overflow: auto;
+  padding: 28px clamp(24px, 4vw, 54px) 60px;
+  background: radial-gradient(circle at 70% 0%, rgba(208, 164, 91, 0.05), transparent 26%), #090c0d;
+}
+
+.duelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 28px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.duelHeader h2 {
+  margin: 8px 0;
+  font-size: clamp(28px, 3vw, 42px);
+  line-height: 1.03;
+}
+
+.duelHeader p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.wyrm {
+  display: grid;
+  flex: 0 0 126px;
+  justify-items: center;
+  gap: 4px;
+}
+
+.wyrm img {
+  object-fit: contain;
+  filter: saturate(1.18) brightness(1.1) drop-shadow(0 0 12px rgba(53, 201, 184, 0.55));
+}
+
+.wyrm small {
+  color: var(--gold);
+  font-size: 9px;
+  letter-spacing: 0.13em;
+}
+
+.lessonBridge,
+.phaseCard {
+  margin-top: 26px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(21, 27, 30, 0.94), rgba(13, 17, 19, 0.94));
+}
+
+.lessonBridge ul {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding-left: 18px;
+  color: #d7d0c5;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.phaseCard h3 {
+  margin: 8px 0;
+  color: var(--gold);
+  font-size: 22px;
+}
+
+.phaseCard > button,
+.reviewLesson {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border: 1px solid rgba(53, 201, 184, 0.48);
+  background: rgba(53, 201, 184, 0.1);
+  color: var(--text);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.practiceArea {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.practiceArea label {
+  color: #d9d2c7;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.practiceArea textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #334147;
+  background: #090c0d;
+  color: var(--text);
+  padding: 13px;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.practiceFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.practiceFooter small {
+  color: var(--muted);
+}
+
+.practiceFooter button {
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  background: #111719;
+  color: #726d64;
+  font: inherit;
+  font-size: 10px;
+}
+
+.overLimit {
+  color: var(--warning) !important;
+}
+
+.debriefPanel {
+  border-left: 1px solid var(--line);
+}
+
+.debriefPanel section + section {
+  border-top: 1px solid var(--line);
+}
+
+.debriefPanel h2 {
+  margin: 8px 0 12px;
+  color: var(--gold);
+  font-size: 23px;
+}
+
+.debriefPanel ol {
+  display: grid;
+  gap: 15px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.debriefPanel li {
+  display: grid;
+  gap: 4px;
+}
+
+.debriefPanel li strong {
+  color: var(--emerald);
+  font-size: 11px;
+}
+
+.debriefPanel li span {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.reviewLesson {
+  margin: 0 24px 28px;
+}
+
+@media (max-width: 1050px) {
+  .workspace {
+    grid-template-columns: 240px minmax(480px, 1fr);
+  }
+
+  .debriefPanel {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .screen {
+    overflow: auto;
+  }
+
+  .workspace {
+    display: block;
+    overflow: visible;
+  }
+
+  .campaignRail,
+  .duelPanel {
+    overflow: visible;
+  }
+
+  .trialList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .duelHeader {
+    align-items: center;
+  }
+}

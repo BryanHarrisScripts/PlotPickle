@@ -73,7 +73,7 @@ test("UAT findings persist and create a GitHub issue plus draft repair handoff",
   assert.match(reporter, /plotpickle-uat-fingerprint/);
   assert.match(reporter, /uat:autopilot/);
   assert.match(reporter, /uat:auto-repair/);
-  assert.match(reporter, /gh\("issue", "create"/);
+  assert.match(reporter, /const url = await gh\([\s\S]*?"issue", "create"/);
   assert.match(handoff, /issues:\s*\n\s*types: \[labeled\]/);
   assert.match(handoff, /gh pr create --draft/);
   assert.match(handoff, /not a claim that the defect is fixed/i);

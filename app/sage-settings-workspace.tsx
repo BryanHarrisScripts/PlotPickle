@@ -1,5 +1,6 @@
 "use client";
 
+import AgentObservabilityPanel from "./agent-observability-panel";
 import LocalRuntimePanel from "./local-runtime-panel";
 import SageFastModelSetup from "./sage-fast-model-setup";
 import styles from "./sage-settings-workspace.module.css";
@@ -37,6 +38,7 @@ export default function SageSettingsWorkspace() {
       </section>
 
       <SageFastModelSetup />
+      <AgentObservabilityPanel />
 
       <details className={styles.advancedRuntime}>
         <summary>Advanced runtime details</summary>

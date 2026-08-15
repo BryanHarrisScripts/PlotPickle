@@ -1,6 +1,7 @@
 import type { Plugin, ViteDevServer } from "vite";
 import { localAiGateway as legacyLocalAiGateway } from "./local-ai-gateway-base";
 import { registerAiRoutingGateway } from "./ai-routing-gateway";
+import { registerAgentObservabilityGateway } from "./agent-observability-gateway";
 import { registerWritingAssistantGateway } from "./writing-assistant-gateway";
 import { registerNativeH3Gateway } from "./comfyui-h3-native-gateway";
 import { registerLtxLocalVideoGateway } from "./comfyui-ltx-local-gateway";
@@ -76,6 +77,7 @@ export function localAiGateway(): Plugin {
       registerLtxLocalVideoGateway(server);
       registerMediaRoutingGateway(server);
       registerOllamaBootstrapGateway(server);
+      registerAgentObservabilityGateway(server);
       registerWritingAssistantGateway(server);
       if (typeof legacy.configureServer === "function") legacy.configureServer(server);
     },

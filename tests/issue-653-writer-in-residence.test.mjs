@@ -72,7 +72,8 @@ test("#660 normalizes only known visible Settings disclosure refs for determinis
   const source = await read(recovery);
   for (const label of ["Advanced Setup", "Advanced runtime details", "Cloud and legacy provider overrides"]) assert.match(source, new RegExp(label, "i"));
   assert.match(source, /name !== "browser_snapshot"/);
-  assert.match(source, /\[ref=\(\[\^\\\\\]\]\+\)\\\]/);
+  assert.match(source, /const ref = line\.match/);
+  assert.match(source, /normalizeDisclosureLine\(line, label\)/);
   assert.match(source, /button \"\$\{label\}\" \[ref=\$\{ref\}\]/);
   assert.match(source, /No hidden DOM\/state is exposed/);
 });

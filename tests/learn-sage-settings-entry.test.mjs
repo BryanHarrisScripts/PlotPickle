@@ -5,7 +5,7 @@ import test from "node:test";
 const root = new URL("../", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
 
-test("LEARN and PLAN use the supplied transparent PlotPickle dragon ouroboros identity with brighter relic glow", async () => {
+test("LEARN and PLAN use the supplied transparent PlotPickle dragon ouroboros identity without a backglow", async () => {
   const [anchorStyles, polish] = await Promise.all([
     read("app/ui-continuity-anchor.css"),
     read("app/learn-foundations-polish.css"),
@@ -17,8 +17,12 @@ test("LEARN and PLAN use the supplied transparent PlotPickle dragon ouroboros id
     assert.match(styles, /background:\s*transparent/);
     assert.match(styles, /saturate\(1\.(?:3|34)/);
     assert.match(styles, /brightness\(1\.2/);
-    assert.match(styles, /drop-shadow/);
   }
+  const shellBrand = anchorStyles.match(/\.application-shell-header \.shell-brand::before\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
+  const shellBrandHover = anchorStyles.match(/\.application-shell-header \.shell-brand:hover::before\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
+  const workflowBrand = anchorStyles.match(/nav\[aria-label="PlotPickle workflow"\]::before\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert.ok(shellBrand && shellBrandHover && workflowBrand);
+  assert.doesNotMatch(`${shellBrand}\n${shellBrandHover}\n${workflowBrand}\n${polish}`, /drop-shadow/);
   assert.match(anchorStyles, /Shared shell brand: render the supplied transparent dragon ouroboros\/compass\/nib artwork/);
   assert.match(anchorStyles, /\.application-shell-header \.shell-brand::before/);
 });

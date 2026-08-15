@@ -11,7 +11,8 @@
         "tests/issue-614-startup-health-warning-cleanup.test.mjs",
         "tests/issue-623-agent-observability.test.mjs",
         "tests/issue-624-deepseek-harness-runtime.test.mjs",
-        "tests/issue-626-uat-findings-sage-repair.test.mjs"
+        "tests/issue-626-uat-findings-sage-repair.test.mjs",
+        "tests/issue-628-closed-loop-recovery-quality.test.mjs"
       ]
     },
     {
@@ -40,7 +41,8 @@
         "tests/issue-594-local-learn-rag-and-brand.test.mjs",
         "tests/issue-596-learn-logo-and-formatting.test.mjs",
         "tests/issue-601-sage-personality-and-answer-quality.test.mjs",
-        "tests/issue-626-uat-findings-sage-repair.test.mjs"
+        "tests/issue-626-uat-findings-sage-repair.test.mjs",
+        "tests/issue-628-closed-loop-recovery-quality.test.mjs"
       ]
     },
     {
@@ -51,7 +53,8 @@
       "minimumTextLength": 700,
       "tests": [
         "tests/issue-595-foundations-plan-starter.test.mjs",
-        "tests/issue-617-plan-selective-ai-drafting.test.mjs"
+        "tests/issue-617-plan-selective-ai-drafting.test.mjs",
+        "tests/issue-628-closed-loop-recovery-quality.test.mjs"
       ]
     },
     {

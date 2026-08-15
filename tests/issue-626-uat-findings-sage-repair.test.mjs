@@ -22,10 +22,12 @@ test("the screenshot regression is a hard Sage UAT failure", () => {
   assert.equal(findingFingerprint(result.failures[0]), "sage.internal-scaffolding-leak");
 });
 
-test("Sage conversation matrix covers identity, help, conversation, craft and follow-up", () => {
+test("Sage conversation matrix covers identity, name meaning, wellbeing, help, conversation, craft and follow-up", () => {
   assert.deepEqual(SAGE_CONVERSATION_UAT_CASES.map((entry) => entry.id), [
     "identity-name",
     "identity-who",
+    "name-meaning",
+    "wellbeing",
     "help",
     "greeting",
     "craft",
@@ -50,7 +52,8 @@ test("LEARN routes visible Sage answers through the safety boundary", async () =
   assert.match(guard, /QUALITY MODEL ESCALATION/);
   assert.match(guard, /sageAnswerLeaksInternalScaffolding/);
   assert.match(guard, /PlotPickle’s Curriculum Guide/);
-  assert.match(guard, /Sage blocked a response because it exposed internal PlotPickle instructions/);
+  assert.match(guard, /safeLeakRecoveryAnswer/);
+  assert.doesNotMatch(guard, /throw new Error\("Sage blocked a response because it exposed internal PlotPickle instructions/);
 });
 
 test("live UAT exercises the actual Sage composer instead of only the raw chat endpoint", async () => {

@@ -5,28 +5,32 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("startup uses the resilient v2 Sage health probe", async () => {
+test("startup uses the resilient v3 Sage and PLAN health probe", async () => {
   const [entrypoint, diagnostic, guide] = await Promise.all([
     read("build/startup-agent-diagnostics.ts"),
-    read("build/startup-agent-diagnostics-runtime-v2.ts"),
+    read("build/startup-agent-diagnostics-runtime-v3.ts"),
     read("modules/creative-room/curriculum-guide.ts"),
   ]);
 
-  assert.match(entrypoint, /startup-agent-diagnostics-runtime-v2/);
+  assert.match(entrypoint, /startup-agent-diagnostics-runtime-v3/);
   assert.match(diagnostic, /CONVERSATION MODE: PlotPickle\/story craft/);
   assert.match(diagnostic, /cleanDiagnosticSageAnswer/);
   assert.match(diagnostic, /function antiEchoPass/);
   assert.match(diagnostic, /function groundingPass/);
   assert.match(diagnostic, /"outcome"/);
   assert.match(diagnostic, /"decision"/);
-  assert.match(diagnostic, /antiEchoState = sage\.antiEcho \? "PASS" : responsePass && sage\.repetitionSafe \? "WARN" : "FAIL"/);
-  assert.match(diagnostic, /groundingState = sage\.grounded \? "PASS" : responsePass && sage\.repetitionSafe \? "WARN" : "FAIL"/);
-  assert.match(diagnostic, /failed \|\|= !responsePass \|\| !sage\.repetitionSafe/);
-  assert.match(diagnostic, /warned \|\|= !sage\.antiEcho \|\| !sage\.grounded/);
-  assert.match(diagnostic, /raw startup probe; visible Sage still applies its response repair guard/);
-  assert.match(diagnostic, /visible Sage still validates before display/);
+  assert.match(diagnostic, /printResult\("Sage anti-echo check", sage\.antiEcho \? "PASS" : "FAIL"/);
+  assert.match(diagnostic, /printResult\("Curriculum grounding", sage\.grounded \? "PASS" : "FAIL"/);
+  assert.match(diagnostic, /failed \|\|= !responsePass \|\| !sage\.antiEcho \|\| !sage\.repetitionSafe \|\| !sage\.grounded/);
 
-  // Runtime advisory softening must not weaken the actual visible Sage guard.
+  // v3 also closes the PLAN startup false-negative gap by retrying structured output before failing.
+  assert.match(diagnostic, /FOUNDATION_REPAIR_INSTRUCTION/);
+  assert.match(diagnostic, /route: "Quality retry"/);
+  assert.match(diagnostic, /route: "per-field recovery"/);
+  assert.match(diagnostic, /plan\.structured-output-failure/);
+  assert.match(diagnostic, /reportStartupFinding/);
+
+  // Startup validation must not weaken the actual visible Sage guard.
   assert.match(guide, /guideAnswerNeedsRepair/);
   assert.match(guide, /shortSemanticEcho/);
   assert.match(guide, /SAGE_QUALITY_ESCALATION_INSTRUCTION/);
@@ -34,12 +38,12 @@ test("startup uses the resilient v2 Sage health probe", async () => {
 });
 
 test("runaway Sage repetition remains a hard startup failure", async () => {
-  const diagnostic = await read("build/startup-agent-diagnostics-runtime-v2.ts");
+  const diagnostic = await read("build/startup-agent-diagnostics-runtime-v3.ts");
 
   assert.match(diagnostic, /if \(count >= 3\) return false/);
   assert.match(diagnostic, /Sage repetition guard/);
   assert.match(diagnostic, /sage\.repetitionSafe \? "PASS" : "FAIL"/);
-  assert.doesNotMatch(diagnostic, /warned \|\|= !sage\.repetitionSafe/);
+  assert.match(diagnostic, /failed \|\|= !responsePass \|\| !sage\.antiEcho \|\| !sage\.repetitionSafe \|\| !sage\.grounded/);
 });
 
 test("Next startup uses proxy instead of the deprecated middleware convention", async () => {

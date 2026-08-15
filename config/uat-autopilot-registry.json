@@ -46,7 +46,8 @@
         "tests/issue-601-sage-personality-and-answer-quality.test.mjs",
         "tests/issue-626-uat-findings-sage-repair.test.mjs",
         "tests/issue-628-closed-loop-recovery-quality.test.mjs",
-        "tests/issue-637-first-uat-findings.test.mjs"
+        "tests/issue-637-first-uat-findings.test.mjs",
+        "tests/issue-638-639-sage-visible-answer-recovery.test.mjs"
       ]
     },
     {

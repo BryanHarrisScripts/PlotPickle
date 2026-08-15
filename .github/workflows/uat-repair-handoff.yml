@@ -5,53 +5,18 @@ on:
     types: [labeled]
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
   issues: write
 
 jobs:
-  create-repair-handoff:
+  mark-local-repair-ready:
     if: github.event.label.name == 'uat:auto-repair'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-
-      - name: Create draft repair branch and evidence file
-        id: handoff
+      - name: Point the finding at the real local repair agent
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
-          ISSUE_TITLE: ${{ github.event.issue.title }}
-          ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
-          set -euo pipefail
-          branch="uat/repair-${ISSUE_NUMBER}"
-          git config user.name "PlotPickle UAT"
-          git config user.email "actions@users.noreply.github.com"
-          git checkout -b "$branch"
-          mkdir -p docs/uat-findings
-          file="docs/uat-findings/issue-${ISSUE_NUMBER}.md"
-          {
-            printf '# UAT repair handoff for issue #%s\n\n' "$ISSUE_NUMBER"
-            printf 'Issue title: %s\n\n' "$ISSUE_TITLE"
-            printf '%s\n' "$ISSUE_BODY"
-            printf '\n## Repair status\n\n'
-            printf 'This draft PR is an automated repair workspace. It is not a claim that the defect is fixed. Add the regression/fix here, then run the normal PlotPickle gates before marking ready.\n'
-          } > "$file"
-          git add "$file"
-          git commit -m "Create UAT repair handoff for issue #${ISSUE_NUMBER}"
-          git push origin "$branch"
-          pr_url=$(gh pr create --draft --base main --head "$branch" --title "UAT repair handoff for issue #${ISSUE_NUMBER}" --body "Automated repair workspace for #${ISSUE_NUMBER}. The finding evidence is committed under docs/uat-findings/. Add the regression and product fix here; do not merge until the standard gates are green.")
-          echo "pr_url=$pr_url" >> "$GITHUB_OUTPUT"
-
-      - name: Link repair PR from issue
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          PR_URL: ${{ steps.handoff.outputs.pr_url }}
-        run: gh issue comment "$ISSUE_NUMBER" --body "PlotPickle UAT created a draft repair workspace: $PR_URL"
+          gh issue comment "$ISSUE_NUMBER" --body "PlotPickle UAT marked this blocker for the real local Repair Agent. On the PlotPickle workstation run: \`node scripts/run-uat-repair-agent.mjs --issue ${ISSUE_NUMBER}\`. The local agent prefers Qwen3.8-27B, works in an isolated git worktree, writes the regression/fix, runs focused UAT + the production build, then creates the tested draft repair PR. GitHub Actions no longer creates an empty placeholder PR for this label."

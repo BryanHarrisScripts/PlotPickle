@@ -43,17 +43,17 @@ function findingBody(finding) {
     "",
     "### Repair contract",
     "",
-    "1. Reproduce from this evidence.",
-    "2. Add or update the focused regression test first.",
-    "3. Fix the product behavior without weakening the UAT assertion.",
-    "4. Open/update the linked draft repair PR and run the normal PlotPickle gates.",
-    "5. Merge only when Focused Product Validation and Hardware-Aware Local AI are green.",
+    "1. The local Qwen3.8-27B UAT Repair Agent reproduces this finding inside an isolated git worktree.",
+    "2. Add or strengthen the focused regression test before changing product behavior.",
+    "3. Fix the architectural root cause without weakening the UAT assertion.",
+    "4. Run focused UAT contracts and the production build before creating the draft repair PR.",
+    "5. GitHub CI remains the independent merge gate; the repair agent never merges its own work.",
   ].join("\n");
 }
 
 async function ensureLabels() {
   await gh("label", "create", "uat:autopilot", "--repo", repository, "--color", "0E8A16", "--description", "Created or updated by PlotPickle focused UAT", "--force");
-  await gh("label", "create", "uat:auto-repair", "--repo", repository, "--color", "D93F0B", "--description", "Create a draft UAT repair handoff PR", "--force");
+  await gh("label", "create", "uat:auto-repair", "--repo", repository, "--color", "D93F0B", "--description", "Queue for the local PlotPickle UAT Repair Agent", "--force");
 }
 
 async function existingIssue(fingerprint) {

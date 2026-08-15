@@ -49,6 +49,7 @@ export function uatDiscoveryPlugin(): Plugin {
           void (async () => {
             const localRoot = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
             const reportRoot = path.join(localRoot, "PlotPickle", "uat-focused");
+            const writerRoot = path.join(localRoot, "PlotPickle", "writer-in-residence");
             console.log(`[${clock()}] Focused UAT runner ................. READY  node scripts/run-uat-closed-loop.mjs --github-report --repair`);
             console.log(`[${clock()}] Focused UAT evidence ............... READY  ${reportRoot}`);
             console.log(`[${clock()}] Startup blocker reporting .......... ACTIVE  hard startup findings -> same UAT evidence + GitHub reporter`);
@@ -59,6 +60,9 @@ export function uatDiscoveryPlugin(): Plugin {
               console.log(`[${clock()}] Developer repair worker ........ NOT READY  ${repair.workerLabel || repair.worker || "Pi"}; load/configure an approved local coding model`);
             }
             console.log(`[${clock()}] Repair policy ...................... LOCAL  Pi default / Cline selectable / no cloud fallback`);
+            console.log(`[${clock()}] Writer-in-Residence ................. READY  node scripts/run-writer-in-residence.mjs --github-report`);
+            console.log(`[${clock()}] Writer experience evidence .......... READY  ${writerRoot}`);
+            console.log(`[${clock()}] Synthetic feedback policy ........... LOCAL  diary first -> medium/high actionable -> GitHub/Modem as synthetic`);
             console.log(`[${clock()}] Manual repair command .............. READY  node scripts/run-uat-repair-agent.mjs --worker pi --issue <number>`);
             console.log(`[${clock()}] Legacy Mastra repair ........... OPTIONAL  node scripts/run-uat-repair-agent.mjs --worker mastra-qwen --issue <number>`);
           })().catch(() => {});

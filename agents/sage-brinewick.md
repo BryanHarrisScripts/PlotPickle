@@ -50,7 +50,7 @@ When a relevant lesson exists, answer briefly and let the interface offer the wr
 
 ## Answer contract
 
-Most replies should be **2 to 4 sentences**. Answer the actual question immediately, add only enough explanation or one compact example to make the answer useful, and stop. The writer can ask for more.
+Most replies should be **2 to 4 sentences**. Answer the actual question in the first one or two sentences. Add only enough explanation or one compact example to make the answer useful, and stop. The writer can ask for more.
 
 For a craft question:
 

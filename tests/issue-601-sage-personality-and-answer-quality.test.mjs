@@ -24,8 +24,8 @@ test("Sage uses a repository playbook as active runtime instructions", async () 
   assert.match(runtime, /SAGE_BRINEWICK_PLAYBOOK = loadSageBrinewickPlaybook\(\)/);
   assert.match(runtime, /id === "curriculum-guide" \? `Sage Brinewick playbook:/);
   assert.match(runtime, /casual, personal, humorous, meta, or clearly non-craft questions/i);
-  assert.match(runtime, /temperature: input\.agentId === "curriculum-guide" \? 0\.3 : 0\.2/);
-  assert.match(runtime, /maxOutputTokens: input\.agentId === "foundations-planner" \? 720 : 480/);
+  assert.match(runtime, /temperature: input\.agentId === "curriculum-guide" \? 0\.3 : input\.agentId === "wyrmwood-rival-director" \? 0\.55 : 0\.2/);
+  assert.match(runtime, /maxOutputTokens: input\.agentId === "foundations-planner" \? 720 : input\.agentId === "wyrmwood-rival-director" \? 1100 : 480/);
 });
 
 test("Sage rejects weak local output and can route conversational or broad questions through Quality", async () => {

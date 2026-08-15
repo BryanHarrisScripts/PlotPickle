@@ -43,8 +43,10 @@ async function roomState(client) {
 }
 
 async function submitQuestion(client, question) {
+  const serialized = JSON.stringify(String(question));
   return client.call("browser_evaluate", {
-    function: `(question) => {
+    function: `() => {
+      const question = ${serialized};
       const textarea = document.getElementById('creative-room-question');
       const button = document.querySelector('button[aria-label="Ask the Guide"]');
       if (!(textarea instanceof HTMLTextAreaElement) || !(button instanceof HTMLButtonElement)) {
@@ -57,7 +59,6 @@ async function submitQuestion(client, question) {
       button.click();
       return { ok: true };
     }`,
-    args: [question],
   });
 }
 

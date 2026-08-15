@@ -1,12 +1,19 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { assessAutopilotEvidence, parseAcceptanceReport, parseContinuityReport } from "../lib/uat-autopilot.mjs";
+import {
+  assessAutopilotEvidence,
+  compareVisualEvidence,
+  parseAcceptanceReport,
+  parseContinuityReport,
+  parseCreativeReport,
+} from "../lib/uat-autopilot.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
@@ -19,10 +26,15 @@ const localRoot = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData",
 const artifactRoot = path.resolve(argument("--artifact-root", path.join(localRoot, "PlotPickle", "uat")));
 const snapshotRoot = path.join(artifactRoot, "snapshots");
 const browserReportPath = path.join(artifactRoot, "acceptance-report.md");
+const creativeRoot = path.join(artifactRoot, "creative-writer-virtual-user");
+const creativeReportPath = path.join(creativeRoot, "acceptance-report.md");
+const creativeScreenshotRoot = path.join(creativeRoot, "agent-plugin", "creative-writer");
 const continuityReportPath = path.join(artifactRoot, "ui-continuity-report.md");
 const jsonReportPath = path.join(artifactRoot, "autopilot-report.json");
 const markdownReportPath = path.join(artifactRoot, "autopilot-report.md");
+const visualBaselinePath = path.resolve(argument("--visual-baseline", path.join(localRoot, "PlotPickle", "uat-baselines", "creative-writer.json")));
 const evidenceOnly = argv.includes("--evidence-only");
+const approveVisualBaseline = argv.includes("--approve-visual-baseline");
 
 function runNode(script, args = []) {
   return new Promise((resolve) => {
@@ -45,6 +57,14 @@ async function readText(file) {
   }
 }
 
+async function readJson(file) {
+  try {
+    return JSON.parse(await readFile(file, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
 async function snapshotLengths() {
   const lengths = {};
   try {
@@ -54,6 +74,29 @@ async function snapshotLengths() {
     }
   } catch {}
   return lengths;
+}
+
+async function collectPngHashes(root) {
+  const hashes = {};
+  async function walk(directory) {
+    let entries = [];
+    try {
+      entries = await readdir(directory, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const absolute = path.join(directory, entry.name);
+      if (entry.isDirectory()) await walk(absolute);
+      else if (entry.isFile() && entry.name.toLowerCase().endsWith(".png")) {
+        const relative = path.relative(root, absolute).replaceAll("\\", "/");
+        const bytes = await readFile(absolute);
+        hashes[relative] = createHash("sha256").update(bytes).digest("hex");
+      }
+    }
+  }
+  await walk(root);
+  return hashes;
 }
 
 async function fetchJson(url, init, timeoutMs = 15_000) {
@@ -200,8 +243,11 @@ function markdownSummary(assessment, details) {
     "## Coverage",
     "",
     `Browser journey screens: ${assessment.metrics.browserScreens}`,
+    `Virtual-user stages: ${assessment.metrics.creativeStages}`,
     `UI Continuity screens: ${assessment.metrics.continuityScreens}`,
     `Accessibility snapshots above content floor: ${assessment.metrics.snapshotCount}`,
+    `Deterministic visual screenshots: ${assessment.metrics.visualScreenshots}`,
+    `Visual baseline: ${details.visual.approved ? "APPROVED" : "NOT YET APPROVED"}`,
     `Sage live probe: ${details.agents.sageAttempted ? (details.agents.sagePassed ? "PASS" : "FAIL") : "SKIP"}`,
     `Foundations Planner structured JSON: ${details.agents.plannerAttempted ? (details.agents.plannerPassed ? "PASS" : "FAIL") : "SKIP"}`,
     "",
@@ -218,10 +264,12 @@ function markdownSummary(assessment, details) {
     "## Evidence",
     "",
     `Browser report: ${browserReportPath}`,
+    `30-stage virtual-user report: ${creativeReportPath}`,
     `UI continuity report: ${continuityReportPath}`,
+    `Approved visual baseline: ${visualBaselinePath}`,
     `Machine-readable report: ${jsonReportPath}`,
     "",
-    "Human UAT should now focus on creative taste, clarity, and whether the product feels right. Repeatable functional, visual-contract, content-presence, console, and local-agent failures are expected to be caught here first.",
+    "Human UAT should now focus on creative taste, clarity, and whether the product feels right. Repeatable functional, virtual-user, visual-regression, content-presence, console, and local-agent failures are expected to be caught here first.",
     "",
   );
   return lines.join("\n");
@@ -230,6 +278,7 @@ function markdownSummary(assessment, details) {
 async function main() {
   await mkdir(artifactRoot, { recursive: true });
   let browserRun = { code: 0, error: "" };
+  let creativeRun = { code: 0, error: "" };
   let continuityRun = { code: 0, error: "" };
 
   if (!evidenceOnly) {
@@ -238,34 +287,52 @@ async function main() {
       "--scope", "full",
       "--artifact-root", artifactRoot,
     ]);
+    creativeRun = await runNode(path.join(repoRoot, "scripts", "run-creative-writer-uat.mjs"), [
+      "--base-url", baseUrl,
+      "--artifact-root", creativeRoot,
+    ]);
     continuityRun = await runNode(path.join(repoRoot, "scripts", "ui-continuity-agent.mjs"), [
       "--server", baseUrl,
       "--report", continuityReportPath,
     ]);
   }
 
-  const [browserText, continuityText, lengths, learn, agents] = await Promise.all([
+  const [browserText, creativeText, continuityText, lengths, learn, agents, visualHashes] = await Promise.all([
     readText(browserReportPath),
+    readText(creativeReportPath),
     readText(continuityReportPath),
     snapshotLengths(),
     probeLearn(),
     probeAgents(),
+    collectPngHashes(creativeScreenshotRoot),
   ]);
 
+  let visualBaseline = await readJson(visualBaselinePath);
+  if (approveVisualBaseline && Object.keys(visualHashes).length) {
+    visualBaseline = { schemaVersion: 1, approvedAt: new Date().toISOString(), browser: "Playwright MCP Chrome", hashes: visualHashes };
+    await mkdir(path.dirname(visualBaselinePath), { recursive: true });
+    await writeFile(visualBaselinePath, `${JSON.stringify(visualBaseline, null, 2)}\n`, "utf8");
+  }
+
   const browser = parseAcceptanceReport(browserText);
+  const creative = parseCreativeReport(creativeText);
   const continuity = parseContinuityReport(continuityText);
+  const visual = compareVisualEvidence(visualHashes, visualBaseline);
   const assessment = assessAutopilotEvidence({
     browser,
+    creative,
     continuity,
+    visual,
     snapshotLengths: lengths,
     learn,
     agents,
     browserExitCode: browserRun.code,
+    creativeExitCode: creativeRun.code,
     continuityExitCode: continuityRun.code,
   });
   const generatedAt = new Date().toISOString();
   const machineReport = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt,
     target: baseUrl,
     overall: assessment.overall,
@@ -273,14 +340,19 @@ async function main() {
     warnings: assessment.warnings,
     metrics: assessment.metrics,
     browser,
+    creative,
     continuity,
+    visual,
     learn,
     agents,
-    processes: { browser: browserRun, continuity: continuityRun },
+    processes: { browser: browserRun, creative: creativeRun, continuity: continuityRun },
   };
   await writeFile(jsonReportPath, `${JSON.stringify(machineReport, null, 2)}\n`, "utf8");
-  await writeFile(markdownReportPath, markdownSummary(assessment, { generatedAt, agents }), "utf8");
+  await writeFile(markdownReportPath, markdownSummary(assessment, { generatedAt, agents, visual }), "utf8");
   process.stdout.write(`UAT Autopilot ${assessment.overall}: ${assessment.blockers.length} blocker(s), ${assessment.warnings.length} warning(s). Report: ${markdownReportPath}\n`);
+  if (!visual.approved && Object.keys(visualHashes).length) {
+    process.stdout.write(`Approve the current deterministic screenshot baseline only after visual review: node scripts/run-uat-autopilot.mjs --base-url ${baseUrl} --approve-visual-baseline\n`);
+  }
   process.exitCode = assessment.overall === "FAIL" ? 1 : 0;
 }
 

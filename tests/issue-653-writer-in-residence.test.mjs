@@ -61,7 +61,7 @@ test("GitHub reporter labels synthetic feedback for Modem and does not auto-repa
 });
 
 test("focused Startup UAT owns the Writer-in-Residence contract", async () => {
-  const registry = await readJson("config/uat-autopilot-registry.json"));
+  const registry = await readJson("config/uat-autopilot-registry.json");
   const startup = registry.areas.find((area) => area.id === "startup");
   assert.ok(startup?.tests.includes("tests/issue-653-writer-in-residence.test.mjs"));
 });

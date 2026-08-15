@@ -2,6 +2,7 @@ import type { Plugin, ViteDevServer } from "vite";
 import { localAiGateway as legacyLocalAiGateway } from "./local-ai-gateway-base";
 import { registerAiRoutingGateway } from "./ai-routing-gateway";
 import { registerAgentObservabilityGateway } from "./agent-observability-gateway";
+import { registerDeepSeekHarnessGateway } from "./deepseek-harness-gateway";
 import { registerWritingAssistantGateway } from "./writing-assistant-gateway";
 import { registerNativeH3Gateway } from "./comfyui-h3-native-gateway";
 import { registerLtxLocalVideoGateway } from "./comfyui-ltx-local-gateway";
@@ -68,6 +69,7 @@ export function localAiGateway(): Plugin {
       registerSingleImageBoundary(server);
       registerGpuResourceScheduler(server);
       registerLocalRuntimeGateway(server);
+      registerDeepSeekHarnessGateway(server);
       registerCurriculumRagGateway(server);
       registerLocalAiInstallationGateway(server);
       registerAiRoutingGateway(server);

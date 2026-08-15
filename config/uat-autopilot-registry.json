@@ -9,7 +9,8 @@
         "tests/issue-591-startup-readiness-gate.test.mjs",
         "tests/issue-603-startup-agent-diagnostics.test.mjs",
         "tests/issue-614-startup-health-warning-cleanup.test.mjs",
-        "tests/issue-623-agent-observability.test.mjs"
+        "tests/issue-623-agent-observability.test.mjs",
+        "tests/issue-624-deepseek-harness-runtime.test.mjs"
       ]
     },
     {
@@ -20,7 +21,8 @@
       "minimumTextLength": 300,
       "tests": [
         "tests/learn-sage-settings-entry.test.mjs",
-        "tests/issue-623-agent-observability.test.mjs"
+        "tests/issue-623-agent-observability.test.mjs",
+        "tests/issue-624-deepseek-harness-runtime.test.mjs"
       ]
     },
     {

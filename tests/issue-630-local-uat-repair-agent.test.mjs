@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 
-test("UAT repair is a real Mastra coding agent with an isolated workspace", async () => {
+test("UAT repair retains the real Mastra coding agent as an optional isolated legacy worker", async () => {
   const source = await read("scripts/run-uat-repair-agent.mjs");
 
   assert.match(source, /Agent\s*}\s*from\s*"@mastra\/core\/agent"/);
@@ -14,9 +14,10 @@ test("UAT repair is a real Mastra coding agent with an isolated workspace", asyn
   assert.match(source, /new LocalSandbox\(\{[\s\S]*workingDirectory:\s*worktreeRoot/);
   assert.match(source, /git", \["worktree", "add", "-b", branch, worktreeRoot, "origin\/main"\]/);
   assert.match(source, /isolated git worktree/i);
+  assert.match(source, /"mastra-qwen"/);
 });
 
-test("Qwen3.8-27B is dedicated to repair work and can be discovered through LM Studio", async () => {
+test("Qwen3.8-27B remains dedicated to legacy repair work and can be discovered through LM Studio", async () => {
   const source = await read("scripts/run-uat-repair-agent.mjs");
 
   assert.match(source, /label:\s*"Qwen3\.8-27B"/);
@@ -38,35 +39,38 @@ test("repair agent must reproduce, add a regression, fix root cause, and test ra
   assert.match(source, /maxSteps:\s*48/);
 });
 
-test("deterministic wrapper validates repairs before a draft PR and never lets the agent merge itself", async () => {
+test("deterministic wrapper validates repairs before a draft PR and never lets any worker merge itself", async () => {
   const source = await read("scripts/run-uat-repair-agent.mjs");
 
   assert.match(source, /git", \["diff", "--check"\]/);
   assert.match(source, /scripts\/run-uat-autopilot\.mjs/);
   assert.match(source, /"--contracts-only"/);
-  assert.match(source, /"npm", \["run", "build"\]/);
+  assert.match(source, /"run", "build"/);
   assert.match(source, /"pr", "create"/);
   assert.match(source, /"--draft"/);
   assert.match(source, /GitHub CI remains the merge gate/);
   assert.doesNotMatch(source, /gh\("pr", "merge"/);
 });
 
-test("closed-loop UAT can invoke the repair agent after reporting blockers", async () => {
+test("closed-loop UAT preflights the developer repair worker and uses Pi by default", async () => {
   const source = await read("scripts/run-uat-closed-loop.mjs");
   const startup = await read("build/uat-discovery-plugin.ts");
 
   assert.match(source, /const repair = args\.includes\("--repair"\)/);
+  assert.match(source, /repairWorker = argument\("--repair-worker", process\.env\.PLOTPICKLE_REPAIR_WORKER \|\| "pi"\)/);
   assert.match(source, /scripts\/run-uat-repair-agent\.mjs/);
+  assert.match(source, /"--preflight", "--require-ready"/);
   assert.match(source, /"--fingerprint", finding\.fingerprint/);
   assert.match(startup, /run-uat-closed-loop\.mjs --github-report --repair/);
-  assert.match(startup, /UAT Repair Agent/);
-  assert.match(startup, /Qwen3\.8-27B/);
+  assert.match(startup, /Developer repair worker/);
+  assert.match(startup, /Pi default \/ Cline selectable \/ no cloud fallback/);
+  assert.match(startup, /--worker mastra-qwen/);
 });
 
 test("GitHub handoff no longer creates an empty placeholder repair PR", async () => {
   const workflow = await read(".github/workflows/uat-repair-handoff.yml");
 
-  assert.match(workflow, /run-uat-repair-agent\.mjs --issue/);
+  assert.match(workflow, /run-uat-repair-agent\.mjs --worker pi --issue/);
   assert.match(workflow, /GitHub Actions no longer creates an empty placeholder PR/);
   assert.doesNotMatch(workflow, /git checkout -b/);
   assert.doesNotMatch(workflow, /gh pr create/);

@@ -15,6 +15,7 @@ const argument = (name, fallback = "") => {
   return index >= 0 && index + 1 < args.length ? args[index + 1] : fallback;
 };
 const baseUrl = argument("--base-url", process.env.PLOTPICKLE_ACCEPTANCE_URL || "http://127.0.0.1:4173");
+const repairWorker = argument("--repair-worker", process.env.PLOTPICKLE_REPAIR_WORKER || "pi");
 const localRoot = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
 const artifactRoot = path.resolve(argument("--artifact-root", path.join(localRoot, "PlotPickle", "uat-focused")));
 const githubReport = args.includes("--github-report");
@@ -75,11 +76,18 @@ async function main() {
   }
 
   if (repair && deduped.length) {
-    for (const finding of deduped) {
-      const repairRun = await run("scripts/run-uat-repair-agent.mjs", ["--report", reportPath, "--fingerprint", finding.fingerprint]);
-      if (repairRun.code !== 0) {
-        process.stderr.write(`UAT repair agent did not complete ${finding.fingerprint}. The blocker remains open for manual repair.\n`);
-        process.exitCode = 1;
+    const repairScript = "scripts/run-uat-repair-agent.mjs";
+    const preflight = await run(repairScript, ["--worker", repairWorker, "--preflight", "--require-ready"]);
+    if (preflight.code !== 0) {
+      process.stderr.write(`Developer repair worker ${repairWorker} is not ready. UAT findings remain open; no cloud/story-model fallback was attempted.\n`);
+      process.exitCode = 1;
+    } else {
+      for (const finding of deduped) {
+        const repairRun = await run(repairScript, ["--worker", repairWorker, "--report", reportPath, "--fingerprint", finding.fingerprint]);
+        if (repairRun.code !== 0) {
+          process.stderr.write(`UAT repair worker ${repairWorker} did not complete ${finding.fingerprint}. The blocker remains open for manual repair.\n`);
+          process.exitCode = 1;
+        }
       }
     }
   }

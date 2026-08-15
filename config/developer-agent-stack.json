@@ -32,6 +32,17 @@
     "command": "node",
     "args": ["scripts/developer-agent-mcp.mjs"]
   },
+  "repair": {
+    "command": "scripts/run-uat-repair-agent.mjs",
+    "defaultWorker": "pi",
+    "selectableWorkers": ["pi", "cline"],
+    "legacyWorker": "mastra-qwen",
+    "localOnly": true,
+    "cloudFallback": false,
+    "requiresApprovedLocalCodingModel": true,
+    "isolatedWorktree": true,
+    "draftPrOnly": true
+  },
   "agentBench": {
     "runner": "scripts/run-agent-bench.mjs",
     "tasks": "config/agent-bench/tasks.json",

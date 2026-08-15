@@ -14,9 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Point the finding at the real local repair agent
+      - name: Point the finding at the real local repair worker
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
-          gh issue comment "$ISSUE_NUMBER" --body "PlotPickle UAT marked this blocker for the real local Repair Agent. On the PlotPickle workstation run: \`node scripts/run-uat-repair-agent.mjs --issue ${ISSUE_NUMBER}\`. The local agent prefers Qwen3.8-27B, works in an isolated git worktree, writes the regression/fix, runs focused UAT + the production build, then creates the tested draft repair PR. GitHub Actions no longer creates an empty placeholder PR for this label."
+          gh issue comment "$ISSUE_NUMBER" --body "PlotPickle UAT marked this blocker for the local developer Repair Worker. On the PlotPickle workstation run: \`node scripts/run-uat-repair-agent.mjs --worker pi --issue ${ISSUE_NUMBER}\`. Pi is the default worker and Cline is selectable with \`--worker cline\`. A supported local coding model must be loaded in LM Studio, llama.cpp, Ollama, or another local OpenAI-compatible runtime; PlotPickle never falls through to a paid/cloud provider or the Fast/Quality story models. The worker uses an isolated git worktree, writes the regression/fix, runs focused UAT + the production build, then creates a tested draft repair PR. GitHub Actions no longer creates an empty placeholder PR for this label."

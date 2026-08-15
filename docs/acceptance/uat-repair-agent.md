@@ -1,43 +1,87 @@
-# Local UAT Repair Agent
+# Local UAT Repair Worker
 
-PlotPickle UAT now has a real repair worker rather than an empty GitHub handoff.
+PlotPickle UAT has a real local repair path rather than an empty GitHub handoff.
 
-## What changed
+## Current loop
 
-A blocker can now move through this local-first loop:
+`UAT finding -> GitHub issue -> Pi or Cline -> isolated git worktree -> regression first -> root-cause fix -> focused UAT -> production build -> draft PR -> GitHub CI`
 
-`UAT finding -> GitHub issue -> local Repair Agent -> isolated git worktree -> regression first -> root-cause fix -> focused UAT -> production build -> draft PR -> GitHub CI`
+The GitHub issue and PR remain the durable collaboration/audit surface. Coding runs on the PlotPickle workstation because that is where the local model runtime and repository are available.
 
-The GitHub issue and PR remain the durable collaboration/audit surface. The coding agent runs on the PlotPickle workstation because that is where the local model runtime and repository are available.
+## Worker policy
 
-## Repair model
+**Pi is the default developer repair worker. Cline is selectable.** The earlier Mastra/Qwen repair agent remains available explicitly as `mastra-qwen` for compatibility and comparison, but it is no longer the canonical required path.
 
-The dedicated default repair model is **Qwen3.8-27B**. It is not the Sage Fast model and it is not the PLAN Quality model. PlotPickle looks for a matching model through the local OpenAI-compatible endpoints in this order:
+Commands:
+
+```text
+node scripts/run-uat-repair-agent.mjs --worker pi --issue 123
+node scripts/run-uat-repair-agent.mjs --worker cline --issue 123
+node scripts/run-uat-repair-agent.mjs --worker mastra-qwen --issue 123
+```
+
+The complete closed loop uses Pi by default:
+
+```text
+node scripts/run-uat-closed-loop.mjs --github-report --repair
+```
+
+Cline can be selected for that run:
+
+```text
+node scripts/run-uat-closed-loop.mjs --github-report --repair --repair-worker cline
+```
+
+## Local coding model requirement
+
+PlotPickle will use only an approved model exposed by a local OpenAI-compatible runtime. Automatic discovery checks these local endpoints:
 
 1. LM Studio — `http://127.0.0.1:1234/v1`
 2. llama.cpp — `http://127.0.0.1:8080/v1`
 3. Ollama — `http://127.0.0.1:11434/v1`
 4. generic local OpenAI-compatible server — `http://127.0.0.1:8000/v1`
 
-The repair runner deliberately refuses to silently downgrade to the normal Fast or Quality story models. A different model/endpoint can be supplied explicitly with `--model` and `--endpoint`, but that is an operator override rather than the automatic default.
+Qwen3.8-27B remains a preferred repair model. The approved automatic coding-model family also recognizes selected Qwen Coder, Devstral, Codestral, DeepSeek Coder, and GPT-OSS coding-class local models. An operator may specify a local model and endpoint explicitly with `--model` and `--endpoint`.
 
-Qwen3.8-27B is on-demand. It does not remain loaded for ordinary Sage, PLAN, or Wyrmwood usage.
+PlotPickle deliberately refuses to fall through to:
 
-## Real coding tools
+- Sage's Fast model;
+- PLAN's Quality model;
+- Pi/Cline's ordinary cloud defaults;
+- a paid provider merely because the local coding model is missing.
 
-The repair agent is a Mastra `Agent` with a Mastra `Workspace` backed by a `LocalFilesystem` and `LocalSandbox`. That gives the agent repository file inspection/editing and command execution instead of asking a chat-only model to describe a fix.
+No suitable local coding model means **repair NOT READY**. UAT discovery and GitHub issue reporting still work.
 
-The deterministic wrapper creates a separate git worktree from `origin/main` under the local PlotPickle application-data directory. The agent never receives the user's main working directory as its writable workspace.
+Check readiness without modifying the repository:
 
-The agent is instructed to:
+```text
+node scripts/run-uat-repair-agent.mjs --preflight
+node scripts/run-uat-repair-agent.mjs --worker cline --preflight
+```
+
+## Pi local isolation
+
+For automated repair, PlotPickle gives Pi a dedicated local agent configuration under the PlotPickle application-data directory. It writes a `plotpickle-local` OpenAI-compatible provider pointing only at the discovered local runtime and invokes Pi in ephemeral/offline mode.
+
+The repair process sets Pi offline/update/telemetry controls for that run and explicitly selects the local provider/model. The repository's `AGENTS.md` and pinned `.pi/settings.json` remain the shared development rules/profile.
+
+## Cline local isolation
+
+For automated repair, PlotPickle gives Cline a dedicated local data directory under PlotPickle application data. The wrapper seeds an `openai-native` configuration with the discovered **local** base URL and local model ID, then invokes Cline headlessly with that isolated data directory.
+
+This prevents a normal personal Cline cloud configuration from becoming an accidental repair fallback.
+
+## Isolated worktree and repair contract
+
+The deterministic wrapper creates a separate git worktree from `origin/main` under PlotPickle local application data. Pi, Cline, and the optional legacy Mastra worker all receive the same repair contract:
 
 1. inspect the UAT evidence;
 2. reproduce the defect;
 3. add or strengthen the focused regression first;
-4. find and fix the architectural root cause;
-5. run the relevant tests and iterate until they pass.
+4. find and fix the smallest architectural root cause;
+5. run relevant tests and iterate.
 
-The agent is explicitly told not to commit, push, merge, alter GitHub state, hide a failure by weakening UAT, edit credentials, or modify user story data. Git/GitHub publication is owned by deterministic wrapper code after validation.
+Workers are told not to commit, push, merge, alter GitHub state, weaken UAT, edit credentials, or modify user story data. Git/GitHub publication remains deterministic wrapper code after validation.
 
 ## Deterministic validation
 
@@ -48,38 +92,23 @@ Before a repair PR is created, the wrapper requires:
 - the focused UAT contract registry;
 - the production build.
 
-Only after those pass does the wrapper commit and push the repair branch and create a **draft** PR. GitHub CI remains independent and the repair agent never merges its own PR.
+Only after those pass does the wrapper commit and push the repair branch and create a **draft** PR. GitHub CI remains independent and no repair worker merges its own PR.
 
-## Commands
+## Closed-loop preflight
 
-Run the complete closed loop after local UAT:
+The closed-loop runner performs repair readiness **once** before iterating findings. If Pi/Cline is missing or no approved local coding model is available, the repair phase is skipped once with a clear message. It does not repeat the same missing-model stack trace for every finding.
 
-```text
-node scripts/run-uat-closed-loop.mjs --github-report --repair
-```
-
-Repair one already-reported GitHub UAT issue:
-
-```text
-node scripts/run-uat-repair-agent.mjs --issue 123
-```
-
-Repair one fingerprint from the local findings file:
-
-```text
-node scripts/run-uat-repair-agent.mjs --report <uat-findings.json> --fingerprint <fingerprint>
-```
-
-Use `--dry-run` to resolve the finding/model and create the isolated worktree without letting the model edit the repository. Use `--keep-worktree` when a developer wants to inspect the worktree after the run.
+Startup uses the same preflight. `READY` therefore means a developer worker and local coding model are actually available; otherwise startup reports `NOT READY` while leaving PlotPickle and UAT discovery usable.
 
 ## GitHub handoff
 
-The `uat:auto-repair` workflow no longer creates an empty branch and placeholder PR. GitHub Actions cannot see the workstation's LM Studio/llama.cpp/Ollama runtime, so it now records that the issue is ready for local repair and points at the local repair command.
+The `uat:auto-repair` workflow does not create an empty branch or placeholder PR. GitHub Actions cannot see the workstation's LM Studio/llama.cpp/Ollama runtime. It records the local command instead, with Pi as the default and Cline selectable.
 
-This preserves the architecture boundary:
+Architecture boundary:
 
 - **UAT** discovers and fingerprints defects.
 - **GitHub** stores findings, PRs, and CI state.
-- **Qwen3.8-27B Repair Agent** performs repository reasoning/editing locally.
+- **Pi/Cline** perform repository reasoning/editing with an approved local coding model.
+- **Mastra/Qwen** remains an optional legacy worker.
 - **Deterministic wrapper** owns branch/validation/publication state.
 - **GitHub CI** decides whether the produced repair is mergeable.

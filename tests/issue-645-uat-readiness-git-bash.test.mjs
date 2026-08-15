@@ -40,7 +40,10 @@ test("the live runner polls readiness before snapshot and rendered assertions", 
   const source = await read("scripts/run-uat-autopilot.mjs");
   assert.match(source, /waitForRenderedArea\(client, area\)/);
   assert.doesNotMatch(source, /await delay\(650\)/);
-  assert.ok(source.indexOf("waitForRenderedArea(client, area)") < source.indexOf('browser_snapshot'));
+  const readinessIndex = source.indexOf("waitForRenderedArea(client, area)");
+  const snapshotCallIndex = source.indexOf('client.call("browser_snapshot"');
+  assert.ok(readinessIndex >= 0);
+  assert.ok(snapshotCallIndex > readinessIndex);
 });
 
 test("Windows developer setup prefers Git Bash and rejects the System32 WSL launcher", async () => {

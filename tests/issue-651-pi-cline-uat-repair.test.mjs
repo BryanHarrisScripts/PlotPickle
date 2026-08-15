@@ -51,6 +51,13 @@ test("Cline repair uses isolated local state and an explicit local OpenAI-compat
   assert.match(source, /"-k", "plotpickle-local"/);
 });
 
+test("repair package install and production build use the Windows-aware CLI path", async () => {
+  const source = await read("scripts/run-uat-repair-agent.mjs");
+  assert.match(source, /runCli\("npm", \["ci", "--include=dev"/);
+  assert.match(source, /runCli\("npm", \["run", "build"\]/);
+  assert.doesNotMatch(source, /npmCommand/);
+});
+
 test("closed-loop UAT preflights once and does not repeat one missing-model error for every finding", async () => {
   const source = await read("scripts/run-uat-closed-loop.mjs");
   const preflightIndex = source.indexOf('"--preflight", "--require-ready"');

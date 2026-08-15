@@ -615,21 +615,41 @@ export default function LearnWorkspace({
         </header>
         <div className={styles.messages} aria-live="polite">
           {messages.length ? messages.map((message) => {
-            const sourceTitles = message.sourceLessonIds?.map((lessonId) => (
-              curriculum.find((lesson) => lesson.id === lessonId)?.title
-            )).filter(Boolean);
-            const referenceTitles = message.sourceReferenceIds?.map((sourceId) => (
-              curriculum.flatMap((lesson) => lesson.sources).find((source) => source.id === sourceId)?.title
-            )).filter(Boolean);
+            const sourceLessons = message.sourceLessonIds?.map((lessonId) => (
+              curriculum.find((lesson) => lesson.id === lessonId)
+            )).filter((lesson): lesson is CurriculumLesson => Boolean(lesson)).slice(0, 2);
             return (
               <div className={message.role === "writer" ? styles.writerMessage : styles.guideMessage} key={message.id}>
                 <strong>{message.role === "writer" ? "You" : "Guide"}</strong>
                 <p>{message.text}</p>
-                {sourceTitles?.length ? (
-                  <small className={styles.messageSources}>Curriculum: {sourceTitles.join(" · ")}</small>
-                ) : null}
-                {referenceTitles?.length ? (
-                  <small className={styles.messageSources}>Lesson references: {referenceTitles.join(" · ")}</small>
+                {sourceLessons?.length ? (
+                  <div aria-label="Related LEARN lessons">
+                    {sourceLessons.map((lesson) => (
+                      <button
+                        aria-label={`Learn more in ${lesson.title}`}
+                        className={styles.messageSources}
+                        key={lesson.id}
+                        onClick={() => openLesson(lesson.id)}
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          marginTop: 8,
+                          padding: "7px 9px",
+                          border: "1px solid rgba(53, 201, 184, 0.28)",
+                          borderRadius: 6,
+                          background: "rgba(53, 201, 184, 0.05)",
+                          color: "#b9d8d3",
+                          cursor: "pointer",
+                          font: "inherit",
+                          textAlign: "left",
+                        }}
+                        title={`Open ${lesson.title} in LEARN`}
+                        type="button"
+                      >
+                        Learn more: <strong>{lesson.title}</strong>
+                      </button>
+                    ))}
+                  </div>
                 ) : null}
               </div>
             );

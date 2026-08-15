@@ -12,7 +12,8 @@
         "tests/issue-623-agent-observability.test.mjs",
         "tests/issue-624-deepseek-harness-runtime.test.mjs",
         "tests/issue-626-uat-findings-sage-repair.test.mjs",
-        "tests/issue-628-closed-loop-recovery-quality.test.mjs"
+        "tests/issue-628-closed-loop-recovery-quality.test.mjs",
+        "tests/issue-630-local-uat-repair-agent.test.mjs"
       ]
     },
     {

@@ -15,7 +15,8 @@
         "tests/issue-628-closed-loop-recovery-quality.test.mjs",
         "tests/issue-630-local-uat-repair-agent.test.mjs",
         "tests/issue-636-startup-uat-decision.test.mjs",
-        "tests/issue-637-first-uat-findings.test.mjs"
+        "tests/issue-637-first-uat-findings.test.mjs",
+        "tests/issue-641-developer-agent-stack.test.mjs"
       ]
     },
     {

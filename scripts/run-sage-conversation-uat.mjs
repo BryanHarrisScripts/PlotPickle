@@ -44,18 +44,40 @@ async function roomState(client) {
 
 async function submitQuestion(client, question) {
   const serialized = JSON.stringify(String(question));
-  return client.call("browser_evaluate", {
+  const entered = await client.call("browser_evaluate", {
     function: `() => {
       const question = ${serialized};
       const textarea = document.getElementById('creative-room-question');
-      const button = document.querySelector('button[aria-label="Ask the Guide"]');
-      if (!(textarea instanceof HTMLTextAreaElement) || !(button instanceof HTMLButtonElement)) {
+      if (!(textarea instanceof HTMLTextAreaElement)) {
         return { ok: false, reason: 'Sage composer not found' };
       }
       const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
       setter?.call(textarea, question);
       textarea.dispatchEvent(new Event('input', { bubbles: true }));
       textarea.dispatchEvent(new Event('change', { bubbles: true }));
+      return { ok: true };
+    }`,
+  });
+  const enteredState = extractPageState(resultText(entered));
+  if (enteredState.ok === false) throw new Error(String(enteredState.reason || "Sage composer not found"));
+
+  const readyDeadline = Date.now() + 5_000;
+  while (Date.now() < readyDeadline) {
+    const state = await roomState(client);
+    if (state.hasComposer && state.sendDisabled === false) break;
+    await delay(50);
+  }
+  const ready = await roomState(client);
+  if (!ready.hasComposer || ready.sendDisabled !== false) {
+    throw new Error("Sage composer did not become ready after the question was entered.");
+  }
+
+  return client.call("browser_evaluate", {
+    function: `() => {
+      const button = document.querySelector('button[aria-label="Ask the Guide"]');
+      if (!(button instanceof HTMLButtonElement) || button.disabled) {
+        return { ok: false, reason: 'Sage send button is not ready' };
+      }
       button.click();
       return { ok: true };
     }`,

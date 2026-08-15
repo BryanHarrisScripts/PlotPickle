@@ -19,22 +19,14 @@
   width: 58px;
   height: 58px;
   object-fit: contain;
-  filter:
-    saturate(1.13)
-    brightness(1.08)
-    drop-shadow(0 0 5px rgba(210, 170, 84, 0.38))
-    drop-shadow(0 0 9px rgba(53, 201, 184, 0.46));
+  filter: saturate(1.13) brightness(1.08);
   transform-origin: center;
   transition: filter 160ms ease, transform 160ms ease;
 }
 
 .entry:hover .glyph,
 .entry:focus-visible .glyph {
-  filter:
-    saturate(1.22)
-    brightness(1.18)
-    drop-shadow(0 0 7px rgba(235, 192, 95, 0.52))
-    drop-shadow(0 0 12px rgba(53, 201, 184, 0.7));
+  filter: saturate(1.22) brightness(1.18);
   transform: translateY(-1px) scale(1.055);
 }
 

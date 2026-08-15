@@ -6,7 +6,7 @@ import styles from "./wyrmwood-plugin-entry.module.css";
 export default function WyrmwoodPluginEntry({ onOpen }: { readonly onOpen: () => void }) {
   return (
     <button
-      aria-label="Open Wyrmwood game"
+      aria-label="Open GAME — Wyrmwood"
       className={styles.entry}
       onClick={onOpen}
       type="button"

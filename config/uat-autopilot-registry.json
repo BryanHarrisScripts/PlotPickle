@@ -8,17 +8,19 @@
         "tests/issue-590-windows-startup-defaults.test.mjs",
         "tests/issue-591-startup-readiness-gate.test.mjs",
         "tests/issue-603-startup-agent-diagnostics.test.mjs",
-        "tests/issue-614-startup-health-warning-cleanup.test.mjs"
+        "tests/issue-614-startup-health-warning-cleanup.test.mjs",
+        "tests/issue-623-agent-observability.test.mjs"
       ]
     },
     {
       "id": "settings",
       "label": "Settings",
       "route": "/?workspace=settings",
-      "requiredTerms": ["Sage", "Settings"],
+      "requiredTerms": ["Sage", "Settings", "Agent Activity"],
       "minimumTextLength": 300,
       "tests": [
-        "tests/learn-sage-settings-entry.test.mjs"
+        "tests/learn-sage-settings-entry.test.mjs",
+        "tests/issue-623-agent-observability.test.mjs"
       ]
     },
     {

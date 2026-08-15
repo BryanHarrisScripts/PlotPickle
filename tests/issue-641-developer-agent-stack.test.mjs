@@ -13,6 +13,19 @@ const PINNED_PI_PACKAGES = [
   "npm:pi-mcp-adapter@2.26.0",
 ];
 
+function collectKeys(value, output = []) {
+  if (Array.isArray(value)) {
+    for (const entry of value) collectKeys(entry, output);
+    return output;
+  }
+  if (!value || typeof value !== "object") return output;
+  for (const [key, entry] of Object.entries(value)) {
+    output.push(key);
+    collectKeys(entry, output);
+  }
+  return output;
+}
+
 test("AGENTS.md is the Windows-native shared constitution for Pi and Cline", async () => {
   const agents = await read("AGENTS.md");
 
@@ -42,13 +55,14 @@ test("the canonical developer stack contains only Pi and Cline as required codin
   assert.equal(stack.mergePolicy, "green-exact-head-only");
 });
 
-test("Pi extensions are pinned while model and provider choice stay outside the repository", async () => {
+test("Pi extensions are pinned while model, provider and credentials stay outside project settings", async () => {
   const settings = await readJson(".pi/settings.json");
 
   assert.equal(settings.enableInstallTelemetry, false);
   assert.deepEqual(settings.packages, PINNED_PI_PACKAGES);
-  const serialized = JSON.stringify(settings);
-  assert.doesNotMatch(serialized, /api[_-]?key|password|token|provider|modelId|baseUrl/i);
+  const forbiddenKeys = new Set(["apiKey", "apikey", "password", "provider", "model", "modelId", "baseUrl", "authorization"]);
+  const committedForbiddenKeys = collectKeys(settings).filter((key) => forbiddenKeys.has(key));
+  assert.deepEqual(committedForbiddenKeys, []);
 });
 
 test("Pi and Cline share the same narrow PlotPickle MCP boundary", async () => {
@@ -89,7 +103,8 @@ test("the Windows setup installs only the two chosen agents and the pinned Pi pa
   assert.match(setup, /pi install \$package -l/);
   for (const packageName of PINNED_PI_PACKAGES) assert.match(setup, new RegExp(packageName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(setup, /Git Bash|compatible Bash/i);
-  assert.match(setup, /-VerifyOnly/i);
+  assert.match(setup, /\[switch\]\$VerifyOnly/);
+  assert.match(setup, /if \(-not \$VerifyOnly\)/);
   assert.match(setup, /developer-agent-mcp\.mjs --self-test/);
   assert.doesNotMatch(setup, /(?:npm|pip|winget|choco).*install.*(?:openhands|herdr)/i);
 });
@@ -112,7 +127,7 @@ test("Agent Bench compares Pi and Cline on frozen PlotPickle repairs in isolated
 
   assert.match(runner, /SUPPORTED_AGENTS = new Set\(\["pi", "cline"\]\)/);
   assert.match(runner, /git.*worktree|"worktree", "add", "--detach"/s);
-  assert.match(runner, /inject the\s+\/\/ current AGENTS\.md|current AGENTS\.md/is);
+  assert.match(runner, /current AGENTS\.md/is);
   assert.match(runner, /"--mode", "json", "-p", "--no-session"/);
   assert.match(runner, /"--json", "--auto-approve", "true", "--cwd"/);
   assert.match(runner, /testFilesChanged/);

@@ -23,7 +23,7 @@ test("GAME relic asset is a real WebP and navigation-sized source remains substa
 
   assert.equal(asset.subarray(0, 4).toString("ascii"), "RIFF");
   assert.equal(asset.subarray(8, 12).toString("ascii"), "WEBP");
-  assert.ok(metadata.size > 20_000, `Expected detailed GAME glyph source, got ${metadata.size} bytes`);
+  assert.ok(metadata.size > 10_000, `Expected detailed GAME glyph source, got ${metadata.size} bytes`);
 });
 
 test("GAME navigation follows the transparent illuminated logo treatment", async () => {

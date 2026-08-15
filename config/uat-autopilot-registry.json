@@ -61,7 +61,8 @@
       "tests": [
         "tests/wyrmwood-phase-1.test.mjs",
         "tests/wyrmwood-phase-2.test.mjs",
-        "tests/wyrmwood-phase-3.test.mjs"
+        "tests/wyrmwood-phase-3.test.mjs",
+        "tests/issue-625-game-navigation-glyph.test.mjs"
       ]
     }
   ]

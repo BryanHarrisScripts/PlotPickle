@@ -1,7 +1,11 @@
 import type { CurriculumGuide, CurriculumGuideAnswer } from "../../core/contracts/curriculum-guide";
 import { answerFromCurriculum as answerFromCurriculumUnsafe } from "./curriculum-guide";
+import {
+  answerAsSageConversationSpecialist,
+  isSageCraftQuestion,
+} from "./sage-conversation-specialist";
 
-const INTERNAL_PROMPT_MARKERS = /(?:QUALITY MODEL ESCALATION|RESPONSE QUALITY RETRY|CONVERSATION MODE:|STARTUP HEALTH(?: QUALITY FALLBACK| RETRY)?|curriculum_context|project_memory|conversation_memory|student_question|LOCAL CURRICULUM BLOCK|Produce one clean final response to the writer now|Follow Sage'?s identity and conversational role)/i;
+const INTERNAL_PROMPT_MARKERS = /(?:QUALITY MODEL ESCALATION|RESPONSE QUALITY RETRY|CONVERSATION MODE:|STARTUP HEALTH(?: QUALITY FALLBACK| RETRY)?|curriculum_context|project_memory|conversation_memory|student_question|LOCAL CURRICULUM BLOCK|Produce one clean final response to the writer now|Follow Sage'?s identity and conversational role|SAGE CONVERSATION SPECIALIST)/i;
 const PROJECT_MEMORY_KEY = /"(?:id|title|revision|completedLessonCount|activeLessonId)"\s*:/g;
 
 function normalizedQuestion(question: string) {
@@ -24,6 +28,17 @@ export function isSageWellbeingQuestion(question: string) {
   return /^(?:are you ok|are you okay|you ok|you okay|how are you|how are you doing|everything okay|everything ok)$/.test(normalized);
 }
 
+export function isSageHelpQuestion(question: string) {
+  const normalized = normalizedQuestion(question);
+  return /^(?:can you help(?: me)?|could you help(?: me)?|will you help(?: me)?|help me|i need help|what can you do)$/.test(normalized);
+}
+
+export function isSageShortenRequest(question: string) {
+  const normalized = normalizedQuestion(question);
+  return /^(?:can you |could you |please )?(?:give me )?(?:a )?(?:shorter|short|briefer|more concise)(?: version)?(?: of that)?$/.test(normalized)
+    || /^(?:can you |could you |please )?(?:shorten|condense|trim)(?: that| it| your answer)?$/.test(normalized);
+}
+
 export function sageAnswerLeaksInternalScaffolding(answer: string) {
   if (INTERNAL_PROMPT_MARKERS.test(answer)) return true;
   const projectKeys = answer.match(PROJECT_MEMORY_KEY)?.length ?? 0;
@@ -43,14 +58,14 @@ function safeAnswer(text: string, model: string): CurriculumGuideAnswer {
 
 function safeIdentityAnswer() {
   return safeAnswer(
-    "I’m Sage Brinewick, PlotPickle’s Curriculum Guide. I’m a software mentor here to help you understand the lessons and apply them to your story.",
+    "I’m Sage Brinewick, PlotPickle’s Curriculum Guide. I’m here to help you understand the lessons, work through story problems, and apply what you learn.",
     "Sage identity response",
   );
 }
 
 function safeNameMeaningAnswer() {
   return safeAnswer(
-    "‘Sage’ signals the guide-and-teacher role. ‘Brinewick’ is a fictional PlotPickle lore name, chosen for its slightly old-world, pickle-adjacent flavor — not a real family history or biography.",
+    "‘Sage’ signals the guide-and-teacher role. ‘Brinewick’ is a fictional PlotPickle lore name with a slightly old-world, pickle-adjacent flavor — not a real family history.",
     "Sage name-meaning response",
   );
 }
@@ -62,9 +77,48 @@ function safeWellbeingAnswer() {
   );
 }
 
+function safeHelpAnswer() {
+  return safeAnswer(
+    "Yes — I can help. Ask me about a PlotPickle lesson, a story problem you’re wrestling with, or just talk the idea through with me and we’ll find a useful next step.",
+    "Sage help response",
+  );
+}
+
+function compactSentences(value: string, maximumSentences = 2, maximumCharacters = 320) {
+  const clean = value.replace(/\s+/g, " ").trim();
+  if (!clean) return "";
+  const sentences = clean.match(/[^.!?]+[.!?]+|[^.!?]+$/g)?.map((sentence) => sentence.trim()).filter(Boolean) ?? [clean];
+  const selected = sentences.slice(0, maximumSentences).join(" ").trim();
+  if (selected.length <= maximumCharacters) return selected;
+  const clipped = selected.slice(0, maximumCharacters);
+  const boundary = Math.max(clipped.lastIndexOf(". "), clipped.lastIndexOf("? "), clipped.lastIndexOf("! "), clipped.lastIndexOf(" "));
+  return `${clipped.slice(0, boundary > maximumCharacters * 0.6 ? boundary : maximumCharacters).trim()}…`;
+}
+
+function visibleSageAnswer(result: CurriculumGuideAnswer) {
+  return {
+    ...result,
+    text: compactSentences(result.text, 4, 680),
+  };
+}
+
+function safeShorterAnswer(conversation: Parameters<CurriculumGuide>[0]["conversation"]) {
+  const previous = [...conversation].reverse().find((item) => item.role === "guide" && item.content.trim());
+  if (!previous) {
+    return safeAnswer(
+      "Sure. Tell me what you want shortened and I’ll tighten it up.",
+      "Sage response editor",
+    );
+  }
+  return safeAnswer(
+    compactSentences(previous.content),
+    "Sage response editor",
+  );
+}
+
 function safeLeakRecoveryAnswer() {
   return safeAnswer(
-    "I couldn’t turn that into a clean answer, so I discarded the broken response instead of showing it to you. Ask me again and I’ll take another run at it.",
+    "That answer came out garbled, so I dropped it rather than show you the machinery underneath. Ask it another way and I’ll answer cleanly.",
     "Sage safety recovery response",
   );
 }
@@ -73,8 +127,12 @@ export const answerFromCurriculum: CurriculumGuide = async (request) => {
   if (isSageNameMeaningQuestion(request.question)) return safeNameMeaningAnswer();
   if (isSageIdentityQuestion(request.question)) return safeIdentityAnswer();
   if (isSageWellbeingQuestion(request.question)) return safeWellbeingAnswer();
+  if (isSageHelpQuestion(request.question)) return safeHelpAnswer();
+  if (isSageShortenRequest(request.question)) return safeShorterAnswer(request.conversation);
 
-  const result = await answerFromCurriculumUnsafe(request);
+  const result = isSageCraftQuestion(request.question)
+    ? await answerFromCurriculumUnsafe(request)
+    : await answerAsSageConversationSpecialist(request);
   if (sageAnswerLeaksInternalScaffolding(result.text)) return safeLeakRecoveryAnswer();
-  return result;
+  return visibleSageAnswer(result);
 };

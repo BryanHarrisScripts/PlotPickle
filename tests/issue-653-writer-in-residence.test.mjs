@@ -31,10 +31,21 @@ test("exploratory writer uses visible Playwright accessibility actions and never
 test("writer model receives only bounded visible snapshot context and cannot edit code or GitHub", async () => {
   const runner = await read("scripts/run-writer-in-residence.mjs");
   assert.match(runner, /VISIBLE ACCESSIBILITY SNAPSHOT/);
-  assert.match(runner, /slice\(0, 6_500\)/);
+  assert.match(runner, /maximum = 5_500/);
   assert.match(runner, /Do not request browser_evaluate, source code, DOM inspection, localStorage, filesystem inspection, test files, logs, GitHub, or developer tools/);
   assert.match(runner, /agentId:\s*"creative-director"/);
   assert.doesNotMatch(runner, /git\s+commit|git\s+push|gh\("issue"|gh\("pr"/);
+});
+
+test("writer decision format is repaired locally and malformed output cannot become product feedback", async () => {
+  const runner = await read("scripts/run-writer-in-residence.mjs");
+  assert.match(runner, /FORMAT REPAIR ONLY/);
+  assert.match(runner, /normalizeDecision\(repaired\.text\)/);
+  assert.match(runner, /recovery: "format-repair"/);
+  assert.match(runner, /recovery: "visible-ui-fallback"/);
+  assert.match(runner, /response\.recovery === "visible-ui-fallback"\s*\? \[\]/);
+  assert.match(runner, /runnerFindings/);
+  assert.match(runner, /finishedReason = "local-model-unavailable"/);
 });
 
 test("writer feedback is kept locally first and only medium/high actionable findings are promoted", async () => {

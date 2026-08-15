@@ -34,11 +34,11 @@ jobs:
       - name: Validate hardware-aware local AI contracts
         run: node --test tests/hardware-aware-local-ai-runtime.test.mjs tests/foundation-architecture.test.mjs
 
-      - name: Validate existing provider and creative-compute contracts
-        run: node --test tests/ai-architecture.test.mjs tests/issue-258-creative-compute-paths.test.mjs tests/issue-83-character-visual-identity.test.mjs
+      - name: Validate provider, creative-compute, and companion updater contracts
+        run: node --test tests/ai-architecture.test.mjs tests/issue-258-creative-compute-paths.test.mjs tests/issue-83-character-visual-identity.test.mjs tests/issue-512-buzz-version-maintenance.test.mjs tests/issue-620-buzz-startup-updater.test.mjs
 
       - name: Production build
         run: npm run build
 
-# Runtime model downloads are intentionally excluded from CI. Live /models,
-# ComfyUI and curriculum-RAG health checks run on the user's detected hardware.
+# Runtime model downloads and live third-party installer downloads are intentionally excluded from CI.
+# Live /models, ComfyUI, Buzz release checks, and curriculum-RAG health checks run on the user's detected hardware.

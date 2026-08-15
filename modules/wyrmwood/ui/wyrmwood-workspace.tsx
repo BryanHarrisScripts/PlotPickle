@@ -29,17 +29,17 @@ import styles from "./wyrmwood-workspace.module.css";
 const LEARN_PROJECT_STORAGE_KEY = "plotpickle.foundation.project.v1";
 
 const NAV_ITEMS = [
-  { id: "learn", label: "Learn", detail: "Guides", selectable: true },
-  { id: "plan", label: "Plan", detail: "Design", selectable: true },
-  { id: "build", label: "Build", detail: "Assemble", selectable: false },
-  { id: "sketch", label: "Storyboard", detail: "Sketch", selectable: false },
-  { id: "visualize", label: "Previs", detail: "Visualize", selectable: false },
-  { id: "write", label: "Write", detail: "Draft", selectable: false },
-  { id: "edit", label: "Edit", detail: "Polish", selectable: false },
-  { id: "feedback", label: "Feedback", detail: "Review", selectable: false },
-  { id: "refine", label: "Refine", detail: "Decide", selectable: false },
-  { id: "reports", label: "Reports", detail: "Deliver", selectable: false },
-  { id: "wyrmwood", label: "Play", detail: "Wyrmwood", selectable: true },
+  { id: "learn", relic: "/assets/workflow-relics/learn.webp", label: "Learn", detail: "Guides", selectable: true },
+  { id: "plan", relic: "/assets/workflow-relics/plan.webp", label: "Plan", detail: "Design", selectable: true },
+  { id: "build", relic: "/assets/workflow-relics/build.webp", label: "Build", detail: "Assemble", selectable: false },
+  { id: "storyboard", relic: "/assets/workflow-relics/storyboard.webp", label: "Storyboard", detail: "Sketch", selectable: false },
+  { id: "graphic-novel", relic: "/assets/workflow-relics/graphic-novel.webp", label: "Previs", detail: "Visualize", selectable: false },
+  { id: "write", relic: "/assets/workflow-relics/write.webp", label: "Write", detail: "Draft", selectable: false },
+  { id: "edit", relic: "/assets/workflow-relics/edit.webp", label: "Edit", detail: "Polish", selectable: false },
+  { id: "feedback", relic: "/assets/workflow-relics/feedback.webp", label: "Feedback", detail: "Review", selectable: false },
+  { id: "refine", relic: "/assets/workflow-relics/refine.webp", label: "Refine", detail: "Decide", selectable: false },
+  { id: "reports", relic: "/assets/workflow-relics/reports.webp", label: "Reports", detail: "Deliver", selectable: false },
+  { id: "wyrmwood", relic: "/assets/workflow-relics/game.webp", label: "Wyrmwood", detail: "Game", selectable: true },
 ] as const;
 
 const DIMENSION_LABELS = [
@@ -220,9 +220,14 @@ export default function WyrmwoodWorkspace({
                 onClick={() => openNav(item.id)}
                 type="button"
               >
-                {item.id === "wyrmwood" ? (
-                  <Image alt="" aria-hidden="true" height={42} src="/brand/favicon/plotpickle-ouroboros-v2-128.png" width={42} />
-                ) : <span aria-hidden="true" className={styles.navRune}>✦</span>}
+                <Image
+                  alt=""
+                  aria-hidden="true"
+                  className={styles.navRelic}
+                  height={42}
+                  src={item.relic}
+                  width={42}
+                />
                 <span><strong>{item.label}</strong><small>{item.detail}</small></span>
               </button>
             </li>
@@ -233,7 +238,8 @@ export default function WyrmwoodWorkspace({
       <main className={styles.workspace}>
         <aside className={styles.campaignRail}>
           <header>
-            <small>PLAY · WYRmWOOD</small>
+            <strong className={styles.wyrmwoodTitle}>WYRMWOOD</strong>
+            <small>PLAY · THE FOUNDATIONS TRIALS</small>
             <h1>The Plot-Weaver&apos;s Duel</h1>
             <p>{WYRMWOOD_FIRST_CAMPAIGN.description}</p>
           </header>
@@ -291,7 +297,7 @@ export default function WyrmwoodWorkspace({
               </p>
             </div>
             <div className={styles.wyrm} data-spotlight={state.spotlight}>
-              <Image alt="The Plot-Wyrm" height={116} priority src="/brand/favicon/plotpickle-ouroboros-v2-128.png" width={116} />
+              <Image alt="Wyrmwood game emblem" height={116} priority src="/assets/workflow-relics/game.webp" width={116} />
               <small>{state.spotlight >= 75 ? "COMMANDING" : state.spotlight >= 50 ? "STABLE" : state.spotlight >= 25 ? "UNRAVELING" : "CHAOTIC"}</small>
             </div>
           </header>

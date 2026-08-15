@@ -77,9 +77,13 @@ async function main() {
 
   if (repair && deduped.length) {
     const repairScript = "scripts/run-uat-repair-agent.mjs";
+    const ensureRun = await run("scripts/ensure-local-repair-model.mjs", ["--worker", repairWorker]);
+    if (ensureRun.code !== 0) {
+      process.stderr.write("Automatic LM Studio repair-model load did not complete; continuing to the normal local-only repair preflight.\n");
+    }
     const preflight = await run(repairScript, ["--worker", repairWorker, "--preflight", "--require-ready"]);
     if (preflight.code !== 0) {
-      process.stderr.write(`Developer repair worker ${repairWorker} is not ready. UAT findings remain open; no cloud/story-model fallback was attempted.\n`);
+      process.stderr.write(`Developer repair worker ${repairWorker} is not ready. UAT findings remain open; no model was downloaded and no cloud/story-model fallback was attempted.\n`);
       process.exitCode = 1;
     } else {
       for (const finding of deduped) {

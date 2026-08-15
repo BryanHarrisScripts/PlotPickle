@@ -14,7 +14,8 @@
         "tests/issue-626-uat-findings-sage-repair.test.mjs",
         "tests/issue-628-closed-loop-recovery-quality.test.mjs",
         "tests/issue-630-local-uat-repair-agent.test.mjs",
-        "tests/issue-636-startup-uat-decision.test.mjs"
+        "tests/issue-636-startup-uat-decision.test.mjs",
+        "tests/issue-637-first-uat-findings.test.mjs"
       ]
     },
     {
@@ -44,7 +45,8 @@
         "tests/issue-596-learn-logo-and-formatting.test.mjs",
         "tests/issue-601-sage-personality-and-answer-quality.test.mjs",
         "tests/issue-626-uat-findings-sage-repair.test.mjs",
-        "tests/issue-628-closed-loop-recovery-quality.test.mjs"
+        "tests/issue-628-closed-loop-recovery-quality.test.mjs",
+        "tests/issue-637-first-uat-findings.test.mjs"
       ]
     },
     {
@@ -56,7 +58,8 @@
       "tests": [
         "tests/issue-595-foundations-plan-starter.test.mjs",
         "tests/issue-617-plan-selective-ai-drafting.test.mjs",
-        "tests/issue-628-closed-loop-recovery-quality.test.mjs"
+        "tests/issue-628-closed-loop-recovery-quality.test.mjs",
+        "tests/issue-637-first-uat-findings.test.mjs"
       ]
     },
     {

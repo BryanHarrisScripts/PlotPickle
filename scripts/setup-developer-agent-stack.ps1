@@ -18,17 +18,29 @@ function Require-Command([string]$Name, [string]$Help) {
   return $command
 }
 
-function Find-Bash {
-  $bash = Get-Command bash -ErrorAction SilentlyContinue
-  if ($bash) { return $bash.Source }
+function Find-GitBash {
+  $git = Get-Command git -ErrorAction SilentlyContinue
+  $candidates = @()
 
-  $candidates = @(
+  if ($git -and $git.Source) {
+    $gitRoot = Split-Path -Parent (Split-Path -Parent $git.Source)
+    $candidates += (Join-Path $gitRoot "bin\bash.exe")
+    $candidates += (Join-Path $gitRoot "usr\bin\bash.exe")
+  }
+
+  $candidates += @(
     "C:\Program Files\Git\bin\bash.exe",
     "C:\Program Files\Git\usr\bin\bash.exe",
     "C:\Program Files (x86)\Git\bin\bash.exe"
   )
-  foreach ($candidate in $candidates) {
+
+  foreach ($candidate in ($candidates | Select-Object -Unique)) {
     if (Test-Path $candidate) { return $candidate }
+  }
+
+  $bash = Get-Command bash -ErrorAction SilentlyContinue
+  if ($bash -and $bash.Source -and $bash.Source -notmatch "(?i)\\Windows\\System32\\bash\.exe$") {
+    return $bash.Source
   }
   return $null
 }
@@ -38,11 +50,11 @@ Require-Command node "Install the Node version required by package.json." | Out-
 Require-Command npm "Install npm with Node.js." | Out-Null
 Require-Command git "Install Git for Windows." | Out-Null
 
-$bashPath = Find-Bash
+$bashPath = Find-GitBash
 if (-not $bashPath) {
-  throw "Bash was not found. Pi on Windows needs Git Bash or another compatible Bash. Install Git for Windows, then rerun this script."
+  throw "Git Bash was not found. PlotPickle's Windows-native Pi setup does not use the C:\Windows\System32\bash.exe WSL launcher. Install Git for Windows with Git Bash, then rerun this script."
 }
-Write-Host "Bash ............................... $bashPath"
+Write-Host "Git Bash ........................... $bashPath"
 
 if (-not $VerifyOnly) {
   Write-Step "Installing Cline CLI"

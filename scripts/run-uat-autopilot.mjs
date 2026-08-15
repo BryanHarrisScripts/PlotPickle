@@ -13,12 +13,11 @@ import {
 } from "../lib/uat-autopilot.mjs";
 import {
   consoleHasErrors,
-  delay,
-  extractPageState,
   McpClient,
   resultText,
   toolArguments,
 } from "./creative-uat/mcp-runtime.mjs";
+import { waitForRenderedArea } from "./creative-uat/render-readiness.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
@@ -269,13 +268,9 @@ async function inspectRegisteredAreas(registry) {
       };
       try {
         await client.call("browser_navigate", { url: new URL(area.route, baseUrl).toString() });
-        await delay(650);
+        const state = await waitForRenderedArea(client, area);
         const snapshotText = resultText(await client.call("browser_snapshot", {}));
         await writeFile(path.join(snapshotsPath, `${area.id}.md`), snapshotText, "utf8");
-        const stateResult = await client.call("browser_evaluate", {
-          function: "() => ({ url: location.href, bodyText: (document.body.innerText || '').replace(/\\s+/g, ' ').trim(), bodyLength: (document.body.innerText || '').trim().length })",
-        });
-        const state = extractPageState(resultText(stateResult));
         evidence = {
           ...evidence,
           reached: true,

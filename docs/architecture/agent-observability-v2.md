@@ -1,0 +1,1 @@
+This file intentionally exists only to confirm the observability rollout boundary during PR validation. The canonical design document is docs/architecture/agent-observability.md.

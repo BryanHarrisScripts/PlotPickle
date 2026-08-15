@@ -117,7 +117,7 @@ test("unavailable optional local models are warnings, not false failures", async
       plannerPassed: false,
     },
   });
-  assert.equal(result.overall, "PASS");
+  assert.equal(result.overall, "WARN");
   assert.ok(result.warnings.length >= 2);
 });
 

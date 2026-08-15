@@ -1,6 +1,7 @@
 "use client";
 
 import AgentObservabilityPanel from "./agent-observability-panel";
+import DeepSeekHarnessPanel from "./deepseek-harness-panel";
 import LocalRuntimePanel from "./local-runtime-panel";
 import SageFastModelSetup from "./sage-fast-model-setup";
 import styles from "./sage-settings-workspace.module.css";
@@ -42,7 +43,8 @@ export default function SageSettingsWorkspace() {
 
       <details className={styles.advancedRuntime}>
         <summary>Advanced runtime details</summary>
-        <p>Open this only when you want hardware, runtime, context, or expert routing information.</p>
+        <p>Open this only when you want hardware, runtime, agent harness, context, or expert routing information.</p>
+        <DeepSeekHarnessPanel />
         <LocalRuntimePanel />
       </details>
     </main>

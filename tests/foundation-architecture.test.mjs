@@ -131,7 +131,7 @@ test("LEARN exposes the future PlotPickle workflow navigation", async () => {
     read("modules/learn/ui/learn-workspace.tsx"),
     read("modules/learn/ui/learn-workspace.module.css"),
   ]);
-  for (const label of ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Edit", "Synthfiction", "Build", "Feedback", "Refine", "Reports"]) {
+  for (const label of ["Dashboard", "Learn", "Plan", "Sketch", "Write", "Edit", "Visualize", "Build", "Feedback", "Refine", "Reports"]) {
     assert.match(workspace, new RegExp(label.replace("/", "\\/")));
   }
   assert.match(workspace, /aria-label="PlotPickle workflow"/);

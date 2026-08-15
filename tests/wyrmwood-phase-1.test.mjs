@@ -42,7 +42,7 @@ test("the first Wyrmwood campaign is generated from LEARN Foundations", async ()
   assert.match(ui, /trial\.learningTargets/);
 });
 
-test("PLAY keeps the original isolated shell while Phase 2 activates the duel", async () => {
+test("PLAY keeps the original isolated shell while later phases activate the duel", async () => {
   const [entry, page, ui] = await Promise.all([
     read("app/wyrmwood-plugin-entry.tsx"),
     read("app/page.tsx"),
@@ -69,6 +69,9 @@ test("Wyrmwood state starts deterministic and cannot mutate the story project", 
   assert.match(engine, /spotlight: WYRMWOOD_STARTING_SPOTLIGHT/);
   assert.match(engine, /brineCoins: 0/);
   assert.match(engine, /xp: 0/);
-  assert.match(engine, /clampNumber\(state\.spotlight \+ outcome\.spotlightDelta, 0, 100/);
+  assert.match(engine, /clampNumber\(state\.spotlight \+ spotlightDelta, 0, 100/);
+  assert.match(ui, /LEARN_PROJECT_STORAGE_KEY = "plotpickle\.foundation\.project\.v1"/);
+  assert.match(ui, /localStorage\.getItem\(LEARN_PROJECT_STORAGE_KEY\)/);
+  assert.doesNotMatch(ui, /localStorage\.setItem\(LEARN_PROJECT_STORAGE_KEY/);
   assert.doesNotMatch(ui, /applyStoryCommand|PPFProject|FOUNDATION_PROJECT_STORAGE_KEY/);
 });

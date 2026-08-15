@@ -47,7 +47,7 @@ jobs:
           name: focused-uat-${{ github.run_id }}
           path: .artifacts/uat-focused
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 5
 
       - name: Production build
         run: npm run build

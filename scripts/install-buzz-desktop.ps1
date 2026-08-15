@@ -11,6 +11,7 @@ $ErrorActionPreference = "Stop"
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent $ScriptRoot
 $ConfigPath = Join-Path $ProjectRoot "config\buzz-desktop.json"
+$DefaultReleaseApi = "https://api.github.com/repos/block/buzz/releases?per_page=30"
 
 function Write-PlotPickleBuzzStatus {
   param(
@@ -99,6 +100,74 @@ function Compare-BuzzVersion {
   }
 }
 
+function Get-OptionalPropertyValue {
+  param(
+    [AllowNull()][object]$InputObject,
+    [Parameter(Mandatory = $true)][string]$Name
+  )
+  if ($null -eq $InputObject) { return $null }
+  $property = $InputObject.PSObject.Properties[$Name]
+  if ($null -eq $property) { return $null }
+  return $property.Value
+}
+
+function Get-LatestBuzzDesktopRelease {
+  param(
+    [Parameter(Mandatory = $true)][string]$ReleaseApi,
+    [Parameter(Mandatory = $true)][string]$MinimumVersion
+  )
+
+  try {
+    $headers = @{
+      Accept = "application/vnd.github+json"
+      "User-Agent" = "PlotPickle-Buzz-Updater"
+      "X-GitHub-Api-Version" = "2022-11-28"
+    }
+    $releases = @(Invoke-RestMethod -Uri $ReleaseApi -Headers $headers -Method Get -TimeoutSec 8)
+    $candidates = New-Object System.Collections.Generic.List[object]
+    foreach ($release in $releases) {
+      if ([bool](Get-OptionalPropertyValue -InputObject $release -Name "draft")) { continue }
+      if ([bool](Get-OptionalPropertyValue -InputObject $release -Name "prerelease")) { continue }
+      $tag = [string](Get-OptionalPropertyValue -InputObject $release -Name "tag_name")
+      if ($tag -notmatch "^(?:desktop-)?v(?<version>\d+\.\d+\.\d+)$") { continue }
+      $releaseVersion = $Matches["version"]
+      $parsedVersion = $null
+      try { $parsedVersion = [Version]$releaseVersion } catch { continue }
+      $assets = @(Get-OptionalPropertyValue -InputObject $release -Name "assets")
+      foreach ($asset in $assets) {
+        $name = [string](Get-OptionalPropertyValue -InputObject $asset -Name "name")
+        if ($name -notmatch "^Buzz_(?<assetVersion>\d+\.\d+\.\d+)_x64-setup(?:_alpha-unsigned)?\.exe$") { continue }
+        if ($Matches["assetVersion"] -ne $releaseVersion) { continue }
+        $url = [string](Get-OptionalPropertyValue -InputObject $asset -Name "browser_download_url")
+        if (-not $url) { continue }
+        $uri = [Uri]$url
+        if ($uri.Scheme -ne "https" -or $uri.Host -ne "github.com") { continue }
+        if (-not $uri.AbsolutePath.StartsWith("/block/buzz/releases/download/$tag/")) { continue }
+        $digest = [string](Get-OptionalPropertyValue -InputObject $asset -Name "digest")
+        $sha256 = if ($digest -match "^sha256:(?<hash>[0-9a-fA-F]{64})$") { $Matches["hash"].ToLowerInvariant() } else { "" }
+        $candidates.Add([pscustomobject]@{
+          Version = $releaseVersion
+          ParsedVersion = $parsedVersion
+          ReleaseTag = $tag
+          AssetName = $name
+          DownloadUrl = $url
+          Sha256 = $sha256
+          SourceCommit = [string](Get-OptionalPropertyValue -InputObject $release -Name "target_commitish")
+        })
+      }
+    }
+    $latest = $candidates | Sort-Object -Property ParsedVersion -Descending | Select-Object -First 1
+    if (-not $latest) { return $null }
+    if ((Compare-BuzzVersion -Installed $latest.Version -Reviewed $MinimumVersion) -lt 0) { return $null }
+    return $latest
+  }
+  catch {
+    Write-Warning "Buzz Desktop's live release check could not finish: $($_.Exception.Message)"
+    Write-Host "[INFO] PlotPickle will use its reviewed Buzz fallback instead."
+    return $null
+  }
+}
+
 if (-not (Test-Path -LiteralPath $ConfigPath -PathType Leaf)) {
   Write-Warning "The packaged Buzz Desktop compatibility file is missing: $ConfigPath"
   Write-PlotPickleBuzzStatus -Status "configuration-missing"
@@ -110,6 +179,29 @@ $releaseTag = [string]$config.releaseTag
 $version = [string]$config.version
 $assetName = [string]$config.windows.asset
 $downloadUrl = [string]$config.windows.downloadUrl
+$expectedSha256 = [string](Get-OptionalPropertyValue -InputObject $config.windows -Name "sha256")
+$sourceCommit = [string](Get-OptionalPropertyValue -InputObject $config -Name "sourceCommit")
+$releaseApiValue = [string](Get-OptionalPropertyValue -InputObject $config -Name "releaseApi")
+$releaseApi = if ($releaseApiValue) { $releaseApiValue } else { $DefaultReleaseApi }
+$releaseSource = "reviewed fallback"
+
+if ($Maintain -or $CheckOnly) {
+  Write-Host "[UPDATE] Checking block/buzz for the newest Windows desktop release..."
+  $latestRelease = Get-LatestBuzzDesktopRelease -ReleaseApi $releaseApi -MinimumVersion $version
+  if ($latestRelease) {
+    $releaseTag = $latestRelease.ReleaseTag
+    $version = $latestRelease.Version
+    $assetName = $latestRelease.AssetName
+    $downloadUrl = $latestRelease.DownloadUrl
+    $expectedSha256 = $latestRelease.Sha256
+    $sourceCommit = $latestRelease.SourceCommit
+    $releaseSource = "live block/buzz release"
+    Write-Host "[OK] Latest Buzz Desktop release: $releaseTag ($version)"
+    if ($sourceCommit) { Write-Host "     Source commit: $sourceCommit" }
+  } else {
+    Write-Host "[OK] Using reviewed Buzz Desktop fallback $releaseTag ($version)."
+  }
+}
 
 $existingCli = Find-BuzzCli
 if ($existingCli) {
@@ -117,8 +209,8 @@ if ($existingCli) {
   $comparison = if ($installedVersion) { Compare-BuzzVersion -Installed $installedVersion -Reviewed $version } else { $null }
 
   if ($Maintain -and $installedVersion -and $null -ne $comparison -and $comparison -gt 0) {
-    Write-Host "[OK] Buzz Desktop $installedVersion is newer than PlotPickle's reviewed package $version."
-    Write-Host "Keeping the installed version and skipping the pinned installer."
+    Write-Host "[OK] Buzz Desktop $installedVersion is newer than PlotPickle's selected release $version."
+    Write-Host "Keeping the installed version and skipping the installer."
     Write-PlotPickleBuzzStatus -Status "detected" -Executable $existingCli
     exit 0
   }
@@ -136,7 +228,7 @@ if ($existingCli) {
     Write-PlotPickleBuzzStatus -Status "detected" -Executable $existingCli
     exit 0
   }
-  Write-Host "[UPDATE] Buzz Desktop $installedVersion is installed; PlotPickle's reviewed package is $version."
+  Write-Host "[UPDATE] Buzz Desktop $installedVersion is installed; $releaseSource is $version."
 }
 
 if ($CheckOnly -or (-not $Install -and -not $Maintain)) {
@@ -153,12 +245,12 @@ if (-not [Environment]::Is64BitOperatingSystem) {
 
 $uri = [Uri]$downloadUrl
 if ($uri.Scheme -ne "https" -or $uri.Host -ne "github.com" -or -not $uri.AbsolutePath.StartsWith("/block/buzz/releases/download/$releaseTag/")) {
-  Write-Warning "The Buzz Desktop download URL is not the pinned official block/buzz release URL."
+  Write-Warning "The Buzz Desktop download URL is not an official block/buzz release URL."
   Write-PlotPickleBuzzStatus -Status "invalid-download-url"
   exit 1
 }
 if ($uri.Segments[-1] -ne $assetName) {
-  Write-Warning "The Buzz Desktop asset name does not match the pinned release configuration."
+  Write-Warning "The Buzz Desktop asset name does not match the selected release configuration."
   Write-PlotPickleBuzzStatus -Status "invalid-asset"
   exit 1
 }
@@ -170,7 +262,7 @@ try {
   if (Test-Path -LiteralPath $downloadRoot) { Remove-Item -LiteralPath $downloadRoot -Recurse -Force }
   New-Item -ItemType Directory -Path $downloadRoot -Force | Out-Null
 
-  Write-Host "Downloading the official Buzz Desktop $version installer from block/buzz..."
+  Write-Host "Downloading official Buzz Desktop $version from block/buzz..."
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
   Invoke-WebRequest -Uri $downloadUrl -OutFile $installerPath -UseBasicParsing -MaximumRedirection 10
 
@@ -183,9 +275,16 @@ try {
   }
   finally { $stream.Dispose() }
 
-  $hash = (Get-FileHash -LiteralPath $installerPath -Algorithm SHA256).Hash
+  $hash = (Get-FileHash -LiteralPath $installerPath -Algorithm SHA256).Hash.ToLowerInvariant()
   Write-Host "Downloaded $assetName"
   Write-Host "SHA-256: $hash"
+  if ($expectedSha256) {
+    if ($hash -ne $expectedSha256.ToLowerInvariant()) { throw "The Buzz Desktop SHA-256 does not match the GitHub release digest." }
+    Write-Host "[OK] GitHub release SHA-256 verified."
+  } else {
+    Write-Warning "GitHub did not publish a SHA-256 digest for this asset; PlotPickle verified the official release URL and executable format only."
+  }
+
   Write-Warning "Buzz Desktop $version is a separate third-party application. Its current Windows asset is labelled alpha-unsigned, so Windows SmartScreen may ask you to confirm before it opens."
   Write-Host "The installer will remain visible. PlotPickle does not pass silent-install flags or request elevation."
 
@@ -195,7 +294,9 @@ try {
 
   $installedCli = Find-BuzzCli
   if ($installedCli) {
-    Write-Host "[SUCCESS] Buzz Desktop $version CLI detected at $installedCli"
+    $installedAfter = Get-BuzzVersion -Executable $installedCli
+    $installedLabel = if ($installedAfter) { $installedAfter } else { $version }
+    Write-Host "[SUCCESS] Buzz Desktop $installedLabel CLI detected at $installedCli"
     Write-PlotPickleBuzzStatus -Status $(if ($Maintain) { "updated" } else { "installed" }) -Executable $installedCli
     exit 0
   }

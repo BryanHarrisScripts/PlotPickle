@@ -10,14 +10,14 @@ test("Buzz maintenance compares semantic versions instead of treating every mism
   assert.doesNotMatch(installer, /\$installedVersion -ne \$version/);
 });
 
-test("newer installed Buzz versions are retained and never replaced by the pinned reviewed package", () => {
+test("newer installed Buzz versions are retained and never replaced by an older selected release", () => {
   assert.match(installer, /\$comparison -gt 0/);
-  assert.match(installer, /newer than PlotPickle's reviewed package/i);
-  assert.match(installer, /Keeping the installed version and skipping the pinned installer/i);
+  assert.match(installer, /newer than PlotPickle's selected release/i);
+  assert.match(installer, /Keeping the installed version and skipping the installer/i);
   assert.match(installer, /Write-PlotPickleBuzzStatus -Status "detected"/);
 });
 
 test("Buzz installer runs only when the installed version is actually older", () => {
   assert.match(installer, /\$updateRequired = \$Maintain -and \$installedVersion -and \$null -ne \$comparison -and \$comparison -lt 0/);
-  assert.match(installer, /\[UPDATE\] Buzz Desktop \$installedVersion is installed; PlotPickle's reviewed package is \$version/);
+  assert.match(installer, /\[UPDATE\] Buzz Desktop \$installedVersion is installed; \$releaseSource is \$version/);
 });

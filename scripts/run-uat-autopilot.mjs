@@ -1,19 +1,24 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-import { createHash } from "node:crypto";
-import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import {
-  assessAutopilotEvidence,
-  compareVisualEvidence,
-  parseAcceptanceReport,
-  parseContinuityReport,
-  parseCreativeReport,
+  assessFocusedUat,
+  contractTestsFromRegistry,
+  validateUatRegistry,
 } from "../lib/uat-autopilot.mjs";
+import {
+  consoleHasErrors,
+  delay,
+  extractPageState,
+  McpClient,
+  resultText,
+  toolArguments,
+} from "./creative-uat/mcp-runtime.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
@@ -23,22 +28,17 @@ const argument = (name, fallback = "") => {
 };
 const baseUrl = argument("--base-url", process.env.PLOTPICKLE_ACCEPTANCE_URL || "http://127.0.0.1:4173");
 const localRoot = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
-const artifactRoot = path.resolve(argument("--artifact-root", path.join(localRoot, "PlotPickle", "uat")));
-const snapshotRoot = path.join(artifactRoot, "snapshots");
-const browserReportPath = path.join(artifactRoot, "acceptance-report.md");
-const creativeRoot = path.join(artifactRoot, "creative-writer-virtual-user");
-const creativeReportPath = path.join(creativeRoot, "acceptance-report.md");
-const creativeScreenshotRoot = path.join(creativeRoot, "agent-plugin", "creative-writer");
-const continuityReportPath = path.join(artifactRoot, "ui-continuity-report.md");
-const jsonReportPath = path.join(artifactRoot, "autopilot-report.json");
-const markdownReportPath = path.join(artifactRoot, "autopilot-report.md");
-const visualBaselinePath = path.resolve(argument("--visual-baseline", path.join(localRoot, "PlotPickle", "uat-baselines", "creative-writer.json")));
-const evidenceOnly = argv.includes("--evidence-only");
-const approveVisualBaseline = argv.includes("--approve-visual-baseline");
+const artifactRoot = path.resolve(argument("--artifact-root", path.join(localRoot, "PlotPickle", "uat-focused")));
+const registryPath = path.join(repoRoot, "config", "uat-autopilot-registry.json");
+const pluginRoot = path.join(repoRoot, "tools", "agent-plugins", "plotpickle-workflow-tester");
+const reportPath = path.join(artifactRoot, "autopilot-report.md");
+const jsonPath = path.join(artifactRoot, "autopilot-report.json");
+const snapshotsPath = path.join(artifactRoot, "snapshots");
+const contractsOnly = argv.includes("--contracts-only");
 
-function runNode(script, args = []) {
+function runContracts(files) {
   return new Promise((resolve) => {
-    const child = spawn(process.execPath, [script, ...args], {
+    const child = spawn(process.execPath, ["--test", ...files], {
       cwd: repoRoot,
       env: process.env,
       stdio: "inherit",
@@ -47,56 +47,6 @@ function runNode(script, args = []) {
     child.once("error", (error) => resolve({ code: 1, error: error.message }));
     child.once("exit", (code) => resolve({ code: Number(code ?? 1), error: "" }));
   });
-}
-
-async function readText(file) {
-  try {
-    return await readFile(file, "utf8");
-  } catch {
-    return "";
-  }
-}
-
-async function readJson(file) {
-  try {
-    return JSON.parse(await readFile(file, "utf8"));
-  } catch {
-    return null;
-  }
-}
-
-async function snapshotLengths() {
-  const lengths = {};
-  try {
-    const files = await readdir(snapshotRoot);
-    for (const file of files.filter((name) => name.endsWith(".md"))) {
-      lengths[file] = (await readText(path.join(snapshotRoot, file))).trim().length;
-    }
-  } catch {}
-  return lengths;
-}
-
-async function collectPngHashes(root) {
-  const hashes = {};
-  async function walk(directory) {
-    let entries = [];
-    try {
-      entries = await readdir(directory, { withFileTypes: true });
-    } catch {
-      return;
-    }
-    for (const entry of entries) {
-      const absolute = path.join(directory, entry.name);
-      if (entry.isDirectory()) await walk(absolute);
-      else if (entry.isFile() && entry.name.toLowerCase().endsWith(".png")) {
-        const relative = path.relative(root, absolute).replaceAll("\\", "/");
-        const bytes = await readFile(absolute);
-        hashes[relative] = createHash("sha256").update(bytes).digest("hex");
-      }
-    }
-  }
-  await walk(root);
-  return hashes;
 }
 
 async function fetchJson(url, init, timeoutMs = 15_000) {
@@ -112,23 +62,6 @@ async function fetchJson(url, init, timeoutMs = 15_000) {
   const payload = await response.json();
   if (!response.ok) throw new Error(payload?.message || `${response.status} ${response.statusText}`);
   return payload;
-}
-
-async function probeLearn() {
-  try {
-    const url = new URL("/?workspace=learn", baseUrl);
-    const response = await fetch(url, { signal: AbortSignal.timeout(15_000) });
-    const body = await response.text();
-    const looksLikeLearn = /learn|curriculum|foundation/i.test(body);
-    return {
-      ok: response.ok && looksLikeLearn,
-      status: response.status,
-      bodyLength: body.length,
-      message: response.ok && looksLikeLearn ? "" : `LEARN route returned HTTP ${response.status} without recognizable LEARN content.`,
-    };
-  } catch (error) {
-    return { ok: false, status: 0, bodyLength: 0, message: `LEARN route probe failed: ${error instanceof Error ? error.message : String(error)}` };
-  }
 }
 
 function normalized(value) {
@@ -156,11 +89,12 @@ async function chat(body, timeoutMs = 75_000) {
   }, timeoutMs);
 }
 
-async function probeAgents() {
+async function probeStartup() {
   const result = {
     statusOk: false,
-    statusMessage: "",
+    message: "",
     mastraReady: false,
+    embedded: false,
     sageRegistered: false,
     foundationsRegistered: false,
     fastAvailable: false,
@@ -178,11 +112,12 @@ async function probeAgents() {
     status = await fetchJson(`${baseUrl}/api/writing-assistant/status`, undefined, 15_000);
     result.statusOk = true;
   } catch (error) {
-    result.statusMessage = `Writing-assistant status failed: ${error instanceof Error ? error.message : String(error)}`;
+    result.message = `Startup status failed: ${error instanceof Error ? error.message : String(error)}`;
     return result;
   }
 
   result.mastraReady = status?.mastra?.ready === true;
+  result.embedded = status?.mastra?.mode === "embedded";
   const agents = Array.isArray(status?.mastra?.agents) ? status.mastra.agents : [];
   result.sageRegistered = agents.includes("curriculum-guide");
   result.foundationsRegistered = agents.includes("foundations-planner");
@@ -191,7 +126,7 @@ async function probeAgents() {
 
   if (result.fastAvailable && result.sageRegistered) {
     result.sageAttempted = true;
-    const question = "What is theme, and how can I use it while planning my story?";
+    const question = "What is theme, and how should I use it while building my Foundations?";
     try {
       await loadRole("fast");
       const response = await chat({
@@ -201,9 +136,8 @@ async function probeAgents() {
         tone: "gentle",
         message: question,
       }, 60_000);
-      const answer = String(response?.text || "").trim();
-      result.sagePassed = sageAnswerPass(answer, question);
-      if (!result.sagePassed) result.sageMessage = "Sage returned an empty, overly short, echoed, or generic failure response.";
+      result.sagePassed = sageAnswerPass(response?.text, question);
+      if (!result.sagePassed) result.sageMessage = "Sage returned an empty, echoed, overly short, or generic failure response.";
     } catch (error) {
       result.sageMessage = `Sage live-response probe failed: ${error instanceof Error ? error.message : String(error)}`;
     }
@@ -223,143 +157,186 @@ async function probeAgents() {
       });
       const parsed = JSON.parse(String(response?.text || ""));
       result.plannerPassed = Boolean(parsed?.values?.["output-1"]?.trim() && parsed?.values?.["output-2"]?.trim());
-      if (!result.plannerPassed) result.plannerMessage = "Foundations Planner response did not contain both requested structured fields.";
+      if (!result.plannerPassed) result.plannerMessage = "Foundations Planner did not return both requested structured PLAN fields.";
     } catch (error) {
       result.plannerMessage = `Foundations Planner structured-output probe failed: ${error instanceof Error ? error.message : String(error)}`;
     }
   }
-
   return result;
 }
 
-function markdownSummary(assessment, details) {
+async function inspectRegisteredAreas(registry) {
+  await mkdir(snapshotsPath, { recursive: true });
+  const pluginData = path.join(artifactRoot, "agent-plugin");
+  await mkdir(pluginData, { recursive: true });
+  const mcpConfig = JSON.parse(await readFile(path.join(pluginRoot, "mcp.json"), "utf8"));
+  const server = mcpConfig?.mcpServers?.playwright;
+  if (!server || server.type !== "stdio") throw new Error("Focused UAT requires the local Playwright MCP runtime.");
+  const expand = (value) => String(value).replaceAll("${PLUGIN_ROOT}", pluginRoot).replaceAll("${PLUGIN_DATA}", pluginData);
+  const client = new McpClient(expand(server.command), (server.args || []).map(expand), {
+    cwd: expand(server.cwd || pluginRoot),
+    env: Object.fromEntries(Object.entries(server.env || {}).map(([key, value]) => [key, expand(value)])),
+  });
+  const rendered = [];
+  let tools = [];
+  try {
+    await client.initialize();
+    tools = await client.tools();
+    const toolMap = new Map(tools.map((tool) => [tool.name, tool]));
+    for (const required of ["browser_navigate", "browser_snapshot", "browser_evaluate", "browser_take_screenshot"]) {
+      if (!toolMap.has(required)) throw new Error(`Playwright MCP is missing ${required}.`);
+    }
+
+    for (const area of registry.areas.filter((entry) => entry.route)) {
+      let evidence = {
+        id: area.id,
+        reached: false,
+        url: "",
+        bodyText: "",
+        bodyLength: 0,
+        screenshotCaptured: false,
+        consoleErrors: false,
+        error: "",
+      };
+      try {
+        await client.call("browser_navigate", { url: new URL(area.route, baseUrl).toString() });
+        await delay(650);
+        const snapshotText = resultText(await client.call("browser_snapshot", {}));
+        await writeFile(path.join(snapshotsPath, `${area.id}.md`), snapshotText, "utf8");
+        const stateResult = await client.call("browser_evaluate", {
+          function: "() => ({ url: location.href, bodyText: (document.body.innerText || '').replace(/\\s+/g, ' ').trim(), bodyLength: (document.body.innerText || '').trim().length })",
+        });
+        const state = extractPageState(resultText(stateResult));
+        evidence = {
+          ...evidence,
+          reached: true,
+          url: String(state.url || ""),
+          bodyText: String(state.bodyText || snapshotText || ""),
+          bodyLength: Number(state.bodyLength || String(state.bodyText || snapshotText || "").length),
+        };
+        const screenshotArgs = toolArguments(toolMap.get("browser_take_screenshot"), {
+          type: "png",
+          filename: `${area.id}.png`,
+          fullPage: true,
+        });
+        await client.call("browser_take_screenshot", screenshotArgs);
+        evidence.screenshotCaptured = true;
+        if (toolMap.has("browser_console_messages")) {
+          const consoleText = resultText(await client.call("browser_console_messages", toolArguments(toolMap.get("browser_console_messages"), { level: "error", all: false })));
+          evidence.consoleErrors = consoleHasErrors(consoleText);
+          if (consoleText) await writeFile(path.join(snapshotsPath, `${area.id}-console.txt`), consoleText, "utf8");
+        }
+      } catch (error) {
+        evidence.error = error instanceof Error ? error.message : String(error);
+      }
+      rendered.push(evidence);
+    }
+  } finally {
+    try {
+      if (tools.some((tool) => tool.name === "browser_close")) await client.call("browser_close", {});
+    } catch {}
+    await client.close();
+  }
+  return rendered;
+}
+
+function reportMarkdown({ registry, contractRun, startup, rendered, assessment, generatedAt, mode }) {
   const lines = [
-    "# PlotPickle UAT Autopilot",
+    "# PlotPickle Focused UAT Autopilot",
     "",
     `Overall: ${assessment.overall}`,
+    `Mode: ${mode}`,
+    `Generated: ${generatedAt}`,
     `Target: ${baseUrl}`,
-    `Generated: ${details.generatedAt}`,
     "",
-    "## Coverage",
-    "",
-    `Browser journey screens: ${assessment.metrics.browserScreens}`,
-    `Virtual-user stages: ${assessment.metrics.creativeStages}`,
-    `UI Continuity screens: ${assessment.metrics.continuityScreens}`,
-    `Accessibility snapshots above content floor: ${assessment.metrics.snapshotCount}`,
-    `Deterministic visual screenshots: ${assessment.metrics.visualScreenshots}`,
-    `Visual baseline: ${details.visual.approved ? "APPROVED" : "NOT YET APPROVED"}`,
-    `Sage live probe: ${details.agents.sageAttempted ? (details.agents.sagePassed ? "PASS" : "FAIL") : "SKIP"}`,
-    `Foundations Planner structured JSON: ${details.agents.plannerAttempted ? (details.agents.plannerPassed ? "PASS" : "FAIL") : "SKIP"}`,
-    "",
-    "## Blocking findings",
+    "## Current test scope",
     "",
   ];
-  if (assessment.blockers.length) lines.push(...assessment.blockers.map((item) => `- FAIL: ${item}`));
+  for (const area of registry.areas) lines.push(`- ${area.label}: ${area.tests.length} contract test${area.tests.length === 1 ? "" : "s"}${area.route ? ` · ${area.route}` : ""}`);
+  lines.push("", `Focused contract test exit: ${contractRun.code}`, "", "## Live rendered areas", "");
+  if (!rendered.length) lines.push("Skipped in contracts-only mode.");
+  else for (const entry of rendered) lines.push(`- ${entry.id}: ${entry.reached ? "reached" : "not reached"}, ${entry.bodyLength} visible characters, screenshot ${entry.screenshotCaptured ? "captured" : "missing"}, console ${entry.consoleErrors ? "ERROR" : "clean"}`);
+  lines.push("", "## Startup and local-agent probes", "");
+  if (mode === "contracts-only") lines.push("Skipped in contracts-only mode.");
+  else lines.push(
+    `- Mastra ready: ${startup.mastraReady ? "yes" : "no"}`,
+    `- Embedded runtime: ${startup.embedded ? "yes" : "no"}`,
+    `- Sage registered: ${startup.sageRegistered ? "yes" : "no"}`,
+    `- Foundations Planner registered: ${startup.foundationsRegistered ? "yes" : "no"}`,
+    `- Sage live response: ${startup.sageAttempted ? (startup.sagePassed ? "PASS" : "FAIL") : "SKIP"}`,
+    `- PLAN structured output: ${startup.plannerAttempted ? (startup.plannerPassed ? "PASS" : "FAIL") : "SKIP"}`,
+  );
+  lines.push("", "## Blocking findings", "");
+  if (assessment.blockers.length) lines.push(...assessment.blockers.map((message) => `- FAIL: ${message}`));
   else lines.push("None.");
   lines.push("", "## Review findings", "");
-  if (assessment.warnings.length) lines.push(...assessment.warnings.map((item) => `- WARN: ${item}`));
+  if (assessment.warnings.length) lines.push(...assessment.warnings.map((message) => `- WARN: ${message}`));
   else lines.push("None.");
-  lines.push(
-    "",
-    "## Evidence",
-    "",
-    `Browser report: ${browserReportPath}`,
-    `30-stage virtual-user report: ${creativeReportPath}`,
-    `UI continuity report: ${continuityReportPath}`,
-    `Approved visual baseline: ${visualBaselinePath}`,
-    `Machine-readable report: ${jsonReportPath}`,
-    "",
-    "Human UAT should now focus on creative taste, clarity, and whether the product feels right. Repeatable functional, virtual-user, visual-regression, content-presence, console, and local-agent failures are expected to be caught here first.",
-    "",
-  );
+  lines.push("", "Add future product areas by extending config/uat-autopilot-registry.json with the new route, rendered expectations, and focused contract tests.", "");
   return lines.join("\n");
 }
 
 async function main() {
   await mkdir(artifactRoot, { recursive: true });
-  let browserRun = { code: 0, error: "" };
-  let creativeRun = { code: 0, error: "" };
-  let continuityRun = { code: 0, error: "" };
+  const registry = JSON.parse(await readFile(registryPath, "utf8"));
+  const registryErrors = validateUatRegistry(registry);
+  if (registryErrors.length) throw new Error(registryErrors.join("\n"));
+  const contractTests = contractTestsFromRegistry(registry);
+  const contractRun = await runContracts(contractTests);
 
-  if (!evidenceOnly) {
-    browserRun = await runNode(path.join(repoRoot, "scripts", "run-local-browser-uat.mjs"), [
-      "--base-url", baseUrl,
-      "--scope", "full",
-      "--artifact-root", artifactRoot,
+  let startup = {
+    statusOk: true,
+    mastraReady: true,
+    embedded: true,
+    sageRegistered: true,
+    foundationsRegistered: true,
+    fastAvailable: true,
+    qualityAvailable: true,
+  };
+  let rendered = [];
+  let assessment;
+  const mode = contractsOnly ? "contracts-only" : "focused-live";
+
+  if (contractsOnly) {
+    assessment = {
+      overall: contractRun.code === 0 ? "PASS" : "FAIL",
+      blockers: contractRun.code === 0 ? [] : [`Focused contract tests exited with code ${contractRun.code}.`],
+      warnings: [],
+      metrics: { areasRegistered: registry.areas.length, renderedAreas: 0, contractTests: contractTests.length },
+    };
+  } else {
+    [startup, rendered] = await Promise.all([
+      probeStartup(),
+      inspectRegisteredAreas(registry),
     ]);
-    creativeRun = await runNode(path.join(repoRoot, "scripts", "run-creative-writer-uat.mjs"), [
-      "--base-url", baseUrl,
-      "--artifact-root", creativeRoot,
-    ]);
-    continuityRun = await runNode(path.join(repoRoot, "scripts", "ui-continuity-agent.mjs"), [
-      "--server", baseUrl,
-      "--report", continuityReportPath,
-    ]);
+    assessment = assessFocusedUat({ registry, contractExitCode: contractRun.code, rendered, startup });
   }
 
-  const [browserText, creativeText, continuityText, lengths, learn, agents, visualHashes] = await Promise.all([
-    readText(browserReportPath),
-    readText(creativeReportPath),
-    readText(continuityReportPath),
-    snapshotLengths(),
-    probeLearn(),
-    probeAgents(),
-    collectPngHashes(creativeScreenshotRoot),
-  ]);
-
-  let visualBaseline = await readJson(visualBaselinePath);
-  if (approveVisualBaseline && Object.keys(visualHashes).length) {
-    visualBaseline = { schemaVersion: 1, approvedAt: new Date().toISOString(), browser: "Playwright MCP Chrome", hashes: visualHashes };
-    await mkdir(path.dirname(visualBaselinePath), { recursive: true });
-    await writeFile(visualBaselinePath, `${JSON.stringify(visualBaseline, null, 2)}\n`, "utf8");
-  }
-
-  const browser = parseAcceptanceReport(browserText);
-  const creative = parseCreativeReport(creativeText);
-  const continuity = parseContinuityReport(continuityText);
-  const visual = compareVisualEvidence(visualHashes, visualBaseline);
-  const assessment = assessAutopilotEvidence({
-    browser,
-    creative,
-    continuity,
-    visual,
-    snapshotLengths: lengths,
-    learn,
-    agents,
-    browserExitCode: browserRun.code,
-    creativeExitCode: creativeRun.code,
-    continuityExitCode: continuityRun.code,
-  });
   const generatedAt = new Date().toISOString();
-  const machineReport = {
-    schemaVersion: 2,
+  const machine = {
+    schemaVersion: 1,
     generatedAt,
     target: baseUrl,
+    mode,
     overall: assessment.overall,
     blockers: assessment.blockers,
     warnings: assessment.warnings,
     metrics: assessment.metrics,
-    browser,
-    creative,
-    continuity,
-    visual,
-    learn,
-    agents,
-    processes: { browser: browserRun, creative: creativeRun, continuity: continuityRun },
+    registry,
+    contracts: contractRun,
+    startup: contractsOnly ? null : startup,
+    rendered,
   };
-  await writeFile(jsonReportPath, `${JSON.stringify(machineReport, null, 2)}\n`, "utf8");
-  await writeFile(markdownReportPath, markdownSummary(assessment, { generatedAt, agents, visual }), "utf8");
-  process.stdout.write(`UAT Autopilot ${assessment.overall}: ${assessment.blockers.length} blocker(s), ${assessment.warnings.length} warning(s). Report: ${markdownReportPath}\n`);
-  if (!visual.approved && Object.keys(visualHashes).length) {
-    process.stdout.write(`Approve the current deterministic screenshot baseline only after visual review: node scripts/run-uat-autopilot.mjs --base-url ${baseUrl} --approve-visual-baseline\n`);
-  }
+  await writeFile(jsonPath, `${JSON.stringify(machine, null, 2)}\n`, "utf8");
+  await writeFile(reportPath, reportMarkdown({ registry, contractRun, startup, rendered, assessment, generatedAt, mode }), "utf8");
+  process.stdout.write(`Focused UAT ${assessment.overall}: ${assessment.blockers.length} blocker(s), ${assessment.warnings.length} warning(s). Report: ${reportPath}\n`);
   process.exitCode = assessment.overall === "FAIL" ? 1 : 0;
 }
 
 main().catch(async (error) => {
   await mkdir(artifactRoot, { recursive: true });
   const message = error instanceof Error ? error.stack || error.message : String(error);
-  await writeFile(markdownReportPath, `# PlotPickle UAT Autopilot\n\nOverall: FAIL\n\n${message}\n`, "utf8");
+  await writeFile(reportPath, `# PlotPickle Focused UAT Autopilot\n\nOverall: FAIL\n\n${message}\n`, "utf8");
   console.error(message);
   process.exitCode = 1;
 });

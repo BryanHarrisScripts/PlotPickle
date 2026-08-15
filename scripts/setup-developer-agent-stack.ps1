@@ -61,7 +61,7 @@ if (-not $VerifyOnly) {
     "npm:pi-mcp-adapter@2.26.0"
   )
   foreach ($package in $packages) {
-    & pi install -l $package
+    & pi install $package -l
     if ($LASTEXITCODE -ne 0) { throw "Pi package install failed for $package with exit code $LASTEXITCODE." }
   }
 }

@@ -92,7 +92,7 @@ async function waitForAnswer(client, previousCount, timeoutMs = 90_000) {
     const texts = Array.isArray(state.texts) ? state.texts : [];
     const thinking = texts.at(-1) === "Thinking about your question…";
     if (state.alert) return { state, answer: "", error: String(state.alert) };
-    if (!thinking && texts.length >= previousCount + 2) return { state, answer: String(texts.at(-1) || ""), error: "" };
+    if (!thinking && texts.length > previousCount) return { state, answer: String(texts.at(-1) || ""), error: "" };
   }
   const state = await roomState(client);
   return { state, answer: "", error: "Timed out waiting for Sage's visible UI answer." };

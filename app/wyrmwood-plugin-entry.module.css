@@ -1,58 +1,47 @@
 .entry {
   position: fixed;
-  top: 5px;
+  top: 2px;
   right: 94px;
   z-index: 80;
   display: grid;
   width: 72px;
-  justify-items: center;
-  gap: 1px;
-  padding: 0 2px 4px;
+  height: 64px;
+  place-items: center;
+  padding: 0;
   border: 0;
-  background: rgba(8, 9, 10, 0.9);
-  color: #f1eee7;
+  background: transparent;
+  color: inherit;
   font: inherit;
-  text-align: center;
   cursor: pointer;
 }
 
-.entry img {
-  width: 44px;
-  height: 44px;
+.glyph {
+  width: 58px;
+  height: 58px;
   object-fit: contain;
-  filter: saturate(1.1) brightness(1.06) drop-shadow(0 0 7px rgba(53, 201, 184, 0.5));
+  filter:
+    saturate(1.13)
+    brightness(1.08)
+    drop-shadow(0 0 5px rgba(210, 170, 84, 0.38))
+    drop-shadow(0 0 9px rgba(53, 201, 184, 0.46));
+  transform-origin: center;
   transition: filter 160ms ease, transform 160ms ease;
 }
 
-.entry:hover img,
-.entry:focus-visible img {
-  filter: saturate(1.22) brightness(1.18) drop-shadow(0 0 10px rgba(53, 201, 184, 0.72));
-  transform: translateY(-1px) scale(1.05);
-}
-
-.entry span {
-  display: grid;
-  gap: 0;
-}
-
-.entry strong {
-  color: #d7d1c7;
-  font-family: var(--font-mono, "Courier New", monospace);
-  font-size: 11px;
-  line-height: 1;
-}
-
-.entry small {
-  color: #8e877d;
-  font-family: var(--font-mono, "Courier New", monospace);
-  font-size: 8px;
-  line-height: 1.2;
-  white-space: nowrap;
+.entry:hover .glyph,
+.entry:focus-visible .glyph {
+  filter:
+    saturate(1.22)
+    brightness(1.18)
+    drop-shadow(0 0 7px rgba(235, 192, 95, 0.52))
+    drop-shadow(0 0 12px rgba(53, 201, 184, 0.7));
+  transform: translateY(-1px) scale(1.055);
 }
 
 .entry:focus-visible {
   outline: 1px solid rgba(53, 201, 184, 0.72);
-  outline-offset: 2px;
+  outline-offset: 1px;
+  border-radius: 999px;
 }
 
 @media (max-width: 900px) {

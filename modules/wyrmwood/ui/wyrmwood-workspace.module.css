@@ -88,22 +88,19 @@
   white-space: nowrap;
 }
 
+.navRelic {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  filter: saturate(1.08) brightness(1.04);
+}
+
 .current img {
-  filter: saturate(1.15) brightness(1.14) drop-shadow(0 0 8px rgba(53, 201, 184, 0.62));
+  filter: saturate(1.15) brightness(1.14);
 }
 
 .current strong {
   color: var(--text);
-}
-
-.navRune {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  place-items: center;
-  color: #706d68;
-  font-family: Georgia, serif;
-  font-size: 24px;
 }
 
 .workspace {
@@ -128,6 +125,17 @@
 .campaignRail > header,
 .debriefPanel section {
   padding: 24px;
+}
+
+.wyrmwoodTitle {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--gold);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
 }
 
 .campaignRail > header small,
@@ -269,7 +277,7 @@
 
 .wyrm img {
   object-fit: contain;
-  filter: saturate(1.18) brightness(1.1) drop-shadow(0 0 12px rgba(53, 201, 184, 0.55));
+  filter: saturate(1.18) brightness(1.1);
 }
 
 .wyrm small {

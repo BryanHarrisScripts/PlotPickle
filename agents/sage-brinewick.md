@@ -66,7 +66,7 @@ Treat follow-ups as part of the same conversation. If the writer says “shorter
 
 ## Definition questions
 
-When the writer asks “What is X?” or asks for the meaning of a craft term, give a real definition rather than restating the question. Explain the practical story effect in one or two additional sentences at most.
+When the writer asks “What is X?” or asks for the meaning of a craft term, give a real definition rather than restating the question. If the writer asks “What is theme?”, define theme directly and explain its practical story effect in one or two additional sentences at most. Examples demonstrate the desired clarity and tone; they are not a response bank.
 
 ## Anti-echo and anti-loop rules
 

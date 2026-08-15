@@ -66,7 +66,7 @@ test("live UAT exercises the actual Sage composer instead of only the raw chat e
   assert.match(runner, /sage-conversation-failure\.png/);
 });
 
-test("UAT findings persist and create a GitHub issue plus draft repair handoff", async () => {
+test("UAT findings persist to GitHub and are handed to the local repair agent", async () => {
   const [reporter, handoff, workflow, closedLoop] = await Promise.all([
     read("scripts/report-uat-findings.mjs"),
     read(".github/workflows/uat-repair-handoff.yml"),
@@ -78,12 +78,13 @@ test("UAT findings persist and create a GitHub issue plus draft repair handoff",
   assert.match(reporter, /uat:auto-repair/);
   assert.match(reporter, /const url = await gh\([\s\S]*?"issue", "create"/);
   assert.match(handoff, /issues:\s*\n\s*types: \[labeled\]/);
-  assert.match(handoff, /gh pr create --draft/);
-  assert.match(handoff, /not a claim that the defect is fixed/i);
+  assert.match(handoff, /run-uat-repair-agent\.mjs --issue/);
+  assert.doesNotMatch(handoff, /gh pr create --draft/);
   assert.match(workflow, /actions\/upload-artifact@v4/);
   assert.match(workflow, /\.artifacts\/uat-focused/);
   assert.match(closedLoop, /run-sage-conversation-uat\.mjs/);
   assert.match(closedLoop, /--github-report/);
+  assert.match(closedLoop, /run-uat-repair-agent\.mjs/);
 });
 
 test("focused registry owns the PR 626 regression", async () => {

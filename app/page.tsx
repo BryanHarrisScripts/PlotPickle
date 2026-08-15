@@ -7,15 +7,18 @@ import { normalizeFoundationProject, type PPFProject } from "../core/project/pro
 import { answerFromCurriculum } from "../modules/creative-room/curriculum-guide";
 import LearnWorkspace from "../modules/learn/ui/learn-workspace";
 import FoundationsPlanWorkspace from "../modules/plan/ui/foundations-plan-workspace";
+import WyrmwoodWorkspace from "../modules/wyrmwood/ui/wyrmwood-workspace";
 import SageSettingsWorkspace from "./sage-settings-workspace";
+import WyrmwoodPluginEntry from "./wyrmwood-plugin-entry";
 
-type Workspace = "learn" | "plan" | "settings";
+type Workspace = "learn" | "plan" | "settings" | "wyrmwood";
 
 function requestedWorkspace(): Workspace {
   if (typeof window === "undefined") return "learn";
   const requested = new URLSearchParams(window.location.search).get("workspace");
   if (requested === "plan") return "plan";
   if (requested === "settings") return "settings";
+  if (requested === "wyrmwood") return "wyrmwood";
   return "learn";
 }
 
@@ -49,6 +52,17 @@ function repairPersistedProject() {
   }
 }
 
+function navigateWorkspace(workspace: "learn" | "plan" | "wyrmwood") {
+  const destination = new URL(window.location.href);
+  destination.searchParams.set("workspace", workspace);
+  if (workspace !== "plan") {
+    destination.searchParams.delete("section");
+    destination.searchParams.delete("lesson");
+  }
+  if (workspace === "plan") destination.searchParams.set("section", "foundations");
+  window.location.assign(`${destination.pathname}${destination.search}`);
+}
+
 export default function Home() {
   const [workspace, setWorkspace] = useState<Workspace>("learn");
   const [storageReady, setStorageReady] = useState(false);
@@ -73,8 +87,23 @@ export default function Home() {
     return <SageSettingsWorkspace />;
   }
 
+  if (workspace === "wyrmwood") {
+    return (
+      <WyrmwoodWorkspace
+        curriculum={plotPickleCurriculum}
+        onOpenLearn={() => navigateWorkspace("learn")}
+        onOpenPlan={() => navigateWorkspace("plan")}
+      />
+    );
+  }
+
   if (workspace === "plan") {
-    return <FoundationsPlanWorkspace curriculum={plotPickleCurriculum} />;
+    return (
+      <>
+        <WyrmwoodPluginEntry onOpen={() => navigateWorkspace("wyrmwood")} />
+        <FoundationsPlanWorkspace curriculum={plotPickleCurriculum} />
+      </>
+    );
   }
 
   const openFoundationsPlan = (lessonId?: string) => {
@@ -87,10 +116,13 @@ export default function Home() {
   };
 
   return (
-    <LearnWorkspace
-      curriculum={plotPickleCurriculum}
-      guide={answerFromCurriculum}
-      onOpenFoundationsPlan={openFoundationsPlan}
-    />
+    <>
+      <WyrmwoodPluginEntry onOpen={() => navigateWorkspace("wyrmwood")} />
+      <LearnWorkspace
+        curriculum={plotPickleCurriculum}
+        guide={answerFromCurriculum}
+        onOpenFoundationsPlan={openFoundationsPlan}
+      />
+    </>
   );
 }

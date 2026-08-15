@@ -1,13 +1,15 @@
-export type FoundationModuleId = "learn" | "creative-room";
+export type FoundationModuleId = "learn" | "creative-room" | "wyrmwood";
 
 export type ModuleCapability =
   | "curriculum.read"
   | "lesson.open"
   | "lesson.complete"
   | "creative-room.read"
-  | "creative-room.reply";
+  | "creative-room.reply"
+  | "wyrmwood.play"
+  | "wyrmwood.progress";
 
-export type ProjectArea = "learning" | "creativeRoom";
+export type ProjectArea = "learning" | "creativeRoom" | "wyrmwood";
 
 export interface ModuleManifest {
   readonly id: FoundationModuleId;

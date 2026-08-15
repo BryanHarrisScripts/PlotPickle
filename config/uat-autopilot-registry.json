@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "areas": [
+    {
+      "id": "settings",
+      "label": "Settings",
+      "route": "/?workspace=settings",
+      "requiredTerms": ["Sage", "Settings"],
+      "minimumTextLength": 300
+    },
+    {
+      "id": "foundations-learn",
+      "label": "Foundations / LEARN",
+      "route": "/?workspace=learn",
+      "requiredTerms": ["Foundations", "Learn"],
+      "minimumTextLength": 1200
+    },
+    {
+      "id": "plan",
+      "label": "PLAN / Foundations",
+      "route": "/?workspace=plan&section=foundations",
+      "requiredTerms": ["Foundations", "Plan"],
+      "minimumTextLength": 700
+    },
+    {
+      "id": "wyrmwood",
+      "label": "Wyrmwood game",
+      "route": "/?workspace=wyrmwood",
+      "requiredTerms": ["Wyrmwood", "Pickle"],
+      "minimumTextLength": 500
+    }
+  ]
+}

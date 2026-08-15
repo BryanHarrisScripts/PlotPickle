@@ -30,7 +30,7 @@ const allowedKinds = new Set(["none", "positive", "confusion", "friction", "need
 const allowedActions = new Set(["click", "type", "navigate", "wait", "finish"]);
 
 function cleanSnapshot(value) {
-  return String(value || "").replace(/file:\/\/\/[^\s]+/gi, "[local-file]").slice(0, 12_000);
+  return String(value || "").replace(/file:\/\/\/[^\s]+/gi, "[local-file]").slice(0, 6_500);
 }
 
 function routeFromSnapshot(snapshot, fallback = "/?workspace=learn") {
@@ -114,9 +114,6 @@ function writerPrompt({ snapshot, turn, diary, storyMemory, modelRole }) {
     `Turn: ${turn} of ${maxTurns}. Local model role: ${modelRole}.`,
     `Recent diary: ${JSON.stringify(recent)}`,
     "",
-    "VISIBLE ACCESSIBILITY SNAPSHOT (this is all you may know about the application):",
-    cleanSnapshot(snapshot),
-    "",
     "Choose exactly one next visible action. Use a ref exactly as shown in the accessibility snapshot for click/type actions.",
     `Allowed navigate routes: ${config.allowedRoutes.join(", ")}`,
     "Allowed actions: click, type, navigate, wait, finish.",
@@ -125,9 +122,11 @@ function writerPrompt({ snapshot, turn, diary, storyMemory, modelRole }) {
     "Report at most two experience observations about the screen you can actually see. An observation can be positive, confusion, friction, need, bug, or abandonment-risk. Use bug only when visible behaviour contradicts a reasonable user expectation; otherwise use friction/confusion/need.",
     "Mark actionable true only when a product team could reasonably act on the observation. Do not invent unseen failures.",
     "Do not provide hidden reasoning. decisionSummary is only a short user-level explanation of what Avery wants to do next.",
-    "",
     "Return JSON only in this shape:",
     '{"decisionSummary":"...","storyMemory":"short cumulative story-choice summary","action":{"type":"click|type|navigate|wait|finish","ref":"snapshot ref when needed","element":"human-readable visible control","text":"text for type","route":"approved route for navigate","seconds":1},"observations":[{"kind":"positive|confusion|friction|need|bug|abandonment-risk","severity":"low|medium|high","actionable":true,"summary":"...","expectation":"...","impact":"..."}]}',
+    "",
+    "VISIBLE ACCESSIBILITY SNAPSHOT (this is all you may know about the application):",
+    cleanSnapshot(snapshot),
   ].join("\n");
 }
 

@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (path) => readFile(resolve(root, path), "utf8");
 
-test("LEARN logo is transparent, larger than glyphs, glowing, and Foundations formatting preserves exact copy", async () => {
+test("LEARN logo is transparent, larger than glyphs, clean without backglow, and Foundations formatting preserves exact copy", async () => {
   const [layout, polish, workspace, workspaceCss, curriculumMaterial, foundations] = await Promise.all([
     read("app/layout.tsx"),
     read("app/learn-foundations-polish.css"),
@@ -28,7 +28,8 @@ test("LEARN logo is transparent, larger than glyphs, glowing, and Foundations fo
   assert.match(polish, /box-shadow:\s*none\s*!important/);
   assert.match(polish, /width:\s*76px\s*!important/);
   assert.match(polish, /height:\s*76px\s*!important/);
-  assert.match(polish, /filter:[\s\S]*drop-shadow/);
+  assert.match(polish, /filter:\s*saturate\(1\.34\) brightness\(1\.2\) contrast\(1\.06\)\s*!important/);
+  assert.doesNotMatch(polish, /drop-shadow/);
   assert.match(polish, /left:\s*9px\s*!important/);
   assert.match(workspaceCss, /\.stageRelic\s*\{[\s\S]*width:\s*44px/);
   assert.match(workspace, /alt="PlotPickle"[\s\S]*height=\{80\}[\s\S]*width=\{80\}/);

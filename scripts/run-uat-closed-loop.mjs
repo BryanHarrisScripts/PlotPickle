@@ -18,6 +18,7 @@ const baseUrl = argument("--base-url", process.env.PLOTPICKLE_ACCEPTANCE_URL || 
 const localRoot = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
 const artifactRoot = path.resolve(argument("--artifact-root", path.join(localRoot, "PlotPickle", "uat-focused")));
 const githubReport = args.includes("--github-report");
+const repair = args.includes("--repair");
 
 function run(script, scriptArgs) {
   return new Promise((resolve) => {
@@ -72,6 +73,17 @@ async function main() {
     const reporter = await run("scripts/report-uat-findings.mjs", ["--report", reportPath]);
     if (reporter.code !== 0) process.exitCode = 1;
   }
+
+  if (repair && deduped.length) {
+    for (const finding of deduped) {
+      const repairRun = await run("scripts/run-uat-repair-agent.mjs", ["--report", reportPath, "--fingerprint", finding.fingerprint]);
+      if (repairRun.code !== 0) {
+        process.stderr.write(`UAT repair agent did not complete ${finding.fingerprint}. The blocker remains open for manual repair.\n`);
+        process.exitCode = 1;
+      }
+    }
+  }
+
   if (combined.overall === "FAIL") process.exitCode = 1;
   process.stdout.write(`Closed-loop UAT ${combined.overall}: ${deduped.length} unique blocker(s). Findings: ${reportPath}\n`);
 }

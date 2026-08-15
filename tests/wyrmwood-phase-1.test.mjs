@@ -42,15 +42,17 @@ test("the first Wyrmwood campaign is generated from LEARN Foundations", async ()
   assert.match(ui, /trial\.learningTargets/);
 });
 
-test("PLAY keeps the original isolated shell while later phases activate the duel", async () => {
+test("GAME keeps the original isolated shell while later phases activate the duel", async () => {
   const [entry, page, ui] = await Promise.all([
     read("app/wyrmwood-plugin-entry.tsx"),
     read("app/page.tsx"),
     read("modules/wyrmwood/ui/wyrmwood-workspace.tsx"),
   ]);
 
-  assert.match(entry, />PLAY</);
-  assert.match(entry, />Wyrmwood</);
+  assert.match(entry, /src="\/assets\/workflow-relics\/game\.webp"/);
+  assert.match(entry, /aria-label="Open GAME — Wyrmwood"/);
+  assert.doesNotMatch(entry, />PLAY</);
+  assert.doesNotMatch(entry, />Wyrmwood</);
   assert.match(page, /<WyrmwoodPluginEntry onOpen=\{\(\) => navigateWorkspace\("wyrmwood"\)\}/);
   assert.match(ui, /Spellscribe response · practical logic only/);
   assert.match(ui, /150 words/);

@@ -187,7 +187,7 @@ test("the PLAN screen keeps manual work primary and uses opt-in local Mastra pro
   assert.doesNotMatch(plan, /The Anatomy of a Screenplay|Loglines That Carry the Movie/);
   assert.match(plan, /Local AI is optional and is never required/);
   assert.match(plan, /proposal stays separate from your fields/);
-  assert.match(plan, /Accept proposal into my fields/);
+  assert.match(plan, /Accept (?:selected )?proposal into my fields/);
   assert.match(plan, /Dismiss proposal/);
   assert.match(plan, /Build from saved answers/);
   assert.match(plan, /Save Foundations Brief/);

@@ -1,6 +1,7 @@
 import {
   createEmptyFoundationLessonAnswers,
   createEmptyFoundationPlanState,
+  isUsableFoundationAnswer,
   type FoundationDraftProposal,
   type FoundationLessonAnswers,
   type FoundationPlanState,
@@ -62,19 +63,25 @@ const LEGACY_FOUNDATION_FIELDS: Readonly<Record<string, string>> = {
   foundationsBrief: "essentials-experience",
 };
 
+const LEGACY_AUTOMATED_BRIEF_MARKER = "this story decision is still open because no accepted writer material produced a usable local-model answer";
+
 function stringRecord(value: unknown): Readonly<Record<string, string>> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   return Object.fromEntries(
-    Object.entries(value).filter((entry): entry is [string, string] => (
-      typeof entry[1] === "string"
-    )),
+    Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
+  );
+}
+
+function usableAnswerRecord(value: unknown): Readonly<Record<string, string>> {
+  return Object.fromEntries(
+    Object.entries(stringRecord(value)).filter(([, answer]) => isUsableFoundationAnswer(answer)),
   );
 }
 
 function normalizeProposal(value: unknown): FoundationDraftProposal | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const proposal = value as Partial<FoundationDraftProposal>;
-  const values = stringRecord(proposal.values);
+  const values = usableAnswerRecord(proposal.values);
   if (!Object.keys(values).length) return null;
   return {
     values,
@@ -89,10 +96,12 @@ function normalizeLessonAnswers(value: unknown): FoundationLessonAnswers {
   const empty = createEmptyFoundationLessonAnswers();
   if (!value || typeof value !== "object" || Array.isArray(value)) return empty;
   const answers = value as Partial<FoundationLessonAnswers>;
+  const cleanAnswers = usableAnswerRecord(answers.answers);
+  const proposal = normalizeProposal(answers.proposal);
   return {
-    answers: stringRecord(answers.answers),
-    proposal: normalizeProposal(answers.proposal),
-    proposalAcceptedAt: typeof answers.proposalAcceptedAt === "string" ? answers.proposalAcceptedAt : null,
+    answers: cleanAnswers,
+    proposal,
+    proposalAcceptedAt: proposal && typeof answers.proposalAcceptedAt === "string" ? answers.proposalAcceptedAt : null,
     updatedAt: typeof answers.updatedAt === "string" ? answers.updatedAt : null,
   };
 }
@@ -108,12 +117,10 @@ function normalizeFoundations(value: unknown): FoundationPlanState {
     Object.entries(sourceLessons).map(([lessonId, answers]) => [lessonId, normalizeLessonAnswers(answers)]),
   );
 
-  // Preserve answers written by the short-lived earlier PLAN implementation.
-  // They are placed in the first current output field for the same lesson and
-  // remain fully editable; no browser-persisted story work is discarded.
+  // Preserve real answers written by the short-lived earlier PLAN implementation.
   for (const [legacyField, lessonId] of Object.entries(LEGACY_FOUNDATION_FIELDS)) {
     const legacyValue = typeof source[legacyField] === "string" ? source[legacyField].trim() : "";
-    if (!legacyValue || lessons[lessonId]?.answers["output-1"]?.trim()) continue;
+    if (!isUsableFoundationAnswer(legacyValue) || lessons[lessonId]?.answers["output-1"]?.trim()) continue;
     lessons[lessonId] = {
       ...createEmptyFoundationLessonAnswers(),
       ...lessons[lessonId],
@@ -127,14 +134,18 @@ function normalizeFoundations(value: unknown): FoundationPlanState {
   const brief = source.brief && typeof source.brief === "object" && !Array.isArray(source.brief)
     ? source.brief as { readonly content?: unknown; readonly savedAt?: unknown }
     : {};
+  const rawBrief = typeof brief.content === "string" ? brief.content : "";
+  const briefWasGeneratedFromLegacyFallback = rawBrief.toLowerCase().includes(LEGACY_AUTOMATED_BRIEF_MARKER);
   return {
     activeLessonId: typeof source.activeLessonId === "string" && source.activeLessonId
       ? source.activeLessonId
       : null,
     lessons,
     brief: {
-      content: typeof brief.content === "string" ? brief.content : "",
-      savedAt: typeof brief.savedAt === "string" ? brief.savedAt : null,
+      content: briefWasGeneratedFromLegacyFallback ? "" : rawBrief,
+      savedAt: briefWasGeneratedFromLegacyFallback
+        ? null
+        : typeof brief.savedAt === "string" ? brief.savedAt : null,
     },
   };
 }
@@ -166,9 +177,7 @@ export function normalizeFoundationProject(value: unknown): PPFProject {
         ? learning.activeLessonId
         : null,
       completedLessonIds: Array.isArray(learning?.completedLessonIds)
-        ? learning.completedLessonIds.filter((lessonId): lessonId is string => (
-          typeof lessonId === "string" && Boolean(lessonId)
-        ))
+        ? learning.completedLessonIds.filter((lessonId): lessonId is string => typeof lessonId === "string" && Boolean(lessonId))
         : [],
     },
     creativeRoom: {

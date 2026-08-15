@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { plotPickleCurriculum } from "../adapters/curriculum/current-catalog";
 import { FOUNDATION_PROJECT_STORAGE_KEY } from "../core/contracts/foundation-plan";
 import { normalizeFoundationProject, type PPFProject } from "../core/project/project";
-import { answerFromCurriculum } from "../modules/creative-room/curriculum-guide";
+import { answerFromCurriculum } from "../modules/creative-room/sage-safe-guide";
 import LearnWorkspace from "../modules/learn/ui/learn-workspace";
 import FoundationsPlanWorkspace from "../modules/plan/ui/foundations-plan-workspace";
 import WyrmwoodWorkspace from "../modules/wyrmwood/ui/wyrmwood-workspace";

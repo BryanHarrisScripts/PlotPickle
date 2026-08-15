@@ -38,9 +38,19 @@ jobs:
         run: node --test tests/issue-622-uat-autopilot.test.mjs
 
       - name: Test Startup, Settings, Foundations/LEARN, PLAN, and Wyrmwood
-        run: node scripts/run-uat-autopilot.mjs --contracts-only
+        run: node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused
+
+      - name: Upload focused UAT evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: focused-uat-${{ github.run_id }}
+          path: .artifacts/uat-focused
+          if-no-files-found: error
+          retention-days: 5
 
       - name: Production build
         run: npm run build
 
+# Live local closed-loop UAT is run with scripts/run-uat-closed-loop.mjs.
 # Add future product areas by extending config/uat-autopilot-registry.json with their focused tests and rendered expectations.

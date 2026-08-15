@@ -10,7 +10,8 @@
         "tests/issue-603-startup-agent-diagnostics.test.mjs",
         "tests/issue-614-startup-health-warning-cleanup.test.mjs",
         "tests/issue-623-agent-observability.test.mjs",
-        "tests/issue-624-deepseek-harness-runtime.test.mjs"
+        "tests/issue-624-deepseek-harness-runtime.test.mjs",
+        "tests/issue-626-uat-findings-sage-repair.test.mjs"
       ]
     },
     {
@@ -38,7 +39,8 @@
         "tests/issue-593-foundations-depth-and-placement.test.mjs",
         "tests/issue-594-local-learn-rag-and-brand.test.mjs",
         "tests/issue-596-learn-logo-and-formatting.test.mjs",
-        "tests/issue-601-sage-personality-and-answer-quality.test.mjs"
+        "tests/issue-601-sage-personality-and-answer-quality.test.mjs",
+        "tests/issue-626-uat-findings-sage-repair.test.mjs"
       ]
     },
     {

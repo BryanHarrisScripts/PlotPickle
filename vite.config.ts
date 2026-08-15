@@ -24,6 +24,7 @@ import { localStorageSafetyGateway } from "./build/local-storage-safety-gateway"
 import { fullStoryBuilderGateway } from "./build/full-story-builder-gateway";
 import { sites } from "./build/sites-vite-plugin";
 import { startupAgentDiagnosticsPlugin } from "./build/startup-agent-diagnostics";
+import { uatDiscoveryPlugin } from "./build/uat-discovery-plugin";
 
 // Vite currently uses the bundled config loader for PlotPickle. Its proactive
 // future-native-loader advisory is developer migration noise, not a startup
@@ -101,6 +102,7 @@ export default defineConfig(async () => {
       localProjectGateway(),
       localAiGateway(),
       startupAgentDiagnosticsPlugin(),
+      uatDiscoveryPlugin(),
       vinext(),
       sites(),
       cloudflare({ viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] }, inspectorPort: false, config: localBindingConfig }),

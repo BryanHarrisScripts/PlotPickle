@@ -20,14 +20,34 @@
   height: 58px;
   object-fit: contain;
   filter: saturate(1.13) brightness(1.08);
+  transform: translateY(-4px);
   transform-origin: center;
   transition: filter 160ms ease, transform 160ms ease;
+}
+
+.label {
+  position: absolute;
+  right: 0;
+  bottom: 1px;
+  left: 0;
+  color: #b7b0a5;
+  font-family: var(--font-mono, "Courier New", monospace);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-align: center;
 }
 
 .entry:hover .glyph,
 .entry:focus-visible .glyph {
   filter: saturate(1.22) brightness(1.18);
-  transform: translateY(-1px) scale(1.055);
+  transform: translateY(-5px) scale(1.055);
+}
+
+.entry:hover .label,
+.entry:focus-visible .label {
+  color: #efe9dd;
 }
 
 .entry:focus-visible {

@@ -3,7 +3,7 @@
 import { Agent } from "@mastra/core/agent";
 import { LocalFilesystem, LocalSandbox, Workspace } from "@mastra/core/workspace";
 import { execFile } from "node:child_process";
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, unlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -26,14 +26,40 @@ const requestedFingerprint = argument("--fingerprint");
 const requestedIssue = argument("--issue");
 const explicitEndpoint = argument("--endpoint");
 const explicitModel = argument("--model");
+const requestedWorker = argument("--worker", process.env.PLOTPICKLE_REPAIR_WORKER || "pi").toLowerCase();
 const keepWorktree = has("--keep-worktree");
 const dryRun = has("--dry-run");
+const preflightOnly = has("--preflight");
+const preflightJson = has("--json");
+const requireReady = has("--require-ready");
+
+const SUPPORTED_REPAIR_WORKERS = new Set(["pi", "cline", "mastra-qwen"]);
+const REPAIR_WORKER_LABELS = {
+  pi: "Pi",
+  cline: "Cline",
+  "mastra-qwen": "Mastra legacy Qwen",
+};
 
 export const UAT_REPAIR_MODEL = {
   label: "Qwen3.8-27B",
   expectedNameFragments: ["qwen3.8-27b", "qwen-3.8-27b", "qwen_qwen3.8-27b", "qwen/qwen3.8-27b"],
   purpose: "On-demand PlotPickle repository repair and coding agent",
 };
+
+const APPROVED_LOCAL_CODING_MODEL_FRAGMENTS = [
+  ...UAT_REPAIR_MODEL.expectedNameFragments,
+  "qwen3-coder-30b",
+  "qwen3coder30b",
+  "qwen2.5-coder-32b",
+  "qwen2.5coder32b",
+  "devstral-small",
+  "devstralsmall",
+  "codestral",
+  "deepseek-coder",
+  "deepseekcoder",
+  "gpt-oss-20b",
+  "gptoss20b",
+];
 
 const RUNTIME_CANDIDATES = [
   { kind: "lm-studio", label: "LM Studio", baseUrl: "http://127.0.0.1:1234/v1" },
@@ -51,10 +77,21 @@ function matchesRepairModel(model) {
   return UAT_REPAIR_MODEL.expectedNameFragments.some((fragment) => key.includes(modelKey(fragment)));
 }
 
+function matchesApprovedCodingModel(model) {
+  const key = modelKey(model);
+  return APPROVED_LOCAL_CODING_MODEL_FRAGMENTS.some((fragment) => key.includes(modelKey(fragment)));
+}
+
 function normalizedEndpoint(value) {
   const raw = String(value || "").trim().replace(/\/$/, "");
   if (!raw) return "";
   return /\/v1$/i.test(raw) ? raw : `${raw}/v1`;
+}
+
+function safeCliModelId(value) {
+  const model = String(value || "").trim();
+  if (!/^[a-zA-Z0-9._:/+\-]+$/.test(model)) throw new Error(`Local model id contains unsupported shell characters: ${model}`);
+  return model;
 }
 
 async function probeRuntime(candidate) {
@@ -75,31 +112,38 @@ async function probeRuntime(candidate) {
   }
 }
 
-export async function resolveRepairRuntime() {
+async function probeAllRuntimes() {
+  return Promise.all(RUNTIME_CANDIDATES.map((candidate) => probeRuntime(candidate)));
+}
+
+export async function resolveRepairRuntime(worker = requestedWorker) {
   if (explicitEndpoint && explicitModel) {
     return {
       kind: "explicit",
       label: "Explicit local runtime",
       baseUrl: normalizedEndpoint(explicitEndpoint),
-      model: explicitModel,
+      model: safeCliModelId(explicitModel),
     };
   }
 
-  const probes = [];
-  for (const candidate of RUNTIME_CANDIDATES) probes.push(await probeRuntime(candidate));
+  const probes = await probeAllRuntimes();
+  const matcher = worker === "mastra-qwen" ? matchesRepairModel : matchesApprovedCodingModel;
   for (const runtime of probes) {
     if (!runtime.reachable) continue;
-    const model = runtime.models.find(matchesRepairModel);
-    if (model) return { ...runtime, model };
+    const model = runtime.models.find(matcher);
+    if (model) return { ...runtime, model: safeCliModelId(model) };
   }
 
   const reachable = probes.filter((item) => item.reachable)
     .map((item) => `${item.label}: ${item.models.length ? item.models.join(", ") : "no models reported"}`)
     .join("\n");
+  const modelMessage = worker === "mastra-qwen"
+    ? "Qwen3.8-27B is not available to the PlotPickle UAT Repair Agent."
+    : "No approved local coding model is available to the PlotPickle developer repair worker.";
   throw new Error([
-    "Qwen3.8-27B is not available to the PlotPickle UAT Repair Agent.",
-    "Load Qwen3.8-27B in LM Studio, llama.cpp, Ollama, or another local OpenAI-compatible runtime, then run this command again.",
-    "PlotPickle will not silently downgrade UAT repair work to the Fast or Quality story models.",
+    modelMessage,
+    "Load Qwen3.8-27B or another approved local coding model in LM Studio, llama.cpp, Ollama, or another local OpenAI-compatible runtime, then run this command again.",
+    "PlotPickle will not silently downgrade UAT repair work to the Fast or Quality story models and will not fall through to a paid/cloud provider.",
     reachable ? `Reachable runtimes:\n${reachable}` : "No supported local OpenAI-compatible runtime answered /v1/models.",
   ].join("\n"));
 }
@@ -109,9 +153,41 @@ async function run(command, commandArgs, options = {}) {
     cwd: options.cwd || repoRoot,
     env: { ...process.env, ...(options.env || {}) },
     windowsHide: true,
+    shell: options.shell === true,
+    timeout: options.timeout || 0,
     maxBuffer: 16 * 1024 * 1024,
   });
   return { stdout: result.stdout.trim(), stderr: result.stderr.trim() };
+}
+
+async function runCli(command, commandArgs, options = {}) {
+  return run(command, commandArgs, { ...options, shell: process.platform === "win32" });
+}
+
+async function commandAvailable(worker) {
+  try {
+    if (worker === "pi") await runCli("pi", ["--version"], { timeout: 10_000 });
+    else if (worker === "cline") await runCli("cline", ["version"], { timeout: 10_000 });
+    return true;
+  } catch {
+    return worker === "mastra-qwen";
+  }
+}
+
+export async function repairPreflight(worker = requestedWorker) {
+  if (!SUPPORTED_REPAIR_WORKERS.has(worker)) {
+    return { ready: false, worker, workerLabel: worker, workerAvailable: false, message: `Unsupported repair worker: ${worker}` };
+  }
+  const workerAvailable = await commandAvailable(worker);
+  if (!workerAvailable) {
+    return { ready: false, worker, workerLabel: REPAIR_WORKER_LABELS[worker], workerAvailable: false, message: `${REPAIR_WORKER_LABELS[worker]} is not installed or not available on PATH.` };
+  }
+  try {
+    const runtime = await resolveRepairRuntime(worker);
+    return { ready: true, worker, workerLabel: REPAIR_WORKER_LABELS[worker], workerAvailable: true, runtime };
+  } catch (error) {
+    return { ready: false, worker, workerLabel: REPAIR_WORKER_LABELS[worker], workerAvailable: true, message: error instanceof Error ? error.message : String(error) };
+  }
 }
 
 async function gh(...ghArgs) {
@@ -189,7 +265,28 @@ function repairInstructions() {
   ].join("\n");
 }
 
-async function runAgent({ finding, runtime, worktreeRoot }) {
+function repairPrompt(finding) {
+  return [
+    repairInstructions(),
+    "",
+    "Repair this PlotPickle UAT blocker.",
+    "",
+    `Fingerprint: ${finding.fingerprint}`,
+    `Area: ${finding.area || "focused-uat"}`,
+    `Severity: ${finding.severity || "blocker"}`,
+    `Title: ${finding.title || finding.fingerprint}`,
+    "",
+    "Observed failure:",
+    finding.message || "Focused UAT reported a blocker.",
+    "",
+    "Evidence:",
+    JSON.stringify(finding.evidence || {}, null, 2),
+    "",
+    "Required repair sequence: reproduce -> regression first -> root-cause fix -> relevant tests.",
+  ].join("\n");
+}
+
+async function runMastraAgent({ finding, runtime, worktreeRoot }) {
   const filesystem = new LocalFilesystem({
     basePath: worktreeRoot,
     instructions: "This is an isolated PlotPickle UAT repair worktree. Never read or write outside it.",
@@ -214,28 +311,110 @@ async function runAgent({ finding, runtime, worktreeRoot }) {
     maxRetries: 1,
   });
 
-  const prompt = [
-    "Repair this PlotPickle UAT blocker.",
-    "",
-    `Fingerprint: ${finding.fingerprint}`,
-    `Area: ${finding.area || "focused-uat"}`,
-    `Severity: ${finding.severity || "blocker"}`,
-    `Title: ${finding.title || finding.fingerprint}`,
-    "",
-    "Observed failure:",
-    finding.message || "Focused UAT reported a blocker.",
-    "",
-    "Evidence:",
-    JSON.stringify(finding.evidence || {}, null, 2),
-    "",
-    "Required repair sequence: reproduce -> regression first -> root-cause fix -> relevant tests.",
-  ].join("\n");
-
-  const result = await agent.generate(prompt, {
+  const result = await agent.generate(repairPrompt(finding), {
     maxSteps: 48,
     modelSettings: { temperature: 0.1 },
   });
   return String(result.text || "").trim();
+}
+
+async function writeExternalPrompt(finding, worktreeRoot) {
+  const promptPath = path.join(worktreeRoot, ".plotpickle-uat-repair.md");
+  await writeFile(promptPath, `${repairPrompt(finding)}\n`, "utf8");
+  return promptPath;
+}
+
+async function configurePiRuntime(runtime) {
+  const agentDir = path.join(localRoot, "PlotPickle", "developer-agent", "pi-repair");
+  await mkdir(agentDir, { recursive: true });
+  const models = {
+    providers: {
+      "plotpickle-local": {
+        baseUrl: runtime.baseUrl,
+        api: "openai-completions",
+        apiKey: "plotpickle-local",
+        compat: { supportsDeveloperRole: false, supportsReasoningEffort: false },
+        models: [{
+          id: runtime.model,
+          name: `PlotPickle Repair — ${runtime.model}`,
+          reasoning: false,
+          input: ["text"],
+          contextWindow: 131072,
+          maxTokens: 16384,
+          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        }],
+      },
+    },
+  };
+  await writeFile(path.join(agentDir, "models.json"), `${JSON.stringify(models, null, 2)}\n`, "utf8");
+  return agentDir;
+}
+
+async function runPiAgent({ finding, runtime, worktreeRoot }) {
+  const promptPath = await writeExternalPrompt(finding, worktreeRoot);
+  const agentDir = await configurePiRuntime(runtime);
+  try {
+    const result = await runCli("pi", [
+      "--mode", "json",
+      "-p",
+      "--no-session",
+      "--provider", "plotpickle-local",
+      "--model", runtime.model,
+      "Read .plotpickle-uat-repair.md and execute every repair instruction in that file.",
+    ], {
+      cwd: worktreeRoot,
+      timeout: 1_800_000,
+      env: {
+        PI_CODING_AGENT_DIR: agentDir,
+        PI_OFFLINE: "1",
+        PI_SKIP_VERSION_CHECK: "1",
+        PI_TELEMETRY: "0",
+      },
+    });
+    return result.stdout;
+  } finally {
+    await unlink(promptPath).catch(() => {});
+  }
+}
+
+async function configureClineRuntime(runtime) {
+  const dataDir = path.join(localRoot, "PlotPickle", "developer-agent", "cline-repair");
+  await mkdir(dataDir, { recursive: true });
+  await runCli("cline", [
+    "--data-dir", dataDir,
+    "auth",
+    "--provider", "openai-native",
+    "--apikey", "plotpickle-local",
+    "--modelid", runtime.model,
+    "--baseurl", runtime.baseUrl,
+  ], { timeout: 30_000 });
+  return dataDir;
+}
+
+async function runClineAgent({ finding, runtime, worktreeRoot }) {
+  const promptPath = await writeExternalPrompt(finding, worktreeRoot);
+  const dataDir = await configureClineRuntime(runtime);
+  try {
+    const result = await runCli("cline", [
+      "--data-dir", dataDir,
+      "--json",
+      "--yolo",
+      "--cwd", worktreeRoot,
+      "-P", "openai-native",
+      "-m", runtime.model,
+      "-k", "plotpickle-local",
+      "Read .plotpickle-uat-repair.md and execute every repair instruction in that file.",
+    ], { cwd: worktreeRoot, timeout: 1_800_000 });
+    return result.stdout;
+  } finally {
+    await unlink(promptPath).catch(() => {});
+  }
+}
+
+async function runAgent({ finding, runtime, worktreeRoot, worker }) {
+  if (worker === "pi") return runPiAgent({ finding, runtime, worktreeRoot });
+  if (worker === "cline") return runClineAgent({ finding, runtime, worktreeRoot });
+  return runMastraAgent({ finding, runtime, worktreeRoot });
 }
 
 async function validateRepair(worktreeRoot) {
@@ -244,26 +423,28 @@ async function validateRepair(worktreeRoot) {
   if (!status) throw new Error("The UAT Repair Agent completed without changing the worktree.");
 
   await run(process.execPath, ["scripts/run-uat-autopilot.mjs", "--contracts-only", "--artifact-root", ".artifacts/uat-repair"], { cwd: worktreeRoot });
-  await run("npm", ["run", "build"], { cwd: worktreeRoot });
+  const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+  await run(npmCommand, ["run", "build"], { cwd: worktreeRoot });
   return status;
 }
 
-async function publishRepair({ finding, branch, worktreeRoot, summary, runtime }) {
+async function publishRepair({ finding, branch, worktreeRoot, summary, runtime, worker }) {
   const issue = await findIssueForFingerprint(finding.fingerprint);
   await run("git", ["add", "-A"], { cwd: worktreeRoot });
   await run("git", ["commit", "-m", `Repair UAT finding ${finding.fingerprint}`], { cwd: worktreeRoot });
   await run("git", ["push", "-u", "origin", branch], { cwd: worktreeRoot });
 
+  const workerLabel = REPAIR_WORKER_LABELS[worker];
   const body = [
     `Automated local UAT repair for \`${finding.fingerprint}\`.`,
     issue?.number ? `\nCloses #${issue.number}.` : "",
     "",
-    `**Repair model:** ${UAT_REPAIR_MODEL.label}`,
+    `**Repair worker:** ${workerLabel}`,
     `**Runtime:** ${runtime.label}`,
-    `**Resolved model id:** \`${runtime.model}\``,
+    `**Resolved local model:** \`${runtime.model}\``,
     "",
     "### Repair agent summary",
-    summary || "The local repair agent changed the worktree and the deterministic validation wrapper passed.",
+    summary || "The local repair worker changed the worktree and the deterministic validation wrapper passed.",
     "",
     "### Deterministic gates run before this PR",
     "- `git diff --check`",
@@ -283,7 +464,7 @@ async function publishRepair({ finding, branch, worktreeRoot, summary, runtime }
     "--body", body,
   );
   if (issue?.number) {
-    await gh("issue", "comment", String(issue.number), "--repo", "BryanHarrisScripts/PlotPickle", "--body", `Local ${UAT_REPAIR_MODEL.label} Repair Agent produced a tested draft repair PR: ${prUrl}`);
+    await gh("issue", "comment", String(issue.number), "--repo", "BryanHarrisScripts/PlotPickle", "--body", `Local ${workerLabel} repair worker produced a tested draft repair PR: ${prUrl}`);
   }
   return { prUrl, issue };
 }
@@ -293,10 +474,12 @@ async function writeRepairReport(payload) {
   await mkdir(dir, { recursive: true });
   const file = path.join(dir, `${slug(payload.finding.fingerprint)}-${Date.now()}.json`);
   await writeFile(file, `${JSON.stringify({
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt: new Date().toISOString(),
     finding: payload.finding,
-    model: UAT_REPAIR_MODEL.label,
+    worker: payload.worker,
+    workerLabel: REPAIR_WORKER_LABELS[payload.worker],
+    model: payload.runtime.model,
     runtime: { kind: payload.runtime.kind, label: payload.runtime.label, baseUrl: payload.runtime.baseUrl, model: payload.runtime.model },
     branch: payload.branch,
     prUrl: payload.prUrl || "",
@@ -309,8 +492,20 @@ async function writeRepairReport(payload) {
 }
 
 async function main() {
+  const preflight = await repairPreflight(requestedWorker);
+  if (preflightOnly) {
+    if (preflightJson) process.stdout.write(`${JSON.stringify(preflight)}\n`);
+    else if (preflight.ready) process.stdout.write(`Developer repair worker ............. READY  ${preflight.workerLabel} / ${preflight.runtime.model} via ${preflight.runtime.label}\n`);
+    else process.stdout.write(`Developer repair worker ............. NOT READY  ${preflight.workerLabel}: ${String(preflight.message || "local coding model unavailable").split("\n")[0]}\n`);
+    if (requireReady && !preflight.ready) process.exitCode = 2;
+    return;
+  }
+  if (!preflight.ready) throw new Error(preflight.message || `${preflight.workerLabel} repair worker is not ready.`);
+
   const finding = await loadFinding();
-  const runtime = await resolveRepairRuntime();
+  const runtime = preflight.runtime;
+  const worker = preflight.worker;
+  process.stdout.write(`Developer repair worker ............. READY  ${preflight.workerLabel}\n`);
   process.stdout.write(`UAT Repair Agent model ............. READY  ${runtime.model} via ${runtime.label}\n`);
   process.stdout.write(`UAT finding ........................ READY  ${finding.fingerprint}\n`);
 
@@ -325,14 +520,15 @@ async function main() {
       return;
     }
 
-    await run("npm", ["ci", "--include=dev", "--no-audit", "--no-fund"], { cwd: worktreeRoot });
-    summary = await runAgent({ finding, runtime, worktreeRoot });
+    const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+    await run(npmCommand, ["ci", "--include=dev", "--no-audit", "--no-fund"], { cwd: worktreeRoot });
+    summary = await runAgent({ finding, runtime, worktreeRoot, worker });
     process.stdout.write("UAT Repair Agent ................... COMPLETE\n");
     await validateRepair(worktreeRoot);
     process.stdout.write("Repair validation .................. PASS  focused UAT + production build\n");
-    published = await publishRepair({ finding, branch, worktreeRoot, summary, runtime });
+    published = await publishRepair({ finding, branch, worktreeRoot, summary, runtime, worker });
     process.stdout.write(`Draft repair PR .................... CREATED  ${published.prUrl}\n`);
-    const report = await writeRepairReport({ finding, runtime, branch, summary, ...published });
+    const report = await writeRepairReport({ finding, runtime, branch, summary, worker, ...published });
     process.stdout.write(`Repair evidence .................... SAVED  ${report}\n`);
   } finally {
     if (!keepWorktree) {

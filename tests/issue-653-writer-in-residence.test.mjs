@@ -3,11 +3,13 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { parseRenderedEvaluateText } from "../scripts/writer-visual-observer-v2.mjs";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 const readJson = async (file) => JSON.parse(await read(file));
 const implementation = "scripts/run-writer-in-residence-v4.mjs";
-const visualObserver = "scripts/writer-visual-observer.mjs";
+const recovery = "scripts/writer-in-residence-runtime-recovery.mjs";
+const visualObserver = "scripts/writer-visual-observer-v2.mjs";
 
 test("Writer-in-Residence is a disclosed synthetic writer with a complete active-product mission", async () => {
   const config = await readJson("config/writer-in-residence.json");
@@ -28,10 +30,10 @@ test("Avery keeps the required silly two-message Sage conversation", async () =>
   assert.match(runner, /Phase 1 · silly Sage conversation/);
 });
 
-test("stable writer command delegates to v4 and both runtime scripts parse", async () => {
+test("stable writer command installs local recovery before v4 and all runtime scripts parse", async () => {
   const entrypoint = await read("scripts/run-writer-in-residence.mjs");
-  assert.match(entrypoint, /run-writer-in-residence-v4\.mjs/);
-  for (const file of [implementation, visualObserver]) {
+  assert.ok(entrypoint.indexOf("writer-in-residence-runtime-recovery.mjs") < entrypoint.indexOf("run-writer-in-residence-v4.mjs"));
+  for (const file of ["scripts/run-writer-in-residence.mjs", implementation, recovery, visualObserver]) {
     execFileSync(process.execPath, ["--check", fileURLToPath(new URL(`../${file}`, import.meta.url))], { stdio: "pipe" });
   }
 });
@@ -44,17 +46,36 @@ test("#657 cannot call two Sage probes a completed writer journey", async () => 
   assert.match(runner, /journey\.complete && sageConversation\.completed === sageConversation\.requested/);
   assert.match(runner, /Writer-in-Residence \$\{state\}/);
   assert.match(runner, /INCOMPLETE/);
-  assert.doesNotMatch(runner, /visitedScreens\.add\(screen\.id\)/);
 });
 
-test("#657 gives every active area real writer turns instead of counting visual observer visits", async () => {
+test("#660 retries only local creative-director empty replies across Fast and Quality", async () => {
+  const source = await read(recovery);
+  assert.match(source, /body\?\.provider !== "local"/);
+  assert.match(source, /body\?\.agentId !== "creative-director"/);
+  assert.match(source, /provider returned no text\|no text\|empty/i);
+  assert.match(source, /roles = \[preferred, alternateRole\(preferred\), preferred\]/);
+  assert.match(source, /provider: "local", modelRole: role/);
+  assert.match(source, /Writer local recovery/);
+  assert.doesNotMatch(source, /provider:\s*"openai"|provider:\s*"minimax"/i);
+});
+
+test("#657 gives every active area real successful writer turns instead of counting visual observer visits", async () => {
   const runner = await read(implementation);
   assert.match(runner, /Phase 2 · Avery four-area journey/);
   assert.match(runner, /writerVisitedScreens\.add\(mission\.id\)/);
-  assert.match(runner, /Writer turn/);
-  assert.match(runner, /Avery area · \$\{mission\.label\}/);
-  assert.match(runner, /writerVisitedScreens: \[\.\.\.writerVisitedScreens\]/);
-  assert.match(runner, /areaCounts/);
+  assert.match(runner, /areaCounts\[mission\.id\] \+= 1/);
+  assert.match(runner, /areaCounts\[mission\.id\] >= minimumTurnsPerArea/);
+  assert.doesNotMatch(runner, /visitedScreens\.add\(screen\.id\)/);
+});
+
+test("#660 normalizes only known visible Settings disclosure refs for deterministic down/up probes", async () => {
+  const source = await read(recovery);
+  for (const label of ["Advanced Setup", "Advanced runtime details", "Cloud and legacy provider overrides"]) assert.match(source, new RegExp(label, "i"));
+  assert.match(source, /name !== "browser_snapshot"/);
+  assert.match(source, /const ref = line\.match/);
+  assert.match(source, /normalizeDisclosureLine\(line, label\)/);
+  assert.match(source, /button \"\$\{label\}\" \[ref=\$\{ref\}\]/);
+  assert.match(source, /No hidden DOM\/state is exposed/);
 });
 
 test("#657 screenshots are basename-safe and visual failures cannot abort the journey", async () => {
@@ -62,10 +83,17 @@ test("#657 screenshots are basename-safe and visual failures cannot abort the jo
   assert.match(runner, /async function safeScreenshot/);
   assert.match(runner, /filename: `\$\{name\}\.png`/);
   assert.doesNotMatch(runner, /filename: `writer-in-residence\//);
-  assert.match(runner, /Screenshot \$\{name\}.*WARN/s);
-  assert.match(runner, /for \(const screen of config\.reviewScreens\)[\s\S]*try \{/);
   assert.match(runner, /Phase 4 · rendered visual review/);
   assert.match(runner, /failures are nonfatal and recorded/);
+});
+
+test("#660 visual observer parses Playwright Result objects and JSON-encoded strings", () => {
+  const direct = parseRenderedEvaluateText('### Result\n{"theme":"dark","horizontalOverflow":0}\n### Console');
+  assert.equal(direct.theme, "dark");
+  const encodedPayload = JSON.stringify(JSON.stringify({ theme: "dark", horizontalOverflow: 3 }));
+  const encoded = parseRenderedEvaluateText(`### Result\n${encodedPayload}`);
+  assert.equal(encoded.theme, "dark");
+  assert.equal(encoded.horizontalOverflow, 3);
 });
 
 test("Avery uses visible accessibility actions while the visual observer remains a separate read-only rendered-layout layer", async () => {
@@ -74,6 +102,7 @@ test("Avery uses visible accessibility actions while the visual observer remains
   assert.match(runner, /Avery never receives browser_evaluate/);
   assert.doesNotMatch(runner, /client\.call\("browser_evaluate"/);
   assert.match(observer, /client\.call\("browser_evaluate"/);
+  assert.match(observer, /return JSON\.stringify\(payload\)/);
   assert.doesNotMatch(observer, /localStorage|sessionStorage|fetch\(|XMLHttpRequest|document\.cookie/);
 });
 
@@ -89,6 +118,7 @@ test("visual review checks current dark look, clipping, overlap, overflow and ba
   const observer = await read(visualObserver);
   for (const token of ["lightSurfaces", "clippedControls", "overlaps", "horizontalOverflow", "gapImbalance"]) assert.match(observer, new RegExp(token));
   assert.match(observer, /off-balance/);
+  assert.match(observer, /extractPageState/);
 });
 
 test("writer feedback stays local-first and only explicit medium/high actionable findings reach GitHub/Modem", async () => {

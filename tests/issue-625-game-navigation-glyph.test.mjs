@@ -26,16 +26,15 @@ test("GAME relic asset is a real WebP and navigation-sized source remains substa
   assert.ok(metadata.size > 10_000, `Expected detailed GAME glyph source, got ${metadata.size} bytes`);
 });
 
-test("GAME navigation follows the transparent illuminated logo treatment", async () => {
+test("GAME navigation keeps the transparent logo treatment without a backglow", async () => {
   const css = await read("app/wyrmwood-plugin-entry.module.css");
 
   assert.match(css, /background:\s*transparent/);
   assert.match(css, /width:\s*58px/);
   assert.match(css, /height:\s*58px/);
-  assert.match(css, /drop-shadow\(0 0 5px rgba\(210, 170, 84, 0\.38\)\)/);
-  assert.match(css, /drop-shadow\(0 0 9px rgba\(53, 201, 184, 0\.46\)\)/);
-  assert.match(css, /saturate\(1\.13\)/);
-  assert.match(css, /brightness\(1\.08\)/);
+  assert.doesNotMatch(css, /drop-shadow/);
+  assert.match(css, /filter:\s*saturate\(1\.13\) brightness\(1\.08\)/);
+  assert.match(css, /filter:\s*saturate\(1\.22\) brightness\(1\.18\)/);
   assert.match(css, /scale\(1\.055\)/);
 });
 

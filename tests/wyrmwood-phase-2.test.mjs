@@ -74,16 +74,16 @@ test("the deterministic engine owns the five-Pickle player-turn loop", async () 
   assert.match(engine, /submitWyrmwoodPlayerTurn/);
   assert.match(engine, /continueWyrmwoodLoop/);
   assert.match(engine, /response\.split\(\/\\s\+\/\)\.length > 150/);
-  assert.match(contracts, /schemaVersion: 2/);
+  assert.match(contracts, /schemaVersion: 3/);
   assert.match(contracts, /currentDirectorTurn/);
   assert.match(contracts, /turnHistory/);
   assert.match(ui, /Generate Pickle/);
   assert.match(ui, /Commit my move/);
   assert.match(ui, /Continue to Pickle/);
-  assert.match(ui, /Move sealed\./);
+  assert.match(ui, /WYRMWOOD_PICKLES_PER_MATCH/);
 });
 
-test("Phase 2 AI cannot score or mutate persistent game truth", async () => {
+test("Phase 2 Rival Director still cannot score or mutate persistent game truth", async () => {
   const [director, playbook, ui] = await Promise.all([
     read("modules/wyrmwood/rival-director.ts"),
     read("agents/master-oaken-vague.md"),
@@ -93,6 +93,6 @@ test("Phase 2 AI cannot score or mutate persistent game truth", async () => {
   assert.match(director, /Do not score, judge, award, alter Spotlight, grant coins or XP/);
   assert.match(playbook, /never claim to alter those values/);
   assert.match(playbook, /Do not judge the player's answer in this phase/);
-  assert.match(ui, /Phase 3 will add structured curriculum judgment, Spotlight movement and rewards/);
+  assert.match(ui, /Master Oaken-Vague/);
   assert.doesNotMatch(director, /spotlightDelta|brineCoinsEarned|xpGained/);
 });

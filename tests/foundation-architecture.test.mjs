@@ -230,7 +230,11 @@ test("LEARN and GUIDE share one topic-based JSON curriculum", async () => {
   assert.match(gateway, /content\.length <= 2_000/);
   assert.doesNotMatch(workspace, /Start fresh/);
   assert.doesNotMatch(workspace, /THREAD_PREFIX/);
-  assert.match(workspace, /Curriculum:/);
+  assert.match(workspace, /aria-label="Related LEARN lessons"/);
+  assert.match(workspace, /Learn more: <strong>\{lesson\.title\}<\/strong>/);
+  assert.match(workspace, /onClick=\{\(\) => openLesson\(lesson\.id\)\}/);
+  assert.doesNotMatch(workspace, />Curriculum: \{sourceTitles/);
+  assert.doesNotMatch(workspace, />Lesson references: \{referenceTitles/);
 });
 
 test("all audited source records are embedded losslessly in lessons", async () => {

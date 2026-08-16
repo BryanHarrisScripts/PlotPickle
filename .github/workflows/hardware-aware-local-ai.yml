@@ -31,6 +31,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
 
+      - name: Validate Agent Skills authority boundary
+        run: node --test tests/issue-913-agent-skills-migration.test.mjs
+
       - name: Validate hardware-aware local AI contracts
         run: node --test tests/hardware-aware-local-ai-runtime.test.mjs tests/automatic-local-model-capabilities.test.mjs tests/foundation-architecture.test.mjs
 

@@ -17,6 +17,14 @@ function safeEntry(entry) {
   return resolved;
 }
 
+export function stripSkillFrontmatter(content) {
+  const text = String(content || "");
+  if (!text.startsWith("---\n")) return text.trim();
+  const end = text.indexOf("\n---\n", 4);
+  if (end < 0) throw new Error("PlotPickle Agent Skill frontmatter is not closed.");
+  return text.slice(end + 5).trim();
+}
+
 export async function loadAgentSkillRegistry() {
   const registry = JSON.parse(await readFile(registryPath, "utf8"));
   if (registry?.schemaVersion !== 1 || !Array.isArray(registry.skills)) {
@@ -27,6 +35,7 @@ export async function loadAgentSkillRegistry() {
     if (!skill?.id || ids.has(skill.id)) throw new Error(`Duplicate or missing PlotPickle skill id: ${skill?.id || "(missing)"}`);
     ids.add(skill.id);
     if (!skill.entry || !skill.uri) throw new Error(`Skill ${skill.id} is missing entry or URI metadata.`);
+    if (skill.uri !== `skill://plotpickle/${skill.id}`) throw new Error(`Skill ${skill.id} has a non-canonical PlotPickle URI.`);
     safeEntry(skill.entry);
   }
   return registry;
@@ -45,6 +54,10 @@ export async function loadAgentSkill(id) {
   const content = await readFile(filePath, "utf8");
   if (!content.includes(`name: ${skill.id}`)) throw new Error(`Skill ${skill.id} frontmatter does not match its registry id.`);
   return { ...skill, filePath, content };
+}
+
+export async function readAgentSkillProcedure(id) {
+  return stripSkillFrontmatter((await loadAgentSkill(id)).content);
 }
 
 export async function skillIndexResource() {

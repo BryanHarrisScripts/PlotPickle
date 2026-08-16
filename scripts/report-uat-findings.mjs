@@ -107,10 +107,17 @@ async function main() {
     process.stdout.write("No UAT blockers to report to GitHub.\n");
     return;
   }
+
+  const exhaustiveOnly = findings.every((finding) => finding.area === "exhaustive-ui-ux");
+  const githubFindings = exhaustiveOnly ? findings.slice(0, 3) : findings;
+  if (exhaustiveOnly && findings.length > githubFindings.length) {
+    process.stdout.write(`Exhaustive UAT found ${findings.length} reportable findings; GitHub issue creation is capped at ${githubFindings.length}. The complete finding set remains in the local report.\n`);
+  }
+
   await gh("auth", "status", "--hostname", "github.com");
   await ensureLabels();
 
-  for (const finding of findings) {
+  for (const finding of githubFindings) {
     await mirrorFinding(finding);
     const current = await existingIssue(finding.fingerprint);
     const body = findingBody(finding);

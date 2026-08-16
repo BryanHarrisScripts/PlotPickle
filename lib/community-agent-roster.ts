@@ -1,6 +1,6 @@
 import { BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "./buzz-guildhall";
 
-export type AgentRosterState = "working" | "online" | "away" | "on-demand" | "parked" | "offline" | "needs-approval" | "setup-needed";
+export type AgentRosterState = "working" | "online" | "away" | "on-demand" | "parked" | "offline" | "needs-approval" | "setup-needed" | "unavailable";
 
 export type WritingAssistantStatus = {
   readonly mastra?: {
@@ -26,6 +26,7 @@ export type BuzzNativeAgentState = {
   readonly pubkey: string;
   readonly presence: string;
   readonly updatedAt: string;
+  readonly lookupError?: boolean;
 };
 
 export type CommunityAgentRosterItem = {
@@ -111,6 +112,14 @@ function buzzState(actorId: string, identityVerified: boolean, nativeAgents: rea
     };
   }
   const native = nativeAgents.find((item) => item.actorId === actorId);
+  if (native?.lookupError) {
+    return {
+      state: "unavailable" as const,
+      label: "Status unavailable",
+      detail: "PlotPickle could not read this BUZZ-native identity, so it will not guess whether the steward exists or is online.",
+      lastActiveAt: native.updatedAt || "",
+    };
+  }
   if (!native?.created || !native.verified || !native.ownedByMe) {
     return {
       state: "needs-approval" as const,

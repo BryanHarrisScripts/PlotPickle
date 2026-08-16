@@ -6,6 +6,7 @@ on:
       - "config/buzz-guildhall.json"
       - "lib/buzz-guildhall.ts"
       - "scripts/bootstrap-buzz-guildhall.mjs"
+      - "scripts/post-buzz-guildhall-event.mjs"
       - "docs/buzz-guildhall.md"
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
@@ -15,6 +16,7 @@ on:
       - "config/buzz-guildhall.json"
       - "lib/buzz-guildhall.ts"
       - "scripts/bootstrap-buzz-guildhall.mjs"
+      - "scripts/post-buzz-guildhall-event.mjs"
       - "docs/buzz-guildhall.md"
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
@@ -30,7 +32,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Syntax-check Guildhall bootstrap
-        run: node --check scripts/bootstrap-buzz-guildhall.mjs
+      - name: Syntax-check Guildhall scripts
+        run: |
+          node --check scripts/bootstrap-buzz-guildhall.mjs
+          node --check scripts/post-buzz-guildhall-event.mjs
       - name: Validate Guildhall contract
         run: node --test tests/issue-675-buzz-guildhall.test.mjs

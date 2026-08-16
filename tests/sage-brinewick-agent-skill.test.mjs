@@ -4,6 +4,7 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const readJson = async (path) => JSON.parse(await read(path));
+const asWindowsText = (text) => text.replace(/\r?\n/g, "\r\n");
 
 test("Sage Brinewick is a registered product-agent skill", async () => {
   const [registry, skill] = await Promise.all([
@@ -23,7 +24,9 @@ test("Sage Brinewick is a registered product-agent skill", async () => {
     mcpReady: true,
     localOnly: true,
   });
-  assert.match(skill, /^---\nname: sage-brinewick\n/);
+  const windowsSkill = asWindowsText(skill);
+  assert.match(skill, /^---\r?\nname: sage-brinewick\r?\n/);
+  assert.match(windowsSkill, /^---\r?\nname: sage-brinewick\r?\n/);
   assert.match(skill, /This skill owns Sage's visible personality and conversational procedure/i);
 });
 

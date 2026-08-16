@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
@@ -48,16 +48,16 @@ test("full verification starts the official app when needed and waits for localh
   assert.match(runner, /BLOCKED/);
 });
 
-test("one-click startup does not ask a second UAT Y/N question", async () => {
-  const [runner, startupDecision] = await Promise.all([
+test("normal startup no longer needs a UAT-prompt suppression workaround", async () => {
+  const [runner, diagnostics] = await Promise.all([
     read("scripts/run-plotpickle-full-check.ps1"),
-    read("build/startup-uat-decision.ts"),
+    read("build/startup-agent-diagnostics.ts"),
   ]);
+  const retired = new URL("../build/startup-uat-decision.ts", import.meta.url);
 
-  assert.match(runner, /PLOTPICKLE_STARTUP_UAT_PROMPT = "0"/);
-  assert.match(runner, /PreviousStartupPrompt/);
-  assert.match(startupDecision, /process\.env\.PLOTPICKLE_STARTUP_UAT_PROMPT !== "0"/);
-  assert.match(startupDecision, /Start the PlotPickle UAT Agent now\? \[Y\/N\]:/);
+  assert.doesNotMatch(runner, /PLOTPICKLE_STARTUP_UAT_PROMPT|PreviousStartupPrompt/);
+  assert.doesNotMatch(diagnostics, /offerStartupUatDecision|startup-uat-decision|Start the PlotPickle UAT Agent now/);
+  await assert.rejects(access(retired), /ENOENT/);
 });
 
 test("full verification records every result and fails visibly when any check needs attention", async () => {

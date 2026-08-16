@@ -5,6 +5,7 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const readJson = async (path) => JSON.parse(await read(path));
+const asWindowsText = (text) => text.replace(/\r?\n/g, "\r\n");
 
 test("PlotPickle has a progressive local skill registry with Pi UAT repair as the foundation skill", async () => {
   const [registry, stack, piSettings] = await Promise.all([
@@ -45,8 +46,10 @@ test("the UAT repair skill owns procedure while AGENTS and the deterministic wra
     read("AGENTS.md"),
     read("scripts/run-uat-repair-agent.mjs"),
   ]);
+  const windowsSkill = asWindowsText(skill);
 
-  assert.match(skill, /^---\nname: uat-repair\n/);
+  assert.match(skill, /^---\r?\nname: uat-repair\r?\n/);
+  assert.match(windowsSkill, /^---\r?\nname: uat-repair\r?\n/);
   assert.match(skill, /Use this skill only for a concrete, reproducible PlotPickle UAT finding/i);
   assert.match(skill, /Reproduce the failure/i);
   assert.match(skill, /Add or strengthen the nearest focused regression/i);

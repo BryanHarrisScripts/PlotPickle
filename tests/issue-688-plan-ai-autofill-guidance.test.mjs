@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+const asWindowsText = (text) => text.replace(/\r?\n/g, "\r\n");
 
 test("each PLAN field exposes exactly three helper questions", async () => {
   const [contract, workspace] = await Promise.all([
@@ -86,9 +87,9 @@ test("a PPF can be reduced to read-only story evidence for PLAN Foundations", as
 });
 
 test("PPF auto-complete fills only empty Foundations fields and saves the Foundations brief", async () => {
-  const workspace = await read("modules/plan/ui/foundations-plan-workspace.tsx");
-  const batchMatch = workspace.match(/async function autoCompleteAllFoundations\(\) \{[\s\S]*?\n  }\n\n  async function requestLocalDraft/);
-  assert.ok(batchMatch, "the whole-Foundations auto-complete function should be present");
+  const workspace = asWindowsText(await read("modules/plan/ui/foundations-plan-workspace.tsx"));
+  const batchMatch = workspace.match(/async function autoCompleteAllFoundations\(\) \{[\s\S]*?\r?\n  }\r?\n\r?\n  async function requestLocalDraft/);
+  assert.ok(batchMatch, "the whole-Foundations auto-complete function should be present on LF or CRLF checkouts");
   const batch = batchMatch[0];
 
   assert.match(workspace, /Auto-complete Foundations only/);

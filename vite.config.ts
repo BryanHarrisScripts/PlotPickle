@@ -5,6 +5,7 @@ import { localAiGateway } from "./build/local-ai-gateway";
 import { localConnectionsGateway } from "./build/local-connections-gateway";
 import { localSystemStatusGateway } from "./build/local-system-status-gateway";
 import { buzzGateway } from "./build/buzz-gateway";
+import { buzzGuildhallGateway } from "./build/buzz-guildhall-gateway";
 import { buzzBundleNormalizer } from "./build/buzz-bundle-normalizer";
 import { googleCalendarGateway } from "./build/google-calendar-gateway";
 import { githubAppGateway } from "./build/github-app-gateway";
@@ -84,6 +85,7 @@ export default defineConfig(async () => {
     plugins: [
       localConnectionsGateway(),
       buzzBundleNormalizer(),
+      buzzGuildhallGateway(),
       buzzGateway(),
       localSystemStatusGateway(),
       googleCalendarGateway(),

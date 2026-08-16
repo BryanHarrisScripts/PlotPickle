@@ -5,20 +5,28 @@ on:
     paths:
       - "config/buzz-guildhall.json"
       - "lib/buzz-guildhall.ts"
+      - "build/buzz-guildhall-gateway.ts"
+      - "app/buzz-settings-panel.tsx"
+      - "vite.config.ts"
       - "scripts/bootstrap-buzz-guildhall.mjs"
       - "scripts/post-buzz-guildhall-event.mjs"
       - "docs/buzz-guildhall.md"
       - "tests/issue-675-buzz-guildhall.test.mjs"
+      - "tests/issue-677-buzz-guildhall-settings.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
   push:
     branches: [main]
     paths:
       - "config/buzz-guildhall.json"
       - "lib/buzz-guildhall.ts"
+      - "build/buzz-guildhall-gateway.ts"
+      - "app/buzz-settings-panel.tsx"
+      - "vite.config.ts"
       - "scripts/bootstrap-buzz-guildhall.mjs"
       - "scripts/post-buzz-guildhall-event.mjs"
       - "docs/buzz-guildhall.md"
       - "tests/issue-675-buzz-guildhall.test.mjs"
+      - "tests/issue-677-buzz-guildhall-settings.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
 
 permissions:
@@ -36,5 +44,5 @@ jobs:
         run: |
           node --check scripts/bootstrap-buzz-guildhall.mjs
           node --check scripts/post-buzz-guildhall-event.mjs
-      - name: Validate Guildhall contract
-        run: node --test tests/issue-675-buzz-guildhall.test.mjs
+      - name: Validate Guildhall contracts
+        run: node --test tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs

@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "README.md"
+      - ".agents/skills/**"
+      - "config/agent-skills.json"
       - "config/buzz-guildhall.json"
       - "config/uat-autopilot-registry.json"
       - "lib/buzz-guildhall.ts"
@@ -29,6 +31,8 @@ on:
       - "app/plotpickle-workspace-shell.module.css"
       - "public/assets/workflow-relics/community.svg"
       - "vite.config.ts"
+      - "scripts/agent-skills.mjs"
+      - "scripts/agent-skill-procedures.mjs"
       - "scripts/bootstrap-buzz-guildhall.mjs"
       - "scripts/post-buzz-guildhall-event.mjs"
       - "scripts/buzz-live-activity.mjs"
@@ -41,6 +45,7 @@ on:
       - "docs/buzz-live-health.md"
       - "docs/issue-buzz-story-room-access-agents.md"
       - "tests/core-readme-direction.test.mjs"
+      - "tests/issue-913-agent-skills-migration.test.mjs"
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
       - "tests/issue-672-global-navigation.test.mjs"
@@ -54,6 +59,8 @@ on:
     branches: [main]
     paths:
       - "README.md"
+      - ".agents/skills/**"
+      - "config/agent-skills.json"
       - "config/buzz-guildhall.json"
       - "config/uat-autopilot-registry.json"
       - "lib/buzz-guildhall.ts"
@@ -79,6 +86,8 @@ on:
       - "app/plotpickle-workspace-shell.module.css"
       - "public/assets/workflow-relics/community.svg"
       - "vite.config.ts"
+      - "scripts/agent-skills.mjs"
+      - "scripts/agent-skill-procedures.mjs"
       - "scripts/bootstrap-buzz-guildhall.mjs"
       - "scripts/post-buzz-guildhall-event.mjs"
       - "scripts/buzz-live-activity.mjs"
@@ -91,6 +100,7 @@ on:
       - "docs/buzz-live-health.md"
       - "docs/issue-buzz-story-room-access-agents.md"
       - "tests/core-readme-direction.test.mjs"
+      - "tests/issue-913-agent-skills-migration.test.mjs"
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
       - "tests/issue-672-global-navigation.test.mjs"
@@ -114,6 +124,8 @@ jobs:
           node-version: "22"
       - name: Syntax-check Guildhall scripts
         run: |
+          node --check scripts/agent-skills.mjs
+          node --check scripts/agent-skill-procedures.mjs
           node --check scripts/bootstrap-buzz-guildhall.mjs
           node --check scripts/post-buzz-guildhall-event.mjs
           node --check scripts/buzz-live-activity.mjs
@@ -122,5 +134,7 @@ jobs:
           node --check scripts/report-writer-in-residence.mjs
           node --check scripts/report-uat-findings.mjs
           node --check scripts/run-uat-closed-loop.mjs
+      - name: Validate Agent Skills reporting boundary
+        run: node --test tests/issue-913-agent-skills-migration.test.mjs
       - name: Validate Guildhall, Community, Story Room, agent, README, and live BUZZ contracts
         run: node --test tests/core-readme-direction.test.mjs tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs tests/live-buzz-guildhall-activity.test.mjs

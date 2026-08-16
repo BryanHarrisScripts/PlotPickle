@@ -128,11 +128,18 @@ test("Settings depth probe follows advanced controls down and back up without ch
 });
 
 test("#664 advanced AI routing belongs to the current dark PlotPickle surface family", async () => {
-  const page = await read("app/ai-routing/page.tsx");
-  assert.match(page, /background: "#090a0b"/);
-  assert.match(page, /color: "#f1eee7"/);
-  assert.match(page, /#35c9b8/);
-  assert.doesNotMatch(page, /#f4faf9/i);
+  const [page, settings, routing] = await Promise.all([
+    read("app/ai-routing/page.tsx"),
+    read("app/sage-settings-workspace.tsx"),
+    read("app/ai-routing-panel.module.css"),
+  ]);
+  assert.match(page, /redirect\("\/\?workspace=settings#settings-routing"\)/);
+  assert.match(settings, /id="settings-routing"/);
+  assert.match(settings, /<AiRoutingPanel \/>/);
+  assert.match(routing, /--routing-bg: #090a0b/);
+  assert.match(routing, /--routing-teal: #35c9b8/);
+  assert.match(routing, /--routing-gold: #c89446/);
+  assert.doesNotMatch(routing, /#f4faf9/i);
 });
 
 test("visual review checks current dark look, clipping, overlap, overflow and balance", async () => {

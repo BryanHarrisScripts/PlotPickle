@@ -6,7 +6,7 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const readJson = async (path) => JSON.parse(await read(path));
 
-test("PlotPickle has a progressive local skill registry with Pi UAT repair as the first skill", async () => {
+test("PlotPickle has a progressive local skill registry with Pi UAT repair as the foundation skill", async () => {
   const [registry, stack, piSettings] = await Promise.all([
     readJson("config/agent-skills.json"),
     readJson("config/developer-agent-stack.json"),
@@ -17,8 +17,9 @@ test("PlotPickle has a progressive local skill registry with Pi UAT repair as th
   assert.equal(registry.discovery, "progressive");
   assert.equal(registry.transport, "filesystem-first-mcp-resource-ready");
   assert.equal(registry.indexUri, "skill://index.json");
-  assert.equal(registry.skills.length, 1);
-  assert.deepEqual(registry.skills[0], {
+  assert.ok(registry.skills.length >= 1);
+  const repairSkill = registry.skills.find((skill) => skill.id === "uat-repair");
+  assert.deepEqual(repairSkill, {
     id: "uat-repair",
     name: "UAT Repair",
     description: "Repair one concrete PlotPickle UAT blocker through reproduce, regression-first repair, focused validation, and deterministic handoff.",
@@ -69,7 +70,7 @@ test("the skill registry is executable and can emit an MCP-ready progressive ind
   const cwd = new URL("..", import.meta.url);
   const selfTest = spawnSync(process.execPath, ["scripts/agent-skills.mjs", "--self-test"], { cwd, encoding: "utf8" });
   assert.equal(selfTest.status, 0, selfTest.stderr || selfTest.stdout);
-  assert.match(selfTest.stdout, /agent skills self-test PASS: 1 skill/i);
+  assert.match(selfTest.stdout, /agent skills self-test PASS: \d+ skill/i);
 
   const list = spawnSync(process.execPath, ["scripts/agent-skills.mjs", "--list"], { cwd, encoding: "utf8" });
   assert.equal(list.status, 0, list.stderr || list.stdout);
@@ -79,7 +80,7 @@ test("the skill registry is executable and can emit an MCP-ready progressive ind
   assert.equal(index.status, 0, index.stderr || index.stdout);
   const payload = JSON.parse(index.stdout);
   assert.equal(payload.discovery, "progressive");
-  assert.equal(payload.skills[0].uri, "skill://plotpickle/uat-repair");
+  assert.ok(payload.skills.some((skill) => skill.uri === "skill://plotpickle/uat-repair"));
 });
 
 test("focused Startup UAT owns the agent-skills foundation regression", async () => {

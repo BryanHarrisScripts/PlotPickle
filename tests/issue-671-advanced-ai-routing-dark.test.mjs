@@ -5,19 +5,21 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#671 Advanced AI routing stays inside the matte-black Settings surface family", async () => {
-  const [page, routing, consoleStyles] = await Promise.all([
+  const [page, settings, routing, consoleStyles] = await Promise.all([
     read("app/ai-routing/page.tsx"),
+    read("app/sage-settings-workspace.tsx"),
     read("app/ai-routing-panel.module.css"),
     read("app/ai-routing-source-console.module.css"),
   ]);
 
-  assert.match(page, /background: "#090a0b"/);
-  assert.match(page, /color: "#f1eee7"/);
+  assert.match(page, /redirect\("\/\?workspace=settings#settings-routing"\)/);
+  assert.match(settings, /id="settings-routing"/);
+  assert.match(settings, /<AiRoutingPanel \/>/);
   assert.match(routing, /--routing-bg: #090a0b/);
   assert.match(routing, /--routing-panel: #111315/);
   assert.match(routing, /--routing-raised: #171a1c/);
   assert.match(routing, /--routing-teal: #35c9b8/);
-  assert.match(routing, /--routing-orange: #f08a4b/);
+  assert.match(routing, /--routing-gold: #c89446/);
   assert.match(routing, /\.panel \{[\s\S]*background:[\s\S]*var\(--routing-bg\)/);
   assert.match(routing, /\.header \{[\s\S]*background: linear-gradient\(145deg, #171a1c, #101315\)/);
   assert.match(routing, /\.consent \{[\s\S]*background: var\(--routing-panel\)/);
@@ -30,44 +32,37 @@ test("#671 Advanced AI routing stays inside the matte-black Settings surface fam
   }
   assert.doesNotMatch(routing, /background:\s*#ffffff/i);
   assert.doesNotMatch(routing, /background:[^;]*\bwhite\b/i);
-
   assert.match(consoleStyles, /\.sourceConsole \{[\s\S]*linear-gradient\(145deg, #12161d, #181d26 64%, #11151b\)/);
 });
 
-test("#671 explains Advanced AI routing in writer-friendly language before technical controls", async () => {
-  const page = await read("app/ai-routing/page.tsx");
+test("#671 explains Advanced AI routing in writer-friendly language inside Settings", async () => {
+  const [settings, panel, page] = await Promise.all([
+    read("app/sage-settings-workspace.tsx"),
+    read("app/ai-routing-panel.tsx"),
+    read("app/ai-routing/page.tsx"),
+  ]);
 
-  assert.match(page, /AI setup, in plain English/);
-  assert.match(page, /Most writers can leave this page alone after Quick Setup/);
-  assert.match(page, />On this computer</);
-  assert.match(page, />Online AI</);
-  assert.match(page, />You stay in control</);
-  assert.match(page, /PlotPickle never switches you to a paid service by itself/);
-  assert.match(page, /Computer and local AI details/);
-  assert.match(page, /Open this only if you want to see your computer, detected AI programs, model choices or performance settings/);
-  assert.match(page, /Cloud and legacy provider overrides/);
-  assert.match(page, /Plain English: use this when you want to choose whether writing, pictures or video are made on your computer or by an online service/);
-
-  const localDetails = page.indexOf("Computer and local AI details");
-  const localPanel = page.indexOf("<LocalRuntimePanel />");
-  const providerDetails = page.indexOf("Cloud and legacy provider overrides");
-  const providerPanel = page.indexOf("<AiRoutingPanel />");
-  assert.ok(localDetails >= 0 && localPanel > localDetails);
-  assert.ok(providerDetails >= 0 && providerPanel > providerDetails);
-  assert.doesNotMatch(page, /<details[^>]*\sopen(?:\s|>)/);
+  assert.match(panel, /Choose where writing, images and video are created/);
+  assert.match(panel, /Each job has one active choice/);
+  assert.match(panel, /Off and Manual Import are explicit safe choices/);
+  assert.match(settings, /One active choice per job/);
+  assert.match(settings, /Ollama is optional and no longer defines the local architecture/);
+  assert.match(settings, /AI provider routing is configured in the dedicated AI Routing section above so the hardware view is not repeated/);
+  assert.match(settings, /<LocalRuntimePanel \/>/);
+  assert.match(settings, /<AiRoutingPanel \/>/);
+  assert.doesNotMatch(page, /LocalRuntimePanel|AiRoutingPanel|<main/);
 });
 
-test("Advanced AI route controls behave like real on/off switches", async () => {
+test("Advanced AI route controls are one explicit choice per capability", async () => {
   const panel = await read("app/ai-routing-panel.tsx");
 
-  assert.match(panel, /function fallbackRoute\(capability: Capability\)/);
-  assert.match(panel, /capability === "image" \? "manual" : "off"/);
-  assert.match(panel, /async function toggleRoute\(capability: Capability, route: string, selected: boolean\)/);
-  assert.match(panel, /type="checkbox"/);
+  assert.match(panel, /type="radio"/);
+  assert.match(panel, /name={`ai-route-\${capability}`}/);
   assert.match(panel, /checked=\{selected\}/);
-  assert.match(panel, /aria-label=\{`\$\{selected \? "Turn off" : "Turn on"\}/);
-  assert.match(panel, /onChange=\{\(\) => void toggleRoute\(capability, route, selected\)\}/);
-  assert.match(panel, /disabled=\{Boolean\(working\)\}/);
-  assert.doesNotMatch(panel, /type="radio"/);
-  assert.doesNotMatch(panel, /disabled=\{Boolean\(working\) \|\| !selectable\}/);
+  assert.match(panel, /onChange=\{\(\) => void select\(capability, route\)\}/);
+  assert.match(panel, /disabled=\{Boolean\(working\) \|\| \(!selectable && !selected\)\}/);
+  assert.match(panel, /route === "off" \|\| route === "manual" \|\| option\.ready/);
+  assert.doesNotMatch(panel, /function fallbackRoute/);
+  assert.doesNotMatch(panel, /toggleRoute\(/);
+  assert.doesNotMatch(panel, /Turn off|Turn on/);
 });

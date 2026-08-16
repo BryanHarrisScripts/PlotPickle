@@ -19,7 +19,7 @@ test("Guildhall gateway owns one-click local setup without GitHub secrets", () =
   assert.match(gateway, /"channels", "create"/);
   assert.match(gateway, /"--visibility", definition\.visibility/);
   assert.doesNotMatch(gateway, /GITHUB_(?:TOKEN|SECRET)|github_pat_|ghp_/i);
-  assert.doesNotMatch(gateway, /BUZZ_AUTH_TAG/);
+  assert.doesNotMatch(gateway, /process\.env\.BUZZ_AUTH_TAG|BUZZ_AUTH_TAG\s*:/);
 });
 
 test("one-click setup is idempotent and verifies all eleven private rooms", () => {

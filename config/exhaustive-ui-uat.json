@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "screens": [
+    {
+      "id": "entry",
+      "label": "PlotPickle entry",
+      "route": "/",
+      "sourceFiles": ["app/page.tsx", "app/plotpickle-workspace-shell.tsx"],
+      "maxInteractions": 40,
+      "testDuplicateInstances": false
+    },
+    {
+      "id": "community",
+      "label": "COMMUNITY",
+      "route": "/?workspace=community",
+      "sourceFiles": ["app/community-workspace.tsx", "app/buzz-community-workspace.tsx", "app/community-agent-roster.tsx", "app/community-story-room-access.tsx"],
+      "maxInteractions": 70,
+      "testDuplicateInstances": false
+    },
+    {
+      "id": "learn",
+      "label": "LEARN",
+      "route": "/?workspace=learn",
+      "sourceFiles": ["modules/learn/ui/learn-workspace.tsx"],
+      "maxInteractions": 80,
+      "testDuplicateInstances": false
+    },
+    {
+      "id": "plan",
+      "label": "PLAN",
+      "route": "/?workspace=plan&section=foundations",
+      "sourceFiles": ["modules/plan/ui/foundations-plan-workspace.tsx"],
+      "maxInteractions": 90,
+      "testDuplicateInstances": false
+    },
+    {
+      "id": "wyrmwood",
+      "label": "GAME · Wyrmwood",
+      "route": "/?workspace=wyrmwood",
+      "sourceFiles": ["modules/wyrmwood/ui/wyrmwood-workspace.tsx"],
+      "maxInteractions": 80,
+      "testDuplicateInstances": false
+    },
+    {
+      "id": "settings",
+      "label": "SETTINGS",
+      "route": "/?workspace=settings",
+      "sourceFiles": ["app/sage-settings-workspace.tsx", "app/sage-fast-model-setup.tsx", "app/buzz-settings-panel.tsx"],
+      "maxInteractions": 160,
+      "testDuplicateInstances": true,
+      "requireRoles": ["button", "combobox"]
+    },
+    {
+      "id": "advanced-ai-routing",
+      "label": "SETTINGS · Advanced AI routing",
+      "route": "/ai-routing",
+      "sourceFiles": ["app/ai-routing/page.tsx"],
+      "maxInteractions": 120,
+      "testDuplicateInstances": true
+    }
+  ],
+  "unsafeControlLabels": [
+    "delete",
+    "remove",
+    "uninstall",
+    "reset",
+    "clear all",
+    "sign in",
+    "log in",
+    "purchase",
+    "buy",
+    "subscribe",
+    "generate image",
+    "generate video",
+    "switch to cloud",
+    "connect github",
+    "connect google",
+    "disconnect"
+  ],
+  "credentialPatterns": ["password", "secret", "token", "api key", "private key", "credential"],
+  "longRunningActionPatterns": ["test sage", "test plan", "ask", "draft", "pickle", "evaluate", "set up sage and plan", "refresh", "check", "verify"],
+  "globalNavigationLabels": ["Community", "LEARN", "PLAN", "GAME", "SETTINGS"],
+  "hardFailOnDeadSafeControl": true,
+  "hardFailOnUntestedSafeControl": true
+}

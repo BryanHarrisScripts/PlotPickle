@@ -6,11 +6,15 @@ on:
       - "config/buzz-guildhall.json"
       - "config/uat-autopilot-registry.json"
       - "lib/buzz-guildhall.ts"
+      - "lib/community-agent-roster.ts"
       - "build/buzz-community-gateway.ts"
+      - "build/buzz-agent-roster-gateway.ts"
       - "build/buzz-guildhall-gateway.ts"
       - "app/buzz-settings-panel.tsx"
       - "app/community-workspace.tsx"
       - "app/community-workspace.module.css"
+      - "app/community-agent-roster.tsx"
+      - "app/community-agent-roster.module.css"
       - "app/page.tsx"
       - "app/plotpickle-workspace-shell.tsx"
       - "app/plotpickle-workspace-shell.module.css"
@@ -23,6 +27,7 @@ on:
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
       - "tests/issue-672-global-navigation.test.mjs"
       - "tests/community-workspace.test.mjs"
+      - "tests/community-agent-roster.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
   push:
     branches: [main]
@@ -30,11 +35,15 @@ on:
       - "config/buzz-guildhall.json"
       - "config/uat-autopilot-registry.json"
       - "lib/buzz-guildhall.ts"
+      - "lib/community-agent-roster.ts"
       - "build/buzz-community-gateway.ts"
+      - "build/buzz-agent-roster-gateway.ts"
       - "build/buzz-guildhall-gateway.ts"
       - "app/buzz-settings-panel.tsx"
       - "app/community-workspace.tsx"
       - "app/community-workspace.module.css"
+      - "app/community-agent-roster.tsx"
+      - "app/community-agent-roster.module.css"
       - "app/page.tsx"
       - "app/plotpickle-workspace-shell.tsx"
       - "app/plotpickle-workspace-shell.module.css"
@@ -47,6 +56,7 @@ on:
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
       - "tests/issue-672-global-navigation.test.mjs"
       - "tests/community-workspace.test.mjs"
+      - "tests/community-agent-roster.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
 
 permissions:
@@ -65,4 +75,4 @@ jobs:
           node --check scripts/bootstrap-buzz-guildhall.mjs
           node --check scripts/post-buzz-guildhall-event.mjs
       - name: Validate Guildhall and Community contracts
-        run: node --test tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs
+        run: node --test tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs

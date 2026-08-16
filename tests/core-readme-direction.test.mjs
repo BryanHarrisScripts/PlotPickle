@@ -12,8 +12,11 @@ test("README describes the current slim PlotPickle product spine", () => {
   assert.match(readme, /parked off to the side/i);
 });
 
-test("README uses the current PlotPickle brand and active workspace glyphs", () => {
-  assert.match(readme, /public\/brand\/plotpickle-header-horizontal-transparent\.png/);
+test("README uses the approved PlotPickle identity artwork and active workspace glyphs", () => {
+  assert.match(readme, /docs\/brand-sources\/plotpickle-ouroboros-v2-master\.png/);
+  assert.match(readme, /public\/brand\/plotpickle-icon-master-transparent\.png/);
+  assert.match(readme, /docs\/brand-sources\/sage-brinewick-v2-master\.png/);
+  assert.doesNotMatch(readme, /public\/brand\/plotpickle-header-horizontal-transparent\.png/);
   for (const asset of [
     "dashboard.webp",
     "community.svg",

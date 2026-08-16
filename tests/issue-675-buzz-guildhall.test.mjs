@@ -109,7 +109,7 @@ test("bootstrap is dry-run by default and keeps agent creation owner-reviewed", 
   assert.match(bootstrap, /BUZZ_PRIVATE_KEY/);
   assert.match(bootstrap, /owner-reviewed/i);
   assert.match(bootstrap, /Nothing was written/);
-  assert.doesNotMatch(bootstrap, /console\.log\(process\.env\.BUZZ_PRIVATE_KEY|print\([^\n]*BUZZ_PRIVATE_KEY/);
+  assert.doesNotMatch(bootstrap, /(?:console\.log|print|stdout\.write)\([^\n]*process\.env\.BUZZ_PRIVATE_KEY/);
 });
 
 test("node workflows can post safe routed events through the running PlotPickle gateway", () => {

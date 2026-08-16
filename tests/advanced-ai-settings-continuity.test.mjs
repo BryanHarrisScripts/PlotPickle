@@ -28,7 +28,13 @@ test("AI routing is presented as one choice per capability instead of independen
   assert.doesNotMatch(routing, /Turn off|Turn on/);
 });
 
-test("unverified no-observable-change findings remain local to the exhaustive harness", async () => {
-  const policy = await read("scripts/exhaustive-ui-finding-policy.mjs");
+test("unverified exhaustive observations stay local and exhaustive GitHub reporting is capped", async () => {
+  const [policy, reporter] = await Promise.all([
+    read("scripts/exhaustive-ui-finding-policy.mjs"),
+    read("scripts/report-uat-findings.mjs"),
+  ]);
+
   assert.match(policy, /can be activated but produces no observable result/i);
+  assert.match(reporter, /exhaustiveOnly \? findings\.slice\(0, 3\) : findings/);
+  assert.match(reporter, /complete finding set remains in the local report/i);
 });

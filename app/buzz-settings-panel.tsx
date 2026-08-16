@@ -16,6 +16,23 @@ type BuzzStatus = {
     installed: boolean; configured: boolean; running: boolean; reachable: boolean; relayUrl: string; backups: string[]; lifecycle: string; message: string;
   };
 };
+type GuildhallSteward = { id: string; displayName: string; title: string; summary: string; primaryChannel: string; systemPrompt: string; ownerReviewRequired: boolean };
+type GuildhallStatus = {
+  configured: boolean;
+  identityVerified: boolean;
+  canSetup: boolean;
+  ready: boolean;
+  operational: boolean;
+  readyCount: number;
+  totalCount: number;
+  readyRooms: Array<{ id: string; name: string; label: string; channelId: string }>;
+  missingRooms: Array<{ id: string; name: string; label: string }>;
+  stewards: GuildhallSteward[];
+  upstreamAgentBoundary: string;
+  message: string;
+  created?: string[];
+  kept?: string[];
+};
 type FormState = { mode: ConnectionMode; relayUrl: string; community: string; identityLabel: string; cliPath: string; privateKey: string };
 type ConnectionState = "loading" | "disconnected" | "detected" | "connecting" | "connected" | "degraded";
 const EMPTY: FormState = { mode: "existing-relay", relayUrl: "", community: "", identityLabel: "", cliPath: "", privateKey: "" };
@@ -41,6 +58,7 @@ function buzzDesktopUrl(value: string, name: string) {
 
 export default function BuzzSettingsPanel() {
   const [status, setStatus] = useState<BuzzStatus | null>(null);
+  const [guildhall, setGuildhall] = useState<GuildhallStatus | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [busy, setBusy] = useState("");
   const [notice, setNotice] = useState("");
@@ -63,16 +81,31 @@ export default function BuzzSettingsPanel() {
     }));
   }
 
+  async function refreshGuildhall(showNotice = false) {
+    const body = await request<GuildhallStatus & { ok: true }>("/guildhall/status");
+    setGuildhall(body);
+    if (showNotice) setNotice(body.message);
+    return body;
+  }
+
   async function refresh(showNotice = false) {
     const body = await request<BuzzStatus & { ok: true }>("/status");
     applyStatus(body);
+    await refreshGuildhall(false).catch(() => undefined);
     if (showNotice) setNotice(body.connection.configured ? body.relay.detail : body.cli.available ? "Buzz Desktop is detected. Add your community details to finish setup." : "Buzz Desktop was not detected.");
   }
 
   useEffect(() => {
     let cancelled = false;
-    void request<BuzzStatus & { ok: true }>("/status")
-      .then((body) => { if (!cancelled) applyStatus(body); })
+    void Promise.all([
+      request<BuzzStatus & { ok: true }>("/status"),
+      request<GuildhallStatus & { ok: true }>("/guildhall/status"),
+    ])
+      .then(([buzzBody, guildhallBody]) => {
+        if (cancelled) return;
+        applyStatus(buzzBody);
+        setGuildhall(guildhallBody);
+      })
       .catch((error) => { if (!cancelled) setNotice(error instanceof Error ? error.message : "Buzz status could not be loaded."); });
     return () => { cancelled = true; };
   }, []);
@@ -113,6 +146,30 @@ export default function BuzzSettingsPanel() {
     } finally { setBusy(""); }
   }
 
+  async function setupGuildhall() {
+    setBusy("guildhall");
+    setNotice("");
+    try {
+      const body = await request<GuildhallStatus & { ok: true }>("/guildhall/setup", { method: "POST" });
+      setGuildhall(body);
+      refreshDashboardLights();
+      setNotice(body.message);
+    } catch (error) {
+      await refreshGuildhall().catch(() => undefined);
+      setNotice(error instanceof Error ? error.message : "The PlotPickle Guildhall could not be set up.");
+    } finally { setBusy(""); }
+  }
+
+  async function copySteward(steward: GuildhallSteward) {
+    const text = `${steward.displayName} · ${steward.title}\n\n${steward.systemPrompt}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setNotice(`${steward.displayName} setup copied. Create a new personal agent in Buzz Desktop, paste these instructions, review the form and save it.`);
+    } catch {
+      setNotice(`Could not copy ${steward.displayName}. Open Buzz Desktop and create this steward manually from the role shown here.`);
+    }
+  }
+
   const configured = Boolean(status?.connection.configured);
   const reachable = Boolean(status?.relay.reachable);
   const cliAvailable = Boolean(status?.cli.available);
@@ -126,12 +183,13 @@ export default function BuzzSettingsPanel() {
         ? cliAvailable ? "detected" : "disconnected"
         : reachable && identityVerified ? "connected" : "degraded";
   const storyRoomReady = connectionState === "connected" && cliAvailable && identityConfigured && identityVerified;
+  const guildhallReady = Boolean(guildhall?.operational);
   const stateCopy = {
     loading: { title: "Checking Buzz", tone: "Checking", detail: "PlotPickle is looking for Buzz Desktop and any saved community." },
     disconnected: { title: "Buzz Desktop not detected", tone: "Setup needed", detail: "Install and open Buzz Desktop once, then refresh this screen." },
     detected: { title: "Buzz Desktop detected", tone: "Desktop ready", detail: "Buzz is installed. Copy your hosted community address and explicitly authorize PlotPickle with the same Buzz identity." },
     connecting: { title: "Verifying Buzz", tone: "Connecting", detail: "PlotPickle is checking the community, the Desktop CLI and your Buzz identity together." },
-    connected: { title: "Buzz is ready", tone: "Ready", detail: "The community, Desktop CLI and identity are verified. PlotPickle can now create signed Story Rooms." },
+    connected: { title: "Buzz is ready", tone: "Ready", detail: "The community, Desktop CLI and identity are verified. PlotPickle can create signed Story Rooms and the Guildhall." },
     degraded: { title: reachable ? "PlotPickle is not authorized yet" : "Community cannot be reached", tone: reachable ? "Finish identity" : "Check address", detail: reachable ? "The hosted community responded, but the saved Buzz identity has not passed an authenticated check." : status?.relay.detail || "The saved community address did not respond." },
   }[connectionState];
   const managedState = {
@@ -152,14 +210,71 @@ export default function BuzzSettingsPanel() {
   return <div className={styles.page}>
     <header className={styles.heading}>
       <p>{"Settings · Repository & Collab · Buzz"}</p>
-      <h1>Connect PlotPickle to the Buzz community you already created.</h1>
-      <span>Buzz owns the community and identity. PlotPickle only stores the community&apos;s WebSocket address and an explicitly copied identity key, encrypted for the current Windows user.</span>
+      <h1>Connect Buzz, then let PlotPickle build the Guildhall for you.</h1>
+      <span>Your Buzz identity stays encrypted on this computer. Once it is verified, PlotPickle can create the private Guildhall rooms without a terminal or a GitHub secret.</span>
     </header>
 
     <section className={styles.statusCard}>
       <div><p>Current Buzz setup</p><h2>{stateCopy.title}</h2><p>{stateCopy.detail}</p></div>
       <div className={styles.statusBadge} data-state={connectionState} role="status" aria-live="polite"><i aria-hidden="true" /><b>{stateCopy.tone}</b></div>
     </section>
+
+    <section className={styles.statusCard} aria-labelledby="plotpickle-guildhall-title">
+      <div>
+        <p>PlotPickle Guildhall</p>
+        <h2 id="plotpickle-guildhall-title">{guildhallReady ? "Guildhall operational" : guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} private rooms ready` : "Checking Guildhall"}</h2>
+        <p>{guildhall?.message || "PlotPickle is checking the shared coordination rooms."}</p>
+      </div>
+      <div className={styles.statusBadge} data-state={guildhallReady ? "connected" : identityVerified ? "detected" : "disconnected"} role="status" aria-live="polite"><i aria-hidden="true" /><b>{guildhallReady ? "Operational" : identityVerified ? "Ready to build" : "Waiting for Buzz"}</b></div>
+    </section>
+
+    <section className={styles.setupGuide} aria-labelledby="guildhall-setup-title">
+      <div className={styles.guideHeading}>
+        <span>One-click coordination setup</span>
+        <h2 id="guildhall-setup-title">Create the PlotPickle Guildhall inside your Buzz community.</h2>
+      </div>
+      <div className={styles.setupSteps}>
+        <article data-complete={identityVerified ? "true" : "false"}>
+          <span>1</span>
+          <div><b>Verified Buzz identity</b><strong>{identityVerified ? "Ready" : "Required"}</strong><p>The same locally encrypted identity used for signed Story Rooms creates the Guildhall rooms. Nothing is copied to GitHub.</p></div>
+        </article>
+        <article data-complete={guildhallReady ? "true" : "false"}>
+          <span>2</span>
+          <div><b>Guildhall rooms</b><strong>{guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} ready` : "Checking"}</strong><p>{guildhallReady ? "The Great Hall, Lore Library, Wayfarer Journal, Wyrmwood Ring, Story Council, Thread Vault, Lantern Watch, Gatehouse, Forge, GitHub Herald and Long Archive are ready." : guildhall?.missingRooms.length ? `Missing: ${guildhall.missingRooms.map((room) => room.label).join(", ")}.` : "PlotPickle will create only the missing private rooms."}</p></div>
+        </article>
+        <article data-complete={guildhallReady ? "true" : "false"}>
+          <span>3</span>
+          <div><b>PlotPickle bridge</b><strong>{guildhallReady ? "Live" : "Waiting for rooms"}</strong><p>When all 11 rooms exist, Sage, Avery, Wyrmwood, visual review, UAT and development handoffs can route signed summaries into the correct Guildhall room.</p></div>
+        </article>
+      </div>
+      <div className={styles.actions}>
+        <button type="button" disabled={blocked || !guildhall?.canSetup || guildhallReady} onClick={() => void setupGuildhall()}>{busy === "guildhall" ? "Building Guildhall…" : guildhallReady ? "Guildhall ready" : "Set up PlotPickle Guildhall"}</button>
+        <button type="button" disabled={blocked} onClick={() => void refreshGuildhall(true)}>Refresh Guildhall status</button>
+        {openInBuzzUrl ? <a href={openInBuzzUrl}>Open Guildhall community in Buzz Desktop</a> : null}
+      </div>
+      <aside className={styles.terminologyNote}>
+        <b>No GitHub BUZZ secret is needed</b>
+        <p>Do not put your Buzz nsec in GitHub for this setup. PlotPickle reads the identity only from its encrypted local credential store and passes it directly to the local Buzz CLI when you choose setup.</p>
+      </aside>
+    </section>
+
+    {guildhall?.stewards.length ? <section className={styles.setupGuide} aria-labelledby="guildhall-stewards-title">
+      <div className={styles.guideHeading}>
+        <span>Optional separate Buzz identities</span>
+        <h2 id="guildhall-stewards-title">Orin and Fen still require your approval in Buzz Desktop.</h2>
+        <p>The Guildhall works without separate steward identities. Buzz intentionally requires personal-agent creation to be reviewed by the owner, so PlotPickle will not bypass that control.</p>
+      </div>
+      <div className={styles.setupSteps}>
+        {guildhall.stewards.map((steward, index) => <article key={steward.id} data-complete="false">
+          <span>{index + 1}</span>
+          <div><b>{steward.displayName}</b><strong>{steward.title}</strong><p>{steward.summary}</p><button type="button" disabled={blocked} onClick={() => void copySteward(steward)}>Copy {steward.displayName} setup</button></div>
+        </article>)}
+      </div>
+      <aside className={styles.terminologyNote}>
+        <b>Why this is not automatic</b>
+        <p>Buzz&apos;s external agent-draft command is reserved for an already owner-authorized Buzz agent and requires its NIP-OA owner authorization. Your normal human Buzz identity is not that delegated agent credential. PlotPickle keeps this safety boundary intact.</p>
+      </aside>
+    </section> : null}
 
     <section className={styles.setupGuide} aria-labelledby="buzz-settings-steps-title">
       <div className={styles.guideHeading}>
@@ -169,7 +284,7 @@ export default function BuzzSettingsPanel() {
       <div className={styles.setupSteps}>
         <article data-complete={cliAvailable ? "true" : "false"}>
           <span>1</span>
-          <div><b>Buzz Desktop</b><strong>{cliAvailable ? "Detected" : "Not detected"}</strong><p>{cliAvailable ? `${status?.cli.version || "Buzz Desktop v0.5.3"}${status && status.cli.source === "buzz-desktop" ? " · found automatically" : ""}` : "Install Buzz Desktop v0.5.3, open it once, then select Refresh status below."}</p></div>
+          <div><b>Buzz Desktop</b><strong>{cliAvailable ? "Detected" : "Not detected"}</strong><p>{cliAvailable ? `${status?.cli.version || "Buzz Desktop"}${status && status.cli.source === "buzz-desktop" ? " · found automatically" : ""}` : "Install the current Buzz Desktop release, open it once, then select Refresh status below."}</p></div>
         </article>
         <article data-complete={reachable ? "true" : "false"}>
           <span>2</span>
@@ -217,7 +332,7 @@ export default function BuzzSettingsPanel() {
       </div>
       <details className={styles.advancedField}>
         <summary>Advanced: Buzz CLI path</summary>
-        <label><span>Buzz CLI path (optional)</span><input value={form.cliPath} onChange={(event) => patch({ cliPath: event.target.value })} placeholder="Leave blank to use Buzz Desktop automatically" /><small>Buzz Desktop v0.5.3 includes the supported CLI sidecar. Leave this blank unless automatic detection fails.</small></label>
+        <label><span>Buzz CLI path (optional)</span><input value={form.cliPath} onChange={(event) => patch({ cliPath: event.target.value })} placeholder="Leave blank to use Buzz Desktop automatically" /><small>Buzz Desktop includes the supported CLI sidecar. Leave this blank unless automatic detection fails.</small></label>
       </details>
     </section>
 

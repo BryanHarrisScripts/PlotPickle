@@ -23,7 +23,7 @@ Dashboard · Community · Learn · Plan · Wyrmwood · Settings
   </tr>
 </table>
 
-The broader PlotPickle modules still exist in the repository. Storyboard, Write, Edit, Graphic Novel, Build, Feedback, Refine, Reports and other historical surfaces are parked until they are deliberately reworked into the simpler active architecture. Old code does not make a surface part of the current product merely because it still exists.
+The broader PlotPickle modules still exist in the repository. They are parked off to the side until Storyboard, Write, Edit, Graphic Novel, Build, Feedback, Refine, Reports and other historical surfaces are deliberately reworked into the simpler active architecture. Old code does not make a surface part of the current product merely because it still exists.
 
 ## Product layout contract
 
@@ -107,6 +107,7 @@ flowchart TB
       Plan[PLAN · Tamsin Hearthquill]
       Game[Wyrmwood · Master Oaken-Vague + Rowan Scalequill]
       Settings[Settings]
+      Review[Human Review Queue]
     end
 
     Parked[Parked modules\nStoryboard · Write · Edit · Graphic Novel · Build · Feedback · Refine · Reports · others]
@@ -137,7 +138,7 @@ flowchart TB
     end
 
     subgraph Data[Data, memory and creative authority]
-      PPF[(PPF · canonical creative record)]
+      PPF[(PPF\ncreative authority)]
       Curriculum[Curriculum / foundations]
       Story[Story bible · characters · worldbuilding]
       Assets[Assets]
@@ -157,7 +158,9 @@ flowchart TB
     Router --> Cloud
 
     Studio <--> Data
-    Community <--> BUZZ[BUZZ / Nostr community layer]
+    Community <--> BUZZ[BUZZ Community Layer\nNostr signed-event coordination]
+    Community -. suggestions .-> Review
+    Review -->|explicit human approval| PPF
 
     VisualQA[Read-only visual observer / visual QA] -. rendered evidence .-> Studio
     VisualQA -. does not generate images .-> Receipts
@@ -168,7 +171,7 @@ flowchart TB
       Repair[Pi default repair worker / Cline selectable]
       Worktree[Isolated branch / worktree]
       Gates[Focused regression + UAT contracts + production build]
-      PR[GitHub PR / CI]
+      PR[GitHub\ncode / PR / merge authority]
       Merge[Exact tested green head merge]
       Guildhall --> UAT --> Repair --> Worktree --> Gates --> PR --> Merge
     end

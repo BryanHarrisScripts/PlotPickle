@@ -150,6 +150,53 @@ export default function DashboardWorkspace({
         </div>
         <span className={styles.nextBadge}>{worldUnlocked ? "→ Unlocked" : "🔒 Locked"}</span>
       </section>
+
+      <section className={styles.curriculumOverview} aria-label="Full guided curriculum progression">
+        <div className={styles.curriculumHeading}>
+          <div>
+            <p className={styles.kicker}>The complete guided journey</p>
+            <h2>12 curriculum groups. One progression engine.</h2>
+          </div>
+          <p>Only Foundations is implemented today. The remaining groups are visible so the project has one honest map, but their workspaces stay gated.</p>
+        </div>
+        <div className={styles.curriculumGrid}>
+          {progression.groups.map((group, index) => {
+            const current = group.id === "foundations";
+            const readyNext = group.unlocked && !group.implemented;
+            const status = group.complete
+              ? "✓ Complete"
+              : current
+                ? "→ In progress"
+                : readyNext
+                  ? "→ Ready next"
+                  : "🔒 Gated";
+            return (
+              <article
+                className={styles.curriculumCard}
+                data-current={current}
+                data-ready={readyNext}
+                key={group.id}
+              >
+                <div className={styles.curriculumCardTop}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <strong>{status}</strong>
+                </div>
+                <h3>{group.label}</h3>
+                <p>{group.completedLessonCount} / {group.lessonCount} lessons recorded</p>
+                <div className={styles.miniStages} aria-label={`${group.label} stage states`}>
+                  <span data-state={group.learn}>L</span>
+                  <span data-state={group.plan}>P</span>
+                  <span data-state={group.build}>B</span>
+                </div>
+                <div className={styles.progressTrack} aria-label={`${group.label} ${group.percentComplete}% complete`}>
+                  <span style={{ width: `${group.percentComplete}%` }} />
+                </div>
+                {!group.implemented ? <small>Workspace intentionally gated until the prior approved cycle is proven.</small> : null}
+              </article>
+            );
+          })}
+        </div>
+      </section>
     </main>
   );
 }

@@ -51,8 +51,9 @@ test("generated artifacts persist as project metadata while image bytes stay in 
 });
 
 test("acceptance can only unlock progression for a real stored artifact", async () => {
-  const [reducer, progression] = await Promise.all([
+  const [reducer, guided, adapter] = await Promise.all([
     read("core/project/apply-command.ts"),
+    read("modules/dashboard/guided-progression.ts"),
     read("modules/dashboard/foundations-progression.ts"),
   ]);
 
@@ -60,8 +61,10 @@ test("acceptance can only unlock progression for a real stored artifact", async 
   assert.match(reducer, /artifactExists && !accepted\.includes\(command\.artifactId\)/);
   assert.match(reducer, /case "foundations\.visual\.discard"/);
   assert.match(reducer, /acceptedVisualArtifactIds: project\.build\.foundations\.acceptedVisualArtifactIds\.filter/);
-  assert.match(progression, /acceptedVisualArtifactIds\.length/);
-  assert.match(progression, /worldUnlocked: buildComplete/);
+  assert.match(guided, /project\.build\.foundations\.acceptedVisualArtifactIds\.length/);
+  assert.match(guided, /const buildComplete = planComplete && acceptedVisualArtifactCount > 0/);
+  assert.match(guided, /const unlocked = index === 0 && foundations\.complete/);
+  assert.match(adapter, /worldUnlocked: Boolean\(world\?\.unlocked\)/);
 });
 
 test("cloud image use requires explicit paid acknowledgement while local generation does not", async () => {

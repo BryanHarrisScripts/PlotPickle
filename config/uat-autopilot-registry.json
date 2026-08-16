@@ -22,6 +22,7 @@
         "tests/issue-652-auto-repair-model-readiness.test.mjs",
         "tests/issue-653-writer-in-residence.test.mjs",
         "tests/issue-681-685-writer-visual-reliability.test.mjs",
+        "tests/live-buzz-guildhall-activity.test.mjs",
         "tests/issue-667-669-agent-output-quality.test.mjs",
         "tests/issue-686-sage-unified-agent.test.mjs"
       ]

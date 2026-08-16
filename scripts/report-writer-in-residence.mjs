@@ -4,6 +4,7 @@ import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import process from "node:process";
 import { promisify } from "node:util";
+import { bestEffortLiveBuzzActivity } from "./buzz-live-activity.mjs";
 
 const exec = promisify(execFile);
 const argv = process.argv.slice(2);
@@ -42,7 +43,7 @@ async function ensureLabels() {
 }
 
 async function existingIssue(fingerprint) {
-  const raw = await gh("issue", "list", "--repo", repository, "--state", "open", "--label", "synthetic-writer", "--limit", "100", "--json", "number,body,title");
+  const raw = await gh("issue", "list", "--repo", repository, "--state", "open", "--label", "synthetic-writer", "--limit", "100", "--json", "number,body,title,url");
   const issues = JSON.parse(raw || "[]");
   return issues.find((issue) => String(issue.body || "").includes(marker(fingerprint))) || null;
 }
@@ -80,6 +81,33 @@ function issueBody(report, finding) {
   ].filter(Boolean).join("\n");
 }
 
+function buzzFindingEvent(finding) {
+  const visual = finding.source === "rendered-visual-observer";
+  return {
+    type: visual ? "visual.finding" : "writer.feedback",
+    actorId: visual ? "luma-glassfern" : "avery-north",
+    summary: String(finding.summary || "Writer-in-Residence finding").slice(0, 650),
+    severity: finding.severity || "medium",
+    target: finding.route || "writer-in-residence",
+    verified: visual,
+    actionable: finding.actionable === true,
+    evidence: finding.fingerprint ? [{ label: "Writer finding", ref: finding.fingerprint }] : [],
+  };
+}
+
+async function mirrorGithubStatus(summary, ref) {
+  await bestEffortLiveBuzzActivity({
+    type: "github.status",
+    actorId: "fen-copperwind",
+    summary,
+    severity: "info",
+    target: repository,
+    verified: true,
+    actionable: false,
+    evidence: ref ? [{ label: "GitHub", ref }] : [],
+  });
+}
+
 async function main() {
   const report = JSON.parse(await readFile(reportPath, "utf8"));
   const findings = Array.isArray(report.promotedFindings) ? report.promotedFindings : [];
@@ -91,6 +119,7 @@ async function main() {
   await ensureLabels();
 
   for (const finding of findings) {
+    await bestEffortLiveBuzzActivity(buzzFindingEvent(finding));
     const current = await existingIssue(finding.fingerprint);
     const body = issueBody(report, finding);
     const kindLabel = `experience:${finding.kind}`;
@@ -99,6 +128,7 @@ async function main() {
     if (current) {
       await gh("issue", "comment", String(current.number), "--repo", repository, "--body", body);
       process.stdout.write(`Updated synthetic writer issue #${current.number}: ${finding.fingerprint}\n`);
+      await mirrorGithubStatus(`Updated synthetic Writer-in-Residence issue #${current.number} from ${finding.fingerprint}.`, current.url || "");
       continue;
     }
     const titlePrefix = finding.kind === "bug" ? "Possible bug" : finding.kind === "need" ? "Need" : finding.kind.replaceAll("-", " ");
@@ -110,6 +140,7 @@ async function main() {
       ...labels.flatMap((label) => ["--label", label]),
     );
     process.stdout.write(`Created synthetic writer feedback: ${issueUrl}\n`);
+    await mirrorGithubStatus(`Created synthetic Writer-in-Residence GitHub feedback for ${finding.fingerprint}.`, issueUrl);
   }
 }
 

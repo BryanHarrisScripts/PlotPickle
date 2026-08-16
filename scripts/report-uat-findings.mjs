@@ -4,6 +4,7 @@ import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import process from "node:process";
 import { promisify } from "node:util";
+import { bestEffortLiveBuzzActivity } from "./buzz-live-activity.mjs";
 
 const exec = promisify(execFile);
 const args = process.argv.slice(2);
@@ -57,9 +58,46 @@ async function ensureLabels() {
 }
 
 async function existingIssue(fingerprint) {
-  const raw = await gh("issue", "list", "--repo", repository, "--state", "open", "--label", "uat:autopilot", "--limit", "100", "--json", "number,body,title");
+  const raw = await gh("issue", "list", "--repo", repository, "--state", "open", "--label", "uat:autopilot", "--limit", "100", "--json", "number,body,title,url");
   const issues = JSON.parse(raw || "[]");
   return issues.find((issue) => String(issue.body || "").includes(marker(fingerprint))) || null;
+}
+
+async function mirrorFinding(finding) {
+  const severity = finding.severity === "critical" ? "critical" : finding.severity === "high" ? "high" : "high";
+  await bestEffortLiveBuzzActivity({
+    type: "uat.result",
+    actorId: "bram-gatewick",
+    summary: `Focused UAT found ${finding.fingerprint}: ${String(finding.title || finding.message || "blocker").slice(0, 500)}`,
+    severity,
+    target: finding.area || "focused-uat",
+    verified: true,
+    actionable: true,
+    evidence: [{ label: "UAT fingerprint", ref: finding.fingerprint }],
+  });
+  await bestEffortLiveBuzzActivity({
+    type: "repair.request",
+    actorId: "rook-ironquill",
+    summary: `Verified UAT blocker ${finding.fingerprint} is ready for the local repair workflow.`,
+    severity,
+    target: finding.area || "focused-uat",
+    verified: true,
+    actionable: true,
+    evidence: [{ label: "UAT fingerprint", ref: finding.fingerprint }],
+  });
+}
+
+async function mirrorGithubStatus(summary, ref) {
+  await bestEffortLiveBuzzActivity({
+    type: "github.status",
+    actorId: "fen-copperwind",
+    summary,
+    severity: "info",
+    target: repository,
+    verified: true,
+    actionable: false,
+    evidence: ref ? [{ label: "GitHub", ref }] : [],
+  });
 }
 
 async function main() {
@@ -73,11 +111,13 @@ async function main() {
   await ensureLabels();
 
   for (const finding of findings) {
+    await mirrorFinding(finding);
     const current = await existingIssue(finding.fingerprint);
     const body = findingBody(finding);
     if (current) {
       await gh("issue", "comment", String(current.number), "--repo", repository, "--body", body);
       process.stdout.write(`Updated UAT issue #${current.number}: ${finding.fingerprint}\n`);
+      await mirrorGithubStatus(`Updated UAT GitHub issue #${current.number} for ${finding.fingerprint}.`, current.url || "");
       continue;
     }
     const url = await gh(
@@ -89,6 +129,7 @@ async function main() {
       "--label", "uat:auto-repair",
     );
     process.stdout.write(`Created UAT issue: ${url}\n`);
+    await mirrorGithubStatus(`Created UAT GitHub issue for ${finding.fingerprint}.`, url);
   }
 }
 

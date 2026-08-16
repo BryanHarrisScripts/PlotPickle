@@ -1,4 +1,5 @@
 import { McpClient } from "./creative-uat/mcp-runtime.mjs";
+import { bestEffortLiveBuzzActivity } from "./buzz-live-activity.mjs";
 
 const nativeFetch = globalThis.fetch.bind(globalThis);
 
@@ -43,6 +44,18 @@ function writerAttemptSignal(role) {
   return AbortSignal.timeout(role === "quality" ? 65_000 : 40_000);
 }
 
+function mirrorAveryTurn(role, attempt) {
+  void bestEffortLiveBuzzActivity({
+    type: "writer.feedback",
+    actorId: "avery-north",
+    summary: `Avery completed a Writer-in-Residence decision turn using the ${role} local model${attempt > 1 ? ` after ${attempt} attempts` : ""}.`,
+    severity: "info",
+    target: "writer-in-residence",
+    verified: false,
+    actionable: false,
+  });
+}
+
 // The Writer-in-Residence is intentionally local-only. Real Windows runs showed
 // intermittent empty local replies even while Sage/PLAN health was good. Retry the
 // same request across the two local roles with a small hard cap. Each retry owns a
@@ -78,6 +91,7 @@ globalThis.fetch = async function plotPickleWriterFetch(input, init = {}) {
     lastResponse = response;
     if (response.ok && usefulWriterText(parsed)) {
       if (index > 0) process.stdout.write(`Writer local recovery ............... PASS  ${preferred} → ${role} on attempt ${index + 1}\n`);
+      mirrorAveryTurn(role, index + 1);
       return response;
     }
     if (!retryableEmptyReply(response, parsed)) return response;

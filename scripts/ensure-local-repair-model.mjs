@@ -19,6 +19,8 @@ const requestedWorker = (() => {
 })();
 const preferredModel = String(process.env.PLOTPICKLE_REPAIR_MODEL || "").trim();
 const preferredEndpoint = String(process.env.PLOTPICKLE_REPAIR_ENDPOINT || "").trim().replace(/\/$/, "");
+const allowAutoDownload = process.env.PLOTPICKLE_REPAIR_AUTO_DOWNLOAD !== "0";
+const DEFAULT_OLLAMA_PI_MODEL = "qwen2.5-coder:7b";
 
 function safeModelKey(value) {
   const model = String(value || "").trim();
@@ -112,6 +114,35 @@ async function ollamaInstalledModels() {
   }
 }
 
+async function ollamaAvailable() {
+  try {
+    const response = await fetch("http://127.0.0.1:11434/api/version", {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(3_000),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function pullOllama(model) {
+  const response = await fetch("http://127.0.0.1:11434/api/pull", {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify({ model, stream: false }),
+    signal: AbortSignal.timeout(30 * 60_000),
+  });
+  if (!response.ok) {
+    let detail = "";
+    try {
+      const body = await response.json();
+      detail = typeof body?.error === "string" ? body.error : "";
+    } catch {}
+    throw new Error(`Ollama could not download ${model}${detail ? `: ${detail}` : "."}`);
+  }
+}
+
 async function warmOllama(model) {
   try {
     const response = await fetch("http://127.0.0.1:11434/api/generate", {
@@ -177,6 +208,22 @@ async function alreadyExposedCandidate() {
   return candidates[0] || null;
 }
 
+async function ensureDefaultPiOllamaModel() {
+  if (requestedWorker !== "pi" || preferredEndpoint || !allowAutoDownload) return "";
+  if (!(await ollamaAvailable())) return "";
+  const model = safeModelKey(preferredModel || DEFAULT_OLLAMA_PI_MODEL);
+  if (!approvedCodingModel(model)) {
+    throw new Error(`The requested Pi repair model ${model} is not on PlotPickle's approved local coding-model allowlist.`);
+  }
+  output(`Developer repair model ........... DOWNLOADING  ${model} via Ollama; first setup can take several minutes`);
+  await pullOllama(model);
+  const installed = choose(await ollamaInstalledModels());
+  if (!installed) throw new Error(`Ollama finished downloading ${model}, but PlotPickle still cannot see an approved coding model.`);
+  const warmed = await warmOllama(installed);
+  output(`Developer repair model ............... READY  ${installed} via Ollama${warmed ? "" : "; it will finish loading on Pi's first request"}`);
+  return installed;
+}
+
 async function main() {
   if (process.env.PLOTPICKLE_REPAIR_AUTOLOAD === "0") return;
 
@@ -218,11 +265,15 @@ async function main() {
       return;
     }
 
+    const installed = await ensureDefaultPiOllamaModel();
+    if (installed) return;
+
     const localModels = [...new Set([...lmModels, ...ollamaModels])];
-    output("Developer repair model ........... NOT FOUND  no approved local coding model is installed; PlotPickle did not download one automatically.");
+    output("Developer repair model ........... NOT READY  no approved local coding model is installed or available to Pi.");
     if (localModels.length) output(`Local models seen .................... INFO  ${localModels.slice(0, 8).join(", ")}`);
-    output("Recommended lightweight option ...... INFO  Qwen2.5-Coder 7B (LM Studio or Ollama) is accepted for Pi on modest local hardware.");
-    return;
+    output(`Recommended lightweight option ...... INFO  ${DEFAULT_OLLAMA_PI_MODEL} via Ollama.`);
+    if (!allowAutoDownload) output("Automatic download ................ DISABLED  PLOTPICKLE_REPAIR_AUTO_DOWNLOAD=0");
+    throw new Error("Pi repair readiness failed because no approved local coding model is available.");
   }
 
   if (requestedWorker === "mastra-qwen") {
@@ -236,11 +287,13 @@ async function main() {
       const loaded = await waitForLmStudioModel(model);
       if (!loaded) throw new Error(`LM Studio loaded ${model}, but it did not become available through the OpenAI-compatible endpoint.`);
       output(`Legacy repair model .................. READY  ${loaded} via LM Studio`);
+      return;
     }
+    throw new Error("Legacy repair readiness failed because its dedicated local model is not installed.");
   }
 }
 
 main().catch((error) => {
   if (!quiet) console.error(`[repair-model] ${error instanceof Error ? error.message : String(error)}`);
-  process.exitCode = 1;
+  process.exitCode = 2;
 });

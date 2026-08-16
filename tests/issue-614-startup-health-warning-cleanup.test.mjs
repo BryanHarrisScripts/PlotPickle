@@ -5,14 +5,20 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("startup uses the resilient v3 Sage and PLAN health probe", async () => {
-  const [entrypoint, diagnostic, guide] = await Promise.all([
+test("startup uses the v4 grounding adapter around the resilient v3 Sage and PLAN health probe", async () => {
+  const [entrypoint, adapter, diagnostic, guide] = await Promise.all([
     read("build/startup-agent-diagnostics.ts"),
+    read("build/startup-agent-diagnostics-runtime-v4.ts"),
     read("build/startup-agent-diagnostics-runtime-v3.ts"),
     read("modules/creative-room/curriculum-guide.ts"),
   ]);
 
-  assert.match(entrypoint, /startup-agent-diagnostics-runtime-v3/);
+  assert.match(entrypoint, /startup-agent-diagnostics-runtime-v4/);
+  assert.match(adapter, /runStartupAgentDiagnostics as runV3/);
+  assert.match(adapter, /onlyGroundingFailed/);
+  assert.match(adapter, /verifyCurrentSageGrounding/);
+  assert.match(adapter, /essentials-theme/);
+
   assert.match(diagnostic, /CONVERSATION MODE: PlotPickle\/story craft/);
   assert.match(diagnostic, /cleanDiagnosticSageAnswer/);
   assert.match(diagnostic, /function antiEchoPass/);
@@ -23,7 +29,7 @@ test("startup uses the resilient v3 Sage and PLAN health probe", async () => {
   assert.match(diagnostic, /printResult\("Curriculum grounding", sage\.grounded \? "PASS" : "FAIL"/);
   assert.match(diagnostic, /failed \|\|= !responsePass \|\| !sage\.antiEcho \|\| !sage\.repetitionSafe \|\| !sage\.grounded/);
 
-  // v3 also closes the PLAN startup false-negative gap by retrying structured output before failing.
+  // v3 still closes the PLAN startup false-negative gap by retrying structured output before failing.
   assert.match(diagnostic, /FOUNDATION_REPAIR_INSTRUCTION/);
   assert.match(diagnostic, /route: "Quality retry"/);
   assert.match(diagnostic, /route: "per-field recovery"/);
@@ -38,12 +44,16 @@ test("startup uses the resilient v3 Sage and PLAN health probe", async () => {
 });
 
 test("runaway Sage repetition remains a hard startup failure", async () => {
-  const diagnostic = await read("build/startup-agent-diagnostics-runtime-v3.ts");
+  const [adapter, diagnostic] = await Promise.all([
+    read("build/startup-agent-diagnostics-runtime-v4.ts"),
+    read("build/startup-agent-diagnostics-runtime-v3.ts"),
+  ]);
 
   assert.match(diagnostic, /if \(count >= 3\) return false/);
   assert.match(diagnostic, /Sage repetition guard/);
   assert.match(diagnostic, /sage\.repetitionSafe \? "PASS" : "FAIL"/);
   assert.match(diagnostic, /failed \|\|= !responsePass \|\| !sage\.antiEcho \|\| !sage\.repetitionSafe \|\| !sage\.grounded/);
+  assert.match(adapter, /failedChecks\.length === 1 && failedChecks\[0\]\.includes\("Curriculum grounding"\)/);
 });
 
 test("Next startup uses proxy instead of the deprecated middleware convention", async () => {

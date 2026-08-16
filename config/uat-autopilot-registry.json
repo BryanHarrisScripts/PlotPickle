@@ -17,6 +17,7 @@
         "tests/issue-636-startup-uat-decision.test.mjs",
         "tests/issue-637-first-uat-findings.test.mjs",
         "tests/issue-641-developer-agent-stack.test.mjs",
+        "tests/agent-skills-foundation.test.mjs",
         "tests/issue-645-uat-readiness-git-bash.test.mjs",
         "tests/issue-651-pi-cline-uat-repair.test.mjs",
         "tests/issue-652-auto-repair-model-readiness.test.mjs",

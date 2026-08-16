@@ -177,14 +177,17 @@ test("settings detect multiple runtimes and expose advanced overrides", async ()
 });
 
 test("cloud providers and legacy Ollama remain available without defining local architecture", async () => {
-  const [store, provider, page] = await Promise.all([
+  const [store, provider, settings, legacyRoute] = await Promise.all([
     read("build/writing-assistant-store.ts"),
     read("build/writing-assistant-provider.ts"),
+    read("app/sage-settings-workspace.tsx"),
     read("app/ai-routing/page.tsx"),
   ]);
   assert.match(store, /"local" \| "ollama" \| "openai" \| "minimax"/);
   assert.match(provider, /profile\.provider === "openai"/);
   assert.match(provider, /profile\.provider === "minimax"/);
   assert.match(provider, /profile\.provider === "ollama"/);
-  assert.match(page, /Ollama is optional and no longer defines the local architecture/);
+  assert.match(settings, /Ollama is optional and no longer defines the local architecture/);
+  assert.match(settings, /<AiRoutingPanel \/>/);
+  assert.match(legacyRoute, /redirect\("\/\?workspace=settings#settings-routing"\)/);
 });

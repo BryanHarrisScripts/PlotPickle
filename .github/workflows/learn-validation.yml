@@ -37,6 +37,9 @@ jobs:
       - name: Validate focused UAT registry contract
         run: node --test tests/issue-622-uat-autopilot.test.mjs
 
+      - name: Validate README core direction
+        run: node --test tests/core-readme-direction.test.mjs
+
       - name: Test Startup, Settings, Foundations/LEARN, PLAN, and Wyrmwood
         run: node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused
 

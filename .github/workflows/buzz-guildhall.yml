@@ -3,6 +3,7 @@ name: Buzz Guildhall
 on:
   pull_request:
     paths:
+      - "README.md"
       - "config/buzz-guildhall.json"
       - "config/uat-autopilot-registry.json"
       - "lib/buzz-guildhall.ts"
@@ -31,6 +32,7 @@ on:
       - "docs/buzz-guildhall.md"
       - "docs/buzz-live-health.md"
       - "docs/issue-buzz-story-room-access-agents.md"
+      - "tests/core-readme-direction.test.mjs"
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
       - "tests/issue-672-global-navigation.test.mjs"
@@ -42,6 +44,7 @@ on:
   push:
     branches: [main]
     paths:
+      - "README.md"
       - "config/buzz-guildhall.json"
       - "config/uat-autopilot-registry.json"
       - "lib/buzz-guildhall.ts"
@@ -70,6 +73,7 @@ on:
       - "docs/buzz-guildhall.md"
       - "docs/buzz-live-health.md"
       - "docs/issue-buzz-story-room-access-agents.md"
+      - "tests/core-readme-direction.test.mjs"
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
       - "tests/issue-672-global-navigation.test.mjs"
@@ -94,5 +98,5 @@ jobs:
         run: |
           node --check scripts/bootstrap-buzz-guildhall.mjs
           node --check scripts/post-buzz-guildhall-event.mjs
-      - name: Validate Guildhall, Community, Story Room, agent, and live BUZZ contracts
-        run: node --test tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs
+      - name: Validate Guildhall, Community, Story Room, agent, README, and live BUZZ contracts
+        run: node --test tests/core-readme-direction.test.mjs tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs

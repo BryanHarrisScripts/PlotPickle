@@ -1,260 +1,266 @@
 <p align="center">
-  <img src="public/brand/plotpickle-header-horizontal-1200.png" alt="PlotPickle" width="760">
+  <img src="public/brand/plotpickle-header-horizontal-transparent.png" alt="PlotPickle" width="760">
 </p>
 
 # PlotPickle
 
-**Shape the story. See the world. Direct what comes next.**
+Shape the story. Learn the craft. Test the choices. Keep the writer in control.
 
-PlotPickle is a local-first, AI-native visual writing and creative direction studio. A writer can begin with a concept, fragment or visual reference; explore possibilities; compare and direct revisions; approve what belongs; and reuse those decisions across a living story graph, 24 Blocks, 96 mini-blocks, screenplay material, Graphic Novel panels and Storyboard frames. AI provides responsive creative material, while the writer remains the author, visual director and final authority over canon.
+PlotPickle is a local-first, AI-assisted story development environment built around a deliberately small product spine:
 
-Start with **Afterglow: Reflections of Sentience** to see the full method in a working story. Then build your own privately, invite a Buzz community into a Writers’ Room, add GitHub history and owner-approved Story Proposals, or use Suggest / Report to prepare a sanitized community-feedback draft. PlotPickle remains installed locally, and only a person can approve a change to canon.
+Dashboard · Community · Learn · Plan · Wyrmwood · Settings
 
-[Getting Started](public/docs/readme/GETTING-STARTED.md) · [Writing & Production](public/docs/readme/WRITING-AND-PRODUCTION.md) · [Collaboration & Development](public/docs/readme/COLLABORATION-AND-DEVELOPMENT.md) · [Official repository](https://github.com/BryanHarrisScripts/PlotPickle) · [About PlotPickle](app/about/page.tsx) · [OpenStory history](docs/history/from-openstory-to-plotpickle.md)
+<table align="center">
+  <tr>
+    <td align="center" width="110"><img src="public/assets/workflow-relics/dashboard.webp" alt="Dashboard glyph" width="66"><br><strong>Dashboard</strong></td>
+    <td align="center" width="110"><img src="public/assets/workflow-relics/community.svg" alt="Community glyph" width="66"><br><strong>Community</strong></td>
+    <td align="center" width="110"><img src="public/assets/workflow-relics/learn.webp" alt="Learn glyph" width="66"><br><strong>Learn</strong></td>
+    <td align="center" width="110"><img src="public/assets/workflow-relics/plan.webp" alt="Plan glyph" width="66"><br><strong>Plan</strong></td>
+    <td align="center" width="110"><img src="public/assets/workflow-relics/game.webp" alt="Wyrmwood game glyph" width="66"><br><strong>Wyrmwood</strong></td>
+    <td align="center" width="110"><img src="public/assets/workflow-relics/settings.svg" alt="Settings glyph" width="66"><br><strong>Settings</strong></td>
+  </tr>
+</table>
 
-## AI-native visual writing
+The current rebuild focuses on helping a writer learn story craft, apply it to a real project, test those choices through the Wyrmwood game, and collaborate through a shared BUZZ community without surrendering creative authority to an AI or an external service.
 
-The canonical creative loop is:
+The broader PlotPickle modules still exist in the repository. They are parked off to the side until they are deliberately reworked into this simpler architecture. They are not considered part of the active product surface simply because old code still exists.
 
-`Concept -> Explore -> Compare -> Direct -> Refine -> Approve -> Reuse`
+## Core product
 
-Normal creative controls describe intention: **Keep, Change, Try, Compare, Combine and Approve**. Provider, model, endpoint and workflow configuration remains in Settings. Generated and imported possibilities stay versioned candidates until a person approves them for a character, location, Block, scene, mini-block, Storyboard frame or Graphic Novel panel.
+### Learn
 
-Visual development is part of writing. Character studies can clarify identity and movement; location studies can expose world rules; scene images can reveal weak staging; panels can test whether action reads; and visual discoveries can return as reviewable story proposals. No visual analysis rewrites canonical story material automatically.
+LEARN is the front door to PlotPickle's curriculum.
 
-See [AI-native visual writing and creative direction](docs/AI-NATIVE-VISUAL-WRITING.md) and programme [#382](https://github.com/BryanHarrisScripts/PlotPickle/issues/382).
+The writer reads the lesson in the centre, navigates the curriculum on the left, and works with Sage Brinewick on the right. Sage is the resident Lorekeeper: a conversational curriculum guide powered by the local Mastra agent runtime.
 
-## Why PlotPickle
+LEARN is intended to answer a simple question: what does the writer need to understand before making the next story decision?
 
-1. **Self-learning modules beside the work** — use 81 guided modules, local guides and Afterglow examples without leaving the story you are developing.
-2. **A story graph you can see** — connect characters, locations, beats, scenes, arcs, dependencies and continuity instead of scattering them across unrelated documents.
-3. **One open, portable PPF** — keep canon, story logic, screenplay material, visuals, feedback, approvals and provenance together.
-4. **Visual story logic** — use 24 Blocks and 96 mini-blocks to expose hooks, turning points, causality, pacing and unresolved decisions.
-5. **Visual writing and visual pitch** — move from structure to screenplay, Graphic Novel, Storyboard, Production Shots, Pitch and Reports without rebuilding the story each time.
-6. **Community collaboration without accidental canon changes** — add Buzz discussion, GitHub Story Proposals or the sanitized Suggest / Report path only when needed, with explicit human approval.
+### Plan
 
-## Three ways to work
+PLAN turns learning into editable story foundations.
 
-PlotPickle is installed and runs locally in every mode. The same Learn workspace, Afterglow example, PPF model and visual workflow remain available from left to right.
+Each foundation question includes three short prompts that help the writer think before answering. The writer can answer manually or select local AI to draft an editable answer. AI fills only the selected fields, keeps the result concise, and marks invented story choices as provisional rather than pretending they are canon.
 
-| Compare | Local Story Mode | Writers’ Room Mode | Cloud Collab Mode |
-|---|---|---|---|
-| **Primary role** | Private creation and low-cost local compute | Buzz community discussion and canon-safe proposals | GitHub history, multi-machine proposals and optional remote compute |
-| **User experience** | PlotPickle Playhouse | PlotPickle Playhouse and Buzz Community/Desktop | PlotPickle Playhouse, GitHub and optional cloud services |
-| **Storyline** | Afterglow loaded locally, or your own story | Afterglow or your story discussed through Buzz | Afterglow or your story available through a GitHub repository |
-| **Learning** | 81 modules, local guides and examples | The same complete Learn workspace | The same complete Learn workspace |
-| **Data** | PPF, canonical JSON, assets and rolling backups | Local PPF plus rooms, messages and discussion references | Local PPF plus branches, proposals and repository history |
-| **Authority** | The local PPF is canon | Buzz conversation cannot directly change canon | Only a human-approved merge changes shared repository history |
-| **Cost profile** | Lowest ongoing cost and minimal paid-token use | Local core first; community collaboration added as needed | Local work by default; remote compute used only by choice |
+Tamsin Hearthquill, Keeper of Foundations, is the PLAN agent.
 
-## The visual storyworld core
+### Wyrmwood
 
-**The complete visual storyworld core** keeps development, previsualization, review and ownership connected without requiring external services. PPF is the portable creative source of truth. It keeps structure, canon, screenplay material, visual decisions, production assets, approvals and provenance connected while the canonical local project folder remains authoritative. The core works without external APIs.
+Wyrmwood is the GAME layer.
 
-Available now:
+Instead of only explaining craft, PlotPickle can challenge the writer with a playable story problem derived from the curriculum. Master Oaken-Vague acts as the Rival Director and Rowan Scalequill evaluates the lesson-specific response.
 
-- Interactive Storyworld Map
-- Graphic Novel and Storyboard
-- Production Shots and Animatic
-- Feedback, Pitch and Reports
-- owner-controlled Collab
-- Buzz Story Rooms, encrypted existing-relay setup and a pinned managed local relay lifecycle
+The purpose of Wyrmwood is not to replace the writer's decision. It is to pressure-test whether the writer understands and can apply what was learned.
 
-**Afterglow: Reflections of Sentience** remains the persistent reference project used to verify the connected visual storyworld, legacy visual boundaries and screenplay-version reconciliation.
+### Community
 
-## What PlotPickle does
+<p align="center">
+  <img src="public/assets/workflow-relics/community.svg" alt="PlotPickle Community and BUZZ Guildhall" width="96">
+</p>
 
-- **PPF storyworld:** one portable creative source of truth for canon, structure, screenplay material, visuals, approvals and provenance.
-- **Story logic you can see:** 24 Blocks, 96 mini-blocks, hooks, turning points, arcs, causality and continuity.
-- **Visual development:** approved character and location identity flows into Graphic Novel, Storyboard, Production Shots and Animatic workspaces.
-- **Evidence-led review:** Feedback, Pitch and Reports surface what is working, what is unresolved and what must be decided by people.
-- **Owner-controlled collaboration:** GitHub Story Proposals and approvals live in Collab; only a human merge changes canonical repository content.
-- **Optional Buzz workspace:** rooms, agents, media discussion and development activity sit beside Collab and remain dormant until configured in Settings.
-- **Local creative compute:** user-owned Ollama and ComfyUI models remain optional; native MiniMax H3 activates only after official-source workflow, node, model-file and hardware checks pass.
-- **Suggest / Report:** prepare a sanitized feature, bug or usability issue draft without automatically attaching story files, credentials or local paths.
+Community is PlotPickle's native collaboration surface, powered underneath by BUZZ.
 
-## Current application model
+The writer should normally stay inside PlotPickle. Buzz Desktop is a companion interface for owner-level administration and any BUZZ capability PlotPickle has not wrapped yet.
 
-The primary application navigation is:
+Community currently includes:
 
-`Dashboard · Learn · Plan · Storyboard · Write · Graphic Novel | Build · Feedback · Refine · Reports | Collab · Community | Suggest / Report · Settings`
+- the Great Hall for community-wide discussion;
+- six private Story Rooms for Story, Characters, Structure, Continuity, Visual Development and Production Notes;
+- people, membership and presence;
+- Agents & Stewards with truthful runtime and BUZZ-presence status;
+- a Review Queue for suggestions that may become human-approved PPF changes; and
+- the Guildhall for internal agent, UAT, visual-review and development coordination.
 
-- **Dashboard** shows the real current project, source authority, Storyworld Overview, writing progress, recent project evidence, GitHub state, Buzz state, storage and canon questions.
-- **Learn** contains the Introduction, complete 81-module learning library, terminology and screenplay study.
-- **Plan** develops foundations, world, characters, four acts, twelve sequences, 24 Blocks and 96 mini-blocks.
-- **Storyboard** preserves approved visual identity and continuity across the movie.
-- **Write** develops treatment and screenplay material from the same canonical project.
-- **Graphic Novel** develops the 24-page, 96-panel visual presentation.
-- **Build** owns structural arrangement. Structural arrangement belongs only to Build; Refine reads the same structure for diagnosis instead of exposing a second editor.
-- **Feedback** remains the permanent structured review and resolution record.
-- **Refine** provides diagnostic and specialist passes without creating a second structure editor.
-- **Reports** measures screenplay, character, scene, production, continuity and readiness evidence.
-- **Collab** owns GitHub Story Proposals, approvals, meetings and calendar coordination.
-- **Community** brings BuilderLab community setup and Buzz Desktop access into PlotPickle; Buzz carries optional rooms, messages, huddles and development discussion.
-- **Suggest / Report** prepares a sanitized GitHub issue draft for feature ideas, bugs and usability feedback; submission remains explicit and user-controlled.
-- **Settings** owns configuration, credentials, lifecycle, recovery, storage, the clickable sitemap and removal for every optional connection.
+Story Rooms are real BUZZ channels. A member with permission can read and comment on the same Story Room from PlotPickle or Buzz Desktop. PlotPickle does not maintain a second copy of the conversation.
 
-## Buzz: optional and dormant by default
+### Settings
 
-Buzz does not activate simply because PlotPickle is installed.
+Settings is intentionally basic in the active rebuild.
 
-When Buzz is unconfigured:
+It owns the connections needed by the core product: local AI, optional providers, BUZZ, runtime health and advanced details when required. Technical controls should stay out of the writer's way unless the writer chooses to open them.
 
-- no Buzz process runs;
-- no relay port listens;
-- no Buzz identity, private key or credential file exists;
-- no Buzz database, project room, media store or coding worktree exists; and
-- PlotPickle remains fully usable.
+## Architecture
 
-Open **Community** to join PlotPickleServer, create or manage a community through BuilderLab, and open the saved community in Buzz Desktop. Open **Settings → Repository & Collab → Buzz** to verify Buzz Desktop, the hosted `wss://` community address and the paired Buzz identity together. Connection details and identity are encrypted for the current operating-system user. The advanced managed-relay option remains explicit and separate.
+```mermaid
+flowchart TB
+    Writer[Writer]
 
-PlotPickle does not embed or advertise unverified platform-native Buzz executables, and it does not include the separate Buzz desktop client. The verified Docker-managed relay is an optional sidecar; PPF projects remain usable without it.
+    subgraph PP[PlotPickle]
+      Dashboard[Dashboard]
+      Community[Community]
+      Learn[LEARN\nSage Brinewick]
+      Plan[PLAN\nTamsin Hearthquill]
+      Game[GAME / Wyrmwood\nMaster Oaken-Vague + Rowan Scalequill]
+      Settings[Settings]
+      Review[Human Review Queue]
+    end
 
-Developer Mode and coding agents remain future explicit capabilities. Any later coding integration is limited to isolated worktrees, branch-only changes, test evidence and human-controlled GitHub publishing. Agents may not read the PlotPickle credential vault or unrelated PPF folders.
+    subgraph Runtime[Local Agent & AI Runtime]
+      Mastra[Mastra]
+      Router[Provider Router]
+      LocalAI[Local AI / Ollama]
+      OptionalAI[Optional configured providers]
+    end
 
-## Three creative-compute paths
+    subgraph Buzz[BUZZ Community Layer]
+      Hall[Great Hall]
+      Rooms[Private Story Rooms]
+      Guildhall[Guildhall coordination]
+      Desktop[Buzz Desktop]
+    end
 
-Creative-compute choice is separate from Local Story, Writers' Room and Repository Collaboration modes. Every collaboration mode can use any of these three paths:
+    PPF[(PPF\ncreative authority)]
+    GitHub[(GitHub\ncode / PR / merge authority)]
+    UAT[Avery + visual observer + deterministic UAT]
 
-| Path | Writing and planning | Graphic Novel images | Required setup |
-|---|---|---|---|
-| **Local AI** | Ollama on `127.0.0.1:11434` | ComfyUI images and guarded native MiniMax H3 video on `127.0.0.1:8188` | Separate optional applications, user-owned models/checkpoints and an official-source H3 manifest where available |
-| **Cloud AI** | OpenAI, MiniMax or another reviewed compatible provider | OpenAI or MiniMax `image-01`; MiniMax H3 video-job foundation | The writer's own account, API key and provider billing |
-| **No AI** | Manual writing and planning | Manual image import, comparison and approval | Nothing beyond PlotPickle |
+    Writer --> Dashboard
+    Writer --> Learn
+    Writer --> Plan
+    Writer --> Game
+    Writer --> Community
+    Writer --> Settings
 
-The Windows launcher detects Ollama and ComfyUI separately and offers each missing application with its own Y/N choice. Declining, cancelling or failing either installation never prevents PlotPickle from starting. PlotPickle does not silently download language models, image checkpoints, custom nodes or workflows, and a local-service failure never activates cloud fallback.
+    Learn --> Mastra
+    Plan --> Mastra
+    Game --> Mastra
+    Mastra --> Router
+    Router --> LocalAI
+    Router --> OptionalAI
 
-A green local readiness light means the loopback service responded and at least one relevant local model or checkpoint is available. A running service without a model/checkpoint remains yellow. Grey means optional and unused. Red is reserved for a previously verified service that later stops responding.
+    Learn --> PPF
+    Plan --> PPF
+    Game -. observations, not silent canon writes .-> PPF
 
-ComfyUI connection, health detection and reviewed local workflow routing are available. Native MiniMax H3 remains fail-closed until an imported official-source manifest identifies a compatible ComfyUI version, every required node, user-owned model files and the selected workflow family. An 8 GB VRAM system is treated as constrained rather than recommended, and PlotPickle does not claim that every computer can run every model.
+    Community --> Hall
+    Community --> Rooms
+    Community --> Guildhall
+    Desktop <--> Hall
+    Desktop <--> Rooms
 
-MiniMax is the first supported BYOK cloud-video provider. Each writer creates and funds their own MiniMax account and saves their own key in the operating-system-user encrypted credential area. PlotPickle ships no MiniMax key, shared billing proxy or credits. Every paid image or H3 video request requires an explicit confirmation; missing confirmation is rejected locally, and no local failure triggers a paid cloud fallback. Successful provider media is copied into local asset storage before review.
+    Hall -. suggestions .-> Review
+    Rooms -. suggestions .-> Review
+    Review -->|explicit human approval| PPF
 
-The MiniMax H3 cloud create, query, queued-job cancellation and local MP4 download gateway is available as provider infrastructure. The separate native H3 route runs only through verified local ComfyUI workflows and never receives a MiniMax cloud key. Final media remains subject to explicit human review before PPF association.
+    UAT --> Guildhall
+    Guildhall -. verified engineering handoff .-> GitHub
+```
 
-## Optional connections
+## Authority boundaries
 
-PlotPickle's complete local creative core works without external accounts or API keys.
+PlotPickle deliberately separates creative authority, agent runtime, community coordination and software development.
 
-| Settings area | Purpose | Default |
-|---|---|---|
-| **Story & Art** | Ollama for local writing; OpenAI or BYOK MiniMax cloud AI; or No AI | Disconnected |
-| **Repository & Collab** | Optional GitHub repository history, Story Proposals, approvals and recovery | Disconnected |
-| **Scheduling & Meetings** | Optional Google Calendar and Meet | Disconnected |
-| **Buzz** | Optional Story Rooms, encrypted relay identity and managed local relay | Not configured |
-| **Media & Film Engines** | ComfyUI connection, local workflow validation and guarded native MiniMax H3 setup; availability depends on user-owned models, official workflows and compatible hardware. | Disconnected |
-
-Provider-neutral render packages, automated returned-asset ingestion and third-party movie-rendering connectors are not active development commitments. Pika Labs, Runway and other media engines remain future extensions unless a separate verified implementation is approved.
-
-Credentials remain in the private local-server credential area under the current operating-system user. They are never written into PPF projects, exports, reports, prompts, logs or GitHub commits.
-
-## What users provide for optional connections
-
-| Optional capability | User-provided requirement |
+| Layer | Authority |
 |---|---|
-| **GitHub collaboration** | A GitHub account and one story repository for each independently managed storyworld |
-| **Buzz Writers’ Room** | A Buzz or BuilderLab account and a chosen community; Buzz remains dormant until configured |
-| **Cloud AI or MiniMax** | The user’s own provider account, API key, billing and explicit paid-request approval |
-| **Local Ollama or ComfyUI** | The separate local application plus user-selected models, checkpoints or official-source workflows |
+| Writer | Final creative decision maker |
+| PPF | Canonical creative record |
+| Mastra | Runtime for PlotPickle product agents |
+| AI provider | Generates suggestions and drafts; never owns canon |
+| BUZZ | Signed community, Story Room, coordination, presence and audit layer |
+| GitHub | Canonical code, issue, pull-request and merge authority |
+| UAT / visual observer | Evidence and quality signals; not creative authority |
 
-PlotPickle does not sell shared provider access, bundle third-party accounts or silently create external resources.
+A BUZZ message does not become story canon automatically. A Mastra response does not become story canon automatically. A generated PLAN answer remains editable. PPF changes require the writer's approval.
 
-## Local-first desktop builds
+## Core agents and lore
 
-PlotPickle is packaged from one codebase for:
+| Name | Role | Core responsibility | Runtime |
+|---|---|---|---|
+| Sage Brinewick | Lorekeeper | LEARN curriculum mentor and conversational story guide | Mastra |
+| Tamsin Hearthquill | Keeper of Foundations | PLAN foundations drafting and guidance | Mastra |
+| Master Oaken-Vague | Keeper of the Wyrmwood | Creates playable curriculum-bound Wyrmwood challenges | Mastra |
+| Rowan Scalequill | Arbiter of Lessons | Evaluates Wyrmwood responses against the supplied lesson | Mastra |
+| Avery North | The Wayfarer | Synthetic first-time writer used for experience UAT | PlotPickle UAT |
+| Luma Glassfern | Lantern Warden | Read-only rendered visual observer | Deterministic observer |
+| Bram Gatewick | Gatewarden | Deterministic quality and UAT gate | UAT |
+| Orin Ledgerbark | Archivist of the Hall | Optional BUZZ-native history and receipt steward | BUZZ |
+| Fen Copperwind | Herald of the Forge | Optional BUZZ-native engineering handoff steward | BUZZ |
 
-| Platform | Archive | Launcher |
-|---|---|---|
-| Windows | `PlotPickle-Windows.zip` | `Start-PlotPickle.bat` |
-| macOS | `PlotPickle-macOS.zip` | `Start-PlotPickle.command` |
-| Linux | `PlotPickle-Linux.zip` | `start-plotpickle.sh` |
+Additional lore roles remain preserved for broader PlotPickle modules and can return when those modules are reworked into the active product.
 
-Each release candidate is built on its target operating system and published with a SHA-256 checksum. There is no required PlotPickle cloud account, administrator installation, background Windows service or automatic startup entry.
+Mastra remains the brain for PlotPickle's product agents. BUZZ does not replace their reasoning runtime. When an owner-approved matching BUZZ identity exists, PlotPickle can show that agent as visible in the community while still reporting where the agent actually runs.
 
-## Windows first run
+## BUZZ: community and coordination
 
-1. Download and extract the Windows archive.
-2. Double-click `Start-PlotPickle.bat`.
-3. Review the transparent PlotPickle dependency plan.
-4. Approve installation only when the required PlotPickle runtime is missing.
-5. Answer the separate Ollama Y/N offer for optional local writing and planning.
-6. Answer the separate ComfyUI Y/N offer for optional local image generation.
-7. Add language models or image checkpoints later inside their own applications; PlotPickle does not download them automatically.
-8. Keep the command window open while using PlotPickle.
-9. Press `Ctrl+C` to stop the local server.
+BUZZ is now part of the core collaboration architecture rather than a separate writing product.
 
-PlotPickle binds to `127.0.0.1`. Replaceable application files remain separate from persistent runtime packages, local projects, credentials, backups and optional Buzz data.
+PlotPickle uses BUZZ for:
 
-## Storage, upgrades and removal
+- community discussion;
+- private Story Rooms;
+- member access and presence;
+- agent/steward visibility;
+- Guildhall handoffs;
+- Writer-in-Residence and UAT evidence;
+- visual-review findings;
+- runtime health; and
+- verified development handoffs before GitHub work.
 
-- Canonical project folders and PPF packages are separate from replaceable PlotPickle program files.
-- Rolling backups and recovery are managed under **Settings → Storage & Backups**.
-- Windows upgrades use `Update-PlotPickle.bat` and preserve the reusable runtime and local settings.
-- Saved connection credentials can be reviewed and erased under **Settings → Privacy & Permissions**.
-- Buzz connection details and the encrypted identity can be removed under **Settings → Integrations → Buzz** without deleting PlotPickle projects.
-- Managed Buzz containers, volumes, runtime files, service secrets and backups have separate explicit lifecycle and removal controls.
+The Guildhall contains purpose-specific rooms such as the Lore Library, Wayfarer Journal, Wyrmwood Ring, Story Council, Thread Vault, Lantern Watch, Gatehouse, Forge, GitHub Herald and Long Archive.
 
-## Collaboration authority
+BUZZ does not silently modify PPF and does not replace GitHub. PlotPickle keeps those authority boundaries explicit.
 
-PPF remains authoritative for creative canon. GitHub remains authoritative for code, branches, pull requests and merges.
+## Local-first AI
 
-Complete local or private web-based PlotPickle installations can collaborate through the same owner-controlled repository. Writer, Director, Producer, Actor and Reviewer are roles within PlotPickle, not separate product editions.
+PlotPickle is designed to work with local AI first.
 
-- **Collab** coordinates formal Story Proposals, approvals, meetings and calendar activity.
-- **Buzz** provides optional conversation, agent and development context.
-- **Feedback** stores permanent structured review decisions.
-- A Buzz message or agent suggestion never becomes PPF canon automatically.
-- Only an explicit human approval applies a selected Buzz proposal to the local PPF.
-- Only the project owner or an authorized maintainer can approve the repository merge that changes shared canonical material.
+The active agent runtime is Mastra. Provider routing sits underneath it so the product is not tied to one inference application. Ollama can provide local models; additional configured providers can be used when the writer chooses them.
 
-## Available now versus future packaging
+Local failures must not silently become paid cloud requests. Provider choice, availability and advanced routing belong in Settings.
 
-Available now:
+## Quality loop
 
-- complete local PPF project model;
-- Dashboard, Learn, Plan, Storyboard, Write, Graphic Novel, Build, Feedback, Refine and Reports;
-- Storyworld Map, Production Shots, Animatic and Pitch evidence;
-- owner-controlled Collab and optional GitHub connection;
-- sanitized Suggest / Report issue drafting and a clickable Settings sitemap;
-- guarded native MiniMax H3 routing through verified local ComfyUI workflows;
-- optional Google Calendar and Meet setup boundaries;
-- project-specific Buzz Story Rooms, linked discussion excerpts and human-reviewed local PPF proposals;
-- encrypted existing-relay configuration, reachability testing and signed Buzz CLI room/message operations;
-- a pinned Docker-managed local Buzz relay with explicit install, lifecycle, backup, restore and removal controls;
-- Windows, macOS and Linux packaging validation.
+PlotPickle has two different kinds of quality checks.
 
-Not yet claimed as shipped:
+Deterministic tests protect contracts, routing, builds and known product behavior. Avery North performs a synthetic writer journey through the active app, while a separate read-only visual observer inspects rendered layout facts. Avery never receives browser-evaluation powers.
 
-- embedded platform-native Buzz binaries or the separate Buzz desktop client;
-- universal native H3 support before official local weights/workflows and compatible hardware are available;
-- production coding-agent execution;
-- active Pika, Runway or other third-party rendering connectors.
+The current Writer-in-Residence command is:
 
-## Open source, licensing and ownership
+```powershell
+node .\scripts\run-writer-in-residence.mjs --github-report
+```
 
-- PlotPickle software: **GNU AGPLv3 or later**.
-- 24 Blocks method and reusable learning documentation: **CC BY-SA 4.0**, with attribution to Bryan Elgin Harris.
-- User-created stories, screenplays, characters, images, notes and PPF projects remain the user's creative work.
-- Optional integrations do not transfer ownership to PlotPickle.
+Synthetic findings can be promoted to GitHub issues, but they remain synthetic evidence and must not be confused with real-user feedback.
 
-See [About PlotPickle](app/about/page.tsx), [licensing](app/legal/page.tsx), and [the OpenStory history](docs/history/from-openstory-to-plotpickle.md).
+## Development
 
-## Development and validation
+Requirements:
+
+- Node.js 22.13 or newer
+- npm
+- optional Ollama/local models for local AI
+- optional Buzz Desktop / BUZZ community for collaboration
+
+Install and start the local development app:
 
 ```bash
-npm ci
-npm run lint
-npm test
+npm install
+npm run dev:local
+```
+
+Core validation:
+
+```bash
 npm run build
+npm test
 ```
 
-Focused runtime coverage:
+Pull requests that touch the active product are expected to pass the relevant focused PlotPickle validation, production build, hardware-aware local-AI contracts and BUZZ Guildhall contracts before merge.
 
-```bash
-npm run test:managed-buzz-runtime
-```
+## Current direction
 
-The release matrix validates Windows, macOS and Linux packages. Windows additionally runs clean-machine extraction, deterministic release smoke and packaged interaction checks.
+The product direction is intentionally narrower than the historical repository.
 
-Current application version: `1.0.0-rc.3`  
-Current project schema: `1.7.0`
+Build the simplest strong writer journey first:
+
+LEARN → PLAN → GAME / Wyrmwood
+
+Support it with:
+
+COMMUNITY / BUZZ + basic SETTINGS + deterministic UAT
+
+Only bring a parked module back into the active surface when it has been reworked to fit this architecture and makes the writer's journey clearer rather than larger.
+
+That rule applies to Dashboard expansions, Storyboard, Previs, Write, Edit, Graphic Novel, Build, Feedback, Refine, Reports, advanced collaboration and other historical PlotPickle capabilities. They are preserved, not deleted, but they do not define the current core product.
+
+## License
+
+PlotPickle is licensed under AGPL-3.0-or-later. See the repository license for details.

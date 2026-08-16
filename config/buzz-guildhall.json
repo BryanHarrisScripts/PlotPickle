@@ -1,0 +1,263 @@
+{
+  "schemaVersion": 1,
+  "name": "PlotPickle Guildhall",
+  "authority": {
+    "coordination": "Buzz is the shared coordination, signed-event, search and audit layer.",
+    "creative": "PPF remains the canonical creative record. Buzz discussion can only become a reviewable proposal until a human explicitly approves it.",
+    "code": "GitHub remains the canonical code, issue, pull-request and merge authority.",
+    "agentRuntime": "Mastra remains the PlotPickle product-agent runtime. Buzz coordinates those agents; it does not replace their reasoning runtime.",
+    "development": "Pi and Cline remain external development workers governed by AGENTS.md, not hidden PlotPickle product agents."
+  },
+  "channels": [
+    {
+      "id": "great-hall",
+      "name": "great-hall",
+      "label": "The Great Hall",
+      "type": "stream",
+      "visibility": "private",
+      "description": "Cross-agent handoffs, short coordination notes and work that needs another guild member."
+    },
+    {
+      "id": "lore-library",
+      "name": "lore-library",
+      "label": "The Lore Library",
+      "type": "forum",
+      "visibility": "private",
+      "description": "Curriculum questions, teaching notes and Sage Brinewick handoffs."
+    },
+    {
+      "id": "wayfarer-journal",
+      "name": "wayfarer-journal",
+      "label": "The Wayfarer Journal",
+      "type": "forum",
+      "visibility": "private",
+      "description": "Avery North synthetic writer sessions, friction, confusion, needs and abandonment risks."
+    },
+    {
+      "id": "wyrmwood-ring",
+      "name": "wyrmwood-ring",
+      "label": "The Wyrmwood Ring",
+      "type": "stream",
+      "visibility": "private",
+      "description": "Wyrmwood Rival Director runs, lesson evaluation and game-quality observations."
+    },
+    {
+      "id": "story-council",
+      "name": "story-council",
+      "label": "The Story Council",
+      "type": "forum",
+      "visibility": "private",
+      "description": "Creative discussion that may become an explicit reviewable PPF story proposal."
+    },
+    {
+      "id": "thread-vault",
+      "name": "thread-vault",
+      "label": "The Thread Vault",
+      "type": "forum",
+      "visibility": "private",
+      "description": "Continuity, canon conflicts, timelines, locations, props and story facts that must remain consistent."
+    },
+    {
+      "id": "lantern-watch",
+      "name": "lantern-watch",
+      "label": "The Lantern Watch",
+      "type": "stream",
+      "visibility": "private",
+      "description": "Rendered UI, visual continuity, layout, clipping, overlap and presentation findings."
+    },
+    {
+      "id": "gatehouse",
+      "name": "gatehouse",
+      "label": "The Gatehouse",
+      "type": "stream",
+      "visibility": "private",
+      "description": "Deterministic UAT, test gates, runtime health and pass/fail evidence."
+    },
+    {
+      "id": "forge",
+      "name": "forge",
+      "label": "The Forge",
+      "type": "stream",
+      "visibility": "private",
+      "description": "Verified repair requests, implementation handoffs and developer-agent coordination."
+    },
+    {
+      "id": "github-herald",
+      "name": "github-herald",
+      "label": "The GitHub Herald",
+      "type": "stream",
+      "visibility": "private",
+      "description": "GitHub issue, pull request, CI and merge status after work is verified and actionable."
+    },
+    {
+      "id": "archive",
+      "name": "archive",
+      "label": "The Long Archive",
+      "type": "forum",
+      "visibility": "private",
+      "description": "Durable decisions, summaries, receipts and searchable project memory without hidden reasoning."
+    }
+  ],
+  "actors": [
+    {
+      "id": "sage-brinewick",
+      "displayName": "Sage Brinewick",
+      "title": "Lorekeeper",
+      "kind": "product-agent",
+      "runtime": "mastra",
+      "existingRoleId": "curriculum-guide",
+      "primaryChannel": "lore-library",
+      "buzzPresence": "mirrored",
+      "summary": "Resident curriculum mentor and conversational story guide."
+    },
+    {
+      "id": "master-oaken-vague",
+      "displayName": "Master Oaken-Vague",
+      "title": "Keeper of the Wyrmwood",
+      "kind": "product-agent",
+      "runtime": "mastra",
+      "existingRoleId": "wyrmwood-rival-director",
+      "primaryChannel": "wyrmwood-ring",
+      "buzzPresence": "mirrored",
+      "summary": "Impartial Rival Director who creates playable curriculum-bound Wyrmwood Pickles."
+    },
+    {
+      "id": "rowan-scalequill",
+      "displayName": "Rowan Scalequill",
+      "title": "Arbiter of Lessons",
+      "kind": "product-agent",
+      "runtime": "mastra",
+      "existingRoleId": "wyrmwood-curriculum-evaluator",
+      "primaryChannel": "wyrmwood-ring",
+      "buzzPresence": "mirrored",
+      "summary": "Evaluates Wyrmwood responses against the supplied lesson without altering game state."
+    },
+    {
+      "id": "avery-north",
+      "displayName": "Avery North",
+      "title": "The Wayfarer",
+      "kind": "synthetic-writer",
+      "runtime": "plotpickle-uat",
+      "primaryChannel": "wayfarer-journal",
+      "buzzPresence": "mirrored",
+      "summary": "Synthetic first-time writer who explores PlotPickle and reports experience friction separately from real-user feedback."
+    },
+    {
+      "id": "quillan-reedcloak",
+      "displayName": "Quillan Reedcloak",
+      "title": "Story Scribe",
+      "kind": "product-agent",
+      "runtime": "mastra",
+      "existingRoleId": "creative-director",
+      "primaryChannel": "story-council",
+      "buzzPresence": "mirrored",
+      "summary": "Coordinates creative specialists while preserving the writer's intention and explicit approval boundaries."
+    },
+    {
+      "id": "elowen-mapweaver",
+      "displayName": "Elowen Mapweaver",
+      "title": "Cartographer of Beats",
+      "kind": "product-agent",
+      "runtime": "mastra",
+      "existingRoleId": "story-architect",
+      "primaryChannel": "story-council",
+      "buzzPresence": "mirrored",
+      "summary": "Maps structure, causality, stakes and the 24 Block / 96 Mini-Block journey."
+    },
+    {
+      "id": "mira-threadmere",
+      "displayName": "Mira Threadmere",
+      "title": "Threadkeeper",
+      "kind": "product-agent",
+      "runtime": "mastra",
+      "existingRoleId": "continuity",
+      "primaryChannel": "thread-vault",
+      "buzzPresence": "mirrored",
+      "summary": "Protects accepted story continuity and turns contradictions into reviewable proposals rather than silent rewrites."
+    },
+    {
+      "id": "luma-glassfern",
+      "displayName": "Luma Glassfern",
+      "title": "Lantern Warden",
+      "kind": "visual-observer",
+      "runtime": "deterministic-observer",
+      "primaryChannel": "lantern-watch",
+      "buzzPresence": "service",
+      "summary": "Read-only rendered observer for visual continuity, layout, overlap, clipping and presentation evidence."
+    },
+    {
+      "id": "bram-gatewick",
+      "displayName": "Bram Gatewick",
+      "title": "Gatewarden",
+      "kind": "deterministic-gate",
+      "runtime": "uat",
+      "primaryChannel": "gatehouse",
+      "buzzPresence": "service",
+      "summary": "Deterministic UAT and quality-gate identity. Passes and failures come from evidence, not personality."
+    },
+    {
+      "id": "rook-ironquill",
+      "displayName": "Rook Ironquill",
+      "title": "Forgekeeper",
+      "kind": "development-steward",
+      "runtime": "repository-workflow",
+      "primaryChannel": "forge",
+      "buzzPresence": "service",
+      "summary": "Coordinates verified repair handoffs to Pi, Cline or a human developer while AGENTS.md remains authoritative."
+    },
+    {
+      "id": "orin-ledgerbark",
+      "displayName": "Orin Ledgerbark",
+      "title": "Archivist of the Hall",
+      "kind": "buzz-native-agent",
+      "runtime": "buzz",
+      "primaryChannel": "archive",
+      "buzzPresence": "native-draft",
+      "summary": "Searches Guildhall history, returns receipts and writes compact decision summaries without inventing project facts.",
+      "systemPrompt": "You are Orin Ledgerbark, Archivist of the PlotPickle Guildhall. Search and summarize only the Buzz history available to you. Give receipts or message references when possible. Separate recorded decisions from suggestions and uncertainty. Never invent story canon, repository state, test results, approvals or private history. Never reveal hidden reasoning, credentials or secret values. PPF is creative authority and GitHub is code authority."
+    },
+    {
+      "id": "fen-copperwind",
+      "displayName": "Fen Copperwind",
+      "title": "Herald of the Forge",
+      "kind": "buzz-native-agent",
+      "runtime": "buzz",
+      "primaryChannel": "github-herald",
+      "buzzPresence": "native-draft",
+      "summary": "Turns verified Guildhall engineering findings into clear GitHub-ready summaries while never merging or changing code itself.",
+      "systemPrompt": "You are Fen Copperwind, Herald of the PlotPickle Forge. Turn already-verified Guildhall engineering findings into concise GitHub-ready summaries with reproduction evidence, expected behavior and acceptance criteria. Never claim an issue, pull request, CI run or merge exists unless the supplied Buzz/Git evidence says it does. Never merge, push, change PPF canon or expose credentials. GitHub remains code authority and human/CI gates remain required."
+    }
+  ],
+  "eventRoutes": {
+    "agent.note": "great-hall",
+    "curriculum.note": "lore-library",
+    "writer.feedback": "wayfarer-journal",
+    "wyrmwood.result": "wyrmwood-ring",
+    "story.proposal": "story-council",
+    "continuity.warning": "thread-vault",
+    "visual.finding": "lantern-watch",
+    "uat.result": "gatehouse",
+    "runtime.alert": "gatehouse",
+    "repair.request": "forge",
+    "github.status": "github-herald",
+    "decision.record": "archive"
+  },
+  "githubEscalation": {
+    "allowedTypes": [
+      "writer.feedback",
+      "visual.finding",
+      "uat.result",
+      "runtime.alert",
+      "repair.request"
+    ],
+    "minimumSeverity": "medium",
+    "requiresVerified": true,
+    "requiresActionable": true
+  },
+  "privacy": {
+    "allowedEventContent": "Short operational summaries, status metadata and reproduction/evidence references.",
+    "forbiddenEventContent": "Credentials, private keys, tokens, hidden reasoning, full prompts, full model responses or unpublished story text.",
+    "automaticPpfWrites": false,
+    "automaticGithubMerge": false
+  }
+}

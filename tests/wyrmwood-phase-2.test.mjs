@@ -8,7 +8,7 @@ test("Master Oaken-Vague is a separate Wyrmwood agent with its own playbook", as
   const [runtime, playbook, sage] = await Promise.all([
     read("build/mastra-agent-runtime.ts"),
     read("agents/master-oaken-vague.md"),
-    read("agents/sage-brinewick.md"),
+    read(".agents/skills/sage-brinewick/SKILL.md"),
   ]);
 
   assert.match(runtime, /MASTER_OAKEN_VAGUE_PLAYBOOK_PATH/);

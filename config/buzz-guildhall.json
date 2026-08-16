@@ -111,6 +111,17 @@
       "summary": "Resident curriculum mentor and conversational story guide."
     },
     {
+      "id": "tamsin-hearthquill",
+      "displayName": "Tamsin Hearthquill",
+      "title": "Keeper of Foundations",
+      "kind": "product-agent",
+      "runtime": "mastra",
+      "existingRoleId": "foundations-planner",
+      "primaryChannel": "story-council",
+      "buzzPresence": "mirrored",
+      "summary": "Turns LEARN foundation prompts into opt-in structured PLAN proposals while the writer remains the final authority."
+    },
+    {
       "id": "master-oaken-vague",
       "displayName": "Master Oaken-Vague",
       "title": "Keeper of the Wyrmwood",

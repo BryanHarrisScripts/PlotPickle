@@ -32,6 +32,10 @@ function status(label, state, detail = "") {
 async function main() {
   await mkdir(artifactRoot, { recursive: true });
   await mkdir(pluginData, { recursive: true });
+  // Reuse only the stable local writer recovery/Settings accessibility normalizer.
+  // This patches MCP snapshots for known native <summary> controls but does not give
+  // Avery or the exhaustive auditor hidden application state.
+  await import("./writer-in-residence-runtime-recovery.mjs");
   const mcpConfig = JSON.parse(await readFile(path.join(pluginRoot, "mcp.json"), "utf8"));
   const server = mcpConfig?.mcpServers?.playwright;
   if (!server || server.type !== "stdio") throw new Error("Exhaustive PlotPickle UAT requires the local Playwright MCP runtime.");

@@ -48,6 +48,18 @@ test("full verification starts the official app when needed and waits for localh
   assert.match(runner, /BLOCKED/);
 });
 
+test("one-click startup does not ask a second UAT Y/N question", async () => {
+  const [runner, startupDecision] = await Promise.all([
+    read("scripts/run-plotpickle-full-check.ps1"),
+    read("build/startup-uat-decision.ts"),
+  ]);
+
+  assert.match(runner, /PLOTPICKLE_STARTUP_UAT_PROMPT = "0"/);
+  assert.match(runner, /PreviousStartupPrompt/);
+  assert.match(startupDecision, /process\.env\.PLOTPICKLE_STARTUP_UAT_PROMPT !== "0"/);
+  assert.match(startupDecision, /Start the PlotPickle UAT Agent now\? \[Y\/N\]:/);
+});
+
 test("full verification records every result and fails visibly when any check needs attention", async () => {
   const runner = await read("scripts/run-plotpickle-full-check.ps1");
 

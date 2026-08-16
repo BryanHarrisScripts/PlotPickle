@@ -39,10 +39,15 @@ function alternateRole(role) {
   return role === "quality" ? "fast" : "quality";
 }
 
+function writerAttemptSignal(role) {
+  return AbortSignal.timeout(role === "quality" ? 65_000 : 40_000);
+}
+
 // The Writer-in-Residence is intentionally local-only. Real Windows runs showed
 // intermittent empty local replies even while Sage/PLAN health was good. Retry the
-// same request across the two local roles with a small hard cap. This never selects
-// a cloud provider and never changes persisted Settings.
+// same request across the two local roles with a small hard cap. Each retry owns a
+// fresh timeout signal; an aborted Quality attempt must not poison the next Fast
+// attempt. This never selects a cloud provider or changes persisted Settings.
 globalThis.fetch = async function plotPickleWriterFetch(input, init = {}) {
   if (!isWriterChat(input) || typeof init?.body !== "string") return nativeFetch(input, init);
 
@@ -60,6 +65,7 @@ globalThis.fetch = async function plotPickleWriterFetch(input, init = {}) {
     try {
       response = await nativeFetch(input, {
         ...init,
+        signal: writerAttemptSignal(role),
         body: JSON.stringify({ ...body, provider: "local", modelRole: role }),
       });
     } catch (error) {

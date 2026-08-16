@@ -1,11 +1,11 @@
 import type { CurriculumLesson } from "../../core/contracts/curriculum";
-import {
-  buildFoundationPlanLessons,
-  countFoundationAnswers,
-} from "../../core/contracts/foundation-plan";
 import type { PPFProject } from "../../core/project/project";
+import {
+  deriveGuidedCreationProgression,
+  type ProgressStageState,
+} from "./guided-progression";
 
-export type ProgressStageState = "complete" | "available" | "locked";
+export type { ProgressStageState } from "./guided-progression";
 
 export interface FoundationsProgression {
   readonly foundationLessonCount: number;
@@ -19,34 +19,26 @@ export interface FoundationsProgression {
   readonly worldUnlocked: boolean;
 }
 
+/**
+ * Compatibility adapter for the existing Foundations BUILD workspace.
+ * Dashboard and future curriculum slices use deriveGuidedCreationProgression directly.
+ */
 export function deriveFoundationsProgression(
   curriculum: readonly CurriculumLesson[],
   project: PPFProject,
 ): FoundationsProgression {
-  const foundationLessons = curriculum
-    .filter((lesson) => lesson.topic === "foundations")
-    .sort((left, right) => left.number - right.number);
-  const completedIds = new Set(project.learning.completedLessonIds);
-  const completedFoundationLessonCount = foundationLessons.filter((lesson) => completedIds.has(lesson.id)).length;
-  const learnComplete = foundationLessons.length > 0 && completedFoundationLessonCount === foundationLessons.length;
-
-  const planLessons = buildFoundationPlanLessons(curriculum);
-  const totalPlanFields = planLessons.reduce((total, lesson) => total + lesson.fields.length, 0);
-  const answeredPlanFields = countFoundationAnswers(planLessons, project.foundations);
-  const planComplete = learnComplete && totalPlanFields > 0 && answeredPlanFields === totalPlanFields;
-
-  const acceptedVisualArtifactCount = project.build.foundations.acceptedVisualArtifactIds.length;
-  const buildComplete = planComplete && acceptedVisualArtifactCount > 0;
-
+  const guided = deriveGuidedCreationProgression(curriculum, project);
+  const foundations = guided.foundations;
+  const world = guided.groups.find((group) => group.id === "world");
   return {
-    foundationLessonCount: foundationLessons.length,
-    completedFoundationLessonCount,
-    totalPlanFields,
-    answeredPlanFields,
-    acceptedVisualArtifactCount,
-    learn: learnComplete ? "complete" : "available",
-    plan: planComplete ? "complete" : learnComplete ? "available" : "locked",
-    build: buildComplete ? "complete" : planComplete ? "available" : "locked",
-    worldUnlocked: buildComplete,
+    foundationLessonCount: foundations.lessonCount,
+    completedFoundationLessonCount: foundations.completedLessonCount,
+    totalPlanFields: foundations.totalPlanFields,
+    answeredPlanFields: foundations.answeredPlanFields,
+    acceptedVisualArtifactCount: foundations.acceptedVisualArtifactCount,
+    learn: foundations.learn,
+    plan: foundations.plan,
+    build: foundations.build,
+    worldUnlocked: Boolean(world?.unlocked),
   };
 }

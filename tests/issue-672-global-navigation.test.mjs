@@ -40,14 +40,16 @@ test("one shared root navigator owns Community, LEARN, PLAN, Wyrmwood and Settin
   assert.doesNotMatch(navigator, /label: "SETTINGS"/);
 });
 
-test("the global navigator gives every title and subtitle readable fixed geometry", async () => {
+test("the global navigator fits desktop viewports and scrolls intentionally on narrow windows", async () => {
   const css = await read("app/plotpickle-workspace-shell.module.css");
 
   assert.match(css, /\.navigator \{[\s\S]*flex: 0 0 82px/);
-  assert.match(css, /\.list \{[\s\S]*gap: 8px/);
-  assert.match(css, /\.list li \{[\s\S]*width: 84px;[\s\S]*flex: 0 0 84px/);
+  assert.match(css, /\.list \{[\s\S]*width: 100%;[\s\S]*min-width: 0;[\s\S]*gap: clamp\(3px, 0\.55vw, 8px\)/);
+  assert.match(css, /\.list li \{[\s\S]*max-width: 84px;[\s\S]*flex: 1 1 0/);
   assert.match(css, /\.groupBreakAfter/);
-  assert.match(css, /\.copy \{[\s\S]*min-height: 24px/);
+  assert.match(css, /\.copy \{[\s\S]*min-width: 0;[\s\S]*min-height: 24px/);
+  assert.match(css, /@media \(max-width: 1040px\)[\s\S]*\.list \{[\s\S]*width: max-content;[\s\S]*min-width: max-content/);
+  assert.match(css, /@media \(max-width: 1040px\)[\s\S]*\.list li \{[\s\S]*width: 76px;[\s\S]*flex: 0 0 76px/);
   assert.match(css, /\.workspaceFrame :global\(nav\[aria-label="PlotPickle workflow"\]\)/);
   assert.match(css, /PlotPickle workflow and plugins/);
   assert.doesNotMatch(css, /last-child[\s\S]*margin-left/);

@@ -9,9 +9,9 @@ import {
   loadFoundationProject,
 } from "../../../core/storage/foundation-project-browser";
 import {
-  deriveFoundationsProgression,
+  deriveGuidedCreationProgression,
   type ProgressStageState,
-} from "../foundations-progression";
+} from "../guided-progression";
 import styles from "./dashboard-workspace.module.css";
 
 type DashboardDestination = "learn" | "plan" | "build";
@@ -76,7 +76,7 @@ export default function DashboardWorkspace({
   }, []);
 
   const progression = useMemo(
-    () => project ? deriveFoundationsProgression(curriculum, project) : null,
+    () => project ? deriveGuidedCreationProgression(curriculum, project) : null,
     [curriculum, project],
   );
 
@@ -84,21 +84,25 @@ export default function DashboardWorkspace({
     return <main className={styles.screen}>Opening Dashboard…</main>;
   }
 
+  const foundations = progression.foundations;
+  const world = progression.groups.find((group) => group.id === "world");
+  const worldUnlocked = Boolean(world?.unlocked);
   const stageStates: Readonly<Record<DashboardDestination, ProgressStageState>> = {
-    learn: progression.learn,
-    plan: progression.plan,
-    build: progression.build,
+    learn: foundations.learn,
+    plan: foundations.plan,
+    build: foundations.build,
   };
 
   return (
     <main className={styles.screen} aria-label="PlotPickle Dashboard">
       <header className={styles.header}>
-        <p className={styles.kicker}>Dashboard · Foundations path</p>
+        <p className={styles.kicker}>Dashboard · Guided creation journey · {progression.journeyPercentComplete}% complete</p>
         <h1>Learn it. Plan it. See it.</h1>
         <p>
           PlotPickle opens one step at a time. Finish the Foundations lessons, turn them into decisions about your story in PLAN,
           then use BUILD to create and accept the first visual expression of those decisions.
         </p>
+        <p><strong>Next:</strong> {progression.nextAction.label} — {progression.nextAction.detail}</p>
       </header>
 
       <section className={styles.path} aria-label="Foundations LEARN PLAN BUILD progression">
@@ -106,10 +110,10 @@ export default function DashboardWorkspace({
           const state = stageStates[stage.id];
           const locked = state === "locked";
           const detail = stage.id === "learn"
-            ? `${progression.completedFoundationLessonCount} of ${progression.foundationLessonCount} Foundations lessons complete`
+            ? `${foundations.completedLessonCount} of ${foundations.lessonCount} Foundations lessons complete`
             : stage.id === "plan"
-              ? `${progression.answeredPlanFields} of ${progression.totalPlanFields} PLAN answers saved`
-              : `${progression.acceptedVisualArtifactCount} accepted Foundations visual${progression.acceptedVisualArtifactCount === 1 ? "" : "s"}`;
+              ? `${foundations.answeredPlanFields} of ${foundations.totalPlanFields} PLAN answers saved`
+              : `${foundations.acceptedVisualArtifactCount} accepted Foundations visual${foundations.acceptedVisualArtifactCount === 1 ? "" : "s"}`;
           return (
             <article className={styles.stage} data-state={state} key={stage.id}>
               <div className={styles.stageTop}>
@@ -134,17 +138,17 @@ export default function DashboardWorkspace({
         })}
       </section>
 
-      <section className={styles.nextModule} data-unlocked={progression.worldUnlocked} aria-label="Next curriculum module">
+      <section className={styles.nextModule} data-unlocked={worldUnlocked} aria-label="Next curriculum module">
         <div>
           <p className={styles.kicker}>Next curriculum group</p>
           <h2>WORLD</h2>
           <p>
-            {progression.worldUnlocked
-              ? "Foundations is complete across LEARN, PLAN and BUILD. WORLD is ready to begin."
+            {worldUnlocked
+              ? "Foundations is complete across LEARN, PLAN and BUILD. WORLD is unlocked in the journey, but its workspace remains gated until the Foundations cycle is approved."
               : "WORLD unlocks after at least one Foundations visual is accepted in BUILD."}
           </p>
         </div>
-        <span className={styles.nextBadge}>{progression.worldUnlocked ? "→ Unlocked" : "🔒 Locked"}</span>
+        <span className={styles.nextBadge}>{worldUnlocked ? "→ Unlocked" : "🔒 Locked"}</span>
       </section>
     </main>
   );

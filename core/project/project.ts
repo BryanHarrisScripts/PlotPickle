@@ -1,3 +1,4 @@
+import { createEmptyBuildProgressState, type BuildProgressState } from "../contracts/build-progress";
 import {
   createEmptyFoundationLessonAnswers,
   createEmptyFoundationPlanState,
@@ -24,6 +25,7 @@ export interface PPFProject {
     readonly threadId: string | null;
   };
   readonly foundations: FoundationPlanState;
+  readonly build: BuildProgressState;
 }
 
 export function createEmptyProject(input: {
@@ -46,6 +48,7 @@ export function createEmptyProject(input: {
       threadId: null,
     },
     foundations: createEmptyFoundationPlanState(),
+    build: createEmptyBuildProgressState(),
   };
 }
 
@@ -150,6 +153,21 @@ function normalizeFoundations(value: unknown): FoundationPlanState {
   };
 }
 
+function normalizeBuild(value: unknown): BuildProgressState {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return createEmptyBuildProgressState();
+  const source = value as { readonly foundations?: { readonly acceptedVisualArtifactIds?: unknown } };
+  const acceptedVisualArtifactIds = Array.isArray(source.foundations?.acceptedVisualArtifactIds)
+    ? [...new Set(source.foundations.acceptedVisualArtifactIds.filter(
+      (artifactId): artifactId is string => typeof artifactId === "string" && Boolean(artifactId.trim()),
+    ))]
+    : [];
+  return {
+    foundations: {
+      acceptedVisualArtifactIds,
+    },
+  };
+}
+
 function recoveredId() {
   return globalThis.crypto?.randomUUID?.() ?? `recovered-${Date.now()}`;
 }
@@ -186,5 +204,6 @@ export function normalizeFoundationProject(value: unknown): PPFProject {
         : null,
     },
     foundations: normalizeFoundations(source.foundations),
+    build: normalizeBuild(source.build),
   };
 }

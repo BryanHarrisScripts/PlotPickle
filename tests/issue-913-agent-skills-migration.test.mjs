@@ -62,7 +62,7 @@ test('issue 913 registers four stable progressively discoverable Agent Skills', 
 
     const source = await read(expected.entry);
     assert.match(source, new RegExp(`^---\\nname: ${expected.id}\\n`));
-    assert.match(source, new RegExp(`uri: ${expected.uri.replaceAll('/', '\\/')}`));
+    assert.ok(source.includes(`uri: ${expected.uri}`));
     assert.match(source, /progressiveDisclosure: true/);
   }
 });
@@ -87,7 +87,7 @@ test('host procedure loader exposes only the requested migrated procedure', asyn
     assert.equal(await readProcedureForConsumer(expected.consumer), await readAgentSkillProcedure(expected.id));
   }
 
-  await assert.rejects(() => readProcedureForConsumer('unknown-consumer'), /No PlotPickle Agent Skill is registered/);
+  assert.throws(() => readProcedureForConsumer('unknown-consumer'), /No PlotPickle Agent Skill is registered/);
 });
 
 test('PLAN skill drafts Foundations decisions but cannot own truth, mutation, routing, or progression', async () => {

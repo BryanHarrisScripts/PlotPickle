@@ -23,7 +23,16 @@ function usefulWriterText(body) {
 function retryableEmptyReply(response, body) {
   if (response.ok && !usefulWriterText(body)) return true;
   const message = String(body?.message || body?.error || "");
-  return response.status >= 500 && /provider returned no text|no text|empty/i.test(message);
+  // The local Writing Assistant gateway intentionally normalizes thrown chat
+  // failures to HTTP 400. Retry the known empty-output condition by message,
+  // not by HTTP status class, so the real Windows recovery path can run.
+  return !response.ok && /provider returned no text|selected text provider returned no text|no usable text|empty (?:reply|response)/i.test(message);
+}
+
+function retryableFetchError(error) {
+  if (error instanceof DOMException && (error.name === "AbortError" || error.name === "TimeoutError")) return true;
+  const message = error instanceof Error ? error.message : String(error || "");
+  return /fetch failed|ECONNRESET|ECONNREFUSED|socket hang up|terminated|timeout/i.test(message);
 }
 
 function alternateRole(role) {
@@ -32,8 +41,8 @@ function alternateRole(role) {
 
 // The Writer-in-Residence is intentionally local-only. Real Windows runs showed
 // intermittent empty local replies even while Sage/PLAN health was good. Retry the
-// same request with the alternate local role, then the preferred role once more.
-// This never selects a cloud provider and never changes persisted Settings.
+// same request across the two local roles with a small hard cap. This never selects
+// a cloud provider and never changes persisted Settings.
 globalThis.fetch = async function plotPickleWriterFetch(input, init = {}) {
   if (!isWriterChat(input) || typeof init?.body !== "string") return nativeFetch(input, init);
 
@@ -42,15 +51,23 @@ globalThis.fetch = async function plotPickleWriterFetch(input, init = {}) {
   if (body?.provider !== "local" || body?.agentId !== "creative-director") return nativeFetch(input, init);
 
   const preferred = body.modelRole === "quality" ? "quality" : "fast";
-  const roles = [preferred, alternateRole(preferred), preferred];
+  const roles = [preferred, alternateRole(preferred), preferred, alternateRole(preferred)];
   let lastResponse = null;
 
   for (let index = 0; index < roles.length; index += 1) {
     const role = roles[index];
-    const response = await nativeFetch(input, {
-      ...init,
-      body: JSON.stringify({ ...body, provider: "local", modelRole: role }),
-    });
+    let response;
+    try {
+      response = await nativeFetch(input, {
+        ...init,
+        body: JSON.stringify({ ...body, provider: "local", modelRole: role }),
+      });
+    } catch (error) {
+      if (!retryableFetchError(error) || index >= roles.length - 1) throw error;
+      process.stdout.write(`Writer local recovery ............... RETRY  ${role} transport failed; trying ${roles[index + 1]}\n`);
+      continue;
+    }
+
     const parsed = await responseBody(response);
     lastResponse = response;
     if (response.ok && usefulWriterText(parsed)) {
@@ -58,7 +75,7 @@ globalThis.fetch = async function plotPickleWriterFetch(input, init = {}) {
       return response;
     }
     if (!retryableEmptyReply(response, parsed)) return response;
-    if (index < roles.length - 1) process.stdout.write(`Writer local recovery ............... RETRY  ${role} returned no usable text\n`);
+    if (index < roles.length - 1) process.stdout.write(`Writer local recovery ............... RETRY  ${role} returned no usable text; trying ${roles[index + 1]}\n`);
   }
   return lastResponse;
 };

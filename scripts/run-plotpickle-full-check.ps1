@@ -71,11 +71,19 @@ function Ensure-PlotPickleReady {
   }
 
   Write-Host "START  PlotPickle is not running, so the official Start-PlotPickle.bat launcher will open now." -ForegroundColor Cyan
+  $PreviousStartupPrompt = $env:PLOTPICKLE_STARTUP_UAT_PROMPT
+  $env:PLOTPICKLE_STARTUP_UAT_PROMPT = "0"
   try {
     Start-Process -FilePath "cmd.exe" -ArgumentList @("/d", "/c", ('"{0}"' -f $Launcher)) -WorkingDirectory $RepoRoot -WindowStyle Normal | Out-Null
   } catch {
     Write-Host "FAIL  PlotPickle could not be started: $($_.Exception.Message)" -ForegroundColor Red
     return $false
+  } finally {
+    if ($null -eq $PreviousStartupPrompt) {
+      Remove-Item Env:PLOTPICKLE_STARTUP_UAT_PROMPT -ErrorAction SilentlyContinue
+    } else {
+      $env:PLOTPICKLE_STARTUP_UAT_PROMPT = $PreviousStartupPrompt
+    }
   }
 
   $Deadline = (Get-Date).AddSeconds([Math]::Max(30, $StartupWaitSeconds))

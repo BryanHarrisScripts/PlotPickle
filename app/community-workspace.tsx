@@ -5,6 +5,7 @@ import { FOUNDATION_PROJECT_STORAGE_KEY } from "../core/contracts/foundation-pla
 import { normalizeFoundationProject, type PPFProject } from "../core/project/project";
 import { BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "../lib/buzz-guildhall";
 import { BUZZ_STORY_ROOMS, buzzProjectSlug, buzzRoomName, type BuzzStoryRoomId } from "../lib/buzz-story-room";
+import CommunityAgentRoster from "./community-agent-roster";
 import styles from "./community-workspace.module.css";
 
 const BUZZ_API = "/api/local-buzz";
@@ -315,7 +316,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
         </section>
         <section className={styles.twoColumn}>
           <article className={styles.panel}><span>People</span><h2>{community?.members.length ?? 0} Great Hall members</h2><p>Presence comes from Buzz, but normal member viewing stays inside PlotPickle.</p><button type="button" onClick={() => setSection("people")}>See people</button></article>
-          <article className={styles.panel}><span>Agents & Stewards</span><h2>{BUZZ_GUILDHALL_ACTORS.length} lore identities</h2><p>Sage, Avery, Wyrmwood and the Guildhall stewards have named responsibilities rather than appearing as anonymous services.</p><button type="button" onClick={() => setSection("agents")}>Meet the Guildhall</button></article>
+          <article className={styles.panel}><span>Agents & Stewards</span><h2>{BUZZ_GUILDHALL_ACTORS.length} lore identities</h2><p>Sage, Tamsin, Avery, Wyrmwood and the Guildhall stewards have named responsibilities and truthful runtime states.</p><button type="button" onClick={() => setSection("agents")}>Meet the Guildhall</button></article>
         </section>
       </main> : null}
 
@@ -348,8 +349,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
       </main> : null}
 
       {section === "agents" ? <main className={styles.stack}>
-        <section className={styles.sectionHeading}><div><span>Agents & Stewards</span><h2>The Guildhall has names, jobs and boundaries.</h2><p>Mastra agents stay PlotPickle agents. Deterministic observers remain evidence-driven services. Orin and Fen are the only optional Buzz-native stewards and still require owner review in Buzz Desktop.</p></div></section>
-        <section className={styles.agentGrid}>{BUZZ_GUILDHALL_ACTORS.map((actor) => <article key={actor.id}><header><div><strong>{actor.displayName}</strong><span>{actor.title}</span></div><small>{actor.buzzPresence === "native-draft" ? "Owner review" : actor.buzzPresence === "mirrored" ? "PlotPickle agent" : "Service"}</small></header><p>{actor.summary}</p><footer><span>{actor.runtime}</span><span>{BUZZ_GUILDHALL_CHANNELS.find((room) => room.id === actor.primaryChannel)?.label || actor.primaryChannel}</span></footer></article>)}</section>
+        <CommunityAgentRoster />
       </main> : null}
 
       {section === "reviews" ? <main className={styles.stack}>

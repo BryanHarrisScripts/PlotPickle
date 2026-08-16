@@ -33,3 +33,26 @@ test("#671 Advanced AI routing stays inside the matte-black Settings surface fam
 
   assert.match(consoleStyles, /\.sourceConsole \{[\s\S]*linear-gradient\(145deg, #12161d, #181d26 64%, #11151b\)/);
 });
+
+test("#671 explains Advanced AI routing in writer-friendly language before technical controls", async () => {
+  const page = await read("app/ai-routing/page.tsx");
+
+  assert.match(page, /AI setup, in plain English/);
+  assert.match(page, /Most writers can leave this page alone after Quick Setup/);
+  assert.match(page, />On this computer</);
+  assert.match(page, />Online AI</);
+  assert.match(page, />You stay in control</);
+  assert.match(page, /PlotPickle never switches you to a paid service by itself/);
+  assert.match(page, /Computer and local AI details/);
+  assert.match(page, /Open this only if you want to see your computer, detected AI programs, model choices or performance settings/);
+  assert.match(page, /Cloud and legacy provider overrides/);
+  assert.match(page, /Plain English: use this when you want to choose whether writing, pictures or video are made on your computer or by an online service/);
+
+  const localDetails = page.indexOf("Computer and local AI details");
+  const localPanel = page.indexOf("<LocalRuntimePanel />");
+  const providerDetails = page.indexOf("Cloud and legacy provider overrides");
+  const providerPanel = page.indexOf("<AiRoutingPanel />");
+  assert.ok(localDetails >= 0 && localPanel > localDetails);
+  assert.ok(providerDetails >= 0 && providerPanel > providerDetails);
+  assert.doesNotMatch(page, /<details[^>]*\sopen(?:\s|>)/);
+});

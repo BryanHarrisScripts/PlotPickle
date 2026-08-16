@@ -301,7 +301,8 @@
   scroll-behavior: smooth;
 }
 
-[data-settings-main] > * {
+[data-settings-main] > *,
+[data-settings-section] > * {
   max-width: none !important;
   margin-right: 0 !important;
   margin-left: 0 !important;
@@ -363,11 +364,26 @@
 }
 
 @media (max-width: 900px) {
+  [data-active-workspace="learn"] [data-workspace-frame="true"] > :first-child,
+  [data-active-workspace="plan"] [data-workspace-frame="true"] > :first-child,
+  [data-active-workspace="wyrmwood"] [data-workspace-frame="true"] > :first-child {
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+  }
+
   [data-active-workspace="learn"] main[data-preserve-story-language="true"],
   [data-active-workspace="plan"] main[data-preserve-story-language="true"],
   [data-active-workspace="wyrmwood"] [data-workspace-frame="true"] > :first-child > main {
     display: block !important;
     grid-template-columns: 1fr !important;
+    overflow: visible !important;
+  }
+
+  [data-active-workspace="learn"] main[data-preserve-story-language="true"] > *,
+  [data-active-workspace="plan"] main[data-preserve-story-language="true"] > *,
+  [data-active-workspace="wyrmwood"] [data-workspace-frame="true"] > :first-child > main > * {
+    max-height: none !important;
     overflow: visible !important;
   }
 

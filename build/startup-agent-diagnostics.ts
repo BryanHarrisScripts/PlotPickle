@@ -1,5 +1,5 @@
 import type { Plugin } from "vite";
-import { runStartupAgentDiagnostics } from "./startup-agent-diagnostics-runtime-v3";
+import { runStartupAgentDiagnostics } from "./startup-agent-diagnostics-runtime-v4";
 import { offerStartupUatDecision } from "./startup-uat-decision";
 
 export { runStartupAgentDiagnostics };

@@ -1,0 +1,151 @@
+.card {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgba(124, 241, 223, 0.2);
+  border-radius: 14px;
+  background: rgba(8, 15, 14, 0.72);
+}
+
+.card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.card header span,
+.controls label > span {
+  display: block;
+  margin-bottom: 4px;
+  color: #7cf1df;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.card h3,
+.card p {
+  margin: 0;
+}
+
+.card header p,
+.note {
+  margin-top: 6px;
+  max-width: 76ch;
+  color: rgba(241, 232, 199, 0.76);
+  line-height: 1.55;
+}
+
+.card button,
+.card a,
+.controls select {
+  min-height: 38px;
+  border: 1px solid rgba(124, 241, 223, 0.28);
+  border-radius: 8px;
+  background: rgba(16, 29, 27, 0.92);
+  color: #f1e8c7;
+}
+
+.card button,
+.card a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.card button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.memberList {
+  display: grid;
+  gap: 8px;
+}
+
+.memberList article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(241, 209, 131, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.memberList article > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.memberList i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #6d756f;
+  box-shadow: 0 0 0 3px rgba(109, 117, 111, 0.12);
+}
+
+.memberList i[data-presence="online"] {
+  background: #7cf1df;
+  box-shadow: 0 0 0 3px rgba(124, 241, 223, 0.14);
+}
+
+.memberList i[data-presence="away"] {
+  background: #f1d183;
+  box-shadow: 0 0 0 3px rgba(241, 209, 131, 0.14);
+}
+
+.memberList span {
+  display: grid;
+  gap: 2px;
+}
+
+.memberList small {
+  color: rgba(241, 232, 199, 0.58);
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(120px, 180px) auto auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.controls label {
+  display: grid;
+  gap: 4px;
+}
+
+.controls select {
+  width: 100%;
+  padding: 0 10px;
+}
+
+.note {
+  font-size: 0.84rem;
+}
+
+.notice {
+  padding: 10px 12px;
+  border-left: 3px solid #f1d183;
+  background: rgba(241, 209, 131, 0.06);
+  color: #f1e8c7;
+}
+
+@media (max-width: 900px) {
+  .card > header {
+    display: grid;
+  }
+
+  .controls {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+}

@@ -41,7 +41,8 @@ test("simple Sage intents are deterministic while craft fallback remains curricu
   const unified = await read("modules/creative-room/sage-unified-guide.ts");
 
   assert.match(unified, /I’m Sage Brinewick, PlotPickle’s Curriculum Guide/);
-  assert.match(unified, /Yes\. I can explain a lesson/);
+  assert.match(unified, /how can you help\(\?: me\)\?/);
+  assert.match(unified, /I can explain any PlotPickle lesson in plain language/);
   assert.match(unified, /isShortenRequest/);
   assert.match(unified, /reverse\(\)\.find\(\(item\) => item\.role === "guide"/);
   assert.match(unified, /function craftFallback/);

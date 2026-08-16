@@ -50,7 +50,7 @@ test("GAME remains isolated while sharing the global PlotPickle navigation shell
   ]);
 
   assert.match(page, /<PlotPickleWorkspaceShell activeWorkspace="wyrmwood"/);
-  assert.match(shell, /id: "wyrmwood", relic: "\/assets\/workflow-relics\/game\.webp", label: "WYRMWOOD", detail: "Game", selectable: true/);
+  assert.match(shell, /id: "wyrmwood", relic: "\/assets\/workflow-relics\/game\.webp", label: "Wyrmwood", detail: "Game", selectable: true/);
   assert.match(shell, /data-plotpickle-global-nav="v1"/);
   assert.doesNotMatch(page, /WyrmwoodPluginEntry/);
   assert.match(ui, /Spellscribe response · practical logic only/);

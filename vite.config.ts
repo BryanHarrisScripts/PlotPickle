@@ -5,6 +5,7 @@ import { localAiGateway } from "./build/local-ai-gateway";
 import { localConnectionsGateway } from "./build/local-connections-gateway";
 import { localSystemStatusGateway } from "./build/local-system-status-gateway";
 import { buzzGateway } from "./build/buzz-gateway";
+import { buzzGuildhallGateway } from "./build/buzz-guildhall-gateway";
 import { buzzBundleNormalizer } from "./build/buzz-bundle-normalizer";
 import { googleCalendarGateway } from "./build/google-calendar-gateway";
 import { githubAppGateway } from "./build/github-app-gateway";
@@ -47,7 +48,7 @@ const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
   d1_databases: d1 ? [{ binding: d1, database_name: "site-creator-d1", database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID }] : [],
-  r2_buckets: r2 ? [{ binding: r2, bucket_name: "site-creator-r2" }] : [],
+  r2_buckets: r2 ? [{ binding: r2, bucket_name: "site-creator-r2", bucket_name: "site-creator-r2" }] : [],
 };
 
 export default defineConfig(async () => {
@@ -84,6 +85,7 @@ export default defineConfig(async () => {
     plugins: [
       localConnectionsGateway(),
       buzzBundleNormalizer(),
+      buzzGuildhallGateway(),
       buzzGateway(),
       localSystemStatusGateway(),
       googleCalendarGateway(),

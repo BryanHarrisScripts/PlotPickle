@@ -3,13 +3,13 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { parseRenderedEvaluateText } from "../scripts/writer-visual-observer-v2.mjs";
+import { parseRenderedEvaluateText } from "../scripts/writer-visual-observer-v3.mjs";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 const readJson = async (file) => JSON.parse(await read(file));
 const implementation = "scripts/run-writer-in-residence-v4.mjs";
 const recovery = "scripts/writer-in-residence-runtime-recovery.mjs";
-const visualObserver = "scripts/writer-visual-observer-v2.mjs";
+const visualObserver = "scripts/writer-visual-observer-v3.mjs";
 
 test("Writer-in-Residence is a disclosed synthetic writer with a complete active-product mission", async () => {
   const config = await readJson("config/writer-in-residence.json");
@@ -48,13 +48,16 @@ test("#657 cannot call two Sage probes a completed writer journey", async () => 
   assert.match(runner, /INCOMPLETE/);
 });
 
-test("#660 retries only local creative-director empty replies across Fast and Quality", async () => {
+test("#660 retries the real local HTTP 400 no-text response across Fast and Quality", async () => {
   const source = await read(recovery);
   assert.match(source, /body\?\.provider !== "local"/);
   assert.match(source, /body\?\.agentId !== "creative-director"/);
-  assert.match(source, /provider returned no text\|no text\|empty/i);
-  assert.match(source, /roles = \[preferred, alternateRole\(preferred\), preferred\]/);
+  assert.match(source, /provider returned no text/);
+  assert.match(source, /return !response\.ok &&/);
+  assert.doesNotMatch(source, /response\.status >= 500/);
+  assert.match(source, /roles = \[preferred, alternateRole\(preferred\), preferred, alternateRole\(preferred\)\]/);
   assert.match(source, /provider: "local", modelRole: role/);
+  assert.match(source, /retryableFetchError/);
   assert.match(source, /Writer local recovery/);
   assert.doesNotMatch(source, /provider:\s*"openai"|provider:\s*"minimax"/i);
 });
@@ -96,6 +99,16 @@ test("#660 visual observer parses Playwright Result objects and JSON-encoded str
   assert.equal(encoded.horizontalOverflow, 3);
 });
 
+test("#662 and #663 visual overlap review ignores trivial geometry and reports meaningful hit-area evidence", async () => {
+  const observer = await read(visualObserver);
+  assert.match(observer, /pointerEvents !== 'none'/);
+  assert.match(observer, /!node\.matches\(':disabled'\)/);
+  assert.match(observer, /width <= 8 \|\| height <= 8/);
+  assert.match(observer, /ratio < 0\.08/);
+  assert.match(observer, /overlapRatio/);
+  assert.match(observer, /smaller hit area/);
+});
+
 test("Avery uses visible accessibility actions while the visual observer remains a separate read-only rendered-layout layer", async () => {
   const [runner, observer] = await Promise.all([read(implementation), read(visualObserver)]);
   for (const name of ["browser_snapshot", "browser_click", "browser_type", "browser_navigate"]) assert.match(runner, new RegExp(name));
@@ -112,6 +125,14 @@ test("Settings depth probe follows advanced controls down and back up without ch
   assert.match(runner, /Phase 3 · Settings depth\/down-up/);
   assert.match(runner, /checkbox.*radio.*combobox/);
   assert.match(runner, /unsafeControl/);
+});
+
+test("#664 advanced AI routing belongs to the current dark PlotPickle surface family", async () => {
+  const page = await read("app/ai-routing/page.tsx");
+  assert.match(page, /background: "#090a0b"/);
+  assert.match(page, /color: "#f1eee7"/);
+  assert.match(page, /#35c9b8/);
+  assert.doesNotMatch(page, /#f4faf9/i);
 });
 
 test("visual review checks current dark look, clipping, overlap, overflow and balance", async () => {

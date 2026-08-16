@@ -35,6 +35,18 @@ function displayTime(value: string) {
   return date.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
+function buzzIdentityLabel(agentId: string, buzzPresence: string, nativeAgents: readonly BuzzNativeAgentState[]) {
+  const identity = nativeAgents.find((item) => item.actorId === agentId);
+  if (identity?.created && identity.verified && identity.ownedByMe) {
+    const presence = identity.presence.trim().toLowerCase() || "offline";
+    return `Visible in BUZZ · ${presence}`;
+  }
+  if (identity?.lookupError) return "BUZZ identity status unavailable";
+  if (buzzPresence === "native-draft") return "Needs owner approval in BUZZ";
+  if (buzzPresence === "mirrored") return "Mastra agent · BUZZ identity not created";
+  return "Operational events only";
+}
+
 export default function CommunityAgentRoster() {
   const [assistantStatus, setAssistantStatus] = useState<WritingAssistantStatus | null>(null);
   const [traces, setTraces] = useState<AgentTrace[]>([]);
@@ -69,7 +81,7 @@ export default function CommunityAgentRoster() {
     } else {
       setBuzzIdentityVerified(false);
       setNativeAgents([]);
-      warnings.push("BUZZ steward status unavailable");
+      warnings.push("BUZZ agent identity status unavailable");
     }
     setNotice(warnings.join(" · "));
     setLoading(false);
@@ -100,8 +112,8 @@ export default function CommunityAgentRoster() {
       <section className={styles.heading}>
         <div>
           <span>Agents & Stewards</span>
-          <h2>Who is here, what they do, and whether they are actually running.</h2>
-          <p>PlotPickle checks the local Mastra runtime, current-session agent activity and BUZZ-native steward presence. On-demand services and parked lore roles are labelled honestly instead of being shown as permanently online.</p>
+          <h2>Who is here, what they do, whether they are running, and whether BUZZ can see them.</h2>
+          <p>PlotPickle checks the local Mastra runtime, current-session activity and owner-approved BUZZ identities. Sage and the other creative agents still think in Mastra; a matching BUZZ identity is only their community presence and signed authorship shell.</p>
         </div>
         <button type="button" disabled={loading} onClick={() => void refresh()}>{loading ? "Checking…" : "Refresh status"}</button>
       </section>
@@ -114,38 +126,44 @@ export default function CommunityAgentRoster() {
       </section>
 
       <section className={styles.legend} aria-label="Agent status meanings">
-        <p><strong>Online</strong> means the real runtime reports the role available. <strong>Working</strong> means a run is active now. <strong>On demand</strong> means the service starts only when needed. <strong>Parked</strong> means the lore role is preserved while its broader product module stays off to the side. <strong>Needs owner approval</strong> applies to BUZZ-native identities that have not yet been created and approved.</p>
+        <p><strong>Online</strong> means the real runtime reports the role available. <strong>Working</strong> means a run is active now. <strong>On demand</strong> means the service starts only when needed. <strong>Parked</strong> means the lore role is preserved while its broader product module stays off to the side. If you want Sage, Tamsin, Oaken-Vague or another Mastra agent to appear on the Buzz Desktop Agents page, create and approve a BUZZ agent with the same PlotPickle name; this roster will detect it automatically. PlotPickle will never sign a human message and falsely label it as an agent.</p>
       </section>
 
       {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
 
       <section className={styles.grid} aria-label="PlotPickle agent roster">
-        {roster.map((agent) => (
-          <article className={styles.card} key={agent.id} data-state={agent.state}>
-            <header>
-              <div>
-                <strong>{agent.displayName}</strong>
-                <span>{agent.title}</span>
-              </div>
-              <span className={styles.status} data-state={agent.state}><i aria-hidden="true" />{agent.stateLabel}</span>
-            </header>
+        {roster.map((agent) => {
+          const identity = nativeAgents.find((item) => item.actorId === agent.id);
+          const visibleInBuzz = Boolean(identity?.created && identity.verified && identity.ownedByMe);
+          return (
+            <article className={styles.card} key={agent.id} data-state={agent.state}>
+              <header>
+                <div>
+                  <strong>{agent.displayName}</strong>
+                  <span>{agent.title}</span>
+                </div>
+                <span className={styles.status} data-state={agent.state}><i aria-hidden="true" />{agent.stateLabel}</span>
+              </header>
 
-            <p className={styles.summaryText}>{agent.summary}</p>
-            <p className={styles.stateDetail}>{agent.stateDetail}</p>
+              <p className={styles.summaryText}>{agent.summary}</p>
+              <p className={styles.stateDetail}>{agent.stateDetail}</p>
 
-            <dl>
-              <div><dt>Runs in</dt><dd>{agent.runtimeLabel}</dd></div>
-              <div><dt>Home room</dt><dd>{agent.homeRoom}</dd></div>
-              <div><dt>Role</dt><dd>{agent.roleId || (agent.runtime === "buzz" ? "BUZZ identity" : "Operational service")}</dd></div>
-              <div><dt>Last activity</dt><dd>{displayTime(agent.lastActiveAt)}</dd></div>
-            </dl>
+              <dl>
+                <div><dt>Runs in</dt><dd>{agent.runtimeLabel}</dd></div>
+                <div><dt>Home room</dt><dd>{agent.homeRoom}</dd></div>
+                <div><dt>Role</dt><dd>{agent.roleId || (agent.runtime === "buzz" ? "BUZZ identity" : "Operational service")}</dd></div>
+                <div><dt>BUZZ identity</dt><dd>{buzzIdentityLabel(agent.id, agent.buzzPresence, nativeAgents)}</dd></div>
+                <div><dt>Last activity</dt><dd>{displayTime(agent.lastActiveAt)}</dd></div>
+              </dl>
 
-            <footer>
-              <span>{agent.buzzPresence === "mirrored" ? "Mirrored into BUZZ" : agent.buzzPresence === "native-draft" ? "BUZZ-native" : "Guildhall service"}</span>
-              {agent.state === "needs-approval" ? <small>Open Buzz Desktop → Agents to create and approve this steward.</small> : null}
-            </footer>
-          </article>
-        ))}
+              <footer>
+                <span>{visibleInBuzz ? "Visible in Buzz Desktop" : agent.buzzPresence === "native-draft" ? "BUZZ-native identity awaiting approval" : agent.buzzPresence === "mirrored" ? "PlotPickle/Mastra agent" : "Guildhall service"}</span>
+                {agent.buzzPresence === "mirrored" && !visibleInBuzz ? <small>Buzz Desktop → Agents → + can create the matching community identity when you want it.</small> : null}
+                {agent.state === "needs-approval" ? <small>Open Buzz Desktop → Agents to create and approve this steward.</small> : null}
+              </footer>
+            </article>
+          );
+        })}
       </section>
     </div>
   );

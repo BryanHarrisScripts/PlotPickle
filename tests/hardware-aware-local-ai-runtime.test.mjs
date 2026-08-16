@@ -14,6 +14,7 @@ test("local text is provider-independent and llama.cpp is preferred", async () =
   assert.match(catalog, /"llama\.cpp" \| "lm-studio" \| "ollama" \| "openai-compatible"/);
   assert.match(catalog, /runtimePreference: \["llama\.cpp", "lm-studio", "ollama", "openai-compatible"\]/);
   assert.match(manager, /\/models/);
+  assert.match(manager, /probeRuntimeModelCapabilities/);
   assert.match(provider, /\/chat\/completions/);
   assert.match(provider, /Every local runtime/);
   assert.match(gateway, /provider: "local"/);
@@ -39,7 +40,7 @@ test("GTX 1080 Pascal receives the CUDA 12.6 safe hardware profile", async () =>
   assert.match(installer, /prefer CUDA 12\.x/i);
 });
 
-test("the GTX 1080 model-role catalog matches the local production profile", async () => {
+test("the GTX 1080 model-role catalog remains the starter fallback profile", async () => {
   const catalog = await read("lib/ai/local-runtime.ts");
   assert.match(catalog, /Qwen3\.5-4B GGUF/);
   assert.match(catalog, /Q6_K or Q8/);
@@ -159,7 +160,7 @@ test("visual continuity controls remain above provider/model selection and reach
   assert.match(sdxl, /VAEEncode/);
 });
 
-test("settings detect multiple runtimes and expose advanced overrides", async () => {
+test("settings detect multiple runtimes, capability slots and advanced overrides", async () => {
   const [installation, runtime, panel] = await Promise.all([
     read("build/local-ai-installation-gateway.ts"),
     read("build/local-runtime-gateway.ts"),
@@ -173,7 +174,10 @@ test("settings detect multiple runtimes and expose advanced overrides", async ()
   assert.match(runtime, /endpointOverrides/);
   assert.match(runtime, /modelOverrides/);
   assert.match(runtime, /managedLlama/);
-  assert.match(panel, /Advanced users can override runtime/);
+  assert.match(panel, /Automatic model slots/);
+  assert.match(panel, /Vision \/ Visual QA/);
+  assert.match(panel, /Pi \/ Repair/);
+  assert.match(panel, /automatic capability matching is the default/i);
 });
 
 test("cloud providers and legacy Ollama remain available without defining local architecture", async () => {

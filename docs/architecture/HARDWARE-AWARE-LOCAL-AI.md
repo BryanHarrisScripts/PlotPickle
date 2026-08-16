@@ -1,6 +1,6 @@
 # Hardware-Aware Local AI Runtime
 
-PlotPickle treats local AI as a compute-routing problem, not as an Ollama feature.
+PlotPickle treats local AI as a compute-routing problem, not as an Ollama feature and not as a fixed list of model names.
 
 ## Stable application boundary
 
@@ -8,22 +8,56 @@ All production local text roles use an OpenAI-compatible API contract. The prefe
 
 Existing OpenAI and MiniMax cloud routes remain separate user-selected providers. Existing Ollama configuration remains compatible, but Ollama is optional and is not required by GUIDE, Creative Room, curriculum retrieval, images, or video.
 
-## Model roles
+## Capability-first model routing
 
-The initial 32 GB RAM / GTX 1080 8 GB profile assigns:
+PlotPickle now detects model capabilities before it applies the fallback model catalog. The automatic slots are:
 
-| Role | Default |
+| Slot | What PlotPickle looks for |
+| --- | --- |
+| Fast | text generation, low working-set cost, practical everyday hardware fit |
+| Quality | stronger model size, reasoning/tool support, useful context, practical hardware fit |
+| Deep reasoning | reasoning/thinking, tools, longer context, larger models that may be on demand |
+| Vision / Visual QA | explicit vision/image-input capability plus a usable hardware fit |
+| Pi / Repair | coding or tool-use capability, agent readiness, useful context and a safe hardware fit |
+
+The Vision slot is for understanding screenshots, reference images and rendered UI. It is separate from image generation, which remains a ComfyUI/media responsibility.
+
+The Pi / Repair slot is a developer-agent role. It does not make a model a Creative Room model and it never adds a cloud fallback.
+
+### Capability sources
+
+PlotPickle prefers runtime-native metadata instead of model-name guesses.
+
+Ollama: PlotPickle reads the installed model list and model detail metadata, including declared capabilities, parameter size, quantization and model context information.
+
+LM Studio: PlotPickle reads the native model inventory, including model type, parameter size, quantization, maximum context, vision support and trained-for-tool-use metadata.
+
+llama.cpp and other OpenAI-compatible servers: when only a model id is available, PlotPickle uses conservative family/name inference. It will not invent vision support from a generic model name. Explicit advanced overrides remain available when a server knows more than it exposes through its model API.
+
+This means a future model does not need a new PlotPickle integration merely because its family name changed. If the runtime reports that the model supports vision, tools, reasoning and a large context, the capability router can evaluate it for the relevant slots automatically.
+
+### Hardware fit
+
+Capability alone is not enough. PlotPickle estimates the model working set from reported file size or parameter/quantization data and compares it with detected RAM/VRAM.
+
+A model can therefore be recognized as more capable while still losing the everyday Fast or Quality slot on a smaller machine. Large models that require CPU/GPU splitting are penalized for latency-sensitive roles and can remain on demand. On larger GPUs, the same model can rise naturally into Quality, Deep, Vision or Pi/Repair without changing application code.
+
+## Fallback starter models
+
+The static catalog remains as an installation and compatibility fallback rather than the primary router. The initial 32 GB RAM / GTX 1080 8 GB starter profile is:
+
+| Role | Starter fallback |
 | --- | --- |
 | Fast | Qwen3.5-4B GGUF, Q6_K or Q8 |
 | Quality | Qwen3.5-9B GGUF, Q4_K_M |
 | Deep reasoning | gpt-oss-20b MXFP4, on demand |
 | Curriculum embedding | Qwen3-Embedding-0.6B, CPU |
 | Curriculum reranking | Qwen3-Reranker-0.6B, CPU |
-| Image | ComfyUI + SDXL 1.0 |
+| Image generation | ComfyUI + SDXL 1.0 |
 | Video | ComfyUI + LTX-Video 2B 0.9.8 Distilled |
 | Runtime health check only | SmolLM2 135M |
 
-SmolLM2 is deliberately marked non-production. It can verify an installation or basic inference path but cannot satisfy a Fast, Quality, Deep or Creative Room role.
+SmolLM2 is deliberately marked non-production. It can verify an installation or basic inference path but cannot satisfy a Fast, Quality, Deep, Vision, Pi/Repair or Creative Room role.
 
 ## Hardware profiles
 
@@ -35,7 +69,7 @@ The same router has separate modern 8 GB, 16 GB and 24 GB+ profiles. Higher-memo
 
 ## Context policy
 
-The default local context is 16K tokens. A 32K profile is available as an advanced override. Advertised model context limits are not used as the default memory budget on a 32 GB RAM / 8 GB VRAM machine.
+The default PlotPickle request budget remains 16K tokens. A 32K profile is available as an advanced override. A model may advertise a much larger native context; that is useful evidence for Quality, Deep and Pi/Repair ranking but is not automatically turned into a huge runtime allocation on a constrained machine.
 
 PlotPickle continues to assemble bounded project and curriculum context rather than transmitting the complete project on every request.
 
@@ -78,11 +112,11 @@ The LTX video path can use an approved PlotPickle source frame and a reviewed Co
 
 ## Settings and installation
 
-Settings shows the detected hardware profile, runtime preference, local endpoint, context budget, Fast/Quality/Deep model availability, retrieval models, SDXL, LTX-Video, SmolLM2 health-check status and GPU scheduler state.
+Settings shows the detected hardware profile, runtime preference, local endpoint, context budget, automatic Fast/Quality/Deep/Vision/Pi model slots, the detected capability inventory, retrieval models, SDXL, LTX-Video, SmolLM2 health-check status and GPU scheduler state.
 
-Advanced users can override runtime priority, OpenAI-compatible endpoints, role model names, llama.cpp executable/model paths, context size and GPU-layer splits.
+Advanced users can override runtime priority, OpenAI-compatible endpoints, role model names, llama.cpp executable/model paths, context size and GPU-layer splits. Automatic capability matching remains the default.
 
-The Windows hardware configuration script creates the CPU curriculum-RAG environment and exposes the Pascal-safe ComfyUI CUDA 12.6 configuration path. Model installation is role-based: PlotPickle detects missing roles and presents the recommended model/quantization and configured model directory instead of silently substituting another model.
+The Windows hardware configuration script creates the CPU curriculum-RAG environment and exposes the Pascal-safe ComfyUI CUDA 12.6 configuration path. Model installation remains role-based: PlotPickle can still present starter model/quantization guidance when no suitable installed model is detected, but it does not require a new release merely to recognize a newer capable model.
 
 ## Compatibility
 

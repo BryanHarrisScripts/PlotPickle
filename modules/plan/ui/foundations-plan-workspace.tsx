@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CurriculumLesson } from "../../../core/contracts/curriculum";
 import {
   assembleFoundationsBrief,
@@ -9,6 +9,7 @@ import {
   countFoundationAnswers,
   createEmptyFoundationLessonAnswers,
   guidingQuestionsForFoundationField,
+  isUsableFoundationAnswer,
   type FoundationDraftProposal,
   type FoundationPlanLesson,
 } from "../../../core/contracts/foundation-plan";
@@ -34,6 +35,13 @@ const WORKFLOW_STAGES = [
   { id: "refine", relic: "/assets/workflow-relics/refine.webp", label: "Refine", detail: "Decide", selectable: false, gapAfter: false },
   { id: "reports", relic: "/assets/workflow-relics/reports.webp", label: "Reports", detail: "Deliver", selectable: false, gapAfter: false },
 ] as const;
+
+type FoundationPpfSource = {
+  readonly fileName: string;
+  readonly projectId: string;
+  readonly projectTitle: string;
+  readonly context: string;
+};
 
 function requestedLessonId() {
   if (typeof window === "undefined") return "";
@@ -64,11 +72,16 @@ export default function FoundationsPlanWorkspace({
     () => new Map(curriculum.map((lesson) => [lesson.id, lesson])),
     [curriculum],
   );
+  const ppfInputRef = useRef<HTMLInputElement>(null);
   const [project, setProject] = useState<PPFProject | null>(null);
   const [briefDraft, setBriefDraft] = useState("");
   const [draftingLessonId, setDraftingLessonId] = useState("");
   const [draftError, setDraftError] = useState("");
   const [draftFieldIds, setDraftFieldIds] = useState<readonly string[]>([]);
+  const [ppfSource, setPpfSource] = useState<FoundationPpfSource | null>(null);
+  const [loadingPpf, setLoadingPpf] = useState(false);
+  const [autoCompletingFoundations, setAutoCompletingFoundations] = useState(false);
+  const [autoCompleteStatus, setAutoCompleteStatus] = useState("");
 
   useEffect(() => {
     if (!lessons.length) return;
@@ -172,8 +185,106 @@ export default function FoundationsPlanWorkspace({
     ));
   }
 
+  async function loadPpfSource(file: File) {
+    if (loadingPpf || autoCompletingFoundations) return;
+    setDraftError("");
+    setAutoCompleteStatus("");
+    setLoadingPpf(true);
+    try {
+      const response = await fetch("/api/plan/foundations/ppf-context", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/octet-stream",
+          "X-PlotPickle-Project-Filename": encodeURIComponent(file.name),
+        },
+        body: await file.arrayBuffer(),
+      });
+      const result = await response.json() as {
+        readonly message?: string;
+        readonly projectId?: string;
+        readonly projectTitle?: string;
+        readonly context?: string;
+      };
+      if (!response.ok || !result.context) {
+        throw new Error(result.message || "PlotPickle could not extract story evidence from this .ppf.");
+      }
+      setPpfSource({
+        fileName: file.name,
+        projectId: result.projectId || "imported-project",
+        projectTitle: result.projectTitle || file.name.replace(/\.ppf$/i, ""),
+        context: result.context,
+      });
+      setAutoCompleteStatus(`${result.projectTitle || file.name} is loaded as read-only story evidence. Nothing has been changed yet.`);
+    } catch (error) {
+      setPpfSource(null);
+      setDraftError(error instanceof Error ? error.message : "PlotPickle could not read this .ppf for PLAN Foundations.");
+    } finally {
+      setLoadingPpf(false);
+    }
+  }
+
+  async function autoCompleteAllFoundations() {
+    if (!project || !ppfSource || autoCompletingFoundations || draftingLessonId) return;
+    setDraftError("");
+    setAutoCompletingFoundations(true);
+    setAutoCompleteStatus(`Starting Foundations from ${ppfSource.projectTitle}…`);
+    let workingProject = project;
+    try {
+      for (const [index, lesson] of lessons.entries()) {
+        const curriculumLesson = curriculumById.get(lesson.id);
+        if (!curriculumLesson) throw new Error(`PLAN could not find the curriculum guidance for ${lesson.title}.`);
+        const currentAnswers = workingProject.foundations.lessons[lesson.id]?.answers ?? {};
+        const emptyFields = lesson.fields.filter((field) => !isUsableFoundationAnswer(currentAnswers[field.id]));
+        setAutoCompleteStatus(`Foundations ${index + 1} of ${lessons.length}: ${lesson.title}${emptyFields.length ? "" : " — already complete"}`);
+        if (!emptyFields.length) continue;
+
+        const proposal = await draftFoundationLesson({
+          projectTitle: ppfSource.projectTitle,
+          lesson: { ...lesson, fields: emptyFields },
+          curriculumLesson,
+          currentAnswers,
+          priorStoryContext: acceptedFoundationContext(lessons, lesson.id, workingProject),
+          sourceStoryContext: ppfSource.context,
+        });
+        const stored = applyStoryCommand(workingProject, {
+          type: "foundations.proposal.store",
+          lessonId: lesson.id,
+          proposal,
+          occurredAt: proposal.generatedAt,
+        });
+        workingProject = applyStoryCommand(stored, {
+          type: "foundations.proposal.accept",
+          lessonId: lesson.id,
+          occurredAt: proposal.generatedAt,
+        });
+        saveFoundationProject(workingProject);
+        setProject(workingProject);
+      }
+
+      const content = assembleFoundationsBrief({
+        projectTitle: ppfSource.projectTitle,
+        lessons,
+        state: workingProject.foundations,
+      });
+      workingProject = applyStoryCommand(workingProject, {
+        type: "foundations.brief.save",
+        content,
+        occurredAt: new Date().toISOString(),
+      });
+      saveFoundationProject(workingProject);
+      setProject(workingProject);
+      setBriefDraft(content);
+      setAutoCompleteStatus(`Foundations complete from ${ppfSource.projectTitle}. Existing answers were preserved; no area outside PLAN / Foundations was changed.`);
+    } catch (error) {
+      setDraftError(error instanceof Error ? error.message : "PLAN could not finish the Foundations auto-complete pass.");
+      setAutoCompleteStatus("The pass stopped. Any Foundations answers completed before the error remain saved; everything outside Foundations remains untouched.");
+    } finally {
+      setAutoCompletingFoundations(false);
+    }
+  }
+
   async function requestLocalDraft() {
-    if (!project || !activeLesson || draftingLessonId) return;
+    if (!project || !activeLesson || draftingLessonId || autoCompletingFoundations) return;
     const curriculumLesson = curriculumById.get(activeLesson.id);
     if (!curriculumLesson) return;
     const selectedFields = activeLesson.fields.filter((field) => draftFieldIds.includes(field.id));
@@ -186,7 +297,7 @@ export default function FoundationsPlanWorkspace({
     setDraftingLessonId(lessonId);
     try {
       const proposal = await draftFoundationLesson({
-        projectTitle: project.title,
+        projectTitle: ppfSource?.projectTitle || project.title,
         lesson: {
           ...activeLesson,
           fields: selectedFields,
@@ -194,6 +305,7 @@ export default function FoundationsPlanWorkspace({
         curriculumLesson,
         currentAnswers: activeAnswers.answers,
         priorStoryContext: acceptedFoundationContext(lessons, activeLesson.id, project),
+        sourceStoryContext: ppfSource?.context,
       });
       applyGeneratedDraft(lessonId, proposal);
       setDraftFieldIds([]);
@@ -207,7 +319,7 @@ export default function FoundationsPlanWorkspace({
   function buildBriefDraft() {
     if (!project) return;
     setBriefDraft(assembleFoundationsBrief({
-      projectTitle: project.title,
+      projectTitle: ppfSource?.projectTitle || project.title,
       lessons,
       state: project.foundations,
     }));
@@ -369,12 +481,60 @@ export default function FoundationsPlanWorkspace({
           <section className={styles.aiSection} aria-label="Optional local AI drafting">
             <div className={styles.aiHeading}>
               <div>
+                <small>PPF AUTO-COMPLETE · FOUNDATIONS ONLY</small>
+                <h2>Use an existing story to complete Foundations</h2>
+                <p>Load afterglow.ppf or another PlotPickle project as read-only story evidence. PlotPickle can then fill every currently empty Foundations answer and save the Foundations Brief. Existing answers are preserved. LEARN and every area after Foundations stay untouched.</p>
+                <input
+                  accept=".ppf,application/octet-stream"
+                  aria-label="Choose PlotPickle PPF source"
+                  onChange={(event) => {
+                    const file = event.currentTarget.files?.[0];
+                    if (file) void loadPpfSource(file);
+                    event.currentTarget.value = "";
+                  }}
+                  ref={ppfInputRef}
+                  style={{ display: "none" }}
+                  type="file"
+                />
+              </div>
+              <button
+                disabled={loadingPpf || autoCompletingFoundations || Boolean(draftingLessonId)}
+                onClick={() => ppfInputRef.current?.click()}
+                type="button"
+              >
+                {loadingPpf ? "Reading .ppf…" : ppfSource ? "Replace .ppf source" : "Load .ppf source"}
+              </button>
+            </div>
+            <p className={styles.aiSelectionStatus} aria-live="polite">
+              {ppfSource
+                ? `${ppfSource.fileName} → ${ppfSource.projectTitle}. Source is read-only and is not saved into other PlotPickle areas.`
+                : "No .ppf source loaded. Loading a source does not change the project."}
+            </p>
+
+            <div className={styles.aiHeading} style={{ marginTop: 26 }}>
+              <div>
+                <small>ONE PASS · LOCAL AI</small>
+                <h2>Auto-complete PLAN / Foundations only</h2>
+                <p>The pass works lesson by lesson, fills only empty fields, saves after each completed lesson, then builds and saves the Foundations Brief. If local AI stops, completed Foundations work is kept and nothing else is changed.</p>
+              </div>
+              <button
+                disabled={!ppfSource || loadingPpf || autoCompletingFoundations || Boolean(draftingLessonId)}
+                onClick={autoCompleteAllFoundations}
+                type="button"
+              >
+                {autoCompletingFoundations ? "Completing Foundations…" : "Auto-complete Foundations only"}
+              </button>
+            </div>
+            {autoCompleteStatus ? <p className={styles.aiSelectionStatus} aria-live="polite">{autoCompleteStatus}</p> : null}
+
+            <div className={styles.aiHeading} style={{ marginTop: 34 }}>
+              <div>
                 <small>OPTIONAL · LOCAL ONLY</small>
                 <h2>Draft the selected answers with local AI</h2>
                 <p>Choose AI under any answer above, then draft those selections. PlotPickle inserts the result directly into only those editable fields. Each AI answer is kept concise at no more than four short paragraphs, and you can change every word.</p>
               </div>
               <button
-                disabled={Boolean(draftingLessonId) || draftFieldIds.length === 0}
+                disabled={Boolean(draftingLessonId) || autoCompletingFoundations || draftFieldIds.length === 0}
                 onClick={requestLocalDraft}
                 type="button"
               >
@@ -464,7 +624,7 @@ export default function FoundationsPlanWorkspace({
           </p>
           <section className={styles.briefGuidance}>
             <h3>What carries forward</h3>
-            <p>Your editable PLAN answers are the working project decisions. AI can fill only the answers you explicitly select, and you should review or edit that working text before saving the Foundations Brief.</p>
+            <p>Your editable PLAN answers are the working project decisions. AI can fill only the answers you explicitly select, and the PPF auto-complete path can fill only currently empty Foundations answers. Review or edit that working text before using it downstream.</p>
           </section>
         </aside>
       </main>

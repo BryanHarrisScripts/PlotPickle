@@ -109,3 +109,18 @@ test("the Foundations drafter treats imported PPF evidence as read-only source c
   assert.match(drafter, /never alter or discuss unselected fields/i);
   assert.match(drafter, /provider: "local"/);
 });
+
+test("PLAN Foundations opens on a welcome choice before lesson editing", async () => {
+  const workspace = await read("modules/plan/ui/foundations-plan-workspace.tsx");
+
+  assert.match(workspace, /const \[showWelcome, setShowWelcome\] = useState\(true\)/);
+  assert.match(workspace, /setShowWelcome\(!requested\)/);
+  assert.match(workspace, /Foundations welcome choices/);
+  assert.match(workspace, /Choose how you want to begin/);
+  assert.match(workspace, /RECOMMENDED FOR AN EXISTING STORY · PPF AUTO-COMPLETE/);
+  assert.match(workspace, /Or build Foundations yourself/);
+  assert.match(workspace, /function openFoundationsWelcome\(\)/);
+  assert.match(workspace, /url\.searchParams\.delete\("lesson"\)/);
+  assert.match(workspace, /setShowWelcome\(false\)/);
+  assert.match(workspace, /← Foundations welcome/);
+});

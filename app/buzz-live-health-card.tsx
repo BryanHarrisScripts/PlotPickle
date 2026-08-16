@@ -13,7 +13,7 @@ type HealthResult = {
   message: string;
 };
 
-export default function BuzzLiveHealthCard({ enabled }: { enabled: boolean }) {
+export default function BuzzLiveHealthCard() {
   const [roundTripState, setRoundTripState] = useState<RoundTripState>("idle");
   const [result, setResult] = useState<HealthResult | null>(null);
 
@@ -47,12 +47,12 @@ export default function BuzzLiveHealthCard({ enabled }: { enabled: boolean }) {
 
   return <section className={styles.statusCard} aria-labelledby="buzz-live-health-title">
     <div>
-      <p>Live BUZZ round trip</p>
+      <p>BUZZ · Live connection</p>
       <h2 id="buzz-live-health-title">{copy.title}</h2>
       <p>{copy.detail}</p>
       {result?.receivedAt ? <small>Signed test message received {new Date(result.receivedAt).toLocaleString()} via {result.room || "Gatehouse"}.</small> : null}
       <div className={styles.actions}>
-        <button type="button" disabled={!enabled || roundTripState === "testing"} onClick={() => void testLiveBuzz()}>
+        <button type="button" disabled={roundTripState === "testing"} onClick={() => void testLiveBuzz()}>
           {roundTripState === "testing" ? "Testing live BUZZ…" : "Test live BUZZ connection"}
         </button>
       </div>

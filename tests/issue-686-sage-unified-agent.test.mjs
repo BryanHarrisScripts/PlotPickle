@@ -14,7 +14,8 @@ test("LEARN uses one unified Sage path instead of the layered conversation speci
   assert.match(page, /from "\.\.\/modules\/creative-room\/sage-unified-guide"/);
   assert.doesNotMatch(page, /sage-safe-guide/);
   assert.match(unified, /agentId: "curriculum-guide"/);
-  assert.doesNotMatch(unified, /answerAsSageConversationSpecialist|SAGE CONVERSATION SPECIALIST/);
+  assert.doesNotMatch(unified, /answerAsSageConversationSpecialist/);
+  assert.doesNotMatch(unified, /from "\.\/sage-conversation-specialist"/);
   assert.match(playbook, /The writer always experiences one Sage/);
   assert.match(playbook, /Do not simulate or expose separate personalities/);
 });

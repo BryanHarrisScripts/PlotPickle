@@ -86,7 +86,8 @@
         "tests/issue-628-closed-loop-recovery-quality.test.mjs",
         "tests/issue-637-first-uat-findings.test.mjs",
         "tests/issue-667-669-agent-output-quality.test.mjs",
-        "tests/issue-672-global-navigation.test.mjs"
+        "tests/issue-672-global-navigation.test.mjs",
+        "tests/issue-688-plan-ai-autofill-guidance.test.mjs"
       ]
     },
     {

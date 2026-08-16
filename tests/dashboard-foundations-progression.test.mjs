@@ -23,21 +23,22 @@ test("Dashboard is a real root workspace and LEARN remains the default entry", a
   assert.match(page, /return "learn"/);
 });
 
-test("Foundations progression is derived from canonical LEARN PLAN and BUILD state", async () => {
-  const [progression, project, buildContract] = await Promise.all([
+test("Guided progression derives Foundations from canonical LEARN PLAN and BUILD state", async () => {
+  const [guided, adapter, project, buildContract] = await Promise.all([
+    read("modules/dashboard/guided-progression.ts"),
     read("modules/dashboard/foundations-progression.ts"),
     read("core/project/project.ts"),
     read("core/contracts/build-progress.ts"),
   ]);
 
-  assert.match(progression, /lesson\.topic === "foundations"/);
-  assert.match(progression, /project\.learning\.completedLessonIds/);
-  assert.match(progression, /buildFoundationPlanLessons\(curriculum\)/);
-  assert.match(progression, /countFoundationAnswers\(planLessons, project\.foundations\)/);
-  assert.match(progression, /project\.build\.foundations\.acceptedVisualArtifactIds\.length/);
-  assert.match(progression, /plan: planComplete \? "complete" : learnComplete \? "available" : "locked"/);
-  assert.match(progression, /build: buildComplete \? "complete" : planComplete \? "available" : "locked"/);
-  assert.match(progression, /worldUnlocked: buildComplete/);
+  assert.match(guided, /project\.learning\.completedLessonIds/);
+  assert.match(guided, /buildFoundationPlanLessons\(curriculum\)/);
+  assert.match(guided, /countFoundationAnswers\(planLessons, project\.foundations\)/);
+  assert.match(guided, /project\.build\.foundations\.acceptedVisualArtifactIds\.length/);
+  assert.match(guided, /plan: planComplete \? "complete" : foundationLearnComplete \? "available" : "locked"/);
+  assert.match(guided, /build: buildComplete \? "complete" : planComplete \? "available" : "locked"/);
+  assert.match(adapter, /deriveGuidedCreationProgression/);
+  assert.match(adapter, /worldUnlocked: Boolean\(world\?\.unlocked\)/);
   assert.match(project, /readonly build: BuildProgressState/);
   assert.match(project, /build: createEmptyBuildProgressState\(\)/);
   assert.match(project, /build: normalizeBuild\(source\.build\)/);
@@ -68,6 +69,9 @@ test("Dashboard makes the LEARN PLAN BUILD unlock path visually explicit", async
     read("modules/dashboard/ui/dashboard-workspace.module.css"),
   ]);
 
+  assert.match(dashboard, /deriveGuidedCreationProgression/);
+  assert.match(dashboard, /journeyPercentComplete/);
+  assert.match(dashboard, /nextAction\.label/);
   assert.match(dashboard, /Learn it\. Plan it\. See it\./);
   assert.match(dashboard, /✓ Complete/);
   assert.match(dashboard, /→ Available/);

@@ -24,26 +24,42 @@ function Write-Section([string]$Text) {
   Write-Host "============================================================" -ForegroundColor DarkGray
 }
 
-function Add-Result([string]$Name, [string]$Status, [int]$ExitCode, [string]$Detail = "") {
+function Add-Result([string]$Name, [string]$Category, [string]$Status, [int]$ExitCode, [string]$Detail = "") {
   $Results.Add([pscustomobject]@{
     Step = $Name
+    Category = $Category
     Status = $Status
     ExitCode = $ExitCode
     Detail = $Detail
   }) | Out-Null
 }
 
-function Invoke-NodeStep([string]$Name, [string[]]$Arguments) {
+function Invoke-NodeStep([string]$Name, [string]$Category, [string[]]$Arguments) {
   Write-Section $Name
   Write-Host "node $($Arguments -join ' ')" -ForegroundColor Gray
   & node @Arguments
   $Code = if ($null -eq $LASTEXITCODE) { 0 } else { [int]$LASTEXITCODE }
   if ($Code -eq 0) {
     Write-Host "PASS  $Name" -ForegroundColor Green
-    Add-Result $Name "PASS" 0
+    Add-Result $Name $Category "PASS" 0
   } else {
     Write-Host "FAIL  $Name (exit code $Code)" -ForegroundColor Red
-    Add-Result $Name "FAIL" $Code
+    Add-Result $Name $Category "FAIL" $Code
+  }
+  return $Code
+}
+
+function Invoke-NpmStep([string]$Name, [string]$Category, [string[]]$Arguments) {
+  Write-Section $Name
+  Write-Host "npm $($Arguments -join ' ')" -ForegroundColor Gray
+  & npm.cmd @Arguments
+  $Code = if ($null -eq $LASTEXITCODE) { 0 } else { [int]$LASTEXITCODE }
+  if ($Code -eq 0) {
+    Write-Host "PASS  $Name" -ForegroundColor Green
+    Add-Result $Name $Category "PASS" 0
+  } else {
+    Write-Host "FAIL  $Name (exit code $Code)" -ForegroundColor Red
+    Add-Result $Name $Category "FAIL" $Code
   }
   return $Code
 }
@@ -110,45 +126,90 @@ try {
   Write-Host "Repository: $RepoRoot"
   Write-Host "Log:        $LogPath"
   Write-Host ""
-  Write-Host "This runs Pi readiness, BUZZ, exhaustive UI/UX UAT, and Writer-in-Residence in one pass." -ForegroundColor Gray
+  Write-Host "This checks architecture, curriculum, the production build, local AI/Pi, BUZZ, visual UAT, and the Writer journey in one pass." -ForegroundColor Gray
 
-  Invoke-NodeStep "1 of 5 - Ensure Pi local repair model" @(
+  Invoke-NodeStep "1 of 9 - Agent Skills registry" "Architecture" @(
+    ".\scripts\agent-skills.mjs", "--self-test"
+  ) | Out-Null
+
+  Invoke-NodeStep "2 of 9 - Agent Skills architecture boundaries" "Architecture" @(
+    "--test",
+    ".\tests\sage-brinewick-agent-skill.test.mjs",
+    ".\tests\issue-913-agent-skills-migration.test.mjs"
+  ) | Out-Null
+
+  Invoke-NpmStep "3 of 9 - LEARN curriculum validation" "Curriculum" @(
+    "run", "validate:learn"
+  ) | Out-Null
+
+  Invoke-NpmStep "4 of 9 - Production build" "Production Build" @(
+    "run", "build"
+  ) | Out-Null
+
+  Invoke-NodeStep "5 of 9 - Ensure Pi local repair model" "Local AI / Pi" @(
     ".\scripts\ensure-local-repair-model.mjs", "--worker", "pi"
   ) | Out-Null
 
-  Invoke-NodeStep "2 of 5 - Pi repair preflight" @(
+  Invoke-NodeStep "6 of 9 - Pi repair preflight" "Local AI / Pi" @(
     ".\scripts\run-uat-repair-agent.mjs", "--worker", "pi", "--preflight", "--require-ready"
   ) | Out-Null
 
   $AppReady = Ensure-PlotPickleReady
   if ($AppReady) {
-    Invoke-NodeStep "3 of 5 - Verify BUZZ live activity" @(
+    Invoke-NodeStep "7 of 9 - Verify BUZZ live activity" "BUZZ" @(
       ".\scripts\verify-buzz-live-activity.mjs"
     ) | Out-Null
 
-    Invoke-NodeStep "4 of 5 - Exhaustive code-aware UI and UX UAT" @(
+    Invoke-NodeStep "8 of 9 - Exhaustive code-aware UI and UX UAT" "Visual UAT" @(
       ".\scripts\run-exhaustive-ui-uat.mjs", "--github-report"
     ) | Out-Null
 
-    Invoke-NodeStep "5 of 5 - Writer-in-Residence" @(
+    Invoke-NodeStep "9 of 9 - Writer-in-Residence" "Writer Journey" @(
       ".\scripts\run-writer-in-residence.mjs", "--github-report"
     ) | Out-Null
   } else {
-    foreach ($Name in @(
-      "3 of 5 - Verify BUZZ live activity",
-      "4 of 5 - Exhaustive code-aware UI and UX UAT",
-      "5 of 5 - Writer-in-Residence"
+    foreach ($BlockedStep in @(
+      [pscustomobject]@{ Name = "7 of 9 - Verify BUZZ live activity"; Category = "BUZZ" },
+      [pscustomobject]@{ Name = "8 of 9 - Exhaustive code-aware UI and UX UAT"; Category = "Visual UAT" },
+      [pscustomobject]@{ Name = "9 of 9 - Writer-in-Residence"; Category = "Writer Journey" }
     )) {
-      Write-Host "BLOCKED  $Name - PlotPickle is not reachable at $PlotPickleUrl" -ForegroundColor Red
-      Add-Result $Name "BLOCKED" 1 "PlotPickle local app was not reachable."
+      Write-Host "BLOCKED  $($BlockedStep.Name) - PlotPickle is not reachable at $PlotPickleUrl" -ForegroundColor Red
+      Add-Result $BlockedStep.Name $BlockedStep.Category "BLOCKED" 1 "PlotPickle local app was not reachable."
     }
   }
 
-  Write-Section "FINAL SUMMARY"
+  Write-Section "DETAILED RESULTS"
   foreach ($Result in $Results) {
-    $Colour = if ($Result.Status -eq "PASS") { "Green" } else { "Red" }
+    $Colour = if ($Result.Status -eq "PASS") { "Green" } elseif ($Result.Status -eq "BLOCKED") { "Yellow" } else { "Red" }
     $Suffix = if ($Result.Detail) { " - $($Result.Detail)" } elseif ($Result.ExitCode -ne 0) { " - exit code $($Result.ExitCode)" } else { "" }
     Write-Host ("{0,-8} {1}{2}" -f $Result.Status, $Result.Step, $Suffix) -ForegroundColor $Colour
+  }
+
+  Write-Section "FINAL SUMMARY"
+  foreach ($Category in @(
+    "Architecture",
+    "Curriculum",
+    "Production Build",
+    "Local AI / Pi",
+    "BUZZ",
+    "Visual UAT",
+    "Writer Journey"
+  )) {
+    $GroupResults = @($Results | Where-Object { $_.Category -eq $Category })
+    if ($GroupResults.Count -eq 0) {
+      $GroupStatus = "NOT RUN"
+      $Colour = "Yellow"
+    } elseif (@($GroupResults | Where-Object { $_.Status -eq "FAIL" }).Count -gt 0) {
+      $GroupStatus = "FAIL"
+      $Colour = "Red"
+    } elseif (@($GroupResults | Where-Object { $_.Status -eq "BLOCKED" }).Count -gt 0) {
+      $GroupStatus = "BLOCKED"
+      $Colour = "Yellow"
+    } else {
+      $GroupStatus = "PASS"
+      $Colour = "Green"
+    }
+    Write-Host ("{0,-18} {1}" -f $Category, $GroupStatus) -ForegroundColor $Colour
   }
 
   Write-Host ""
@@ -168,7 +229,7 @@ try {
 } catch {
   Write-Host ""
   Write-Host "FULL CHECK ERROR  $($_.Exception.Message)" -ForegroundColor Red
-  Add-Result "Full verification runner" "FAIL" 1 $_.Exception.Message
+  Add-Result "Full verification runner" "Runner" "FAIL" 1 $_.Exception.Message
   $FinalExitCode = 1
 } finally {
   if ($TranscriptStarted) {

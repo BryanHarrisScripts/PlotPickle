@@ -23,12 +23,15 @@ test("#668 PLAN falls through request-level failures to structured repair and pe
   const drafter = await read("modules/plan/foundations-plan-drafter.ts");
   assert.match(drafter, /returned no text/);
   assert.match(drafter, /for \(const attemptMessage of \[message, `\$\{repairInstruction\(\)\}\\n\\n\$\{message\}`\]\)/);
-  assert.match(drafter, /Continue to the next bounded batch attempt, then per-field recovery/);
+  assert.match(drafter, /recover each field through Quality -> Fast locally/);
   assert.match(drafter, /recoverFieldsIndividually\(input, lastModel\)/);
   assert.match(drafter, /for \(const field of input\.lesson\.fields\)/);
-  assert.match(drafter, /requestFoundationProposal\(attemptMessage, \[field\.id\], 35_000\)/);
+  assert.match(drafter, /\{ role: "quality", message: compactMessage, timeoutMs: 35_000 \}/);
+  assert.match(drafter, /\{ role: "fast", message: fastMessage, timeoutMs: 25_000 \}/);
+  assert.match(drafter, /requestFoundationProposal\(attempt\.message, \[field\.id\], attempt\.timeoutMs, attempt\.role\)/);
   assert.match(drafter, /looksLikeThinPlaceholder/);
   assert.doesNotMatch(drafter, /safeProvisionalFallback|provisional safety fallback/i);
+  assert.doesNotMatch(drafter, /provider:\s*"openai"|provider:\s*"minimax"/i);
 });
 
 test("#669 Wyrmwood Rival Director rejects garbled output, retries locally, and has a playable fallback", async () => {

@@ -4,26 +4,26 @@ import test from "node:test";
 
 const read = (path) => readFile(path, "utf8");
 
-test("Sage uses a repository playbook as active runtime instructions", async () => {
-  const [playbook, runtime] = await Promise.all([
-    read("agents/sage-brinewick.md"),
+test("Sage uses the repository skill as active runtime instructions", async () => {
+  const [skill, runtime] = await Promise.all([
+    read(".agents/skills/sage-brinewick/SKILL.md"),
     read("build/mastra-agent-runtime.ts"),
   ]);
 
-  assert.match(playbook, /resident curriculum mentor/i);
-  assert.match(playbook, /Answer the actual question in the first one or two sentences/i);
-  assert.match(playbook, /Never answer by repeating or lightly rephrasing the writer’s question/i);
-  assert.match(playbook, /What is theme\?/i);
-  assert.match(playbook, /not a response bank/i);
-  assert.match(playbook, /Story and curriculum questions/i);
-  assert.match(playbook, /Normal conversation and odd questions/i);
-  assert.match(playbook, /little sarcasm, dry wit, or playful pushback/i);
+  assert.match(skill, /resident curriculum mentor/i);
+  assert.match(skill, /Answer the actual question in the first one or two sentences/i);
+  assert.match(skill, /Never answer by repeating or lightly rephrasing the writer's question/i);
+  assert.match(skill, /What is theme\?/i);
+  assert.match(skill, /not a response bank/i);
+  assert.match(skill, /Story and curriculum questions/i);
+  assert.match(skill, /Normal conversation and odd questions/i);
+  assert.match(skill, /little sarcasm, dry wit, or playful pushback/i);
 
-  assert.match(runtime, /agents\/sage-brinewick\.md/);
-  assert.match(runtime, /readFileSync\(SAGE_BRINEWICK_PLAYBOOK_PATH, "utf8"\)/);
+  assert.match(runtime, /\.agents\/skills\/sage-brinewick\/SKILL\.md/);
+  assert.match(runtime, /stripSkillFrontmatter\(readFileSync\(SAGE_BRINEWICK_SKILL_PATH, "utf8"\)\)/);
   assert.match(runtime, /SAGE_BRINEWICK_PLAYBOOK = loadSageBrinewickPlaybook\(\)/);
-  assert.match(runtime, /id === "curriculum-guide" \? `Sage Brinewick playbook:/);
-  assert.match(runtime, /casual, personal, humorous, meta, or clearly non-craft questions/i);
+  assert.match(runtime, /id === "curriculum-guide" \? `Sage Brinewick skill:/);
+  assert.match(runtime, /curriculum_context supplied by PlotPickle is the only source of truth/i);
   assert.match(runtime, /temperature: input\.agentId === "curriculum-guide" \? 0\.3 : input\.agentId === "wyrmwood-rival-director" \? 0\.55 : 0\.2/);
   assert.match(runtime, /maxOutputTokens: input\.agentId === "foundations-planner" \? 720 : input\.agentId === "wyrmwood-rival-director" \? 1100 : 480/);
 });

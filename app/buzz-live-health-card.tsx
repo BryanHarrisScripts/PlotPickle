@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import styles from "./buzz-settings.module.css";
+import liveStyles from "./buzz-live-health-card.module.css";
 
 type RoundTripState = "idle" | "testing" | "passed" | "failed";
 type HealthResult = {
@@ -45,18 +46,18 @@ export default function BuzzLiveHealthCard() {
 
   const badgeState = roundTripState === "passed" ? "connected" : roundTripState === "testing" ? "connecting" : roundTripState === "failed" ? "degraded" : "detected";
 
-  return <section className={styles.statusCard} aria-labelledby="buzz-live-health-title">
+  return <section className={`${styles.statusCard} ${liveStyles.statusCard}`} aria-labelledby="buzz-live-health-title">
     <div>
       <p>BUZZ · Live connection</p>
       <h2 id="buzz-live-health-title">{copy.title}</h2>
       <p>{copy.detail}</p>
       {result?.receivedAt ? <small>Signed test message received {new Date(result.receivedAt).toLocaleString()} via {result.room || "Gatehouse"}.</small> : null}
-      <div className={styles.actions}>
+      <div className={`${styles.actions} ${liveStyles.actions}`}>
         <button type="button" disabled={roundTripState === "testing"} onClick={() => void testLiveBuzz()}>
           {roundTripState === "testing" ? "Testing live BUZZ…" : "Test live BUZZ connection"}
         </button>
       </div>
     </div>
-    <div className={styles.statusBadge} data-state={badgeState} role="status" aria-live="polite"><i aria-hidden="true" /><b>{copy.tone}</b></div>
+    <div className={`${styles.statusBadge} ${liveStyles.statusBadge}`} data-state={badgeState} role="status" aria-live="polite"><i aria-hidden="true" /><b>{copy.tone}</b></div>
   </section>;
 }

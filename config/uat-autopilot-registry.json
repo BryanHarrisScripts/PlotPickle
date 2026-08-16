@@ -21,6 +21,7 @@
         "tests/issue-651-pi-cline-uat-repair.test.mjs",
         "tests/issue-652-auto-repair-model-readiness.test.mjs",
         "tests/issue-653-writer-in-residence.test.mjs",
+        "tests/issue-681-685-writer-visual-reliability.test.mjs",
         "tests/issue-667-669-agent-output-quality.test.mjs",
         "tests/issue-686-sage-unified-agent.test.mjs"
       ]
@@ -36,7 +37,8 @@
         "tests/issue-623-agent-observability.test.mjs",
         "tests/issue-624-deepseek-harness-runtime.test.mjs",
         "tests/issue-671-advanced-ai-routing-dark.test.mjs",
-        "tests/issue-672-global-navigation.test.mjs"
+        "tests/issue-672-global-navigation.test.mjs",
+        "tests/issue-695-settings-dark-buzz-health.test.mjs"
       ]
     },
     {

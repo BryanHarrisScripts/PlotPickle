@@ -39,8 +39,14 @@ export function parseRenderedEvaluateText(rawText) {
 
 export async function observeRenderedUi(client, textExtractor = defaultResultText) {
   const result = await client.call("browser_evaluate", { function: `() => {
+    const hiddenByClosedDetails = (node) => {
+      const details = node?.closest?.('details:not([open])');
+      if (!details) return false;
+      const summary = details.querySelector(':scope > summary');
+      return !summary || (node !== summary && !summary.contains(node));
+    };
     const visible = (node) => {
-      if (!node || !(node instanceof Element)) return false;
+      if (!node || !(node instanceof Element) || hiddenByClosedDetails(node)) return false;
       const style = getComputedStyle(node);
       const rect = node.getBoundingClientRect();
       return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0.02 && rect.width > 1 && rect.height > 1;
@@ -64,6 +70,15 @@ export async function observeRenderedUi(client, textExtractor = defaultResultTex
     const luminance = (colour) => colour ? (0.2126 * colour.r + 0.7152 * colour.g + 0.0722 * colour.b) / 255 : 0;
     const viewport = { width: window.innerWidth, height: window.innerHeight };
     const body = document.body;
+    const horizontallyScrollable = (node) => {
+      let parent = node?.parentElement;
+      while (parent && parent !== body) {
+        const style = getComputedStyle(parent);
+        if ((style.overflowX === 'auto' || style.overflowX === 'scroll') && parent.scrollWidth > parent.clientWidth + 2) return true;
+        parent = parent.parentElement;
+      }
+      return false;
+    };
     const main = document.querySelector('main, [role="main"], .workspace');
     const mainRect = rect(main);
     const bodyStyle = getComputedStyle(body);
@@ -80,8 +95,12 @@ export async function observeRenderedUi(client, textExtractor = defaultResultTex
     }
     const controls = [...document.querySelectorAll('button, a, input, textarea, select, summary, [role="button"], [role="tab"]')]
       .filter((node) => visible(node) && getComputedStyle(node).pointerEvents !== 'none' && !node.matches(':disabled'));
-    const clippedControls = controls.map((node) => ({ label: label(node), rect: rect(node) }))
-      .filter((item) => item.rect && (item.rect.x < -2 || item.rect.right > viewport.width + 2));
+    const clippedControls = controls
+      .filter((node) => {
+        const box = node.getBoundingClientRect();
+        return (box.x < -2 || box.right > viewport.width + 2) && !horizontallyScrollable(node);
+      })
+      .map((node) => ({ label: label(node), rect: rect(node) }));
     const overlaps = [];
     for (let i = 0; i < controls.length && overlaps.length < 8; i += 1) {
       const a = controls[i].getBoundingClientRect();

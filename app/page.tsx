@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { plotPickleCurriculum } from "../adapters/curriculum/current-catalog";
 import { FOUNDATION_PROJECT_STORAGE_KEY } from "../core/contracts/foundation-plan";
 import { normalizeFoundationProject, type PPFProject } from "../core/project/project";
+import FoundationsBuildWorkspace from "../modules/build/ui/foundations-build-workspace";
 import { answerFromCurriculum } from "../modules/creative-room/sage-unified-guide";
+import DashboardWorkspace from "../modules/dashboard/ui/dashboard-workspace";
 import LearnWorkspace from "../modules/learn/ui/learn-workspace";
 import FoundationsPlanWorkspace from "../modules/plan/ui/foundations-plan-workspace";
 import PlanLessonAnswerPreview from "../modules/plan/ui/plan-lesson-answer-preview";
@@ -18,7 +20,9 @@ type Workspace = RootWorkspace;
 function requestedWorkspace(): Workspace {
   if (typeof window === "undefined") return "learn";
   const requested = new URLSearchParams(window.location.search).get("workspace");
+  if (requested === "dashboard") return "dashboard";
   if (requested === "plan") return "plan";
+  if (requested === "build") return "build";
   if (requested === "community") return "community";
   if (requested === "settings") return "settings";
   if (requested === "wyrmwood") return "wyrmwood";
@@ -86,6 +90,14 @@ export default function Home() {
     return <main style={{ minHeight: "100dvh", display: "grid", placeItems: "center" }}>Opening PlotPickle…</main>;
   }
 
+  if (workspace === "dashboard") {
+    return (
+      <PlotPickleWorkspaceShell activeWorkspace="dashboard" onNavigate={navigateWorkspace}>
+        <DashboardWorkspace curriculum={plotPickleCurriculum} onNavigate={navigateWorkspace} />
+      </PlotPickleWorkspaceShell>
+    );
+  }
+
   if (workspace === "community") {
     return (
       <PlotPickleWorkspaceShell activeWorkspace="community" onNavigate={navigateWorkspace}>
@@ -108,6 +120,18 @@ export default function Home() {
         <WyrmwoodWorkspace
           curriculum={plotPickleCurriculum}
           onOpenLearn={() => navigateWorkspace("learn")}
+          onOpenPlan={() => navigateWorkspace("plan")}
+        />
+      </PlotPickleWorkspaceShell>
+    );
+  }
+
+  if (workspace === "build") {
+    return (
+      <PlotPickleWorkspaceShell activeWorkspace="build" onNavigate={navigateWorkspace}>
+        <FoundationsBuildWorkspace
+          curriculum={plotPickleCurriculum}
+          onOpenDashboard={() => navigateWorkspace("dashboard")}
           onOpenPlan={() => navigateWorkspace("plan")}
         />
       </PlotPickleWorkspaceShell>

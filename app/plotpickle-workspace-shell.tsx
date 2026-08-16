@@ -4,7 +4,7 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import styles from "./plotpickle-workspace-shell.module.css";
 
-export type RootWorkspace = "dashboard" | "learn" | "plan" | "build" | "wyrmwood" | "community" | "settings";
+export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "community" | "settings" | "dashboard" | "build";
 
 export const ROOT_NAV_ITEMS = [
   { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "Start", selectable: true },

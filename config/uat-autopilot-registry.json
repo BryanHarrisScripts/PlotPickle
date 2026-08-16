@@ -98,6 +98,7 @@
         "tests/issue-667-669-agent-output-quality.test.mjs",
         "tests/issue-672-global-navigation.test.mjs",
         "tests/issue-688-plan-ai-autofill-guidance.test.mjs",
+        "tests/plan-readonly-lesson-answer-view.test.mjs",
         "tests/pi-local-model-exhaustive-uat.test.mjs"
       ]
     },

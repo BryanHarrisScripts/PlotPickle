@@ -5,6 +5,8 @@ import {
   type PPFProject,
 } from "../project/project";
 
+export const FOUNDATION_PROJECT_SAVED_EVENT = "plotpickle:foundation-project-saved";
+
 function newProjectId() {
   return globalThis.crypto?.randomUUID?.()
     ?? `project-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -26,4 +28,7 @@ export function loadFoundationProject(): PPFProject {
 
 export function saveFoundationProject(project: PPFProject) {
   localStorage.setItem(FOUNDATION_PROJECT_STORAGE_KEY, JSON.stringify(project));
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(FOUNDATION_PROJECT_SAVED_EVENT));
+  }
 }

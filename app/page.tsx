@@ -7,6 +7,7 @@ import { normalizeFoundationProject, type PPFProject } from "../core/project/pro
 import { answerFromCurriculum } from "../modules/creative-room/sage-unified-guide";
 import LearnWorkspace from "../modules/learn/ui/learn-workspace";
 import FoundationsPlanWorkspace from "../modules/plan/ui/foundations-plan-workspace";
+import PlanLessonAnswerPreview from "../modules/plan/ui/plan-lesson-answer-preview";
 import WyrmwoodWorkspace from "../modules/wyrmwood/ui/wyrmwood-workspace";
 import CommunityWorkspace from "./community-workspace";
 import PlotPickleWorkspaceShell, { type RootWorkspace } from "./plotpickle-workspace-shell";
@@ -117,6 +118,7 @@ export default function Home() {
     return (
       <PlotPickleWorkspaceShell activeWorkspace="plan" onNavigate={navigateWorkspace}>
         <FoundationsPlanWorkspace curriculum={plotPickleCurriculum} />
+        <PlanLessonAnswerPreview curriculum={plotPickleCurriculum} />
       </PlotPickleWorkspaceShell>
     );
   }

@@ -3,7 +3,30 @@
 import { useCallback, useEffect, useState } from "react";
 
 type RuntimeKind = "llama.cpp" | "lm-studio" | "ollama" | "openai-compatible";
-type RoleStatus = { recommended: string; selected: string; available: boolean; production: true };
+type CapabilityRole = "fast" | "quality" | "deep" | "vision" | "repair";
+type RoleStatus = {
+  recommended: string;
+  selected: string;
+  available: boolean;
+  production: boolean;
+  automatic: boolean;
+  metadataSource: string;
+  fit: string;
+  parameterSize: string;
+  contextTokens: number;
+  capabilities: string[];
+  recommendationScore: number;
+  reasons: string[];
+};
+type ModelDescriptor = {
+  id: string;
+  family: string;
+  parameterSize: string;
+  quantization: string;
+  contextTokens: number;
+  capabilities: Record<string, boolean>;
+  metadataSource: string;
+};
 
 type RuntimeStatus = {
   ok: boolean;
@@ -36,7 +59,8 @@ type RuntimeStatus = {
     error: string;
   }>;
   activeRuntime: { kind: RuntimeKind; label: string; baseUrl: string; reachable: boolean; error: string };
-  roles: { fast: RoleStatus; quality: RoleStatus; deep: RoleStatus };
+  roles: Record<CapabilityRole, RoleStatus>;
+  modelInventory: ModelDescriptor[];
   retrieval: { embedding: string; reranker: string; cpuResident: true };
   image: { workflow: string; experimental: string };
   video: { workflow: string };
@@ -61,6 +85,14 @@ const card: React.CSSProperties = {
   background: "#142a27",
 };
 
+const ROLE_LABELS: Record<CapabilityRole, string> = {
+  fast: "Fast",
+  quality: "Quality",
+  deep: "Deep reasoning",
+  vision: "Vision / Visual QA",
+  repair: "Pi / Repair",
+};
+
 function badge(ok: boolean) {
   return {
     display: "inline-block",
@@ -70,6 +102,10 @@ function badge(ok: boolean) {
     fontSize: 12,
     opacity: ok ? 1 : 0.72,
   } as React.CSSProperties;
+}
+
+function capabilityList(model: ModelDescriptor) {
+  return Object.entries(model.capabilities).flatMap(([name, enabled]) => enabled ? [name] : []);
 }
 
 export default function LocalRuntimePanel() {
@@ -125,7 +161,7 @@ export default function LocalRuntimePanel() {
     }
   }
 
-  const roles = status ? (["fast", "quality", "deep"] as const) : [];
+  const roles = status ? (["fast", "quality", "deep", "vision", "repair"] as const) : [];
 
   return (
     <section style={panel} aria-label="Hardware-aware local AI runtime">
@@ -133,11 +169,11 @@ export default function LocalRuntimePanel() {
         <div>
           <p style={{ margin: 0, opacity: 0.72, fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase" }}>Local Compute Router</p>
           <h1 style={{ margin: "5px 0 8px", fontSize: 24 }}>Hardware-Aware Local AI</h1>
-          <p style={{ margin: 0, maxWidth: 760, lineHeight: 1.5, color: "#b9d2cd" }}>
-            PlotPickle uses one OpenAI-compatible local interface. llama.cpp is preferred; LM Studio, Ollama and future compatible servers remain interchangeable runtimes underneath it.
+          <p style={{ margin: 0, maxWidth: 800, lineHeight: 1.5, color: "#b9d2cd" }}>
+            PlotPickle now detects what each installed local model can actually do, then automatically places suitable models into Fast, Quality, Deep, Vision and Pi/Repair slots. Newer compatible models can be used without adding a model-specific application integration.
           </p>
         </div>
-        <button type="button" disabled={busy} onClick={() => void refresh()} style={{ padding: "8px 12px" }}>Refresh hardware</button>
+        <button type="button" disabled={busy} onClick={() => void refresh()} style={{ padding: "8px 12px" }}>Refresh hardware and models</button>
       </div>
 
       {message ? <p role="alert" style={{ marginTop: 16 }}>{message}</p> : null}
@@ -217,44 +253,83 @@ export default function LocalRuntimePanel() {
           </div>
 
           <div style={{ marginTop: 20 }}>
-            <h2 style={{ fontSize: 18, marginBottom: 10 }}>Model roles</h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
+            <h2 style={{ fontSize: 18, marginBottom: 5 }}>Automatic model slots</h2>
+            <p style={{ margin: "0 0 12px", color: "#b9d2cd", lineHeight: 1.5 }}>
+              Selection is based on detected capabilities, model size, context and this computer&apos;s RAM/VRAM. A large model can be recognized as capable but kept on-demand when a smaller model is a better everyday fit.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(235px, 1fr))", gap: 10 }}>
               {roles.map((roleName) => {
                 const role = status.roles[roleName];
                 return (
                   <div style={card} key={roleName}>
-                    <strong style={{ textTransform: "capitalize" }}>{roleName}</strong>{" "}<span style={badge(role.available)}>{role.available ? "installed" : "recommended"}</span>
-                    <p style={{ margin: "7px 0 0" }}>{role.recommended}</p>
-                    <p style={{ margin: "5px 0 0", color: "#b9d2cd" }}>Selected: {role.selected || "not installed/detected"}</p>
+                    <strong>{ROLE_LABELS[roleName]}</strong>{" "}
+                    <span style={badge(role.available)}>{role.available ? role.automatic ? "auto" : "override" : "no match"}</span>
+                    <p style={{ margin: "8px 0 0", fontWeight: 700 }}>{role.selected || "No suitable installed model"}</p>
+                    <p style={{ margin: "5px 0 0", color: "#b9d2cd", lineHeight: 1.45 }}>
+                      Recommended: {role.recommended}<br />
+                      {role.parameterSize ? `Size: ${role.parameterSize}` : "Size: unknown"}{role.fit ? ` · ${role.fit}` : ""}<br />
+                      {role.contextTokens ? `Model context: ${Math.round(role.contextTokens / 1024)}K` : "Model context: not reported"}
+                    </p>
+                    {role.capabilities.length ? (
+                      <p style={{ margin: "7px 0 0", color: "#8ee0d5", fontSize: 12 }}>Capabilities: {role.capabilities.join(", ")}</p>
+                    ) : null}
+                    {role.reasons.length ? (
+                      <p style={{ margin: "6px 0 0", color: "#a7beb9", fontSize: 11, lineHeight: 1.45 }}>{role.reasons.join(" · ")}</p>
+                    ) : null}
                   </div>
                 );
               })}
-              <div style={card}>
-                <strong>Curriculum retrieval</strong>
-                <p style={{ margin: "7px 0 0" }}>{status.retrieval.embedding}<br />{status.retrieval.reranker}</p>
-                <p style={{ margin: "5px 0 0", color: "#b9d2cd" }}>CPU-resident; retrieved and reranked curriculum only enters the active LLM context.</p>
-              </div>
-              <div style={card}>
-                <strong>Local images</strong>
-                <p style={{ margin: "7px 0 0" }}>{status.image.workflow}</p>
-                <p style={{ margin: "5px 0 0", color: "#b9d2cd" }}>ComfyUI default. {status.image.experimental} remains experimental on 8 GB.</p>
-              </div>
-              <div style={card}>
-                <strong>Local video</strong>
-                <p style={{ margin: "7px 0 0" }}>{status.video.workflow}</p>
-                <p style={{ margin: "5px 0 0", color: "#b9d2cd" }}>ComfyUI lightweight profile. Larger video models unlock through higher-memory hardware profiles.</p>
-              </div>
-              <div style={card}>
-                <strong>Diagnostics only</strong>
-                <p style={{ margin: "7px 0 0" }}>{status.healthCheckModel.model}</p>
-                <p style={{ margin: "5px 0 0", color: "#b9d2cd" }}>Installer and runtime health checks only; never eligible for Creative Room or production story routing.</p>
-              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 20 }}>
+            <h2 style={{ fontSize: 18, marginBottom: 5 }}>Detected model capabilities</h2>
+            <p style={{ margin: "0 0 12px", color: "#b9d2cd" }}>
+              Ollama and LM Studio provide richer native metadata. llama.cpp and other compatible servers use conservative model-name inference when richer metadata is unavailable.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 10 }}>
+              {status.modelInventory.length ? status.modelInventory.map((model) => (
+                <div style={card} key={model.id}>
+                  <strong style={{ wordBreak: "break-word" }}>{model.id}</strong>
+                  <p style={{ margin: "7px 0 0", color: "#b9d2cd", lineHeight: 1.45 }}>
+                    {model.parameterSize || "size unknown"}{model.quantization ? ` · ${model.quantization}` : ""}<br />
+                    {model.contextTokens ? `${Math.round(model.contextTokens / 1024)}K max context` : "context not reported"}<br />
+                    Metadata: {model.metadataSource}
+                  </p>
+                  <p style={{ margin: "7px 0 0", color: "#8ee0d5", fontSize: 12 }}>
+                    {capabilityList(model).length ? capabilityList(model).join(", ") : "No special capability metadata detected"}
+                  </p>
+                </div>
+              )) : <div style={card}>No models were reported by the active local runtime.</div>}
+            </div>
+          </div>
+
+          <div style={{ marginTop: 20, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
+            <div style={card}>
+              <strong>Curriculum retrieval</strong>
+              <p style={{ margin: "7px 0 0" }}>{status.retrieval.embedding}<br />{status.retrieval.reranker}</p>
+              <p style={{ margin: "5px 0 0", color: "#b9d2cd" }}>CPU-resident; retrieved and reranked curriculum only enters the active LLM context.</p>
+            </div>
+            <div style={card}>
+              <strong>Local image generation</strong>
+              <p style={{ margin: "7px 0 0" }}>{status.image.workflow}</p>
+              <p style={{ margin: "5px 0 0", color: "#b9d2cd" }}>Separate from the Vision / Visual QA understanding slot. ComfyUI remains the image-generation runtime.</p>
+            </div>
+            <div style={card}>
+              <strong>Local video</strong>
+              <p style={{ margin: "7px 0 0" }}>{status.video.workflow}</p>
+              <p style={{ margin: "5px 0 0", color: "#b9d2cd" }}>ComfyUI lightweight profile. Larger video models unlock through higher-memory hardware profiles.</p>
+            </div>
+            <div style={card}>
+              <strong>Diagnostics only</strong>
+              <p style={{ margin: "7px 0 0" }}>{status.healthCheckModel.model}</p>
+              <p style={{ margin: "5px 0 0", color: "#b9d2cd" }}>Installer and runtime health checks only; never eligible for Creative Room or production story routing.</p>
             </div>
           </div>
 
           <div style={{ marginTop: 18, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
             <button type="button" disabled={busy} onClick={() => void reviewInstallPlan()} style={{ padding: "9px 13px" }}>Review missing-runtime and model plan</button>
-            <span style={{ color: "#b9d2cd" }}>Advanced users can override runtime, 32K context, endpoints, model names, llama.cpp paths and GPU-layer splits.</span>
+            <span style={{ color: "#b9d2cd" }}>Advanced overrides remain available, but automatic capability matching is the default.</span>
           </div>
           {installPlan ? (
             <pre style={{ marginTop: 12, maxHeight: 280, overflow: "auto", whiteSpace: "pre-wrap", background: "#0b1816", padding: 12, borderRadius: 8 }}>

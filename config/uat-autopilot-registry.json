@@ -24,6 +24,7 @@
         "tests/issue-681-685-writer-visual-reliability.test.mjs",
         "tests/live-buzz-guildhall-activity.test.mjs",
         "tests/pi-local-model-exhaustive-uat.test.mjs",
+        "tests/automatic-local-model-capabilities.test.mjs",
         "tests/issue-699-one-click-full-verification.test.mjs",
         "tests/issue-667-669-agent-output-quality.test.mjs",
         "tests/issue-686-sage-unified-agent.test.mjs"
@@ -43,6 +44,7 @@
         "tests/issue-672-global-navigation.test.mjs",
         "tests/issue-695-settings-dark-buzz-health.test.mjs",
         "tests/pi-local-model-exhaustive-uat.test.mjs",
+        "tests/automatic-local-model-capabilities.test.mjs",
         "tests/issue-879-visual-continuity.test.mjs"
       ]
     },

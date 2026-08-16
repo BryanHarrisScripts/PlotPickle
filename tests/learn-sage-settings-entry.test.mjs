@@ -48,16 +48,20 @@ test("the standalone header exposes a dedicated lore-style Settings SVG and uses
   assert.doesNotMatch(relic, /<rect[^>]+(?:fill="#000|fill="black)/i);
 });
 
-test("workspace=settings opens a beginner-first Quick Setup with explicit LEARN and PLAN returns", async () => {
-  const [page, settings, styles] = await Promise.all([
+test("workspace=settings opens a beginner-first Quick Setup inside the shared root navigator", async () => {
+  const [page, shell, settings, styles] = await Promise.all([
     read("app/page.tsx"),
+    read("app/plotpickle-workspace-shell.tsx"),
     read("app/sage-settings-workspace.tsx"),
     read("app/sage-settings-workspace.module.css"),
   ]);
-  assert.match(page, /type Workspace = "learn" \| "plan" \| "settings"/);
+  assert.match(page, /type Workspace = RootWorkspace/);
+  assert.match(shell, /RootWorkspace = "learn" \| "plan" \| "wyrmwood" \| "settings"/);
   assert.match(page, /requested === "settings"/);
   assert.match(page, /workspace === "settings"/);
+  assert.match(page, /<PlotPickleWorkspaceShell activeWorkspace="settings"/);
   assert.match(page, /<SageSettingsWorkspace \/>/);
+  assert.match(shell, /label: "SETTINGS", detail: "Config", selectable: true/);
   assert.match(settings, /Settings · Quick Setup/);
   assert.match(settings, /Set up Sage and PLAN\./);
   assert.match(settings, /Step 1:<\/strong> Choose how you want PlotPickle to talk to local AI/);

@@ -42,7 +42,8 @@
         "tests/issue-671-advanced-ai-routing-dark.test.mjs",
         "tests/issue-672-global-navigation.test.mjs",
         "tests/issue-695-settings-dark-buzz-health.test.mjs",
-        "tests/pi-local-model-exhaustive-uat.test.mjs"
+        "tests/pi-local-model-exhaustive-uat.test.mjs",
+        "tests/issue-879-visual-continuity.test.mjs"
       ]
     },
     {
@@ -55,7 +56,8 @@
         "tests/community-workspace.test.mjs",
         "tests/community-agent-roster.test.mjs",
         "tests/issue-672-global-navigation.test.mjs",
-        "tests/pi-local-model-exhaustive-uat.test.mjs"
+        "tests/pi-local-model-exhaustive-uat.test.mjs",
+        "tests/issue-879-visual-continuity.test.mjs"
       ]
     },
     {

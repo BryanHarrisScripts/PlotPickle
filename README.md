@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/brand/plotpickle-header-horizontal-transparent.png" alt="PlotPickle" width="760">
+  <img src="docs/brand-sources/plotpickle-ouroboros-v2-master.png" alt="PlotPickle ouroboros, compass and fountain-pen emblem" width="720">
 </p>
 
 # PlotPickle
@@ -54,12 +54,12 @@ The purpose of Wyrmwood is not to replace the writer's decision. It is to pressu
 ### Community
 
 <p align="center">
-  <img src="public/assets/workflow-relics/community.svg" alt="PlotPickle Community and BUZZ Guildhall" width="96">
+  <img src="public/brand/plotpickle-icon-master-transparent.png" alt="PlotPickle creative and lore emblem" width="250">
 </p>
 
 Community is PlotPickle's native collaboration surface, powered underneath by BUZZ.
 
-The writer should normally stay inside PlotPickle. Buzz Desktop is a companion interface for owner-level administration and any BUZZ capability PlotPickle has not wrapped yet.
+The writer should normally stay inside PlotPickle. Buzz Desktop is a companion interface for owner-level administration and any BUZZ capability PlotPickle has not wrapped yet. PlotPickle-owned Community and Guildhall surfaces use the same dark teal, jade and gold visual system as the rest of PlotPickle. Buzz Desktop remains upstream software with its own supported appearance system; PlotPickle does not patch another application's installed theme files.
 
 Community currently includes:
 
@@ -77,6 +77,8 @@ Story Rooms are real BUZZ channels. A member with permission can read and commen
 Settings is intentionally basic in the active rebuild.
 
 It owns the connections needed by the core product: local AI, optional providers, BUZZ, runtime health and advanced details when required. Technical controls should stay out of the writer's way unless the writer chooses to open them.
+
+Like LEARN, PLAN, Wyrmwood and Community, Settings follows the same three-column room: categories on the left, active controls in the centre, and persistent help/status context on the right. The aim is to keep navigation predictable instead of sending the writer from one settings surface to another in circles.
 
 ## Architecture
 
@@ -161,6 +163,10 @@ PlotPickle deliberately separates creative authority, agent runtime, community c
 A BUZZ message does not become story canon automatically. A Mastra response does not become story canon automatically. A generated PLAN answer remains editable. PPF changes require the writer's approval.
 
 ## Core agents and lore
+
+<p align="center">
+  <img src="docs/brand-sources/sage-brinewick-v2-master.png" alt="Sage Brinewick, PlotPickle Curriculum Guide and Lorekeeper" width="320">
+</p>
 
 | Name | Role | Core responsibility | Runtime |
 |---|---|---|---|
@@ -259,7 +265,7 @@ COMMUNITY / BUZZ + basic SETTINGS + deterministic UAT
 
 Only bring a parked module back into the active surface when it has been reworked to fit this architecture and makes the writer's journey clearer rather than larger.
 
-That rule applies to Dashboard expansions, Storyboard, Previs, Write, Edit, Graphic Novel, Build, Feedback, Refine, Reports, advanced collaboration and other historical PlotPickle capabilities. They are preserved, not deleted, but they do not define the current core product.
+That rule applies to Dashboard expansions, Storyboard, Previs, Write, Edit, Graphic Novel, Build, Feedback, Refine, Reports, advanced collaboration and other historical PlotPickle capabilities. They are preserved, not deleted, but they do not define the current core product. When one returns to the active surface, it must adopt the same left-navigation / centre-work / right-context three-column continuity contract rather than introducing another full-width layout system.
 
 ## License
 

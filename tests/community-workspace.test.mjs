@@ -24,12 +24,14 @@ test("Community is a native slim PlotPickle workspace beside Dashboard", async (
   assert.doesNotMatch(glyph, /<rect[^>]+fill=/i);
 });
 
-test("Community exposes the Great Hall, Story Rooms, people, agents, review queue and Guildhall", async () => {
+test("Community exposes the Great Hall, Story Rooms, people, live agents, review queue and Guildhall", async () => {
   const workspace = await read("app/community-workspace.tsx");
 
   for (const label of ["Great Hall", "Story Rooms", "People", "Agents & Stewards", "Review Queue", "Guildhall"]) {
     assert.match(workspace, new RegExp(label.replace(/[&]/g, "&")));
   }
+  assert.match(workspace, /CommunityAgentRoster/);
+  assert.match(workspace, /<CommunityAgentRoster \/>/);
   assert.match(workspace, /\/community\/status/);
   assert.match(workspace, /\/guildhall\/status/);
   assert.match(workspace, /\/rooms\/ensure/);
@@ -46,7 +48,7 @@ test("native Community reads Great Hall membership, profile and presence through
   ]);
 
   assert.match(vite, /import \{ buzzCommunityGateway \} from "\.\/build\/buzz-community-gateway"/);
-  assert.match(vite, /buzzCommunityGateway\(\),\s*buzzGuildhallGateway\(\),\s*buzzGateway\(\)/);
+  assert.match(vite, /buzzCommunityGateway\(\),\s*buzzAgentRosterGateway\(\),\s*buzzGuildhallGateway\(\),\s*buzzGateway\(\)/);
   assert.match(gateway, /channels", "members", "--channel"/);
   assert.match(gateway, /"users", "get"/);
   assert.match(gateway, /"users", "presence", "--pubkeys"/);
@@ -58,9 +60,10 @@ test("native Community reads Great Hall membership, profile and presence through
 });
 
 test("Community preserves the local credential and owner-review boundaries", async () => {
-  const [gateway, workspace] = await Promise.all([
+  const [gateway, workspace, roster] = await Promise.all([
     read("build/buzz-community-gateway.ts"),
     read("app/community-workspace.tsx"),
+    read("app/community-agent-roster.tsx"),
   ]);
 
   assert.match(gateway, /readCredentialJson/);
@@ -69,6 +72,7 @@ test("Community preserves the local credential and owner-review boundaries", asy
   assert.match(gateway, /\[redacted-nsec\]/);
   assert.match(workspace, /Full community-wide invitation issuance is not exposed by the current Buzz CLI/);
   assert.match(workspace, /use Buzz Desktop for the initial invite/);
-  assert.match(workspace, /Orin and Fen are the only optional Buzz-native stewards and still require owner review in Buzz Desktop/);
-  assert.doesNotMatch(workspace, /automatic.*merge/i);
+  assert.match(roster, /Open Buzz Desktop → Agents to create and approve this steward/);
+  assert.match(roster, /Needs owner approval/);
+  assert.doesNotMatch(`${workspace}\n${roster}`, /automatic.*merge/i);
 });

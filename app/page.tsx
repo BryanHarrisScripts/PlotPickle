@@ -8,6 +8,7 @@ import { answerFromCurriculum } from "../modules/creative-room/sage-safe-guide";
 import LearnWorkspace from "../modules/learn/ui/learn-workspace";
 import FoundationsPlanWorkspace from "../modules/plan/ui/foundations-plan-workspace";
 import WyrmwoodWorkspace from "../modules/wyrmwood/ui/wyrmwood-workspace";
+import CommunityWorkspace from "./community-workspace";
 import PlotPickleWorkspaceShell, { type RootWorkspace } from "./plotpickle-workspace-shell";
 import SageSettingsWorkspace from "./sage-settings-workspace";
 
@@ -17,6 +18,7 @@ function requestedWorkspace(): Workspace {
   if (typeof window === "undefined") return "learn";
   const requested = new URLSearchParams(window.location.search).get("workspace");
   if (requested === "plan") return "plan";
+  if (requested === "community") return "community";
   if (requested === "settings") return "settings";
   if (requested === "wyrmwood") return "wyrmwood";
   return "learn";
@@ -81,6 +83,14 @@ export default function Home() {
 
   if (!storageReady) {
     return <main style={{ minHeight: "100dvh", display: "grid", placeItems: "center" }}>Opening PlotPickle…</main>;
+  }
+
+  if (workspace === "community") {
+    return (
+      <PlotPickleWorkspaceShell activeWorkspace="community" onNavigate={navigateWorkspace}>
+        <CommunityWorkspace onOpenSettings={() => navigateWorkspace("settings")} />
+      </PlotPickleWorkspaceShell>
+    );
   }
 
   if (workspace === "settings") {

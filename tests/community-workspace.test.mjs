@@ -48,7 +48,7 @@ test("native Community reads Great Hall membership, profile and presence through
   ]);
 
   assert.match(vite, /import \{ buzzCommunityGateway \} from "\.\/build\/buzz-community-gateway"/);
-  assert.match(vite, /buzzCommunityGateway\(\),\s*buzzAgentRosterGateway\(\),\s*buzzGuildhallGateway\(\),\s*buzzLiveHealthGateway\(\),\s*buzzGateway\(\)/);
+  assert.match(vite, /buzzCommunityGateway\(\),\s*buzzAgentRosterGateway\(\),\s*buzzGuildhallGateway\(\),\s*buzzLiveHealthGateway\(\),\s*buzzStoryRoomAccessGateway\(\),\s*buzzGateway\(\)/);
   assert.match(gateway, /channels", "members", "--channel"/);
   assert.match(gateway, /"users", "get"/);
   assert.match(gateway, /"users", "presence", "--pubkeys"/);

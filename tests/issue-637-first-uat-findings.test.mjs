@@ -25,7 +25,8 @@ test("Sage keeps one visible personality through one active guide path", async (
 test("obvious Sage help and shortening requests stay fast and deterministic", async () => {
   const unified = await read("modules/creative-room/sage-unified-guide.ts");
   assert.match(unified, /isHelpQuestion/);
-  assert.match(unified, /Yes\. I can explain a lesson/);
+  assert.match(unified, /how can you help\(\?: me\)\?/);
+  assert.match(unified, /I can explain any PlotPickle lesson in plain language/);
   assert.match(unified, /isShortenRequest/);
   assert.match(unified, /reverse\(\)\.find\(\(item\) => item\.role === "guide"/);
   assert.match(unified, /Sage response editor/);

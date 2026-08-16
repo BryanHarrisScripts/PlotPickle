@@ -14,7 +14,7 @@ test("startup performs repair-worker readiness and local autoload automatically"
   assert.match(discovery, /Developer repair worker/);
 });
 
-test("closed-loop UAT loads only an already-installed local coding model before repair preflight", async () => {
+test("closed-loop UAT ensures an approved local coding model before repair preflight", async () => {
   const [closedLoop, ensure] = await Promise.all([
     read("scripts/run-uat-closed-loop.mjs"),
     read("scripts/ensure-local-repair-model.mjs"),
@@ -33,18 +33,46 @@ test("closed-loop UAT loads only an already-installed local coding model before 
   assert.match(ensure, /ollamaInstalledModels/);
   assert.match(ensure, /warmOllama/);
   assert.match(ensure, /PLOTPICKLE_REPAIR_AUTOLOAD === "0"/);
-  assert.doesNotMatch(ensure, /\blms\s+get\b|\["get"|ollama\s+pull|\["pull"/i);
+  assert.match(ensure, /PLOTPICKLE_REPAIR_AUTO_DOWNLOAD !== "0"/);
+  assert.match(ensure, /DEFAULT_OLLAMA_PI_MODEL = "qwen2\.5-coder:7b"/);
+  assert.match(ensure, /\/api\/pull/);
+  assert.match(ensure, /pullOllama\(model\)/);
+  assert.match(ensure, /Pi repair readiness failed because no approved local coding model is available/);
+  assert.match(ensure, /process\.exitCode = 2/);
   assert.doesNotMatch(ensure, /api\.openai\.com|openrouter\.ai|api\.anthropic\.com/);
 });
 
-test("automatic repair-model loading preserves the approved local coding-model allowlist including a lightweight Pi option", async () => {
+test("automatic repair-model readiness preserves the approved allowlist and lightweight Pi default", async () => {
   const policy = await read("scripts/developer-repair-model-policy.mjs");
   for (const expected of ["qwen2.5-coder-7b", "qwen2.5-coder-14b", "qwen3.8-27b", "qwen3-coder-30b", "qwen2.5-coder-32b", "devstral-small", "codestral", "deepseek-coder", "gpt-oss-20b"]) {
     assert.match(policy, new RegExp(expected.replaceAll(".", "\\.")));
   }
   const ensure = await read("scripts/ensure-local-repair-model.mjs");
-  assert.match(ensure, /did not download one automatically/i);
-  assert.match(ensure, /Qwen2\.5-Coder 7B/);
+  assert.match(ensure, /qwen2\.5-coder:7b/);
+  assert.match(ensure, /approvedCodingModel\(model\)/);
+  assert.match(ensure, /DOWNLOADING/);
+  assert.match(ensure, /READY/);
+  assert.doesNotMatch(ensure, /did not download one automatically/i);
+});
+
+test("Sage startup grounding can recover against the current essentials-theme curriculum without masking other failures", async () => {
+  const [entrypoint, adapter, theme] = await Promise.all([
+    read("build/startup-agent-diagnostics.ts"),
+    read("build/startup-agent-diagnostics-runtime-v4.ts"),
+    read("learn/theme.json"),
+  ]);
+  assert.match(entrypoint, /startup-agent-diagnostics-runtime-v4/);
+  assert.match(adapter, /runStartupAgentDiagnostics as runV3/);
+  assert.match(adapter, /currentThemeContext/);
+  assert.match(adapter, /item\.id === "essentials-theme"/);
+  assert.match(adapter, /semanticGroundingPass/);
+  assert.match(adapter, /onlyGroundingFailed/);
+  assert.match(adapter, /failedChecks\.length === 1/);
+  assert.match(adapter, /verifyCurrentSageGrounding/);
+  assert.match(adapter, /modelRole: "quality"/);
+  assert.match(adapter, /verified against current essentials-theme curriculum/);
+  assert.match(theme, /"id": "essentials-theme"/);
+  assert.match(theme, /live human question or contested proposition tested by the story's choices and consequences/);
 });
 
 test("focused Startup UAT owns automatic repair-model readiness", async () => {

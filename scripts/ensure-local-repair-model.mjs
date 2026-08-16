@@ -4,11 +4,18 @@ import { execFile } from "node:child_process";
 import process from "node:process";
 import { promisify } from "node:util";
 import {
+  normalizeModelDescriptor,
+  probeRuntimeModelCapabilities,
+  scoreModelForRole,
+} from "../lib/ai/local-model-capabilities.mjs";
+import {
   approvedCodingModel,
   chooseApprovedCodingModel,
   dedicatedLegacyRepairModel,
   rankApprovedCodingModel,
 } from "./developer-repair-model-policy.mjs";
+import { writeRepairCapabilityCache } from "./local-repair-capability-cache.mjs";
+import { detectRepairHardware } from "./local-repair-hardware.mjs";
 
 const exec = promisify(execFile);
 const args = process.argv.slice(2);
@@ -21,11 +28,16 @@ const preferredModel = String(process.env.PLOTPICKLE_REPAIR_MODEL || "").trim();
 const preferredEndpoint = String(process.env.PLOTPICKLE_REPAIR_ENDPOINT || "").trim().replace(/\/$/, "");
 const allowAutoDownload = process.env.PLOTPICKLE_REPAIR_AUTO_DOWNLOAD !== "0";
 const DEFAULT_OLLAMA_PI_MODEL = "qwen2.5-coder:7b";
+let cachedHardware = null;
 
 function safeModelKey(value) {
   const model = String(value || "").trim();
   if (!/^[a-zA-Z0-9._:/+@\-]+$/.test(model)) throw new Error(`Local model key contains unsupported shell characters: ${model}`);
   return model;
+}
+
+function modelKey(value) {
+  return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
 function modelKeyFromRow(row) {
@@ -34,6 +46,11 @@ function modelKeyFromRow(row) {
     if (typeof row[field] === "string" && row[field].trim()) return row[field].trim();
   }
   return "";
+}
+
+async function repairHardware() {
+  if (!cachedHardware) cachedHardware = await detectRepairHardware();
+  return cachedHardware;
 }
 
 async function runLms(commandArgs, timeout = 30_000) {
@@ -163,11 +180,48 @@ async function warmOllama(model) {
   }
 }
 
+function descriptorFor(model, descriptors) {
+  const wanted = modelKey(model);
+  return (descriptors || []).find((item) => modelKey(item?.id) === wanted)
+    || normalizeModelDescriptor({ id: model });
+}
+
+function rememberRepairCapability(model, descriptors, hardware) {
+  if (!model) return;
+  const descriptor = descriptorFor(model, descriptors);
+  const scored = scoreModelForRole("repair", descriptor, hardware);
+  if (!scored.eligible) return;
+  writeRepairCapabilityCache([{
+    model,
+    repairEligible: true,
+    score: scored.score,
+    fit: scored.fit.label,
+    metadataSource: descriptor.metadataSource,
+    capabilities: Object.entries(descriptor.capabilities).flatMap(([name, enabled]) => enabled ? [name] : []),
+  }]);
+}
+
+async function capabilityChoice(kind, baseUrl, models) {
+  if (requestedWorker === "mastra-qwen") {
+    return {
+      model: (models || []).find(dedicatedLegacyRepairModel) || "",
+      descriptors: [],
+      hardware: await repairHardware(),
+    };
+  }
+  const hardware = await repairHardware();
+  const descriptors = await probeRuntimeModelCapabilities({ kind, baseUrl, models, timeoutMs: 2_500 });
+  const model = chooseApprovedCodingModel(models, preferredModel, descriptors, hardware);
+  if (model) rememberRepairCapability(model, descriptors, hardware);
+  return { model, descriptors, hardware };
+}
+
 async function waitForLmStudioModel(model, timeoutMs = 45_000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const models = await openAiModels("http://127.0.0.1:1234/v1");
-    if (models.some((item) => item === model || approvedCodingModel(item))) return chooseApprovedCodingModel(models, model) || model;
+    const choice = await capabilityChoice("lm-studio", "http://127.0.0.1:1234/v1", models);
+    if (models.some((item) => modelKey(item) === modelKey(model)) || choice.model) return choice.model || model;
     await new Promise((resolve) => setTimeout(resolve, 1_000));
   }
   return "";
@@ -198,13 +252,19 @@ async function alreadyExposedCandidate() {
   for (const endpoint of endpoints) {
     if (preferredEndpoint && endpoint.kind !== "openai-compatible" && !endpoint.baseUrl.startsWith(preferredEndpoint)) continue;
     const models = await openAiModels(endpoint.baseUrl);
-    for (const model of models.filter(workerAccepts)) candidates.push({ ...endpoint, model });
+    if (!models.length) continue;
+    const choice = await capabilityChoice(endpoint.kind, endpoint.baseUrl, models);
+    if (!choice.model) continue;
+    const scored = scoreModelForRole("repair", descriptorFor(choice.model, choice.descriptors), choice.hardware);
+    candidates.push({ ...endpoint, model: safeModelKey(choice.model), score: scored.score });
   }
-  candidates.sort((a, b) => requestedWorker === "mastra-qwen" ? 0 : rankApprovedCodingModel(a.model) - rankApprovedCodingModel(b.model));
   if (preferredModel) {
-    const exact = candidates.find((item) => item.model.toLowerCase() === preferredModel.toLowerCase());
+    const exact = candidates.find((item) => modelKey(item.model) === modelKey(preferredModel));
     if (exact) return exact;
   }
+  candidates.sort((a, b) => requestedWorker === "mastra-qwen"
+    ? 0
+    : b.score - a.score || rankApprovedCodingModel(a.model) - rankApprovedCodingModel(b.model));
   return candidates[0] || null;
 }
 
@@ -213,15 +273,29 @@ async function ensureDefaultPiOllamaModel() {
   if (!(await ollamaAvailable())) return "";
   const model = safeModelKey(preferredModel || DEFAULT_OLLAMA_PI_MODEL);
   if (!approvedCodingModel(model)) {
-    throw new Error(`The requested Pi repair model ${model} is not on PlotPickle's approved local coding-model allowlist.`);
+    throw new Error(`The requested Pi repair model ${model} is not suitable for PlotPickle's local repair role.`);
   }
   output(`Developer repair model ........... DOWNLOADING  ${model} via Ollama; first setup can take several minutes`);
   await pullOllama(model);
-  const installed = choose(await ollamaInstalledModels());
-  if (!installed) throw new Error(`Ollama finished downloading ${model}, but PlotPickle still cannot see an approved coding model.`);
+  const installedModels = await ollamaInstalledModels();
+  const choice = await capabilityChoice("ollama", "http://127.0.0.1:11434/v1", installedModels);
+  const installed = choice.model || choose(installedModels);
+  if (!installed) throw new Error(`Ollama finished downloading ${model}, but PlotPickle still cannot see a repair-capable local model.`);
+  rememberRepairCapability(installed, choice.descriptors, choice.hardware);
   const warmed = await warmOllama(installed);
   output(`Developer repair model ............... READY  ${installed} via Ollama${warmed ? "" : "; it will finish loading on Pi's first request"}`);
   return installed;
+}
+
+async function candidateFromDownloaded(kind, label, baseUrl, models) {
+  if (!models.length) return null;
+  if (kind === "lm-studio" && await lmsAvailable()) {
+    try { await startLmStudioServerIfNeeded(); } catch {}
+  }
+  const choice = await capabilityChoice(kind, baseUrl, models);
+  if (!choice.model) return null;
+  const scored = scoreModelForRole("repair", descriptorFor(choice.model, choice.descriptors), choice.hardware);
+  return { kind, label, model: choice.model, score: scored.score };
 }
 
 async function main() {
@@ -236,12 +310,12 @@ async function main() {
 
   if (requestedWorker !== "mastra-qwen" && !preferredEndpoint) {
     const [lmModels, ollamaModels] = await Promise.all([downloadedLmStudioModels(), ollamaInstalledModels()]);
-    const candidates = [
-      ...lmModels.filter(approvedCodingModel).map((model) => ({ kind: "lm-studio", label: "LM Studio", model })),
-      ...ollamaModels.filter(approvedCodingModel).map((model) => ({ kind: "ollama", label: "Ollama", model })),
-    ].sort((a, b) => rankApprovedCodingModel(a.model) - rankApprovedCodingModel(b.model));
+    const candidates = (await Promise.all([
+      candidateFromDownloaded("lm-studio", "LM Studio", "http://127.0.0.1:1234/v1", lmModels),
+      candidateFromDownloaded("ollama", "Ollama", "http://127.0.0.1:11434/v1", ollamaModels),
+    ])).filter(Boolean).sort((a, b) => b.score - a.score || rankApprovedCodingModel(a.model) - rankApprovedCodingModel(b.model));
     const preferred = preferredModel
-      ? candidates.find((item) => item.model.toLowerCase() === preferredModel.toLowerCase())
+      ? candidates.find((item) => modelKey(item.model) === modelKey(preferredModel))
       : null;
     const selected = preferred || candidates[0];
 
@@ -269,11 +343,11 @@ async function main() {
     if (installed) return;
 
     const localModels = [...new Set([...lmModels, ...ollamaModels])];
-    output("Developer repair model ........... NOT READY  no approved local coding model is installed or available to Pi.");
+    output("Developer repair model ........... NOT READY  no repair-capable local model fits the current Pi policy and hardware.");
     if (localModels.length) output(`Local models seen .................... INFO  ${localModels.slice(0, 8).join(", ")}`);
     output(`Recommended lightweight option ...... INFO  ${DEFAULT_OLLAMA_PI_MODEL} via Ollama.`);
     if (!allowAutoDownload) output("Automatic download ................ DISABLED  PLOTPICKLE_REPAIR_AUTO_DOWNLOAD=0");
-    throw new Error("Pi repair readiness failed because no approved local coding model is available.");
+    throw new Error("Pi repair readiness failed because no suitable local coding/agent model is available.");
   }
 
   if (requestedWorker === "mastra-qwen") {

@@ -4,43 +4,41 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("Sage keeps one visible personality while routing ordinary chat through a lightweight specialist", async () => {
-  const [safeGuide, specialist, playbook] = await Promise.all([
-    read("modules/creative-room/sage-safe-guide.ts"),
-    read("modules/creative-room/sage-conversation-specialist.ts"),
+test("Sage keeps one visible personality through one active guide path", async () => {
+  const [page, unified, playbook] = await Promise.all([
+    read("app/page.tsx"),
+    read("modules/creative-room/sage-unified-guide.ts"),
     read("agents/sage-brinewick.md"),
   ]);
 
-  assert.match(safeGuide, /answerAsSageConversationSpecialist/);
-  assert.match(safeGuide, /isSageCraftQuestion\(request\.question\)/);
-  assert.match(specialist, /SAGE CONVERSATION SPECIALIST/);
-  assert.match(specialist, /capable, warm, lightly witty human collaborator who is ready to chat/);
-  assert.match(specialist, /ordinary reasoning for casual, strange, humorous, meta, or general questions/);
+  assert.match(page, /sage-unified-guide/);
+  assert.match(unified, /isSageCraftQuestion\(request\.question\)/);
+  assert.match(unified, /This is ordinary conversation\. Respond naturally/);
+  assert.match(unified, /Use the relevant PlotPickle curriculum below for craft teaching/);
+  assert.doesNotMatch(unified, /answerAsSageConversationSpecialist/);
   assert.match(playbook, /The writer always experiences one Sage/);
-  assert.match(playbook, /Conversation specialist/);
-  assert.match(playbook, /Curriculum mentor/);
-  assert.match(playbook, /Story coach/);
-  assert.match(playbook, /Response editor/);
+  assert.match(playbook, /Do not simulate or expose separate personalities/);
+  assert.match(playbook, /Normal conversation and odd questions/);
+  assert.match(playbook, /Story and curriculum questions/);
 });
 
 test("obvious Sage help and shortening requests stay fast and deterministic", async () => {
-  const safeGuide = await read("modules/creative-room/sage-safe-guide.ts");
-  assert.match(safeGuide, /isSageHelpQuestion/);
-  assert.match(safeGuide, /Yes — I can help/);
-  assert.match(safeGuide, /isSageShortenRequest/);
-  assert.match(safeGuide, /safeShorterAnswer\(request\.conversation\)/);
-  assert.match(safeGuide, /reverse\(\)\.find\(\(item\) => item\.role === "guide"/);
-  assert.match(safeGuide, /Sage response editor/);
+  const unified = await read("modules/creative-room/sage-unified-guide.ts");
+  assert.match(unified, /isHelpQuestion/);
+  assert.match(unified, /Yes\. I can explain a lesson/);
+  assert.match(unified, /isShortenRequest/);
+  assert.match(unified, /reverse\(\)\.find\(\(item\) => item\.role === "guide"/);
+  assert.match(unified, /Sage response editor/);
 });
 
 test("Sage visible replies default to a few sentences and LEARN owns deeper teaching", async () => {
-  const [safeGuide, playbook, workspace] = await Promise.all([
-    read("modules/creative-room/sage-safe-guide.ts"),
+  const [unified, playbook, workspace] = await Promise.all([
+    read("modules/creative-room/sage-unified-guide.ts"),
     read("agents/sage-brinewick.md"),
     read("modules/learn/ui/learn-workspace.tsx"),
   ]);
 
-  assert.match(safeGuide, /compactSentences\(result\.text, 4, 680\)/);
+  assert.match(unified, /compactSentences\(result\.text \|\| ""\)/);
   assert.match(playbook, /Most replies should be \*\*2 to 4 sentences\*\*/);
   assert.match(playbook, /Default to 2–4 sentences/);
   assert.match(workspace, /aria-label="Related LEARN lessons"/);

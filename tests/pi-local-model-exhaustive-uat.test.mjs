@@ -28,10 +28,15 @@ test("Pi accepts a hardware-friendly local coding model and startup tries to loa
   assert.doesNotMatch(`${repair}\n${ensure}`, /api\.openai\.com|openrouter\.ai|api\.anthropic\.com/);
 });
 
-test("local repair autoload never silently downloads a model", async () => {
+test("local repair readiness may bootstrap only the approved lightweight Pi model through local Ollama", async () => {
   const ensure = await read("scripts/ensure-local-repair-model.mjs");
-  assert.match(ensure, /did not download one automatically/i);
-  assert.doesNotMatch(ensure, /ollama\s+pull|\["pull"|\blms\s+get\b|\["get"/i);
+  assert.match(ensure, /DEFAULT_OLLAMA_PI_MODEL = "qwen2\.5-coder:7b"/);
+  assert.match(ensure, /PLOTPICKLE_REPAIR_AUTO_DOWNLOAD !== "0"/);
+  assert.match(ensure, /http:\/\/127\.0\.0\.1:11434\/api\/pull/);
+  assert.match(ensure, /approvedCodingModel\(model\)/);
+  assert.match(ensure, /DOWNLOADING/);
+  assert.match(ensure, /process\.exitCode = 2/);
+  assert.doesNotMatch(ensure, /api\.openai\.com|openrouter\.ai|api\.anthropic\.com/);
 });
 
 test("exhaustive UAT covers entry plus every active slim-product screen and advanced Settings", async () => {

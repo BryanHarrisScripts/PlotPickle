@@ -76,12 +76,14 @@ export default function SageSettingsWorkspace() {
           <BuzzLiveHealthCard />
         </section>
 
-        <details className={styles.advancedRuntime} data-settings-section id="settings-advanced">
-          <summary>Advanced runtime details</summary>
-          <p>Open this only when you want hardware, runtime, agent harness, context, or expert routing information.</p>
-          <DeepSeekHarnessPanel />
-          <LocalRuntimePanel />
-        </details>
+        <section data-settings-section id="settings-advanced">
+          <details className={styles.advancedRuntime}>
+            <summary>Advanced runtime details</summary>
+            <p>Open this only when you want hardware, runtime, agent harness, context, or expert routing information.</p>
+            <DeepSeekHarnessPanel />
+            <LocalRuntimePanel />
+          </details>
+        </section>
       </section>
 
       <aside aria-label="Settings help and status" data-settings-rail="context">

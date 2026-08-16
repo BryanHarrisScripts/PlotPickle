@@ -56,3 +56,18 @@ test("#671 explains Advanced AI routing in writer-friendly language before techn
   assert.ok(providerDetails >= 0 && providerPanel > providerDetails);
   assert.doesNotMatch(page, /<details[^>]*\sopen(?:\s|>)/);
 });
+
+test("Advanced AI route controls behave like real on/off switches", async () => {
+  const panel = await read("app/ai-routing-panel.tsx");
+
+  assert.match(panel, /function fallbackRoute\(capability: Capability\)/);
+  assert.match(panel, /capability === "image" \? "manual" : "off"/);
+  assert.match(panel, /async function toggleRoute\(capability: Capability, route: string, selected: boolean\)/);
+  assert.match(panel, /type="checkbox"/);
+  assert.match(panel, /checked=\{selected\}/);
+  assert.match(panel, /aria-label=\{`\$\{selected \? "Turn off" : "Turn on"\}/);
+  assert.match(panel, /onChange=\{\(\) => void toggleRoute\(capability, route, selected\)\}/);
+  assert.match(panel, /disabled=\{Boolean\(working\)\}/);
+  assert.doesNotMatch(panel, /type="radio"/);
+  assert.doesNotMatch(panel, /disabled=\{Boolean\(working\) \|\| !selectable\}/);
+});

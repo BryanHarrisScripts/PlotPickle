@@ -8,8 +8,9 @@ echo ============================================================
 echo   PlotPickle - Full Verification
 echo ============================================================
 echo.
-echo This will run Pi readiness, BUZZ verification, exhaustive UI/UX UAT,
-echo and Writer-in-Residence. PlotPickle will be started automatically if needed.
+echo This checks architecture, curriculum, the production build, local AI/Pi,
+echo BUZZ, visual UI/UX UAT, and the Writer-in-Residence journey in one pass.
+echo PlotPickle will be started automatically when the browser checks need it.
 echo.
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\run-plotpickle-full-check.ps1"

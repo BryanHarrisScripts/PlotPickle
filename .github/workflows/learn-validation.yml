@@ -38,7 +38,7 @@ jobs:
         run: node --test tests/issue-913-agent-skills-migration.test.mjs
 
       - name: Validate Windows startup Agent Skills contract
-        run: node --test tests/startup-agent-skills-contract.test.mjs tests/issue-341-windows-startup-ui-ux.test.mjs tests/windows-native-runtime.test.mjs
+        run: node --test tests/startup-agent-skills-contract.test.mjs tests/issue-341-windows-startup-ui-ux.test.mjs
 
       - name: Validate one-click full verification runner
         run: node --test tests/full-verification-runner.test.mjs

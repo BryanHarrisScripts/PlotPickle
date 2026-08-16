@@ -82,6 +82,7 @@ export default function FoundationsPlanWorkspace({
   const [loadingPpf, setLoadingPpf] = useState(false);
   const [autoCompletingFoundations, setAutoCompletingFoundations] = useState(false);
   const [autoCompleteStatus, setAutoCompleteStatus] = useState("");
+  const [showWelcome, setShowWelcome] = useState(true);
 
   useEffect(() => {
     if (!lessons.length) return;
@@ -108,6 +109,10 @@ export default function FoundationsPlanWorkspace({
     setProject(next);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setBriefDraft(next.foundations.brief.content);
+    // A direct lesson URL remains a lesson URL; normal PLAN entry opens the
+    // Foundations welcome choice before the writer enters lesson editing.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setShowWelcome(!requested);
   }, [lessons]);
 
   const activeLesson = lessons.find((lesson) => lesson.id === project?.foundations.activeLessonId)
@@ -153,6 +158,7 @@ export default function FoundationsPlanWorkspace({
   function openPlanLesson(lessonId: string) {
     setDraftError("");
     setDraftFieldIds([]);
+    setShowWelcome(false);
     commit({
       type: "foundations.lesson.open",
       lessonId,
@@ -161,6 +167,16 @@ export default function FoundationsPlanWorkspace({
     const url = new URL(window.location.href);
     url.searchParams.set("workspace", "plan");
     url.searchParams.set("lesson", lessonId);
+    window.history.replaceState({}, "", `${url.pathname}${url.search}`);
+  }
+
+  function openFoundationsWelcome() {
+    setDraftError("");
+    setDraftFieldIds([]);
+    setShowWelcome(true);
+    const url = new URL(window.location.href);
+    url.searchParams.set("workspace", "plan");
+    url.searchParams.delete("lesson");
     window.history.replaceState({}, "", `${url.pathname}${url.search}`);
   }
 
@@ -336,6 +352,7 @@ export default function FoundationsPlanWorkspace({
 
   function selectWorkflowStage(stageId: (typeof WORKFLOW_STAGES)[number]["id"]) {
     if (stageId === "learn") openLearn(activeLesson.id);
+    if (stageId === "plan") openFoundationsWelcome();
   }
 
   return (
@@ -395,8 +412,12 @@ export default function FoundationsPlanWorkspace({
             <span>Foundations</span>
             <small>{completedLessons} of {lessons.length} lessons answered · {answeredFields} of {totalFields} fields</small>
           </header>
-          <button className={styles.returnLearn} onClick={() => openLearn(activeLesson.id)} type="button">
-            ← Review this lesson in LEARN
+          <button
+            className={styles.returnLearn}
+            onClick={showWelcome ? () => openLearn() : openFoundationsWelcome}
+            type="button"
+          >
+            {showWelcome ? "← Return to LEARN" : "← Foundations welcome"}
           </button>
           <nav aria-label="Foundations planning path">
             {lessons.map((lesson) => {
@@ -405,8 +426,8 @@ export default function FoundationsPlanWorkspace({
               const complete = answered === lesson.fields.length;
               return (
                 <button
-                  aria-current={lesson.id === activeLesson.id ? "step" : undefined}
-                  className={lesson.id === activeLesson.id ? styles.activeLesson : undefined}
+                  aria-current={!showWelcome && lesson.id === activeLesson.id ? "step" : undefined}
+                  className={!showWelcome && lesson.id === activeLesson.id ? styles.activeLesson : undefined}
                   key={lesson.id}
                   onClick={() => openPlanLesson(lesson.id)}
                   type="button"
@@ -425,165 +446,232 @@ export default function FoundationsPlanWorkspace({
           </nav>
         </aside>
 
-        <article className={styles.editor} aria-label="Active Foundations planning lesson">
-          <header className={styles.lessonHeader}>
-            <small>FOUNDATIONS · LESSON {String(activeLesson.number).padStart(2, "0")} OF {lessons.length}</small>
-            <h1>{activeLesson.title}</h1>
-            <p>{activeLesson.overview}</p>
-            <button onClick={() => openLearn(activeLesson.id)} type="button">Review the full teaching lesson</button>
-          </header>
-
-          <section className={styles.manualPath}>
-            <h2>Make the story decisions</h2>
-            <p>Use the three helper questions under each decision to think it through. Write your own answer, or select local AI for the answers where you want a working draft you can immediately edit.</p>
-          </section>
-
-          <div className={styles.answerFields}>
-            {activeLesson.fields.map((field, index) => (
-              <section className={styles.answerField} key={field.id}>
-                <label className={styles.fieldPrompt} htmlFor={`foundation-${activeLesson.id}-${field.id}`}>
-                  <span><b>{index + 1}</b>{field.prompt}</span>
-                </label>
-                <div className={styles.guidingQuestions} aria-label={`Three questions to help answer field ${index + 1}`}>
-                  <small>Three questions to help you answer</small>
-                  <ol>
-                    {guidingQuestionsForFoundationField(field).map((guideQuestion) => (
-                      <li key={guideQuestion}>{guideQuestion}</li>
-                    ))}
-                  </ol>
-                </div>
-                <textarea
-                  id={`foundation-${activeLesson.id}-${field.id}`}
-                  onChange={(event) => commit({
-                    type: "foundations.answer.update",
-                    lessonId: activeLesson.id,
-                    fieldId: field.id,
-                    value: event.target.value,
-                    occurredAt: new Date().toISOString(),
-                  })}
-                  placeholder="Write your current best answer, or select local AI below for an editable draft."
-                  rows={7}
-                  value={activeAnswers.answers[field.id] ?? ""}
-                />
-                <label className={styles.aiFieldChoice}>
-                  <input
-                    aria-label={`Use local AI for field ${index + 1}: ${field.prompt}`}
-                    checked={draftFieldIds.includes(field.id)}
-                    onChange={() => toggleDraftField(field.id)}
-                    type="checkbox"
-                  />
-                  <span>Use local AI to draft this answer</span>
-                </label>
-              </section>
-            ))}
-          </div>
-
-          <section className={styles.aiSection} aria-label="Optional local AI drafting">
-            <div className={styles.aiHeading}>
-              <div>
-                <small>PPF AUTO-COMPLETE · FOUNDATIONS ONLY</small>
-                <h2>Use an existing story to complete Foundations</h2>
-                <p>Load afterglow.ppf or another PlotPickle project as read-only story evidence. PlotPickle can then fill every currently empty Foundations answer and save the Foundations Brief. Existing answers are preserved. LEARN and every area after Foundations stay untouched.</p>
-                <input
-                  accept=".ppf,application/octet-stream"
-                  aria-label="Choose PlotPickle PPF source"
-                  onChange={(event) => {
-                    const file = event.currentTarget.files?.[0];
-                    if (file) void loadPpfSource(file);
-                    event.currentTarget.value = "";
-                  }}
-                  ref={ppfInputRef}
-                  style={{ display: "none" }}
-                  type="file"
-                />
-              </div>
-              <button
-                disabled={loadingPpf || autoCompletingFoundations || Boolean(draftingLessonId)}
-                onClick={() => ppfInputRef.current?.click()}
-                type="button"
+        <article className={styles.editor} aria-label={showWelcome ? "Foundations welcome" : "Active Foundations planning lesson"}>
+          {showWelcome ? (
+            <section
+              aria-label="Foundations welcome choices"
+              style={{ display: "grid", gap: 34, marginInline: "auto", maxWidth: 900, width: "100%" }}
+            >
+              <header
+                className={styles.lessonHeader}
+                style={{
+                  boxSizing: "border-box",
+                  margin: 0,
+                  maxWidth: "none",
+                  padding: "34px 36px",
+                  width: "100%",
+                  border: "1px solid rgba(53, 201, 184, .22)",
+                  background: "radial-gradient(circle at 72% 20%, rgba(53, 201, 184, .12), transparent 38%), linear-gradient(135deg, rgba(23, 27, 29, .96), rgba(9, 11, 12, .98))",
+                }}
               >
-                {loadingPpf ? "Reading .ppf…" : ppfSource ? "Replace .ppf source" : "Load .ppf source"}
-              </button>
-            </div>
-            <p className={styles.aiSelectionStatus} aria-live="polite">
-              {ppfSource
-                ? `${ppfSource.fileName} → ${ppfSource.projectTitle}. Source is read-only and is not saved into other PlotPickle areas.`
-                : "No .ppf source loaded. Loading a source does not change the project."}
-            </p>
+                <small>PLAN · FOUNDATIONS</small>
+                <h1>Foundations</h1>
+                <p>Choose how you want to begin. Bring in an existing PlotPickle story and let local AI build the Foundations working draft, or work through the eleven decisions yourself lesson by lesson.</p>
+              </header>
 
-            <div className={styles.aiHeading} style={{ marginTop: 26 }}>
-              <div>
-                <small>ONE PASS · LOCAL AI</small>
-                <h2>Auto-complete PLAN / Foundations only</h2>
-                <p>The pass works lesson by lesson, fills only empty fields, saves after each completed lesson, then builds and saves the Foundations Brief. If local AI stops, completed Foundations work is kept and nothing else is changed.</p>
-              </div>
-              <button
-                disabled={!ppfSource || loadingPpf || autoCompletingFoundations || Boolean(draftingLessonId)}
-                onClick={autoCompleteAllFoundations}
-                type="button"
+              <section
+                className={styles.aiSection}
+                style={{
+                  boxSizing: "border-box",
+                  margin: 0,
+                  maxWidth: "none",
+                  padding: "30px 32px",
+                  width: "100%",
+                  border: "1px solid rgba(53, 201, 184, .36)",
+                  background: "rgba(53, 201, 184, .035)",
+                }}
               >
-                {autoCompletingFoundations ? "Completing Foundations…" : "Auto-complete Foundations only"}
-              </button>
-            </div>
-            {autoCompleteStatus ? <p className={styles.aiSelectionStatus} aria-live="polite">{autoCompleteStatus}</p> : null}
-
-            <div className={styles.aiHeading} style={{ marginTop: 34 }}>
-              <div>
-                <small>OPTIONAL · LOCAL ONLY</small>
-                <h2>Draft the selected answers with local AI</h2>
-                <p>Choose AI under any answer above, then draft those selections. PlotPickle inserts the result directly into only those editable fields. Each AI answer is kept concise at no more than four short paragraphs, and you can change every word.</p>
-              </div>
-              <button
-                disabled={Boolean(draftingLessonId) || autoCompletingFoundations || draftFieldIds.length === 0}
-                onClick={requestLocalDraft}
-                type="button"
-              >
-                {draftingLessonId === activeLesson.id
-                  ? "Drafting selected answers…"
-                  : `Fill ${draftFieldIds.length || "selected"} with local AI`}
-              </button>
-            </div>
-
-            <p className={styles.aiSelectionStatus} aria-live="polite">
-              {draftFieldIds.length
-                ? `${draftFieldIds.length} of ${activeLesson.fields.length} answers selected. Existing text in those selected fields will be replaced by the new editable AI draft.`
-                : "No answers selected for AI. Manual writing remains unchanged."}
-            </p>
-
-            {draftError ? <p className={styles.error} role="alert">{draftError}</p> : null}
-            {proposal ? (
-              <div className={styles.proposal}>
-                <header>
-                  <strong>AI draft inserted into your editable fields</strong>
-                  <small>{proposal.model} · generated {new Date(proposal.generatedAt).toLocaleString()}</small>
-                </header>
-                {activeLesson.fields.map((field) => proposal.values[field.id] ? (
-                  <section key={field.id}>
-                    <h3>{field.prompt}</h3>
-                    <p>{proposal.values[field.id]}</p>
-                  </section>
-                ) : null)}
-                <div className={styles.proposalActions}>
-                  <button onClick={() => commit({
-                    type: "foundations.proposal.dismiss",
-                    lessonId: activeLesson.id,
-                    occurredAt: new Date().toISOString(),
-                  })} type="button">
-                    Hide generation details
+                <div className={styles.aiHeading}>
+                  <div>
+                    <small>RECOMMENDED FOR AN EXISTING STORY · PPF AUTO-COMPLETE</small>
+                    <h2>Use an existing story to complete Foundations</h2>
+                    <p>Load afterglow.ppf or another PlotPickle project as read-only story evidence. PlotPickle reads the story, world, characters and 24 Blocks, then fills only currently empty Foundations answers. Existing answers are preserved and every area outside PLAN / Foundations stays untouched.</p>
+                    <input
+                      accept=".ppf,application/octet-stream"
+                      aria-label="Choose PlotPickle PPF source"
+                      onChange={(event) => {
+                        const file = event.currentTarget.files?.[0];
+                        if (file) void loadPpfSource(file);
+                        event.currentTarget.value = "";
+                      }}
+                      ref={ppfInputRef}
+                      style={{ display: "none" }}
+                      type="file"
+                    />
+                  </div>
+                  <button
+                    disabled={loadingPpf || autoCompletingFoundations || Boolean(draftingLessonId)}
+                    onClick={() => ppfInputRef.current?.click()}
+                    type="button"
+                  >
+                    {loadingPpf ? "Reading .ppf…" : ppfSource ? "Replace .ppf source" : "Load .ppf source"}
                   </button>
                 </div>
-              </div>
-            ) : null}
-          </section>
 
-          <nav className={styles.lessonNavigation} aria-label="Foundations PLAN navigation">
-            <button disabled={!previousLesson} onClick={() => previousLesson && openPlanLesson(previousLesson.id)} type="button">
-              {previousLesson ? `← ${String(previousLesson.number).padStart(2, "0")} ${previousLesson.title}` : "Start of Foundations"}
-            </button>
-            <button disabled={!nextLesson} onClick={() => nextLesson && openPlanLesson(nextLesson.id)} type="button">
-              {nextLesson ? `${String(nextLesson.number).padStart(2, "0")} ${nextLesson.title} →` : "All eleven lessons visited"}
-            </button>
-          </nav>
+                <p className={styles.aiSelectionStatus} aria-live="polite">
+                  {ppfSource
+                    ? `${ppfSource.fileName} → ${ppfSource.projectTitle}. Source loaded read-only; nothing outside Foundations can be changed.`
+                    : "Step 1: load the .ppf. Loading the source alone makes no project changes."}
+                </p>
+
+                <div className={styles.aiHeading} style={{ marginTop: 28 }}>
+                  <div>
+                    <small>STEP 2 · ONE PASS · LOCAL AI</small>
+                    <h2>Auto-complete Foundations only</h2>
+                    <p>PlotPickle works through all eleven lessons, saves after each completed lesson, and builds the Foundations Brief at the end. If local AI stops part-way through, completed Foundations work remains saved and nothing downstream is touched.</p>
+                  </div>
+                  <button
+                    disabled={!ppfSource || loadingPpf || autoCompletingFoundations || Boolean(draftingLessonId)}
+                    onClick={autoCompleteAllFoundations}
+                    type="button"
+                  >
+                    {autoCompletingFoundations ? "Completing Foundations…" : "Auto-complete Foundations only"}
+                  </button>
+                </div>
+                {autoCompleteStatus ? <p className={styles.aiSelectionStatus} aria-live="polite">{autoCompleteStatus}</p> : null}
+                {draftError ? <p className={styles.error} role="alert">{draftError}</p> : null}
+              </section>
+
+              <section
+                className={styles.manualPath}
+                style={{
+                  boxSizing: "border-box",
+                  margin: 0,
+                  maxWidth: "none",
+                  padding: "28px 32px",
+                  width: "100%",
+                  border: "1px solid rgba(207, 156, 80, .22)",
+                  background: "rgba(207, 156, 80, .025)",
+                }}
+              >
+                <h2>Or build Foundations yourself</h2>
+                <p>Work through the eleven lessons in order, answer the three planning decisions in each lesson, and use local AI only where you want help. Your current progress is {answeredFields} of {totalFields} answers.</p>
+                <div className={styles.aiHeading} style={{ marginTop: 22 }}>
+                  <div>
+                    <small>MANUAL / GUIDED PATH</small>
+                    <p>You can return to this welcome screen at any time. Clicking a lesson in the left rail also opens the normal lesson editor directly.</p>
+                  </div>
+                  <button onClick={() => openPlanLesson(activeLesson.id)} type="button">
+                    {answeredFields ? "Continue Foundations" : "Start lesson 01"}
+                  </button>
+                </div>
+              </section>
+            </section>
+          ) : (
+            <>
+              <header className={styles.lessonHeader}>
+                <small>FOUNDATIONS · LESSON {String(activeLesson.number).padStart(2, "0")} OF {lessons.length}</small>
+                <h1>{activeLesson.title}</h1>
+                <p>{activeLesson.overview}</p>
+                <button onClick={() => openLearn(activeLesson.id)} type="button">Review the full teaching lesson</button>
+              </header>
+
+              <section className={styles.manualPath}>
+                <h2>Make the story decisions</h2>
+                <p>Use the three helper questions under each decision to think it through. Write your own answer, or select local AI for the answers where you want a working draft you can immediately edit.</p>
+              </section>
+
+              <div className={styles.answerFields}>
+                {activeLesson.fields.map((field, index) => (
+                  <section className={styles.answerField} key={field.id}>
+                    <label className={styles.fieldPrompt} htmlFor={`foundation-${activeLesson.id}-${field.id}`}>
+                      <span><b>{index + 1}</b>{field.prompt}</span>
+                    </label>
+                    <div className={styles.guidingQuestions} aria-label={`Three questions to help answer field ${index + 1}`}>
+                      <small>Three questions to help you answer</small>
+                      <ol>
+                        {guidingQuestionsForFoundationField(field).map((guideQuestion) => (
+                          <li key={guideQuestion}>{guideQuestion}</li>
+                        ))}
+                      </ol>
+                    </div>
+                    <textarea
+                      id={`foundation-${activeLesson.id}-${field.id}`}
+                      onChange={(event) => commit({
+                        type: "foundations.answer.update",
+                        lessonId: activeLesson.id,
+                        fieldId: field.id,
+                        value: event.target.value,
+                        occurredAt: new Date().toISOString(),
+                      })}
+                      placeholder="Write your current best answer, or select local AI below for an editable draft."
+                      rows={7}
+                      value={activeAnswers.answers[field.id] ?? ""}
+                    />
+                    <label className={styles.aiFieldChoice}>
+                      <input
+                        aria-label={`Use local AI for field ${index + 1}: ${field.prompt}`}
+                        checked={draftFieldIds.includes(field.id)}
+                        onChange={() => toggleDraftField(field.id)}
+                        type="checkbox"
+                      />
+                      <span>Use local AI to draft this answer</span>
+                    </label>
+                  </section>
+                ))}
+              </div>
+
+              <section className={styles.aiSection} aria-label="Optional local AI drafting">
+                <div className={styles.aiHeading}>
+                  <div>
+                    <small>OPTIONAL · LOCAL ONLY</small>
+                    <h2>Draft the selected answers with local AI</h2>
+                    <p>Choose AI under any answer above, then draft those selections. PlotPickle inserts the result directly into only those editable fields. Each AI answer is kept concise at no more than four short paragraphs, and you can change every word.</p>
+                  </div>
+                  <button
+                    disabled={Boolean(draftingLessonId) || autoCompletingFoundations || draftFieldIds.length === 0}
+                    onClick={requestLocalDraft}
+                    type="button"
+                  >
+                    {draftingLessonId === activeLesson.id
+                      ? "Drafting selected answers…"
+                      : `Fill ${draftFieldIds.length || "selected"} with local AI`}
+                  </button>
+                </div>
+
+                <p className={styles.aiSelectionStatus} aria-live="polite">
+                  {ppfSource ? `Read-only PPF evidence remains available from ${ppfSource.projectTitle}. ` : ""}
+                  {draftFieldIds.length
+                    ? `${draftFieldIds.length} of ${activeLesson.fields.length} answers selected. Existing text in those selected fields will be replaced by the new editable AI draft.`
+                    : "No answers selected for AI. Manual writing remains unchanged."}
+                </p>
+
+                {draftError ? <p className={styles.error} role="alert">{draftError}</p> : null}
+                {proposal ? (
+                  <div className={styles.proposal}>
+                    <header>
+                      <strong>AI draft inserted into your editable fields</strong>
+                      <small>{proposal.model} · generated {new Date(proposal.generatedAt).toLocaleString()}</small>
+                    </header>
+                    {activeLesson.fields.map((field) => proposal.values[field.id] ? (
+                      <section key={field.id}>
+                        <h3>{field.prompt}</h3>
+                        <p>{proposal.values[field.id]}</p>
+                      </section>
+                    ) : null)}
+                    <div className={styles.proposalActions}>
+                      <button onClick={() => commit({
+                        type: "foundations.proposal.dismiss",
+                        lessonId: activeLesson.id,
+                        occurredAt: new Date().toISOString(),
+                      })} type="button">
+                        Hide generation details
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </section>
+
+              <nav className={styles.lessonNavigation} aria-label="Foundations PLAN navigation">
+                <button disabled={!previousLesson} onClick={() => previousLesson && openPlanLesson(previousLesson.id)} type="button">
+                  {previousLesson ? `← ${String(previousLesson.number).padStart(2, "0")} ${previousLesson.title}` : "Start of Foundations"}
+                </button>
+                <button disabled={!nextLesson} onClick={() => nextLesson && openPlanLesson(nextLesson.id)} type="button">
+                  {nextLesson ? `${String(nextLesson.number).padStart(2, "0")} ${nextLesson.title} →` : "All eleven lessons visited"}
+                </button>
+              </nav>
+            </>
+          )}
         </article>
 
         <aside className={styles.briefPanel} aria-label="Saved Foundations Brief">

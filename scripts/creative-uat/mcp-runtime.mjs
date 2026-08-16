@@ -74,7 +74,11 @@ export function consoleHasErrors(text) {
 
 export function toolArguments(tool, values) {
   const properties = tool?.inputSchema?.properties || {};
-  return Object.fromEntries(Object.entries(values).filter(([key, value]) => value !== undefined && key in properties));
+  const normalized = { ...values };
+  if (!("target" in normalized) && normalized.ref !== undefined && "target" in properties && !("ref" in properties)) {
+    normalized.target = normalized.ref;
+  }
+  return Object.fromEntries(Object.entries(normalized).filter(([key, value]) => value !== undefined && key in properties));
 }
 
 export class McpClient {

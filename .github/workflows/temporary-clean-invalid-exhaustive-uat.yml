@@ -1,0 +1,49 @@
+name: Temporary exhaustive UAT issue cleanup
+
+on:
+  push:
+    branches:
+      - fix/exhaustive-uat-harness-boundary
+    paths:
+      - .github/workflows/temporary-clean-invalid-exhaustive-uat.yml
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  close-invalid-exhaustive-uat-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify and close only invalid exhaustive UAT findings
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          closed=0
+          skipped=0
+          for number in $(seq 701 877); do
+            issue="$(gh api "repos/${REPO}/issues/${number}")"
+            title="$(jq -r '.title' <<<"${issue}")"
+            state="$(jq -r '.state' <<<"${issue}")"
+            body="$(jq -r '.body // ""' <<<"${issue}")"
+
+            if [[ "${title}" != "[UAT] Focused UAT blocker: exhaustive-ui-ux" ]] || ! grep -Fq '"source": "code-aware-exhaustive-ui-control-audit"' <<<"${body}"; then
+              echo "Refusing to touch #${number}: it is not a verified exhaustive-UAT harness issue."
+              exit 1
+            fi
+
+            if [[ "${state}" == "closed" ]]; then
+              echo "#${number} already closed."
+              skipped=$((skipped + 1))
+              continue
+            fi
+
+            gh api --method PATCH "repos/${REPO}/issues/${number}" -f state=closed -f state_reason=not_planned >/dev/null
+            echo "Closed #${number} as not planned."
+            closed=$((closed + 1))
+          done
+
+          echo "Cleanup complete: ${closed} newly closed; ${skipped} already closed."

@@ -42,10 +42,11 @@
       "id": "community",
       "label": "Community and Guildhall",
       "route": "/?workspace=community",
-      "requiredTerms": ["Community", "Great Hall", "Story Rooms"],
+      "requiredTerms": ["Community", "Great Hall", "Story Rooms", "Agents & Stewards"],
       "minimumTextLength": 900,
       "tests": [
         "tests/community-workspace.test.mjs",
+        "tests/community-agent-roster.test.mjs",
         "tests/issue-672-global-navigation.test.mjs"
       ]
     },

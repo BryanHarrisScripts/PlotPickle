@@ -46,6 +46,8 @@ export type CommunityAgentRosterItem = {
   readonly buzzPresence: string;
 };
 
+const PARKED_PRODUCT_ACTORS = new Set(["quillan-reedcloak", "elowen-mapweaver", "mira-threadmere"]);
+
 function roleId(actor: (typeof BUZZ_GUILDHALL_ACTORS)[number]) {
   return "existingRoleId" in actor && typeof actor.existingRoleId === "string" ? actor.existingRoleId : "";
 }
@@ -64,6 +66,15 @@ function newestTrace(traces: readonly AgentTrace[], agentId: string) {
   return traces
     .filter((trace) => trace.agentId === agentId)
     .sort((left, right) => Date.parse(right.startedAt || "") - Date.parse(left.startedAt || ""))[0] ?? null;
+}
+
+function parkedState() {
+  return {
+    state: "parked" as const,
+    label: "Parked",
+    detail: "This lore role is preserved off to the side until its broader story module is reworked into the slim app.",
+    lastActiveAt: "",
+  };
 }
 
 function mastraState(actorRoleId: string, status: WritingAssistantStatus | null, traces: readonly AgentTrace[]) {
@@ -88,9 +99,9 @@ function mastraState(actorRoleId: string, status: WritingAssistantStatus | null,
   }
   if (!registered) {
     return {
-      state: "parked" as const,
-      label: "Parked",
-      detail: "This lore role is preserved, but its product module is not active in the current slim app.",
+      state: "offline" as const,
+      label: "Offline",
+      detail: "Mastra is running, but this active product role is not registered in the current runtime.",
       lastActiveAt: trace?.finishedAt || trace?.startedAt || "",
     };
   }
@@ -162,11 +173,13 @@ export function buildCommunityAgentRoster(input: {
 }): CommunityAgentRosterItem[] {
   return BUZZ_GUILDHALL_ACTORS.map((actor) => {
     const actorRoleId = roleId(actor);
-    const dynamic = actor.runtime === "mastra"
-      ? mastraState(actorRoleId, input.assistantStatus, input.traces)
-      : actor.runtime === "buzz"
-        ? buzzState(actor.id, input.buzzIdentityVerified, input.nativeAgents)
-        : onDemandState(actor.runtime);
+    const dynamic = PARKED_PRODUCT_ACTORS.has(actor.id)
+      ? parkedState()
+      : actor.runtime === "mastra"
+        ? mastraState(actorRoleId, input.assistantStatus, input.traces)
+        : actor.runtime === "buzz"
+          ? buzzState(actor.id, input.buzzIdentityVerified, input.nativeAgents)
+          : onDemandState(actor.runtime);
     const room = BUZZ_GUILDHALL_CHANNELS.find((candidate) => candidate.id === actor.primaryChannel);
     return {
       id: actor.id,

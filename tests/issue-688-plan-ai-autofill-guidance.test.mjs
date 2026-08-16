@@ -64,3 +64,48 @@ test("PLAN recovers failed Quality fields through the Fast local role before giv
   assert.match(drafter, /modelRole,/);
   assert.match(drafter, /after Quality and Fast local recovery/);
 });
+
+test("a PPF can be reduced to read-only story evidence for PLAN Foundations", async () => {
+  const [gateway, context, localGateway] = await Promise.all([
+    read("build/foundations-ppf-gateway.ts"),
+    read("lib/foundation-source-context.ts"),
+    read("build/local-ai-gateway.ts"),
+  ]);
+
+  assert.match(gateway, /\/api\/plan\/foundations\/ppf-context/);
+  assert.match(gateway, /parsePortableProjectFile\(text\)/);
+  assert.match(gateway, /projectFromPackage\(buffer\)/);
+  assert.match(gateway, /integrityValid/);
+  assert.match(gateway, /assembleFoundationSourceContext\(project\)/);
+  assert.match(gateway, /isLocalRequest\(request\)/);
+  assert.match(localGateway, /registerFoundationsPpfGateway\(server\)/);
+  assert.match(context, /project\.story\.premise/);
+  assert.match(context, /project\.characters/);
+  assert.match(context, /project\.blocks/);
+  assert.doesNotMatch(context, /project\.collaboration|apiKey|password|providerConfiguration|privateLocalPath/);
+});
+
+test("PPF auto-complete fills only empty Foundations fields and saves the Foundations brief", async () => {
+  const workspace = await read("modules/plan/ui/foundations-plan-workspace.tsx");
+  const batchMatch = workspace.match(/async function autoCompleteAllFoundations\(\) \{[\s\S]*?\n  }\n\n  async function requestLocalDraft/);
+  assert.ok(batchMatch, "the whole-Foundations auto-complete function should be present");
+  const batch = batchMatch[0];
+
+  assert.match(workspace, /Auto-complete Foundations only/);
+  assert.match(batch, /!isUsableFoundationAnswer\(currentAnswers\[field\.id\]\)/);
+  assert.match(batch, /sourceStoryContext: ppfSource\.context/);
+  assert.match(batch, /type: "foundations\.proposal\.store"/);
+  assert.match(batch, /type: "foundations\.proposal\.accept"/);
+  assert.match(batch, /type: "foundations\.brief\.save"/);
+  assert.doesNotMatch(batch, /type: "lesson\.|type: "foundations\.answer\.update"|BUILD|STORYBOARD|PREVIS|WRITE|EDIT|FEEDBACK|REFINE|REPORTS/);
+});
+
+test("the Foundations drafter treats imported PPF evidence as read-only source canon", async () => {
+  const drafter = await read("modules/plan/foundations-plan-drafter.ts");
+
+  assert.match(drafter, /readonly sourceStoryContext\?: string/);
+  assert.match(drafter, /<source_story_context>/);
+  assert.match(drafter, /Imported PPF evidence is read-only/);
+  assert.match(drafter, /never alter or discuss unselected fields/i);
+  assert.match(drafter, /provider: "local"/);
+});

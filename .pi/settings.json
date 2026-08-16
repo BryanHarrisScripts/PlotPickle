@@ -1,5 +1,6 @@
 {
   "enableInstallTelemetry": false,
+  "enableSkillCommands": true,
   "defaultThinkingLevel": "medium",
   "compaction": {
     "enabled": true,

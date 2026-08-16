@@ -3,6 +3,7 @@ import {
   normalizeModelDescriptor,
   scoreModelForRole,
 } from "../lib/ai/local-model-capabilities.mjs";
+import { repairCapabilityCacheApproves } from "./local-repair-capability-cache.mjs";
 
 export const APPROVED_LOCAL_CODING_MODELS = [
   { fragment: "qwen2.5-coder-7b", label: "Qwen2.5-Coder 7B", tier: "light" },
@@ -51,7 +52,9 @@ export function capabilityApprovedCodingModel(descriptor, hardware = {}) {
 
 export function approvedCodingModel(value, descriptor = null, hardware = {}) {
   const inferred = descriptor || normalizeModelDescriptor({ id: value });
-  return staticApprovedCodingModel(value) || capabilityApprovedCodingModel(inferred, hardware);
+  return staticApprovedCodingModel(value)
+    || repairCapabilityCacheApproves(value)
+    || capabilityApprovedCodingModel(inferred, hardware);
 }
 
 export function dedicatedLegacyRepairModel(value) {
@@ -87,6 +90,6 @@ export function chooseApprovedCodingModel(models, preferred = "", descriptors = 
     if (exact) return exact;
   }
 
-  return available.filter((model) => staticApprovedCodingModel(model))
+  return available.filter((model) => staticApprovedCodingModel(model) || repairCapabilityCacheApproves(model))
     .sort((a, b) => rankApprovedCodingModel(a) - rankApprovedCodingModel(b))[0] || "";
 }

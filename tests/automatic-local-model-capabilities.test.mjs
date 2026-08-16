@@ -106,4 +106,24 @@ test("runtime manager probes native metadata and exposes five automatic slots", 
   assert.match(panel, /Detected model capabilities/);
   assert.match(policy, /capabilityApprovedCodingModel/);
   assert.match(policy, /chooseModelForRole\(\s*"repair"/);
+  assert.match(policy, /repairCapabilityCacheApproves/);
+});
+
+test("Pi readiness uses the same native capability and hardware-fit router as Settings", async () => {
+  const [ensure, hardware, cache] = await Promise.all([
+    read("scripts/ensure-local-repair-model.mjs"),
+    read("scripts/local-repair-hardware.mjs"),
+    read("scripts/local-repair-capability-cache.mjs"),
+  ]);
+  assert.match(ensure, /probeRuntimeModelCapabilities/);
+  assert.match(ensure, /detectRepairHardware/);
+  assert.match(ensure, /scoreModelForRole\("repair"/);
+  assert.match(ensure, /writeRepairCapabilityCache/);
+  assert.match(ensure, /ollamaInstalledModels/);
+  assert.match(ensure, /downloadedLmStudioModels/);
+  assert.match(ensure, /warmOllama/);
+  assert.match(ensure, /pullOllama/);
+  assert.match(hardware, /nvidia-smi/);
+  assert.match(cache, /repair-model-capabilities\.json/);
+  assert.match(cache, /repairEligible/);
 });

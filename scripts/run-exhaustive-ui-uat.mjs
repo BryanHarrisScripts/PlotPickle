@@ -7,6 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { buildUatFinding } from "../lib/sage-conversation-uat.mjs";
 import { McpClient } from "./creative-uat/mcp-runtime.mjs";
+import { partitionExhaustiveFindings } from "./exhaustive-ui-finding-policy.mjs";
 import { runExhaustiveUiControlAudit } from "./exhaustive-ui-control-audit.mjs";
 import { bestEffortLiveBuzzActivity } from "./buzz-live-activity.mjs";
 
@@ -61,7 +62,8 @@ async function main() {
     await client.close().catch(() => {});
   }
 
-  const findings = (audit.findings || []).map((item) => buildUatFinding({
+  const { reportable: reportableAuditFindings, harnessOnly: harnessFindings } = partitionExhaustiveFindings(audit.findings || []);
+  const findings = reportableAuditFindings.map((item) => buildUatFinding({
     message: item.summary,
     area: "exhaustive-ui-ux",
     evidence: {
@@ -78,6 +80,7 @@ async function main() {
     target: baseUrl,
     overall: audit.complete ? "PASS" : "FAIL",
     audit,
+    harnessFindings,
     findings,
   };
   const reportPath = path.join(artifactRoot, "exhaustive-ui-uat-report.json");
@@ -95,8 +98,11 @@ async function main() {
     "## Screen coverage",
     ...(audit.screens || []).map((screen) => `- ${screen.label}: ${screen.complete ? "PASS" : "FAIL"} — ${screen.passed}/${screen.safe} safe controls, ${screen.blocked} blocked, ${screen.dead} dead, ${screen.untested} untested`),
     "",
-    "## Findings",
-    ...(findings.length ? findings.map((finding) => `- ${finding.fingerprint}: ${finding.message}`) : ["- No exhaustive UAT blockers."]),
+    "## GitHub-reportable findings",
+    ...(findings.length ? findings.map((finding) => `- ${finding.fingerprint}: ${finding.message}`) : ["- No reportable exhaustive UAT product defects."]),
+    "",
+    "## Harness-only observations",
+    ...(harnessFindings.length ? harnessFindings.map((finding) => `- ${finding.summary}: ${finding.impact}`) : ["- No harness-only observations."]),
     "",
     `No-loop policy: ${audit.noLoopPolicy}`,
     `Settings policy: ${audit.settingsPolicy}`,
@@ -106,11 +112,11 @@ async function main() {
   await bestEffortLiveBuzzActivity({
     type: "uat.result",
     actorId: "bram-gatewick",
-    summary: `Exhaustive code/UI/UX UAT ${report.overall}: ${audit.totals.passed}/${audit.totals.safe} safe controls completed; dead=${audit.totals.dead}; untested=${audit.totals.untested}.`,
-    severity: audit.complete ? "info" : "high",
+    summary: `Exhaustive code/UI/UX UAT ${report.overall}: ${audit.totals.passed}/${audit.totals.safe} safe controls completed; dead=${audit.totals.dead}; untested=${audit.totals.untested}; reportable=${findings.length}; harness-only=${harnessFindings.length}.`,
+    severity: findings.length ? "high" : audit.complete ? "info" : "medium",
     target: "all active PlotPickle screens and Settings controls",
     verified: true,
-    actionable: !audit.complete,
+    actionable: findings.length > 0,
     evidence: [{ label: "Exhaustive UAT report", ref: "exhaustive-ui-uat-report.json" }],
   }, { baseUrl });
 

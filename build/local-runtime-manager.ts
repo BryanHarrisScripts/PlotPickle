@@ -3,6 +3,14 @@ import { access } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import {
+  chooseModelForRole,
+  LOCAL_CAPABILITY_ROLES,
+  probeRuntimeModelCapabilities,
+  scoreModelForRole,
+  type LocalCapabilityRole,
+  type LocalModelDescriptor,
+} from "../lib/ai/local-model-capabilities.mjs";
+import {
   LOCAL_MODEL_CATALOG,
   type LocalRuntimeKind,
   type LocalTextRole,
@@ -15,7 +23,7 @@ export type LocalRuntimeSettings = {
   preferredRuntime: LocalRuntimeKind | "auto";
   contextTokens: 16384 | 32768;
   endpointOverrides: Partial<Record<LocalRuntimeKind, string>>;
-  modelOverrides: Partial<Record<LocalTextRole, string>>;
+  modelOverrides: Partial<Record<LocalCapabilityRole, string>>;
   managedLlama: {
     enabled: boolean;
     executable: string;
@@ -31,9 +39,25 @@ export type LocalRuntimeProbe = {
   baseUrl: string;
   reachable: boolean;
   models: string[];
+  modelCapabilities: LocalModelDescriptor[];
   latencyMs: number;
   error: string;
   managed: boolean;
+};
+
+export type LocalRoleStatus = {
+  recommended: string;
+  selected: string;
+  available: boolean;
+  production: boolean;
+  automatic: boolean;
+  metadataSource: string;
+  fit: string;
+  parameterSize: string;
+  contextTokens: number;
+  capabilities: string[];
+  recommendationScore: number;
+  reasons: string[];
 };
 
 export type LocalRuntimeSnapshot = {
@@ -42,7 +66,8 @@ export type LocalRuntimeSnapshot = {
   settings: LocalRuntimeSettings;
   runtimes: LocalRuntimeProbe[];
   activeRuntime: LocalRuntimeProbe;
-  roles: Record<LocalTextRole, { recommended: string; selected: string; available: boolean; production: true }>;
+  roles: Record<LocalCapabilityRole, LocalRoleStatus>;
+  modelInventory: LocalModelDescriptor[];
   retrieval: { embedding: string; reranker: string; cpuResident: true };
   image: { workflow: "SDXL 1.0"; experimental: "SD3.5 Medium" };
   video: { workflow: "LTX-Video 2B 0.9.8 Distilled" };
@@ -56,6 +81,8 @@ const DEFAULT_ENDPOINTS: Readonly<Record<LocalRuntimeKind, string>> = {
   ollama: "http://127.0.0.1:11434/v1",
   "openai-compatible": "http://127.0.0.1:8000/v1",
 };
+
+const TEXT_ROLES: readonly LocalTextRole[] = ["fast", "quality", "deep"];
 
 let managedLlama: ChildProcess | null = null;
 let managedRole: LocalTextRole | null = null;
@@ -101,12 +128,14 @@ function normalizeSettings(value: unknown): LocalRuntimeSettings {
       try { endpointOverrides[kind] = normalizedBaseUrl(raw); } catch {}
     }
   }
-  const modelOverrides: Partial<Record<LocalTextRole, string>> = {};
-  const modelPaths: Partial<Record<LocalTextRole, string>> = {};
-  const gpuLayers: Partial<Record<LocalTextRole, number>> = {};
-  for (const role of ["fast", "quality", "deep"] as const) {
+  const modelOverrides: Partial<Record<LocalCapabilityRole, string>> = {};
+  for (const role of LOCAL_CAPABILITY_ROLES) {
     const override = item.modelOverrides?.[role];
     if (typeof override === "string" && override.trim()) modelOverrides[role] = override.trim();
+  }
+  const modelPaths: Partial<Record<LocalTextRole, string>> = {};
+  const gpuLayers: Partial<Record<LocalTextRole, number>> = {};
+  for (const role of TEXT_ROLES) {
     const modelPath = managed.modelPaths?.[role];
     if (typeof modelPath === "string" && modelPath.trim()) modelPaths[role] = modelPath.trim();
     const layers = managed.gpuLayers?.[role];
@@ -157,12 +186,14 @@ async function probeCompatible(kind: LocalRuntimeKind, baseUrl: string, timeoutM
     const models = Array.isArray(body.data)
       ? body.data.flatMap((item) => typeof item.id === "string" ? [item.id] : []).slice(0, 200)
       : [];
+    const modelCapabilities = await probeRuntimeModelCapabilities({ kind, baseUrl, models, timeoutMs });
     return {
       kind,
       label: runtimeLabel(kind),
       baseUrl,
       reachable: true,
       models,
+      modelCapabilities,
       latencyMs: Date.now() - started,
       error: models.length ? "" : "The runtime is reachable but did not report a model.",
       managed: kind === "llama.cpp" && Boolean(managedLlama),
@@ -174,6 +205,7 @@ async function probeCompatible(kind: LocalRuntimeKind, baseUrl: string, timeoutM
       baseUrl,
       reachable: false,
       models: [],
+      modelCapabilities: [],
       latencyMs: Date.now() - started,
       error: error instanceof Error ? error.message.slice(0, 240) : "The runtime did not answer.",
       managed: kind === "llama.cpp" && Boolean(managedLlama),
@@ -185,22 +217,62 @@ function modelKey(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
-function selectedModel(role: LocalTextRole, models: readonly string[], settings: LocalRuntimeSettings) {
-  const catalog = LOCAL_MODEL_CATALOG[role];
-  const override = settings.modelOverrides[role];
-  if (override) {
-    const exact = models.find((model) => model === override || model.toLowerCase() === override.toLowerCase());
-    if (exact) return exact;
-    const normalizedOverride = modelKey(override);
-    const friendlyCatalogName = [catalog.label, catalog.family].some((value) => modelKey(value) === normalizedOverride);
-    if (!friendlyCatalogName) {
-      const normalizedMatch = models.find((model) => modelKey(model) === normalizedOverride);
-      return normalizedMatch || override;
-    }
-  }
-  return models.find((model) => (
-    catalog.expectedNameFragments.some((fragment) => modelKey(model).includes(modelKey(fragment)))
-  )) || "";
+function exactModel(models: readonly string[], wanted: string) {
+  const key = modelKey(wanted);
+  return models.find((model) => modelKey(model) === key) || "";
+}
+
+function catalogFallback(role: LocalCapabilityRole, models: readonly string[]) {
+  if (!TEXT_ROLES.includes(role as LocalTextRole)) return "";
+  const catalog = LOCAL_MODEL_CATALOG[role as LocalTextRole];
+  return models.find((model) => catalog.expectedNameFragments.some((fragment) => modelKey(model).includes(modelKey(fragment)))) || "";
+}
+
+function capabilityNames(model: LocalModelDescriptor | undefined) {
+  if (!model) return [];
+  return Object.entries(model.capabilities).flatMap(([name, enabled]) => enabled ? [name] : []);
+}
+
+function roleStatus(
+  role: LocalCapabilityRole,
+  models: readonly string[],
+  descriptors: readonly LocalModelDescriptor[],
+  settings: LocalRuntimeSettings,
+  hardware: Awaited<ReturnType<typeof detectLocalHardware>>,
+): LocalRoleStatus {
+  const override = settings.modelOverrides[role] || "";
+  const overridden = override ? exactModel(models, override) : "";
+  const recommendation = chooseModelForRole(role, [...descriptors], {
+    ramGb: hardware.ramGb,
+    vramGb: hardware.vramGb,
+    cpuGpuSplit: hardware.compatibility.cpuGpuSplit,
+  });
+  const selected = overridden || recommendation?.model.id || catalogFallback(role, models);
+  const descriptor = descriptors.find((item) => modelKey(item.id) === modelKey(selected));
+  const selectedScore = descriptor ? scoreModelForRole(role, descriptor, {
+    ramGb: hardware.ramGb,
+    vramGb: hardware.vramGb,
+    cpuGpuSplit: hardware.compatibility.cpuGpuSplit,
+  }) : null;
+  const fallbackRecommendation = TEXT_ROLES.includes(role as LocalTextRole)
+    ? LOCAL_MODEL_CATALOG[role as LocalTextRole].label
+    : role === "vision"
+      ? "Any detected vision-capable local model"
+      : "Any detected coding/tool-capable local model";
+  return {
+    recommended: recommendation?.model.id || fallbackRecommendation,
+    selected,
+    available: Boolean(selected && models.includes(selected)),
+    production: role !== "repair",
+    automatic: !override,
+    metadataSource: descriptor?.metadataSource || "",
+    fit: selectedScore?.fit.label || "",
+    parameterSize: descriptor?.parameterSize || "",
+    contextTokens: descriptor?.contextTokens || 0,
+    capabilities: capabilityNames(descriptor),
+    recommendationScore: recommendation?.score || 0,
+    reasons: overridden ? ["manual override"] : recommendation?.reasons || [],
+  };
 }
 
 export async function localRuntimeSnapshot(): Promise<LocalRuntimeSnapshot> {
@@ -218,22 +290,19 @@ export async function localRuntimeSnapshot(): Promise<LocalRuntimeSnapshot> {
     ?? runtimes.find((runtime) => runtime.kind === preference[0])
     ?? runtimes[0];
   const models = activeRuntime?.models ?? [];
-  const role = (id: LocalTextRole) => {
-    const model = selectedModel(id, models, settings);
-    return {
-      recommended: LOCAL_MODEL_CATALOG[id].label,
-      selected: model,
-      available: Boolean(model && models.includes(model)),
-      production: true as const,
-    };
-  };
+  const descriptors = activeRuntime?.modelCapabilities ?? [];
+  const roles = Object.fromEntries(LOCAL_CAPABILITY_ROLES.map((role) => [
+    role,
+    roleStatus(role, models, descriptors, settings, hardware),
+  ])) as Record<LocalCapabilityRole, LocalRoleStatus>;
   return {
     checkedAt: new Date().toISOString(),
     hardware,
     settings,
     runtimes,
     activeRuntime: activeRuntime!,
-    roles: { fast: role("fast"), quality: role("quality"), deep: role("deep") },
+    roles,
+    modelInventory: descriptors,
     retrieval: {
       embedding: LOCAL_MODEL_CATALOG.embedding.label,
       reranker: LOCAL_MODEL_CATALOG.reranker.label,
@@ -259,7 +328,7 @@ export async function localTextExecutionProfile(role: LocalTextRole) {
   }
   const selected = snapshot.roles[role];
   if (!selected.available) {
-    throw new Error(`${selected.recommended} is not available for the ${role} local role. Install it or set an advanced model override in Settings.`);
+    throw new Error(`${selected.recommended} is not available for the ${role} local role. Install a suitable model or set an advanced model override in Settings.`);
   }
   return {
     provider: "local" as const,
@@ -287,11 +356,13 @@ export async function managedLlamaInstallPlan() {
     runtime: "llama.cpp" as const,
     modelDirectory: localModelDirectory(),
     executable: settings.managedLlama.executable || "llama-server",
-    models: (["fast", "quality", "deep"] as const).map((role) => ({
+    models: TEXT_ROLES.map((role) => ({
       role,
       model: LOCAL_MODEL_CATALOG[role],
       configuredPath: settings.managedLlama.modelPaths[role] || "",
+      note: "Fallback starter model only. Installed models are capability-ranked automatically before this fallback is used.",
     })),
+    automaticSlots: ["fast", "quality", "deep", "vision", "repair"],
     compatibility: {
       pascalBuild: "CUDA 12.x / cu126-compatible build",
       fallback: "Vulkan",

@@ -9,6 +9,7 @@ import path from "node:path";
 import process from "node:process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import { approvedCodingModel, rankApprovedCodingModel } from "./developer-repair-model-policy.mjs";
 
 const exec = promisify(execFile);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -24,8 +25,8 @@ const defaultReport = path.join(localRoot, "PlotPickle", "uat-focused", "uat-fin
 const reportPath = path.resolve(argument("--report", defaultReport));
 const requestedFingerprint = argument("--fingerprint");
 const requestedIssue = argument("--issue");
-const explicitEndpoint = argument("--endpoint");
-const explicitModel = argument("--model");
+const explicitEndpoint = argument("--endpoint", process.env.PLOTPICKLE_REPAIR_ENDPOINT || "");
+const explicitModel = argument("--model", process.env.PLOTPICKLE_REPAIR_MODEL || "");
 const requestedWorker = argument("--worker", process.env.PLOTPICKLE_REPAIR_WORKER || "pi").toLowerCase();
 const keepWorktree = has("--keep-worktree");
 const dryRun = has("--dry-run");
@@ -47,6 +48,10 @@ export const UAT_REPAIR_MODEL = {
 };
 
 const APPROVED_LOCAL_CODING_MODEL_FRAGMENTS = [
+  "qwen2.5-coder-7b",
+  "qwen2.5coder7b",
+  "qwen2.5-coder-14b",
+  "qwen2.5coder14b",
   ...UAT_REPAIR_MODEL.expectedNameFragments,
   "qwen3-coder-30b",
   "qwen3coder30b",
@@ -63,8 +68,8 @@ const APPROVED_LOCAL_CODING_MODEL_FRAGMENTS = [
 
 const RUNTIME_CANDIDATES = [
   { kind: "lm-studio", label: "LM Studio", baseUrl: "http://127.0.0.1:1234/v1" },
-  { kind: "llama.cpp", label: "llama.cpp", baseUrl: "http://127.0.0.1:8080/v1" },
   { kind: "ollama", label: "Ollama", baseUrl: "http://127.0.0.1:11434/v1" },
+  { kind: "llama.cpp", label: "llama.cpp", baseUrl: "http://127.0.0.1:8080/v1" },
   { kind: "openai-compatible", label: "OpenAI-compatible", baseUrl: "http://127.0.0.1:8000/v1" },
 ];
 
@@ -79,7 +84,7 @@ function matchesRepairModel(model) {
 
 function matchesApprovedCodingModel(model) {
   const key = modelKey(model);
-  return APPROVED_LOCAL_CODING_MODEL_FRAGMENTS.some((fragment) => key.includes(modelKey(fragment)));
+  return approvedCodingModel(model) || APPROVED_LOCAL_CODING_MODEL_FRAGMENTS.some((fragment) => key.includes(modelKey(fragment)));
 }
 
 function normalizedEndpoint(value) {
@@ -118,6 +123,8 @@ async function probeAllRuntimes() {
 
 export async function resolveRepairRuntime(worker = requestedWorker) {
   if (explicitEndpoint && explicitModel) {
+    const valid = worker === "mastra-qwen" ? matchesRepairModel(explicitModel) : matchesApprovedCodingModel(explicitModel);
+    if (!valid) throw new Error(`The requested local repair model is not approved for ${REPAIR_WORKER_LABELS[worker] || worker}: ${explicitModel}`);
     return {
       kind: "explicit",
       label: "Explicit local runtime",
@@ -128,11 +135,11 @@ export async function resolveRepairRuntime(worker = requestedWorker) {
 
   const probes = await probeAllRuntimes();
   const matcher = worker === "mastra-qwen" ? matchesRepairModel : matchesApprovedCodingModel;
-  for (const runtime of probes) {
-    if (!runtime.reachable) continue;
-    const model = runtime.models.find(matcher);
-    if (model) return { ...runtime, model: safeCliModelId(model) };
-  }
+  const candidates = probes.flatMap((runtime) => runtime.reachable
+    ? runtime.models.filter(matcher).map((model) => ({ ...runtime, model: safeCliModelId(model) }))
+    : []);
+  if (worker !== "mastra-qwen") candidates.sort((a, b) => rankApprovedCodingModel(a.model) - rankApprovedCodingModel(b.model));
+  if (candidates.length) return candidates[0];
 
   const reachable = probes.filter((item) => item.reachable)
     .map((item) => `${item.label}: ${item.models.length ? item.models.join(", ") : "no models reported"}`)
@@ -142,7 +149,7 @@ export async function resolveRepairRuntime(worker = requestedWorker) {
     : "No approved local coding model is available to the PlotPickle developer repair worker.";
   throw new Error([
     modelMessage,
-    "Load Qwen3.8-27B or another approved local coding model in LM Studio, llama.cpp, Ollama, or another local OpenAI-compatible runtime, then run this command again.",
+    "Run node scripts/ensure-local-repair-model.mjs --worker pi to load an already-installed approved coding model. Qwen2.5-Coder 7B is accepted as the lightweight Pi option; PlotPickle will not download a model silently.",
     "PlotPickle will not silently downgrade UAT repair work to the Fast or Quality story models and will not fall through to a paid/cloud provider.",
     reachable ? `Reachable runtimes:\n${reachable}` : "No supported local OpenAI-compatible runtime answered /v1/models.",
   ].join("\n"));

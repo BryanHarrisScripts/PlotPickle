@@ -136,5 +136,31 @@ export function applyStoryCommand(
           },
         },
       };
+    case "foundations.visual.accept": {
+      const accepted = project.build.foundations.acceptedVisualArtifactIds;
+      return {
+        ...base,
+        build: {
+          ...project.build,
+          foundations: {
+            acceptedVisualArtifactIds: accepted.includes(command.artifactId)
+              ? accepted
+              : [...accepted, command.artifactId],
+          },
+        },
+      };
+    }
+    case "foundations.visual.unaccept":
+      return {
+        ...base,
+        build: {
+          ...project.build,
+          foundations: {
+            acceptedVisualArtifactIds: project.build.foundations.acceptedVisualArtifactIds.filter(
+              (artifactId) => artifactId !== command.artifactId,
+            ),
+          },
+        },
+      };
   }
 }

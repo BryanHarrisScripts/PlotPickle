@@ -15,6 +15,7 @@ import { registerLocalAiInstallationGateway } from "./local-ai-installation-gate
 import { registerLocalRuntimeGateway } from "./local-runtime-gateway";
 import { registerCurriculumRagGateway } from "./curriculum-rag-gateway";
 import { registerGpuResourceScheduler } from "./local-gpu-resource-manager";
+import { registerFoundationsPpfGateway } from "./foundations-ppf-gateway";
 
 const IMAGE_PATHS = new Set(["/api/local-ai/generate/image", "/api/media-routing/test/image"]);
 const MAX_SINGLE_IMAGE_REQUEST_BYTES = 256 * 1024;
@@ -82,6 +83,7 @@ export function localAiGateway(): Plugin {
       registerOllamaBootstrapGateway(server);
       registerAgentObservabilityGateway(server);
       registerBuzzAgentActivityMirror(server);
+      registerFoundationsPpfGateway(server);
       registerWritingAssistantGateway(server);
       if (typeof legacy.configureServer === "function") legacy.configureServer(server);
     },

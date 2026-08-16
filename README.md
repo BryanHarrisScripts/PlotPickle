@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/brand/plotpickle-header-horizontal-1200.png" alt="PlotPickle" width="760">
+  <img src="public/brand/plotpickle-header-horizontal-transparent.png" alt="PlotPickle" width="760">
 </p>
 
 # PlotPickle
@@ -9,6 +9,17 @@ Shape the story. Learn the craft. Test the choices. Keep the writer in control.
 PlotPickle is a local-first, AI-assisted story development environment built around a deliberately small product spine:
 
 Dashboard · Community · Learn · Plan · Wyrmwood · Settings
+
+<table align="center">
+  <tr>
+    <td align="center" width="110"><img src="public/assets/workflow-relics/dashboard.webp" alt="Dashboard glyph" width="66"><br><strong>Dashboard</strong></td>
+    <td align="center" width="110"><img src="public/assets/workflow-relics/community.svg" alt="Community glyph" width="66"><br><strong>Community</strong></td>
+    <td align="center" width="110"><img src="public/assets/workflow-relics/learn.webp" alt="Learn glyph" width="66"><br><strong>Learn</strong></td>
+    <td align="center" width="110"><img src="public/assets/workflow-relics/plan.webp" alt="Plan glyph" width="66"><br><strong>Plan</strong></td>
+    <td align="center" width="110"><img src="public/assets/workflow-relics/game.webp" alt="Wyrmwood game glyph" width="66"><br><strong>Wyrmwood</strong></td>
+    <td align="center" width="110"><img src="public/assets/workflow-relics/settings.svg" alt="Settings glyph" width="66"><br><strong>Settings</strong></td>
+  </tr>
+</table>
 
 The current rebuild focuses on helping a writer learn story craft, apply it to a real project, test those choices through the Wyrmwood game, and collaborate through a shared BUZZ community without surrendering creative authority to an AI or an external service.
 
@@ -41,6 +52,10 @@ Instead of only explaining craft, PlotPickle can challenge the writer with a pla
 The purpose of Wyrmwood is not to replace the writer's decision. It is to pressure-test whether the writer understands and can apply what was learned.
 
 ### Community
+
+<p align="center">
+  <img src="public/assets/workflow-relics/community.svg" alt="PlotPickle Community and BUZZ Guildhall" width="96">
+</p>
 
 Community is PlotPickle's native collaboration surface, powered underneath by BUZZ.
 

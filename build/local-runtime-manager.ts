@@ -222,6 +222,13 @@ function exactModel(models: readonly string[], wanted: string) {
   return models.find((model) => modelKey(model) === key) || "";
 }
 
+function friendlyCatalogName(role: LocalCapabilityRole, value: string) {
+  if (!TEXT_ROLES.includes(role as LocalTextRole)) return false;
+  const catalog = LOCAL_MODEL_CATALOG[role as LocalTextRole];
+  const normalized = modelKey(value);
+  return [catalog.label, catalog.family].some((friendly) => modelKey(friendly) === normalized);
+}
+
 function catalogFallback(role: LocalCapabilityRole, models: readonly string[]) {
   if (!TEXT_ROLES.includes(role as LocalTextRole)) return "";
   const catalog = LOCAL_MODEL_CATALOG[role as LocalTextRole];
@@ -241,7 +248,8 @@ function roleStatus(
   hardware: Awaited<ReturnType<typeof detectLocalHardware>>,
 ): LocalRoleStatus {
   const override = settings.modelOverrides[role] || "";
-  const overridden = override ? exactModel(models, override) : "";
+  const friendlyOverride = override ? friendlyCatalogName(role, override) : false;
+  const overridden = override && !friendlyOverride ? exactModel(models, override) : "";
   const recommendation = chooseModelForRole(role, [...descriptors], {
     ramGb: hardware.ramGb,
     vramGb: hardware.vramGb,
@@ -264,7 +272,7 @@ function roleStatus(
     selected,
     available: Boolean(selected && models.includes(selected)),
     production: role !== "repair",
-    automatic: !override,
+    automatic: !override || friendlyOverride,
     metadataSource: descriptor?.metadataSource || "",
     fit: selectedScore?.fit.label || "",
     parameterSize: descriptor?.parameterSize || "",

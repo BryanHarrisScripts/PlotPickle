@@ -39,6 +39,17 @@
       ]
     },
     {
+      "id": "community",
+      "label": "Community and Guildhall",
+      "route": "/?workspace=community",
+      "requiredTerms": ["Community", "Great Hall", "Story Rooms"],
+      "minimumTextLength": 900,
+      "tests": [
+        "tests/community-workspace.test.mjs",
+        "tests/issue-672-global-navigation.test.mjs"
+      ]
+    },
+    {
       "id": "foundations-learn",
       "label": "Foundations and LEARN",
       "route": "/?workspace=learn",

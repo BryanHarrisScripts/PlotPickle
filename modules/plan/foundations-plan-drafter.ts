@@ -12,6 +12,7 @@ export interface FoundationDraftRequest {
   readonly curriculumLesson: CurriculumLesson;
   readonly currentAnswers: Readonly<Record<string, string>>;
   readonly priorStoryContext: string;
+  readonly sourceStoryContext?: string;
 }
 
 class FoundationProposalQualityError extends Error {}
@@ -240,7 +241,8 @@ function repairInstruction() {
     "REPAIR THE PLAN DRAFT.",
     "The previous draft was unusable because it copied a planning question, omitted a field, returned a placeholder, returned no text, or returned invalid structured output.",
     "For every requested field ID, write an actual proposed answer with concrete story content. Never copy or lightly paraphrase the field question as the answer.",
-    "Use accepted writer material wherever it exists.",
+    "Use accepted writer material and imported PPF story evidence wherever either exists.",
+    "Treat imported PPF evidence as read-only source canon. Never imply that you changed the source project, and never generate work for any area outside the requested PLAN Foundations fields.",
     "Because this content is editable AI working text, when writer evidence is missing you may invent a plausible working candidate, but it MUST begin with 'Provisional —' and must be presented as a suggestion rather than existing canon.",
     "A Provisional field still needs a substantive concrete candidate; never return only the word Provisional, a generic placeholder, or instructions telling the writer to fill it later.",
     "Aim for 2 short paragraphs per field. You may use up to 4 short paragraphs when needed, but never more than four.",
@@ -251,8 +253,9 @@ function repairInstruction() {
 
 function proposalTask() {
   return [
-    "Draft editable working text for each requested PLAN field.",
-    "Use accepted writer material as canon when it exists.",
+    "Draft editable working text for each requested PLAN Foundations field.",
+    "Use accepted writer material and imported PPF story evidence as canon when they exist.",
+    "Imported PPF evidence is read-only. Do not propose or perform changes to LEARN, later PLAN sections, BUILD, STORYBOARD, PREVIS, WRITE, EDIT, FEEDBACK, REFINE, REPORTS, project files, or source metadata.",
     "Never copy or lightly paraphrase a requested planning question as its answer.",
     "If accepted story evidence is missing, create a useful plausible working candidate and begin that field with 'Provisional —'. Provisional candidate details are suggestions for review, not claims about existing canon.",
     "A provisional answer must still contain a concrete story choice; never output a generic placeholder or tell the writer to supply the answer later.",
@@ -280,8 +283,11 @@ function buildBatchMessage(input: FoundationDraftRequest, fieldShape: Readonly<R
     xmlText(JSON.stringify(input.currentAnswers)),
     "</current_writer_answers>",
     "<accepted_prior_foundation_work>",
-    xmlText(input.priorStoryContext.slice(0, 3_000) || "No accepted story answers are available yet."),
+    xmlText(input.priorStoryContext.slice(0, 3_000) || "No accepted PLAN Foundations answers are available yet."),
     "</accepted_prior_foundation_work>",
+    "<source_story_context>",
+    xmlText(input.sourceStoryContext?.slice(0, 32_000) || "No imported PPF source evidence was supplied."),
+    "</source_story_context>",
   ].join("\n");
 }
 
@@ -292,7 +298,8 @@ function singleFieldMessage(input: FoundationDraftRequest, field: FoundationPlan
     `Field ID: ${field.id}`,
     `Field question: ${field.prompt}`,
     `Current writer answer: ${input.currentAnswers[field.id]?.trim() || "none"}`,
-    `Accepted story context: ${input.priorStoryContext.slice(0, 1_500) || "none"}`,
+    `Accepted PLAN context: ${input.priorStoryContext.slice(0, 1_500) || "none"}`,
+    `Imported PPF evidence: ${input.sourceStoryContext?.slice(0, 8_000) || "none"}`,
     `Lesson guidance: ${lessonContext(input.curriculumLesson).slice(0, 2_500)}`,
     `Return only {\"values\":{\"${field.id}\":\"...\"}}.`,
   ].join("\n");
@@ -304,7 +311,8 @@ function fastSingleFieldMessage(input: FoundationDraftRequest, field: Foundation
     `Field ID: ${field.id}`,
     `Question: ${field.prompt}`,
     `Current answer: ${input.currentAnswers[field.id]?.trim() || "none"}`,
-    `Accepted story context: ${input.priorStoryContext.slice(0, 900) || "none"}`,
+    `Accepted PLAN context: ${input.priorStoryContext.slice(0, 900) || "none"}`,
+    `Imported PPF evidence: ${input.sourceStoryContext?.slice(0, 4_500) || "none"}`,
     `Lesson: ${input.curriculumLesson.title}. ${input.curriculumLesson.overview.slice(0, 700)}`,
     "Write a concrete editable answer in two short paragraphs when possible, never more than four.",
     "If required story facts are missing, begin the answer with 'Provisional —' and offer a specific working possibility rather than a placeholder.",

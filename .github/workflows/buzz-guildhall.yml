@@ -11,6 +11,7 @@ on:
       - "build/buzz-agent-roster-gateway.ts"
       - "build/buzz-guildhall-gateway.ts"
       - "build/buzz-live-health-gateway.ts"
+      - "build/buzz-story-room-access-gateway.ts"
       - "app/buzz-settings-panel.tsx"
       - "app/buzz-live-health-card.tsx"
       - "app/sage-settings-workspace.tsx"
@@ -18,6 +19,8 @@ on:
       - "app/community-workspace.module.css"
       - "app/community-agent-roster.tsx"
       - "app/community-agent-roster.module.css"
+      - "app/community-story-room-access.tsx"
+      - "app/community-story-room-access.module.css"
       - "app/page.tsx"
       - "app/plotpickle-workspace-shell.tsx"
       - "app/plotpickle-workspace-shell.module.css"
@@ -27,12 +30,14 @@ on:
       - "scripts/post-buzz-guildhall-event.mjs"
       - "docs/buzz-guildhall.md"
       - "docs/buzz-live-health.md"
+      - "docs/issue-buzz-story-room-access-agents.md"
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
       - "tests/issue-672-global-navigation.test.mjs"
       - "tests/community-workspace.test.mjs"
       - "tests/community-agent-roster.test.mjs"
       - "tests/buzz-live-roundtrip.test.mjs"
+      - "tests/buzz-story-room-access-agents.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
   push:
     branches: [main]
@@ -45,6 +50,7 @@ on:
       - "build/buzz-agent-roster-gateway.ts"
       - "build/buzz-guildhall-gateway.ts"
       - "build/buzz-live-health-gateway.ts"
+      - "build/buzz-story-room-access-gateway.ts"
       - "app/buzz-settings-panel.tsx"
       - "app/buzz-live-health-card.tsx"
       - "app/sage-settings-workspace.tsx"
@@ -52,6 +58,8 @@ on:
       - "app/community-workspace.module.css"
       - "app/community-agent-roster.tsx"
       - "app/community-agent-roster.module.css"
+      - "app/community-story-room-access.tsx"
+      - "app/community-story-room-access.module.css"
       - "app/page.tsx"
       - "app/plotpickle-workspace-shell.tsx"
       - "app/plotpickle-workspace-shell.module.css"
@@ -61,12 +69,14 @@ on:
       - "scripts/post-buzz-guildhall-event.mjs"
       - "docs/buzz-guildhall.md"
       - "docs/buzz-live-health.md"
+      - "docs/issue-buzz-story-room-access-agents.md"
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
       - "tests/issue-672-global-navigation.test.mjs"
       - "tests/community-workspace.test.mjs"
       - "tests/community-agent-roster.test.mjs"
       - "tests/buzz-live-roundtrip.test.mjs"
+      - "tests/buzz-story-room-access-agents.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
 
 permissions:
@@ -84,5 +94,5 @@ jobs:
         run: |
           node --check scripts/bootstrap-buzz-guildhall.mjs
           node --check scripts/post-buzz-guildhall-event.mjs
-      - name: Validate Guildhall, Community, and live BUZZ contracts
-        run: node --test tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs
+      - name: Validate Guildhall, Community, Story Room, agent, and live BUZZ contracts
+        run: node --test tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs

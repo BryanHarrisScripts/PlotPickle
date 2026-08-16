@@ -10,9 +10,11 @@ on:
       - "lib/community-agent-roster.ts"
       - "build/buzz-community-gateway.ts"
       - "build/buzz-agent-roster-gateway.ts"
+      - "build/buzz-agent-activity-mirror.ts"
       - "build/buzz-guildhall-gateway.ts"
       - "build/buzz-live-health-gateway.ts"
       - "build/buzz-story-room-access-gateway.ts"
+      - "build/local-ai-gateway.ts"
       - "app/buzz-settings-panel.tsx"
       - "app/buzz-live-health-card.tsx"
       - "app/sage-settings-workspace.tsx"
@@ -29,6 +31,12 @@ on:
       - "vite.config.ts"
       - "scripts/bootstrap-buzz-guildhall.mjs"
       - "scripts/post-buzz-guildhall-event.mjs"
+      - "scripts/buzz-live-activity.mjs"
+      - "scripts/verify-buzz-live-activity.mjs"
+      - "scripts/writer-in-residence-runtime-recovery.mjs"
+      - "scripts/report-writer-in-residence.mjs"
+      - "scripts/report-uat-findings.mjs"
+      - "scripts/run-uat-closed-loop.mjs"
       - "docs/buzz-guildhall.md"
       - "docs/buzz-live-health.md"
       - "docs/issue-buzz-story-room-access-agents.md"
@@ -40,6 +48,7 @@ on:
       - "tests/community-agent-roster.test.mjs"
       - "tests/buzz-live-roundtrip.test.mjs"
       - "tests/buzz-story-room-access-agents.test.mjs"
+      - "tests/live-buzz-guildhall-activity.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
   push:
     branches: [main]
@@ -51,9 +60,11 @@ on:
       - "lib/community-agent-roster.ts"
       - "build/buzz-community-gateway.ts"
       - "build/buzz-agent-roster-gateway.ts"
+      - "build/buzz-agent-activity-mirror.ts"
       - "build/buzz-guildhall-gateway.ts"
       - "build/buzz-live-health-gateway.ts"
       - "build/buzz-story-room-access-gateway.ts"
+      - "build/local-ai-gateway.ts"
       - "app/buzz-settings-panel.tsx"
       - "app/buzz-live-health-card.tsx"
       - "app/sage-settings-workspace.tsx"
@@ -70,6 +81,12 @@ on:
       - "vite.config.ts"
       - "scripts/bootstrap-buzz-guildhall.mjs"
       - "scripts/post-buzz-guildhall-event.mjs"
+      - "scripts/buzz-live-activity.mjs"
+      - "scripts/verify-buzz-live-activity.mjs"
+      - "scripts/writer-in-residence-runtime-recovery.mjs"
+      - "scripts/report-writer-in-residence.mjs"
+      - "scripts/report-uat-findings.mjs"
+      - "scripts/run-uat-closed-loop.mjs"
       - "docs/buzz-guildhall.md"
       - "docs/buzz-live-health.md"
       - "docs/issue-buzz-story-room-access-agents.md"
@@ -81,6 +98,7 @@ on:
       - "tests/community-agent-roster.test.mjs"
       - "tests/buzz-live-roundtrip.test.mjs"
       - "tests/buzz-story-room-access-agents.test.mjs"
+      - "tests/live-buzz-guildhall-activity.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
 
 permissions:
@@ -98,5 +116,11 @@ jobs:
         run: |
           node --check scripts/bootstrap-buzz-guildhall.mjs
           node --check scripts/post-buzz-guildhall-event.mjs
+          node --check scripts/buzz-live-activity.mjs
+          node --check scripts/verify-buzz-live-activity.mjs
+          node --check scripts/writer-in-residence-runtime-recovery.mjs
+          node --check scripts/report-writer-in-residence.mjs
+          node --check scripts/report-uat-findings.mjs
+          node --check scripts/run-uat-closed-loop.mjs
       - name: Validate Guildhall, Community, Story Room, agent, README, and live BUZZ contracts
-        run: node --test tests/core-readme-direction.test.mjs tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs
+        run: node --test tests/core-readme-direction.test.mjs tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs tests/live-buzz-guildhall-activity.test.mjs

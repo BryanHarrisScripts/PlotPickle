@@ -1,7 +1,9 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
 import { assembleFoundationSourceContext } from "../lib/foundation-source-context";
+import { parsePortableProjectFile } from "../lib/project-package";
 import { projectFromPackage } from "../lib/ppf-exchange";
+import type { PlotPickleProject } from "../lib/project";
 
 const FOUNDATIONS_PPF_PATH = "/api/plan/foundations/ppf-context";
 const MAX_PPF_BYTES = 48 * 1024 * 1024;
@@ -47,6 +49,17 @@ async function readPpf(request: IncomingMessage) {
   return Buffer.concat(chunks);
 }
 
+function openPpf(buffer: Buffer): { project: PlotPickleProject; packageKind: string } {
+  const text = buffer.toString("utf8").trimStart();
+  if (text.startsWith("{")) {
+    const portable = parsePortableProjectFile(text);
+    if (!portable.integrityValid) throw new Error("The .ppf integrity check failed. Recover a valid project or backup before using it as Foundations evidence.");
+    return { project: portable.project, packageKind: "portable-project" };
+  }
+  const exchange = projectFromPackage(buffer);
+  return { project: exchange.project, packageKind: exchange.manifest.packageKind };
+}
+
 export function registerFoundationsPpfGateway(server: ViteDevServer) {
   server.middlewares.use(async (request, response, next) => {
     const pathname = request.url?.split("?", 1)[0] || "";
@@ -67,14 +80,14 @@ export function registerFoundationsPpfGateway(server: ViteDevServer) {
       const filenameHeader = request.headers["x-plotpickle-project-filename"];
       const filename = Array.isArray(filenameHeader) ? filenameHeader[0] : filenameHeader || "project.ppf";
       if (!String(filename).toLowerCase().endsWith(".ppf")) throw new Error("PLAN Foundations accepts PlotPickle .ppf files only.");
-      const { project, manifest } = projectFromPackage(await readPpf(request));
+      const { project, packageKind } = openPpf(await readPpf(request));
       const context = assembleFoundationSourceContext(project);
       if (!context) throw new Error("The .ppf opened, but it did not contain usable story evidence for Foundations.");
       sendJson(response, 200, {
         ok: true,
         projectId: project.id,
-        projectTitle: project.metadata.title || manifest.projectName || "Untitled Story",
-        packageKind: manifest.packageKind,
+        projectTitle: project.metadata.title || "Untitled Story",
+        packageKind,
         context,
       });
     } catch (error) {

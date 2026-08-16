@@ -34,6 +34,7 @@
         "tests/learn-sage-settings-entry.test.mjs",
         "tests/issue-623-agent-observability.test.mjs",
         "tests/issue-624-deepseek-harness-runtime.test.mjs",
+        "tests/issue-671-advanced-ai-routing-dark.test.mjs",
         "tests/issue-672-global-navigation.test.mjs"
       ]
     },

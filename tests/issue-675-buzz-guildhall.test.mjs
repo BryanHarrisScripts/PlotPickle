@@ -8,6 +8,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const config = JSON.parse(await readFile(path.join(root, "config", "buzz-guildhall.json"), "utf8"));
 const bridge = await readFile(path.join(root, "lib", "buzz-guildhall.ts"), "utf8");
 const bootstrap = await readFile(path.join(root, "scripts", "bootstrap-buzz-guildhall.mjs"), "utf8");
+const poster = await readFile(path.join(root, "scripts", "post-buzz-guildhall-event.mjs"), "utf8");
 const docs = await readFile(path.join(root, "docs", "buzz-guildhall.md"), "utf8");
 
 const requiredRooms = [
@@ -109,6 +110,18 @@ test("bootstrap is dry-run by default and keeps agent creation owner-reviewed", 
   assert.match(bootstrap, /owner-reviewed/i);
   assert.match(bootstrap, /Nothing was written/);
   assert.doesNotMatch(bootstrap, /console\.log\(process\.env\.BUZZ_PRIVATE_KEY|print\([^\n]*BUZZ_PRIVATE_KEY/);
+});
+
+test("node workflows can post safe routed events through the running PlotPickle gateway", () => {
+  assert.match(poster, /PLOTPICKLE_URL/);
+  assert.match(poster, /\/api\/local-buzz/);
+  assert.match(poster, /request\("\/rooms"\)/);
+  assert.match(poster, /request\("\/messages"/);
+  assert.match(poster, /Unknown Guildhall actor/);
+  assert.match(poster, /Unknown Guildhall event type/);
+  assert.match(poster, /redacted-github-token/);
+  assert.match(poster, /redacted-api-key/);
+  assert.doesNotMatch(poster, /BUZZ_PRIVATE_KEY|BUZZ_RELAY_URL/);
 });
 
 test("documentation explains the authority and no-duplicate-agent model", () => {

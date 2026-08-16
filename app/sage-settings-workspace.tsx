@@ -1,6 +1,7 @@
 "use client";
 
 import AgentObservabilityPanel from "./agent-observability-panel";
+import AiRoutingPanel from "./ai-routing-panel";
 import BuzzLiveHealthCard from "./buzz-live-health-card";
 import DeepSeekHarnessPanel from "./deepseek-harness-panel";
 import LocalRuntimePanel from "./local-runtime-panel";
@@ -11,6 +12,7 @@ const SETTINGS_CATEGORIES = [
   { id: "settings-quick", label: "Quick Setup", detail: "The simple four-step path" },
   { id: "settings-models", label: "Models & Agents", detail: "Sage and PLAN local AI" },
   { id: "settings-activity", label: "Agent Activity & BUZZ", detail: "Runtime and Guildhall health" },
+  { id: "settings-routing", label: "AI Routing", detail: "Choose where writing, images and video run" },
   { id: "settings-advanced", label: "Advanced Runtime", detail: "Hardware and expert details" },
 ] as const;
 
@@ -49,7 +51,7 @@ export default function SageSettingsWorkspace() {
           <div className={styles.actions}>
             <a className={styles.primaryAction} href="/?workspace=learn">Return to LEARN</a>
             <a className={styles.primaryAction} href="/?workspace=plan">Return to PLAN</a>
-            <a className={styles.secondaryAction} href="/ai-routing">Advanced AI routing</a>
+            <a className={styles.secondaryAction} href="#settings-routing">Advanced AI routing</a>
           </div>
         </header>
 
@@ -76,10 +78,14 @@ export default function SageSettingsWorkspace() {
           <BuzzLiveHealthCard />
         </section>
 
+        <section data-settings-section id="settings-routing" aria-label="Advanced AI routing">
+          <AiRoutingPanel />
+        </section>
+
         <section data-settings-section id="settings-advanced">
           <details className={styles.advancedRuntime}>
             <summary>Advanced runtime details</summary>
-            <p>Open this only when you want hardware, runtime, agent harness, context, or expert routing information.</p>
+            <p>Open this only when you want hardware, runtime, agent harness, context, or expert runtime information. AI provider routing is configured in the dedicated AI Routing section above so the hardware view is not repeated.</p>
             <DeepSeekHarnessPanel />
             <LocalRuntimePanel />
           </details>
@@ -91,6 +97,11 @@ export default function SageSettingsWorkspace() {
           <p>Persistent help</p>
           <h2>Change one thing at a time.</h2>
           <span>The centre column owns the actual controls. The left column gets you to the category; this rail explains what the category affects without sending you around another loop.</span>
+        </section>
+        <section>
+          <p>AI Routing</p>
+          <h3>One active choice per job.</h3>
+          <span>Writing, images and video each use one route at a time. Choose the route you want; unavailable choices show what must be configured or tested first.</span>
         </section>
         <section>
           <p>Agent Activity</p>

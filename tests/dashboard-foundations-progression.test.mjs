@@ -70,7 +70,7 @@ test("Dashboard makes the LEARN PLAN BUILD unlock path visually explicit", async
   assert.match(dashboard, /✓ Complete/);
   assert.match(dashboard, /→ Available/);
   assert.match(dashboard, /🔒 Locked/);
-  assert.match(dashboard, /Finish the 11 Foundations lessons/);
+  assert.match(dashboard, /Complete the 11 Foundations lessons/);
   assert.match(dashboard, /Finish the Foundations PLAN questions to open BUILD/);
   assert.match(dashboard, /WORLD unlocks after at least one Foundations visual is accepted in BUILD/);
   assert.match(dashboard, /disabled=\{locked\}/);

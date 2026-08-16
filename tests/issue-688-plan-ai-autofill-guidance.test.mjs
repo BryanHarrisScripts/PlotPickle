@@ -73,7 +73,9 @@ test("a PPF can be reduced to read-only story evidence for PLAN Foundations", as
   ]);
 
   assert.match(gateway, /\/api\/plan\/foundations\/ppf-context/);
-  assert.match(gateway, /projectFromPackage\(await readPpf\(request\)\)/);
+  assert.match(gateway, /parsePortableProjectFile\(text\)/);
+  assert.match(gateway, /projectFromPackage\(buffer\)/);
+  assert.match(gateway, /integrityValid/);
   assert.match(gateway, /assembleFoundationSourceContext\(project\)/);
   assert.match(gateway, /isLocalRequest\(request\)/);
   assert.match(localGateway, /registerFoundationsPpfGateway\(server\)/);

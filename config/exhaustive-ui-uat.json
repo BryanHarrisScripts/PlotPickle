@@ -5,7 +5,7 @@
       "id": "entry",
       "label": "PlotPickle entry",
       "route": "/",
-      "sourceFiles": ["app/page.tsx", "app/plotpickle-workspace-shell.tsx"],
+      "sourceFiles": ["app/page.tsx", "app/plotpickle-workspace-shell.tsx", "app/workspace-continuity.css"],
       "maxInteractions": 40,
       "testDuplicateInstances": false
     },
@@ -13,7 +13,7 @@
       "id": "community",
       "label": "COMMUNITY",
       "route": "/?workspace=community",
-      "sourceFiles": ["app/community-workspace.tsx", "app/buzz-community-workspace.tsx", "app/community-agent-roster.tsx", "app/community-story-room-access.tsx"],
+      "sourceFiles": ["app/community-workspace.tsx", "app/buzz-community-workspace.tsx", "app/community-agent-roster.tsx", "app/community-story-room-access.tsx", "app/workspace-continuity.css"],
       "maxInteractions": 70,
       "testDuplicateInstances": false
     },
@@ -21,7 +21,7 @@
       "id": "learn",
       "label": "LEARN",
       "route": "/?workspace=learn",
-      "sourceFiles": ["modules/learn/ui/learn-workspace.tsx"],
+      "sourceFiles": ["modules/learn/ui/learn-workspace.tsx", "app/workspace-continuity.css"],
       "maxInteractions": 80,
       "testDuplicateInstances": false
     },
@@ -29,7 +29,7 @@
       "id": "plan",
       "label": "PLAN",
       "route": "/?workspace=plan&section=foundations",
-      "sourceFiles": ["modules/plan/ui/foundations-plan-workspace.tsx"],
+      "sourceFiles": ["modules/plan/ui/foundations-plan-workspace.tsx", "app/workspace-continuity.css"],
       "maxInteractions": 90,
       "testDuplicateInstances": false
     },
@@ -37,7 +37,7 @@
       "id": "wyrmwood",
       "label": "GAME · Wyrmwood",
       "route": "/?workspace=wyrmwood",
-      "sourceFiles": ["modules/wyrmwood/ui/wyrmwood-workspace.tsx"],
+      "sourceFiles": ["modules/wyrmwood/ui/wyrmwood-workspace.tsx", "app/workspace-continuity.css"],
       "maxInteractions": 80,
       "testDuplicateInstances": false
     },
@@ -52,7 +52,8 @@
         "app/buzz-live-health-card.tsx",
         "app/deepseek-harness-panel.tsx",
         "app/local-runtime-panel.tsx",
-        "app/buzz-settings-panel.tsx"
+        "app/buzz-settings-panel.tsx",
+        "app/workspace-continuity.css"
       ],
       "maxInteractions": 200,
       "testDuplicateInstances": true,

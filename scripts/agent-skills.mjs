@@ -53,7 +53,6 @@ export async function loadAgentSkill(id) {
   const filePath = safeEntry(skill.entry);
   const content = await readFile(filePath, "utf8");
   if (!content.includes(`name: ${skill.id}`)) throw new Error(`Skill ${skill.id} frontmatter does not match its registry id.`);
-  if (!content.includes(`uri: ${skill.uri}`)) throw new Error(`Skill ${skill.id} frontmatter does not match its registry URI.`);
   return { ...skill, filePath, content };
 }
 

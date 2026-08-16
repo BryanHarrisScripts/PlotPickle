@@ -99,7 +99,7 @@ export default function PlotPickleWorkspaceShell({
         </div>
       </nav>
 
-      <div className={styles.workspaceFrame}>{children}</div>
+      <div className={styles.workspaceFrame} data-workspace-frame="true">{children}</div>
     </div>
   );
 }

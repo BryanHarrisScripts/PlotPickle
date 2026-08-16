@@ -136,16 +136,50 @@ export function applyStoryCommand(
           },
         },
       };
-    case "foundations.visual.accept": {
-      const accepted = project.build.foundations.acceptedVisualArtifactIds;
+    case "foundations.visual.store": {
+      const existing = project.build.foundations.visualArtifacts.filter(
+        (artifact) => artifact.id !== command.artifact.id,
+      );
       return {
         ...base,
         build: {
           ...project.build,
           foundations: {
-            acceptedVisualArtifactIds: accepted.includes(command.artifactId)
-              ? accepted
-              : [...accepted, command.artifactId],
+            ...project.build.foundations,
+            visualArtifacts: [command.artifact, ...existing].slice(0, 12),
+          },
+        },
+      };
+    }
+    case "foundations.visual.discard":
+      return {
+        ...base,
+        build: {
+          ...project.build,
+          foundations: {
+            visualArtifacts: project.build.foundations.visualArtifacts.filter(
+              (artifact) => artifact.id !== command.artifactId,
+            ),
+            acceptedVisualArtifactIds: project.build.foundations.acceptedVisualArtifactIds.filter(
+              (artifactId) => artifactId !== command.artifactId,
+            ),
+          },
+        },
+      };
+    case "foundations.visual.accept": {
+      const accepted = project.build.foundations.acceptedVisualArtifactIds;
+      const artifactExists = project.build.foundations.visualArtifacts.some(
+        (artifact) => artifact.id === command.artifactId,
+      );
+      return {
+        ...base,
+        build: {
+          ...project.build,
+          foundations: {
+            ...project.build.foundations,
+            acceptedVisualArtifactIds: artifactExists && !accepted.includes(command.artifactId)
+              ? [...accepted, command.artifactId]
+              : accepted,
           },
         },
       };
@@ -156,6 +190,7 @@ export function applyStoryCommand(
         build: {
           ...project.build,
           foundations: {
+            ...project.build.foundations,
             acceptedVisualArtifactIds: project.build.foundations.acceptedVisualArtifactIds.filter(
               (artifactId) => artifactId !== command.artifactId,
             ),

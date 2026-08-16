@@ -41,6 +41,7 @@ test("Foundations progression is derived from canonical LEARN PLAN and BUILD sta
   assert.match(project, /readonly build: BuildProgressState/);
   assert.match(project, /build: createEmptyBuildProgressState\(\)/);
   assert.match(project, /build: normalizeBuild\(source\.build\)/);
+  assert.match(buildContract, /visualArtifacts/);
   assert.match(buildContract, /acceptedVisualArtifactIds/);
 });
 
@@ -51,10 +52,11 @@ test("BUILD acceptance is a project command rather than a Dashboard-only flag", 
     read("modules/dashboard/ui/dashboard-workspace.tsx"),
   ]);
 
+  assert.match(commands, /"foundations\.visual\.store"/);
   assert.match(commands, /"foundations\.visual\.accept"/);
   assert.match(commands, /"foundations\.visual\.unaccept"/);
   assert.match(reducer, /case "foundations\.visual\.accept"/);
-  assert.match(reducer, /acceptedVisualArtifactIds: accepted\.includes\(command\.artifactId\)/);
+  assert.match(reducer, /artifactExists/);
   assert.match(reducer, /case "foundations\.visual\.unaccept"/);
   assert.doesNotMatch(dashboard, /localStorage\.setItem/);
   assert.match(dashboard, /FOUNDATION_PROJECT_SAVED_EVENT/);
@@ -80,11 +82,16 @@ test("Dashboard makes the LEARN PLAN BUILD unlock path visually explicit", async
   assert.match(styles, /:focus-visible/);
 });
 
-test("BUILD opens only as a truthful Foundations landing until a real visual exists", async () => {
+test("BUILD creates real persisted visuals and requires explicit writer acceptance", async () => {
   const build = await read("modules/build/ui/foundations-build-workspace.tsx");
   assert.match(build, /deriveFoundationsProgression/);
   assert.match(build, /Finish PLAN before BUILD/);
-  assert.match(build, /first visual workshop is unlocked/);
-  assert.match(build, /does not invent an accepted visual or unlock WORLD before a real artifact exists/);
-  assert.doesNotMatch(build, /foundations\.visual\.accept/);
+  assert.match(build, /\/api\/local-ai\/generate\/image/);
+  assert.match(build, /type: "foundations\.visual\.store"/);
+  assert.match(build, /type: "foundations\.visual\.accept"/);
+  assert.match(build, /type: "foundations\.visual\.unaccept"/);
+  assert.match(build, /type: "foundations\.visual\.discard"/);
+  assert.match(build, /generation alone does not complete BUILD/i);
+  assert.match(build, /WORLD is now unlocked/);
+  assert.match(build, /saveFoundationProject/);
 });

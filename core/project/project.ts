@@ -1,4 +1,8 @@
-import { createEmptyBuildProgressState, type BuildProgressState } from "../contracts/build-progress";
+import {
+  createEmptyBuildProgressState,
+  type BuildProgressState,
+  type FoundationsVisualArtifact,
+} from "../contracts/build-progress";
 import {
   createEmptyFoundationLessonAnswers,
   createEmptyFoundationPlanState,
@@ -120,7 +124,6 @@ function normalizeFoundations(value: unknown): FoundationPlanState {
     Object.entries(sourceLessons).map(([lessonId, answers]) => [lessonId, normalizeLessonAnswers(answers)]),
   );
 
-  // Preserve real answers written by the short-lived earlier PLAN implementation.
   for (const [legacyField, lessonId] of Object.entries(LEGACY_FOUNDATION_FIELDS)) {
     const legacyValue = typeof source[legacyField] === "string" ? source[legacyField].trim() : "";
     if (!isUsableFoundationAnswer(legacyValue) || lessons[lessonId]?.answers["output-1"]?.trim()) continue;
@@ -153,16 +156,46 @@ function normalizeFoundations(value: unknown): FoundationPlanState {
   };
 }
 
+function normalizeVisualArtifact(value: unknown): FoundationsVisualArtifact | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const item = value as Partial<FoundationsVisualArtifact>;
+  if (typeof item.id !== "string" || !item.id.trim()) return null;
+  if (typeof item.assetUrl !== "string" || !item.assetUrl.startsWith("/api/local-ai/assets/")) return null;
+  if (typeof item.prompt !== "string" || !item.prompt.trim()) return null;
+  return {
+    id: item.id.trim(),
+    assetUrl: item.assetUrl,
+    prompt: item.prompt.slice(0, 30_000),
+    createdAt: typeof item.createdAt === "string" && item.createdAt ? item.createdAt : new Date().toISOString(),
+    provider: typeof item.provider === "string" ? item.provider : "",
+    model: typeof item.model === "string" ? item.model : "",
+  };
+}
+
 function normalizeBuild(value: unknown): BuildProgressState {
   if (!value || typeof value !== "object" || Array.isArray(value)) return createEmptyBuildProgressState();
-  const source = value as { readonly foundations?: { readonly acceptedVisualArtifactIds?: unknown } };
+  const source = value as {
+    readonly foundations?: {
+      readonly visualArtifacts?: unknown;
+      readonly acceptedVisualArtifactIds?: unknown;
+    };
+  };
+  const visualArtifacts = Array.isArray(source.foundations?.visualArtifacts)
+    ? source.foundations.visualArtifacts
+      .map(normalizeVisualArtifact)
+      .filter((artifact): artifact is FoundationsVisualArtifact => Boolean(artifact))
+      .filter((artifact, index, all) => all.findIndex((candidate) => candidate.id === artifact.id) === index)
+      .slice(0, 12)
+    : [];
+  const knownArtifactIds = new Set(visualArtifacts.map((artifact) => artifact.id));
   const acceptedVisualArtifactIds = Array.isArray(source.foundations?.acceptedVisualArtifactIds)
     ? [...new Set(source.foundations.acceptedVisualArtifactIds.filter(
-      (artifactId): artifactId is string => typeof artifactId === "string" && Boolean(artifactId.trim()),
+      (artifactId): artifactId is string => typeof artifactId === "string" && Boolean(artifactId.trim()) && knownArtifactIds.has(artifactId),
     ))]
     : [];
   return {
     foundations: {
+      visualArtifacts,
       acceptedVisualArtifactIds,
     },
   };

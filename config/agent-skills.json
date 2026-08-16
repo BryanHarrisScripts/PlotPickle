@@ -27,6 +27,54 @@
       "consumers": ["curriculum-guide"],
       "mcpReady": true,
       "localOnly": true
+    },
+    {
+      "id": "plan-foundations",
+      "name": "PLAN Foundations",
+      "description": "Turn retrieved Foundations curriculum and approved project evidence into reviewable draft story decisions without owning mutation or provider routing.",
+      "entry": ".agents/skills/plan-foundations/SKILL.md",
+      "uri": "skill://plotpickle/plan-foundations",
+      "roles": ["foundations-planner"],
+      "primaryWorker": "host",
+      "consumers": ["foundations-planner"],
+      "mcpReady": true,
+      "localOnly": true
+    },
+    {
+      "id": "writer-in-residence",
+      "name": "Writer-in-Residence",
+      "description": "Exercise PlotPickle as a visible writer and report reproduced UX or product findings without hidden browser or repository authority.",
+      "entry": ".agents/skills/writer-in-residence/SKILL.md",
+      "uri": "skill://plotpickle/writer-in-residence",
+      "roles": ["writer-journey-qa"],
+      "primaryWorker": "avery",
+      "consumers": ["writer-in-residence"],
+      "mcpReady": true,
+      "localOnly": true
+    },
+    {
+      "id": "visual-qa",
+      "name": "Visual QA",
+      "description": "Inspect rendered PlotPickle layout and continuity evidence without becoming the product writer or mutating story state.",
+      "entry": ".agents/skills/visual-qa/SKILL.md",
+      "uri": "skill://plotpickle/visual-qa",
+      "roles": ["visual-observer"],
+      "primaryWorker": "visual-observer",
+      "consumers": ["visual-qa"],
+      "mcpReady": true,
+      "localOnly": true
+    },
+    {
+      "id": "buzz-guildhall-reporting",
+      "name": "BUZZ Guildhall Reporting",
+      "description": "Summarize and route minimum-necessary operational agent activity for BUZZ Guildhall without making BUZZ the agent runtime.",
+      "entry": ".agents/skills/buzz-guildhall-reporting/SKILL.md",
+      "uri": "skill://plotpickle/buzz-guildhall-reporting",
+      "roles": ["guildhall-reporting"],
+      "primaryWorker": "host",
+      "consumers": ["buzz-guildhall"],
+      "mcpReady": true,
+      "localOnly": true
     }
   ]
 }

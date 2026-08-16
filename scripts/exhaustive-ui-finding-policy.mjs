@@ -1,6 +1,7 @@
 const harnessOnlySummaryPatterns = [
   /could not be exercised by the synthetic UAT runner/i,
   /threw or stalled during synthetic UAT/i,
+  /can be activated but produces no observable result/i,
   /exhaustive UAT hit its interaction ceiling/i,
   /exhaustive UAT did not complete any .* interaction/i,
 ];

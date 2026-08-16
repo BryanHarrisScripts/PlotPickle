@@ -86,6 +86,7 @@
         "tests/issue-686-sage-unified-agent.test.mjs",
         "tests/sage-brinewick-agent-skill.test.mjs",
         "tests/dashboard-foundations-progression.test.mjs",
+        "tests/guided-progression-engine.test.mjs",
         "tests/pi-local-model-exhaustive-uat.test.mjs"
       ]
     },

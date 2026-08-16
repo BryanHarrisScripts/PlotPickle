@@ -4,29 +4,49 @@ on:
   pull_request:
     paths:
       - "config/buzz-guildhall.json"
+      - "config/uat-autopilot-registry.json"
       - "lib/buzz-guildhall.ts"
+      - "build/buzz-community-gateway.ts"
       - "build/buzz-guildhall-gateway.ts"
       - "app/buzz-settings-panel.tsx"
+      - "app/community-workspace.tsx"
+      - "app/community-workspace.module.css"
+      - "app/page.tsx"
+      - "app/plotpickle-workspace-shell.tsx"
+      - "app/plotpickle-workspace-shell.module.css"
+      - "public/assets/workflow-relics/community.svg"
       - "vite.config.ts"
       - "scripts/bootstrap-buzz-guildhall.mjs"
       - "scripts/post-buzz-guildhall-event.mjs"
       - "docs/buzz-guildhall.md"
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
+      - "tests/issue-672-global-navigation.test.mjs"
+      - "tests/community-workspace.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
   push:
     branches: [main]
     paths:
       - "config/buzz-guildhall.json"
+      - "config/uat-autopilot-registry.json"
       - "lib/buzz-guildhall.ts"
+      - "build/buzz-community-gateway.ts"
       - "build/buzz-guildhall-gateway.ts"
       - "app/buzz-settings-panel.tsx"
+      - "app/community-workspace.tsx"
+      - "app/community-workspace.module.css"
+      - "app/page.tsx"
+      - "app/plotpickle-workspace-shell.tsx"
+      - "app/plotpickle-workspace-shell.module.css"
+      - "public/assets/workflow-relics/community.svg"
       - "vite.config.ts"
       - "scripts/bootstrap-buzz-guildhall.mjs"
       - "scripts/post-buzz-guildhall-event.mjs"
       - "docs/buzz-guildhall.md"
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
+      - "tests/issue-672-global-navigation.test.mjs"
+      - "tests/community-workspace.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
 
 permissions:
@@ -44,5 +64,5 @@ jobs:
         run: |
           node --check scripts/bootstrap-buzz-guildhall.mjs
           node --check scripts/post-buzz-guildhall-event.mjs
-      - name: Validate Guildhall contracts
-        run: node --test tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs
+      - name: Validate Guildhall and Community contracts
+        run: node --test tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs

@@ -4,10 +4,11 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import styles from "./plotpickle-workspace-shell.module.css";
 
-export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "settings";
+export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "community" | "settings";
 
 export const ROOT_NAV_ITEMS = [
   { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "Start", selectable: false },
+  { id: "community", relic: "/assets/workflow-relics/community.svg", label: "Community", detail: "Guildhall", selectable: true },
   { id: "learn", relic: "/assets/workflow-relics/learn.webp", label: "Learn", detail: "Guides", selectable: true },
   { id: "plan", relic: "/assets/workflow-relics/plan.webp", label: "Plan", detail: "Design", selectable: true },
   { id: "build", relic: "/assets/workflow-relics/build.webp", label: "Build", detail: "Assemble", selectable: false },
@@ -18,14 +19,18 @@ export const ROOT_NAV_ITEMS = [
   { id: "feedback", relic: "/assets/workflow-relics/feedback.webp", label: "Feedback", detail: "Review", selectable: false },
   { id: "refine", relic: "/assets/workflow-relics/refine.webp", label: "Refine", detail: "Decide", selectable: false },
   { id: "reports", relic: "/assets/workflow-relics/reports.webp", label: "Reports", detail: "Deliver", selectable: false },
-  { id: "wyrmwood", relic: "/assets/workflow-relics/game.webp", label: "WYRMWOOD", detail: "Game", selectable: true },
-  { id: "settings", relic: "/assets/workflow-relics/settings.svg", label: "SETTINGS", detail: "Config", selectable: true },
+  { id: "wyrmwood", relic: "/assets/workflow-relics/game.webp", label: "Wyrmwood", detail: "Game", selectable: true },
+  { id: "settings", relic: "/assets/workflow-relics/settings.svg", label: "Settings", detail: "Config", selectable: true },
 ] as const;
 
 type RootNavItem = (typeof ROOT_NAV_ITEMS)[number];
 
 function isRootWorkspace(id: RootNavItem["id"]): id is RootWorkspace {
-  return id === "learn" || id === "plan" || id === "wyrmwood" || id === "settings";
+  return id === "learn" || id === "plan" || id === "wyrmwood" || id === "community" || id === "settings";
+}
+
+function endsNavigationGroup(id: RootNavItem["id"]) {
+  return id === "community" || id === "graphic-novel" || id === "reports";
 }
 
 export default function PlotPickleWorkspaceShell({
@@ -60,8 +65,11 @@ export default function PlotPickleWorkspaceShell({
             {ROOT_NAV_ITEMS.map((item) => {
               const active = item.id === activeWorkspace;
               const selectable = item.selectable && isRootWorkspace(item.id);
+              const className = [active ? styles.active : "", endsNavigationGroup(item.id) ? styles.groupBreakAfter : ""]
+                .filter(Boolean)
+                .join(" ") || undefined;
               return (
-                <li className={active ? styles.active : undefined} key={item.id}>
+                <li className={className} key={item.id}>
                   <button
                     aria-current={active ? "page" : undefined}
                     disabled={!selectable || active}

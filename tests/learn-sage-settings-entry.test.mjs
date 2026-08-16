@@ -56,12 +56,12 @@ test("workspace=settings opens a beginner-first Quick Setup inside the shared ro
     read("app/sage-settings-workspace.module.css"),
   ]);
   assert.match(page, /type Workspace = RootWorkspace/);
-  assert.match(shell, /RootWorkspace = "learn" \| "plan" \| "wyrmwood" \| "settings"/);
+  assert.match(shell, /RootWorkspace = "learn" \| "plan" \| "wyrmwood" \| "community" \| "settings"/);
   assert.match(page, /requested === "settings"/);
   assert.match(page, /workspace === "settings"/);
   assert.match(page, /<PlotPickleWorkspaceShell activeWorkspace="settings"/);
   assert.match(page, /<SageSettingsWorkspace \/>/);
-  assert.match(shell, /label: "SETTINGS", detail: "Config", selectable: true/);
+  assert.match(shell, /label: "Settings", detail: "Config", selectable: true/);
   assert.match(settings, /Settings · Quick Setup/);
   assert.match(settings, /Set up Sage and PLAN\./);
   assert.match(settings, /Step 1:<\/strong> Choose how you want PlotPickle to talk to local AI/);

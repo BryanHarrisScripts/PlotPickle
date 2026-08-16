@@ -55,6 +55,18 @@ function looksLikeThinPlaceholder(answer: string) {
   return false;
 }
 
+export function normalizeFoundationDraftParagraphs(value: string) {
+  const clean = value.replace(/\r/g, "").trim();
+  if (!clean) return "";
+  const paragraphs = clean
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.replace(/[\t ]+/g, " ").replace(/\n+/g, " ").trim())
+    .filter(Boolean)
+    .slice(0, 4);
+  const bounded = (paragraphs.length ? paragraphs : [clean.replace(/\s+/g, " ").trim()]).join("\n\n");
+  return bounded.slice(0, 1_600).trim();
+}
+
 function parseProposal(
   value: string,
   lesson: FoundationPlanLesson,
@@ -88,7 +100,7 @@ function parseProposal(
       .filter((entry): entry is [string, string] => (
         allowed.has(entry[0]) && typeof entry[1] === "string" && Boolean(entry[1].trim())
       ))
-      .map(([fieldId, text]) => [fieldId, text.trim().slice(0, 1_800)]),
+      .map(([fieldId, text]) => [fieldId, normalizeFoundationDraftParagraphs(text)]),
   );
   const missingFields = lesson.fields.filter((field) => !values[field.id]);
   if (missingFields.length) {
@@ -218,12 +230,13 @@ async function requestFoundationProposal(
 
 function repairInstruction() {
   return [
-    "REPAIR THE PLAN PROPOSAL.",
-    "The previous proposal was unusable because it copied a planning question, omitted a field, returned a placeholder, returned no text, or returned invalid structured output.",
+    "REPAIR THE PLAN DRAFT.",
+    "The previous draft was unusable because it copied a planning question, omitted a field, returned a placeholder, returned no text, or returned invalid structured output.",
     "For every requested field ID, write an actual proposed answer with concrete story content. Never copy or lightly paraphrase the field question as the answer.",
     "Use accepted writer material wherever it exists.",
-    "Because this content is still an unaccepted proposal, when writer evidence is missing you may invent a plausible working candidate, but it MUST begin with 'Provisional —' and must be presented as a suggestion rather than existing canon.",
+    "Because this content is editable AI working text, when writer evidence is missing you may invent a plausible working candidate, but it MUST begin with 'Provisional —' and must be presented as a suggestion rather than existing canon.",
     "A Provisional field still needs a substantive concrete candidate; never return only the word Provisional, a generic placeholder, or instructions telling the writer to fill it later.",
+    "Aim for 2 short paragraphs per field. You may use up to 4 short paragraphs when needed, but never more than four.",
     "Do not claim that provisional character names, events, settings, outcomes, or other candidate details already exist in the writer's story.",
     "Return JSON only, in the exact requested values shape, with no commentary outside the JSON.",
   ].join(" ");
@@ -231,12 +244,13 @@ function repairInstruction() {
 
 function proposalTask() {
   return [
-    "Draft a separate, reviewable proposal for each requested PLAN field.",
+    "Draft editable working text for each requested PLAN field.",
     "Use accepted writer material as canon when it exists.",
     "Never copy or lightly paraphrase a requested planning question as its answer.",
     "If accepted story evidence is missing, create a useful plausible working candidate and begin that field with 'Provisional —'. Provisional candidate details are suggestions for review, not claims about existing canon.",
     "A provisional answer must still contain a concrete story choice; never output a generic placeholder or tell the writer to supply the answer later.",
-    "The writer must still explicitly accept a proposal before PlotPickle changes project decisions.",
+    "Aim for 2 short paragraphs per field. Use up to 4 short paragraphs only when the answer needs it. Never exceed four paragraphs for a field.",
+    "The writer selected these fields for AI drafting, so the returned text will be inserted into those editable fields; never alter or discuss unselected fields.",
     "Return JSON only in the exact values shape using every supplied field ID exactly once.",
   ].join(" ");
 }
@@ -285,7 +299,6 @@ async function recoverFieldsIndividually(
   const failedFields: FoundationPlanField[] = [];
   let lastModel = configuredModel;
 
-  // After two batch attempts, recover each field as a smaller task instead of abandoning the whole proposal.
   for (const field of input.lesson.fields) {
     const singleLesson: FoundationPlanLesson = { ...input.lesson, fields: [field] };
     const compactMessage = singleFieldMessage(input, field);
@@ -307,7 +320,7 @@ async function recoverFieldsIndividually(
 
   if (failedFields.length) {
     const labels = failedFields.map((field) => field.id).join(", ");
-    throw new FoundationProposalQualityError(`PLAN could not produce a usable proposal for ${labels} after structured repair. Your fields were not changed.`);
+    throw new FoundationProposalQualityError(`PLAN could not produce a usable draft for ${labels} after structured repair. Your fields were not changed.`);
   }
   return { values, model: lastModel };
 }
@@ -321,10 +334,6 @@ export async function draftFoundationLesson(
   const fieldIds = input.lesson.fields.map((field) => field.id);
   let lastModel = configuredModel;
 
-  // A real local failure can happen before parseProposal ever runs (for example,
-  // an empty structured generation returned as an HTTP error). Treat the first
-  // two batch calls as bounded candidates; either a request failure or a quality
-  // failure falls through to the next recovery layer instead of aborting PLAN.
   for (const attemptMessage of [message, `${repairInstruction()}\n\n${message}`]) {
     try {
       const result = await requestFoundationProposal(attemptMessage, fieldIds, 35_000);

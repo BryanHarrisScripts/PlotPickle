@@ -42,18 +42,21 @@ test("Sage conversation matrix covers identity, name meaning, wellbeing, help, c
   assert.equal(finding.fingerprint, "sage.internal-scaffolding-leak");
 });
 
-test("LEARN routes visible Sage answers through the safety boundary", async () => {
+test("LEARN routes visible Sage answers through the unified safety boundary", async () => {
   const [page, guard] = await Promise.all([
     read("app/page.tsx"),
-    read("modules/creative-room/sage-safe-guide.ts"),
+    read("modules/creative-room/sage-unified-guide.ts"),
   ]);
-  assert.match(page, /creative-room\/sage-safe-guide/);
+  assert.match(page, /creative-room\/sage-unified-guide/);
+  assert.doesNotMatch(page, /creative-room\/sage-safe-guide/);
   assert.match(guard, /what is your name\|whats your name/);
-  assert.match(guard, /QUALITY MODEL ESCALATION/);
-  assert.match(guard, /sageAnswerLeaksInternalScaffolding/);
-  assert.match(guard, /PlotPickle’s Curriculum Guide/);
-  assert.match(guard, /safeLeakRecoveryAnswer/);
-  assert.doesNotMatch(guard, /throw new Error\("Sage blocked a response because it exposed internal PlotPickle instructions/);
+  assert.match(guard, /INTERNAL_MARKERS/);
+  assert.match(guard, /sageUnifiedAnswerUsable/);
+  assert.match(guard, /hasRunawayRepetition/);
+  assert.match(guard, /I’m Sage Brinewick, PlotPickle’s Curriculum Guide/);
+  assert.match(guard, /conversationFallback/);
+  assert.match(guard, /craftFallback/);
+  assert.doesNotMatch(guard, /answerAsSageConversationSpecialist/);
 });
 
 test("live UAT exercises the actual Sage composer instead of only the raw chat endpoint", async () => {

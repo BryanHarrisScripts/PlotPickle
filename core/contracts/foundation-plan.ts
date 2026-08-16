@@ -59,6 +59,15 @@ export function createEmptyFoundationPlanState(): FoundationPlanState {
   };
 }
 
+export function guidingQuestionsForFoundationField(field: FoundationPlanField): readonly [string, string, string] {
+  const prompt = field.prompt.replace(/\s+/g, " ").trim().replace(/[?.!]+$/, "");
+  return [
+    `If you had to answer “${prompt}” in one clear sentence, what would you choose right now?`,
+    "Which character, event, image, relationship, or conflict in your story gives you evidence for that choice?",
+    "If this choice is true, what changes for the character, the story, or the audience experience?",
+  ];
+}
+
 function applicationPrompts(lesson: CurriculumLesson) {
   const application = [...lesson.sections].reverse().find(
     (section) => section.heading.trim().toLowerCase() === "apply this to your story",

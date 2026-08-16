@@ -106,7 +106,7 @@ test("PLAN derives the same eleven lessons and output prompts directly from LEAR
   }
 });
 
-test("manual answers, AI proposals and the saved brief have explicit project transitions", () => {
+test("manual answers, AI drafts and the saved brief have explicit project transitions", () => {
   const { createEmptyProject, normalizeFoundationProject } = loadLocalModule(
     resolve(root, "core/project/project.ts"),
   );
@@ -158,7 +158,7 @@ test("manual answers, AI proposals and the saved brief have explicit project tra
   assert.equal(recovered.foundations.lessons.pitch.answers["output-1"], "Legacy writer material that must survive.");
 });
 
-test("the PLAN screen keeps manual work primary and uses opt-in local Mastra proposals", async () => {
+test("the PLAN screen keeps manual work primary and uses opt-in local Mastra drafts", async () => {
   const [page, learn, plan, contract, drafter, runtime, planStyles] = await Promise.all([
     read("app/page.tsx"),
     read("modules/learn/ui/learn-workspace.tsx"),
@@ -183,12 +183,16 @@ test("the PLAN screen keeps manual work primary and uses opt-in local Mastra pro
   assert.match(plan, /stageId === "learn"\) openLearn\(activeLesson\.id\)/);
   assert.match(contract, /buildFoundationPlanLessons/);
   assert.match(contract, /heading\.trim\(\)\.toLowerCase\(\) === "apply this to your story"/);
+  assert.match(contract, /guidingQuestionsForFoundationField/);
   assert.doesNotMatch(contract, /The Anatomy of a Screenplay|Loglines That Carry the Movie/);
   assert.doesNotMatch(plan, /The Anatomy of a Screenplay|Loglines That Carry the Movie/);
-  assert.match(plan, /Local AI is optional and is never required/);
-  assert.match(plan, /proposal stays separate from your fields/);
-  assert.match(plan, /Accept (?:selected )?proposal into my fields/);
-  assert.match(plan, /Dismiss proposal/);
+  assert.match(plan, /Three questions to help you answer/);
+  assert.match(plan, /Use local AI to draft this answer/);
+  assert.match(plan, /function applyGeneratedDraft/);
+  assert.match(plan, /type: "foundations\.proposal\.store"/);
+  assert.match(plan, /type: "foundations\.proposal\.accept"/);
+  assert.match(plan, /AI draft inserted into your editable fields/);
+  assert.doesNotMatch(plan, /proposal stays separate from your fields|Accept selected proposal into my fields/);
   assert.match(plan, /Build from saved answers/);
   assert.match(plan, /Save Foundations Brief/);
   assert.match(plan, /function acceptedFoundationContext/);
@@ -202,14 +206,18 @@ test("the PLAN screen keeps manual work primary and uses opt-in local Mastra pro
   assert.match(drafter, /Your fields were not changed/);
   assert.doesNotMatch(drafter, /provider: "ollama"/);
   assert.match(drafter, /class FoundationProposalQualityError extends Error/);
-  assert.match(drafter, /REPAIR THE PLAN PROPOSAL/);
+  assert.match(drafter, /REPAIR THE PLAN DRAFT/);
   assert.match(drafter, /Never copy or lightly paraphrase the field question as the answer/);
   assert.match(drafter, /Provisional —/);
   assert.match(drafter, /recoverFieldsIndividually/);
-  assert.match(drafter, /recover each field as a smaller task/);
+  assert.match(drafter, /RECOVER ONE PLAN FIELD/);
+  assert.match(drafter, /normalizeFoundationDraftParagraphs/);
+  assert.match(drafter, /Never exceed four paragraphs/);
   assert.ok((drafter.match(/requestFoundationProposal\(/g) ?? []).length >= 3);
   assert.match(runtime, /"foundations-planner"/);
   assert.match(runtime, /Never invent a story fact/);
   assert.match(plan, /plotpickle-ouroboros-v2-128\.png/);
   assert.match(planStyles, /\.workspaceBrandMark/);
+  assert.match(planStyles, /\.guidingQuestions/);
+  assert.match(planStyles, /\.aiFieldChoice/);
 });

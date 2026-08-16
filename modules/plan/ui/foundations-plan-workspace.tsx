@@ -8,6 +8,8 @@ import {
   buildFoundationPlanLessons,
   countFoundationAnswers,
   createEmptyFoundationLessonAnswers,
+  guidingQuestionsForFoundationField,
+  type FoundationDraftProposal,
   type FoundationPlanLesson,
 } from "../../../core/contracts/foundation-plan";
 import { applyStoryCommand } from "../../../core/project/apply-command";
@@ -116,6 +118,25 @@ export default function FoundationsPlanWorkspace({
     });
   }
 
+  function applyGeneratedDraft(lessonId: string, proposal: FoundationDraftProposal) {
+    setProject((current) => {
+      if (!current) return current;
+      const stored = applyStoryCommand(current, {
+        type: "foundations.proposal.store",
+        lessonId,
+        proposal,
+        occurredAt: proposal.generatedAt,
+      });
+      const accepted = applyStoryCommand(stored, {
+        type: "foundations.proposal.accept",
+        lessonId,
+        occurredAt: proposal.generatedAt,
+      });
+      saveFoundationProject(accepted);
+      return accepted;
+    });
+  }
+
   function openPlanLesson(lessonId: string) {
     setDraftError("");
     setDraftFieldIds([]);
@@ -157,7 +178,7 @@ export default function FoundationsPlanWorkspace({
     if (!curriculumLesson) return;
     const selectedFields = activeLesson.fields.filter((field) => draftFieldIds.includes(field.id));
     if (!selectedFields.length) {
-      setDraftError("Choose one or more PLAN fields for local AI before creating a proposal.");
+      setDraftError("Choose one or more PLAN answers for local AI before drafting.");
       return;
     }
     const lessonId = activeLesson.id;
@@ -174,14 +195,10 @@ export default function FoundationsPlanWorkspace({
         currentAnswers: activeAnswers.answers,
         priorStoryContext: acceptedFoundationContext(lessons, activeLesson.id, project),
       });
-      commit({
-        type: "foundations.proposal.store",
-        lessonId,
-        proposal,
-        occurredAt: proposal.generatedAt,
-      });
+      applyGeneratedDraft(lessonId, proposal);
+      setDraftFieldIds([]);
     } catch (error) {
-      setDraftError(error instanceof Error ? error.message : "The local Foundations drafter could not create a proposal.");
+      setDraftError(error instanceof Error ? error.message : "The local Foundations drafter could not create an editable answer.");
     } finally {
       setDraftingLessonId("");
     }
@@ -306,13 +323,23 @@ export default function FoundationsPlanWorkspace({
 
           <section className={styles.manualPath}>
             <h2>Make the story decisions</h2>
-            <p>Write directly in these fields. Local AI is optional and is never required to complete Foundations. Your words save to this project as you type.</p>
+            <p>Use the three helper questions under each decision to think it through. Write your own answer, or select local AI for the answers where you want a working draft you can immediately edit.</p>
           </section>
 
           <div className={styles.answerFields}>
             {activeLesson.fields.map((field, index) => (
-              <label htmlFor={`foundation-${activeLesson.id}-${field.id}`} key={field.id}>
-                <span><b>{index + 1}</b>{field.prompt}</span>
+              <section className={styles.answerField} key={field.id}>
+                <label className={styles.fieldPrompt} htmlFor={`foundation-${activeLesson.id}-${field.id}`}>
+                  <span><b>{index + 1}</b>{field.prompt}</span>
+                </label>
+                <div className={styles.guidingQuestions} aria-label={`Three questions to help answer field ${index + 1}`}>
+                  <small>Three questions to help you answer</small>
+                  <ol>
+                    {guidingQuestionsForFoundationField(field).map((guideQuestion) => (
+                      <li key={guideQuestion}>{guideQuestion}</li>
+                    ))}
+                  </ol>
+                </div>
                 <textarea
                   id={`foundation-${activeLesson.id}-${field.id}`}
                   onChange={(event) => commit({
@@ -322,20 +349,29 @@ export default function FoundationsPlanWorkspace({
                     value: event.target.value,
                     occurredAt: new Date().toISOString(),
                   })}
-                  placeholder="Write your current best answer. Name uncertainties instead of hiding them."
+                  placeholder="Write your current best answer, or select local AI below for an editable draft."
                   rows={7}
                   value={activeAnswers.answers[field.id] ?? ""}
                 />
-              </label>
+                <label className={styles.aiFieldChoice}>
+                  <input
+                    aria-label={`Use local AI for field ${index + 1}: ${field.prompt}`}
+                    checked={draftFieldIds.includes(field.id)}
+                    onChange={() => toggleDraftField(field.id)}
+                    type="checkbox"
+                  />
+                  <span>Use local AI to draft this answer</span>
+                </label>
+              </section>
             ))}
           </div>
 
-          <section className={styles.aiSection} aria-label="Optional local AI proposal">
+          <section className={styles.aiSection} aria-label="Optional local AI drafting">
             <div className={styles.aiHeading}>
               <div>
                 <small>OPTIONAL · LOCAL ONLY</small>
-                <h2>Ask Mastra + Ollama for a draft proposal</h2>
-                <p>The proposal stays separate from your fields. Choose exactly which story decisions you want help with: one field, two fields, or all of them. Unselected fields are never generated or overwritten.</p>
+                <h2>Draft the selected answers with local AI</h2>
+                <p>Choose AI under any answer above, then draft those selections. PlotPickle inserts the result directly into only those editable fields. Each AI answer is kept concise at no more than four short paragraphs, and you can change every word.</p>
               </div>
               <button
                 disabled={Boolean(draftingLessonId) || draftFieldIds.length === 0}
@@ -343,64 +379,22 @@ export default function FoundationsPlanWorkspace({
                 type="button"
               >
                 {draftingLessonId === activeLesson.id
-                  ? "Drafting selected fields…"
-                  : proposal
-                    ? `Create proposal for ${draftFieldIds.length} selected`
-                    : `Draft ${draftFieldIds.length || "selected"} with local AI`}
+                  ? "Drafting selected answers…"
+                  : `Fill ${draftFieldIds.length || "selected"} with local AI`}
               </button>
             </div>
 
-            <fieldset
-              aria-label="Choose PLAN fields for local AI"
-              style={{
-                display: "grid",
-                gap: 10,
-                margin: "20px 0 0",
-                padding: "16px 18px",
-                border: "1px solid rgba(53, 201, 184, .28)",
-                borderRadius: 3,
-                background: "rgba(53, 201, 184, .035)",
-              }}
-            >
-              <legend style={{ padding: "0 8px", color: "#91e7dc", fontSize: 11, fontWeight: 800 }}>
-                Choose one, two, or all fields
-              </legend>
-              {activeLesson.fields.map((field, index) => (
-                <label
-                  key={field.id}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "20px 26px minmax(0, 1fr)",
-                    alignItems: "start",
-                    gap: 8,
-                    cursor: "pointer",
-                    color: "#ddd8cf",
-                    fontSize: 12,
-                    lineHeight: 1.45,
-                  }}
-                >
-                  <input
-                    aria-label={`Use local AI for field ${index + 1}: ${field.prompt}`}
-                    checked={draftFieldIds.includes(field.id)}
-                    onChange={() => toggleDraftField(field.id)}
-                    type="checkbox"
-                  />
-                  <b style={{ color: "#cf9c50" }}>{index + 1}</b>
-                  <span>{field.prompt}</span>
-                </label>
-              ))}
-              <small style={{ color: "#8f8a81", fontSize: 10 }}>
-                {draftFieldIds.length
-                  ? `${draftFieldIds.length} of ${activeLesson.fields.length} fields selected for this proposal.`
-                  : "Nothing selected. Your existing fields will not be sent for drafting until you choose."}
-              </small>
-            </fieldset>
+            <p className={styles.aiSelectionStatus} aria-live="polite">
+              {draftFieldIds.length
+                ? `${draftFieldIds.length} of ${activeLesson.fields.length} answers selected. Existing text in those selected fields will be replaced by the new editable AI draft.`
+                : "No answers selected for AI. Manual writing remains unchanged."}
+            </p>
 
             {draftError ? <p className={styles.error} role="alert">{draftError}</p> : null}
             {proposal ? (
               <div className={styles.proposal}>
                 <header>
-                  <strong>Reviewable proposal</strong>
+                  <strong>AI draft inserted into your editable fields</strong>
                   <small>{proposal.model} · generated {new Date(proposal.generatedAt).toLocaleString()}</small>
                 </header>
                 {activeLesson.fields.map((field) => proposal.values[field.id] ? (
@@ -410,23 +404,12 @@ export default function FoundationsPlanWorkspace({
                   </section>
                 ) : null)}
                 <div className={styles.proposalActions}>
-                  <button
-                    disabled={Boolean(activeAnswers.proposalAcceptedAt)}
-                    onClick={() => commit({
-                      type: "foundations.proposal.accept",
-                      lessonId: activeLesson.id,
-                      occurredAt: new Date().toISOString(),
-                    })}
-                    type="button"
-                  >
-                    {activeAnswers.proposalAcceptedAt ? "Accepted — edit in your fields above" : "Accept selected proposal into my fields"}
-                  </button>
                   <button onClick={() => commit({
                     type: "foundations.proposal.dismiss",
                     lessonId: activeLesson.id,
                     occurredAt: new Date().toISOString(),
                   })} type="button">
-                    {activeAnswers.proposalAcceptedAt ? "Hide proposal" : "Dismiss proposal"}
+                    Hide generation details
                   </button>
                 </div>
               </div>
@@ -481,7 +464,7 @@ export default function FoundationsPlanWorkspace({
           </p>
           <section className={styles.briefGuidance}>
             <h3>What carries forward</h3>
-            <p>Only answers in your editable fields and the brief you explicitly save are project decisions. An AI proposal remains a proposal until you accept it.</p>
+            <p>Your editable PLAN answers are the working project decisions. AI can fill only the answers you explicitly select, and you should review or edit that working text before saving the Foundations Brief.</p>
           </section>
         </aside>
       </main>

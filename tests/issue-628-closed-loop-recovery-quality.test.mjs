@@ -33,16 +33,15 @@ test("startup PLAN health mirrors structured repair and reports exhausted recove
 });
 
 test("Sage separates name identity from name meaning and keeps ordinary wellbeing chat safe", async () => {
-  const safeGuide = await read("modules/creative-room/sage-safe-guide.ts");
-  assert.match(safeGuide, /isSageNameMeaningQuestion/);
-  assert.match(safeGuide, /if \(isSageNameMeaningQuestion\(question\)\) return false/);
-  assert.match(safeGuide, /what does \(\?:your\|the\) name mean/);
-  assert.match(safeGuide, /isSageWellbeingQuestion/);
-  assert.match(safeGuide, /I’m here and working\. What would you like to tackle\?/);
-  assert.match(safeGuide, /‘Sage’ signals the guide-and-teacher role/);
-  assert.match(safeGuide, /‘Brinewick’ is a fictional PlotPickle lore name/);
-  assert.doesNotMatch(safeGuide, /throw new Error\("Sage blocked a response because it exposed internal PlotPickle instructions/);
-  assert.match(safeGuide, /return safeLeakRecoveryAnswer\(\)/);
+  const unified = await read("modules/creative-room/sage-unified-guide.ts");
+  assert.match(unified, /isNameMeaningQuestion/);
+  assert.match(unified, /&& !isNameMeaningQuestion\(question\)/);
+  assert.match(unified, /what does \(\?:your\|the\) name mean/);
+  assert.match(unified, /isWellbeingQuestion/);
+  assert.match(unified, /I’m here and working\. What are we wrestling with\?/);
+  assert.match(unified, /‘Sage’ fits the guide-and-teacher role/);
+  assert.match(unified, /‘Brinewick’ is simply a fictional PlotPickle lore name/);
+  assert.match(unified, /sageUnifiedAnswerUsable/);
 
   const meaningCase = SAGE_CONVERSATION_UAT_CASES.find((item) => item.id === "name-meaning");
   const wellbeingCase = SAGE_CONVERSATION_UAT_CASES.find((item) => item.id === "wellbeing");
@@ -70,7 +69,7 @@ test("PLAN never turns failed AI generation into fake completed Foundations answ
   assert.match(drafter, /A provisional answer must still contain a concrete story choice/);
   assert.match(drafter, /recoverFieldsIndividually/);
   assert.match(drafter, /failedFields/);
-  assert.match(drafter, /PLAN could not produce a usable proposal for/);
+  assert.match(drafter, /PLAN could not produce a usable draft for/);
   assert.match(drafter, /Your fields were not changed/);
   assert.doesNotMatch(drafter, /safeProvisionalFallback/);
   assert.doesNotMatch(drafter, /provisional safety fallback/);

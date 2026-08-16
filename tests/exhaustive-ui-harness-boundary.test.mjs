@@ -19,7 +19,7 @@ test("legacy ref schema remains supported", () => {
   );
 });
 
-test("harness-only findings stay local while reproduced dead controls remain reportable", () => {
+test("harness interaction and observation failures stay local instead of becoming GitHub blockers", () => {
   const harness = {
     kind: "bug",
     severity: "high",
@@ -27,18 +27,26 @@ test("harness-only findings stay local while reproduced dead controls remain rep
     summary: "PLAN: button ‘Build’ threw or stalled during synthetic UAT.",
     impact: "Invalid arguments for tool browser_click: expected string, received undefined at target",
   };
-  const dead = {
+  const unverifiedDead = {
     kind: "bug",
     severity: "high",
     actionable: true,
     summary: "PLAN: button ‘Build’ can be activated but produces no observable result.",
-    impact: "A user can get trapped clicking controls without knowing whether anything happened.",
+    impact: "The synthetic observer did not detect a state change.",
+  };
+  const verifiedProductFinding = {
+    kind: "bug",
+    severity: "high",
+    actionable: true,
+    summary: "PLAN: saved answer is lost after reopening the section.",
+    impact: "The user-entered answer is not persisted and the focused reproduction confirms data loss.",
   };
 
   assert.equal(isReportableExhaustiveFinding(harness), false);
-  assert.equal(isReportableExhaustiveFinding(dead), true);
-  assert.deepEqual(partitionExhaustiveFindings([harness, dead]), {
-    reportable: [dead],
-    harnessOnly: [harness],
+  assert.equal(isReportableExhaustiveFinding(unverifiedDead), false);
+  assert.equal(isReportableExhaustiveFinding(verifiedProductFinding), true);
+  assert.deepEqual(partitionExhaustiveFindings([harness, unverifiedDead, verifiedProductFinding]), {
+    reportable: [verifiedProductFinding],
+    harnessOnly: [harness, unverifiedDead],
   });
 });

@@ -144,7 +144,7 @@ function command(executable: string, args: string[], env: NodeJS.ProcessEnv) {
 }
 
 async function runBuzz(connection: BuzzConnection, args: string[]) {
-  if (!connection.privateKey) throw new Error("Authorize PlotPickle with your BUZZ identity before reading steward presence.");
+  if (!connection.privateKey) throw new Error("Authorize PlotPickle with your BUZZ identity before reading agent presence.");
   const resolution = await resolveBuzzCliExecutable(connection.cliPath);
   const result = await command(resolution.executable, args, {
     BUZZ_RELAY_URL: relayHttpUrl(connection.relayUrl),
@@ -211,15 +211,19 @@ async function nativeAgentStatus(connection: BuzzConnection, actor: (typeof BUZZ
   }
 }
 
+function visibleActors() {
+  return BUZZ_GUILDHALL_ACTORS.filter((actor) => actor.buzzPresence === "mirrored" || actor.buzzPresence === "native-draft");
+}
+
 async function status() {
-  const nativeActors = BUZZ_GUILDHALL_ACTORS.filter((actor) => actor.runtime === "buzz");
+  const actors = visibleActors();
   const connection = await readConnection();
   const identityVerified = Boolean(connection?.verificationVersion === 2 && connection.verifiedAt && connection.privateKey);
   if (!connection || !identityVerified) {
     return {
       ok: true,
       identityVerified,
-      agents: nativeActors.map((actor) => ({
+      agents: actors.map((actor) => ({
         actorId: actor.id,
         created: false,
         verified: false,
@@ -229,17 +233,17 @@ async function status() {
         updatedAt: "",
         lookupError: false,
       })),
-      message: "Connect and verify BUZZ to see native steward presence.",
+      message: "Connect and verify BUZZ to see which PlotPickle agents also have owner-approved BUZZ identities.",
     };
   }
-  const agents = await Promise.all(nativeActors.map((actor) => nativeAgentStatus(connection, actor)));
+  const agents = await Promise.all(actors.map((actor) => nativeAgentStatus(connection, actor)));
   return {
     ok: true,
     identityVerified: true,
     agents,
     message: agents.some((agent) => agent.lookupError)
-      ? "Some BUZZ-native steward status could not be read. The PlotPickle roster will show status unavailable rather than guessing."
-      : "BUZZ-native steward status is current.",
+      ? "Some BUZZ agent identity status could not be read. PlotPickle will show status unavailable rather than guessing."
+      : "BUZZ identity status is current for PlotPickle agents and native stewards.",
   };
 }
 

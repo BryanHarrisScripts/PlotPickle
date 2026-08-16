@@ -20,7 +20,8 @@
         "tests/issue-645-uat-readiness-git-bash.test.mjs",
         "tests/issue-651-pi-cline-uat-repair.test.mjs",
         "tests/issue-652-auto-repair-model-readiness.test.mjs",
-        "tests/issue-653-writer-in-residence.test.mjs"
+        "tests/issue-653-writer-in-residence.test.mjs",
+        "tests/issue-667-669-agent-output-quality.test.mjs"
       ]
     },
     {
@@ -52,7 +53,8 @@
         "tests/issue-626-uat-findings-sage-repair.test.mjs",
         "tests/issue-628-closed-loop-recovery-quality.test.mjs",
         "tests/issue-637-first-uat-findings.test.mjs",
-        "tests/issue-638-639-sage-visible-answer-recovery.test.mjs"
+        "tests/issue-638-639-sage-visible-answer-recovery.test.mjs",
+        "tests/issue-667-669-agent-output-quality.test.mjs"
       ]
     },
     {
@@ -65,7 +67,8 @@
         "tests/issue-595-foundations-plan-starter.test.mjs",
         "tests/issue-617-plan-selective-ai-drafting.test.mjs",
         "tests/issue-628-closed-loop-recovery-quality.test.mjs",
-        "tests/issue-637-first-uat-findings.test.mjs"
+        "tests/issue-637-first-uat-findings.test.mjs",
+        "tests/issue-667-669-agent-output-quality.test.mjs"
       ]
     },
     {
@@ -79,7 +82,8 @@
         "tests/wyrmwood-phase-2.test.mjs",
         "tests/wyrmwood-phase-3.test.mjs",
         "tests/issue-625-game-navigation-glyph.test.mjs",
-        "tests/issue-629-wyrmwood-navigation-title.test.mjs"
+        "tests/issue-629-wyrmwood-navigation-title.test.mjs",
+        "tests/issue-667-669-agent-output-quality.test.mjs"
       ]
     }
   ]

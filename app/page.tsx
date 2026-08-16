@@ -8,10 +8,10 @@ import { answerFromCurriculum } from "../modules/creative-room/sage-safe-guide";
 import LearnWorkspace from "../modules/learn/ui/learn-workspace";
 import FoundationsPlanWorkspace from "../modules/plan/ui/foundations-plan-workspace";
 import WyrmwoodWorkspace from "../modules/wyrmwood/ui/wyrmwood-workspace";
+import PlotPickleWorkspaceShell, { type RootWorkspace } from "./plotpickle-workspace-shell";
 import SageSettingsWorkspace from "./sage-settings-workspace";
-import WyrmwoodPluginEntry from "./wyrmwood-plugin-entry";
 
-type Workspace = "learn" | "plan" | "settings" | "wyrmwood";
+type Workspace = RootWorkspace;
 
 function requestedWorkspace(): Workspace {
   if (typeof window === "undefined") return "learn";
@@ -52,7 +52,7 @@ function repairPersistedProject() {
   }
 }
 
-function navigateWorkspace(workspace: "learn" | "plan" | "wyrmwood") {
+function navigateWorkspace(workspace: Workspace) {
   const destination = new URL(window.location.href);
   destination.searchParams.set("workspace", workspace);
   if (workspace !== "plan") {
@@ -84,25 +84,30 @@ export default function Home() {
   }
 
   if (workspace === "settings") {
-    return <SageSettingsWorkspace />;
+    return (
+      <PlotPickleWorkspaceShell activeWorkspace="settings" onNavigate={navigateWorkspace}>
+        <SageSettingsWorkspace />
+      </PlotPickleWorkspaceShell>
+    );
   }
 
   if (workspace === "wyrmwood") {
     return (
-      <WyrmwoodWorkspace
-        curriculum={plotPickleCurriculum}
-        onOpenLearn={() => navigateWorkspace("learn")}
-        onOpenPlan={() => navigateWorkspace("plan")}
-      />
+      <PlotPickleWorkspaceShell activeWorkspace="wyrmwood" onNavigate={navigateWorkspace}>
+        <WyrmwoodWorkspace
+          curriculum={plotPickleCurriculum}
+          onOpenLearn={() => navigateWorkspace("learn")}
+          onOpenPlan={() => navigateWorkspace("plan")}
+        />
+      </PlotPickleWorkspaceShell>
     );
   }
 
   if (workspace === "plan") {
     return (
-      <>
-        <WyrmwoodPluginEntry onOpen={() => navigateWorkspace("wyrmwood")} />
+      <PlotPickleWorkspaceShell activeWorkspace="plan" onNavigate={navigateWorkspace}>
         <FoundationsPlanWorkspace curriculum={plotPickleCurriculum} />
-      </>
+      </PlotPickleWorkspaceShell>
     );
   }
 
@@ -116,13 +121,12 @@ export default function Home() {
   };
 
   return (
-    <>
-      <WyrmwoodPluginEntry onOpen={() => navigateWorkspace("wyrmwood")} />
+    <PlotPickleWorkspaceShell activeWorkspace="learn" onNavigate={navigateWorkspace}>
       <LearnWorkspace
         curriculum={plotPickleCurriculum}
         guide={answerFromCurriculum}
         onOpenFoundationsPlan={openFoundationsPlan}
       />
-    </>
+    </PlotPickleWorkspaceShell>
   );
 }

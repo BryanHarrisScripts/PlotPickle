@@ -56,7 +56,7 @@ test("Settings preserves BUZZ owner review for Orin and Fen", () => {
   assert.match(settings, /Orin and Fen still require your approval in Buzz Desktop/);
   assert.match(settings, /Copy \{steward\.displayName\} setup/);
   assert.match(settings, /navigator\.clipboard\.writeText/);
-  assert.match(settings, /BUZZ_AUTH_TAG/);
+  assert.match(settings, /NIP-OA owner authorization/);
   assert.match(settings, /owner-authorized Buzz agent/);
   assert.doesNotMatch(settings, /agents\W+draft-create/);
   assert.doesNotMatch(settings, /auto(?:matic)?[- ]?approve/i);

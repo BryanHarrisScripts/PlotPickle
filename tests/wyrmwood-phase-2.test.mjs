@@ -44,7 +44,7 @@ test("the five fixed rivals preserve their exact trope identities", async () => 
   assert.match(playbook, /charm, bribery, bluffing, shortcuts/);
 });
 
-test("one Fast Rival Director inference generates one actual Pickle and all five rival moves", async () => {
+test("Fast remains the primary Rival Director while bounded local repair can use Quality", async () => {
   const [director, runtime] = await Promise.all([
     read("modules/wyrmwood/rival-director.ts"),
     read("build/mastra-agent-runtime.ts"),
@@ -52,7 +52,10 @@ test("one Fast Rival Director inference generates one actual Pickle and all five
 
   assert.equal((director.match(/fetch\("\/api\/writing-assistant\/chat"/g) ?? []).length, 1);
   assert.match(director, /agentId: "wyrmwood-rival-director"/);
-  assert.match(director, /modelRole: "fast"/);
+  assert.match(director, /modelRole: role/);
+  assert.match(director, /role: "fast", repair: false/);
+  assert.match(director, /role: "fast", repair: true/);
+  assert.match(director, /role: "quality", repair: true/);
   assert.match(director, /Create a genuinely playable Pickle/);
   assert.match(director, /pickle: \{/);
   assert.match(director, /rivals,/);

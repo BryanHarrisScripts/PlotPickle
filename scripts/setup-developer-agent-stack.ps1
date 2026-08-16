@@ -58,7 +58,12 @@ Write-Host "Git Bash ........................... $bashPath"
 
 if (-not $VerifyOnly) {
   Write-Step "Installing Cline CLI"
-  & npm install -g cline
+  # npm 11's global allow-scripts warning points to approve-scripts even though
+  # approve-scripts cannot manage global installs. Cline's published CLI binary
+  # is delivered through platform optional dependencies, and PlotPickle verifies
+  # the installed command immediately below, so do not execute unreviewed global
+  # lifecycle scripts merely to silence that warning.
+  & npm install -g cline --ignore-scripts
   if ($LASTEXITCODE -ne 0) { throw "Cline installation failed with exit code $LASTEXITCODE." }
 
   Write-Step "Installing Pi coding agent"

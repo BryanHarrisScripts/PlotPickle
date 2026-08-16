@@ -219,7 +219,7 @@ async function requestFoundationProposal(
 function repairInstruction() {
   return [
     "REPAIR THE PLAN PROPOSAL.",
-    "The previous proposal was unusable because it copied a planning question, omitted a field, returned a placeholder, or returned invalid structured output.",
+    "The previous proposal was unusable because it copied a planning question, omitted a field, returned a placeholder, returned no text, or returned invalid structured output.",
     "For every requested field ID, write an actual proposed answer with concrete story content. Never copy or lightly paraphrase the field question as the answer.",
     "Use accepted writer material wherever it exists.",
     "Because this content is still an unaccepted proposal, when writer evidence is missing you may invent a plausible working candidate, but it MUST begin with 'Provisional —' and must be presented as a suggestion rather than existing canon.",
@@ -237,7 +237,7 @@ function proposalTask() {
     "If accepted story evidence is missing, create a useful plausible working candidate and begin that field with 'Provisional —'. Provisional candidate details are suggestions for review, not claims about existing canon.",
     "A provisional answer must still contain a concrete story choice; never output a generic placeholder or tell the writer to supply the answer later.",
     "The writer must still explicitly accept a proposal before PlotPickle changes project decisions.",
-    "Return JSON only in the exact shape {\"values\":{\"output-1\":\"...\"}} using only the supplied field IDs.",
+    "Return JSON only in the exact values shape using every supplied field ID exactly once.",
   ].join(" ");
 }
 
@@ -292,7 +292,7 @@ async function recoverFieldsIndividually(
     let recovered = false;
     for (const attemptMessage of [compactMessage, `${repairInstruction()}\n\n${compactMessage}`]) {
       try {
-        const result = await requestFoundationProposal(attemptMessage, [field.id], 27_000);
+        const result = await requestFoundationProposal(attemptMessage, [field.id], 35_000);
         const parsed = parseProposal(result.text || "", singleLesson);
         values[field.id] = parsed[field.id];
         lastModel = result.model || lastModel;
@@ -319,32 +319,28 @@ export async function draftFoundationLesson(
   const fieldShape = Object.fromEntries(input.lesson.fields.map((field) => [field.id, field.prompt]));
   const message = buildBatchMessage(input, fieldShape);
   const fieldIds = input.lesson.fields.map((field) => field.id);
+  let lastModel = configuredModel;
 
-  let result = await requestFoundationProposal(message, fieldIds, 27_000);
-  try {
-    const values = parseProposal(result.text || "", input.lesson);
-    return {
-      values,
-      model: result.model || configuredModel,
-      generatedAt: new Date().toISOString(),
-    };
-  } catch (error) {
-    if (!(error instanceof FoundationProposalQualityError)) throw error;
+  // A real local failure can happen before parseProposal ever runs (for example,
+  // an empty structured generation returned as an HTTP error). Treat the first
+  // two batch calls as bounded candidates; either a request failure or a quality
+  // failure falls through to the next recovery layer instead of aborting PLAN.
+  for (const attemptMessage of [message, `${repairInstruction()}\n\n${message}`]) {
+    try {
+      const result = await requestFoundationProposal(attemptMessage, fieldIds, 35_000);
+      lastModel = result.model || lastModel;
+      const values = parseProposal(result.text || "", input.lesson);
+      return {
+        values,
+        model: lastModel,
+        generatedAt: new Date().toISOString(),
+      };
+    } catch {
+      // Continue to the next bounded batch attempt, then per-field recovery.
+    }
   }
 
-  result = await requestFoundationProposal(`${repairInstruction()}\n\n${message}`, fieldIds, 27_000);
-  try {
-    const values = parseProposal(result.text || "", input.lesson);
-    return {
-      values,
-      model: result.model || configuredModel,
-      generatedAt: new Date().toISOString(),
-    };
-  } catch (error) {
-    if (!(error instanceof FoundationProposalQualityError)) throw error;
-  }
-
-  const recovered = await recoverFieldsIndividually(input, result.model || configuredModel);
+  const recovered = await recoverFieldsIndividually(input, lastModel);
   return {
     values: recovered.values,
     model: recovered.model,

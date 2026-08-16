@@ -6,6 +6,7 @@ let startupUatPromptShown = false;
 
 function startupPromptAllowed() {
   return Boolean(process.env.PLOTPICKLE_STARTUP_CONTRACT)
+    && process.env.PLOTPICKLE_STARTUP_UAT_PROMPT !== "0"
     && process.stdin.isTTY === true
     && process.stdout.isTTY === true;
 }

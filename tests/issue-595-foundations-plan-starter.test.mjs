@@ -201,7 +201,8 @@ test("the PLAN screen keeps manual work primary and uses opt-in local Mastra dra
   assert.match(plan, /priorStoryContext: acceptedFoundationContext\(lessons, activeLesson\.id, project\)/);
   assert.match(drafter, /agentId: "foundations-planner"/);
   assert.match(drafter, /provider: "local"/);
-  assert.match(drafter, /modelRole: "quality"/);
+  assert.match(drafter, /type PlanModelRole = "quality" \| "fast"/);
+  assert.match(drafter, /modelRole,/);
   assert.match(drafter, /models\?\.quality/);
   assert.match(drafter, /Your fields were not changed/);
   assert.doesNotMatch(drafter, /provider: "ollama"/);
@@ -211,6 +212,7 @@ test("the PLAN screen keeps manual work primary and uses opt-in local Mastra dra
   assert.match(drafter, /Provisional —/);
   assert.match(drafter, /recoverFieldsIndividually/);
   assert.match(drafter, /RECOVER ONE PLAN FIELD/);
+  assert.match(drafter, /PLAN FAST LOCAL RECOVERY/);
   assert.match(drafter, /normalizeFoundationDraftParagraphs/);
   assert.match(drafter, /Never exceed four paragraphs/);
   assert.ok((drafter.match(/requestFoundationProposal\(/g) ?? []).length >= 3);

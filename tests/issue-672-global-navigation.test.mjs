@@ -44,6 +44,6 @@ test("the global navigator keeps every relic in one fixed slot geometry", async 
 test("legacy standalone Settings control yields to the shared root navigator", async () => {
   const anchor = await read("app/ui-continuity-anchor.tsx");
 
-  assert.match(anchor, /data-plotpickle-global-nav=\\"v1\\"/);
-  assert.match(anchor, /data-ui-continuity-shell=\\"v1\\"/);
+  assert.match(anchor, /data-plotpickle-global-nav="v1"/);
+  assert.match(anchor, /data-ui-continuity-shell="v1"/);
 });

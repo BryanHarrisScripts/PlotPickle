@@ -14,7 +14,7 @@ test("Advanced AI stays inside the three-column Settings workspace", async () =>
   assert.match(settings, /id="settings-routing"/);
   assert.match(settings, /<AiRoutingPanel \/>/);
   assert.match(settings, /href="#settings-routing"/);
-  assert.match(route, /redirect\("\/\?workspace=settings&section=ai-routing"\)/);
+  assert.match(route, /redirect\("\/\?workspace=settings#settings-routing"\)/);
   assert.doesNotMatch(route, /LocalRuntimePanel|<main|AiRoutingPanel/);
 });
 

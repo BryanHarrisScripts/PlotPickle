@@ -10,7 +10,10 @@ on:
       - "build/buzz-community-gateway.ts"
       - "build/buzz-agent-roster-gateway.ts"
       - "build/buzz-guildhall-gateway.ts"
+      - "build/buzz-live-health-gateway.ts"
       - "app/buzz-settings-panel.tsx"
+      - "app/buzz-live-health-card.tsx"
+      - "app/sage-settings-workspace.tsx"
       - "app/community-workspace.tsx"
       - "app/community-workspace.module.css"
       - "app/community-agent-roster.tsx"
@@ -23,11 +26,13 @@ on:
       - "scripts/bootstrap-buzz-guildhall.mjs"
       - "scripts/post-buzz-guildhall-event.mjs"
       - "docs/buzz-guildhall.md"
+      - "docs/buzz-live-health.md"
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
       - "tests/issue-672-global-navigation.test.mjs"
       - "tests/community-workspace.test.mjs"
       - "tests/community-agent-roster.test.mjs"
+      - "tests/buzz-live-roundtrip.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
   push:
     branches: [main]
@@ -39,7 +44,10 @@ on:
       - "build/buzz-community-gateway.ts"
       - "build/buzz-agent-roster-gateway.ts"
       - "build/buzz-guildhall-gateway.ts"
+      - "build/buzz-live-health-gateway.ts"
       - "app/buzz-settings-panel.tsx"
+      - "app/buzz-live-health-card.tsx"
+      - "app/sage-settings-workspace.tsx"
       - "app/community-workspace.tsx"
       - "app/community-workspace.module.css"
       - "app/community-agent-roster.tsx"
@@ -52,11 +60,13 @@ on:
       - "scripts/bootstrap-buzz-guildhall.mjs"
       - "scripts/post-buzz-guildhall-event.mjs"
       - "docs/buzz-guildhall.md"
+      - "docs/buzz-live-health.md"
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
       - "tests/issue-672-global-navigation.test.mjs"
       - "tests/community-workspace.test.mjs"
       - "tests/community-agent-roster.test.mjs"
+      - "tests/buzz-live-roundtrip.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
 
 permissions:
@@ -74,5 +84,5 @@ jobs:
         run: |
           node --check scripts/bootstrap-buzz-guildhall.mjs
           node --check scripts/post-buzz-guildhall-event.mjs
-      - name: Validate Guildhall and Community contracts
-        run: node --test tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs
+      - name: Validate Guildhall, Community, and live BUZZ contracts
+        run: node --test tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs

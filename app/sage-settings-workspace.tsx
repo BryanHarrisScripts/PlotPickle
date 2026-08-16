@@ -1,6 +1,7 @@
 "use client";
 
 import AgentObservabilityPanel from "./agent-observability-panel";
+import BuzzLiveHealthCard from "./buzz-live-health-card";
 import DeepSeekHarnessPanel from "./deepseek-harness-panel";
 import LocalRuntimePanel from "./local-runtime-panel";
 import SageFastModelSetup from "./sage-fast-model-setup";
@@ -40,6 +41,7 @@ export default function SageSettingsWorkspace() {
 
       <SageFastModelSetup />
       <AgentObservabilityPanel />
+      <BuzzLiveHealthCard />
 
       <details className={styles.advancedRuntime}>
         <summary>Advanced runtime details</summary>

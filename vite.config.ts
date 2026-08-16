@@ -8,6 +8,7 @@ import { buzzGateway } from "./build/buzz-gateway";
 import { buzzCommunityGateway } from "./build/buzz-community-gateway";
 import { buzzAgentRosterGateway } from "./build/buzz-agent-roster-gateway";
 import { buzzGuildhallGateway } from "./build/buzz-guildhall-gateway";
+import { buzzLiveHealthGateway } from "./build/buzz-live-health-gateway";
 import { buzzBundleNormalizer } from "./build/buzz-bundle-normalizer";
 import { googleCalendarGateway } from "./build/google-calendar-gateway";
 import { githubAppGateway } from "./build/github-app-gateway";
@@ -90,6 +91,7 @@ export default defineConfig(async () => {
       buzzCommunityGateway(),
       buzzAgentRosterGateway(),
       buzzGuildhallGateway(),
+      buzzLiveHealthGateway(),
       buzzGateway(),
       localSystemStatusGateway(),
       googleCalendarGateway(),

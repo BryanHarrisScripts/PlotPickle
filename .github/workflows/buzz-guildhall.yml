@@ -1,0 +1,36 @@
+name: Buzz Guildhall
+
+on:
+  pull_request:
+    paths:
+      - "config/buzz-guildhall.json"
+      - "lib/buzz-guildhall.ts"
+      - "scripts/bootstrap-buzz-guildhall.mjs"
+      - "docs/buzz-guildhall.md"
+      - "tests/issue-675-buzz-guildhall.test.mjs"
+      - ".github/workflows/buzz-guildhall.yml"
+  push:
+    branches: [main]
+    paths:
+      - "config/buzz-guildhall.json"
+      - "lib/buzz-guildhall.ts"
+      - "scripts/bootstrap-buzz-guildhall.mjs"
+      - "docs/buzz-guildhall.md"
+      - "tests/issue-675-buzz-guildhall.test.mjs"
+      - ".github/workflows/buzz-guildhall.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  guildhall-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax-check Guildhall bootstrap
+        run: node --check scripts/bootstrap-buzz-guildhall.mjs
+      - name: Validate Guildhall contract
+        run: node --test tests/issue-675-buzz-guildhall.test.mjs

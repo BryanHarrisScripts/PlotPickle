@@ -105,6 +105,7 @@
         "tests/issue-688-plan-ai-autofill-guidance.test.mjs",
         "tests/plan-readonly-lesson-answer-view.test.mjs",
         "tests/dashboard-foundations-progression.test.mjs",
+        "tests/foundations-build-visual-workshop.test.mjs",
         "tests/pi-local-model-exhaustive-uat.test.mjs"
       ]
     },

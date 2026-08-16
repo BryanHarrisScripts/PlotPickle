@@ -50,7 +50,8 @@ export function capabilityApprovedCodingModel(descriptor, hardware = {}) {
 }
 
 export function approvedCodingModel(value, descriptor = null, hardware = {}) {
-  return staticApprovedCodingModel(value) || capabilityApprovedCodingModel(descriptor, hardware);
+  const inferred = descriptor || normalizeModelDescriptor({ id: value });
+  return staticApprovedCodingModel(value) || capabilityApprovedCodingModel(inferred, hardware);
 }
 
 export function dedicatedLegacyRepairModel(value) {

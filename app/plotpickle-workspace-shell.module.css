@@ -63,26 +63,28 @@
 
 .list {
   display: flex;
-  width: max-content;
-  min-width: max-content;
+  width: 100%;
+  min-width: 0;
   justify-content: center;
-  gap: 8px;
-  margin: 0 auto;
+  gap: clamp(3px, 0.55vw, 8px);
+  margin: 0;
   padding: 6px 84px 8px;
   list-style: none;
 }
 
 .list li {
   display: grid;
-  width: 84px;
-  flex: 0 0 84px;
+  width: auto;
+  min-width: 0;
+  max-width: 84px;
+  flex: 1 1 0;
   justify-items: center;
   color: #837d73;
   text-align: center;
 }
 
 .list li.groupBreakAfter {
-  margin-right: 14px;
+  margin-right: clamp(7px, 0.9vw, 14px);
 }
 
 .list button {
@@ -125,6 +127,7 @@
 
 .copy {
   display: grid;
+  min-width: 0;
   min-height: 24px;
   gap: 2px;
   justify-items: center;
@@ -135,7 +138,7 @@
 .copy strong,
 .copy small {
   display: block;
-  max-width: 80px;
+  max-width: 100%;
   margin: 0;
   overflow: hidden;
   line-height: 1.1;
@@ -203,9 +206,24 @@
   display: none !important;
 }
 
-@media (max-width: 1120px) {
+@media (max-width: 1040px) {
   .list {
-    margin: 0;
+    width: max-content;
+    min-width: max-content;
+    justify-content: flex-start;
+    gap: 6px;
+    padding-right: 16px;
+    padding-left: 76px;
+  }
+
+  .list li {
+    width: 76px;
+    max-width: none;
+    flex: 0 0 76px;
+  }
+
+  .list li.groupBreakAfter {
+    margin-right: 10px;
   }
 }
 

@@ -34,6 +34,9 @@ jobs:
       - name: Validate the bundled LEARN curriculum
         run: npm run validate:learn
 
+      - name: Validate Agent Skills migration
+        run: node --test tests/issue-913-agent-skills-migration.test.mjs
+
       - name: Validate focused UAT registry contract
         run: node --test tests/issue-622-uat-autopilot.test.mjs
 

@@ -41,7 +41,7 @@ test("only a server carrying the completed current startup contract may open", a
   assert.match(viteConfig, /__PLOTPICKLE_STARTUP_CONTRACT__:\s*JSON\.stringify/);
   assert.match(viteConfig, /process\.env\.PLOTPICKLE_STARTUP_CONTRACT/);
   assert.match(viteConfig, /plotpickle-unverified-startup/);
-  assert.match(launcher, /PLOTPICKLE_STARTUP_MARKER=plotpickle-startup-v3/);
+  assert.match(launcher, /PLOTPICKLE_STARTUP_MARKER=plotpickle-startup-v4/);
   assert.match(launcher, /PLOTPICKLE_STARTUP_CONTRACT=!PLOTPICKLE_STARTUP_MARKER!/);
   assert.match(launcher, /\$response\.Content -match '%PLOTPICKLE_STARTUP_MARKER%'/);
   assert.match(launcher, /exit 3/);

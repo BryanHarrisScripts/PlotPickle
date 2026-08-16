@@ -20,12 +20,13 @@ set "INFO=!CYAN![INFO]!RESET!"
 
 set "PLOTPICKLE_PORT=4173"
 set "PLOTPICKLE_URL=http://127.0.0.1:%PLOTPICKLE_PORT%"
-set "PLOTPICKLE_STARTUP_MARKER=plotpickle-startup-v3"
+set "PLOTPICKLE_STARTUP_MARKER=plotpickle-startup-v4"
 set "VITE_CMD=node_modules\.bin\vite.cmd"
 set "SETUP_REPORT=scripts\windows-setup-report.mjs"
 set "VITE_NATIVE_REPORT=scripts\vite-native-config-report.mjs"
 set "RUNTIME_MANAGER=scripts\windows-runtime.mjs"
 set "COMPANION_MANAGER=scripts\windows-companion-software.ps1"
+set "AGENT_SKILLS_CLI=scripts\agent-skills.mjs"
 set "UAT_RUNNER=scripts\run-creative-writer-uat.ps1"
 set "STORY_BUILDER_AGENT=scripts\full-story-builder-agent.mjs"
 set "UI_CONTINUITY_AGENT=scripts\ui-continuity-agent.mjs"
@@ -94,7 +95,7 @@ if "!PLOTPICKLE_SOURCE_MODE!"=="dirty" echo !READY_WARN! Application update skip
 if "!PLOTPICKLE_SOURCE_MODE!"=="fetch-failed" echo !READY_WARN! GitHub could not be checked; continuing with local source !PLOTPICKLE_SOURCE_SHA!.
 if "!PLOTPICKLE_SOURCE_MODE!"=="diverged" echo !READY_WARN! Local main has diverged from origin/main; no source files were changed.
 if "!PLOTPICKLE_SOURCE_MODE!"=="sync-error" echo !READY_WARN! The application update check could not finish; no source files were changed.
-if defined PLOTPICKLE_SOURCE_SHA if not "!PLOTPICKLE_SOURCE_SHA!"=="unknown" set "PLOTPICKLE_STARTUP_MARKER=plotpickle-startup-v3-!PLOTPICKLE_SOURCE_SHA!"
+if defined PLOTPICKLE_SOURCE_SHA if not "!PLOTPICKLE_SOURCE_SHA!"=="unknown" set "PLOTPICKLE_STARTUP_MARKER=plotpickle-startup-v4-!PLOTPICKLE_SOURCE_SHA!"
 echo.
 
 echo !CYAN![CHECK]!RESET! Looking for an existing PlotPickle session...
@@ -220,6 +221,28 @@ if errorlevel 1 goto :setup_failed
 for /f %%V in ('node -p "require('./node_modules/@mastra/core/package.json').version"') do set "MASTRA_VERSION=%%V"
 echo !OK! Mastra !MASTRA_VERSION! is installed and ready for PlotPickle agents.
 
+if not exist "%AGENT_SKILLS_CLI%" (
+  echo.
+  echo !ERROR_TAG! The PlotPickle Agent Skills verifier is missing.
+  echo The local server was not started because agent instructions cannot be verified.
+  echo Run Repair-PlotPickle.bat or update PlotPickle, then try again.
+  pause
+  exit /b 1
+)
+
+echo.
+echo !CYAN![AGENT SKILLS CHECK]!RESET! Verifying registered PlotPickle agent procedures...
+node "%AGENT_SKILLS_CLI%" --self-test
+if errorlevel 1 (
+  echo.
+  echo !ERROR_TAG! PlotPickle Agent Skills could not be verified.
+  echo The local server was not started because agent instructions are incomplete or invalid.
+  echo Run Repair-PlotPickle.bat or update PlotPickle, then try again.
+  pause
+  exit /b 1
+)
+echo !READY! PlotPickle Agent Skills are registered and verified.
+
 if exist "%COMPANION_MANAGER%" (
   echo.
   echo !CYAN![COMPANION CHECK]!RESET! Listing PlotPickle-relevant software, applying reviewed updates, and verifying Ollama models...
@@ -242,6 +265,7 @@ echo !CYAN![STEP 3 OF 3]!RESET! Starting the private local server...
 echo.
 echo !READY! Required PlotPickle dependencies are loaded and verified.
 echo !READY! Mastra and the local agent runtime are loaded and verified.
+echo !READY! PlotPickle Agent Skills are registered and verified.
 if "!COMPANION_WARNINGS!"=="0" (
   echo !READY! Companion inventory and reviewed software-update checks have finished.
 ) else (

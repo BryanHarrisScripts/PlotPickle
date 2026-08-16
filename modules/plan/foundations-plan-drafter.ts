@@ -15,6 +15,8 @@ export interface FoundationDraftRequest {
 }
 
 class FoundationProposalQualityError extends Error {}
+type PlanModelRole = "quality" | "fast";
+const preparedRoles = new Set<PlanModelRole>();
 
 function isTimeout(error: unknown) {
   return error instanceof DOMException
@@ -117,26 +119,29 @@ function parseProposal(
   return values;
 }
 
-async function preparePlanQualityModel() {
+async function preparePlanRole(role: PlanModelRole) {
+  if (preparedRoles.has(role)) return;
+  const timeoutMs = role === "quality" ? 35_000 : 25_000;
   let response: Response;
   try {
-    response = await fetch("/api/local-ai/runtime/model/quality/load", {
+    response = await fetch(`/api/local-ai/runtime/model/${role}/load`, {
       method: "POST",
       headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(35_000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (error) {
-    if (isTimeout(error)) throw new Error("PlotPickle could not prepare PLAN's Quality local model within 35 seconds. Open Settings and run Load/test PLAN Quality.");
+    if (isTimeout(error)) throw new Error(`PlotPickle could not prepare PLAN's ${role === "quality" ? "Quality" : "Fast"} local model within ${Math.round(timeoutMs / 1000)} seconds.`);
     throw error;
   }
   if (!response.ok) {
     const body = await response.json().catch(() => ({})) as { readonly message?: string };
-    throw new Error(body.message || "PlotPickle could not prepare PLAN's Quality local model. Open Settings and review the Quality role.");
+    throw new Error(body.message || `PlotPickle could not prepare PLAN's ${role === "quality" ? "Quality" : "Fast"} local model.`);
   }
+  preparedRoles.add(role);
 }
 
 async function preflightLocalRuntime() {
-  await preparePlanQualityModel();
+  await preparePlanRole("quality");
   let response: Response;
   try {
     response = await fetch("/api/writing-assistant/status", {
@@ -198,19 +203,21 @@ async function requestFoundationProposal(
   message: string,
   fieldIds: readonly string[],
   timeoutMs: number,
+  modelRole: PlanModelRole = "quality",
 ) {
+  await preparePlanRole(modelRole);
   let response: Response;
   try {
     response = await fetch("/api/writing-assistant/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-PlotPickle-Model-Role": "quality",
+        "X-PlotPickle-Model-Role": modelRole,
       },
       body: JSON.stringify({
         agentId: "foundations-planner",
         provider: "local",
-        modelRole: "quality",
+        modelRole,
         tone: "collaborative",
         foundationFieldIds: fieldIds,
         message,
@@ -218,12 +225,12 @@ async function requestFoundationProposal(
       signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (error) {
-    if (isTimeout(error)) throw new Error("The local Foundations drafter did not answer within PlotPickle's local response limit. Your fields were not changed.");
+    if (isTimeout(error)) throw new Error(`The local Foundations ${modelRole} drafter did not answer within PlotPickle's local response limit. Your fields were not changed.`);
     throw error;
   }
   const result = await response.json() as DraftModelResult;
   if (!response.ok || !result.text) {
-    throw new Error(result.message || "The local Foundations drafter could not reach the active OpenAI-compatible runtime.");
+    throw new Error(result.message || `The local Foundations ${modelRole} drafter could not reach the active OpenAI-compatible runtime.`);
   }
   return result;
 }
@@ -291,6 +298,20 @@ function singleFieldMessage(input: FoundationDraftRequest, field: FoundationPlan
   ].join("\n");
 }
 
+function fastSingleFieldMessage(input: FoundationDraftRequest, field: FoundationPlanField) {
+  return [
+    "PLAN FAST LOCAL RECOVERY.",
+    `Field ID: ${field.id}`,
+    `Question: ${field.prompt}`,
+    `Current answer: ${input.currentAnswers[field.id]?.trim() || "none"}`,
+    `Accepted story context: ${input.priorStoryContext.slice(0, 900) || "none"}`,
+    `Lesson: ${input.curriculumLesson.title}. ${input.curriculumLesson.overview.slice(0, 700)}`,
+    "Write a concrete editable answer in two short paragraphs when possible, never more than four.",
+    "If required story facts are missing, begin the answer with 'Provisional —' and offer a specific working possibility rather than a placeholder.",
+    `Return JSON only as {\"values\":{\"${field.id}\":\"...\"}}.`,
+  ].join("\n");
+}
+
 async function recoverFieldsIndividually(
   input: FoundationDraftRequest,
   configuredModel: string,
@@ -302,17 +323,24 @@ async function recoverFieldsIndividually(
   for (const field of input.lesson.fields) {
     const singleLesson: FoundationPlanLesson = { ...input.lesson, fields: [field] };
     const compactMessage = singleFieldMessage(input, field);
+    const fastMessage = fastSingleFieldMessage(input, field);
     let recovered = false;
-    for (const attemptMessage of [compactMessage, `${repairInstruction()}\n\n${compactMessage}`]) {
+    const attempts: readonly { role: PlanModelRole; message: string; timeoutMs: number }[] = [
+      { role: "quality", message: compactMessage, timeoutMs: 35_000 },
+      { role: "quality", message: `${repairInstruction()}\n\n${compactMessage}`, timeoutMs: 35_000 },
+      { role: "fast", message: fastMessage, timeoutMs: 25_000 },
+      { role: "fast", message: `${repairInstruction()}\n\n${fastMessage}`, timeoutMs: 25_000 },
+    ];
+    for (const attempt of attempts) {
       try {
-        const result = await requestFoundationProposal(attemptMessage, [field.id], 35_000);
+        const result = await requestFoundationProposal(attempt.message, [field.id], attempt.timeoutMs, attempt.role);
         const parsed = parseProposal(result.text || "", singleLesson);
         values[field.id] = parsed[field.id];
         lastModel = result.model || lastModel;
         recovered = true;
         break;
       } catch {
-        // Try the explicit repair once, then report the field as a real failure.
+        // Try the next bounded local role/repair attempt, then report the field as a real failure.
       }
     }
     if (!recovered) failedFields.push(field);
@@ -320,7 +348,7 @@ async function recoverFieldsIndividually(
 
   if (failedFields.length) {
     const labels = failedFields.map((field) => field.id).join(", ");
-    throw new FoundationProposalQualityError(`PLAN could not produce a usable draft for ${labels} after structured repair. Your fields were not changed.`);
+    throw new FoundationProposalQualityError(`PLAN could not produce a usable draft for ${labels} after Quality and Fast local recovery. Your fields were not changed.`);
   }
   return { values, model: lastModel };
 }
@@ -336,7 +364,7 @@ export async function draftFoundationLesson(
 
   for (const attemptMessage of [message, `${repairInstruction()}\n\n${message}`]) {
     try {
-      const result = await requestFoundationProposal(attemptMessage, fieldIds, 35_000);
+      const result = await requestFoundationProposal(attemptMessage, fieldIds, 35_000, "quality");
       lastModel = result.model || lastModel;
       const values = parseProposal(result.text || "", input.lesson);
       return {
@@ -345,7 +373,7 @@ export async function draftFoundationLesson(
         generatedAt: new Date().toISOString(),
       };
     } catch {
-      // Continue to the next bounded batch attempt, then per-field recovery.
+      // Continue to the next bounded Quality batch attempt, then recover each field through Quality -> Fast locally.
     }
   }
 

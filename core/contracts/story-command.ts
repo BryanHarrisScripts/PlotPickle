@@ -53,6 +53,16 @@ export type StoryCommand =
       readonly type: "foundations.brief.save";
       readonly content: string;
       readonly occurredAt: string;
+    }
+  | {
+      readonly type: "foundations.visual.accept";
+      readonly artifactId: string;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "foundations.visual.unaccept";
+      readonly artifactId: string;
+      readonly occurredAt: string;
     };
 
 export interface CommandEnvelope {

@@ -169,8 +169,9 @@ test("local role preparation is used before Sage and PLAN preflights", async () 
   assert.match(gateway, /roleStatus = snapshot\.roles\[roleToLoad\]/);
   assert.match(guide, /\/api\/local-ai\/runtime\/model\/fast\/load/);
   assert.ok(guide.indexOf("/api/local-ai/runtime/model/fast/load") < guide.indexOf("/api/writing-assistant/status"));
-  assert.match(drafter, /\/api\/local-ai\/runtime\/model\/quality\/load/);
-  assert.ok(drafter.indexOf("/api/local-ai/runtime/model/quality/load") < drafter.indexOf("/api/writing-assistant/status"));
+  assert.match(drafter, /\/api\/local-ai\/runtime\/model\/\$\{role\}\/load/);
+  assert.match(drafter, /await preparePlanRole\("quality"\)/);
+  assert.ok(drafter.indexOf('await preparePlanRole("quality")') < drafter.indexOf('/api/writing-assistant/status'));
 });
 
 test("Sage sanitizes prompt scaffolding before chat rendering and is instructed to converse like a mentor", async () => {
@@ -200,6 +201,9 @@ test("the recovery path preserves local-only role routing with no cloud fallback
   assert.match(guide, /provider: "local"/);
   assert.match(guide, /modelRole: "fast"/);
   assert.match(drafter, /provider: "local"/);
-  assert.match(drafter, /modelRole: "quality"/);
+  assert.match(drafter, /type PlanModelRole = "quality" \| "fast"/);
+  assert.match(drafter, /modelRole,/);
+  assert.match(drafter, /\{ role: "quality", message: compactMessage/);
+  assert.match(drafter, /\{ role: "fast", message: fastMessage/);
   assert.doesNotMatch(`${guide}\n${drafter}`, /provider: "openai"|provider: "minimax"/);
 });

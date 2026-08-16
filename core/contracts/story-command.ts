@@ -1,3 +1,4 @@
+import type { FoundationsVisualArtifact } from "./build-progress";
 import type { FoundationDraftProposal } from "./foundation-plan";
 
 export type StoryCommand =
@@ -52,6 +53,11 @@ export type StoryCommand =
   | {
       readonly type: "foundations.brief.save";
       readonly content: string;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "foundations.visual.store";
+      readonly artifact: FoundationsVisualArtifact;
       readonly occurredAt: string;
     }
   | {

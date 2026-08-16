@@ -1,3 +1,9 @@
+import {
+  chooseModelForRole,
+  normalizeModelDescriptor,
+  scoreModelForRole,
+} from "../lib/ai/local-model-capabilities.mjs";
+
 export const APPROVED_LOCAL_CODING_MODELS = [
   { fragment: "qwen2.5-coder-7b", label: "Qwen2.5-Coder 7B", tier: "light" },
   { fragment: "qwen2.5coder7b", label: "Qwen2.5-Coder 7B", tier: "light" },
@@ -20,19 +26,31 @@ export const APPROVED_LOCAL_CODING_MODELS = [
   { fragment: "deepseekcoder", label: "DeepSeek Coder", tier: "heavy" },
 ];
 
+// Retained only for the legacy mastra-qwen worker. Pi no longer requires this
+// specific family; it can accept any locally detected model that satisfies the
+// repair capability contract and hardware-fit policy.
 export const UAT_REPAIR_MODEL = {
   label: "Qwen3.8-27B",
   expectedNameFragments: ["qwen3.8-27b", "qwen-3.8-27b", "qwen_qwen3.8-27b", "qwen/qwen3.8-27b"],
-  purpose: "On-demand PlotPickle repository repair and coding agent",
+  purpose: "Legacy dedicated PlotPickle repository repair model",
 };
 
 export function modelKey(value) {
   return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
-export function approvedCodingModel(value) {
+function staticApprovedCodingModel(value) {
   const candidate = modelKey(value);
   return APPROVED_LOCAL_CODING_MODELS.some((item) => candidate.includes(modelKey(item.fragment)));
+}
+
+export function capabilityApprovedCodingModel(descriptor, hardware = {}) {
+  if (!descriptor) return false;
+  return scoreModelForRole("repair", normalizeModelDescriptor(descriptor), hardware).eligible;
+}
+
+export function approvedCodingModel(value, descriptor = null, hardware = {}) {
+  return staticApprovedCodingModel(value) || capabilityApprovedCodingModel(descriptor, hardware);
 }
 
 export function dedicatedLegacyRepairModel(value) {
@@ -46,12 +64,28 @@ export function rankApprovedCodingModel(value) {
   return index < 0 ? Number.MAX_SAFE_INTEGER : index;
 }
 
-export function chooseApprovedCodingModel(models, preferred = "") {
+export function chooseApprovedCodingModel(models, preferred = "", descriptors = [], hardware = {}) {
   const available = [...new Set((models || []).map((value) => String(value || "").trim()).filter(Boolean))];
+  const descriptorByKey = new Map((descriptors || []).map((item) => {
+    const descriptor = normalizeModelDescriptor(item);
+    return [modelKey(descriptor.id), descriptor];
+  }));
   if (preferred) {
     const wanted = modelKey(preferred);
     const exact = available.find((model) => modelKey(model) === wanted);
-    if (exact && approvedCodingModel(exact)) return exact;
+    if (exact && approvedCodingModel(exact, descriptorByKey.get(wanted), hardware)) return exact;
   }
-  return available.filter(approvedCodingModel).sort((a, b) => rankApprovedCodingModel(a) - rankApprovedCodingModel(b))[0] || "";
+
+  const dynamic = chooseModelForRole(
+    "repair",
+    available.map((model) => descriptorByKey.get(modelKey(model)) || normalizeModelDescriptor({ id: model })),
+    hardware,
+  );
+  if (dynamic?.model?.id) {
+    const exact = available.find((model) => modelKey(model) === modelKey(dynamic.model.id));
+    if (exact) return exact;
+  }
+
+  return available.filter((model) => staticApprovedCodingModel(model))
+    .sort((a, b) => rankApprovedCodingModel(a) - rankApprovedCodingModel(b))[0] || "";
 }

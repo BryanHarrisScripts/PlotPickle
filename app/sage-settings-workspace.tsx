@@ -101,7 +101,7 @@ export default function SageSettingsWorkspace() {
         <section>
           <p>AI Routing</p>
           <h3>One active choice per job.</h3>
-          <span>Writing, images and video each use one route at a time. Choose the route you want; unavailable choices show what must be configured or tested first.</span>
+          <span>Writing, images and video each use one route at a time. Choose the route you want; unavailable choices show what must be configured or tested first. Ollama is optional and no longer defines the local architecture.</span>
         </section>
         <section>
           <p>Agent Activity</p>

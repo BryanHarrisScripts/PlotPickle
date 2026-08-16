@@ -15,6 +15,18 @@
       "consumers": ["pi"],
       "mcpReady": true,
       "localOnly": true
+    },
+    {
+      "id": "sage-brinewick",
+      "name": "Sage Brinewick",
+      "description": "Guide LEARN conversations with Sage's visible mentor personality and procedure while PlotPickle curriculum retrieval remains the teaching source of truth.",
+      "entry": ".agents/skills/sage-brinewick/SKILL.md",
+      "uri": "skill://plotpickle/sage-brinewick",
+      "roles": ["curriculum-guide"],
+      "primaryWorker": "mastra",
+      "consumers": ["curriculum-guide"],
+      "mcpReady": true,
+      "localOnly": true
     }
   ]
 }

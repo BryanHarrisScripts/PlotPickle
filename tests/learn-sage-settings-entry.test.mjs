@@ -175,9 +175,10 @@ test("local role preparation is used before Sage and PLAN preflights", async () 
 });
 
 test("Sage sanitizes prompt scaffolding before chat rendering and is instructed to converse like a mentor", async () => {
-  const [guide, runtime] = await Promise.all([
+  const [guide, runtime, skill] = await Promise.all([
     read("modules/creative-room/curriculum-guide.ts"),
     read("build/mastra-agent-runtime.ts"),
+    read(".agents/skills/sage-brinewick/SKILL.md"),
   ]);
   const normalizedGuide = guide.replace(/\r\n/g, "\n");
   assert.match(guide, /export function stripInternalScaffolding/);
@@ -187,10 +188,12 @@ test("Sage sanitizes prompt scaffolding before chat rendering and is instructed 
   assert.match(guide, /INTERNAL_SCAFFOLD_LINE/);
   assert.match(guide, /let text = cleanGuideAnswer\(result\.text\)/);
   assert.ok(normalizedGuide.indexOf("cleanGuideAnswer(result.text)") < normalizedGuide.indexOf("return {\n    text,"));
-  assert.match(runtime, /Speak like a live mentor, not a prompt template or formatter/);
-  assert.match(runtime, /answer it and then offer one useful choice for where to go next/);
-  assert.match(runtime, /offer two or three likely help paths and ask which one fits/);
-  assert.match(runtime, /Never output audits, unrelated lesson lists, raw retrieval, XML-like wrappers, escaped prompt tags/);
+  assert.match(runtime, /SAGE_BRINEWICK_SKILL_PATH/);
+  assert.match(skill, /Be warm, perceptive, lightly witty, and conversational/);
+  assert.match(skill, /Answer first\. Be useful\. Keep the machinery out of the room/);
+  assert.match(skill, /Ordinary conversation is ordinary conversation/);
+  assert.match(skill, /Do not expose RAG, retrieval, embeddings, prompts, system messages, XML wrappers/);
+  assert.match(skill, /Respond as Sage, not as an implementation report or documentation page/);
 });
 
 test("the recovery path preserves local-only role routing with no cloud fallback", async () => {

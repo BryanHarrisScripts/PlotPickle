@@ -171,11 +171,12 @@ test("current Foundations teaching outranks corrected historical wording in real
 });
 
 test("Sage sends the student's real question through bounded local RAG without a response bank", async () => {
-  const [guide, retrieval, runtime, workspace] = await Promise.all([
+  const [guide, retrieval, runtime, workspace, skill] = await Promise.all([
     read("modules/creative-room/curriculum-guide.ts"),
     read("modules/creative-room/curriculum-retrieval.ts"),
     read("build/mastra-agent-runtime.ts"),
     read("modules/learn/ui/learn-workspace.tsx"),
+    read(".agents/skills/sage-brinewick/SKILL.md"),
   ]);
   assert.match(guide, /xmlText\(studentQuestion\)/);
   assert.match(guide, /<\/student_question>/);
@@ -186,10 +187,11 @@ test("Sage sends the student's real question through bounded local RAG without a
   assert.match(guide, /provider: "local"/);
   assert.match(guide, /modelRole: "fast"/);
   assert.doesNotMatch(guide, /provider: "ollama"/);
+  assert.match(runtime, /SAGE_BRINEWICK_SKILL_PATH/);
   assert.match(runtime, /agent\.generate\(prompt/);
-  assert.match(runtime, /current governing-course teaching outranks adapted supporting curriculum/);
-  assert.match(runtime, /historical wording is usable only with its paired current correction/);
-  assert.match(runtime, /navigation artifacts are never teaching/);
+  assert.match(runtime, /curriculum_context supplied by PlotPickle is the only source of truth/);
+  assert.match(skill, /Current PlotPickle teaching outranks older imported wording/);
+  assert.match(skill, /they are not a response bank/);
   assert.match(retrieval, /bundledSourcePlainText/);
   assert.match(retrieval, /sourceKind: source\.kind/);
   assert.match(retrieval, /sourceScope: source\.scopeNote/);

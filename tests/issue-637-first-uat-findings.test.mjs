@@ -5,10 +5,10 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("Sage keeps one visible personality through one active guide path", async () => {
-  const [page, unified, playbook] = await Promise.all([
+  const [page, unified, skill] = await Promise.all([
     read("app/page.tsx"),
     read("modules/creative-room/sage-unified-guide.ts"),
-    read("agents/sage-brinewick.md"),
+    read(".agents/skills/sage-brinewick/SKILL.md"),
   ]);
 
   assert.match(page, /sage-unified-guide/);
@@ -16,10 +16,10 @@ test("Sage keeps one visible personality through one active guide path", async (
   assert.match(unified, /This is ordinary conversation\. Respond naturally/);
   assert.match(unified, /Use the relevant PlotPickle curriculum below for craft teaching/);
   assert.doesNotMatch(unified, /answerAsSageConversationSpecialist/);
-  assert.match(playbook, /The writer always experiences one Sage/);
-  assert.match(playbook, /Do not simulate or expose separate personalities/);
-  assert.match(playbook, /Normal conversation and odd questions/);
-  assert.match(playbook, /Story and curriculum questions/);
+  assert.match(skill, /The writer always experiences one Sage/);
+  assert.match(skill, /Do not simulate or expose separate personalities/);
+  assert.match(skill, /Normal conversation and odd questions/);
+  assert.match(skill, /Story and curriculum questions/);
 });
 
 test("obvious Sage help and shortening requests stay fast and deterministic", async () => {
@@ -33,15 +33,15 @@ test("obvious Sage help and shortening requests stay fast and deterministic", as
 });
 
 test("Sage visible replies default to a few sentences and LEARN owns deeper teaching", async () => {
-  const [unified, playbook, workspace] = await Promise.all([
+  const [unified, skill, workspace] = await Promise.all([
     read("modules/creative-room/sage-unified-guide.ts"),
-    read("agents/sage-brinewick.md"),
+    read(".agents/skills/sage-brinewick/SKILL.md"),
     read("modules/learn/ui/learn-workspace.tsx"),
   ]);
 
   assert.match(unified, /compactSentences\(result\.text \|\| ""\)/);
-  assert.match(playbook, /Most replies should be \*\*2 to 4 sentences\*\*/);
-  assert.match(playbook, /Default to 2–4 sentences/);
+  assert.match(skill, /Most replies should be 2 to 4 sentences/);
+  assert.match(skill, /Go deeper only when the writer asks for depth/);
   assert.match(workspace, /aria-label="Related LEARN lessons"/);
   assert.match(workspace, /Learn more: <strong>\{lesson\.title\}<\/strong>/);
   assert.match(workspace, /onClick=\{\(\) => openLesson\(lesson\.id\)\}/);

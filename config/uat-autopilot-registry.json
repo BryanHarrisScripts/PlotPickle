@@ -84,6 +84,7 @@
         "tests/issue-667-669-agent-output-quality.test.mjs",
         "tests/issue-672-global-navigation.test.mjs",
         "tests/issue-686-sage-unified-agent.test.mjs",
+        "tests/sage-brinewick-agent-skill.test.mjs",
         "tests/pi-local-model-exhaustive-uat.test.mjs"
       ]
     },

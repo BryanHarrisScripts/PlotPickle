@@ -4,11 +4,11 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("LEARN uses one unified Sage path instead of the layered conversation specialist", async () => {
-  const [page, unified, playbook] = await Promise.all([
+test("LEARN uses one unified Sage path with the Sage skill instead of a layered conversation specialist", async () => {
+  const [page, unified, skill] = await Promise.all([
     read("app/page.tsx"),
     read("modules/creative-room/sage-unified-guide.ts"),
-    read("agents/sage-brinewick.md"),
+    read(".agents/skills/sage-brinewick/SKILL.md"),
   ]);
 
   assert.match(page, /from "\.\.\/modules\/creative-room\/sage-unified-guide"/);
@@ -16,12 +16,13 @@ test("LEARN uses one unified Sage path instead of the layered conversation speci
   assert.match(unified, /agentId: "curriculum-guide"/);
   assert.doesNotMatch(unified, /answerAsSageConversationSpecialist/);
   assert.doesNotMatch(unified, /from "\.\/sage-conversation-specialist"/);
-  assert.match(playbook, /The writer always experiences one Sage/);
-  assert.match(playbook, /Do not simulate or expose separate personalities/);
+  assert.match(skill, /The writer always experiences one Sage/);
+  assert.match(skill, /Do not simulate or expose separate personalities/);
 });
 
-test("unified Sage keeps routing and recovery outside the persona prompt", async () => {
+test("unified Sage keeps routing and recovery outside the persona skill", async () => {
   const unified = await read("modules/creative-room/sage-unified-guide.ts");
+  const skill = await read(".agents/skills/sage-brinewick/SKILL.md");
 
   assert.match(unified, /isSageCraftQuestion/);
   assert.match(unified, /retrieveCurriculumContext/);
@@ -35,6 +36,8 @@ test("unified Sage keeps routing and recovery outside the persona prompt", async
   assert.match(unified, /INTERNAL_MARKERS/);
   assert.match(unified, /Bounded local-only recovery/);
   assert.doesNotMatch(unified, /provider: "openai"|provider: "minimax"/);
+  assert.match(skill, /Model capability selection and bounded local recovery belong to the PlotPickle host/i);
+  assert.doesNotMatch(skill, /requestGuideModel|prepareGuideQualityModel|\/api\/local-ai\/runtime/);
 });
 
 test("simple Sage intents are deterministic while craft fallback remains curriculum grounded", async () => {
@@ -53,11 +56,14 @@ test("simple Sage intents are deterministic while craft fallback remains curricu
   assert.match(unified, /sourceReferenceIds: craft \? retrieval\.sourceIds : \[\]/);
 });
 
-test("the canonical Sage playbook is shorter and no longer describes a hidden specialist room", async () => {
-  const playbook = await read("agents/sage-brinewick.md");
-  assert.ok(playbook.length < 5000, `Sage playbook should stay compact; got ${playbook.length} characters`);
-  assert.doesNotMatch(playbook, /## Hidden specialist room/);
-  assert.match(playbook, /Answer first\. Be useful\. Keep the machinery out of the room\./);
-  assert.match(playbook, /Normal conversation and odd questions/);
-  assert.match(playbook, /Story and curriculum questions/);
+test("the canonical Sage skill is compact procedure and not a hidden curriculum copy", async () => {
+  const skill = await read(".agents/skills/sage-brinewick/SKILL.md");
+  assert.ok(skill.length < 7000, `Sage skill should stay compact; got ${skill.length} characters`);
+  assert.doesNotMatch(skill, /## Hidden specialist room/);
+  assert.match(skill, /Answer first\. Be useful\. Keep the machinery out of the room\./);
+  assert.match(skill, /Normal conversation and odd questions/);
+  assert.match(skill, /Story and curriculum questions/);
+  assert.match(skill, /This skill is procedure, not curriculum/i);
+  assert.match(skill, /retrieved\/injected curriculum is the source of truth/i);
+  assert.doesNotMatch(skill, /Lesson 0[1-9]|Lesson 1[01]|24 Blocks|96 Mini-Blocks/);
 });

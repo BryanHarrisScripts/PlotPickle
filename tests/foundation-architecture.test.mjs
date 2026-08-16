@@ -153,12 +153,13 @@ test("LEARN exposes the future PlotPickle workflow navigation", async () => {
 
 
 test("the curriculum guide is a hardware-aware local teaching agent with memory", async () => {
-  const [contract, guide, workspace, runtime, gateway] = await Promise.all([
+  const [contract, guide, workspace, runtime, gateway, sageSkill] = await Promise.all([
     read("core/contracts/curriculum-guide.ts"),
     read("modules/creative-room/curriculum-guide.ts"),
     read("modules/learn/ui/learn-workspace.tsx"),
     read("build/mastra-agent-runtime.ts"),
     read("build/writing-assistant-gateway.ts"),
+    read(".agents/skills/sage-brinewick/SKILL.md"),
   ]);
   assert.match(contract, /conversation/);
   assert.match(contract, /projectMemory/);
@@ -176,10 +177,10 @@ test("the curriculum guide is a hardware-aware local teaching agent with memory"
   assert.doesNotMatch(guide, /provider: "ollama"/);
   assert.doesNotMatch(guide, /history: conversation/);
   assert.match(runtime, /"curriculum-guide"/);
-  assert.match(runtime, /warm, patient PlotPickle teacher/);
-  assert.match(runtime, /plain language/);
+  assert.match(sageSkill, /warm, perceptive/);
+  assert.match(sageSkill, /plain English/);
   assert.match(runtime, /temperature: 0\.2/);
-  assert.match(runtime, /I don't have that in our current curriculum/);
+  assert.match(sageSkill, /does not support a PlotPickle teaching claim/);
   assert.match(gateway, /localTextExecutionProfile/);
   assert.match(gateway, /requestedModelRole/);
   assert.doesNotMatch(gateway, /curriculumGuideOllamaProfile/);
@@ -194,13 +195,14 @@ test("the curriculum guide is a hardware-aware local teaching agent with memory"
 
 
 test("LEARN and GUIDE share one topic-based JSON curriculum", async () => {
-  const [catalogSource, rawIndex, guide, workspace, runtime, gateway] = await Promise.all([
+  const [catalogSource, rawIndex, guide, workspace, runtime, gateway, sageSkill] = await Promise.all([
     read("adapters/curriculum/current-catalog.ts"),
     read("learn/index.json"),
     read("modules/creative-room/curriculum-guide.ts"),
     read("modules/learn/ui/learn-workspace.tsx"),
     read("build/mastra-agent-runtime.ts"),
     read("build/writing-assistant-gateway.ts"),
+    read(".agents/skills/sage-brinewick/SKILL.md"),
   ]);
   const index = JSON.parse(rawIndex);
   assert.equal(index.schemaVersion, "2.0");
@@ -220,8 +222,8 @@ test("LEARN and GUIDE share one topic-based JSON curriculum", async () => {
   assert.match(catalogSource, /learn\/theme\.json/);
   assert.doesNotMatch(catalogSource, /plotpickle-curriculum|plotpickle-source-library/);
   assert.doesNotMatch(catalogSource, /learning-library|learning-24-blocks/);
-  assert.match(runtime, /Stay under 140 words/);
-  assert.match(runtime, /begin with Yes, No, or Not necessarily/);
+  assert.match(sageSkill, /Stay under 140 words/);
+  assert.match(sageSkill, /begin with "Yes", "No", or "Not necessarily"/);
   assert.match(guide, /conversation\.slice\(-4\)/);
   assert.match(guide, /content\.slice\(0, 300\)/);
   assert.match(guide, /message\.length > 12_000/);
@@ -238,13 +240,14 @@ test("LEARN and GUIDE share one topic-based JSON curriculum", async () => {
 });
 
 test("all audited source records are embedded losslessly in lessons", async () => {
-  const [catalogSource, rawIndex, guide, workspace, page, launcher] = await Promise.all([
+  const [catalogSource, rawIndex, guide, workspace, page, launcher, sageSkill] = await Promise.all([
     read("adapters/curriculum/current-catalog.ts"),
     read("learn/index.json"),
     read("modules/creative-room/curriculum-guide.ts"),
     read("modules/learn/ui/learn-workspace.tsx"),
     read("app/page.tsx"),
     read("Start-PlotPickle.bat"),
+    read(".agents/skills/sage-brinewick/SKILL.md"),
   ]);
   const index = JSON.parse(rawIndex);
   const documents = await Promise.all(index.files.map(async (file) => JSON.parse(await read(`learn/${file.file}`))));
@@ -283,7 +286,8 @@ test("all audited source records are embedded losslessly in lessons", async () =
   assert.match(workspace, /sourceReferenceIds/);
   assert.match(guide, /retrieveCurriculumContext/);
   assert.match(await read("modules/creative-room/curriculum-retrieval.ts"), /lesson\.sources\.forEach/);
-  assert.match(await read("build/mastra-agent-runtime.ts"), /curriculum_context is the only source of truth/);
+  assert.match(sageSkill, /source of truth/);
+  assert.match(await read("build/mastra-agent-runtime.ts"), /curriculum_context supplied by PlotPickle/);
   assert.match(launcher, /@mastra\\core\\package\.json/);
   assert.match(launcher, /Mastra !MASTRA_VERSION! is installed and ready for PlotPickle agents/);
 });

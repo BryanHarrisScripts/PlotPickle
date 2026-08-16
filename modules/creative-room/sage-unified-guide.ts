@@ -43,7 +43,7 @@ function isWellbeingQuestion(question: string) {
 }
 
 function isHelpQuestion(question: string) {
-  return /^(?:can you help(?: me)?|could you help(?: me)?|will you help(?: me)?|help me|i need help|what can you do)$/.test(normalized(question));
+  return /^(?:can you help(?: me)?|could you help(?: me)?|will you help(?: me)?|how can you help(?: me)?|how do you help(?: me)?|help me|i need help|what can you do|what can you help(?: me)? with)$/.test(normalized(question));
 }
 
 function isShortenRequest(question: string) {
@@ -85,7 +85,7 @@ function deterministicAnswer(request: CurriculumGuideRequest): CurriculumGuideAn
     return answer("I’m here and working. What are we wrestling with?", "Sage conversation response");
   }
   if (isHelpQuestion(request.question)) {
-    return answer("Yes. I can explain a lesson, help untangle a story problem, or talk through how to apply what you’re learning without taking the story away from you.", "Sage help response");
+    return answer("I can explain any PlotPickle lesson in plain language, help you work through a story decision, or help turn what you learned into a practical next step. You can also ask me ordinary questions about what you’re looking at, and I’ll keep the answer direct.", "Sage help response");
   }
   if (isShortenRequest(request.question)) {
     const previous = [...request.conversation].reverse().find((item) => item.role === "guide" && item.content.trim());

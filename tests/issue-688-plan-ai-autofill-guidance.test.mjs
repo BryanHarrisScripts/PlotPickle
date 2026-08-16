@@ -11,10 +11,11 @@ test("each PLAN field exposes exactly three helper questions", async () => {
   ]);
 
   assert.match(contract, /guidingQuestionsForFoundationField/);
-  const functionStart = contract.indexOf("export function guidingQuestionsForFoundationField");
-  const functionEnd = contract.indexOf("\n}\n", functionStart);
-  const helper = contract.slice(functionStart, functionEnd);
-  assert.equal((helper.match(/^\s*`|^\s*"/gm) ?? []).length, 3, "the guidance helper should return exactly three questions");
+  const helperMatch = contract.match(/export function guidingQuestionsForFoundationField[\s\S]*?\r?\n}\r?\n/);
+  assert.ok(helperMatch, "the guidance helper should be present on LF or CRLF checkouts");
+  const returnMatch = helperMatch[0].match(/return \[([\s\S]*?)\r?\n\s*\];/);
+  assert.ok(returnMatch, "the guidance helper should return a literal three-item tuple");
+  assert.equal((returnMatch[1].match(/^\s*(?:`|")/gm) ?? []).length, 3, "the guidance helper should return exactly three questions");
   assert.match(workspace, /guidingQuestionsForFoundationField\(field\)\.map/);
   assert.match(workspace, /Three questions to help you answer/);
 });
@@ -49,4 +50,17 @@ test("PLAN still protects unselected fields by generating only selected IDs", as
   assert.match(workspace, /fields: selectedFields/);
   assert.match(workspace, /Existing text in those selected fields will be replaced/);
   assert.match(workspace, /No answers selected for AI\. Manual writing remains unchanged/);
+});
+
+test("PLAN recovers failed Quality fields through the Fast local role before giving up", async () => {
+  const drafter = await read("modules/plan/foundations-plan-drafter.ts");
+
+  assert.match(drafter, /type PlanModelRole = "quality" \| "fast"/);
+  assert.match(drafter, /function fastSingleFieldMessage/);
+  assert.match(drafter, /\{ role: "quality", message: compactMessage/);
+  assert.match(drafter, /\{ role: "fast", message: fastMessage/);
+  assert.ok(drafter.indexOf('{ role: "quality", message: compactMessage') < drafter.indexOf('{ role: "fast", message: fastMessage'), "Quality should stay primary and Fast should be bounded recovery");
+  assert.match(drafter, /"X-PlotPickle-Model-Role": modelRole/);
+  assert.match(drafter, /modelRole,/);
+  assert.match(drafter, /after Quality and Fast local recovery/);
 });

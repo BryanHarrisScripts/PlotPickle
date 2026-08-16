@@ -146,7 +146,7 @@ export async function deepSeekHarnessStatus(): Promise<DeepSeekHarnessStatus> {
 
 function launchDetached() {
   if (process.platform === "win32") {
-    return spawn("cmd.exe", ["/d", "/s", "/c", "start \"DeepSeek Harness\" cmd /k ollama launch dsh"], {
+    return spawn("cmd.exe", ["/d", "/c", "start", "", "cmd.exe", "/k", "ollama", "launch", "dsh"], {
       detached: true,
       windowsHide: false,
       stdio: "ignore",

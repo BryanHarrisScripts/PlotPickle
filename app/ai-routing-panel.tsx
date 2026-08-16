@@ -79,6 +79,10 @@ function routeCanRun(route: string, option: OptionState) {
   return route === "off" || route === "manual" || option.ready;
 }
 
+function fallbackRoute(capability: Capability) {
+  return capability === "image" ? "manual" : "off";
+}
+
 function installationForRoute(capability: Capability, route: string, option: OptionState, installations: InstallationStatus | null) {
   if (route === "off" || route === "manual") return { installed: true, running: true, label: "Built in" };
   if (option.locality === "cloud") return {
@@ -163,6 +167,19 @@ export default function AiRoutingPanel() {
     } finally {
       setWorking("");
     }
+  }
+
+  async function toggleRoute(capability: Capability, route: string, selected: boolean) {
+    const fallback = fallbackRoute(capability);
+    if (selected) {
+      if (route === fallback) {
+        setNotice(`${AI_SOURCE_OPTION_LABELS[capability][route].title} is the safe ${capability === "image" ? "manual" : "off"} state. Turn another route on to move away from it.`);
+        return;
+      }
+      await select(capability, fallback);
+      return;
+    }
+    await select(capability, route);
   }
 
   async function applyPreset(kind: "local" | "cloud") {
@@ -389,14 +406,15 @@ export default function AiRoutingPanel() {
                   const selectable = routeCanRun(route, option);
                   return (
                     <li className={styles.option} data-selected={selected} data-ready={option.ready} data-available={selectable} key={route}>
-                      <label aria-disabled={!selectable}>
+                      <label aria-disabled={!selectable && !selected}>
                         <input
-                          type="radio"
-                          name={`ai-route-${capability}`}
+                          type="checkbox"
+                          name={`ai-route-${capability}-${route}`}
                           value={route}
                           checked={selected}
-                          onChange={() => void select(capability, route)}
-                          disabled={Boolean(working) || !selectable}
+                          aria-label={`${selected ? "Turn off" : "Turn on"} ${label.title}`}
+                          onChange={() => void toggleRoute(capability, route, selected)}
+                          disabled={Boolean(working)}
                         />
                         <span className={styles.switch} aria-hidden="true" />
                         <span className={styles.copy}>

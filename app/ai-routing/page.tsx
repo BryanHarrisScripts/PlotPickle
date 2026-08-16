@@ -61,7 +61,7 @@ export default function AiRoutingPage() {
       <details style={{ ...detailStyle, marginBottom: 24 }}>
         <summary style={{ cursor: "pointer", fontWeight: 750, color: "#e4c98f" }}>Cloud and legacy provider overrides</summary>
         <p style={{ maxWidth: 900, lineHeight: 1.5, color: "#aaa398" }}>
-          Plain English: use this when you want to choose whether writing, pictures or video are made on your computer or by an online service. The technical provider and model names are shown only so advanced users can verify exactly what is being used.
+          Plain English: use this when you want to choose whether writing, pictures or video are made on your computer or by an online service. The technical provider and model names are shown only so advanced users can verify exactly what is being used. Ollama is optional and no longer defines the local architecture.
         </p>
         <AiRoutingPanel />
       </details>

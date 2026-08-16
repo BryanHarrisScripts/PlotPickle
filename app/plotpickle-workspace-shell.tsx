@@ -4,14 +4,14 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import styles from "./plotpickle-workspace-shell.module.css";
 
-export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "community" | "settings";
+export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "community" | "settings" | "dashboard" | "build";
 
 export const ROOT_NAV_ITEMS = [
-  { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "Start", selectable: false },
+  { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "Start", selectable: true },
   { id: "community", relic: "/assets/workflow-relics/community.svg", label: "Community", detail: "Guildhall", selectable: true },
   { id: "learn", relic: "/assets/workflow-relics/learn.webp", label: "Learn", detail: "Guides", selectable: true },
   { id: "plan", relic: "/assets/workflow-relics/plan.webp", label: "Plan", detail: "Design", selectable: true },
-  { id: "build", relic: "/assets/workflow-relics/build.webp", label: "Build", detail: "Assemble", selectable: false },
+  { id: "build", relic: "/assets/workflow-relics/build.webp", label: "Build", detail: "Assemble", selectable: true },
   { id: "storyboard", relic: "/assets/workflow-relics/storyboard.webp", label: "Storyboard", detail: "Sketch", selectable: false },
   { id: "graphic-novel", relic: "/assets/workflow-relics/graphic-novel.webp", label: "Previs", detail: "Visualize", selectable: false },
   { id: "write", relic: "/assets/workflow-relics/write.webp", label: "Write", detail: "Draft", selectable: false },
@@ -26,7 +26,8 @@ export const ROOT_NAV_ITEMS = [
 type RootNavItem = (typeof ROOT_NAV_ITEMS)[number];
 
 function isRootWorkspace(id: RootNavItem["id"]): id is RootWorkspace {
-  return id === "learn" || id === "plan" || id === "wyrmwood" || id === "community" || id === "settings";
+  return id === "dashboard" || id === "learn" || id === "plan" || id === "build"
+    || id === "wyrmwood" || id === "community" || id === "settings";
 }
 
 function endsNavigationGroup(id: RootNavItem["id"]) {

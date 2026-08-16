@@ -87,10 +87,13 @@ test("exhaustive UAT reads the shared continuity layer on every active screen", 
   }
 });
 
-test("parked historical workspaces remain parked while the continuity contract is established", async () => {
+test("Dashboard and BUILD are active while later production workspaces remain parked", async () => {
   const shell = await read("app/plotpickle-workspace-shell.tsx");
 
-  for (const id of ["build", "storyboard", "graphic-novel", "write", "edit", "feedback", "refine", "reports"]) {
+  for (const id of ["dashboard", "build"]) {
+    assert.match(shell, new RegExp(`id: "${id}"[^\\n]+selectable: true`));
+  }
+  for (const id of ["storyboard", "graphic-novel", "write", "edit", "feedback", "refine", "reports"]) {
     assert.match(shell, new RegExp(`id: "${id}"[^\\n]+selectable: false`));
   }
 });

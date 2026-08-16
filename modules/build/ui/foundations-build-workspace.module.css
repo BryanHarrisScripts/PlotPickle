@@ -1,0 +1,57 @@
+.screen {
+  min-height: 100%;
+  padding: clamp(24px, 4vw, 56px);
+  color: #edf7f4;
+  background: radial-gradient(circle at 78% 12%, rgba(224, 139, 55, .11), transparent 28%), #0a0d0e;
+}
+
+.panel {
+  width: min(920px, 100%);
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: clamp(26px, 5vw, 54px);
+  border: 1px solid rgba(75, 207, 184, .25);
+  border-radius: 24px;
+  background: linear-gradient(155deg, rgba(25, 32, 33, .96), rgba(11, 14, 15, .98));
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .28);
+}
+
+.kicker {
+  color: #66dbc9;
+  font-size: .76rem;
+  font-weight: 900;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.panel h1 { margin: 8px 0 14px; font-size: clamp(2rem, 5vw, 3.6rem); }
+.panel p { color: #adc0bb; line-height: 1.65; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+.actions button {
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid rgba(93, 221, 203, .38);
+  border-radius: 12px;
+  color: #effaf7;
+  background: rgba(42, 151, 137, .13);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.actions button:focus-visible { outline: 3px solid rgba(240, 184, 120, .7); outline-offset: 3px; }
+
+.brief {
+  max-height: 340px;
+  overflow: auto;
+  margin-top: 30px;
+  padding: 20px;
+  border: 1px solid rgba(166, 201, 193, .13);
+  border-radius: 14px;
+  background: rgba(3, 6, 7, .48);
+  white-space: pre-wrap;
+  color: #b9cac6;
+  font: .9rem/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.locked { border-color: rgba(224, 139, 55, .38); }

@@ -85,6 +85,7 @@
         "tests/issue-672-global-navigation.test.mjs",
         "tests/issue-686-sage-unified-agent.test.mjs",
         "tests/sage-brinewick-agent-skill.test.mjs",
+        "tests/dashboard-foundations-progression.test.mjs",
         "tests/pi-local-model-exhaustive-uat.test.mjs"
       ]
     },
@@ -103,6 +104,7 @@
         "tests/issue-672-global-navigation.test.mjs",
         "tests/issue-688-plan-ai-autofill-guidance.test.mjs",
         "tests/plan-readonly-lesson-answer-view.test.mjs",
+        "tests/dashboard-foundations-progression.test.mjs",
         "tests/pi-local-model-exhaustive-uat.test.mjs"
       ]
     },

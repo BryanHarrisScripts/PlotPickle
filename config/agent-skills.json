@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "discovery": "progressive",
+  "transport": "filesystem-first-mcp-resource-ready",
+  "indexUri": "skill://index.json",
+  "skills": [
+    {
+      "id": "uat-repair",
+      "name": "UAT Repair",
+      "description": "Repair one concrete PlotPickle UAT blocker through reproduce, regression-first repair, focused validation, and deterministic handoff.",
+      "entry": ".agents/skills/uat-repair/SKILL.md",
+      "uri": "skill://plotpickle/uat-repair",
+      "roles": ["repair"],
+      "primaryWorker": "pi",
+      "consumers": ["pi"],
+      "mcpReady": true,
+      "localOnly": true
+    }
+  ]
+}

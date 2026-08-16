@@ -68,6 +68,17 @@ The supported developer-agent candidates are Pi and Cline.
 - Cline may use its native rules, MCP, checkpoints, subagents, and worktrees, but it must follow this file first.
 - Do not add OpenHands or Herdr to the required stack.
 
+## Agent skills
+
+PlotPickle separates agent procedure from agent capability.
+
+- MCP and native tools describe what an agent can do. Skills describe how PlotPickle expects a specific job to be done. This file remains the higher-level constitution.
+- `config/agent-skills.json` is the lightweight skill discovery registry. Skill bodies live under `.agents/skills/<skill-id>/SKILL.md` and should use progressive disclosure rather than being copied into every system prompt.
+- A skill must never grant permissions the host or this file does not already allow. Tool, credential, git, network, privacy, and merge boundaries remain authoritative outside the skill.
+- Pi must load the `uat-repair` skill before performing a UAT repair. The deterministic repair wrapper remains responsible for worktree creation, validation, commit/push, draft PR creation, and GitHub state.
+- Keep skills model-independent and runtime-independent. A newer local model should be able to inherit the same procedure without a model-specific prompt rewrite.
+- Skill metadata may carry `skill://` URIs so the same packages can later be exposed through MCP Resources without changing the skill body.
+
 ## Agent review pattern
 
 For non-trivial changes, prefer separation of concerns:

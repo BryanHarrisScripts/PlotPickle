@@ -2,6 +2,13 @@
   "schemaVersion": 1,
   "platform": "windows-native",
   "sharedRules": "AGENTS.md",
+  "skills": {
+    "registry": "config/agent-skills.json",
+    "root": ".agents/skills",
+    "discovery": "progressive",
+    "transport": "filesystem-first-mcp-resource-ready",
+    "repairSkill": "uat-repair"
+  },
   "requiredAgents": [
     {
       "id": "pi",
@@ -37,6 +44,7 @@
     "defaultWorker": "pi",
     "selectableWorkers": ["pi", "cline"],
     "legacyWorker": "mastra-qwen",
+    "skill": "uat-repair",
     "localOnly": true,
     "cloudFallback": false,
     "requiresApprovedLocalCodingModel": true,

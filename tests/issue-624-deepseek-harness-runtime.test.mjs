@@ -42,7 +42,9 @@ test("launching DSH is an explicit user action through Ollama", async () => {
 
   assert.match(runtime, /export async function launchDeepSeekHarness/);
   assert.match(runtime, /spawn\("ollama", \["launch", "dsh"\]/);
-  assert.match(runtime, /cmd \/k ollama launch dsh/);
+  assert.match(runtime, /spawn\("cmd\.exe", \["\/d", "\/c", "start", "", "cmd\.exe", "\/k", "ollama", "launch", "dsh"\]/);
+  assert.doesNotMatch(runtime, /start \\"DeepSeek Harness\\" cmd \/k ollama launch dsh/);
+  assert.doesNotMatch(runtime, /"\/s", "\/c"/);
   assert.match(panel, />DeepSeek Harness</);
   assert.match(panel, /Install & launch DSH/);
   assert.match(panel, /\/api\/deepseek-harness\/launch/);

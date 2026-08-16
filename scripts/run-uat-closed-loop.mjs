@@ -50,7 +50,7 @@ async function mirrorUatResult(combined, findings) {
     actorId: "bram-gatewick",
     summary: `Closed-loop UAT ${combined.overall}: ${findings.length} unique blocker${findings.length === 1 ? "" : "s"}.`,
     severity: failed ? "high" : "info",
-    target: "Startup · Settings · LEARN · PLAN · Wyrmwood",
+    target: "Community · Settings · LEARN · PLAN · Wyrmwood · every safe visible control",
     verified: true,
     actionable: failed,
     evidence: [{ label: "UAT report", ref: "uat-findings.json" }],
@@ -74,11 +74,14 @@ async function main() {
   await mkdir(artifactRoot, { recursive: true });
   const coreRoot = path.join(artifactRoot, "core");
   const sageRoot = path.join(artifactRoot, "sage-conversation");
+  const exhaustiveRoot = path.join(artifactRoot, "exhaustive-ui");
   const coreRun = await run("scripts/run-uat-autopilot.mjs", ["--base-url", baseUrl, "--artifact-root", coreRoot]);
   const sageRun = await run("scripts/run-sage-conversation-uat.mjs", ["--base-url", baseUrl, "--artifact-root", sageRoot]);
-  const [core, sage] = await Promise.all([
+  const exhaustiveRun = await run("scripts/run-exhaustive-ui-uat.mjs", ["--base-url", baseUrl, "--artifact-root", exhaustiveRoot]);
+  const [core, sage, exhaustive] = await Promise.all([
     readJson(path.join(coreRoot, "autopilot-report.json")),
     readJson(path.join(sageRoot, "sage-conversation-report.json")),
+    readJson(path.join(exhaustiveRoot, "exhaustive-ui-uat-report.json")),
   ]);
 
   const findings = [];
@@ -86,14 +89,16 @@ async function main() {
     findings.push(buildUatFinding({ message, area: "focused-uat", evidence: { target: baseUrl, source: "autopilot-report.json" } }));
   }
   for (const finding of sage?.findings || []) findings.push(finding);
+  for (const finding of exhaustive?.findings || []) findings.push(finding);
   const deduped = [...new Map(findings.map((finding) => [finding.fingerprint, finding])).values()];
   const reportPath = path.join(artifactRoot, "uat-findings.json");
   const combined = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt: new Date().toISOString(),
     target: baseUrl,
-    overall: coreRun.code || sageRun.code || deduped.length ? "FAIL" : "PASS",
-    runs: { focused: coreRun, sageConversation: sageRun },
+    overall: coreRun.code || sageRun.code || exhaustiveRun.code || deduped.length ? "FAIL" : "PASS",
+    runs: { focused: coreRun, sageConversation: sageRun, exhaustiveUiUx: exhaustiveRun },
+    exhaustiveCoverage: exhaustive?.audit?.totals || null,
     findings: deduped,
   };
   await writeFile(reportPath, `${JSON.stringify(combined, null, 2)}\n`, "utf8");
@@ -108,7 +113,7 @@ async function main() {
     const repairScript = "scripts/run-uat-repair-agent.mjs";
     const ensureRun = await run("scripts/ensure-local-repair-model.mjs", ["--worker", repairWorker]);
     if (ensureRun.code !== 0) {
-      process.stderr.write("Automatic LM Studio repair-model load did not complete; continuing to the normal local-only repair preflight.\n");
+      process.stderr.write("Automatic local repair-model load did not complete; continuing to the normal local-only repair preflight.\n");
     }
     const preflight = await run(repairScript, ["--worker", repairWorker, "--preflight", "--require-ready"]);
     if (preflight.code !== 0) {
@@ -131,7 +136,7 @@ async function main() {
   }
 
   if (combined.overall === "FAIL") process.exitCode = 1;
-  process.stdout.write(`Closed-loop UAT ${combined.overall}: ${deduped.length} unique blocker(s). Findings: ${reportPath}\n`);
+  process.stdout.write(`Closed-loop UAT ${combined.overall}: ${deduped.length} unique blocker(s). Exhaustive control coverage: ${JSON.stringify(combined.exhaustiveCoverage || {})}. Findings: ${reportPath}\n`);
 }
 
 main().catch((error) => {

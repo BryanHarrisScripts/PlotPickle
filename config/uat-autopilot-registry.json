@@ -23,6 +23,7 @@
         "tests/issue-653-writer-in-residence.test.mjs",
         "tests/issue-681-685-writer-visual-reliability.test.mjs",
         "tests/live-buzz-guildhall-activity.test.mjs",
+        "tests/pi-local-model-exhaustive-uat.test.mjs",
         "tests/issue-667-669-agent-output-quality.test.mjs",
         "tests/issue-686-sage-unified-agent.test.mjs"
       ]
@@ -39,7 +40,8 @@
         "tests/issue-624-deepseek-harness-runtime.test.mjs",
         "tests/issue-671-advanced-ai-routing-dark.test.mjs",
         "tests/issue-672-global-navigation.test.mjs",
-        "tests/issue-695-settings-dark-buzz-health.test.mjs"
+        "tests/issue-695-settings-dark-buzz-health.test.mjs",
+        "tests/pi-local-model-exhaustive-uat.test.mjs"
       ]
     },
     {
@@ -51,7 +53,8 @@
       "tests": [
         "tests/community-workspace.test.mjs",
         "tests/community-agent-roster.test.mjs",
-        "tests/issue-672-global-navigation.test.mjs"
+        "tests/issue-672-global-navigation.test.mjs",
+        "tests/pi-local-model-exhaustive-uat.test.mjs"
       ]
     },
     {
@@ -74,7 +77,8 @@
         "tests/issue-638-639-sage-visible-answer-recovery.test.mjs",
         "tests/issue-667-669-agent-output-quality.test.mjs",
         "tests/issue-672-global-navigation.test.mjs",
-        "tests/issue-686-sage-unified-agent.test.mjs"
+        "tests/issue-686-sage-unified-agent.test.mjs",
+        "tests/pi-local-model-exhaustive-uat.test.mjs"
       ]
     },
     {
@@ -90,7 +94,8 @@
         "tests/issue-637-first-uat-findings.test.mjs",
         "tests/issue-667-669-agent-output-quality.test.mjs",
         "tests/issue-672-global-navigation.test.mjs",
-        "tests/issue-688-plan-ai-autofill-guidance.test.mjs"
+        "tests/issue-688-plan-ai-autofill-guidance.test.mjs",
+        "tests/pi-local-model-exhaustive-uat.test.mjs"
       ]
     },
     {
@@ -106,7 +111,8 @@
         "tests/issue-625-game-navigation-glyph.test.mjs",
         "tests/issue-629-wyrmwood-navigation-title.test.mjs",
         "tests/issue-667-669-agent-output-quality.test.mjs",
-        "tests/issue-672-global-navigation.test.mjs"
+        "tests/issue-672-global-navigation.test.mjs",
+        "tests/pi-local-model-exhaustive-uat.test.mjs"
       ]
     }
   ]

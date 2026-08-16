@@ -105,9 +105,6 @@ async function main() {
   }
 
   if (repair && deduped.length) {
-    for (const finding of deduped) {
-      await mirrorRepair(finding, `Repair requested for verified UAT blocker ${finding.fingerprint} using ${repairWorker}.`);
-    }
     const repairScript = "scripts/run-uat-repair-agent.mjs";
     const ensureRun = await run("scripts/ensure-local-repair-model.mjs", ["--worker", repairWorker]);
     if (ensureRun.code !== 0) {
@@ -120,6 +117,7 @@ async function main() {
       process.exitCode = 1;
     } else {
       for (const finding of deduped) {
+        await mirrorRepair(finding, `Repair requested for verified UAT blocker ${finding.fingerprint} using ${repairWorker}.`);
         const repairRun = await run(repairScript, ["--worker", repairWorker, "--report", reportPath, "--fingerprint", finding.fingerprint]);
         if (repairRun.code !== 0) {
           process.stderr.write(`UAT repair worker ${repairWorker} did not complete ${finding.fingerprint}. The blocker remains open for manual repair.\n`);

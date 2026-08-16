@@ -81,11 +81,12 @@ export function registerBuzzAgentActivityMirror(server: ViteDevServer) {
       return;
     }
 
-    const originalEnd = response.end;
-    response.end = function plotPickleBuzzActivityEnd(this: ServerResponse, ...args: unknown[]) {
+    const originalEnd = response.end.bind(response);
+    const responseWithMutableEnd = response as ServerResponse & { end: (...args: unknown[]) => ServerResponse };
+    responseWithMutableEnd.end = (...args: unknown[]) => {
       try { mirrorSuccessfulAgentTurn(request, args[0]); } catch {}
-      return originalEnd.apply(this, args as never);
-    } as ServerResponse["end"];
+      return (originalEnd as (...values: unknown[]) => ServerResponse)(...args);
+    };
     next();
   });
 }

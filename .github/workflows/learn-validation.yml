@@ -40,6 +40,17 @@ jobs:
       - name: Validate one-click full verification runner
         run: node --test tests/full-verification-runner.test.mjs
 
+      - name: Parse full verification PowerShell
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile("scripts/run-plotpickle-full-check.ps1", [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+
       - name: Validate focused UAT registry contract
         run: node --test tests/issue-622-uat-autopilot.test.mjs
 

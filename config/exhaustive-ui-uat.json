@@ -45,8 +45,16 @@
       "id": "settings",
       "label": "SETTINGS",
       "route": "/?workspace=settings",
-      "sourceFiles": ["app/sage-settings-workspace.tsx", "app/sage-fast-model-setup.tsx", "app/buzz-settings-panel.tsx"],
-      "maxInteractions": 160,
+      "sourceFiles": [
+        "app/sage-settings-workspace.tsx",
+        "app/sage-fast-model-setup.tsx",
+        "app/agent-observability-panel.tsx",
+        "app/buzz-live-health-card.tsx",
+        "app/deepseek-harness-panel.tsx",
+        "app/local-runtime-panel.tsx",
+        "app/buzz-settings-panel.tsx"
+      ],
+      "maxInteractions": 200,
       "testDuplicateInstances": true,
       "requireRoles": ["button", "combobox"]
     },
@@ -55,7 +63,7 @@
       "label": "SETTINGS · Advanced AI routing",
       "route": "/ai-routing",
       "sourceFiles": ["app/ai-routing/page.tsx"],
-      "maxInteractions": 120,
+      "maxInteractions": 140,
       "testDuplicateInstances": true
     }
   ],
@@ -78,7 +86,7 @@
     "disconnect"
   ],
   "credentialPatterns": ["password", "secret", "token", "api key", "private key", "credential"],
-  "longRunningActionPatterns": ["test sage", "test plan", "ask", "draft", "pickle", "evaluate", "set up sage and plan", "refresh", "check", "verify"],
+  "longRunningActionPatterns": ["test sage", "test plan", "ask", "draft", "pickle", "evaluate", "set up sage and plan", "refresh", "check", "verify", "live test", "health"],
   "globalNavigationLabels": ["Community", "LEARN", "PLAN", "GAME", "SETTINGS"],
   "hardFailOnDeadSafeControl": true,
   "hardFailOnUntestedSafeControl": true

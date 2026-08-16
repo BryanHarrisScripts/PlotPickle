@@ -42,18 +42,17 @@ test("the first Wyrmwood campaign is generated from LEARN Foundations", async ()
   assert.match(ui, /trial\.learningTargets/);
 });
 
-test("GAME keeps the original isolated shell while later phases activate the duel", async () => {
-  const [entry, page, ui] = await Promise.all([
-    read("app/wyrmwood-plugin-entry.tsx"),
+test("GAME remains isolated while sharing the global PlotPickle navigation shell", async () => {
+  const [page, shell, ui] = await Promise.all([
     read("app/page.tsx"),
+    read("app/plotpickle-workspace-shell.tsx"),
     read("modules/wyrmwood/ui/wyrmwood-workspace.tsx"),
   ]);
 
-  assert.match(entry, /src="\/assets\/workflow-relics\/game\.webp"/);
-  assert.match(entry, /aria-label="Open GAME — Wyrmwood"/);
-  assert.doesNotMatch(entry, />PLAY</);
-  assert.doesNotMatch(entry, />Wyrmwood</);
-  assert.match(page, /<WyrmwoodPluginEntry onOpen=\{\(\) => navigateWorkspace\("wyrmwood"\)\}/);
+  assert.match(page, /<PlotPickleWorkspaceShell activeWorkspace="wyrmwood"/);
+  assert.match(shell, /id: "wyrmwood", relic: "\/assets\/workflow-relics\/game\.webp", label: "WYRMWOOD", detail: "Game", selectable: true/);
+  assert.match(shell, /data-plotpickle-global-nav="v1"/);
+  assert.doesNotMatch(page, /WyrmwoodPluginEntry/);
   assert.match(ui, /Spellscribe response · practical logic only/);
   assert.match(ui, /150 words/);
   assert.match(ui, /directWyrmwoodTurn/);

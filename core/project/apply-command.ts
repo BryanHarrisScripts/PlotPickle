@@ -136,6 +136,21 @@ export function applyStoryCommand(
           },
         },
       };
+    case "foundations.visual.store": {
+      const existing = project.build.foundations.visualArtifacts.filter(
+        (artifact) => artifact.id !== command.artifact.id,
+      );
+      return {
+        ...base,
+        build: {
+          ...project.build,
+          foundations: {
+            ...project.build.foundations,
+            visualArtifacts: [command.artifact, ...existing].slice(0, 12),
+          },
+        },
+      };
+    }
     case "foundations.visual.accept": {
       const accepted = project.build.foundations.acceptedVisualArtifactIds;
       return {
@@ -143,6 +158,7 @@ export function applyStoryCommand(
         build: {
           ...project.build,
           foundations: {
+            ...project.build.foundations,
             acceptedVisualArtifactIds: accepted.includes(command.artifactId)
               ? accepted
               : [...accepted, command.artifactId],
@@ -156,6 +172,7 @@ export function applyStoryCommand(
         build: {
           ...project.build,
           foundations: {
+            ...project.build.foundations,
             acceptedVisualArtifactIds: project.build.foundations.acceptedVisualArtifactIds.filter(
               (artifactId) => artifactId !== command.artifactId,
             ),

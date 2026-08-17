@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import type { ReactNode } from "react";
+import CommunityPublicConversationsRail from "./community-public-conversations-rail";
 import styles from "./plotpickle-workspace-shell.module.css";
 
 export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "community" | "settings" | "dashboard" | "build";
@@ -101,6 +102,7 @@ export default function PlotPickleWorkspaceShell({
       </nav>
 
       <div className={styles.workspaceFrame} data-workspace-frame="true">{children}</div>
+      {activeWorkspace === "community" ? <CommunityPublicConversationsRail /> : null}
     </div>
   );
 }

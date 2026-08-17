@@ -20,6 +20,7 @@ export const VERIFICATION_STAGE_NAMES = [
 ];
 const CATEGORIES = ["Architecture", "Curriculum", "Production Build", "Local AI / Pi", "BUZZ", "UI / UX UAT", "Writer Journey"];
 const SAFE_STATUS = new Set(["PASS", "FAIL", "BLOCKED"]);
+const SAFE_RUN_ID = /^verification-[A-Za-z0-9._-]{8,120}$/;
 
 export function verificationInboxRoot(env = process.env) {
   if (env.PLOTPICKLE_HOME) return path.join(path.resolve(env.PLOTPICKLE_HOME), "verification-inbox");
@@ -90,6 +91,7 @@ export function normalizeVerificationRecord(input, metadata = {}) {
     status: stage.status,
     summary: stage.detail || (stage.status === "BLOCKED" ? "Stage was blocked." : `Stage exited with code ${stage.exitCode}.`),
   }));
+  const retestOf = SAFE_RUN_ID.test(String(input?.retestOf || "")) ? String(input.retestOf) : "";
   return {
     schemaVersion: 1,
     runId: metadata.runId || `verification-${Date.now()}-${randomUUID().slice(0, 8)}`,
@@ -110,7 +112,7 @@ export function normalizeVerificationRecord(input, metadata = {}) {
     agentObservations: [],
     failureSummaries,
     repairAttempts: [],
-    retests: [],
+    retests: retestOf ? [{ kind: "retest-of", runId: retestOf }] : [],
     integrity: {
       deterministicResultDerivedFromStages: true,
       agentMayOverrideResult: false,
@@ -146,8 +148,8 @@ async function readStdin() {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    const { record, filePath } = await writeVerificationRecord(await readStdin());
-    process.stdout.write(JSON.stringify({ ok: true, runId: record.runId, deterministicResult: record.deterministicResult, passCount: record.passCount, totalStages: record.totalStages, filePath }));
+    const { record } = await writeVerificationRecord(await readStdin());
+    process.stdout.write(JSON.stringify({ ok: true, runId: record.runId, deterministicResult: record.deterministicResult, passCount: record.passCount, totalStages: record.totalStages }));
   } catch (error) {
     process.stderr.write(redactVerificationText(error instanceof Error ? error.message : String(error)));
     process.exitCode = 1;

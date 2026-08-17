@@ -14,6 +14,7 @@ test("ComfyUI startup distinguishes Desktop installation from a ready local API"
     "DisplayIcon",
     "Test-ComfyApi",
     "/system_stats",
+    "desktop-installed-not-running",
     "desktop-started-ready",
     "desktop-opened-api-not-ready",
     "installed-entrypoint-not-found",
@@ -27,10 +28,19 @@ test("ComfyUI startup distinguishes Desktop installation from a ready local API"
   );
 });
 
-test("ComfyUI Desktop can be opened without replacing classic or portable ComfyUI support", async () => {
+test("ComfyUI Desktop opens only after an explicit launch opt-in", async () => {
   const starter = await source("scripts/start-comfyui-background.ps1");
 
+  assert.match(starter, /\[switch\]\$AllowDesktopLaunch/);
+  assert.match(starter, /-and -not \$AllowDesktopLaunch/);
+  assert.match(starter, /will not open Desktop without an explicit user action/);
+  assert.match(starter, /rerun this starter with -AllowDesktopLaunch/);
   assert.match(starter, /Start-Process -FilePath \$desktopExe -PassThru/);
+});
+
+test("Desktop support does not replace classic or portable ComfyUI", async () => {
+  const starter = await source("scripts/start-comfyui-background.ps1");
+
   assert.match(starter, /Find-ComfyMain/);
   assert.match(starter, /python_embeded\\python\.exe/);
   assert.match(starter, /--dont-launch-browser/);

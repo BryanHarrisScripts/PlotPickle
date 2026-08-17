@@ -1,52 +1,113 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { toolArguments } from "../scripts/creative-uat/mcp-runtime.mjs";
+import { McpToolArgumentError, toolArguments } from "../scripts/creative-uat/mcp-runtime.mjs";
+import { clickArgs, pageStateSignature, refFor, selectArgs, snapshotControlRefs, typeArgs } from "../scripts/exhaustive-ui-control-audit.mjs";
 import { isReportableExhaustiveFinding, partitionExhaustiveFindings } from "../scripts/exhaustive-ui-finding-policy.mjs";
 
-test("Playwright target schema receives legacy accessibility ref as target", () => {
-  const tool = { inputSchema: { properties: { element: {}, target: {}, text: {} } } };
+test("Playwright target schema receives legacy accessibility ref as required target", () => {
+  const tool = {
+    name: "browser_type",
+    inputSchema: {
+      properties: { element: { type: "string" }, target: { type: "string" }, text: { type: "string" }, submit: { type: "boolean" }, slowly: { type: "boolean" } },
+      required: ["target", "text"],
+    },
+  };
   assert.deepEqual(
-    toolArguments(tool, { element: "Search every lesson", ref: "e42", text: "test" }),
-    { element: "Search every lesson", text: "test", target: "e42" },
+    typeArgs(tool, "e42", "Search every lesson", "test"),
+    { element: "Search every lesson", text: "test", slowly: false, submit: false, target: "e42" },
   );
 });
 
 test("legacy ref schema remains supported", () => {
-  const tool = { inputSchema: { properties: { element: {}, ref: {} } } };
+  const tool = {
+    name: "browser_click",
+    inputSchema: { properties: { element: { type: "string" }, ref: { type: "string" } }, required: ["element", "ref"] },
+  };
   assert.deepEqual(
-    toolArguments(tool, { element: "Refresh", ref: "e7" }),
+    clickArgs(tool, "e7", "Refresh"),
     { element: "Refresh", ref: "e7" },
   );
 });
 
-test("harness interaction and observation failures stay local instead of becoming GitHub blockers", () => {
+test("target-based click and select builders satisfy current Playwright MCP schema", () => {
+  const clickTool = {
+    name: "browser_click",
+    inputSchema: { properties: { element: { type: "string" }, target: { type: "string" } }, required: ["target"] },
+  };
+  const selectTool = {
+    name: "browser_select_option",
+    inputSchema: { properties: { element: { type: "string" }, target: { type: "string" }, values: { type: "array" } }, required: ["target", "values"] },
+  };
+  assert.deepEqual(clickArgs(clickTool, "e11", "Great Hall"), { element: "Great Hall", target: "e11" });
+  assert.deepEqual(selectArgs(selectTool, "e12", "Model", "local"), { element: "Model", values: ["local"], target: "e12" });
+});
+
+test("required MCP targeting arguments are rejected before the browser call", () => {
+  const tool = {
+    name: "browser_click",
+    inputSchema: { properties: { element: { type: "string" }, target: { type: "string" } }, required: ["target"] },
+  };
+  assert.throws(
+    () => toolArguments(tool, { element: "Refresh", ref: undefined }),
+    (error) => error instanceof McpToolArgumentError && error.missing.includes("target"),
+  );
+});
+
+test("snapshot refs preserve duplicate-control occurrence matching", () => {
+  const snapshot = [
+    '- button "Refresh" [ref=e7]',
+    '- button "Refresh" [ref=e8]',
+    '- tab "Great Hall" [ref=e9]',
+  ].join("\n");
+  assert.deepEqual(snapshotControlRefs(snapshot), [
+    { role: "button", label: "Refresh", ref: "e7", occurrence: 0 },
+    { role: "button", label: "Refresh", ref: "e8", occurrence: 1 },
+    { role: "tab", label: "Great Hall", ref: "e9", occurrence: 0 },
+  ]);
+  assert.equal(refFor({ role: "button", label: "Refresh", occurrence: 1 }, snapshot)?.ref, "e8");
+});
+
+test("observable state signature includes semantic tab state, headings and status text", () => {
+  const base = {
+    url: "http://127.0.0.1:4173/?workspace=community",
+    headings: ["Community"],
+    statusText: [],
+    controls: [{ role: "tab", label: "Great Hall", ariaSelected: "false", ariaExpanded: "", ariaPressed: "", ariaCurrent: "", dataState: "", value: "", checked: null, disabled: false, detailsOpen: null, options: [] }],
+  };
+  const changed = structuredClone(base);
+  changed.controls[0].ariaSelected = "true";
+  changed.headings = ["Great Hall"];
+  assert.notEqual(pageStateSignature(base), pageStateSignature(changed));
+});
+
+test("harness findings stay local while a successfully exercised dead control remains reportable", () => {
   const harness = {
-    kind: "bug",
+    kind: "harness",
     severity: "high",
     actionable: true,
-    summary: "PLAN: button ‘Build’ threw or stalled during synthetic UAT.",
-    impact: "Invalid arguments for tool browser_click: expected string, received undefined at target",
+    summary: "PLAN: button ‘Build’ could not be completed by the synthetic browser harness.",
+    impact: "MCP argument validation: browser_click is missing required argument(s): target.",
   };
-  const unverifiedDead = {
+  const accessibility = {
+    kind: "accessibility",
+    severity: "high",
+    actionable: true,
+    summary: "PLAN: button ‘Build’ has no current accessibility target.",
+    impact: "Visible rendered control had no matching accessibility ref in the current snapshot.",
+  };
+  const dead = {
     kind: "bug",
     severity: "high",
     actionable: true,
     summary: "PLAN: button ‘Build’ can be activated but produces no observable result.",
-    impact: "The synthetic observer did not detect a state change.",
-  };
-  const verifiedProductFinding = {
-    kind: "bug",
-    severity: "high",
-    actionable: true,
-    summary: "PLAN: saved answer is lost after reopening the section.",
-    impact: "The user-entered answer is not persisted and the focused reproduction confirms data loss.",
+    impact: "The Playwright interaction completed successfully, but PlotPickle produced no observable route, control, semantic, heading or status change.",
   };
 
   assert.equal(isReportableExhaustiveFinding(harness), false);
-  assert.equal(isReportableExhaustiveFinding(unverifiedDead), false);
-  assert.equal(isReportableExhaustiveFinding(verifiedProductFinding), true);
-  assert.deepEqual(partitionExhaustiveFindings([harness, unverifiedDead, verifiedProductFinding]), {
-    reportable: [verifiedProductFinding],
-    harnessOnly: [harness, unverifiedDead],
+  assert.equal(isReportableExhaustiveFinding(accessibility), false);
+  assert.equal(isReportableExhaustiveFinding(dead), true);
+  assert.deepEqual(partitionExhaustiveFindings([harness, accessibility, dead]), {
+    reportable: [dead],
+    harnessOnly: [harness, accessibility],
   });
 });

@@ -47,12 +47,7 @@ function parseGuildhallEvent(content: string): ParsedGuildhallEvent | null {
   if (!header || !metadata) return null;
   const type = metadata.match(/^type=([^\s]+)/)?.[1] || "";
   if (!type) return null;
-  return {
-    displayName: header[1].trim(),
-    title: header[2].trim(),
-    summary: cleanHumanText(lines[1]),
-    type,
-  };
+  return { displayName: header[1].trim(), title: header[2].trim(), summary: cleanHumanText(lines[1]), type };
 }
 
 function actorFor(displayName: string, fallbackAuthor: string) {
@@ -71,6 +66,7 @@ function displayAuthor(name: string, role: string, badge: CommunityConversationI
 }
 
 function looksOperational(content: string) {
+  if (content.startsWith("[PLOTPICKLE_STUDIO_EVENT]") || /"type":"studio\.(?:presence|withdrawn|test)"/.test(content)) return true;
   const lines = content.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   const markers = lines.filter((line) => EVENT_METADATA.test(line) || EVIDENCE_LINE.test(line)).length;
   return markers >= 2
@@ -81,9 +77,6 @@ function looksOperational(content: string) {
 export function projectCommunityConversation(activity: RawCommunityActivity): CommunityConversationItem | null {
   const parsed = parseGuildhallEvent(activity.content);
   if (parsed) {
-    // Only intentional agent notes belong in ordinary Great Hall conversation.
-    // Every other Guildhall event stays available to BUZZ/diagnostic tooling but
-    // is excluded from the human-facing feed.
     if (parsed.type !== "agent.note") return null;
     const actor = actorFor(parsed.displayName, activity.author);
     const role = parsed.title || actor?.title || "";
@@ -100,7 +93,6 @@ export function projectCommunityConversation(activity: RawCommunityActivity): Co
       badge,
     };
   }
-
   if (looksOperational(activity.content)) return null;
   const actor = actorFor("", activity.author);
   const role = actor?.title || "";

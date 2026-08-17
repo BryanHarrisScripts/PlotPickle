@@ -147,12 +147,22 @@ function Invoke-VerificationOrchestrator([string]$RunId) {
   Write-Host "Running role-safe verification review..." -ForegroundColor Gray
   & node @Arguments
   $Code = if ($null -eq $LASTEXITCODE) { 0 } else { [int]$LASTEXITCODE }
-  if ($Code -eq 0) {
-    Write-Host "SAVED  Agent review / orchestration companion" -ForegroundColor Green
-    return $true
+  if ($Code -ne 0) {
+    Write-Host "FAIL  Verification agent review / handoff did not complete." -ForegroundColor Red
+    return $false
   }
-  Write-Host "FAIL  Verification agent review / handoff did not complete." -ForegroundColor Red
-  return $false
+
+  Write-Host "SAVED  Agent review / orchestration companion" -ForegroundColor Green
+  $LifecycleArguments = @(".\scripts\verification-buzz-lifecycle.mjs", "--run-id", $RunId)
+  if ($GitHubReport) { $LifecycleArguments += "--github-report" }
+  & node @LifecycleArguments
+  $LifecycleCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int]$LASTEXITCODE }
+  if ($LifecycleCode -eq 0) {
+    Write-Host "SENT   BUZZ verification lifecycle evidence" -ForegroundColor Green
+  } else {
+    Write-Host "WARN   BUZZ lifecycle delivery was unavailable; the deterministic verification result is unchanged." -ForegroundColor Yellow
+  }
+  return $true
 }
 
 $TranscriptStarted = $false

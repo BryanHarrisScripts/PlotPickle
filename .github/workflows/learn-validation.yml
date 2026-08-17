@@ -52,15 +52,20 @@ jobs:
       - name: Validate one-click full verification runner
         run: node --test tests/full-verification-runner.test.mjs tests/full-verification-log-review.test.mjs
 
-      - name: Parse full verification PowerShell
+      - name: Parse changed Windows verification and maintenance scripts
         shell: pwsh
         run: |
-          $tokens = $null
-          $errors = $null
-          [System.Management.Automation.Language.Parser]::ParseFile("scripts/run-plotpickle-full-check.ps1", [ref]$tokens, [ref]$errors) | Out-Null
-          if ($errors.Count -gt 0) {
-            $errors | ForEach-Object { Write-Error $_.Message }
-            exit 1
+          foreach ($path in @(
+            "scripts/run-plotpickle-full-check.ps1",
+            "scripts/windows-companion-software.ps1"
+          )) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error "$path: $($_.Message)" }
+              exit 1
+            }
           }
 
       - name: Validate focused UAT registry contract

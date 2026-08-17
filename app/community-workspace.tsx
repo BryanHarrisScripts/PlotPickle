@@ -12,7 +12,7 @@ import styles from "./community-workspace.module.css";
 const BUZZ_API = "/api/local-buzz";
 const PROPOSAL_STORAGE_KEY = "plotpickle.buzz.proposals.v1";
 
-type CommunitySection = "overview" | "great-hall" | "story-rooms" | "people" | "agents" | "reviews" | "guildhall";
+type CommunitySection = "overview" | "great-hall" | "connected-studios" | "story-rooms" | "people" | "agents" | "reviews" | "guildhall";
 type BuzzChannel = { id: string; name: string; description: string };
 type CommunityMember = { pubkey: string; displayName: string; presence: string; updatedAt: string };
 type ActivityItem = { id: string; content: string; author: string; createdAt: string };
@@ -45,10 +45,11 @@ type StoryRoomRecord = { roomId: BuzzStoryRoomId; channel: BuzzChannel; created?
 type BuzzMessage = { id: string; content: string; author: string; createdAt: string };
 type ReviewItem = { id: string; title: string; status: string; roomId?: string; createdAt?: string };
 
-const SECTIONS: Array<{ id: CommunitySection; label: string; description: string }> = [
+const SECTIONS: Array<{ id: CommunitySection; label: string; description: string; primary?: boolean }> = [
   { id: "overview", label: "Overview", description: "People, rooms, reviews and recent activity" },
-  { id: "great-hall", label: "Great Hall", description: "Community-wide discussion" },
-  { id: "story-rooms", label: "Story Rooms", description: "Private discussion for the active story" },
+  { id: "great-hall", label: "Great Hall", description: "Community-wide discussion", primary: true },
+  { id: "story-rooms", label: "Story Rooms", description: "Private discussion for the active story", primary: true },
+  { id: "connected-studios", label: "Connected Studios", description: "Playhouse Studio discovery and presence" },
   { id: "people", label: "People", description: "Great Hall members and presence" },
   { id: "agents", label: "Agents & Stewards", description: "PlotPickle lore agents and operational stewards" },
   { id: "reviews", label: "Review Queue", description: "Community suggestions waiting for human review" },
@@ -112,11 +113,12 @@ function buzzDesktopUrl(relay: string, name: string) {
 
 export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpenSettings: () => void }) {
   const [section, setSection] = useState<CommunitySection>("overview");
+  const [navigationExpanded, setNavigationExpanded] = useState(true);
   const [community, setCommunity] = useState<CommunityStatus | null>(null);
   const [guildhall, setGuildhall] = useState<GuildhallStatus | null>(null);
   const [project, setProject] = useState<PPFProject | null>(null);
   const [storyRooms, setStoryRooms] = useState<StoryRoomRecord[]>([]);
-  const [selectedRoomId, setSelectedRoomId] = useState<BuzzStoryRoomId>("story");
+  const [selectedRoomId, setSelectedRoomId] = useState<BuzzStoryRoomId | null>(null);
   const [storyMessages, setStoryMessages] = useState<BuzzMessage[]>([]);
   const [hallDraft, setHallDraft] = useState("");
   const [storyDraft, setStoryDraft] = useState("");
@@ -269,8 +271,32 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
     void loadStoryMessages(room).catch((error) => setNotice(error instanceof Error ? error.message : "Story Room messages could not be loaded."));
   }
 
+  function closeStoryRoom() {
+    setSelectedRoomId(null);
+    setStoryMessages([]);
+  }
+
+  function replyToHall(author: string) {
+    setHallDraft((current) => current || `@${author || "Guild member"} `);
+  }
+
+  function replyToStory(author: string) {
+    setStoryDraft((current) => current || `@${author || "Story Room member"} `);
+  }
+
   const connected = Boolean(community?.identityVerified && community.greatHall);
   const readyRoomCount = storyRooms.length;
+
+  function navigationMeta(id: CommunitySection) {
+    if (id === "great-hall") return `${community?.members.length ?? 0} members · ${onlineMembers} online`;
+    if (id === "story-rooms") return `${readyRoomCount}/6 ready · ${activeProjectName}`;
+    if (id === "connected-studios") return connected ? "Directory coming next · community connected" : "Available offline · federation not connected";
+    if (id === "people") return `${community?.members.length ?? 0} members`;
+    if (id === "agents") return `${BUZZ_GUILDHALL_ACTORS.length} agents & stewards`;
+    if (id === "reviews") return `${reviews.length} waiting for review`;
+    if (id === "guildhall") return `${guildhall?.readyCount ?? 0}/${guildhall?.totalCount ?? 11} coordination rooms`;
+    return "Community home";
+  }
 
   return (
     <div className={styles.page}>
@@ -286,87 +312,128 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
         </div>
       </header>
 
-      <nav className={styles.tabs} aria-label="Community sections" role="tablist">
-        {SECTIONS.map((item) => <button key={item.id} type="button" role="tab" aria-selected={section === item.id} title={item.description} className={section === item.id ? styles.activeTab : undefined} onClick={() => setSection(item.id)}>{item.label}</button>)}
-      </nav>
+      <div className={styles.communityLayout}>
+        <aside className={styles.communityRail} aria-label="Community and Guildhall navigation">
+          <button
+            type="button"
+            className={styles.railToggle}
+            aria-expanded={navigationExpanded}
+            aria-controls="community-destinations"
+            onClick={() => setNavigationExpanded((expanded) => !expanded)}
+          >
+            <span><b>Community &amp; Guildhall</b><small>Rooms, people and review</small></span>
+            <em>{navigationExpanded ? "Collapse" : "Expand"}</em>
+          </button>
+          {navigationExpanded ? (
+            <nav id="community-destinations" className={styles.destinationList} aria-label="Community destinations">
+              {SECTIONS.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-current={section === item.id ? "page" : undefined}
+                  className={section === item.id ? styles.activeDestination : undefined}
+                  data-primary={item.primary ? "true" : undefined}
+                  onClick={() => setSection(item.id)}
+                >
+                  <span><b>{item.label}</b><small>{item.description}</small></span>
+                  <em>{navigationMeta(item.id)}</em>
+                </button>
+              ))}
+            </nav>
+          ) : null}
+        </aside>
 
-      {!community?.identityVerified ? (
-        <section className={styles.setupCard}>
-          <div><span>Connect once</span><h2>Community uses your locally encrypted Buzz identity.</h2><p>Open basic Settings, connect and verify your Buzz community, then return here. The private identity stays on this computer and is not stored in GitHub or the PPF.</p></div>
-          <button type="button" onClick={onOpenSettings}>Open Settings</button>
-        </section>
-      ) : !guildhall?.operational ? (
-        <section className={styles.setupCard}>
-          <div><span>One-time Guildhall setup</span><h2>{guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} Guildhall rooms ready` : "Prepare the PlotPickle Guildhall"}</h2><p>PlotPickle creates only the missing private rooms, then verifies that all eleven exist before reporting the community as operational.</p></div>
-          <button type="button" disabled={busy === "guildhall" || !guildhall?.canSetup} onClick={() => void setupGuildhall()}>{busy === "guildhall" ? "Building Guildhall…" : "Set up PlotPickle Guildhall"}</button>
-        </section>
-      ) : null}
+        <div className={styles.communityContent}>
+          {!community?.identityVerified ? (
+            <section className={styles.setupCard}>
+              <div><span>Connect once</span><h2>Community uses your locally encrypted Buzz identity.</h2><p>Open basic Settings, connect and verify your Buzz community, then return here. The private identity stays on this computer and is not stored in GitHub or the PPF.</p></div>
+              <button type="button" onClick={onOpenSettings}>Open Settings</button>
+            </section>
+          ) : !guildhall?.operational ? (
+            <section className={styles.setupCard}>
+              <div><span>One-time Guildhall setup</span><h2>{guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} Guildhall rooms ready` : "Prepare the PlotPickle Guildhall"}</h2><p>PlotPickle creates only the missing private rooms, then verifies that all eleven exist before reporting the community as operational.</p></div>
+              <button type="button" disabled={busy === "guildhall" || !guildhall?.canSetup} onClick={() => void setupGuildhall()}>{busy === "guildhall" ? "Building Guildhall…" : "Set up PlotPickle Guildhall"}</button>
+            </section>
+          ) : null}
 
-      {section === "overview" ? <main className={styles.stack}>
-        <section className={styles.summaryGrid}>
-          <button type="button" onClick={() => setSection("great-hall")}><span>Great Hall</span><strong>{community?.members.length ?? 0} members</strong><small>{onlineMembers} online now</small></button>
-          <button type="button" onClick={() => setSection("story-rooms")}><span>Active story</span><strong>{activeProjectName}</strong><small>{readyRoomCount}/6 Story Rooms ready</small></button>
-          <button type="button" onClick={() => setSection("reviews")}><span>Review queue</span><strong>{reviews.length} waiting</strong><small>Nothing changes PPF canon without approval</small></button>
-          <button type="button" onClick={() => setSection("guildhall")}><span>Guildhall</span><strong>{guildhall?.readyCount ?? 0}/{guildhall?.totalCount ?? 11} rooms</strong><small>{guildhall?.operational ? "Operational" : "Setup incomplete"}</small></button>
-        </section>
-        <section className={styles.panel}>
-          <header><div><span>Recent community activity</span><h2>What is happening in the Great Hall</h2></div><button type="button" disabled={Boolean(busy)} onClick={() => void refreshCommunity(true)}>Refresh</button></header>
-          <div className={styles.activityList}>
-            {community?.recentActivity.length ? community.recentActivity.slice(0, 8).map((item) => <article key={item.id}><div><strong>{item.author || "Guild member"}</strong><small>{displayDate(item.createdAt)}</small></div><p>{item.content}</p></article>) : <p className={styles.empty}>No Great Hall messages yet. Open the Great Hall to start the conversation.</p>}
-          </div>
-        </section>
-        <section className={styles.twoColumn}>
-          <article className={styles.panel}><span>People</span><h2>{community?.members.length ?? 0} Great Hall members</h2><p>Presence comes from Buzz, but normal member viewing stays inside PlotPickle.</p><button type="button" onClick={() => setSection("people")}>See people</button></article>
-          <article className={styles.panel}><span>Agents & Stewards</span><h2>{BUZZ_GUILDHALL_ACTORS.length} lore identities</h2><p>Sage, Tamsin, Avery, Wyrmwood and the Guildhall stewards have named responsibilities and truthful runtime states.</p><button type="button" onClick={() => setSection("agents")}>Meet the Guildhall</button></article>
-        </section>
-      </main> : null}
+          {section === "overview" ? <main className={styles.stack}>
+            <section className={styles.summaryGrid}>
+              <button type="button" onClick={() => setSection("great-hall")}><span>Great Hall</span><strong>{community?.members.length ?? 0} members</strong><small>{onlineMembers} online now</small></button>
+              <button type="button" onClick={() => setSection("story-rooms")}><span>Active story</span><strong>{activeProjectName}</strong><small>{readyRoomCount}/6 Story Rooms ready</small></button>
+              <button type="button" onClick={() => setSection("reviews")}><span>Review queue</span><strong>{reviews.length} waiting</strong><small>Nothing changes PPF canon without approval</small></button>
+              <button type="button" onClick={() => setSection("guildhall")}><span>Guildhall</span><strong>{guildhall?.readyCount ?? 0}/{guildhall?.totalCount ?? 11} rooms</strong><small>{guildhall?.operational ? "Operational" : "Setup incomplete"}</small></button>
+            </section>
+            <section className={styles.panel}>
+              <header><div><span>Recent community activity</span><h2>What is happening in the Great Hall</h2></div><button type="button" disabled={Boolean(busy)} onClick={() => void refreshCommunity(true)}>Refresh</button></header>
+              <div className={styles.activityList}>
+                {community?.recentActivity.length ? community.recentActivity.slice(0, 8).map((item) => <article key={item.id}><div><strong>{item.author || "Guild member"}</strong><small>{displayDate(item.createdAt)}</small></div><p>{item.content}</p></article>) : <p className={styles.empty}>No Great Hall messages yet. Open the Great Hall to start the conversation.</p>}
+              </div>
+            </section>
+            <section className={styles.twoColumn}>
+              <article className={styles.panel}><span>People</span><h2>{community?.members.length ?? 0} Great Hall members</h2><p>Presence comes from Buzz, but normal member viewing stays inside PlotPickle.</p><button type="button" onClick={() => setSection("people")}>See people</button></article>
+              <article className={styles.panel}><span>Agents & Stewards</span><h2>{BUZZ_GUILDHALL_ACTORS.length} lore identities</h2><p>Sage, Tamsin, Avery, Wyrmwood and the Guildhall stewards have named responsibilities and truthful runtime states.</p><button type="button" onClick={() => setSection("agents")}>Meet the Guildhall</button></article>
+            </section>
+          </main> : null}
 
-      {section === "great-hall" ? <main className={styles.stack}>
-        <section className={styles.sectionHeading}><div><span>The Great Hall</span><h2>One gathering place for people and approved PlotPickle agents.</h2><p>Use this for community-wide discussion and handoffs. Story-specific material belongs in the private Story Rooms.</p></div><button type="button" onClick={() => void refreshCommunity(true)}>Refresh Hall</button></section>
-        <section className={styles.conversation}>
-          <div className={styles.messageList}>{community?.recentActivity.length ? community.recentActivity.map((item) => <article key={item.id}><header><strong>{item.author || "Guild member"}</strong><small>{displayDate(item.createdAt)}</small></header><p>{item.content}</p></article>) : <p className={styles.empty}>The Great Hall is quiet.</p>}</div>
-          <div className={styles.composer}><textarea value={hallDraft} onChange={(event) => setHallDraft(event.target.value)} placeholder="Write to the Great Hall…" rows={4} /><button type="button" disabled={!connected || !hallDraft.trim() || Boolean(busy)} onClick={() => void sendHallMessage()}>{busy === "hall-send" ? "Sending…" : "Send signed message"}</button></div>
-        </section>
-      </main> : null}
+          {section === "great-hall" ? <main className={styles.stack}>
+            <section className={styles.sectionHeading}><div><span>The Great Hall</span><h2>One gathering place for people and approved PlotPickle agents.</h2><p>Use this for community-wide discussion and handoffs. Story-specific material belongs in the private Story Rooms.</p></div><button type="button" onClick={() => void refreshCommunity(true)}>Refresh Hall</button></section>
+            <section className={styles.conversation} aria-label="Great Hall conversation">
+              <div className={styles.messageList}>{community?.recentActivity.length ? community.recentActivity.map((item) => {
+                const author = item.author || "Guild member";
+                return <article key={item.id}><header><strong>{author}</strong><small>{displayDate(item.createdAt)}</small></header><p>{item.content}</p><footer className={styles.messageActions}><span>Great Hall</span><button type="button" aria-label={`Reply to ${author} in the Great Hall`} onClick={() => replyToHall(author)}>Reply</button></footer></article>;
+              }) : <p className={styles.empty}>The Great Hall is quiet.</p>}</div>
+              <div className={styles.composer}><textarea value={hallDraft} onChange={(event) => setHallDraft(event.target.value)} placeholder="Write to the Great Hall…" rows={4} /><button type="button" disabled={!connected || !hallDraft.trim() || Boolean(busy)} onClick={() => void sendHallMessage()}>{busy === "hall-send" ? "Sending…" : "Send signed message"}</button></div>
+            </section>
+          </main> : null}
 
-      {section === "story-rooms" ? <main className={styles.stack}>
-        <section className={styles.sectionHeading}><div><span>Story Rooms</span><h2>{project ? `Private rooms for ${project.title}` : "Open a story to create its rooms"}</h2><p>Story, Characters, Structure, Continuity, Visual Development and Production Notes are real private BUZZ channels. Authorized members can read and comment from either PlotPickle or Buzz Desktop.</p></div><button type="button" disabled={!community?.identityVerified || !project || Boolean(busy)} onClick={() => void ensureStoryRooms()}>{busy === "story-rooms" ? "Creating…" : storyRooms.length === 6 ? "Story Rooms ready" : "Create missing Story Rooms"}</button></section>
-        <div className={styles.roomGrid}>{BUZZ_STORY_ROOMS.map((definition) => {
-          const ready = storyRooms.some((room) => room.roomId === definition.id);
-          return <button key={definition.id} type="button" disabled={!ready} data-ready={ready ? "true" : "false"} onClick={() => openStoryRoom(definition.id)}><span>{definition.label}</span><strong>{ready ? "Ready" : "Not created"}</strong><small>{definition.description}</small></button>;
-        })}</div>
-        {selectedRoom ? <section className={styles.conversation}>
-          <header className={styles.roomConversationHeader}><div><span>Active room</span><h3>{BUZZ_STORY_ROOMS.find((room) => room.id === selectedRoom.roomId)?.label}</h3></div><button type="button" onClick={() => void loadStoryMessages(selectedRoom)}>Load messages</button></header>
-          <div className={styles.messageList}>{storyMessages.length ? storyMessages.map((message) => <article key={message.id}><header><strong>{message.author || "Story Room member"}</strong><small>{displayDate(message.createdAt)}</small></header><p>{message.content}</p></article>) : <p className={styles.empty}>Load this room to see its signed conversation.</p>}</div>
-          <div className={styles.composer}><textarea value={storyDraft} onChange={(event) => setStoryDraft(event.target.value)} placeholder="Discuss this story without changing canon…" rows={4} /><button type="button" disabled={!storyDraft.trim() || Boolean(busy)} onClick={() => void sendStoryMessage()}>{busy === "story-send" ? "Sending…" : "Send to Story Room"}</button></div>
-          <CommunityStoryRoomAccess channel={selectedRoom.channel} greatHallMembers={community?.members ?? []} desktopUrl={desktopUrl} />
-        </section> : null}
-      </main> : null}
+          {section === "story-rooms" ? <main className={styles.stack}>
+            <section className={styles.sectionHeading}><div><span>Story Rooms</span><h2>{project ? `Private rooms for ${project.title}` : "Open a story to create its rooms"}</h2><p>Story, Characters, Structure, Continuity, Visual Development and Production Notes are real private BUZZ channels. Authorized members can read and comment from either PlotPickle or Buzz Desktop.</p></div><button type="button" disabled={!community?.identityVerified || !project || Boolean(busy)} onClick={() => void ensureStoryRooms()}>{busy === "story-rooms" ? "Creating…" : storyRooms.length === 6 ? "Story Rooms ready" : "Create missing Story Rooms"}</button></section>
+            <div className={styles.roomGrid}>{BUZZ_STORY_ROOMS.map((definition) => {
+              const ready = storyRooms.some((room) => room.roomId === definition.id);
+              return <button key={definition.id} type="button" disabled={!ready} data-ready={ready ? "true" : "false"} onClick={() => openStoryRoom(definition.id)}><span>{definition.label}</span><strong>{ready ? "Ready" : "Not created"}</strong><small>{definition.description}</small></button>;
+            })}</div>
+            {selectedRoom ? <section className={styles.conversation} aria-label="Story Room conversation">
+              <header className={styles.roomConversationHeader}><div><span>Active room</span><h3>{BUZZ_STORY_ROOMS.find((room) => room.id === selectedRoom.roomId)?.label}</h3></div><div className={styles.roomHeaderActions}><button type="button" onClick={closeStoryRoom}>Back to Story Rooms</button><button type="button" onClick={() => void loadStoryMessages(selectedRoom)}>Load messages</button></div></header>
+              <div className={styles.messageList}>{storyMessages.length ? storyMessages.map((message) => {
+                const author = message.author || "Story Room member";
+                return <article key={message.id}><header><strong>{author}</strong><small>{displayDate(message.createdAt)}</small></header><p>{message.content}</p><footer className={styles.messageActions}><span>{BUZZ_STORY_ROOMS.find((room) => room.id === selectedRoom.roomId)?.label || "Story Room"}</span><button type="button" aria-label={`Reply to ${author} in this Story Room`} onClick={() => replyToStory(author)}>Reply</button></footer></article>;
+              }) : <p className={styles.empty}>Load this room to see its signed conversation.</p>}</div>
+              <div className={styles.composer}><textarea value={storyDraft} onChange={(event) => setStoryDraft(event.target.value)} placeholder="Discuss this story without changing canon…" rows={4} /><button type="button" disabled={!storyDraft.trim() || Boolean(busy)} onClick={() => void sendStoryMessage()}>{busy === "story-send" ? "Sending…" : "Send to Story Room"}</button></div>
+              <CommunityStoryRoomAccess channel={selectedRoom.channel} greatHallMembers={community?.members ?? []} desktopUrl={desktopUrl} />
+            </section> : null}
+          </main> : null}
 
-      {section === "people" ? <main className={styles.stack}>
-        <section className={styles.sectionHeading}><div><span>People</span><h2>Great Hall members and presence</h2><p>PlotPickle can read Great Hall membership and online/away/offline presence natively. Full community-wide invitation issuance is not exposed by the current Buzz CLI, so that owner-only step remains in Buzz Desktop for now.</p></div></section>
-        <section className={styles.memberGrid}>{community?.members.length ? community.members.map((member) => <article key={member.pubkey}><header><div><i data-presence={member.presence} aria-hidden="true" /><strong>{member.displayName}</strong></div><span>{member.presence || "offline"}</span></header><small>{member.pubkey.slice(0, 12)}…{member.pubkey.slice(-8)}</small><button type="button" disabled={Boolean(busy)} onClick={() => void removeMember(member.pubkey)}>Remove from Great Hall</button></article>) : <p className={styles.empty}>No Great Hall members were returned yet.</p>}</section>
-        <section className={styles.accessCard}><div><span>Add existing Buzz member</span><h3>Grant Great Hall access</h3><p>Paste the 64-character public key of someone who already belongs to your Buzz community, then choose their Great Hall role.</p></div><div className={styles.accessControls}><input value={memberPubkey} onChange={(event) => setMemberPubkey(event.target.value)} placeholder="64-character Buzz public key" /><select value={memberRole} onChange={(event) => setMemberRole(event.target.value)}><option value="member">Member</option><option value="guest">Guest</option><option value="admin">Admin</option><option value="bot">Bot</option></select><button type="button" disabled={!community?.canManageGreatHall || !memberPubkey.trim() || Boolean(busy)} onClick={() => void addMember()}>Add to Great Hall</button></div></section>
-        <section className={styles.boundaryCard}><div><span>Invite a new person</span><h3>Buzz still owns new-community invitations.</h3><p>This is the one community-owner task PlotPickle does not fake. Until Buzz exposes invitation issuance through its supported CLI/API, use Buzz Desktop for the initial invite; after they join, PlotPickle can manage their Great Hall and Story Room access here.</p></div>{desktopUrl ? <a href={desktopUrl}>Open community in Buzz Desktop</a> : <button type="button" onClick={onOpenSettings}>Finish Buzz setup</button>}</section>
-      </main> : null}
+          {section === "connected-studios" ? <main className={styles.stack}>
+            <section className={styles.sectionHeading}><div><span>Connected Studios</span><h2>A friendly Playhouse Studio directory is being prepared here.</h2><p>Community remains fully usable locally while Studio federation and presence are added. Nothing on this screen opens your local PlotPickle server to another Studio.</p></div><button type="button" onClick={() => setSection("great-hall")}>Open Great Hall</button></section>
+            <section className={styles.boundaryCard}><div><span>Useful now</span><h3>Great Hall membership is today&apos;s shared community directory.</h3><p>Use People to see current members and presence, or use the Great Hall to talk with the community. Connected Studio discovery, visibility and moderation will appear here without changing the PPF authority boundary.</p></div><button type="button" onClick={() => setSection("people")}>See People</button></section>
+          </main> : null}
 
-      {section === "agents" ? <main className={styles.stack}>
-        <CommunityAgentRoster />
-      </main> : null}
+          {section === "people" ? <main className={styles.stack}>
+            <section className={styles.sectionHeading}><div><span>People</span><h2>Great Hall members and presence</h2><p>PlotPickle can read Great Hall membership and online/away/offline presence natively. Full community-wide invitation issuance is not exposed by the current Buzz CLI, so that owner-only step remains in Buzz Desktop for now.</p></div></section>
+            <section className={styles.memberGrid}>{community?.members.length ? community.members.map((member) => <article key={member.pubkey}><header><div><i data-presence={member.presence} aria-hidden="true" /><strong>{member.displayName}</strong></div><span>{member.presence || "offline"}</span></header><small>{member.pubkey.slice(0, 12)}…{member.pubkey.slice(-8)}</small><button type="button" disabled={Boolean(busy)} onClick={() => void removeMember(member.pubkey)}>Remove from Great Hall</button></article>) : <p className={styles.empty}>No Great Hall members were returned yet.</p>}</section>
+            <section className={styles.accessCard}><div><span>Add existing Buzz member</span><h3>Grant Great Hall access</h3><p>Paste the 64-character public key of someone who already belongs to your Buzz community, then choose their Great Hall role.</p></div><div className={styles.accessControls}><input value={memberPubkey} onChange={(event) => setMemberPubkey(event.target.value)} placeholder="64-character Buzz public key" /><select value={memberRole} onChange={(event) => setMemberRole(event.target.value)}><option value="member">Member</option><option value="guest">Guest</option><option value="admin">Admin</option><option value="bot">Bot</option></select><button type="button" disabled={!community?.canManageGreatHall || !memberPubkey.trim() || Boolean(busy)} onClick={() => void addMember()}>Add to Great Hall</button></div></section>
+            <section className={styles.boundaryCard}><div><span>Invite a new person</span><h3>Buzz still owns new-community invitations.</h3><p>This is the one community-owner task PlotPickle does not fake. Until Buzz exposes invitation issuance through its supported CLI/API, use Buzz Desktop for the initial invite; after they join, PlotPickle can manage their Great Hall and Story Room access here.</p></div>{desktopUrl ? <a href={desktopUrl}>Open community in Buzz Desktop</a> : <button type="button" onClick={onOpenSettings}>Finish Buzz setup</button>}</section>
+          </main> : null}
 
-      {section === "reviews" ? <main className={styles.stack}>
-        <section className={styles.sectionHeading}><div><span>Review Queue</span><h2>Community discussion never becomes canon by itself.</h2><p>Selected discussion can become a proposal, but the writer must explicitly approve a change before the PPF is updated.</p></div></section>
-        <section className={styles.reviewList}>{reviews.length ? reviews.map((review) => <article key={review.id}><div><strong>{review.title}</strong><small>{review.roomId ? `From ${review.roomId}` : "Community proposal"} · {displayDate(review.createdAt)}</small></div><span>Awaiting human review</span></article>) : <p className={styles.empty}>Nothing is waiting for review. This is a good state: there are no community suggestions asking to change story canon.</p>}</section>
-        <section className={styles.boundaryCard}><div><span>Authority boundary</span><h3>PPF remains the creative record.</h3><p>Community messages, agent observations and Guildhall activity are discussion and evidence. They can suggest; they cannot silently rewrite the writer's accepted story.</p></div></section>
-      </main> : null}
+          {section === "agents" ? <main className={styles.stack}>
+            <CommunityAgentRoster />
+          </main> : null}
 
-      {section === "guildhall" ? <main className={styles.stack}>
-        <section className={styles.sectionHeading}><div><span>Guildhall</span><h2>Coordination underneath the Playhouse</h2><p>The Great Hall is visible to the community. The remaining rooms organize curriculum, Wyrmwood, continuity, visual review, UAT, repairs, GitHub status and durable history without cluttering the writer's normal workspace.</p></div><button type="button" disabled={!guildhall?.canSetup || guildhall?.operational || Boolean(busy)} onClick={() => void setupGuildhall()}>{guildhall?.operational ? "Guildhall operational" : "Create missing rooms"}</button></section>
-        <section className={styles.guildGrid}>{BUZZ_GUILDHALL_CHANNELS.map((definition) => {
-          const ready = guildhall?.readyRooms.some((room) => room.id === definition.id) ?? false;
-          return <article key={definition.id} data-ready={ready ? "true" : "false"}><header><strong>{definition.label}</strong><span>{ready ? "Ready" : "Missing"}</span></header><p>{definition.description}</p><small>{definition.id === "great-hall" ? "Community-facing gathering room" : "Internal coordination room"}</small></article>;
-        })}</section>
-      </main> : null}
+          {section === "reviews" ? <main className={styles.stack}>
+            <section className={styles.sectionHeading}><div><span>Review Queue</span><h2>Community discussion never becomes canon by itself.</h2><p>Selected discussion can become a proposal, but the writer must explicitly approve a change before the PPF is updated.</p></div></section>
+            <section className={styles.reviewList}>{reviews.length ? reviews.map((review) => <article key={review.id}><div><strong>{review.title}</strong><small>{review.roomId ? `From ${review.roomId}` : "Community proposal"} · {displayDate(review.createdAt)}</small></div><span>Awaiting human review</span></article>) : <p className={styles.empty}>Nothing is waiting for review. This is a good state: there are no community suggestions asking to change story canon.</p>}</section>
+            <section className={styles.boundaryCard}><div><span>Authority boundary</span><h3>PPF remains the creative record.</h3><p>Community messages, agent observations and Guildhall activity are discussion and evidence. They can suggest; they cannot silently rewrite the writer's accepted story.</p></div></section>
+          </main> : null}
+
+          {section === "guildhall" ? <main className={styles.stack}>
+            <section className={styles.sectionHeading}><div><span>Guildhall</span><h2>Coordination underneath the Playhouse</h2><p>The Great Hall is visible to the community. The remaining rooms organize curriculum, Wyrmwood, continuity, visual review, UAT, repairs, GitHub status and durable history without cluttering the writer's normal workspace.</p></div><button type="button" disabled={!guildhall?.canSetup || guildhall?.operational || Boolean(busy)} onClick={() => void setupGuildhall()}>{guildhall?.operational ? "Guildhall operational" : "Create missing rooms"}</button></section>
+            <section className={styles.guildGrid}>{BUZZ_GUILDHALL_CHANNELS.map((definition) => {
+              const ready = guildhall?.readyRooms.some((room) => room.id === definition.id) ?? false;
+              return <article key={definition.id} data-ready={ready ? "true" : "false"}><header><strong>{definition.label}</strong><span>{ready ? "Ready" : "Missing"}</span></header><p>{definition.description}</p><small>{definition.id === "great-hall" ? "Community-facing gathering room" : "Internal coordination room"}</small></article>;
+            })}</section>
+          </main> : null}
+        </div>
+      </div>
 
       {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
     </div>

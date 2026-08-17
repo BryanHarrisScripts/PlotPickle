@@ -10,6 +10,10 @@ test('Windows full-check launcher describes the current verification surface', a
   assert.match(launcher, /architecture, curriculum, the production build, local AI\/Pi/i);
   assert.match(launcher, /BUZZ, visual UI\/UX UAT, and the Writer-in-Residence journey/i);
   assert.match(launcher, /run-plotpickle-full-check\.ps1/i);
+  assert.match(launcher, /Deterministic checks own PASS\/FAIL/i);
+  assert.match(launcher, /--github-report/);
+  assert.match(launcher, /--repair/);
+  assert.match(launcher, /--retest-of/);
 });
 
 test('full verification runner keeps all nine stages in the intended order', async () => {
@@ -45,8 +49,20 @@ test('full verification executes architecture, curriculum, build, Pi, BUZZ, UI/U
   assert.match(runner, /ensure-local-repair-model\.mjs", "--worker", "pi"/);
   assert.match(runner, /run-uat-repair-agent\.mjs", "--worker", "pi", "--preflight", "--require-ready"/);
   assert.match(runner, /verify-buzz-live-activity\.mjs/);
-  assert.match(runner, /run-exhaustive-ui-uat\.mjs", "--github-report"/);
-  assert.match(runner, /run-writer-in-residence\.mjs", "--github-report"/);
+  assert.match(runner, /run-exhaustive-ui-uat\.mjs/);
+  assert.match(runner, /run-writer-in-residence\.mjs/);
+  assert.doesNotMatch(runner, /run-exhaustive-ui-uat\.mjs", "--github-report"/);
+  assert.doesNotMatch(runner, /run-writer-in-residence\.mjs", "--github-report"/);
+});
+
+test('deterministic result is saved before advisory orchestration and BUZZ lifecycle reporting', async () => {
+  const runner = await read('scripts/run-plotpickle-full-check.ps1');
+  const record = runner.indexOf('$RunId = Write-StructuredVerificationRecord');
+  const orchestration = runner.indexOf('Invoke-VerificationOrchestrator $RunId');
+  assert.ok(record >= 0 && orchestration > record);
+  assert.match(runner, /verification-orchestrator\.mjs/);
+  assert.match(runner, /verification-buzz-lifecycle\.mjs/);
+  assert.match(runner, /BUZZ lifecycle delivery was unavailable; the deterministic verification result is unchanged/);
 });
 
 test('browser-dependent checks become explicitly blocked when PlotPickle cannot start', async () => {

@@ -114,13 +114,13 @@ export default function LocalRuntimePanel() {
   const [busy, setBusy] = useState(false);
   const [installPlan, setInstallPlan] = useState<Record<string, unknown> | null>(null);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (announce = false) => {
     try {
       const response = await fetch("/api/local-ai/runtime", { cache: "no-store" });
       const body = await response.json() as RuntimeStatus & { message?: string };
       if (!response.ok || !body.ok) throw new Error(body.message || "Local runtime detection failed.");
       setStatus(body);
-      setMessage("");
+      setMessage(announce ? `Hardware and model inventory refreshed at ${new Date().toLocaleTimeString()}.` : "");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Local runtime detection failed.");
     }
@@ -140,6 +140,7 @@ export default function LocalRuntimePanel() {
       const body = await response.json() as RuntimeStatus & { message?: string };
       if (!response.ok || !body.ok) throw new Error(body.message || "The local runtime setting could not be saved.");
       setStatus(body);
+      setMessage("Local runtime setting saved.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "The local runtime setting could not be saved.");
     } finally {
@@ -149,11 +150,13 @@ export default function LocalRuntimePanel() {
 
   async function reviewInstallPlan() {
     setBusy(true);
+    setMessage("");
     try {
       const response = await fetch("/api/local-ai/runtime/install-plan", { cache: "no-store" });
       const body = await response.json() as Record<string, unknown> & { message?: string };
       if (!response.ok) throw new Error(body.message || "The installation plan could not be created.");
       setInstallPlan(body);
+      setMessage("Missing-runtime and model plan is ready below.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "The installation plan could not be created.");
     } finally {
@@ -173,10 +176,10 @@ export default function LocalRuntimePanel() {
             PlotPickle now detects what each installed local model can actually do, then automatically places suitable models into Fast, Quality, Deep, Vision and Pi/Repair slots. Newer compatible models can be used without adding a model-specific application integration.
           </p>
         </div>
-        <button type="button" disabled={busy} onClick={() => void refresh()} style={{ padding: "8px 12px" }}>Refresh hardware and models</button>
+        <button type="button" disabled={busy} onClick={() => void refresh(true)} style={{ padding: "8px 12px" }}>Refresh hardware and models</button>
       </div>
 
-      {message ? <p role="alert" style={{ marginTop: 16 }}>{message}</p> : null}
+      {message ? <p role="status" aria-live="polite" style={{ marginTop: 16 }}>{message}</p> : null}
 
       {status ? (
         <>

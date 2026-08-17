@@ -1,4 +1,9 @@
+import { readFile, readdir } from "node:fs/promises";
+import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
 import { bestEffortLiveBuzzActivity } from "./buzz-live-activity.mjs";
+import { verificationInboxRoot } from "./verification-record.mjs";
 
 async function emit(input, baseUrl) {
   return bestEffortLiveBuzzActivity(input, baseUrl ? { baseUrl } : undefined);
@@ -91,4 +96,41 @@ export async function reportVerificationLifecycle({ record, review, repair, gith
   }
 
   return results;
+}
+
+async function json(file) {
+  try { return JSON.parse(await readFile(file, "utf8")); }
+  catch { return null; }
+}
+
+async function latestCompanion(folder, runId) {
+  const directory = path.join(verificationInboxRoot(), folder);
+  let names = [];
+  try { names = (await readdir(directory)).filter((name) => name.startsWith(`${runId}-`) && name.endsWith(".json")).sort().reverse(); }
+  catch { return { value: null, ref: "" }; }
+  for (const name of names) {
+    const value = await json(path.join(directory, name));
+    const linked = value && (folder === "reviews" ? value.runId === runId : value.originalRunId === runId);
+    if (linked) return { value, ref: `${folder}/${name}` };
+  }
+  return { value: null, ref: "" };
+}
+
+async function main() {
+  const args = process.argv.slice(2);
+  const index = args.indexOf("--run-id");
+  const runId = index >= 0 ? String(args[index + 1] || "") : "";
+  const github = args.includes("--github-report");
+  if (!/^verification-[A-Za-z0-9._-]{8,120}$/.test(runId)) throw new Error("Choose a valid verification run ID.");
+  const record = await json(path.join(verificationInboxRoot(), "records", `${runId}.json`));
+  const review = await latestCompanion("reviews", runId);
+  const repair = await latestCompanion("repairs", runId);
+  if (!record || !review.value) throw new Error("Verification lifecycle requires the immutable record and completed advisory review.");
+  const results = await reportVerificationLifecycle({ record, review: review.value, repair: repair.value, github, reviewRef: review.ref });
+  const delivered = results.filter((item) => item?.ok !== false).length;
+  process.stdout.write(`${JSON.stringify({ ok: true, runId, events: results.length, delivered })}\n`);
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; });
 }

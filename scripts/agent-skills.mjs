@@ -19,10 +19,10 @@ function safeEntry(entry) {
 
 export function stripSkillFrontmatter(content) {
   const text = String(content || "");
-  if (!text.startsWith("---\n")) return text.trim();
-  const end = text.indexOf("\n---\n", 4);
-  if (end < 0) throw new Error("PlotPickle Agent Skill frontmatter is not closed.");
-  return text.slice(end + 5).trim();
+  if (!/^---\r?\n/.test(text)) return text.trim();
+  const frontmatter = text.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n/);
+  if (!frontmatter) throw new Error("PlotPickle Agent Skill frontmatter is not closed.");
+  return text.slice(frontmatter[0].length).trim();
 }
 
 export async function loadAgentSkillRegistry() {

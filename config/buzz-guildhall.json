@@ -50,6 +50,22 @@
       "description": "Creative discussion that may become an explicit reviewable PPF story proposal."
     },
     {
+      "id": "marquee",
+      "name": "marquee",
+      "label": "The Marquee",
+      "type": "forum",
+      "visibility": "private",
+      "description": "Poster, key-art, teaser and trailer concepts grounded in approved PlotPickle story and visual evidence."
+    },
+    {
+      "id": "critics-circle",
+      "name": "critics-circle",
+      "label": "The Critics' Circle",
+      "type": "forum",
+      "visibility": "private",
+      "description": "Independent story, world, character, pacing, dialogue and audience critique. Reviews remain advisory and never become canon automatically."
+    },
+    {
       "id": "thread-vault",
       "name": "thread-vault",
       "label": "The Thread Vault",
@@ -185,6 +201,28 @@
       "primaryChannel": "thread-vault",
       "buzzPresence": "mirrored",
       "summary": "Protects accepted story continuity and turns contradictions into reviewable proposals rather than silent rewrites."
+    },
+    {
+      "id": "marquee-director",
+      "displayName": "Maris Emberlight",
+      "title": "Director of the Marquee",
+      "kind": "product-agent",
+      "runtime": "mastra",
+      "existingRoleId": "marquee-director",
+      "primaryChannel": "marquee",
+      "buzzPresence": "mirrored",
+      "summary": "Develops poster, key-art, teaser and trailer concepts from approved story and visual evidence."
+    },
+    {
+      "id": "critics-circle",
+      "displayName": "Cassian Quill",
+      "title": "Chair of the Critics' Circle",
+      "kind": "product-agent",
+      "runtime": "mastra",
+      "existingRoleId": "critics-circle",
+      "primaryChannel": "critics-circle",
+      "buzzPresence": "mirrored",
+      "summary": "Provides independent evidence-grounded critique of story, world, characters, pacing, dialogue and audience clarity."
     },
     {
       "id": "luma-glassfern",

@@ -41,6 +41,28 @@ test("Community exposes the Great Hall, Story Rooms, people, live agents, review
   assert.match(workspace, /Buzz provides the signed community layer underneath; the writer stays inside PlotPickle/);
 });
 
+test("Community overview adds a right-rail quick jump for recent public Great Hall conversations", async () => {
+  const [shell, rail, railStyles] = await Promise.all([
+    read("app/plotpickle-workspace-shell.tsx"),
+    read("app/community-public-conversations-rail.tsx"),
+    read("app/community-public-conversations-rail.module.css"),
+  ]);
+
+  assert.match(shell, /CommunityPublicConversationsRail/);
+  assert.match(shell, /activeWorkspace === "community"/);
+  assert.match(rail, /\/api\/local-buzz\/community\/status/);
+  assert.match(rail, /recentActivity/);
+  assert.match(rail, /slice\(0, 5\)/);
+  assert.match(rail, /Recent public conversations/);
+  assert.match(rail, /Jump back into the Great Hall/);
+  assert.match(rail, /Private Story Rooms and Guildhall rooms stay out of this list/);
+  assert.match(rail, /button\.textContent\?\.trim\(\) === "Great Hall"/);
+  assert.match(rail, /greatHall\.click\(\)/);
+  assert.match(railStyles, /grid-column:\s*3/);
+  assert.match(railStyles, /grid-row:\s*2 \/ 4/);
+  assert.match(railStyles, /header > div\[role="status"\]/);
+});
+
 test("native Community reads Great Hall membership, profile and presence through the supported Buzz CLI", async () => {
   const [gateway, vite] = await Promise.all([
     read("build/buzz-community-gateway.ts"),

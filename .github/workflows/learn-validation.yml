@@ -63,7 +63,7 @@ jobs:
             $errors = $null
             [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$errors) | Out-Null
             if ($errors.Count -gt 0) {
-              $errors | ForEach-Object { Write-Error "$path: $($_.Message)" }
+              $errors | ForEach-Object { Write-Error "${path}: $($_.Message)" }
               exit 1
             }
           }

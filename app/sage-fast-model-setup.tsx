@@ -107,13 +107,13 @@ export default function SageFastModelSetup() {
     setQualityGpuLayers(body.settings.managedLlama.gpuLayers.quality ?? 24);
   }, []);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (announce = false) => {
     try {
       const response = await fetch("/api/local-ai/runtime", { cache: "no-store" });
       const body = await response.json() as LocalRuntimeStatus & { message?: string };
       if (!response.ok || !body.ok) throw new Error(body.message || "Local runtime status is unavailable.");
       hydrate(body);
-      setMessage("");
+      setMessage(announce ? `Local AI status refreshed at ${new Date().toLocaleTimeString()}.` : "");
     } catch (error) {
       setMessage(friendlySetupError(error, null));
     }
@@ -344,11 +344,11 @@ export default function SageFastModelSetup() {
           <button className={styles.primaryButton} type="submit" disabled={busy || !status}>{busy ? "Working…" : "Set up Sage and PLAN"}</button>
           <button aria-label="Test Sage Fast" type="button" disabled={busy || !status} onClick={() => void prepareRole("fast")}>Test Sage</button>
           <button aria-label="Test PLAN Quality" type="button" disabled={busy || !status} onClick={() => void prepareRole("quality")}>Test PLAN</button>
-          <button type="button" disabled={busy} onClick={() => void refresh()}>Refresh</button>
+          <button type="button" disabled={busy} onClick={() => void refresh(true)}>Refresh</button>
         </div>
       </form>
 
-      {message ? <p className={styles.message} role="status">{message}</p> : null}
+      {message ? <p className={styles.message} role="status" aria-live="polite">{message}</p> : null}
     </section>
   );
 }

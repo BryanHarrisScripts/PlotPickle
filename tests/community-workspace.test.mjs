@@ -27,7 +27,7 @@ test("Community is a native slim PlotPickle workspace beside Dashboard", async (
 test("Community exposes the Great Hall, Story Rooms, people, live agents, review queue and Guildhall", async () => {
   const workspace = await read("app/community-workspace.tsx");
 
-  for (const label of ["Great Hall", "Story Rooms", "People", "Agents & Stewards", "Review Queue", "Guildhall"]) {
+  for (const label of ["Great Hall", "Story Rooms", "Connected Studios", "People", "Agents & Stewards", "Review Queue", "Guildhall"]) {
     assert.match(workspace, new RegExp(label.replace(/[&]/g, "&")));
   }
   assert.match(workspace, /CommunityAgentRoster/);
@@ -39,6 +39,60 @@ test("Community exposes the Great Hall, Story Rooms, people, live agents, review
   assert.match(workspace, /FOUNDATION_PROJECT_STORAGE_KEY/);
   assert.match(workspace, /Nothing changes PPF canon without approval/);
   assert.match(workspace, /Buzz provides the signed community layer underneath; the writer stays inside PlotPickle/);
+});
+
+test("Community navigation is expandable, room-first, keyboard-addressable and preserves every existing destination", async () => {
+  const [workspace, navigationStyles] = await Promise.all([
+    read("app/community-workspace.tsx"),
+    read("app/community-navigation.module.css"),
+  ]);
+
+  assert.match(workspace, /useState\(true\)/);
+  assert.match(workspace, /aria-label="Community and Guildhall navigation"/);
+  assert.match(workspace, /aria-expanded=\{navigationExpanded\}/);
+  assert.match(workspace, /aria-controls="community-destinations"/);
+  assert.match(workspace, /id="community-destinations"/);
+  assert.match(workspace, /aria-label="Community destinations"/);
+  assert.match(workspace, /aria-current=\{section === item\.id \? "page" : undefined\}/);
+  assert.match(workspace, /data-primary=\{item\.primary \? "true" : undefined\}/);
+
+  const greatHall = workspace.indexOf('{ id: "great-hall"');
+  const storyRooms = workspace.indexOf('{ id: "story-rooms"');
+  const connectedStudios = workspace.indexOf('{ id: "connected-studios"');
+  const people = workspace.indexOf('{ id: "people"');
+  assert.ok(greatHall > -1 && storyRooms > greatHall && connectedStudios > storyRooms && people > connectedStudios,
+    "Great Hall and Story Rooms should remain the first room-first destinations after Overview");
+  assert.match(workspace, /great-hall"[^\n]+primary: true/);
+  assert.match(workspace, /story-rooms"[^\n]+primary: true/);
+
+  assert.match(navigationStyles, /grid-template-columns:\s*minmax\(205px, 246px\) minmax\(0, 1fr\)/);
+  assert.match(navigationStyles, /\.communityRail\s*\{[^}]*position:\s*sticky/s);
+  assert.match(navigationStyles, /@media \(max-width: 900px\)[\s\S]*grid-template-columns:\s*1fr/);
+});
+
+test("Great Hall and Story Rooms behave like conversations with reply and room-return affordances", async () => {
+  const workspace = await read("app/community-workspace.tsx");
+
+  assert.match(workspace, /aria-label="Great Hall conversation"/);
+  assert.match(workspace, /aria-label="Story Room conversation"/);
+  assert.match(workspace, /aria-label=\{`Reply to \$\{author\} in the Great Hall`\}/);
+  assert.match(workspace, /aria-label=\{`Reply to \$\{author\} in this Story Room`\}/);
+  assert.match(workspace, /function replyToHall\(author: string\)/);
+  assert.match(workspace, /function replyToStory\(author: string\)/);
+  assert.match(workspace, /useState<BuzzStoryRoomId \| null>\(null\)/);
+  assert.match(workspace, /function closeStoryRoom\(\)/);
+  assert.match(workspace, /setSelectedRoomId\(null\)/);
+  assert.match(workspace, />Back to Story Rooms<\/button>/);
+});
+
+test("Connected Studios is staged honestly and never becomes a dead-end before federation lands", async () => {
+  const workspace = await read("app/community-workspace.tsx");
+
+  assert.match(workspace, /section === "connected-studios"/);
+  assert.match(workspace, /Community remains fully usable locally while Studio federation and presence are added/);
+  assert.match(workspace, /Nothing on this screen opens your local PlotPickle server to another Studio/);
+  assert.match(workspace, />Open Great Hall<\/button>/);
+  assert.match(workspace, />See People<\/button>/);
 });
 
 test("Community overview adds a right-rail quick jump for recent public Great Hall conversations", async () => {

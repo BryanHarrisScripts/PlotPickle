@@ -10,6 +10,7 @@ export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "community" | "setti
 export const ROOT_NAV_ITEMS = [
   { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "Start", selectable: true },
   { id: "community", relic: "/assets/workflow-relics/community.svg", label: "Community", detail: "Guildhall", selectable: true },
+  { id: "wyrmwood", relic: "/assets/workflow-relics/game.webp", label: "Wyrmwood", detail: "Game", selectable: true },
   { id: "learn", relic: "/assets/workflow-relics/learn.webp", label: "Learn", detail: "Guides", selectable: true },
   { id: "plan", relic: "/assets/workflow-relics/plan.webp", label: "Plan", detail: "Design", selectable: true },
   { id: "build", relic: "/assets/workflow-relics/build.webp", label: "Build", detail: "Assemble", selectable: true },
@@ -20,7 +21,6 @@ export const ROOT_NAV_ITEMS = [
   { id: "feedback", relic: "/assets/workflow-relics/feedback.webp", label: "Feedback", detail: "Review", selectable: false },
   { id: "refine", relic: "/assets/workflow-relics/refine.webp", label: "Refine", detail: "Decide", selectable: false },
   { id: "reports", relic: "/assets/workflow-relics/reports.webp", label: "Reports", detail: "Deliver", selectable: false },
-  { id: "wyrmwood", relic: "/assets/workflow-relics/game.webp", label: "Wyrmwood", detail: "Game", selectable: true },
   { id: "settings", relic: "/assets/workflow-relics/settings.svg", label: "Settings", detail: "Config", selectable: true },
 ] as const;
 
@@ -31,8 +31,11 @@ function isRootWorkspace(id: RootNavItem["id"]): id is RootWorkspace {
     || id === "wyrmwood" || id === "community" || id === "settings";
 }
 
-function endsNavigationGroup(id: RootNavItem["id"]) {
-  return id === "community" || id === "graphic-novel" || id === "reports";
+function navigationBreakAfter(id: RootNavItem["id"]) {
+  if (id === "wyrmwood") return "community-game";
+  if (id === "graphic-novel") return "previs";
+  if (id === "refine") return "reports";
+  return "";
 }
 
 export default function PlotPickleWorkspaceShell({
@@ -49,7 +52,7 @@ export default function PlotPickleWorkspaceShell({
       <nav
         aria-label="PlotPickle global workflow"
         className={styles.navigator}
-        data-plotpickle-global-nav="v1"
+        data-plotpickle-global-nav="v2"
       >
         <div className={styles.brand} aria-hidden="true">
           <Image
@@ -63,15 +66,24 @@ export default function PlotPickleWorkspaceShell({
         </div>
 
         <div className={styles.scroller}>
-          <ol className={styles.list}>
+          <ol className={styles.list} data-workspace-navigation="true">
             {ROOT_NAV_ITEMS.map((item) => {
               const active = item.id === activeWorkspace;
               const selectable = item.selectable && isRootWorkspace(item.id);
-              const className = [active ? styles.active : "", endsNavigationGroup(item.id) ? styles.groupBreakAfter : ""]
-                .filter(Boolean)
-                .join(" ") || undefined;
+              const breakAfter = navigationBreakAfter(item.id);
+              const className = [
+                active ? styles.active : "",
+                breakAfter === "community-game" ? styles.groupBreakCommunityGame : "",
+                breakAfter === "previs" ? styles.groupBreakPrevis : "",
+                breakAfter === "reports" ? styles.groupBreakReports : "",
+              ].filter(Boolean).join(" ") || undefined;
               return (
-                <li className={className} key={item.id}>
+                <li
+                  className={className}
+                  data-navigation-gap-after={breakAfter || undefined}
+                  data-workspace-nav-id={item.id}
+                  key={item.id}
+                >
                   <button
                     aria-current={active ? "page" : undefined}
                     disabled={!selectable || active}

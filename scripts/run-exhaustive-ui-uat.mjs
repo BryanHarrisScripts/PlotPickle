@@ -10,6 +10,7 @@ import { McpClient } from "./creative-uat/mcp-runtime.mjs";
 import { partitionExhaustiveFindings } from "./exhaustive-ui-finding-policy.mjs";
 import { runExhaustiveUiControlAudit } from "./exhaustive-ui-control-audit.mjs";
 import { bestEffortLiveBuzzActivity } from "./buzz-live-activity.mjs";
+import { inspectWorkspaceNavigation, navigationViolations } from "./workspace-navigation-uat.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -56,6 +57,13 @@ async function main() {
       if (!toolMap.has(required)) throw new Error(`Exhaustive PlotPickle UAT is missing Playwright MCP tool ${required}.`);
     }
     status("Synthetic UAT boundary", "READY", "code-aware inspector + rendered UI/UX; no credentials, destructive actions, paid generation, or cloud switching");
+    await client.call("browser_navigate", { url: baseUrl });
+    const navigationFacts = await inspectWorkspaceNavigation(client);
+    const navigationProblems = navigationViolations(navigationFacts);
+    status("Global navigation contract", navigationProblems.length ? "FAIL" : "PASS", navigationProblems.join("; "));
+    if (navigationProblems.length) {
+      throw new Error(`Global navigation UAT failed: ${navigationProblems.join("; ")}`);
+    }
     audit = await runExhaustiveUiControlAudit({ client, toolMap, baseUrl, repoRoot, status });
   } finally {
     try { if (tools.some((tool) => tool.name === "browser_close")) await client.call("browser_close", {}); } catch {}

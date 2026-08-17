@@ -17,6 +17,7 @@ import { registerLocalRuntimeGateway } from "./local-runtime-gateway";
 import { registerCurriculumRagGateway } from "./curriculum-rag-gateway";
 import { registerGpuResourceScheduler } from "./local-gpu-resource-manager";
 import { registerFoundationsPpfGateway } from "./foundations-ppf-gateway";
+import { registerStudioIdentityGateway } from "./studio-identity-gateway";
 
 const IMAGE_PATHS = new Set(["/api/local-ai/generate/image", "/api/media-routing/test/image"]);
 const MAX_SINGLE_IMAGE_REQUEST_BYTES = 256 * 1024;
@@ -33,33 +34,19 @@ function reject(response: import("node:http").ServerResponse, status: number, me
 function registerSingleImageBoundary(server: ViteDevServer) {
   server.middlewares.use((request, response, next) => {
     const pathname = request.url?.split("?", 1)[0] || "";
-    if (!IMAGE_PATHS.has(pathname) || request.method !== "POST") {
-      next();
-      return;
-    }
-
+    if (!IMAGE_PATHS.has(pathname) || request.method !== "POST") { next(); return; }
     const contentLength = Number(request.headers["content-length"] || 0);
     if (Number.isFinite(contentLength) && contentLength > MAX_SINGLE_IMAGE_REQUEST_BYTES) {
-      reject(response, 413, "PlotPickle accepts one image request at a time. Queue large Graphic Novel runs locally instead of sending a batch.");
-      return;
+      reject(response, 413, "PlotPickle accepts one image request at a time. Queue large Graphic Novel runs locally instead of sending a batch."); return;
     }
     if (imageRequestActive) {
-      reject(response, 409, "Another image request is active. PlotPickle will start the next queued Graphic Novel image after it finishes.");
-      return;
+      reject(response, 409, "Another image request is active. PlotPickle will start the next queued Graphic Novel image after it finishes."); return;
     }
-
     imageRequestActive = true;
     response.setHeader("X-PlotPickle-Image-Mode", "single-request");
     let released = false;
-    const release = () => {
-      if (released) return;
-      released = true;
-      imageRequestActive = false;
-    };
-    response.once("finish", release);
-    response.once("close", release);
-    response.once("error", release);
-    next();
+    const release = () => { if (!released) { released = true; imageRequestActive = false; } };
+    response.once("finish", release); response.once("close", release); response.once("error", release); next();
   });
 }
 
@@ -72,6 +59,7 @@ export function localAiGateway(): Plugin {
       registerSingleImageBoundary(server);
       registerGpuResourceScheduler(server);
       registerLocalRuntimeGateway(server);
+      registerStudioIdentityGateway(server);
       registerDeepSeekHarnessGateway(server);
       registerCurriculumRagGateway(server);
       registerLocalAiInstallationGateway(server);

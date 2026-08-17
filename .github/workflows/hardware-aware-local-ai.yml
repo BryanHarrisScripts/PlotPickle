@@ -43,6 +43,9 @@ jobs:
       - name: Validate permission-based ComfyUI onboarding
         run: node --test tests/comfyui-desktop-onboarding.test.mjs tests/issue-946-comfyui-settings-onboarding.test.mjs
 
+      - name: Validate permanent PlotPickle Studio identity
+        run: node --test tests/issue-927-studio-identity.test.mjs
+
       - name: Production build
         run: npm run build
 

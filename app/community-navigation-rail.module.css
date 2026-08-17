@@ -1,0 +1,52 @@
+.communityBody {
+  width: min(1420px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(220px, 270px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.communityMain { min-width: 0; }
+
+.communityRail {
+  position: sticky;
+  top: 88px;
+  border: 1px solid rgba(83, 214, 190, .18);
+  border-radius: 18px;
+  background: rgba(4, 15, 18, .92);
+  padding: 12px;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .22);
+}
+
+.communityRail nav { display: grid; gap: 10px; }
+.communityRailGroup { display: grid; gap: 6px; }
+.communityRailGroup > small { color: rgba(220, 236, 232, .56); padding: 0 10px; font-size: 11px; }
+.groupButton, .subgroupButton, .communityRailChildren > button, .roomChildren > button {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(235, 246, 243, .86);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.groupButton { display: flex; justify-content: space-between; gap: 10px; padding: 10px; color: #f0c977; font-weight: 750; }
+.subgroupButton, .communityRailChildren > button { padding: 9px 10px; }
+.groupButton:hover, .subgroupButton:hover, .communityRailChildren > button:hover, .roomChildren > button:hover,
+.communityRail button[aria-selected="true"], .communityRail button[aria-current="page"] { background: rgba(32, 190, 166, .14); color: #8ff3df; }
+.communityRailChildren { display: grid; gap: 3px; padding-left: 4px; }
+.roomChildren { display: grid; gap: 2px; margin-left: 12px; padding-left: 8px; border-left: 1px solid rgba(83, 214, 190, .16); }
+.roomChildren > button { padding: 7px 9px; font-size: 13px; }
+.roomChildren > p { margin: 5px 9px; color: rgba(220, 236, 232, .5); font-size: 12px; line-height: 1.4; }
+
+@media (max-width: 900px) {
+  .communityBody { grid-template-columns: 1fr; }
+  .communityRail { position: static; top: auto; }
+  .communityRail nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 620px) {
+  .communityRail nav { grid-template-columns: 1fr; }
+}

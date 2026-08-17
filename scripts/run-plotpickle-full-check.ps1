@@ -1,5 +1,8 @@
 param(
-  [int]$StartupWaitSeconds = 240
+  [int]$StartupWaitSeconds = 240,
+  [switch]$GitHubReport,
+  [switch]$Repair,
+  [string]$RetestOf = ""
 )
 
 $ErrorActionPreference = "Continue"
@@ -114,6 +117,7 @@ function Write-StructuredVerificationRecord {
     startedAt = $StartedAt
     completedAt = $CompletedAt
     rawLogName = (Split-Path -Leaf $LogPath)
+    retestOf = $RetestOf
     stages = @($Results)
   }
   $PayloadJson = $Payload | ConvertTo-Json -Depth 8 -Compress
@@ -121,13 +125,44 @@ function Write-StructuredVerificationRecord {
   Write-Host "Saving structured Quality / Verification Inbox record..." -ForegroundColor Gray
   $RecordOutput = $PayloadJson | & node ".\scripts\verification-record.mjs"
   $RecordCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int]$LASTEXITCODE }
-  if ($RecordCode -eq 0) {
-    Write-Host "SAVED  Verification Inbox record" -ForegroundColor Green
-    if ($RecordOutput) { Write-Host $RecordOutput -ForegroundColor DarkGray }
-    return $true
+  if ($RecordCode -ne 0) {
+    Write-Host "FAIL  The structured Verification Inbox record could not be saved." -ForegroundColor Red
+    return ""
   }
-  Write-Host "FAIL  The structured Verification Inbox record could not be saved." -ForegroundColor Red
-  return $false
+  try {
+    $Record = (($RecordOutput | Out-String).Trim() | ConvertFrom-Json)
+    if (-not $Record.runId) { throw "Missing runId" }
+    Write-Host "SAVED  Verification Inbox record $($Record.runId)" -ForegroundColor Green
+    return [string]$Record.runId
+  } catch {
+    Write-Host "FAIL  The structured Verification Inbox record returned an invalid receipt." -ForegroundColor Red
+    return ""
+  }
+}
+
+function Invoke-VerificationOrchestrator([string]$RunId) {
+  $Arguments = @(".\scripts\verification-orchestrator.mjs", "--run-id", $RunId)
+  if ($GitHubReport) { $Arguments += "--github-report" }
+  if ($Repair) { $Arguments += "--repair" }
+  Write-Host "Running role-safe verification review..." -ForegroundColor Gray
+  & node @Arguments
+  $Code = if ($null -eq $LASTEXITCODE) { 0 } else { [int]$LASTEXITCODE }
+  if ($Code -ne 0) {
+    Write-Host "FAIL  Verification agent review / handoff did not complete." -ForegroundColor Red
+    return $false
+  }
+
+  Write-Host "SAVED  Agent review / orchestration companion" -ForegroundColor Green
+  $LifecycleArguments = @(".\scripts\verification-buzz-lifecycle.mjs", "--run-id", $RunId)
+  if ($GitHubReport) { $LifecycleArguments += "--github-report" }
+  & node @LifecycleArguments
+  $LifecycleCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int]$LASTEXITCODE }
+  if ($LifecycleCode -eq 0) {
+    Write-Host "SENT   BUZZ verification lifecycle evidence" -ForegroundColor Green
+  } else {
+    Write-Host "WARN   BUZZ lifecycle delivery was unavailable; the deterministic verification result is unchanged." -ForegroundColor Yellow
+  }
+  return $true
 }
 
 $TranscriptStarted = $false
@@ -140,7 +175,7 @@ try {
   Write-Host "Repository: $RepoRoot"
   Write-Host "Log:        $LogPath"
   Write-Host ""
-  Write-Host "This checks architecture, curriculum, the production build, local AI/Pi, BUZZ, UI/UX control UAT, and the Writer journey in one pass." -ForegroundColor Gray
+  Write-Host "Deterministic tests own PASS/FAIL. Agents may observe, explain and repair only through bounded workflows after the record is saved." -ForegroundColor Gray
 
   Invoke-NodeStep "1 of 9 - Agent Skills registry" "Architecture" @(
     ".\scripts\agent-skills.mjs", "--self-test"
@@ -175,11 +210,11 @@ try {
     )
 
     Invoke-NodeStep "8 of 9 - Exhaustive code-aware UI and UX UAT" "UI / UX UAT" @(
-      ".\scripts\run-exhaustive-ui-uat.mjs", "--github-report"
+      ".\scripts\run-exhaustive-ui-uat.mjs"
     )
 
     Invoke-NodeStep "9 of 9 - Writer-in-Residence" "Writer Journey" @(
-      ".\scripts\run-writer-in-residence.mjs", "--github-report"
+      ".\scripts\run-writer-in-residence.mjs"
     )
   } else {
     foreach ($BlockedStep in @(
@@ -249,8 +284,13 @@ try {
   if ($TranscriptStarted) {
     try { Stop-Transcript | Out-Null } catch {}
   }
-  if (-not (Write-StructuredVerificationRecord)) {
+  $RunId = Write-StructuredVerificationRecord
+  if (-not $RunId) {
     $FinalExitCode = 1
+  } elseif (-not (Invoke-VerificationOrchestrator $RunId)) {
+    $FinalExitCode = 1
+  } else {
+    Write-Host "Open the Quality / Verification Inbox: $PlotPickleUrl/verification-inbox" -ForegroundColor Cyan
   }
 }
 

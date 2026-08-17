@@ -49,8 +49,8 @@ jobs:
       - name: Validate Windows startup Agent Skills contract
         run: node --test tests/startup-agent-skills-contract.test.mjs tests/issue-341-windows-startup-ui-ux.test.mjs
 
-      - name: Validate one-click full verification runner and persistent inbox
-        run: node --test tests/full-verification-runner.test.mjs tests/full-verification-log-review.test.mjs tests/issue-930-verification-inbox.test.mjs
+      - name: Validate one-click Full Verification, persistent Inbox, and role-safe orchestration
+        run: node --test tests/full-verification-runner.test.mjs tests/full-verification-log-review.test.mjs tests/issue-930-verification-inbox.test.mjs tests/issue-931-verification-orchestration.test.mjs
 
       - name: Parse changed Windows verification and maintenance scripts
         shell: pwsh
@@ -78,7 +78,11 @@ jobs:
         run: node --test tests/afterglow-revision-ppf.test.mjs
 
       - name: Test Startup, Settings, Foundations/LEARN, PLAN, and Wyrmwood
-        run: node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p .artifacts/uat-focused
+          node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused 2>&1 | tee .artifacts/uat-focused/contracts-console.log
 
       - name: Upload focused UAT evidence
         if: always()

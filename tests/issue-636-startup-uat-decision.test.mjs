@@ -25,7 +25,10 @@ test("Full Check owns deliberate verification instead of everyday startup", asyn
 
   assert.doesNotMatch(launcher, /Start the PlotPickle UAT Agent now|run-uat-closed-loop\.mjs|--github-report.*--repair/);
   assert.match(fullCheck, /8 of 9 - Exhaustive code-aware UI and UX UAT/);
-  assert.match(fullCheck, /run-exhaustive-ui-uat\.mjs", "--github-report"/);
+  assert.match(fullCheck, /run-exhaustive-ui-uat\.mjs/);
+  assert.doesNotMatch(fullCheck, /run-exhaustive-ui-uat\.mjs", "--github-report"/);
+  assert.match(fullCheck, /verification-orchestrator\.mjs/);
+  assert.match(fullCheck, /if \(\$GitHubReport\) \{ \$Arguments \+= "--github-report" \}/);
   assert.match(fullCheck, /9 of 9 - Writer-in-Residence/);
 });
 

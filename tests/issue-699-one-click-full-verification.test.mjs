@@ -14,7 +14,7 @@ test("Windows launcher is portable, double-click friendly, and keeps the console
   assert.doesNotMatch(launcher, /C:\\Users\\/i);
 });
 
-test("full verification runs the five requested checks in the intended order", async () => {
+test("full verification runs the five requested checks in the intended order and centralizes GitHub reporting", async () => {
   const runner = await read("scripts/run-plotpickle-full-check.ps1");
   const commands = [
     "ensure-local-repair-model.mjs",
@@ -33,8 +33,10 @@ test("full verification runs the five requested checks in the intended order", a
 
   assert.match(runner, /--worker", "pi"/);
   assert.match(runner, /--preflight", "--require-ready"/);
-  assert.match(runner, /run-exhaustive-ui-uat\.mjs", "--github-report"/);
-  assert.match(runner, /run-writer-in-residence\.mjs", "--github-report"/);
+  assert.doesNotMatch(runner, /run-exhaustive-ui-uat\.mjs", "--github-report"/);
+  assert.doesNotMatch(runner, /run-writer-in-residence\.mjs", "--github-report"/);
+  assert.match(runner, /verification-orchestrator\.mjs/);
+  assert.match(runner, /if \(\$GitHubReport\) \{ \$Arguments \+= "--github-report" \}/);
 });
 
 test("full verification starts the official app when needed and waits for localhost readiness", async () => {

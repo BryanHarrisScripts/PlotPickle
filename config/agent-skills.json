@@ -75,6 +75,30 @@
       "consumers": ["buzz-guildhall"],
       "mcpReady": true,
       "localOnly": true
+    },
+    {
+      "id": "marquee-director",
+      "name": "The Marquee Director",
+      "description": "Develop poster, key-art, teaser and trailer concepts from approved story and visual evidence while generation and publishing remain host-controlled.",
+      "entry": ".agents/skills/marquee-director/SKILL.md",
+      "uri": "skill://plotpickle/marquee-director",
+      "roles": ["marquee-director"],
+      "primaryWorker": "mastra",
+      "consumers": ["marquee-director"],
+      "mcpReady": true,
+      "localOnly": true
+    },
+    {
+      "id": "critics-circle",
+      "name": "Critics' Circle",
+      "description": "Provide transparent evidence-grounded critique of story, world and characters without changing canon or claiming an external review score.",
+      "entry": ".agents/skills/critics-circle/SKILL.md",
+      "uri": "skill://plotpickle/critics-circle",
+      "roles": ["critics-circle"],
+      "primaryWorker": "mastra",
+      "consumers": ["critics-circle"],
+      "mcpReady": true,
+      "localOnly": true
     }
   ]
 }

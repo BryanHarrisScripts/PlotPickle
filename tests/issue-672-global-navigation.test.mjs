@@ -73,6 +73,6 @@ test("the global navigator preserves deliberate group spacing and narrow-window 
 test("legacy standalone Settings control yields to the grouped shared root navigator", async () => {
   const anchor = await read("app/ui-continuity-anchor.tsx");
 
-  assert.match(anchor, /data-plotpickle-global-nav=\\"v2\\"/);
-  assert.match(anchor, /data-ui-continuity-shell=\\"v1\\"/);
+  assert.match(anchor, /data-plotpickle-global-nav="v2"/);
+  assert.match(anchor, /data-ui-continuity-shell="v1"/);
 });

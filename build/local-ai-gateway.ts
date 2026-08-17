@@ -20,6 +20,7 @@ import { registerFoundationsPpfGateway } from "./foundations-ppf-gateway";
 import { registerStudioIdentityGateway } from "./studio-identity-gateway";
 import { registerPlayhouseFederationGateway } from "./playhouse-federation-gateway";
 import { registerPlayhouseDirectoryGateway } from "./playhouse-directory-gateway";
+import { registerVerificationInboxGateway } from "./verification-inbox-gateway";
 
 const IMAGE_PATHS = new Set(["/api/local-ai/generate/image", "/api/media-routing/test/image"]);
 const MAX_SINGLE_IMAGE_REQUEST_BYTES = 256 * 1024;
@@ -44,7 +45,7 @@ export function localAiGateway(): Plugin {
   const legacy = legacyLocalAiGateway();
   return { ...legacy, name: "plotpickle-hardware-aware-local-ai-gateway", configureServer(server) {
     registerSingleImageBoundary(server); registerGpuResourceScheduler(server); registerLocalRuntimeGateway(server);
-    registerStudioIdentityGateway(server); registerPlayhouseFederationGateway(server); registerPlayhouseDirectoryGateway(server); registerDeepSeekHarnessGateway(server);
+    registerStudioIdentityGateway(server); registerPlayhouseFederationGateway(server); registerPlayhouseDirectoryGateway(server); registerVerificationInboxGateway(server); registerDeepSeekHarnessGateway(server);
     registerCurriculumRagGateway(server); registerLocalAiInstallationGateway(server); registerAiRoutingGateway(server);
     registerNativeH3Gateway(server); registerProviderDiagnosticsGateway(server); registerSdxlLocalImageGateway(server);
     registerLtxLocalVideoGateway(server); registerComfyUiOnboardingGateway(server); registerMediaRoutingGateway(server);

@@ -12,7 +12,9 @@ $LocalRoot = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { Join-Path $Repo
 $LogRoot = Join-Path $LocalRoot "PlotPickle\full-verification"
 $Stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $LogPath = Join-Path $LogRoot "plotpickle-full-check-$Stamp.log"
+$StartedAt = (Get-Date).ToUniversalTime().ToString("o")
 $Results = New-Object System.Collections.Generic.List[object]
+$FinalExitCode = 1
 
 New-Item -ItemType Directory -Force -Path $LogRoot | Out-Null
 Set-Location $RepoRoot
@@ -103,6 +105,28 @@ function Ensure-PlotPickleReady {
 
   Write-Host "FAIL  PlotPickle did not become reachable within $StartupWaitSeconds seconds." -ForegroundColor Red
   Write-Host "Leave the Start-PlotPickle window open, review its last error, then run Run-PlotPickle-Full-Check.bat again." -ForegroundColor Yellow
+  return $false
+}
+
+function Write-StructuredVerificationRecord {
+  $CompletedAt = (Get-Date).ToUniversalTime().ToString("o")
+  $Payload = [ordered]@{
+    startedAt = $StartedAt
+    completedAt = $CompletedAt
+    rawLogName = (Split-Path -Leaf $LogPath)
+    stages = @($Results)
+  }
+  $PayloadJson = $Payload | ConvertTo-Json -Depth 8 -Compress
+  Write-Host ""
+  Write-Host "Saving structured Quality / Verification Inbox record..." -ForegroundColor Gray
+  $RecordOutput = $PayloadJson | & node ".\scripts\verification-record.mjs"
+  $RecordCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int]$LASTEXITCODE }
+  if ($RecordCode -eq 0) {
+    Write-Host "SAVED  Verification Inbox record" -ForegroundColor Green
+    if ($RecordOutput) { Write-Host $RecordOutput -ForegroundColor DarkGray }
+    return $true
+  }
+  Write-Host "FAIL  The structured Verification Inbox record could not be saved." -ForegroundColor Red
   return $false
 }
 
@@ -224,6 +248,9 @@ try {
 } finally {
   if ($TranscriptStarted) {
     try { Stop-Transcript | Out-Null } catch {}
+  }
+  if (-not (Write-StructuredVerificationRecord)) {
+    $FinalExitCode = 1
   }
 }
 

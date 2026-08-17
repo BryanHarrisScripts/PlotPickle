@@ -74,6 +74,9 @@ jobs:
       - name: Validate README core direction
         run: node --test tests/core-readme-direction.test.mjs
 
+      - name: Validate Afterglow revision PPF
+        run: node --test tests/afterglow-revision-ppf.test.mjs
+
       - name: Test Startup, Settings, Foundations/LEARN, PLAN, and Wyrmwood
         run: node scripts/run-uat-autopilot.mjs --contracts-only --artifact-root .artifacts/uat-focused
 

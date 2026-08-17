@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import archivedV10Source from "@/data/afterglow-v10-screenplay-source.txt?raw";
 import { createAfterglowProject } from "@/data/afterglow";
 import { packageProject } from "./ppf-exchange";
 import {
@@ -17,11 +17,7 @@ const V10_SOURCE_ID = "afterglow-v10-partial-rewrite";
 
 type ArchivedV10Element = Omit<ScreenplayRevisionElement, "id">;
 
-function archivedV10SourceText() {
-  return readFileSync(new URL("../data/afterglow-v10-screenplay-source.txt", import.meta.url), "utf8");
-}
-
-export function extractAfterglowV10RevisionElements(source = archivedV10SourceText()): ScreenplayRevisionElement[] {
+export function extractAfterglowV10RevisionElements(source = archivedV10Source): ScreenplayRevisionElement[] {
   const match = source.match(/const sourceElements: SourceElement\[\] = (\[[\s\S]*?\n\]);\n\nfunction fountainLine/);
   if (!match) throw new Error("The archived Afterglow v10 sourceElements fixture could not be read.");
   const elements = JSON.parse(match[1]) as ArchivedV10Element[];

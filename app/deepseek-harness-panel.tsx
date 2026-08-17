@@ -32,15 +32,18 @@ export default function DeepSeekHarnessPanel() {
   const [status, setStatus] = useState<HarnessStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [actionMessage, setActionMessage] = useState("");
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (announce = false) => {
     setError("");
     try {
       const response = await fetch("/api/deepseek-harness/status", { cache: "no-store" });
       const body = await response.json() as { ok?: boolean; status?: HarnessStatus; message?: string };
       if (!response.ok || !body.ok || !body.status) throw new Error(body.message || "Could not inspect DeepSeek Harness.");
       setStatus(body.status);
+      if (announce) setActionMessage(`DeepSeek Harness status refreshed at ${new Date().toLocaleTimeString()}.`);
     } catch (cause) {
+      setActionMessage("");
       setError(cause instanceof Error ? cause.message : "Could not inspect DeepSeek Harness.");
     }
   }, []);
@@ -50,11 +53,13 @@ export default function DeepSeekHarnessPanel() {
   const launch = useCallback(async () => {
     setBusy(true);
     setError("");
+    setActionMessage("");
     try {
       const response = await fetch("/api/deepseek-harness/launch", { method: "POST" });
       const body = await response.json() as { ok?: boolean; status?: HarnessStatus; message?: string };
       if (!response.ok || !body.ok) throw new Error(body.message || "Could not launch DeepSeek Harness.");
       if (body.status) setStatus(body.status);
+      setActionMessage(body.message || "DeepSeek Harness launch request completed. PlotPickle will refresh its status shortly.");
       window.setTimeout(() => void refresh(), 1500);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not launch DeepSeek Harness.");
@@ -76,7 +81,7 @@ export default function DeepSeekHarnessPanel() {
           </p>
         </div>
         <div className={styles.actions}>
-          <button type="button" onClick={() => void refresh()} disabled={busy}>Refresh</button>
+          <button type="button" onClick={() => void refresh(true)} disabled={busy}>Refresh</button>
           <button className={styles.primary} type="button" onClick={() => void launch()} disabled={busy || !canLaunch}>
             {busy ? "Launching…" : status?.dsh.installed ? "Launch DSH" : "Install & launch DSH"}
           </button>
@@ -94,6 +99,7 @@ export default function DeepSeekHarnessPanel() {
         <code>ollama launch dsh</code>
       </div>
 
+      {actionMessage ? <p className={styles.message} role="status" aria-live="polite">{actionMessage}</p> : null}
       {status?.message ? <p className={styles.message}>{status.message}</p> : null}
       {error ? <p className={styles.error} role="alert">{error}</p> : null}
       <p className={styles.safety}>

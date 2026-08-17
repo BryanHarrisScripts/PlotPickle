@@ -46,7 +46,6 @@ function Invoke-NodeStep([string]$Name, [string]$Category, [string[]]$Arguments)
     Write-Host "FAIL  $Name (exit code $Code)" -ForegroundColor Red
     Add-Result $Name $Category "FAIL" $Code
   }
-  return $Code
 }
 
 function Invoke-NpmStep([string]$Name, [string]$Category, [string[]]$Arguments) {
@@ -61,7 +60,6 @@ function Invoke-NpmStep([string]$Name, [string]$Category, [string[]]$Arguments) 
     Write-Host "FAIL  $Name (exit code $Code)" -ForegroundColor Red
     Add-Result $Name $Category "FAIL" $Code
   }
-  return $Code
 }
 
 function Test-PlotPickleReady {
@@ -122,43 +120,43 @@ try {
 
   Invoke-NodeStep "1 of 9 - Agent Skills registry" "Architecture" @(
     ".\scripts\agent-skills.mjs", "--self-test"
-  ) | Out-Null
+  )
 
   Invoke-NodeStep "2 of 9 - Agent Skills architecture boundaries" "Architecture" @(
     "--test",
     ".\tests\sage-brinewick-agent-skill.test.mjs",
     ".\tests\issue-913-agent-skills-migration.test.mjs"
-  ) | Out-Null
+  )
 
   Invoke-NpmStep "3 of 9 - LEARN curriculum validation" "Curriculum" @(
     "run", "validate:learn"
-  ) | Out-Null
+  )
 
   Invoke-NpmStep "4 of 9 - Production build" "Production Build" @(
     "run", "build"
-  ) | Out-Null
+  )
 
   Invoke-NodeStep "5 of 9 - Ensure Pi local repair model" "Local AI / Pi" @(
     ".\scripts\ensure-local-repair-model.mjs", "--worker", "pi"
-  ) | Out-Null
+  )
 
   Invoke-NodeStep "6 of 9 - Pi repair preflight" "Local AI / Pi" @(
     ".\scripts\run-uat-repair-agent.mjs", "--worker", "pi", "--preflight", "--require-ready"
-  ) | Out-Null
+  )
 
   $AppReady = Ensure-PlotPickleReady
   if ($AppReady) {
     Invoke-NodeStep "7 of 9 - Verify BUZZ live activity" "BUZZ" @(
       ".\scripts\verify-buzz-live-activity.mjs"
-    ) | Out-Null
+    )
 
     Invoke-NodeStep "8 of 9 - Exhaustive code-aware UI and UX UAT" "Visual UAT" @(
       ".\scripts\run-exhaustive-ui-uat.mjs", "--github-report"
-    ) | Out-Null
+    )
 
     Invoke-NodeStep "9 of 9 - Writer-in-Residence" "Writer Journey" @(
       ".\scripts\run-writer-in-residence.mjs", "--github-report"
-    ) | Out-Null
+    )
   } else {
     foreach ($BlockedStep in @(
       [pscustomobject]@{ Name = "7 of 9 - Verify BUZZ live activity"; Category = "BUZZ" },
@@ -211,7 +209,7 @@ try {
   $Failed = @($Results | Where-Object { $_.Status -ne "PASS" }).Count -gt 0
   if ($Failed) {
     Write-Host ""
-    Write-Host "One or more checks need attention. Nothing was hidden or treated as a pass." -ForegroundColor Red
+    Write-Host "One or more checks need attention. The complete child-process output above is part of this same log." -ForegroundColor Red
     $FinalExitCode = 1
   } else {
     Write-Host ""

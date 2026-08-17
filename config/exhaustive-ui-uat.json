@@ -5,7 +5,7 @@
       "id": "entry",
       "label": "PlotPickle entry",
       "route": "/",
-      "sourceFiles": ["app/page.tsx", "app/plotpickle-workspace-shell.tsx", "app/workspace-continuity.css"],
+      "sourceFiles": ["app/page.tsx", "app/plotpickle-workspace-shell.tsx", "app/plotpickle-workspace-shell.module.css", "app/workspace-continuity.css"],
       "maxInteractions": 40,
       "testDuplicateInstances": false
     },
@@ -88,7 +88,13 @@
   ],
   "credentialPatterns": ["password", "secret", "token", "api key", "private key", "credential"],
   "longRunningActionPatterns": ["test sage", "test plan", "ask", "draft", "pickle", "evaluate", "set up sage and plan", "refresh", "check", "verify", "live test", "health"],
-  "globalNavigationLabels": ["Community", "LEARN", "PLAN", "GAME", "SETTINGS"],
+  "globalNavigationIds": ["dashboard", "community", "wyrmwood", "learn", "plan", "build", "storyboard", "graphic-novel", "write", "edit", "feedback", "refine", "reports", "settings"],
+  "globalNavigationLabels": ["Dashboard", "Community", "Wyrmwood", "Learn", "Plan", "Build", "Storyboard", "Previs", "Write", "Edit", "Feedback", "Refine", "Reports", "Settings"],
+  "globalNavigationGaps": [
+    { "after": "wyrmwood", "kind": "community-game" },
+    { "after": "graphic-novel", "kind": "previs" },
+    { "after": "refine", "kind": "reports" }
+  ],
   "hardFailOnDeadSafeControl": true,
   "hardFailOnUntestedSafeControl": true
 }

@@ -61,10 +61,18 @@ async function renderedSnapshot(client) {
       .filter(visible)
       .map((node) => (node.getAttribute('aria-label') || node.textContent || '').replace(/\\s+/g, ' ').trim())
       .filter((label) => /(?:back|return) to /i.test(label));
-    const navigation = [...document.querySelectorAll('.application-shell-header [data-workspace-id]')]
-      .filter(visible)
-      .map((node) => (node.textContent || '').replace(/\\s+/g, ' ').trim());
-    const navigationControls = [...document.querySelectorAll('.application-shell-header [data-workspace-id]')].filter(visible);
+    const navigationControls = [...document.querySelectorAll('[data-workspace-navigation="true"] [data-workspace-nav-id]')].filter(visible);
+    const navigation = navigationControls.map((node) => ({
+      id: node.getAttribute('data-workspace-nav-id') || '',
+      label: (node.querySelector('strong')?.textContent || '').replace(/\\s+/g, ' ').trim(),
+      detail: (node.querySelector('small')?.textContent || '').replace(/\\s+/g, ' ').trim(),
+    }));
+    const navigationGaps = navigationControls
+      .filter((node) => node.hasAttribute('data-navigation-gap-after'))
+      .map((node) => ({
+        after: node.getAttribute('data-workspace-nav-id') || '',
+        kind: node.getAttribute('data-navigation-gap-after') || '',
+      }));
     const navigationOverlaps = [];
     for (let first = 0; first < navigationControls.length; first += 1) {
       const a = navigationControls[first].getBoundingClientRect();
@@ -124,6 +132,7 @@ async function renderedSnapshot(client) {
       theme: document.documentElement.dataset.plotpickleTheme || '',
       activeWorkspace: active?.getAttribute('data-workspace-id') || '',
       navigation,
+      navigationGaps,
       navigationOverlaps,
       projectStrip: visible(document.querySelector('.project-strip, [class*="projectStrip"]')),
       statusSignals: [...document.querySelectorAll('[role="status"], progress, .status-dot, [aria-live]')].filter(visible).length,
@@ -177,7 +186,7 @@ async function cleanupPluginData(pluginData) {
 async function main() {
   agentLoaded({
     name: "PlotPickle UI Continuity Agent",
-    purpose: "Inspect PlotPickle screens for the shared layout, approved visual system, return paths, and navigation overlap.",
+    purpose: "Inspect PlotPickle screens for the shared layout, approved visual system, global navigation order/grouping, return paths, and navigation overlap.",
     instructions: "None. This read-only audit starts automatically and never changes your story or source files.",
     automatic: true,
   });

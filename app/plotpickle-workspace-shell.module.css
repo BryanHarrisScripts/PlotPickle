@@ -83,8 +83,16 @@
   text-align: center;
 }
 
-.list li.groupBreakAfter {
-  margin-right: clamp(7px, 0.9vw, 14px);
+.list li.groupBreakCommunityGame {
+  margin-right: clamp(28px, 4vw, 72px);
+}
+
+.list li.groupBreakPrevis {
+  margin-right: clamp(22px, 3vw, 56px);
+}
+
+.list li.groupBreakReports {
+  margin-right: clamp(72px, 10vw, 180px);
 }
 
 .list button {
@@ -206,6 +214,20 @@
   display: none !important;
 }
 
+@media (max-width: 1240px) {
+  .list li.groupBreakCommunityGame {
+    margin-right: 22px;
+  }
+
+  .list li.groupBreakPrevis {
+    margin-right: 18px;
+  }
+
+  .list li.groupBreakReports {
+    margin-right: 48px;
+  }
+}
+
 @media (max-width: 1040px) {
   .list {
     width: max-content;
@@ -222,8 +244,16 @@
     flex: 0 0 76px;
   }
 
-  .list li.groupBreakAfter {
-    margin-right: 10px;
+  .list li.groupBreakCommunityGame {
+    margin-right: 24px;
+  }
+
+  .list li.groupBreakPrevis {
+    margin-right: 20px;
+  }
+
+  .list li.groupBreakReports {
+    margin-right: 48px;
   }
 }
 

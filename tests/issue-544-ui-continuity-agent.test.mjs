@@ -1,11 +1,18 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { auditContinuitySnapshot, continuityReport, continuitySummary } from "../lib/ui-continuity-audit.mjs";
+import {
+  auditContinuitySnapshot,
+  CANONICAL_NAVIGATION_GAPS,
+  CANONICAL_NAVIGATION_LABELS,
+  continuityReport,
+  continuitySummary,
+} from "../lib/ui-continuity-audit.mjs";
 
 const root = new URL("../", import.meta.url);
 const read = (name) => readFile(new URL(name, root), "utf8");
-const navigation = ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Edit", "Graphic Novel", "Build", "Feedback", "Refine", "Reports"];
+const navigation = [...CANONICAL_NAVIGATION_LABELS];
+const navigationGaps = CANONICAL_NAVIGATION_GAPS.map((gap) => ({ ...gap }));
 
 function snapshot(overrides = {}) {
   return {
@@ -13,6 +20,7 @@ function snapshot(overrides = {}) {
     theme: "dark",
     activeWorkspace: "dashboard",
     navigation,
+    navigationGaps,
     projectStrip: true,
     statusSignals: 2,
     returnControls: [],
@@ -35,6 +43,7 @@ test("#544 reports anchor, theme, shell, context, navigation and named-return dr
     theme: "light",
     activeWorkspace: "",
     navigation: ["Dashboard"],
+    navigationGaps: [],
     projectStrip: false,
     statusSignals: 0,
     returnControls: ["Back to Dashboard"],
@@ -42,7 +51,7 @@ test("#544 reports anchor, theme, shell, context, navigation and named-return dr
     shell: null,
   }), snapshot().shell);
   const ids = new Set(result.findings.map((finding) => finding.id));
-  for (const id of ["theme", "agent-settings-position", "agent-settings-name", "shared-shell", "project-context", "status", "named-return", "navigation-learn"]) assert.ok(ids.has(id), `Missing finding ${id}`);
+  for (const id of ["theme", "agent-settings-position", "agent-settings-name", "shared-shell", "project-context", "status", "named-return", "navigation-order", "navigation-groups"]) assert.ok(ids.has(id), `Missing finding ${id}`);
   assert.equal(result.passed, false);
 });
 
@@ -106,13 +115,15 @@ test("#544 launches concurrently beside the Full Story Builder and saves one loc
   assert.match(docs, /It has no automatic fix path/);
 });
 
-test("#544 is blocking in the deterministic Visual gate while preserving the exact 30-stage UAT", async () => {
-  const [workflow, packageJson] = await Promise.all([read(".github/workflows/visual.yml"), read("package.json")]);
-  assert.match(workflow, /tests\/issue-544-ui-continuity-agent\.test\.mjs/);
-  assert.match(workflow, /node scripts\/ui-continuity-agent\.mjs/);
-  assert.match(workflow, /reports\/ui-continuity-agent\/ui-continuity-report\.md/);
-  assert.match(workflow, /Run exact 30-stage Creative Writer UAT/);
-  assert.match(workflow, /node scripts\/run-creative-writer-uat\.mjs/);
+test("#544 is covered by the current focused and full verification gates", async () => {
+  const [workflow, fullCheck, packageJson] = await Promise.all([
+    read(".github/workflows/learn-validation.yml"),
+    read("scripts/run-plotpickle-full-check.ps1"),
+    read("package.json"),
+  ]);
+  assert.match(workflow, /tests\/workspace-navigation-contract\.test\.mjs tests\/issue-544-ui-continuity-agent\.test\.mjs/);
+  assert.match(fullCheck, /run-exhaustive-ui-uat\.mjs/);
+  assert.match(fullCheck, /run-writer-in-residence\.mjs/);
   const scripts = JSON.parse(packageJson).scripts;
   assert.equal(scripts["test:ui-continuity-agent"], "node --test tests/issue-544-ui-continuity-agent.test.mjs");
   assert.equal(scripts["test:full-story-builder"], "node --test tests/issue-542-full-story-builder.test.mjs");

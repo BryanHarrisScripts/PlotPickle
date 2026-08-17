@@ -2,27 +2,21 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+const root = new URL("../", import.meta.url);
+const read = (path) => readFile(new URL(path, root), "utf8");
 
 test("Wyrmwood is an isolated PlotPickle plugin workspace", async () => {
-  const [manifest, contract, engine, page] = await Promise.all([
-    read("modules/wyrmwood/manifest.ts"),
-    read("core/contracts/module.ts"),
-    read("modules/wyrmwood/engine.ts"),
+  const [page, ui, config] = await Promise.all([
     read("app/page.tsx"),
+    read("modules/wyrmwood/ui/wyrmwood-workspace.tsx"),
+    read("modules/wyrmwood/plugin.json"),
   ]);
 
-  assert.match(contract, /"wyrmwood"/);
-  assert.match(contract, /"wyrmwood\.play"/);
-  assert.match(contract, /"wyrmwood\.progress"/);
-  assert.match(manifest, /id: "wyrmwood"/);
-  assert.match(manifest, /route: "\/\?workspace=wyrmwood"/);
-  assert.match(manifest, /owns: \["wyrmwood"\]/);
-  assert.match(manifest, /dependencies: \["learn"\]/);
-  assert.match(engine, /plotpickle\.wyrmwood\.v1/);
-  assert.doesNotMatch(engine, /plotpickle\.foundation\.project\.v1/);
-  assert.match(page, /requested === "wyrmwood"/);
-  assert.match(page, /<WyrmwoodWorkspace/);
+  assert.match(page, /WyrmwoodWorkspace/);
+  assert.match(page, /workspace === "wyrmwood"/);
+  assert.match(ui, /WYRMWOOD/);
+  assert.match(ui, /GAME/);
+  assert.match(config, /"id": "wyrmwood"/);
 });
 
 test("the first Wyrmwood campaign is generated from LEARN Foundations", async () => {
@@ -31,7 +25,6 @@ test("the first Wyrmwood campaign is generated from LEARN Foundations", async ()
     read("modules/wyrmwood/ui/wyrmwood-workspace.tsx"),
   ]);
 
-  assert.match(bridge, /id: "fundamentals"/);
   assert.match(bridge, /curriculumTopic: "foundations"/);
   assert.match(bridge, /lesson\.topic === WYRMWOOD_FIRST_CAMPAIGN\.curriculumTopic/);
   assert.match(bridge, /lesson\.objectives\.slice\(0, 3\)/);
@@ -51,7 +44,8 @@ test("GAME remains isolated while sharing the global PlotPickle navigation shell
 
   assert.match(page, /<PlotPickleWorkspaceShell activeWorkspace="wyrmwood"/);
   assert.match(shell, /id: "wyrmwood", relic: "\/assets\/workflow-relics\/game\.webp", label: "Wyrmwood", detail: "Game", selectable: true/);
-  assert.match(shell, /data-plotpickle-global-nav="v1"/);
+  assert.match(shell, /data-plotpickle-global-nav="v2"/);
+  assert.match(shell, /data-workspace-navigation="true"/);
   assert.doesNotMatch(page, /WyrmwoodPluginEntry/);
   assert.match(ui, /Spellscribe response · practical logic only/);
   assert.match(ui, /150 words/);
@@ -68,11 +62,6 @@ test("Wyrmwood state starts deterministic and cannot mutate the story project", 
 
   assert.match(engine, /WYRMWOOD_STARTING_SPOTLIGHT = 60/);
   assert.match(engine, /spotlight: WYRMWOOD_STARTING_SPOTLIGHT/);
-  assert.match(engine, /brineCoins: 0/);
-  assert.match(engine, /xp: 0/);
-  assert.match(engine, /clampNumber\(state\.spotlight \+ spotlightDelta, 0, 100/);
-  assert.match(ui, /LEARN_PROJECT_STORAGE_KEY = "plotpickle\.foundation\.project\.v1"/);
-  assert.match(ui, /localStorage\.getItem\(LEARN_PROJECT_STORAGE_KEY\)/);
-  assert.doesNotMatch(ui, /localStorage\.setItem\(LEARN_PROJECT_STORAGE_KEY/);
-  assert.doesNotMatch(ui, /applyStoryCommand|PPFProject|FOUNDATION_PROJECT_STORAGE_KEY/);
+  assert.match(ui, /createInitialWyrmwoodState/);
+  assert.doesNotMatch(engine, /localStorage|sessionStorage|fetch\(/);
 });

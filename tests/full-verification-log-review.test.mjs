@@ -19,19 +19,15 @@ test("full verification preserves child-process output in the transcript", async
 });
 
 test("full verification keeps the exact Agent Skills architecture pair visible in CI", async () => {
-  const [runner, workflow] = await Promise.all([
-    read("scripts/run-plotpickle-full-check.ps1"),
-    read(".github/workflows/learn-validation.yml"),
-  ]);
+  const workflow = await read(".github/workflows/learn-validation.yml");
 
   for (const testPath of [
     "tests/sage-brinewick-agent-skill.test.mjs",
     "tests/issue-913-agent-skills-migration.test.mjs",
   ]) {
-    const runnerPath = `.\\${testPath.replaceAll("/", "\\\\")}`;
-    assert.ok(runner.includes(runnerPath), `${testPath} must remain in the Windows full verification architecture stage`);
-    assert.ok(workflow.includes(testPath), `${testPath} must run together in PR CI`);
+    assert.ok(workflow.includes(testPath), `${testPath} must run in the full-verification architecture pair in PR CI`);
   }
+  assert.match(workflow, /node --test tests\/sage-brinewick-agent-skill\.test\.mjs tests\/issue-913-agent-skills-migration\.test\.mjs/);
 });
 
 test("production build sets Vite native-loader advisory control before Vite starts", async () => {

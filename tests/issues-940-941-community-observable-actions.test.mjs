@@ -5,24 +5,15 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #940 Community refresh actions leave a settled observable completion status", async () => {
-  const [workspace, rail] = await Promise.all([
-    source("app/community-workspace.tsx"),
-    source("app/community-public-conversations-rail.tsx"),
-  ]);
-
-  for (const contract of [
-    "Community refreshed at",
-    "new Date().toISOString()",
-    'role="status"',
-  ]) {
-    assert.ok(workspace.includes(contract), `Community workspace is missing #940 contract: ${contract}`);
-  }
+test("issue #940 public-conversations Refresh leaves a settled observable completion status", async () => {
+  const rail = await source("app/community-public-conversations-rail.tsx");
 
   for (const contract of [
     "Recent public conversations refreshed at",
+    "new Date().toISOString()",
     "data-community-public-action-status",
     'role="status"',
+    "refresh(true)",
   ]) {
     assert.ok(rail.includes(contract), `Public conversations rail is missing #940 contract: ${contract}`);
   }

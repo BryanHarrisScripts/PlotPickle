@@ -92,6 +92,14 @@ function hasConcreteRequiredValue(value, property = {}) {
   return true;
 }
 
+function requiredScreenshotScale(tool, properties, required, normalized) {
+  if (tool?.name !== "browser_take_screenshot" || !required.has("scale") || !("scale" in properties) || "scale" in normalized) return undefined;
+  const property = properties.scale || {};
+  if (property.default !== undefined) return property.default;
+  const allowed = Array.isArray(property.enum) ? property.enum : [];
+  return !allowed.length || allowed.includes("css") ? "css" : undefined;
+}
+
 export function toolArguments(tool, values) {
   const schema = tool?.inputSchema || {};
   const properties = schema.properties || {};
@@ -105,6 +113,8 @@ export function toolArguments(tool, values) {
   ) {
     normalized.target = normalized.ref;
   }
+  const screenshotScale = requiredScreenshotScale(tool, properties, required, normalized);
+  if (screenshotScale !== undefined) normalized.scale = screenshotScale;
   const output = Object.fromEntries(Object.entries(normalized).filter(([key, value]) => value !== undefined && key in properties));
   const missing = [...required].filter((key) => !hasConcreteRequiredValue(output[key], properties[key]));
   if (missing.length) throw new McpToolArgumentError(tool?.name || "MCP tool", missing);

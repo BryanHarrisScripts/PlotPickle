@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { CurriculumSource } from "../../../core/contracts/curriculum";
 import type { LocalCurriculumSourceTarget } from "../model/local-curriculum-links";
 
@@ -9,7 +9,9 @@ type CurriculumMaterialProps = {
   readonly source: CurriculumSource;
 };
 
-type InlineRenderContext = Pick<CurriculumMaterialProps, "emphasizeKeyLabels" | "onOpenLesson" | "resolveLocalReference">;
+type InlineRenderContext = Pick<CurriculumMaterialProps, "emphasizeKeyLabels" | "resolveLocalReference"> & {
+  readonly onOpenReference: (target: LocalCurriculumSourceTarget) => void;
+};
 
 type SourceBlock =
   | { readonly kind: "code"; readonly language: string; readonly text: string }
@@ -203,7 +205,7 @@ function localReference(
   label: string,
   href: string,
   key: string,
-  { onOpenLesson, resolveLocalReference }: InlineRenderContext,
+  { onOpenReference, resolveLocalReference }: InlineRenderContext,
 ): ReactNode {
   const target = resolveLocalReference(href.trim().replace(/^<|>$/g, ""));
   if (!target) {
@@ -213,7 +215,7 @@ function localReference(
     <button
       data-source-local-link
       key={key}
-      onClick={() => onOpenLesson(target.lessonId)}
+      onClick={() => onOpenReference(target)}
       title={`Open the bundled material in ${target.lessonTitle}`}
       type="button"
     >
@@ -325,14 +327,37 @@ export function CurriculumMaterial({
   resolveLocalReference,
   source,
 }: CurriculumMaterialProps) {
+  const [navigationStatus, setNavigationStatus] = useState("");
+
+  function onOpenReference(target: LocalCurriculumSourceTarget) {
+    const targetElement = Array.from(document.querySelectorAll<HTMLElement>("[data-source-id]"))
+      .find((element) => element.dataset.sourceId === target.sourceId);
+    if (targetElement) {
+      setNavigationStatus(`Opened bundled source: ${target.sourceTitle} in ${target.lessonTitle}.`);
+      targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+      targetElement.focus({ preventScroll: true });
+      return;
+    }
+    setNavigationStatus(`Opening bundled source: ${target.sourceTitle} in ${target.lessonTitle}.`);
+    onOpenLesson(target.lessonId);
+  }
+
   return (
-    <div data-integrated-curriculum-content data-source-id={source.id}>
-      <SourceBlocks
-        content={curriculumContent(source)}
-        emphasizeKeyLabels={emphasizeKeyLabels}
-        onOpenLesson={onOpenLesson}
-        resolveLocalReference={resolveLocalReference}
-      />
-    </div>
+    <>
+      {navigationStatus ? <p data-source-navigation-status role="status">{navigationStatus}</p> : null}
+      <div
+        aria-label={`${source.title} bundled source material`}
+        data-integrated-curriculum-content
+        data-source-id={source.id}
+        tabIndex={-1}
+      >
+        <SourceBlocks
+          content={curriculumContent(source)}
+          emphasizeKeyLabels={emphasizeKeyLabels}
+          onOpenReference={onOpenReference}
+          resolveLocalReference={resolveLocalReference}
+        />
+      </div>
+    </>
   );
 }

@@ -22,7 +22,7 @@ test("ComfyUI startup distinguishes Desktop installation from a ready local API"
   }
 
   assert.ok(
-    starter.indexOf("Test-ComfyApi $endpoint.BaseUrl") < starter.indexOf("Find-ComfyDesktopExecutable"),
+    starter.indexOf("if (Test-ComfyApi $endpoint.BaseUrl)") < starter.indexOf("$desktopExe = Find-ComfyDesktopExecutable"),
     "The existing local API must be accepted before trying to start another process",
   );
 });

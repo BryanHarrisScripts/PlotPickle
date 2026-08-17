@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 import { BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "../lib/buzz-guildhall";
+import { projectCommunityConversationFeed, type CommunityConversationItem } from "../lib/community-conversation";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import { readCredentialJson } from "./local-credentials";
 
@@ -261,7 +262,7 @@ async function communityStatus() {
     identityLabel: connection?.identityLabel || "",
     greatHall: null as BuzzChannel | null,
     members: [] as BuzzMember[],
-    recentActivity: [] as BuzzActivity[],
+    recentActivity: [] as CommunityConversationItem[],
     actors: BUZZ_GUILDHALL_ACTORS.map((actor) => ({
       id: actor.id,
       displayName: actor.displayName,
@@ -280,17 +281,22 @@ async function communityStatus() {
   try {
     const greatHall = await findGreatHall(connection);
     if (!greatHall) return { ...base, message: "The Buzz identity is verified, but the Great Hall has not been created yet." };
-    const [members, recentActivity] = await Promise.all([
+    const [members, rawActivity] = await Promise.all([
       loadMembers(connection, greatHall),
-      runBuzz(connection, ["messages", "get", "--channel", greatHall.id, "--limit", "20"]).then(activityFrom).catch(() => []),
+      runBuzz(connection, ["messages", "get", "--channel", greatHall.id, "--limit", "40"]).then(activityFrom).catch(() => []),
     ]);
+    const namedActivity = rawActivity.map((item) => {
+      const member = members.find((candidate) => candidate.pubkey.toLowerCase() === item.author.toLowerCase());
+      return member ? { ...item, author: member.displayName } : item;
+    });
+    const recentActivity = projectCommunityConversationFeed(namedActivity).slice(0, 20);
     return {
       ...base,
       greatHall,
       members,
       recentActivity,
       canManageGreatHall: true,
-      message: "PlotPickle Community is connected to the Great Hall. Native discussion, members and presence are ready.",
+      message: "PlotPickle Community is connected to the Great Hall. Human conversation, members and presence are ready; operational BUZZ evidence stays in diagnostics.",
     };
   } catch (error) {
     return { ...base, message: safeError(error) };

@@ -135,6 +135,43 @@ test("native Community reads Great Hall membership, profile and presence through
   assert.match(gateway, /inviteManagement: "buzz-desktop"/);
 });
 
+test("normal Great Hall conversation is projected away from BUZZ and UAT telemetry", async () => {
+  const [projection, gateway] = await Promise.all([
+    read("lib/community-conversation.ts"),
+    read("build/buzz-community-gateway.ts"),
+  ]);
+
+  assert.match(projection, /if \(parsed\.type !== "agent\.note"\) return null/);
+  assert.match(projection, /Synthetic Agent/);
+  assert.match(projection, /Synthetic Writer/);
+  assert.match(projection, /looksOperational/);
+  assert.match(projection, /technical reference hidden/);
+  assert.match(projection, /local path hidden/);
+  assert.match(projection, /RAW_HASH/);
+  assert.match(projection, /TRANSPORT_ID/);
+  assert.match(projection, /displayAuthor\(name, role, badge\)/);
+  assert.match(gateway, /projectCommunityConversationFeed/);
+  assert.match(gateway, /const recentActivity = projectCommunityConversationFeed\(namedActivity\)\.slice\(0, 20\)/);
+  assert.match(gateway, /operational BUZZ evidence stays in diagnostics/);
+});
+
+test("technical BUZZ evidence remains intact outside the human conversation projection", async () => {
+  const [gateway, guildhall, liveActivity] = await Promise.all([
+    read("build/buzz-community-gateway.ts"),
+    read("lib/buzz-guildhall.ts"),
+    read("scripts/buzz-live-activity.mjs"),
+  ]);
+
+  assert.match(gateway, /runBuzz\(connection, \["messages", "get", "--channel", greatHall\.id/);
+  assert.match(guildhall, /formatBuzzGuildhallEvent/);
+  assert.match(guildhall, /`type=\$\{event\.type\} severity=/);
+  assert.match(guildhall, /evidence: \$\{evidence\.label\}/);
+  assert.match(guildhall, /`route=\$\{channel\.name\}`/);
+  assert.match(liveActivity, /type=\$\{event\.type\} severity=/);
+  assert.match(liveActivity, /evidence: \$\{evidence\.label\}/);
+  assert.match(liveActivity, /route=\$\{channel\.name\}/);
+});
+
 test("Community preserves the local credential and owner-review boundaries", async () => {
   const [gateway, workspace, roster] = await Promise.all([
     read("build/buzz-community-gateway.ts"),

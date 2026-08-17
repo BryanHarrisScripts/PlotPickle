@@ -7,6 +7,7 @@ import {
   loadAgentSkillRegistry,
   readAgentSkillProcedure,
   skillIndexResource,
+  stripSkillFrontmatter,
 } from '../scripts/agent-skills.mjs';
 import {
   listProcedureConsumers,
@@ -65,6 +66,28 @@ test('issue 913 registers four stable progressively discoverable Agent Skills', 
     assert.ok(source.includes(`uri: ${expected.uri}`));
     assert.match(source, /progressiveDisclosure: true/);
   }
+});
+
+test('Agent Skill frontmatter stripping supports Unix and Windows line endings', () => {
+  for (const newline of ['\n', '\r\n']) {
+    const source = [
+      '---',
+      'name: plan-foundations',
+      'metadata:',
+      '  version: "1.0.0"',
+      '---',
+      '',
+      '# PLAN Foundations',
+      '',
+      'Procedure body.',
+    ].join(newline);
+    assert.equal(stripSkillFrontmatter(source), ['# PLAN Foundations', '', 'Procedure body.'].join(newline));
+  }
+
+  assert.throws(
+    () => stripSkillFrontmatter('---\r\nname: broken\r\n'),
+    /frontmatter is not closed/,
+  );
 });
 
 test('host procedure loader exposes only the requested migrated procedure', async () => {

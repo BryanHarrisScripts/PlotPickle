@@ -65,7 +65,9 @@ test("Full Verification runner keeps raw transcript and writes a structured inbo
   assert.match(runner, /Write-StructuredVerificationRecord/);
   assert.match(runner, /\.\\scripts\\verification-record\.mjs/);
   assert.match(runner, /rawLogName = \(Split-Path -Leaf \$LogPath\)/);
-  assert.match(runner, /stages = @\(\$Results\)/);
+  assert.match(runner, /\$StageRecords\s*=\s*\[object\[\]\]\(\$Results\s*\|\s*ForEach-Object\s*\{\s*\$_\s*\}\)/);
+  assert.match(runner, /stages\s*=\s*\$StageRecords/);
+  assert.doesNotMatch(runner, /stages\s*=\s*@\(\$Results\)/);
 });
 
 test("Verification Inbox API is local, read-only and validates deterministic integrity", async () => {

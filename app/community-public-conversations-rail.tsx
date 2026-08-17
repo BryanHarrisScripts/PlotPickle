@@ -35,12 +35,9 @@ function findCommunityHeader() {
 }
 
 function openGreatHall() {
-  const buttons = Array.from(
-    document.querySelectorAll<HTMLButtonElement>('nav[aria-label="Community sections"] button'),
-  );
-  const greatHall = buttons.find((button) => button.textContent?.trim() === "Great Hall");
+  const greatHall = document.querySelector<HTMLButtonElement>('[data-community-section="great-hall"]');
   if (!greatHall) return false;
-  const alreadyOpen = greatHall.getAttribute("aria-selected") === "true";
+  const alreadyOpen = greatHall.getAttribute("aria-current") === "page";
   if (!alreadyOpen) greatHall.click();
   window.setTimeout(() => {
     const composer = document.querySelector<HTMLTextAreaElement>('textarea[placeholder="Write to the Great Hall…"]');

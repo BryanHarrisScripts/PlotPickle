@@ -41,20 +41,32 @@ test("Community exposes the Great Hall, Story Rooms, people, live agents, review
   assert.match(workspace, /Buzz provides the signed community layer underneath; the writer stays inside PlotPickle/);
 });
 
-test("Community navigation is expandable, room-first, keyboard-addressable and preserves every existing destination", async () => {
+test("Community navigation uses per-section chevrons, clears prototype copy and keeps room selection in the left rail", async () => {
   const [workspace, navigationStyles] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("app/community-navigation.module.css"),
   ]);
 
-  assert.match(workspace, /useState\(true\)/);
+  assert.match(workspace, /useState<CommunitySection \| null>\("great-hall"\)/);
   assert.match(workspace, /aria-label="Community and Guildhall navigation"/);
-  assert.match(workspace, /aria-expanded=\{navigationExpanded\}/);
-  assert.match(workspace, /aria-controls="community-destinations"/);
-  assert.match(workspace, /id="community-destinations"/);
   assert.match(workspace, /aria-label="Community destinations"/);
+  assert.match(workspace, /data-community-section=\{item\.id\}/);
+  assert.match(workspace, /aria-expanded=\{expanded\}/);
+  assert.match(workspace, /aria-controls=\{`community-nav-\$\{item\.id\}`\}/);
   assert.match(workspace, /aria-current=\{section === item\.id \? "page" : undefined\}/);
-  assert.match(workspace, /data-primary=\{item\.primary \? "true" : undefined\}/);
+  assert.match(workspace, /className=\{navigationStyles\.destinationChevron\}/);
+  assert.match(workspace, /className=\{navigationStyles\.subDestinationList\}/);
+  assert.match(workspace, /BUZZ_STORY_ROOMS\.map\(\(definition\) =>/);
+  assert.match(workspace, /onClick=\{\(\) => openStoryRoom\(definition\.id\)\}/);
+  assert.match(workspace, /Choose the room from the left rail, then use the centre as the conversation surface/);
+  assert.doesNotMatch(workspace, /Rooms, people and review/);
+  assert.doesNotMatch(workspace, /People, rooms, reviews and recent activity/);
+  assert.doesNotMatch(workspace, /Community-wide discussion/);
+  assert.doesNotMatch(workspace, /Private discussion for the active story/);
+  assert.doesNotMatch(workspace, /Playhouse Studio discovery and presence/);
+  assert.doesNotMatch(workspace, /Great Hall members and presence" \}/);
+  assert.doesNotMatch(workspace, /Community suggestions waiting for human review" \}/);
+  assert.doesNotMatch(workspace, /Internal coordination rooms and status/);
 
   const greatHall = workspace.indexOf('{ id: "great-hall"');
   const storyRooms = workspace.indexOf('{ id: "story-rooms"');
@@ -65,12 +77,15 @@ test("Community navigation is expandable, room-first, keyboard-addressable and p
   assert.match(workspace, /great-hall"[^\n]+primary: true/);
   assert.match(workspace, /story-rooms"[^\n]+primary: true/);
 
-  assert.match(navigationStyles, /grid-template-columns:\s*minmax\(205px, 246px\) minmax\(0, 1fr\)/);
-  assert.match(navigationStyles, /\.communityRail\s*\{[^}]*position:\s*sticky/s);
-  assert.match(navigationStyles, /@media \(max-width: 900px\)[\s\S]*grid-template-columns:\s*1fr/);
+  assert.match(navigationStyles, /\.communityLayout\s*\{\s*display:\s*contents;/s);
+  assert.match(navigationStyles, /\.communityRail\s*\{[^}]*grid-column:\s*1;[^}]*grid-row:\s*1 \/ 5;/s);
+  assert.match(navigationStyles, /\.communityContent\s*\{\s*display:\s*contents;/s);
+  assert.match(navigationStyles, /\.communityContent > main\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*3;/s);
+  assert.match(navigationStyles, /\.destinationChevron\[aria-expanded="true"\] span/);
+  assert.match(navigationStyles, /@media \(max-width: 900px\)[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
 });
 
-test("Great Hall and Story Rooms behave like conversations with reply and room-return affordances", async () => {
+test("Great Hall and Story Rooms behave like conversations with reply and room-close affordances", async () => {
   const workspace = await read("app/community-workspace.tsx");
 
   assert.match(workspace, /aria-label="Great Hall conversation"/);
@@ -82,7 +97,8 @@ test("Great Hall and Story Rooms behave like conversations with reply and room-r
   assert.match(workspace, /useState<BuzzStoryRoomId \| null>\(null\)/);
   assert.match(workspace, /function closeStoryRoom\(\)/);
   assert.match(workspace, /setSelectedRoomId\(null\)/);
-  assert.match(workspace, />Back to Story Rooms<\/button>/);
+  assert.match(workspace, />Close room<\/button>/);
+  assert.doesNotMatch(workspace, /className=\{styles\.roomGrid\}/);
 });
 
 test("Connected Studios is a real privacy-safe Playhouse directory with a Great Hall return path", async () => {
@@ -94,7 +110,7 @@ test("Connected Studios is a real privacy-safe Playhouse directory with a Great 
   assert.match(workspace, /section === "connected-studios"/);
   assert.match(workspace, /ConnectedStudiosPanel/);
   assert.match(workspace, /onOpenGreatHall=\{\(\) => setSection\("great-hall"\)\}/);
-  assert.match(workspace, /Playhouse directory · signed presence/);
+  assert.match(workspace, /id === "connected-studios"\) return connected \? "Community connected" : "Available offline"/);
   assert.match(panel, /\/api\/playhouse-directory/);
   assert.match(panel, /This is a community directory, not a server list/);
   assert.match(panel, /Visit Great Hall/);
@@ -117,7 +133,8 @@ test("Community overview adds a right-rail quick jump for recent public Great Ha
   assert.match(rail, /Recent public conversations/);
   assert.match(rail, /Jump back into the Great Hall/);
   assert.match(rail, /Private Story Rooms and Guildhall rooms stay out of this list/);
-  assert.match(rail, /button\.textContent\?\.trim\(\) === "Great Hall"/);
+  assert.match(rail, /\[data-community-section="great-hall"\]/);
+  assert.match(rail, /getAttribute\("aria-current"\) === "page"/);
   assert.match(rail, /greatHall\.click\(\)/);
   assert.match(railStyles, /grid-column:\s*3/);
   assert.match(railStyles, /grid-row:\s*2 \/ 4/);

@@ -18,66 +18,39 @@ import { registerCurriculumRagGateway } from "./curriculum-rag-gateway";
 import { registerGpuResourceScheduler } from "./local-gpu-resource-manager";
 import { registerFoundationsPpfGateway } from "./foundations-ppf-gateway";
 import { registerStudioIdentityGateway } from "./studio-identity-gateway";
+import { registerPlayhouseFederationGateway } from "./playhouse-federation-gateway";
 
 const IMAGE_PATHS = new Set(["/api/local-ai/generate/image", "/api/media-routing/test/image"]);
 const MAX_SINGLE_IMAGE_REQUEST_BYTES = 256 * 1024;
 let imageRequestActive = false;
 
 function reject(response: import("node:http").ServerResponse, status: number, message: string) {
-  response.statusCode = status;
-  response.setHeader("Content-Type", "application/json; charset=utf-8");
-  response.setHeader("Cache-Control", "no-store");
-  response.setHeader("X-Content-Type-Options", "nosniff");
-  response.end(JSON.stringify({ ok: false, message }));
+  response.statusCode = status; response.setHeader("Content-Type", "application/json; charset=utf-8"); response.setHeader("Cache-Control", "no-store"); response.setHeader("X-Content-Type-Options", "nosniff"); response.end(JSON.stringify({ ok: false, message }));
 }
-
 function registerSingleImageBoundary(server: ViteDevServer) {
   server.middlewares.use((request, response, next) => {
     const pathname = request.url?.split("?", 1)[0] || "";
     if (!IMAGE_PATHS.has(pathname) || request.method !== "POST") { next(); return; }
     const contentLength = Number(request.headers["content-length"] || 0);
-    if (Number.isFinite(contentLength) && contentLength > MAX_SINGLE_IMAGE_REQUEST_BYTES) {
-      reject(response, 413, "PlotPickle accepts one image request at a time. Queue large Graphic Novel runs locally instead of sending a batch."); return;
-    }
-    if (imageRequestActive) {
-      reject(response, 409, "Another image request is active. PlotPickle will start the next queued Graphic Novel image after it finishes."); return;
-    }
-    imageRequestActive = true;
-    response.setHeader("X-PlotPickle-Image-Mode", "single-request");
-    let released = false;
+    if (Number.isFinite(contentLength) && contentLength > MAX_SINGLE_IMAGE_REQUEST_BYTES) { reject(response, 413, "PlotPickle accepts one image request at a time. Queue large Graphic Novel runs locally instead of sending a batch."); return; }
+    if (imageRequestActive) { reject(response, 409, "Another image request is active. PlotPickle will start the next queued Graphic Novel image after it finishes."); return; }
+    imageRequestActive = true; response.setHeader("X-PlotPickle-Image-Mode", "single-request"); let released = false;
     const release = () => { if (!released) { released = true; imageRequestActive = false; } };
     response.once("finish", release); response.once("close", release); response.once("error", release); next();
   });
 }
-
 export function localAiGateway(): Plugin {
   const legacy = legacyLocalAiGateway();
-  return {
-    ...legacy,
-    name: "plotpickle-hardware-aware-local-ai-gateway",
-    configureServer(server) {
-      registerSingleImageBoundary(server);
-      registerGpuResourceScheduler(server);
-      registerLocalRuntimeGateway(server);
-      registerStudioIdentityGateway(server);
-      registerDeepSeekHarnessGateway(server);
-      registerCurriculumRagGateway(server);
-      registerLocalAiInstallationGateway(server);
-      registerAiRoutingGateway(server);
-      registerNativeH3Gateway(server);
-      registerProviderDiagnosticsGateway(server);
-      registerSdxlLocalImageGateway(server);
-      registerLtxLocalVideoGateway(server);
-      registerComfyUiOnboardingGateway(server);
-      registerMediaRoutingGateway(server);
-      registerOllamaBootstrapGateway(server);
-      registerAgentObservabilityGateway(server);
-      registerBuzzAgentActivityMirror(server);
-      registerFoundationsPpfGateway(server);
-      registerWritingAssistantGateway(server);
-      if (typeof legacy.configureServer === "function") legacy.configureServer(server);
-    },
-  };
+  return { ...legacy, name: "plotpickle-hardware-aware-local-ai-gateway", configureServer(server) {
+    registerSingleImageBoundary(server); registerGpuResourceScheduler(server); registerLocalRuntimeGateway(server);
+    registerStudioIdentityGateway(server); registerPlayhouseFederationGateway(server); registerDeepSeekHarnessGateway(server);
+    registerCurriculumRagGateway(server); registerLocalAiInstallationGateway(server); registerAiRoutingGateway(server);
+    registerNativeH3Gateway(server); registerProviderDiagnosticsGateway(server); registerSdxlLocalImageGateway(server);
+    registerLtxLocalVideoGateway(server); registerComfyUiOnboardingGateway(server); registerMediaRoutingGateway(server);
+    registerOllamaBootstrapGateway(server); registerAgentObservabilityGateway(server); registerBuzzAgentActivityMirror(server);
+    registerFoundationsPpfGateway(server); registerWritingAssistantGateway(server);
+    if (typeof legacy.configureServer === "function") legacy.configureServer(server);
+  } };
 }
 
 /*

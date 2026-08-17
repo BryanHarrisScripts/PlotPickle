@@ -210,13 +210,19 @@ A BUZZ message does not become story canon automatically. A Mastra response does
 | Tamsin Hearthquill | Keeper of Foundations | PLAN foundations drafting and guidance | Mastra |
 | Master Oaken-Vague | Keeper of the Wyrmwood | Creates playable curriculum-bound Wyrmwood challenges | Mastra |
 | Rowan Scalequill | Arbiter of Lessons | Evaluates Wyrmwood responses against the supplied lesson | Mastra |
+| Quillan Reedcloak | Story Scribe | Coordinates creative specialists while preserving writer approval | Mastra |
+| Elowen Mapweaver | Cartographer of Beats | Maps structure, causality, stakes and the 24 Block / 96 Mini-Block journey | Mastra |
+| Mira Threadmere | Threadkeeper | Protects accepted continuity and surfaces contradictions for review | Mastra |
 | Avery North | The Wayfarer | Synthetic first-time writer used for experience UAT | PlotPickle UAT |
 | Luma Glassfern | Lantern Warden | Read-only rendered visual observer | Deterministic observer |
 | Bram Gatewick | Gatewarden | Deterministic quality and UAT gate | UAT |
+| Rook Ironquill | Forgekeeper | Coordinates verified developer-repair handoffs | Repository workflow |
 | Orin Ledgerbark | Archivist of the Hall | Optional BUZZ-native history and receipt steward | BUZZ |
 | Fen Copperwind | Herald of the Forge | Optional BUZZ-native engineering handoff steward | BUZZ |
 
 Mastra remains the brain for PlotPickle's product agents. BUZZ does not replace their reasoning runtime. Developer workers such as Pi and Cline are also separate from Mastra's product-agent runtime.
+
+The Agents & Stewards view can therefore show several identities at the same time without implying that every identity is executing inside BUZZ. Product agents such as Sage, Tamsin, Master Oaken-Vague, Rowan, Quillan, Elowen and Mira reason through Mastra and can have their activity or presence mirrored into BUZZ. Avery belongs to the synthetic UAT journey; Luma and Bram are quality roles; Rook coordinates developer handoffs; Orin and Fen are the BUZZ-native roles. Think of BUZZ as the shared hall, message bus and coordination layer, not as the brain that runs every agent.
 
 ## Agent skills
 
@@ -236,6 +242,8 @@ BUZZ is part of the collaboration architecture rather than a second writing prod
 
 PlotPickle uses BUZZ for community discussion, private Story Rooms, member access and presence, agent/steward visibility, Guildhall handoffs, Writer-in-Residence and UAT evidence, visual-review findings, runtime health and verified development handoffs before GitHub work.
 
+BUZZ also carries PlotPickle Playhouse federation. A local installation is represented as a PlotPickle Studio with its own permanent Studio identity. A Studio can publish a small, signed presence event and discover other permitted Studios through BUZZ. This is deliberately not a direct connection from another person's PlotPickle application into the local PlotPickle web server: the local server remains private, and federation travels outward through the BUZZ/Playhouse layer. Connected Studios therefore means connected creative Studios, not exposed local HTTP ports.
+
 BUZZ does not silently modify PPF and does not replace GitHub. PlotPickle keeps those authority boundaries explicit.
 
 ## Local-first AI
@@ -247,6 +255,122 @@ The active in-product agent runtime is Mastra. Provider routing sits underneath 
 Local runtime / endpoint options include Ollama, LM Studio, llama.cpp and generic OpenAI-compatible local endpoints. Names such as Qwen and DeepSeek describe model families that can run behind those endpoints; they should not be documented as if they were equivalent to Ollama or llama.cpp.
 
 Local failures must not silently become paid cloud requests. Provider choice, availability, hardware suitability and advanced routing belong in Settings.
+
+## Plain-English technology guide
+
+This section is intentionally written for someone running PlotPickle locally who wants to understand the words that appear in tests, logs, Settings and development discussions without needing a software-engineering background.
+
+### The most important terms
+
+| Term | Plain-English meaning in PlotPickle |
+|---|---|
+| Agent | A named AI-assisted role with a specific job. Sage teaches; Tamsin helps with Foundations; other agents handle structure, continuity, testing or coordination. An agent is not automatically allowed to change everything. |
+| Product agent | An agent the writer encounters as part of PlotPickle. Product agents use Mastra as their reasoning/runtime layer. |
+| Synthetic agent / synthetic writer | A test identity rather than a real person. Avery North behaves like a first-time writer so PlotPickle can test the experience repeatedly. Synthetic feedback is evidence, not real-user feedback. |
+| Subagent | A temporary specialist launched by another developer agent to work on a smaller task in isolation or in parallel. Subagents help divide work; they do not gain extra authority. |
+| Skill / Agent Skill | A written procedure or playbook telling an agent how to perform a particular PlotPickle job. A Skill is closer to a job manual than to a new AI model. It cannot grant permissions the host has not already granted. |
+| Model | The actual AI model doing language or vision work, for example a Qwen-family model. |
+| Runtime | The program that loads or serves a model, such as Ollama, LM Studio or llama.cpp. Mastra is the product-agent runtime/orchestration layer, not a model. |
+| Provider | The source PlotPickle asks for an AI capability. A provider can be local or optional cloud/BYOK. |
+| Endpoint | The address/software interface PlotPickle talks to when it sends a model request. An OpenAI-compatible endpoint means the interface follows the same general API shape even when the model is running locally. |
+| Token | A small piece of text an AI model reads or writes. Token counts affect how much information fits in a model's working context and, for paid cloud models, can affect cost. This is different from an API token or access token, which is a secret credential. |
+| Context window | The amount of information the model can consider at one time: instructions, recent conversation, retrieved material and tool information. Think of it as the model's working desk. |
+| Context compaction | Condensing older working context so the model can keep the important parts while freeing room for new work. PlotPickle's Pi configuration reserves space and keeps a recent-token portion while compaction is enabled. |
+| Context injection | Extra instructions or tool information inserted into an agent's working context by the host or an extension. `pi-context-view` exists so a developer can inspect this rather than guessing what filled the context. |
+| MCP | Model Context Protocol. A standard way for an AI agent to discover and call external tools. In plain terms, MCP is a common plug/socket between an agent and tools such as a browser, filesystem-aware service or PlotPickle developer service. |
+| MCP server | A process that offers a set of MCP tools/resources. It is not necessarily a web server and does not mean the service is public on the internet. |
+| MCP tool | One callable operation supplied through MCP, for example navigate a browser, click a control, read a resource or invoke a developer function. |
+| Harness | The testing machinery that drives PlotPickle and observes what happened. The harness can launch a browser, click controls, type text and collect evidence. A harness error can mean the test machinery failed even when the PlotPickle feature itself is fine. |
+| UAT | User Acceptance Testing. Testing the product from the user's point of view rather than only testing individual functions in code. PlotPickle has focused UAT, exhaustive UI/UX UAT and the Writer-in-Residence journey. |
+| Deterministic test | A check with a fixed rule: given the same correct code/state, it should produce the same PASS or FAIL. PlotPickle's deterministic checks remain the authority for verification PASS/FAIL. |
+| Regression test | A test added to make sure a bug that was fixed does not quietly return later. |
+| Visual observer / Visual QA | A read-only quality role that inspects rendered layout facts such as clipping, overlap and spacing. It is intentionally separate from image generation. |
+| Verification Inbox | PlotPickle's local, append-only record of Full Verification runs. It keeps the deterministic result and evidence without allowing an agent to rewrite a failed run into a pass. |
+| Telemetry / diagnostics | Operational information about what the software, tests or agents are doing. PlotPickle keeps this separate from normal Great Hall human conversation so engineering noise does not become chat. |
+
+### BUZZ, agents and multiple PlotPickle Studios
+
+BUZZ has two related jobs: it is the Community transport underneath Great Hall and Story Rooms, and it is the coordination/audit layer used by agents, UAT and developer workflows.
+
+A useful mental model is that Mastra is the product agents' brain, while BUZZ is the hall they can meet in, leave signed notes in and pass work through. Multiple agent identities can be visible in BUZZ at the same time. That does not mean BUZZ itself is running all of their reasoning.
+
+| Term | Plain-English meaning in PlotPickle |
+|---|---|
+| BUZZ | The signed community, messaging, presence, coordination and audit layer used underneath PlotPickle Community and development handoffs. |
+| Great Hall | The main human-readable community conversation area. Operational telemetry is intentionally filtered away from this normal conversation view. |
+| Story Room | A real private BUZZ channel used for a particular story/community conversation rather than a duplicate PlotPickle-only copy of messages. |
+| Guildhall | The structured BUZZ area used for cross-agent handoffs, UAT evidence, visual findings, repair requests, runtime alerts and verified engineering coordination. |
+| PlotPickle Studio | One PlotPickle installation/creative identity. The Studio has a permanent random ID and a changeable display name. |
+| Connected Studios | Other permitted PlotPickle Studios that have published valid signed presence information through Playhouse/BUZZ. The directory intentionally reveals only approved, privacy-safe information. |
+| Playhouse | PlotPickle's federation layer for Studios. It allows separate PlotPickle installations to discover one another and share permitted presence/community information through BUZZ. |
+| Federation | Several independent PlotPickle Studios participating in a shared network without becoming one central server. PlotPickle federation is outbound through BUZZ/Playhouse rather than exposing one Studio's local PlotPickle server to another. |
+| Presence | A small status announcement such as online, away, busy or offline, plus only the public rooms/agents the Studio deliberately shares. |
+| Signed event | A message with a cryptographic signature that lets PlotPickle verify it was signed by the Studio identity that claims to have sent it and that the signed payload was not altered afterward. |
+| Ed25519 | The digital-signature algorithm used by the Playhouse Studio event layer. The private signing key stays local; the public key can be shared so signatures can be verified. |
+| Nostr | The signed-event protocol family underneath BUZZ's event infrastructure. PlotPickle uses BUZZ as the product-facing coordination layer rather than asking writers to work with Nostr directly. |
+| Loopback / localhost | A network address that points back to the same computer. A loopback-only PlotPickle or helper API is meant to stay on the local machine rather than being publicly reachable. |
+
+The important networking distinction is: two PlotPickle Studios can be connected through Playhouse/BUZZ without one computer opening its private PlotPickle web server to the other computer. The shared layer carries deliberately limited, signed information instead.
+
+### AI retrieval, generation and creative-compute terms
+
+| Term | Plain-English meaning in PlotPickle |
+|---|---|
+| RAG / retrieval-augmented generation | Before an agent answers, PlotPickle can retrieve relevant material from its local curriculum/data and give that material to the model. This helps Sage answer from PlotPickle's teaching material rather than relying only on whatever the base model happens to remember. |
+| Semantic retrieval / reranking | Searching by meaning rather than only exact words, then ordering the results so the most relevant material is sent to the agent first. |
+| Local model | An AI model running on the user's own computer or local network endpoint rather than a paid hosted service. |
+| Cloud model | A model reached over the internet through a provider. PlotPickle treats cloud/BYOK routes as optional and does not silently switch a failed local request to a paid cloud request. |
+| BYOK | Bring Your Own Key. The user supplies their own provider credential for an optional cloud service. |
+| Ollama | One local model-serving runtime PlotPickle can use. It is not the model itself. |
+| LM Studio | Another application/runtime that can serve compatible local models. |
+| llama.cpp | A local inference runtime well suited to quantized models and CPU/GPU sharing. |
+| ComfyUI | A node-based local creative-compute runtime used for image-generation workflows. PlotPickle's ComfyUI integration is separate from Visual QA; a ComfyUI connection failure is a creative-compute service problem, not the same thing as a text-agent or visual-observer failure. |
+| Capability routing | Choosing the appropriate available route for the job — for example fast text, quality text, vision, image generation or developer repair — instead of hard-wiring every feature to one model. |
+| Fast / quality model role | A logical job category PlotPickle can map to different local models. The role describes what the model is being used for, not a particular vendor/model name. |
+
+### Developer-agent and Pi terms
+
+Pi and Cline sit outside the shipped writer-facing product. They are development workers used to inspect, repair and verify the PlotPickle repository.
+
+The current Pi developer stack also consumes a small set of extensions. These are development aids, not extra PlotPickle product agents:
+
+| Technology | Plain-English purpose |
+|---|---|
+| Pi | The default bounded developer repair worker used by PlotPickle's repair/UAT workflow. |
+| Cline | An alternate developer worker that can be selected for repository repair work. |
+| Ponytail | A Pi development extension that encourages minimal, reuse-first changes rather than unnecessary new abstractions. |
+| `pi-subagents` | Lets Pi delegate isolated pieces of developer work to child agents, including parallel work when appropriate. |
+| `pi-fff` | Faster local fuzzy file/content finding for developer-agent repository navigation. |
+| `pi-mcp-adapter` | Lets Pi discover and use MCP servers/tools without loading every tool definition into context at once. |
+| `pi-context-view` | A developer inspection tool for seeing context usage, injections and other context consumers so token/context problems can be diagnosed. |
+
+### Git, CI and local-testing terms
+
+| Term | Plain-English meaning in PlotPickle |
+|---|---|
+| Branch | An isolated line of code changes so a fix can be developed without immediately changing `main`. |
+| Worktree | A second working folder attached to another Git branch. PlotPickle's repair flow can use one so an automated repair is isolated from the user's normal checkout. |
+| Commit | A saved snapshot of source changes with an ID. |
+| PR / Pull Request | A proposed set of changes for review and automated testing before it is merged into `main`. |
+| CI | Continuous Integration: GitHub automatically installs, builds and tests the proposed code. |
+| GitHub Actions | The GitHub service running PlotPickle's CI workflows. |
+| Exact tested head | The exact commit that passed the required checks. PlotPickle's merge rule is intended to merge that tested commit rather than silently merging newer untested changes. |
+| Build | Turning/checking the source as the production application. A successful build proves the code can be assembled, but it does not by itself prove every UI interaction is correct. |
+| API | A defined software interface one component uses to ask another component for data or an action. APIs can be local-only; the word API does not automatically mean a public internet service. |
+
+### How to read a local test failure
+
+When local testing reports a failure, first identify which layer is speaking:
+
+- `harness`, `MCP`, accessibility-target or screenshot-schema errors usually point to the testing/tool bridge and should be separated from a genuine PlotPickle UI defect;
+- a deterministic product-contract failure means a fixed acceptance rule did not pass and should be treated as real until disproved by better evidence;
+- a dead-control finding means the harness successfully activated an enabled UI control but PlotPickle produced no observable response;
+- a local-model/provider failure points at the AI runtime/model route rather than necessarily at the screen being tested;
+- a BUZZ failure points at community/coordination transport and should not stop local story work from remaining available;
+- a ComfyUI failure points at the external/local creative-compute connection used for visual generation;
+- a Writer-in-Residence observation is synthetic experience evidence and should not be labelled as real-user feedback.
+
+The goal of PlotPickle's verification architecture is to keep these categories separate so a broken test tool is not mistaken for a broken feature, and an actual broken feature is not hidden by an agent's opinion.
 
 ## Development stack
 

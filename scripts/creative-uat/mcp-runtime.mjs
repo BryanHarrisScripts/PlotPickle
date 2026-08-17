@@ -72,6 +72,26 @@ export function consoleHasErrors(text) {
   return /(?:^|\n)\s*(?:\[?error\]?\s*[:\-]?|Error:|Uncaught\b|Unhandled\b)/im.test(raw);
 }
 
+export class McpToolArgumentError extends Error {
+  constructor(toolName, missing) {
+    super(`${toolName || "MCP tool"} is missing required argument(s): ${missing.join(", ")}.`);
+    this.name = "McpToolArgumentError";
+    this.code = "PLOTPICKLE_MCP_ARGUMENT_ERROR";
+    this.toolName = toolName || "";
+    this.missing = [...missing];
+  }
+}
+
+export function isMcpToolArgumentError(error) {
+  return Boolean(error && (error.code === "PLOTPICKLE_MCP_ARGUMENT_ERROR" || error.name === "McpToolArgumentError"));
+}
+
+function hasConcreteRequiredValue(value, property = {}) {
+  if (value === undefined || value === null) return false;
+  if (property?.type === "string" && String(value).trim() === "") return false;
+  return true;
+}
+
 export function toolArguments(tool, values) {
   const schema = tool?.inputSchema || {};
   const properties = schema.properties || {};
@@ -85,7 +105,10 @@ export function toolArguments(tool, values) {
   ) {
     normalized.target = normalized.ref;
   }
-  return Object.fromEntries(Object.entries(normalized).filter(([key, value]) => value !== undefined && key in properties));
+  const output = Object.fromEntries(Object.entries(normalized).filter(([key, value]) => value !== undefined && key in properties));
+  const missing = [...required].filter((key) => !hasConcreteRequiredValue(output[key], properties[key]));
+  if (missing.length) throw new McpToolArgumentError(tool?.name || "MCP tool", missing);
+  return output;
 }
 
 export class McpClient {

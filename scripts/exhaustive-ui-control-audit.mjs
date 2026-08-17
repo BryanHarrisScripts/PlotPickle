@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { delay, resultText, toolArguments } from "./creative-uat/mcp-runtime.mjs";
+import { delay, isMcpToolArgumentError, resultText, toolArguments } from "./creative-uat/mcp-runtime.mjs";
 import { parseRenderedEvaluateText } from "./writer-visual-observer.mjs";
 
 const interactiveSourcePatterns = {
@@ -59,7 +59,7 @@ function finding(kind, severity, summary, expectation, impact, evidence = "") {
   return { kind, severity, actionable: severity !== "low", summary, expectation, impact, evidence };
 }
 
-function controlKey(control, duplicates) {
+export function controlKey(control, duplicates) {
   const base = `${control.role}|${normalize(control.label)}|${control.type || ""}|${control.name || ""}`;
   return duplicates ? `${base}|${control.occurrence || 0}` : base;
 }
@@ -151,19 +151,34 @@ async function inspectRenderedControls(client) {
         max: node.getAttribute('max') || '',
         options,
         detailsOpen: details instanceof HTMLDetailsElement ? details.open : null,
+        ariaSelected: node.getAttribute('aria-selected') || '',
+        ariaExpanded: node.getAttribute('aria-expanded') || '',
+        ariaPressed: node.getAttribute('aria-pressed') || '',
+        ariaCurrent: node.getAttribute('aria-current') || '',
+        dataState: node.getAttribute('data-state') || '',
         insideNavigation: Boolean(node.closest('header, nav, [role="navigation"]')),
         occurrence
       };
     });
-    return JSON.stringify({ url: location.href, controls });
+    const headings = [...document.querySelectorAll('h1, h2, h3, [role="heading"]')]
+      .filter(visible)
+      .map((node) => String(node.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 240))
+      .filter(Boolean);
+    const statusText = [...document.querySelectorAll('[role="status"], [role="alert"]')]
+      .filter(visible)
+      .map((node) => String(node.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 300))
+      .filter(Boolean);
+    return JSON.stringify({ url: location.href, controls, headings, statusText });
   }` });
   return parseRenderedEvaluateText(resultText(result));
 }
 
-function pageStateSignature(payload) {
+export function pageStateSignature(payload) {
   const controls = Array.isArray(payload?.controls) ? payload.controls : [];
   return hash(JSON.stringify({
     url: payload?.url || "",
+    headings: Array.isArray(payload?.headings) ? payload.headings : [],
+    statusText: Array.isArray(payload?.statusText) ? payload.statusText : [],
     controls: controls.map((control) => ({
       role: control.role,
       label: control.label,
@@ -171,6 +186,11 @@ function pageStateSignature(payload) {
       checked: control.checked,
       disabled: control.disabled,
       detailsOpen: control.detailsOpen,
+      ariaSelected: control.ariaSelected,
+      ariaExpanded: control.ariaExpanded,
+      ariaPressed: control.ariaPressed,
+      ariaCurrent: control.ariaCurrent,
+      dataState: control.dataState,
       selected: (control.options || []).filter((option) => option.selected).map((option) => option.value),
     })),
   }));
@@ -180,20 +200,20 @@ async function snapshot(client) {
   return resultText(await client.call("browser_snapshot", {}));
 }
 
-function refFor(control, snapshotText) {
+export function refFor(control, snapshotText) {
   const candidates = snapshotControlRefs(snapshotText).filter((item) => item.role === control.role && normalize(item.label) === normalize(control.label));
   return candidates[control.occurrence || 0] || candidates[0] || null;
 }
 
-function clickArgs(tool, controlRef, label) {
+export function clickArgs(tool, controlRef, label) {
   return toolArguments(tool, { element: label, ref: controlRef });
 }
 
-function typeArgs(tool, controlRef, label, text) {
+export function typeArgs(tool, controlRef, label, text) {
   return toolArguments(tool, { element: label, ref: controlRef, text, slowly: false, submit: false });
 }
 
-function selectArgs(tool, controlRef, label, value) {
+export function selectArgs(tool, controlRef, label, value) {
   const properties = tool?.inputSchema?.properties || {};
   const args = { element: label, ref: controlRef };
   if ("values" in properties) args.values = [value];
@@ -202,12 +222,12 @@ function selectArgs(tool, controlRef, label, value) {
 }
 
 async function waitForSettledControlState(client, beforeSignature, longRunning) {
-  const attempts = longRunning ? 90 : 8;
+  const attempts = longRunning ? 32 : 8;
   let last = await inspectRenderedControls(client);
   let changed = pageStateSignature(last) !== beforeSignature;
   let stable = 0;
   for (let attempt = 0; attempt < attempts; attempt += 1) {
-    await delay(longRunning ? 700 : 250);
+    await delay(longRunning ? 500 : 250);
     const current = await inspectRenderedControls(client);
     const signature = pageStateSignature(current);
     changed ||= signature !== beforeSignature;
@@ -229,12 +249,12 @@ async function exerciseControl({ client, toolMap, baseUrl, screen, control, conf
   const beforeSignature = pageStateSignature(beforePayload);
   const snapshotText = await snapshot(client);
   const target = refFor(control, snapshotText);
-  if (!target) return { status: "untested", detail: "Visible rendered control had no matching accessibility ref.", discovered: [] };
+  if (!target) return { status: "accessibility", detail: "Visible rendered control had no matching accessibility ref in the current snapshot.", discovered: [] };
   const transactional = screen.id === "settings" || screen.id === "advanced-ai-routing";
 
   if (control.role === "combobox") {
     const tool = toolMap.get("browser_select_option");
-    if (!tool) return { status: "untested", detail: "Playwright MCP did not expose browser_select_option.", discovered: [] };
+    if (!tool) return { status: "harness", detail: "Playwright MCP did not expose browser_select_option.", discovered: [] };
     const current = (control.options || []).find((option) => option.selected);
     const alternative = (control.options || []).find((option) => !option.disabled && !option.selected);
     if (!alternative) return { status: "blocked", detail: "Selector has no alternative enabled option in this state.", discovered: [] };
@@ -315,7 +335,7 @@ async function exerciseControl({ client, toolMap, baseUrl, screen, control, conf
   if (navigated) await restoreByNavigate(client, baseUrl, screen.route);
   return {
     status: changed ? "pass" : "dead",
-    detail: changed ? `${control.role} produced an observable ${navigated ? "navigation" : "UI/state response"}${longRunning ? " and reached a settled state" : ""}.` : `${control.role} was activated but the route, rendered controls, values and visible state did not change.`,
+    detail: changed ? `${control.role} produced an observable ${navigated ? "navigation" : "UI/state response"}${longRunning ? " and reached a settled state" : ""}.` : `${control.role} was activated but the route, rendered controls, values, semantic state, headings and visible status did not change.`,
     discovered,
   };
 }
@@ -348,15 +368,32 @@ function queueControls(queue, known, controls, screen, config) {
   queue.unshift(...candidates);
 }
 
+function findCurrentControl(controls, item, screen) {
+  return (controls || []).find((control) => controlKey(control, screen.testDuplicateInstances === true) === item.key) || null;
+}
+
+function screenCounts(records) {
+  const count = (status) => records.filter((item) => item.status === status).length;
+  const blocked = count("blocked");
+  const harness = count("harness");
+  const accessibility = count("accessibility");
+  const unreached = count("unreached");
+  return {
+    safe: records.length - blocked,
+    passed: count("pass"),
+    blocked,
+    dead: count("dead"),
+    harness,
+    accessibility,
+    unreached,
+    untested: harness + accessibility + unreached,
+  };
+}
+
 export async function runExhaustiveUiControlAudit({ client, toolMap, baseUrl, repoRoot, status = () => {} }) {
   const config = JSON.parse(await readFile(path.join(repoRoot, "config", "exhaustive-ui-uat.json"), "utf8"));
   const screens = [];
   const findings = [];
-  let totalSafe = 0;
-  let totalPassed = 0;
-  let totalBlocked = 0;
-  let totalDead = 0;
-  let totalUntested = 0;
 
   status("Phase 5 · exhaustive code/UI/UX UAT", "START", `${config.screens.length} active screen(s)`);
   for (const screen of config.screens) {
@@ -372,52 +409,65 @@ export async function runExhaustiveUiControlAudit({ client, toolMap, baseUrl, re
     const known = new Set();
     const records = [];
     queueControls(queue, known, payload.controls || [], screen, config);
+    const initialSafeControls = queue.filter((item) => !item.blocked).length;
+    const interactionLimit = Math.max(Number(screen.maxInteractions || 80), initialSafeControls);
     let interactions = 0;
 
-    while (queue.length && interactions < Number(screen.maxInteractions || 80)) {
+    while (queue.length && interactions < interactionLimit) {
       const item = queue.shift();
-      const { control, blocked } = item;
+      const { blocked } = item;
       if (blocked) {
-        records.push({ key: item.key, label: control.label, role: control.role, status: "blocked", detail: blocked });
-        totalBlocked += 1;
+        records.push({ key: item.key, label: item.control.label, role: item.control.role, status: "blocked", detail: blocked });
         continue;
       }
 
-      totalSafe += 1;
+      let currentPayload = await inspectRenderedControls(client);
+      let control = findCurrentControl(currentPayload.controls, item, screen);
+      if (!control) {
+        try {
+          await restoreByNavigate(client, baseUrl, screen.route);
+          currentPayload = await inspectRenderedControls(client);
+          control = findCurrentControl(currentPayload.controls, item, screen);
+        } catch {}
+      }
+      if (!control) {
+        records.push({ key: item.key, label: item.control.label, role: item.control.role, status: "unreached", detail: "Control was discovered earlier but is not reachable in the current or restored screen state." });
+        findings.push(finding("unreached", "high", `${screen.label}: enabled ${item.control.role} “${item.control.label}” was discovered but could not be reached again.`, "A discovered safe control should have a reproducible state path before it is judged as product behavior.", "The control disappeared after another interaction and was not present after restoring the screen route.", `${screen.route} · ${item.control.role} · ${item.control.label}`));
+        continue;
+      }
+
       interactions += 1;
       try {
         const result = await exerciseControl({ client, toolMap, baseUrl, screen, control, config });
         records.push({ key: item.key, label: control.label, role: control.role, status: result.status, detail: result.detail });
-        if (result.status === "pass") totalPassed += 1;
-        else if (result.status === "dead") {
-          totalDead += 1;
-          findings.push(finding("bug", "high", `${screen.label}: ${control.role} “${control.label}” can be activated but produces no observable result.`, "Every enabled pill, selector, field, button and navigation control should visibly change state, navigate, accept input, or return a result.", "A user can get trapped clicking controls without knowing whether anything happened.", `${screen.route} · ${control.role} · ${control.label}`));
-        } else if (result.status === "untested") {
-          totalUntested += 1;
-          findings.push(finding("friction", "high", `${screen.label}: enabled ${control.role} “${control.label}” could not be exercised by the synthetic UAT runner.`, "Every enabled safe control should have a deterministic browser interaction path.", result.detail, `${screen.route} · ${control.role} · ${control.label}`));
-        } else if (result.status === "blocked") totalBlocked += 1;
+        if (result.status === "dead") {
+          findings.push(finding("bug", "high", `${screen.label}: ${control.role} “${control.label}” can be activated but produces no observable result.`, "Every enabled pill, selector, field, button and navigation control should visibly change state, navigate, accept input, or return a result.", "The Playwright interaction completed successfully, but PlotPickle produced no observable route, control, semantic, heading or status change.", `${screen.route} · ${control.role} · ${control.label}`));
+        } else if (result.status === "accessibility") {
+          findings.push(finding("accessibility", "high", `${screen.label}: enabled ${control.role} “${control.label}” has no current accessibility target.`, "Every visible safe control should be represented by a deterministic accessibility snapshot target.", result.detail, `${screen.route} · ${control.role} · ${control.label}`));
+        } else if (result.status === "harness") {
+          findings.push(finding("harness", "high", `${screen.label}: ${control.role} “${control.label}” could not be exercised because the browser harness lacks a required tool.`, "The exhaustive runner should distinguish browser-harness capability from product behavior.", result.detail, `${screen.route} · ${control.role} · ${control.label}`));
+        }
         queueControls(queue, known, result.discovered || [], screen, config);
       } catch (error) {
-        totalUntested += 1;
         const detail = error instanceof Error ? error.message : String(error);
-        records.push({ key: item.key, label: control.label, role: control.role, status: "untested", detail });
-        findings.push(finding("bug", "high", `${screen.label}: ${control.role} “${control.label}” threw or stalled during synthetic UAT.`, "A safe visible control should complete without trapping the user or breaking the UAT session.", detail, `${screen.route} · ${control.role} · ${control.label}`));
+        records.push({ key: item.key, label: control.label, role: control.role, status: "harness", detail });
+        findings.push(finding("harness", "high", `${screen.label}: ${control.role} “${control.label}” could not be completed by the synthetic browser harness.`, "Browser-tool failures must be separated from product dead-control findings.", `${isMcpToolArgumentError(error) ? "MCP argument validation: " : "Browser harness: "}${detail}`, `${screen.route} · ${control.role} · ${control.label}`));
         try { await restoreByNavigate(client, baseUrl, screen.route); } catch {}
       }
     }
 
     if (queue.length) {
       const remainingSafe = queue.filter((item) => !item.blocked);
-      totalUntested += remainingSafe.length;
-      if (remainingSafe.length) findings.push(finding("friction", "high", `${screen.label}: exhaustive UAT hit its interaction ceiling with ${remainingSafe.length} safe control(s) still untested.`, "The tester should reach a deterministic completion state instead of cycling through controls.", `Interaction ceiling ${screen.maxInteractions}; remaining: ${remainingSafe.slice(0, 8).map((item) => item.control.label).join(", ")}.`, screen.route));
-      for (const item of queue) records.push({ key: item.key, label: item.control.label, role: item.control.role, status: item.blocked ? "blocked" : "untested", detail: item.blocked || "interaction ceiling reached" });
+      if (remainingSafe.length) findings.push(finding("unreached", "high", `${screen.label}: exhaustive UAT reached its bounded follow-up ceiling with ${remainingSafe.length} newly discovered safe control(s) still unreached.`, "All controls visible at screen entry are budgeted automatically; the configured ceiling only bounds additional state expansion.", `Effective interaction ceiling ${interactionLimit}; remaining: ${remainingSafe.slice(0, 8).map((item) => item.control.label).join(", ")}.`, screen.route));
+      for (const item of queue) records.push({ key: item.key, label: item.control.label, role: item.control.role, status: item.blocked ? "blocked" : "unreached", detail: item.blocked || "bounded follow-up ceiling reached" });
     }
 
     const roleSet = new Set(records.filter((item) => item.status === "pass").map((item) => item.role));
     for (const requiredRole of screen.requireRoles || []) {
-      if (!roleSet.has(requiredRole)) findings.push(finding("friction", "high", `${screen.label}: exhaustive UAT did not complete any ${requiredRole} interaction.`, `The ${screen.label} acceptance path requires at least one working ${requiredRole}.`, "Required Settings control family was not proven.", screen.route));
+      if (!roleSet.has(requiredRole)) findings.push(finding("harness", "high", `${screen.label}: exhaustive UAT did not complete any ${requiredRole} interaction.`, `The ${screen.label} acceptance path requires at least one working ${requiredRole}.`, "Required Settings control family was not proven.", screen.route));
     }
 
+    const counts = screenCounts(records);
     const safeRecords = records.filter((item) => item.status !== "blocked");
     const complete = sourceFiles.every((item) => !item.missing)
       && safeRecords.every((item) => item.status === "pass")
@@ -429,27 +479,33 @@ export async function runExhaustiveUiControlAudit({ client, toolMap, baseUrl, re
       complete,
       sourceFiles,
       discovered: records.length,
-      safe: safeRecords.length,
-      passed: records.filter((item) => item.status === "pass").length,
-      blocked: records.filter((item) => item.status === "blocked").length,
-      dead: records.filter((item) => item.status === "dead").length,
-      untested: records.filter((item) => item.status === "untested").length,
+      ...counts,
       interactions,
+      interactionLimit,
+      initialSafeControls,
       controls: records,
     });
-    status(`Exhaustive UAT · ${screen.label}`, complete ? "PASS" : "FAIL", `${safeRecords.filter((item) => item.status === "pass").length}/${safeRecords.length} safe controls completed; ${records.filter((item) => item.status === "blocked").length} intentionally blocked`);
+    status(`Exhaustive UAT · ${screen.label}`, complete ? "PASS" : "FAIL", `${counts.passed}/${counts.safe} safe controls passed; blocked=${counts.blocked}; dead=${counts.dead}; harness=${counts.harness}; accessibility=${counts.accessibility}; unreached=${counts.unreached}`);
   }
 
-  const complete = screens.every((screen) => screen.complete) && totalDead === 0 && totalUntested === 0;
+  const totals = screens.reduce((acc, screen) => {
+    for (const key of ["safe", "passed", "blocked", "dead", "harness", "accessibility", "unreached", "untested"]) acc[key] += Number(screen[key] || 0);
+    return acc;
+  }, { safe: 0, passed: 0, blocked: 0, dead: 0, harness: 0, accessibility: 0, unreached: 0, untested: 0 });
+  const complete = screens.every((screen) => screen.complete)
+    && totals.dead === 0
+    && totals.harness === 0
+    && totals.accessibility === 0
+    && totals.unreached === 0;
   const result = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     complete,
     screens,
-    totals: { safe: totalSafe, passed: totalPassed, blocked: totalBlocked, dead: totalDead, untested: totalUntested },
+    totals,
     findings,
-    noLoopPolicy: "Each distinct rendered control is attempted at most once per screen; newly revealed controls enter the queue once; interaction ceilings turn remaining safe controls into failures instead of loops.",
+    noLoopPolicy: "Each distinct rendered control is attempted at most once per screen. All safe controls visible at screen entry are automatically budgeted; newly revealed controls enter the queue once and remain bounded. Stale controls are restored before being classified as unreachable.",
     settingsPolicy: "Settings selectors, toggles and inputs are exercised transactionally and restored before save actions; destructive, credential, cloud/account and paid controls are classified rather than changed.",
   };
-  status("Phase 5 · exhaustive code/UI/UX UAT", complete ? "PASS" : "FAIL", `${totalPassed}/${totalSafe} safe control interactions passed; dead=${totalDead}; untested=${totalUntested}`);
+  status("Phase 5 · exhaustive code/UI/UX UAT", complete ? "PASS" : "FAIL", `${totals.passed}/${totals.safe} safe control interactions passed; dead=${totals.dead}; harness=${totals.harness}; accessibility=${totals.accessibility}; unreached=${totals.unreached}`);
   return result;
 }

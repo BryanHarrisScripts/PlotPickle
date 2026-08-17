@@ -41,7 +41,7 @@ jobs:
         run: node --test tests/sage-brinewick-agent-skill.test.mjs tests/issue-913-agent-skills-migration.test.mjs
 
       - name: Validate creative UAT MCP compatibility
-        run: node --test tests/creative-uat-mcp-runtime.test.mjs
+        run: node --test tests/creative-uat-mcp-runtime.test.mjs tests/exhaustive-ui-harness-boundary.test.mjs
 
       - name: Validate global navigation order and grouping
         run: node --test tests/workspace-navigation-contract.test.mjs tests/issue-544-ui-continuity-agent.test.mjs

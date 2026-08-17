@@ -116,7 +116,7 @@ try {
   Write-Host "Repository: $RepoRoot"
   Write-Host "Log:        $LogPath"
   Write-Host ""
-  Write-Host "This checks architecture, curriculum, the production build, local AI/Pi, BUZZ, visual UAT, and the Writer journey in one pass." -ForegroundColor Gray
+  Write-Host "This checks architecture, curriculum, the production build, local AI/Pi, BUZZ, UI/UX control UAT, and the Writer journey in one pass." -ForegroundColor Gray
 
   Invoke-NodeStep "1 of 9 - Agent Skills registry" "Architecture" @(
     ".\scripts\agent-skills.mjs", "--self-test"
@@ -150,7 +150,7 @@ try {
       ".\scripts\verify-buzz-live-activity.mjs"
     )
 
-    Invoke-NodeStep "8 of 9 - Exhaustive code-aware UI and UX UAT" "Visual UAT" @(
+    Invoke-NodeStep "8 of 9 - Exhaustive code-aware UI and UX UAT" "UI / UX UAT" @(
       ".\scripts\run-exhaustive-ui-uat.mjs", "--github-report"
     )
 
@@ -160,7 +160,7 @@ try {
   } else {
     foreach ($BlockedStep in @(
       [pscustomobject]@{ Name = "7 of 9 - Verify BUZZ live activity"; Category = "BUZZ" },
-      [pscustomobject]@{ Name = "8 of 9 - Exhaustive code-aware UI and UX UAT"; Category = "Visual UAT" },
+      [pscustomobject]@{ Name = "8 of 9 - Exhaustive code-aware UI and UX UAT"; Category = "UI / UX UAT" },
       [pscustomobject]@{ Name = "9 of 9 - Writer-in-Residence"; Category = "Writer Journey" }
     )) {
       Write-Host "BLOCKED  $($BlockedStep.Name) - PlotPickle is not reachable at $PlotPickleUrl" -ForegroundColor Red
@@ -182,7 +182,7 @@ try {
     "Production Build",
     "Local AI / Pi",
     "BUZZ",
-    "Visual UAT",
+    "UI / UX UAT",
     "Writer Journey"
   )) {
     $GroupResults = @($Results | Where-Object { $_.Category -eq $Category })

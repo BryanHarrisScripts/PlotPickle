@@ -40,6 +40,9 @@ jobs:
       - name: Validate provider, creative-compute, and companion updater contracts
         run: node --test tests/ai-architecture.test.mjs tests/issue-258-creative-compute-paths.test.mjs tests/issue-83-character-visual-identity.test.mjs tests/issue-512-buzz-version-maintenance.test.mjs tests/issue-620-buzz-startup-updater.test.mjs
 
+      - name: Validate permission-based ComfyUI onboarding
+        run: node --test tests/comfyui-desktop-onboarding.test.mjs tests/issue-946-comfyui-settings-onboarding.test.mjs
+
       - name: Production build
         run: npm run build
 

@@ -113,12 +113,13 @@ function Ensure-PlotPickleReady {
 
 function Write-StructuredVerificationRecord {
   $CompletedAt = (Get-Date).ToUniversalTime().ToString("o")
+  $StageRecords = [object[]]($Results | ForEach-Object { $_ })
   $Payload = [ordered]@{
     startedAt = $StartedAt
     completedAt = $CompletedAt
     rawLogName = (Split-Path -Leaf $LogPath)
     retestOf = $RetestOf
-    stages = @($Results)
+    stages = $StageRecords
   }
   $PayloadJson = $Payload | ConvertTo-Json -Depth 8 -Compress
   Write-Host ""

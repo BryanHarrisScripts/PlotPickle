@@ -19,9 +19,25 @@ const interactiveSourcePatterns = {
 const disclosurePattern = /advanced setup|advanced runtime details|cloud and legacy provider overrides|details|options/i;
 const navigationPattern = /community|learn|plan|game|settings|back to|return to|advanced ai routing/i;
 const formRole = new Set(["textbox", "searchbox", "spinbutton", "combobox", "checkbox", "radio", "switch"]);
+const accessibilityStopWords = new Set(["a", "an", "the", "to", "of", "for", "in", "on", "at", "by", "with", "and", "or"]);
 
 function normalize(value) {
   return String(value || "").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function normalizeAccessibilityLabel(value) {
+  return normalize(String(value || "").replace(/&/g, " and ").replace(/[^\p{L}\p{N}]+/gu, " "));
+}
+
+function accessibilityTokens(value) {
+  return normalizeAccessibilityLabel(value)
+    .split(" ")
+    .filter((token) => token.length > 1 && !accessibilityStopWords.has(token));
+}
+
+function tokenSubset(left, right) {
+  const target = new Set(right);
+  return left.every((token) => target.has(token));
 }
 
 function hash(value) {
@@ -201,8 +217,21 @@ async function snapshot(client) {
 }
 
 export function refFor(control, snapshotText) {
-  const candidates = snapshotControlRefs(snapshotText).filter((item) => item.role === control.role && normalize(item.label) === normalize(control.label));
-  return candidates[control.occurrence || 0] || candidates[0] || null;
+  const sameRole = snapshotControlRefs(snapshotText).filter((item) => item.role === control.role);
+  const exact = sameRole.filter((item) => normalize(item.label) === normalize(control.label));
+  if (exact.length) return exact[control.occurrence || 0] || exact[0] || null;
+
+  const canonical = sameRole.filter((item) => normalizeAccessibilityLabel(item.label) === normalizeAccessibilityLabel(control.label));
+  if (canonical.length) return canonical[control.occurrence || 0] || canonical[0] || null;
+
+  const wantedTokens = accessibilityTokens(control.label);
+  if (wantedTokens.length < 2) return null;
+  const relaxed = sameRole.filter((item) => {
+    const candidateTokens = accessibilityTokens(item.label);
+    if (candidateTokens.length < 2) return false;
+    return tokenSubset(wantedTokens, candidateTokens) || tokenSubset(candidateTokens, wantedTokens);
+  });
+  return relaxed.length === 1 ? relaxed[0] : null;
 }
 
 export function clickArgs(tool, controlRef, label) {
@@ -298,7 +327,7 @@ async function exerciseControl({ client, toolMap, baseUrl, screen, control, conf
       if (originalRef) await client.call("browser_click", clickArgs(toolMap.get("browser_click"), originalRef.ref, original.label));
       await delay(250);
     }
-    return { status: changed ? "pass" : "dead", detail: changed ? `Radio selection changed and ${transactional && original ? "the original selection was restored" : "the synthetic session retained the new choice"}.` : "Radio option produced no observable selection change.", discovered: changedPayload.controls || [] };
+    return { status: changed ? "pass" : "dead", detail: changed ? `Radio selection changed and ${transactional && original ? "the original selection was restored" : "the synthetic session retained the new choice"}.` : "Radio option produced no observable selection change.", discovered: [] };
   }
 
   if (["textbox", "searchbox", "spinbutton"].includes(control.role)) {

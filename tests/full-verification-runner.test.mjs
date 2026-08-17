@@ -55,6 +55,14 @@ test('full verification executes architecture, curriculum, build, Pi, BUZZ, UI/U
   assert.doesNotMatch(runner, /run-writer-in-residence\.mjs", "--github-report"/);
 });
 
+test('structured Verification Inbox payload materializes generic stage results as a plain object array', async () => {
+  const runner = await read('scripts/run-plotpickle-full-check.ps1');
+
+  assert.match(runner, /\$StageRecords\s*=\s*\[object\[\]\]\(\$Results\s*\|\s*ForEach-Object\s*\{\s*\$_\s*\}\)/);
+  assert.match(runner, /stages\s*=\s*\$StageRecords/);
+  assert.doesNotMatch(runner, /stages\s*=\s*@\(\$Results\)/);
+});
+
 test('deterministic result is saved before advisory orchestration and BUZZ lifecycle reporting', async () => {
   const runner = await read('scripts/run-plotpickle-full-check.ps1');
   const record = runner.indexOf('$RunId = Write-StructuredVerificationRecord');

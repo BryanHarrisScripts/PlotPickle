@@ -67,3 +67,39 @@ test('toolArguments never overwrites an explicit target', () => {
     ref: 'button-42',
   });
 });
+
+test('toolArguments supplies CSS scale when current Playwright screenshot schema requires it', () => {
+  const tool = {
+    name: 'browser_take_screenshot',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        type: { type: 'string' },
+        filename: { type: 'string' },
+        fullPage: { type: 'boolean' },
+        scale: { type: 'string', enum: ['css', 'device'] },
+      },
+      required: ['scale'],
+    },
+  };
+
+  assert.deepEqual(toolArguments(tool, { type: 'png', filename: 'writer.png', fullPage: true }), {
+    type: 'png',
+    filename: 'writer.png',
+    fullPage: true,
+    scale: 'css',
+  });
+});
+
+test('toolArguments preserves an explicit screenshot scale', () => {
+  const tool = {
+    name: 'browser_take_screenshot',
+    inputSchema: {
+      type: 'object',
+      properties: { scale: { type: 'string', enum: ['css', 'device'] } },
+      required: ['scale'],
+    },
+  };
+
+  assert.deepEqual(toolArguments(tool, { scale: 'device' }), { scale: 'device' });
+});

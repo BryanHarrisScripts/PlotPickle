@@ -39,25 +39,28 @@ function openGreatHall() {
     document.querySelectorAll<HTMLButtonElement>('nav[aria-label="Community sections"] button'),
   );
   const greatHall = buttons.find((button) => button.textContent?.trim() === "Great Hall");
-  if (!greatHall) return;
-  greatHall.click();
+  if (!greatHall) return false;
+  const alreadyOpen = greatHall.getAttribute("aria-selected") === "true";
+  if (!alreadyOpen) greatHall.click();
   window.setTimeout(() => {
     const composer = document.querySelector<HTMLTextAreaElement>('textarea[placeholder="Write to the Great Hall…"]');
     const conversation = composer?.closest("section");
     conversation?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, 80);
+  return true;
 }
 
 export default function CommunityPublicConversationsRail() {
   const [host, setHost] = useState<HTMLElement | null>(null);
   const [conversations, setConversations] = useState<PublicConversation[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "empty" | "error">("loading");
+  const [actionStatus, setActionStatus] = useState("");
 
   useEffect(() => {
     setHost(findCommunityHeader());
   }, []);
 
-  async function refresh() {
+  async function refresh(showCompletion = false) {
     setStatus("loading");
     try {
       const response = await fetch(COMMUNITY_STATUS_API, {
@@ -69,14 +72,27 @@ export default function CommunityPublicConversationsRail() {
       const recent = Array.isArray(body.recentActivity) ? body.recentActivity.slice(0, 5) : [];
       setConversations(recent);
       setStatus(body.identityVerified && recent.length ? "ready" : "empty");
+      if (showCompletion) {
+        setActionStatus(`Recent public conversations refreshed at ${new Date().toISOString()}.`);
+      }
     } catch {
       setConversations([]);
       setStatus("error");
+      if (showCompletion) {
+        setActionStatus(`Recent public conversations refresh failed at ${new Date().toISOString()}.`);
+      }
     }
   }
 
+  function openGreatHallWithStatus() {
+    const opened = openGreatHall();
+    setActionStatus(opened
+      ? `Great Hall conversations opened at ${new Date().toISOString()}.`
+      : `Great Hall navigation was unavailable at ${new Date().toISOString()}.`);
+  }
+
   useEffect(() => {
-    void refresh();
+    void refresh(false);
   }, []);
 
   if (!host) return null;
@@ -88,10 +104,14 @@ export default function CommunityPublicConversationsRail() {
           <p>Public conversations</p>
           <h2>Jump back into the Great Hall</h2>
         </div>
-        <button disabled={status === "loading"} onClick={() => void refresh()} type="button">
+        <button disabled={status === "loading"} onClick={() => void refresh(true)} type="button">
           {status === "loading" ? "Loading…" : "Refresh"}
         </button>
       </header>
+
+      {actionStatus ? (
+        <p data-community-public-action-status role="status">{actionStatus}</p>
+      ) : null}
 
       <p className={styles.explainer}>
         The Great Hall is PlotPickle's public conversation surface. Private Story Rooms and Guildhall rooms stay out of this list.
@@ -103,7 +123,7 @@ export default function CommunityPublicConversationsRail() {
             aria-label={`Open public conversation from ${conversation.author || "Guild member"}`}
             className={styles.conversation}
             key={conversation.id}
-            onClick={openGreatHall}
+            onClick={openGreatHallWithStatus}
             type="button"
           >
             <span className={styles.meta}>
@@ -123,7 +143,7 @@ export default function CommunityPublicConversationsRail() {
         ) : null}
       </div>
 
-      <button className={styles.viewAll} onClick={openGreatHall} type="button">
+      <button className={styles.viewAll} onClick={openGreatHallWithStatus} type="button">
         View all Great Hall conversations
       </button>
     </aside>,

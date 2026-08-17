@@ -21,7 +21,7 @@ export default function UiContinuityAnchor() {
 
   useEffect(() => {
     const refresh = () => {
-      setStandalone(Boolean(!document.querySelector('[data-ui-continuity-shell="v1"], [data-plotpickle-global-nav="v1"]')));
+      setStandalone(Boolean(!document.querySelector('[data-ui-continuity-shell="v1"], [data-plotpickle-global-nav="v2"]')));
       const alertText = document.querySelector('[role="alert"]')?.textContent?.toLowerCase() || "";
       setSageSetupNeeded(
         alertText.includes("local model")

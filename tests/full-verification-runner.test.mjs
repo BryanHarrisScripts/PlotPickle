@@ -34,7 +34,7 @@ test('full verification runner keeps all nine stages in the intended order', asy
   }
 });
 
-test('full verification executes architecture, curriculum, build, Pi, BUZZ, visual UAT and writer checks', async () => {
+test('full verification executes architecture, curriculum, build, Pi, BUZZ, UI/UX UAT and writer checks', async () => {
   const runner = await read('scripts/run-plotpickle-full-check.ps1');
 
   assert.match(runner, /\.\\scripts\\agent-skills\.mjs", "--self-test/);
@@ -59,7 +59,7 @@ test('browser-dependent checks become explicitly blocked when PlotPickle cannot 
   assert.match(runner, /complete child-process output above is part of this same log/i);
 });
 
-test('final summary uses plain-language verification categories', async () => {
+test('final summary uses plain-language verification categories without conflating control UAT with visual review', async () => {
   const runner = await read('scripts/run-plotpickle-full-check.ps1');
 
   for (const category of [
@@ -68,12 +68,13 @@ test('final summary uses plain-language verification categories', async () => {
     'Production Build',
     'Local AI / Pi',
     'BUZZ',
-    'Visual UAT',
+    'UI / UX UAT',
     'Writer Journey',
   ]) {
     assert.match(runner, new RegExp(`"${category.replace('/', '\\/')}"`));
   }
 
+  assert.doesNotMatch(runner, /"Visual UAT"/);
   assert.match(runner, /Write-Section "FINAL SUMMARY"/);
   assert.match(runner, /\$GroupStatus = "PASS"/);
   assert.match(runner, /\$GroupStatus = "BLOCKED"/);

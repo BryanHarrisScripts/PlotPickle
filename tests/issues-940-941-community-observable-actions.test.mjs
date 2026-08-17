@@ -25,7 +25,8 @@ test("issue #941 View all Great Hall conversations reports settled navigation ev
   for (const contract of [
     "View all Great Hall conversations",
     "openGreatHallWithStatus",
-    'getAttribute("aria-selected") === "true"',
+    '[data-community-section="great-hall"]',
+    'getAttribute("aria-current") === "page"',
     "Great Hall conversations opened at",
     "data-community-public-action-status",
     'role="status"',

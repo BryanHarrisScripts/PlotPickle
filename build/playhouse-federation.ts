@@ -63,9 +63,9 @@ function validStudioEvent(value: unknown): value is StudioEvent {
   return event.protocol === PLAYHOUSE_PROTOCOL
     && ["studio.presence", "studio.withdrawn", "studio.test"].includes(String(event.type))
     && typeof event.eventId === "string"
-    && /^pp_studio_[A-Z0-9]{8}$/.test(event.studioId || "")
+    && /^pp_studio_[2-9A-HJ-NP-Z]{8}$/.test(event.studioId || "")
     && typeof event.displayName === "string"
-    && /^Studio [A-Z0-9]{4}$/.test(event.shortCode || "")
+    && /^[2-9A-HJ-NP-Z]{4}$/.test(event.shortCode || "")
     && ["online", "away", "busy", "offline"].includes(String(event.availability))
     && ["public", "contacts", "invisible"].includes(String(event.visibility))
     && Array.isArray(event.publicRooms)

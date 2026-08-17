@@ -130,25 +130,28 @@ test("Agent Bench compares Pi and Cline on frozen PlotPickle repairs in isolated
   assert.match(runner, /SUPPORTED_AGENTS = new Set\(\["pi", "cline"\]\)/);
   assert.match(runner, /git.*worktree|"worktree", "add", "--detach"/s);
   assert.match(runner, /current AGENTS\.md/is);
-  assert.match(runner, /current regression tests/i);
-  assert.match(runner, /current production build/i);
-  assert.match(runner, /current focused UAT/i);
-  assert.match(runner, /agent-process\.log/);
-  assert.match(runner, /verification\.log/);
-  assert.match(runner, /result\.json/);
+  assert.match(runner, /"--mode", "json", "-p", "--no-session"/);
+  assert.match(runner, /"--json", "--auto-approve", "true", "--cwd"/);
+  assert.match(runner, /testFilesChanged/);
+  assert.match(runner, /"diff", "--check"/);
+  assert.doesNotMatch(runner, /OpenHands|Herdr/);
 });
 
-test("developer MCP and benchmark catalog have executable CI-safe self checks", async () => {
-  for (const [command, args] of [
-    ["node", ["scripts/developer-agent-mcp.mjs", "--self-test"]],
-    ["node", ["scripts/run-agent-bench.mjs", "--list"]],
-  ]) {
-    const result = spawnSync(command, args, {
-      cwd: new URL("..", import.meta.url),
-      encoding: "utf8",
-    });
-    assert.equal(result.status, 0, `${command} ${args.join(" ")} failed:\n${result.stdout}\n${result.stderr}`);
-  }
+test("developer MCP and benchmark catalog have executable CI-safe self checks", () => {
+  const mcp = spawnSync(process.execPath, ["scripts/developer-agent-mcp.mjs", "--self-test"], {
+    cwd: new URL("..", import.meta.url),
+    encoding: "utf8",
+  });
+  assert.equal(mcp.status, 0, mcp.stderr || mcp.stdout);
+  assert.match(mcp.stdout, /MCP self-test PASS/);
+
+  const bench = spawnSync(process.execPath, ["scripts/run-agent-bench.mjs", "--list"], {
+    cwd: new URL("..", import.meta.url),
+    encoding: "utf8",
+  });
+  assert.equal(bench.status, 0, bench.stderr || bench.stdout);
+  assert.match(bench.stdout, /Agents: pi, cline/);
+  assert.match(bench.stdout, /sage-help-followup-637/);
 });
 
 test("focused Startup UAT owns the developer-agent stack regression", async () => {

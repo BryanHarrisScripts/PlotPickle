@@ -67,7 +67,7 @@ test("full verification records every result and fails visibly when any check ne
   assert.match(runner, /plotpickle-full-check-\$Stamp\.log/);
   assert.match(runner, /FINAL SUMMARY/);
   assert.match(runner, /Where-Object \{ \$_\.Status -ne "PASS" \}/);
-  assert.match(runner, /Nothing was hidden or treated as a pass/);
+  assert.match(runner, /complete child-process output above is part of this same log/i);
   assert.match(runner, /exit \$FinalExitCode/);
   assert.doesNotMatch(runner, /C:\\Users\\/i);
 });

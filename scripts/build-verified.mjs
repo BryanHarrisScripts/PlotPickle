@@ -64,6 +64,7 @@ async function prepareEnvironment() {
     WRANGLER_WRITE_LOGS: "false",
     WRANGLER_LOG_PATH: directories.wranglerLogs,
     MINIFLARE_REGISTRY_PATH: directories.miniflare,
+    VITE_CONFIG_NATIVE_IGNORE_WARNING: "true",
     npm_config_cache: directories.cache,
     npm_config_audit: "false",
     npm_config_fund: "false",

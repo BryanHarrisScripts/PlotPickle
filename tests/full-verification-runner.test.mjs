@@ -56,7 +56,7 @@ test('browser-dependent checks become explicitly blocked when PlotPickle cannot 
   assert.match(runner, /8 of 9 - Exhaustive code-aware UI and UX UAT/);
   assert.match(runner, /9 of 9 - Writer-in-Residence/);
   assert.match(runner, /Add-Result \$BlockedStep\.Name \$BlockedStep\.Category "BLOCKED"/);
-  assert.match(runner, /Nothing was hidden or treated as a pass/);
+  assert.match(runner, /complete child-process output above is part of this same log/i);
 });
 
 test('final summary uses plain-language verification categories', async () => {

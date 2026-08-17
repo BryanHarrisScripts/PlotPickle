@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
   [string]$BaseUrl = "http://127.0.0.1:8188",
-  [int]$ReadyTimeoutSeconds = 45
+  [int]$ReadyTimeoutSeconds = 45,
+  [switch]$AllowDesktopLaunch
 )
 
 Set-StrictMode -Version Latest
@@ -146,25 +147,28 @@ $roots = @(Get-ComfyRoots)
 $mainPath = Find-ComfyMain $roots
 $desktopExe = Find-ComfyDesktopExecutable
 
+if (-not $mainPath -and $desktopExe -and -not $AllowDesktopLaunch) {
+  Write-Host "[INFO] ComfyUI Desktop is installed, but its local API is not running."
+  Write-Host "       PlotPickle will not open Desktop without an explicit user action."
+  Write-Host "       Use the reviewed Settings action, or rerun this starter with -AllowDesktopLaunch."
+  Write-Status "desktop-installed-not-running" $desktopExe
+  exit 0
+}
+
 if (-not $mainPath -and $desktopExe) {
-  Write-Host "[DESKTOP] ComfyUI Desktop is installed, but its local API is not ready. Opening Desktop..."
+  Write-Host "[DESKTOP] Opening ComfyUI Desktop at the user's request..."
   Write-Host "          PlotPickle will not install checkpoints, workflows, or large video/H3 model packs automatically."
-  try { $process = Start-Process -FilePath $desktopExe -PassThru }
+  try { $null = Start-Process -FilePath $desktopExe -PassThru }
   catch {
     Write-Warning "ComfyUI Desktop could not be opened: $($_.Exception.Message)"
     Write-Status "desktop-launch-failed" $desktopExe
     exit 1
   }
-  $state = Wait-ComfyApi $endpoint.BaseUrl $ReadyTimeoutSeconds $process
+  $state = Wait-ComfyApi $endpoint.BaseUrl $ReadyTimeoutSeconds
   if ($state -eq "ready") {
     Write-Host "[READY] ComfyUI Desktop's local API is responding at $($endpoint.BaseUrl)."
     Write-Status "desktop-started-ready" $desktopExe
     exit 0
-  }
-  if ($state -eq "exited") {
-    Write-Warning "ComfyUI Desktop closed before its local API became ready."
-    Write-Status "desktop-exited-before-ready" $desktopExe
-    exit 1
   }
   Write-Warning "ComfyUI Desktop opened, but its local API did not become ready within $ReadyTimeoutSeconds seconds."
   Write-Host "[NEXT] Complete any visible first-run setup in Desktop and start its local engine. PlotPickle did not start a model/H3 download."

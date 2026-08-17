@@ -7,6 +7,7 @@ import { BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "../lib/buzz-guil
 import { BUZZ_STORY_ROOMS, buzzProjectSlug, buzzRoomName, type BuzzStoryRoomId } from "../lib/buzz-story-room";
 import CommunityAgentRoster from "./community-agent-roster";
 import CommunityStoryRoomAccess from "./community-story-room-access";
+import navigationStyles from "./community-navigation.module.css";
 import styles from "./community-workspace.module.css";
 
 const BUZZ_API = "/api/local-buzz";
@@ -312,11 +313,11 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
         </div>
       </header>
 
-      <div className={styles.communityLayout}>
-        <aside className={styles.communityRail} aria-label="Community and Guildhall navigation">
+      <div className={navigationStyles.communityLayout}>
+        <aside className={navigationStyles.communityRail} aria-label="Community and Guildhall navigation">
           <button
             type="button"
-            className={styles.railToggle}
+            className={navigationStyles.railToggle}
             aria-expanded={navigationExpanded}
             aria-controls="community-destinations"
             onClick={() => setNavigationExpanded((expanded) => !expanded)}
@@ -325,13 +326,13 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
             <em>{navigationExpanded ? "Collapse" : "Expand"}</em>
           </button>
           {navigationExpanded ? (
-            <nav id="community-destinations" className={styles.destinationList} aria-label="Community destinations">
+            <nav id="community-destinations" className={navigationStyles.destinationList} aria-label="Community destinations">
               {SECTIONS.map((item) => (
                 <button
                   key={item.id}
                   type="button"
                   aria-current={section === item.id ? "page" : undefined}
-                  className={section === item.id ? styles.activeDestination : undefined}
+                  className={section === item.id ? navigationStyles.activeDestination : undefined}
                   data-primary={item.primary ? "true" : undefined}
                   onClick={() => setSection(item.id)}
                 >
@@ -343,7 +344,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
           ) : null}
         </aside>
 
-        <div className={styles.communityContent}>
+        <div className={navigationStyles.communityContent}>
           {!community?.identityVerified ? (
             <section className={styles.setupCard}>
               <div><span>Connect once</span><h2>Community uses your locally encrypted Buzz identity.</h2><p>Open basic Settings, connect and verify your Buzz community, then return here. The private identity stays on this computer and is not stored in GitHub or the PPF.</p></div>
@@ -380,7 +381,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
             <section className={styles.conversation} aria-label="Great Hall conversation">
               <div className={styles.messageList}>{community?.recentActivity.length ? community.recentActivity.map((item) => {
                 const author = item.author || "Guild member";
-                return <article key={item.id}><header><strong>{author}</strong><small>{displayDate(item.createdAt)}</small></header><p>{item.content}</p><footer className={styles.messageActions}><span>Great Hall</span><button type="button" aria-label={`Reply to ${author} in the Great Hall`} onClick={() => replyToHall(author)}>Reply</button></footer></article>;
+                return <article key={item.id}><header><strong>{author}</strong><small>{displayDate(item.createdAt)}</small></header><p>{item.content}</p><footer className={navigationStyles.messageActions}><span>Great Hall</span><button type="button" aria-label={`Reply to ${author} in the Great Hall`} onClick={() => replyToHall(author)}>Reply</button></footer></article>;
               }) : <p className={styles.empty}>The Great Hall is quiet.</p>}</div>
               <div className={styles.composer}><textarea value={hallDraft} onChange={(event) => setHallDraft(event.target.value)} placeholder="Write to the Great Hall…" rows={4} /><button type="button" disabled={!connected || !hallDraft.trim() || Boolean(busy)} onClick={() => void sendHallMessage()}>{busy === "hall-send" ? "Sending…" : "Send signed message"}</button></div>
             </section>
@@ -393,10 +394,10 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
               return <button key={definition.id} type="button" disabled={!ready} data-ready={ready ? "true" : "false"} onClick={() => openStoryRoom(definition.id)}><span>{definition.label}</span><strong>{ready ? "Ready" : "Not created"}</strong><small>{definition.description}</small></button>;
             })}</div>
             {selectedRoom ? <section className={styles.conversation} aria-label="Story Room conversation">
-              <header className={styles.roomConversationHeader}><div><span>Active room</span><h3>{BUZZ_STORY_ROOMS.find((room) => room.id === selectedRoom.roomId)?.label}</h3></div><div className={styles.roomHeaderActions}><button type="button" onClick={closeStoryRoom}>Back to Story Rooms</button><button type="button" onClick={() => void loadStoryMessages(selectedRoom)}>Load messages</button></div></header>
+              <header className={styles.roomConversationHeader}><div><span>Active room</span><h3>{BUZZ_STORY_ROOMS.find((room) => room.id === selectedRoom.roomId)?.label}</h3></div><div className={navigationStyles.roomHeaderActions}><button type="button" onClick={closeStoryRoom}>Back to Story Rooms</button><button type="button" onClick={() => void loadStoryMessages(selectedRoom)}>Load messages</button></div></header>
               <div className={styles.messageList}>{storyMessages.length ? storyMessages.map((message) => {
                 const author = message.author || "Story Room member";
-                return <article key={message.id}><header><strong>{author}</strong><small>{displayDate(message.createdAt)}</small></header><p>{message.content}</p><footer className={styles.messageActions}><span>{BUZZ_STORY_ROOMS.find((room) => room.id === selectedRoom.roomId)?.label || "Story Room"}</span><button type="button" aria-label={`Reply to ${author} in this Story Room`} onClick={() => replyToStory(author)}>Reply</button></footer></article>;
+                return <article key={message.id}><header><strong>{author}</strong><small>{displayDate(message.createdAt)}</small></header><p>{message.content}</p><footer className={navigationStyles.messageActions}><span>{BUZZ_STORY_ROOMS.find((room) => room.id === selectedRoom.roomId)?.label || "Story Room"}</span><button type="button" aria-label={`Reply to ${author} in this Story Room`} onClick={() => replyToStory(author)}>Reply</button></footer></article>;
               }) : <p className={styles.empty}>Load this room to see its signed conversation.</p>}</div>
               <div className={styles.composer}><textarea value={storyDraft} onChange={(event) => setStoryDraft(event.target.value)} placeholder="Discuss this story without changing canon…" rows={4} /><button type="button" disabled={!storyDraft.trim() || Boolean(busy)} onClick={() => void sendStoryMessage()}>{busy === "story-send" ? "Sending…" : "Send to Story Room"}</button></div>
               <CommunityStoryRoomAccess channel={selectedRoom.channel} greatHallMembers={community?.members ?? []} desktopUrl={desktopUrl} />

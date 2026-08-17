@@ -104,17 +104,17 @@ function Start-ComfyUIForPlotPickle {
     return $false
   }
   $baseUrl = if ($env:PLOTPICKLE_COMFYUI_URL) { $env:PLOTPICKLE_COMFYUI_URL } else { "http://127.0.0.1:8188" }
-  Write-Host "[STARTUP] Ensuring installed ComfyUI is available as a local background backend at $baseUrl..."
+  Write-Host "[STARTUP] Ensuring installed ComfyUI is available as PlotPickle's local image engine at $baseUrl..."
   try {
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $ComfyStarter -BaseUrl $baseUrl
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $ComfyStarter -BaseUrl $baseUrl -ReadyTimeoutSeconds 90 -AllowDesktopLaunch
     if ($LASTEXITCODE -ne 0) {
-      Write-Warning "ComfyUI background startup exited with code $LASTEXITCODE. PlotPickle will continue; review the PlotPickle ComfyUI startup logs or start ComfyUI manually."
+      Write-Warning "ComfyUI local-image startup exited with code $LASTEXITCODE. PlotPickle will continue; review the PlotPickle ComfyUI startup logs or finish ComfyUI Desktop first-run setup."
       return $false
     }
     return $true
   }
   catch {
-    Write-Warning "ComfyUI background startup failed: $($_.Exception.Message). PlotPickle will continue."
+    Write-Warning "ComfyUI local-image startup failed: $($_.Exception.Message). PlotPickle will continue."
     return $false
   }
 }

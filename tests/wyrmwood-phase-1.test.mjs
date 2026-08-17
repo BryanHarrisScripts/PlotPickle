@@ -2,21 +2,27 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const root = new URL("../", import.meta.url);
-const read = (path) => readFile(new URL(path, root), "utf8");
+const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("Wyrmwood is an isolated PlotPickle plugin workspace", async () => {
-  const [page, ui, config] = await Promise.all([
+  const [manifest, contract, engine, page] = await Promise.all([
+    read("modules/wyrmwood/manifest.ts"),
+    read("core/contracts/module.ts"),
+    read("modules/wyrmwood/engine.ts"),
     read("app/page.tsx"),
-    read("modules/wyrmwood/ui/wyrmwood-workspace.tsx"),
-    read("modules/wyrmwood/plugin.json"),
   ]);
 
-  assert.match(page, /WyrmwoodWorkspace/);
-  assert.match(page, /workspace === "wyrmwood"/);
-  assert.match(ui, /WYRMWOOD/);
-  assert.match(ui, /GAME/);
-  assert.match(config, /"id": "wyrmwood"/);
+  assert.match(contract, /"wyrmwood"/);
+  assert.match(contract, /"wyrmwood\.play"/);
+  assert.match(contract, /"wyrmwood\.progress"/);
+  assert.match(manifest, /id: "wyrmwood"/);
+  assert.match(manifest, /route: "\/\?workspace=wyrmwood"/);
+  assert.match(manifest, /owns: \["wyrmwood"\]/);
+  assert.match(manifest, /dependencies: \["learn"\]/);
+  assert.match(engine, /plotpickle\.wyrmwood\.v1/);
+  assert.doesNotMatch(engine, /plotpickle\.foundation\.project\.v1/);
+  assert.match(page, /requested === "wyrmwood"/);
+  assert.match(page, /<WyrmwoodWorkspace/);
 });
 
 test("the first Wyrmwood campaign is generated from LEARN Foundations", async () => {
@@ -25,6 +31,7 @@ test("the first Wyrmwood campaign is generated from LEARN Foundations", async ()
     read("modules/wyrmwood/ui/wyrmwood-workspace.tsx"),
   ]);
 
+  assert.match(bridge, /id: "fundamentals"/);
   assert.match(bridge, /curriculumTopic: "foundations"/);
   assert.match(bridge, /lesson\.topic === WYRMWOOD_FIRST_CAMPAIGN\.curriculumTopic/);
   assert.match(bridge, /lesson\.objectives\.slice\(0, 3\)/);
@@ -62,6 +69,11 @@ test("Wyrmwood state starts deterministic and cannot mutate the story project", 
 
   assert.match(engine, /WYRMWOOD_STARTING_SPOTLIGHT = 60/);
   assert.match(engine, /spotlight: WYRMWOOD_STARTING_SPOTLIGHT/);
-  assert.match(ui, /createInitialWyrmwoodState/);
-  assert.doesNotMatch(engine, /localStorage|sessionStorage|fetch\(/);
+  assert.match(engine, /brineCoins: 0/);
+  assert.match(engine, /xp: 0/);
+  assert.match(engine, /clampNumber\(state\.spotlight \+ spotlightDelta, 0, 100/);
+  assert.match(ui, /LEARN_PROJECT_STORAGE_KEY = "plotpickle\.foundation\.project\.v1"/);
+  assert.match(ui, /localStorage\.getItem\(LEARN_PROJECT_STORAGE_KEY\)/);
+  assert.doesNotMatch(ui, /localStorage\.setItem\(LEARN_PROJECT_STORAGE_KEY/);
+  assert.doesNotMatch(ui, /applyStoryCommand|PPFProject|FOUNDATION_PROJECT_STORAGE_KEY/);
 });

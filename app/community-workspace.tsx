@@ -47,15 +47,15 @@ type StoryRoomRecord = { roomId: BuzzStoryRoomId; channel: BuzzChannel; created?
 type BuzzMessage = { id: string; content: string; author: string; createdAt: string };
 type ReviewItem = { id: string; title: string; status: string; roomId?: string; createdAt?: string };
 
-const SECTIONS: Array<{ id: CommunitySection; label: string; description: string; primary?: boolean }> = [
-  { id: "overview", label: "Overview", description: "People, rooms, reviews and recent activity" },
-  { id: "great-hall", label: "Great Hall", description: "Community-wide discussion", primary: true },
-  { id: "story-rooms", label: "Story Rooms", description: "Private discussion for the active story", primary: true },
-  { id: "connected-studios", label: "Connected Studios", description: "Playhouse Studio discovery and presence" },
-  { id: "people", label: "People", description: "Great Hall members and presence" },
-  { id: "agents", label: "Agents & Stewards", description: "PlotPickle lore agents and operational stewards" },
-  { id: "reviews", label: "Review Queue", description: "Community suggestions waiting for human review" },
-  { id: "guildhall", label: "Guildhall", description: "Internal coordination rooms and status" },
+const SECTIONS: Array<{ id: CommunitySection; label: string; primary?: boolean }> = [
+  { id: "overview", label: "Overview" },
+  { id: "great-hall", label: "Great Hall", primary: true },
+  { id: "story-rooms", label: "Story Rooms", primary: true },
+  { id: "connected-studios", label: "Connected Studios" },
+  { id: "people", label: "People" },
+  { id: "agents", label: "Agents & Stewards" },
+  { id: "reviews", label: "Review Queue" },
+  { id: "guildhall", label: "Guildhall" },
 ];
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -115,7 +115,7 @@ function buzzDesktopUrl(relay: string, name: string) {
 
 export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpenSettings: () => void }) {
   const [section, setSection] = useState<CommunitySection>("overview");
-  const [navigationExpanded, setNavigationExpanded] = useState(true);
+  const [expandedNavigationSection, setExpandedNavigationSection] = useState<CommunitySection | null>("great-hall");
   const [community, setCommunity] = useState<CommunityStatus | null>(null);
   const [guildhall, setGuildhall] = useState<GuildhallStatus | null>(null);
   const [project, setProject] = useState<PPFProject | null>(null);
@@ -269,6 +269,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
   function openStoryRoom(roomId: BuzzStoryRoomId) {
     setSelectedRoomId(roomId);
     setSection("story-rooms");
+    setExpandedNavigationSection("story-rooms");
     const room = storyRooms.find((item) => item.roomId === roomId) ?? null;
     void loadStoryMessages(room).catch((error) => setNotice(error instanceof Error ? error.message : "Story Room messages could not be loaded."));
   }
@@ -286,18 +287,22 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
     setStoryDraft((current) => current || `@${author || "Story Room member"} `);
   }
 
+  function toggleNavigationSection(id: CommunitySection) {
+    setExpandedNavigationSection((current) => current === id ? null : id);
+  }
+
   const connected = Boolean(community?.identityVerified && community.greatHall);
   const readyRoomCount = storyRooms.length;
 
-  function navigationMeta(id: CommunitySection) {
+  function navigationStatus(id: CommunitySection) {
     if (id === "great-hall") return `${community?.members.length ?? 0} members · ${onlineMembers} online`;
     if (id === "story-rooms") return `${readyRoomCount}/6 ready · ${activeProjectName}`;
-    if (id === "connected-studios") return connected ? "Playhouse directory · signed presence" : "Discovery offline · local work available";
+    if (id === "connected-studios") return connected ? "Community connected" : "Available offline";
     if (id === "people") return `${community?.members.length ?? 0} members`;
     if (id === "agents") return `${BUZZ_GUILDHALL_ACTORS.length} agents & stewards`;
     if (id === "reviews") return `${reviews.length} waiting for review`;
-    if (id === "guildhall") return `${guildhall?.readyCount ?? 0}/${guildhall?.totalCount ?? 11} coordination rooms`;
-    return "Community home";
+    if (id === "guildhall") return `${guildhall?.readyCount ?? 0}/${guildhall?.totalCount ?? 11} rooms ready`;
+    return "";
   }
 
   return (
@@ -316,33 +321,73 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
 
       <div className={navigationStyles.communityLayout}>
         <aside className={navigationStyles.communityRail} aria-label="Community and Guildhall navigation">
-          <button
-            type="button"
-            className={navigationStyles.railToggle}
-            aria-expanded={navigationExpanded}
-            aria-controls="community-destinations"
-            onClick={() => setNavigationExpanded((expanded) => !expanded)}
-          >
-            <span><b>Community &amp; Guildhall</b><small>Rooms, people and review</small></span>
-            <em>{navigationExpanded ? "Collapse" : "Expand"}</em>
-          </button>
-          {navigationExpanded ? (
-            <nav id="community-destinations" className={navigationStyles.destinationList} aria-label="Community destinations">
-              {SECTIONS.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  aria-current={section === item.id ? "page" : undefined}
-                  className={section === item.id ? navigationStyles.activeDestination : undefined}
+          <header className={navigationStyles.railHeader}>
+            <b>Community &amp; Guildhall</b>
+          </header>
+          <nav id="community-destinations" className={navigationStyles.destinationList} aria-label="Community destinations">
+            {SECTIONS.map((item) => {
+              const expandable = item.id !== "overview";
+              const expanded = expandedNavigationSection === item.id;
+              return (
+                <div
+                  className={navigationStyles.destinationItem}
+                  data-active={section === item.id ? "true" : "false"}
+                  data-expandable={expandable ? "true" : "false"}
                   data-primary={item.primary ? "true" : undefined}
-                  onClick={() => setSection(item.id)}
+                  key={item.id}
                 >
-                  <span><b>{item.label}</b><small>{item.description}</small></span>
-                  <em>{navigationMeta(item.id)}</em>
-                </button>
-              ))}
-            </nav>
-          ) : null}
+                  <div className={navigationStyles.destinationRow}>
+                    <button
+                      type="button"
+                      className={navigationStyles.destinationButton}
+                      data-community-section={item.id}
+                      aria-current={section === item.id ? "page" : undefined}
+                      onClick={() => setSection(item.id)}
+                    >
+                      <b>{item.label}</b>
+                    </button>
+                    {expandable ? (
+                      <button
+                        type="button"
+                        className={navigationStyles.destinationChevron}
+                        aria-expanded={expanded}
+                        aria-controls={`community-nav-${item.id}`}
+                        aria-label={`${expanded ? "Collapse" : "Expand"} ${item.label}`}
+                        onClick={() => toggleNavigationSection(item.id)}
+                      >
+                        <span aria-hidden="true">›</span>
+                      </button>
+                    ) : null}
+                  </div>
+                  {expandable && expanded ? (
+                    <div className={navigationStyles.destinationDetails} id={`community-nav-${item.id}`}>
+                      <small>{navigationStatus(item.id)}</small>
+                      {item.id === "story-rooms" ? (
+                        <div className={navigationStyles.subDestinationList}>
+                          {BUZZ_STORY_ROOMS.map((definition) => {
+                            const ready = storyRooms.some((room) => room.roomId === definition.id);
+                            return (
+                              <button
+                                key={definition.id}
+                                type="button"
+                                className={navigationStyles.subDestination}
+                                disabled={!ready}
+                                aria-current={selectedRoomId === definition.id ? "page" : undefined}
+                                onClick={() => openStoryRoom(definition.id)}
+                              >
+                                <span>{definition.label}</span>
+                                <small>{ready ? "Ready" : "Not created"}</small>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </nav>
         </aside>
 
         <div className={navigationStyles.communityContent}>
@@ -389,20 +434,16 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
           </main> : null}
 
           {section === "story-rooms" ? <main className={styles.stack}>
-            <section className={styles.sectionHeading}><div><span>Story Rooms</span><h2>{project ? `Private rooms for ${project.title}` : "Open a story to create its rooms"}</h2><p>Story, Characters, Structure, Continuity, Visual Development and Production Notes are real private BUZZ channels. Authorized members can read and comment from either PlotPickle or Buzz Desktop.</p></div><button type="button" disabled={!community?.identityVerified || !project || Boolean(busy)} onClick={() => void ensureStoryRooms()}>{busy === "story-rooms" ? "Creating…" : storyRooms.length === 6 ? "Story Rooms ready" : "Create missing Story Rooms"}</button></section>
-            <div className={styles.roomGrid}>{BUZZ_STORY_ROOMS.map((definition) => {
-              const ready = storyRooms.some((room) => room.roomId === definition.id);
-              return <button key={definition.id} type="button" disabled={!ready} data-ready={ready ? "true" : "false"} onClick={() => openStoryRoom(definition.id)}><span>{definition.label}</span><strong>{ready ? "Ready" : "Not created"}</strong><small>{definition.description}</small></button>;
-            })}</div>
+            <section className={styles.sectionHeading}><div><span>Story Rooms</span><h2>{project ? `Private rooms for ${project.title}` : "Open a story to create its rooms"}</h2><p>Choose the room from the left rail, then use the centre as the conversation surface.</p></div><button type="button" disabled={!community?.identityVerified || !project || Boolean(busy)} onClick={() => void ensureStoryRooms()}>{busy === "story-rooms" ? "Creating…" : storyRooms.length === 6 ? "Story Rooms ready" : "Create missing Story Rooms"}</button></section>
             {selectedRoom ? <section className={styles.conversation} aria-label="Story Room conversation">
-              <header className={styles.roomConversationHeader}><div><span>Active room</span><h3>{BUZZ_STORY_ROOMS.find((room) => room.id === selectedRoom.roomId)?.label}</h3></div><div className={navigationStyles.roomHeaderActions}><button type="button" onClick={closeStoryRoom}>Back to Story Rooms</button><button type="button" onClick={() => void loadStoryMessages(selectedRoom)}>Load messages</button></div></header>
+              <header className={styles.roomConversationHeader}><div><span>Active room</span><h3>{BUZZ_STORY_ROOMS.find((room) => room.id === selectedRoom.roomId)?.label}</h3></div><div className={navigationStyles.roomHeaderActions}><button type="button" onClick={closeStoryRoom}>Close room</button><button type="button" onClick={() => void loadStoryMessages(selectedRoom)}>Load messages</button></div></header>
               <div className={styles.messageList}>{storyMessages.length ? storyMessages.map((message) => {
                 const author = message.author || "Story Room member";
                 return <article key={message.id}><header><strong>{author}</strong><small>{displayDate(message.createdAt)}</small></header><p>{message.content}</p><footer className={navigationStyles.messageActions}><span>{BUZZ_STORY_ROOMS.find((room) => room.id === selectedRoom.roomId)?.label || "Story Room"}</span><button type="button" aria-label={`Reply to ${author} in this Story Room`} onClick={() => replyToStory(author)}>Reply</button></footer></article>;
               }) : <p className={styles.empty}>Load this room to see its signed conversation.</p>}</div>
               <div className={styles.composer}><textarea value={storyDraft} onChange={(event) => setStoryDraft(event.target.value)} placeholder="Discuss this story without changing canon…" rows={4} /><button type="button" disabled={!storyDraft.trim() || Boolean(busy)} onClick={() => void sendStoryMessage()}>{busy === "story-send" ? "Sending…" : "Send to Story Room"}</button></div>
               <CommunityStoryRoomAccess channel={selectedRoom.channel} greatHallMembers={community?.members ?? []} desktopUrl={desktopUrl} />
-            </section> : null}
+            </section> : <section className={styles.panel}><span>Choose a Story Room</span><h2>Select a room from the left rail to open its BBS-style conversation here.</h2></section>}
           </main> : null}
 
           {section === "connected-studios" ? <main className={styles.stack}>

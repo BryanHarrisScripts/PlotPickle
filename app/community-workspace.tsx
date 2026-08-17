@@ -7,6 +7,7 @@ import { BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "../lib/buzz-guil
 import { BUZZ_STORY_ROOMS, buzzProjectSlug, buzzRoomName, type BuzzStoryRoomId } from "../lib/buzz-story-room";
 import CommunityAgentRoster from "./community-agent-roster";
 import CommunityStoryRoomAccess from "./community-story-room-access";
+import ConnectedStudiosPanel from "./connected-studios-panel";
 import navigationStyles from "./community-navigation.module.css";
 import styles from "./community-workspace.module.css";
 
@@ -291,7 +292,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
   function navigationMeta(id: CommunitySection) {
     if (id === "great-hall") return `${community?.members.length ?? 0} members · ${onlineMembers} online`;
     if (id === "story-rooms") return `${readyRoomCount}/6 ready · ${activeProjectName}`;
-    if (id === "connected-studios") return connected ? "Directory coming next · community connected" : "Available offline · federation not connected";
+    if (id === "connected-studios") return connected ? "Playhouse directory · signed presence" : "Discovery offline · local work available";
     if (id === "people") return `${community?.members.length ?? 0} members`;
     if (id === "agents") return `${BUZZ_GUILDHALL_ACTORS.length} agents & stewards`;
     if (id === "reviews") return `${reviews.length} waiting for review`;
@@ -405,8 +406,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
           </main> : null}
 
           {section === "connected-studios" ? <main className={styles.stack}>
-            <section className={styles.sectionHeading}><div><span>Connected Studios</span><h2>A friendly Playhouse Studio directory is being prepared here.</h2><p>Community remains fully usable locally while Studio federation and presence are added. Nothing on this screen opens your local PlotPickle server to another Studio.</p></div><button type="button" onClick={() => setSection("great-hall")}>Open Great Hall</button></section>
-            <section className={styles.boundaryCard}><div><span>Useful now</span><h3>Great Hall membership is today&apos;s shared community directory.</h3><p>Use People to see current members and presence, or use the Great Hall to talk with the community. Connected Studio discovery, visibility and moderation will appear here without changing the PPF authority boundary.</p></div><button type="button" onClick={() => setSection("people")}>See People</button></section>
+            <ConnectedStudiosPanel onOpenGreatHall={() => setSection("great-hall")} />
           </main> : null}
 
           {section === "people" ? <main className={styles.stack}>

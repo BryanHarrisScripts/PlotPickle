@@ -75,7 +75,8 @@ if (-not $VerifyOnly) {
     "npm:@dietrichgebert/ponytail@4.8.4",
     "npm:pi-subagents@0.35.1",
     "npm:@ff-labs/pi-fff@0.10.1",
-    "npm:pi-mcp-adapter@2.26.0"
+    "npm:pi-mcp-adapter@2.26.0",
+    "npm:pi-context-view@0.4.2"
   )
   foreach ($package in $packages) {
     & pi install $package -l

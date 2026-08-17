@@ -70,6 +70,37 @@ test("snapshot refs preserve duplicate-control occurrence matching", () => {
   assert.equal(refFor({ role: "button", label: "Refresh", occurrence: 1 }, snapshot)?.ref, "e8");
 });
 
+test("accessibility ref matching reconciles ampersands and harmless punctuation without changing roles", () => {
+  const snapshot = [
+    '- button "Agents and Stewards" [ref=e21]',
+    '- link "Agents and Stewards" [ref=e22]',
+    '- button "Open Story Room - Ready" [ref=e23]',
+  ].join("\n");
+
+  assert.equal(refFor({ role: "button", label: "Agents & Stewards", occurrence: 0 }, snapshot)?.ref, "e21");
+  assert.equal(refFor({ role: "button", label: "Open Story Room: Ready", occurrence: 0 }, snapshot)?.ref, "e23");
+});
+
+test("accessibility ref matching allows one unique same-role token-superset name", () => {
+  const snapshot = [
+    '- button "View all Great Hall conversations 5 recent" [ref=e31]',
+    '- link "View all Great Hall conversations" [ref=e32]',
+  ].join("\n");
+
+  assert.equal(refFor({ role: "button", label: "View all Great Hall conversations", occurrence: 0 }, snapshot)?.ref, "e31");
+});
+
+test("accessibility ref fallback refuses one-token and ambiguous fuzzy matches", () => {
+  const oneToken = '- button "Refresh Community" [ref=e41]';
+  assert.equal(refFor({ role: "button", label: "Refresh", occurrence: 0 }, oneToken), null);
+
+  const ambiguous = [
+    '- button "Open Story Room Ready" [ref=e42]',
+    '- button "Open Story Room Offline" [ref=e43]',
+  ].join("\n");
+  assert.equal(refFor({ role: "button", label: "Open Story Room", occurrence: 0 }, ambiguous), null);
+});
+
 test("observable state signature includes semantic tab state, headings and status text", () => {
   const base = {
     url: "http://127.0.0.1:4173/?workspace=community",

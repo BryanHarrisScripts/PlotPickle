@@ -13,7 +13,7 @@
       "id": "community",
       "label": "COMMUNITY",
       "route": "/?workspace=community",
-      "sourceFiles": ["app/community-workspace.tsx", "app/buzz-community-workspace.tsx", "app/community-agent-roster.tsx", "app/community-story-room-access.tsx", "app/workspace-continuity.css"],
+      "sourceFiles": ["app/community-workspace.tsx", "app/community-public-conversations-rail.tsx", "app/community-public-conversations-rail.module.css", "app/buzz-community-workspace.tsx", "app/community-agent-roster.tsx", "app/community-story-room-access.tsx", "app/workspace-continuity.css"],
       "maxInteractions": 70,
       "testDuplicateInstances": false
     },

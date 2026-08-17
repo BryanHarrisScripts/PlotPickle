@@ -61,7 +61,7 @@ test('issue 913 registers four stable progressively discoverable Agent Skills', 
     assert.equal(entry.localOnly, true);
 
     const source = await read(expected.entry);
-    assert.match(source, new RegExp(`^---\\nname: ${expected.id}\\n`));
+    assert.match(source, new RegExp(`^---\\r?\\nname: ${expected.id}\\r?\\n`));
     assert.ok(source.includes(`uri: ${expected.uri}`));
     assert.match(source, /progressiveDisclosure: true/);
   }

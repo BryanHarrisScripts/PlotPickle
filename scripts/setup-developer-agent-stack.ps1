@@ -50,6 +50,12 @@ Require-Command node "Install the Node version required by package.json." | Out-
 Require-Command npm "Install npm with Node.js." | Out-Null
 Require-Command git "Install Git for Windows." | Out-Null
 
+$nodeVersion = (& node -p "process.versions.node" 2>&1 | Out-String).Trim()
+if ([version]$nodeVersion -lt [version]"22.19.0") {
+  throw "PlotPickle's Pi extension stack requires Node.js 22.19.0 or newer. Found $nodeVersion."
+}
+Write-Host "Node.js ............................ $nodeVersion"
+
 $bashPath = Find-GitBash
 if (-not $bashPath) {
   throw "Git Bash was not found. PlotPickle's Windows-native Pi setup does not use the C:\Windows\System32\bash.exe WSL launcher. Install Git for Windows with Git Bash, then rerun this script."
@@ -75,7 +81,8 @@ if (-not $VerifyOnly) {
     "npm:@dietrichgebert/ponytail@4.8.4",
     "npm:pi-subagents@0.35.1",
     "npm:@ff-labs/pi-fff@0.10.1",
-    "npm:pi-mcp-adapter@2.26.0"
+    "npm:pi-mcp-adapter@2.26.0",
+    "npm:pi-context-view@0.4.2"
   )
   foreach ($package in $packages) {
     & pi install $package -l

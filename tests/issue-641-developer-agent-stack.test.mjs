@@ -11,6 +11,7 @@ const PINNED_PI_PACKAGES = [
   "npm:pi-subagents@0.35.1",
   "npm:@ff-labs/pi-fff@0.10.1",
   "npm:pi-mcp-adapter@2.26.0",
+  "npm:pi-context-view@0.4.2",
 ];
 
 function collectKeys(value, output = []) {
@@ -102,6 +103,7 @@ test("the Windows setup installs only the two chosen agents and the pinned Pi pa
   assert.match(setup, /npm install -g --ignore-scripts @earendil-works\/pi-coding-agent/);
   assert.match(setup, /pi install \$package -l/);
   for (const packageName of PINNED_PI_PACKAGES) assert.match(setup, new RegExp(packageName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(setup, /Node\.js 22\.19\.0 or newer/);
   assert.match(setup, /Git Bash|compatible Bash/i);
   assert.match(setup, /\[switch\]\$VerifyOnly/);
   assert.match(setup, /if \(-not \$VerifyOnly\)/);

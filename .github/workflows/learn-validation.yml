@@ -37,6 +37,9 @@ jobs:
       - name: Validate Agent Skills migration
         run: node --test tests/issue-913-agent-skills-migration.test.mjs
 
+      - name: Validate creative UAT MCP compatibility
+        run: node --test tests/creative-uat-mcp-runtime.test.mjs
+
       - name: Validate Windows startup Agent Skills contract
         run: node --test tests/startup-agent-skills-contract.test.mjs tests/issue-341-windows-startup-ui-ux.test.mjs
 

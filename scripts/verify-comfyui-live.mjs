@@ -25,21 +25,12 @@ let originalNativeH3 = null;
 
 function record(name, status, detail = "", data = {}) {
   results.push({ name, status, detail, ...data });
-  const label = status.padEnd(5);
-  console.log(`${label} ${name}${detail ? ` · ${detail}` : ""}`);
+  console.log(`${status.padEnd(5)} ${name}${detail ? ` · ${detail}` : ""}`);
 }
 
-function fail(name, detail, data = {}) {
-  record(name, "FAIL", detail, data);
-}
-
-function pass(name, detail = "", data = {}) {
-  record(name, "PASS", detail, data);
-}
-
-function skip(name, detail = "", data = {}) {
-  record(name, STRICT_ALL ? "FAIL" : "SKIP", detail, data);
-}
+const pass = (name, detail = "", data = {}) => record(name, "PASS", detail, data);
+const fail = (name, detail = "", data = {}) => record(name, "FAIL", detail, data);
+const skip = (name, detail = "", data = {}) => record(name, STRICT_ALL ? "FAIL" : "SKIP", detail, data);
 
 async function jsonRequest(url, options = {}, timeoutMs = 20_000) {
   const response = await fetch(url, {
@@ -66,15 +57,27 @@ async function requireJson(url, options = {}, timeoutMs = 20_000) {
   return body;
 }
 
-async function setRoutes(imageRoute, videoRoute = "none") {
-  return requireJson(`${TARGET}/api/media-routing/routes`, {
-    method: "POST",
-    body: JSON.stringify({ imageRoute, videoRoute }),
-  });
+function postJson(url, body, timeoutMs = 20_000) {
+  return requireJson(url, { method: "POST", body: JSON.stringify(body) }, timeoutMs);
 }
 
-async function mediaStatus() {
+function setRoutes(imageRoute, videoRoute = "none") {
+  return postJson(`${TARGET}/api/media-routing/routes`, { imageRoute, videoRoute });
+}
+
+function mediaStatus() {
   return requireJson(`${TARGET}/api/media-routing/status`, {}, 30_000);
+}
+
+function nativeStatus() {
+  return requireJson(`${TARGET}/api/media-routing/comfyui/h3/native/status`, {}, 30_000);
+}
+
+function setNativeH3(active, allowConstrainedVram) {
+  return postJson(`${TARGET}/api/media-routing/comfyui/h3/native/activation`, {
+    active,
+    allowConstrainedVram,
+  }, 30_000);
 }
 
 function ollamaModelNames(body) {
@@ -97,14 +100,11 @@ async function ollamaImagePrompt() {
   const names = ollamaModelNames(tags);
   if (!names.length) throw new Error("Ollama is running but reports no installed model.");
   const model = preferredOllamaModel(names);
-  const body = await requireJson(`${OLLAMA}/api/generate`, {
-    method: "POST",
-    body: JSON.stringify({
-      model,
-      stream: false,
-      prompt: "Write one concise image-generation prompt, under 45 words, for a cinematic storyboard frame of a writer opening a mysterious creative notebook. No commentary, no quotation marks, no text inside the image.",
-      options: { temperature: 0.2, num_predict: 72 },
-    }),
+  const body = await postJson(`${OLLAMA}/api/generate`, {
+    model,
+    stream: false,
+    prompt: "Write one concise image-generation prompt, under 45 words, for a cinematic storyboard frame of a writer opening a mysterious creative notebook. No commentary, no quotation marks, no text inside the image.",
+    options: { temperature: 0.2, num_predict: 72 },
   }, 90_000);
   const prompt = typeof body.response === "string" ? body.response.trim().replace(/^['\"]|['\"]$/g, "") : "";
   if (!prompt) throw new Error(`Ollama model ${model} returned no usable prompt.`);
@@ -114,7 +114,7 @@ async function ollamaImagePrompt() {
 async function verifyOutput(assetUrl) {
   if (typeof assetUrl !== "string" || !assetUrl.trim()) throw new Error("PlotPickle returned no generated asset URL.");
   const url = new URL(assetUrl, `${TARGET}/`);
-  if (!["127.0.0.1", "localhost", "::1"].includes(url.hostname)) {
+  if (!["127.0.0.1", "localhost", "::1", "[::1]"].includes(url.hostname)) {
     throw new Error(`Generated asset unexpectedly points away from the local PlotPickle server: ${url.hostname}`);
   }
   const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
@@ -148,15 +148,9 @@ async function restoreState() {
   }
   if (originalNativeH3) {
     try {
-      const body = await requireJson(`${TARGET}/api/media-routing/comfyui/h3/native/activation`, {
-        method: "POST",
-        body: JSON.stringify({
-          active: originalNativeH3.active === true,
-          allowConstrainedVram: originalNativeH3.allowConstrainedVram === true,
-        }),
-      });
-      if (body.active !== (originalNativeH3.active === true)) throw new Error("Native H3 activation state did not restore.");
-      pass("Restore native H3 state", body.active ? "on" : "off");
+      const restored = await setNativeH3(originalNativeH3.active, originalNativeH3.allowConstrainedVram);
+      if (restored.active !== originalNativeH3.active) throw new Error("Native H3 activation state did not restore.");
+      pass("Restore native H3 state", restored.active ? "on" : "off");
     } catch (error) {
       fail("Restore native H3 state", error instanceof Error ? error.message : String(error));
     }
@@ -182,6 +176,17 @@ async function main() {
   const status = await mediaStatus();
   originalRoutes = { imageRoute: status.imageRoute, videoRoute: status.videoRoute };
   pass("Media-routing API", `${status.imageRoute} / ${status.videoRoute}`);
+
+  try {
+    const native = await nativeStatus();
+    originalNativeH3 = {
+      active: native.active === true,
+      allowConstrainedVram: native.allowConstrainedVram === true,
+    };
+    pass("Native H3 state snapshot", originalNativeH3.active ? "on" : "off");
+  } catch (error) {
+    fail("Native H3 state snapshot", error instanceof Error ? error.message : String(error));
+  }
 
   try {
     const connections = await requireJson(`${TARGET}/api/local-connections`, {}, 20_000);
@@ -215,19 +220,25 @@ async function main() {
 
   try {
     const off = await setRoutes("manual", "none");
-    if (off.imageRoute !== "manual" || off.videoRoute !== "none") throw new Error("Off state did not persist.");
-    pass("ComfyUI OFF routing", "Manual Import + video Off; ComfyUI process is left untouched");
+    if (off.imageRoute !== "manual" || off.videoRoute !== "none") throw new Error("Image/hybrid off state did not persist.");
+    if (originalNativeH3) {
+      const nativeOff = await setNativeH3(false, originalNativeH3.allowConstrainedVram);
+      if (nativeOff.active !== false) throw new Error("Native H3 did not turn off.");
+    }
+    pass("ComfyUI OFF routing", "Manual Import + video Off + native H3 Off; ComfyUI Desktop remains running");
   } catch (error) {
     fail("ComfyUI OFF routing", error instanceof Error ? error.message : String(error));
   }
 
   try {
+    const connection = await postJson(`${TARGET}/api/media-routing/comfyui/connection`, { baseUrl: COMFY }, 30_000);
+    if (connection.comfyui?.baseUrl !== COMFY) throw new Error("Local ComfyUI address did not persist.");
     const local = await setRoutes("comfyui", "none");
     if (local.imageRoute !== "comfyui" || local.videoRoute !== "none") throw new Error("Local ComfyUI route did not persist.");
     if (!local.comfyui?.reachable) throw new Error(local.comfyui?.error || "PlotPickle could not reach local ComfyUI.");
     if (!local.comfyui?.imageNodesReady) throw new Error(`Missing image nodes: ${(local.comfyui?.missingImageNodes || []).join(", ")}`);
     if (!Array.isArray(local.comfyui?.checkpoints) || !local.comfyui.checkpoints.length) throw new Error("PlotPickle sees no ComfyUI checkpoint.");
-    pass("ComfyUI ON local routing", `${local.comfyui.checkpoints.length} checkpoint(s) ready`);
+    pass("ComfyUI ON local routing", `${local.comfyui.checkpoints.length} checkpoint(s) ready at ${connection.comfyui.baseUrl}`);
   } catch (error) {
     fail("ComfyUI ON local routing", error instanceof Error ? error.message : String(error));
   }
@@ -253,9 +264,9 @@ async function main() {
 
   if (localPrompt) {
     try {
-      const generated = await requireJson(`${TARGET}/api/media-routing/test/image`, {
-        method: "POST",
-        body: JSON.stringify({ route: "comfyui", prompt: localPrompt.prompt }),
+      const generated = await postJson(`${TARGET}/api/media-routing/test/image`, {
+        route: "comfyui",
+        prompt: localPrompt.prompt,
       }, 300_000);
       const output = await verifyOutput(generated.assetUrl);
       pass("Ollama → PlotPickle → local ComfyUI image", `${output.bytes} bytes; ${output.contentType || "image asset"}`, {
@@ -285,9 +296,9 @@ async function main() {
       if (routed.imageRoute !== cloudProvider) throw new Error(`${cloudProvider} route did not persist.`);
       pass("Cloud image configuration", `${cloudProvider} route selected and persisted without spending credits`);
       if (LIVE_CLOUD) {
-        const generated = await requireJson(`${TARGET}/api/media-routing/test/image`, {
-          method: "POST",
-          body: JSON.stringify({ route: cloudProvider, billingAcknowledged: true }),
+        const generated = await postJson(`${TARGET}/api/media-routing/test/image`, {
+          route: cloudProvider,
+          billingAcknowledged: true,
         }, 300_000);
         const output = await verifyOutput(generated.assetUrl);
         pass("Cloud image live generation", `${cloudProvider}; ${output.bytes} bytes`, { assetUrl: generated.assetUrl });
@@ -307,9 +318,10 @@ async function main() {
       if (routed.videoRoute !== "minimax-comfyui") throw new Error("Hybrid H3-through-ComfyUI route did not persist.");
       pass("MiniMax H3 through ComfyUI configuration", "all hybrid prerequisites verified and route enabled");
       if (LIVE_PAID_H3) {
-        const created = await requireJson(`${TARGET}/api/media-routing/test/video`, {
-          method: "POST",
-          body: JSON.stringify({ route: "minimax-comfyui", billingAcknowledged: true, dataSharingAcknowledged: true }),
+        const created = await postJson(`${TARGET}/api/media-routing/test/video`, {
+          route: "minimax-comfyui",
+          billingAcknowledged: true,
+          dataSharingAcknowledged: true,
         }, 60_000);
         if (!created.id) throw new Error("Paid H3 test returned no job ID.");
         const job = await pollVideoJob(created.id);
@@ -329,26 +341,24 @@ async function main() {
   }
 
   try {
-    const native = await requireJson(`${TARGET}/api/media-routing/comfyui/h3/native/status`, {}, 30_000);
-    originalNativeH3 = { active: native.active === true, allowConstrainedVram: native.allowConstrainedVram === true };
+    const native = await nativeStatus();
+    if (!originalNativeH3) {
+      originalNativeH3 = {
+        active: native.active === true,
+        allowConstrainedVram: native.allowConstrainedVram === true,
+      };
+    }
     if (!native.ready) {
       skip("Native H3 ComfyUI readiness", native.error || "native H3 model/workflow prerequisites are not installed");
     } else {
-      const off = await requireJson(`${TARGET}/api/media-routing/comfyui/h3/native/activation`, {
-        method: "POST",
-        body: JSON.stringify({ active: false, allowConstrainedVram: native.allowConstrainedVram === true }),
-      });
-      if (off.active !== false) throw new Error("Native H3 did not turn off.");
-      const on = await requireJson(`${TARGET}/api/media-routing/comfyui/h3/native/activation`, {
-        method: "POST",
-        body: JSON.stringify({ active: true, allowConstrainedVram: native.allowConstrainedVram === true }),
-      });
-      if (on.active !== true) throw new Error("Native H3 did not turn on.");
+      const nativeOff = await setNativeH3(false, native.allowConstrainedVram === true);
+      if (nativeOff.active !== false) throw new Error("Native H3 did not turn off.");
+      const nativeOn = await setNativeH3(true, native.allowConstrainedVram === true);
+      if (nativeOn.active !== true) throw new Error("Native H3 did not turn on.");
       pass("Native H3 ComfyUI ON/OFF", "activation toggled successfully");
       if (LIVE_NATIVE_H3) {
-        const created = await requireJson(`${TARGET}/api/media-routing/comfyui/h3/native/test`, {
-          method: "POST",
-          body: JSON.stringify({ performanceAcknowledged: true }),
+        const created = await postJson(`${TARGET}/api/media-routing/comfyui/h3/native/test`, {
+          performanceAcknowledged: true,
         }, 60_000);
         if (!created.id) throw new Error("Native H3 test returned no job ID.");
         const job = await pollVideoJob(created.id, 600_000);
@@ -380,7 +390,12 @@ const report = {
   target: TARGET,
   comfyui: COMFY,
   ollama: OLLAMA,
-  flags: { liveCloud: LIVE_CLOUD, livePaidH3: LIVE_PAID_H3, liveNativeH3: LIVE_NATIVE_H3, strictAll: STRICT_ALL },
+  flags: {
+    liveCloud: LIVE_CLOUD,
+    livePaidH3: LIVE_PAID_H3,
+    liveNativeH3: LIVE_NATIVE_H3,
+    strictAll: STRICT_ALL,
+  },
   summary: { passed: passed.length, failed: failed.length, skipped: skipped.length },
   fatal,
   results,

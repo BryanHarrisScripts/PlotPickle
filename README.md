@@ -1,12 +1,16 @@
 <p align="center">
-  <img src="docs/brand-sources/plotpickle-ouroboros-v2-master.png" alt="PlotPickle ouroboros, compass and fountain-pen emblem" width="720">
+  <img src="public/brand/plotpickle-header-horizontal-1200.png" alt="PlotPickle — local-first creative story platform" width="960">
 </p>
 
-# PlotPickle
+<h1 align="center">PlotPickle</h1>
 
-Shape the story. Learn the craft. Test the choices. Keep the writer in control.
+<p align="center"><strong>Shape the story. Learn the craft. Test the choices. Keep the writer in control.</strong></p>
 
-PlotPickle is a local-first, AI-assisted story development environment. The writer remains the author; agents, models, tools and community systems help the writer learn, explore, test and refine decisions without silently taking ownership of the work.
+<p align="center">Local-first · LEARN-centered · Agent-skilled · Capability-routed · Self-verifying · Studio-connected</p>
+
+PlotPickle is a local-first, LEARN-centered creative platform—server-based but client-capable—with a real Agent Skills runtime, capability-based model routing, a closed-loop verification and repair system, and the beginnings of BUZZ federation between PlotPickle Studios.
+
+The writer remains the author. Agents, models, tools and community systems help the writer learn, explore, test and refine decisions without silently taking ownership of the work.
 
 The active product spine is deliberately small:
 

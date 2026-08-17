@@ -12,8 +12,8 @@ test("README describes the current slim PlotPickle product spine", () => {
   assert.match(readme, /parked off to the side/i);
 });
 
-test("README uses the approved PlotPickle identity artwork and active workspace glyphs", () => {
-  assert.match(readme, /docs\/brand-sources\/plotpickle-ouroboros-v2-master\.png/);
+test("README uses the approved PlotPickle marketing identity and active workspace glyphs", () => {
+  assert.match(readme, /public\/brand\/plotpickle-header-horizontal-1200\.png/);
   assert.match(readme, /public\/brand\/plotpickle-icon-master-transparent\.png/);
   assert.match(readme, /docs\/brand-sources\/sage-brinewick-v2-master\.png/);
   assert.doesNotMatch(readme, /public\/brand\/plotpickle-header-horizontal-transparent\.png/);
@@ -27,6 +27,16 @@ test("README uses the approved PlotPickle identity artwork and active workspace 
   ]) {
     assert.match(readme, new RegExp(`public/assets/workflow-relics/${asset.replace(".", "\\.")}`));
   }
+});
+
+test("README leads with the current local-first LEARN-centered architecture positioning", () => {
+  assert.match(readme, /local-first, LEARN-centered creative platform/i);
+  assert.match(readme, /server-based but client-capable/i);
+  assert.match(readme, /real Agent Skills runtime/i);
+  assert.match(readme, /capability-based model routing/i);
+  assert.match(readme, /closed-loop verification and repair system/i);
+  assert.match(readme, /beginnings of BUZZ federation between PlotPickle Studios/i);
+  assert.match(readme, /The writer remains the author/);
 });
 
 test("README shows the current authority architecture", () => {

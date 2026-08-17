@@ -53,13 +53,13 @@ test("Settings exposes permanent left categories centre controls and right help 
   assert.match(settings, /Advanced AI routing/);
 });
 
-test("README uses the approved repository-resident artwork in the requested roles", async () => {
+test("README uses the approved repository-resident artwork in intentional roles", async () => {
   const readme = await read("README.md");
 
-  const primary = readme.indexOf("docs/brand-sources/plotpickle-ouroboros-v2-master.png");
+  const primary = readme.indexOf("public/brand/plotpickle-header-horizontal-1200.png");
   const secondary = readme.indexOf("public/brand/plotpickle-icon-master-transparent.png");
   const sage = readme.indexOf("docs/brand-sources/sage-brinewick-v2-master.png");
-  assert.ok(primary >= 0 && primary < readme.indexOf("# PlotPickle"), "the ouroboros/nib master should lead the README");
+  assert.ok(primary >= 0 && primary < readme.indexOf("<h1 align=\"center\">PlotPickle</h1>"), "the prepared horizontal marketing header should lead the README");
   assert.ok(secondary > readme.indexOf("### Community"), "the creative/lore emblem should support Community/BUZZ");
   assert.ok(sage > readme.indexOf("## Core agents and lore"), "the Sage portrait should identify the agent/lore section");
   assert.doesNotMatch(readme, /public\/brand\/plotpickle-header-horizontal-transparent\.png/);

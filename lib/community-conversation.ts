@@ -66,6 +66,10 @@ function actorBadge(kind: string | undefined): CommunityConversationItem["badge"
   return "";
 }
 
+function displayAuthor(name: string, role: string, badge: CommunityConversationItem["badge"]) {
+  return [name, role, badge].filter(Boolean).join(" · ");
+}
+
 function looksOperational(content: string) {
   const lines = content.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   const markers = lines.filter((line) => EVENT_METADATA.test(line) || EVIDENCE_LINE.test(line)).length;
@@ -82,28 +86,32 @@ export function projectCommunityConversation(activity: RawCommunityActivity): Co
     // is excluded from the human-facing feed.
     if (parsed.type !== "agent.note") return null;
     const actor = actorFor(parsed.displayName, activity.author);
-    const badge = actorBadge(actor?.kind);
+    const role = parsed.title || actor?.title || "";
+    const badge = actorBadge(actor?.kind) || "Synthetic Agent";
+    const name = parsed.displayName || actor?.displayName || "PlotPickle agent";
     return {
       ...activity,
       content: parsed.summary,
-      author: parsed.displayName || actor?.displayName || "PlotPickle agent",
-      role: parsed.title || actor?.title || "",
+      author: displayAuthor(name, role, badge),
+      role,
       originStudio: "",
       room: "Great Hall",
       speakerType: "agent",
-      badge: badge || "Synthetic Agent",
+      badge,
     };
   }
 
   if (looksOperational(activity.content)) return null;
   const actor = actorFor("", activity.author);
+  const role = actor?.title || "";
   const badge = actorBadge(actor?.kind);
   const authorLooksTechnical = /^[a-f0-9]{32,}$/i.test(activity.author.trim());
+  const name = authorLooksTechnical ? "Community member" : activity.author || "Community member";
   return {
     ...activity,
     content: cleanHumanText(activity.content),
-    author: authorLooksTechnical ? "Community member" : activity.author || "Community member",
-    role: actor?.title || "",
+    author: actor ? displayAuthor(name, role, badge) : name,
+    role,
     originStudio: "",
     room: "Great Hall",
     speakerType: actor ? "agent" : "human",

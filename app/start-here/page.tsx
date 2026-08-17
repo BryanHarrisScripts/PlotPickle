@@ -10,7 +10,6 @@ const STORAGE_KEY = "plotpickle.project.v1";
 const RECORD_KEY = "plotpickle.beginner.path.v1";
 
 type PathRecord = { stageStates: Record<string, BeginnerProgressState>; skipped: string[]; updatedAt: string };
-
 const blankRecord: PathRecord = { stageStates: {}, skipped: [], updatedAt: "" };
 
 function workspaceHref(href: string) {
@@ -35,16 +34,9 @@ export default function StartHerePage() {
   const current = useMemo(() => beginnerStages.find((stage) => stage.id === active) ?? beginnerStages[0], [active]);
 
   function saveProject(next: PlotPickleProject) {
-    next.metadata.updatedAt = new Date().toISOString();
-    setProject(next);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    next.metadata.updatedAt = new Date().toISOString(); setProject(next); localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   }
-
-  function saveRecord(next: PathRecord) {
-    setRecord(next);
-    localStorage.setItem(RECORD_KEY, JSON.stringify(next));
-  }
-
+  function saveRecord(next: PathRecord) { setRecord(next); localStorage.setItem(RECORD_KEY, JSON.stringify(next)); }
   function updateField(field: "title" | "format" | "premise" | "audience" | "protagonist", value: string) {
     if (!project) return;
     const next = structuredClone(project);
@@ -55,11 +47,9 @@ export default function StartHerePage() {
     if (field === "protagonist") next.development.foundations.protagonist = value;
     saveProject(next);
   }
-
   function updateState(stageId: string, value: BeginnerProgressState) {
     saveRecord({ ...record, stageStates: { ...record.stageStates, [stageId]: value }, skipped: record.skipped.filter((id) => id !== stageId), updatedAt: new Date().toISOString() });
   }
-
   function toggleSkipped(stageId: string) {
     const skipped = record.skipped.includes(stageId) ? record.skipped.filter((id) => id !== stageId) : [...record.skipped, stageId];
     saveRecord({ ...record, skipped, updatedAt: new Date().toISOString() });
@@ -74,7 +64,6 @@ export default function StartHerePage() {
         <h1>Build your screenplay one useful decision at a time.</h1>
         <p>Nothing here is a pass/fail test. Skip, return and change decisions while the same canonical project keeps moving with you.</p>
       </header>
-
       <section className={styles.entry}>
         <h2>Only enough to begin</h2>
         <div className={styles.fields}>
@@ -85,37 +74,22 @@ export default function StartHerePage() {
           <label>Protagonist, even if provisional<textarea value={project.development.foundations.protagonist} onChange={(e) => updateField("protagonist", e.target.value)} /></label>
         </div>
       </section>
-
       <div className={styles.layout}>
         <nav className={styles.stages} aria-label="Beginner writing stages">
-          {beginnerStages.map((stage) => (
-            <button key={stage.id} className={stage.id === active ? styles.activeStage : styles.stage} onClick={() => setActive(stage.id)}>
-              <span>{stage.number}</span><div><strong>{stage.title}</strong><small>{record.skipped.includes(stage.id) ? "skipped — revisit anytime" : record.stageStates[stage.id] ?? "not-started"}</small></div>
-            </button>
-          ))}
+          {beginnerStages.map((stage) => <button key={stage.id} className={stage.id === active ? styles.activeStage : styles.stage} onClick={() => setActive(stage.id)}><span>{stage.number}</span><div><strong>{stage.title}</strong><small>{record.skipped.includes(stage.id) ? "skipped — revisit anytime" : record.stageStates[stage.id] ?? "not-started"}</small></div></button>)}
         </nav>
-
         <section className={styles.detail}>
-          <p className={styles.step}>Step {current.number} of {beginnerStages.length}</p>
-          <h2>{current.title}</h2>
-          <p>{current.plainLanguage}</p>
+          <p className={styles.step}>Step {current.number} of {beginnerStages.length}</p><h2>{current.title}</h2><p>{current.plainLanguage}</p>
           <aside><strong>Why this matters</strong><p>{current.whyItMatters}</p></aside>
-          <div className={styles.learningOrder}>
-            <Link href={workspaceHref(current.learningHref)}>1. Complete Learning Library</Link>
-            <div><strong>2. Guidance for this step</strong><span>Required now: {current.required.join(" · ")}</span><span>Optional: {current.optional.join(" · ")}</span></div>
-          </div>
+          <div className={styles.learningOrder}><Link href={workspaceHref(current.learningHref)}>1. Complete Learning Library</Link><div><strong>2. Guidance for this step</strong><span>Required now: {current.required.join(" · ")}</span><span>Optional: {current.optional.join(" · ")}</span></div></div>
           <div className={styles.actions}>
-            <Link className={styles.primary} href={workspaceHref(current.href)}>Open {current.workspace}</Link>
-            <Link href="/worked-examples">Show an example</Link>
-            <select aria-label="Progress state" value={record.stageStates[current.id] ?? "not-started"} onChange={(e) => updateState(current.id, e.target.value as BeginnerProgressState)}>
-              <option value="not-started">Not started</option><option value="exploring">Exploring</option><option value="working-draft">Working draft</option><option value="reviewed">Reviewed</option><option value="approved-for-draft">Approved for this draft</option><option value="needs-continuity-check">Needs continuity check</option>
-            </select>
+            <Link className={styles.primary} href={workspaceHref(current.href)}>Open {current.workspace}</Link><Link href="/worked-examples">Show an example</Link>
+            <select aria-label="Progress state" value={record.stageStates[current.id] ?? "not-started"} onChange={(e) => updateState(current.id, e.target.value as BeginnerProgressState)}><option value="not-started">Not started</option><option value="exploring">Exploring</option><option value="working-draft">Working draft</option><option value="reviewed">Reviewed</option><option value="approved-for-draft">Approved for this draft</option><option value="needs-continuity-check">Needs continuity check</option></select>
             <button type="button" onClick={() => toggleSkipped(current.id)}>{record.skipped.includes(current.id) ? "Return this step to the journey" : "Skip for now"}</button>
           </div>
         </section>
       </div>
-
-      <footer className={styles.footer}><Link href="/?workspace=1">Open full workspace</Link><Link href="/screenplay-readiness">Is my screenplay ready?</Link></footer>
+      <footer className={styles.footer}><Link href="/?workspace=1">Open full workspace</Link><Link href="/studio-identity">Name this PlotPickle Studio</Link><Link href="/screenplay-readiness">Is my screenplay ready?</Link></footer>
     </main>
   );
 }

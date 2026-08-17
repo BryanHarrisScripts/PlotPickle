@@ -1,8 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { McpToolArgumentError, toolArguments } from "../scripts/creative-uat/mcp-runtime.mjs";
 import { clickArgs, pageStateSignature, refFor, selectArgs, snapshotControlRefs, typeArgs } from "../scripts/exhaustive-ui-control-audit.mjs";
 import { isReportableExhaustiveFinding, partitionExhaustiveFindings } from "../scripts/exhaustive-ui-finding-policy.mjs";
+
+const root = new URL("..", import.meta.url);
 
 test("Playwright target schema receives legacy accessibility ref as required target", () => {
   const tool = {
@@ -78,6 +81,23 @@ test("observable state signature includes semantic tab state, headings and statu
   changed.controls[0].ariaSelected = "true";
   changed.headings = ["Great Hall"];
   assert.notEqual(pageStateSignature(base), pageStateSignature(changed));
+});
+
+test("issue #939 bundled same-lesson source links produce an observable status and target the exact source", async () => {
+  const material = await readFile(new URL("modules/learn/ui/curriculum-material.tsx", root), "utf8");
+  for (const contract of [
+    "onOpenReference",
+    "target.sourceId",
+    "data-source-navigation-status",
+    'role="status"',
+    "Opened bundled source:",
+    "scrollIntoView",
+    "focus({ preventScroll: true })",
+    "tabIndex={-1}",
+  ]) {
+    assert.ok(material.includes(contract), `Missing issue #939 source-navigation contract: ${contract}`);
+  }
+  assert.doesNotMatch(material, /onClick=\{\(\) => onOpenLesson\(target\.lessonId\)\}/);
 });
 
 test("harness findings stay local while a successfully exercised dead control remains reportable", () => {

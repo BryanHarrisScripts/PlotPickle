@@ -73,9 +73,16 @@ export function consoleHasErrors(text) {
 }
 
 export function toolArguments(tool, values) {
-  const properties = tool?.inputSchema?.properties || {};
+  const schema = tool?.inputSchema || {};
+  const properties = schema.properties || {};
+  const required = new Set(Array.isArray(schema.required) ? schema.required : []);
   const normalized = { ...values };
-  if (!("target" in normalized) && normalized.ref !== undefined && "target" in properties && !("ref" in properties)) {
+  if (
+    !("target" in normalized)
+    && normalized.ref !== undefined
+    && "target" in properties
+    && (required.has("target") || !("ref" in properties))
+  ) {
     normalized.target = normalized.ref;
   }
   return Object.fromEntries(Object.entries(normalized).filter(([key, value]) => value !== undefined && key in properties));

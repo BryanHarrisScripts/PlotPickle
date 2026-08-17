@@ -20,7 +20,7 @@ async function body(request: IncomingMessage) { const chunks: Buffer[] = []; let
 async function readStore() { return (await readCredentialJson<PresenceStore>(FILE)) || structuredClone(DEFAULTS); }
 function list(value: unknown) { return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string").slice(0, 12) : []; }
 function presence(input: Record<string, unknown>, previous: PresenceStore): PresenceInput {
-  const availability: Availability = ["online", "away", "offline"].includes(String(input.availability)) ? input.availability as Availability : previous.availability;
+  const availability: Availability = ["online", "away", "busy", "offline"].includes(String(input.availability)) ? input.availability as Availability : previous.availability;
   const visibility: Visibility = ["public", "contacts", "invisible"].includes(String(input.visibility)) ? input.visibility as Visibility : previous.visibility;
   return { availability, visibility, publicRooms: input.publicRooms ? list(input.publicRooms) : previous.publicRooms, agents: input.agents ? list(input.agents) : previous.agents };
 }

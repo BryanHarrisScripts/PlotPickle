@@ -40,6 +40,8 @@ jobs:
         run: node --test tests/issue-927-studio-identity.test.mjs
       - name: Validate outbound Playhouse federation boundary
         run: node --test tests/issue-928-playhouse-federation.test.mjs
+      - name: Validate Connected Studios discovery and moderation
+        run: node --test tests/issue-929-connected-studios.test.mjs
       - name: Production build
         run: npm run build
 

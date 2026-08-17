@@ -85,14 +85,21 @@ test("Great Hall and Story Rooms behave like conversations with reply and room-r
   assert.match(workspace, />Back to Story Rooms<\/button>/);
 });
 
-test("Connected Studios is staged honestly and never becomes a dead-end before federation lands", async () => {
-  const workspace = await read("app/community-workspace.tsx");
+test("Connected Studios is a real privacy-safe Playhouse directory with a Great Hall return path", async () => {
+  const [workspace, panel] = await Promise.all([
+    read("app/community-workspace.tsx"),
+    read("app/connected-studios-panel.tsx"),
+  ]);
 
   assert.match(workspace, /section === "connected-studios"/);
-  assert.match(workspace, /Community remains fully usable locally while Studio federation and presence are added/);
-  assert.match(workspace, /Nothing on this screen opens your local PlotPickle server to another Studio/);
-  assert.match(workspace, />Open Great Hall<\/button>/);
-  assert.match(workspace, />See People<\/button>/);
+  assert.match(workspace, /ConnectedStudiosPanel/);
+  assert.match(workspace, /onOpenGreatHall=\{\(\) => setSection\("great-hall"\)\}/);
+  assert.match(workspace, /Playhouse directory · signed presence/);
+  assert.match(panel, /\/api\/playhouse-directory/);
+  assert.match(panel, /This is a community directory, not a server list/);
+  assert.match(panel, /Visit Great Hall/);
+  assert.match(panel, /Playhouse discovery offline/);
+  assert.match(panel, /permanent Studio ID/);
 });
 
 test("Community overview adds a right-rail quick jump for recent public Great Hall conversations", async () => {

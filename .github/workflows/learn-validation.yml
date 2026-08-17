@@ -41,7 +41,7 @@ jobs:
         run: node --test tests/creative-uat-mcp-runtime.test.mjs
 
       - name: Validate global navigation order and grouping
-        run: node --test tests/workspace-navigation-contract.test.mjs
+        run: node --test tests/workspace-navigation-contract.test.mjs tests/issue-544-ui-continuity-agent.test.mjs
 
       - name: Validate Windows startup Agent Skills contract
         run: node --test tests/startup-agent-skills-contract.test.mjs tests/issue-341-windows-startup-ui-ux.test.mjs

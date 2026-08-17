@@ -79,6 +79,9 @@ export default function SageSettingsWorkspace() {
         </section>
 
         <section data-settings-section id="settings-routing" aria-label="Advanced AI routing">
+          <div className={styles.actions}>
+            <a className={styles.secondaryAction} href="#settings-quick">Back to PlotPickle Settings</a>
+          </div>
           <AiRoutingPanel />
         </section>
 

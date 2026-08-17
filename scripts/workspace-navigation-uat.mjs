@@ -42,21 +42,30 @@ export const EXPECTED_NAVIGATION_GAPS = [
 ];
 
 export async function inspectWorkspaceNavigation(client) {
-  const result = await client.call("browser_evaluate", { function: `() => {
-    const items = [...document.querySelectorAll('[data-workspace-navigation="true"] [data-workspace-nav-id]')]
-      .map((node) => ({
-        id: node.getAttribute('data-workspace-nav-id') || '',
-        label: (node.querySelector('strong')?.textContent || '').replace(/\\s+/g, ' ').trim(),
-        detail: (node.querySelector('small')?.textContent || '').replace(/\\s+/g, ' ').trim(),
-      }));
-    const gaps = items.length
-      ? [...document.querySelectorAll('[data-workspace-navigation="true"] [data-navigation-gap-after]')].map((node) => ({
-          after: node.getAttribute('data-workspace-nav-id') || '',
-          kind: node.getAttribute('data-navigation-gap-after') || '',
-          marginRight: Math.round(parseFloat(getComputedStyle(node).marginRight) || 0),
-        }))
-      : [];
-    return JSON.stringify({ items, gaps });
+  const result = await client.call("browser_evaluate", { function: `async () => {
+    const readNavigation = () => {
+      const items = [...document.querySelectorAll('[data-workspace-navigation="true"] [data-workspace-nav-id]')]
+        .map((node) => ({
+          id: node.getAttribute('data-workspace-nav-id') || '',
+          label: (node.querySelector('strong')?.textContent || '').replace(/\\s+/g, ' ').trim(),
+          detail: (node.querySelector('small')?.textContent || '').replace(/\\s+/g, ' ').trim(),
+        }));
+      const gaps = items.length
+        ? [...document.querySelectorAll('[data-workspace-navigation="true"] [data-navigation-gap-after]')].map((node) => ({
+            after: node.getAttribute('data-workspace-nav-id') || '',
+            kind: node.getAttribute('data-navigation-gap-after') || '',
+            marginRight: Math.round(parseFloat(getComputedStyle(node).marginRight) || 0),
+          }))
+        : [];
+      return { items, gaps };
+    };
+
+    let facts = readNavigation();
+    for (let attempt = 0; attempt < 40 && facts.items.length === 0; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 75));
+      facts = readNavigation();
+    }
+    return JSON.stringify(facts);
   }` });
   return parseRenderedEvaluateText(resultText(result));
 }

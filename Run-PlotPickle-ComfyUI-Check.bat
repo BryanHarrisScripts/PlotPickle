@@ -20,9 +20,21 @@ echo Paid cloud image and H3 generation are NOT run by this check.
 echo Keep Start-PlotPickle.bat and ComfyUI open while this test runs.
 echo.
 
+echo [1 OF 2] Verifying the ComfyUI integration contract...
+node --test "%~dp0tests\comfyui-live-verification.test.mjs"
+if errorlevel 1 (
+  echo.
+  echo ComfyUI contract verification failed. Live testing was not started.
+  set "EXIT_CODE=1"
+  goto :finish
+)
+
+echo.
+echo [2 OF 2] Running live local and configuration checks...
 node "%~dp0scripts\verify-comfyui-live.mjs"
 set "EXIT_CODE=%ERRORLEVEL%"
 
+:finish
 echo.
 if "%EXIT_CODE%"=="0" (
   echo ComfyUI focused verification passed.

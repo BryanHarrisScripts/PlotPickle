@@ -17,6 +17,7 @@ $OllamaTagsUrl = "http://127.0.0.1:11434/api/tags"
 $OllamaVersionUrl = "http://127.0.0.1:11434/api/version"
 $PowerShell = Get-Command "powershell.exe" -ErrorAction SilentlyContinue
 $Winget = Get-Command "winget.exe" -ErrorAction SilentlyContinue
+$WingetNoApplicableUpdate = -1978335189
 $script:MaintenanceWarningCount = 0
 
 function Write-MaintenanceWarning {
@@ -277,10 +278,13 @@ function Invoke-WingetUpgrade {
   Write-Host "[UPDATE] Checking $Label through trusted package $packageId..."
   try {
     & $Winget.Source upgrade --id $packageId --exact --source winget --include-unknown --accept-source-agreements --accept-package-agreements --disable-interactivity
-    if ($LASTEXITCODE -eq 0) {
+    $code = [int]$LASTEXITCODE
+    if ($code -eq 0) {
       Write-Host "[OK] $Label update check completed."
+    } elseif ($code -eq $WingetNoApplicableUpdate) {
+      Write-Host "[OK] $Label is already current; no applicable update was found."
     } else {
-      Write-MaintenanceWarning "$Label update check exited with code $LASTEXITCODE. PlotPickle will continue."
+      Write-MaintenanceWarning "$Label update check exited with code $code. PlotPickle will continue."
     }
   }
   catch {

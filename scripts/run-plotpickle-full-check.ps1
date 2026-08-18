@@ -10,14 +10,25 @@ $ProgressPreference = "SilentlyContinue"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $PlotPickleUrl = "http://127.0.0.1:4173"
-$Launcher = Join-Path $RepoRoot "Start-PlotPickle.bat"
 $LocalRoot = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { Join-Path $RepoRoot "logs" }
 $LogRoot = Join-Path $LocalRoot "PlotPickle\full-verification"
 $Stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $LogPath = Join-Path $LogRoot "plotpickle-full-check-$Stamp.log"
+$GraphResultPath = Join-Path $LogRoot "plotpickle-full-check-$Stamp.graph.json"
 $StartedAt = (Get-Date).ToUniversalTime().ToString("o")
 $Results = New-Object System.Collections.Generic.List[object]
 $FinalExitCode = 1
+$ExpectedStages = @(
+  [pscustomobject]@{ Name = "1 of 9 - Agent Skills registry"; Category = "Architecture" },
+  [pscustomobject]@{ Name = "2 of 9 - Agent Skills architecture boundaries"; Category = "Architecture" },
+  [pscustomobject]@{ Name = "3 of 9 - LEARN curriculum validation"; Category = "Curriculum" },
+  [pscustomobject]@{ Name = "4 of 9 - Production build"; Category = "Production Build" },
+  [pscustomobject]@{ Name = "5 of 9 - Ensure Pi local repair model"; Category = "Local AI / Pi" },
+  [pscustomobject]@{ Name = "6 of 9 - Pi repair preflight"; Category = "Local AI / Pi" },
+  [pscustomobject]@{ Name = "7 of 9 - Verify BUZZ live activity"; Category = "BUZZ" },
+  [pscustomobject]@{ Name = "8 of 9 - Exhaustive code-aware UI and UX UAT"; Category = "UI / UX UAT" },
+  [pscustomobject]@{ Name = "9 of 9 - Writer-in-Residence"; Category = "Writer Journey" }
+)
 
 New-Item -ItemType Directory -Force -Path $LogRoot | Out-Null
 Set-Location $RepoRoot
@@ -39,76 +50,44 @@ function Add-Result([string]$Name, [string]$Category, [string]$Status, [int]$Exi
   }) | Out-Null
 }
 
-function Invoke-NodeStep([string]$Name, [string]$Category, [string[]]$Arguments) {
-  Write-Section $Name
-  Write-Host "node $($Arguments -join ' ')" -ForegroundColor Gray
-  & node @Arguments
-  $Code = if ($null -eq $LASTEXITCODE) { 0 } else { [int]$LASTEXITCODE }
-  if ($Code -eq 0) {
-    Write-Host "PASS  $Name" -ForegroundColor Green
-    Add-Result $Name $Category "PASS" 0
-  } else {
-    Write-Host "FAIL  $Name (exit code $Code)" -ForegroundColor Red
-    Add-Result $Name $Category "FAIL" $Code
-  }
-}
+function Invoke-FullVerificationGraph {
+  Write-Section "HOST-OWNED VERIFICATION EXECUTION GRAPH"
+  Write-Host "Independent checks run concurrently when they have no dependency or resource conflict." -ForegroundColor Gray
+  Write-Host "The nine deterministic stages remain the sole PASS/FAIL authority." -ForegroundColor Gray
+  & node ".\scripts\full-verification-graph.mjs" "--result-file" $GraphResultPath "--startup-wait-seconds" "$StartupWaitSeconds"
+  $GraphExitCode = if ($null -eq $LASTEXITCODE) { 1 } else { [int]$LASTEXITCODE }
 
-function Invoke-NpmStep([string]$Name, [string]$Category, [string[]]$Arguments) {
-  Write-Section $Name
-  Write-Host "npm $($Arguments -join ' ')" -ForegroundColor Gray
-  & npm.cmd @Arguments
-  $Code = if ($null -eq $LASTEXITCODE) { 0 } else { [int]$LASTEXITCODE }
-  if ($Code -eq 0) {
-    Write-Host "PASS  $Name" -ForegroundColor Green
-    Add-Result $Name $Category "PASS" 0
-  } else {
-    Write-Host "FAIL  $Name (exit code $Code)" -ForegroundColor Red
-    Add-Result $Name $Category "FAIL" $Code
-  }
-}
-
-function Test-PlotPickleReady {
-  try {
-    $Response = Invoke-WebRequest -UseBasicParsing -Uri $PlotPickleUrl -TimeoutSec 3
-    return $Response.StatusCode -ge 200 -and $Response.Content -match "PlotPickle"
-  } catch {
-    return $false
-  }
-}
-
-function Ensure-PlotPickleReady {
-  Write-Section "PlotPickle local app"
-  if (Test-PlotPickleReady) {
-    Write-Host "READY  PlotPickle is already running at $PlotPickleUrl" -ForegroundColor Green
-    return $true
-  }
-
-  if (-not (Test-Path $Launcher)) {
-    Write-Host "FAIL  Start-PlotPickle.bat is missing." -ForegroundColor Red
-    Write-Host "The browser-dependent checks cannot run until PlotPickle is started." -ForegroundColor Yellow
-    return $false
-  }
-
-  Write-Host "START  PlotPickle is not running, so the official Start-PlotPickle.bat launcher will open now." -ForegroundColor Cyan
-  try {
-    Start-Process -FilePath "cmd.exe" -ArgumentList @("/d", "/c", ('"{0}"' -f $Launcher)) -WorkingDirectory $RepoRoot -WindowStyle Normal | Out-Null
-  } catch {
-    Write-Host "FAIL  PlotPickle could not be started: $($_.Exception.Message)" -ForegroundColor Red
-    return $false
-  }
-
-  $Deadline = (Get-Date).AddSeconds([Math]::Max(30, $StartupWaitSeconds))
-  while ((Get-Date) -lt $Deadline) {
-    if (Test-PlotPickleReady) {
-      Write-Host "READY  PlotPickle answered at $PlotPickleUrl" -ForegroundColor Green
-      return $true
+  if (-not (Test-Path $GraphResultPath)) {
+    Write-Host "FAIL  Verification graph did not produce a structured result." -ForegroundColor Red
+    foreach ($Stage in $ExpectedStages) {
+      Add-Result $Stage.Name $Stage.Category "BLOCKED" 1 "Verification graph result was unavailable."
     }
-    Start-Sleep -Seconds 2
+    return $false
   }
 
-  Write-Host "FAIL  PlotPickle did not become reachable within $StartupWaitSeconds seconds." -ForegroundColor Red
-  Write-Host "Leave the Start-PlotPickle window open, review its last error, then run Run-PlotPickle-Full-Check.bat again." -ForegroundColor Yellow
-  return $false
+  try {
+    $Graph = Get-Content -Raw -Path $GraphResultPath | ConvertFrom-Json
+    $StageRecords = @($Graph.stages)
+    foreach ($Expected in $ExpectedStages) {
+      $Stage = $StageRecords | Where-Object { $_.Step -eq $Expected.Name } | Select-Object -First 1
+      if ($null -eq $Stage) {
+        Add-Result $Expected.Name $Expected.Category "BLOCKED" 1 "Verification graph omitted this authoritative stage."
+        continue
+      }
+      $Status = if ($Stage.Status -in @("PASS", "FAIL", "BLOCKED")) { [string]$Stage.Status } else { "BLOCKED" }
+      $Code = if ($Status -eq "PASS") { 0 } else { if ($null -eq $Stage.ExitCode) { 1 } else { [int]$Stage.ExitCode } }
+      Add-Result ([string]$Stage.Step) ([string]$Stage.Category) $Status $Code ([string]$Stage.Detail)
+    }
+    Write-Host "GRAPH  Peak parallel nodes: $($Graph.maxParallelObserved) / cap $($Graph.maxParallelism)" -ForegroundColor Cyan
+    return $GraphExitCode -eq 0
+  } catch {
+    Write-Host "FAIL  Verification graph result could not be parsed: $($_.Exception.Message)" -ForegroundColor Red
+    $Results.Clear()
+    foreach ($Stage in $ExpectedStages) {
+      Add-Result $Stage.Name $Stage.Category "BLOCKED" 1 "Verification graph result failed integrity parsing."
+    }
+    return $false
+  }
 }
 
 function Write-StructuredVerificationRecord {
@@ -177,56 +156,9 @@ try {
   Write-Host "Log:        $LogPath"
   Write-Host ""
   Write-Host "Deterministic tests own PASS/FAIL. Agents may observe, explain and repair only through bounded workflows after the record is saved." -ForegroundColor Gray
+  Write-Host "Graph rule: no dependency, no wait; shared resources remain isolated." -ForegroundColor Gray
 
-  Invoke-NodeStep "1 of 9 - Agent Skills registry" "Architecture" @(
-    ".\scripts\agent-skills.mjs", "--self-test"
-  )
-
-  Invoke-NodeStep "2 of 9 - Agent Skills architecture boundaries" "Architecture" @(
-    "--test",
-    ".\tests\sage-brinewick-agent-skill.test.mjs",
-    ".\tests\issue-913-agent-skills-migration.test.mjs"
-  )
-
-  Invoke-NpmStep "3 of 9 - LEARN curriculum validation" "Curriculum" @(
-    "run", "validate:learn"
-  )
-
-  Invoke-NpmStep "4 of 9 - Production build" "Production Build" @(
-    "run", "build"
-  )
-
-  Invoke-NodeStep "5 of 9 - Ensure Pi local repair model" "Local AI / Pi" @(
-    ".\scripts\ensure-local-repair-model.mjs", "--worker", "pi"
-  )
-
-  Invoke-NodeStep "6 of 9 - Pi repair preflight" "Local AI / Pi" @(
-    ".\scripts\run-uat-repair-agent.mjs", "--worker", "pi", "--preflight", "--require-ready"
-  )
-
-  $AppReady = Ensure-PlotPickleReady
-  if ($AppReady) {
-    Invoke-NodeStep "7 of 9 - Verify BUZZ live activity" "BUZZ" @(
-      ".\scripts\verify-buzz-live-activity.mjs"
-    )
-
-    Invoke-NodeStep "8 of 9 - Exhaustive code-aware UI and UX UAT" "UI / UX UAT" @(
-      ".\scripts\run-exhaustive-ui-uat.mjs"
-    )
-
-    Invoke-NodeStep "9 of 9 - Writer-in-Residence" "Writer Journey" @(
-      ".\scripts\run-writer-in-residence.mjs"
-    )
-  } else {
-    foreach ($BlockedStep in @(
-      [pscustomobject]@{ Name = "7 of 9 - Verify BUZZ live activity"; Category = "BUZZ" },
-      [pscustomobject]@{ Name = "8 of 9 - Exhaustive code-aware UI and UX UAT"; Category = "UI / UX UAT" },
-      [pscustomobject]@{ Name = "9 of 9 - Writer-in-Residence"; Category = "Writer Journey" }
-    )) {
-      Write-Host "BLOCKED  $($BlockedStep.Name) - PlotPickle is not reachable at $PlotPickleUrl" -ForegroundColor Red
-      Add-Result $BlockedStep.Name $BlockedStep.Category "BLOCKED" 1 "PlotPickle local app was not reachable."
-    }
-  }
+  [void](Invoke-FullVerificationGraph)
 
   Write-Section "DETAILED RESULTS"
   foreach ($Result in $Results) {
@@ -279,7 +211,10 @@ try {
 } catch {
   Write-Host ""
   Write-Host "FULL CHECK ERROR  $($_.Exception.Message)" -ForegroundColor Red
-  Add-Result "Full verification runner" "Runner" "FAIL" 1 $_.Exception.Message
+  $Results.Clear()
+  foreach ($Stage in $ExpectedStages) {
+    Add-Result $Stage.Name $Stage.Category "BLOCKED" 1 "Full verification runner failed before this stage could be proven."
+  }
   $FinalExitCode = 1
 } finally {
   if ($TranscriptStarted) {

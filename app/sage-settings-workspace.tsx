@@ -5,6 +5,7 @@ import AiRoutingPanel from "./ai-routing-panel";
 import BuzzLiveHealthCard from "./buzz-live-health-card";
 import DeepSeekHarnessPanel from "./deepseek-harness-panel";
 import LocalRuntimePanel from "./local-runtime-panel";
+import MediaRoutingPanel from "./media-routing-panel";
 import SageFastModelSetup from "./sage-fast-model-setup";
 import styles from "./sage-settings-workspace.module.css";
 
@@ -17,6 +18,16 @@ const SETTINGS_CATEGORIES = [
 ] as const;
 
 export default function SageSettingsWorkspace() {
+  function returnToRouting() {
+    const routing = document.getElementById("settings-routing");
+    if (!routing) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("workspace", "settings");
+    url.hash = "settings-routing";
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    routing.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   return (
     <main
       aria-label="Sage and PLAN local AI settings"
@@ -83,6 +94,13 @@ export default function SageSettingsWorkspace() {
             <a className={styles.secondaryAction} href="#settings-quick">Back to PlotPickle Settings</a>
           </div>
           <AiRoutingPanel />
+        </section>
+
+        <section data-settings-section id="settings-comfyui" aria-label="ComfyUI local image setup">
+          <div className={styles.actions}>
+            <button className={styles.secondaryAction} type="button" onClick={returnToRouting}>Back to AI routing</button>
+          </div>
+          <MediaRoutingPanel onManage={returnToRouting} />
         </section>
 
         <section data-settings-section id="settings-advanced">

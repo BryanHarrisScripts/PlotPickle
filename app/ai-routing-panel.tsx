@@ -182,7 +182,22 @@ export default function AiRoutingPanel() {
   function openSettings(target: string) {
     if (!target) return;
     window.sessionStorage.setItem("plotpickle.settings.section", target);
-    window.location.assign("/?workspace=settings");
+
+    const localSectionId = target.toLowerCase().includes("comfy") ? "settings-comfyui" : "";
+    if (localSectionId) {
+      const localSection = document.getElementById(localSectionId);
+      if (localSection) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("workspace", "settings");
+        url.hash = localSectionId;
+        window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+        localSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: target }));
+        return;
+      }
+    }
+
+    window.location.assign(`/?workspace=settings${localSectionId ? `#${localSectionId}` : ""}`);
   }
 
   if (!status) {

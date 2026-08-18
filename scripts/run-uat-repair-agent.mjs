@@ -160,15 +160,28 @@ async function run(command, commandArgs, options = {}) {
     cwd: options.cwd || repoRoot,
     env: { ...process.env, ...(options.env || {}) },
     windowsHide: true,
-    shell: options.shell === true,
+    shell: false,
     timeout: options.timeout || 0,
     maxBuffer: 16 * 1024 * 1024,
   });
   return { stdout: result.stdout.trim(), stderr: result.stderr.trim() };
 }
 
+function windowsCliCommand(command, commandArgs) {
+  return [command, ...commandArgs].map((value) => {
+    const text = String(value);
+    if (/[\r\n\0"&|<>^%!]/u.test(text)) {
+      throw new Error(`Windows CLI argument contains unsupported command-shell characters: ${text}`);
+    }
+    return `"${text}"`;
+  }).join(" ");
+}
+
 async function runCli(command, commandArgs, options = {}) {
-  return run(command, commandArgs, { ...options, shell: process.platform === "win32" });
+  if (process.platform === "win32") {
+    return run(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", windowsCliCommand(command, commandArgs)], options);
+  }
+  return run(command, commandArgs, options);
 }
 
 async function commandAvailable(worker) {
@@ -537,8 +550,18 @@ async function main() {
     process.stdout.write(`Repair evidence .................... SAVED  ${report}\n`);
   } finally {
     if (!keepWorktree) {
-      try { await run("git", ["worktree", "remove", "--force", worktreeRoot]); } catch {}
-      try { await rm(worktreeRoot, { recursive: true, force: true }); } catch {}
+      const [gitCleanup] = await Promise.allSettled([
+        run("git", ["worktree", "remove", "--force", worktreeRoot]),
+      ]);
+      if (gitCleanup.status === "rejected") {
+        process.stderr.write(`UAT repair cleanup warning: could not remove git worktree: ${gitCleanup.reason instanceof Error ? gitCleanup.reason.message : String(gitCleanup.reason)}\n`);
+      }
+      const [directoryCleanup] = await Promise.allSettled([
+        rm(worktreeRoot, { recursive: true, force: true }),
+      ]);
+      if (directoryCleanup.status === "rejected") {
+        process.stderr.write(`UAT repair cleanup warning: could not remove worktree directory: ${directoryCleanup.reason instanceof Error ? directoryCleanup.reason.message : String(directoryCleanup.reason)}\n`);
+      }
     }
   }
 }

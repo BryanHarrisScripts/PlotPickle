@@ -22,6 +22,11 @@ const EXPECTED_PROFILES = [
 
 const HOST_FORBIDDEN = ["ppf-direct-write", "github-write", "developer-shell", "credential-read", "provider-selection"];
 const MODEL_ROLES = new Set(["fast", "quality", "deep", "vision", "repair"]);
+const BUZZ_MUTABLE_KEYS = [
+  "harness", "provider", "model", "effort", "memory", "coreMemory", "coldMemory", "respondTo", "respondToPubkeys",
+  "parallelism", "idleTimeout", "maxTurnDuration", "startOnLaunch", "autoRestart", "environment", "env", "runtimeArgs",
+  "acpCommand", "maxOutputTokens", "contextLimit", "maxRounds",
+];
 
 test("one canonical Agent Profile registry covers the initial PlotPickle roster", async () => {
   const registry = JSON.parse(await read("config/agent-profiles.json"));
@@ -40,6 +45,29 @@ test("profiles request capability roles rather than vendor or model identities",
     if (profile.requestedModelRole !== null) assert.ok(MODEL_ROLES.has(profile.requestedModelRole), `${profile.id} must request a capability role`);
   }
   assert.doesNotMatch(raw, /qwen|deepseek|llama[-_. ]?cpp|ollama|openai|anthropic|gemini|mistral|gpt[-_. ]?\d/i);
+});
+
+test("BUZZ owns mutable character-host settings while PlotPickle keeps only authority and product bindings", async () => {
+  const [raw, authoritySource, contextSource] = await Promise.all([
+    read("config/agent-profiles.json"),
+    read("lib/agent-profiles.ts"),
+    read("lib/context-engine.ts"),
+  ]);
+  const registry = JSON.parse(raw);
+
+  for (const profile of registry.profiles) {
+    for (const key of BUZZ_MUTABLE_KEYS) assert.equal(Object.hasOwn(profile, key), false, `${profile.id} must not duplicate BUZZ-owned ${key}`);
+  }
+
+  assert.match(authoritySource, /BUZZ_OWNED_MUTABLE_PROFILE_KEYS/);
+  assert.match(authoritySource, /BUZZ owns cryptographic identity, instructions\/personality, encrypted core\/cold memory, ACP harness, provider\/model\/effort/);
+  assert.match(authoritySource, /BUZZ memory and PlotPickle project memory may be bounded context or evidence; neither is PPF canon/);
+  assert.match(authoritySource, /cannot duplicate BUZZ-owned mutable setting/);
+  assert.match(authoritySource, /runtime records which PlotPickle execution surface currently serves the role/);
+  assert.match(authoritySource, /lifecycleState records PlotPickle presentation availability only/);
+
+  // Context packets carry PlotPickle authority metadata, not BUZZ Brain/Memory/Social/Lifecycle configuration.
+  assert.doesNotMatch(contextSource, /profile\.(?:harness|provider|model|effort|coreMemory|coldMemory|respondTo|parallelism|startOnLaunch|autoRestart|runtimeArgs|acpCommand)/);
 });
 
 test("profiles and Skills cannot request host-forbidden developer, credential, provider or direct canon authority", async () => {
@@ -68,6 +96,16 @@ test("profiles and Skills cannot request host-forbidden developer, credential, p
   assert.doesNotMatch(authoritySource, /writeFile|unlink|rmSync|execSync|spawnSync|github\.com\/repos|api\.github\.com/);
 });
 
+test("a developer-capable BUZZ ACP harness can narrow but never expand PlotPickle authority", async () => {
+  const source = await read("lib/agent-profiles.ts");
+  assert.match(source, /resolveBoundAgentCapabilities/);
+  assert.match(source, /boundAgentClaimedCapabilities/);
+  assert.match(source, /resolveAgentProfileCapabilities\(\{/);
+  assert.match(source, /\.filter\(\(capability\) => claimed\.has\(capability\)\)/);
+  assert.match(source, /claims are only another narrowing input/);
+  assert.match(source, /They can never expand what PlotPickle granted/);
+});
+
 test("Community roster consumes Agent Profiles instead of BUZZ actor descriptions", async () => {
   const [model, ui] = await Promise.all([
     read("lib/community-agent-roster.ts"),
@@ -83,6 +121,7 @@ test("Community roster consumes Agent Profiles instead of BUZZ actor description
   assert.match(ui, /writer remains the final authority over creative changes/i);
   assert.match(ui, /Cannot do/);
   assert.match(ui, /Creative authority/);
+  assert.doesNotMatch(ui, /Core memory|Cold memory|Respond-to|Parallelism|Start on launch|Auto-restart|ACP command/);
 });
 
 test("startup validates Agent Profiles before continuing existing health checks", async () => {

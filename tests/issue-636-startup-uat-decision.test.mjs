@@ -18,18 +18,22 @@ test("the retired startup UAT prompt helper is not part of the product anymore",
 });
 
 test("Full Check owns deliberate verification instead of everyday startup", async () => {
-  const [launcher, fullCheck] = await Promise.all([
+  const [launcher, fullCheck, graph] = await Promise.all([
     read("Start-PlotPickle.bat"),
     read("scripts/run-plotpickle-full-check.ps1"),
+    read("scripts/full-verification-graph.mjs"),
   ]);
 
   assert.doesNotMatch(launcher, /Start the PlotPickle UAT Agent now|run-uat-closed-loop\.mjs|--github-report.*--repair/);
   assert.match(fullCheck, /8 of 9 - Exhaustive code-aware UI and UX UAT/);
-  assert.match(fullCheck, /run-exhaustive-ui-uat\.mjs/);
-  assert.doesNotMatch(fullCheck, /run-exhaustive-ui-uat\.mjs", "--github-report"/);
+  assert.match(fullCheck, /full-verification-graph\.mjs/);
+  assert.doesNotMatch(fullCheck, /run-exhaustive-ui-uat\.mjs/);
+  assert.match(graph, /scripts\/run-exhaustive-ui-uat\.mjs/);
+  assert.match(graph, /id: "exhaustive-uat"[\s\S]*dependencies: \[\{ id: "app-ready", require: "success"/);
   assert.match(fullCheck, /verification-orchestrator\.mjs/);
   assert.match(fullCheck, /if \(\$GitHubReport\) \{ \$Arguments \+= "--github-report" \}/);
   assert.match(fullCheck, /9 of 9 - Writer-in-Residence/);
+  assert.match(graph, /scripts\/run-writer-in-residence\.mjs/);
 });
 
 test("focused Startup UAT owns the normal-startup separation regression", async () => {

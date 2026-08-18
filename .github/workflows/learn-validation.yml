@@ -55,6 +55,9 @@ jobs:
       - name: Validate safe graph workflow primitives
         run: node --test tests/issue-967-safe-graph-workflows.test.mjs
 
+      - name: Validate unified Run telemetry and portability evals
+        run: node --test tests/issue-968-run-telemetry-evals.test.mjs
+
       - name: Validate full-verification Agent Skills architecture pair
         run: node --test tests/sage-brinewick-agent-skill.test.mjs tests/issue-913-agent-skills-migration.test.mjs
 

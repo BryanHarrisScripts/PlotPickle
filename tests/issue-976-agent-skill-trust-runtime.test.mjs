@@ -15,10 +15,21 @@ import {
 const ROOT = path.resolve(new URL("..", import.meta.url).pathname);
 const FIXTURE = path.join(ROOT, "tests", "fixtures", "agent-skills", "quarantined-external");
 const SENTINEL = path.join(FIXTURE, "EXECUTED-SENTINEL.txt");
+const EXPECTED_BUILT_INS = new Set([
+  "skill://plotpickle/uat-repair",
+  "skill://plotpickle/sage-brinewick",
+  "skill://plotpickle/plan-foundations",
+  "skill://plotpickle/writer-in-residence",
+  "skill://plotpickle/visual-qa",
+  "skill://plotpickle/buzz-guildhall-reporting",
+  "skill://plotpickle/marquee-director",
+  "skill://plotpickle/critics-circle",
+]);
 
 test("all packaged Skills receive deterministic complete trust records with SHA-256 tree hashes", async () => {
   const records = await builtInAgentSkillTrustRecords();
-  assert.equal(records.length, 6);
+  assert.equal(records.length, EXPECTED_BUILT_INS.size);
+  assert.deepEqual(new Set(records.map((record) => record.uri)), EXPECTED_BUILT_INS);
   for (const record of records) {
     assert.equal(record.sourceKind, "plotpickle-built-in");
     assert.equal(record.trustState, "trusted-built-in");
@@ -40,7 +51,8 @@ test("all packaged Skills receive deterministic complete trust records with SHA-
 
 test("trusted Skill index exposes safe trust/provenance metadata and never claims capabilities are granted", async () => {
   const index = await trustedAgentSkillIndex();
-  assert.equal(index.length, 6);
+  assert.equal(index.length, EXPECTED_BUILT_INS.size);
+  assert.deepEqual(new Set(index.map((item) => item.uri)), EXPECTED_BUILT_INS);
   for (const item of index) {
     assert.match(item.uri, /^skill:\/\/plotpickle\//);
     assert.match(item.contentSha256, /^[a-f0-9]{64}$/);

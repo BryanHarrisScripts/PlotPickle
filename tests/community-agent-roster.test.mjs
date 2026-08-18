@@ -4,19 +4,21 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("the canonical Agent Profile registry includes every active slim-product agent identity", async () => {
+test("the canonical Agent Contract registry includes every active slim-product agent identity", async () => {
   const config = JSON.parse(await read("config/agent-profiles.json"));
-  const byRole = new Map(config.profiles.filter((profile) => profile.runtimeRoleId).map((profile) => [profile.runtimeRoleId, profile]));
+  const byRole = new Map(config.profiles.filter((profile) => profile.execution?.roleId).map((profile) => [profile.execution.roleId, profile]));
 
+  assert.equal(config.schemaVersion, 2);
   assert.equal(byRole.get("curriculum-guide")?.displayName, "Sage Brinewick");
   assert.equal(byRole.get("foundations-planner")?.displayName, "Tamsin Hearthquill");
   assert.equal(byRole.get("wyrmwood-rival-director")?.displayName, "Master Oaken-Vague");
   assert.equal(byRole.get("wyrmwood-curriculum-evaluator")?.displayName, "Rowan Scalequill");
   assert.equal(byRole.get("foundations-planner")?.title, "Keeper of Foundations");
   assert.equal(byRole.get("foundations-planner")?.homeRoomId, "story-council");
+  assert.equal(byRole.get("curriculum-guide")?.buzzBinding?.actorId, "sage-brinewick");
 });
 
-test("Community shows a live roster sourced from Agent Profiles plus Mastra activity and BUZZ-native presence", async () => {
+test("Community shows a live roster sourced from Agent Contracts plus Mastra activity and BUZZ presence", async () => {
   const [workspace, roster, model] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("app/community-agent-roster.tsx"),
@@ -37,26 +39,28 @@ test("Community shows a live roster sourced from Agent Profiles plus Mastra acti
   assert.match(model, /AGENT_PROFILES\.map/);
   assert.match(model, /trace\?\.status === "running"/);
   assert.match(model, /status\?\.mastra\?\.ready === true/);
-  assert.match(model, /status\?\.mastra\?\.agents\?\.includes\(profile\.runtimeRoleId\)/);
-  assert.match(model, /BUZZ reports this steward online/);
+  assert.match(model, /status\?\.mastra\?\.agents\?\.includes\(roleId\)/);
+  assert.match(model, /profile\.buzzBinding\.actorId/);
+  assert.match(model, /BUZZ reports this agent online/);
 });
 
-test("the roster derives active, on-demand and parked roles from profile lifecycle without pretending all services are online", async () => {
+test("the roster derives active, on-demand and parked roles from PlotPickle availability without duplicating BUZZ lifecycle settings", async () => {
   const [profiles, model] = await Promise.all([
     read("config/agent-profiles.json"),
     read("lib/community-agent-roster.ts"),
   ]);
 
-  assert.match(profiles, /"quillan-reedcloak"[\s\S]*?"lifecycleState": "parked"/);
-  assert.match(profiles, /"avery-north"[\s\S]*?"lifecycleState": "on-demand"/);
-  assert.match(model, /profile\.lifecycleState === "parked"/);
+  assert.match(profiles, /"quillan-reedcloak"[\s\S]*?"defaultAvailability": "parked"/);
+  assert.match(profiles, /"avery-north"[\s\S]*?"defaultAvailability": "on-demand"/);
+  assert.doesNotMatch(profiles, /"startOnLaunch"|"autoRestart"|"parallelism"|"respondTo"/);
+  assert.match(model, /profile\.defaultAvailability === "parked"/);
   assert.match(model, /state: "on-demand"/);
   assert.match(model, /Runs only when the Writer-in-Residence journey is started/);
   assert.match(model, /Starts when rendered visual review needs evidence/);
   assert.match(model, /Runs when PlotPickle executes deterministic quality gates/);
-  assert.match(model, /intentionally inactive until this product area is brought back into the active workflow/);
+  assert.match(model, /intentionally inactive until this product area returns to the active workflow/);
   assert.match(model, /state: "unavailable"/);
-  assert.match(model, /will not guess whether the steward exists or is online/);
+  assert.match(model, /will not guess whether the agent exists or is online/);
 });
 
 test("BUZZ-native steward lookup is local, read-only and owner-scoped", async () => {

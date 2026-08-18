@@ -101,8 +101,8 @@ test("BEN runner is pinned, produces machine-readable evidence, and cannot becom
   assert.match(source, /"--yes"/);
   assert.match(source, /"scan"/);
   assert.match(source, /"delta"/);
-  assert.match(source, /"--base-report"/);
-  assert.match(source, /"--head-report"/);
+  assert.match(source, /"--base"/);
+  assert.match(source, /"--head"/);
   assert.match(source, /"--fail-on"/);
   assert.match(source, /"worktree", "add", "--detach"/);
   assert.match(source, /ben-result\.json/);

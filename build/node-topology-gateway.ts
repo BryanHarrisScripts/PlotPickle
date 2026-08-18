@@ -24,11 +24,11 @@ function isLocalTopologyRequest(request: IncomingMessage) {
 }
 
 function sendTopologyJson(response: ServerResponse, status: number, body: Record<string, unknown>) {
-  response.statusCode = status;
-  response.setHeader("Content-Type", "application/json; charset=utf-8");
-  response.setHeader("Cache-Control", "no-store");
-  response.setHeader("X-Content-Type-Options", "nosniff");
-  response.end(JSON.stringify(body));
+  response.writeHead(status, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+  }).end(JSON.stringify(body));
 }
 
 function requestOrigin(request: IncomingMessage) {

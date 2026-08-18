@@ -166,7 +166,7 @@ test("Agent Activity renders plain-language event-derived summary first and expa
   assert.match(activity, /Cloud cost/);
   assert.match(activity, /Safety signals/);
   assert.match(activity, /partial\/truncated result/);
-  assert.match(activity, /Hidden reasoning and credentials are not recorded/);
+  assert.match(activity, /Private internal deliberation and credentials are not recorded/);
 });
 
 test("Verification Inbox and BUZZ can reference a Run without duplicating private telemetry", async () => {

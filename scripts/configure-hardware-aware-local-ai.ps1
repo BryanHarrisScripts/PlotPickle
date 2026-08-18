@@ -18,6 +18,9 @@ $RagRequirements = Join-Path $Root "services\curriculum-rag\requirements.txt"
 $RagServer = Join-Path $Root "services\curriculum-rag\server.py"
 $RagStarter = Join-Path $Root "scripts\start-curriculum-rag.ps1"
 $CpuTorchIndex = "https://download.pytorch.org/whl/cpu"
+$MinimumRagPythonMajor = 3
+$MinimumRagPythonMinor = 10
+$RagConfigured = $false
 $ManagedInstanceCore = Join-Path $Root "scripts\comfyui-managed-instance-core.ps1"
 if (-not (Test-Path -LiteralPath $ManagedInstanceCore -PathType Leaf)) { throw "PlotPickle's ComfyUI managed-instance inspector is missing." }
 . $ManagedInstanceCore
@@ -84,42 +87,92 @@ function Find-ComfyPython {
   return ""
 }
 
-function Find-Python {
-  $python = Get-Command "python.exe" -ErrorAction SilentlyContinue
-  if ($python) { return @($python.Source) }
-  $py = Get-Command "py.exe" -ErrorAction SilentlyContinue
-  if ($py) { return @($py.Source, "-3") }
-  return @()
-}
-
-function Invoke-Python {
-  param([Parameter(Mandatory = $true)][string[]]$Python, [Parameter(Mandatory = $true)][string[]]$Arguments)
+function Get-PythonVersion {
+  param([Parameter(Mandatory = $true)][string[]]$Python)
+  if (-not $Python.Count) { return $null }
   $exe = $Python[0]
   $prefix = if ($Python.Count -gt 1) { @($Python[1..($Python.Count - 1)]) } else { @() }
-  & $exe @prefix @Arguments
-  if ($LASTEXITCODE -ne 0) { throw "Python command exited with code $LASTEXITCODE." }
+  $versionText = (& $exe @prefix -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>$null | Select-Object -First 1)
+  if ($LASTEXITCODE -ne 0 -or -not $versionText -or ([string]$versionText -notmatch "^(\d+)\.(\d+)$")) { return $null }
+  return [pscustomobject]@{ Major = [int]$Matches[1]; Minor = [int]$Matches[2]; Text = [string]$versionText }
+}
+
+function Test-RagPythonVersion {
+  param([Parameter(Mandatory = $true)][string[]]$Python)
+  $version = Get-PythonVersion -Python $Python
+  if (-not $version) { return $false }
+  return ($version.Major -gt $MinimumRagPythonMajor) -or ($version.Major -eq $MinimumRagPythonMajor -and $version.Minor -ge $MinimumRagPythonMinor)
+}
+
+function Find-RagPython {
+  $python = Get-Command "python.exe" -ErrorAction SilentlyContinue
+  if ($python) {
+    $candidate = @($python.Source)
+    if (Test-RagPythonVersion -Python $candidate) { return $candidate }
+  }
+
+  $py = Get-Command "py.exe" -ErrorAction SilentlyContinue
+  if ($py) {
+    foreach ($selector in @("-3.13", "-3.12", "-3.11", "-3.10")) {
+      $candidate = @($py.Source, $selector)
+      if (Test-RagPythonVersion -Python $candidate) { return $candidate }
+    }
+  }
+  return @()
 }
 
 function Configure-RetrievalService {
   if (-not (Test-Path -LiteralPath $RagRequirements -PathType Leaf) -or -not (Test-Path -LiteralPath $RagServer -PathType Leaf)) { throw "The PlotPickle curriculum RAG service files are missing." }
-  $python = @(Find-Python)
-  if (-not $python.Count) {
-    Write-Warning "Python was not detected. Curriculum RAG will use the bounded lexical fallback until Python is installed."
-    return
-  }
+  $script:RagConfigured = $false
   New-Item -ItemType Directory -Force -Path $RuntimeRoot | Out-Null
   $venvPython = Join-Path $RagRoot "Scripts\python.exe"
-  if (-not (Test-Path -LiteralPath $venvPython -PathType Leaf)) {
-    Write-Host "[RAG] Creating CPU-only curriculum retrieval environment..."
-    Invoke-Python -Python $python -Arguments @("-m", "venv", $RagRoot)
+  $basePython = @()
+
+  if (Test-Path -LiteralPath $venvPython -PathType Leaf) {
+    if (-not (Test-RagPythonVersion -Python @($venvPython))) {
+      $basePython = @(Find-RagPython)
+      if (-not $basePython.Count) {
+        Write-Warning "The existing PlotPickle curriculum RAG environment uses Python older than 3.10, and no separate Python 3.10+ interpreter was found. The bounded lexical fallback remains active. PlotPickle will not reuse Comfy Desktop's managed Python or install Python silently."
+        return
+      }
+      Write-Host "[RAG] Replacing the PlotPickle-owned legacy RAG environment with Python 3.10+..."
+      Remove-Item -LiteralPath $RagRoot -Recurse -Force
+    }
   }
+
+  if (-not (Test-Path -LiteralPath $venvPython -PathType Leaf)) {
+    if (-not $basePython.Count) { $basePython = @(Find-RagPython) }
+    if (-not $basePython.Count) {
+      Write-Warning "Python 3.10+ was not detected for curriculum RAG. The bounded lexical fallback remains active. PlotPickle will not reuse Comfy Desktop's managed Python or install Python silently."
+      return
+    }
+    Write-Host "[RAG] Creating CPU-only curriculum retrieval environment with Python 3.10+..."
+    $exe = $basePython[0]
+    $prefix = if ($basePython.Count -gt 1) { @($basePython[1..($basePython.Count - 1)]) } else { @() }
+    & $exe @prefix -m venv $RagRoot
+    if ($LASTEXITCODE -ne 0) {
+      Write-Warning "Could not create the curriculum RAG Python 3.10+ environment. The bounded lexical fallback remains active."
+      return
+    }
+  }
+
   Write-Host "[RAG] Installing CPU PyTorch so embedding/reranking never occupies creative GPU VRAM..."
   & $venvPython -m pip install --upgrade pip
-  if ($LASTEXITCODE -ne 0) { throw "Could not update pip for curriculum RAG." }
+  if ($LASTEXITCODE -ne 0) {
+    Write-Warning "Could not update pip for curriculum RAG. The bounded lexical fallback remains active."
+    return
+  }
   & $venvPython -m pip install --upgrade torch --index-url $CpuTorchIndex
-  if ($LASTEXITCODE -ne 0) { throw "Could not install CPU PyTorch for curriculum RAG." }
+  if ($LASTEXITCODE -ne 0) {
+    Write-Warning "Could not install CPU PyTorch for curriculum RAG. The bounded lexical fallback remains active."
+    return
+  }
   & $venvPython -m pip install -r $RagRequirements
-  if ($LASTEXITCODE -ne 0) { throw "Could not install curriculum RAG dependencies." }
+  if ($LASTEXITCODE -ne 0) {
+    Write-Warning "Could not install curriculum RAG dependencies. The bounded lexical fallback remains active."
+    return
+  }
+  $script:RagConfigured = $true
   Write-Host "[OK] Qwen3-Embedding-0.6B and Qwen3-Reranker-0.6B will load on CPU when the retrieval service starts."
 }
 
@@ -201,12 +254,16 @@ if ($Mode -eq "Report") {
 }
 
 New-Item -ItemType Directory -Force -Path $RuntimeRoot, $ModelRoot | Out-Null
-Configure-RetrievalService
 if ($gpu.Generation -eq "pascal" -and $ConfigureComfyUI) { Configure-PascalComfyUI }
+Configure-RetrievalService
+if (-not $RagConfigured) { Write-Host "[RAG] Semantic retrieval is not configured; PlotPickle will retain its bounded lexical fallback." }
 
-if ($StartRetrieval -and (Test-Path -LiteralPath $RagStarter -PathType Leaf)) {
+if ($StartRetrieval -and $RagConfigured -and (Test-Path -LiteralPath $RagStarter -PathType Leaf)) {
   & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $RagStarter
   if ($LASTEXITCODE -ne 0) { Write-Warning "The curriculum RAG service did not start cleanly; PlotPickle will retain its bounded lexical fallback." }
+}
+elseif ($StartRetrieval -and -not $RagConfigured) {
+  Write-Warning "Curriculum RAG was not started because its Python 3.10+ environment is not ready. The bounded lexical fallback remains active."
 }
 
 Write-Host ""

@@ -79,10 +79,10 @@ test("managed environment diagnosis is filesystem-based and crash evidence is bo
 test("explicit managed startup reuses Desktop's engine and model paths without requiring a Desktop Launch click", async () => {
   const starter = await read("scripts/start-comfyui-background.ps1");
   const managedStart = starter.indexOf("if (-not $mainPath -and $desktopExe -and $managedInstalled.Count -gt 0)");
-  const classicStart = starter.indexOf('[STARTING] Starting classic/portable ComfyUI as a hidden local backend');
+  const managedEnd = starter.indexOf("if (-not $mainPath -and $desktopExe -and -not $AllowDesktopLaunch)", managedStart);
   assert.ok(managedStart >= 0, "managed Desktop branch must exist");
-  assert.ok(classicStart > managedStart, "classic headless start must remain a later, separate path");
-  const managedBlock = starter.slice(managedStart, classicStart);
+  assert.ok(managedEnd > managedStart, "managed Desktop branch must end before the generic Desktop fallback");
+  const managedBlock = starter.slice(managedStart, managedEnd);
   assert.match(managedBlock, /if \(-not \$AllowDesktopLaunch\)/);
   assert.match(managedBlock, /Start-Process -FilePath \$instance\.PythonPath/);
   assert.match(managedBlock, /\$instance\.MainPath/);

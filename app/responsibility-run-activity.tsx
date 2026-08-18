@@ -143,7 +143,7 @@ export default function ResponsibilityRunActivity() {
                   <div><dt>Cloud cost</dt><dd>${telemetry.totals.cloudCostUsd.toFixed(4)} · {telemetry.totals.estimatedCostEvents} estimated · {telemetry.totals.unknownCostEvents} unknown</dd></div>
                   <div><dt>Safety signals</dt><dd>{telemetry.totals.policyDenials} policy denial(s) · {telemetry.totals.truncatedResults} partial/truncated result(s)</dd></div>
                 </dl>
-                <small>{telemetryEventCount} structured telemetry event(s) are correlated by Run ID. Hidden reasoning and credentials are not recorded.</small>
+                <small>{telemetryEventCount} structured telemetry event(s) are correlated by Run ID. Private internal deliberation and credentials are not recorded.</small>
               </details> : null}
               <footer>
                 <small>Updated {displayTime(run.updatedAt)} · {run.artifacts.length} artifact(s) · {run.verificationEvidence.length} evidence record(s)</small>

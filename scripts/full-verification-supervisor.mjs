@@ -11,9 +11,9 @@ export const FULL_VERIFICATION_RUNNER_LIVENESS_TIMEOUT_MS = 45_000;
 export const FULL_VERIFICATION_RUNNER_OVERALL_TIMEOUT_MS = 4 * 60 * 60_000;
 export const FULL_VERIFICATION_SUPERVISOR_POLL_MS = 1_000;
 
-function argument(name, fallback = "") {
+function commandLineValue(name) {
   const index = process.argv.indexOf(name);
-  return index >= 0 && index + 1 < process.argv.length ? process.argv[index + 1] : fallback;
+  return index >= 0 && index + 1 < process.argv.length ? process.argv[index + 1] : "";
 }
 
 function cleanDetail(value, limit = 900) {
@@ -26,6 +26,11 @@ function cleanDetail(value, limit = 900) {
     .replace(/\s+/g, " ")
     .trim()
     .slice(-limit);
+}
+
+function reportCleanupFailure(context, error, stderr = process.stderr) {
+  const detail = cleanDetail(error instanceof Error ? error.message : String(error), 300);
+  stderr?.write?.(`[verification-supervisor] cleanup ${context}: ${detail || "unknown process cleanup error"}\n`);
 }
 
 function childAlreadyClosed(child) {
@@ -49,7 +54,7 @@ async function waitForChildClose(child, timeoutMs = 3_000) {
   });
 }
 
-async function terminateProcessTree(child) {
+async function terminateProcessTree(child, stderr = process.stderr) {
   if (!child?.pid || childAlreadyClosed(child)) return;
 
   if (process.platform === "win32") {
@@ -68,21 +73,40 @@ async function terminateProcessTree(child) {
         stdio: "ignore",
       });
       timer = setTimeout(() => {
-        try { killer.kill(); } catch {}
+        try {
+          killer.kill();
+        } catch (error) {
+          reportCleanupFailure(`could not stop taskkill for PID ${child.pid}`, error, stderr);
+        }
         finish();
       }, 5_000);
-      killer.once("error", finish);
+      killer.once("error", (error) => {
+        reportCleanupFailure(`could not start taskkill for PID ${child.pid}`, error, stderr);
+        finish();
+      });
       killer.once("close", finish);
     });
     if (await waitForChildClose(child, 3_000)) return;
-    try { child.kill(); } catch {}
+    try {
+      child.kill();
+    } catch (error) {
+      reportCleanupFailure(`could not stop PID ${child.pid} after taskkill`, error, stderr);
+    }
     await waitForChildClose(child, 2_000);
     return;
   }
 
-  try { child.kill("SIGTERM"); } catch {}
+  try {
+    child.kill("SIGTERM");
+  } catch (error) {
+    reportCleanupFailure(`could not send SIGTERM to PID ${child.pid}`, error, stderr);
+  }
   if (await waitForChildClose(child, 3_000)) return;
-  try { child.kill("SIGKILL"); } catch {}
+  try {
+    child.kill("SIGKILL");
+  } catch (error) {
+    reportCleanupFailure(`could not send SIGKILL to PID ${child.pid}`, error, stderr);
+  }
   await waitForChildClose(child, 2_000);
 }
 
@@ -130,7 +154,7 @@ export async function superviseProcess({
       stopping = true;
       stderr?.write?.(`[verification-supervisor] ${detail}\n`);
       try {
-        await terminateProcessTree(child);
+        await terminateProcessTree(child, stderr);
       } finally {
         finish({ exitCode, reason, detail });
       }
@@ -172,9 +196,9 @@ export async function superviseProcess({
 }
 
 async function main() {
-  const resultFile = argument("--result-file");
+  const resultFile = commandLineValue("--result-file");
   if (!resultFile) throw new Error("--result-file is required.");
-  const startupWaitSeconds = argument("--startup-wait-seconds", "240");
+  const startupWaitSeconds = commandLineValue("--startup-wait-seconds") || "240";
   const runner = path.join(repoRoot, "scripts", "full-verification-progress-runner.mjs");
   const runnerArgs = [runner, "--result-file", resultFile, "--startup-wait-seconds", startupWaitSeconds];
 

@@ -10,6 +10,7 @@ import { buzzAgentRosterGateway } from "./build/buzz-agent-roster-gateway";
 import { buzzGuildhallGateway } from "./build/buzz-guildhall-gateway";
 import { buzzLiveHealthGateway } from "./build/buzz-live-health-gateway";
 import { buzzStoryRoomAccessGateway } from "./build/buzz-story-room-access-gateway";
+import { buzzSpecialistGateway } from "./build/buzz-specialist-gateway";
 import { buzzBundleNormalizer } from "./build/buzz-bundle-normalizer";
 import { googleCalendarGateway } from "./build/google-calendar-gateway";
 import { githubAppGateway } from "./build/github-app-gateway";
@@ -67,18 +68,12 @@ export default defineConfig(async () => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
-    // Vinext compiles both the client and server component graphs. Inject the
-    // launcher's exact per-checkout contract at transform time; reading a
-    // custom process.env value directly from a component is normalized away.
     define: {
       __PLOTPICKLE_STARTUP_CONTRACT__: JSON.stringify(
         process.env.PLOTPICKLE_STARTUP_CONTRACT ?? "plotpickle-unverified-startup",
       ),
     },
     optimizeDeps: {
-      // Vinext marks this RSC client shim inconsistently across the client/RSC
-      // graphs. Excluding it keeps Vite from pre-optimizing one copy while
-      // leaving another raw, which removes the harmless but noisy startup warning.
       exclude: ["vinext/dist/shims/internal/app-prefetch-fetch-queue.js"],
     },
     server: {
@@ -97,6 +92,7 @@ export default defineConfig(async () => {
       buzzGuildhallGateway(),
       buzzLiveHealthGateway(),
       buzzStoryRoomAccessGateway(),
+      buzzSpecialistGateway(),
       buzzGateway(),
       localSystemStatusGateway(),
       googleCalendarGateway(),

@@ -92,8 +92,24 @@ function Get-PythonVersion {
   if (-not $Python.Count) { return $null }
   $exe = $Python[0]
   $prefix = if ($Python.Count -gt 1) { @($Python[1..($Python.Count - 1)]) } else { @() }
-  $versionText = (& $exe @prefix -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>$null | Select-Object -First 1)
-  if ($LASTEXITCODE -ne 0 -or -not $versionText -or ([string]$versionText -notmatch "^(\d+)\.(\d+)$")) { return $null }
+  $versionText = $null
+  $exitCode = 1
+  $previousErrorActionPreference = $ErrorActionPreference
+  try {
+    # Windows PowerShell can promote native stderr from an unavailable py.exe
+    # selector into a terminating error while the rest of this script uses Stop.
+    # Version discovery is passive: a failed candidate should simply be skipped.
+    $ErrorActionPreference = "Continue"
+    $versionText = (& $exe @prefix -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>$null | Select-Object -First 1)
+    $exitCode = $LASTEXITCODE
+  }
+  catch {
+    return $null
+  }
+  finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+  }
+  if ($exitCode -ne 0 -or -not $versionText -or ([string]$versionText -notmatch "^(\d+)\.(\d+)$")) { return $null }
   return [pscustomobject]@{ Major = [int]$Matches[1]; Minor = [int]$Matches[2]; Text = [string]$versionText }
 }
 

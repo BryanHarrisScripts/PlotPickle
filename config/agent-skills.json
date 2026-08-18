@@ -109,6 +109,19 @@
       "localOnly": true
     },
     {
+      "id": "lazy-frames-animatic",
+      "name": "Lazy Frames Animatic",
+      "description": "Turn approved BUILD sequences into a local derived animatic through PlotPickle's host-owned Lazy Frames adapter without changing canonical story state.",
+      "entry": ".agents/skills/lazy-frames-animatic/SKILL.md",
+      "path": ".agents/skills/lazy-frames-animatic",
+      "uri": "skill://plotpickle/lazy-frames-animatic",
+      "roles": ["animatic-render-procedure"],
+      "primaryWorker": "host",
+      "consumers": ["build-animatic"],
+      "mcpReady": true,
+      "localOnly": true
+    },
+    {
       "id": "critics-circle",
       "name": "Critics' Circle",
       "description": "Provide independent internal PlotPickle critique across story, world, character, structure, pacing, dialogue, continuity, audience clarity and commercial positioning.",

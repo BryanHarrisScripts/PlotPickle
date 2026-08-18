@@ -1,0 +1,92 @@
+.build-animatic-studio {
+  margin: 18px 0 24px;
+  padding: 20px;
+  border: 1px solid color-mix(in srgb, var(--pp-accent, #2dd4bf) 30%, transparent);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 90% 10%, color-mix(in srgb, var(--pp-accent, #2dd4bf) 12%, transparent), transparent 34%),
+    color-mix(in srgb, var(--pp-surface, #0b1110) 94%, transparent);
+}
+
+.build-animatic-heading {
+  display: grid;
+  gap: 7px;
+}
+
+.build-animatic-heading h2,
+.build-animatic-heading p {
+  margin: 0;
+}
+
+.build-animatic-heading p {
+  max-width: 78ch;
+  color: var(--pp-text-muted, #a7b3ae);
+  line-height: 1.55;
+}
+
+.build-animatic-eyebrow {
+  color: var(--pp-accent, #2dd4bf);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.build-animatic-status-card {
+  display: grid;
+  gap: 5px;
+  margin-top: 16px;
+  padding: 13px 15px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--pp-surface-raised, #111b18) 88%, transparent);
+}
+
+.build-animatic-status-card[data-ready="true"] strong {
+  color: var(--pp-accent, #2dd4bf);
+}
+
+.build-animatic-status-card span {
+  color: var(--pp-text-muted, #a7b3ae);
+}
+
+.build-animatic-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.build-animatic-actions button {
+  min-height: 38px;
+  padding: 8px 13px;
+  border: 1px solid color-mix(in srgb, var(--pp-accent, #2dd4bf) 38%, transparent);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--pp-text, #f5f1e8);
+  font: inherit;
+  cursor: pointer;
+}
+
+.build-animatic-actions button:hover:not(:disabled),
+.build-animatic-actions button:focus-visible {
+  background: color-mix(in srgb, var(--pp-accent, #2dd4bf) 12%, transparent);
+}
+
+.build-animatic-actions button.primary {
+  background: color-mix(in srgb, var(--pp-accent, #2dd4bf) 20%, transparent);
+  color: var(--pp-text, #f5f1e8);
+}
+
+.build-animatic-actions button:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.build-animatic-detail {
+  margin: 12px 0 0;
+  color: var(--pp-text-muted, #a7b3ae);
+  font-size: 0.88rem;
+}
+
+.build-animatic-detail[data-state="error"] {
+  color: #f0b6a9;
+}

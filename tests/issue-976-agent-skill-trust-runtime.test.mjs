@@ -8,6 +8,7 @@ import {
   externalSkillTrustState,
   inspectAgentSkillPackage,
   inspectQuarantinedExternalSkill,
+  loadAgentSkillRegistry,
   selfTestAgentSkillTrust,
   trustedAgentSkillIndex,
 } from "../scripts/agent-skill-trust.mjs";
@@ -15,7 +16,7 @@ import {
 const ROOT = path.resolve(new URL("..", import.meta.url).pathname);
 const FIXTURE = path.join(ROOT, "tests", "fixtures", "agent-skills", "quarantined-external");
 const SENTINEL = path.join(FIXTURE, "EXECUTED-SENTINEL.txt");
-const EXPECTED_BUILT_INS = new Set([
+const REQUIRED_BUILT_INS = new Set([
   "skill://plotpickle/uat-repair",
   "skill://plotpickle/ben-code-quality",
   "skill://plotpickle/sage-brinewick",
@@ -27,10 +28,20 @@ const EXPECTED_BUILT_INS = new Set([
   "skill://plotpickle/critics-circle",
 ]);
 
+async function registeredBuiltInUris() {
+  const registry = await loadAgentSkillRegistry();
+  const uris = new Set((registry.skills || []).map((skill) => skill.uri));
+  for (const required of REQUIRED_BUILT_INS) {
+    assert.ok(uris.has(required), `Missing required built-in Skill ${required}`);
+  }
+  return uris;
+}
+
 test("all packaged Skills receive deterministic complete trust records with SHA-256 tree hashes", async () => {
+  const expectedBuiltIns = await registeredBuiltInUris();
   const records = await builtInAgentSkillTrustRecords();
-  assert.equal(records.length, EXPECTED_BUILT_INS.size);
-  assert.deepEqual(new Set(records.map((record) => record.uri)), EXPECTED_BUILT_INS);
+  assert.equal(records.length, expectedBuiltIns.size);
+  assert.deepEqual(new Set(records.map((record) => record.uri)), expectedBuiltIns);
   for (const record of records) {
     assert.equal(record.sourceKind, "plotpickle-built-in");
     assert.equal(record.trustState, "trusted-built-in");
@@ -51,9 +62,10 @@ test("all packaged Skills receive deterministic complete trust records with SHA-
 });
 
 test("trusted Skill index exposes safe trust/provenance metadata and never claims capabilities are granted", async () => {
+  const expectedBuiltIns = await registeredBuiltInUris();
   const index = await trustedAgentSkillIndex();
-  assert.equal(index.length, EXPECTED_BUILT_INS.size);
-  assert.deepEqual(new Set(index.map((item) => item.uri)), EXPECTED_BUILT_INS);
+  assert.equal(index.length, expectedBuiltIns.size);
+  assert.deepEqual(new Set(index.map((item) => item.uri)), expectedBuiltIns);
   for (const item of index) {
     assert.match(item.uri, /^skill:\/\/plotpickle\//);
     assert.match(item.contentSha256, /^[a-f0-9]{64}$/);

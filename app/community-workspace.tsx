@@ -74,16 +74,24 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "unknown error";
 }
 
+function parseStoredProject(source: string) {
+  try {
+    return { ok: true as const, project: normalizeFoundationProject(JSON.parse(source)) };
+  } catch (error) {
+    return { ok: false as const, error: errorMessage(error) };
+  }
+}
+
 function readProject(): PPFProject | null {
   if (typeof window === "undefined") return null;
   const source = window.localStorage.getItem(FOUNDATION_PROJECT_STORAGE_KEY);
   if (!source) return null;
-  try {
-    return normalizeFoundationProject(JSON.parse(source));
-  } catch (error) {
-    console.warn(`PlotPickle could not read the active project from local storage: ${errorMessage(error)}`);
+  const parsed = parseStoredProject(source);
+  if (!parsed.ok) {
+    console.warn(`PlotPickle could not read the active project from local storage: ${parsed.error}`);
     return null;
   }
+  return parsed.project;
 }
 
 function readReviews(): ReviewItem[] {

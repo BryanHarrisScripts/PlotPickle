@@ -115,7 +115,7 @@ test("protected local credential storage remains the secret implementation", asy
 test("external Skills are procedure, remain quarantined by default and cannot grant connector authority", async () => {
   const [policy, profiles] = await Promise.all([
     read("lib/connector-trust-policy.ts"),
-    read("lib/agent-profiles.ts"),
+    read("config/agent-profiles.json"),
   ]);
   assert.match(policy, /activate-external-skill/);
   assert.match(policy, /skill-quarantined/);

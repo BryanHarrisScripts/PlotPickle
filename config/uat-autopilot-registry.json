@@ -117,6 +117,20 @@
       ]
     },
     {
+      "id": "build",
+      "label": "BUILD and local animatic",
+      "route": "/?workspace=build&block=1&mini=1",
+      "requiredTerms": ["Build", "sequence", "Animatic"],
+      "minimumTextLength": 500,
+      "tests": [
+        "tests/issue-114-build-workspace.test.mjs",
+        "tests/issue-477-build-assembly-preview.test.mjs",
+        "tests/issue-1016-lazy-frames-animatic.test.mjs",
+        "tests/issue-672-global-navigation.test.mjs",
+        "tests/issue-879-visual-continuity.test.mjs"
+      ]
+    },
+    {
       "id": "wyrmwood",
       "label": "Wyrmwood game",
       "route": "/?workspace=wyrmwood",

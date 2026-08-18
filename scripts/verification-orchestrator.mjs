@@ -8,6 +8,11 @@ import process from "node:process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { bestEffortLiveBuzzActivity } from "./buzz-live-activity.mjs";
+import {
+  buildConfirmedRepairBundle,
+  buildVerificationFindings,
+  planRepairClusters,
+} from "./verification-findings.mjs";
 import { redactVerificationText, verificationInboxRoot } from "./verification-record.mjs";
 
 const exec = promisify(execFile);
@@ -83,10 +88,17 @@ export function buildVerificationReview(record, writer = null, uat = null) {
   ];
   const failures = Array.isArray(record.failureSummaries) ? record.failureSummaries.map((item) => ({ stage: safe(item.stage, 180), status: safe(item.status, 30), summary: safe(item.summary, 600) })) : [];
   const successfulAreas = (record.categoryResults || []).filter((item) => item.status === "PASS").map((item) => safe(item.category, 120));
-  const recommendedRepairOrder = [...failures.map((item) => item.stage), ...productDefects.map((item) => `Review product observation: ${item}`)];
+  const findings = buildVerificationFindings(record, writer, uat);
+  const repairClusters = planRepairClusters(findings);
+  const findingCounts = {
+    confirmed: findings.filter((finding) => finding.verificationStatus === "confirmed").length,
+    needsVerification: findings.filter((finding) => finding.verificationStatus === "needs-verification").length,
+    rejected: findings.filter((finding) => finding.verificationStatus === "rejected").length,
+  };
+  const recommendedRepairOrder = findings.filter((finding) => finding.verificationStatus === "confirmed").map((finding) => `${finding.area}: ${finding.reproduction}`).slice(0, 24);
   const cleanRun = record.deterministicResult === "PASS" && failures.length === 0 && productDefects.length === 0;
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     reviewId: timestampId("review"),
     runId: record.runId,
     testedCommit: safe(record.git?.commit, 80),
@@ -98,11 +110,26 @@ export function buildVerificationReview(record, writer = null, uat = null) {
     likelyProductDefects: productDefects,
     likelyHarnessDefects: harnessDefects,
     agentObservations: observations,
+    findings,
+    findingCounts,
+    repairClusters,
     successfulAreas,
     recommendedRepairOrder,
     repairRequired: record.deterministicResult === "FAIL",
-    summary: cleanRun ? "All nine deterministic checks passed. No repair is required and no findings were invented." : record.deterministicResult === "FAIL" ? `${failures.length} deterministic failure(s) require review before any result can change.` : `Deterministic verification passed; ${observations.length + productDefects.length + harnessDefects.length} advisory observation(s) remain available for review.`,
-    authority: { deterministicRunnerOwnsPassFail: true, agentsMayObserve: true, agentsMayOverridePassFail: false, buzzIsTransportOnly: true, ppfIsUntouched: true },
+    summary: cleanRun
+      ? "All nine deterministic checks passed. No repair is required and no findings were invented."
+      : record.deterministicResult === "FAIL"
+        ? `${failures.length} deterministic failure(s) require review; ${findingCounts.confirmed} confirmed finding(s) are eligible for bounded repair and ${findingCounts.needsVerification} advisory finding(s) remain outside repair.`
+        : `Deterministic verification passed; ${findingCounts.needsVerification} advisory finding(s) remain available for independent verification.`,
+    authority: {
+      deterministicRunnerOwnsPassFail: true,
+      agentsMayObserve: true,
+      agentsMayOverridePassFail: false,
+      unverifiedFindingsMayEnterRepair: false,
+      parallelRepairRequiresDisjointFilesAndWorktrees: true,
+      buzzIsTransportOnly: true,
+      ppfIsUntouched: true,
+    },
   };
 }
 
@@ -110,21 +137,39 @@ async function writeCompanion(folder, runId, value) {
   const root = path.join(verificationInboxRoot(), folder); await mkdir(root, { recursive: true, mode: 0o700 });
   const file = path.join(root, `${runId}-${timestampId(folder)}.json`); await writeFile(file, `${JSON.stringify(value, null, 2)}\n`, { encoding: "utf8", flag: "wx", mode: 0o600 }); return file;
 }
-async function boundedRepair(record) {
+async function boundedRepair(record, review) {
   if (record.deterministicResult !== "FAIL") return { requested: true, attempted: false, status: "NOT_REQUIRED", requiresRerun: false, message: "No deterministic failure exists, so Pi repair was not started." };
-  const failures = (record.failureSummaries || []).map((item) => `${safe(item.stage,160)}: ${safe(item.summary,500)}`).join(" | ");
-  const fingerprint = `verification.${String(record.runId).replace(/[^a-z0-9]+/gi,"-").slice(-48)}`;
+  const bundle = buildConfirmedRepairBundle(review.findings, { runId: record.runId, testedCommit: record.git?.commit });
+  if (!bundle) return { requested: true, attempted: false, status: "BLOCKED_UNVERIFIED", requiresRerun: true, message: "No confirmed finding passed the verification gate, so no repair worker was started." };
   const boundedRoot = path.join(verificationInboxRoot(), "bounded-repair"); await mkdir(boundedRoot, { recursive: true, mode: 0o700 });
   const boundedFile = path.join(boundedRoot, `${record.runId}.json`);
-  await writeFile(boundedFile, `${JSON.stringify({ schemaVersion:1, findings:[{ fingerprint, title:`Full Verification failure ${record.runId}`, area:"full-verification", severity:"blocker", message:failures || "Full Verification failed.", evidence:{ verificationRunId:record.runId, testedCommit:safe(record.git?.commit,80), failedStages:(record.failureSummaries || []).map((item)=>safe(item.stage,160)) } }] }, null, 2)}\n`, { encoding:"utf8", mode:0o600 });
+  await writeFile(boundedFile, `${JSON.stringify(bundle, null, 2)}\n`, { encoding:"utf8", mode:0o600 });
   let exitCode = 1; let error = "";
   try { await exec(process.execPath, [path.join(repoRoot,"scripts","run-uat-repair-agent.mjs"),"--worker","pi","--report",boundedFile], { cwd:repoRoot, env:process.env, windowsHide:true, timeout:2_100_000, maxBuffer:4*1024*1024 }); exitCode = 0; } catch (reason) { exitCode = Number(reason?.code ?? 1); error = safe(reason?.stderr || reason?.message || "Pi repair workflow failed.", 700); }
-  return { requested:true, attempted:true, status:exitCode===0?"COMPLETE":"FAILED", worker:"Pi", originalRunId:record.runId, testedCommit:safe(record.git?.commit,80), exitCode, summary:error || "Pi completed the existing bounded repair workflow. A deterministic rerun is still required before PASS can change.", evidenceRef:`bounded-repair/${path.basename(boundedFile)}`, deterministicSuccessClaimed:false, requiresRerun:true, generatedAt:new Date().toISOString() };
+  return {
+    requested:true,
+    attempted:true,
+    status:exitCode===0?"COMPLETE":"FAILED",
+    worker:"Pi",
+    originalRunId:record.runId,
+    testedCommit:safe(record.git?.commit,80),
+    confirmedFindingCount: bundle.confirmedFindingCount,
+    repairClusters: bundle.repairClusters,
+    unverifiedFindingsExcluded: bundle.unverifiedFindingsExcluded,
+    defaultLocalRepairParallelism: 1,
+    exitCode,
+    summary:error || "Pi completed the existing bounded repair workflow from confirmed findings only. A deterministic rerun is still required before PASS can change.",
+    evidenceRef:`bounded-repair/${path.basename(boundedFile)}`,
+    deterministicSuccessClaimed:false,
+    requiresRerun:true,
+    generatedAt:new Date().toISOString(),
+  };
 }
 function githubBody(record, review) {
   const stageLines = record.stages.map((stage)=>`- ${stage.status} — ${safe(stage.name,180)}`).join("\n");
   const observationLines = review.agentObservations.slice(0,8).map((item)=>`- ${item.agent}: ${item.summary}`).join("\n") || "- No separate agent observations were recorded.";
-  return [`## PlotPickle Full Verification`,"",`**Run:** \`${record.runId}\``,`**Tested commit:** \`${safe(record.git?.commit,80)}\``,`**Version:** ${safe(record.plotPickleVersion,80)}`,`**Deterministic result:** **${record.headline}**`,"","### Nine authoritative stages",stageLines,"","### Advisory agent review",observationLines,"",`**Review:** ${review.summary}`,"","Deterministic tests remain the sole PASS/FAIL authority. Agent observations, Pi repair work, and BUZZ delivery cannot change this result without a new authoritative rerun."].join("\n");
+  const findingLine = `Confirmed findings: ${review.findingCounts.confirmed}; awaiting verification: ${review.findingCounts.needsVerification}; rejected: ${review.findingCounts.rejected}.`;
+  return [`## PlotPickle Full Verification`,"",`**Run:** \`${record.runId}\``,`**Tested commit:** \`${safe(record.git?.commit,80)}\``,`**Version:** ${safe(record.plotPickleVersion,80)}`,`**Deterministic result:** **${record.headline}**`,"","### Nine authoritative stages",stageLines,"","### Typed finding gate",findingLine,"","### Advisory agent review",observationLines,"",`**Review:** ${review.summary}`,"","Deterministic tests remain the sole PASS/FAIL authority. Unverified agent observations cannot enter repair, and Pi/BUZZ cannot change this result without a new authoritative rerun."].join("\n");
 }
 async function publishGithub(record, review) {
   if (!/^[a-f0-9]{40}$/i.test(record.git?.commit || "")) throw new Error("The tested commit is unavailable; GitHub review handoff was not published.");
@@ -135,10 +180,10 @@ async function publishGithub(record, review) {
 async function main() {
   const record = await loadRecord(runId); const writer = await latestWriterReport(record); const uat = await exhaustiveReport(record); const review = buildVerificationReview(record, writer, uat);
   const reviewFile = await writeCompanion("reviews", record.runId, review);
-  let repair = null; if (repairRequested) { repair = await boundedRepair(record); await writeCompanion("repairs", record.runId, repair); }
+  let repair = null; if (repairRequested) { repair = await boundedRepair(record, review); await writeCompanion("repairs", record.runId, repair); }
   let github = null; if (githubReport) github = await publishGithub(record, review);
-  await bestEffortLiveBuzzActivity({ type:"decision.record", actorId:"bram-gatewick", summary:`Full Verification ${record.deterministicResult}: ${record.passCount}/${record.totalStages} deterministic stages passed; advisory observations=${review.agentObservations.length}; repair=${repair?.status || "not-requested"}.`, severity:record.deterministicResult==="PASS"?"info":"high", target:`verification run ${record.runId}`, verified:true, actionable:record.deterministicResult==="FAIL", evidence:[{label:"Verification review",ref:`reviews/${path.basename(reviewFile)}`} ] }).catch(()=>undefined);
-  process.stdout.write(`${JSON.stringify({ ok:true, runId:record.runId, deterministicResult:record.deterministicResult, reviewId:review.reviewId, observations:review.agentObservations.length, repair:repair?.status || "not-requested", githubReport:Boolean(github) })}\n`);
+  await bestEffortLiveBuzzActivity({ type:"decision.record", actorId:"bram-gatewick", summary:`Full Verification ${record.deterministicResult}: ${record.passCount}/${record.totalStages} deterministic stages passed; confirmed findings=${review.findingCounts.confirmed}; awaiting verification=${review.findingCounts.needsVerification}; repair=${repair?.status || "not-requested"}.`, severity:record.deterministicResult==="PASS"?"info":"high", target:`verification run ${record.runId}`, verified:true, actionable:record.deterministicResult==="FAIL", evidence:[{label:"Verification review",ref:`reviews/${path.basename(reviewFile)}`} ] }).catch(()=>undefined);
+  process.stdout.write(`${JSON.stringify({ ok:true, runId:record.runId, deterministicResult:record.deterministicResult, reviewId:review.reviewId, observations:review.agentObservations.length, confirmedFindings:review.findingCounts.confirmed, awaitingVerification:review.findingCounts.needsVerification, repair:repair?.status || "not-requested", githubReport:Boolean(github) })}\n`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main().catch((error)=>{ console.error(safe(error instanceof Error?error.message:String(error),900)); process.exitCode=1; });

@@ -16,8 +16,11 @@ test('Windows full-check launcher describes the current verification surface', a
   assert.match(launcher, /--retest-of/);
 });
 
-test('full verification runner keeps all nine stages in the intended order', async () => {
-  const runner = await read('scripts/run-plotpickle-full-check.ps1');
+test('full verification preserves the same nine authoritative stages in canonical order', async () => {
+  const [runner, graph] = await Promise.all([
+    read('scripts/run-plotpickle-full-check.ps1'),
+    read('scripts/full-verification-graph.mjs'),
+  ]);
   const stages = [
     '1 of 9 - Agent Skills registry',
     '2 of 9 - Agent Skills architecture boundaries',
@@ -30,29 +33,40 @@ test('full verification runner keeps all nine stages in the intended order', asy
     '9 of 9 - Writer-in-Residence',
   ];
 
-  let previous = -1;
-  for (const stage of stages) {
-    const index = runner.indexOf(stage);
-    assert.ok(index > previous, `${stage} should appear after the previous full-check stage`);
-    previous = index;
+  for (const source of [runner, graph]) {
+    let previous = -1;
+    for (const stage of stages) {
+      const index = source.indexOf(stage);
+      assert.ok(index > previous, `${stage} should appear after the previous full-check stage`);
+      previous = index;
+    }
   }
 });
 
-test('full verification executes architecture, curriculum, build, Pi, BUZZ, UI/UX UAT and writer checks', async () => {
+test('full verification graph executes architecture, curriculum, build, Pi, BUZZ, UI/UX UAT and writer checks', async () => {
+  const graph = await read('scripts/full-verification-graph.mjs');
+
+  assert.match(graph, /scripts\/agent-skills\.mjs", "--self-test/);
+  assert.match(graph, /tests\/sage-brinewick-agent-skill\.test\.mjs/);
+  assert.match(graph, /tests\/issue-913-agent-skills-migration\.test\.mjs/);
+  assert.match(graph, /args: \["run", "validate:learn"\]/);
+  assert.match(graph, /args: \["run", "build"\]/);
+  assert.match(graph, /scripts\/ensure-local-repair-model\.mjs", "--worker", "pi"/);
+  assert.match(graph, /scripts\/run-uat-repair-agent\.mjs", "--worker", "pi", "--preflight", "--require-ready"/);
+  assert.match(graph, /scripts\/verify-buzz-live-activity\.mjs/);
+  assert.match(graph, /scripts\/run-exhaustive-ui-uat\.mjs/);
+  assert.match(graph, /scripts\/run-writer-in-residence\.mjs/);
+  assert.doesNotMatch(graph, /run-exhaustive-ui-uat\.mjs", "--github-report"/);
+  assert.doesNotMatch(graph, /run-writer-in-residence\.mjs", "--github-report"/);
+});
+
+test('PowerShell delegates deterministic execution to one host-owned graph and materializes its stage array', async () => {
   const runner = await read('scripts/run-plotpickle-full-check.ps1');
 
-  assert.match(runner, /\.\\scripts\\agent-skills\.mjs", "--self-test/);
-  assert.match(runner, /\.\\tests\\sage-brinewick-agent-skill\.test\.mjs/);
-  assert.match(runner, /\.\\tests\\issue-913-agent-skills-migration\.test\.mjs/);
-  assert.match(runner, /"run", "validate:learn"/);
-  assert.match(runner, /"run", "build"/);
-  assert.match(runner, /ensure-local-repair-model\.mjs", "--worker", "pi"/);
-  assert.match(runner, /run-uat-repair-agent\.mjs", "--worker", "pi", "--preflight", "--require-ready"/);
-  assert.match(runner, /verify-buzz-live-activity\.mjs/);
-  assert.match(runner, /run-exhaustive-ui-uat\.mjs/);
-  assert.match(runner, /run-writer-in-residence\.mjs/);
-  assert.doesNotMatch(runner, /run-exhaustive-ui-uat\.mjs", "--github-report"/);
-  assert.doesNotMatch(runner, /run-writer-in-residence\.mjs", "--github-report"/);
+  assert.match(runner, /full-verification-graph\.mjs/);
+  assert.match(runner, /\$StageRecords\s*=\s*@\(\$Graph\.stages\)/);
+  assert.match(runner, /Add-Result \(\[string\]\$Stage\.Step\)/);
+  assert.doesNotMatch(runner, /Invoke-NodeStep|Invoke-NpmStep/);
 });
 
 test('structured Verification Inbox payload materializes generic stage results as a plain object array', async () => {
@@ -73,13 +87,19 @@ test('deterministic result is saved before advisory orchestration and BUZZ lifec
   assert.match(runner, /BUZZ lifecycle delivery was unavailable; the deterministic verification result is unchanged/);
 });
 
-test('browser-dependent checks become explicitly blocked when PlotPickle cannot start', async () => {
-  const runner = await read('scripts/run-plotpickle-full-check.ps1');
+test('browser-dependent checks use explained app-readiness success edges and preserve explicit BLOCKED results', async () => {
+  const [runner, graph] = await Promise.all([
+    read('scripts/run-plotpickle-full-check.ps1'),
+    read('scripts/full-verification-graph.mjs'),
+  ]);
 
-  assert.match(runner, /7 of 9 - Verify BUZZ live activity/);
-  assert.match(runner, /8 of 9 - Exhaustive code-aware UI and UX UAT/);
-  assert.match(runner, /9 of 9 - Writer-in-Residence/);
-  assert.match(runner, /Add-Result \$BlockedStep\.Name \$BlockedStep\.Category "BLOCKED"/);
+  for (const id of ['buzz-live', 'exhaustive-uat', 'writer-in-residence']) {
+    const start = graph.indexOf(`id: "${id}"`);
+    const section = graph.slice(start, start + 1000);
+    assert.match(section, /dependencies: \[\{ id: "app-ready", require: "success", reason: "[^"]+" \}\]/);
+  }
+  assert.match(graph, /status: "BLOCKED"/);
+  assert.match(runner, /Verification graph omitted this authoritative stage/);
   assert.match(runner, /complete child-process output above is part of this same log/i);
 });
 

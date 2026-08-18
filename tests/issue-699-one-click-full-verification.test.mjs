@@ -14,8 +14,11 @@ test("Windows launcher is portable, double-click friendly, and keeps the console
   assert.doesNotMatch(launcher, /C:\\Users\\/i);
 });
 
-test("full verification runs the five requested checks in the intended order and centralizes GitHub reporting", async () => {
-  const runner = await read("scripts/run-plotpickle-full-check.ps1");
+test("full verification delegates the requested checks to the graph and centralizes GitHub reporting", async () => {
+  const [runner, graph] = await Promise.all([
+    read("scripts/run-plotpickle-full-check.ps1"),
+    read("scripts/full-verification-graph.mjs"),
+  ]);
   const commands = [
     "ensure-local-repair-model.mjs",
     "run-uat-repair-agent.mjs",
@@ -24,30 +27,30 @@ test("full verification runs the five requested checks in the intended order and
     "run-writer-in-residence.mjs",
   ];
 
-  let previous = -1;
-  for (const command of commands) {
-    const index = runner.indexOf(command);
-    assert.ok(index > previous, `${command} should appear after the previous verification step`);
-    previous = index;
-  }
+  assert.match(runner, /full-verification-graph\.mjs/);
+  for (const command of commands) assert.match(graph, new RegExp(command.replaceAll(".", "\\.")));
 
-  assert.match(runner, /--worker", "pi"/);
-  assert.match(runner, /--preflight", "--require-ready"/);
-  assert.doesNotMatch(runner, /run-exhaustive-ui-uat\.mjs", "--github-report"/);
-  assert.doesNotMatch(runner, /run-writer-in-residence\.mjs", "--github-report"/);
+  assert.match(graph, /scripts\/ensure-local-repair-model\.mjs", "--worker", "pi"/);
+  assert.match(graph, /scripts\/run-uat-repair-agent\.mjs", "--worker", "pi", "--preflight", "--require-ready"/);
+  assert.match(graph, /id: "pi-preflight"[\s\S]*dependencies: \[\{ id: "ensure-pi-model", require: "success"/);
+  assert.doesNotMatch(runner, /run-exhaustive-ui-uat\.mjs|run-writer-in-residence\.mjs/);
   assert.match(runner, /verification-orchestrator\.mjs/);
   assert.match(runner, /if \(\$GitHubReport\) \{ \$Arguments \+= "--github-report" \}/);
 });
 
-test("full verification starts the official app when needed and waits for localhost readiness", async () => {
-  const runner = await read("scripts/run-plotpickle-full-check.ps1");
+test("full verification graph starts the official app when needed and waits for localhost readiness", async () => {
+  const [runner, graph] = await Promise.all([
+    read("scripts/run-plotpickle-full-check.ps1"),
+    read("scripts/full-verification-graph.mjs"),
+  ]);
 
-  assert.match(runner, /http:\/\/127\.0\.0\.1:4173/);
-  assert.match(runner, /Start-PlotPickle\.bat/);
-  assert.match(runner, /Test-PlotPickleReady/);
-  assert.match(runner, /Start-Process -FilePath "cmd\.exe"/);
-  assert.match(runner, /while \(\(Get-Date\) -lt \$Deadline\)/);
-  assert.match(runner, /BLOCKED/);
+  assert.match(runner, /full-verification-graph\.mjs/);
+  assert.match(graph, /http:\/\/127\.0\.0\.1:4173/);
+  assert.match(graph, /Start-PlotPickle\.bat/);
+  assert.match(graph, /ensurePlotPickleReady/);
+  assert.match(graph, /spawn\("cmd\.exe"/);
+  assert.match(graph, /while \(Date\.now\(\) < deadline\)/);
+  assert.match(graph, /id: "app-ready"[\s\S]*dependencies: \[\{ id: "production-build", require: "complete"/);
 });
 
 test("normal startup no longer needs a UAT-prompt suppression workaround", async () => {

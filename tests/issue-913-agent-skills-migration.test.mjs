@@ -167,5 +167,5 @@ test('progressive skill index and CLI self-test include the migration', async ()
     encoding: 'utf8',
   });
   assert.equal(result.status, 0, result.stderr || result.stdout);
-  assert.match(result.stdout, /PlotPickle agent skills self-test PASS: 9 skill\(s\)/);
+  assert.match(result.stdout, new RegExp(`PlotPickle agent skills self-test PASS: ${index.skills.length} skill\\(s\\)`));
 });

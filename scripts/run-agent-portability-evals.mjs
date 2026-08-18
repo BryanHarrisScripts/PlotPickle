@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 const cases = [
   {
     id: "sage-grounded-answer",
@@ -116,7 +119,8 @@ export function summarizePortabilityEvals(results) {
   return [...byRoute.values()];
 }
 
-if (process.argv[1] && new URL(import.meta.url).pathname.endsWith(process.argv[1].replaceAll("\\", "/"))) {
+const direct = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+if (direct) {
   const results = runPortabilityEvals();
   const summary = summarizePortabilityEvals(results);
   console.log(JSON.stringify({ ok: results.every((result) => result.passed), results, summary }, null, 2));

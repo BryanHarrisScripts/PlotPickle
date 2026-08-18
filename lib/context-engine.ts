@@ -5,6 +5,7 @@ export const CONTEXT_SOURCE_TYPES = [
   "agent-skill",
   "writer-instruction",
   "ppf-canon",
+  "story-knowledge-graph",
   "curriculum-current",
   "curriculum-adapted",
   "curriculum-historical",
@@ -97,6 +98,7 @@ const AUTHORITY = {
   taskSchema: 88,
   agentProfile: 85,
   agentSkill: 82,
+  storyKnowledgeGraph: 76,
   approvedProjectMemory: 72,
   recentConversation: 65,
   adaptedCurriculum: 60,
@@ -113,6 +115,7 @@ const UNTRUSTED_SOURCE_TYPES = new Set<ContextSourceType>(["agent-observation", 
 const NON_CANON_SOURCE_TYPES = new Set<ContextSourceType>([
   "agent-profile",
   "agent-skill",
+  "story-knowledge-graph",
   "curriculum-current",
   "curriculum-adapted",
   "curriculum-historical",
@@ -160,6 +163,7 @@ function boundedAuthority(item: ContextItemInput) {
   if (item.sourceType === "task-schema") return AUTHORITY.taskSchema;
   if (item.sourceType === "agent-profile") return AUTHORITY.agentProfile;
   if (item.sourceType === "agent-skill") return AUTHORITY.agentSkill;
+  if (item.sourceType === "story-knowledge-graph") return Math.min(item.authority, AUTHORITY.storyKnowledgeGraph);
   if (item.sourceType === "project-memory") return Math.min(item.authority, AUTHORITY.approvedProjectMemory);
   if (item.sourceType === "recent-conversation") return Math.min(item.authority, AUTHORITY.recentConversation);
   if (item.sourceType === "curriculum-adapted") return Math.min(item.authority, AUTHORITY.adaptedCurriculum);
@@ -324,10 +328,12 @@ export function contextReceiptSummary(receipt: ContextReceipt, actorLabel = "Age
   const count = (type: ContextSourceType) => receipt.sourceCounts[type] || 0;
   const parts: string[] = [];
   const storyFacts = count("ppf-canon");
+  const storyKnowledge = count("story-knowledge-graph");
   const curriculum = count("curriculum-current") + count("curriculum-adapted") + count("curriculum-historical");
   const projectMemory = count("project-memory");
   const conversation = count("recent-conversation");
   if (storyFacts) parts.push(`${storyFacts} story ${storyFacts === 1 ? "fact" : "facts"}`);
+  if (storyKnowledge) parts.push(`${storyKnowledge} derived story ${storyKnowledge === 1 ? "connection" : "connections"}`);
   if (curriculum) parts.push(`${curriculum} curriculum ${curriculum === 1 ? "reference" : "references"}`);
   if (projectMemory) parts.push(`${projectMemory} approved project ${projectMemory === 1 ? "decision" : "decisions"}`);
   if (conversation) parts.push(`${conversation} recent conversation ${conversation === 1 ? "slice" : "slices"}`);

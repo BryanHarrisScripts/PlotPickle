@@ -22,9 +22,11 @@ test("Guildhall gateway owns one-click local setup without GitHub secrets", () =
   assert.doesNotMatch(gateway, /process\.env\.BUZZ_AUTH_TAG|BUZZ_AUTH_TAG\s*:/);
 });
 
-test("one-click setup is idempotent and verifies all eleven private rooms", () => {
-  assert.equal(config.channels.length, 11);
+test("one-click setup is idempotent and verifies all private Guildhall rooms", () => {
+  assert.equal(config.channels.length, 13);
   assert.ok(config.channels.every((room) => room.visibility === "private"));
+  assert.ok(config.channels.some((room) => room.id === "marquee"));
+  assert.ok(config.channels.some((room) => room.id === "critics-circle"));
   assert.match(gateway, /channels\.some\(\(channel\) => channel\.name === definition\.name\)/);
   assert.match(gateway, /kept\.push\(definition\.name\)/);
   assert.match(gateway, /created\.push\(definition\.name\)/);

@@ -56,7 +56,8 @@ function Invoke-FullVerificationGraph {
   Write-Host "The nine deterministic stages remain the sole PASS/FAIL authority." -ForegroundColor Gray
   Write-Host "Core graph: .\scripts\full-verification-graph.mjs. The progress wrapper adds heartbeat and bounded Pi preflight only." -ForegroundColor DarkGray
   Write-Host "A heartbeat shows elapsed time, active stages, progress, and an approximate ETA while work is running." -ForegroundColor Gray
-  & node ".\scripts\full-verification-progress-runner.mjs" "--result-file" $GraphResultPath "--startup-wait-seconds" "$StartupWaitSeconds"
+  Write-Host "An independent watchdog stops the progress runner if its heartbeat/output disappears, allowing this wrapper to save a BLOCKED record instead of hanging." -ForegroundColor Gray
+  & node ".\scripts\full-verification-supervisor.mjs" "--result-file" $GraphResultPath "--startup-wait-seconds" "$StartupWaitSeconds"
   $GraphExitCode = if ($null -eq $LASTEXITCODE) { 1 } else { [int]$LASTEXITCODE }
 
   if (-not (Test-Path $GraphResultPath)) {

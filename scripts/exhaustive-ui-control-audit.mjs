@@ -76,6 +76,7 @@ function finding(kind, severity, summary, expectation, impact, evidence = "") {
 }
 
 export function controlKey(control, duplicates) {
+  if (control.identity) return `${control.role}|${control.identity}|${control.type || ""}|${control.name || ""}`;
   const base = `${control.role}|${normalize(control.label)}|${control.type || ""}|${control.name || ""}`;
   return duplicates ? `${base}|${control.occurrence || 0}` : base;
 }
@@ -98,8 +99,12 @@ function priority(control) {
   return 2;
 }
 
-async function inspectRenderedControls(client) {
+async function inspectRenderedControls(client, scopeSelector = "") {
   const result = await client.call("browser_evaluate", { function: `() => {
+    const configuredScope = ${JSON.stringify(scopeSelector || "")};
+    const root = configuredScope ? document.querySelector(configuredScope) : document;
+    if (!root) return JSON.stringify({ url: location.href, workspace: '', controls: [], headings: [], statusText: [], scopeMissing: configuredScope });
+
     const hiddenByClosedDetails = (node) => {
       const details = node?.closest?.('details:not([open])');
       if (!details) return false;
@@ -112,16 +117,47 @@ async function inspectRenderedControls(client) {
       const rect = node.getBoundingClientRect();
       return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0.02 && rect.width > 1 && rect.height > 1;
     };
+    const textFor = (node) => {
+      const pieces = [];
+      const visit = (candidate) => {
+        if (candidate.nodeType === Node.TEXT_NODE) {
+          const value = String(candidate.textContent || '').replace(/\\s+/g, ' ').trim();
+          if (value) pieces.push(value);
+          return;
+        }
+        if (!(candidate instanceof Element) || candidate.getAttribute('aria-hidden') === 'true') return;
+        for (const child of candidate.childNodes) visit(child);
+      };
+      visit(node);
+      return pieces.join(' ').replace(/\\s+/g, ' ').trim();
+    };
+    const labelText = (label) => {
+      const clone = label.cloneNode(true);
+      if (!(clone instanceof Element)) return '';
+      clone.querySelectorAll('input, select, textarea, button').forEach((node) => node.remove());
+      return textFor(clone);
+    };
     const associatedLabel = (node) => {
       const aria = node.getAttribute('aria-label');
       if (aria) return aria;
+      const labelledBy = (node.getAttribute('aria-labelledby') || '').trim();
+      if (labelledBy) {
+        const value = labelledBy.split(/\\s+/).map((id) => document.getElementById(id)).filter(Boolean).map(textFor).filter(Boolean).join(' ');
+        if (value) return value;
+      }
       if (node.id) {
         const label = document.querySelector('label[for="' + CSS.escape(node.id) + '"]');
-        if (label?.textContent) return label.textContent;
+        if (label) {
+          const value = labelText(label);
+          if (value) return value;
+        }
       }
       const parentLabel = node.closest('label');
-      if (parentLabel?.textContent) return parentLabel.textContent;
-      return node.textContent || node.getAttribute('placeholder') || node.getAttribute('title') || node.getAttribute('name') || '';
+      if (parentLabel) {
+        const value = labelText(parentLabel);
+        if (value) return value;
+      }
+      return textFor(node) || node.getAttribute('placeholder') || node.getAttribute('title') || node.getAttribute('name') || '';
     };
     const role = (node) => {
       const explicit = node.getAttribute('role');
@@ -141,7 +177,22 @@ async function inspectRenderedControls(client) {
       }
       return tag;
     };
-    const nodes = [...document.querySelectorAll('button, a, input, textarea, select, summary, [role="button"], [role="tab"], [role="switch"], [role="radio"], [role="checkbox"]')]
+    const identityFor = (node) => {
+      if (node.id) return 'id:' + node.id;
+      const pieces = [];
+      let current = node;
+      for (let depth = 0; depth < 9 && current instanceof Element; depth += 1) {
+        if (current === root) break;
+        const parent = current.parentElement;
+        if (!parent) break;
+        const sameTag = [...parent.children].filter((candidate) => candidate.tagName === current.tagName);
+        pieces.unshift(current.tagName.toLowerCase() + ':' + Math.max(0, sameTag.indexOf(current)));
+        if (parent === root) break;
+        current = parent;
+      }
+      return pieces.join('/');
+    };
+    const nodes = [...root.querySelectorAll('button, a, input, textarea, select, summary, [role="button"], [role="tab"], [role="switch"], [role="radio"], [role="checkbox"]')]
       .filter(visible);
     const occurrences = new Map();
     const controls = nodes.map((node) => {
@@ -158,6 +209,7 @@ async function inspectRenderedControls(client) {
         type: (node.getAttribute('type') || '').toLowerCase(),
         name: node.getAttribute('name') || '',
         label,
+        identity: identityFor(node),
         placeholder: node.getAttribute('placeholder') || '',
         value: 'value' in node ? String(node.value ?? '') : '',
         checked: 'checked' in node ? Boolean(node.checked) : null,
@@ -176,15 +228,16 @@ async function inspectRenderedControls(client) {
         occurrence
       };
     });
-    const headings = [...document.querySelectorAll('h1, h2, h3, [role="heading"]')]
+    const headings = [...root.querySelectorAll('h1, h2, h3, [role="heading"]')]
       .filter(visible)
-      .map((node) => String(node.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 240))
+      .map((node) => textFor(node).slice(0, 240))
       .filter(Boolean);
-    const statusText = [...document.querySelectorAll('[role="status"], [role="alert"]')]
+    const statusText = [...root.querySelectorAll('[role="status"], [role="alert"], [aria-live]:not([aria-live="off"])')]
       .filter(visible)
-      .map((node) => String(node.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 300))
+      .map((node) => textFor(node).slice(0, 300))
       .filter(Boolean);
-    return JSON.stringify({ url: location.href, controls, headings, statusText });
+    const workspace = document.querySelector('[data-active-workspace]')?.getAttribute('data-active-workspace') || '';
+    return JSON.stringify({ url: location.href, workspace, controls, headings, statusText, scopeMissing: '' });
   }` });
   return parseRenderedEvaluateText(resultText(result));
 }
@@ -193,9 +246,11 @@ export function pageStateSignature(payload) {
   const controls = Array.isArray(payload?.controls) ? payload.controls : [];
   return hash(JSON.stringify({
     url: payload?.url || "",
+    workspace: payload?.workspace || "",
     headings: Array.isArray(payload?.headings) ? payload.headings : [],
     statusText: Array.isArray(payload?.statusText) ? payload.statusText : [],
     controls: controls.map((control) => ({
+      identity: control.identity,
       role: control.role,
       label: control.label,
       value: control.value,
@@ -250,14 +305,14 @@ export function selectArgs(tool, controlRef, label, value) {
   return toolArguments(tool, args);
 }
 
-async function waitForSettledControlState(client, beforeSignature, longRunning) {
+async function waitForSettledControlState(client, beforeSignature, longRunning, scopeSelector = "") {
   const attempts = longRunning ? 32 : 8;
-  let last = await inspectRenderedControls(client);
+  let last = await inspectRenderedControls(client, scopeSelector);
   let changed = pageStateSignature(last) !== beforeSignature;
   let stable = 0;
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     await delay(longRunning ? 500 : 250);
-    const current = await inspectRenderedControls(client);
+    const current = await inspectRenderedControls(client, scopeSelector);
     const signature = pageStateSignature(current);
     changed ||= signature !== beforeSignature;
     if (signature === pageStateSignature(last)) stable += 1;
@@ -268,13 +323,19 @@ async function waitForSettledControlState(client, beforeSignature, longRunning) 
   return { payload: last, changed };
 }
 
-async function restoreByNavigate(client, baseUrl, route) {
+async function restoreByNavigate(client, baseUrl, route, scopeSelector = "") {
   await client.call("browser_navigate", { url: new URL(route, baseUrl).toString() });
-  await delay(450);
+  let last = await inspectRenderedControls(client, scopeSelector);
+  for (let attempt = 0; attempt < 40 && !(last.controls || []).length; attempt += 1) {
+    await delay(150);
+    last = await inspectRenderedControls(client, scopeSelector);
+  }
+  return last;
 }
 
 async function exerciseControl({ client, toolMap, baseUrl, screen, control, config }) {
-  const beforePayload = await inspectRenderedControls(client);
+  const scopeSelector = screen.scopeSelector || "";
+  const beforePayload = await inspectRenderedControls(client, scopeSelector);
   const beforeSignature = pageStateSignature(beforePayload);
   const snapshotText = await snapshot(client);
   const target = refFor(control, snapshotText);
@@ -289,7 +350,7 @@ async function exerciseControl({ client, toolMap, baseUrl, screen, control, conf
     if (!alternative) return { status: "blocked", detail: "Selector has no alternative enabled option in this state.", discovered: [] };
     await client.call("browser_select_option", selectArgs(tool, target.ref, control.label, alternative.value));
     await delay(350);
-    const changedPayload = await inspectRenderedControls(client);
+    const changedPayload = await inspectRenderedControls(client, scopeSelector);
     const changed = pageStateSignature(changedPayload) !== beforeSignature;
     if (transactional && current) {
       const freshTarget = refFor(control, await snapshot(client));
@@ -303,12 +364,12 @@ async function exerciseControl({ client, toolMap, baseUrl, screen, control, conf
     const tool = toolMap.get("browser_click");
     await client.call("browser_click", clickArgs(tool, target.ref, control.label));
     await delay(300);
-    const changedPayload = await inspectRenderedControls(client);
-    const changedControl = (changedPayload.controls || []).find((item) => item.role === control.role && normalize(item.label) === normalize(control.label) && item.occurrence === control.occurrence);
+    const changedPayload = await inspectRenderedControls(client, scopeSelector);
+    const changedControl = (changedPayload.controls || []).find((item) => item.identity === control.identity || (item.role === control.role && normalize(item.label) === normalize(control.label) && item.occurrence === control.occurrence));
     const changed = changedControl ? changedControl.checked !== control.checked : pageStateSignature(changedPayload) !== beforeSignature;
     if (transactional) {
-      const freshTarget = refFor(control, await snapshot(client));
-      if (freshTarget) await client.call("browser_click", clickArgs(tool, freshTarget.ref, control.label));
+      const freshTarget = refFor(changedControl || control, await snapshot(client));
+      if (freshTarget) await client.call("browser_click", clickArgs(tool, freshTarget.ref, changedControl?.label || control.label));
       await delay(250);
     }
     return { status: changed ? "pass" : "dead", detail: changed ? `Toggle changed state and ${transactional ? "was restored" : "remained in the synthetic session"}.` : "Toggle did not visibly change state.", discovered: changedPayload.controls || [] };
@@ -320,14 +381,14 @@ async function exerciseControl({ client, toolMap, baseUrl, screen, control, conf
     if (control.checked) return { status: "pass", detail: "Radio option is already the active selection; its sibling options exercise the group transition.", discovered: [] };
     await client.call("browser_click", clickArgs(toolMap.get("browser_click"), target.ref, control.label));
     await delay(300);
-    const changedPayload = await inspectRenderedControls(client);
+    const changedPayload = await inspectRenderedControls(client, scopeSelector);
     const changed = pageStateSignature(changedPayload) !== beforeSignature;
     if (transactional && original) {
       const originalRef = refFor(original, await snapshot(client));
       if (originalRef) await client.call("browser_click", clickArgs(toolMap.get("browser_click"), originalRef.ref, original.label));
       await delay(250);
     }
-    return { status: changed ? "pass" : "dead", detail: changed ? `Radio selection changed and ${transactional && original ? "the original selection was restored" : "the synthetic session retained the new choice"}.` : "Radio option produced no observable selection change.", discovered: [] };
+    return { status: changed ? "pass" : "dead", detail: changed ? `Radio selection changed and ${transactional && original ? "the original selection was restored" : "the synthetic session retained the new choice"}.` : "Radio option produced no observable selection change.", discovered: changedPayload.controls || [] };
   }
 
   if (["textbox", "searchbox", "spinbutton"].includes(control.role)) {
@@ -341,12 +402,12 @@ async function exerciseControl({ client, toolMap, baseUrl, screen, control, conf
     }
     await client.call("browser_type", typeArgs(toolMap.get("browser_type"), target.ref, control.label, testValue));
     await delay(300);
-    const changedPayload = await inspectRenderedControls(client);
-    const changedControl = (changedPayload.controls || []).find((item) => item.role === control.role && normalize(item.label) === normalize(control.label) && item.occurrence === control.occurrence);
+    const changedPayload = await inspectRenderedControls(client, scopeSelector);
+    const changedControl = (changedPayload.controls || []).find((item) => item.identity === control.identity || (item.role === control.role && normalize(item.label) === normalize(control.label) && item.occurrence === control.occurrence));
     const changed = changedControl ? changedControl.value !== original : pageStateSignature(changedPayload) !== beforeSignature;
     if (transactional) {
-      const freshTarget = refFor(control, await snapshot(client));
-      if (freshTarget) await client.call("browser_type", typeArgs(toolMap.get("browser_type"), freshTarget.ref, control.label, original));
+      const freshTarget = refFor(changedControl || control, await snapshot(client));
+      if (freshTarget) await client.call("browser_type", typeArgs(toolMap.get("browser_type"), freshTarget.ref, changedControl?.label || control.label, original));
       await delay(250);
     }
     return { status: changed ? "pass" : "dead", detail: changed ? `Input accepted a synthetic value and ${transactional ? "was restored before any save action" : "remained populated so dependent buttons can be exercised"}.` : "Input did not retain the typed value.", discovered: changedPayload.controls || [] };
@@ -354,14 +415,15 @@ async function exerciseControl({ client, toolMap, baseUrl, screen, control, conf
 
   const clickTool = toolMap.get("browser_click");
   await client.call("browser_click", clickArgs(clickTool, target.ref, control.label));
-  const immediate = await inspectRenderedControls(client);
+  const immediate = await inspectRenderedControls(client, scopeSelector);
   const longRunning = (config.longRunningActionPatterns || []).some((pattern) => normalize(control.label).includes(normalize(pattern)));
-  const settled = await waitForSettledControlState(client, beforeSignature, longRunning);
+  const settled = await waitForSettledControlState(client, beforeSignature, longRunning, scopeSelector);
   const changed = pageStateSignature(immediate) !== beforeSignature || settled.changed;
-  const navigated = String(settled.payload?.url || "") !== String(beforePayload?.url || "");
-  const discovered = [...(immediate.controls || []), ...(settled.payload.controls || [])];
+  const navigated = String(settled.payload?.url || "") !== String(beforePayload?.url || "")
+    || String(settled.payload?.workspace || "") !== String(beforePayload?.workspace || "");
+  const discovered = navigated ? [] : [...(immediate.controls || []), ...(settled.payload.controls || [])];
 
-  if (navigated) await restoreByNavigate(client, baseUrl, screen.route);
+  if (navigated) await restoreByNavigate(client, baseUrl, screen.route, scopeSelector);
   return {
     status: changed ? "pass" : "dead",
     detail: changed ? `${control.role} produced an observable ${navigated ? "navigation" : "UI/state response"}${longRunning ? " and reached a settled state" : ""}.` : `${control.role} was activated but the route, rendered controls, values, semantic state, headings and visible status did not change.`,
@@ -432,8 +494,20 @@ export async function runExhaustiveUiControlAudit({ client, toolMap, baseUrl, re
       findings.push(finding("bug", "high", `${screen.label}: code-aware UAT could not read ${source.path}.`, "Every active screen should have auditable implementation source attached to its UAT contract.", source.error || "Source file missing.", source.path));
     }
 
-    await restoreByNavigate(client, baseUrl, screen.route);
-    let payload = await inspectRenderedControls(client);
+    let payload = await restoreByNavigate(client, baseUrl, screen.route, screen.scopeSelector || "");
+    const sourceInteractiveControls = sourceFiles.reduce((total, source) => total + Number(source.counts?.totalMarkupControls || 0), 0);
+    const renderDiscoveryMissing = sourceInteractiveControls > 0 && !(payload.controls || []).length;
+    if (renderDiscoveryMissing) {
+      findings.push(finding(
+        "harness",
+        "high",
+        `${screen.label}: source inventory contains ${sourceInteractiveControls} interactive control(s), but rendered discovery returned 0/0.`,
+        "Interactive implementation source must never be accepted as PASS 0/0 merely because the initial rendered audit was empty.",
+        payload.scopeMissing ? `Configured audit scope ${payload.scopeMissing} was not found after bounded render readiness.` : "No visible controls were discovered after bounded render readiness.",
+        screen.route,
+      ));
+    }
+
     const queue = [];
     const known = new Set();
     const records = [];
@@ -450,12 +524,11 @@ export async function runExhaustiveUiControlAudit({ client, toolMap, baseUrl, re
         continue;
       }
 
-      let currentPayload = await inspectRenderedControls(client);
+      let currentPayload = await inspectRenderedControls(client, screen.scopeSelector || "");
       let control = findCurrentControl(currentPayload.controls, item, screen);
       if (!control) {
         try {
-          await restoreByNavigate(client, baseUrl, screen.route);
-          currentPayload = await inspectRenderedControls(client);
+          currentPayload = await restoreByNavigate(client, baseUrl, screen.route, screen.scopeSelector || "");
           control = findCurrentControl(currentPayload.controls, item, screen);
         } catch {}
       }
@@ -481,7 +554,7 @@ export async function runExhaustiveUiControlAudit({ client, toolMap, baseUrl, re
         const detail = error instanceof Error ? error.message : String(error);
         records.push({ key: item.key, label: control.label, role: control.role, status: "harness", detail });
         findings.push(finding("harness", "high", `${screen.label}: ${control.role} “${control.label}” could not be completed by the synthetic browser harness.`, "Browser-tool failures must be separated from product dead-control findings.", `${isMcpToolArgumentError(error) ? "MCP argument validation: " : "Browser harness: "}${detail}`, `${screen.route} · ${control.role} · ${control.label}`));
-        try { await restoreByNavigate(client, baseUrl, screen.route); } catch {}
+        try { await restoreByNavigate(client, baseUrl, screen.route, screen.scopeSelector || ""); } catch {}
       }
     }
 
@@ -499,14 +572,17 @@ export async function runExhaustiveUiControlAudit({ client, toolMap, baseUrl, re
     const counts = screenCounts(records);
     const safeRecords = records.filter((item) => item.status !== "blocked");
     const complete = sourceFiles.every((item) => !item.missing)
+      && !renderDiscoveryMissing
       && safeRecords.every((item) => item.status === "pass")
       && !queue.some((item) => !item.blocked);
     screens.push({
       id: screen.id,
       label: screen.label,
       route: screen.route,
+      scopeSelector: screen.scopeSelector || "",
       complete,
       sourceFiles,
+      renderDiscoveryMissing,
       discovered: records.length,
       ...counts,
       interactions,
@@ -514,7 +590,7 @@ export async function runExhaustiveUiControlAudit({ client, toolMap, baseUrl, re
       initialSafeControls,
       controls: records,
     });
-    status(`Exhaustive UAT · ${screen.label}`, complete ? "PASS" : "FAIL", `${counts.passed}/${counts.safe} safe controls passed; blocked=${counts.blocked}; dead=${counts.dead}; harness=${counts.harness}; accessibility=${counts.accessibility}; unreached=${counts.unreached}`);
+    status(`Exhaustive UAT · ${screen.label}`, complete ? "PASS" : "FAIL", `${counts.passed}/${counts.safe} safe controls passed; blocked=${counts.blocked}; dead=${counts.dead}; harness=${counts.harness}; accessibility=${counts.accessibility}; unreached=${counts.unreached}${renderDiscoveryMissing ? "; rendered discovery=missing" : ""}`);
   }
 
   const totals = screens.reduce((acc, screen) => {
@@ -532,7 +608,7 @@ export async function runExhaustiveUiControlAudit({ client, toolMap, baseUrl, re
     screens,
     totals,
     findings,
-    noLoopPolicy: "Each distinct rendered control is attempted at most once per screen. All safe controls visible at screen entry are automatically budgeted; newly revealed controls enter the queue once and remain bounded. Stale controls are restored before being classified as unreachable.",
+    noLoopPolicy: "Each distinct rendered control is attempted at most once per screen. All safe controls visible at screen entry are automatically budgeted; newly revealed controls enter the queue once and remain bounded. Navigation destinations are verified by their own screen contract instead of being folded into the originating screen queue. Stale controls are restored before being classified as unreachable.",
     settingsPolicy: "Settings selectors, toggles and inputs are exercised transactionally and restored before save actions; destructive, credential, cloud/account and paid controls are classified rather than changed.",
   };
   status("Phase 5 · exhaustive code/UI/UX UAT", complete ? "PASS" : "FAIL", `${totals.passed}/${totals.safe} safe control interactions passed; dead=${totals.dead}; harness=${totals.harness}; accessibility=${totals.accessibility}; unreached=${totals.unreached}`);

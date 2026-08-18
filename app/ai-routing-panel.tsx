@@ -76,10 +76,11 @@ export default function AiRoutingPanel() {
     window.dispatchEvent(new CustomEvent("plotpickle:setup-status-refresh"));
   }
 
-  async function refresh() {
+  async function refresh(announce = false) {
     try {
       setNotice("");
       setStatus(await request<RoutingStatus>(`${API}/status`));
+      if (announce) setNotice(`AI routing configuration refreshed at ${new Date().toLocaleTimeString()}.`);
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "AI routing is available in the downloaded local PlotPickle app.");
     }
@@ -208,11 +209,11 @@ export default function AiRoutingPanel() {
           <button type="button" aria-label="Switch to cloud AI routing setup" onClick={() => void applyPreset("cloud")} disabled={Boolean(working)}>
             {working === "cloud-preset" ? "Selecting cloud routes…" : "Switch to cloud setup"}
           </button>
-          <button type="button" className={styles.secondaryButton} aria-label="Refresh current AI routing configuration" onClick={() => void refresh()} disabled={Boolean(working)}>Refresh current configuration</button>
+          <button type="button" className={styles.secondaryButton} aria-label="Refresh current AI routing configuration" onClick={() => void refresh(true)} disabled={Boolean(working)}>Refresh current configuration</button>
         </div>
       </header>
 
-      <p className={styles.notice} aria-live="polite">{notice}</p>
+      <p className={styles.notice} role="status" aria-live="polite">{notice}</p>
 
       <section className={styles.activeNow} aria-labelledby="active-routing-title">
         <header>

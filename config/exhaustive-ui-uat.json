@@ -62,8 +62,9 @@
     {
       "id": "advanced-ai-routing",
       "label": "SETTINGS · Advanced AI routing",
-      "route": "/ai-routing",
-      "sourceFiles": ["app/ai-routing/page.tsx"],
+      "route": "/?workspace=settings#settings-routing",
+      "scopeSelector": "#settings-routing",
+      "sourceFiles": ["app/sage-settings-workspace.tsx", "app/ai-routing-panel.tsx", "app/ai-routing/page.tsx"],
       "maxInteractions": 140,
       "testDuplicateInstances": true
     }

@@ -68,9 +68,10 @@ function displayTime(value: string) {
 export default function AgentObservabilityPanel() {
   const [payload, setPayload] = useState<TracePayload | null>(null);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (announce = false) => {
     setLoading(true);
     try {
       const response = await fetch("/api/writing-assistant/traces", { cache: "no-store" });
@@ -78,7 +79,9 @@ export default function AgentObservabilityPanel() {
       if (!response.ok || !data.ok) throw new Error(data.message || "Agent activity is unavailable.");
       setPayload(data);
       setError("");
+      if (announce) setNotice(`Agent activity refreshed at ${new Date().toLocaleTimeString()}.`);
     } catch (reason) {
+      setNotice("");
       setError(reason instanceof Error ? reason.message : "Agent activity is unavailable.");
     } finally {
       setLoading(false);
@@ -96,8 +99,9 @@ export default function AgentObservabilityPanel() {
       const response = await fetch("/api/writing-assistant/traces", { method: "DELETE" });
       const data = await response.json() as { ok?: boolean; message?: string };
       if (!response.ok || !data.ok) throw new Error(data.message || "Could not clear agent activity.");
-      await refresh();
+      await refresh(true);
     } catch (reason) {
+      setNotice("");
       setError(reason instanceof Error ? reason.message : "Could not clear agent activity.");
     }
   }, [refresh]);
@@ -114,7 +118,7 @@ export default function AgentObservabilityPanel() {
           <p className={styles.intro}>See which PlotPickle agent ran, which model handled it, how long it took, and the operational steps in the run.</p>
         </div>
         <div className={styles.actions}>
-          <button type="button" onClick={() => void refresh()} disabled={loading}>{loading ? "Refreshing…" : "Refresh"}</button>
+          <button type="button" onClick={() => void refresh(true)} disabled={loading}>{loading ? "Refreshing…" : "Refresh"}</button>
           <button type="button" onClick={() => void clear()} disabled={!traces.length}>Clear session</button>
         </div>
       </div>
@@ -128,6 +132,7 @@ export default function AgentObservabilityPanel() {
 
       <p className={styles.privacy}>Operational metadata only. PlotPickle does not store prompts, responses, or hidden model reasoning in this activity log. Traces remain in server memory for the current app session only.</p>
 
+      {notice ? <p className={styles.empty} role="status" aria-live="polite">{notice}</p> : null}
       {error ? <p className={styles.error} role="status">{error}</p> : null}
       {!error && !traces.length ? <p className={styles.empty}>No agent runs yet. Ask Sage, draft a Foundations field, or play Wyrmwood and the run will appear here.</p> : null}
 

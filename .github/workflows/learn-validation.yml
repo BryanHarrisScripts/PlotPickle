@@ -61,6 +61,9 @@ jobs:
       - name: Validate local backup, restore, retention and trust architecture
         run: node --test tests/issue-969-local-backup-trust-docs.test.mjs
 
+      - name: Validate BUZZ specialist agents, private context and signed room bridge
+        run: node --test tests/issue-971-buzz-specialist-agents.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs
+
       - name: Validate full-verification Agent Skills architecture pair
         run: node --test tests/sage-brinewick-agent-skill.test.mjs tests/issue-913-agent-skills-migration.test.mjs
 

@@ -41,9 +41,13 @@ export type CommunityAgentRosterItem = {
   readonly displayName: string;
   readonly title: string;
   readonly summary: string;
+  readonly avatarInitials: string;
+  readonly avatarKind: "local-initials";
   readonly runtime: string;
   readonly runtimeLabel: string;
   readonly roleId: string;
+  readonly activeRuntimeProvider: string;
+  readonly activeModel: string;
   readonly homeRoom: string;
   readonly homeRoomId: string;
   readonly state: AgentRosterState;
@@ -53,7 +57,10 @@ export type CommunityAgentRosterItem = {
   readonly buzzPresence: string;
   readonly lifecycleState: AgentProfileAvailability;
   readonly requestedModelRole: AgentProfileCapabilityRole | null;
+  readonly requestedCapabilities: readonly string[];
   readonly skillUris: readonly string[];
+  readonly projectMemoryScope: readonly string[];
+  readonly projectMemoryPolicy: string;
   readonly readScopes: readonly string[];
   readonly proposalScopes: readonly string[];
   readonly forbiddenCapabilities: readonly string[];
@@ -81,6 +88,19 @@ function newestTrace(traces: readonly AgentTrace[], agentId: string) {
   return traces
     .filter((trace) => trace.agentId === agentId)
     .sort((left, right) => Date.parse(right.startedAt || "") - Date.parse(left.startedAt || ""))[0] ?? null;
+}
+
+function initials(displayName: string) {
+  const words = displayName.replace(/^The\s+/i, "").replace(/[^A-Za-z0-9' -]/g, " ").split(/\s+/).filter(Boolean);
+  const letters = words.slice(0, 2).map((word) => word.replace(/[^A-Za-z0-9]/g, "").charAt(0)).join("").toUpperCase();
+  return letters || "PP";
+}
+
+function projectMemoryPolicy(profile: AgentProfile) {
+  if (profile.execution.kind === "buzz-managed") {
+    return "BUZZ core/cold memory stays BUZZ-owned and separate. Only owner-approved history may enter PlotPickle task context; memory is never PPF canon.";
+  }
+  return "Task-scoped only. The host may attach approved data from the listed read scopes; project memory is evidence, never automatic canon or permission.";
 }
 
 function parkedState(profile: AgentProfile) {
@@ -202,14 +222,19 @@ export function buildCommunityAgentRoster(input: {
   return AGENT_PROFILES.map((profile) => {
     const dynamic = profileState(profile, input);
     const room = BUZZ_GUILDHALL_CHANNELS.find((candidate) => candidate.id === profile.homeRoomId);
+    const trace = profile.execution.roleId ? newestTrace(input.traces, profile.execution.roleId) : null;
     return {
       id: profile.id,
       displayName: profile.displayName,
       title: profile.title,
       summary: profile.responsibility,
+      avatarInitials: initials(profile.displayName),
+      avatarKind: "local-initials",
       runtime: profile.execution.kind,
       runtimeLabel: runtimeLabel(profile.execution.kind),
       roleId: profile.execution.roleId,
+      activeRuntimeProvider: trace?.runtimeProvider || "",
+      activeModel: trace?.model || "",
       homeRoom: room?.label || profile.homeRoomId,
       homeRoomId: profile.homeRoomId,
       state: dynamic.state,
@@ -219,7 +244,10 @@ export function buildCommunityAgentRoster(input: {
       buzzPresence: buzzPresence(profile),
       lifecycleState: profile.defaultAvailability,
       requestedModelRole: profile.requestedCapabilityRole,
+      requestedCapabilities: profile.requestedCapabilities,
       skillUris: profile.skillUris,
+      projectMemoryScope: profile.readScopes,
+      projectMemoryPolicy: projectMemoryPolicy(profile),
       readScopes: profile.readScopes,
       proposalScopes: profile.proposalScopes,
       forbiddenCapabilities: effectiveForbiddenCapabilities(profile),

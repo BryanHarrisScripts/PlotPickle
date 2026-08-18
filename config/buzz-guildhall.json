@@ -58,6 +58,22 @@
       "description": "Continuity, canon conflicts, timelines, locations, props and story facts that must remain consistent."
     },
     {
+      "id": "marquee",
+      "name": "marquee",
+      "label": "The Marquee",
+      "type": "forum",
+      "visibility": "private",
+      "description": "Owner-approved poster, key-art, teaser and trailer concepts. Unpublished PPF detail is not federated here without explicit owner approval."
+    },
+    {
+      "id": "critics-circle",
+      "name": "critics-circle",
+      "label": "The Critics' Circle",
+      "type": "forum",
+      "visibility": "private",
+      "description": "Independent internal PlotPickle story, world, character, pacing, continuity, audience and positioning critique."
+    },
+    {
       "id": "lantern-watch",
       "name": "lantern-watch",
       "label": "The Lantern Watch",
@@ -187,6 +203,28 @@
       "summary": "Protects accepted story continuity and turns contradictions into reviewable proposals rather than silent rewrites."
     },
     {
+      "id": "marquee-director",
+      "displayName": "The Marquee Director",
+      "title": "Key Art & Trailer Director",
+      "kind": "product-agent",
+      "runtime": "mastra",
+      "existingRoleId": "visual-director",
+      "primaryChannel": "marquee",
+      "buzzPresence": "mirrored",
+      "summary": "Develops reviewable poster, key-art, teaser and trailer concepts from approved PlotPickle context."
+    },
+    {
+      "id": "critics-circle",
+      "displayName": "Critics' Circle",
+      "title": "Independent Story Review",
+      "kind": "product-agent",
+      "runtime": "mastra",
+      "existingRoleId": "critic",
+      "primaryChannel": "critics-circle",
+      "buzzPresence": "mirrored",
+      "summary": "Provides independent internal PlotPickle critique without claiming third-party ratings or creative authority."
+    },
+    {
       "id": "luma-glassfern",
       "displayName": "Luma Glassfern",
       "title": "Lantern Warden",
@@ -267,7 +305,9 @@
   },
   "privacy": {
     "allowedEventContent": "Short operational summaries, status metadata and reproduction/evidence references.",
-    "forbiddenEventContent": "Credentials, private keys, tokens, hidden reasoning, full prompts, full model responses or unpublished story text.",
+    "forbiddenEventContent": "Credentials, private keys, tokens, hidden reasoning, full prompts, full model responses, unpublished story text, raw lead/contact data or private project material without explicit owner approval.",
+    "specialistProjectContextDefault": "room-message-only",
+    "explicitProjectContextApprovalRequired": true,
     "automaticPpfWrites": false,
     "automaticGithubMerge": false
   }

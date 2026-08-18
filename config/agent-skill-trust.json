@@ -34,6 +34,13 @@
       "lastEvaluatedRevision": "issue-913"
     },
     {
+      "uri": "skill://plotpickle/ben-code-quality",
+      "displayName": "BEN Code Quality",
+      "requestedCapabilityClasses": ["repository-diff-read", "code-quality-evidence", "finding-proposal"],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-1005"
+    },
+    {
       "uri": "skill://plotpickle/sage-brinewick",
       "displayName": "Sage Brinewick",
       "requestedCapabilityClasses": ["curriculum-read", "bounded-project-context"],

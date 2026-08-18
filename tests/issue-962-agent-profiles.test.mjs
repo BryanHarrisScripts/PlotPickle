@@ -12,6 +12,8 @@ const EXPECTED_PROFILES = [
   "quillan-reedcloak",
   "elowen-mapweaver",
   "mira-threadmere",
+  "marquee-director",
+  "critics-circle",
   "avery-north",
   "luma-glassfern",
   "bram-gatewick",
@@ -100,7 +102,10 @@ test("Community roster consumes PlotPickle Agent Contracts while runtime and BUZ
   assert.match(model, /profile\.execution\.kind === "buzz-managed"/);
   assert.match(model, /requestedModelRole: profile\.requestedCapabilityRole/);
   assert.match(model, /effectiveForbiddenCapabilities\(profile\)/);
-  assert.match(ui, /Capabilities & boundaries/);
+  assert.match(model, /avatarInitials/);
+  assert.match(model, /projectMemoryPolicy/);
+  assert.match(model, /activeModel/);
+  assert.match(ui, /Capabilities, memory & boundaries/);
   assert.match(ui, /Skills describe procedure; they never grant permission/);
   assert.match(ui, /writer remains the final authority over creative changes/i);
   assert.match(ui, /Cannot do/);

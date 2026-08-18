@@ -83,6 +83,13 @@
       "lastEvaluatedRevision": "issue-971"
     },
     {
+      "uri": "skill://plotpickle/lazy-frames-animatic",
+      "displayName": "Lazy Frames Animatic",
+      "requestedCapabilityClasses": ["bounded-project-context", "approved-build-read", "derived-render-proposal", "local-render-request"],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-1016"
+    },
+    {
       "uri": "skill://plotpickle/critics-circle",
       "displayName": "Critics' Circle",
       "requestedCapabilityClasses": ["bounded-project-context", "critique-draft", "proposal-draft"],

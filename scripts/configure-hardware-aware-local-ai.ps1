@@ -18,7 +18,11 @@ $RagRequirements = Join-Path $Root "services\curriculum-rag\requirements.txt"
 $RagServer = Join-Path $Root "services\curriculum-rag\server.py"
 $RagStarter = Join-Path $Root "scripts\start-curriculum-rag.ps1"
 $CpuTorchIndex = "https://download.pytorch.org/whl/cpu"
-$PascalTorchIndex = "https://download.pytorch.org/whl/cu126"
+$ManagedInstanceCore = Join-Path $Root "scripts\comfyui-managed-instance-core.ps1"
+if (-not (Test-Path -LiteralPath $ManagedInstanceCore -PathType Leaf)) { throw "PlotPickle's ComfyUI managed-instance inspector is missing." }
+. $ManagedInstanceCore
+$PascalStack = Get-PlotPicklePascalCu126Stack
+$PascalTorchIndex = $PascalStack.IndexUrl
 
 function Get-NvidiaProfile {
   $result = [ordered]@{ Name = ""; VramMB = 0; ComputeCapability = ""; Generation = "none" }
@@ -65,6 +69,10 @@ function Get-HardwareProfile {
 }
 
 function Find-ComfyPython {
+  foreach ($instance in @(Get-ComfyManagedInstances)) {
+    if ($instance.State -eq "installed" -and $instance.PythonPath) { return $instance.PythonPath }
+  }
+
   $candidates = New-Object System.Collections.Generic.List[string]
   if ($env:LOCALAPPDATA) {
     $candidates.Add((Join-Path $env:LOCALAPPDATA "Programs\ComfyUI\resources\ComfyUI\.venv\Scripts\python.exe"))
@@ -120,13 +128,14 @@ function Configure-PascalComfyUI {
     Write-Warning "ComfyUI's Python environment was not found automatically. PlotPickle will not alter an unknown Python installation."
     return
   }
-  Write-Host "[PASCAL] Pinning ComfyUI PyTorch to the CUDA 12.6 wheel channel..."
-  & $python -m pip install --upgrade "torch<2.9" "torchvision<0.24" "torchaudio<2.9" --index-url $PascalTorchIndex
+  Write-Host "[PASCAL] Explicit repair approved. Pinning this detected ComfyUI environment to the current reviewed CUDA 12.6 stack..."
+  Write-Host "         torch=$($PascalStack.Torch) | torchvision=$($PascalStack.TorchVision) | torchaudio=$($PascalStack.TorchAudio)"
+  & $python -m pip install --upgrade "torch==$($PascalStack.Torch)" "torchvision==$($PascalStack.TorchVision)" "torchaudio==$($PascalStack.TorchAudio)" --index-url $PascalTorchIndex
   if ($LASTEXITCODE -ne 0) {
-    Write-Warning "The CUDA 12.6 PyTorch update did not complete. Leave ComfyUI unchanged and use its existing compatible environment or Vulkan fallback."
+    Write-Warning "The CUDA 12.6 PyTorch repair did not complete. PlotPickle will not switch channels, install a model, or enable cloud fallback."
     return
   }
-  Write-Host "[OK] ComfyUI is on the CUDA 12.6-compatible package channel. CUDA 13 packages were not selected."
+  Write-Host "[OK] ComfyUI is pinned to the reviewed CUDA 12.6 Pascal stack. CUDA 13 packages were not selected."
 }
 
 function Write-ModelPlan {
@@ -174,7 +183,7 @@ Write-Host "Ollama:     $(if ($ollama) { $ollama.Source } else { 'not detected; 
 if ($gpu.Generation -eq "pascal") {
   Write-Host ""
   Write-Host "[PASCAL SAFE MODE]"
-  Write-Host "PyTorch/ComfyUI channel: CUDA 12.6 compatible"
+  Write-Host "PyTorch/ComfyUI stack:    $($PascalStack.Torch) / CUDA 12.6"
   Write-Host "llama.cpp build:          prefer CUDA 12.x"
   Write-Host "Fallback:                 Vulkan"
   Write-Host "CUDA 13 auto-install:     disabled"
@@ -186,7 +195,7 @@ Write-ModelPlan
 if ($Mode -eq "Report") {
   Write-Host ""
   Write-Host "Run this script with -Mode Configure to create the CPU curriculum RAG environment."
-  Write-Host "Use -ConfigureComfyUI as well only when you want PlotPickle to pin the detected ComfyUI Python environment to the CUDA 12.6 channel on Pascal."
+  Write-Host "Use -ConfigureComfyUI as well only when you explicitly approve repairing the detected Pascal ComfyUI environment to the reviewed CUDA 12.6 stack. Passive startup and verification never make this change."
   exit 0
 }
 

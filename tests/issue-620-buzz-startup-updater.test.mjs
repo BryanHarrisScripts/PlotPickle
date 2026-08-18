@@ -19,9 +19,10 @@ test("PlotPickle keeps Buzz Desktop 0.5.14 as a verified reviewed fallback", () 
   assert.match(parsedConfig.windows.downloadUrl, /^https:\/\/github\.com\/block\/buzz\/releases\/download\/desktop-v0\.5\.14\//);
 });
 
-test("startup maintenance checks block/buzz releases and selects the newest compatible Windows desktop asset", () => {
+test("fresh install, maintenance and check-only all resolve the newest published stable Windows release", () => {
   assert.match(installer, /function Get-LatestBuzzDesktopRelease/);
   assert.match(installer, /api\.github\.com\/repos\/block\/buzz\/releases/);
+  assert.match(installer, /if \(\$Maintain -or \$CheckOnly -or \$Install\)/);
   assert.match(installer, /\(\?:desktop-\)\?v\(\?<version>/);
   assert.match(installer, /Buzz_\(\?<assetVersion>/);
   assert.match(installer, /Sort-Object -Property ParsedVersion -Descending/);

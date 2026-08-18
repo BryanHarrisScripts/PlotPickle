@@ -70,11 +70,20 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body;
 }
 
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "unknown error";
+}
+
 function readProject(): PPFProject | null {
   if (typeof window === "undefined") return null;
   const source = window.localStorage.getItem(FOUNDATION_PROJECT_STORAGE_KEY);
   if (!source) return null;
-  try { return normalizeFoundationProject(JSON.parse(source)); } catch { return null; }
+  try {
+    return normalizeFoundationProject(JSON.parse(source));
+  } catch (error) {
+    console.warn(`PlotPickle could not read the active project from local storage: ${errorMessage(error)}`);
+    return null;
+  }
 }
 
 function readReviews(): ReviewItem[] {
@@ -96,7 +105,10 @@ function readReviews(): ReviewItem[] {
         createdAt: typeof item.createdAt === "string" ? item.createdAt : undefined,
       }];
     });
-  } catch { return []; }
+  } catch (error) {
+    console.warn(`PlotPickle could not read the local Community review queue: ${errorMessage(error)}`);
+    return [];
+  }
 }
 
 function displayDate(value: string | undefined) {
@@ -112,7 +124,10 @@ function buzzDesktopUrl(relay: string, name: string) {
     const query = new URLSearchParams({ relay: url.toString().replace(/\/$/, "") });
     if (name.trim()) query.set("name", name.trim());
     return `buzz://add-community?${query.toString()}`;
-  } catch { return ""; }
+  } catch (error) {
+    console.warn(`PlotPickle could not build the Buzz Desktop community link: ${errorMessage(error)}`);
+    return "";
+  }
 }
 
 export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpenSettings: () => void }) {

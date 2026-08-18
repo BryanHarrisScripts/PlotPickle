@@ -6,8 +6,11 @@ on:
       - "README.md"
       - ".agents/skills/**"
       - "config/agent-skills.json"
+      - "config/agent-profiles.json"
+      - "config/buzz-desktop.json"
       - "config/buzz-guildhall.json"
       - "config/uat-autopilot-registry.json"
+      - "lib/agent-profiles.ts"
       - "lib/buzz-guildhall.ts"
       - "lib/community-agent-roster.ts"
       - "build/buzz-community-gateway.ts"
@@ -33,6 +36,7 @@ on:
       - "vite.config.ts"
       - "scripts/agent-skills.mjs"
       - "scripts/agent-skill-procedures.mjs"
+      - "scripts/install-buzz-desktop.ps1"
       - "scripts/bootstrap-buzz-guildhall.mjs"
       - "scripts/post-buzz-guildhall-event.mjs"
       - "scripts/buzz-live-activity.mjs"
@@ -45,6 +49,9 @@ on:
       - "docs/buzz-live-health.md"
       - "docs/issue-buzz-story-room-access-agents.md"
       - "tests/core-readme-direction.test.mjs"
+      - "tests/issue-512-buzz-version-maintenance.test.mjs"
+      - "tests/issue-620-buzz-startup-updater.test.mjs"
+      - "tests/issue-962-agent-profiles.test.mjs"
       - "tests/issue-913-agent-skills-migration.test.mjs"
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
@@ -61,8 +68,11 @@ on:
       - "README.md"
       - ".agents/skills/**"
       - "config/agent-skills.json"
+      - "config/agent-profiles.json"
+      - "config/buzz-desktop.json"
       - "config/buzz-guildhall.json"
       - "config/uat-autopilot-registry.json"
+      - "lib/agent-profiles.ts"
       - "lib/buzz-guildhall.ts"
       - "lib/community-agent-roster.ts"
       - "build/buzz-community-gateway.ts"
@@ -88,6 +98,7 @@ on:
       - "vite.config.ts"
       - "scripts/agent-skills.mjs"
       - "scripts/agent-skill-procedures.mjs"
+      - "scripts/install-buzz-desktop.ps1"
       - "scripts/bootstrap-buzz-guildhall.mjs"
       - "scripts/post-buzz-guildhall-event.mjs"
       - "scripts/buzz-live-activity.mjs"
@@ -100,6 +111,9 @@ on:
       - "docs/buzz-live-health.md"
       - "docs/issue-buzz-story-room-access-agents.md"
       - "tests/core-readme-direction.test.mjs"
+      - "tests/issue-512-buzz-version-maintenance.test.mjs"
+      - "tests/issue-620-buzz-startup-updater.test.mjs"
+      - "tests/issue-962-agent-profiles.test.mjs"
       - "tests/issue-913-agent-skills-migration.test.mjs"
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
@@ -134,7 +148,9 @@ jobs:
           node --check scripts/report-writer-in-residence.mjs
           node --check scripts/report-uat-findings.mjs
           node --check scripts/run-uat-closed-loop.mjs
-      - name: Validate Agent Skills reporting boundary
-        run: node --test tests/issue-913-agent-skills-migration.test.mjs
-      - name: Validate Guildhall, Community, Story Room, agent, README, and live BUZZ contracts
+      - name: Validate Agent Skills and Agent Contract authority boundaries
+        run: node --test tests/issue-913-agent-skills-migration.test.mjs tests/issue-962-agent-profiles.test.mjs
+      - name: Validate Buzz release and updater policy
+        run: node --test tests/issue-512-buzz-version-maintenance.test.mjs tests/issue-620-buzz-startup-updater.test.mjs
+      - name: Validate Guildhall, Community, Story Room, README, and live BUZZ contracts
         run: node --test tests/core-readme-direction.test.mjs tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs tests/live-buzz-guildhall-activity.test.mjs

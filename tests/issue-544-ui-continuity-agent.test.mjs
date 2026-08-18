@@ -116,14 +116,16 @@ test("#544 launches concurrently beside the Full Story Builder and saves one loc
 });
 
 test("#544 is covered by the current focused and full verification gates", async () => {
-  const [workflow, fullCheck, packageJson] = await Promise.all([
+  const [workflow, fullCheck, verificationGraph, packageJson] = await Promise.all([
     read(".github/workflows/learn-validation.yml"),
     read("scripts/run-plotpickle-full-check.ps1"),
+    read("scripts/full-verification-graph.mjs"),
     read("package.json"),
   ]);
   assert.match(workflow, /tests\/workspace-navigation-contract\.test\.mjs tests\/issue-544-ui-continuity-agent\.test\.mjs/);
-  assert.match(fullCheck, /run-exhaustive-ui-uat\.mjs/);
-  assert.match(fullCheck, /run-writer-in-residence\.mjs/);
+  assert.match(fullCheck, /full-verification-graph\.mjs/);
+  assert.match(verificationGraph, /run-exhaustive-ui-uat\.mjs/);
+  assert.match(verificationGraph, /run-writer-in-residence\.mjs/);
   const scripts = JSON.parse(packageJson).scripts;
   assert.equal(scripts["test:ui-continuity-agent"], "node --test tests/issue-544-ui-continuity-agent.test.mjs");
   assert.equal(scripts["test:full-story-builder"], "node --test tests/issue-542-full-story-builder.test.mjs");

@@ -11,6 +11,40 @@ export const HOST_FORBIDDEN_PROFILE_CAPABILITIES = [
   "provider-selection",
 ] as const;
 
+// BUZZ owns these mutable character-host settings for BUZZ-managed agents.
+// PlotPickle profiles bind an identity to product authority; they never mirror or override these knobs.
+export const BUZZ_OWNED_MUTABLE_PROFILE_KEYS = [
+  "harness",
+  "provider",
+  "model",
+  "effort",
+  "memory",
+  "coreMemory",
+  "coldMemory",
+  "respondTo",
+  "respondToPubkeys",
+  "parallelism",
+  "idleTimeout",
+  "maxTurnDuration",
+  "startOnLaunch",
+  "autoRestart",
+  "environment",
+  "env",
+  "runtimeArgs",
+  "acpCommand",
+  "maxOutputTokens",
+  "contextLimit",
+  "maxRounds",
+] as const;
+
+export const AGENT_PROFILE_OWNERSHIP = {
+  buzzHost: "BUZZ owns cryptographic identity, instructions/personality, encrypted core/cold memory, ACP harness, provider/model/effort, respond-to policy, lifecycle, parallelism and its persistent workspace for BUZZ-managed agents.",
+  plotpickleHost: "PlotPickle owns product role bindings, requested capability class, approved Skills, context/read scopes, proposal scopes, forbidden capabilities, verification and writer/PPF authority boundaries.",
+  runtimeField: "runtime records which PlotPickle execution surface currently serves the role; for BUZZ it is only a host binding and never an ACP harness/provider/model setting.",
+  lifecycleField: "lifecycleState records PlotPickle presentation availability only; it never configures BUZZ start-on-launch, restart, timeout or process lifecycle.",
+  memoryBoundary: "BUZZ memory and PlotPickle project memory may be bounded context or evidence; neither is PPF canon.",
+} as const;
+
 export type AgentProfileModelRole = (typeof AGENT_PROFILE_MODEL_ROLES)[number];
 export type AgentProfileLifecycleState = (typeof AGENT_PROFILE_LIFECYCLE_STATES)[number];
 
@@ -52,6 +86,7 @@ export const AGENT_PROFILES = AGENT_PROFILE_REGISTRY.profiles;
 const MODEL_ROLES = new Set<string>(AGENT_PROFILE_MODEL_ROLES);
 const LIFECYCLE_STATES = new Set<string>(AGENT_PROFILE_LIFECYCLE_STATES);
 const HOST_FORBIDDEN = new Set<string>(HOST_FORBIDDEN_PROFILE_CAPABILITIES);
+const BUZZ_OWNED_KEYS = new Set<string>(BUZZ_OWNED_MUTABLE_PROFILE_KEYS);
 const KNOWN_SKILL_URIS = new Set(skillConfig.skills.map((skill) => skill.uri));
 
 function nonEmptyStrings(values: readonly string[] | undefined) {
@@ -72,6 +107,10 @@ export function validateAgentProfileRegistry(registry: AgentProfileRegistry = AG
     }
     if (seen.has(profile.id)) errors.push(`${prefix} is duplicated.`);
     seen.add(profile.id);
+
+    for (const key of Object.keys(profile as unknown as Record<string, unknown>)) {
+      if (BUZZ_OWNED_KEYS.has(key)) errors.push(`${prefix} cannot duplicate BUZZ-owned mutable setting ${key}.`);
+    }
 
     for (const [field, value] of Object.entries({
       displayName: profile.displayName,
@@ -141,6 +180,22 @@ export function resolveAgentProfileCapabilities(input: {
     if (!requestedByProfile.has(capability) || forbidden.has(capability)) return false;
     return !skillRequests || skillRequests.has(capability);
   });
+}
+
+// A BUZZ/ACP harness may claim capabilities (including developer-capable ones),
+// but claims are only another narrowing input. They can never expand what PlotPickle granted.
+export function resolveBoundAgentCapabilities(input: {
+  readonly profileId: string;
+  readonly hostGrantedCapabilities: readonly string[];
+  readonly boundAgentClaimedCapabilities: readonly string[];
+  readonly skillRequestedCapabilities?: readonly string[];
+}) {
+  const claimed = new Set(input.boundAgentClaimedCapabilities);
+  return resolveAgentProfileCapabilities({
+    profileId: input.profileId,
+    hostGrantedCapabilities: input.hostGrantedCapabilities,
+    skillRequestedCapabilities: input.skillRequestedCapabilities,
+  }).filter((capability) => claimed.has(capability));
 }
 
 export function profileCanRequestCapability(profileId: string, capability: string) {

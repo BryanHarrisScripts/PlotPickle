@@ -5,19 +5,28 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("startup uses the v4 grounding adapter around the resilient v3 Sage and PLAN health probe", async () => {
-  const [entrypoint, adapter, diagnostic, guide] = await Promise.all([
+test("startup uses the v5 health-contract adapter around the v4 grounding and resilient v3 probes", async () => {
+  const [entrypoint, contractAdapter, groundingAdapter, diagnostic, guide] = await Promise.all([
     read("build/startup-agent-diagnostics.ts"),
+    read("build/startup-agent-diagnostics-runtime-v5.ts"),
     read("build/startup-agent-diagnostics-runtime-v4.ts"),
     read("build/startup-agent-diagnostics-runtime-v3.ts"),
     read("modules/creative-room/curriculum-guide.ts"),
   ]);
 
-  assert.match(entrypoint, /startup-agent-diagnostics-runtime-v4/);
-  assert.match(adapter, /runStartupAgentDiagnostics as runV3/);
-  assert.match(adapter, /onlyGroundingFailed/);
-  assert.match(adapter, /verifyCurrentSageGrounding/);
-  assert.match(adapter, /essentials-theme/);
+  assert.match(entrypoint, /startup-agent-diagnostics-runtime-v5/);
+  assert.match(contractAdapter, /runStartupAgentDiagnostics as runV4/);
+  assert.match(contractAdapter, /onlyAntiEchoFailed/);
+  assert.match(contractAdapter, /verifySageAntiEcho/);
+  assert.match(contractAdapter, /strictAntiEchoPass/);
+  assert.match(contractAdapter, /node_modules\/@mastra\/core\/package\.json/);
+  assert.match(contractAdapter, /patchMastraVersion/);
+  assert.match(contractAdapter, /verified by strict no-restatement probe/);
+
+  assert.match(groundingAdapter, /runStartupAgentDiagnostics as runV3/);
+  assert.match(groundingAdapter, /onlyGroundingFailed/);
+  assert.match(groundingAdapter, /verifyCurrentSageGrounding/);
+  assert.match(groundingAdapter, /essentials-theme/);
 
   assert.match(diagnostic, /CONVERSATION MODE: PlotPickle\/story craft/);
   assert.match(diagnostic, /cleanDiagnosticSageAnswer/);
@@ -44,7 +53,8 @@ test("startup uses the v4 grounding adapter around the resilient v3 Sage and PLA
 });
 
 test("runaway Sage repetition remains a hard startup failure", async () => {
-  const [adapter, diagnostic] = await Promise.all([
+  const [contractAdapter, groundingAdapter, diagnostic] = await Promise.all([
+    read("build/startup-agent-diagnostics-runtime-v5.ts"),
     read("build/startup-agent-diagnostics-runtime-v4.ts"),
     read("build/startup-agent-diagnostics-runtime-v3.ts"),
   ]);
@@ -53,7 +63,8 @@ test("runaway Sage repetition remains a hard startup failure", async () => {
   assert.match(diagnostic, /Sage repetition guard/);
   assert.match(diagnostic, /sage\.repetitionSafe \? "PASS" : "FAIL"/);
   assert.match(diagnostic, /failed \|\|= !responsePass \|\| !sage\.antiEcho \|\| !sage\.repetitionSafe \|\| !sage\.grounded/);
-  assert.match(adapter, /failedChecks\.length === 1 && failedChecks\[0\]\.includes\("Curriculum grounding"\)/);
+  assert.match(groundingAdapter, /failedChecks\.length === 1 && failedChecks\[0\]\.includes\("Curriculum grounding"\)/);
+  assert.match(contractAdapter, /failedChecks\.length === 1 && failedChecks\[0\]\.includes\("Sage anti-echo check"\)/);
 });
 
 test("Next startup uses proxy instead of the deprecated middleware convention", async () => {

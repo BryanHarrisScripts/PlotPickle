@@ -79,6 +79,14 @@ const BASE_INSTRUCTIONS = [
 ].join(" ");
 
 const MASTRA_AGENT_TIMEOUT_MS = 25_000;
+const MASTRA_RUNTIME_VERSION = (() => {
+  try {
+    const packageJson = JSON.parse(readFileSync(resolve(process.cwd(), "node_modules/@mastra/core/package.json"), "utf8")) as { readonly version?: string };
+    return packageJson.version?.trim() || "unknown";
+  } catch {
+    return "unknown";
+  }
+})();
 
 function foundationProposalSchema(fieldIds: readonly string[]) {
   const fields = Object.fromEntries(fieldIds.map((fieldId) => [fieldId, {
@@ -334,7 +342,7 @@ export function mastraRuntimeStatus() {
     return {
       runtime: "mastra",
       mode: "embedded",
-      version: "1.57.0",
+      version: MASTRA_RUNTIME_VERSION,
       ready: true,
       agents,
       checkedAt,
@@ -344,7 +352,7 @@ export function mastraRuntimeStatus() {
     return {
       runtime: "mastra",
       mode: "embedded",
-      version: "1.57.0",
+      version: MASTRA_RUNTIME_VERSION,
       ready: false,
       agents,
       checkedAt,

@@ -34,21 +34,14 @@ function requireSuccess(result, label) {
   throw new Error(`BEN ${label} failed with exit code ${result.status}.${detail ? `\n${detail}` : ""}`);
 }
 
-async function writeJsonText(filePath, text, label) {
-  const value = String(text || "").trim();
-  if (!value) throw new Error(`BEN ${label} produced no JSON output.`);
-  JSON.parse(value);
+async function writeScannerEvidence(filePath, output, label) {
+  const value = String(output || "").trim();
+  if (!value) throw new Error(`BEN ${label} produced no evidence output.`);
   await writeFile(filePath, `${value}\n`, "utf8");
 }
 
 function slopScanArgs(...args) {
   return ["--yes", `${policy.slopScan.package}@${policy.slopScan.version}`, ...args];
-}
-
-async function scanRepository(targetPath, reportPath) {
-  const result = run(npxCommand, slopScanArgs("scan", targetPath, "--json"));
-  requireSuccess(result, `slop-scan scan for ${targetPath}`);
-  await writeJsonText(reportPath, result.stdout, "scan");
 }
 
 async function main() {
@@ -59,24 +52,24 @@ async function main() {
     : configuredReportDirectory;
   await mkdir(reportDirectory, { recursive: true });
 
-  const headReport = path.join(reportDirectory, "head.json");
-  const baseReport = path.join(reportDirectory, "base.json");
+  const scanReport = path.join(reportDirectory, "scan.json");
   const deltaReport = path.join(reportDirectory, "delta.json");
   const resultReport = path.join(reportDirectory, "ben-result.json");
 
-  await scanRepository(repoRoot, headReport);
-
   if (!baseRef) {
+    const scan = run(npxCommand, slopScanArgs("scan", repoRoot, "--json"));
+    requireSuccess(scan, "current-tree slop-scan");
+    await writeScannerEvidence(scanReport, scan.stdout, "current-tree scan");
     await writeFile(resultReport, `${JSON.stringify({
       schemaVersion: 1,
       agentProfileId: policy.agentProfileId,
       mode: "scan",
       slopScanVersion: policy.slopScan.version,
-      headReport: path.relative(repoRoot, headReport).replaceAll("\\", "/"),
+      evidence: path.relative(repoRoot, scanReport).replaceAll("\\", "/"),
       authoritative: false,
       note: "Current-tree scan completed. Delta enforcement requires --base-ref.",
     }, null, 2)}\n`, "utf8");
-    process.stdout.write(`BEN code-quality scan PASS: ${path.relative(repoRoot, headReport)}\n`);
+    process.stdout.write(`BEN code-quality scan PASS: ${path.relative(repoRoot, scanReport)}\n`);
     return;
   }
 
@@ -87,18 +80,18 @@ async function main() {
     requireSuccess(addWorktree, `git worktree baseline ${baseRef}`);
     worktreeAdded = true;
 
-    await scanRepository(worktreeRoot, baseReport);
-
     const failOn = policy.slopScan.failOn.join(",");
     const delta = run(npxCommand, slopScanArgs(
       "delta",
-      "--base-report", baseReport,
-      "--head-report", headReport,
+      "--base", worktreeRoot,
+      "--head", repoRoot,
       "--json",
       "--fail-on", failOn,
     ));
 
-    if (String(delta.stdout || "").trim()) await writeJsonText(deltaReport, delta.stdout, "delta");
+    if (String(delta.stdout || "").trim()) {
+      await writeScannerEvidence(deltaReport, delta.stdout, "delta");
+    }
     const passed = delta.status === 0;
     await writeFile(resultReport, `${JSON.stringify({
       schemaVersion: 1,
@@ -109,11 +102,9 @@ async function main() {
       failOn: policy.slopScan.failOn,
       passed,
       authoritative: false,
-      evidence: {
-        base: path.relative(repoRoot, baseReport).replaceAll("\\", "/"),
-        head: path.relative(repoRoot, headReport).replaceAll("\\", "/"),
-        delta: String(delta.stdout || "").trim() ? path.relative(repoRoot, deltaReport).replaceAll("\\", "/") : "",
-      },
+      evidence: String(delta.stdout || "").trim()
+        ? path.relative(repoRoot, deltaReport).replaceAll("\\", "/")
+        : "",
       note: "BEN evidence cannot waive tests, Full Verification or repository merge gates.",
     }, null, 2)}\n`, "utf8");
 

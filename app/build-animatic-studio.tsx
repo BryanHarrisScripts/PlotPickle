@@ -72,6 +72,7 @@ function buildAnimaticPanel(anchor: Element) {
   let currentStatus: LazyStatus = {};
   let projectPrepared = false;
   let projectValidated = false;
+  let projectPreviewed = false;
   let busy = false;
 
   function setMessage(message: string, isError = false) {
@@ -111,10 +112,19 @@ function buildAnimaticPanel(anchor: Element) {
   function renderActions() {
     actions.replaceChildren();
     if (!currentStatus.installed) {
+      if (currentStatus.installState === "running") {
+        const installing = document.createElement("button");
+        installing.type = "button";
+        installing.disabled = true;
+        installing.textContent = "Installing Lazy Frames…";
+        actions.appendChild(installing);
+        window.setTimeout(() => void refreshStatus(), 1500);
+        return;
+      }
       button(`Install Lazy Frames ${currentStatus.version || "0.6.3"}`, async () => {
         setMessage("Installing the reviewed local Lazy Frames package in the background…");
         await api("install", { approved: true });
-        window.setTimeout(() => void refreshStatus(), 1200);
+        await refreshStatus();
       }, "primary");
       return;
     }
@@ -123,6 +133,7 @@ function buildAnimaticPanel(anchor: Element) {
       const result = await api("prepare", { project });
       projectPrepared = true;
       projectValidated = false;
+      projectPreviewed = false;
       setMessage(`${String(result.sceneCount || 0)} approved sequence(s) prepared. Canon was not changed.`);
     });
 
@@ -131,6 +142,7 @@ function buildAnimaticPanel(anchor: Element) {
       setMessage("Running Lazy Frames snapshot and determinism gates…");
       await api("check", { projectId: project.id });
       projectValidated = true;
+      projectPreviewed = false;
       setMessage("Validation passed. Open Preview and review the motion before rendering.");
     });
 
@@ -140,11 +152,13 @@ function buildAnimaticPanel(anchor: Element) {
       const url = String(result.url || currentStatus.preview?.url || "");
       if (!url) throw new Error("Lazy Frames did not return a local preview URL.");
       window.open(url, "_blank", "noopener,noreferrer");
+      projectPreviewed = true;
       setMessage("Preview opened locally. Review it, then choose Render MP4 when you approve the result.");
     });
 
     button("Render MP4", async () => {
-      if (!projectValidated) throw new Error("Validate and review the animatic before rendering.");
+      if (!projectValidated) throw new Error("Validate the animatic before rendering.");
+      if (!projectPreviewed) throw new Error("Open and review the validated preview before rendering.");
       const approved = window.confirm("Render this validated animatic to MP4 now? This does not change PPF/canon.");
       if (!approved) {
         setMessage("Render cancelled. The validated preview remains available.");

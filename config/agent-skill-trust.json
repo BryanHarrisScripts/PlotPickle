@@ -67,6 +67,20 @@
       "requestedCapabilityClasses": ["buzz-event-reporting", "verification-evidence-summary"],
       "evalStatus": "covered",
       "lastEvaluatedRevision": "buzz-guildhall"
+    },
+    {
+      "uri": "skill://plotpickle/marquee-director",
+      "displayName": "The Marquee Director",
+      "requestedCapabilityClasses": ["bounded-project-context", "visual-continuity-read", "proposal-draft", "generation-prompt-draft"],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-971"
+    },
+    {
+      "uri": "skill://plotpickle/critics-circle",
+      "displayName": "Critics' Circle",
+      "requestedCapabilityClasses": ["bounded-project-context", "critique-draft", "proposal-draft"],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-971"
     }
   ]
 }

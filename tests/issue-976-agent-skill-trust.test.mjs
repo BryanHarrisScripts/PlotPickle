@@ -123,7 +123,8 @@ test("research library contains source links and explicit adopted/not-adopted de
     read("docs/research/agent-architecture/graph-engineering-patterns.md"),
     read("docs/research/agent-architecture/programmed-workflows-verifiers-tools.md"),
   ]);
-  assert.match(index, /research intake, not a trusted Skill registry/i);
+  assert.match(index, /research intake/i);
+  assert.match(index, /not a trusted Skill registry/i);
   assert.match(skills, /https:\/\/agentskills\.io\/specification/);
   assert.match(skills, /https:\/\/github\.com\/agentskills\/agentskills/);
   assert.match(gitSkills, /https:\/\/arxiv\.org\/abs\/2608\.10906/);

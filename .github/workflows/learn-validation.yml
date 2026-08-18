@@ -58,6 +58,9 @@ jobs:
       - name: Validate graph-based Full Verification and confirmed-finding repair gate
         run: node --test tests/issue-989-verification-execution-graph.test.mjs
 
+      - name: Validate derived Story Knowledge Graph provenance and evals
+        run: node --test tests/issue-999-story-knowledge-graph.test.mjs
+
       - name: Validate unified Run telemetry and portability evals
         run: node --test tests/issue-968-run-telemetry-evals.test.mjs
 

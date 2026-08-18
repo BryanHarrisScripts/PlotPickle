@@ -37,6 +37,9 @@ jobs:
       - name: Validate Agent Skills migration
         run: node --test tests/issue-913-agent-skills-migration.test.mjs
 
+      - name: Validate Agent Skill trust and quarantine
+        run: node --test tests/issue-976-agent-skill-trust.test.mjs
+
       - name: Validate full-verification Agent Skills architecture pair
         run: node --test tests/sage-brinewick-agent-skill.test.mjs tests/issue-913-agent-skills-migration.test.mjs
 

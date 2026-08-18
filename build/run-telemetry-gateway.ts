@@ -73,10 +73,12 @@ async function saveRun(run: ResponsibilityRun) {
 function enqueue<T>(runId: string, operation: () => Promise<T>) {
   const previous = writeQueues.get(runId) || Promise.resolve();
   const next = previous.catch(() => undefined).then(operation);
-  writeQueues.set(runId, next.finally(() => {
-    if (writeQueues.get(runId) === next) writeQueues.delete(runId);
-  }));
-  return next;
+  let tracked: Promise<T>;
+  tracked = next.finally(() => {
+    if (writeQueues.get(runId) === tracked) writeQueues.delete(runId);
+  });
+  writeQueues.set(runId, tracked);
+  return tracked;
 }
 
 function telemetryType(value: unknown): RunTelemetryEventType {

@@ -8,9 +8,17 @@ on:
       - "config/agent-profiles.json"
       - "lib/agent-orchestration.ts"
       - "lib/context-engine.ts"
+      - "lib/adaptive-context-strategy-core.mjs"
+      - "lib/adaptive-context-strategies.ts"
+      - "lib/harness-improvement-core.mjs"
+      - "lib/harness-improvement-proposals.ts"
       - "lib/responsibility-runs.ts"
+      - "lib/responsibility-run-interrupts.ts"
       - "lib/responsibility-graph.ts"
+      - "modules/creative-room/sage-context-engine.ts"
+      - "tests/issue-1003-harness-improvement-proposals.test.mjs"
       - "tests/issue-977-buzz-mastra-orchestration.test.mjs"
+      - "docs/architecture/HARNESS-IMPROVEMENT-PROPOSALS.md"
       - "docs/buzz-mastra-orchestration.md"
       - ".github/workflows/buzz-mastra-orchestration.yml"
   workflow_dispatch:
@@ -43,6 +51,9 @@ jobs:
 
       - name: Validate BUZZ and Mastra orchestration boundary
         run: node --test tests/issue-977-buzz-mastra-orchestration.test.mjs
+
+      - name: Validate bounded harness improvements and adaptive context
+        run: node --test tests/issue-1003-harness-improvement-proposals.test.mjs
 
       - name: Recheck Agent Contract and Context trust
         run: node --test tests/issue-962-agent-profiles.test.mjs tests/issue-963-context-engine.test.mjs

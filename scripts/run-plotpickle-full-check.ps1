@@ -54,7 +54,8 @@ function Invoke-FullVerificationGraph {
   Write-Section "HOST-OWNED VERIFICATION EXECUTION GRAPH"
   Write-Host "Independent checks run concurrently when they have no dependency or resource conflict." -ForegroundColor Gray
   Write-Host "The nine deterministic stages remain the sole PASS/FAIL authority." -ForegroundColor Gray
-  & node ".\scripts\full-verification-graph.mjs" "--result-file" $GraphResultPath "--startup-wait-seconds" "$StartupWaitSeconds"
+  Write-Host "A heartbeat shows elapsed time, active stages, progress, and an approximate ETA while work is running." -ForegroundColor Gray
+  & node ".\scripts\full-verification-progress-runner.mjs" "--result-file" $GraphResultPath "--startup-wait-seconds" "$StartupWaitSeconds"
   $GraphExitCode = if ($null -eq $LASTEXITCODE) { 1 } else { [int]$LASTEXITCODE }
 
   if (-not (Test-Path $GraphResultPath)) {

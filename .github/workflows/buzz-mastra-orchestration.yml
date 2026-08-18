@@ -1,0 +1,54 @@
+name: BUZZ Mastra Orchestration
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "config/agent-orchestration.json"
+      - "config/agent-profiles.json"
+      - "lib/agent-orchestration.ts"
+      - "lib/context-engine.ts"
+      - "lib/responsibility-runs.ts"
+      - "lib/responsibility-graph.ts"
+      - "tests/issue-977-buzz-mastra-orchestration.test.mjs"
+      - "docs/buzz-mastra-orchestration.md"
+      - ".github/workflows/buzz-mastra-orchestration.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: buzz-mastra-orchestration-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Execution ownership and handoff boundaries
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Validate BUZZ and Mastra orchestration boundary
+        run: node --test tests/issue-977-buzz-mastra-orchestration.test.mjs
+
+      - name: Recheck Agent Contract and Context trust
+        run: node --test tests/issue-962-agent-profiles.test.mjs tests/issue-963-context-engine.test.mjs
+
+      - name: Recheck Responsibility Run and Graph authority
+        run: node --test tests/issue-966-responsibility-runs.test.mjs tests/issue-967-safe-graph-workflows.test.mjs
+
+      - name: Recheck connector/egress boundary
+        run: node --test tests/issue-965-connector-trust-policy.test.mjs

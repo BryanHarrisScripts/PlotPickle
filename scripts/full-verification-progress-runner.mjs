@@ -15,6 +15,17 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const authoritativeTotal = FULL_VERIFICATION_GRAPH.filter((node) => node.authoritative).length;
 export const PI_PREFLIGHT_TIMEOUT_MS = 30_000;
 export const FULL_VERIFICATION_HEARTBEAT_MS = 10_000;
+export const FULL_VERIFICATION_STAGE_TIMEOUT_MS = Object.freeze({
+  "agent-skills-registry": 5 * 60_000,
+  "agent-skills-architecture": 10 * 60_000,
+  "learn-curriculum": 10 * 60_000,
+  "production-build": 30 * 60_000,
+  "ensure-pi-model": 5 * 60_000,
+  "pi-preflight": PI_PREFLIGHT_TIMEOUT_MS,
+  "buzz-live": 10 * 60_000,
+  "exhaustive-uat": 2 * 60 * 60_000,
+  "writer-in-residence": 60 * 60_000,
+});
 
 function argument(name, fallback = "") {
   const index = process.argv.indexOf(name);
@@ -69,6 +80,15 @@ export function verificationProgressSnapshot({ completed, total = authoritativeT
   };
 }
 
+export function verificationTimeoutForNode(node) {
+  if (!node?.authoritative) return 0;
+  const timeoutMs = FULL_VERIFICATION_STAGE_TIMEOUT_MS[node.id];
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+    throw new Error(`Full Verification stage ${node.id || "<unknown>"} is missing a bounded host timeout.`);
+  }
+  return timeoutMs;
+}
+
 function commandFor(node) {
   if (node.tool === "node") return { command: process.execPath, args: node.args };
   if (node.tool === "npm") return { command: process.platform === "win32" ? "npm.cmd" : "npm", args: node.args };
@@ -111,34 +131,88 @@ async function executableAvailable(name) {
   });
 }
 
-function terminateProcessTree(child) {
-  if (!child?.pid) return;
+function childAlreadyClosed(child) {
+  return child.exitCode !== null || child.signalCode !== null;
+}
+
+async function waitForChildClose(child, timeoutMs = 3_000) {
+  if (!child || childAlreadyClosed(child)) return true;
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (closed) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      child.off("close", onClose);
+      resolve(closed);
+    };
+    const onClose = () => finish(true);
+    const timer = setTimeout(() => finish(childAlreadyClosed(child)), timeoutMs);
+    child.once("close", onClose);
+  });
+}
+
+async function terminateProcessTree(child) {
+  if (!child?.pid || childAlreadyClosed(child)) return;
   if (process.platform === "win32") {
-    try {
-      const killer = spawn("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], {
-        windowsHide: true,
-        shell: false,
-        stdio: "ignore",
-      });
-      killer.unref();
-    } catch (error) {
-      reportProcessCleanupFailure(`could not start taskkill for PID ${child.pid}`, error);
+    await new Promise((resolve) => {
+      let settled = false;
+      let timer = null;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        if (timer) clearTimeout(timer);
+        resolve();
+      };
+      try {
+        const killer = spawn("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], {
+          windowsHide: true,
+          shell: false,
+          stdio: "ignore",
+        });
+        timer = setTimeout(() => {
+          try { killer.kill(); } catch (error) { reportProcessCleanupFailure(`could not stop taskkill for PID ${child.pid}`, error); }
+          finish();
+        }, 5_000);
+        killer.once("error", (error) => {
+          reportProcessCleanupFailure(`could not start taskkill for PID ${child.pid}`, error);
+          finish();
+        });
+        killer.once("close", finish);
+      } catch (error) {
+        reportProcessCleanupFailure(`could not start taskkill for PID ${child.pid}`, error);
+        finish();
+      }
+    });
+    const closed = await waitForChildClose(child, 3_000);
+    if (!closed) {
+      try { child.kill(); } catch (error) { reportProcessCleanupFailure(`could not stop PID ${child.pid} after taskkill`, error); }
+      await waitForChildClose(child, 2_000);
     }
     return;
   }
+
   try {
     child.kill("SIGTERM");
   } catch (error) {
     reportProcessCleanupFailure(`could not stop PID ${child.pid}`, error);
   }
+  if (await waitForChildClose(child, 3_000)) return;
+  try {
+    child.kill("SIGKILL");
+  } catch (error) {
+    reportProcessCleanupFailure(`could not force-stop PID ${child.pid}`, error);
+  }
+  await waitForChildClose(child, 2_000);
 }
 
-async function executeBoundedCommand(node, timeoutMs = 0) {
+export async function executeBoundedCommand(node, timeoutMs = 0) {
   const { command, args } = commandFor(node);
   const started = Date.now();
   let tail = "";
   return new Promise((resolve) => {
     let settled = false;
+    let timedOut = false;
     const child = spawn(command, args, {
       cwd: repoRoot,
       env: { ...process.env },
@@ -160,8 +234,12 @@ async function executeBoundedCommand(node, timeoutMs = 0) {
     };
     child.stdout?.on("data", (chunk) => capture(chunk, process.stdout));
     child.stderr?.on("data", (chunk) => capture(chunk, process.stderr));
-    child.on("error", (error) => finish({ status: "FAIL", exitCode: 1, detail: cleanDetail(error.message), durationMs: Date.now() - started }));
+    child.on("error", (error) => {
+      if (timedOut) return;
+      finish({ status: "FAIL", exitCode: 1, detail: cleanDetail(error.message), durationMs: Date.now() - started });
+    });
     child.on("close", (code) => {
+      if (timedOut) return;
       const exitCode = Number.isFinite(Number(code)) ? Number(code) : 1;
       finish({
         status: exitCode === 0 ? "PASS" : "FAIL",
@@ -171,13 +249,18 @@ async function executeBoundedCommand(node, timeoutMs = 0) {
       });
     });
     timer = timeoutMs > 0 ? setTimeout(() => {
-      terminateProcessTree(child);
-      finish({
-        status: "FAIL",
-        exitCode: 124,
-        detail: `${node.name} exceeded its ${Math.round(timeoutMs / 1000)} second host timeout and was stopped.`,
-        durationMs: Date.now() - started,
-      });
+      if (settled || timedOut) return;
+      timedOut = true;
+      const timeoutSeconds = Math.round(timeoutMs / 1000);
+      process.stderr.write(`[${node.id}] HOST TIMEOUT after ${timeoutSeconds}s; stopping the process tree so independent verification work can continue.\n`);
+      void terminateProcessTree(child)
+        .catch((error) => reportProcessCleanupFailure(`timeout cleanup for PID ${child.pid || "unknown"}`, error))
+        .finally(() => finish({
+          status: "FAIL",
+          exitCode: 124,
+          detail: `${node.name} exceeded its ${timeoutSeconds} second host timeout and was stopped; independent graph stages may continue.`,
+          durationMs: Date.now() - started,
+        }));
     }, timeoutMs) : null;
   });
 }
@@ -223,8 +306,7 @@ async function main() {
               durationMs: 0,
             };
           }
-          const timeoutMs = node.id === "pi-preflight" ? PI_PREFLIGHT_TIMEOUT_MS : 0;
-          return await executeBoundedCommand(node, timeoutMs);
+          return await executeBoundedCommand(node, verificationTimeoutForNode(node));
         } finally {
           active.delete(node.id);
           if (node.authoritative) completedAuthoritative.add(node.id);

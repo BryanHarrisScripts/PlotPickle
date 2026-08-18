@@ -55,6 +55,11 @@ jobs:
       - name: Validate safe graph workflow primitives
         run: node --test tests/issue-967-safe-graph-workflows.test.mjs
 
+      - name: Validate Run observability and model portability
+        run: |
+          node --test tests/issue-968-run-observability-evals.test.mjs
+          node scripts/run-agent-portability-evals.mjs
+
       - name: Validate full-verification Agent Skills architecture pair
         run: node --test tests/sage-brinewick-agent-skill.test.mjs tests/issue-913-agent-skills-migration.test.mjs
 

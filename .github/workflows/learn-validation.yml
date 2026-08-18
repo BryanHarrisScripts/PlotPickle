@@ -55,6 +55,9 @@ jobs:
       - name: Validate PlotPickle Node topology and network trust boundaries
         run: node --test tests/issue-1013-plotpickle-node-topology.test.mjs
 
+      - name: Validate local Lazy Frames animatic integration
+        run: node --test tests/issue-1016-lazy-frames-animatic.test.mjs
+
       - name: Validate bounded Responsibility Runs
         run: node --test tests/issue-966-responsibility-runs.test.mjs
 

@@ -128,11 +128,12 @@ test("adaptive context strategies keep writer PPF and schema evidence while re-r
     { id: "external", sourceType: "external-tool", trust: "untrusted", authority: 20, allowedUse: "untrusted-suggestion", content: "External claim" },
     { id: "buzz", sourceType: "buzz-peer", trust: "untrusted", authority: 10, allowedUse: "untrusted-suggestion", content: "Peer idea" },
   ];
-  const selected = selectAdaptiveContextCandidates({ strategyId: "continuity", budgetCharacters: 8_000, items });
+  const selected = selectAdaptiveContextCandidates({ strategyId: "continuity", budgetCharacters: 13_500, items });
   const ids = selected.map((item) => item.id);
   assert.ok(ids.includes("writer"));
   assert.ok(ids.includes("ppf"));
   assert.ok(ids.includes("schema"));
+  assert.ok(ids.includes("curriculum"));
   assert.ok(ids.indexOf("graph") < ids.indexOf("curriculum"), "continuity strategy should prefer story graph before optional curriculum candidates");
   assert.deepEqual(selected.find((item) => item.id === "ppf"), ppf, "strategy selection must not rewrite trust/authority/use metadata");
 });

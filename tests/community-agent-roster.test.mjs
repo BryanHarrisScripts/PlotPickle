@@ -13,6 +13,8 @@ test("the canonical Agent Contract registry includes every active slim-product a
   assert.equal(byRole.get("foundations-planner")?.displayName, "Tamsin Hearthquill");
   assert.equal(byRole.get("wyrmwood-rival-director")?.displayName, "Master Oaken-Vague");
   assert.equal(byRole.get("wyrmwood-curriculum-evaluator")?.displayName, "Rowan Scalequill");
+  assert.equal(byRole.get("visual-director")?.displayName, "The Marquee Director");
+  assert.equal(byRole.get("critic")?.displayName, "Critics' Circle");
   assert.equal(byRole.get("foundations-planner")?.title, "Keeper of Foundations");
   assert.equal(byRole.get("foundations-planner")?.homeRoomId, "story-council");
   assert.equal(byRole.get("curriculum-guide")?.buzzBinding?.actorId, "sage-brinewick");
@@ -33,8 +35,10 @@ test("Community shows a live roster sourced from Agent Contracts plus Mastra act
   assert.match(roster, /setInterval\(\(\) => void refresh\(\), 7_500\)/);
   assert.match(roster, /Runs in/);
   assert.match(roster, /Home room/);
+  assert.match(roster, /Active model/);
   assert.match(roster, /Last activity/);
-  assert.match(roster, /Capabilities & boundaries/);
+  assert.match(roster, /Capabilities, memory & boundaries/);
+  assert.match(roster, /Memory scope/);
   assert.match(roster, /Needs owner approval/);
   assert.match(model, /AGENT_PROFILES\.map/);
   assert.match(model, /trace\?\.status === "running"/);
@@ -42,6 +46,8 @@ test("Community shows a live roster sourced from Agent Contracts plus Mastra act
   assert.match(model, /status\?\.mastra\?\.agents\?\.includes\(roleId\)/);
   assert.match(model, /profile\.buzzBinding\.actorId/);
   assert.match(model, /BUZZ reports this agent online/);
+  assert.match(model, /avatarInitials/);
+  assert.match(model, /projectMemoryPolicy/);
 });
 
 test("the roster derives active, on-demand and parked roles from PlotPickle availability without duplicating BUZZ lifecycle settings", async () => {

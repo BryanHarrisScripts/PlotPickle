@@ -18,6 +18,8 @@ const requiredRooms = [
   "wyrmwood-ring",
   "story-council",
   "thread-vault",
+  "marquee",
+  "critics-circle",
   "lantern-watch",
   "gatehouse",
   "forge",
@@ -29,6 +31,8 @@ const requiredActors = new Map([
   ["sage-brinewick", ["Sage Brinewick", "Lorekeeper"]],
   ["master-oaken-vague", ["Master Oaken-Vague", "Keeper of the Wyrmwood"]],
   ["avery-north", ["Avery North", "The Wayfarer"]],
+  ["marquee-director", ["The Marquee Director", "Key Art & Trailer Director"]],
+  ["critics-circle", ["Critics' Circle", "Independent Story Review"]],
   ["luma-glassfern", ["Luma Glassfern", "Lantern Warden"]],
   ["bram-gatewick", ["Bram Gatewick", "Gatewarden"]],
   ["rook-ironquill", ["Rook Ironquill", "Forgekeeper"]],
@@ -62,6 +66,8 @@ test("Guildhall preserves existing agents and adds original lore titles", () => 
   assert.equal(config.actors.find((actor) => actor.id === "sage-brinewick")?.existingRoleId, "curriculum-guide");
   assert.equal(config.actors.find((actor) => actor.id === "master-oaken-vague")?.existingRoleId, "wyrmwood-rival-director");
   assert.equal(config.actors.find((actor) => actor.id === "rowan-scalequill")?.existingRoleId, "wyrmwood-curriculum-evaluator");
+  assert.equal(config.actors.find((actor) => actor.id === "marquee-director")?.existingRoleId, "visual-director");
+  assert.equal(config.actors.find((actor) => actor.id === "critics-circle")?.existingRoleId, "critic");
 });
 
 test("only Guildhall-specific stewards are drafted as BUZZ-native agents", () => {

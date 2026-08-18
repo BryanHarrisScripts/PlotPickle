@@ -11,6 +11,7 @@ import { registerSdxlLocalImageGateway } from "./comfyui-sdxl-local-gateway";
 import { registerComfyUiOnboardingGateway } from "./comfyui-onboarding-gateway";
 import { registerProviderDiagnosticsGateway } from "./provider-diagnostics-gateway";
 import { registerMediaRoutingGateway } from "./media-routing-gateway";
+import { registerLazyFramesGateway } from "./lazy-frames-gateway";
 import { registerOllamaBootstrapGateway } from "./ollama-bootstrap-gateway";
 import { registerLocalAiInstallationGateway } from "./local-ai-installation-gateway";
 import { registerLocalRuntimeGateway } from "./local-runtime-gateway";
@@ -50,7 +51,7 @@ export function localAiGateway(): Plugin {
     registerStudioIdentityGateway(server); registerPlayhouseFederationGateway(server); registerPlayhouseDirectoryGateway(server); registerVerificationOrchestrationGateway(server); registerVerificationInboxGateway(server); registerDeepSeekHarnessGateway(server);
     registerCurriculumRagGateway(server); registerLocalAiInstallationGateway(server); registerAiRoutingGateway(server);
     registerNativeH3Gateway(server); registerProviderDiagnosticsGateway(server); registerSdxlLocalImageGateway(server);
-    registerLtxLocalVideoGateway(server); registerComfyUiOnboardingGateway(server); registerMediaRoutingGateway(server);
+    registerLtxLocalVideoGateway(server); registerComfyUiOnboardingGateway(server); registerMediaRoutingGateway(server); registerLazyFramesGateway(server);
     registerOllamaBootstrapGateway(server); registerAgentObservabilityGateway(server); registerBuzzAgentActivityMirror(server);
     registerFoundationsPpfGateway(server); registerWritingAssistantGateway(server);
     if (typeof legacy.configureServer === "function") legacy.configureServer(server);

@@ -90,10 +90,10 @@ test("explicit managed startup reuses Desktop's engine and model paths without r
   assert.match(managedBlock, /--listen/);
   assert.match(managedBlock, /--port/);
   assert.match(managedBlock, /--extra-model-paths-config/);
-  assert.match(managedBlock, /shared_model_paths\.yaml/);
-  assert.match(managedBlock, /instance-model-paths/);
   assert.match(managedBlock, /without requiring a Desktop Launch click/);
   assert.doesNotMatch(managedBlock, /Open-ComfyDesktop \$desktopExe/);
+  assert.match(starter, /shared_model_paths\.yaml/);
+  assert.match(starter, /instance-model-paths/);
 });
 
 test("routine ComfyUI maintenance does not gate core PlotPickle startup on GPU or Desktop readiness", async () => {

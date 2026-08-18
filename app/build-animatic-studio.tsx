@@ -15,6 +15,12 @@ type LazyStatus = {
   preview?: { url?: string };
 };
 
+type CopyOptions<Tag extends keyof HTMLElementTagNameMap> = {
+  tag: Tag;
+  text: string;
+  className?: string;
+};
+
 function loadProject(): PlotPickleProject {
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -25,12 +31,10 @@ function loadProject(): PlotPickleProject {
   }
 }
 
-function addText(parent: HTMLElement, tag: keyof HTMLElementTagNameMap, text: string, className?: string) {
-  const element = document.createElement(tag);
-  if (className) element.className = className;
-  element.textContent = text;
-  parent.appendChild(element);
-  return element;
+function appendCopy<Tag extends keyof HTMLElementTagNameMap>(parent: HTMLElement, options: CopyOptions<Tag>) {
+  const node = Object.assign(document.createElement(options.tag), { textContent: options.text });
+  if (options.className) node.classList.add(options.className);
+  return parent.appendChild(node);
 }
 
 async function api(path: string, body?: Record<string, unknown>) {
@@ -53,22 +57,22 @@ function buildAnimaticPanel(anchor: Element) {
 
   const heading = document.createElement("div");
   heading.className = "build-animatic-heading";
-  addText(heading, "span", "ANIMATIC · LOCAL RENDER", "build-animatic-eyebrow");
-  addText(heading, "h2", "Turn approved sequences into a motion preview");
-  addText(heading, "p", "Lazy Frames creates a derived animatic from approved BUILD material. Your PPF remains the story source of truth; preview and MP4 files are disposable render outputs.");
+  appendCopy(heading, { tag: "span", text: "ANIMATIC · LOCAL RENDER", className: "build-animatic-eyebrow" });
+  appendCopy(heading, { tag: "h2", text: "Turn approved sequences into a motion preview" });
+  appendCopy(heading, { tag: "p", text: "Lazy Frames creates a derived animatic from approved BUILD material. Your PPF remains the story source of truth; preview and MP4 files are disposable render outputs." });
   panel.appendChild(heading);
 
   const statusCard = document.createElement("div");
   statusCard.className = "build-animatic-status-card";
-  const statusTitle = addText(statusCard, "strong", "Checking Lazy Frames…");
-  const statusCopy = addText(statusCard, "span", "Local readiness is being inspected.");
+  const statusTitle = appendCopy(statusCard, { tag: "strong", text: "Checking Lazy Frames…" });
+  const statusCopy = appendCopy(statusCard, { tag: "span", text: "Local readiness is being inspected." });
   panel.appendChild(statusCard);
 
   const actions = document.createElement("div");
   actions.className = "build-animatic-actions";
   panel.appendChild(actions);
 
-  const detail = addText(panel, "p", "Prepare → Validate → Preview → Render MP4", "build-animatic-detail");
+  const detail = appendCopy(panel, { tag: "p", text: "Prepare → Validate → Preview → Render MP4", className: "build-animatic-detail" });
   let currentStatus: LazyStatus = {};
   let projectPrepared = false;
   let projectValidated = false;

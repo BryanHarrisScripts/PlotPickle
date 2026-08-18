@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import AppearanceRuntime from "./appearance-runtime";
 import BuildAssemblyStudio from "./build-assembly-studio";
+import BuildAnimaticStudio from "./build-animatic-studio";
 import CollaborationWorkspaceRouter from "./collaboration-workspace-router";
 import CommonOverlayLayer from "./common-overlay-layer";
 import CurrentDownloadLinks from "./current-download-links";
@@ -53,6 +54,7 @@ import "./edit-decision-panel.css";
 import "./graphic-novel-studio.css";
 import "./graphic-novel-build-handoff.css";
 import "./build-assembly-studio.css";
+import "./build-animatic-studio.css";
 import "./feedback-studio.css";
 import "./learn-first-phase-528-rendered.css";
 import "./learn-first-phase-528-core-polish.css";
@@ -114,6 +116,7 @@ export default function RootLayout({
         <GraphicNovelStudioHost />
         <GraphicNovelBuildHandoff />
         <BuildAssemblyStudio />
+        <BuildAnimaticStudio />
         <FeedbackStudioHost />
         <GitHubAppReleaseGuidance />
         <CollaborationWorkspaceRouter />

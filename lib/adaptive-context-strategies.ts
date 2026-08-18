@@ -5,18 +5,17 @@ import {
   type ContextReceipt,
 } from "./context-engine";
 import {
-  CONTEXT_STRATEGIES as CORE_CONTEXT_STRATEGIES,
   contextStrategyForTask as coreContextStrategyForTask,
   selectAdaptiveContextCandidates as coreSelectAdaptiveContextCandidates,
 } from "./adaptive-context-strategy-core.mjs";
 
-export const CONTEXT_STRATEGIES = CORE_CONTEXT_STRATEGIES as readonly [
+export const CONTEXT_STRATEGIES = [
   "general",
   "continuity",
   "scene-rewrite",
   "structure-review",
   "visual-continuity",
-];
+] as const;
 
 export type ContextStrategyId = (typeof CONTEXT_STRATEGIES)[number];
 

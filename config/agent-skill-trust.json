@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "hashAlgorithm": "sha256-tree-v1",
+  "authority": {
+    "skillMeaning": "Agent Skills describe procedure. A Skill trust record never grants tools, credentials, network access, developer authority or PPF mutation authority.",
+    "signatureMeaning": "A signature or verified publisher proves provenance only. It does not make Skill content trusted instruction or production-executable.",
+    "externalDefault": "Any external, community or copied Skill starts quarantined until its exact hashed revision is reviewed, evaluated and explicitly approved by the local host.",
+    "hashChange": "Any content hash or pinned source revision change invalidates prior external approval until the changed Skill is reviewed again."
+  },
+  "builtInSource": {
+    "kind": "plotpickle-built-in",
+    "source": "BryanHarrisScripts/PlotPickle/.agents/skills",
+    "pinnedRevision": "plotpickle@1.0.0-rc.3",
+    "license": "AGPL-3.0-or-later",
+    "author": "PlotPickle contributors",
+    "reviewStatus": "approved",
+    "trustState": "trusted-built-in",
+    "reviewedAt": "2026-08-18T00:00:00.000Z"
+  },
+  "universalForbiddenCapabilityClasses": [
+    "authority-escalation",
+    "credential-read",
+    "network-egress-by-skill",
+    "provider-selection-by-skill",
+    "ppf-direct-write",
+    "github-write-by-product-agent"
+  ],
+  "records": [
+    {
+      "uri": "skill://plotpickle/uat-repair",
+      "displayName": "PlotPickle UAT Repair",
+      "requestedCapabilityClasses": ["verification-evidence-read", "developer-repair-procedure"],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-913"
+    },
+    {
+      "uri": "skill://plotpickle/sage-brinewick",
+      "displayName": "Sage Brinewick",
+      "requestedCapabilityClasses": ["curriculum-read", "bounded-project-context"],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-963"
+    },
+    {
+      "uri": "skill://plotpickle/plan-foundations",
+      "displayName": "PLAN Foundations",
+      "requestedCapabilityClasses": ["curriculum-read", "bounded-project-context", "proposal-draft"],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-968"
+    },
+    {
+      "uri": "skill://plotpickle/writer-in-residence",
+      "displayName": "Writer in Residence",
+      "requestedCapabilityClasses": ["uat-browser-observation", "bounded-writer-simulation"],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "writer-in-residence"
+    },
+    {
+      "uri": "skill://plotpickle/visual-qa",
+      "displayName": "Visual QA",
+      "requestedCapabilityClasses": ["rendered-ui-observation", "visual-evidence-report"],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "visual-qa"
+    },
+    {
+      "uri": "skill://plotpickle/buzz-guildhall-reporting",
+      "displayName": "BUZZ Guildhall Reporting",
+      "requestedCapabilityClasses": ["buzz-event-reporting", "verification-evidence-summary"],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "buzz-guildhall"
+    }
+  ]
+}

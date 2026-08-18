@@ -1,0 +1,723 @@
+.frame {
+  min-height: 720px;
+  color: #7fffd4;
+  font-family: "Courier New", "Lucida Console", monospace;
+}
+
+.crt {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(78, 255, 211, 0.42);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(32, 135, 113, 0.09), transparent 55%),
+    linear-gradient(180deg, #030807 0%, #020403 100%);
+  box-shadow:
+    inset 0 0 80px rgba(0, 0, 0, 0.82),
+    inset 0 0 24px rgba(46, 211, 177, 0.08),
+    0 0 28px rgba(19, 140, 116, 0.08);
+}
+
+.crt::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.42) 100%);
+  mix-blend-mode: multiply;
+}
+
+.scanlines {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.22;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.018) 0,
+    rgba(255, 255, 255, 0.018) 1px,
+    rgba(0, 0, 0, 0.18) 2px,
+    rgba(0, 0, 0, 0.18) 4px
+  );
+}
+
+.boot {
+  position: relative;
+  z-index: 2;
+  padding: 20px 24px 14px;
+  border-bottom: 1px solid rgba(78, 255, 211, 0.26);
+  text-shadow: 0 0 7px rgba(78, 255, 211, 0.42);
+}
+
+.boot p {
+  margin: 0 0 5px;
+  color: #59d9ba;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.boot h2 {
+  margin: 7px 0 3px;
+  color: #b8ffe9;
+  font: 700 23px/1.15 "Courier New", monospace;
+  letter-spacing: 0.09em;
+  text-align: center;
+}
+
+.boot .motto {
+  color: #d8a25e;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-align: center;
+}
+
+.rule {
+  overflow: hidden;
+  color: rgba(98, 231, 198, 0.7);
+  font-size: 9px;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+}
+
+.statusLine {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 15px 0 0;
+}
+
+.statusLine div {
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid rgba(78, 255, 211, 0.14);
+  background: rgba(5, 18, 15, 0.7);
+}
+
+.statusLine dt,
+.statusLine dd {
+  margin: 0;
+}
+
+.statusLine dt {
+  margin-bottom: 3px;
+  color: #d89a51;
+  font-size: 8px;
+}
+
+.statusLine dd {
+  overflow: hidden;
+  color: #a8f7df;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.terminalGrid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  min-height: 570px;
+}
+
+.screen {
+  min-width: 0;
+  max-height: 690px;
+  overflow: auto;
+  padding: 18px 22px 28px;
+  outline: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(72, 219, 183, 0.36) #020504;
+}
+
+.screenHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(78, 255, 211, 0.24);
+}
+
+.screenHeading > span {
+  color: #dcfff4;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.screenHeading small {
+  color: #cb9050;
+  font-size: 8px;
+}
+
+.prompt {
+  margin: 0 0 12px;
+  color: #d9a45f;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.home > p:not(.prompt),
+.tableView > p,
+.helpView > p,
+.talkView > p {
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.menuBlock {
+  display: grid;
+  gap: 3px;
+  margin: 18px 0 24px;
+}
+
+.menuBlock button,
+.commandRail button,
+.targetList button,
+.directLine > button,
+.helpView button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.menuBlock button {
+  display: grid;
+  grid-template-columns: 42px 116px 1fr;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 6px;
+  text-align: left;
+}
+
+.menuBlock button:hover,
+.menuBlock button:focus-visible,
+.targetList button:hover,
+.targetList button:focus-visible,
+.commandRail button:hover,
+.commandRail button:focus-visible {
+  background: rgba(78, 255, 211, 0.07);
+  color: #d5fff3;
+  outline: 1px solid rgba(78, 255, 211, 0.25);
+}
+
+.menuBlock kbd,
+.helpView kbd {
+  color: #f0aa55;
+  font: inherit;
+}
+
+.menuBlock span {
+  color: #bafbe8;
+  font-weight: 700;
+}
+
+.menuBlock small {
+  color: #588d80;
+  font-size: 8px;
+}
+
+.feed,
+.agentList,
+.boardList,
+.reviewList {
+  display: grid;
+  gap: 7px;
+}
+
+.feed h3,
+.targetList h3 {
+  margin: 0 0 5px;
+  color: #5bd8b8;
+  font-size: 9px;
+  font-weight: 400;
+}
+
+.feed article,
+.directMessages article,
+.agentList article,
+.boardList article {
+  padding: 8px 10px;
+  border-left: 2px solid rgba(71, 209, 176, 0.22);
+  background: rgba(4, 14, 12, 0.56);
+}
+
+.feed header,
+.directMessages article header,
+.agentList header,
+.boardList header,
+.directLine > header,
+.reviewList article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.feed strong,
+.directMessages strong,
+.agentList strong,
+.boardList strong,
+.reviewList strong,
+.directLine strong {
+  color: #c3ffed;
+  font-size: 9px;
+}
+
+.feed time,
+.directMessages time,
+.agentList header span,
+.boardList header span,
+.reviewList small,
+.directLine > header small {
+  color: #b87d45;
+  font-size: 8px;
+}
+
+.feed p,
+.directMessages p,
+.agentList p,
+.boardList p {
+  margin: 5px 0 0;
+  color: #7dbdaf;
+  font-size: 9px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.dim {
+  color: #446a61 !important;
+}
+
+.asciiTable {
+  border-top: 1px dashed rgba(78, 255, 211, 0.24);
+  border-bottom: 1px dashed rgba(78, 255, 211, 0.24);
+}
+
+.tableHeader,
+.tableRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) 110px 90px;
+  gap: 12px;
+  padding: 8px 7px;
+  font-size: 9px;
+}
+
+.tableHeader {
+  color: #d59a55;
+  border-bottom: 1px dashed rgba(78, 255, 211, 0.18);
+}
+
+.tableRow {
+  color: #72c6b1;
+  border-bottom: 1px solid rgba(78, 255, 211, 0.07);
+}
+
+.tableRow strong {
+  color: #c0ffed;
+}
+
+.tableRow span[data-presence="online"] {
+  color: #76ffd5;
+  text-shadow: 0 0 6px rgba(78, 255, 211, 0.5);
+}
+
+.tableRow span[data-presence="away"] {
+  color: #e1a55d;
+}
+
+.agentList,
+.boardList {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.agentList article footer {
+  margin-top: 8px;
+  color: #4f897c;
+  font-size: 7px;
+  line-height: 1.4;
+}
+
+.boardList article[data-ready="true"] {
+  border-left-color: #4ad3b1;
+}
+
+.boardList article[data-ready="false"] {
+  opacity: 0.5;
+}
+
+.talkLayout {
+  display: grid;
+  grid-template-columns: 235px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.targetList,
+.directLine {
+  border: 1px solid rgba(78, 255, 211, 0.16);
+  background: rgba(2, 8, 7, 0.65);
+}
+
+.targetList {
+  max-height: 500px;
+  overflow: auto;
+  padding: 10px;
+}
+
+.targetList button {
+  display: grid;
+  width: 100%;
+  gap: 3px;
+  padding: 8px;
+  color: #85cbbb;
+  text-align: left;
+}
+
+.targetList button[data-selected="true"] {
+  background: rgba(78, 255, 211, 0.09);
+  color: #e1fff7;
+  outline: 1px solid rgba(78, 255, 211, 0.32);
+}
+
+.targetList button strong {
+  color: inherit;
+  font-size: 9px;
+}
+
+.targetList button small {
+  color: #5f9789;
+  font-size: 7px;
+}
+
+.directLine {
+  display: grid;
+  min-height: 470px;
+  grid-template-rows: auto minmax(150px, 1fr) auto auto auto;
+  gap: 9px;
+  padding: 12px;
+}
+
+.directLine > header {
+  align-items: flex-start;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(78, 255, 211, 0.18);
+}
+
+.directLine > header div {
+  display: grid;
+  gap: 3px;
+}
+
+.directLine > header span,
+.directLine label > span,
+.routeNotice {
+  color: #d89a51;
+  font-size: 7px;
+}
+
+.directMessages {
+  max-height: 250px;
+  overflow: auto;
+}
+
+.directLine label {
+  display: grid;
+  gap: 5px;
+}
+
+.directLine textarea {
+  width: 100%;
+  min-height: 74px;
+  resize: vertical;
+  box-sizing: border-box;
+  border: 1px solid rgba(78, 255, 211, 0.28);
+  border-radius: 0;
+  outline: none;
+  background: #010403;
+  color: #a9fbe3;
+  font: 10px/1.5 "Courier New", monospace;
+  padding: 8px;
+  caret-color: #ecae61;
+}
+
+.directLine textarea:focus {
+  border-color: rgba(78, 255, 211, 0.62);
+  box-shadow: inset 0 0 10px rgba(78, 255, 211, 0.05);
+}
+
+.directLine > button,
+.helpView button {
+  padding: 8px 10px;
+  border: 1px solid rgba(78, 255, 211, 0.28);
+  color: #c8fff0;
+  text-align: left;
+}
+
+.directLine > button:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.routeNotice {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.reviewList article {
+  justify-content: flex-start;
+  padding: 8px 10px;
+  border-bottom: 1px dashed rgba(78, 255, 211, 0.13);
+}
+
+.reviewList article > span {
+  color: #da9a50;
+  font-size: 8px;
+}
+
+.reviewList article > div {
+  display: grid;
+  gap: 3px;
+}
+
+.helpView {
+  display: grid;
+  gap: 7px;
+}
+
+.helpView > p:not(.prompt) {
+  display: grid;
+  grid-template-columns: 38px 120px 1fr;
+  gap: 9px;
+  margin: 0;
+  padding: 4px 0;
+}
+
+.helpView > p strong {
+  color: #c6fff0;
+  font-size: 9px;
+}
+
+.helpView > p span {
+  color: #638e84;
+  font-size: 8px;
+}
+
+.helpView .warning {
+  display: block !important;
+  margin: 14px 0 !important;
+  padding: 9px 10px;
+  border: 1px solid rgba(218, 154, 80, 0.3);
+  color: #d9a05c;
+  font-size: 8px;
+}
+
+.cursorLine {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 24px 0 0;
+  color: #64dfc0;
+  font-size: 9px;
+}
+
+.cursorLine i {
+  width: 7px;
+  height: 13px;
+  background: #8fffe0;
+  box-shadow: 0 0 8px rgba(78, 255, 211, 0.6);
+  animation: terminalBlink 900ms steps(1) infinite;
+}
+
+.frame[data-halted="true"] .cursorLine i {
+  animation-play-state: paused;
+  opacity: 0.35;
+}
+
+.commandRail {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-left: 1px solid rgba(78, 255, 211, 0.22);
+  background: rgba(4, 13, 11, 0.9);
+}
+
+.commandRail > header,
+.commandRail > footer {
+  display: grid;
+  gap: 3px;
+  padding: 13px 12px;
+}
+
+.commandRail > header {
+  border-bottom: 1px dashed rgba(78, 255, 211, 0.2);
+}
+
+.commandRail > header span,
+.commandRail > footer span {
+  color: #bf8248;
+  font-size: 7px;
+  letter-spacing: 0.08em;
+}
+
+.commandRail > header strong,
+.commandRail > footer strong {
+  color: #c8fff0;
+  font-size: 10px;
+}
+
+.commandRail > header small,
+.commandRail > footer small {
+  color: #537e73;
+  font-size: 7px;
+}
+
+.commandRail button {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 10px 11px;
+  border-bottom: 1px solid rgba(78, 255, 211, 0.08);
+  text-align: left;
+}
+
+.commandRail button[data-active="true"] {
+  background: rgba(78, 255, 211, 0.08);
+  box-shadow: inset 2px 0 0 #56d8b8;
+}
+
+.commandRail kbd {
+  display: grid;
+  width: 31px;
+  height: 27px;
+  place-items: center;
+  border: 1px solid rgba(224, 162, 89, 0.55);
+  background: #090a07;
+  color: #e2a75e;
+  font: 700 12px/1 "Courier New", monospace;
+  box-shadow: inset 0 -2px 0 rgba(224, 162, 89, 0.15);
+}
+
+.commandRail button > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.commandRail button strong {
+  color: #b9f5e4;
+  font-size: 8px;
+}
+
+.commandRail button small {
+  overflow: hidden;
+  color: #547e74;
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.commandRail > footer {
+  margin-top: auto;
+  border-top: 1px dashed rgba(78, 255, 211, 0.2);
+}
+
+@keyframes terminalBlink {
+  0%, 48% { opacity: 1; }
+  49%, 100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursorLine i {
+    animation: none;
+  }
+}
+
+@media (max-width: 980px) {
+  .terminalGrid {
+    grid-template-columns: minmax(0, 1fr) 178px;
+  }
+
+  .statusLine {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .talkLayout {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .frame {
+    min-height: 0;
+  }
+
+  .crt {
+    border-radius: 10px;
+  }
+
+  .boot {
+    padding: 16px 14px 12px;
+  }
+
+  .boot h2 {
+    font-size: 17px;
+  }
+
+  .statusLine {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .terminalGrid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .screen {
+    max-height: none;
+    padding: 14px 13px 22px;
+  }
+
+  .commandRail {
+    order: -1;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-left: 0;
+    border-bottom: 1px solid rgba(78, 255, 211, 0.22);
+  }
+
+  .commandRail > header,
+  .commandRail > footer {
+    display: none;
+  }
+
+  .commandRail button {
+    grid-template-columns: 30px minmax(0, 1fr);
+    padding: 8px;
+  }
+
+  .commandRail kbd {
+    width: 26px;
+    height: 24px;
+    font-size: 10px;
+  }
+
+  .commandRail button small {
+    display: none;
+  }
+
+  .agentList,
+  .boardList,
+  .talkLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .targetList {
+    max-height: 220px;
+  }
+}

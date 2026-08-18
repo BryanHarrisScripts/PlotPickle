@@ -61,21 +61,23 @@ test("automatic repair-model readiness keeps the lightweight Pi default while al
 });
 
 test("Sage startup grounding can recover against the current essentials-theme curriculum without masking other failures", async () => {
-  const [entrypoint, adapter, theme] = await Promise.all([
+  const [entrypoint, healthAdapter, groundingAdapter, theme] = await Promise.all([
     read("build/startup-agent-diagnostics.ts"),
+    read("build/startup-agent-diagnostics-runtime-v5.ts"),
     read("build/startup-agent-diagnostics-runtime-v4.ts"),
     read("learn/theme.json"),
   ]);
-  assert.match(entrypoint, /startup-agent-diagnostics-runtime-v4/);
-  assert.match(adapter, /runStartupAgentDiagnostics as runV3/);
-  assert.match(adapter, /currentThemeContext/);
-  assert.match(adapter, /item\.id === "essentials-theme"/);
-  assert.match(adapter, /semanticGroundingPass/);
-  assert.match(adapter, /onlyGroundingFailed/);
-  assert.match(adapter, /failedChecks\.length === 1/);
-  assert.match(adapter, /verifyCurrentSageGrounding/);
-  assert.match(adapter, /modelRole: "quality"/);
-  assert.match(adapter, /verified against current essentials-theme curriculum/);
+  assert.match(entrypoint, /startup-agent-diagnostics-runtime-v5/);
+  assert.match(healthAdapter, /runStartupAgentDiagnostics as runV4/);
+  assert.match(groundingAdapter, /runStartupAgentDiagnostics as runV3/);
+  assert.match(groundingAdapter, /currentThemeContext/);
+  assert.match(groundingAdapter, /item\.id === "essentials-theme"/);
+  assert.match(groundingAdapter, /semanticGroundingPass/);
+  assert.match(groundingAdapter, /onlyGroundingFailed/);
+  assert.match(groundingAdapter, /failedChecks\.length === 1/);
+  assert.match(groundingAdapter, /verifyCurrentSageGrounding/);
+  assert.match(groundingAdapter, /modelRole: "quality"/);
+  assert.match(groundingAdapter, /verified against current essentials-theme curriculum/);
   assert.match(theme, /"id": "essentials-theme"/);
   assert.match(theme, /live human question or contested proposition tested by the story's choices and consequences/);
 });

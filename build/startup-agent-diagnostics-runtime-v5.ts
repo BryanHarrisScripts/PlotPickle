@@ -193,7 +193,10 @@ export async function runStartupAgentDiagnostics(baseUrl: string) {
         for (const line of repairedTranscript(buffered, result.warnings, version)) originalLog(line);
         return { healthy: true, warnings: result.warnings };
       }
-    } catch {}
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      originalLog(`${ANSI_YELLOW}[startup] Strict Sage anti-echo recovery probe unavailable: ${detail}${ANSI_RESET}`);
+    }
   }
 
   for (const line of buffered) originalLog(patchMastraVersion(line, version));

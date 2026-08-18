@@ -4,6 +4,25 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "./responsibility-run-activity.module.css";
 
 type RunState = "queued" | "preparing-context" | "working" | "verifying" | "revising" | "waiting-for-writer" | "paused" | "completed" | "failed" | "cancelled";
+type TelemetrySummary = {
+  runId: string;
+  totalTokens: number;
+  tokenUsageKnown: boolean;
+  totalContextCharacters: number;
+  cloudCostUsd: number;
+  cloudCostConfidence: "exact" | "estimated" | "unknown";
+  route: "local" | "cloud/BYOK" | "";
+  capabilityRole: string;
+  provider: string;
+  runtime: string;
+  model: string;
+  latencyMs: number;
+  contextSourceCount: number;
+  healthState: string;
+  verificationRef: string;
+  writerApprovalState: string;
+  plainLanguage: string;
+};
 type RunSummary = {
   runId: string;
   kind: string;
@@ -19,6 +38,7 @@ type RunSummary = {
   childRunIds: string[];
   artifacts: Array<{ id: string; kind: string }>;
   verificationEvidence: Array<{ authority: string; result: string }>;
+  telemetrySummary?: TelemetrySummary | null;
 };
 
 type RunsPayload = { ok?: boolean; runs?: RunSummary[]; run?: RunSummary; message?: string };
@@ -52,6 +72,18 @@ function waitingFor(run: RunSummary) {
   if (run.state === "completed") return "Nothing — complete";
   if (run.state === "cancelled") return "Nothing — stopped";
   return "Current bounded work";
+}
+
+function usageLabel(run: RunSummary) {
+  const telemetry = run.telemetrySummary;
+  if (!telemetry) return "Runtime/model telemetry has not been recorded for this Run yet.";
+  const detail = [
+    telemetry.provider && telemetry.runtime ? `${telemetry.provider} · ${telemetry.runtime}` : telemetry.provider || telemetry.runtime,
+    telemetry.model,
+    telemetry.healthState ? `runtime ${telemetry.healthState}` : "",
+    telemetry.tokenUsageKnown ? `${telemetry.totalTokens.toLocaleString()} measured tokens` : telemetry.totalTokens ? `${telemetry.totalTokens.toLocaleString()} estimated/partial tokens` : "",
+  ].filter(Boolean).join(" · ");
+  return detail ? `${telemetry.plainLanguage} · ${detail}` : telemetry.plainLanguage;
 }
 
 export default function ResponsibilityRunActivity() {
@@ -115,6 +147,7 @@ export default function ResponsibilityRunActivity() {
                 <div><strong>{run.goal}</strong><small>{run.profileId} · {run.kind.replaceAll("-", " ")}</small></div>
                 <span>{stateLabel(run.state)}</span>
               </header>
+              <p><strong>Run summary:</strong> {usageLabel(run)}</p>
               <dl>
                 <div><dt>Attempt</dt><dd>{run.usage.attempts}/{run.limits.maxAttempts}</dd></div>
                 <div><dt>Tool calls</dt><dd>{run.usage.toolCalls}/{run.limits.maxToolCalls}</dd></div>
@@ -124,7 +157,7 @@ export default function ResponsibilityRunActivity() {
                 <div><dt>Context round</dt><dd>{run.contextRound}</dd></div>
               </dl>
               <footer>
-                <small>Updated {displayTime(run.updatedAt)} · {run.artifacts.length} artifact(s) · {run.verificationEvidence.length} evidence record(s)</small>
+                <small>Run ID {run.runId} · Updated {displayTime(run.updatedAt)} · {run.artifacts.length} artifact(s) · {run.verificationEvidence.length} evidence record(s)</small>
                 {!terminal ? <div className={styles.actions}>
                   {run.state === "paused"
                     ? <button type="button" disabled={Boolean(busy)} onClick={() => void control(run, "resume")}>Resume</button>

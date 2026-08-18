@@ -18,6 +18,7 @@ const EXPECTED_PROFILES = [
   "luma-glassfern",
   "bram-gatewick",
   "rook-ironquill",
+  "ben",
   "orin-ledgerbark",
   "fen-copperwind",
 ].sort();

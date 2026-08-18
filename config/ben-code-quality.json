@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "agentProfileId": "ben",
+  "skillUri": "skill://plotpickle/ben-code-quality",
+  "discoverableCodeSource": {
+    "repository": "modem-dev/skills",
+    "path": "write-discoverable-code/SKILL.md",
+    "license": "MIT",
+    "adoption": "adapted-built-in"
+  },
+  "slopScan": {
+    "package": "slop-scan",
+    "version": "0.3.0",
+    "sourceRepository": "modem-dev/slop-scan",
+    "license": "MIT",
+    "installMode": "ephemeral-npx-ci-or-existing-local-cache",
+    "comparisonMode": "delta",
+    "failOn": ["added", "worsened"],
+    "reportDirectory": ".artifacts/ben-code-quality"
+  },
+  "authority": {
+    "meaning": "BEN produces code-quality evidence and findings only. It does not write code, grant capabilities, waive tests, certify its own repairs, push branches or merge pull requests.",
+    "authoritativeGates": ["focused tests", "type/build validation", "focused UAT", "Full Verification", "repository merge gates"]
+  }
+}

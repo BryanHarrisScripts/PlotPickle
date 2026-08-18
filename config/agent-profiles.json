@@ -277,6 +277,24 @@
       "defaultAvailability": "on-demand"
     },
     {
+      "id": "ben",
+      "displayName": "BEN",
+      "title": "Code Steward",
+      "responsibility": "Reviews agent-authored code for future discoverability and deterministic slop patterns without writing code or overriding repository gates.",
+      "execution": { "kind": "deterministic-observer", "roleId": "code-quality-review" },
+      "buzzBinding": { "actorId": "ben", "mode": "service" },
+      "skillUris": ["skill://plotpickle/ben-code-quality"],
+      "requestedCapabilityRole": null,
+      "requestedCapabilities": ["repository-diff-read", "code-quality-evidence", "finding-proposal"],
+      "readScopes": ["repository-diff", "code-quality-report", "test-contracts"],
+      "proposalScopes": ["code-quality-finding", "discoverability-finding"],
+      "forbiddenCapabilities": ["merge-authority", "product-input-write"],
+      "creativeAuthority": "none",
+      "verificationContract": "BEN may report deterministic scan and discoverability findings; tests, CI, Full Verification and repository merge gates remain authoritative, and BEN cannot self-certify a repair.",
+      "homeRoomId": "forge",
+      "defaultAvailability": "on-demand"
+    },
+    {
       "id": "orin-ledgerbark",
       "displayName": "Orin Ledgerbark",
       "title": "Archivist of the Hall",

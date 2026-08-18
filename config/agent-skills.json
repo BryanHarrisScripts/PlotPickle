@@ -18,6 +18,19 @@
       "localOnly": true
     },
     {
+      "id": "ben-code-quality",
+      "name": "BEN Code Quality",
+      "description": "Apply PlotPickle's discoverable-code standard to agent-authored changes and review deterministic slop-scan evidence without gaining repository authority.",
+      "entry": ".agents/skills/ben-code-quality/SKILL.md",
+      "path": ".agents/skills/ben-code-quality",
+      "uri": "skill://plotpickle/ben-code-quality",
+      "roles": ["coding-standard", "code-quality-review"],
+      "primaryWorker": "ben",
+      "consumers": ["ben", "pi", "developer-worker"],
+      "mcpReady": true,
+      "localOnly": true
+    },
+    {
       "id": "sage-brinewick",
       "name": "Sage Brinewick",
       "description": "Guide LEARN conversations with Sage's visible mentor personality and procedure while PlotPickle curriculum retrieval remains the teaching source of truth.",

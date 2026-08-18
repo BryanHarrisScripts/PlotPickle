@@ -8,9 +8,11 @@ All production local text roles use an OpenAI-compatible API contract. The prefe
 
 Existing OpenAI and MiniMax cloud routes remain separate user-selected providers. Existing Ollama configuration remains compatible, but Ollama is optional and is not required by GUIDE, Creative Room, curriculum retrieval, images, or video.
 
+Magnitude is not a PlotPickle dependency. Hardware/model recommendation is implemented inside PlotPickle over the existing local runtime boundary, so Windows users do not need WSL or another local inference stack.
+
 ## Capability-first model routing
 
-PlotPickle now detects model capabilities before it applies the fallback model catalog. The automatic slots are:
+PlotPickle detects model capabilities before it applies the fallback model catalog. The automatic slots are:
 
 | Slot | What PlotPickle looks for |
 | --- | --- |
@@ -24,6 +26,19 @@ The Vision slot is for understanding screenshots, reference images and rendered 
 
 The Pi / Repair slot is a developer-agent role. It does not make a model a Creative Room model and it never adds a cloud fallback.
 
+### Simple user preferences
+
+Settings places a simple preference layer above the five capability slots:
+
+| Preference | Meaning |
+| --- | --- |
+| Fastest | Prefer the quickest safe capable model for each job |
+| Balanced | Balance capability score, speed and memory fit; this is the default |
+| Best Quality | Prefer the strongest capable model that still fits the machine safely |
+| Lowest Memory | Prefer the smallest capable model and leave the most memory free |
+
+Changing this preference only changes ranking among detected local models. It does not disable capability requirements. Vision still requires vision support, Pi/Repair still requires coding or tool-use support, and a model outside the safe memory envelope remains ineligible for automatic routing.
+
 ### Capability sources
 
 PlotPickle prefers runtime-native metadata instead of model-name guesses.
@@ -36,11 +51,21 @@ llama.cpp and other OpenAI-compatible servers: when only a model id is available
 
 This means a future model does not need a new PlotPickle integration merely because its family name changed. If the runtime reports that the model supports vision, tools, reasoning and a large context, the capability router can evaluate it for the relevant slots automatically.
 
-### Hardware fit
+### Hardware fit and model catalog
 
 Capability alone is not enough. PlotPickle estimates the model working set from reported file size or parameter/quantization data and compares it with detected RAM/VRAM.
 
+The Settings model catalog exposes the detected model, quantization, context, capabilities, estimated working set, whether the model fits GPU memory or requires CPU/GPU splitting, and an expected token-per-second range. The throughput estimate is intentionally conservative and hardware-relative; it is guidance before a model is benchmarked, not a promised speed.
+
 A model can therefore be recognized as more capable while still losing the everyday Fast or Quality slot on a smaller machine. Large models that require CPU/GPU splitting are penalized for latency-sensitive roles and can remain on demand. On larger GPUs, the same model can rise naturally into Quality, Deep, Vision or Pi/Repair without changing application code.
+
+### Measured performance and acceleration
+
+PlotPickle does not force a benchmark before Settings can make recommendations. When no local benchmark evidence exists, it uses the conservative estimate described above.
+
+If PlotPickle later has local evidence in its private `local-model-benchmarks.json` state, measured tokens/second replaces the estimate for that exact model. This evidence is local machine state; it is not a cloud dependency.
+
+Speculative decoding is benchmark-gated. PlotPickle does not recommend it because a runtime merely supports it. It is recommended only when local evidence shows a meaningful speed gain and the selected model still has enough memory headroom. Without both conditions, speculative decoding remains off.
 
 ## Fallback starter models
 
@@ -112,7 +137,7 @@ The LTX video path can use an approved PlotPickle source frame and a reviewed Co
 
 ## Settings and installation
 
-Settings shows the detected hardware profile, runtime preference, local endpoint, context budget, automatic Fast/Quality/Deep/Vision/Pi model slots, the detected capability inventory, retrieval models, SDXL, LTX-Video, SmolLM2 health-check status and GPU scheduler state.
+Settings shows the detected hardware profile first, then the four simple model preferences, runtime preference, local endpoint, context budget, automatic Fast/Quality/Deep/Vision/Pi model slots, the technical model catalog, retrieval models, SDXL, LTX-Video, SmolLM2 health-check status and GPU scheduler state.
 
 Advanced users can override runtime priority, OpenAI-compatible endpoints, role model names, llama.cpp executable/model paths, context size and GPU-layer splits. Automatic capability matching remains the default.
 

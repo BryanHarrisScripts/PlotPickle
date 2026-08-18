@@ -3,13 +3,18 @@ import { access } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import {
-  chooseModelForRole,
   LOCAL_CAPABILITY_ROLES,
   probeRuntimeModelCapabilities,
   scoreModelForRole,
   type LocalCapabilityRole,
   type LocalModelDescriptor,
 } from "../lib/ai/local-model-capabilities.mjs";
+import {
+  buildLocalModelCatalog,
+  chooseModelForPreference,
+  LOCAL_MODEL_PREFERENCES,
+  recommendLocalModelPreferences,
+} from "../lib/ai/local-model-recommendations.mjs";
 import {
   LOCAL_MODEL_CATALOG,
   type LocalRuntimeKind,
@@ -18,9 +23,12 @@ import {
 import { detectLocalHardware } from "./local-hardware-detection";
 import { persistentHome, readCredentialJson, writeCredentialJson } from "./local-credentials";
 
+export type LocalModelPreference = "fastest" | "balanced" | "best-quality" | "lowest-memory";
+
 export type LocalRuntimeSettings = {
-  version: 1;
+  version: 2;
   preferredRuntime: LocalRuntimeKind | "auto";
+  modelPreference: LocalModelPreference;
   contextTokens: 16384 | 32768;
   endpointOverrides: Partial<Record<LocalRuntimeKind, string>>;
   modelOverrides: Partial<Record<LocalCapabilityRole, string>>;
@@ -58,6 +66,18 @@ export type LocalRoleStatus = {
   capabilities: string[];
   recommendationScore: number;
   reasons: string[];
+  throughput: { source: string; mid: number; low: number; high: number };
+  workingSetGb: number;
+};
+
+type LocalBenchmarkEvidence = {
+  version?: number;
+  models?: Record<string, {
+    tokensPerSecond?: number;
+    speculativeTokensPerSecond?: number;
+    measuredAt?: string;
+    runtime?: string;
+  }>;
 };
 
 export type LocalRuntimeSnapshot = {
@@ -68,6 +88,9 @@ export type LocalRuntimeSnapshot = {
   activeRuntime: LocalRuntimeProbe;
   roles: Record<LocalCapabilityRole, LocalRoleStatus>;
   modelInventory: LocalModelDescriptor[];
+  modelCatalog: Array<Record<string, unknown>>;
+  recommendationProfiles: Array<Record<string, unknown>>;
+  benchmarkEvidence: { measuredModels: number; source: string };
   retrieval: { embedding: string; reranker: string; cpuResident: true };
   image: { workflow: "SDXL 1.0"; experimental: "SD3.5 Medium" };
   video: { workflow: "LTX-Video 2B 0.9.8 Distilled" };
@@ -75,6 +98,7 @@ export type LocalRuntimeSnapshot = {
 };
 
 const SETTINGS_FILE = "local-runtime.json";
+const BENCHMARK_FILE = "local-model-benchmarks.json";
 const DEFAULT_ENDPOINTS: Readonly<Record<LocalRuntimeKind, string>> = {
   "llama.cpp": "http://127.0.0.1:8080/v1",
   "lm-studio": "http://127.0.0.1:1234/v1",
@@ -90,8 +114,9 @@ let managedModel = "";
 
 function defaultSettings(): LocalRuntimeSettings {
   return {
-    version: 1,
+    version: 2,
     preferredRuntime: "auto",
+    modelPreference: "balanced",
     contextTokens: 16384,
     endpointOverrides: {},
     modelOverrides: {},
@@ -107,6 +132,10 @@ function defaultSettings(): LocalRuntimeSettings {
 
 function validRuntime(value: unknown): value is LocalRuntimeKind {
   return value === "llama.cpp" || value === "lm-studio" || value === "ollama" || value === "openai-compatible";
+}
+
+function validModelPreference(value: unknown): value is LocalModelPreference {
+  return typeof value === "string" && LOCAL_MODEL_PREFERENCES.includes(value);
 }
 
 function normalizedBaseUrl(value: string) {
@@ -142,8 +171,9 @@ function normalizeSettings(value: unknown): LocalRuntimeSettings {
     if (typeof layers === "number" && Number.isFinite(layers)) gpuLayers[role] = Math.max(0, Math.min(999, Math.round(layers)));
   }
   return {
-    version: 1,
+    version: 2,
     preferredRuntime: item.preferredRuntime === "auto" || validRuntime(item.preferredRuntime) ? item.preferredRuntime : "auto",
+    modelPreference: validModelPreference(item.modelPreference) ? item.modelPreference : "balanced",
     contextTokens: item.contextTokens === 32768 ? 32768 : 16384,
     endpointOverrides,
     modelOverrides,
@@ -165,6 +195,16 @@ export async function writeLocalRuntimeSettings(value: LocalRuntimeSettings) {
   const normalized = normalizeSettings(value);
   await writeCredentialJson(SETTINGS_FILE, normalized);
   return normalized;
+}
+
+async function readLocalModelBenchmarks(): Promise<LocalBenchmarkEvidence> {
+  const value = await readCredentialJson<unknown>(BENCHMARK_FILE);
+  if (!value || typeof value !== "object") return { version: 1, models: {} };
+  const source = value as LocalBenchmarkEvidence;
+  return {
+    version: 1,
+    models: source.models && typeof source.models === "object" ? source.models : {},
+  };
 }
 
 function runtimeLabel(kind: LocalRuntimeKind) {
@@ -240,28 +280,41 @@ function capabilityNames(model: LocalModelDescriptor | undefined) {
   return Object.entries(model.capabilities).flatMap(([name, enabled]) => enabled ? [name] : []);
 }
 
+function recommendationHardware(hardware: Awaited<ReturnType<typeof detectLocalHardware>>) {
+  return {
+    ramGb: hardware.ramGb,
+    vramGb: hardware.vramGb,
+    cpuThreads: hardware.cpuThreads,
+    gpuGeneration: hardware.gpuGeneration,
+    cpuGpuSplit: hardware.compatibility.cpuGpuSplit,
+  };
+}
+
 function roleStatus(
   role: LocalCapabilityRole,
   models: readonly string[],
   descriptors: readonly LocalModelDescriptor[],
   settings: LocalRuntimeSettings,
   hardware: Awaited<ReturnType<typeof detectLocalHardware>>,
+  benchmarks: LocalBenchmarkEvidence,
 ): LocalRoleStatus {
   const override = settings.modelOverrides[role] || "";
   const friendlyOverride = override ? friendlyCatalogName(role, override) : false;
   const overridden = override && !friendlyOverride ? exactModel(models, override) : "";
-  const recommendation = chooseModelForRole(role, [...descriptors], {
-    ramGb: hardware.ramGb,
-    vramGb: hardware.vramGb,
-    cpuGpuSplit: hardware.compatibility.cpuGpuSplit,
-  });
+  const hardwareForRecommendation = recommendationHardware(hardware);
+  const recommendation = chooseModelForPreference(
+    role,
+    [...descriptors],
+    hardwareForRecommendation,
+    settings.modelPreference,
+    benchmarks,
+    overridden,
+  );
   const selected = overridden || recommendation?.model.id || catalogFallback(role, models);
   const descriptor = descriptors.find((item) => modelKey(item.id) === modelKey(selected));
-  const selectedScore = descriptor ? scoreModelForRole(role, descriptor, {
-    ramGb: hardware.ramGb,
-    vramGb: hardware.vramGb,
-    cpuGpuSplit: hardware.compatibility.cpuGpuSplit,
-  }) : null;
+  const selectedScore = descriptor ? scoreModelForRole(role, descriptor, hardwareForRecommendation) : null;
+  const catalog = buildLocalModelCatalog(descriptors, hardwareForRecommendation, benchmarks);
+  const selectedCatalog = catalog.find((item: { id?: string }) => modelKey(item.id || "") === modelKey(selected));
   const fallbackRecommendation = TEXT_ROLES.includes(role as LocalTextRole)
     ? LOCAL_MODEL_CATALOG[role as LocalTextRole].label
     : role === "vision"
@@ -274,17 +327,23 @@ function roleStatus(
     production: role !== "repair",
     automatic: !override || friendlyOverride,
     metadataSource: descriptor?.metadataSource || "",
-    fit: selectedScore?.fit.label || "",
+    fit: selectedCatalog?.fit?.label || selectedScore?.fit.label || "",
     parameterSize: descriptor?.parameterSize || "",
     contextTokens: descriptor?.contextTokens || 0,
     capabilities: capabilityNames(descriptor),
     recommendationScore: recommendation?.score || 0,
     reasons: overridden ? ["manual override"] : recommendation?.reasons || [],
+    throughput: selectedCatalog?.throughput || { source: "unknown", mid: 0, low: 0, high: 0 },
+    workingSetGb: Number(selectedCatalog?.fit?.workingSetGb || 0),
   };
 }
 
 export async function localRuntimeSnapshot(): Promise<LocalRuntimeSnapshot> {
-  const [hardware, settings] = await Promise.all([detectLocalHardware(), readLocalRuntimeSettings()]);
+  const [hardware, settings, benchmarks] = await Promise.all([
+    detectLocalHardware(),
+    readLocalRuntimeSettings(),
+    readLocalModelBenchmarks(),
+  ]);
   const runtimes = await Promise.all((Object.keys(DEFAULT_ENDPOINTS) as LocalRuntimeKind[]).map((kind) => {
     const baseUrl = settings.endpointOverrides[kind] || (kind === "llama.cpp" && settings.managedLlama.enabled
       ? `http://127.0.0.1:${settings.managedLlama.port}/v1`
@@ -301,8 +360,12 @@ export async function localRuntimeSnapshot(): Promise<LocalRuntimeSnapshot> {
   const descriptors = activeRuntime?.modelCapabilities ?? [];
   const roles = Object.fromEntries(LOCAL_CAPABILITY_ROLES.map((role) => [
     role,
-    roleStatus(role, models, descriptors, settings, hardware),
+    roleStatus(role, models, descriptors, settings, hardware, benchmarks),
   ])) as Record<LocalCapabilityRole, LocalRoleStatus>;
+  const hardwareForRecommendation = recommendationHardware(hardware);
+  const modelCatalog = buildLocalModelCatalog(descriptors, hardwareForRecommendation, benchmarks);
+  const recommendationProfiles = recommendLocalModelPreferences(descriptors, hardwareForRecommendation, benchmarks);
+  const measuredModels = Object.values(benchmarks.models || {}).filter((item) => Number(item?.tokensPerSecond) > 0).length;
   return {
     checkedAt: new Date().toISOString(),
     hardware,
@@ -311,6 +374,12 @@ export async function localRuntimeSnapshot(): Promise<LocalRuntimeSnapshot> {
     activeRuntime: activeRuntime!,
     roles,
     modelInventory: descriptors,
+    modelCatalog,
+    recommendationProfiles,
+    benchmarkEvidence: {
+      measuredModels,
+      source: measuredModels ? BENCHMARK_FILE : "estimates only",
+    },
     retrieval: {
       embedding: LOCAL_MODEL_CATALOG.embedding.label,
       reranker: LOCAL_MODEL_CATALOG.reranker.label,
@@ -371,6 +440,7 @@ export async function managedLlamaInstallPlan() {
       note: "Fallback starter model only. Installed models are capability-ranked automatically before this fallback is used.",
     })),
     automaticSlots: ["fast", "quality", "deep", "vision", "repair"],
+    modelPreference: settings.modelPreference,
     compatibility: {
       pascalBuild: "CUDA 12.x / cu126-compatible build",
       fallback: "Vulkan",

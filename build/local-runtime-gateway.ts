@@ -73,6 +73,12 @@ async function saveSettings(body: Record<string, unknown>) {
       || body.preferredRuntime === "openai-compatible"
       ? body.preferredRuntime
       : current.preferredRuntime,
+    modelPreference: body.modelPreference === "fastest"
+      || body.modelPreference === "balanced"
+      || body.modelPreference === "best-quality"
+      || body.modelPreference === "lowest-memory"
+      ? body.modelPreference
+      : current.modelPreference,
     contextTokens: body.contextTokens === 32768 ? 32768 : body.contextTokens === 16384 ? 16384 : current.contextTokens,
     endpointOverrides: body.endpointOverrides && typeof body.endpointOverrides === "object"
       ? body.endpointOverrides as LocalRuntimeSettings["endpointOverrides"]
@@ -154,6 +160,8 @@ export function registerLocalRuntimeGateway(server: ViteDevServer) {
         sendJson(response, 200, {
           ok: true,
           hardwareProfile: snapshot.hardware.profile,
+          modelPreference: snapshot.settings.modelPreference,
+          recommendationProfiles: snapshot.recommendationProfiles,
           llamaCpp: llamaPlan,
           retrieval: {
             service: "services/curriculum-rag/server.py",

@@ -4,6 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 
 type RuntimeKind = "llama.cpp" | "lm-studio" | "ollama" | "openai-compatible";
 type CapabilityRole = "fast" | "quality" | "deep" | "vision" | "repair";
+type ModelPreference = "fastest" | "balanced" | "best-quality" | "lowest-memory";
+type Throughput = {
+  source: "measured" | "estimated" | "unknown" | string;
+  mid: number;
+  low: number;
+  high: number;
+};
 type RoleStatus = {
   recommended: string;
   selected: string;
@@ -17,6 +24,8 @@ type RoleStatus = {
   capabilities: string[];
   recommendationScore: number;
   reasons: string[];
+  throughput: Throughput;
+  workingSetGb: number;
 };
 type ModelDescriptor = {
   id: string;
@@ -26,6 +35,21 @@ type ModelDescriptor = {
   contextTokens: number;
   capabilities: Record<string, boolean>;
   metadataSource: string;
+};
+type CatalogModel = ModelDescriptor & {
+  fit: { id: string; label: string; workingSetGb: number };
+  throughput: Throughput;
+  acceleration: { recommended: boolean; reason: string; gainPercent: number; headroomGb: number };
+};
+type RecommendationProfile = {
+  id: ModelPreference;
+  label: string;
+  description: string;
+  roles: Record<CapabilityRole, string>;
+  primaryModel: string;
+  primaryFit: string;
+  workingSetGb: number;
+  throughput: Throughput;
 };
 
 type RuntimeStatus = {
@@ -48,6 +72,7 @@ type RuntimeStatus = {
   };
   settings: {
     preferredRuntime: RuntimeKind | "auto";
+    modelPreference: ModelPreference;
     contextTokens: 16384 | 32768;
   };
   runtimes: Array<{
@@ -61,6 +86,9 @@ type RuntimeStatus = {
   activeRuntime: { kind: RuntimeKind; label: string; baseUrl: string; reachable: boolean; error: string };
   roles: Record<CapabilityRole, RoleStatus>;
   modelInventory: ModelDescriptor[];
+  modelCatalog: CatalogModel[];
+  recommendationProfiles: RecommendationProfile[];
+  benchmarkEvidence: { measuredModels: number; source: string };
   retrieval: { embedding: string; reranker: string; cpuResident: true };
   image: { workflow: string; experimental: string };
   video: { workflow: string };
@@ -108,6 +136,12 @@ function capabilityList(model: ModelDescriptor) {
   return Object.entries(model.capabilities).flatMap(([name, enabled]) => enabled ? [name] : []);
 }
 
+function speedLabel(throughput: Throughput) {
+  if (!throughput?.mid) return "Speed estimate unavailable";
+  if (throughput.source === "measured") return `${throughput.mid} tok/s measured on this computer`;
+  return `${throughput.low}–${throughput.high} tok/s estimated`;
+}
+
 export default function LocalRuntimePanel() {
   const [status, setStatus] = useState<RuntimeStatus | null>(null);
   const [message, setMessage] = useState("Detecting local compute...");
@@ -140,7 +174,7 @@ export default function LocalRuntimePanel() {
       const body = await response.json() as RuntimeStatus & { message?: string };
       if (!response.ok || !body.ok) throw new Error(body.message || "The local runtime setting could not be saved.");
       setStatus(body);
-      setMessage("Local runtime setting saved.");
+      setMessage("Local AI preference saved and model slots recalculated.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "The local runtime setting could not be saved.");
     } finally {
@@ -173,7 +207,7 @@ export default function LocalRuntimePanel() {
           <p style={{ margin: 0, opacity: 0.72, fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase" }}>Local Compute Router</p>
           <h1 style={{ margin: "5px 0 8px", fontSize: 24 }}>Hardware-Aware Local AI</h1>
           <p style={{ margin: 0, maxWidth: 800, lineHeight: 1.5, color: "#b9d2cd" }}>
-            PlotPickle now detects what each installed local model can actually do, then automatically places suitable models into Fast, Quality, Deep, Vision and Pi/Repair slots. Newer compatible models can be used without adding a model-specific application integration.
+            PlotPickle detects this computer, checks the models already available through your local runtime, estimates what will fit and how quickly it should run, then assigns capable models to Fast, Quality, Deep, Vision and Pi/Repair work.
           </p>
         </div>
         <button type="button" disabled={busy} onClick={() => void refresh(true)} style={{ padding: "8px 12px" }}>Refresh hardware and models</button>
@@ -205,12 +239,51 @@ export default function LocalRuntimePanel() {
               ) : null}
             </div>
             <div style={card}>
-              <strong>GPU scheduler</strong>
+              <strong>Speed evidence</strong>
               <p style={{ margin: "8px 0 0", lineHeight: 1.45, color: "#b9d2cd" }}>
-                Active task: {status.scheduler.activeTask}<br />
-                {status.scheduler.lastAction}
+                {status.benchmarkEvidence.measuredModels
+                  ? `${status.benchmarkEvidence.measuredModels} model(s) have local measured speed evidence.`
+                  : "No benchmark is required. PlotPickle is using conservative estimates until local measured evidence exists."}
               </p>
-              {status.scheduler.lastWarning ? <p style={{ margin: "8px 0 0" }}>{status.scheduler.lastWarning}</p> : null}
+            </div>
+          </div>
+
+          <div style={{ marginTop: 20 }}>
+            <h2 style={{ fontSize: 18, marginBottom: 5 }}>Choose what matters most</h2>
+            <p style={{ margin: "0 0 12px", color: "#b9d2cd", lineHeight: 1.5 }}>
+              This changes how PlotPickle ranks the models you already have. It does not install another runtime, switch to paid cloud AI, or remove the capability checks for each job.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 10 }}>
+              {status.recommendationProfiles.map((profile) => {
+                const selected = status.settings.modelPreference === profile.id;
+                return (
+                  <button
+                    type="button"
+                    key={profile.id}
+                    disabled={busy || selected}
+                    aria-pressed={selected}
+                    onClick={() => void saveSetting({ modelPreference: profile.id })}
+                    style={{
+                      ...card,
+                      color: "inherit",
+                      textAlign: "left",
+                      cursor: selected ? "default" : "pointer",
+                      border: selected ? "2px solid #8ee0d5" : card.border,
+                    }}
+                  >
+                    <strong>{profile.label}</strong>{" "}{selected ? <span style={badge(true)}>selected</span> : null}
+                    <p style={{ margin: "8px 0 0", color: "#b9d2cd", lineHeight: 1.45 }}>{profile.description}</p>
+                    <p style={{ margin: "8px 0 0", fontWeight: 700 }}>{profile.primaryModel || "No suitable installed model yet"}</p>
+                    {profile.primaryModel ? (
+                      <p style={{ margin: "5px 0 0", color: "#b9d2cd", lineHeight: 1.45 }}>
+                        {speedLabel(profile.throughput)}<br />
+                        {profile.workingSetGb ? `${profile.workingSetGb.toFixed(1)} GB estimated working set` : "Memory estimate unavailable"}
+                        {profile.primaryFit ? ` · ${profile.primaryFit}` : ""}
+                      </p>
+                    ) : null}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -258,7 +331,7 @@ export default function LocalRuntimePanel() {
           <div style={{ marginTop: 20 }}>
             <h2 style={{ fontSize: 18, marginBottom: 5 }}>Automatic model slots</h2>
             <p style={{ margin: "0 0 12px", color: "#b9d2cd", lineHeight: 1.5 }}>
-              Selection is based on detected capabilities, model size, context and this computer&apos;s RAM/VRAM. A large model can be recognized as capable but kept on-demand when a smaller model is a better everyday fit.
+              The simple preference above changes ranking, but every slot still requires the right capabilities. Vision still needs visual understanding; Pi/Repair still needs coding or tool capability.
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(235px, 1fr))", gap: 10 }}>
               {roles.map((roleName) => {
@@ -271,6 +344,8 @@ export default function LocalRuntimePanel() {
                     <p style={{ margin: "5px 0 0", color: "#b9d2cd", lineHeight: 1.45 }}>
                       Recommended: {role.recommended}<br />
                       {role.parameterSize ? `Size: ${role.parameterSize}` : "Size: unknown"}{role.fit ? ` · ${role.fit}` : ""}<br />
+                      {role.workingSetGb ? `Working set: ${role.workingSetGb.toFixed(1)} GB` : "Working set: unknown"}<br />
+                      {speedLabel(role.throughput)}<br />
                       {role.contextTokens ? `Model context: ${Math.round(role.contextTokens / 1024)}K` : "Model context: not reported"}
                     </p>
                     {role.capabilities.length ? (
@@ -287,20 +362,25 @@ export default function LocalRuntimePanel() {
 
           <div style={{ marginTop: 20 }}>
             <h2 style={{ fontSize: 18, marginBottom: 5 }}>Detected model capabilities</h2>
-            <p style={{ margin: "0 0 12px", color: "#b9d2cd" }}>
-              Ollama and LM Studio provide richer native metadata. llama.cpp and other compatible servers use conservative model-name inference when richer metadata is unavailable.
+            <p style={{ margin: "0 0 12px", color: "#b9d2cd", lineHeight: 1.5 }}>
+              This is the technical catalog behind the simple choices. Speed is estimated before any benchmark. If PlotPickle later has measured evidence for a model, the measured value replaces the estimate automatically.
             </p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 10 }}>
-              {status.modelInventory.length ? status.modelInventory.map((model) => (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 10 }}>
+              {status.modelCatalog.length ? status.modelCatalog.map((model) => (
                 <div style={card} key={model.id}>
                   <strong style={{ wordBreak: "break-word" }}>{model.id}</strong>
                   <p style={{ margin: "7px 0 0", color: "#b9d2cd", lineHeight: 1.45 }}>
                     {model.parameterSize || "size unknown"}{model.quantization ? ` · ${model.quantization}` : ""}<br />
+                    {model.fit.label || "hardware fit unknown"}{model.fit.workingSetGb ? ` · ${model.fit.workingSetGb.toFixed(1)} GB working set` : ""}<br />
+                    {speedLabel(model.throughput)}<br />
                     {model.contextTokens ? `${Math.round(model.contextTokens / 1024)}K max context` : "context not reported"}<br />
                     Metadata: {model.metadataSource}
                   </p>
                   <p style={{ margin: "7px 0 0", color: "#8ee0d5", fontSize: 12 }}>
                     {capabilityList(model).length ? capabilityList(model).join(", ") : "No special capability metadata detected"}
+                  </p>
+                  <p style={{ margin: "7px 0 0", color: model.acceleration.recommended ? "#8ee0d5" : "#a7beb9", fontSize: 11, lineHeight: 1.45 }}>
+                    Speculative decoding: {model.acceleration.recommended ? "recommended from measured evidence" : "off"}. {model.acceleration.reason}
                   </p>
                 </div>
               )) : <div style={card}>No models were reported by the active local runtime.</div>}

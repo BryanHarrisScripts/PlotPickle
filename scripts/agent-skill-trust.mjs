@@ -54,6 +54,11 @@ export async function loadAgentSkillTrustRegistry() {
     if (!Array.isArray(record.requestedCapabilities) || !Array.isArray(record.forbiddenCapabilities)) {
       throw new Error(`Skill Trust Record ${record.id} must declare requested and forbidden capability lists.`);
     }
+    if (record.trustState === "approved-external") {
+      if (!record.sourceRevision || !/^[a-f0-9]{64}$/.test(String(record.approvedContentSha256 || ""))) {
+        throw new Error(`Approved external Skill ${record.id} must pin a source revision and approved SHA-256.`);
+      }
+    }
     safeRepositoryPath(record.entry);
   }
   return registry;
@@ -66,17 +71,21 @@ export async function describeSkillTrust(id) {
 
   const filePath = safeRepositoryPath(record.entry);
   const content = await readFile(filePath, "utf8");
+  const contentSha256 = hashSkillContent(content);
   const packageRoot = path.dirname(filePath);
   const packageInspection = {
     hasScripts: await exists(path.join(packageRoot, "scripts")),
     hasReferences: await exists(path.join(packageRoot, "references")),
     hasAssets: await exists(path.join(packageRoot, "assets")),
   };
+  const approvalHashMatches = record.trustState !== "approved-external"
+    || record.approvedContentSha256 === contentSha256;
 
   return {
     ...record,
-    productionDiscoverable: isProductionTrustState(record.trustState, registry),
-    contentSha256: hashSkillContent(content),
+    productionDiscoverable: isProductionTrustState(record.trustState, registry) && approvalHashMatches,
+    contentSha256,
+    approvalHashMatches,
     packageInspection,
   };
 }
@@ -90,6 +99,10 @@ export async function validateSkillTrustCoverage(skillRegistry) {
     if (record.entry !== skill.entry) throw new Error(`Skill Trust Record ${skill.id} does not match the production registry entry.`);
     if (!isProductionTrustState(record.trustState, trustRegistry)) {
       throw new Error(`Production Agent Skill ${skill.id} is not approved for production discovery (${record.trustState}).`);
+    }
+    const inspection = await describeSkillTrust(skill.id);
+    if (!inspection.productionDiscoverable) {
+      throw new Error(`Production Agent Skill ${skill.id} failed its trust/hash approval gate.`);
     }
   }
   return trustRegistry;

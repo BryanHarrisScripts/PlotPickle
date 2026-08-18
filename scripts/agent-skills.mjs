@@ -4,6 +4,10 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import {
+  describeSkillTrust,
+  validateSkillTrustCoverage,
+} from "./agent-skill-trust.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const registryPath = path.join(repoRoot, "config", "agent-skills.json");
@@ -38,22 +42,45 @@ export async function loadAgentSkillRegistry() {
     if (skill.uri !== `skill://plotpickle/${skill.id}`) throw new Error(`Skill ${skill.id} has a non-canonical PlotPickle URI.`);
     safeEntry(skill.entry);
   }
+  await validateSkillTrustCoverage(registry);
   return registry;
 }
 
 export async function listAgentSkills() {
   const registry = await loadAgentSkillRegistry();
-  return registry.skills.map((skill) => ({ ...skill }));
+  return Promise.all(registry.skills.map(async (skill) => {
+    const trust = await describeSkillTrust(skill.id);
+    if (!trust.productionDiscoverable) {
+      throw new Error(`Agent Skill ${skill.id} is not approved for production discovery.`);
+    }
+    return {
+      ...skill,
+      trustState: trust.trustState,
+      sourceKind: trust.sourceKind,
+      contentSha256: trust.contentSha256,
+    };
+  }));
 }
 
 export async function loadAgentSkill(id) {
   const registry = await loadAgentSkillRegistry();
   const skill = registry.skills.find((entry) => entry.id === id);
   if (!skill) throw new Error(`Unknown PlotPickle agent skill: ${id}`);
+  const trust = await describeSkillTrust(skill.id);
+  if (!trust.productionDiscoverable) {
+    throw new Error(`Agent Skill ${skill.id} is quarantined or blocked and cannot be loaded by the production registry.`);
+  }
   const filePath = safeEntry(skill.entry);
   const content = await readFile(filePath, "utf8");
   if (!content.includes(`name: ${skill.id}`)) throw new Error(`Skill ${skill.id} frontmatter does not match its registry id.`);
-  return { ...skill, filePath, content };
+  return {
+    ...skill,
+    trustState: trust.trustState,
+    sourceKind: trust.sourceKind,
+    contentSha256: trust.contentSha256,
+    filePath,
+    content,
+  };
 }
 
 export async function readAgentSkillProcedure(id) {
@@ -61,6 +88,7 @@ export async function readAgentSkillProcedure(id) {
 }
 
 export async function skillIndexResource() {
+  const skills = await listAgentSkills();
   const registry = await loadAgentSkillRegistry();
   return {
     uri: registry.indexUri,
@@ -68,7 +96,7 @@ export async function skillIndexResource() {
     text: JSON.stringify({
       schemaVersion: registry.schemaVersion,
       discovery: registry.discovery,
-      skills: registry.skills.map(({ id, name, description, uri, roles, primaryWorker, mcpReady }) => ({
+      skills: skills.map(({ id, name, description, uri, roles, primaryWorker, mcpReady, trustState, sourceKind, contentSha256 }) => ({
         id,
         name,
         description,
@@ -76,6 +104,9 @@ export async function skillIndexResource() {
         roles,
         primaryWorker,
         mcpReady,
+        trustState,
+        sourceKind,
+        contentSha256,
       })),
     }, null, 2),
   };
@@ -85,7 +116,7 @@ async function main() {
   const args = process.argv.slice(2);
   if (args.includes("--list")) {
     for (const skill of await listAgentSkills()) {
-      process.stdout.write(`${skill.id}\t${skill.uri}\t${skill.description}\n`);
+      process.stdout.write(`${skill.id}\t${skill.uri}\t${skill.trustState}\t${skill.description}\n`);
     }
     return;
   }
@@ -105,6 +136,9 @@ async function main() {
     for (const skill of skills) await loadAgentSkill(skill.id);
     if (!skills.some((skill) => skill.id === "uat-repair" && skill.primaryWorker === "pi")) {
       throw new Error("The Pi UAT repair skill is missing from the PlotPickle skill registry.");
+    }
+    if (skills.some((skill) => skill.trustState !== "trusted-built-in" && skill.trustState !== "approved-external")) {
+      throw new Error("A non-approved Agent Skill entered the production registry.");
     }
     process.stdout.write(`PlotPickle agent skills self-test PASS: ${skills.length} skill(s).\n`);
     return;

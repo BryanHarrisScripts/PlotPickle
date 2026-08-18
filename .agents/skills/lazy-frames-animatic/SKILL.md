@@ -1,5 +1,5 @@
 ---
-name: PlotPickle Lazy Frames Animatic
+name: lazy-frames-animatic
 description: Turn approved PlotPickle BUILD material into a reviewable local animatic through the host-owned Lazy Frames adapter while canonical story state remains authoritative and unchanged.
 ---
 

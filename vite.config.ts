@@ -25,6 +25,7 @@ import { afterglowProjectGateway } from "./build/afterglow-project-gateway";
 import { folderProjectGateway } from "./build/folder-project-gateway";
 import { nativeGitGateway } from "./build/native-git-gateway";
 import { localProjectGateway } from "./build/local-project-gateway";
+import { localBackupGateway } from "./build/local-backup-gateway";
 import { localStorageSafetyGateway } from "./build/local-storage-safety-gateway";
 import { fullStoryBuilderGateway } from "./build/full-story-builder-gateway";
 import { responsibilityRunGateway } from "./build/responsibility-run-gateway";
@@ -112,6 +113,7 @@ export default defineConfig(async () => {
       localStorageSafetyGateway(),
       fullStoryBuilderGateway(),
       localProjectGateway(),
+      localBackupGateway(),
       responsibilityRunGateway(),
       runTelemetryGateway(),
       localAiGateway(),

@@ -31,13 +31,36 @@ jobs:
       - name: Validate Agent Skills authority boundary
         run: node --test tests/issue-913-agent-skills-migration.test.mjs
       - name: Validate hardware-aware local AI contracts
-        run: node --test tests/hardware-aware-local-ai-runtime.test.mjs tests/automatic-local-model-capabilities.test.mjs tests/issue-1001-hardware-model-catalog.test.mjs tests/foundation-architecture.test.mjs
+        run: node --test tests/hardware-aware-local-ai-runtime.test.mjs tests/automatic-local-model-capabilities.test.mjs tests/issue-1001-hardware-model-catalog.test.mjs tests/foundation-architecture.test.mjs tests/issue-1012-comfyui-managed-instance-readiness.test.mjs
+      - name: Exercise managed ComfyUI fixture and Pascal stack inspection
+        shell: pwsh
+        run: |
+          . ./scripts/comfyui-managed-instance-core.ps1
+          $root = Join-Path $env:RUNNER_TEMP "plotpickle-comfy-managed"
+          $engine = Join-Path $root "Demo/ComfyUI"
+          $venv = Join-Path $engine ".venv"
+          $site = Join-Path $venv "Lib/site-packages"
+          New-Item -ItemType Directory -Force -Path $site, (Join-Path $venv "bin") | Out-Null
+          Set-Content -LiteralPath (Join-Path $engine "main.py") -Value "# fixture"
+          Set-Content -LiteralPath (Join-Path $venv "bin/python") -Value "fixture"
+          Set-Content -LiteralPath (Join-Path $venv "pyvenv.cfg") -Value "version = 3.13.12"
+          foreach ($name in @("torch-2.10.0+cu126.dist-info", "torchvision-0.25.0+cu126.dist-info", "torchaudio-2.10.0+cu126.dist-info")) {
+            New-Item -ItemType Directory -Force -Path (Join-Path $site $name) | Out-Null
+          }
+          $instances = @(Get-ComfyManagedInstances -Roots @($root))
+          if ($instances.Count -ne 1 -or $instances[0].State -ne "installed") { throw "Managed fixture was not recognized as installed." }
+          $stack = Get-ComfyManagedEnvironmentStack -Instance $instances[0]
+          if (-not (Test-ComfyPascalCu126Stack -Stack $stack)) { throw "Reviewed Pascal cu126 stack was not recognized." }
+          $provisionRoot = Join-Path $env:RUNNER_TEMP "plotpickle-comfy-provisioning"
+          New-Item -ItemType Directory -Force -Path (Join-Path $provisionRoot "Half/ComfyUI") | Out-Null
+          $partial = @(Get-ComfyManagedInstances -Roots @($provisionRoot))
+          if ($partial.Count -ne 1 -or $partial[0].State -ne "provisioning") { throw "Incomplete managed fixture was not recognized as provisioning." }
       - name: Validate exhaustive UAT targeting and baseline repair contracts
         run: node --test tests/exhaustive-ui-harness-boundary.test.mjs tests/pi-local-model-exhaustive-uat.test.mjs tests/issue-972-exhaustive-uat-baseline.test.mjs
       - name: Validate provider, creative-compute, and companion updater contracts
         run: node --test tests/ai-architecture.test.mjs tests/issue-258-creative-compute-paths.test.mjs tests/issue-83-character-visual-identity.test.mjs tests/issue-512-buzz-version-maintenance.test.mjs tests/issue-620-buzz-startup-updater.test.mjs
       - name: Validate automatic local ComfyUI and permission-based recovery
-        run: node --test tests/comfyui-desktop-onboarding.test.mjs tests/issue-946-comfyui-settings-onboarding.test.mjs tests/issue-961-auto-local-comfyui-sketch.test.mjs
+        run: node --test tests/comfyui-desktop-onboarding.test.mjs tests/issue-946-comfyui-settings-onboarding.test.mjs tests/issue-961-auto-local-comfyui-sketch.test.mjs tests/issue-1012-comfyui-managed-instance-readiness.test.mjs
       - name: Validate permanent PlotPickle Studio identity
         run: node --test tests/issue-927-studio-identity.test.mjs
       - name: Validate outbound Playhouse federation boundary

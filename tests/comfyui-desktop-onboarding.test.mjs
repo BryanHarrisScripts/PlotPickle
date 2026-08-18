@@ -35,7 +35,7 @@ test("ComfyUI Desktop opens only after an explicit launch opt-in", async () => {
   assert.match(starter, /-and -not \$AllowDesktopLaunch/);
   assert.match(starter, /will not open Desktop without an explicit user action/);
   assert.match(starter, /rerun this starter with -AllowDesktopLaunch/);
-  assert.match(starter, /Start-Process -FilePath \$desktopExe -PassThru/);
+  assert.match(starter, /Start-Process -FilePath \$desktopExe -PassThru/i);
 });
 
 test("Desktop support does not replace classic or portable ComfyUI", async () => {

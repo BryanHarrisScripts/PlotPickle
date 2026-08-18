@@ -25,8 +25,8 @@ test("Marquee Director and Critics Circle are registered as existing Mastra role
   assert.deepEqual(critics?.skillUris, ["skill://plotpickle/critics-circle"]);
   assert.ok(skills.some((skill) => skill.id === "marquee-director" && skill.roles.includes("visual-director")));
   assert.ok(skills.some((skill) => skill.id === "critics-circle" && skill.roles.includes("critic")));
-  assert.match(mastra, /id: "visual-director"/);
-  assert.match(mastra, /id: "critic"/);
+  assert.match(mastra, /"visual-director":/);
+  assert.match(mastra, /\bcritic:/);
 });
 
 test("specialist Skills keep provider generation critique scoring and canon authority bounded", async () => {
@@ -61,8 +61,8 @@ test("Guildhall bootstrap contract includes two private specialist rooms and exp
   assert.equal(guildhall.privacy.explicitProjectContextApprovalRequired, true);
   assert.match(guildhall.privacy.forbiddenEventContent, /unpublished story text/i);
   assert.match(guildhall.privacy.forbiddenEventContent, /raw lead\/contact data/i);
-  assert.match(bootstrap, /BUZZ_GUILDHALL_CHANNELS\.map/);
-  assert.match(bootstrap, /rooms\/ensure/);
+  assert.match(bootstrap, /config\.channels\.map/);
+  assert.match(bootstrap, /"channels", "create"/);
 });
 
 test("specialist bridge writes the room message then invokes the existing Writing Assistant route and writes the signed reply", async () => {

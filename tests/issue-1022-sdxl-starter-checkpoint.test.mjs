@@ -52,7 +52,9 @@ test("issue #1022 requires explicit approval and only activates a size/hash veri
   assert.match(installer, /Length -ne \$Starter\.SizeBytes/);
   assert.match(installer, /Move-Item -LiteralPath \$partial -Destination \$DestinationFile/);
   assert.match(installer, /does not match its reviewed size and SHA-256/);
-  assert.match(gateway, /body\.approved !== true/);
+  assert.match(gateway, /async function readApprovalFlag\(request: IncomingMessage\)/);
+  assert.match(gateway, /\.approved === true/);
+  assert.match(gateway, /if \(!\(await readApprovalFlag\(request\)\)\)/);
   assert.match(gateway, /shell: false/);
   assert.match(gateway, /spawn\("powershell\.exe"/);
   assert.doesNotMatch(gateway, /body\.(url|source|destination|command|path)/);
@@ -64,14 +66,15 @@ test("issue #1022 makes the reviewed starter discoverable in Settings and verifi
     source("build/local-ai-gateway.ts"),
   ]);
 
-  assert.match(panel, /\/api\/media-routing\/comfyui\/sdxl-starter/);
+  assert.ok(panel.includes('const API = "/api/media-routing";'));
+  assert.ok(panel.includes('const SDXL_STARTER_API = `${API}/comfyui/sdxl-starter`;'));
   assert.match(panel, /Source: \$\{starter\.sourceLabel\}/);
   assert.match(panel, /Size: \$\{starter\.sizeLabel\}/);
   assert.match(panel, /License: \$\{starter\.license\}/);
   assert.match(panel, /Destination: \$\{starter\.destination\}/);
   assert.match(panel, /SHA-256: \$\{starter\.sha256\}/);
   assert.match(panel, /approved: true/);
-  assert.match(panel, /\/api\/media-routing\/test\/image/);
+  assert.ok(panel.includes('`${API}/test/image`'));
   assert.match(panel, /route: "comfyui"/);
   assert.match(composition, /registerComfyUiSdxlStarterGateway/);
 });

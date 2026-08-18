@@ -25,6 +25,7 @@ test("PlotPickle has a progressive local skill registry with Pi UAT repair as th
     name: "UAT Repair",
     description: "Repair one concrete PlotPickle UAT blocker through reproduce, regression-first repair, focused validation, and deterministic handoff.",
     entry: ".agents/skills/uat-repair/SKILL.md",
+    path: ".agents/skills/uat-repair",
     uri: "skill://plotpickle/uat-repair",
     roles: ["repair"],
     primaryWorker: "pi",

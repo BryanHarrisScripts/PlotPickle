@@ -53,6 +53,18 @@ type MediaStatus = {
 };
 type DiagnosticResponse = { comfyui: Partial<ComfyUiStatus> & Pick<ComfyUiStatus, "reachable" | "baseUrl" | "checkpoints" | "imageNodesReady" | "missingImageNodes" | "workflowNodesReady" | "missingWorkflowNodes" | "error"> };
 type ImageTestResult = { assetUrl: string; route: ImageRoute; providerRequestId?: string };
+type SdxlStarterStatus = {
+  state: string;
+  message: string;
+  destination: string;
+  fileName: string;
+  sizeBytes: number;
+  sizeLabel: string;
+  sha256: string;
+  license: string;
+  sourceLabel: string;
+  task?: { state?: string; message?: string };
+};
 type VideoJob = {
   id: string;
   route: VideoRoute;
@@ -64,6 +76,7 @@ type VideoJob = {
 
 const API = "/api/media-routing";
 const COMFY_START_API = `${API}/comfyui/start`;
+const SDXL_STARTER_API = `${API}/comfyui/sdxl-starter`;
 const DIAGNOSTICS_API = "/api/provider-diagnostics/comfyui";
 const imageOptions: Array<{ id: ImageRoute; label: string; detail: string }> = [
   { id: "comfyui", label: "ComfyUI", detail: "Local reviewed workflow on this computer" },
@@ -165,10 +178,67 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
     }
   }
 
+  async function installAndVerifySdxlStarter(previousRoute: ImageRoute) {
+    const starter = await jsonRequest<SdxlStarterStatus>(SDXL_STARTER_API);
+    if (["ready", "existing-compatible"].includes(starter.state)) return true;
+    if (starter.state !== "missing") {
+      setNotice(`${starter.message} ${previousRoute} remains the active image provider.`);
+      return false;
+    }
+
+    const confirmed = window.confirm(
+      `ComfyUI is running, but it has no SDXL image checkpoint.\n\nPlotPickle can download one reviewed local starter:\n\n` +
+      `Model: ${starter.fileName}\nSource: ${starter.sourceLabel}\nSize: ${starter.sizeLabel}\nLicense: ${starter.license}\nDestination: ${starter.destination}\nSHA-256: ${starter.sha256}\n\n` +
+      "The download stays local. PlotPickle will write to a .partial file, verify the exact size and SHA-256, then activate it. No H3/video model pack or paid cloud provider will be enabled.\n\nDownload and verify SDXL 1.0 now?",
+    );
+    if (!confirmed) {
+      setNotice(`SDXL was not downloaded. ${previousRoute} remains the active image provider.`);
+      return false;
+    }
+
+    setWorking("sdxl-starter");
+    await jsonRequest<SdxlStarterStatus>(SDXL_STARTER_API, "POST", { approved: true });
+    setNotice(`Downloading and verifying ${starter.fileName} (${starter.sizeLabel}). Keep PlotPickle and ComfyUI open.`);
+
+    let current = starter;
+    for (let attempt = 0; attempt < 1800; attempt += 1) {
+      await new Promise((resolve) => window.setTimeout(resolve, 2_000));
+      current = await jsonRequest<SdxlStarterStatus>(SDXL_STARTER_API);
+      if (["ready", "installed", "existing-compatible"].includes(current.state)) break;
+      if (["failed", "conflict", "unsupported"].includes(current.state) || current.task?.state === "failed") {
+        throw new Error(current.task?.message || current.message || "The reviewed SDXL starter installation failed.");
+      }
+    }
+    if (!["ready", "installed", "existing-compatible"].includes(current.state) && current.task?.state !== "installed") {
+      throw new Error("The reviewed SDXL starter download is still running. Leave PlotPickle open and refresh Settings after it finishes.");
+    }
+
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const next = await jsonRequest<MediaStatus>(`${API}/status`);
+      const diagnostic = await jsonRequest<DiagnosticResponse>(DIAGNOSTICS_API, "POST", { baseUrl: next.comfyui.baseUrl }).catch(() => null);
+      const merged = mergeDiagnostic(next, diagnostic);
+      const checkpoint = merged.comfyui.checkpoints.find((name) => name === starter.fileName) || merged.comfyui.checkpoints[0] || "";
+      if (checkpoint) {
+        await jsonRequest<MediaStatus>(`${API}/comfyui/checkpoint`, "POST", { checkpoint });
+        await jsonRequest<MediaStatus>(`${API}/routes`, "POST", { imageRoute: "comfyui", videoRoute: "none" });
+        const result = await jsonRequest<ImageTestResult>(`${API}/test/image`, "POST", { route: "comfyui" });
+        setImageResult(result);
+        await refresh();
+        setNotice("SDXL 1.0 is installed, ComfyUI detected the checkpoint, and the local verification image returned to PlotPickle.");
+        refreshDashboardLights();
+        return true;
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, 1_500));
+    }
+
+    setNotice("SDXL 1.0 was installed and verified on disk, but the running ComfyUI process has not refreshed its checkpoint list yet. Restart the managed ComfyUI instance, then run the live diagnostic again.");
+    return false;
+  }
+
   async function startComfyUiAndSelect() {
     if (!status) return;
     const confirmed = window.confirm(
-      "Local ComfyUI is not ready yet. PlotPickle can open/start ComfyUI Desktop and wait for its local server on 127.0.0.1:8188.\n\nPlotPickle will not download MiniMax H3, video packs, or other large optional models. Continue?",
+      "Local ComfyUI is not ready yet. PlotPickle can open/start ComfyUI Desktop and wait for its local server on 127.0.0.1:8188.\n\nPlotPickle will not download MiniMax H3, video packs, or other large optional models. If the running image engine has no SDXL checkpoint, PlotPickle will show a separate source/size/license/destination approval before any image-model download. Continue?",
     );
     if (!confirmed) {
       setNotice("ComfyUI was not changed. Your current image provider remains active; you can try again from Settings at any time.");
@@ -182,7 +252,7 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
       await jsonRequest<{ ready: boolean; state: string; detail?: string }>(COMFY_START_API, "POST", { approved: true });
       const next = await jsonRequest<MediaStatus>(`${API}/status`);
       const diagnostic = await jsonRequest<DiagnosticResponse>(DIAGNOSTICS_API, "POST", { baseUrl: next.comfyui.baseUrl }).catch(() => null);
-      const merged = mergeDiagnostic(next, diagnostic);
+      let merged = mergeDiagnostic(next, diagnostic);
       setStatus(merged);
       setComfyBaseUrl(merged.comfyui.baseUrl || "http://127.0.0.1:8188");
 
@@ -195,8 +265,12 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
         return;
       }
       if (!merged.comfyui.checkpoint) {
-        setNotice(`ComfyUI is running, but no image checkpoint is available yet. Add a normal image checkpoint in ComfyUI, then retry. H3/video models are not required. ${previousRoute} remains active.`);
-        return;
+        const installed = await installAndVerifySdxlStarter(previousRoute);
+        if (!installed) return;
+        const refreshed = await jsonRequest<MediaStatus>(`${API}/status`);
+        const refreshedDiagnostic = await jsonRequest<DiagnosticResponse>(DIAGNOSTICS_API, "POST", { baseUrl: refreshed.comfyui.baseUrl }).catch(() => null);
+        merged = mergeDiagnostic(refreshed, refreshedDiagnostic);
+        if (merged.comfyui.checkpoint) return;
       }
 
       const activated = await jsonRequest<MediaStatus>(`${API}/routes`, "POST", { imageRoute: "comfyui" });
@@ -399,13 +473,13 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
             </label>
             {!comfyReady ? (
               <button type="button" onClick={() => void startComfyUiAndSelect()} disabled={Boolean(working)}>
-                {working === "comfy-start" ? "Opening / starting ComfyUI…" : "Install / start local ComfyUI"}
+                {working === "sdxl-starter" ? "Downloading / verifying SDXL 1.0…" : working === "comfy-start" ? "Opening / starting ComfyUI…" : "Install / start local ComfyUI"}
               </button>
             ) : null}
             <button type="button" onClick={() => void testComfyConnection()} disabled={Boolean(working) || !comfyBaseUrl.trim()}>
               {working === "comfy-connection" ? "Running live diagnostic…" : "Save & run live ComfyUI diagnostic"}
             </button>
-            <small>PlotPickle asks before opening ComfyUI Desktop and does not silently install H3/video model packs. ComfyUI Desktop remains responsible for its own Python/PyTorch environment.</small>
+            <small>PlotPickle asks before opening ComfyUI Desktop. If no SDXL checkpoint exists, it shows the reviewed model source, 6.94 GB size, OpenRAIL++ license, exact destination and SHA-256 before asking separately for download approval. H3/video packs and cloud providers remain separate.</small>
             <small>{status.comfyui.reachable
               ? status.comfyui.capabilityError || `${status.comfyui.version ? `Version ${status.comfyui.version} · ` : ""}service responded${status.comfyui.latencyMs !== undefined ? ` in ${status.comfyui.latencyMs} ms` : ""}. ${status.comfyui.imageNodesReady ? "Required image nodes found." : `Missing nodes: ${status.comfyui.missingImageNodes.join(", ")}.`}`
               : status.comfyui.error || "Choose Install / start local ComfyUI, approve the prompt, then let PlotPickle verify port 8188."}</small>
@@ -413,7 +487,7 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
           </section>
           {status.comfyui.checkpoints.length ? (
             <label className={styles.checkpoint}><span>ComfyUI checkpoint</span><select value={status.comfyui.checkpoint} onChange={(event) => void chooseCheckpoint(event.target.value)} disabled={Boolean(working)}>{status.comfyui.checkpoints.map((name) => <option value={name} key={name}>{name}</option>)}</select></label>
-          ) : <p className={styles.warning}>{status.comfyui.reachable ? status.comfyui.capabilityError || "ComfyUI is running, but no checkpoint is available." : status.comfyui.error || "ComfyUI is not responding on port 8188."}</p>}
+          ) : <p className={styles.warning}>{status.comfyui.reachable ? status.comfyui.capabilityError || "ComfyUI is running, but no checkpoint is available. Choose Set up / Install local ComfyUI to review the recommended SDXL 1.0 starter." : status.comfyui.error || "ComfyUI is not responding on port 8188."}</p>}
           {imageResult ? <figure className={styles.preview}><img src={imageResult.assetUrl} alt="Generated media route connection test" /><figcaption>{imageResult.route} test asset stored locally</figcaption></figure> : null}
         </article>
 

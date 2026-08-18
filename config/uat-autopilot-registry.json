@@ -91,7 +91,8 @@
         "tests/dashboard-foundations-progression.test.mjs",
         "tests/guided-progression-engine.test.mjs",
         "tests/guided-progression-docs.test.mjs",
-        "tests/pi-local-model-exhaustive-uat.test.mjs"
+        "tests/pi-local-model-exhaustive-uat.test.mjs",
+        "tests/issue-963-context-engine.test.mjs"
       ]
     },
     {
@@ -111,7 +112,8 @@
         "tests/plan-readonly-lesson-answer-view.test.mjs",
         "tests/dashboard-foundations-progression.test.mjs",
         "tests/foundations-build-visual-workshop.test.mjs",
-        "tests/pi-local-model-exhaustive-uat.test.mjs"
+        "tests/pi-local-model-exhaustive-uat.test.mjs",
+        "tests/issue-963-context-engine.test.mjs"
       ]
     },
     {

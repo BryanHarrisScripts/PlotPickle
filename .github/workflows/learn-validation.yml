@@ -40,6 +40,9 @@ jobs:
       - name: Validate host-owned Agent Profile authority
         run: node --test tests/issue-962-agent-profiles.test.mjs tests/community-agent-roster.test.mjs
 
+      - name: Validate task-scoped Context Engine trust and provenance
+        run: node --test tests/issue-963-context-engine.test.mjs
+
       - name: Validate full-verification Agent Skills architecture pair
         run: node --test tests/sage-brinewick-agent-skill.test.mjs tests/issue-913-agent-skills-migration.test.mjs
 

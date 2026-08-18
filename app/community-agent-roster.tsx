@@ -7,6 +7,7 @@ import {
   type BuzzNativeAgentState,
   type WritingAssistantStatus,
 } from "../lib/community-agent-roster";
+import ResponsibilityRunActivity from "./responsibility-run-activity";
 import styles from "./community-agent-roster.module.css";
 
 type TracePayload = {
@@ -134,6 +135,8 @@ export default function CommunityAgentRoster() {
       </section>
 
       {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
+
+      <ResponsibilityRunActivity />
 
       <section className={styles.grid} aria-label="PlotPickle agent roster">
         {roster.map((agent) => {

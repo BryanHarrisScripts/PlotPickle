@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { FULL_VERIFICATION_GRAPH } from "../scripts/full-verification-graph.mjs";
 import {
+  executeBoundedCommand,
   FULL_VERIFICATION_HEARTBEAT_MS,
+  FULL_VERIFICATION_STAGE_TIMEOUT_MS,
   PI_PREFLIGHT_TIMEOUT_MS,
   verificationProgressSnapshot,
+  verificationTimeoutForNode,
 } from "../scripts/full-verification-progress-runner.mjs";
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
@@ -35,15 +39,53 @@ test("Full Verification shows a heartbeat, progress bar, elapsed time, active wo
   assert.equal(FULL_VERIFICATION_HEARTBEAT_MS, 10_000);
 });
 
+test("every authoritative Full Verification stage has a bounded host timeout", () => {
+  const authoritative = FULL_VERIFICATION_GRAPH.filter((node) => node.authoritative);
+  assert.equal(authoritative.length, 9);
+  for (const node of authoritative) {
+    const timeout = verificationTimeoutForNode(node);
+    assert.equal(timeout, FULL_VERIFICATION_STAGE_TIMEOUT_MS[node.id], `${node.id} should use its declared timeout`);
+    assert.ok(timeout > 0, `${node.id} should never run without a host timeout`);
+  }
+  assert.equal(FULL_VERIFICATION_STAGE_TIMEOUT_MS["pi-preflight"], PI_PREFLIGHT_TIMEOUT_MS);
+  assert.ok(FULL_VERIFICATION_STAGE_TIMEOUT_MS["exhaustive-uat"] >= 60 * 60_000);
+});
+
+test("a deliberately hung verification child is stopped and reported instead of hanging the runner", async () => {
+  const started = Date.now();
+  const result = await executeBoundedCommand({
+    id: "deliberate-hang",
+    name: "Deliberately hung verification child",
+    tool: "node",
+    args: ["-e", "setInterval(() => {}, 1000)"],
+  }, 150);
+
+  assert.equal(result.status, "FAIL");
+  assert.equal(result.exitCode, 124);
+  assert.match(result.detail, /host timeout/i);
+  assert.ok(Date.now() - started < 8_000, "timeout cleanup should itself remain bounded");
+});
+
 test("Pi preflight is host-bounded and missing Pi is detected without an unsafe shell probe", async () => {
-  const runner = await read("scripts/full-verification-progress-runner.mjs");
+  const [runner, repairWorker] = await Promise.all([
+    read("scripts/full-verification-progress-runner.mjs"),
+    read("scripts/run-uat-repair-agent.mjs"),
+  ]);
   assert.equal(PI_PREFLIGHT_TIMEOUT_MS, 30_000);
   assert.match(runner, /process\.platform === "win32" \? "where\.exe" : "which"/);
   assert.match(runner, /node\.id === "pi-preflight"/);
   assert.match(runner, /Pi is not installed or not available on PATH/);
   assert.match(runner, /taskkill\.exe/);
+  assert.match(runner, /await new Promise/);
+  assert.match(runner, /waitForChildClose/);
   assert.match(runner, /shell: false/);
   assert.doesNotMatch(runner, /shell:\s*true/);
+
+  assert.match(repairWorker, /process\.env\.ComSpec \|\| "cmd\.exe"/);
+  assert.match(repairWorker, /windowsCliCommand/);
+  assert.match(repairWorker, /shell: false/);
+  assert.doesNotMatch(repairWorker, /shell:\s*process\.platform/);
+  assert.doesNotMatch(repairWorker, /shell:\s*true/);
 });
 
 test("Full Verification PowerShell entrypoint uses the progress runner while preserving graph result authority", async () => {

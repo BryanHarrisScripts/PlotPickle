@@ -19,7 +19,7 @@
 }
 
 .heading span,
-.card header > div span {
+.identity > div span {
   color: #79d9cc;
   font-size: 0.72rem;
   font-weight: 700;
@@ -43,21 +43,26 @@
   margin: 0;
 }
 
-.heading button {
+.heading button,
+.specialist button {
   background: rgba(53, 201, 184, 0.1);
   border: 1px solid rgba(83, 222, 205, 0.34);
   border-radius: 10px;
   color: #d9f7f2;
   cursor: pointer;
-  flex: 0 0 auto;
   font: inherit;
-  min-width: 128px;
   padding: 10px 14px;
 }
 
-.heading button:disabled {
+.heading button {
+  flex: 0 0 auto;
+  min-width: 128px;
+}
+
+.heading button:disabled,
+.specialist button:disabled {
   cursor: default;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .summary {
@@ -140,14 +145,38 @@
   justify-content: space-between;
 }
 
-.card header > div {
-  display: grid;
-  gap: 4px;
+.identity {
+  align-items: center;
+  display: flex;
+  gap: 11px;
+  min-width: 0;
 }
 
-.card header > div strong {
+.identity > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.identity strong {
   color: #f1e7c8;
   font-size: 1.02rem;
+}
+
+.avatar {
+  align-items: center;
+  aspect-ratio: 1;
+  background: radial-gradient(circle at 35% 30%, rgba(88, 218, 199, 0.28), rgba(14, 29, 28, 0.96) 64%);
+  border: 1px solid rgba(225, 196, 119, 0.34);
+  border-radius: 50%;
+  box-shadow: 0 0 18px rgba(54, 210, 191, 0.12);
+  color: #f0d286 !important;
+  display: inline-flex;
+  flex: 0 0 42px;
+  font-size: 0.82rem !important;
+  justify-content: center;
+  letter-spacing: 0.04em !important;
+  width: 42px;
 }
 
 .status {
@@ -217,7 +246,7 @@
 .card dl div {
   display: grid;
   gap: 8px;
-  grid-template-columns: 88px minmax(0, 1fr);
+  grid-template-columns: 92px minmax(0, 1fr);
 }
 
 .card dt {
@@ -230,6 +259,117 @@
   font-size: 0.76rem;
   margin: 0;
   overflow-wrap: anywhere;
+}
+
+.card details {
+  border-top: 1px solid rgba(127, 145, 139, 0.12);
+  margin-top: 14px;
+  padding-top: 12px;
+}
+
+.card details summary {
+  color: #d9c37b;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.card details p {
+  color: #9faaa6;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  margin: 10px 0 0;
+}
+
+.card details p strong {
+  color: #d8c78f;
+}
+
+.specialist {
+  background: rgba(7, 17, 17, 0.82);
+  border: 1px solid rgba(75, 211, 193, 0.2);
+  border-radius: 13px;
+  display: grid;
+  gap: 11px;
+  margin-top: 16px;
+  padding: 13px;
+}
+
+.specialistHeading {
+  align-items: start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.specialistHeading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.specialistHeading strong,
+.specialistReply strong {
+  color: #eee2bd;
+  font-size: 0.84rem;
+}
+
+.specialistHeading span,
+.specialistHeading small,
+.specialistReply small {
+  color: #81908b;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.specialist textarea {
+  background: rgba(3, 9, 9, 0.9);
+  border: 1px solid rgba(123, 146, 139, 0.28);
+  border-radius: 10px;
+  color: #e0e7e4;
+  font: inherit;
+  line-height: 1.5;
+  min-height: 94px;
+  padding: 10px 11px;
+  resize: vertical;
+  width: 100%;
+}
+
+.specialist textarea:focus-visible,
+.specialist button:focus-visible,
+.shareToggle input:focus-visible {
+  outline: 2px solid rgba(83, 222, 205, 0.74);
+  outline-offset: 2px;
+}
+
+.shareToggle {
+  align-items: flex-start;
+  color: #9daaa5;
+  display: flex;
+  font-size: 0.72rem;
+  gap: 8px;
+  line-height: 1.45;
+}
+
+.shareToggle input {
+  accent-color: #50cdbb;
+  margin-top: 2px;
+}
+
+.specialistReply {
+  background: rgba(33, 56, 52, 0.35);
+  border-left: 2px solid rgba(83, 222, 205, 0.46);
+  border-radius: 0 9px 9px 0;
+  display: grid;
+  gap: 7px;
+  padding: 10px 11px;
+}
+
+.specialistReply p {
+  color: #d2dbd7;
+  font-size: 0.79rem;
+  line-height: 1.55;
+  margin: 0;
+  white-space: pre-wrap;
 }
 
 .card footer {
@@ -265,5 +405,9 @@
   .summary,
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .specialistHeading {
+    flex-direction: column;
   }
 }

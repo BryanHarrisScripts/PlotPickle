@@ -26,6 +26,7 @@ import { folderProjectGateway } from "./build/folder-project-gateway";
 import { nativeGitGateway } from "./build/native-git-gateway";
 import { localProjectGateway } from "./build/local-project-gateway";
 import { localStorageSafetyGateway } from "./build/local-storage-safety-gateway";
+import { localBackupGateway } from "./build/local-backup-gateway";
 import { fullStoryBuilderGateway } from "./build/full-story-builder-gateway";
 import { responsibilityRunGateway } from "./build/responsibility-run-gateway";
 import { runTelemetryGateway } from "./build/run-telemetry-gateway";
@@ -110,6 +111,7 @@ export default defineConfig(async () => {
       folderProjectGateway(),
       nativeGitGateway(),
       localStorageSafetyGateway(),
+      localBackupGateway(),
       fullStoryBuilderGateway(),
       localProjectGateway(),
       responsibilityRunGateway(),

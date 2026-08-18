@@ -1,0 +1,27 @@
+{
+  "projectId": "afterglow",
+  "sourceRevision": "afterglow-v9-gold-v1",
+  "nodes": [
+    { "id": "character:ren", "type": "CHARACTER", "canonicalName": "Ren", "aliases": ["Ren"] },
+    { "id": "character:isobel", "type": "CHARACTER", "canonicalName": "Isobel", "aliases": ["Isobel", "Summer"] },
+    { "id": "character:amy", "type": "CHARACTER", "canonicalName": "Amy", "aliases": ["Amy"] },
+    { "id": "character:jai", "type": "CHARACTER", "canonicalName": "Jai", "aliases": ["Jai"] },
+    { "id": "character:kai", "type": "CHARACTER", "canonicalName": "Kai", "aliases": ["Kai"] },
+    { "id": "character:sarah", "type": "CHARACTER", "canonicalName": "Sarah", "aliases": ["Sarah"] }
+  ],
+  "edges": [
+    { "sourceId": "character:ren", "predicate": "Connection", "targetId": "character:isobel" },
+    { "sourceId": "character:ren", "predicate": "Creator and creation", "targetId": "character:amy" },
+    { "sourceId": "character:isobel", "predicate": "Connection", "targetId": "character:ren" },
+    { "sourceId": "character:amy", "predicate": "Creator and companion", "targetId": "character:ren" },
+    { "sourceId": "character:jai", "predicate": "Partner", "targetId": "character:kai" },
+    { "sourceId": "character:kai", "predicate": "Partner", "targetId": "character:jai" },
+    { "sourceId": "character:sarah", "predicate": "Lost loved one", "targetId": "character:ren" }
+  ],
+  "health": {
+    "sourceEntityCount": 6,
+    "sourceRelationCount": 7,
+    "orphanCount": 0,
+    "droppedRelations": { "unresolvedSource": 0, "unresolvedTarget": 0, "selfLoop": 0 }
+  }
+}

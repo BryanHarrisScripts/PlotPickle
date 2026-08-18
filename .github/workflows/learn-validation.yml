@@ -49,6 +49,9 @@ jobs:
       - name: Validate Windows startup Agent Skills contract
         run: node --test tests/startup-agent-skills-contract.test.mjs tests/issue-341-windows-startup-ui-ux.test.mjs tests/issue-974-startup-health-contract.test.mjs
 
+      - name: Validate ComfyUI Windows API readiness contract
+        run: node --test tests/comfyui-live-verification.test.mjs tests/issue-961-auto-local-comfyui-sketch.test.mjs tests/issue-973-comfyui-api-readiness.test.mjs
+
       - name: Validate one-click Full Verification, persistent Inbox, and role-safe orchestration
         run: node --test tests/full-verification-runner.test.mjs tests/full-verification-log-review.test.mjs tests/issue-930-verification-inbox.test.mjs tests/issue-931-verification-orchestration.test.mjs
 
@@ -57,7 +60,9 @@ jobs:
         run: |
           foreach ($path in @(
             "scripts/run-plotpickle-full-check.ps1",
-            "scripts/windows-companion-software.ps1"
+            "scripts/windows-companion-software.ps1",
+            "scripts/install-local-ai-tool.ps1",
+            "scripts/start-comfyui-background.ps1"
           )) {
             $tokens = $null
             $errors = $null

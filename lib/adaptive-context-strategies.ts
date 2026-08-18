@@ -3,16 +3,20 @@ import {
   type ContextItemInput,
   type ContextPacket,
   type ContextReceipt,
-  type ContextSourceType,
 } from "./context-engine";
+import {
+  CONTEXT_STRATEGIES as CORE_CONTEXT_STRATEGIES,
+  contextStrategyForTask as coreContextStrategyForTask,
+  selectAdaptiveContextCandidates as coreSelectAdaptiveContextCandidates,
+} from "./adaptive-context-strategy-core.mjs";
 
-export const CONTEXT_STRATEGIES = [
+export const CONTEXT_STRATEGIES = CORE_CONTEXT_STRATEGIES as readonly [
   "general",
   "continuity",
   "scene-rewrite",
   "structure-review",
   "visual-continuity",
-] as const;
+];
 
 export type ContextStrategyId = (typeof CONTEXT_STRATEGIES)[number];
 
@@ -26,65 +30,6 @@ export type AdaptiveContextPacket = Omit<ContextPacket, "receipt"> & {
   readonly receipt: AdaptiveContextReceipt;
 };
 
-const ALWAYS_KEEP = new Set<ContextSourceType>([
-  "writer-instruction",
-  "ppf-canon",
-  "task-schema",
-]);
-
-const STRATEGY_PREFERENCES: Readonly<Record<ContextStrategyId, readonly ContextSourceType[]>> = {
-  general: [
-    "ppf-canon",
-    "story-knowledge-graph",
-    "curriculum-current",
-    "project-memory",
-    "recent-conversation",
-    "task-reference",
-  ],
-  continuity: [
-    "ppf-canon",
-    "story-knowledge-graph",
-    "project-memory",
-    "task-reference",
-    "recent-conversation",
-    "agent-observation",
-  ],
-  "scene-rewrite": [
-    "ppf-canon",
-    "story-knowledge-graph",
-    "writer-instruction",
-    "recent-conversation",
-    "project-memory",
-    "curriculum-current",
-    "task-reference",
-  ],
-  "structure-review": [
-    "ppf-canon",
-    "story-knowledge-graph",
-    "curriculum-current",
-    "project-memory",
-    "task-reference",
-    "recent-conversation",
-  ],
-  "visual-continuity": [
-    "ppf-canon",
-    "story-knowledge-graph",
-    "project-memory",
-    "task-reference",
-    "agent-observation",
-    "recent-conversation",
-  ],
-};
-
-function preferredRank(strategyId: ContextStrategyId, sourceType: ContextSourceType) {
-  const index = STRATEGY_PREFERENCES[strategyId].indexOf(sourceType);
-  return index < 0 ? Number.MAX_SAFE_INTEGER : index;
-}
-
-function strategyCandidateCap(budgetCharacters: number) {
-  return Math.max(8, Math.min(48, Math.ceil(Math.max(2_000, budgetCharacters) / 1_500)));
-}
-
 /**
  * Selects a bounded set of optional sources before the protected Context Engine
  * applies trust, authority ceilings, allowed-use normalization and the host budget.
@@ -94,17 +39,8 @@ export function selectAdaptiveContextCandidates(input: {
   readonly strategyId: ContextStrategyId;
   readonly budgetCharacters: number;
   readonly items: readonly ContextItemInput[];
-}) {
-  const cap = strategyCandidateCap(input.budgetCharacters);
-  const required = input.items.filter((item) => item.required || ALWAYS_KEEP.has(item.sourceType));
-  const requiredIds = new Set(required.map((item) => item.id));
-  const optional = input.items
-    .filter((item) => !requiredIds.has(item.id))
-    .map((item, index) => ({ item, index, rank: preferredRank(input.strategyId, item.sourceType) }))
-    .sort((left, right) => left.rank - right.rank || left.index - right.index)
-    .slice(0, Math.max(0, cap - required.length))
-    .map(({ item }) => item);
-  return [...required, ...optional];
+}): ContextItemInput[] {
+  return coreSelectAdaptiveContextCandidates(input) as ContextItemInput[];
 }
 
 export function assembleAdaptiveContextPacket(input: {
@@ -137,10 +73,5 @@ export function assembleAdaptiveContextPacket(input: {
 }
 
 export function contextStrategyForTask(text: string): ContextStrategyId {
-  const value = text.toLowerCase();
-  if (/\b(?:visual|image|reference image|wardrobe|costume|appearance|storyboard|panel|shot|composition)\b/.test(value)) return "visual-continuity";
-  if (/\b(?:rewrite|revise|scene|dialogue|dialog|voice|line edit|prose|screenplay page)\b/.test(value)) return "scene-rewrite";
-  if (/\b(?:continuity|canon|character relationship|character history|timeline|contradiction|consistency)\b/.test(value)) return "continuity";
-  if (/\b(?:structure|beat|block|act|arc|theme|turning point|24\/96|outline|foundation)\b/.test(value)) return "structure-review";
-  return "general";
+  return coreContextStrategyForTask(text) as ContextStrategyId;
 }

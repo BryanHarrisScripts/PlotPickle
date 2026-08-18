@@ -58,6 +58,9 @@ jobs:
       - name: Validate unified Run telemetry and portability evals
         run: node --test tests/issue-968-run-telemetry-evals.test.mjs
 
+      - name: Validate local backup, restore, retention and trust architecture
+        run: node --test tests/issue-969-local-backup-trust-docs.test.mjs
+
       - name: Validate full-verification Agent Skills architecture pair
         run: node --test tests/sage-brinewick-agent-skill.test.mjs tests/issue-913-agent-skills-migration.test.mjs
 

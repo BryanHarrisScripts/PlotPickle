@@ -22,15 +22,18 @@ test("startup anti-echo recovery checks near-verbatim restatement instead of ord
   assert.doesNotMatch(adapter, /overlap\s*<\s*0\.85/);
 });
 
-test("anti-echo adapter can repair only an isolated anti-echo false red", async () => {
-  const [entrypoint, adapter] = await Promise.all([
+test("anti-echo adapter remains active beneath host-owned Agent Profile validation", async () => {
+  const [entrypoint, profileAdapter, antiEchoAdapter] = await Promise.all([
     read("build/startup-agent-diagnostics.ts"),
+    read("build/startup-agent-diagnostics-runtime-v6.ts"),
     read("build/startup-agent-diagnostics-runtime-v5.ts"),
   ]);
-  assert.match(entrypoint, /startup-agent-diagnostics-runtime-v5/);
-  assert.match(adapter, /failedChecks\.length === 1/);
-  assert.match(adapter, /failedChecks\[0\]\.includes\("Sage anti-echo check"\)/);
-  assert.match(adapter, /verifySageAntiEcho/);
-  assert.match(adapter, /verified by strict no-restatement probe/);
-  assert.match(adapter, /return \{ healthy: true, warnings: result\.warnings \}/);
+  assert.match(entrypoint, /startup-agent-diagnostics-runtime-v6/);
+  assert.match(profileAdapter, /runStartupAgentDiagnostics as runV5/);
+  assert.match(profileAdapter, /assertAgentProfilesValid/);
+  assert.match(antiEchoAdapter, /failedChecks\.length === 1/);
+  assert.match(antiEchoAdapter, /failedChecks\[0\]\.includes\("Sage anti-echo check"\)/);
+  assert.match(antiEchoAdapter, /verifySageAntiEcho/);
+  assert.match(antiEchoAdapter, /verified by strict no-restatement probe/);
+  assert.match(antiEchoAdapter, /return \{ healthy: true, warnings: result\.warnings \}/);
 });

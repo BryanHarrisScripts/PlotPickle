@@ -47,6 +47,10 @@ function buzzIdentityLabel(agentId: string, buzzPresence: string, nativeAgents: 
   return "Operational events only";
 }
 
+function readableList(values: readonly string[]) {
+  return values.length ? values.map((value) => value.replaceAll("-", " ")).join(", ") : "None";
+}
+
 export default function CommunityAgentRoster() {
   const [assistantStatus, setAssistantStatus] = useState<WritingAssistantStatus | null>(null);
   const [traces, setTraces] = useState<AgentTrace[]>([]);
@@ -112,8 +116,8 @@ export default function CommunityAgentRoster() {
       <section className={styles.heading}>
         <div>
           <span>Agents & Stewards</span>
-          <h2>Who is here, what they do, whether they are running, and whether BUZZ can see them.</h2>
-          <p>PlotPickle checks the local Mastra runtime, current-session activity and owner-approved BUZZ identities. Sage and the other creative agents still think in Mastra; a matching BUZZ identity is only their community presence and signed authorship shell.</p>
+          <h2>Who is here, what they help with, and what PlotPickle allows them to do.</h2>
+          <p>Each identity has one host-owned Agent Profile. The profile can request a kind of model, a Skill and safe capabilities, but PlotPickle decides what is actually available. Skills describe procedure; they never grant permission. The writer remains the final authority over creative changes.</p>
         </div>
         <button type="button" disabled={loading} onClick={() => void refresh()}>{loading ? "Checking…" : "Refresh status"}</button>
       </section>
@@ -126,7 +130,7 @@ export default function CommunityAgentRoster() {
       </section>
 
       <section className={styles.legend} aria-label="Agent status meanings">
-        <p><strong>Online</strong> means the real runtime reports the role available. <strong>Working</strong> means a run is active now. <strong>On demand</strong> means the service starts only when needed. <strong>Parked</strong> means the lore role is preserved while its broader product module stays off to the side. If you want Sage, Tamsin, Oaken-Vague or another Mastra agent to appear on the Buzz Desktop Agents page, create and approve a BUZZ agent with the same PlotPickle name; this roster will detect it automatically. PlotPickle will never sign a human message and falsely label it as an agent.</p>
+        <p><strong>Online</strong> means the real runtime reports the role available. <strong>Working</strong> means a run is active now. <strong>On demand</strong> means the service starts only when needed. <strong>Parked</strong> means the role is intentionally inactive. A BUZZ identity is community presence and signed provenance only; it does not give an agent new product, story, developer or GitHub authority.</p>
       </section>
 
       {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
@@ -152,9 +156,22 @@ export default function CommunityAgentRoster() {
                 <div><dt>Runs in</dt><dd>{agent.runtimeLabel}</dd></div>
                 <div><dt>Home room</dt><dd>{agent.homeRoom}</dd></div>
                 <div><dt>Role</dt><dd>{agent.roleId || (agent.runtime === "buzz" ? "BUZZ identity" : "Operational service")}</dd></div>
+                <div><dt>Model need</dt><dd>{agent.requestedModelRole ? `${agent.requestedModelRole} capability` : "No model required"}</dd></div>
                 <div><dt>BUZZ identity</dt><dd>{buzzIdentityLabel(agent.id, agent.buzzPresence, nativeAgents)}</dd></div>
                 <div><dt>Last activity</dt><dd>{displayTime(agent.lastActiveAt)}</dd></div>
               </dl>
+
+              <details>
+                <summary>Capabilities & boundaries</summary>
+                <dl>
+                  <div><dt>Skills</dt><dd>{agent.skillUris.length ? agent.skillUris.map((uri) => uri.replace("skill://plotpickle/", "")).join(", ") : "No packaged Skill required"}</dd></div>
+                  <div><dt>May read</dt><dd>{readableList(agent.readScopes)}</dd></div>
+                  <div><dt>May propose</dt><dd>{readableList(agent.proposalScopes)}</dd></div>
+                  <div><dt>Cannot do</dt><dd>{readableList(agent.forbiddenCapabilities)}</dd></div>
+                  <div><dt>Creative authority</dt><dd>{agent.creativeAuthority.replaceAll("-", " ")}</dd></div>
+                </dl>
+                <p>{agent.verificationContract}</p>
+              </details>
 
               <footer>
                 <span>{visibleInBuzz ? "Visible in Buzz Desktop" : agent.buzzPresence === "native-draft" ? "BUZZ-native identity awaiting approval" : agent.buzzPresence === "mirrored" ? "PlotPickle/Mastra agent" : "Guildhall service"}</span>

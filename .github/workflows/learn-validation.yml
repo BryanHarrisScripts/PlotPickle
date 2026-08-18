@@ -37,6 +37,9 @@ jobs:
       - name: Validate Agent Skills migration
         run: node --test tests/issue-913-agent-skills-migration.test.mjs
 
+      - name: Validate host-owned Agent Profile authority
+        run: node --test tests/issue-962-agent-profiles.test.mjs tests/community-agent-roster.test.mjs
+
       - name: Validate full-verification Agent Skills architecture pair
         run: node --test tests/sage-brinewick-agent-skill.test.mjs tests/issue-913-agent-skills-migration.test.mjs
 

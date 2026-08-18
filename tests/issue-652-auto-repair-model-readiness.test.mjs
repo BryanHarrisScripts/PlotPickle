@@ -61,13 +61,16 @@ test("automatic repair-model readiness keeps the lightweight Pi default while al
 });
 
 test("Sage startup grounding can recover against the current essentials-theme curriculum without masking other failures", async () => {
-  const [entrypoint, healthAdapter, groundingAdapter, theme] = await Promise.all([
+  const [entrypoint, profileAdapter, healthAdapter, groundingAdapter, theme] = await Promise.all([
     read("build/startup-agent-diagnostics.ts"),
+    read("build/startup-agent-diagnostics-runtime-v6.ts"),
     read("build/startup-agent-diagnostics-runtime-v5.ts"),
     read("build/startup-agent-diagnostics-runtime-v4.ts"),
     read("learn/theme.json"),
   ]);
-  assert.match(entrypoint, /startup-agent-diagnostics-runtime-v5/);
+  assert.match(entrypoint, /startup-agent-diagnostics-runtime-v6/);
+  assert.match(profileAdapter, /runStartupAgentDiagnostics as runV5/);
+  assert.match(profileAdapter, /assertAgentProfilesValid/);
   assert.match(healthAdapter, /runStartupAgentDiagnostics as runV4/);
   assert.match(groundingAdapter, /runStartupAgentDiagnostics as runV3/);
   assert.match(groundingAdapter, /currentThemeContext/);

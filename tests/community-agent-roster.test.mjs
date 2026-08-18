@@ -4,19 +4,19 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("the Guildhall roster includes every active slim-product agent with a lore identity", async () => {
-  const config = JSON.parse(await read("config/buzz-guildhall.json"));
-  const byRole = new Map(config.actors.filter((actor) => actor.existingRoleId).map((actor) => [actor.existingRoleId, actor]));
+test("the canonical Agent Profile registry includes every active slim-product agent identity", async () => {
+  const config = JSON.parse(await read("config/agent-profiles.json"));
+  const byRole = new Map(config.profiles.filter((profile) => profile.runtimeRoleId).map((profile) => [profile.runtimeRoleId, profile]));
 
   assert.equal(byRole.get("curriculum-guide")?.displayName, "Sage Brinewick");
   assert.equal(byRole.get("foundations-planner")?.displayName, "Tamsin Hearthquill");
   assert.equal(byRole.get("wyrmwood-rival-director")?.displayName, "Master Oaken-Vague");
   assert.equal(byRole.get("wyrmwood-curriculum-evaluator")?.displayName, "Rowan Scalequill");
   assert.equal(byRole.get("foundations-planner")?.title, "Keeper of Foundations");
-  assert.equal(byRole.get("foundations-planner")?.primaryChannel, "story-council");
+  assert.equal(byRole.get("foundations-planner")?.homeRoomId, "story-council");
 });
 
-test("Community shows a live roster sourced from Mastra activity and BUZZ-native presence", async () => {
+test("Community shows a live roster sourced from Agent Profiles plus Mastra activity and BUZZ-native presence", async () => {
   const [workspace, roster, model] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("app/community-agent-roster.tsx"),
@@ -32,22 +32,29 @@ test("Community shows a live roster sourced from Mastra activity and BUZZ-native
   assert.match(roster, /Runs in/);
   assert.match(roster, /Home room/);
   assert.match(roster, /Last activity/);
+  assert.match(roster, /Capabilities & boundaries/);
   assert.match(roster, /Needs owner approval/);
+  assert.match(model, /AGENT_PROFILES\.map/);
   assert.match(model, /trace\?\.status === "running"/);
   assert.match(model, /status\?\.mastra\?\.ready === true/);
-  assert.match(model, /status\?\.mastra\?\.agents\?\.includes\(actorRoleId\)/);
+  assert.match(model, /status\?\.mastra\?\.agents\?\.includes\(profile\.runtimeRoleId\)/);
   assert.match(model, /BUZZ reports this steward online/);
 });
 
-test("the roster distinguishes active, on-demand and preserved parked roles without pretending all services are online", async () => {
-  const model = await read("lib/community-agent-roster.ts");
+test("the roster derives active, on-demand and parked roles from profile lifecycle without pretending all services are online", async () => {
+  const [profiles, model] = await Promise.all([
+    read("config/agent-profiles.json"),
+    read("lib/community-agent-roster.ts"),
+  ]);
 
-  assert.match(model, /PARKED_PRODUCT_ACTORS = new Set\(\["quillan-reedcloak", "elowen-mapweaver", "mira-threadmere"\]\)/);
+  assert.match(profiles, /"quillan-reedcloak"[\s\S]*?"lifecycleState": "parked"/);
+  assert.match(profiles, /"avery-north"[\s\S]*?"lifecycleState": "on-demand"/);
+  assert.match(model, /profile\.lifecycleState === "parked"/);
   assert.match(model, /state: "on-demand"/);
   assert.match(model, /Runs only when the Writer-in-Residence journey is started/);
   assert.match(model, /Starts when rendered visual review needs evidence/);
   assert.match(model, /Runs when PlotPickle executes deterministic quality gates/);
-  assert.match(model, /preserved off to the side until its broader story module is reworked into the slim app/);
+  assert.match(model, /intentionally inactive until this product area is brought back into the active workflow/);
   assert.match(model, /state: "unavailable"/);
   assert.match(model, /will not guess whether the steward exists or is online/);
 });

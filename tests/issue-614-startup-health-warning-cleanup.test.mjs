@@ -5,16 +5,19 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("startup uses the v5 health-contract adapter around the v4 grounding and resilient v3 probes", async () => {
-  const [entrypoint, contractAdapter, groundingAdapter, diagnostic, guide] = await Promise.all([
+test("startup validates profiles before the v5 health adapter, v4 grounding and resilient v3 probes", async () => {
+  const [entrypoint, profileAdapter, contractAdapter, groundingAdapter, diagnostic, guide] = await Promise.all([
     read("build/startup-agent-diagnostics.ts"),
+    read("build/startup-agent-diagnostics-runtime-v6.ts"),
     read("build/startup-agent-diagnostics-runtime-v5.ts"),
     read("build/startup-agent-diagnostics-runtime-v4.ts"),
     read("build/startup-agent-diagnostics-runtime-v3.ts"),
     read("modules/creative-room/curriculum-guide.ts"),
   ]);
 
-  assert.match(entrypoint, /startup-agent-diagnostics-runtime-v5/);
+  assert.match(entrypoint, /startup-agent-diagnostics-runtime-v6/);
+  assert.match(profileAdapter, /assertAgentProfilesValid/);
+  assert.match(profileAdapter, /runStartupAgentDiagnostics as runV5/);
   assert.match(contractAdapter, /runStartupAgentDiagnostics as runV4/);
   assert.match(contractAdapter, /onlyAntiEchoFailed/);
   assert.match(contractAdapter, /verifySageAntiEcho/);
@@ -38,14 +41,12 @@ test("startup uses the v5 health-contract adapter around the v4 grounding and re
   assert.match(diagnostic, /printResult\("Curriculum grounding", sage\.grounded \? "PASS" : "FAIL"/);
   assert.match(diagnostic, /failed \|\|= !responsePass \|\| !sage\.antiEcho \|\| !sage\.repetitionSafe \|\| !sage\.grounded/);
 
-  // v3 still closes the PLAN startup false-negative gap by retrying structured output before failing.
   assert.match(diagnostic, /FOUNDATION_REPAIR_INSTRUCTION/);
   assert.match(diagnostic, /route: "Quality retry"/);
   assert.match(diagnostic, /route: "per-field recovery"/);
   assert.match(diagnostic, /plan\.structured-output-failure/);
   assert.match(diagnostic, /reportStartupFinding/);
 
-  // Startup validation must not weaken the actual visible Sage guard.
   assert.match(guide, /guideAnswerNeedsRepair/);
   assert.match(guide, /shortSemanticEcho/);
   assert.match(guide, /SAGE_QUALITY_ESCALATION_INSTRUCTION/);

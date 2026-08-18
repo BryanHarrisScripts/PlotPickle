@@ -1,4 +1,5 @@
-import { BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "./buzz-guildhall";
+import { AGENT_PROFILES, type AgentProfile, type AgentProfileLifecycleState, type AgentProfileModelRole } from "./agent-profiles";
+import { BUZZ_GUILDHALL_CHANNELS } from "./buzz-guildhall";
 
 export type AgentRosterState = "working" | "online" | "away" | "on-demand" | "parked" | "offline" | "needs-approval" | "setup-needed" | "unavailable";
 
@@ -44,13 +45,15 @@ export type CommunityAgentRosterItem = {
   readonly stateDetail: string;
   readonly lastActiveAt: string;
   readonly buzzPresence: string;
+  readonly lifecycleState: AgentProfileLifecycleState;
+  readonly requestedModelRole: AgentProfileModelRole | null;
+  readonly skillUris: readonly string[];
+  readonly readScopes: readonly string[];
+  readonly proposalScopes: readonly string[];
+  readonly forbiddenCapabilities: readonly string[];
+  readonly creativeAuthority: string;
+  readonly verificationContract: string;
 };
-
-const PARKED_PRODUCT_ACTORS = new Set(["quillan-reedcloak", "elowen-mapweaver", "mira-threadmere"]);
-
-function roleId(actor: (typeof BUZZ_GUILDHALL_ACTORS)[number]) {
-  return "existingRoleId" in actor && typeof actor.existingRoleId === "string" ? actor.existingRoleId : "";
-}
 
 function runtimeLabel(runtime: string) {
   if (runtime === "mastra") return "Mastra · local AI";
@@ -68,19 +71,19 @@ function newestTrace(traces: readonly AgentTrace[], agentId: string) {
     .sort((left, right) => Date.parse(right.startedAt || "") - Date.parse(left.startedAt || ""))[0] ?? null;
 }
 
-function parkedState() {
+function parkedState(profile: AgentProfile) {
   return {
     state: "parked" as const,
     label: "Parked",
-    detail: "This lore role is preserved off to the side until its broader story module is reworked into the slim app.",
+    detail: `${profile.displayName} is preserved but intentionally inactive until this product area is brought back into the active workflow.`,
     lastActiveAt: "",
   };
 }
 
-function mastraState(actorRoleId: string, status: WritingAssistantStatus | null, traces: readonly AgentTrace[]) {
-  const trace = actorRoleId ? newestTrace(traces, actorRoleId) : null;
+function mastraState(profile: AgentProfile, status: WritingAssistantStatus | null, traces: readonly AgentTrace[]) {
+  const trace = profile.runtimeRoleId ? newestTrace(traces, profile.runtimeRoleId) : null;
   const mastraReady = status?.mastra?.ready === true;
-  const registered = actorRoleId ? Boolean(status?.mastra?.agents?.includes(actorRoleId)) : false;
+  const registered = profile.runtimeRoleId ? Boolean(status?.mastra?.agents?.includes(profile.runtimeRoleId)) : false;
   if (trace?.status === "running") {
     return {
       state: "working" as const,
@@ -113,7 +116,7 @@ function mastraState(actorRoleId: string, status: WritingAssistantStatus | null,
   };
 }
 
-function buzzState(actorId: string, identityVerified: boolean, nativeAgents: readonly BuzzNativeAgentState[]) {
+function buzzState(profile: AgentProfile, identityVerified: boolean, nativeAgents: readonly BuzzNativeAgentState[]) {
   if (!identityVerified) {
     return {
       state: "setup-needed" as const,
@@ -122,7 +125,7 @@ function buzzState(actorId: string, identityVerified: boolean, nativeAgents: rea
       lastActiveAt: "",
     };
   }
-  const native = nativeAgents.find((item) => item.actorId === actorId);
+  const native = nativeAgents.find((item) => item.actorId === profile.id);
   if (native?.lookupError) {
     return {
       state: "unavailable" as const,
@@ -154,15 +157,27 @@ function buzzState(actorId: string, identityVerified: boolean, nativeAgents: rea
   };
 }
 
-function onDemandState(runtime: string) {
-  const detail = runtime === "plotpickle-uat"
+function onDemandState(profile: AgentProfile) {
+  const detail = profile.runtime === "plotpickle-uat"
     ? "Runs only when the Writer-in-Residence journey is started."
-    : runtime === "deterministic-observer"
+    : profile.runtime === "deterministic-observer"
       ? "Starts when rendered visual review needs evidence."
-      : runtime === "uat"
+      : profile.runtime === "uat"
         ? "Runs when PlotPickle executes deterministic quality gates."
         : "Runs only when verified development work needs a handoff.";
   return { state: "on-demand" as const, label: "On demand", detail, lastActiveAt: "" };
+}
+
+function profileState(profile: AgentProfile, input: {
+  readonly assistantStatus: WritingAssistantStatus | null;
+  readonly traces: readonly AgentTrace[];
+  readonly buzzIdentityVerified: boolean;
+  readonly nativeAgents: readonly BuzzNativeAgentState[];
+}) {
+  if (profile.lifecycleState === "parked") return parkedState(profile);
+  if (profile.runtime === "mastra") return mastraState(profile, input.assistantStatus, input.traces);
+  if (profile.runtime === "buzz") return buzzState(profile, input.buzzIdentityVerified, input.nativeAgents);
+  return onDemandState(profile);
 }
 
 export function buildCommunityAgentRoster(input: {
@@ -171,31 +186,32 @@ export function buildCommunityAgentRoster(input: {
   readonly buzzIdentityVerified: boolean;
   readonly nativeAgents: readonly BuzzNativeAgentState[];
 }): CommunityAgentRosterItem[] {
-  return BUZZ_GUILDHALL_ACTORS.map((actor) => {
-    const actorRoleId = roleId(actor);
-    const dynamic = PARKED_PRODUCT_ACTORS.has(actor.id)
-      ? parkedState()
-      : actor.runtime === "mastra"
-        ? mastraState(actorRoleId, input.assistantStatus, input.traces)
-        : actor.runtime === "buzz"
-          ? buzzState(actor.id, input.buzzIdentityVerified, input.nativeAgents)
-          : onDemandState(actor.runtime);
-    const room = BUZZ_GUILDHALL_CHANNELS.find((candidate) => candidate.id === actor.primaryChannel);
+  return AGENT_PROFILES.map((profile) => {
+    const dynamic = profileState(profile, input);
+    const room = BUZZ_GUILDHALL_CHANNELS.find((candidate) => candidate.id === profile.homeRoomId);
     return {
-      id: actor.id,
-      displayName: actor.displayName,
-      title: actor.title,
-      summary: actor.summary,
-      runtime: actor.runtime,
-      runtimeLabel: runtimeLabel(actor.runtime),
-      roleId: actorRoleId,
-      homeRoom: room?.label || actor.primaryChannel,
-      homeRoomId: actor.primaryChannel,
+      id: profile.id,
+      displayName: profile.displayName,
+      title: profile.title,
+      summary: profile.responsibility,
+      runtime: profile.runtime,
+      runtimeLabel: runtimeLabel(profile.runtime),
+      roleId: profile.runtimeRoleId,
+      homeRoom: room?.label || profile.homeRoomId,
+      homeRoomId: profile.homeRoomId,
       state: dynamic.state,
       stateLabel: dynamic.label,
       stateDetail: dynamic.detail,
       lastActiveAt: dynamic.lastActiveAt,
-      buzzPresence: actor.buzzPresence,
+      buzzPresence: profile.buzzPresence,
+      lifecycleState: profile.lifecycleState,
+      requestedModelRole: profile.requestedModelRole,
+      skillUris: profile.skillUris,
+      readScopes: profile.readScopes,
+      proposalScopes: profile.proposalScopes,
+      forbiddenCapabilities: profile.forbiddenCapabilities,
+      creativeAuthority: profile.creativeAuthority,
+      verificationContract: profile.verificationContract,
     };
   });
 }

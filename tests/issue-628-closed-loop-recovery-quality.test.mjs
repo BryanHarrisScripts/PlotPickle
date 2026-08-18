@@ -9,8 +9,9 @@ import {
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("startup PLAN health mirrors structured repair and reports exhausted recovery into closed-loop UAT", async () => {
-  const [entry, healthAdapter, groundingAdapter, diagnostic, discovery, reporter] = await Promise.all([
+  const [entry, profileAdapter, healthAdapter, groundingAdapter, diagnostic, discovery, reporter] = await Promise.all([
     read("build/startup-agent-diagnostics.ts"),
+    read("build/startup-agent-diagnostics-runtime-v6.ts"),
     read("build/startup-agent-diagnostics-runtime-v5.ts"),
     read("build/startup-agent-diagnostics-runtime-v4.ts"),
     read("build/startup-agent-diagnostics-runtime-v3.ts"),
@@ -18,7 +19,9 @@ test("startup PLAN health mirrors structured repair and reports exhausted recove
     read("scripts/report-uat-findings.mjs"),
   ]);
 
-  assert.match(entry, /startup-agent-diagnostics-runtime-v5/);
+  assert.match(entry, /startup-agent-diagnostics-runtime-v6/);
+  assert.match(profileAdapter, /runStartupAgentDiagnostics as runV5/);
+  assert.match(profileAdapter, /assertAgentProfilesValid/);
   assert.match(healthAdapter, /runStartupAgentDiagnostics as runV4/);
   assert.match(groundingAdapter, /runStartupAgentDiagnostics as runV3/);
   assert.match(diagnostic, /FOUNDATION_REPAIR_INSTRUCTION/);

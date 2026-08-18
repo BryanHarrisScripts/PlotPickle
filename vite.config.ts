@@ -87,12 +87,12 @@ export default defineConfig(async () => {
     plugins: [
       localConnectionsGateway(),
       buzzBundleNormalizer(),
+      buzzSpecialistGateway(),
       buzzCommunityGateway(),
       buzzAgentRosterGateway(),
       buzzGuildhallGateway(),
       buzzLiveHealthGateway(),
       buzzStoryRoomAccessGateway(),
-      buzzSpecialistGateway(),
       buzzGateway(),
       localSystemStatusGateway(),
       googleCalendarGateway(),

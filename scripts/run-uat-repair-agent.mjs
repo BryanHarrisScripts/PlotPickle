@@ -550,8 +550,16 @@ async function main() {
     process.stdout.write(`Repair evidence .................... SAVED  ${report}\n`);
   } finally {
     if (!keepWorktree) {
-      try { await run("git", ["worktree", "remove", "--force", worktreeRoot]); } catch {}
-      try { await rm(worktreeRoot, { recursive: true, force: true }); } catch {}
+      try {
+        await run("git", ["worktree", "remove", "--force", worktreeRoot]);
+      } catch (error) {
+        console.error(`UAT repair cleanup warning: could not remove git worktree: ${error instanceof Error ? error.message : String(error)}`);
+      }
+      try {
+        await rm(worktreeRoot, { recursive: true, force: true });
+      } catch (error) {
+        console.error(`UAT repair cleanup warning: could not remove worktree directory: ${error instanceof Error ? error.message : String(error)}`);
+      }
     }
   }
 }

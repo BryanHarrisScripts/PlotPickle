@@ -10,6 +10,8 @@ import {
   createDeterministicResponsibilityRun,
   createResponsibilityRun,
   pauseResponsibilityRun,
+  recordResponsibilityToolCall,
+  recordResponsibilityUsage,
   redirectResponsibilityRun,
   restartResponsibilityRunContext,
   resumeResponsibilityRun,
@@ -18,6 +20,15 @@ import {
   type ResponsibilityRunKind,
   type ResponsibilityVerificationMode,
 } from "../lib/responsibility-runs";
+import {
+  createRunTelemetryLedger,
+  isRunTelemetryLedger,
+  recordRunTelemetryEvent,
+  summarizeRunTelemetry,
+  telemetryUsageDelta,
+  type RunTelemetryEventType,
+  type RunTelemetryLedger,
+} from "../lib/run-observability";
 
 const API = "/api/responsibility-runs";
 const MAX_BODY = 64 * 1024;
@@ -26,6 +37,10 @@ const ALLOWED_SCOPES = new Set<string>(CONNECTOR_POLICY_SCOPES);
 
 function root() {
   return path.join(persistentHome(), "responsibility-runs");
+}
+
+function telemetryRoot() {
+  return path.join(root(), "telemetry");
 }
 
 function local(request: IncomingMessage) {
@@ -61,6 +76,11 @@ function runFile(runId: string) {
   return path.join(root(), `${runId}.json`);
 }
 
+function telemetryFile(runId: string) {
+  if (!SAFE_RUN_ID.test(runId)) throw new Error("Choose a valid Responsibility Run ID.");
+  return path.join(telemetryRoot(), `${runId}.json`);
+}
+
 function validRun(value: unknown): value is ResponsibilityRun {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const run = value as Partial<ResponsibilityRun>;
@@ -88,6 +108,32 @@ async function saveRun(run: ResponsibilityRun) {
   await writeFile(temporary, `${JSON.stringify(run, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
   await rename(temporary, file);
   return run;
+}
+
+async function readTelemetry(runId: string) {
+  try {
+    const value: unknown = JSON.parse(await readFile(telemetryFile(runId), "utf8"));
+    if (!isRunTelemetryLedger(value) || value.runId !== runId) throw new Error("Run telemetry record failed integrity checks.");
+    return value;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException)?.code === "ENOENT") return null;
+    throw error;
+  }
+}
+
+async function saveTelemetry(ledger: RunTelemetryLedger) {
+  if (!isRunTelemetryLedger(ledger) || !SAFE_RUN_ID.test(ledger.runId)) throw new Error("Run telemetry record failed integrity checks.");
+  await mkdir(telemetryRoot(), { recursive: true, mode: 0o700 });
+  const file = telemetryFile(ledger.runId);
+  const temporary = `${file}.${process.pid}.${Date.now()}.tmp`;
+  await writeFile(temporary, `${JSON.stringify(ledger, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
+  await rename(temporary, file);
+  return ledger;
+}
+
+async function withTelemetry(run: ResponsibilityRun) {
+  const ledger = await readTelemetry(run.runId);
+  return { ...run, telemetrySummary: ledger ? summarizeRunTelemetry(ledger) : null };
 }
 
 async function listRuns() {
@@ -131,12 +177,33 @@ function createFromInput(input: Record<string, unknown>) {
   return createResponsibilityRun({ ...common, kind: "general", verificationMode });
 }
 
+async function recordTelemetryForRun(run: ResponsibilityRun, input: Record<string, unknown>) {
+  const source = input.event && typeof input.event === "object" && !Array.isArray(input.event)
+    ? input.event as Record<string, unknown>
+    : {};
+  if (typeof source.type !== "string") throw new Error("Run telemetry requires an event type.");
+  let ledger = await readTelemetry(run.runId) || createRunTelemetryLedger(run.runId);
+  ledger = recordRunTelemetryEvent(ledger, { ...source, type: source.type as RunTelemetryEventType });
+  const event = ledger.events.at(-1)!;
+  let next = recordResponsibilityUsage(run, telemetryUsageDelta(event), event.at);
+  if (event.type === "tool.called" && event.connectorId) {
+    next = recordResponsibilityToolCall(next, {
+      connectorId: event.connectorId,
+      arguments: input.toolArguments ?? {},
+      allowed: input.toolAllowed !== false,
+    }, event.at).run;
+  }
+  await saveTelemetry(ledger);
+  return saveRun(next);
+}
+
 async function mutate(input: Record<string, unknown>) {
   const action = String(input.action || "");
   if (action === "create") return saveRun(createFromInput(input));
   const runId = typeof input.runId === "string" ? input.runId : "";
   const current = await readRun(runId);
   if (!current) throw new Error("Responsibility Run was not found.");
+  if (action === "telemetry") return recordTelemetryForRun(current, input);
   if (action === "pause") return saveRun(pauseResponsibilityRun(current));
   if (action === "resume") return saveRun(resumeResponsibilityRun(current));
   if (action === "cancel") return saveRun(cancelResponsibilityRun(current, typeof input.reason === "string" ? input.reason : "Cancelled by the user."));
@@ -156,7 +223,7 @@ async function mutate(input: Record<string, unknown>) {
     };
     return saveRun(restartResponsibilityRunContext(current, handoff));
   }
-  throw new Error("Choose create, pause, resume, cancel, redirect or fresh-context.");
+  throw new Error("Choose create, telemetry, pause, resume, cancel, redirect or fresh-context.");
 }
 
 export function responsibilityRunGateway(): Plugin {
@@ -174,16 +241,16 @@ export function responsibilityRunGateway(): Plugin {
               if (requested) {
                 const run = await readRun(requested);
                 if (!run) { send(response, 404, { ok: false, message: "Responsibility Run was not found." }); return; }
-                send(response, 200, { ok: true, run });
+                send(response, 200, { ok: true, run: await withTelemetry(run) });
                 return;
               }
               const runs = await listRuns();
-              send(response, 200, { ok: true, runs, count: runs.length });
+              send(response, 200, { ok: true, runs: await Promise.all(runs.map(withTelemetry)), count: runs.length });
               return;
             }
             if (request.method === "POST") {
               const run = await mutate(await body(request));
-              send(response, 200, { ok: true, run });
+              send(response, 200, { ok: true, run: await withTelemetry(run) });
               return;
             }
             send(response, 405, { ok: false, message: "Use GET or POST for Responsibility Runs." });

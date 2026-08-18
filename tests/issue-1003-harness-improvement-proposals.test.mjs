@@ -156,8 +156,10 @@ test("runtime integration keeps the protected Context Engine and host cancellati
   assert.match(adaptive, /assembleContextPacket\(/, "adaptive strategies must delegate final assembly to the protected Context Engine");
   assert.match(adaptive, /strategyId: input\.strategyId/);
   assert.match(adaptive, /\.\.\.packet\.receipt/);
-  assert.match(sage, /assembleAdaptiveContextPacket/);
+  assert.match(sage, /selectAdaptiveContextCandidates/);
+  assert.match(sage, /assembleContextPacket\(/);
   assert.match(sage, /contextStrategyForTask\(question\)/);
+  assert.match(sage, /strategyVersion: 1/);
   assert.match(interrupts, /cancelResponsibilityRun\(/);
   assert.match(interrupts, /limitsAtInterrupt = \{ \.\.\.input\.run\.limits \}/);
   assert.match(interrupts, /immutable: true/);

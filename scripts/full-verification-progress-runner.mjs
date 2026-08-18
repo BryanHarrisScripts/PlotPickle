@@ -33,6 +33,11 @@ function cleanDetail(value, limit = 1200) {
     .slice(-limit);
 }
 
+function reportProcessCleanupFailure(context, error) {
+  const detail = cleanDetail(error instanceof Error ? error.message : String(error), 300);
+  process.stderr.write(`[verification-cleanup] ${context}: ${detail || "unknown process cleanup error"}\n`);
+}
+
 function formatDuration(milliseconds) {
   const totalSeconds = Math.max(0, Math.round(Number(milliseconds) / 1000));
   const hours = Math.floor(totalSeconds / 3600);
@@ -84,7 +89,11 @@ async function executableAvailable(name) {
     const timer = setTimeout(() => {
       if (settled) return;
       settled = true;
-      try { child.kill(); } catch {}
+      try {
+        child.kill();
+      } catch (error) {
+        reportProcessCleanupFailure(`could not stop ${name} availability probe`, error);
+      }
       resolve(false);
     }, 5_000);
     child.on("error", () => {
@@ -112,10 +121,16 @@ function terminateProcessTree(child) {
         stdio: "ignore",
       });
       killer.unref();
-    } catch {}
+    } catch (error) {
+      reportProcessCleanupFailure(`could not start taskkill for PID ${child.pid}`, error);
+    }
     return;
   }
-  try { child.kill("SIGTERM"); } catch {}
+  try {
+    child.kill("SIGTERM");
+  } catch (error) {
+    reportProcessCleanupFailure(`could not stop PID ${child.pid}`, error);
+  }
 }
 
 async function executeBoundedCommand(node, timeoutMs = 0) {
@@ -131,6 +146,7 @@ async function executeBoundedCommand(node, timeoutMs = 0) {
       shell: false,
       stdio: ["ignore", "pipe", "pipe"],
     });
+    let timer = null;
     const finish = (result) => {
       if (settled) return;
       settled = true;
@@ -154,7 +170,7 @@ async function executeBoundedCommand(node, timeoutMs = 0) {
         durationMs: Date.now() - started,
       });
     });
-    const timer = timeoutMs > 0 ? setTimeout(() => {
+    timer = timeoutMs > 0 ? setTimeout(() => {
       terminateProcessTree(child);
       finish({
         status: "FAIL",

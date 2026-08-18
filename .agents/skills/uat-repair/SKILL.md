@@ -21,7 +21,7 @@ Use this skill only for a concrete, reproducible PlotPickle UAT finding. AGENTS.
 5. Find the smallest architectural root cause. Repair that cause without weakening the assertion, hiding the error, or broadening the change unnecessarily.
 6. Apply the BEN Code Quality standard (`skill://plotpickle/ben-code-quality`) while naming, moving, typing, documenting, and organizing changed code.
 7. Run the new regression and nearby focused tests. Keep iterating until they pass.
-8. Run PlotPickle's deterministic validation gates when the wrapper has not already done so: BEN code-quality evidence when available, focused UAT contracts, and the production build.
+8. Run PlotPickle's deterministic validation gates when the wrapper has not already done so: BEN code-quality evidence when available, then focused UAT contracts and the production build.
 9. Finish with a concise summary of root cause, files changed, regression added, BEN findings addressed or remaining, and tests run.
 
 ## BEN coding standard

@@ -22,7 +22,8 @@ $ManagedInstanceCore = Join-Path $Root "scripts\comfyui-managed-instance-core.ps
 if (-not (Test-Path -LiteralPath $ManagedInstanceCore -PathType Leaf)) { throw "PlotPickle's ComfyUI managed-instance inspector is missing." }
 . $ManagedInstanceCore
 $PascalStack = Get-PlotPicklePascalCu126Stack
-$PascalTorchIndex = $PascalStack.IndexUrl
+$PascalTorchIndex = "https://download.pytorch.org/whl/cu126"
+if ($PascalTorchIndex -ne $PascalStack.IndexUrl) { throw "PlotPickle's Pascal CUDA 12.6 installer channel does not match the managed-instance compatibility policy." }
 
 function Get-NvidiaProfile {
   $result = [ordered]@{ Name = ""; VramMB = 0; ComputeCapability = ""; Generation = "none" }

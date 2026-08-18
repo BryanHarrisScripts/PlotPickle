@@ -16,7 +16,7 @@ if (-not (Test-Path -LiteralPath $ManagedInstanceCore -PathType Leaf)) { throw "
 $Starter = [ordered]@{
   FileName = "sd_xl_base_1.0.safetensors"
   Source = "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors?download=true"
-  SourceLabel = "Stability AI · stable-diffusion-xl-base-1.0 via Hugging Face"
+  SourceLabel = "Stability AI - stable-diffusion-xl-base-1.0 via Hugging Face"
   License = "OpenRAIL++"
   SizeBytes = [int64]6938078334
   SizeLabel = "6.94 GB"
@@ -47,7 +47,7 @@ function Resolve-DesktopSharedCheckpointDirectory {
   if (-not $basePath) { return "" }
   if (-not $checkpointValue) { $checkpointValue = "models/checkpoints" }
 
-  $checkpointValue = $checkpointValue.Replace('/', [IO.Path]::DirectorySeparatorChar)
+  $checkpointValue = $checkpointValue -replace '/', [IO.Path]::DirectorySeparatorChar
   if ([IO.Path]::IsPathRooted($checkpointValue)) { return [IO.Path]::GetFullPath($checkpointValue) }
   return [IO.Path]::GetFullPath((Join-Path $basePath $checkpointValue))
 }
@@ -73,10 +73,11 @@ function Find-CompatibleCheckpoint {
   param([string]$Directory)
   if (-not $Directory -or -not (Test-Path -LiteralPath $Directory -PathType Container)) { return "" }
   $match = Get-ChildItem -LiteralPath $Directory -File -ErrorAction SilentlyContinue |
-    Where-Object { $_.Extension -in @('.safetensors', '.ckpt') -and (Test-SdxlName $_.Name) } |
+    Where-Object { $_.Extension -in @('.safetensors', '.ckpt') -and (Test-SdxlName -Name $_.Name) } |
     Sort-Object Name |
     Select-Object -First 1
-  return if ($match) { $match.FullName } else { "" }
+  if ($match) { return $match.FullName }
+  return ""
 }
 
 function Test-ReviewedStarterFile {
@@ -107,6 +108,7 @@ function Download-ReviewedStarter {
   if (Test-Path -LiteralPath $partial -PathType Leaf) { Remove-Item -LiteralPath $partial -Force }
 
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+  Add-Type -AssemblyName System.Net.Http
   $client = New-Object System.Net.Http.HttpClient
   $client.Timeout = [TimeSpan]::FromHours(2)
   try {

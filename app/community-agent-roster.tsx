@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { FOUNDATION_PROJECT_STORAGE_KEY } from "../core/contracts/foundation-plan";
+import { normalizeFoundationProject } from "../core/project/project";
 import {
   buildCommunityAgentRoster,
   type AgentTrace,
@@ -88,6 +90,17 @@ function isSpecialist(value: string): value is SpecialistId {
   return SPECIALISTS.has(value as SpecialistId);
 }
 
+function activeProjectContext(explicit: unknown) {
+  try {
+    if (explicit) return normalizeFoundationProject(explicit);
+    if (typeof window === "undefined") return null;
+    const raw = window.localStorage.getItem(FOUNDATION_PROJECT_STORAGE_KEY);
+    return raw ? normalizeFoundationProject(JSON.parse(raw) as unknown) : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function CommunityAgentRoster({ projectContext = null }: { readonly projectContext?: unknown }) {
   const [assistantStatus, setAssistantStatus] = useState<WritingAssistantStatus | null>(null);
   const [traces, setTraces] = useState<AgentTrace[]>([]);
@@ -156,7 +169,8 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
     const prompt = specialistDrafts[id].trim();
     if (!prompt || specialistBusy) return;
     const shareProjectContext = specialistProjectSharing[id];
-    if (shareProjectContext && !projectContext) {
+    const sharedProjectContext = shareProjectContext ? activeProjectContext(projectContext) : null;
+    if (shareProjectContext && !sharedProjectContext) {
       setNotice("Open or load a project before choosing to share active project context with a specialist.");
       return;
     }
@@ -167,7 +181,7 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
         profileId: id,
         prompt,
         shareProjectContext,
-        ...(shareProjectContext ? { projectContext } : {}),
+        ...(sharedProjectContext ? { projectContext: sharedProjectContext } : {}),
       });
       setSpecialistReplies((current) => ({ ...current, [id]: result }));
       setSpecialistDrafts((current) => ({ ...current, [id]: "" }));

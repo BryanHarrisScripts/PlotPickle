@@ -87,7 +87,7 @@ test('deterministic result is saved before advisory orchestration and BUZZ lifec
   assert.match(runner, /BUZZ lifecycle delivery was unavailable; the deterministic verification result is unchanged/);
 });
 
-test('browser-dependent checks use app readiness as a real success dependency and preserve explicit BLOCKED results', async () => {
+test('browser-dependent checks use explained app-readiness success edges and preserve explicit BLOCKED results', async () => {
   const [runner, graph] = await Promise.all([
     read('scripts/run-plotpickle-full-check.ps1'),
     read('scripts/full-verification-graph.mjs'),
@@ -95,8 +95,8 @@ test('browser-dependent checks use app readiness as a real success dependency an
 
   for (const id of ['buzz-live', 'exhaustive-uat', 'writer-in-residence']) {
     const start = graph.indexOf(`id: "${id}"`);
-    const section = graph.slice(start, start + 900);
-    assert.match(section, /dependencies: \[\{ id: "app-ready", require: "success" \}\]/);
+    const section = graph.slice(start, start + 1000);
+    assert.match(section, /dependencies: \[\{ id: "app-ready", require: "success", reason: "[^"]+" \}\]/);
   }
   assert.match(graph, /status: "BLOCKED"/);
   assert.match(runner, /Verification graph omitted this authoritative stage/);

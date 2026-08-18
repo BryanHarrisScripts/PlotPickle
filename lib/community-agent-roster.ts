@@ -1,4 +1,10 @@
-import { AGENT_PROFILES, type AgentProfile, type AgentProfileLifecycleState, type AgentProfileModelRole } from "./agent-profiles";
+import {
+  AGENT_PROFILES,
+  effectiveForbiddenCapabilities,
+  type AgentProfile,
+  type AgentProfileAvailability,
+  type AgentProfileCapabilityRole,
+} from "./agent-profiles";
 import { BUZZ_GUILDHALL_CHANNELS } from "./buzz-guildhall";
 
 export type AgentRosterState = "working" | "online" | "away" | "on-demand" | "parked" | "offline" | "needs-approval" | "setup-needed" | "unavailable";
@@ -45,8 +51,8 @@ export type CommunityAgentRosterItem = {
   readonly stateDetail: string;
   readonly lastActiveAt: string;
   readonly buzzPresence: string;
-  readonly lifecycleState: AgentProfileLifecycleState;
-  readonly requestedModelRole: AgentProfileModelRole | null;
+  readonly lifecycleState: AgentProfileAvailability;
+  readonly requestedModelRole: AgentProfileCapabilityRole | null;
   readonly skillUris: readonly string[];
   readonly readScopes: readonly string[];
   readonly proposalScopes: readonly string[];
@@ -55,14 +61,20 @@ export type CommunityAgentRosterItem = {
   readonly verificationContract: string;
 };
 
-function runtimeLabel(runtime: string) {
-  if (runtime === "mastra") return "Mastra · local AI";
-  if (runtime === "buzz") return "BUZZ-native agent";
-  if (runtime === "plotpickle-uat") return "PlotPickle UAT";
-  if (runtime === "deterministic-observer") return "Visual observer";
-  if (runtime === "uat") return "Deterministic UAT";
-  if (runtime === "repository-workflow") return "Repository workflow";
-  return runtime.replaceAll("-", " ");
+function runtimeLabel(kind: AgentProfile["execution"]["kind"]) {
+  if (kind === "embedded-mastra") return "PlotPickle embedded · Mastra";
+  if (kind === "buzz-managed") return "BUZZ-managed agent";
+  if (kind === "plotpickle-uat") return "PlotPickle UAT";
+  if (kind === "deterministic-observer") return "Visual observer";
+  if (kind === "deterministic-gate") return "Deterministic UAT";
+  if (kind === "repository-handoff") return "Repository handoff";
+  return kind.replaceAll("-", " ");
+}
+
+function buzzPresence(profile: AgentProfile) {
+  if (profile.buzzBinding.mode === "native") return "native-draft";
+  if (profile.buzzBinding.mode === "mirrored") return "mirrored";
+  return "service";
 }
 
 function newestTrace(traces: readonly AgentTrace[], agentId: string) {
@@ -75,20 +87,21 @@ function parkedState(profile: AgentProfile) {
   return {
     state: "parked" as const,
     label: "Parked",
-    detail: `${profile.displayName} is preserved but intentionally inactive until this product area is brought back into the active workflow.`,
+    detail: `${profile.displayName} is preserved but intentionally inactive until this product area returns to the active workflow.`,
     lastActiveAt: "",
   };
 }
 
 function mastraState(profile: AgentProfile, status: WritingAssistantStatus | null, traces: readonly AgentTrace[]) {
-  const trace = profile.runtimeRoleId ? newestTrace(traces, profile.runtimeRoleId) : null;
+  const roleId = profile.execution.roleId;
+  const trace = roleId ? newestTrace(traces, roleId) : null;
   const mastraReady = status?.mastra?.ready === true;
-  const registered = profile.runtimeRoleId ? Boolean(status?.mastra?.agents?.includes(profile.runtimeRoleId)) : false;
+  const registered = roleId ? Boolean(status?.mastra?.agents?.includes(roleId)) : false;
   if (trace?.status === "running") {
     return {
       state: "working" as const,
       label: "Working",
-      detail: "This Mastra agent has an active run right now.",
+      detail: "This embedded Mastra agent has an active run right now.",
       lastActiveAt: trace.startedAt,
     };
   }
@@ -104,14 +117,14 @@ function mastraState(profile: AgentProfile, status: WritingAssistantStatus | nul
     return {
       state: "offline" as const,
       label: "Offline",
-      detail: "Mastra is running, but this active product role is not registered in the current runtime.",
+      detail: "Mastra is running, but this embedded PlotPickle role is not registered in the current runtime.",
       lastActiveAt: trace?.finishedAt || trace?.startedAt || "",
     };
   }
   return {
     state: "online" as const,
     label: "Online",
-    detail: trace ? `Mastra is ready. Last run: ${trace.status}.` : "Mastra is ready and this agent role is registered.",
+    detail: trace ? `Mastra is ready. Last run: ${trace.status}.` : "Mastra is ready and this embedded role is registered.",
     lastActiveAt: trace?.finishedAt || trace?.startedAt || "",
   };
 }
@@ -121,16 +134,16 @@ function buzzState(profile: AgentProfile, identityVerified: boolean, nativeAgent
     return {
       state: "setup-needed" as const,
       label: "Setup needed",
-      detail: "Connect and verify BUZZ before this native steward can report presence.",
+      detail: "Connect and verify BUZZ before this BUZZ-managed agent can report presence.",
       lastActiveAt: "",
     };
   }
-  const native = nativeAgents.find((item) => item.actorId === profile.id);
+  const native = nativeAgents.find((item) => item.actorId === profile.buzzBinding.actorId);
   if (native?.lookupError) {
     return {
       state: "unavailable" as const,
       label: "Status unavailable",
-      detail: "PlotPickle could not read this BUZZ-native identity, so it will not guess whether the steward exists or is online.",
+      detail: "PlotPickle could not read this BUZZ identity, so it will not guess whether the agent exists or is online.",
       lastActiveAt: native.updatedAt || "",
     };
   }
@@ -138,16 +151,16 @@ function buzzState(profile: AgentProfile, identityVerified: boolean, nativeAgent
     return {
       state: "needs-approval" as const,
       label: "Needs owner approval",
-      detail: "Create and approve this steward in Buzz Desktop. PlotPickle will detect it automatically afterward.",
+      detail: "Create and approve this agent in Buzz Desktop. PlotPickle will detect the binding automatically afterward.",
       lastActiveAt: native?.updatedAt || "",
     };
   }
   const presence = native.presence.trim().toLowerCase();
   if (presence === "online") {
-    return { state: "online" as const, label: "Online", detail: "BUZZ reports this steward online.", lastActiveAt: native.updatedAt };
+    return { state: "online" as const, label: "Online", detail: "BUZZ reports this agent online.", lastActiveAt: native.updatedAt };
   }
   if (presence === "away") {
-    return { state: "away" as const, label: "Away", detail: "BUZZ reports this steward away.", lastActiveAt: native.updatedAt };
+    return { state: "away" as const, label: "Away", detail: "BUZZ reports this agent away.", lastActiveAt: native.updatedAt };
   }
   return {
     state: "offline" as const,
@@ -158,11 +171,11 @@ function buzzState(profile: AgentProfile, identityVerified: boolean, nativeAgent
 }
 
 function onDemandState(profile: AgentProfile) {
-  const detail = profile.runtime === "plotpickle-uat"
+  const detail = profile.execution.kind === "plotpickle-uat"
     ? "Runs only when the Writer-in-Residence journey is started."
-    : profile.runtime === "deterministic-observer"
+    : profile.execution.kind === "deterministic-observer"
       ? "Starts when rendered visual review needs evidence."
-      : profile.runtime === "uat"
+      : profile.execution.kind === "deterministic-gate"
         ? "Runs when PlotPickle executes deterministic quality gates."
         : "Runs only when verified development work needs a handoff.";
   return { state: "on-demand" as const, label: "On demand", detail, lastActiveAt: "" };
@@ -174,9 +187,9 @@ function profileState(profile: AgentProfile, input: {
   readonly buzzIdentityVerified: boolean;
   readonly nativeAgents: readonly BuzzNativeAgentState[];
 }) {
-  if (profile.lifecycleState === "parked") return parkedState(profile);
-  if (profile.runtime === "mastra") return mastraState(profile, input.assistantStatus, input.traces);
-  if (profile.runtime === "buzz") return buzzState(profile, input.buzzIdentityVerified, input.nativeAgents);
+  if (profile.defaultAvailability === "parked") return parkedState(profile);
+  if (profile.execution.kind === "embedded-mastra") return mastraState(profile, input.assistantStatus, input.traces);
+  if (profile.execution.kind === "buzz-managed") return buzzState(profile, input.buzzIdentityVerified, input.nativeAgents);
   return onDemandState(profile);
 }
 
@@ -194,22 +207,22 @@ export function buildCommunityAgentRoster(input: {
       displayName: profile.displayName,
       title: profile.title,
       summary: profile.responsibility,
-      runtime: profile.runtime,
-      runtimeLabel: runtimeLabel(profile.runtime),
-      roleId: profile.runtimeRoleId,
+      runtime: profile.execution.kind,
+      runtimeLabel: runtimeLabel(profile.execution.kind),
+      roleId: profile.execution.roleId,
       homeRoom: room?.label || profile.homeRoomId,
       homeRoomId: profile.homeRoomId,
       state: dynamic.state,
       stateLabel: dynamic.label,
       stateDetail: dynamic.detail,
       lastActiveAt: dynamic.lastActiveAt,
-      buzzPresence: profile.buzzPresence,
-      lifecycleState: profile.lifecycleState,
-      requestedModelRole: profile.requestedModelRole,
+      buzzPresence: buzzPresence(profile),
+      lifecycleState: profile.defaultAvailability,
+      requestedModelRole: profile.requestedCapabilityRole,
       skillUris: profile.skillUris,
       readScopes: profile.readScopes,
       proposalScopes: profile.proposalScopes,
-      forbiddenCapabilities: profile.forbiddenCapabilities,
+      forbiddenCapabilities: effectiveForbiddenCapabilities(profile),
       creativeAuthority: profile.creativeAuthority,
       verificationContract: profile.verificationContract,
     };

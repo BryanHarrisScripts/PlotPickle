@@ -185,7 +185,7 @@ $releaseApiValue = [string](Get-OptionalPropertyValue -InputObject $config -Name
 $releaseApi = if ($releaseApiValue) { $releaseApiValue } else { $DefaultReleaseApi }
 $releaseSource = "reviewed fallback"
 
-if ($Maintain -or $CheckOnly) {
+if ($Maintain -or $CheckOnly -or $Install) {
   Write-Host "[UPDATE] Checking block/buzz for the newest Windows desktop release..."
   $latestRelease = Get-LatestBuzzDesktopRelease -ReleaseApi $releaseApi -MinimumVersion $version
   if ($latestRelease) {

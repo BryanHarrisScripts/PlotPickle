@@ -29,6 +29,13 @@ test("startup maintenance checks block/buzz releases and selects the newest comp
   assert.match(installer, /Latest Buzz Desktop release:/);
 });
 
+test("fresh install also resolves the newest official Buzz release before using the reviewed fallback", () => {
+  assert.match(installer, /if \(\$Maintain -or \$CheckOnly -or \$Install\)/);
+  const lookup = installer.indexOf("Get-LatestBuzzDesktopRelease -ReleaseApi $releaseApi -MinimumVersion $version");
+  const download = installer.indexOf("Downloading official Buzz Desktop $version from block/buzz");
+  assert.ok(lookup >= 0 && download > lookup, "latest-release resolution must happen before a fresh installer download");
+});
+
 test("live release lookup can never downgrade below the reviewed fallback", () => {
   assert.match(installer, /Compare-BuzzVersion -Installed \$latest\.Version -Reviewed \$MinimumVersion/);
   assert.match(installer, /-lt 0\) \{ return \$null \}/);

@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { summarizeRunTelemetry } from "../lib/run-telemetry";
+import type { ResponsibilityRunEvent } from "../lib/responsibility-runs";
 import styles from "./responsibility-run-activity.module.css";
 
 type RunState = "queued" | "preparing-context" | "working" | "verifying" | "revising" | "waiting-for-writer" | "paused" | "completed" | "failed" | "cancelled";
@@ -19,6 +21,7 @@ type RunSummary = {
   childRunIds: string[];
   artifacts: Array<{ id: string; kind: string }>;
   verificationEvidence: Array<{ authority: string; result: string }>;
+  events: ResponsibilityRunEvent[];
 };
 
 type RunsPayload = { ok?: boolean; runs?: RunSummary[]; run?: RunSummary; message?: string };
@@ -109,12 +112,15 @@ export default function ResponsibilityRunActivity() {
       <div className={styles.grid}>
         {visible.length ? visible.map((run) => {
           const terminal = run.state === "completed" || run.state === "failed" || run.state === "cancelled";
+          const telemetryEventCount = run.events.filter((event) => event.type.startsWith("telemetry.")).length;
+          const telemetry = summarizeRunTelemetry(run);
           return (
             <article className={styles.card} key={run.runId} data-state={run.state}>
               <header>
                 <div><strong>{run.goal}</strong><small>{run.profileId} · {run.kind.replaceAll("-", " ")}</small></div>
                 <span>{stateLabel(run.state)}</span>
               </header>
+              {telemetryEventCount ? <p><small>{telemetry.plainLanguage}</small></p> : null}
               <dl>
                 <div><dt>Attempt</dt><dd>{run.usage.attempts}/{run.limits.maxAttempts}</dd></div>
                 <div><dt>Tool calls</dt><dd>{run.usage.toolCalls}/{run.limits.maxToolCalls}</dd></div>
@@ -123,6 +129,22 @@ export default function ResponsibilityRunActivity() {
                 <div><dt>Waiting for</dt><dd>{waitingFor(run)}</dd></div>
                 <div><dt>Context round</dt><dd>{run.contextRound}</dd></div>
               </dl>
+              {telemetryEventCount ? <details>
+                <summary>Technical Run details</summary>
+                <dl>
+                  <div><dt>Runtime</dt><dd>{telemetry.runtime || "Not reported"}</dd></div>
+                  <div><dt>Provider</dt><dd>{telemetry.provider || "Not reported"}</dd></div>
+                  <div><dt>Model</dt><dd>{telemetry.model || "Not reported"}</dd></div>
+                  <div><dt>Capability</dt><dd>{telemetry.capabilityRole || "Not reported"}</dd></div>
+                  <div><dt>Context sources</dt><dd>{telemetry.contextSourceCount}</dd></div>
+                  <div><dt>Provider health</dt><dd>{telemetry.providerHealth.replaceAll("-", " ")}</dd></div>
+                  <div><dt>Model calls</dt><dd>{telemetry.totals.localModelCalls} local · {telemetry.totals.cloudModelCalls} BYOK cloud</dd></div>
+                  <div><dt>Token accounting</dt><dd>{telemetry.totals.inputTokens} in · {telemetry.totals.outputTokens} out · {telemetry.totals.estimatedTokenEvents} estimated · {telemetry.totals.unknownTokenEvents} unknown</dd></div>
+                  <div><dt>Cloud cost</dt><dd>${telemetry.totals.cloudCostUsd.toFixed(4)} · {telemetry.totals.estimatedCostEvents} estimated · {telemetry.totals.unknownCostEvents} unknown</dd></div>
+                  <div><dt>Safety signals</dt><dd>{telemetry.totals.policyDenials} policy denial(s) · {telemetry.totals.truncatedResults} partial/truncated result(s)</dd></div>
+                </dl>
+                <small>{telemetryEventCount} structured telemetry event(s) are correlated by Run ID. Hidden reasoning and credentials are not recorded.</small>
+              </details> : null}
               <footer>
                 <small>Updated {displayTime(run.updatedAt)} · {run.artifacts.length} artifact(s) · {run.verificationEvidence.length} evidence record(s)</small>
                 {!terminal ? <div className={styles.actions}>

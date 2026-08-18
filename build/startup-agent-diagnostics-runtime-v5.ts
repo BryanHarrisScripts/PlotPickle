@@ -58,8 +58,6 @@ export function strictAntiEchoPass(answer: string, question: string) {
 
   const answerWords = normalizedWords(answer);
   const questionWords = normalizedWords(question);
-  if (answerWords.length < 6) return false;
-
   const contiguous = longestContiguousMatch(answerWords, questionWords);
   const nearVerbatim = contiguous >= Math.max(8, Math.ceil(questionWords.length * 0.7));
   return !nearVerbatim;

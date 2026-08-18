@@ -95,3 +95,15 @@ test("explicit managed startup reuses Desktop's engine and model paths without r
   assert.match(managedBlock, /without requiring a Desktop Launch click/);
   assert.doesNotMatch(managedBlock, /Open-ComfyDesktop \$desktopExe/);
 });
+
+test("routine ComfyUI maintenance does not gate core PlotPickle startup on GPU or Desktop readiness", async () => {
+  const installer = await read("scripts/install-local-ai-tool.ps1");
+  const maintainStart = installer.indexOf("if ($Maintain) {");
+  const checkOnlyStart = installer.indexOf("if ($CheckOnly", maintainStart);
+  assert.ok(maintainStart >= 0 && checkOnlyStart > maintainStart, "maintenance branch must be discoverable");
+  const maintainBlock = installer.slice(maintainStart, checkOnlyStart);
+  assert.match(maintainBlock, /Core PlotPickle startup will not open Desktop or wait for GPU initialization/);
+  assert.match(maintainBlock, /installed-api-not-ready/);
+  assert.match(maintainBlock, /exit 0/);
+  assert.doesNotMatch(maintainBlock, /Start-ComfyUIForPlotPickle/);
+});

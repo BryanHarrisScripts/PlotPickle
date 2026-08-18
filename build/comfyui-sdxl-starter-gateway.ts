@@ -1,7 +1,7 @@
 import { execFile, spawn } from "node:child_process";
 import path from "node:path";
 import { promisify } from "node:util";
-import type { IncomingMessage, ServerResponse } from "node:http";
+import type { IncomingMessage } from "node:http";
 import type { ViteDevServer } from "vite";
 
 const execFileAsync = promisify(execFile);
@@ -32,44 +32,19 @@ let task: StarterTaskState = {
   finishedAt: "",
 };
 
-function isLoopback(value: string | undefined) {
-  return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
-}
-
-function isLocalRequest(request: IncomingMessage) {
-  if (!isLoopback(request.socket.remoteAddress)) return false;
-  const host = request.headers.host;
-  if (!host) return false;
-  try {
-    const hostUrl = new URL(`http://${host}`);
-    if (!["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname)) return false;
-    const origin = request.headers.origin;
-    return !origin || new URL(origin).host === hostUrl.host;
-  } catch {
-    return false;
-  }
-}
-
-function sendJson(response: ServerResponse, statusCode: number, body: Record<string, unknown>) {
-  response.statusCode = statusCode;
-  response.setHeader("Content-Type", "application/json; charset=utf-8");
-  response.setHeader("Cache-Control", "no-store");
-  response.setHeader("X-Content-Type-Options", "nosniff");
-  response.end(JSON.stringify(body));
-}
-
-async function readBody(request: IncomingMessage, maximum = 4 * 1024) {
+async function readApprovalFlag(request: IncomingMessage) {
   const chunks: Buffer[] = [];
-  let length = 0;
+  let received = 0;
   for await (const chunk of request) {
     const value = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-    length += value.length;
-    if (length > maximum) throw new Error("The SDXL starter request is too large.");
+    received += value.length;
+    if (received > 4 * 1024) throw new Error("The SDXL starter approval request is too large.");
     chunks.push(value);
   }
-  const parsed: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Enter a valid SDXL starter request.");
-  return parsed as Record<string, unknown>;
+  const source = Buffer.concat(chunks).toString("utf8") || "{}";
+  const parsed: unknown = JSON.parse(source);
+  if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") throw new Error("Enter a valid SDXL starter approval request.");
+  return (parsed as Record<string, unknown>).approved === true;
 }
 
 function marker(output: string, name: string) {
@@ -176,46 +151,71 @@ export function registerComfyUiSdxlStarterGateway(server: ViteDevServer) {
       next();
       return;
     }
-    if (!isLocalRequest(request)) {
-      sendJson(response, 403, { ok: false, message: "The reviewed SDXL starter installer is available only from this local PlotPickle server." });
+
+    const remoteAddress = request.socket.remoteAddress;
+    const host = request.headers.host || "";
+    let localRequest = remoteAddress === "127.0.0.1" || remoteAddress === "::1" || remoteAddress === "::ffff:127.0.0.1";
+    if (localRequest && host) {
+      try {
+        const hostUrl = new URL(`http://${host}`);
+        const origin = request.headers.origin;
+        localRequest = ["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname)
+          && (!origin || new URL(origin).host === hostUrl.host);
+      } catch {
+        localRequest = false;
+      }
+    } else {
+      localRequest = false;
+    }
+
+    const reply = (statusCode: number, payload: Record<string, unknown>) => {
+      response.writeHead(statusCode, {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
+      });
+      response.end(JSON.stringify(payload));
+    };
+
+    if (!localRequest) {
+      reply(403, { ok: false, message: "The reviewed SDXL starter installer is available only from this local PlotPickle server." });
       return;
     }
 
     void (async () => {
       if (request.method === "GET") {
-        sendJson(response, 200, await inspectStarter());
+        reply(200, await inspectStarter());
         return;
       }
       if (request.method !== "POST") {
-        sendJson(response, 405, { ok: false, message: "Use the local Settings action to install the reviewed SDXL starter." });
+        reply(405, { ok: false, message: "Use the local Settings action to install the reviewed SDXL starter." });
         return;
       }
       if (process.platform !== "win32") {
-        sendJson(response, 409, { ok: false, message: "Automatic reviewed SDXL starter installation is currently available for local Windows ComfyUI Desktop." });
+        reply(409, { ok: false, message: "Automatic reviewed SDXL starter installation is currently available for local Windows ComfyUI Desktop." });
         return;
       }
-      const body = await readBody(request);
-      if (body.approved !== true) {
-        sendJson(response, 400, { ok: false, message: `Explicit approval is required before downloading the ${REVIEWED.sizeLabel} reviewed SDXL 1.0 checkpoint.` });
+      if (!(await readApprovalFlag(request))) {
+        reply(400, { ok: false, message: `Explicit approval is required before downloading the ${REVIEWED.sizeLabel} reviewed SDXL 1.0 checkpoint.` });
         return;
       }
       if (task.state === "installing") {
-        sendJson(response, 409, { ok: false, message: "The reviewed SDXL starter is already being downloaded and verified." });
+        reply(409, { ok: false, message: "The reviewed SDXL starter is already being downloaded and verified." });
         return;
       }
       const status = await inspectStarter();
       if (["ready", "existing-compatible"].includes(String(status.state))) {
-        sendJson(response, 200, status);
+        reply(200, status);
         return;
       }
       if (status.state !== "missing") {
-        sendJson(response, 409, status);
+        reply(409, status);
         return;
       }
       startInstall(String(status.destination || ""));
-      sendJson(response, 202, publicStatus("installing", task.message, task.destination));
+      reply(202, publicStatus("installing", task.message, task.destination));
     })().catch((error) => {
-      sendJson(response, 500, { ok: false, message: error instanceof Error ? error.message : "The reviewed SDXL starter operation failed." });
+      reply(500, { ok: false, message: error instanceof Error ? error.message : "The reviewed SDXL starter operation failed." });
     });
   });
 }

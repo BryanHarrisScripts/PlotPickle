@@ -62,7 +62,7 @@ function Get-ComfyManagedInstances {
         }
       }
 
-      $state = if ($mainPath -and $venvRoot) { "installed" } else { "provisioning" }
+      $state = if ($mainPath -and $venvRoot -and $pythonPath) { "installed" } else { "provisioning" }
       $instances.Add([pscustomobject]@{
         Name = $directory.Name
         InstallRoot = $directory.FullName

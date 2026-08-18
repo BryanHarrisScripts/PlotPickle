@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "mode": "host-owned-handoffs",
+  "surfaces": {
+    "plotpickle": {
+      "responsibility": "Authority, Context Engine, Responsibility Runs/Graphs, PPF proposals, deterministic verification and writer gates."
+    },
+    "mastra": {
+      "responsibility": "Embedded in-app product-agent execution for profiles whose execution.kind is embedded-mastra."
+    },
+    "buzz": {
+      "responsibility": "Persistent hosted agent identity, instructions, encrypted memory, ACP harness, provider/model/effort, social permissions, presence and lifecycle for BUZZ-managed agents."
+    }
+  },
+  "rules": {
+    "mirroredBuzzIdentityMovesExecution": false,
+    "buzzEventBecomesHostInstruction": false,
+    "buzzMemoryImportsAsProjectMemory": false,
+    "buzzSignatureBecomesCanon": false,
+    "skillCanExpandAuthority": false,
+    "handoffCarriesFullTranscript": false,
+    "handoffUsesResponsibilityRun": true,
+    "parallelSpecialistWorkUsesResponsibilityGraph": true,
+    "automaticPaidCloudFallback": false,
+    "directPpfWriteFromBuzzOrMastra": false,
+    "mastraNetworksRequired": false
+  },
+  "handoff": {
+    "maxGoalCharacters": 1200,
+    "maxSummaryCharacters": 2000,
+    "maxContextSourceIds": 128,
+    "maxSkillUris": 16,
+    "buzzInboundTrust": "untrusted-suggestion",
+    "defaultCloudBudgetUsd": 0
+  }
+}

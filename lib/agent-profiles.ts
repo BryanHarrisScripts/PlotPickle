@@ -45,7 +45,7 @@ export type AgentProfileAvailability = (typeof AGENT_PROFILE_AVAILABILITY)[numbe
 export type AgentProfileExecutionKind = (typeof AGENT_PROFILE_EXECUTION_KINDS)[number];
 export type AgentProfileBuzzMode = (typeof AGENT_PROFILE_BUZZ_MODES)[number];
 
-export type AgentProfile = {
+export type AgentProfileConfig = {
   readonly id: string;
   readonly displayName: string;
   readonly title: string;
@@ -70,6 +70,15 @@ export type AgentProfile = {
   readonly defaultAvailability: AgentProfileAvailability;
 };
 
+export type AgentProfile = AgentProfileConfig & {
+  /** Derived compatibility aliases for existing Context Engine/UI consumers. They are not persisted BUZZ settings. */
+  readonly runtime: AgentProfileExecutionKind;
+  readonly runtimeRoleId: string;
+  readonly requestedModelRole: AgentProfileCapabilityRole | null;
+  readonly lifecycleState: AgentProfileAvailability;
+  readonly buzzPresence: "mirrored" | "native-draft" | "service";
+};
+
 export type AgentProfileRegistry = {
   readonly schemaVersion: number;
   readonly ownership: {
@@ -81,11 +90,29 @@ export type AgentProfileRegistry = {
     readonly capabilityRoles: readonly AgentProfileCapabilityRole[];
     readonly forbiddenCapabilities: readonly string[];
   };
-  readonly profiles: readonly AgentProfile[];
+  readonly profiles: readonly AgentProfileConfig[];
 };
 
 export const AGENT_PROFILE_REGISTRY = profileConfig as unknown as AgentProfileRegistry;
-export const AGENT_PROFILES = AGENT_PROFILE_REGISTRY.profiles;
+
+function buzzPresence(mode: AgentProfileBuzzMode): AgentProfile["buzzPresence"] {
+  if (mode === "native") return "native-draft";
+  if (mode === "mirrored") return "mirrored";
+  return "service";
+}
+
+function materializeProfile(profile: AgentProfileConfig): AgentProfile {
+  return {
+    ...profile,
+    runtime: profile.execution.kind,
+    runtimeRoleId: profile.execution.roleId,
+    requestedModelRole: profile.requestedCapabilityRole,
+    lifecycleState: profile.defaultAvailability,
+    buzzPresence: buzzPresence(profile.buzzBinding.mode),
+  };
+}
+
+export const AGENT_PROFILES: readonly AgentProfile[] = AGENT_PROFILE_REGISTRY.profiles.map(materializeProfile);
 
 const CAPABILITY_ROLES = new Set<string>(AGENT_PROFILE_CAPABILITY_ROLES);
 const AVAILABILITY = new Set<string>(AGENT_PROFILE_AVAILABILITY);
@@ -177,7 +204,7 @@ export function agentProfileById(profileId: string) {
   return AGENT_PROFILES.find((profile) => profile.id === profileId) ?? null;
 }
 
-export function effectiveForbiddenCapabilities(profile: AgentProfile) {
+export function effectiveForbiddenCapabilities(profile: AgentProfileConfig) {
   return [...new Set([...HOST_FORBIDDEN_PROFILE_CAPABILITIES, ...profile.forbiddenCapabilities])];
 }
 

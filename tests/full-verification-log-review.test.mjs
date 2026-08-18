@@ -5,17 +5,20 @@ import test from "node:test";
 const read = (relativePath) => readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 
 test("full verification preserves graph child-process output in the same transcript", async () => {
-  const [runner, graph] = await Promise.all([
+  const [runner, progressRunner, graph] = await Promise.all([
     read("scripts/run-plotpickle-full-check.ps1"),
+    read("scripts/full-verification-progress-runner.mjs"),
     read("scripts/full-verification-graph.mjs"),
   ]);
 
-  assert.match(runner, /& node "\.\\scripts\\full-verification-graph\.mjs"/);
-  assert.doesNotMatch(runner, /full-verification-graph\.mjs[^\r\n]*\|\s*Out-Null/i);
-  assert.match(graph, /stdio:\s*\["ignore", "pipe", "pipe"\]/);
-  assert.match(graph, /child\.stdout\?\.on\("data"/);
-  assert.match(graph, /child\.stderr\?\.on\("data"/);
-  assert.match(graph, /writeChunk\(node\.id, stream, text\)/);
+  assert.match(runner, /& node "\.\\scripts\\full-verification-progress-runner\.mjs"/);
+  assert.doesNotMatch(runner, /full-verification-progress-runner\.mjs[^\r\n]*\|\s*Out-Null/i);
+  assert.match(progressRunner, /from "\.\/full-verification-graph\.mjs"/);
+  assert.match(progressRunner, /stdio:\s*\["ignore", "pipe", "pipe"\]/);
+  assert.match(progressRunner, /child\.stdout\?\.on\("data"/);
+  assert.match(progressRunner, /child\.stderr\?\.on\("data"/);
+  assert.match(progressRunner, /writeChunk\(node\.id, stream, text\)/);
+  assert.match(graph, /runVerificationGraph/);
   assert.match(runner, /complete child-process output above is part of this same log/i);
 });
 

@@ -58,7 +58,7 @@ function Get-ComfyRegistryEntries {
       if ((Get-Property $entry "DisplayName") -match "^(ComfyUI|Comfy Desktop)") { $result.Add($entry) }
     }
   }
-  return @($result)
+  return $result.ToArray()
 }
 
 function Resolve-Exe([string]$Value) {
@@ -107,7 +107,7 @@ function Get-ComfyRoots {
   )) {
     if ($candidate -and (Test-Path -LiteralPath $candidate -PathType Container)) { $roots.Add($candidate) }
   }
-  return @($roots | Select-Object -Unique)
+  return @($roots.ToArray() | Select-Object -Unique)
 }
 
 function Find-ComfyMain([string[]]$Roots) {

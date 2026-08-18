@@ -91,6 +91,9 @@ jobs:
       - name: Validate one-click Full Verification, persistent Inbox, and role-safe orchestration
         run: node --test tests/full-verification-runner.test.mjs tests/full-verification-log-review.test.mjs tests/issue-930-verification-inbox.test.mjs tests/issue-931-verification-orchestration.test.mjs
 
+      - name: Validate Windows verification resilience and progress
+        run: node --test tests/issue-1008-windows-verification-resilience.test.mjs
+
       - name: Parse changed Windows verification and maintenance scripts
         shell: pwsh
         run: |

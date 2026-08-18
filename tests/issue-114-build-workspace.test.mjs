@@ -83,12 +83,16 @@ test("issue #114 live inspector covers the required Block information", async ()
   assert.match(workspace, /selectedBlock\.scenes/);
 });
 
-test("issue #114 mounts Build as a real canonical workspace", async () => {
-  const page = await source("app/page.tsx");
-  assert.match(page, /import BuildWorkspace from "\.\/build-workspace"/);
-  assert.match(page, /activeTab === "build"[\s\S]*<BuildWorkspace/);
-  assert.match(page, /project=\{project\}/);
-  assert.match(page, /onProjectChange=\{commit\}/);
+test("issue #114 mounts the current canonical Foundations BUILD workspace", async () => {
+  const [page, workspace] = await Promise.all([
+    source("app/page.tsx"),
+    source("modules/build/ui/foundations-build-workspace.tsx"),
+  ]);
+  assert.match(page, /import FoundationsBuildWorkspace from "\.\.\/modules\/build\/ui\/foundations-build-workspace"/);
+  assert.match(page, /if \(workspace === "build"\)[\s\S]*activeWorkspace="build"[\s\S]*<FoundationsBuildWorkspace/);
+  assert.match(workspace, /loadFoundationProject\(\)/);
+  assert.match(workspace, /saveFoundationProject\(next\)/);
+  assert.match(workspace, /applyStoryCommand\(loadFoundationProject\(\), command\)/);
 });
 
 test("issue #114 remaps every canonical Block-number reference atomically", async () => {
@@ -172,8 +176,14 @@ test("issue #114 documents stable-ID movement and positional sequence lanes", as
   assert.match(liveSlice, /stable Block, scene, mini-block and review target IDs/);
 });
 
-test("issue #114 test is registered", async () => {
-  const packageJson = JSON.parse(await source("package.json"));
-  assert.match(packageJson.scripts.test, /issue-114-build-workspace\.test\.mjs/);
+test("issue #114 remains directly runnable and focused-UAT registered", async () => {
+  const [packageSource, registrySource] = await Promise.all([
+    source("package.json"),
+    source("config/uat-autopilot-registry.json"),
+  ]);
+  const packageJson = JSON.parse(packageSource);
+  const registry = JSON.parse(registrySource);
+  const buildArea = registry.areas.find((area) => area.id === "build");
   assert.equal(packageJson.scripts["test:build-workspace"], "node --test tests/issue-114-build-workspace.test.mjs");
+  assert.ok(buildArea?.tests.includes("tests/issue-114-build-workspace.test.mjs"));
 });

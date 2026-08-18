@@ -4,7 +4,7 @@ This document closes the Agent Architecture #962–#969 series. It describes the
 
 ## Current deployment truth
 
-PlotPickle is local-first and server-based/client-capable. The local PlotPickle server owns local application state and exposes sensitive local APIs only to loopback/origin-matched requests. The current local owner/writer is the approval authority for creative changes on that installation.
+PlotPickle is local-first and server-based/client-capable. The local PlotPickle server owns local application state and sensitive local APIs are restricted to the local Studio. The current local owner/writer is the approval authority for creative changes on that installation.
 
 Connected PlotPickle Studios federate outward through BUZZ/Playhouse signed-event coordination. Federation does not expose another Studio's localhost server and never grants permission to write that Studio's PPF.
 
@@ -16,51 +16,33 @@ PlotPickle deliberately uses simple storage mechanisms where they are sufficient
 
 | State | Current mechanism | Authority / notes |
 | --- | --- | --- |
-| PPF/project data | Integrity-checked `.ppf` JSON files under PlotPickle's local application-data `projects` directory | PPF is canonical creative state. Saves are atomic and existing rolling `.ppf` backups are bounded. |
-| PPF revisions/provenance | Revision/provenance structures stored with the project/PPF contract | Accepted creative revisions remain traceable; restore preserves the PPF rather than flattening it. |
-| Creative assets | Local files under the application-data `assets` directory plus project-relative asset identity/manifest entries in PPF | Project packages use `assets/...` references, never original absolute machine paths. |
-| Curriculum | Repository-bundled curriculum/config content loaded by the LEARN/Context systems | Read-only product content from the writer's perspective. |
-| Retrieval/RAG inventory | Current repository/local retrieval structures used by the Context Engine | No separate production vector database is claimed by this architecture. |
+| PPF/project data | Integrity-checked `.ppf` JSON files in PlotPickle's local application-data `projects` directory | PPF is canonical creative state. Saves are atomic and rolling `.ppf` backups are bounded. |
+| PPF revisions/provenance | Revision/provenance structures stored with the project/PPF contract | Accepted revisions remain traceable through restore. |
+| Creative assets | Local files in the application-data `assets` directory plus project-relative asset identity/manifest entries in PPF | Portable references use `assets/...`, not original absolute machine paths. |
+| Curriculum | Repository-bundled curriculum/config content loaded by LEARN and Context systems | Read-only product content from the writer's perspective. |
+| Retrieval/RAG inventory | Current repository/local retrieval structures used by the Context Engine | No separate production vector database is claimed. |
 | Agent Profiles | Host-owned config/registry files | Identity, role, scope and authority contract; model choice is not agent identity. |
-| Agent Skills | `.agents/skills/*/SKILL.md` plus the Skill registry | Procedures only. Skills cannot grant permissions. |
-| Project memory | Approved/project-owned memory carried by the Context/PPF provenance contract where present | Untrusted retrieved text never becomes authority merely by appearing in context. |
-| Responsibility Runs / graphs | Local application-data JSON Run records with bounded events, child references and graph/run telemetry | Operational state, not creative canon. Ordinary project backup does not copy transient scratch Runs. |
+| Agent Skills | `.agents/skills/*/SKILL.md` plus the Skill registry | Procedures only; Skills cannot grant permissions. |
+| Project memory | Approved/project-owned memory carried by Context/PPF provenance where present | Retrieved text cannot promote itself to trusted authority. |
+| Responsibility Runs / graphs | Local application-data JSON Run records with bounded events, child references and graph/run telemetry | Operational state, not creative canon. |
 | Run telemetry / model eval evidence | Structured events on the correlated Responsibility Run plus local evaluation/test evidence | No hidden chain-of-thought or credentials. |
-| Verification Inbox | Append-only local structured verification records | Operational evidence. It is not bundled into ordinary project backup; it can have a separate evidence export path. |
+| Verification Inbox | Append-only local structured verification records | Operational evidence; not part of ordinary project backup. |
 | BUZZ/Playhouse state | BUZZ signed-event/community layer plus minimum-necessary local receipts | Federation/coordination only; it cannot write PPF. |
-| Provider/GitHub/BUZZ credentials | Local credential store under PlotPickle application data, protected by the local credential subsystem | Explicitly excluded from ordinary project backup. |
-| Studio signing identity | Separate Studio identity/key material | Explicitly excluded from ordinary project backup. Any recovery flow must be a separate, explicit encrypted export/import design. |
+| Provider/GitHub/BUZZ credentials | Local credential subsystem under PlotPickle application data | Explicitly excluded from ordinary project backup. |
+| Studio signing identity | Separate Studio identity/key material | Excluded from ordinary backup; recovery requires a separate explicit encrypted design. |
 | Local model weights/caches | Runtime-specific local files/caches | Re-creatable machine state; excluded from project backup. |
 
 ## Supported project backup package
 
 The local backup service is available only through the local PlotPickle server at `/api/local-backups`.
 
-A `.ppbackup.json` package contains:
-
-- the complete integrity-checked Portable Project File;
-- project metadata already carried by the PPF;
-- PPF revision/provenance and approved project-owned memory already inside that contract;
-- the project-relative creative asset manifest;
-- the actual bytes for every asset referenced by the portable manifest;
-- SHA-256 checksums for the project payload, every asset and the backup package payload;
-- schema/format version and creation time;
-- an explicit list of included and excluded record classes.
+A `.ppbackup.json` package contains the complete integrity-checked Portable Project File, project metadata already carried by the PPF, PPF revision/provenance and project-owned approved memory already inside that contract, the project-relative creative asset manifest, and the actual bytes for every local asset referenced by that manifest. It records SHA-256 checksums for the PPF payload, each asset, and the backup package payload, plus a schema version, creation time, and explicit included/excluded record classes.
 
 The package is deliberately self-contained for project recovery. Restore does not require the old machine's absolute filesystem path.
 
 ### Ordinary backup exclusions
 
-Ordinary project backup does not include:
-
-- provider API keys or encrypted local credential records;
-- BUZZ credentials;
-- Studio private signing keys or identity recovery material;
-- OS usernames, machine identifiers or old absolute filesystem roots;
-- local model weights, model caches or transient runtime caches;
-- temporary graph/Responsibility Run scratch state;
-- hidden reasoning, scratchpads or private prompts that are not explicit project-owned records;
-- full Verification Inbox history.
+Ordinary project backup does not include provider API keys, encrypted local credentials, BUZZ credentials, Studio private signing keys, OS usernames/machine identifiers, old filesystem roots, model weights/caches, transient graph or Responsibility Run scratch state, hidden reasoning/scratchpads/private prompts that are not explicit user-owned project records, or full Verification Inbox history.
 
 Verification Inbox data is operational evidence rather than canonical project state and should be exported separately when an owner wants an audit archive.
 
@@ -70,33 +52,30 @@ Studio identity/key recovery is not disguised as a project backup feature. If im
 
 Restore uses a validate-stage-commit contract:
 
-1. Read the selected backup package under a strict size bound.
-2. Validate format/version and the package SHA-256 before changing active state.
+1. Read the selected package under a strict size bound.
+2. Validate format/version and package SHA-256 before changing active state.
 3. Re-parse and verify the embedded PPF integrity contract and SHA-256.
-4. Decode every bundled asset, verify declared byte size and SHA-256, and verify that every PPF manifest asset is present.
-5. Reject unsafe/machine-relative paths and conflicting existing assets before writing anything.
-6. Write the project and assets into a private restore staging directory.
-7. Re-read the staged PPF and assets and verify them again.
-8. Add only missing, checksum-matching assets to the local asset store.
-9. Preserve a pre-restore copy of an existing PPF.
-10. Atomically replace the project file only after all validation and staging checks pass.
-11. Remove the staging directory whether restore succeeds or fails.
+4. Decode each bundled asset and verify declared byte size and SHA-256.
+5. Verify that every PPF manifest asset is present.
+6. Reject unsafe paths and conflicting existing assets before writes.
+7. Write project/assets into a private restore staging directory.
+8. Re-read the staged PPF and assets and verify them again.
+9. Add only missing, checksum-matching assets to the local asset store.
+10. Preserve a pre-restore copy of an existing PPF.
+11. Atomically replace the project file only after all validation/staging checks pass.
+12. Remove the staging directory on success or failure.
 
-A failed integrity/path/conflict/staging check therefore cannot overwrite the existing PPF. An interrupted late restore can at worst leave already-verified additive asset bytes; the canonical project is not replaced until the final commit step.
-
-Missing assets are a hard, plain-language backup/restore error rather than a silently broken story.
+A failed integrity, path, conflict or staging check therefore cannot overwrite the existing PPF. An interrupted late restore can at worst leave already-verified additive asset bytes; canonical project state is not replaced until the final commit. Missing assets are reported as a hard, plain-language error rather than creating a silently broken story.
 
 ## Retention contract
 
-PlotPickle has two backup classes.
+Automatic backup packages are bounded by both count and storage budget: at most 10 packages and approximately 2 GiB in the automatic package pool. Older automatic packages are pruned first. A single package is also size-bounded, so automatic retention cannot grow without limit.
 
-Automatic backup packages are bounded by both count and storage budget: at most 10 packages and at most approximately 2 GiB in the automatic package pool. Older automatic packages are pruned first. A single package is also size-bounded, so automatic retention cannot grow without limit.
+Manual backup packages are preserved until the owner explicitly deletes them. The status endpoint reports automatic/manual count, approximate bytes, configured limits, and the last successful backup timestamp/file.
 
-Manual backup packages are preserved until the owner explicitly deletes them. Manual storage is therefore user-controlled rather than silently pruned. The backup status endpoint reports automatic/manual count, approximate bytes, limits and the last successful backup timestamp/file.
+The older rolling `.ppf` save backups remain separately bounded by the local project gateway. They are fast local revision recovery; `.ppbackup.json` is the machine-independent project-plus-assets recovery package.
 
-The older rolling `.ppf` save backups remain separately bounded by the local project gateway. They are quick local revision recovery, while `.ppbackup.json` is the machine-independent project-plus-assets recovery package.
-
-Cloud backup is not required. A future optional backup/sync provider must sit behind the connector/provider trust and egress policy rather than bypass it.
+Cloud backup is not required. A future optional backup/sync provider must sit behind the connector/provider trust and egress policy.
 
 ## Functional architecture
 
@@ -149,7 +128,13 @@ flowchart LR
       GitHub[GitHub PR / merge authority]
     end
 
-    Writer --> Product
+    Writer --> Dashboard
+    Writer --> Community
+    Writer --> Learn
+    Writer --> Plan
+    Writer --> Game
+    Writer --> Settings
+
     Learn --> Profiles
     Plan --> Profiles
     Game --> Profiles
@@ -164,17 +149,21 @@ flowchart LR
     Runs --> Observability
     Graph --> Observability
 
-    Product <--> PPF
-    Product <--> Assets
+    Dashboard <--> PPF
+    Plan <--> PPF
+    Game <--> PPF
     PPF --> Backup
     Assets --> Backup
     Runs --> Verification
     Settings --> Credentials
 
     Community <--> Buzz
-    Verification -. minimum necessary run/evidence refs .-> Dev
-    Dev --> GitHub
-    GitHub -. tested code only .-> Product
+    Verification -. minimum necessary run/evidence refs .-> UAT
+    UAT --> Repair
+    Repair --> Worktree
+    Worktree --> CI
+    CI --> GitHub
+    GitHub -. tested code only .-> Dashboard
 ```
 
 This diagram describes functional flow. It does not imply that agents, BUZZ, providers or developer tools share authority.
@@ -230,14 +219,15 @@ flowchart TB
 
     Agent --> Evidence
     Evidence -. minimum necessary evidence .-> Test
-    Test --> Worker --> Repo
+    Test --> Worker
+    Worker --> Repo
 
-    Tools -.x|cannot grant authority| PPF
-    Cloud -.x|cannot grant authority| PPF
-    Agent -.x|cannot self-approve canon| PPF
-    Buzz -.x|federation never writes canon| PPF
-    Remote -.x|no direct localhost access| Product
-    Repo -.x|code authority is not creative authority| PPF
+    Tools --x|cannot grant authority| PPF
+    Cloud --x|cannot grant authority| PPF
+    Agent --x|cannot self-approve canon| PPF
+    Buzz --x|federation never writes canon| PPF
+    Remote --x|no direct localhost access| Product
+    Repo --x|code authority is not creative authority| PPF
 ```
 
 ### Edge legend
@@ -245,9 +235,9 @@ flowchart TB
 | Edge | Meaning |
 | --- | --- |
 | solid arrow | trusted local control/data flow within the stated authority contract |
-| `--> |approved creative change|` | explicit human approval changes canonical creative state |
+| `-->|approved creative change|` | explicit human approval changes canonical creative state |
 | dotted arrow | suggestion, observation, evidence or minimum-necessary reference; not authority |
-| dotted `x` edge | forbidden authority path |
+| `--x` cross edge | forbidden authority path |
 | double arrow | permitted communication/synchronization, not ownership transfer |
 
 Two rules are intentionally redundant because they are critical: federation never writes canon, and agent/tool content cannot grant itself authority.
@@ -258,7 +248,7 @@ The writer decides canon. PPF records canon. Product agents can propose, teach, 
 
 ## Backup service operations
 
-The local service intentionally exposes a small owner/developer contract:
+The local service exposes a small owner/developer contract:
 
 - `GET /api/local-backups/status` — counts, approximate storage, automatic limits and last successful backup.
 - `GET /api/local-backups/library` — manual and automatic packages.

@@ -22,10 +22,18 @@ export const FULL_VERIFICATION_STAGE_NAMES = [
   "9 of 9 - Writer-in-Residence",
 ];
 
+const EMPTY_INPUT_SCHEMA = { type: "object", required: [], allowed: [], maxBytes: 1_024 };
+const RESULT_OUTPUT_SCHEMA = {
+  type: "object",
+  required: ["status", "exitCode", "detail", "durationMs"],
+  allowed: ["status", "exitCode", "detail", "durationMs"],
+  maxBytes: 4_096,
+};
 const STANDARD_NODE = {
   authoritative: true,
-  dependencyMode: "success",
   resources: [],
+  inputSchema: EMPTY_INPUT_SCHEMA,
+  outputSchema: RESULT_OUTPUT_SCHEMA,
 };
 
 export const FULL_VERIFICATION_GRAPH = [
@@ -89,7 +97,7 @@ export const FULL_VERIFICATION_GRAPH = [
     category: "Local AI / Pi",
     tool: "node",
     args: ["scripts/run-uat-repair-agent.mjs", "--worker", "pi", "--preflight", "--require-ready"],
-    dependencies: [{ id: "ensure-pi-model", require: "success" }],
+    dependencies: [{ id: "ensure-pi-model", require: "success", reason: "Pi preflight requires the local repair model readiness established by stage 5." }],
     resources: ["local-ai-runtime"],
   },
   {
@@ -99,8 +107,10 @@ export const FULL_VERIFICATION_GRAPH = [
     category: "Infrastructure",
     tool: "app-ready",
     args: [],
-    dependencies: [{ id: "production-build", require: "complete" }],
+    dependencies: [{ id: "production-build", require: "complete", reason: "The app launcher shares build workspace state and waits for the build process to release it, even when the build itself failed." }],
     resources: ["workspace-build"],
+    inputSchema: EMPTY_INPUT_SCHEMA,
+    outputSchema: RESULT_OUTPUT_SCHEMA,
   },
   {
     ...STANDARD_NODE,
@@ -110,7 +120,7 @@ export const FULL_VERIFICATION_GRAPH = [
     category: "BUZZ",
     tool: "node",
     args: ["scripts/verify-buzz-live-activity.mjs"],
-    dependencies: [{ id: "app-ready", require: "success" }],
+    dependencies: [{ id: "app-ready", require: "success", reason: "Live BUZZ verification requires a reachable PlotPickle loopback app." }],
   },
   {
     ...STANDARD_NODE,
@@ -120,7 +130,7 @@ export const FULL_VERIFICATION_GRAPH = [
     category: "UI / UX UAT",
     tool: "node",
     args: ["scripts/run-exhaustive-ui-uat.mjs"],
-    dependencies: [{ id: "app-ready", require: "success" }],
+    dependencies: [{ id: "app-ready", require: "success", reason: "Rendered UI/UX UAT requires a reachable PlotPickle loopback app." }],
     resources: ["browser-project-state"],
   },
   {
@@ -131,7 +141,7 @@ export const FULL_VERIFICATION_GRAPH = [
     category: "Writer Journey",
     tool: "node",
     args: ["scripts/run-writer-in-residence.mjs"],
-    dependencies: [{ id: "app-ready", require: "success" }],
+    dependencies: [{ id: "app-ready", require: "success", reason: "The Writer-in-Residence journey requires a reachable PlotPickle loopback app." }],
     resources: ["browser-project-state"],
   },
 ];
@@ -153,6 +163,46 @@ function cleanDetail(value, limit = 1200) {
     .replace(/\s+/g, " ")
     .trim()
     .slice(-limit);
+}
+
+function jsonBytes(value) {
+  try { return Buffer.byteLength(JSON.stringify(value), "utf8"); } catch { return Number.MAX_SAFE_INTEGER; }
+}
+
+function validateSchema(schema) {
+  if (!schema || schema.type !== "object" || !Array.isArray(schema.required) || !Array.isArray(schema.allowed)) return false;
+  if (!Number.isFinite(Number(schema.maxBytes)) || Number(schema.maxBytes) < 1) return false;
+  return schema.required.every((key) => schema.allowed.includes(key));
+}
+
+export function validateFullVerificationGraph(graph = FULL_VERIFICATION_GRAPH) {
+  const errors = [];
+  const ids = new Set();
+  for (const node of graph) {
+    if (!node?.id || ids.has(node.id)) errors.push(`Graph node ID is missing or duplicated: ${node?.id || "<empty>"}.`);
+    ids.add(node?.id);
+    if (!node?.name || !node?.category || !["node", "npm", "app-ready"].includes(node?.tool)) errors.push(`Graph node ${node?.id || "<empty>"} has an invalid bounded job contract.`);
+    if (!validateSchema(node?.inputSchema) || !validateSchema(node?.outputSchema)) errors.push(`Graph node ${node?.id || "<empty>"} is missing a valid typed input/output schema.`);
+    for (const dependency of node?.dependencies || []) {
+      if (!dependency?.id || !["success", "complete"].includes(dependency?.require) || !String(dependency?.reason || "").trim()) errors.push(`Graph node ${node?.id || "<empty>"} has an invalid dependency edge.`);
+    }
+  }
+  for (const node of graph) for (const dependency of node.dependencies || []) if (!ids.has(dependency.id)) errors.push(`Graph node ${node.id} depends on missing node ${dependency.id}.`);
+  const authoritative = graph.filter((node) => node.authoritative).sort((a, b) => a.number - b.number);
+  if (authoritative.length !== 9 || authoritative.some((node, index) => node.name !== FULL_VERIFICATION_STAGE_NAMES[index])) errors.push("The graph must preserve exactly nine canonical authoritative Full Verification stages.");
+  return errors;
+}
+
+export function validateVerificationNodeResult(node, value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return { ok: false, error: "Node result must be an object." };
+  const schema = node.outputSchema;
+  const keys = Object.keys(value);
+  if (schema.required.some((key) => !Object.hasOwn(value, key))) return { ok: false, error: "Node result is missing a required field." };
+  if (keys.some((key) => !schema.allowed.includes(key))) return { ok: false, error: "Node result contains an undeclared field." };
+  if (jsonBytes(value) > schema.maxBytes) return { ok: false, error: "Node result exceeds its byte budget." };
+  if (!new Set(["PASS", "FAIL"]).has(value.status)) return { ok: false, error: "Node result status must be PASS or FAIL." };
+  if (!Number.isFinite(Number(value.exitCode)) || !Number.isFinite(Number(value.durationMs))) return { ok: false, error: "Node result exitCode and durationMs must be numeric." };
+  return { ok: true, error: "" };
 }
 
 function commandFor(node) {
@@ -309,6 +359,8 @@ function blockFailedDependencies(graph, state, now = new Date().toISOString()) {
 
 export async function runVerificationGraph(options = {}) {
   const graph = options.graph || FULL_VERIFICATION_GRAPH;
+  const definitionErrors = validateFullVerificationGraph(graph);
+  if (definitionErrors.length) throw new Error(`Full Verification graph is invalid: ${definitionErrors.join(" | ")}`);
   const state = createVerificationGraphState(graph);
   const maxParallelism = boundedParallelism(options.maxParallelism ?? process.env.PLOTPICKLE_FULL_CHECK_PARALLELISM ?? 3);
   const active = new Map();
@@ -330,20 +382,22 @@ export async function runVerificationGraph(options = {}) {
       const startedAt = new Date().toISOString();
       state.set(nodeId, { ...current, status: "RUNNING", startedAt });
       timeline.push({ nodeId, event: "start", at: startedAt });
-      if (options.echo !== false) process.stdout.write(`START  ${node.authoritative ? node.name : node.name}\n`);
-      const promise = Promise.resolve(execute(node)).then((result) => {
+      if (options.echo !== false) process.stdout.write(`START  ${node.name}\n`);
+      const promise = Promise.resolve(execute(node)).then((rawResult) => {
+        const checked = validateVerificationNodeResult(node, rawResult);
+        const result = checked.ok ? rawResult : { status: "FAIL", exitCode: 1, detail: `Node result contract failed: ${checked.error}`, durationMs: 0 };
         const completedAt = new Date().toISOString();
-        const status = result?.status === "PASS" ? "PASS" : "FAIL";
+        const status = result.status;
         state.set(nodeId, {
           ...state.get(nodeId),
           status,
-          exitCode: status === "PASS" ? 0 : Number(result?.exitCode) || 1,
-          detail: cleanDetail(result?.detail || ""),
-          durationMs: Math.max(0, Number(result?.durationMs) || 0),
+          exitCode: status === "PASS" ? 0 : Number(result.exitCode) || 1,
+          detail: cleanDetail(result.detail || ""),
+          durationMs: Math.max(0, Number(result.durationMs) || 0),
           completedAt,
         });
         timeline.push({ nodeId, event: "complete", status, at: completedAt });
-        if (options.echo !== false) process.stdout.write(`${status}  ${node.name}${status === "FAIL" ? ` - ${cleanDetail(result?.detail || "failed", 300)}` : ""}\n`);
+        if (options.echo !== false) process.stdout.write(`${status}  ${node.name}${status === "FAIL" ? ` - ${cleanDetail(result.detail || "failed", 300)}` : ""}\n`);
         return nodeId;
       }).catch((error) => {
         const completedAt = new Date().toISOString();

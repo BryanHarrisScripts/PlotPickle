@@ -17,6 +17,7 @@ test("Sage Brinewick is a registered product-agent skill", async () => {
     name: "Sage Brinewick",
     description: "Guide LEARN conversations with Sage's visible mentor personality and procedure while PlotPickle curriculum retrieval remains the teaching source of truth.",
     entry: ".agents/skills/sage-brinewick/SKILL.md",
+    path: ".agents/skills/sage-brinewick",
     uri: "skill://plotpickle/sage-brinewick",
     roles: ["curriculum-guide"],
     primaryWorker: "mastra",

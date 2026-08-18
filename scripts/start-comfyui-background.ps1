@@ -8,6 +8,12 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+$ManagedInstanceCore = Join-Path $PSScriptRoot "comfyui-managed-instance-core.ps1"
+if (-not (Test-Path -LiteralPath $ManagedInstanceCore -PathType Leaf)) {
+  throw "PlotPickle's ComfyUI managed-instance inspector is missing: $ManagedInstanceCore"
+}
+. $ManagedInstanceCore
+
 function Write-Status([string]$Status, [string]$Detail = "") {
   Write-Output "PLOTPICKLE_COMFYUI_STATUS=$Status"
   if ($Detail) { Write-Output "PLOTPICKLE_COMFYUI_DETAIL=$Detail" }
@@ -77,13 +83,14 @@ function Find-ComfyDesktopExecutable {
     if ($icon -and (Split-Path -Leaf $icon) -notmatch "(?i)unins|uninstall|update") { return $icon }
     $location = Get-Property $entry "InstallLocation"
     if ($location) {
-      foreach ($leaf in @("ComfyUI.exe", "ComfyUI Desktop.exe", "comfyui.exe")) {
+      foreach ($leaf in @("Comfy Desktop.exe", "ComfyUI.exe", "ComfyUI Desktop.exe", "comfyui.exe")) {
         $candidate = Join-Path $location $leaf
         if (Test-Path -LiteralPath $candidate -PathType Leaf) { return (Resolve-Path -LiteralPath $candidate).Path }
       }
     }
   }
   foreach ($candidate in @(
+    $(if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "Programs\Comfy Desktop\Comfy Desktop.exe" }),
     $(if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "Programs\ComfyUI\ComfyUI.exe" }),
     $(if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "Programs\ComfyUI Desktop\ComfyUI Desktop.exe" }),
     $(if ($env:ProgramFiles) { Join-Path $env:ProgramFiles "ComfyUI\ComfyUI.exe" })
@@ -135,6 +142,26 @@ function Find-ComfyPython([string]$MainPath) {
   return ""
 }
 
+function Get-NvidiaComputeProfile {
+  $result = [ordered]@{ Name = ""; ComputeCapability = ""; Generation = "none" }
+  $smi = Get-Command "nvidia-smi.exe" -ErrorAction SilentlyContinue
+  if (-not $smi) { $smi = Get-Command "nvidia-smi" -ErrorAction SilentlyContinue }
+  if (-not $smi) { return [pscustomobject]$result }
+  $line = (& $smi.Source --query-gpu=name,compute_cap --format=csv,noheader,nounits 2>$null | Select-Object -First 1)
+  if (-not $line) { return [pscustomobject]$result }
+  $parts = @([string]$line -split "," | ForEach-Object { $_.Trim() })
+  if ($parts.Count -ge 1) { $result.Name = $parts[0] }
+  if ($parts.Count -ge 2) { $result.ComputeCapability = $parts[1] }
+  $major = 0
+  if ($result.ComputeCapability -match "^(\d+)") { $major = [int]$Matches[1] }
+  if ($major -eq 6 -or $result.Name -match "GTX\s*10\d{2}|Titan\s+Xp|Titan\s+X.*Pascal") { $result.Generation = "pascal" }
+  elseif ($major -eq 7 -or $result.Name -match "RTX\s*20|GTX\s*16") { $result.Generation = "turing" }
+  elseif ($major -eq 8) { $result.Generation = "ampere-or-ada" }
+  elseif ($major -ge 9) { $result.Generation = "modern" }
+  elseif ($result.Name) { $result.Generation = "other" }
+  return [pscustomobject]$result
+}
+
 function Wait-ComfyApi([string]$Url, [int]$TimeoutSeconds, [object]$Process = $null) {
   $deadline = (Get-Date).AddSeconds([Math]::Max(5, $TimeoutSeconds))
   while ((Get-Date) -lt $deadline) {
@@ -143,6 +170,18 @@ function Wait-ComfyApi([string]$Url, [int]$TimeoutSeconds, [object]$Process = $n
     Start-Sleep -Milliseconds 500
   }
   return "timeout"
+}
+
+function Open-ComfyDesktop([string]$DesktopExe) {
+  Write-Host "[DESKTOP] Opening ComfyUI Desktop at the user's request..."
+  Write-Host "          PlotPickle will not install checkpoints, workflows, or large video/H3 model packs automatically."
+  try {
+    $null = Start-Process -FilePath $DesktopExe -PassThru
+    return [pscustomobject]@{ Ok = $true; Detail = "" }
+  }
+  catch {
+    return [pscustomobject]@{ Ok = $false; Detail = "ComfyUI Desktop could not be opened: $($_.Exception.Message)" }
+  }
 }
 
 $endpoint = Get-LoopbackEndpoint $BaseUrl
@@ -160,9 +199,96 @@ if ($alternateApi) {
   exit 1
 }
 
+$managedRoots = @(Get-ComfyManagedInstallRootCandidates)
+$managedInstances = @(Get-ComfyManagedInstances -Roots $managedRoots)
+$managedInstalled = @($managedInstances | Where-Object { $_.State -eq "installed" })
+$managedProvisioning = @($managedInstances | Where-Object { $_.State -ne "installed" })
 $roots = @(Get-ComfyRoots)
 $mainPath = Find-ComfyMain $roots
 $desktopExe = Find-ComfyDesktopExecutable
+
+if (-not $mainPath -and $desktopExe -and $managedInstances.Count -eq 0) {
+  if ($AllowDesktopLaunch) {
+    $opened = Open-ComfyDesktop $desktopExe
+    if (-not $opened.Ok) {
+      Write-Warning $opened.Detail
+      Write-Status "desktop-launch-failed" $opened.Detail
+      exit 1
+    }
+  }
+  $detail = "Comfy Desktop is installed, but no local managed ComfyUI instance was found in the current default install roots. Open Desktop and choose New Instance (or add an existing local installation); starter model packs are not required for the engine itself."
+  Write-Host "[SETUP] $detail"
+  Write-Status "desktop-no-managed-instance" $detail
+  if ($AllowDesktopLaunch) { exit 1 } else { exit 0 }
+}
+
+if (-not $mainPath -and $desktopExe -and $managedProvisioning.Count -gt 0 -and $managedInstalled.Count -eq 0) {
+  if ($AllowDesktopLaunch) {
+    $opened = Open-ComfyDesktop $desktopExe
+    if (-not $opened.Ok) {
+      Write-Warning $opened.Detail
+      Write-Status "desktop-launch-failed" $opened.Detail
+      exit 1
+    }
+  }
+  $instance = $managedProvisioning[0]
+  $detail = "Comfy Desktop has a managed instance at $($instance.InstallRoot), but its main.py / virtual environment is still incomplete. Installation or package provisioning appears to still be in progress; let Desktop finish, then retry. PlotPickle will not relaunch it repeatedly or download models."
+  Write-Host "[PROVISIONING] $detail"
+  Write-Status "desktop-instance-provisioning" $detail
+  exit 1
+}
+
+if (-not $mainPath -and $desktopExe -and $managedInstalled.Count -gt 0) {
+  $instance = $managedInstalled[0]
+  $stack = Get-ComfyManagedEnvironmentStack -Instance $instance
+  $gpu = Get-NvidiaComputeProfile
+  if ($gpu.Generation -eq "pascal" -and $stack.Torch -and -not (Test-ComfyPascalCu126Stack -Stack $stack)) {
+    $expected = Get-PlotPicklePascalCu126Stack
+    $detail = "The managed ComfyUI instance uses torch=$($stack.Torch), torchvision=$($stack.TorchVision), torchaudio=$($stack.TorchAudio). This Pascal GPU ($($gpu.Name), compute $($gpu.ComputeCapability)) requires PlotPickle's reviewed CUDA 12.6 compatibility stack: torch=$($expected.Torch), torchvision=$($expected.TorchVision), torchaudio=$($expected.TorchAudio). Passive verification will not modify it. Run scripts\configure-hardware-aware-local-ai.ps1 -Mode Configure -ConfigureComfyUI only when you explicitly approve the local repair."
+    Write-Warning $detail
+    Write-Status "desktop-pascal-stack-incompatible" $detail
+    exit 1
+  }
+
+  if (-not $AllowDesktopLaunch) {
+    $detail = "A managed ComfyUI instance is installed at $($instance.InstallRoot), but its local API is stopped at $($endpoint.BaseUrl). Launch this instance in Comfy Desktop, then retry."
+    Write-Host "[INFO] $detail"
+    Write-Status "desktop-managed-engine-stopped" $detail
+    exit 0
+  }
+
+  $opened = Open-ComfyDesktop $desktopExe
+  if (-not $opened.Ok) {
+    Write-Warning $opened.Detail
+    Write-Status "desktop-launch-failed" $opened.Detail
+    exit 1
+  }
+  $state = Wait-ComfyApi $endpoint.BaseUrl $ReadyTimeoutSeconds
+  if ($state -eq "ready") {
+    Write-Host "[READY] ComfyUI Desktop's managed local API is responding at $($endpoint.BaseUrl)."
+    Write-Status "desktop-started-ready" $endpoint.BaseUrl
+    exit 0
+  }
+  $alternateApi = Find-AlternateComfyApi $endpoint.Port
+  if ($alternateApi) {
+    $detail = "ComfyUI Desktop opened and its managed API responds at $alternateApi, but PlotPickle expects $($endpoint.BaseUrl). Change the instance server port to $($endpoint.Port), then retry."
+    Write-Warning $detail
+    Write-Status "desktop-api-wrong-port" $detail
+    exit 1
+  }
+  $crash = Get-ComfyManagedCrashEvidence -Instance $instance
+  if ($crash.Found) {
+    $stackDetail = "Python=$($stack.Python), torch=$($stack.Torch), CUDA=$($stack.CudaVersion)"
+    $detail = "The managed ComfyUI instance crashed before API readiness. $stackDetail. Evidence: $($crash.Summary). Log: $($crash.LogPath). PlotPickle did not change the environment."
+    Write-Warning $detail
+    Write-Status "desktop-managed-engine-crashed" $detail
+    exit 1
+  }
+  $detail = "A managed ComfyUI instance exists at $($instance.InstallRoot), but its engine did not expose /system_stats at $($endpoint.BaseUrl) within $ReadyTimeoutSeconds seconds. Open/select that instance in Desktop and start it; PlotPickle did not modify Python, download a model, or enable cloud fallback."
+  Write-Warning $detail
+  Write-Status "desktop-managed-engine-stopped" $detail
+  exit 1
+}
 
 if (-not $mainPath -and $desktopExe -and -not $AllowDesktopLaunch) {
   $detail = "ComfyUI Desktop is installed, but its local engine/API is not running at $($endpoint.BaseUrl). Open Desktop, finish first-run instance setup if shown, and start the local engine."
@@ -174,13 +300,10 @@ if (-not $mainPath -and $desktopExe -and -not $AllowDesktopLaunch) {
 }
 
 if (-not $mainPath -and $desktopExe) {
-  Write-Host "[DESKTOP] Opening ComfyUI Desktop at the user's request..."
-  Write-Host "          PlotPickle will not install checkpoints, workflows, or large video/H3 model packs automatically."
-  try { $null = Start-Process -FilePath $desktopExe -PassThru }
-  catch {
-    $detail = "ComfyUI Desktop could not be opened: $($_.Exception.Message)"
-    Write-Warning $detail
-    Write-Status "desktop-launch-failed" $detail
+  $opened = Open-ComfyDesktop $desktopExe
+  if (-not $opened.Ok) {
+    Write-Warning $opened.Detail
+    Write-Status "desktop-launch-failed" $opened.Detail
     exit 1
   }
   $state = Wait-ComfyApi $endpoint.BaseUrl $ReadyTimeoutSeconds

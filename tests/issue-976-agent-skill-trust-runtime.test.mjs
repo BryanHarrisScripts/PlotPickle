@@ -17,6 +17,7 @@ const FIXTURE = path.join(ROOT, "tests", "fixtures", "agent-skills", "quarantine
 const SENTINEL = path.join(FIXTURE, "EXECUTED-SENTINEL.txt");
 const EXPECTED_BUILT_INS = new Set([
   "skill://plotpickle/uat-repair",
+  "skill://plotpickle/ben-code-quality",
   "skill://plotpickle/sage-brinewick",
   "skill://plotpickle/plan-foundations",
   "skill://plotpickle/writer-in-residence",

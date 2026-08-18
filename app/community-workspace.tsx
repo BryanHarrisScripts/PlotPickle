@@ -6,6 +6,7 @@ import { normalizeFoundationProject, type PPFProject } from "../core/project/pro
 import { BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "../lib/buzz-guildhall";
 import { BUZZ_STORY_ROOMS, buzzProjectSlug, buzzRoomName, type BuzzStoryRoomId } from "../lib/buzz-story-room";
 import CommunityAgentRoster from "./community-agent-roster";
+import CommunityBackdoorTerminal from "./community-backdoor-terminal";
 import CommunityStoryRoomAccess from "./community-story-room-access";
 import ConnectedStudiosPanel from "./connected-studios-panel";
 import navigationStyles from "./community-navigation.module.css";
@@ -14,7 +15,7 @@ import styles from "./community-workspace.module.css";
 const BUZZ_API = "/api/local-buzz";
 const PROPOSAL_STORAGE_KEY = "plotpickle.buzz.proposals.v1";
 
-type CommunitySection = "overview" | "great-hall" | "connected-studios" | "story-rooms" | "people" | "agents" | "reviews" | "guildhall";
+type CommunitySection = "overview" | "terminal" | "great-hall" | "connected-studios" | "story-rooms" | "people" | "agents" | "reviews" | "guildhall";
 type BuzzChannel = { id: string; name: string; description: string };
 type CommunityMember = { pubkey: string; displayName: string; presence: string; updatedAt: string };
 type ActivityItem = { id: string; content: string; author: string; createdAt: string };
@@ -49,6 +50,7 @@ type ReviewItem = { id: string; title: string; status: string; roomId?: string; 
 
 const SECTIONS: Array<{ id: CommunitySection; label: string; primary?: boolean }> = [
   { id: "overview", label: "Overview" },
+  { id: "terminal", label: "Terminal", primary: true },
   { id: "great-hall", label: "Great Hall", primary: true },
   { id: "story-rooms", label: "Story Rooms", primary: true },
   { id: "connected-studios", label: "Connected Studios" },
@@ -295,6 +297,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
   const readyRoomCount = storyRooms.length;
 
   function navigationStatus(id: CommunitySection) {
+    if (id === "terminal") return `${onlineMembers} online · ${BUZZ_GUILDHALL_ACTORS.length} agent identities`;
     if (id === "great-hall") return `${community?.members.length ?? 0} members · ${onlineMembers} online`;
     if (id === "story-rooms") return `${readyRoomCount}/6 ready · ${activeProjectName}`;
     if (id === "connected-studios") return connected ? "Community connected" : "Available offline";
@@ -403,12 +406,26 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
             </section>
           ) : null}
 
+          {section === "terminal" ? <CommunityBackdoorTerminal
+            connected={connected}
+            communityName={community?.community || ""}
+            identityLabel={community?.identityLabel || ""}
+            greatHallChannelId={community?.greatHall?.id || ""}
+            members={community?.members ?? []}
+            recentActivity={community?.recentActivity ?? []}
+            readyGuildhallRooms={guildhall?.readyRooms ?? []}
+            storyRooms={storyRooms}
+            reviews={reviews}
+            onExit={() => setSection("overview")}
+            onNotice={setNotice}
+          /> : null}
+
           {section === "overview" ? <main className={styles.stack}>
             <section className={styles.summaryGrid}>
               <button type="button" onClick={() => setSection("great-hall")}><span>Great Hall</span><strong>{community?.members.length ?? 0} members</strong><small>{onlineMembers} online now</small></button>
               <button type="button" onClick={() => setSection("story-rooms")}><span>Active story</span><strong>{activeProjectName}</strong><small>{readyRoomCount}/6 Story Rooms ready</small></button>
               <button type="button" onClick={() => setSection("reviews")}><span>Review queue</span><strong>{reviews.length} waiting</strong><small>Nothing changes PPF canon without approval</small></button>
-              <button type="button" onClick={() => setSection("guildhall")}><span>Guildhall</span><strong>{guildhall?.readyCount ?? 0}/{guildhall?.totalCount ?? 11} rooms</strong><small>{guildhall?.operational ? "Operational" : "Setup incomplete"}</small></button>
+              <button type="button" onClick={() => setSection("terminal")}><span>Backdoor Terminal</span><strong>CONNECT 2400</strong><small>Keyboard-first hidden Playhouse node</small></button>
             </section>
             <section className={styles.panel}>
               <header><div><span>Recent community activity</span><h2>What is happening in the Great Hall</h2></div><button type="button" disabled={Boolean(busy)} onClick={() => void refreshCommunity(true)}>Refresh</button></header>

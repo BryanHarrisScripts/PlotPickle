@@ -14,6 +14,7 @@ import { registerMediaRoutingGateway } from "./media-routing-gateway";
 import { registerOllamaBootstrapGateway } from "./ollama-bootstrap-gateway";
 import { registerLocalAiInstallationGateway } from "./local-ai-installation-gateway";
 import { registerLocalRuntimeGateway } from "./local-runtime-gateway";
+import { registerPlotPickleNodeTopologyGateway } from "./node-topology-gateway";
 import { registerCurriculumRagGateway } from "./curriculum-rag-gateway";
 import { registerGpuResourceScheduler } from "./local-gpu-resource-manager";
 import { registerFoundationsPpfGateway } from "./foundations-ppf-gateway";
@@ -45,7 +46,7 @@ function registerSingleImageBoundary(server: ViteDevServer) {
 export function localAiGateway(): Plugin {
   const legacy = legacyLocalAiGateway();
   return { ...legacy, name: "plotpickle-hardware-aware-local-ai-gateway", configureServer(server) {
-    registerSingleImageBoundary(server); registerGpuResourceScheduler(server); registerLocalRuntimeGateway(server);
+    registerSingleImageBoundary(server); registerGpuResourceScheduler(server); registerLocalRuntimeGateway(server); registerPlotPickleNodeTopologyGateway(server);
     registerStudioIdentityGateway(server); registerPlayhouseFederationGateway(server); registerPlayhouseDirectoryGateway(server); registerVerificationOrchestrationGateway(server); registerVerificationInboxGateway(server); registerDeepSeekHarnessGateway(server);
     registerCurriculumRagGateway(server); registerLocalAiInstallationGateway(server); registerAiRoutingGateway(server);
     registerNativeH3Gateway(server); registerProviderDiagnosticsGateway(server); registerSdxlLocalImageGateway(server);

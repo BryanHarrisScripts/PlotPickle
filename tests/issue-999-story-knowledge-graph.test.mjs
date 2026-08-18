@@ -104,7 +104,7 @@ test("model routing is provider-independent and bounds local inference rather th
 
 test("canonical PPF seeds a read-only graph from characters, locations, blocks and relationships with revision provenance", async () => {
   const source = await read("lib/story-knowledge-ppf.ts");
-  assert.match(source, /type PlotPickleProject/);
+  assert.match(source, /import type \{ PlotPickleProject \} from "\.\/project";/);
   assert.match(source, /project\.characters/);
   assert.match(source, /project\.world\.locations/);
   assert.match(source, /project\.blocks/);

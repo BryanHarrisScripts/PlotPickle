@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "defaultExternalTrust": "quarantined",
+  "productionTrustStates": ["trusted-built-in", "approved-external"],
+  "records": [
+    {
+      "id": "uat-repair",
+      "entry": ".agents/skills/uat-repair/SKILL.md",
+      "sourceKind": "plotpickle-built-in",
+      "publisher": "PlotPickle",
+      "trustState": "trusted-built-in",
+      "reviewStatus": "built-in-reviewed",
+      "licenseStatus": "repository-owned",
+      "requestedCapabilities": [],
+      "forbiddenCapabilities": ["self-grant-authority", "credential-access", "provider-selection", "direct-ppf-mutation"]
+    },
+    {
+      "id": "sage-brinewick",
+      "entry": ".agents/skills/sage-brinewick/SKILL.md",
+      "sourceKind": "plotpickle-built-in",
+      "publisher": "PlotPickle",
+      "trustState": "trusted-built-in",
+      "reviewStatus": "built-in-reviewed",
+      "licenseStatus": "repository-owned",
+      "requestedCapabilities": [],
+      "forbiddenCapabilities": ["self-grant-authority", "credential-access", "provider-selection", "direct-ppf-mutation"]
+    },
+    {
+      "id": "plan-foundations",
+      "entry": ".agents/skills/plan-foundations/SKILL.md",
+      "sourceKind": "plotpickle-built-in",
+      "publisher": "PlotPickle",
+      "trustState": "trusted-built-in",
+      "reviewStatus": "built-in-reviewed",
+      "licenseStatus": "repository-owned",
+      "requestedCapabilities": [],
+      "forbiddenCapabilities": ["self-grant-authority", "credential-access", "provider-selection", "direct-ppf-mutation"]
+    },
+    {
+      "id": "writer-in-residence",
+      "entry": ".agents/skills/writer-in-residence/SKILL.md",
+      "sourceKind": "plotpickle-built-in",
+      "publisher": "PlotPickle",
+      "trustState": "trusted-built-in",
+      "reviewStatus": "built-in-reviewed",
+      "licenseStatus": "repository-owned",
+      "requestedCapabilities": [],
+      "forbiddenCapabilities": ["self-grant-authority", "credential-access", "provider-selection", "direct-ppf-mutation"]
+    },
+    {
+      "id": "visual-qa",
+      "entry": ".agents/skills/visual-qa/SKILL.md",
+      "sourceKind": "plotpickle-built-in",
+      "publisher": "PlotPickle",
+      "trustState": "trusted-built-in",
+      "reviewStatus": "built-in-reviewed",
+      "licenseStatus": "repository-owned",
+      "requestedCapabilities": [],
+      "forbiddenCapabilities": ["self-grant-authority", "credential-access", "provider-selection", "direct-ppf-mutation"]
+    },
+    {
+      "id": "buzz-guildhall-reporting",
+      "entry": ".agents/skills/buzz-guildhall-reporting/SKILL.md",
+      "sourceKind": "plotpickle-built-in",
+      "publisher": "PlotPickle",
+      "trustState": "trusted-built-in",
+      "reviewStatus": "built-in-reviewed",
+      "licenseStatus": "repository-owned",
+      "requestedCapabilities": [],
+      "forbiddenCapabilities": ["self-grant-authority", "credential-access", "provider-selection", "direct-ppf-mutation"]
+    },
+    {
+      "id": "quarantined-external-fixture",
+      "entry": "tests/fixtures/agent-skills/quarantined-external/SKILL.md",
+      "sourceKind": "external-github",
+      "source": "fixture://external-skill",
+      "publisher": "untrusted-fixture",
+      "trustState": "quarantined",
+      "reviewStatus": "not-reviewed",
+      "licenseStatus": "unknown",
+      "requestedCapabilities": ["network", "filesystem-write"],
+      "forbiddenCapabilities": ["self-grant-authority", "credential-access", "provider-selection", "direct-ppf-mutation", "network", "filesystem-write"]
+    }
+  ]
+}

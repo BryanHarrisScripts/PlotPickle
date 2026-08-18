@@ -75,6 +75,30 @@
       "consumers": ["buzz-guildhall"],
       "mcpReady": true,
       "localOnly": true
+    },
+    {
+      "id": "marquee-director",
+      "name": "The Marquee Director",
+      "description": "Develop reviewable poster, key-art, teaser and trailer concepts from approved story and visual-continuity context without triggering generation or changing canon.",
+      "entry": ".agents/skills/marquee-director/SKILL.md",
+      "uri": "skill://plotpickle/marquee-director",
+      "roles": ["visual-director"],
+      "primaryWorker": "mastra",
+      "consumers": ["visual-director"],
+      "mcpReady": true,
+      "localOnly": true
+    },
+    {
+      "id": "critics-circle",
+      "name": "Critics' Circle",
+      "description": "Provide independent internal PlotPickle critique across story, world, character, structure, pacing, dialogue, continuity, audience clarity and commercial positioning.",
+      "entry": ".agents/skills/critics-circle/SKILL.md",
+      "uri": "skill://plotpickle/critics-circle",
+      "roles": ["critic"],
+      "primaryWorker": "mastra",
+      "consumers": ["critic"],
+      "mcpReady": true,
+      "localOnly": true
     }
   ]
 }

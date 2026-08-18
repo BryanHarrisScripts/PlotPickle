@@ -57,7 +57,7 @@ test("Desktop onboarding remains local-only and does not silently install model 
     "localhost",
     "ComfyUI startup is restricted to a local HTTP address",
     "PlotPickle will not install checkpoints, workflows, or large video/H3 model packs automatically",
-    "PlotPickle did not start a model/H3 download",
+    "PlotPickle did not start a checkpoint, model, workflow, or H3 download",
   ]) {
     assert.ok(starter.includes(contract), `Missing safe onboarding contract: ${contract}`);
   }

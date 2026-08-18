@@ -31,6 +31,15 @@ function Test-ComfyApi([string]$Url) {
   try { return $null -ne (Invoke-RestMethod -Uri "$Url/system_stats" -Method Get -TimeoutSec 2) } catch { return $false }
 }
 
+function Find-AlternateComfyApi([int]$ExpectedPort) {
+  foreach ($port in @(8187, 8188, 8189, 8190, 8000) | Select-Object -Unique) {
+    if ($port -eq $ExpectedPort) { continue }
+    $candidate = "http://127.0.0.1:$port"
+    if (Test-ComfyApi $candidate) { return $candidate }
+  }
+  return ""
+}
+
 function Get-Property([object]$Object, [string]$Name) {
   if ($null -eq $Object) { return "" }
   $property = $Object.PSObject.Properties[$Name]
@@ -143,15 +152,24 @@ if (Test-ComfyApi $endpoint.BaseUrl) {
   exit 0
 }
 
+$alternateApi = Find-AlternateComfyApi $endpoint.Port
+if ($alternateApi) {
+  $detail = "ComfyUI is responding at $alternateApi, but PlotPickle is configured for $($endpoint.BaseUrl). Set ComfyUI to port $($endpoint.Port) or correct the configured loopback URL."
+  Write-Warning $detail
+  Write-Status "api-wrong-port" $detail
+  exit 1
+}
+
 $roots = @(Get-ComfyRoots)
 $mainPath = Find-ComfyMain $roots
 $desktopExe = Find-ComfyDesktopExecutable
 
 if (-not $mainPath -and $desktopExe -and -not $AllowDesktopLaunch) {
-  Write-Host "[INFO] ComfyUI Desktop is installed, but its local API is not running."
+  $detail = "ComfyUI Desktop is installed, but its local engine/API is not running at $($endpoint.BaseUrl). Open Desktop, finish first-run instance setup if shown, and start the local engine."
+  Write-Host "[INFO] $detail"
   Write-Host "       PlotPickle will not open Desktop without an explicit user action."
   Write-Host "       Use the reviewed Settings action, or rerun this starter with -AllowDesktopLaunch."
-  Write-Status "desktop-installed-not-running" $desktopExe
+  Write-Status "desktop-installed-not-running" $detail
   exit 0
 }
 
@@ -160,37 +178,48 @@ if (-not $mainPath -and $desktopExe) {
   Write-Host "          PlotPickle will not install checkpoints, workflows, or large video/H3 model packs automatically."
   try { $null = Start-Process -FilePath $desktopExe -PassThru }
   catch {
-    Write-Warning "ComfyUI Desktop could not be opened: $($_.Exception.Message)"
-    Write-Status "desktop-launch-failed" $desktopExe
+    $detail = "ComfyUI Desktop could not be opened: $($_.Exception.Message)"
+    Write-Warning $detail
+    Write-Status "desktop-launch-failed" $detail
     exit 1
   }
   $state = Wait-ComfyApi $endpoint.BaseUrl $ReadyTimeoutSeconds
   if ($state -eq "ready") {
     Write-Host "[READY] ComfyUI Desktop's local API is responding at $($endpoint.BaseUrl)."
-    Write-Status "desktop-started-ready" $desktopExe
+    Write-Status "desktop-started-ready" $endpoint.BaseUrl
     exit 0
   }
-  Write-Warning "ComfyUI Desktop opened, but its local API did not become ready within $ReadyTimeoutSeconds seconds."
-  Write-Host "[NEXT] Complete any visible first-run setup in Desktop and start its local engine. PlotPickle did not start a model/H3 download."
-  Write-Status "desktop-opened-api-not-ready" $desktopExe
+  $alternateApi = Find-AlternateComfyApi $endpoint.Port
+  if ($alternateApi) {
+    $detail = "ComfyUI Desktop opened and its API responds at $alternateApi, but PlotPickle expects $($endpoint.BaseUrl). Change the Desktop server port to $($endpoint.Port), then retry."
+    Write-Warning $detail
+    Write-Status "desktop-api-wrong-port" $detail
+    exit 1
+  }
+  $detail = "ComfyUI Desktop opened, but /system_stats did not respond at $($endpoint.BaseUrl) within $ReadyTimeoutSeconds seconds. Complete any visible first-run instance setup, select/configure a local instance, and start the local engine; confirm that its server port is $($endpoint.Port)."
+  Write-Warning $detail
+  Write-Host "[NEXT] PlotPickle did not start a checkpoint, model, workflow, or H3 download and will continue without local image generation."
+  Write-Status "desktop-opened-api-not-ready" $detail
   exit 1
 }
 
 if (-not $mainPath) {
   if ($roots.Count) {
-    Write-Host "[INFO] ComfyUI is installed, but neither a Desktop executable nor a headless main.py entry point could be located."
-    Write-Status "installed-entrypoint-not-found" ($roots -join "; ")
+    $detail = "ComfyUI is installed, but neither a Desktop executable nor a headless main.py entry point could be located. Re-open ComfyUI Desktop and confirm a local instance is configured."
+    Write-Host "[INFO] $detail"
+    Write-Status "installed-entrypoint-not-found" $detail
   } else {
     Write-Host "[INFO] ComfyUI was not detected. It remains optional."
-    Write-Status "not-installed"
+    Write-Status "not-installed" "Install ComfyUI only if you want local image generation; PlotPickle remains usable without it."
   }
   exit 0
 }
 
 $python = Find-ComfyPython $mainPath
 if (-not $python) {
-  Write-Warning "ComfyUI main.py was found at $mainPath, but no compatible Python runtime was found."
-  Write-Status "python-not-found" $mainPath
+  $detail = "ComfyUI main.py was found at $mainPath, but no compatible Python runtime was found for that local instance."
+  Write-Warning $detail
+  Write-Status "python-not-found" $detail
   exit 1
 }
 
@@ -203,21 +232,31 @@ $args = @($mainPath, "--dont-launch-browser", "--listen", $endpoint.Host, "--por
 Write-Host "[STARTING] Starting classic/portable ComfyUI as a hidden local backend at $($endpoint.BaseUrl)..."
 try { $process = Start-Process -FilePath $python -ArgumentList $args -WorkingDirectory (Split-Path -Parent $mainPath) -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr -PassThru }
 catch {
-  Write-Warning "ComfyUI could not be started: $($_.Exception.Message)"
-  Write-Status "launch-failed" $mainPath
+  $detail = "ComfyUI could not be started: $($_.Exception.Message)"
+  Write-Warning $detail
+  Write-Status "launch-failed" $detail
   exit 1
 }
 $state = Wait-ComfyApi $endpoint.BaseUrl $ReadyTimeoutSeconds $process
 if ($state -eq "ready") {
   Write-Host "[READY] ComfyUI is responding at $($endpoint.BaseUrl)."
-  Write-Status "started-ready" $stdout
+  Write-Status "started-ready" $endpoint.BaseUrl
   exit 0
 }
 if ($state -eq "exited") {
-  Write-Warning "ComfyUI exited before its API became ready. Review $stderr"
-  Write-Status "exited-before-ready" $stderr
+  $detail = "ComfyUI exited before its API became ready. Review $stderr"
+  Write-Warning $detail
+  Write-Status "exited-before-ready" $detail
   exit 1
 }
-Write-Warning "ComfyUI did not become ready within $ReadyTimeoutSeconds seconds. Review $stdout and $stderr"
-Write-Status "starting-timeout" $stdout
+$alternateApi = Find-AlternateComfyApi $endpoint.Port
+if ($alternateApi) {
+  $detail = "A ComfyUI API is responding at $alternateApi instead of the configured $($endpoint.BaseUrl). Correct the local server port before retrying."
+  Write-Warning $detail
+  Write-Status "api-wrong-port" $detail
+  exit 1
+}
+$detail = "ComfyUI did not become ready at $($endpoint.BaseUrl) within $ReadyTimeoutSeconds seconds. Review $stdout and $stderr"
+Write-Warning $detail
+Write-Status "starting-timeout" $detail
 exit 1

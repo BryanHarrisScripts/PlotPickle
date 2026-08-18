@@ -30,15 +30,18 @@ $StarterModel = "smollm2:135m-instruct-q2_K"
 $OllamaTagsUrl = "http://127.0.0.1:11434/api/tags"
 $OllamaPullUrl = "http://127.0.0.1:11434/api/pull"
 $ComfyStarter = Join-Path $PSScriptRoot "start-comfyui-background.ps1"
+$ComfyReadyStatuses = @("ready-existing", "desktop-started-ready", "started-ready")
 
 function Write-ToolStatus {
   param(
     [Parameter(Mandatory = $true)][string]$Status,
-    [string]$Location = ""
+    [string]$Location = "",
+    [string]$Detail = ""
   )
   Write-Output "PLOTPICKLE_LOCAL_AI_TOOL=$Tool"
   Write-Output "PLOTPICKLE_LOCAL_AI_STATUS=$Status"
   if ($Location) { Write-Output "PLOTPICKLE_LOCAL_AI_LOCATION=$Location" }
+  if ($Detail) { Write-Output "PLOTPICKLE_LOCAL_AI_DETAIL=$Detail" }
 }
 
 function Test-LoopbackService {
@@ -98,24 +101,48 @@ function Install-OllamaStarterModel {
   }
 }
 
+function Get-ComfyStarterValue {
+  param(
+    [Parameter(Mandatory = $true)][string[]]$Lines,
+    [Parameter(Mandatory = $true)][string]$Name
+  )
+  $prefix = "$Name="
+  $match = $Lines | Where-Object { $_.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase) } | Select-Object -Last 1
+  if (-not $match) { return "" }
+  return ([string]$match).Substring($prefix.Length).Trim()
+}
+
 function Start-ComfyUIForPlotPickle {
   if (-not (Test-Path -LiteralPath $ComfyStarter -PathType Leaf)) {
-    Write-Warning "The ComfyUI background starter is missing. PlotPickle will continue and ComfyUI can still be started manually."
-    return $false
+    $detail = "The ComfyUI background starter is missing. PlotPickle will continue and ComfyUI can still be started manually."
+    Write-Warning $detail
+    return [pscustomobject]@{ Ready = $false; Status = "starter-missing"; Detail = $detail }
   }
   $baseUrl = if ($env:PLOTPICKLE_COMFYUI_URL) { $env:PLOTPICKLE_COMFYUI_URL } else { "http://127.0.0.1:8188" }
   Write-Host "[STARTUP] Ensuring installed ComfyUI is available as PlotPickle's local image engine at $baseUrl..."
   try {
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $ComfyStarter -BaseUrl $baseUrl -ReadyTimeoutSeconds 90 -AllowDesktopLaunch
-    if ($LASTEXITCODE -ne 0) {
-      Write-Warning "ComfyUI local-image startup exited with code $LASTEXITCODE. PlotPickle will continue; review the PlotPickle ComfyUI startup logs or finish ComfyUI Desktop first-run setup."
-      return $false
+    $rawOutput = @(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $ComfyStarter -BaseUrl $baseUrl -ReadyTimeoutSeconds 90 -AllowDesktopLaunch 2>&1)
+    $exitCode = [int]$LASTEXITCODE
+    $lines = @($rawOutput | ForEach-Object { ([string]$_).Trim() } | Where-Object { $_ })
+    foreach ($line in $lines) { Write-Host $line }
+
+    $status = Get-ComfyStarterValue -Lines $lines -Name "PLOTPICKLE_COMFYUI_STATUS"
+    $detail = Get-ComfyStarterValue -Lines $lines -Name "PLOTPICKLE_COMFYUI_DETAIL"
+    if (-not $status) { $status = if ($exitCode -eq 0) { "api-status-missing" } else { "startup-failed" } }
+    if (-not $detail) { $detail = "ComfyUI starter exited with code $exitCode without a readiness detail." }
+    $ready = $exitCode -eq 0 -and $ComfyReadyStatuses -contains $status
+
+    if (-not $ready) {
+      Write-Warning "ComfyUI Desktop may be installed, but its local API is not ready. $detail PlotPickle will continue; finish ComfyUI Desktop first-run setup or review the PlotPickle ComfyUI startup log, then retry."
+    } else {
+      Write-Host "[OK] ComfyUI local API is ready at $baseUrl."
     }
-    return $true
+    return [pscustomobject]@{ Ready = $ready; Status = $status; Detail = $detail }
   }
   catch {
-    Write-Warning "ComfyUI local-image startup failed: $($_.Exception.Message). PlotPickle will continue."
-    return $false
+    $detail = "ComfyUI local-image startup failed: $($_.Exception.Message). PlotPickle will continue."
+    Write-Warning $detail
+    return [pscustomobject]@{ Ready = $false; Status = "startup-failed"; Detail = $detail }
   }
 }
 
@@ -183,7 +210,17 @@ if ($existing) {
   if ($Maintain) {
     Invoke-ReviewedUpgrade -PackageId ([string]$definition.PackageId)
     if ($Tool -eq "Ollama") { [void](Install-OllamaStarterModel) }
-    if ($Tool -eq "ComfyUI") { [void](Start-ComfyUIForPlotPickle) }
+    if ($Tool -eq "ComfyUI") {
+      $comfyReadiness = Start-ComfyUIForPlotPickle
+      Write-ToolStatus -Status ([string]$comfyReadiness.Status) -Location $existing -Detail ([string]$comfyReadiness.Detail)
+      if (-not $comfyReadiness.Ready) { exit 1 }
+      exit 0
+    }
+  }
+  if ($Tool -eq "ComfyUI" -and -not (Test-LoopbackService -Endpoint ([string]$definition.Endpoint))) {
+    Write-Host "[INFO] ComfyUI Desktop is installed, but the local API is not responding on 127.0.0.1:8188."
+    Write-ToolStatus -Status "installed-api-not-ready" -Location $existing -Detail "Start or finish ComfyUI Desktop so /system_stats responds locally."
+    exit 3
   }
   Write-ToolStatus -Status "detected" -Location $existing
   exit 0
@@ -243,7 +280,12 @@ if ($installed) {
     [void](Install-OllamaStarterModel)
   } else {
     Write-Host "Models, checkpoints and workflows remain separate and were not downloaded."
-    if ($Tool -eq "ComfyUI") { [void](Start-ComfyUIForPlotPickle) }
+    if ($Tool -eq "ComfyUI") {
+      $comfyReadiness = Start-ComfyUIForPlotPickle
+      Write-ToolStatus -Status ([string]$comfyReadiness.Status) -Location $installed -Detail ([string]$comfyReadiness.Detail)
+      if (-not $comfyReadiness.Ready) { exit 1 }
+      exit 0
+    }
   }
   Write-ToolStatus -Status "installed" -Location $installed
   exit 0

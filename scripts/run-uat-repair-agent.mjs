@@ -550,15 +550,17 @@ async function main() {
     process.stdout.write(`Repair evidence .................... SAVED  ${report}\n`);
   } finally {
     if (!keepWorktree) {
-      try {
-        await run("git", ["worktree", "remove", "--force", worktreeRoot]);
-      } catch (error) {
-        console.error(`UAT repair cleanup warning: could not remove git worktree: ${error instanceof Error ? error.message : String(error)}`);
+      const [gitCleanup] = await Promise.allSettled([
+        run("git", ["worktree", "remove", "--force", worktreeRoot]),
+      ]);
+      if (gitCleanup.status === "rejected") {
+        process.stderr.write(`UAT repair cleanup warning: could not remove git worktree: ${gitCleanup.reason instanceof Error ? gitCleanup.reason.message : String(gitCleanup.reason)}\n`);
       }
-      try {
-        await rm(worktreeRoot, { recursive: true, force: true });
-      } catch (error) {
-        console.error(`UAT repair cleanup warning: could not remove worktree directory: ${error instanceof Error ? error.message : String(error)}`);
+      const [directoryCleanup] = await Promise.allSettled([
+        rm(worktreeRoot, { recursive: true, force: true }),
+      ]);
+      if (directoryCleanup.status === "rejected") {
+        process.stderr.write(`UAT repair cleanup warning: could not remove worktree directory: ${directoryCleanup.reason instanceof Error ? directoryCleanup.reason.message : String(directoryCleanup.reason)}\n`);
       }
     }
   }

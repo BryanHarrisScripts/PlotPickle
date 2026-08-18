@@ -37,6 +37,9 @@ jobs:
       - name: Validate Agent Skills migration
         run: node --test tests/issue-913-agent-skills-migration.test.mjs
 
+      - name: Validate BEN coding-agent quality contract
+        run: node --test tests/issue-1005-ben-code-quality.test.mjs tests/issue-976-agent-skill-trust-runtime.test.mjs
+
       - name: Validate host-owned Agent Profile authority
         run: node --test tests/issue-962-agent-profiles.test.mjs tests/community-agent-roster.test.mjs
 
@@ -102,7 +105,7 @@ jobs:
             $errors = $null
             [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$errors) | Out-Null
             if ($errors.Count -gt 0) {
-              $errors | ForEach-Object { Write-Error "${path}: $($_.Message)" }
+              $errors | ForEach-Object { Write-Error "${path}: $($_.Message)"
               exit 1
             }
           }

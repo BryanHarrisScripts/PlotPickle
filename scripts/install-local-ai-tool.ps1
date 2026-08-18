@@ -211,15 +211,22 @@ if ($existing) {
     Invoke-ReviewedUpgrade -PackageId ([string]$definition.PackageId)
     if ($Tool -eq "Ollama") { [void](Install-OllamaStarterModel) }
     if ($Tool -eq "ComfyUI") {
-      $comfyReadiness = Start-ComfyUIForPlotPickle
-      Write-ToolStatus -Status ([string]$comfyReadiness.Status) -Location $existing -Detail ([string]$comfyReadiness.Detail)
-      if (-not $comfyReadiness.Ready) { exit 1 }
+      $ready = Test-LoopbackService -Endpoint ([string]$definition.Endpoint)
+      if ($ready) {
+        $detail = "ComfyUI maintenance found the local API already running."
+        Write-Host "[OK] $detail"
+        Write-ToolStatus -Status "ready-existing" -Location $existing -Detail $detail
+      } else {
+        $detail = "ComfyUI Desktop is installed, but its optional local engine is stopped. Core PlotPickle startup will not open Desktop or wait for GPU initialization; start ComfyUI on demand from Settings when local image generation is needed."
+        Write-Host "[READY] $detail"
+        Write-ToolStatus -Status "installed-api-not-ready" -Location $existing -Detail $detail
+      }
       exit 0
     }
   }
   if ($Tool -eq "ComfyUI" -and -not (Test-LoopbackService -Endpoint ([string]$definition.Endpoint))) {
     Write-Host "[INFO] ComfyUI Desktop is installed, but the local API is not responding on 127.0.0.1:8188."
-    Write-ToolStatus -Status "installed-api-not-ready" -Location $existing -Detail "Start or finish ComfyUI Desktop so /system_stats responds locally."
+    Write-ToolStatus -Status "installed-api-not-ready" -Location $existing -Detail "Start ComfyUI on demand from PlotPickle Settings when local image generation is needed."
     exit 3
   }
   Write-ToolStatus -Status "detected" -Location $existing

@@ -25,13 +25,14 @@ test("starter distinguishes no-instance, provisioning, stopped, crash, wrong-por
     "desktop-pascal-stack-incompatible",
     "desktop-api-wrong-port",
     "desktop-started-ready",
+    "started-ready",
   ]) assert.ok(starter.includes(status), `Missing managed ComfyUI readiness state: ${status}`);
 
   assert.match(starter, /choose New Instance/i);
   assert.match(starter, /Installation or package provisioning appears to still be in progress/i);
   assert.match(starter, /Get-ComfyManagedCrashEvidence/);
   assert.match(starter, /\/system_stats/);
-  assert.match(starter, /PlotPickle did not modify Python, download a model, or enable cloud fallback/);
+  assert.match(starter, /did not download a model or enable cloud fallback/i);
 });
 
 test("passive managed-instance inspection never repairs PyTorch or downloads models", async () => {
@@ -43,6 +44,7 @@ test("passive managed-instance inspection never repairs PyTorch or downloads mod
   assert.doesNotMatch(starter, /pip install|download\.pytorch\.org\/whl/i);
   assert.match(starter, /Passive verification will not modify it/);
   assert.match(starter, /-Mode Configure -ConfigureComfyUI/);
+  assert.match(starter, /if \(-not \$AllowDesktopLaunch\)[\s\S]*desktop-managed-engine-stopped/);
 });
 
 test("Pascal compatibility uses the current reviewed ComfyUI CUDA 12.6 standalone pins", async () => {
@@ -74,13 +76,34 @@ test("managed environment diagnosis is filesystem-based and crash evidence is bo
   assert.doesNotMatch(core, /torch\.cuda\.is_available|torch\.cuda\.get_device/i);
 });
 
-test("managed Desktop instances remain Desktop-owned rather than becoming headless bypasses", async () => {
+test("explicit managed startup reuses Desktop's engine and model paths without requiring a Desktop Launch click", async () => {
   const starter = await read("scripts/start-comfyui-background.ps1");
   const managedStart = starter.indexOf("if (-not $mainPath -and $desktopExe -and $managedInstalled.Count -gt 0)");
-  const classicStart = starter.indexOf('[STARTING] Starting classic/portable ComfyUI as a hidden local backend');
+  const managedEnd = starter.indexOf("if (-not $mainPath -and $desktopExe -and -not $AllowDesktopLaunch)", managedStart);
   assert.ok(managedStart >= 0, "managed Desktop branch must exist");
-  assert.ok(classicStart > managedStart, "classic headless start must remain a later, separate path");
-  const managedBlock = starter.slice(managedStart, classicStart);
-  assert.match(managedBlock, /Open-ComfyDesktop/);
-  assert.doesNotMatch(managedBlock, /Start-Process -FilePath \$python/);
+  assert.ok(managedEnd > managedStart, "managed Desktop branch must end before the generic Desktop fallback");
+  const managedBlock = starter.slice(managedStart, managedEnd);
+  assert.match(managedBlock, /if \(-not \$AllowDesktopLaunch\)/);
+  assert.match(managedBlock, /Start-Process -FilePath \$instance\.PythonPath/);
+  assert.match(managedBlock, /\$instance\.MainPath/);
+  assert.match(managedBlock, /--disable-auto-launch/);
+  assert.match(managedBlock, /--listen/);
+  assert.match(managedBlock, /--port/);
+  assert.match(managedBlock, /--extra-model-paths-config/);
+  assert.match(managedBlock, /without requiring a Desktop Launch click/);
+  assert.doesNotMatch(managedBlock, /Open-ComfyDesktop \$desktopExe/);
+  assert.match(starter, /shared_model_paths\.yaml/);
+  assert.match(starter, /instance-model-paths/);
+});
+
+test("routine ComfyUI maintenance does not gate core PlotPickle startup on GPU or Desktop readiness", async () => {
+  const installer = await read("scripts/install-local-ai-tool.ps1");
+  const maintainStart = installer.indexOf("if ($Maintain) {");
+  const checkOnlyStart = installer.indexOf("if ($CheckOnly", maintainStart);
+  assert.ok(maintainStart >= 0 && checkOnlyStart > maintainStart, "maintenance branch must be discoverable");
+  const maintainBlock = installer.slice(maintainStart, checkOnlyStart);
+  assert.match(maintainBlock, /Core PlotPickle startup will not open Desktop or wait for GPU initialization/);
+  assert.match(maintainBlock, /installed-api-not-ready/);
+  assert.match(maintainBlock, /exit 0/);
+  assert.doesNotMatch(maintainBlock, /Start-ComfyUIForPlotPickle/);
 });

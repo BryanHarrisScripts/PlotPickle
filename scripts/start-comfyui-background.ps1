@@ -184,6 +184,51 @@ function Open-ComfyDesktop([string]$DesktopExe) {
   }
 }
 
+function Test-SamePath([string]$Left, [string]$Right) {
+  if (-not $Left -or -not $Right) { return $false }
+  try {
+    $leftFull = [IO.Path]::GetFullPath($Left).TrimEnd('\', '/')
+    $rightFull = [IO.Path]::GetFullPath($Right).TrimEnd('\', '/')
+    return $leftFull -ieq $rightFull
+  } catch { return $false }
+}
+
+function Find-ComfyDesktopModelPathsConfig([object]$Instance) {
+  if (-not $env:APPDATA) { return "" }
+  foreach ($dataRoot in @(
+    (Join-Path $env:APPDATA "Comfy Desktop"),
+    (Join-Path $env:APPDATA "ComfyUI")
+  )) {
+    if (-not (Test-Path -LiteralPath $dataRoot -PathType Container)) { continue }
+
+    $installationsPath = Join-Path $dataRoot "installations.json"
+    if (Test-Path -LiteralPath $installationsPath -PathType Leaf) {
+      try {
+        $records = @(Get-Content -LiteralPath $installationsPath -Raw -ErrorAction Stop | ConvertFrom-Json)
+        $record = $records | Where-Object { $_.installPath -and (Test-SamePath ([string]$_.installPath) ([string]$Instance.InstallRoot)) } | Select-Object -First 1
+        if ($record -and $record.id) {
+          $instanceYaml = Join-Path (Join-Path $dataRoot "instance-model-paths") "$($record.id).yaml"
+          if (Test-Path -LiteralPath $instanceYaml -PathType Leaf) { return (Resolve-Path -LiteralPath $instanceYaml).Path }
+        }
+      } catch { }
+    }
+
+    $sharedYaml = Join-Path $dataRoot "shared_model_paths.yaml"
+    if (Test-Path -LiteralPath $sharedYaml -PathType Leaf) { return (Resolve-Path -LiteralPath $sharedYaml).Path }
+  }
+  return ""
+}
+
+function Get-ComfyStartupLogs([string]$Stem) {
+  $home = if ($env:PLOTPICKLE_HOME) { $env:PLOTPICKLE_HOME } elseif ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "PlotPickle" } else { Join-Path $env:USERPROFILE ".plotpickle" }
+  $logDir = Join-Path $home "logs"
+  New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+  return [pscustomobject]@{
+    Stdout = Join-Path $logDir "$Stem.log"
+    Stderr = Join-Path $logDir "$Stem-error.log"
+  }
+}
+
 $endpoint = Get-LoopbackEndpoint $BaseUrl
 if (Test-ComfyApi $endpoint.BaseUrl) {
   Write-Host "[READY] ComfyUI is already running at $($endpoint.BaseUrl)."
@@ -251,50 +296,64 @@ if (-not $mainPath -and $desktopExe -and $managedInstalled.Count -gt 0) {
   }
 
   if (-not $AllowDesktopLaunch) {
-    $detail = "A managed ComfyUI instance is installed at $($instance.InstallRoot), but its local API is stopped at $($endpoint.BaseUrl). Launch this instance in Comfy Desktop, then retry."
+    $detail = "A managed ComfyUI instance is installed at $($instance.InstallRoot), but its local API is stopped at $($endpoint.BaseUrl). PlotPickle did not open Desktop or start the optional engine during passive verification."
     Write-Host "[INFO] $detail"
     Write-Status "desktop-managed-engine-stopped" $detail
     exit 0
   }
 
-  $opened = Open-ComfyDesktop $desktopExe
-  if (-not $opened.Ok) {
-    Write-Warning $opened.Detail
-    Write-Status "desktop-launch-failed" $opened.Detail
+  $logs = Get-ComfyStartupLogs "comfyui-managed-startup"
+  $modelPathsConfig = Find-ComfyDesktopModelPathsConfig -Instance $instance
+  $managedArgs = @($instance.MainPath, "--disable-auto-launch", "--listen", $endpoint.Host, "--port", [string]$endpoint.Port)
+  if ($modelPathsConfig) {
+    $managedArgs += @("--extra-model-paths-config", "`"$modelPathsConfig`"")
+    Write-Host "[MODELS] Reusing Comfy Desktop model-path configuration: $modelPathsConfig"
+  } else {
+    Write-Host "[MODELS] No Comfy Desktop external model-path file was required or unambiguously available; the managed instance's own model directory remains active."
+  }
+  Write-Host "[STARTING] Starting Comfy Desktop's managed ComfyUI engine headlessly at $($endpoint.BaseUrl)..."
+  Write-Host "           Desktop UI is not required for API readiness. Startup logs: $($logs.Stdout)"
+  try {
+    $process = Start-Process -FilePath $instance.PythonPath -ArgumentList $managedArgs -WorkingDirectory $instance.EngineRoot -WindowStyle Hidden -RedirectStandardOutput $logs.Stdout -RedirectStandardError $logs.Stderr -PassThru
+  }
+  catch {
+    $detail = "The managed ComfyUI engine could not be started directly: $($_.Exception.Message)"
+    Write-Warning $detail
+    Write-Status "launch-failed" $detail
     exit 1
   }
-  $state = Wait-ComfyApi $endpoint.BaseUrl $ReadyTimeoutSeconds
+
+  $state = Wait-ComfyApi $endpoint.BaseUrl $ReadyTimeoutSeconds $process
   if ($state -eq "ready") {
-    Write-Host "[READY] ComfyUI Desktop's managed local API is responding at $($endpoint.BaseUrl)."
-    Write-Status "desktop-started-ready" $endpoint.BaseUrl
+    Write-Host "[READY] Managed ComfyUI is responding at $($endpoint.BaseUrl) without requiring a Desktop Launch click."
+    Write-Status "started-ready" "Managed ComfyUI started headlessly at $($endpoint.BaseUrl)."
     exit 0
   }
   $alternateApi = Find-AlternateComfyApi $endpoint.Port
   if ($alternateApi) {
-    $detail = "ComfyUI Desktop opened and its managed API responds at $alternateApi, but PlotPickle expects $($endpoint.BaseUrl). Change the instance server port to $($endpoint.Port), then retry."
+    $detail = "The managed ComfyUI engine responds at $alternateApi, but PlotPickle expects $($endpoint.BaseUrl). Correct the configured loopback port before retrying."
     Write-Warning $detail
     Write-Status "desktop-api-wrong-port" $detail
     exit 1
   }
-  $crash = Get-ComfyManagedCrashEvidence -Instance $instance
-  if ($crash.Found) {
-    $stackDetail = "Python=$($stack.Python), torch=$($stack.Torch), CUDA=$($stack.CudaVersion)"
-    $detail = "The managed ComfyUI instance crashed before API readiness. $stackDetail. Evidence: $($crash.Summary). Log: $($crash.LogPath). PlotPickle did not change the environment."
+  if ($state -eq "exited") {
+    $crash = Get-ComfyManagedCrashEvidence -Instance $instance
+    $evidence = if ($crash.Found) { " Evidence: $($crash.Summary)." } else { "" }
+    $detail = "The managed ComfyUI engine exited before API readiness.$evidence Review $($logs.Stderr). PlotPickle did not download a model or enable cloud fallback."
     Write-Warning $detail
     Write-Status "desktop-managed-engine-crashed" $detail
     exit 1
   }
-  $detail = "A managed ComfyUI instance exists at $($instance.InstallRoot), but its engine did not expose /system_stats at $($endpoint.BaseUrl) within $ReadyTimeoutSeconds seconds. Open/select that instance in Desktop and start it; PlotPickle did not modify Python, download a model, or enable cloud fallback."
+  $detail = "The managed ComfyUI engine was started directly, but /system_stats did not respond at $($endpoint.BaseUrl) within $ReadyTimeoutSeconds seconds. Review $($logs.Stdout) and $($logs.Stderr). Desktop can be opened separately for inspection, but PlotPickle will not wait for a manual Launch click."
   Write-Warning $detail
-  Write-Status "desktop-managed-engine-stopped" $detail
+  Write-Status "starting-timeout" $detail
   exit 1
 }
 
 if (-not $mainPath -and $desktopExe -and -not $AllowDesktopLaunch) {
-  $detail = "ComfyUI Desktop is installed, but its local engine/API is not running at $($endpoint.BaseUrl). Open Desktop, finish first-run instance setup if shown, and start the local engine."
+  $detail = "ComfyUI Desktop is installed, but its local engine/API is not running at $($endpoint.BaseUrl). Passive startup will not open an optional Desktop application."
   Write-Host "[INFO] $detail"
-  Write-Host "       PlotPickle will not open Desktop without an explicit user action."
-  Write-Host "       Use the reviewed Settings action, or rerun this starter with -AllowDesktopLaunch."
+  Write-Host "       Use the reviewed Settings action when you want PlotPickle to start the local image engine."
   Write-Status "desktop-installed-not-running" $detail
   exit 0
 }
@@ -346,14 +405,10 @@ if (-not $python) {
   exit 1
 }
 
-$home = if ($env:PLOTPICKLE_HOME) { $env:PLOTPICKLE_HOME } elseif ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "PlotPickle" } else { Join-Path $env:USERPROFILE ".plotpickle" }
-$logDir = Join-Path $home "logs"
-New-Item -ItemType Directory -Force -Path $logDir | Out-Null
-$stdout = Join-Path $logDir "comfyui-startup.log"
-$stderr = Join-Path $logDir "comfyui-startup-error.log"
-$args = @($mainPath, "--dont-launch-browser", "--listen", $endpoint.Host, "--port", [string]$endpoint.Port)
+$logs = Get-ComfyStartupLogs "comfyui-startup"
+$args = @($mainPath, "--disable-auto-launch", "--listen", $endpoint.Host, "--port", [string]$endpoint.Port)
 Write-Host "[STARTING] Starting classic/portable ComfyUI as a hidden local backend at $($endpoint.BaseUrl)..."
-try { $process = Start-Process -FilePath $python -ArgumentList $args -WorkingDirectory (Split-Path -Parent $mainPath) -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr -PassThru }
+try { $process = Start-Process -FilePath $python -ArgumentList $args -WorkingDirectory (Split-Path -Parent $mainPath) -WindowStyle Hidden -RedirectStandardOutput $logs.Stdout -RedirectStandardError $logs.Stderr -PassThru }
 catch {
   $detail = "ComfyUI could not be started: $($_.Exception.Message)"
   Write-Warning $detail
@@ -367,7 +422,7 @@ if ($state -eq "ready") {
   exit 0
 }
 if ($state -eq "exited") {
-  $detail = "ComfyUI exited before its API became ready. Review $stderr"
+  $detail = "ComfyUI exited before its API became ready. Review $($logs.Stderr)"
   Write-Warning $detail
   Write-Status "exited-before-ready" $detail
   exit 1
@@ -379,7 +434,7 @@ if ($alternateApi) {
   Write-Status "api-wrong-port" $detail
   exit 1
 }
-$detail = "ComfyUI did not become ready at $($endpoint.BaseUrl) within $ReadyTimeoutSeconds seconds. Review $stdout and $stderr"
+$detail = "ComfyUI did not become ready at $($endpoint.BaseUrl) within $ReadyTimeoutSeconds seconds. Review $($logs.Stdout) and $($logs.Stderr)"
 Write-Warning $detail
 Write-Status "starting-timeout" $detail
 exit 1

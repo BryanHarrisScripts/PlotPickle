@@ -5,7 +5,7 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("ComfyUI startup distinguishes Desktop installation from a ready local API", async () => {
+test("ComfyUI startup distinguishes Desktop installation from a ready local engine", async () => {
   const starter = await source("scripts/start-comfyui-background.ps1");
 
   for (const contract of [
@@ -24,17 +24,18 @@ test("ComfyUI startup distinguishes Desktop installation from a ready local API"
 
   assert.ok(
     starter.indexOf("if (Test-ComfyApi $endpoint.BaseUrl)") < starter.indexOf("$desktopExe = Find-ComfyDesktopExecutable"),
-    "The existing local API must be accepted before trying to start another process",
+    "The existing local engine must be accepted before trying to start another process",
   );
 });
 
-test("ComfyUI Desktop opens only after an explicit launch opt-in", async () => {
+test("ComfyUI Desktop remains optional while explicit startup may launch the managed local engine", async () => {
   const starter = await source("scripts/start-comfyui-background.ps1");
 
   assert.match(starter, /\[switch\]\$AllowDesktopLaunch/);
-  assert.match(starter, /-and -not \$AllowDesktopLaunch/);
-  assert.match(starter, /will not open Desktop without an explicit user action/);
-  assert.match(starter, /rerun this starter with -AllowDesktopLaunch/);
+  assert.match(starter, /if \(-not \$AllowDesktopLaunch\)[\s\S]*desktop-managed-engine-stopped/);
+  assert.match(starter, /Starting Comfy Desktop's managed ComfyUI engine headlessly/);
+  assert.match(starter, /without requiring a Desktop Launch click/);
+  assert.match(starter, /Start-Process -FilePath \$instance\.PythonPath/i);
   assert.match(starter, /Start-Process -FilePath \$desktopExe -PassThru/i);
 });
 
@@ -43,7 +44,7 @@ test("Desktop support does not replace classic or portable ComfyUI", async () =>
 
   assert.match(starter, /Find-ComfyMain/);
   assert.match(starter, /python_embeded\\python\.exe/);
-  assert.match(starter, /--dont-launch-browser/);
+  assert.match(starter, /--disable-auto-launch/);
   assert.match(starter, /--listen/);
   assert.match(starter, /--port/);
   assert.match(starter, /Wait-ComfyApi/);

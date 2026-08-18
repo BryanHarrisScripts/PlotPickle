@@ -29,7 +29,8 @@
         "tests/issue-699-one-click-full-verification.test.mjs",
         "tests/issue-667-669-agent-output-quality.test.mjs",
         "tests/issue-686-sage-unified-agent.test.mjs",
-        "tests/issue-973-comfyui-api-readiness.test.mjs"
+        "tests/issue-973-comfyui-api-readiness.test.mjs",
+        "tests/issue-962-agent-profiles.test.mjs"
       ]
     },
     {
@@ -59,6 +60,7 @@
       "tests": [
         "tests/community-workspace.test.mjs",
         "tests/community-agent-roster.test.mjs",
+        "tests/issue-962-agent-profiles.test.mjs",
         "tests/issue-672-global-navigation.test.mjs",
         "tests/pi-local-model-exhaustive-uat.test.mjs",
         "tests/issue-879-visual-continuity.test.mjs"

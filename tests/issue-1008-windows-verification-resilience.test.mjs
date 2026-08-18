@@ -88,9 +88,13 @@ test("Pi preflight is host-bounded and missing Pi is detected without an unsafe 
   assert.doesNotMatch(repairWorker, /shell:\s*true/);
 });
 
-test("Full Verification PowerShell entrypoint uses the progress runner while preserving graph result authority", async () => {
-  const powerShell = await read("scripts/run-plotpickle-full-check.ps1");
-  assert.match(powerShell, /full-verification-progress-runner\.mjs/);
+test("Full Verification PowerShell entrypoint uses the watchdog while preserving progress-runner graph authority", async () => {
+  const [powerShell, supervisor] = await Promise.all([
+    read("scripts/run-plotpickle-full-check.ps1"),
+    read("scripts/full-verification-supervisor.mjs"),
+  ]);
+  assert.match(powerShell, /full-verification-supervisor\.mjs/);
+  assert.match(supervisor, /full-verification-progress-runner\.mjs/);
   assert.match(powerShell, /The nine deterministic stages remain the sole PASS\/FAIL authority/);
   assert.match(powerShell, /GraphResultPath/);
 });

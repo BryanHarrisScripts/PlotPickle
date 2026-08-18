@@ -1,11 +1,14 @@
 import type { CurriculumGuideRequest } from "../../core/contracts/curriculum-guide";
 import {
   CONTEXT_AUTHORITY,
-  assembleContextPacket,
   contextItem,
   contextReceiptSummary,
   type ContextPacket,
 } from "../../lib/context-engine";
+import {
+  assembleAdaptiveContextPacket,
+  contextStrategyForTask,
+} from "../../lib/adaptive-context-strategies";
 import type { CurriculumRetrieval } from "./curriculum-retrieval";
 
 const SAGE_CONTEXT_BUDGET = 10_500;
@@ -31,7 +34,8 @@ export function buildSageContextPacket(input: {
     ...input.retrieval.sourceChunkIds,
   ].filter(Boolean).join(",") || input.request.activeLessonId;
 
-  return assembleContextPacket({
+  return assembleAdaptiveContextPacket({
+    strategyId: contextStrategyForTask(question),
     profileId: "sage-brinewick",
     taskId: `sage:${input.request.activeLessonId || "conversation"}`,
     goal: input.curriculumRequired

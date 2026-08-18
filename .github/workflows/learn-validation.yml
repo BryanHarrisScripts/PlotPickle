@@ -68,6 +68,7 @@ jobs:
             "scripts/run-plotpickle-full-check.ps1",
             "scripts/windows-companion-software.ps1",
             "scripts/install-local-ai-tool.ps1",
+            "scripts/install-buzz-desktop.ps1",
             "scripts/start-comfyui-background.ps1"
           )) {
             $tokens = $null

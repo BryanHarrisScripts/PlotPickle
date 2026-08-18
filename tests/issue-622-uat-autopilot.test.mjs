@@ -23,12 +23,13 @@ function cleanEvidence(area) {
 
 test("the UAT registry is deliberately limited to the active slim product areas", async () => {
   const registry = JSON.parse(await read("config/uat-autopilot-registry.json"));
-  assert.deepEqual(registry.areas.map((area) => area.id), ["startup", "settings", "community", "foundations-learn", "plan", "wyrmwood"]);
+  assert.deepEqual(registry.areas.map((area) => area.id), ["startup", "settings", "community", "foundations-learn", "plan", "build", "wyrmwood"]);
   assert.equal(registry.areas.find((area) => area.id === "startup")?.route, undefined);
   assert.equal(registry.areas.find((area) => area.id === "settings")?.route, "/?workspace=settings");
   assert.equal(registry.areas.find((area) => area.id === "community")?.route, "/?workspace=community");
   assert.equal(registry.areas.find((area) => area.id === "foundations-learn")?.route, "/?workspace=learn");
   assert.equal(registry.areas.find((area) => area.id === "plan")?.route, "/?workspace=plan&section=foundations");
+  assert.equal(registry.areas.find((area) => area.id === "build")?.route, "/?workspace=build&block=1&mini=1");
   assert.equal(registry.areas.find((area) => area.id === "wyrmwood")?.route, "/?workspace=wyrmwood");
 });
 
@@ -39,6 +40,7 @@ test("each current area owns focused contract tests and the registry is the exte
   const contracts = contractTestsFromRegistry(registry);
   assert.ok(contracts.includes("tests/foundation-architecture.test.mjs"));
   assert.ok(contracts.includes("tests/community-workspace.test.mjs"));
+  assert.ok(contracts.includes("tests/issue-1016-lazy-frames-animatic.test.mjs"));
   assert.ok(contracts.includes("tests/wyrmwood-phase-1.test.mjs"));
   assert.equal(new Set(contracts).size, contracts.length, "registry contract tests must be deduplicated");
 });

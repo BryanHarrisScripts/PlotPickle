@@ -32,10 +32,6 @@ function cliPath() {
   return path.join(toolHome(), "node_modules", "lazy-frames", "packages", "cli", "dist", "index.js");
 }
 
-function npmCommand() {
-  return process.platform === "win32" ? "npm.cmd" : "npm";
-}
-
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
 }
@@ -82,12 +78,30 @@ async function exists(filePath: string) {
   }
 }
 
+async function resolveNpmCli() {
+  const candidates = [
+    process.env.npm_execpath || "",
+    path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js"),
+    path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.cjs"),
+  ].filter((candidate) => candidate.endsWith(".js") || candidate.endsWith(".cjs"));
+  for (const candidate of candidates) {
+    if (await exists(candidate)) return candidate;
+  }
+  throw new Error("PlotPickle could not locate npm's local JavaScript CLI without opening a command shell. Install Node.js/npm or install Lazy Frames manually, then retry.");
+}
+
 function workspace(projectId: unknown) {
   return path.join(workRoot(), lazyFramesSlug(projectId || "plotpickle-project"));
 }
 
 function hashText(value: string) {
   return createHash("sha256").update(value, "utf8").digest("hex");
+}
+
+function writeBackgroundLog(filePath: string, data: string | Buffer) {
+  void writeFile(filePath, data).catch((error) => {
+    console.error(`[lazy-frames] Could not write ${filePath}:`, error);
+  });
 }
 
 async function runLazy(args: string[], cwd: string, timeoutMs = 120_000) {
@@ -101,22 +115,28 @@ async function runLazy(args: string[], cwd: string, timeoutMs = 120_000) {
     });
     const stdout: Buffer[] = [];
     const stderr: Buffer[] = [];
-    const timer = setTimeout(() => {
+    let settled = false;
+    let timer: NodeJS.Timeout;
+    const finish = (action: () => void) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      action();
+    };
+    timer = setTimeout(() => {
       child.kill();
-      reject(new Error(`Lazy Frames ${args[0] || "command"} exceeded ${Math.round(timeoutMs / 1000)} seconds.`));
+      finish(() => reject(new Error(`Lazy Frames ${args[0] || "command"} exceeded ${Math.round(timeoutMs / 1000)} seconds.`)));
     }, timeoutMs);
     child.stdout.on("data", (chunk) => stdout.push(Buffer.from(chunk)));
     child.stderr.on("data", (chunk) => stderr.push(Buffer.from(chunk)));
-    child.once("error", (error) => {
-      clearTimeout(timer);
-      reject(error);
-    });
+    child.once("error", (error) => finish(() => reject(error)));
     child.once("close", (code) => {
-      clearTimeout(timer);
       const output = Buffer.concat(stdout).toString("utf8");
       const diagnostics = Buffer.concat(stderr).toString("utf8");
-      if (code === 0) resolve({ stdout: output, stderr: diagnostics });
-      else reject(new Error(diagnostics.trim() || output.trim() || `Lazy Frames exited with code ${code}.`));
+      finish(() => {
+        if (code === 0) resolve({ stdout: output, stderr: diagnostics });
+        else reject(new Error(diagnostics.trim() || output.trim() || `Lazy Frames exited with code ${code}.`));
+      });
     });
   });
 }
@@ -156,12 +176,14 @@ async function statusSnapshot() {
 async function installLazyFrames() {
   if (runtimeState.install === "running") return;
   const home = toolHome();
+  const npmCli = await resolveNpmCli();
   await mkdir(home, { recursive: true });
   await writeFile(path.join(home, "package.json"), JSON.stringify({ private: true, name: "plotpickle-lazy-frames-tool", version: "1.0.0" }, null, 2), "utf8");
   runtimeState.install = "running";
   runtimeState.message = `Installing reviewed lazy-frames@${LAZY_FRAMES_VERSION} locally...`;
   const logPath = path.join(home, INSTALL_LOG);
-  const child = spawn(npmCommand(), [
+  const child = spawn(process.execPath, [
+    npmCli,
     "install",
     "--prefix", home,
     "--ignore-scripts",
@@ -176,15 +198,18 @@ async function installLazyFrames() {
     stdio: ["ignore", "pipe", "pipe"],
   });
   const logChunks: Buffer[] = [];
+  let spawnFailed = false;
   child.stdout.on("data", (chunk) => logChunks.push(Buffer.from(chunk)));
   child.stderr.on("data", (chunk) => logChunks.push(Buffer.from(chunk)));
-  child.once("error", async (error) => {
+  child.once("error", (error) => {
+    spawnFailed = true;
     runtimeState.install = "failed";
     runtimeState.message = `Lazy Frames install failed: ${error.message}`;
-    await writeFile(logPath, `${runtimeState.message}\n`, "utf8");
+    writeBackgroundLog(logPath, `${runtimeState.message}\n`);
   });
-  child.once("close", async (code) => {
-    await writeFile(logPath, Buffer.concat(logChunks), "utf8");
+  child.once("close", (code) => {
+    writeBackgroundLog(logPath, Buffer.concat(logChunks));
+    if (spawnFailed) return;
     runtimeState.install = code === 0 ? "success" : "failed";
     runtimeState.message = code === 0
       ? `Lazy Frames ${LAZY_FRAMES_VERSION} installed in PlotPickle's local tool home.`
@@ -227,9 +252,10 @@ async function launchPreview(body: Record<string, unknown>) {
   const root = workspace(body.projectId);
   const markerPath = path.join(root, "plotpickle-check.json");
   if (!(await exists(markerPath))) throw new Error("Validate the animatic before previewing it.");
-  const marker = JSON.parse(await readFile(markerPath, "utf8")) as { ok?: boolean; specSha256?: string };
+  const marker = JSON.parse(await readFile(markerPath, "utf8")) as { ok?: boolean; specSha256?: string; previewedAt?: string };
   const specSource = await readFile(path.join(root, "spec.json"), "utf8");
   if (!marker.ok || marker.specSha256 !== hashText(specSource)) throw new Error("The animatic changed after validation. Run Validate again before previewing it.");
+  if (!(await exists(cliPath()))) throw new Error("Lazy Frames is no longer installed. Reinstall it before previewing the animatic.");
   const child = spawn(process.execPath, [cliPath(), "preview", root, "-p", String(PREVIEW_PORT)], {
     cwd: root,
     shell: false,
@@ -237,7 +263,20 @@ async function launchPreview(body: Record<string, unknown>) {
     detached: true,
     stdio: "ignore",
   });
+  await new Promise<void>((resolve, reject) => {
+    const initialError = (error: Error) => reject(error);
+    child.once("error", initialError);
+    child.once("spawn", () => {
+      child.off("error", initialError);
+      resolve();
+    });
+  });
+  child.on("error", (error) => {
+    runtimeState.message = `Lazy Frames preview stopped: ${error.message}`;
+  });
   child.unref();
+  marker.previewedAt = new Date().toISOString();
+  await writeFile(markerPath, JSON.stringify(marker, null, 2), "utf8");
   return { ok: true, url: `http://127.0.0.1:${PREVIEW_PORT}`, message: "Local Lazy Frames preview started. Review it before choosing Render MP4." };
 }
 
@@ -245,9 +284,10 @@ async function launchRender(body: Record<string, unknown>) {
   if (body.approved !== true) throw new Error("Explicit approval is required before rendering the MP4.");
   if (runtimeState.render === "running") throw new Error("A Lazy Frames render is already running.");
   const root = workspace(body.projectId);
-  const marker = JSON.parse(await readFile(path.join(root, "plotpickle-check.json"), "utf8")) as { ok?: boolean; specSha256?: string };
+  const marker = JSON.parse(await readFile(path.join(root, "plotpickle-check.json"), "utf8")) as { ok?: boolean; specSha256?: string; previewedAt?: string };
   const specSource = await readFile(path.join(root, "spec.json"), "utf8");
   if (!marker.ok || marker.specSha256 !== hashText(specSource)) throw new Error("The current animatic has not passed validation. Run Validate again before rendering.");
+  if (!marker.previewedAt) throw new Error("Open and review the validated local preview before rendering the MP4.");
   runtimeState.render = "running";
   runtimeState.message = "Lazy Frames is rendering the approved animatic in the background.";
   const logPath = path.join(root, RENDER_LOG);
@@ -258,15 +298,18 @@ async function launchRender(body: Record<string, unknown>) {
     windowsHide: true,
     stdio: ["ignore", "pipe", "pipe"],
   });
+  let spawnFailed = false;
   child.stdout.on("data", (chunk) => output.push(Buffer.from(chunk)));
   child.stderr.on("data", (chunk) => output.push(Buffer.from(chunk)));
-  child.once("error", async (error) => {
+  child.once("error", (error) => {
+    spawnFailed = true;
     runtimeState.render = "failed";
     runtimeState.message = `Lazy Frames render failed: ${error.message}`;
-    await writeFile(logPath, `${runtimeState.message}\n`, "utf8");
+    writeBackgroundLog(logPath, `${runtimeState.message}\n`);
   });
-  child.once("close", async (code) => {
-    await writeFile(logPath, Buffer.concat(output), "utf8");
+  child.once("close", (code) => {
+    writeBackgroundLog(logPath, Buffer.concat(output));
+    if (spawnFailed) return;
     runtimeState.render = code === 0 ? "success" : "failed";
     runtimeState.message = code === 0
       ? `Animatic rendered to ${path.join(root, "out", "plotpickle-animatic.mp4")}.`

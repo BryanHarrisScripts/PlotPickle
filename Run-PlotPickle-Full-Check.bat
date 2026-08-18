@@ -35,6 +35,7 @@ echo This checks architecture, curriculum, the production build, local AI/Pi,
 echo BUZZ, visual UI/UX UAT, and the Writer-in-Residence journey in one pass.
 echo PlotPickle will be started automatically when the browser checks need it.
 echo Deterministic checks own PASS/FAIL. Agent review is advisory and is saved separately.
+echo A deterministic watchdog stops a silent verification harness instead of letting this window hang forever.
 echo.
 echo Optional modes:
 echo   --github-report          one sanitized commit-linked GitHub review comment

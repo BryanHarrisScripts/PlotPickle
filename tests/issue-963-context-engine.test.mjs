@@ -100,8 +100,8 @@ test("PLAN packet keeps imported PPF canon above project memory and current curr
 test("context receipts expose provenance and compact source counts without hidden reasoning", async () => {
   const engine = await read("lib/context-engine.ts");
   assert.match(engine, /contextReceiptSummary/);
-  assert.match(engine, /story facts/);
-  assert.match(engine, /curriculum/);
+  assert.match(engine, /const storyFacts = count\("ppf-canon"\)/);
+  assert.match(engine, /count\("curriculum-current"\)/);
   assert.match(engine, /approved project/);
   assert.match(engine, /sources: included\.map/);
   assert.doesNotMatch(engine, /chain[- ]of[- ]thought|scratchpad|reasoningTrace|hiddenReasoning/i);

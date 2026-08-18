@@ -22,11 +22,43 @@ type BuzzRosterPayload = {
   readonly message?: string;
 };
 
+type SpecialistId = "marquee-director" | "critics-circle";
+type SpecialistReply = {
+  readonly profileId: SpecialistId;
+  readonly displayName: string;
+  readonly room: { readonly id: string; readonly name: string };
+  readonly reply: string;
+  readonly runtime: string;
+  readonly runtimeProvider: string;
+  readonly model: string;
+  readonly modelRole: string;
+  readonly contextSummary: string;
+  readonly projectContextShared: boolean;
+  readonly ppfChanged: false;
+  readonly buzzHistoryWritten: true;
+};
+
+type JsonMessage = { readonly message?: string };
+
+const SPECIALISTS = new Set<SpecialistId>(["marquee-director", "critics-circle"]);
+
 async function readJson<T>(url: string): Promise<T> {
   const response = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
-  const body = await response.json() as T & { message?: string };
+  const body = await response.json() as T & JsonMessage;
   if (!response.ok) throw new Error(body.message || `Status request returned ${response.status}.`);
   return body;
+}
+
+async function sendJson<T>(url: string, body: Record<string, unknown>): Promise<T> {
+  const response = await fetch(url, {
+    method: "POST",
+    cache: "no-store",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const value = await response.json() as T & JsonMessage;
+  if (!response.ok) throw new Error(value.message || `Specialist request returned ${response.status}.`);
+  return value;
 }
 
 function displayTime(value: string) {
@@ -52,13 +84,21 @@ function readableList(values: readonly string[]) {
   return values.length ? values.map((value) => value.replaceAll("-", " ")).join(", ") : "None";
 }
 
-export default function CommunityAgentRoster() {
+function isSpecialist(value: string): value is SpecialistId {
+  return SPECIALISTS.has(value as SpecialistId);
+}
+
+export default function CommunityAgentRoster({ projectContext = null }: { readonly projectContext?: unknown }) {
   const [assistantStatus, setAssistantStatus] = useState<WritingAssistantStatus | null>(null);
   const [traces, setTraces] = useState<AgentTrace[]>([]);
   const [buzzIdentityVerified, setBuzzIdentityVerified] = useState(false);
   const [nativeAgents, setNativeAgents] = useState<BuzzNativeAgentState[]>([]);
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState("");
+  const [specialistDrafts, setSpecialistDrafts] = useState<Record<SpecialistId, string>>({ "marquee-director": "", "critics-circle": "" });
+  const [specialistProjectSharing, setSpecialistProjectSharing] = useState<Record<SpecialistId, boolean>>({ "marquee-director": false, "critics-circle": false });
+  const [specialistReplies, setSpecialistReplies] = useState<Partial<Record<SpecialistId, SpecialistReply>>>({});
+  const [specialistBusy, setSpecialistBusy] = useState<SpecialistId | "">("");
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -112,6 +152,34 @@ export default function CommunityAgentRoster() {
     attention: roster.filter((agent) => ["offline", "needs-approval", "setup-needed", "unavailable"].includes(agent.state)).length,
   }), [roster]);
 
+  async function askSpecialist(id: SpecialistId) {
+    const prompt = specialistDrafts[id].trim();
+    if (!prompt || specialistBusy) return;
+    const shareProjectContext = specialistProjectSharing[id];
+    if (shareProjectContext && !projectContext) {
+      setNotice("Open or load a project before choosing to share active project context with a specialist.");
+      return;
+    }
+    setSpecialistBusy(id);
+    setNotice("");
+    try {
+      const result = await sendJson<SpecialistReply>("/api/local-buzz/specialists/ask", {
+        profileId: id,
+        prompt,
+        shareProjectContext,
+        ...(shareProjectContext ? { projectContext } : {}),
+      });
+      setSpecialistReplies((current) => ({ ...current, [id]: result }));
+      setSpecialistDrafts((current) => ({ ...current, [id]: "" }));
+      setNotice(`${result.displayName} replied in ${result.room.name}. The exchange is in BUZZ history and did not change the PPF.`);
+      await refresh();
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "The specialist could not answer this room message.");
+    } finally {
+      setSpecialistBusy("");
+    }
+  }
+
   return (
     <div className={styles.roster}>
       <section className={styles.heading}>
@@ -142,12 +210,17 @@ export default function CommunityAgentRoster() {
         {roster.map((agent) => {
           const identity = nativeAgents.find((item) => item.actorId === agent.id);
           const visibleInBuzz = Boolean(identity?.created && identity.verified && identity.ownedByMe);
+          const specialist = isSpecialist(agent.id) ? agent.id : null;
+          const reply = specialist ? specialistReplies[specialist] : null;
           return (
             <article className={styles.card} key={agent.id} data-state={agent.state}>
               <header>
-                <div>
-                  <strong>{agent.displayName}</strong>
-                  <span>{agent.title}</span>
+                <div className={styles.identity}>
+                  <span className={styles.avatar} aria-label={`${agent.displayName} profile picture`}>{agent.avatarInitials}</span>
+                  <div>
+                    <strong>{agent.displayName}</strong>
+                    <span>{agent.title}</span>
+                  </div>
                 </div>
                 <span className={styles.status} data-state={agent.state}><i aria-hidden="true" />{agent.stateLabel}</span>
               </header>
@@ -160,21 +233,57 @@ export default function CommunityAgentRoster() {
                 <div><dt>Home room</dt><dd>{agent.homeRoom}</dd></div>
                 <div><dt>Role</dt><dd>{agent.roleId || (agent.runtime === "buzz" ? "BUZZ identity" : "Operational service")}</dd></div>
                 <div><dt>Model need</dt><dd>{agent.requestedModelRole ? `${agent.requestedModelRole} capability` : "No model required"}</dd></div>
+                <div><dt>Active model</dt><dd>{agent.activeModel ? `${agent.activeRuntimeProvider || "runtime"} · ${agent.activeModel}` : "Shown when a run is active or recorded"}</dd></div>
                 <div><dt>BUZZ identity</dt><dd>{buzzIdentityLabel(agent.id, agent.buzzPresence, nativeAgents)}</dd></div>
                 <div><dt>Last activity</dt><dd>{displayTime(agent.lastActiveAt)}</dd></div>
               </dl>
 
               <details>
-                <summary>Capabilities & boundaries</summary>
+                <summary>Capabilities, memory & boundaries</summary>
                 <dl>
                   <div><dt>Skills</dt><dd>{agent.skillUris.length ? agent.skillUris.map((uri) => uri.replace("skill://plotpickle/", "")).join(", ") : "No packaged Skill required"}</dd></div>
-                  <div><dt>May read</dt><dd>{readableList(agent.readScopes)}</dd></div>
+                  <div><dt>Requests</dt><dd>{readableList(agent.requestedCapabilities)}</dd></div>
+                  <div><dt>Memory scope</dt><dd>{readableList(agent.projectMemoryScope)}</dd></div>
                   <div><dt>May propose</dt><dd>{readableList(agent.proposalScopes)}</dd></div>
                   <div><dt>Cannot do</dt><dd>{readableList(agent.forbiddenCapabilities)}</dd></div>
                   <div><dt>Creative authority</dt><dd>{agent.creativeAuthority.replaceAll("-", " ")}</dd></div>
                 </dl>
-                <p>{agent.verificationContract}</p>
+                <p><strong>Memory policy:</strong> {agent.projectMemoryPolicy}</p>
+                <p><strong>Verification:</strong> {agent.verificationContract}</p>
               </details>
+
+              {specialist ? <section className={styles.specialist} aria-label={`${agent.displayName} BUZZ conversation`}>
+                <div className={styles.specialistHeading}>
+                  <div><strong>Talk in {agent.homeRoom}</strong><span>Private BUZZ room · PlotPickle/Mastra reply</span></div>
+                  <small>Project sharing is off by default.</small>
+                </div>
+                <textarea
+                  value={specialistDrafts[specialist]}
+                  onChange={(event) => setSpecialistDrafts((current) => ({ ...current, [specialist]: event.target.value }))}
+                  maxLength={8_000}
+                  rows={4}
+                  placeholder={specialist === "marquee-director" ? "Ask for a poster, key-art, teaser or trailer concept…" : "Ask for an independent story, character, pacing or positioning critique…"}
+                />
+                <label className={styles.shareToggle}>
+                  <input
+                    type="checkbox"
+                    checked={specialistProjectSharing[specialist]}
+                    onChange={(event) => setSpecialistProjectSharing((current) => ({ ...current, [specialist]: event.target.checked }))}
+                  />
+                  <span>Share the active project's approved context with this private BUZZ exchange. This may include unpublished story details.</span>
+                </label>
+                <button
+                  type="button"
+                  disabled={!specialistDrafts[specialist].trim() || Boolean(specialistBusy) || agent.state === "offline"}
+                  onClick={() => void askSpecialist(specialist)}
+                >{specialistBusy === specialist ? "Asking…" : `Ask ${agent.displayName}`}</button>
+                {reply ? <div className={styles.specialistReply}>
+                  <strong>{reply.displayName}</strong>
+                  <p>{reply.reply}</p>
+                  <small>{reply.runtimeProvider} · {reply.model} · {reply.contextSummary}</small>
+                  <small>Written to BUZZ history · PPF unchanged · project context {reply.projectContextShared ? "explicitly shared" : "not shared"}</small>
+                </div> : null}
+              </section> : null}
 
               <footer>
                 <span>{visibleInBuzz ? "Visible in Buzz Desktop" : agent.buzzPresence === "native-draft" ? "BUZZ-native identity awaiting approval" : agent.buzzPresence === "mirrored" ? "PlotPickle/Mastra agent" : "Guildhall service"}</span>

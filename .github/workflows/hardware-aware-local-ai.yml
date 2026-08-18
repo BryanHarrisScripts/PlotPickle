@@ -31,7 +31,7 @@ jobs:
       - name: Validate Agent Skills authority boundary
         run: node --test tests/issue-913-agent-skills-migration.test.mjs
       - name: Validate hardware-aware local AI contracts
-        run: node --test tests/hardware-aware-local-ai-runtime.test.mjs tests/automatic-local-model-capabilities.test.mjs tests/foundation-architecture.test.mjs
+        run: node --test tests/hardware-aware-local-ai-runtime.test.mjs tests/automatic-local-model-capabilities.test.mjs tests/issue-1001-hardware-model-catalog.test.mjs tests/foundation-architecture.test.mjs
       - name: Validate exhaustive UAT targeting and baseline repair contracts
         run: node --test tests/exhaustive-ui-harness-boundary.test.mjs tests/pi-local-model-exhaustive-uat.test.mjs tests/issue-972-exhaustive-uat-baseline.test.mjs
       - name: Validate provider, creative-compute, and companion updater contracts

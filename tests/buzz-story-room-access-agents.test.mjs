@@ -39,7 +39,7 @@ test("Story Room access remains local, private and enforced by BUZZ permissions"
   assert.doesNotMatch(gateway, /visibility", "public"|automatic.*invite/i);
 });
 
-test("PlotPickle agents can have visible BUZZ identities without moving reasoning out of Mastra", async () => {
+test("PlotPickle agents can have visible BUZZ identities without moving reasoning or authority out of Mastra and the host", async () => {
   const [gateway, roster, config] = await Promise.all([
     read("build/buzz-agent-roster-gateway.ts"),
     read("app/community-agent-roster.tsx"),
@@ -48,10 +48,13 @@ test("PlotPickle agents can have visible BUZZ identities without moving reasonin
 
   assert.match(gateway, /actor\.buzzPresence === "mirrored" \|\| actor\.buzzPresence === "native-draft"/);
   assert.match(gateway, /"users", "get", "--name", actor\.displayName, "--owner", "me"/);
+  assert.match(gateway, /request\.method !== "GET"/);
+  assert.match(gateway, /Agent roster status is read-only/);
+  assert.doesNotMatch(gateway, /"messages",\s*"send"|"agents",\s*"run"|"agents",\s*"create"/);
   assert.match(roster, /Visible in BUZZ/);
   assert.match(roster, /Mastra agent · BUZZ identity not created/);
-  assert.match(roster, /matching BUZZ identity is only their community presence and signed authorship shell/);
-  assert.match(roster, /never sign a human message and falsely label it as an agent/);
+  assert.match(roster, /BUZZ identity is community presence and signed provenance only; it does not give an agent new product, story, developer or GitHub authority/);
+  assert.match(roster, /Skills describe procedure; they never grant permission/);
   const parsed = JSON.parse(config);
   assert.equal(parsed.authority.agentRuntime, "Mastra remains the PlotPickle product-agent runtime. Buzz coordinates those agents; it does not replace their reasoning runtime.");
 });

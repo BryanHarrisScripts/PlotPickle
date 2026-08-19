@@ -58,7 +58,7 @@ It is intentionally rough, low resolution, disposable, regenerable and pre-final
 
 **BUILD may only visualize the completed project frontier.** A group may use only the accepted context named by its output contract. Future incomplete lessons/groups cannot be silently borrowed. Later groups may refine or branch earlier visuals, but provenance/history must remain reviewable.
 
-Generation alone is never approval.
+Generation alone is not approval.
 
 ## Current implementation boundary
 

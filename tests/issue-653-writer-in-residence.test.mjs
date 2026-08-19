@@ -8,6 +8,7 @@ import { parseRenderedEvaluateText } from "../scripts/writer-visual-observer-v3.
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 const readJson = async (file) => JSON.parse(await read(file));
 const implementation = "scripts/run-writer-in-residence-v4.mjs";
+const endToEndWrapper = "scripts/run-writer-in-residence-e2e.mjs";
 const recovery = "scripts/writer-in-residence-runtime-recovery.mjs";
 const visualObserver = "scripts/writer-visual-observer-v3.mjs";
 
@@ -48,10 +49,14 @@ test("Avery keeps the required silly two-message Sage conversation", async () =>
   assert.match(runner, /Phase 1 · silly Sage conversation/);
 });
 
-test("stable writer command installs local recovery before v4 and all runtime scripts parse", async () => {
-  const entrypoint = await read("scripts/run-writer-in-residence.mjs");
-  assert.ok(entrypoint.indexOf("writer-in-residence-runtime-recovery.mjs") < entrypoint.indexOf("run-writer-in-residence-v4.mjs"));
-  for (const file of ["scripts/run-writer-in-residence.mjs", implementation, recovery, visualObserver]) {
+test("stable writer command installs local recovery before the end-to-end wrapper, which preserves v4 exploration", async () => {
+  const [entrypoint, wrapper] = await Promise.all([
+    read("scripts/run-writer-in-residence.mjs"),
+    read(endToEndWrapper),
+  ]);
+  assert.ok(entrypoint.indexOf("writer-in-residence-runtime-recovery.mjs") < entrypoint.indexOf("run-writer-in-residence-e2e.mjs"));
+  assert.match(wrapper, /run-writer-in-residence-v4\.mjs/);
+  for (const file of ["scripts/run-writer-in-residence.mjs", endToEndWrapper, implementation, recovery, visualObserver]) {
     execFileSync(process.execPath, ["--check", fileURLToPath(new URL(`../${file}`, import.meta.url))], { stdio: "pipe" });
   }
 });
@@ -99,7 +104,7 @@ test("#660 normalizes only known visible Settings disclosure refs for determinis
   assert.match(source, /No hidden DOM\/state is exposed/);
 });
 
-test("#657 screenshots are basename-safe and visual failures cannot abort the journey", async () => {
+test("#657 screenshots are basename-safe and visual failures cannot abort the exploratory journey", async () => {
   const runner = await read(implementation);
   assert.match(runner, /async function safeScreenshot/);
   assert.match(runner, /filename: `\$\{name\}\.png`/);

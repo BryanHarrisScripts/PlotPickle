@@ -1,6 +1,16 @@
 const ID_PATTERN = /^[a-z0-9][a-z0-9._:-]{1,127}$/i;
-const PRIVATE_OR_PROJECT_FIELD_PATTERN = /(private.?key|credential|provider.?token|filesystem|local.?path|ppf|build.?prompt|hidden.?reasoning|system.?reasoning)/i;
 const PRIVATE_KEY_MATERIAL_PATTERN = /-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----/;
+const PORTABLE_FIELDS = Object.freeze([
+  "activeLessonId",
+  "activeLessonUpdatedAt",
+  "completedLessonIds",
+  "bookmarks",
+  "notes",
+  "curriculumAnswers",
+  "sageMessages",
+  "lessonVersions",
+  "visualWriterFrontier",
+]);
 
 function stableId(value, label) {
   const normalized = String(value || "").trim();
@@ -51,9 +61,17 @@ export function createAccountSyncState(personId) {
 
 export function authorizeNode(account, input) {
   const nodeId = stableId(input?.nodeId, "Node id");
+  const key = publicKeyPem(input?.publicKeyPem);
+  const existing = account.nodes[nodeId];
+  if (existing?.revokedAt) throw new Error("A revoked Node id cannot be silently reauthorized; authorize a new Node identity instead.");
+  if (existing && existing.publicKeyPem !== key) throw new Error("An authorized Node id cannot change its signing public key.");
+  const duplicate = Object.values(account.nodes).find((node) => node.nodeId !== nodeId && node.publicKeyPem === key);
+  if (duplicate) throw new Error("Each authorized Node must have an independent signing public key.");
+  if (existing) return account;
+
   const nextNode = {
     nodeId,
-    publicKeyPem: publicKeyPem(input?.publicKeyPem),
+    publicKeyPem: key,
     authorizedAt: validIso(input?.authorizedAt, "Node authorization time"),
     revokedAt: null,
   };
@@ -103,7 +121,7 @@ export function claimOrAdoptAvatar(account, nodeId, localDraft, input) {
 
 function assertPortableTopLevelFields(input) {
   for (const key of Object.keys(input || {})) {
-    if (PRIVATE_OR_PROJECT_FIELD_PATTERN.test(key)) throw new Error(`LEARN sync field is outside the portable allowlist: ${key}`);
+    if (!PORTABLE_FIELDS.includes(key)) throw new Error(`LEARN sync field is outside the portable allowlist: ${key}`);
   }
 }
 
@@ -254,14 +272,4 @@ export function nextLearnActionLessonId(orderedLessonIds, state) {
   return null;
 }
 
-export const PORTABLE_LEARN_SYNC_ALLOWLIST = Object.freeze([
-  "activeLessonId",
-  "activeLessonUpdatedAt",
-  "completedLessonIds",
-  "bookmarks",
-  "notes",
-  "curriculumAnswers",
-  "sageMessages",
-  "lessonVersions",
-  "visualWriterFrontier",
-]);
+export const PORTABLE_LEARN_SYNC_ALLOWLIST = PORTABLE_FIELDS;

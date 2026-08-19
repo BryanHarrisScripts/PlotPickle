@@ -46,6 +46,9 @@ jobs:
       - name: Validate Avery and Dashboard Visual Writer frontier
         run: node --test tests/issue-1030d-avery-dashboard-frontier.test.mjs tests/issue-653-writer-in-residence.test.mjs
 
+      - name: Validate Avery progressive session history through BUILD
+        run: node --test tests/issue-1029-avery-progressive-session-history.test.mjs
+
       - name: Validate lorebound agent avatars
         run: node --test tests/issue-1056-lorebound-agent-avatars.test.mjs tests/issue-594-local-learn-rag-and-brand.test.mjs
 

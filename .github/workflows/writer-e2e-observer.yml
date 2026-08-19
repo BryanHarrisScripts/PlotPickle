@@ -1,0 +1,33 @@
+name: Writer End-to-End Observer
+
+on:
+  pull_request:
+    paths:
+      - "scripts/run-writer-in-residence.mjs"
+      - "scripts/run-writer-in-residence-e2e.mjs"
+      - "scripts/writer-journey-completion.mjs"
+      - "scripts/writer-journey-final-state.mjs"
+      - "tests/issue-1104-writer-e2e-final-state.test.mjs"
+      - ".github/workflows/writer-e2e-observer.yml"
+  workflow_dispatch:
+
+jobs:
+  final-state-contract:
+    name: Completion journey and final-state contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate Writer end-to-end final-state contract
+        run: node --test tests/issue-1104-writer-e2e-final-state.test.mjs tests/issue-1029-avery-progressive-session-history.test.mjs tests/issue-1080-marquee-marketing-reference.test.mjs
+      - name: Parse new Writer acceptance scripts
+        run: |
+          node --check scripts/run-writer-in-residence-e2e.mjs
+          node --check scripts/writer-journey-completion.mjs
+          node --check scripts/writer-journey-final-state.mjs
+      - name: Production build
+        run: npm run build

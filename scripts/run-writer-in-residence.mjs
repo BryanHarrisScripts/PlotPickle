@@ -4,4 +4,4 @@
 // before loading the journey implementation so real Windows runs can recover
 // intermittent empty local replies and native Settings disclosure roles.
 await import("./writer-in-residence-runtime-recovery.mjs");
-await import("./run-writer-in-residence-v4.mjs");
+await import("./run-writer-in-residence-e2e.mjs");

@@ -38,8 +38,13 @@ test("#1030 PR A preserves every bundled archived lesson while changing only pro
 });
 
 test("#1030 PR A defines one canonical Visual Writer order with story-defining groups before execution and handoff", async () => {
-  const source = await read("modules/dashboard/guided-progression.ts");
-  const block = source.slice(source.indexOf("export const VISUAL_WRITER_GROUP_ORDER"), source.indexOf("] as const;") + 11);
+  const [source, contract] = await Promise.all([
+    read("modules/dashboard/guided-progression.ts"),
+    read("core/contracts/visual-writer-progression/index.ts"),
+  ]);
+  assert.match(source, /from "\.\.\/\.\.\/core\/contracts\/visual-writer-progression"/);
+  assert.doesNotMatch(source, /export const VISUAL_WRITER_GROUP_ORDER/);
+  const block = contract.slice(contract.indexOf("export const VISUAL_WRITER_GROUP_ORDER"), contract.indexOf("] as const;") + 11);
   const positions = EXPECTED_ORDER.map((id) => block.indexOf(`"${id}"`));
   assert.ok(positions.every((position) => position >= 0));
   assert.deepEqual([...positions].sort((a, b) => a - b), positions);

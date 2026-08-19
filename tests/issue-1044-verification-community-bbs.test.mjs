@@ -33,10 +33,14 @@ test("#1044 Community BBS owns its visible identity without renaming the BUZZ re
     read("app/community-backdoor-terminal.tsx"),
   ]);
   assert.match(workspace, /PlotPickle Community BBS/);
-  assert.match(workspace, /plotpickle-community/);
+  assert.match(workspace, /const nodeName = community\?\.community\.trim\(\) \|\| ""/);
+  assert.match(workspace, /BUZZ NODE UNAVAILABLE/);
+  assert.doesNotMatch(workspace, /COMMUNITY_BBS_NODE|plotpickle-community/);
   assert.doesNotMatch(workspace, /Playhouse/i);
   assert.match(terminal, /PLOTPICKLE COMMUNITY BBS/);
-  assert.match(terminal, /plotpickle-community/);
+  assert.match(terminal, /readonly nodeName: string/);
+  assert.match(terminal, /BUZZ NODE UNAVAILABLE/);
+  assert.doesNotMatch(terminal, /COMMUNITY_BBS_NODE|plotpickle-community/);
   assert.match(terminal, /DRAGON|dragon/);
   assert.doesNotMatch(terminal, /Playhouse/i);
 });

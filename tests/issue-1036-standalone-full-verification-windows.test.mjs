@@ -41,7 +41,8 @@ test("#1036 keeps direct Node verification commands shell-free", () => {
 test("#1036 progress runner uses the shared Windows-safe verification command contract", async () => {
   const progressRunner = await source("scripts/full-verification-progress-runner.mjs");
   assert.match(progressRunner, /from "\.\/full-verification-process\.mjs"/);
-  assert.match(progressRunner, /return verificationCommandFor\(node\);/);
+  assert.match(progressRunner, /verificationCommandFor\(node\)/);
+  assert.match(progressRunner, /terminateVerificationProcessTree\(child\)/);
   assert.doesNotMatch(progressRunner, /process\.platform === "win32" \? "npm\.cmd"/);
   assert.doesNotMatch(progressRunner, /shell:\s*true/);
 });
@@ -53,6 +54,7 @@ test("#1036 standalone app readiness owns a managed Vite server and fails fast o
   assert.match(graph, /PLOTPICKLE_STARTUP_CONTRACT:\s*"plotpickle-full-verification"/);
   assert.match(graph, /child\.exitCode !== null \|\| child\.signalCode !== null/);
   assert.match(graph, /exited before becoming ready/);
+  assert.match(graph, /terminateVerificationProcessTree\(child\)/);
   assert.match(graph, /await stopManagedPlotPickleVerificationServer\(\);/);
   assert.doesNotMatch(graph, /Start-PlotPickle\.bat/);
   assert.doesNotMatch(graph, /shell:\s*true/);

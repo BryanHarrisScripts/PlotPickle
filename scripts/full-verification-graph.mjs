@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-import { mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import {
+  terminateVerificationProcessTree,
+  verificationCommandFor,
+} from "./full-verification-process.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const plotPickleUrl = "http://127.0.0.1:4173";
-const launcher = path.join(repoRoot, "Start-PlotPickle.bat");
+const viteCli = path.join(repoRoot, "node_modules", "vite", "bin", "vite.js");
 
 export const FULL_VERIFICATION_STAGE_NAMES = [
   "1 of 9 - Agent Skills registry",
@@ -107,7 +111,7 @@ export const FULL_VERIFICATION_GRAPH = [
     category: "Infrastructure",
     tool: "app-ready",
     args: [],
-    dependencies: [{ id: "production-build", require: "complete", reason: "The app launcher shares build workspace state and waits for the build process to release it, even when the build itself failed." }],
+    dependencies: [{ id: "production-build", require: "complete", reason: "The verification app server shares build workspace state and waits for the build process to release it, even when the build itself failed." }],
     resources: ["workspace-build"],
     inputSchema: EMPTY_INPUT_SCHEMA,
     outputSchema: RESULT_OUTPUT_SCHEMA,
@@ -147,6 +151,8 @@ export const FULL_VERIFICATION_GRAPH = [
 ];
 
 const TERMINAL = new Set(["PASS", "FAIL", "BLOCKED"]);
+let managedVerificationApp = null;
+let managedVerificationAppTail = "";
 
 function boundedParallelism(value) {
   const parsed = Number(value);
@@ -205,12 +211,6 @@ export function validateVerificationNodeResult(node, value) {
   return { ok: true, error: "" };
 }
 
-function commandFor(node) {
-  if (node.tool === "node") return { command: process.execPath, args: node.args };
-  if (node.tool === "npm") return { command: process.platform === "win32" ? "npm.cmd" : "npm", args: node.args };
-  throw new Error(`Unsupported Full Verification tool: ${node.tool}`);
-}
-
 function writeChunk(prefix, stream, chunk) {
   const text = String(chunk || "");
   if (!text) return;
@@ -219,7 +219,7 @@ function writeChunk(prefix, stream, chunk) {
 }
 
 export async function executeCommandNode(node, options = {}) {
-  const { command, args } = commandFor(node);
+  const { command, args } = verificationCommandFor(node);
   const started = Date.now();
   let tail = "";
   return new Promise((resolve) => {
@@ -260,28 +260,83 @@ async function plotPickleReady() {
   }
 }
 
+function captureManagedAppOutput(chunk, stream, echo) {
+  const text = String(chunk || "");
+  if (!text) return;
+  managedVerificationAppTail = `${managedVerificationAppTail}${text}`.slice(-12_000);
+  if (echo !== false) writeChunk("app-ready", stream, text);
+}
+
+export async function stopManagedPlotPickleVerificationServer() {
+  const child = managedVerificationApp;
+  managedVerificationApp = null;
+  managedVerificationAppTail = "";
+  if (!child?.pid || child.exitCode !== null || child.signalCode !== null) return;
+  await terminateVerificationProcessTree(child);
+}
+
 export async function ensurePlotPickleReady(options = {}) {
   const started = Date.now();
-  if (await plotPickleReady()) return { status: "PASS", exitCode: 0, detail: "PlotPickle was already reachable.", durationMs: Date.now() - started };
-  if (process.platform !== "win32") return { status: "FAIL", exitCode: 1, detail: "PlotPickle is not running and the one-click launcher is Windows-only.", durationMs: Date.now() - started };
+  if (await plotPickleReady()) {
+    return { status: "PASS", exitCode: 0, detail: "PlotPickle was already reachable.", durationMs: Date.now() - started };
+  }
 
   try {
-    const child = spawn("cmd.exe", ["/d", "/c", `"${launcher}"`], {
+    await access(viteCli);
+  } catch {
+    return {
+      status: "FAIL",
+      exitCode: 1,
+      detail: "The verified Vite runtime is unavailable. Production dependencies must be ready before browser verification can start.",
+      durationMs: Date.now() - started,
+    };
+  }
+
+  managedVerificationAppTail = "";
+  let child;
+  try {
+    child = spawn(process.execPath, [viteCli, "--host", "127.0.0.1", "--port", "4173", "--strictPort"], {
       cwd: repoRoot,
-      detached: true,
-      windowsHide: false,
-      stdio: "ignore",
+      env: {
+        ...process.env,
+        NODE_ENV: "development",
+        PLOTPICKLE_STARTUP_CONTRACT: "plotpickle-full-verification",
+        VITE_CONFIG_NATIVE_IGNORE_WARNING: "true",
+      },
+      windowsHide: true,
+      shell: false,
+      stdio: ["ignore", "pipe", "pipe"],
     });
-    child.unref();
+    managedVerificationApp = child;
   } catch (error) {
     return { status: "FAIL", exitCode: 1, detail: cleanDetail(error instanceof Error ? error.message : String(error)), durationMs: Date.now() - started };
   }
 
+  child.stdout?.on("data", (chunk) => captureManagedAppOutput(chunk, process.stdout, options.echo));
+  child.stderr?.on("data", (chunk) => captureManagedAppOutput(chunk, process.stderr, options.echo));
+
   const waitSeconds = Math.max(30, Math.min(900, Number(options.startupWaitSeconds) || 240));
   const deadline = Date.now() + waitSeconds * 1000;
   while (Date.now() < deadline) {
-    if (await plotPickleReady()) return { status: "PASS", exitCode: 0, detail: "PlotPickle answered on the loopback application URL.", durationMs: Date.now() - started };
-    await new Promise((resolve) => setTimeout(resolve, 2_000));
+    if (await plotPickleReady()) {
+      return {
+        status: "PASS",
+        exitCode: 0,
+        detail: "Full Verification started its managed PlotPickle server on the loopback application URL.",
+        durationMs: Date.now() - started,
+      };
+    }
+    if (child.exitCode !== null || child.signalCode !== null) {
+      const code = Number.isFinite(Number(child.exitCode)) ? Number(child.exitCode) : 1;
+      const evidence = cleanDetail(managedVerificationAppTail, 700);
+      return {
+        status: "FAIL",
+        exitCode: code || 1,
+        detail: `The managed verification app server exited before becoming ready${evidence ? `: ${evidence}` : ` (exit ${code})`}.`,
+        durationMs: Date.now() - started,
+      };
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1_000));
   }
   return { status: "FAIL", exitCode: 1, detail: `PlotPickle did not become reachable within ${waitSeconds} seconds.`, durationMs: Date.now() - started };
 }
@@ -368,90 +423,94 @@ export async function runVerificationGraph(options = {}) {
   let maxParallelObserved = 0;
 
   const execute = options.execute || (async (node) => {
-    if (node.tool === "app-ready") return ensurePlotPickleReady({ startupWaitSeconds: options.startupWaitSeconds });
+    if (node.tool === "app-ready") return ensurePlotPickleReady({ startupWaitSeconds: options.startupWaitSeconds, echo: options.echo !== false });
     return executeCommandNode(node, { cwd: options.cwd || repoRoot, echo: options.echo !== false });
   });
 
-  while ([...state.values()].some((item) => !TERMINAL.has(item.status))) {
+  try {
+    while ([...state.values()].some((item) => !TERMINAL.has(item.status))) {
+      blockFailedDependencies(graph, state);
+
+      let startedAny = false;
+      for (const nodeId of readyVerificationNodeIds(graph, state, maxParallelism)) {
+        const node = graph.find((candidate) => candidate.id === nodeId);
+        const current = state.get(nodeId);
+        const startedAt = new Date().toISOString();
+        state.set(nodeId, { ...current, status: "RUNNING", startedAt });
+        timeline.push({ nodeId, event: "start", at: startedAt });
+        if (options.echo !== false) process.stdout.write(`START  ${node.name}\n`);
+        const promise = Promise.resolve(execute(node)).then((rawResult) => {
+          const checked = validateVerificationNodeResult(node, rawResult);
+          const result = checked.ok ? rawResult : { status: "FAIL", exitCode: 1, detail: `Node result contract failed: ${checked.error}`, durationMs: 0 };
+          const completedAt = new Date().toISOString();
+          const status = result.status;
+          state.set(nodeId, {
+            ...state.get(nodeId),
+            status,
+            exitCode: status === "PASS" ? 0 : Number(result.exitCode) || 1,
+            detail: cleanDetail(result.detail || ""),
+            durationMs: Math.max(0, Number(result.durationMs) || 0),
+            completedAt,
+          });
+          timeline.push({ nodeId, event: "complete", status, at: completedAt });
+          if (options.echo !== false) process.stdout.write(`${status}  ${node.name}${status === "FAIL" ? ` - ${cleanDetail(result.detail || "failed", 300)}` : ""}\n`);
+          return nodeId;
+        }).catch((error) => {
+          const completedAt = new Date().toISOString();
+          state.set(nodeId, { ...state.get(nodeId), status: "FAIL", exitCode: 1, detail: cleanDetail(error instanceof Error ? error.message : String(error)), completedAt });
+          timeline.push({ nodeId, event: "complete", status: "FAIL", at: completedAt });
+          return nodeId;
+        }).finally(() => active.delete(nodeId));
+        active.set(nodeId, promise);
+        startedAny = true;
+        maxParallelObserved = Math.max(maxParallelObserved, active.size);
+      }
+
+      if (active.size) {
+        await Promise.race([...active.values()]);
+        continue;
+      }
+
+      blockFailedDependencies(graph, state);
+      const unresolved = graph.filter((node) => state.get(node.id)?.status === "QUEUED");
+      if (!unresolved.length) break;
+      if (!startedAny) {
+        const now = new Date().toISOString();
+        for (const node of unresolved) state.set(node.id, { ...state.get(node.id), status: "BLOCKED", exitCode: 1, detail: "No valid dependency/resource route remained.", completedAt: now });
+        break;
+      }
+    }
+
+    if (active.size) await Promise.all([...active.values()]);
     blockFailedDependencies(graph, state);
 
-    let startedAny = false;
-    for (const nodeId of readyVerificationNodeIds(graph, state, maxParallelism)) {
-      const node = graph.find((candidate) => candidate.id === nodeId);
-      const current = state.get(nodeId);
-      const startedAt = new Date().toISOString();
-      state.set(nodeId, { ...current, status: "RUNNING", startedAt });
-      timeline.push({ nodeId, event: "start", at: startedAt });
-      if (options.echo !== false) process.stdout.write(`START  ${node.name}\n`);
-      const promise = Promise.resolve(execute(node)).then((rawResult) => {
-        const checked = validateVerificationNodeResult(node, rawResult);
-        const result = checked.ok ? rawResult : { status: "FAIL", exitCode: 1, detail: `Node result contract failed: ${checked.error}`, durationMs: 0 };
-        const completedAt = new Date().toISOString();
-        const status = result.status;
-        state.set(nodeId, {
-          ...state.get(nodeId),
-          status,
-          exitCode: status === "PASS" ? 0 : Number(result.exitCode) || 1,
-          detail: cleanDetail(result.detail || ""),
-          durationMs: Math.max(0, Number(result.durationMs) || 0),
-          completedAt,
-        });
-        timeline.push({ nodeId, event: "complete", status, at: completedAt });
-        if (options.echo !== false) process.stdout.write(`${status}  ${node.name}${status === "FAIL" ? ` - ${cleanDetail(result.detail || "failed", 300)}` : ""}\n`);
-        return nodeId;
-      }).catch((error) => {
-        const completedAt = new Date().toISOString();
-        state.set(nodeId, { ...state.get(nodeId), status: "FAIL", exitCode: 1, detail: cleanDetail(error instanceof Error ? error.message : String(error)), completedAt });
-        timeline.push({ nodeId, event: "complete", status: "FAIL", at: completedAt });
-        return nodeId;
-      }).finally(() => active.delete(nodeId));
-      active.set(nodeId, promise);
-      startedAny = true;
-      maxParallelObserved = Math.max(maxParallelObserved, active.size);
-    }
-
-    if (active.size) {
-      await Promise.race([...active.values()]);
-      continue;
-    }
-
-    blockFailedDependencies(graph, state);
-    const unresolved = graph.filter((node) => state.get(node.id)?.status === "QUEUED");
-    if (!unresolved.length) break;
-    if (!startedAny) {
-      const now = new Date().toISOString();
-      for (const node of unresolved) state.set(node.id, { ...state.get(node.id), status: "BLOCKED", exitCode: 1, detail: "No valid dependency/resource route remained.", completedAt: now });
-      break;
-    }
-  }
-
-  if (active.size) await Promise.all([...active.values()]);
-  blockFailedDependencies(graph, state);
-
-  const stages = graph.filter((node) => node.authoritative).sort((a, b) => a.number - b.number).map((node) => {
-    const item = state.get(node.id);
+    const stages = graph.filter((node) => node.authoritative).sort((a, b) => a.number - b.number).map((node) => {
+      const item = state.get(node.id);
+      return {
+        Step: node.name,
+        Category: node.category,
+        Status: item?.status === "PASS" ? "PASS" : item?.status === "BLOCKED" ? "BLOCKED" : "FAIL",
+        ExitCode: item?.status === "PASS" ? 0 : Number(item?.exitCode) || 1,
+        Detail: item?.detail || "",
+        NodeId: node.id,
+        DurationMs: item?.durationMs || 0,
+      };
+    });
+    const nodes = graph.map((node) => ({ ...state.get(node.id), authoritative: Boolean(node.authoritative), resources: node.resources || [], dependencies: node.dependencies || [] }));
     return {
-      Step: node.name,
-      Category: node.category,
-      Status: item?.status === "PASS" ? "PASS" : item?.status === "BLOCKED" ? "BLOCKED" : "FAIL",
-      ExitCode: item?.status === "PASS" ? 0 : Number(item?.exitCode) || 1,
-      Detail: item?.detail || "",
-      NodeId: node.id,
-      DurationMs: item?.durationMs || 0,
+      schemaVersion: 1,
+      graphId: `full-verification-${Date.now()}`,
+      topology: "host-owned-responsibility-graph-adapter",
+      maxParallelism,
+      maxParallelObserved,
+      stages,
+      nodes,
+      timeline,
+      deterministicResult: stages.every((stage) => stage.Status === "PASS") ? "PASS" : "FAIL",
     };
-  });
-  const nodes = graph.map((node) => ({ ...state.get(node.id), authoritative: Boolean(node.authoritative), resources: node.resources || [], dependencies: node.dependencies || [] }));
-  return {
-    schemaVersion: 1,
-    graphId: `full-verification-${Date.now()}`,
-    topology: "host-owned-responsibility-graph-adapter",
-    maxParallelism,
-    maxParallelObserved,
-    stages,
-    nodes,
-    timeline,
-    deterministicResult: stages.every((stage) => stage.Status === "PASS") ? "PASS" : "FAIL",
-  };
+  } finally {
+    await stopManagedPlotPickleVerificationServer();
+  }
 }
 
 function argument(name, fallback = "") {

@@ -38,7 +38,7 @@ test("full verification delegates the requested checks to the graph and centrali
   assert.match(runner, /if \(\$GitHubReport\) \{ \$Arguments \+= "--github-report" \}/);
 });
 
-test("full verification graph starts the official app when needed and waits for localhost readiness", async () => {
+test("full verification graph starts its managed app server and waits for localhost readiness", async () => {
   const [runner, graph] = await Promise.all([
     read("scripts/run-plotpickle-full-check.ps1"),
     read("scripts/full-verification-graph.mjs"),
@@ -46,11 +46,15 @@ test("full verification graph starts the official app when needed and waits for 
 
   assert.match(runner, /full-verification-graph\.mjs/);
   assert.match(graph, /http:\/\/127\.0\.0\.1:4173/);
-  assert.match(graph, /Start-PlotPickle\.bat/);
+  assert.match(graph, /node_modules", "vite", "bin", "vite\.js"/);
+  assert.match(graph, /spawn\(process\.execPath, \[viteCli, "--host", "127\.0\.0\.1", "--port", "4173", "--strictPort"\]/);
   assert.match(graph, /ensurePlotPickleReady/);
-  assert.match(graph, /spawn\("cmd\.exe"/);
+  assert.match(graph, /PLOTPICKLE_STARTUP_CONTRACT:\s*"plotpickle-full-verification"/);
   assert.match(graph, /while \(Date\.now\(\) < deadline\)/);
   assert.match(graph, /id: "app-ready"[\s\S]*dependencies: \[\{ id: "production-build", require: "complete"/);
+  assert.doesNotMatch(graph, /Start-PlotPickle\.bat/);
+  assert.doesNotMatch(graph, /spawn\("cmd\.exe"/);
+  assert.doesNotMatch(graph, /shell:\s*true/);
 });
 
 test("normal startup no longer needs a UAT-prompt suppression workaround", async () => {

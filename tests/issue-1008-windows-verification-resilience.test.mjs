@@ -67,19 +67,24 @@ test("a deliberately hung verification child is stopped and reported instead of 
 });
 
 test("Pi preflight is host-bounded and missing Pi is detected without an unsafe shell probe", async () => {
-  const [runner, repairWorker] = await Promise.all([
+  const [runner, processControls, repairWorker] = await Promise.all([
     read("scripts/full-verification-progress-runner.mjs"),
+    read("scripts/full-verification-process.mjs"),
     read("scripts/run-uat-repair-agent.mjs"),
   ]);
   assert.equal(PI_PREFLIGHT_TIMEOUT_MS, 30_000);
   assert.match(runner, /process\.platform === "win32" \? "where\.exe" : "which"/);
   assert.match(runner, /node\.id === "pi-preflight"/);
   assert.match(runner, /Pi is not installed or not available on PATH/);
-  assert.match(runner, /taskkill\.exe/);
-  assert.match(runner, /await new Promise/);
-  assert.match(runner, /waitForChildClose/);
+  assert.match(runner, /terminateVerificationProcessTree\(child\)/);
   assert.match(runner, /shell: false/);
   assert.doesNotMatch(runner, /shell:\s*true/);
+
+  assert.match(processControls, /taskkill\.exe/);
+  assert.match(processControls, /return new Promise/);
+  assert.match(processControls, /waitForProcessClose/);
+  assert.match(processControls, /shell: false/);
+  assert.doesNotMatch(processControls, /shell:\s*true/);
 
   assert.match(repairWorker, /process\.env\.ComSpec \|\| "cmd\.exe"/);
   assert.match(repairWorker, /windowsCliCommand/);

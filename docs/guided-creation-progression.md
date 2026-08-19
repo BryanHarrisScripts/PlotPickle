@@ -54,7 +54,7 @@ Every curriculum group declares one central output contract describing:
 
 The early progressive visual artifact is the **Visual Narrative Wireframe**.
 
-It is intentionally rough, low resolution, disposable, regenerable and pre-final. It is not the later Storyboard/Previs production stage.
+It is intentionally rough, low resolution, disposable, regenerable and pre-final. Storyboard and Previs are later production stages.
 
 **BUILD may only visualize the completed project frontier.** A group may use only the accepted context named by its output contract. Future incomplete lessons/groups cannot be silently borrowed. Later groups may refine or branch earlier visuals, but provenance/history must remain reviewable.
 

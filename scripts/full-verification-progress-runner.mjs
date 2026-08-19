@@ -17,14 +17,15 @@ import {
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const authoritativeTotal = FULL_VERIFICATION_GRAPH.filter((node) => node.authoritative).length;
-export const PI_PREFLIGHT_TIMEOUT_MS = 30_000;
+export const PI_STACK_TIMEOUT_MS = 40 * 60_000;
+export const PI_PREFLIGHT_TIMEOUT_MS = 20 * 60_000;
 export const FULL_VERIFICATION_HEARTBEAT_MS = 10_000;
 export const FULL_VERIFICATION_STAGE_TIMEOUT_MS = Object.freeze({
   "agent-skills-registry": 5 * 60_000,
   "agent-skills-architecture": 10 * 60_000,
   "learn-curriculum": 10 * 60_000,
   "production-build": 30 * 60_000,
-  "ensure-pi-model": 5 * 60_000,
+  "ensure-pi-model": PI_STACK_TIMEOUT_MS,
   "pi-preflight": PI_PREFLIGHT_TIMEOUT_MS,
   "buzz-live": 10 * 60_000,
   "exhaustive-uat": 2 * 60 * 60_000,
@@ -97,36 +98,6 @@ function writeChunk(prefix, stream, chunk) {
   const text = String(chunk || "");
   if (!text) return;
   for (const line of text.split(/(?<=\n)/)) if (line) stream.write(`[${prefix}] ${line}`);
-}
-
-async function executableAvailable(name) {
-  const command = process.platform === "win32" ? "where.exe" : "which";
-  return new Promise((resolve) => {
-    let settled = false;
-    const child = spawn(command, [name], { cwd: repoRoot, windowsHide: true, shell: false, stdio: "ignore" });
-    const timer = setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      try {
-        child.kill();
-      } catch (error) {
-        reportProcessCleanupFailure(`could not stop ${name} availability probe`, error);
-      }
-      resolve(false);
-    }, 5_000);
-    child.on("error", () => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      resolve(false);
-    });
-    child.on("close", (code) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      resolve(code === 0);
-    });
-  });
 }
 
 export async function executeBoundedCommand(node, timeoutMs = 0) {
@@ -221,16 +192,6 @@ async function main() {
         active.set(node.id, node.name);
         try {
           if (node.tool === "app-ready") return await ensurePlotPickleReady({ startupWaitSeconds, echo: true });
-          if (node.id === "pi-preflight" && !(await executableAvailable("pi"))) {
-            const detail = "OPTIONAL REPAIR CAPABILITY UNAVAILABLE: Pi is not installed or not available on PATH. Product verification continues; Pi remains the default local repair worker, Cline remains selectable, and there is no cloud fallback.";
-            process.stderr.write(`[pi-preflight] ${detail}\n`);
-            return {
-              status: "PASS",
-              exitCode: 0,
-              detail,
-              durationMs: 0,
-            };
-          }
           return await executeBoundedCommand(node, verificationTimeoutForNode(node));
         } finally {
           active.delete(node.id);

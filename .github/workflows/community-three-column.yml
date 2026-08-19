@@ -1,0 +1,29 @@
+name: Community Three Column
+
+on:
+  pull_request:
+    paths:
+      - "app/community-navigation.module.css"
+      - "app/community-workspace.tsx"
+      - "app/community-backdoor-terminal.tsx"
+      - "app/community-backdoor-terminal.module.css"
+      - "tests/issue-1066-community-three-column-shell.test.mjs"
+      - "tests/issue-1102-community-canonical-three-column.test.mjs"
+      - ".github/workflows/community-three-column.yml"
+  workflow_dispatch:
+
+jobs:
+  community-shell:
+    name: Community shell and BBS regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate Community layout and BBS contracts
+        run: node --test tests/issue-1066-community-three-column-shell.test.mjs tests/issue-1102-community-canonical-three-column.test.mjs tests/issue-1044-verification-community-bbs.test.mjs tests/issues-940-941-community-observable-actions.test.mjs
+      - name: Production build
+        run: npm run build

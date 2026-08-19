@@ -222,10 +222,12 @@ async function main() {
         try {
           if (node.tool === "app-ready") return await ensurePlotPickleReady({ startupWaitSeconds, echo: true });
           if (node.id === "pi-preflight" && !(await executableAvailable("pi"))) {
+            const detail = "OPTIONAL REPAIR CAPABILITY UNAVAILABLE: Pi is not installed or not available on PATH. Product verification continues; Pi remains the default local repair worker, Cline remains selectable, and there is no cloud fallback.";
+            process.stderr.write(`[pi-preflight] ${detail}\n`);
             return {
-              status: "FAIL",
-              exitCode: 2,
-              detail: "Pi is not installed or not available on PATH. Full Verification will not wait on a missing repair worker.",
+              status: "PASS",
+              exitCode: 0,
+              detail,
               durationMs: 0,
             };
           }

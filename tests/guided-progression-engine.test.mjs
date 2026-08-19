@@ -7,31 +7,33 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const GROUP_ORDER = [
   "foundations",
   "world",
-  "structure",
-  "drafting",
   "character",
-  "industry",
-  "responsible-ai",
   "theme",
+  "structure",
   "visual-storytelling",
-  "revision",
+  "drafting",
   "dialogue",
+  "revision",
+  "responsible-ai",
+  "industry",
   "collaboration",
 ];
 
-test("guided progression defines the canonical twelve-group order once", async () => {
+test("guided progression defines the canonical Visual Writer twelve-group order once", async () => {
   const source = await read("modules/dashboard/guided-progression.ts");
-  assert.match(source, /export const GUIDED_CURRICULUM_GROUPS/);
+  assert.match(source, /export const VISUAL_WRITER_GROUP_ORDER/);
+  assert.match(source, /GUIDED_CURRICULUM_GROUPS[\s\S]*VISUAL_WRITER_GROUP_ORDER\.map/);
+  const orderBlock = source.slice(source.indexOf("export const VISUAL_WRITER_GROUP_ORDER"), source.indexOf("] as const;") + 11);
   let cursor = -1;
   for (const groupId of GROUP_ORDER) {
-    const next = source.indexOf(`id: "${groupId}"`);
+    const next = orderBlock.indexOf(`"${groupId}"`);
     assert.ok(next > cursor, `${groupId} should appear after the previous curriculum group`);
     cursor = next;
   }
-  assert.equal((source.match(/\{ id: "[^"]+", label: "[^"]+" \}/g) ?? []).length, 12);
+  assert.equal((orderBlock.match(/^\s+"[^"]+",$/gm) ?? []).length, 12);
 });
 
-test("Foundations remains the only implemented vertical slice", async () => {
+test("Foundations remains the only implemented vertical slice in the audit/contracts PR", async () => {
   const source = await read("modules/dashboard/guided-progression.ts");
   assert.match(source, /id: "foundations"[\s\S]*implemented: true/);
   assert.match(source, /const laterGroups = GUIDED_CURRICULUM_GROUPS\.slice\(1\)/);
@@ -64,6 +66,24 @@ test("progress percentages derive from canonical state without a second progress
   assert.match(source, /journeyPercentComplete/);
   assert.doesNotMatch(source, /localStorage|sessionStorage/);
   assert.doesNotMatch(project, /guidedProgress|journeyProgress|progressionState/);
+});
+
+test("every progression group carries the canonical output contract into consumers", async () => {
+  const source = await read("modules/dashboard/guided-progression.ts");
+  for (const field of [
+    "prerequisiteGroupIds",
+    "learned",
+    "projectDecisionKinds",
+    "affectsVisualGeneration",
+    "buildCapability",
+    "buildContextGroupIds",
+    "artifactKinds",
+    "approvalRequired",
+    "classification",
+  ]) assert.match(source, new RegExp(field));
+  assert.match(source, /readonly outputContract: GuidedGroupOutputContract/);
+  assert.match(source, /outputContract: foundationDefinition\.outputContract/);
+  assert.match(source, /\.\.\.definition/);
 });
 
 test("Dashboard renders the full generalized map but does not navigate into later curriculum workspaces", async () => {

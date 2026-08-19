@@ -18,12 +18,13 @@ test("Dashboard is a real root workspace and LEARN remains the default entry", a
   assert.match(page, /requested === "build"/);
   assert.match(page, /workspace === "dashboard"/);
   assert.match(page, /workspace === "build"/);
-  assert.match(page, /<DashboardWorkspace curriculum=\{plotPickleCurriculum\}/);
+  assert.match(page, /<DashboardWorkspace[\s\S]*curriculum=\{plotPickleCurriculum\}[\s\S]*onNavigateGuided=\{navigateGuided\}/);
   assert.match(page, /<FoundationsBuildWorkspace/);
+  assert.match(page, /<WorldBuildWorkspace/);
   assert.match(page, /return "learn"/);
 });
 
-test("Guided progression derives Foundations from canonical LEARN PLAN and BUILD state", async () => {
+test("Guided progression derives Foundations and World from canonical LEARN PLAN and BUILD state", async () => {
   const [guided, adapter, project, buildContract] = await Promise.all([
     read("modules/dashboard/guided-progression.ts"),
     read("modules/dashboard/foundations-progression.ts"),
@@ -33,13 +34,17 @@ test("Guided progression derives Foundations from canonical LEARN PLAN and BUILD
 
   assert.match(guided, /project\.learning\.completedLessonIds/);
   assert.match(guided, /buildFoundationPlanLessons\(curriculum\)/);
-  assert.match(guided, /countFoundationAnswers\(planLessons, project\.foundations\)/);
+  assert.match(guided, /countFoundationAnswers\(foundationPlanLessons, project\.foundations\)/);
   assert.match(guided, /project\.build\.foundations\.acceptedVisualArtifactIds\.length/);
-  assert.match(guided, /plan: planComplete \? "complete" : foundationLearnComplete \? "available" : "locked"/);
-  assert.match(guided, /build: buildComplete \? "complete" : planComplete \? "available" : "locked"/);
+  assert.match(guided, /foundationPlanComplete \? "complete" : foundationLearnComplete \? "available" : "locked"/);
+  assert.match(guided, /foundationBuildComplete \? "complete" : foundationPlanComplete \? "available" : "locked"/);
+  assert.match(guided, /buildWorldPlanLessons\(curriculum\)/);
+  assert.match(guided, /countWorldAnswers\(worldPlanLessons, project\.world\)/);
+  assert.match(guided, /project\.build\.world\.acceptedVisualArtifactIds\.length/);
   assert.match(adapter, /deriveGuidedCreationProgression/);
   assert.match(adapter, /worldUnlocked: Boolean\(world\?\.unlocked\)/);
   assert.match(project, /readonly build: BuildProgressState/);
+  assert.match(project, /readonly world: WorldPlanState/);
   assert.match(project, /build: createEmptyBuildProgressState\(\)/);
   assert.match(project, /build: normalizeBuild\(source\.build\)/);
   assert.match(buildContract, /visualArtifacts/);
@@ -56,14 +61,18 @@ test("BUILD acceptance is a project command rather than a Dashboard-only flag", 
   assert.match(commands, /"foundations\.visual\.store"/);
   assert.match(commands, /"foundations\.visual\.accept"/);
   assert.match(commands, /"foundations\.visual\.unaccept"/);
+  assert.match(commands, /"world\.visual\.store"/);
+  assert.match(commands, /"world\.visual\.accept"/);
   assert.match(reducer, /case "foundations\.visual\.accept"/);
+  assert.match(reducer, /case "world\.visual\.accept"/);
   assert.match(reducer, /artifactExists/);
   assert.match(reducer, /case "foundations\.visual\.unaccept"/);
+  assert.match(reducer, /case "world\.visual\.unaccept"/);
   assert.doesNotMatch(dashboard, /localStorage\.setItem/);
   assert.match(dashboard, /FOUNDATION_PROJECT_SAVED_EVENT/);
 });
 
-test("Dashboard makes the LEARN PLAN BUILD unlock path visually explicit", async () => {
+test("Dashboard makes both implemented LEARN PLAN BUILD cycles visually explicit", async () => {
   const [dashboard, styles] = await Promise.all([
     read("modules/dashboard/ui/dashboard-workspace.tsx"),
     read("modules/dashboard/ui/dashboard-workspace.module.css"),
@@ -72,21 +81,24 @@ test("Dashboard makes the LEARN PLAN BUILD unlock path visually explicit", async
   assert.match(dashboard, /deriveGuidedCreationProgression/);
   assert.match(dashboard, /journeyPercentComplete/);
   assert.match(dashboard, /nextAction\.label/);
-  assert.match(dashboard, /Learn it\. Plan it\. See it\./);
-  assert.match(dashboard, /✓ Complete/);
-  assert.match(dashboard, /→ Available/);
-  assert.match(dashboard, /🔒 Locked/);
-  assert.match(dashboard, /Complete the 11 Foundations lessons/);
-  assert.match(dashboard, /Finish the Foundations PLAN questions to open BUILD/);
-  assert.match(dashboard, /WORLD unlocks after at least one Foundations visual is accepted in BUILD/);
+  assert.match(dashboard, /Learn it\. Plan it\. See it\. Then add the next layer\./);
+  assert.match(dashboard, /FOUNDATIONS · \{stage\.label\}/);
+  assert.match(dashboard, /WORLD · Foundations \+ World/);
+  assert.match(dashboard, /World LEARN/);
+  assert.match(dashboard, /World PLAN/);
+  assert.match(dashboard, /World BUILD/);
+  assert.match(dashboard, /World stays locked until the canonical Foundations completion rule is satisfied/);
   assert.match(dashboard, /disabled=\{locked\}/);
   assert.match(dashboard, /onNavigate\(stage\.id\)/);
+  assert.match(dashboard, /onNavigateGuided\("learn", "world"\)/);
+  assert.match(dashboard, /onNavigateGuided\("plan", "world"\)/);
+  assert.match(dashboard, /onNavigateGuided\("build", "world"\)/);
   assert.match(styles, /grid-template-columns: repeat\(3/);
   assert.match(styles, /@media \(max-width: 820px\)/);
   assert.match(styles, /:focus-visible/);
 });
 
-test("BUILD creates real persisted visuals and requires explicit writer acceptance", async () => {
+test("Foundations BUILD creates real persisted visuals and requires explicit writer acceptance", async () => {
   const build = await read("modules/build/ui/foundations-build-workspace.tsx");
   assert.match(build, /deriveFoundationsProgression/);
   assert.match(build, /Finish PLAN before BUILD/);

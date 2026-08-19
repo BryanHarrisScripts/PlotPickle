@@ -53,16 +53,18 @@ test("Settings exposes permanent left categories centre controls and right help 
   assert.match(settings, /Advanced AI routing/);
 });
 
-test("README uses the approved repository-resident artwork in intentional roles", async () => {
+test("README uses the current supplied repository-resident artwork in intentional roles", async () => {
   const readme = await read("README.md");
 
-  const primary = readme.indexOf("public/brand/plotpickle-header-horizontal-1200.png");
-  const secondary = readme.indexOf("public/brand/plotpickle-icon-master-transparent.png");
-  const sage = readme.indexOf("docs/brand-sources/sage-brinewick-v2-master.png");
-  assert.ok(primary >= 0 && primary < readme.indexOf("<h1 align=\"center\">PlotPickle</h1>"), "the prepared horizontal marketing header should lead the README");
-  assert.ok(secondary > readme.indexOf("### Community"), "the creative/lore emblem should support Community/BUZZ");
-  assert.ok(sage > readme.indexOf("## Core agents and lore"), "the Sage portrait should identify the agent/lore section");
-  assert.doesNotMatch(readme, /public\/brand\/plotpickle-header-horizontal-transparent\.png/);
+  const primary = readme.indexOf("docs/brand/plotpickle-banner-dragon-logo.webp");
+  const progression = readme.indexOf("docs/brand/plotpickle-banner-learn-plan-build.webp");
+  const heading = readme.indexOf("<h1 align=\"center\">PlotPickle</h1>");
+  const progressionIntro = readme.indexOf("The core creative progression is:");
+  const visualWriter = readme.indexOf("## The Visual Writer");
+  assert.ok(primary >= 0 && primary < heading, "the current supplied dragon/logo banner should lead the README");
+  assert.ok(progression > progressionIntro && progression < visualWriter, "the supplied LEARN PLAN BUILD banner should introduce the Visual Writer section");
+  assert.doesNotMatch(readme, /plotpickle-header-horizontal-1200\.png|plotpickle-wordmark-horizontal\.svg/i);
+  assert.doesNotMatch(readme, /sage-brinewick-v5-pp-c1\.png|docs\/brand-sources\/sage-brinewick-v2-master\.png/i);
   assert.doesNotMatch(readme, /private-user-images\.githubusercontent\.com|chatgpt\.com|oaidalleapiprodscus/i);
 });
 
@@ -74,8 +76,8 @@ test("README-only identity change does not replace the live application logo or 
 
   assert.match(shell, /src="\/brand\/plotpickle-ouroboros-v3-transparent\.png"/);
   assert.match(layout, /plotpickle-ouroboros-v2-32\.png/);
-  assert.doesNotMatch(shell, /docs\/brand-sources/);
-  assert.doesNotMatch(layout, /docs\/brand-sources/);
+  assert.doesNotMatch(shell, /docs\/brand/);
+  assert.doesNotMatch(layout, /docs\/brand/);
 });
 
 test("exhaustive UAT reads the shared continuity layer on every active screen", async () => {

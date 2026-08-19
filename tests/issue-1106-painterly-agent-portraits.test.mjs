@@ -7,7 +7,6 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (path) => readFileSync(resolve(root, path), "utf8");
 const helperDirectory = JSON.parse(read("config/helper-directory.json"));
-const registry = read("lib/agent-portrait-registry.ts");
 const portraitUi = read("components/agent-portrait.tsx");
 const portraitCss = read("components/agent-portrait.module.css");
 const settingsUi = read("app/settings-helper-directory.tsx");
@@ -19,7 +18,6 @@ const learnUi = read("modules/learn/ui/learn-workspace.tsx");
 
 const activePortraitSources = [
   JSON.stringify(helperDirectory),
-  registry,
   portraitUi,
   portraitCss,
   settingsUi,
@@ -29,13 +27,13 @@ const activePortraitSources = [
   marqueeCss,
 ].join("\n");
 
-test("#1106 makes the painterly registry the only product-facing helper portrait authority", () => {
+test("#1106 makes the shared painterly component the only product-facing helper portrait authority", () => {
   assert.equal(helperDirectory.schemaVersion, 2);
   assert.equal(helperDirectory.portraitSystem, "painterly-fantasy-v1");
   assert.equal(helperDirectory.helpers.length, 17);
   for (const helper of helperDirectory.helpers) {
     assert.deepEqual(Object.keys(helper).sort(), ["group", "how", "id"]);
-    assert.match(registry, new RegExp(`id: ["']${helper.id}["']`), `${helper.id} is missing from the portrait registry`);
+    assert.match(portraitUi, new RegExp(`id: ["']${helper.id}["']`), `${helper.id} is missing from the portrait component registry`);
   }
 
   assert.doesNotMatch(activePortraitSources, /\/assets\/helpers\/16bit\//i);
@@ -44,14 +42,14 @@ test("#1106 makes the painterly registry the only product-facing helper portrait
 });
 
 test("#1106 preserves the approved Sage portrait and explicitly rejects the disallowed Sage reference", () => {
-  assert.match(registry, /id: "sage-brinewick"[\s\S]*source: "\/assets\/curriculum-guide-master-storyteller\.png"/);
+  assert.match(portraitUi, /id: "sage-brinewick"[\s\S]*source: "\/assets\/curriculum-guide-master-storyteller\.png"/);
   assert.ok(existsSync(resolve(root, "public/assets/curriculum-guide-master-storyteller.png")));
   assert.match(learnUi, /src="\/assets\/sage-brinewick-v2\.png"/);
-  assert.doesNotMatch(`${registry}\n${portraitUi}\n${learnUi}\n${marqueeUi}`, /Sage543x768-v2/i);
+  assert.doesNotMatch(`${portraitUi}\n${learnUi}\n${marqueeUi}`, /Sage543x768-v2/i);
 });
 
 test("#1106 gives Marquee the required copper-red adult elf identity and canonical lock treatment", () => {
-  assert.match(registry, /id: "marquee-director"[\s\S]*adult female elf[\s\S]*red-golden copper hair[\s\S]*elf: true/);
+  assert.match(portraitUi, /id: "marquee-director"[\s\S]*adult female elf[\s\S]*red-golden copper hair[\s\S]*elf: true/);
   assert.match(marqueeUi, /<AgentPortrait id="marquee-director" alt="" locked=\{!unlocked\} size=\{48\} \/>/);
   assert.match(marqueeUi, /disabled=\{!unlocked\}/);
   assert.match(marqueeUi, /isMarqueeDirectorUnlocked/);

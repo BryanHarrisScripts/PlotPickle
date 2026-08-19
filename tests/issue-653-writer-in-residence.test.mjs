@@ -16,8 +16,26 @@ test("Writer-in-Residence is a disclosed synthetic writer with a complete active
   assert.equal(config.persona.id, "avery-north");
   assert.match(config.persona.disclosure, /Synthetic writer persona/i);
   assert.match(config.storySeed.premise, /ferry operator/i);
-  assert.deepEqual(config.reviewScreens.map((screen) => screen.id), ["learn", "plan", "wyrmwood", "settings"]);
-  assert.ok(config.allowedRoutes.includes("/?workspace=settings"));
+  assert.deepEqual(config.reviewScreens.map((screen) => screen.id), [
+    "dashboard",
+    "learn",
+    "plan",
+    "foundations-build",
+    "world-learn",
+    "world-plan",
+    "world-build",
+    "wyrmwood",
+    "settings",
+  ]);
+  for (const route of [
+    "/?workspace=dashboard",
+    "/?workspace=build&section=foundations",
+    "/?workspace=learn&section=world",
+    "/?workspace=plan&section=world",
+    "/?workspace=build&section=world",
+    "/?workspace=settings",
+  ]) assert.ok(config.allowedRoutes.includes(route));
+  assert.equal(config.reviewScreens.some((screen) => /character/i.test(screen.id) || /character/i.test(screen.route)), false);
 });
 
 test("Avery keeps the required silly two-message Sage conversation", async () => {

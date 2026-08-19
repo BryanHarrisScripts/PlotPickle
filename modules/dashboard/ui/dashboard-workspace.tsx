@@ -12,6 +12,7 @@ import {
   deriveGuidedCreationProgression,
   type ProgressStageState,
 } from "../guided-progression";
+import { deriveVisualWriterFrontierStatus } from "../visual-writer-frontier";
 import styles from "./dashboard-workspace.module.css";
 
 type DashboardDestination = "learn" | "plan" | "build";
@@ -61,8 +62,12 @@ export default function DashboardWorkspace({
     () => project ? deriveGuidedCreationProgression(curriculum, project) : null,
     [curriculum, project],
   );
+  const frontierStatus = useMemo(
+    () => project ? deriveVisualWriterFrontierStatus(curriculum, project) : null,
+    [curriculum, project],
+  );
 
-  if (!project || !progression) {
+  if (!project || !progression || !frontierStatus) {
     return <main className={styles.screen}>Opening Dashboard…</main>;
   }
 
@@ -88,8 +93,19 @@ export default function DashboardWorkspace({
           Foundations establishes the first accepted story frontier. World now repeats the same LEARN → PLAN → BUILD cycle,
           adding only worldbuilding decisions and preserving earlier visual history.
         </p>
-        <p><strong>Next:</strong> {progression.nextAction.label} — {progression.nextAction.detail}</p>
       </header>
+
+      <section className={styles.nextModule} aria-label="Visual Writer current frontier">
+        <div>
+          <p className={styles.kicker}>Current Visual Writer state</p>
+          <h2>{frontierStatus.currentGroupLabel} · {frontierStatus.currentWorkspace?.toUpperCase() ?? "GATED"}</h2>
+          <p><strong>Frontier:</strong> {frontierStatus.frontierLabel}</p>
+          <p><strong>Artifacts:</strong> {frontierStatus.acceptedArtifactCount} accepted · {frontierStatus.draftArtifactCount} draft</p>
+          <p><strong>Next:</strong> {frontierStatus.nextActionLabel} — {frontierStatus.nextActionDetail}</p>
+          {frontierStatus.stopReason ? <p><strong>Current stopping point:</strong> {frontierStatus.stopReason}</p> : null}
+        </div>
+        <span className={styles.nextBadge}>{frontierStatus.reachedImplementedBuildFrontier ? "Frontier reached" : "In progress"}</span>
+      </section>
 
       <section className={styles.path} aria-label="Foundations LEARN PLAN BUILD progression">
         {STAGES.map((stage) => {

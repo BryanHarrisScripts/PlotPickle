@@ -79,8 +79,9 @@ test("Dashboard makes both implemented LEARN PLAN BUILD cycles visually explicit
   ]);
 
   assert.match(dashboard, /deriveGuidedCreationProgression/);
+  assert.match(dashboard, /deriveVisualWriterFrontierStatus/);
   assert.match(dashboard, /journeyPercentComplete/);
-  assert.match(dashboard, /nextAction\.label/);
+  assert.match(dashboard, /frontierStatus\.nextActionLabel/);
   assert.match(dashboard, /Learn it\. Plan it\. See it\. Then add the next layer\./);
   assert.match(dashboard, /FOUNDATIONS · \{stage\.label\}/);
   assert.match(dashboard, /WORLD · Foundations \+ World/);

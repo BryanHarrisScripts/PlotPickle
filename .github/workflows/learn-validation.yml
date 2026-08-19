@@ -43,6 +43,9 @@ jobs:
       - name: Validate World Visual Writer vertical slice
         run: node --test tests/issue-1030c-world-vertical-slice.test.mjs
 
+      - name: Validate Avery and Dashboard Visual Writer frontier
+        run: node --test tests/issue-1030d-avery-dashboard-frontier.test.mjs tests/issue-653-writer-in-residence.test.mjs
+
       - name: Validate lorebound agent avatars
         run: node --test tests/issue-1056-lorebound-agent-avatars.test.mjs tests/issue-594-local-learn-rag-and-brand.test.mjs
 

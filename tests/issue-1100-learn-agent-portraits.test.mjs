@@ -5,16 +5,15 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#1100 LEARN agent selector uses illustrated non-pixel Sage and Marquee identities", async () => {
-  const [overlay, registry, portraitUi] = await Promise.all([
+  const [overlay, portraitUi] = await Promise.all([
     read("modules/learn/ui/marquee-agent-overlay.tsx"),
-    read("lib/agent-portrait-registry.ts"),
     read("components/agent-portrait.tsx"),
   ]);
   assert.match(overlay, /<AgentPortrait id="sage-brinewick"/);
   assert.match(overlay, /<AgentPortrait id="marquee-director"/);
-  assert.match(registry, /id: "sage-brinewick"[\s\S]*source: "\/assets\/curriculum-guide-master-storyteller\.png"/);
-  assert.match(registry, /id: "marquee-director"[\s\S]*adult female elf[\s\S]*red-golden copper hair/);
-  assert.doesNotMatch(`${overlay}\n${registry}\n${portraitUi}`, /\/assets\/helpers\/16bit\/|shape-rendering="crispEdges"|8-bit|16-bit|pixelated/i);
+  assert.match(portraitUi, /id: "sage-brinewick"[\s\S]*source: "\/assets\/curriculum-guide-master-storyteller\.png"/);
+  assert.match(portraitUi, /id: "marquee-director"[\s\S]*adult female elf[\s\S]*red-golden copper hair/);
+  assert.doesNotMatch(`${overlay}\n${portraitUi}`, /\/assets\/helpers\/16bit\/|shape-rendering="crispEdges"|8-bit|16-bit|pixelated/i);
 });
 
 test("#1100 keeps Sage first and Marquee visibly present beside Sage before unlock", async () => {

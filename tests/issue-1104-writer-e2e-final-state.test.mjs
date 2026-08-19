@@ -195,7 +195,7 @@ test("#1104 keeps Avery UI-only while the separate observer owns browser_evaluat
   assert.match(completion, /complete\|incomplete/);
   assert.match(completion, /Create first poster/);
   assert.match(completion, /Generate.*wireframe/);
-  assert.match(completion, /World LEARN/);
+  assert.match(completion, /record\("world-learn"/);
   assert.match(completion, /World PLAN/);
   assert.match(completion, /World BUILD/);
   assert.match(observer, /browser_evaluate/);

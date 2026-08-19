@@ -34,6 +34,9 @@ jobs:
       - name: Validate the bundled LEARN curriculum
         run: npm run validate:learn
 
+      - name: Validate Visual Writer progression contracts
+        run: node --test tests/guided-progression-engine.test.mjs tests/issue-1030-visual-writer-progression.test.mjs
+
       - name: Validate Agent Skills migration
         run: node --test tests/issue-913-agent-skills-migration.test.mjs
 

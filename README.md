@@ -1,527 +1,289 @@
 <p align="center">
-  <img src="public/brand/plotpickle-header-horizontal-1200.png" alt="PlotPickle — local-first creative story platform" width="960">
+  <img src="docs/brand/plotpickle-banner-dragon-logo.webp" alt="PlotPickle dragon, compass-nib emblem and wordmark" width="960">
 </p>
 
 <h1 align="center">PlotPickle</h1>
 
-<p align="center"><strong>Shape the story. Learn the craft. Test the choices. Keep the writer in control.</strong></p>
+<p align="center"><strong>Learn the craft. Make the decisions. See the story take shape.</strong></p>
 
-<p align="center">Local-first · LEARN-centered · Agent-skilled · Capability-routed · Self-verifying · Studio-connected</p>
+<p align="center">Local-first · Writer-controlled · Visual Writer · Agent-assisted · BUZZ-connected · Self-verifying</p>
 
-PlotPickle is a local-first, LEARN-centered creative platform—server-based but client-capable—with a real Agent Skills runtime, capability-based model routing, a closed-loop verification and repair system, and the beginnings of BUZZ federation between PlotPickle Studios.
+PlotPickle is a local-first creative studio for writers, artists and AI tinkerers. It combines a structured writing curriculum, editable story planning, visual development, local or bring-your-own AI, a shared Community/BBS, named helper agents and a deterministic verification loop.
 
-The writer remains the author. Agents, models, tools and community systems help the writer learn, explore, test and refine decisions without silently taking ownership of the work.
+The writer remains the author. AI can explain, draft, visualize, test and suggest, but it does not silently turn generated material into story canon.
 
-The active product spine is deliberately small:
+The current product spine is:
 
-Dashboard · Community · Learn · Plan · Wyrmwood · Settings
+**Dashboard · Community · LEARN · PLAN · BUILD · Wyrmwood · Settings**
 
-<table align="center">
-  <tr>
-    <td align="center" width="110"><img src="public/assets/workflow-relics/dashboard.webp" alt="Dashboard glyph" width="66"><br><strong>Dashboard</strong></td>
-    <td align="center" width="110"><img src="public/assets/workflow-relics/community.svg" alt="Community glyph" width="66"><br><strong>Community</strong></td>
-    <td align="center" width="110"><img src="public/assets/workflow-relics/learn.webp" alt="Learn glyph" width="66"><br><strong>Learn</strong></td>
-    <td align="center" width="110"><img src="public/assets/workflow-relics/plan.webp" alt="Plan glyph" width="66"><br><strong>Plan</strong></td>
-    <td align="center" width="110"><img src="public/assets/workflow-relics/game.webp" alt="Wyrmwood game glyph" width="66"><br><strong>Wyrmwood</strong></td>
-    <td align="center" width="110"><img src="public/assets/workflow-relics/settings.svg" alt="Settings glyph" width="66"><br><strong>Settings</strong></td>
-  </tr>
-</table>
+The core creative progression is:
 
-The broader PlotPickle modules still exist in the repository. They are parked off to the side until Storyboard, Write, Edit, Graphic Novel, Build, Feedback, Refine, Reports and other historical surfaces are deliberately reworked into the simpler active architecture. Old code does not make a surface part of the current product merely because it still exists.
+**LEARN → PLAN → BUILD**
 
-## Product layout contract
-
-Active PlotPickle workspaces use one shared three-column room rather than each feature inventing its own layout.
-
-On a normal desktop the shared contract is:
-
-- left: 19% — navigation, curriculum, categories or room selection;
-- centre: 56% — the active lesson, plan, game, conversation or work surface;
-- right: 25% — persistent agent, help, status, authority or contextual guidance.
-
-The shell remains three-column through the supported compact desktop range and then deliberately collapses to a single-column experience on smaller screens. LEARN, PLAN, Wyrmwood, Community and Settings follow this continuity contract. Any parked module that returns to the active product must adopt the same left-navigation / centre-work / right-context model.
-
-This layout contract is separate from the system architecture diagram below. The architecture diagram explains how product, agents, engines, tools, data and the developer loop connect; it is not a literal screenshot of the application navigation.
-
-## Core product
-
-### Learn
-
-LEARN is the front door to PlotPickle's curriculum.
-
-The writer reads the lesson in the centre, navigates the curriculum on the left, and works with Sage Brinewick on the right. Sage is the resident Lorekeeper: a conversational curriculum guide powered by the local Mastra agent runtime.
-
-LEARN is intended to answer a simple question: what does the writer need to understand before making the next story decision?
-
-### Plan
-
-PLAN turns learning into editable story foundations.
-
-Each foundation question includes short prompts that help the writer think before answering. The writer can answer manually or ask a configured AI route to draft an editable answer. AI fills only the selected work, keeps invented story choices provisional, and does not pretend generated material is canon.
-
-Tamsin Hearthquill, Keeper of Foundations, is the PLAN agent.
-
-### Wyrmwood
-
-Wyrmwood is the GAME layer.
-
-Instead of only explaining craft, PlotPickle can challenge the writer with a playable story problem derived from the curriculum. Master Oaken-Vague acts as the Rival Director and Rowan Scalequill evaluates the lesson-specific response.
-
-The purpose of Wyrmwood is not to replace the writer's decision. It is to pressure-test whether the writer understands and can apply what was learned.
-
-### Community
+PlotPickle currently implements that progression through **Foundations** and **World**. Character is the next Visual Writer frontier. The complete 81-lesson curriculum remains available; later groups stay gated until their vertical slices are deliberately implemented.
 
 <p align="center">
-  <img src="public/brand/plotpickle-icon-master-transparent.png" alt="PlotPickle creative and lore emblem" width="250">
+  <img src="docs/brand/plotpickle-banner-learn-plan-build.webp" alt="PlotPickle fantasy banner showing LEARN, PLAN and BUILD" width="960">
 </p>
 
-Community is PlotPickle's native collaboration surface, powered underneath by BUZZ.
+## The Visual Writer
 
-The writer should normally stay inside PlotPickle. Buzz Desktop is a companion interface for owner-level administration and BUZZ capabilities PlotPickle has not wrapped yet. PlotPickle-owned Community and Guildhall surfaces use the same dark matte-black, teal/turquoise/jade and gold visual system as the rest of PlotPickle. PlotPickle does not patch another application's installed theme files.
+PlotPickle is organized around one shared progression engine rather than a pile of disconnected tools.
 
-Community includes the Great Hall, private Story Rooms, membership and presence, Agents & Stewards, the Review Queue and the Guildhall developer/coordination area. Story Rooms are real BUZZ channels rather than a second copy of the conversation.
+### LEARN
 
-### Settings
+LEARN is the curriculum and teaching room. The writer navigates the lesson library on the left, reads and works in the centre, and can ask **Sage Brinewick**, the Lorekeeper, for curriculum-grounded help on the right.
 
-Settings owns the connections and runtime controls needed by the active product: local AI, optional providers, BUZZ, runtime health and advanced details when required.
+The curriculum is the source for what each writing group teaches. Progression is explicit: later work does not become available merely because a user discovers a URL or button.
 
-Settings uses the same three-column room: categories on the left, active controls in the centre, and persistent help/status context on the right. Technical controls should stay out of the writer's way unless the writer chooses to open them.
+### PLAN
 
-## How PlotPickle works
+PLAN turns completed learning into editable story decisions. Answers remain provisional until the writer accepts them. PlotPickle stores those decisions in the project/PPF authority model rather than hiding them inside a chat transcript.
 
-The visual architecture poster is directionally correct, but the repository makes several important distinctions that the poster must preserve:
+Foundations and World use the same canonical progression/output engine. World begins only after the accepted Foundations frontier.
 
-1. Pi and Cline are developer repair workers, not in-product AI engines.
-2. Qwen, DeepSeek and similar names are model families, not inference runtimes. Ollama, LM Studio, llama.cpp and OpenAI-compatible endpoints are runtimes/endpoints.
-3. The active product navigation is currently Dashboard, Community, Learn, Plan, Wyrmwood and Settings. The larger historical module set is parked, not active.
-4. MCP, plugins, APIs and automation form the connector/capability boundary; Skills define PlotPickle procedures and do not grant new permissions.
-5. Visual understanding / visual QA is intentionally separate from image generation.
-6. The developer improvement loop is outside the shipped product runtime and ends at an exact tested GitHub head, not at an agent deciding to merge itself.
+### BUILD
 
-The corrected repository-level system map is:
+BUILD turns accepted decisions into reviewable visual story artifacts.
 
-```mermaid
-flowchart TB
-    Creators[Writers · Artists · Storytellers · AI tinkerers]
+The current Visual Narrative Wireframe is intentionally rough and revision-aware. Foundations establishes the first visual frontier. World can then add, revise, retain or supersede only the frames materially affected by accepted worldbuilding decisions. Earlier accepted history and lineage are preserved instead of being silently overwritten.
 
-    subgraph Studio[PlotPickle Studio — active product]
-      Dashboard[Dashboard]
-      Community[Community / BUZZ]
-      Learn[LEARN · Sage Brinewick]
-      Plan[PLAN · Tamsin Hearthquill]
-      Game[Wyrmwood · Master Oaken-Vague + Rowan Scalequill]
-      Settings[Settings]
-      Review[Human Review Queue]
-    end
+Generation is provider-agnostic. PlotPickle can use the configured local image route, including the managed local ComfyUI engine. A paid/cloud route requires explicit acknowledgement; a failed local route never silently becomes a paid request.
 
-    Parked[Parked modules\nStoryboard · Write · Edit · Graphic Novel · Build · Feedback · Refine · Reports · others]
+## One workspace language
 
-    subgraph Agents[Product agent runtime]
-      Mastra[Mastra]
-      Router[Capability / provider router]
-      Skills[Skills registry\n.agents/skills/*/SKILL.md\nconfig/agent-skills.json]
-    end
+PlotPickle uses a shared three-column workspace on normal desktop screens:
 
-    subgraph Connectors[Connector and tool boundary]
-      MCP[MCP]
-      Plugins[Plugins]
-      APIs[External APIs]
-      Automation[Automation / tool servers]
-    end
+- **19% left** — navigation, curriculum, rooms, categories or server context;
+- **56% centre** — the active lesson, plan, build surface, game or conversation;
+- **25% right** — agent, commands, help, status or contextual guidance.
 
-    subgraph Local[Local AI runtimes / endpoints]
-      Ollama[Ollama]
-      LMStudio[LM Studio]
-      LlamaCpp[llama.cpp]
-      LocalOpenAI[OpenAI-compatible local endpoints]
-    end
+The layout collapses deliberately on small screens instead of allowing individual workspaces to invent unrelated page structures.
 
-    subgraph Cloud[Optional cloud / BYOK]
-      CloudProviders[Configured AI SDK / OpenAI-compatible providers]
-      CreativeProviders[Optional image / video / specialist providers]
-    end
+Community/BBS follows the same contract: live BUZZ server/caller/presence on the left, active BBS content in the centre, and keyboard commands/context on the right.
 
-    subgraph Data[Data, memory and creative authority]
-      PPF[(PPF\ncreative authority)]
-      Curriculum[Curriculum / foundations]
-      Story[Story bible · characters · worldbuilding]
-      Assets[Assets]
-      Receipts[Receipts / logs]
-    end
+## Community, BBS and BUZZ
 
-    Creators --> Studio
-    Studio -. deliberately rework before activation .-> Parked
+PlotPickle Community is a writer-friendly interface over **BUZZ**, the signed messaging, presence and coordination layer.
 
-    Learn --> Mastra
-    Plan --> Mastra
-    Game --> Mastra
-    Mastra --> Router
-    Skills -. procedure / playbooks .-> Mastra
-    Router <--> Connectors
-    Router --> Local
-    Router --> Cloud
+The default Community entrance is the **PlotPickle Community BBS**. It provides the Great Hall, Story Rooms, Connected Studios, People, Agents & Stewards, Review Queue and Guildhall while keeping the user inside the same PlotPickle shell.
 
-    Studio <--> Data
-    Community <--> BUZZ[BUZZ Community Layer\nNostr signed-event coordination]
-    Community -. suggestions .-> Review
-    Review -->|explicit human approval| PPF
+The value labelled **NODE** is always the real connected BUZZ community/node name. PlotPickle does not substitute a product nickname when displaying a relay node.
 
-    VisualQA[Read-only visual observer / visual QA] -. rendered evidence .-> Studio
-    VisualQA -. does not generate images .-> Receipts
+### One conversation, two clients
 
-    subgraph Dev[Developer / improvement loop — outside product runtime]
-      Guildhall[BUZZ Guildhall / verified handoff]
-      UAT[Focused UAT + Writer-in-Residence]
-      Repair[Pi default repair worker / Cline selectable]
-      Worktree[Isolated branch / worktree]
-      Gates[Focused regression + UAT contracts + production build]
-      PR[GitHub\ncode / PR / merge authority]
-      Merge[Exact tested green head merge]
-      Guildhall --> UAT --> Repair --> Worktree --> Gates --> PR --> Merge
-    end
+PlotPickle and BUZZ Desktop are two clients over the **same signed BUZZ room history**. They do not maintain competing copies of Community chat.
 
-    Receipts -. minimum necessary evidence .-> Guildhall
-```
+If a writer intentionally posts a Great Hall or Story Room message from PlotPickle, BUZZ Desktop reads that same BUZZ event. A message posted from BUZZ Desktop is read back by PlotPickle from the same room history. BUZZ event IDs provide the reconciliation identity.
 
-## Authority boundaries
+This does **not** mean PlotPickle automatically uploads creative work. LEARN answers, PLAN decisions, BUILD artifacts, PPF state, drafts, local files, provider prompts and credentials remain local unless the writer explicitly shares content into a Community destination.
 
-PlotPickle deliberately separates creative authority, product-agent runtime, community coordination and software development.
+### BBS Moderator
 
-| Layer | Authority |
-|---|---|
-| Writer | Final creative decision maker |
-| PPF | Canonical creative record |
-| Mastra | Runtime for PlotPickle product agents |
-| AI provider | Generates suggestions and drafts; never owns canon |
-| Skills | Procedure/playbooks; cannot grant permissions the host does not already allow |
-| MCP / plugins / APIs | Capabilities and connectors |
-| BUZZ | Signed community, Story Room, coordination, presence and audit layer |
-| GitHub | Canonical code, issue, pull-request and merge authority |
-| UAT / visual observer | Evidence and quality signals; not creative authority |
-| Pi / Cline | Developer repair workers; not product agents or model engines |
+**Merrin Bellwarden** is the Community BBS Moderator. Merrin is designed as an owner-approved BUZZ-managed identity with its own signing identity and Great Hall membership. A normal greeting such as “hi” or “hello” can receive a natural welcome without requiring an @mention.
 
-A BUZZ message does not become story canon automatically. A Mastra response does not become story canon automatically. A generated PLAN answer remains editable. PPF changes require the writer's approval.
+Merrin is a host and conversational guide, not an autonomous enforcement system. Public-room memory is bounded; private Story Rooms and PPF project state are outside the Moderator’s default read scope. Merrin cannot ban users, alter story canon, change code or write GitHub state.
 
-## Core agents and lore
+BUZZ Desktop remains the owner-level interface for creating/approving managed BUZZ identities and advanced BUZZ administration. PlotPickle reports real identity/presence state rather than pretending an unapproved agent is online.
 
-<p align="center">
-  <img src="docs/brand-sources/sage-brinewick-v2-master.png" alt="Sage Brinewick, PlotPickle Curriculum Guide and Lorekeeper" width="320">
-</p>
+## Agents and helpers
 
-| Name | Role | Core responsibility | Runtime |
-|---|---|---|---|
-| Sage Brinewick | Lorekeeper | LEARN curriculum mentor and conversational story guide | Mastra |
-| Tamsin Hearthquill | Keeper of Foundations | PLAN foundations drafting and guidance | Mastra |
-| Master Oaken-Vague | Keeper of the Wyrmwood | Creates playable curriculum-bound Wyrmwood challenges | Mastra |
-| Rowan Scalequill | Arbiter of Lessons | Evaluates Wyrmwood responses against the supplied lesson | Mastra |
-| Quillan Reedcloak | Story Scribe | Coordinates creative specialists while preserving writer approval | Mastra |
-| Elowen Mapweaver | Cartographer of Beats | Maps structure, causality, stakes and the 24 Block / 96 Mini-Block journey | Mastra |
-| Mira Threadmere | Threadkeeper | Protects accepted continuity and surfaces contradictions for review | Mastra |
-| Avery North | The Wayfarer | Synthetic first-time writer used for experience UAT | PlotPickle UAT |
-| Luma Glassfern | Lantern Warden | Read-only rendered visual observer | Deterministic observer |
-| Bram Gatewick | Gatewarden | Deterministic quality and UAT gate | UAT |
-| Rook Ironquill | Forgekeeper | Coordinates verified developer-repair handoffs | Repository workflow |
-| Orin Ledgerbark | Archivist of the Hall | Optional BUZZ-native history and receipt steward | BUZZ |
-| Fen Copperwind | Herald of the Forge | Optional BUZZ-native engineering handoff steward | BUZZ |
+PlotPickle’s helper identities come from host-owned Agent Profiles. Names, responsibilities, capability requests and authority boundaries are not redefined separately by each screen.
 
-Mastra remains the brain for PlotPickle's product agents. BUZZ does not replace their reasoning runtime. Developer workers such as Pi and Cline are also separate from Mastra's product-agent runtime.
+Settings → Help provides a plain-language **Meet the Helpers** directory. Non-Sage helpers use the current 16-bit full-body fantasy/lore portrait system in circular teal/gold medallions. Sage keeps the established approved portrait and guide presentation.
 
-The Agents & Stewards view can therefore show several identities at the same time without implying that every identity is executing inside BUZZ. Product agents such as Sage, Tamsin, Master Oaken-Vague, Rowan, Quillan, Elowen and Mira reason through Mastra and can have their activity or presence mirrored into BUZZ. Avery belongs to the synthetic UAT journey; Luma and Bram are quality roles; Rook coordinates developer handoffs; Orin and Fen are the BUZZ-native roles. Think of BUZZ as the shared hall, message bus and coordination layer, not as the brain that runs every agent.
+| Helper | Role | Purpose |
+|---|---|---|
+| Sage Brinewick | Lorekeeper | Curriculum-grounded LEARN mentor and story guide |
+| Tamsin Hearthquill | Keeper of Foundations | Turns learning into reviewable PLAN decisions |
+| Master Oaken-Vague | Keeper of the Wyrmwood | Creates curriculum-bound Wyrmwood challenges |
+| Rowan Scalequill | Arbiter of Lessons | Evaluates Wyrmwood responses against the lesson |
+| Quillan Reedcloak | Story Scribe | Coordinates creative specialist options |
+| Elowen Mapweaver | Cartographer of Beats | Maps structure, causality, stakes and story progression |
+| Mira Threadmere | Threadkeeper | Protects accepted continuity and surfaces conflicts |
+| Critics’ Circle | Independent Story Review | Pressure-tests story clarity and audience experience |
+| The Marquee Director | Key Art & Trailer Director | Develops reviewable campaign-image and trailer concepts |
+| Luma Glassfern | Lantern Warden | Read-only rendered visual observer |
+| Orin Ledgerbark | Archivist of the Hall | Searches approved Guildhall history and receipts |
+| Merrin Bellwarden | BBS Moderator | Welcomes and helps callers in public Community conversation |
+| Avery North | The Wayfarer | Synthetic first-time writer used for product UAT |
+| Bram Gatewick | Gatewarden | Represents deterministic quality gates |
+| Rook Ironquill | Forgekeeper | Coordinates verified developer repair handoffs |
+| BEN | Code-quality reviewer | Finds maintainability and discoverability regressions |
+| Fen Copperwind | Herald of the Forge | Produces verified GitHub-ready engineering handoffs |
 
-## Agent skills
+An agent’s personality does not grant authority. PPF remains creative authority, deterministic tests remain PASS/FAIL authority, and GitHub remains code/PR/merge authority.
 
-PlotPickle separates procedure from capability.
+## Avery and Writer-in-Residence
 
-- `AGENTS.md` is the shared development constitution for human developers and repository-aware coding agents.
-- `.agents/skills/<skill-id>/SKILL.md` contains progressively disclosed job procedures.
-- `config/agent-skills.json` is the lightweight discovery registry.
-- skill metadata uses `skill://` URIs and is filesystem-first / MCP-Resource-ready.
-- a skill never grants tool, credential, git, network, privacy or merge permissions that the host does not already provide.
+Avery North is a disclosed synthetic first-time writer used to exercise PlotPickle through visible UI behavior.
 
-Current registered procedures include UAT repair, Sage Brinewick, PLAN Foundations, Writer-in-Residence, Visual QA and BUZZ Guildhall reporting.
+Avery now travels across Dashboard, Foundations and World LEARN/PLAN/BUILD, Wyrmwood and Settings. Session evidence is persisted locally for review. Dashboard shows exactly four Writer-in-Residence session slots; filled sessions open an in-app review, while unavailable POSTER/TRAILER actions remain visibly disabled rather than pretending an artifact exists.
 
-## BUZZ: community and coordination
-
-BUZZ is part of the collaboration architecture rather than a second writing product.
-
-PlotPickle uses BUZZ for community discussion, private Story Rooms, member access and presence, agent/steward visibility, Guildhall handoffs, Writer-in-Residence and UAT evidence, visual-review findings, runtime health and verified development handoffs before GitHub work.
-
-BUZZ also carries PlotPickle Playhouse federation. A local installation is represented as a PlotPickle Studio with its own permanent Studio identity. A Studio can publish a small, signed presence event and discover other permitted Studios through BUZZ. This is deliberately not a direct connection from another person's PlotPickle application into the local PlotPickle web server: the local server remains private, and federation travels outward through the BUZZ/Playhouse layer. Connected Studios therefore means connected creative Studios, not exposed local HTTP ports.
-
-BUZZ does not silently modify PPF and does not replace GitHub. PlotPickle keeps those authority boundaries explicit.
+Avery does not receive hidden DOM/source/localStorage shortcuts to “pass” the product. Deterministic UAT remains authoritative.
 
 ## Local-first AI
 
-PlotPickle is designed to work with local AI first.
+PlotPickle routes AI by capability rather than hard-wiring the product to one model or inference application.
 
-The active in-product agent runtime is Mastra. Provider routing sits underneath it so PlotPickle is not tied to one inference application or model family.
+Local text/model endpoints can include:
 
-Local runtime / endpoint options include Ollama, LM Studio, llama.cpp and generic OpenAI-compatible local endpoints. Names such as Qwen and DeepSeek describe model families that can run behind those endpoints; they should not be documented as if they were equivalent to Ollama or llama.cpp.
+- Ollama;
+- LM Studio;
+- llama.cpp;
+- other OpenAI-compatible local endpoints.
 
-Local failures must not silently become paid cloud requests. Provider choice, availability, hardware suitability and advanced routing belong in Settings.
+Optional cloud/BYOK providers can sit behind the same routing boundary when the user explicitly configures them.
 
-## Plain-English technology guide
+Model families such as Qwen or DeepSeek are models, not runtimes. The hardware-aware layer can recommend appropriate models/quantization for the machine rather than assuming every computer can run the same stack.
 
-This section is intentionally written for someone running PlotPickle locally who wants to understand the words that appear in tests, logs, Settings and development discussions without needing a software-engineering background.
+### Local ComfyUI engine
 
-### The most important terms
+ComfyUI is PlotPickle’s local node-based creative-compute option for image workflows.
 
-| Term | Plain-English meaning in PlotPickle |
-|---|---|
-| Agent | A named AI-assisted role with a specific job. Sage teaches; Tamsin helps with Foundations; other agents handle structure, continuity, testing or coordination. An agent is not automatically allowed to change everything. |
-| Product agent | An agent the writer encounters as part of PlotPickle. Product agents use Mastra as their reasoning/runtime layer. |
-| Synthetic agent / synthetic writer | A test identity rather than a real person. Avery North behaves like a first-time writer so PlotPickle can test the experience repeatedly. Synthetic feedback is evidence, not real-user feedback. |
-| Subagent | A temporary specialist launched by another developer agent to work on a smaller task in isolation or in parallel. Subagents help divide work; they do not gain extra authority. |
-| Skill / Agent Skill | A written procedure or playbook telling an agent how to perform a particular PlotPickle job. A Skill is closer to a job manual than to a new AI model. It cannot grant permissions the host has not already granted. |
-| Model | The actual AI model doing language or vision work, for example a Qwen-family model. |
-| Runtime | The program that loads or serves a model, such as Ollama, LM Studio or llama.cpp. Mastra is the product-agent runtime/orchestration layer, not a model. |
-| Provider | The source PlotPickle asks for an AI capability. A provider can be local or optional cloud/BYOK. |
-| Endpoint | The address/software interface PlotPickle talks to when it sends a model request. An OpenAI-compatible endpoint means the interface follows the same general API shape even when the model is running locally. |
-| Token | A small piece of text an AI model reads or writes. Token counts affect how much information fits in a model's working context and, for paid cloud models, can affect cost. This is different from an API token or access token, which is a secret credential. |
-| Context window | The amount of information the model can consider at one time: instructions, recent conversation, retrieved material and tool information. Think of it as the model's working desk. |
-| Context compaction | Condensing older working context so the model can keep the important parts while freeing room for new work. PlotPickle's Pi configuration reserves space and keeps a recent-token portion while compaction is enabled. |
-| Context injection | Extra instructions or tool information inserted into an agent's working context by the host or an extension. `pi-context-view` exists so a developer can inspect this rather than guessing what filled the context. |
-| MCP | Model Context Protocol. A standard way for an AI agent to discover and call external tools. In plain terms, MCP is a common plug/socket between an agent and tools such as a browser, filesystem-aware service or PlotPickle developer service. |
-| MCP server | A process that offers a set of MCP tools/resources. It is not necessarily a web server and does not mean the service is public on the internet. |
-| MCP tool | One callable operation supplied through MCP, for example navigate a browser, click a control, read a resource or invoke a developer function. |
-| Harness | The testing machinery that drives PlotPickle and observes what happened. The harness can launch a browser, click controls, type text and collect evidence. A harness error can mean the test machinery failed even when the PlotPickle feature itself is fine. |
-| UAT | User Acceptance Testing. Testing the product from the user's point of view rather than only testing individual functions in code. PlotPickle has focused UAT, exhaustive UI/UX UAT and the Writer-in-Residence journey. |
-| Deterministic test | A check with a fixed rule: given the same correct code/state, it should produce the same PASS or FAIL. PlotPickle's deterministic checks remain the authority for verification PASS/FAIL. |
-| Regression test | A test added to make sure a bug that was fixed does not quietly return later. |
-| Visual observer / Visual QA | A read-only quality role that inspects rendered layout facts such as clipping, overlap and spacing. It is intentionally separate from image generation. |
-| Verification Inbox | PlotPickle's local, append-only record of Full Verification runs. It keeps the deterministic result and evidence without allowing an agent to rewrite a failed run into a pass. |
-| Telemetry / diagnostics | Operational information about what the software, tests or agents are doing. PlotPickle keeps this separate from normal Great Hall human conversation so engineering noise does not become chat. |
+PlotPickle can use a reviewed managed ComfyUI instance headlessly and can reuse shared model paths from an existing ComfyUI Desktop installation. Desktop remains useful for inspecting and editing workflows, but PlotPickle startup does not wait for the Desktop UI.
 
-### BUZZ, agents and multiple PlotPickle Studios
+User-facing status distinguishes the important facts instead of collapsing them into one ambiguous “connected” state: **Installed · Running · Model ready · Test needed · Active**.
 
-BUZZ has two related jobs: it is the Community transport underneath Great Hall and Story Rooms, and it is the coordination/audit layer used by agents, UAT and developer workflows.
+The default local ComfyUI endpoint is loopback-only (`127.0.0.1:8188`) unless the user deliberately configures something else.
 
-A useful mental model is that Mastra is the product agents' brain, while BUZZ is the hall they can meet in, leave signed notes in and pass work through. Multiple agent identities can be visible in BUZZ at the same time. That does not mean BUZZ itself is running all of their reasoning.
+## Settings and provider setup
 
-| Term | Plain-English meaning in PlotPickle |
-|---|---|
-| BUZZ | The signed community, messaging, presence, coordination and audit layer used underneath PlotPickle Community and development handoffs. |
-| Great Hall | The main human-readable community conversation area. Operational telemetry is intentionally filtered away from this normal conversation view. |
-| Story Room | A real private BUZZ channel used for a particular story/community conversation rather than a duplicate PlotPickle-only copy of messages. |
-| Guildhall | The structured BUZZ area used for cross-agent handoffs, UAT evidence, visual findings, repair requests, runtime alerts and verified engineering coordination. |
-| PlotPickle Studio | One PlotPickle installation/creative identity. The Studio has a permanent random ID and a changeable display name. |
-| Connected Studios | Other permitted PlotPickle Studios that have published valid signed presence information through Playhouse/BUZZ. The directory intentionally reveals only approved, privacy-safe information. |
-| Playhouse | PlotPickle's federation layer for Studios. It allows separate PlotPickle installations to discover one another and share permitted presence/community information through BUZZ. |
-| Federation | Several independent PlotPickle Studios participating in a shared network without becoming one central server. PlotPickle federation is outbound through BUZZ/Playhouse rather than exposing one Studio's local PlotPickle server to another. |
-| Presence | A small status announcement such as online, away, busy or offline, plus only the public rooms/agents the Studio deliberately shares. |
-| Signed event | A message with a cryptographic signature that lets PlotPickle verify it was signed by the Studio identity that claims to have sent it and that the signed payload was not altered afterward. |
-| Ed25519 | The digital-signature algorithm used by the Playhouse Studio event layer. The private signing key stays local; the public key can be shared so signatures can be verified. |
-| Nostr | The signed-event protocol family underneath BUZZ's event infrastructure. PlotPickle uses BUZZ as the product-facing coordination layer rather than asking writers to work with Nostr directly. |
-| Loopback / localhost | A network address that points back to the same computer. A loopback-only PlotPickle or helper API is meant to stay on the local machine rather than being publicly reachable. |
+Settings owns AI routing, provider credentials, BUZZ connection, local runtime health and Help.
 
-The important networking distinction is: two PlotPickle Studios can be connected through Playhouse/BUZZ without one computer opening its private PlotPickle web server to the other computer. The shared layer carries deliberately limited, signed information instead.
+Provider setup links open the actual provider configuration section instead of bouncing back to the Settings landing page. Hybrid routes such as Ollama + ComfyUI expose both owners separately.
 
-### AI retrieval, generation and creative-compute terms
+Credentials are kept outside story/PPF project files. PlotPickle does not silently migrate credentials, BUZZ identity keys or private project data into committed source.
 
-| Term | Plain-English meaning in PlotPickle |
-|---|---|
-| RAG / retrieval-augmented generation | Before an agent answers, PlotPickle can retrieve relevant material from its local curriculum/data and give that material to the model. This helps Sage answer from PlotPickle's teaching material rather than relying only on whatever the base model happens to remember. |
-| Semantic retrieval / reranking | Searching by meaning rather than only exact words, then ordering the results so the most relevant material is sent to the agent first. |
-| Local model | An AI model running on the user's own computer or local network endpoint rather than a paid hosted service. |
-| Cloud model | A model reached over the internet through a provider. PlotPickle treats cloud/BYOK routes as optional and does not silently switch a failed local request to a paid cloud request. |
-| BYOK | Bring Your Own Key. The user supplies their own provider credential for an optional cloud service. |
-| Ollama | One local model-serving runtime PlotPickle can use. It is not the model itself. |
-| LM Studio | Another application/runtime that can serve compatible local models. |
-| llama.cpp | A local inference runtime well suited to quantized models and CPU/GPU sharing. |
-| ComfyUI | A node-based local creative-compute runtime used for image-generation workflows. PlotPickle's ComfyUI integration is separate from Visual QA; a ComfyUI connection failure is a creative-compute service problem, not the same thing as a text-agent or visual-observer failure. |
-| Capability routing | Choosing the appropriate available route for the job — for example fast text, quality text, vision, image generation or developer repair — instead of hard-wiring every feature to one model. |
-| Fast / quality model role | A logical job category PlotPickle can map to different local models. The role describes what the model is being used for, not a particular vendor/model name. |
+## How the architecture fits together
 
-### Developer-agent and Pi terms
+```mermaid
+flowchart TB
+    Writer[Writer / creator]
 
-Pi and Cline sit outside the shipped writer-facing product. They are development workers used to inspect, repair and verify the PlotPickle repository.
+    subgraph Product[PlotPickle product]
+      Dashboard[Dashboard]
+      Community[Community / BBS]
+      Learn[LEARN]
+      Plan[PLAN]
+      Build[BUILD]
+      Game[Wyrmwood]
+      Settings[Settings / Help]
+    end
 
-The current Pi developer stack also consumes a small set of extensions. These are development aids, not extra PlotPickle product agents:
+    subgraph Agents[Host-owned agent system]
+      Profiles[Agent Profiles]
+      Skills[Agent Skills]
+      Mastra[Mastra product-agent runtime]
+      Avery[Avery / synthetic UAT]
+      Gates[Deterministic quality roles]
+    end
 
-| Technology | Plain-English purpose |
-|---|---|
-| Pi | The default bounded developer repair worker used by PlotPickle's repair/UAT workflow. |
-| Cline | An alternate developer worker that can be selected for repository repair work. |
-| Ponytail | A Pi development extension that encourages minimal, reuse-first changes rather than unnecessary new abstractions. |
-| `pi-subagents` | Lets Pi delegate isolated pieces of developer work to child agents, including parallel work when appropriate. |
-| `pi-fff` | Faster local fuzzy file/content finding for developer-agent repository navigation. |
-| `pi-mcp-adapter` | Lets Pi discover and use MCP servers/tools without loading every tool definition into context at once. |
-| `pi-context-view` | A developer inspection tool for seeing context usage, injections and other context consumers so token/context problems can be diagnosed. |
+    subgraph AI[Capability-routed AI]
+      LocalText[Local text runtimes]
+      Comfy[Local ComfyUI engine]
+      Cloud[Optional cloud / BYOK]
+    end
 
-### Git, CI and local-testing terms
+    subgraph Authority[Authoritative data]
+      PPF[(PPF creative record)]
+      Curriculum[81-lesson curriculum]
+      Assets[Visual artifacts + lineage]
+      Evidence[Verification/session evidence]
+    end
 
-| Term | Plain-English meaning in PlotPickle |
-|---|---|
-| Branch | An isolated line of code changes so a fix can be developed without immediately changing `main`. |
-| Worktree | A second working folder attached to another Git branch. PlotPickle's repair flow can use one so an automated repair is isolated from the user's normal checkout. |
-| Commit | A saved snapshot of source changes with an ID. |
-| PR / Pull Request | A proposed set of changes for review and automated testing before it is merged into `main`. |
-| CI | Continuous Integration: GitHub automatically installs, builds and tests the proposed code. |
-| GitHub Actions | The GitHub service running PlotPickle's CI workflows. |
-| Exact tested head | The exact commit that passed the required checks. PlotPickle's merge rule is intended to merge that tested commit rather than silently merging newer untested changes. |
-| Build | Turning/checking the source as the production application. A successful build proves the code can be assembled, but it does not by itself prove every UI interaction is correct. |
-| API | A defined software interface one component uses to ask another component for data or an action. APIs can be local-only; the word API does not automatically mean a public internet service. |
+    subgraph Network[Community / coordination]
+      BUZZ[BUZZ signed room history]
+      Desktop[BUZZ Desktop]
+      Guildhall[Guildhall]
+    end
 
-### How to read a local test failure
+    Writer --> Product
+    Product <--> Authority
+    Learn --> Mastra
+    Plan --> Mastra
+    Build --> AI
+    Profiles --> Mastra
+    Skills --> Mastra
+    Mastra --> AI
+    Avery --> Product
+    Gates --> Evidence
 
-When local testing reports a failure, first identify which layer is speaking:
-
-- `harness`, `MCP`, accessibility-target or screenshot-schema errors usually point to the testing/tool bridge and should be separated from a genuine PlotPickle UI defect;
-- a deterministic product-contract failure means a fixed acceptance rule did not pass and should be treated as real until disproved by better evidence;
-- a dead-control finding means the harness successfully activated an enabled UI control but PlotPickle produced no observable response;
-- a local-model/provider failure points at the AI runtime/model route rather than necessarily at the screen being tested;
-- a BUZZ failure points at community/coordination transport and should not stop local story work from remaining available;
-- a ComfyUI failure points at the external/local creative-compute connection used for visual generation;
-- a Writer-in-Residence observation is synthetic experience evidence and should not be labelled as real-user feedback.
-
-The goal of PlotPickle's verification architecture is to keep these categories separate so a broken test tool is not mistaken for a broken feature, and an actual broken feature is not hidden by an agent's opinion.
-
-## Development stack
-
-This section describes the current repository stack on `main`. It intentionally uses current package versions rather than migration arrows so the README remains a snapshot of what PlotPickle actually builds with now.
-
-### Frontend / application framework
-
-- Next.js `16.3.0`
-- React / React DOM `19.2.8`
-- vinext `0.2.1` as the Vite/Next integration layer
-- `@vitejs/plugin-rsc` `0.5.34` for the React Server Components graph
-- Tailwind CSS `4.3.3`
-- shared matte-black, teal/turquoise/jade and gold design language
-- shared active-workspace shell: 19% / 56% / 25% on normal desktop, compact three-column range, then deliberate single-column collapse
-
-### Build tooling and language
-
-- TypeScript `6.0.3`
-- Vite `8.2.1`
-- ESLint `9.39.4`
-- Node.js `>=22.13.0`
-- npm / `package-lock.json` is the checked-in package-management path
-- repository automation is predominantly JavaScript/ES modules (`.mjs`) plus shell, PowerShell and Windows `.bat` entry points where appropriate
-- Windows-native startup remains a first-class supported development path
-
-### Hosting / edge
-
-- Cloudflare integration through `@cloudflare/vite-plugin` `1.51.1`
-- Wrangler `4.120.0`
-- Vite configuration can bind Cloudflare D1/R2 resources from the repository hosting configuration
-- `npm run dev:local` starts the current Vite development path
-- the README does not hard-code `127.0.0.1:4173`; the current repository no longer defines that as the canonical fixed development port
-
-### Product-agent runtime
-
-- Mastra `1.13.2` is the canonical in-product agent runtime
-- Mastra memory/logging/libSQL packages support the local agent layer
-- Agent Skills are registered through `config/agent-skills.json` and `.agents/skills/*/SKILL.md`
-- MCP is a capability boundary; `AGENTS.md` remains the higher-level developer constitution
-
-### AI provider / model layer
-
-- PlotPickle routes by capability and provider abstraction rather than binding product features to one runtime
-- local runtimes/endpoints: Ollama, LM Studio, llama.cpp and generic OpenAI-compatible endpoints
-- optional configured cloud/BYOK routes sit behind the same product boundary
-- model families such as Qwen, DeepSeek, Devstral/Codestral or other compatible models are selections behind a runtime, not architecture layers by themselves
-- capability and hardware-aware selection should decide which model serves fast, quality, deeper reasoning, vision or repair work
-
-### Visual generation and visual QA
-
-PlotPickle keeps generation separate from understanding/quality review. Image/video backends are provider capabilities behind the routing layer; visual QA is performed by a read-only observer that inspects rendered evidence and does not become the writer or silently alter story state.
-
-### Developer repair stack — outside the product
-
-Pi and Cline are developer tools, not PlotPickle product agents and not local AI engines.
-
-The supported pattern is:
-
-UAT finding → deterministic repair wrapper → Pi or Cline → configured local coding model/runtime → isolated branch/worktree → focused regression + UAT contracts + production build → draft PR → GitHub CI → exact tested green head merge.
-
-`AGENTS.md` explicitly requires that coding agents do not merge their own work.
-
-### Testing / QA
-
-- Node's built-in test runner (`node --test`) is the dominant focused regression path in the repository
-- Playwright is used for rendered browser/e2e validation
-- custom focused UAT and Writer-in-Residence harnesses exercise creator journeys
-- a separate read-only visual observer supplies rendered layout facts
-- production build and the relevant focused contracts remain independent gates
-
-### Community / coordination
-
-- BUZZ supplies community, Story Rooms, Guildhall coordination, presence and signed-event infrastructure
-- Nostr is the underlying signed-event protocol layer
-- PlotPickle accesses BUZZ through local gateway modules while Buzz Desktop remains an upstream companion application
-
-### CI/CD and security
-
-- GitHub Actions is the code integration and CI authority
-- repository workflows include security/dependency automation such as CodeQL and Dependabot where configured
-- the merge policy is exact-tested-head: focused regression/UAT contracts, production build and required CI must be green for the exact head that is merged
-
-### Data / creative format
-
-- PPF (PlotPickle File) is the canonical creative record / project interchange authority
-- structured project/curriculum/story/character/world/asset evidence remains local-first and writer-controlled
-- credentials and sensitive provider configuration are kept outside committed source data
-
-### Optional product intelligence
-
-External intelligence/observability services can be connected as optional integrations. They do not become required runtime dependencies and do not replace GitHub, BUZZ, Mastra, PPF or the provider abstraction.
-
-## Quality loop
-
-PlotPickle has deterministic tests and experience-oriented UAT.
-
-Deterministic tests protect contracts, routing, builds and known product behavior. Avery North performs a synthetic writer journey through the active app, while a separate read-only visual observer inspects rendered layout facts. Avery never receives browser-evaluation powers.
-
-The current Writer-in-Residence command is:
-
-```powershell
-node .\scripts\run-writer-in-residence.mjs --github-report
+    Community <--> BUZZ
+    Desktop <--> BUZZ
+    BUZZ <--> Guildhall
+    Community -. explicit share only .-> BUZZ
+    BUZZ -. never automatic canon .-> PPF
 ```
 
-Synthetic findings can be promoted to GitHub issues, but they remain synthetic evidence and must not be confused with real-user feedback.
+The important boundaries are simple:
+
+- **Writer** — final creative decision maker.
+- **PPF** — canonical creative record.
+- **Curriculum** — teaching authority for LEARN-derived progression.
+- **Mastra** — product-agent runtime/orchestration layer.
+- **AI providers** — suggestion/generation capabilities, never canon owners.
+- **BUZZ** — signed Community conversation, presence and coordination history.
+- **BUZZ Desktop** — companion/owner interface over the same BUZZ network.
+- **GitHub** — canonical source, issues, pull requests and merge authority.
+- **UAT/BEN/visual observer** — evidence and quality signals, not creative authority.
+- **Pi/Cline** — external developer repair workers, not writer-facing product agents.
+
+## Verification and repair
+
+PlotPickle’s normal development rule is: **build, test, fix, merge only when green**.
+
+The verification stack combines focused deterministic regressions, LEARN validation, Community/BUZZ contracts, Hardware-Aware Local AI checks, production builds, focused UAT, Writer-in-Residence evidence and BEN code-quality review.
+
+A failure remains a failure until the actual cause is repaired. Tests are not weakened simply to obtain a green badge.
+
+Pi is an optional bounded repair worker; Cline can be selected as an alternative developer worker. Neither replaces deterministic verification, and neither has independent merge authority.
 
 ## Development
 
 Requirements:
 
-- Node.js 22.13 or newer
-- npm
-- optional local AI runtime/models for local AI
-- optional Buzz Desktop / BUZZ community for collaboration
+- Node.js 22.13 or newer;
+- npm;
+- optional local AI runtime/models for AI-assisted features;
+- optional ComfyUI for local image generation;
+- optional BUZZ Desktop for Community administration and managed BUZZ agents.
 
-Install and start the local development app:
+Install and start the local development application:
 
 ```bash
 npm install
 npm run dev:local
 ```
 
-Core validation:
+Core repository checks:
 
 ```bash
-npm run build
 npm test
+npm run build
 ```
 
-Focused product work should also run the relevant UAT contracts. The shared development rules in `AGENTS.md` require the relevant regression, focused UAT contracts, production build, a clean diff and green GitHub CI on the exact head before merge.
+The Windows startup and Full Verification scripts remain first-class paths for the local desktop workflow.
 
-## Current direction
+## Repository principles
 
-The product direction is intentionally narrower than the historical repository.
+PlotPickle is local-first and writer-controlled by default.
 
-Build the simplest strong writer journey first:
+- No generated draft silently becomes canon.
+- No local AI failure silently becomes a paid cloud request.
+- No Community connection automatically uploads the project.
+- No agent personality grants extra permissions.
+- No agent grades its own work as the final PASS/FAIL authority.
+- No coding worker merges its own unverified change.
+- Accepted visual artifacts preserve history and lineage across later revisions.
+- Community messages and private creative state remain different data classes.
 
-LEARN → PLAN → GAME / Wyrmwood
+## What comes next
 
-Support it with:
+Foundations and World prove the Visual Writer architecture end to end. Character is the next progression frontier; later curriculum groups can follow the same LEARN → PLAN → BUILD engine without creating parallel stores or one-off workflow rules.
 
-COMMUNITY / BUZZ + basic SETTINGS + deterministic UAT
-
-Only bring a parked module back into the active surface when it has been reworked to fit this architecture and makes the writer's journey clearer rather than larger.
-
-That rule applies to Dashboard expansions, Storyboard, Previs, Write, Edit, Graphic Novel, Build, Feedback, Refine, Reports, advanced collaboration and other historical PlotPickle capabilities. They are preserved, not deleted, but they do not define the current core product. When one returns to the active surface, it must adopt the same left-navigation / centre-work / right-context three-column continuity contract rather than introducing another full-width layout system.
+Historical modules still exist in the repository where useful, but they do not become part of the current writer journey merely because old code remains. A returning feature must fit the shared workspace, authority and progression contracts.
 
 ## License
 
-PlotPickle is licensed under AGPL-3.0-or-later. See the repository license for details.
+PlotPickle is licensed under **AGPL-3.0-or-later**. See the repository license for details.

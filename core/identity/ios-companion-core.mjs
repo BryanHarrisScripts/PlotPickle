@@ -176,12 +176,15 @@ export function assertIosCompanionSessionActive(account, session, now = new Date
 
 export function projectIosLearnState(account, session, portableLearnState, now = new Date().toISOString()) {
   assertIosCompanionSessionActive(account, session, now);
+  const portableInput = Object.fromEntries(
+    Object.entries(portableLearnState || {}).filter(([key]) => key !== "version"),
+  );
   return {
     version: 1,
     authority: "portable-learn-sync",
     personId: account.personId,
     avatarId: session.avatarId,
-    state: createPortableLearnState(portableLearnState),
+    state: createPortableLearnState(portableInput),
     ppfIncluded: false,
     providerStateIncluded: false,
   };

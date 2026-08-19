@@ -88,10 +88,6 @@ function sanitizeCost(value) {
   };
 }
 
-function scopeRank(scope) {
-  return COMPUTE_SHARING_SCOPES.indexOf(scope);
-}
-
 function minimumScope(relationship) {
   return relationship === "public" ? "public" : relationship === "studio" ? "studio" : relationship === "trusted" ? "trusted" : "private";
 }
@@ -148,7 +144,10 @@ export function registerDiscoveredComputeNode(directory, input) {
   allowedFields(input, ["relationship", "advertisement", "verifiedAt", "userApproved"], "Discovered compute Node");
   const relationship = enumValue(input.relationship, ["trusted", "studio", "public"], "Compute relationship");
   const advertisement = createComputeNodeAdvertisement(input.advertisement);
-  if (scopeRank(advertisement.sharingScope) < scopeRank(minimumScope(relationship))) {
+  if (
+    COMPUTE_SHARING_SCOPES.indexOf(advertisement.sharingScope)
+    < COMPUTE_SHARING_SCOPES.indexOf(minimumScope(relationship))
+  ) {
     throw new Error(`Node sharing scope ${advertisement.sharingScope} does not permit ${relationship} discovery.`);
   }
   if ((relationship === "trusted" || relationship === "studio") && input.userApproved !== true) {
@@ -268,10 +267,11 @@ export function createScopedRemoteWorkPackage(account, selectedEntry, input) {
   const workflowClass = input.workflowClass ? stableId(input.workflowClass, "Requested workflow class") : null;
   if (modelClass && !advertisement.modelClasses.includes(modelClass)) throw new Error("Selected Compute Node does not advertise the requested model class.");
   if (workflowClass && !advertisement.workflowClasses.includes(workflowClass)) throw new Error("Selected Compute Node does not advertise the requested workflow class.");
-  const billingConsentId = advertisement.cost.kind === "paid"
-    ? stableId(input.billingConsentId, "Billing consent id")
-    : null;
-  if (advertisement.cost.kind === "paid" && !input.billingConsentId) throw new Error("Paid remote compute requires explicit billing consent before dispatch.");
+  let billingConsentId = null;
+  if (advertisement.cost.kind === "paid") {
+    if (!input.billingConsentId) throw new Error("Paid remote compute requires explicit billing consent before dispatch.");
+    billingConsentId = stableId(input.billingConsentId, "Billing consent id");
+  }
   return {
     version: 1,
     jobId: stableId(input.jobId, "Remote job id"),

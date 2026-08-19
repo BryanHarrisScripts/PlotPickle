@@ -74,15 +74,14 @@ function setupMessage(state: string, detail: string) {
 async function waitForComfyApi(timeoutMs = 90_000) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
-    try {
-      const response = await fetch(`${LOCAL_COMFY_URL}/system_stats`, {
-        headers: { Accept: "application/json" },
-        signal: AbortSignal.timeout(2_500),
-      });
-      if (response.ok) return true;
-    } catch {
-      // Startup can legitimately refuse connections until ComfyUI is ready.
-    }
+    const ready = await fetch(`${LOCAL_COMFY_URL}/system_stats`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(2_500),
+    }).then(
+      (response) => response.ok,
+      () => false,
+    );
+    if (ready) return true;
     await new Promise((resolve) => setTimeout(resolve, 1_500));
   }
   return false;

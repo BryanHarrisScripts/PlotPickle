@@ -36,7 +36,7 @@ test("#1029 retains each Avery run as an isolated local synthetic session", asyn
   assert.doesNotMatch(runner, /localStorage\.(?:getItem|setItem|removeItem)|sessionStorage\.(?:getItem|setItem|removeItem)/);
   assert.match(gateway, /PlotPickle", "writer-in-residence"/);
   assert.match(gateway, /Avery session review is restricted to this computer/);
-  assert.match(gateway, /SESSION_ID = \^\\d\{14\}\$/);
+  assert.ok(gateway.includes("const SESSION_ID = /^\\d{14}$/;"));
   assert.match(gateway, /sort\(\(a, b\) => b\.localeCompare\(a\)\)/);
 });
 

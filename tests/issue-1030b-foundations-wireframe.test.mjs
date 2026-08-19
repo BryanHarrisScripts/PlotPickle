@@ -46,7 +46,7 @@ test("#1030B rejection preserves history instead of deleting frame metadata", as
   assert.match(reducer, /visualArtifacts: project\.build\.foundations\.visualArtifacts\.map/);
   assert.match(reducer, /reviewState: "rejected" as const/);
   const discardBlock = reducer.slice(reducer.indexOf('case "foundations.visual.discard"'), reducer.indexOf('case "foundations.visual.accept"'));
-  assert.doesNotMatch(discardBlock, /visualArtifacts:[\s\S]*\.filter\(/);
+  assert.doesNotMatch(discardBlock, /visualArtifacts:\s*project\.build\.foundations\.visualArtifacts\.filter\(/);
   assert.match(discardBlock, /acceptedVisualArtifactIds:[\s\S]*\.filter\(/);
 });
 

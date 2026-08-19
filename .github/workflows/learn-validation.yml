@@ -49,6 +49,9 @@ jobs:
       - name: Validate Avery progressive session history through BUILD
         run: node --test tests/issue-1029-avery-progressive-session-history.test.mjs
 
+      - name: Validate curated What's New release history
+        run: node --test tests/issue-1047-release-history.test.mjs
+
       - name: Validate lorebound agent avatars
         run: node --test tests/issue-1056-lorebound-agent-avatars.test.mjs tests/issue-594-local-learn-rag-and-brand.test.mjs
 

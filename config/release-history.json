@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "releases": [
+    {
+      "id": "2026-08-19-visual-writer",
+      "label": "2026.08.19 · Visual Writer & Avery",
+      "date": "2026-08-19",
+      "title": "Foundations and World now form a complete guided visual-writing loop",
+      "summary": "PlotPickle now carries a writer from learning through story decisions into a reviewable visual wireframe, then lets Avery independently exercise and preserve that same current journey for owner review.",
+      "added": [
+        "World now follows the same LEARN → PLAN → BUILD journey as Foundations.",
+        "Avery keeps a read-only local history with exactly four recent Dashboard session positions and full older-session review.",
+        "Avery session cards can surface session-owned visuals plus POSTER and TRAILER review when those artifacts exist."
+      ],
+      "changed": [
+        "The Dashboard now explains the current Visual Writer frontier, accepted and draft artifact state, and the next available action.",
+        "Foundations and World BUILD preserve visual history and provenance instead of treating every generation as accepted canon.",
+        "PlotPickle helpers now share one 8-bit lorebound visual identity."
+      ],
+      "fixed": [],
+      "references": ["#1030", "#1029", "PR #1053", "PR #1055", "PR #1057", "PR #1058", "PR #1059", "PR #1062"]
+    },
+    {
+      "id": "2026-08-19-local-ai-settings",
+      "label": "2026.08.19 · Local AI & Settings",
+      "date": "2026-08-19",
+      "title": "Local image setup is clearer and no longer blocks PlotPickle startup",
+      "summary": "Local ComfyUI remains optional and local-first, while AI setup now takes writers directly to the correct provider controls and reports real readiness more clearly.",
+      "added": [
+        "OpenAI and MiniMax now have direct in-place setup surfaces alongside Ollama and ComfyUI.",
+        "Hybrid Ollama + ComfyUI routing exposes both setup destinations instead of hiding one owner."
+      ],
+      "changed": [
+        "Optional companion maintenance now happens after the core PlotPickle server is reachable.",
+        "ComfyUI readiness distinguishes running service, model readiness, test-needed state and active routing.",
+        "Community NODE display now reflects the real connected BUZZ node rather than a presentation alias."
+      ],
+      "fixed": [
+        "PlotPickle startup no longer waits for an optional interactive ComfyUI Desktop launch.",
+        "AI Routing setup buttons no longer bounce back to the Settings landing page.",
+        "Settings AI Routing and ComfyUI surfaces use the current PlotPickle dark visual system consistently."
+      ],
+      "references": ["#1026", "#1046", "PR #1060", "PR #1061"]
+    },
+    {
+      "id": "2026-08-18-local-creative-foundation",
+      "label": "2026.08.18 · Local Creative Foundation",
+      "date": "2026-08-18",
+      "title": "Local rendering, hardware awareness and verification became first-class product capabilities",
+      "summary": "PlotPickle strengthened its local creative stack with reviewed image-model setup, optional local animatic rendering, hardware-aware model choices and safer long-running verification.",
+      "added": [
+        "A reviewed SDXL starter flow can prepare local ComfyUI image generation without silently downloading unrelated model packs.",
+        "BUILD can optionally prepare, validate, preview and render a local Lazy Frames animatic.",
+        "Hardware-aware model preferences help choose local models for speed, quality or lower memory use.",
+        "The Community BBS provides a keyboard-friendly BUZZ-backed front door for rooms, people, agents and reviews."
+      ],
+      "changed": [
+        "Full Verification now uses bounded graph execution and visible progress while deterministic stages remain authoritative.",
+        "PlotPickle Node defines a local-first foundation for future split or remote compute without making the desktop app public by default."
+      ],
+      "fixed": [
+        "Windows verification gained watchdogs and bounded cleanup so a stalled child process cannot silently hang the whole run.",
+        "Managed ComfyUI readiness better distinguishes installed, stopped, provisioning and ready states on Windows."
+      ],
+      "references": ["PR #1002", "PR #1009", "PR #1011", "PR #1014", "PR #1015", "PR #1017", "PR #1023", "PR #1032"]
+    }
+  ]
+}

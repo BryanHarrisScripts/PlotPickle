@@ -10,6 +10,7 @@ const readJson = async (file) => JSON.parse(await read(file));
 const implementation = "scripts/run-writer-in-residence-v4.mjs";
 const endToEndWrapper = "scripts/run-writer-in-residence-e2e.mjs";
 const recovery = "scripts/writer-in-residence-runtime-recovery.mjs";
+const snapshotNormalizer = "scripts/writer-snapshot-normalizer.mjs";
 const visualObserver = "scripts/writer-visual-observer-v3.mjs";
 
 test("Writer-in-Residence is a disclosed synthetic writer with a complete active-product mission", async () => {
@@ -56,7 +57,7 @@ test("stable writer command installs local recovery before the end-to-end wrappe
   ]);
   assert.ok(entrypoint.indexOf("writer-in-residence-runtime-recovery.mjs") < entrypoint.indexOf("run-writer-in-residence-e2e.mjs"));
   assert.match(wrapper, /run-writer-in-residence-v4\.mjs/);
-  for (const file of ["scripts/run-writer-in-residence.mjs", endToEndWrapper, implementation, recovery, visualObserver]) {
+  for (const file of ["scripts/run-writer-in-residence.mjs", endToEndWrapper, implementation, recovery, snapshotNormalizer, visualObserver]) {
     execFileSync(process.execPath, ["--check", fileURLToPath(new URL(`../${file}`, import.meta.url))], { stdio: "pipe" });
   }
 });
@@ -95,13 +96,14 @@ test("#657 gives every active area real successful writer turns instead of count
 });
 
 test("#660 normalizes only known visible Settings disclosure refs for deterministic down/up probes", async () => {
-  const source = await read(recovery);
-  for (const label of ["Advanced Setup", "Advanced runtime details", "Cloud and legacy provider overrides"]) assert.match(source, new RegExp(label, "i"));
-  assert.match(source, /name !== "browser_snapshot"/);
-  assert.match(source, /const ref = line\.match/);
-  assert.match(source, /normalizeDisclosureLine\(line, label\)/);
-  assert.match(source, /button \"\$\{label\}\" \[ref=\$\{ref\}\]/);
-  assert.match(source, /No hidden DOM\/state is exposed/);
+  const [runtime, normalizer] = await Promise.all([read(recovery), read(snapshotNormalizer)]);
+  assert.match(runtime, /name !== "browser_snapshot"/);
+  assert.match(runtime, /normalizeWriterSnapshot/);
+  for (const label of ["Advanced Setup", "Advanced runtime details", "Cloud and legacy provider overrides"]) assert.match(normalizer, new RegExp(label, "i"));
+  assert.match(normalizer, /const ref = String\(line\)\.match/);
+  assert.match(normalizer, /normalizeDisclosureLine\(line, label\)/);
+  assert.match(normalizer, /button \"\$\{label\}\" \[ref=\$\{ref\}\]/);
+  assert.match(runtime, /rendered UI rather than hidden DOM\/state/);
 });
 
 test("#657 screenshots are basename-safe and visual failures cannot abort the exploratory journey", async () => {

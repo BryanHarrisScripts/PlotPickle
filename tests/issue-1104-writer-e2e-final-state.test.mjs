@@ -116,7 +116,8 @@ test("#1104 keeps Avery UI-only while the separate observer owns browser_evaluat
   assert.match(entrypoint, /run-writer-in-residence-e2e\.mjs/);
   assert.doesNotMatch(entrypoint, /run-writer-in-residence-v4\.mjs/);
   assert.doesNotMatch(completion, /browser_evaluate|localStorage\.(?:getItem|setItem|removeItem)|sessionStorage/);
-  assert.match(completion, /Mark .+ complete/);
+  assert.match(completion, /lessonMarks = controls\.filter/);
+  assert.match(completion, /complete\|incomplete/);
   assert.match(completion, /Create first poster/);
   assert.match(completion, /Generate.*wireframe/);
   assert.match(observer, /browser_evaluate/);

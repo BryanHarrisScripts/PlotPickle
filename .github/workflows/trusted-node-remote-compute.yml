@@ -1,0 +1,47 @@
+name: Trusted Remote Compute
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "core/identity/remote-node-compute-core.mjs"
+      - "core/identity/remote-node-compute.ts"
+      - "docs/architecture/TRUSTED-REMOTE-COMPUTE.md"
+      - "tests/issue-1075-trusted-node-remote-compute.test.mjs"
+      - ".github/workflows/trusted-node-remote-compute.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trusted-remote-compute-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  phase-d-remote-compute:
+    name: Node discovery and least-privilege remote compute
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Validate trusted/public Node discovery and scoped work packages
+        run: node --test tests/issue-1075-trusted-node-remote-compute.test.mjs
+
+      - name: Re-run identity, sync and Node/BUZZ compatibility contracts
+        run: node --test tests/issue-1072-identity-authority.test.mjs tests/issue-1073-avatar-recovery-learn-sync.test.mjs tests/issue-927-studio-identity.test.mjs tests/issue-928-playhouse-federation.test.mjs tests/issue-1013-plotpickle-node-topology.test.mjs
+
+      - name: Production build
+        run: npm run build

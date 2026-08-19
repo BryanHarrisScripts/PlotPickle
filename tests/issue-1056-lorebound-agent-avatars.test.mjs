@@ -18,16 +18,14 @@ test("#1056 keeps the 17-helper lorebound roster while #1106 owns current portra
   assert.equal(helperDirectory.helpers.length, 17, "the current helper roster includes Sage plus sixteen other helpers");
   assert.equal(new Set(helperDirectory.helpers.map((helper) => helper.id)).size, 17);
   assert.equal(helperDirectory.portraitSystem, "painterly-fantasy-v1");
-  for (const helper of helperDirectory.helpers) {
-    assert.deepEqual(Object.keys(helper).sort(), ["group", "how", "id"]);
-  }
+  for (const helper of helperDirectory.helpers) assert.deepEqual(Object.keys(helper).sort(), ["group", "how", "id"]);
 });
 
 test("#1056 keeps Sage consistent on the established LEARN compatibility URL", () => {
   const workspace = readFileSync(resolve(root, "modules/learn/ui/learn-workspace.tsx"), "utf8");
-  const registry = readFileSync(resolve(root, "lib/agent-portrait-registry.ts"), "utf8");
+  const portraits = readFileSync(resolve(root, "components/agent-portrait.tsx"), "utf8");
   assert.match(workspace, /src="\/assets\/sage-brinewick-v2\.png"/);
   assert.deepEqual(pngDimensions("public/assets/sage-brinewick-v2.png"), [100, 100]);
-  assert.match(registry, /source: "\/assets\/curriculum-guide-master-storyteller\.png"/);
-  assert.doesNotMatch(`${workspace}\n${registry}`, /Sage543x768-v2/i);
+  assert.match(portraits, /source: "\/assets\/curriculum-guide-master-storyteller\.png"/);
+  assert.doesNotMatch(`${workspace}\n${portraits}`, /Sage543x768-v2/i);
 });

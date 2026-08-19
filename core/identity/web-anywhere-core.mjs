@@ -212,7 +212,10 @@ export function projectWebIdentity(account, session, now = new Date().toISOStrin
 
 export function projectWebLearnState(account, session, portableLearnState, now = new Date().toISOString()) {
   assertWebSessionActive(account, session, now);
-  const sanitized = createPortableLearnState(portableLearnState);
+  const portableInput = Object.fromEntries(
+    Object.entries(portableLearnState || {}).filter(([key]) => key !== "version"),
+  );
+  const sanitized = createPortableLearnState(portableInput);
   return {
     version: 1,
     authority: "portable-learn-sync",

@@ -4,6 +4,7 @@ import hostingConfig from "./.openai/hosting.json";
 import { localAiGateway } from "./build/local-ai-gateway";
 import { localConnectionsGateway } from "./build/local-connections-gateway";
 import { localSystemStatusGateway } from "./build/local-system-status-gateway";
+import { writerInResidenceGateway } from "./build/writer-in-residence-gateway";
 import { buzzGateway } from "./build/buzz-gateway";
 import { buzzCommunityGateway } from "./build/buzz-community-gateway";
 import { buzzAgentRosterGateway } from "./build/buzz-agent-roster-gateway";
@@ -86,6 +87,7 @@ export default defineConfig(async () => {
     },
     plugins: [
       localConnectionsGateway(),
+      writerInResidenceGateway(),
       buzzBundleNormalizer(),
       buzzSpecialistGateway(),
       buzzCommunityGateway(),

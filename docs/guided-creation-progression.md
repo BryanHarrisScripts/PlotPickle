@@ -30,9 +30,9 @@ The curriculum remains reusable knowledge/RAG. Project state stores the writer's
 11. Industry
 12. Collaboration
 
-The order is defined once by `VISUAL_WRITER_GROUP_ORDER` in `modules/dashboard/guided-progression.ts`. UI surfaces must read that engine rather than create their own completion rules.
+The order is defined once by `VISUAL_WRITER_GROUP_ORDER` in `core/contracts/visual-writer-progression/index.ts`. Guided progression, curriculum presentation and later consumers must read that shared contract rather than create their own order or completion rules.
 
-The dependency audit and rationale live in `docs/visual-writer-curriculum-audit.md`. All 81 archived curriculum lessons remain bundled; PR #1030 changes progression metadata/order, not lesson copy.
+The dependency audit and rationale live in `docs/visual-writer-curriculum-audit.md`. All 81 archived curriculum lessons remain bundled; #1030A changes progression metadata/order, not lesson copy.
 
 ## Explicit output contracts
 
@@ -62,7 +62,7 @@ Generation alone is never approval.
 
 ## Current implementation boundary
 
-**Foundations is still the only implemented vertical slice in PR A.**
+**Foundations is the only implemented vertical slice in PR A.**
 
 Its current implementation contract is:
 

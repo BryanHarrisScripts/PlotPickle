@@ -8,8 +8,10 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { McpClient, resultText, toolArguments } from "./creative-uat/mcp-runtime.mjs";
+import { writerExplorationAcceptance } from "./writer-e2e-acceptance-policy.mjs";
 import { runWriterAcceptanceCompletion } from "./writer-journey-completion.mjs";
 import { observeWriterJourneyFinalState } from "./writer-journey-final-state.mjs";
+import { runSageAcceptance } from "./writer-sage-acceptance.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
@@ -69,7 +71,7 @@ function expandMcp(value) {
 async function openMcp() {
   const mcpConfig = JSON.parse(await readFile(path.join(pluginRoot, "mcp.json"), "utf8"));
   const server = mcpConfig?.mcpServers?.playwright;
-  if (!server || server.type !== "stdio") throw new Error("Writer end-to-end observer requires the local Playwright MCP runtime.");
+  if (!server || server.type !== "stdio") throw new Error("Writer end-to-end acceptance requires the local Playwright MCP runtime.");
   const client = new McpClient(expandMcp(server.command), (server.args || []).map(expandMcp), {
     cwd: expandMcp(server.cwd || pluginRoot),
     env: Object.fromEntries(Object.entries(server.env || {}).map(([key, value]) => [key, expandMcp(value)])),
@@ -78,7 +80,7 @@ async function openMcp() {
   const tools = await client.tools();
   const toolMap = new Map(tools.map((tool) => [tool.name, tool]));
   for (const required of ["browser_navigate", "browser_snapshot", "browser_click", "browser_type", "browser_take_screenshot", "browser_evaluate"]) {
-    if (!toolMap.has(required)) throw new Error(`Writer end-to-end observer is missing Playwright MCP tool ${required}.`);
+    if (!toolMap.has(required)) throw new Error(`Writer end-to-end acceptance is missing Playwright MCP tool ${required}.`);
   }
   return { client, tools, toolMap };
 }
@@ -94,18 +96,20 @@ async function captureScreenshot(client, toolMap, name) {
   return true;
 }
 
+function findingRoute(id) {
+  if (id.startsWith("world.plan")) return "/?workspace=plan&section=world";
+  if (id.startsWith("world.build")) return "/?workspace=build&section=world";
+  if (id.startsWith("learn") || id.startsWith("world.learn") || id.startsWith("marquee")) return "/?workspace=learn";
+  if (id.startsWith("plan")) return "/?workspace=plan&section=foundations";
+  if (id.startsWith("build")) return "/?workspace=build&section=foundations";
+  return "/?workspace=dashboard";
+}
+
 function failureFinding(check) {
   const fingerprint = createHash("sha256")
     .update(`final-state\n${check.id}\n${check.detail}`)
     .digest("hex")
     .slice(0, 20);
-  const route = check.id.startsWith("learn") || check.id.startsWith("marquee")
-    ? "/?workspace=learn"
-    : check.id.startsWith("plan")
-      ? "/?workspace=plan&section=foundations"
-      : check.id.startsWith("build")
-        ? "/?workspace=build&section=foundations"
-        : "/?workspace=dashboard";
   return {
     fingerprint: `writer.final.${fingerprint}`,
     kind: "bug",
@@ -115,7 +119,7 @@ function failureFinding(check) {
     expectation: "A completed Writer-in-Residence run must reopen the actual persisted product and prove this milestone from real saved state and rendered UI.",
     impact: "Turn-level success can otherwise hide a broken end-to-end writer journey and present a false PASS.",
     turn: "final-state",
-    route,
+    route: findingRoute(check.id),
     source: "final-state-observer",
     evidence: JSON.stringify(check.evidence || {}).slice(0, 1_500),
   };
@@ -139,11 +143,15 @@ function completionDiary(completion) {
   return (completion?.steps || []).map((step, index) => ({
     turn: `acceptance-${index + 1}`,
     area: step.id,
-    route: step.id === "plan"
-      ? "/?workspace=plan&section=foundations"
-      : step.id === "build"
-        ? "/?workspace=build&section=foundations"
-        : "/?workspace=learn",
+    route: step.id === "world-plan"
+      ? "/?workspace=plan&section=world"
+      : step.id === "world-build"
+        ? "/?workspace=build&section=world"
+        : step.id === "plan"
+          ? "/?workspace=plan&section=foundations"
+          : step.id === "build"
+            ? "/?workspace=build&section=foundations"
+            : "/?workspace=learn",
     summary: step.detail,
     action: { type: "visible-ui-acceptance", target: step.id },
     result: { ok: true, recovered: false, detail: step.detail },
@@ -155,13 +163,7 @@ function auditDiary(audit) {
   return (audit?.checks || []).map((item, index) => ({
     turn: `final-audit-${index + 1}`,
     area: "final-state-audit",
-    route: item.id.startsWith("plan")
-      ? "/?workspace=plan&section=foundations"
-      : item.id.startsWith("build")
-        ? "/?workspace=build&section=foundations"
-        : item.id.startsWith("dashboard")
-          ? "/?workspace=dashboard"
-          : "/?workspace=learn",
+    route: findingRoute(item.id),
     summary: `${item.passed ? "PASS" : "FAIL"} · ${item.label} · ${item.detail}`,
     action: { type: "read-only-observe", target: item.id },
     result: { ok: item.passed, recovered: false, detail: item.detail },
@@ -169,17 +171,46 @@ function auditDiary(audit) {
   }));
 }
 
-async function writeAugmentedReport({ baseExitCode, completion, audit, completionError }) {
+function sageFromBaseReport(report) {
+  const requested = Number(report?.sageConversation?.requested || 0);
+  const completed = Number(report?.sageConversation?.completed || 0);
+  return {
+    schemaVersion: 1,
+    authority: "synthetic-writer-visible-ui-only",
+    requested,
+    completed,
+    passed: requested > 0 && completed === requested,
+    source: "v4-exploration",
+    failures: [],
+  };
+}
+
+async function writeAugmentedReport({
+  baseExitCode,
+  sageAcceptance,
+  completion,
+  audit,
+  completionError,
+  auditError,
+}) {
   const report = JSON.parse(await readFile(reportPath, "utf8"));
+  report.exploratoryExitCode = baseExitCode;
+  const exploration = writerExplorationAcceptance(report, sageAcceptance);
   const failedChecks = (audit?.checks || []).filter((item) => !item.passed);
   const finalFindings = failedChecks.map(failureFinding);
   const existingObservations = Array.isArray(report.observations) ? report.observations : [];
   const existingPromoted = Array.isArray(report.promotedFindings) ? report.promotedFindings : [];
   const existingDiary = Array.isArray(report.diary) ? report.diary : [];
-  const overallPass = baseExitCode === 0 && completion?.completed === true && audit?.passed === true && !completionError;
+  const overallPass = exploration.passed
+    && completion?.completed === true
+    && audit?.passed === true
+    && !completionError
+    && !auditError;
 
-  report.schemaVersion = Math.max(6, Number(report.schemaVersion || 0));
-  report.finishedReason = overallPass ? "complete-journey" : "final-state-audit-failed";
+  report.schemaVersion = Math.max(7, Number(report.schemaVersion || 0));
+  report.finishedReason = overallPass ? "complete-journey" : "end-to-end-acceptance-failed";
+  report.explorationAcceptance = exploration;
+  report.sageAcceptance = sageAcceptance;
   report.completionJourney = completion;
   report.finalStateAudit = audit;
   report.session = {
@@ -195,7 +226,9 @@ async function writeAugmentedReport({ baseExitCode, completion, audit, completio
     .slice(0, Math.max(16, existingPromoted.length + finalFindings.length));
   report.runnerFindings = [
     ...(Array.isArray(report.runnerFindings) ? report.runnerFindings : []),
+    ...(sageAcceptance?.failures || []).map((item) => ({ turn: `sage-acceptance-${item.index}`, message: item.detail })),
     ...(completionError ? [{ turn: "acceptance-completion", message: completionError }] : []),
+    ...(auditError ? [{ turn: "final-state-observer", message: auditError }] : []),
   ];
 
   await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
@@ -203,10 +236,14 @@ async function writeAugmentedReport({ baseExitCode, completion, audit, completio
     "",
     "## End-to-end final-state acceptance",
     "",
+    `**Exploratory screen coverage:** ${exploration.journeyComplete ? "PASS" : "FAIL"}`,
+    `**Required Sage conversation:** ${sageAcceptance?.completed || 0}/${sageAcceptance?.requested || 0}`,
     `**Visible completion journey:** ${completion?.completed ? "PASS" : "FAIL"}`,
     `**Independent reopened-state audit:** ${audit?.passed ? "PASS" : "FAIL"}`,
     `**Overall Writer-in-Residence acceptance:** ${overallPass ? "PASS" : "FAIL"}`,
     completionError ? `**Completion error:** ${completionError}` : "",
+    auditError ? `**Observer error:** ${auditError}` : "",
+    exploration.settingsDepthComplete ? "**Exploratory Settings depth:** PASS" : "**Exploratory Settings depth:** WARN (recorded, nonblocking for the story frontier)",
     "",
     ...(audit?.checks || []).map((item) => `- ${item.passed ? "PASS" : "FAIL"} · ${item.label} — ${item.detail}`),
     "",
@@ -216,7 +253,7 @@ async function writeAugmentedReport({ baseExitCode, completion, audit, completio
     throw error;
   });
   await writeFile(markdownPath, `${existingMarkdown.trimEnd()}\n${appendix}\n`, "utf8");
-  return { report, overallPass };
+  return { report, overallPass, exploration };
 }
 
 async function main() {
@@ -232,41 +269,62 @@ async function main() {
   status("Writer v4 exploratory journey", baseExitCode === 0 ? "PASS" : "WARN", `exit ${baseExitCode}`);
 
   const baseReport = JSON.parse(await readFile(reportPath, "utf8"));
+  const writerConfig = JSON.parse(await readFile(path.join(repoRoot, "config", "writer-in-residence.json"), "utf8"));
+  let sageAcceptance = sageFromBaseReport(baseReport);
   let completion = { schemaVersion: 1, completed: false, authority: "synthetic-writer-visible-ui-only", steps: [] };
-  let audit = { schemaVersion: 1, passed: false, checks: [], marketingReference: null, ledger: [] };
+  let audit = { schemaVersion: 2, passed: false, checks: [], marketingReference: null, ledger: [] };
   let completionError = "";
+  let auditError = "";
   let clientBundle = null;
 
   try {
     clientBundle = await openMcp();
-    status("Avery visible acceptance completion", "START");
-    completion = await runWriterAcceptanceCompletion({
-      client: clientBundle.client,
-      toolMap: clientBundle.toolMap,
-      resultText,
-      baseUrl,
-      storySeed: baseReport.storySeed,
-      onStatus: (id, detail) => status(`Acceptance · ${id}`, "PASS", detail),
-    });
-    status("Avery visible acceptance completion", "PASS", `${completion.steps.length} milestone(s)`);
-  } catch (error) {
-    completionError = error instanceof Error ? error.message : String(error);
-    status("Avery visible acceptance completion", "FAIL", completionError);
-  }
 
-  try {
-    if (!clientBundle) clientBundle = await openMcp();
-    status("Independent final-state observer", "START");
-    audit = await observeWriterJourneyFinalState({
-      client: clientBundle.client,
-      resultText,
-      baseUrl,
-      captureScreenshot: (name) => captureScreenshot(clientBundle.client, clientBundle.toolMap, name),
-    });
-    status("Independent final-state observer", audit.passed ? "PASS" : "FAIL", `${audit.checks.filter((item) => item.passed).length}/${audit.checks.length}`);
-    if (audit.marketingReference) {
-      const copied = await copyMarketingPoster(audit);
-      if (copied) status("Dashboard session poster evidence", "PASS", path.relative(artifactRoot, copied));
+    if (!sageAcceptance.passed) {
+      status("Required Sage conversation retry", "START", `${sageAcceptance.completed}/${sageAcceptance.requested} completed in exploration`);
+      sageAcceptance = await runSageAcceptance({
+        client: clientBundle.client,
+        toolMap: clientBundle.toolMap,
+        resultText,
+        baseUrl,
+        questions: writerConfig.requiredSageConversation,
+        onStatus: (index, state, detail) => status(`Sage acceptance ${index}`, state, detail),
+      });
+      status("Required Sage conversation retry", sageAcceptance.passed ? "PASS" : "FAIL", `${sageAcceptance.completed}/${sageAcceptance.requested}`);
+    }
+
+    try {
+      status("Avery visible acceptance completion", "START");
+      completion = await runWriterAcceptanceCompletion({
+        client: clientBundle.client,
+        toolMap: clientBundle.toolMap,
+        resultText,
+        baseUrl,
+        storySeed: baseReport.storySeed,
+        onStatus: (id, detail) => status(`Acceptance · ${id}`, "PASS", detail),
+      });
+      status("Avery visible acceptance completion", "PASS", `${completion.steps.length} milestone(s)`);
+    } catch (error) {
+      completionError = error instanceof Error ? error.message : String(error);
+      status("Avery visible acceptance completion", "FAIL", completionError);
+    }
+
+    try {
+      status("Independent final-state observer", "START");
+      audit = await observeWriterJourneyFinalState({
+        client: clientBundle.client,
+        resultText,
+        baseUrl,
+        captureScreenshot: (name) => captureScreenshot(clientBundle.client, clientBundle.toolMap, name),
+      });
+      status("Independent final-state observer", audit.passed ? "PASS" : "FAIL", `${audit.checks.filter((item) => item.passed).length}/${audit.checks.length}`);
+      if (audit.marketingReference) {
+        const copied = await copyMarketingPoster(audit);
+        if (copied) status("Dashboard session poster evidence", "PASS", path.relative(artifactRoot, copied));
+      }
+    } catch (error) {
+      auditError = error instanceof Error ? error.message : String(error);
+      status("Independent final-state observer", "FAIL", auditError);
     }
   } finally {
     if (clientBundle) {
@@ -279,7 +337,20 @@ async function main() {
     }
   }
 
-  const { overallPass } = await writeAugmentedReport({ baseExitCode, completion, audit, completionError });
+  const { overallPass, exploration } = await writeAugmentedReport({
+    baseExitCode,
+    sageAcceptance,
+    completion,
+    audit,
+    completionError,
+    auditError,
+  });
+
+  status(
+    "Story frontier acceptance",
+    exploration.passed ? "PASS" : "FAIL",
+    `coverage=${exploration.journeyComplete ? "yes" : "no"}, Sage=${exploration.sageCompleted}/${exploration.sageRequested}, Settings-depth=${exploration.settingsDepthComplete ? "pass" : "warn/nonblocking"}`,
+  );
 
   if (githubReport) {
     const report = JSON.parse(await readFile(reportPath, "utf8"));

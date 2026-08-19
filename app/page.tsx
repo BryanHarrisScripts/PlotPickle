@@ -5,17 +5,20 @@ import { plotPickleCurriculum } from "../adapters/curriculum/current-catalog";
 import { FOUNDATION_PROJECT_STORAGE_KEY } from "../core/contracts/foundation-plan";
 import { normalizeFoundationProject, type PPFProject } from "../core/project/project";
 import FoundationsBuildWorkspace from "../modules/build/ui/foundations-build-workspace";
+import WorldBuildWorkspace from "../modules/build/ui/world-build-workspace";
 import { answerFromCurriculum } from "../modules/creative-room/sage-unified-guide";
 import DashboardWorkspace from "../modules/dashboard/ui/dashboard-workspace";
 import LearnWorkspace from "../modules/learn/ui/learn-workspace";
 import FoundationsPlanWorkspace from "../modules/plan/ui/foundations-plan-workspace";
 import PlanLessonAnswerPreview from "../modules/plan/ui/plan-lesson-answer-preview";
+import WorldPlanWorkspace from "../modules/plan/ui/world-plan-workspace";
 import WyrmwoodWorkspace from "../modules/wyrmwood/ui/wyrmwood-workspace";
 import CommunityWorkspace from "./community-workspace";
 import PlotPickleWorkspaceShell, { type RootWorkspace } from "./plotpickle-workspace-shell";
 import SageSettingsWorkspace from "./sage-settings-workspace";
 
 type Workspace = RootWorkspace;
+type GuidedSection = "foundations" | "world";
 
 function requestedWorkspace(): Workspace {
   if (typeof window === "undefined") return "learn";
@@ -27,6 +30,11 @@ function requestedWorkspace(): Workspace {
   if (requested === "settings") return "settings";
   if (requested === "wyrmwood") return "wyrmwood";
   return "learn";
+}
+
+function requestedSection(): GuidedSection {
+  if (typeof window === "undefined") return "foundations";
+  return new URLSearchParams(window.location.search).get("section") === "world" ? "world" : "foundations";
 }
 
 function repairPersistedProject() {
@@ -49,24 +57,44 @@ function repairPersistedProject() {
           ? normalized.foundations.activeLessonId
           : null,
       },
+      world: {
+        ...normalized.world,
+        activeLessonId: normalized.world.activeLessonId && validLessonIds.has(normalized.world.activeLessonId)
+          ? normalized.world.activeLessonId
+          : null,
+      },
     };
     localStorage.setItem(FOUNDATION_PROJECT_STORAGE_KEY, JSON.stringify(repaired));
   } catch {
-    // Preserve an unreadable cache for manual recovery before allowing the
-    // workspaces to create a clean project under the canonical key.
     localStorage.setItem(`${FOUNDATION_PROJECT_STORAGE_KEY}.recovery.${Date.now()}`, saved);
     localStorage.removeItem(FOUNDATION_PROJECT_STORAGE_KEY);
   }
 }
 
+function navigateGuided(workspace: "learn" | "plan" | "build", section: GuidedSection, lessonId?: string) {
+  const destination = new URL(window.location.href);
+  destination.searchParams.set("workspace", workspace);
+  if (workspace === "learn") {
+    destination.searchParams.delete("section");
+    destination.searchParams.delete("lesson");
+  } else {
+    destination.searchParams.set("section", section);
+    if (lessonId) destination.searchParams.set("lesson", lessonId);
+    else destination.searchParams.delete("lesson");
+  }
+  window.location.assign(`${destination.pathname}${destination.search}`);
+}
+
 function navigateWorkspace(workspace: Workspace) {
   const destination = new URL(window.location.href);
   destination.searchParams.set("workspace", workspace);
-  if (workspace !== "plan") {
+  if (workspace === "plan" || workspace === "build") {
+    destination.searchParams.set("section", "foundations");
+    destination.searchParams.delete("lesson");
+  } else {
     destination.searchParams.delete("section");
     destination.searchParams.delete("lesson");
   }
-  if (workspace === "plan") destination.searchParams.set("section", "foundations");
   window.location.assign(`${destination.pathname}${destination.search}`);
 }
 
@@ -78,8 +106,6 @@ export default function Home() {
     repairPersistedProject();
     const syncWorkspace = () => setWorkspace(requestedWorkspace());
     syncWorkspace();
-    // Browser storage and URL state are unavailable during the server render;
-    // this mount gate deliberately opens only after both have been repaired.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setStorageReady(true);
     window.addEventListener("popstate", syncWorkspace);
@@ -93,7 +119,11 @@ export default function Home() {
   if (workspace === "dashboard") {
     return (
       <PlotPickleWorkspaceShell activeWorkspace="dashboard" onNavigate={navigateWorkspace}>
-        <DashboardWorkspace curriculum={plotPickleCurriculum} onNavigate={navigateWorkspace} />
+        <DashboardWorkspace
+          curriculum={plotPickleCurriculum}
+          onNavigate={navigateWorkspace}
+          onNavigateGuided={navigateGuided}
+        />
       </PlotPickleWorkspaceShell>
     );
   }
@@ -127,34 +157,47 @@ export default function Home() {
   }
 
   if (workspace === "build") {
+    const section = requestedSection();
     return (
       <PlotPickleWorkspaceShell activeWorkspace="build" onNavigate={navigateWorkspace}>
-        <FoundationsBuildWorkspace
-          curriculum={plotPickleCurriculum}
-          onOpenDashboard={() => navigateWorkspace("dashboard")}
-          onOpenPlan={() => navigateWorkspace("plan")}
-        />
+        {section === "world" ? (
+          <WorldBuildWorkspace
+            curriculum={plotPickleCurriculum}
+            onOpenDashboard={() => navigateWorkspace("dashboard")}
+            onOpenPlan={() => navigateGuided("plan", "world")}
+          />
+        ) : (
+          <FoundationsBuildWorkspace
+            curriculum={plotPickleCurriculum}
+            onOpenDashboard={() => navigateWorkspace("dashboard")}
+            onOpenPlan={() => navigateGuided("plan", "foundations")}
+          />
+        )}
       </PlotPickleWorkspaceShell>
     );
   }
 
   if (workspace === "plan") {
+    const section = requestedSection();
     return (
       <PlotPickleWorkspaceShell activeWorkspace="plan" onNavigate={navigateWorkspace}>
-        <FoundationsPlanWorkspace curriculum={plotPickleCurriculum} />
-        <PlanLessonAnswerPreview curriculum={plotPickleCurriculum} />
+        {section === "world" ? (
+          <WorldPlanWorkspace
+            curriculum={plotPickleCurriculum}
+            onOpenBuild={() => navigateGuided("build", "world")}
+            onOpenLearn={() => navigateGuided("learn", "world")}
+          />
+        ) : (
+          <>
+            <FoundationsPlanWorkspace curriculum={plotPickleCurriculum} />
+            <PlanLessonAnswerPreview curriculum={plotPickleCurriculum} />
+          </>
+        )}
       </PlotPickleWorkspaceShell>
     );
   }
 
-  const openFoundationsPlan = (lessonId?: string) => {
-    const destination = new URL(window.location.href);
-    destination.searchParams.set("workspace", "plan");
-    destination.searchParams.set("section", "foundations");
-    if (lessonId) destination.searchParams.set("lesson", lessonId);
-    else destination.searchParams.delete("lesson");
-    window.location.assign(`${destination.pathname}${destination.search}`);
-  };
+  const openFoundationsPlan = (lessonId?: string) => navigateGuided("plan", "foundations", lessonId);
 
   return (
     <PlotPickleWorkspaceShell activeWorkspace="learn" onNavigate={navigateWorkspace}>

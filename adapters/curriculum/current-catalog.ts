@@ -12,6 +12,7 @@ import theme from "../../learn/theme.json";
 import visualStorytelling from "../../learn/visual-storytelling.json";
 import world from "../../learn/world.json";
 import type { CurriculumLesson } from "../../core/contracts/curriculum";
+import { compareVisualWriterCurriculumOrder } from "../../core/contracts/visual-writer-progression/index";
 import { FOUNDATION_SOURCE_COVERAGE } from "./foundation-content-coverage";
 import { buildDeepFoundationCurriculum } from "./foundation-deep-learning";
 import { FOUNDATION_PROMOTED_SOURCE_IDS } from "./foundation-reference-lessons";
@@ -52,12 +53,11 @@ for (const document of topicDocuments) {
   }
 }
 
-// Keep the audited v2 JSON archive intact. The presentation curriculum below
-// promotes the seven Foundations references into standalone lessons without
-// changing or discarding the original source records used for provenance.
+// Keep the audited v2 JSON archive intact. Presentation order is derived from the
+// canonical Visual Writer group contract while preserving lesson number inside each group.
 const plotPickleCurriculum = topicDocuments
   .flatMap((document) => document.lessons)
-  .sort((left, right) => left.number - right.number);
+  .sort(compareVisualWriterCurriculumOrder);
 
 const sourceIds = plotPickleCurriculum.flatMap((lesson) => lesson.sources.map((source) => source.id));
 if (plotPickleCurriculum.length !== index.lessonCount || plotPickleCurriculum.length !== 81) {
@@ -67,13 +67,15 @@ if (sourceIds.length !== index.sourceCount || sourceIds.length !== 95 || new Set
   throw new Error(`Expected ${index.sourceCount} unique embedded lesson sources, found ${sourceIds.length}.`);
 }
 
+// Foundations promotes its seven references into standalone presentation lessons,
+// but it still participates in the same canonical group order without rewriting the archive.
 const standalonePlotPickleCurriculum: readonly CurriculumLesson[] = topicDocuments
   .flatMap((document) => (
     document.topic.id === "foundations"
       ? buildDeepFoundationCurriculum(document.lessons)
       : document.lessons
   ))
-  .sort((left, right) => left.number - right.number);
+  .sort(compareVisualWriterCurriculumOrder);
 
 const standaloneFoundations = standalonePlotPickleCurriculum.filter((lesson) => lesson.topic === "foundations");
 const foundationSourceIds = standaloneFoundations.flatMap((lesson) => lesson.sources.map((source) => source.id));

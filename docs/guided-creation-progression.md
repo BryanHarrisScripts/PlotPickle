@@ -15,28 +15,56 @@ For curriculum groups that produce story or visual decisions, the writer advance
 
 The curriculum remains reusable knowledge/RAG. Project state stores the writer's decisions and accepted artifacts, not copies of the lesson bodies.
 
-## Canonical group order
+## Canonical Visual Writer group order
 
 1. Foundations
 2. World
-3. Structure
-4. Drafting
-5. Character
-6. Industry
-7. Responsible AI
-8. Theme
-9. Visual Storytelling
-10. Revision
-11. Dialogue
+3. Character
+4. Theme
+5. Structure
+6. Visual Storytelling
+7. Drafting
+8. Dialogue
+9. Revision
+10. Responsible AI
+11. Industry
 12. Collaboration
 
-This order is defined in `modules/dashboard/guided-progression.ts`. UI surfaces must read that engine rather than create their own completion rules.
+The order is defined once by `VISUAL_WRITER_GROUP_ORDER` in `core/contracts/visual-writer-progression/index.ts`. Guided progression, curriculum presentation and later consumers must read that shared contract rather than create their own order or completion rules.
+
+The dependency audit and rationale live in `docs/visual-writer-curriculum-audit.md`. All 81 archived curriculum lessons remain bundled; #1030A changes progression metadata/order, not lesson copy.
+
+## Explicit output contracts
+
+Every curriculum group declares one central output contract describing:
+
+- prerequisite groups;
+- what the writer learns;
+- what project decisions the group creates/refines;
+- whether those decisions affect visual generation;
+- the BUILD capability unlocked by accepted decisions;
+- the exact completed curriculum groups BUILD may use as context;
+- artifact kinds the group may create/update;
+- the writer approval required before later groups may treat the result as accepted;
+- whether the group is knowledge-only, decision-producing, artifact-producing or a mixture.
+
+`deriveGuidedLessonOutputContracts(curriculum)` then projects that contract onto every real curriculum lesson while preserving the lesson's existing numbered order and using the lesson's own objectives/application text instead of duplicating lesson bodies.
+
+## Progressive visual boundary
+
+The early progressive visual artifact is the **Visual Narrative Wireframe**.
+
+It is intentionally rough, low resolution, disposable, regenerable and pre-final. Storyboard and Previs are later production stages.
+
+**BUILD may only visualize the completed project frontier.** A group may use only the accepted context named by its output contract. Future incomplete lessons/groups cannot be silently borrowed. Later groups may refine or branch earlier visuals, but provenance/history must remain reviewable.
+
+Generation alone is not approval.
 
 ## Current implementation boundary
 
-**Foundations is the only implemented vertical slice.**
+**Foundations is the only implemented vertical slice in PR A.**
 
-Its contract is:
+Its current implementation contract is:
 
 1. Complete all 11 Foundations LEARN lessons.
 2. Complete the Foundations PLAN decisions / Story Foundation Brief.
@@ -44,23 +72,29 @@ Its contract is:
 4. Explicitly accept at least one real stored visual artifact.
 5. Only then is Foundations complete and World progression-unlocked.
 
-Generation alone is not approval. A fake or unknown artifact ID cannot complete BUILD. If the last accepted Foundations visual is unaccepted or rejected, BUILD is no longer complete and World is no longer progression-unlocked.
+A fake or unknown artifact ID cannot complete BUILD. If the last accepted Foundations visual is unaccepted or rejected, BUILD is no longer complete and World is no longer progression-unlocked.
 
-World may be shown as the next curriculum group when Foundations is complete, but World LEARN/PLAN/BUILD workspaces remain deliberately gated until the Foundations cycle is reviewed and approved.
+World may be shown as the next curriculum group when Foundations is complete, but World LEARN/PLAN/BUILD workspaces remain deliberately gated until the World vertical slice is implemented in the later #1030 rollout.
 
 ## Dashboard responsibilities
 
-Dashboard is a view over the same canonical project state. It may show:
+Dashboard is a view over the same canonical project state and output contracts. It may show:
 
 - LEARN / PLAN / BUILD state for the current implemented group,
 - lesson and PLAN completion counts,
 - accepted BUILD artifact counts,
 - per-group and overall progress,
 - the recommended next action,
-- all twelve curriculum groups and which are complete, current, ready-next or gated.
+- all twelve curriculum groups and which are complete, current, ready-next or gated,
+- current output/frontier semantics from the canonical group contract.
 
 Dashboard must not create a second progress store or invent completion.
 
-## Future extension
+## Later #1030 rollout
 
-Each future curriculum slice should extend the central progression engine and canonical project contracts rather than introduce section-specific booleans. BUILD semantics can vary by curriculum group; not every group requires image generation. Storyboard and Previs are later production stages and are not part of the current Foundations implementation.
+- **PR A — audit + contracts:** canonical order, dependency/output metadata, documentation and regressions; no new image generation.
+- **PR B — Foundations wireframe BUILD:** rough provider-backed Visual Narrative Wireframe, conservative frame count, provenance and review state.
+- **PR C — World vertical slice:** World LEARN/PLAN/BUILD using the same engine with additive/branching provenance.
+- **PR D — Avery + Dashboard:** traverse and review the actually implemented frontier through the same canonical progression model.
+
+Each future curriculum slice extends the central progression engine and canonical project/artifact contracts rather than introducing section-specific booleans. Image work stays behind PlotPickle's configured provider/media-routing boundary.

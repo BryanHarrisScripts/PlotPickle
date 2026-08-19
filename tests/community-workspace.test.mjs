@@ -42,9 +42,10 @@ test("Community exposes the Great Hall, Story Rooms, people, live agents, review
 });
 
 test("Community navigation uses per-section chevrons, clears prototype copy and keeps room selection in the left rail", async () => {
-  const [workspace, navigationStyles] = await Promise.all([
+  const [workspace, navigationStyles, continuity] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("app/community-navigation.module.css"),
+    read("app/workspace-continuity.css"),
   ]);
 
   assert.match(workspace, /useState<CommunitySection \| null>\("great-hall"\)/);
@@ -77,12 +78,17 @@ test("Community navigation uses per-section chevrons, clears prototype copy and 
   assert.match(workspace, /great-hall"[^\n]+primary: true/);
   assert.match(workspace, /story-rooms"[^\n]+primary: true/);
 
-  assert.match(navigationStyles, /\.communityLayout\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(220px,\s*19fr\)\s+minmax\(0,\s*81fr\)/s);
-  assert.match(navigationStyles, /\.communityRail\s*\{[^}]*grid-column:\s*1;[^}]*grid-row:\s*1;/s);
-  assert.match(navigationStyles, /\.communityContent\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*1;/s);
-  assert.match(navigationStyles, /\.communityContent > main\[data-community-terminal="backdoor-v1"\][^}]*padding:\s*0;/s);
+  assert.match(continuity, /--pp-workspace-columns:\s*minmax\(240px, 19%\) minmax\(440px, 56%\) minmax\(300px, 25%\)/);
+  assert.match(continuity, /\[data-active-workspace="community"\][\s\S]*grid-template-columns:\s*var\(--pp-workspace-columns\)\s*!important;/);
+  assert.match(navigationStyles, /\.communityLayout\s*\{[^}]*display:\s*contents;/s);
+  assert.match(navigationStyles, /\.communityRail\s*\{[^}]*grid-column:\s*1;[^}]*grid-row:\s*1 \/ 5;/s);
+  assert.match(navigationStyles, /\.communityContent\s*\{[^}]*display:\s*grid;[^}]*grid-column:\s*2 \/ 4;[^}]*grid-row:\s*2 \/ 4;[^}]*grid-template-columns:\s*subgrid;/s);
+  assert.match(navigationStyles, /\.communityContent > main\[data-community-terminal="backdoor-v1"\]\s*\{[^}]*padding:\s*0;/s);
   assert.match(navigationStyles, /\.destinationChevron\[aria-expanded="true"\] span/);
-  assert.match(navigationStyles, /@media \(max-width: 760px\)[\s\S]*\.communityLayout\s*\{[^}]*grid-template-columns:\s*1fr;[\s\S]*\.destinationList\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.doesNotMatch(navigationStyles, /19fr|81fr|56fr|25fr/,
+    "Community must inherit the shared desktop tracks instead of declaring a second ratio");
+  assert.match(navigationStyles, /@media \(max-width:\s*900px\)[\s\S]*\.destinationList\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(navigationStyles, /@media \(max-width:\s*900px\)[\s\S]*\.communityContent\s*\{[^}]*display:\s*block;/);
 });
 
 test("Great Hall and Story Rooms behave like conversations with reply and room-close affordances", async () => {

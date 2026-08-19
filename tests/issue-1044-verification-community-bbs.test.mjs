@@ -54,8 +54,11 @@ test("#1044 Community Presence replaces the user-facing Playhouse route while pr
   assert.match(gateway, /playhouse-presence\.json/);
 });
 
-test("#1044 Sage gets one bounded quality repair without weakening the health rubric", async () => {
-  const source = await read("build/startup-agent-diagnostics-runtime-v6.ts");
+test("#1044 Sage gets one bounded quality repair without weakening the health rubric or Agent Profile boundary", async () => {
+  const [source, profileLayer] = await Promise.all([
+    read("build/startup-agent-diagnostics-runtime-v5.ts"),
+    read("build/startup-agent-diagnostics-runtime-v6.ts"),
+  ]);
   assert.match(source, /Quality repair/);
   assert.match(source, /SAGE_DIAGNOSTIC_QUALITY_REPAIR_INSTRUCTION/);
   assert.match(source, /strictAntiEchoPass\(text, question\)/);
@@ -63,6 +66,7 @@ test("#1044 Sage gets one bounded quality repair without weakening the health ru
   assert.match(source, /groundingPass\(text\)/);
   assert.match(source, /60_000/);
   assert.match(source, /failedChecks\.every/);
+  assert.ok(profileLayer.indexOf("assertAgentProfilesValid()") < profileLayer.indexOf("return runV5(baseUrl)"));
 });
 
 test("#1044 missing Pi is reported as optional repair capability rather than a product failure", async () => {

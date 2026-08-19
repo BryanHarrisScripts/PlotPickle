@@ -1,0 +1,47 @@
+name: iOS Companion Contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "core/identity/ios-companion-core.mjs"
+      - "core/identity/ios-companion.ts"
+      - "docs/architecture/IOS-COMPANION.md"
+      - "tests/issue-1090-ios-companion.test.mjs"
+      - ".github/workflows/ios-companion-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-companion-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  companion-contract:
+    name: LEARN, five Communities and bounded BUZZ capabilities
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Validate iOS Companion contract
+        run: node --test tests/issue-1090-ios-companion.test.mjs
+
+      - name: Re-run shared identity, LEARN, BUZZ and moderation boundaries
+        run: node --test tests/issue-1073-avatar-recovery-learn-sync.test.mjs tests/issue-928-playhouse-federation.test.mjs tests/issue-1065-bbs-moderator.test.mjs
+
+      - name: Production build
+        run: npm run build

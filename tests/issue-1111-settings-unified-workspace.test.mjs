@@ -36,6 +36,9 @@ test("#1111 Settings deep links are bookmarkable and browser back/forward restor
   assert.match(source, /window\.addEventListener\("popstate", sync\)/);
   assert.match(source, /window\.sessionStorage\.setItem\(SETTINGS_SECTION_KEY, section\)/);
   assert.match(source, /LEGACY_TARGETS/, "old Settings deep links must continue to resolve into the new navigation model");
+  const hashIndex = source.indexOf("if (url.hash)");
+  const queryIndex = source.indexOf("const querySection = url.searchParams.get(SETTINGS_QUERY_KEY)");
+  assert.ok(hashIndex >= 0 && queryIndex >= 0 && hashIndex < queryIndex, "legacy hash destinations must win over a stale settings query so HELP, AI Routing, ComfyUI and provider links remain usable");
 });
 
 test("#1111 common overview reads existing runtime media and BUZZ authorities without creating a second status store", async () => {

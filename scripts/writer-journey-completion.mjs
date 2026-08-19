@@ -11,12 +11,12 @@ function controlsFromSnapshot(snapshot) {
 
 function topicSnapshot(snapshot, topic, nextTopics) {
   const text = String(snapshot || "");
-  const startPattern = new RegExp(`button \\"${topic}\\"`, "i");
+  const startPattern = new RegExp(`button "${topic}"`, "i");
   const startMatch = startPattern.exec(text);
   if (!startMatch) return "";
   let end = text.length;
   for (const next of nextTopics) {
-    const match = new RegExp(`button \\"${next}\\"`, "i").exec(text.slice(startMatch.index + 1));
+    const match = new RegExp(`button "${next}"`, "i").exec(text.slice(startMatch.index + 1));
     if (match) end = Math.min(end, startMatch.index + 1 + match.index);
   }
   return text.slice(startMatch.index, end);

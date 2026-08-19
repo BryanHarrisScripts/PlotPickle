@@ -17,6 +17,7 @@ type TalkTarget =
 
 type TerminalProps = {
   readonly connected: boolean;
+  readonly nodeName: string;
   readonly identityLabel: string;
   readonly greatHallChannelId: string;
   readonly members: readonly CommunityMember[];
@@ -29,7 +30,6 @@ type TerminalProps = {
 };
 
 const BUZZ_API = "/api/local-buzz";
-const COMMUNITY_BBS_NODE = "plotpickle-community";
 const COMMUNITY_BBS_ASCII = String.raw`
                          ___====-_  _-====___
                    _--^^^#####//      \\#####^^^--_
@@ -102,7 +102,7 @@ async function postMessage(channelId: string, content: string) {
   if (!response.ok) throw new Error(body.message || `BUZZ returned ${response.status}.`);
 }
 
-export default function CommunityBackdoorTerminal({ connected, identityLabel, greatHallChannelId, members, recentActivity, readyGuildhallRooms, storyRooms, reviews, onExit, onNotice }: TerminalProps) {
+export default function CommunityBackdoorTerminal({ connected, nodeName, identityLabel, greatHallChannelId, members, recentActivity, readyGuildhallRooms, storyRooms, reviews, onExit, onNotice }: TerminalProps) {
   const [mode, setMode] = useState<TerminalMode>("home");
   const [halted, setHalted] = useState(false);
   const [selectedTargetKey, setSelectedTargetKey] = useState("");
@@ -208,7 +208,7 @@ export default function CommunityBackdoorTerminal({ connected, identityLabel, gr
         <p className={styles.motto}>// the public door above the hidden Guildhall //</p>
         <div className={styles.rule}>========================================================================</div>
         <dl className={styles.statusLine}>
-          <div><dt>NODE</dt><dd>{COMMUNITY_BBS_NODE}</dd></div>
+          <div><dt>NODE</dt><dd>{nodeName || "BUZZ NODE UNAVAILABLE"}</dd></div>
           <div><dt>CALLER</dt><dd>{identityLabel || "UNVERIFIED WRITER"}</dd></div>
           <div><dt>ONLINE</dt><dd>{onlineMembers.length}</dd></div>
           <div><dt>AGENTS</dt><dd>{BUZZ_GUILDHALL_ACTORS.length}</dd></div>

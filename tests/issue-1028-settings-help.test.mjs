@@ -37,17 +37,16 @@ test("#1028 helper directory mirrors every host-owned Agent Profile exactly once
   }
 });
 
-test("#1028 every helper resolves through the shared local portrait registry and Sage keeps the approved source", async () => {
-  const registry = await source("lib/agent-portrait-registry.ts");
+test("#1028 every helper resolves through the shared local portrait component and Sage keeps the approved source", async () => {
   const component = await source("components/agent-portrait.tsx");
   assert.equal(helperDirectory.portraitSystem, "painterly-fantasy-v1");
 
   for (const helper of helperDirectory.helpers) {
-    assert.match(registry, new RegExp(`id: ["']${helper.id}["']`), `${helper.id} is missing from the shared portrait registry`);
+    assert.match(component, new RegExp(`id: ["']${helper.id}["']`), `${helper.id} is missing from the shared portrait component`);
   }
-  assert.match(registry, /id: "sage-brinewick"[\s\S]*source: "\/assets\/curriculum-guide-master-storyteller\.png"/);
+  assert.match(component, /id: "sage-brinewick"[\s\S]*source: "\/assets\/curriculum-guide-master-storyteller\.png"/);
   await access(path.join(repoRoot, "public", "assets", "curriculum-guide-master-storyteller.png"));
-  assert.doesNotMatch(`${registry}\n${component}`, /\/assets\/helpers\/16bit\//i);
+  assert.doesNotMatch(component, /\/assets\/helpers\/16bit\//i);
 });
 
 test("#1028 cards use Agent Profiles for identity/authority and provide accessible illustrated portraits", async () => {

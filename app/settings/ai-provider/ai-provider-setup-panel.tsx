@@ -27,25 +27,6 @@ type ProviderForm = {
 
 const API = "/api/local-ai/connection";
 
-async function jsonRequest<T>(path: string, method: "GET" | "POST" = "GET", body?: object) {
-  const response = await fetch(path, {
-    method,
-    headers: body ? { "Content-Type": "application/json" } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const contentType = response.headers.get("content-type") || "";
-  if (!contentType.includes("application/json")) throw new Error("The local AI connection gateway is unavailable.");
-  const value = await response.json() as T & { message?: string };
-  if (!response.ok) throw new Error(value.message || "The provider connection could not be updated.");
-  return value;
-}
-
-function formatDate(value?: string) {
-  if (!value) return "Not tested";
-  const date = new Date(value);
-  return Number.isNaN(date.valueOf()) ? value : date.toLocaleString();
-}
-
 export default function AiProviderSetupPanel({ provider }: { provider: ProviderId }) {
   const preset = useMemo(() => providerPresets.find((item) => item.kind === provider), [provider]);
   const label = provider === "openai" ? "OpenAI" : "MiniMax";
@@ -60,6 +41,12 @@ export default function AiProviderSetupPanel({ provider }: { provider: ProviderI
   const [checkedAt, setCheckedAt] = useState("");
   const [working, setWorking] = useState(false);
   const [notice, setNotice] = useState("Checking the saved provider connection…");
+  const checkedDate = checkedAt ? new Date(checkedAt) : null;
+  const checkedLabel = !checkedDate
+    ? "Not tested"
+    : Number.isNaN(checkedDate.valueOf())
+      ? checkedAt
+      : checkedDate.toLocaleString();
 
   function announceRefresh() {
     requestConnectionStatusRefresh();
@@ -68,8 +55,12 @@ export default function AiProviderSetupPanel({ provider }: { provider: ProviderI
 
   useEffect(() => {
     let active = true;
-    void jsonRequest<ConnectionResponse>(API)
-      .then((current) => {
+    void fetch(API, { headers: { Accept: "application/json" } })
+      .then(async (response) => {
+        const contentType = response.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) throw new Error("The local AI connection gateway is unavailable.");
+        const current = await response.json() as ConnectionResponse;
+        if (!response.ok) throw new Error(current.message || "Provider status could not be checked.");
         if (!active) return;
         const matches = current.saved && current.provider === provider;
         setSavedForProvider(Boolean(matches));
@@ -103,7 +94,15 @@ export default function AiProviderSetupPanel({ provider }: { provider: ProviderI
     setWorking(true);
     setNotice(`Saving and testing ${label}…`);
     try {
-      const result = await jsonRequest<ConnectionResponse>(API, "POST", { provider, ...form, apiKey });
+      const response = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider, ...form, apiKey }),
+      });
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) throw new Error("The local AI connection gateway is unavailable.");
+      const result = await response.json() as ConnectionResponse;
+      if (!response.ok) throw new Error(result.message || "The provider connection could not be updated.");
       setApiKey("");
       setSavedForProvider(true);
       setCheckedAt(result.checkedAt || "");
@@ -121,7 +120,11 @@ export default function AiProviderSetupPanel({ provider }: { provider: ProviderI
     setWorking(true);
     setNotice(`Testing the saved ${label} connection…`);
     try {
-      const result = await jsonRequest<ConnectionResponse>(`${API}/check`, "POST");
+      const response = await fetch(`${API}/check`, { method: "POST", headers: { Accept: "application/json" } });
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) throw new Error("The local AI connection gateway is unavailable.");
+      const result = await response.json() as ConnectionResponse;
+      if (!response.ok) throw new Error(result.message || "The saved provider connection could not be verified.");
       setCheckedAt(result.checkedAt || "");
       setNotice(`${label} connected successfully.`);
       announceRefresh();
@@ -150,7 +153,7 @@ export default function AiProviderSetupPanel({ provider }: { provider: ProviderI
         <button type="button" onClick={() => void testAgain()} disabled={working || !savedForProvider}>Test saved connection</button>
       </div>
       <p className={styles.notice} role="status">{notice}</p>
-      <footer><span>Last successful test: {formatDate(checkedAt)}</span><span>Cloud requests use the user-owned provider account. PlotPickle never silently falls back to a paid route.</span></footer>
+      <footer><span>Last successful test: {checkedLabel}</span><span>Cloud requests use the user-owned provider account. PlotPickle never silently falls back to a paid route.</span></footer>
     </section>
   );
 }

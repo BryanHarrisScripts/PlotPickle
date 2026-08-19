@@ -13,9 +13,9 @@ const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 
 test("#1119 self-provisions the reviewed official Pi CLI and resolves npm global shims without PATH refresh", async () => {
   const runtime = await read("scripts/pi-worker-runtime.mjs");
-  assert.match(runtime, /@earendil-works\/pi-coding-agent/);
-  assert.match(runtime, /npm.*install.*-g.*--ignore-scripts/s);
-  assert.match(runtime, /npm.*prefix.*-g/s);
+  assert.match(runtime, /PI_CODING_AGENT_PACKAGE\s*=\s*"@earendil-works\/pi-coding-agent"/);
+  assert.match(runtime, /runPortableCommand\("npm", \["install", "-g", "--ignore-scripts", PI_CODING_AGENT_PACKAGE\]/);
+  assert.match(runtime, /portableCommandSync\("npm", \["prefix", "-g"\]\)/);
   assert.match(runtime, /pi\.cmd/);
   assert.match(runtime, /PLOTPICKLE_PI_AUTO_INSTALL/);
   assert.match(runtime, /PLOTPICKLE_PI_COMMAND/);

@@ -81,6 +81,19 @@ test("#1083 exposes only bounded hardware facts and does not return raw ComfyUI 
   assert.doesNotMatch(diagnostics, /environment\s*:/);
 });
 
+test("#1083 shows the normalized Comfy management and safe GPU facts in Settings", async () => {
+  const host = await source("app/configuration-dashboard-host.tsx");
+  assert.match(host, /aria-label="ComfyUI management readiness"/);
+  assert.match(host, /Managed · Comfy MCP/);
+  assert.match(host, /Direct local ComfyUI API/);
+  assert.match(host, /Installed · not running/);
+  assert.match(host, /Local GPU:/);
+  assert.match(host, /totalVramMb/);
+  assert.match(host, /freeVramMb/);
+  assert.match(host, /never turns a failed local setup into a paid cloud request automatically/i);
+  assert.doesNotMatch(host, /python_version|argv|environment|privateKey|apiKey/);
+});
+
 test("#1083 does not give creative agents custom-node install, partner-credit or arbitrary MCP authority", async () => {
   const [diagnostics, onboarding] = await Promise.all([
     source("build/comfyui-connection-diagnostics.ts"),

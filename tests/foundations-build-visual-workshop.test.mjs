@@ -73,9 +73,9 @@ test("acceptance can only unlock progression for a real non-rejected stored arti
   assert.match(reducer, /case "foundations\.visual\.discard"/);
   assert.match(reducer, /reviewState: "rejected" as const/);
   assert.match(reducer, /acceptedVisualArtifactIds: project\.build\.foundations\.acceptedVisualArtifactIds\.filter/);
-  assert.match(guided, /project\.build\.foundations\.acceptedVisualArtifactIds\.length/);
-  assert.match(guided, /const buildComplete = planComplete && acceptedVisualArtifactCount > 0/);
-  assert.match(guided, /const unlocked = index === 0 && foundations\.complete/);
+  assert.match(guided, /const foundationAcceptedVisualArtifactCount = project\.build\.foundations\.acceptedVisualArtifactIds\.length/);
+  assert.match(guided, /const foundationBuildComplete = foundationPlanComplete && foundationAcceptedVisualArtifactCount > 0/);
+  assert.match(guided, /unlocked: foundations\.complete/);
   assert.match(adapter, /worldUnlocked: Boolean\(world\?\.unlocked\)/);
 });
 

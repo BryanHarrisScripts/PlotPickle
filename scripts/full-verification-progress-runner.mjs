@@ -10,7 +10,10 @@ import {
   ensurePlotPickleReady,
   runVerificationGraph,
 } from "./full-verification-graph.mjs";
-import { verificationCommandFor } from "./full-verification-process.mjs";
+import {
+  terminateVerificationProcessTree,
+  verificationCommandFor,
+} from "./full-verification-process.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const authoritativeTotal = FULL_VERIFICATION_GRAPH.filter((node) => node.authoritative).length;
@@ -90,10 +93,6 @@ export function verificationTimeoutForNode(node) {
   return timeoutMs;
 }
 
-function commandFor(node) {
-  return verificationCommandFor(node);
-}
-
 function writeChunk(prefix, stream, chunk) {
   const text = String(chunk || "");
   if (!text) return;
@@ -130,83 +129,8 @@ async function executableAvailable(name) {
   });
 }
 
-function childAlreadyClosed(child) {
-  return child.exitCode !== null || child.signalCode !== null;
-}
-
-async function waitForChildClose(child, timeoutMs = 3_000) {
-  if (!child || childAlreadyClosed(child)) return true;
-  return new Promise((resolve) => {
-    let settled = false;
-    const finish = (closed) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      child.off("close", onClose);
-      resolve(closed);
-    };
-    const onClose = () => finish(true);
-    const timer = setTimeout(() => finish(childAlreadyClosed(child)), timeoutMs);
-    child.once("close", onClose);
-  });
-}
-
-async function terminateProcessTree(child) {
-  if (!child?.pid || childAlreadyClosed(child)) return;
-  if (process.platform === "win32") {
-    await new Promise((resolve) => {
-      let settled = false;
-      let timer = null;
-      const finish = () => {
-        if (settled) return;
-        settled = true;
-        if (timer) clearTimeout(timer);
-        resolve();
-      };
-      try {
-        const killer = spawn("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], {
-          windowsHide: true,
-          shell: false,
-          stdio: "ignore",
-        });
-        timer = setTimeout(() => {
-          try { killer.kill(); } catch (error) { reportProcessCleanupFailure(`could not stop taskkill for PID ${child.pid}`, error); }
-          finish();
-        }, 5_000);
-        killer.once("error", (error) => {
-          reportProcessCleanupFailure(`could not start taskkill for PID ${child.pid}`, error);
-          finish();
-        });
-        killer.once("close", finish);
-      } catch (error) {
-        reportProcessCleanupFailure(`could not start taskkill for PID ${child.pid}`, error);
-        finish();
-      }
-    });
-    const closed = await waitForChildClose(child, 3_000);
-    if (!closed) {
-      try { child.kill(); } catch (error) { reportProcessCleanupFailure(`could not stop PID ${child.pid} after taskkill`, error); }
-      await waitForChildClose(child, 2_000);
-    }
-    return;
-  }
-
-  try {
-    child.kill("SIGTERM");
-  } catch (error) {
-    reportProcessCleanupFailure(`could not stop PID ${child.pid}`, error);
-  }
-  if (await waitForChildClose(child, 3_000)) return;
-  try {
-    child.kill("SIGKILL");
-  } catch (error) {
-    reportProcessCleanupFailure(`could not force-stop PID ${child.pid}`, error);
-  }
-  await waitForChildClose(child, 2_000);
-}
-
 export async function executeBoundedCommand(node, timeoutMs = 0) {
-  const { command, args } = commandFor(node);
+  const { command, args } = verificationCommandFor(node);
   const started = Date.now();
   let tail = "";
   return new Promise((resolve) => {
@@ -252,7 +176,7 @@ export async function executeBoundedCommand(node, timeoutMs = 0) {
       timedOut = true;
       const timeoutSeconds = Math.round(timeoutMs / 1000);
       process.stderr.write(`[${node.id}] HOST TIMEOUT after ${timeoutSeconds}s; stopping the process tree so independent verification work can continue.\n`);
-      void terminateProcessTree(child)
+      void terminateVerificationProcessTree(child)
         .catch((error) => reportProcessCleanupFailure(`timeout cleanup for PID ${child.pid || "unknown"}`, error))
         .finally(() => finish({
           status: "FAIL",

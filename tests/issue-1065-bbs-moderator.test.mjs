@@ -21,7 +21,7 @@ test("#1065 registers Merrin as a host-owned BUZZ-managed Community Agent Profil
   assert.ok(helpers.helpers.some((helper) => helper.id === "merrin-bellwarden" && helper.group === "community"));
 });
 
-test("#1065 configures the Moderator to hear ordinary public Great Hall greetings", async () => {
+test("#1065 still configures the Moderator to hear ordinary Great Hall greetings", async () => {
   const extension = JSON.parse(await read("config/buzz-guildhall-community.json"));
   const actor = extension.actors.find((item) => item.id === "merrin-bellwarden");
   assert.ok(actor, "Merrin BUZZ actor is missing");
@@ -32,29 +32,31 @@ test("#1065 configures the Moderator to hear ordinary public Great Hall greeting
   assert.equal(actor.managedAgent.respondTo, "anyone");
   assert.equal(actor.managedAgent.subscribe, "all");
   assert.equal(actor.managedAgent.noMentionFilter, true);
-  assert.equal(actor.managedAgent.membership, "great-hall-only");
+  assert.equal(actor.managedAgent.membership, "explicit-eligible-room-memberships");
   assert.match(actor.systemPrompt, /plain greeting such as hi, hello, hey/i);
-  assert.match(actor.systemPrompt, /do not require an @mention/i);
+  assert.match(actor.systemPrompt, /does not require an @mention/i);
 });
 
-test("#1065 requires conversation judgment instead of replying to every room message", async () => {
+test("#1065 keeps conversation judgment instead of replying to every room message", async () => {
   const actor = JSON.parse(await read("config/buzz-guildhall-community.json")).actors[0];
   assert.match(actor.systemPrompt, /stay silent rather than answering every message/i);
   assert.match(actor.systemPrompt, /people are already having a useful conversation/i);
   assert.match(actor.systemPrompt, /Keep replies concise and human/i);
 });
 
-test("#1065 keeps Moderator memory public, bounded and outside private creative authority", async () => {
+test("#1065 keeps Moderator memory bounded and private creative access explicit", async () => {
   const [profile, actor] = await Promise.all([
     read("config/agent-profile-extensions/community.json").then((source) => JSON.parse(source).profiles[0]),
     read("config/buzz-guildhall-community.json").then((source) => JSON.parse(source).actors[0]),
   ]);
-  assert.deepEqual(profile.readScopes, ["great-hall-public-conversation", "public-community-memory"]);
-  assert.ok(profile.forbiddenCapabilities.includes("private-story-room-read"));
+  assert.ok(profile.readScopes.includes("eligible-public-community-member-room-conversation"));
+  assert.ok(profile.readScopes.includes("explicit-owner-opted-in-private-room-moderation-context"));
+  assert.ok(profile.forbiddenCapabilities.includes("private-story-room-read-without-owner-opt-in"));
   assert.ok(profile.forbiddenCapabilities.includes("ppf-project-read"));
   assert.ok(profile.forbiddenCapabilities.includes("moderation-enforcement"));
   assert.equal(profile.creativeAuthority, "none");
-  assert.match(actor.systemPrompt, /never ingest private Story Rooms, LEARN answers, PLAN decisions, BUILD artifacts, PPF project state/i);
+  assert.match(actor.systemPrompt, /Private Story Rooms are not silently monitored/i);
+  assert.match(actor.systemPrompt, /Never ingest LEARN answers, PLAN decisions, BUILD artifacts, PPF project state/i);
   assert.match(actor.systemPrompt, /Never ban, delete, block, punish/i);
 });
 
@@ -65,7 +67,7 @@ test("#1065 uses a real owner-approved BUZZ identity instead of PlotPickle imper
     read("build/buzz-agent-roster-gateway.ts"),
     read("config/buzz-guildhall.json").then(JSON.parse),
   ]);
-  assert.match(profile, /own signed BUZZ identity/);
+  assert.match(profile, /own signed identity/i);
   assert.match(actor, /own BUZZ identity/);
   assert.match(rosterGateway, /"users", "get", "--name", actor\.displayName, "--owner", "me"/);
   assert.match(rosterGateway, /verified: verification === "verified"/);

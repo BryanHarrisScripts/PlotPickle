@@ -26,6 +26,7 @@ set "SETUP_REPORT=scripts\windows-setup-report.mjs"
 set "VITE_NATIVE_REPORT=scripts\vite-native-config-report.mjs"
 set "RUNTIME_MANAGER=scripts\windows-runtime.mjs"
 set "COMPANION_MANAGER=scripts\windows-companion-software.ps1"
+set "COMPANION_AFTER_READY=scripts\windows-companion-maintenance-after-ready.ps1"
 set "AGENT_SKILLS_CLI=scripts\agent-skills.mjs"
 set "UAT_RUNNER=scripts\run-creative-writer-uat.ps1"
 set "STORY_BUILDER_AGENT=scripts\full-story-builder-agent.mjs"
@@ -34,7 +35,6 @@ set "SOURCE_SYNC=scripts\windows-source-sync.mjs"
 set "RUNTIME_ENV=%TEMP%\plotpickle-runtime-%RANDOM%-%RANDOM%.cmd"
 set "SOURCE_ENV=%TEMP%\plotpickle-source-%RANDOM%-%RANDOM%.cmd"
 set "INSTALL_PERFORMED=0"
-set "COMPANION_WARNINGS=0"
 set "READY_TIMEOUT_SECONDS=60"
 
 rem Make required runtime installation and upgrades tolerant, visible, and cache-friendly.
@@ -63,7 +63,7 @@ echo ============================================================
 echo.
 echo PlotPickle runs privately on this computer and opens in your web browser.
 echo It does not install a Windows service and does not require Administrator rights.
-echo The installer inventories PlotPickle-relevant companion software and performs reviewed best-effort updates.
+echo Required PlotPickle runtime checks finish first; optional companion inventory and reviewed maintenance begin only after the local server is ready.
 echo Ollama, ComfyUI, Buzz, cloud providers, and other optional connections remain independently configurable in PlotPickle Settings.
 echo The local address 127.0.0.1 is available only to this computer.
 echo Keep this window open while using the server started here; closing it stops only that server.
@@ -243,21 +243,13 @@ if errorlevel 1 (
 )
 echo !READY! PlotPickle Agent Skills are registered and verified.
 
-if exist "%COMPANION_MANAGER%" (
+if exist "%COMPANION_MANAGER%" if exist "%COMPANION_AFTER_READY%" (
   echo.
-  echo !CYAN![COMPANION CHECK]!RESET! Listing PlotPickle-relevant software, applying reviewed updates, and verifying Ollama models...
-  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%COMPANION_MANAGER%" -Mode Maintain
-  set "COMPANION_RESULT=!ERRORLEVEL!"
-  if "!COMPANION_RESULT!"=="0" (
-    echo !READY! Companion inventory and reviewed update checks finished.
-  ) else (
-    set "COMPANION_WARNINGS=1"
-    echo !READY_WARN! Companion checks finished with optional maintenance warnings.
-    echo PlotPickle will continue and No AI mode remains available. Review the warning lines above.
-  )
+  echo !INFO! Optional companion inventory and reviewed maintenance are deferred until PlotPickle is reachable.
+  echo !INFO! ComfyUI, Ollama, Buzz and other optional companions cannot block the core server from opening.
 ) else (
-  set "COMPANION_WARNINGS=1"
-  echo !READY_WARN! The companion-software inventory is missing. PlotPickle will continue with its required runtime.
+  echo.
+  echo !READY_WARN! Optional companion maintenance helpers are incomplete. Core PlotPickle will still start normally.
 )
 
 echo.
@@ -266,11 +258,7 @@ echo.
 echo !READY! Required PlotPickle dependencies are loaded and verified.
 echo !READY! Mastra and the local agent runtime are loaded and verified.
 echo !READY! PlotPickle Agent Skills are registered and verified.
-if "!COMPANION_WARNINGS!"=="0" (
-  echo !READY! Companion inventory and reviewed software-update checks have finished.
-) else (
-  echo !READY_WARN! Companion inventory and update checks finished; optional maintenance needs attention above.
-)
+echo !READY! Optional companion inventory is deferred until after local server readiness.
 echo !SUCCESS! Startup checks complete. PlotPickle can now start.
 set "PLOTPICKLE_STARTUP_CONTRACT=!PLOTPICKLE_STARTUP_MARKER!"
 echo.
@@ -287,6 +275,7 @@ if exist "%VITE_NATIVE_REPORT%" (
 )
 
 call :open_when_ready
+call :start_deferred_companion_maintenance
 call "%VITE_CMD%" --host 127.0.0.1 --port %PLOTPICKLE_PORT% --strictPort
 
 set "EXIT_CODE=%ERRORLEVEL%"
@@ -306,6 +295,12 @@ exit /b !ERRORLEVEL!
 
 :open_when_ready
 start "" /b powershell.exe -NoProfile -Command "$ProgressPreference='SilentlyContinue'; $deadline=(Get-Date).AddSeconds(%READY_TIMEOUT_SECONDS%); while ((Get-Date) -lt $deadline) { try { $response=Invoke-WebRequest -UseBasicParsing -Uri '%PLOTPICKLE_URL%' -TimeoutSec 2; if ($response.StatusCode -ge 200 -and $response.Content -match '%PLOTPICKLE_STARTUP_MARKER%') { Start-Process '%PLOTPICKLE_URL%'; exit 0 } } catch {}; Start-Sleep -Milliseconds 500 }; Write-Host '[WARNING] PlotPickle did not become ready with the completed startup contract within %READY_TIMEOUT_SECONDS% seconds. Review the server messages in this window.' -ForegroundColor Yellow; exit 1"
+exit /b 0
+
+:start_deferred_companion_maintenance
+if not exist "%COMPANION_MANAGER%" exit /b 0
+if not exist "%COMPANION_AFTER_READY%" exit /b 0
+start "" /b powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%COMPANION_AFTER_READY%" -BaseUrl "%PLOTPICKLE_URL%" -CompanionManager "%COMPANION_MANAGER%" -ReadyTimeoutSeconds %READY_TIMEOUT_SECONDS%
 exit /b 0
 
 rem Full Story Builder, UI Continuity, and Creative Writer UAT are retained as manual developer tools.

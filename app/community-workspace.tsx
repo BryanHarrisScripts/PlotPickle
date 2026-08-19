@@ -15,7 +15,6 @@ import styles from "./community-workspace.module.css";
 const BUZZ_API = "/api/local-buzz";
 const PROPOSAL_STORAGE_KEY = "plotpickle.buzz.proposals.v1";
 const COMMUNITY_BBS_NAME = "PlotPickle Community BBS";
-const COMMUNITY_BBS_NODE = "plotpickle-community";
 
 type CommunitySection = "overview" | "terminal" | "great-hall" | "connected-studios" | "story-rooms" | "people" | "agents" | "reviews" | "guildhall";
 type BuzzChannel = { id: string; name: string; description: string };
@@ -161,6 +160,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
   const onlineMembers = community?.members.filter((member) => member.presence === "online").length ?? 0;
   const activeProjectName = project?.title || "No active story";
   const storyPrefix = useMemo(() => project ? buzzProjectSlug(project) : "", [project]);
+  const nodeName = community?.community.trim() || "";
   const desktopUrl = buzzDesktopUrl(community?.relayUrl || "", community?.community || "");
 
   async function refreshCommunity(showNotice = false) {
@@ -327,7 +327,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
           {section === "terminal" ? <>
             <header className={navigationStyles.railHeader}><b>{COMMUNITY_BBS_NAME}</b></header>
             <div className={navigationStyles.destinationDetails} data-community-bbs-server="true">
-              <small>SERVER / NODE</small><p><strong>{COMMUNITY_BBS_NODE}</strong></p>
+              <small>SERVER / NODE</small><p><strong>{nodeName || "BUZZ NODE UNAVAILABLE"}</strong></p>
               <div role="status" data-buzz-state={buzzState} aria-label={buzzStatusLabel} style={{ display: "grid", gridTemplateColumns: "12px 1fr", gap: 8, alignItems: "center", margin: "12px 0", padding: "9px 10px", border: "1px solid rgba(78, 255, 211, 0.18)", background: "rgba(4, 14, 12, 0.65)" }}>
                 <i aria-hidden="true" style={{ width: 9, height: 9, borderRadius: "50%", background: buzzLampColor, boxShadow: `0 0 10px ${buzzLampColor}` }} />
                 <span><strong>{buzzStatusLabel}</strong><br /><small>{community?.message || "Checking Buzz identity and relay…"}</small></span>
@@ -356,7 +356,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
         <div className={navigationStyles.communityContent}>
           {section !== "terminal" && !community?.identityVerified ? <section className={styles.setupCard}><div><span>Connect once</span><h2>Community uses your locally encrypted Buzz identity.</h2><p>Open basic Settings, connect and verify your Buzz community, then return here. The private identity stays on this computer and is not stored in GitHub or the PPF.</p></div><button type="button" onClick={onOpenSettings}>Open Settings</button></section> : section !== "terminal" && !guildhall?.operational ? <section className={styles.setupCard}><div><span>One-time Guildhall setup</span><h2>{guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} Guildhall rooms ready` : "Prepare the PlotPickle Guildhall"}</h2><p>PlotPickle creates only the missing private rooms, then verifies that all eleven exist before reporting the community as operational.</p></div><button type="button" disabled={busy === "guildhall" || !guildhall?.canSetup} onClick={() => void setupGuildhall()}>{busy === "guildhall" ? "Building Guildhall…" : "Set up PlotPickle Guildhall"}</button></section> : null}
 
-          {section === "terminal" ? <CommunityBackdoorTerminal connected={connected} identityLabel={community?.identityLabel || ""} greatHallChannelId={community?.greatHall?.id || ""} members={community?.members ?? []} recentActivity={community?.recentActivity ?? []} readyGuildhallRooms={guildhall?.readyRooms ?? []} storyRooms={storyRooms} reviews={reviews} onExit={() => setSection("overview")} onNotice={setNotice} /> : null}
+          {section === "terminal" ? <CommunityBackdoorTerminal connected={connected} nodeName={nodeName} identityLabel={community?.identityLabel || ""} greatHallChannelId={community?.greatHall?.id || ""} members={community?.members ?? []} recentActivity={community?.recentActivity ?? []} readyGuildhallRooms={guildhall?.readyRooms ?? []} storyRooms={storyRooms} reviews={reviews} onExit={() => setSection("overview")} onNotice={setNotice} /> : null}
 
           {section === "overview" ? <main className={styles.stack}>
             <section className={styles.summaryGrid}>

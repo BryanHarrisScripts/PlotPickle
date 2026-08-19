@@ -98,6 +98,7 @@ function allowedFields(input, allowed, label) {
 
 function stableId(value, label) {
   const text = String(value || "").trim();
+  if (!text) throw new Error(`${label} is required.`);
   if (!ID_PATTERN.test(text)) throw new Error(`${label} must be a stable 2-128 character identifier.`);
   return text;
 }
@@ -216,11 +217,9 @@ export function createIosAgentDirectory(account, session, agentProfiles, complet
     if (input.visibleOnMobile !== true) return [];
     const community = communityById(input.communityId);
     const kind = String(input.kind || "").trim();
-    if (![
-      "product-agent",
-      "support-agent",
-      "moderator",
-    ].includes(kind)) throw new Error("Companion agent kind must be product-agent, support-agent or moderator.");
+    if (!["product-agent", "support-agent", "moderator"].includes(kind)) {
+      throw new Error("Companion agent kind must be product-agent, support-agent or moderator.");
+    }
     const agentId = stableId(input.agentId, "Companion agent id");
     if (community.id === "great-hall" && agentId !== community.moderatorActorId) {
       throw new Error("The Great Hall cannot expose normal specialist agents.");

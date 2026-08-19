@@ -139,7 +139,7 @@ function buzzDesktopUrl(relay: string, name: string) {
 }
 
 export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpenSettings: () => void }) {
-  const [section, setSection] = useState<CommunitySection>("overview");
+  const [section, setSection] = useState<CommunitySection>("terminal");
   const [expandedNavigationSection, setExpandedNavigationSection] = useState<CommunitySection | null>("great-hall");
   const [community, setCommunity] = useState<CommunityStatus | null>(null);
   const [guildhall, setGuildhall] = useState<GuildhallStatus | null>(null);
@@ -317,7 +317,19 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
   }
 
   const connected = Boolean(community?.identityVerified && community.greatHall);
+  const buzzState = !community
+    ? "checking"
+    : connected
+      ? "online"
+      : community.configured && !community.identityVerified
+        ? "checking"
+        : community.identityVerified && community.message.includes("has not been created")
+          ? "checking"
+          : "offline";
+  const buzzStatusLabel = buzzState === "online" ? "BUZZ ONLINE" : buzzState === "checking" ? "BUZZ CHECKING" : "BUZZ OFFLINE";
+  const buzzLampColor = buzzState === "online" ? "#52f6c5" : buzzState === "checking" ? "#d8a25e" : "#6e4d45";
   const readyRoomCount = storyRooms.length;
+  const visibleMembers = community?.members.slice(0, 6) ?? [];
 
   function navigationStatus(id: CommunitySection) {
     if (id === "terminal") return `${onlineMembers} online · ${BUZZ_GUILDHALL_ACTORS.length} agent identities`;
@@ -333,7 +345,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
 
   return (
     <div className={styles.page}>
-      <header className={styles.hero}>
+      {section !== "terminal" ? <header className={styles.hero}>
         <div>
           <p>Community</p>
           <h1>The PlotPickle Playhouse gathers here.</h1>
@@ -343,13 +355,36 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
           <i aria-hidden="true" />
           <div><strong>{connected ? "Community connected" : "Community setup needed"}</strong><small>{community?.message || "Checking Buzz and the PlotPickle Guildhall…"}</small></div>
         </div>
-      </header>
+      </header> : null}
 
       <div className={navigationStyles.communityLayout}>
         <aside className={navigationStyles.communityRail} aria-label="Community and Guildhall navigation">
-          <header className={navigationStyles.railHeader}>
+          {section === "terminal" ? <>
+            <header className={navigationStyles.railHeader}>
+              <b>{community?.community || "PlotPickle Playhouse BBS"}</b>
+            </header>
+            <div className={navigationStyles.destinationDetails} data-community-bbs-server="true">
+              <small>SERVER / NODE</small>
+              <p><strong>{community?.community || "LOCAL PLAYHOUSE"}</strong></p>
+              <div
+                role="status"
+                data-buzz-state={buzzState}
+                aria-label={buzzStatusLabel}
+                style={{ display: "grid", gridTemplateColumns: "12px 1fr", gap: 8, alignItems: "center", margin: "12px 0", padding: "9px 10px", border: "1px solid rgba(78, 255, 211, 0.18)", background: "rgba(4, 14, 12, 0.65)" }}
+              >
+                <i aria-hidden="true" style={{ width: 9, height: 9, borderRadius: "50%", background: buzzLampColor, boxShadow: `0 0 10px ${buzzLampColor}` }} />
+                <span><strong>{buzzStatusLabel}</strong><br /><small>{community?.message || "Checking Buzz identity and relay…"}</small></span>
+              </div>
+              <p><small>CALLER</small><br /><strong>{community?.identityLabel || "UNVERIFIED WRITER"}</strong></p>
+              <p><small>CALLERS</small><br /><strong>{community?.members.length ?? 0} members · {onlineMembers} online</strong></p>
+              <div aria-label="Connected Community callers">
+                {visibleMembers.length ? visibleMembers.map((member) => <p key={member.pubkey} style={{ display: "flex", justifyContent: "space-between", gap: 8 }}><span>{member.displayName}</span><small>{member.presence || "offline"}</small></p>) : <p><small>No callers returned yet.</small></p>}
+              </div>
+              {!community?.identityVerified ? <button type="button" className={navigationStyles.destinationButton} onClick={onOpenSettings}><b>Connect Buzz</b></button> : null}
+            </div>
+          </> : <header className={navigationStyles.railHeader}>
             <b>Community &amp; Guildhall</b>
-          </header>
+          </header>}
           <nav id="community-destinations" className={navigationStyles.destinationList} aria-label="Community destinations">
             {SECTIONS.map((item) => {
               const expandable = item.id !== "overview";
@@ -417,12 +452,12 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
         </aside>
 
         <div className={navigationStyles.communityContent}>
-          {!community?.identityVerified ? (
+          {section !== "terminal" && !community?.identityVerified ? (
             <section className={styles.setupCard}>
               <div><span>Connect once</span><h2>Community uses your locally encrypted Buzz identity.</h2><p>Open basic Settings, connect and verify your Buzz community, then return here. The private identity stays on this computer and is not stored in GitHub or the PPF.</p></div>
               <button type="button" onClick={onOpenSettings}>Open Settings</button>
             </section>
-          ) : !guildhall?.operational ? (
+          ) : section !== "terminal" && !guildhall?.operational ? (
             <section className={styles.setupCard}>
               <div><span>One-time Guildhall setup</span><h2>{guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} Guildhall rooms ready` : "Prepare the PlotPickle Guildhall"}</h2><p>PlotPickle creates only the missing private rooms, then verifies that all eleven exist before reporting the community as operational.</p></div>
               <button type="button" disabled={busy === "guildhall" || !guildhall?.canSetup} onClick={() => void setupGuildhall()}>{busy === "guildhall" ? "Building Guildhall…" : "Set up PlotPickle Guildhall"}</button>

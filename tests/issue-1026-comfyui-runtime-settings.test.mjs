@@ -19,7 +19,8 @@ test("#1026 AI Routing opens exact in-place provider sections and hybrid exposes
   assert.match(routing, /route === "ollama-comfyui"\) return \["ollama", "comfyui"\]/);
   assert.doesNotMatch(routing, /target\.toLowerCase\(\)\.includes\("comfy"\) \? "settings-comfyui" : ""/);
   assert.match(routing, /plotpickle:settings-section/);
-  assert.match(settings, /WritingAssistantConsole[^>]+focusProvider="ollama"/);
+  assert.match(settings, /openSettingsTarget\("ollama"\)/);
+  assert.match(settings, /focusProvider="ollama"/);
   assert.match(settings, /AiProviderSetupPanel provider="openai"/);
   assert.match(settings, /AiProviderSetupPanel provider="minimax"/);
   assert.match(settings, /MediaRoutingPanel onManage=\{openSettingsTarget\}/);

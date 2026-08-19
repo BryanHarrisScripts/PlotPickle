@@ -4,7 +4,7 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("Marquee Director and Critics Circle are registered as existing Mastra roles with packaged Skills", async () => {
+test("Marquee Director and Critics Circle remain registered as existing Mastra roles with packaged Skills", async () => {
   const [profilesRaw, skillsRaw, mastra] = await Promise.all([
     read("config/agent-profiles.json"),
     read("config/agent-skills.json"),
@@ -35,10 +35,11 @@ test("specialist Skills keep provider generation critique scoring and canon auth
     read(".agents/skills/critics-circle/SKILL.md"),
   ]);
 
-  assert.match(marquee, /approved PPF\/canon and approved visual-continuity context/i);
-  assert.match(marquee, /Never choose a provider, spend money, start image\/video generation/i);
-  assert.match(marquee, /owner explicitly opted to share/i);
-  assert.match(marquee, /never writes PPF/i);
+  assert.match(marquee, /private project visual-marketing specialist/i);
+  assert.match(marquee, /not a BBS\/Guildhall conversation agent/i);
+  assert.match(marquee, /skill itself never chooses a provider, changes routing, spends money/i);
+  assert.match(marquee, /PlotPickle host owns side effects/i);
+  assert.match(marquee, /does not grant the agent authority to alter story canon/i);
 
   assert.match(critics, /PlotPickle internal review rubric/i);
   assert.match(critics, /Never call a score a Rotten Tomatoes score, Tomatometer, Metacritic score, CinemaScore/i);
@@ -47,7 +48,7 @@ test("specialist Skills keep provider generation critique scoring and canon auth
   assert.match(critics, /cannot write PPF/i);
 });
 
-test("Guildhall bootstrap contract includes two private specialist rooms and explicit project privacy defaults", async () => {
+test("Guildhall bootstrap preserves legacy private specialist rooms and explicit project privacy defaults", async () => {
   const [guildhallRaw, bootstrap] = await Promise.all([
     read("config/buzz-guildhall.json"),
     read("scripts/bootstrap-buzz-guildhall.mjs"),
@@ -65,8 +66,11 @@ test("Guildhall bootstrap contract includes two private specialist rooms and exp
   assert.match(bootstrap, /"channels", "create"/);
 });
 
-test("specialist bridge writes the room message then invokes the existing Writing Assistant route and writes the signed reply", async () => {
-  const gateway = await read("build/buzz-specialist-gateway.ts");
+test("legacy specialist bridge remains bounded while current Community UI exposes Critics Circle only", async () => {
+  const [gateway, ui] = await Promise.all([
+    read("build/buzz-specialist-gateway.ts"),
+    read("app/community-agent-roster.tsx"),
+  ]);
   const firstMessage = gateway.indexOf('localJson(request, "/api/local-buzz/messages"');
   const agentCall = gateway.indexOf('localJson<AgentResponse>(request, "/api/writing-assistant/chat"');
   const secondMessage = gateway.indexOf('localJson(request, "/api/local-buzz/messages"', firstMessage + 1);
@@ -81,9 +85,13 @@ test("specialist bridge writes the room message then invokes the existing Writin
   assert.match(gateway, /sourceType: "writer-instruction"/);
   assert.match(gateway, /ppfChanged: false/);
   assert.match(gateway, /buzzHistoryWritten: true/);
+
+  assert.match(ui, /type SpecialistId = "critics-circle"/);
+  assert.match(ui, /PRIVATE_PROJECT_AGENT_IDS = new Set\(\["marquee-director"\]\)/);
+  assert.match(ui, /\.filter\(\(agent\) => !PRIVATE_PROJECT_AGENT_IDS\.has\(agent\.id\)\)/);
 });
 
-test("project context federation is opt-in and private contact data is redacted from specialist replies", async () => {
+test("project context federation remains opt-in for the Community specialist and private contact data is redacted", async () => {
   const [gateway, ui] = await Promise.all([
     read("build/buzz-specialist-gateway.ts"),
     read("app/community-agent-roster.tsx"),
@@ -97,7 +105,7 @@ test("project context federation is opt-in and private contact data is redacted 
   assert.match(gateway, /\[private email removed\]/);
   assert.match(gateway, /\[private phone removed\]/);
 
-  assert.match(ui, /"marquee-director": false, "critics-circle": false/);
+  assert.match(ui, /\{ "critics-circle": false \}/);
   assert.match(ui, /Project sharing is off by default/);
   assert.match(ui, /Share the active project's approved context with this private BUZZ exchange/);
   assert.match(ui, /activeProjectContext/);
@@ -126,7 +134,7 @@ test("untrusted room text cannot grant provider spending PPF or developer author
   }
 });
 
-test("Community profile cards show avatar role runtime/model memory scope skills and specialist conversation UI", async () => {
+test("Community profile cards show avatar role runtime/model memory scope skills and Critics Circle conversation UI", async () => {
   const [model, ui, css] = await Promise.all([
     read("lib/community-agent-roster.ts"),
     read("app/community-agent-roster.tsx"),

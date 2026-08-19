@@ -3,6 +3,8 @@ import { readCredentialJson, writeCredentialJson } from "./local-credentials";
 const TARGET_SELECTION_FILE = "extension-targets.json";
 const SEGMENT_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const CALLBACK_TASK_PATTERN = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/;
+const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001F\u007F]/;
+const RECONNECT_POLICIES = ["manual", "on-demand", "always"] as const;
 
 export type ExtensionModuleIdentityInput = {
   owner: string;
@@ -22,7 +24,7 @@ export type ExtensionModuleIdentity = {
   taskRootPath: string;
 };
 
-export type ExtensionReconnectPolicy = "manual" | "on-demand" | "always";
+export type ExtensionReconnectPolicy = (typeof RECONNECT_POLICIES)[number];
 
 export type ExtensionTargetDescriptor = {
   endpoint: string;
@@ -48,7 +50,7 @@ function displayLabel(value: unknown, field: string) {
   const label = typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
   if (!label) throw new Error(`${field} is required.`);
   if (label.length > 120) throw new Error(`${field} must be 120 characters or fewer.`);
-  if (/[\u0000-\u001F\u007F]/.test(label)) throw new Error(`${field} contains unsupported control characters.`);
+  if (CONTROL_CHARACTER_PATTERN.test(label)) throw new Error(`${field} contains unsupported control characters.`);
   return label;
 }
 
@@ -92,31 +94,36 @@ export function extensionTaskIdentity(identity: ExtensionModuleIdentity, taskId:
 export function normalizeExtensionTarget(value: ExtensionTargetDescriptor): ExtensionTargetDescriptor {
   const endpoint = typeof value?.endpoint === "string" ? value.endpoint.trim() : "";
   if (!endpoint) throw new Error("Extension target endpoint is required.");
-  if (endpoint.length > 2048 || /[\u0000-\u001F\u007F]/.test(endpoint)) throw new Error("Extension target endpoint is invalid.");
+  if (endpoint.length > 2048 || CONTROL_CHARACTER_PATTERN.test(endpoint)) throw new Error("Extension target endpoint is invalid.");
 
   const normalized: ExtensionTargetDescriptor = { endpoint };
   if (value.authRef !== undefined) {
     const authRef = typeof value.authRef === "string" ? value.authRef.trim() : "";
-    if (!authRef || authRef.length > 256 || /[\u0000-\u001F\u007F]/.test(authRef)) throw new Error("Extension target auth reference is invalid.");
+    if (!authRef || authRef.length > 256 || CONTROL_CHARACTER_PATTERN.test(authRef)) throw new Error("Extension target auth reference is invalid.");
     normalized.authRef = authRef;
   }
   if (value.displayLabel !== undefined) normalized.displayLabel = displayLabel(value.displayLabel, "Extension target display label");
   if (value.reconnectPolicy !== undefined) {
-    if (!(["manual", "on-demand", "always"] as const).includes(value.reconnectPolicy)) throw new Error("Extension target reconnect policy is invalid.");
+    if (!RECONNECT_POLICIES.includes(value.reconnectPolicy)) throw new Error("Extension target reconnect policy is invalid.");
     normalized.reconnectPolicy = value.reconnectPolicy;
   }
   return normalized;
 }
 
+function validOptionalText(value: unknown, maxLength: number) {
+  if (value === undefined) return true;
+  if (typeof value !== "string") return false;
+  const normalized = value.trim();
+  return normalized.length > 0 && normalized.length <= maxLength && !CONTROL_CHARACTER_PATTERN.test(normalized);
+}
+
 function validTarget(value: unknown): value is ExtensionTargetDescriptor {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
-  const target = value as ExtensionTargetDescriptor;
-  try {
-    normalizeExtensionTarget(target);
-    return true;
-  } catch {
-    return false;
-  }
+  const target = value as Partial<ExtensionTargetDescriptor>;
+  const endpoint = typeof target.endpoint === "string" ? target.endpoint.trim() : "";
+  if (!endpoint || endpoint.length > 2048 || CONTROL_CHARACTER_PATTERN.test(endpoint)) return false;
+  if (!validOptionalText(target.authRef, 256) || !validOptionalText(target.displayLabel, 120)) return false;
+  return target.reconnectPolicy === undefined || RECONNECT_POLICIES.includes(target.reconnectPolicy);
 }
 
 function validTargetStore(value: unknown): value is PersistedTargetStore {

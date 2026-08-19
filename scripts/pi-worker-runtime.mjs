@@ -6,11 +6,19 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { promisify } from "node:util";
+import { approvedCodingModel, rankApprovedCodingModel } from "./developer-repair-model-policy.mjs";
 
 const exec = promisify(execFile);
 
 export const PI_CODING_AGENT_PACKAGE = "@earendil-works/pi-coding-agent";
 export const PI_MINIMUM_NODE_VERSION = "22.19.0";
+
+const PI_RUNTIME_CANDIDATES = [
+  { kind: "lm-studio", label: "LM Studio", baseUrl: "http://127.0.0.1:1234/v1" },
+  { kind: "ollama", label: "Ollama", baseUrl: "http://127.0.0.1:11434/v1" },
+  { kind: "llama.cpp", label: "llama.cpp", baseUrl: "http://127.0.0.1:8080/v1" },
+  { kind: "openai-compatible", label: "OpenAI-compatible", baseUrl: "http://127.0.0.1:8000/v1" },
+];
 
 function versionTuple(value) {
   return String(value || "").split(".").slice(0, 3).map((item) => Number(item) || 0);
@@ -148,6 +156,55 @@ export async function resolveGitBash() {
     candidates.unshift(path.join(gitRoot, "bin", "bash.exe"), path.join(gitRoot, "usr", "bin", "bash.exe"));
   }
   return firstExisting([...new Set(candidates)]);
+}
+
+function normalizeEndpoint(value) {
+  const raw = String(value || "").trim().replace(/\/$/, "");
+  if (!raw) return "";
+  return /\/v1$/i.test(raw) ? raw : `${raw}/v1`;
+}
+
+async function runtimeModels(baseUrl) {
+  try {
+    const response = await fetch(`${normalizeEndpoint(baseUrl)}/models`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(3_000),
+    });
+    if (!response.ok) return [];
+    const body = await response.json();
+    return Array.isArray(body?.data)
+      ? body.data.flatMap((item) => typeof item?.id === "string" ? [item.id] : [])
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function resolvePiLocalRuntime() {
+  const preferredEndpoint = normalizeEndpoint(process.env.PLOTPICKLE_REPAIR_ENDPOINT || "");
+  const preferredModel = String(process.env.PLOTPICKLE_REPAIR_MODEL || "").trim();
+  if (preferredEndpoint && preferredModel) {
+    if (!approvedCodingModel(preferredModel)) throw new Error(`Configured Pi repair model is not approved for local coding: ${preferredModel}`);
+    return { kind: "explicit", label: "Explicit local runtime", baseUrl: preferredEndpoint, model: preferredModel };
+  }
+
+  const candidates = [];
+  const endpoints = preferredEndpoint
+    ? [{ kind: "openai-compatible", label: "Configured local runtime", baseUrl: preferredEndpoint }]
+    : PI_RUNTIME_CANDIDATES;
+  for (const endpoint of endpoints) {
+    const models = await runtimeModels(endpoint.baseUrl);
+    for (const model of models.filter(approvedCodingModel)) candidates.push({ ...endpoint, baseUrl: normalizeEndpoint(endpoint.baseUrl), model });
+  }
+  if (!candidates.length) {
+    throw new Error("Pi is installed but no approved local coding model is available through LM Studio, Ollama, llama.cpp, or the configured OpenAI-compatible loopback endpoint.");
+  }
+  if (preferredModel) {
+    const exact = candidates.find((item) => item.model.toLowerCase() === preferredModel.toLowerCase());
+    if (exact) return exact;
+  }
+  candidates.sort((a, b) => rankApprovedCodingModel(a.model) - rankApprovedCodingModel(b.model));
+  return candidates[0];
 }
 
 function localRoot() {

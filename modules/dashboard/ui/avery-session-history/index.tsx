@@ -42,10 +42,9 @@ type SessionDetail = {
   };
 };
 
-function friendlyDate(value: string) {
-  if (!value) return "Date unavailable";
-  const date = new Date(value);
-  return Number.isNaN(date.valueOf()) ? value : date.toLocaleString();
+function friendlyDate(value: string, fallback = "Date unavailable") {
+  const timestamp = Date.parse(value);
+  return value && Number.isFinite(timestamp) ? new Date(timestamp).toLocaleString() : value || fallback;
 }
 
 function selectedSessionId() {

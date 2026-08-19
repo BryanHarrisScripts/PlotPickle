@@ -81,7 +81,7 @@ test("Pi preflight is host-bounded and missing Pi is detected without an unsafe 
   assert.doesNotMatch(runner, /shell:\s*true/);
 
   assert.match(processControls, /taskkill\.exe/);
-  assert.match(processControls, /await new Promise/);
+  assert.match(processControls, /return new Promise/);
   assert.match(processControls, /waitForProcessClose/);
   assert.match(processControls, /shell: false/);
   assert.doesNotMatch(processControls, /shell:\s*true/);

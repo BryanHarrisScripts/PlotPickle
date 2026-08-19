@@ -32,11 +32,15 @@ test("#1080 keeps Marquee beside Sage in LEARN and out of the Community BBS UI",
 });
 
 test("#1080 derives a bounded Marketing Context from PPF Foundations evidence", () => {
-  assert.match(marketing, /projectTitle: project\.title/);
-  assert.match(marketing, /project\.foundations\.brief\.content/);
-  assert.match(marketing, /Object\.entries\(project\.foundations\.lessons\)/);
-  assert.match(marketing, /project\.build\.foundations\.acceptedVisualArtifactIds/);
-  assert.doesNotMatch(marketing, /apiKey|privateKey|credential|buzz.*history/i);
+  const deriveStart = marketing.indexOf("export function deriveMarketingContextV1");
+  const deriveEnd = marketing.indexOf("function compactDecisionContext");
+  assert.ok(deriveStart >= 0 && deriveEnd > deriveStart);
+  const deriveSource = marketing.slice(deriveStart, deriveEnd);
+  assert.match(deriveSource, /projectTitle: project\.title/);
+  assert.match(deriveSource, /project\.foundations\.brief\.content/);
+  assert.match(deriveSource, /Object\.entries\(project\.foundations\.lessons\)/);
+  assert.match(deriveSource, /project\.build\.foundations\.acceptedVisualArtifactIds/);
+  assert.doesNotMatch(deriveSource, /apiKey|privateKey|credential|creativeRoom|buzz/i);
   assert.match(marketing, /Use only the supplied Marketing Context as project fact/);
 });
 
@@ -54,7 +58,7 @@ test("#1080 generates exactly one first poster through existing image routing an
 test("#1080 automatically stores the successful poster as a PPF Marketing Reference without a v1 approval surface", () => {
   assert.match(marketingContract, /FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW/);
   assert.match(marketingContract, /marquee-director\/\$\{FOUNDATIONS_MARKETING_REFERENCE_RECIPE\}/);
-  assert.match(marketing, /authority:marketing-reference/);
+  assert.match(marketingContract, /authority:marketing-reference/);
   assert.match(marketing, /reviewState: "draft"/);
   assert.match(overlay, /type: "foundations\.visual\.store"/);
   assert.match(overlay, /automatically saved as the PPF Marketing Reference/);
@@ -65,10 +69,10 @@ test("#1080 automatically stores the successful poster as a PPF Marketing Refere
 
 test("#1080 keeps the first poster out of story canon and preserves provenance for later marketing progression", () => {
   assert.match(marketing, /PPF Marketing Reference · first poster after Foundations/);
-  assert.match(marketing, /ppf-revision:/);
-  assert.match(marketing, /recipe:/);
-  assert.match(marketing, /decision:/);
-  assert.match(marketing, /artifact:/);
+  assert.match(marketingContract, /ppf-revision:/);
+  assert.match(marketingContract, /recipe:/);
+  assert.match(marketingContract, /decision:/);
+  assert.match(marketingContract, /artifact:/);
   assert.match(overlay, /It is marketing key art, not story canon/);
   assert.match(skill, /Marketing Reference is key-art authority for later marketing work, not story canon/);
   assert.match(skill, /writer is not asked to approve\/select\/reject\/regenerate it yet/);

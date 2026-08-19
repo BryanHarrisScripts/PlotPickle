@@ -3,10 +3,12 @@ import path from "node:path";
 import { promisify } from "node:util";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ViteDevServer } from "vite";
+import { diagnoseComfyUI, launchComfyWithManagedCli } from "./comfyui-connection-diagnostics";
 
 const execFileAsync = promisify(execFile);
 const START_PATH = "/api/media-routing/comfyui/start";
-const READY_STATES = new Set(["ready-existing", "desktop-started-ready", "started-ready"]);
+const LOCAL_COMFY_URL = "http://127.0.0.1:8188";
+const READY_STATES = new Set(["ready-existing", "mcp-managed-started-ready", "desktop-started-ready", "started-ready"]);
 
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
@@ -54,28 +56,47 @@ function marker(output: string, name: string) {
 }
 
 function setupMessage(state: string, detail: string) {
+  if (state === "mcp-managed-starting") {
+    return "The Comfy MCP management stack launched the local workspace, but its API is still starting. Leave PlotPickle open and retry the connection check shortly.";
+  }
   if (state === "not-installed") {
-    return "ComfyUI Desktop is not installed. Install ComfyUI Desktop first, then return to Settings and choose ComfyUI again.";
+    return "PlotPickle could not find a managed ComfyUI workspace or ComfyUI Desktop. Install either the optional Comfy MCP/comfy-cli stack with a local workspace, or ComfyUI Desktop, then retry.";
   }
   if (state === "desktop-opened-api-not-ready") {
     return "ComfyUI Desktop opened, but its local API is not ready yet. Finish any visible first-run or local-instance setup in ComfyUI Desktop, start the local instance, then choose ComfyUI again. PlotPickle did not download H3 or other optional model packs.";
   }
   if (state === "desktop-launch-failed") return "PlotPickle found ComfyUI Desktop but could not open it. Open ComfyUI Desktop manually, then retry from Settings.";
-  if (state === "installed-entrypoint-not-found") return "ComfyUI appears to be installed, but PlotPickle could not find a runnable Desktop or classic local entry point. Open ComfyUI Desktop and complete its local installation, then retry.";
+  if (state === "installed-entrypoint-not-found") return "ComfyUI appears to be installed, but PlotPickle could not find a runnable local entry point. Repair the local workspace or open ComfyUI Desktop, then retry.";
   if (state === "python-not-found") return "A classic ComfyUI installation was found without its Python runtime. Repair that ComfyUI installation or use ComfyUI Desktop, then retry.";
-  return detail || "ComfyUI did not become ready. Open ComfyUI Desktop, confirm the local instance is running on port 8188, then retry.";
+  return detail || "ComfyUI did not become ready. Confirm the local instance is running on port 8188, then retry.";
 }
 
-async function startComfyUi() {
+async function waitForComfyApi(timeoutMs = 90_000) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const ready = await fetch(`${LOCAL_COMFY_URL}/system_stats`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(2_500),
+    }).then(
+      (response) => response.ok,
+      () => false,
+    );
+    if (ready) return true;
+    await new Promise((resolve) => setTimeout(resolve, 1_500));
+  }
+  return false;
+}
+
+async function startWithDesktopFallback() {
   if (process.platform !== "win32") {
-    throw new Error("Automatic ComfyUI Desktop startup is currently available on Windows. Start ComfyUI locally on port 8188, then retry from Settings.");
+    throw new Error("Automatic fallback startup without the optional Comfy MCP management stack is currently available on Windows only. Start ComfyUI locally, then retry from Settings.");
   }
   const script = path.resolve(process.cwd(), "scripts", "start-comfyui-background.ps1");
   const args = [
     "-NoProfile",
     "-ExecutionPolicy", "Bypass",
     "-File", script,
-    "-BaseUrl", "http://127.0.0.1:8188",
+    "-BaseUrl", LOCAL_COMFY_URL,
     "-ReadyTimeoutSeconds", "90",
     "-AllowDesktopLaunch",
   ];
@@ -100,7 +121,37 @@ async function startComfyUi() {
   const combined = `${stdout}\n${stderr}`;
   const state = marker(combined, "PLOTPICKLE_COMFYUI_STATUS") || "unknown";
   const detail = marker(combined, "PLOTPICKLE_COMFYUI_DETAIL");
-  return { ready: READY_STATES.has(state), state, detail, message: setupMessage(state, detail) };
+  return { ready: READY_STATES.has(state), state, manager: "desktop-fallback", detail, message: setupMessage(state, detail) };
+}
+
+async function startComfyUi() {
+  const existing = await diagnoseComfyUI(LOCAL_COMFY_URL, null);
+  if (existing.serviceReady) {
+    return {
+      ready: true,
+      state: "ready-existing",
+      manager: existing.management.ready ? "comfy-mcp" : "direct-api",
+      detail: existing.management.message,
+      message: "ComfyUI is already running locally. PlotPickle will verify image nodes and checkpoints before activating it.",
+    };
+  }
+
+  const managed = await launchComfyWithManagedCli();
+  if (managed.attempted && managed.ready) {
+    const apiReady = await waitForComfyApi();
+    const state = apiReady ? "mcp-managed-started-ready" : "mcp-managed-starting";
+    return {
+      ready: apiReady,
+      state,
+      manager: "comfy-mcp",
+      detail: managed.message,
+      message: apiReady
+        ? "The Comfy MCP management stack started the local ComfyUI workspace. PlotPickle will now verify image nodes and checkpoints."
+        : setupMessage(state, managed.message),
+    };
+  }
+
+  return startWithDesktopFallback();
 }
 
 export function registerComfyUiOnboardingGateway(server: ViteDevServer) {
@@ -123,7 +174,7 @@ export function registerComfyUiOnboardingGateway(server: ViteDevServer) {
       try {
         const body = await readBody(request);
         if (body.approved !== true) {
-          sendJson(response, 400, { ok: false, message: "PlotPickle needs your permission before opening or starting ComfyUI Desktop." });
+          sendJson(response, 400, { ok: false, message: "PlotPickle needs your permission before opening or starting a local ComfyUI workspace." });
           return;
         }
         const result = await startComfyUi();
@@ -131,7 +182,7 @@ export function registerComfyUiOnboardingGateway(server: ViteDevServer) {
           sendJson(response, 409, { ok: false, ...result });
           return;
         }
-        sendJson(response, 200, { ok: true, ...result, message: "ComfyUI is running locally. PlotPickle will now verify image nodes and checkpoints before activating it." });
+        sendJson(response, 200, { ok: true, ...result });
       } catch (error) {
         sendJson(response, 500, { ok: false, message: error instanceof Error ? error.message : "ComfyUI could not be started." });
       }

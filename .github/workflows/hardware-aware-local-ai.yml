@@ -71,8 +71,8 @@ jobs:
         run: node --test tests/exhaustive-ui-harness-boundary.test.mjs tests/pi-local-model-exhaustive-uat.test.mjs tests/issue-972-exhaustive-uat-baseline.test.mjs
       - name: Validate provider, creative-compute, and companion updater contracts
         run: node --test tests/ai-architecture.test.mjs tests/issue-258-creative-compute-paths.test.mjs tests/issue-83-character-visual-identity.test.mjs tests/issue-512-buzz-version-maintenance.test.mjs tests/issue-620-buzz-startup-updater.test.mjs
-      - name: Validate automatic local ComfyUI and permission-based recovery
-        run: node --test tests/comfyui-desktop-onboarding.test.mjs tests/issue-946-comfyui-settings-onboarding.test.mjs tests/issue-961-auto-local-comfyui-sketch.test.mjs tests/issue-1012-comfyui-managed-instance-readiness.test.mjs tests/issue-1022-sdxl-starter-checkpoint.test.mjs
+      - name: Validate automatic local ComfyUI, Comfy MCP management, and permission-based recovery
+        run: node --test tests/comfyui-desktop-onboarding.test.mjs tests/issue-946-comfyui-settings-onboarding.test.mjs tests/issue-961-auto-local-comfyui-sketch.test.mjs tests/issue-1012-comfyui-managed-instance-readiness.test.mjs tests/issue-1022-sdxl-starter-checkpoint.test.mjs tests/issue-1083-comfy-mcp-management-adapter.test.mjs
       - name: Validate permanent PlotPickle Studio identity
         run: node --test tests/issue-927-studio-identity.test.mjs
       - name: Validate outbound Playhouse federation boundary

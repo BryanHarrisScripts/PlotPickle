@@ -41,16 +41,21 @@ test("Settings exposes permanent left categories centre controls and right help 
   assert.match(settings, /data-settings-rail="navigation"/);
   assert.match(settings, /data-settings-main/);
   assert.match(settings, /data-settings-rail="context"/);
-  assert.match(settings, /Quick Setup/);
-  assert.match(settings, /Models & Agents/);
-  assert.match(settings, /Agent Activity & BUZZ/);
-  assert.match(settings, /Advanced Runtime/);
+  assert.match(settings, /label: "Overview"/);
+  assert.match(settings, /label: "Sage & PLAN"/);
+  assert.match(settings, /label: "AI Routing"/);
+  assert.match(settings, /label: "Agent Activity"/);
+  assert.match(settings, /label: "BUZZ \/ Community"/);
+  assert.match(settings, /label: "Advanced Runtime"/);
   assert.match(settings, /<SageFastModelSetup \/>/);
   assert.match(settings, /<AgentObservabilityPanel \/>/);
+  assert.match(settings, /<BuzzSettingsPanel \/>/);
   assert.match(settings, /<BuzzLiveHealthCard \/>/);
   assert.match(settings, /<DeepSeekHarnessPanel \/>/);
   assert.match(settings, /<LocalRuntimePanel \/>/);
-  assert.match(settings, /Advanced AI routing/);
+  assert.match(settings, /<AiRoutingPanel \/>/);
+  assert.match(settings, /data-settings-section=\{activeSection\}/);
+  assert.match(settings, /aria-current=\{activeSection === item\.id \? "page" : undefined\}/);
 });
 
 test("README uses the current supplied repository-resident artwork in intentional roles", async () => {

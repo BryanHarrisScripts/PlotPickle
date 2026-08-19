@@ -69,7 +69,7 @@ export default function ConnectedStudiosPanel({ onOpenGreatHall }: { readonly on
         body: JSON.stringify({ action, studioId: studio.studioId, reason: action === "report" ? "Reported from Connected Studios" : undefined }),
       });
       const body = await response.json() as Directory & { message?: string };
-      if (!response.ok) throw new Error(body.message || "That Playhouse action could not be completed.");
+      if (!response.ok) throw new Error(body.message || "That Community action could not be completed.");
       setDirectory(body);
       if (action === "block") setSelected("");
       setNotice(action === "contact"
@@ -80,7 +80,7 @@ export default function ConnectedStudiosPanel({ onOpenGreatHall }: { readonly on
             ? `${studio.displayName} was blocked by permanent Studio ID. Renaming will not bypass the block.`
             : `A moderation report was saved with ${studio.displayName} and its permanent Studio ID.`);
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "That Playhouse action could not be completed.");
+      setNotice(error instanceof Error ? error.message : "That Community action could not be completed.");
     } finally { setBusy(""); }
   }
 
@@ -88,21 +88,14 @@ export default function ConnectedStudiosPanel({ onOpenGreatHall }: { readonly on
 
   return <div className={styles.wrap}>
     <section className={styles.heading}>
-      <div>
-        <span>Connected Studios</span>
-        <h2>Find the PlotPickle Studios you are permitted to see.</h2>
-        <p>This is a community directory, not a server list. BUZZ carries signed presence; private local PlotPickle services remain private.</p>
-      </div>
+      <div><span>Connected Studios</span><h2>Find the PlotPickle Studios you are permitted to see.</h2><p>This is a community directory, not a server list. BUZZ carries signed presence; private local PlotPickle services remain private.</p></div>
       <button type="button" disabled={Boolean(busy)} onClick={() => void refresh(true)}>Refresh Studios</button>
     </section>
 
     <section className={styles.networkState} data-online={directory?.playhouseOnline ? "true" : "false"} role="status">
       <i aria-hidden="true" />
-      <div>
-        <strong>{directory?.playhouseOnline ? "Playhouse discovery online" : "Playhouse discovery offline"}</strong>
-        <p>{directory?.message || "Checking permitted Studio presence…"}</p>
-      </div>
-      {!directory?.playhouseOnline ? <a href="/playhouse-presence">Check my Playhouse presence</a> : null}
+      <div><strong>{directory?.playhouseOnline ? "Community discovery online" : "Community discovery offline"}</strong><p>{directory?.message || "Checking permitted Studio presence…"}</p></div>
+      {!directory?.playhouseOnline ? <a href="/community-presence">Check my Community presence</a> : null}
     </section>
 
     {studios.length ? <section className={styles.grid} aria-label="Permitted PlotPickle Studios">
@@ -110,30 +103,19 @@ export default function ConnectedStudiosPanel({ onOpenGreatHall }: { readonly on
         const open = selected === studio.studioId;
         const working = busy.endsWith(studio.studioId);
         return <article key={studio.studioId} className={styles.card} data-presence={studio.availability}>
-          <header>
-            <img src="/assets/workflow-relics/community.svg" alt="" aria-hidden="true" />
-            <div><strong>{studio.displayName}</strong><small>Studio {studio.shortCode} · {studio.relationship === "contact" ? "Contact" : "Public"}</small></div>
-            <span>{studio.availability}</span>
-          </header>
+          <header><img src="/assets/workflow-relics/community.svg" alt="" aria-hidden="true" /><div><strong>{studio.displayName}</strong><small>Studio {studio.shortCode} · {studio.relationship === "contact" ? "Contact" : "Public"}</small></div><span>{studio.availability}</span></header>
           <p>Last seen {when(studio.lastSeen)}</p>
-          <div className={styles.actions}>
-            <button type="button" onClick={() => setSelected(open ? "" : studio.studioId)}>{open ? "Close Studio" : "Open Studio"}</button>
-            {studio.publicRooms.includes("great-hall") ? <button type="button" onClick={onOpenGreatHall}>Visit Great Hall</button> : null}
-          </div>
+          <div className={styles.actions}><button type="button" onClick={() => setSelected(open ? "" : studio.studioId)}>{open ? "Close Studio" : "Open Studio"}</button>{studio.publicRooms.includes("great-hall") ? <button type="button" onClick={onOpenGreatHall}>Visit Great Hall</button> : null}</div>
           {open ? <div className={styles.details}>
             <p><b>Public rooms</b><span>{studio.publicRooms.length ? studio.publicRooms.map((room) => room.replace(/-/g, " ")).join(" · ") : "No public rooms advertised"}</span></p>
             <p><b>Available agents</b><span>{studio.agents.length ? studio.agents.join(" · ") : "No agents shared"}</span></p>
-            <p><b>Compatibility</b><span>{studio.compatible ? "Ready for this Playhouse protocol" : "Compatibility needs attention"}</span></p>
-            <div className={styles.moderation}>
-              <button type="button" disabled={working} onClick={() => void act(studio.relationship === "contact" ? "remove-contact" : "contact", studio)}>{studio.relationship === "contact" ? "Remove Contact" : "Add to Contacts"}</button>
-              <button type="button" disabled={working} onClick={() => void act("block", studio)}>Block</button>
-              <button type="button" disabled={working} onClick={() => void act("report", studio)}>Report</button>
-            </div>
+            <p><b>Compatibility</b><span>{studio.compatible ? "Ready for this Community protocol" : "Compatibility needs attention"}</span></p>
+            <div className={styles.moderation}><button type="button" disabled={working} onClick={() => void act(studio.relationship === "contact" ? "remove-contact" : "contact", studio)}>{studio.relationship === "contact" ? "Remove Contact" : "Add to Contacts"}</button><button type="button" disabled={working} onClick={() => void act("block", studio)}>Block</button><button type="button" disabled={working} onClick={() => void act("report", studio)}>Report</button></div>
             <small>Block and report attach to the permanent Studio ID, not this changeable display name.</small>
           </div> : null}
         </article>;
       })}
-    </section> : directory?.playhouseOnline ? <section className={styles.empty}><h3>No permitted Studios are visible right now.</h3><p>Invisible Studios never appear here. Contacts/Guilds Studios appear only after this Studio has an approved relationship with their permanent Studio ID.</p><a href="/playhouse-presence">Review my visibility</a></section> : null}
+    </section> : directory?.playhouseOnline ? <section className={styles.empty}><h3>No permitted Studios are visible right now.</h3><p>Invisible Studios never appear here. Contacts/Guilds Studios appear only after this Studio has an approved relationship with their permanent Studio ID.</p><a href="/community-presence">Review my visibility</a></section> : null}
 
     {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
   </div>;

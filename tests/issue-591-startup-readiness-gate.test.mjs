@@ -49,21 +49,29 @@ test("only a server carrying the completed current startup contract may open", a
   assert.match(launcher, /will not open it or replace dependencies underneath a running server/);
 });
 
-test("browser launch follows dependency, companion and aggregate readiness reporting", async () => {
-  const launcher = await read("Start-PlotPickle.bat");
+test("browser launch follows required readiness while optional companion maintenance is deferred", async () => {
+  const [launcher, deferred] = await Promise.all([
+    read("Start-PlotPickle.bat"),
+    read("scripts/windows-companion-maintenance-after-ready.ps1"),
+  ]);
   const required = launcher.indexOf("call :ensure_dependencies");
   const report = launcher.indexOf('node "%SETUP_REPORT%" ready');
   const mastra = launcher.indexOf("Mastra !MASTRA_VERSION! is installed and ready");
-  const companions = launcher.indexOf('-File "%COMPANION_MANAGER%" -Mode Maintain');
+  const skills = launcher.indexOf("PlotPickle Agent Skills are registered and verified");
   const complete = launcher.indexOf("Startup checks complete. PlotPickle can now start");
   const compatibilityReport = launcher.indexOf('node "%VITE_NATIVE_REPORT%"');
   const watcher = launcher.indexOf("call :open_when_ready");
+  const deferredStart = launcher.indexOf("call :start_deferred_companion_maintenance");
   const server = launcher.indexOf('call "%VITE_CMD%" --host 127.0.0.1');
 
-  assert.ok(required >= 0 && report > required && mastra > report && companions > mastra);
-  assert.ok(complete > companions && compatibilityReport > complete && watcher > compatibilityReport && server > watcher);
+  assert.ok(required >= 0 && report > required && mastra > report && skills > mastra);
+  assert.ok(complete > skills && compatibilityReport > complete && watcher > compatibilityReport && deferredStart > watcher && server > deferredStart);
   assert.match(launcher, /echo !READY! Required PlotPickle dependencies are loaded and verified/);
-  assert.match(launcher, /echo !READY_WARN! Companion checks finished with optional maintenance warnings/);
+  assert.match(launcher, /echo !READY! Optional companion inventory is deferred until after local server readiness/);
+  assert.doesNotMatch(launcher, /-File "%COMPANION_MANAGER%" -Mode Maintain/);
+  assert.match(deferred, /Test-PlotPickleReady/);
+  assert.match(deferred, /-Mode Maintain -NoPrompt/);
+  assert.ok(deferred.indexOf("Test-PlotPickleReady") < deferred.indexOf("-Mode Maintain -NoPrompt"));
 });
 
 test("companion maintenance reports optional failures truthfully without blocking core mode", async () => {

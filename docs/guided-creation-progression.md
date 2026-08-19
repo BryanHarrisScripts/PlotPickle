@@ -66,7 +66,7 @@ Generation alone is never approval.
 
 Its current implementation contract is:
 
-1. Complete all current Foundations presentation lessons.
+1. Complete all 11 Foundations LEARN lessons.
 2. Complete the Foundations PLAN decisions / Story Foundation Brief.
 3. Generate a real Foundations BUILD visual using the configured PlotPickle image-provider boundary.
 4. Explicitly accept at least one real stored visual artifact.

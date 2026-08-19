@@ -101,7 +101,7 @@ test("Great Hall and Story Rooms behave like conversations with reply and room-c
   assert.doesNotMatch(workspace, /className=\{styles\.roomGrid\}/);
 });
 
-test("Connected Studios is a real privacy-safe Playhouse directory with a Great Hall return path", async () => {
+test("Connected Studios is a real privacy-safe Community directory with a Great Hall return path", async () => {
   const [workspace, panel] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("app/connected-studios-panel.tsx"),
@@ -114,7 +114,7 @@ test("Connected Studios is a real privacy-safe Playhouse directory with a Great 
   assert.match(panel, /\/api\/playhouse-directory/);
   assert.match(panel, /This is a community directory, not a server list/);
   assert.match(panel, /Visit Great Hall/);
-  assert.match(panel, /Playhouse discovery offline/);
+  assert.match(panel, /Community discovery offline/);
   assert.match(panel, /permanent Studio ID/);
 });
 

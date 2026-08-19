@@ -9,7 +9,7 @@ import WorldBuildWorkspace from "../modules/build/ui/world-build-workspace";
 import { answerFromCurriculum } from "../modules/creative-room/sage-unified-guide";
 import DashboardWorkspace from "../modules/dashboard/ui/dashboard-workspace";
 import LearnWorkspace from "../modules/learn/ui/learn-workspace";
-import MarqueeAgentOverlay from "../modules/marketing/ui/marquee-agent-overlay";
+import MarqueeAgentOverlay from "../modules/marketing/marquee-agent-overlay";
 import FoundationsPlanWorkspace from "../modules/plan/ui/foundations-plan-workspace";
 import PlanLessonAnswerPreview from "../modules/plan/ui/plan-lesson-answer-preview";
 import WorldPlanWorkspace from "../modules/plan/ui/world-plan-workspace";

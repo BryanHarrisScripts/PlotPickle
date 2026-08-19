@@ -253,7 +253,7 @@ test("Sage and the PlotPickle v2 identity are local, correctly sized and text-sa
     assert.ok(readFileSync(resolve(root, path)).length > 500, `${path} is empty`);
   }
 
-  assert.deepEqual(pngDimensions("public/assets/sage-brinewick-v2.png"), [768, 768]);
+  assert.deepEqual(pngDimensions("public/assets/sage-brinewick-v2.png"), [100, 100]);
   assert.deepEqual(pngDimensions("public/brand/plotpickle-ouroboros-v2.png"), [800, 800]);
   for (const size of [16, 32, 48, 64, 128, 180, 192, 512]) {
     const path = `public/brand/favicon/plotpickle-ouroboros-v2-${size}.png`;

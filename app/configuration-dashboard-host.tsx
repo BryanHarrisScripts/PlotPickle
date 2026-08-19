@@ -33,6 +33,13 @@ type ComfyManagementReadiness = {
     totalVramMb?: number | null;
     freeVramMb?: number | null;
   };
+  setupBlockers?: Array<{
+    code: string;
+    kind: "service" | "checkpoint" | "image-node" | "workflow-node";
+    summary: string;
+    action: string;
+    requiresUserConfirmation: boolean;
+  }>;
 };
 
 function findSetupButton(root: HTMLElement, phrase: string) {
@@ -79,6 +86,7 @@ function ComfyManagementStatus() {
   if (!readiness?.management) return null;
   const management = readiness.management;
   const hardware = readiness.hardware;
+  const blockers = readiness.setupBlockers ?? [];
   const managerLabel = management.ready ? "Managed · Comfy MCP" : "Direct local ComfyUI API";
   const serviceLabel = readiness.serviceReady
     ? readiness.connectionState === "ready" ? "Ready" : "Running · setup needed"
@@ -114,7 +122,18 @@ function ComfyManagementStatus() {
           Local GPU: <strong>{hardware.gpuName}</strong>{totalVram ? ` · ${totalVram}` : ""}{freeVram ? ` · ${freeVram}` : ""}
         </p>
       ) : null}
-      {readiness.capabilityError || readiness.error ? (
+      {blockers.length ? (
+        <div aria-label="ComfyUI setup blockers" style={{ marginTop: 10 }}>
+          <strong style={{ color: "#d7bc76", fontSize: 12 }}>What needs attention</strong>
+          <ul style={{ margin: "6px 0 0", paddingLeft: 20, fontSize: 12, lineHeight: 1.5 }}>
+            {blockers.map((blocker) => (
+              <li data-comfy-blocker={blocker.code} key={blocker.code}>
+                <b>{blocker.summary}</b> {blocker.action}{blocker.requiresUserConfirmation ? " Your approval is required before PlotPickle performs that setup action." : ""}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : readiness.capabilityError || readiness.error ? (
         <p style={{ margin: "6px 0 0", fontSize: 12, color: "#d7bc76" }}>{readiness.capabilityError || readiness.error}</p>
       ) : null}
       <small style={{ display: "block", marginTop: 8, color: "#8ea9a4", lineHeight: 1.45 }}>

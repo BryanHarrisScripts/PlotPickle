@@ -1,3 +1,5 @@
+export type VisualArtifactReviewState = "draft" | "accepted" | "rejected";
+
 export interface FoundationsVisualArtifact {
   readonly id: string;
   readonly assetUrl: string;
@@ -5,6 +7,14 @@ export interface FoundationsVisualArtifact {
   readonly createdAt: string;
   readonly provider: string;
   readonly model: string;
+  /** Progressive Visual Writer metadata. Legacy single concepts normalize safely into frame 1. */
+  readonly frameNumber?: number;
+  readonly narrativeIntention?: string;
+  readonly curriculumFrontier?: "Foundations";
+  readonly sourceDecisionKeys?: readonly string[];
+  readonly workflow?: string;
+  readonly reviewState?: VisualArtifactReviewState;
+  readonly parentArtifactId?: string | null;
 }
 
 export interface BuildProgressState {

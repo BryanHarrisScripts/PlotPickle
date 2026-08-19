@@ -146,7 +146,7 @@ export function applyStoryCommand(
           ...project.build,
           foundations: {
             ...project.build.foundations,
-            visualArtifacts: [command.artifact, ...existing].slice(0, 12),
+            visualArtifacts: [{ ...command.artifact, reviewState: command.artifact.reviewState ?? "draft" }, ...existing].slice(0, 75),
           },
         },
       };
@@ -157,9 +157,9 @@ export function applyStoryCommand(
         build: {
           ...project.build,
           foundations: {
-            visualArtifacts: project.build.foundations.visualArtifacts.filter(
-              (artifact) => artifact.id !== command.artifactId,
-            ),
+            visualArtifacts: project.build.foundations.visualArtifacts.map((artifact) => (
+              artifact.id === command.artifactId ? { ...artifact, reviewState: "rejected" as const } : artifact
+            )),
             acceptedVisualArtifactIds: project.build.foundations.acceptedVisualArtifactIds.filter(
               (artifactId) => artifactId !== command.artifactId,
             ),
@@ -169,17 +169,23 @@ export function applyStoryCommand(
     case "foundations.visual.accept": {
       const accepted = project.build.foundations.acceptedVisualArtifactIds;
       const artifactExists = project.build.foundations.visualArtifacts.some(
-        (artifact) => artifact.id === command.artifactId,
+        (artifact) => artifact.id === command.artifactId && artifact.reviewState !== "rejected",
       );
+      const acceptedVisualArtifactIds = artifactExists && !accepted.includes(command.artifactId)
+        ? [...accepted, command.artifactId]
+        : accepted;
       return {
         ...base,
         build: {
           ...project.build,
           foundations: {
             ...project.build.foundations,
-            acceptedVisualArtifactIds: artifactExists && !accepted.includes(command.artifactId)
-              ? [...accepted, command.artifactId]
-              : accepted,
+            visualArtifacts: project.build.foundations.visualArtifacts.map((artifact) => (
+              artifact.id === command.artifactId && artifactExists
+                ? { ...artifact, reviewState: "accepted" as const }
+                : artifact
+            )),
+            acceptedVisualArtifactIds,
           },
         },
       };
@@ -191,6 +197,11 @@ export function applyStoryCommand(
           ...project.build,
           foundations: {
             ...project.build.foundations,
+            visualArtifacts: project.build.foundations.visualArtifacts.map((artifact) => (
+              artifact.id === command.artifactId && artifact.reviewState === "accepted"
+                ? { ...artifact, reviewState: "draft" as const }
+                : artifact
+            )),
             acceptedVisualArtifactIds: project.build.foundations.acceptedVisualArtifactIds.filter(
               (artifactId) => artifactId !== command.artifactId,
             ),

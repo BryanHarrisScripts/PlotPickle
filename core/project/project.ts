@@ -2,6 +2,7 @@ import {
   createEmptyBuildProgressState,
   type BuildProgressState,
   type FoundationsVisualArtifact,
+  type VisualArtifactReviewState,
 } from "../contracts/build-progress";
 import {
   createEmptyFoundationLessonAnswers,
@@ -156,12 +157,25 @@ function normalizeFoundations(value: unknown): FoundationPlanState {
   };
 }
 
+function normalizeReviewState(value: unknown): VisualArtifactReviewState {
+  return value === "accepted" || value === "rejected" ? value : "draft";
+}
+
 function normalizeVisualArtifact(value: unknown): FoundationsVisualArtifact | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const item = value as Partial<FoundationsVisualArtifact>;
   if (typeof item.id !== "string" || !item.id.trim()) return null;
   if (typeof item.assetUrl !== "string" || !item.assetUrl.startsWith("/api/local-ai/assets/")) return null;
   if (typeof item.prompt !== "string" || !item.prompt.trim()) return null;
+  const frameNumber = typeof item.frameNumber === "number" && Number.isInteger(item.frameNumber) && item.frameNumber > 0
+    ? Math.min(item.frameNumber, 999)
+    : undefined;
+  const sourceDecisionKeys = Array.isArray(item.sourceDecisionKeys)
+    ? item.sourceDecisionKeys
+      .filter((key): key is string => typeof key === "string" && Boolean(key.trim()))
+      .map((key) => key.trim().slice(0, 240))
+      .slice(0, 48)
+    : undefined;
   return {
     id: item.id.trim(),
     assetUrl: item.assetUrl,
@@ -169,6 +183,17 @@ function normalizeVisualArtifact(value: unknown): FoundationsVisualArtifact | nu
     createdAt: typeof item.createdAt === "string" && item.createdAt ? item.createdAt : new Date().toISOString(),
     provider: typeof item.provider === "string" ? item.provider : "",
     model: typeof item.model === "string" ? item.model : "",
+    ...(frameNumber ? { frameNumber } : {}),
+    ...(typeof item.narrativeIntention === "string" && item.narrativeIntention.trim()
+      ? { narrativeIntention: item.narrativeIntention.trim().slice(0, 500) }
+      : {}),
+    ...(item.curriculumFrontier === "Foundations" ? { curriculumFrontier: "Foundations" as const } : {}),
+    ...(sourceDecisionKeys ? { sourceDecisionKeys } : {}),
+    ...(typeof item.workflow === "string" && item.workflow.trim() ? { workflow: item.workflow.trim().slice(0, 160) } : {}),
+    reviewState: normalizeReviewState(item.reviewState),
+    parentArtifactId: typeof item.parentArtifactId === "string" && item.parentArtifactId.trim()
+      ? item.parentArtifactId.trim()
+      : null,
   };
 }
 
@@ -185,7 +210,7 @@ function normalizeBuild(value: unknown): BuildProgressState {
       .map(normalizeVisualArtifact)
       .filter((artifact): artifact is FoundationsVisualArtifact => Boolean(artifact))
       .filter((artifact, index, all) => all.findIndex((candidate) => candidate.id === artifact.id) === index)
-      .slice(0, 12)
+      .slice(0, 75)
     : [];
   const knownArtifactIds = new Set(visualArtifacts.map((artifact) => artifact.id));
   const acceptedVisualArtifactIds = Array.isArray(source.foundations?.acceptedVisualArtifactIds)
@@ -193,9 +218,17 @@ function normalizeBuild(value: unknown): BuildProgressState {
       (artifactId): artifactId is string => typeof artifactId === "string" && Boolean(artifactId.trim()) && knownArtifactIds.has(artifactId),
     ))]
     : [];
+  const acceptedIds = new Set(acceptedVisualArtifactIds);
+  const normalizedArtifacts = visualArtifacts.map((artifact) => (
+    acceptedIds.has(artifact.id)
+      ? { ...artifact, reviewState: "accepted" as const }
+      : artifact.reviewState === "accepted"
+        ? { ...artifact, reviewState: "draft" as const }
+        : artifact
+  ));
   return {
     foundations: {
-      visualArtifacts,
+      visualArtifacts: normalizedArtifacts,
       acceptedVisualArtifactIds,
     },
   };

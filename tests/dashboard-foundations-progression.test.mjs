@@ -96,6 +96,6 @@ test("BUILD creates real persisted visuals and requires explicit writer acceptan
   assert.match(build, /type: "foundations\.visual\.unaccept"/);
   assert.match(build, /type: "foundations\.visual\.discard"/);
   assert.match(build, /generation alone does not complete BUILD/i);
-  assert.match(build, /WORLD is now unlocked/);
+  assert.match(build, /progression\.worldUnlocked \? "→ Unlocked" : "🔒 Locked"/);
   assert.match(build, /saveFoundationProject/);
 });

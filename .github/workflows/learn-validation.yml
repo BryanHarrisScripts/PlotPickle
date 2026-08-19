@@ -37,6 +37,9 @@ jobs:
       - name: Validate Visual Writer progression contracts
         run: node --test tests/guided-progression-engine.test.mjs tests/issue-1030-visual-writer-progression.test.mjs
 
+      - name: Validate Foundations Visual Narrative Wireframe
+        run: node --test tests/foundations-build-visual-workshop.test.mjs tests/issue-1030b-foundations-wireframe.test.mjs
+
       - name: Validate lorebound agent avatars
         run: node --test tests/issue-1056-lorebound-agent-avatars.test.mjs tests/issue-594-local-learn-rag-and-brand.test.mjs
 

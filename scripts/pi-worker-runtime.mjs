@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
-import { execFile } from "node:child_process";
-import { access, mkdir, writeFile } from "node:fs/promises";
+import { execFile, spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { mkdir, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -62,52 +63,70 @@ export async function runPortableCommand(command, commandArgs = [], options = {}
   return { stdout: String(result.stdout || "").trim(), stderr: String(result.stderr || "").trim() };
 }
 
-async function firstExisting(paths) {
-  for (const candidate of paths) {
-    if (!candidate) continue;
-    try {
-      await access(candidate);
-      return candidate;
-    } catch {}
-  }
-  return "";
+function portableCommandSync(command, commandArgs = [], options = {}) {
+  const common = {
+    cwd: options.cwd || process.cwd(),
+    env: { ...process.env, ...(options.env || {}) },
+    windowsHide: true,
+    shell: false,
+    timeout: options.timeout || 15_000,
+    maxBuffer: options.maxBuffer || 8 * 1024 * 1024,
+    encoding: "utf8",
+  };
+  const result = process.platform === "win32"
+    ? spawnSync(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", windowsCliCommand(command, commandArgs)], common)
+    : spawnSync(command, commandArgs, common);
+  return {
+    status: Number.isInteger(result.status) ? result.status : -1,
+    stdout: String(result.stdout || "").trim(),
+    stderr: String(result.stderr || "").trim(),
+    error: result.error || null,
+  };
 }
 
-async function commandOnPath(name) {
+function firstExisting(paths) {
+  return paths.find((candidate) => Boolean(candidate) && existsSync(candidate)) || "";
+}
+
+function commandOnPath(name) {
   const locator = process.platform === "win32" ? "where.exe" : "which";
-  try {
-    const result = await exec(locator, [name], { windowsHide: true, shell: false, timeout: 5_000, encoding: "utf8" });
-    const first = String(result.stdout || "").split(/\r?\n/).map((item) => item.trim()).find(Boolean);
-    return first || "";
-  } catch {
-    return "";
+  const result = spawnSync(locator, [name], {
+    windowsHide: true,
+    shell: false,
+    timeout: 5_000,
+    encoding: "utf8",
+  });
+  if (result.error) throw new Error(`Pi command discovery could not run ${locator}: ${result.error.message}`, { cause: result.error });
+  if (result.status === 1) return "";
+  if (result.status !== 0) {
+    throw new Error(`Pi command discovery ${locator} ${name} failed with exit ${result.status}: ${String(result.stderr || "").trim()}`);
   }
+  return String(result.stdout || "").split(/\r?\n/).map((item) => item.trim()).find(Boolean) || "";
 }
 
-async function npmGlobalPrefix() {
-  try {
-    return (await runPortableCommand("npm", ["prefix", "-g"], { timeout: 15_000 })).stdout;
-  } catch {
-    return "";
-  }
+function npmGlobalPrefix() {
+  const result = portableCommandSync("npm", ["prefix", "-g"]);
+  if (result.error) throw new Error(`Pi npm-prefix discovery failed: ${result.error.message}`, { cause: result.error });
+  if (result.status !== 0) throw new Error(`Pi npm-prefix discovery failed with exit ${result.status}: ${result.stderr || "no npm error detail"}`);
+  if (!result.stdout) throw new Error("Pi npm-prefix discovery returned an empty global prefix.");
+  return result.stdout;
 }
 
 export async function resolvePiCommand() {
   const explicit = String(process.env.PLOTPICKLE_PI_COMMAND || "").trim();
   if (explicit) {
     if (path.isAbsolute(explicit)) {
-      if (await firstExisting([explicit])) return explicit;
+      if (firstExisting([explicit])) return explicit;
     } else {
-      const located = await commandOnPath(explicit);
+      const located = commandOnPath(explicit);
       if (located) return located;
     }
   }
 
-  const fromPath = await commandOnPath("pi");
+  const fromPath = commandOnPath("pi");
   if (fromPath) return fromPath;
 
-  const prefix = await npmGlobalPrefix();
-  if (!prefix) return "";
+  const prefix = npmGlobalPrefix();
   const candidates = process.platform === "win32"
     ? [path.join(prefix, "pi.cmd"), path.join(prefix, "pi.exe"), path.join(prefix, "pi")]
     : [path.join(prefix, "bin", "pi")];
@@ -143,14 +162,14 @@ export async function ensurePiInstalled(options = {}) {
   return { command, version, installed };
 }
 
-export async function resolveGitBash() {
+export function resolveGitBash() {
   if (process.platform !== "win32") return commandOnPath("bash");
   const candidates = [
     "C:\\Program Files\\Git\\bin\\bash.exe",
     "C:\\Program Files\\Git\\usr\\bin\\bash.exe",
     "C:\\Program Files (x86)\\Git\\bin\\bash.exe",
   ];
-  const git = await commandOnPath("git");
+  const git = commandOnPath("git");
   if (git) {
     const gitRoot = path.dirname(path.dirname(git));
     candidates.unshift(path.join(gitRoot, "bin", "bash.exe"), path.join(gitRoot, "usr", "bin", "bash.exe"));
@@ -164,20 +183,18 @@ function normalizeEndpoint(value) {
   return /\/v1$/i.test(raw) ? raw : `${raw}/v1`;
 }
 
-async function runtimeModels(baseUrl) {
-  try {
-    const response = await fetch(`${normalizeEndpoint(baseUrl)}/models`, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(3_000),
-    });
-    if (!response.ok) return [];
-    const body = await response.json();
-    return Array.isArray(body?.data)
-      ? body.data.flatMap((item) => typeof item?.id === "string" ? [item.id] : [])
-      : [];
-  } catch {
-    return [];
-  }
+async function probeRuntimeModels(endpoint) {
+  const baseUrl = normalizeEndpoint(endpoint.baseUrl);
+  const response = await fetch(`${baseUrl}/models`, {
+    headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(3_000),
+  });
+  if (!response.ok) return { endpoint, baseUrl, models: [], error: `HTTP ${response.status}` };
+  const body = await response.json();
+  const models = Array.isArray(body?.data)
+    ? body.data.flatMap((item) => typeof item?.id === "string" ? [item.id] : [])
+    : [];
+  return { endpoint, baseUrl, models, error: "" };
 }
 
 export async function resolvePiLocalRuntime() {
@@ -188,16 +205,28 @@ export async function resolvePiLocalRuntime() {
     return { kind: "explicit", label: "Explicit local runtime", baseUrl: preferredEndpoint, model: preferredModel };
   }
 
-  const candidates = [];
   const endpoints = preferredEndpoint
     ? [{ kind: "openai-compatible", label: "Configured local runtime", baseUrl: preferredEndpoint }]
     : PI_RUNTIME_CANDIDATES;
-  for (const endpoint of endpoints) {
-    const models = await runtimeModels(endpoint.baseUrl);
-    for (const model of models.filter(approvedCodingModel)) candidates.push({ ...endpoint, baseUrl: normalizeEndpoint(endpoint.baseUrl), model });
-  }
+  const probes = await Promise.allSettled(endpoints.map((endpoint) => probeRuntimeModels(endpoint)));
+  const candidates = [];
+  const diagnostics = [];
+  probes.forEach((probe, index) => {
+    const endpoint = endpoints[index];
+    if (probe.status === "rejected") {
+      diagnostics.push(`${endpoint.label}: ${probe.reason instanceof Error ? probe.reason.message : String(probe.reason)}`);
+      return;
+    }
+    if (probe.value.error) diagnostics.push(`${endpoint.label}: ${probe.value.error}`);
+    for (const model of probe.value.models.filter(approvedCodingModel)) {
+      candidates.push({ ...endpoint, baseUrl: probe.value.baseUrl, model });
+    }
+  });
   if (!candidates.length) {
-    throw new Error("Pi is installed but no approved local coding model is available through LM Studio, Ollama, llama.cpp, or the configured OpenAI-compatible loopback endpoint.");
+    throw new Error([
+      "Pi is installed but no approved local coding model is available through LM Studio, Ollama, llama.cpp, or the configured OpenAI-compatible loopback endpoint.",
+      diagnostics.length ? `Runtime probes: ${diagnostics.join(" | ")}` : "Runtime probes returned no approved coding models.",
+    ].join("\n"));
   }
   if (preferredModel) {
     const exact = candidates.find((item) => item.model.toLowerCase() === preferredModel.toLowerCase());
@@ -219,12 +248,9 @@ export function piAgentDirectory(purpose = "repair") {
 }
 
 function requireLoopbackEndpoint(baseUrl) {
-  let parsed;
-  try {
-    parsed = new URL(String(baseUrl || ""));
-  } catch {
-    throw new Error(`Pi local runtime URL is invalid: ${baseUrl}`);
-  }
+  const raw = String(baseUrl || "");
+  if (!URL.canParse(raw)) throw new Error(`Pi local runtime URL is invalid: ${baseUrl}`);
+  const parsed = new URL(raw);
   const host = parsed.hostname.toLowerCase();
   if (!new Set(["127.0.0.1", "localhost", "::1"]).has(host)) {
     throw new Error(`Pi local runtime must stay on loopback; refusing provider endpoint ${baseUrl}.`);
@@ -236,7 +262,7 @@ export async function configurePiLocalRuntime(runtime, options = {}) {
   if (!runtime?.model || !runtime?.baseUrl) throw new Error("Pi local runtime requires a resolved model and base URL.");
   const agentDir = piAgentDirectory(options.purpose || "repair");
   await mkdir(agentDir, { recursive: true });
-  const shellPath = await resolveGitBash();
+  const shellPath = resolveGitBash();
   const baseUrl = requireLoopbackEndpoint(runtime.baseUrl);
   const settings = {
     defaultProvider: "plotpickle-local",

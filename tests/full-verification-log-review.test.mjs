@@ -5,15 +5,21 @@ import test from "node:test";
 const read = (relativePath) => readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 
 test("full verification preserves graph child-process output in the same transcript", async () => {
-  const [runner, supervisor, progressRunner, graph] = await Promise.all([
+  const [runner, launcher, supervisor, progressRunner, graph] = await Promise.all([
     read("scripts/run-plotpickle-full-check.ps1"),
+    read("scripts/invoke-full-verification-supervisor.ps1"),
     read("scripts/full-verification-supervisor.mjs"),
     read("scripts/full-verification-progress-runner.mjs"),
     read("scripts/full-verification-graph.mjs"),
   ]);
 
-  assert.match(runner, /& node "\.\\scripts\\full-verification-supervisor\.mjs"/);
+  assert.match(runner, /invoke-full-verification-supervisor\.ps1/);
   assert.doesNotMatch(runner, /full-verification-supervisor\.mjs[^\r\n]*\|\s*Out-Null/i);
+  assert.match(launcher, /RedirectStandardOutput\s+\$StdoutPath/);
+  assert.match(launcher, /RedirectStandardError\s+\$StderrPath/);
+  assert.match(launcher, /Write-AvailableOutput\s+-ReaderPair\s+\$stdoutPair/);
+  assert.match(launcher, /Write-AvailableOutput\s+-ReaderPair\s+\$stderrPair\s+-IsError/);
+  assert.match(launcher, /Full Verification launcher \.{8} START/);
   assert.match(supervisor, /full-verification-progress-runner\.mjs/);
   assert.match(supervisor, /stdio:\s*\["ignore", "pipe", "pipe"\]/);
   assert.match(supervisor, /child\.stdout\?\.on\("data"/);

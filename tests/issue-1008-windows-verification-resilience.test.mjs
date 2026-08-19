@@ -88,15 +88,25 @@ test("Pi preflight is host-bounded and missing Pi is detected without an unsafe 
   assert.doesNotMatch(repairWorker, /shell:\s*true/);
 });
 
-test("Full Verification PowerShell entrypoint uses the watchdog while preserving progress-runner graph authority", async () => {
-  const [powerShell, supervisor] = await Promise.all([
+test("Full Verification PowerShell entrypoint uses the launcher guard and watchdog while preserving progress-runner graph authority", async () => {
+  const [powerShell, launcher, supervisor, progressRunner] = await Promise.all([
     read("scripts/run-plotpickle-full-check.ps1"),
+    read("scripts/invoke-full-verification-supervisor.ps1"),
     read("scripts/full-verification-supervisor.mjs"),
+    read("scripts/full-verification-progress-runner.mjs"),
   ]);
-  assert.match(powerShell, /full-verification-supervisor\.mjs/);
+
+  assert.match(powerShell, /invoke-full-verification-supervisor\.ps1/);
+  assert.match(powerShell, /HandshakeTimeoutSeconds\s+12/);
+  assert.match(launcher, /full-verification-supervisor\.mjs/);
+  assert.match(launcher, /watchdog did not acknowledge startup within/);
+  assert.match(launcher, /taskkill\.exe/);
   assert.match(supervisor, /full-verification-progress-runner\.mjs/);
+  assert.match(supervisor, /FULL_VERIFICATION_RUNNER_LIVENESS_TIMEOUT_MS\s*=\s*45_000/);
+  assert.match(progressRunner, /runVerificationGraph/);
   assert.match(powerShell, /The nine deterministic stages remain the sole PASS\/FAIL authority/);
   assert.match(powerShell, /GraphResultPath/);
+  assert.doesNotMatch(powerShell, /&\s+node\s+"\.\\scripts\\full-verification-progress-runner\.mjs"/);
 });
 
 test("ComfyUI registry collection conversion is safe for Windows PowerShell 5.1", async () => {

@@ -57,8 +57,9 @@ function Invoke-FullVerificationGraph {
   Write-Host "Core graph: .\scripts\full-verification-graph.mjs. The progress wrapper adds heartbeat and bounded Pi preflight only." -ForegroundColor DarkGray
   Write-Host "A heartbeat shows elapsed time, active stages, progress, and an approximate ETA while work is running." -ForegroundColor Gray
   Write-Host "An independent watchdog stops the progress runner if its heartbeat/output disappears, allowing this wrapper to save a BLOCKED record instead of hanging." -ForegroundColor Gray
-  & node ".\scripts\full-verification-supervisor.mjs" "--result-file" $GraphResultPath "--startup-wait-seconds" "$StartupWaitSeconds"
-  $GraphExitCode = if ($null -eq $LASTEXITCODE) { 1 } else { [int]$LASTEXITCODE }
+  Write-Host "A launcher-level startup guard now requires the watchdog itself to acknowledge within 12 seconds." -ForegroundColor Gray
+  $LauncherCode = & ".\scripts\invoke-full-verification-supervisor.ps1" -ResultFile $GraphResultPath -StartupWaitSeconds $StartupWaitSeconds -HandshakeTimeoutSeconds 12
+  $GraphExitCode = if ($null -eq $LauncherCode) { 1 } else { [int]$LauncherCode }
 
   if (-not (Test-Path $GraphResultPath)) {
     Write-Host "FAIL  Verification graph did not produce a structured result." -ForegroundColor Red

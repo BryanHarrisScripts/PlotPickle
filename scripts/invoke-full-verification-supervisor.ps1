@@ -149,4 +149,4 @@ try {
   }
 }
 
-exit $ExitCode
+return $ExitCode

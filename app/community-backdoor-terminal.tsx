@@ -70,6 +70,26 @@ type TerminalProps = {
 };
 
 const BUZZ_API = "/api/local-buzz";
+const PLAYHOUSE_ASCII = String.raw`
+                 .=================================.
+              .-'     PLOTPICKLE PLAYHOUSE BBS      '-.
+            .'        THE GUILDHALL AFTER DARK         '.
+           /      /\          /\          /\             \
+          /______/  \________/  \________/  \_____________\
+          |                                             |
+          |       [ GREAT HALL ]   [ STORY ROOMS ]      |
+          |                                             |
+          |          .-----------------------.          |
+          |          |   THE DOOR IS OPEN    |          |
+          |          '-----------------------'          |
+          |              \     |     /                 |
+          |               \    |    /                  |
+          |                \   |   /                   |
+          |                 \  |  /                    |
+          |                  \ | /                     |
+          |                   \|/                      |
+          '====================V========================'
+`;
 
 const COMMANDS: ReadonlyArray<{ key: string; label: string; detail: string; mode?: TerminalMode }> = [
   { key: "W", label: "WHO", detail: "callers online", mode: "who" },
@@ -254,7 +274,7 @@ export default function CommunityBackdoorTerminal({
     if (mode === "talk") return "TALK / DIRECT LINE ROUTER";
     if (mode === "reviews") return "REVIEWS / WRITER AUTHORITY QUEUE";
     if (mode === "help") return "HELP / KEYBOARD INCANTATIONS";
-    return "BACKDOOR NODE / SYSTEM INDEX";
+    return "PLAYHOUSE BBS / FRONT DOOR";
   }
 
   return (
@@ -265,15 +285,15 @@ export default function CommunityBackdoorTerminal({
           <p>CONNECT 2400 / SCRYING LINK {connected ? "ESTABLISHED" : "STANDBY"}...</p>
           <p>AUTHENTICATING WRITER SIGIL... {connected ? "ACCESS GRANTED" : "BUZZ IDENTITY REQUIRED"}</p>
           <div className={styles.rule}>========================================================================</div>
-          <h2>THE PLOTPICKLE BACKDOOR NODE</h2>
-          <p className={styles.motto}>// a hidden line into the Playhouse //</p>
+          <h2>PLOTPICKLE PLAYHOUSE BBS</h2>
+          <p className={styles.motto}>// the public door above the hidden Guildhall //</p>
           <div className={styles.rule}>========================================================================</div>
           <dl className={styles.statusLine}>
             <div><dt>NODE</dt><dd>{communityName || "LOCAL PLAYHOUSE"}</dd></div>
             <div><dt>CALLER</dt><dd>{identityLabel || "UNVERIFIED WRITER"}</dd></div>
             <div><dt>ONLINE</dt><dd>{onlineMembers.length}</dd></div>
             <div><dt>AGENTS</dt><dd>{BUZZ_GUILDHALL_ACTORS.length}</dd></div>
-            <div><dt>LINK</dt><dd>{connected ? "98% MANA" : "OFFLINE"}</dd></div>
+            <div><dt>LINK</dt><dd>{connected ? "BUZZ LIVE" : "OFFLINE"}</dd></div>
           </dl>
         </header>
 
@@ -285,11 +305,10 @@ export default function CommunityBackdoorTerminal({
             </div>
 
             {mode === "home" ? <div className={styles.home}>
-              <p className={styles.prompt}>SYS&gt; UNDOCUMENTED COMMUNITY INTERFACE FOUND.</p>
-              <p>This node is a themed doorway into real PlotPickle Community data. BUZZ still signs the messages; PPF still owns story canon; GitHub still owns code.</p>
-              <div className={styles.menuBlock}>
-                {COMMANDS.map((command) => <button key={command.key} type="button" onClick={() => runCommand(command.key)}><kbd>[{command.key}]</kbd><span>{command.label}</span><small>{command.detail}</small></button>)}
-              </div>
+              <pre aria-label="PlotPickle Playhouse Guildhall BBS welcome banner">{PLAYHOUSE_ASCII}</pre>
+              <p className={styles.prompt}>SYS&gt; THE PLAYHOUSE DOOR HAS OPENED.</p>
+              <p>You have reached the old line beneath PlotPickle: the Great Hall for voices, Story Rooms for works in progress, and the Guildhall where approved agents keep their lamps lit. BUZZ signs the social traffic; the writer still owns canon.</p>
+              <p className={styles.dim}>Choose an incantation from the right rail or press its single key. Recent Great Hall traffic follows below.</p>
               <section className={styles.feed} aria-label="Recent Great Hall traffic">
                 <h3>--- RECENT GREAT HALL TRAFFIC ---</h3>
                 {recentActivity.length ? recentActivity.slice(0, 8).map((item) => <article key={item.id}><header><strong>{item.author || "GUILD MEMBER"}</strong><time>{displayTime(item.createdAt)}</time></header><p>{item.content}</p></article>) : <p className={styles.dim}>NO TRAFFIC DETECTED.</p>}

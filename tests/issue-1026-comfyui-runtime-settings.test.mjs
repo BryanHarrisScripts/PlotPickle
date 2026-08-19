@@ -8,7 +8,7 @@ test("#1026 AI Routing opens exact in-place provider sections and hybrid exposes
   const [routing, settings, providerSetup] = await Promise.all([
     read("app/ai-routing-panel.tsx"),
     read("app/sage-settings-workspace.tsx"),
-    read("app/ai-provider-setup-panel.tsx"),
+    read("app/settings/ai-provider/ai-provider-setup-panel.tsx"),
   ]);
 
   for (const target of ["ollama", "openai", "minimax", "comfyui"]) {

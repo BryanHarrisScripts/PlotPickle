@@ -10,6 +10,7 @@ import {
   ensurePlotPickleReady,
   runVerificationGraph,
 } from "./full-verification-graph.mjs";
+import { verificationCommandFor } from "./full-verification-process.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const authoritativeTotal = FULL_VERIFICATION_GRAPH.filter((node) => node.authoritative).length;
@@ -90,9 +91,7 @@ export function verificationTimeoutForNode(node) {
 }
 
 function commandFor(node) {
-  if (node.tool === "node") return { command: process.execPath, args: node.args };
-  if (node.tool === "npm") return { command: process.platform === "win32" ? "npm.cmd" : "npm", args: node.args };
-  throw new Error(`Unsupported Full Verification tool: ${node.tool}`);
+  return verificationCommandFor(node);
 }
 
 function writeChunk(prefix, stream, chunk) {
@@ -297,7 +296,7 @@ async function main() {
       execute: async (node) => {
         active.set(node.id, node.name);
         try {
-          if (node.tool === "app-ready") return await ensurePlotPickleReady({ startupWaitSeconds });
+          if (node.tool === "app-ready") return await ensurePlotPickleReady({ startupWaitSeconds, echo: true });
           if (node.id === "pi-preflight" && !(await executableAvailable("pi"))) {
             return {
               status: "FAIL",

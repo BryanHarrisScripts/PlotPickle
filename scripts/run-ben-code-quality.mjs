@@ -82,11 +82,7 @@ function relevantDeltaFindings(report, changedPaths) {
 function parseDeltaReport(output) {
   const value = String(output || "").trim();
   if (!value) throw new Error("BEN delta produced no evidence output.");
-  try {
-    return JSON.parse(value);
-  } catch (error) {
-    throw new Error(`BEN delta produced invalid JSON: ${error instanceof Error ? error.message : String(error)}`);
-  }
+  return JSON.parse(value);
 }
 
 async function main() {

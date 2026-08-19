@@ -7,10 +7,12 @@ import DeepSeekHarnessPanel from "./deepseek-harness-panel";
 import LocalRuntimePanel from "./local-runtime-panel";
 import MediaRoutingPanel from "./media-routing-panel";
 import SageFastModelSetup from "./sage-fast-model-setup";
+import SettingsHelperDirectory from "./settings-helper-directory";
 import styles from "./sage-settings-workspace.module.css";
 
 const SETTINGS_CATEGORIES = [
   { id: "settings-quick", label: "Quick Setup", detail: "The simple four-step path" },
+  { id: "settings-help", label: "HELP", detail: "Meet the PlotPickle helpers" },
   { id: "settings-models", label: "Models & Agents", detail: "Sage and PLAN local AI" },
   { id: "settings-activity", label: "Agent Activity & BUZZ", detail: "Runtime and Guildhall health" },
   { id: "settings-routing", label: "AI Routing", detail: "Choose where writing, images and video run" },
@@ -62,6 +64,7 @@ export default function SageSettingsWorkspace() {
           <div className={styles.actions}>
             <a className={styles.primaryAction} href="/?workspace=learn">Return to LEARN</a>
             <a className={styles.primaryAction} href="/?workspace=plan">Return to PLAN</a>
+            <a className={styles.secondaryAction} href="#settings-help">HELP</a>
             <a className={styles.secondaryAction} href="#settings-routing">Advanced AI routing</a>
           </div>
         </header>
@@ -78,6 +81,10 @@ export default function SageSettingsWorkspace() {
             <li><strong>Step 4:</strong> Test PLAN.</li>
           </ol>
           <p className={styles.note}>For most people, “Use my running local AI” is the right choice. If PlotPickle finds only one suitable model, you can assign it to both Sage and PLAN with one click.</p>
+        </section>
+
+        <section data-settings-section id="settings-help" aria-labelledby="settings-help-title">
+          <SettingsHelperDirectory />
         </section>
 
         <section data-settings-section id="settings-models">
@@ -114,6 +121,12 @@ export default function SageSettingsWorkspace() {
       </section>
 
       <aside aria-label="Settings help and status" data-settings-rail="context">
+        <section>
+          <p>HELP</p>
+          <h2>Not sure who does what?</h2>
+          <span>Open Meet the Helpers for a plain-language guide to Sage, BEN, Fen and every other PlotPickle helper.</span>
+          <a href="#settings-help">Meet the Helpers</a>
+        </section>
         <section>
           <p>Persistent help</p>
           <h2>Change one thing at a time.</h2>

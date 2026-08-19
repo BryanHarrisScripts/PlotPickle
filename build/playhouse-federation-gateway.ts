@@ -4,7 +4,7 @@ import { readCredentialJson, writeCredentialJson } from "./local-credentials";
 import { createStudioEvent, serializeStudioEvent, type Availability, type PresenceInput, type Visibility } from "./playhouse-federation";
 import { readPublicStudioIdentity } from "./studio-identity";
 
-const API = "/api/playhouse-federation";
+const API = "/api/community-federation";
 const FILE = "playhouse-presence.json";
 type PresenceStore = { version: 1; availability: Availability; visibility: Visibility; publicRooms: string[]; agents: string[]; announcedAt: string; withdrawnAt: string; lastTransportError: string };
 const DEFAULTS: PresenceStore = { version: 1, availability: "online", visibility: "contacts", publicRooms: ["great-hall"], agents: [], announcedAt: "", withdrawnAt: "", lastTransportError: "" };
@@ -39,11 +39,11 @@ export function registerPlayhouseFederationGateway(server: ViteDevServer) {
   server.middlewares.use((request, response, next) => {
     const pathname = request.url?.split("?", 1)[0] || "";
     if (pathname !== API) { next(); return; }
-    if (!local(request)) { send(response, 403, { ok: false, message: "Playhouse federation is available only from this local Studio." }); return; }
+    if (!local(request)) { send(response, 403, { ok: false, message: "Community federation is available only from this local Studio." }); return; }
     void (async () => {
       try {
-        if (request.method === "GET") { send(response, 200, { ok: true, identity: await readPublicStudioIdentity(), presence: await readStore(), topology: "PlotPickle Studio -> BUZZ / PlotPickle Playhouse -> permitted Studios" }); return; }
-        if (request.method !== "POST") { send(response, 405, { ok: false, message: "Use GET or POST for Playhouse federation." }); return; }
+        if (request.method === "GET") { send(response, 200, { ok: true, identity: await readPublicStudioIdentity(), presence: await readStore(), topology: "PlotPickle Studio -> BUZZ / PlotPickle Community -> permitted Studios" }); return; }
+        if (request.method !== "POST") { send(response, 405, { ok: false, message: "Use GET or POST for Community federation." }); return; }
         const input = await body(request); const action = input.action === "withdraw" ? "withdraw" : input.action === "test" ? "test" : "announce";
         const store = await readStore(); const next = presence(input, store);
         const type = action === "withdraw" ? "studio.withdrawn" : action === "test" ? "studio.test" : "studio.presence";

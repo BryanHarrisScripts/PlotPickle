@@ -88,7 +88,7 @@ test("signed BUZZ or external text enters Context Engine as untrusted evidence r
   assert.match(context, /return "untrusted-suggestion"/);
 });
 
-test("existing Playhouse signature, moderation and local-only topology remain the federation boundary", async () => {
+test("existing federation signature, moderation and local-only topology remain the Community boundary", async () => {
   const [federation, directory, gateway] = await Promise.all([
     read("build/playhouse-federation.ts"),
     read("build/playhouse-directory-gateway.ts"),
@@ -99,7 +99,7 @@ test("existing Playhouse signature, moderation and local-only topology remain th
   assert.match(directory, /blocked\.has\(event\.studioId\)/);
   assert.match(directory, /event\.visibility === "contacts"/);
   assert.match(directory, /studioId: id/);
-  assert.match(gateway, /PlotPickle Studio -> BUZZ \/ PlotPickle Playhouse -> permitted Studios/);
+  assert.match(gateway, /PlotPickle Studio -> BUZZ \/ PlotPickle Community -> permitted Studios/);
   assert.match(gateway, /localCreativeWorkAvailable: true/);
   assert.doesNotMatch(gateway, /ppf-direct-write|saveProject|writeProject/);
 });

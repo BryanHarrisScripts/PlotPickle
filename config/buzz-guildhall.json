@@ -8,6 +8,17 @@
     "agentRuntime": "Mastra remains the PlotPickle product-agent runtime. Buzz coordinates those agents; it does not replace their reasoning runtime.",
     "development": "Pi and Cline remain external development workers governed by AGENTS.md, not hidden PlotPickle product agents."
   },
+  "conversationMirror": {
+    "messageAuthority": "buzz",
+    "clients": ["plotpickle", "buzz-desktop"],
+    "historyModel": "one-buzz-room-history",
+    "deduplicationKey": "event-id",
+    "explicitShareOnly": true,
+    "agentIdentityPolicy": "own-signed-buzz-identity",
+    "agentImpersonationFallback": false,
+    "offlineShadowHistory": false,
+    "description": "PlotPickle and Buzz Desktop are two clients over the same signed BUZZ room history. Only content intentionally posted to Community is sent; LEARN, PLAN, BUILD and PPF state stay local unless the writer explicitly shares them."
+  },
   "channels": [
     {
       "id": "great-hall",

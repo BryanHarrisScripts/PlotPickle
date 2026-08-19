@@ -74,8 +74,8 @@ function stringList(values, label, max = 32) {
 
 function assertLoopbackTarget(target) {
   if (!target) return;
-  let url;
-  try { url = new URL(target); } catch { throw new Error("HTTP runtime probes must use a valid URL."); }
+  if (!URL.canParse(target)) throw new Error("HTTP runtime probes must use a valid URL.");
+  const url = new URL(target);
   if (!["127.0.0.1", "localhost", "[::1]", "::1"].includes(url.hostname)) {
     throw new Error("Managed runtime HTTP probes must remain loopback-only by default.");
   }

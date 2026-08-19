@@ -1,20 +1,19 @@
 import { McpClient } from "./creative-uat/mcp-runtime.mjs";
 import { bestEffortLiveBuzzActivity } from "./buzz-live-activity.mjs";
+import { normalizeWriterSnapshot } from "./writer-snapshot-normalizer.mjs";
 
 const nativeFetch = globalThis.fetch.bind(globalThis);
 
 function isWriterChat(input) {
-  try {
-    const value = typeof input === "string" || input instanceof URL ? String(input) : String(input?.url || "");
-    return /\/api\/writing-assistant\/chat(?:$|\?)/.test(value);
-  } catch {
-    return false;
-  }
+  const value = typeof input === "string" || input instanceof URL ? String(input) : String(input?.url || "");
+  return /\/api\/writing-assistant\/chat(?:$|\?)/.test(value);
 }
 
 async function responseBody(response) {
-  try { return await response.clone().json(); }
-  catch { return null; }
+  return response.clone().json().then(
+    (body) => body,
+    () => null,
+  );
 }
 
 function usefulWriterText(body) {
@@ -102,37 +101,17 @@ globalThis.fetch = async function plotPickleWriterFetch(input, init = {}) {
 
 const nativeCall = McpClient.prototype.call;
 
-function normalizeDisclosureLine(line, label) {
-  if (!line.toLowerCase().includes(label.toLowerCase())) return line;
-  const ref = line.match(/\[ref=([^\]]+)\]/i)?.[1];
-  if (!ref) return line;
-  return `  - button "${label}" [ref=${ref}]`;
-}
-
-function normalizeSettingsDisclosures(text) {
-  const labels = [
-    "Advanced Setup",
-    "Advanced runtime details",
-    "Cloud and legacy provider overrides",
-  ];
-  return String(text || "").split(/\r?\n/).map((line) => {
-    for (const label of labels) {
-      if (line.toLowerCase().includes(label.toLowerCase()) && /\[ref=[^\]]+\]/i.test(line)) return normalizeDisclosureLine(line, label);
-    }
-    return line;
-  }).join("\n");
-}
-
-// Playwright can serialize native <summary> controls with a role shape that the
-// writer's deliberately narrow parser does not recognize. Normalize only the three
-// known, visible Settings disclosure labels. No hidden DOM/state is exposed.
+// Playwright can serialize native disclosures and expanded curriculum topic
+// buttons with accessible names that include extra state/count text. Normalize
+// only those visible labels so the Writer's deliberately narrow parser continues
+// to operate on rendered UI rather than hidden DOM/state.
 McpClient.prototype.call = async function plotPickleWriterMcpCall(name, args = {}) {
   const result = await nativeCall.call(this, name, args);
   if (name !== "browser_snapshot" || !Array.isArray(result?.content)) return result;
   return {
     ...result,
     content: result.content.map((item) => item?.type === "text"
-      ? { ...item, text: normalizeSettingsDisclosures(item.text) }
+      ? { ...item, text: normalizeWriterSnapshot(item.text) }
       : item),
   };
 };

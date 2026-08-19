@@ -6,10 +6,16 @@ on:
       - "scripts/run-writer-in-residence.mjs"
       - "scripts/run-writer-in-residence-e2e.mjs"
       - "scripts/writer-app-runtime.mjs"
+      - "scripts/writer-e2e-acceptance-policy.mjs"
+      - "scripts/writer-sage-acceptance.mjs"
+      - "scripts/writer-snapshot-normalizer.mjs"
+      - "scripts/writer-visible-controls.mjs"
+      - "scripts/writer-in-residence-runtime-recovery.mjs"
       - "scripts/writer-journey-completion.mjs"
       - "scripts/writer-journey-final-state.mjs"
       - "tests/issue-1104-writer-e2e-final-state.test.mjs"
       - "tests/issue-1108-writer-app-preflight.test.mjs"
+      - "tests/issue-1110-writer-live-acceptance.test.mjs"
       - ".github/workflows/writer-e2e-observer.yml"
   workflow_dispatch:
 
@@ -25,12 +31,17 @@ jobs:
           cache: npm
       - run: npm ci --include=dev --no-audit --no-fund
       - name: Validate Writer end-to-end final-state contract
-        run: node --test tests/issue-1104-writer-e2e-final-state.test.mjs tests/issue-1108-writer-app-preflight.test.mjs tests/issue-1029-avery-progressive-session-history.test.mjs tests/issue-1080-marquee-marketing-reference.test.mjs
+        run: node --test tests/issue-1104-writer-e2e-final-state.test.mjs tests/issue-1108-writer-app-preflight.test.mjs tests/issue-1110-writer-live-acceptance.test.mjs tests/issue-1029-avery-progressive-session-history.test.mjs tests/issue-1080-marquee-marketing-reference.test.mjs
       - name: Parse Writer acceptance scripts
         run: |
           node --check scripts/run-writer-in-residence.mjs
           node --check scripts/run-writer-in-residence-e2e.mjs
           node --check scripts/writer-app-runtime.mjs
+          node --check scripts/writer-e2e-acceptance-policy.mjs
+          node --check scripts/writer-sage-acceptance.mjs
+          node --check scripts/writer-snapshot-normalizer.mjs
+          node --check scripts/writer-visible-controls.mjs
+          node --check scripts/writer-in-residence-runtime-recovery.mjs
           node --check scripts/writer-journey-completion.mjs
           node --check scripts/writer-journey-final-state.mjs
       - name: Production build

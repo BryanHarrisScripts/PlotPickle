@@ -1,4 +1,4 @@
-import type { FoundationsVisualArtifact } from "./build-progress";
+import type { FoundationsVisualArtifact, WorldVisualArtifact } from "./build-progress";
 import type { FoundationDraftProposal } from "./foundation-plan";
 
 export type StoryCommand =
@@ -72,6 +72,43 @@ export type StoryCommand =
     }
   | {
       readonly type: "foundations.visual.unaccept";
+      readonly artifactId: string;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "world.lesson.open";
+      readonly lessonId: string;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "world.answer.update";
+      readonly lessonId: string;
+      readonly fieldId: string;
+      readonly value: string;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "world.brief.save";
+      readonly content: string;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "world.visual.store";
+      readonly artifact: WorldVisualArtifact;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "world.visual.discard";
+      readonly artifactId: string;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "world.visual.accept";
+      readonly artifactId: string;
+      readonly occurredAt: string;
+    }
+  | {
+      readonly type: "world.visual.unaccept";
       readonly artifactId: string;
       readonly occurredAt: string;
     };

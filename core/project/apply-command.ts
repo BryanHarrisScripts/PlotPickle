@@ -4,11 +4,21 @@ import {
   type FoundationLessonAnswers,
   type FoundationPlanState,
 } from "../contracts/foundation-plan";
+import {
+  createEmptyWorldLessonAnswers,
+  createEmptyWorldPlanState,
+  type WorldLessonAnswers,
+  type WorldPlanState,
+} from "../contracts/world-plan";
 import type { StoryCommand } from "../contracts/story-command";
 import type { PPFProject } from "./project";
 
 function foundationState(project: PPFProject): FoundationPlanState {
   return project.foundations ?? createEmptyFoundationPlanState();
+}
+
+function worldState(project: PPFProject): WorldPlanState {
+  return project.world ?? createEmptyWorldPlanState();
 }
 
 function updateFoundationLesson(
@@ -23,6 +33,23 @@ function updateFoundationLesson(
     activeLessonId: lessonId,
     lessons: {
       ...foundations.lessons,
+      [lessonId]: update(lesson),
+    },
+  };
+}
+
+function updateWorldLesson(
+  project: PPFProject,
+  lessonId: string,
+  update: (lesson: WorldLessonAnswers) => WorldLessonAnswers,
+) {
+  const world = worldState(project);
+  const lesson = world.lessons[lessonId] ?? createEmptyWorldLessonAnswers();
+  return {
+    ...world,
+    activeLessonId: lessonId,
+    lessons: {
+      ...world.lessons,
       [lessonId]: update(lesson),
     },
   };
@@ -203,6 +230,106 @@ export function applyStoryCommand(
                 : artifact
             )),
             acceptedVisualArtifactIds: project.build.foundations.acceptedVisualArtifactIds.filter(
+              (artifactId) => artifactId !== command.artifactId,
+            ),
+          },
+        },
+      };
+    case "world.lesson.open":
+      return {
+        ...base,
+        world: {
+          ...worldState(project),
+          activeLessonId: command.lessonId,
+        },
+      };
+    case "world.answer.update":
+      return {
+        ...base,
+        world: updateWorldLesson(project, command.lessonId, (lesson) => ({
+          ...lesson,
+          answers: {
+            ...lesson.answers,
+            [command.fieldId]: command.value,
+          },
+          updatedAt: command.occurredAt,
+        })),
+      };
+    case "world.brief.save":
+      return {
+        ...base,
+        world: {
+          ...worldState(project),
+          brief: {
+            content: command.content,
+            savedAt: command.occurredAt,
+          },
+        },
+      };
+    case "world.visual.store": {
+      const existing = project.build.world.visualArtifacts.filter((artifact) => artifact.id !== command.artifact.id);
+      return {
+        ...base,
+        build: {
+          ...project.build,
+          world: {
+            ...project.build.world,
+            visualArtifacts: [command.artifact, ...existing].slice(0, 100),
+          },
+        },
+      };
+    }
+    case "world.visual.discard":
+      return {
+        ...base,
+        build: {
+          ...project.build,
+          world: {
+            visualArtifacts: project.build.world.visualArtifacts.map((artifact) => (
+              artifact.id === command.artifactId ? { ...artifact, reviewState: "rejected" as const } : artifact
+            )),
+            acceptedVisualArtifactIds: project.build.world.acceptedVisualArtifactIds.filter(
+              (artifactId) => artifactId !== command.artifactId,
+            ),
+          },
+        },
+      };
+    case "world.visual.accept": {
+      const accepted = project.build.world.acceptedVisualArtifactIds;
+      const artifactExists = project.build.world.visualArtifacts.some(
+        (artifact) => artifact.id === command.artifactId && artifact.reviewState !== "rejected",
+      );
+      return {
+        ...base,
+        build: {
+          ...project.build,
+          world: {
+            ...project.build.world,
+            visualArtifacts: project.build.world.visualArtifacts.map((artifact) => (
+              artifact.id === command.artifactId && artifactExists
+                ? { ...artifact, reviewState: "accepted" as const }
+                : artifact
+            )),
+            acceptedVisualArtifactIds: artifactExists && !accepted.includes(command.artifactId)
+              ? [...accepted, command.artifactId]
+              : accepted,
+          },
+        },
+      };
+    }
+    case "world.visual.unaccept":
+      return {
+        ...base,
+        build: {
+          ...project.build,
+          world: {
+            ...project.build.world,
+            visualArtifacts: project.build.world.visualArtifacts.map((artifact) => (
+              artifact.id === command.artifactId && artifact.reviewState === "accepted"
+                ? { ...artifact, reviewState: "draft" as const }
+                : artifact
+            )),
+            acceptedVisualArtifactIds: project.build.world.acceptedVisualArtifactIds.filter(
               (artifactId) => artifactId !== command.artifactId,
             ),
           },

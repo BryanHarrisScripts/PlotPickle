@@ -89,13 +89,15 @@ test("#1030 derives a lesson audit from real lesson content without duplicating 
   assert.match(source, /lessonOutputContracts: deriveGuidedLessonOutputContracts\(curriculum\)/);
 });
 
-test("#1030 keeps PR A contracts-only and leaves Foundations as the sole implemented vertical slice", async () => {
+test("#1030 preserves the PR A audit contract while the implemented frontier advances through World", async () => {
   const [source, docs] = await Promise.all([
     read("modules/dashboard/guided-progression.ts"),
     read("docs/visual-writer-curriculum-audit.md"),
   ]);
-  assert.match(source, /implemented: true/);
-  assert.match(source, /GUIDED_CURRICULUM_GROUPS\.slice\(1\)/);
+  assert.match(source, /id: "foundations"[\s\S]*implemented: true/);
+  assert.match(source, /id: "world"[\s\S]*implemented: true/);
+  assert.match(source, /GUIDED_CURRICULUM_GROUPS\.slice\(2\)/);
+  assert.match(source, /const unlocked = index === 0 && world\.complete/);
   assert.match(source, /implemented: false/);
   assert.match(docs, /audit\/contracts phase only/i);
   assert.match(docs, /does not generate new images/i);

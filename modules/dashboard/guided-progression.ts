@@ -4,6 +4,10 @@ import {
   countFoundationAnswers,
 } from "../../core/contracts/foundation-plan";
 import {
+  buildWorldPlanLessons,
+  countWorldAnswers,
+} from "../../core/contracts/world-plan";
+import {
   VISUAL_WRITER_GROUP_ORDER,
   type VisualWriterCurriculumGroupId,
 } from "../../core/contracts/visual-writer-progression";
@@ -288,14 +292,17 @@ export interface GuidedNextAction {
   readonly detail: string;
 }
 
+type ImplementedGroupProgress = GuidedCurriculumGroupProgress & {
+  readonly totalPlanFields: number;
+  readonly answeredPlanFields: number;
+  readonly acceptedVisualArtifactCount: number;
+};
+
 export interface GuidedCreationProgression {
   readonly groups: readonly GuidedCurriculumGroupProgress[];
   readonly lessonOutputContracts: readonly GuidedLessonOutputContract[];
-  readonly foundations: GuidedCurriculumGroupProgress & {
-    readonly totalPlanFields: number;
-    readonly answeredPlanFields: number;
-    readonly acceptedVisualArtifactCount: number;
-  };
+  readonly foundations: ImplementedGroupProgress;
+  readonly world: ImplementedGroupProgress;
   readonly journeyPercentComplete: number;
   readonly nextAction: GuidedNextAction;
 }
@@ -329,36 +336,77 @@ export function deriveGuidedCreationProgression(
   const foundationLearnComplete = foundationStats.lessonCount > 0
     && foundationStats.completedLessonCount === foundationStats.lessonCount;
 
-  const planLessons = buildFoundationPlanLessons(curriculum);
-  const totalPlanFields = planLessons.reduce((total, lesson) => total + lesson.fields.length, 0);
-  const answeredPlanFields = countFoundationAnswers(planLessons, project.foundations);
-  const planRatio = totalPlanFields > 0 ? answeredPlanFields / totalPlanFields : 0;
-  const planComplete = foundationLearnComplete && totalPlanFields > 0 && answeredPlanFields === totalPlanFields;
-
-  const acceptedVisualArtifactCount = project.build.foundations.acceptedVisualArtifactIds.length;
-  const buildComplete = planComplete && acceptedVisualArtifactCount > 0;
-  const foundationsPercent = clampPercent(((foundationLearnRatio + (foundationLearnComplete ? planRatio : 0) + (buildComplete ? 1 : 0)) / 3) * 100);
+  const foundationPlanLessons = buildFoundationPlanLessons(curriculum);
+  const foundationTotalPlanFields = foundationPlanLessons.reduce((total, lesson) => total + lesson.fields.length, 0);
+  const foundationAnsweredPlanFields = countFoundationAnswers(foundationPlanLessons, project.foundations);
+  const foundationPlanRatio = foundationTotalPlanFields > 0 ? foundationAnsweredPlanFields / foundationTotalPlanFields : 0;
+  const foundationPlanComplete = foundationLearnComplete
+    && foundationTotalPlanFields > 0
+    && foundationAnsweredPlanFields === foundationTotalPlanFields;
+  const foundationAcceptedVisualArtifactCount = project.build.foundations.acceptedVisualArtifactIds.length;
+  const foundationBuildComplete = foundationPlanComplete && foundationAcceptedVisualArtifactCount > 0;
+  const foundationsPercent = clampPercent((
+    (foundationLearnRatio + (foundationLearnComplete ? foundationPlanRatio : 0) + (foundationBuildComplete ? 1 : 0)) / 3
+  ) * 100);
 
   const foundations: GuidedCreationProgression["foundations"] = {
     id: "foundations",
     label: foundationDefinition.label,
     outputContract: foundationDefinition.outputContract,
     ...foundationStats,
-    totalPlanFields,
-    answeredPlanFields,
-    acceptedVisualArtifactCount,
+    totalPlanFields: foundationTotalPlanFields,
+    answeredPlanFields: foundationAnsweredPlanFields,
+    acceptedVisualArtifactCount: foundationAcceptedVisualArtifactCount,
     learn: foundationLearnComplete ? "complete" : "available",
-    plan: planComplete ? "complete" : foundationLearnComplete ? "available" : "locked",
-    build: buildComplete ? "complete" : planComplete ? "available" : "locked",
+    plan: foundationPlanComplete ? "complete" : foundationLearnComplete ? "available" : "locked",
+    build: foundationBuildComplete ? "complete" : foundationPlanComplete ? "available" : "locked",
     percentComplete: foundationsPercent,
     unlocked: true,
     implemented: true,
-    complete: buildComplete,
+    complete: foundationBuildComplete,
   };
 
-  const laterGroups = GUIDED_CURRICULUM_GROUPS.slice(1).map((definition, index) => {
+  const worldDefinition = guidedGroupDefinition("world");
+  const worldStats = lessonStats(curriculum, completedIds, "world");
+  const worldLearnRatio = foundations.complete && worldStats.lessonCount > 0
+    ? worldStats.completedLessonCount / worldStats.lessonCount
+    : 0;
+  const worldLearnComplete = foundations.complete
+    && worldStats.lessonCount > 0
+    && worldStats.completedLessonCount === worldStats.lessonCount;
+  const worldPlanLessons = buildWorldPlanLessons(curriculum);
+  const worldTotalPlanFields = worldPlanLessons.reduce((total, lesson) => total + lesson.fields.length, 0);
+  const worldAnsweredPlanFields = countWorldAnswers(worldPlanLessons, project.world);
+  const worldPlanRatio = worldTotalPlanFields > 0 ? worldAnsweredPlanFields / worldTotalPlanFields : 0;
+  const worldPlanComplete = worldLearnComplete
+    && worldTotalPlanFields > 0
+    && worldAnsweredPlanFields === worldTotalPlanFields;
+  const worldAcceptedVisualArtifactCount = project.build.world.acceptedVisualArtifactIds.length;
+  const worldBuildComplete = worldPlanComplete && worldAcceptedVisualArtifactCount > 0;
+  const worldPercent = foundations.complete
+    ? clampPercent(((worldLearnRatio + (worldLearnComplete ? worldPlanRatio : 0) + (worldBuildComplete ? 1 : 0)) / 3) * 100)
+    : 0;
+
+  const world: GuidedCreationProgression["world"] = {
+    id: "world",
+    label: worldDefinition.label,
+    outputContract: worldDefinition.outputContract,
+    ...worldStats,
+    totalPlanFields: worldTotalPlanFields,
+    answeredPlanFields: worldAnsweredPlanFields,
+    acceptedVisualArtifactCount: worldAcceptedVisualArtifactCount,
+    learn: !foundations.complete ? "locked" : worldLearnComplete ? "complete" : "available",
+    plan: worldPlanComplete ? "complete" : worldLearnComplete ? "available" : "locked",
+    build: worldBuildComplete ? "complete" : worldPlanComplete ? "available" : "locked",
+    percentComplete: worldPercent,
+    unlocked: foundations.complete,
+    implemented: true,
+    complete: worldBuildComplete,
+  };
+
+  const laterGroups = GUIDED_CURRICULUM_GROUPS.slice(2).map((definition, index) => {
     const stats = lessonStats(curriculum, completedIds, definition.id);
-    const unlocked = index === 0 && foundations.complete;
+    const unlocked = index === 0 && world.complete;
     return {
       ...definition,
       ...stats,
@@ -372,7 +420,7 @@ export function deriveGuidedCreationProgression(
     } satisfies GuidedCurriculumGroupProgress;
   });
 
-  const groups: readonly GuidedCurriculumGroupProgress[] = [foundations, ...laterGroups];
+  const groups: readonly GuidedCurriculumGroupProgress[] = [foundations, world, ...laterGroups];
   const journeyPercentComplete = clampPercent(
     groups.reduce((total, group) => total + group.percentComplete, 0) / groups.length,
   );
@@ -385,26 +433,47 @@ export function deriveGuidedCreationProgression(
       label: "Continue Foundations LEARN",
       detail: `${foundationStats.completedLessonCount} of ${foundationStats.lessonCount} Foundations lessons complete.`,
     };
-  } else if (!planComplete) {
+  } else if (!foundationPlanComplete) {
     nextAction = {
       groupId: "foundations",
       workspace: "plan",
       label: "Continue Foundations PLAN",
-      detail: `${answeredPlanFields} of ${totalPlanFields} Foundations PLAN answers saved.`,
+      detail: `${foundationAnsweredPlanFields} of ${foundationTotalPlanFields} Foundations PLAN answers saved.`,
     };
-  } else if (!buildComplete) {
+  } else if (!foundationBuildComplete) {
     nextAction = {
       groupId: "foundations",
       workspace: "build",
       label: "Continue Foundations BUILD",
       detail: "Generate and explicitly accept at least one real Foundations visual.",
     };
-  } else {
+  } else if (!worldLearnComplete) {
     nextAction = {
       groupId: "world",
+      workspace: "learn",
+      label: "Continue World LEARN",
+      detail: `${worldStats.completedLessonCount} of ${worldStats.lessonCount} World lessons complete. Foundations remains preserved as the accepted starting frontier.`,
+    };
+  } else if (!worldPlanComplete) {
+    nextAction = {
+      groupId: "world",
+      workspace: "plan",
+      label: "Continue World PLAN",
+      detail: `${worldAnsweredPlanFields} of ${worldTotalPlanFields} World PLAN decisions saved.`,
+    };
+  } else if (!worldBuildComplete) {
+    nextAction = {
+      groupId: "world",
+      workspace: "build",
+      label: "Continue World BUILD",
+      detail: "Review the Foundations + World wireframe changes and explicitly accept at least one World-driven artifact.",
+    };
+  } else {
+    nextAction = {
+      groupId: "character",
       workspace: null,
-      label: "Foundations complete — World is next",
-      detail: "WORLD is unlocked in the progression model, but its LEARN → PLAN → BUILD implementation remains intentionally gated until Foundations is approved.",
+      label: "World complete — Character is next",
+      detail: "Character is unlocked in the canonical progression model; its workspace remains intentionally gated until #1030D-era work reaches that frontier.",
     };
   }
 
@@ -412,6 +481,7 @@ export function deriveGuidedCreationProgression(
     groups,
     lessonOutputContracts: deriveGuidedLessonOutputContracts(curriculum),
     foundations,
+    world,
     journeyPercentComplete,
     nextAction,
   };

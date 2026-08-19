@@ -40,6 +40,9 @@ jobs:
       - name: Validate Foundations Visual Narrative Wireframe
         run: node --test tests/foundations-build-visual-workshop.test.mjs tests/issue-1030b-foundations-wireframe.test.mjs
 
+      - name: Validate World Visual Writer vertical slice
+        run: node --test tests/issue-1030c-world-vertical-slice.test.mjs
+
       - name: Validate lorebound agent avatars
         run: node --test tests/issue-1056-lorebound-agent-avatars.test.mjs tests/issue-594-local-learn-rag-and-brand.test.mjs
 

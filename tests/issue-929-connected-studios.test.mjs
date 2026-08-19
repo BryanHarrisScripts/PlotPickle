@@ -60,6 +60,6 @@ test("BUZZ outage leaves local creative work available", async () => {
   assert.match(directory, /playhouseOnline: false/);
   assert.match(directory, /Local creative work remains available/);
   assert.match(directory, /localCreativeWorkAvailable: true/);
-  assert.match(panel, /Playhouse discovery offline/);
-  assert.match(panel, /Check my Playhouse presence/);
+  assert.match(panel, /Community discovery offline/);
+  assert.match(panel, /Check my Community presence/);
 });

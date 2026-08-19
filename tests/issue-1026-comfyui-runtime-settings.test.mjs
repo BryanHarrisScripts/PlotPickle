@@ -13,8 +13,9 @@ test("#1026 AI Routing opens exact in-place provider sections and hybrid exposes
 
   for (const target of ["ollama", "openai", "minimax", "comfyui"]) {
     assert.match(settings, new RegExp(`id=["']settings-${target}["']`));
-    assert.match(routing, new RegExp(`settings-${target}`));
   }
+  assert.match(routing, /type ProviderTarget = "ollama" \| "openai" \| "minimax" \| "comfyui"/);
+  assert.match(routing, /const sectionId = `settings-\$\{target\}`/);
   assert.match(routing, /route === "ollama-comfyui"\) return \["ollama", "comfyui"\]/);
   assert.doesNotMatch(routing, /target\.toLowerCase\(\)\.includes\("comfy"\) \? "settings-comfyui" : ""/);
   assert.match(routing, /plotpickle:settings-section/);

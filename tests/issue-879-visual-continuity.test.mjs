@@ -59,9 +59,10 @@ test("README uses the current supplied repository-resident artwork in intentiona
   const primary = readme.indexOf("docs/brand/plotpickle-banner-dragon-logo.webp");
   const progression = readme.indexOf("docs/brand/plotpickle-banner-learn-plan-build.webp");
   const heading = readme.indexOf("<h1 align=\"center\">PlotPickle</h1>");
+  const progressionIntro = readme.indexOf("The core creative progression is:");
   const visualWriter = readme.indexOf("## The Visual Writer");
   assert.ok(primary >= 0 && primary < heading, "the current supplied dragon/logo banner should lead the README");
-  assert.ok(progression > visualWriter, "the supplied LEARN PLAN BUILD banner should support the Visual Writer section");
+  assert.ok(progression > progressionIntro && progression < visualWriter, "the supplied LEARN PLAN BUILD banner should introduce the Visual Writer section");
   assert.doesNotMatch(readme, /plotpickle-header-horizontal-1200\.png|plotpickle-wordmark-horizontal\.svg/i);
   assert.doesNotMatch(readme, /sage-brinewick-v5-pp-c1\.png|docs\/brand-sources\/sage-brinewick-v2-master\.png/i);
   assert.doesNotMatch(readme, /private-user-images\.githubusercontent\.com|chatgpt\.com|oaidalleapiprodscus/i);

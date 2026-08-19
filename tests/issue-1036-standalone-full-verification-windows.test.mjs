@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import {
   verificationCommandFor,
-  windowsVerificationCommand,
+  windowsVerificationCommandArgs,
 } from "../scripts/full-verification-process.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -14,7 +14,7 @@ async function source(relativePath) {
   return readFile(path.join(repoRoot, relativePath), "utf8");
 }
 
-test("#1039 wraps npm.cmd through ComSpec without quoting the executable token", () => {
+test("#1042 passes npm.cmd and npm arguments separately through ComSpec", () => {
   const command = verificationCommandFor(
     { tool: "npm", args: ["run", "build"] },
     {
@@ -25,14 +25,25 @@ test("#1039 wraps npm.cmd through ComSpec without quoting the executable token",
   );
 
   assert.equal(command.command, "C:\\Windows\\System32\\cmd.exe");
-  assert.deepEqual(command.args, ["/d", "/s", "/c", 'npm.cmd "run" "build"']);
-  assert.equal(windowsVerificationCommand("npm.cmd", ["run", "validate:learn"]), 'npm.cmd "run" "validate:learn"');
+  assert.deepEqual(command.args, ["/d", "/s", "/c", "npm.cmd", "run", "build"]);
+  assert.deepEqual(
+    windowsVerificationCommandArgs("npm.cmd", ["run", "validate:learn"]),
+    ["npm.cmd", "run", "validate:learn"],
+  );
 });
 
-test("#1039 rejects unsafe Windows verification executable tokens", () => {
+test("#1042 rejects unsafe Windows verification command and argument tokens", () => {
   assert.throws(
-    () => windowsVerificationCommand("npm.cmd & whoami", ["run", "build"]),
+    () => windowsVerificationCommandArgs("npm.cmd & whoami", ["run", "build"]),
     /Windows verification command contains unsupported characters/,
+  );
+  assert.throws(
+    () => windowsVerificationCommandArgs("npm.cmd", ["run", "build & whoami"]),
+    /Windows verification argument contains unsupported characters/,
+  );
+  assert.throws(
+    () => windowsVerificationCommandArgs("npm.cmd", ["run", "build target"]),
+    /Windows verification argument contains unsupported characters/,
   );
 });
 

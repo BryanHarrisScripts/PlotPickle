@@ -1,20 +1,12 @@
 import { spawn } from "node:child_process";
 import process from "node:process";
 
-function windowsShellCommandToken(value) {
+function windowsShellToken(value, label) {
   const text = String(value);
-  if (!/^[A-Za-z0-9_.-]+$/u.test(text)) {
-    throw new Error(`Windows verification command contains unsupported characters: ${text}`);
+  if (!/^[A-Za-z0-9_.:/@=,+\\-]+$/u.test(text)) {
+    throw new Error(`Windows verification ${label} contains unsupported characters: ${text}`);
   }
   return text;
-}
-
-function quoteWindowsShellArg(value) {
-  const text = String(value);
-  if (/[\r\n\0"]/u.test(text)) {
-    throw new Error(`Windows verification argument contains unsupported characters: ${text}`);
-  }
-  return `"${text}"`;
 }
 
 function cleanCleanupDetail(value, limit = 300) {
@@ -83,8 +75,11 @@ async function stopTaskkillProcess(killer, pid, stderr) {
   });
 }
 
-export function windowsVerificationCommand(command, args = []) {
-  return [windowsShellCommandToken(command), ...args.map(quoteWindowsShellArg)].join(" ");
+export function windowsVerificationCommandArgs(command, args = []) {
+  return [
+    windowsShellToken(command, "command"),
+    ...args.map((arg) => windowsShellToken(arg, "argument")),
+  ];
 }
 
 export function verificationCommandFor(node, options = {}) {
@@ -100,7 +95,7 @@ export function verificationCommandFor(node, options = {}) {
     if (platform === "win32") {
       return {
         command: env.ComSpec || "cmd.exe",
-        args: ["/d", "/s", "/c", windowsVerificationCommand("npm.cmd", node.args)],
+        args: ["/d", "/s", "/c", ...windowsVerificationCommandArgs("npm.cmd", node.args)],
       };
     }
     return { command: "npm", args: [...node.args] };

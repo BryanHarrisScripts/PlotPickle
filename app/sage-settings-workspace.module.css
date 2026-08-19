@@ -44,6 +44,31 @@
   line-height: 1.6;
 }
 
+.helpShortcut {
+  margin: 12px 0 15px;
+}
+
+.helpShortcut a {
+  display: block;
+  padding: 9px 11px;
+  border: 1px solid rgba(213, 172, 99, 0.42);
+  border-radius: 7px;
+  background: rgba(213, 172, 99, 0.05);
+  color: var(--pp-gold, #d5ac63);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .09em;
+  text-decoration: none;
+}
+
+.helpShortcut a:hover,
+.helpShortcut a:focus-visible {
+  border-color: var(--pp-gold, #d5ac63);
+  background: rgba(213, 172, 99, 0.1);
+  color: var(--pp-text, #f1eee7);
+  outline: none;
+}
+
 .navGroup {
   display: grid;
   gap: 5px;

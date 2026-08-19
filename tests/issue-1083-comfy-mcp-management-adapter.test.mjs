@@ -105,3 +105,15 @@ test("#1083 does not give creative agents custom-node install, partner-credit or
   }
   assert.match(diagnostics, /PlotPickle still owns provider choice, consent and generation routing/);
 });
+
+test("#1083 records the management-only adoption decision and keeps direct workflow execution intentionally", async () => {
+  const decision = await source("docs/research/comfy-mcp-adapter-decision.md");
+  assert.match(decision, /KEEP Comfy MCP as an optional local management\/lifecycle adapter/);
+  assert.match(decision, /KEEP PlotPickle's existing direct ComfyUI API as the workflow-validation and media-execution authority for now/);
+  assert.match(decision, /Comfy MCP therefore remains a \*\*replaceable management helper\*\*, not a required media runtime/);
+  assert.match(decision, /Creative agents do not receive direct `tools\/call`, `run_workflow`, model-download or node-install authority/);
+  assert.match(decision, /does \*\*not\*\* add generic Comfy MCP custom-node installation or arbitrary model-download tools/);
+  assert.match(decision, /require explicit user confirmation for that exact installation/);
+  assert.match(decision, /never switch to a paid cloud provider silently if installation fails/);
+  assert.match(decision, /Re-evaluate a direct MCP workflow-execution bridge only if/i);
+});

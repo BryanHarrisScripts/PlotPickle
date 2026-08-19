@@ -1,3 +1,4 @@
+import "./issue-1064-16bit-full-body-agents.test.mjs";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";

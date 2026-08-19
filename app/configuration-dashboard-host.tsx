@@ -11,6 +11,7 @@ import H3NativePanel from "./h3-native-panel";
 const SETUP_SELECTOR = "#dashboard-setup";
 const COMFY_DIAGNOSTICS_PATH = "/api/provider-diagnostics/comfyui";
 const MEDIA_STATUS_PATH = "/api/media-routing/status";
+const SETUP_STATUS_EVENT = "plotpickle:setup-status-refresh";
 
 type ComfyManagementReadiness = {
   serviceReady?: boolean;
@@ -47,7 +48,8 @@ function ComfyManagementStatus() {
 
   useEffect(() => {
     let cancelled = false;
-    void (async () => {
+
+    async function sync() {
       const mediaResponse = await fetch(MEDIA_STATUS_PATH, { headers: { Accept: "application/json" } });
       if (!mediaResponse.ok) return;
       const media = await mediaResponse.json() as { comfyui?: { baseUrl?: string } };
@@ -59,8 +61,19 @@ function ComfyManagementStatus() {
       if (!response.ok) return;
       const result = await response.json() as { comfyui?: ComfyManagementReadiness };
       if (!cancelled) setReadiness(result.comfyui ?? null);
-    })();
-    return () => { cancelled = true; };
+    }
+
+    const refresh = () => {
+      void sync().then(undefined, () => {
+        if (!cancelled) setReadiness(null);
+      });
+    };
+    refresh();
+    window.addEventListener(SETUP_STATUS_EVENT, refresh);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(SETUP_STATUS_EVENT, refresh);
+    };
   }, []);
 
   if (!readiness?.management) return null;

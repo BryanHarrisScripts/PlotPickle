@@ -21,7 +21,7 @@ test("#1065 registers Merrin as a host-owned BUZZ-managed Community Agent Profil
   assert.ok(helpers.helpers.some((helper) => helper.id === "merrin-bellwarden" && helper.group === "community"));
 });
 
-test("#1065 configures the Moderator to hear ordinary public Great Hall greetings", async () => {
+test("#1065 keeps ordinary Great Hall greetings while later policy may expand eligible public-room coverage", async () => {
   const extension = JSON.parse(await read("config/buzz-guildhall-community.json"));
   const actor = extension.actors.find((item) => item.id === "merrin-bellwarden");
   assert.ok(actor, "Merrin BUZZ actor is missing");
@@ -32,7 +32,8 @@ test("#1065 configures the Moderator to hear ordinary public Great Hall greeting
   assert.equal(actor.managedAgent.respondTo, "anyone");
   assert.equal(actor.managedAgent.subscribe, "all");
   assert.equal(actor.managedAgent.noMentionFilter, true);
-  assert.equal(actor.managedAgent.membership, "great-hall-only");
+  assert.equal(actor.managedAgent.membership, "eligible-public-community-rooms");
+  assert.equal(actor.managedAgent.privateStoryRoomPolicy, "explicit-membership-only");
   assert.match(actor.systemPrompt, /plain greeting such as hi, hello, hey/i);
   assert.match(actor.systemPrompt, /do not require an @mention/i);
 });
@@ -44,17 +45,19 @@ test("#1065 requires conversation judgment instead of replying to every room mes
   assert.match(actor.systemPrompt, /Keep replies concise and human/i);
 });
 
-test("#1065 keeps Moderator memory public, bounded and outside private creative authority", async () => {
+test("#1065 keeps Moderator memory bounded and outside private creative authority", async () => {
   const [profile, actor] = await Promise.all([
     read("config/agent-profile-extensions/community.json").then((source) => JSON.parse(source).profiles[0]),
     read("config/buzz-guildhall-community.json").then((source) => JSON.parse(source).actors[0]),
   ]);
-  assert.deepEqual(profile.readScopes, ["great-hall-public-conversation", "public-community-memory"]);
-  assert.ok(profile.forbiddenCapabilities.includes("private-story-room-read"));
+  assert.ok(profile.readScopes.includes("great-hall-public-conversation"));
+  assert.ok(profile.readScopes.includes("eligible-public-community-conversation"));
+  assert.ok(profile.forbiddenCapabilities.includes("private-story-room-read-without-explicit-membership"));
   assert.ok(profile.forbiddenCapabilities.includes("ppf-project-read"));
   assert.ok(profile.forbiddenCapabilities.includes("moderation-enforcement"));
   assert.equal(profile.creativeAuthority, "none");
-  assert.match(actor.systemPrompt, /never ingest private Story Rooms, LEARN answers, PLAN decisions, BUILD artifacts, PPF project state/i);
+  assert.match(actor.systemPrompt, /Private Story Rooms are explicit-membership-only/i);
+  assert.match(actor.systemPrompt, /Never ingest LEARN answers, PLAN decisions, BUILD artifacts, PPF project state/i);
   assert.match(actor.systemPrompt, /Never ban, delete, block, punish/i);
 });
 

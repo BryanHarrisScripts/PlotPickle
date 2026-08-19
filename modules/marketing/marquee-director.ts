@@ -1,11 +1,11 @@
 import type { CurriculumLesson } from "../../core/contracts/curriculum";
-import type { FoundationsVisualArtifact } from "../../core/contracts/build-progress";
 import {
   FOUNDATIONS_MARKETING_REFERENCE_FRONTIER,
   FOUNDATIONS_MARKETING_REFERENCE_WORKFLOW,
   marketingReferenceSourceKeys,
+  type FoundationsVisualArtifact,
   type MarketingReferenceArtifact,
-} from "../../core/contracts/marketing-reference";
+} from "../../core/contracts/build-progress";
 import type { PPFProject } from "../../core/project/project";
 import { deriveGuidedCreationProgression } from "../dashboard/guided-progression";
 

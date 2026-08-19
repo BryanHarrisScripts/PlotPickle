@@ -11,14 +11,11 @@ const POLL_MS = 400;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function isDefaultWriterLocalUrl(value) {
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:"
-      && new Set(["127.0.0.1", "localhost"]).has(url.hostname)
-      && (url.port || "80") === "4173";
-  } catch {
-    return false;
-  }
+  if (!URL.canParse(String(value || ""))) return false;
+  const url = new URL(value);
+  return url.protocol === "http:"
+    && new Set(["127.0.0.1", "localhost"]).has(url.hostname)
+    && (url.port || "80") === "4173";
 }
 
 export function looksLikePlotPickleHtml(text) {
@@ -74,10 +71,6 @@ export async function probeWriterApp(baseUrl, { fetchImpl = globalThis.fetch, tc
   }
 }
 
-function outputTail(chunks, maxCharacters = 2_000) {
-  return chunks.join("").slice(-maxCharacters).trim();
-}
-
 async function defaultForceKill(child) {
   if (!child || child.exitCode !== null || !child.pid) return;
   if (process.platform === "win32") {
@@ -91,7 +84,7 @@ async function defaultForceKill(child) {
     });
     return;
   }
-  try { child.kill("SIGKILL"); } catch {}
+  child.kill("SIGKILL");
 }
 
 export async function stopOwnedWriterApp(runtime, {
@@ -102,7 +95,7 @@ export async function stopOwnedWriterApp(runtime, {
   runtime.stopped = true;
   const child = runtime.child;
   if (!child || child.exitCode !== null) return;
-  try { child.kill(); } catch {}
+  child.kill();
   for (let index = 0; index < 10 && child.exitCode === null; index += 1) {
     await sleepImpl(150);
   }
@@ -144,9 +137,14 @@ export async function ensureWriterAppRuntime({
   }
 
   const viteCli = path.join(repoRoot, "node_modules", "vite", "bin", "vite.js");
-  try {
-    await accessImpl(viteCli);
-  } catch {
+  const viteAvailable = await accessImpl(viteCli).then(
+    () => true,
+    (error) => {
+      if (error?.code === "ENOENT") return false;
+      throw error;
+    },
+  );
+  if (!viteAvailable) {
     throw new Error("Writer app preflight cannot start PlotPickle because the local Vite runtime is missing. Run Start-PlotPickle.bat once to prepare the local runtime, then retry Avery.");
   }
 
@@ -190,7 +188,7 @@ export async function ensureWriterAppRuntime({
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     if (child.exitCode !== null) {
-      const tail = outputTail(output);
+      const tail = output.join("").slice(-2_000).trim();
       throw new Error(`Writer app preflight could not start PlotPickle (Vite exited ${child.exitCode}).${tail ? ` ${tail}` : ""}`);
     }
     await sleepImpl(pollMs);
@@ -202,6 +200,6 @@ export async function ensureWriterAppRuntime({
   }
 
   await runtime.stop();
-  const tail = outputTail(output);
+  const tail = output.join("").slice(-2_000).trim();
   throw new Error(`Writer app preflight timed out waiting for PlotPickle at ${baseUrl}.${tail ? ` ${tail}` : ""}`);
 }

@@ -17,6 +17,7 @@ type TalkTarget =
 
 type TerminalProps = {
   readonly connected: boolean;
+  readonly nodeName: string;
   readonly identityLabel: string;
   readonly greatHallChannelId: string;
   readonly members: readonly CommunityMember[];
@@ -29,7 +30,6 @@ type TerminalProps = {
 };
 
 const BUZZ_API = "/api/local-buzz";
-const COMMUNITY_BBS_NODE = "plotpickle-community";
 const COMMUNITY_BBS_ASCII = String.raw`
                          ___====-_  _-====___
                    _--^^^#####//      \\#####^^^--_
@@ -102,7 +102,7 @@ async function postMessage(channelId: string, content: string) {
   if (!response.ok) throw new Error(body.message || `BUZZ returned ${response.status}.`);
 }
 
-export default function CommunityBackdoorTerminal({ connected, identityLabel, greatHallChannelId, members, recentActivity, readyGuildhallRooms, storyRooms, reviews, onExit, onNotice }: TerminalProps) {
+export default function CommunityBackdoorTerminal({ connected, nodeName, identityLabel, greatHallChannelId, members, recentActivity, readyGuildhallRooms, storyRooms, reviews, onExit, onNotice }: TerminalProps) {
   const [mode, setMode] = useState<TerminalMode>("home");
   const [halted, setHalted] = useState(false);
   const [selectedTargetKey, setSelectedTargetKey] = useState("");
@@ -208,7 +208,7 @@ export default function CommunityBackdoorTerminal({ connected, identityLabel, gr
         <p className={styles.motto}>// the public door above the hidden Guildhall //</p>
         <div className={styles.rule}>========================================================================</div>
         <dl className={styles.statusLine}>
-          <div><dt>NODE</dt><dd>{COMMUNITY_BBS_NODE}</dd></div>
+          <div><dt>NODE</dt><dd>{nodeName || "BUZZ NODE UNAVAILABLE"}</dd></div>
           <div><dt>CALLER</dt><dd>{identityLabel || "UNVERIFIED WRITER"}</dd></div>
           <div><dt>ONLINE</dt><dd>{onlineMembers.length}</dd></div>
           <div><dt>AGENTS</dt><dd>{BUZZ_GUILDHALL_ACTORS.length}</dd></div>
@@ -235,7 +235,7 @@ export default function CommunityBackdoorTerminal({ connected, identityLabel, gr
 
           {mode === "agents" ? <section className={styles.tableView}><p className={styles.prompt}>AGENT&gt; READING GUILDHALL DIRECTORY...</p><div className={styles.agentList}>{BUZZ_GUILDHALL_ACTORS.map((actor) => { const room = roomById.get(actor.primaryChannel); return <article key={actor.id}><header><strong>{actor.displayName}</strong><span>{actor.title}</span></header><p>{actor.summary}</p><footer>{actor.runtime.toUpperCase()} · {room?.label || actor.primaryChannel} · {actor.buzzPresence}</footer></article>; })}</div></section> : null}
 
-          {mode === "boards" ? <section className={styles.tableView}><p className={styles.prompt}>BOARD&gt; MAPPING AVAILABLE CIRCLES...</p><div className={styles.boardList}>{BUZZ_GUILDHALL_CHANNELS.map((channel) => { const ready = roomById.has(channel.id); return <article key={channel.id} data-ready={ready ? "true" : "false"}><header><strong>{channel.label}</strong><span>{ready ? "ONLINE" : "UNAVAILABLE"}</span></header><p>{channel.description}</p></article>; })}{storyRooms.map((room) => <article key={room.roomId} data-ready="true"><header><strong>{room.channel.name}</strong><span>STORY ROOM</span></header><p>{room.channel.description || "Private story conversation channel."}</p></article>)}</div></section> : null}
+          {mode === "boards" ? <section className={styles.tableView}><p className={styles.prompt}>BOARD&gt; MAPPING AVAILABLE CIRCLES...</p><div className={styles.boardList}>{BUZZ_GUILDHALL_CHANNELS.map((channel) => { const ready = roomById.has(channel.id); return <article key={channel.id} data-ready={ready ? "true" : "false"><header><strong>{channel.label}</strong><span>{ready ? "ONLINE" : "UNAVAILABLE"}</span></header><p>{channel.description}</p></article>; })}{storyRooms.map((room) => <article key={room.roomId} data-ready="true"><header><strong>{room.channel.name}</strong><span>STORY ROOM</span></header><p>{room.channel.description || "Private story conversation channel."}</p></article>)}</div></section> : null}
 
           {mode === "talk" ? <section className={styles.talkView}><p className={styles.prompt}>TALK&gt; CHOOSE A REAL PLOTPICKLE IDENTITY.</p><div className={styles.talkLayout}><div className={styles.targetList} aria-label="Talk targets"><h3>AGENTS / PEOPLE</h3>{talkTargets.map((target) => <button key={target.key} type="button" data-selected={selectedTargetKey === target.key ? "true" : "false"} onClick={() => setSelectedTargetKey(target.key)}><strong>{target.label}</strong><small>{target.detail}</small></button>)}</div><div className={styles.directLine}>{selectedTarget ? <><header><div><span>DIRECT LINE</span><strong>{selectedTarget.label}</strong></div><small>{selectedTarget.routeLabel}</small></header><div className={styles.directMessages} aria-live="polite">{talkMessages.length ? talkMessages.map((message) => <article key={message.id}><header><strong>{message.author || "UNKNOWN"}</strong><time>{displayTime(message.createdAt)}</time></header><p>{message.content}</p></article>) : <p className={styles.dim}>{talkBusy ? "OPENING LINK..." : "NO RECENT PACKETS ON THIS ROUTE."}</p>}</div><label><span>MESSAGE TO {selectedTarget.label.toUpperCase()}</span><textarea value={talkDraft} onChange={(event) => setTalkDraft(event.target.value)} rows={4} maxLength={8000} placeholder="Type message..." /></label><button type="button" disabled={!connected || !talkDraft.trim() || talkBusy} onClick={() => void sendTalkMessage()}>{talkBusy ? "TRANSMITTING..." : "[ENTER] SEND SIGNED PACKET"}</button><p className={styles.routeNotice}>{talkNotice || selectedTarget.routeLabel}</p></> : <p className={styles.dim}>SELECT AN IDENTITY FROM THE LEFT COLUMN TO OPEN A ROUTE.</p>}</div></div></section> : null}
 

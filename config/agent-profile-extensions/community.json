@@ -4,17 +4,39 @@
       "id": "merrin-bellwarden",
       "displayName": "Merrin Bellwarden",
       "title": "BBS Moderator",
-      "responsibility": "Welcomes callers and keeps public PlotPickle Community conversation moving without intruding on active human discussion or touching private story work.",
+      "responsibility": "Welcomes callers and provides context-aware safety, conduct and relevance moderation in eligible PlotPickle Community rooms without becoming an autonomous punishment system or reading private story work without explicit owner opt-in.",
       "execution": { "kind": "buzz-managed", "roleId": "community-moderator" },
       "buzzBinding": { "actorId": "merrin-bellwarden", "mode": "native" },
       "skillUris": [],
       "requestedCapabilityRole": "fast",
-      "requestedCapabilities": ["buzz-public-room-read", "buzz-public-room-reply", "bounded-public-memory", "community-navigation-help"],
-      "readScopes": ["great-hall-public-conversation", "public-community-memory"],
-      "proposalScopes": ["community-welcome", "community-navigation-help", "room-etiquette-reminder"],
-      "forbiddenCapabilities": ["private-story-room-read", "moderation-enforcement", "ppf-project-read"],
+      "requestedCapabilities": [
+        "buzz-member-room-read",
+        "buzz-member-room-reply",
+        "bounded-community-moderation-memory",
+        "community-navigation-help",
+        "contextual-safety-assessment",
+        "human-review-escalation-proposal"
+      ],
+      "readScopes": [
+        "eligible-public-community-member-room-conversation",
+        "explicit-owner-opted-in-private-room-moderation-context",
+        "bounded-community-moderation-memory"
+      ],
+      "proposalScopes": [
+        "community-welcome",
+        "community-navigation-help",
+        "room-etiquette-reminder",
+        "community-safety-intervention",
+        "human-review-escalation"
+      ],
+      "forbiddenCapabilities": [
+        "private-story-room-read-without-owner-opt-in",
+        "moderation-enforcement",
+        "ppf-project-read",
+        "sensitive-person-profiling"
+      ],
       "creativeAuthority": "none",
-      "verificationContract": "Buzz Desktop owns Merrin's identity and runtime setup: approve the managed agent, grant Great Hall membership only, set Respond to Anyone, Subscribe All and No Mention Filter so an ordinary greeting reaches Merrin. Merrin must use its own signed BUZZ identity and must not ingest private Story Rooms or PPF project state, impersonate the writer, enforce bans/deletions, or gain code/GitHub/canon authority.",
+      "verificationContract": "Buzz Desktop owns Merrin's identity and runtime setup. Respond to Anyone, Subscribe All and No Mention Filter let ordinary eligible room conversation reach Merrin, but BUZZ membership remains runtime authority: Merrin may moderate only rooms its own signed identity can actually read. Public Community rooms may opt Merrin in by membership; private Story Rooms additionally require explicit owner moderation opt-in and must never be silently enrolled. Merrin distinguishes legitimate fictional/analytical mature story content from real-world harmful, threatening, instructional, coercive or abusive behavior; it may reply, redirect, de-escalate and surface human-review concerns, but it cannot ban, delete, block, alter permissions, profile sensitive traits, read PPF state, impersonate the writer, change code/GitHub or change story canon.",
       "homeRoomId": "great-hall",
       "defaultAvailability": "waiting"
     }

@@ -32,7 +32,7 @@ test("external target descriptor stays generic and supports optional auth, label
   assert.match(source, /authRef\?: string/);
   assert.match(source, /displayLabel\?: string/);
   assert.match(source, /reconnectPolicy\?: ExtensionReconnectPolicy/);
-  assert.match(source, /"manual" \| "on-demand" \| "always"/);
+  assert.match(source, /RECONNECT_POLICIES = \["manual", "on-demand", "always"\] as const/);
   assert.doesNotMatch(source, /comfy/i);
 });
 
@@ -45,6 +45,15 @@ test("selected targets persist by stable owner and module id without coupling to
   assert.match(source, /readSelectedExtensionTarget/);
   assert.match(source, /writeSelectedExtensionTarget/);
   assert.doesNotMatch(source.match(/function identityKey[\s\S]*?\n}/)?.[0] || "", /displayName|studioId/);
+});
+
+test("persisted target validation is explicit rather than catch-and-default", async () => {
+  const source = await read("build/extension-identity.ts");
+  const validator = source.match(/function validTarget\([\s\S]*?\n}/)?.[0] || "";
+  assert.match(validator, /target\.endpoint/);
+  assert.match(validator, /validOptionalText/);
+  assert.match(validator, /RECONNECT_POLICIES\.includes/);
+  assert.doesNotMatch(validator, /catch/);
 });
 
 test("Phase A documents compatibility with the existing Studio identity and defers runtime ownership", async () => {

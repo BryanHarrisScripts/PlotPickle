@@ -17,6 +17,7 @@ import styles from "./sage-settings-workspace.module.css";
 
 const SETTINGS_SECTION_KEY = "plotpickle.settings.section";
 const SETTINGS_QUERY_KEY = "settings";
+const LEGACY_HELP_DESTINATION = { id: "settings-help", label: "HELP" } as const;
 
 type SettingsSection =
   | "overview"
@@ -47,7 +48,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
     label: "Start",
     items: [
       { id: "overview", label: "Overview", detail: "What is ready and what is next" },
-      { id: "help", label: "Helpers", detail: "Who does what in PlotPickle" },
+      { id: "help", label: "HELP", detail: "Who does what in PlotPickle" },
     ],
   },
   {
@@ -79,7 +80,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
 const ALL_SECTIONS = new Set(SETTINGS_GROUPS.flatMap((group) => group.items.map((item) => item.id)));
 const LEGACY_TARGETS: Record<string, SettingsSection> = {
   "settings-quick": "overview",
-  "settings-help": "help",
+  [LEGACY_HELP_DESTINATION.id]: "help",
   "settings-models": "models",
   "settings-activity": "activity",
   "settings-routing": "routing",
@@ -129,7 +130,7 @@ export default function SageSettingsWorkspace() {
     const destination = `${url.pathname}${url.search}`;
     if (replace) window.history.replaceState({ settingsSection: section }, "", destination);
     else window.history.pushState({ settingsSection: section }, "", destination);
-    window.scrollTo({ top: 0, behavior: "instant" });
+    window.scrollTo({ top: 0, behavior: "auto" });
   }, []);
 
   useEffect(() => {
@@ -137,9 +138,11 @@ export default function SageSettingsWorkspace() {
     sync();
     const handleSectionRequest = (event: Event) => navigateSection(normalizeSection((event as CustomEvent<string>).detail));
     window.addEventListener("popstate", sync);
+    window.addEventListener("hashchange", sync);
     window.addEventListener("plotpickle:settings-section", handleSectionRequest);
     return () => {
       window.removeEventListener("popstate", sync);
+      window.removeEventListener("hashchange", sync);
       window.removeEventListener("plotpickle:settings-section", handleSectionRequest);
     };
   }, [navigateSection]);
@@ -156,7 +159,7 @@ export default function SageSettingsWorkspace() {
   function renderSection() {
     switch (activeSection) {
       case "help":
-        return <><SectionIntro eyebrow="Settings · Helpers" title="Meet the PlotPickle helpers." detail="Understand each helper before changing agent or runtime configuration." /><SettingsHelperDirectory /></>;
+        return <section id="settings-help"><SectionIntro eyebrow="Settings · HELP" title="Meet the PlotPickle helpers." detail="Understand each helper before changing agent or runtime configuration." /><SettingsHelperDirectory /></section>;
       case "models":
         return <><SectionIntro eyebrow="Settings · Local AI" title="Configure and test Sage and PLAN." detail="Choose the local runtime and models, save them, then verify Sage and PLAN in the same workspace." /><SageFastModelSetup /></>;
       case "routing":
@@ -185,6 +188,7 @@ export default function SageSettingsWorkspace() {
     <main aria-label="PlotPickle settings" className={styles.page} data-plotpickle-settings="v2" data-settings-active={activeSection}>
       <aside data-settings-rail="navigation">
         <header><p>Settings</p><h2>Configure PlotPickle</h2><span>Choose a section once. The centre changes in place while this navigation and the help rail remain visible.</span></header>
+        <div className={styles.helpShortcut}><a href="#settings-help">HELP</a></div>
         <nav aria-label="Settings categories">
           {SETTINGS_GROUPS.map((group) => (
             <section className={styles.navGroup} key={group.label} aria-label={group.label}>

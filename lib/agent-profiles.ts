@@ -1,4 +1,5 @@
 import profileConfig from "../config/agent-profiles.json";
+import communityProfileConfig from "../config/agent-profile-extensions/community.json";
 import skillConfig from "../config/agent-skills.json";
 
 export const AGENT_PROFILE_CAPABILITY_ROLES = ["fast", "quality", "deep", "vision", "repair"] as const;
@@ -93,7 +94,13 @@ export type AgentProfileRegistry = {
   readonly profiles: readonly AgentProfileConfig[];
 };
 
-export const AGENT_PROFILE_REGISTRY = profileConfig as unknown as AgentProfileRegistry;
+const BASE_AGENT_PROFILE_REGISTRY = profileConfig as unknown as AgentProfileRegistry;
+const COMMUNITY_AGENT_PROFILES = communityProfileConfig.profiles as unknown as readonly AgentProfileConfig[];
+
+export const AGENT_PROFILE_REGISTRY: AgentProfileRegistry = {
+  ...BASE_AGENT_PROFILE_REGISTRY,
+  profiles: [...BASE_AGENT_PROFILE_REGISTRY.profiles, ...COMMUNITY_AGENT_PROFILES],
+};
 
 function buzzPresence(mode: AgentProfileBuzzMode): AgentProfile["buzzPresence"] {
   if (mode === "native") return "native-draft";

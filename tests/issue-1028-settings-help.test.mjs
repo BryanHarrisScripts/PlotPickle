@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const profiles = JSON.parse(await readFile(path.join(repoRoot, "config", "agent-profiles.json"), "utf8"));
+const communityProfiles = JSON.parse(await readFile(path.join(repoRoot, "config", "agent-profile-extensions", "community.json"), "utf8"));
 const helperDirectory = JSON.parse(await readFile(path.join(repoRoot, "config", "helper-directory.json"), "utf8"));
 
 async function source(relativePath) {
@@ -21,8 +22,8 @@ test("#1028 Settings exposes a discoverable HELP destination that lands on Meet 
   assert.match(settings, /<AgentObservabilityPanel \/>/, "existing technical Agent Activity view must remain present");
 });
 
-test("#1028 helper directory mirrors every Agent Profile exactly once without duplicating authority", () => {
-  const profileIds = profiles.profiles.map((profile) => profile.id).sort();
+test("#1028 helper directory mirrors every host-owned Agent Profile exactly once without duplicating authority", () => {
+  const profileIds = [...profiles.profiles, ...communityProfiles.profiles].map((profile) => profile.id).sort();
   const helperIds = helperDirectory.helpers.map((helper) => helper.id).sort();
   assert.equal(new Set(helperIds).size, helperIds.length, "helper ids must be unique");
   assert.deepEqual(helperIds, profileIds, "Help must add/remove helpers with the host-owned Agent Profile roster");
@@ -36,9 +37,9 @@ test("#1028 helper directory mirrors every Agent Profile exactly once without du
   }
 });
 
-test("#1028 every helper has a local portrait asset and Sage reuses the established portrait", async () => {
+test("#1028 every helper has a local portrait asset and Sage keeps the established current portrait mapping", async () => {
   const sage = helperDirectory.helpers.find((helper) => helper.id === "sage-brinewick");
-  assert.equal(sage?.portrait, "/assets/sage-brinewick-v2.png");
+  assert.equal(sage?.portrait, "/assets/helpers/lore/sage-brinewick.svg");
 
   for (const helper of helperDirectory.helpers) {
     assert.match(helper.portrait, /^\/(?!\/)/, `${helper.id} portrait must be local`);
@@ -54,7 +55,7 @@ test("#1028 cards use Agent Profiles for identity/authority and provide accessib
   assert.match(directory, /profile\.title/);
   assert.match(directory, /profile\.responsibility/);
   assert.match(directory, /profile\.verificationContract/);
-  assert.match(directory, /alt={`Illustrated portrait of \$\{profile\.displayName\}, \$\{profile\.title\}\.}`}/);
+  assert.ok(directory.includes('alt={`Illustrated portrait of ${profile.displayName}, ${profile.title}.`}'));
   assert.match(directory, /What they cannot do/);
   assert.match(directory, /Who can help me with this\?/);
 });

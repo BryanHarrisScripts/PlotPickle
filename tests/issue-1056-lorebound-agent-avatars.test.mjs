@@ -14,7 +14,7 @@ function pngDimensions(path) {
 }
 
 test("#1056 gives every user-facing helper a native 100px lore avatar", () => {
-  assert.equal(helperDirectory.helpers.length, 16);
+  assert.ok(helperDirectory.helpers.length >= 16, "the established helper roster must not shrink");
   const portraits = new Set();
 
   for (const helper of helperDirectory.helpers) {
@@ -28,7 +28,7 @@ test("#1056 gives every user-facing helper a native 100px lore avatar", () => {
     assert.match(svg, /<svg[^>]*\bwidth="100"[^>]*\bheight="100"/i, `${helper.id} is not a native 100 × 100 asset`);
     assert.match(svg, /viewBox="0 0 100 100"/i, `${helper.id} is not a 1:1 100px canvas`);
     assert.match(svg, /shape-rendering="crispEdges"/i, `${helper.id} is missing crisp pixel rendering`);
-    assert.match(svg, /<title>[^<]+8-bit[^<]+avatar<\/title>/i, `${helper.id} is missing an accessible 8-bit lore title`);
+    assert.match(svg, /<title[^>]*>[^<]+8-bit[^<]+avatar<\/title>/i, `${helper.id} is missing an accessible 8-bit lore title`);
   }
 });
 

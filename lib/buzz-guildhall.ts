@@ -1,12 +1,14 @@
 import guildhallConfig from "../config/buzz-guildhall.json";
+import communityGuildhallConfig from "../config/buzz-guildhall-community.json";
 
 const BUZZ_API = "/api/local-buzz";
 const GUILDHALL_EVENT_VERSION = 1 as const;
 const SEVERITY_RANK = { info: 0, low: 1, medium: 2, high: 3, critical: 4 } as const;
+const MERGED_GUILDHALL_ACTORS = [...guildhallConfig.actors, ...communityGuildhallConfig.actors];
 
 export type BuzzGuildhallSeverity = keyof typeof SEVERITY_RANK;
 export type BuzzGuildhallEventType = keyof typeof guildhallConfig.eventRoutes;
-export type BuzzGuildhallActorId = (typeof guildhallConfig.actors)[number]["id"];
+export type BuzzGuildhallActorId = (typeof MERGED_GUILDHALL_ACTORS)[number]["id"];
 export type BuzzGuildhallChannelId = (typeof guildhallConfig.channels)[number]["id"];
 
 export type BuzzGuildhallEvidence = {
@@ -49,9 +51,9 @@ type BuzzChannel = {
 
 type GuildhallFetch = typeof fetch;
 
-export const BUZZ_GUILDHALL = guildhallConfig;
+export const BUZZ_GUILDHALL = { ...guildhallConfig, actors: MERGED_GUILDHALL_ACTORS };
 export const BUZZ_GUILDHALL_CHANNELS = guildhallConfig.channels;
-export const BUZZ_GUILDHALL_ACTORS = guildhallConfig.actors;
+export const BUZZ_GUILDHALL_ACTORS = MERGED_GUILDHALL_ACTORS;
 
 function cleanText(value: unknown, limit: number) {
   return String(value ?? "")

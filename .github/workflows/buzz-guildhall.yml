@@ -7,8 +7,11 @@ on:
       - ".agents/skills/**"
       - "config/agent-skills.json"
       - "config/agent-profiles.json"
+      - "config/agent-profile-extensions/**"
+      - "config/helper-directory.json"
       - "config/buzz-desktop.json"
       - "config/buzz-guildhall.json"
+      - "config/buzz-guildhall-community.json"
       - "config/uat-autopilot-registry.json"
       - "lib/agent-profiles.ts"
       - "lib/buzz-guildhall.ts"
@@ -32,6 +35,7 @@ on:
       - "app/page.tsx"
       - "app/plotpickle-workspace-shell.tsx"
       - "app/plotpickle-workspace-shell.module.css"
+      - "public/assets/helpers/lore/**"
       - "public/assets/workflow-relics/community.svg"
       - "vite.config.ts"
       - "scripts/agent-skills.mjs"
@@ -60,6 +64,7 @@ on:
       - "tests/community-agent-roster.test.mjs"
       - "tests/buzz-live-roundtrip.test.mjs"
       - "tests/buzz-story-room-access-agents.test.mjs"
+      - "tests/issue-1065-bbs-moderator.test.mjs"
       - "tests/live-buzz-guildhall-activity.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
   push:
@@ -69,8 +74,11 @@ on:
       - ".agents/skills/**"
       - "config/agent-skills.json"
       - "config/agent-profiles.json"
+      - "config/agent-profile-extensions/**"
+      - "config/helper-directory.json"
       - "config/buzz-desktop.json"
       - "config/buzz-guildhall.json"
+      - "config/buzz-guildhall-community.json"
       - "config/uat-autopilot-registry.json"
       - "lib/agent-profiles.ts"
       - "lib/buzz-guildhall.ts"
@@ -94,6 +102,7 @@ on:
       - "app/page.tsx"
       - "app/plotpickle-workspace-shell.tsx"
       - "app/plotpickle-workspace-shell.module.css"
+      - "public/assets/helpers/lore/**"
       - "public/assets/workflow-relics/community.svg"
       - "vite.config.ts"
       - "scripts/agent-skills.mjs"
@@ -122,6 +131,7 @@ on:
       - "tests/community-agent-roster.test.mjs"
       - "tests/buzz-live-roundtrip.test.mjs"
       - "tests/buzz-story-room-access-agents.test.mjs"
+      - "tests/issue-1065-bbs-moderator.test.mjs"
       - "tests/live-buzz-guildhall-activity.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
 
@@ -149,8 +159,8 @@ jobs:
           node --check scripts/report-uat-findings.mjs
           node --check scripts/run-uat-closed-loop.mjs
       - name: Validate Agent Skills and Agent Contract authority boundaries
-        run: node --test tests/issue-913-agent-skills-migration.test.mjs tests/issue-962-agent-profiles.test.mjs
+        run: node --test tests/issue-913-agent-skills-migration.test.mjs tests/issue-962-agent-profiles.test.mjs tests/issue-1028-settings-help.test.mjs
       - name: Validate Buzz release and updater policy
         run: node --test tests/issue-512-buzz-version-maintenance.test.mjs tests/issue-620-buzz-startup-updater.test.mjs
-      - name: Validate Guildhall, Community, Story Room, README, and live BUZZ contracts
-        run: node --test tests/core-readme-direction.test.mjs tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs tests/live-buzz-guildhall-activity.test.mjs
+      - name: Validate Guildhall, Community, Moderator, Story Room, README, and live BUZZ contracts
+        run: node --test tests/core-readme-direction.test.mjs tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs tests/issue-1065-bbs-moderator.test.mjs tests/live-buzz-guildhall-activity.test.mjs

@@ -3,7 +3,7 @@
   "groups": [
     { "id": "writing-story", "label": "Writing & Story", "description": "Helpers who teach, plan, challenge and strengthen the story you are making." },
     { "id": "creative-visual", "label": "Creative & Visual", "description": "Helpers who shape campaign imagery and watch the rendered experience for visual problems." },
-    { "id": "community", "label": "Community", "description": "Helpers who help you find and understand approved Guildhall history." },
+    { "id": "community", "label": "Community", "description": "Helpers who help you find, understand and participate in the PlotPickle Community." },
     { "id": "quality-development", "label": "Quality & Development", "description": "Helpers who test PlotPickle, inspect evidence and prepare verified engineering work." }
   ],
   "helpers": [
@@ -18,6 +18,7 @@
     { "id": "marquee-director", "group": "creative-visual", "portrait": "/assets/helpers/lore/marquee-director.svg", "how": "Develops reviewable poster, key-art, teaser and trailer ideas when you choose to create campaign visuals." },
     { "id": "luma-glassfern", "group": "creative-visual", "portrait": "/assets/helpers/lore/luma-glassfern.svg", "how": "Looks at the rendered interface for clipping, overlap, layout and visual-continuity problems." },
     { "id": "orin-ledgerbark", "group": "community", "portrait": "/assets/helpers/lore/orin-ledgerbark.svg", "how": "Searches approved Guildhall history and returns short summaries with receipts so you can trace where they came from." },
+    { "id": "merrin-bellwarden", "group": "community", "portrait": "/assets/helpers/lore/merrin-bellwarden.svg", "how": "Welcomes callers in the Great Hall, answers ordinary greetings and helps people find their way without entering private story work." },
     { "id": "avery-north", "group": "quality-development", "portrait": "/assets/helpers/lore/avery-north.svg", "how": "Walks PlotPickle like a first-time writer and records where the experience is confusing, difficult or easy to abandon." },
     { "id": "bram-gatewick", "group": "quality-development", "portrait": "/assets/helpers/lore/bram-gatewick.svg", "how": "Represents the test gates that say PASS or FAIL from evidence rather than opinion." },
     { "id": "rook-ironquill", "group": "quality-development", "portrait": "/assets/helpers/lore/rook-ironquill.svg", "how": "Packages verified failures for an approved repair worker and keeps the handoff bounded by the test evidence." },

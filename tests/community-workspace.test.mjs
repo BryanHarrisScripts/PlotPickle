@@ -77,12 +77,12 @@ test("Community navigation uses per-section chevrons, clears prototype copy and 
   assert.match(workspace, /great-hall"[^\n]+primary: true/);
   assert.match(workspace, /story-rooms"[^\n]+primary: true/);
 
-  assert.match(navigationStyles, /\.communityLayout\s*\{\s*display:\s*contents;/s);
-  assert.match(navigationStyles, /\.communityRail\s*\{[^}]*grid-column:\s*1;[^}]*grid-row:\s*1 \/ 5;/s);
-  assert.match(navigationStyles, /\.communityContent\s*\{\s*display:\s*contents;/s);
-  assert.match(navigationStyles, /\.communityContent > main\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*3;/s);
+  assert.match(navigationStyles, /\.communityLayout\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(220px,\s*19fr\)\s+minmax\(0,\s*81fr\)/s);
+  assert.match(navigationStyles, /\.communityRail\s*\{[^}]*grid-column:\s*1;[^}]*grid-row:\s*1;/s);
+  assert.match(navigationStyles, /\.communityContent\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*1;/s);
+  assert.match(navigationStyles, /\.communityContent > main\[data-community-terminal="backdoor-v1"\][^}]*padding:\s*0;/s);
   assert.match(navigationStyles, /\.destinationChevron\[aria-expanded="true"\] span/);
-  assert.match(navigationStyles, /@media \(max-width: 900px\)[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(navigationStyles, /@media \(max-width: 760px\)[\s\S]*\.communityLayout\s*\{[^}]*grid-template-columns:\s*1fr;[\s\S]*\.destinationList\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
 });
 
 test("Great Hall and Story Rooms behave like conversations with reply and room-close affordances", async () => {

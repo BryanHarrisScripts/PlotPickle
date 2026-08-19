@@ -94,6 +94,26 @@ test("#1083 shows the normalized Comfy management and safe GPU facts in Settings
   assert.doesNotMatch(host, /python_version|argv|environment|privateKey|apiKey/);
 });
 
+test("#1083 normalizes service, checkpoint and node problems into actionable setup blockers", async () => {
+  const [diagnostics, host] = await Promise.all([
+    source("build/comfyui-connection-diagnostics.ts"),
+    source("app/configuration-dashboard-host.tsx"),
+  ]);
+  assert.match(diagnostics, /ComfySetupBlockerKind = "service" \| "checkpoint" \| "image-node" \| "workflow-node"/);
+  assert.match(diagnostics, /code: "comfy-service-stopped"/);
+  assert.match(diagnostics, /code: "comfy-checkpoint-missing"/);
+  assert.match(diagnostics, /code: "comfy-image-nodes-missing"/);
+  assert.match(diagnostics, /code: "comfy-workflow-nodes-missing"/);
+  assert.match(diagnostics, /requiresUserConfirmation: true/);
+  assert.match(diagnostics, /never turn a generation request into an automatic third-party node installation/i);
+  assert.match(diagnostics, /Any third-party custom-node install requires explicit user confirmation/i);
+  assert.match(diagnostics, /setupBlockers: unavailableSetupBlockers\(state, management\)/);
+  assert.match(diagnostics, /const setupBlockers = runningSetupBlockers/);
+  assert.match(host, /aria-label="ComfyUI setup blockers"/);
+  assert.match(host, /What needs attention/);
+  assert.match(host, /Your approval is required before PlotPickle performs that setup action/);
+});
+
 test("#1083 does not give creative agents custom-node install, partner-credit or arbitrary MCP authority", async () => {
   const [diagnostics, onboarding] = await Promise.all([
     source("build/comfyui-connection-diagnostics.ts"),

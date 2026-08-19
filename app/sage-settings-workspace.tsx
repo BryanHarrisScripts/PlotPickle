@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import AgentObservabilityPanel from "./agent-observability-panel";
 import AiRoutingPanel from "./ai-routing-panel";
 import BuzzLiveHealthCard from "./buzz-live-health-card";
+import ComfyUiReadinessCard from "./comfyui-readiness-card";
 import DeepSeekHarnessPanel from "./deepseek-harness-panel";
 import LocalRuntimePanel from "./local-runtime-panel";
 import MediaRoutingPanel from "./media-routing-panel";
@@ -150,6 +151,7 @@ export default function SageSettingsWorkspace() {
 
         <section data-settings-section id="settings-comfyui" aria-label="ComfyUI local image setup">
           <div className={styles.actions}><button className={styles.secondaryAction} type="button" onClick={returnToRouting}>Back to AI routing</button></div>
+          <ComfyUiReadinessCard />
           <MediaRoutingPanel onManage={openSettingsTarget} />
         </section>
 

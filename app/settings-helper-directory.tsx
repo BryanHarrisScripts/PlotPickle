@@ -1,4 +1,4 @@
-import Image from "next/image";
+import AgentPortrait from "../components/agent-portrait";
 import helperDirectory from "../config/helper-directory.json";
 import { AGENT_PROFILES, type AgentProfile } from "../lib/agent-profiles";
 import styles from "./settings-helper-directory.module.css";
@@ -80,14 +80,10 @@ export default function SettingsHelperDirectory() {
                 return (
                   <article className={styles.card} data-helper-id={profile.id} key={profile.id}>
                     <div className={styles.portraitFrame}>
-                      <Image
-                        className={styles.portrait}
-                        src={presentation.portrait}
-                        alt={`Illustrated portrait of ${profile.displayName}, ${profile.title}.`}
-                        width={360}
-                        height={360}
-                        sizes="(max-width: 760px) 100vw, (max-width: 1180px) 50vw, 360px"
-                        unoptimized
+                      <AgentPortrait
+                        id={profile.id}
+                        alt={`Illustrated fantasy portrait of ${profile.displayName}, ${profile.title}.`}
+                        size={210}
                       />
                       <span>{modeFor(profile)}</span>
                     </div>

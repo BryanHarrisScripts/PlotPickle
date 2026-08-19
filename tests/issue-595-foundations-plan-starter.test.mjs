@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { dirname, extname, resolve } from "node:path";
@@ -48,8 +48,14 @@ function assertWorkflowNavigation(source) {
 
 function resolveLocalModule(parentPath, request) {
   const requested = resolve(dirname(parentPath), request);
-  for (const candidate of [requested, `${requested}.ts`, `${requested}.json`]) {
-    if (existsSync(candidate)) return candidate;
+  for (const candidate of [
+    requested,
+    `${requested}.ts`,
+    `${requested}.json`,
+    resolve(requested, "index.ts"),
+    resolve(requested, "index.json"),
+  ]) {
+    if (existsSync(candidate) && statSync(candidate).isFile()) return candidate;
   }
   throw new Error(`Could not resolve ${request} from ${parentPath}`);
 }

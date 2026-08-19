@@ -13,15 +13,18 @@ import { observeWriterJourneyFinalState } from "./writer-journey-final-state.mjs
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
-const argument = (name, fallback = "") => {
-  const index = argv.indexOf(name);
-  return index >= 0 && index + 1 < argv.length ? argv[index + 1] : fallback;
-};
+
+function cliValue(flag) {
+  const marker = argv.indexOf(flag);
+  if (marker < 0) return "";
+  return String(argv[marker + 1] || "").trim();
+}
+
 const has = (name) => argv.includes(name);
-const baseUrl = argument("--base-url", process.env.PLOTPICKLE_ACCEPTANCE_URL || "http://127.0.0.1:4173");
+const baseUrl = cliValue("--base-url") || process.env.PLOTPICKLE_ACCEPTANCE_URL || "http://127.0.0.1:4173";
 const localRoot = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
 const sessionId = new Date().toISOString().replace(/[-:TZ.]/g, "").slice(0, 14);
-const artifactRoot = path.resolve(argument("--artifact-root", path.join(localRoot, "PlotPickle", "writer-in-residence", sessionId)));
+const artifactRoot = path.resolve(cliValue("--artifact-root") || path.join(localRoot, "PlotPickle", "writer-in-residence", sessionId));
 const githubReport = has("--github-report");
 const pluginRoot = path.join(repoRoot, "tools", "agent-plugins", "plotpickle-workflow-tester");
 const pluginData = path.join(artifactRoot, "browser-profile");
@@ -82,17 +85,13 @@ async function openMcp() {
 
 async function captureScreenshot(client, toolMap, name) {
   const tool = toolMap.get("browser_take_screenshot");
-  if (!tool) return false;
-  try {
-    await client.call("browser_take_screenshot", toolArguments(tool, {
-      type: "png",
-      filename: `${name}.png`,
-      fullPage: true,
-    }));
-    return true;
-  } catch {
-    return false;
-  }
+  if (!tool) throw new Error("Writer final-state observer requires browser_take_screenshot evidence.");
+  await client.call("browser_take_screenshot", toolArguments(tool, {
+    type: "png",
+    filename: `${name}.png`,
+    fullPage: true,
+  }));
+  return true;
 }
 
 function failureFinding(check) {
@@ -212,8 +211,10 @@ async function writeAugmentedReport({ baseExitCode, completion, audit, completio
     ...(audit?.checks || []).map((item) => `- ${item.passed ? "PASS" : "FAIL"} · ${item.label} — ${item.detail}`),
     "",
   ].filter(Boolean).join("\n");
-  let existingMarkdown = "# PlotPickle Writer-in-Residence\n";
-  try { existingMarkdown = await readFile(markdownPath, "utf8"); } catch {}
+  const existingMarkdown = await readFile(markdownPath, "utf8").catch((error) => {
+    if (error?.code === "ENOENT") return "# PlotPickle Writer-in-Residence\n";
+    throw error;
+  });
   await writeFile(markdownPath, `${existingMarkdown.trimEnd()}\n${appendix}\n`, "utf8");
   return { report, overallPass };
 }
@@ -271,7 +272,9 @@ async function main() {
     if (clientBundle) {
       try {
         if (clientBundle.tools.some((tool) => tool.name === "browser_close")) await clientBundle.client.call("browser_close", {});
-      } catch {}
+      } catch (error) {
+        status("Writer browser close", "WARN", error instanceof Error ? error.message : String(error));
+      }
       await clientBundle.client.close().catch(() => {});
     }
   }

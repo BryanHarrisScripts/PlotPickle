@@ -72,7 +72,7 @@ export default function BuzzCommunityWorkspace({ onOpenSettings }: { onOpenSetti
         <article className={styles.recommendedChoice}>
           <span>Fastest start</span>
           <h2>Join PlotPickleServer</h2>
-          <p>Accept the PlotPickle Playhouse invitation and add its ready-made community to Buzz.</p>
+          <p>Accept the PlotPickle Community BBS invitation and add its ready-made community to Buzz.</p>
           {PLOTPICKLE_SERVER_INVITE_URL
             ? <a href={PLOTPICKLE_SERVER_INVITE_URL} target="_blank" rel="noreferrer">Join PlotPickleServer</a>
             : <button type="button" disabled>Invite available from the community administrator</button>}

@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 import process from "node:process";
 import { postLiveBuzzActivity } from "./buzz-live-activity.mjs";
+import { withTransientBuzzRetry } from "./buzz-verification-retry.mjs";
 
 const baseUrl = String(process.env.PLOTPICKLE_URL || process.env.PLOTPICKLE_ACCEPTANCE_URL || "http://127.0.0.1:4173").replace(/\/$/, "");
 const tag = `plotpickle-live-activity:${randomUUID()}`;
@@ -20,7 +21,7 @@ const probes = [
 async function request(pathname) {
   const response = await fetch(`${baseUrl}/api/local-buzz${pathname}`, {
     headers: { Accept: "application/json" },
-    signal: AbortSignal.timeout(8_000),
+    signal: AbortSignal.timeout(10_000),
   });
   const body = await response.json();
   if (!response.ok) throw new Error(body?.message || `PlotPickle BUZZ gateway returned ${response.status}.`);
@@ -31,14 +32,14 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const rooms = await request("/rooms");
+const rooms = await withTransientBuzzRetry(() => request("/rooms"));
 const roomByName = new Map((rooms.rooms || []).map((room) => [room.name, room]));
 for (const probe of probes) {
   if (!roomByName.get(probe.expectedChannel)?.id) throw new Error(`Guildhall room '${probe.expectedChannel}' is missing.`);
 }
 
 for (const probe of probes) {
-  await postLiveBuzzActivity({
+  await withTransientBuzzRetry(() => postLiveBuzzActivity({
     type: probe.type,
     actorId: probe.actorId,
     summary: `${tag} · ${probe.label} live activity verification.`,
@@ -46,7 +47,7 @@ for (const probe of probes) {
     target: "live-activity-verification",
     verified: true,
     actionable: false,
-  }, { baseUrl });
+  }, { baseUrl }));
 }
 
 const verified = [];
@@ -55,7 +56,7 @@ for (const probe of probes) {
   let found = false;
   for (let attempt = 0; attempt < 8; attempt += 1) {
     if (attempt) await sleep(350);
-    const messages = await request(`/messages?channel=${encodeURIComponent(room.id)}&limit=40`);
+    const messages = await withTransientBuzzRetry(() => request(`/messages?channel=${encodeURIComponent(room.id)}&limit=40`));
     if ((messages.messages || []).some((message) => String(message.content || "").includes(tag))) {
       found = true;
       break;

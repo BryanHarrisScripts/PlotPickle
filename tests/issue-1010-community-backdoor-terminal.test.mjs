@@ -56,14 +56,16 @@ test("terminal provides the requested keyboard-first backdoor controls", async (
   assert.match(source, /onExit\(\)/);
 });
 
-test("#1027 gives the centre screen a lore-driven accessible ASCII welcome while commands stay on the right", async () => {
+test("#1044 gives the centre screen the approved dragon Community BBS wireframe while commands stay on the right", async () => {
   const source = await read("app/community-backdoor-terminal.tsx");
-  assert.match(source, /const PLAYHOUSE_ASCII = String\.raw/);
-  assert.match(source, /PLOTPICKLE PLAYHOUSE BBS/);
+  assert.match(source, /const COMMUNITY_BBS_ASCII = String\.raw/);
+  assert.match(source, /PLOTPICKLE COMMUNITY BBS/);
   assert.match(source, /THE GUILDHALL AFTER DARK/);
-  assert.match(source, /aria-label="PlotPickle Playhouse Guildhall BBS welcome banner"/);
-  assert.match(source, /THE PLAYHOUSE DOOR HAS OPENED/);
+  assert.match(source, /DRAGON WATCH/);
+  assert.match(source, /aria-label="PlotPickle Community BBS dragon and Guildhall welcome banner"/);
+  assert.match(source, /THE COMMUNITY DOOR HAS OPENED/);
   assert.match(source, /aside className=\{styles\.commandRail\} aria-label="Terminal keyboard commands"/);
+  assert.doesNotMatch(source, /Playhouse/i);
   assert.doesNotMatch(source, /<div className=\{styles\.menuBlock\}>/);
 });
 

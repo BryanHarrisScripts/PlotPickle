@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { FULL_VERIFICATION_GRAPH } from "../scripts/full-verification-graph.mjs";
@@ -7,6 +8,7 @@ import {
   FULL_VERIFICATION_HEARTBEAT_MS,
   FULL_VERIFICATION_STAGE_TIMEOUT_MS,
   PI_PREFLIGHT_TIMEOUT_MS,
+  PI_STACK_TIMEOUT_MS,
   verificationProgressSnapshot,
   verificationTimeoutForNode,
 } from "../scripts/full-verification-progress-runner.mjs";
@@ -47,7 +49,10 @@ test("every authoritative Full Verification stage has a bounded host timeout", (
     assert.equal(timeout, FULL_VERIFICATION_STAGE_TIMEOUT_MS[node.id], `${node.id} should use its declared timeout`);
     assert.ok(timeout > 0, `${node.id} should never run without a host timeout`);
   }
+  assert.equal(FULL_VERIFICATION_STAGE_TIMEOUT_MS["ensure-pi-model"], PI_STACK_TIMEOUT_MS);
   assert.equal(FULL_VERIFICATION_STAGE_TIMEOUT_MS["pi-preflight"], PI_PREFLIGHT_TIMEOUT_MS);
+  assert.ok(PI_STACK_TIMEOUT_MS >= 30 * 60_000);
+  assert.ok(PI_PREFLIGHT_TIMEOUT_MS >= 10 * 60_000);
   assert.ok(FULL_VERIFICATION_STAGE_TIMEOUT_MS["exhaustive-uat"] >= 60 * 60_000);
 });
 
@@ -66,31 +71,30 @@ test("a deliberately hung verification child is stopped and reported instead of 
   assert.ok(Date.now() - started < 8_000, "timeout cleanup should itself remain bounded");
 });
 
-test("Pi preflight is host-bounded and missing Pi is detected without an unsafe shell probe", async () => {
-  const [runner, processControls, repairWorker] = await Promise.all([
+test("Pi verification remains host-bounded while the worker self-provisions instead of being treated as optional", async () => {
+  const [runner, processControls, piRuntime, ensurePi, verifyPi] = await Promise.all([
     read("scripts/full-verification-progress-runner.mjs"),
     read("scripts/full-verification-process.mjs"),
-    read("scripts/run-uat-repair-agent.mjs"),
+    read("scripts/pi-worker-runtime.mjs"),
+    read("scripts/ensure-pi-repair-stack.mjs"),
+    read("scripts/verify-pi-repair-worker.mjs"),
   ]);
-  assert.equal(PI_PREFLIGHT_TIMEOUT_MS, 30_000);
-  assert.match(runner, /process\.platform === "win32" \? "where\.exe" : "which"/);
-  assert.match(runner, /node\.id === "pi-preflight"/);
-  assert.match(runner, /Pi is not installed or not available on PATH/);
-  assert.match(runner, /terminateVerificationProcessTree\(child\)/);
-  assert.match(runner, /shell: false/);
-  assert.doesNotMatch(runner, /shell:\s*true/);
+  assert.doesNotMatch(runner, /OPTIONAL REPAIR CAPABILITY UNAVAILABLE|executableAvailable\("pi"\)/);
+  assert.match(processControls, /ensure-pi-repair-stack\.mjs/);
+  assert.match(processControls, /verify-pi-repair-worker\.mjs/);
+  assert.match(piRuntime, /npm.*install.*-g.*--ignore-scripts.*@earendil-works\/pi-coding-agent/s);
+  assert.match(piRuntime, /npm.*prefix.*-g/s);
+  assert.match(ensurePi, /ensure-local-repair-model\.mjs/);
+  assert.match(verifyPi, /runPiSmoke/);
 
   assert.match(processControls, /taskkill\.exe/);
   assert.match(processControls, /return new Promise/);
   assert.match(processControls, /waitForProcessClose/);
   assert.match(processControls, /shell: false/);
   assert.doesNotMatch(processControls, /shell:\s*true/);
-
-  assert.match(repairWorker, /process\.env\.ComSpec \|\| "cmd\.exe"/);
-  assert.match(repairWorker, /windowsCliCommand/);
-  assert.match(repairWorker, /shell: false/);
-  assert.doesNotMatch(repairWorker, /shell:\s*process\.platform/);
-  assert.doesNotMatch(repairWorker, /shell:\s*true/);
+  assert.match(runner, /terminateVerificationProcessTree\(child\)/);
+  assert.match(runner, /shell: false/);
+  assert.doesNotMatch(runner, /shell:\s*true/);
 });
 
 test("Full Verification PowerShell entrypoint uses the launcher guard and watchdog while preserving progress-runner graph authority", async () => {

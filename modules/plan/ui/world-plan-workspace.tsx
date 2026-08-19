@@ -18,11 +18,6 @@ import {
 import { deriveGuidedCreationProgression } from "../../dashboard/guided-progression";
 import styles from "./world-plan-workspace.module.css";
 
-function requestedLessonId() {
-  if (typeof window === "undefined") return "";
-  return new URLSearchParams(window.location.search).get("lesson") ?? "";
-}
-
 export default function WorldPlanWorkspace({
   curriculum,
   onOpenLearn,
@@ -52,7 +47,9 @@ export default function WorldPlanWorkspace({
     if (!lessons.length) return;
     const current = loadFoundationProject();
     const validIds = new Set(lessons.map((lesson) => lesson.id));
-    const requested = requestedLessonId();
+    const requested = typeof window === "undefined"
+      ? ""
+      : new URLSearchParams(window.location.search).get("lesson") ?? "";
     const activeLessonId = [requested, current.world.activeLessonId ?? "", lessons[0].id]
       .find((lessonId) => validIds.has(lessonId)) ?? lessons[0].id;
     if (current.world.activeLessonId !== activeLessonId) {
@@ -104,15 +101,16 @@ export default function WorldPlanWorkspace({
   const answeredFields = countWorldAnswers(lessons, project.world);
   const planComplete = answeredFields === totalFields && totalFields > 0;
 
-  function save(command: Parameters<typeof applyStoryCommand>[1]) {
-    const next = applyStoryCommand(loadFoundationProject(), command);
-    saveFoundationProject(next);
-    setProject(next);
-    return next;
+  function commit(command: Parameters<typeof applyStoryCommand>[1]) {
+    setProject((current) => {
+      const next = applyStoryCommand(current ?? loadFoundationProject(), command);
+      saveFoundationProject(next);
+      return next;
+    });
   }
 
   function openLesson(lessonId: string) {
-    save({ type: "world.lesson.open", lessonId, occurredAt: new Date().toISOString() });
+    commit({ type: "world.lesson.open", lessonId, occurredAt: new Date().toISOString() });
     const url = new URL(window.location.href);
     url.searchParams.set("workspace", "plan");
     url.searchParams.set("section", "world");
@@ -121,7 +119,7 @@ export default function WorldPlanWorkspace({
   }
 
   function updateAnswer(fieldId: string, value: string) {
-    save({
+    commit({
       type: "world.answer.update",
       lessonId: activeLesson.id,
       fieldId,
@@ -134,13 +132,12 @@ export default function WorldPlanWorkspace({
   function buildBrief() {
     const content = assembleWorldBrief({ projectTitle: project.title, lessons, state: project.world });
     setBriefDraft(content);
-    const next = save({ type: "world.brief.save", content, occurredAt: new Date().toISOString() });
-    setBriefDraft(next.world.brief.content);
+    commit({ type: "world.brief.save", content, occurredAt: new Date().toISOString() });
     setMessage("World Brief rebuilt from your saved World decisions.");
   }
 
   function saveBrief() {
-    save({ type: "world.brief.save", content: briefDraft, occurredAt: new Date().toISOString() });
+    commit({ type: "world.brief.save", content: briefDraft, occurredAt: new Date().toISOString() });
     setMessage("World Brief saved locally.");
   }
 

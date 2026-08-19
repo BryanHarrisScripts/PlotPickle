@@ -4,11 +4,14 @@ import test from "node:test";
 import { FULL_VERIFICATION_GRAPH } from "../scripts/full-verification-graph.mjs";
 import {
   executeBoundedCommand,
+  EXHAUSTIVE_UAT_STALL_TIMEOUT_MS,
   FULL_VERIFICATION_HEARTBEAT_MS,
+  FULL_VERIFICATION_STAGE_STALL_TIMEOUT_MS,
   FULL_VERIFICATION_STAGE_TIMEOUT_MS,
   PI_PREFLIGHT_TIMEOUT_MS,
   PI_STACK_TIMEOUT_MS,
   verificationProgressSnapshot,
+  verificationStallTimeoutForNode,
   verificationTimeoutForNode,
 } from "../scripts/full-verification-progress-runner.mjs";
 
@@ -55,6 +58,15 @@ test("every authoritative Full Verification stage has a bounded host timeout", (
   assert.ok(FULL_VERIFICATION_STAGE_TIMEOUT_MS["exhaustive-uat"] >= 60 * 60_000);
 });
 
+test("Exhaustive UAT has a one-minute no-progress stall guard while other stages retain their normal host bounds", () => {
+  const exhaustive = FULL_VERIFICATION_GRAPH.find((node) => node.id === "exhaustive-uat");
+  const writer = FULL_VERIFICATION_GRAPH.find((node) => node.id === "writer-in-residence");
+  assert.equal(EXHAUSTIVE_UAT_STALL_TIMEOUT_MS, 60_000);
+  assert.equal(FULL_VERIFICATION_STAGE_STALL_TIMEOUT_MS["exhaustive-uat"], EXHAUSTIVE_UAT_STALL_TIMEOUT_MS);
+  assert.equal(verificationStallTimeoutForNode(exhaustive), 60_000);
+  assert.equal(verificationStallTimeoutForNode(writer), 0);
+});
+
 test("a deliberately hung verification child is stopped and reported instead of hanging the runner", async () => {
   const started = Date.now();
   const result = await executeBoundedCommand({
@@ -68,6 +80,21 @@ test("a deliberately hung verification child is stopped and reported instead of 
   assert.equal(result.exitCode, 124);
   assert.match(result.detail, /host timeout/i);
   assert.ok(Date.now() - started < 8_000, "timeout cleanup should itself remain bounded");
+});
+
+test("a verification child that stops reporting progress is killed by the stall guard before the larger host timeout", async () => {
+  const started = Date.now();
+  const result = await executeBoundedCommand({
+    id: "deliberate-stall",
+    name: "Deliberately stalled verification child",
+    tool: "node",
+    args: ["-e", "process.stdout.write('started\\n'); setInterval(() => {}, 1000)"],
+  }, 5_000, 150);
+
+  assert.equal(result.status, "FAIL");
+  assert.equal(result.exitCode, 124);
+  assert.match(result.detail, /no progress output/i);
+  assert.ok(Date.now() - started < 8_000, "stall cleanup should itself remain bounded");
 });
 
 test("Pi verification remains host-bounded while the worker self-provisions instead of being treated as optional", async () => {

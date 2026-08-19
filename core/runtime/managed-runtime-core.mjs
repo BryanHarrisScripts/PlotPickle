@@ -51,6 +51,7 @@ function assertAllowedFields(input, allowed, label) {
 
 function stableId(value, label) {
   const normalized = String(value || "").trim();
+  if (!normalized) throw new Error(`${label} is required.`);
   if (!ID_PATTERN.test(normalized)) throw new Error(`${label} must be a stable 2-128 character identifier.`);
   return normalized;
 }
@@ -59,7 +60,7 @@ function text(value, label, max = 240) {
   const normalized = String(value || "").replace(/\s+/g, " ").trim();
   if (!normalized) throw new Error(`${label} is required.`);
   if (normalized.length > max) throw new Error(`${label} must be ${max} characters or fewer.`);
-  if (SECRET_PATTERN.test(label) || /-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----/.test(normalized)) {
+  if (SECRET_PATTERN.test(normalized) || /-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----/.test(normalized)) {
     throw new Error(`${label} cannot contain secret material.`);
   }
   return normalized;
@@ -109,7 +110,7 @@ function normalizeProductionPolicy(input) {
   assertAllowedFields(input, ["allowPathFallback", "developerOverrides", "defaultListenerHost", "hideManagedConsoles", "preserveProjectAndIdentityState"], "Runtime production policy");
   if (input.allowPathFallback !== false) throw new Error("Production runtime must not silently fall back to arbitrary PATH executables.");
   if (input.developerOverrides !== "explicit-only") throw new Error("Developer runtime overrides must be explicit-only.");
-  if (! ["127.0.0.1", "localhost", "::1"].includes(input.defaultListenerHost)) throw new Error("Managed runtime default listener must be loopback-only.");
+  if (!["127.0.0.1", "localhost", "::1"].includes(input.defaultListenerHost)) throw new Error("Managed runtime default listener must be loopback-only.");
   if (input.hideManagedConsoles !== true) throw new Error("Managed runtime must hide normal-user helper consoles.");
   if (input.preserveProjectAndIdentityState !== true) throw new Error("Runtime lifecycle must preserve project and identity state.");
   return {
@@ -205,7 +206,7 @@ export function createRuntimeSupervisor(manifestInput) {
     componentId: component.id,
     enabled: component.enabled,
     installed: component.launchStrategy === "current-process" || component.launchStrategy === "in-process-gateway",
-    processState: component.enabled ? "stopped" : "stopped",
+    processState: "stopped",
     readinessState: "unknown",
     updateState: "current",
     restartCount: 0,

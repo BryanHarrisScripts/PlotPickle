@@ -1,1 +1,0 @@
-Temporary branch note: #1075 implementation scope is isolated to the remote-compute contract, typed boundary, deterministic regressions, architecture documentation and CI gate.

@@ -31,18 +31,18 @@ type Readiness = {
   facts: Array<[string, string]>;
 };
 
+const STATE_LABELS: Record<State, string> = {
+  checking: "Checking",
+  ready: "Ready",
+  attention: "Needs attention",
+  unavailable: "Unavailable",
+};
+
 async function getJson<T>(path: string): Promise<T> {
   const response = await fetch(path, { cache: "no-store", headers: { Accept: "application/json" } });
   const body = await response.json() as T & { message?: string };
   if (!response.ok) throw new Error(body.message || `Status unavailable for ${path}`);
   return body;
-}
-
-function stateLabel(state: State) {
-  if (state === "ready") return "Ready";
-  if (state === "attention") return "Needs attention";
-  if (state === "unavailable") return "Unavailable";
-  return "Checking";
 }
 
 export default function SettingsReadinessOverview({ onOpen }: { onOpen: (section: string) => void }) {
@@ -164,7 +164,7 @@ export default function SettingsReadinessOverview({ onOpen }: { onOpen: (section
       <div className={styles.grid}>
         {cards.map((card) => (
           <article className={styles.card} key={card.id} data-capability={card.id}>
-            <header><h3>{card.label}</h3><span className={styles.badge} data-state={card.state} role="status">{stateLabel(card.state)}</span></header>
+            <header><h3>{card.label}</h3><span className={styles.badge} data-state={card.state} role="status">{STATE_LABELS[card.state]}</span></header>
             <span>{card.summary}</span>
             <dl className={styles.meta}>{card.facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
             <button type="button" onClick={() => onOpen(card.section)}>Configure and test {card.label}</button>

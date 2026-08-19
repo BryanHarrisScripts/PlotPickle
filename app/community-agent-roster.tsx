@@ -24,7 +24,7 @@ type BuzzRosterPayload = {
   readonly message?: string;
 };
 
-type SpecialistId = "marquee-director" | "critics-circle";
+type SpecialistId = "critics-circle";
 type SpecialistReply = {
   readonly profileId: SpecialistId;
   readonly displayName: string;
@@ -42,7 +42,8 @@ type SpecialistReply = {
 
 type JsonMessage = { readonly message?: string };
 
-const SPECIALISTS = new Set<SpecialistId>(["marquee-director", "critics-circle"]);
+const SPECIALISTS = new Set<SpecialistId>(["critics-circle"]);
+const PRIVATE_PROJECT_AGENT_IDS = new Set(["marquee-director"]);
 
 async function readJson<T>(url: string): Promise<T> {
   const response = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
@@ -108,8 +109,8 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
   const [nativeAgents, setNativeAgents] = useState<BuzzNativeAgentState[]>([]);
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState("");
-  const [specialistDrafts, setSpecialistDrafts] = useState<Record<SpecialistId, string>>({ "marquee-director": "", "critics-circle": "" });
-  const [specialistProjectSharing, setSpecialistProjectSharing] = useState<Record<SpecialistId, boolean>>({ "marquee-director": false, "critics-circle": false });
+  const [specialistDrafts, setSpecialistDrafts] = useState<Record<SpecialistId, string>>({ "critics-circle": "" });
+  const [specialistProjectSharing, setSpecialistProjectSharing] = useState<Record<SpecialistId, boolean>>({ "critics-circle": false });
   const [specialistReplies, setSpecialistReplies] = useState<Partial<Record<SpecialistId, SpecialistReply>>>({});
   const [specialistBusy, setSpecialistBusy] = useState<SpecialistId | "">("");
 
@@ -156,7 +157,7 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
     traces,
     buzzIdentityVerified,
     nativeAgents,
-  }), [assistantStatus, traces, buzzIdentityVerified, nativeAgents]);
+  }).filter((agent) => !PRIVATE_PROJECT_AGENT_IDS.has(agent.id)), [assistantStatus, traces, buzzIdentityVerified, nativeAgents]);
 
   const counts = useMemo(() => ({
     active: roster.filter((agent) => agent.state === "working" || agent.state === "online" || agent.state === "away").length,
@@ -276,7 +277,7 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
                   onChange={(event) => setSpecialistDrafts((current) => ({ ...current, [specialist]: event.target.value }))}
                   maxLength={8_000}
                   rows={4}
-                  placeholder={specialist === "marquee-director" ? "Ask for a poster, key-art, teaser or trailer concept…" : "Ask for an independent story, character, pacing or positioning critique…"}
+                  placeholder="Ask for an independent story, character, pacing or positioning critique…"
                 />
                 <label className={styles.shareToggle}>
                   <input

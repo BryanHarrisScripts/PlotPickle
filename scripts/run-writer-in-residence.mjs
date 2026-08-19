@@ -53,8 +53,12 @@ async function runJourney() {
 async function shutdownFromSignal(signal) {
   if (shuttingDown) return;
   shuttingDown = true;
-  try { activeChild?.kill(signal); } catch {}
-  await stopOwnedRuntime().catch(() => {});
+  if (activeChild && activeChild.exitCode === null) activeChild.kill(signal);
+  try {
+    await stopOwnedRuntime();
+  } catch (error) {
+    status("Writer app runtime", "WARN", error instanceof Error ? error.message : String(error));
+  }
   process.exit(signal === "SIGINT" ? 130 : 143);
 }
 
@@ -79,7 +83,9 @@ try {
   status("Writer app preflight", "FAIL", message);
   process.exitCode = 1;
 } finally {
-  await stopOwnedRuntime().catch((error) => {
+  try {
+    await stopOwnedRuntime();
+  } catch (error) {
     status("Writer app runtime", "WARN", error instanceof Error ? error.message : String(error));
-  });
+  }
 }

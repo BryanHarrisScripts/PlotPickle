@@ -1,10 +1,17 @@
 .communityLayout {
-  display: contents;
+  display: grid;
+  grid-template-columns: minmax(220px, 19fr) minmax(0, 81fr);
+  min-width: 0;
+  min-height: min(760px, calc(100vh - 150px));
+  overflow: hidden;
+  border: 1px solid var(--community-border, #293033);
+  border-radius: 14px;
+  background: var(--community-bg, #090a0b);
 }
 
 .communityRail {
   grid-column: 1;
-  grid-row: 1 / 5;
+  grid-row: 1;
   min-width: 0;
   min-height: 0;
   padding: 18px 12px 28px;
@@ -191,12 +198,14 @@
 }
 
 .communityContent {
-  display: contents;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .communityContent > section {
-  grid-column: 2;
-  grid-row: 2;
   max-width: none !important;
   margin: 0 !important;
   border-right: 0 !important;
@@ -206,8 +215,6 @@
 }
 
 .communityContent > main {
-  grid-column: 2;
-  grid-row: 3;
   min-width: 0;
   min-height: 0;
   max-width: none !important;
@@ -217,6 +224,15 @@
   background:
     radial-gradient(circle at 50% 0%, rgba(54, 217, 194, 0.04), transparent 24rem),
     var(--community-bg, #090a0b);
+}
+
+.communityContent > main[data-community-terminal="backdoor-v1"] {
+  padding: 0;
+  overflow: hidden;
+}
+
+.communityContent main[data-community-terminal="backdoor-v1"] [aria-label="PlotPickle Community BBS terminal"] > div:last-child {
+  grid-template-columns: minmax(0, 56fr) minmax(220px, 25fr);
 }
 
 .messageActions {
@@ -251,9 +267,17 @@
   font-size: 10px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 760px) {
+  .communityLayout {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    overflow: visible;
+  }
+
   .communityRail {
     position: static;
+    grid-column: 1;
+    grid-row: auto;
     max-height: none;
     padding: 12px 14px;
     overflow: visible;
@@ -269,6 +293,12 @@
     margin-left: 6px;
   }
 
+  .communityContent {
+    grid-column: 1;
+    grid-row: auto;
+    overflow: visible;
+  }
+
   .communityContent > section,
   .communityContent > main {
     margin: 0 !important;
@@ -277,6 +307,10 @@
   .communityContent > main {
     padding: 18px 14px 32px;
     overflow: visible;
+  }
+
+  .communityContent > main[data-community-terminal="backdoor-v1"] {
+    padding: 0;
   }
 }
 

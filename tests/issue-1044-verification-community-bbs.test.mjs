@@ -55,11 +55,14 @@ test("#1044 Community Presence replaces the user-facing Playhouse route while pr
 });
 
 test("#1044 Sage gets one bounded quality repair without weakening the health rubric", async () => {
-  const source = await read("build/startup-agent-diagnostics-runtime-v3.ts");
+  const source = await read("build/startup-agent-diagnostics-runtime-v6.ts");
   assert.match(source, /Quality repair/);
   assert.match(source, /SAGE_DIAGNOSTIC_QUALITY_REPAIR_INSTRUCTION/);
-  assert.match(source, /sageAttemptPass\(attempt\)/);
-  assert.match(source, /"quality", 60_000/);
+  assert.match(source, /strictAntiEchoPass\(text, question\)/);
+  assert.match(source, /repetitionPass\(text\)/);
+  assert.match(source, /groundingPass\(text\)/);
+  assert.match(source, /60_000/);
+  assert.match(source, /failedChecks\.every/);
 });
 
 test("#1044 missing Pi is reported as optional repair capability rather than a product failure", async () => {
@@ -67,5 +70,5 @@ test("#1044 missing Pi is reported as optional repair capability rather than a p
   assert.match(source, /OPTIONAL REPAIR CAPABILITY UNAVAILABLE/);
   assert.match(source, /Pi is not installed or not available on PATH/);
   assert.match(source, /status: "PASS"/);
-  assert.match(source, /no cloud fallback|cloud fallback/i);
+  assert.match(source, /no cloud fallback/i);
 });

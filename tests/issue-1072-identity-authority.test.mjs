@@ -85,7 +85,7 @@ test("Phase A includes the required schema proposal and five migration sequences
     "Node revocation",
     "BUZZ send",
   ]) {
-    assert.match(doc, new RegExp(`### ${sequence.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}`));
+    assert.ok(doc.includes(`### ${sequence}`), `missing sequence: ${sequence}`);
   }
   assert.equal((doc.match(/```mermaid/g) || []).length, 5);
 });

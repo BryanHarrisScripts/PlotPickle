@@ -143,7 +143,7 @@ export default function MarqueeAgentOverlay({ curriculum }: { readonly curriculu
     setStatus("Asking The Marquee Director…");
     try {
       const result = await postJson<ChatResponse>("/api/writing-assistant/chat", {
-        agentId: "marquee-director",
+        agentId: "visual-director",
         tone: "collaborative",
         message: buildMarqueeConversationPrompt(context, text),
         history: prior.map((message) => ({

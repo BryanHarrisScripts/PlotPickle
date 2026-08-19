@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import AgentObservabilityPanel from "./agent-observability-panel";
 import AiRoutingPanel from "./ai-routing-panel";
 import BuzzLiveHealthCard from "./buzz-live-health-card";
@@ -8,8 +9,11 @@ import LocalRuntimePanel from "./local-runtime-panel";
 import MediaRoutingPanel from "./media-routing-panel";
 import SageFastModelSetup from "./sage-fast-model-setup";
 import SettingsHelperDirectory from "./settings-helper-directory";
+import WritingAssistantConsole from "./writing-assistant-console";
+import AiProviderSetupPanel from "./settings/ai-provider/ai-provider-setup-panel";
 import styles from "./sage-settings-workspace.module.css";
 
+const SETTINGS_SECTION_KEY = "plotpickle.settings.section";
 const SETTINGS_CATEGORIES = [
   { id: "settings-quick", label: "Quick Setup", detail: "The simple four-step path" },
   { id: "settings-help", label: "HELP", detail: "Meet the PlotPickle helpers" },
@@ -19,35 +23,75 @@ const SETTINGS_CATEGORIES = [
   { id: "settings-advanced", label: "Advanced Runtime", detail: "Hardware and expert details" },
 ] as const;
 
+function canonicalSettingsTarget(value: string) {
+  const target = value.trim().toLowerCase();
+  if (target.includes("ollama")) return "ollama";
+  if (target.includes("openai")) return "openai";
+  if (target.includes("minimax")) return "minimax";
+  if (target.includes("comfy")) return "comfyui";
+  return "";
+}
+
+function sectionIdForTarget(value: string) {
+  const target = canonicalSettingsTarget(value);
+  return target ? `settings-${target}` : "";
+}
+
 export default function SageSettingsWorkspace() {
-  function returnToRouting() {
-    const routing = document.getElementById("settings-routing");
-    if (!routing) return;
+  function scrollToSection(sectionId: string, focus = false) {
+    if (!sectionId) return false;
+    const section = document.getElementById(sectionId);
+    if (!section) return false;
     const url = new URL(window.location.href);
     url.searchParams.set("workspace", "settings");
-    url.hash = "settings-routing";
+    url.hash = sectionId;
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
-    routing.scrollIntoView({ behavior: "smooth", block: "start" });
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (focus) window.requestAnimationFrame(() => section.querySelector<HTMLElement>("input, select, button")?.focus());
+    return true;
   }
 
+  function openSettingsTarget(target: string) {
+    const canonical = canonicalSettingsTarget(target);
+    const sectionId = sectionIdForTarget(canonical);
+    if (!canonical || !sectionId) return;
+    window.sessionStorage.setItem(SETTINGS_SECTION_KEY, canonical);
+    if (scrollToSection(sectionId, true)) {
+      window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: canonical }));
+    }
+  }
+
+  function returnToRouting() {
+    scrollToSection("settings-routing");
+  }
+
+  useEffect(() => {
+    const scrollRequestedTarget = (target: string) => {
+      const sectionId = sectionIdForTarget(target);
+      if (sectionId) scrollToSection(sectionId, true);
+    };
+    const timer = window.setTimeout(() => {
+      const stored = window.sessionStorage.getItem(SETTINGS_SECTION_KEY) || "";
+      const hash = window.location.hash.replace(/^#/, "");
+      if (hash.startsWith("settings-") && document.getElementById(hash)) scrollToSection(hash, true);
+      else if (stored) scrollRequestedTarget(stored);
+      window.sessionStorage.removeItem(SETTINGS_SECTION_KEY);
+    }, 0);
+    const handleSectionRequest = (event: Event) => scrollRequestedTarget(String((event as CustomEvent<string>).detail || ""));
+    window.addEventListener("plotpickle:settings-section", handleSectionRequest);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("plotpickle:settings-section", handleSectionRequest);
+    };
+  }, []);
+
   return (
-    <main
-      aria-label="Sage and PLAN local AI settings"
-      className={styles.page}
-      data-plotpickle-settings="v2"
-    >
+    <main aria-label="Sage and PLAN local AI settings" className={styles.page} data-plotpickle-settings="v2">
       <aside data-settings-rail="navigation">
-        <header>
-          <p>Settings</p>
-          <h2>Configure PlotPickle</h2>
-          <span>Choose a category, make the change in the centre, and keep context visible on the right.</span>
-        </header>
+        <header><p>Settings</p><h2>Configure PlotPickle</h2><span>Choose a category, make the change in the centre, and keep context visible on the right.</span></header>
         <nav aria-label="Settings categories">
           {SETTINGS_CATEGORIES.map((category) => (
-            <a href={`#${category.id}`} key={category.id}>
-              <strong>{category.label}</strong>
-              <span>{category.detail}</span>
-            </a>
+            <a href={`#${category.id}`} key={category.id}><strong>{category.label}</strong><span>{category.detail}</span></a>
           ))}
         </nav>
       </aside>
@@ -57,9 +101,7 @@ export default function SageSettingsWorkspace() {
           <div>
             <p className={styles.eyebrow}>Settings · Quick Setup</p>
             <h1>Set up Sage and PLAN.</h1>
-            <p className={styles.intro}>
-              You do not need to understand model files, GPU layers, ports, or command-line tools. PlotPickle will start with the local AI it can already find and keep expert controls out of the way unless you ask for them.
-            </p>
+            <p className={styles.intro}>You do not need to understand model files, GPU layers, ports, or command-line tools. PlotPickle will start with the local AI it can already find and keep expert controls out of the way unless you ask for them.</p>
           </div>
           <div className={styles.actions}>
             <a className={styles.primaryAction} href="/?workspace=learn">Return to LEARN</a>
@@ -70,10 +112,7 @@ export default function SageSettingsWorkspace() {
         </header>
 
         <section className={styles.quickStart} data-settings-section id="settings-quick" aria-labelledby="quick-setup-title">
-          <div>
-            <p className={styles.eyebrow}>Quick Setup</p>
-            <h2 id="quick-setup-title">Four simple steps</h2>
-          </div>
+          <div><p className={styles.eyebrow}>Quick Setup</p><h2 id="quick-setup-title">Four simple steps</h2></div>
           <ol className={styles.steps}>
             <li><strong>Step 1:</strong> Choose how you want PlotPickle to talk to local AI.</li>
             <li><strong>Step 2:</strong> Pick the model PlotPickle found.</li>
@@ -83,31 +122,35 @@ export default function SageSettingsWorkspace() {
           <p className={styles.note}>For most people, “Use my running local AI” is the right choice. If PlotPickle finds only one suitable model, you can assign it to both Sage and PLAN with one click.</p>
         </section>
 
-        <section data-settings-section id="settings-help" aria-labelledby="settings-help-title">
-          <SettingsHelperDirectory />
-        </section>
-
-        <section data-settings-section id="settings-models">
-          <SageFastModelSetup />
-        </section>
-
-        <section data-settings-section id="settings-activity">
-          <AgentObservabilityPanel />
-          <BuzzLiveHealthCard />
-        </section>
+        <section data-settings-section id="settings-help" aria-labelledby="settings-help-title"><SettingsHelperDirectory /></section>
+        <section data-settings-section id="settings-models"><SageFastModelSetup /></section>
+        <section data-settings-section id="settings-activity"><AgentObservabilityPanel /><BuzzLiveHealthCard /></section>
 
         <section data-settings-section id="settings-routing" aria-label="Advanced AI routing">
-          <div className={styles.actions}>
-            <a className={styles.secondaryAction} href="#settings-quick">Back to PlotPickle Settings</a>
-          </div>
+          <div className={styles.actions}><a className={styles.secondaryAction} href="#settings-quick">Back to PlotPickle Settings</a></div>
           <AiRoutingPanel />
         </section>
 
+        <section data-settings-section id="settings-ollama" aria-label="Ollama local writing setup">
+          <div className={styles.actions}><button className={styles.secondaryAction} type="button" onClick={returnToRouting}>Back to AI routing</button></div>
+          <WritingAssistantConsole onManage={() => openSettingsTarget("ollama")} focusProvider="ollama" />
+        </section>
+
+        <section data-settings-section id="settings-openai" aria-label="OpenAI provider setup">
+          <div className={styles.actions}><button className={styles.secondaryAction} type="button" onClick={returnToRouting}>Back to AI routing</button></div>
+          <AiProviderSetupPanel provider="openai" />
+          <WritingAssistantConsole onManage={() => openSettingsTarget("openai")} focusProvider="openai" />
+        </section>
+
+        <section data-settings-section id="settings-minimax" aria-label="MiniMax provider setup">
+          <div className={styles.actions}><button className={styles.secondaryAction} type="button" onClick={returnToRouting}>Back to AI routing</button></div>
+          <AiProviderSetupPanel provider="minimax" />
+          <WritingAssistantConsole onManage={() => openSettingsTarget("minimax")} focusProvider="minimax" />
+        </section>
+
         <section data-settings-section id="settings-comfyui" aria-label="ComfyUI local image setup">
-          <div className={styles.actions}>
-            <button className={styles.secondaryAction} type="button" onClick={returnToRouting}>Back to AI routing</button>
-          </div>
-          <MediaRoutingPanel onManage={returnToRouting} />
+          <div className={styles.actions}><button className={styles.secondaryAction} type="button" onClick={returnToRouting}>Back to AI routing</button></div>
+          <MediaRoutingPanel onManage={openSettingsTarget} />
         </section>
 
         <section data-settings-section id="settings-advanced">
@@ -121,37 +164,12 @@ export default function SageSettingsWorkspace() {
       </section>
 
       <aside aria-label="Settings help and status" data-settings-rail="context">
-        <section>
-          <p>HELP</p>
-          <h2>Not sure who does what?</h2>
-          <span>Open Meet the Helpers for a plain-language guide to Sage, BEN, Fen and every other PlotPickle helper.</span>
-          <a href="#settings-help">Meet the Helpers</a>
-        </section>
-        <section>
-          <p>Persistent help</p>
-          <h2>Change one thing at a time.</h2>
-          <span>The centre column owns the actual controls. The left column gets you to the category; this rail explains what the category affects without sending you around another loop.</span>
-        </section>
-        <section>
-          <p>AI Routing</p>
-          <h3>One active choice per job.</h3>
-          <span>Writing, images and video each use one route at a time. Choose the route you want; unavailable choices show what must be configured or tested first. Ollama is optional and no longer defines the local architecture.</span>
-        </section>
-        <section>
-          <p>Agent Activity</p>
-          <h3>See what is actually running.</h3>
-          <span>Use Agent Activity to confirm Sage, PLAN, Wyrmwood and developer-worker state instead of guessing whether a selector or model change took effect.</span>
-        </section>
-        <section>
-          <p>BUZZ / Guildhall</p>
-          <h3>Coordination, not another brain.</h3>
-          <span>BUZZ carries signed community and Guildhall activity. Mastra remains the PlotPickle product-agent runtime; PPF remains the creative record.</span>
-        </section>
-        <section>
-          <p>Safety</p>
-          <h3>Local stays local unless you choose otherwise.</h3>
-          <small>PlotPickle does not silently turn a failed local model into a paid cloud request. Advanced routing remains an explicit choice.</small>
-        </section>
+        <section><p>HELP</p><h2>Not sure who does what?</h2><span>Open Meet the Helpers for a plain-language guide to Sage, BEN, Fen and every other PlotPickle helper.</span><a href="#settings-help">Meet the Helpers</a></section>
+        <section><p>Persistent help</p><h2>Change one thing at a time.</h2><span>The centre column owns the actual controls. The left column gets you to the category; this rail explains what the category affects without sending you around another loop.</span></section>
+        <section><p>AI Routing</p><h3>One active choice per job.</h3><span>Writing, images and video each use one route at a time. Choose the route you want; unavailable choices show what must be configured or tested first. Ollama is optional and no longer defines the local architecture.</span></section>
+        <section><p>Agent Activity</p><h3>See what is actually running.</h3><span>Use Agent Activity to confirm Sage, PLAN, Wyrmwood and developer-worker state instead of guessing whether a selector or model change took effect.</span></section>
+        <section><p>BUZZ / Guildhall</p><h3>Coordination, not another brain.</h3><span>BUZZ carries signed community and Guildhall activity. Mastra remains the PlotPickle product-agent runtime; PPF remains the creative record.</span></section>
+        <section><p>Safety</p><h3>Local stays local unless you choose otherwise.</h3><small>PlotPickle does not silently turn a failed local model into a paid cloud request. Advanced routing remains an explicit choice.</small></section>
       </aside>
     </main>
   );

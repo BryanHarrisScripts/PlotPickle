@@ -97,6 +97,8 @@ globalThis.fetch = async function plotPickleWriterFetch(input, init = {}) {
 
 const nativeCall = McpClient.prototype.call;
 
+// Normalize only visible accessibility snapshot labels. Avery still operates on
+// rendered UI rather than hidden DOM/state; this wrapper exposes no storage data.
 McpClient.prototype.call = async function plotPickleWriterMcpCall(name, args = {}) {
   const result = await nativeCall.call(this, name, args);
   if (name !== "browser_snapshot" || !Array.isArray(result?.content)) return result;

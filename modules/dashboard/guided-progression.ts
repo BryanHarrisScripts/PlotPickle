@@ -3,24 +3,13 @@ import {
   buildFoundationPlanLessons,
   countFoundationAnswers,
 } from "../../core/contracts/foundation-plan";
+import {
+  VISUAL_WRITER_GROUP_ORDER,
+  type VisualWriterCurriculumGroupId,
+} from "../../core/contracts/visual-writer-progression";
 import type { PPFProject } from "../../core/project/project";
 
-export const VISUAL_WRITER_GROUP_ORDER = [
-  "foundations",
-  "world",
-  "character",
-  "theme",
-  "structure",
-  "visual-storytelling",
-  "drafting",
-  "dialogue",
-  "revision",
-  "responsible-ai",
-  "industry",
-  "collaboration",
-] as const;
-
-export type GuidedCurriculumGroupId = (typeof VISUAL_WRITER_GROUP_ORDER)[number];
+export type GuidedCurriculumGroupId = VisualWriterCurriculumGroupId;
 export type ProgressStageState = "complete" | "available" | "locked";
 export type GuidedWorkspace = "learn" | "plan" | "build";
 export type GuidedOutputClassification = "knowledge-only" | "decision-producing" | "artifact-producing" | "mixture";
@@ -249,7 +238,8 @@ export function deriveGuidedLessonOutputContracts(
   return GUIDED_CURRICULUM_GROUPS.flatMap((definition) => {
     const lessons = curriculum
       .filter((lesson) => lesson.topic === definition.id)
-      .toSorted((left, right) => left.number - right.number);
+      .slice()
+      .sort((left, right) => left.number - right.number);
     const dependentGroupIds = GUIDED_CURRICULUM_GROUPS
       .filter((candidate) => candidate.outputContract.prerequisiteGroupIds.includes(definition.id))
       .map((candidate) => candidate.id);

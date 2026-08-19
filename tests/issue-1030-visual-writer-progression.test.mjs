@@ -29,8 +29,9 @@ test("#1030 PR A preserves every bundled archived lesson while changing only pro
   let actualLessonCount = 0;
   for (const entry of index.files) {
     const topic = await parse(`learn/${entry.file}`);
-    assert.equal(topic.topic, entry.topic, `${entry.file} should retain its topic identity`);
-    assert.equal(topic.lessons.length, entry.lessonCount, `${entry.file} lesson count should match the bundled index`);
+    assert.equal(topic.topic.id, entry.topic, `${entry.file} should retain its topic identity`);
+    assert.equal(topic.lessonCount, entry.lessonCount, `${entry.file} declared lesson count should match the bundled index`);
+    assert.equal(topic.lessons.length, entry.lessonCount, `${entry.file} lesson array should match the bundled index`);
     actualLessonCount += topic.lessons.length;
   }
   assert.equal(actualLessonCount, 81);

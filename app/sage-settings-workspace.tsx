@@ -177,10 +177,29 @@ export default function SageSettingsWorkspace() {
       case "buzz":
         return <section id="settings-buzz"><SectionIntro eyebrow="Settings · BUZZ / Community" title="Configure and test BUZZ in one place." detail="Connect the local identity and relay, build the Guildhall, then run the signed live round-trip test without exposing credentials." /><BuzzSettingsPanel /><BuzzLiveHealthCard /></section>;
       case "runtime":
-        return <section id="settings-advanced"><SectionIntro eyebrow="Settings · Advanced Runtime" title="Inspect hardware and expert runtime details." detail="Use these controls only when the overview or a focused setup panel says deeper runtime work is needed." /><details className={styles.advancedRuntime} open><summary>Advanced runtime details</summary><p>AI provider routing is configured in the dedicated AI Routing section above so the hardware view is not repeated. Hardware, model inventory and optional developer harness information remain here for expert diagnostics.</p><DeepSeekHarnessPanel /><LocalRuntimePanel /></details></section>;
+        return <section id="settings-advanced"><SectionIntro eyebrow="Settings · Advanced Runtime" title="Inspect hardware and expert runtime details." detail="Use these controls only when the overview or a focused setup panel says deeper runtime work is needed." /><details className={styles.advancedRuntime}><summary>Advanced runtime details</summary><p>AI provider routing is configured in the dedicated AI Routing section above so the hardware view is not repeated. Hardware, model inventory and optional developer harness information remain here for expert diagnostics.</p><DeepSeekHarnessPanel /><LocalRuntimePanel /></details></section>;
       case "overview":
       default:
-        return <section id="settings-quick"><SectionIntro eyebrow="Settings · Overview" title="Set up PlotPickle from one workspace." detail="See what is ready, what is missing and exactly where to configure or test it. Status comes from the existing runtime/provider authorities rather than a second Settings database." /><SettingsReadinessOverview onOpen={(section) => navigateSection(normalizeSection(section))} /></section>;
+        return (
+          <section id="settings-quick">
+            <SectionIntro eyebrow="Settings · Quick Setup" title="Set up Sage and PLAN." detail="Start with the four beginner steps, then use live readiness below to see what still needs configuration or testing." />
+            <section className={styles.quickGuide} aria-labelledby="settings-quick-steps">
+              <h2 id="settings-quick-steps">Quick Setup</h2>
+              <ol>
+                <li><strong>Step 1:</strong> Choose how you want PlotPickle to talk to local AI.</li>
+                <li><strong>Step 2:</strong> Pick the model PlotPickle found.</li>
+                <li><strong>Step 3:</strong> Test Sage.</li>
+                <li><strong>Step 4:</strong> Test PLAN.</li>
+              </ol>
+              <div className={styles.quickLinks}>
+                <a href="/?workspace=learn">Return to LEARN</a>
+                <a href="/?workspace=plan">Return to PLAN</a>
+                <button type="button" onClick={() => navigateSection("models")}>Configure Sage & PLAN</button>
+              </div>
+            </section>
+            <SettingsReadinessOverview onOpen={(section) => navigateSection(normalizeSection(section))} />
+          </section>
+        );
     }
   }
 

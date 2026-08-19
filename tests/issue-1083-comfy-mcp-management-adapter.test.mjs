@@ -92,3 +92,32 @@ test("#1083 does not give creative agents custom-node install, partner-credit or
   }
   assert.match(diagnostics, /PlotPickle still owns provider choice, consent and generation routing/);
 });
+
+test("#1083 phase B surfaces plain-language ComfyUI management and hardware readiness in Settings", async () => {
+  const [card, settings] = await Promise.all([
+    source("app/comfyui-readiness-card.tsx"),
+    source("app/sage-settings-workspace.tsx"),
+  ]);
+  assert.match(settings, /import ComfyUiReadinessCard from "\.\/comfyui-readiness-card"/);
+  assert.match(settings, /<ComfyUiReadinessCard \/>/);
+  assert.ok(settings.indexOf("<ComfyUiReadinessCard />") < settings.indexOf("<MediaRoutingPanel onManage={openSettingsTarget} />"));
+  assert.match(card, /Ready for local images/);
+  assert.match(card, /Running · setup needed/);
+  assert.match(card, /Installed · not running/);
+  assert.match(card, /Management setup incomplete/);
+  assert.match(card, /Comfy MCP ready/);
+  assert.match(card, /Direct ComfyUI support/);
+  assert.match(card, /GPU/);
+  assert.match(card, /VRAM/);
+  assert.match(card, /Checkpoints/);
+  assert.match(card, /Image nodes/);
+  assert.match(card, /PlotPickle never switches to a paid provider automatically/);
+});
+
+test("#1083 phase B reads only the existing local routing and diagnostic APIs", async () => {
+  const card = await source("app/comfyui-readiness-card.tsx");
+  assert.match(card, /\/api\/media-routing\/status/);
+  assert.match(card, /\/api\/provider-diagnostics\/comfyui/);
+  assert.doesNotMatch(card, /\/api\/local-ai\/generate\/image/);
+  assert.doesNotMatch(card, /install_node|download_model|run_workflow|partner_generate|auth_login/);
+});

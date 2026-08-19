@@ -80,8 +80,8 @@ test("#1030D Avery can inspect actual wireframe controls and provenance when BUI
   assert.match(worldBuild, /Foundations \+ World/);
   assert.match(worldBuild, /retainedFoundationFrames/);
   assert.match(worldBuild, /parentArtifactId/);
-  assert.match(worldBuild, />Accept<|>Unaccept</);
-  assert.match(worldBuild, />Regenerate/);
+  assert.match(worldBuild, />Accept change<|>Unaccept</);
+  assert.match(worldBuild, />Regenerate change</);
   assert.match(worldBuild, />Reject</);
   assert.match(worldBuild, /locked/i);
 });

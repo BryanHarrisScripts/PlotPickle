@@ -31,9 +31,11 @@ echo ============================================================
 echo   PlotPickle - Full Verification
 echo ============================================================
 echo.
+echo STANDALONE: You do not need to run Start-PlotPickle.bat first.
+echo Full Verification starts and owns the local app server when browser checks need it.
+echo.
 echo This checks architecture, curriculum, the production build, local AI/Pi,
 echo BUZZ, visual UI/UX UAT, and the Writer-in-Residence journey in one pass.
-echo PlotPickle will be started automatically when the browser checks need it.
 echo Deterministic checks own PASS/FAIL. Agent review is advisory and is saved separately.
 echo A deterministic watchdog stops a silent verification harness instead of letting this window hang forever.
 echo.

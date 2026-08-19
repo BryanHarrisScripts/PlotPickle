@@ -5,8 +5,8 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const marketing = readFileSync(resolve(root, "modules/marketing/marquee-director.ts"), "utf8");
-const overlay = readFileSync(resolve(root, "modules/marketing/marquee-agent-overlay.tsx"), "utf8");
+const marketing = readFileSync(resolve(root, "modules/learn/model/marquee-director.ts"), "utf8");
+const overlay = readFileSync(resolve(root, "modules/learn/ui/marquee-agent-overlay.tsx"), "utf8");
 const marketingContract = readFileSync(resolve(root, "core/contracts/build-progress.ts"), "utf8");
 const page = readFileSync(resolve(root, "app/page.tsx"), "utf8");
 const communityRoster = readFileSync(resolve(root, "app/community-agent-roster.tsx"), "utf8");

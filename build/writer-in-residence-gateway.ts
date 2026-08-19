@@ -1,7 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import { readdir, readFile, stat } from "node:fs/promises";
-import type { IncomingMessage, ServerResponse } from "node:http";
+import type { ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 
 const SESSIONS_API = "/api/writer-in-residence/sessions";
@@ -15,29 +15,12 @@ function sessionRoot() {
   return path.join(localRoot, "PlotPickle", "writer-in-residence");
 }
 
-function isLoopback(value: string | undefined) {
-  return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
-}
-
-function isLocalRequest(request: IncomingMessage) {
-  if (!isLoopback(request.socket.remoteAddress)) return false;
-  const host = request.headers.host;
-  if (!host) return false;
-  try {
-    const hostUrl = new URL(`http://${host}`);
-    if (!["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname)) return false;
-    const origin = request.headers.origin;
-    return !origin || new URL(origin).host === hostUrl.host;
-  } catch {
-    return false;
-  }
-}
-
-function sendJson(response: ServerResponse, statusCode: number, body: Record<string, unknown>) {
-  response.statusCode = statusCode;
-  response.setHeader("Content-Type", "application/json; charset=utf-8");
-  response.setHeader("Cache-Control", "no-store");
-  response.setHeader("X-Content-Type-Options", "nosniff");
+function sessionJson(response: ServerResponse, statusCode: number, body: Record<string, unknown>, cacheControl = "no-store") {
+  response.writeHead(statusCode, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": cacheControl,
+    "X-Content-Type-Options": "nosniff",
+  });
   response.end(JSON.stringify(body));
 }
 
@@ -52,8 +35,9 @@ async function walkFiles(root: string, relative = "", depth = 0): Promise<string
   let entries;
   try {
     entries = await readdir(directory, { withFileTypes: true });
-  } catch {
-    return [];
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw error;
   }
   const files: string[] = [];
   for (const entry of entries) {
@@ -115,22 +99,25 @@ function reportSummary(sessionId: string, report: Record<string, any>, files: st
 async function readSession(sessionId: string) {
   const directory = safeSessionDirectory(sessionId);
   if (!directory) return null;
+  let raw: string;
   try {
-    const raw = await readFile(path.join(directory, "writer-in-residence-report.json"), "utf8");
-    const report = JSON.parse(raw) as Record<string, any>;
-    const files = await walkFiles(directory);
-    return { summary: reportSummary(sessionId, report, files), report };
-  } catch {
-    return null;
+    raw = await readFile(path.join(directory, "writer-in-residence-report.json"), "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw error;
   }
+  const report = JSON.parse(raw) as Record<string, any>;
+  const files = await walkFiles(directory);
+  return { summary: reportSummary(sessionId, report, files), report };
 }
 
 async function listSessions() {
   let entries;
   try {
     entries = await readdir(sessionRoot(), { withFileTypes: true });
-  } catch {
-    return [];
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw error;
   }
   const sessionIds = entries
     .filter((entry) => entry.isDirectory() && SESSION_ID.test(entry.name))
@@ -155,25 +142,30 @@ function contentType(filePath: string) {
 
 async function sendAsset(response: ServerResponse, sessionId: string, relativePath: string) {
   const directory = safeSessionDirectory(sessionId);
-  if (!directory) return sendJson(response, 400, { message: "Invalid Avery session." });
+  if (!directory) return sessionJson(response, 400, { message: "Invalid Avery session." });
   const normalizedRelative = relativePath.replaceAll("/", path.sep);
   const absolute = path.resolve(directory, normalizedRelative);
   const directoryPrefix = `${path.resolve(directory)}${path.sep}`;
-  if (!absolute.startsWith(directoryPrefix)) return sendJson(response, 403, { message: "Session asset path is not allowed." });
+  if (!absolute.startsWith(directoryPrefix)) return sessionJson(response, 403, { message: "Session asset path is not allowed." });
   const extension = path.extname(absolute).toLowerCase();
-  if (!IMAGE_EXTENSIONS.has(extension) && !VIDEO_EXTENSIONS.has(extension)) return sendJson(response, 415, { message: "Unsupported session asset type." });
+  if (!IMAGE_EXTENSIONS.has(extension) && !VIDEO_EXTENSIONS.has(extension)) return sessionJson(response, 415, { message: "Unsupported session asset type." });
+
+  let metadata;
   try {
-    const metadata = await stat(absolute);
-    if (!metadata.isFile()) throw new Error("Not a file");
-    const bytes = await readFile(absolute);
-    response.statusCode = 200;
-    response.setHeader("Content-Type", contentType(absolute));
-    response.setHeader("Cache-Control", "private, max-age=60");
-    response.setHeader("X-Content-Type-Options", "nosniff");
-    response.end(bytes);
-  } catch {
-    return sendJson(response, 404, { message: "Session asset was not found." });
+    metadata = await stat(absolute);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return sessionJson(response, 404, { message: "Session asset was not found." });
+    throw error;
   }
+  if (!metadata.isFile()) return sessionJson(response, 404, { message: "Session asset was not found." });
+
+  const bytes = await readFile(absolute);
+  response.writeHead(200, {
+    "Content-Type": contentType(absolute),
+    "Cache-Control": "private, max-age=60",
+    "X-Content-Type-Options": "nosniff",
+  });
+  response.end(bytes);
 }
 
 export function writerInResidenceGateway(): Plugin {
@@ -183,8 +175,18 @@ export function writerInResidenceGateway(): Plugin {
       server.middlewares.use(async (request, response, next) => {
         const url = new URL(request.url || "/", "http://127.0.0.1");
         if (url.pathname !== SESSIONS_API && url.pathname !== ASSET_API) return next();
-        if (request.method !== "GET") return sendJson(response, 405, { message: "Method not allowed." });
-        if (!isLocalRequest(request)) return sendJson(response, 403, { message: "Avery session review is restricted to this computer." });
+        if (request.method !== "GET") return sessionJson(response, 405, { message: "Method not allowed." });
+
+        const remoteAddress = request.socket.remoteAddress;
+        const host = request.headers.host || "";
+        const hostText = `http://${host}`;
+        const hostUrl = host && URL.canParse(hostText) ? new URL(hostText) : null;
+        const origin = request.headers.origin || "";
+        const originUrl = origin && URL.canParse(origin) ? new URL(origin) : null;
+        const localRequest = ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(remoteAddress || "")
+          && Boolean(hostUrl && ["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname))
+          && (!origin || Boolean(originUrl && hostUrl && originUrl.host === hostUrl.host));
+        if (!localRequest) return sessionJson(response, 403, { message: "Avery session review is restricted to this computer." });
 
         if (url.pathname === ASSET_API) {
           return sendAsset(response, url.searchParams.get("session") || "", url.searchParams.get("path") || "");
@@ -194,10 +196,10 @@ export function writerInResidenceGateway(): Plugin {
         if (sessionId) {
           const session = await readSession(sessionId);
           return session
-            ? sendJson(response, 200, { session })
-            : sendJson(response, 404, { message: "Avery session was not found." });
+            ? sessionJson(response, 200, { session })
+            : sessionJson(response, 404, { message: "Avery session was not found." });
         }
-        return sendJson(response, 200, { sessions: await listSessions() });
+        return sessionJson(response, 200, { sessions: await listSessions() });
       });
     },
   };

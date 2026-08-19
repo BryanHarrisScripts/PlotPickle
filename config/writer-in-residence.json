@@ -22,6 +22,37 @@
     "format": "Feature screenplay",
     "creativeGoal": "Develop enough of the idea to understand the protagonist, dramatic problem, theme direction, and a usable story foundation without letting AI silently decide canon."
   },
+  "currentFrontier": {
+    "id": "build",
+    "label": "BUILD",
+    "completionScreenId": "world-build",
+    "reviewScreenIds": [
+      "learn",
+      "plan",
+      "foundations-build",
+      "world-learn",
+      "world-plan",
+      "world-build"
+    ],
+    "futureAreasExcluded": [
+      "character",
+      "theme",
+      "structure",
+      "visual-storytelling",
+      "drafting",
+      "dialogue",
+      "revision",
+      "feedback",
+      "refine"
+    ],
+    "rule": "Avery stops after the current accepted World BUILD frontier. Extend this one capability list when a later user-facing stage is officially ready."
+  },
+  "sessionReview": {
+    "dashboardSlots": 4,
+    "emptyArtwork": "/brand/plotpickle-ouroboros-v2.png",
+    "syntheticOwner": "Avery North",
+    "readOnly": true
+  },
   "journeyGoals": [
     "Orient yourself without prior PlotPickle knowledge.",
     "Use the Dashboard to understand the current Visual Writer group, workspace, frontier, artifact state, and next action.",

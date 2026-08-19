@@ -12,7 +12,7 @@ import theme from "../../learn/theme.json";
 import visualStorytelling from "../../learn/visual-storytelling.json";
 import world from "../../learn/world.json";
 import type { CurriculumLesson } from "../../core/contracts/curriculum";
-import { compareVisualWriterCurriculumOrder } from "../../core/contracts/visual-writer-progression";
+import { compareVisualWriterCurriculumOrder } from "../../core/contracts/visual-writer-progression/index";
 import { FOUNDATION_SOURCE_COVERAGE } from "./foundation-content-coverage";
 import { buildDeepFoundationCurriculum } from "./foundation-deep-learning";
 import { FOUNDATION_PROMOTED_SOURCE_IDS } from "./foundation-reference-lessons";

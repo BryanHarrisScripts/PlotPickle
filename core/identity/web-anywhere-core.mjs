@@ -90,7 +90,8 @@ function allowedFields(input, allowlist, label) {
 }
 
 function stableId(value, label) {
-  const text = String(value || "").trim();
+  const raw = value ?? "";
+  const text = String(raw).trim();
   if (!ID_PATTERN.test(text)) throw new Error(`${label} must be a stable 2-128 character identifier.`);
   return text;
 }

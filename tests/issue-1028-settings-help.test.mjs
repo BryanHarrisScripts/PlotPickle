@@ -55,7 +55,7 @@ test("#1028 cards use Agent Profiles for identity/authority and provide accessib
   assert.match(directory, /profile\.title/);
   assert.match(directory, /profile\.responsibility/);
   assert.match(directory, /profile\.verificationContract/);
-  assert.match(directory, /alt={`Illustrated portrait of \$\{profile\.displayName\}, \$\{profile\.title\}\.}`}/);
+  assert.ok(directory.includes('alt={`Illustrated portrait of ${profile.displayName}, ${profile.title}.`}'));
   assert.match(directory, /What they cannot do/);
   assert.match(directory, /Who can help me with this\?/);
 });

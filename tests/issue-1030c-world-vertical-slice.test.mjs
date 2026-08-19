@@ -5,7 +5,7 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#1030C derives World PLAN from the real World curriculum", async () => {
-  const contract = await read("core/contracts/world-plan.ts");
+  const contract = await read("core/contracts/world-plan/index.ts");
   assert.match(contract, /lesson\.topic === "world"/);
   assert.match(contract, /applicationPrompts\(lesson\)/);
   assert.match(contract, /worldDecisionKey/);

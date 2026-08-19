@@ -156,10 +156,6 @@ export default function SageSettingsWorkspace() {
     navigateSection(normalizeSection(target));
   }
 
-  function returnToRouting(target: string) {
-    openSettingsTarget(target);
-  }
-
   function renderSection() {
     switch (activeSection) {
       case "help":
@@ -169,7 +165,7 @@ export default function SageSettingsWorkspace() {
       case "routing":
         return <section id="settings-routing"><SectionIntro eyebrow="Settings · AI Routing" title="Choose one explicit route for each AI job." detail="One active choice per job. Local stays local unless you deliberately select and authorize a provider route. There is no silent paid fallback." /><AiRoutingPanel /></section>;
       case "media":
-        return <section id="settings-comfyui"><SectionIntro eyebrow="Settings · Images & Video" title="Configure and test image and video routes." detail="Process-running and capability-ready remain separate. ComfyUI must prove its nodes, checkpoint and workflow readiness before PlotPickle calls it ready." /><MediaRoutingPanel onManage={returnToRouting} /></section>;
+        return <section id="settings-comfyui"><SectionIntro eyebrow="Settings · Images & Video" title="Configure and test image and video routes." detail="Process-running and capability-ready remain separate. ComfyUI must prove its nodes, checkpoint and workflow readiness before PlotPickle calls it ready." /><MediaRoutingPanel onManage={openSettingsTarget} /></section>;
       case "ollama":
         return <section id="settings-ollama"><SectionIntro eyebrow="Settings · Provider" title="Configure and test Ollama." detail="Ollama is optional and no longer defines the local architecture. It remains one OpenAI-compatible local runtime option behind PlotPickle's hardware-aware local AI boundary." /><WritingAssistantConsole onManage={() => openSettingsTarget("ollama")} focusProvider="ollama" /></section>;
       case "openai":

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import AgentPortrait from "../components/agent-portrait";
 import { FOUNDATION_PROJECT_STORAGE_KEY } from "../core/contracts/foundation-plan";
 import { normalizeFoundationProject } from "../core/project/project";
 import {
@@ -231,7 +232,7 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
             <article className={styles.card} key={agent.id} data-state={agent.state}>
               <header>
                 <div className={styles.identity}>
-                  <span className={styles.avatar} aria-label={`${agent.displayName} profile picture`}>{agent.avatarInitials}</span>
+                  <AgentPortrait id={agent.id} alt={`${agent.displayName} profile picture`} size={46} />
                   <div>
                     <strong>{agent.displayName}</strong>
                     <span>{agent.title}</span>

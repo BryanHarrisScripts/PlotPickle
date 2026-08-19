@@ -31,21 +31,22 @@ test("#1028 helper directory mirrors every host-owned Agent Profile exactly once
   for (const helper of helperDirectory.helpers) {
     assert.deepEqual(
       Object.keys(helper).sort(),
-      ["group", "how", "id", "portrait"],
-      `presentation entry ${helper.id} must not duplicate name/title/responsibility/authority fields`,
+      ["group", "how", "id"],
+      `presentation entry ${helper.id} must not duplicate identity, portrait, responsibility or authority fields`,
     );
   }
 });
 
-test("#1028 every helper has a local portrait asset and Sage keeps the established current portrait mapping", async () => {
-  const sage = helperDirectory.helpers.find((helper) => helper.id === "sage-brinewick");
-  assert.equal(sage?.portrait, "/assets/helpers/lore/sage-brinewick.svg");
+test("#1028 every helper resolves through the shared local portrait component and Sage keeps the approved source", async () => {
+  const component = await source("components/agent-portrait.tsx");
+  assert.equal(helperDirectory.portraitSystem, "painterly-fantasy-v1");
 
   for (const helper of helperDirectory.helpers) {
-    assert.match(helper.portrait, /^\/(?!\/)/, `${helper.id} portrait must be local`);
-    assert.doesNotMatch(helper.portrait, /^https?:/i);
-    await access(path.join(repoRoot, "public", helper.portrait.slice(1)));
+    assert.match(component, new RegExp(`id: ["']${helper.id}["']`), `${helper.id} is missing from the shared portrait component`);
   }
+  assert.match(component, /id: "sage-brinewick"[\s\S]*source: "\/assets\/curriculum-guide-master-storyteller\.png"/);
+  await access(path.join(repoRoot, "public", "assets", "curriculum-guide-master-storyteller.png"));
+  assert.doesNotMatch(component, /\/assets\/helpers\/16bit\//i);
 });
 
 test("#1028 cards use Agent Profiles for identity/authority and provide accessible illustrated portraits", async () => {
@@ -55,7 +56,8 @@ test("#1028 cards use Agent Profiles for identity/authority and provide accessib
   assert.match(directory, /profile\.title/);
   assert.match(directory, /profile\.responsibility/);
   assert.match(directory, /profile\.verificationContract/);
-  assert.ok(directory.includes('alt={`Illustrated portrait of ${profile.displayName}, ${profile.title}.`}'));
+  assert.match(directory, /<AgentPortrait/);
+  assert.ok(directory.includes('alt={`Illustrated fantasy portrait of ${profile.displayName}, ${profile.title}.`}'));
   assert.match(directory, /What they cannot do/);
   assert.match(directory, /Who can help me with this\?/);
 });

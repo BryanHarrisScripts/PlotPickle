@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import AgentPortrait from "../../../components/agent-portrait";
 import { currentMarketingReference } from "../../../core/contracts/build-progress";
 import type { CurriculumLesson } from "../../../core/contracts/curriculum";
 import { applyStoryCommand } from "../../../core/project/apply-command";
@@ -48,9 +49,6 @@ type ChatResponse = {
   readonly provider?: string;
   readonly message?: string;
 };
-
-const SAGE_PORTRAIT = "/assets/curriculum-guide-master-storyteller.png";
-const MARQUEE_PORTRAIT = "/assets/marquee-director-portrait.svg";
 
 function id(prefix: string) {
   return globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -232,7 +230,8 @@ export default function MarqueeAgentOverlay({ curriculum }: { readonly curriculu
           title="Talk with Sage Brinewick"
           type="button"
         >
-          <img alt="" aria-hidden="true" src={SAGE_PORTRAIT} />Sage</button>
+          <AgentPortrait id="sage-brinewick" alt="" size={48} />Sage
+        </button>
         <button
           aria-label={unlocked ? "Marquee · Marketing Director" : "Marquee · locked until Foundations is complete"}
           aria-pressed={activeAgent === "marquee"}
@@ -243,13 +242,14 @@ export default function MarqueeAgentOverlay({ curriculum }: { readonly curriculu
           title={unlocked ? "Talk with The Marquee Director" : "Complete Foundations to unlock"}
           type="button"
         >
-          <img alt="" aria-hidden="true" src={MARQUEE_PORTRAIT} />Marquee{unlocked ? "" : " · locked"}</button>
+          <AgentPortrait id="marquee-director" alt="" locked={!unlocked} size={48} />Marquee{unlocked ? "" : " · locked"}
+        </button>
       </div>
 
       {activeAgent === "marquee" ? (
         <section className={styles.panel} aria-label="The Marquee Director private project agent">
           <header className={styles.identity}>
-            <img alt="The Marquee Director" src={MARQUEE_PORTRAIT} />
+            <AgentPortrait id="marquee-director" alt="The Marquee Director" size={68} />
             <div>
               <h2>The Marquee Director</h2>
               <p>Private Key Art & Trailer Director · unlocked by completed Foundations.</p>

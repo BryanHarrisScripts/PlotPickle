@@ -22,7 +22,7 @@ test("#1080 unlocks Marquee only from canonical completed Foundations progressio
 
 test("#1080 keeps Marquee beside Sage in LEARN and out of the Community BBS UI", () => {
   assert.match(overlay, /Creative Room agent selector/);
-  assert.match(overlay, />Sage<\/button>/);
+  assert.match(overlay, /<AgentPortrait id="sage-brinewick"[^>]*\/>Sage\s*<\/button>/);
   assert.match(overlay, /Marquee\{unlocked \? "" : " · locked"\}/);
   assert.match(overlay, /aria-label="The Marquee Director private project agent"/);
   assert.doesNotMatch(overlay, /\/api\/local-buzz/);

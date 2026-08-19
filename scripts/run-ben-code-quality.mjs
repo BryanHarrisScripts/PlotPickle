@@ -44,13 +44,42 @@ function slopScanArgs(...args) {
   return ["--yes", `${policy.slopScan.package}@${policy.slopScan.version}`, ...args];
 }
 
-function changedPathsSince(baseRef) {
-  const diff = run("git", ["diff", "--name-only", `${baseRef}...HEAD`]);
+function changedEntriesSince(baseRef) {
+  const diff = run("git", ["diff", "--name-status", "-M", `${baseRef}...HEAD`]);
   requireSuccess(diff, `git changed paths from ${baseRef}`);
   return String(diff.stdout || "")
     .split(/\r?\n/)
-    .map((entry) => entry.trim().replaceAll("\\", "/"))
-    .filter(Boolean);
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) => {
+      const columns = entry.split("\t");
+      const status = columns[0] || "";
+      const sourcePath = (columns.length > 2 ? columns[1] : "").replaceAll("\\", "/");
+      const targetPath = (columns.length > 2 ? columns[2] : columns[1] || "").replaceAll("\\", "/");
+      return { status, sourcePath, targetPath };
+    });
+}
+
+function changedPathsFromEntries(entries) {
+  return [...new Set(entries.flatMap((entry) => [entry.sourcePath, entry.targetPath]).filter(Boolean))];
+}
+
+function pathWithinDirectory(filePath, directoryPath) {
+  const normalizedFile = String(filePath || "").replaceAll("\\", "/").replace(/^\.\//, "");
+  const normalizedDirectory = String(directoryPath || "").replaceAll("\\", "/").replace(/^\.\//, "").replace(/\/$/, "");
+  return normalizedFile === normalizedDirectory || normalizedFile.startsWith(`${normalizedDirectory}/`);
+}
+
+function directoryGrew(directoryPath, changedEntries) {
+  return changedEntries.some((entry) => {
+    const kind = entry.status.charAt(0);
+    if (kind === "A" || kind === "C") return pathWithinDirectory(entry.targetPath, directoryPath);
+    if (kind === "R") {
+      return pathWithinDirectory(entry.targetPath, directoryPath)
+        && !pathWithinDirectory(entry.sourcePath, directoryPath);
+    }
+    return false;
+  });
 }
 
 function pathIntersectsChange(findingPath, changedPaths) {
@@ -63,14 +92,22 @@ function pathIntersectsChange(findingPath, changedPaths) {
   ));
 }
 
-function relevantDeltaFindings(report, changedPaths) {
+function findingIsCausallyRelevant(change, findingPath, changedEntries, changedPaths) {
+  if (!pathIntersectsChange(findingPath, changedPaths)) return false;
+  if (change?.ruleId === "structure.directory-fanout-hotspot" && change?.scope === "directory") {
+    return directoryGrew(findingPath, changedEntries);
+  }
+  return true;
+}
+
+function relevantDeltaFindings(report, changedEntries, changedPaths) {
   const failOn = new Set(policy.slopScan.failOn);
   const relevant = [];
   for (const pathReport of report?.paths || []) {
     for (const change of pathReport?.changes || []) {
       if (!failOn.has(change?.status)) continue;
       const findingPath = change?.head?.path || change?.path || pathReport?.path || "";
-      if (pathIntersectsChange(findingPath, changedPaths)) relevant.push(change);
+      if (findingIsCausallyRelevant(change, findingPath, changedEntries, changedPaths)) relevant.push(change);
     }
   }
   for (const change of report?.repoChanges || []) {
@@ -132,8 +169,9 @@ async function main() {
 
     const report = parseDeltaReport(delta.stdout);
     await writeScannerEvidence(deltaReport, delta.stdout, "delta");
-    const changedPaths = changedPathsSince(baseRef);
-    const relevantFindings = relevantDeltaFindings(report, changedPaths);
+    const changedEntries = changedEntriesSince(baseRef);
+    const changedPaths = changedPathsFromEntries(changedEntries);
+    const relevantFindings = relevantDeltaFindings(report, changedEntries, changedPaths);
     const scannerFailed = delta.status !== 0 && delta.status !== 1;
     const passed = !scannerFailed && relevantFindings.length === 0;
     await writeFile(resultReport, `${JSON.stringify({
@@ -149,19 +187,19 @@ async function main() {
       scannerExitCode: delta.status,
       authoritative: false,
       evidence: path.relative(repoRoot, deltaReport).replaceAll("\\", "/"),
-      note: "BEN records the full repository delta but blocks only added/worsened findings intersecting PR-touched paths, plus repository-wide findings. It cannot waive tests, Full Verification or repository merge gates.",
+      note: "BEN records the full repository delta but blocks only added/worsened findings causally related to PR changes, plus repository-wide findings. Directory fan-out blocks only when files are actually added or moved into that directory. BEN cannot waive tests, Full Verification or repository merge gates.",
     }, null, 2)}\n`, "utf8");
 
     if (!passed) {
       const detail = [delta.stderr, delta.stdout].filter(Boolean).join("\n").trim();
       const reason = scannerFailed
         ? `scanner failed (exit ${delta.status})`
-        : `${relevantFindings.length} added/worsened finding(s) intersect PR-touched paths`;
+        : `${relevantFindings.length} added/worsened finding(s) causally related to PR changes`;
       throw new Error(`BEN code-quality delta failed: ${reason}.${detail ? `\n${detail}` : ""}`);
     }
 
     if (delta.status === 1) {
-      process.stdout.write(`BEN recorded repository-wide slop changes outside this PR's ${changedPaths.length} touched path(s); they remain in delta evidence but do not block this PR.\n`);
+      process.stdout.write(`BEN recorded repository-wide slop changes outside this PR's causal changes; they remain in delta evidence but do not block this PR.\n`);
     }
     process.stdout.write(`BEN code-quality delta PASS against ${baseRef}.\n`);
   } finally {

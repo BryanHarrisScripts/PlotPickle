@@ -5,15 +5,15 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("#1100 LEARN agent selector uses illustrated non-pixel Sage and Marquee identities", async () => {
-  const [overlay, marqueePortrait] = await Promise.all([
+  const [overlay, portraitUi] = await Promise.all([
     read("modules/learn/ui/marquee-agent-overlay.tsx"),
-    read("public/assets/marquee-director-portrait.svg"),
+    read("components/agent-portrait.tsx"),
   ]);
-  assert.match(overlay, /SAGE_PORTRAIT = "\/assets\/curriculum-guide-master-storyteller\.png"/);
-  assert.match(overlay, /MARQUEE_PORTRAIT = "\/assets\/marquee-director-portrait\.svg"/);
-  assert.doesNotMatch(overlay, /16bit|pixel/i);
-  assert.doesNotMatch(marqueePortrait, /shape-rendering="crispEdges"|8-bit|16-bit|pixel/i);
-  assert.match(marqueePortrait, /copper-gold hair/i);
+  assert.match(overlay, /<AgentPortrait id="sage-brinewick"/);
+  assert.match(overlay, /<AgentPortrait id="marquee-director"/);
+  assert.match(portraitUi, /id: "sage-brinewick"[\s\S]*source: "\/assets\/curriculum-guide-master-storyteller\.png"/);
+  assert.match(portraitUi, /id: "marquee-director"[\s\S]*adult female elf[\s\S]*red-golden copper hair/);
+  assert.doesNotMatch(`${overlay}\n${portraitUi}`, /\/assets\/helpers\/16bit\/|shape-rendering="crispEdges"|8-bit|16-bit|pixelated/i);
 });
 
 test("#1100 keeps Sage first and Marquee visibly present beside Sage before unlock", async () => {
@@ -39,11 +39,14 @@ test("#1100 derives Marquee unlock from canonical Foundations progression and fa
 });
 
 test("#1100 locked portrait is visibly desaturated while unlocked portrait remains selectable", async () => {
-  const css = await read("modules/learn/ui/marquee-agent-overlay.module.css");
-  assert.match(css, /\.agentChoice\[data-locked="true"\] img/);
-  assert.match(css, /grayscale\(1\)/);
-  assert.match(css, /content: "LOCKED"/);
-  assert.match(css, /\.agentChoice:focus-visible/);
+  const [overlay, portraitCss] = await Promise.all([
+    read("modules/learn/ui/marquee-agent-overlay.tsx"),
+    read("components/agent-portrait.module.css"),
+  ]);
+  assert.match(overlay, /<AgentPortrait id="marquee-director" alt="" locked=\{!unlocked\} size=\{48\} \/>/);
+  assert.match(portraitCss, /\.frame\[data-locked="true"\][\s\S]*grayscale\(1\)/);
+  assert.match(await read("modules/learn/ui/marquee-agent-overlay.module.css"), /content: "LOCKED"/);
+  assert.match(await read("modules/learn/ui/marquee-agent-overlay.module.css"), /\.agentChoice:focus-visible/);
 });
 
 test("#1100 preserves the deterministic one-poster PPF Marketing Reference authority", async () => {

@@ -64,7 +64,8 @@ test("#1030D uses the existing Writer-in-Residence UI-only loop and evidence mod
   assert.match(runner, /diary,/);
   assert.match(runner, /finishedReason,/);
   assert.doesNotMatch(runner, /client\.call\("browser_evaluate"/);
-  assert.doesNotMatch(runner, /localStorage|sessionStorage/);
+  assert.match(runner, /Do not invent defects or request source, DOM, localStorage/);
+  assert.doesNotMatch(runner, /localStorage\.(?:getItem|setItem|removeItem)|sessionStorage\.(?:getItem|setItem|removeItem)/);
 });
 
 test("#1030D Avery can inspect actual wireframe controls and provenance when BUILD is available, while locked states stay truthful", async () => {

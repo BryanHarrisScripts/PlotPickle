@@ -72,24 +72,26 @@ function findControl(snapshotText, pattern, roles = null) {
   )) || null;
 }
 
-function averyPlanAnswer(storySeed, fieldLabel, lessonNumber, fieldNumber) {
+function averyPlanAnswer(storySeed, fieldLabel, lessonNumber, fieldNumber, frontier = "Foundations") {
   const premise = String(storySeed?.premise || "Avery's current story").replace(/\s+/g, " ").trim();
-  return `${storySeed?.title || "Avery's story"} · decision ${lessonNumber}.${fieldNumber}. ${fieldLabel} Avery's current working choice grows directly from this premise: ${premise} The answer should keep the protagonist's choices, consequences, uncertainty and audience experience connected rather than inventing unrelated story facts.`;
+  return `${storySeed?.title || "Avery's story"} · ${frontier} decision ${lessonNumber}.${fieldNumber}. ${fieldLabel} Avery's current working choice grows directly from this premise: ${premise} The answer should keep the protagonist's choices, consequences, uncertainty and audience experience connected rather than inventing unrelated story facts.`;
 }
 
-async function completeFoundationsLearn({ client, toolMap, resultText }) {
+async function completeLearnTopic({ client, toolMap, resultText, topic, nextTopics, expectedCount }) {
   let current = await snapshot(client, resultText);
-  for (let guard = 0; guard < 16; guard += 1) {
-    const foundations = topicSnapshot(current, "Foundations", ["World", "Character", "Theme", "Structure"]);
-    const controls = controlsFromSnapshot(foundations);
+  for (let guard = 0; guard < expectedCount + 5; guard += 1) {
+    const section = topicSnapshot(current, topic, nextTopics);
+    const controls = controlsFromSnapshot(section);
     const lessonMarks = controls.filter((control) => control.role === "button" && /^Mark .+ (?:complete|incomplete)$/i.test(control.label));
-    if (lessonMarks.length < 11) throw new Error(`Avery expected 11 visible Foundations completion controls, found ${lessonMarks.length}.`);
+    if (lessonMarks.length < expectedCount) {
+      throw new Error(`Avery expected ${expectedCount} visible ${topic} completion controls, found ${lessonMarks.length}.`);
+    }
     const next = lessonMarks.find((control) => / complete$/i.test(control.label));
     if (!next) return { lessonCount: lessonMarks.length, completed: lessonMarks.length };
     await click(client, toolMap, next);
     current = await snapshot(client, resultText);
   }
-  throw new Error("Avery could not finish the visible Foundations LEARN completion controls within the bounded pass.");
+  throw new Error(`Avery could not finish the visible ${topic} LEARN completion controls within the bounded pass.`);
 }
 
 async function completeFoundationsPlan({ client, toolMap, resultText, storySeed }) {
@@ -136,6 +138,46 @@ async function completeFoundationsPlan({ client, toolMap, resultText, storySeed 
   return { lessonsCompleted, answersWritten };
 }
 
+async function completeWorldPlan({ client, toolMap, resultText, storySeed }) {
+  let lessonsCompleted = 0;
+  let answersWritten = 0;
+  let expectedFieldCount = 0;
+
+  for (let lessonIndex = 0; lessonIndex < 5; lessonIndex += 1) {
+    let current = await snapshot(client, resultText);
+    const lessonButtons = controlsFromSnapshot(current).filter((control) => (
+      control.role === "button" && /^\d{2}\s*·\s*/.test(control.label)
+    ));
+    if (lessonButtons.length < 5) {
+      throw new Error(`Avery expected five visible World PLAN lesson controls, found ${lessonButtons.length}.`);
+    }
+    await click(client, toolMap, lessonButtons[lessonIndex]);
+    current = await snapshot(client, resultText);
+    const answerBoxes = controlsFromSnapshot(current).filter((control) => (
+      control.role === "textbox"
+      && !/world brief|ask|message|search/i.test(control.label)
+    ));
+    if (!answerBoxes.length) {
+      throw new Error(`Avery found no visible World PLAN answer boxes in World lesson ${lessonIndex + 1}.`);
+    }
+    expectedFieldCount += answerBoxes.length;
+    for (const [fieldIndex, field] of answerBoxes.entries()) {
+      await type(client, toolMap, field, averyPlanAnswer(storySeed, field.label, lessonIndex + 1, fieldIndex + 1, "World"));
+      answersWritten += 1;
+    }
+    lessonsCompleted += 1;
+  }
+
+  let current = await snapshot(client, resultText);
+  const buildBrief = findControl(current, /^Build World Brief$/i, ["button"]);
+  if (!buildBrief) throw new Error("Avery could not find Build World Brief after completing World PLAN.");
+  await click(client, toolMap, buildBrief);
+  current = await snapshot(client, resultText);
+  const saveBrief = findControl(current, /^Save World Brief$/i, ["button"]);
+  if (saveBrief) await click(client, toolMap, saveBrief);
+  return { lessonsCompleted, answersWritten, expectedFieldCount };
+}
+
 async function generateAndAcceptFoundationsWireframe({ client, toolMap, resultText }) {
   let current = await snapshot(client, resultText);
   const consent = findControl(current, /^I understand this wireframe/i, ["checkbox"]);
@@ -158,6 +200,34 @@ async function generateAndAcceptFoundationsWireframe({ client, toolMap, resultTe
   if (!completed) throw new Error("Foundations wireframe generation did not reach a reviewable completed state.");
   const accept = findControl(current, /^Accept$/i, ["button"]);
   if (!accept) throw new Error("A generated Foundations frame was visible but no Accept control was available.");
+  await click(client, toolMap, accept);
+  return { generated: true, accepted: true };
+}
+
+async function generateAndAcceptWorldWireframe({ client, toolMap, resultText }) {
+  let current = await snapshot(client, resultText);
+  const consent = findControl(current, /^I understand this can make up to/i, ["checkbox"]);
+  if (consent) await click(client, toolMap, consent);
+  current = await snapshot(client, resultText);
+  const generate = findControl(current, /^(?:Generate|Regenerate) World pass \(\d+\)$/i, ["button"]);
+  if (!generate) throw new Error("World BUILD is not offering a usable World wireframe pass. Check image-route readiness and World PLAN completion.");
+  await click(client, toolMap, generate);
+
+  let completed = false;
+  for (let attempt = 0; attempt < 240; attempt += 1) {
+    await wait(1_500);
+    current = await snapshot(client, resultText);
+    const finished = /(?:Generate|Regenerate) World pass \(\d+\)/i.test(current)
+      && !/Generating World changes/i.test(current);
+    if (finished && /button "Accept change"/i.test(current)) {
+      completed = true;
+      break;
+    }
+    if (/could not continue|returned no usable visual|not ready|manual image mode/i.test(current)) break;
+  }
+  if (!completed) throw new Error("World wireframe generation did not reach a reviewable completed state.");
+  const accept = findControl(current, /^Accept change$/i, ["button"]);
+  if (!accept) throw new Error("World BUILD produced a visible change but no Accept change control was available.");
   await click(client, toolMap, accept);
   return { generated: true, accepted: true };
 }
@@ -202,12 +272,19 @@ export async function runWriterAcceptanceCompletion({
   };
 
   await navigate(client, baseUrl, "/?workspace=learn");
-  const learn = await completeFoundationsLearn({ client, toolMap, resultText });
+  const learn = await completeLearnTopic({
+    client,
+    toolMap,
+    resultText,
+    topic: "Foundations",
+    nextTopics: ["World", "Character", "Theme", "Structure"],
+    expectedCount: 11,
+  });
   record("learn", `${learn.completed} of ${learn.lessonCount} Foundations lessons visibly complete.`);
 
   await navigate(client, baseUrl, "/?workspace=plan&section=foundations");
   const plan = await completeFoundationsPlan({ client, toolMap, resultText, storySeed });
-  record("plan", `${plan.lessonsCompleted} PLAN lessons completed with ${plan.answersWritten} visible writer answers.`);
+  record("plan", `${plan.lessonsCompleted} Foundations PLAN lessons completed with ${plan.answersWritten} visible writer answers.`);
 
   await navigate(client, baseUrl, "/?workspace=build&section=foundations");
   const build = await generateAndAcceptFoundationsWireframe({ client, toolMap, resultText });
@@ -219,9 +296,29 @@ export async function runWriterAcceptanceCompletion({
     ? "Existing PPF Marketing Reference reopened through Marquee."
     : "Marquee created the first poster through the visible UI and the Marketing Reference became visible.");
 
+  await navigate(client, baseUrl, "/?workspace=learn");
+  const worldLearn = await completeLearnTopic({
+    client,
+    toolMap,
+    resultText,
+    topic: "World",
+    nextTopics: ["Character", "Theme", "Structure", "Visual Storytelling"],
+    expectedCount: 5,
+  });
+  record("world-learn", `${worldLearn.completed} of ${worldLearn.lessonCount} World lessons visibly complete.`);
+
+  await navigate(client, baseUrl, "/?workspace=plan&section=world");
+  const worldPlan = await completeWorldPlan({ client, toolMap, resultText, storySeed });
+  record("world-plan", `${worldPlan.lessonsCompleted} World PLAN lessons completed with ${worldPlan.answersWritten} visible writer answers.`);
+
+  await navigate(client, baseUrl, "/?workspace=build&section=world");
+  const worldBuild = await generateAndAcceptWorldWireframe({ client, toolMap, resultText });
+  record("world-build", "World BUILD generated the Foundations + World pass and at least one World-driven change was accepted.");
+
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     completed: true,
+    frontier: "Foundations + World",
     authority: "synthetic-writer-visible-ui-only",
     directStorageMutation: false,
     steps,
@@ -229,5 +326,8 @@ export async function runWriterAcceptanceCompletion({
     plan,
     build,
     marquee,
+    worldLearn,
+    worldPlan,
+    worldBuild,
   };
 }

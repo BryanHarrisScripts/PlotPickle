@@ -103,9 +103,9 @@ function normalizeSection(value: string | null | undefined): SettingsSection {
 function requestedSection() {
   if (typeof window === "undefined") return "overview" as SettingsSection;
   const url = new URL(window.location.href);
+  if (url.hash) return normalizeSection(url.hash.replace(/^#/, ""));
   const querySection = url.searchParams.get(SETTINGS_QUERY_KEY);
   if (querySection) return normalizeSection(querySection);
-  if (url.hash) return normalizeSection(url.hash.replace(/^#/, ""));
   return normalizeSection(window.sessionStorage.getItem(SETTINGS_SECTION_KEY));
 }
 

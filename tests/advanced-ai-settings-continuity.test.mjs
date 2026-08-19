@@ -16,7 +16,7 @@ test("Advanced AI stays inside the three-column Settings workspace", async () =>
   assert.match(settings, /id="settings-routing"/);
   assert.match(settings, /id="settings-comfyui"/);
   assert.match(settings, /<AiRoutingPanel \/>/);
-  assert.match(settings, /<MediaRoutingPanel onManage=\{returnToRouting\} \/>/);
+  assert.match(settings, /<MediaRoutingPanel onManage=\{openSettingsTarget\} \/>/);
   assert.match(settings, /href="#settings-routing"/);
   assert.match(routingPanel, /target\.toLowerCase\(\)\.includes\("comfy"\) \? "settings-comfyui"/);
   assert.match(routingPanel, /localSection\.scrollIntoView/);

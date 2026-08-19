@@ -4,16 +4,12 @@ import { normalizeWriterSnapshot } from "./writer-snapshot-normalizer.mjs";
 
 const nativeFetch = globalThis.fetch.bind(globalThis);
 
-function requestUrl(input) {
-  const value = typeof input === "string" || input instanceof URL ? input : input?.url;
-  return typeof value === "string" || value instanceof URL ? String(value) : "";
-}
-
 function isWriterChat(input) {
-  return /\/api\/writing-assistant\/chat(?:$|\?)/.test(requestUrl(input));
+  const value = typeof input === "string" || input instanceof URL ? String(input) : String(input?.url || "");
+  return /\/api\/writing-assistant\/chat(?:$|\?)/.test(value);
 }
 
-function responseBody(response) {
+async function responseBody(response) {
   return response.clone().json().then(
     (body) => body,
     () => null,
@@ -27,6 +23,9 @@ function usefulWriterText(body) {
 function retryableEmptyReply(response, body) {
   if (response.ok && !usefulWriterText(body)) return true;
   const message = String(body?.message || body?.error || "");
+  // The local Writing Assistant gateway intentionally normalizes thrown chat
+  // failures to HTTP 400. Retry the known empty-output condition by message,
+  // not by HTTP status class, so the real Windows recovery path can run.
   return !response.ok && /provider returned no text|selected text provider returned no text|no usable text|empty (?:reply|response)/i.test(message);
 }
 
@@ -56,6 +55,11 @@ function mirrorAveryTurn(role, attempt) {
   });
 }
 
+// The Writer-in-Residence is intentionally local-only. Real Windows runs showed
+// intermittent empty local replies even while Sage/PLAN health was good. Retry the
+// same request across the two local roles with a small hard cap. Each retry owns a
+// fresh timeout signal; an aborted Quality attempt must not poison the next Fast
+// attempt. This never selects a cloud provider or changes persisted Settings.
 globalThis.fetch = async function plotPickleWriterFetch(input, init = {}) {
   if (!isWriterChat(input) || typeof init?.body !== "string") return nativeFetch(input, init);
 
@@ -97,8 +101,10 @@ globalThis.fetch = async function plotPickleWriterFetch(input, init = {}) {
 
 const nativeCall = McpClient.prototype.call;
 
-// Normalize only visible accessibility snapshot labels. Avery still operates on
-// rendered UI rather than hidden DOM/state; this wrapper exposes no storage data.
+// Playwright can serialize native disclosures and expanded curriculum topic
+// buttons with accessible names that include extra state/count text. Normalize
+// only those visible labels so the Writer's deliberately narrow parser continues
+// to operate on rendered UI rather than hidden DOM/state.
 McpClient.prototype.call = async function plotPickleWriterMcpCall(name, args = {}) {
   const result = await nativeCall.call(this, name, args);
   if (name !== "browser_snapshot" || !Array.isArray(result?.content)) return result;

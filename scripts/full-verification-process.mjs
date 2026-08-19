@@ -1,6 +1,14 @@
 import { spawn } from "node:child_process";
 import process from "node:process";
 
+function windowsShellCommandToken(value) {
+  const text = String(value);
+  if (!/^[A-Za-z0-9_.-]+$/u.test(text)) {
+    throw new Error(`Windows verification command contains unsupported characters: ${text}`);
+  }
+  return text;
+}
+
 function quoteWindowsShellArg(value) {
   const text = String(value);
   if (/[\r\n\0"]/u.test(text)) {
@@ -76,7 +84,7 @@ async function stopTaskkillProcess(killer, pid, stderr) {
 }
 
 export function windowsVerificationCommand(command, args = []) {
-  return [command, ...args].map(quoteWindowsShellArg).join(" ");
+  return [windowsShellCommandToken(command), ...args.map(quoteWindowsShellArg)].join(" ");
 }
 
 export function verificationCommandFor(node, options = {}) {

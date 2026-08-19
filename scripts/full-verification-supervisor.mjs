@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
+import { mkdirSync, realpathSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const modulePath = fileURLToPath(import.meta.url);
+const repoRoot = path.resolve(path.dirname(modulePath), "..");
 
 export const FULL_VERIFICATION_RUNNER_LIVENESS_TIMEOUT_MS = 45_000;
 export const FULL_VERIFICATION_RUNNER_OVERALL_TIMEOUT_MS = 4 * 60 * 60_000;
@@ -14,6 +16,30 @@ export const FULL_VERIFICATION_SUPERVISOR_POLL_MS = 1_000;
 function commandLineValue(name) {
   const index = process.argv.indexOf(name);
   return index >= 0 && index + 1 < process.argv.length ? process.argv[index + 1] : "";
+}
+
+export function canonicalEntrypointPath(value, platform = process.platform) {
+  if (!value) return "";
+  let resolved = path.resolve(String(value));
+  try {
+    resolved = typeof realpathSync.native === "function" ? realpathSync.native(resolved) : realpathSync(resolved);
+  } catch {
+    // The direct-entry comparison still has a deterministic lexical fallback if realpath is unavailable.
+  }
+  return platform === "win32" ? resolved.toLowerCase() : resolved;
+}
+
+export function isDirectExecution(argv1 = process.argv[1], filePath = modulePath, platform = process.platform) {
+  const invoked = canonicalEntrypointPath(argv1, platform);
+  const current = canonicalEntrypointPath(filePath, platform);
+  return Boolean(invoked && current && invoked === current);
+}
+
+export function writeStartupHandshake(handshakeFile) {
+  if (!handshakeFile) return;
+  const resolved = path.resolve(handshakeFile);
+  mkdirSync(path.dirname(resolved), { recursive: true });
+  writeFileSync(resolved, `${JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() })}\n`, "utf8");
 }
 
 function cleanDetail(value, limit = 900) {
@@ -199,12 +225,14 @@ async function main() {
   const resultFile = commandLineValue("--result-file");
   if (!resultFile) throw new Error("--result-file is required.");
   const startupWaitSeconds = commandLineValue("--startup-wait-seconds") || "240";
+  const handshakeFile = commandLineValue("--handshake-file");
   const runner = path.join(repoRoot, "scripts", "full-verification-progress-runner.mjs");
   const runnerArgs = [runner, "--result-file", resultFile, "--startup-wait-seconds", startupWaitSeconds];
 
   process.stdout.write(
     `Full Verification watchdog ........ START  independent liveness guard ${FULL_VERIFICATION_RUNNER_LIVENESS_TIMEOUT_MS / 1000}s; overall guard ${Math.round(FULL_VERIFICATION_RUNNER_OVERALL_TIMEOUT_MS / 60_000)}m\n`,
   );
+  writeStartupHandshake(handshakeFile);
 
   const result = await superviseProcess({ command: process.execPath, args: runnerArgs });
   if (result.reason === "runner-exit") {
@@ -215,7 +243,7 @@ async function main() {
   process.exitCode = result.exitCode;
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isDirectExecution()) {
   main().catch((error) => {
     console.error(cleanDetail(error instanceof Error ? error.stack || error.message : String(error), 1400));
     process.exitCode = 126;

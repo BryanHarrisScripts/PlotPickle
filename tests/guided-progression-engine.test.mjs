@@ -20,10 +20,15 @@ const GROUP_ORDER = [
 ];
 
 test("guided progression defines the canonical Visual Writer twelve-group order once", async () => {
-  const source = await read("modules/dashboard/guided-progression.ts");
-  assert.match(source, /export const VISUAL_WRITER_GROUP_ORDER/);
+  const [source, contract] = await Promise.all([
+    read("modules/dashboard/guided-progression.ts"),
+    read("core/contracts/visual-writer-progression/index.ts"),
+  ]);
+  assert.match(source, /from "\.\.\/\.\.\/core\/contracts\/visual-writer-progression"/);
+  assert.doesNotMatch(source, /export const VISUAL_WRITER_GROUP_ORDER/);
   assert.match(source, /GUIDED_CURRICULUM_GROUPS[\s\S]*VISUAL_WRITER_GROUP_ORDER\.map/);
-  const orderBlock = source.slice(source.indexOf("export const VISUAL_WRITER_GROUP_ORDER"), source.indexOf("] as const;") + 11);
+  assert.match(contract, /export const VISUAL_WRITER_GROUP_ORDER/);
+  const orderBlock = contract.slice(contract.indexOf("export const VISUAL_WRITER_GROUP_ORDER"), contract.indexOf("] as const;") + 11);
   let cursor = -1;
   for (const groupId of GROUP_ORDER) {
     const next = orderBlock.indexOf(`"${groupId}"`);

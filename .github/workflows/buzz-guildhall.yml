@@ -65,6 +65,7 @@ on:
       - "tests/buzz-live-roundtrip.test.mjs"
       - "tests/buzz-story-room-access-agents.test.mjs"
       - "tests/issue-1065-bbs-moderator.test.mjs"
+      - "tests/issue-1081-merrin-room-aware-moderation.test.mjs"
       - "tests/live-buzz-guildhall-activity.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
   push:
@@ -132,6 +133,7 @@ on:
       - "tests/buzz-live-roundtrip.test.mjs"
       - "tests/buzz-story-room-access-agents.test.mjs"
       - "tests/issue-1065-bbs-moderator.test.mjs"
+      - "tests/issue-1081-merrin-room-aware-moderation.test.mjs"
       - "tests/live-buzz-guildhall-activity.test.mjs"
       - ".github/workflows/buzz-guildhall.yml"
 
@@ -163,4 +165,4 @@ jobs:
       - name: Validate Buzz release and updater policy
         run: node --test tests/issue-512-buzz-version-maintenance.test.mjs tests/issue-620-buzz-startup-updater.test.mjs
       - name: Validate Guildhall, Community, Moderator, Story Room, README, and live BUZZ contracts
-        run: node --test tests/core-readme-direction.test.mjs tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs tests/issue-1065-bbs-moderator.test.mjs tests/live-buzz-guildhall-activity.test.mjs
+        run: node --test tests/core-readme-direction.test.mjs tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs tests/issue-1065-bbs-moderator.test.mjs tests/issue-1081-merrin-room-aware-moderation.test.mjs tests/live-buzz-guildhall-activity.test.mjs

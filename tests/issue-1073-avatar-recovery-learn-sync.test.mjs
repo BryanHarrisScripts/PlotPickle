@@ -62,6 +62,26 @@ test("one account claims one canonical Avatar and a second Node adopts it withou
   assert.notEqual(second.account.nodes.pp_studio_NODEA123.publicKeyPem, second.account.nodes.pp_studio_NODEB456.publicKeyPem);
 });
 
+test("Node authorization keeps one stable independent signing key per Node", () => {
+  let account = createAccountSyncState("person_bryan");
+  account = authorizeNode(account, { nodeId: "node-a", publicKeyPem: PUBLIC_KEY_A, authorizedAt: "2026-08-19T12:00:00.000Z" });
+  const idempotent = authorizeNode(account, { nodeId: "node-a", publicKeyPem: PUBLIC_KEY_A, authorizedAt: "2026-08-19T12:01:00.000Z" });
+  assert.equal(idempotent, account);
+  assert.throws(
+    () => authorizeNode(account, { nodeId: "node-b", publicKeyPem: PUBLIC_KEY_A, authorizedAt: "2026-08-19T12:02:00.000Z" }),
+    /independent signing public key/i,
+  );
+  assert.throws(
+    () => authorizeNode(account, { nodeId: "node-a", publicKeyPem: PUBLIC_KEY_B, authorizedAt: "2026-08-19T12:02:00.000Z" }),
+    /cannot change its signing public key/i,
+  );
+  const revoked = revokeNode(account, "node-a", "2026-08-19T12:03:00.000Z");
+  assert.throws(
+    () => authorizeNode(revoked, { nodeId: "node-a", publicKeyPem: PUBLIC_KEY_A, authorizedAt: "2026-08-19T12:04:00.000Z" }),
+    /cannot be silently reauthorized/i,
+  );
+});
+
 test("revoking one Node blocks its sync without destroying the account, Avatar or another Node", () => {
   let account = createAccountSyncState("person_bryan");
   account = authorizeNode(account, { nodeId: "node-a", publicKeyPem: PUBLIC_KEY_A, authorizedAt: "2026-08-19T12:00:00.000Z" });
@@ -163,12 +183,15 @@ test("bookmarks reconcile by newest timestamp and lesson-version disagreement is
   }]);
 });
 
-test("LEARN sync allowlist rejects project/credential fields and private key material", () => {
+test("LEARN sync allowlist rejects every unknown field and private key material", () => {
   assert.throws(() => createPortableLearnState({
     activeLessonUpdatedAt: "2026-08-19T12:00:00.000Z",
     providerCredentials: { token: "secret" },
   }), /outside the portable allowlist/i);
-
+  assert.throws(() => createPortableLearnState({
+    activeLessonUpdatedAt: "2026-08-19T12:00:00.000Z",
+    harmlessLookingExtra: "not explicitly portable",
+  }), /outside the portable allowlist/i);
   assert.throws(() => createPortableLearnState({
     activeLessonUpdatedAt: "2026-08-19T12:00:00.000Z",
     notes: [{

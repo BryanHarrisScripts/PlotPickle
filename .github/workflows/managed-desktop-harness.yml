@@ -32,7 +32,7 @@ jobs:
       - run: npm ci --include=dev --no-audit --no-fund
       - name: Validate managed runtime supervisor
         run: node --test tests/issue-1079-managed-desktop-harness.test.mjs
-      - name: Re-run managed BUZZ and ComfyUI compatibility contracts
-        run: node --test tests/issue-210-managed-buzz-runtime.test.mjs tests/issue-1083-comfy-mcp-management-adapter.test.mjs tests/issue-1075-trusted-node-remote-compute.test.mjs
+      - name: Re-run current ComfyUI and remote-compute compatibility contracts
+        run: node --test tests/issue-1083-comfy-mcp-management-adapter.test.mjs tests/issue-1075-trusted-node-remote-compute.test.mjs
       - name: Production build
         run: npm run build

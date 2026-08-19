@@ -27,14 +27,23 @@ test("Windows startup uses the current PlotPickle name and a concise three-step 
   assert.match(launcher, /closing it stops only that server/);
 });
 
-test("routine startup inventories companions while configuration remains in independent Settings pages", async () => {
-  const launcher = await source("Start-PlotPickle.bat");
+test("routine startup defers optional companion maintenance until the local app is ready", async () => {
+  const [launcher, deferred] = await Promise.all([
+    source("Start-PlotPickle.bat"),
+    source("scripts/windows-companion-maintenance-after-ready.ps1"),
+  ]);
   const executable = executableLines(launcher);
 
   assert.match(launcher, /other optional connections remain independently configurable in PlotPickle Settings/i);
   assert.match(launcher, /Optional services remain available from their independent Settings pages/);
   assert.match(launcher, /COMPANION_MANAGER=scripts\\windows-companion-software\.ps1/);
-  assert.match(launcher, /-File "%COMPANION_MANAGER%" -Mode Maintain/);
+  assert.match(launcher, /COMPANION_AFTER_READY=scripts\\windows-companion-maintenance-after-ready\.ps1/);
+  assert.match(launcher, /call :start_deferred_companion_maintenance/);
+  assert.match(launcher, /start "" \/b powershell\.exe[^\n]+%COMPANION_AFTER_READY%/i);
+  assert.doesNotMatch(executable, /powershell\.exe[^\n]+-File "%COMPANION_MANAGER%" -Mode Maintain/i);
+  assert.match(deferred, /Test-PlotPickleReady/);
+  assert.match(deferred, /-Mode Maintain -NoPrompt/);
+  assert.ok(deferred.indexOf("Test-PlotPickleReady") < deferred.indexOf("-Mode Maintain -NoPrompt"));
   assert.doesNotMatch(executable, /install-local-ai-tool\.ps1|install-buzz-desktop\.ps1/i);
   assert.doesNotMatch(executable, /ensure_local_ai_tool|ensure_buzz_desktop/i);
   assert.doesNotMatch(executable, /Install (?:Ollama|ComfyUI|Buzz Desktop).*\[Y\/N\]/i);

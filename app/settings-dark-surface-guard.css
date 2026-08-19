@@ -1,0 +1,154 @@
+/*
+ * Settings dark-surface inheritance guard.
+ *
+ * Settings deliberately embeds several independently-owned panels. Those panels
+ * keep their provider/runtime behaviour and component CSS, but while they are
+ * mounted inside the canonical Settings workspace their large surfaces and form
+ * controls inherit PlotPickle's semantic dark tokens. This prevents a legacy or
+ * dynamically mounted panel from reopening a white/light island inside the
+ * matte-black Settings shell.
+ */
+
+[data-plotpickle-settings="v2"] {
+  color-scheme: dark;
+  --pp-settings-canvas: var(--pp-matte);
+  --pp-settings-surface: var(--pp-surface);
+  --pp-settings-raised: var(--pp-surface-raised);
+  --pp-settings-hover: var(--pp-surface-hover);
+  --pp-settings-line: var(--pp-line);
+  --pp-settings-line-strong: var(--pp-line-strong);
+  --pp-settings-text: var(--pp-text);
+  --pp-settings-muted: var(--pp-muted);
+  --pp-settings-teal: var(--pp-teal);
+  --pp-settings-orange: var(--pp-orange);
+}
+
+[data-plotpickle-settings="v2"] [data-settings-main],
+[data-plotpickle-settings="v2"] [data-settings-section] {
+  background-color: var(--pp-settings-canvas);
+  color: var(--pp-settings-text);
+}
+
+/*
+ * Child panels are allowed to keep layout, spacing and component structure, but
+ * not an older light surface palette. Div wrappers become transparent while
+ * semantic panels receive one of the shared dark surfaces below.
+ */
+[data-plotpickle-settings="v2"] [data-settings-section] :where(div) {
+  background-color: transparent !important;
+  border-color: var(--pp-settings-line) !important;
+}
+
+[data-plotpickle-settings="v2"] [data-settings-section] :where(
+  section,
+  article,
+  aside,
+  nav,
+  form,
+  fieldset,
+  details,
+  table,
+  dialog,
+  [role="dialog"],
+  [role="tabpanel"],
+  [role="menu"],
+  [role="listbox"]
+) {
+  background-color: var(--pp-settings-surface) !important;
+  border-color: var(--pp-settings-line) !important;
+  color: var(--pp-settings-text) !important;
+  box-shadow: none !important;
+}
+
+[data-plotpickle-settings="v2"] [data-settings-section] :where(article, fieldset, details, dialog, [role="dialog"], [role="menu"], [role="listbox"]) {
+  background-color: var(--pp-settings-raised) !important;
+}
+
+[data-plotpickle-settings="v2"] [data-settings-section] :where(thead, tbody, tr, th, td) {
+  background-color: transparent !important;
+  border-color: var(--pp-settings-line) !important;
+  color: inherit !important;
+}
+
+[data-plotpickle-settings="v2"] [data-settings-section] :where(h1, h2, h3, h4, h5, h6, legend, summary, strong, b, dt) {
+  color: var(--pp-settings-text) !important;
+}
+
+[data-plotpickle-settings="v2"] [data-settings-section] :where(p, small, label, dd, li) {
+  color: var(--pp-settings-muted) !important;
+}
+
+[data-plotpickle-settings="v2"] [data-settings-section] :where(
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select
+) {
+  background-color: var(--pp-settings-raised) !important;
+  border-color: var(--pp-settings-line-strong) !important;
+  color: var(--pp-settings-text) !important;
+  box-shadow: none !important;
+}
+
+[data-plotpickle-settings="v2"] [data-settings-section] :where(input, textarea)::placeholder {
+  color: var(--pp-settings-muted) !important;
+  opacity: 1;
+}
+
+[data-plotpickle-settings="v2"] [data-settings-section] select option {
+  background: var(--pp-settings-raised);
+  color: var(--pp-settings-text);
+}
+
+[data-plotpickle-settings="v2"] [data-settings-section] :where(button, [role="button"], [role="tab"]) {
+  border-color: var(--pp-settings-line-strong) !important;
+  background-color: var(--pp-settings-raised) !important;
+  color: var(--pp-settings-text) !important;
+  box-shadow: none !important;
+}
+
+[data-plotpickle-settings="v2"] [data-settings-section] :where(button, [role="button"], [role="tab"]):hover:not(:disabled) {
+  border-color: var(--pp-settings-teal) !important;
+  background-color: var(--pp-settings-hover) !important;
+}
+
+[data-plotpickle-settings="v2"] [data-settings-section] :where(button, input, textarea, select, summary, a):focus-visible {
+  outline-color: var(--pp-settings-orange) !important;
+}
+
+/* Truthful status colours remain visible without introducing pale status cards. */
+[data-plotpickle-settings="v2"] [data-settings-section] :where(
+  [data-tone="ready"],
+  [data-state="connected"],
+  [data-status="installed"]
+) {
+  background-color: color-mix(in srgb, var(--pp-settings-teal) 10%, var(--pp-settings-raised)) !important;
+  border-color: color-mix(in srgb, var(--pp-settings-teal) 55%, var(--pp-settings-line)) !important;
+}
+
+[data-plotpickle-settings="v2"] [data-settings-section] :where(
+  [data-tone="attention"],
+  [data-state="checking"],
+  [data-status="configure"]
+) {
+  background-color: color-mix(in srgb, var(--pp-settings-orange) 9%, var(--pp-settings-raised)) !important;
+  border-color: color-mix(in srgb, var(--pp-settings-orange) 50%, var(--pp-settings-line)) !important;
+}
+
+[data-plotpickle-settings="v2"] [data-settings-section] :where([data-state="error"], [aria-invalid="true"]) {
+  background-color: color-mix(in srgb, var(--pp-danger) 10%, var(--pp-settings-raised)) !important;
+  border-color: color-mix(in srgb, var(--pp-danger) 60%, var(--pp-settings-line)) !important;
+}
+
+/* Loading, empty and error copy should never manufacture a browser-default white box. */
+[data-plotpickle-settings="v2"] [data-settings-section] :where(
+  [role="status"],
+  [role="alert"],
+  [aria-busy="true"],
+  [data-empty],
+  [data-loading],
+  [data-error]
+) {
+  background-color: var(--pp-settings-raised) !important;
+  border-color: var(--pp-settings-line) !important;
+  color: var(--pp-settings-text) !important;
+}

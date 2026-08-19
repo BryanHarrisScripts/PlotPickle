@@ -1,13 +1,4 @@
-function controlsFromSnapshot(snapshot) {
-  const controls = [];
-  const pattern = /(?:^|\n)\s*-\s*(button|link|tab|textbox|searchbox|combobox|checkbox|radio)\s+(?:"([^"]*)")?[^\n]*?\[ref=([^\]]+)\]/gi;
-  let match;
-  while ((match = pattern.exec(String(snapshot)))) {
-    const label = String(match[2] || "").trim();
-    if (label) controls.push({ role: match[1].toLowerCase(), label, ref: match[3] });
-  }
-  return controls;
-}
+import { writerVisibleControls } from "./writer-visible-controls.mjs";
 
 function toolArgs(tool, values) {
   const properties = tool?.inputSchema?.properties || {};
@@ -29,7 +20,7 @@ async function snapshot(client, resultText) {
 }
 
 function findControl(snapshotText, pattern, roles) {
-  return controlsFromSnapshot(snapshotText).find((control) => roles.includes(control.role) && pattern.test(control.label)) || null;
+  return writerVisibleControls(snapshotText).find((control) => roles.includes(control.role) && pattern.test(control.label)) || null;
 }
 
 function visibleSageFailure(snapshotText) {
@@ -61,7 +52,7 @@ export async function runSageAcceptance({
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
       let current = await snapshot(client, resultText);
       const textbox = findControl(current, /ask in your own words|creative room|question/i, ["textbox"])
-        || controlsFromSnapshot(current).find((control) => control.role === "textbox");
+        || writerVisibleControls(current).find((control) => control.role === "textbox");
       if (!textbox) {
         lastDetail = "Visible Sage textbox was not found.";
         break;

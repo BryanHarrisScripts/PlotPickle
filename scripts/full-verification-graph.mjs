@@ -5,7 +5,10 @@ import { access, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { verificationCommandFor } from "./full-verification-process.mjs";
+import {
+  terminateVerificationProcessTree,
+  verificationCommandFor,
+} from "./full-verification-process.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const plotPickleUrl = "http://127.0.0.1:4173";
@@ -208,10 +211,6 @@ export function validateVerificationNodeResult(node, value) {
   return { ok: true, error: "" };
 }
 
-function commandFor(node) {
-  return verificationCommandFor(node);
-}
-
 function writeChunk(prefix, stream, chunk) {
   const text = String(chunk || "");
   if (!text) return;
@@ -220,7 +219,7 @@ function writeChunk(prefix, stream, chunk) {
 }
 
 export async function executeCommandNode(node, options = {}) {
-  const { command, args } = commandFor(node);
+  const { command, args } = verificationCommandFor(node);
   const started = Date.now();
   let tail = "";
   return new Promise((resolve) => {
@@ -268,62 +267,12 @@ function captureManagedAppOutput(chunk, stream, echo) {
   if (echo !== false) writeChunk("app-ready", stream, text);
 }
 
-async function waitForManagedAppClose(child, timeoutMs) {
-  if (!child || child.exitCode !== null || child.signalCode !== null) return true;
-  return new Promise((resolve) => {
-    let settled = false;
-    const finish = (closed) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      child.off("close", onClose);
-      resolve(closed);
-    };
-    const onClose = () => finish(true);
-    const timer = setTimeout(() => finish(child.exitCode !== null || child.signalCode !== null), timeoutMs);
-    child.once("close", onClose);
-  });
-}
-
 export async function stopManagedPlotPickleVerificationServer() {
   const child = managedVerificationApp;
   managedVerificationApp = null;
   managedVerificationAppTail = "";
   if (!child?.pid || child.exitCode !== null || child.signalCode !== null) return;
-
-  if (process.platform === "win32") {
-    await new Promise((resolve) => {
-      let settled = false;
-      let timer = null;
-      const finish = () => {
-        if (settled) return;
-        settled = true;
-        if (timer) clearTimeout(timer);
-        resolve();
-      };
-      const killer = spawn("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], {
-        windowsHide: true,
-        shell: false,
-        stdio: "ignore",
-      });
-      timer = setTimeout(() => {
-        try { killer.kill(); } catch {}
-        finish();
-      }, 5_000);
-      killer.once("error", finish);
-      killer.once("close", finish);
-    });
-    if (!(await waitForManagedAppClose(child, 3_000))) {
-      try { child.kill(); } catch {}
-      await waitForManagedAppClose(child, 2_000);
-    }
-    return;
-  }
-
-  try { child.kill("SIGTERM"); } catch {}
-  if (await waitForManagedAppClose(child, 3_000)) return;
-  try { child.kill("SIGKILL"); } catch {}
-  await waitForManagedAppClose(child, 2_000);
+  await terminateVerificationProcessTree(child);
 }
 
 export async function ensurePlotPickleReady(options = {}) {

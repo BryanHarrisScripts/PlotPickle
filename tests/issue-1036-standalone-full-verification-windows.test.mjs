@@ -14,7 +14,7 @@ async function source(relativePath) {
   return readFile(path.join(repoRoot, relativePath), "utf8");
 }
 
-test("#1036 wraps npm.cmd through ComSpec on Windows without shell:true", () => {
+test("#1039 wraps npm.cmd through ComSpec without quoting the executable token", () => {
   const command = verificationCommandFor(
     { tool: "npm", args: ["run", "build"] },
     {
@@ -25,8 +25,15 @@ test("#1036 wraps npm.cmd through ComSpec on Windows without shell:true", () => 
   );
 
   assert.equal(command.command, "C:\\Windows\\System32\\cmd.exe");
-  assert.deepEqual(command.args, ["/d", "/s", "/c", '"npm.cmd" "run" "build"']);
-  assert.equal(windowsVerificationCommand("npm.cmd", ["run", "validate:learn"]), '"npm.cmd" "run" "validate:learn"');
+  assert.deepEqual(command.args, ["/d", "/s", "/c", 'npm.cmd "run" "build"']);
+  assert.equal(windowsVerificationCommand("npm.cmd", ["run", "validate:learn"]), 'npm.cmd "run" "validate:learn"');
+});
+
+test("#1039 rejects unsafe Windows verification executable tokens", () => {
+  assert.throws(
+    () => windowsVerificationCommand("npm.cmd & whoami", ["run", "build"]),
+    /Windows verification command contains unsupported characters/,
+  );
 });
 
 test("#1036 keeps direct Node verification commands shell-free", () => {

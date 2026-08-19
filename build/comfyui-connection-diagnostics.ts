@@ -67,12 +67,11 @@ function loopbackHost(hostname: string) {
 
 export function normalizeLocalComfyUrl(value: unknown) {
   const source = typeof value === "string" ? value.trim() : "";
-  let url: URL;
-  try {
-    url = new URL(source || DEFAULT_BASE_URL);
-  } catch {
+  const candidate = source || DEFAULT_BASE_URL;
+  if (!URL.canParse(candidate)) {
     throw new Error("Enter a complete local ComfyUI address, such as http://127.0.0.1:8188.");
   }
+  const url = new URL(candidate);
   if (url.protocol !== "http:" || !loopbackHost(url.hostname)) {
     throw new Error("ComfyUI must use a local loopback address such as http://127.0.0.1:8188, http://localhost:8188 or http://[::1]:8188.");
   }
@@ -221,11 +220,11 @@ async function requestJson(baseUrl: string, pathname: string) {
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   const text = await response.text();
-  let value: unknown = {};
-  try { value = text ? JSON.parse(text) : {}; } catch {
+  if (!response.ok) throw new Error(`ComfyUI returned HTTP ${response.status} from ${pathname}.`);
+  if (text && !/application\/json/i.test(response.headers.get("content-type") || "")) {
     throw new Error(`ComfyUI returned invalid JSON from ${pathname}.`);
   }
-  if (!response.ok) throw new Error(`ComfyUI returned HTTP ${response.status} from ${pathname}.`);
+  const value: unknown = text ? JSON.parse(text) : {};
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`ComfyUI returned invalid JSON from ${pathname}.`);
   return value as Record<string, unknown>;
 }
@@ -243,12 +242,10 @@ function checkpointNames(body: Record<string, unknown>) {
 }
 
 async function nodeExists(baseUrl: string, name: string) {
-  try {
-    const value = await requestJson(baseUrl, `/object_info/${encodeURIComponent(name)}`);
-    return Boolean(value[name]);
-  } catch {
-    return false;
-  }
+  return requestJson(baseUrl, `/object_info/${encodeURIComponent(name)}`).then(
+    (value) => Boolean(value[name]),
+    () => false,
+  );
 }
 
 function safeDeviceName(value: unknown) {
@@ -274,6 +271,7 @@ function hardwareFromSystem(system: Record<string, unknown>): ComfyHardwareDiagn
 
 function connectionState(error: unknown): Exclude<ComfyConnectionState, "ready" | "running-setup"> {
   if (error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError")) return "timeout";
+  if (error instanceof SyntaxError) return "invalid-response";
   if (error instanceof Error) {
     if (/fetch failed|ECONNREFUSED|ECONNRESET|ENETUNREACH|connect/i.test(error.message)) return "not-listening";
     if (/HTTP \d+|invalid JSON/i.test(error.message)) return "invalid-response";
@@ -351,7 +349,10 @@ export async function diagnoseComfyUI(baseUrlValue: unknown, workflow: ComfyWork
   const info = system.system && typeof system.system === "object" && !Array.isArray(system.system)
     ? system.system as Record<string, unknown>
     : {};
-  const loader = await requestJson(baseUrl, "/object_info/CheckpointLoaderSimple").catch(() => ({}));
+  const loader = await requestJson(baseUrl, "/object_info/CheckpointLoaderSimple").then(
+    (value) => value,
+    () => ({}),
+  );
   const imageChecks = await Promise.all(REQUIRED_IMAGE_NODES.map(async (name) => ({ name, exists: await nodeExists(baseUrl, name) })));
   const workflowChecks = workflow
     ? await Promise.all(workflow.nodeClasses.map(async (name) => ({ name, exists: await nodeExists(baseUrl, name) })))

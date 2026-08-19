@@ -156,31 +156,35 @@ export default function SageSettingsWorkspace() {
     navigateSection(normalizeSection(target));
   }
 
+  function returnToRouting(target: string) {
+    openSettingsTarget(target);
+  }
+
   function renderSection() {
     switch (activeSection) {
       case "help":
         return <section id="settings-help"><SectionIntro eyebrow="Settings · HELP" title="Meet the PlotPickle helpers." detail="Understand each helper before changing agent or runtime configuration." /><SettingsHelperDirectory /></section>;
       case "models":
-        return <><SectionIntro eyebrow="Settings · Local AI" title="Configure and test Sage and PLAN." detail="Choose the local runtime and models, save them, then verify Sage and PLAN in the same workspace." /><SageFastModelSetup /></>;
+        return <section id="settings-models"><SectionIntro eyebrow="Settings · Local AI" title="Configure and test Sage and PLAN." detail="Choose the local runtime and models, save them, then verify Sage and PLAN in the same workspace." /><SageFastModelSetup /></section>;
       case "routing":
-        return <><SectionIntro eyebrow="Settings · AI Routing" title="Choose one explicit route for each AI job." detail="Local stays local unless you deliberately select and authorize a provider route. There is no silent paid fallback." /><AiRoutingPanel /></>;
+        return <section id="settings-routing"><SectionIntro eyebrow="Settings · AI Routing" title="Choose one explicit route for each AI job." detail="One active choice per job. Local stays local unless you deliberately select and authorize a provider route. There is no silent paid fallback." /><AiRoutingPanel /></section>;
       case "media":
-        return <><SectionIntro eyebrow="Settings · Images & Video" title="Configure and test image and video routes." detail="Process-running and capability-ready remain separate. ComfyUI must prove its nodes, checkpoint and workflow readiness before PlotPickle calls it ready." /><MediaRoutingPanel onManage={openSettingsTarget} /></>;
+        return <section id="settings-comfyui"><SectionIntro eyebrow="Settings · Images & Video" title="Configure and test image and video routes." detail="Process-running and capability-ready remain separate. ComfyUI must prove its nodes, checkpoint and workflow readiness before PlotPickle calls it ready." /><MediaRoutingPanel onManage={returnToRouting} /></section>;
       case "ollama":
-        return <><SectionIntro eyebrow="Settings · Provider" title="Configure and test Ollama." detail="Ollama is one optional local runtime behind PlotPickle's OpenAI-compatible local AI boundary; it is not the architecture itself." /><WritingAssistantConsole onManage={() => openSettingsTarget("ollama")} focusProvider="ollama" /></>;
+        return <section id="settings-ollama"><SectionIntro eyebrow="Settings · Provider" title="Configure and test Ollama." detail="Ollama is optional and no longer defines the local architecture. It remains one OpenAI-compatible local runtime option behind PlotPickle's hardware-aware local AI boundary." /><WritingAssistantConsole onManage={() => openSettingsTarget("ollama")} focusProvider="ollama" /></section>;
       case "openai":
-        return <><SectionIntro eyebrow="Settings · Provider" title="Configure and test OpenAI." detail="Credentials stay protected and paid calls remain explicit. Verify the provider here before selecting it as an active route." /><AiProviderSetupPanel provider="openai" /><WritingAssistantConsole onManage={() => openSettingsTarget("openai")} focusProvider="openai" /></>;
+        return <section id="settings-openai"><SectionIntro eyebrow="Settings · Provider" title="Configure and test OpenAI." detail="Credentials stay protected and paid calls remain explicit. Verify the provider here before selecting it as an active route." /><AiProviderSetupPanel provider="openai" /><WritingAssistantConsole onManage={() => openSettingsTarget("openai")} focusProvider="openai" /></section>;
       case "minimax":
-        return <><SectionIntro eyebrow="Settings · Provider" title="Configure and test MiniMax." detail="Configure image/video provider access here; paid tests and generation continue to respect existing consent rules." /><AiProviderSetupPanel provider="minimax" /><WritingAssistantConsole onManage={() => openSettingsTarget("minimax")} focusProvider="minimax" /></>;
+        return <section id="settings-minimax"><SectionIntro eyebrow="Settings · Provider" title="Configure and test MiniMax." detail="Configure image/video provider access here; paid tests and generation continue to respect existing consent rules." /><AiProviderSetupPanel provider="minimax" /><WritingAssistantConsole onManage={() => openSettingsTarget("minimax")} focusProvider="minimax" /></section>;
       case "activity":
-        return <><SectionIntro eyebrow="Settings · Agents" title="Inspect agent activity and health." detail="Use runtime evidence to confirm what is actually running without exposing prompts, answers, credentials or hidden reasoning." /><AgentObservabilityPanel /></>;
+        return <section id="settings-activity"><SectionIntro eyebrow="Settings · Agents" title="Inspect agent activity and health." detail="Use runtime evidence to confirm what is actually running without exposing prompts, answers, credentials or hidden reasoning." /><AgentObservabilityPanel /></section>;
       case "buzz":
-        return <><SectionIntro eyebrow="Settings · BUZZ / Community" title="Configure and test BUZZ in one place." detail="Connect the local identity and relay, build the Guildhall, then run the signed live round-trip test without exposing credentials." /><BuzzSettingsPanel /><BuzzLiveHealthCard /></>;
+        return <section id="settings-buzz"><SectionIntro eyebrow="Settings · BUZZ / Community" title="Configure and test BUZZ in one place." detail="Connect the local identity and relay, build the Guildhall, then run the signed live round-trip test without exposing credentials." /><BuzzSettingsPanel /><BuzzLiveHealthCard /></section>;
       case "runtime":
-        return <><SectionIntro eyebrow="Settings · Advanced Runtime" title="Inspect hardware and expert runtime details." detail="Use these controls only when the overview or a focused setup panel says deeper runtime work is needed." /><details className={styles.advancedRuntime} open><summary>Advanced runtime details</summary><p>Hardware, model inventory and optional developer harness information live here so ordinary setup remains simple.</p><DeepSeekHarnessPanel /><LocalRuntimePanel /></details></>;
+        return <section id="settings-advanced"><SectionIntro eyebrow="Settings · Advanced Runtime" title="Inspect hardware and expert runtime details." detail="Use these controls only when the overview or a focused setup panel says deeper runtime work is needed." /><details className={styles.advancedRuntime} open><summary>Advanced runtime details</summary><p>AI provider routing is configured in the dedicated AI Routing section above so the hardware view is not repeated. Hardware, model inventory and optional developer harness information remain here for expert diagnostics.</p><DeepSeekHarnessPanel /><LocalRuntimePanel /></details></section>;
       case "overview":
       default:
-        return <><SectionIntro eyebrow="Settings · Overview" title="Set up PlotPickle from one workspace." detail="See what is ready, what is missing and exactly where to configure or test it. Status comes from the existing runtime/provider authorities rather than a second Settings database." /><SettingsReadinessOverview onOpen={(section) => navigateSection(normalizeSection(section))} /></>;
+        return <section id="settings-quick"><SectionIntro eyebrow="Settings · Overview" title="Set up PlotPickle from one workspace." detail="See what is ready, what is missing and exactly where to configure or test it. Status comes from the existing runtime/provider authorities rather than a second Settings database." /><SettingsReadinessOverview onOpen={(section) => navigateSection(normalizeSection(section))} /></section>;
     }
   }
 
@@ -188,7 +192,7 @@ export default function SageSettingsWorkspace() {
     <main aria-label="PlotPickle settings" className={styles.page} data-plotpickle-settings="v2" data-settings-active={activeSection}>
       <aside data-settings-rail="navigation">
         <header><p>Settings</p><h2>Configure PlotPickle</h2><span>Choose a section once. The centre changes in place while this navigation and the help rail remain visible.</span></header>
-        <div className={styles.helpShortcut}><a href="#settings-help">HELP</a></div>
+        <div className={styles.helpShortcut}><a href="#settings-help">HELP</a><a href="#settings-routing">AI ROUTING</a></div>
         <nav aria-label="Settings categories">
           {SETTINGS_GROUPS.map((group) => (
             <section className={styles.navGroup} key={group.label} aria-label={group.label}>

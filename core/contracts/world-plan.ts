@@ -93,7 +93,7 @@ export function assembleWorldBrief(input: {
   return [
     `# ${input.projectTitle.trim() || "Untitled Story"} — World Brief`,
     "",
-    "This brief adds World decisions to the accepted Foundations frontier. It does not replace Foundations truth or invent Character, Theme, Structure, or later-group facts.",
+    "This brief records the Foundations + World frontier by adding World decisions to accepted Foundations truth. It does not replace Foundations or invent Character, Theme, Structure, or later-group facts.",
     "",
     ...sections,
   ].join("\n");

@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import AgentObservabilityPanel from "./agent-observability-panel";
+import AiProviderSetupPanel from "./ai-provider-setup-panel";
 import AiRoutingPanel from "./ai-routing-panel";
 import BuzzLiveHealthCard from "./buzz-live-health-card";
 import DeepSeekHarnessPanel from "./deepseek-harness-panel";
@@ -8,8 +10,10 @@ import LocalRuntimePanel from "./local-runtime-panel";
 import MediaRoutingPanel from "./media-routing-panel";
 import SageFastModelSetup from "./sage-fast-model-setup";
 import SettingsHelperDirectory from "./settings-helper-directory";
+import WritingAssistantConsole from "./writing-assistant-console";
 import styles from "./sage-settings-workspace.module.css";
 
+const SETTINGS_SECTION_KEY = "plotpickle.settings.section";
 const SETTINGS_CATEGORIES = [
   { id: "settings-quick", label: "Quick Setup", detail: "The simple four-step path" },
   { id: "settings-help", label: "HELP", detail: "Meet the PlotPickle helpers" },
@@ -19,16 +23,67 @@ const SETTINGS_CATEGORIES = [
   { id: "settings-advanced", label: "Advanced Runtime", detail: "Hardware and expert details" },
 ] as const;
 
+function canonicalSettingsTarget(value: string) {
+  const target = value.trim().toLowerCase();
+  if (target.includes("ollama")) return "ollama";
+  if (target.includes("openai")) return "openai";
+  if (target.includes("minimax")) return "minimax";
+  if (target.includes("comfy")) return "comfyui";
+  return "";
+}
+
+function sectionIdForTarget(value: string) {
+  const target = canonicalSettingsTarget(value);
+  return target ? `settings-${target}` : "";
+}
+
 export default function SageSettingsWorkspace() {
-  function returnToRouting() {
-    const routing = document.getElementById("settings-routing");
-    if (!routing) return;
+  function scrollToSection(sectionId: string, focus = false) {
+    if (!sectionId) return false;
+    const section = document.getElementById(sectionId);
+    if (!section) return false;
     const url = new URL(window.location.href);
     url.searchParams.set("workspace", "settings");
-    url.hash = "settings-routing";
+    url.hash = sectionId;
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
-    routing.scrollIntoView({ behavior: "smooth", block: "start" });
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (focus) window.requestAnimationFrame(() => section.querySelector<HTMLElement>("input, select, button")?.focus());
+    return true;
   }
+
+  function openSettingsTarget(target: string) {
+    const canonical = canonicalSettingsTarget(target);
+    const sectionId = sectionIdForTarget(canonical);
+    if (!canonical || !sectionId) return;
+    window.sessionStorage.setItem(SETTINGS_SECTION_KEY, canonical);
+    if (scrollToSection(sectionId, true)) {
+      window.dispatchEvent(new CustomEvent("plotpickle:settings-section", { detail: canonical }));
+    }
+  }
+
+  function returnToRouting() {
+    scrollToSection("settings-routing");
+  }
+
+  useEffect(() => {
+    const scrollRequestedTarget = (target: string) => {
+      const sectionId = sectionIdForTarget(target);
+      if (sectionId) scrollToSection(sectionId, true);
+    };
+    const timer = window.setTimeout(() => {
+      const stored = window.sessionStorage.getItem(SETTINGS_SECTION_KEY) || "";
+      const hash = window.location.hash.replace(/^#/, "");
+      if (hash.startsWith("settings-") && document.getElementById(hash)) scrollToSection(hash, true);
+      else if (stored) scrollRequestedTarget(stored);
+      window.sessionStorage.removeItem(SETTINGS_SECTION_KEY);
+    }, 0);
+    const handleSectionRequest = (event: Event) => scrollRequestedTarget(String((event as CustomEvent<string>).detail || ""));
+    window.addEventListener("plotpickle:settings-section", handleSectionRequest);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("plotpickle:settings-section", handleSectionRequest);
+    };
+  }, []);
 
   return (
     <main
@@ -103,11 +158,28 @@ export default function SageSettingsWorkspace() {
           <AiRoutingPanel />
         </section>
 
+        <section data-settings-section id="settings-ollama" aria-label="Ollama local writing setup">
+          <div className={styles.actions}><button className={styles.secondaryAction} type="button" onClick={returnToRouting}>Back to AI routing</button></div>
+          <WritingAssistantConsole onManage={() => openSettingsTarget("ollama")} focusProvider="ollama" />
+        </section>
+
+        <section data-settings-section id="settings-openai" aria-label="OpenAI provider setup">
+          <div className={styles.actions}><button className={styles.secondaryAction} type="button" onClick={returnToRouting}>Back to AI routing</button></div>
+          <AiProviderSetupPanel provider="openai" />
+          <WritingAssistantConsole onManage={() => openSettingsTarget("openai")} focusProvider="openai" />
+        </section>
+
+        <section data-settings-section id="settings-minimax" aria-label="MiniMax provider setup">
+          <div className={styles.actions}><button className={styles.secondaryAction} type="button" onClick={returnToRouting}>Back to AI routing</button></div>
+          <AiProviderSetupPanel provider="minimax" />
+          <WritingAssistantConsole onManage={() => openSettingsTarget("minimax")} focusProvider="minimax" />
+        </section>
+
         <section data-settings-section id="settings-comfyui" aria-label="ComfyUI local image setup">
           <div className={styles.actions}>
             <button className={styles.secondaryAction} type="button" onClick={returnToRouting}>Back to AI routing</button>
           </div>
-          <MediaRoutingPanel onManage={returnToRouting} />
+          <MediaRoutingPanel onManage={openSettingsTarget} />
         </section>
 
         <section data-settings-section id="settings-advanced">

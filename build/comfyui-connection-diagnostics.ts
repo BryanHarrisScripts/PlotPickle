@@ -38,6 +38,16 @@ export type ComfyHardwareDiagnostic = {
   freeVramMb: number | null;
 };
 
+export type ComfySetupBlockerKind = "service" | "checkpoint" | "image-node" | "workflow-node";
+
+export type ComfySetupBlocker = {
+  code: string;
+  kind: ComfySetupBlockerKind;
+  summary: string;
+  action: string;
+  requiresUserConfirmation: boolean;
+};
+
 export type ComfyConnectionDiagnostic = {
   reachable: boolean;
   serviceReady: boolean;
@@ -52,6 +62,7 @@ export type ComfyConnectionDiagnostic = {
   missingWorkflowNodes: string[];
   management: ComfyManagementDiagnostic;
   hardware: ComfyHardwareDiagnostic;
+  setupBlockers: ComfySetupBlocker[];
   checkedAt: string;
   latencyMs: number;
   error: string;
@@ -269,6 +280,71 @@ function hardwareFromSystem(system: Record<string, unknown>): ComfyHardwareDiagn
   };
 }
 
+function unavailableSetupBlockers(state: Exclude<ComfyConnectionState, "ready" | "running-setup">, management: ComfyManagementDiagnostic): ComfySetupBlocker[] {
+  if (management.ready) {
+    return [{
+      code: "comfy-service-stopped",
+      kind: "service",
+      summary: "The managed ComfyUI workspace is available but its local API is not running.",
+      action: "Use Start ComfyUI in Settings. PlotPickle will ask before launching the local workspace.",
+      requiresUserConfirmation: true,
+    }];
+  }
+  if (state === "invalid-response") {
+    return [{
+      code: "comfy-address-not-api",
+      kind: "service",
+      summary: "A local service answered, but it was not a usable ComfyUI API.",
+      action: "Check that the configured loopback address points directly to ComfyUI, without a proxy or extra path.",
+      requiresUserConfirmation: false,
+    }];
+  }
+  return [{
+    code: state === "timeout" ? "comfy-service-timeout" : "comfy-service-unreachable",
+    kind: "service",
+    summary: state === "timeout" ? "The local ComfyUI API did not become ready before the diagnostic timeout." : "No local ComfyUI API is listening at the configured loopback address.",
+    action: "Start ComfyUI locally, wait until its API is ready, then rerun the diagnostic. If it uses another port, enter that loopback address in Settings.",
+    requiresUserConfirmation: true,
+  }];
+}
+
+function runningSetupBlockers(input: {
+  checkpoints: readonly string[];
+  missingImageNodes: readonly string[];
+  workflow: ComfyWorkflow | null;
+  missingWorkflowNodes: readonly string[];
+}): ComfySetupBlocker[] {
+  const blockers: ComfySetupBlocker[] = [];
+  if (!input.checkpoints.length) {
+    blockers.push({
+      code: "comfy-checkpoint-missing",
+      kind: "checkpoint",
+      summary: "ComfyUI is running, but no image checkpoint is available to PlotPickle.",
+      action: "Choose an installed compatible checkpoint or review PlotPickle's SDXL starter. Any model download requires separate source, size, license, destination and hash approval.",
+      requiresUserConfirmation: true,
+    });
+  }
+  if (input.missingImageNodes.length) {
+    blockers.push({
+      code: "comfy-image-nodes-missing",
+      kind: "image-node",
+      summary: `Required image nodes are missing: ${input.missingImageNodes.join(", ")}.`,
+      action: "Repair or install the required ComfyUI nodes explicitly. PlotPickle will never turn a generation request into an automatic third-party node installation.",
+      requiresUserConfirmation: true,
+    });
+  }
+  if (input.workflow && input.missingWorkflowNodes.length) {
+    blockers.push({
+      code: "comfy-workflow-nodes-missing",
+      kind: "workflow-node",
+      summary: `The selected reviewed workflow is missing nodes: ${input.missingWorkflowNodes.join(", ")}.`,
+      action: "Review the missing workflow dependencies before running it. Any third-party custom-node install requires explicit user confirmation.",
+      requiresUserConfirmation: true,
+    });
+  }
+  return blockers;
+}
+
 function connectionState(error: unknown): Exclude<ComfyConnectionState, "ready" | "running-setup"> {
   if (error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError")) return "timeout";
   if (error instanceof SyntaxError) return "invalid-response";
@@ -338,6 +414,7 @@ export async function diagnoseComfyUI(baseUrlValue: unknown, workflow: ComfyWork
       missingWorkflowNodes: workflow?.nodeClasses ?? [],
       management,
       hardware: { gpuName: "", totalVramMb: null, freeVramMb: null },
+      setupBlockers: unavailableSetupBlockers(state, management),
       checkedAt,
       latencyMs: Date.now() - started,
       error: connectionError(state, attemptedUrls, lastError, management),
@@ -360,12 +437,9 @@ export async function diagnoseComfyUI(baseUrlValue: unknown, workflow: ComfyWork
   const missingImageNodes = imageChecks.filter((item) => !item.exists).map((item) => item.name);
   const missingWorkflowNodes = workflowChecks.filter((item) => !item.exists).map((item) => item.name);
   const checkpoints = checkpointNames(loader);
-  const capabilityProblems = [
-    missingImageNodes.length ? `missing image nodes: ${missingImageNodes.join(", ")}` : "",
-    checkpoints.length ? "" : "no checkpoints were reported",
-    workflow && missingWorkflowNodes.length ? `missing workflow nodes: ${missingWorkflowNodes.join(", ")}` : "",
-  ].filter(Boolean);
-  const ready = capabilityProblems.length === 0;
+  const setupBlockers = runningSetupBlockers({ checkpoints, missingImageNodes, workflow, missingWorkflowNodes });
+  const capabilityProblems = setupBlockers.map((blocker) => blocker.summary);
+  const ready = setupBlockers.length === 0;
 
   return {
     reachable: true,
@@ -381,14 +455,15 @@ export async function diagnoseComfyUI(baseUrlValue: unknown, workflow: ComfyWork
     missingWorkflowNodes,
     management,
     hardware: hardwareFromSystem(system),
+    setupBlockers,
     checkedAt,
     latencyMs: Date.now() - started,
     error: "",
     capabilityError: ready
       ? ""
-      : `ComfyUI is running, but PlotPickle is not ready to generate yet: ${capabilityProblems.join("; ")}.`,
+      : `ComfyUI is running, but PlotPickle is not ready to generate yet: ${capabilityProblems.join(" ")}`,
     repairGuidance: ready
       ? "ComfyUI is responding and the required local image capabilities are available."
-      : "Keep ComfyUI running, install or enable the listed checkpoint and nodes, then retry the diagnostic.",
+      : setupBlockers.map((blocker) => blocker.action).join(" "),
   };
 }

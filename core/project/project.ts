@@ -3,6 +3,8 @@ import {
   type BuildProgressState,
   type FoundationsVisualArtifact,
   type VisualArtifactReviewState,
+  type WorldArtifactChangeKind,
+  type WorldVisualArtifact,
 } from "../contracts/build-progress";
 import {
   createEmptyFoundationLessonAnswers,
@@ -12,6 +14,13 @@ import {
   type FoundationLessonAnswers,
   type FoundationPlanState,
 } from "../contracts/foundation-plan";
+import {
+  createEmptyWorldLessonAnswers,
+  createEmptyWorldPlanState,
+  isUsableWorldAnswer,
+  type WorldLessonAnswers,
+  type WorldPlanState,
+} from "../contracts/world-plan";
 
 export const PPF_FOUNDATION_VERSION = "2.0-foundation" as const;
 
@@ -30,6 +39,7 @@ export interface PPFProject {
     readonly threadId: string | null;
   };
   readonly foundations: FoundationPlanState;
+  readonly world: WorldPlanState;
   readonly build: BuildProgressState;
 }
 
@@ -53,6 +63,7 @@ export function createEmptyProject(input: {
       threadId: null,
     },
     foundations: createEmptyFoundationPlanState(),
+    world: createEmptyWorldPlanState(),
     build: createEmptyBuildProgressState(),
   };
 }
@@ -83,6 +94,12 @@ function stringRecord(value: unknown): Readonly<Record<string, string>> {
 function usableAnswerRecord(value: unknown): Readonly<Record<string, string>> {
   return Object.fromEntries(
     Object.entries(stringRecord(value)).filter(([, answer]) => isUsableFoundationAnswer(answer)),
+  );
+}
+
+function usableWorldAnswerRecord(value: unknown): Readonly<Record<string, string>> {
+  return Object.fromEntries(
+    Object.entries(stringRecord(value)).filter(([, answer]) => isUsableWorldAnswer(answer)),
   );
 }
 
@@ -157,8 +174,49 @@ function normalizeFoundations(value: unknown): FoundationPlanState {
   };
 }
 
+function normalizeWorldLessonAnswers(value: unknown): WorldLessonAnswers {
+  const empty = createEmptyWorldLessonAnswers();
+  if (!value || typeof value !== "object" || Array.isArray(value)) return empty;
+  const answers = value as Partial<WorldLessonAnswers>;
+  return {
+    answers: usableWorldAnswerRecord(answers.answers),
+    updatedAt: typeof answers.updatedAt === "string" ? answers.updatedAt : null,
+  };
+}
+
+function normalizeWorld(value: unknown): WorldPlanState {
+  const empty = createEmptyWorldPlanState();
+  if (!value || typeof value !== "object" || Array.isArray(value)) return empty;
+  const source = value as Record<string, unknown>;
+  const sourceLessons = source.lessons && typeof source.lessons === "object" && !Array.isArray(source.lessons)
+    ? source.lessons as Record<string, unknown>
+    : {};
+  const brief = source.brief && typeof source.brief === "object" && !Array.isArray(source.brief)
+    ? source.brief as { readonly content?: unknown; readonly savedAt?: unknown }
+    : {};
+  return {
+    activeLessonId: typeof source.activeLessonId === "string" && source.activeLessonId ? source.activeLessonId : null,
+    lessons: Object.fromEntries(
+      Object.entries(sourceLessons).map(([lessonId, answers]) => [lessonId, normalizeWorldLessonAnswers(answers)]),
+    ),
+    brief: {
+      content: typeof brief.content === "string" ? brief.content : "",
+      savedAt: typeof brief.savedAt === "string" ? brief.savedAt : null,
+    },
+  };
+}
+
 function normalizeReviewState(value: unknown): VisualArtifactReviewState {
   return value === "accepted" || value === "rejected" ? value : "draft";
+}
+
+function cleanStringArray(value: unknown, limit = 48) {
+  return Array.isArray(value)
+    ? value
+      .filter((item): item is string => typeof item === "string" && Boolean(item.trim()))
+      .map((item) => item.trim().slice(0, 240))
+      .slice(0, limit)
+    : [];
 }
 
 function normalizeVisualArtifact(value: unknown): FoundationsVisualArtifact | null {
@@ -170,12 +228,7 @@ function normalizeVisualArtifact(value: unknown): FoundationsVisualArtifact | nu
   const frameNumber = typeof item.frameNumber === "number" && Number.isInteger(item.frameNumber) && item.frameNumber > 0
     ? Math.min(item.frameNumber, 999)
     : undefined;
-  const sourceDecisionKeys = Array.isArray(item.sourceDecisionKeys)
-    ? item.sourceDecisionKeys
-      .filter((key): key is string => typeof key === "string" && Boolean(key.trim()))
-      .map((key) => key.trim().slice(0, 240))
-      .slice(0, 48)
-    : undefined;
+  const sourceDecisionKeys = cleanStringArray(item.sourceDecisionKeys);
   return {
     id: item.id.trim(),
     assetUrl: item.assetUrl,
@@ -188,13 +241,63 @@ function normalizeVisualArtifact(value: unknown): FoundationsVisualArtifact | nu
       ? { narrativeIntention: item.narrativeIntention.trim().slice(0, 500) }
       : {}),
     ...(item.curriculumFrontier === "Foundations" ? { curriculumFrontier: "Foundations" as const } : {}),
-    ...(sourceDecisionKeys ? { sourceDecisionKeys } : {}),
+    ...(sourceDecisionKeys.length ? { sourceDecisionKeys } : {}),
     ...(typeof item.workflow === "string" && item.workflow.trim() ? { workflow: item.workflow.trim().slice(0, 160) } : {}),
     reviewState: normalizeReviewState(item.reviewState),
     parentArtifactId: typeof item.parentArtifactId === "string" && item.parentArtifactId.trim()
       ? item.parentArtifactId.trim()
       : null,
   };
+}
+
+function normalizeWorldChangeKind(value: unknown): WorldArtifactChangeKind {
+  return value === "revised" || value === "retained" || value === "superseded" ? value : "added";
+}
+
+function normalizeWorldVisualArtifact(value: unknown): WorldVisualArtifact | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const item = value as Partial<WorldVisualArtifact>;
+  if (typeof item.id !== "string" || !item.id.trim()) return null;
+  if (typeof item.assetUrl !== "string" || !item.assetUrl.startsWith("/api/local-ai/assets/")) return null;
+  if (typeof item.prompt !== "string" || !item.prompt.trim()) return null;
+  if (typeof item.frameNumber !== "number" || !Number.isInteger(item.frameNumber) || item.frameNumber < 1) return null;
+  if (item.curriculumFrontier !== "Foundations + World") return null;
+  const worldDecisionKeys = cleanStringArray(item.worldDecisionKeys);
+  if (!worldDecisionKeys.length) return null;
+  return {
+    id: item.id.trim(),
+    assetUrl: item.assetUrl,
+    prompt: item.prompt.slice(0, 30_000),
+    createdAt: typeof item.createdAt === "string" && item.createdAt ? item.createdAt : new Date().toISOString(),
+    provider: typeof item.provider === "string" ? item.provider : "",
+    model: typeof item.model === "string" ? item.model : "",
+    frameNumber: Math.min(item.frameNumber, 999),
+    narrativeIntention: typeof item.narrativeIntention === "string" && item.narrativeIntention.trim()
+      ? item.narrativeIntention.trim().slice(0, 500)
+      : "World-driven wireframe revision",
+    curriculumFrontier: "Foundations + World",
+    sourceDecisionKeys: cleanStringArray(item.sourceDecisionKeys),
+    worldDecisionKeys,
+    retainedFoundationArtifactIds: cleanStringArray(item.retainedFoundationArtifactIds, 75),
+    workflow: typeof item.workflow === "string" && item.workflow.trim()
+      ? item.workflow.trim().slice(0, 160)
+      : "world-visual-narrative-wireframe-v1",
+    changeKind: normalizeWorldChangeKind(item.changeKind),
+    reviewState: normalizeReviewState(item.reviewState),
+    parentArtifactId: typeof item.parentArtifactId === "string" && item.parentArtifactId.trim()
+      ? item.parentArtifactId.trim()
+      : null,
+  };
+}
+
+function normalizeAcceptedIds(value: unknown, knownArtifactIds: ReadonlySet<string>) {
+  return Array.isArray(value)
+    ? [...new Set(value.filter(
+      (artifactId): artifactId is string => typeof artifactId === "string"
+        && Boolean(artifactId.trim())
+        && knownArtifactIds.has(artifactId),
+    ))]
+    : [];
 }
 
 function normalizeBuild(value: unknown): BuildProgressState {
@@ -204,32 +307,59 @@ function normalizeBuild(value: unknown): BuildProgressState {
       readonly visualArtifacts?: unknown;
       readonly acceptedVisualArtifactIds?: unknown;
     };
+    readonly world?: {
+      readonly visualArtifacts?: unknown;
+      readonly acceptedVisualArtifactIds?: unknown;
+    };
   };
-  const visualArtifacts = Array.isArray(source.foundations?.visualArtifacts)
+  const foundationArtifacts = Array.isArray(source.foundations?.visualArtifacts)
     ? source.foundations.visualArtifacts
       .map(normalizeVisualArtifact)
       .filter((artifact): artifact is FoundationsVisualArtifact => Boolean(artifact))
       .filter((artifact, index, all) => all.findIndex((candidate) => candidate.id === artifact.id) === index)
       .slice(0, 75)
     : [];
-  const knownArtifactIds = new Set(visualArtifacts.map((artifact) => artifact.id));
-  const acceptedVisualArtifactIds = Array.isArray(source.foundations?.acceptedVisualArtifactIds)
-    ? [...new Set(source.foundations.acceptedVisualArtifactIds.filter(
-      (artifactId): artifactId is string => typeof artifactId === "string" && Boolean(artifactId.trim()) && knownArtifactIds.has(artifactId),
-    ))]
-    : [];
-  const acceptedIds = new Set(acceptedVisualArtifactIds);
-  const normalizedArtifacts = visualArtifacts.map((artifact) => (
-    acceptedIds.has(artifact.id)
+  const foundationKnownIds = new Set(foundationArtifacts.map((artifact) => artifact.id));
+  const foundationAcceptedIds = normalizeAcceptedIds(source.foundations?.acceptedVisualArtifactIds, foundationKnownIds);
+  const foundationAccepted = new Set(foundationAcceptedIds);
+  const normalizedFoundations = foundationArtifacts.map((artifact) => (
+    foundationAccepted.has(artifact.id)
       ? { ...artifact, reviewState: "accepted" as const }
       : artifact.reviewState === "accepted"
         ? { ...artifact, reviewState: "draft" as const }
         : artifact
   ));
+
+  const worldArtifacts = Array.isArray(source.world?.visualArtifacts)
+    ? source.world.visualArtifacts
+      .map(normalizeWorldVisualArtifact)
+      .filter((artifact): artifact is WorldVisualArtifact => Boolean(artifact))
+      .filter((artifact, index, all) => all.findIndex((candidate) => candidate.id === artifact.id) === index)
+      .map((artifact) => ({
+        ...artifact,
+        retainedFoundationArtifactIds: artifact.retainedFoundationArtifactIds.filter((id) => foundationKnownIds.has(id)),
+      }))
+      .slice(0, 100)
+    : [];
+  const worldKnownIds = new Set(worldArtifacts.map((artifact) => artifact.id));
+  const worldAcceptedIds = normalizeAcceptedIds(source.world?.acceptedVisualArtifactIds, worldKnownIds);
+  const worldAccepted = new Set(worldAcceptedIds);
+  const normalizedWorld = worldArtifacts.map((artifact) => (
+    worldAccepted.has(artifact.id)
+      ? { ...artifact, reviewState: "accepted" as const }
+      : artifact.reviewState === "accepted"
+        ? { ...artifact, reviewState: "draft" as const }
+        : artifact
+  ));
+
   return {
     foundations: {
-      visualArtifacts: normalizedArtifacts,
-      acceptedVisualArtifactIds,
+      visualArtifacts: normalizedFoundations,
+      acceptedVisualArtifactIds: foundationAcceptedIds,
+    },
+    world: {
+      visualArtifacts: normalizedWorld,
+      acceptedVisualArtifactIds: worldAcceptedIds,
     },
   };
 }
@@ -270,6 +400,7 @@ export function normalizeFoundationProject(value: unknown): PPFProject {
         : null,
     },
     foundations: normalizeFoundations(source.foundations),
+    world: normalizeWorld(source.world),
     build: normalizeBuild(source.build),
   };
 }

@@ -88,6 +88,12 @@ export function verificationCommandFor(node, options = {}) {
   const nodeExecPath = options.nodeExecPath || process.execPath;
 
   if (node.tool === "node") {
+    if (node.id === "ensure-pi-model") {
+      return { command: nodeExecPath, args: ["scripts/ensure-pi-repair-stack.mjs"] };
+    }
+    if (node.id === "pi-preflight") {
+      return { command: nodeExecPath, args: ["scripts/verify-pi-repair-worker.mjs"] };
+    }
     return { command: nodeExecPath, args: [...node.args] };
   }
 

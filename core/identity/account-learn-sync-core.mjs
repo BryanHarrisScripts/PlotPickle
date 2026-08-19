@@ -42,8 +42,18 @@ function publicKeyPem(value) {
   return normalized;
 }
 
-function uniqueSorted(values) {
-  return [...new Set((values || []).filter((value) => typeof value === "string" && Boolean(value.trim())).map((value) => value.trim()))].sort();
+function normalizedUniqueStrings(values) {
+  const seen = new Set();
+  const result = [];
+  for (const value of values || []) {
+    if (typeof value !== "string") continue;
+    const normalized = value.trim();
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    result.push(normalized);
+  }
+  result.sort((left, right) => left.localeCompare(right));
+  return result;
 }
 
 function sanitizedAvatarDraft(draft) {
@@ -164,7 +174,7 @@ export function createPortableLearnState(input = {}) {
     version: 1,
     activeLessonId: input.activeLessonId ? stableId(input.activeLessonId, "Active lesson id") : null,
     activeLessonUpdatedAt: validIso(input.activeLessonUpdatedAt, "Active lesson update time"),
-    completedLessonIds: uniqueSorted(input.completedLessonIds || []).map((value) => stableId(value, "Completed lesson id")),
+    completedLessonIds: normalizedUniqueStrings(input.completedLessonIds || []).map((value) => stableId(value, "Completed lesson id")),
     bookmarks: Object.fromEntries(Object.entries(input.bookmarks || {}).map(([lessonId, updatedAt]) => [stableId(lessonId, "Bookmark lesson id"), validIso(updatedAt, "Bookmark update time")])),
     notes: (input.notes || []).map(cleanNoteVersion),
     curriculumAnswers: (input.curriculumAnswers || []).map(cleanAnswerVersion),
@@ -223,11 +233,11 @@ function newerFrontier(left, right) {
 
 export function reconcilePortableLearnState(left, right) {
   const rightCursorIsNewer = Date.parse(right.activeLessonUpdatedAt) > Date.parse(left.activeLessonUpdatedAt);
-  const lessonVersionKeys = uniqueSorted([...Object.keys(left.lessonVersions), ...Object.keys(right.lessonVersions)]);
+  const lessonVersionKeys = normalizedUniqueStrings([...Object.keys(left.lessonVersions), ...Object.keys(right.lessonVersions)]);
   const lessonVersionConflicts = lessonVersionKeys
     .map((lessonId) => ({
       lessonId,
-      versions: uniqueSorted([left.lessonVersions[lessonId], right.lessonVersions[lessonId]].filter(Boolean)),
+      versions: normalizedUniqueStrings([left.lessonVersions[lessonId], right.lessonVersions[lessonId]].filter(Boolean)),
     }))
     .filter((entry) => entry.versions.length > 1);
   return {
@@ -235,7 +245,7 @@ export function reconcilePortableLearnState(left, right) {
       version: 1,
       activeLessonId: rightCursorIsNewer ? right.activeLessonId : left.activeLessonId,
       activeLessonUpdatedAt: rightCursorIsNewer ? right.activeLessonUpdatedAt : left.activeLessonUpdatedAt,
-      completedLessonIds: uniqueSorted([...left.completedLessonIds, ...right.completedLessonIds]),
+      completedLessonIds: normalizedUniqueStrings([...left.completedLessonIds, ...right.completedLessonIds]),
       bookmarks: mergeTimestampRecord(left.bookmarks, right.bookmarks),
       notes: appendVersions(left.notes, right.notes),
       curriculumAnswers: appendVersions(left.curriculumAnswers, right.curriculumAnswers),

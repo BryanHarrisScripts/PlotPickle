@@ -30,6 +30,12 @@ type RoutingStatus = {
 };
 
 const API = "/api/ai-routing";
+const PROVIDER_TARGET_LABELS: Record<ProviderTarget, string> = {
+  ollama: "Ollama",
+  openai: "OpenAI",
+  minimax: "MiniMax",
+  comfyui: "ComfyUI",
+};
 
 async function request<T>(path: string, method: "GET" | "POST" = "GET", body?: object) {
   const response = await fetch(path, {
@@ -85,13 +91,6 @@ function settingsTargets(route: string, option: OptionState): ProviderTarget[] {
   if (route === "ollama-comfyui") return ["ollama", "comfyui"];
   const target = canonicalTarget(option.settingsTarget);
   return target ? [target] : [];
-}
-
-function targetLabel(target: ProviderTarget) {
-  if (target === "openai") return "OpenAI";
-  if (target === "minimax") return "MiniMax";
-  if (target === "comfyui") return "ComfyUI";
-  return "Ollama";
 }
 
 export default function AiRoutingPanel() {
@@ -229,7 +228,7 @@ export default function AiRoutingPanel() {
   function setupButtons(route: string, option: OptionState, verb: "Open" | "Set up") {
     return settingsTargets(route, option).map((target) => (
       <button type="button" className={styles.settingsLink} onClick={() => openSettings(target)} key={target}>
-        {verb} {targetLabel(target)} Settings
+        {verb} {PROVIDER_TARGET_LABELS[target]} Settings
       </button>
     ));
   }

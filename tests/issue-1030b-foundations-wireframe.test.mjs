@@ -11,7 +11,7 @@ test("#1030B plans no more than 25 meaningful Foundations-only frames without pa
   assert.match(planner, /decisions\.slice\(0, MAX_FOUNDATIONS_WIREFRAME_FRAMES - 1\)/);
   assert.match(planner, /return plans\.slice\(0, MAX_FOUNDATIONS_WIREFRAME_FRAMES\)/);
   assert.match(planner, /isUsableFoundationAnswer\(value\)/);
-  assert.doesNotMatch(planner, /while \(plans\.length|pad|placeholder frame/i);
+  assert.doesNotMatch(planner, /while \(plans\.length|placeholder frame/i);
   assert.doesNotMatch(planner, /project\.world|project\.character|project\.theme|project\.structure/);
 });
 

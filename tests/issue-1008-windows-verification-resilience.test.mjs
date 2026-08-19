@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { FULL_VERIFICATION_GRAPH } from "../scripts/full-verification-graph.mjs";
@@ -82,8 +81,9 @@ test("Pi verification remains host-bounded while the worker self-provisions inst
   assert.doesNotMatch(runner, /OPTIONAL REPAIR CAPABILITY UNAVAILABLE|executableAvailable\("pi"\)/);
   assert.match(processControls, /ensure-pi-repair-stack\.mjs/);
   assert.match(processControls, /verify-pi-repair-worker\.mjs/);
-  assert.match(piRuntime, /npm.*install.*-g.*--ignore-scripts.*@earendil-works\/pi-coding-agent/s);
-  assert.match(piRuntime, /npm.*prefix.*-g/s);
+  assert.match(piRuntime, /PI_CODING_AGENT_PACKAGE\s*=\s*"@earendil-works\/pi-coding-agent"/);
+  assert.match(piRuntime, /runPortableCommand\("npm", \["install", "-g", "--ignore-scripts", PI_CODING_AGENT_PACKAGE\]/);
+  assert.match(piRuntime, /portableCommandSync\("npm", \["prefix", "-g"\]\)/);
   assert.match(ensurePi, /ensure-local-repair-model\.mjs/);
   assert.match(verifyPi, /runPiSmoke/);
 

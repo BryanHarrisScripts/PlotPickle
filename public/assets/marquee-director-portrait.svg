@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Marquee Director illustrated portrait</title>
+  <desc id="desc">A refined adult elf marketing director with copper-gold hair, teal clothing, and a dark fantasy portrait treatment.</desc>
+  <defs>
+    <radialGradient id="bg" cx="48%" cy="34%" r="72%">
+      <stop offset="0" stop-color="#1d4e4a"/>
+      <stop offset="0.56" stop-color="#102a2a"/>
+      <stop offset="1" stop-color="#070a0b"/>
+    </radialGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0b56a"/>
+      <stop offset="0.42" stop-color="#b65f37"/>
+      <stop offset="1" stop-color="#703322"/>
+    </linearGradient>
+    <linearGradient id="cloak" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a746c"/>
+      <stop offset="1" stop-color="#123d3b"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f4c9ab"/>
+      <stop offset="1" stop-color="#c88770"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+  </defs>
+  <circle cx="128" cy="128" r="124" fill="url(#bg)" stroke="#c89446" stroke-width="4"/>
+  <circle cx="128" cy="117" r="78" fill="#39c9b8" opacity=".08" filter="url(#soft)"/>
+  <path d="M44 232c10-49 42-73 84-73s75 24 84 73" fill="url(#cloak)"/>
+  <path d="M91 176c10 19 25 30 37 30s29-12 39-31l-10-20H101z" fill="#d7a287"/>
+  <path d="M63 121 27 107l38 34z" fill="url(#skin)" stroke="#b87865" stroke-width="2"/>
+  <path d="m193 121 36-14-38 34z" fill="url(#skin)" stroke="#b87865" stroke-width="2"/>
+  <path d="M75 82c7-31 27-48 54-48 33 0 55 21 57 55l-7 55c-7 28-26 46-51 46-24 0-43-18-51-45z" fill="url(#skin)"/>
+  <path d="M70 108c-2-42 19-77 58-77 44 0 66 35 58 85-9-10-14-28-12-48-15 14-31 18-55 15-16-2-30 4-49 25z" fill="url(#hair)"/>
+  <path d="M74 103c-12 40-6 77 14 105l18-27c-20-24-24-50-18-86z" fill="url(#hair)"/>
+  <path d="M181 101c13 39 7 78-14 107l-18-28c20-24 25-52 18-87z" fill="url(#hair)"/>
+  <path d="M91 109c10-7 21-7 31-1" fill="none" stroke="#6b4038" stroke-width="4" stroke-linecap="round"/>
+  <path d="M136 108c10-7 21-7 30 0" fill="none" stroke="#6b4038" stroke-width="4" stroke-linecap="round"/>
+  <ellipse cx="108" cy="119" rx="6" ry="5" fill="#183d3a"/>
+  <ellipse cx="151" cy="119" rx="6" ry="5" fill="#183d3a"/>
+  <circle cx="106" cy="117" r="1.7" fill="#d7f8ef"/>
+  <circle cx="149" cy="117" r="1.7" fill="#d7f8ef"/>
+  <path d="M128 121c-4 11-6 20-2 23 4 2 8 1 11-1" fill="none" stroke="#a96e61" stroke-width="3" stroke-linecap="round"/>
+  <path d="M111 157c10 8 24 9 35 0" fill="none" stroke="#8a4d50" stroke-width="4" stroke-linecap="round"/>
+  <path d="M94 193c10 12 21 19 34 19 14 0 26-7 36-19" fill="none" stroke="#d7bc76" stroke-width="3" opacity=".85"/>
+  <path d="m128 202 8 10-8 14-8-14z" fill="#c89446" stroke="#f0d79a" stroke-width="2"/>
+  <path d="M61 228c15-23 32-34 50-38l17 22 18-22c20 5 37 17 50 38" fill="none" stroke="#35c9b8" stroke-width="5" opacity=".36"/>
+  <circle cx="128" cy="128" r="117" fill="none" stroke="#d7bc76" stroke-width="1.5" opacity=".45"/>
+</svg>

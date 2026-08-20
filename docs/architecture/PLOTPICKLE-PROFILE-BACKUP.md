@@ -121,7 +121,11 @@ Wrong secrets and tampered data fail closed.
 
 The default restore preserves the stable Human `profileId` because encrypted object AAD is bound to that profile id.
 
-Restore flow:
+The browser-facing v1 restore flow intentionally targets a fresh/unpopulated PlotPickle Node. Live import into an already-populated running Node is not exposed yet because replacing the current singleton Auth registry would invalidate unrelated active Human sessions. Adding a restored profile to a populated live Node requires a future session-preserving Auth import primitive; PlotPickle does not fake that safety by globally restarting authentication underneath other Humans.
+
+The lower-level restore contract remains collision-aware and stages against the destination profile root so offline/maintenance tooling can retain the same cryptographic invariants.
+
+Restore flow on a fresh Node:
 
 ```text
 read safe backup header
@@ -133,7 +137,7 @@ read safe backup header
   -> verify staged hashes
   -> move verified encrypted profile into its canonical profile root
   -> add the profile + wrapped PMK envelopes to destination Auth state
-  -> restart/reload Auth runtime
+  -> reload the empty Auth runtime
   -> create a fresh destination session
 ```
 
@@ -188,5 +192,6 @@ OPAQUE/PAKE remains deferred. PlotPickle does not implement a custom PAKE.
 - `..`, absolute paths, backslash path substitution and symlink restore are rejected.
 - Restore verifies all required encrypted objects before profile activation.
 - Existing destination profiles are never overwritten silently.
+- Live restore does not terminate unrelated Humans' sessions to make an import appear successful.
 - BUZZ remains optional for local profile recovery.
 - Passkeys remain optional and cannot become the only recovery mechanism.

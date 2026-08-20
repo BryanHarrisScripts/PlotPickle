@@ -1,0 +1,92 @@
+import { AsyncLocalStorage } from "node:async_hooks";
+import type { IncomingHttpHeaders, IncomingMessage, ServerResponse } from "node:http";
+import type { Plugin } from "vite";
+import type { AuthContext } from "../core/auth/plotpickle-auth";
+import type { ProfilePrivateStorageService } from "../core/storage/profile-private/profile-private-storage";
+import { getProfileExperienceRuntime } from "../core/auth/profile-experience/profile-experience-runtime";
+
+const BUZZ_API = "/api/local-buzz";
+
+type ProfileRequestContext = Readonly<{
+  authContext: AuthContext;
+  profileId: string;
+  privateStorage: ProfilePrivateStorageService;
+}>;
+
+const profileRequests = new AsyncLocalStorage<ProfileRequestContext>();
+
+function headerRecord(headers: IncomingHttpHeaders) {
+  const result: Record<string, string | readonly string[] | undefined> = {};
+  for (const [name, value] of Object.entries(headers)) result[name] = value;
+  return result;
+}
+
+function requestOrigin(request: IncomingMessage) {
+  const host = request.headers.host;
+  if (!host) throw new Error("PlotPickle rejected a BUZZ request without a Host header.");
+  if (request.headers.origin) return new URL(request.headers.origin).origin;
+  const encrypted = Boolean((request.socket as typeof request.socket & { encrypted?: boolean }).encrypted);
+  return `${encrypted ? "https" : "http"}://${host}`;
+}
+
+function sessionRequest(request: IncomingMessage, origin: string) {
+  return {
+    method: request.method,
+    url: new URL(request.url || "/", origin).toString(),
+    headers: headerRecord(request.headers),
+    remoteAddress: request.socket.remoteAddress,
+    secure: origin.startsWith("https:"),
+    socketEncrypted: Boolean((request.socket as typeof request.socket & { encrypted?: boolean }).encrypted),
+  };
+}
+
+function sendRejected(response: ServerResponse, error: unknown) {
+  const message = error instanceof Error && error.message
+    ? error.message
+    : "Unlock a PlotPickle Human profile before using BUZZ.";
+  response.statusCode = 401;
+  response.setHeader("Content-Type", "application/json; charset=utf-8");
+  response.setHeader("Cache-Control", "no-store");
+  response.setHeader("X-Content-Type-Options", "nosniff");
+  response.end(JSON.stringify({
+    ok: false,
+    code: "plotpickle-profile-required",
+    message: /session|auth|profile|unlock|cookie/i.test(message)
+      ? "Unlock a PlotPickle Human profile before using BUZZ."
+      : "PlotPickle could not authorize this BUZZ request for the active Human profile.",
+  }));
+}
+
+export function currentProfileRequestContext() {
+  return profileRequests.getStore() ?? null;
+}
+
+export function profileScopedBuzzRequestContext(): Plugin {
+  return {
+    name: "plotpickle-profile-scoped-buzz-request-context",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use((request, response, next) => {
+        const rawUrl = request.url;
+        if (!rawUrl) { next(); return; }
+        let url: URL;
+        try { url = new URL(rawUrl, "http://127.0.0.1"); } catch { next(); return; }
+        if (!url.pathname.startsWith(BUZZ_API)) { next(); return; }
+
+        void (async () => {
+          const origin = requestOrigin(request);
+          const runtime = await getProfileExperienceRuntime();
+          const boundary = runtime.boundaryFor(origin);
+          const { authContext } = await boundary.authorizeRequest(sessionRequest(request, origin));
+          const profileId = runtime.auth.getAuthStatus(authContext).profile?.profileId;
+          if (!profileId) throw new Error("Authenticated Human profile could not be resolved.");
+          profileRequests.run(Object.freeze({
+            authContext,
+            profileId,
+            privateStorage: runtime.privateStorage,
+          }), next);
+        })().catch((error) => sendRejected(response, error));
+      });
+    },
+  };
+}

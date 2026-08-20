@@ -25,6 +25,7 @@ type ProfileExperienceRuntime = {
   readonly auth: PlotPickleAuthService;
   readonly stateStore: AuthStateStore;
   readonly accessMode: "desktop-loopback" | "server-network";
+  readonly home: string;
   readonly privateStorage: ProfilePrivateStorageService;
   boundaryFor(origin: string): ServerSessionBoundary;
   locateProfile(locator: string): Promise<string | null>;
@@ -87,13 +88,14 @@ function sessionCookie(cookieValue: string, maximumAgeSeconds: number, mode: "de
 async function createRuntime(): Promise<ProfileExperienceRuntime> {
   const stateStore = createJsonFileAuthStateStore(authStatePath());
   const mode = accessMode();
+  const home = persistentHome();
   const auth = await createPlotPickleAuthService({
     nodeId: process.env.PLOTPICKLE_NODE_ID?.trim() || "plotpickle-local-node",
     accessMode: mode,
     stateStore,
   });
   const privateStorage = createProfilePrivateStorageService({
-    root: persistentHome(),
+    root: home,
     authService: auth,
     normalizeProject: normalizeFoundationProject,
   });
@@ -103,6 +105,7 @@ async function createRuntime(): Promise<ProfileExperienceRuntime> {
     auth,
     stateStore,
     accessMode: mode,
+    home,
     privateStorage,
     boundaryFor(origin: string) {
       const parsed = new URL(origin);
@@ -152,6 +155,20 @@ async function createRuntime(): Promise<ProfileExperienceRuntime> {
 export function getProfileExperienceRuntime() {
   runtimePromise ??= createRuntime();
   return runtimePromise;
+}
+
+export async function resetProfileExperienceRuntime() {
+  const currentPromise = runtimePromise;
+  runtimePromise = null;
+  if (!currentPromise) return false;
+  try {
+    const current = await currentPromise;
+    current.privateStorage.close();
+    current.auth.close();
+  } catch {
+    // A failed runtime creation has no live private state to close.
+  }
+  return true;
 }
 
 export function requestBoundary(request: Request): SessionRequest {

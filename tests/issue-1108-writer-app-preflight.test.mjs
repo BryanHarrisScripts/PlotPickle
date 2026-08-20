@@ -145,11 +145,15 @@ test("#1108 refuses a foreign process on 4173 instead of replacing or killing it
   assert.equal(spawnCalls, 0);
 });
 
-test("#1108 public entrypoint completes app preflight before spawning any Avery phase", async () => {
+test("#1108 public entrypoint completes app preflight before Avery and verifies endpoint generation before accepting the exit code", async () => {
   const source = await read("scripts/run-writer-in-residence.mjs");
   const preflight = source.indexOf("runtime = await ensureWriterAppRuntime");
-  const journey = source.indexOf("process.exitCode = await runJourney()");
+  const journey = source.indexOf("const journeyExit = await runJourney()");
+  const generationCheck = source.indexOf("await assertEndpointStillCurrent()");
+  const exitAssignment = source.indexOf("process.exitCode = journeyExit");
   assert.ok(preflight >= 0 && journey > preflight);
+  assert.ok(generationCheck > journey, "endpoint generation must be revalidated after the Avery journey");
+  assert.ok(exitAssignment > generationCheck, "the journey exit code is accepted only after endpoint generation proof");
   assert.match(source, /run-writer-in-residence-e2e\.mjs/);
   assert.match(source, /writer-in-residence-runtime-recovery\.mjs/);
   assert.match(source, /--import/);

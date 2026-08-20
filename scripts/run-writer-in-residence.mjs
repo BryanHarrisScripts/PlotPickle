@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import process from "node:process";
-import { randomUUID } from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { ensureWriterAppRuntime, stopOwnedWriterApp } from "./writer-app-runtime.mjs";
 import { endpointRuntimeEnvironment, managedEndpointEvidence } from "./local-endpoint-runtime.mjs";
+import { resolveLocalEndpointTarget } from "./local-endpoint-target.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
@@ -26,6 +27,12 @@ let activeChild = null;
 let runtime = null;
 let shuttingDown = false;
 
+function managedEnvironment() {
+  return runtime?.source === "local-endpoint-registry-direct"
+    ? endpointRuntimeEnvironment(runtime)
+    : {};
+}
+
 async function stopOwnedRuntime() {
   if (!runtime?.owned) return;
   status("Writer app runtime", "STOP", "Stopping only the temporary PlotPickle server started for this Avery run.");
@@ -36,9 +43,6 @@ async function stopOwnedRuntime() {
 async function runJourney() {
   const recovery = pathToFileURL(path.join(repoRoot, "scripts", "writer-in-residence-runtime-recovery.mjs")).href;
   const runner = path.join(repoRoot, "scripts", "run-writer-in-residence-e2e.mjs");
-  const managedEnvironment = runtime?.source === "local-endpoint-registry-direct"
-    ? endpointRuntimeEnvironment(runtime)
-    : {};
   const endpointEvidence = runtime?.source === "local-endpoint-registry-direct"
     ? JSON.stringify(managedEndpointEvidence(runtime))
     : process.env.PLOTPICKLE_LOCAL_ENDPOINT_EVIDENCE || "";
@@ -47,7 +51,7 @@ async function runJourney() {
       cwd: repoRoot,
       env: {
         ...process.env,
-        ...managedEnvironment,
+        ...managedEnvironment(),
         PLOTPICKLE_WRITER_RUNTIME_SOURCE: runtime?.source || "unknown",
         ...(endpointEvidence ? { PLOTPICKLE_LOCAL_ENDPOINT_EVIDENCE: endpointEvidence } : {}),
       },
@@ -62,6 +66,17 @@ async function runJourney() {
       resolve(Number(code ?? 1));
     });
   });
+}
+
+async function assertEndpointStillCurrent() {
+  const target = await resolveLocalEndpointTarget({
+    args: argv,
+    env: { ...process.env, ...managedEnvironment() },
+  });
+  await target.assertCurrent();
+  if (target.evidence) {
+    status("Writer endpoint generation", "PASS", `${target.evidence.endpointId} generation ${target.evidence.generation}`);
+  }
 }
 
 async function shutdownFromSignal(signal) {
@@ -97,7 +112,9 @@ try {
         ? "Temporary PlotPickle server is ready and owned by this Writer run."
         : "Reusing the explicitly selected healthy PlotPickle server; it will not be stopped afterward.",
   );
-  process.exitCode = await runJourney();
+  const journeyExit = await runJourney();
+  await assertEndpointStillCurrent();
+  process.exitCode = journeyExit;
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   status("Writer app preflight", "FAIL", message);

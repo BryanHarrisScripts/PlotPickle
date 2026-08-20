@@ -20,8 +20,8 @@ test("#1144 migration reads the legacy single-user source only outside the per-r
     readFile(new URL("../build/profile-request-context.ts", import.meta.url), "utf8"),
   ]);
   assert.match(migrationSource, /createLegacyCredentialMigrationSource\(\[CONNECTION_FILE\]\)/);
-  assert.match(migrationSource, /withoutProfileRequestContext\(\(\) => legacy\.listCredentials\(\)\)/);
-  assert.match(contextSource, /profileRequests\.exit\(operation\)/);
+  assert.match(migrationSource, /profileRequestScope\.exit\(\(\) => legacy\.listCredentials\(\)\)/);
+  assert.match(contextSource, /export const profileRequestScope = new AsyncLocalStorage<ProfileRequestContext>\(\)/);
 });
 
 test("#1144 credential inventory keeps Human BUZZ signer profile-owned and managed BUZZ service secrets Node-owned", async () => {

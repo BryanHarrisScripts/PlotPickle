@@ -3,6 +3,10 @@ import { access } from "node:fs/promises";
 import net from "node:net";
 import path from "node:path";
 import process from "node:process";
+import {
+  startManagedPlotPickleEndpoint,
+  stopManagedLocalEndpoint,
+} from "./local-endpoint-runtime.mjs";
 
 const DEFAULT_WRITER_URL = "http://127.0.0.1:4173";
 const READY_TIMEOUT_MS = 60_000;
@@ -91,6 +95,10 @@ export async function stopOwnedWriterApp(runtime, {
   sleepImpl = sleep,
   forceKillImpl = defaultForceKill,
 } = {}) {
+  if (runtime?.source === "local-endpoint-registry-direct") {
+    await stopManagedLocalEndpoint(runtime);
+    return;
+  }
   if (!runtime?.owned || runtime.stopped) return;
   runtime.stopped = true;
   const child = runtime.child;
@@ -109,8 +117,26 @@ export async function ensureWriterAppRuntime({
   pollMs = POLL_MS,
   onStatus = () => {},
   deps = {},
+  managedEndpoint = false,
+  jobId,
+  profileRef,
 } = {}) {
   if (!repoRoot) throw new Error("Writer app preflight requires the PlotPickle repository root.");
+  if (managedEndpoint) {
+    return startManagedPlotPickleEndpoint({
+      repoRoot,
+      jobId,
+      profileRef,
+      serviceKind: "plotpickle-writer-app",
+      startupContract: "plotpickle-writer-endpoint-v1",
+      timeoutMs,
+      pollMs,
+      onStatus,
+      onOutput: deps.onOutput,
+      deps: deps.managed || {},
+    });
+  }
+
   const probe = deps.probe || probeWriterApp;
   const spawnImpl = deps.spawn || spawn;
   const accessImpl = deps.access || access;

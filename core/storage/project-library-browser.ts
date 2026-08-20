@@ -23,7 +23,7 @@ export const DEFAULT_LOCAL_PROFILE_ID = libraryCore.DEFAULT_LOCAL_PROFILE_ID as 
 
 function storage() {
   if (typeof window === "undefined") throw new Error("Project Library is available only in the local PlotPickle browser session.");
-  return window.localStorage;
+  return window.sessionStorage;
 }
 
 function idFactory() {

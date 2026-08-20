@@ -18,7 +18,7 @@ test("the Curriculum Bridge exposes Foundations objectives, key concepts, active
   assert.match(bridge, /activeLessonId/);
   assert.match(contracts, /interface WyrmwoodCurriculumProgress/);
   assert.match(ui, /loadFoundationProject\(\)/);
-  assert.match(ui, /PROJECT_LIBRARY_ACTIVE_PROFILE_KEY/);
+  assert.match(ui, /hydratedProfilePrivateValue\("wyrmwood"\)/);
   assert.match(ui, /buildWyrmwoodCurriculumProgress/);
   assert.match(ui, /lessons marked complete/);
   assert.match(ui, /Key concepts:/);

@@ -4,7 +4,10 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import type { CurriculumLesson } from "../../../core/contracts/curriculum";
 import { loadFoundationProject } from "../../../core/storage/foundation-project-browser";
-import { DEFAULT_LOCAL_PROFILE_ID, PROJECT_LIBRARY_ACTIVE_PROFILE_KEY } from "../../../core/storage/project-library-browser";
+import {
+  hydratedProfilePrivateValue,
+  persistProfilePrivateValue,
+} from "../../../core/storage/profile-private-browser";
 import {
   buildFundamentalsTrials,
   buildWyrmwoodCurriculumProgress,
@@ -22,7 +25,6 @@ import {
   openWyrmwoodTrial,
   submitWyrmwoodPlayerTurn,
   WYRMWOOD_PICKLES_PER_MATCH,
-  WYRMWOOD_STORAGE_KEY,
 } from "../engine";
 import { directWyrmwoodTurn, WYRMWOOD_RIVALS } from "../rival-director";
 import type { WyrmwoodGameState } from "../contracts";
@@ -58,9 +60,8 @@ type LearnSnapshot = {
 
 function loadState() {
   try {
-    const profileId = localStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || DEFAULT_LOCAL_PROFILE_ID;
-    const saved = localStorage.getItem(`${WYRMWOOD_STORAGE_KEY}.${profileId}`);
-    return saved ? normalizeWyrmwoodGameState(JSON.parse(saved)) : createWyrmwoodGameState();
+    const saved = hydratedProfilePrivateValue("wyrmwood");
+    return saved ? normalizeWyrmwoodGameState(saved) : createWyrmwoodGameState();
   } catch {
     return createWyrmwoodGameState();
   }
@@ -105,8 +106,11 @@ export default function WyrmwoodWorkspace({
   const [evaluationError, setEvaluationError] = useState("");
 
   useEffect(() => {
-    setState(loadState());
-    setLearnSnapshot(loadLearnSnapshot());
+    const start = window.setTimeout(() => {
+      setState(loadState());
+      setLearnSnapshot(loadLearnSnapshot());
+    }, 0);
+    return () => window.clearTimeout(start);
   }, []);
 
   const curriculumProgress = useMemo(() => buildWyrmwoodCurriculumProgress(
@@ -116,8 +120,7 @@ export default function WyrmwoodWorkspace({
   ), [curriculum, learnSnapshot]);
 
   function saveState(next: WyrmwoodGameState) {
-    const profileId = localStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || DEFAULT_LOCAL_PROFILE_ID;
-    localStorage.setItem(`${WYRMWOOD_STORAGE_KEY}.${profileId}`, JSON.stringify(next));
+    void persistProfilePrivateValue("wyrmwood", next).catch(() => undefined);
     setState(next);
   }
 

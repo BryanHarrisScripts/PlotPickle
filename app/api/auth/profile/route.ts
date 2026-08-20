@@ -33,11 +33,13 @@ export async function GET(request: Request) {
     const runtimeState = await getProfileExperienceRuntime();
     const boundary = runtimeState.boundaryFor(originOf(request));
     const publicStatus = runtimeState.auth.getAuthStatus();
+    const readiness = boundary.readiness();
     let profile: ProfileSummary | null = null;
     let csrfToken = null;
     let authContext = null;
     let sessions: ReadonlyArray<BrowserSessionSummary> = [];
     try {
+      if (!readiness.ready) throw new Error("The server exposure boundary is not ready.");
       authContext = (await boundary.authorizeRequest(requestBoundary(request))).authContext;
       profile = runtimeState.auth.getAuthStatus(authContext).profile as ProfileSummary;
       csrfToken = runtimeState.auth.createBrowserSession(authContext).csrfToken;
@@ -48,11 +50,13 @@ export async function GET(request: Request) {
     const result: ProfileExperienceStatus = {
       configured: publicStatus.configured === true,
       authenticated: Boolean(authContext),
-      accessMode: "desktop-loopback",
+      accessMode: runtimeState.accessMode,
       profiles: runtimeState.auth.listProfileSummaries(authContext),
       profile,
       csrfToken,
       sessions,
+      serverReady: readiness.ready,
+      readinessReasons: readiness.reasons,
     };
     return response(result);
   } catch (error) {
@@ -73,8 +77,8 @@ export async function POST(request: Request) {
         displayName: String(input.displayName || ""),
         password: String(input.password || ""),
         avatarRef: null,
-      }, undefined, requestBoundary(request));
-      const sessionId = created.headers["Set-Cookie"].match(/^ppsid=([^;]+)/u)?.[1];
+      }, typeof input.bootstrapProof === "string" ? input.bootstrapProof : undefined, requestBoundary(request));
+      const sessionId = created.headers["Set-Cookie"].match(/^(?:__Host-)?ppsid=([^;]+)/u)?.[1];
       if (sessionId) runtimeState.auth.lock(runtimeState.auth.resolveSession(sessionId));
       return response({ profile: created.profile, recoverySecret: created.recoverySecret });
     }

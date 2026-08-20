@@ -6,6 +6,13 @@ import {
   saveFoundationProject,
 } from "@/core/storage/foundation-project-browser";
 import { PROJECT_LIBRARY_ACTIVE_PROFILE_KEY } from "@/core/storage/project-library-browser";
+import { PROJECT_LIBRARY_CHANGED_EVENT } from "@/core/storage/project-library-browser";
+import {
+  clearProfilePrivateBrowser,
+  flushProfilePrivateWrites,
+  hydrateProfilePrivateBrowser,
+  persistActiveProfileProject,
+} from "@/core/storage/profile-private-browser";
 import styles from "./profile-access-boundary.module.css";
 
 type Profile = { readonly profileId: string; readonly displayName: string; readonly avatarRef: string | null; readonly status: string };
@@ -16,8 +23,10 @@ type Status = {
   readonly profiles: readonly Profile[];
   readonly profile: Profile | null;
   readonly csrfToken: string | null;
+  readonly serverReady: boolean;
+  readonly readinessReasons: readonly string[];
 };
-type Screen = "loading" | "chooser" | "login" | "create" | "recovery" | "guest" | "ready";
+type Screen = "loading" | "chooser" | "login" | "create" | "recovery" | "guest" | "ready" | "server-unavailable";
 type Recovery = { readonly profile: Profile; readonly secret: string; readonly password: string; readonly guestDraft: string };
 
 async function profileRequest(action: string, payload: Record<string, unknown> = {}, csrfToken?: string | null) {
@@ -33,7 +42,7 @@ async function profileRequest(action: string, payload: Record<string, unknown> =
 }
 
 function clearPrivateScreen() {
-  window.sessionStorage.clear();
+  clearProfilePrivateBrowser();
   window.localStorage.removeItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY);
   document.title = "PlotPickle — Profile locked";
   window.history.replaceState({ profileBoundary: "locked" }, "", "/");
@@ -42,7 +51,7 @@ function clearPrivateScreen() {
 function saveGuestDraft(profileId: string, draft: string) {
   const content = draft.trim();
   if (!content) return;
-  window.localStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profileId);
+  window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profileId);
   const now = new Date().toISOString();
   const project = createEmptyProject({ id: globalThis.crypto.randomUUID(), now, title: "Guest Draft" });
   saveFoundationProject({ ...project, foundations: { ...project.foundations, brief: { content, savedAt: now } } });
@@ -90,18 +99,37 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
     if (!result.ok) throw new Error("The local profile service is unavailable.");
     setStatus(next);
     if (next.authenticated && next.profile) {
-      window.localStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, next.profile.profileId);
+      await hydrateProfilePrivateBrowser(next.profile.profileId, next.csrfToken || "");
       document.title = "PlotPickle - AI-native Visual Writing and Creative Direction";
       setScreen("ready");
     } else {
-      setScreen(next.configured ? "chooser" : "create");
+      setScreen(next.accessMode === "server-network" ? (next.serverReady ? "login" : "server-unavailable") : next.configured ? "chooser" : "create");
     }
   }, []);
 
   useEffect(() => {
-    const start = window.setTimeout(() => void refresh().catch((cause) => { setError(String(cause)); setScreen("chooser"); }), 0);
+    const start = window.setTimeout(() => void refresh().catch((cause) => { setError(String(cause)); setScreen("server-unavailable"); }), 0);
     return () => window.clearTimeout(start);
   }, [refresh]);
+  useEffect(() => {
+    const persist = () => void persistActiveProfileProject().catch(() => undefined);
+    window.addEventListener(PROJECT_LIBRARY_CHANGED_EVENT, persist);
+    return () => window.removeEventListener(PROJECT_LIBRARY_CHANGED_EVENT, persist);
+  }, []);
+  useEffect(() => {
+    if (screen !== "ready") return;
+    const heartbeat = window.setInterval(() => {
+      void fetch("/api/auth/profile", { credentials: "same-origin", cache: "no-store" })
+        .then((result) => result.json() as Promise<Status>)
+        .then((next) => {
+          if (next.authenticated) { setStatus(next); return; }
+          clearPrivateScreen(); setStatus(next); setSelected(null);
+          setScreen(next.accessMode === "server-network" ? (next.serverReady ? "login" : "server-unavailable") : next.configured ? "chooser" : "create");
+        })
+        .catch(() => undefined);
+    }, 30_000);
+    return () => window.clearInterval(heartbeat);
+  }, [screen]);
   useEffect(() => {
     const handleAction = (event: Event) => {
       const action = (event as CustomEvent<string>).detail;
@@ -119,7 +147,7 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
       const locator = selected?.profileId || name;
       const result = await profileRequest("login", { locator, password });
       const profile = result.profile as Profile;
-      window.localStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profile.profileId);
+      window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profile.profileId);
       if (recovery?.guestDraft) saveGuestDraft(profile.profileId, recovery.guestDraft);
       setPassword(""); setConfirmation(""); setRecovery(null); setGuestDraft(""); setAddingProfile(false);
       await refresh();
@@ -147,7 +175,7 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
     try {
       const result = await profileRequest("login", { locator: recovery.profile.profileId, password: recovery.password });
       const profile = result.profile as Profile;
-      window.localStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profile.profileId);
+      window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profile.profileId);
       if (recovery.guestDraft) saveGuestDraft(profile.profileId, recovery.guestDraft);
       setPassword(""); setConfirmation(""); setRecovery(null); setGuestDraft(""); setAddingProfile(false);
       await refresh();
@@ -159,6 +187,8 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
     if (!status?.csrfToken) return;
     setBusy(true); setError("");
     try {
+      await persistActiveProfileProject();
+      await flushProfilePrivateWrites();
       await profileRequest(action, {}, status.csrfToken);
       clearPrivateScreen(); setStatus(null); setSelected(null); setScreen("loading");
       await refresh();
@@ -184,6 +214,10 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
 
   if (screen === "login" && (selected || status?.accessMode === "server-network")) {
     return <main className={styles.boundary}><section className={styles.card}><p className={styles.eyebrow}>Local profile</p><h1>{selected ? `Unlock ${selected.displayName}` : "Sign in to PlotPickle"}</h1><p>Unlocking protects the selected Human’s private work. BUZZ remains an optional, separate identity.</p><form onSubmit={signIn}>{!selected ? <label className={styles.field}><span>Profile name</span><input value={name} onChange={(event) => setName(event.target.value)} autoComplete="username" required /></label> : null}<PasswordField value={password} onChange={setPassword} />{error ? <p role="alert" className={styles.error}>{error}</p> : null}<div className={styles.actions}><button type="submit" disabled={busy}>{busy ? "Unlocking…" : "Unlock profile"}</button><button type="button" onClick={() => { setPassword(""); setError(""); setSelected(null); setScreen("chooser"); }}>Back</button></div></form></section></main>;
+  }
+
+  if (screen === "server-unavailable") {
+    return <main className={styles.boundary}><section className={styles.card}><p className={styles.eyebrow}>Secure profile boundary</p><h1>PlotPickle login is not available yet</h1><p>The profile service must be ready before login can accept credentials. A server Node also requires HTTPS, host/origin allowlists, a bind address, and completed bootstrap configuration.</p>{status?.readinessReasons.length ? <p role="status">Readiness: {status.readinessReasons.join(", ")}</p> : null}{error ? <p role="alert" className={styles.error}>{error}</p> : null}</section></main>;
   }
 
   return <main className={styles.boundary}><section className={styles.card} aria-busy={screen === "loading"}><p className={styles.eyebrow}>PlotPickle profiles</p><h1>{screen === "loading" ? "Opening the local profile boundary…" : "Choose a PlotPickle profile"}</h1>{screen !== "loading" ? <><p>Profiles belong to this PlotPickle Node. The chooser shows only a safe name and optional avatar—never stories, activity, projects, agents, files, or BUZZ membership.</p><div className={styles.profileList}>{status?.profiles.filter((profile) => profile.status === "active").map((profile) => <button type="button" key={profile.profileId} onClick={() => { setSelected(profile); setPassword(""); setError(""); setScreen("login"); }}><span aria-hidden="true">{profile.displayName.slice(0, 1).toUpperCase()}</span><strong>{profile.displayName}</strong><small>Locked</small></button>)}</div><div className={styles.actions}><button type="button" onClick={() => { setName(""); setPassword(""); setConfirmation(""); setScreen("create"); }}>Add profile</button><button type="button" onClick={() => setScreen("guest")}>Use isolated Guest</button></div>{error ? <p role="alert" className={styles.error}>{error}</p> : null}</> : null}</section></main>;

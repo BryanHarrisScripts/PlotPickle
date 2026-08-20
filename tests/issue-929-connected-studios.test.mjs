@@ -36,14 +36,16 @@ test("moderation and relationships attach to immutable Studio ID", async () => {
   assert.match(directory, /writeCredentialJson/);
 });
 
-test("Connected Studios UI is a community directory, not network administration", async () => {
+test("Connected Studios UI is a community directory and returns to Hall 1 Great Hall", async () => {
   const [workspace, panel, styles] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("app/connected-studios-panel.tsx"),
     read("app/connected-studios-panel.module.css"),
   ]);
   assert.match(workspace, /ConnectedStudiosPanel/);
-  assert.match(workspace, /onOpenGreatHall=\{\(\) => setSection\("great-hall"\)\}/);
+  assert.match(workspace, /onOpenGreatHall=\{openGreatHall\}/);
+  assert.match(workspace, /function openGreatHall\(\)/);
+  assert.match(workspace, /createGreatHallActiveRoom\(community\?\.greatHall\)/);
   assert.match(panel, /This is a community directory, not a server list/);
   assert.match(panel, /Studio \{studio\.shortCode\}/);
   for (const label of ["Online", "Away", "Busy", "Offline"]) assert.match(`${panel}\n${styles}`, new RegExp(label, "i"));

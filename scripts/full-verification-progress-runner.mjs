@@ -7,9 +7,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import {
   FULL_VERIFICATION_GRAPH,
-  ensurePlotPickleReady,
   runVerificationGraph,
-  verificationEndpointEnvironment,
 } from "./full-verification-graph.mjs";
 import {
   terminateVerificationProcessTree,
@@ -217,15 +215,17 @@ async function main() {
       startupWaitSeconds,
       maxParallelism,
       echo: true,
-      execute: async (node) => {
+      execute: async (node, endpointContext) => {
         active.set(node.id, node.name);
         try {
-          if (node.tool === "app-ready") return await ensurePlotPickleReady({ startupWaitSeconds, echo: true });
+          if (node.tool === "app-ready") {
+            return await endpointContext.ensureReady({ startupWaitSeconds, echo: true, cwd: repoRoot });
+          }
           return await executeBoundedCommand(
             node,
             verificationTimeoutForNode(node),
             verificationStallTimeoutForNode(node),
-            { env: verificationEndpointEnvironment() },
+            { env: endpointContext.environment() },
           );
         } finally {
           active.delete(node.id);

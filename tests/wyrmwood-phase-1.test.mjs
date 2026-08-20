@@ -72,8 +72,8 @@ test("Wyrmwood state starts deterministic and cannot mutate the story project", 
   assert.match(engine, /brineCoins: 0/);
   assert.match(engine, /xp: 0/);
   assert.match(engine, /clampNumber\(state\.spotlight \+ spotlightDelta, 0, 100/);
-  assert.match(ui, /LEARN_PROJECT_STORAGE_KEY = "plotpickle\.foundation\.project\.v1"/);
-  assert.match(ui, /localStorage\.getItem\(LEARN_PROJECT_STORAGE_KEY\)/);
-  assert.doesNotMatch(ui, /localStorage\.setItem\(LEARN_PROJECT_STORAGE_KEY/);
+  assert.match(ui, /loadFoundationProject\(\)/);
+  assert.match(ui, /PROJECT_LIBRARY_ACTIVE_PROFILE_KEY/);
+  assert.doesNotMatch(ui, /plotpickle\.foundation\.project\.v1/);
   assert.doesNotMatch(ui, /applyStoryCommand|PPFProject|FOUNDATION_PROJECT_STORAGE_KEY/);
 });

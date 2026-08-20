@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import type { CurriculumLesson } from "../../../core/contracts/curriculum";
+import { loadFoundationProject } from "../../../core/storage/foundation-project-browser";
+import { DEFAULT_LOCAL_PROFILE_ID, PROJECT_LIBRARY_ACTIVE_PROFILE_KEY } from "../../../core/storage/project-library-browser";
 import {
   buildFundamentalsTrials,
   buildWyrmwoodCurriculumProgress,
@@ -25,8 +27,6 @@ import {
 import { directWyrmwoodTurn, WYRMWOOD_RIVALS } from "../rival-director";
 import type { WyrmwoodGameState } from "../contracts";
 import styles from "./wyrmwood-workspace.module.css";
-
-const LEARN_PROJECT_STORAGE_KEY = "plotpickle.foundation.project.v1";
 
 const NAV_ITEMS = [
   { id: "learn", relic: "/assets/workflow-relics/learn.webp", label: "Learn", detail: "Guides", selectable: true },
@@ -58,7 +58,8 @@ type LearnSnapshot = {
 
 function loadState() {
   try {
-    const saved = localStorage.getItem(WYRMWOOD_STORAGE_KEY);
+    const profileId = localStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || DEFAULT_LOCAL_PROFILE_ID;
+    const saved = localStorage.getItem(`${WYRMWOOD_STORAGE_KEY}.${profileId}`);
     return saved ? normalizeWyrmwoodGameState(JSON.parse(saved)) : createWyrmwoodGameState();
   } catch {
     return createWyrmwoodGameState();
@@ -67,19 +68,12 @@ function loadState() {
 
 function loadLearnSnapshot(): LearnSnapshot {
   try {
-    const saved = localStorage.getItem(LEARN_PROJECT_STORAGE_KEY);
-    if (!saved) return { completedLessonIds: [], activeLessonId: "" };
-    const project = JSON.parse(saved) as {
-      readonly learning?: {
-        readonly completedLessonIds?: unknown;
-        readonly activeLessonId?: unknown;
-      };
-    };
+    const project = loadFoundationProject();
     return {
-      completedLessonIds: Array.isArray(project.learning?.completedLessonIds)
+      completedLessonIds: Array.isArray(project.learning.completedLessonIds)
         ? project.learning.completedLessonIds.filter((id): id is string => typeof id === "string")
         : [],
-      activeLessonId: typeof project.learning?.activeLessonId === "string" ? project.learning.activeLessonId : "",
+      activeLessonId: typeof project.learning.activeLessonId === "string" ? project.learning.activeLessonId : "",
     };
   } catch {
     return { completedLessonIds: [], activeLessonId: "" };
@@ -122,7 +116,8 @@ export default function WyrmwoodWorkspace({
   ), [curriculum, learnSnapshot]);
 
   function saveState(next: WyrmwoodGameState) {
-    localStorage.setItem(WYRMWOOD_STORAGE_KEY, JSON.stringify(next));
+    const profileId = localStorage.getItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY) || DEFAULT_LOCAL_PROFILE_ID;
+    localStorage.setItem(`${WYRMWOOD_STORAGE_KEY}.${profileId}`, JSON.stringify(next));
     setState(next);
   }
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ProfileAccessBoundary from "./profile-access/profile-access-boundary";
 import AppearanceRuntime from "./appearance-runtime";
 import BuildAssemblyStudio from "./build-assembly-studio";
 import BuildAnimaticStudio from "./build-animatic-studio";
@@ -108,7 +109,7 @@ export default function RootLayout({
         } as React.CSSProperties}
       >
         <AppearanceRuntime />
-        {children}
+        <ProfileAccessBoundary>{children}</ProfileAccessBoundary>
         <UiContinuityAnchor />
         <LearnEntryRouter />
         <CommonOverlayLayer />

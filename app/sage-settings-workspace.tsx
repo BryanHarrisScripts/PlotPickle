@@ -14,6 +14,7 @@ import SageFastModelSetup from "./sage-fast-model-setup";
 import SettingsHelperDirectory from "./settings-helper-directory";
 import SettingsReadinessOverview from "./settings-readiness-overview";
 import WritingAssistantConsole from "./writing-assistant-console";
+import ProfilesSecurityPanel from "./profile-access/profiles-security-panel";
 import AiProviderSetupPanel from "./settings/ai-provider/ai-provider-setup-panel";
 import styles from "./sage-settings-workspace.module.css";
 
@@ -25,6 +26,7 @@ type SettingsSection =
   | "overview"
   | "updates"
   | "help"
+  | "profiles"
   | "models"
   | "routing"
   | "media"
@@ -53,6 +55,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
       { id: "overview", label: "Overview", detail: "What is ready and what is next" },
       { id: "updates", label: "What’s New", detail: "Latest PlotPickle releases and changes" },
       { id: "help", label: "HELP", detail: "Who does what in PlotPickle" },
+      { id: "profiles", label: "Profiles & Security", detail: "Human, passphrase, recovery and sessions" },
     ],
   },
   {
@@ -167,6 +170,8 @@ export default function SageSettingsWorkspace() {
         return <section id="settings-updates"><SectionIntro eyebrow="Settings · Latest updates" title="What’s New in PlotPickle." detail="Review the latest user-facing release notes without interrupting the main creative workspace." /><ReleaseHistoryPanel /></section>;
       case "help":
         return <section id="settings-help"><SectionIntro eyebrow="Settings · HELP" title="Meet the PlotPickle helpers." detail="Understand each helper before changing agent or runtime configuration." /><SettingsHelperDirectory /></section>;
+      case "profiles":
+        return <section id="settings-profiles"><SectionIntro eyebrow="Settings · Profiles & Security" title="Protect this Human’s private studio." detail="Manage the active Human, local vault passphrase and browser sessions. BUZZ remains a separate linked identity, never the PlotPickle login authority." /><ProfilesSecurityPanel /></section>;
       case "models":
         return <section id="settings-models"><SectionIntro eyebrow="Settings · Local AI" title="Configure and test Sage and PLAN." detail="Choose the local runtime and models, save them, then verify Sage and PLAN in the same workspace." /><SageFastModelSetup /></section>;
       case "routing":

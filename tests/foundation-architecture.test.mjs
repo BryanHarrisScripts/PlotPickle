@@ -68,7 +68,8 @@ test("the LEARN module owns the interaction without importing legacy app code", 
   assert.match(workspace, /aria-label="Active lesson"/);
   assert.match(workspace, /aria-label="Persistent Creative Room"/);
   assert.match(workspace, /applyStoryCommand/);
-  assert.match(workspace, /localStorage/);
+  assert.match(workspace, /loadFoundationProject[\s\S]*saveFoundationProject/);
+  assert.doesNotMatch(workspace, /plotpickle\.foundation\.project\.v1/);
   assert.doesNotMatch(workspace, /from ["'](?:@\/)?app\//);
 });
 

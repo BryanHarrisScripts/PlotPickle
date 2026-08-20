@@ -22,7 +22,7 @@ export function reviewRenderedUi(label, facts) {
       severity: "high",
       actionable: true,
       summary: `${label}: global workspace navigation contract failed (${violation}).`,
-      expectation: "The global navigation should stay in the approved four visual groups: Dashboard/Community/Wyrmwood; Learn/Plan/Build/Storyboard/Previs; Write/Edit/Feedback/Refine; Reports/Settings.",
+      expectation: "The global navigation should stay in the approved four visual groups: Dashboard/Community/Wyrmwood; Library/Learn/Plan/Build/Storyboard/Previs; Write/Edit/Feedback/Refine; Reports/Settings.",
       impact: "A writer can lose the intended product flow or see navigation drift that the UAT journey should catch immediately.",
     });
   }

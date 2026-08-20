@@ -134,6 +134,25 @@
       ]
     },
     {
+      "id": "library",
+      "label": "Library · Examples & Stories",
+      "area": "workflow",
+      "scope": "Profile-owned saved stories, immutable examples, genre presets, safe project switching and recovery",
+      "status": "audited",
+      "issue": 1122,
+      "pullRequest": null,
+      "requirements": [
+        "visual-system",
+        "interaction-states",
+        "responsive-layout",
+        "keyboard-navigation",
+        "accessibility-semantics",
+        "loading-empty-success-warning-error",
+        "data-preservation",
+        "recovery-guidance"
+      ]
+    },
+    {
       "id": "planner",
       "label": "Plan",
       "area": "workflow",

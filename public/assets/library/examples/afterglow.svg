@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title description">
+  <title id="title">Afterglow coastal visual reference</title>
+  <desc id="description">A warm sun above a dark Pacific road and layered coastal hills.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#233d57"/>
+      <stop offset=".56" stop-color="#a34e5c"/>
+      <stop offset="1" stop-color="#e7a063"/>
+    </linearGradient>
+    <radialGradient id="sun">
+      <stop stop-color="#fff4c8"/>
+      <stop offset=".38" stop-color="#f4c173"/>
+      <stop offset="1" stop-color="#e98965" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="road" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#0b171a"/>
+      <stop offset=".5" stop-color="#223235"/>
+      <stop offset="1" stop-color="#071113"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#sky)"/>
+  <circle cx="805" cy="260" r="190" fill="url(#sun)"/>
+  <path d="M0 390 130 330 270 365 430 295 610 390 760 345 910 405 1060 310 1200 370V675H0Z" fill="#15282d" opacity=".88"/>
+  <path d="M0 470 180 405 360 475 570 375 790 475 980 410 1200 455V675H0Z" fill="#0b1b1e"/>
+  <path d="M510 675 635 394 730 394 890 675Z" fill="url(#road)"/>
+  <path d="m695 675 3-66 8-72 7-64 5-79" fill="none" stroke="#eac979" stroke-dasharray="30 28" stroke-width="9"/>
+  <text x="70" y="105" fill="#f6ead3" font-family="Georgia,serif" font-size="72" letter-spacing="14">AFTERGLOW</text>
+  <text x="76" y="145" fill="#c1d9d2" font-family="Arial,sans-serif" font-size="18" letter-spacing="7">PLOTPICKLE FEATURED EXAMPLE</text>
+</svg>

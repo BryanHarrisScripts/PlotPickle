@@ -41,11 +41,12 @@ test("Foundations BUILD sends only approved story decisions and cannot rewrite P
 });
 
 test("generated artifacts persist as project metadata while image bytes stay in the local asset store", async () => {
-  const [contract, project, reducer, storage] = await Promise.all([
+  const [contract, project, reducer, storage, library] = await Promise.all([
     read("core/contracts/build-progress.ts"),
     read("core/project/project.ts"),
     read("core/project/apply-command.ts"),
     read("core/storage/foundation-project-browser.ts"),
+    read("core/storage/project-library-core.mjs"),
   ]);
 
   assert.match(contract, /interface FoundationsVisualArtifact/);
@@ -54,11 +55,14 @@ test("generated artifacts persist as project metadata while image bytes stay in 
   assert.match(contract, /readonly frameNumber\?: number/);
   assert.match(contract, /readonly sourceDecisionKeys\?: readonly string\[\]/);
   assert.match(project, /normalizeVisualArtifact/);
-  assert.match(project, /item\.assetUrl\.startsWith\("\/api\/local-ai\/assets\/"\)/);
+  assert.match(project, /isSupportedVisualAssetUrl/);
+  assert.match(project, /value\.startsWith\("\/api\/local-ai\/assets\/"\)/);
+  assert.match(project, /value\.startsWith\("\/assets\/library\/examples\/"\)/);
   assert.match(project, /\.slice\(0, 75\)/);
   assert.match(reducer, /case "foundations\.visual\.store"/);
   assert.match(reducer, /visualArtifacts: \[\{ \.\.\.command\.artifact, reviewState:/);
-  assert.match(storage, /JSON\.stringify\(project\)/);
+  assert.match(storage, /saveActiveLibraryProject\(project\)/);
+  assert.match(library, /JSON\.stringify\(entry\)/);
 });
 
 test("acceptance can only unlock progression for a real non-rejected stored artifact", async () => {

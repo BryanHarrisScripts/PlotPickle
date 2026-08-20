@@ -56,7 +56,7 @@ test("workspace=settings opens a beginner-first Quick Setup inside the shared ro
     read("app/sage-settings-workspace.module.css"),
   ]);
   assert.match(page, /type Workspace = RootWorkspace/);
-  assert.match(shell, /RootWorkspace = "learn" \| "plan" \| "wyrmwood" \| "community" \| "settings"/);
+  assert.match(shell, /RootWorkspace = "learn" \| "plan" \| "wyrmwood" \| "library" \| "community" \| "settings"/);
   assert.match(page, /requested === "settings"/);
   assert.match(page, /workspace === "settings"/);
   assert.match(page, /<PlotPickleWorkspaceShell activeWorkspace="settings"/);

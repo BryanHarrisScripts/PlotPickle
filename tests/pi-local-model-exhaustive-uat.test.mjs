@@ -45,6 +45,7 @@ test("exhaustive UAT covers entry plus every active slim-product screen and adva
     "entry",
     "community",
     "learn",
+    "library",
     "plan",
     "wyrmwood",
     "settings",

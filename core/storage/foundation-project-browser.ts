@@ -1,34 +1,16 @@
-import { FOUNDATION_PROJECT_STORAGE_KEY } from "../contracts/foundation-plan";
+import type { PPFProject } from "../project/project";
 import {
-  createEmptyProject,
-  normalizeFoundationProject,
-  type PPFProject,
-} from "../project/project";
+  PROJECT_LIBRARY_CHANGED_EVENT,
+  loadActiveLibraryProject,
+  saveActiveLibraryProject,
+} from "./project-library-browser";
 
-export const FOUNDATION_PROJECT_SAVED_EVENT = "plotpickle:foundation-project-saved";
-
-function newProjectId() {
-  return globalThis.crypto?.randomUUID?.()
-    ?? `project-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
+export const FOUNDATION_PROJECT_SAVED_EVENT = PROJECT_LIBRARY_CHANGED_EVENT;
 
 export function loadFoundationProject(): PPFProject {
-  try {
-    const saved = localStorage.getItem(FOUNDATION_PROJECT_STORAGE_KEY);
-    if (saved) return normalizeFoundationProject(JSON.parse(saved));
-  } catch {
-    // Keep browser recovery local and non-destructive. A clean in-memory
-    // project replaces only an unreadable cache when it is explicitly saved.
-  }
-  return createEmptyProject({
-    id: newProjectId(),
-    now: new Date().toISOString(),
-  });
+  return loadActiveLibraryProject();
 }
 
 export function saveFoundationProject(project: PPFProject) {
-  localStorage.setItem(FOUNDATION_PROJECT_STORAGE_KEY, JSON.stringify(project));
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new Event(FOUNDATION_PROJECT_SAVED_EVENT));
-  }
+  saveActiveLibraryProject(project);
 }

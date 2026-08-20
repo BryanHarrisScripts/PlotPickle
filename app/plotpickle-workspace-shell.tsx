@@ -5,12 +5,13 @@ import type { ReactNode } from "react";
 import CommunityPublicConversationsRail from "./community-public-conversations-rail";
 import styles from "./plotpickle-workspace-shell.module.css";
 
-export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "community" | "settings" | "dashboard" | "build";
+export type RootWorkspace = "learn" | "plan" | "wyrmwood" | "library" | "community" | "settings" | "dashboard" | "build";
 
 export const ROOT_NAV_ITEMS = [
   { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "Start", selectable: true },
   { id: "community", relic: "/assets/workflow-relics/community.svg", label: "Community", detail: "Guildhall", selectable: true },
   { id: "wyrmwood", relic: "/assets/workflow-relics/game.webp", label: "Wyrmwood", detail: "Game", selectable: true },
+  { id: "library", relic: "/assets/workflow-relics/library.svg", label: "Library", detail: "Examples & Stories", selectable: true },
   { id: "learn", relic: "/assets/workflow-relics/learn.webp", label: "Learn", detail: "Guides", selectable: true },
   { id: "plan", relic: "/assets/workflow-relics/plan.webp", label: "Plan", detail: "Design", selectable: true },
   { id: "build", relic: "/assets/workflow-relics/build.webp", label: "Build", detail: "Assemble", selectable: true },
@@ -28,7 +29,7 @@ type RootNavItem = (typeof ROOT_NAV_ITEMS)[number];
 
 function isRootWorkspace(id: RootNavItem["id"]): id is RootWorkspace {
   return id === "dashboard" || id === "learn" || id === "plan" || id === "build"
-    || id === "wyrmwood" || id === "community" || id === "settings";
+    || id === "wyrmwood" || id === "library" || id === "community" || id === "settings";
 }
 
 function navigationBreakAfter(id: RootNavItem["id"]) {

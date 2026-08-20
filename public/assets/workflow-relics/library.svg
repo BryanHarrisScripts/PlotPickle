@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="">
+  <defs>
+    <linearGradient id="book" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#9df0cd"/>
+      <stop offset="1" stop-color="#2f9f82"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="1.8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g fill="none" stroke="url(#book)" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" filter="url(#glow)">
+    <path d="M10 49h44M14 15h10v30H14zM26 11h11v34H26zM39 18h10v27H39z"/>
+    <path d="M17 21h4M29 18h5M29 23h5M42 25h4M42 30h4" opacity=".8"/>
+  </g>
+</svg>

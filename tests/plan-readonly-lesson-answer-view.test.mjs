@@ -31,13 +31,15 @@ test("PLAN keeps editing in the middle and renders a separate read-only lesson a
 });
 
 test("the read-only lesson view refreshes whenever the canonical Foundations project is saved", async () => {
-  const [preview, storage] = await Promise.all([
+  const [preview, storage, library] = await Promise.all([
     read("modules/plan/ui/plan-lesson-answer-preview.tsx"),
     read("core/storage/foundation-project-browser.ts"),
+    read("core/storage/project-library-browser.ts"),
   ]);
 
   assert.match(storage, /FOUNDATION_PROJECT_SAVED_EVENT/);
-  assert.match(storage, /window\.dispatchEvent\(new Event\(FOUNDATION_PROJECT_SAVED_EVENT\)\)/);
+  assert.match(storage, /PROJECT_LIBRARY_CHANGED_EVENT/);
+  assert.match(library, /window\.dispatchEvent\(new Event\(PROJECT_LIBRARY_CHANGED_EVENT\)\)/);
   assert.match(preview, /window\.addEventListener\(FOUNDATION_PROJECT_SAVED_EVENT, handleSavedProject\)/);
   assert.match(preview, /document\.addEventListener\("click", handleClick\)/);
   assert.match(preview, /new URLSearchParams\(window\.location\.search\)\.get\("lesson"\)/);

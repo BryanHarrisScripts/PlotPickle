@@ -64,8 +64,8 @@ function loadLocalModule(path) {
   const absolute = resolve(path);
   if (moduleCache.has(absolute)) return moduleCache.get(absolute).exports;
   if (extname(absolute) === ".json") return JSON.parse(readFileSync(absolute, "utf8"));
-  const module = { exports: {} };
-  moduleCache.set(absolute, module);
+  const loadedModule = { exports: {} };
+  moduleCache.set(absolute, loadedModule);
   const output = ts.transpileModule(readFileSync(absolute, "utf8"), {
     compilerOptions: {
       esModuleInterop: true,
@@ -78,13 +78,13 @@ function loadLocalModule(path) {
     ? loadLocalModule(resolveLocalModule(absolute, request))
     : require(request);
   new Function("exports", "module", "require", "__filename", "__dirname", output)(
-    module.exports,
-    module,
+    loadedModule.exports,
+    loadedModule,
     localRequire,
     absolute,
     dirname(absolute),
   );
-  return module.exports;
+  return loadedModule.exports;
 }
 
 test("PLAN derives the same eleven lessons and output prompts directly from LEARN", () => {
@@ -176,7 +176,8 @@ test("the PLAN screen keeps manual work primary and uses opt-in local Mastra dra
   ]);
 
   assert.match(page, /FoundationsPlanWorkspace/);
-  assert.match(page, /normalizeFoundationProject/);
+  assert.match(page, /loadFoundationProject/);
+  assert.match(page, /saveFoundationProject/);
   assert.match(page, /onOpenFoundationsPlan=\{openFoundationsPlan\}/);
   assert.match(learn, /aria-label="Apply what you have learned in Foundations"/);
   assert.match(learn, /type="button"/);

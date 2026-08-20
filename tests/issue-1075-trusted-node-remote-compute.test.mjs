@@ -15,7 +15,7 @@ import {
   createScopedCloudWorkPackage,
   registerManagedCloudService,
   requireSelectedCloudService,
-} from "../core/identity/managed-cloud-compute-core.mjs";
+} from "../core/cloud/managed-cloud-compute-core.mjs";
 
 const NOW = "2026-08-20T07:00:00.000Z";
 

@@ -105,4 +105,4 @@ Joining a Community, trusting a Human, sharing a household/LAN or receiving a si
 
 ## Compatibility note
 
-`core/identity/remote-node-compute-core.mjs` remains only as a compatibility tombstone. Its peer-compute entry points are disabled and throw the #1135 retirement error. New remote compute code must use `managed-cloud-compute-core.mjs` / `managed-cloud-compute.ts`.
+`core/identity/remote-node-compute-core.mjs` remains only as a compatibility tombstone. Its peer-compute entry points are disabled and throw the #1135 retirement error. New remote compute code must use `core/cloud/managed-cloud-compute-core.mjs` / `core/cloud/managed-cloud-compute.ts`.

@@ -1,4 +1,4 @@
-import type { PlotPickleAccountSyncState } from "./account-learn-sync";
+import type { PlotPickleAccountSyncState } from "../identity/account-learn-sync";
 import * as core from "./managed-cloud-compute-core.mjs";
 
 export type CloudComputeCapability = "text" | "image" | "video";

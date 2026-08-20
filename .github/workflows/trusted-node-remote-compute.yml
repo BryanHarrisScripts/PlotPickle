@@ -4,12 +4,13 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "core/contracts/identity-contract-validation.mjs"
       - "core/identity/remote-node-compute-core.mjs"
       - "core/identity/remote-node-compute.ts"
-      - "core/identity/managed-cloud-compute-core.mjs"
-      - "core/identity/managed-cloud-compute.ts"
-      - "core/identity/local-human-profile-core.mjs"
-      - "core/identity/local-human-profile.ts"
+      - "core/cloud/managed-cloud-compute-core.mjs"
+      - "core/cloud/managed-cloud-compute.ts"
+      - "core/profiles/local-human-profile-core.mjs"
+      - "core/profiles/local-human-profile.ts"
       - "lib/plotpickle-node-topology-core.mjs"
       - "lib/plotpickle-node-topology.ts"
       - "build/node-topology-gateway.ts"

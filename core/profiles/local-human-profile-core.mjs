@@ -1,4 +1,8 @@
-const ID_PATTERN = /^[a-z0-9][a-z0-9._:-]{1,127}$/i;
+import {
+  assertAllowedContractFields,
+  normalizeContractId,
+  normalizeIsoDateTime,
+} from "../contracts/identity-contract-validation.mjs";
 
 const PROFILE_FIELDS = Object.freeze([
   "profileId", "personId", "displayName", "vaultRef", "buzzSignerRef", "settingsRef", "guest", "createdAt",
@@ -9,38 +13,20 @@ export const PROFILE_SWITCH_CLEANUP_FIELDS = Object.freeze([
   "privateUiCleared", "buzzSessionDetached", "credentialsCleared", "priorSessionInvalidated",
 ]);
 
-function stableId(value, label) {
-  const text = String(value || "").trim();
-  if (!ID_PATTERN.test(text)) throw new Error(`${label} must be a stable 2-128 character identifier.`);
-  return text;
-}
-
-function validIso(value, label) {
-  const text = String(value || "");
-  if (!text || Number.isNaN(Date.parse(text))) throw new Error(`${label} must be an ISO date-time.`);
-  return text;
-}
-
-function allowedFields(input, allowed, label) {
-  for (const key of Object.keys(input || {})) {
-    if (!allowed.includes(key)) throw new Error(`${label} field is outside the allowlist: ${key}`);
-  }
-}
-
 function optionalRef(value, label) {
   if (value === null || value === undefined || value === "") return null;
-  return stableId(value, label);
+  return normalizeContractId(value, label);
 }
 
 export function createLocalHumanProfileRegistry(nodeId) {
-  return { version: 1, nodeId: stableId(nodeId, "Node id"), profiles: {}, activeProfileId: null, sessionEpoch: 0 };
+  return { version: 1, nodeId: normalizeContractId(nodeId, "Node id"), profiles: {}, activeProfileId: null, sessionEpoch: 0 };
 }
 
 export function registerLocalHumanProfile(registry, input) {
-  allowedFields(input, PROFILE_FIELDS, "Local Human profile");
+  assertAllowedContractFields(input, PROFILE_FIELDS, "Local Human profile");
   const guest = input?.guest === true;
-  const profileId = stableId(input?.profileId, "Local Human profile id");
-  const personId = guest ? null : stableId(input?.personId, "Human person id");
+  const profileId = normalizeContractId(input?.profileId, "Local Human profile id");
+  const personId = guest ? null : normalizeContractId(input?.personId, "Human person id");
   if (registry.profiles[profileId]) throw new Error("Local Human profile id is already registered on this Node.");
   if (personId && Object.values(registry.profiles).some((profile) => profile.personId === personId)) {
     throw new Error("A Human person identity may have only one local profile on a given Node.");
@@ -51,17 +37,17 @@ export function registerLocalHumanProfile(registry, input) {
     profileId,
     personId,
     displayName,
-    vaultRef: stableId(input?.vaultRef, "Human vault reference"),
+    vaultRef: normalizeContractId(input?.vaultRef, "Human vault reference"),
     buzzSignerRef: guest ? null : optionalRef(input?.buzzSignerRef, "Human BUZZ signer reference"),
     settingsRef: optionalRef(input?.settingsRef, "Human settings reference"),
     guest,
-    createdAt: validIso(input?.createdAt, "Human profile creation time"),
+    createdAt: normalizeIsoDateTime(input?.createdAt, "Human profile creation time"),
   });
   return { ...registry, profiles: { ...registry.profiles, [profileId]: profile } };
 }
 
 function verifiedUnlock(profile, input) {
-  allowedFields(input, UNLOCK_FIELDS, "Human profile unlock proof");
+  assertAllowedContractFields(input, UNLOCK_FIELDS, "Human profile unlock proof");
   if (input?.verified !== true) throw new Error("Human profile unlock must be verified before private workspace access.");
   const method = String(input?.method || "");
   const allowed = profile.guest ? ["guest"] : ["os", "pin", "passphrase"];
@@ -70,14 +56,14 @@ function verifiedUnlock(profile, input) {
 }
 
 function requireProfile(registry, profileId) {
-  const id = stableId(profileId, "Local Human profile id");
+  const id = normalizeContractId(profileId, "Local Human profile id");
   const profile = registry.profiles[id];
   if (!profile) throw new Error("Local Human profile is not registered on this Node.");
   return profile;
 }
 
 function verifyCleanup(input) {
-  allowedFields(input, PROFILE_SWITCH_CLEANUP_FIELDS, "Human profile switch cleanup receipt");
+  assertAllowedContractFields(input, PROFILE_SWITCH_CLEANUP_FIELDS, "Human profile switch cleanup receipt");
   for (const field of PROFILE_SWITCH_CLEANUP_FIELDS) {
     if (input?.[field] !== true) throw new Error(`Human profile switch requires cleanup evidence: ${field}.`);
   }

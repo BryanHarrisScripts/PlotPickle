@@ -8,7 +8,7 @@ import {
   lockActiveHumanProfile,
   registerLocalHumanProfile,
   switchLocalHumanProfile,
-} from "../core/identity/local-human-profile-core.mjs";
+} from "../core/profiles/local-human-profile-core.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const cleanup = Object.freeze({ projectClosed: true, vaultReleased: true, agentContextCleared: true, retrievalContextCleared: true, privateUiCleared: true, buzzSessionDetached: true, credentialsCleared: true, priorSessionInvalidated: true });

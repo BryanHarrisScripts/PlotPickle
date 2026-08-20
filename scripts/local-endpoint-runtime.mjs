@@ -33,6 +33,11 @@ function safeOpaque(value, prefix) {
   return `${prefix}-${createHash("sha256").update(raw || randomUUID()).digest("hex").slice(0, 20)}`;
 }
 
+function reportEndpointWarning(context, error) {
+  const detail = error instanceof Error ? error.message : String(error);
+  process.stderr.write(`[local-endpoint] ${context}: ${detail.replace(/[\r\n]+/g, " ").slice(0, 500)}\n`);
+}
+
 async function gitValue(repoRoot, args) {
   const result = await exec("git", args, {
     cwd: repoRoot,
@@ -92,7 +97,7 @@ export async function resolveEndpointSnapshot(registryPath, {
   }
   if (jobId && record.jobId !== jobId) throw new Error("Local endpoint job provenance does not match the requesting job.");
   if (worktreeRef && record.worktreeRef !== worktreeRef) throw new Error("Local endpoint worktree provenance does not match the requesting job.");
-  if (profileRef && record.profileRef !== profileRef) throw new Error("Local endpoint profile provenance does not match the requesting Human context.");
+  if (record.profileRef && record.profileRef !== profileRef) throw new Error("Local endpoint profile provenance does not match the requesting Human context.");
   if (new Set(["stopped", "failed"]).has(record.lifecycleState)) throw new Error(`Local endpoint is ${record.lifecycleState}.`);
   return record;
 }
@@ -132,7 +137,10 @@ async function rootReady(baseUrl, fetchImpl) {
     });
     const body = await response.text();
     return response.ok && /\bPlotPickle\b/i.test(body);
-  } catch {
+  } catch (error) {
+    if (error?.name !== "AbortError" && error?.name !== "TimeoutError" && error?.cause?.code !== "ECONNREFUSED" && error?.code !== "ECONNREFUSED") {
+      reportEndpointWarning("readiness root probe failed", error);
+    }
     return false;
   }
 }
@@ -147,6 +155,7 @@ export function endpointRuntimeEnvironment(runtime) {
     PLOTPICKLE_LOCAL_ENDPOINT_JOB: record.jobId || "",
     PLOTPICKLE_LOCAL_ENDPOINT_WORKTREE: record.worktreeRef || "",
     PLOTPICKLE_LOCAL_ENDPOINT_COMMIT: record.commitSha || "",
+    PLOTPICKLE_LOCAL_ENDPOINT_PROFILE: record.profileRef || "",
     PLOTPICKLE_ACCEPTANCE_URL: record.url,
   };
 }
@@ -268,7 +277,7 @@ export async function startManagedPlotPickleEndpoint({
         const tail = runtime.outputTail.slice(-2_000);
         if (/EADDRINUSE|address already in use/i.test(tail)) {
           lostRace = true;
-          onStatus("retry", `Allocated port was taken before bind; retrying without terminating the other process.`);
+          onStatus("retry", "Allocated port was taken before bind; retrying without terminating the other process.");
           break;
         }
         record = registry.transition(endpointId, { lifecycleState: "failed", readinessState: "degraded" });
@@ -318,13 +327,23 @@ export async function stopManagedLocalEndpoint(runtime, { removeRegistryFile = f
   try {
     runtime.record = runtime.registry.transition(runtime.endpointId, { lifecycleState: "stopping" });
     await persistRegistry(runtime.registry, runtime.registryPath);
-  } catch {}
+  } catch (error) {
+    reportEndpointWarning("could not persist stopping state", error);
+  }
   await terminateOwnedProcess(runtime.child);
   try {
     runtime.record = runtime.registry.transition(runtime.endpointId, { lifecycleState: "stopped", readinessState: "not_ready" });
     await persistRegistry(runtime.registry, runtime.registryPath);
-  } catch {}
-  if (removeRegistryFile) await unlink(runtime.registryPath).catch(() => {});
+  } catch (error) {
+    reportEndpointWarning("could not persist stopped state", error);
+  }
+  if (removeRegistryFile) {
+    try {
+      await unlink(runtime.registryPath);
+    } catch (error) {
+      if (error?.code !== "ENOENT") reportEndpointWarning("could not remove endpoint registry file", error);
+    }
+  }
 }
 
 export function managedEndpointEvidence(runtime) {

@@ -32,25 +32,37 @@ test("#1102/#1103 terminal screen and command rail use the inherited centre/righ
   assert.match(terminal, /const COMMANDS:/);
 });
 
-test("#1102/#1103 preserve BBS default entry and truthful BUZZ identity", async () => {
+test("#1102/#1103 preserve BBS default entry and truthful BUZZ node plus verified human caller identity", async () => {
   const workspace = await read("app/community-workspace.tsx");
   assert.match(workspace, /useState<CommunitySection>\("terminal"\)/);
   assert.match(workspace, /const nodeName = community\?\.community\.trim\(\) \|\| ""/);
   assert.match(workspace, /nodeName=\{nodeName\}/);
   assert.match(workspace, /BUZZ NODE UNAVAILABLE/);
+  assert.match(workspace, /data-community-caller="verified-human"/);
+  assert.match(workspace, /humanIdentity=\{humanIdentity\}/);
   assert.doesNotMatch(workspace, /const\s+[^=]*NODE[^=]*=\s*["']plotpickle-community["']/i);
 });
 
-test("#1102/#1103 preserve all Community destinations and existing message/composer controls", async () => {
-  const workspace = await read("app/community-workspace.tsx");
-  for (const id of ["overview", "terminal", "great-hall", "story-rooms", "connected-studios", "people", "agents", "reviews", "guildhall"]) {
+test("#1123 preserves Community destinations while Great Hall becomes Hall 1 and composers live in the active terminal room", async () => {
+  const [workspace, terminal] = await Promise.all([
+    read("app/community-workspace.tsx"),
+    read("app/community-backdoor-terminal.tsx"),
+  ]);
+
+  for (const id of ["overview", "terminal", "story-rooms", "connected-studios", "people", "agents", "reviews", "guildhall"]) {
     assert.match(workspace, new RegExp(`id: ["']${id}["']`), `missing Community destination ${id}`);
   }
-  assert.match(workspace, /Write to the Great Hall…/);
-  assert.match(workspace, /Send signed message/);
-  assert.match(workspace, /Discuss this story without changing canon…/);
+  assert.doesNotMatch(workspace, /id: ["']great-hall["']/);
+  assert.match(workspace, /data-community-room=\{COMMUNITY_GREAT_HALL_ROOM_ID\}/);
+  assert.match(workspace, /Hall 1 · Great Hall/);
   assert.match(workspace, /CommunityAgentRoster/);
   assert.match(workspace, /CommunityStoryRoomAccess/);
+
+  assert.match(terminal, /placeholder=\{canPost \? `Write to \$\{activeRoom\.roomName\}…`/);
+  assert.match(terminal, /SEND SIGNED MESSAGE/);
+  assert.match(terminal, /postMessage\(activeRoom\.channelId, roomDraft\.trim\(\)\)/);
+  assert.match(terminal, /data-human-identity-blocked="true"/);
+  assert.match(terminal, /disabled=\{!canPost\}/);
 });
 
 test("#1102/#1103 preserve keyboard safety and use the shared shell collapse breakpoint", async () => {
@@ -64,4 +76,5 @@ test("#1102/#1103 preserve keyboard safety and use the shared shell collapse bre
   assert.match(terminal, /editableTarget\(event\.target\)/);
   assert.match(terminal, /\["INPUT", "TEXTAREA", "SELECT"\]/);
   assert.match(terminal, /target\.isContentEditable/);
+  assert.match(terminal, /event\.key !== "Enter" \|\| event\.shiftKey \|\| event\.nativeEvent\.isComposing/);
 });

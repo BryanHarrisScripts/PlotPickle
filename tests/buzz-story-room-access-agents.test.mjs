@@ -5,15 +5,19 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 test("Story Rooms are the same private BUZZ channels in PlotPickle and Buzz Desktop", async () => {
-  const [workspace, access, gateway, vite] = await Promise.all([
+  const [workspace, contract, access, gateway, vite] = await Promise.all([
     read("app/community-workspace.tsx"),
+    read("lib/buzz-story-room.ts"),
     read("app/community-story-room-access.tsx"),
     read("build/buzz-story-room-access-gateway.ts"),
     read("vite.config.ts"),
   ]);
 
-  assert.match(workspace, /real private BUZZ channels/);
-  assert.match(workspace, /<CommunityStoryRoomAccess channel=\{selectedRoom\.channel\}/);
+  assert.match(workspace, /compatibility-safe private Story Room channels/);
+  assert.match(workspace, /activeRoom\?\.kind === "story-room"/);
+  assert.match(workspace, /<CommunityStoryRoomAccess channel=\{record\.channel\}/);
+  assert.match(contract, /channelId: channel\.id/);
+  assert.match(contract, /LEGACY_BROAD_STORY_ROOM_ID/);
   assert.match(access, /One room, two interfaces/);
   assert.match(access, /same conversation in Buzz Desktop and PlotPickle/);
   assert.match(access, /\/api\/local-buzz\/story-room-access/);

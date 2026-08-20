@@ -61,21 +61,30 @@ test("#1036 progress runner uses the shared Windows-safe verification command co
   assert.match(progressRunner, /from "\.\/full-verification-process\.mjs"/);
   assert.match(progressRunner, /verificationCommandFor\(node\)/);
   assert.match(progressRunner, /terminateVerificationProcessTree\(child\)/);
+  assert.match(progressRunner, /verificationEndpointEnvironment\(\)/);
   assert.doesNotMatch(progressRunner, /process\.platform === "win32" \? "npm\.cmd"/);
   assert.doesNotMatch(progressRunner, /shell:\s*true/);
 });
 
-test("#1036 standalone app readiness owns a managed Vite server and fails fast on early exit", async () => {
-  const graph = await source("scripts/full-verification-graph.mjs");
-  assert.match(graph, /node_modules", "vite", "bin", "vite\.js"/);
-  assert.match(graph, /spawn\(process\.execPath, \[viteCli, "--host", "127\.0\.0\.1", "--port", "4173", "--strictPort"\]/);
-  assert.match(graph, /PLOTPICKLE_STARTUP_CONTRACT:\s*"plotpickle-full-verification"/);
-  assert.match(graph, /child\.exitCode !== null \|\| child\.signalCode !== null/);
-  assert.match(graph, /exited before becoming ready/);
-  assert.match(graph, /terminateVerificationProcessTree\(child\)/);
-  assert.match(graph, /await stopManagedPlotPickleVerificationServer\(\);/);
+test("#1036 standalone app readiness owns a dynamically allocated exact-instance Vite endpoint", async () => {
+  const [graph, endpointRuntime] = await Promise.all([
+    source("scripts/full-verification-graph.mjs"),
+    source("scripts/local-endpoint-runtime.mjs"),
+  ]);
+  assert.match(graph, /startManagedPlotPickleEndpoint/);
+  assert.match(graph, /serviceKind:\s*"plotpickle-full-verification"/);
+  assert.match(graph, /plotpickle-full-verification-endpoint-v1/);
+  assert.match(graph, /verificationEndpointEnvironment/);
+  assert.match(graph, /stopManagedLocalEndpoint/);
+  assert.doesNotMatch(graph, /"--port",\s*"4173"/);
+  assert.doesNotMatch(graph, /plotPickleUrl\s*=\s*"http:\/\/127\.0\.0\.1:4173"/);
+  assert.match(endpointRuntime, /reserveLoopbackPort/);
+  assert.match(endpointRuntime, /--strictPort/);
+  assert.match(endpointRuntime, /PLOTPICKLE_EXPECTED_COMMIT/);
+  assert.match(endpointRuntime, /verifyExactLocalInstance/);
+  assert.match(endpointRuntime, /EADDRINUSE/);
   assert.doesNotMatch(graph, /Start-PlotPickle\.bat/);
-  assert.doesNotMatch(graph, /shell:\s*true/);
+  assert.doesNotMatch(endpointRuntime, /shell:\s*true/);
 });
 
 test("#1036 Full Check tells Windows users it is standalone", async () => {

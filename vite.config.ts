@@ -6,6 +6,7 @@ import { localConnectionsGateway } from "./build/local-connections-gateway";
 import { localSystemStatusGateway } from "./build/local-system-status-gateway";
 import { writerInResidenceGateway } from "./build/writer-in-residence-gateway";
 import { profileScopedBuzzRequestContext } from "./build/profile-request-context";
+import { buzzProfileMigrationGateway } from "./build/buzz-profile-migration-gateway";
 import { buzzGateway } from "./build/buzz-gateway";
 import { buzzCommunityGateway } from "./build/buzz-community-gateway";
 import { buzzAgentRosterGateway } from "./build/buzz-agent-roster-gateway";
@@ -91,6 +92,7 @@ export default defineConfig(async () => {
       localConnectionsGateway(),
       writerInResidenceGateway(),
       profileScopedBuzzRequestContext(),
+      buzzProfileMigrationGateway(),
       buzzBundleNormalizer(),
       buzzSpecialistGateway(),
       buzzCommunityGateway(),

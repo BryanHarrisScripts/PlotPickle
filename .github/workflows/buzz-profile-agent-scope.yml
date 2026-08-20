@@ -1,0 +1,59 @@
+name: BUZZ Profile and Agent Scope
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "build/buzz-*.ts"
+      - "build/local-credentials.ts"
+      - "build/profile-request-context.ts"
+      - "core/agents/**"
+      - "core/auth/**"
+      - "core/storage/profile-private/**"
+      - "config/credential-boundary.registry.json"
+      - "docs/architecture/PLOTPICKLE-BUZZ-PROFILE-AGENT-SCOPE.md"
+      - "tests/issue-1144-buzz-profile-agent-scope.test.mjs"
+      - "tests/issue-1144-buzz-profile-migration-contract.test.mjs"
+      - "vite.config.ts"
+      - ".github/workflows/buzz-profile-agent-scope.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: buzz-profile-agent-scope-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  profile-agent-scope:
+    name: ${{ matrix.label }} profile scope and build
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Windows x64
+            os: windows-latest
+          - label: Linux x64
+            os: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js 22.13
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate BUZZ profile and agent scope
+        run: node --test tests/issue-1144-buzz-profile-agent-scope.test.mjs tests/issue-1144-buzz-profile-migration-contract.test.mjs
+      - name: Validate inherited profile and session boundaries
+        run: npm run test:profile-storage && npm run test:server-session
+      - name: Audit credential boundaries
+        run: npm run audit:credentials
+      - name: Production build
+        run: npm run build

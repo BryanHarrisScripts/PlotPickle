@@ -47,7 +47,7 @@ test("#1123 keeps every established Community capability available while Great H
   assert.match(source, /onClick=\{\(\) => setSection\(item\.id\)\}/);
 });
 
-test("terminal provides the requested keyboard-first backdoor controls", async () => {
+test("terminal provides keyboard-first controls and Enter-to-send without stealing typing shortcuts", async () => {
   const source = await read("app/community-backdoor-terminal.tsx");
   for (const command of ["W", "A", "B", "T", "R", "H", "X"]) {
     assert.match(source, new RegExp(`key: "${command}"`), `Missing terminal command ${command}`);
@@ -56,6 +56,9 @@ test("terminal provides the requested keyboard-first backdoor controls", async (
   assert.match(source, /editableTarget\(event\.target\)/);
   assert.match(source, /target\.isContentEditable/);
   assert.match(source, /\["INPUT", "TEXTAREA", "SELECT"\]/);
+  assert.match(source, /event\.key !== "Enter" \|\| event\.shiftKey \|\| event\.nativeEvent\.isComposing/);
+  assert.match(source, /event\.preventDefault\(\); void sendRoomMessage\(\)/);
+  assert.match(source, /event\.preventDefault\(\); void sendTalkMessage\(\)/);
   assert.match(source, /onExit\(\)/);
 });
 

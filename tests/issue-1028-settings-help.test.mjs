@@ -37,15 +37,20 @@ test("#1028 helper directory mirrors every host-owned Agent Profile exactly once
   }
 });
 
-test("#1028 every helper resolves through the shared local portrait component and Sage keeps the approved source", async () => {
-  const component = await source("components/agent-portrait.tsx");
+test("#1028 every helper resolves through the shared local portrait component and supplied atlas", async () => {
+  const [component, portraitCss] = await Promise.all([
+    source("components/agent-portrait.tsx"),
+    source("components/agent-portrait.module.css"),
+  ]);
   assert.equal(helperDirectory.portraitSystem, "painterly-fantasy-v1");
 
   for (const helper of helperDirectory.helpers) {
     assert.match(component, new RegExp(`id: ["']${helper.id}["']`), `${helper.id} is missing from the shared portrait component`);
   }
-  assert.match(component, /id: "sage-brinewick"[\s\S]*source: "\/assets\/curriculum-guide-master-storyteller\.png"/);
-  await access(path.join(repoRoot, "public", "assets", "curriculum-guide-master-storyteller.png"));
+  assert.match(component, /id: "sage-brinewick"[\s\S]*supplied elder wizard/);
+  assert.match(component, /data-agent-artwork="user-supplied"/);
+  assert.match(portraitCss, /\/assets\/agent-profile-atlas\.webp/);
+  await access(path.join(repoRoot, "public", "assets", "agent-profile-atlas.webp"));
   assert.doesNotMatch(component, /\/assets\/helpers\/16bit\//i);
 });
 

@@ -18,7 +18,7 @@ test("#1027 makes the Community BBS the default front door", async () => {
   assert.match(source, /section !== "terminal" \? <header className=\{styles\.hero\}>/);
   assert.match(source, /data-community-bbs-server="true"/);
   assert.match(source, /SERVER \/ NODE/);
-  assert.match(source, /CALLER/);
+  assert.match(source, /data-community-caller="verified-human"/);
   assert.match(source, /CALLERS/);
 });
 
@@ -35,11 +35,14 @@ test("#1027 derives the Buzz lamp from real Community readiness instead of decor
   assert.match(source, /aria-label=\{buzzStatusLabel\}/);
 });
 
-test("#1027 keeps every established Community destination available after BBS entry", async () => {
+test("#1123 keeps every established Community capability available while Great Hall moves under Story Rooms as Hall 1", async () => {
   const source = await read("app/community-workspace.tsx");
-  for (const label of ["Overview", "Terminal", "Great Hall", "Story Rooms", "Connected Studios", "People", "Agents & Stewards", "Review Queue", "Guildhall"]) {
+  for (const label of ["Overview", "Terminal", "Story Rooms", "Connected Studios", "People", "Agents & Stewards", "Review Queue", "Guildhall"]) {
     assert.match(source, new RegExp(`label: "${label.replace(/[&]/g, "&")}"`), `Missing Community destination ${label}`);
   }
+  assert.doesNotMatch(source, /\{ id: "great-hall", label: "Great Hall"/);
+  assert.match(source, /data-community-room=\{COMMUNITY_GREAT_HALL_ROOM_ID\}/);
+  assert.match(source, /Hall 1 · Great Hall/);
   assert.match(source, /data-community-section=\{item\.id\}/);
   assert.match(source, /onClick=\{\(\) => setSection\(item\.id\)\}/);
 });
@@ -56,14 +59,14 @@ test("terminal provides the requested keyboard-first backdoor controls", async (
   assert.match(source, /onExit\(\)/);
 });
 
-test("#1044 gives the centre screen the approved dragon Community BBS wireframe while commands stay on the right", async () => {
+test("#1123 gives the centre screen the PlotPickle dragon room-first BBS treatment while commands stay on the right", async () => {
   const source = await read("app/community-backdoor-terminal.tsx");
   assert.match(source, /const COMMUNITY_BBS_ASCII = String\.raw/);
   assert.match(source, /PLOTPICKLE COMMUNITY BBS/);
-  assert.match(source, /THE GUILDHALL AFTER DARK/);
-  assert.match(source, /DRAGON WATCH/);
-  assert.match(source, /aria-label="PlotPickle Community BBS dragon and Guildhall welcome banner"/);
-  assert.match(source, /THE COMMUNITY DOOR HAS OPENED/);
+  assert.match(source, /ROOM-FIRST TERMINAL/);
+  assert.match(source, /STORY HALLS 2-6/);
+  assert.match(source, /aria-label="PlotPickle Community BBS dragon and hall welcome banner"/);
+  assert.match(source, /Sage is who you talk to\. Sage is not who you are/);
   assert.match(source, /aside className=\{styles\.commandRail\} aria-label="Terminal keyboard commands"/);
   assert.doesNotMatch(source, /Playhouse/i);
   assert.doesNotMatch(source, /<div className=\{styles\.menuBlock\}>/);
@@ -80,7 +83,10 @@ test("terminal uses real Community and Guildhall routes rather than fake users o
   assert.match(terminal, /\/api\/local-buzz/);
   assert.match(terminal, /\/messages\?channel=/);
   assert.match(terminal, /body: JSON\.stringify\(\{ channel: channelId, content \}\)/);
+  assert.match(workspace, /humanIdentity=\{humanIdentity\}/);
+  assert.match(workspace, /activeRoom=\{activeRoom\}/);
   assert.match(workspace, /members=\{community\?\.members \?\? \[\]\}/);
+  assert.match(workspace, /recentActivity=\{community\?\.recentActivity \?\? \[\]\}/);
   assert.match(workspace, /readyGuildhallRooms=\{guildhall\?\.readyRooms \?\? \[\]\}/);
   assert.match(workspace, /storyRooms=\{storyRooms\}/);
   assert.match(workspace, /reviews=\{reviews\}/);

@@ -19,13 +19,13 @@ test("issue #940 public-conversations Refresh leaves a settled observable comple
   }
 });
 
-test("issue #941 View all Great Hall conversations reports settled navigation even when Great Hall is already active", async () => {
+test("issue #941 View all Great Hall conversations reports settled navigation through Hall 1 even when already active", async () => {
   const rail = await source("app/community-public-conversations-rail.tsx");
 
   for (const contract of [
     "View all Great Hall conversations",
     "openGreatHallWithStatus",
-    '[data-community-section="great-hall"]',
+    '[data-community-room="great-hall"]',
     'getAttribute("aria-current") === "page"',
     "Great Hall conversations opened at",
     "data-community-public-action-status",

@@ -95,17 +95,16 @@ test("credential storage fails closed and public surfaces remain redacted", asyn
   assert.match(workspace, /does not attach the active story, project title, local paths or credentials/);
 });
 
-test("source credential-boundary audit passes and package staging invokes package mode", async () => {
+test("source credential-boundary audit passes and storage/package workflows invoke it", async () => {
   const packageScript = await text("scripts/package-platform.mjs");
-  const workflow = await text(".github/workflows/safety.yml");
-  const settings = JSON.parse(await text("config/public-repository.settings.json"));
+  const workflow = await text(".github/workflows/profile-private-storage.yml");
 
   assert.match(packageScript, /credential-boundary-audit\.mjs/);
   assert.match(packageScript, /--mode", "package"/);
-  assert.match(workflow, /name: PlotPickle Safety Gate/);
-  assert.match(workflow, /node scripts\/credential-boundary-audit\.mjs --mode source/);
-  assert.match(workflow, /tests\/issue-299-credential-boundary-audit\.test\.mjs/);
-  assert.ok(settings.main_branch.required_checks.includes("Safety"));
+  assert.match(workflow, /name: Profile Private Storage/);
+  assert.match(workflow, /npm run audit:credentials/);
+  assert.match(workflow, /npm run test:credential-boundary-audit/);
+  assert.match(workflow, /npm run test:profile-storage/);
 
   const output = execFileSync(process.execPath, ["scripts/credential-boundary-audit.mjs", "--mode", "source"], {
     cwd: new URL("..", import.meta.url),

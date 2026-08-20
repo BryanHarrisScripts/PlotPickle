@@ -6,20 +6,21 @@ Machine-readable inventory: `config/credential-boundary.registry.json`
 
 ## Audit verdict
 
-PlotPickle keeps provider and collaboration credentials in the local server layer, not in the browser application or story files. The credential gateway is fail-closed and requires operating-system-backed protection before saving sensitive connection data.
+PlotPickle keeps provider and collaboration credentials in the local server layer, not in the browser application or story files. Human-owned credentials are canonically profile-scoped and encrypted through the Human PMK; Node operational secrets use a separate operator-protected `NodeSecretStore`. The former OS-account credential directory is a read-only migration source after authenticated profile migration begins, not multi-Human authorization authority.
 
 The automated audit scans current source and each staged Windows, macOS and Linux package. The full-history audit remains a separate mandatory check because a clean current tree does not prove clean reachable Git history.
 
 ## Storage and encryption verdict
 
-| Platform | Protection | Location | Plaintext fallback |
+| Owner | Protection | Location | Plaintext fallback |
 |---|---|---|---|
-| Windows | Current-user DPAPI | `PLOTPICKLE_HOME/secrets/*.json` | Not allowed |
-| macOS | AES-256-GCM with a Keychain-held key | `PLOTPICKLE_HOME/secrets/*.json` | Not allowed |
-| Linux | User-scoped systemd credentials, with Secret Service fallback | `PLOTPICKLE_HOME/secrets/*.json` | Not allowed |
-| Legacy files | Read once, migrated through the encrypted writer and verified | Same credential filename | Migration fails if encryption fails |
+| Human profile | #1140 PMK profile-secret envelope with profile/purpose/object AAD | `PLOTPICKLE_HOME/profiles/<profile_uuid>/credentials/*.json` | Not allowed |
+| Node service | Explicit operator-managed `NodeSecretStore` adapter | `PLOTPICKLE_HOME/node/secrets/*.json` | Not allowed |
+| Legacy Windows source | Current-user DPAPI | `PLOTPICKLE_HOME/secrets/*.json` | Not allowed |
+| Legacy macOS source | AES-256-GCM with a Keychain-held key | `PLOTPICKLE_HOME/secrets/*.json` | Not allowed |
+| Legacy Linux source | User-scoped systemd credentials, with Secret Service fallback | `PLOTPICKLE_HOME/secrets/*.json` | Not allowed |
 
-Credential files are written atomically with restrictive permissions where supported. Erasing all credentials removes the local secrets directory and attempts to remove the associated operating-system key.
+Credential files are written atomically with restrictive permissions where supported. Human migration creates a retained snapshot, copies and verifies every PMK-encrypted record, and keeps the old source read-only until explicit retirement. Erasing a legacy OS-account store is not equivalent to erasing a Human profile vault or NodeSecretStore.
 
 The managed Buzz runtime may create `buzz/runtime/.env.runtime` only for one Docker Compose operation. It is written with user-only permissions where supported and deleted in a `finally` block. A surviving copy is an audit failure.
 
@@ -31,7 +32,7 @@ Run this command on the installed computer before public release or before shari
 npm run audit:credentials:local
 ```
 
-The command inspects the active PlotPickle home (`PLOTPICKLE_HOME`, `%LOCALAPPDATA%\PlotPickle`, or `~/.plotpickle`) without decrypting credentials. It reports credential filenames, envelope protection, byte counts and POSIX permission modes only. It also checks for an abandoned Buzz runtime environment file and scans PPF, JSON, log, text and environment-like files outside the credential vault for recognizable credential formats.
+The command inspects the active PlotPickle home (`PLOTPICKLE_HOME`, `%LOCALAPPDATA%\PlotPickle`, or `~/.plotpickle`) without decrypting credentials. It reports legacy credential filenames, Human envelope ownership metadata, NodeSecretStore filenames/protection, byte counts and POSIX permission modes only. It also checks for an abandoned Buzz runtime environment file and scans PPF, JSON, log, text and environment-like files outside encrypted vault roots for recognizable credential formats.
 
 The command never prints ciphertext or discovered credential values. A green CI run cannot prove that a particular Windows installation is clean; the owner must run this command on that machine.
 
@@ -39,7 +40,7 @@ The command never prints ciphertext or discovered credential values. A green CI 
 
 The authoritative field-level inventory is `config/credential-boundary.registry.json`. It covers GitHub App and repository authorization, GitHub project synchronization state, Google Desktop OAuth, AI provider connections, Writing Assistant profiles, Media Routing, Buzz identity and managed runtime state, and collaboration invitation state.
 
-Each record names the encrypted file, owning source module, sensitive fields, browser exposure, export boundary, removal or revocation action, and owner-only follow-up.
+Each record names the encrypted file, owning source module, `human-profile` or `node` owner scope, canonical root, protection/migration contract, sensitive fields, browser exposure, export boundary, removal or revocation action, and owner-only follow-up.
 
 | System | Sensitive material | Local removal | Remote revocation |
 |---|---|---|---|

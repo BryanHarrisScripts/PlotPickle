@@ -6,8 +6,10 @@ on:
     paths:
       - "core/auth/**"
       - "docs/architecture/PLOTPICKLE-AUTH-*.md"
+      - "docs/architecture/PLOTPICKLE-PROFILE-VAULT.md"
       - "tests/issue-1138-auth-crypto-contract.test.mjs"
       - "tests/issue-1139-auth-core.test.mjs"
+      - "tests/issue-1140-profile-master-key-vault.test.mjs"
       - "config/uat-autopilot-registry.json"
       - "package.json"
       - "package-lock.json"
@@ -49,6 +51,8 @@ jobs:
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate Auth Core
         run: npm run test:auth-core
+      - name: Validate profile vault lifecycle
+        run: npm run test:profile-vault
       - name: Validate Auth crypto dependency
         run: npm run test:auth-crypto
       - name: Validate canonical Node and BUZZ identity boundary

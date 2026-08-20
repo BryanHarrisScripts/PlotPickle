@@ -162,9 +162,8 @@ function parseHkdf(value, expectedInfo) {
 
 export function parsePasswordWrappedProfileKey(value) {
   assertExactFields(value, ["format", "version", "purpose", "profileId", "kdf", "aead"], "Password-wrapped profile key");
-  if (value.format !== PASSWORD_FORMAT || value.version !== PROFILE_CRYPTO_FORMAT_VERSION || value.purpose !== "password-wrap") {
-    fail("INVALID_ENVELOPE", "Password-wrapped profile key format, version, or purpose is unsupported.");
-  }
+  if (value.version !== PROFILE_CRYPTO_FORMAT_VERSION) fail("UNSUPPORTED_ENVELOPE_VERSION", "Password-wrapped profile key version is unsupported.");
+  if (value.format !== PASSWORD_FORMAT || value.purpose !== "password-wrap") fail("INVALID_ENVELOPE", "Password-wrapped profile key format or purpose is unsupported.");
   return Object.freeze({
     format: PASSWORD_FORMAT,
     version: PROFILE_CRYPTO_FORMAT_VERSION,
@@ -177,9 +176,8 @@ export function parsePasswordWrappedProfileKey(value) {
 
 export function parseRecoveryWrappedProfileKey(value) {
   assertExactFields(value, ["format", "version", "purpose", "profileId", "derivation", "aead"], "Recovery-wrapped profile key");
-  if (value.format !== PASSWORD_FORMAT || value.version !== PROFILE_CRYPTO_FORMAT_VERSION || value.purpose !== "recovery-wrap") {
-    fail("INVALID_ENVELOPE", "Recovery-wrapped profile key format, version, or purpose is unsupported.");
-  }
+  if (value.version !== PROFILE_CRYPTO_FORMAT_VERSION) fail("UNSUPPORTED_ENVELOPE_VERSION", "Recovery-wrapped profile key version is unsupported.");
+  if (value.format !== PASSWORD_FORMAT || value.purpose !== "recovery-wrap") fail("INVALID_ENVELOPE", "Recovery-wrapped profile key format or purpose is unsupported.");
   return Object.freeze({
     format: PASSWORD_FORMAT,
     version: PROFILE_CRYPTO_FORMAT_VERSION,
@@ -192,9 +190,8 @@ export function parseRecoveryWrappedProfileKey(value) {
 
 export function parseProfileSecretEnvelope(value) {
   assertExactFields(value, ["format", "version", "purpose", "profileId", "secretId", "derivation", "aead"], "Profile-secret envelope");
-  if (value.format !== PROFILE_SECRET_FORMAT || value.version !== PROFILE_CRYPTO_FORMAT_VERSION || value.purpose !== "profile-secret") {
-    fail("INVALID_ENVELOPE", "Profile-secret envelope format, version, or purpose is unsupported.");
-  }
+  if (value.version !== PROFILE_CRYPTO_FORMAT_VERSION) fail("UNSUPPORTED_ENVELOPE_VERSION", "Profile-secret envelope version is unsupported.");
+  if (value.format !== PROFILE_SECRET_FORMAT || value.purpose !== "profile-secret") fail("INVALID_ENVELOPE", "Profile-secret envelope format or purpose is unsupported.");
   return Object.freeze({
     format: PROFILE_SECRET_FORMAT,
     version: PROFILE_CRYPTO_FORMAT_VERSION,

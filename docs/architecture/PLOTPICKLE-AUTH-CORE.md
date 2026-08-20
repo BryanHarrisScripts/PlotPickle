@@ -1,6 +1,6 @@
 # PlotPickle Auth Core
 
-Status: canonical Auth identity and session-facing contract introduced by #1139. Later vault, storage, session, UI and BUZZ work must consume this boundary instead of creating another Human registry.
+Status: canonical Auth identity and session-facing contract introduced by #1139 and extended with the central [Profile Master Key vault](PLOTPICKLE-PROFILE-VAULT.md) in #1140. Later storage, session, UI and BUZZ work must consume these boundaries instead of creating another Human registry or key hierarchy.
 
 ## Authority boundary
 

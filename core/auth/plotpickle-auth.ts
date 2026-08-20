@@ -1,10 +1,12 @@
 import * as core from "./plotpickle-auth-core.mjs";
-import type { Argon2idParameters, PasswordWrappedProfileKey, RecoveryWrappedProfileKey } from "./profile-crypto-contract";
+import type { Argon2idParameters, PasswordWrappedProfileKey, ProfileSecretEnvelope, RecoveryWrappedProfileKey } from "./profile-crypto-contract";
 
 export type AuthAccessMode = "desktop-loopback" | "server-network";
 export type ProfileStatus = "active" | "disabled";
 export type ProfileAuthMethod = "password" | "recovery" | "webauthn";
 export type AuthStrength = "password" | "password+webauthn" | "recovery";
+export type ProfileVaultState = "uninitialized" | "locked" | "unlocking" | "unlocked" | "locking" | "recovery-required" | "corrupt";
+export type ProfileVaultKdfMaintenance = "current" | "upgrade-pending" | "upgraded" | "upgrade-deferred" | "not-applicable";
 
 export type HumanProfile = {
   readonly profileId: string;
@@ -63,14 +65,39 @@ export type ProfileCreation = {
   readonly authContext: AuthContext;
 };
 
+export type ProfileVaultStatus = {
+  readonly profileId: string | null;
+  readonly state: ProfileVaultState;
+  readonly vaultVersion: number | null;
+  readonly kdfMaintenance: ProfileVaultKdfMaintenance;
+};
+
+export type ProfileVaultCleanupEvent = {
+  readonly profileId: string;
+  readonly reason: "lock" | "lock-profile" | "session-expired" | "profile-unavailable" | "profile-disabled" | "password-change" | "recovery-reset" | "service-close";
+  readonly invalidatedSessionCount: number;
+  readonly occurredAt: string;
+};
+
+export type ProfileVaultCapability = {
+  readonly profileId: string;
+  wrapSecret(input: { readonly secretId: string; readonly secret: string | Uint8Array }): Promise<ProfileSecretEnvelope>;
+  unwrapSecret(input: { readonly envelope: ProfileSecretEnvelope; readonly secretId: string }): Promise<Uint8Array>;
+};
+
 export type PlotPickleAuthService = {
   readonly accessMode: AuthAccessMode;
   readonly nodeId: string;
   createServerBootstrapProof(): Promise<{ readonly proof: string; readonly expiresAt: string }>;
   createFirstProfile(input: { displayName: string; password: string | Uint8Array; avatarRef?: string | null }, bootstrapProof?: string): Promise<ProfileCreation>;
   createProfile(input: { displayName: string; password: string | Uint8Array; avatarRef?: string | null }, authContext: AuthContext): Promise<ProfileCreation>;
-  authenticate(input: { profileId: string; password: string | Uint8Array }): Promise<{ readonly profile: ProfileSummary; readonly authContext: AuthContext }>;
+  authenticate(input: { profileId: string; password: string | Uint8Array }): Promise<{ readonly profile: ProfileSummary; readonly authContext: AuthContext; readonly vaultMaintenance: ProfileVaultKdfMaintenance }>;
   authenticateWithRecovery(input: { profileId: string; recoverySecret: string }): Promise<{ readonly profile: ProfileSummary; readonly authContext: AuthContext }>;
+  changePassword(input: { currentPassword: string | Uint8Array; newPassword: string | Uint8Array }, authContext: AuthContext): Promise<{ readonly profile: ProfileSummary; readonly authContext: AuthContext }>;
+  resetPasswordWithRecovery(input: { profileId: string; recoverySecret: string; newPassword: string | Uint8Array }): Promise<{ readonly profile: ProfileSummary; readonly recoverySecret: string; readonly authContext: AuthContext }>;
+  getVaultStatus(profileId?: string | null, authContext?: AuthContext | null): ProfileVaultStatus;
+  createProfileVaultCapability(authContext: AuthContext): ProfileVaultCapability;
+  registerVaultCleanupHook(hook: (event: ProfileVaultCleanupEvent) => void): () => boolean;
   listProfileSummaries(authContext?: AuthContext | null): ReadonlyArray<ProfileSummary>;
   getAuthStatus(authContext?: AuthContext | null): Readonly<Record<string, unknown>>;
   updateProfilePresentation(input: { profileId: string; displayName: string; avatarRef: string | null }, authContext: AuthContext): Promise<HumanProfile>;
@@ -87,6 +114,8 @@ export const AUTH_ACCESS_MODES = core.AUTH_ACCESS_MODES as ReadonlyArray<AuthAcc
 export const PROFILE_STATUSES = core.PROFILE_STATUSES as ReadonlyArray<ProfileStatus>;
 export const PROFILE_AUTH_METHODS = core.PROFILE_AUTH_METHODS as ReadonlyArray<ProfileAuthMethod>;
 export const AUTH_STRENGTHS = core.AUTH_STRENGTHS as ReadonlyArray<AuthStrength>;
+export const PROFILE_VAULT_STATES = core.PROFILE_VAULT_STATES as ReadonlyArray<ProfileVaultState>;
+export const PROFILE_VAULT_KDF_MAINTENANCE = core.PROFILE_VAULT_KDF_MAINTENANCE as ReadonlyArray<ProfileVaultKdfMaintenance>;
 export const DEFAULT_SESSION_TTL_MS = core.DEFAULT_SESSION_TTL_MS as number;
 export const DEFAULT_BOOTSTRAP_TTL_MS = core.DEFAULT_BOOTSTRAP_TTL_MS as number;
 export const PlotPickleAuthError = core.PlotPickleAuthError;

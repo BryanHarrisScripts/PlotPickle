@@ -61,7 +61,7 @@ test("generated artifacts persist as project metadata while image bytes stay in 
   assert.match(project, /\.slice\(0, 75\)/);
   assert.match(reducer, /case "foundations\.visual\.store"/);
   assert.match(reducer, /visualArtifacts: \[\{ \.\.\.command\.artifact, reviewState:/);
-  assert.match(storage, /saveActiveLibraryProject\(project\)/);
+  assert.match(storage, /saveActiveLibraryProject as saveFoundationProject/);
   assert.match(library, /JSON\.stringify\(entry\)/);
 });
 

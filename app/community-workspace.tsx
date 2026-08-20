@@ -89,12 +89,7 @@ function errorMessage(error: unknown) {
 
 function readProject(): PPFProject | null {
   if (typeof window === "undefined") return null;
-  try {
-    return loadFoundationProject();
-  } catch (error) {
-    console.warn(`PlotPickle could not read the active profile story from the Library: ${errorMessage(error)}`);
-    return null;
-  }
+  return loadFoundationProject();
 }
 
 function readReviews(): ReviewItem[] {

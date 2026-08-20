@@ -47,13 +47,20 @@ function quarantine(storage, key, raw, now, reason) {
   return quarantineKey;
 }
 
+function errorMessage(error) {
+  return error instanceof Error ? error.message : String(error);
+}
+
 function parseJson(raw) {
-  if (!raw) return null;
+  let value = null;
+  let error = null;
+  if (!raw) return { value, error };
   try {
-    return JSON.parse(raw);
-  } catch {
-    return null;
+    value = JSON.parse(raw);
+  } catch (cause) {
+    error = errorMessage(cause);
   }
+  return { value, error };
 }
 
 function validSourceKind(value) {
@@ -136,17 +143,19 @@ function writeProject(storage, profileId, project, describe, options) {
   };
   const key = projectLibraryProjectKey(profileId, summary.id);
   storage.setItem(key, JSON.stringify(entry));
-  const verified = projectEntry(parseJson(storage.getItem(key)), profileId, summary.id);
-  if (!verified) throw new Error("Project Library could not verify the saved project snapshot.");
+  const parsed = parseJson(storage.getItem(key));
+  const verified = projectEntry(parsed.value, profileId, summary.id);
+  if (!verified) throw new Error(`Project Library could not verify the saved project snapshot${parsed.error ? `: ${parsed.error}` : "."}`);
   return summary;
 }
 
 function writeRegistry(storage, registry) {
   const key = projectLibraryRegistryKey(registry.profileId);
   storage.setItem(key, JSON.stringify(registry));
-  const verified = normalizeRegistry(parseJson(storage.getItem(key)), registry.profileId);
+  const parsed = parseJson(storage.getItem(key));
+  const verified = normalizeRegistry(parsed.value, registry.profileId);
   if (!verified || verified.activeProjectId !== registry.activeProjectId) {
-    throw new Error("Project Library could not verify its saved registry.");
+    throw new Error(`Project Library could not verify its saved registry${parsed.error ? `: ${parsed.error}` : "."}`);
   }
   return verified;
 }
@@ -154,28 +163,34 @@ function writeRegistry(storage, registry) {
 function readProject(storage, profileId, projectId, normalizeProject, now) {
   const key = projectLibraryProjectKey(profileId, projectId);
   const raw = storage.getItem(key);
-  const entry = projectEntry(parseJson(raw), profileId, projectId);
+  const parsed = parseJson(raw);
+  const entry = projectEntry(parsed.value, profileId, projectId);
   if (!entry) {
-    if (raw) quarantine(storage, key, raw, now, "corrupt-project-entry");
+    if (raw) quarantine(storage, key, raw, now, parsed.error ? `corrupt-project-entry: ${parsed.error}` : "corrupt-project-entry");
     return null;
   }
   try {
     const project = normalizeProject(entry.project);
     return { project, entry };
-  } catch {
-    quarantine(storage, key, raw, now, "incompatible-project-snapshot");
+  } catch (error) {
+    quarantine(storage, key, raw, now, `incompatible-project-snapshot: ${errorMessage(error)}`);
     return null;
   }
 }
 
-function storedProfileProjectIds(storage, profileId) {
+function storedProfileProjectIds(storage, profileId, now, quarantined) {
   if (!Number.isInteger(storage.length) || typeof storage.key !== "function") return [];
   const prefix = `plotpickle.library.profile.v1.${profileId}.projects.`;
   const ids = [];
-  for (let index = 0; index < storage.length; index += 1) {
-    const key = storage.key(index);
+  const keys = Array.from({ length: storage.length }, (_, index) => storage.key(index));
+  for (const key of keys) {
     if (!key?.startsWith(prefix) || key.includes(".quarantine.")) continue;
-    try { ids.push(decodeURIComponent(key.slice(prefix.length))); } catch { /* Ignore malformed keys. */ }
+    try {
+      ids.push(decodeURIComponent(key.slice(prefix.length)));
+    } catch (error) {
+      const quarantineKey = quarantine(storage, key, storage.getItem(key), now, `malformed-project-key: ${errorMessage(error)}`);
+      if (quarantineKey) quarantined.push(quarantineKey);
+    }
   }
   return ids;
 }
@@ -214,11 +229,13 @@ export function initializeProfileProjectLibrary(input) {
   const now = input.now();
   const registryKey = projectLibraryRegistryKey(profileId);
   const rawRegistry = storage.getItem(registryKey);
-  let registry = normalizeRegistry(parseJson(rawRegistry), profileId);
+  const parsedRegistry = parseJson(rawRegistry);
+  let registry = normalizeRegistry(parsedRegistry.value, profileId);
   const quarantined = [];
 
   if (!registry && rawRegistry) {
-    const key = quarantine(storage, registryKey, rawRegistry, now, "corrupt-profile-registry");
+    const reason = parsedRegistry.error ? `corrupt-profile-registry: ${parsedRegistry.error}` : "corrupt-profile-registry";
+    const key = quarantine(storage, registryKey, rawRegistry, now, reason);
     if (key) quarantined.push(key);
   }
 
@@ -242,7 +259,7 @@ export function initializeProfileProjectLibrary(input) {
     }
   }
 
-  for (const projectId of storedProfileProjectIds(storage, profileId)) {
+  for (const projectId of storedProfileProjectIds(storage, profileId, now, quarantined)) {
     const loaded = readProject(storage, profileId, projectId, input.normalizeProject, now);
     if (!loaded) continue;
     const summary = describeProject(loaded.project, input.describeProject, {
@@ -261,16 +278,17 @@ export function initializeProfileProjectLibrary(input) {
   let migrated = false;
   if (legacyRaw) {
     const parsed = parseJson(legacyRaw);
-    if (parsed) {
+    if (parsed.value) {
       try {
-        project = input.normalizeProject(parsed);
+        project = input.normalizeProject(parsed.value);
         migrated = true;
       } catch {
         project = null;
       }
     }
     if (!project) {
-      const key = quarantine(storage, LEGACY_ACTIVE_PROJECT_KEY, legacyRaw, now, "unreadable-legacy-project");
+      const reason = parsed.error ? `unreadable-legacy-project: ${parsed.error}` : "unreadable-legacy-project";
+      const key = quarantine(storage, LEGACY_ACTIVE_PROJECT_KEY, legacyRaw, now, reason);
       if (key) quarantined.push(key);
     }
   }

@@ -26,10 +26,6 @@ function storage() {
   return window.localStorage;
 }
 
-function now() {
-  return new Date().toISOString();
-}
-
 function idFactory() {
   return globalThis.crypto?.randomUUID?.() ?? `project-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
@@ -72,7 +68,7 @@ function coreInput() {
     normalizeProject: normalizeFoundationProject,
     createProject: createEmptyProject,
     describeProject,
-    now,
+    now: Date.prototype.toISOString.bind(new Date()),
     idFactory,
   };
 }

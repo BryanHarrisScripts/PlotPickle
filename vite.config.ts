@@ -9,6 +9,7 @@ import { buzzGateway } from "./build/buzz-gateway";
 import { buzzCommunityGateway } from "./build/buzz-community-gateway";
 import { buzzAgentRosterGateway } from "./build/buzz-agent-roster-gateway";
 import { buzzGuildhallGateway } from "./build/buzz-guildhall-gateway";
+import { buzzHumanIdentityGuard } from "./build/buzz-human-identity-guard";
 import { buzzLiveHealthGateway } from "./build/buzz-live-health-gateway";
 import { buzzStoryRoomAccessGateway } from "./build/buzz-story-room-access-gateway";
 import { buzzSpecialistGateway } from "./build/buzz-specialist-gateway";
@@ -93,6 +94,7 @@ export default defineConfig(async () => {
       buzzCommunityGateway(),
       buzzAgentRosterGateway(),
       buzzGuildhallGateway(),
+      buzzHumanIdentityGuard(),
       buzzLiveHealthGateway(),
       buzzStoryRoomAccessGateway(),
       buzzGateway(),

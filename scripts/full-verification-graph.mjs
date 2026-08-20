@@ -72,6 +72,18 @@ export const FULL_VERIFICATION_GRAPH = [
     dependencies: [],
   },
   {
+    id: "plotpickle-auth-security",
+    authoritative: false,
+    name: "PlotPickle Auth security regression",
+    category: "Security",
+    tool: "npm",
+    args: ["run", "test:plotpickle-auth"],
+    dependencies: [],
+    resources: [],
+    inputSchema: EMPTY_INPUT_SCHEMA,
+    outputSchema: RESULT_OUTPUT_SCHEMA,
+  },
+  {
     ...STANDARD_NODE,
     id: "production-build",
     number: 4,
@@ -79,7 +91,7 @@ export const FULL_VERIFICATION_GRAPH = [
     category: "Production Build",
     tool: "npm",
     args: ["run", "build"],
-    dependencies: [],
+    dependencies: [{ id: "plotpickle-auth-security", require: "success", reason: "The production build cannot become a Full Verification PASS while the release-blocking Human Auth boundary is failing." }],
     resources: ["workspace-build"],
   },
   {

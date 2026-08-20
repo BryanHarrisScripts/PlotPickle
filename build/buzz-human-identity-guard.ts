@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import type { IncomingMessage } from "node:http";
 import type { Plugin } from "vite";
 import { BUZZ_GUILDHALL_ACTORS } from "../lib/buzz-guildhall";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
@@ -29,6 +30,10 @@ const UNVERIFIED: HumanIdentityStatus = {
   agentId: "",
   message: "Connect and verify your personal Buzz identity before posting to PlotPickle Community.",
 };
+
+function isBrowserAuthoredRequest(request: IncomingMessage) {
+  return typeof request.headers.origin === "string" || typeof request.headers["sec-fetch-site"] === "string";
+}
 
 async function inspectConnectedHuman(): Promise<HumanIdentityStatus> {
   const stored = await readCredentialJson<unknown>(CONNECTION_FILE);
@@ -216,8 +221,7 @@ export function buzzHumanIdentityGuard(): Plugin {
           return;
         }
 
-        const browserAuthored = typeof request.headers.origin === "string" || typeof request.headers["sec-fetch-site"] === "string";
-        if (request.method === "POST" && url.pathname === `${API}/messages` && browserAuthored) {
+        if (request.method === "POST" && url.pathname === `${API}/messages` && isBrowserAuthoredRequest(request)) {
           void inspectConnectedHuman().then((status) => {
             if (status.humanCommunityAllowed) { next(); return; }
             response.statusCode = 403;

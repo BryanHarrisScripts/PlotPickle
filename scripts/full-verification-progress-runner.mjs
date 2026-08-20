@@ -9,6 +9,7 @@ import {
   FULL_VERIFICATION_GRAPH,
   ensurePlotPickleReady,
   runVerificationGraph,
+  verificationEndpointEnvironment,
 } from "./full-verification-graph.mjs";
 import {
   terminateVerificationProcessTree,
@@ -109,7 +110,7 @@ function writeChunk(prefix, stream, chunk) {
   for (const line of text.split(/(?<=\n)/)) if (line) stream.write(`[${prefix}] ${line}`);
 }
 
-export async function executeBoundedCommand(node, timeoutMs = 0, stallTimeoutMs = 0) {
+export async function executeBoundedCommand(node, timeoutMs = 0, stallTimeoutMs = 0, options = {}) {
   const { command, args } = verificationCommandFor(node);
   const started = Date.now();
   let tail = "";
@@ -117,8 +118,8 @@ export async function executeBoundedCommand(node, timeoutMs = 0, stallTimeoutMs 
     let settled = false;
     let timedOut = false;
     const child = spawn(command, args, {
-      cwd: repoRoot,
-      env: { ...process.env },
+      cwd: options.cwd || repoRoot,
+      env: { ...process.env, ...(options.env || {}) },
       windowsHide: true,
       shell: false,
       stdio: ["ignore", "pipe", "pipe"],
@@ -224,6 +225,7 @@ async function main() {
             node,
             verificationTimeoutForNode(node),
             verificationStallTimeoutForNode(node),
+            { env: verificationEndpointEnvironment() },
           );
         } finally {
           active.delete(node.id);

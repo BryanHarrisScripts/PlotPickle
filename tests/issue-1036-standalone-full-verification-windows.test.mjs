@@ -61,7 +61,7 @@ test("#1036 progress runner uses the shared Windows-safe verification command co
   assert.match(progressRunner, /from "\.\/full-verification-process\.mjs"/);
   assert.match(progressRunner, /verificationCommandFor\(node\)/);
   assert.match(progressRunner, /terminateVerificationProcessTree\(child\)/);
-  assert.match(progressRunner, /verificationEndpointEnvironment\(\)/);
+  assert.match(progressRunner, /endpointContext\.environment\(\)/);
   assert.doesNotMatch(progressRunner, /process\.platform === "win32" \? "npm\.cmd"/);
   assert.doesNotMatch(progressRunner, /shell:\s*true/);
 });
@@ -74,7 +74,8 @@ test("#1036 standalone app readiness owns a dynamically allocated exact-instance
   assert.match(graph, /startManagedPlotPickleEndpoint/);
   assert.match(graph, /serviceKind:\s*"plotpickle-full-verification"/);
   assert.match(graph, /plotpickle-full-verification-endpoint-v1/);
-  assert.match(graph, /verificationEndpointEnvironment/);
+  assert.match(graph, /createVerificationEndpointContext/);
+  assert.match(graph, /context\.environment\(\)/);
   assert.match(graph, /stopManagedLocalEndpoint/);
   assert.doesNotMatch(graph, /"--port",\s*"4173"/);
   assert.doesNotMatch(graph, /plotPickleUrl\s*=\s*"http:\/\/127\.0\.0\.1:4173"/);

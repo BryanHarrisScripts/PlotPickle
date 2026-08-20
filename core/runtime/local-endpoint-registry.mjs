@@ -299,7 +299,11 @@ export async function reserveLoopbackPort({ host = "127.0.0.1", maxAttempts = 8,
       };
     } catch (error) {
       lastError = error;
-      try { server.close(); } catch {}
+      try {
+        server.close();
+      } catch (closeError) {
+        lastError = new AggregateError([error, closeError], "Loopback reservation failed and server cleanup also failed.");
+      }
     }
   }
   throw new Error(`Could not reserve a safe loopback port after ${maxAttempts} attempts.${lastError ? ` ${lastError.message || lastError}` : ""}`);

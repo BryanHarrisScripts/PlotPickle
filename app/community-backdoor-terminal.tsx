@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "../lib/buzz-guildhall";
-import { type BuzzStoryRoomId } from "../lib/buzz-story-room";
 import {
   COMMUNITY_VISIBLE_STORY_ROOMS,
   humanBuzzFingerprint,
   type ActiveBbsRoom,
+  type BuzzStoryRoomId,
   type HumanBuzzIdentity,
-} from "../lib/community-bbs";
+} from "../lib/buzz-story-room";
 import styles from "./community-backdoor-terminal.module.css";
 
 type TerminalMode = "home" | "who" | "agents" | "boards" | "talk" | "reviews" | "help";

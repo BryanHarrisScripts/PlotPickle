@@ -1,200 +1,162 @@
-# PlotPickle Node Topology
+# PlotPickle Node, Human Profile, BUZZ Community and Compute Boundaries
 
-PlotPickle is local-first today, but its application boundary is intentionally server-based/client-capable. The node-topology contract gives that boundary a stable vocabulary without pretending that the current local Studio is already a hardened public multi-user service.
+Status: canonical architecture for #1135. This replaces the older peer/distributed-compute interpretation while preserving the durable Node identity established by #1131.
 
-## Canonical Node definition
+## Canonical objects
 
-A **PlotPickle Node is one uniquely identified PlotPickle installation/device**.
+PlotPickle keeps four concepts separate:
 
-The Node is the installation/runtime identity itself. It is not the Steward, it is not a model/runtime, and it is not a special compute class. Each installation owns one durable `node_id` and one independent local signing keypair. A Person/account may authorize many Nodes, but each Node remains independently identifiable and revocable.
+1. **Human / Avatar** — the person acting, writing and participating socially.
+2. **PlotPickle Node** — one PlotPickle installation/device with a durable `node_id` and independent local signing key.
+3. **Agent / Steward** — a bounded helper operating inside a Node; never a substitute for Human or Node identity.
+4. **BUZZ Community** — a social/security object containing members, rooms, permissions, moderation and signed conversation.
 
-Conceptually:
-
-```text
-Machine
-  -> PlotPickle installation
-     -> PlotPickle Node
-        - durable node_id + local signing key
-        - Steward + local agents/services
-        - local PPF/projects
-        - hardware/runtime/provider capabilities
-        - readiness/health evidence
-        - BUZZ connection when available
-```
-
-The existing immutable `pp_studio_XXXXXXXX` identity and Ed25519 key from the Studio-identity architecture remain valid Node identity/key material for upgraded installations. Normal upgrades, restarts, hardware changes and role changes must not silently regenerate them.
-
-A second installation/device gets a different Node identity and private key even when both Nodes belong to the same Person/account.
-
-## Human, Node and Agent identities stay separate
-
-PlotPickle uses three distinct identity layers that must never silently substitute for one another:
-
-1. **Human / Avatar identity** — the writer/person represented in Community.
-2. **Node identity** — the specific PlotPickle installation/device signing and sending work.
-3. **Agent / Steward identity** — Sage, BEN, Pi, Merrin, the local Steward and other helpers operating inside or through a Node.
-
-A display label, hostname, Steward name, model name, provider account or relay name is not `node_id`.
-
-The **Steward is the local caretaker inside a Node**. It may monitor health, coordinate recovery, explain system state and help operate the installation, but Steward identity does not replace Node identity and does not gain authority merely by operating locally.
-
-## One product, several operational roles
-
-Every PlotPickle installation is the same Node identity concept. Terms such as `desktop`, `studio-host`, `compute` and `hybrid` describe the Node's current topology/operational role; they are not different identity classes.
-
-| Mode | Intended shape | Current status |
-| --- | --- | --- |
-| `desktop` | Client + local host + optional compute on one computer | Current default |
-| `studio-host` | Authenticated HTTPS PlotPickle host for approved browser/desktop clients | Contract only; not enabled yet |
-| `compute` | Text/image/video/retrieval capability for an approved PlotPickle host | Routing primitive only; registration/handshake is follow-on work |
-| `hybrid` | Host + high-capacity compute on one workstation/server | Contract only; useful for systems such as a unified-memory AI workstation |
-
-Changing a Node from desktop-only to host, compute or hybrid operation does not create a new Node identity. The mode does not grant authority. A compute-capable Node can be powerful without owning projects, credentials, canon or code.
-
-Compute is an optional capability/role of a Node, not a separate identity class.
-
-## BUZZ is the Node communications and coordination fabric
-
-BUZZ is the trusted communications/coordination fabric connecting PlotPickle Nodes, humans and agents.
-
-BUZZ can carry signed provenance, presence, Community/BBS events, agent coordination, health/evidence signals and future bounded inter-Node work contracts. The Node signature establishes which authorized installation sent an event; human/Avatar and Agent identities remain separately attributable according to their own contracts.
-
-BUZZ does **not** create the local Node's authority and it does not make a local PlotPickle installation dependent on remote connectivity. When BUZZ is offline, the Node remains a Node and local writing, PPF access, local AI, local agents and local recovery continue according to their own readiness. BUZZ-dependent Community, federation and remote-presence features must instead report unavailable/degraded truthfully.
-
-Remote Node discovery/presence must flow through the supported BUZZ federation/presence boundary rather than inventing a second PlotPickle social directory.
-
-## Capabilities
-
-The first capability vocabulary is deliberately product-level rather than runtime-specific:
-
-- `client`
-- `host`
-- `text`
-- `vision`
-- `image`
-- `video`
-- `retrieval`
-- `agents`
-- `community`
-
-A Node may satisfy several capabilities. The router requires every capability requested by a job. It never treats a model name, GPU name or network location as proof of capability.
-
-ComfyUI, llama.cpp, LM Studio, Ollama and other engines remain implementation details behind the capability boundary. They are not public PlotPickle APIs and they are not Node identities.
-
-## Trust scopes are explicit
-
-Node network scope and Node identity/trust are not synonyms. The same durable Node can change how it is reachable without becoming a different cryptographic identity.
-
-### `local`
-
-The endpoint must be loopback. This is the current desktop default. Sensitive local diagnostics and runtime management remain restricted to the local Studio.
-
-### `lan`
-
-The endpoint must be a private/local-network hostname or address. A LAN Node is still remote and **does not inherit local trust** merely because it is on RFC1918 address space, mDNS or the same Wi-Fi/Ethernet network.
-
-Future remote-compute registration must authenticate the Node, bind its allowed capabilities and keep project/credential authority on the PlotPickle host.
-
-### `internet`
-
-The endpoint must use HTTPS and cannot be loopback/private-LAN. Internet routing is opt-in at the route request; the router does not silently add public egress.
-
-This contract does not expose the current local PlotPickle server to the Internet. Public hosting requires a separate identity/authorization/tenant-isolation phase before it can be enabled.
-
-## Hosted Studio boundary
-
-A future public PlotPickle deployment should look like this:
+A Community is not a Node. A Node is not a person. A Person may use several Nodes, and one shared household Node may securely host multiple Human profiles.
 
 ```text
-Internet / browser clients
-          |
-       HTTPS
-          |
-   PlotPickle Host Node
-   - node_id + signing identity
-   - authentication
-   - authorization
-   - project membership
-   - tenant isolation
-   - CSRF/session policy
-   - rate limits
-   - audit/evidence
-          |
-      private services
-      - Steward / agent runtime
-      - PPF/project storage
-      - ComfyUI
-      - local text runtimes
-      - retrieval
-      - BUZZ coordination/community bridge
+Human / Avatar
+   -> active Human profile
+      -> PlotPickle Node (node_id + device key)
+         -> BUZZ signed transport
+            -> BUZZ Community
+               -> room/channel
 ```
 
-The public client talks to the PlotPickle Host Node. It does not receive direct network access to ComfyUI, Ollama, llama.cpp, filesystem paths, credentials, GitHub mutation endpoints or raw PPF storage.
+Node identity remains underneath Community activity as device/install provenance. The normal user-facing discovery model is **BUZZ Communities and people**, not a directory of machines.
 
-## Hardware belongs to the Node
+## Shared-computer privacy
 
-Hardware profiling is attached to each compute-capable Node instead of assuming compute lives on the machine rendering the UI.
+One PlotPickle installation may host zero or more local Human profiles without changing `node_id`.
 
-A hardware summary records platform/architecture, CPU, RAM, GPU, GPU generation, GPU memory and memory model (`system`, `discrete`, `unified`, or `unknown`). Compatibility decisions remain capability/hardware driven.
+Each Human profile has its own private workspace/vault boundary for project/PPF state, Story Archive and Library metadata, Human/project agent memory, retrieval/search state, private Community cache, Human BUZZ signer reference, personal settings/credentials where applicable, and private recent previews.
 
-That supports very different layouts with the same product contract:
+A shared Node must never let one Human enumerate, open, search, preview or infer another Human's private workspace simply because both people can launch PlotPickle on the same computer.
+
+A profile switch is a security transition. Before another Human activates, PlotPickle requires evidence that the prior project was safely closed, vault access released, agent and retrieval context cleared, private UI state cleared, Human BUZZ session detached, personal credentials cleared where feasible, and the prior session invalidated. The next Human then supplies a separately verified unlock. Shared Node-level services may remain running but receive Human-scoped authorization before touching private data.
+
+PlotPickle may use OS-backed secure storage when the OS account identifies one Human. If several people share the same OS login, PlotPickle must provide its own secure unlock boundary. Unlock secrets never belong in PPF, BUZZ messages, logs, GitHub, plain-text settings or agent memory.
+
+Guest is an isolated local profile, not implicit access to an existing Human's work.
+
+## BUZZ Communities and people
+
+BUZZ is the signed Community/federation fabric through which PlotPickle sees Communities, people, rooms, membership and presence.
+
+A verified Human may use the built-in PlotPickle Community and, where the connected BUZZ contract supports it, create additional Communities. A Community can be public, closed/invite-only, or private/non-discoverable according to its BUZZ policy.
+
+PlotPickle consumes BUZZ as the authority for Community identity, membership, rooms, presence and signed conversation instead of creating a competing social database.
+
+Public Communities may expose safe public metadata for discovery. Closed Communities expose only the safe invitation/join surface allowed by BUZZ until membership is authorized. Private/non-discoverable Communities remain invisible to unauthorized Humans. Revoked membership and stale presence are never shown as current.
+
+A Human using two Nodes is still one Community person. Two Humans sharing one Node remain two Humans with separate BUZZ identities and memberships.
+
+## Node provenance, not Node browsing
+
+A remote social event may retain originating Node provenance for trust, audit, revocation and moderation. That provenance does not make the remote installation a resource provider.
+
+**Community presence is never compute eligibility.**
+
+Community presence must not publish another Human's GPU/VRAM/CPU/RAM inventory, local models, ComfyUI details, BERD availability, storage inventory, provider credentials/endpoints, build/test capacity, spare load, or local agents as remotely executable services.
+
+Social trust, room membership, household relationship, LAN proximity or Community membership never grants filesystem, PPF, provider, ComfyUI, BERD, shell, build/test, model or arbitrary execution access to another Human's Node.
+
+## Local Capability Manifest
+
+A Node still needs truthful local capability/readiness state so its own Steward/router can operate the installation. Local capability classes may include text, vision, image, video/audio, retrieval, models/runtimes, ComfyUI, storage/project services, agents, BEN, Pi, build/test and BERD.
+
+This manifest is private to the local Node by default. Hardware/model/provider/tool changes update capability readiness but do not rotate `node_id`.
+
+BERD is a local Node capability/harness pattern. BEN, Pi or the Steward may use it locally when policy permits. It is never advertised to Community peers as a remote shell or build resource.
+
+## Network scopes are not resource authority
+
+The topology vocabulary retains `local`, `lan` and `internet` endpoint scopes because PlotPickle may have hosted/client transport contracts in the future. Those scopes describe reachability, not permission to execute workloads on another Human's Node.
+
+LAN proximity never grants trust. Internet endpoints require HTTPS. A public/hosted PlotPickle client does not receive direct network access to ComfyUI, Ollama, llama.cpp, filesystem paths, credentials, GitHub mutation endpoints or raw PPF storage.
+
+Terms such as `desktop`, `studio-host`, `compute` and `hybrid` remain deployment/readiness descriptors for an installation; they are not Community identity classes and they do not opt a machine into peer resource sharing.
+
+## Local Node routing contract
+
+`selectPlotPickleNode()` is now deliberately local-resource-only:
+
+1. normalize known Node descriptors;
+2. require `trustScope === local`;
+3. require enabled and ready, unless degraded is explicitly permitted;
+4. require every requested capability;
+5. never select LAN or Internet Community/peer Nodes for text/image/video/build work.
+
+`PLOTPICKLE_PEER_RESOURCE_ROUTING_ENABLED` is `false`.
+
+A request that permits only LAN/Internet scopes returns no resource route. Allowing Internet egress does not turn an Internet Node into a compute target.
+
+Compute supplies capability, not authority. Local compute remains local to the installation and active authorized Human.
+
+## Managed cloud compute is a separate registry
+
+Future remote generation is represented by a distinct **Cloud Service Registry**, not by a list of other Humans' Nodes.
 
 ```text
-Desktop-only
-PlotPickle UI + Host + Compute
-Windows PC / constrained discrete GPU
-
-Split Studio
-PlotPickle desktop Node ---> signed/authorized route ---> PlotPickle compute-capable Node
-
-Hosted hybrid
-Browser clients ---> HTTPS ---> PlotPickle host + high-capacity compute Node
+Human
+  -> local PlotPickle Node
+     -> explicit cloud request
+        -> configured managed cloud service
+           -> scoped job
+              -> candidate result + provenance
 ```
 
-A Pascal desktop may require a legacy-compatible CUDA/PyTorch line; a modern RTX workstation can use a newer stack; a unified-memory workstation can expose a much larger safe working set. Those are Node hardware policies, not different PlotPickle products or identities.
+A managed cloud service uses service identity such as `serviceId`, not another Human's `node_id`. It must be explicitly configured/enabled, truthfully available and fresh, and may expose only bounded service capability metadata needed for routing.
 
-## Routing contract
+Cloud routing cannot be populated from ordinary BUZZ Community presence. No Community Node advertisement may be normalized as a managed cloud service.
 
-`selectPlotPickleNode()` is intentionally small and deterministic:
+Paid cloud work requires explicit billing consent and cannot be a silent local-to-cloud or free-to-paid fallback.
 
-1. consider only explicitly enabled Nodes;
-2. require `ready` unless the caller explicitly permits `degraded`;
-3. require every requested capability;
-4. respect the caller's allowed trust scopes;
-5. never select an Internet Node unless `allowInternet` is explicitly true;
-6. prefer local, then LAN, then Internet among otherwise eligible Nodes.
+Returned cloud artifacts remain candidates and not canon until normal Human/PPF acceptance.
 
-The router selects **where a capability may run**. It does not create Node identity, authenticate an unregistered remote Node, execute arbitrary remote commands, copy credentials, approve paid cloud, change PPF canon or merge code.
+See the legacy-path document `TRUSTED-REMOTE-COMPUTE.md`, now rewritten as the managed cloud-compute security contract.
+
+## BUZZ has two bounded roles
+
+### Inside one Node
+
+BUZZ provides the local coordination/evidence backbone described by #1130 for agent/service status, health, recovery, UAT evidence and continuous-improvement candidates. Local coordination does not require remote peers.
+
+### Between people and Communities
+
+BUZZ carries signed Community identity, Communities, rooms, membership, messages, presence, moderation and Node provenance as required by #1129. It does not carry another Human's private capability manifest for execution routing.
 
 ## Current diagnostics
 
-The local server exposes a loopback-only `GET /api/system/node-topology` diagnostic. It reports the current desktop Node, current hardware summary, capability/readiness evidence that PlotPickle can already prove, an empty registered-Node list, and the policy that future Node registration must preserve.
+`GET /api/system/node-topology` remains loopback-only. It reports the current local Node and local hardware/capability evidence. Its routing policy explicitly reports:
 
-The current topology descriptor ID such as `local-desktop` is a routing descriptor, not the cryptographic `node_id`, until the runtime explicitly binds the two according to the identity-authority contract.
+- `defaultTrustScopes: ["local"]`;
+- `peerNodeResourceRouting: false`;
+- `communityPresenceCarriesCapabilities: false`;
+- `cloudServicesUseSeparateRegistry: true`.
 
-The endpoint deliberately says hosted Studio is `contract-only`. A non-loopback request receives `403` until hosted authentication and tenant isolation exist.
+Community discovery is reported as BUZZ-backed `communities`, `people`, `rooms` and `presence`, with Node identity marked `provenance-only`.
 
 ## Authority remains unchanged
 
-- Writer approval remains creative authority.
-- PPF remains canonical story state.
-- `person_id` / Avatar contracts own human/account identity; Node identity does not replace them.
-- Each Node owns only its own local signing identity and authorized device provenance.
-- The Steward and Agents operate within bounded responsibilities; their identity does not replace Node identity.
-- The PlotPickle Host owns authorization and routing policy.
-- Compute supplies capability, not authority.
-- Agent Skills remain procedures, not permissions.
-- BUZZ coordinates signed identities/events, presence and evidence but does not expose another Node's localhost or write its PPF.
-- GitHub remains code merge authority.
+- Human/Avatar owns authorship and Community personhood.
+- PPF remains canonical creative story state.
+- Node identity proves installation/device provenance.
+- Human profile/vault boundaries protect local private work.
+- BUZZ supplies signed social/coordination provenance, not creative canon or peer execution authority.
+- Steward and Agents remain bounded helpers.
+- BEN/deterministic tests/build/UAT/Full Verification retain engineering PASS/FAIL authority.
+- Managed cloud services may produce candidate outputs but cannot accept canon.
+- GitHub remains source/PR/merge authority.
 
-## Follow-on phases
+## Release invariants
 
-This foundation intentionally leaves the risky parts explicit rather than half-implementing them:
-
-1. bind the current topology descriptor to canonical `node_id` without rotating existing Studio/Node keys;
-2. hosted identity, sessions, project membership and tenant isolation;
-3. HTTPS/reverse-proxy deployment contract and secure headers;
-4. signed remote-compute registration and capability receipts;
-5. cross-Node jobs, leases, cancellation, health and telemetry through the approved coordination boundary;
-6. desktop/hosted project synchronization and offline conflict policy;
-7. writer-facing Node inventory and route controls once the trust model above is enforceable.
+- One Node may host several isolated Humans.
+- One Human may use several Nodes without becoming several Community people.
+- Profile switches clear Human-scoped project, agent, retrieval, UI, credential and BUZZ-session state before another Human unlocks.
+- Community discovery centers Communities and people; Node identity is provenance underneath.
+- Community presence never exposes or routes local resources.
+- Peer Node compute is disabled.
+- Local capability routing remains local.
+- Remote compute, if configured, targets only an explicit managed cloud service.
+- Missing/stale evidence is never presented as ready/online.
+- BUZZ offline does not prevent local LEARN/PLAN/BUILD, local AI, local agents or local profile access.

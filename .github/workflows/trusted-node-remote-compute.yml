@@ -1,4 +1,4 @@
-name: Trusted Remote Compute
+name: Managed Cloud Compute Boundary
 
 on:
   pull_request:
@@ -6,8 +6,18 @@ on:
     paths:
       - "core/identity/remote-node-compute-core.mjs"
       - "core/identity/remote-node-compute.ts"
+      - "core/identity/managed-cloud-compute-core.mjs"
+      - "core/identity/managed-cloud-compute.ts"
+      - "core/identity/local-human-profile-core.mjs"
+      - "core/identity/local-human-profile.ts"
+      - "lib/plotpickle-node-topology-core.mjs"
+      - "lib/plotpickle-node-topology.ts"
+      - "build/node-topology-gateway.ts"
+      - "docs/architecture/PLOTPICKLE-NODE-TOPOLOGY.md"
       - "docs/architecture/TRUSTED-REMOTE-COMPUTE.md"
+      - "tests/issue-1013-plotpickle-node-topology.test.mjs"
       - "tests/issue-1075-trusted-node-remote-compute.test.mjs"
+      - "tests/issue-1135-canonical-node-buzz-boundary.test.mjs"
       - ".github/workflows/trusted-node-remote-compute.yml"
   workflow_dispatch:
 
@@ -15,12 +25,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: trusted-remote-compute-${{ github.event.pull_request.number || github.ref }}
+  group: managed-cloud-compute-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  phase-d-remote-compute:
-    name: Node discovery and least-privilege remote compute
+  canonical-node-cloud-boundary:
+    name: Local Node privacy and managed cloud boundary
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -37,11 +47,11 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
 
-      - name: Validate trusted/public Node discovery and scoped work packages
-        run: node --test tests/issue-1075-trusted-node-remote-compute.test.mjs
+      - name: Validate Node/Community/resource separation and managed cloud contracts
+        run: node --test tests/issue-1013-plotpickle-node-topology.test.mjs tests/issue-1075-trusted-node-remote-compute.test.mjs tests/issue-1135-canonical-node-buzz-boundary.test.mjs
 
-      - name: Re-run identity, sync and Node/BUZZ compatibility contracts
-        run: node --test tests/issue-1072-identity-authority.test.mjs tests/issue-1073-avatar-recovery-learn-sync.test.mjs tests/issue-927-studio-identity.test.mjs tests/issue-928-playhouse-federation.test.mjs tests/issue-1013-plotpickle-node-topology.test.mjs
+      - name: Re-run identity, sync and BUZZ compatibility contracts
+        run: node --test tests/issue-1072-identity-authority.test.mjs tests/issue-1073-avatar-recovery-learn-sync.test.mjs tests/issue-927-studio-identity.test.mjs tests/issue-928-playhouse-federation.test.mjs
 
       - name: Production build
         run: npm run build

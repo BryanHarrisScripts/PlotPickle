@@ -61,6 +61,10 @@ export function currentProfileRequestContext() {
   return profileRequests.getStore() ?? null;
 }
 
+export function withoutProfileRequestContext<T>(operation: () => T): T {
+  return profileRequests.exit(operation);
+}
+
 export function profileScopedBuzzRequestContext(): Plugin {
   return {
     name: "plotpickle-profile-scoped-buzz-request-context",

@@ -1,16 +1,19 @@
 import { createHash, randomBytes as systemRandomBytes, timingSafeEqual } from "node:crypto";
-import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { mkdir, open, readFile, rename, unlink } from "node:fs/promises";
 import path from "node:path";
 import {
   ARGON2ID_DEFAULTS,
   generateProfileMasterKey,
   generateRecoverySecret,
+  normalizeArgon2idParameters,
   parsePasswordWrappedProfileKey,
   parseRecoveryWrappedProfileKey,
   unwrapProfileMasterKeyWithPassword,
   unwrapProfileMasterKeyWithRecovery,
+  unwrapProfileSecret,
   wrapProfileMasterKeyWithPassword,
   wrapProfileMasterKeyWithRecovery,
+  wrapProfileSecret,
 } from "./profile-crypto-contract-core.mjs";
 
 export const AUTH_STATE_FORMAT = "plotpickle-auth-state";
@@ -19,6 +22,10 @@ export const AUTH_ACCESS_MODES = Object.freeze(["desktop-loopback", "server-netw
 export const PROFILE_STATUSES = Object.freeze(["active", "disabled"]);
 export const PROFILE_AUTH_METHODS = Object.freeze(["password", "recovery", "webauthn"]);
 export const AUTH_STRENGTHS = Object.freeze(["password", "password+webauthn", "recovery"]);
+export const PROFILE_VAULT_STATES = Object.freeze([
+  "uninitialized", "locked", "unlocking", "unlocked", "locking", "recovery-required", "corrupt",
+]);
+export const PROFILE_VAULT_KDF_MAINTENANCE = Object.freeze(["current", "upgrade-pending", "upgraded", "upgrade-deferred", "not-applicable"]);
 export const DEFAULT_SESSION_TTL_MS = 12 * 60 * 60 * 1_000;
 export const DEFAULT_BOOTSTRAP_TTL_MS = 15 * 60 * 1_000;
 
@@ -34,6 +41,8 @@ const AUTH_CONTEXT_FIELDS = Object.freeze([
 ]);
 const PROFILE_SUMMARY_FIELDS = Object.freeze(["profileId", "displayName", "avatarRef", "status"]);
 const BASE64URL_PATTERN = /^[A-Za-z0-9_-]+$/u;
+const RECOVERY_SECRET_PREFIX = "pprec1";
+const RECOVERY_CHECKSUM_BYTES = 5;
 const textDecoder = new TextDecoder("utf-8", { fatal: true });
 const KNOWN_WEAK_PASSWORDS = Object.freeze(new Set([
   "admin", "admin/admin", "changeme", "letmein", "localhost", "password", "password123", "plotpickle", "qwerty123",
@@ -146,6 +155,48 @@ function base64UrlBytes(value, label, bytes) {
   const decoded = Buffer.from(value, "base64url");
   if (decoded.toString("base64url") !== value || decoded.byteLength !== bytes) fail("INVALID_AUTH_CONTRACT", `${label} must contain exactly ${bytes} bytes.`);
   return decoded;
+}
+
+function encodeRecoverySecret(value) {
+  const secret = new Uint8Array(value);
+  const checksum = createHash("sha256")
+    .update("plotpickle:recovery-secret:v1\0", "utf8")
+    .update(secret)
+    .digest()
+    .subarray(0, RECOVERY_CHECKSUM_BYTES);
+  try {
+    return `${RECOVERY_SECRET_PREFIX}.${Buffer.from(secret.buffer, secret.byteOffset, secret.byteLength).toString("base64url")}.${checksum.toString("base64url")}`;
+  } finally {
+    secret.fill(0);
+    checksum.fill(0);
+  }
+}
+
+function decodeRecoverySecret(value) {
+  if (typeof value !== "string") fail("INVALID_AUTH_CONTRACT", "Recovery secret must be a string.");
+  if (!value.startsWith(`${RECOVERY_SECRET_PREFIX}.`)) return base64UrlBytes(value, "Recovery secret", 32);
+  const parts = value.split(".");
+  if (parts.length !== 3 || parts[0] !== RECOVERY_SECRET_PREFIX) fail("INVALID_AUTH_CONTRACT", "Recovery secret checksum is invalid.");
+  let secret;
+  let suppliedChecksum;
+  let expectedChecksum;
+  try {
+    secret = base64UrlBytes(parts[1], "Recovery secret", 32);
+    suppliedChecksum = base64UrlBytes(parts[2], "Recovery secret checksum", RECOVERY_CHECKSUM_BYTES);
+    expectedChecksum = createHash("sha256")
+      .update("plotpickle:recovery-secret:v1\0", "utf8")
+      .update(secret)
+      .digest()
+      .subarray(0, RECOVERY_CHECKSUM_BYTES);
+    if (!timingSafeEqual(suppliedChecksum, expectedChecksum)) fail("INVALID_AUTH_CONTRACT", "Recovery secret checksum is invalid.");
+    return secret;
+  } catch (error) {
+    secret?.fill(0);
+    throw error;
+  } finally {
+    suppliedChecksum?.fill(0);
+    expectedChecksum?.fill(0);
+  }
 }
 
 function clone(value) {
@@ -268,13 +319,33 @@ export function createInMemoryAuthStateStore(initialState = null) {
 export function createJsonFileAuthStateStore(filePath) {
   if (typeof filePath !== "string" || !path.isAbsolute(filePath)) fail("INVALID_AUTH_CONTRACT", "Auth state file path must be absolute.");
   const resolvedPath = path.resolve(filePath);
+  const quarantine = async (serialized) => {
+    const digest = createHash("sha256").update(serialized, "utf8").digest("hex").slice(0, 16);
+    const quarantinePath = `${resolvedPath}.corrupt-${digest}.json`;
+    let handle;
+    try {
+      handle = await open(quarantinePath, "wx", 0o600);
+      await handle.writeFile(serialized, "utf8");
+      await handle.sync();
+    } catch (error) {
+      if (error?.code !== "EEXIST") return false;
+    } finally {
+      await handle?.close().catch(() => undefined);
+    }
+    return true;
+  };
   return Object.freeze({
     async read() {
+      let serialized;
       try {
-        return JSON.parse(await readFile(resolvedPath, "utf8"));
+        serialized = await readFile(resolvedPath, "utf8");
+        return JSON.parse(serialized);
       } catch (error) {
         if (error?.code === "ENOENT") return null;
-        if (error instanceof SyntaxError) fail("AUTH_STATE_CORRUPT", "Stored Auth state is not valid JSON.", { cause: error });
+        if (error instanceof SyntaxError) {
+          await quarantine(serialized).catch(() => false);
+          fail("AUTH_STATE_CORRUPT", "Stored Auth state is not valid JSON and was quarantined without replacement.", { cause: error });
+        }
         throw error;
       }
     },
@@ -283,11 +354,47 @@ export function createJsonFileAuthStateStore(filePath) {
       await mkdir(directory, { recursive: true, mode: 0o700 });
       const suffix = systemRandomBytes(12).toString("hex");
       const temporaryPath = path.join(directory, `.${path.basename(resolvedPath)}.${process.pid}.${suffix}.tmp`);
+      const previousPath = `${resolvedPath}.previous`;
+      const previousTemporaryPath = `${temporaryPath}.previous`;
+      let temporaryHandle;
+      let previousHandle;
       try {
-        await writeFile(temporaryPath, `${JSON.stringify(value, null, 2)}\n`, { encoding: "utf8", mode: 0o600, flag: "wx" });
+        const serialized = `${JSON.stringify(value, null, 2)}\n`;
+        temporaryHandle = await open(temporaryPath, "wx", 0o600);
+        await temporaryHandle.writeFile(serialized, "utf8");
+        await temporaryHandle.sync();
+        await temporaryHandle.close();
+        temporaryHandle = undefined;
+        JSON.parse(await readFile(temporaryPath, "utf8"));
+
+        let previousSerialized = null;
+        try {
+          previousSerialized = await readFile(resolvedPath, "utf8");
+          JSON.parse(previousSerialized);
+        } catch (error) {
+          if (error?.code !== "ENOENT") {
+            if (error instanceof SyntaxError) {
+              await quarantine(previousSerialized).catch(() => false);
+              fail("AUTH_STATE_CORRUPT", "Stored Auth state is not valid JSON; it was quarantined and the verified vault was not replaced.", { cause: error });
+            }
+            throw error;
+          }
+        }
+        if (previousSerialized !== null) {
+          previousHandle = await open(previousTemporaryPath, "wx", 0o600);
+          await previousHandle.writeFile(previousSerialized, "utf8");
+          await previousHandle.sync();
+          await previousHandle.close();
+          previousHandle = undefined;
+          JSON.parse(await readFile(previousTemporaryPath, "utf8"));
+          await rename(previousTemporaryPath, previousPath);
+        }
         await rename(temporaryPath, resolvedPath);
       } catch (error) {
+        await temporaryHandle?.close().catch(() => undefined);
+        await previousHandle?.close().catch(() => undefined);
         await unlink(temporaryPath).catch(() => undefined);
+        await unlink(previousTemporaryPath).catch(() => undefined);
         throw error;
       }
     },
@@ -335,11 +442,25 @@ export async function createPlotPickleAuthService(options) {
   const randomBytes = typeof options.randomBytes === "function" ? options.randomBytes : systemRandomBytes;
   const sessionTtlMs = boundedDuration(options.sessionTtlMs ?? DEFAULT_SESSION_TTL_MS, "Session TTL", 30 * 24 * 60 * 60 * 1_000);
   const bootstrapTtlMs = boundedDuration(options.bootstrapTtlMs ?? DEFAULT_BOOTSTRAP_TTL_MS, "Bootstrap TTL", 24 * 60 * 60 * 1_000);
-  const passwordParameters = options.passwordParameters ?? ARGON2ID_DEFAULTS;
+  const passwordParameters = normalizeArgon2idParameters(options.passwordParameters ?? ARGON2ID_DEFAULTS);
   const storedState = await stateStore.read();
-  let state = storedState === null ? emptyState(nodeId, accessMode) : parseAuthPersistentState(storedState, { nodeId, accessMode });
+  let state;
+  try {
+    state = storedState === null ? emptyState(nodeId, accessMode) : parseAuthPersistentState(storedState, { nodeId, accessMode });
+  } catch (error) {
+    if (error?.code === "UNSUPPORTED_ENVELOPE_VERSION") {
+      fail("AUTH_STATE_UNSUPPORTED", "Stored Auth state contains a future profile-vault envelope version.", { cause: error });
+    }
+    if (error?.name === "ProfileCryptoContractError") {
+      fail("AUTH_STATE_CORRUPT", "Stored Auth state contains a malformed profile-vault envelope.", { cause: error });
+    }
+    throw error;
+  }
   if (storedState === null) await stateStore.write(state);
   const sessions = new Map();
+  const cleanupHooks = new Set();
+  const transientVaultStates = new Map();
+  const kdfMaintenance = new Map(Object.values(state.registry.profiles).map((profile) => [profile.profileId, "current"]));
   let mutationTail = Promise.resolve();
 
   const currentMs = () => {
@@ -365,6 +486,42 @@ export async function createPlotPickleAuthService(options) {
     mutationTail = run.then(() => undefined, () => undefined);
     return run;
   };
+  const profileSessionCount = (targetProfileId) => {
+    let count = 0;
+    for (const session of sessions.values()) {
+      if (session.context.profileId === targetProfileId) count += 1;
+    }
+    return count;
+  };
+  const steadyVaultState = (targetProfileId) => profileSessionCount(targetProfileId) > 0 ? "unlocked" : "locked";
+  const emitCleanup = (targetProfileId, reason, invalidatedSessionCount) => {
+    const event = Object.freeze({
+      profileId: targetProfileId,
+      reason,
+      invalidatedSessionCount,
+      occurredAt: currentIso(),
+    });
+    for (const hook of cleanupHooks) {
+      try {
+        hook(event);
+      } catch {
+        cleanupHooks.delete(hook);
+      }
+    }
+  };
+  const kdfNeedsUpgrade = (storedKdf) => {
+    const noPolicyDimensionWouldDowngrade = storedKdf.memoryKiB <= passwordParameters.memoryKiB
+      && storedKdf.iterations <= passwordParameters.iterations
+      && storedKdf.parallelism <= passwordParameters.parallelism;
+    return noPolicyDimensionWouldDowngrade && (
+      storedKdf.memoryKiB < passwordParameters.memoryKiB
+      || storedKdf.iterations < passwordParameters.iterations
+      || storedKdf.parallelism < passwordParameters.parallelism
+    );
+  };
+  for (const [targetProfileId, credential] of Object.entries(state.credentials)) {
+    kdfMaintenance.set(targetProfileId, kdfNeedsUpgrade(credential.passwordEnvelope.kdf) ? "upgrade-pending" : "current");
+  }
   const invalidateSession = (sessionId) => {
     const session = sessions.get(sessionId);
     if (!session) return false;
@@ -373,9 +530,11 @@ export async function createPlotPickleAuthService(options) {
     return true;
   };
   const invalidateProfileSessions = (targetProfileId) => {
+    let invalidated = 0;
     for (const [sessionId, session] of sessions) {
-      if (session.context.profileId === targetProfileId) invalidateSession(sessionId);
+      if (session.context.profileId === targetProfileId && invalidateSession(sessionId)) invalidated += 1;
     }
+    return invalidated;
   };
   const createSession = (targetProfileId, authStrength, profileMasterKey) => {
     const issuedAtMs = currentMs();
@@ -401,11 +560,13 @@ export async function createPlotPickleAuthService(options) {
     if (!session || JSON.stringify(candidate) !== JSON.stringify(session.context)) fail("SESSION_REJECTED", "The Auth session is invalid or expired.");
     if (Date.parse(session.context.expiresAt) <= currentMs()) {
       invalidateSession(sessionId);
+      emitCleanup(session.context.profileId, "session-expired", 1);
       fail("SESSION_REJECTED", "The Auth session is invalid or expired.");
     }
     const profile = state.registry.profiles[session.context.profileId];
     if (!profile || profile.status !== "active") {
       invalidateSession(sessionId);
+      emitCleanup(session.context.profileId, "profile-unavailable", 1);
       fail("SESSION_REJECTED", "The Auth session is invalid or expired.");
     }
     return session;
@@ -471,10 +632,11 @@ export async function createPlotPickleAuthService(options) {
         credentials: { ...state.credentials, [newProfileId]: credential },
         bootstrap,
       });
+      kdfMaintenance.set(newProfileId, "current");
       const authContext = createSession(newProfileId, "password", pmk);
       return Object.freeze({
         profile,
-        recoverySecret: Buffer.from(recoverySecret).toString("base64url"),
+        recoverySecret: encodeRecoverySecret(recoverySecret),
         authContext,
       });
     } finally {
@@ -520,9 +682,11 @@ export async function createPlotPickleAuthService(options) {
       });
     },
     async authenticate(input) {
+      let targetProfileId = null;
       try {
         assertExactFields(input, ["profileId", "password"], "Password authentication input");
-        const targetProfileId = profileId(input.profileId);
+        targetProfileId = profileId(input.profileId);
+        transientVaultStates.set(targetProfileId, "unlocking");
         const profile = state.registry.profiles[targetProfileId];
         const credential = state.credentials[targetProfileId];
         const workCredential = credential || Object.values(state.credentials)[0];
@@ -530,28 +694,71 @@ export async function createPlotPickleAuthService(options) {
         const pmk = await unwrapProfileMasterKeyWithPassword(workCredential.passwordEnvelope, input.password, workCredential.profileId);
         try {
           if (!profile || !credential || credential !== workCredential || profile.status !== "active") throw new Error("Profile is unavailable.");
-          const currentProfile = state.registry.profiles[targetProfileId];
-          const currentCredential = state.credentials[targetProfileId];
-          if (!currentProfile || currentProfile.status !== "active" || !currentCredential || JSON.stringify(currentCredential.passwordEnvelope) !== JSON.stringify(credential.passwordEnvelope)) {
-            throw new Error("Profile changed while authentication was in progress.");
-          }
-          return Object.freeze({ profile: profileSummary(currentProfile), authContext: createSession(targetProfileId, "password", pmk) });
+          let authenticatedProfile;
+          let maintenance = "current";
+          await serializeMutation(async () => {
+            authenticatedProfile = state.registry.profiles[targetProfileId];
+            const currentCredential = state.credentials[targetProfileId];
+            if (!authenticatedProfile || authenticatedProfile.status !== "active" || !currentCredential || JSON.stringify(currentCredential.passwordEnvelope) !== JSON.stringify(credential.passwordEnvelope)) {
+              throw new Error("Profile changed while authentication was in progress.");
+            }
+            if (kdfNeedsUpgrade(currentCredential.passwordEnvelope.kdf)) {
+              let verifiedPmk;
+              try {
+                const upgradedEnvelope = await wrapProfileMasterKeyWithPassword({
+                  profileId: targetProfileId,
+                  password: input.password,
+                  profileMasterKey: pmk,
+                  parameters: passwordParameters,
+                });
+                verifiedPmk = await unwrapProfileMasterKeyWithPassword(upgradedEnvelope, input.password, targetProfileId);
+                if (!timingSafeEqual(verifiedPmk, pmk)) throw new Error("Upgraded password envelope did not preserve the PMK.");
+                const upgradedProfile = freezeProfile({
+                  ...authenticatedProfile,
+                  vaultVersion: authenticatedProfile.vaultVersion + 1,
+                  updatedAt: currentIso(),
+                });
+                const upgradedCredential = freezeCredential({ ...currentCredential, passwordEnvelope: upgradedEnvelope }, targetProfileId);
+                await persist({
+                  ...state,
+                  registry: { ...state.registry, profiles: { ...state.registry.profiles, [targetProfileId]: upgradedProfile } },
+                  credentials: { ...state.credentials, [targetProfileId]: upgradedCredential },
+                });
+                authenticatedProfile = upgradedProfile;
+                maintenance = "upgraded";
+              } catch {
+                maintenance = "upgrade-deferred";
+              } finally {
+                verifiedPmk?.fill(0);
+              }
+            }
+          });
+          kdfMaintenance.set(targetProfileId, maintenance);
+          return Object.freeze({
+            profile: profileSummary(authenticatedProfile),
+            authContext: createSession(targetProfileId, "password", pmk),
+            vaultMaintenance: maintenance,
+          });
         } finally {
           pmk.fill(0);
         }
       } catch (error) {
         throw publicAuthenticationFailure(error);
+      } finally {
+        if (targetProfileId !== null) transientVaultStates.delete(targetProfileId);
       }
     },
     async authenticateWithRecovery(input) {
+      let targetProfileId = null;
       try {
         assertExactFields(input, ["profileId", "recoverySecret"], "Recovery authentication input");
-        const targetProfileId = profileId(input.profileId);
+        targetProfileId = profileId(input.profileId);
+        transientVaultStates.set(targetProfileId, "recovery-required");
         const profile = state.registry.profiles[targetProfileId];
         const credential = state.credentials[targetProfileId];
         const workCredential = credential || Object.values(state.credentials)[0];
         if (!workCredential) throw new Error("Profile is unavailable.");
-        const recoverySecret = base64UrlBytes(input.recoverySecret, "Recovery secret", 32);
+        const recoverySecret = decodeRecoverySecret(input.recoverySecret);
         try {
           const pmk = await unwrapProfileMasterKeyWithRecovery(workCredential.recoveryEnvelope, recoverySecret, workCredential.profileId);
           try {
@@ -570,7 +777,188 @@ export async function createPlotPickleAuthService(options) {
         }
       } catch (error) {
         throw publicAuthenticationFailure(error);
+      } finally {
+        if (targetProfileId !== null) transientVaultStates.delete(targetProfileId);
       }
+    },
+    async changePassword(input, authContext) {
+      return serializeMutation(async () => {
+        assertExactFields(input, ["currentPassword", "newPassword"], "Password change input");
+        if ((typeof input.currentPassword !== "string" && !(input.currentPassword instanceof Uint8Array))
+          || (typeof input.newPassword !== "string" && !(input.newPassword instanceof Uint8Array))) {
+          fail("INVALID_AUTH_CONTRACT", "Password change values must be strings or Uint8Arrays.");
+        }
+        const session = requireSession(authContext);
+        const targetProfileId = session.context.profileId;
+        const profile = state.registry.profiles[targetProfileId];
+        const credential = state.credentials[targetProfileId];
+        assertStrongProfilePassword(input.newPassword, [profile.displayName, nodeId]);
+        transientVaultStates.set(targetProfileId, "locking");
+        let currentPmk;
+        let verifiedPmk;
+        try {
+          try {
+            currentPmk = await unwrapProfileMasterKeyWithPassword(credential.passwordEnvelope, input.currentPassword, targetProfileId);
+            if (!timingSafeEqual(currentPmk, session.profileMasterKey)) throw new Error("Authenticated PMK does not match the active vault capability.");
+          } catch (error) {
+            throw publicAuthenticationFailure(error);
+          }
+          const passwordEnvelope = await wrapProfileMasterKeyWithPassword({
+            profileId: targetProfileId,
+            password: input.newPassword,
+            profileMasterKey: currentPmk,
+            parameters: passwordParameters,
+          });
+          verifiedPmk = await unwrapProfileMasterKeyWithPassword(passwordEnvelope, input.newPassword, targetProfileId);
+          if (!timingSafeEqual(verifiedPmk, currentPmk)) fail("VAULT_REWRAP_FAILED", "The new password envelope did not preserve the profile vault key.");
+          const updatedProfile = freezeProfile({
+            ...profile,
+            vaultVersion: profile.vaultVersion + 1,
+            updatedAt: currentIso(),
+          });
+          const updatedCredential = freezeCredential({ ...credential, passwordEnvelope }, targetProfileId);
+          await persist({
+            ...state,
+            registry: { ...state.registry, profiles: { ...state.registry.profiles, [targetProfileId]: updatedProfile } },
+            credentials: { ...state.credentials, [targetProfileId]: updatedCredential },
+          });
+          kdfMaintenance.set(targetProfileId, "current");
+          const invalidatedSessionCount = invalidateProfileSessions(targetProfileId);
+          emitCleanup(targetProfileId, "password-change", invalidatedSessionCount);
+          return Object.freeze({
+            profile: profileSummary(updatedProfile),
+            authContext: createSession(targetProfileId, "password", currentPmk),
+          });
+        } finally {
+          currentPmk?.fill(0);
+          verifiedPmk?.fill(0);
+          transientVaultStates.delete(targetProfileId);
+        }
+      });
+    },
+    async resetPasswordWithRecovery(input) {
+      return serializeMutation(async () => {
+        assertExactFields(input, ["profileId", "recoverySecret", "newPassword"], "Recovery reset input");
+        const targetProfileId = profileId(input.profileId);
+        transientVaultStates.set(targetProfileId, "recovery-required");
+        let recoverySecret;
+        let replacementRecoverySecret;
+        let pmk;
+        let verifiedPasswordPmk;
+        let verifiedRecoveryPmk;
+        try {
+          const profile = state.registry.profiles[targetProfileId];
+          const credential = state.credentials[targetProfileId];
+          const workCredential = credential || Object.values(state.credentials)[0];
+          if (!workCredential) throw publicAuthenticationFailure(new Error("Profile is unavailable."));
+          try {
+            recoverySecret = decodeRecoverySecret(input.recoverySecret);
+            pmk = await unwrapProfileMasterKeyWithRecovery(workCredential.recoveryEnvelope, recoverySecret, workCredential.profileId);
+            if (!profile || !credential || credential !== workCredential || profile.status !== "active") throw new Error("Profile is unavailable.");
+          } catch (error) {
+            throw publicAuthenticationFailure(error);
+          }
+          if (typeof input.newPassword !== "string" && !(input.newPassword instanceof Uint8Array)) fail("INVALID_AUTH_CONTRACT", "New profile password must be a string or Uint8Array.");
+          assertStrongProfilePassword(input.newPassword, [profile.displayName, nodeId]);
+          replacementRecoverySecret = await generateRecoverySecret();
+          const passwordEnvelope = await wrapProfileMasterKeyWithPassword({
+            profileId: targetProfileId,
+            password: input.newPassword,
+            profileMasterKey: pmk,
+            parameters: passwordParameters,
+          });
+          const recoveryEnvelope = await wrapProfileMasterKeyWithRecovery({
+            profileId: targetProfileId,
+            recoverySecret: replacementRecoverySecret,
+            profileMasterKey: pmk,
+          });
+          verifiedPasswordPmk = await unwrapProfileMasterKeyWithPassword(passwordEnvelope, input.newPassword, targetProfileId);
+          verifiedRecoveryPmk = await unwrapProfileMasterKeyWithRecovery(recoveryEnvelope, replacementRecoverySecret, targetProfileId);
+          if (!timingSafeEqual(verifiedPasswordPmk, pmk) || !timingSafeEqual(verifiedRecoveryPmk, pmk)) {
+            fail("VAULT_REWRAP_FAILED", "Recovery reset did not preserve the profile vault key.");
+          }
+          const updatedProfile = freezeProfile({
+            ...profile,
+            vaultVersion: profile.vaultVersion + 1,
+            updatedAt: currentIso(),
+          });
+          const updatedCredential = freezeCredential({ profileId: targetProfileId, passwordEnvelope, recoveryEnvelope }, targetProfileId);
+          await persist({
+            ...state,
+            registry: { ...state.registry, profiles: { ...state.registry.profiles, [targetProfileId]: updatedProfile } },
+            credentials: { ...state.credentials, [targetProfileId]: updatedCredential },
+          });
+          kdfMaintenance.set(targetProfileId, "current");
+          const invalidatedSessionCount = invalidateProfileSessions(targetProfileId);
+          emitCleanup(targetProfileId, "recovery-reset", invalidatedSessionCount);
+          return Object.freeze({
+            profile: profileSummary(updatedProfile),
+            recoverySecret: encodeRecoverySecret(replacementRecoverySecret),
+            authContext: createSession(targetProfileId, "recovery", pmk),
+          });
+        } finally {
+          recoverySecret?.fill(0);
+          replacementRecoverySecret?.fill(0);
+          pmk?.fill(0);
+          verifiedPasswordPmk?.fill(0);
+          verifiedRecoveryPmk?.fill(0);
+          transientVaultStates.delete(targetProfileId);
+        }
+      });
+    },
+    getVaultStatus(targetProfileId = null, authContext = null) {
+      if (targetProfileId === null && authContext === null) {
+        const profiles = Object.values(state.registry.profiles);
+        if (!profiles.length) return Object.freeze({ profileId: null, state: "uninitialized", vaultVersion: null, kdfMaintenance: "not-applicable" });
+        if (accessMode === "server-network") fail("ACCESS_DENIED", "A valid Human session is required to inspect a server profile vault.");
+        if (profiles.length !== 1) fail("INVALID_AUTH_CONTRACT", "A profile id is required when more than one local profile exists.");
+        targetProfileId = profiles[0].profileId;
+      } else if (targetProfileId === null) {
+        targetProfileId = requireSession(authContext).context.profileId;
+      }
+      const normalizedProfileId = profileId(targetProfileId);
+      if (authContext !== null) requireProfileActor(authContext, normalizedProfileId);
+      else if (accessMode === "server-network") fail("ACCESS_DENIED", "A valid Human session is required to inspect a server profile vault.");
+      const profile = state.registry.profiles[normalizedProfileId];
+      if (!profile) fail("PROFILE_NOT_FOUND", "Human profile was not found.");
+      return Object.freeze({
+        profileId: normalizedProfileId,
+        state: transientVaultStates.get(normalizedProfileId) || steadyVaultState(normalizedProfileId),
+        vaultVersion: profile.vaultVersion,
+        kdfMaintenance: kdfMaintenance.get(normalizedProfileId) || "current",
+      });
+    },
+    createProfileVaultCapability(authContext) {
+      const initialSession = requireSession(authContext);
+      const targetProfileId = initialSession.context.profileId;
+      return Object.freeze({
+        profileId: targetProfileId,
+        async wrapSecret(input) {
+          assertExactFields(input, ["secretId", "secret"], "Profile vault secret wrapping input");
+          const session = requireProfileActor(authContext, targetProfileId);
+          return wrapProfileSecret({
+            profileId: targetProfileId,
+            secretId: input.secretId,
+            profileMasterKey: session.profileMasterKey,
+            secret: input.secret,
+          });
+        },
+        async unwrapSecret(input) {
+          assertExactFields(input, ["envelope", "secretId"], "Profile vault secret unwrapping input");
+          const session = requireProfileActor(authContext, targetProfileId);
+          return unwrapProfileSecret(input.envelope, session.profileMasterKey, { profileId: targetProfileId, secretId: input.secretId });
+        },
+      });
+    },
+    registerVaultCleanupHook(hook) {
+      if (typeof hook !== "function") fail("INVALID_AUTH_CONTRACT", "Vault cleanup hook must be a function.");
+      cleanupHooks.add(hook);
+      let active = true;
+      return () => {
+        if (!active) return false;
+        active = false;
+        return cleanupHooks.delete(hook);
+      };
     },
     listProfileSummaries(authContext = null) {
       if (accessMode === "server-network" && authContext === null) return Object.freeze([]);
@@ -621,19 +1009,29 @@ export async function createPlotPickleAuthService(options) {
         if (!existing) fail("PROFILE_NOT_FOUND", "Human profile was not found.");
         const disabled = freezeProfile({ ...existing, status: "disabled", updatedAt: currentIso() });
         await persist({ ...state, registry: { ...state.registry, profiles: { ...state.registry.profiles, [normalizedProfileId]: disabled } } });
-        invalidateProfileSessions(normalizedProfileId);
+        transientVaultStates.set(normalizedProfileId, "locking");
+        const invalidatedSessionCount = invalidateProfileSessions(normalizedProfileId);
+        transientVaultStates.delete(normalizedProfileId);
+        emitCleanup(normalizedProfileId, "profile-disabled", invalidatedSessionCount);
         return profileSummary(disabled);
       });
     },
     lock(authContext) {
       const session = requireSession(authContext);
-      return invalidateSession(session.context.sessionId);
+      transientVaultStates.set(session.context.profileId, "locking");
+      const invalidated = invalidateSession(session.context.sessionId);
+      transientVaultStates.delete(session.context.profileId);
+      if (invalidated) emitCleanup(session.context.profileId, "lock", 1);
+      return invalidated;
     },
     lockProfile(targetProfileId, authContext) {
       const normalizedProfileId = profileId(targetProfileId);
       requireProfileActor(authContext, normalizedProfileId);
       if (!state.registry.profiles[normalizedProfileId]) fail("PROFILE_NOT_FOUND", "Human profile was not found.");
-      invalidateProfileSessions(normalizedProfileId);
+      transientVaultStates.set(normalizedProfileId, "locking");
+      const invalidatedSessionCount = invalidateProfileSessions(normalizedProfileId);
+      transientVaultStates.delete(normalizedProfileId);
+      emitCleanup(normalizedProfileId, "lock-profile", invalidatedSessionCount);
       return true;
     },
     readRegistrySnapshot(authContext = null) {
@@ -642,7 +1040,15 @@ export async function createPlotPickleAuthService(options) {
       return clone(state.registry);
     },
     close() {
-      for (const sessionId of [...sessions.keys()]) invalidateSession(sessionId);
+      const profiles = new Map();
+      for (const session of sessions.values()) profiles.set(session.context.profileId, (profiles.get(session.context.profileId) || 0) + 1);
+      for (const [targetProfileId, count] of profiles) {
+        transientVaultStates.set(targetProfileId, "locking");
+        invalidateProfileSessions(targetProfileId);
+        transientVaultStates.delete(targetProfileId);
+        emitCleanup(targetProfileId, "service-close", count);
+      }
+      cleanupHooks.clear();
     },
   });
 }

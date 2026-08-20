@@ -98,7 +98,7 @@ BUZZ Desktop remains the owner-level interface for creating/approving managed BU
 
 A **PlotPickle Node is one uniquely identified PlotPickle installation/device**. The Node owns a durable `node_id` and an independent local signing keypair. A Person may use several Nodes, and a shared household Node may securely host several local Human profiles.
 
-PlotPickle owns Human-profile authentication; the operating system and BUZZ are not login authorities. The canonical security assumptions, cryptographic envelope boundary, profile registry, access modes and authorization context are documented in [PlotPickle Auth threat model](docs/architecture/PLOTPICKLE-AUTH-THREAT-MODEL.md), [PlotPickle Auth cryptographic dependency selection](docs/architecture/PLOTPICKLE-AUTH-CRYPTO-SELECTION.md), and [PlotPickle Auth Core](docs/architecture/PLOTPICKLE-AUTH-CORE.md).
+PlotPickle owns Human-profile authentication; the operating system and BUZZ are not login authorities. The canonical security assumptions, cryptographic envelope boundary, profile registry, access modes, authorization context and key lifecycle are documented in [PlotPickle Auth threat model](docs/architecture/PLOTPICKLE-AUTH-THREAT-MODEL.md), [PlotPickle Auth cryptographic dependency selection](docs/architecture/PLOTPICKLE-AUTH-CRYPTO-SELECTION.md), [PlotPickle Auth Core](docs/architecture/PLOTPICKLE-AUTH-CORE.md), and [Profile Master Key vault](docs/architecture/PLOTPICKLE-PROFILE-VAULT.md).
 
 The **Steward is the local caretaker inside that Node**. The Steward can monitor health, coordinate agents, explain what is happening and help recover local services, but it is not the Node identity itself.
 

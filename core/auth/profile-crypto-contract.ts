@@ -52,6 +52,7 @@ export type ProfileSecretEnvelope = {
 
 export type ProfileCryptoErrorCode =
   | "INVALID_ENVELOPE"
+  | "UNSUPPORTED_ENVELOPE_VERSION"
   | "INVALID_KDF"
   | "INVALID_PASSWORD"
   | "INVALID_SECRET"

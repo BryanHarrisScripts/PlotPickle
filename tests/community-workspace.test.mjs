@@ -45,7 +45,7 @@ test("Community keeps its established destinations while Great Hall becomes Hall
 test("Story Rooms owns the six visible hall destinations and legacy broad story remains compatibility-only", async () => {
   const [workspace, contract, navigationStyles, continuity] = await Promise.all([
     read("app/community-workspace.tsx"),
-    read("lib/community-bbs.ts"),
+    read("lib/buzz-story-room.ts"),
     read("app/community-navigation.module.css"),
     read("app/workspace-continuity.css"),
   ]);
@@ -83,7 +83,7 @@ test("Community caller is resolved from the authoritative human identity endpoin
     read("app/community-workspace.tsx"),
     read("app/community-backdoor-terminal.tsx"),
     read("app/buzz-settings-panel.tsx"),
-    read("lib/community-bbs.ts"),
+    read("lib/buzz-story-room.ts"),
   ]);
 
   assert.match(workspace, /request<HumanBuzzIdentity & \{ ok: true \}>\("\/human-identity"\)/);

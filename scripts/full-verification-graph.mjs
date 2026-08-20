@@ -165,7 +165,6 @@ export const FULL_VERIFICATION_GRAPH = [
 ];
 
 const TERMINAL = new Set(["PASS", "FAIL", "BLOCKED"]);
-let managedVerificationRuntime = null;
 
 function boundedParallelism(value) {
   const parsed = Number(value);
@@ -271,71 +270,70 @@ export async function executeCommandNode(node, options = {}) {
   });
 }
 
-export function verificationEndpointEnvironment() {
-  if (!managedVerificationRuntime?.record) return {};
-  return {
-    ...endpointRuntimeEnvironment(managedVerificationRuntime),
-    PLOTPICKLE_LOCAL_ENDPOINT_EVIDENCE: JSON.stringify(managedEndpointEvidence(managedVerificationRuntime)),
-  };
-}
-
-export function verificationEndpointEvidence() {
-  return managedVerificationRuntime?.record ? managedEndpointEvidence(managedVerificationRuntime) : null;
-}
-
-export async function stopManagedPlotPickleVerificationServer() {
-  const runtime = managedVerificationRuntime;
-  managedVerificationRuntime = null;
-  if (!runtime) return;
-  await stopManagedLocalEndpoint(runtime);
-}
-
-export async function ensurePlotPickleReady(options = {}) {
-  const started = Date.now();
-  if (managedVerificationRuntime?.record?.readinessState === "ready") {
-    const evidence = managedEndpointEvidence(managedVerificationRuntime);
-    return {
-      status: "PASS",
-      exitCode: 0,
-      detail: `Managed PlotPickle endpoint ${evidence.endpointId} generation ${evidence.generation} is already ready for this verification job.`,
-      durationMs: Date.now() - started,
-    };
-  }
-
-  const waitSeconds = Math.max(30, Math.min(900, Number(options.startupWaitSeconds) || 240));
-  const jobId = options.jobId || `verification-${randomUUID().replaceAll("-", "").slice(0, 24)}`;
-  try {
-    const runtime = await startManagedPlotPickleEndpoint({
-      repoRoot: options.cwd || repoRoot,
-      jobId,
-      profileRef: options.profileRef,
-      serviceKind: "plotpickle-full-verification",
-      startupContract: "plotpickle-full-verification-endpoint-v1",
-      timeoutMs: waitSeconds * 1000,
-      onStatus: (state, detail) => {
-        if (options.echo !== false) process.stdout.write(`[app-ready] ${String(state).toUpperCase()}  ${detail}\n`);
-      },
-      onOutput: (text, stream) => {
-        if (options.echo === false) return;
-        writeChunk("app-ready", stream === "stderr" ? process.stderr : process.stdout, text);
-      },
-    });
-    managedVerificationRuntime = runtime;
-    const evidence = managedEndpointEvidence(runtime);
-    return {
-      status: "PASS",
-      exitCode: 0,
-      detail: `Full Verification started endpoint ${evidence.endpointId} generation ${evidence.generation}; exact-instance proof ${evidence.exactInstanceProof}.`,
-      durationMs: Date.now() - started,
-    };
-  } catch (error) {
-    return {
-      status: "FAIL",
-      exitCode: 1,
-      detail: cleanDetail(error instanceof Error ? error.message : String(error)),
-      durationMs: Date.now() - started,
-    };
-  }
+export function createVerificationEndpointContext() {
+  let runtime = null;
+  return Object.freeze({
+    async ensureReady(options = {}) {
+      const started = Date.now();
+      if (runtime?.record?.readinessState === "ready") {
+        const evidence = managedEndpointEvidence(runtime);
+        return {
+          status: "PASS",
+          exitCode: 0,
+          detail: `Managed PlotPickle endpoint ${evidence.endpointId} generation ${evidence.generation} is already ready for this verification job.`,
+          durationMs: Date.now() - started,
+        };
+      }
+      const waitSeconds = Math.max(30, Math.min(900, Number(options.startupWaitSeconds) || 240));
+      const jobId = options.jobId || `verification-${randomUUID().replaceAll("-", "").slice(0, 24)}`;
+      try {
+        runtime = await startManagedPlotPickleEndpoint({
+          repoRoot: options.cwd || repoRoot,
+          jobId,
+          profileRef: options.profileRef,
+          serviceKind: "plotpickle-full-verification",
+          startupContract: "plotpickle-full-verification-endpoint-v1",
+          timeoutMs: waitSeconds * 1000,
+          onStatus: (state, detail) => {
+            if (options.echo !== false) process.stdout.write(`[app-ready] ${String(state).toUpperCase()}  ${detail}\n`);
+          },
+          onOutput: (text, stream) => {
+            if (options.echo === false) return;
+            writeChunk("app-ready", stream === "stderr" ? process.stderr : process.stdout, text);
+          },
+        });
+        const evidence = managedEndpointEvidence(runtime);
+        return {
+          status: "PASS",
+          exitCode: 0,
+          detail: `Full Verification started endpoint ${evidence.endpointId} generation ${evidence.generation}; exact-instance proof ${evidence.exactInstanceProof}.`,
+          durationMs: Date.now() - started,
+        };
+      } catch (error) {
+        return {
+          status: "FAIL",
+          exitCode: 1,
+          detail: cleanDetail(error instanceof Error ? error.message : String(error)),
+          durationMs: Date.now() - started,
+        };
+      }
+    },
+    environment() {
+      if (!runtime?.record) return {};
+      return {
+        ...endpointRuntimeEnvironment(runtime),
+        PLOTPICKLE_LOCAL_ENDPOINT_EVIDENCE: JSON.stringify(managedEndpointEvidence(runtime)),
+      };
+    },
+    evidence() {
+      return runtime?.record ? managedEndpointEvidence(runtime) : null;
+    },
+    async stop() {
+      const owned = runtime;
+      runtime = null;
+      if (owned) await stopManagedLocalEndpoint(owned);
+    },
+  });
 }
 
 export function createVerificationGraphState(graph = FULL_VERIFICATION_GRAPH) {
@@ -417,11 +415,12 @@ export async function runVerificationGraph(options = {}) {
   const maxParallelism = boundedParallelism(options.maxParallelism ?? process.env.PLOTPICKLE_FULL_CHECK_PARALLELISM ?? 3);
   const active = new Map();
   const timeline = [];
+  const endpointContext = options.endpointContext || createVerificationEndpointContext();
   let maxParallelObserved = 0;
 
-  const execute = options.execute || (async (node) => {
+  const execute = options.execute || (async (node, context) => {
     if (node.tool === "app-ready") {
-      return ensurePlotPickleReady({
+      return context.ensureReady({
         startupWaitSeconds: options.startupWaitSeconds,
         echo: options.echo !== false,
         cwd: options.cwd || repoRoot,
@@ -432,7 +431,7 @@ export async function runVerificationGraph(options = {}) {
     return executeCommandNode(node, {
       cwd: options.cwd || repoRoot,
       echo: options.echo !== false,
-      env: verificationEndpointEnvironment(),
+      env: context.environment(),
     });
   });
 
@@ -448,7 +447,7 @@ export async function runVerificationGraph(options = {}) {
         state.set(nodeId, { ...current, status: "RUNNING", startedAt });
         timeline.push({ nodeId, event: "start", at: startedAt });
         if (options.echo !== false) process.stdout.write(`START  ${node.name}\n`);
-        const promise = Promise.resolve(execute(node)).then((rawResult) => {
+        const promise = Promise.resolve(execute(node, endpointContext)).then((rawResult) => {
           const checked = validateVerificationNodeResult(node, rawResult);
           const result = checked.ok ? rawResult : { status: "FAIL", exitCode: 1, detail: `Node result contract failed: ${checked.error}`, durationMs: 0 };
           const completedAt = new Date().toISOString();
@@ -512,14 +511,14 @@ export async function runVerificationGraph(options = {}) {
       topology: "host-owned-responsibility-graph-adapter",
       maxParallelism,
       maxParallelObserved,
-      endpointProvenance: verificationEndpointEvidence(),
+      endpointProvenance: endpointContext.evidence(),
       stages,
       nodes,
       timeline,
       deterministicResult: stages.every((stage) => stage.Status === "PASS") ? "PASS" : "FAIL",
     };
   } finally {
-    await stopManagedPlotPickleVerificationServer();
+    await endpointContext.stop();
   }
 }
 

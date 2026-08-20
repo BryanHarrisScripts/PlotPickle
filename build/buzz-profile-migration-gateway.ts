@@ -1,5 +1,4 @@
 import { readFile, stat } from "node:fs/promises";
-import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import type { Plugin } from "vite";
 import {
@@ -9,38 +8,17 @@ import {
 } from "./local-credentials";
 import {
   currentProfileRequestContext,
-  withoutProfileRequestContext,
+  profileRequestScope,
 } from "./profile-request-context";
 
 const API = "/api/local-buzz/profile-migration";
 const CONNECTION_FILE = "buzz-connection.json";
+const JSON_HEADERS = {
+  "Content-Type": "application/json; charset=utf-8",
+  "Cache-Control": "no-store",
+  "X-Content-Type-Options": "nosniff",
+};
 let migrationQueue = Promise.resolve();
-
-function isLoopback(value: string | undefined) {
-  return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
-}
-
-function isLocalRequest(request: IncomingMessage) {
-  if (!isLoopback(request.socket.remoteAddress)) return false;
-  const host = request.headers.host;
-  if (!host) return false;
-  try {
-    const hostUrl = new URL(`http://${host}`);
-    if (!["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname)) return false;
-    const origin = request.headers.origin;
-    return !origin || new URL(origin).host === hostUrl.host;
-  } catch {
-    return false;
-  }
-}
-
-function sendJson(response: ServerResponse, statusCode: number, body: Record<string, unknown>) {
-  response.statusCode = statusCode;
-  response.setHeader("Content-Type", "application/json; charset=utf-8");
-  response.setHeader("Cache-Control", "no-store");
-  response.setHeader("X-Content-Type-Options", "nosniff");
-  response.end(JSON.stringify(body));
-}
 
 function markerPath() {
   return path.join(persistentHome(), "migration", "legacy-credentials.read-only.json");
@@ -116,7 +94,9 @@ async function migrate() {
     const source = Object.freeze({
       ...legacy,
       async listCredentials() {
-        return withoutProfileRequestContext(() => legacy.listCredentials());
+        const records = await profileRequestScope.exit(() => legacy.listCredentials());
+        if (!Array.isArray(records)) throw new Error("Legacy BUZZ migration returned an invalid credential inventory.");
+        return records;
       },
     });
     await context.privateStorage.migrateLegacyProfile(context.authContext, source);
@@ -140,25 +120,43 @@ export function buzzProfileMigrationGateway(): Plugin {
         let url: URL;
         try { url = new URL(rawUrl, "http://127.0.0.1"); } catch { next(); return; }
         if (url.pathname !== API) { next(); return; }
-        if (!isLocalRequest(request)) {
-          sendJson(response, 403, { ok: false, message: "Legacy BUZZ migration is available only from the local PlotPickle application." });
-          return;
+
+        const remote = request.socket.remoteAddress;
+        const host = request.headers.host;
+        let local = Boolean(host && (remote === "127.0.0.1" || remote === "::1" || remote === "::ffff:127.0.0.1"));
+        if (local && host) {
+          try {
+            const hostUrl = new URL(`http://${host}`);
+            const origin = request.headers.origin;
+            local = ["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname)
+              && (!origin || new URL(origin).host === hostUrl.host);
+          } catch {
+            local = false;
+          }
         }
+
         const operation = request.method === "GET"
           ? status
           : request.method === "POST"
             ? migrate
             : null;
-        if (!operation) {
-          sendJson(response, 405, { ok: false, message: "Legacy BUZZ migration method not allowed." });
-          return;
-        }
-        void operation()
-          .then((result) => sendJson(response, 200, result))
-          .catch((error) => sendJson(response, 409, {
-            ok: false,
-            message: error instanceof Error ? error.message.replace(/nsec1[a-z0-9]+/gi, "[redacted-nsec]").slice(0, 500) : "Legacy BUZZ migration failed.",
-          }));
+        void (async () => {
+          if (!local) return { statusCode: 403, body: { ok: false, message: "Legacy BUZZ migration is available only from the local PlotPickle application." } };
+          if (!operation) return { statusCode: 405, body: { ok: false, message: "Legacy BUZZ migration method not allowed." } };
+          try {
+            return { statusCode: 200, body: await operation() };
+          } catch (error) {
+            return {
+              statusCode: 409,
+              body: {
+                ok: false,
+                message: error instanceof Error
+                  ? error.message.replace(/nsec1[a-z0-9]+/gi, "[redacted-nsec]").slice(0, 500)
+                  : "Legacy BUZZ migration failed.",
+              },
+            };
+          }
+        })().then(({ statusCode, body }) => response.writeHead(statusCode, JSON_HEADERS).end(JSON.stringify(body)));
       });
     },
   };

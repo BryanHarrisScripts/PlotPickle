@@ -3,12 +3,14 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID }
 import { access, chmod, copyFile, mkdir, open, readFile, readdir, rename, rm, stat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { currentProfileRequestContext } from "./profile-request-context";
 
 const PROTECTED_FORMAT = "plotpickle-protected-credential";
 const DPAPI_ENTROPY = "PlotPickle local credential v1";
 const KEYCHAIN_SERVICE = "org.plotpickle.credentials";
 const MAX_CREDENTIAL_BYTES = 2 * 1024 * 1024;
 const MAX_COMMAND_OUTPUT_BYTES = MAX_CREDENTIAL_BYTES * 2;
+const PROFILE_SCOPED_BUZZ_CREDENTIAL = "buzz-connection.json";
 
 export type CredentialProtection =
   | "windows-dpapi-current-user"
@@ -92,6 +94,11 @@ async function assertLegacyCredentialSourceWritable() {
 function safeCredentialName(name: string) {
   if (!/^[a-z0-9][a-z0-9-]*\.json$/.test(name)) throw new Error("Invalid local credential file name.");
   return name;
+}
+
+function profileCredentialContext(name: string) {
+  if (name !== PROFILE_SCOPED_BUZZ_CREDENTIAL) return null;
+  return currentProfileRequestContext();
 }
 
 export function credentialFilePath(name: string) {
@@ -428,6 +435,10 @@ function acceptBestEffortPermissionFailure(error: unknown) {
 
 export async function readCredentialJson<T>(name: string): Promise<T | null> {
   const safeName = safeCredentialName(name);
+  const profileContext = profileCredentialContext(safeName);
+  if (profileContext) {
+    return await profileContext.privateStorage.readCredential(profileContext.authContext, safeName) as T | null;
+  }
   const filePath = credentialFilePath(safeName);
   try {
     const source = await readFile(filePath, "utf8");
@@ -452,8 +463,13 @@ export async function readCredentialJson<T>(name: string): Promise<T | null> {
 }
 
 export async function writeCredentialJson(name: string, value: unknown) {
-  await assertLegacyCredentialSourceWritable();
   const safeName = safeCredentialName(name);
+  const profileContext = profileCredentialContext(safeName);
+  if (profileContext) {
+    await profileContext.privateStorage.writeCredential(profileContext.authContext, safeName, value);
+    return;
+  }
+  await assertLegacyCredentialSourceWritable();
   const source = `${JSON.stringify(value, null, 2)}\n`;
   if (Buffer.byteLength(source, "utf8") > MAX_CREDENTIAL_BYTES) throw new Error("The local credential is unexpectedly large.");
   let envelope: ProtectedCredentialEnvelope;
@@ -485,8 +501,14 @@ export async function writeCredentialJson(name: string, value: unknown) {
 }
 
 export async function removeCredentialFile(name: string) {
+  const safeName = safeCredentialName(name);
+  const profileContext = profileCredentialContext(safeName);
+  if (profileContext) {
+    await profileContext.privateStorage.writeCredential(profileContext.authContext, safeName, null);
+    return;
+  }
   await assertLegacyCredentialSourceWritable();
-  await rm(credentialFilePath(name), { force: true });
+  await rm(credentialFilePath(safeName), { force: true });
 }
 
 export async function credentialInventory() {

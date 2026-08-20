@@ -13,7 +13,7 @@ type ProfileRequestContext = Readonly<{
   privateStorage: ProfilePrivateStorageService;
 }>;
 
-const profileRequests = new AsyncLocalStorage<ProfileRequestContext>();
+export const profileRequestScope = new AsyncLocalStorage<ProfileRequestContext>();
 
 function headerRecord(headers: IncomingHttpHeaders) {
   const result: Record<string, string | readonly string[] | undefined> = {};
@@ -58,11 +58,7 @@ function sendRejected(response: ServerResponse, error: unknown) {
 }
 
 export function currentProfileRequestContext() {
-  return profileRequests.getStore() ?? null;
-}
-
-export function withoutProfileRequestContext<T>(operation: () => T): T {
-  return profileRequests.exit(operation);
+  return profileRequestScope.getStore() ?? null;
 }
 
 export function profileScopedBuzzRequestContext(): Plugin {
@@ -84,7 +80,7 @@ export function profileScopedBuzzRequestContext(): Plugin {
           const { authContext } = await boundary.authorizeRequest(sessionRequest(request, origin));
           const profileId = runtime.auth.getAuthStatus(authContext).profile?.profileId;
           if (!profileId) throw new Error("Authenticated Human profile could not be resolved.");
-          profileRequests.run(Object.freeze({
+          profileRequestScope.run(Object.freeze({
             authContext,
             profileId,
             privateStorage: runtime.privateStorage,

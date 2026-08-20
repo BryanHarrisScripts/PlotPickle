@@ -68,11 +68,11 @@ PlotPickle Community is a writer-friendly interface over **BUZZ**, the signed me
 
 The default Community entrance is the **PlotPickle Community BBS**. It provides the Great Hall, Story Rooms, Connected Studios, People, Agents & Stewards, Review Queue and Guildhall while keeping the user inside the same PlotPickle shell.
 
-The value labelled **NODE** is always the real connected BUZZ community/node name. PlotPickle does not substitute a product nickname when displaying a relay node.
+In Community, the value labelled **NODE** remains the real connected BUZZ community/node name. That display value is BUZZ network context, not the cryptographic `node_id` of the local PlotPickle installation. PlotPickle does not substitute a product nickname when displaying the relay/community name, and it does not treat that relay label as device identity.
 
 ### One conversation, two clients
 
-PlotPickle and BUZZ Desktop are two clients over the **same signed BUZZ room history**. They do not maintain competing copies of Community chat.
+PlotPickle and BUZZ Desktop are two clients over the **same signed BUZZ room history**. They do not maintain competing copies of Community chat. The BUZZ signed room history remains the authoritative Community conversation record shared by those clients.
 
 If a writer intentionally posts a Great Hall or Story Room message from PlotPickle, BUZZ Desktop reads that same BUZZ event. A message posted from BUZZ Desktop is read back by PlotPickle from the same room history. BUZZ event IDs provide the reconciliation identity.
 
@@ -85,6 +85,32 @@ This does **not** mean PlotPickle automatically uploads creative work. LEARN ans
 Merrin is a host and conversational guide, not an autonomous enforcement system. Public-room memory is bounded; private Story Rooms and PPF project state are outside the Moderator’s default read scope. Merrin cannot ban users, alter story canon, change code or write GitHub state.
 
 BUZZ Desktop remains the owner-level interface for creating/approving managed BUZZ identities and advanced BUZZ administration. PlotPickle reports real identity/presence state rather than pretending an unapproved agent is online.
+
+## PlotPickle Nodes, Stewards and BUZZ
+
+A **PlotPickle Node is one uniquely identified PlotPickle installation/device**. The Node owns a durable `node_id` and an independent local signing keypair. A Person/account may authorize several Nodes, but a second computer is a second Node with its own identity and private key.
+
+The **Steward is the local caretaker inside that Node**. The Steward can monitor health, coordinate agents, explain what is happening and help recover local services, but it is not the Node identity itself.
+
+Human/Avatar identity, Node identity and Agent/Steward identity remain separate:
+
+```text
+Person / Avatar
+      |
+      +-- PlotPickle Node A -- Steward + agents + local services
+      |       node_id A
+      |       local signing key A
+      |
+      +-- PlotPickle Node B -- Steward + agents + local services
+              node_id B
+              local signing key B
+
+Node A <---- signed BUZZ coordination/federation ----> Node B
+```
+
+BUZZ is the trusted communications and coordination fabric connecting Nodes, humans and agents. It can carry signed provenance, presence, Community/BBS events, agent coordination, health/evidence signals and future bounded inter-Node work. BUZZ does not create the Node's local authority and PlotPickle remains locally usable if BUZZ is offline; only BUZZ-dependent Community, federation and remote-presence functions become unavailable/degraded.
+
+Terms such as `desktop`, `studio-host`, `compute` and `hybrid` describe a Node's current topology/role. `local`, `lan` and `internet` describe routing/trust scope. They are **not separate Node identity classes**. Compute is a capability of a Node, not a different kind of identity.
 
 ## Agents and helpers
 
@@ -160,6 +186,8 @@ Credentials are kept outside story/PPF project files. PlotPickle does not silent
 ```mermaid
 flowchart TB
     Writer[Writer / creator]
+    NodeIdentity[PlotPickle Node\nnode_id + local signing key]
+    Steward[Local Steward]
 
     subgraph Product[PlotPickle product]
       Dashboard[Dashboard]
@@ -192,13 +220,18 @@ flowchart TB
       Evidence[Verification/session evidence]
     end
 
-    subgraph Network[Community / coordination]
-      BUZZ[BUZZ signed room history]
+    subgraph Network[BUZZ coordination / Community / federation]
+      BUZZ[BUZZ signed room history + coordination]
       Desktop[BUZZ Desktop]
       Guildhall[Guildhall]
+      RemoteNode[Other authorized PlotPickle Nodes]
     end
 
     Writer --> Product
+    NodeIdentity --> Product
+    NodeIdentity <--> BUZZ
+    Steward --> Product
+    Steward --> Agents
     Product <--> Authority
     Learn --> Mastra
     Plan --> Mastra
@@ -206,12 +239,14 @@ flowchart TB
     Profiles --> Mastra
     Skills --> Mastra
     Mastra --> AI
+    Mastra <--> BUZZ
     Avery --> Product
     Gates --> Evidence
 
     Community <--> BUZZ
     Desktop <--> BUZZ
     BUZZ <--> Guildhall
+    BUZZ <--> RemoteNode
     Community -. explicit share only .-> BUZZ
     BUZZ -. never automatic canon .-> PPF
 ```
@@ -219,11 +254,13 @@ flowchart TB
 The important boundaries are simple:
 
 - **Writer** — final creative decision maker.
+- **PlotPickle Node** — one installation/device with its own durable signing identity.
+- **Steward** — local caretaker inside the Node; not the Node identity and not an authority shortcut.
 - **PPF** — canonical creative record.
 - **Curriculum** — teaching authority for LEARN-derived progression.
 - **Mastra** — product-agent runtime/orchestration layer.
 - **AI providers** — suggestion/generation capabilities, never canon owners.
-- **BUZZ** — signed Community conversation, presence and coordination history.
+- **BUZZ** — signed local coordination plus Community/presence/federation fabric; it does not replace local Node identity or PPF authority.
 - **BUZZ Desktop** — companion/owner interface over the same BUZZ network.
 - **GitHub** — canonical source, issues, pull requests and merge authority.
 - **UAT/BEN/visual observer** — evidence and quality signals, not creative authority.

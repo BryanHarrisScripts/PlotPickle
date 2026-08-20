@@ -7,7 +7,7 @@ PlotPickle uses a small, replaceable developer-agent layer outside the applicati
                                   │
                         AGENTS.md + shared MCP
                                   │
-                       focused UAT / findings
+                  deterministic UAT / BEN evidence
                                   │
                     ┌─────────────┴─────────────┐
                     │                           │
@@ -32,6 +32,11 @@ PlotPickle uses a small, replaceable developer-agent layer outside the applicati
                                   │
                                 MERGE
 
+          BEN deterministic code-quality evidence
+                         │
+                  read-only Pi review
+             recommendations, never authority
+
           PLOTPICKLE AGENT BENCH (sidecar, not runtime dependency)
                      Pi ↔ Cline on frozen repairs
 ```
@@ -42,7 +47,31 @@ PlotPickle uses a small, replaceable developer-agent layer outside the applicati
 
 The shared MCP server is `scripts/developer-agent-mcp.mjs`. It intentionally exposes a narrow deterministic PlotPickle tool surface: repository status, current focused-UAT evidence, focused contract UAT, production build, and a combined validation gate. It does not expose credentials, arbitrary user folders, hidden reasoning, or a merge tool.
 
-Pi and Cline are interchangeable developer workers. They are not PlotPickle product dependencies and they do not replace Mastra, Sage, PLAN, Wyrmwood, or the application UAT Repair Agent. A developer can use either as primary implementation agent and the other as reviewer/second attempt.
+Pi and Cline are interchangeable developer workers. They are not PlotPickle product-runtime dependencies and they do not replace Mastra, Sage, PLAN, Wyrmwood, or the application UAT Repair Agent. A developer can use either as an implementation worker and the other as reviewer/second attempt.
+
+Pi is additionally the default local UAT repair worker. Because that repair capability is part of PlotPickle Full Verification, Full Verification now requires Pi readiness rather than silently treating a missing Pi executable as optional.
+
+## Pi required readiness
+
+The canonical Pi readiness sequence is:
+
+1. resolve an existing Pi executable from `PATH` or npm's global prefix;
+2. if Pi is missing and automatic provisioning is allowed, install the reviewed npm package `@earendil-works/pi-coding-agent` with lifecycle scripts disabled;
+3. require Git Bash on Windows so PlotPickle does not fall through to the WSL launcher;
+4. ensure an approved local coding model is available through the local OpenAI-compatible runtime layer;
+5. write PlotPickle-local Pi provider settings below the user's local application-data directory, not into committed project credentials;
+6. run a headless Pi smoke request against the resolved local model;
+7. only then report the Pi repair worker READY.
+
+The implementation lives in:
+
+- `scripts/pi-worker-runtime.mjs`
+- `scripts/ensure-pi-repair-stack.mjs`
+- `scripts/verify-pi-repair-worker.mjs`
+
+Full Verification stage 5 self-heals a missing Pi installation where possible. Stage 6 proves Pi can actually invoke the approved local model. There is no cloud fallback and no provider-credential mutation.
+
+Set `PLOTPICKLE_PI_AUTO_INSTALL=0` only when you deliberately want missing Pi to remain a hard setup error instead of allowing PlotPickle to install it. `PLOTPICKLE_PI_COMMAND` can point PlotPickle at an explicit trusted Pi executable when needed.
 
 ## Pi project profile
 
@@ -53,7 +82,22 @@ Pi and Cline are interchangeable developer workers. They are not PlotPickle prod
 - `@ff-labs/pi-fff` — fast repository search;
 - `pi-mcp-adapter` — access to the shared `.mcp.json` tool boundary.
 
-Model/provider configuration is intentionally not committed. Pi can use whichever approved local or cloud provider the developer configures. PlotPickle does not hard-code a provider into the developer stack.
+Model/provider configuration is intentionally not committed. Pi can use whichever approved local or cloud provider the developer configures for interactive development, but PlotPickle's automated repair and Full Verification paths are local-only and use the host-owned local provider profile.
+
+## Pi code-quality / AI-slop review
+
+BEN remains PlotPickle's deterministic code-quality observer. `scripts/run-ben-code-quality.mjs` owns the pinned `slop-scan` evidence and remains part of the authoritative quality system.
+
+After Pi repair readiness is proven, Full Verification also attempts `scripts/run-pi-code-quality-review.mjs`. This is deliberately **advisory**:
+
+- Pi receives BEN/slop-scan evidence;
+- Pi may inspect only with `read`, `grep`, `find`, and `ls`;
+- Pi cannot edit files, run shell commands, commit, push, open/merge PRs, or change PASS/FAIL state;
+- Pi looks for evidence-backed maintainability and efficiency problems such as duplicate implementations, needless wrappers, generic names, directory fan-out, giant orchestrators, repeated defensive boilerplate, dead compatibility paths, repeated work, and other AI-generated code smell;
+- recommendations are saved to local verification evidence below the PlotPickle application-data directory;
+- BEN, tests, build, focused UAT, Full Verification and repository merge gates remain authoritative.
+
+A Pi recommendation therefore becomes a candidate engineering improvement, not an automatic repair or a reason to weaken a deterministic gate.
 
 ## Cline project profile
 
@@ -69,7 +113,14 @@ powershell -ExecutionPolicy Bypass -File .\scripts\setup-developer-agent-stack.p
 
 The script checks Node, npm, Git and Bash; installs the Cline CLI and Pi coding agent; installs the pinned Pi project packages; verifies both CLIs; self-tests the PlotPickle MCP server; and validates the Agent Bench catalog.
 
-To check an existing installation without installing anything:
+Full Verification can also self-provision Pi when Pi alone is missing:
+
+```powershell
+node .\scripts\ensure-pi-repair-stack.mjs
+node .\scripts\verify-pi-repair-worker.mjs
+```
+
+To check the complete pre-existing developer stack without installing anything:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\setup-developer-agent-stack.ps1 -VerifyOnly
@@ -87,7 +138,7 @@ Both agents can use the same project MCP server. Its five tools are:
 - `plotpickle_build`
 - `plotpickle_validate`
 
-The final two gates remain deterministic code, not an agent opinion. A coding agent cannot use this MCP server to merge a PR.
+The final gates remain deterministic code, not an agent opinion. A coding agent cannot use this MCP server to merge a PR.
 
 ## Agent Bench
 
@@ -121,6 +172,8 @@ The frozen tasks are intentionally historical PlotPickle defects that have known
 
 Third-party coding agents and Pi extensions execute with developer permissions. Keep versions pinned, review upgrades, and do not give either agent unnecessary access outside its repository/worktree. The shared MCP server has no credential tools and no merge capability. GitHub CI stays independent of the model that wrote the change.
 
+The automated Pi code-quality review is stricter than an interactive coding session: it receives read-only repository tools only and cannot write or execute shell commands.
+
 ## What remains replaceable
 
-The durable pieces are `AGENTS.md`, MCP, Git/worktrees, PlotPickle focused UAT, the verified build, and GitHub CI. Pi, Cline, individual Pi packages, LM Studio, llama.cpp, Ollama, and individual coding models are replaceable. Agent Bench exists specifically to make those replacements evidence-based.
+The durable pieces are `AGENTS.md`, MCP, Git/worktrees, PlotPickle focused UAT, BEN/slop evidence, the verified build, and GitHub CI. Pi, Cline, individual Pi packages, LM Studio, llama.cpp, Ollama, and individual coding models remain replaceable. Agent Bench exists specifically to make those replacements evidence-based.

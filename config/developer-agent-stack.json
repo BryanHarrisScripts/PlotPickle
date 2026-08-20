@@ -33,6 +33,15 @@
     "npm:pi-mcp-adapter@2.26.0",
     "npm:pi-context-view@0.4.2"
   ],
+  "piRuntime": {
+    "requiredForFullVerification": true,
+    "autoProvisionMissingCli": true,
+    "ensureCommand": "scripts/ensure-pi-repair-stack.mjs",
+    "verifyCommand": "scripts/verify-pi-repair-worker.mjs",
+    "localOnly": true,
+    "cloudFallback": false,
+    "providerConfigScope": "LOCALAPPDATA/PlotPickle/developer-agent"
+  },
   "mcp": {
     "sharedConfig": ".mcp.json",
     "clineConfig": ".cline/mcp.json",
@@ -51,6 +60,16 @@
     "requiresApprovedLocalCodingModel": true,
     "isolatedWorktree": true,
     "draftPrOnly": true
+  },
+  "codeQualityReview": {
+    "deterministicObserver": "ben",
+    "deterministicCommand": "scripts/run-ben-code-quality.mjs",
+    "advisoryReviewer": "pi",
+    "advisoryCommand": "scripts/run-pi-code-quality-review.mjs",
+    "piTools": ["read", "grep", "find", "ls"],
+    "writesAllowed": false,
+    "authoritative": false,
+    "artifactRoot": "LOCALAPPDATA/PlotPickle/full-verification/pi-code-quality"
   },
   "agentBench": {
     "runner": "scripts/run-agent-bench.mjs",

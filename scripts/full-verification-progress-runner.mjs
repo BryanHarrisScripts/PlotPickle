@@ -17,18 +17,23 @@ import {
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const authoritativeTotal = FULL_VERIFICATION_GRAPH.filter((node) => node.authoritative).length;
-export const PI_PREFLIGHT_TIMEOUT_MS = 30_000;
+export const PI_STACK_TIMEOUT_MS = 40 * 60_000;
+export const PI_PREFLIGHT_TIMEOUT_MS = 20 * 60_000;
+export const EXHAUSTIVE_UAT_STALL_TIMEOUT_MS = 60_000;
 export const FULL_VERIFICATION_HEARTBEAT_MS = 10_000;
 export const FULL_VERIFICATION_STAGE_TIMEOUT_MS = Object.freeze({
   "agent-skills-registry": 5 * 60_000,
   "agent-skills-architecture": 10 * 60_000,
   "learn-curriculum": 10 * 60_000,
   "production-build": 30 * 60_000,
-  "ensure-pi-model": 5 * 60_000,
+  "ensure-pi-model": PI_STACK_TIMEOUT_MS,
   "pi-preflight": PI_PREFLIGHT_TIMEOUT_MS,
   "buzz-live": 10 * 60_000,
   "exhaustive-uat": 2 * 60 * 60_000,
   "writer-in-residence": 60 * 60_000,
+});
+export const FULL_VERIFICATION_STAGE_STALL_TIMEOUT_MS = Object.freeze({
+  "exhaustive-uat": EXHAUSTIVE_UAT_STALL_TIMEOUT_MS,
 });
 
 function argument(name, fallback = "") {
@@ -93,43 +98,18 @@ export function verificationTimeoutForNode(node) {
   return timeoutMs;
 }
 
+export function verificationStallTimeoutForNode(node) {
+  const timeoutMs = FULL_VERIFICATION_STAGE_STALL_TIMEOUT_MS[node?.id] || 0;
+  return Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 0;
+}
+
 function writeChunk(prefix, stream, chunk) {
   const text = String(chunk || "");
   if (!text) return;
   for (const line of text.split(/(?<=\n)/)) if (line) stream.write(`[${prefix}] ${line}`);
 }
 
-async function executableAvailable(name) {
-  const command = process.platform === "win32" ? "where.exe" : "which";
-  return new Promise((resolve) => {
-    let settled = false;
-    const child = spawn(command, [name], { cwd: repoRoot, windowsHide: true, shell: false, stdio: "ignore" });
-    const timer = setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      try {
-        child.kill();
-      } catch (error) {
-        reportProcessCleanupFailure(`could not stop ${name} availability probe`, error);
-      }
-      resolve(false);
-    }, 5_000);
-    child.on("error", () => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      resolve(false);
-    });
-    child.on("close", (code) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      resolve(code === 0);
-    });
-  });
-}
-
-export async function executeBoundedCommand(node, timeoutMs = 0) {
+export async function executeBoundedCommand(node, timeoutMs = 0, stallTimeoutMs = 0) {
   const { command, args } = verificationCommandFor(node);
   const started = Date.now();
   let tail = "";
@@ -144,16 +124,47 @@ export async function executeBoundedCommand(node, timeoutMs = 0) {
       stdio: ["ignore", "pipe", "pipe"],
     });
     let timer = null;
+    let stallTimer = null;
+    const clearTimers = () => {
+      if (timer) clearTimeout(timer);
+      if (stallTimer) clearTimeout(stallTimer);
+      timer = null;
+      stallTimer = null;
+    };
     const finish = (result) => {
       if (settled) return;
       settled = true;
-      if (timer) clearTimeout(timer);
+      clearTimers();
       resolve(result);
+    };
+    const stopForTimeout = (kind, limitMs) => {
+      if (settled || timedOut) return;
+      timedOut = true;
+      const timeoutSeconds = Math.round(limitMs / 1000);
+      const label = kind === "stall" ? "STALL TIMEOUT" : "HOST TIMEOUT";
+      const reason = kind === "stall"
+        ? `${node.name} produced no progress output for ${timeoutSeconds} seconds and was stopped; independent graph stages may continue.`
+        : `${node.name} exceeded its ${timeoutSeconds} second host timeout and was stopped; independent graph stages may continue.`;
+      process.stderr.write(`[${node.id}] ${label} after ${timeoutSeconds}s; stopping the process tree so independent verification work can continue.\n`);
+      void terminateVerificationProcessTree(child)
+        .catch((error) => reportProcessCleanupFailure(`${kind} timeout cleanup for PID ${child.pid || "unknown"}`, error))
+        .finally(() => finish({
+          status: "FAIL",
+          exitCode: 124,
+          detail: reason,
+          durationMs: Date.now() - started,
+        }));
+    };
+    const armStallTimer = () => {
+      if (!(stallTimeoutMs > 0) || settled || timedOut) return;
+      if (stallTimer) clearTimeout(stallTimer);
+      stallTimer = setTimeout(() => stopForTimeout("stall", stallTimeoutMs), stallTimeoutMs);
     };
     const capture = (chunk, stream) => {
       const text = String(chunk || "");
       tail = `${tail}${text}`.slice(-12_000);
       writeChunk(node.id, stream, text);
+      armStallTimer();
     };
     child.stdout?.on("data", (chunk) => capture(chunk, process.stdout));
     child.stderr?.on("data", (chunk) => capture(chunk, process.stderr));
@@ -171,20 +182,8 @@ export async function executeBoundedCommand(node, timeoutMs = 0) {
         durationMs: Date.now() - started,
       });
     });
-    timer = timeoutMs > 0 ? setTimeout(() => {
-      if (settled || timedOut) return;
-      timedOut = true;
-      const timeoutSeconds = Math.round(timeoutMs / 1000);
-      process.stderr.write(`[${node.id}] HOST TIMEOUT after ${timeoutSeconds}s; stopping the process tree so independent verification work can continue.\n`);
-      void terminateVerificationProcessTree(child)
-        .catch((error) => reportProcessCleanupFailure(`timeout cleanup for PID ${child.pid || "unknown"}`, error))
-        .finally(() => finish({
-          status: "FAIL",
-          exitCode: 124,
-          detail: `${node.name} exceeded its ${timeoutSeconds} second host timeout and was stopped; independent graph stages may continue.`,
-          durationMs: Date.now() - started,
-        }));
-    }, timeoutMs) : null;
+    timer = timeoutMs > 0 ? setTimeout(() => stopForTimeout("host", timeoutMs), timeoutMs) : null;
+    armStallTimer();
   });
 }
 
@@ -221,17 +220,11 @@ async function main() {
         active.set(node.id, node.name);
         try {
           if (node.tool === "app-ready") return await ensurePlotPickleReady({ startupWaitSeconds, echo: true });
-          if (node.id === "pi-preflight" && !(await executableAvailable("pi"))) {
-            const detail = "OPTIONAL REPAIR CAPABILITY UNAVAILABLE: Pi is not installed or not available on PATH. Product verification continues; Pi remains the default local repair worker, Cline remains selectable, and there is no cloud fallback.";
-            process.stderr.write(`[pi-preflight] ${detail}\n`);
-            return {
-              status: "PASS",
-              exitCode: 0,
-              detail,
-              durationMs: 0,
-            };
-          }
-          return await executeBoundedCommand(node, verificationTimeoutForNode(node));
+          return await executeBoundedCommand(
+            node,
+            verificationTimeoutForNode(node),
+            verificationStallTimeoutForNode(node),
+          );
         } finally {
           active.delete(node.id);
           if (node.authoritative) completedAuthoritative.add(node.id);

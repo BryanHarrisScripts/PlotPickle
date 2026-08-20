@@ -73,10 +73,19 @@ test("#1044 Sage gets one bounded quality repair without weakening the health ru
   assert.ok(profileLayer.indexOf("assertAgentProfilesValid()") < profileLayer.indexOf("return runV5(baseUrl)"));
 });
 
-test("#1044 missing Pi is reported as optional repair capability rather than a product failure", async () => {
-  const source = await read("scripts/full-verification-progress-runner.mjs");
-  assert.match(source, /OPTIONAL REPAIR CAPABILITY UNAVAILABLE/);
-  assert.match(source, /Pi is not installed or not available on PATH/);
-  assert.match(source, /status: "PASS"/);
-  assert.match(source, /no cloud fallback/i);
+test("#1044 Pi repair capability is now required and self-provisioned instead of synthetically passing when missing", async () => {
+  const [runner, processRouter, installer, verifier] = await Promise.all([
+    read("scripts/full-verification-progress-runner.mjs"),
+    read("scripts/full-verification-process.mjs"),
+    read("scripts/ensure-pi-repair-stack.mjs"),
+    read("scripts/verify-pi-repair-worker.mjs"),
+  ]);
+  assert.doesNotMatch(runner, /OPTIONAL REPAIR CAPABILITY UNAVAILABLE/);
+  assert.doesNotMatch(runner, /Pi is not installed or not available on PATH/);
+  assert.match(processRouter, /ensure-pi-repair-stack\.mjs/);
+  assert.match(processRouter, /verify-pi-repair-worker\.mjs/);
+  assert.match(installer, /ensurePiInstalled/);
+  assert.match(installer, /ensure-local-repair-model\.mjs/);
+  assert.match(verifier, /runPiSmoke/);
+  assert.match(verifier, /no cloud fallback/i);
 });

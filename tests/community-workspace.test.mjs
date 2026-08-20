@@ -127,7 +127,7 @@ test("room-first terminal loads the selected BUZZ channel, sends only when the h
   assert.match(terminal, /5000/);
   assert.match(terminal, /if \(halted \|\| !screenRef\.current\) return/);
   assert.match(terminal, /editableTarget\(event\.target\)/);
-  assert.match(terminal, /\[@[A-Za-z0-9\._-]+\]/i);
+  assert.ok(terminal.includes("(@[A-Za-z0-9._-]+)"), "terminal must parse simple @username tokens");
   assert.match(terminal, /data-mention="true"/);
   assert.match(terminal, /setRoomDraft\(\(current\) => current \|\| `@\$\{author\} `\)/);
   assert.match(terminal, /HALL \$\{activeRoom\.hallNumber\}/);

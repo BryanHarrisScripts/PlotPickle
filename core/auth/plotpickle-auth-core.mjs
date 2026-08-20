@@ -1,0 +1,648 @@
+import { createHash, randomBytes as systemRandomBytes, timingSafeEqual } from "node:crypto";
+import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import path from "node:path";
+import {
+  ARGON2ID_DEFAULTS,
+  generateProfileMasterKey,
+  generateRecoverySecret,
+  parsePasswordWrappedProfileKey,
+  parseRecoveryWrappedProfileKey,
+  unwrapProfileMasterKeyWithPassword,
+  unwrapProfileMasterKeyWithRecovery,
+  wrapProfileMasterKeyWithPassword,
+  wrapProfileMasterKeyWithRecovery,
+} from "./profile-crypto-contract-core.mjs";
+
+export const AUTH_STATE_FORMAT = "plotpickle-auth-state";
+export const AUTH_STATE_VERSION = 1;
+export const AUTH_ACCESS_MODES = Object.freeze(["desktop-loopback", "server-network"]);
+export const PROFILE_STATUSES = Object.freeze(["active", "disabled"]);
+export const PROFILE_AUTH_METHODS = Object.freeze(["password", "recovery", "webauthn"]);
+export const AUTH_STRENGTHS = Object.freeze(["password", "password+webauthn", "recovery"]);
+export const DEFAULT_SESSION_TTL_MS = 12 * 60 * 60 * 1_000;
+export const DEFAULT_BOOTSTRAP_TTL_MS = 15 * 60 * 1_000;
+
+const STATE_FIELDS = Object.freeze(["format", "version", "accessMode", "registry", "credentials", "bootstrap"]);
+const REGISTRY_FIELDS = Object.freeze(["version", "nodeId", "profiles"]);
+const PROFILE_FIELDS = Object.freeze([
+  "profileId", "displayName", "createdAt", "updatedAt", "status", "vaultVersion", "authMethods", "avatarRef",
+]);
+const CREDENTIAL_FIELDS = Object.freeze(["profileId", "passwordEnvelope", "recoveryEnvelope"]);
+const BOOTSTRAP_FIELDS = Object.freeze(["version", "proofDigest", "createdAt", "expiresAt", "consumedAt"]);
+const AUTH_CONTEXT_FIELDS = Object.freeze([
+  "sessionId", "profileId", "nodeId", "authStrength", "issuedAt", "expiresAt", "roles",
+]);
+const PROFILE_SUMMARY_FIELDS = Object.freeze(["profileId", "displayName", "avatarRef", "status"]);
+const BASE64URL_PATTERN = /^[A-Za-z0-9_-]+$/u;
+const textDecoder = new TextDecoder("utf-8", { fatal: true });
+const KNOWN_WEAK_PASSWORDS = Object.freeze(new Set([
+  "admin", "admin/admin", "changeme", "letmein", "localhost", "password", "password123", "plotpickle", "qwerty123",
+]));
+
+export class PlotPickleAuthError extends Error {
+  constructor(code, message, options = {}) {
+    super(message, options.cause ? { cause: options.cause } : undefined);
+    this.name = "PlotPickleAuthError";
+    this.code = code;
+    this.publicCode = options.publicCode || code;
+    this.publicMessage = options.publicMessage || message;
+  }
+}
+
+function fail(code, message, options) {
+  throw new PlotPickleAuthError(code, message, options);
+}
+
+function isRecord(value) {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function assertExactFields(value, allowed, label) {
+  if (!isRecord(value)) fail("INVALID_AUTH_CONTRACT", `${label} must be an object.`);
+  const unexpected = Object.keys(value).filter((field) => !allowed.includes(field));
+  if (unexpected.length) fail("INVALID_AUTH_CONTRACT", `${label} contains unsupported fields: ${unexpected.join(", ")}.`);
+}
+
+function exactString(value, label, { maximumLength = 200, pattern } = {}) {
+  if (typeof value !== "string" || value.length < 1 || value.length > maximumLength || value.trim() !== value || /[\u0000-\u001f\u007f]/u.test(value)) {
+    fail("INVALID_AUTH_CONTRACT", `${label} must be a non-empty string without control characters.`);
+  }
+  if (pattern && !pattern.test(value)) fail("INVALID_AUTH_CONTRACT", `${label} uses an unsupported format.`);
+  return value;
+}
+
+function opaqueId(value, label) {
+  return exactString(value, label, { maximumLength: 200, pattern: /^[A-Za-z0-9][A-Za-z0-9._:-]*$/u });
+}
+
+function profileId(value) {
+  const normalized = exactString(value, "Profile id", { maximumLength: 80, pattern: /^profile_[A-Za-z0-9_-]+$/u });
+  const encoded = normalized.slice("profile_".length);
+  const decoded = Buffer.from(encoded, "base64url");
+  if (!BASE64URL_PATTERN.test(encoded) || decoded.toString("base64url") !== encoded || decoded.byteLength < 16) {
+    fail("INVALID_AUTH_CONTRACT", "Profile ids must carry at least 128 bits of opaque random material.");
+  }
+  return normalized;
+}
+
+function displayName(value) {
+  if (typeof value !== "string") fail("INVALID_AUTH_CONTRACT", "Profile display name must be a string.");
+  const normalized = value.trim();
+  if (!normalized || normalized.length > 120 || /[\u0000-\u001f\u007f]/u.test(normalized)) {
+    fail("INVALID_AUTH_CONTRACT", "Profile display name must be 1-120 characters without control characters.");
+  }
+  return normalized;
+}
+
+function assertStrongProfilePassword(value, identityHints) {
+  let candidate;
+  try {
+    candidate = typeof value === "string" ? value : value instanceof Uint8Array ? textDecoder.decode(value) : null;
+  } catch (error) {
+    fail("INVALID_PROFILE_PASSWORD", "Profile password bytes must be valid UTF-8.", { cause: error });
+  }
+  if (candidate === null || candidate.length < 12 || candidate.length > 1_024 || candidate.trim() !== candidate) {
+    fail("INVALID_PROFILE_PASSWORD", "Profile password or passphrase must contain 12-1024 non-padding characters.");
+  }
+  const folded = candidate.toLocaleLowerCase("en-US");
+  if (/^\d+$/u.test(candidate) || /^(.)\1+$/u.test(candidate) || KNOWN_WEAK_PASSWORDS.has(folded) || identityHints.some((hint) => folded === hint.toLocaleLowerCase("en-US"))) {
+    fail("INVALID_PROFILE_PASSWORD", "Profile password or passphrase is predictable from public setup information.");
+  }
+  return true;
+}
+
+function avatarRef(value) {
+  if (value === null || value === undefined || value === "") return null;
+  return exactString(value, "Avatar reference", { maximumLength: 200, pattern: /^[A-Za-z0-9][A-Za-z0-9._:-]*$/u });
+}
+
+function isoDate(value, label) {
+  if (typeof value !== "string" || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString() !== value) {
+    fail("INVALID_AUTH_CONTRACT", `${label} must be a canonical ISO-8601 timestamp.`);
+  }
+  return value;
+}
+
+function positiveInteger(value, label) {
+  if (!Number.isSafeInteger(value) || value < 1) fail("INVALID_AUTH_CONTRACT", `${label} must be a positive integer.`);
+  return value;
+}
+
+function boundedDuration(value, label, maximum) {
+  const duration = positiveInteger(value, label);
+  if (duration > maximum) fail("INVALID_AUTH_CONTRACT", `${label} exceeds the supported security boundary.`);
+  return duration;
+}
+
+function exactStringArray(value, allowed, label) {
+  if (!Array.isArray(value) || !value.length || new Set(value).size !== value.length || value.some((entry) => !allowed.includes(entry))) {
+    fail("INVALID_AUTH_CONTRACT", `${label} is invalid.`);
+  }
+  return Object.freeze([...value]);
+}
+
+function base64UrlBytes(value, label, bytes) {
+  if (typeof value !== "string" || !BASE64URL_PATTERN.test(value)) fail("INVALID_AUTH_CONTRACT", `${label} must use unpadded base64url encoding.`);
+  const decoded = Buffer.from(value, "base64url");
+  if (decoded.toString("base64url") !== value || decoded.byteLength !== bytes) fail("INVALID_AUTH_CONTRACT", `${label} must contain exactly ${bytes} bytes.`);
+  return decoded;
+}
+
+function clone(value) {
+  return value === null || value === undefined ? value : structuredClone(value);
+}
+
+function freezeProfile(value) {
+  assertExactFields(value, PROFILE_FIELDS, "Human profile metadata");
+  const createdAt = isoDate(value.createdAt, "Profile creation time");
+  const updatedAt = isoDate(value.updatedAt, "Profile update time");
+  if (Date.parse(updatedAt) < Date.parse(createdAt)) fail("INVALID_AUTH_CONTRACT", "Profile update time cannot precede profile creation time.");
+  return Object.freeze({
+    profileId: profileId(value.profileId),
+    displayName: displayName(value.displayName),
+    createdAt,
+    updatedAt,
+    status: PROFILE_STATUSES.includes(value.status) ? value.status : fail("INVALID_AUTH_CONTRACT", "Profile status is invalid."),
+    vaultVersion: positiveInteger(value.vaultVersion, "Profile vault version"),
+    authMethods: exactStringArray(value.authMethods, PROFILE_AUTH_METHODS, "Profile auth methods"),
+    avatarRef: avatarRef(value.avatarRef),
+  });
+}
+
+function freezeCredential(value, expectedProfileId) {
+  assertExactFields(value, CREDENTIAL_FIELDS, "Profile credential record");
+  const normalizedProfileId = profileId(value.profileId);
+  if (normalizedProfileId !== expectedProfileId) fail("INVALID_AUTH_CONTRACT", "Profile credential record id does not match its registry key.");
+  const passwordEnvelope = parsePasswordWrappedProfileKey(value.passwordEnvelope);
+  const recoveryEnvelope = parseRecoveryWrappedProfileKey(value.recoveryEnvelope);
+  if (passwordEnvelope.profileId !== expectedProfileId || recoveryEnvelope.profileId !== expectedProfileId) {
+    fail("INVALID_AUTH_CONTRACT", "Profile credential envelopes do not match their owning profile.");
+  }
+  return Object.freeze({
+    profileId: normalizedProfileId,
+    passwordEnvelope,
+    recoveryEnvelope,
+  });
+}
+
+function freezeBootstrap(value) {
+  if (value === null) return null;
+  assertExactFields(value, BOOTSTRAP_FIELDS, "Server bootstrap state");
+  if (value.version !== 1) fail("INVALID_AUTH_CONTRACT", "Server bootstrap version is unsupported.");
+  const consumedAt = value.consumedAt === null ? null : isoDate(value.consumedAt, "Bootstrap consumption time");
+  if (consumedAt === null) base64UrlBytes(value.proofDigest, "Bootstrap proof digest", 32);
+  if (consumedAt !== null && value.proofDigest !== null) fail("INVALID_AUTH_CONTRACT", "Consumed bootstrap state cannot retain a proof digest.");
+  const createdAt = isoDate(value.createdAt, "Bootstrap creation time");
+  const expiresAt = isoDate(value.expiresAt, "Bootstrap expiry time");
+  if (Date.parse(expiresAt) <= Date.parse(createdAt)) fail("INVALID_AUTH_CONTRACT", "Bootstrap expiry must follow creation time.");
+  if (consumedAt !== null && Date.parse(consumedAt) < Date.parse(createdAt)) fail("INVALID_AUTH_CONTRACT", "Bootstrap consumption cannot precede creation time.");
+  return Object.freeze({
+    version: 1,
+    proofDigest: value.proofDigest,
+    createdAt,
+    expiresAt,
+    consumedAt,
+  });
+}
+
+export function parseAuthPersistentState(value, expected = {}) {
+  assertExactFields(value, STATE_FIELDS, "PlotPickle Auth state");
+  if (value.format !== AUTH_STATE_FORMAT || value.version !== AUTH_STATE_VERSION) fail("INVALID_AUTH_CONTRACT", "PlotPickle Auth state format or version is unsupported.");
+  if (!AUTH_ACCESS_MODES.includes(value.accessMode)) fail("INVALID_AUTH_CONTRACT", "PlotPickle Auth access mode is unsupported.");
+  if (expected.accessMode !== undefined && value.accessMode !== expected.accessMode) fail("AUTH_STATE_MISMATCH", "Stored Auth access mode does not match this service.");
+  assertExactFields(value.registry, REGISTRY_FIELDS, "Human profile registry");
+  if (value.registry.version !== 1) fail("INVALID_AUTH_CONTRACT", "Human profile registry version is unsupported.");
+  const normalizedNodeId = opaqueId(value.registry.nodeId, "Node id");
+  if (expected.nodeId !== undefined && normalizedNodeId !== expected.nodeId) fail("AUTH_STATE_MISMATCH", "Stored Auth Node id does not match this service.");
+  if (!isRecord(value.registry.profiles) || !isRecord(value.credentials)) fail("INVALID_AUTH_CONTRACT", "Auth profile and credential collections must be objects.");
+  const profiles = {};
+  const credentials = {};
+  for (const [key, candidate] of Object.entries(value.registry.profiles)) {
+    const normalizedKey = profileId(key);
+    const normalized = freezeProfile(candidate);
+    if (normalized.profileId !== normalizedKey) fail("INVALID_AUTH_CONTRACT", "Profile registry key does not match its profile id.");
+    profiles[normalizedKey] = normalized;
+  }
+  for (const [key, candidate] of Object.entries(value.credentials)) {
+    const normalizedKey = profileId(key);
+    if (!profiles[normalizedKey]) fail("INVALID_AUTH_CONTRACT", "Credential record has no matching Human profile.");
+    credentials[normalizedKey] = freezeCredential(candidate, normalizedKey);
+  }
+  if (Object.keys(profiles).some((key) => !credentials[key])) fail("INVALID_AUTH_CONTRACT", "Every Human profile requires a separate credential record.");
+  const bootstrap = freezeBootstrap(value.bootstrap);
+  if (value.accessMode === "desktop-loopback" && bootstrap !== null) fail("INVALID_AUTH_CONTRACT", "Desktop-loopback Auth state cannot contain a server bootstrap proof.");
+  if (Object.keys(profiles).length && bootstrap && bootstrap.consumedAt === null) fail("INVALID_AUTH_CONTRACT", "A populated registry cannot retain an active server bootstrap proof.");
+  return Object.freeze({
+    format: AUTH_STATE_FORMAT,
+    version: AUTH_STATE_VERSION,
+    accessMode: value.accessMode,
+    registry: Object.freeze({ version: 1, nodeId: normalizedNodeId, profiles: Object.freeze(profiles) }),
+    credentials: Object.freeze(credentials),
+    bootstrap,
+  });
+}
+
+function emptyState(nodeId, accessMode) {
+  return parseAuthPersistentState({
+    format: AUTH_STATE_FORMAT,
+    version: AUTH_STATE_VERSION,
+    accessMode,
+    registry: { version: 1, nodeId, profiles: {} },
+    credentials: {},
+    bootstrap: null,
+  }, { nodeId, accessMode });
+}
+
+export function createInMemoryAuthStateStore(initialState = null) {
+  let stored = clone(initialState);
+  return Object.freeze({
+    async read() {
+      return clone(stored);
+    },
+    async write(value) {
+      stored = clone(value);
+    },
+  });
+}
+
+export function createJsonFileAuthStateStore(filePath) {
+  if (typeof filePath !== "string" || !path.isAbsolute(filePath)) fail("INVALID_AUTH_CONTRACT", "Auth state file path must be absolute.");
+  const resolvedPath = path.resolve(filePath);
+  return Object.freeze({
+    async read() {
+      try {
+        return JSON.parse(await readFile(resolvedPath, "utf8"));
+      } catch (error) {
+        if (error?.code === "ENOENT") return null;
+        if (error instanceof SyntaxError) fail("AUTH_STATE_CORRUPT", "Stored Auth state is not valid JSON.", { cause: error });
+        throw error;
+      }
+    },
+    async write(value) {
+      const directory = path.dirname(resolvedPath);
+      await mkdir(directory, { recursive: true, mode: 0o700 });
+      const suffix = systemRandomBytes(12).toString("hex");
+      const temporaryPath = path.join(directory, `.${path.basename(resolvedPath)}.${process.pid}.${suffix}.tmp`);
+      try {
+        await writeFile(temporaryPath, `${JSON.stringify(value, null, 2)}\n`, { encoding: "utf8", mode: 0o600, flag: "wx" });
+        await rename(temporaryPath, resolvedPath);
+      } catch (error) {
+        await unlink(temporaryPath).catch(() => undefined);
+        throw error;
+      }
+    },
+  });
+}
+
+function profileSummary(profile) {
+  return Object.freeze({ profileId: profile.profileId, displayName: profile.displayName, avatarRef: profile.avatarRef, status: profile.status });
+}
+
+function assertProfileSummary(value) {
+  assertExactFields(value, PROFILE_SUMMARY_FIELDS, "Profile summary");
+  return value;
+}
+
+function digestProof(proof) {
+  const bytes = base64UrlBytes(proof, "Bootstrap proof", 32);
+  try {
+    return createHash("sha256").update(bytes).digest();
+  } finally {
+    bytes.fill(0);
+  }
+}
+
+function publicAuthenticationFailure(cause) {
+  return new PlotPickleAuthError("AUTHENTICATION_REJECTED", "Profile authentication failed.", {
+    cause,
+    publicCode: "AUTHENTICATION_REJECTED",
+    publicMessage: "Profile authentication failed.",
+  });
+}
+
+export function toPublicAuthError(error) {
+  if (error instanceof PlotPickleAuthError) return Object.freeze({ code: error.publicCode, message: error.publicMessage });
+  return Object.freeze({ code: "AUTH_REQUEST_REJECTED", message: "The authentication request could not be completed." });
+}
+
+export async function createPlotPickleAuthService(options) {
+  if (!isRecord(options)) fail("INVALID_AUTH_CONTRACT", "Auth service options must be an object.");
+  const nodeId = opaqueId(options.nodeId, "Node id");
+  const accessMode = AUTH_ACCESS_MODES.includes(options.accessMode) ? options.accessMode : fail("INVALID_AUTH_CONTRACT", "Auth accessMode must be desktop-loopback or server-network.");
+  const stateStore = options.stateStore;
+  if (!stateStore || typeof stateStore.read !== "function" || typeof stateStore.write !== "function") fail("INVALID_AUTH_CONTRACT", "Auth stateStore must provide read and write methods.");
+  const now = typeof options.now === "function" ? options.now : Date.now;
+  const randomBytes = typeof options.randomBytes === "function" ? options.randomBytes : systemRandomBytes;
+  const sessionTtlMs = boundedDuration(options.sessionTtlMs ?? DEFAULT_SESSION_TTL_MS, "Session TTL", 30 * 24 * 60 * 60 * 1_000);
+  const bootstrapTtlMs = boundedDuration(options.bootstrapTtlMs ?? DEFAULT_BOOTSTRAP_TTL_MS, "Bootstrap TTL", 24 * 60 * 60 * 1_000);
+  const passwordParameters = options.passwordParameters ?? ARGON2ID_DEFAULTS;
+  const storedState = await stateStore.read();
+  let state = storedState === null ? emptyState(nodeId, accessMode) : parseAuthPersistentState(storedState, { nodeId, accessMode });
+  if (storedState === null) await stateStore.write(state);
+  const sessions = new Map();
+  let mutationTail = Promise.resolve();
+
+  const currentMs = () => {
+    const value = now();
+    const milliseconds = value instanceof Date ? value.getTime() : Number(value);
+    if (!Number.isFinite(milliseconds) || Number.isNaN(new Date(milliseconds).getTime())) fail("INVALID_AUTH_CONTRACT", "Auth clock returned an invalid time.");
+    return milliseconds;
+  };
+  const currentIso = () => new Date(currentMs()).toISOString();
+  const randomSecret = (bytes, label) => {
+    const value = randomBytes(bytes);
+    if (!(value instanceof Uint8Array) || value.byteLength !== bytes) fail("AUTH_RANDOM_UNAVAILABLE", `${label} generation failed closed.`);
+    return new Uint8Array(value);
+  };
+  const persist = async (nextState) => {
+    const parsed = parseAuthPersistentState(nextState, { nodeId, accessMode });
+    await stateStore.write(parsed);
+    state = parsed;
+    return parsed;
+  };
+  const serializeMutation = (operation) => {
+    const run = mutationTail.then(operation, operation);
+    mutationTail = run.then(() => undefined, () => undefined);
+    return run;
+  };
+  const invalidateSession = (sessionId) => {
+    const session = sessions.get(sessionId);
+    if (!session) return false;
+    session.profileMasterKey.fill(0);
+    sessions.delete(sessionId);
+    return true;
+  };
+  const invalidateProfileSessions = (targetProfileId) => {
+    for (const [sessionId, session] of sessions) {
+      if (session.context.profileId === targetProfileId) invalidateSession(sessionId);
+    }
+  };
+  const createSession = (targetProfileId, authStrength, profileMasterKey) => {
+    const issuedAtMs = currentMs();
+    const sessionBytes = randomSecret(32, "Session id");
+    const context = Object.freeze({
+      sessionId: Buffer.from(sessionBytes).toString("base64url"),
+      profileId: targetProfileId,
+      nodeId,
+      authStrength,
+      issuedAt: new Date(issuedAtMs).toISOString(),
+      expiresAt: new Date(issuedAtMs + sessionTtlMs).toISOString(),
+      roles: Object.freeze(["human"]),
+    });
+    sessionBytes.fill(0);
+    if (sessions.has(context.sessionId)) fail("AUTH_RANDOM_COLLISION", "Session id generation collided and failed closed.");
+    sessions.set(context.sessionId, { context, profileMasterKey: new Uint8Array(profileMasterKey) });
+    return context;
+  };
+  const requireSession = (candidate) => {
+    assertExactFields(candidate, AUTH_CONTEXT_FIELDS, "AuthContext");
+    const sessionId = base64UrlBytes(candidate.sessionId, "Session id", 32).toString("base64url");
+    const session = sessions.get(sessionId);
+    if (!session || JSON.stringify(candidate) !== JSON.stringify(session.context)) fail("SESSION_REJECTED", "The Auth session is invalid or expired.");
+    if (Date.parse(session.context.expiresAt) <= currentMs()) {
+      invalidateSession(sessionId);
+      fail("SESSION_REJECTED", "The Auth session is invalid or expired.");
+    }
+    const profile = state.registry.profiles[session.context.profileId];
+    if (!profile || profile.status !== "active") {
+      invalidateSession(sessionId);
+      fail("SESSION_REJECTED", "The Auth session is invalid or expired.");
+    }
+    return session;
+  };
+  const requireProfileActor = (candidate, targetProfileId) => {
+    const session = requireSession(candidate);
+    if (session.context.profileId !== targetProfileId) fail("ACCESS_DENIED", "A Human profile may modify only its own Auth record.");
+    return session;
+  };
+  const createProfileRecord = async (input, bootstrapProof, authorizingContext) => {
+    assertExactFields(input, ["displayName", "password", "avatarRef"], "Human profile creation input");
+    if (typeof input.password !== "string" && !(input.password instanceof Uint8Array)) fail("INVALID_AUTH_CONTRACT", "Profile password must be a string or Uint8Array.");
+    const normalizedDisplayName = displayName(input.displayName);
+    assertStrongProfilePassword(input.password, [normalizedDisplayName, nodeId]);
+    const hasProfiles = Object.keys(state.registry.profiles).length > 0;
+    if (hasProfiles) requireSession(authorizingContext);
+    if (!hasProfiles && accessMode === "server-network") {
+      const bootstrap = state.bootstrap;
+      let suppliedDigest;
+      let storedDigest;
+      try {
+        if (!bootstrap || bootstrap.consumedAt !== null || Date.parse(bootstrap.expiresAt) <= currentMs()) fail("BOOTSTRAP_PROOF_REJECTED", "The server bootstrap proof is invalid or expired.");
+        suppliedDigest = digestProof(bootstrapProof);
+        storedDigest = base64UrlBytes(bootstrap.proofDigest, "Bootstrap proof digest", 32);
+        if (!timingSafeEqual(suppliedDigest, storedDigest)) fail("BOOTSTRAP_PROOF_REJECTED", "The server bootstrap proof is invalid or expired.");
+      } catch (error) {
+        if (error instanceof PlotPickleAuthError && error.code === "BOOTSTRAP_PROOF_REJECTED") throw error;
+        fail("BOOTSTRAP_PROOF_REJECTED", "The server bootstrap proof is invalid or expired.", { cause: error });
+      } finally {
+        suppliedDigest?.fill(0);
+        storedDigest?.fill(0);
+      }
+    }
+    const idBytes = randomSecret(16, "Profile id");
+    const newProfileId = `profile_${Buffer.from(idBytes).toString("base64url")}`;
+    idBytes.fill(0);
+    if (state.registry.profiles[newProfileId]) fail("AUTH_RANDOM_COLLISION", "Profile id generation collided and failed closed.");
+    const createdAt = currentIso();
+    const profile = freezeProfile({
+      profileId: newProfileId,
+      displayName: normalizedDisplayName,
+      createdAt,
+      updatedAt: createdAt,
+      status: "active",
+      vaultVersion: 1,
+      authMethods: ["password", "recovery"],
+      avatarRef: avatarRef(input.avatarRef),
+    });
+    let pmk;
+    let recoverySecret;
+    try {
+      pmk = await generateProfileMasterKey();
+      recoverySecret = await generateRecoverySecret();
+      const passwordEnvelope = await wrapProfileMasterKeyWithPassword({ profileId: newProfileId, password: input.password, profileMasterKey: pmk, parameters: passwordParameters });
+      const recoveryEnvelope = await wrapProfileMasterKeyWithRecovery({ profileId: newProfileId, recoverySecret, profileMasterKey: pmk });
+      const credential = freezeCredential({ profileId: newProfileId, passwordEnvelope, recoveryEnvelope }, newProfileId);
+      const bootstrap = !hasProfiles && accessMode === "server-network"
+        ? Object.freeze({ ...state.bootstrap, proofDigest: null, consumedAt: currentIso() })
+        : state.bootstrap;
+      await persist({
+        ...state,
+        registry: { ...state.registry, profiles: { ...state.registry.profiles, [newProfileId]: profile } },
+        credentials: { ...state.credentials, [newProfileId]: credential },
+        bootstrap,
+      });
+      const authContext = createSession(newProfileId, "password", pmk);
+      return Object.freeze({
+        profile,
+        recoverySecret: Buffer.from(recoverySecret).toString("base64url"),
+        authContext,
+      });
+    } finally {
+      pmk?.fill(0);
+      recoverySecret?.fill(0);
+    }
+  };
+
+  return Object.freeze({
+    accessMode,
+    nodeId,
+    async createServerBootstrapProof() {
+      return serializeMutation(async () => {
+        if (accessMode !== "server-network") fail("ACCESS_MODE_REJECTED", "Bootstrap proofs exist only in server-network mode.");
+        if (Object.keys(state.registry.profiles).length) fail("BOOTSTRAP_ALREADY_COMPLETED", "Server bootstrap is already complete.");
+        if (state.bootstrap?.consumedAt) fail("BOOTSTRAP_ALREADY_COMPLETED", "Server bootstrap is already complete.");
+        const proofBytes = randomSecret(32, "Bootstrap proof");
+        const proof = Buffer.from(proofBytes).toString("base64url");
+        const createdAtMs = currentMs();
+        const proofDigest = createHash("sha256").update(proofBytes).digest("base64url");
+        proofBytes.fill(0);
+        const bootstrap = freezeBootstrap({
+          version: 1,
+          proofDigest,
+          createdAt: new Date(createdAtMs).toISOString(),
+          expiresAt: new Date(createdAtMs + bootstrapTtlMs).toISOString(),
+          consumedAt: null,
+        });
+        await persist({ ...state, bootstrap });
+        return Object.freeze({ proof, expiresAt: bootstrap.expiresAt });
+      });
+    },
+    async createFirstProfile(input, bootstrapProof) {
+      return serializeMutation(async () => {
+        if (Object.keys(state.registry.profiles).length) fail("FIRST_PROFILE_EXISTS", "The first Human profile already exists.");
+        return createProfileRecord(input, bootstrapProof, null);
+      });
+    },
+    async createProfile(input, authContext) {
+      return serializeMutation(() => {
+        if (!Object.keys(state.registry.profiles).length) fail("FIRST_PROFILE_REQUIRED", "Use the explicit first-profile bootstrap operation on an empty Node.");
+        return createProfileRecord(input, null, authContext);
+      });
+    },
+    async authenticate(input) {
+      try {
+        assertExactFields(input, ["profileId", "password"], "Password authentication input");
+        const targetProfileId = profileId(input.profileId);
+        const profile = state.registry.profiles[targetProfileId];
+        const credential = state.credentials[targetProfileId];
+        const workCredential = credential || Object.values(state.credentials)[0];
+        if (!workCredential) throw new Error("Profile is unavailable.");
+        const pmk = await unwrapProfileMasterKeyWithPassword(workCredential.passwordEnvelope, input.password, workCredential.profileId);
+        try {
+          if (!profile || !credential || credential !== workCredential || profile.status !== "active") throw new Error("Profile is unavailable.");
+          const currentProfile = state.registry.profiles[targetProfileId];
+          const currentCredential = state.credentials[targetProfileId];
+          if (!currentProfile || currentProfile.status !== "active" || !currentCredential || JSON.stringify(currentCredential.passwordEnvelope) !== JSON.stringify(credential.passwordEnvelope)) {
+            throw new Error("Profile changed while authentication was in progress.");
+          }
+          return Object.freeze({ profile: profileSummary(currentProfile), authContext: createSession(targetProfileId, "password", pmk) });
+        } finally {
+          pmk.fill(0);
+        }
+      } catch (error) {
+        throw publicAuthenticationFailure(error);
+      }
+    },
+    async authenticateWithRecovery(input) {
+      try {
+        assertExactFields(input, ["profileId", "recoverySecret"], "Recovery authentication input");
+        const targetProfileId = profileId(input.profileId);
+        const profile = state.registry.profiles[targetProfileId];
+        const credential = state.credentials[targetProfileId];
+        const workCredential = credential || Object.values(state.credentials)[0];
+        if (!workCredential) throw new Error("Profile is unavailable.");
+        const recoverySecret = base64UrlBytes(input.recoverySecret, "Recovery secret", 32);
+        try {
+          const pmk = await unwrapProfileMasterKeyWithRecovery(workCredential.recoveryEnvelope, recoverySecret, workCredential.profileId);
+          try {
+            if (!profile || !credential || credential !== workCredential || profile.status !== "active") throw new Error("Profile is unavailable.");
+            const currentProfile = state.registry.profiles[targetProfileId];
+            const currentCredential = state.credentials[targetProfileId];
+            if (!currentProfile || currentProfile.status !== "active" || !currentCredential || JSON.stringify(currentCredential.recoveryEnvelope) !== JSON.stringify(credential.recoveryEnvelope)) {
+              throw new Error("Profile changed while authentication was in progress.");
+            }
+            return Object.freeze({ profile: profileSummary(currentProfile), authContext: createSession(targetProfileId, "recovery", pmk) });
+          } finally {
+            pmk.fill(0);
+          }
+        } finally {
+          recoverySecret.fill(0);
+        }
+      } catch (error) {
+        throw publicAuthenticationFailure(error);
+      }
+    },
+    listProfileSummaries(authContext = null) {
+      if (accessMode === "server-network" && authContext === null) return Object.freeze([]);
+      if (authContext !== null) requireSession(authContext);
+      return Object.freeze(Object.values(state.registry.profiles).map(profileSummary).map(assertProfileSummary));
+    },
+    getAuthStatus(authContext = null) {
+      if (authContext === null) {
+        const profileCount = Object.keys(state.registry.profiles).length;
+        return Object.freeze({
+          configured: profileCount > 0,
+          accessMode,
+          authenticated: false,
+          profileCountVisible: accessMode === "desktop-loopback" ? profileCount : 0,
+          bootstrapRequired: profileCount === 0,
+        });
+      }
+      const session = requireSession(authContext);
+      const profile = state.registry.profiles[session.context.profileId];
+      return Object.freeze({
+        configured: true,
+        accessMode,
+        authenticated: true,
+        profileCountVisible: accessMode === "desktop-loopback" ? Object.keys(state.registry.profiles).length : 0,
+        bootstrapRequired: false,
+        profile: profileSummary(profile),
+        authStrength: session.context.authStrength,
+        expiresAt: session.context.expiresAt,
+      });
+    },
+    async updateProfilePresentation(input, authContext) {
+      return serializeMutation(async () => {
+        assertExactFields(input, ["profileId", "displayName", "avatarRef"], "Profile presentation update");
+        const targetProfileId = profileId(input.profileId);
+        requireProfileActor(authContext, targetProfileId);
+        const existing = state.registry.profiles[targetProfileId];
+        if (!existing) fail("PROFILE_NOT_FOUND", "Human profile was not found.");
+        const updated = freezeProfile({ ...existing, displayName: displayName(input.displayName), avatarRef: avatarRef(input.avatarRef), updatedAt: currentIso() });
+        await persist({ ...state, registry: { ...state.registry, profiles: { ...state.registry.profiles, [targetProfileId]: updated } } });
+        return updated;
+      });
+    },
+    async disableProfile(targetProfileId, authContext) {
+      return serializeMutation(async () => {
+        const normalizedProfileId = profileId(targetProfileId);
+        requireProfileActor(authContext, normalizedProfileId);
+        const existing = state.registry.profiles[normalizedProfileId];
+        if (!existing) fail("PROFILE_NOT_FOUND", "Human profile was not found.");
+        const disabled = freezeProfile({ ...existing, status: "disabled", updatedAt: currentIso() });
+        await persist({ ...state, registry: { ...state.registry, profiles: { ...state.registry.profiles, [normalizedProfileId]: disabled } } });
+        invalidateProfileSessions(normalizedProfileId);
+        return profileSummary(disabled);
+      });
+    },
+    lock(authContext) {
+      const session = requireSession(authContext);
+      return invalidateSession(session.context.sessionId);
+    },
+    lockProfile(targetProfileId, authContext) {
+      const normalizedProfileId = profileId(targetProfileId);
+      requireProfileActor(authContext, normalizedProfileId);
+      if (!state.registry.profiles[normalizedProfileId]) fail("PROFILE_NOT_FOUND", "Human profile was not found.");
+      invalidateProfileSessions(normalizedProfileId);
+      return true;
+    },
+    readRegistrySnapshot(authContext = null) {
+      if (accessMode === "server-network" && authContext === null) return null;
+      if (authContext !== null) requireSession(authContext);
+      return clone(state.registry);
+    },
+    close() {
+      for (const sessionId of [...sessions.keys()]) invalidateSession(sessionId);
+    },
+  });
+}

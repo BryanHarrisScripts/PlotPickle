@@ -28,7 +28,8 @@ PlotPickle deliberately uses simple storage mechanisms where they are sufficient
 | Run telemetry / model eval evidence | Structured events on the correlated Responsibility Run plus local evaluation/test evidence | No hidden chain-of-thought or credentials. |
 | Verification Inbox | Append-only local structured verification records | Operational evidence; not part of ordinary project backup. |
 | BUZZ/Playhouse state | BUZZ signed-event/community layer plus minimum-necessary local receipts | Federation/coordination only; it cannot write PPF. |
-| Provider/GitHub/BUZZ credentials | Local credential subsystem under PlotPickle application data | Explicitly excluded from ordinary project backup. |
+| Human provider/GitHub/BUZZ credentials | PMK-encrypted profile storage under `profiles/<profile_uuid>/credentials` | Explicitly excluded from ordinary project backup and inaccessible to other Human profiles. |
+| Node operational secrets | Operator-protected `NodeSecretStore` under `node/secrets` | Machine/service state; separate from every Human PMK and excluded from project backup. |
 | Studio signing identity | Separate Studio identity/key material | Excluded from ordinary backup; recovery requires a separate explicit encrypted design. |
 | Local model weights/caches | Runtime-specific local files/caches | Re-creatable machine state; excluded from project backup. |
 

@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID } from "node:crypto";
-import { chmod, mkdir, open, readFile, readdir, rename, rm, stat } from "node:fs/promises";
+import { access, chmod, copyFile, mkdir, open, readFile, readdir, rename, rm, stat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
@@ -58,6 +58,35 @@ export function persistentHome() {
 
 export function credentialsDirectory() {
   return path.join(persistentHome(), "secrets");
+}
+
+/** #1141: this path is a migration source, not canonical multi-Human authority. */
+export const legacyCredentialsDirectory = credentialsDirectory;
+
+export function nodeCredentialsDirectory() {
+  return path.join(persistentHome(), "node", "secrets");
+}
+
+export function profileCredentialsDirectory(profileId: string) {
+  if (!/^[a-z0-9][a-z0-9_-]{2,127}$/i.test(profileId)) throw new Error("Invalid opaque Human profile id.");
+  return path.join(persistentHome(), "profiles", profileId, "credentials");
+}
+
+function legacyMigrationDirectory() {
+  return path.join(persistentHome(), "migration");
+}
+
+function legacyReadOnlyMarker() {
+  return path.join(legacyMigrationDirectory(), "legacy-credentials.read-only.json");
+}
+
+async function assertLegacyCredentialSourceWritable() {
+  try {
+    await access(legacyReadOnlyMarker());
+    throw new Error("The legacy OS-account credential source is read-only during authenticated Human-profile migration.");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
 }
 
 function safeCredentialName(name: string) {
@@ -204,9 +233,8 @@ function masterKeyAccount() {
 
 function parseMasterKey(value: string | null, provider: string) {
   if (!value) return null;
-  let key: Buffer;
-  try { key = Buffer.from(value, "base64"); } catch { throw new Error(`${provider} returned an invalid PlotPickle credential key.`); }
-  if (key.length !== 32) throw new Error(`${provider} returned an invalid PlotPickle credential key.`);
+  const key = Buffer.from(value, "base64");
+  if (key.length !== 32 || key.toString("base64") !== value) throw new Error(`${provider} returned an invalid PlotPickle credential key.`);
   return key;
 }
 
@@ -390,7 +418,12 @@ async function atomicWrite(filePath: string, source: string) {
     await rm(temporary, { force: true });
     throw error;
   }
-  try { await chmod(filePath, 0o600); } catch { /* Native user encryption remains the primary protection. */ }
+  try { await chmod(filePath, 0o600); } catch (error) { acceptBestEffortPermissionFailure(error); }
+}
+
+function acceptBestEffortPermissionFailure(error: unknown) {
+  const code = (error as NodeJS.ErrnoException).code;
+  if (!new Set(["EACCES", "EPERM", "ENOSYS", "ENOTSUP", "EINVAL"]).has(code || "")) throw error;
 }
 
 export async function readCredentialJson<T>(name: string): Promise<T | null> {
@@ -419,6 +452,7 @@ export async function readCredentialJson<T>(name: string): Promise<T | null> {
 }
 
 export async function writeCredentialJson(name: string, value: unknown) {
+  await assertLegacyCredentialSourceWritable();
   const safeName = safeCredentialName(name);
   const source = `${JSON.stringify(value, null, 2)}\n`;
   if (Buffer.byteLength(source, "utf8") > MAX_CREDENTIAL_BYTES) throw new Error("The local credential is unexpectedly large.");
@@ -451,6 +485,7 @@ export async function writeCredentialJson(name: string, value: unknown) {
 }
 
 export async function removeCredentialFile(name: string) {
+  await assertLegacyCredentialSourceWritable();
   await rm(credentialFilePath(name), { force: true });
 }
 
@@ -473,17 +508,72 @@ export async function credentialInventory() {
       try {
         const value: unknown = JSON.parse(source);
         if (isProtectedEnvelope(value)) protection = value.protection;
-      } catch { /* The owning gateway reports malformed JSON without exposing contents. */ }
+      } catch (error) {
+        if (!(error instanceof SyntaxError)) throw error;
+      }
       return { name: entry.name, bytes: info.size, protection };
     }));
   return { path: credentialsDirectory(), files: files.sort((left, right) => left.name.localeCompare(right.name)) };
 }
 
 export async function eraseAllCredentials() {
+  await assertLegacyCredentialSourceWritable();
   const before = await credentialInventory();
   await rm(credentialsDirectory(), { recursive: true, force: true });
-  try { await removePlatformMasterKey(); } catch { /* File removal remains complete even when the OS key store is offline. */ }
-  return { path: before.path, removed: before.files.length };
+  let platformKeyRemoved = true;
+  try { await removePlatformMasterKey(); } catch { platformKeyRemoved = false; }
+  return { path: before.path, removed: before.files.length, platformKeyRemoved };
+}
+
+export function createLegacyCredentialMigrationSource(names: readonly string[]) {
+  const safeNames = [...new Set(names.map(safeCredentialName))].sort();
+  if (!safeNames.length) throw new Error("Legacy credential migration requires an explicit credential inventory.");
+  let snapshotId = "";
+  return Object.freeze({
+    sourceId: "legacy-os-credential-store",
+    async setReadOnly(value: true) {
+      if (value !== true) throw new Error("Legacy credential migration can only make the source read-only.");
+      await atomicWrite(legacyReadOnlyMarker(), `${JSON.stringify({ version: 1, source: "PLOTPICKLE_HOME/secrets", state: "read-only", credentialNames: safeNames, changedAt: new Date().toISOString() }, null, 2)}\n`);
+    },
+    async createSnapshot() {
+      await access(legacyReadOnlyMarker());
+      snapshotId = `snapshot-${randomUUID()}`;
+      const snapshotRoot = path.join(legacyMigrationDirectory(), "snapshots", snapshotId, "secrets");
+      await mkdir(snapshotRoot, { recursive: true, mode: 0o700 });
+      const records: Array<{ name: string; bytes: number; sha256: string }> = [];
+      for (const name of safeNames) {
+        const sourcePath = credentialFilePath(name);
+        try {
+          const information = await stat(sourcePath);
+          if (!information.isFile()) throw new Error(`Legacy credential ${name} is not a regular file.`);
+          const targetPath = path.join(snapshotRoot, name);
+          await copyFile(sourcePath, targetPath);
+          const copied = await readFile(targetPath);
+          records.push({ name, bytes: copied.byteLength, sha256: createHash("sha256").update(copied).digest("hex") });
+          try { await chmod(targetPath, 0o600); } catch (error) { acceptBestEffortPermissionFailure(error); }
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+        }
+      }
+      await atomicWrite(path.join(path.dirname(snapshotRoot), "manifest.json"), `${JSON.stringify({ version: 1, snapshotId, source: "PLOTPICKLE_HOME/secrets", records, createdAt: new Date().toISOString() }, null, 2)}\n`);
+      return snapshotId;
+    },
+    async listProjects() {
+      return [];
+    },
+    async listCredentials() {
+      const records = [];
+      for (const name of safeNames) {
+        const value = await readCredentialJson<unknown>(name);
+        if (value !== null) records.push({ name, value });
+      }
+      return records;
+    },
+    async complete(result: { profileId: string; snapshotId: string }) {
+      if (!snapshotId || result.snapshotId !== snapshotId || !/^[a-z0-9][a-z0-9_-]{2,127}$/i.test(result.profileId)) throw new Error("Legacy credential migration completion proof is invalid.");
+      await atomicWrite(legacyReadOnlyMarker(), `${JSON.stringify({ version: 1, source: "PLOTPICKLE_HOME/secrets", state: "migrated-read-only", profileId: result.profileId, snapshotId, credentialNames: safeNames, changedAt: new Date().toISOString() }, null, 2)}\n`);
+    },
+  });
 }
 
 export async function openCredentialsDirectory() {

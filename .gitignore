@@ -13,16 +13,21 @@
 
 # PlotPickle local installation and user state
 /.plotpickle/
+/profiles/
+/node/
+/secrets/
 /projects/
 /user-data/
 /backups/
 /logs/
+/migration/
 /credentials/
 credentials.json
 
 # testing and generated reports
 /coverage
 /reports/lighthouse/
+/releases/
 
 # next.js and build output
 /.next/

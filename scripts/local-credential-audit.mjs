@@ -11,6 +11,10 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(scriptDirectory, "..");
 const MAX_TEXT_BYTES = 5_000_000;
 const PROTECTED_FORMAT = "plotpickle-protected-credential";
+const PROFILE_PRIVATE_OBJECT_FORMAT = "plotpickle-profile-private-object";
+const PROFILE_SECRET_FORMAT = "plotpickle-profile-secret";
+const NODE_SECRET_FORMAT = "plotpickle-node-secret";
+const PROFILE_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{2,127}$/i;
 const supportedProtection = new Set([
   "windows-dpapi-current-user",
   "macos-keychain-current-user",
@@ -82,11 +86,13 @@ async function main() {
   const registry = JSON.parse(await readFile(path.join(settings.root, "config", "credential-boundary.registry.json"), "utf8"));
   const registered = new Set(registry.credentials.map((entry) => entry.file));
   const report = {
-    schema_version: 1,
+    schema_version: 2,
     generated_at: new Date().toISOString(),
     home,
     home_exists: existsSync(home),
     credential_files: [],
+    profile_envelopes: [],
+    node_secret_files: [],
     scanned_non_vault_files: 0,
     findings: [],
   };
@@ -118,11 +124,69 @@ async function main() {
       }
     }
 
+    const profilesDirectory = path.join(home, "profiles");
+    if (existsSync(profilesDirectory)) {
+      for (const profileEntry of await readdir(profilesDirectory, { withFileTypes: true })) {
+        if (!profileEntry.isDirectory() || !PROFILE_ID_PATTERN.test(profileEntry.name)) {
+          finding(report, "error", `profiles/${profileEntry.name}`, "invalid-profile-storage-root");
+          continue;
+        }
+        const profileRoot = path.join(profilesDirectory, profileEntry.name);
+        for (const file of await walk(profileRoot, profilesDirectory)) {
+          if (!file.relative.endsWith(".json")) continue;
+          const information = await stat(file.absolute);
+          let valid = false;
+          let domain = "unknown";
+          let objectId = "unknown";
+          try {
+            const record = JSON.parse(await readFile(file.absolute, "utf8"));
+            domain = typeof record.domain === "string" ? record.domain : domain;
+            objectId = typeof record.objectId === "string" ? record.objectId : objectId;
+            valid = record.format === PROFILE_PRIVATE_OBJECT_FORMAT
+              && record.version === 1
+              && record.profileId === profileEntry.name
+              && record.envelope?.format === PROFILE_SECRET_FORMAT
+              && record.envelope?.profileId === profileEntry.name
+              && typeof record.envelope?.aead?.ciphertext === "string"
+              && record.envelope.aead.ciphertext.length > 0;
+          } catch { /* Metadata-only validation reports the malformed envelope below. */ }
+          report.profile_envelopes.push({ profile_id: profileEntry.name, path: `profiles/${file.relative}`, domain, object_id: objectId, bytes: information.size });
+          if (!valid) finding(report, "error", `profiles/${file.relative}`, "invalid-profile-private-envelope");
+          if (process.platform !== "win32" && (information.mode & 0o077) !== 0) finding(report, "error", `profiles/${file.relative}`, "profile-private-file-permissions-not-user-only");
+        }
+      }
+    }
+
+    const nodeSecretsDirectory = path.join(home, "node", "secrets");
+    if (existsSync(nodeSecretsDirectory)) {
+      for (const entry of await readdir(nodeSecretsDirectory, { withFileTypes: true })) {
+        if (!entry.isFile()) continue;
+        const absolute = path.join(nodeSecretsDirectory, entry.name);
+        const information = await stat(absolute);
+        let protection = "malformed";
+        let valid = false;
+        try {
+          const record = JSON.parse(await readFile(absolute, "utf8"));
+          protection = typeof record.protection === "string" ? record.protection : protection;
+          valid = record.format === NODE_SECRET_FORMAT
+            && record.version === 1
+            && record.scope === "node"
+            && record.name === entry.name
+            && protection !== "malformed"
+            && record.protected !== undefined;
+        } catch { /* Metadata-only validation reports the malformed record below. */ }
+        report.node_secret_files.push({ name: entry.name, bytes: information.size, protection });
+        if (!valid) finding(report, "error", `node/secrets/${entry.name}`, "invalid-node-secret-envelope");
+        if (process.platform !== "win32" && (information.mode & 0o077) !== 0) finding(report, "error", `node/secrets/${entry.name}`, "node-secret-file-permissions-not-user-only");
+      }
+    }
+
     const transient = path.join(home, "buzz", "runtime", ".env.runtime");
     if (existsSync(transient)) finding(report, "error", "buzz/runtime/.env.runtime", "transient-secret-file-left-on-disk");
 
     for (const file of await walk(home)) {
       if (file.relative.startsWith("secrets/")) continue;
+      if (file.relative.startsWith("profiles/") || file.relative.startsWith("node/secrets/")) continue;
       if (!/\.(?:ppf|json|log|txt|md|env|runtime)$/i.test(file.relative) && !/(^|\/)\.env(?:\.|$)/i.test(file.relative)) continue;
       const value = await safeText(file.absolute);
       if (!value) continue;
@@ -135,6 +199,8 @@ async function main() {
   }
 
   report.credential_files.sort((left, right) => left.name.localeCompare(right.name));
+  report.profile_envelopes.sort((left, right) => left.path.localeCompare(right.path));
+  report.node_secret_files.sort((left, right) => left.name.localeCompare(right.name));
   report.findings.sort((left, right) => `${left.severity}:${left.path}:${left.rule}`.localeCompare(`${right.severity}:${right.path}:${right.rule}`));
   report.passed = !report.findings.some((item) => item.severity === "error");
 
@@ -143,6 +209,8 @@ async function main() {
     console.log(`Local credential audit: ${report.passed ? "PASS" : "FAIL"}`);
     console.log(`PlotPickle home present: ${report.home_exists ? "yes" : "no"}`);
     console.log(`Credential envelopes: ${report.credential_files.length}`);
+    console.log(`Human-profile encrypted objects: ${report.profile_envelopes.length}`);
+    console.log(`NodeSecretStore records: ${report.node_secret_files.length}`);
     console.log(`Non-vault text files scanned: ${report.scanned_non_vault_files}`);
     for (const item of report.findings) console.log(`- ${item.severity.toUpperCase()} ${item.path}: ${item.rule}`);
     if (!report.findings.length) console.log("- No local credential-boundary violations found.");

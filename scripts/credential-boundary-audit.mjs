@@ -122,15 +122,45 @@ for (const marker of [
   "PlotPickle will not save credentials without Linux user encryption",
   'open(temporary, "w", 0o600)',
   "await writeCredentialJson(safeName, stored)",
+  "createLegacyCredentialMigrationSource",
+  "legacy-credentials.read-only.json",
 ]) {
   if (!localCredentials.includes(marker)) failures.push(`Encrypted storage contract is missing marker ${JSON.stringify(marker)} in ${localCredentialsPath}.`);
 }
 if (registry.encryption_contract?.plaintext_fallback_allowed !== false) failures.push("Credential registry must explicitly forbid plaintext fallback.");
+if (registry.schema_version !== 2) failures.push("Credential registry must use the profile/node ownership schema version 2.");
+if (registry.storage_roots?.human_profile !== "PLOTPICKLE_HOME/profiles/<profile_uuid>/credentials") failures.push("Credential registry is missing the canonical Human-profile credential root.");
+if (registry.storage_roots?.node !== "PLOTPICKLE_HOME/node/secrets") failures.push("Credential registry is missing the canonical Node secret root.");
+if (registry.encryption_contract?.human_profile !== "pmk-profile-secret-envelope-v1") failures.push("Human credentials must use the PMK profile-secret envelope.");
+if (registry.encryption_contract?.node !== "operator-managed-node-secret-store-v1") failures.push("Node operational secrets must use NodeSecretStore operator protection.");
+
+const profileStoragePath = "core/storage/profile-private/profile-private-storage-core.mjs";
+const profileStorage = textFile(profileStoragePath);
+for (const marker of [
+  "createProfilePrivateStorageService",
+  "createProfileVaultCapability",
+  "profile-storage:v",
+  "createNodeSecretStore",
+  'fixedPath(home, "profiles", profileId)',
+  'fixedPath(home, "node")',
+  "SYMLINK_ESCAPE_REJECTED",
+]) {
+  if (!profileStorage.includes(marker)) failures.push(`Profile storage contract is missing marker ${JSON.stringify(marker)} in ${profileStoragePath}.`);
+}
 
 const credentialFiles = new Set();
 for (const credential of registry.credentials || []) {
-  for (const field of ["id", "file", "source", "browser_exposure", "export_boundary", "remove_or_revoke", "owner_follow_up"]) {
+  for (const field of ["id", "file", "source", "owner_scope", "canonical_storage", "protection", "migration_state", "browser_exposure", "export_boundary", "remove_or_revoke", "owner_follow_up"]) {
     if (!credential[field] || typeof credential[field] !== "string") failures.push(`Credential registry entry ${credential.id || "<unknown>"} is missing ${field}.`);
+  }
+  if (!new Set(["human-profile", "node"]).has(credential.owner_scope)) failures.push(`Credential registry entry ${credential.id || "<unknown>"} has an invalid owner scope.`);
+  if (credential.owner_scope === "human-profile"
+    && (credential.canonical_storage !== registry.storage_roots?.human_profile || credential.protection !== registry.encryption_contract?.human_profile)) {
+    failures.push(`Human credential ${credential.id || "<unknown>"} is not PMK/profile owned.`);
+  }
+  if (credential.owner_scope === "node"
+    && (credential.canonical_storage !== registry.storage_roots?.node || credential.protection !== registry.encryption_contract?.node)) {
+    failures.push(`Node credential ${credential.id || "<unknown>"} is not isolated in NodeSecretStore.`);
   }
   if (!Array.isArray(credential.contains) || !credential.contains.length) failures.push(`Credential registry entry ${credential.id || "<unknown>"} has no sensitive fields.`);
   if (credentialFiles.has(credential.file)) failures.push(`Credential registry repeats ${credential.file}.`);
@@ -200,6 +230,8 @@ for (const relative of exportFiles) {
 
 if (mode === "package") {
   if (files.some((relative) => /(^|\/)secrets\//i.test(relative))) failures.push("Packaged release contains a runtime secrets directory.");
+  if (files.some((relative) => /(^|\/)profiles\/[^/]+\/(?:vault|projects|library|memory|indexes|assets|buzz|credentials|settings|cache)\//i.test(relative))) failures.push("Packaged release contains Human-profile runtime data.");
+  if (files.some((relative) => /(^|\/)node\/secrets\//i.test(relative))) failures.push("Packaged release contains NodeSecretStore runtime data.");
   if (files.some((relative) => /(^|\/)\.env\.runtime$/i.test(relative))) failures.push("Packaged release contains a generated Buzz .env.runtime file.");
 }
 

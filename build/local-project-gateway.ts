@@ -1,4 +1,5 @@
-import { chmod, copyFile, mkdir, open, readFile, readdir, rename, rm, stat } from "node:fs/promises";
+import { access, chmod, copyFile, mkdir, open, readFile, readdir, rename, rm, stat } from "node:fs/promises";
+import { createHash, randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -49,6 +50,16 @@ type GitHubReadiness = {
 
 function projectsDirectory() { return path.join(persistentHome(), "projects"); }
 function backupsDirectory() { return path.join(persistentHome(), "backups"); }
+function legacyProjectReadOnlyMarker() { return path.join(persistentHome(), "migration", "legacy-projects.read-only.json"); }
+
+async function assertLegacyProjectSourceWritable() {
+  try {
+    await access(legacyProjectReadOnlyMarker());
+    throw new Error("The legacy Node-global project source is read-only during authenticated Human-profile migration.");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+}
 
 function normalizeBackupLimit(value: unknown) {
   const parsed = typeof value === "number" ? value : Number(value);
@@ -128,7 +139,12 @@ async function atomicWrite(filePath: string, content: string) {
     await handle.close();
   }
   await rename(temporary, filePath);
-  try { await chmod(filePath, 0o600); } catch { /* Windows uses account permissions. */ }
+  try { await chmod(filePath, 0o600); } catch (error) { acceptBestEffortPermissionFailure(error); }
+}
+
+function acceptBestEffortPermissionFailure(error: unknown) {
+  const code = (error as NodeJS.ErrnoException).code;
+  if (!new Set(["EACCES", "EPERM", "ENOSYS", "ENOTSUP", "EINVAL"]).has(code || "")) throw error;
 }
 
 async function createBackup(filePath: string, backupLimit = BACKUP_LIMIT) {
@@ -158,6 +174,7 @@ async function saveProject(
   requestedBackupLimit?: unknown,
   createRollingBackup = true,
 ) {
+  await assertLegacyProjectSourceWritable();
   const fileName = safeName(requestedName || portableProjectFileName(project));
   const filePath = path.join(projectsDirectory(), fileName);
   const backupLimit = normalizeBackupLimit(requestedBackupLimit);
@@ -165,6 +182,63 @@ async function saveProject(
   const portable = createPortableProjectFile(project);
   await atomicWrite(filePath, serializePortableProjectFile(portable));
   return { fileName, backup, backupLimit, projectHash: portable.integrity.projectHash, savedAt: portable.createdAt };
+}
+
+export function createLegacyProjectMigrationSource() {
+  let snapshotId = "";
+  return Object.freeze({
+    sourceId: "legacy-node-project-store",
+    async setReadOnly(value: true) {
+      if (value !== true) throw new Error("Legacy project migration can only make the source read-only.");
+      await atomicWrite(legacyProjectReadOnlyMarker(), `${JSON.stringify({ version: 1, source: "PLOTPICKLE_HOME/projects", state: "read-only", changedAt: new Date().toISOString() }, null, 2)}\n`);
+    },
+    async createSnapshot() {
+      await access(legacyProjectReadOnlyMarker());
+      snapshotId = `snapshot-${randomUUID()}`;
+      const snapshotRoot = path.join(persistentHome(), "migration", "snapshots", snapshotId, "projects");
+      await mkdir(snapshotRoot, { recursive: true, mode: 0o700 });
+      const records: Array<{ fileName: string; bytes: number; sha256: string }> = [];
+      try {
+        for (const entry of await readdir(projectsDirectory(), { withFileTypes: true })) {
+          if (!entry.isFile() || !entry.name.endsWith(".ppf")) continue;
+          const sourcePath = path.join(projectsDirectory(), entry.name);
+          const targetPath = path.join(snapshotRoot, entry.name);
+          await copyFile(sourcePath, targetPath);
+          const copied = await readFile(targetPath);
+          records.push({ fileName: entry.name, bytes: copied.byteLength, sha256: createHash("sha256").update(copied).digest("hex") });
+          try { await chmod(targetPath, 0o600); } catch (error) { acceptBestEffortPermissionFailure(error); }
+        }
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      }
+      await atomicWrite(path.join(path.dirname(snapshotRoot), "projects-manifest.json"), `${JSON.stringify({ version: 1, snapshotId, source: "PLOTPICKLE_HOME/projects", records, createdAt: new Date().toISOString() }, null, 2)}\n`);
+      return snapshotId;
+    },
+    async listProjects() {
+      const records = [];
+      try {
+        for (const entry of await readdir(projectsDirectory(), { withFileTypes: true })) {
+          if (!entry.isFile() || !entry.name.endsWith(".ppf")) continue;
+          const parsed = await readPortableFile(path.join(projectsDirectory(), entry.name));
+          records.push({
+            id: parsed.project.id,
+            value: parsed.project,
+            summary: { title: parsed.project.metadata.title, createdAt: parsed.project.metadata.createdAt, updatedAt: parsed.project.metadata.updatedAt },
+          });
+        }
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      }
+      return records;
+    },
+    async listCredentials() {
+      return [];
+    },
+    async complete(result: { profileId: string; snapshotId: string }) {
+      if (!snapshotId || result.snapshotId !== snapshotId || !/^[a-z0-9][a-z0-9_-]{2,127}$/i.test(result.profileId)) throw new Error("Legacy project migration completion proof is invalid.");
+      await atomicWrite(legacyProjectReadOnlyMarker(), `${JSON.stringify({ version: 1, source: "PLOTPICKLE_HOME/projects", state: "migrated-read-only", profileId: result.profileId, snapshotId, changedAt: new Date().toISOString() }, null, 2)}\n`);
+    },
+  });
 }
 
 async function readPortableFile(filePath: string) {

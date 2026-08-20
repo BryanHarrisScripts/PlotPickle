@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AgentPortrait from "../components/agent-portrait";
-import { FOUNDATION_PROJECT_STORAGE_KEY } from "../core/contracts/foundation-plan";
 import { normalizeFoundationProject } from "../core/project/project";
+import { loadFoundationProject } from "../core/storage/foundation-project-browser";
 import {
   buildCommunityAgentRoster,
   type AgentTrace,
@@ -96,8 +96,7 @@ function activeProjectContext(explicit: unknown) {
   try {
     if (explicit) return normalizeFoundationProject(explicit);
     if (typeof window === "undefined") return null;
-    const raw = window.localStorage.getItem(FOUNDATION_PROJECT_STORAGE_KEY);
-    return raw ? normalizeFoundationProject(JSON.parse(raw) as unknown) : null;
+    return loadFoundationProject();
   } catch {
     return null;
   }
@@ -148,6 +147,7 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial external runtime synchronization
     void refresh();
     const timer = window.setInterval(() => void refresh(), 7_500);
     return () => window.clearInterval(timer);
@@ -286,7 +286,7 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
                     checked={specialistProjectSharing[specialist]}
                     onChange={(event) => setSpecialistProjectSharing((current) => ({ ...current, [specialist]: event.target.checked }))}
                   />
-                  <span>Share the active project's approved context with this private BUZZ exchange. This may include unpublished story details.</span>
+                  <span>Share the active project&apos;s approved context with this private BUZZ exchange. This may include unpublished story details.</span>
                 </label>
                 <button
                   type="button"

@@ -14,6 +14,7 @@ import {
 
 const PUBLIC_KEY_A = "-----BEGIN PUBLIC KEY-----\nNODE-A\n-----END PUBLIC KEY-----";
 const PUBLIC_KEY_B = "-----BEGIN PUBLIC KEY-----\nNODE-B\n-----END PUBLIC KEY-----";
+const PRIVATE_KEY_REJECTION_FIXTURE = ["-----BEGIN", "PRIVATE KEY----- abc"].join(" ");
 
 function baseLearn(overrides = {}) {
   return createPortableLearnState({
@@ -198,7 +199,7 @@ test("LEARN sync allowlist rejects every unknown field and private key material"
       versionId: "note-secret",
       noteId: "note-secret",
       lessonId: "world-03",
-      body: "-----BEGIN PRIVATE KEY----- abc",
+      body: PRIVATE_KEY_REJECTION_FIXTURE,
       nodeId: "node-a",
       updatedAt: "2026-08-19T12:01:00.000Z",
     }],

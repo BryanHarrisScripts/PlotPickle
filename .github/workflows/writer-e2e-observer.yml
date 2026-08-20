@@ -16,6 +16,8 @@ on:
       - "tests/issue-1104-writer-e2e-final-state.test.mjs"
       - "tests/issue-1108-writer-app-preflight.test.mjs"
       - "tests/issue-1110-writer-live-acceptance.test.mjs"
+      - "tests/issue-1170-writer-observer-stabilization.test.mjs"
+      - "package.json"
       - ".github/workflows/writer-e2e-observer.yml"
   workflow_dispatch:
 
@@ -31,7 +33,7 @@ jobs:
           cache: npm
       - run: npm ci --include=dev --no-audit --no-fund
       - name: Validate Writer end-to-end final-state contract
-        run: node --test tests/issue-1104-writer-e2e-final-state.test.mjs tests/issue-1108-writer-app-preflight.test.mjs tests/issue-1110-writer-live-acceptance.test.mjs tests/issue-1029-avery-progressive-session-history.test.mjs tests/issue-1080-marquee-marketing-reference.test.mjs
+        run: npm run test:writer-observer
       - name: Parse Writer acceptance scripts
         run: |
           node --check scripts/run-writer-in-residence.mjs
@@ -46,3 +48,21 @@ jobs:
           node --check scripts/writer-journey-final-state.mjs
       - name: Production build
         run: npm run build
+
+  windows-payload-contract:
+    name: Windows browser-evaluate payload contract
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --include=dev --no-audit --no-fund
+      - name: Execute the shared Writer observer transport fixture
+        run: node --test tests/issue-1170-writer-observer-stabilization.test.mjs
+      - name: Parse the live Writer boundary
+        run: |
+          node --check scripts/run-writer-in-residence.mjs
+          node --check scripts/run-writer-in-residence-e2e.mjs
+          node --check scripts/writer-journey-final-state.mjs

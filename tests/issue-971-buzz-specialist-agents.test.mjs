@@ -107,9 +107,9 @@ test("project context federation remains opt-in for the Community specialist and
 
   assert.match(ui, /\{ "critics-circle": false \}/);
   assert.match(ui, /Project sharing is off by default/);
-  assert.match(ui, /Share the active project's approved context with this private BUZZ exchange/);
+  assert.match(ui, /Share the active project(?:'|&apos;)s approved context with this private BUZZ exchange/);
   assert.match(ui, /activeProjectContext/);
-  assert.match(ui, /FOUNDATION_PROJECT_STORAGE_KEY/);
+  assert.match(ui, /loadFoundationProject/);
   assert.match(ui, /normalizeFoundationProject/);
   assert.match(ui, /Written to BUZZ history · PPF unchanged/);
 });

@@ -1,9 +1,11 @@
 "use client";
 
+/* eslint-disable @next/next/no-location-assign-relative-destination -- navigation deliberately reloads profile-owned project state */
+
 import { useEffect, useState } from "react";
 import { plotPickleCurriculum } from "../adapters/curriculum/current-catalog";
-import { FOUNDATION_PROJECT_STORAGE_KEY } from "../core/contracts/foundation-plan";
-import { normalizeFoundationProject, type PPFProject } from "../core/project/project";
+import type { PPFProject } from "../core/project/project";
+import { loadFoundationProject, saveFoundationProject } from "../core/storage/foundation-project-browser";
 import FoundationsBuildWorkspace from "../modules/build/ui/foundations-build-workspace";
 import WorldBuildWorkspace from "../modules/build/ui/world-build-workspace";
 import { answerFromCurriculum } from "../modules/creative-room/sage-unified-guide";
@@ -13,6 +15,7 @@ import MarqueeAgentOverlay from "../modules/learn/ui/marquee-agent-overlay";
 import FoundationsPlanWorkspace from "../modules/plan/ui/foundations-plan-workspace";
 import PlanLessonAnswerPreview from "../modules/plan/ui/plan-lesson-answer-preview";
 import WorldPlanWorkspace from "../modules/plan/ui/world-plan-workspace";
+import LibraryWorkspace from "../modules/library/ui/library-workspace";
 import WyrmwoodWorkspace from "../modules/wyrmwood/ui/wyrmwood-workspace";
 import CommunityWorkspace from "./community-workspace";
 import PlotPickleWorkspaceShell, { type RootWorkspace } from "./plotpickle-workspace-shell";
@@ -30,6 +33,7 @@ function requestedWorkspace(): Workspace {
   if (requested === "community") return "community";
   if (requested === "settings") return "settings";
   if (requested === "wyrmwood") return "wyrmwood";
+  if (requested === "library") return "library";
   return "learn";
 }
 
@@ -39,10 +43,8 @@ function requestedSection(): GuidedSection {
 }
 
 function repairPersistedProject() {
-  const saved = localStorage.getItem(FOUNDATION_PROJECT_STORAGE_KEY);
-  if (!saved) return;
   try {
-    const normalized = normalizeFoundationProject(JSON.parse(saved));
+    const normalized = loadFoundationProject();
     const validLessonIds = new Set(plotPickleCurriculum.map((lesson) => lesson.id));
     const repaired: PPFProject = {
       ...normalized,
@@ -65,10 +67,10 @@ function repairPersistedProject() {
           : null,
       },
     };
-    localStorage.setItem(FOUNDATION_PROJECT_STORAGE_KEY, JSON.stringify(repaired));
+    saveFoundationProject(repaired);
   } catch {
-    localStorage.setItem(`${FOUNDATION_PROJECT_STORAGE_KEY}.recovery.${Date.now()}`, saved);
-    localStorage.removeItem(FOUNDATION_PROJECT_STORAGE_KEY);
+    // The profile-scoped Library owns recovery and quarantine. A later load
+    // retries the last verified story without replacing recoverable evidence.
   }
 }
 
@@ -87,6 +89,10 @@ function navigateGuided(workspace: "learn" | "plan" | "build", section: GuidedSe
 }
 
 function navigateWorkspace(workspace: Workspace) {
+  if (workspace === "library") {
+    window.location.assign("/library");
+    return;
+  }
   const destination = new URL(window.location.href);
   destination.searchParams.set("workspace", workspace);
   if (workspace === "plan" || workspace === "build") {
@@ -153,6 +159,14 @@ export default function Home() {
           onOpenLearn={() => navigateWorkspace("learn")}
           onOpenPlan={() => navigateWorkspace("plan")}
         />
+      </PlotPickleWorkspaceShell>
+    );
+  }
+
+  if (workspace === "library") {
+    return (
+      <PlotPickleWorkspaceShell activeWorkspace="library" onNavigate={navigateWorkspace}>
+        <LibraryWorkspace />
       </PlotPickleWorkspaceShell>
     );
   }

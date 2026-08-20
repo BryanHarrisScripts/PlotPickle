@@ -27,6 +27,7 @@ test("one shared root navigator owns the approved PlotPickle navigation groups",
   const dashboard = navigator.indexOf('id: "dashboard"');
   const community = navigator.indexOf('id: "community"');
   const wyrmwood = navigator.indexOf('id: "wyrmwood"');
+  const library = navigator.indexOf('id: "library"');
   const learn = navigator.indexOf('id: "learn"');
   const plan = navigator.indexOf('id: "plan"');
   const build = navigator.indexOf('id: "build"');
@@ -40,12 +41,13 @@ test("one shared root navigator owns the approved PlotPickle navigation groups",
   const settings = navigator.indexOf('id: "settings"');
 
   assert.ok(dashboard >= 0 && dashboard < community && community < wyrmwood, "Dashboard, Community and Wyrmwood must form the opening group");
-  assert.ok(wyrmwood < learn && learn < plan && plan < build && build < storyboard && storyboard < previs, "Learn through Previs must form the second group");
+  assert.ok(wyrmwood < library && library < learn && learn < plan && plan < build && build < storyboard && storyboard < previs, "Library through Previs must form the second group");
   assert.ok(previs < write && write < edit && edit < feedback && feedback < refine, "Write through Refine must form the third group");
   assert.ok(refine < reports && reports < settings, "Reports and Settings must form the final group");
 
   assert.match(navigator, /relic: "\/assets\/workflow-relics\/community\.svg", label: "Community", detail: "Guildhall", selectable: true/);
   assert.match(navigator, /label: "Wyrmwood", detail: "Game", selectable: true/);
+  assert.match(navigator, /label: "Library", detail: "Examples & Stories", selectable: true/);
   assert.match(navigator, /label: "Previs", detail: "Visualize", selectable: false/);
   assert.match(navigator, /label: "Settings", detail: "Config", selectable: true/);
   assert.match(navigator, /id === "wyrmwood"\) return "community-game"/);

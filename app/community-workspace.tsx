@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { FOUNDATION_PROJECT_STORAGE_KEY } from "../core/contracts/foundation-plan";
-import { normalizeFoundationProject, type PPFProject } from "../core/project/project";
+import { useCallback, useEffect, useState } from "react";
+import type { PPFProject } from "../core/project/project";
+import { loadFoundationProject } from "../core/storage/foundation-project-browser";
 import { BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "../lib/buzz-guildhall";
 import {
   BUZZ_STORY_ROOMS,
@@ -87,24 +87,9 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "unknown error";
 }
 
-function parseStoredProject(source: string) {
-  try {
-    return { ok: true as const, project: normalizeFoundationProject(JSON.parse(source)) };
-  } catch (error) {
-    return { ok: false as const, error: errorMessage(error) };
-  }
-}
-
 function readProject(): PPFProject | null {
   if (typeof window === "undefined") return null;
-  const source = window.localStorage.getItem(FOUNDATION_PROJECT_STORAGE_KEY);
-  if (!source) return null;
-  const parsed = parseStoredProject(source);
-  if (!parsed.ok) {
-    console.warn(`PlotPickle could not read the active project from local storage: ${parsed.error}`);
-    return null;
-  }
-  return parsed.project;
+  return loadFoundationProject();
 }
 
 function readReviews(): ReviewItem[] {
@@ -218,6 +203,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
 
   useEffect(() => {
     const current = readProject();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initialize from the external profile-owned Library
     setProject(current);
     setReviews(readReviews());
     let cancelled = false;

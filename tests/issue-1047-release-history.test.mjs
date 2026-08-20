@@ -36,11 +36,11 @@ test("#1047 release history has one maintained structured source ordered newest 
 });
 
 test("#1047 What's New UI reads the canonical history and clearly marks the newest release", async () => {
-  const [dashboard, panel] = await Promise.all([
-    read("modules/dashboard/ui/dashboard-workspace.tsx"),
+  const [settings, panel] = await Promise.all([
+    read("app/sage-settings-workspace.tsx"),
     read("modules/dashboard/ui/release-history/index.tsx"),
   ]);
-  assert.match(dashboard, /ReleaseHistoryPanel/);
+  assert.match(settings, /ReleaseHistoryPanel/);
   assert.match(panel, /config\/release-history\.json/);
   assert.match(panel, /What&apos;s New/);
   assert.match(panel, /PlotPickle Release History/);

@@ -140,7 +140,7 @@ async function piVersion(piCommand) {
 
 export async function ensurePiInstalled(options = {}) {
   if (!versionAtLeast(process.versions.node, PI_MINIMUM_NODE_VERSION)) {
-    throw new Error(`Pi requires Node.js ${PI_MINIMUM_NODE_VERSION} or newer for PlotPickle. Found ${process.versions.node}.`);
+    throw new Error(`Pi requires Node.js 22.19.0 or newer for PlotPickle. Found ${process.versions.node}.`);
   }
 
   let command = await resolvePiCommand();

@@ -64,19 +64,27 @@ Community/BBS follows the same contract: live BUZZ server/caller/presence on the
 
 ## Community, BBS and BUZZ
 
-PlotPickle Community is a writer-friendly interface over **BUZZ**, the signed messaging, presence and coordination layer.
+PlotPickle Community is a writer-friendly interface over **BUZZ**, the signed messaging, Communities, rooms, membership, presence and coordination layer.
 
-The default Community entrance is the **PlotPickle Community BBS**. It provides the Great Hall, Story Rooms, Connected Studios, People, Agents & Stewards, Review Queue and Guildhall while keeping the user inside the same PlotPickle shell.
+The built-in **PlotPickle Community BBS** provides the Great Hall, Story Rooms, People, Agents & Stewards, Review Queue and Guildhall while keeping the user inside the same PlotPickle shell. A verified BUZZ user may also create additional BUZZ Communities. PlotPickle should surface public, closed/invite-only and private Communities according to the connected BUZZ visibility and membership policy rather than maintaining a second social database.
 
-The value labelled **NODE** is always the real connected BUZZ community/node name. PlotPickle does not substitute a product nickname when displaying a relay node.
+The primary discovery model is **Communities + people**. Node identity stays underneath social activity as device/install provenance for trust, audit and moderation; ordinary users do not browse other people's machines as resource providers.
+
+In Community, the value labelled **NODE** remains the real connected BUZZ community/node name where that network context is shown. That display value is not the cryptographic `node_id` of the local PlotPickle installation, and it does not imply access to another installation's hardware or services.
 
 ### One conversation, two clients
 
-PlotPickle and BUZZ Desktop are two clients over the **same signed BUZZ room history**. They do not maintain competing copies of Community chat.
+PlotPickle and BUZZ Desktop are two clients over the **same signed BUZZ room history**. They do not maintain competing copies of Community chat. The BUZZ signed room history remains the authoritative Community conversation record shared by those clients.
 
 If a writer intentionally posts a Great Hall or Story Room message from PlotPickle, BUZZ Desktop reads that same BUZZ event. A message posted from BUZZ Desktop is read back by PlotPickle from the same room history. BUZZ event IDs provide the reconciliation identity.
 
 This does **not** mean PlotPickle automatically uploads creative work. LEARN answers, PLAN decisions, BUILD artifacts, PPF state, drafts, local files, provider prompts and credentials remain local unless the writer explicitly shares content into a Community destination.
+
+### User-created Communities
+
+A BUZZ Community is its own social/security object, not a PlotPickle Node. Depending on BUZZ policy it may define an owner/admin/moderator set, public/closed/private visibility, membership/join rules, rooms/channels, Community rules, signed presence and moderation state.
+
+Public Communities may expose safe public discovery metadata. Closed/invite-only Communities protect room content until the Human is authorized. Private/non-discoverable Communities stay invisible to unauthorized Humans. Revoked membership and stale presence are never presented as current.
 
 ### BBS Moderator
 
@@ -85,6 +93,37 @@ This does **not** mean PlotPickle automatically uploads creative work. LEARN ans
 Merrin is a host and conversational guide, not an autonomous enforcement system. Public-room memory is bounded; private Story Rooms and PPF project state are outside the Moderator’s default read scope. Merrin cannot ban users, alter story canon, change code or write GitHub state.
 
 BUZZ Desktop remains the owner-level interface for creating/approving managed BUZZ identities and advanced BUZZ administration. PlotPickle reports real identity/presence state rather than pretending an unapproved agent is online.
+
+## PlotPickle Nodes, Human profiles, Stewards and BUZZ
+
+A **PlotPickle Node is one uniquely identified PlotPickle installation/device**. The Node owns a durable `node_id` and an independent local signing keypair. A Person may use several Nodes, and a shared household Node may securely host several local Human profiles.
+
+PlotPickle owns Human-profile authentication; the operating system and BUZZ are not login authorities. The canonical security assumptions and cryptographic envelope boundary are documented in [PlotPickle Auth threat model](docs/architecture/PLOTPICKLE-AUTH-THREAT-MODEL.md) and [PlotPickle Auth cryptographic dependency selection](docs/architecture/PLOTPICKLE-AUTH-CRYPTO-SELECTION.md).
+
+The **Steward is the local caretaker inside that Node**. The Steward can monitor health, coordinate agents, explain what is happening and help recover local services, but it is not the Node identity itself.
+
+Human/Avatar identity, Node identity and Agent/Steward identity remain separate:
+
+```text
+Person / Avatar A
+      +-- PlotPickle Node A
+      +-- PlotPickle Node B
+
+Shared household Node C
+      +-- Human profile A -> private vault + Human BUZZ identity
+      +-- Human profile B -> private vault + Human BUZZ identity
+      +-- Guest profile   -> isolated workspace
+```
+
+A Human using two Nodes remains one person in Community. Two Humans sharing one Node remain two people with separate private workspaces and BUZZ identities. Switching Humans is a security boundary: project/vault access, agent and retrieval context, private UI state, credentials and the previous Human's BUZZ session must be cleared/released before another profile unlocks.
+
+BUZZ has two bounded roles. Inside one Node it is the local coordination/evidence backbone for agents, health, recovery and verification. Between people it carries signed Communities, rooms, membership, conversation, presence and Node provenance.
+
+**Community presence is never compute eligibility.** Other people do not receive or use this Node's GPU, models, ComfyUI, BERD, filesystem, storage, agents, provider credentials or build/test capacity merely because they can see the Human in BUZZ.
+
+Local AI/media/build capabilities remain private to the Node's own local capability manifest. Any future remote compute uses a separately configured **managed cloud service/farm**, never another Community member's PlotPickle installation. Scoped cloud work retains explicit target selection, data minimization, expiry, provenance, candidate-only results and explicit paid consent; there is no silent local-to-cloud fallback.
+
+Terms such as `desktop`, `studio-host`, `compute` and `hybrid` describe deployment/readiness of an installation; `local`, `lan` and `internet` describe endpoint reachability. They are not Human identity classes and they do not opt a machine into peer resource sharing.
 
 ## Agents and helpers
 
@@ -159,7 +198,9 @@ Credentials are kept outside story/PPF project files. PlotPickle does not silent
 
 ```mermaid
 flowchart TB
-    Writer[Writer / creator]
+    Writer[Writer / Human profile]
+    NodeIdentity[PlotPickle Node\nnode_id + local signing key]
+    Steward[Local Steward]
 
     subgraph Product[PlotPickle product]
       Dashboard[Dashboard]
@@ -182,7 +223,7 @@ flowchart TB
     subgraph AI[Capability-routed AI]
       LocalText[Local text runtimes]
       Comfy[Local ComfyUI engine]
-      Cloud[Optional cloud / BYOK]
+      Cloud[Optional managed cloud service]
     end
 
     subgraph Authority[Authoritative data]
@@ -192,13 +233,19 @@ flowchart TB
       Evidence[Verification/session evidence]
     end
 
-    subgraph Network[Community / coordination]
-      BUZZ[BUZZ signed room history]
+    subgraph Network[BUZZ coordination / Community / federation]
+      BUZZ[BUZZ signed history + coordination]
+      Communities[BUZZ Communities]
+      People[People / presence]
       Desktop[BUZZ Desktop]
       Guildhall[Guildhall]
     end
 
-    Writer --> Product
+    Writer --> NodeIdentity
+    NodeIdentity --> Product
+    NodeIdentity <--> BUZZ
+    Steward --> Product
+    Steward --> Agents
     Product <--> Authority
     Learn --> Mastra
     Plan --> Mastra
@@ -206,24 +253,31 @@ flowchart TB
     Profiles --> Mastra
     Skills --> Mastra
     Mastra --> AI
+    Mastra <--> BUZZ
     Avery --> Product
     Gates --> Evidence
 
     Community <--> BUZZ
+    BUZZ <--> Communities
+    BUZZ <--> People
     Desktop <--> BUZZ
     BUZZ <--> Guildhall
     Community -. explicit share only .-> BUZZ
     BUZZ -. never automatic canon .-> PPF
+    Build -. explicit consent only .-> Cloud
 ```
 
 The important boundaries are simple:
 
-- **Writer** — final creative decision maker.
+- **Writer / Human profile** — final creative decision maker and private-workspace owner.
+- **PlotPickle Node** — one installation/device with its own durable signing identity.
+- **Steward** — local caretaker inside the Node; not the Node identity and not an authority shortcut.
 - **PPF** — canonical creative record.
 - **Curriculum** — teaching authority for LEARN-derived progression.
 - **Mastra** — product-agent runtime/orchestration layer.
 - **AI providers** — suggestion/generation capabilities, never canon owners.
-- **BUZZ** — signed Community conversation, presence and coordination history.
+- **BUZZ** — signed local coordination plus Communities/people/presence/federation fabric; it does not replace local Node identity, expose peer resources or own PPF canon.
+- **Managed cloud service** — optional explicit remote compute boundary, separate from Community Nodes.
 - **BUZZ Desktop** — companion/owner interface over the same BUZZ network.
 - **GitHub** — canonical source, issues, pull requests and merge authority.
 - **UAT/BEN/visual observer** — evidence and quality signals, not creative authority.
@@ -272,6 +326,8 @@ PlotPickle is local-first and writer-controlled by default.
 - No generated draft silently becomes canon.
 - No local AI failure silently becomes a paid cloud request.
 - No Community connection automatically uploads the project.
+- No Community membership or social trust exposes another Human's Node resources.
+- No local capability manifest becomes a peer-compute advertisement.
 - No agent personality grants extra permissions.
 - No agent grades its own work as the final PASS/FAIL authority.
 - No coding worker merges its own unverified change.

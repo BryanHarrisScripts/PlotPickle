@@ -36,7 +36,10 @@ async function runJourney() {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ["--import", recovery, runner, ...argv], {
       cwd: repoRoot,
-      env: process.env,
+      env: {
+        ...process.env,
+        PLOTPICKLE_WRITER_RUNTIME_SOURCE: runtime?.source || "unknown",
+      },
       stdio: "inherit",
       windowsHide: true,
     });

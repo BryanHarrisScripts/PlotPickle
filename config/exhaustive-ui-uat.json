@@ -26,6 +26,14 @@
       "testDuplicateInstances": false
     },
     {
+      "id": "library",
+      "label": "LIBRARY · Examples & Stories",
+      "route": "/library",
+      "sourceFiles": ["app/library/page.tsx", "modules/library/ui/library-workspace.tsx", "modules/library/ui/library-workspace.module.css", "core/storage/project-library-browser.ts", "core/storage/project-library-core.mjs"],
+      "maxInteractions": 70,
+      "testDuplicateInstances": false
+    },
+    {
       "id": "plan",
       "label": "PLAN",
       "route": "/?workspace=plan&section=foundations",
@@ -85,12 +93,16 @@
     "switch to cloud",
     "connect github",
     "connect google",
-    "disconnect"
+    "disconnect",
+    "load & explore",
+    "start from preset",
+    "open story",
+    "save & switch"
   ],
   "credentialPatterns": ["password", "secret", "token", "api key", "private key", "credential"],
   "longRunningActionPatterns": ["test sage", "test plan", "ask", "draft", "pickle", "evaluate", "set up sage and plan", "refresh", "check", "verify", "live test", "health"],
-  "globalNavigationIds": ["dashboard", "community", "wyrmwood", "learn", "plan", "build", "storyboard", "graphic-novel", "write", "edit", "feedback", "refine", "reports", "settings"],
-  "globalNavigationLabels": ["Dashboard", "Community", "Wyrmwood", "Learn", "Plan", "Build", "Storyboard", "Previs", "Write", "Edit", "Feedback", "Refine", "Reports", "Settings"],
+  "globalNavigationIds": ["dashboard", "community", "wyrmwood", "library", "learn", "plan", "build", "storyboard", "graphic-novel", "write", "edit", "feedback", "refine", "reports", "settings"],
+  "globalNavigationLabels": ["Dashboard", "Community", "Wyrmwood", "Library", "Learn", "Plan", "Build", "Storyboard", "Previs", "Write", "Edit", "Feedback", "Refine", "Reports", "Settings"],
   "globalNavigationGaps": [
     { "after": "wyrmwood", "kind": "community-game" },
     { "after": "graphic-novel", "kind": "previs" },

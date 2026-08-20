@@ -83,6 +83,8 @@ function fixture() {
       build: { localAssetImageCount: 2, acceptedLabelCount: 1 },
       worldPlan: { completeLessonCount: 5, lessonCount: 5, answerCount: 10, fieldCount: 10 },
       worldBuild: { localAssetImageCount: 1, acceptedLabelCount: 1 },
+      wyrmwood: { mainPresent: true, wyrmwoodVisible: true, loading: false },
+      settings: { mainPresent: true, settingsVisible: true },
       dashboard: {
         foundationLearnComplete: 11,
         foundationLearnTotal: 11,
@@ -103,7 +105,7 @@ test("#1104 final-state observer passes only when persisted and reopened evidenc
   const { project, rendered } = fixture();
   const audit = auditPersistedWriterProject(project, rendered);
   assert.equal(audit.passed, true);
-  assert.equal(audit.checks.length, 16);
+  assert.equal(audit.checks.length, 18);
   assert.equal(audit.frontier, "Foundations + World");
   assert.equal(audit.marketingReference.assetUrl, "/api/local-ai/assets/poster-1.png");
   assert.ok(audit.checks.every((item) => item.passed));

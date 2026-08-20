@@ -203,6 +203,7 @@ export async function startManagedPlotPickleEndpoint({
   };
 
   for (let attempt = 1; attempt <= MAX_PORT_ATTEMPTS; attempt += 1) {
+    runtime.outputTail = "";
     const reservation = await reserve({ host: "127.0.0.1" });
     const instanceRef = `inst-${randomUUID().replaceAll("-", "")}`;
     if (!record) {

@@ -1,164 +1,108 @@
-# Trusted/Public Node Discovery and Scoped Remote Compute
+# Managed Cloud Compute Boundary
 
-Status: Phase D implementation contract for #1071 / #1075.
+Status: canonical #1135 replacement for the former Trusted/Public Node Compute contract. The filename is retained temporarily for repository/history compatibility; the architecture described here is **managed cloud compute only**.
 
-Phase A (#1072) locked Person, Avatar and Node identity authority. Phase B (#1073) added independent Node authorization/revocation and portable LEARN reconciliation. Phase D adds the transport-neutral contract for optional Compute Node advertising, discovery and least-privilege remote work without turning PlotPickle, BUZZ or a remote machine into unrestricted project authority.
+## Historical correction
 
-## Core rule
+The earlier #1075 design allowed `own`, `trusted`, `studio` and `public` Human-owned PlotPickle Nodes to advertise spare compute. That peer-resource model is retired.
 
-Compute is an optional capability of an authorized Node. Starting PlotPickle, joining Community or running BUZZ never publishes compute automatically.
+An ordinary PlotPickle Community participant is not a compute provider. Their Node may supply signed provenance for Community activity, but their GPU, models, ComfyUI, BERD, storage, build/test environment and agents remain private to their installation.
 
-A Node must explicitly opt in before an advertisement exists. Opting out removes its advertisement. Revoking an own Node at the account layer also removes it from account-scoped discovery even if a stale directory entry still exists.
+Future remote compute targets a separately configured **managed cloud service/farm**, not another Community member's PlotPickle Node.
 
-## Trust and visibility
+## Cloud Service Registry
 
-PlotPickle distinguishes the viewer's relationship to a Node from the Node owner's sharing scope.
+Remote compute configuration is isolated from BUZZ Community discovery.
 
-Viewer relationships:
+A managed cloud service record contains only bounded routing metadata:
 
-- `own` — an independently authorized Node belonging to the same PlotPickle Person;
-- `trusted` — a remote Node the user explicitly approved;
-- `studio` — a remote family/team/studio Node the user explicitly approved;
-- `public` — a Node intentionally advertised for public discovery.
-
-Owner sharing scopes:
-
-- `private`;
-- `trusted`;
-- `studio`;
-- `public`.
-
-The receiving side cannot promote a Node beyond the scope its owner advertised. A private advertisement cannot be registered as trusted/public. Trusted and studio relationships require explicit user approval. A public result may be listed without establishing a trusted relationship, but using it still requires the user or host workflow to select that exact Node.
-
-## Safe capability advertisement
-
-`core/identity/remote-node-compute-core.mjs` publishes a deliberately small metadata record:
-
-- Node ID and owner Person ID;
-- explicit sharing scope;
-- availability: available, busy or offline;
+- `serviceId`;
+- `serviceType: managed-cloud`;
+- explicit enabled state;
+- available/busy/offline readiness;
 - text/image/video capability classes;
 - safe model/workflow classes;
-- coarse memory tier rather than a full machine inventory;
-- load percentage;
 - protocol version;
-- free/paid job cost declaration;
-- short advertisement lifetime.
+- free/paid cost declaration;
+- verification/freshness timestamps.
 
-The advertisement has no endpoint, filesystem path, private key, provider credential, full software inventory or unrestricted machine description. Unknown fields are rejected.
+The registry rejects Community/peer identity fields such as `nodeId`, `ownerPersonId`, `communityId`, peer relationship/sharing scope and local hardware inventory. It also rejects local paths, provider credentials and unrestricted endpoint expansion from its safe service descriptor.
 
-Advertisements expire within 24 hours and must be refreshed. Discovery therefore cannot treat a months-old public record as current availability.
+A Community Node cannot be converted into a cloud service by changing a UI label.
 
-## No silent fallback
+## Exact selection and no fallback
 
-Remote dispatch is exact-target.
+Remote work requires one explicitly selected, configured, fresh and available managed cloud service. If that service is missing, stale, busy or offline, dispatch fails.
 
-`requireSelectedComputeNode()` requires one specific Node ID. If that Node is missing, revoked, expired, busy or offline, dispatch fails. PlotPickle must not silently substitute another own, trusted or public Node.
+PlotPickle never silently substitutes another service, another Community member's Node, or a paid provider.
 
-This is especially important for paid/public compute. A local failure may not turn into a public or paid request without a new explicit selection/consent path.
+Paid work requires a fresh explicit `billingConsentId` before a scoped package can be built.
 
-## Least-privilege work package
+## Least-privilege scoped cloud work package
 
-A work package contains only the minimum approved material for one job:
+The useful security principles from #1075 are preserved, but the target is a `serviceId`, not a remote `node_id`.
+
+A package contains only what one bounded job needs:
 
 - opaque job ID;
-- authenticated requester Person and requester Node IDs;
-- exact target Node ID;
-- one text/image/video capability;
-- up to 16 narrow context items (story, character, world, visual or instruction);
-- up to 16 reference-asset descriptors identified by ID, SHA-256, media type and byte length;
-- optional model/workflow class constraints already advertised by the Node;
+- authenticated requester Person and requester local Node IDs;
+- exact target managed-cloud `serviceId`;
+- one requested text/image/video capability;
+- up to 16 narrow context items;
+- up to 16 reference-asset descriptors using IDs/hashes/media metadata rather than local paths;
+- optional model/workflow class constraints already supported by the service;
 - runtime/output limits;
-- one opaque return-route ID;
-- a single-use task grant expiring within 30 minutes;
-- explicit billing-consent ID when the chosen Node advertises paid compute.
+- opaque return-route ID;
+- single-use task grant with no more than 30 minutes of lifetime;
+- billing-consent ID when the selected service is paid.
 
-The package rejects unrestricted PPF, provider credentials, local paths and unknown fields. Writer context may contain ordinary creative subject matter, but private-key PEM material is rejected.
+The allowlist rejects unrestricted PPF/project state, provider credentials, local paths, hidden private-key material, arbitrary shell/code instructions as authority, and unknown privilege-bearing fields.
 
-Reference-asset bytes may be transported by a future authenticated channel, but local filesystem paths are not part of the work-package contract.
+The requester Node must still be authorized under the account/Node identity model. That proves which local installation requested the cloud job; it does not turn that Node into a cloud provider.
 
-## Authorization and expiry
+## Result authority
 
-The requester Node must be active in the account authorization model from #1073.
+A managed cloud result returns with:
 
-The task grant is bound to:
-
-- one grant ID;
-- one exact target Node;
-- one exact capability;
-- one use;
-- an issue/expiry interval no longer than 30 minutes.
-
-A target Node rejects an expired grant, a package addressed to a different Node or a capability mismatch.
-
-Transport signatures and network delivery remain replaceable implementation details above/below this pure contract. No account token, Node private key or provider credential is embedded in the package merely to prove the state machine.
-
-## Paid compute
-
-A Node may advertise a per-job price for future accounting. This phase does not build a marketplace.
-
-A paid advertisement cannot produce a dispatchable work package without an explicit `billingConsentId`. PlotPickle must not infer consent from previous provider use or silently fall back from free/local compute to paid compute.
-
-## Returned artifact authority
-
-Remote output is always returned as a candidate with provenance:
-
-- result ID and originating job ID;
+- result/job identity;
 - artifact ID, SHA-256, media type, byte length and opaque remote artifact reference;
-- producing Node ID;
+- producing `serviceId`;
 - signed receipt reference;
 - completion time;
 - provider/model/workflow class where available.
 
-The core hard-codes:
+The contract hard-codes:
 
 - `candidateStatus: candidate`;
 - `canonStatus: not-canon`;
 - `accepted: false`.
 
-The result input cannot ask to set `accepted`, `canon` or another authority field. Normal PlotPickle review/acceptance must happen after return through the existing writer/PPF authority. Remote execution never advances BUILD or alters canon by itself.
+Remote/cloud execution never advances BUILD or alters PPF canon by itself. Human review and the normal PlotPickle acceptance path remain authoritative.
 
-## Data-minimization examples
+## Community boundary
 
-Allowed package context for one World frame:
+BUZZ may eventually coordinate an approved cloud integration, but ordinary BUZZ Communities and people are a separate social plane.
 
-- accepted lighthouse description;
-- accepted palette/composition note;
-- hashes/descriptors for two approved reference images;
-- `image` capability;
-- `world-frame` workflow class;
-- 300-second execution limit.
+Community discovery may reveal Communities, people, rooms, membership, presence and signed social provenance. It must not reveal a peer's local capability manifest or make that peer eligible for cloud/resource routing.
 
-Not allowed merely because remote compute is available:
+Joining a Community, trusting a Human, sharing a household/LAN or receiving a signed Node-provenance event never grants compute rights.
 
-- the entire PPF;
-- project directory path;
-- provider API key;
-- Node private key;
-- hidden prompts/reasoning;
-- unrelated screenplay history;
-- arbitrary shell commands;
-- permanent account/session credential.
+## Security invariants
 
-## Transport and public-Node boundary
+- no peer-to-peer PlotPickle resource sharing;
+- no `trusted`, `studio`, `family/team` or `public` Human Node compute targets;
+- no Community presence -> compute conversion;
+- no local filesystem paths in cloud work packages;
+- no Human/Node private keys in cloud work packages;
+- no provider credentials in cloud work packages;
+- no unrestricted PPF upload;
+- no arbitrary general remote shell endpoint;
+- exact target service and single-use short-lived grant;
+- explicit paid consent;
+- no silent fallback;
+- result provenance is service-based;
+- returned artifacts remain candidate/not-canon until Human acceptance.
 
-This phase deliberately implements the contract/state machine and deterministic security tests, not a public execution service.
+## Compatibility note
 
-Before real Internet/public Node execution is enabled, the runtime layer must still provide authenticated transport, signed advertisement/result verification, sandbox/process isolation, archive/path defenses, resource/rate limits, revocation/blocking and audited receipts. No arbitrary shell or general remote-code endpoint is authorized by this contract.
-
-BUZZ may later help transport/discover signed Node state, but joining the BBS never implies compute sharing and BUZZ remains provenance/Community transport rather than project or account authority.
-
-## Phase boundary
-
-Phase D supplies the reusable discovery and scoped-work primitives required by the future web-anywhere phase (#1077) and managed Desktop/Node harness (#1079). It does not add:
-
-- a compute marketplace;
-- automatic public sharing;
-- silent local-to-remote or free-to-paid fallback;
-- unrestricted project sync;
-- permanent remote credentials;
-- arbitrary remote shell/code execution;
-- automatic canon/PPF acceptance;
-- mobile or web UI.
-
-Those later surfaces must consume this least-privilege contract rather than bypass it.
+`core/identity/remote-node-compute-core.mjs` remains only as a compatibility tombstone. Its peer-compute entry points are disabled and throw the #1135 retirement error. New remote compute code must use `core/cloud/managed-cloud-compute-core.mjs` / `core/cloud/managed-cloud-compute.ts`.

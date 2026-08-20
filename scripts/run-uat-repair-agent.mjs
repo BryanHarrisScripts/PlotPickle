@@ -10,6 +10,7 @@ import process from "node:process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { approvedCodingModel, rankApprovedCodingModel } from "./developer-repair-model-policy.mjs";
+import { resolvePiExecutable } from "./pi-worker-runtime.mjs";
 
 const exec = promisify(execFile);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -40,6 +41,20 @@ const REPAIR_WORKER_LABELS = {
   cline: "Cline",
   "mastra-qwen": "Mastra legacy Qwen",
 };
+let piResolution = null;
+
+function piProvenance() {
+  if (!piResolution) return {};
+  return {
+    workerExecutable: piResolution.executable || "",
+    workerVersion: piResolution.version || "",
+    workerDiscoveryMethod: piResolution.discoveryMethod || "",
+    workerRemediationCode: piResolution.remediationCode || "",
+    workerNodeExecutable: piResolution.nodeExecutable || process.execPath,
+    workerNpmExecutable: piResolution.npmExecutable || "",
+    workerNpmPrefix: piResolution.npmPrefix || "",
+  };
+}
 
 export const UAT_REPAIR_MODEL = {
   label: "Qwen3.8-27B",
@@ -185,9 +200,26 @@ async function runCli(command, commandArgs, options = {}) {
 }
 
 async function commandAvailable(worker) {
+  if (worker === "pi") {
+    try {
+      piResolution = await resolvePiExecutable();
+    } catch (error) {
+      piResolution = {
+        ready: false,
+        executable: "",
+        version: "",
+        discoveryMethod: "resolver",
+        remediationCode: "resolver-failed",
+        nodeExecutable: process.execPath,
+        npmExecutable: "",
+        npmPrefix: "",
+        message: error instanceof Error ? error.message : String(error),
+      };
+    }
+    return piResolution.ready === true;
+  }
   try {
-    if (worker === "pi") await runCli("pi", ["--version"], { timeout: 10_000 });
-    else if (worker === "cline") await runCli("cline", ["version"], { timeout: 10_000 });
+    if (worker === "cline") await runCli("cline", ["version"], { timeout: 10_000 });
     return true;
   } catch {
     return worker === "mastra-qwen";
@@ -199,14 +231,31 @@ export async function repairPreflight(worker = requestedWorker) {
     return { ready: false, worker, workerLabel: worker, workerAvailable: false, message: `Unsupported repair worker: ${worker}` };
   }
   const workerAvailable = await commandAvailable(worker);
+  const provenance = worker === "pi" ? piProvenance() : {};
   if (!workerAvailable) {
-    return { ready: false, worker, workerLabel: REPAIR_WORKER_LABELS[worker], workerAvailable: false, message: `${REPAIR_WORKER_LABELS[worker]} is not installed or not available on PATH.` };
+    return {
+      ready: false,
+      worker,
+      workerLabel: REPAIR_WORKER_LABELS[worker],
+      workerAvailable: false,
+      ...provenance,
+      message: worker === "pi"
+        ? piResolution?.message || "Pi is not installed or could not be validated."
+        : `${REPAIR_WORKER_LABELS[worker]} is not installed or not available on PATH.`,
+    };
   }
   try {
     const runtime = await resolveRepairRuntime(worker);
-    return { ready: true, worker, workerLabel: REPAIR_WORKER_LABELS[worker], workerAvailable: true, runtime };
+    return { ready: true, worker, workerLabel: REPAIR_WORKER_LABELS[worker], workerAvailable: true, ...provenance, runtime };
   } catch (error) {
-    return { ready: false, worker, workerLabel: REPAIR_WORKER_LABELS[worker], workerAvailable: true, message: error instanceof Error ? error.message : String(error) };
+    return {
+      ready: false,
+      worker,
+      workerLabel: REPAIR_WORKER_LABELS[worker],
+      workerAvailable: true,
+      ...provenance,
+      message: error instanceof Error ? error.message : String(error),
+    };
   }
 }
 
@@ -373,8 +422,14 @@ async function configurePiRuntime(runtime) {
 async function runPiAgent({ finding, runtime, worktreeRoot }) {
   const promptPath = await writeExternalPrompt(finding, worktreeRoot);
   const agentDir = await configurePiRuntime(runtime);
+  const resolution = piResolution?.ready ? piResolution : await resolvePiExecutable();
+  if (!resolution.ready) {
+    await unlink(promptPath).catch(() => {});
+    throw new Error(resolution.message || "Pi is unavailable to the Developer Repair Worker.");
+  }
+  piResolution = resolution;
   try {
-    const result = await runCli("pi", [
+    const result = await runCli(resolution.executable, [
       "--mode", "json",
       "-p",
       "--no-session",
@@ -500,6 +555,7 @@ async function writeRepairReport(payload) {
     workerLabel: REPAIR_WORKER_LABELS[payload.worker],
     model: payload.runtime.model,
     runtime: { kind: payload.runtime.kind, label: payload.runtime.label, baseUrl: payload.runtime.baseUrl, model: payload.runtime.model },
+    ...(payload.worker === "pi" ? { piExecutable: piResolution?.executable || "", piVersion: piResolution?.version || "", piDiscoveryMethod: piResolution?.discoveryMethod || "", piRemediationCode: piResolution?.remediationCode || "", nodeExecutable: piResolution?.nodeExecutable || process.execPath, npmExecutable: piResolution?.npmExecutable || "", npmPrefix: piResolution?.npmPrefix || "" } : {}),
     branch: payload.branch,
     prUrl: payload.prUrl || "",
     issueNumber: payload.issue?.number || null,
@@ -514,8 +570,12 @@ async function main() {
   const preflight = await repairPreflight(requestedWorker);
   if (preflightOnly) {
     if (preflightJson) process.stdout.write(`${JSON.stringify(preflight)}\n`);
-    else if (preflight.ready) process.stdout.write(`Developer repair worker ............. READY  ${preflight.workerLabel} / ${preflight.runtime.model} via ${preflight.runtime.label}\n`);
-    else process.stdout.write(`Developer repair worker ............. NOT READY  ${preflight.workerLabel}: ${String(preflight.message || "local coding model unavailable").split("\n")[0]}\n`);
+    else if (preflight.ready) {
+      const provenance = preflight.worker === "pi" && preflight.workerVersion
+        ? ` / ${preflight.workerVersion} via ${preflight.workerDiscoveryMethod || "resolver"}`
+        : "";
+      process.stdout.write(`Developer repair worker ............. READY  ${preflight.workerLabel}${provenance} / ${preflight.runtime.model} via ${preflight.runtime.label}\n`);
+    } else process.stdout.write(`Developer repair worker ............. NOT READY  ${preflight.workerLabel}: ${String(preflight.message || "local coding model unavailable").split("\n")[0]}\n`);
     if (requireReady && !preflight.ready) process.exitCode = 2;
     return;
   }
@@ -524,7 +584,7 @@ async function main() {
   const finding = await loadFinding();
   const runtime = preflight.runtime;
   const worker = preflight.worker;
-  process.stdout.write(`Developer repair worker ............. READY  ${preflight.workerLabel}\n`);
+  process.stdout.write(`Developer repair worker ............. READY  ${preflight.workerLabel}${preflight.workerVersion ? ` ${preflight.workerVersion}` : ""}\n`);
   process.stdout.write(`UAT Repair Agent model ............. READY  ${runtime.model} via ${runtime.label}\n`);
   process.stdout.write(`UAT finding ........................ READY  ${finding.fingerprint}\n`);
 

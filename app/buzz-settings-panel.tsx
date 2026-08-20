@@ -7,7 +7,7 @@ import {
   humanBuzzFingerprint,
   isKnownHumanBuzzIdentity,
   type HumanBuzzIdentity,
-} from "../lib/community-bbs";
+} from "../lib/buzz-story-room";
 import styles from "./buzz-settings.module.css";
 
 const API = "/api/local-buzz";

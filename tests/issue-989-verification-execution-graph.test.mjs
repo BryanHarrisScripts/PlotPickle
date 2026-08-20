@@ -40,13 +40,13 @@ function record(statuses = Array(9).fill("PASS")) {
 
 const passResult = (durationMs = 1) => ({ status: "PASS", exitCode: 0, detail: "", durationMs });
 
-test("#989 preserves nine authoritative stages while adding one internal app-readiness node", () => {
+test("#989 preserves nine authoritative stages while allowing bounded internal prerequisite nodes", () => {
   assert.deepEqual(validateFullVerificationGraph(), []);
   const authoritative = FULL_VERIFICATION_GRAPH.filter((node) => node.authoritative).sort((a, b) => a.number - b.number);
   assert.equal(authoritative.length, 9);
   assert.deepEqual(authoritative.map((node) => node.name), FULL_VERIFICATION_STAGE_NAMES);
-  assert.equal(FULL_VERIFICATION_GRAPH.filter((node) => !node.authoritative).length, 1);
-  assert.equal(FULL_VERIFICATION_GRAPH.find((node) => !node.authoritative)?.id, "app-ready");
+  const internal = FULL_VERIFICATION_GRAPH.filter((node) => !node.authoritative);
+  assert.deepEqual(internal.map((node) => node.id), ["plotpickle-auth-security", "app-ready"]);
 });
 
 test("every Full Verification graph node has a bounded typed input and output contract", () => {
@@ -70,20 +70,25 @@ test("independent verification work is schedulable concurrently with no artifici
 });
 
 test("real dependencies and exclusive resources prevent unsafe parallel work", () => {
+  const authSecurity = FULL_VERIFICATION_GRAPH.find((node) => node.id === "plotpickle-auth-security");
+  const productionBuild = FULL_VERIFICATION_GRAPH.find((node) => node.id === "production-build");
   const piPreflight = FULL_VERIFICATION_GRAPH.find((node) => node.id === "pi-preflight");
   const appReady = FULL_VERIFICATION_GRAPH.find((node) => node.id === "app-ready");
   const uat = FULL_VERIFICATION_GRAPH.find((node) => node.id === "exhaustive-uat");
   const writer = FULL_VERIFICATION_GRAPH.find((node) => node.id === "writer-in-residence");
 
+  assert.equal(authSecurity.authoritative, false);
+  assert.deepEqual(productionBuild.dependencies.map(({ id, require }) => ({ id, require })), [{ id: "plotpickle-auth-security", require: "success" }]);
   assert.deepEqual(piPreflight.dependencies.map(({ id, require }) => ({ id, require })), [{ id: "ensure-pi-model", require: "success" }]);
   assert.deepEqual(appReady.dependencies.map(({ id, require }) => ({ id, require })), [{ id: "production-build", require: "complete" }]);
+  assert.ok(productionBuild.dependencies[0].reason.length > 20);
   assert.ok(piPreflight.dependencies[0].reason.length > 20);
   assert.ok(appReady.dependencies[0].reason.length > 20);
   assert.deepEqual(uat.resources, ["browser-project-state"]);
   assert.deepEqual(writer.resources, ["browser-project-state"]);
 
   const state = createVerificationGraphState();
-  for (const id of ["agent-skills-registry", "agent-skills-architecture", "learn-curriculum", "production-build", "ensure-pi-model", "pi-preflight", "app-ready"]) {
+  for (const id of ["agent-skills-registry", "agent-skills-architecture", "learn-curriculum", "plotpickle-auth-security", "production-build", "ensure-pi-model", "pi-preflight", "app-ready"]) {
     state.set(id, { ...state.get(id), status: "PASS", exitCode: 0 });
   }
   assert.deepEqual(readyVerificationNodeIds(FULL_VERIFICATION_GRAPH, state, 3), ["buzz-live", "exhaustive-uat"]);

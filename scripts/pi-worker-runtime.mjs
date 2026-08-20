@@ -143,17 +143,8 @@ export async function resolvePiExecutable(options = {}) {
   let npmExecutable = "";
   let npmPrefix = "";
   let npmPrefixError = "";
-  let pathCandidate = "";
   const invalidCandidates = [];
-
-  const safeLocate = (name) => {
-    try {
-      return String(locate(name) || "").trim();
-    } catch {
-      return "";
-    }
-  };
-  npmExecutable = safeLocate("npm");
+  const locateCommand = (name) => String(locate(name) || "").trim();
 
   const validate = async (candidate, discoveryMethod) => {
     if (!candidate || !fileExists(candidate)) return null;
@@ -187,13 +178,12 @@ export async function resolvePiExecutable(options = {}) {
 
   const explicit = String(options.explicitCommand ?? environment.PLOTPICKLE_PI_COMMAND ?? "").trim();
   if (explicit) {
-    const candidate = pathApi.isAbsolute(explicit) ? explicit : safeLocate(explicit);
+    const candidate = pathApi.isAbsolute(explicit) ? explicit : locateCommand(explicit);
     if (!candidate || !fileExists(candidate)) {
       return resolutionFailure({
         executable: candidate || explicit,
         discoveryMethod: "explicit",
         nodeExecutable,
-        npmExecutable,
         remediationCode: "explicit-missing",
         message: `The configured Pi executable does not exist or is not discoverable: ${explicit}`,
       });
@@ -204,18 +194,18 @@ export async function resolvePiExecutable(options = {}) {
       executable: candidate,
       discoveryMethod: "explicit",
       nodeExecutable,
-      npmExecutable,
       remediationCode: "explicit-invalid",
       message: `The configured Pi executable failed its bounded --version check: ${candidate}`,
     });
   }
 
-  pathCandidate = safeLocate("pi");
+  const pathCandidate = locateCommand("pi");
   if (pathCandidate) {
     const validated = await validate(pathCandidate, "path");
     if (validated) return validated;
   }
 
+  npmExecutable = locateCommand("npm");
   try {
     npmPrefix = String(prefixResolver() || "").trim();
   } catch (error) {

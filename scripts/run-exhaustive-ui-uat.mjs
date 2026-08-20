@@ -72,8 +72,22 @@ async function main() {
     audit = await runExhaustiveUiControlAudit({ client, toolMap, baseUrl, repoRoot, status });
     await endpointTarget.assertCurrent();
   } finally {
-    try { if (tools.some((tool) => tool.name === "browser_close")) await client.call("browser_close", {}); } catch {}
-    await client.close().catch(() => {});
+    const cleanupErrors = [];
+    if (tools.some((tool) => tool.name === "browser_close")) {
+      try {
+        await client.call("browser_close", {});
+      } catch (error) {
+        cleanupErrors.push(error);
+      }
+    }
+    try {
+      await client.close();
+    } catch (error) {
+      cleanupErrors.push(error);
+    }
+    if (cleanupErrors.length) {
+      throw new AggregateError(cleanupErrors, "Exhaustive UAT browser cleanup failed.");
+    }
   }
 
   const { reportable: reportableAuditFindings, harnessOnly: harnessFindings } = partitionExhaustiveFindings(audit.findings || []);

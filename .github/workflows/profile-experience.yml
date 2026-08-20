@@ -1,0 +1,52 @@
+name: Profile Experience
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/api/auth/profile/**"
+      - "app/profile-access/**"
+      - "app/layout.tsx"
+      - "app/sage-settings-workspace.tsx"
+      - "core/auth/**"
+      - "core/storage/**"
+      - "modules/learn/ui/learn-workspace.tsx"
+      - "modules/wyrmwood/ui/wyrmwood-workspace.tsx"
+      - "tests/issue-1143-profile-experience.test.mjs"
+      - "package.json"
+      - "config/uat-autopilot-registry.json"
+      - ".github/workflows/profile-experience.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  profile-experience:
+    name: ${{ matrix.label }} profile UX and build
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Windows x64
+            os: windows-latest
+          - label: Linux x64
+            os: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js 22.13
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+      - name: Validate profile experience
+        run: npm run test:profile-experience
+      - name: Validate Auth and session dependencies
+        run: npm run test:auth-core && npm run test:profile-vault && npm run test:profile-storage && npm run test:server-session
+      - name: Production build
+        run: npm run build

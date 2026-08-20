@@ -6,11 +6,10 @@ import type { CurriculumLesson } from "../../../core/contracts/curriculum";
 import type { CurriculumGuide } from "../../../core/contracts/curriculum-guide";
 import { applyStoryCommand } from "../../../core/project/apply-command";
 import { createEmptyProject, type PPFProject } from "../../../core/project/project";
+import { loadFoundationProject, saveFoundationProject } from "../../../core/storage/foundation-project-browser";
 import { buildLocalCurriculumSourceIndex, localCurriculumSourceKey } from "../model/local-curriculum-links";
 import styles from "./learn-workspace.module.css";
 import { CurriculumMaterial } from "./curriculum-material";
-
-const PROJECT_KEY = "plotpickle.foundation.project.v1";
 
 const WORKFLOW_STAGES = [
   { id: "dashboard", relic: "/assets/workflow-relics/dashboard.webp", label: "Dashboard", detail: "Start", selectable: false, gapAfter: true },
@@ -90,16 +89,15 @@ function searchableLessonText(lesson: CurriculumLesson) {
 
 function loadProject(): PPFProject {
   try {
-    const saved = localStorage.getItem(PROJECT_KEY);
-    if (saved) return JSON.parse(saved) as PPFProject;
+    return loadFoundationProject();
   } catch {
     // A corrupt or unavailable local cache starts clean; storage adapters will
     // replace this browser implementation without changing the module.
+    return createEmptyProject({
+      id: newId("project"),
+      now: new Date().toISOString(),
+    });
   }
-  return createEmptyProject({
-    id: newId("project"),
-    now: new Date().toISOString(),
-  });
 }
 
 function FantasyWayfinderGlyph({ direction }: { readonly direction: "previous" | "next" }) {
@@ -172,7 +170,7 @@ export default function LearnWorkspace({
         threadId: newId("thread"),
         occurredAt: new Date().toISOString(),
       });
-      localStorage.setItem(PROJECT_KEY, JSON.stringify(current));
+      saveFoundationProject(current);
     }
     setProject(current);
   }, []);
@@ -235,7 +233,7 @@ export default function LearnWorkspace({
     setProject((current) => {
       if (!current) return current;
       const next = applyStoryCommand(current, command);
-      localStorage.setItem(PROJECT_KEY, JSON.stringify(next));
+      saveFoundationProject(next);
       return next;
     });
   }

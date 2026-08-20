@@ -17,11 +17,12 @@ test("the Curriculum Bridge exposes Foundations objectives, key concepts, active
   assert.match(bridge, /completedLessonIds\.filter/);
   assert.match(bridge, /activeLessonId/);
   assert.match(contracts, /interface WyrmwoodCurriculumProgress/);
-  assert.match(ui, /LEARN_PROJECT_STORAGE_KEY = "plotpickle\.foundation\.project\.v1"/);
+  assert.match(ui, /loadFoundationProject\(\)/);
+  assert.match(ui, /PROJECT_LIBRARY_ACTIVE_PROFILE_KEY/);
   assert.match(ui, /buildWyrmwoodCurriculumProgress/);
   assert.match(ui, /lessons marked complete/);
   assert.match(ui, /Key concepts:/);
-  assert.doesNotMatch(ui, /localStorage\.setItem\(LEARN_PROJECT_STORAGE_KEY/);
+  assert.doesNotMatch(ui, /plotpickle\.foundation\.project\.v1/);
 });
 
 test("the Curriculum Evaluator is a separate structured local agent and never owns game math", async () => {

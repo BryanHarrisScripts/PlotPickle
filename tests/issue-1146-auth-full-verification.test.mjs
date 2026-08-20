@@ -110,7 +110,7 @@ test("#1146 one discoverable Auth command and one dedicated CI gate own the comp
   assert.match(workflow, /npm run test:plotpickle-auth/u);
   assert.match(workflow, /npm run audit:credentials/u);
   assert.match(workflow, /npm run build/u);
-  for (const platform of ["package:windows", "package:macos", "package:linux"]) assert.match(workflow, new RegExp(platform.replace(":", "\\:"), "u"));
+  for (const platform of ["package:windows", "package:macos", "package:linux"]) assert.ok(workflow.includes(platform));
 });
 
 test("#1146 Full Verification consumes Auth as a prerequisite without creating a tenth authoritative PASS system", async () => {
@@ -134,12 +134,12 @@ test("#1146 crypto and dependency choices stay pinned and do not introduce passk
 test("#1146 release checklist records manual checks that deterministic automation cannot prove", async () => {
   const checklist = await text("docs/architecture/PLOTPICKLE-AUTH-RELEASE-CHECKLIST.md");
   for (const phrase of [
-    "fresh desktop profile creation",
-    "two simultaneous Human sessions",
+    "Fresh desktop profile creation",
+    "Two simultaneous Human sessions",
     "wrong password and wrong recovery",
-    "backup on one Node and restore on another",
+    "restore on another fresh Node",
     "provider tokens, BUZZ private keys and recovery material",
-    "server-network HTTPS",
-    "release archive",
+    "Server-network HTTPS",
+    "Release archive",
   ]) assert.match(checklist, new RegExp(phrase, "iu"));
 });

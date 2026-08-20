@@ -9,9 +9,7 @@
   overflow: hidden;
   border: 2px solid #d7bc76;
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 45% 28%, rgba(53, 201, 184, 0.24), rgba(7, 16, 15, 0.96) 68%),
-    #07100f;
+  background: #07100f;
   box-shadow:
     0 0 0 2px rgba(53, 201, 184, 0.17),
     0 0 0 4px rgba(215, 188, 118, 0.08),
@@ -30,24 +28,17 @@
   pointer-events: none;
 }
 
-.sourceImage,
-.portraitSvg {
+.atlasPortrait {
+  display: block;
   width: 100%;
   height: 100%;
+  background-image: url("/assets/agent-profile-atlas.webp");
+  background-repeat: no-repeat;
+  background-size: 500% 400%;
   transition: filter 160ms ease, opacity 160ms ease;
 }
 
-.sourceImage {
-  object-fit: cover;
-  object-position: center;
-}
-
-.portraitSvg {
-  display: block;
-}
-
-.frame[data-locked="true"] .sourceImage,
-.frame[data-locked="true"] .portraitSvg {
+.frame[data-locked="true"] .atlasPortrait {
   filter: grayscale(1) saturate(0.18) brightness(0.58) contrast(0.92);
   opacity: 0.67;
 }
@@ -60,8 +51,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sourceImage,
-  .portraitSvg {
+  .atlasPortrait {
     transition: none;
   }
 }

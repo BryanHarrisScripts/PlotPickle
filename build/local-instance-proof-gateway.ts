@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 
@@ -6,18 +6,15 @@ const API = "/api/local-instance-proof";
 const LOOPBACK = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
 
 function actualCommit() {
-  try {
-    return String(execFileSync("git", ["rev-parse", "HEAD"], {
-      cwd: process.cwd(),
-      encoding: "utf8",
-      windowsHide: true,
-      stdio: ["ignore", "pipe", "ignore"],
-      timeout: 5_000,
-    })).trim().toLowerCase();
-  } catch (error) {
-    console.warn(`[local-instance-proof] Git head proof unavailable: ${error instanceof Error ? error.message : String(error)}`);
-    return "";
-  }
+  const result = spawnSync("git", ["rev-parse", "HEAD"], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    windowsHide: true,
+    stdio: ["ignore", "pipe", "ignore"],
+    timeout: 5_000,
+  });
+  if (result.error || result.status !== 0) return "";
+  return String(result.stdout || "").trim().toLowerCase();
 }
 
 function send(res: ServerResponse, status: number, body: unknown) {

@@ -57,6 +57,14 @@ function saveGuestDraft(profileId: string, draft: string) {
   saveFoundationProject({ ...project, foundations: { ...project.foundations, brief: { content, savedAt: now } } });
 }
 
+function lockedScreen(next: Status): Screen {
+  if (next.accessMode === "server-network") {
+    if (!next.serverReady) return "server-unavailable";
+    return next.configured ? "login" : "create";
+  }
+  return next.configured ? "chooser" : "create";
+}
+
 function PasswordField({ value, onChange, purpose = "current", confirm = false }: { readonly value: string; readonly onChange: (value: string) => void; readonly purpose?: "current" | "new"; readonly confirm?: boolean }) {
   const [visible, setVisible] = useState(false);
   const [capsLock, setCapsLock] = useState(false);
@@ -86,6 +94,7 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
+  const [bootstrapProof, setBootstrapProof] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [recovery, setRecovery] = useState<Recovery | null>(null);
@@ -103,7 +112,7 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
       document.title = "PlotPickle - AI-native Visual Writing and Creative Direction";
       setScreen("ready");
     } else {
-      setScreen(next.accessMode === "server-network" ? (next.serverReady ? "login" : "server-unavailable") : next.configured ? "chooser" : "create");
+      setScreen(lockedScreen(next));
     }
   }, []);
 
@@ -123,8 +132,8 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
         .then((result) => result.json() as Promise<Status>)
         .then((next) => {
           if (next.authenticated) { setStatus(next); return; }
-          clearPrivateScreen(); setStatus(next); setSelected(null);
-          setScreen(next.accessMode === "server-network" ? (next.serverReady ? "login" : "server-unavailable") : next.configured ? "chooser" : "create");
+          clearPrivateScreen(); setStatus(next); setSelected(null); setBootstrapProof("");
+          setScreen(lockedScreen(next));
         })
         .catch(() => undefined);
     }, 30_000);
@@ -133,7 +142,7 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
   useEffect(() => {
     const handleAction = (event: Event) => {
       const action = (event as CustomEvent<string>).detail;
-      if (action === "add-profile") { setAddingProfile(true); setName(""); setPassword(""); setConfirmation(""); setScreen("create"); return; }
+      if (action === "add-profile") { setAddingProfile(true); setName(""); setPassword(""); setConfirmation(""); setBootstrapProof(""); setScreen("create"); return; }
       if (action === "lock" || action === "logout" || action === "switch-profile") void leave(action);
     };
     window.addEventListener("plotpickle:profile-action", handleAction);
@@ -149,7 +158,7 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
       const profile = result.profile as Profile;
       window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profile.profileId);
       if (recovery?.guestDraft) saveGuestDraft(profile.profileId, recovery.guestDraft);
-      setPassword(""); setConfirmation(""); setRecovery(null); setGuestDraft(""); setAddingProfile(false);
+      setPassword(""); setConfirmation(""); setBootstrapProof(""); setRecovery(null); setGuestDraft(""); setAddingProfile(false);
       await refresh();
     } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
     finally { setBusy(false); }
@@ -159,10 +168,17 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
     event.preventDefault(); setError("");
     if (password !== confirmation) { setError("The passphrases do not match."); return; }
     if (password.length < 12 || /^\d+$/u.test(password)) { setError("Use at least 12 characters; a numeric PIN cannot protect the vault by itself."); return; }
+    const firstServerProfile = status?.accessMode === "server-network" && status.configured === false;
+    if (firstServerProfile && !bootstrapProof.trim()) { setError("The one-time server bootstrap proof is required for the first Human profile."); return; }
     setBusy(true);
     try {
       const action = status?.configured ? "create-profile" : "create-first-profile";
-      const result = await profileRequest(action, { displayName: name.trim(), password }, status?.csrfToken);
+      const result = await profileRequest(action, {
+        displayName: name.trim(),
+        password,
+        ...(firstServerProfile ? { bootstrapProof: bootstrapProof.trim() } : {}),
+      }, status?.csrfToken);
+      setBootstrapProof("");
       setRecovery({ profile: result.profile as Profile, secret: String(result.recoverySecret), password, guestDraft });
       setRecoverySaved(false); setScreen("recovery");
     } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
@@ -177,7 +193,7 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
       const profile = result.profile as Profile;
       window.sessionStorage.setItem(PROJECT_LIBRARY_ACTIVE_PROFILE_KEY, profile.profileId);
       if (recovery.guestDraft) saveGuestDraft(profile.profileId, recovery.guestDraft);
-      setPassword(""); setConfirmation(""); setRecovery(null); setGuestDraft(""); setAddingProfile(false);
+      setPassword(""); setConfirmation(""); setBootstrapProof(""); setRecovery(null); setGuestDraft(""); setAddingProfile(false);
       await refresh();
     } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
     finally { setBusy(false); }
@@ -190,18 +206,18 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
       await persistActiveProfileProject();
       await flushProfilePrivateWrites();
       await profileRequest(action, {}, status.csrfToken);
-      clearPrivateScreen(); setStatus(null); setSelected(null); setScreen("loading");
+      clearPrivateScreen(); setStatus(null); setSelected(null); setBootstrapProof(""); setScreen("loading");
       await refresh();
     } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
     finally { setBusy(false); }
   }
 
   if (screen === "ready" && status?.profile) {
-    return <><div className={styles.activeHuman} aria-label="Active PlotPickle Human"><div><span>Human</span><strong>{status.profile.displayName}</strong><small>BUZZ identity is separate</small></div><details><summary>Profile</summary><button type="button" onClick={() => { setAddingProfile(true); setName(""); setPassword(""); setConfirmation(""); setScreen("create"); }}>Add profile</button><button type="button" onClick={() => void leave("lock")}>Lock</button><button type="button" onClick={() => void leave("switch-profile")}>Switch profile</button><button type="button" onClick={() => void leave("logout")}>Log out</button></details></div>{children}</>;
+    return <><div className={styles.activeHuman} aria-label="Active PlotPickle Human"><div><span>Human</span><strong>{status.profile.displayName}</strong><small>BUZZ identity is separate</small></div><details><summary>Profile</summary><button type="button" onClick={() => { setAddingProfile(true); setName(""); setPassword(""); setConfirmation(""); setBootstrapProof(""); setScreen("create"); }}>Add profile</button><button type="button" onClick={() => void leave("lock")}>Lock</button><button type="button" onClick={() => void leave("switch-profile")}>Switch profile</button><button type="button" onClick={() => void leave("logout")}>Log out</button></details></div>{children}</>;
   }
 
   if (screen === "guest") {
-    return <main className={styles.boundary}><section className={styles.card}><p className={styles.eyebrow}>Isolated Guest</p><h1>Temporary writing space</h1><p>Guest cannot see Human profiles, projects, recent items, credentials, agents, or BUZZ identities. This draft exists only until you leave this screen.</p><label className={styles.field}><span>Guest story notes</span><textarea value={guestDraft} onChange={(event) => setGuestDraft(event.target.value)} rows={12} autoFocus /></label><div className={styles.actions}><button type="button" onClick={() => { setAddingProfile(true); setName(""); setPassword(""); setConfirmation(""); setScreen("create"); }}>Save as new profile</button><button type="button" onClick={() => { setGuestDraft(""); setScreen("chooser"); }}>Delete Guest work and exit</button></div></section></main>;
+    return <main className={styles.boundary}><section className={styles.card}><p className={styles.eyebrow}>Isolated Guest</p><h1>Temporary writing space</h1><p>Guest cannot see Human profiles, projects, recent items, credentials, agents, or BUZZ identities. This draft exists only until you leave this screen.</p><label className={styles.field}><span>Guest story notes</span><textarea value={guestDraft} onChange={(event) => setGuestDraft(event.target.value)} rows={12} autoFocus /></label><div className={styles.actions}><button type="button" onClick={() => { setAddingProfile(true); setName(""); setPassword(""); setConfirmation(""); setBootstrapProof(""); setScreen("create"); }}>Save as new profile</button><button type="button" onClick={() => { setGuestDraft(""); setScreen("chooser"); }}>Delete Guest work and exit</button></div></section></main>;
   }
 
   if (screen === "recovery" && recovery) {
@@ -209,16 +225,17 @@ export default function ProfileAccessBoundary({ children }: { readonly children:
   }
 
   if (screen === "create") {
-    return <main className={styles.boundary}><section className={styles.card}><p className={styles.eyebrow}>{status?.configured ? "Add Human" : "Welcome to PlotPickle"}</p><h1>{status?.configured ? "Create another local profile" : "Create your local profile"}</h1><p>No email, phone, cloud account, Internet connection, BUZZ identity, GitHub, or Google login is required. This passphrase protects the local encrypted profile and cannot be reset by email.</p><form onSubmit={createProfile}><label className={styles.field}><span>Name</span><input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" maxLength={120} required autoFocus /></label><PasswordField value={password} onChange={setPassword} purpose="new" /><PasswordField value={confirmation} onChange={setConfirmation} purpose="new" confirm /><small>Use a long, memorable passphrase. Password-manager paste and autofill are allowed; arbitrary symbol and uppercase rules are not imposed.</small>{error ? <p role="alert" className={styles.error}>{error}</p> : null}<div className={styles.actions}><button type="submit" disabled={busy}>{busy ? "Creating…" : "Create local profile"}</button>{status?.configured || addingProfile ? <button type="button" onClick={() => { setAddingProfile(false); setScreen(status?.authenticated ? "ready" : "chooser"); }}>Cancel</button> : null}</div></form></section></main>;
+    const firstServerProfile = status?.accessMode === "server-network" && status.configured === false;
+    return <main className={styles.boundary}><section className={styles.card}><p className={styles.eyebrow}>{status?.configured ? "Add Human" : "Welcome to PlotPickle"}</p><h1>{status?.configured ? "Create another local profile" : firstServerProfile ? "Create the first PlotPickle profile" : "Create your local profile"}</h1><p>No email, phone, cloud account, Internet connection, BUZZ identity, GitHub, or Google login is required. This passphrase protects the encrypted Human profile and cannot be reset by email.</p><form onSubmit={createProfile}><label className={styles.field}><span>Name</span><input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" maxLength={120} required autoFocus /></label>{firstServerProfile ? <label className={styles.field}><span>Server bootstrap proof</span><input type="password" autoComplete="off" value={bootstrapProof} onChange={(event) => setBootstrapProof(event.target.value)} required /><small>This one-time operator proof prevents an exposed fresh server from being claimed by the first remote visitor. It is used only for first-profile creation.</small></label> : null}<PasswordField value={password} onChange={setPassword} purpose="new" /><PasswordField value={confirmation} onChange={setConfirmation} purpose="new" confirm /><small>Use a long, memorable passphrase. Password-manager paste and autofill are allowed; arbitrary symbol and uppercase rules are not imposed.</small>{error ? <p role="alert" className={styles.error}>{error}</p> : null}<div className={styles.actions}><button type="submit" disabled={busy}>{busy ? "Creating…" : "Create local profile"}</button>{status?.configured || addingProfile ? <button type="button" onClick={() => { setAddingProfile(false); setBootstrapProof(""); setScreen(status?.authenticated ? "ready" : "chooser"); }}>Cancel</button> : null}</div></form></section></main>;
   }
 
   if (screen === "login" && (selected || status?.accessMode === "server-network")) {
-    return <main className={styles.boundary}><section className={styles.card}><p className={styles.eyebrow}>Local profile</p><h1>{selected ? `Unlock ${selected.displayName}` : "Sign in to PlotPickle"}</h1><p>Unlocking protects the selected Human’s private work. BUZZ remains an optional, separate identity.</p><form onSubmit={signIn}>{!selected ? <label className={styles.field}><span>Profile name</span><input value={name} onChange={(event) => setName(event.target.value)} autoComplete="username" required /></label> : null}<PasswordField value={password} onChange={setPassword} />{error ? <p role="alert" className={styles.error}>{error}</p> : null}<div className={styles.actions}><button type="submit" disabled={busy}>{busy ? "Unlocking…" : "Unlock profile"}</button><button type="button" onClick={() => { setPassword(""); setError(""); setSelected(null); setScreen("chooser"); }}>Back</button></div></form></section></main>;
+    return <main className={styles.boundary}><section className={styles.card}><p className={styles.eyebrow}>Local profile</p><h1>{selected ? `Unlock ${selected.displayName}` : "Sign in to PlotPickle"}</h1><p>Unlocking protects the selected Human’s private work. BUZZ remains an optional, separate identity.</p><form onSubmit={signIn}>{!selected ? <label className={styles.field}><span>Profile name</span><input value={name} onChange={(event) => setName(event.target.value)} autoComplete="username" required /></label> : null}<PasswordField value={password} onChange={setPassword} />{error ? <p role="alert" className={styles.error}>{error}</p> : null}<div className={styles.actions}><button type="submit" disabled={busy}>{busy ? "Unlocking…" : "Unlock profile"}</button><button type="button" onClick={() => { setPassword(""); setBootstrapProof(""); setError(""); setSelected(null); setScreen("chooser"); }}>Back</button></div></form></section></main>;
   }
 
   if (screen === "server-unavailable") {
-    return <main className={styles.boundary}><section className={styles.card}><p className={styles.eyebrow}>Secure profile boundary</p><h1>PlotPickle login is not available yet</h1><p>The profile service must be ready before login can accept credentials. A server Node also requires HTTPS, host/origin allowlists, a bind address, and completed bootstrap configuration.</p>{status?.readinessReasons.length ? <p role="status">Readiness: {status.readinessReasons.join(", ")}</p> : null}{error ? <p role="alert" className={styles.error}>{error}</p> : null}</section></main>;
+    return <main className={styles.boundary}><section className={styles.card}><p className={styles.eyebrow}>Secure profile boundary</p><h1>PlotPickle login is not available yet</h1><p>The profile service must be ready before login can accept credentials. A server Node also requires HTTPS, host/origin allowlists, a bind address, and completed operator bootstrap configuration.</p>{status?.readinessReasons.length ? <p role="status">Readiness: {status.readinessReasons.join(", ")}</p> : null}{error ? <p role="alert" className={styles.error}>{error}</p> : null}</section></main>;
   }
 
-  return <main className={styles.boundary}><section className={styles.card} aria-busy={screen === "loading"}><p className={styles.eyebrow}>PlotPickle profiles</p><h1>{screen === "loading" ? "Opening the local profile boundary…" : "Choose a PlotPickle profile"}</h1>{screen !== "loading" ? <><p>Profiles belong to this PlotPickle Node. The chooser shows only a safe name and optional avatar—never stories, activity, projects, agents, files, or BUZZ membership.</p><div className={styles.profileList}>{status?.profiles.filter((profile) => profile.status === "active").map((profile) => <button type="button" key={profile.profileId} onClick={() => { setSelected(profile); setPassword(""); setError(""); setScreen("login"); }}><span aria-hidden="true">{profile.displayName.slice(0, 1).toUpperCase()}</span><strong>{profile.displayName}</strong><small>Locked</small></button>)}</div><div className={styles.actions}><button type="button" onClick={() => { setName(""); setPassword(""); setConfirmation(""); setScreen("create"); }}>Add profile</button><button type="button" onClick={() => setScreen("guest")}>Use isolated Guest</button></div>{error ? <p role="alert" className={styles.error}>{error}</p> : null}</> : null}</section></main>;
+  return <main className={styles.boundary}><section className={styles.card} aria-busy={screen === "loading"}><p className={styles.eyebrow}>PlotPickle profiles</p><h1>{screen === "loading" ? "Opening the local profile boundary…" : "Choose a PlotPickle profile"}</h1>{screen !== "loading" ? <><p>Profiles belong to this PlotPickle Node. The chooser shows only a safe name and optional avatar—never stories, activity, projects, agents, files, or BUZZ membership.</p><div className={styles.profileList}>{status?.profiles.filter((profile) => profile.status === "active").map((profile) => <button type="button" key={profile.profileId} onClick={() => { setSelected(profile); setPassword(""); setBootstrapProof(""); setError(""); setScreen("login"); }}><span aria-hidden="true">{profile.displayName.slice(0, 1).toUpperCase()}</span><strong>{profile.displayName}</strong><small>Locked</small></button>)}</div><div className={styles.actions}><button type="button" onClick={() => { setName(""); setPassword(""); setConfirmation(""); setBootstrapProof(""); setScreen("create"); }}>Add profile</button><button type="button" onClick={() => setScreen("guest")}>Use isolated Guest</button></div>{error ? <p role="alert" className={styles.error}>{error}</p> : null}</> : null}</section></main>;
 }

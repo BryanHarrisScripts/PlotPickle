@@ -14,7 +14,6 @@ const settingsCss = read("app/settings-helper-directory.module.css");
 const communityUi = read("app/community-agent-roster.tsx");
 const marqueeUi = read("modules/learn/ui/marquee-agent-overlay.tsx");
 const marqueeCss = read("modules/learn/ui/marquee-agent-overlay.module.css");
-const learnUi = read("modules/learn/ui/learn-workspace.tsx");
 
 const activePortraitSources = [
   JSON.stringify(helperDirectory),
@@ -27,7 +26,7 @@ const activePortraitSources = [
   marqueeCss,
 ].join("\n");
 
-test("#1106 makes the shared painterly component the only product-facing helper portrait authority", () => {
+test("#1106 keeps one shared painterly portrait authority for the complete helper roster", () => {
   assert.equal(helperDirectory.schemaVersion, 2);
   assert.equal(helperDirectory.portraitSystem, "painterly-fantasy-v1");
   assert.equal(helperDirectory.helpers.length, 17);
@@ -41,24 +40,28 @@ test("#1106 makes the shared painterly component the only product-facing helper 
   assert.doesNotMatch(activePortraitSources, /shape-rendering=["']crispEdges["']/i);
 });
 
-test("#1106 preserves the approved Sage portrait and explicitly rejects the disallowed Sage reference", () => {
-  assert.match(portraitUi, /id: "sage-brinewick"[\s\S]*source: "\/assets\/curriculum-guide-master-storyteller\.png"/);
-  assert.ok(existsSync(resolve(root, "public/assets/curriculum-guide-master-storyteller.png")));
-  assert.match(learnUi, /src="\/assets\/sage-brinewick-v2\.png"/);
-  assert.doesNotMatch(`${portraitUi}\n${learnUi}\n${marqueeUi}`, /Sage543x768-v2/i);
+test("final agent artwork uses the supplied portrait atlas instead of generated portrait fallbacks", () => {
+  assert.ok(existsSync(resolve(root, "public/assets/agent-profile-atlas.webp")));
+  assert.match(portraitCss, /background-image:\s*url\("\/assets\/agent-profile-atlas\.webp"\)/);
+  assert.match(portraitCss, /background-size:\s*500% 400%/);
+  assert.match(portraitUi, /data-agent-artwork="user-supplied"/);
+  assert.doesNotMatch(portraitUi, /<svg|feTurbulence|Accessory\(/);
+  assert.doesNotMatch(portraitUi, /curriculum-guide-master-storyteller\.png/);
 });
 
-test("#1106 gives Marquee the required copper-red adult elf identity and canonical lock treatment", () => {
-  assert.match(portraitUi, /id: "marquee-director"[\s\S]*adult female elf[\s\S]*red-golden copper hair[\s\S]*elf: true/);
+test("final supplied artwork preserves Sage and Marquee identities", () => {
+  assert.match(portraitUi, /id: "sage-brinewick"[\s\S]*supplied elder wizard/);
+  assert.match(portraitUi, /id: "marquee-director"[\s\S]*adult female elf[\s\S]*red-golden copper hair/);
   assert.match(marqueeUi, /<AgentPortrait id="marquee-director" alt="" locked=\{!unlocked\} size=\{48\} \/>/);
   assert.match(marqueeUi, /disabled=\{!unlocked\}/);
   assert.match(marqueeUi, /isMarqueeDirectorUnlocked/);
-  assert.match(portraitCss, /\.frame\[data-locked="true"\][\s\S]*grayscale\(1\)/);
+  assert.match(portraitCss, /\.frame\[data-locked="true"\] \.atlasPortrait[\s\S]*grayscale\(1\)/);
 });
 
 test("#1106 shares one circular medallion component across LEARN, Community and Settings Help", () => {
   assert.match(portraitUi, /data-agent-portrait="painterly-fantasy"/);
-  assert.match(portraitUi, /role="img" aria-label=\{label\}/);
+  assert.match(portraitUi, /aria-label=\{label\}/);
+  assert.match(portraitUi, /role="img"/);
   assert.match(portraitCss, /border-radius:\s*50%/);
   assert.match(portraitCss, /border:\s*2px solid #d7bc76/);
   assert.match(portraitCss, /--agent-portrait-size/);

@@ -15,6 +15,14 @@ type RepairPreflight = {
   readonly runtime?: { readonly label?: string; readonly model?: string };
 };
 
+type ManagedPiBootstrap = {
+  readonly ready?: boolean;
+  readonly command?: string;
+  readonly version?: string;
+  readonly installed?: boolean;
+  readonly state?: string;
+};
+
 function clock() {
   return new Date().toTimeString().slice(0, 8);
 }
@@ -37,6 +45,26 @@ async function developerRepairPreflight(): Promise<RepairPreflight> {
       workerLabel: (process.env.PLOTPICKLE_REPAIR_WORKER || "pi") === "cline" ? "Cline" : "Pi",
       message: error instanceof Error ? error.message : "developer repair preflight failed",
     };
+  }
+}
+
+async function ensureDeveloperRepairWorker(worker: string) {
+  if (worker !== "pi") return { ok: false, detail: `${worker} has no PlotPickle-managed bootstrap path.` };
+  const script = path.resolve(process.cwd(), "scripts", "ensure-pi-cli.mjs");
+  try {
+    const result = await exec(process.execPath, [script], {
+      cwd: process.cwd(),
+      env: process.env,
+      windowsHide: true,
+      timeout: 15 * 60_000,
+      maxBuffer: 2 * 1024 * 1024,
+    });
+    const parsed = JSON.parse(result.stdout.trim()) as ManagedPiBootstrap;
+    if (!parsed.ready || !parsed.command) return { ok: false, detail: "managed Pi bootstrap returned no validated executable" };
+    process.env.PLOTPICKLE_PI_COMMAND = parsed.command;
+    return { ok: true, detail: `${parsed.version || "Pi"} · PlotPickle-managed ${parsed.installed ? "installed" : "ready"}`, command: parsed.command };
+  } catch (error) {
+    return { ok: false, detail: error instanceof Error ? error.message : "managed Pi bootstrap failed" };
   }
 }
 
@@ -71,6 +99,14 @@ export function uatDiscoveryPlugin(): Plugin {
             console.log(`[${clock()}] Startup blocker reporting .......... ACTIVE  hard startup findings -> same UAT evidence + GitHub reporter`);
 
             let repair = await developerRepairPreflight();
+            const requestedWorker = repair.worker || process.env.PLOTPICKLE_REPAIR_WORKER || "pi";
+            if (!repair.ready && repair.workerAvailable === false && requestedWorker === "pi" && process.env.PLOTPICKLE_PI_AUTO_INSTALL !== "0") {
+              console.log(`[${clock()}] Developer repair worker ........ INSTALLING  PlotPickle-managed Pi CLI; global npm wrapper is not required`);
+              const ensuredWorker = await ensureDeveloperRepairWorker(requestedWorker);
+              console.log(`[${clock()}] Developer repair worker ............ ${ensuredWorker.ok ? "CHECKED" : "WARN"}  ${ensuredWorker.detail}`);
+              repair = await developerRepairPreflight();
+            }
+
             if (!repair.ready && repair.workerAvailable !== false && process.env.PLOTPICKLE_REPAIR_AUTOLOAD !== "0") {
               const worker = repair.worker || process.env.PLOTPICKLE_REPAIR_WORKER || "pi";
               console.log(`[${clock()}] Developer repair model ............ LOADING  looking for an already-installed approved local coding model for ${repair.workerLabel || worker}`);
@@ -92,7 +128,10 @@ export function uatDiscoveryPlugin(): Plugin {
             console.log(`[${clock()}] Synthetic feedback policy ........... LOCAL  writer diary + code-aware exhaustive UI/UX control audit -> medium/high actionable -> GitHub/Modem as synthetic`);
             console.log(`[${clock()}] Manual repair command .............. READY  node scripts/run-uat-repair-agent.mjs --worker pi --issue <number>`);
             console.log(`[${clock()}] Legacy Mastra repair ........... OPTIONAL  node scripts/run-uat-repair-agent.mjs --worker mastra-qwen --issue <number>`);
-          })().catch(() => {});
+          })().catch((error) => {
+            const detail = error instanceof Error ? error.message : String(error);
+            console.warn(`[${clock()}] UAT discovery ...................... WARN  ${detail.replace(/[\r\n]+/g, " ").slice(0, 500)}`);
+          });
         }, 1_250);
       });
     },

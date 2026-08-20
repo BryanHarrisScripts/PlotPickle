@@ -7,6 +7,7 @@ import {
   createInMemoryAuthStateStore,
   createPlotPickleAuthService,
 } from "../core/auth/plotpickle-auth-core.mjs";
+import { createServerSessionBoundary } from "../core/auth/server-session/server-session-boundary-core.mjs";
 import { createProfilePrivateStorageService } from "../core/storage/profile-private/profile-private-storage-core.mjs";
 
 const root = process.cwd();
@@ -69,6 +70,51 @@ test("#1146 fresh desktop and server profile creation remain self-contained and 
   assert.match(ui, /next\.configured \? "login" : "create"/u);
   assert.match(route, /create-first-profile[\s\S]*bootstrapProof/u);
   assert.doesNotMatch(ui, /type="email"|Sign up with|Continue with Google/u);
+});
+
+test("#1146 an empty desktop boundary creates the first Human without bootstrap proof and local startup cannot be promoted by one stale mode flag", async (context) => {
+  const auth = await createPlotPickleAuthService({
+    nodeId: "node-1146-desktop-first-profile",
+    accessMode: "desktop-loopback",
+    stateStore: createInMemoryAuthStateStore(),
+  });
+  context.after(() => auth.close());
+  const boundary = createServerSessionBoundary({
+    authService: auth,
+    exposure: {
+      accessMode: "desktop-loopback",
+      allowedOrigins: ["http://127.0.0.1:4173"],
+      allowedHosts: ["127.0.0.1:4173"],
+    },
+  });
+  const created = await boundary.createFirstProfile({
+    displayName: "Local Human",
+    password: "Local Human independent private passphrase",
+    avatarRef: null,
+  }, undefined, {
+    method: "POST",
+    url: "http://127.0.0.1:4173/api/auth/profile",
+    remoteAddress: "127.0.0.1",
+    headers: { host: "127.0.0.1:4173", origin: "http://127.0.0.1:4173" },
+  });
+  assert.equal(created.profile.displayName, "Local Human");
+  assert.match(created.headers["Set-Cookie"], /^ppsid=/u);
+
+  const runtime = await text("core/auth/profile-experience/profile-experience-runtime.ts");
+  assert.match(runtime, /PLOTPICKLE_ACCESS_MODE[\s\S]*PLOTPICKLE_BIND_HOST[\s\S]*PLOTPICKLE_EXTERNAL_ORIGIN[\s\S]*PLOTPICKLE_SERVER_NETWORK_ENABLED/u);
+  assert.match(runtime, /hasNetworkIntent[\s\S]*server-network[\s\S]*desktop-loopback/u);
+});
+
+test("#1146 the first desktop Human can claim legacy browser Library work only after verified encrypted writes", async () => {
+  const browser = await text("core/storage/profile-private-browser.ts");
+  const ui = await text("app/profile-access/profile-access-boundary.tsx");
+  assert.match(browser, /plotpickle\.foundation\.project\.v1/u);
+  assert.match(browser, /plotpickle\.library\.profile\.v1\./u);
+  assert.match(browser, /migrateLegacyBrowserProjects[\s\S]*privateMutation\("save-project"[\s\S]*result\.projectId !== project\.id[\s\S]*retireMigratedLegacyBrowserState/u);
+  assert.match(browser, /Leave unreadable legacy browser records in place for explicit recovery/u);
+  assert.match(ui, /firstDesktopProfile[\s\S]*migrateLegacyBrowser: firstDesktopProfile/u);
+  assert.match(ui, /recovery\.migrateLegacyBrowser[\s\S]*migrateLegacyBrowserProjects\(token\)/u);
+  assert.match(ui, /status\?\.accessMode === "desktop-loopback"[\s\S]*status\.profiles\.length === 1[\s\S]*migrateLegacyBrowserProjects\(token\)/u);
 });
 
 test("#1146 browser persistence and locked metadata audits keep authentication secrets out of durable browser storage", async () => {

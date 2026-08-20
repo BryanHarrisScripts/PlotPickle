@@ -1,4 +1,3 @@
-const PROJECT_KEY = "plotpickle.foundation.project.v1";
 const MARKETING_WORKFLOW = "marquee-director/foundations-first-poster-v1";
 
 function parseEvaluateJson(raw) {
@@ -64,12 +63,15 @@ export function auditPersistedWriterProject(project, rendered = {}) {
   const retainedWorldArtifacts = worldArtifacts.filter((artifact) => artifact?.reviewState !== "rejected");
   const acceptedWorldArtifacts = retainedWorldArtifacts.filter((artifact) => worldAcceptedIds.has(artifact.id));
 
-  const learn = rendered.learn || {};
+  const learn = rendered.foundationsLearn || rendered.learn || {};
+  const worldLearn = rendered.worldLearn || learn;
   const plan = rendered.plan || {};
   const build = rendered.build || {};
   const worldPlan = rendered.worldPlan || {};
   const worldBuild = rendered.worldBuild || {};
   const dashboard = rendered.dashboard || {};
+  const wyrmwood = rendered.wyrmwood || {};
+  const settings = rendered.settings || {};
 
   const checks = [
     check("learn.persisted", "Foundations LEARN persisted completion", completedLessonIds.length >= 11,
@@ -101,8 +103,8 @@ export function auditPersistedWriterProject(project, rendered = {}) {
       `${completedLessonIds.length} total lesson completion record(s) persisted; Foundations + World currently requires at least 16.`,
       { completedLessonCount: completedLessonIds.length }),
     check("world.learn.rendered", "World LEARN reopened green checks",
-      Number(learn.worldLessonCount || 0) === 5 && Number(learn.worldCompletedCount || 0) === Number(learn.worldLessonCount || 0),
-      `${learn.worldCompletedCount || 0} of ${learn.worldLessonCount || 0} visible World lessons are marked complete after reopen.`, learn),
+      Number(worldLearn.worldLessonCount || 0) === 5 && Number(worldLearn.worldCompletedCount || 0) === Number(worldLearn.worldLessonCount || 0),
+      `${worldLearn.worldCompletedCount || 0} of ${worldLearn.worldLessonCount || 0} visible World lessons are marked complete after reopen.`, worldLearn),
     check("world.plan.persisted", "World PLAN persisted decisions",
       worldAnswers > 0 && Boolean(worldBrief) && Number(worldPlan.fieldCount || 0) > 0 && worldAnswers >= Number(worldPlan.fieldCount || 0),
       `${worldAnswers} saved World answer(s); World Brief ${worldBrief ? "is saved" : "is empty"}; reopened World PLAN exposes ${worldPlan.fieldCount || 0} required field(s).`,
@@ -131,10 +133,20 @@ export function auditPersistedWriterProject(project, rendered = {}) {
         && Number(dashboard.worldPlanAnswers || 0) === Number(dashboard.worldPlanFields || 0)
         && Number(dashboard.worldAcceptedArtifactCount || 0) > 0,
       `Dashboard reports ${dashboard.worldLearnComplete || 0} of ${dashboard.worldLearnTotal || 0} World lessons, ${dashboard.worldPlanAnswers || 0} of ${dashboard.worldPlanFields || 0} World PLAN decisions and ${dashboard.worldAcceptedArtifactCount || 0} accepted World visual change(s).`, dashboard),
+    check("wyrmwood.rendered", "Wyrmwood review route reopens",
+      wyrmwood.mainPresent === true && wyrmwood.wyrmwoodVisible === true && wyrmwood.loading !== true,
+      wyrmwood.mainPresent === true && wyrmwood.wyrmwoodVisible === true && wyrmwood.loading !== true
+        ? "The Wyrmwood review route rendered its writer-facing main surface."
+        : "The Wyrmwood review route did not finish rendering a recognizable writer-facing main surface.", wyrmwood),
+    check("settings.rendered", "Settings review route reopens",
+      settings.mainPresent === true && settings.settingsVisible === true,
+      settings.mainPresent === true && settings.settingsVisible === true
+        ? "The Settings review route rendered its writer-facing main surface."
+        : "The Settings review route did not render a recognizable writer-facing main surface.", settings),
   ];
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     passed: checks.every((item) => item.passed),
     projectId: String(project?.id || ""),
     projectTitle: String(project?.title || ""),
@@ -235,6 +247,25 @@ function inspectDashboardPage() {
   });
 }
 
+function inspectWyrmwoodPage() {
+  const main = document.querySelector("main");
+  const text = main?.textContent || "";
+  return JSON.stringify({
+    mainPresent: Boolean(main),
+    wyrmwoodVisible: /Wyrmwood/i.test(text),
+    loading: /Opening Wyrmwood/i.test(text),
+  });
+}
+
+function inspectSettingsPage() {
+  const main = document.querySelector("main");
+  const text = main?.textContent || "";
+  return JSON.stringify({
+    mainPresent: Boolean(main),
+    settingsVisible: /Settings|Setup & Connections|AI & Runtime/i.test(text),
+  });
+}
+
 const PAGE_FUNCTIONS = {
   readProjectPage,
   inspectLearnPage,
@@ -242,30 +273,109 @@ const PAGE_FUNCTIONS = {
   inspectWorldPlanPage,
   inspectBuildPage,
   inspectDashboardPage,
+  inspectWyrmwoodPage,
+  inspectSettingsPage,
 };
+
+export const WRITER_OBSERVER_CHECKPOINTS = Object.freeze([
+  { id: "dashboard-start", label: "Dashboard start", area: "dashboard", route: "/?workspace=dashboard", pageFunction: "inspectDashboardPage", renderKey: "dashboardStart", owner: "final-state-observer" },
+  { id: "foundations-learn", label: "Foundations LEARN", area: "learn", route: "/?workspace=learn", pageFunction: "inspectLearnPage", renderKey: "foundationsLearn", owner: "final-state-observer" },
+  { id: "foundations-plan", label: "Foundations PLAN", area: "plan", route: "/?workspace=plan&section=foundations", pageFunction: "inspectPlanPage", renderKey: "plan", owner: "final-state-observer" },
+  { id: "foundations-build", label: "Foundations BUILD", area: "build", route: "/?workspace=build&section=foundations", pageFunction: "inspectBuildPage", renderKey: "build", owner: "final-state-observer" },
+  { id: "marquee-marketing-reference", label: "Marquee Marketing Reference", area: "marquee", route: "/?workspace=learn", pageFunction: null, renderKey: null, owner: "final-state-observer" },
+  { id: "world-learn", label: "World LEARN", area: "world-learn", route: "/?workspace=learn&section=world", pageFunction: "inspectLearnPage", renderKey: "worldLearn", owner: "final-state-observer" },
+  { id: "world-plan", label: "World PLAN", area: "world-plan", route: "/?workspace=plan&section=world", pageFunction: "inspectWorldPlanPage", renderKey: "worldPlan", owner: "final-state-observer" },
+  { id: "world-build", label: "World BUILD", area: "world-build", route: "/?workspace=build&section=world", pageFunction: "inspectBuildPage", renderKey: "worldBuild", owner: "final-state-observer" },
+  { id: "wyrmwood", label: "Wyrmwood", area: "wyrmwood", route: "/?workspace=wyrmwood", pageFunction: "inspectWyrmwoodPage", renderKey: "wyrmwood", owner: "final-state-observer" },
+  { id: "settings", label: "Settings", area: "settings", route: "/?workspace=settings", pageFunction: "inspectSettingsPage", renderKey: "settings", owner: "final-state-observer" },
+  { id: "dashboard-final", label: "Final Dashboard reopen", area: "dashboard", route: "/?workspace=dashboard", pageFunction: "inspectDashboardPage", renderKey: "dashboard", owner: "final-state-observer" },
+].map((definition) => Object.freeze(definition)));
+
+export function validateWriterObserverCheckpointOwnership(definitions = WRITER_OBSERVER_CHECKPOINTS) {
+  const owners = new Map();
+  for (const definition of definitions) {
+    const id = String(definition?.id || "").trim();
+    const owner = String(definition?.owner || "").trim();
+    if (!id || !owner) throw new Error("Writer observer checkpoints require a canonical id and owner.");
+    if (owners.has(id) && definition?.architectureOverride !== true) {
+      throw new Error(`Writer observer checkpoint ${id} is already owned by ${owners.get(id)}; an explicit architecture override is required.`);
+    }
+    owners.set(id, owner);
+  }
+  return true;
+}
+
+const FORBIDDEN_PAGE_FUNCTION_OPERATIONS = [
+  { pattern: /\b(?:localStorage|sessionStorage)\s*\.\s*(?:setItem|removeItem|clear)\s*\(/, label: "browser storage mutation" },
+  { pattern: /\bdocument\s*\.\s*cookie\s*=/, label: "cookie mutation" },
+  { pattern: /\.\s*(?:click|submit|requestSubmit|dispatchEvent|remove|append|appendChild|prepend|replaceChildren|replaceWith|insertAdjacentHTML)\s*\(/, label: "DOM or interaction mutation" },
+  { pattern: /\bhistory\s*\.\s*(?:pushState|replaceState)\s*\(/, label: "history mutation" },
+  { pattern: /\blocation\s*\.\s*(?:assign|replace|reload)\s*\(/, label: "navigation mutation" },
+  { pattern: /\b(?:fetch|XMLHttpRequest)\s*\(/, label: "network mutation" },
+];
 
 export function writerObserverFunctionSources() {
   return Object.fromEntries(Object.entries(PAGE_FUNCTIONS).map(([name, fn]) => [name, fn.toString()]));
 }
 
-function validatedPageFunction(fn) {
-  const source = fn.toString();
+export function validateWriterObserverPageFunction(functionName, pageFunction) {
+  const source = typeof pageFunction === "string" ? pageFunction : pageFunction?.toString?.() || "";
+  if (!source.trim()) throw new Error(`Writer observer function ${functionName || "<unknown>"} has no executable source.`);
   Function(`return (${source});`)();
+  for (const operation of FORBIDDEN_PAGE_FUNCTION_OPERATIONS) {
+    if (operation.pattern.test(source)) {
+      throw new Error(`Writer observer function ${functionName || "<unknown>"} requests forbidden ${operation.label}.`);
+    }
+  }
   return source;
+}
+
+function structuredObserverFailure(functionName, stage, error) {
+  const message = error instanceof Error ? error.message : String(error);
+  return {
+    status: "observer-failed",
+    passed: false,
+    functionName,
+    stage,
+    error: message,
+  };
+}
+
+export async function executeWriterObserverPageFunction({ client, resultText, functionName, pageFunction }) {
+  let source = "";
+  try {
+    source = validateWriterObserverPageFunction(functionName, pageFunction);
+  } catch (error) {
+    return structuredObserverFailure(functionName, "payload-validation", error);
+  }
+
+  let result;
+  try {
+    result = await client.call("browser_evaluate", { function: source });
+  } catch (error) {
+    return structuredObserverFailure(functionName, "browser-evaluate", error);
+  }
+
+  try {
+    return {
+      status: "observer-passed",
+      passed: true,
+      functionName,
+      stage: "result-parse",
+      evidence: parseEvaluateJson(resultText(result)),
+    };
+  } catch (error) {
+    return structuredObserverFailure(functionName, "result-parse", error);
+  }
 }
 
 async function wait(ms) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function evaluateJson(client, resultText, fn) {
-  const result = await client.call("browser_evaluate", { function: validatedPageFunction(fn) });
-  return parseEvaluateJson(resultText(result));
-}
-
-async function open(client, baseUrl, route) {
+async function open(client, baseUrl, route, settleMs) {
   await client.call("browser_navigate", { url: new URL(route, baseUrl).toString() });
-  await wait(850);
+  if (settleMs > 0) await wait(settleMs);
 }
 
 export async function observeWriterJourneyFinalState({
@@ -273,46 +383,116 @@ export async function observeWriterJourneyFinalState({
   resultText,
   baseUrl,
   captureScreenshot = async () => false,
+  provenance = {},
+  settleMs = 850,
 }) {
-  const ledger = [];
+  validateWriterObserverCheckpointOwnership();
+  const ledger = WRITER_OBSERVER_CHECKPOINTS.map((definition) => ({
+    id: definition.id,
+    label: definition.label,
+    area: definition.area,
+    route: definition.route,
+    owner: definition.owner,
+    status: "not-reached",
+    stage: "pending",
+    detail: "The final-state observer has not reached this checkpoint.",
+    evidence: {},
+  }));
+  const rendered = {};
+  const observerFailures = [];
+  const entryFor = (id) => ledger.find((entry) => entry.id === id);
+  const mark = (id, status, stage, detail, evidence = {}) => {
+    Object.assign(entryFor(id), { status, stage, detail, evidence });
+  };
 
-  await open(client, baseUrl, "/?workspace=learn");
-  const learn = await evaluateJson(client, resultText, inspectLearnPage);
-  await captureScreenshot("writer-final-learn");
-  ledger.push({ area: "learn", route: "/?workspace=learn", evidence: learn });
+  for (const definition of WRITER_OBSERVER_CHECKPOINTS.filter((item) => item.pageFunction)) {
+    try {
+      await open(client, baseUrl, definition.route, settleMs);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      mark(definition.id, "observer-failed", "navigation", detail);
+      observerFailures.push({ checkpointId: definition.id, functionName: definition.pageFunction, route: definition.route, stage: "navigation", error: detail });
+      continue;
+    }
 
-  await open(client, baseUrl, "/?workspace=plan&section=foundations");
-  const plan = await evaluateJson(client, resultText, inspectPlanPage);
-  await captureScreenshot("writer-final-plan");
-  ledger.push({ area: "plan", route: "/?workspace=plan&section=foundations", evidence: plan });
+    const execution = await executeWriterObserverPageFunction({
+      client,
+      resultText,
+      functionName: definition.pageFunction,
+      pageFunction: PAGE_FUNCTIONS[definition.pageFunction],
+    });
+    if (!execution.passed) {
+      mark(definition.id, "observer-failed", execution.stage, execution.error);
+      observerFailures.push({ checkpointId: definition.id, functionName: definition.pageFunction, route: definition.route, stage: execution.stage, error: execution.error });
+      continue;
+    }
 
-  await open(client, baseUrl, "/?workspace=build&section=foundations");
-  const build = await evaluateJson(client, resultText, inspectBuildPage);
-  await captureScreenshot("writer-final-build");
-  ledger.push({ area: "build", route: "/?workspace=build&section=foundations", evidence: build });
+    rendered[definition.renderKey] = execution.evidence;
+    let screenshotError = "";
+    try {
+      await captureScreenshot(`writer-final-${definition.id}`);
+    } catch (error) {
+      screenshotError = error instanceof Error ? error.message : String(error);
+    }
+    mark(
+      definition.id,
+      "observer-passed",
+      "reopened-state",
+      screenshotError ? `Read-only evidence collected; screenshot failed: ${screenshotError}` : "Read-only reopened-state evidence collected.",
+      execution.evidence,
+    );
+  }
 
-  await open(client, baseUrl, "/?workspace=plan&section=world");
-  const worldPlan = await evaluateJson(client, resultText, inspectWorldPlanPage);
-  await captureScreenshot("writer-final-world-plan");
-  ledger.push({ area: "world-plan", route: "/?workspace=plan&section=world", evidence: worldPlan });
+  const projectExecution = await executeWriterObserverPageFunction({
+    client,
+    resultText,
+    functionName: "readProjectPage",
+    pageFunction: readProjectPage,
+  });
+  const project = projectExecution.passed ? projectExecution.evidence : null;
+  if (!projectExecution.passed) {
+    observerFailures.push({ checkpointId: "persisted-project", functionName: "readProjectPage", route: "/?workspace=dashboard", stage: projectExecution.stage, error: projectExecution.error });
+    for (const id of ["foundations-learn", "foundations-plan", "foundations-build", "marquee-marketing-reference", "world-learn", "world-plan", "world-build", "dashboard-final"]) {
+      if (entryFor(id).status !== "observer-failed") {
+        mark(id, "observer-failed", projectExecution.stage, `Persisted project reconciliation failed: ${projectExecution.error}`, entryFor(id).evidence);
+      }
+    }
+  } else {
+    mark("marquee-marketing-reference", "observer-passed", "persisted-project", "Persisted Marketing Reference evidence collected.");
+  }
 
-  await open(client, baseUrl, "/?workspace=build&section=world");
-  const worldBuild = await evaluateJson(client, resultText, inspectBuildPage);
-  await captureScreenshot("writer-final-world-build");
-  ledger.push({ area: "world-build", route: "/?workspace=build&section=world", evidence: worldBuild });
+  const audit = auditPersistedWriterProject(project, rendered);
+  const checkIdsByCheckpoint = {
+    "foundations-learn": ["learn.persisted", "learn.rendered"],
+    "foundations-plan": ["plan.persisted", "plan.rendered"],
+    "foundations-build": ["build.persisted", "build.rendered"],
+    "marquee-marketing-reference": ["marquee.persisted", "marquee.rendered"],
+    "world-learn": ["world.learn.persisted", "world.learn.rendered"],
+    "world-plan": ["world.plan.persisted", "world.plan.rendered"],
+    "world-build": ["world.build.persisted", "world.build.rendered"],
+    wyrmwood: ["wyrmwood.rendered"],
+    settings: ["settings.rendered"],
+    "dashboard-final": ["dashboard.progress", "dashboard.world-progress"],
+  };
+  for (const [checkpointId, checkIds] of Object.entries(checkIdsByCheckpoint)) {
+    const entry = entryFor(checkpointId);
+    if (entry.status !== "observer-passed") continue;
+    const failed = audit.checks.filter((item) => checkIds.includes(item.id) && !item.passed);
+    if (failed.length) {
+      mark(checkpointId, "product-state-failed", "acceptance", failed.map((item) => item.detail).join(" | "), entry.evidence);
+    }
+  }
 
-  await open(client, baseUrl, "/?workspace=dashboard");
-  const dashboard = await evaluateJson(client, resultText, inspectDashboardPage);
-  await captureScreenshot("writer-final-dashboard");
-  ledger.push({ area: "dashboard", route: "/?workspace=dashboard", evidence: dashboard });
-
-  const project = await evaluateJson(client, resultText, readProjectPage);
-  const audit = auditPersistedWriterProject(project, { learn, plan, build, worldPlan, worldBuild, dashboard });
+  const ledgerPassed = ledger.every((entry) => entry.status === "observer-passed" || entry.status === "outside-frontier");
   return {
     ...audit,
+    passed: audit.passed && ledgerPassed,
     observedAt: new Date().toISOString(),
     authority: "read-only-final-state-observer",
     mutationAuthority: "none",
+    provenance: { baseUrl, ...provenance },
+    checkpointOwner: "final-state-observer",
+    observerFailures,
     ledger,
   };
 }

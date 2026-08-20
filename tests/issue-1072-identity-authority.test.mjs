@@ -76,7 +76,7 @@ test("#1013 topology routing id remains separate from cryptographic Node identit
 test("Phase A includes the required schema proposal and five migration sequences", async () => {
   const doc = await read("docs/architecture/IDENTITY-AUTHORITY.md");
   for (const table of ["people", "avatars", "node_authorizations", "auth_account_links", "node_capabilities"]) {
-    assert.match(doc, new RegExp(`\\n${table}\\n`));
+    assert.match(doc, new RegExp(`(?:^|\\r?\\n)${table}\\r?\\n`, "u"));
   }
   for (const sequence of [
     "First install, local-only",

@@ -28,10 +28,6 @@ function serviceOptions(stateStore, overrides = {}) {
   };
 }
 
-function sortedKeys(value) {
-  return Object.keys(value).sort();
-}
-
 async function createDesktopProfile(overrides = {}) {
   const stateStore = overrides.stateStore || createInMemoryAuthStateStore();
   const auth = await createPlotPickleAuthService(serviceOptions(stateStore, overrides.options));
@@ -49,7 +45,7 @@ test("desktop first-run creates a random stable Human profile entirely offline",
   try {
     const { auth, created, stateStore } = await createDesktopProfile();
     assert.equal(networkCalls, 0);
-    assert.deepEqual(sortedKeys(created.profile), ["authMethods", "avatarRef", "createdAt", "displayName", "profileId", "status", "updatedAt", "vaultVersion"]);
+    assert.deepEqual(Object.keys(created.profile).sort(), ["authMethods", "avatarRef", "createdAt", "displayName", "profileId", "status", "updatedAt", "vaultVersion"]);
     assert.equal(Buffer.from(created.profile.profileId.slice("profile_".length), "base64url").byteLength, 16);
     assert.deepEqual(created.profile.authMethods, ["password", "recovery"]);
     assert.equal(created.profile.status, "active");
@@ -175,7 +171,7 @@ test("remote unknown-profile and wrong-password failures are publicly indistingu
 test("AuthContext is canonical, server-side, expiring, and invalidated by lock", async () => {
   let clock = Date.parse("2026-08-20T14:00:00.000Z");
   const { auth, created, stateStore } = await createDesktopProfile({ options: { now: () => clock, sessionTtlMs: 5_000 } });
-  assert.deepEqual(sortedKeys(created.authContext), ["authStrength", "expiresAt", "issuedAt", "nodeId", "profileId", "roles", "sessionId"]);
+  assert.deepEqual(Object.keys(created.authContext).sort(), ["authStrength", "expiresAt", "issuedAt", "nodeId", "profileId", "roles", "sessionId"]);
   assert.equal(Buffer.from(created.authContext.sessionId, "base64url").byteLength, 32);
   assert.deepEqual(created.authContext.roles, ["human"]);
   const browserStatus = auth.getAuthStatus(created.authContext);
@@ -212,7 +208,7 @@ test("persistent state separates safe registry metadata from encrypted credentia
   const registryText = JSON.stringify(state.registry);
   const persistentText = JSON.stringify(state);
   assert.doesNotMatch(registryText, forbiddenRegistryTerms);
-  assert.equal(sortedKeys(state.credentials[created.profile.profileId]).join(","), "passwordEnvelope,profileId,recoveryEnvelope");
+  assert.equal(Object.keys(state.credentials[created.profile.profileId]).sort().join(","), "passwordEnvelope,profileId,recoveryEnvelope");
   assert.doesNotMatch(persistentText, new RegExp(password, "u"));
   assert.doesNotMatch(persistentText, new RegExp(created.recoverySecret, "u"));
   assert.doesNotMatch(persistentText, new RegExp(created.authContext.sessionId, "u"));

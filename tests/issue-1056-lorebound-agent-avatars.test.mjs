@@ -21,11 +21,13 @@ test("#1056 keeps the 17-helper lorebound roster while #1106 owns current portra
   for (const helper of helperDirectory.helpers) assert.deepEqual(Object.keys(helper).sort(), ["group", "how", "id"]);
 });
 
-test("#1056 keeps Sage consistent on the established LEARN compatibility URL", () => {
+test("#1056 preserves the LEARN Sage compatibility asset while the shared profile system uses supplied artwork", () => {
   const workspace = readFileSync(resolve(root, "modules/learn/ui/learn-workspace.tsx"), "utf8");
   const portraits = readFileSync(resolve(root, "components/agent-portrait.tsx"), "utf8");
+  const portraitCss = readFileSync(resolve(root, "components/agent-portrait.module.css"), "utf8");
   assert.match(workspace, /src="\/assets\/sage-brinewick-v2\.png"/);
   assert.deepEqual(pngDimensions("public/assets/sage-brinewick-v2.png"), [100, 100]);
-  assert.match(portraits, /source: "\/assets\/curriculum-guide-master-storyteller\.png"/);
+  assert.match(portraits, /id: "sage-brinewick"[\s\S]*supplied elder wizard/);
+  assert.match(portraitCss, /\/assets\/agent-profile-atlas\.webp/);
   assert.doesNotMatch(`${workspace}\n${portraits}`, /Sage543x768-v2/i);
 });

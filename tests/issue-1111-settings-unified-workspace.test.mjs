@@ -17,7 +17,7 @@ test("#1111 live Settings uses one persistent Community-style rail and one activ
 
 test("#1111 exposes more than five major Settings destinations without returning to a Settings home screen", async () => {
   const source = await read("app/sage-settings-workspace.tsx");
-  for (const id of ["overview", "help", "models", "routing", "media", "ollama", "openai", "minimax", "activity", "buzz", "runtime"]) {
+  for (const id of ["overview", "updates", "help", "models", "routing", "media", "ollama", "openai", "minimax", "activity", "buzz", "runtime"]) {
     assert.match(source, new RegExp(`id: ["']${id}["']`), `missing Settings destination ${id}`);
   }
   assert.match(source, /SETTINGS_GROUPS/);

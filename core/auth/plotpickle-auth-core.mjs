@@ -748,39 +748,6 @@ export async function createPlotPickleAuthService(options) {
         if (targetProfileId !== null) transientVaultStates.delete(targetProfileId);
       }
     },
-    async authenticateWithRecovery(input) {
-      let targetProfileId = null;
-      try {
-        assertExactFields(input, ["profileId", "recoverySecret"], "Recovery authentication input");
-        targetProfileId = profileId(input.profileId);
-        transientVaultStates.set(targetProfileId, "recovery-required");
-        const profile = state.registry.profiles[targetProfileId];
-        const credential = state.credentials[targetProfileId];
-        const workCredential = credential || Object.values(state.credentials)[0];
-        if (!workCredential) throw new Error("Profile is unavailable.");
-        const recoverySecret = decodeRecoverySecret(input.recoverySecret);
-        try {
-          const pmk = await unwrapProfileMasterKeyWithRecovery(workCredential.recoveryEnvelope, recoverySecret, workCredential.profileId);
-          try {
-            if (!profile || !credential || credential !== workCredential || profile.status !== "active") throw new Error("Profile is unavailable.");
-            const currentProfile = state.registry.profiles[targetProfileId];
-            const currentCredential = state.credentials[targetProfileId];
-            if (!currentProfile || currentProfile.status !== "active" || !currentCredential || JSON.stringify(currentCredential.recoveryEnvelope) !== JSON.stringify(credential.recoveryEnvelope)) {
-              throw new Error("Profile changed while authentication was in progress.");
-            }
-            return Object.freeze({ profile: profileSummary(currentProfile), authContext: createSession(targetProfileId, "recovery", pmk) });
-          } finally {
-            pmk.fill(0);
-          }
-        } finally {
-          recoverySecret.fill(0);
-        }
-      } catch (error) {
-        throw publicAuthenticationFailure(error);
-      } finally {
-        if (targetProfileId !== null) transientVaultStates.delete(targetProfileId);
-      }
-    },
     async changePassword(input, authContext) {
       return serializeMutation(async () => {
         assertExactFields(input, ["currentPassword", "newPassword"], "Password change input");

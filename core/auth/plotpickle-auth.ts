@@ -92,7 +92,6 @@ export type PlotPickleAuthService = {
   createFirstProfile(input: { displayName: string; password: string | Uint8Array; avatarRef?: string | null }, bootstrapProof?: string): Promise<ProfileCreation>;
   createProfile(input: { displayName: string; password: string | Uint8Array; avatarRef?: string | null }, authContext: AuthContext): Promise<ProfileCreation>;
   authenticate(input: { profileId: string; password: string | Uint8Array }): Promise<{ readonly profile: ProfileSummary; readonly authContext: AuthContext; readonly vaultMaintenance: ProfileVaultKdfMaintenance }>;
-  authenticateWithRecovery(input: { profileId: string; recoverySecret: string }): Promise<{ readonly profile: ProfileSummary; readonly authContext: AuthContext }>;
   changePassword(input: { currentPassword: string | Uint8Array; newPassword: string | Uint8Array }, authContext: AuthContext): Promise<{ readonly profile: ProfileSummary; readonly authContext: AuthContext }>;
   resetPasswordWithRecovery(input: { profileId: string; recoverySecret: string; newPassword: string | Uint8Array }): Promise<{ readonly profile: ProfileSummary; readonly recoverySecret: string; readonly authContext: AuthContext }>;
   getVaultStatus(profileId?: string | null, authContext?: AuthContext | null): ProfileVaultStatus;

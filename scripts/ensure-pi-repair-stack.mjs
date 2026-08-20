@@ -3,8 +3,8 @@
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { ensureManagedPiInstalled } from "./pi-managed-install.mjs";
 import {
-  ensurePiInstalled,
   resolveGitBash,
   runPortableCommand,
 } from "./pi-worker-runtime.mjs";
@@ -16,9 +16,11 @@ function status(label, state, detail = "") {
 }
 
 async function main() {
-  const pi = await ensurePiInstalled({
+  const pi = await ensureManagedPiInstalled({
     onStatus: (state, detail) => status("Pi coding agent", state, detail),
   });
+  process.env.PLOTPICKLE_PI_COMMAND = pi.command;
+  status("Pi executable", "READY", `${pi.command} · ${pi.state}`);
 
   if (process.platform === "win32") {
     const bash = await resolveGitBash();
@@ -35,10 +37,11 @@ async function main() {
     cwd: repoRoot,
     timeout: 35 * 60_000,
     maxBuffer: 16 * 1024 * 1024,
+    env: { PLOTPICKLE_PI_COMMAND: pi.command },
   });
   if (model.stdout) process.stdout.write(`${model.stdout}\n`);
   if (model.stderr) process.stderr.write(`${model.stderr}\n`);
-  status("Pi repair stack", "READY", `${pi.version} · approved local coding model available`);
+  status("Pi repair stack", "READY", `${pi.version} · PlotPickle-managed CLI · approved local coding model available`);
 }
 
 main().catch((error) => {

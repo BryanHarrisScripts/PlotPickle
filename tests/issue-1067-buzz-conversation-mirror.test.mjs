@@ -23,9 +23,11 @@ test("#1067 keeps PlotPickle Community reads and writes on the real BUZZ message
   assert.match(gateway, /runBuzz\(connection, \["messages", "get", "--channel", channel, "--limit", String\(limit\)\]\)/);
   assert.match(gateway, /runBuzz\(connection, \["messages", "send", "--channel", channel, "--content", content\]/);
   assert.match(gateway, /firstString\(item, \["id", "event_id", "eventId"\]\)/);
-  assert.match(workspace, /request\("\/messages", \{ method: "POST", body: JSON\.stringify\(\{ channel:/);
+  assert.match(workspace, /activeRoom=\{activeRoom\}/);
+  assert.match(workspace, /greatHallChannelId=\{community\?\.greatHall\?\.id \|\| ""\}/);
   assert.match(terminal, /fetch\(`\$\{BUZZ_API\}\/messages\?channel=/);
   assert.match(terminal, /fetch\(`\$\{BUZZ_API\}\/messages`,/);
+  assert.match(terminal, /postMessage\(activeRoom\.channelId, roomDraft\.trim\(\)\)/);
   assert.match(storyAccess, /One room, two interfaces/);
   assert.match(storyAccess, /same conversation in Buzz Desktop and PlotPickle/);
 });

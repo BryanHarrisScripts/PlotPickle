@@ -9,7 +9,7 @@ const API = "/api/local-buzz";
 const CONNECTION_FILE = "buzz-connection.json";
 const MAX_IDENTITY_OUTPUT = 2 * 1024 * 1024;
 
-type HumanIdentityStatus = {
+export type HumanIdentityStatus = {
   ready: boolean;
   identityVerified: boolean;
   humanCommunityAllowed: boolean;
@@ -35,7 +35,7 @@ function isBrowserAuthoredRequest(request: IncomingMessage) {
   return typeof request.headers.origin === "string" || typeof request.headers["sec-fetch-site"] === "string";
 }
 
-async function inspectConnectedHuman(): Promise<HumanIdentityStatus> {
+export async function inspectConnectedHuman(): Promise<HumanIdentityStatus> {
   const stored = await readCredentialJson<unknown>(CONNECTION_FILE);
   if (!stored || typeof stored !== "object" || Array.isArray(stored)) return UNVERIFIED;
   const connection = stored as Record<string, unknown>;

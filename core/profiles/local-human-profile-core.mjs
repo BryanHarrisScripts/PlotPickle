@@ -2,7 +2,7 @@ import {
   assertAllowedContractFields,
   normalizeContractId,
   normalizeIsoDateTime,
-} from "../contracts/identity-contract-validation.mjs";
+} from "../node-boundary/identity-contract-validation.mjs";
 
 const PROFILE_FIELDS = Object.freeze([
   "profileId", "personId", "displayName", "vaultRef", "buzzSignerRef", "settingsRef", "guest", "createdAt",

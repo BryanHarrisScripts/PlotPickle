@@ -3,7 +3,7 @@ import {
   assertAllowedContractFields,
   normalizeContractId,
   normalizeIsoDateTime,
-} from "../contracts/identity-contract-validation.mjs";
+} from "../node-boundary/identity-contract-validation.mjs";
 
 const PRIVATE_KEY_PATTERN = /-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----/;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/i;

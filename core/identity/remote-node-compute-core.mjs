@@ -1,4 +1,4 @@
-import { normalizeContractId } from "../contracts/identity-contract-validation.mjs";
+import { normalizeContractId } from "../node-boundary/identity-contract-validation.mjs";
 
 export const PEER_NODE_COMPUTE_ENABLED = false;
 export const COMPUTE_RELATIONSHIPS = Object.freeze([]);

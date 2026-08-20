@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "core/contracts/identity-contract-validation.mjs"
+      - "core/node-boundary/identity-contract-validation.mjs"
       - "core/identity/remote-node-compute-core.mjs"
       - "core/identity/remote-node-compute.ts"
       - "core/cloud/managed-cloud-compute-core.mjs"

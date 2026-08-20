@@ -27,6 +27,8 @@ export const PROFILE_VAULT_STATES = Object.freeze([
 ]);
 export const PROFILE_VAULT_KDF_MAINTENANCE = Object.freeze(["current", "upgrade-pending", "upgraded", "upgrade-deferred", "not-applicable"]);
 export const DEFAULT_SESSION_TTL_MS = 12 * 60 * 60 * 1_000;
+export const DEFAULT_SESSION_IDLE_TTL_MS = 30 * 60 * 1_000;
+export const DEFAULT_RECENT_REAUTHENTICATION_MS = 10 * 60 * 1_000;
 export const DEFAULT_BOOTSTRAP_TTL_MS = 15 * 60 * 1_000;
 
 const STATE_FIELDS = Object.freeze(["format", "version", "accessMode", "registry", "credentials", "bootstrap"]);
@@ -43,6 +45,9 @@ const PROFILE_SUMMARY_FIELDS = Object.freeze(["profileId", "displayName", "avata
 const BASE64URL_PATTERN = /^[A-Za-z0-9_-]+$/u;
 const RECOVERY_SECRET_PREFIX = "pprec1";
 const RECOVERY_CHECKSUM_BYTES = 5;
+const SESSION_ID_BYTES = 32;
+const SESSION_MANAGEMENT_ID_BYTES = 16;
+const CSRF_TOKEN_BYTES = 32;
 const textDecoder = new TextDecoder("utf-8", { fatal: true });
 const KNOWN_WEAK_PASSWORDS = Object.freeze(new Set([
   "admin", "admin/admin", "changeme", "letmein", "localhost", "password", "password123", "plotpickle", "qwerty123",
@@ -419,6 +424,15 @@ function digestProof(proof) {
   }
 }
 
+function digestSessionId(sessionId) {
+  const bytes = base64UrlBytes(sessionId, "Session id", SESSION_ID_BYTES);
+  try {
+    return createHash("sha256").update("plotpickle:server-session:v1\0", "utf8").update(bytes).digest("base64url");
+  } finally {
+    bytes.fill(0);
+  }
+}
+
 function publicAuthenticationFailure(cause) {
   return new PlotPickleAuthError("AUTHENTICATION_REJECTED", "Profile authentication failed.", {
     cause,
@@ -441,6 +455,16 @@ export async function createPlotPickleAuthService(options) {
   const now = typeof options.now === "function" ? options.now : Date.now;
   const randomBytes = typeof options.randomBytes === "function" ? options.randomBytes : systemRandomBytes;
   const sessionTtlMs = boundedDuration(options.sessionTtlMs ?? DEFAULT_SESSION_TTL_MS, "Session TTL", 30 * 24 * 60 * 60 * 1_000);
+  const sessionIdleTtlMs = boundedDuration(
+    options.sessionIdleTtlMs ?? Math.min(DEFAULT_SESSION_IDLE_TTL_MS, sessionTtlMs),
+    "Session idle TTL",
+    sessionTtlMs,
+  );
+  const recentReauthenticationMs = boundedDuration(
+    options.recentReauthenticationMs ?? Math.min(DEFAULT_RECENT_REAUTHENTICATION_MS, sessionTtlMs),
+    "Recent reauthentication window",
+    sessionTtlMs,
+  );
   const bootstrapTtlMs = boundedDuration(options.bootstrapTtlMs ?? DEFAULT_BOOTSTRAP_TTL_MS, "Bootstrap TTL", 24 * 60 * 60 * 1_000);
   const passwordParameters = normalizeArgon2idParameters(options.passwordParameters ?? ARGON2ID_DEFAULTS);
   const storedState = await stateStore.read();
@@ -522,25 +546,31 @@ export async function createPlotPickleAuthService(options) {
   for (const [targetProfileId, credential] of Object.entries(state.credentials)) {
     kdfMaintenance.set(targetProfileId, kdfNeedsUpgrade(credential.passwordEnvelope.kdf) ? "upgrade-pending" : "current");
   }
-  const invalidateSession = (sessionId) => {
-    const session = sessions.get(sessionId);
+  const invalidateSessionByKey = (sessionKey) => {
+    const session = sessions.get(sessionKey);
     if (!session) return false;
     session.profileMasterKey.fill(0);
-    sessions.delete(sessionId);
+    session.csrfToken.fill(0);
+    sessions.delete(sessionKey);
     return true;
   };
+  const invalidateSession = (sessionId) => invalidateSessionByKey(digestSessionId(sessionId));
   const invalidateProfileSessions = (targetProfileId) => {
     let invalidated = 0;
-    for (const [sessionId, session] of sessions) {
-      if (session.context.profileId === targetProfileId && invalidateSession(sessionId)) invalidated += 1;
+    for (const [sessionKey, session] of sessions) {
+      if (session.context.profileId === targetProfileId && invalidateSessionByKey(sessionKey)) invalidated += 1;
     }
     return invalidated;
   };
   const createSession = (targetProfileId, authStrength, profileMasterKey) => {
     const issuedAtMs = currentMs();
-    const sessionBytes = randomSecret(32, "Session id");
+    const sessionBytes = randomSecret(SESSION_ID_BYTES, "Session id");
+    const csrfToken = randomSecret(CSRF_TOKEN_BYTES, "CSRF token");
+    const managementBytes = randomSecret(SESSION_MANAGEMENT_ID_BYTES, "Session management id");
+    const sessionId = Buffer.from(sessionBytes).toString("base64url");
+    const sessionKey = digestSessionId(sessionId);
     const context = Object.freeze({
-      sessionId: Buffer.from(sessionBytes).toString("base64url"),
+      sessionId,
       profileId: targetProfileId,
       nodeId,
       authStrength,
@@ -549,17 +579,36 @@ export async function createPlotPickleAuthService(options) {
       roles: Object.freeze(["human"]),
     });
     sessionBytes.fill(0);
-    if (sessions.has(context.sessionId)) fail("AUTH_RANDOM_COLLISION", "Session id generation collided and failed closed.");
-    sessions.set(context.sessionId, { context, profileMasterKey: new Uint8Array(profileMasterKey) });
+    if (sessions.has(sessionKey) || [...sessions.values()].some((session) => session.managementId === Buffer.from(managementBytes).toString("base64url"))) {
+      csrfToken.fill(0);
+      managementBytes.fill(0);
+      fail("AUTH_RANDOM_COLLISION", "Session id generation collided and failed closed.");
+    }
+    sessions.set(sessionKey, {
+      context,
+      profileMasterKey: new Uint8Array(profileMasterKey),
+      csrfToken,
+      managementId: Buffer.from(managementBytes).toString("base64url"),
+      issuedAtMs,
+      lastSeenAtMs: issuedAtMs,
+      idleExpiresAtMs: Math.min(issuedAtMs + sessionIdleTtlMs, issuedAtMs + sessionTtlMs),
+      absoluteExpiresAtMs: issuedAtMs + sessionTtlMs,
+      reauthenticatedAtMs: issuedAtMs,
+      deviceLabel: "Browser session",
+      originLabel: accessMode === "desktop-loopback" ? "This computer" : "Network session",
+    });
+    managementBytes.fill(0);
     return context;
   };
-  const requireSession = (candidate) => {
+  const requireSession = (candidate, settings = {}) => {
     assertExactFields(candidate, AUTH_CONTEXT_FIELDS, "AuthContext");
-    const sessionId = base64UrlBytes(candidate.sessionId, "Session id", 32).toString("base64url");
-    const session = sessions.get(sessionId);
+    const sessionId = base64UrlBytes(candidate.sessionId, "Session id", SESSION_ID_BYTES).toString("base64url");
+    const sessionKey = digestSessionId(sessionId);
+    const session = sessions.get(sessionKey);
     if (!session || JSON.stringify(candidate) !== JSON.stringify(session.context)) fail("SESSION_REJECTED", "The Auth session is invalid or expired.");
-    if (Date.parse(session.context.expiresAt) <= currentMs()) {
-      invalidateSession(sessionId);
+    const observedAtMs = currentMs();
+    if (session.absoluteExpiresAtMs <= observedAtMs || session.idleExpiresAtMs <= observedAtMs) {
+      invalidateSessionByKey(sessionKey);
       emitCleanup(session.context.profileId, "session-expired", 1);
       fail("SESSION_REJECTED", "The Auth session is invalid or expired.");
     }
@@ -569,6 +618,10 @@ export async function createPlotPickleAuthService(options) {
       emitCleanup(session.context.profileId, "profile-unavailable", 1);
       fail("SESSION_REJECTED", "The Auth session is invalid or expired.");
     }
+    if (settings.touch !== false) {
+      session.lastSeenAtMs = observedAtMs;
+      session.idleExpiresAtMs = Math.min(session.absoluteExpiresAtMs, observedAtMs + sessionIdleTtlMs);
+    }
     return session;
   };
   const requireProfileActor = (candidate, targetProfileId) => {
@@ -576,6 +629,26 @@ export async function createPlotPickleAuthService(options) {
     if (session.context.profileId !== targetProfileId) fail("ACCESS_DENIED", "A Human profile may modify only its own Auth record.");
     return session;
   };
+  const requireRecentSession = (candidate, maximumAgeMs = recentReauthenticationMs) => {
+    const maximumAge = boundedDuration(maximumAgeMs, "Recent reauthentication window", sessionTtlMs);
+    const session = requireSession(candidate);
+    if (!new Set(["password", "password+webauthn"]).has(session.context.authStrength)
+      || currentMs() - session.reauthenticatedAtMs > maximumAge) {
+      fail("RECENT_REAUTHENTICATION_REQUIRED", "This action requires recent password or stronger authentication.");
+    }
+    return session;
+  };
+  const browserSessionSummary = (session, currentSessionKey) => Object.freeze({
+    sessionRef: session.managementId,
+    current: digestSessionId(session.context.sessionId) === currentSessionKey,
+    issuedAt: new Date(session.issuedAtMs).toISOString(),
+    lastSeenAt: new Date(session.lastSeenAtMs).toISOString(),
+    idleExpiresAt: new Date(session.idleExpiresAtMs).toISOString(),
+    absoluteExpiresAt: new Date(session.absoluteExpiresAtMs).toISOString(),
+    authStrength: session.context.authStrength,
+    deviceLabel: session.deviceLabel,
+    originLabel: session.originLabel,
+  });
   const createProfileRecord = async (input, bootstrapProof, authorizingContext) => {
     assertExactFields(input, ["displayName", "password", "avatarRef"], "Human profile creation input");
     if (typeof input.password !== "string" && !(input.password instanceof Uint8Array)) fail("INVALID_AUTH_CONTRACT", "Profile password must be a string or Uint8Array.");
@@ -917,6 +990,78 @@ export async function createPlotPickleAuthService(options) {
         },
       });
     },
+    resolveSession(sessionId, settings = {}) {
+      assertExactFields(settings, ["touch"], "Session resolution settings");
+      if (settings.touch !== undefined && typeof settings.touch !== "boolean") fail("INVALID_AUTH_CONTRACT", "Session touch setting must be boolean.");
+      const normalizedSessionId = base64UrlBytes(sessionId, "Session id", SESSION_ID_BYTES).toString("base64url");
+      const session = sessions.get(digestSessionId(normalizedSessionId));
+      if (!session) fail("SESSION_REJECTED", "The Auth session is invalid or expired.");
+      return requireSession(session.context, { touch: settings.touch !== false }).context;
+    },
+    createBrowserSession(authContext, presentation = {}) {
+      assertExactFields(presentation, ["deviceLabel", "originLabel"], "Browser session presentation");
+      const session = requireSession(authContext);
+      if (presentation.deviceLabel !== undefined) session.deviceLabel = exactString(presentation.deviceLabel, "Session device label", { maximumLength: 120 });
+      if (presentation.originLabel !== undefined) session.originLabel = exactString(presentation.originLabel, "Session origin label", { maximumLength: 120 });
+      return Object.freeze({
+        cookieValue: session.context.sessionId,
+        csrfToken: Buffer.from(session.csrfToken).toString("base64url"),
+        idleExpiresAt: new Date(session.idleExpiresAtMs).toISOString(),
+        absoluteExpiresAt: new Date(session.absoluteExpiresAtMs).toISOString(),
+      });
+    },
+    validateCsrfToken(authContext, candidateToken) {
+      const session = requireSession(authContext, { touch: false });
+      let supplied;
+      try {
+        supplied = base64UrlBytes(candidateToken, "CSRF token", CSRF_TOKEN_BYTES);
+        return timingSafeEqual(supplied, session.csrfToken);
+      } finally {
+        supplied?.fill(0);
+      }
+    },
+    requireRecentReauthentication(authContext, maximumAgeMs = recentReauthenticationMs) {
+      return requireRecentSession(authContext, maximumAgeMs).context;
+    },
+    listSessions(authContext) {
+      const current = requireSession(authContext);
+      const currentSessionKey = digestSessionId(current.context.sessionId);
+      const observedAtMs = currentMs();
+      const summaries = [];
+      for (const [sessionKey, session] of sessions) {
+        if (session.context.profileId !== current.context.profileId) continue;
+        if (session.absoluteExpiresAtMs <= observedAtMs || session.idleExpiresAtMs <= observedAtMs) {
+          invalidateSessionByKey(sessionKey);
+          continue;
+        }
+        summaries.push(browserSessionSummary(session, currentSessionKey));
+      }
+      return Object.freeze(summaries.sort((left, right) => right.issuedAt.localeCompare(left.issuedAt)));
+    },
+    revokeSession(sessionRef, authContext) {
+      const current = requireSession(authContext);
+      const normalizedRef = base64UrlBytes(sessionRef, "Session management id", SESSION_MANAGEMENT_ID_BYTES).toString("base64url");
+      for (const [sessionKey, session] of sessions) {
+        if (session.managementId !== normalizedRef) continue;
+        if (session.context.profileId !== current.context.profileId) fail("ACCESS_DENIED", "A Human profile may revoke only its own sessions.");
+        if (session.context.sessionId === current.context.sessionId) fail("CURRENT_SESSION_REJECTED", "Use logout to revoke the current session.");
+        const invalidated = invalidateSessionByKey(sessionKey);
+        if (invalidated) emitCleanup(session.context.profileId, "session-revoked", 1);
+        return invalidated;
+      }
+      fail("SESSION_NOT_FOUND", "The requested session is unavailable.");
+    },
+    revokeOtherSessions(authContext) {
+      const current = requireSession(authContext);
+      const currentSessionKey = digestSessionId(current.context.sessionId);
+      let invalidatedSessionCount = 0;
+      for (const [sessionKey, session] of sessions) {
+        if (sessionKey === currentSessionKey || session.context.profileId !== current.context.profileId) continue;
+        if (invalidateSessionByKey(sessionKey)) invalidatedSessionCount += 1;
+      }
+      if (invalidatedSessionCount) emitCleanup(current.context.profileId, "other-sessions-revoked", invalidatedSessionCount);
+      return invalidatedSessionCount;
+    },
     registerVaultCleanupHook(hook) {
       if (typeof hook !== "function") fail("INVALID_AUTH_CONTRACT", "Vault cleanup hook must be a function.");
       cleanupHooks.add(hook);
@@ -971,7 +1116,8 @@ export async function createPlotPickleAuthService(options) {
     async disableProfile(targetProfileId, authContext) {
       return serializeMutation(async () => {
         const normalizedProfileId = profileId(targetProfileId);
-        requireProfileActor(authContext, normalizedProfileId);
+        const authorizingSession = requireRecentSession(authContext);
+        if (authorizingSession.context.profileId !== normalizedProfileId) fail("ACCESS_DENIED", "A Human profile may modify only its own Auth record.");
         const existing = state.registry.profiles[normalizedProfileId];
         if (!existing) fail("PROFILE_NOT_FOUND", "Human profile was not found.");
         const disabled = freezeProfile({ ...existing, status: "disabled", updatedAt: currentIso() });

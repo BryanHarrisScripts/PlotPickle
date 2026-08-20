@@ -50,7 +50,7 @@ Writes use a restrictive temporary file, file sync, decrypt/parse verification a
 
 The encrypted Library registry and every project snapshot are inside the authenticated profile root. All reads, writes, lists, switches and explicit exports resolve the owner from `AuthContext`. A guessed project ID therefore searches only the current Human's project directory.
 
-Active-project selection is keyed by server session and profile in memory. Auth lock/logout cleanup removes active state for the affected profile. It is not a Node-global `activeProject` and it is not restored from another Human's browser state.
+Active-project selection is keyed by server session and profile in memory. Auth lock/logout cleanup removes only state whose server session is no longer valid; another authorized session for the same Human keeps its own active project. It is not a Node-global `activeProject` and it is not restored from another Human's browser state.
 
 Creative memory, retrieval indexes and caches use the same profile envelope and require domain/object IDs that include project and agent scope where applicable. Lock invalidates the capability needed to read them. Operational Node learning remains outside these Human-private roots and must not ingest their contents.
 
@@ -69,7 +69,7 @@ The #1122 browser Library, plaintext `PLOTPICKLE_HOME/projects` files and `PLOTP
 
 An inventory change after the source becomes read-only fails closed. A partial migration never re-enables the old writer. Logs contain profile/source/record IDs, counts, stage and status only—never story text, prompts, credential values or decrypted envelopes. Failed old-store decryption propagates as a migration failure rather than producing empty defaults.
 
-The per-request cookie/session transport that supplies `AuthContext` to application gateways belongs to #1142. Until that transport is present, legacy browser state may be read only by the explicit migration adapter; it must not be treated as server authorization.
+The #1142 server-session boundary resolves `AuthContext` from an opaque HttpOnly cookie on every request. Legacy browser state may be read only by the explicit migration adapter; it is never server authorization.
 
 ## NodeSecretStore
 

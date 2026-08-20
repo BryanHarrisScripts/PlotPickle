@@ -247,7 +247,8 @@ function normalizeLibrary(value, profileId) {
 
 export function createProfilePrivateStorageService(options) {
   const home = requireAbsoluteRoot(options?.root);
-  if (!options?.authService || typeof options.authService.createProfileVaultCapability !== "function" || typeof options.authService.registerVaultCleanupHook !== "function") {
+  if (!options?.authService || typeof options.authService.createProfileVaultCapability !== "function"
+    || typeof options.authService.registerVaultCleanupHook !== "function" || typeof options.authService.resolveSession !== "function") {
     fail("Profile-private storage requires the canonical PlotPickle Auth service.", "INVALID_STORAGE_CONTRACT");
   }
   const now = typeof options.now === "function" ? options.now : () => new Date().toISOString();
@@ -255,7 +256,15 @@ export function createProfilePrivateStorageService(options) {
   const mutationQueues = new Map();
 
   const cleanup = options.authService.registerVaultCleanupHook((event) => {
-    for (const [sessionId, active] of activeProjects) if (active.profileId === event.profileId) activeProjects.delete(sessionId);
+    for (const [sessionId, active] of activeProjects) {
+      if (active.profileId !== event.profileId) continue;
+      try {
+        options.authService.resolveSession(sessionId, { touch: false });
+      } catch (error) {
+        if (error?.code !== "SESSION_REJECTED") throw error;
+        activeProjects.delete(sessionId);
+      }
+    }
   });
 
   const authority = async (authContext) => {

@@ -35,12 +35,12 @@ function findCommunityHeader() {
 }
 
 function openGreatHall() {
-  const greatHall = document.querySelector<HTMLButtonElement>('[data-community-section="great-hall"]');
+  const greatHall = document.querySelector<HTMLButtonElement>('[data-community-room="great-hall"]');
   if (!greatHall) return false;
   const alreadyOpen = greatHall.getAttribute("aria-current") === "page";
   if (!alreadyOpen) greatHall.click();
   window.setTimeout(() => {
-    const composer = document.querySelector<HTMLTextAreaElement>('textarea[placeholder="Write to the Great Hall…"]');
+    const composer = document.querySelector<HTMLTextAreaElement>('textarea[placeholder="Write to Great Hall…"]');
     const conversation = composer?.closest("section");
     conversation?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, 80);
@@ -99,7 +99,7 @@ export default function CommunityPublicConversationsRail() {
       <header className={styles.header}>
         <div>
           <p>Public conversations</p>
-          <h2>Jump back into the Great Hall</h2>
+          <h2>Jump back into Hall 1 · Great Hall</h2>
         </div>
         <button disabled={status === "loading"} onClick={() => void refresh(true)} type="button">
           {status === "loading" ? "Loading…" : "Refresh"}
@@ -111,7 +111,7 @@ export default function CommunityPublicConversationsRail() {
       ) : null}
 
       <p className={styles.explainer}>
-        The Great Hall is PlotPickle's public conversation surface. Private Story Rooms and Guildhall rooms stay out of this list.
+        Hall 1 is PlotPickle&apos;s public human conversation surface. Private Story Rooms and Guildhall agent routes stay out of this list.
       </p>
 
       <div className={styles.list}>

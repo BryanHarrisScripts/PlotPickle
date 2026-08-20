@@ -148,13 +148,15 @@ test("Community overview adds a right-rail quick jump for recent public Great Ha
 });
 
 test("native Community reads Great Hall membership, profile and presence through the supported Buzz CLI", async () => {
-  const [gateway, vite] = await Promise.all([
+  const [gateway, guard, vite] = await Promise.all([
     read("build/buzz-community-gateway.ts"),
+    read("build/buzz-human-identity-guard.ts"),
     read("vite.config.ts"),
   ]);
 
   assert.match(vite, /import \{ buzzCommunityGateway \} from "\.\/build\/buzz-community-gateway"/);
-  assert.match(vite, /buzzCommunityGateway\(\),\s*buzzAgentRosterGateway\(\),\s*buzzGuildhallGateway\(\),\s*buzzLiveHealthGateway\(\),\s*buzzStoryRoomAccessGateway\(\),\s*buzzGateway\(\)/);
+  assert.match(vite, /import \{ buzzHumanIdentityGuard \} from "\.\/build\/buzz-human-identity-guard"/);
+  assert.match(vite, /buzzCommunityGateway\(\),\s*buzzAgentRosterGateway\(\),\s*buzzGuildhallGateway\(\),\s*buzzHumanIdentityGuard\(\),\s*buzzLiveHealthGateway\(\),\s*buzzStoryRoomAccessGateway\(\),\s*buzzGateway\(\)/);
   assert.match(gateway, /channels", "members", "--channel"/);
   assert.match(gateway, /"users", "get"/);
   assert.match(gateway, /"users", "presence", "--pubkeys"/);
@@ -163,6 +165,15 @@ test("native Community reads Great Hall membership, profile and presence through
   assert.match(gateway, /"channels", "remove-member"/);
   assert.match(gateway, /fullRosterSupported: false/);
   assert.match(gateway, /inviteManagement: "buzz-desktop"/);
+
+  assert.match(guard, /humanCommunityAllowed/);
+  assert.match(guard, /BUZZ_GUILDHALL_ACTORS/);
+  assert.match(guard, /"--format", "compact", "users", "get"/);
+  assert.match(guard, /human-buzz-identity-required/);
+  assert.match(guard, /Sage is your PlotPickle guide; Sage is not your Community identity/);
+  assert.match(guard, /url\.pathname === `\$\{API\}\/messages` && isBrowserAuthoredRequest\(request\)/);
+  assert.match(guard, /url\.pathname === `\$\{API\}\/human-identity`/);
+  assert.match(guard, /\[redacted-nsec\]/);
 });
 
 test("normal Great Hall conversation is projected away from BUZZ and UAT telemetry", async () => {

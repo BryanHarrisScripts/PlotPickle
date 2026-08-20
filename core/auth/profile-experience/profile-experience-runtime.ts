@@ -62,7 +62,12 @@ function enabled(value: string | undefined) {
 }
 
 function accessMode() {
-  return process.env.PLOTPICKLE_ACCESS_MODE?.trim() === "server-network" ? "server-network" : "desktop-loopback";
+  if (process.env.PLOTPICKLE_ACCESS_MODE?.trim() !== "server-network") return "desktop-loopback" as const;
+  const bindHost = process.env.PLOTPICKLE_BIND_HOST?.trim() || "";
+  const externalOrigin = process.env.PLOTPICKLE_EXTERNAL_ORIGIN?.trim() || "";
+  const explicitlyEnabled = enabled(process.env.PLOTPICKLE_SERVER_NETWORK_ENABLED);
+  const hasNetworkIntent = Boolean(bindHost && externalOrigin && explicitlyEnabled);
+  return hasNetworkIntent ? "server-network" as const : "desktop-loopback" as const;
 }
 
 function serverExposure(): ServerExposureInput {

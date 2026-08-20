@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import ReleaseHistoryPanel from "../modules/dashboard/ui/release-history";
 import AgentObservabilityPanel from "./agent-observability-panel";
 import AiRoutingPanel from "./ai-routing-panel";
 import BuzzLiveHealthCard from "./buzz-live-health-card";
@@ -21,6 +23,7 @@ const LEGACY_HELP_DESTINATION = { id: "settings-help", label: "HELP" } as const;
 
 type SettingsSection =
   | "overview"
+  | "updates"
   | "help"
   | "models"
   | "routing"
@@ -48,6 +51,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
     label: "Start",
     items: [
       { id: "overview", label: "Overview", detail: "What is ready and what is next" },
+      { id: "updates", label: "What’s New", detail: "Latest PlotPickle releases and changes" },
       { id: "help", label: "HELP", detail: "Who does what in PlotPickle" },
     ],
   },
@@ -80,6 +84,7 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
 const ALL_SECTIONS = new Set(SETTINGS_GROUPS.flatMap((group) => group.items.map((item) => item.id)));
 const LEGACY_TARGETS: Record<string, SettingsSection> = {
   "settings-quick": "overview",
+  "settings-updates": "updates",
   [LEGACY_HELP_DESTINATION.id]: "help",
   "settings-models": "models",
   "settings-activity": "activity",
@@ -158,6 +163,8 @@ export default function SageSettingsWorkspace() {
 
   function renderSection() {
     switch (activeSection) {
+      case "updates":
+        return <section id="settings-updates"><SectionIntro eyebrow="Settings · Latest updates" title="What’s New in PlotPickle." detail="Review the latest user-facing release notes without interrupting the main creative workspace." /><ReleaseHistoryPanel /></section>;
       case "help":
         return <section id="settings-help"><SectionIntro eyebrow="Settings · HELP" title="Meet the PlotPickle helpers." detail="Understand each helper before changing agent or runtime configuration." /><SettingsHelperDirectory /></section>;
       case "models":
@@ -192,8 +199,8 @@ export default function SageSettingsWorkspace() {
                 <li><strong>Step 4:</strong> Test PLAN.</li>
               </ol>
               <div className={styles.quickLinks}>
-                <a href="/?workspace=learn">Return to LEARN</a>
-                <a href="/?workspace=plan">Return to PLAN</a>
+                <Link href="/?workspace=learn">Return to LEARN</Link>
+                <Link href="/?workspace=plan">Return to PLAN</Link>
                 <button type="button" onClick={() => navigateSection("models")}>Configure Sage & PLAN</button>
               </div>
             </section>

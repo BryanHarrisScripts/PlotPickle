@@ -14,7 +14,6 @@ import {
 } from "../guided-progression";
 import { deriveVisualWriterFrontierStatus } from "../visual-writer-frontier";
 import AverySessionHistory from "./avery-session-history";
-import ReleaseHistoryPanel from "./release-history";
 import styles from "./dashboard-workspace.module.css";
 
 type DashboardDestination = "learn" | "plan" | "build";
@@ -98,7 +97,6 @@ export default function DashboardWorkspace({
       </header>
 
       <AverySessionHistory />
-      <ReleaseHistoryPanel />
 
       <section className={styles.nextModule} aria-label="Visual Writer current frontier">
         <div>

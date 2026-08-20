@@ -49,6 +49,7 @@
         "tests/issue-695-settings-dark-buzz-health.test.mjs",
         "tests/issue-1105-settings-dark-surface-regression.test.mjs",
         "tests/issue-1111-settings-unified-workspace.test.mjs",
+        "tests/issue-1121-whats-new-settings.test.mjs",
         "tests/pi-local-model-exhaustive-uat.test.mjs",
         "tests/automatic-local-model-capabilities.test.mjs",
         "tests/issue-879-visual-continuity.test.mjs"

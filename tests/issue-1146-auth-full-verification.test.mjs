@@ -15,7 +15,7 @@ const passwordB = "Jane auth matrix separate passphrase";
 const storyCanaryA = "PP_1146_BRYAN_PRIVATE_STORY_CANARY";
 const storyCanaryB = "PP_1146_JANE_PRIVATE_STORY_CANARY";
 const credentialCanaryA = "PP_1146_BRYAN_PROVIDER_SECRET_CANARY";
-const buzzCanaryA = "nsec1PP1146BRYANPRIVATEIDENTITYCANARY";
+const buzzCanaryA = "PP_1146_BRYAN_BUZZ_PRIVATE_KEY_CANARY";
 
 async function text(file) {
   return readFile(path.join(root, file), "utf8");
@@ -68,7 +68,7 @@ test("#1146 fresh desktop and server profile creation remain self-contained and 
   assert.match(ui, /bootstrapProof/u);
   assert.match(ui, /next\.configured \? "login" : "create"/u);
   assert.match(route, /create-first-profile[\s\S]*bootstrapProof/u);
-  assert.doesNotMatch(ui, /type="email"|Sign up with|Google login is required/u);
+  assert.doesNotMatch(ui, /type="email"|Sign up with|Continue with Google/u);
 });
 
 test("#1146 browser persistence and locked metadata audits keep authentication secrets out of durable browser storage", async () => {

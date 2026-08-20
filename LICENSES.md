@@ -71,6 +71,8 @@ See `TRADEMARKS.md`.
 
 Third-party dependencies, fonts, images, sample content, and other included material remain subject to their own copyright notices and licences. Their inclusion does not change those terms.
 
+PlotPickle's Auth cryptographic contract uses `libsodium-wrappers-sumo` and its `libsodium-sumo` runtime under the ISC licence. That permissive licence is compatible with distribution in the AGPL-licensed application; the upstream copyright and licence notices remain applicable.
+
 ## 7. No warranty and no legal advice
 
 PlotPickle is provided without warranty to the extent permitted by the applicable licences and law.

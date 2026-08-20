@@ -38,23 +38,30 @@ test("full verification delegates the requested checks to the graph and centrali
   assert.match(runner, /if \(\$GitHubReport\) \{ \$Arguments \+= "--github-report" \}/);
 });
 
-test("full verification graph starts its managed app server and waits for localhost readiness", async () => {
-  const [runner, graph] = await Promise.all([
+test("full verification graph starts one job-scoped dynamic endpoint and proves exact worktree HEAD", async () => {
+  const [runner, graph, endpointRuntime, proofGateway] = await Promise.all([
     read("scripts/run-plotpickle-full-check.ps1"),
     read("scripts/full-verification-graph.mjs"),
+    read("scripts/local-endpoint-runtime.mjs"),
+    read("build/local-instance-proof-gateway.ts"),
   ]);
 
   assert.match(runner, /full-verification-graph\.mjs/);
-  assert.match(graph, /http:\/\/127\.0\.0\.1:4173/);
-  assert.match(graph, /node_modules", "vite", "bin", "vite\.js"/);
-  assert.match(graph, /spawn\(process\.execPath, \[viteCli, "--host", "127\.0\.0\.1", "--port", "4173", "--strictPort"\]/);
-  assert.match(graph, /ensurePlotPickleReady/);
-  assert.match(graph, /PLOTPICKLE_STARTUP_CONTRACT:\s*"plotpickle-full-verification"/);
-  assert.match(graph, /while \(Date\.now\(\) < deadline\)/);
+  assert.match(graph, /createVerificationEndpointContext/);
+  assert.match(graph, /startManagedPlotPickleEndpoint/);
+  assert.match(graph, /plotpickle-full-verification-endpoint-v1/);
+  assert.match(graph, /endpointProvenance:\s*endpointContext\.evidence\(\)/);
   assert.match(graph, /id: "app-ready"[\s\S]*dependencies: \[\{ id: "production-build", require: "complete"/);
+  assert.doesNotMatch(graph, /http:\/\/127\.0\.0\.1:4173|"--port",\s*"4173"/);
+  assert.doesNotMatch(graph, /managedVerificationRuntime/);
+  assert.match(endpointRuntime, /reserveLoopbackPort/);
+  assert.match(endpointRuntime, /--strictPort/);
+  assert.match(endpointRuntime, /PLOTPICKLE_EXPECTED_COMMIT/);
+  assert.match(endpointRuntime, /verifyExactLocalInstance/);
+  assert.match(proofGateway, /git", \["rev-parse", "HEAD"\]/);
+  assert.match(proofGateway, /exactHead/);
   assert.doesNotMatch(graph, /Start-PlotPickle\.bat/);
-  assert.doesNotMatch(graph, /spawn\("cmd\.exe"/);
-  assert.doesNotMatch(graph, /shell:\s*true/);
+  assert.doesNotMatch(endpointRuntime, /shell:\s*true/);
 });
 
 test("normal startup no longer needs a UAT-prompt suppression workaround", async () => {

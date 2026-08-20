@@ -11,6 +11,7 @@ import { partitionExhaustiveFindings } from "./exhaustive-ui-finding-policy.mjs"
 import { runExhaustiveUiControlAudit } from "./exhaustive-ui-control-audit.mjs";
 import { bestEffortLiveBuzzActivity } from "./buzz-live-activity.mjs";
 import { inspectWorkspaceNavigation, navigationViolations } from "./workspace-navigation-uat.mjs";
+import { resolveLocalEndpointTarget } from "./local-endpoint-target.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -19,7 +20,6 @@ const argument = (name, fallback = "") => {
   return index >= 0 && index + 1 < args.length ? args[index + 1] : fallback;
 };
 const has = (name) => args.includes(name);
-const baseUrl = argument("--base-url", process.env.PLOTPICKLE_ACCEPTANCE_URL || "http://127.0.0.1:4173");
 const localRoot = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
 const artifactRoot = path.resolve(argument("--artifact-root", path.join(localRoot, "PlotPickle", "uat-exhaustive")));
 const githubReport = has("--github-report");
@@ -32,8 +32,13 @@ function status(label, state, detail = "") {
 }
 
 async function main() {
+  const endpointTarget = await resolveLocalEndpointTarget({ args });
+  const baseUrl = endpointTarget.baseUrl;
   await mkdir(artifactRoot, { recursive: true });
   await mkdir(pluginData, { recursive: true });
+  status("UAT endpoint", "READY", endpointTarget.evidence
+    ? `${endpointTarget.evidence.endpointId} generation ${endpointTarget.evidence.generation} · exact-instance=${endpointTarget.evidence.exactInstanceProof}`
+    : endpointTarget.source);
   // Reuse only the stable local writer recovery/Settings accessibility normalizer.
   // This patches MCP snapshots for known native <summary> controls but does not give
   // Avery or the exhaustive auditor hidden application state.
@@ -65,9 +70,24 @@ async function main() {
       throw new Error(`Global navigation UAT failed: ${navigationProblems.join("; ")}`);
     }
     audit = await runExhaustiveUiControlAudit({ client, toolMap, baseUrl, repoRoot, status });
+    await endpointTarget.assertCurrent();
   } finally {
-    try { if (tools.some((tool) => tool.name === "browser_close")) await client.call("browser_close", {}); } catch {}
-    await client.close().catch(() => {});
+    const cleanupErrors = [];
+    if (tools.some((tool) => tool.name === "browser_close")) {
+      try {
+        await client.call("browser_close", {});
+      } catch (error) {
+        cleanupErrors.push(error);
+      }
+    }
+    try {
+      await client.close();
+    } catch (error) {
+      cleanupErrors.push(error);
+    }
+    if (cleanupErrors.length) {
+      throw new AggregateError(cleanupErrors, "Exhaustive UAT browser cleanup failed.");
+    }
   }
 
   const { reportable: reportableAuditFindings, harnessOnly: harnessFindings } = partitionExhaustiveFindings(audit.findings || []);
@@ -76,6 +96,7 @@ async function main() {
     area: "exhaustive-ui-ux",
     evidence: {
       target: baseUrl,
+      ...(endpointTarget.evidence ? { endpoint: endpointTarget.evidence } : {}),
       expectation: item.expectation,
       impact: item.impact,
       detail: item.evidence,
@@ -83,9 +104,11 @@ async function main() {
     },
   }));
   const report = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     generatedAt: new Date().toISOString(),
     target: baseUrl,
+    endpointSource: endpointTarget.source,
+    endpointProvenance: endpointTarget.evidence,
     overall: audit.complete ? "PASS" : "FAIL",
     audit,
     harnessFindings,
@@ -97,6 +120,12 @@ async function main() {
     "# PlotPickle exhaustive synthetic UAT",
     "",
     `Overall: ${report.overall}`,
+    ...(endpointTarget.evidence ? [
+      `Endpoint: ${endpointTarget.evidence.endpointId}`,
+      `Endpoint generation: ${endpointTarget.evidence.generation}`,
+      `Endpoint exact-instance proof: ${endpointTarget.evidence.exactInstanceProof}`,
+      `Tested commit: ${endpointTarget.evidence.commitSha}`,
+    ] : []),
     `Safe controls: ${audit.totals.safe}`,
     `Passed: ${audit.totals.passed}`,
     `Blocked by safety boundary: ${audit.totals.blocked}`,

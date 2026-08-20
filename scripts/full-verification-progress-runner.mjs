@@ -7,7 +7,6 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import {
   FULL_VERIFICATION_GRAPH,
-  ensurePlotPickleReady,
   runVerificationGraph,
 } from "./full-verification-graph.mjs";
 import {
@@ -109,7 +108,7 @@ function writeChunk(prefix, stream, chunk) {
   for (const line of text.split(/(?<=\n)/)) if (line) stream.write(`[${prefix}] ${line}`);
 }
 
-export async function executeBoundedCommand(node, timeoutMs = 0, stallTimeoutMs = 0) {
+export async function executeBoundedCommand(node, timeoutMs = 0, stallTimeoutMs = 0, options = {}) {
   const { command, args } = verificationCommandFor(node);
   const started = Date.now();
   let tail = "";
@@ -117,8 +116,8 @@ export async function executeBoundedCommand(node, timeoutMs = 0, stallTimeoutMs 
     let settled = false;
     let timedOut = false;
     const child = spawn(command, args, {
-      cwd: repoRoot,
-      env: { ...process.env },
+      cwd: options.cwd || repoRoot,
+      env: { ...process.env, ...(options.env || {}) },
       windowsHide: true,
       shell: false,
       stdio: ["ignore", "pipe", "pipe"],
@@ -216,14 +215,17 @@ async function main() {
       startupWaitSeconds,
       maxParallelism,
       echo: true,
-      execute: async (node) => {
+      execute: async (node, endpointContext) => {
         active.set(node.id, node.name);
         try {
-          if (node.tool === "app-ready") return await ensurePlotPickleReady({ startupWaitSeconds, echo: true });
+          if (node.tool === "app-ready") {
+            return await endpointContext.ensureReady({ startupWaitSeconds, echo: true, cwd: repoRoot });
+          }
           return await executeBoundedCommand(
             node,
             verificationTimeoutForNode(node),
             verificationStallTimeoutForNode(node),
+            { env: endpointContext.environment() },
           );
         } finally {
           active.delete(node.id);

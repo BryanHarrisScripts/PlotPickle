@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { createHash } from "node:crypto";
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -32,6 +32,30 @@ const pluginRoot = path.join(repoRoot, "tools", "agent-plugins", "plotpickle-wor
 const pluginData = path.join(artifactRoot, "browser-profile");
 const reportPath = path.join(artifactRoot, "writer-in-residence-report.json");
 const markdownPath = path.join(artifactRoot, "writer-in-residence-report.md");
+
+function exactHeadProvenance() {
+  const testedCommit = execFileSync("git", ["rev-parse", "HEAD"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    windowsHide: true,
+  }).trim();
+  const workingTreeClean = execFileSync("git", ["status", "--porcelain"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    windowsHide: true,
+  }).trim() === "";
+  return Object.freeze({
+    testedCommit,
+    workingTreeClean,
+    platform: process.platform,
+    platformRelease: os.release(),
+    nodeVersion: process.version,
+    endpoint: baseUrl,
+    runtimeSource: process.env.PLOTPICKLE_WRITER_RUNTIME_SOURCE || "unknown",
+  });
+}
+
+let runProvenance = null;
 
 function status(label, state, detail = "") {
   process.stdout.write(`${String(label).padEnd(44, ".")} ${state}${detail ? `  ${detail}` : ""}\n`);
@@ -206,13 +230,40 @@ async function writeAugmentedReport({
     && audit?.passed === true
     && !completionError
     && !auditError;
+  const worldPlanCheckpoint = audit?.ledger?.find((entry) => entry.id === "world-plan") || null;
+  const discrepancyClassification = overallPass
+    ? process.platform === "win32" && runProvenance.workingTreeClean && runProvenance.testedCommit !== "unknown"
+      ? "STALE_EXTERNAL_TOPIC"
+      : "UNCLASSIFIED_PENDING_EXACT_WINDOWS_LIVE_PROOF"
+    : worldPlanCheckpoint?.status === "observer-failed"
+        && ["payload-validation", "browser-evaluate", "result-parse"].includes(worldPlanCheckpoint.stage)
+      ? "HARNESS_OR_RUNTIME_COMPATIBILITY_DEFECT"
+      : worldPlanCheckpoint?.status === "product-state-failed"
+        ? "PRODUCT_DOM_CONTRACT_DRIFT"
+        : "RECURRENT_PRODUCT_OR_OBSERVER_DEFECT";
 
-  report.schemaVersion = Math.max(7, Number(report.schemaVersion || 0));
+  report.schemaVersion = Math.max(8, Number(report.schemaVersion || 0));
   report.finishedReason = overallPass ? "complete-journey" : "end-to-end-acceptance-failed";
   report.explorationAcceptance = exploration;
   report.sageAcceptance = sageAcceptance;
   report.completionJourney = completion;
   report.finalStateAudit = audit;
+  report.revalidation = {
+    schemaVersion: 1,
+    provenance: runProvenance,
+    averyPhase: exploration.passed ? "PASS" : "FAIL",
+    visibleCompletion: completion?.completed === true ? "PASS" : "FAIL",
+    sage: sageAcceptance?.passed === true ? "PASS" : "FAIL",
+    independentFinalStateObserver: audit?.passed === true ? "PASS" : "FAIL",
+    worldPlanObserver: worldPlanCheckpoint ? {
+      status: worldPlanCheckpoint.status,
+      stage: worldPlanCheckpoint.stage,
+      detail: worldPlanCheckpoint.detail,
+    } : { status: "not-reached", stage: "missing-ledger", detail: "World PLAN has no final-state ledger entry." },
+    finalWriterAcceptance: overallPass ? "PASS" : "FAIL",
+    fullVerificationIntegration: process.env.PLOTPICKLE_FULL_VERIFICATION_RUN_ID || "not-run-in-writer-wrapper",
+    discrepancyClassification,
+  };
   report.session = {
     ...(report.session || {}),
     syntheticOwner: report.persona?.name || "Avery North",
@@ -236,11 +287,15 @@ async function writeAugmentedReport({
     "",
     "## End-to-end final-state acceptance",
     "",
+    `**Tested commit:** ${runProvenance.testedCommit}`,
+    `**Runtime provenance:** ${runProvenance.platform} ${runProvenance.platformRelease} · Node ${runProvenance.nodeVersion} · ${runProvenance.endpoint} · ${runProvenance.runtimeSource} · working tree ${runProvenance.workingTreeClean ? "clean" : "dirty"}`,
     `**Exploratory screen coverage:** ${exploration.journeyComplete ? "PASS" : "FAIL"}`,
     `**Required Sage conversation:** ${sageAcceptance?.completed || 0}/${sageAcceptance?.requested || 0}`,
     `**Visible completion journey:** ${completion?.completed ? "PASS" : "FAIL"}`,
     `**Independent reopened-state audit:** ${audit?.passed ? "PASS" : "FAIL"}`,
+    `**World PLAN observer:** ${worldPlanCheckpoint?.status || "not-reached"} · ${worldPlanCheckpoint?.stage || "missing-ledger"}`,
     `**Overall Writer-in-Residence acceptance:** ${overallPass ? "PASS" : "FAIL"}`,
+    `**External discrepancy classification:** ${discrepancyClassification}`,
     completionError ? `**Completion error:** ${completionError}` : "",
     auditError ? `**Observer error:** ${auditError}` : "",
     exploration.settingsDepthComplete ? "**Exploratory Settings depth:** PASS" : "**Exploratory Settings depth:** WARN (recorded, nonblocking for the story frontier)",
@@ -259,6 +314,8 @@ async function writeAugmentedReport({
 async function main() {
   await mkdir(artifactRoot, { recursive: true });
   await mkdir(pluginData, { recursive: true });
+  runProvenance = exactHeadProvenance();
+  status("Writer exact-head provenance", "INFO", `${runProvenance.testedCommit} · ${runProvenance.workingTreeClean ? "clean" : "dirty"} · ${runProvenance.platform} · ${runProvenance.endpoint} · ${runProvenance.runtimeSource}`);
 
   status("Writer v4 exploratory journey", "START");
   const baseExitCode = await runChild(path.join(repoRoot, "scripts", "run-writer-in-residence-v4.mjs"), [
@@ -272,7 +329,7 @@ async function main() {
   const writerConfig = JSON.parse(await readFile(path.join(repoRoot, "config", "writer-in-residence.json"), "utf8"));
   let sageAcceptance = sageFromBaseReport(baseReport);
   let completion = { schemaVersion: 1, completed: false, authority: "synthetic-writer-visible-ui-only", steps: [] };
-  let audit = { schemaVersion: 2, passed: false, checks: [], marketingReference: null, ledger: [] };
+  let audit = { schemaVersion: 3, passed: false, checks: [], marketingReference: null, ledger: [], observerFailures: [] };
   let completionError = "";
   let auditError = "";
   let clientBundle = null;
@@ -316,6 +373,7 @@ async function main() {
         resultText,
         baseUrl,
         captureScreenshot: (name) => captureScreenshot(clientBundle.client, clientBundle.toolMap, name),
+        provenance: runProvenance,
       });
       status("Independent final-state observer", audit.passed ? "PASS" : "FAIL", `${audit.checks.filter((item) => item.passed).length}/${audit.checks.length}`);
       if (audit.marketingReference) {

@@ -38,6 +38,8 @@ test("#1110 every read-only observer page function compiles before browser_evalu
     "inspectDashboardPage",
     "inspectLearnPage",
     "inspectPlanPage",
+    "inspectSettingsPage",
+    "inspectWyrmwoodPage",
     "inspectWorldPlanPage",
     "readProjectPage",
   ].sort());

@@ -112,25 +112,183 @@ function npmGlobalPrefix() {
   return result.stdout;
 }
 
-export async function resolvePiCommand() {
-  const explicit = String(process.env.PLOTPICKLE_PI_COMMAND || "").trim();
+async function defaultPiVersionProbe(command) {
+  const result = await runPortableCommand(command, ["--version"], { timeout: 15_000 });
+  return { ok: true, version: result.stdout || result.stderr || "unknown" };
+}
+
+function resolutionFailure(input = {}) {
+  return Object.freeze({
+    ready: false,
+    executable: input.executable || "",
+    version: "",
+    discoveryMethod: input.discoveryMethod || "none",
+    nodeExecutable: input.nodeExecutable || process.execPath,
+    npmExecutable: input.npmExecutable || "",
+    npmPrefix: input.npmPrefix || "",
+    remediationCode: input.remediationCode || "not-installed",
+    message: input.message || `Pi is not installed. Install it with npm install -g ${PI_CODING_AGENT_PACKAGE}.`,
+  });
+}
+
+export async function resolvePiExecutable(options = {}) {
+  const platform = options.platform || process.platform;
+  const environment = options.env || process.env;
+  const pathApi = platform === "win32" ? path.win32 : path.posix;
+  const fileExists = options.existsSync || existsSync;
+  const locate = options.commandOnPath || commandOnPath;
+  const prefixResolver = options.npmGlobalPrefix || npmGlobalPrefix;
+  const versionProbe = options.versionProbe || defaultPiVersionProbe;
+  const nodeExecutable = options.nodeExecutable || process.execPath;
+  let npmExecutable = "";
+  let npmPrefix = "";
+  let npmPrefixError = "";
+  let pathCandidate = "";
+  const invalidCandidates = [];
+
+  const safeLocate = (name) => {
+    try {
+      return String(locate(name) || "").trim();
+    } catch {
+      return "";
+    }
+  };
+  npmExecutable = safeLocate("npm");
+
+  const validate = async (candidate, discoveryMethod) => {
+    if (!candidate || !fileExists(candidate)) return null;
+    try {
+      const result = await versionProbe(candidate);
+      const ok = typeof result === "string"
+        ? true
+        : result?.ok !== false && (result?.status === undefined || result.status === 0);
+      const version = typeof result === "string"
+        ? result.trim()
+        : String(result?.version || result?.stdout || result?.stderr || "unknown").trim();
+      if (!ok) throw new Error(String(result?.message || result?.stderr || "Pi --version returned a failure."));
+      return Object.freeze({
+        ready: true,
+        executable: candidate,
+        version: version || "unknown",
+        discoveryMethod,
+        nodeExecutable,
+        npmExecutable,
+        npmPrefix,
+        remediationCode: discoveryMethod === "path" || discoveryMethod === "explicit" ? "ready" : "stale-path-recovered",
+        message: discoveryMethod === "path" || discoveryMethod === "explicit"
+          ? `Pi ${version || "unknown"} is ready.`
+          : `Pi ${version || "unknown"} was recovered outside the inherited PATH using ${discoveryMethod}.`,
+      });
+    } catch (error) {
+      invalidCandidates.push({ candidate, discoveryMethod, message: error instanceof Error ? error.message : String(error) });
+      return null;
+    }
+  };
+
+  const explicit = String(options.explicitCommand ?? environment.PLOTPICKLE_PI_COMMAND ?? "").trim();
   if (explicit) {
-    if (path.isAbsolute(explicit)) {
-      if (firstExisting([explicit])) return explicit;
+    const candidate = pathApi.isAbsolute(explicit) ? explicit : safeLocate(explicit);
+    if (!candidate || !fileExists(candidate)) {
+      return resolutionFailure({
+        executable: candidate || explicit,
+        discoveryMethod: "explicit",
+        nodeExecutable,
+        npmExecutable,
+        remediationCode: "explicit-missing",
+        message: `The configured Pi executable does not exist or is not discoverable: ${explicit}`,
+      });
+    }
+    const validated = await validate(candidate, "explicit");
+    if (validated) return validated;
+    return resolutionFailure({
+      executable: candidate,
+      discoveryMethod: "explicit",
+      nodeExecutable,
+      npmExecutable,
+      remediationCode: "explicit-invalid",
+      message: `The configured Pi executable failed its bounded --version check: ${candidate}`,
+    });
+  }
+
+  pathCandidate = safeLocate("pi");
+  if (pathCandidate) {
+    const validated = await validate(pathCandidate, "path");
+    if (validated) return validated;
+  }
+
+  try {
+    npmPrefix = String(prefixResolver() || "").trim();
+  } catch (error) {
+    npmPrefixError = error instanceof Error ? error.message : String(error);
+  }
+
+  const candidates = [];
+  if (npmPrefix) {
+    if (platform === "win32") {
+      candidates.push(
+        { candidate: pathApi.join(npmPrefix, "pi.cmd"), method: "npm-global-prefix" },
+        { candidate: pathApi.join(npmPrefix, "pi.exe"), method: "npm-global-prefix" },
+        { candidate: pathApi.join(npmPrefix, "pi"), method: "npm-global-prefix" },
+      );
     } else {
-      const located = commandOnPath(explicit);
-      if (located) return located;
+      candidates.push({ candidate: pathApi.join(npmPrefix, "bin", "pi"), method: "npm-global-prefix" });
     }
   }
 
-  const fromPath = commandOnPath("pi");
-  if (fromPath) return fromPath;
+  if (platform === "win32" && environment.APPDATA && (npmExecutable || npmPrefix)) {
+    const appDataBin = pathApi.join(String(environment.APPDATA), "npm");
+    candidates.push(
+      { candidate: pathApi.join(appDataBin, "pi.cmd"), method: "appdata-npm-fallback" },
+      { candidate: pathApi.join(appDataBin, "pi.exe"), method: "appdata-npm-fallback" },
+      { candidate: pathApi.join(appDataBin, "pi"), method: "appdata-npm-fallback" },
+    );
+  }
 
-  const prefix = npmGlobalPrefix();
-  const candidates = process.platform === "win32"
-    ? [path.join(prefix, "pi.cmd"), path.join(prefix, "pi.exe"), path.join(prefix, "pi")]
-    : [path.join(prefix, "bin", "pi")];
-  return firstExisting(candidates);
+  const seen = new Set();
+  for (const item of candidates) {
+    const key = platform === "win32" ? item.candidate.toLowerCase() : item.candidate;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const validated = await validate(item.candidate, item.method);
+    if (validated) return validated;
+  }
+
+  if (invalidCandidates.length) {
+    const invalid = invalidCandidates[0];
+    return resolutionFailure({
+      executable: invalid.candidate,
+      discoveryMethod: invalid.discoveryMethod,
+      nodeExecutable,
+      npmExecutable,
+      npmPrefix,
+      remediationCode: "invalid-wrapper",
+      message: `A Pi executable was found but failed validation at ${invalid.candidate}. Close processes locking the npm wrapper, then explicitly repair the global installation if needed. ${invalid.message}`,
+    });
+  }
+
+  if (npmPrefix) {
+    return resolutionFailure({
+      nodeExecutable,
+      npmExecutable,
+      npmPrefix,
+      remediationCode: "not-installed",
+      message: `Pi is not installed in the active npm global prefix ${npmPrefix}. Install it with npm install -g ${PI_CODING_AGENT_PACKAGE}.`,
+    });
+  }
+
+  return resolutionFailure({
+    nodeExecutable,
+    npmExecutable,
+    remediationCode: npmPrefixError ? "npm-discovery-failed" : "not-installed",
+    message: npmPrefixError
+      ? `Pi was not found on PATH and npm global discovery failed: ${npmPrefixError}`
+      : `Pi is not installed. Install it with npm install -g ${PI_CODING_AGENT_PACKAGE}.`,
+  });
+}
+
+export async function resolvePiCommand() {
+  const resolution = await resolvePiExecutable();
+  return resolution.ready ? resolution.executable : "";
 }
 
 async function piVersion(piCommand) {
@@ -143,23 +301,33 @@ export async function ensurePiInstalled(options = {}) {
     throw new Error(`Pi requires Node.js 22.19.0 or newer for PlotPickle. Found ${process.versions.node}.`);
   }
 
-  let command = await resolvePiCommand();
+  let resolution = await resolvePiExecutable();
   let installed = false;
-  if (!command) {
+  if (!resolution.ready) {
+    if (new Set(["explicit-missing", "explicit-invalid", "invalid-wrapper"]).has(resolution.remediationCode)) {
+      throw new Error(resolution.message);
+    }
     const allowInstall = options.allowInstall !== false && process.env.PLOTPICKLE_PI_AUTO_INSTALL !== "0";
     if (!allowInstall) {
-      throw new Error(`Pi is required but not installed. Automatic installation is disabled; install ${PI_CODING_AGENT_PACKAGE} or set PLOTPICKLE_PI_AUTO_INSTALL=1.`);
+      throw new Error(`${resolution.message} Automatic installation is disabled; set PLOTPICKLE_PI_AUTO_INSTALL=1 to allow the reviewed install path.`);
     }
     options.onStatus?.("INSTALLING", `${PI_CODING_AGENT_PACKAGE} via npm`);
     await runPortableCommand("npm", ["install", "-g", "--ignore-scripts", PI_CODING_AGENT_PACKAGE], { timeout: 15 * 60_000 });
-    command = await resolvePiCommand();
+    resolution = await resolvePiExecutable();
     installed = true;
   }
-  if (!command) throw new Error("Pi installation completed but PlotPickle could not resolve the Pi executable from PATH or npm's global prefix.");
+  if (!resolution.ready) throw new Error(`Pi installation completed but PlotPickle could not validate the executable. ${resolution.message}`);
 
-  const version = await piVersion(command);
+  const version = resolution.version || await piVersion(resolution.executable);
   options.onStatus?.("READY", `${version}${installed ? " · installed now" : ""}`);
-  return { command, version, installed };
+  return {
+    command: resolution.executable,
+    version,
+    installed,
+    discoveryMethod: resolution.discoveryMethod,
+    remediationCode: resolution.remediationCode,
+    npmPrefix: resolution.npmPrefix,
+  };
 }
 
 export function resolveGitBash() {

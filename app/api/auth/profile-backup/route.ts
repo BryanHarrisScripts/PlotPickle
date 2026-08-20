@@ -35,6 +35,7 @@ function publicBackupError(error: unknown) {
   if (code === "PROFILE_BACKUP_AUTH_REJECTED") return { status: 401, code, message: "Profile backup authentication failed." };
   if (code === "PROFILE_BACKUP_TAMPERED" || code === "PROFILE_BACKUP_SOURCE_CORRUPT") return { status: 400, code, message: "The profile backup could not be verified." };
   if (code === "PROFILE_RESTORE_CONFLICT") return { status: 409, code, message: "That Human profile already exists or conflicts with local restored data." };
+  if (code === "PROFILE_RESTORE_REQUIRES_EMPTY_NODE") return { status: 409, code, message: "Portable restore currently requires a fresh PlotPickle Node with no Human profiles." };
   if (code === "RESTORE_BOOTSTRAP_REQUIRED") return { status: 403, code, message: "Server restore requires the current one-time bootstrap proof." };
   if (code === "RECENT_REAUTHENTICATION_REQUIRED" || code === "ACCESS_DENIED" || code === "SESSION_REJECTED") return { status: 403, code, message: "Recent authenticated profile access is required." };
   if (code === "INVALID_PROFILE_PASSWORD") return { status: 400, code, message: "Choose a stronger new profile password or passphrase." };
@@ -90,14 +91,13 @@ export async function POST(request: Request) {
     }
 
     if (action === "restore") {
-      const bundle = bundleFrom(input.bundle);
       const publicStatus = runtimeState.auth.getAuthStatus();
       if (publicStatus.configured === true) {
-        await boundary.authorizeRequest(requestBoundary(request), {
-          mutation: true,
-          recentReauthentication: true,
-        });
+        const error = new Error("Live portable restore into a populated Node is not supported by the v1 session-preserving boundary.");
+        (error as Error & { code: string }).code = "PROFILE_RESTORE_REQUIRES_EMPTY_NODE";
+        throw error;
       }
+      const bundle = bundleFrom(input.bundle);
       const usingRecovery = typeof input.recoverySecret === "string" && input.recoverySecret.length > 0;
       const restored = await restoreProfileBackupToStateStore({
         root: runtimeState.home,

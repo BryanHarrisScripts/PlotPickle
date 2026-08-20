@@ -4,6 +4,7 @@ import type { Plugin } from "vite";
 import { BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "../lib/buzz-guildhall";
 import { projectCommunityConversationFeed, type CommunityConversationItem } from "../lib/community-conversation";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
+import { inspectConnectedHuman, type HumanIdentityStatus } from "./buzz-human-identity-guard";
 import { readCredentialJson } from "./local-credentials";
 
 const API = "/api/local-buzz/community";
@@ -250,16 +251,37 @@ async function loadMembers(connection: BuzzConnection, channel: BuzzChannel): Pr
   });
 }
 
+function unavailableHumanIdentity(error: unknown): HumanIdentityStatus {
+  return {
+    ready: false,
+    identityVerified: true,
+    humanCommunityAllowed: false,
+    pubkey: "",
+    displayName: "",
+    kind: "unknown",
+    agentId: "",
+    message: `PlotPickle could not verify the human Buzz profile. ${safeError(error)}`,
+  };
+}
+
 async function communityStatus() {
   const connection = await readConnection();
-  const verified = Boolean(connection?.verificationVersion === 2 && connection.verifiedAt && connection.privateKey);
+  const buzzIdentityVerified = Boolean(connection?.verificationVersion === 2 && connection.verifiedAt && connection.privateKey);
+  const humanIdentity = buzzIdentityVerified
+    ? await inspectConnectedHuman().catch(unavailableHumanIdentity)
+    : null;
+  const humanCommunityAllowed = Boolean(humanIdentity?.humanCommunityAllowed);
   const base = {
     ok: true,
     configured: Boolean(connection),
-    identityVerified: verified,
+    identityVerified: buzzIdentityVerified && humanCommunityAllowed,
+    buzzIdentityVerified,
+    humanCommunityAllowed,
     community: connection?.community || "",
     relayUrl: connection?.relayUrl || "",
-    identityLabel: connection?.identityLabel || "",
+    identityLabel: humanIdentity?.displayName || "",
+    friendlyIdentityLabel: connection?.identityLabel || "",
+    callerPubkey: humanIdentity?.pubkey || "",
     greatHall: null as BuzzChannel | null,
     members: [] as BuzzMember[],
     recentActivity: [] as CommunityConversationItem[],
@@ -275,12 +297,14 @@ async function communityStatus() {
     canManageGreatHall: false,
     fullRosterSupported: false,
     inviteManagement: "buzz-desktop" as const,
-    message: "Connect and verify Buzz in Settings before using PlotPickle Community.",
+    message: humanIdentity && !humanCommunityAllowed
+      ? humanIdentity.message
+      : "Connect and verify Buzz in Settings before using PlotPickle Community.",
   };
-  if (!connection || !verified) return base;
+  if (!connection || !buzzIdentityVerified || !humanCommunityAllowed) return base;
   try {
     const greatHall = await findGreatHall(connection);
-    if (!greatHall) return { ...base, message: "The Buzz identity is verified, but the Great Hall has not been created yet." };
+    if (!greatHall) return { ...base, message: "The human Buzz identity is verified, but the Great Hall has not been created yet." };
     const [members, rawActivity] = await Promise.all([
       loadMembers(connection, greatHall),
       runBuzz(connection, ["messages", "get", "--channel", greatHall.id, "--limit", "40"]).then(activityFrom).catch(() => []),
@@ -296,7 +320,7 @@ async function communityStatus() {
       members,
       recentActivity,
       canManageGreatHall: true,
-      message: "PlotPickle Community is connected to the Great Hall. Human conversation, members and presence are ready; operational BUZZ evidence stays in diagnostics.",
+      message: `PlotPickle Community is connected as ${humanIdentity.displayName}. Human conversation, members and presence are ready; operational BUZZ evidence stays in diagnostics.`,
     };
   } catch (error) {
     return { ...base, message: safeError(error) };

@@ -100,6 +100,18 @@
       ]
     },
     {
+      "id": "library",
+      "label": "Library, examples and saved stories",
+      "route": "/?workspace=library",
+      "requiredTerms": ["Library", "Featured Examples", "Genre Presets", "My Stories"],
+      "minimumTextLength": 500,
+      "tests": [
+        "tests/issue-1122-library-persistence.test.mjs",
+        "tests/issue-672-global-navigation.test.mjs",
+        "tests/workspace-navigation-contract.test.mjs"
+      ]
+    },
+    {
       "id": "plan",
       "label": "PLAN and Foundations handoff",
       "route": "/?workspace=plan&section=foundations",

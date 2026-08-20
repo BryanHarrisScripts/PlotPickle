@@ -210,6 +210,13 @@ function normalizeReviewState(value: unknown): VisualArtifactReviewState {
   return value === "accepted" || value === "rejected" ? value : "draft";
 }
 
+function isSupportedVisualAssetUrl(value: unknown): value is string {
+  return typeof value === "string" && (
+    value.startsWith("/api/local-ai/assets/")
+    || value.startsWith("/assets/library/examples/")
+  );
+}
+
 function cleanStringArray(value: unknown, limit = 48) {
   return Array.isArray(value)
     ? value
@@ -223,7 +230,7 @@ function normalizeVisualArtifact(value: unknown): FoundationsVisualArtifact | nu
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const item = value as Partial<FoundationsVisualArtifact>;
   if (typeof item.id !== "string" || !item.id.trim()) return null;
-  if (typeof item.assetUrl !== "string" || !item.assetUrl.startsWith("/api/local-ai/assets/")) return null;
+  if (!isSupportedVisualAssetUrl(item.assetUrl)) return null;
   if (typeof item.prompt !== "string" || !item.prompt.trim()) return null;
   const frameNumber = typeof item.frameNumber === "number" && Number.isInteger(item.frameNumber) && item.frameNumber > 0
     ? Math.min(item.frameNumber, 999)
@@ -258,7 +265,7 @@ function normalizeWorldVisualArtifact(value: unknown): WorldVisualArtifact | nul
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const item = value as Partial<WorldVisualArtifact>;
   if (typeof item.id !== "string" || !item.id.trim()) return null;
-  if (typeof item.assetUrl !== "string" || !item.assetUrl.startsWith("/api/local-ai/assets/")) return null;
+  if (!isSupportedVisualAssetUrl(item.assetUrl)) return null;
   if (typeof item.prompt !== "string" || !item.prompt.trim()) return null;
   if (typeof item.frameNumber !== "number" || !Number.isInteger(item.frameNumber) || item.frameNumber < 1) return null;
   if (item.curriculumFrontier !== "Foundations + World") return null;

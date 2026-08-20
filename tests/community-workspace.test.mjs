@@ -34,7 +34,7 @@ test("Community keeps its established destinations while Great Hall becomes Hall
   assert.match(workspace, /\/guildhall\/status/);
   assert.match(workspace, /\/human-identity/);
   assert.match(workspace, /\/rooms\/ensure/);
-  assert.match(workspace, /FOUNDATION_PROJECT_STORAGE_KEY/);
+  assert.match(workspace, /loadFoundationProject/);
   assert.match(workspace, /Nothing changes PPF canon without approval/);
   assert.match(workspace, /Buzz provides the signed community layer underneath; the writer stays inside PlotPickle/);
   assert.doesNotMatch(workspace, /\{ id: "great-hall", label: "Great Hall"/);

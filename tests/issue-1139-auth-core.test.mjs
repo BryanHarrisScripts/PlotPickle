@@ -181,9 +181,7 @@ test("AuthContext is canonical, server-side, expiring, and invalidated by lock",
   assert.equal(auth.lock(created.authContext), true);
   assert.throws(() => auth.getAuthStatus(created.authContext), (error) => error?.code === "SESSION_REJECTED");
 
-  const recovered = await auth.authenticateWithRecovery({ profileId: created.profile.profileId, recoverySecret: created.recoverySecret });
-  assert.equal(recovered.authContext.authStrength, "recovery");
-  auth.lock(recovered.authContext);
+  assert.equal("authenticateWithRecovery" in auth, false);
 
   const login = await auth.authenticate({ profileId: created.profile.profileId, password });
   clock += 5_001;

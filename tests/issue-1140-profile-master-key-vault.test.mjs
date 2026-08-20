@@ -158,6 +158,9 @@ test("offline recovery preserves PMK-backed data while replacing password and re
   const projectEnvelope = await capability.wrapSecret({ secretId: "project-key", secret: "offline recovery fixture" });
   const before = await stateStore.read();
   const beforePmk = await unwrapProfileMasterKeyWithRecovery(before.credentials[created.profile.profileId].recoveryEnvelope, recoveryBytes(created.recoverySecret), created.profile.profileId);
+  assert.equal(auth.lock(created.authContext), true);
+  assert.equal("authenticateWithRecovery" in auth, false);
+  await assert.rejects(capability.unwrapSecret({ envelope: projectEnvelope, secretId: "project-key" }), (error) => error?.code === "SESSION_REJECTED");
   const reset = await auth.resetPasswordWithRecovery({ profileId: created.profile.profileId, recoverySecret: created.recoverySecret, newPassword: replacementPassword });
   const after = await stateStore.read();
   const afterPmk = await unwrapProfileMasterKeyWithRecovery(after.credentials[created.profile.profileId].recoveryEnvelope, recoveryBytes(reset.recoverySecret), created.profile.profileId);
@@ -171,7 +174,7 @@ test("offline recovery preserves PMK-backed data while replacing password and re
   assert.match(reset.recoverySecret, /^pprec1\.[A-Za-z0-9_-]{43}\.[A-Za-z0-9_-]{7}$/u);
   assert.equal(new TextDecoder().decode(await auth.createProfileVaultCapability(reset.authContext).unwrapSecret({ envelope: projectEnvelope, secretId: "project-key" })), "offline recovery fixture");
   await assert.rejects(auth.authenticate({ profileId: created.profile.profileId, password: passwordA }), (error) => toPublicAuthError(error).code === "AUTHENTICATION_REJECTED");
-  await assert.rejects(auth.authenticateWithRecovery({ profileId: created.profile.profileId, recoverySecret: created.recoverySecret }), (error) => toPublicAuthError(error).code === "AUTHENTICATION_REJECTED");
+  await assert.rejects(auth.resetPasswordWithRecovery({ profileId: created.profile.profileId, recoverySecret: created.recoverySecret, newPassword: "Old recovery must not retain authority" }), (error) => toPublicAuthError(error).code === "AUTHENTICATION_REJECTED");
   const checksumTamper = `${reset.recoverySecret.slice(0, -1)}${reset.recoverySecret.endsWith("A") ? "B" : "A"}`;
   const beforeTamper = await stateStore.read();
   await assert.rejects(auth.resetPasswordWithRecovery({ profileId: created.profile.profileId, recoverySecret: checksumTamper, newPassword: "Another replacement passphrase" }), (error) => toPublicAuthError(error).code === "AUTHENTICATION_REJECTED");

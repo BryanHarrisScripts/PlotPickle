@@ -68,11 +68,11 @@ PlotPickle Community is a writer-friendly interface over **BUZZ**, the signed me
 
 The default Community entrance is the **PlotPickle Community BBS**. It provides the Great Hall, Story Rooms, Connected Studios, People, Agents & Stewards, Review Queue and Guildhall while keeping the user inside the same PlotPickle shell.
 
-In Community, a UI value labelled **NODE** may describe the connected BUZZ relay/community node. That display value is network context, not the cryptographic `node_id` of the local PlotPickle installation. PlotPickle does not substitute a product nickname when displaying a real BUZZ relay/community name, and it does not treat that relay label as device identity.
+In Community, the value labelled **NODE** remains the real connected BUZZ community/node name. That display value is BUZZ network context, not the cryptographic `node_id` of the local PlotPickle installation. PlotPickle does not substitute a product nickname when displaying the relay/community name, and it does not treat that relay label as device identity.
 
 ### One conversation, two clients
 
-PlotPickle and BUZZ Desktop are two clients over the **same signed BUZZ room history**. They do not maintain competing copies of Community chat.
+PlotPickle and BUZZ Desktop are two clients over the **same signed BUZZ room history**. They do not maintain competing copies of Community chat. The BUZZ signed room history remains the authoritative Community conversation record shared by those clients.
 
 If a writer intentionally posts a Great Hall or Story Room message from PlotPickle, BUZZ Desktop reads that same BUZZ event. A message posted from BUZZ Desktop is read back by PlotPickle from the same room history. BUZZ event IDs provide the reconciliation identity.
 
@@ -221,7 +221,7 @@ flowchart TB
     end
 
     subgraph Network[BUZZ coordination / Community / federation]
-      BUZZ[BUZZ signed coordination + room history]
+      BUZZ[BUZZ signed room history + coordination]
       Desktop[BUZZ Desktop]
       Guildhall[Guildhall]
       RemoteNode[Other authorized PlotPickle Nodes]

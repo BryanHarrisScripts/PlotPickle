@@ -74,7 +74,7 @@ export type ProfileVaultStatus = {
 
 export type ProfileVaultCleanupEvent = {
   readonly profileId: string;
-  readonly reason: "lock" | "lock-profile" | "session-expired" | "profile-unavailable" | "profile-disabled" | "password-change" | "recovery-reset" | "service-close";
+  readonly reason: "lock" | "lock-profile" | "session-expired" | "session-revoked" | "other-sessions-revoked" | "profile-unavailable" | "profile-disabled" | "password-change" | "recovery-reset" | "service-close";
   readonly invalidatedSessionCount: number;
   readonly occurredAt: string;
 };
@@ -83,6 +83,18 @@ export type ProfileVaultCapability = {
   readonly profileId: string;
   wrapSecret(input: { readonly secretId: string; readonly secret: string | Uint8Array }): Promise<ProfileSecretEnvelope>;
   unwrapSecret(input: { readonly envelope: ProfileSecretEnvelope; readonly secretId: string }): Promise<Uint8Array>;
+};
+
+export type BrowserSessionSummary = {
+  readonly sessionRef: string;
+  readonly current: boolean;
+  readonly issuedAt: string;
+  readonly lastSeenAt: string;
+  readonly idleExpiresAt: string;
+  readonly absoluteExpiresAt: string;
+  readonly authStrength: AuthStrength;
+  readonly deviceLabel: string;
+  readonly originLabel: string;
 };
 
 export type PlotPickleAuthService = {
@@ -96,6 +108,18 @@ export type PlotPickleAuthService = {
   resetPasswordWithRecovery(input: { profileId: string; recoverySecret: string; newPassword: string | Uint8Array }): Promise<{ readonly profile: ProfileSummary; readonly recoverySecret: string; readonly authContext: AuthContext }>;
   getVaultStatus(profileId?: string | null, authContext?: AuthContext | null): ProfileVaultStatus;
   createProfileVaultCapability(authContext: AuthContext): ProfileVaultCapability;
+  resolveSession(sessionId: string, settings?: { readonly touch?: boolean }): AuthContext;
+  createBrowserSession(authContext: AuthContext, presentation?: { readonly deviceLabel?: string; readonly originLabel?: string }): Readonly<{
+    cookieValue: string;
+    csrfToken: string;
+    idleExpiresAt: string;
+    absoluteExpiresAt: string;
+  }>;
+  validateCsrfToken(authContext: AuthContext, candidateToken: string): boolean;
+  requireRecentReauthentication(authContext: AuthContext, maximumAgeMs?: number): AuthContext;
+  listSessions(authContext: AuthContext): ReadonlyArray<BrowserSessionSummary>;
+  revokeSession(sessionRef: string, authContext: AuthContext): boolean;
+  revokeOtherSessions(authContext: AuthContext): number;
   registerVaultCleanupHook(hook: (event: ProfileVaultCleanupEvent) => void): () => boolean;
   listProfileSummaries(authContext?: AuthContext | null): ReadonlyArray<ProfileSummary>;
   getAuthStatus(authContext?: AuthContext | null): Readonly<Record<string, unknown>>;
@@ -116,6 +140,8 @@ export const AUTH_STRENGTHS = core.AUTH_STRENGTHS as ReadonlyArray<AuthStrength>
 export const PROFILE_VAULT_STATES = core.PROFILE_VAULT_STATES as ReadonlyArray<ProfileVaultState>;
 export const PROFILE_VAULT_KDF_MAINTENANCE = core.PROFILE_VAULT_KDF_MAINTENANCE as ReadonlyArray<ProfileVaultKdfMaintenance>;
 export const DEFAULT_SESSION_TTL_MS = core.DEFAULT_SESSION_TTL_MS as number;
+export const DEFAULT_SESSION_IDLE_TTL_MS = core.DEFAULT_SESSION_IDLE_TTL_MS as number;
+export const DEFAULT_RECENT_REAUTHENTICATION_MS = core.DEFAULT_RECENT_REAUTHENTICATION_MS as number;
 export const DEFAULT_BOOTSTRAP_TTL_MS = core.DEFAULT_BOOTSTRAP_TTL_MS as number;
 export const PlotPickleAuthError = core.PlotPickleAuthError;
 export const parseAuthPersistentState = core.parseAuthPersistentState as (value: unknown, expected?: { nodeId?: string; accessMode?: AuthAccessMode }) => AuthPersistentState;
@@ -129,6 +155,8 @@ export const createPlotPickleAuthService = core.createPlotPickleAuthService as u
   now?: () => number | Date;
   randomBytes?: (bytes: number) => Uint8Array;
   sessionTtlMs?: number;
+  sessionIdleTtlMs?: number;
+  recentReauthenticationMs?: number;
   bootstrapTtlMs?: number;
   passwordParameters?: Argon2idParameters;
 }) => Promise<PlotPickleAuthService>;

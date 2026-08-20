@@ -26,4 +26,6 @@ If a credential may have been committed, revoke and replace it immediately. Remo
 
 ## Security boundaries
 
-PlotPickle is local-first. Credentials must remain in operating-system-user protected storage and must not be written to PPF projects, exports, logs, diagnostics, browser code or repository files. Story repositories are private by default and require an explicit owner decision before their visibility changes.
+PlotPickle is local-first. PlotPickle owns Human-profile authentication; an operating-system account and BUZZ identity are not profile-unlock authorities. Profile credentials and private keys must remain inside the versioned encrypted profile boundary and must not be written to PPF projects, ordinary exports, logs, diagnostics, browser persistence or repository files. Story repositories are private by default and require an explicit owner decision before their visibility changes.
+
+The canonical boundaries are the [PlotPickle Auth threat model](docs/architecture/PLOTPICKLE-AUTH-THREAT-MODEL.md) and [PlotPickle Auth cryptographic dependency selection](docs/architecture/PLOTPICKLE-AUTH-CRYPTO-SELECTION.md). They state both the protections PlotPickle implements and the privileged-host/process-memory attacks it does not claim to prevent.

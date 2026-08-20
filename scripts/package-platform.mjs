@@ -22,6 +22,7 @@ const runtimeDirectories = [
   "app",
   "build",
   "config",
+  "core",
   "data",
   "db",
   "docs",

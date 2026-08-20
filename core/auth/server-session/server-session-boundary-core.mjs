@@ -45,7 +45,8 @@ function isRecord(value) {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
-function assertExactFields(value, allowed, label) {
+function assertSessionFields(value, contract) {
+  const { allowed, label } = contract;
   if (!isRecord(value)) fail("INVALID_SERVER_SESSION_CONTRACT", `${label} must be an object.`);
   const unexpected = Object.keys(value).filter((field) => !allowed.includes(field));
   if (unexpected.length) fail("INVALID_SERVER_SESSION_CONTRACT", `${label} contains unsupported fields: ${unexpected.join(", ")}.`);
@@ -105,10 +106,6 @@ function headerValue(headers, name) {
   const value = key ? headers[key] : null;
   if (Array.isArray(value)) return value.join(",");
   return value === undefined || value === null ? null : String(value);
-}
-
-function requestMethod(request) {
-  return String(request?.method || "GET").toUpperCase();
 }
 
 function requestUrl(request, policy) {
@@ -198,7 +195,7 @@ function validateRequestBoundary(policy, request, options = {}) {
 }
 
 export function createServerExposurePolicy(input = {}) {
-  assertExactFields(input, POLICY_FIELDS, "Server exposure policy");
+  assertSessionFields(input, { allowed: POLICY_FIELDS, label: "Server exposure policy" });
   const accessMode = input.accessMode === "server-network" ? "server-network" : input.accessMode === "desktop-loopback"
     ? "desktop-loopback"
     : fail("INVALID_SERVER_SESSION_CONTRACT", "Server access mode must be desktop-loopback or server-network.");
@@ -365,9 +362,7 @@ export function createAuthorizationGuards(options) {
       if (!authContext.roles.includes("node-administrator")) fail("ACCESS_DENIED", "Node administrator authority is required.");
       return authContext;
     },
-    requireRecentReauthentication(authContext) {
-      return options.authService.requireRecentReauthentication(authContext);
-    },
+    requireRecentReauthentication: options.authService.requireRecentReauthentication.bind(options.authService),
   });
 }
 
@@ -438,8 +433,8 @@ export function createServerSessionBoundary(options) {
 
   const rateRequest = (boundary, locator, purpose) => Object.freeze({ sourceIp: boundary.sourceIp, locator, purpose });
   const authorize = async (request, requirements = {}, stream = false) => {
-    assertExactFields(requirements, REQUEST_REQUIREMENT_FIELDS, "Request authorization requirements");
-    const method = requestMethod(request);
+    assertSessionFields(requirements, { allowed: REQUEST_REQUIREMENT_FIELDS, label: "Request authorization requirements" });
+    const method = String(request?.method || "GET").toUpperCase();
     const mutation = requirements.mutation === true || !SAFE_HTTP_METHODS.includes(method);
     if (requirements.mutation === true && SAFE_HTTP_METHODS.includes(method)) fail("METHOD_REJECTED", "State-changing operations cannot use safe HTTP methods.");
     const boundary = validateRequestBoundary(policy, request, { requireOrigin: mutation || stream });
@@ -520,7 +515,7 @@ export function createServerSessionBoundary(options) {
       return authorize(request, requirements, false);
     },
     authorizePrivateStream(request, requirements = {}) {
-      if (requestMethod(request) !== "GET") fail("METHOD_REJECTED", "Private stream setup requires GET.");
+      if (String(request?.method || "GET").toUpperCase() !== "GET") fail("METHOD_REJECTED", "Private stream setup requires GET.");
       return authorize(request, requirements, true);
     },
     async logout(request) {
@@ -540,8 +535,6 @@ export function createServerSessionBoundary(options) {
       const { authContext } = await authorize(request, { mutation: true, recentReauthentication: true });
       return options.authService.revokeOtherSessions(authContext);
     },
-    throttleMetadata() {
-      return throttle.inspectMetadata();
-    },
+    throttleMetadata: throttle.inspectMetadata,
   });
 }

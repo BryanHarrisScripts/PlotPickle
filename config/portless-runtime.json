@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "authority": "plotpickle-portless-runtime-pin",
+  "package": "portless",
+  "version": "0.15.5",
+  "npmPackage": "portless@0.15.5",
+  "npmIntegrity": "pending-real-package-metadata-capture",
+  "sourceRepository": "https://github.com/vercel-labs/portless",
+  "sourceTag": "v0.15.5",
+  "sourceCommit": "d42c741",
+  "license": "Apache-2.0",
+  "nodeEngine": ">=24",
+  "plotpickleNodeStrategy": "isolated-developer-tool-runtime",
+  "defaultProfile": "portless/http",
+  "httpsProfile": "explicit-developer-security-test-only",
+  "distribution": "not-a-PlotPickle-product-dependency",
+  "adoptionDecision": "pending-real-windows-acceptance"
+}

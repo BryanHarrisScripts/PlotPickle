@@ -1,1 +1,422 @@
-.boundary{min-height:100dvh;display:grid;place-items:center;padding:32px;background:radial-gradient(circle at 15% 5%,rgba(50,212,223,.13),transparent 32rem),#081018;color:#e8f5f6}.card{width:min(680px,100%);display:grid;gap:20px;padding:clamp(24px,5vw,48px);border:1px solid #2b4050;border-radius:22px;background:#111b25;box-shadow:0 24px 70px rgba(0,0,0,.42)}.card h1,.card p{margin:0}.card h1{font-size:clamp(1.8rem,4vw,2.8rem)}.card p,.card small{color:#9fb5ba;line-height:1.6}.eyebrow{color:#4ee8f2!important;text-transform:uppercase;letter-spacing:.12em;font-size:.78rem;font-weight:700}.field{display:grid;gap:8px;margin-block:14px}.field span{font-weight:700}.field input,.field textarea{width:100%;min-height:46px;padding:11px 13px;border:1px solid #385467;border-radius:10px;background:#0d1822;color:#fff;font:inherit}.field textarea{resize:vertical}.passwordRow{display:grid;grid-template-columns:1fr auto;gap:8px}.passwordRow button,.actions button,.actions a,.card>button{min-height:44px;padding:10px 15px;border:1px solid #385467;border-radius:10px;background:#12332e;color:#e8f5f6;font:inherit;font-weight:700;text-decoration:none;cursor:pointer}.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.profileList{display:grid;gap:10px}.profileList button{display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:center;text-align:left;padding:12px;border:1px solid #2b4050;border-radius:12px;background:#0d1822;color:#e8f5f6;cursor:pointer}.profileList button>span{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:#12332e;color:#4ee8f2}.profileList small{color:#9fb5ba}.recovery{overflow-wrap:anywhere;padding:18px;border:1px solid #4ccfae;border-radius:10px;background:#081018;color:#b7fff1;font-size:1rem}.check{display:flex;gap:10px;align-items:flex-start}.check input{margin-top:4px}.error{padding:12px;border-left:3px solid #ef7777;background:#30171b;color:#ffd4d4!important}.activeHuman{position:fixed;z-index:10000;top:10px;right:12px;display:flex;gap:12px;align-items:start;padding:8px 10px;border:1px solid #2b4050;border-radius:12px;background:rgba(8,16,24,.96);box-shadow:0 10px 32px rgba(0,0,0,.35);color:#e8f5f6}.activeHuman>div{display:grid}.activeHuman span,.activeHuman small{font-size:.68rem;color:#9fb5ba}.activeHuman summary{cursor:pointer;color:#4ee8f2}.activeHuman details[open]{display:grid;gap:5px}.activeHuman button{padding:6px 9px;border:1px solid #385467;border-radius:7px;background:#111b25;color:#e8f5f6;text-align:left;cursor:pointer}@media(max-width:700px){.boundary{padding:14px}.card{padding:22px}.activeHuman{top:auto;bottom:8px}.profileList button{grid-template-columns:38px 1fr}.profileList small{display:none}}
+.boundary {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  background: radial-gradient(circle at 15% 5%, rgba(50, 212, 223, 0.13), transparent 32rem), #081018;
+  color: #e8f5f6;
+}
+
+.card {
+  width: min(680px, 100%);
+  display: grid;
+  gap: 20px;
+  padding: clamp(24px, 5vw, 48px);
+  border: 1px solid #2b4050;
+  border-radius: 22px;
+  background: #111b25;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+}
+
+.card h1,
+.card p {
+  margin: 0;
+}
+
+.card h1 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+}
+
+.card p,
+.card small {
+  color: #9fb5ba;
+  line-height: 1.6;
+}
+
+.eyebrow {
+  color: #4ee8f2 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  margin-block: 14px;
+}
+
+.field span {
+  font-weight: 700;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 13px;
+  border: 1px solid #385467;
+  border-radius: 10px;
+  background: #0d1822;
+  color: #fff;
+  font: inherit;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.passwordRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.passwordRow button,
+.actions button,
+.actions a,
+.card > button {
+  min-height: 44px;
+  padding: 10px 15px;
+  border: 1px solid #385467;
+  border-radius: 10px;
+  background: #12332e;
+  color: #e8f5f6;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.profileList {
+  display: grid;
+  gap: 10px;
+}
+
+.profileList button {
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+  padding: 12px;
+  border: 1px solid #2b4050;
+  border-radius: 12px;
+  background: #0d1822;
+  color: #e8f5f6;
+  cursor: pointer;
+}
+
+.profileList button > span {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #12332e;
+  color: #4ee8f2;
+}
+
+.profileList small {
+  color: #9fb5ba;
+}
+
+.recovery {
+  overflow-wrap: anywhere;
+  padding: 18px;
+  border: 1px solid #4ccfae;
+  border-radius: 10px;
+  background: #081018;
+  color: #b7fff1;
+  font-size: 1rem;
+}
+
+.check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.check input {
+  margin-top: 4px;
+}
+
+.error {
+  padding: 12px;
+  border-left: 3px solid #ef7777;
+  background: #30171b;
+  color: #ffd4d4 !important;
+}
+
+.activeHuman {
+  position: fixed;
+  z-index: 10000;
+  top: 10px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  padding: 6px;
+  border: 1px solid #2b4050;
+  border-radius: 14px;
+  background: rgba(8, 16, 24, 0.96);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+  color: #e8f5f6;
+  backdrop-filter: blur(16px);
+}
+
+.activeHuman > div {
+  display: none;
+}
+
+.activeHuman details {
+  min-width: 0;
+}
+
+.activeHuman summary {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 10px 5px 6px;
+  border-radius: 10px;
+  color: #e8f5f6;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.activeHuman summary::-webkit-details-marker {
+  display: none;
+}
+
+.activeHuman summary::before {
+  content: "";
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  background: url("/assets/workflow-relics/profile.svg") center / contain no-repeat;
+  filter: drop-shadow(0 0 7px rgba(78, 232, 242, 0.18));
+}
+
+.activeHuman summary:hover,
+.activeHuman summary:focus-visible {
+  background: rgba(78, 232, 242, 0.08);
+}
+
+.activeHuman summary:focus-visible,
+.activeHuman button:focus-visible {
+  outline: 2px solid #dc874c;
+  outline-offset: 2px;
+}
+
+.activeHuman:has(details[open]) {
+  width: min(760px, calc(100vw - 24px));
+  display: grid;
+  grid-template-columns: minmax(180px, 0.9fr) minmax(0, 2fr);
+  align-items: stretch;
+  gap: 12px;
+  padding: 12px;
+  border-color: #385467;
+  border-radius: 18px;
+  background: rgba(8, 16, 24, 0.985);
+}
+
+.activeHuman:has(details[open]) > div {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #2b4050;
+  border-radius: 13px;
+  background: #0d1822;
+}
+
+.activeHuman:has(details[open]) > div span {
+  font-size: 0;
+}
+
+.activeHuman:has(details[open]) > div span::after {
+  content: "Identity";
+  color: #d8b36d;
+  font-size: 0.65rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.activeHuman:has(details[open]) > div strong {
+  overflow-wrap: anywhere;
+  color: #f3f8f8;
+  font-size: 1.05rem;
+}
+
+.activeHuman:has(details[open]) > div small {
+  color: #9fb5ba;
+  font-size: 0.69rem;
+  line-height: 1.45;
+}
+
+.activeHuman details[open] {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto auto auto;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px;
+}
+
+.activeHuman details[open] summary {
+  grid-column: 1 / -1;
+  justify-self: end;
+  min-height: 36px;
+  padding-block: 1px;
+}
+
+.activeHuman details[open] summary::after {
+  content: "Close";
+  margin-left: 2px;
+  color: #9fb5ba;
+  font-size: 0.64rem;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+.activeHuman details[open]::before,
+.activeHuman details[open]::after {
+  align-self: end;
+  padding: 4px 10px 1px;
+  color: #d8b36d;
+  font-size: 0.65rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.activeHuman details[open]::before {
+  content: "Access";
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.activeHuman details[open]::after {
+  content: "Profile actions";
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.activeHuman button {
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #385467;
+  border-radius: 10px;
+  background: #111b25;
+  color: #e8f5f6;
+  text-align: left;
+  cursor: pointer;
+}
+
+.activeHuman button:hover {
+  border-color: #4bbdb8;
+  background: #152630;
+}
+
+.activeHuman details[open] button:nth-of-type(1) {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.activeHuman details[open] button:nth-of-type(2) {
+  grid-column: 1;
+  grid-row: 3;
+}
+
+.activeHuman details[open] button:nth-of-type(3) {
+  grid-column: 1;
+  grid-row: 4;
+}
+
+.activeHuman details[open] button:nth-of-type(4) {
+  grid-column: 2;
+  grid-row: 4;
+}
+
+@media (max-width: 700px) {
+  .boundary {
+    padding: 14px;
+  }
+
+  .card {
+    padding: 22px;
+  }
+
+  .activeHuman {
+    top: 8px;
+    right: 8px;
+  }
+
+  .activeHuman:has(details[open]) {
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+    overflow-y: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .activeHuman details[open] {
+    grid-template-columns: 1fr;
+  }
+
+  .activeHuman details[open] summary,
+  .activeHuman details[open]::before,
+  .activeHuman details[open]::after,
+  .activeHuman details[open] button:nth-of-type(1),
+  .activeHuman details[open] button:nth-of-type(2),
+  .activeHuman details[open] button:nth-of-type(3),
+  .activeHuman details[open] button:nth-of-type(4) {
+    grid-column: 1;
+  }
+
+  .activeHuman details[open]::before {
+    grid-row: 2;
+  }
+
+  .activeHuman details[open] button:nth-of-type(2) {
+    grid-row: 3;
+  }
+
+  .activeHuman details[open] button:nth-of-type(3) {
+    grid-row: 4;
+  }
+
+  .activeHuman details[open]::after {
+    grid-row: 5;
+    margin-top: 4px;
+  }
+
+  .activeHuman details[open] button:nth-of-type(1) {
+    grid-row: 6;
+  }
+
+  .activeHuman details[open] button:nth-of-type(4) {
+    grid-row: 7;
+  }
+
+  .profileList button {
+    grid-template-columns: 38px 1fr;
+  }
+
+  .profileList small {
+    display: none;
+  }
+}

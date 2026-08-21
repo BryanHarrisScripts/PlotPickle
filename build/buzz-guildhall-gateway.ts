@@ -78,12 +78,6 @@ async function readConnection() {
   return validConnection(value) ? value : null;
 }
 
-function verifiedConnection(connection: BuzzConnection | null): asserts connection is BuzzConnection {
-  if (!connection || connection.verificationVersion !== 2 || !connection.verifiedAt || !connection.privateKey) {
-    throw new Error("Verify your Human Buzz identity before using Community conversations.");
-  }
-}
-
 function relayHttpUrl(value: string) {
   const url = new URL(value);
   if (url.protocol === "ws:") url.protocol = "http:";
@@ -150,6 +144,12 @@ async function runBuzz(connection: BuzzConnection, args: string[]) {
   });
   try { return JSON.parse(result.stdout || "null") as unknown; }
   catch { throw new Error("Buzz CLI returned invalid JSON."); }
+}
+
+function verifiedConnection(connection: BuzzConnection | null): asserts connection is BuzzConnection {
+  if (!connection || connection.verificationVersion !== 2 || !connection.verifiedAt || !connection.privateKey) {
+    throw new Error("Verify your Human Buzz identity before using Community conversations.");
+  }
 }
 
 function nestedArray(value: unknown): unknown[] {

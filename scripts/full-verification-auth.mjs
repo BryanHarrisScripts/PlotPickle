@@ -71,7 +71,10 @@ export async function cleanupVerificationSyntheticHome(home, options = {}) {
 
 async function readJson(response) {
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(body?.message || `PlotPickle synthetic authentication returned HTTP ${response.status}.`);
+  if (!response.ok) {
+    const diagnostic = typeof body?.syntheticDiagnostic === "string" ? ` [${body.syntheticDiagnostic}]` : "";
+    throw new Error(`${body?.message || `PlotPickle synthetic authentication returned HTTP ${response.status}.`}${diagnostic}`);
+  }
   return body;
 }
 
@@ -92,6 +95,7 @@ async function profilePost(baseUrl, payload, fetchImpl) {
       Accept: "application/json",
       "Content-Type": "application/json",
       Origin: new URL(baseUrl).origin,
+      "X-PlotPickle-Synthetic-Diagnostic": "profile-bootstrap-v1",
     },
     body: JSON.stringify(payload),
     signal: AbortSignal.timeout(20_000),

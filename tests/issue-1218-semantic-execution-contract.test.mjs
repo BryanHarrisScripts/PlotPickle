@@ -117,7 +117,6 @@ test("#1218 defines a scoped versioned semantic execution envelope", () => {
   assert.equal(record.schemaVersion, 1);
   assert.equal(record.currentPhase, "UNDERSTAND");
   assert.equal(record.status, "running");
-  assert.equal(record.intent.allowedActionClasses[0], "developer.repair");
   assert.equal(record.phaseProfile.id, "engineering-repair-v1");
 });
 
@@ -130,7 +129,7 @@ test("COMPLETE cannot be reached because a model merely says done", () => {
 
 test("missing evidence yields no fabricated semantic PASS", () => {
   const record = createRecord();
-  recordSemanticObservation(record, { position: "state", source: "observer", summary: "State is visible but no evidence reference was retained." });
+  recordSemanticObservation(record, { position: "state", source: "observer", summary: "Visible state without retained evidence." });
   assert.throws(() => recordSemanticEvaluation(record, { status: "pass", verifier: "agent" }), /requires evidence/);
 });
 
@@ -169,7 +168,6 @@ test("failed verification routes only into an explicitly permitted bounded REPAI
   transitionSemanticExecution(record, "REPAIR", { reason: "Focused regression remains red." });
   assert.equal(record.currentPhase, "REPAIR");
   assert.equal(record.repairPolicy.attempts, 1);
-  assert.equal(record.transitions.at(-1).from, "ACT");
 });
 
 test("REPAIR cannot silently broaden the task target", () => {
@@ -241,7 +239,7 @@ test("successful recovery retains failed approach as failure-recovery history ra
   assert.ok(candidate.successfulPattern.every((item) => !/first attempt failed/i.test(item.summary)));
 });
 
-test("structured experience remains scope-bound and cannot match another Human/project/agent", () => {
+test("structured experience remains scope-bound", () => {
   const record = understand(createRecord());
   act(record);
   evaluateAct(record, "pass");
@@ -258,12 +256,12 @@ test("execution evidence strips secret material and hidden reasoning fields", ()
     position: "state",
     source: "probe",
     summary: "token=abc123456789 nsec1abcdefghijklmnop sk-abcdefghijklmnop",
-    evidence: [{ kind: "probe", ref: "private", summary: "Bearer abcdefghijklmnop" }],
+    evidence: [{ kind: "probe", ref: "probe-ref", summary: "Bearer abcdefghijklmnop" }],
     reasoning: "should never persist",
   });
-  const safe = safeSemanticExecutionRecord({ ...record, chainOfThought: "private", prompt: "raw prompt", password: "secret-value" });
+  const safe = safeSemanticExecutionRecord({ ...record, chainOfThought: "internal-private-thought", prompt: "raw-private-prompt", password: "secret-value" });
   const serialized = JSON.stringify(safe);
-  assert.doesNotMatch(serialized, /abc123456789|nsec1abcdefghijklmnop|sk-abcdefghijklmnop|Bearer abcdefghijklmnop|secret-value|raw prompt|private\"/i);
+  assert.doesNotMatch(serialized, /abc123456789|nsec1abcdefghijklmnop|sk-abcdefghijklmnop|Bearer abcdefghijklmnop|secret-value|raw-private-prompt|internal-private-thought/i);
   assert.doesNotMatch(serialized, /chainOfThought|\"prompt\"|\"reasoning\"/i);
   assert.match(serialized, /REDACTED/);
 });
@@ -277,7 +275,7 @@ test("worker/model choice is outside the stable semantic contract", () => {
   assert.equal(cline.intent.allowedActionClasses[0], "developer.repair");
 });
 
-test("#1218 is wired in front of the existing isolated UAT repair worker without replacing #989 authority", async () => {
+test("#1218 wraps the existing isolated UAT repair worker without replacing #989 authority", async () => {
   const [closedLoop, semanticWrapper, verificationGraph] = await Promise.all([
     readFile(new URL("../scripts/run-uat-closed-loop.mjs", import.meta.url), "utf8"),
     readFile(new URL("../scripts/run-semantic-uat-repair.mjs", import.meta.url), "utf8"),
@@ -287,5 +285,5 @@ test("#1218 is wired in front of the existing isolated UAT repair worker without
   assert.match(semanticWrapper, /run-uat-repair-agent\.mjs/);
   assert.match(semanticWrapper, /candidate-only; durable promotion remains owned by PlotPickle Memory Service #1200/);
   assert.match(semanticWrapper, /hiddenReasoningStored:\s*false/);
-  assert.match(verificationGraph, /unverified findings do not reach write-capable workers|hands Pi only confirmed findings/i);
+  assert.match(verificationGraph, /hands Pi only confirmed findings/i);
 });

@@ -39,7 +39,7 @@ test("#1196 Full Verification synthetic Human runtime overrides stale normal/ser
   assert.notEqual(runtime.runtimeEnv.PLOTPICKLE_AUTH_STATE_PATH, env.PLOTPICKLE_AUTH_STATE_PATH);
 });
 
-test("#1196 synthetic Human uses real create/login/status API sequence without persisting password or recovery secret", async () => {
+test("#1196 synthetic Human warms current Profile routes before real create/login/status API sequence", async () => {
   const home = await mkdtemp(path.join(os.tmpdir(), "plotpickle-1196-"));
   const profileId = "profile_AAAAAAAAAAAAAAAAAAAAAA";
   const passwordBodies = [];
@@ -78,6 +78,14 @@ test("#1196 synthetic Human uses real create/login/status API sequence without p
     assert.equal(passwordBodies[0], passwordBodies[1]);
     assert.match(passwordBodies[0], /^fv-[A-Za-z0-9_-]{40,}$/u);
 
+    assert.equal(new URL(requests[0].url).pathname, "/api/auth/profile");
+    assert.equal(new URL(requests[1].url).pathname, "/api/auth/profile-private");
+    assert.equal(new URL(requests[2].url).pathname, "/api/auth/profile-presentation");
+    assert.equal(new URL(requests[3].url).pathname, "/api/auth/profile");
+    assert.equal(requests[4].headers.Origin, "http://127.0.0.1:54321");
+    assert.equal(requests[5].headers.Origin, "http://127.0.0.1:54321");
+    assert.equal(requests[6].headers.Cookie, "ppsid=session-1196");
+
     const storageText = await readFile(result.storageStatePath, "utf8");
     const storage = JSON.parse(storageText);
     assert.equal(storage.cookies.length, 1);
@@ -93,9 +101,6 @@ test("#1196 synthetic Human uses real create/login/status API sequence without p
     });
     assert.equal(storageText.includes(passwordBodies[0]), false);
     assert.equal(storageText.includes("recovery-should-never-persist"), false);
-    assert.equal(requests[1].headers.Origin, "http://127.0.0.1:54321");
-    assert.equal(requests[2].headers.Origin, "http://127.0.0.1:54321");
-    assert.equal(requests[3].headers.Cookie, "ppsid=session-1196");
   } finally {
     await rm(home, { recursive: true, force: true });
   }
@@ -141,12 +146,15 @@ test("#1196 Playwright storage state is injected only for the bounded synthetic 
   assert.throws(() => verificationPlaywrightArgs([...args, "--storage-state", state], env), /competing Playwright storage-state argument/u);
 });
 
-test("#1196 desktop profile, private state and backup share one Node-host authority while server-network stays on the server boundary", async () => {
+test("#1196 desktop profile, presentation, private state and backup share one Node-host authority while server-network stays on the server boundary", async () => {
   const gateway = await read("build/local-profile-auth-gateway.ts");
   const vite = await read("vite.config.ts");
   assert.match(gateway, /PROFILE_API = "\/api\/auth\/profile"/u);
+  assert.match(gateway, /PROFILE_PRESENTATION_API = "\/api\/auth\/profile-presentation"/u);
   assert.match(gateway, /PROFILE_PRIVATE_API = "\/api\/auth\/profile-private"/u);
   assert.match(gateway, /PROFILE_BACKUP_API = "\/api\/auth\/profile-backup"/u);
+  assert.match(gateway, /profilePresentationGet/u);
+  assert.match(gateway, /profilePresentationPost/u);
   assert.match(gateway, /profilePrivateGet/u);
   assert.match(gateway, /profileBackupPost/u);
   assert.match(gateway, /PLOTPICKLE_ACCESS_MODE\?\.trim\(\) !== "server-network"/u);

@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
+import { getLocalBuzzBackboneHealth } from "../scripts/buzz-live-activity.mjs";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import { readCredentialJson } from "./local-credentials";
 
@@ -142,8 +143,7 @@ async function runBuzz(connection: BuzzConnection, args: string[]) {
     BUZZ_RELAY_URL: relayHttpUrl(connection.relayUrl),
     BUZZ_PRIVATE_KEY: connection.privateKey,
   });
-  try { return JSON.parse(result.stdout || "null") as unknown; }
-  catch { throw new Error("BUZZ CLI returned invalid JSON."); }
+  return JSON.parse(result.stdout || "null") as unknown;
 }
 
 function nestedArray(value: unknown): unknown[] {
@@ -223,6 +223,19 @@ async function liveRoundTrip() {
 }
 
 async function handle(request: IncomingMessage, response: ServerResponse, url: URL) {
+  if (request.method === "GET" && url.pathname === API) {
+    try {
+      const localBackbone = await getLocalBuzzBackboneHealth();
+      sendJson(response, 200, {
+        ok: true,
+        localBackbone,
+        message: "Local coordination health is derived from bounded PlotPickle evidence. Remote BUZZ availability is reported separately.",
+      });
+    } catch (error) {
+      sendJson(response, 503, { ok: false, message: safeError(error) });
+    }
+    return;
+  }
   if (request.method === "POST" && url.pathname === API) {
     try {
       sendJson(response, 200, await liveRoundTrip());

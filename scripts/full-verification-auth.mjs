@@ -87,6 +87,18 @@ async function profileGet(baseUrl, headers, fetchImpl) {
   return readJson(response);
 }
 
+async function warmProfileRuntimeRoutes(baseUrl, fetchImpl) {
+  for (const pathname of ["/api/auth/profile-private", "/api/auth/profile-presentation"]) {
+    const response = await fetchImpl(`${baseUrl}${pathname}`, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
+    });
+    await response.arrayBuffer();
+  }
+}
+
 async function profilePost(baseUrl, payload, fetchImpl) {
   const response = await fetchImpl(`${baseUrl}/api/auth/profile`, {
     method: "POST",
@@ -116,9 +128,15 @@ export async function establishVerificationSyntheticHuman({ baseUrl, home, fetch
   }
   if (!home) throw new Error("Full Verification synthetic Human authentication requires its isolated home.");
 
-  const initial = await profileGet(normalizedBaseUrl, {}, fetchImpl);
+  let initial = await profileGet(normalizedBaseUrl, {}, fetchImpl);
   if (initial.configured !== false || initial.authenticated !== false || initial.accessMode !== "desktop-loopback") {
     throw new Error("Full Verification synthetic Human home was not a fresh desktop-loopback Auth boundary.");
+  }
+
+  await warmProfileRuntimeRoutes(normalizedBaseUrl, fetchImpl);
+  initial = await profileGet(normalizedBaseUrl, {}, fetchImpl);
+  if (initial.configured !== false || initial.authenticated !== false || initial.accessMode !== "desktop-loopback") {
+    throw new Error("Full Verification synthetic Human Auth boundary changed while warming current Profile routes.");
   }
 
   const password = `fv-${randomBytes(32).toString("base64url")}`;

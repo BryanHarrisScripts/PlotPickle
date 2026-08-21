@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { bestEffortLiveBuzzActivity } from "./buzz-live-activity.mjs";
 import {
   ENGINEERING_REPAIR_PHASE_PROFILE,
   beginSemanticAction,
@@ -86,6 +87,28 @@ async function saveRecord(record) {
   return file;
 }
 
+async function emitSemanticBackbone(record, healthStatus, summary, input = {}) {
+  await bestEffortLiveBuzzActivity({
+    type: "semantic.execution",
+    actorId: "rook-ironquill",
+    summary,
+    severity: input.severity || (healthStatus === "degraded" || healthStatus === "unavailable" ? "high" : "info"),
+    target: semanticTarget,
+    verified: input.verified === true,
+    actionable: input.actionable === true,
+    healthStatus,
+    presenceTtlMs: 10 * 60_000,
+    runId: record.executionId,
+    executionId: record.executionId,
+    taskId: record.taskId,
+    nodeId: record.scope?.nodeId,
+    profileId: record.scope?.profileId,
+    projectId: record.scope?.projectId,
+    sessionId: record.scope?.sessionId,
+    evidence: input.evidence || [],
+  });
+}
+
 async function main() {
   if (has("--preflight")) {
     const result = await runRepairAgent();
@@ -120,6 +143,10 @@ async function main() {
       allowedTargets: [semanticTarget],
       exclusions: ["credentials", "ppf-canon", "unrelated-subsystem"],
     },
+  });
+
+  await emitSemanticBackbone(record, "working", `Semantic repair started for ${targetId}.`, {
+    evidence: [{ label: "contract", ref: "#1218" }],
   });
 
   recordSemanticObservation(record, {
@@ -195,6 +222,15 @@ async function main() {
     });
     transitionSemanticExecution(record, "BLOCKED", { reason: "Repair remains bounded; a fresh authorized task is required for another worktree attempt." });
     const evidenceFile = await saveRecord(record);
+    await emitSemanticBackbone(record, "degraded", `Semantic repair blocked for ${targetId}; no PASS is claimed.`, {
+      severity: "high",
+      verified: true,
+      actionable: true,
+      evidence: [
+        { label: "semantic-record", ref: evidenceFile },
+        { label: "worker-exit", ref: `exit:${result.code}` },
+      ],
+    });
     process.stderr.write(`Semantic repair execution .......... BLOCKED  ${evidenceFile}\n`);
     process.exitCode = result.code;
     return;
@@ -229,6 +265,13 @@ async function main() {
   });
   transitionSemanticExecution(record, "COMPLETE", { reason: "Observed deterministic validation satisfies the declared repair success condition." });
   const evidenceFile = await saveRecord(record);
+  await emitSemanticBackbone(record, "ready", `Semantic repair completed for ${targetId} with deterministic verification.`, {
+    verified: true,
+    evidence: [
+      { label: "semantic-record", ref: evidenceFile },
+      { label: "verification", ref: "scripts/run-uat-repair-agent.mjs#validateRepair" },
+    ],
+  });
   process.stdout.write(`Semantic repair execution .......... PASS  ${evidenceFile}\n`);
 }
 

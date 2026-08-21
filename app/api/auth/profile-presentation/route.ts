@@ -1,5 +1,5 @@
-import { toPublicAuthError, type ProfileSummary } from "../../../../core/auth/plotpickle-auth";
-import { toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
+import { PlotPickleAuthError, toPublicAuthError, type ProfileSummary } from "../../../../core/auth/plotpickle-auth";
+import { PlotPickleServerSessionError, toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
 import {
   getProfileExperienceRuntime,
   requestBoundary,
@@ -27,9 +27,11 @@ function response(value: unknown, status = 200) {
 }
 
 function errorResponse(error: unknown) {
-  const server = toPublicServerSessionError(error);
-  const auth = toPublicAuthError(error);
-  const detail = server.code !== "SERVER_SESSION_FAILED" ? server : auth;
+  const detail = error instanceof PlotPickleServerSessionError
+    ? toPublicServerSessionError(error)
+    : error instanceof PlotPickleAuthError
+      ? toPublicAuthError(error)
+      : { code: "AUTH_REQUEST_REJECTED", message: "The authentication request could not be completed." };
   return response(detail, detail.code === "ACCESS_DENIED" ? 403 : 400);
 }
 

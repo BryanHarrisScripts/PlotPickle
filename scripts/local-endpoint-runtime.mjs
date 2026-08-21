@@ -12,6 +12,12 @@ import {
   reserveLoopbackPort,
   verifyExactLocalInstance,
 } from "../core/runtime/local-endpoint-registry.mjs";
+import {
+  cleanupVerificationSyntheticHome,
+  establishVerificationSyntheticHuman,
+  prepareVerificationSyntheticHome,
+  verificationSyntheticRuntime,
+} from "./full-verification-auth.mjs";
 
 const exec = promisify(execFile);
 const DEFAULT_TIMEOUT_MS = 90_000;
@@ -145,6 +151,14 @@ async function rootReady(baseUrl, fetchImpl) {
   }
 }
 
+async function cleanupSyntheticAuth(runtime) {
+  if (!runtime?.verificationAuthHome) return;
+  const home = runtime.verificationAuthHome;
+  runtime.verificationAuthHome = "";
+  runtime.verificationAuth = null;
+  await cleanupVerificationSyntheticHome(home);
+}
+
 export function endpointRuntimeEnvironment(runtime) {
   if (!runtime?.record || !runtime?.registryPath) return {};
   const record = runtime.record;
@@ -157,6 +171,7 @@ export function endpointRuntimeEnvironment(runtime) {
     PLOTPICKLE_LOCAL_ENDPOINT_COMMIT: record.commitSha || "",
     PLOTPICKLE_LOCAL_ENDPOINT_PROFILE: record.profileRef || "",
     PLOTPICKLE_ACCEPTANCE_URL: record.url,
+    ...(runtime.verificationAuth?.environment || {}),
   };
 }
 
@@ -183,6 +198,11 @@ export async function startManagedPlotPickleEndpoint({
   const viteCli = path.join(root, "node_modules", "vite", "bin", "vite.js");
   await accessImpl(viteCli);
 
+  const syntheticAuth = serviceKind === "plotpickle-full-verification"
+    ? verificationSyntheticRuntime(jobId)
+    : null;
+  if (syntheticAuth) await prepareVerificationSyntheticHome(syntheticAuth.home);
+
   const registry = new LocalEndpointRegistry();
   const registryPath = deps.registryPath || localEndpointRegistryPath(jobId);
   const endpointId = safeOpaque(`ep-${randomUUID().replaceAll("-", "")}`, "ep");
@@ -200,6 +220,8 @@ export async function startManagedPlotPickleEndpoint({
     outputTail: "",
     proof: null,
     stop: null,
+    verificationAuthHome: syntheticAuth?.home || "",
+    verificationAuth: null,
   };
 
   for (let attempt = 1; attempt <= MAX_PORT_ATTEMPTS; attempt += 1) {
@@ -246,6 +268,7 @@ export async function startManagedPlotPickleEndpoint({
       cwd: root,
       env: {
         ...process.env,
+        ...(syntheticAuth?.runtimeEnv || {}),
         NODE_ENV: "development",
         VITE_CONFIG_NATIVE_IGNORE_WARNING: "true",
         PLOTPICKLE_STARTUP_CONTRACT: startupContract,
@@ -284,6 +307,7 @@ export async function startManagedPlotPickleEndpoint({
         record = registry.transition(endpointId, { lifecycleState: "failed", readinessState: "degraded" });
         runtime.record = record;
         await persistRegistry(registry, registryPath);
+        await cleanupSyntheticAuth(runtime);
         throw new Error(`Managed PlotPickle endpoint exited before readiness.${tail ? ` ${tail}` : ""}`);
       }
 
@@ -295,6 +319,22 @@ export async function startManagedPlotPickleEndpoint({
         timeoutMs: 2_500,
       });
       if (proof.ok && await rootReady(record.url, fetchImpl)) {
+        try {
+          if (syntheticAuth && !runtime.verificationAuth) {
+            runtime.verificationAuth = await establishVerificationSyntheticHuman({
+              baseUrl: record.url,
+              home: syntheticAuth.home,
+              fetchImpl,
+            });
+          }
+        } catch (error) {
+          await terminateOwnedProcess(child);
+          record = registry.transition(endpointId, { lifecycleState: "failed", readinessState: "degraded" });
+          runtime.record = record;
+          await persistRegistry(registry, registryPath);
+          await cleanupSyntheticAuth(runtime);
+          throw new Error(`Managed PlotPickle endpoint could not establish its isolated synthetic Human session: ${error instanceof Error ? error.message : String(error)}`);
+        }
         record = registry.transition(endpointId, { lifecycleState: "running" });
         record = registry.markReadiness(endpointId, "ready", { kind: "exact-instance", result: "pass", detail: proof.reason });
         runtime.record = record;
@@ -302,7 +342,7 @@ export async function startManagedPlotPickleEndpoint({
         runtime.baseUrl = record.url;
         await persistRegistry(registry, registryPath);
         runtime.stop = () => stopManagedLocalEndpoint(runtime);
-        onStatus("ready", `${record.endpointId} generation ${record.generation} exact-instance proof passed.`);
+        onStatus("ready", `${record.endpointId} generation ${record.generation} exact-instance proof passed${runtime.verificationAuth ? "; isolated synthetic Human authenticated" : ""}.`);
         return runtime;
       }
       await sleepImpl(pollMs);
@@ -313,12 +353,14 @@ export async function startManagedPlotPickleEndpoint({
     record = registry.transition(endpointId, { lifecycleState: "failed", readinessState: "degraded" });
     runtime.record = record;
     await persistRegistry(registry, registryPath);
+    await cleanupSyntheticAuth(runtime);
     throw new Error(`Managed PlotPickle endpoint did not pass exact-instance readiness within ${Math.ceil(timeoutMs / 1000)} seconds.`);
   }
 
   record = registry.transition(endpointId, { lifecycleState: "failed", readinessState: "degraded" });
   runtime.record = record;
   await persistRegistry(registry, registryPath);
+  await cleanupSyntheticAuth(runtime);
   throw new Error("Managed PlotPickle endpoint exhausted bounded port-race retries.");
 }
 
@@ -337,6 +379,11 @@ export async function stopManagedLocalEndpoint(runtime, { removeRegistryFile = f
     await persistRegistry(runtime.registry, runtime.registryPath);
   } catch (error) {
     reportEndpointWarning("could not persist stopped state", error);
+  }
+  try {
+    await cleanupSyntheticAuth(runtime);
+  } catch (error) {
+    reportEndpointWarning("could not remove synthetic Human runtime state", error);
   }
   if (removeRegistryFile) {
     try {

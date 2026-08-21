@@ -52,8 +52,8 @@ jobs:
       - name: Validate BEN Agent, Skill and trust boundaries
         run: node --test tests/issue-1005-ben-code-quality.test.mjs tests/issue-962-agent-profiles.test.mjs tests/issue-976-agent-skill-trust-runtime.test.mjs tests/issue-913-agent-skills-migration.test.mjs
 
-      - name: Validate release security regression
-        run: node --test tests/issue-1226-release-security-cleanup.test.mjs
+      - name: Validate release security regressions
+        run: node --test tests/issue-1226-release-security-cleanup.test.mjs tests/issue-1228-security-closeout.test.mjs
 
       - name: Validate semantic execution and existing repair-graph authority
         run: node --test tests/issue-1218-semantic-execution-contract.test.mjs tests/issue-989-verification-execution-graph.test.mjs

@@ -21,6 +21,9 @@ on:
       - ".github/workflows/writer-e2e-observer.yml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   final-state-contract:
     name: Completion journey and final-state contract

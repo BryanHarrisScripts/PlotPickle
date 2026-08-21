@@ -46,7 +46,7 @@ export type WritersRoomSession = {
 };
 
 function makeId(prefix: string) {
-  return `${prefix}-${globalThis.crypto?.randomUUID?.() ?? Date.now().toString(36)}`;
+  return globalThis.crypto?.randomUUID ? `${prefix}-${globalThis.crypto.randomUUID()}` : (() => { throw new Error("Secure randomness is unavailable for Writers’ Room IDs."); })();
 }
 
 function encode(session: WritersRoomSession) {

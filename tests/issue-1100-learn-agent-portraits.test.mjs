@@ -11,8 +11,9 @@ test("#1100 LEARN agent selector uses illustrated non-pixel Sage and Marquee ide
   ]);
   assert.match(overlay, /<AgentPortrait id="sage-brinewick"/);
   assert.match(overlay, /<AgentPortrait id="marquee-director"/);
-  assert.match(portraitUi, /id: "sage-brinewick"[\s\S]*source: "\/assets\/curriculum-guide-master-storyteller\.png"/);
-  assert.match(portraitUi, /id: "marquee-director"[\s\S]*adult female elf[\s\S]*red-golden copper hair/);
+  assert.match(portraitUi, /id: "sage-brinewick"[\s\S]*elder wizard and curriculum-guide portrait[\s\S]*column: 0, row: 0/);
+  assert.match(portraitUi, /id: "marquee-director"[\s\S]*adult female elf with red-golden copper hair[\s\S]*column: 3, row: 1/);
+  assert.match(portraitUi, /className=\{styles\.atlasPortrait\}[\s\S]*data-agent-artwork="user-supplied"/);
   assert.doesNotMatch(`${overlay}\n${portraitUi}`, /\/assets\/helpers\/16bit\/|shape-rendering="crispEdges"|8-bit|16-bit|pixelated/i);
 });
 

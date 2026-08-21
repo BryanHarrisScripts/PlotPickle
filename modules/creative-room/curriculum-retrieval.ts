@@ -3,7 +3,7 @@ import {
   FOUNDATION_SOURCE_CORRECTIONS,
   type FoundationSourceCorrection,
 } from "../../adapters/curriculum/foundation-content-coverage";
-import { decodeHtmlEntitiesOnce, stripMarkupTags } from "../../lib/text-normalization";
+import { decodeHtmlEntitiesOnce, stripMarkupTags } from "../../core/security/text-normalization";
 
 export type CurriculumRagChunkKind =
   | "overview"
@@ -109,7 +109,7 @@ export function bundledSourcePlainText(source: CurriculumSource) {
   const markdownText = withoutRemoteAddresses(source.content)
     .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
-  return decodeHtmlEntitiesOnce(stripMarkupTags(markdownText))
+  return decodeHtmlEntitiesOnce(stripMarkupTags(markdownText, { tagSeparator: " " }))
     .replace(/[#*_>`|]/g, " ")
     .replace(/\s+/g, " ")
     .trim();

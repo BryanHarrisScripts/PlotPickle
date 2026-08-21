@@ -48,8 +48,11 @@ async function readApprovalFlag(request: IncomingMessage) {
 }
 
 function marker(output: string, name: string) {
-  const match = output.match(new RegExp(`^${name}=([^\\r\\n]+)$`, "m"));
-  return match?.[1]?.trim() || "";
+  const prefix = `${name}=`;
+  for (const line of output.split(/\r?\n/)) {
+    if (line.startsWith(prefix)) return line.slice(prefix.length).trim();
+  }
+  return "";
 }
 
 function publicStatus(state: string, detail: string, destination: string) {

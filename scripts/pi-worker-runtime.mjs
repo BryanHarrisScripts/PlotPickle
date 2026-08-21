@@ -35,15 +35,19 @@ function versionAtLeast(actual, minimum) {
   return true;
 }
 
-function windowsCliCommand(command, commandArgs) {
+function windowsBatchArguments(command, commandArgs) {
   const values = [command, ...commandArgs].map((value) => {
     const text = String(value);
     if (/[\r\n\0"&|<>^%!]/u.test(text)) {
       throw new Error(`Pi worker CLI argument contains unsupported Windows command-shell characters: ${text}`);
     }
-    return `"${text}"`;
+    return text;
   });
-  return `"${values.join(" ")}"`;
+  return ["/d", "/c", ...values];
+}
+
+function windowsBatchWrapper(command) {
+  return process.platform === "win32" && /\.(?:cmd|bat)$/iu.test(String(command));
 }
 
 export async function runPortableCommand(command, commandArgs = [], options = {}) {
@@ -56,11 +60,9 @@ export async function runPortableCommand(command, commandArgs = [], options = {}
     maxBuffer: options.maxBuffer || 32 * 1024 * 1024,
     encoding: "utf8",
   };
-  if (process.platform === "win32") {
-    const result = await exec(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", windowsCliCommand(command, commandArgs)], common);
-    return { stdout: String(result.stdout || "").trim(), stderr: String(result.stderr || "").trim() };
-  }
-  const result = await exec(command, commandArgs, common);
+  const result = windowsBatchWrapper(command)
+    ? await exec(process.env.ComSpec || "cmd.exe", windowsBatchArguments(command, commandArgs), common)
+    : await exec(command, commandArgs, common);
   return { stdout: String(result.stdout || "").trim(), stderr: String(result.stderr || "").trim() };
 }
 
@@ -74,8 +76,8 @@ function portableCommandSync(command, commandArgs = [], options = {}) {
     maxBuffer: options.maxBuffer || 8 * 1024 * 1024,
     encoding: "utf8",
   };
-  const result = process.platform === "win32"
-    ? spawnSync(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", windowsCliCommand(command, commandArgs)], common)
+  const result = windowsBatchWrapper(command)
+    ? spawnSync(process.env.ComSpec || "cmd.exe", windowsBatchArguments(command, commandArgs), common)
     : spawnSync(command, commandArgs, common);
   return {
     status: Number.isInteger(result.status) ? result.status : -1,

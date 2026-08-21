@@ -28,7 +28,8 @@ test("#1228 keeps compatible dependency patches above reviewed advisory floors",
 
   assert.ok(versionAtLeast(packages["node_modules/nanoid"]?.version, "3.3.18"), "nanoid must include the 3.x zero-size loop fix");
   assert.ok(versionAtLeast(packages["node_modules/js-yaml"]?.version, "4.3.1"), "js-yaml 4.x must include merge-chain and !!omap DoS fixes");
-  assert.ok(versionAtLeast(packages["node_modules/gray-matter/node_modules/js-yaml"]?.version, "3.15.1"), "legacy js-yaml 3.x copy must include the backported !!omap fix");
+  const legacyYaml = packages["node_modules/gray-matter/node_modules/js-yaml"]?.version;
+  assert.ok(!legacyYaml || versionAtLeast(legacyYaml, "3.15.1"), "a retained legacy js-yaml 3.x copy must include its backported fix");
   assert.ok(versionAtLeast(packages["node_modules/@babel/core"]?.version, "7.29.6"), "@babel/core must include the sourceMappingURL file-read fix");
   assert.ok(versionAtLeast(packages["node_modules/@esbuild-kit/core-utils/node_modules/esbuild"]?.version, "0.25.0"), "deprecated esbuild-kit must not retain the vulnerable esbuild development server");
 });

@@ -12,6 +12,9 @@ import {
   runPortableCommand,
 } from "./pi-worker-runtime.mjs";
 
+export const PLOTPICKLE_MANAGED_PI_VERSION = "0.84.2";
+export const PLOTPICKLE_MANAGED_PI_PACKAGE = `${PI_CODING_AGENT_PACKAGE}@${PLOTPICKLE_MANAGED_PI_VERSION}`;
+
 function versionTuple(value) {
   return String(value || "").split(".").slice(0, 3).map((item) => Number(item) || 0);
 }
@@ -24,6 +27,11 @@ function versionAtLeast(actual, minimum) {
     if (left[index] < right[index]) return false;
   }
   return true;
+}
+
+function normalizedPiVersion(value) {
+  const match = String(value || "").trim().match(/\b(\d+\.\d+\.\d+)\b/u);
+  return match?.[1] || "";
 }
 
 export function managedPiRoot({ platform = process.platform, env = process.env } = {}) {
@@ -47,21 +55,46 @@ export async function probeManagedPi(options = {}) {
   const env = options.env || process.env;
   const root = options.root || managedPiRoot({ platform, env });
   const command = options.command || managedPiCommand({ platform, env, root });
+  const expectedVersion = options.expectedVersion || PLOTPICKLE_MANAGED_PI_VERSION;
   const fileExists = options.existsSync || existsSync;
   const run = options.runPortableCommand || runPortableCommand;
   if (!fileExists(command)) {
-    return { ready: false, root, command, version: "", state: "not-installed" };
+    return { ready: false, root, command, version: "", expectedVersion, state: "not-installed" };
   }
   try {
     const result = await run(command, ["--version"], { timeout: 15_000 });
-    const version = String(result.stdout || result.stderr || "unknown").trim();
-    return { ready: true, root, command, version: version || "unknown", state: "ready" };
+    const rawVersion = String(result.stdout || result.stderr || "").trim();
+    const version = normalizedPiVersion(rawVersion);
+    if (!version) {
+      return {
+        ready: false,
+        root,
+        command,
+        version: "",
+        expectedVersion,
+        state: "invalid-managed-install",
+        detail: `PlotPickle-managed Pi returned an unrecognized version string: ${rawVersion || "<empty>"}`,
+      };
+    }
+    if (version !== expectedVersion) {
+      return {
+        ready: false,
+        root,
+        command,
+        version,
+        expectedVersion,
+        state: "version-mismatch",
+        detail: `PlotPickle-managed Pi must be exactly ${expectedVersion}; found ${version}.`,
+      };
+    }
+    return { ready: true, root, command, version, expectedVersion, state: "ready" };
   } catch (error) {
     return {
       ready: false,
       root,
       command,
       version: "",
+      expectedVersion,
       state: "invalid-managed-install",
       detail: error instanceof Error ? error.message : String(error),
     };
@@ -73,19 +106,31 @@ export async function ensureManagedPiInstalled(options = {}) {
   const env = options.env || process.env;
   const run = options.runPortableCommand || runPortableCommand;
   const root = options.root || managedPiRoot({ platform, env });
+  const expectedVersion = options.expectedVersion || PLOTPICKLE_MANAGED_PI_VERSION;
+  const packageSpec = options.packageSpec || `${PI_CODING_AGENT_PACKAGE}@${expectedVersion}`;
   const fileExists = options.existsSync || existsSync;
   if (!versionAtLeast(options.nodeVersion || process.versions.node, PI_MINIMUM_NODE_VERSION)) {
     throw new Error(`Pi requires Node.js ${PI_MINIMUM_NODE_VERSION} or newer for PlotPickle. Found ${options.nodeVersion || process.versions.node}.`);
   }
 
-  const existing = await probeManagedPi({ platform, env, root, existsSync: fileExists, runPortableCommand: run });
+  const existing = await probeManagedPi({
+    platform,
+    env,
+    root,
+    expectedVersion,
+    existsSync: fileExists,
+    runPortableCommand: run,
+  });
   if (existing.ready) return { ...existing, installed: false };
   if (options.allowInstall === false || env.PLOTPICKLE_PI_AUTO_INSTALL === "0") {
-    throw new Error("PlotPickle-managed Pi is not ready and automatic installation is disabled.");
+    const mismatch = existing.state === "version-mismatch"
+      ? ` Expected ${expectedVersion}; found ${existing.version}.`
+      : "";
+    throw new Error(`PlotPickle-managed Pi ${expectedVersion} is not ready and automatic installation is disabled.${mismatch}`);
   }
 
   await mkdir(root, { recursive: true, mode: 0o700 });
-  options.onStatus?.("INSTALLING", `${PI_CODING_AGENT_PACKAGE} in PlotPickle's private developer-tool directory`);
+  options.onStatus?.("INSTALLING", `${packageSpec} in PlotPickle's private developer-tool directory`);
 
   const npmCommand = options.npmCommand || resolveActiveNpmCommand({
     platform,
@@ -101,15 +146,22 @@ export async function ensureManagedPiInstalled(options = {}) {
     "-g",
     "--prefix", root,
     "--ignore-scripts",
-    PI_CODING_AGENT_PACKAGE,
+    packageSpec,
   ], {
     timeout: 15 * 60_000,
     env,
   });
 
-  const installed = await probeManagedPi({ platform, env, root, existsSync: fileExists, runPortableCommand: run });
+  const installed = await probeManagedPi({
+    platform,
+    env,
+    root,
+    expectedVersion,
+    existsSync: fileExists,
+    runPortableCommand: run,
+  });
   if (!installed.ready) {
-    throw new Error(`PlotPickle-managed Pi installation completed but the private executable failed validation. ${installed.detail || installed.state}`);
+    throw new Error(`PlotPickle-managed Pi ${expectedVersion} installation completed but the private executable failed validation. ${installed.detail || installed.state}`);
   }
   options.onStatus?.("READY", `${installed.version} · PlotPickle-managed`);
   return { ...installed, installed: true };

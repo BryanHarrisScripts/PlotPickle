@@ -1,4 +1,5 @@
 import type { ScreenplayDocument, ScreenplayFormat } from "./project";
+import { decodeHtmlEntitiesOnce, stripMarkupTags } from "./text-normalization";
 
 export type ScreenplayElementType =
   | "section"
@@ -41,16 +42,7 @@ export function screenplayFormatForFile(fileName: string): ScreenplayFormat {
 }
 
 function decodeXml(value: string) {
-  return value
-    .replace(/<br\s*\/?\s*>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;|&#39;/g, "'")
-    .replace(/&amp;/g, "&")
-    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
-    .trim();
+  return decodeHtmlEntitiesOnce(stripMarkupTags(value, { preserveBreaks: true })).trim();
 }
 
 function finalDraftType(value: string): ScreenplayElementType {

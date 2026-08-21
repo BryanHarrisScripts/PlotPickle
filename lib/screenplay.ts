@@ -1,5 +1,5 @@
 import type { ScreenplayDocument, ScreenplayFormat } from "./project";
-import { decodeHtmlEntitiesOnce, stripMarkupTags } from "./text-normalization";
+import { decodeHtmlEntitiesOnce, stripMarkupTags } from "../core/security/text-normalization";
 
 export type ScreenplayElementType =
   | "section"
@@ -42,7 +42,9 @@ export function screenplayFormatForFile(fileName: string): ScreenplayFormat {
 }
 
 function decodeXml(value: string) {
-  return decodeHtmlEntitiesOnce(stripMarkupTags(value, { preserveBreaks: true })).trim();
+  const textOnly = stripMarkupTags(value, { preserveBreaks: true });
+  const decoded = decodeHtmlEntitiesOnce(textOnly);
+  return decoded.trim();
 }
 
 function finalDraftType(value: string): ScreenplayElementType {
@@ -76,11 +78,13 @@ function parseFinalDraft(source: string): ParsedLine[] {
 }
 
 function isSceneHeading(value: string) {
-  return /^(?:\.?)(?:INT\.?|EXT\.?|INT\.\/EXT\.?|EXT\.\/INT\.?|I\/E\.?)(?:\s|$)/i.test(value);
+  const candidate = value.trim();
+  return /^(?:\.?)(?:INT\.?|EXT\.?|INT\.\/EXT\.?|EXT\.\/INT\.?|I\/E\.?)(?:\s|$)/i.test(candidate);
 }
 
 function isTransition(value: string) {
-  return /^(?:FADE IN:|FADE OUT\.?|CUT TO:|DISSOLVE TO:|SMASH CUT TO:|MATCH CUT TO:|WIPE TO:)$|\bTO:$/i.test(value);
+  const candidate = value.trim();
+  return /^(?:FADE IN:|FADE OUT\.?|CUT TO:|DISSOLVE TO:|SMASH CUT TO:|MATCH CUT TO:|WIPE TO:)$|\bTO:$/i.test(candidate);
 }
 
 function isCharacter(value: string) {

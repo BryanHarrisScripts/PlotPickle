@@ -39,6 +39,7 @@ test("#1230 optional BUZZ verifies the local backbone and never substitutes a fa
 test("#1230 exhaustive UAT emits real interaction progress without weakening its 60 second stall watchdog", () => {
   const audit = source("scripts/exhaustive-ui-control-audit.mjs");
   assert.match(audit, /"WORKING"/);
+  assert.match(audit, /Exhaustive UAT ·/);
   assert.match(audit, /\$\{interactions\}\/\$\{interactionLimit\}/);
 
   const runner = source("scripts/full-verification-progress-runner.mjs");
@@ -53,6 +54,7 @@ test("#1230 Pi cold-start proof remains bounded and preserves useful process evi
   assert.match(pi, /safePiFailure/);
   assert.match(pi, /stderr=/);
   assert.match(pi, /stdout=/);
+  assert.match(pi, /Pi process evidence:/);
 
   const runner = source("scripts/full-verification-progress-runner.mjs");
   assert.match(runner, /export const PI_PREFLIGHT_TIMEOUT_MS = 20 \* 60_000;/);

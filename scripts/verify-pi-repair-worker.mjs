@@ -38,11 +38,7 @@ async function main() {
   status("Pi coding agent", "READY", `${pi.version} · PlotPickle-managed · ${pi.command}`);
   status("Pi local coding model", "READY", `${runtime.model} via ${runtime.label}`);
   status("Pi repair invocation", "START", `bounded local-model proof; cold start may use up to ${PI_SMOKE_TIMEOUT_MS / 60_000} minutes`);
-  try {
-    await runPiSmoke({ command: pi.command, runtime, purpose: "repair", timeout: PI_SMOKE_TIMEOUT_MS });
-  } catch (error) {
-    throw new Error(`Pi local-model readiness probe failed. ${safePiFailure(error)}`, { cause: error });
-  }
+  await runPiSmoke({ command: pi.command, runtime, purpose: "repair", timeout: PI_SMOKE_TIMEOUT_MS });
   status("Pi repair invocation", "PASS", "managed headless local-model smoke completed with no tools and no cloud fallback");
 
   try {
@@ -61,6 +57,8 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(error instanceof Error ? error.stack || error.message : String(error));
+  const detail = safePiFailure(error);
+  const message = error instanceof Error ? error.stack || error.message : String(error);
+  console.error(`${message}\nPi process evidence: ${detail}`);
   process.exitCode = 1;
 });

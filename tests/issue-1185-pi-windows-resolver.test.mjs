@@ -102,9 +102,10 @@ test("#1185 inherited PATH remains the cheap first choice on non-Windows platfor
 
 test("#1185 Developer Repair Worker preflight and launch consume one resolved absolute Pi executable", async () => {
   const runner = await read("scripts/run-uat-repair-agent.mjs");
-  assert.match(runner, /import \{ resolvePiExecutable \} from "\.\/pi-worker-runtime\.mjs"/u);
+  assert.match(runner, /import \{ resolvePiExecutable, runPortableCommand \} from "\.\/pi-worker-runtime\.mjs"/u);
   assert.match(runner, /piResolution = await resolvePiExecutable\(\)/u);
-  assert.match(runner, /runCli\(resolution\.executable, \[/u);
+  assert.match(runner, /runPortableCommand\(resolution\.executable, \[/u);
+  assert.doesNotMatch(runner, /runCli\(resolution\.executable, \[/u);
   assert.doesNotMatch(runner, /runCli\("pi", \[/u);
   for (const field of ["workerExecutable", "workerVersion", "workerDiscoveryMethod", "workerRemediationCode", "workerNodeExecutable", "workerNpmExecutable", "workerNpmPrefix"]) {
     assert.ok(runner.includes(field), `missing Pi provenance field ${field}`);

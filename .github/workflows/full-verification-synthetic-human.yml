@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: full-verification-synthetic-human-${{ github.event.pull_request.number || github.ref }}-${{ matrix.name }}
+  group: full-verification-synthetic-human-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:

@@ -23,6 +23,17 @@ function status(label, state, detail = "") {
   process.stdout.write(`${String(label).padEnd(42, ".")} ${state}${detail ? `  ${detail}` : ""}\n`);
 }
 
+async function waitForAuthenticatedSnapshot(client) {
+  let snapshot = "";
+  for (let attempt = 1; attempt <= 12; attempt += 1) {
+    snapshot = resultText(await client.call("browser_snapshot", {}));
+    if (snapshot.includes("PlotPickle Verification Human")) return snapshot;
+    if (/Create your local profile|Unlock your profile/u.test(snapshot)) return snapshot;
+    await delay(500);
+  }
+  return snapshot;
+}
+
 try {
   status("Synthetic Human endpoint", "START");
   runtime = await startManagedPlotPickleEndpoint({
@@ -74,11 +85,7 @@ try {
   const names = new Set(tools.map((tool) => tool.name));
   for (const required of ["browser_navigate", "browser_snapshot"]) assert.equal(names.has(required), true, `missing ${required}`);
   await client.call("browser_navigate", { url: runtime.baseUrl });
-  let snapshot = resultText(await client.call("browser_snapshot", {}));
-  if (!snapshot.includes("PlotPickle Verification Human")) {
-    await delay(1_000);
-    snapshot = resultText(await client.call("browser_snapshot", {}));
-  }
+  const snapshot = await waitForAuthenticatedSnapshot(client);
   assert.match(snapshot, /PlotPickle Verification Human/u);
   assert.doesNotMatch(snapshot, /Create your local profile|Unlock your profile/u);
   status("Synthetic Human Playwright session", "PASS", "isolated MCP browser opened authenticated workspace");

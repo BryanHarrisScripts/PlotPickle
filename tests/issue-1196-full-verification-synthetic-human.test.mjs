@@ -30,7 +30,7 @@ test("#1196 Full Verification synthetic Human runtime overrides stale normal/ser
   };
   const runtime = verificationSyntheticRuntime("verification-job-A", { env, platform: "win32" });
   assert.equal(runtime.home, verificationSyntheticHome("verification-job-A", { env, platform: "win32" }));
-  assert.match(runtime.home, /PlotPickle\\full-verification\\synthetic-humans\\fv-[a-f0-9]{24}$/u);
+  assert.match(runtime.home, /PlotPickle[\\/]full-verification[\\/]synthetic-humans[\\/]fv-[a-f0-9]{24}$/u);
   assert.equal(runtime.runtimeEnv.PLOTPICKLE_HOME, runtime.home);
   assert.equal(runtime.runtimeEnv.PLOTPICKLE_AUTH_STATE_PATH, path.join(runtime.home, "auth", "state.json"));
   assert.equal(runtime.runtimeEnv.PLOTPICKLE_ACCESS_MODE, "desktop-loopback");

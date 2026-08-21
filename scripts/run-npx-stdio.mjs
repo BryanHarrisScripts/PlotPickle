@@ -2,13 +2,15 @@
 
 import { spawn } from "node:child_process";
 import process from "node:process";
+import { verificationPlaywrightArgs } from "./full-verification-auth.mjs";
 
-const npxArgs = process.argv.slice(2);
-if (!npxArgs.length) {
+const requestedArgs = process.argv.slice(2);
+if (!requestedArgs.length) {
   console.error("PlotPickle stdio launcher requires npx arguments.");
   process.exit(2);
 }
 
+const npxArgs = verificationPlaywrightArgs(requestedArgs);
 const isWindows = process.platform === "win32";
 const command = isWindows
   ? (process.env.ComSpec || process.env.COMSPEC || "cmd.exe")

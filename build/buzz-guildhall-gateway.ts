@@ -7,7 +7,6 @@ import { BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "../lib/buzz-guil
 
 const API = "/api/local-buzz/guildhall";
 const CONNECTION_FILE = "buzz-connection.json";
-const MAX_BODY = 64 * 1024;
 const MAX_COMMAND_OUTPUT = 4 * 1024 * 1024;
 
 type BuzzConnection = {
@@ -52,20 +51,6 @@ function sendJson(response: ServerResponse, statusCode: number, body: Record<str
   response.end(JSON.stringify(body));
 }
 
-async function readBody(request: IncomingMessage): Promise<Record<string, unknown>> {
-  const chunks: Buffer[] = [];
-  let bytes = 0;
-  for await (const chunk of request) {
-    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-    bytes += buffer.length;
-    if (bytes > MAX_BODY) throw new Error("The Buzz Community request is too large.");
-    chunks.push(buffer);
-  }
-  const value: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("The Buzz Community request is invalid.");
-  return value as Record<string, unknown>;
-}
-
 function safeError(error: unknown) {
   const message = error instanceof Error ? error.message : "The Buzz Guildhall operation failed.";
   return message
@@ -73,10 +58,6 @@ function safeError(error: unknown) {
     .replace(/\b[a-f0-9]{64}\b/gi, "[redacted-secret]")
     .replace(/(password|secret|private[_ -]?key|api[_ -]?key|token)\s*[=:]\s*\S+/gi, "$1=[redacted]")
     .slice(0, 700);
-}
-
-function text(value: unknown) {
-  return typeof value === "string" ? value.trim() : "";
 }
 
 function validConnection(value: unknown): value is BuzzConnection {
@@ -161,7 +142,7 @@ function command(executable: string, args: string[], env: NodeJS.ProcessEnv) {
 }
 
 async function runBuzz(connection: BuzzConnection, args: string[]) {
-  if (!connection.privateKey) throw new Error("Authorize PlotPickle with your Buzz private identity before using Community.");
+  if (!connection.privateKey) throw new Error("Authorize PlotPickle with your Buzz private identity before setting up the Guildhall.");
   const resolution = await resolveBuzzCliExecutable(connection.cliPath);
   const result = await command(resolution.executable, args, {
     BUZZ_RELAY_URL: relayHttpUrl(connection.relayUrl),
@@ -175,7 +156,7 @@ function nestedArray(value: unknown): unknown[] {
   if (Array.isArray(value)) return value;
   if (!value || typeof value !== "object") return [];
   const item = value as Record<string, unknown>;
-  for (const key of ["channels", "dms", "items", "data", "results"]) {
+  for (const key of ["channels", "items", "data", "results"]) {
     if (Array.isArray(item[key])) return item[key] as unknown[];
   }
   return [];
@@ -201,16 +182,18 @@ function channelsFrom(value: unknown): BuzzChannel[] {
 }
 
 function dmsFrom(value: unknown): BuzzDm[] {
-  return nestedArray(value).flatMap((entry) => {
+  const object = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
+  const entries = Array.isArray(value) ? value : object && Array.isArray(object.dms) ? object.dms : nestedArray(value);
+  return entries.flatMap((entry) => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
     const item = entry as Record<string, unknown>;
     const id = firstString(item, ["dm_id", "channel_id", "id", "channelId"]);
     const participants = Array.isArray(item.participants)
-      ? item.participants.filter((entry): entry is string => typeof entry === "string" && /^[a-f0-9]{64}$/i.test(entry))
+      ? item.participants.filter((candidate): candidate is string => typeof candidate === "string" && /^[a-f0-9]{64}$/i.test(candidate))
       : [];
     if (!id) return [];
     const created = item.created_at ?? item.createdAt;
-    const createdAt = typeof created === "number" ? new Date(created * 1000).toISOString() : text(created);
+    const createdAt = typeof created === "number" ? new Date(created * 1000).toISOString() : typeof created === "string" ? created.trim() : "";
     return [{ id, participants, createdAt }];
   });
 }
@@ -373,8 +356,17 @@ async function handle(request: IncomingMessage, response: ServerResponse, url: U
   if (request.method === "POST" && url.pathname === `${API}/dms/open`) {
     const connection = await readConnection();
     verifiedConnection(connection);
-    const body = await readBody(request);
-    sendJson(response, 200, { ok: true, dm: await openDm(connection, body) });
+    const chunks: Buffer[] = [];
+    let bytes = 0;
+    for await (const chunk of request) {
+      const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+      bytes += buffer.length;
+      if (bytes > 64 * 1024) throw new Error("The Buzz Community request is too large.");
+      chunks.push(buffer);
+    }
+    const value: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("The Buzz Community request is invalid.");
+    sendJson(response, 200, { ok: true, dm: await openDm(connection, value as Record<string, unknown>) });
     return;
   }
   sendJson(response, 404, { ok: false, message: "Buzz Guildhall operation not found." });

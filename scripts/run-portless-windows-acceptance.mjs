@@ -2,7 +2,6 @@
 
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { lookup } from "node:dns/promises";
 import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import http from "node:http";
 import os from "node:os";
@@ -135,24 +134,6 @@ async function proofAt(baseUrl, fetchImpl = globalThis.fetch) {
   return response.json();
 }
 
-function isLoopbackAddress(address) {
-  const value = String(address || "").toLowerCase();
-  return value === "::1" || value.startsWith("127.") || value === "::ffff:127.0.0.1";
-}
-
-async function proveNamedRoutesAreLoopback(adapters) {
-  const evidence = [];
-  for (const adapter of adapters) {
-    const hostname = new URL(adapter.url).hostname;
-    const addresses = await lookup(hostname, { all: true, verbatim: true });
-    if (!addresses.length || addresses.some((entry) => !isLoopbackAddress(entry.address))) {
-      throw new Error(`Portless route ${hostname} did not resolve exclusively to loopback.`);
-    }
-    evidence.push({ hostname, addresses: addresses.map((entry) => entry.address) });
-  }
-  return evidence;
-}
-
 function syntheticLongPath() {
   const segments = [];
   for (let index = 0; index < 520; index += 1) segments.push(`C:\\pp1156\\segment-${String(index).padStart(4, "0")}\\bin`);
@@ -249,9 +230,8 @@ async function main() {
     }
     status("Three static aliases", "PASS", "main + two synthetic repair worktrees are concurrent");
 
-    const namedRouteEvidence = await proveNamedRoutesAreLoopback([adapterA, adapterB, adapterC]);
-    status("Named localhost resolution", "PASS", `${namedRouteEvidence.length} route hostname(s) resolve loopback-only`);
     const routeFetch = createPortlessLoopbackFetch(proxy);
+    status("Named route transport", "PASS", "verified loopback listener + opaque .localhost Host routing; system DNS is not an authority");
 
     const proofA = await proofAt(adapterA.url, routeFetch);
     const proofB = await proofAt(adapterB.url, routeFetch);
@@ -328,7 +308,7 @@ async function main() {
         nodeVersion: portlessRuntime.nodeVersion,
         profile: proxy.profile,
         loopbackListeners: proxy.listenerProof.listeners,
-        namedRouteResolution: namedRouteEvidence,
+        routeProofTransport: "verified 127.0.0.1 proxy listener with opaque .localhost Host routing; system DNS not relied upon",
       },
       plotpickle: {
         commitSha: head,

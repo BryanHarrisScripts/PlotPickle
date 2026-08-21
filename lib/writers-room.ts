@@ -3,7 +3,6 @@ import type { FeedbackTargetReference } from "./unified-feedback";
 import { createFeedback } from "./unified-feedback-store";
 
 const PREFIX = "plotpickle:writers-room:v1:";
-let fallbackIdCounter = 0;
 
 export type WritersRoomParticipant = {
   id: string;
@@ -47,10 +46,7 @@ export type WritersRoomSession = {
 };
 
 function makeId(prefix: string) {
-  const uuid = globalThis.crypto?.randomUUID?.();
-  if (uuid) return `${prefix}-${uuid}`;
-  fallbackIdCounter += 1;
-  return `${prefix}-${Date.now().toString(36)}-${fallbackIdCounter.toString(36)}`;
+  return `${prefix}-${globalThis.crypto?.randomUUID?.() ?? Date.now().toString(36)}`;
 }
 
 function encode(session: WritersRoomSession) {

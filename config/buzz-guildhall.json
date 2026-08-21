@@ -290,6 +290,7 @@
   ],
   "eventRoutes": {
     "agent.note": "great-hall",
+    "agent.presence": "gatehouse",
     "curriculum.note": "lore-library",
     "writer.feedback": "wayfarer-journal",
     "wyrmwood.result": "wyrmwood-ring",
@@ -298,9 +299,12 @@
     "visual.finding": "lantern-watch",
     "uat.result": "gatehouse",
     "runtime.alert": "gatehouse",
+    "system.health": "gatehouse",
+    "semantic.execution": "forge",
     "repair.request": "forge",
     "github.status": "github-herald",
-    "decision.record": "archive"
+    "decision.record": "archive",
+    "improvement.candidate": "archive"
   },
   "githubEscalation": {
     "allowedTypes": [

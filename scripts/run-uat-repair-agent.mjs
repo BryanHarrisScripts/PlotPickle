@@ -10,7 +10,7 @@ import process from "node:process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { approvedCodingModel, rankApprovedCodingModel } from "./developer-repair-model-policy.mjs";
-import { resolvePiExecutable } from "./pi-worker-runtime.mjs";
+import { resolvePiExecutable, runPortableCommand } from "./pi-worker-runtime.mjs";
 
 const exec = promisify(execFile);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -429,7 +429,7 @@ async function runPiAgent({ finding, runtime, worktreeRoot }) {
   }
   piResolution = resolution;
   try {
-    const result = await runCli(resolution.executable, [
+    const result = await runPortableCommand(resolution.executable, [
       "--mode", "json",
       "-p",
       "--no-session",

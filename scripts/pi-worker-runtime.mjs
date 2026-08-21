@@ -35,14 +35,19 @@ function versionAtLeast(actual, minimum) {
   return true;
 }
 
-function windowsCliCommand(command, commandArgs) {
-  return [command, ...commandArgs].map((value) => {
+function windowsBatchArguments(command, commandArgs) {
+  const values = [command, ...commandArgs].map((value) => {
     const text = String(value);
     if (/[\r\n\0"&|<>^%!]/u.test(text)) {
       throw new Error(`Pi worker CLI argument contains unsupported Windows command-shell characters: ${text}`);
     }
-    return `"${text}"`;
-  }).join(" ");
+    return text;
+  });
+  return ["/d", "/c", ...values];
+}
+
+function windowsBatchWrapper(command) {
+  return process.platform === "win32" && /\.(?:cmd|bat)$/iu.test(String(command));
 }
 
 export async function runPortableCommand(command, commandArgs = [], options = {}) {
@@ -55,11 +60,9 @@ export async function runPortableCommand(command, commandArgs = [], options = {}
     maxBuffer: options.maxBuffer || 32 * 1024 * 1024,
     encoding: "utf8",
   };
-  if (process.platform === "win32") {
-    const result = await exec(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", windowsCliCommand(command, commandArgs)], common);
-    return { stdout: String(result.stdout || "").trim(), stderr: String(result.stderr || "").trim() };
-  }
-  const result = await exec(command, commandArgs, common);
+  const result = windowsBatchWrapper(command)
+    ? await exec(process.env.ComSpec || "cmd.exe", windowsBatchArguments(command, commandArgs), common)
+    : await exec(command, commandArgs, common);
   return { stdout: String(result.stdout || "").trim(), stderr: String(result.stderr || "").trim() };
 }
 
@@ -73,8 +76,8 @@ function portableCommandSync(command, commandArgs = [], options = {}) {
     maxBuffer: options.maxBuffer || 8 * 1024 * 1024,
     encoding: "utf8",
   };
-  const result = process.platform === "win32"
-    ? spawnSync(process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", windowsCliCommand(command, commandArgs)], common)
+  const result = windowsBatchWrapper(command)
+    ? spawnSync(process.env.ComSpec || "cmd.exe", windowsBatchArguments(command, commandArgs), common)
     : spawnSync(command, commandArgs, common);
   return {
     status: Number.isInteger(result.status) ? result.status : -1,
@@ -104,8 +107,23 @@ function commandOnPath(name) {
   return String(result.stdout || "").split(/\r?\n/).map((item) => item.trim()).find(Boolean) || "";
 }
 
+export function resolveActiveNpmCommand(options = {}) {
+  const platform = options.platform || process.platform;
+  const pathApi = platform === "win32" ? path.win32 : path.posix;
+  const nodeExecutable = options.nodeExecutable || process.execPath;
+  const fileExists = options.existsSync || existsSync;
+  const locate = options.commandOnPath || commandOnPath;
+  if (platform === "win32") {
+    const sibling = pathApi.join(pathApi.dirname(nodeExecutable), "npm.cmd");
+    if (fileExists(sibling)) return sibling;
+  }
+  const located = String(locate("npm") || "").trim();
+  if (located) return located;
+  return platform === "win32" ? "npm.cmd" : "npm";
+}
+
 function npmGlobalPrefix() {
-  const result = portableCommandSync("npm", ["prefix", "-g"]);
+  const result = portableCommandSync(resolveActiveNpmCommand(), ["prefix", "-g"]);
   if (result.error) throw new Error(`Pi npm-prefix discovery failed: ${result.error.message}`, { cause: result.error });
   if (result.status !== 0) throw new Error(`Pi npm-prefix discovery failed with exit ${result.status}: ${result.stderr || "no npm error detail"}`);
   if (!result.stdout) throw new Error("Pi npm-prefix discovery returned an empty global prefix.");
@@ -302,7 +320,7 @@ export async function ensurePiInstalled(options = {}) {
       throw new Error(`${resolution.message} Automatic installation is disabled; set PLOTPICKLE_PI_AUTO_INSTALL=1 to allow the reviewed install path.`);
     }
     options.onStatus?.("INSTALLING", `${PI_CODING_AGENT_PACKAGE} via npm`);
-    await runPortableCommand("npm", ["install", "-g", "--ignore-scripts", PI_CODING_AGENT_PACKAGE], { timeout: 15 * 60_000 });
+    await runPortableCommand(resolveActiveNpmCommand(), ["install", "-g", "--ignore-scripts", PI_CODING_AGENT_PACKAGE], { timeout: 15 * 60_000 });
     resolution = await resolvePiExecutable();
     installed = true;
   }

@@ -90,7 +90,7 @@ test("#1185 repair-stack bootstrap uses managed Pi and never recommends killing 
   assert.match(ensure, /ensureManagedPiInstalled/);
   assert.match(managed, /resolveActiveNpmCommand/);
   assert.match(managed, /"-g",\s*\n\s*"--prefix", root/);
-  assert.match(runtime, /batchWrapper[\s\S]*call /);
+  assert.equal(runtime.includes('return `"${values.join(" ")}"`;'), true);
   assert.doesNotMatch(combined, /--force/);
   assert.doesNotMatch(combined, /SetEnvironmentVariable/);
   assert.doesNotMatch(combined, /taskkill[^\n]*node\.exe/i);

@@ -2,6 +2,7 @@
 
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
+import { lookup } from "node:dns/promises";
 import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import http from "node:http";
 import os from "node:os";
@@ -12,6 +13,7 @@ import { promisify } from "node:util";
 import { LocalEndpointRegistry } from "../core/runtime/local-endpoint-registry.mjs";
 import {
   attachPortlessAlias,
+  createPortlessLoopbackFetch,
   detachPortlessAlias,
   probePortlessRuntime,
   remapPortlessAlias,
@@ -22,14 +24,18 @@ import {
 const exec = promisify(execFile);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
-const arg = (name, fallback = "") => {
+
+function readCliOption(name, fallback = "") {
   const index = args.indexOf(name);
-  return index >= 0 && index + 1 < args.length ? args[index + 1] : fallback;
-};
-const nodePath = path.resolve(arg("--node", process.execPath));
-const cliPath = path.resolve(arg("--cli"));
-const stateDir = path.resolve(arg("--state-dir", path.join(os.tmpdir(), "plotpickle-portless-1156-state")));
-const artifactPath = path.resolve(arg("--artifact", path.join(repoRoot, ".artifacts", "portless", "windows-acceptance.json")));
+  if (index < 0) return fallback;
+  const value = args[index + 1];
+  return value === undefined ? fallback : value;
+}
+
+const nodePath = path.resolve(readCliOption("--node", process.execPath));
+const cliPath = path.resolve(readCliOption("--cli"));
+const stateDir = path.resolve(readCliOption("--state-dir", path.join(os.tmpdir(), "plotpickle-portless-1156-state")));
+const artifactPath = path.resolve(readCliOption("--artifact", path.join(repoRoot, ".artifacts", "portless", "windows-acceptance.json")));
 const secretCanaries = ["Afterglow Secret Ending", "provider-account@example.com", "nsec1PP1156PRIVATECANARY", "Bryan Private Story"];
 
 function status(label, state, detail = "") {
@@ -120,10 +126,31 @@ async function createBackend(proofState) {
   };
 }
 
-async function proofAt(baseUrl) {
-  const response = await fetch(new URL("/api/local-instance-proof", baseUrl), { cache: "no-store", signal: AbortSignal.timeout(5_000) });
+async function proofAt(baseUrl, fetchImpl = globalThis.fetch) {
+  const response = await fetchImpl(new URL("/api/local-instance-proof", baseUrl), {
+    cache: "no-store",
+    signal: AbortSignal.timeout(5_000),
+  });
   if (!response.ok) throw new Error(`Proof route returned HTTP ${response.status}.`);
   return response.json();
+}
+
+function isLoopbackAddress(address) {
+  const value = String(address || "").toLowerCase();
+  return value === "::1" || value.startsWith("127.") || value === "::ffff:127.0.0.1";
+}
+
+async function proveNamedRoutesAreLoopback(adapters) {
+  const evidence = [];
+  for (const adapter of adapters) {
+    const hostname = new URL(adapter.url).hostname;
+    const addresses = await lookup(hostname, { all: true, verbatim: true });
+    if (!addresses.length || addresses.some((entry) => !isLoopbackAddress(entry.address))) {
+      throw new Error(`Portless route ${hostname} did not resolve exclusively to loopback.`);
+    }
+    evidence.push({ hostname, addresses: addresses.map((entry) => entry.address) });
+  }
+  return evidence;
 }
 
 function syntheticLongPath() {
@@ -222,9 +249,13 @@ async function main() {
     }
     status("Three static aliases", "PASS", "main + two synthetic repair worktrees are concurrent");
 
-    const proofA = await proofAt(adapterA.url);
-    const proofB = await proofAt(adapterB.url);
-    const proofC = await proofAt(adapterC.url);
+    const namedRouteEvidence = await proveNamedRoutesAreLoopback([adapterA, adapterB, adapterC]);
+    status("Named localhost resolution", "PASS", `${namedRouteEvidence.length} route hostname(s) resolve loopback-only`);
+    const routeFetch = createPortlessLoopbackFetch(proxy);
+
+    const proofA = await proofAt(adapterA.url, routeFetch);
+    const proofB = await proofAt(adapterB.url, routeFetch);
+    const proofC = await proofAt(adapterC.url, routeFetch);
     if (proofA.endpointId !== runtimeA.endpointId || proofB.endpointId !== runtimeB.endpointId || proofC.endpointId !== runtimeC.endpointId) {
       throw new Error("Concurrent Portless routes crossed endpoint identity boundaries.");
     }
@@ -241,8 +272,8 @@ async function main() {
     backendB2 = await createBackend(backendStateB);
     await backendB.stop();
     await remapPortlessAlias(runtimeB, adapterB, { port: backendB2.port, instanceRef: "inst-1156-b2" });
-    const proofB2 = await proofAt(adapterB.url);
-    const proofA2 = await proofAt(adapterA.url);
+    const proofB2 = await proofAt(adapterB.url, routeFetch);
+    const proofA2 = await proofAt(adapterA.url, routeFetch);
     if (proofB2.instanceRef !== "inst-1156-b2" || proofB2.generation !== 2) throw new Error("Route B remap did not bind the new generation/instance.");
     if (proofA2.endpointId !== runtimeA.endpointId || runtimeA.record.generation !== 1) throw new Error("Route B remap altered route A.");
     status("Route remap isolation", "PASS", "B changed actual port; A remained generation 1");
@@ -252,14 +283,17 @@ async function main() {
     await backendC.stop();
     let staleC = false;
     try {
-      const response = await fetch(new URL("/api/local-instance-proof", removedUrlC), { cache: "no-store", signal: AbortSignal.timeout(3_000) });
+      const response = await routeFetch(new URL("/api/local-instance-proof", removedUrlC), {
+        cache: "no-store",
+        signal: AbortSignal.timeout(3_000),
+      });
       staleC = response.ok;
     } catch {
       staleC = false;
     }
     if (staleC) throw new Error("Cancelled route C still retained stale route authority.");
-    const proofA3 = await proofAt(adapterA.url);
-    const proofB3 = await proofAt(adapterB.url);
+    const proofA3 = await proofAt(adapterA.url, routeFetch);
+    const proofB3 = await proofAt(adapterB.url, routeFetch);
     if (proofA3.endpointId !== runtimeA.endpointId || proofB3.endpointId !== runtimeB.endpointId) throw new Error("Cancelling C disturbed A or B.");
     status("Cancellation isolation", "PASS", "C removed without affecting A/B");
 
@@ -294,6 +328,7 @@ async function main() {
         nodeVersion: portlessRuntime.nodeVersion,
         profile: proxy.profile,
         loopbackListeners: proxy.listenerProof.listeners,
+        namedRouteResolution: namedRouteEvidence,
       },
       plotpickle: {
         commitSha: head,

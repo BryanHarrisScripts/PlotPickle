@@ -8,7 +8,6 @@ import { createFeedback } from "./unified-feedback-store";
 import type { FeedbackTargetReference } from "./unified-feedback";
 
 const PREFIX = "plotpickle:table-read:v1:";
-let fallbackIdCounter = 0;
 
 export type TableReadScope = "scene" | "sequence" | "screenplay";
 
@@ -80,10 +79,7 @@ export type ActorSideLine = {
 };
 
 function makeId(prefix: string) {
-  const uuid = globalThis.crypto?.randomUUID?.();
-  if (uuid) return `${prefix}-${uuid}`;
-  fallbackIdCounter += 1;
-  return `${prefix}-${Date.now().toString(36)}-${fallbackIdCounter.toString(36)}`;
+  return `${prefix}-${globalThis.crypto?.randomUUID?.() ?? Date.now().toString(36)}`;
 }
 
 function cleanSpeaker(value: string) {

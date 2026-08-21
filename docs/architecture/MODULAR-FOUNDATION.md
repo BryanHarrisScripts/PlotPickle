@@ -69,3 +69,61 @@ New feature work belongs in `modules/<name>`. Shared behavior moves into `core` 
 ## Legacy boundary
 
 Existing application code remains available as migration source, but it is not the architecture for new work. It should not receive new cross-feature dependencies. Each useful capability moves behind a core contract or into a module before being reintroduced.
+
+## Global coherence without global mutable state
+
+PlotPickle is globally coherent because it uses shared contracts, ownership rules and policy. That does not permit process-global mutable Human, Project, Agent, provider, BUZZ signer or future Memory authority.
+
+The invariant is:
+
+```text
+shared executable / runtime / immutable registry
+  !=
+shared Human or project state
+```
+
+Human, Project, Agent, Node, BUZZ and future Memory state stays explicitly scoped through its canonical host-owned authority.
+
+## Current ownership map
+
+This map records current owners; it does not create another service registry.
+
+| Concern | Canonical owner / boundary |
+| --- | --- |
+| Application composition | `app/` plus the modular LEARN workspace |
+| Public module/domain contracts | `core/contracts/` and existing canonical host contracts |
+| Project / PPF / canon | host-owned project/PPF services; PPF remains canonical creative truth |
+| Auth / Human profile | authenticated Profile/Auth services and profile-private storage |
+| BUZZ Community/social state | BUZZ-native social contracts consumed through PlotPickle Community adapters |
+| BUZZ local coordination/evidence | local BUZZ coordination contract; transport is not project authority |
+| PluginHost / Core Services | `lib/plugin-platform.ts` and `lib/core-services.ts` |
+| Agent roles | host-owned Agent Profiles/runtime registrations |
+| Agent Skills | `config/agent-skills.json` plus `.agents/skills/*`; Skills provide procedure, not authority |
+| Context / RAG | host-owned Context Engine and bounded evidence assembly |
+| Semantic agent execution | the #1218 host-owned semantic execution contract |
+| Provider integration | provider/runtime adapters behind host-owned routing and consent |
+| Runtime lifecycle | `config/runtime-manifest.json` and the PlotPickle Runtime Supervisor |
+| Developer Harness | bounded developer capability/router/worktree contracts; worker output is not PASS authority |
+| MCP | `.mcp.json` -> `scripts/developer-agent-mcp.mjs`; MCP is an interoperability surface, not a second runtime |
+| Deterministic engineering authority | focused tests, BEN, production build, UAT and Full Verification |
+
+## Architecture health / anti-bloat rule
+
+Repository size, directory count and test count are not defects by themselves. Architecture health work must measure first.
+
+For each suspected bloat or duplication finding:
+
+```text
+prove the current owner
+  -> prove a real duplication / performance / maintenance cost
+  -> remove or consolidate only the duplicate
+  -> preserve the public contract
+  -> rerun focused regressions
+  -> measure again
+```
+
+Healthy subsystem default: **leave it alone**.
+
+Do not respond to repository growth by adding another framework, service container, orchestration engine, plugin system, agent system, memory system, MCP layer or directory hierarchy.
+
+`scripts/architecture-health-audit.mjs` is a reproducible audit/measurement tool, not a new PASS authority. It checks current ownership invariants, classifies major directories, reports historical issue-linked command surface separately from production runtime, records optional build-output size when present, and emits evidence under `.artifacts/architecture-health/`. BEN/build/UAT/Full Verification remain release authority.

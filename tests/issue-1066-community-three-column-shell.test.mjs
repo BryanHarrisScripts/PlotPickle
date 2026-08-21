@@ -32,31 +32,33 @@ test("#1102/#1103 terminal screen and command rail use the inherited centre/righ
   assert.match(terminal, /const COMMANDS:/);
 });
 
-test("#1102/#1103 preserve BBS default entry and truthful BUZZ node plus verified human caller identity", async () => {
+test("#1217 keeps the native BUZZ rail truthful about verified Human identity and the active BUZZ node", async () => {
   const workspace = await read("app/community-workspace.tsx");
-  assert.match(workspace, /useState<CommunitySection>\("terminal"\)/);
-  assert.match(workspace, /const nodeName = community\?\.community\.trim\(\) \|\| ""/);
-  assert.match(workspace, /nodeName=\{nodeName\}/);
-  assert.match(workspace, /BUZZ NODE UNAVAILABLE/);
+  assert.match(workspace, /data-community-native-buzz="true"/);
+  assert.match(workspace, /const connected = Boolean\(community\?\.identityVerified && humanCanPost\)/);
+  assert.match(workspace, /\{community\?\.community \|\| "BUZZ COMMUNITY"\}/);
+  assert.match(workspace, /nodeName=\{community\?\.community \|\| "BUZZ"\}/);
   assert.match(workspace, /data-community-caller="verified-human"/);
   assert.match(workspace, /humanIdentity=\{humanIdentity\}/);
   assert.doesNotMatch(workspace, /const\s+[^=]*NODE[^=]*=\s*["']plotpickle-community["']/i);
 });
 
-test("#1123 preserves Community destinations while Great Hall becomes Hall 1 and composers live in the active terminal room", async () => {
+test("#1217 replaces the retired Community destination menu with native BUZZ social navigation while preserving PlotPickle compatibility tools", async () => {
   const [workspace, terminal] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("app/community-backdoor-terminal.tsx"),
   ]);
 
-  for (const id of ["overview", "terminal", "story-rooms", "connected-studios", "people", "agents", "reviews", "guildhall"]) {
-    assert.match(workspace, new RegExp(`id: ["']${id}["']`), `missing Community destination ${id}`);
+  assert.match(workspace, /aria-label="Channels, Forums and Direct Messages"/);
+  for (const label of ["Channels", "Forums", "Direct Messages", "Private Story Rooms", "Connected Studios"]) {
+    assert.match(workspace, new RegExp(label), `missing Community destination ${label}`);
   }
-  assert.doesNotMatch(workspace, /id: ["']great-hall["']/);
-  assert.match(workspace, /data-community-room=\{COMMUNITY_GREAT_HALL_ROOM_ID\}/);
-  assert.match(workspace, /Hall 1 · Great Hall/);
+  assert.match(workspace, /Agents &amp; Stewards/);
+  assert.match(workspace, /data-community-room=\{room\.id\}/);
+  assert.match(workspace, /room\.id === "great-hall"/);
   assert.match(workspace, /CommunityAgentRoster/);
   assert.match(workspace, /CommunityStoryRoomAccess/);
+  assert.doesNotMatch(workspace, /type CommunitySection =/);
 
   assert.match(terminal, /placeholder=\{canPost \? `Write to \$\{activeRoom\.roomName\}…`/);
   assert.match(terminal, /SEND SIGNED MESSAGE/);

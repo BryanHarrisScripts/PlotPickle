@@ -98,10 +98,11 @@ test("a verification child that stops reporting progress is killed by the stall 
 });
 
 test("Pi verification remains host-bounded while the worker self-provisions instead of being treated as optional", async () => {
-  const [runner, processControls, piRuntime, ensurePi, verifyPi] = await Promise.all([
+  const [runner, processControls, piRuntime, managedPi, ensurePi, verifyPi] = await Promise.all([
     read("scripts/full-verification-progress-runner.mjs"),
     read("scripts/full-verification-process.mjs"),
     read("scripts/pi-worker-runtime.mjs"),
+    read("scripts/pi-managed-install.mjs"),
     read("scripts/ensure-pi-repair-stack.mjs"),
     read("scripts/verify-pi-repair-worker.mjs"),
   ]);
@@ -109,8 +110,10 @@ test("Pi verification remains host-bounded while the worker self-provisions inst
   assert.match(processControls, /ensure-pi-repair-stack\.mjs/);
   assert.match(processControls, /verify-pi-repair-worker\.mjs/);
   assert.match(piRuntime, /PI_CODING_AGENT_PACKAGE\s*=\s*"@earendil-works\/pi-coding-agent"/);
-  assert.match(piRuntime, /runPortableCommand\("npm", \["install", "-g", "--ignore-scripts", PI_CODING_AGENT_PACKAGE\]/);
-  assert.match(piRuntime, /portableCommandSync\("npm", \["prefix", "-g"\]\)/);
+  assert.match(managedPi, /resolveActiveNpmCommand/);
+  assert.match(managedPi, /"-g",\s*\n\s*"--prefix", root/);
+  assert.match(piRuntime, /portableCommandSync\(resolveActiveNpmCommand\(\), \["prefix", "-g"\]\)/);
+  assert.match(ensurePi, /ensureManagedPiInstalled/);
   assert.match(ensurePi, /ensure-local-repair-model\.mjs/);
   assert.match(verifyPi, /runPiSmoke/);
 

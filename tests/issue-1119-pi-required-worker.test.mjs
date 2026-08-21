@@ -11,16 +11,20 @@ import {
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 
-test("#1119 self-provisions the reviewed official Pi CLI and resolves npm global shims without PATH refresh", async () => {
-  const runtime = await read("scripts/pi-worker-runtime.mjs");
+test("#1119 self-provisions the reviewed official Pi CLI without depending on a global Windows wrapper", async () => {
+  const [runtime, managed] = await Promise.all([
+    read("scripts/pi-worker-runtime.mjs"),
+    read("scripts/pi-managed-install.mjs"),
+  ]);
   assert.match(runtime, /PI_CODING_AGENT_PACKAGE\s*=\s*"@earendil-works\/pi-coding-agent"/);
-  assert.match(runtime, /runPortableCommand\("npm", \["install", "-g", "--ignore-scripts", PI_CODING_AGENT_PACKAGE\]/);
-  assert.match(runtime, /portableCommandSync\("npm", \["prefix", "-g"\]\)/);
+  assert.match(managed, /resolveActiveNpmCommand/);
+  assert.match(managed, /"-g",\s*\n\s*"--prefix", root/);
+  assert.match(runtime, /portableCommandSync\(resolveActiveNpmCommand\(\), \["prefix", "-g"\]\)/);
   assert.match(runtime, /pi\.cmd/);
-  assert.match(runtime, /PLOTPICKLE_PI_AUTO_INSTALL/);
+  assert.match(managed, /PLOTPICKLE_PI_AUTO_INSTALL/);
   assert.match(runtime, /PLOTPICKLE_PI_COMMAND/);
   assert.match(runtime, /Node\.js.*22\.19\.0 or newer/);
-  assert.doesNotMatch(runtime, /api\.openai\.com|anthropic\.com|openrouter\.ai/i);
+  assert.doesNotMatch(`${runtime}\n${managed}`, /api\.openai\.com|anthropic\.com|openrouter\.ai/i);
 });
 
 test("#1119 Full Verification stages 5 and 6 route through the Pi stack and real local-model smoke", async () => {
@@ -39,7 +43,7 @@ test("#1119 Full Verification stages 5 and 6 route through the Pi stack and real
 
   const ensure = await read("scripts/ensure-pi-repair-stack.mjs");
   const verify = await read("scripts/verify-pi-repair-worker.mjs");
-  assert.match(ensure, /ensurePiInstalled/);
+  assert.match(ensure, /ensureManagedPiInstalled/);
   assert.match(ensure, /ensure-local-repair-model\.mjs/);
   assert.match(ensure, /resolveGitBash/);
   assert.match(verify, /runPiSmoke/);

@@ -84,7 +84,7 @@ test("#1044 Pi repair capability is now required and self-provisioned instead of
   assert.doesNotMatch(runner, /Pi is not installed or not available on PATH/);
   assert.match(processRouter, /ensure-pi-repair-stack\.mjs/);
   assert.match(processRouter, /verify-pi-repair-worker\.mjs/);
-  assert.match(installer, /ensurePiInstalled/);
+  assert.match(installer, /ensureManagedPiInstalled/);
   assert.match(installer, /ensure-local-repair-model\.mjs/);
   assert.match(verifier, /runPiSmoke/);
   assert.match(verifier, /no cloud fallback/i);

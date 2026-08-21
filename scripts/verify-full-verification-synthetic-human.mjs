@@ -32,6 +32,7 @@ try {
     startupContract: "plotpickle-full-verification-synthetic-human-smoke-v1",
     timeoutMs: 180_000,
     onStatus: (state, detail) => status("Synthetic Human endpoint", state.toUpperCase(), detail),
+    onOutput: (text, stream) => (stream === "stderr" ? process.stderr : process.stdout).write(text),
   });
   syntheticHome = runtime.verificationAuthHome;
   const env = endpointRuntimeEnvironment(runtime);

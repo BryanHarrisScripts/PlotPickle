@@ -11,9 +11,24 @@ import {
 } from "./pi-worker-runtime.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const PI_SMOKE_TIMEOUT_MS = 4 * 60_000;
 
 function status(label, state, detail = "") {
   process.stdout.write(`${String(label).padEnd(38, ".")} ${state}${detail ? `  ${detail}` : ""}\n`);
+}
+
+function safePiFailure(error) {
+  if (!error || typeof error !== "object") return String(error || "Pi readiness probe failed.");
+  const parts = [];
+  if (error.code !== undefined && error.code !== null) parts.push(`exit=${error.code}`);
+  if (error.signal) parts.push(`signal=${error.signal}`);
+  if (error.killed) parts.push("terminated=yes");
+  const stdout = String(error.stdout || "").trim();
+  const stderr = String(error.stderr || "").trim();
+  if (stderr) parts.push(`stderr=${stderr.slice(-700)}`);
+  if (stdout) parts.push(`stdout=${stdout.slice(-700)}`);
+  if (!parts.length && error.message) parts.push(String(error.message).slice(-900));
+  return parts.join(" · ") || "Pi readiness probe failed without process detail.";
 }
 
 async function main() {
@@ -22,7 +37,12 @@ async function main() {
   const runtime = await resolvePiLocalRuntime();
   status("Pi coding agent", "READY", `${pi.version} · PlotPickle-managed · ${pi.command}`);
   status("Pi local coding model", "READY", `${runtime.model} via ${runtime.label}`);
-  await runPiSmoke({ command: pi.command, runtime, purpose: "repair", timeout: 120_000 });
+  status("Pi repair invocation", "START", `bounded local-model proof; cold start may use up to ${PI_SMOKE_TIMEOUT_MS / 60_000} minutes`);
+  try {
+    await runPiSmoke({ command: pi.command, runtime, purpose: "repair", timeout: PI_SMOKE_TIMEOUT_MS });
+  } catch (error) {
+    throw new Error(`Pi local-model readiness probe failed. ${safePiFailure(error)}`, { cause: error });
+  }
   status("Pi repair invocation", "PASS", "managed headless local-model smoke completed with no tools and no cloud fallback");
 
   try {

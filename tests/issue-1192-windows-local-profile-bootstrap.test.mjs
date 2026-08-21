@@ -97,8 +97,11 @@ test("#1192 real server-network first-profile failures remain generic bootstrap 
     secure: true,
     headers: { host: "plotpickle.example.test", origin: "https://plotpickle.example.test" },
   };
+  const replacement = bootstrap.proof.endsWith("A") ? "B" : "A";
+  const invalidProof = `${bootstrap.proof.slice(0, -1)}${replacement}`;
+  assert.notEqual(invalidProof, bootstrap.proof);
   await assert.rejects(
-    boundary.createFirstProfile({ displayName: "Network Human", password: "Network Human independent passphrase", avatarRef: null }, `${bootstrap.proof.slice(0, -1)}A`, request),
+    boundary.createFirstProfile({ displayName: "Network Human", password: "Network Human independent passphrase", avatarRef: null }, invalidProof, request),
     (error) => error?.code === "BOOTSTRAP_PROOF_REJECTED" && error?.publicMessage === "The server bootstrap request was rejected.",
   );
 });

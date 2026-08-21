@@ -1,10 +1,10 @@
-import { PlotPickleAuthError, toPublicAuthError, type BrowserSessionSummary, type ProfileSummary } from "@/core/auth/plotpickle-auth";
-import { PlotPickleServerSessionError, toPublicServerSessionError } from "@/core/auth/server-session/server-session-boundary";
+import { PlotPickleAuthError, toPublicAuthError, type BrowserSessionSummary, type ProfileSummary } from "../../../../core/auth/plotpickle-auth";
+import { PlotPickleServerSessionError, toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
 import {
   getProfileExperienceRuntime,
   requestBoundary,
   type ProfileExperienceStatus,
-} from "@/core/auth/profile-experience/profile-experience-runtime";
+} from "../../../../core/auth/profile-experience/profile-experience-runtime";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,7 +29,11 @@ export function publicProfileApiError(error: unknown) {
 function errorResponse(error: unknown) {
   const detail = publicProfileApiError(error);
   const status = detail.code === "AUTHENTICATION_THROTTLED" ? 429 : detail.code === "ACCESS_DENIED" ? 403 : 400;
-  return response(detail, status, "retryAfterMs" in detail ? { "Retry-After": String(Math.ceil(Number(detail.retryAfterMs || 1) / 1_000)) } : {});
+  return response(
+    detail,
+    status,
+    "retryAfterMs" in detail ? { "Retry-After": String(Math.ceil(Number(detail.retryAfterMs || 1) / 1_000)) } : {},
+  );
 }
 
 export async function GET(request: Request) {

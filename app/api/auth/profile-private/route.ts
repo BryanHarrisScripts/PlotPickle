@@ -1,10 +1,10 @@
-import { normalizeFoundationProject } from "@/core/project/project";
-import { toPublicAuthError } from "@/core/auth/plotpickle-auth";
-import { toPublicServerSessionError } from "@/core/auth/server-session/server-session-boundary";
+import { normalizeFoundationProject } from "../../../../core/project/project";
+import { toPublicAuthError } from "../../../../core/auth/plotpickle-auth";
+import { toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
 import {
   getProfileExperienceRuntime,
   requestBoundary,
-} from "@/core/auth/profile-experience/profile-experience-runtime";
+} from "../../../../core/auth/profile-experience/profile-experience-runtime";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

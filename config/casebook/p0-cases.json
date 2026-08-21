@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "name": "PlotPickle Casebook P0 proof set",
+  "cases": [
+    {
+      "id": "profile-isolation",
+      "domain": "identity",
+      "priority": "P0",
+      "title": "Human Profile Isolation",
+      "situation": "Two Humans use the same PlotPickle Node and must remain separate private users.",
+      "businessReason": "PlotPickle is multi-user on one physical machine; switching profiles is a security boundary, not a cosmetic preference.",
+      "humanJourney": [
+        { "id": "unlock-a", "action": "Unlock Human A." },
+        { "id": "create-private-a", "action": "Create or observe Human A private state." },
+        { "id": "switch-b", "action": "Lock/switch and unlock Human B." },
+        { "id": "deny-cross-profile", "action": "Attempt to reach Human A private state from Human B." },
+        { "id": "restart-and-recheck", "action": "Restart/switch again and verify isolation remains intact." }
+      ],
+      "preconditions": ["A test Node can host two isolated Human profiles.", "Test data is non-sensitive and reversible."],
+      "expectedOutcome": "Human B cannot see or use Human A projects, vault data, BUZZ identity, credentials, private UI state or retrieval context before or after restart.",
+      "requiredEvidence": [
+        { "id": "profile-a-state", "kind": "state", "description": "Human A private state exists in profile A." },
+        { "id": "profile-b-state", "kind": "state", "description": "Human B session is authenticated as profile B." },
+        { "id": "cross-profile-denial", "kind": "security", "description": "Attempted cross-profile access is denied or absent." },
+        { "id": "restart-isolation", "kind": "persistence", "description": "Isolation remains correct after restart/profile switch." }
+      ],
+      "independentVerification": { "source": "profile-boundary-observer", "proves": "The second Human session cannot observe the first Human's private state." },
+      "knownRisks": ["stale in-memory state", "vault/session leakage", "BUZZ identity leakage", "project storage mounted under wrong profile"],
+      "injectedFailureModes": ["attempt cross-profile project read", "attempt stale BUZZ session reuse", "restart with previous Human state cached"],
+      "allowedSkills": ["profile-auth", "profile-switch", "project-read", "session-observer"],
+      "authorityBoundaries": ["Never reveal another Human's secrets.", "No destructive edits to real Human data.", "Use test-scoped profiles for fault injection."],
+      "successCriteria": ["Every journey step passes.", "All required evidence is verified.", "Independent profile-boundary proof is present."],
+      "quantitativeMeasurements": ["profile-boundary attempts denied", "private-state leakage count", "restart persistence result"],
+      "retrievalTags": ["profile", "auth", "isolation", "vault", "multi-user"],
+      "relatedComponents": ["profile-auth", "profile-vault", "profile-storage", "server-session", "buzz-profile-scope"]
+    },
+    {
+      "id": "buzz-connect-existing-identity",
+      "domain": "community",
+      "priority": "P0",
+      "title": "Connect Existing BUZZ Identity",
+      "situation": "A Human already owns a BUZZ private identity and chooses Connect Existing Identity from Profile.",
+      "businessReason": "Community identity must belong to the Human and must work through the real profile flow before Community can be trusted.",
+      "humanJourney": [
+        { "id": "open-profile-buzz", "action": "Open BUZZ Identity in the authenticated Human profile." },
+        { "id": "enter-existing-key", "action": "Choose Connect Existing Identity and provide a test-scoped existing identity." },
+        { "id": "verify-signer", "action": "Verify the derived public signer independently." },
+        { "id": "persist-connected", "action": "Persist connected state to the authenticated Human." },
+        { "id": "open-community", "action": "Open the built-in PlotPickle Community using that identity." }
+      ],
+      "preconditions": ["A non-production BUZZ test identity is available.", "The Human profile is authenticated."],
+      "expectedOutcome": "PlotPickle accepts a valid existing BUZZ identity, rejects invalid identities, binds the verified signer only to the authenticated Human, persists Connected state and can enter the built-in Community.",
+      "requiredEvidence": [
+        { "id": "redacted-connect-trace", "kind": "trace", "description": "Safe interaction trace shows the real profile connection flow without exposing the private key." },
+        { "id": "public-signer-proof", "kind": "identity", "description": "Independent verifier confirms the expected public signer." },
+        { "id": "persisted-connected-state", "kind": "persistence", "description": "Connected state survives the required persistence boundary." },
+        { "id": "community-usable", "kind": "ui", "description": "The built-in Community opens and recognizes the connected Human identity." }
+      ],
+      "independentVerification": { "source": "buzz-signer-observer", "proves": "The connected public signer matches the expected test identity and is usable by Community." },
+      "knownRisks": ["valid nsec rejected", "invalid key accepted", "signer mismatch", "connected state not persisted", "identity bound to wrong Human"],
+      "injectedFailureModes": ["invalid private key", "signer mismatch", "unavailable BUZZ path", "restart after connection"],
+      "allowedSkills": ["profile-buzz-identity", "buzz-signer-verify", "community-navigation", "session-persistence"],
+      "authorityBoundaries": ["Never store a private BUZZ key in Casebook evidence.", "BUZZ is not PlotPickle login authority.", "Identity is scoped to the authenticated Human."],
+      "successCriteria": ["A valid identity becomes Connected.", "Independent signer proof matches.", "Community is usable after persistence."],
+      "quantitativeMeasurements": ["valid identity success rate", "invalid identity rejection rate", "signer match rate", "persistence success"],
+      "retrievalTags": ["buzz", "identity", "nsec", "profile", "community"],
+      "relatedComponents": ["buzz-profile-scope", "profile-vault", "community", "guildhall"]
+    },
+    {
+      "id": "buzz-great-hall-signed-conversation",
+      "domain": "community",
+      "priority": "P0",
+      "title": "Great Hall Signed Conversation",
+      "situation": "A connected Human posts a normal message in the PlotPickle Great Hall.",
+      "businessReason": "Community is a core product capability; a locally rendered message is not enough unless the same signed BUZZ event exists and is read back through the shared history.",
+      "humanJourney": [
+        { "id": "open-great-hall", "action": "Open Great Hall as the connected Human." },
+        { "id": "send-message", "action": "Send a unique test-scoped message." },
+        { "id": "observe-signed-event", "action": "Observe the signed BUZZ event independently." },
+        { "id": "read-back", "action": "Read the same event back into PlotPickle." },
+        { "id": "reload-and-confirm", "action": "Reload/restart as required and confirm the same event remains reconciled." }
+      ],
+      "preconditions": ["A connected BUZZ test identity exists.", "The test Human can enter the Great Hall."],
+      "expectedOutcome": "A message sent from PlotPickle is represented by one independently observed signed BUZZ event, is read back into PlotPickle using the same event identity and remains consistent after reload/restart.",
+      "requiredEvidence": [
+        { "id": "send-ui-proof", "kind": "screenshot", "description": "Human-visible Great Hall send state." },
+        { "id": "signed-event-id", "kind": "event", "description": "Independent signed BUZZ event identifier." },
+        { "id": "read-back-event-id", "kind": "event", "description": "PlotPickle read-back references the same event identity." },
+        { "id": "reload-reconciliation", "kind": "persistence", "description": "Reload/restart does not create a competing local message record." }
+      ],
+      "independentVerification": { "source": "buzz-event-observer", "proves": "The Great Hall message exists as the expected signed BUZZ event outside the sender's own UI assertion." },
+      "knownRisks": ["local-only optimistic message", "failed publish", "wrong signer", "duplicate event", "read-back divergence", "stale presence/history"],
+      "injectedFailureModes": ["relay unavailable", "publish accepted locally but read-back unavailable", "duplicate/replayed event", "wrong signer"],
+      "allowedSkills": ["community-great-hall", "buzz-send", "buzz-event-observe", "buzz-read-back"],
+      "authorityBoundaries": ["Use unique disposable test content.", "Do not post private project material.", "Do not treat optimistic local UI as authoritative BUZZ proof."],
+      "successCriteria": ["One signed event is independently observed.", "Read-back event identity matches.", "Human-visible conversation remains consistent after reload."],
+      "quantitativeMeasurements": ["send-to-observe latency", "event-id reconciliation rate", "duplicate event count", "reload consistency"],
+      "retrievalTags": ["buzz", "community", "great-hall", "signed-event", "read-back"],
+      "relatedComponents": ["community", "buzz-live-health", "buzz-guildhall", "guildhall-contract"]
+    },
+    {
+      "id": "sage-local-text-usable-response",
+      "domain": "local-ai",
+      "priority": "P0",
+      "title": "Local Text AI / Sage Usable Response",
+      "situation": "A Human asks Sage a reasonable question about the current LEARN lesson while a local text route is selected.",
+      "businessReason": "Sage is a curriculum guide; a provider HTTP success or non-empty string is insufficient if the Human receives nonsense, vague fallback text or the wrong lesson context.",
+      "humanJourney": [
+        { "id": "open-learn", "action": "Open a known LEARN lesson." },
+        { "id": "ask-normal-question", "action": "Ask Sage a clear lesson-grounded question." },
+        { "id": "invoke-selected-provider", "action": "Route through the selected local text provider." },
+        { "id": "render-answer", "action": "Render Sage's Human-facing answer." },
+        { "id": "evaluate-answer", "action": "Evaluate relevance, usability and provider-failure semantics." }
+      ],
+      "preconditions": ["A supported local text runtime/model is configured or an intentional unavailable-state test is selected.", "A known lesson is open."],
+      "expectedOutcome": "Sage returns a concise, relevant curriculum-grounded answer through the selected provider, or an explicit actionable provider/runtime error; vague internal fallback text never counts as success.",
+      "requiredEvidence": [
+        { "id": "question-context", "kind": "context", "description": "Human question and lesson reference are identified." },
+        { "id": "provider-route", "kind": "runtime", "description": "Selected local provider/model route is observed." },
+        { "id": "human-visible-answer", "kind": "screenshot", "description": "The actual answer shown to the Human is captured safely." },
+        { "id": "response-quality", "kind": "evaluation", "description": "Independent evaluator classifies the answer as usable/relevant or correctly errors." }
+      ],
+      "independentVerification": { "source": "sage-response-evaluator", "proves": "The Human-visible Sage response is usable and grounded in the current lesson, not merely non-empty." },
+      "knownRisks": ["empty output", "malformed local output", "wrong lesson context", "vague fallback", "runtime unavailable but UI pretends success"],
+      "injectedFailureModes": ["local runtime unavailable", "empty response", "malformed response", "known vague fallback string", "wrong lesson context"],
+      "allowedSkills": ["learn-context", "sage-conversation", "local-text-provider", "response-quality-eval"],
+      "authorityBoundaries": ["Curriculum remains lesson authority.", "Provider output is advisory and must not silently change story canon.", "Do not expose hidden model reasoning."],
+      "successCriteria": ["Current lesson context is used.", "Human-visible answer is useful or explicit actionable error is shown.", "Independent response evaluation supports PASS."],
+      "quantitativeMeasurements": ["usable-response rate", "lesson-grounding accuracy", "provider failure classification rate", "fallback leakage count"],
+      "retrievalTags": ["sage", "learn", "local-ai", "ollama", "response-quality"],
+      "relatedComponents": ["sage", "learn", "ai-routing", "ollama", "semantic-execution"]
+    },
+    {
+      "id": "comfyui-local-image-visible",
+      "domain": "local-ai",
+      "priority": "P0",
+      "title": "Local ComfyUI Image Generation Visible in PlotPickle",
+      "situation": "A Human configures local ComfyUI and runs a PlotPickle image test on a Windows machine.",
+      "businessReason": "Image generation is only successful when the configured local service is genuinely usable and the generated asset is visibly returned to PlotPickle; service health or job completion alone is not the Human outcome.",
+      "humanJourney": [
+        { "id": "configure-comfyui", "action": "Choose Configure ComfyUI." },
+        { "id": "start-or-connect", "action": "Detect/launch or connect to the configured local ComfyUI service." },
+        { "id": "verify-prerequisites", "action": "Verify model, VAE/checkpoint and workflow-node prerequisites." },
+        { "id": "run-test-image", "action": "Submit a real local test image generation." },
+        { "id": "observe-output-asset", "action": "Independently verify the generated output asset exists." },
+        { "id": "render-output", "action": "Retrieve and visibly render the same asset in PlotPickle." },
+        { "id": "enable-local-route", "action": "Mark Ollama + ComfyUI Local selectable only after the required proof is complete." }
+      ],
+      "preconditions": ["Windows real-machine mode is available for full integration proof.", "ComfyUI may be installed or absent; the Case must distinguish those states."],
+      "expectedOutcome": "PlotPickle accurately detects/starts or connects to local ComfyUI, verifies complete prerequisites, generates a real test image, independently proves the output exists, displays that image to the Human and enables the local route only after proof is complete.",
+      "requiredEvidence": [
+        { "id": "service-health", "kind": "runtime", "description": "Configured local endpoint health and process/service state." },
+        { "id": "workflow-prerequisites", "kind": "runtime", "description": "Required model/checkpoint/VAE/workflow nodes are verified." },
+        { "id": "generation-job", "kind": "job", "description": "Real test generation job/output identity." },
+        { "id": "output-asset", "kind": "asset", "description": "Independent observer confirms the output asset exists." },
+        { "id": "visible-image", "kind": "screenshot", "description": "The generated image is visibly rendered in PlotPickle." },
+        { "id": "local-route-ready", "kind": "state", "description": "The local route is selectable only after complete proof." }
+      ],
+      "independentVerification": { "source": "comfyui-output-observer", "proves": "The generation produced a real local asset that PlotPickle retrieved and displayed, independently of the submitter's success claim." },
+      "knownRisks": ["Configure button does nothing", "wrong port", "service unavailable", "missing VAE/model/node", "job says complete but output absent", "output exists but UI does not display", "route readiness disagrees with evidence"],
+      "injectedFailureModes": ["service stopped", "wrong port", "missing VAE", "missing workflow node", "completed job with absent output", "output present but render suppressed"],
+      "allowedSkills": ["windows-process", "local-service-health", "comfyui-workflow", "image-generation", "asset-observer", "image-render", "ai-routing"],
+      "authorityBoundaries": ["Local route only; no silent paid-cloud fallback.", "Do not download/install large models without explicit approval.", "Use reversible test artifacts."],
+      "successCriteria": ["Complete prerequisite proof exists.", "Real generated asset is independently observed.", "The same image is Human-visible in PlotPickle.", "Local route readiness matches the proven state."],
+      "quantitativeMeasurements": ["service-start success", "prerequisite detection accuracy", "generation success", "output-to-render success", "route readiness correctness"],
+      "retrievalTags": ["comfyui", "local-ai", "image", "windows", "workflow", "vae"],
+      "relatedComponents": ["comfyui", "images-video-settings", "ai-routing", "hardware-aware-local-ai", "build"]
+    }
+  ]
+}

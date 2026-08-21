@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import type { CurriculumSource } from "../../../core/contracts/curriculum";
-import { decodeHtmlEntitiesOnce, stripHtmlComments, stripMarkupTags } from "../../../lib/text-normalization";
+import { decodeHtmlEntitiesOnce, stripHtmlComments, stripMarkupTags } from "../../../core/security/text-normalization";
 import type { LocalCurriculumSourceTarget } from "../model/local-curriculum-links";
 
 type CurriculumMaterialProps = {

@@ -464,5 +464,9 @@ export function validateSemanticExecutionRecord(record) {
 }
 
 export function safeSemanticExecutionRecord(record) {
-  return safeValue(record);
+  const sanitized = safeValue(record);
+  if (!sanitized || typeof sanitized !== "object" || Array.isArray(sanitized)) {
+    throw new Error("Semantic execution record must be an object.");
+  }
+  return structuredClone(sanitized);
 }

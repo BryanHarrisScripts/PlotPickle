@@ -68,8 +68,8 @@ test("generated artifacts persist as project metadata while image bytes stay in 
 test("acceptance can only unlock progression for a real non-rejected stored artifact", async () => {
   const [reducer, guided, adapter] = await Promise.all([
     read("core/project/apply-command.ts"),
-    read("modules/dashboard/guided-progression.ts"),
-    read("modules/dashboard/foundations-progression.ts"),
+    read("core/progression/guided-progression.ts"),
+    read("core/progression/foundations-progression.ts"),
   ]);
 
   assert.match(reducer, /const artifactExists = project\.build\.foundations\.visualArtifacts\.some/);

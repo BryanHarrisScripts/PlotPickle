@@ -1,5 +1,5 @@
 import type { ScreenplayDocument, ScreenplayFormat } from "./project";
-import { decodeHtmlEntitiesOnce, stripMarkupTags } from "../core/security/text-normalization";
+import { finalDraftPlainText } from "../core/security/screenplay-xml-text";
 
 export type ScreenplayElementType =
   | "section"
@@ -41,12 +41,6 @@ export function screenplayFormatForFile(fileName: string): ScreenplayFormat {
   return "plain-text";
 }
 
-function decodeXml(value: string) {
-  const textOnly = stripMarkupTags(value, { preserveBreaks: true });
-  const decoded = decodeHtmlEntitiesOnce(textOnly);
-  return decoded.trim();
-}
-
 function finalDraftType(value: string): ScreenplayElementType {
   const normalized = value.toLowerCase().replace(/\s+/g, "-");
   if (normalized === "scene-heading") return "scene-heading";
@@ -68,8 +62,8 @@ function parseFinalDraft(source: string): ParsedLine[] {
     sourceLine += 1;
     const typeMatch = match[1].match(/\bType=(?:"([^"]+)"|'([^']+)')/i);
     const type = finalDraftType(typeMatch?.[1] ?? typeMatch?.[2] ?? "Action");
-    const textParts = [...match[2].matchAll(/<Text\b[^>]*>([\s\S]*?)<\/Text>/gi)].map((item) => decodeXml(item[1]));
-    const text = (textParts.length ? textParts.join("") : decodeXml(match[2])).trim();
+    const textParts = [...match[2].matchAll(/<Text\b[^>]*>([\s\S]*?)<\/Text>/gi)].map((item) => finalDraftPlainText(item[1]));
+    const text = (textParts.length ? textParts.join("") : finalDraftPlainText(match[2])).trim();
     if (!text) continue;
     if (type === "scene-heading") scene += 1;
     parsed.push({ type, text, sourceLine, scene });

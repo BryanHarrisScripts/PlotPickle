@@ -1,5 +1,5 @@
-import { toPublicAuthError, type ProfileSummary } from "../../../../core/auth/plotpickle-auth";
-import { toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
+import { PlotPickleAuthError, toPublicAuthError, type ProfileSummary } from "../../../../core/auth/plotpickle-auth";
+import { PlotPickleServerSessionError, toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
 import {
   getProfileExperienceRuntime,
   requestBoundary,
@@ -27,9 +27,11 @@ function response(value: unknown, status = 200) {
 }
 
 function errorResponse(error: unknown) {
-  const server = toPublicServerSessionError(error);
-  const auth = toPublicAuthError(error);
-  const detail = server.code !== "SERVER_SESSION_FAILED" ? server : auth;
+  const detail = error instanceof PlotPickleServerSessionError
+    ? toPublicServerSessionError(error)
+    : error instanceof PlotPickleAuthError
+      ? toPublicAuthError(error)
+      : { code: "AUTH_REQUEST_REJECTED", message: "The authentication request could not be completed." };
   return response(detail, detail.code === "ACCESS_DENIED" ? 403 : 400);
 }
 
@@ -66,26 +68,11 @@ function storedPresentation(value: unknown): StoredPresentation | null {
   return { version: 1, avatarUrl: item.avatarUrl, publicBio: item.publicBio, updatedAt: item.updatedAt };
 }
 
-function reportDevelopmentFailure(stage: string, error: unknown) {
-  if (process.env.NODE_ENV === "production") return;
-  const item = error instanceof Error ? error as Error & { code?: unknown } : null;
-  console.error("[profile-presentation] request failed", {
-    stage,
-    name: item?.name || typeof error,
-    code: typeof item?.code === "string" ? item.code : "",
-    message: item?.message?.slice(0, 300) || "unknown error",
-  });
-}
-
 export async function GET(request: Request) {
-  let stage = "authorize";
   try {
     const { runtimeState, authContext } = await authorized(request);
-    stage = "profile";
     const profile = runtimeState.auth.getAuthStatus(authContext).profile as ProfileSummary;
-    stage = "storage";
     const stored = storedPresentation(await runtimeState.privateStorage.readPrivateJson(authContext, { domain: "settings", objectId: PRESENTATION_OBJECT_ID }));
-    stage = "response";
     return response({
       profile: {
         displayName: profile.displayName,
@@ -94,7 +81,6 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    reportDevelopmentFailure(stage, error);
     return errorResponse(error);
   }
 }

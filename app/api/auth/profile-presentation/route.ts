@@ -52,8 +52,8 @@ function avatarUrl(value: unknown) {
   if (typeof value !== "string") throw new Error("Avatar must be a web image address.");
   const normalized = value.trim();
   if (normalized.length > MAX_AVATAR_URL_LENGTH) throw new Error("Avatar image address is too long.");
-  let parsed: URL;
-  try { parsed = new URL(normalized); } catch { throw new Error("Avatar must use a complete https:// image address."); }
+  if (!URL.canParse(normalized)) throw new Error("Avatar must use a complete https:// image address.");
+  const parsed = new URL(normalized);
   if (parsed.protocol !== "https:") throw new Error("Avatar must use a secure https:// image address.");
   if (parsed.username || parsed.password) throw new Error("Avatar image addresses cannot contain credentials.");
   return parsed.toString();

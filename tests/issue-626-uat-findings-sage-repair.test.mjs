@@ -69,12 +69,13 @@ test("live UAT exercises the actual Sage composer instead of only the raw chat e
   assert.match(runner, /sage-conversation-failure\.png/);
 });
 
-test("UAT findings persist to GitHub and are handed to the local repair worker", async () => {
-  const [reporter, handoff, workflow, closedLoop] = await Promise.all([
+test("UAT findings persist to GitHub and are handed through semantic execution to the local repair worker", async () => {
+  const [reporter, handoff, workflow, closedLoop, semanticRepair] = await Promise.all([
     read("scripts/report-uat-findings.mjs"),
     read(".github/workflows/uat-repair-handoff.yml"),
     read(".github/workflows/learn-validation.yml"),
     read("scripts/run-uat-closed-loop.mjs"),
+    read("scripts/run-semantic-uat-repair.mjs"),
   ]);
   assert.match(reporter, /plotpickle-uat-fingerprint/);
   assert.match(reporter, /uat:autopilot/);
@@ -87,7 +88,9 @@ test("UAT findings persist to GitHub and are handed to the local repair worker",
   assert.match(workflow, /\.artifacts\/uat-focused/);
   assert.match(closedLoop, /run-sage-conversation-uat\.mjs/);
   assert.match(closedLoop, /--github-report/);
-  assert.match(closedLoop, /run-uat-repair-agent\.mjs/);
+  assert.match(closedLoop, /run-semantic-uat-repair\.mjs/);
+  assert.match(semanticRepair, /run-uat-repair-agent\.mjs/);
+  assert.match(semanticRepair, /deterministic validation remains authoritative/i);
 });
 
 test("focused registry owns the PR 626 regression", async () => {

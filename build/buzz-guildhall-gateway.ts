@@ -134,7 +134,6 @@ function command(executable: string, args: string[], env: NodeJS.ProcessEnv) {
     });
   });
 }
-
 async function runBuzz(connection: BuzzConnection, args: string[]) {
   if (!connection.privateKey) throw new Error("Authorize PlotPickle with your Buzz private identity before setting up the Guildhall.");
   const resolution = await resolveBuzzCliExecutable(connection.cliPath);

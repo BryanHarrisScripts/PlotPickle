@@ -26,8 +26,8 @@ test("Dashboard is a real root workspace and LEARN remains the default entry", a
 
 test("Guided progression derives Foundations and World from canonical LEARN PLAN and BUILD state", async () => {
   const [guided, adapter, project, buildContract] = await Promise.all([
-    read("modules/dashboard/guided-progression.ts"),
-    read("modules/dashboard/foundations-progression.ts"),
+    read("core/progression/guided-progression.ts"),
+    read("core/progression/foundations-progression.ts"),
     read("core/project/project.ts"),
     read("core/contracts/build-progress.ts"),
   ]);

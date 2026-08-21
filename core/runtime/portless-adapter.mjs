@@ -1,5 +1,6 @@
 import { execFile, spawn } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
+import http from "node:http";
 import net from "node:net";
 import os from "node:os";
 import path from "node:path";
@@ -32,10 +33,11 @@ const SHARING_ENV_KEYS = [
 const TRUTHY = new Set(["1", "true", "yes", "on"]);
 
 function localDataRoot() {
-  if (process.env.LOCALAPPDATA) return process.env.LOCALAPPDATA;
-  return process.platform === "win32"
-    ? path.join(os.homedir(), "AppData", "Local")
-    : path.join(os.homedir(), ".local", "share");
+  const configured = String(process.env.LOCALAPPDATA || "").trim();
+  if (configured) return configured;
+  const home = os.homedir();
+  if (process.platform === "win32") return path.join(home, "AppData", "Local");
+  return path.join(home, ".local", "share");
 }
 
 export function defaultPortlessStateDirectory() {
@@ -322,6 +324,54 @@ function portlessUrl(routeName, proxyPort, profile = "portless/http") {
   return `${scheme}://${routeName}.localhost${Number(proxyPort) === defaultPort ? "" : `:${proxyPort}`}`;
 }
 
+export function createPortlessLoopbackFetch(proxy, { requestImpl = http.request } = {}) {
+  const proxyPort = Number(proxy?.proxyPort);
+  if (!Number.isInteger(proxyPort) || proxyPort < 1 || proxyPort > 65535) {
+    throw new Error("Portless loopback fetch requires a verified proxy port.");
+  }
+  return async (input, init = {}) => {
+    const target = new URL(input);
+    if (target.protocol !== "http:" || !target.hostname.endsWith(".localhost")) {
+      throw new Error("Portless loopback fetch accepts only HTTP .localhost route URLs.");
+    }
+    return new Promise((resolve, reject) => {
+      const signal = init.signal;
+      let request;
+      const removeAbort = () => signal?.removeEventListener?.("abort", abortRequest);
+      const abortRequest = () => request?.destroy(new Error("Portless route request aborted."));
+      request = requestImpl({
+        protocol: "http:",
+        hostname: "127.0.0.1",
+        port: proxyPort,
+        method: String(init.method || "GET"),
+        path: `${target.pathname}${target.search}`,
+        headers: { ...(init.headers || {}), Host: target.host },
+      }, (response) => {
+        const chunks = [];
+        response.on("data", (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+        response.once("error", (error) => { removeAbort(); reject(error); });
+        response.once("end", () => {
+          removeAbort();
+          const body = Buffer.concat(chunks).toString("utf8");
+          const status = Number(response.statusCode || 0);
+          resolve({
+            ok: status >= 200 && status < 300,
+            status,
+            async json() { return JSON.parse(body); },
+          });
+        });
+      });
+      request.once("error", (error) => { removeAbort(); reject(error); });
+      if (signal?.aborted) {
+        abortRequest();
+        return;
+      }
+      signal?.addEventListener?.("abort", abortRequest, { once: true });
+      request.end();
+    });
+  };
+}
+
 async function persistRuntimeRegistry(runtime) {
   if (!runtime?.registry || !runtime?.registryPath) return;
   await mkdir(path.dirname(runtime.registryPath), { recursive: true, mode: 0o700 });
@@ -351,7 +401,7 @@ export async function attachPortlessAlias(runtime, {
   allowDirectFallback = true,
   env = process.env,
   execFileImpl = exec,
-  fetchImpl = globalThis.fetch,
+  fetchImpl,
 } = {}) {
   if (!runtime?.registry || !runtime?.record || !runtime?.endpointId) throw new Error("Portless alias requires a live Local Endpoint Registry runtime.");
   if (runtime.record.transport !== "direct") throw new Error("Portless alias attachment requires a direct endpoint as its authority source.");
@@ -368,8 +418,9 @@ export async function attachPortlessAlias(runtime, {
       routeName,
       url: routeUrl,
     });
+    const proofFetch = fetchImpl || createPortlessLoopbackFetch(proxy);
     const proof = await verifyExactLocalInstance(runtime.record, {
-      fetchImpl,
+      fetchImpl: proofFetch,
       expectedGeneration: runtime.record.generation,
       expectedCommitSha: runtime.record.commitSha,
       expectedInstanceRef: directRecord.instanceRef,
@@ -421,7 +472,7 @@ export async function remapPortlessAlias(runtime, adapter, {
   commitSha = runtime?.record?.commitSha,
   env = process.env,
   execFileImpl = exec,
-  fetchImpl = globalThis.fetch,
+  fetchImpl,
 } = {}) {
   if (adapter?.state !== "route-ready") throw new Error("Only a ready Portless route can be remapped.");
   const nextPort = Number(port);
@@ -436,8 +487,9 @@ export async function remapPortlessAlias(runtime, adapter, {
     url: portlessUrl(adapter.routeName, adapter.proxy.proxyPort, adapter.proxy.profile),
   });
   await runPortlessAlias(adapter.runtime, adapter.proxy, ["alias", adapter.routeName, String(nextPort), "--force"], { env, execFileImpl });
+  const proofFetch = fetchImpl || createPortlessLoopbackFetch(adapter.proxy);
   const proof = await verifyExactLocalInstance(runtime.record, {
-    fetchImpl,
+    fetchImpl: proofFetch,
     expectedGeneration: runtime.record.generation,
     expectedCommitSha: runtime.record.commitSha,
     expectedInstanceRef: instanceRef,

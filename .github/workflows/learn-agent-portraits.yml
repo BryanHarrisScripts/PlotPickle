@@ -10,6 +10,9 @@ on:
       - ".github/workflows/learn-agent-portraits.yml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   portrait-contract:
     name: Portrait rail and curriculum gate

@@ -4,12 +4,12 @@ import {
   restoreProfileBackupToStateStore,
   serializeProfileBackupBundle,
   verifyProfileBackupBundle,
-} from "@/core/auth/profile-backup/profile-backup";
+} from "../../../../core/auth/profile-backup/profile-backup";
 import {
   getProfileExperienceRuntime,
   requestBoundary,
   resetProfileExperienceRuntime,
-} from "@/core/auth/profile-experience/profile-experience-runtime";
+} from "../../../../core/auth/profile-experience/profile-experience-runtime";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

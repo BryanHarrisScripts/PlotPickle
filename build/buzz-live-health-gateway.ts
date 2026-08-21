@@ -143,8 +143,7 @@ async function runBuzz(connection: BuzzConnection, args: string[]) {
     BUZZ_RELAY_URL: relayHttpUrl(connection.relayUrl),
     BUZZ_PRIVATE_KEY: connection.privateKey,
   });
-  try { return JSON.parse(result.stdout || "null") as unknown; }
-  catch { throw new Error("BUZZ CLI returned invalid JSON."); }
+  return JSON.parse(result.stdout || "null") as unknown;
 }
 
 function nestedArray(value: unknown): unknown[] {

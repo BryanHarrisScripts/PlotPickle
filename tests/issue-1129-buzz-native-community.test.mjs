@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+const SOCIAL = "modules/community/community-buzz-social.tsx";
 
 test("#1129 keeps Great Hall as the real BUZZ-backed PlotPickle BBS", async () => {
   const [workspace, terminal, mirror] = await Promise.all([
@@ -25,7 +26,7 @@ test("#1129 keeps Great Hall as the real BUZZ-backed PlotPickle BBS", async () =
 test("#1129 exposes BUZZ Channels, Forums and native Direct Messages instead of a second social backend", async () => {
   const [workspace, social, gateway] = await Promise.all([
     read("app/community-workspace.tsx"),
-    read("app/community-buzz-social.tsx"),
+    read(SOCIAL),
     read("build/buzz-guildhall-gateway.ts"),
   ]);
   assert.match(workspace, />Channels</);
@@ -41,7 +42,7 @@ test("#1129 exposes BUZZ Channels, Forums and native Direct Messages instead of 
 });
 
 test("#1129 mirrors ordinary Channel Forum and DM conversation through the same BUZZ message route", async () => {
-  const social = await read("app/community-buzz-social.tsx");
+  const social = await read(SOCIAL);
   assert.match(social, /fetch\(`\$\{BUZZ_API\}\/messages\?channel=/);
   assert.match(social, /fetch\(`\$\{BUZZ_API\}\/messages`,/);
   assert.match(social, /body: JSON\.stringify\(\{ channel: channelId, content \}\)/);
@@ -68,7 +69,7 @@ test("#1129 requires the verified Human BUZZ signer for messages and DM creation
 
 test("#1129 keeps Huddle voice native to BUZZ instead of faking a browser audio stack", async () => {
   const [social, reuse] = await Promise.all([
-    read("app/community-buzz-social.tsx"),
+    read(SOCIAL),
     read("docs/third-party/buzz-community-reuse.md"),
   ]);
   assert.match(social, /data-native-buzz-huddle="desktop"/);
@@ -85,7 +86,7 @@ test("#1129 keeps Huddle voice native to BUZZ instead of faking a browser audio 
 test("#1129 excludes peer compute and keeps PPF out of the social write path", async () => {
   const [workspace, social, gateway, reuse] = await Promise.all([
     read("app/community-workspace.tsx"),
-    read("app/community-buzz-social.tsx"),
+    read(SOCIAL),
     read("build/buzz-guildhall-gateway.ts"),
     read("docs/third-party/buzz-community-reuse.md"),
   ]);

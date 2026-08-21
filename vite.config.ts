@@ -8,6 +8,7 @@ import { localProfileAuthGateway } from "./build/local-profile-auth-gateway";
 import { writerInResidenceGateway } from "./build/writer-in-residence-gateway";
 import { profileScopedBuzzRequestContext } from "./build/profile-request-context";
 import { buzzProfileMigrationGateway } from "./build/buzz-profile-migration-gateway";
+import { buzzProfileIdentityGateway } from "./build/buzz-profile-identity-gateway";
 import { buzzGateway } from "./build/buzz-gateway";
 import { buzzCommunityGateway } from "./build/buzz-community-gateway";
 import { buzzAgentRosterGateway } from "./build/buzz-agent-roster-gateway";
@@ -62,7 +63,7 @@ const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
   d1_databases: d1 ? [{ binding: d1, database_name: "site-creator-d1", database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID }] : [],
-  r2_buckets: r2 ? [{ binding: r2, bucket_name: "site-creator-r2" }] : [],
+  r2_buckets: r2 ? [{ binding: r2, bucket_name: "site-creator-r2", bucket_name: "site-creator-r2" }].map(({ binding, bucket_name }) => ({ binding, bucket_name })) : [],
 };
 
 export default defineConfig(async () => {
@@ -97,6 +98,7 @@ export default defineConfig(async () => {
       writerInResidenceGateway(),
       profileScopedBuzzRequestContext(),
       buzzProfileMigrationGateway(),
+      buzzProfileIdentityGateway(),
       buzzBundleNormalizer(),
       buzzSpecialistGateway(),
       buzzCommunityGateway(),

@@ -6,11 +6,18 @@ import { fileURLToPath } from "node:url";
 import { buildAdequacyReport, loadCasebook } from "./casebook-contract.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const args = process.argv.slice(2);
-const value = (name, fallback = "") => {
-  const index = args.indexOf(name);
-  return index >= 0 && index + 1 < args.length ? args[index + 1] : fallback;
-};
+const cli = new Map();
+for (let index = 0; index < process.argv.length - 2; index += 1) {
+  const token = process.argv[index + 2];
+  if (!token.startsWith("--")) continue;
+  const next = process.argv[index + 3];
+  if (next && !next.startsWith("--")) {
+    cli.set(token, next);
+    index += 1;
+  } else {
+    cli.set(token, "true");
+  }
+}
 
 function percent(metric) {
   return metric == null ? "not measured" : `${(metric * 100).toFixed(1)}%`;
@@ -52,9 +59,9 @@ function markdown(report) {
 }
 
 async function main() {
-  const casebookPath = value("--casebook", path.join(repoRoot, "config", "casebook", "p0-cases.json"));
-  const resultsPath = value("--results");
-  const outputDir = path.resolve(value("--output-dir", path.join(repoRoot, "reports", "casebook")));
+  const casebookPath = cli.get("--casebook") || path.join(repoRoot, "config", "casebook", "p0-cases.json");
+  const resultsPath = cli.get("--results") || "";
+  const outputDir = path.resolve(cli.get("--output-dir") || path.join(repoRoot, "reports", "casebook"));
   const casebook = await loadCasebook(path.resolve(casebookPath));
   const results = resultsPath ? JSON.parse(await readFile(path.resolve(resultsPath), "utf8")) : [];
   const normalizedResults = Array.isArray(results) ? results : results.results || [];

@@ -3,8 +3,8 @@
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { ensureManagedPiInstalled } from "./pi-managed-install.mjs";
 import {
-  ensurePiInstalled,
   resolvePiLocalRuntime,
   runPiSmoke,
   runPortableCommand,
@@ -17,18 +17,20 @@ function status(label, state, detail = "") {
 }
 
 async function main() {
-  const pi = await ensurePiInstalled({ allowInstall: false });
+  const pi = await ensureManagedPiInstalled({ allowInstall: false });
+  process.env.PLOTPICKLE_PI_COMMAND = pi.command;
   const runtime = await resolvePiLocalRuntime();
-  status("Pi coding agent", "READY", `${pi.version} · ${pi.command}`);
+  status("Pi coding agent", "READY", `${pi.version} · PlotPickle-managed · ${pi.command}`);
   status("Pi local coding model", "READY", `${runtime.model} via ${runtime.label}`);
   await runPiSmoke({ command: pi.command, runtime, purpose: "repair", timeout: 120_000 });
-  status("Pi repair invocation", "PASS", "headless local-model smoke completed with no tools and no cloud fallback");
+  status("Pi repair invocation", "PASS", "managed headless local-model smoke completed with no tools and no cloud fallback");
 
   try {
     const review = await runPortableCommand(process.execPath, ["scripts/run-pi-code-quality-review.mjs"], {
       cwd: repoRoot,
       timeout: 15 * 60_000,
       maxBuffer: 64 * 1024 * 1024,
+      env: { PLOTPICKLE_PI_COMMAND: pi.command },
     });
     if (review.stdout) process.stdout.write(`${review.stdout}\n`);
     if (review.stderr) process.stderr.write(`${review.stderr}\n`);

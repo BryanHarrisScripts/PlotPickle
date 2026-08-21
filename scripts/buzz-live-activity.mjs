@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { verificationAuthRequestHeaders } from "./full-verification-auth.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, "..");
@@ -71,9 +72,15 @@ function formatActivity({ actor, channel, event }) {
 }
 
 async function request(baseUrl, pathname, init, fetchImpl) {
+  const method = String(init?.method || "GET").toUpperCase();
   const response = await fetchImpl(`${String(baseUrl).replace(/\/$/, "")}/api/local-buzz${pathname}`, {
     ...init,
-    headers: { Accept: "application/json", "Content-Type": "application/json", ...(init?.headers || {}) },
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      ...(init?.headers || {}),
+      ...verificationAuthRequestHeaders(baseUrl, method),
+    },
     signal: AbortSignal.timeout(4_000),
   });
   const body = await response.json();

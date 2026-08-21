@@ -24,7 +24,7 @@ test("Community uses the existing three-column shell for BUZZ social navigation,
   const [workspace, navigationStyles, socialStyles, continuity] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("app/community-navigation.module.css"),
-    read("app/community-buzz-social.module.css"),
+    read("modules/community/community-buzz-social.module.css"),
     read("app/workspace-continuity.css"),
   ]);
   assert.match(workspace, /aria-label="BUZZ Community navigation"/);
@@ -43,11 +43,11 @@ test("Great Hall remains the PlotPickle terminal while other rooms use the BUZZ 
   const [workspace, terminal, social] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("app/community-backdoor-terminal.tsx"),
-    read("app/community-buzz-social.tsx"),
+    read("modules/community/community-buzz-social.tsx"),
   ]);
   assert.match(workspace, /room\.id === "great-hall"/);
   assert.match(workspace, /createGreatHallActiveRoom/);
-  assert.match(workspace, /terminalRoom \? <CommunityBackdoorTerminal/);
+  assert.match(workspace, /activeRoom \? <CommunityBackdoorTerminal/);
   assert.match(workspace, /<CommunityBuzzSocial target=\{selectedTarget\}/);
   assert.match(terminal, /PLOTPICKLE COMMUNITY BBS/);
   assert.match(terminal, /THE DOOR IS OPEN/);
@@ -72,7 +72,7 @@ test("Community caller comes from the authoritative Human BUZZ identity and Prof
 test("Channels Forums and DMs use real BUZZ message and DM contracts", async () => {
   const [workspace, social, gateway] = await Promise.all([
     read("app/community-workspace.tsx"),
-    read("app/community-buzz-social.tsx"),
+    read("modules/community/community-buzz-social.tsx"),
     read("build/buzz-guildhall-gateway.ts"),
   ]);
   assert.match(workspace, /room\.type === "stream"/);
@@ -91,7 +91,7 @@ test("Buzz Desktop and PlotPickle retain one conversation authority", async () =
   const [config, mirrorTest, social] = await Promise.all([
     read("config/buzz-guildhall.json").then(JSON.parse),
     read("tests/issue-1067-buzz-conversation-mirror.test.mjs"),
-    read("app/community-buzz-social.tsx"),
+    read("modules/community/community-buzz-social.tsx"),
   ]);
   assert.equal(config.conversationMirror.messageAuthority, "buzz");
   assert.deepEqual(config.conversationMirror.clients, ["plotpickle", "buzz-desktop"]);
@@ -103,7 +103,7 @@ test("Buzz Desktop and PlotPickle retain one conversation authority", async () =
 
 test("Huddles remain native BUZZ voice and never fake browser ownership", async () => {
   const [social, reuse] = await Promise.all([
-    read("app/community-buzz-social.tsx"),
+    read("modules/community/community-buzz-social.tsx"),
     read("docs/third-party/buzz-community-reuse.md"),
   ]);
   assert.match(social, /data-native-buzz-huddle="desktop"/);
@@ -132,7 +132,7 @@ test("Community preserves local credential, agent separation, and no-secret boun
 test("Community conversation cannot become PPF canon or peer compute implicitly", async () => {
   const [workspace, social, reuse] = await Promise.all([
     read("app/community-workspace.tsx"),
-    read("app/community-buzz-social.tsx"),
+    read("modules/community/community-buzz-social.tsx"),
     read("docs/third-party/buzz-community-reuse.md"),
   ]);
   assert.doesNotMatch(`${workspace}\n${social}`, /setItem\([^\n]*(project|ppf|canon)/i);

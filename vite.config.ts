@@ -8,6 +8,7 @@ import { localProfileAuthGateway } from "./build/local-profile-auth-gateway";
 import { writerInResidenceGateway } from "./build/writer-in-residence-gateway";
 import { profileScopedBuzzRequestContext } from "./build/profile-request-context";
 import { buzzProfileMigrationGateway } from "./build/buzz-profile-migration-gateway";
+import { buzzProfileIdentityGateway } from "./build/buzz-profile-identity-gateway";
 import { buzzGateway } from "./build/buzz-gateway";
 import { buzzCommunityGateway } from "./build/buzz-community-gateway";
 import { buzzAgentRosterGateway } from "./build/buzz-agent-roster-gateway";
@@ -97,6 +98,7 @@ export default defineConfig(async () => {
       writerInResidenceGateway(),
       profileScopedBuzzRequestContext(),
       buzzProfileMigrationGateway(),
+      buzzProfileIdentityGateway(),
       buzzBundleNormalizer(),
       buzzSpecialistGateway(),
       buzzCommunityGateway(),

@@ -22,11 +22,13 @@ test("#1185 managed Windows Pi lives under LOCALAPPDATA rather than the locked g
   assert.equal(command.toLowerCase().includes("appdata\\roaming\\npm"), false);
 });
 
-test("#1185 managed installer uses a private npm prefix without --force or permanent PATH mutation", async () => {
+test("#1185 managed installer uses the active Windows npm.cmd and a private prefix without --force or PATH mutation", async () => {
   const env = { LOCALAPPDATA: "C:\\Users\\Test Writer\\AppData\\Local" };
   const root = managedPiRoot({ platform: "win32", env });
   const command = managedPiCommand({ platform: "win32", env, root });
-  const existing = new Set();
+  const nodeExecutable = "C:\\Program Files\\nodejs\\node.exe";
+  const npmCommand = "C:\\Program Files\\nodejs\\npm.cmd";
+  const existing = new Set([npmCommand.toLowerCase()]);
   const calls = [];
   const runPortableCommand = async (cmd, args) => {
     calls.push([cmd, ...args]);
@@ -40,8 +42,10 @@ test("#1185 managed installer uses a private npm prefix without --force or perma
     platform: "win32",
     env,
     root,
+    nodeExecutable,
     nodeVersion: "22.19.0",
     existsSync: (candidate) => existing.has(String(candidate).toLowerCase()),
+    commandOnPath: () => { throw new Error("PATH lookup must not be required when npm.cmd is beside node.exe"); },
     runPortableCommand,
   });
   assert.equal(result.ready, true);
@@ -49,6 +53,7 @@ test("#1185 managed installer uses a private npm prefix without --force or perma
   assert.equal(result.installed, true);
   const install = calls.find((entry) => entry[1] === "install");
   assert.ok(install);
+  assert.equal(install[0], npmCommand);
   assert.deepEqual(install.slice(1, 6), ["install", "-g", "--prefix", root, "--ignore-scripts"]);
   assert.equal(install.includes("--force"), false);
 });
@@ -80,9 +85,12 @@ test("#1185 startup health provisions managed Pi when worker preflight says unav
 test("#1185 repair-stack bootstrap uses managed Pi and never recommends killing every Node process", async () => {
   const managed = await read("scripts/pi-managed-install.mjs");
   const ensure = await read("scripts/ensure-pi-repair-stack.mjs");
-  const combined = `${managed}\n${ensure}`;
+  const runtime = await read("scripts/pi-worker-runtime.mjs");
+  const combined = `${managed}\n${ensure}\n${runtime}`;
   assert.match(ensure, /ensureManagedPiInstalled/);
+  assert.match(managed, /resolveActiveNpmCommand/);
   assert.match(managed, /"-g",\s*\n\s*"--prefix", root/);
+  assert.match(runtime, /batchWrapper[\s\S]*call /);
   assert.doesNotMatch(combined, /--force/);
   assert.doesNotMatch(combined, /SetEnvironmentVariable/);
   assert.doesNotMatch(combined, /taskkill[^\n]*node\.exe/i);

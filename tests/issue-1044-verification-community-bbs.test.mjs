@@ -27,14 +27,14 @@ test("#1044 retries only transient BUZZ transport failures", async () => {
   assert.equal(functionalAttempts, 1);
 });
 
-test("#1044 Community BBS owns its visible identity without renaming the BUZZ relay", async () => {
+test("#1044/#1217 Community BBS owns its visible identity while the active BUZZ community remains the node source of truth", async () => {
   const [workspace, terminal] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("app/community-backdoor-terminal.tsx"),
   ]);
   assert.match(workspace, /PlotPickle Community BBS/);
-  assert.match(workspace, /const nodeName = community\?\.community\.trim\(\) \|\| ""/);
-  assert.match(workspace, /BUZZ NODE UNAVAILABLE/);
+  assert.match(workspace, /\{community\?\.community \|\| "BUZZ COMMUNITY"\}/);
+  assert.match(workspace, /nodeName=\{community\?\.community \|\| "BUZZ"\}/);
   assert.doesNotMatch(workspace, /COMMUNITY_BBS_NODE|plotpickle-community/);
   assert.doesNotMatch(workspace, /Playhouse/i);
   assert.match(terminal, /PLOTPICKLE COMMUNITY BBS/);

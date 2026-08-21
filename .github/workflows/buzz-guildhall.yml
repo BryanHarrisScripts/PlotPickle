@@ -20,6 +20,7 @@ on:
       - "build/buzz-agent-roster-gateway.ts"
       - "build/buzz-agent-activity-mirror.ts"
       - "build/buzz-guildhall-gateway.ts"
+      - "build/buzz-human-identity-guard.ts"
       - "build/buzz-live-health-gateway.ts"
       - "build/buzz-story-room-access-gateway.ts"
       - "build/local-ai-gateway.ts"
@@ -28,6 +29,10 @@ on:
       - "app/sage-settings-workspace.tsx"
       - "app/community-workspace.tsx"
       - "app/community-workspace.module.css"
+      - "app/community-navigation.module.css"
+      - "app/community-buzz-social.tsx"
+      - "app/community-buzz-social.module.css"
+      - "app/community-backdoor-terminal.tsx"
       - "app/community-agent-roster.tsx"
       - "app/community-agent-roster.module.css"
       - "app/community-story-room-access.tsx"
@@ -52,6 +57,7 @@ on:
       - "docs/buzz-guildhall.md"
       - "docs/buzz-live-health.md"
       - "docs/issue-buzz-story-room-access-agents.md"
+      - "docs/third-party/buzz-community-reuse.md"
       - "tests/core-readme-direction.test.mjs"
       - "tests/issue-512-buzz-version-maintenance.test.mjs"
       - "tests/issue-620-buzz-startup-updater.test.mjs"
@@ -60,6 +66,8 @@ on:
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
       - "tests/issue-672-global-navigation.test.mjs"
+      - "tests/issue-1067-buzz-conversation-mirror.test.mjs"
+      - "tests/issue-1129-buzz-native-community.test.mjs"
       - "tests/community-workspace.test.mjs"
       - "tests/community-agent-roster.test.mjs"
       - "tests/buzz-live-roundtrip.test.mjs"
@@ -88,6 +96,7 @@ on:
       - "build/buzz-agent-roster-gateway.ts"
       - "build/buzz-agent-activity-mirror.ts"
       - "build/buzz-guildhall-gateway.ts"
+      - "build/buzz-human-identity-guard.ts"
       - "build/buzz-live-health-gateway.ts"
       - "build/buzz-story-room-access-gateway.ts"
       - "build/local-ai-gateway.ts"
@@ -96,6 +105,10 @@ on:
       - "app/sage-settings-workspace.tsx"
       - "app/community-workspace.tsx"
       - "app/community-workspace.module.css"
+      - "app/community-navigation.module.css"
+      - "app/community-buzz-social.tsx"
+      - "app/community-buzz-social.module.css"
+      - "app/community-backdoor-terminal.tsx"
       - "app/community-agent-roster.tsx"
       - "app/community-agent-roster.module.css"
       - "app/community-story-room-access.tsx"
@@ -120,6 +133,7 @@ on:
       - "docs/buzz-guildhall.md"
       - "docs/buzz-live-health.md"
       - "docs/issue-buzz-story-room-access-agents.md"
+      - "docs/third-party/buzz-community-reuse.md"
       - "tests/core-readme-direction.test.mjs"
       - "tests/issue-512-buzz-version-maintenance.test.mjs"
       - "tests/issue-620-buzz-startup-updater.test.mjs"
@@ -128,6 +142,8 @@ on:
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
       - "tests/issue-672-global-navigation.test.mjs"
+      - "tests/issue-1067-buzz-conversation-mirror.test.mjs"
+      - "tests/issue-1129-buzz-native-community.test.mjs"
       - "tests/community-workspace.test.mjs"
       - "tests/community-agent-roster.test.mjs"
       - "tests/buzz-live-roundtrip.test.mjs"
@@ -164,5 +180,5 @@ jobs:
         run: node --test tests/issue-913-agent-skills-migration.test.mjs tests/issue-962-agent-profiles.test.mjs tests/issue-1028-settings-help.test.mjs
       - name: Validate Buzz release and updater policy
         run: node --test tests/issue-512-buzz-version-maintenance.test.mjs tests/issue-620-buzz-startup-updater.test.mjs
-      - name: Validate Guildhall, Community, Moderator, Story Room, README, and live BUZZ contracts
-        run: node --test tests/core-readme-direction.test.mjs tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs tests/issue-1065-bbs-moderator.test.mjs tests/issue-1081-merrin-room-aware-moderation.test.mjs tests/live-buzz-guildhall-activity.test.mjs
+      - name: Validate Guildhall, BUZZ-native Community, mirror, Moderator, Story Room, README, and live BUZZ contracts
+        run: node --test tests/core-readme-direction.test.mjs tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/issue-1067-buzz-conversation-mirror.test.mjs tests/issue-1129-buzz-native-community.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs tests/issue-1065-bbs-moderator.test.mjs tests/issue-1081-merrin-room-aware-moderation.test.mjs tests/live-buzz-guildhall-activity.test.mjs

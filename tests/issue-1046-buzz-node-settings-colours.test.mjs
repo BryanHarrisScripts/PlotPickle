@@ -4,16 +4,14 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("NODE reads the connected BUZZ community name and never substitutes the PlotPickle presentation alias", async () => {
+test("#1217 native Community rail reads the connected BUZZ community name without substituting the PlotPickle presentation alias", async () => {
   const [workspace, terminal] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("app/community-backdoor-terminal.tsx"),
   ]);
 
-  assert.match(workspace, /const nodeName = community\?\.community\.trim\(\) \|\| ""/);
-  assert.match(workspace, /SERVER \/ NODE/);
-  assert.match(workspace, /\{nodeName \|\| "BUZZ NODE UNAVAILABLE"\}/);
-  assert.match(workspace, /<CommunityBackdoorTerminal[\s\S]*nodeName=\{nodeName\}/);
+  assert.match(workspace, /\{community\?\.community \|\| "BUZZ COMMUNITY"\}/);
+  assert.match(workspace, /<CommunityBackdoorTerminal[\s\S]*nodeName=\{community\?\.community \|\| "BUZZ"\}/);
   assert.doesNotMatch(workspace, /COMMUNITY_BBS_NODE|plotpickle-community/);
 
   assert.match(terminal, /readonly nodeName: string/);

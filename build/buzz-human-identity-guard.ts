@@ -156,7 +156,7 @@ async function inspectConnectedHuman(): Promise<HumanIdentityStatus> {
       displayName,
       kind: "agent",
       agentId: agent.id,
-      message: `${displayName} is a PlotPickle agent identity, not the human Community caller. Sage is your PlotPickle guide; Sage is not your Community identity. Connect your personal Buzz identity in Settings.`,
+      message: `${displayName} is a PlotPickle agent identity, not the human Community caller. Sage is your PlotPickle guide; Sage is not your Community identity. Connect your personal Buzz identity in Profile.`,
     };
   }
 
@@ -221,7 +221,10 @@ export function buzzHumanIdentityGuard(): Plugin {
           return;
         }
 
-        if (request.method === "POST" && url.pathname === `${API}/messages` && isBrowserAuthoredRequest(request)) {
+        const humanWrite = request.method === "POST"
+          && isBrowserAuthoredRequest(request)
+          && (url.pathname === `${API}/messages` || url.pathname === `${API}/guildhall/dms/open`);
+        if (humanWrite) {
           void inspectConnectedHuman().then((status) => {
             if (status.humanCommunityAllowed) { next(); return; }
             response.statusCode = 403;

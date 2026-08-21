@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import process from "node:process";
 import { postLiveBuzzActivity } from "./buzz-live-activity.mjs";
 import { withTransientBuzzRetry } from "./buzz-verification-retry.mjs";
+import { verificationAuthRequestHeaders } from "./full-verification-auth.mjs";
 
 const baseUrl = String(process.env.PLOTPICKLE_URL || process.env.PLOTPICKLE_ACCEPTANCE_URL || "http://127.0.0.1:4173").replace(/\/$/, "");
 const tag = `plotpickle-live-activity:${randomUUID()}`;
@@ -20,7 +21,7 @@ const probes = [
 
 async function request(pathname) {
   const response = await fetch(`${baseUrl}/api/local-buzz${pathname}`, {
-    headers: { Accept: "application/json" },
+    headers: { Accept: "application/json", ...verificationAuthRequestHeaders(baseUrl, "GET") },
     signal: AbortSignal.timeout(10_000),
   });
   const body = await response.json();

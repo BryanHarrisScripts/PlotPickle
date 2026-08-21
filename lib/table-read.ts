@@ -78,8 +78,19 @@ export type ActorSideLine = {
   target: FeedbackTargetReference;
 };
 
+function secureIdSuffix() {
+  const cryptoApi = globalThis.crypto;
+  if (cryptoApi?.randomUUID) return cryptoApi.randomUUID();
+  if (cryptoApi?.getRandomValues) {
+    const bytes = new Uint8Array(16);
+    cryptoApi.getRandomValues(bytes);
+    return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
+  }
+  throw new Error("Secure randomness is unavailable for Table Read IDs.");
+}
+
 function makeId(prefix: string) {
-  return `${prefix}-${globalThis.crypto?.randomUUID?.() ?? Date.now().toString(36)}`;
+  return `${prefix}-${secureIdSuffix()}`;
 }
 
 function cleanSpeaker(value: string) {

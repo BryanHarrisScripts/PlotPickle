@@ -1,16 +1,19 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 import { GET as profileGet, POST as profilePost } from "../app/api/auth/profile/route";
+import { GET as profilePresentationGet, POST as profilePresentationPost } from "../app/api/auth/profile-presentation/route";
 import { GET as profilePrivateGet, POST as profilePrivatePost } from "../app/api/auth/profile-private/route";
 import { POST as profileBackupPost } from "../app/api/auth/profile-backup/route";
 
 const PROFILE_API = "/api/auth/profile";
+const PROFILE_PRESENTATION_API = "/api/auth/profile-presentation";
 const PROFILE_PRIVATE_API = "/api/auth/profile-private";
 const PROFILE_BACKUP_API = "/api/auth/profile-backup";
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
 const LOOPBACK_PEERS = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
 const BODY_LIMITS = new Map<string, number>([
   [PROFILE_API, 64 * 1024],
+  [PROFILE_PRESENTATION_API, 64 * 1024],
   [PROFILE_PRIVATE_API, 8 * 1024 * 1024],
   [PROFILE_BACKUP_API, 32 * 1024 * 1024],
 ]);
@@ -25,6 +28,10 @@ const ROUTES = new Map<string, RouteContract>([
   [PROFILE_API, Object.freeze({
     maximumBodyBytes: BODY_LIMITS.get(PROFILE_API)!,
     handlers: Object.freeze({ GET: profileGet, POST: profilePost }),
+  })],
+  [PROFILE_PRESENTATION_API, Object.freeze({
+    maximumBodyBytes: BODY_LIMITS.get(PROFILE_PRESENTATION_API)!,
+    handlers: Object.freeze({ GET: profilePresentationGet, POST: profilePresentationPost }),
   })],
   [PROFILE_PRIVATE_API, Object.freeze({
     maximumBodyBytes: BODY_LIMITS.get(PROFILE_PRIVATE_API)!,

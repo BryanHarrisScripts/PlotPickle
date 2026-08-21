@@ -1,0 +1,52 @@
+name: Security Dependency Refresh
+
+on:
+  push:
+    branches:
+      - fix/security-closeout
+    paths:
+      - ".github/workflows/security-dependency-refresh.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Apply bounded security overrides
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          pkg.overrides = {
+            ...(pkg.overrides || {}),
+            nanoid: '3.3.18',
+            'js-yaml': '4.3.1',
+            '@babel/core': '7.29.6',
+            '@esbuild-kit/core-utils': {
+              ...((pkg.overrides || {})['@esbuild-kit/core-utils'] || {}),
+              esbuild: '0.25.12'
+            }
+          };
+          fs.writeFileSync('package.json', `${JSON.stringify(pkg, null, 2)}\n`);
+          NODE
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Commit regenerated dependency files
+        shell: bash
+        run: |
+          git config user.name "PlotPickle"
+          git config user.email "bryan@bryanharris.ca"
+          git add package.json package-lock.json
+          if git diff --cached --quiet; then
+            echo "Dependency files already match the requested security floors."
+            exit 0
+          fi
+          git commit -m "#1228 pin patched transitive dependencies"
+          git push origin HEAD:${GITHUB_REF_NAME}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PLOTPICKLE_BUZZ_COMMUNITY } from "../lib/buzz-default-community";
 import { describeBuzzManagedRuntime, getBuzzManagedRuntimeActions } from "../lib/buzz-managed-runtime";
 import {
   UNVERIFIED_HUMAN_BUZZ_IDENTITY,
@@ -36,12 +37,10 @@ type GuildhallStatus = {
   stewards: GuildhallSteward[];
   upstreamAgentBoundary: string;
   message: string;
-  created?: string[];
-  kept?: string[];
 };
-type FormState = { mode: ConnectionMode; relayUrl: string; community: string; identityLabel: string; cliPath: string; privateKey: string };
+type FormState = { mode: ConnectionMode; relayUrl: string; cliPath: string };
 type ConnectionState = "loading" | "disconnected" | "detected" | "connecting" | "connected" | "degraded";
-const EMPTY: FormState = { mode: "existing-relay", relayUrl: "", community: "", identityLabel: "", cliPath: "", privateKey: "" };
+const EMPTY: FormState = { mode: "existing-relay", relayUrl: PLOTPICKLE_BUZZ_COMMUNITY.relayUrl, cliPath: "" };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API}${path}`, { ...init, headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) } });
@@ -88,11 +87,8 @@ export default function BuzzSettingsPanel() {
     setForm((current) => ({
       ...current,
       mode: body.connection.mode,
-      relayUrl: body.connection.relayUrl,
-      community: body.connection.community,
-      identityLabel: body.connection.identityLabel,
+      relayUrl: body.connection.mode === "managed" ? body.connection.relayUrl : PLOTPICKLE_BUZZ_COMMUNITY.relayUrl,
       cliPath: body.connection.cliPath,
-      privateKey: "",
     }));
   }
 
@@ -111,7 +107,7 @@ export default function BuzzSettingsPanel() {
     applyStatus(body);
     setHumanIdentity(humanBody);
     await refreshGuildhall(false).catch(() => undefined);
-    if (showNotice) setNotice(humanBody.humanCommunityAllowed ? (body.connection.configured ? body.relay.detail : body.cli.available ? "Buzz Desktop is detected. Add your community details to finish setup." : "Buzz Desktop was not detected.") : humanBody.message);
+    if (showNotice) setNotice(humanBody.humanCommunityAllowed ? body.relay.detail : humanBody.message);
   }
 
   useEffect(() => {
@@ -151,19 +147,33 @@ export default function BuzzSettingsPanel() {
     } finally { setBusy(""); }
   }
 
-  async function saveAndTest() {
+  async function saveTransport() {
     setBusy("save");
     setNotice("");
     try {
-      await request("/connection", { method: "PUT", body: JSON.stringify(form) });
-      const result = await request<{ message?: string }>("/test", { method: "POST" });
+      await request("/connection", {
+        method: "PUT",
+        body: JSON.stringify({
+          mode: form.mode,
+          relayUrl: form.mode === "managed" ? form.relayUrl : PLOTPICKLE_BUZZ_COMMUNITY.relayUrl,
+          community: PLOTPICKLE_BUZZ_COMMUNITY.name,
+          identityLabel: status?.connection.identityLabel || "",
+          cliPath: form.cliPath,
+        }),
+      });
+      const humanBody = await readHumanIdentity();
+      if (humanBody.humanCommunityAllowed) {
+        const result = await request<{ message?: string }>("/test", { method: "POST" });
+        setNotice(result.message || "BUZZ transport and saved Profile identity verified successfully.");
+      } else {
+        setNotice(`BUZZ transport saved. Connect the Human BUZZ identity from Profile before Community posting. ${humanBody.message}`.trim());
+      }
       await refresh();
       refreshDashboardLights();
-      setNotice(result.message || "Buzz was saved securely and connected successfully.");
     } catch (error) {
       await refresh().catch(() => undefined);
       refreshDashboardLights();
-      setNotice(error instanceof Error ? error.message : "Buzz could not be saved and tested.");
+      setNotice(error instanceof Error ? error.message : "BUZZ transport could not be saved.");
     } finally { setBusy(""); }
   }
 
@@ -182,9 +192,9 @@ export default function BuzzSettingsPanel() {
   }
 
   async function copySteward(steward: GuildhallSteward) {
-    const text = `${steward.displayName} · ${steward.title}\n\n${steward.systemPrompt}`;
+    const content = `${steward.displayName} · ${steward.title}\n\n${steward.systemPrompt}`;
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(content);
       setNotice(`${steward.displayName} setup copied. Create a new personal agent in Buzz Desktop, paste these instructions, review the form and save it.`);
     } catch {
       setNotice(`Could not copy ${steward.displayName}. Open Buzz Desktop and create this steward manually from the role shown here.`);
@@ -208,12 +218,12 @@ export default function BuzzSettingsPanel() {
   const storyRoomReady = connectionState === "connected" && cliAvailable && identityConfigured && identityVerified && humanIdentityReady;
   const guildhallReady = Boolean(guildhall?.operational);
   const stateCopy = {
-    loading: { title: "Checking Buzz", tone: "Checking", detail: "PlotPickle is looking for Buzz Desktop and any saved community." },
+    loading: { title: "Checking Buzz", tone: "Checking", detail: "PlotPickle is checking Buzz Desktop, the built-in Community and the current Human signer." },
     disconnected: { title: "Buzz Desktop not detected", tone: "Setup needed", detail: "Install and open Buzz Desktop once, then refresh this screen." },
-    detected: { title: "Buzz Desktop detected", tone: "Desktop ready", detail: "Buzz is installed. Copy your hosted community address and explicitly authorize PlotPickle with your personal Buzz identity." },
-    connecting: { title: "Verifying Buzz", tone: "Connecting", detail: "PlotPickle is checking the community, the Desktop CLI and your Buzz identity together." },
-    connected: { title: "Buzz is ready", tone: "Ready", detail: "The community, Desktop CLI and verified human signer are ready. PlotPickle can post human Community messages under the correct identity." },
-    degraded: { title: identityMismatch ? "Community identity mismatch" : reachable ? "PlotPickle is not authorized yet" : "Community cannot be reached", tone: identityMismatch ? "Wrong signer" : reachable ? "Finish identity" : "Check address", detail: identityMismatch ? humanIdentity?.message || "A PlotPickle agent identity cannot be used as the human Community caller." : reachable ? humanIdentity?.message || "The hosted community responded, but the saved Buzz identity has not passed the human Community check." : status?.relay.detail || "The saved community address did not respond." },
+    detected: { title: "Buzz Desktop detected", tone: "Desktop ready", detail: "The default PlotPickle Community is built in. Connect your Human BUZZ identity from Profile." },
+    connecting: { title: "Verifying Buzz", tone: "Connecting", detail: "PlotPickle is checking the relay, Desktop CLI and Profile-owned Human signer." },
+    connected: { title: "Buzz is ready", tone: "Ready", detail: "The default Community, Desktop CLI and verified Human signer are ready." },
+    degraded: { title: identityMismatch ? "Community identity mismatch" : reachable ? "Human identity is not ready" : "Community cannot be reached", tone: identityMismatch ? "Wrong signer" : reachable ? "Open Profile" : "Relay unavailable", detail: identityMismatch ? humanIdentity?.message || "A PlotPickle agent identity cannot be used as the Human Community caller." : reachable ? humanIdentity?.message || "Open Profile and connect the Human BUZZ identity." : status?.relay.detail || "The built-in Community relay did not respond." },
   }[connectionState];
   const managedState = {
     bundleAvailable: Boolean(status?.managed.bundle.available),
@@ -228,14 +238,15 @@ export default function BuzzSettingsPanel() {
   const managedActions = getBuzzManagedRuntimeActions(managedState);
   const managedCopy = describeBuzzManagedRuntime(managedState);
   const blocked = Boolean(busy);
-  const openInBuzzUrl = buzzDesktopUrl(status?.connection.relayUrl || form.relayUrl, status?.connection.community || form.community);
+  const activeRelay = form.mode === "managed" ? form.relayUrl : PLOTPICKLE_BUZZ_COMMUNITY.relayUrl;
+  const openInBuzzUrl = buzzDesktopUrl(activeRelay, PLOTPICKLE_BUZZ_COMMUNITY.name);
   const signerFingerprint = humanBuzzFingerprint(humanIdentity?.pubkey || "");
 
   return <div className={styles.page}>
     <header className={styles.heading}>
       <p>{"Settings · Repository & Collab · Buzz"}</p>
-      <h1>Connect Buzz, then let PlotPickle build the Guildhall for you.</h1>
-      <span>Your Buzz identity stays encrypted on this computer. The friendly local label, verified Buzz signer and Community caller are deliberately separate so Sage can never become the human by default.</span>
+      <h1>BUZZ transport, runtime and Guildhall diagnostics.</h1>
+      <span>Your Human BUZZ signer is owned by Profile. Settings can inspect/test the transport and manage the optional local runtime, but it cannot replace the Human identity.</span>
     </header>
 
     <section className={styles.statusCard}>
@@ -244,147 +255,62 @@ export default function BuzzSettingsPanel() {
     </section>
 
     <section className={styles.statusCard} data-buzz-human-identity="true">
-      <div>
-        <p>Community writer identity</p>
-        <h2>{humanIdentityReady ? humanIdentity?.displayName : identityMismatch ? "Agent signer cannot be the writer" : "Writer identity not verified"}</h2>
-        <p>{humanIdentity?.message || UNVERIFIED_HUMAN_BUZZ_IDENTITY.message}</p>
-        {signerFingerprint ? <small>Verified signer: {signerFingerprint}</small> : null}
-      </div>
-      <div className={styles.statusBadge} data-state={humanIdentityReady ? "connected" : identityMismatch ? "degraded" : "disconnected"} role="status" aria-live="polite"><i aria-hidden="true" /><b>{humanIdentityReady ? "Human verified" : identityMismatch ? "Identity mismatch" : "Writer required"}</b></div>
+      <div><p>Profile-owned Community writer identity</p><h2>{humanIdentityReady ? humanIdentity?.displayName : identityMismatch ? "Agent signer cannot be the writer" : "Connect in Profile"}</h2><p>{humanIdentity?.message || UNVERIFIED_HUMAN_BUZZ_IDENTITY.message}</p>{signerFingerprint ? <small>Verified signer: {signerFingerprint}</small> : null}</div>
+      <div className={styles.statusBadge} data-state={humanIdentityReady ? "connected" : identityMismatch ? "degraded" : "disconnected"} role="status" aria-live="polite"><i aria-hidden="true" /><b>{humanIdentityReady ? "Human verified" : identityMismatch ? "Identity mismatch" : "Profile required"}</b></div>
+    </section>
+
+    <section className={styles.formCard} data-buzz-default-community="true">
+      <div><span>Built-in Community</span><h2>{PLOTPICKLE_BUZZ_COMMUNITY.name}</h2><p>Every normal PlotPickle profile targets this Community automatically. The relay host is product-owned configuration rather than a value each Human must re-enter.</p></div>
+      <div className={styles.formGrid}><label><span>Default relay</span><input value={PLOTPICKLE_BUZZ_COMMUNITY.relayUrl} readOnly /><small>Human identity setup remains in Profile. BUZZ signatures—not this label—determine authorship.</small></label></div>
     </section>
 
     <section className={styles.statusCard} aria-labelledby="plotpickle-guildhall-title">
-      <div>
-        <p>PlotPickle Guildhall</p>
-        <h2 id="plotpickle-guildhall-title">{guildhallReady ? "Guildhall operational" : guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} private rooms ready` : "Checking Guildhall"}</h2>
-        <p>{guildhall?.message || "PlotPickle is checking the shared coordination rooms."}</p>
-      </div>
-      <div className={styles.statusBadge} data-state={guildhallReady ? "connected" : identityVerified ? "detected" : "disconnected"} role="status" aria-live="polite"><i aria-hidden="true" /><b>{guildhallReady ? "Operational" : identityVerified ? "Ready to build" : "Waiting for Buzz"}</b></div>
+      <div><p>PlotPickle Guildhall</p><h2 id="plotpickle-guildhall-title">{guildhallReady ? "Guildhall operational" : guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} private rooms ready` : "Checking Guildhall"}</h2><p>{guildhall?.message || "PlotPickle is checking the shared coordination rooms."}</p></div>
+      <div className={styles.statusBadge} data-state={guildhallReady ? "connected" : identityVerified ? "detected" : "disconnected"} role="status" aria-live="polite"><i aria-hidden="true" /><b>{guildhallReady ? "Operational" : identityVerified ? "Ready to build" : "Waiting for Profile"}</b></div>
     </section>
 
     <section className={styles.setupGuide} aria-labelledby="guildhall-setup-title">
-      <div className={styles.guideHeading}>
-        <span>One-click coordination setup</span>
-        <h2 id="guildhall-setup-title">Create the PlotPickle Guildhall inside your Buzz community.</h2>
-      </div>
+      <div className={styles.guideHeading}><span>One-click coordination setup</span><h2 id="guildhall-setup-title">Create or repair the PlotPickle Guildhall inside the active BUZZ relay.</h2></div>
       <div className={styles.setupSteps}>
-        <article data-complete={identityVerified ? "true" : "false"}>
-          <span>1</span>
-          <div><b>Verified Buzz signing key</b><strong>{identityVerified ? "Ready" : "Required"}</strong><p>The locally encrypted signing key can create the Guildhall rooms. That transport verification is separate from whether the signer is allowed to represent the human Community writer.</p></div>
-        </article>
-        <article data-complete={guildhallReady ? "true" : "false"}>
-          <span>2</span>
-          <div><b>Guildhall rooms</b><strong>{guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} ready` : "Checking"}</strong><p>{guildhallReady ? "The Great Hall, Lore Library, Wayfarer Journal, Wyrmwood Ring, Story Council, Thread Vault, Lantern Watch, Gatehouse, Forge, GitHub Herald and Long Archive are ready." : guildhall?.missingRooms.length ? `Missing: ${guildhall.missingRooms.map((room) => room.label).join(", ")}.` : "PlotPickle will create only the missing private rooms."}</p></div>
-        </article>
-        <article data-complete={guildhallReady ? "true" : "false"}>
-          <span>3</span>
-          <div><b>PlotPickle bridge</b><strong>{guildhallReady ? "Live" : "Waiting for rooms"}</strong><p>When all 11 rooms exist, Sage, Avery, Wyrmwood, visual review, UAT and development handoffs can route signed summaries into explicit Guildhall rooms instead of the human Great Hall.</p></div>
-        </article>
+        <article data-complete={identityVerified ? "true" : "false"}><span>1</span><div><b>Profile-owned signing key</b><strong>{identityVerified ? "Ready" : "Required"}</strong><p>Settings never asks for the nsec. Connect or replace the Human signer from Profile.</p></div></article>
+        <article data-complete={guildhallReady ? "true" : "false"}><span>2</span><div><b>Guildhall rooms</b><strong>{guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} ready` : "Checking"}</strong><p>{guildhallReady ? "All Guildhall rooms are ready." : guildhall?.missingRooms.length ? `Missing: ${guildhall.missingRooms.map((room) => room.label).join(", ")}.` : "PlotPickle will create only missing rooms."}</p></div></article>
+        <article data-complete={guildhallReady ? "true" : "false"}><span>3</span><div><b>PlotPickle bridge</b><strong>{guildhallReady ? "Live" : "Waiting"}</strong><p>Local agent coordination remains separate from Human Great Hall authorship.</p></div></article>
       </div>
-      <div className={styles.actions}>
-        <button type="button" disabled={blocked || !guildhall?.canSetup || guildhallReady} onClick={() => void setupGuildhall()}>{busy === "guildhall" ? "Building Guildhall…" : guildhallReady ? "Guildhall ready" : "Set up PlotPickle Guildhall"}</button>
-        <button type="button" disabled={blocked} onClick={() => void refreshGuildhall(true)}>Refresh Guildhall status</button>
-        {openInBuzzUrl ? <a href={openInBuzzUrl}>Open Guildhall community in Buzz Desktop</a> : null}
-      </div>
-      <aside className={styles.terminologyNote}>
-        <b>No GitHub BUZZ secret is needed</b>
-        <p>Do not put your Buzz nsec in GitHub for this setup. PlotPickle reads the identity only from its encrypted local credential store and passes it directly to the local Buzz CLI when you choose setup.</p>
-      </aside>
+      <div className={styles.actions}><button type="button" disabled={blocked || !guildhall?.canSetup || guildhallReady} onClick={() => void setupGuildhall()}>{busy === "guildhall" ? "Building Guildhall…" : guildhallReady ? "Guildhall ready" : "Set up PlotPickle Guildhall"}</button><button type="button" disabled={blocked} onClick={() => void refreshGuildhall(true)}>Refresh Guildhall status</button>{openInBuzzUrl ? <a href={openInBuzzUrl}>Open Guildhall community in Buzz Desktop</a> : null}</div>
     </section>
 
     {guildhall?.stewards.length ? <section className={styles.setupGuide} aria-labelledby="guildhall-stewards-title">
-      <div className={styles.guideHeading}>
-        <span>Optional separate Buzz identities</span>
-        <h2 id="guildhall-stewards-title">Orin and Fen still require your approval in Buzz Desktop.</h2>
-        <p>The Guildhall works without separate steward identities. Buzz intentionally requires personal-agent creation to be reviewed by the owner, so PlotPickle will not bypass that control.</p>
-      </div>
-      <div className={styles.setupSteps}>
-        {guildhall.stewards.map((steward, index) => <article key={steward.id} data-complete="false">
-          <span>{index + 1}</span>
-          <div><b>{steward.displayName}</b><strong>{steward.title}</strong><p>{steward.summary}</p><button type="button" disabled={blocked} onClick={() => void copySteward(steward)}>Copy {steward.displayName} setup</button></div>
-        </article>)}
-      </div>
-      <aside className={styles.terminologyNote}>
-        <b>Why this is not automatic</b>
-        <p>Buzz&apos;s external agent-draft command is reserved for an already owner-authorized Buzz agent and requires its NIP-OA owner authorization. Your normal human Buzz identity is not that delegated agent credential. PlotPickle keeps this safety boundary intact.</p>
-      </aside>
+      <div className={styles.guideHeading}><span>Optional separate Buzz identities</span><h2 id="guildhall-stewards-title">Orin and Fen still require your approval in Buzz Desktop.</h2><p>The Guildhall works without separate steward identities. PlotPickle does not bypass owner review.</p></div>
+      <div className={styles.setupSteps}>{guildhall.stewards.map((steward, index) => <article key={steward.id} data-complete="false"><span>{index + 1}</span><div><b>{steward.displayName}</b><strong>{steward.title}</strong><p>{steward.summary}</p><button type="button" disabled={blocked} onClick={() => void copySteward(steward)}>Copy {steward.displayName} setup</button></div></article>)}</div>
     </section> : null}
-
-    <section className={styles.setupGuide} aria-labelledby="buzz-settings-steps-title">
-      <div className={styles.guideHeading}>
-        <span>Match the Buzz screens</span>
-        <h2 id="buzz-settings-steps-title">Use the community and personal identity already shown in Buzz.</h2>
-      </div>
-      <div className={styles.setupSteps}>
-        <article data-complete={cliAvailable ? "true" : "false"}>
-          <span>1</span>
-          <div><b>Buzz Desktop</b><strong>{cliAvailable ? "Detected" : "Not detected"}</strong><p>{cliAvailable ? `${status?.cli.version || "Buzz Desktop"}${status && status.cli.source === "buzz-desktop" ? " · found automatically" : ""}` : "Install the current Buzz Desktop release, open it once, then select Refresh status below."}</p></div>
-        </article>
-        <article data-complete={reachable ? "true" : "false"}>
-          <span>2</span>
-          <div><b>Hosted community address</b><strong>{reachable ? "Reached" : configured ? "Saved, not reached" : "Copy from Communities"}</strong><p>On Buzz&apos;s Communities page, find your community and copy the address beside <strong>Open in Buzz</strong>. It begins with wss:// and ends with .communities.buzz.xyz.</p></div>
-        </article>
-        <article data-complete={humanIdentityReady ? "true" : "false"}>
-          <span>3</span>
-          <div><b>Authorize your human Community identity</b><strong>{humanIdentityReady ? `${humanIdentity?.displayName} verified` : identityMismatch ? "Agent identity rejected" : identityConfigured ? "Saved, not human-verified" : "Private key required"}</strong><p>In Buzz Desktop, open your personal profile, then Settings &gt; Profile &gt; Identity &gt; Private key. Select Reveal, copy the nsec key and paste it below. Do not use Sage&apos;s or another agent&apos;s identity as the human caller.</p></div>
-        </article>
-      </div>
-      <aside className={styles.terminologyNote}>
-        <b>Sage is your PlotPickle guide; Sage is not your Community identity.</b>
-        <p>The friendly local label below cannot change message authorship. BUZZ signatures and the resolved public profile decide who actually authored a Community message.</p>
-      </aside>
-      <aside className={styles.terminologyNote}>
-        <b>The npub shown on the Communities page is not the key PlotPickle needs</b>
-        <p>The npub is your public identity. PlotPickle needs the private nsec only because Buzz&apos;s CLI must sign channel and message actions. PlotPickle encrypts it locally and never puts it in a PPF, export or GitHub.</p>
-      </aside>
-      <aside className={styles.terminologyNote}>
-        <b>Buzz channels become PlotPickle Story Rooms</b>
-        <p>Buzz already uses <strong>channels</strong> for discussion and <strong>huddles</strong> for live voice. PlotPickle presents Great Hall as Hall 1 and five specialist Story Rooms as Halls 2-6. The legacy broad story channel remains compatibility data rather than a duplicate visible hall.</p>
-      </aside>
-    </section>
 
     <section className={styles.runtimeGrid} aria-label="Buzz status details">
       <article><span>Buzz Desktop / CLI</span><strong>{cliAvailable ? "Detected" : "Not detected"}</strong><small>{status?.cli.executable || status?.cli.error || "Open Buzz Desktop once, then refresh."}</small></article>
-      <article><span>Community</span><strong>{reachable ? `${status?.relay.latencyMs} ms` : configured ? "Not verified" : "Not connected"}</strong><small>{status?.connection.relayUrl || "No community URL saved"}</small></article>
-      <article><span>Friendly local label</span><strong>{status?.connection.identityLabel || "Not set"}</strong><small>Convenience label only. It never determines signed BUZZ authorship.</small></article>
-      <article><span>Verified Buzz signer / profile</span><strong>{humanIdentityReady ? humanIdentity?.displayName : identityMismatch ? "Agent identity blocked" : identityVerified ? "Signer unresolved" : "Not verified"}</strong><small>{signerFingerprint || "No verified human public identity available"}</small></article>
+      <article><span>Community</span><strong>{reachable ? `${status?.relay.latencyMs} ms` : configured ? "Not verified" : "Built-in default"}</strong><small>{status?.connection.relayUrl || PLOTPICKLE_BUZZ_COMMUNITY.relayUrl}</small></article>
+      <article><span>Human signer owner</span><strong>{identityConfigured ? "Profile" : "Not connected"}</strong><small>Signer creation/import/disconnect belongs to Profile.</small></article>
+      <article><span>Verified Buzz signer / profile</span><strong>{humanIdentityReady ? humanIdentity?.displayName : identityMismatch ? "Agent identity blocked" : identityVerified ? "Signer unresolved" : "Not verified"}</strong><small>{signerFingerprint || "No verified Human public identity available"}</small></article>
     </section>
 
     <section className={styles.choiceGrid} aria-label="Buzz connection mode">
-      <article className={form.mode === "existing-relay" ? styles.selectedChoice : undefined}>
-        <span>Recommended</span><h2>Block-hosted Buzz community</h2><p>Use the wss:// address shown for your community on Buzz&apos;s Communities page. PlotPickle connects to it but does not create, host or own it.</p>
-        <button type="button" onClick={() => patch({ mode: "existing-relay" })}>Use my hosted community</button>
-      </article>
-      <article className={form.mode === "managed" ? styles.selectedChoice : undefined}>
-        <span>Advanced</span><h2>Managed local Buzz</h2><p>Self-host the pinned Docker Compose bundle on this computer. Choose this only if you intentionally want to operate the Buzz relay yourself.</p>
-        <button type="button" onClick={() => patch({ mode: "managed", relayUrl: status?.managed.relayUrl || "http://127.0.0.1:3000" })}>Use managed local relay</button>
-      </article>
+      <article className={form.mode === "existing-relay" ? styles.selectedChoice : undefined}><span>Recommended</span><h2>Block-hosted Buzz community</h2><p>The official PlotPickle Community relay is built in and shared by every normal Node.</p><button type="button" onClick={() => patch({ mode: "existing-relay", relayUrl: PLOTPICKLE_BUZZ_COMMUNITY.relayUrl })}>Use PlotPickle Community</button></article>
+      <article className={form.mode === "managed" ? styles.selectedChoice : undefined}><span>Advanced</span><h2>Managed local Buzz</h2><p>Self-host the pinned Docker Compose bundle on this computer for local/operator testing. This is an explicit advanced override, not the normal Human Community.</p><button type="button" onClick={() => patch({ mode: "managed", relayUrl: status?.managed.relayUrl || "http://127.0.0.1:3000" })}>Use managed local relay</button></article>
     </section>
 
     <section className={styles.formCard}>
-      <div><span>Secure connection details</span><h2>{form.mode === "managed" ? "Managed local community" : "Your existing Buzz community"}</h2><p>Installing Buzz lets PlotPickle find the CLI, but Buzz deliberately does not give another application its community or identity automatically. You choose both values below.</p></div>
-      <div className={styles.formGrid}>
-        <label><span>Buzz community WebSocket address</span><input value={form.relayUrl} disabled={form.mode === "managed"} onChange={(event) => patch({ relayUrl: event.target.value })} placeholder="wss://plotpickleplayhouse.communities.buzz.xyz" /><small>Copy the complete wss:// address beside your community on Buzz&apos;s Communities page.</small></label>
-        <label><span>Community name (optional)</span><input value={form.community} onChange={(event) => patch({ community: event.target.value })} placeholder="plotpickleplayhouse" /><small>A friendly label in PlotPickle; it does not create or rename the Buzz community.</small></label>
-        <label><span>Local identity label (optional)</span><input value={form.identityLabel} onChange={(event) => patch({ identityLabel: event.target.value })} placeholder="Bryan · PlotPickle" /><small>This is only a local convenience label. It never overrides the verified BUZZ signer/profile or Community authorship.</small></label>
-        <label><span>Buzz private identity key</span><input type="password" autoComplete="off" value={form.privateKey} onChange={(event) => patch({ privateKey: event.target.value })} placeholder={identityConfigured ? "Leave blank to retain the saved encrypted key" : "nsec1…"} /><small>Buzz Desktop: personal profile menu &gt; Settings &gt; Profile &gt; Identity &gt; Private key &gt; Reveal. Do not paste the public npub or an agent&apos;s key.</small></label>
-      </div>
-      <details className={styles.advancedField}>
-        <summary>Advanced: Buzz CLI path</summary>
-        <label><span>Buzz CLI path (optional)</span><input value={form.cliPath} onChange={(event) => patch({ cliPath: event.target.value })} placeholder="Leave blank to use Buzz Desktop automatically" /><small>Buzz Desktop includes the supported CLI sidecar. Leave this blank unless automatic detection fails.</small></label>
-      </details>
+      <div><span>Transport diagnostics</span><h2>{form.mode === "managed" ? "Managed local relay" : PLOTPICKLE_BUZZ_COMMUNITY.name}</h2><p>Settings owns runtime/transport diagnostics only. Human BUZZ identity setup is intentionally absent here.</p></div>
+      {form.mode === "managed" ? <div className={styles.formGrid}><label><span>Managed relay address</span><input value={form.relayUrl} onChange={(event) => patch({ relayUrl: event.target.value })} /><small>Advanced local/operator override only.</small></label></div> : null}
+      <details className={styles.advancedField}><summary>Advanced: Buzz CLI path</summary><label><span>Buzz CLI path (optional)</span><input value={form.cliPath} onChange={(event) => patch({ cliPath: event.target.value })} placeholder="Leave blank to use Buzz Desktop automatically" /><small>Buzz Desktop includes the supported CLI sidecar. Leave this blank unless automatic detection fails.</small></label></details>
     </section>
 
     <section className={styles.actions}>
-      <button type="button" disabled={blocked || !form.relayUrl.trim() || (!identityConfigured && !form.privateKey.trim())} onClick={() => void saveAndTest()}>{busy === "save" ? "Saving and verifying…" : "Save & verify all three pieces"}</button>
-      <button type="button" disabled={!configured || blocked} onClick={() => void run("test", () => request("/test", { method: "POST" }))}>{busy === "test" ? "Testing…" : "Test Buzz connection"}</button>
+      <button type="button" disabled={blocked} onClick={() => void saveTransport()}>{busy === "save" ? "Saving & testing…" : "Save & test transport"}</button>
+      <button type="button" disabled={!configured || !identityConfigured || blocked} onClick={() => void run("test", () => request("/test", { method: "POST" }))}>{busy === "test" ? "Testing…" : "Test BUZZ with Profile identity"}</button>
       <button type="button" disabled={blocked} onClick={() => void run("refresh", async () => { await refresh(true); return { message: "Buzz status refreshed." }; })}>Refresh status</button>
-      {storyRoomReady ? <a href="/buzz">Open Story Room</a> : <button type="button" disabled title="Connect a verified human Buzz identity before opening the live Story Room.">Story Room not ready</button>}
+      {storyRoomReady ? <a href="/buzz">Open Story Room</a> : <button type="button" disabled title="Connect a verified Human BUZZ identity from Profile before opening the live Story Room.">Story Room not ready</button>}
       {openInBuzzUrl ? <a href={openInBuzzUrl}>Open this community in Buzz Desktop</a> : null}
-      <button className={styles.removeAction} type="button" disabled={!configured || blocked} onClick={() => void run("disconnect", () => request("/connection", { method: "DELETE" }))}>Remove connection and identity</button>
     </section>
 
-    {configured && reachable && (!cliAvailable || !humanIdentityReady) ? <section className={styles.boundary}><span>One step remains</span><h2>{identityMismatch ? "The connected signer is an agent, not the Community writer." : "The community address works, but the human Community identity is not ready yet."}</h2><p>{identityMismatch ? "Connect your personal Buzz identity. Sage and the other PlotPickle agents keep their own identities and routes. " : !cliAvailable ? "Open Buzz Desktop or select its supported CLI. " : !identityConfigured ? "Reveal and save the nsec key from your personal Buzz profile. " : !identityVerified ? "Select Test Buzz connection to verify this identity. " : "The signing key was verified but its human profile could not be resolved. "}The public npub cannot sign these actions, and a friendly label cannot override signer provenance.</p></section> : null}
+    {configured && reachable && !humanIdentityReady ? <section className={styles.boundary}><span>One step remains</span><h2>Connect the Human BUZZ identity from Profile.</h2><p>{humanIdentity?.message || "The relay is available, but Settings does not own Human signing credentials."}</p></section> : null}
 
     {form.mode === "managed" ? <section className={styles.lifecycleCard}>
       <div><span>Managed runtime lifecycle</span><h2>{managedCopy.title}</h2><p>{managedCopy.detail}</p><small>{status?.managed.message || status?.managed.bundle.validationGate || "Managed Buzz remains optional."}</small></div>
@@ -400,7 +326,7 @@ export default function BuzzSettingsPanel() {
       </div>
     </section> : null}
 
-    <section className={styles.boundary}><span>Authority boundary</span><h2>Discussion does not become canon by itself.</h2><p>Buzz messages can be linked to story entities and converted into local proposals. Only an explicit human approval applies a selected proposal to the active PPF project.</p><ul><li>No Buzz service starts when PlotPickle is installed.</li><li>PlotPickle never creates or pairs a Buzz identity; it stores only the copy you explicitly authorize.</li><li>Removing Buzz preserves PlotPickle projects and their approved canon.</li></ul></section>
+    <section className={styles.boundary}><span>Authority boundary</span><h2>Discussion does not become canon by itself.</h2><p>Buzz messages can be linked to story entities and converted into local proposals. Only an explicit Human approval applies a selected proposal to the active PPF project.</p><ul><li>No Buzz service starts merely because PlotPickle is installed.</li><li>Profile owns Human signer creation/import/disconnect.</li><li>Settings owns transport, runtime and health diagnostics.</li><li>Removing or changing BUZZ never changes PlotPickle projects or approved canon.</li></ul></section>
     {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
   </div>;
 }

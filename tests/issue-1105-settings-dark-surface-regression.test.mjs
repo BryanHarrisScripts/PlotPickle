@@ -15,16 +15,17 @@ const SETTINGS_SECTIONS = [
   "settings-openai",
   "settings-minimax",
   "settings-comfyui",
+  "settings-buzz",
   "settings-advanced",
 ];
 
 test("#1105 inventories every active Settings route and nested provider/runtime panel under one dark workspace root", async () => {
   const workspace = await read("app/sage-settings-workspace.tsx");
 
-  assert.match(workspace, /data-plotpickle-settings="v2"/);
-  assert.match(workspace, /data-settings-main/);
+  assert.ok(workspace.includes('data-plotpickle-settings="v2"'));
+  assert.ok(workspace.includes("data-settings-main"));
   for (const section of SETTINGS_SECTIONS) {
-    assert.match(workspace, new RegExp(`id=["']${section}["']`), `${section} must remain in the Settings route inventory`);
+    assert.ok(workspace.includes(`id="${section}"`), `${section} must remain in the Settings route inventory`);
   }
 
   for (const component of [
@@ -39,7 +40,7 @@ test("#1105 inventories every active Settings route and nested provider/runtime 
     "DeepSeekHarnessPanel",
     "LocalRuntimePanel",
   ]) {
-    assert.match(workspace, new RegExp(`<${component}\\b`), `${component} must remain covered by the Settings surface root`);
+    assert.ok(workspace.includes(`<${component}`), `${component} must remain covered by the Settings surface root`);
   }
 });
 
@@ -66,13 +67,29 @@ test("#1105 loads one shared Settings surface guard after workspace continuity a
     "--pp-teal",
     "--pp-orange",
   ]) {
-    assert.match(guard, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    assert.ok(guard.includes(token), `${token} must remain part of the Settings surface contract`);
   }
 
-  assert.match(guard, /\[data-plotpickle-settings="v2"\]/);
-  assert.match(guard, /\[data-settings-main\]/);
-  assert.match(guard, /\[data-settings-section\]/);
+  assert.ok(guard.includes('[data-plotpickle-settings="v2"]'));
+  assert.ok(guard.includes("[data-settings-main]"));
+  assert.ok(guard.includes("[data-settings-section]"));
   assert.doesNotMatch(guard, /background(?:-color)?\s*:\s*(?:white|#fff(?:fff)?\b|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))/i);
+});
+
+test("#1215 resets embedded provider gradients so Ollama, OpenAI, MiniMax and BUZZ cannot reopen light islands", async () => {
+  const [guard, workspace] = await Promise.all([
+    read("app/settings-dark-surface-guard.css"),
+    read("app/sage-settings-workspace.tsx"),
+  ]);
+
+  assert.ok(guard.includes(":where(div, header, footer, figure)"));
+  assert.ok(guard.includes("background-image: none !important"));
+  for (const section of ["ollama", "openai", "minimax", "buzz"]) {
+    assert.ok(workspace.includes(`case "${section}"`), `${section} must remain routed through the shared Settings dark boundary`);
+  }
+  for (const component of ["WritingAssistantConsole", "AiProviderSetupPanel", "BuzzSettingsPanel", "BuzzLiveHealthCard"]) {
+    assert.ok(workspace.includes(`<${component}`), `${component} must remain inside the guarded Settings workspace`);
+  }
 });
 
 test("#1105 covers embedded cards, forms, controls, loading, empty, error and overlay-like surfaces without changing their runtime owners", async () => {

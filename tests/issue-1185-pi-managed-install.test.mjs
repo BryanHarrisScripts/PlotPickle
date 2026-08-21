@@ -149,3 +149,23 @@ test("#1185 repair-stack bootstrap uses managed Pi and never recommends killing 
   assert.doesNotMatch(combined, /taskkill[^\n]*node\.exe/i);
   assert.doesNotMatch(combined, /Run as Administrator/i);
 });
+
+test("#1185 Full Verification stage 5, stage 6, and nested Pi quality review stay on the managed executable", async () => {
+  const graph = await read("scripts/full-verification-graph.mjs");
+  const processBoundary = await read("scripts/full-verification-process.mjs");
+  const ensure = await read("scripts/ensure-pi-repair-stack.mjs");
+  const preflight = await read("scripts/verify-pi-repair-worker.mjs");
+  const review = await read("scripts/run-pi-code-quality-review.mjs");
+
+  assert.match(graph, /id: "ensure-pi-model"/u);
+  assert.match(graph, /id: "pi-preflight"/u);
+  assert.match(processBoundary, /scripts\/ensure-pi-repair-stack\.mjs/u);
+  assert.match(processBoundary, /scripts\/verify-pi-repair-worker\.mjs/u);
+  for (const source of [ensure, preflight, review]) {
+    assert.match(source, /ensureManagedPiInstalled/u);
+    assert.doesNotMatch(source, /\bensurePiInstalled\b/u);
+  }
+  assert.match(preflight, /PLOTPICKLE_PI_COMMAND = pi\.command/u);
+  assert.match(preflight, /env: \{ PLOTPICKLE_PI_COMMAND: pi\.command \}/u);
+  assert.match(review, /command: pi\.command/u);
+});

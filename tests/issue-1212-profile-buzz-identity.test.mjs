@@ -29,10 +29,11 @@ test("#1212 exposes one editable Human presentation and exactly three unconfigur
   assert.match(layout, /<ProfileAccessBoundary>\{children\}<\/ProfileAccessBoundary>[\s\S]*<ProfileIdentityOverlay \/>/u);
 });
 
-test("#1212 saves the Human Profile locally before optional BUZZ publication and never rolls it back on BUZZ failure", async () => {
-  const [panel, route] = await Promise.all([
+test("#1212 saves the Human Profile locally before optional BUZZ publication and keeps presentation on the canonical local Auth gateway", async () => {
+  const [panel, route, localGateway] = await Promise.all([
     read("app/profile-access/profile-identity-panel.tsx"),
     read("app/api/auth/profile-presentation/route.ts"),
+    read("build/local-profile-auth-gateway.ts"),
   ]);
 
   const saveStart = panel.indexOf("async function savePresentation");
@@ -47,6 +48,11 @@ test("#1212 saves the Human Profile locally before optional BUZZ publication and
   assert.match(route, /writePrivateJson\(authContext, \{ domain: "settings", objectId: PRESENTATION_OBJECT_ID/u);
   assert.doesNotMatch(route, /local-buzz|BUZZ_PRIVATE_KEY|buzz-connection/u);
   assert.match(route, /localSaved: true/u);
+
+  assert.match(localGateway, /PROFILE_PRESENTATION_API = "\/api\/auth\/profile-presentation"/u);
+  assert.match(localGateway, /profilePresentationGet/u);
+  assert.match(localGateway, /profilePresentationPost/u);
+  assert.match(localGateway, /handlers: Object\.freeze\(\{ GET: profilePresentationGet, POST: profilePresentationPost \}\)/u);
 });
 
 test("#1212 BUZZ identity gateway creates, imports, disconnects and publishes only through the active Human credential seam", async () => {

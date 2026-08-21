@@ -22,6 +22,21 @@ test("#1222 Profile uses the built-in Community and does not ask the Human to ty
   assert.doesNotMatch(profile, /setRelayUrl/);
 });
 
+test("#1222 keeps Human signer setup in Profile and Settings limited to transport/runtime diagnostics", async () => {
+  const [settings, profile] = await Promise.all([
+    source("app/buzz-settings-panel.tsx"),
+    source("app/profile-access/profile-identity-panel.tsx"),
+  ]);
+  assert.match(settings, /PLOTPICKLE_BUZZ_COMMUNITY\.relayUrl/);
+  assert.match(settings, /Profile owns Human signer creation\/import\/disconnect/);
+  assert.match(settings, /Save & test transport/);
+  assert.doesNotMatch(settings, /Buzz private identity key/);
+  assert.doesNotMatch(settings, /Community name \(optional\)/);
+  assert.doesNotMatch(settings, /Remove connection and identity/);
+  assert.match(profile, /Connect Existing Identity/);
+  assert.match(profile, /Private identity key/);
+});
+
 test("#1222 imported signer is verified before it is persisted", async () => {
   const gateway = await source("build/buzz-profile-identity-gateway.ts");
   const importStart = gateway.indexOf('if (action === "import")');

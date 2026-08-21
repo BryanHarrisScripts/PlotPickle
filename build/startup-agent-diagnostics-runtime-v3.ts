@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import type { Plugin } from "vite";
-import { stripKnownPromptScaffolding } from "../lib/text-normalization";
+import { stripKnownPromptScaffolding } from "../core/security/text-normalization";
 
 const exec = promisify(execFile);
 type JsonRecord = Record<string, unknown>;
@@ -59,10 +59,8 @@ const ANSI = {
 } as const;
 const INTERNAL_SCAFFOLD_LINE = /^(?:\[LOCAL CURRICULUM BLOCK\b.*\]|Status:|Authority:|Lesson:|Section:|Bundled curriculum material:|Material type:|Curriculum scope:|Historical claim:|Current correction \().*$/i;
 const PROMPT_SCAFFOLD_LABELS = [
-  "student_question",
-  "conversation_memory",
-  "project_memory",
-  "curriculum_context",
+  "student_question", "conversation_memory",
+  "project_memory", "curriculum_context",
 ] as const;
 const SAGE_DIAGNOSTIC_REPAIR_INSTRUCTION = [
   "STARTUP HEALTH RETRY.",
@@ -119,7 +117,7 @@ function cleanDiagnosticSageAnswer(value: string) {
 }
 
 function comparableText(value: string) {
-  return cleanDiagnosticSageAnswer(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  let output = ""; for (const character of cleanDiagnosticSageAnswer(value).toLowerCase()) { const code = character.charCodeAt(0); output += ((code >= 97 && code <= 122) || (code >= 48 && code <= 57)) ? character : " "; } return output.trim().replace(/\s+/g, " ");
 }
 
 function contentWords(value: string) {

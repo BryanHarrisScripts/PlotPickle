@@ -45,19 +45,8 @@ export type WritersRoomSession = {
   updatedAt: string;
 };
 
-function secureIdSuffix() {
-  const cryptoApi = globalThis.crypto;
-  if (cryptoApi?.randomUUID) return cryptoApi.randomUUID();
-  if (cryptoApi?.getRandomValues) {
-    const bytes = new Uint8Array(16);
-    cryptoApi.getRandomValues(bytes);
-    return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
-  }
-  throw new Error("Secure randomness is unavailable for Writers’ Room IDs.");
-}
-
 function makeId(prefix: string) {
-  return `${prefix}-${secureIdSuffix()}`;
+  return globalThis.crypto?.randomUUID ? `${prefix}-${globalThis.crypto.randomUUID()}` : (() => { throw new Error("Secure randomness is unavailable for Writers’ Room IDs."); })();
 }
 
 function encode(session: WritersRoomSession) {

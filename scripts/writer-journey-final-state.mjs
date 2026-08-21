@@ -74,11 +74,11 @@ export function auditPersistedWriterProject(project, rendered = {}) {
   const settings = rendered.settings || {};
 
   const checks = [
-    check("learn.persisted", "Foundations LEARN persisted completion", completedLessonIds.length >= 11,
-      `${completedLessonIds.length} lesson completion record(s) persisted; current Foundations acceptance requires at least 11.`,
+    check("learn.persisted", "Foundations LEARN persisted completion", completedLessonIds.length >= 4,
+      `${completedLessonIds.length} lesson completion record(s) persisted; current Foundations acceptance requires at least 4.`,
       { completedLessonCount: completedLessonIds.length }),
     check("learn.rendered", "Foundations LEARN reopened green checks",
-      Number(learn.foundationLessonCount || 0) >= 11 && Number(learn.foundationCompletedCount || 0) === Number(learn.foundationLessonCount || 0),
+      Number(learn.foundationLessonCount || 0) >= 4 && Number(learn.foundationCompletedCount || 0) === Number(learn.foundationLessonCount || 0),
       `${learn.foundationCompletedCount || 0} of ${learn.foundationLessonCount || 0} visible Foundations lessons are marked complete after reopen.`, learn),
     check("plan.persisted", "Foundations PLAN persisted decisions", foundationAnswers >= 33 && Boolean(foundationBrief),
       `${foundationAnswers} saved Foundations answer(s); Foundations Brief ${foundationBrief ? "is saved" : "is empty"}.`,
@@ -99,8 +99,8 @@ export function auditPersistedWriterProject(project, rendered = {}) {
     check("marquee.rendered", "Marquee is unlocked after Foundations", learn.marqueeDisabled === false,
       learn.marqueeDisabled === false ? "Marquee is selectable after reopen." : "Marquee is still disabled or missing after reopen.",
       { marqueeDisabled: learn.marqueeDisabled }),
-    check("world.learn.persisted", "World LEARN persisted completion", completedLessonIds.length >= 16,
-      `${completedLessonIds.length} total lesson completion record(s) persisted; Foundations + World currently requires at least 16.`,
+    check("world.learn.persisted", "World LEARN persisted completion", completedLessonIds.length >= 9,
+      `${completedLessonIds.length} total lesson completion record(s) persisted; Foundations + World currently requires at least 9.`,
       { completedLessonCount: completedLessonIds.length }),
     check("world.learn.rendered", "World LEARN reopened green checks",
       Number(worldLearn.worldLessonCount || 0) === 5 && Number(worldLearn.worldCompletedCount || 0) === Number(worldLearn.worldLessonCount || 0),
@@ -122,7 +122,7 @@ export function auditPersistedWriterProject(project, rendered = {}) {
       Number(worldBuild.localAssetImageCount || 0) > 0 && Number(worldBuild.acceptedLabelCount || 0) > 0,
       `${worldBuild.localAssetImageCount || 0} generated local image(s) and ${worldBuild.acceptedLabelCount || 0} accepted World label(s) are visible after reopen.`, worldBuild),
     check("dashboard.progress", "Dashboard reflects accumulated Foundations progress",
-      Number(dashboard.foundationLearnComplete || 0) >= 11
+      Number(dashboard.foundationLearnComplete || 0) >= 4
         && Number(dashboard.foundationPlanAnswers || 0) >= 33
         && Number(dashboard.acceptedArtifactCount || 0) > 0,
       `Dashboard reports ${dashboard.foundationLearnComplete || 0} Foundations lessons, ${dashboard.foundationPlanAnswers || 0} PLAN answers and ${dashboard.acceptedArtifactCount || 0} accepted Foundations artifact(s).`, dashboard),

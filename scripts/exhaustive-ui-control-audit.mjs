@@ -539,6 +539,11 @@ export async function runExhaustiveUiControlAudit({ client, toolMap, baseUrl, re
       }
 
       interactions += 1;
+      status(
+        `Exhaustive UAT · ${screen.label}`,
+        "WORKING",
+        `${interactions}/${interactionLimit} · ${control.role} · ${String(control.label).slice(0, 120)}`,
+      );
       try {
         const result = await exerciseControl({ client, toolMap, baseUrl, screen, control, config });
         records.push({ key: item.key, label: control.label, role: control.role, status: result.status, detail: result.detail });

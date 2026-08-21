@@ -84,8 +84,12 @@ export function stripHtmlComments(value: string) {
 }
 
 /** Remove presentation-only markup with a scanner rather than a partial regex sanitizer. */
-export function stripMarkupTags(value: string, options: { preserveBreaks?: boolean } = {}) {
+export function stripMarkupTags(
+  value: string,
+  options: { preserveBreaks?: boolean; tagSeparator?: string } = {},
+) {
   const input = stripHtmlComments(value);
+  const separator = options.tagSeparator ?? " ";
   let output = "";
   let index = 0;
   while (index < input.length) {
@@ -101,6 +105,7 @@ export function stripMarkupTags(value: string, options: { preserveBreaks?: boole
       continue;
     }
     if (options.preserveBreaks && tagName(input.slice(index, end + 1)) === "br") output += "\n";
+    else output += separator;
     index = end + 1;
   }
   return output;
@@ -121,7 +126,7 @@ export function decodeMarkupDelimitersOnce(value: string) {
 
 export function stripKnownPromptScaffolding(value: string, labels: readonly string[]) {
   const blocked = new Set(labels.map((label) => label.trim().toLowerCase()));
-  const withoutTags = stripMarkupTags(decodeMarkupDelimitersOnce(value));
+  const withoutTags = stripMarkupTags(decodeMarkupDelimitersOnce(value), { tagSeparator: "" });
   return withoutTags
     .split("\n")
     .filter((line) => {

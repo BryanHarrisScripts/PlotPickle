@@ -52,27 +52,29 @@ test("issue #214 keeps PPF authority human-controlled and auditable", async () =
   assert.match(workspace, /Approval writes one exact story field/);
 });
 
-test("issue #214 connects Settings to encrypted Phase 1A controls", async () => {
-  const [settings, collab, settingsPanel, compatibilityRoute, taxonomy] = await Promise.all([
+test("issue #214 keeps Settings diagnostic-only while Profile owns the encrypted Human signer", async () => {
+  const [settings, profile, defaults, collab, settingsPanel, compatibilityRoute, taxonomy] = await Promise.all([
     source("app/buzz-settings-panel.tsx"),
+    source("app/profile-access/profile-identity-panel.tsx"),
+    source("lib/buzz-default-community.ts"),
     source("app/collab-workspace.tsx"),
     source("app/settings-panel.tsx"),
     source("app/settings/buzz/page.tsx"),
     source("config/settings-system-taxonomy.json"),
   ]);
-  assert.match(settings, /Save & verify all three pieces/);
-  assert.match(settings, /Test Buzz connection/);
-  assert.match(settings, /Remove connection and identity/);
+  assert.match(settings, /Save & test transport/);
+  assert.match(settings, /Test BUZZ with Profile identity/);
   assert.match(settings, /Block-hosted Buzz community/);
-  assert.match(settings, /Buzz private identity key/);
-  assert.match(settings, /wss:\/\/plotpickleplayhouse\.communities\.buzz\.xyz/);
-  assert.match(settings, /Settings &gt; Profile &gt; Identity &gt; Private key/);
-  assert.match(settings, /Do not paste the public npub/);
+  assert.match(settings, /Profile owns Human signer creation\/import\/disconnect/);
+  assert.doesNotMatch(settings, /Buzz private identity key/);
+  assert.doesNotMatch(settings, /Community name \(optional\)/);
+  assert.doesNotMatch(settings, /Remove connection and identity/);
+  assert.match(profile, /Connect Existing Identity/);
+  assert.match(profile, /Private identity key/);
+  assert.match(profile, /PLOTPICKLE_BUZZ_COMMUNITY\.relayUrl/);
+  assert.match(defaults, /wss:\/\/plotpickleplayhouse\.communities\.buzz\.xyz/);
   assert.match(settings, /buzz:\/\/add-community\?\$\{query\.toString\(\)\}/);
-  assert.match(settings, /Buzz calls shared discussion spaces|Buzz (?:already )?uses <strong>channels/);
-  assert.match(settings, /huddles/);
   assert.match(settings, /method: "PUT"/);
-  assert.match(settings, /method: "DELETE"/);
   assert.match(collab, /onOpenSettings\("buzz"\)/);
   assert.doesNotMatch(collab, /onOpenSettings=\{\(\) => onOpenSettings\("github"\)\}/);
   assert.match(settingsPanel, /activeItem\.target === "buzz"/);
@@ -81,18 +83,20 @@ test("issue #214 connects Settings to encrypted Phase 1A controls", async () => 
   assert.match(taxonomy, /"target": "buzz"/);
 });
 
-test("issue #214 verifies the hosted community, CLI and paired identity together", async () => {
-  const [settings, gateway] = await Promise.all([
+test("issue #214 verifies the hosted community, CLI and Profile-owned identity together", async () => {
+  const [settings, profileGateway, gateway] = await Promise.all([
     source("app/buzz-settings-panel.tsx"),
+    source("build/buzz-profile-identity-gateway.ts"),
     source("build/buzz-gateway.ts"),
   ]);
   assert.match(gateway, /await runBuzz\(connection, \["users", "get"\]\)/);
-  assert.match(gateway, /verificationVersion: retainVerification \? 2 : undefined/);
   assert.match(gateway, /identityVerified: connection\.verificationVersion === 2/);
-  assert.match(gateway, /Buzz rejected this identity or it is not a member of the community/);
-  assert.match(settings, /reachable && identityVerified \? "connected" : "degraded"/);
-  assert.match(settings, /Save & verify all three pieces/);
-  assert.match(settings, /The public npub cannot sign these actions/);
+  assert.match(profileGateway, /await readConnectedProfile\(connection\)/);
+  assert.match(profileGateway, /verificationVersion = 2/);
+  assert.match(profileGateway, /await writeCredentialJson\(CONNECTION_FILE, connection\)/);
+  assert.match(settings, /reachable && identityVerified && humanIdentityReady \? "connected" : "degraded"/);
+  assert.match(settings, /Save & test transport/);
+  assert.match(settings, /Profile-owned Community writer identity/);
 });
 
 test("issue #214 exposes the managed Phase 1B lifecycle only behind verified prerequisites", async () => {

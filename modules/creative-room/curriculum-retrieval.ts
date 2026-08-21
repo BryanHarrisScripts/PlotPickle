@@ -3,6 +3,7 @@ import {
   FOUNDATION_SOURCE_CORRECTIONS,
   type FoundationSourceCorrection,
 } from "../../adapters/curriculum/foundation-content-coverage";
+import { decodeHtmlEntitiesOnce, stripMarkupTags } from "../../lib/text-normalization";
 
 export type CurriculumRagChunkKind =
   | "overview"
@@ -105,16 +106,10 @@ function withoutRemoteAddresses(value: string) {
  * PlotPickle.
  */
 export function bundledSourcePlainText(source: CurriculumSource) {
-  return withoutRemoteAddresses(source.content)
-    .replace(/<!--[\s\S]*?-->/g, " ")
+  const markdownText = withoutRemoteAddresses(source.content)
     .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, "\"")
-    .replace(/&#39;/g, "'")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
+  return decodeHtmlEntitiesOnce(stripMarkupTags(markdownText))
     .replace(/[#*_>`|]/g, " ")
     .replace(/\s+/g, " ")
     .trim();

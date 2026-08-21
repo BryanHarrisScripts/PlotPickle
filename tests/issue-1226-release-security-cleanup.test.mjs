@@ -31,8 +31,11 @@ test("#1226 removes residual weak/dynamic security sinks", async () => {
     assert.match(source, /output\.split\(\/\\r\?\\n\/\)/, "installer output should be parsed as bounded lines");
   }
 
-  assert.match(spawnCommand, /shell:\s*false/, "the shared command wrapper must keep shell execution disabled");
-  assert.doesNotMatch(spawnCommand, /shell:\s*true/, "the shared command wrapper must not re-enable shell execution");
+  assert.match(
+    spawnCommand,
+    /const spawnOptions = \{ \.\.\.options, shell: false \};/,
+    "the shared command wrapper must override caller options and keep shell execution disabled",
+  );
 });
 
 test("#1226 lockfile keeps reviewed patched dependency floors", async () => {

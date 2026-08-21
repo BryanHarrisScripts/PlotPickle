@@ -42,7 +42,7 @@ test("#1236 attended Casebook declares Human-only checkpoints for credentials an
   assert.equal(buzz.secretEntry, true);
   assert.equal(buzz.evidencePolicy, "pause-sensitive-capture");
   assert.match(buzz.instruction, /only into PlotPickle/i);
-  assert.doesNotMatch(buzz.instruction, /paste.*terminal/i);
+  assert.match(buzz.instruction, /Do not paste it into this terminal/i);
 
   const profile = attendedCheckpoint("profile-isolation", "unlock-a");
   assert.equal(profile.secretEntry, true);

@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import type { CurriculumSource } from "../../../core/contracts/curriculum";
+import { decodeHtmlEntitiesOnce, stripHtmlComments, stripMarkupTags } from "../../../lib/text-normalization";
 import type { LocalCurriculumSourceTarget } from "../model/local-curriculum-links";
 
 type CurriculumMaterialProps = {
@@ -22,24 +23,13 @@ type SourceBlock =
   | { readonly kind: "rule" }
   | { readonly kind: "table"; readonly headings: readonly string[]; readonly rows: readonly (readonly string[])[] };
 
-function decodeEntities(value: string) {
-  return value
-    .replaceAll("&amp;", "&")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&quot;", "\"")
-    .replaceAll("&#39;", "'")
-    .replaceAll("&nbsp;", " ");
-}
-
 /**
  * The archived lessons contain a mixture of Markdown and presentation-only HTML.
  * Convert the HTML wrappers to readable Markdown without ever changing the raw
  * source kept in the exact-text disclosure below.
  */
 function readableMarkdown(content: string) {
-  return decodeEntities(content)
-    .replace(/<!--[\s\S]*?-->/g, "")
+  const normalized = stripHtmlComments(decodeHtmlEntitiesOnce(content))
     .replace(/<ol\b([^>]*)>([\s\S]*?)<\/ol>/gi, (_match, attributes: string, body: string) => {
       let number = Number(attributes.match(/\bstart=["']?(\d+)/i)?.[1] ?? "1");
       return body.replace(/<li\b[^>]*>([\s\S]*?)<\/li>/gi, (_item, text: string) => `${number++}. ${text.trim()}\n`);
@@ -54,8 +44,8 @@ function readableMarkdown(content: string) {
     .replace(/<\/?(?:div|table|thead|tbody|tfoot|tr|td|th|ol|ul|p)\b[^>]*>/gi, "\n")
     .replace(/<strong\b[^>]*>([\s\S]*?)<\/strong>/gi, "**$1**")
     .replace(/<em\b[^>]*>([\s\S]*?)<\/em>/gi, "*$1*")
-    .replace(/<code\b[^>]*>([\s\S]*?)<\/code>/gi, "`$1`")
-    .replace(/<[^>]+>/g, "")
+    .replace(/<code\b[^>]*>([\s\S]*?)<\/code>/gi, "`$1`");
+  return stripMarkupTags(normalized)
     .replace(/[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();

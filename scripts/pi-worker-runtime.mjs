@@ -43,8 +43,7 @@ function windowsCliCommand(command, commandArgs) {
     }
     return `"${text}"`;
   });
-  const batchWrapper = /\.(?:cmd|bat)$/iu.test(String(command));
-  return `${batchWrapper ? "call " : ""}${values.join(" ")}`;
+  return `"${values.join(" ")}"`;
 }
 
 export async function runPortableCommand(command, commandArgs = [], options = {}) {

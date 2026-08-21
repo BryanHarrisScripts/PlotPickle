@@ -135,7 +135,7 @@ async function main() {
   await validateArtifact();
 }
 
-main().catch((error) => {
-  console.error(error.stack ?? error.message);
+main().catch(() => {
+  console.error("Verified build failed. Review the preceding build output for the failing step.");
   process.exitCode = 1;
 });

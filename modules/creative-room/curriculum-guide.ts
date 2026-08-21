@@ -1,4 +1,5 @@
 import type { CurriculumGuide, CurriculumGuideRequest } from "../../core/contracts/curriculum-guide";
+import { stripKnownPromptScaffolding } from "../../core/security/text-normalization";
 import {
   buildCurriculumRagInventory,
   retrieveCurriculumContext,
@@ -21,6 +22,13 @@ const EMPTY_RETRIEVAL: CurriculumRetrieval = {
   sourceIds: [],
   sourceChunkIds: [],
 };
+
+const PROMPT_SCAFFOLD_LABELS = [
+  "student_question",
+  "conversation_memory",
+  "project_memory",
+  "curriculum_context",
+] as const;
 
 function xmlText(value: string) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -86,12 +94,8 @@ async function semanticCurriculumRetrieval(
   }
 }
 
-function normalizedQuestion(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-}
-
 function guideConversationMode(question: string): GuideConversationMode {
-  const normalized = normalizedQuestion(question);
+  const normalized = comparableText(question);
   if (/\b(?:who are you|what are you|tell me about yourself|your background|are you human|do you have a brain)\b/.test(normalized)) {
     return "identity";
   }
@@ -105,7 +109,7 @@ function guideConversationMode(question: string): GuideConversationMode {
 }
 
 function broadCraftQuestion(question: string) {
-  const normalized = normalizedQuestion(question);
+  const normalized = comparableText(question);
   return /^(?:what|why|how|define|explain|tell me|what do you know)\b/.test(normalized)
     && /\b(?:story|storytelling|screenplay|screenwriting|plot|character|scene|structure|dialogue|pacing|tone|theme|motif|stakes|conflict|logline|visual)\b/.test(normalized);
 }
@@ -189,12 +193,7 @@ export function buildCurriculumGuideModelRequest(
 const INTERNAL_SCAFFOLD_LINE = /^(?:\[LOCAL CURRICULUM BLOCK\b.*\]|Status:|Authority:|Lesson:|Section:|Bundled curriculum material:|Material type:|Curriculum scope:|Historical claim:|Current correction \().*$/i;
 
 export function stripInternalScaffolding(value: string) {
-  return value
-    .replace(/&lt;\s*\/?\s*[a-z][a-z0-9_-]*(?:\s+[^&\n]{0,120})?&gt;/gi, "")
-    .replace(/\\u003c\s*\/?\s*[a-z][a-z0-9_-]*(?:[^\\\n]{0,120})?\\u003e/gi, "")
-    .replace(/<\s*\/?\s*[a-z][a-z0-9_-]*(?:\s+[^>\n]{0,120})?>/gi, "")
-    .replace(/^\s*(?:student_question|conversation_memory|project_memory|curriculum_context)\s*:?\s*$/gim, "")
-    .replace(/\r/g, "");
+  return stripKnownPromptScaffolding(value, PROMPT_SCAFFOLD_LABELS);
 }
 
 function cleanGuideAnswer(value: string) {
@@ -215,10 +214,21 @@ function cleanGuideAnswer(value: string) {
 }
 
 function comparableText(value: string) {
-  return stripInternalScaffolding(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
+  const input = stripInternalScaffolding(value).toLowerCase();
+  let output = "";
+  let pendingSpace = false;
+  for (let index = 0; index < input.length; index += 1) {
+    const code = input.charCodeAt(index);
+    const alphanumeric = (code >= 97 && code <= 122) || (code >= 48 && code <= 57);
+    if (alphanumeric) {
+      if (pendingSpace && output) output += " ";
+      output += input[index];
+      pendingSpace = false;
+    } else if (output) {
+      pendingSpace = true;
+    }
+  }
+  return output;
 }
 
 function contentWords(value: string) {

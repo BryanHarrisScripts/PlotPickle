@@ -1,4 +1,5 @@
 import type { ScreenplayDocument, ScreenplayFormat } from "./project";
+import { finalDraftPlainText } from "../core/security/screenplay-xml-text";
 
 export type ScreenplayElementType =
   | "section"
@@ -40,19 +41,6 @@ export function screenplayFormatForFile(fileName: string): ScreenplayFormat {
   return "plain-text";
 }
 
-function decodeXml(value: string) {
-  return value
-    .replace(/<br\s*\/?\s*>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;|&#39;/g, "'")
-    .replace(/&amp;/g, "&")
-    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
-    .trim();
-}
-
 function finalDraftType(value: string): ScreenplayElementType {
   const normalized = value.toLowerCase().replace(/\s+/g, "-");
   if (normalized === "scene-heading") return "scene-heading";
@@ -74,8 +62,8 @@ function parseFinalDraft(source: string): ParsedLine[] {
     sourceLine += 1;
     const typeMatch = match[1].match(/\bType=(?:"([^"]+)"|'([^']+)')/i);
     const type = finalDraftType(typeMatch?.[1] ?? typeMatch?.[2] ?? "Action");
-    const textParts = [...match[2].matchAll(/<Text\b[^>]*>([\s\S]*?)<\/Text>/gi)].map((item) => decodeXml(item[1]));
-    const text = (textParts.length ? textParts.join("") : decodeXml(match[2])).trim();
+    const textParts = [...match[2].matchAll(/<Text\b[^>]*>([\s\S]*?)<\/Text>/gi)].map((item) => finalDraftPlainText(item[1]));
+    const text = (textParts.length ? textParts.join("") : finalDraftPlainText(match[2])).trim();
     if (!text) continue;
     if (type === "scene-heading") scene += 1;
     parsed.push({ type, text, sourceLine, scene });
@@ -84,11 +72,13 @@ function parseFinalDraft(source: string): ParsedLine[] {
 }
 
 function isSceneHeading(value: string) {
-  return /^(?:\.?)(?:INT\.?|EXT\.?|INT\.\/EXT\.?|EXT\.\/INT\.?|I\/E\.?)(?:\s|$)/i.test(value);
+  const candidate = value.trim();
+  return /^(?:\.?)(?:INT\.?|EXT\.?|INT\.\/EXT\.?|EXT\.\/INT\.?|I\/E\.?)(?:\s|$)/i.test(candidate);
 }
 
 function isTransition(value: string) {
-  return /^(?:FADE IN:|FADE OUT\.?|CUT TO:|DISSOLVE TO:|SMASH CUT TO:|MATCH CUT TO:|WIPE TO:)$|\bTO:$/i.test(value);
+  const candidate = value.trim();
+  return /^(?:FADE IN:|FADE OUT\.?|CUT TO:|DISSOLVE TO:|SMASH CUT TO:|MATCH CUT TO:|WIPE TO:)$|\bTO:$/i.test(candidate);
 }
 
 function isCharacter(value: string) {

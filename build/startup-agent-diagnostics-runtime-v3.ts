@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import type { Plugin } from "vite";
+import { stripKnownPromptScaffolding } from "../core/security/text-normalization";
 
 const exec = promisify(execFile);
 type JsonRecord = Record<string, unknown>;
@@ -57,6 +58,10 @@ const ANSI = {
   reset: "\u001b[0m",
 } as const;
 const INTERNAL_SCAFFOLD_LINE = /^(?:\[LOCAL CURRICULUM BLOCK\b.*\]|Status:|Authority:|Lesson:|Section:|Bundled curriculum material:|Material type:|Curriculum scope:|Historical claim:|Current correction \().*$/i;
+const PROMPT_SCAFFOLD_LABELS = [
+  "student_question", "conversation_memory",
+  "project_memory", "curriculum_context",
+] as const;
 const SAGE_DIAGNOSTIC_REPAIR_INSTRUCTION = [
   "STARTUP HEALTH RETRY.",
   "Answer the craft question directly in one or two fresh sentences under 70 words.",
@@ -95,12 +100,7 @@ function printResult(label: string, state: "PASS" | "FAIL" | "WARN" | "SKIP", de
 }
 
 function stripInternalScaffolding(value: string) {
-  return value
-    .replace(/&lt;\s*\/?\s*[a-z][a-z0-9_-]*(?:\s+[^&\n]{0,120})?&gt;/gi, "")
-    .replace(/\\u003c\s*\/?\s*[a-z][a-z0-9_-]*(?:[^\\\n]{0,120})?\\u003e/gi, "")
-    .replace(/<\s*\/?\s*[a-z][a-z0-9_-]*(?:\s+[^>\n]{0,120})?>/gi, "")
-    .replace(/^\s*(?:student_question|conversation_memory|project_memory|curriculum_context)\s*:?\s*$/gim, "")
-    .replace(/\r/g, "");
+  return stripKnownPromptScaffolding(value, PROMPT_SCAFFOLD_LABELS);
 }
 
 function cleanDiagnosticSageAnswer(value: string) {
@@ -117,7 +117,7 @@ function cleanDiagnosticSageAnswer(value: string) {
 }
 
 function comparableText(value: string) {
-  return cleanDiagnosticSageAnswer(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  let output = ""; for (const character of cleanDiagnosticSageAnswer(value).toLowerCase()) { const code = character.charCodeAt(0); output += ((code >= 97 && code <= 122) || (code >= 48 && code <= 57)) ? character : " "; } return output.trim().replace(/\s+/g, " ");
 }
 
 function contentWords(value: string) {

@@ -119,7 +119,9 @@ test("#1143 server-network sessions persist encrypted Human-private state indepe
 test("#1143 profile gate contains offline setup, recovery acknowledgement, chooser, Guest and active-Human controls", async () => {
   const ui = await readFile(path.join(root, "app/profile-access/profile-access-boundary.tsx"), "utf8");
   const privateBrowser = await readFile(path.join(root, "core/storage/profile-private-browser.ts"), "utf8");
-  for (const phrase of ["Create your local profile", "No email, phone, cloud account", "I saved the recovery secret", "Choose a PlotPickle profile", "Use isolated Guest", "Save as new profile", "Switch profile", "BUZZ identity is separate"]) assert.match(ui, new RegExp(phrase, "u"));
+  for (const phrase of ["Create your local profile", "No email, phone, cloud account", "I saved the recovery secret", "Choose a PlotPickle profile", "Use isolated Guest", "Save as new profile", "Switch profile", "BUZZ identity is separate"]) {
+    assert.ok(ui.includes(phrase), `Missing profile experience copy: ${phrase}`);
+  }
   assert.doesNotMatch(ui, /type="email"|name="email"|Sign up for PlotPickle/u);
   assert.match(ui, /persistActiveProfileProject\(\)[\s\S]*flushProfilePrivateWrites\(\)[\s\S]*profileRequest\(action[\s\S]*clearPrivateScreen/u);
   assert.match(privateBrowser, /window\.sessionStorage\.clear\(\)[\s\S]*csrfToken = ""/u);
@@ -157,6 +159,8 @@ test("#1143 Profiles & Security is a first-class Settings destination", async ()
   const settings = await readFile(path.join(root, "app/sage-settings-workspace.tsx"), "utf8");
   const panel = await readFile(path.join(root, "app/profile-access/profiles-security-panel.tsx"), "utf8");
   assert.match(settings, /Profiles & Security[\s\S]*ProfilesSecurityPanel/u);
-  for (const phrase of ["Current Human", "Change the local vault passphrase", "Recovery material created", "browser session(s)", "Lock all other sessions"]) assert.match(panel, new RegExp(phrase.replace(/[()]/gu, "\\$&"), "u"));
+  for (const phrase of ["Current Human", "Change the local vault passphrase", "Recovery material created", "browser session(s)", "Lock all other sessions"]) {
+    assert.ok(panel.includes(phrase), `Missing Profiles & Security copy: ${phrase}`);
+  }
   assert.match(panel, /separate[\s\S]*BUZZ identity/u);
 });

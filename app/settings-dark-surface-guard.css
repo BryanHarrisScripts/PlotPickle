@@ -31,11 +31,14 @@
 
 /*
  * Child panels are allowed to keep layout, spacing and component structure, but
- * not an older light surface palette. Div wrappers become transparent while
- * semantic panels receive one of the shared dark surfaces below.
+ * not an older light surface palette. Div/header wrappers become transparent
+ * while semantic panels receive one of the shared dark surfaces below. Reset
+ * background images as well as colours: several legacy provider panels use
+ * white linear-gradients, which otherwise survive a background-color override.
  */
-[data-plotpickle-settings="v2"] [data-settings-section] :where(div) {
+[data-plotpickle-settings="v2"] [data-settings-section] :where(div, header, footer, figure) {
   background-color: transparent !important;
+  background-image: none !important;
   border-color: var(--pp-settings-line) !important;
 }
 
@@ -55,6 +58,7 @@
   [role="listbox"]
 ) {
   background-color: var(--pp-settings-surface) !important;
+  background-image: none !important;
   border-color: var(--pp-settings-line) !important;
   color: var(--pp-settings-text) !important;
   box-shadow: none !important;
@@ -66,6 +70,7 @@
 
 [data-plotpickle-settings="v2"] [data-settings-section] :where(thead, tbody, tr, th, td) {
   background-color: transparent !important;
+  background-image: none !important;
   border-color: var(--pp-settings-line) !important;
   color: inherit !important;
 }
@@ -84,6 +89,7 @@
   select
 ) {
   background-color: var(--pp-settings-raised) !important;
+  background-image: none !important;
   border-color: var(--pp-settings-line-strong) !important;
   color: var(--pp-settings-text) !important;
   box-shadow: none !important;
@@ -102,6 +108,7 @@
 [data-plotpickle-settings="v2"] [data-settings-section] :where(button, [role="button"], [role="tab"]) {
   border-color: var(--pp-settings-line-strong) !important;
   background-color: var(--pp-settings-raised) !important;
+  background-image: none !important;
   color: var(--pp-settings-text) !important;
   box-shadow: none !important;
 }
@@ -149,6 +156,7 @@
   [data-error]
 ) {
   background-color: var(--pp-settings-raised) !important;
+  background-image: none !important;
   border-color: var(--pp-settings-line) !important;
   color: var(--pp-settings-text) !important;
 }
@@ -161,6 +169,7 @@
  */
 [data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] {
   background-color: var(--pp-settings-surface) !important;
+  background-image: none !important;
   border-color: var(--pp-settings-line) !important;
   color: var(--pp-settings-text) !important;
   box-shadow: none !important;
@@ -168,22 +177,26 @@
 
 [data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] > section {
   background-color: transparent !important;
+  background-image: none !important;
   border-color: var(--pp-settings-line) !important;
 }
 
 [data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] section section {
   background-color: var(--pp-settings-raised) !important;
+  background-image: none !important;
   border-color: var(--pp-settings-line) !important;
   color: var(--pp-settings-text) !important;
 }
 
 [data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] [id^="settings-system-"] {
   background-color: var(--pp-settings-surface) !important;
+  background-image: none !important;
   border-color: var(--pp-settings-line) !important;
 }
 
 [data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] :where(button) {
   background-color: transparent !important;
+  background-image: none !important;
   border-color: transparent !important;
   color: var(--pp-settings-text) !important;
   box-shadow: none !important;
@@ -215,6 +228,7 @@
 
 [data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] :where(em) {
   background-color: var(--pp-settings-raised) !important;
+  background-image: none !important;
   border: 1px solid var(--pp-settings-line) !important;
 }
 

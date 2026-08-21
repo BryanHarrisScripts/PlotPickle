@@ -175,16 +175,23 @@ test("local role preparation is used before Sage and PLAN preflights", async () 
 });
 
 test("Sage sanitizes prompt scaffolding before chat rendering and is instructed to converse like a mentor", async () => {
-  const [guide, runtime, skill] = await Promise.all([
+  const [guide, sanitizer, runtime, skill] = await Promise.all([
     read("modules/creative-room/curriculum-guide.ts"),
+    read("core/security/text-normalization.ts"),
     read("build/mastra-agent-runtime.ts"),
     read(".agents/skills/sage-brinewick/SKILL.md"),
   ]);
   const normalizedGuide = guide.replace(/\r\n/g, "\n");
+  assert.match(guide, /stripKnownPromptScaffolding/);
   assert.match(guide, /export function stripInternalScaffolding/);
-  assert.match(guide, /&lt;/);
-  assert.match(guide, /\\\\u003c/);
-  assert.match(guide, /student_question\|conversation_memory\|project_memory\|curriculum_context/);
+  assert.match(guide, /"student_question"/);
+  assert.match(guide, /"conversation_memory"/);
+  assert.match(guide, /"project_memory"/);
+  assert.match(guide, /"curriculum_context"/);
+  assert.match(sanitizer, /replaceAll\("&lt;", "<"\)/);
+  assert.match(sanitizer, /replaceAll\("\\\\u003c", "<"\)/);
+  assert.match(sanitizer, /stripKnownPromptScaffolding/);
+  assert.match(sanitizer, /stripMarkupTags\(decodeMarkupDelimitersOnce\(value\)\)/);
   assert.match(guide, /INTERNAL_SCAFFOLD_LINE/);
   assert.match(guide, /let text = cleanGuideAnswer\(result\.text\)/);
   assert.ok(normalizedGuide.indexOf("cleanGuideAnswer(result.text)") < normalizedGuide.indexOf("return {\n    text,"));

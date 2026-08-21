@@ -504,6 +504,7 @@ export function createServerSessionBoundary(options) {
         return Object.freeze({ profile: result.profile, recoverySecret: result.recoverySecret, ...establishBrowserSession(result.authContext, request) });
       } catch (error) {
         throttle.recordFailure(rate);
+        if (policy.accessMode === "desktop-loopback") throw error;
         fail("BOOTSTRAP_PROOF_REJECTED", "The server bootstrap request was rejected.", {
           cause: error,
           publicCode: "BOOTSTRAP_PROOF_REJECTED",

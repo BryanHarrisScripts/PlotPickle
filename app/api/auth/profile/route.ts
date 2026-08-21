@@ -1,5 +1,5 @@
-import { toPublicAuthError, type BrowserSessionSummary, type ProfileSummary } from "@/core/auth/plotpickle-auth";
-import { toPublicServerSessionError } from "@/core/auth/server-session/server-session-boundary";
+import { PlotPickleAuthError, toPublicAuthError, type BrowserSessionSummary, type ProfileSummary } from "@/core/auth/plotpickle-auth";
+import { PlotPickleServerSessionError, toPublicServerSessionError } from "@/core/auth/server-session/server-session-boundary";
 import {
   getProfileExperienceRuntime,
   requestBoundary,
@@ -20,10 +20,14 @@ function originOf(request: Request) {
   return new URL(request.url).origin;
 }
 
+export function publicProfileApiError(error: unknown) {
+  if (error instanceof PlotPickleServerSessionError) return toPublicServerSessionError(error);
+  if (error instanceof PlotPickleAuthError) return toPublicAuthError(error);
+  return { code: "AUTH_REQUEST_REJECTED", message: "The authentication request could not be completed." } as const;
+}
+
 function errorResponse(error: unknown) {
-  const server = toPublicServerSessionError(error);
-  const auth = toPublicAuthError(error);
-  const detail = server.code !== "SERVER_SESSION_FAILED" ? server : auth;
+  const detail = publicProfileApiError(error);
   const status = detail.code === "AUTHENTICATION_THROTTLED" ? 429 : detail.code === "ACCESS_DENIED" ? 403 : 400;
   return response(detail, status, "retryAfterMs" in detail ? { "Retry-After": String(Math.ceil(Number(detail.retryAfterMs || 1) / 1_000)) } : {});
 }

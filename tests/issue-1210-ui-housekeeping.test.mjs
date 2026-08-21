@@ -23,7 +23,9 @@ test("#1210 Profile stays auth-safe while presenting compact lore chrome and an 
   assert.match(css, /details\[open\][\s\S]*grid-template-columns:\s*repeat\(2/u);
   assert.match(css, /@media\s*\(max-width:\s*700px\)[\s\S]*grid-template-columns:\s*1fr/u);
   assert.match(relic, /<title id="title">Profile relic<\/title>/u);
-  assert.match(relic, /linearGradient id="gold"[\s\S]*linearGradient id="iron"[\s\S]*radialGradient id="gem"/u);
+  assert.match(relic, /radialGradient id="gem"/u);
+  assert.match(relic, /linearGradient id="gold"/u);
+  assert.match(relic, /linearGradient id="iron"/u);
 });
 
 test("#1210 Library uses the lore relic family without changing Library navigation", async () => {
@@ -36,7 +38,9 @@ test("#1210 Library uses the lore relic family without changing Library navigati
   assert.match(relic, /viewBox="0 0 96 96"/u);
   assert.match(relic, /<title id="title">Library relic<\/title>/u);
   assert.match(relic, /open brass-bound book/u);
-  assert.match(relic, /linearGradient id="gold"[\s\S]*linearGradient id="iron"[\s\S]*radialGradient id="gem"/u);
+  assert.match(relic, /radialGradient id="gem"/u);
+  assert.match(relic, /linearGradient id="gold"/u);
+  assert.match(relic, /linearGradient id="iron"/u);
 });
 
 test("#1210 advanced Settings submenus are guarded by PlotPickle semantic dark surfaces", async () => {

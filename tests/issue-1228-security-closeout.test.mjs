@@ -50,14 +50,13 @@ test("#1228 hardens Windows batch execution before cmd.exe receives values", asy
   assert.match(source, /windowsBatchArguments\(command, args\)/, "cmd.exe path must use the validated argument builder");
 });
 
-test("#1228 durable creative IDs never fall back to time or Math.random", async () => {
+test("#1228 durable creative IDs require cryptographic randomUUID", async () => {
   for (const path of ["lib/table-read.ts", "lib/writers-room.ts"]) {
     const source = await read(path);
     assert.doesNotMatch(source, /Math\.random\s*\(/, `${path} must not use Math.random for IDs`);
     assert.doesNotMatch(source, /Date\.now\s*\(/, `${path} must not use timestamps as uniqueness fallbacks`);
-    assert.match(source, /randomUUID/, `${path} should prefer crypto.randomUUID`);
-    assert.match(source, /getRandomValues/, `${path} should retain a cryptographic fallback`);
-    assert.match(source, /Secure randomness is unavailable/, `${path} must fail closed if crypto is unavailable`);
+    assert.match(source, /crypto\?\.randomUUID/, `${path} must require crypto.randomUUID`);
+    assert.match(source, /Secure randomness is unavailable/, `${path} must fail closed if crypto.randomUUID is unavailable`);
   }
 });
 

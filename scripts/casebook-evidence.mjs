@@ -16,19 +16,22 @@ export const CASEBOOK_INTERACTION_KINDS = Object.freeze([
 
 const hiddenKeys = new Set(["reasoning", "chainofthought", "chain_of_thought", "scratchpad", "prompt", "messages"]);
 const secretKeyPattern = /(password|passphrase|secret|token|cookie|authorization|api[_-]?key|private[_-]?key|nsec)/i;
+const evidenceTextRedactions = Object.freeze([
+  { pattern: /\bnsec1[a-z0-9]{8,}\b/gi, replacement: "[REDACTED_NOSTR_PRIVATE_KEY]" },
+  { pattern: /\bBearer\s+[A-Za-z0-9._~+/=-]{8,}\b/gi, replacement: "Bearer [REDACTED]" },
+  { pattern: /\b(?:sk|pk)-[A-Za-z0-9_-]{8,}\b/g, replacement: "[REDACTED_PROVIDER_KEY]" },
+  { pattern: /\b(api[_-]?key|password|passphrase|secret|token|cookie|private[_-]?key)\b\s*[:=]\s*[^\s,;]+/gi, replacement: "$1=[REDACTED]" },
+  { pattern: /[A-Za-z]:\\Users\\[^\\\s]+/g, replacement: "[local-user]" },
+  { pattern: /\/home\/[^/\s]+/g, replacement: "/home/[user]" },
+  { pattern: /\/Users\/[^/\s]+/g, replacement: "/Users/[user]" },
+]);
 
 function scrubEvidenceText(value) {
-  return String(value ?? "")
-    .replace(/\bnsec1[a-z0-9]{8,}\b/gi, "[REDACTED_NOSTR_PRIVATE_KEY]")
-    .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]{8,}\b/gi, "Bearer [REDACTED]")
-    .replace(/\b(?:sk|pk)-[A-Za-z0-9_-]{8,}\b/g, "[REDACTED_PROVIDER_KEY]")
-    .replace(/\b(api[_-]?key|password|passphrase|secret|token|cookie|private[_-]?key)\b\s*[:=]\s*[^\s,;]+/gi, "$1=[REDACTED]")
-    .replace(/[A-Za-z]:\\Users\\[^\\\s]+/g, "[local-user]")
-    .replace(/\/home\/[^/\s]+/g, "/home/[user]")
-    .replace(/\/Users\/[^/\s]+/g, "/Users/[user]")
-    .replace(/[\u0000-\u001f\u007f]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  let safe = String(value ?? "");
+  for (const rule of evidenceTextRedactions) safe = safe.replace(rule.pattern, rule.replacement);
+  safe = safe.replace(/[\u0000-\u001f\u007f]/g, " ");
+  safe = safe.replace(/\s+/g, " ");
+  return safe.trim();
 }
 
 export function redactCaseEvidence(input) {

@@ -68,7 +68,7 @@ jobs:
           $partial = @(Get-ComfyManagedInstances -Roots @($provisionRoot))
           if ($partial.Count -ne 1 -or $partial[0].State -ne "provisioning") { throw "Incomplete managed fixture was not recognized as provisioning." }
       - name: Validate exhaustive UAT targeting and baseline repair contracts
-        run: node --test tests/exhaustive-ui-harness-boundary.test.mjs tests/pi-local-model-exhaustive-uat.test.mjs tests/issue-972-exhaustive-uat-baseline.test.mjs
+        run: node --test tests/exhaustive-ui-harness-boundary.test.mjs tests/pi-local-model-exhaustive-uat.test.mjs tests/issue-972-exhaustive-uat-baseline.test.mjs tests/issue-1230-full-verification-closeout.test.mjs
       - name: Validate provider, creative-compute, and companion updater contracts
         run: node --test tests/ai-architecture.test.mjs tests/issue-258-creative-compute-paths.test.mjs tests/issue-83-character-visual-identity.test.mjs tests/issue-512-buzz-version-maintenance.test.mjs tests/issue-620-buzz-startup-updater.test.mjs
       - name: Validate automatic local ComfyUI, Comfy MCP management, and permission-based recovery

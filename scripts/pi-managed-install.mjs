@@ -8,6 +8,7 @@ import process from "node:process";
 import {
   PI_CODING_AGENT_PACKAGE,
   PI_MINIMUM_NODE_VERSION,
+  resolveActiveNpmCommand,
   runPortableCommand,
 } from "./pi-worker-runtime.mjs";
 
@@ -72,11 +73,12 @@ export async function ensureManagedPiInstalled(options = {}) {
   const env = options.env || process.env;
   const run = options.runPortableCommand || runPortableCommand;
   const root = options.root || managedPiRoot({ platform, env });
+  const fileExists = options.existsSync || existsSync;
   if (!versionAtLeast(options.nodeVersion || process.versions.node, PI_MINIMUM_NODE_VERSION)) {
     throw new Error(`Pi requires Node.js ${PI_MINIMUM_NODE_VERSION} or newer for PlotPickle. Found ${options.nodeVersion || process.versions.node}.`);
   }
 
-  const existing = await probeManagedPi({ platform, env, root, existsSync: options.existsSync, runPortableCommand: run });
+  const existing = await probeManagedPi({ platform, env, root, existsSync: fileExists, runPortableCommand: run });
   if (existing.ready) return { ...existing, installed: false };
   if (options.allowInstall === false || env.PLOTPICKLE_PI_AUTO_INSTALL === "0") {
     throw new Error("PlotPickle-managed Pi is not ready and automatic installation is disabled.");
@@ -85,9 +87,16 @@ export async function ensureManagedPiInstalled(options = {}) {
   await mkdir(root, { recursive: true, mode: 0o700 });
   options.onStatus?.("INSTALLING", `${PI_CODING_AGENT_PACKAGE} in PlotPickle's private developer-tool directory`);
 
+  const npmCommand = options.npmCommand || resolveActiveNpmCommand({
+    platform,
+    nodeExecutable: options.nodeExecutable || process.execPath,
+    existsSync: fileExists,
+    commandOnPath: options.commandOnPath,
+  });
+
   // npm's global mode with an explicit private prefix places the Windows wrapper
   // directly at <prefix>\pi.cmd without touching %APPDATA%\npm or the user's PATH.
-  await run(options.npmCommand || "npm", [
+  await run(npmCommand, [
     "install",
     "-g",
     "--prefix", root,
@@ -98,7 +107,7 @@ export async function ensureManagedPiInstalled(options = {}) {
     env,
   });
 
-  const installed = await probeManagedPi({ platform, env, root, existsSync: options.existsSync, runPortableCommand: run });
+  const installed = await probeManagedPi({ platform, env, root, existsSync: fileExists, runPortableCommand: run });
   if (!installed.ready) {
     throw new Error(`PlotPickle-managed Pi installation completed but the private executable failed validation. ${installed.detail || installed.state}`);
   }

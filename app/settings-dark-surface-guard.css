@@ -152,3 +152,78 @@
   border-color: var(--pp-settings-line) !important;
   color: var(--pp-settings-text) !important;
 }
+
+/*
+ * The canonical advanced Settings navigator is owned by a CSS module rather
+ * than data-settings-section, so guard its stable accessible markup as well.
+ * This closes the remaining legacy white submenu/system-card islands without
+ * changing Settings taxonomy, routing or provider behaviour.
+ */
+[data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] {
+  background-color: var(--pp-settings-surface) !important;
+  border-color: var(--pp-settings-line) !important;
+  color: var(--pp-settings-text) !important;
+  box-shadow: none !important;
+}
+
+[data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] > section {
+  background-color: transparent !important;
+  border-color: var(--pp-settings-line) !important;
+}
+
+[data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] section section {
+  background-color: var(--pp-settings-raised) !important;
+  border-color: var(--pp-settings-line) !important;
+  color: var(--pp-settings-text) !important;
+}
+
+[data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] [id^="settings-system-"] {
+  background-color: var(--pp-settings-surface) !important;
+  border-color: var(--pp-settings-line) !important;
+}
+
+[data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] :where(button) {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: var(--pp-settings-text) !important;
+  box-shadow: none !important;
+}
+
+[data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] :where(button):hover:not(:disabled) {
+  background-color: var(--pp-settings-hover) !important;
+  border-color: var(--pp-settings-line-strong) !important;
+}
+
+[data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] :where(button[aria-current="page"]) {
+  background-color: color-mix(in srgb, var(--pp-settings-teal) 10%, var(--pp-settings-raised)) !important;
+  border-color: color-mix(in srgb, var(--pp-settings-teal) 55%, var(--pp-settings-line)) !important;
+  color: var(--pp-settings-text) !important;
+}
+
+[data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] :where(button, summary, a):focus-visible {
+  outline: 2px solid var(--pp-settings-orange) !important;
+  outline-offset: 2px;
+}
+
+[data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] :where(h2, b, strong) {
+  color: var(--pp-settings-text) !important;
+}
+
+[data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] :where(p, span, small, em) {
+  color: var(--pp-settings-muted) !important;
+}
+
+[data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] :where(em) {
+  background-color: var(--pp-settings-raised) !important;
+  border: 1px solid var(--pp-settings-line) !important;
+}
+
+[data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] :where(em[data-status="installed"]) {
+  background-color: color-mix(in srgb, var(--pp-settings-teal) 10%, var(--pp-settings-raised)) !important;
+  color: var(--pp-settings-teal) !important;
+}
+
+[data-plotpickle-settings="v2"] nav[aria-label="PlotPickle Settings systems"] :where(em[data-status="configure"]) {
+  background-color: color-mix(in srgb, var(--pp-settings-orange) 9%, var(--pp-settings-raised)) !important;
+  color: var(--pp-settings-orange) !important;
+}

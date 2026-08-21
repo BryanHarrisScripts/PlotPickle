@@ -15,6 +15,7 @@ import {
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const jobId = `auth-smoke-${randomUUID().replaceAll("-", "").slice(0, 24)}`;
+const AUTH_GATE = /Create your local profile|Unlock your profile|PlotPickle login is not available yet/u;
 let runtime = null;
 let client = null;
 let syntheticHome = "";
@@ -27,8 +28,8 @@ async function waitForAuthenticatedSnapshot(client) {
   let snapshot = "";
   for (let attempt = 1; attempt <= 12; attempt += 1) {
     snapshot = resultText(await client.call("browser_snapshot", {}));
-    if (snapshot.includes("PlotPickle Verification Human")) return snapshot;
-    if (/Create your local profile|Unlock your profile|PlotPickle login is not available yet/u.test(snapshot)) return snapshot;
+    if (AUTH_GATE.test(snapshot)) return snapshot;
+    if (snapshot.includes("PlotPickle global workflow") && snapshot.includes("Settings Config") && snapshot.includes("Profile")) return snapshot;
     await delay(500);
   }
   return snapshot;
@@ -74,6 +75,20 @@ try {
   assert.equal(Object.hasOwn(privateState, "wyrmwood"), true);
   status("Synthetic Human private state", "PASS", "same Node-host session opened encrypted private storage");
 
+  const presentationResponse = await fetch(`${runtime.baseUrl}/api/auth/profile-presentation`, {
+    headers: { Accept: "application/json", Cookie: env.PLOTPICKLE_VERIFICATION_AUTH_COOKIE },
+    cache: "no-store",
+    signal: AbortSignal.timeout(10_000),
+  });
+  const presentation = await presentationResponse.json();
+  assert.equal(
+    presentationResponse.ok,
+    true,
+    `profile presentation boundary returned ${presentationResponse.status}: ${JSON.stringify(presentation)}`,
+  );
+  assert.equal(presentation.profile?.displayName, "PlotPickle Verification Human");
+  status("Synthetic Human presentation", "PASS", "current Profile presentation resolved from authenticated Human");
+
   const browserOutput = path.join(syntheticHome, "browser-smoke");
   await mkdir(browserOutput, { recursive: true, mode: 0o700 });
   client = new McpClient(process.execPath, [
@@ -97,9 +112,11 @@ try {
   for (const required of ["browser_navigate", "browser_snapshot"]) assert.equal(names.has(required), true, `missing ${required}`);
   await client.call("browser_navigate", { url: runtime.baseUrl });
   const snapshot = await waitForAuthenticatedSnapshot(client);
-  assert.match(snapshot, /PlotPickle Verification Human/u);
-  assert.doesNotMatch(snapshot, /Create your local profile|Unlock your profile|PlotPickle login is not available yet/u);
-  status("Synthetic Human Playwright session", "PASS", "isolated MCP browser opened authenticated workspace");
+  assert.match(snapshot, /PlotPickle global workflow/u);
+  assert.match(snapshot, /Settings Config/u);
+  assert.match(snapshot, /Profile/u);
+  assert.doesNotMatch(snapshot, AUTH_GATE);
+  status("Synthetic Human Playwright session", "PASS", "isolated MCP browser opened current authenticated Profile workspace");
 
   if (names.has("browser_close")) await client.call("browser_close", {});
   await client.close();

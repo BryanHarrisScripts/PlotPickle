@@ -28,7 +28,7 @@ async function waitForAuthenticatedSnapshot(client) {
   for (let attempt = 1; attempt <= 12; attempt += 1) {
     snapshot = resultText(await client.call("browser_snapshot", {}));
     if (snapshot.includes("PlotPickle Verification Human")) return snapshot;
-    if (/Create your local profile|Unlock your profile/u.test(snapshot)) return snapshot;
+    if (/Create your local profile|Unlock your profile|PlotPickle login is not available yet/u.test(snapshot)) return snapshot;
     await delay(500);
   }
   return snapshot;
@@ -63,6 +63,17 @@ try {
   assert.equal(authenticated.profile?.displayName, "PlotPickle Verification Human");
   status("Synthetic Human API session", "PASS", "real profile/session boundary authenticated");
 
+  const privateResponse = await fetch(`${runtime.baseUrl}/api/auth/profile-private`, {
+    headers: { Accept: "application/json", Cookie: env.PLOTPICKLE_VERIFICATION_AUTH_COOKIE },
+    cache: "no-store",
+    signal: AbortSignal.timeout(10_000),
+  });
+  const privateState = await privateResponse.json();
+  assert.equal(privateResponse.ok, true, `private profile boundary returned ${privateResponse.status}: ${JSON.stringify(privateState)}`);
+  assert.equal(Object.hasOwn(privateState, "project"), true);
+  assert.equal(Object.hasOwn(privateState, "wyrmwood"), true);
+  status("Synthetic Human private state", "PASS", "same Node-host session opened encrypted private storage");
+
   const browserOutput = path.join(syntheticHome, "browser-smoke");
   await mkdir(browserOutput, { recursive: true, mode: 0o700 });
   client = new McpClient(process.execPath, [
@@ -87,7 +98,7 @@ try {
   await client.call("browser_navigate", { url: runtime.baseUrl });
   const snapshot = await waitForAuthenticatedSnapshot(client);
   assert.match(snapshot, /PlotPickle Verification Human/u);
-  assert.doesNotMatch(snapshot, /Create your local profile|Unlock your profile/u);
+  assert.doesNotMatch(snapshot, /Create your local profile|Unlock your profile|PlotPickle login is not available yet/u);
   status("Synthetic Human Playwright session", "PASS", "isolated MCP browser opened authenticated workspace");
 
   if (names.has("browser_close")) await client.call("browser_close", {});

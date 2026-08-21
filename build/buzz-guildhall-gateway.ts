@@ -7,6 +7,7 @@ import { BUZZ_GUILDHALL_ACTORS, BUZZ_GUILDHALL_CHANNELS } from "../lib/buzz-guil
 
 const API = "/api/local-buzz/guildhall";
 const CONNECTION_FILE = "buzz-connection.json";
+const MAX_BODY = 64 * 1024;
 const MAX_COMMAND_OUTPUT = 4 * 1024 * 1024;
 
 type BuzzConnection = {
@@ -23,6 +24,7 @@ type BuzzConnection = {
 
 type CommandResult = { stdout: string; stderr: string; code: number };
 type BuzzChannel = { id: string; name: string; description: string };
+type BuzzDm = { id: string; participants: string[]; createdAt: string };
 
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
@@ -50,6 +52,20 @@ function sendJson(response: ServerResponse, statusCode: number, body: Record<str
   response.end(JSON.stringify(body));
 }
 
+async function readBody(request: IncomingMessage): Promise<Record<string, unknown>> {
+  const chunks: Buffer[] = [];
+  let bytes = 0;
+  for await (const chunk of request) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    bytes += buffer.length;
+    if (bytes > MAX_BODY) throw new Error("The Buzz Community request is too large.");
+    chunks.push(buffer);
+  }
+  const value: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("The Buzz Community request is invalid.");
+  return value as Record<string, unknown>;
+}
+
 function safeError(error: unknown) {
   const message = error instanceof Error ? error.message : "The Buzz Guildhall operation failed.";
   return message
@@ -57,6 +73,10 @@ function safeError(error: unknown) {
     .replace(/\b[a-f0-9]{64}\b/gi, "[redacted-secret]")
     .replace(/(password|secret|private[_ -]?key|api[_ -]?key|token)\s*[=:]\s*\S+/gi, "$1=[redacted]")
     .slice(0, 700);
+}
+
+function text(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
 }
 
 function validConnection(value: unknown): value is BuzzConnection {
@@ -75,6 +95,12 @@ function validConnection(value: unknown): value is BuzzConnection {
 async function readConnection() {
   const value = await readCredentialJson<unknown>(CONNECTION_FILE);
   return validConnection(value) ? value : null;
+}
+
+function verifiedConnection(connection: BuzzConnection | null): asserts connection is BuzzConnection {
+  if (!connection || connection.verificationVersion !== 2 || !connection.verifiedAt || !connection.privateKey) {
+    throw new Error("Verify your Human Buzz identity before using Community conversations.");
+  }
 }
 
 function relayHttpUrl(value: string) {
@@ -135,7 +161,7 @@ function command(executable: string, args: string[], env: NodeJS.ProcessEnv) {
 }
 
 async function runBuzz(connection: BuzzConnection, args: string[]) {
-  if (!connection.privateKey) throw new Error("Authorize PlotPickle with your Buzz private identity before setting up the Guildhall.");
+  if (!connection.privateKey) throw new Error("Authorize PlotPickle with your Buzz private identity before using Community.");
   const resolution = await resolveBuzzCliExecutable(connection.cliPath);
   const result = await command(resolution.executable, args, {
     BUZZ_RELAY_URL: relayHttpUrl(connection.relayUrl),
@@ -149,7 +175,7 @@ function nestedArray(value: unknown): unknown[] {
   if (Array.isArray(value)) return value;
   if (!value || typeof value !== "object") return [];
   const item = value as Record<string, unknown>;
-  for (const key of ["channels", "items", "data", "results"]) {
+  for (const key of ["channels", "dms", "items", "data", "results"]) {
     if (Array.isArray(item[key])) return item[key] as unknown[];
   }
   return [];
@@ -174,8 +200,43 @@ function channelsFrom(value: unknown): BuzzChannel[] {
   });
 }
 
+function dmsFrom(value: unknown): BuzzDm[] {
+  return nestedArray(value).flatMap((entry) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
+    const item = entry as Record<string, unknown>;
+    const id = firstString(item, ["dm_id", "channel_id", "id", "channelId"]);
+    const participants = Array.isArray(item.participants)
+      ? item.participants.filter((entry): entry is string => typeof entry === "string" && /^[a-f0-9]{64}$/i.test(entry))
+      : [];
+    if (!id) return [];
+    const created = item.created_at ?? item.createdAt;
+    const createdAt = typeof created === "number" ? new Date(created * 1000).toISOString() : text(created);
+    return [{ id, participants, createdAt }];
+  });
+}
+
 async function listChannels(connection: BuzzConnection) {
   return channelsFrom(await runBuzz(connection, ["--format", "compact", "channels", "list"]));
+}
+
+async function listDms(connection: BuzzConnection) {
+  return dmsFrom(await runBuzz(connection, ["dms", "list", "--limit", "100"]));
+}
+
+async function openDm(connection: BuzzConnection, body: Record<string, unknown>) {
+  const pubkeys = Array.isArray(body.pubkeys)
+    ? body.pubkeys.filter((entry): entry is string => typeof entry === "string").map((entry) => entry.trim().toLowerCase())
+    : [];
+  if (!pubkeys.length || pubkeys.length > 8 || pubkeys.some((pubkey) => !/^[a-f0-9]{64}$/.test(pubkey))) {
+    throw new Error("Choose between one and eight valid Buzz participants for the direct message.");
+  }
+  const args = ["dms", "open"];
+  for (const pubkey of pubkeys) args.push("--pubkey", pubkey);
+  const result = await runBuzz(connection, args);
+  if (!result || typeof result !== "object" || Array.isArray(result)) throw new Error("Buzz did not return a direct-message channel.");
+  const id = firstString(result as Record<string, unknown>, ["dm_id", "channel_id", "id"]);
+  if (!id) throw new Error("Buzz opened the direct message but did not return its channel identifier.");
+  return { id, participants: pubkeys, createdAt: new Date().toISOString() } satisfies BuzzDm;
 }
 
 function stewardCards() {
@@ -195,7 +256,15 @@ function stewardCards() {
 function roomStatus(channels: BuzzChannel[]) {
   const readyRooms = BUZZ_GUILDHALL_CHANNELS.flatMap((definition) => {
     const channel = channels.find((candidate) => candidate.name === definition.name);
-    return channel ? [{ id: definition.id, name: definition.name, label: definition.label, channelId: channel.id }] : [];
+    return channel ? [{
+      id: definition.id,
+      name: definition.name,
+      label: definition.label,
+      channelId: channel.id,
+      type: definition.type,
+      visibility: definition.visibility,
+      description: definition.description,
+    }] : [];
   });
   const missingRooms = BUZZ_GUILDHALL_CHANNELS
     .filter((definition) => !channels.some((candidate) => candidate.name === definition.name))
@@ -247,10 +316,7 @@ async function status() {
 
 async function setup() {
   const connection = await readConnection();
-  if (!connection) throw new Error("Connect Buzz before setting up the PlotPickle Guildhall.");
-  if (connection.verificationVersion !== 2 || !connection.verifiedAt || !connection.privateKey) {
-    throw new Error("Verify the Buzz community and identity before setting up the PlotPickle Guildhall.");
-  }
+  verifiedConnection(connection);
   let channels = await listChannels(connection);
   const created: string[] = [];
   const kept: string[] = [];
@@ -296,6 +362,19 @@ async function handle(request: IncomingMessage, response: ServerResponse, url: U
   }
   if (request.method === "POST" && url.pathname === `${API}/setup`) {
     sendJson(response, 200, await setup());
+    return;
+  }
+  if (request.method === "GET" && url.pathname === `${API}/dms`) {
+    const connection = await readConnection();
+    verifiedConnection(connection);
+    sendJson(response, 200, { ok: true, dms: await listDms(connection) });
+    return;
+  }
+  if (request.method === "POST" && url.pathname === `${API}/dms/open`) {
+    const connection = await readConnection();
+    verifiedConnection(connection);
+    const body = await readBody(request);
+    sendJson(response, 200, { ok: true, dm: await openDm(connection, body) });
     return;
   }
   sendJson(response, 404, { ok: false, message: "Buzz Guildhall operation not found." });

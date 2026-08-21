@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ProfileAccessBoundary from "./profile-access/profile-access-boundary";
+import ProfileIdentityOverlay from "./profile-access/profile-identity-overlay";
 import AppearanceRuntime from "./appearance-runtime";
 import BuildAssemblyStudio from "./build-assembly-studio";
 import BuildAnimaticStudio from "./build-animatic-studio";
@@ -110,6 +111,7 @@ export default function RootLayout({
       >
         <AppearanceRuntime />
         <ProfileAccessBoundary>{children}</ProfileAccessBoundary>
+        <ProfileIdentityOverlay />
         <UiContinuityAnchor />
         <LearnEntryRouter />
         <CommonOverlayLayer />

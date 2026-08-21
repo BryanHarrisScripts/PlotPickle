@@ -8,7 +8,7 @@ const source = (path) => readFile(new URL(path, root), "utf8");
 test("issue #85 defines one canonical primary navigation", async () => {
   const contract = await source("lib/product-direction.ts");
   const expected = ["Dashboard", "Learn", "Plan", "Storyboard", "Write", "Edit", "Graphic Novel", "Build", "Feedback", "Refine", "Reports"];
-  for (const label of expected) assert.match(contract, new RegExp(`label: "${label.replace(/[&]/g, "\\&")}"`));
+  for (const label of expected) assert.ok(contract.includes(`label: "${label}"`), `Missing primary navigation label: ${label}`);
   assert.match(contract, /Discovery & Pre-Production/);
   assert.match(contract, /Production & Polishing/);
   assert.match(contract, /Simple Start/);
@@ -64,7 +64,11 @@ test("issue #85 records all completed child issues and the final consistency pas
     assert.ok(contract.includes(`issue: ${issue}`), `Missing implementation issue #${issue}`);
     assert.ok(docs.includes(`#${issue}`), `Documentation missing issue #${issue}`);
   }
-  for (const issue of [86, 87, 88, 89]) assert.match(docs, new RegExp(`#${issue}[^\n]*(complete|merged)`, "i"));
+  const lines = docs.split("\n");
+  for (const issue of [86, 87, 88, 89]) {
+    const line = lines.find((candidate) => candidate.includes(`#${issue}`));
+    assert.ok(line && (line.toLowerCase().includes("complete") || line.toLowerCase().includes("merged")), `Issue #${issue} must be recorded complete or merged`);
+  }
   assert.match(docs, /#90[^\n]*final implementation/i);
   assert.match(docs, /#90 merge completes issue #85/i);
   assert.match(welcome, /FIVE_KEY_SELLING_POINTS\.map/);

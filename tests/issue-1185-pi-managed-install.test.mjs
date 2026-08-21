@@ -5,6 +5,8 @@ import {
   ensureManagedPiInstalled,
   managedPiCommand,
   managedPiRoot,
+  PLOTPICKLE_MANAGED_PI_PACKAGE,
+  PLOTPICKLE_MANAGED_PI_VERSION,
   probeManagedPi,
 } from "../scripts/pi-managed-install.mjs";
 
@@ -36,7 +38,7 @@ test("#1185 managed installer uses the active Windows npm.cmd and a private pref
       existing.add(command.toLowerCase());
       return { stdout: "installed", stderr: "" };
     }
-    return { stdout: "0.83.0", stderr: "" };
+    return { stdout: PLOTPICKLE_MANAGED_PI_VERSION, stderr: "" };
   };
   const result = await ensureManagedPiInstalled({
     platform: "win32",
@@ -50,15 +52,17 @@ test("#1185 managed installer uses the active Windows npm.cmd and a private pref
   });
   assert.equal(result.ready, true);
   assert.equal(result.command, command);
+  assert.equal(result.version, "0.84.2");
   assert.equal(result.installed, true);
   const install = calls.find((entry) => entry[1] === "install");
   assert.ok(install);
   assert.equal(install[0], npmCommand);
   assert.deepEqual(install.slice(1, 6), ["install", "-g", "--prefix", root, "--ignore-scripts"]);
+  assert.equal(install.at(-1), PLOTPICKLE_MANAGED_PI_PACKAGE);
   assert.equal(install.includes("--force"), false);
 });
 
-test("#1185 existing managed Pi validates without reinstalling", async () => {
+test("#1185 existing managed Pi validates without reinstalling only when it matches the exact managed version", async () => {
   const env = { LOCALAPPDATA: "C:\\Users\\Test Writer\\AppData\\Local" };
   const command = managedPiCommand({ platform: "win32", env });
   let calls = 0;
@@ -66,11 +70,56 @@ test("#1185 existing managed Pi validates without reinstalling", async () => {
     platform: "win32",
     env,
     existsSync: (candidate) => candidate === command,
-    runPortableCommand: async () => { calls += 1; return { stdout: "0.83.0", stderr: "" }; },
+    runPortableCommand: async () => { calls += 1; return { stdout: "pi 0.84.2", stderr: "" }; },
   });
   assert.equal(result.ready, true);
   assert.equal(result.command, command);
+  assert.equal(result.version, "0.84.2");
+  assert.equal(result.expectedVersion, "0.84.2");
   assert.equal(calls, 1);
+});
+
+test("#1185 stale managed Pi is upgraded to the pinned 0.84.2 package rather than accepted", async () => {
+  const env = { LOCALAPPDATA: "C:\\Users\\Test Writer\\AppData\\Local" };
+  const root = managedPiRoot({ platform: "win32", env });
+  const command = managedPiCommand({ platform: "win32", env, root });
+  const npmCommand = "C:\\Program Files\\nodejs\\npm.cmd";
+  let installed = false;
+  const calls = [];
+  const result = await ensureManagedPiInstalled({
+    platform: "win32",
+    env,
+    root,
+    nodeExecutable: "C:\\Program Files\\nodejs\\node.exe",
+    nodeVersion: "22.19.0",
+    npmCommand,
+    existsSync: (candidate) => candidate === command || candidate === npmCommand,
+    runPortableCommand: async (cmd, args) => {
+      calls.push([cmd, ...args]);
+      if (args[0] === "install") {
+        installed = true;
+        return { stdout: "installed", stderr: "" };
+      }
+      return { stdout: installed ? "0.84.2" : "0.83.0", stderr: "" };
+    },
+  });
+  assert.equal(result.ready, true);
+  assert.equal(result.version, "0.84.2");
+  assert.equal(result.installed, true);
+  assert.ok(calls.some((entry) => entry.at(-1) === PLOTPICKLE_MANAGED_PI_PACKAGE));
+});
+
+test("#1185 wrong managed Pi version fails closed when installation is disabled", async () => {
+  const env = { LOCALAPPDATA: "C:\\Users\\Test Writer\\AppData\\Local" };
+  const command = managedPiCommand({ platform: "win32", env });
+  await assert.rejects(() => ensureManagedPiInstalled({
+    platform: "win32",
+    env,
+    nodeVersion: "22.19.0",
+    allowInstall: false,
+    existsSync: (candidate) => candidate === command,
+    runPortableCommand: async () => ({ stdout: "0.83.0", stderr: "" }),
+  }), /Expected 0\.84\.2; found 0\.83\.0/u);
 });
 
 test("#1185 startup health provisions managed Pi when worker preflight says unavailable and exports the absolute command", async () => {
@@ -88,6 +137,7 @@ test("#1185 repair-stack bootstrap uses managed Pi and never recommends killing 
   const runtime = await read("scripts/pi-worker-runtime.mjs");
   const combined = `${managed}\n${ensure}\n${runtime}`;
   assert.match(ensure, /ensureManagedPiInstalled/);
+  assert.match(managed, /PLOTPICKLE_MANAGED_PI_VERSION = "0\.84\.2"/u);
   assert.match(managed, /resolveActiveNpmCommand/);
   assert.match(managed, /"-g",\s*\n\s*"--prefix", root/);
   assert.match(runtime, /windowsBatchArguments/);

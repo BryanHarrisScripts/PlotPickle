@@ -8,11 +8,17 @@ on:
       - "app/profile-access/**"
       - "app/layout.tsx"
       - "app/sage-settings-workspace.tsx"
+      - "app/settings-dark-surface-guard.css"
+      - "app/settings-panel.tsx"
+      - "app/plotpickle-workspace-shell.tsx"
+      - "public/assets/workflow-relics/library.svg"
+      - "public/assets/workflow-relics/profile.svg"
       - "core/auth/**"
       - "core/storage/**"
       - "modules/learn/ui/learn-workspace.tsx"
       - "modules/wyrmwood/ui/wyrmwood-workspace.tsx"
       - "tests/issue-1143-profile-experience.test.mjs"
+      - "tests/issue-1210-ui-housekeeping.test.mjs"
       - "package.json"
       - "config/uat-autopilot-registry.json"
       - ".github/workflows/profile-experience.yml"
@@ -45,7 +51,7 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --no-audit --no-fund
       - name: Validate profile experience
-        run: npm run test:profile-experience
+        run: npm run test:profile-experience && node --test tests/issue-1210-ui-housekeeping.test.mjs
       - name: Validate Auth and session dependencies
         run: npm run test:auth-core && npm run test:profile-vault && npm run test:profile-storage && npm run test:server-session
       - name: Production build

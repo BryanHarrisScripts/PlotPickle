@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
-  <title id="title">Library relic</title>
-  <desc id="desc">A PlotPickle archive seal with an open brass-bound book, iron frame and teal memory gem.</desc>
+  <title id="title">Profile relic</title>
+  <desc id="desc">A PlotPickle identity seal with an iron frame, brass filigree and a teal soul gem.</desc>
   <defs>
     <radialGradient id="gem" cx="38%" cy="30%" r="72%">
       <stop offset="0" stop-color="#effffc"/>
@@ -20,12 +20,8 @@
       <stop offset="0.48" stop-color="#111817"/>
       <stop offset="1" stop-color="#52615b"/>
     </linearGradient>
-    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#d7c99f"/>
-      <stop offset="1" stop-color="#7f7456"/>
-    </linearGradient>
     <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
-      <feGaussianBlur stdDeviation="2.3" result="blur"/>
+      <feGaussianBlur stdDeviation="2.2" result="blur"/>
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
@@ -33,13 +29,12 @@
     <path d="M48 6 56 13 67 11 72 21 83 26 80 38 88 48 80 58 83 70 72 75 67 85 56 83 48 90 40 83 29 85 24 75 13 70 16 58 8 48 16 38 13 26 24 21 29 11 40 13Z" fill="url(#iron)" stroke="#2c3431" stroke-width="2"/>
     <circle cx="48" cy="48" r="34" fill="#080b0b" stroke="url(#gold)" stroke-width="4"/>
     <circle cx="48" cy="48" r="27" stroke="#86632d" stroke-width="1.5" opacity=".82"/>
-    <path d="M24 34c8-3 15-2 24 4v31c-8-6-16-8-24-5Z" fill="url(#page)" stroke="url(#gold)" stroke-width="2.3"/>
-    <path d="M72 34c-8-3-15-2-24 4v31c8-6 16-8 24-5Z" fill="url(#page)" stroke="url(#gold)" stroke-width="2.3"/>
-    <path d="M48 38v31" stroke="#5e431d" stroke-width="2"/>
-    <path d="M29 43c5-1 9 0 14 3M29 50c5-1 9 0 14 3M29 57c5-1 9 0 14 3M53 46c5-3 9-4 14-3M53 53c5-3 9-4 14-3M53 60c5-3 9-4 14-3" stroke="#5d563f" stroke-width="1.5" opacity=".82"/>
-    <path d="M48 22 55 28 53 39 48 45 43 39 41 28Z" fill="url(#gem)" stroke="#d7bc76" stroke-width="2" filter="url(#glow)"/>
-    <path d="m46 28 2-3 3 3-1 8-2 3-2-3Z" fill="#b6fff1" stroke="#effffc" stroke-width=".7" opacity=".92"/>
-    <path d="M20 71c9 2 18 5 28 11 10-6 19-9 28-11" stroke="#b4873d" stroke-width="2" opacity=".82"/>
-    <path d="M18 48h6M72 48h6M48 14v7M48 75v7" stroke="#8f6c31" stroke-width="1.6" opacity=".7"/>
+    <path d="M32 69c2-12 8-18 16-18s14 6 16 18" fill="#131b19" stroke="url(#gold)" stroke-width="2.5"/>
+    <circle cx="48" cy="36" r="11" fill="#151d1b" stroke="url(#gold)" stroke-width="2.5"/>
+    <path d="M39 35c2-7 6-10 9-10 5 0 8 4 9 10-3-2-6-3-9-3s-6 1-9 3Z" fill="#242d29" stroke="#b4873d" stroke-width="1.4"/>
+    <path d="M48 56 54 61 52 70 48 75 44 70 42 61Z" fill="url(#gem)" stroke="#d7bc76" stroke-width="2" filter="url(#glow)"/>
+    <path d="m46 61 2-2 2 2-1 7-1 2-1-2Z" fill="#b6fff1" stroke="#effffc" stroke-width=".7" opacity=".9"/>
+    <path d="M24 48h8M64 48h8M48 16v7M48 73v7" stroke="#b4873d" stroke-width="1.8" opacity=".8"/>
+    <path d="M28 27l6 6M68 27l-6 6M28 69l6-6M68 69l-6-6" stroke="#8f6c31" stroke-width="1.4" opacity=".72"/>
   </g>
 </svg>

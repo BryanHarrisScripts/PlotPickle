@@ -1,6 +1,6 @@
-import { createECDH } from "node:crypto";
 import { spawn } from "node:child_process";
-import type { IncomingMessage, ServerResponse } from "node:http";
+import { createECDH } from "node:crypto";
+import type { IncomingMessage } from "node:http";
 import type { Plugin } from "vite";
 import { BUZZ_GUILDHALL_ACTORS } from "../lib/buzz-guildhall";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
@@ -46,44 +46,17 @@ function safeError(error: unknown) {
     .slice(0, 700);
 }
 
-function isLoopback(value: string | undefined) {
-  return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
-}
-
-function isLocalRequest(request: IncomingMessage) {
-  if (!isLoopback(request.socket.remoteAddress)) return false;
-  const host = request.headers.host;
-  if (!host) return false;
-  try {
-    const hostUrl = new URL(`http://${host}`);
-    if (!["127.0.0.1", "localhost", "[::1]"].includes(hostUrl.hostname)) return false;
-    const origin = request.headers.origin;
-    return !origin || new URL(origin).host === hostUrl.host;
-  } catch {
-    return false;
-  }
-}
-
-function sendJson(response: ServerResponse, statusCode: number, body: Record<string, unknown>) {
-  response.statusCode = statusCode;
-  response.setHeader("Content-Type", "application/json; charset=utf-8");
-  response.setHeader("Cache-Control", "no-store");
-  response.setHeader("X-Content-Type-Options", "nosniff");
-  response.setHeader("Referrer-Policy", "no-referrer");
-  response.end(JSON.stringify(body));
-}
-
-async function readBody(request: IncomingMessage) {
+async function readIdentityPayload(request: IncomingMessage, byteLimit: number, label: string) {
   const chunks: Buffer[] = [];
   let bytes = 0;
   for await (const chunk of request) {
     const value = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     bytes += value.length;
-    if (bytes > MAX_BODY) throw new Error("The BUZZ identity request is too large.");
+    if (bytes > byteLimit) throw new Error(`The ${label} request is too large.`);
     chunks.push(value);
   }
   const decoded: unknown = JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
-  if (!decoded || typeof decoded !== "object" || Array.isArray(decoded)) throw new Error("The BUZZ identity request is invalid.");
+  if (!decoded || typeof decoded !== "object" || Array.isArray(decoded)) throw new Error(`The ${label} request is invalid.`);
   return decoded as Record<string, unknown>;
 }
 
@@ -91,25 +64,13 @@ function normalizeRelayUrl(value: unknown) {
   const source = text(value);
   if (!source) throw new Error("Enter the BUZZ community address before creating or connecting an identity.");
   const withProtocol = /^[a-z]+:\/\//i.test(source) ? source : `https://${source}`;
+  if (!URL.canParse(withProtocol)) throw new Error("Enter a complete BUZZ community address.");
   const url = new URL(withProtocol);
   if (!["http:", "https:", "ws:", "wss:"].includes(url.protocol)) throw new Error("BUZZ community addresses must use HTTP, HTTPS, WS or WSS.");
   if (url.username || url.password) throw new Error("Do not put credentials in the BUZZ community address.");
   url.hash = "";
   url.search = "";
   return url.toString().replace(/\/$/, "");
-}
-
-function relayHttpUrl(value: string) {
-  const url = new URL(value);
-  if (url.protocol === "ws:") url.protocol = "http:";
-  if (url.protocol === "wss:") url.protocol = "https:";
-  return url.toString().replace(/\/$/, "");
-}
-
-function validPrivateKey(value: unknown) {
-  const key = text(value);
-  if (!/^(nsec1[a-z0-9]+|[a-f0-9]{64})$/i.test(key)) throw new Error("The BUZZ private identity key must be an nsec or a 64-character hexadecimal key.");
-  return key;
 }
 
 function generatedPrivateKey() {
@@ -153,10 +114,13 @@ function nextConnection(existing: BuzzConnection | null, relayUrl: string, priva
 function runCli(connection: BuzzConnection, args: string[]) {
   return new Promise<string>((resolve, reject) => {
     void resolveBuzzCliExecutable(connection.cliPath).then((resolution) => {
+      const relay = new URL(connection.relayUrl);
+      if (relay.protocol === "ws:") relay.protocol = "http:";
+      if (relay.protocol === "wss:") relay.protocol = "https:";
       const child = spawn(resolution.executable, args, {
         env: {
           ...process.env,
-          BUZZ_RELAY_URL: relayHttpUrl(connection.relayUrl),
+          BUZZ_RELAY_URL: relay.toString().replace(/\/$/, ""),
           BUZZ_PRIVATE_KEY: connection.privateKey,
         },
         windowsHide: true,
@@ -172,18 +136,20 @@ function runCli(connection: BuzzConnection, args: string[]) {
         child.kill("SIGKILL");
         reject(new Error("BUZZ Desktop did not finish the identity operation within 20 seconds."));
       }, 20_000);
-      const collect = (target: Buffer[], chunk: Buffer) => {
+      const capture = (target: Buffer[], chunk: Buffer, streamName: string) => {
         outputBytes += chunk.length;
-        if (outputBytes <= MAX_OUTPUT) target.push(chunk);
-        else if (!settled) {
-          settled = true;
-          clearTimeout(timer);
-          child.kill("SIGKILL");
-          reject(new Error("BUZZ Desktop returned more identity data than PlotPickle permits."));
+        if (outputBytes <= MAX_OUTPUT) {
+          target.push(chunk);
+          return;
         }
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        child.kill("SIGKILL");
+        reject(new Error(`BUZZ Desktop returned too much ${streamName} data for the Profile identity operation.`));
       };
-      child.stdout.on("data", (chunk: Buffer) => collect(output, chunk));
-      child.stderr.on("data", (chunk: Buffer) => collect(errors, chunk));
+      child.stdout.on("data", (chunk: Buffer) => capture(output, chunk, "profile"));
+      child.stderr.on("data", (chunk: Buffer) => capture(errors, chunk, "diagnostic"));
       child.once("error", () => {
         if (settled) return;
         settled = true;
@@ -214,7 +180,8 @@ function recordsFrom(value: unknown): Record<string, unknown>[] {
   return [];
 }
 
-function firstString(item: Record<string, unknown>, keys: string[]) {
+function profileText(item: Record<string, unknown>, primaryKey: string, fallbackKeys: readonly string[]) {
+  const keys = [primaryKey, ...fallbackKeys];
   for (const key of keys) {
     const value = item[key];
     if (typeof value === "string" && value.trim()) return value.trim();
@@ -235,15 +202,14 @@ function agentIdForDisplayName(displayName: string) {
 
 async function readConnectedProfile(connection: BuzzConnection) {
   const source = await runCli(connection, ["--format", "compact", "users", "get"]);
-  let decoded: unknown;
-  try { decoded = JSON.parse(source || "null"); } catch { throw new Error("BUZZ Desktop returned invalid profile data."); }
+  const decoded: unknown = JSON.parse(source || "null");
   const candidates = recordsFrom(decoded);
   return candidates.find((item) => item.owned_by_me === true || item.ownedByMe === true) ?? candidates[0] ?? null;
 }
 
 function safeIdentity(connection: BuzzConnection, profile: Record<string, unknown> | null, displayNameFallback: string): PublicIdentity {
-  const displayName = profile ? firstString(profile, ["display_name", "displayName", "name", "username"]) || displayNameFallback : displayNameFallback;
-  const publicKey = profile ? firstString(profile, ["pubkey", "public_key", "publicKey", "npub"]) : "";
+  const displayName = profile ? profileText(profile, "display_name", ["displayName", "name", "username"]) || displayNameFallback : displayNameFallback;
+  const publicKey = profile ? profileText(profile, "pubkey", ["public_key", "publicKey", "npub"]) : "";
   const pubkey = publicKey || publicKeyFromHexPrivateKey(connection.privateKey);
   const agentId = agentIdForDisplayName(displayName);
   return agentId ? {
@@ -281,6 +247,7 @@ function avatarUrl(value: unknown) {
   const source = text(value);
   if (!source) return "";
   if (source.length > 2_048) throw new Error("Avatar image address is too long.");
+  if (!URL.canParse(source)) throw new Error("BUZZ avatar images must use a complete secure https:// address.");
   const url = new URL(source);
   if (url.protocol !== "https:" || url.username || url.password) throw new Error("BUZZ avatar images must use a secure https:// address without credentials.");
   return url.toString();
@@ -305,7 +272,8 @@ async function handleIdentityAction(body: Record<string, unknown>) {
 
   if (action === "import") {
     const relayUrl = normalizeRelayUrl(body.relayUrl || existing?.relayUrl);
-    const privateKey = validPrivateKey(body.privateKey);
+    const privateKey = text(body.privateKey);
+    if (!/^(nsec1[a-z0-9]+|[a-f0-9]{64})$/i.test(privateKey)) throw new Error("The BUZZ private identity key must be an nsec or a 64-character hexadecimal key.");
     const connection = nextConnection(existing, relayUrl, privateKey, "imported");
     connection.identityLabel = profileDisplayName(body.displayName || existing?.identityLabel || "PlotPickle Human");
     await writeCredentialJson(CONNECTION_FILE, connection);
@@ -332,20 +300,15 @@ async function handleIdentityAction(body: Record<string, unknown>) {
     const picture = avatarUrl(body.avatarUrl);
 
     if (existing.identitySource === "imported") {
-      try {
-        const before = await readConnectedProfile(existing);
-        const priorName = before ? firstString(before, ["display_name", "displayName", "name", "username"]) : "";
-        if (priorName && agentIdForDisplayName(priorName)) throw new Error("A PlotPickle agent BUZZ identity cannot be connected as the Human Profile.");
-      } catch (error) {
-        if (/agent BUZZ identity/i.test(error instanceof Error ? error.message : "")) throw error;
-        // A fresh imported key may not have a published BUZZ profile yet. The write below remains the verification step.
-      }
+      const before = await readConnectedProfile(existing);
+      const priorName = before ? profileText(before, "display_name", ["displayName", "name", "username"]) : "";
+      if (priorName && agentIdForDisplayName(priorName)) throw new Error("A PlotPickle agent BUZZ identity cannot be connected as the Human Profile.");
     }
 
     const args = ["users", "set-profile", "--name", displayName, "--about", bio];
     if (picture) args.push("--picture", picture);
     await runCli(existing, args);
-    const profile = await readConnectedProfile(existing).catch(() => null);
+    const profile = await readConnectedProfile(existing);
     const identity = safeIdentity(existing, profile, displayName);
     if (!identity.humanCommunityAllowed) throw new Error(identity.message);
     const verifiedConnection: BuzzConnection = { ...existing, identityLabel: displayName, verifiedAt: new Date().toISOString(), verificationVersion: 2 };
@@ -363,18 +326,45 @@ export function buzzProfileIdentityGateway(): Plugin {
     configureServer(server) {
       server.middlewares.use((request, response, next) => {
         const rawUrl = request.url;
-        if (!rawUrl) { next(); return; }
-        let url: URL;
-        try { url = new URL(rawUrl, "http://127.0.0.1"); } catch { next(); return; }
+        if (!rawUrl || !URL.canParse(rawUrl, "http://127.0.0.1")) { next(); return; }
+        const url = new URL(rawUrl, "http://127.0.0.1");
         if (request.method !== "POST" || url.pathname !== `${API}/human-identity`) { next(); return; }
-        if (!isLocalRequest(request)) {
-          sendJson(response, 403, { ok: false, message: "BUZZ identity controls are available only from the local PlotPickle application." });
+
+        const remoteAddress = request.socket.remoteAddress;
+        const host = request.headers.host || "";
+        const origin = request.headers.origin || "";
+        const loopback = remoteAddress === "127.0.0.1" || remoteAddress === "::1" || remoteAddress === "::ffff:127.0.0.1";
+        const hostSource = `http://${host}`;
+        const localHost = URL.canParse(hostSource) && ["127.0.0.1", "localhost", "[::1]"].includes(new URL(hostSource).hostname);
+        const sameOrigin = !origin || (URL.canParse(origin) && new URL(origin).host === new URL(hostSource).host);
+        if (!loopback || !localHost || !sameOrigin) {
+          response.statusCode = 403;
+          response.setHeader("Content-Type", "application/json; charset=utf-8");
+          response.setHeader("Cache-Control", "no-store");
+          response.setHeader("X-Content-Type-Options", "nosniff");
+          response.setHeader("Referrer-Policy", "no-referrer");
+          response.end(JSON.stringify({ ok: false, message: "BUZZ identity controls are available only from the local PlotPickle application." }));
           return;
         }
-        void readBody(request)
+
+        void readIdentityPayload(request, MAX_BODY, "BUZZ identity")
           .then(handleIdentityAction)
-          .then((result) => sendJson(response, 200, result))
-          .catch((error) => sendJson(response, 400, { ok: false, message: safeError(error) }));
+          .then((result) => {
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "application/json; charset=utf-8");
+            response.setHeader("Cache-Control", "no-store");
+            response.setHeader("X-Content-Type-Options", "nosniff");
+            response.setHeader("Referrer-Policy", "no-referrer");
+            response.end(JSON.stringify(result));
+          })
+          .catch((error) => {
+            response.statusCode = 400;
+            response.setHeader("Content-Type", "application/json; charset=utf-8");
+            response.setHeader("Cache-Control", "no-store");
+            response.setHeader("X-Content-Type-Options", "nosniff");
+            response.setHeader("Referrer-Policy", "no-referrer");
+            response.end(JSON.stringify({ ok: false, message: safeError(error) }));
+          });
       });
     },
   };

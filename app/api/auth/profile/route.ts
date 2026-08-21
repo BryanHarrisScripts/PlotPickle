@@ -27,6 +27,10 @@ export function publicProfileApiError(error: unknown) {
 }
 
 function errorResponse(error: unknown) {
+  if (String(process.env.PLOTPICKLE_STARTUP_CONTRACT || "").startsWith("plotpickle-full-verification")) {
+    const detail = error instanceof Error ? `${error.name}: ${error.message}\n${error.stack || ""}` : String(error);
+    console.error(`[full-verification-synthetic-auth] ${detail.replace(/[\r\n]+/g, " | ").slice(0, 4_000)}`);
+  }
   const detail = publicProfileApiError(error);
   const status = detail.code === "AUTHENTICATION_THROTTLED" ? 429 : detail.code === "ACCESS_DENIED" ? 403 : 400;
   return response(detail, status, "retryAfterMs" in detail ? { "Retry-After": String(Math.ceil(Number(detail.retryAfterMs || 1) / 1_000)) } : {});

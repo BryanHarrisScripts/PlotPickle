@@ -136,7 +136,12 @@ function localBackboneFile(options = {}) {
 
 async function compactLocalBackbone(file) {
   let info;
-  try { info = await stat(file); } catch { return; }
+  try {
+    info = await stat(file);
+  } catch (error) {
+    if (error?.code === "ENOENT") return;
+    throw error;
+  }
   if (info.size <= MAX_LOCAL_BACKBONE_BYTES) return;
   const raw = await readFile(file, "utf8");
   const lines = raw.split(/\r?\n/).filter(Boolean).slice(-MAX_LOCAL_BACKBONE_EVENTS);
@@ -157,12 +162,11 @@ export async function readLocalBuzzActivity(options = {}) {
   const limit = Math.min(MAX_LOCAL_BACKBONE_EVENTS, Math.max(1, Number(options.limit || 100)));
   try {
     const raw = await readFile(file, "utf8");
-    const events = raw.split(/\r?\n/).filter(Boolean).flatMap((line) => {
-      try {
-        const item = JSON.parse(line);
-        return item?.schemaVersion === LOCAL_BACKBONE_SCHEMA_VERSION ? [item] : [];
-      } catch { return []; }
-    });
+    const events = raw
+      .split(/\r?\n/)
+      .filter(Boolean)
+      .map((line) => JSON.parse(line))
+      .filter((item) => item?.schemaVersion === LOCAL_BACKBONE_SCHEMA_VERSION);
     return events.slice(-limit);
   } catch (error) {
     if (error?.code === "ENOENT") return [];

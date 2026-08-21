@@ -4,47 +4,47 @@ import test from "node:test";
 
 const read = (relativePath) => readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 
-test("Community exposes the Backdoor Terminal as a first-class destination", async () => {
+test("#1217 makes native BUZZ social destinations first-class while retaining the Great Hall terminal", async () => {
   const source = await read("app/community-workspace.tsx");
-  assert.match(source, /type CommunitySection = [^;]*"terminal"/);
-  assert.match(source, /\{ id: "terminal", label: "Terminal", primary: true \}/);
+  assert.match(source, /data-community-native-buzz="true"/);
+  assert.match(source, /aria-label="Channels, Forums and Direct Messages"/);
+  assert.match(source, />Channels</);
+  assert.match(source, />Forums</);
+  assert.match(source, />Direct Messages</);
   assert.match(source, /<CommunityBackdoorTerminal/);
-  assert.match(source, /Backdoor Terminal/);
 });
 
-test("#1027 makes the Community BBS the default front door", async () => {
+test("#1217 opens the verified BUZZ Great Hall through the terminal without restoring the retired destination menu", async () => {
   const source = await read("app/community-workspace.tsx");
-  assert.match(source, /useState<CommunitySection>\("terminal"\)/);
-  assert.match(source, /section !== "terminal" \? <header className=\{styles\.hero\}>/);
+  assert.match(source, /setActiveRoom\(\(current\) => current \?\? createGreatHallActiveRoom\(communityBody\.greatHall\)\)/);
+  assert.match(source, /activeRoom \? <CommunityBackdoorTerminal/);
   assert.match(source, /data-community-bbs-server="true"/);
-  assert.match(source, /SERVER \/ NODE/);
   assert.match(source, /data-community-caller="verified-human"/);
-  assert.match(source, /CALLERS/);
+  assert.match(source, /CALLER/);
+  assert.doesNotMatch(source, /type CommunitySection =/);
 });
 
-test("#1027 derives the Buzz lamp from real Community readiness instead of decorative state", async () => {
+test("#1217 derives Community readiness from verified Human BUZZ identity and operational native rooms", async () => {
   const source = await read("app/community-workspace.tsx");
-  assert.match(source, /const connected = Boolean\(community\?\.identityVerified && community\.greatHall\)/);
-  assert.match(source, /const buzzState = !community/);
-  assert.match(source, /community\.configured && !community\.identityVerified/);
-  assert.match(source, /community\.identityVerified && community\.message\.includes\("has not been created"\)/);
-  assert.match(source, /BUZZ ONLINE/);
-  assert.match(source, /BUZZ CHECKING/);
-  assert.match(source, /BUZZ OFFLINE/);
-  assert.match(source, /data-buzz-state=\{buzzState\}/);
-  assert.match(source, /aria-label=\{buzzStatusLabel\}/);
+  assert.match(source, /const connected = Boolean\(community\?\.identityVerified && humanCanPost\)/);
+  assert.match(source, /const operational = Boolean\(guildhall\?\.operational\)/);
+  assert.match(source, /HUMAN BUZZ IDENTITY VERIFIED/);
+  assert.match(source, /BUZZ IDENTITY REQUIRED/);
+  assert.match(source, /Community requires BUZZ/);
+  assert.match(source, /Prepare Community rooms/);
 });
 
-test("#1123 keeps every established Community capability available while Great Hall moves under Story Rooms as Hall 1", async () => {
+test("#1217 preserves PlotPickle Story Rooms, Connected Studios and agents beside native BUZZ social navigation", async () => {
   const source = await read("app/community-workspace.tsx");
-  for (const label of ["Overview", "Terminal", "Story Rooms", "Connected Studios", "People", "Agents & Stewards", "Review Queue", "Guildhall"]) {
-    assert.match(source, new RegExp(`label: "${label.replace(/[&]/g, "&")}"`), `Missing Community destination ${label}`);
+  for (const label of ["Private Story Rooms", "Connected Studios"]) {
+    assert.match(source, new RegExp(label), `Missing PlotPickle compatibility destination ${label}`);
   }
-  assert.doesNotMatch(source, /\{ id: "great-hall", label: "Great Hall"/);
-  assert.match(source, /data-community-room=\{COMMUNITY_GREAT_HALL_ROOM_ID\}/);
-  assert.match(source, /Hall 1 · Great Hall/);
-  assert.match(source, /data-community-section=\{item\.id\}/);
-  assert.match(source, /onClick=\{\(\) => setSection\(item\.id\)\}/);
+  assert.match(source, /Agents &amp; Stewards/);
+  assert.match(source, /CommunityStoryRoomAccess/);
+  assert.match(source, /ConnectedStudiosPanel/);
+  assert.match(source, /CommunityAgentRoster/);
+  assert.match(source, /data-community-room=\{room\.id\}/);
+  assert.match(source, /room\.id === "great-hall"/);
 });
 
 test("terminal provides keyboard-first controls and Enter-to-send without stealing typing shortcuts", async () => {
@@ -92,7 +92,7 @@ test("terminal uses real Community and Guildhall routes rather than fake users o
   assert.match(workspace, /recentActivity=\{community\?\.recentActivity \?\? \[\]\}/);
   assert.match(workspace, /readyGuildhallRooms=\{guildhall\?\.readyRooms \?\? \[\]\}/);
   assert.match(workspace, /storyRooms=\{storyRooms\}/);
-  assert.match(workspace, /reviews=\{reviews\}/);
+  assert.match(workspace, /reviews=\{\[\]\}/);
 });
 
 test("TALK is honest about shared human routes and agent home-room addressing", async () => {

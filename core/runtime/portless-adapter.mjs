@@ -372,6 +372,31 @@ export function createPortlessLoopbackFetch(proxy, { requestImpl = http.request 
   };
 }
 
+async function waitForExactPortlessProof(record, {
+  fetchImpl,
+  expectedGeneration,
+  expectedCommitSha,
+  expectedInstanceRef,
+  timeoutMs = 5_000,
+  retryMs = 100,
+} = {}) {
+  const deadline = Date.now() + timeoutMs;
+  let lastProof = { ok: false, reason: "Portless route did not become ready before the bounded deadline." };
+  while (Date.now() <= deadline) {
+    lastProof = await verifyExactLocalInstance(record, {
+      fetchImpl,
+      expectedGeneration,
+      expectedCommitSha,
+      expectedInstanceRef,
+      timeoutMs: Math.max(100, Math.min(1_000, deadline - Date.now() + 100)),
+    });
+    if (lastProof.ok) return lastProof;
+    if (Date.now() >= deadline) break;
+    await new Promise((resolve) => setTimeout(resolve, retryMs));
+  }
+  return lastProof;
+}
+
 async function persistRuntimeRegistry(runtime) {
   if (!runtime?.registry || !runtime?.registryPath) return;
   await mkdir(path.dirname(runtime.registryPath), { recursive: true, mode: 0o700 });
@@ -419,12 +444,11 @@ export async function attachPortlessAlias(runtime, {
       url: routeUrl,
     });
     const proofFetch = fetchImpl || createPortlessLoopbackFetch(proxy);
-    const proof = await verifyExactLocalInstance(runtime.record, {
+    const proof = await waitForExactPortlessProof(runtime.record, {
       fetchImpl: proofFetch,
       expectedGeneration: runtime.record.generation,
       expectedCommitSha: runtime.record.commitSha,
       expectedInstanceRef: directRecord.instanceRef,
-      timeoutMs: 5_000,
     });
     if (!proof.ok) throw new Error(`Portless route exact-instance proof failed: ${proof.reason}`);
     runtime.record = runtime.registry.markReadiness(runtime.endpointId, "ready", {
@@ -488,12 +512,11 @@ export async function remapPortlessAlias(runtime, adapter, {
   });
   await runPortlessAlias(adapter.runtime, adapter.proxy, ["alias", adapter.routeName, String(nextPort), "--force"], { env, execFileImpl });
   const proofFetch = fetchImpl || createPortlessLoopbackFetch(adapter.proxy);
-  const proof = await verifyExactLocalInstance(runtime.record, {
+  const proof = await waitForExactPortlessProof(runtime.record, {
     fetchImpl: proofFetch,
     expectedGeneration: runtime.record.generation,
     expectedCommitSha: runtime.record.commitSha,
     expectedInstanceRef: instanceRef,
-    timeoutMs: 5_000,
   });
   if (!proof.ok) throw new Error(`Remapped Portless route exact-instance proof failed: ${proof.reason}`);
   runtime.record = runtime.registry.markReadiness(runtime.endpointId, "ready", {

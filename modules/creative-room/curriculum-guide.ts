@@ -1,4 +1,5 @@
 import type { CurriculumGuide, CurriculumGuideRequest } from "../../core/contracts/curriculum-guide";
+import { stripKnownPromptScaffolding } from "../../lib/text-normalization";
 import {
   buildCurriculumRagInventory,
   retrieveCurriculumContext,
@@ -21,6 +22,13 @@ const EMPTY_RETRIEVAL: CurriculumRetrieval = {
   sourceIds: [],
   sourceChunkIds: [],
 };
+
+const PROMPT_SCAFFOLD_LABELS = [
+  "student_question",
+  "conversation_memory",
+  "project_memory",
+  "curriculum_context",
+] as const;
 
 function xmlText(value: string) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -189,12 +197,7 @@ export function buildCurriculumGuideModelRequest(
 const INTERNAL_SCAFFOLD_LINE = /^(?:\[LOCAL CURRICULUM BLOCK\b.*\]|Status:|Authority:|Lesson:|Section:|Bundled curriculum material:|Material type:|Curriculum scope:|Historical claim:|Current correction \().*$/i;
 
 export function stripInternalScaffolding(value: string) {
-  return value
-    .replace(/&lt;\s*\/?\s*[a-z][a-z0-9_-]*(?:\s+[^&\n]{0,120})?&gt;/gi, "")
-    .replace(/\\u003c\s*\/?\s*[a-z][a-z0-9_-]*(?:[^\\\n]{0,120})?\\u003e/gi, "")
-    .replace(/<\s*\/?\s*[a-z][a-z0-9_-]*(?:\s+[^>\n]{0,120})?>/gi, "")
-    .replace(/^\s*(?:student_question|conversation_memory|project_memory|curriculum_context)\s*:?\s*$/gim, "")
-    .replace(/\r/g, "");
+  return stripKnownPromptScaffolding(value, PROMPT_SCAFFOLD_LABELS);
 }
 
 function cleanGuideAnswer(value: string) {

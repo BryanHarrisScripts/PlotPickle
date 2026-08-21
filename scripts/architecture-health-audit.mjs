@@ -4,19 +4,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { performance } from "node:perf_hooks";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const EXCLUDED_DIRECTORY_NAMES = new Set([
-  ".git",
-  "node_modules",
-  ".next",
-  ".vinext",
-  "dist",
-  "coverage",
-  ".artifacts",
-  ".wrangler",
-]);
-const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
-const PRODUCTION_GLOBAL_SIGNAL_ROOTS = new Set(["app", "core", "modules", "lib", "adapters", "build"]);
-const MAJOR_DIRECTORY_CLASSIFICATION = {
+const SKIP = new Set([".git", "node_modules", ".next", ".vinext", "dist", "coverage", ".artifacts", ".wrangler"]);
+const SOURCE_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"];
+const DIRECTORY_CLASSES = {
   app: "active production runtime / application composition",
   core: "public contracts and canonical host-owned domain state",
   modules: "feature modules",
@@ -35,271 +25,163 @@ const MAJOR_DIRECTORY_CLASSIFICATION = {
   public: "static product assets",
 };
 
-async function exists(absolutePath) {
-  try {
-    await stat(absolutePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
+async function exists(file) { try { await stat(file); return true; } catch { return false; } }
+async function text(relative) { return readFile(path.join(ROOT, relative), "utf8"); }
+async function json(relative) { return JSON.parse(await text(relative)); }
 
-async function walkDirectory(absoluteDirectory, relativeDirectory = "") {
-  if (!(await exists(absoluteDirectory))) return [];
-  const entries = await readdir(absoluteDirectory, { withFileTypes: true });
+async function walk(dir = ROOT, relative = "") {
   const files = [];
-  for (const entry of entries) {
-    if (entry.isDirectory() && EXCLUDED_DIRECTORY_NAMES.has(entry.name)) continue;
-    const relativePath = path.posix.join(relativeDirectory.replaceAll("\\", "/"), entry.name);
-    const absolutePath = path.join(absoluteDirectory, entry.name);
-    if (entry.isDirectory()) files.push(...await walkDirectory(absolutePath, relativePath));
-    else if (entry.isFile()) {
-      const details = await stat(absolutePath);
-      files.push({ path: relativePath, bytes: details.size });
-    }
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    if (entry.isDirectory() && SKIP.has(entry.name)) continue;
+    const absolute = path.join(dir, entry.name);
+    const next = path.posix.join(relative.replaceAll("\\", "/"), entry.name);
+    if (entry.isDirectory()) files.push(...await walk(absolute, next));
+    else if (entry.isFile()) files.push({ path: next, bytes: (await stat(absolute)).size });
   }
   return files;
 }
 
-async function readJson(relativePath) {
-  return JSON.parse(await readFile(path.join(ROOT, relativePath), "utf8"));
-}
-
-async function readText(relativePath) {
-  return readFile(path.join(ROOT, relativePath), "utf8");
-}
-
-function sumBytes(files) {
-  return files.reduce((total, file) => total + file.bytes, 0);
-}
-
-function duplicateValues(record) {
-  const byValue = new Map();
-  for (const [key, value] of Object.entries(record)) {
-    const list = byValue.get(value) ?? [];
-    list.push(key);
-    byValue.set(value, list);
+function imports(source) {
+  const found = [];
+  for (const regex of [/\b(?:import|export)\s+(?:[^"']*?\s+from\s+)?["']([^"']+)["']/g, /\bimport\(\s*["']([^"']+)["']\s*\)/g]) {
+    for (const match of source.matchAll(regex)) found.push(match[1]);
   }
-  return [...byValue.entries()]
-    .filter(([, keys]) => keys.length > 1)
-    .map(([command, keys]) => ({ command, keys }));
+  return found;
 }
 
-function extractImportSpecifiers(source) {
-  const specifiers = [];
-  const patterns = [
-    /\b(?:import|export)\s+(?:[^"']*?\s+from\s+)?["']([^"']+)["']/g,
-    /\bimport\(\s*["']([^"']+)["']\s*\)/g,
-  ];
-  for (const pattern of patterns) {
-    for (const match of source.matchAll(pattern)) specifiers.push(match[1]);
+async function sourceTarget(base) {
+  for (const candidate of [base, ...SOURCE_EXTENSIONS.map((ext) => `${base}${ext}`), ...SOURCE_EXTENSIONS.map((ext) => path.posix.join(base, `index${ext}`))]) {
+    if (await exists(path.join(ROOT, candidate))) return candidate;
   }
-  return specifiers;
+  return null;
 }
 
-function moduleNameFor(relativePath) {
-  const normalized = relativePath.replaceAll("\\", "/");
-  const parts = normalized.split("/");
-  return parts[0] === "modules" ? parts[1] : null;
+function isCoreBridge(source) {
+  const code = source.replace(/^\s*\/\/.*$/gm, "").trim();
+  const statements = code.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+  return statements.length > 0 && statements.every((line) => /^export\s+\*\s+from\s+["'](?:\.\.\/)+core\/[^"']+["'];?$/.test(line));
 }
 
-function resolvedRelativeImport(sourcePath, specifier) {
-  if (!specifier.startsWith(".")) return null;
-  return path.posix.normalize(path.posix.join(path.posix.dirname(sourcePath), specifier));
-}
-
-async function auditModuleBoundaries(files) {
-  const sourceFiles = files.filter((file) => file.path.startsWith("modules/") && SOURCE_EXTENSIONS.has(path.extname(file.path)));
+async function moduleBoundaryAudit(files) {
   const violations = [];
-  for (const file of sourceFiles) {
-    const sourceModule = moduleNameFor(file.path);
-    const source = await readText(file.path);
-    for (const specifier of extractImportSpecifiers(source)) {
-      const resolved = resolvedRelativeImport(file.path, specifier);
-      if (!resolved?.startsWith("modules/")) continue;
-      const targetModule = moduleNameFor(resolved);
-      if (targetModule && sourceModule && targetModule !== sourceModule) {
-        violations.push({ source: file.path, target: specifier, sourceModule, targetModule });
-      }
+  const bridges = [];
+  for (const file of files.filter((item) => item.path.startsWith("modules/") && SOURCE_EXTENSIONS.includes(path.extname(item.path)))) {
+    const sourceModule = file.path.split("/")[1];
+    for (const specifier of imports(await text(file.path))) {
+      if (!specifier.startsWith(".")) continue;
+      const targetBase = path.posix.normalize(path.posix.join(path.posix.dirname(file.path), specifier));
+      if (!targetBase.startsWith("modules/")) continue;
+      const targetModule = targetBase.split("/")[1];
+      if (targetModule === sourceModule) continue;
+      const target = await sourceTarget(targetBase);
+      if (target && isCoreBridge(await text(target))) bridges.push({ source: file.path, target });
+      else violations.push({ source: file.path, target: specifier, sourceModule, targetModule });
     }
   }
-  return violations;
+  return { violations, bridges };
 }
 
-async function auditGlobalStateSignals(files) {
+async function directoryInventory(files) {
+  return Promise.all(Object.entries(DIRECTORY_CLASSES).map(async ([directory, classification]) => {
+    const owned = files.filter((file) => file.path.startsWith(`${directory}/`));
+    return { directory, classification, present: await exists(path.join(ROOT, directory)), fileCount: owned.length, bytes: owned.reduce((sum, file) => sum + file.bytes, 0) };
+  }));
+}
+
+function duplicateCommands(scripts) {
+  const grouped = new Map();
+  for (const [name, command] of Object.entries(scripts)) grouped.set(command, [...(grouped.get(command) ?? []), name]);
+  return [...grouped.entries()].filter(([, names]) => names.length > 1).map(([command, names]) => ({ command, names }));
+}
+
+async function globalSignals(files) {
+  const pattern = /\b(globalThis\.)?(currentProfile|currentHuman|currentProject|currentProvider|currentSigner|currentMemoryStore)\b/g;
   const signals = [];
-  const suspicious = /\b(globalThis\.)?(currentProfile|currentHuman|currentProject|currentProvider|currentSigner|currentMemoryStore)\b/g;
-  for (const file of files) {
-    const root = file.path.split("/")[0];
-    if (!PRODUCTION_GLOBAL_SIGNAL_ROOTS.has(root) || !SOURCE_EXTENSIONS.has(path.extname(file.path))) continue;
-    const source = await readText(file.path);
-    const matches = [...source.matchAll(suspicious)].map((match) => match[0]);
+  for (const file of files.filter((item) => ["app", "core", "modules", "lib", "adapters", "build"].includes(item.path.split("/")[0]) && SOURCE_EXTENSIONS.includes(path.extname(item.path)))) {
+    const matches = [...(await text(file.path)).matchAll(pattern)].map((match) => match[0]);
     if (matches.length) signals.push({ path: file.path, matches: [...new Set(matches)] });
   }
   return signals;
 }
 
-async function directoryInventory(files) {
-  const inventory = [];
-  for (const [directory, classification] of Object.entries(MAJOR_DIRECTORY_CLASSIFICATION)) {
-    const prefix = `${directory}/`;
-    const present = await exists(path.join(ROOT, directory));
-    const ownedFiles = files.filter((file) => file.path === directory || file.path.startsWith(prefix));
-    inventory.push({ directory, classification, present, fileCount: ownedFiles.length, bytes: sumBytes(ownedFiles) });
+async function outputSizes() {
+  const result = [];
+  for (const directory of [".vinext", ".next", "dist"]) {
+    if (!(await exists(path.join(ROOT, directory)))) continue;
+    const files = await walk(path.join(ROOT, directory), directory);
+    result.push({ directory, fileCount: files.length, bytes: files.reduce((sum, file) => sum + file.bytes, 0) });
   }
-  return inventory;
+  return result;
 }
 
-async function builtOutputInventory() {
-  const candidates = [".vinext", ".next", "dist"];
-  const output = [];
-  for (const directory of candidates) {
-    const absolute = path.join(ROOT, directory);
-    if (!(await exists(absolute))) continue;
-    const files = await walkDirectory(absolute, directory);
-    output.push({ directory, fileCount: files.length, bytes: sumBytes(files) });
-  }
-  return output;
-}
-
-function markdownReport(report) {
-  const lines = [
-    "# PlotPickle architecture health audit",
-    "",
-    `Status: **${report.status.toUpperCase()}**`,
-    `Generated: ${report.generatedAt}`,
-    `Audit runtime: ${report.performance.auditDurationMs} ms`,
-    "",
-    "## Architecture invariants",
-    "",
-    ...report.invariants.map((item) => `- ${item.pass ? "PASS" : "FAIL"} — ${item.name}${item.detail ? `: ${item.detail}` : ""}`),
-    "",
-    "## Repository surface",
-    "",
-    `- tracked source/developer files inspected: ${report.repository.fileCount}`,
-    `- inspected bytes: ${report.repository.bytes}`,
-    `- package scripts: ${report.packageSurface.scriptCount}`,
-    `- scripts directly referencing historical issue-number tests: ${report.packageSurface.issueReferencedScriptCount}`,
-    `- duplicate script command bodies: ${report.packageSurface.duplicateCommandBodies.length}`,
-    `- production dependencies: ${report.dependencies.production}`,
-    `- development dependencies: ${report.dependencies.development}`,
-    "",
-    "## Major directories",
-    "",
-    ...report.directories.map((item) => `- ${item.directory}/ — ${item.classification}; ${item.fileCount} files; ${item.bytes} bytes`),
-    "",
-    "## Review signals",
-    "",
-    `- mutable-current-state token signals requiring human review (not automatic defects): ${report.reviewSignals.globalState.length}`,
-    `- mirrored MCP compatibility config matches canonical config: ${report.mcp.mirrorMatchesCanonical}`,
-    "",
-    "## Build output present during this run",
-    "",
-    ...(report.performance.builtOutputs.length
-      ? report.performance.builtOutputs.map((item) => `- ${item.directory}: ${item.fileCount} files; ${item.bytes} bytes`)
-      : ["- No production build output was present. Run this audit after `npm run build` to capture bundle/output size."]),
-    "",
-    "## Material findings",
-    "",
-    ...(report.materialFindings.length ? report.materialFindings.map((finding) => `- ${finding}`) : ["- None."]),
-    "",
-    "Historical issue-number test commands are reported as maintenance surface only. They are not removed unless a stable subsystem command proves equivalent coverage.",
-    "",
-  ];
-  return `${lines.join("\n")}\n`;
+function markdown(report) {
+  return [
+    "# PlotPickle architecture health audit", "",
+    `Status: **${report.status.toUpperCase()}**`, `Generated: ${report.generatedAt}`, `Audit runtime: ${report.performance.auditDurationMs} ms`, "",
+    "## Architecture invariants", "", ...report.invariants.map((item) => `- ${item.pass ? "PASS" : "FAIL"} — ${item.name}${item.detail ? `: ${item.detail}` : ""}`), "",
+    "## Repository surface", "",
+    `- files inspected: ${report.repository.fileCount}`, `- inspected bytes: ${report.repository.bytes}`,
+    `- package scripts: ${report.packageSurface.scriptCount}`, `- scripts referencing historical issue-number tests: ${report.packageSurface.issueReferencedScriptCount}`,
+    `- duplicate command bodies: ${report.packageSurface.duplicateCommandBodies.length}`, `- production dependencies: ${report.dependencies.production}`, `- development dependencies: ${report.dependencies.development}`, "",
+    "## Boundary cleanup", "", `- private sibling-module violations: ${report.modules.crossModulePrivateImportViolations.length}`, `- core-owned compatibility bridges: ${report.modules.coreCompatibilityBridges.length}`, `- mutable-current-state review signals: ${report.reviewSignals.globalState.length}`, "",
+    "## Major directories", "", ...report.directories.map((item) => `- ${item.directory}/ — ${item.classification}; ${item.fileCount} files; ${item.bytes} bytes`), "",
+    "## Build output", "", ...(report.performance.builtOutputs.length ? report.performance.builtOutputs.map((item) => `- ${item.directory}: ${item.fileCount} files; ${item.bytes} bytes`) : ["- No build output present; run after production build to capture it."]), "",
+    "## Material findings", "", ...(report.materialFindings.length ? report.materialFindings.map((item) => `- ${item}`) : ["- None."]), "",
+    "Historical issue-linked commands are maintenance surface, not runtime failure. Healthy subsystems are left alone.", "",
+  ].join("\n");
 }
 
 export async function runArchitectureHealthAudit({ writeArtifact = true } = {}) {
   const started = performance.now();
-  const files = await walkDirectory(ROOT);
-  const packageJson = await readJson("package.json");
-  const agentSkills = await readJson("config/agent-skills.json");
-  const runtimeManifest = await readJson("config/runtime-manifest.json");
-  const mcp = await readJson(".mcp.json");
-  const clineMcp = (await exists(path.join(ROOT, ".cline/mcp.json"))) ? await readJson(".cline/mcp.json") : null;
-  const pluginPlatform = await readText("lib/plugin-platform.ts");
-  const coreServices = await readText("lib/core-services.ts");
-  const moduleBoundaryViolations = await auditModuleBoundaries(files);
-  const globalStateSignals = await auditGlobalStateSignals(files);
-  const skillIds = agentSkills.skills.map((skill) => skill.id);
+  const files = await walk();
+  const [packageJson, skills, runtime, mcp, pluginSource, serviceSource] = await Promise.all([
+    json("package.json"), json("config/agent-skills.json"), json("config/runtime-manifest.json"), json(".mcp.json"), text("lib/plugin-platform.ts"), text("lib/core-services.ts"),
+  ]);
+  const clineMcp = await exists(path.join(ROOT, ".cline/mcp.json")) ? await json(".cline/mcp.json") : null;
+  const moduleAudit = await moduleBoundaryAudit(files);
+  const skillIds = skills.skills.map((skill) => skill.id);
   const duplicateSkillIds = skillIds.filter((id, index) => skillIds.indexOf(id) !== index);
   const missingSkillEntries = [];
-  for (const skill of agentSkills.skills) if (!(await exists(path.join(ROOT, skill.entry)))) missingSkillEntries.push(skill.entry);
-  const runtimeIds = runtimeManifest.components.map((component) => component.id);
+  for (const skill of skills.skills) if (!(await exists(path.join(ROOT, skill.entry)))) missingSkillEntries.push(skill.entry);
+  const runtimeIds = runtime.components.map((component) => component.id);
   const duplicateRuntimeIds = runtimeIds.filter((id, index) => runtimeIds.indexOf(id) !== index);
-  const futureNode = runtimeManifest.components.find((component) => component.id === "plotpickle-node-service");
-  const mcpServerNames = Object.keys(mcp.mcpServers ?? {});
-  const mirrorMatchesCanonical = clineMcp ? JSON.stringify(clineMcp) === JSON.stringify(mcp) : null;
+  const futureNode = runtime.components.find((component) => component.id === "plotpickle-node-service");
+  const mcpServers = Object.keys(mcp.mcpServers ?? {});
   const scripts = packageJson.scripts ?? {};
   const issueReferencedScriptCount = Object.values(scripts).filter((command) => /tests\/issue-\d+/i.test(command)).length;
   const materialFindings = [];
   const invariants = [];
-  const addInvariant = (name, pass, detail = "") => {
-    invariants.push({ name, pass, detail });
-    if (!pass) materialFindings.push(`${name}${detail ? ` — ${detail}` : ""}`);
-  };
+  const check = (name, pass, detail = "") => { invariants.push({ name, pass, detail }); if (!pass) materialFindings.push(`${name}${detail ? ` — ${detail}` : ""}`); };
 
-  addInvariant("PluginHost remains the versioned plugin authority", pluginPlatform.includes("export class PluginHost") && pluginPlatform.includes("PLUGIN_API_VERSION"));
-  addInvariant("Core Services remain the permissioned plugin service boundary", coreServices.includes("export type PlotPickleServices") && coreServices.includes("authorizeService"));
-  addInvariant("Agent Skills use one progressive registry with unique IDs", agentSkills.discovery === "progressive" && duplicateSkillIds.length === 0, duplicateSkillIds.join(", "));
-  addInvariant("Every registered Agent Skill entry exists", missingSkillEntries.length === 0, missingSkillEntries.join(", "));
-  addInvariant("Canonical MCP surface contains exactly one PlotPickle server", mcpServerNames.length === 1 && mcpServerNames[0] === "plotpickle-dev", mcpServerNames.join(", "));
-  addInvariant("Cline MCP compatibility mirror cannot drift from canonical MCP config", mirrorMatchesCanonical !== false);
-  addInvariant("Runtime Supervisor manifest has unique component owners", runtimeManifest.authority === "plotpickle-runtime-supervisor" && duplicateRuntimeIds.length === 0, duplicateRuntimeIds.join(", "));
-  addInvariant("Future compute Node remains disabled by default", !futureNode || futureNode.enabled === false);
-  addInvariant("Feature modules do not import sibling module internals", moduleBoundaryViolations.length === 0, moduleBoundaryViolations.slice(0, 5).map((item) => `${item.source} -> ${item.target}`).join("; "));
+  check("PluginHost remains versioned plugin authority", pluginSource.includes("export class PluginHost") && pluginSource.includes("PLUGIN_API_VERSION"));
+  check("Core Services remain permissioned plugin boundary", serviceSource.includes("export type PlotPickleServices") && serviceSource.includes("authorizeService"));
+  check("Agent Skills use one progressive registry with unique IDs", skills.discovery === "progressive" && duplicateSkillIds.length === 0, duplicateSkillIds.join(", "));
+  check("Every registered Agent Skill entry exists", missingSkillEntries.length === 0, missingSkillEntries.join(", "));
+  check("Canonical MCP contains exactly one PlotPickle server", mcpServers.length === 1 && mcpServers[0] === "plotpickle-dev", mcpServers.join(", "));
+  check("Cline MCP compatibility mirror matches canonical MCP", !clineMcp || JSON.stringify(clineMcp) === JSON.stringify(mcp));
+  check("Runtime Supervisor manifest has unique component owners", runtime.authority === "plotpickle-runtime-supervisor" && duplicateRuntimeIds.length === 0, duplicateRuntimeIds.join(", "));
+  check("Future compute Node remains disabled", !futureNode || futureNode.enabled === false);
+  check("Feature modules avoid sibling private implementations", moduleAudit.violations.length === 0, moduleAudit.violations.slice(0, 5).map((item) => `${item.source} -> ${item.target}`).join("; "));
 
-  const elapsed = Math.round((performance.now() - started) * 100) / 100;
   const report = {
-    schemaVersion: 1,
-    generatedAt: new Date().toISOString(),
-    status: materialFindings.length ? "violated" : issueReferencedScriptCount > 0 ? "healthy-with-cleanup" : "healthy",
-    invariants,
-    materialFindings,
-    repository: { fileCount: files.length, bytes: sumBytes(files) },
-    directories: await directoryInventory(files),
-    packageSurface: {
-      scriptCount: Object.keys(scripts).length,
-      issueReferencedScriptCount,
-      duplicateCommandBodies: duplicateValues(scripts),
-    },
-    dependencies: {
-      production: Object.keys(packageJson.dependencies ?? {}).length,
-      development: Object.keys(packageJson.devDependencies ?? {}).length,
-      optional: Object.keys(packageJson.optionalDependencies ?? {}).length,
-    },
-    plugins: {
-      apiVersionDeclared: pluginPlatform.includes("PLUGIN_API_VERSION"),
-      coreServicesApiDeclared: coreServices.includes("CORE_SERVICES_API_VERSION"),
-    },
-    agents: {
-      skillCount: agentSkills.skills.length,
-      duplicateSkillIds,
-      missingSkillEntries,
-      mcpReadyCount: agentSkills.skills.filter((skill) => skill.mcpReady).length,
-    },
-    mcp: { canonicalServerCount: mcpServerNames.length, canonicalServers: mcpServerNames, mirrorMatchesCanonical },
-    runtime: { componentCount: runtimeManifest.components.length, duplicateRuntimeIds, futureNodeEnabled: futureNode?.enabled ?? null },
-    modules: { crossModulePrivateImportViolations: moduleBoundaryViolations },
-    reviewSignals: { globalState: globalStateSignals },
-    performance: { auditDurationMs: elapsed, builtOutputs: await builtOutputInventory() },
+    schemaVersion: 1, generatedAt: new Date().toISOString(), status: materialFindings.length ? "violated" : issueReferencedScriptCount ? "healthy-with-cleanup" : "healthy", invariants, materialFindings,
+    repository: { fileCount: files.length, bytes: files.reduce((sum, file) => sum + file.bytes, 0) }, directories: await directoryInventory(files),
+    packageSurface: { scriptCount: Object.keys(scripts).length, issueReferencedScriptCount, duplicateCommandBodies: duplicateCommands(scripts) },
+    dependencies: { production: Object.keys(packageJson.dependencies ?? {}).length, development: Object.keys(packageJson.devDependencies ?? {}).length, optional: Object.keys(packageJson.optionalDependencies ?? {}).length },
+    plugins: { apiVersionDeclared: pluginSource.includes("PLUGIN_API_VERSION"), coreServicesApiDeclared: serviceSource.includes("CORE_SERVICES_API_VERSION") },
+    agents: { skillCount: skills.skills.length, duplicateSkillIds, missingSkillEntries, mcpReadyCount: skills.skills.filter((skill) => skill.mcpReady).length },
+    mcp: { canonicalServerCount: mcpServers.length, canonicalServers: mcpServers, mirrorMatchesCanonical: !clineMcp || JSON.stringify(clineMcp) === JSON.stringify(mcp) },
+    runtime: { componentCount: runtime.components.length, duplicateRuntimeIds, futureNodeEnabled: futureNode?.enabled ?? null },
+    modules: { crossModulePrivateImportViolations: moduleAudit.violations, coreCompatibilityBridges: moduleAudit.bridges }, reviewSignals: { globalState: await globalSignals(files) },
+    performance: { auditDurationMs: 0, builtOutputs: await outputSizes() },
   };
-
+  report.performance.auditDurationMs = Math.round((performance.now() - started) * 100) / 100;
   if (writeArtifact) {
-    const artifactDirectory = path.join(ROOT, ".artifacts", "architecture-health");
-    await mkdir(artifactDirectory, { recursive: true });
-    await writeFile(path.join(artifactDirectory, "report.json"), `${JSON.stringify(report, null, 2)}\n`, "utf8");
-    await writeFile(path.join(artifactDirectory, "report.md"), markdownReport(report), "utf8");
+    const artifact = path.join(ROOT, ".artifacts", "architecture-health"); await mkdir(artifact, { recursive: true });
+    await writeFile(path.join(artifact, "report.json"), `${JSON.stringify(report, null, 2)}\n`, "utf8"); await writeFile(path.join(artifact, "report.md"), `${markdown(report)}\n`, "utf8");
   }
   return report;
 }
 
-async function main() {
-  const report = await runArchitectureHealthAudit({ writeArtifact: true });
-  console.log(markdownReport(report));
-  if (report.materialFindings.length) process.exitCode = 1;
-}
-
-if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
-  await main();
-}
+async function main() { const report = await runArchitectureHealthAudit(); console.log(markdown(report)); if (report.materialFindings.length) process.exitCode = 1; }
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) await main();

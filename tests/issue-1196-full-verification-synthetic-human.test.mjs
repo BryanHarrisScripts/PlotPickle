@@ -146,12 +146,15 @@ test("#1196 Playwright storage state is injected only for the bounded synthetic 
   assert.throws(() => verificationPlaywrightArgs([...args, "--storage-state", state], env), /competing Playwright storage-state argument/u);
 });
 
-test("#1196 desktop profile, private state and backup share one Node-host authority while server-network stays on the server boundary", async () => {
+test("#1196 desktop profile, presentation, private state and backup share one Node-host authority while server-network stays on the server boundary", async () => {
   const gateway = await read("build/local-profile-auth-gateway.ts");
   const vite = await read("vite.config.ts");
   assert.match(gateway, /PROFILE_API = "\/api\/auth\/profile"/u);
+  assert.match(gateway, /PROFILE_PRESENTATION_API = "\/api\/auth\/profile-presentation"/u);
   assert.match(gateway, /PROFILE_PRIVATE_API = "\/api\/auth\/profile-private"/u);
   assert.match(gateway, /PROFILE_BACKUP_API = "\/api\/auth\/profile-backup"/u);
+  assert.match(gateway, /profilePresentationGet/u);
+  assert.match(gateway, /profilePresentationPost/u);
   assert.match(gateway, /profilePrivateGet/u);
   assert.match(gateway, /profileBackupPost/u);
   assert.match(gateway, /PLOTPICKLE_ACCESS_MODE\?\.trim\(\) !== "server-network"/u);

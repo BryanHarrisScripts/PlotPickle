@@ -56,11 +56,12 @@ test("issue #210 keeps Buzz inside Collab without changing the creative workflow
   assert.match(route, /workspace=collab/);
 });
 
-test("issue #210 keeps Settings, PPF and GitHub authority boundaries explicit", async () => {
-  const [runtime, brief, settings] = await Promise.all([
+test("issue #210 keeps Settings, Profile, PPF and GitHub authority boundaries explicit", async () => {
+  const [runtime, brief, settings, profile] = await Promise.all([
     source("lib/buzz-runtime.ts"),
     source("docs/issue-210-managed-buzz-runtime.md"),
     source("app/buzz-settings-panel.tsx"),
+    source("app/profile-access/profile-identity-panel.tsx"),
   ]);
 
   assert.match(runtime, /Settings → Integrations → Buzz/);
@@ -74,7 +75,11 @@ test("issue #210 keeps Settings, PPF and GitHub authority boundaries explicit", 
   assert.match(settings, /Settings · Repository & Collab · Buzz/);
   assert.match(settings, /Block-hosted Buzz community/);
   assert.match(settings, /Managed local Buzz/);
-  assert.match(settings, /Save & verify all three pieces/);
+  assert.match(settings, /Save & test transport/);
+  assert.match(settings, /Profile owns Human signer creation\/import\/disconnect/);
+  assert.doesNotMatch(settings, /Buzz private identity key/);
+  assert.match(profile, /Connect Existing Identity/);
+  assert.match(profile, /Private identity key/);
 });
 
 test("issue #210 does not pretend unverified native Buzz binaries are packaged", async () => {

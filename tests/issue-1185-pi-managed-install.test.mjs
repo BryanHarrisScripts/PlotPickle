@@ -90,7 +90,10 @@ test("#1185 repair-stack bootstrap uses managed Pi and never recommends killing 
   assert.match(ensure, /ensureManagedPiInstalled/);
   assert.match(managed, /resolveActiveNpmCommand/);
   assert.match(managed, /"-g",\s*\n\s*"--prefix", root/);
-  assert.equal(runtime.includes('return `"${values.join(" ")}"`;'), true);
+  assert.match(runtime, /windowsBatchArguments/);
+  assert.match(runtime, /\["\/d", "\/c", \.\.\.values\]/);
+  assert.match(runtime, /windowsBatchWrapper\(command\)/);
+  assert.doesNotMatch(runtime, /values\.join\(" "\)/);
   assert.doesNotMatch(combined, /--force/);
   assert.doesNotMatch(combined, /SetEnvironmentVariable/);
   assert.doesNotMatch(combined, /taskkill[^\n]*node\.exe/i);

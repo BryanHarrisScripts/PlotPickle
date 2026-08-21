@@ -190,10 +190,13 @@ export async function runCasebookRealIntegrationCase(caseDefinition, adapter, op
 
   const faultDetectionComplete = faultResults.length > 0 && faultResults.every((item) => item.detected);
   const independentVerified = independentObservation.status === "verified";
+  const faultBlockers = injectFaults && !faultDetectionComplete
+    ? ["At least one declared injected fault was not detected as FAIL/BLOCKED."]
+    : [];
   completeCaseEvidenceManifest(manifest, {
     realIntegrationVerified: allJourneyStepsPassed && independentVerified && (!injectFaults || faultDetectionComplete),
     criticalInteractionsUnreached: Number(options.criticalInteractionsUnreached || 0),
-    blockers: options.blockers || [],
+    blockers: [...(Array.isArray(options.blockers) ? options.blockers : []), ...faultBlockers],
     faultResults,
   });
   const result = evaluateCaseEvidenceManifest(caseDefinition, manifest);

@@ -180,6 +180,7 @@ export function evaluateCaseRun(caseDefinition, run = {}) {
   const blockers = Array.isArray(run.blockers) ? run.blockers.filter(Boolean) : [];
   const requiredEvidenceIds = caseDefinition.requiredEvidence.map((item) => item.id);
   const verifiedEvidenceIds = new Set(evidence.filter((item) => item?.status === "verified").map((item) => item.id));
+  const requiredEvidenceVerified = requiredEvidenceIds.filter((id) => verifiedEvidenceIds.has(id)).length;
   const missingEvidence = requiredEvidenceIds.filter((id) => !verifiedEvidenceIds.has(id));
   const requiredStepIds = caseDefinition.humanJourney.map((item) => item.id);
   const passedStepIds = new Set(stepResults.filter((item) => item?.status === "pass").map((item) => item.id));
@@ -204,7 +205,7 @@ export function evaluateCaseRun(caseDefinition, run = {}) {
     missingJourneySteps,
     independentVerified,
     independentEvidenceCount: independentEvidence.length,
-    evidenceVerified: verifiedEvidenceIds.size,
+    evidenceVerified: requiredEvidenceVerified,
     evidenceRequired: requiredEvidenceIds.length,
     journeyStepsPassed: passedStepIds.size,
     journeyStepsRequired: requiredStepIds.length,

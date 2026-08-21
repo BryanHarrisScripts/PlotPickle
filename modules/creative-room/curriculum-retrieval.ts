@@ -106,10 +106,10 @@ function withoutRemoteAddresses(value: string) {
  * PlotPickle.
  */
 export function bundledSourcePlainText(source: CurriculumSource) {
-  const markdownText = withoutRemoteAddresses(source.content)
+  const markdownText = source.content
     .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
-  return decodeHtmlEntitiesOnce(stripMarkupTags(markdownText, { tagSeparator: " " }))
+  return decodeHtmlEntitiesOnce(withoutRemoteAddresses(stripMarkupTags(markdownText, { tagSeparator: " " })))
     .replace(/[#*_>`|]/g, " ")
     .replace(/\s+/g, " ")
     .trim();

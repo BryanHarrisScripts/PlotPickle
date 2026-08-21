@@ -141,6 +141,20 @@ test("#1196 Playwright storage state is injected only for the bounded synthetic 
   assert.throws(() => verificationPlaywrightArgs([...args, "--storage-state", state], env), /competing Playwright storage-state argument/u);
 });
 
+test("#1196 desktop profile, private state and backup share one Node-host authority while server-network stays on the server boundary", async () => {
+  const gateway = await read("build/local-profile-auth-gateway.ts");
+  const vite = await read("vite.config.ts");
+  assert.match(gateway, /PROFILE_API = "\/api\/auth\/profile"/u);
+  assert.match(gateway, /PROFILE_PRIVATE_API = "\/api\/auth\/profile-private"/u);
+  assert.match(gateway, /PROFILE_BACKUP_API = "\/api\/auth\/profile-backup"/u);
+  assert.match(gateway, /profilePrivateGet/u);
+  assert.match(gateway, /profileBackupPost/u);
+  assert.match(gateway, /PLOTPICKLE_ACCESS_MODE\?\.trim\(\) !== "server-network"/u);
+  assert.match(gateway, /LOOPBACK_PEERS/u);
+  assert.match(gateway, /32 \* 1024 \* 1024/u);
+  assert.match(vite, /localProfileAuthGateway\(\)/u);
+});
+
 test("#1196 managed Full Verification endpoint owns synthetic Auth lifecycle without weakening product Auth", async () => {
   const endpoint = await read("scripts/local-endpoint-runtime.mjs");
   const npx = await read("scripts/run-npx-stdio.mjs");

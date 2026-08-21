@@ -26,14 +26,24 @@ export function publicProfileApiError(error: unknown) {
   return { code: "AUTH_REQUEST_REJECTED", message: "The authentication request could not be completed." } as const;
 }
 
-function errorResponse(error: unknown) {
-  if (String(process.env.PLOTPICKLE_STARTUP_CONTRACT || "").startsWith("plotpickle-full-verification")) {
-    const detail = error instanceof Error ? `${error.name}: ${error.message}\n${error.stack || ""}` : String(error);
-    console.error(`[full-verification-synthetic-auth] ${detail.replace(/[\r\n]+/g, " | ").slice(0, 4_000)}`);
-  }
+function syntheticDiagnostic(error: unknown, request?: Request) {
+  if (request?.headers.get("x-plotpickle-synthetic-diagnostic") !== "profile-bootstrap-v1") return null;
+  const hostname = new URL(request.url).hostname;
+  if (!["127.0.0.1", "localhost", "[::1]"].includes(hostname)) return null;
+  if (!(error instanceof Error)) return typeof error;
+  const cause = error.cause instanceof Error ? ` cause=${error.cause.name}:${error.cause.message}` : "";
+  return `${error.name}:${error.message}${cause}`.replace(/[\r\n]+/g, " ").slice(0, 600);
+}
+
+function errorResponse(error: unknown, request?: Request) {
   const detail = publicProfileApiError(error);
+  const diagnostic = syntheticDiagnostic(error, request);
   const status = detail.code === "AUTHENTICATION_THROTTLED" ? 429 : detail.code === "ACCESS_DENIED" ? 403 : 400;
-  return response(detail, status, "retryAfterMs" in detail ? { "Retry-After": String(Math.ceil(Number(detail.retryAfterMs || 1) / 1_000)) } : {});
+  return response(
+    diagnostic ? { ...detail, syntheticDiagnostic: diagnostic } : detail,
+    status,
+    "retryAfterMs" in detail ? { "Retry-After": String(Math.ceil(Number(detail.retryAfterMs || 1) / 1_000)) } : {},
+  );
 }
 
 export async function GET(request: Request) {
@@ -68,7 +78,7 @@ export async function GET(request: Request) {
     };
     return response(result);
   } catch (error) {
-    return errorResponse(error);
+    return errorResponse(error, request);
   }
 }
 
@@ -133,6 +143,6 @@ export async function POST(request: Request) {
 
     return response({ code: "UNSUPPORTED_AUTH_ACTION", message: "That profile action is unavailable." }, 400);
   } catch (error) {
-    return errorResponse(error);
+    return errorResponse(error, request);
   }
 }

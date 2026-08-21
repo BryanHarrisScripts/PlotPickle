@@ -110,7 +110,7 @@ async function main() {
   }
 
   if (repair && deduped.length) {
-    const repairScript = "scripts/run-uat-repair-agent.mjs";
+    const repairScript = "scripts/run-semantic-uat-repair.mjs";
     const ensureRun = await run("scripts/ensure-local-repair-model.mjs", ["--worker", repairWorker]);
     if (ensureRun.code !== 0) {
       process.stderr.write("Automatic local repair-model load did not complete; continuing to the normal local-only repair preflight.\n");

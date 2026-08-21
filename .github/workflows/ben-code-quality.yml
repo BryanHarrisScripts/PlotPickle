@@ -48,6 +48,9 @@ jobs:
       - name: Validate BEN Agent, Skill and trust boundaries
         run: node --test tests/issue-1005-ben-code-quality.test.mjs tests/issue-962-agent-profiles.test.mjs tests/issue-976-agent-skill-trust-runtime.test.mjs tests/issue-913-agent-skills-migration.test.mjs
 
+      - name: Validate semantic execution and existing repair-graph authority
+        run: node --test tests/issue-1218-semantic-execution-contract.test.mjs tests/issue-989-verification-execution-graph.test.mjs
+
       - name: Run BEN deterministic slop delta
         if: github.event_name == 'pull_request'
         run: node scripts/run-ben-code-quality.mjs --base-ref "${{ github.event.pull_request.base.sha }}"

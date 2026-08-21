@@ -52,15 +52,19 @@ test("deterministic wrapper validates repairs before a draft PR and never lets a
   assert.doesNotMatch(source, /gh\("pr", "merge"/);
 });
 
-test("closed-loop UAT preflights the developer repair worker and uses Pi by default", async () => {
+test("closed-loop UAT preflights the semantic execution wrapper and keeps the existing repair worker underneath", async () => {
   const source = await read("scripts/run-uat-closed-loop.mjs");
+  const semantic = await read("scripts/run-semantic-uat-repair.mjs");
   const startup = await read("build/uat-discovery-plugin.ts");
 
   assert.match(source, /const repair = args\.includes\("--repair"\)/);
   assert.match(source, /repairWorker = argument\("--repair-worker", process\.env\.PLOTPICKLE_REPAIR_WORKER \|\| "pi"\)/);
-  assert.match(source, /scripts\/run-uat-repair-agent\.mjs/);
+  assert.match(source, /scripts\/run-semantic-uat-repair\.mjs/);
   assert.match(source, /"--preflight", "--require-ready"/);
   assert.match(source, /"--fingerprint", finding\.fingerprint/);
+  assert.match(semantic, /run-uat-repair-agent\.mjs/);
+  assert.match(semantic, /developer\.repair/);
+  assert.match(semantic, /deterministic validation remains authoritative/i);
   assert.match(startup, /run-uat-closed-loop\.mjs --github-report --repair/);
   assert.match(startup, /Developer repair worker/);
   assert.match(startup, /Pi default \/ Cline selectable \/ no cloud fallback/);

@@ -1,7 +1,18 @@
 import { cloneProject, normalizePlotPickleProject, type PlotPickleProject, type RevisionSnapshot, type StoryThread } from "./project";
 
+let fallbackIdCounter = 0;
+
 function id(prefix: string) {
-  return globalThis.crypto?.randomUUID?.() ? `${prefix}-${globalThis.crypto.randomUUID()}` : `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const cryptoApi = globalThis.crypto;
+  const uuid = cryptoApi?.randomUUID?.();
+  if (uuid) return `${prefix}-${uuid}`;
+  if (cryptoApi?.getRandomValues) {
+    const words = new Uint32Array(4);
+    cryptoApi.getRandomValues(words);
+    return `${prefix}-${Array.from(words, (word) => word.toString(36)).join("-")}`;
+  }
+  fallbackIdCounter += 1;
+  return `${prefix}-${Date.now().toString(36)}-${fallbackIdCounter.toString(36)}`;
 }
 
 function stableStringify(value: unknown): string {

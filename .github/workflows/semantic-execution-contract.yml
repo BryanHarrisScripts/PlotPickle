@@ -1,0 +1,51 @@
+name: Semantic Execution Contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/semantic-execution.mjs"
+      - "scripts/run-semantic-uat-repair.mjs"
+      - "scripts/run-uat-closed-loop.mjs"
+      - "scripts/run-uat-repair-agent.mjs"
+      - "scripts/verification-findings.mjs"
+      - "tests/issue-1218-semantic-execution-contract.test.mjs"
+      - "tests/issue-989-verification-execution-graph.test.mjs"
+      - ".github/workflows/semantic-execution-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: semantic-execution-${{ github.event.pull_request.number || github.ref }}-${{ matrix.os }}
+  cancel-in-progress: true
+
+jobs:
+  semantic-execution:
+    name: Contract + #989 + build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=dev --no-audit --no-fund
+
+      - name: Verify semantic execution and existing #989 graph authority
+        run: node --test tests/issue-1218-semantic-execution-contract.test.mjs tests/issue-989-verification-execution-graph.test.mjs
+
+      - name: Production build
+        run: npm run build

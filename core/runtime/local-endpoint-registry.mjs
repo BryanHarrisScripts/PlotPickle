@@ -1,13 +1,15 @@
 import net from "node:net";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 const ID_PATTERN = /^[a-z0-9][a-z0-9._:-]{1,127}$/i;
 const REF_PATTERN = /^[a-z0-9][a-z0-9._:/@+-]{0,239}$/i;
 const COMMIT_PATTERN = /^[a-f0-9]{40}$/i;
+const ROUTE_LABEL_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 const OWNER_SCOPES = new Set(["node", "profile", "job", "worktree"]);
 const LIFECYCLE_STATES = new Set(["starting", "running", "stopping", "stopped", "failed"]);
 const READINESS_STATES = new Set(["unknown", "not_ready", "ready", "degraded"]);
 const TRANSPORTS = new Set(["direct", "portless"]);
+const TRANSPORT_PROFILES = new Set(["direct/http", "portless/http", "portless/https"]);
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "::1"]);
 const BROWSER_BLOCKED_PORTS = new Set([
   1, 7, 9, 11, 13, 15, 17, 19, 20, 21, 22, 23, 25, 37, 42, 43, 53, 69, 77, 79,
@@ -60,10 +62,39 @@ function directUrl(host, port) {
   return `http://${host === "::1" ? `[${host}]` : host}:${port}`;
 }
 
+function normalizeRouteName(value) {
+  if (value === undefined || value === null || value === "") return undefined;
+  const routeName = String(value).trim().toLowerCase();
+  if (!ROUTE_LABEL_PATTERN.test(routeName)) throw new Error("Portless route name must be one DNS-safe opaque label of at most 63 characters.");
+  return routeName;
+}
+
+function normalizeTransportProfile(value, transport) {
+  const fallback = transport === "portless" ? "portless/http" : "direct/http";
+  const profile = String(value || fallback).trim().toLowerCase();
+  if (!TRANSPORT_PROFILES.has(profile)) throw new Error("Local endpoint transport profile is invalid.");
+  if (transport === "direct" && profile !== "direct/http") throw new Error("Direct endpoints must use the direct/http transport profile.");
+  if (transport === "portless" && !profile.startsWith("portless/")) throw new Error("Portless endpoints require a Portless transport profile.");
+  return profile;
+}
+
 function normalizeGeneration(value) {
   const generation = Number(value ?? 1);
   if (!Number.isInteger(generation) || generation < 1) throw new Error("Endpoint generation must be a positive integer.");
   return generation;
+}
+
+function validatePublicUrl({ transport, transportProfile, routeName, host, port, inputUrl }) {
+  if (transport === "direct") return directUrl(host, port);
+  if (!routeName) throw new Error("Portless endpoints require a route name.");
+  const url = String(inputUrl || "").trim();
+  if (!URL.canParse(url)) throw new Error("Local endpoint URL is invalid.");
+  const parsed = new URL(url);
+  if (parsed.hostname !== `${routeName}.localhost`) throw new Error("Portless endpoint URL must use the registered opaque .localhost route.");
+  const expectedProtocol = transportProfile === "portless/https" ? "https:" : "http:";
+  if (parsed.protocol !== expectedProtocol) throw new Error(`Portless endpoint URL must use ${expectedProtocol.slice(0, -1)} for ${transportProfile}.`);
+  if (parsed.username || parsed.password) throw new Error("Local endpoint URLs cannot contain credentials.");
+  return parsed.toString().replace(/\/$/, "");
 }
 
 function normalizeRecord(input, defaults = {}) {
@@ -72,18 +103,15 @@ function normalizeRecord(input, defaults = {}) {
   if (!OWNER_SCOPES.has(ownerScope)) throw new Error("Local endpoint owner scope is invalid.");
   const transport = String(input.transport || defaults.transport || "direct").trim();
   if (!TRANSPORTS.has(transport)) throw new Error("Local endpoint transport is invalid.");
+  const transportProfile = normalizeTransportProfile(input.transportProfile || defaults.transportProfile, transport);
   const lifecycleState = String(input.lifecycleState || defaults.lifecycleState || "starting").trim();
   if (!LIFECYCLE_STATES.has(lifecycleState)) throw new Error("Local endpoint lifecycle state is invalid.");
   const readinessState = String(input.readinessState || defaults.readinessState || "unknown").trim();
   if (!READINESS_STATES.has(readinessState)) throw new Error("Local endpoint readiness state is invalid.");
   const host = normalizeHost(input.host || defaults.host || "127.0.0.1");
   const port = normalizePort(input.port ?? defaults.port);
-  if (transport !== "direct" && !input.routeName) throw new Error("Non-direct endpoint transports require a route name.");
-  const routeName = optionalRef(input.routeName, "Endpoint route name");
-  const url = transport === "direct" ? directUrl(host, port) : String(input.url || "").trim();
-  if (!URL.canParse(url)) throw new Error("Local endpoint URL is invalid.");
-  const parsed = new URL(url);
-  if (!new Set(["127.0.0.1", "::1", "localhost"]).has(parsed.hostname)) throw new Error("Local endpoint URL must remain loopback-only.");
+  const routeName = normalizeRouteName(input.routeName);
+  const url = validatePublicUrl({ transport, transportProfile, routeName, host, port, inputUrl: input.url });
 
   const profileRef = optionalRef(input.profileRef, "Endpoint profile ref");
   const jobId = optionalRef(input.jobId, "Endpoint job id");
@@ -103,6 +131,7 @@ function normalizeRecord(input, defaults = {}) {
     ...(optionalCommit(input.commitSha) ? { commitSha: optionalCommit(input.commitSha) } : {}),
     ...(optionalRef(input.processRef, "Endpoint process ref") ? { processRef: optionalRef(input.processRef, "Endpoint process ref") } : {}),
     transport,
+    transportProfile,
     host,
     port,
     url,
@@ -143,6 +172,11 @@ function authorized(record, context = {}) {
 
 function unavailable() {
   return new Error("Local endpoint is unavailable for this caller context.");
+}
+
+export function opaquePortlessRouteName(endpointId) {
+  const id = cleanId(endpointId, "Endpoint id");
+  return `pp-${createHash("sha256").update(id).digest("hex").slice(0, 24)}`;
 }
 
 export class LocalEndpointRegistry {
@@ -262,6 +296,9 @@ export function endpointConsumerEvidence(record, proof = {}) {
     worktreeRef: safe.worktreeRef || "",
     commitSha: safe.commitSha || "",
     generation: safe.generation,
+    transport: safe.transport,
+    transportProfile: safe.transportProfile,
+    routeName: safe.routeName || "",
     resolvedUrl: safe.url,
     exactInstanceProof: proof.ok === true ? "pass" : proof.ok === false ? "fail" : "not-run",
   };

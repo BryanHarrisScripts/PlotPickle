@@ -64,30 +64,43 @@ function tagName(value: string) {
   return value.slice(start, index).toLowerCase();
 }
 
-/** Remove presentation-only markup with a scanner rather than a partial regex sanitizer. */
-export function stripMarkupTags(value: string, options: { preserveBreaks?: boolean } = {}) {
+export function stripHtmlComments(value: string) {
   let output = "";
   let index = 0;
   while (index < value.length) {
-    if (value.startsWith("<!--", index)) {
-      const end = value.indexOf("-->", index + 4);
-      if (end >= 0) {
-        index = end + 3;
-        continue;
-      }
-    }
-    if (value[index] !== "<" || !tagStart(value, index)) {
+    if (!value.startsWith("<!--", index)) {
       output += value[index];
       index += 1;
       continue;
     }
-    const end = tagEnd(value, index);
+    const end = value.indexOf("-->", index + 4);
     if (end < 0) {
-      output += value[index];
+      output += value.slice(index);
+      break;
+    }
+    index = end + 3;
+  }
+  return output;
+}
+
+/** Remove presentation-only markup with a scanner rather than a partial regex sanitizer. */
+export function stripMarkupTags(value: string, options: { preserveBreaks?: boolean } = {}) {
+  const input = stripHtmlComments(value);
+  let output = "";
+  let index = 0;
+  while (index < input.length) {
+    if (input[index] !== "<" || !tagStart(input, index)) {
+      output += input[index];
       index += 1;
       continue;
     }
-    if (options.preserveBreaks && tagName(value.slice(index, end + 1)) === "br") output += "\n";
+    const end = tagEnd(input, index);
+    if (end < 0) {
+      output += input[index];
+      index += 1;
+      continue;
+    }
+    if (options.preserveBreaks && tagName(input.slice(index, end + 1)) === "br") output += "\n";
     index = end + 1;
   }
   return output;

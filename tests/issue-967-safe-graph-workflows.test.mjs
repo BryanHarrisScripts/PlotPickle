@@ -8,7 +8,7 @@ test("graph nodes define one bounded job with structured contracts, policy scope
   const source = await read("lib/responsibility-graph.ts");
   assert.match(source, /GraphNodeContract/);
   for (const field of ["job", "profileId", "capabilityRole", "allowedScopes", "allowedConnectorIds", "inputSchema", "outputSchema", "exclusiveResources", "timeoutMs", "tokenBudget", "cloudCostBudgetUsd", "failureRoutes", "verification"]) {
-    assert.match(source, new RegExp(`${field}:`), `missing node field ${field}`);
+    assert.ok(source.includes(`${field}:`), `missing node field ${field}`);
   }
   assert.match(source, /validateStructuredObject/);
   assert.match(source, /Structured result contains an undeclared field/);
@@ -52,7 +52,12 @@ test("developer workers require worktree isolation while creative work stays on 
 test("node outcomes are machine-routable through pass retry reroute escalate and stop", async () => {
   const source = await read("lib/responsibility-graph.ts");
   assert.match(source, /GRAPH_OUTCOME_ROUTES = \["pass", "retry", "reroute", "escalate", "stop"\]/);
-  for (const route of ["pass", "retry", "reroute", "escalate", "stop"]) assert.match(source, new RegExp(`input\.route === "${route}"|route: "${route}"|${route}:`));
+  for (const route of ["pass", "retry", "reroute", "escalate", "stop"]) {
+    assert.ok(
+      source.includes(`input.route === "${route}"`) || source.includes(`route: "${route}"`) || source.includes(`${route}:`),
+      `missing graph outcome route ${route}`,
+    );
+  }
   assert.match(source, /failedRule/);
   assert.match(source, /evidence/);
   assert.match(source, /target/);

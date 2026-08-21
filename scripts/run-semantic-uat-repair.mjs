@@ -21,15 +21,17 @@ import {
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
-const argument = (name, fallback = "") => {
-  const index = args.indexOf(name);
-  return index >= 0 && index + 1 < args.length ? args[index + 1] : fallback;
-};
+const optionValues = new Map();
+for (let index = 0; index < args.length; index += 1) {
+  const name = args[index];
+  const value = args[index + 1];
+  if (name?.startsWith("--") && value && !value.startsWith("--")) optionValues.set(name, value);
+}
 const has = (name) => args.includes(name);
-const worker = argument("--worker", process.env.PLOTPICKLE_REPAIR_WORKER || "pi");
-const fingerprint = argument("--fingerprint");
-const issue = argument("--issue");
-const reportPath = argument("--report");
+const worker = optionValues.get("--worker") || process.env.PLOTPICKLE_REPAIR_WORKER || "pi";
+const fingerprint = optionValues.get("--fingerprint") || "";
+const issue = optionValues.get("--issue") || "";
+const reportPath = optionValues.get("--report") || "";
 const targetId = fingerprint || (issue ? `issue-${issue}` : "verified-uat-finding");
 const semanticTarget = `uat:${targetId}`;
 const localRoot = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");

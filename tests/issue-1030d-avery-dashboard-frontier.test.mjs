@@ -8,7 +8,7 @@ const readJson = async (path) => JSON.parse(await read(path));
 test("#1030D Dashboard derives writer-facing frontier status from the canonical progression engine", async () => {
   const [frontier, guided, dashboard] = await Promise.all([
     read("modules/dashboard/visual-writer-frontier.ts"),
-    read("modules/dashboard/guided-progression.ts"),
+    read("core/progression/guided-progression.ts"),
     read("modules/dashboard/ui/dashboard-workspace.tsx"),
   ]);
 
@@ -90,7 +90,7 @@ test("#1030D Avery can inspect actual wireframe controls and provenance when BUI
 test("#1030D stops truthfully at the implemented World frontier and leaves future work gated", async () => {
   const [frontier, guided, config] = await Promise.all([
     read("modules/dashboard/visual-writer-frontier.ts"),
-    read("modules/dashboard/guided-progression.ts"),
+    read("core/progression/guided-progression.ts"),
     readJson("config/writer-in-residence.json"),
   ]);
   assert.match(frontier, /implemented Visual Writer frontier ends after accepted World BUILD/);

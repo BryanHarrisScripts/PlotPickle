@@ -39,7 +39,7 @@ test("#1030 PR A preserves every bundled archived lesson while changing only pro
 
 test("#1030 PR A defines one canonical Visual Writer order with story-defining groups before execution and handoff", async () => {
   const [source, contract] = await Promise.all([
-    read("modules/dashboard/guided-progression.ts"),
+    read("core/progression/guided-progression.ts"),
     read("core/contracts/visual-writer-progression/index.ts"),
   ]);
   assert.match(source, /from "\.\.\/\.\.\/core\/contracts\/visual-writer-progression"/);
@@ -56,7 +56,7 @@ test("#1030 PR A defines one canonical Visual Writer order with story-defining g
 });
 
 test("#1030 every group declares the output/frontier contract BUILD and future consumers need", async () => {
-  const source = await read("modules/dashboard/guided-progression.ts");
+  const source = await read("core/progression/guided-progression.ts");
   assert.match(source, /interface GuidedGroupOutputContract/);
   for (const field of [
     "prerequisiteGroupIds",
@@ -77,7 +77,7 @@ test("#1030 every group declares the output/frontier contract BUILD and future c
 });
 
 test("#1030 derives a lesson audit from real lesson content without duplicating or rewriting the curriculum", async () => {
-  const source = await read("modules/dashboard/guided-progression.ts");
+  const source = await read("core/progression/guided-progression.ts");
   assert.match(source, /export function deriveGuidedLessonOutputContracts/);
   assert.match(source, /\.filter\(\(lesson\) => lesson\.topic === definition\.id\)/);
   assert.match(source, /left\.number - right\.number/);
@@ -91,7 +91,7 @@ test("#1030 derives a lesson audit from real lesson content without duplicating 
 
 test("#1030 preserves the PR A audit contract while the implemented frontier advances through World", async () => {
   const [source, docs] = await Promise.all([
-    read("modules/dashboard/guided-progression.ts"),
+    read("core/progression/guided-progression.ts"),
     read("docs/visual-writer-curriculum-audit.md"),
   ]);
   assert.match(source, /id: "foundations"[\s\S]*implemented: true/);

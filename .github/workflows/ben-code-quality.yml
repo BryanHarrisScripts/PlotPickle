@@ -10,9 +10,13 @@ on:
       - "**/*.jsx"
       - "**/*.mjs"
       - "**/*.cjs"
+      - ".mcp.json"
+      - ".cline/mcp.json"
       - ".agents/skills/**"
       - "config/agent-*.json"
+      - "config/runtime-manifest.json"
       - "config/ben-code-quality.json"
+      - "docs/architecture/MODULAR-FOUNDATION.md"
       - "tests/**"
       - ".github/workflows/ben-code-quality.yml"
   workflow_dispatch:
@@ -51,6 +55,11 @@ jobs:
       - name: Validate semantic execution and existing repair-graph authority
         run: node --test tests/issue-1218-semantic-execution-contract.test.mjs tests/issue-989-verification-execution-graph.test.mjs
 
+      - name: Validate architecture health and record audit evidence
+        run: |
+          node --test tests/issue-1220-architecture-health.test.mjs
+          node scripts/architecture-health-audit.mjs
+
       - name: Run BEN deterministic slop delta
         if: github.event_name == 'pull_request'
         run: node scripts/run-ben-code-quality.mjs --base-ref "${{ github.event.pull_request.base.sha }}"
@@ -64,6 +73,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ben-code-quality-${{ github.run_id }}
-          path: .artifacts/ben-code-quality
+          path: |
+            .artifacts/ben-code-quality
+            .artifacts/architecture-health
           if-no-files-found: warn
           retention-days: 7

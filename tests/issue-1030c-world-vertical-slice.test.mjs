@@ -31,7 +31,7 @@ test("#1030C stores World decisions and visual history beside Foundations withou
 });
 
 test("#1030C activates World in the canonical progression and leaves Character gated behind approval", async () => {
-  const progression = await read("modules/dashboard/guided-progression.ts");
+  const progression = await read("core/progression/guided-progression.ts");
   assert.match(progression, /buildWorldPlanLessons/);
   assert.match(progression, /countWorldAnswers/);
   assert.match(progression, /implemented: true,[\s\S]*complete: worldBuildComplete/);

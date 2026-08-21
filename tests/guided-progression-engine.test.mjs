@@ -21,7 +21,7 @@ const GROUP_ORDER = [
 
 test("guided progression defines the canonical Visual Writer twelve-group order once", async () => {
   const [source, contract] = await Promise.all([
-    read("modules/dashboard/guided-progression.ts"),
+    read("core/progression/guided-progression.ts"),
     read("core/contracts/visual-writer-progression/index.ts"),
   ]);
   assert.match(source, /from "\.\.\/\.\.\/core\/contracts\/visual-writer-progression"/);
@@ -39,7 +39,7 @@ test("guided progression defines the canonical Visual Writer twelve-group order 
 });
 
 test("Foundations and World are the implemented frontier while Character and later groups remain gated", async () => {
-  const source = await read("modules/dashboard/guided-progression.ts");
+  const source = await read("core/progression/guided-progression.ts");
   assert.match(source, /id: "foundations"[\s\S]*implemented: true/);
   assert.match(source, /id: "world"[\s\S]*implemented: true/);
   assert.match(source, /const laterGroups = GUIDED_CURRICULUM_GROUPS\.slice\(2\)/);
@@ -51,7 +51,7 @@ test("Foundations and World are the implemented frontier while Character and lat
 });
 
 test("recommended next action follows both implemented LEARN PLAN BUILD cycles before Character", async () => {
-  const source = await read("modules/dashboard/guided-progression.ts");
+  const source = await read("core/progression/guided-progression.ts");
   const foundationLearn = source.indexOf("Continue Foundations LEARN");
   const foundationPlan = source.indexOf("Continue Foundations PLAN");
   const foundationBuild = source.indexOf("Continue Foundations BUILD");
@@ -74,7 +74,7 @@ test("recommended next action follows both implemented LEARN PLAN BUILD cycles b
 
 test("progress percentages derive from canonical Foundations and World state without a second progress store", async () => {
   const [source, project] = await Promise.all([
-    read("modules/dashboard/guided-progression.ts"),
+    read("core/progression/guided-progression.ts"),
     read("core/project/project.ts"),
   ]);
   assert.match(source, /project\.learning\.completedLessonIds/);
@@ -90,7 +90,7 @@ test("progress percentages derive from canonical Foundations and World state wit
 });
 
 test("every progression group carries the canonical output contract into consumers", async () => {
-  const source = await read("modules/dashboard/guided-progression.ts");
+  const source = await read("core/progression/guided-progression.ts");
   for (const field of [
     "prerequisiteGroupIds",
     "learned",
@@ -121,9 +121,13 @@ test("Dashboard renders World navigation but does not navigate into Character or
   assert.doesNotMatch(dashboard, /onNavigateGuided\([^\n]*"character"|onNavigateGuided\([^\n]*"theme"|onNavigateGuided\([^\n]*"structure"/);
 });
 
-test("legacy Foundations consumers use the generalized engine through a compatibility adapter", async () => {
-  const adapter = await read("modules/dashboard/foundations-progression.ts");
-  assert.match(adapter, /deriveGuidedCreationProgression\(curriculum, project\)/);
-  assert.match(adapter, /foundationLessonCount: foundations\.lessonCount/);
-  assert.match(adapter, /worldUnlocked: Boolean\(world\?\.unlocked\)/);
+test("legacy Foundations consumers use the core-owned generalized engine through a compatibility adapter", async () => {
+  const [coreAdapter, dashboardBridge] = await Promise.all([
+    read("core/progression/foundations-progression.ts"),
+    read("modules/dashboard/foundations-progression.ts"),
+  ]);
+  assert.match(coreAdapter, /deriveGuidedCreationProgression\(curriculum, project\)/);
+  assert.match(coreAdapter, /foundationLessonCount: foundations\.lessonCount/);
+  assert.match(coreAdapter, /worldUnlocked: Boolean\(world\?\.unlocked\)/);
+  assert.match(dashboardBridge, /export \* from "\.\.\/\.\.\/core\/progression\/foundations-progression"/);
 });

@@ -39,7 +39,7 @@ test("#1119 Full Verification stages 5 and 6 route through the Pi stack and real
 
   const ensure = await read("scripts/ensure-pi-repair-stack.mjs");
   const verify = await read("scripts/verify-pi-repair-worker.mjs");
-  assert.match(ensure, /ensurePiInstalled/);
+  assert.match(ensure, /ensureManagedPiInstalled/);
   assert.match(ensure, /ensure-local-repair-model\.mjs/);
   assert.match(ensure, /resolveGitBash/);
   assert.match(verify, /runPiSmoke/);

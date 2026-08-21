@@ -14,9 +14,12 @@ on:
       - "config/buzz-guildhall-community.json"
       - "config/uat-autopilot-registry.json"
       - "lib/agent-profiles.ts"
+      - "lib/buzz-default-community.ts"
       - "lib/buzz-guildhall.ts"
       - "lib/community-agent-roster.ts"
+      - "build/buzz-cli-failure.ts"
       - "build/buzz-community-gateway.ts"
+      - "build/buzz-profile-identity-gateway.ts"
       - "build/buzz-agent-roster-gateway.ts"
       - "build/buzz-agent-activity-mirror.ts"
       - "build/buzz-guildhall-gateway.ts"
@@ -25,6 +28,7 @@ on:
       - "build/buzz-story-room-access-gateway.ts"
       - "build/local-ai-gateway.ts"
       - "app/buzz-settings-panel.tsx"
+      - "app/profile-access/profile-identity-panel.tsx"
       - "app/buzz-live-health-card.tsx"
       - "app/sage-settings-workspace.tsx"
       - "app/community-workspace.tsx"
@@ -65,6 +69,7 @@ on:
       - "tests/issue-913-agent-skills-migration.test.mjs"
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
+      - "tests/issue-1222-buzz-real-machine-regression.test.mjs"
       - "tests/issue-672-global-navigation.test.mjs"
       - "tests/issue-1067-buzz-conversation-mirror.test.mjs"
       - "tests/issue-1129-buzz-native-community.test.mjs"
@@ -90,9 +95,12 @@ on:
       - "config/buzz-guildhall-community.json"
       - "config/uat-autopilot-registry.json"
       - "lib/agent-profiles.ts"
+      - "lib/buzz-default-community.ts"
       - "lib/buzz-guildhall.ts"
       - "lib/community-agent-roster.ts"
+      - "build/buzz-cli-failure.ts"
       - "build/buzz-community-gateway.ts"
+      - "build/buzz-profile-identity-gateway.ts"
       - "build/buzz-agent-roster-gateway.ts"
       - "build/buzz-agent-activity-mirror.ts"
       - "build/buzz-guildhall-gateway.ts"
@@ -101,6 +109,7 @@ on:
       - "build/buzz-story-room-access-gateway.ts"
       - "build/local-ai-gateway.ts"
       - "app/buzz-settings-panel.tsx"
+      - "app/profile-access/profile-identity-panel.tsx"
       - "app/buzz-live-health-card.tsx"
       - "app/sage-settings-workspace.tsx"
       - "app/community-workspace.tsx"
@@ -141,6 +150,7 @@ on:
       - "tests/issue-913-agent-skills-migration.test.mjs"
       - "tests/issue-675-buzz-guildhall.test.mjs"
       - "tests/issue-677-buzz-guildhall-settings.test.mjs"
+      - "tests/issue-1222-buzz-real-machine-regression.test.mjs"
       - "tests/issue-672-global-navigation.test.mjs"
       - "tests/issue-1067-buzz-conversation-mirror.test.mjs"
       - "tests/issue-1129-buzz-native-community.test.mjs"
@@ -180,5 +190,5 @@ jobs:
         run: node --test tests/issue-913-agent-skills-migration.test.mjs tests/issue-962-agent-profiles.test.mjs tests/issue-1028-settings-help.test.mjs
       - name: Validate Buzz release and updater policy
         run: node --test tests/issue-512-buzz-version-maintenance.test.mjs tests/issue-620-buzz-startup-updater.test.mjs
-      - name: Validate Guildhall, BUZZ-native Community, mirror, Moderator, Story Room, README, and live BUZZ contracts
-        run: node --test tests/core-readme-direction.test.mjs tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-672-global-navigation.test.mjs tests/issue-1067-buzz-conversation-mirror.test.mjs tests/issue-1129-buzz-native-community.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs tests/issue-1065-bbs-moderator.test.mjs tests/issue-1081-merrin-room-aware-moderation.test.mjs tests/live-buzz-guildhall-activity.test.mjs
+      - name: Validate Guildhall, BUZZ-native Community, Profile identity, mirror, Moderator, Story Room, README, and live BUZZ contracts
+        run: node --test tests/core-readme-direction.test.mjs tests/issue-675-buzz-guildhall.test.mjs tests/issue-677-buzz-guildhall-settings.test.mjs tests/issue-1222-buzz-real-machine-regression.test.mjs tests/issue-672-global-navigation.test.mjs tests/issue-1067-buzz-conversation-mirror.test.mjs tests/issue-1129-buzz-native-community.test.mjs tests/community-workspace.test.mjs tests/community-agent-roster.test.mjs tests/buzz-live-roundtrip.test.mjs tests/buzz-story-room-access-agents.test.mjs tests/issue-1065-bbs-moderator.test.mjs tests/issue-1081-merrin-room-aware-moderation.test.mjs tests/live-buzz-guildhall-activity.test.mjs

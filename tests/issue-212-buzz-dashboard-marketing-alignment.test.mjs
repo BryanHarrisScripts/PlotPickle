@@ -5,9 +5,11 @@ import test from "node:test";
 const root = new URL("..", import.meta.url);
 const source = (path) => readFile(new URL(path, root), "utf8");
 
-test("issue #212 makes Buzz configurable in Settings without faking packaged binaries", async () => {
-  const [settings, runtime, gateway, header] = await Promise.all([
+test("issue #212 keeps Buzz diagnostics in Settings without faking packaged binaries or duplicating Profile signer setup", async () => {
+  const [settings, profile, defaults, runtime, gateway, header] = await Promise.all([
     source("app/buzz-settings-panel.tsx"),
+    source("app/profile-access/profile-identity-panel.tsx"),
+    source("lib/buzz-default-community.ts"),
     source("lib/buzz-runtime.ts"),
     source("build/buzz-gateway.ts"),
     source("app/application-shell-header.tsx"),
@@ -16,9 +18,15 @@ test("issue #212 makes Buzz configurable in Settings without faking packaged bin
   assert.match(settings, /Settings · Repository & Collab · Buzz/);
   assert.match(settings, /Managed local Buzz/);
   assert.match(settings, /Block-hosted Buzz community/);
-  assert.match(settings, /Save & verify all three pieces/);
-  assert.match(settings, /Test Buzz connection/);
-  assert.match(settings, /Remove connection and identity/);
+  assert.match(settings, /Save & test transport/);
+  assert.match(settings, /Test BUZZ with Profile identity/);
+  assert.match(settings, /Profile owns Human signer creation\/import\/disconnect/);
+  assert.doesNotMatch(settings, /Buzz private identity key/);
+  assert.doesNotMatch(settings, /Remove connection and identity/);
+  assert.match(profile, /Connect Existing Identity/);
+  assert.match(profile, /Private identity key/);
+  assert.match(defaults, /PlotPickle Community BBS/);
+  assert.match(defaults, /wss:\/\/plotpickleplayhouse\.communities\.buzz\.xyz/);
   assert.match(settings, />Start</);
   assert.match(settings, />Stop</);
   assert.match(settings, />Restart</);

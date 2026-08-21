@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import { DEFAULT_HUMAN_LORE_GLYPH, PLOTPICKLE_BUZZ_COMMUNITY } from "../../lib/buzz-default-community";
 import styles from "./profile-identity-panel.module.css";
 
 type Profile = { readonly profileId: string; readonly displayName: string; readonly avatarRef: string | null; readonly status: string };
@@ -67,7 +68,6 @@ export default function ProfileIdentityPanel({
   const [buzz, setBuzz] = useState<BuzzIdentity | null>(null);
   const [buzzStatus, setBuzzStatus] = useState<BuzzStatus | null>(null);
   const [setupMode, setSetupMode] = useState<SetupMode>(null);
-  const [relayUrl, setRelayUrl] = useState("");
   const [privateKey, setPrivateKey] = useState("");
   const [createdSecret, setCreatedSecret] = useState("");
   const [notice, setNotice] = useState("");
@@ -82,7 +82,6 @@ export default function ProfileIdentityPanel({
     setPresentation(profileBody.profile);
     setBuzz(identityBody);
     setBuzzStatus(statusBody);
-    if (statusBody?.connection?.relayUrl) setRelayUrl(statusBody.connection.relayUrl);
   }, []);
 
   useEffect(() => {
@@ -135,7 +134,7 @@ export default function ProfileIdentityPanel({
         method: "POST",
         body: JSON.stringify({
           action,
-          relayUrl: relayUrl.trim(),
+          relayUrl: PLOTPICKLE_BUZZ_COMMUNITY.relayUrl,
           privateKey: action === "import" ? privateKey.trim() : undefined,
           displayName: presentation.displayName,
         }),
@@ -145,9 +144,9 @@ export default function ProfileIdentityPanel({
       setSetupMode(null);
       try {
         const published = await publishToBuzz(presentation);
-        setNotice(published.message || "BUZZ identity connected and your Profile was published.");
+        setNotice(published.message || `BUZZ identity connected to ${PLOTPICKLE_BUZZ_COMMUNITY.name} and your Profile was published.`);
       } catch (cause) {
-        setNotice(`${body.message || "BUZZ identity saved securely."} ${cause instanceof Error ? cause.message : "Verification is still pending."}`.trim());
+        setNotice(`${body.message || "BUZZ identity saved securely."} ${cause instanceof Error ? cause.message : "Profile publication is still pending."}`.trim());
       }
       await refresh();
     } catch (cause) {
@@ -174,7 +173,6 @@ export default function ProfileIdentityPanel({
   const identityConfigured = Boolean(buzzStatus?.connection?.identityConfigured);
   const connected = Boolean(buzz?.humanCommunityAllowed && buzz.identityVerified && buzz.kind === "human");
   const identityLabel = connected ? "Connected" : identityConfigured ? "Saved · verification pending" : "Not configured";
-  const initial = presentation.displayName.trim().slice(0, 1).toUpperCase() || "P";
 
   return (
     <div className={styles.profileColumns} data-profile-identity-surface="v1">
@@ -182,13 +180,13 @@ export default function ProfileIdentityPanel({
         <header><span>Identity</span><h2 id="profile-identity-heading">Your Profile</h2><p>One Human profile for PlotPickle and, when connected, your public BUZZ presence.</p></header>
 
         <div className={styles.avatarRow}>
-          {presentation.avatarUrl ? <img src={presentation.avatarUrl} alt="Current profile avatar" /> : <div aria-hidden="true">{initial}</div>}
+          {presentation.avatarUrl ? <img src={presentation.avatarUrl} alt="Current profile avatar" /> : <div aria-hidden="true" data-default-lore-glyph="true">{DEFAULT_HUMAN_LORE_GLYPH}</div>}
           <span><strong>{presentation.displayName}</strong><small>{presentation.publicBio || "Add a short public bio if you want one."}</small></span>
         </div>
 
         <form className={styles.identityForm} onSubmit={savePresentation}>
           <label><span>Display name</span><input value={presentation.displayName} maxLength={120} required onChange={(event) => setPresentation((current) => ({ ...current, displayName: event.target.value }))} /></label>
-          <label><span>Avatar</span><input type="url" inputMode="url" placeholder="https://…" value={presentation.avatarUrl} onChange={(event) => setPresentation((current) => ({ ...current, avatarUrl: event.target.value }))} /><small>Use one secure image address. The same avatar is published to BUZZ when connected.</small></label>
+          <label><span>Avatar</span><input type="url" inputMode="url" placeholder="https://…" value={presentation.avatarUrl} onChange={(event) => setPresentation((current) => ({ ...current, avatarUrl: event.target.value }))} /><small>Leave blank to use the PlotPickle lore glyph. A custom secure image is published to BUZZ when connected.</small></label>
           <label><span>Public bio / description</span><textarea rows={3} maxLength={500} value={presentation.publicBio} onChange={(event) => setPresentation((current) => ({ ...current, publicBio: event.target.value }))} /><small>{presentation.publicBio.length}/500 · The same bio is published to BUZZ when connected.</small></label>
           <button type="submit" disabled={Boolean(busy)}>{busy === "profile" ? "Saving…" : "Save Profile"}</button>
         </form>
@@ -198,22 +196,23 @@ export default function ProfileIdentityPanel({
 
           {connected ? <>
             <p>{buzz?.displayName ? `Signed Community identity verified as ${buzz.displayName}.` : "Your Human BUZZ identity is verified."}</p>
+            <p><small>Default community: {PLOTPICKLE_BUZZ_COMMUNITY.name}</small></p>
             <details><summary>View identity details</summary><dl><div><dt>Public key</dt><dd>{shortKey(buzz?.pubkey || "") || "Unavailable"}</dd></div>{buzz?.nip05 ? <div><dt>NIP-05</dt><dd>{buzz.nip05}</dd></div> : null}</dl></details>
             <div className={styles.buzzActions}><button type="button" disabled={Boolean(busy)} onClick={() => void publishToBuzz(presentation).then(() => refresh()).then(() => setNotice("Profile published to BUZZ.")).catch((cause) => setNotice(cause instanceof Error ? cause.message : "BUZZ publication failed."))}>Publish Profile now</button><button type="button" disabled={Boolean(busy)} onClick={() => void disconnectBuzz()}>Disconnect identity</button></div>
           </> : identityConfigured ? <>
-            <p>{buzz?.message || "The private signer is encrypted for this Human profile. BUZZ verification still needs a reachable community."}</p>
+            <p>{buzz?.message || "The private signer is encrypted for this Human profile. BUZZ verification still needs the default Community to be reachable."}</p>
             <div className={styles.buzzActions}><button type="button" disabled={Boolean(busy)} onClick={() => void publishToBuzz(presentation).then(() => refresh()).then(() => setNotice("BUZZ identity verified and Profile published.")).catch((cause) => setNotice(cause instanceof Error ? cause.message : "BUZZ verification is still pending."))}>Verify & publish</button><button type="button" disabled={Boolean(busy)} onClick={() => setSetupMode("connect")}>Replace identity</button><button type="button" disabled={Boolean(busy)} onClick={() => void disconnectBuzz()}>Disconnect</button></div>
           </> : <>
-            <p>BUZZ is optional. Connect it only when you want Communities, people/presence and signed conversation.</p>
+            <p>BUZZ is optional. PlotPickle already knows the official Community; connect an identity only when you want people, presence and signed conversation.</p>
             <div className={styles.buzzActions} data-buzz-setup-choices="true"><button type="button" onClick={() => setSetupMode("create")}>Create BUZZ Identity</button><button type="button" onClick={() => setSetupMode("connect")}>Connect Existing Identity</button><button type="button" onClick={() => { setSetupMode(null); setNotice("BUZZ remains unconfigured. PlotPickle continues normally."); }}>Not Now</button></div>
           </>}
 
           {setupMode ? <div className={styles.buzzSetup}>
             <h3>{setupMode === "create" ? "Create BUZZ Identity" : "Connect Existing Identity"}</h3>
-            <p>{setupMode === "create" ? "PlotPickle will create a new signing key and encrypt it inside this Human profile." : "Paste the private key for the BUZZ identity you already own. It is encrypted immediately and is never shown again here."}</p>
-            <label><span>BUZZ community address</span><input value={relayUrl} placeholder="wss://…communities.buzz.xyz" onChange={(event) => setRelayUrl(event.target.value)} /><small>This is needed to verify and publish the identity. Existing saved community settings are reused automatically.</small></label>
+            <p>{setupMode === "create" ? "PlotPickle will create a new signing key and encrypt it inside this Human profile." : "Paste the private key for the BUZZ identity you already own. PlotPickle verifies it against the official Community before storing it."}</p>
+            <div data-buzz-default-community="true"><strong>{PLOTPICKLE_BUZZ_COMMUNITY.name}</strong><br /><small>{PLOTPICKLE_BUZZ_COMMUNITY.relayUrl}</small></div>
             {setupMode === "connect" ? <label><span>Private identity key</span><input type="password" autoComplete="off" value={privateKey} placeholder="nsec1… or 64-character key" onChange={(event) => setPrivateKey(event.target.value)} /></label> : null}
-            <div className={styles.buzzActions}><button type="button" disabled={Boolean(busy) || !relayUrl.trim() || (setupMode === "connect" && !privateKey.trim())} onClick={() => void finishBuzzSetup(setupMode === "create" ? "create" : "import")}>{busy === setupMode ? "Working…" : setupMode === "create" ? "Create identity" : "Connect identity"}</button><button type="button" disabled={Boolean(busy)} onClick={() => { setSetupMode(null); setPrivateKey(""); }}>Cancel</button></div>
+            <div className={styles.buzzActions}><button type="button" disabled={Boolean(busy) || (setupMode === "connect" && !privateKey.trim())} onClick={() => void finishBuzzSetup(setupMode === "create" ? "create" : "import")}>{busy === setupMode ? "Working…" : setupMode === "create" ? "Create identity" : "Connect identity"}</button><button type="button" disabled={Boolean(busy)} onClick={() => { setSetupMode(null); setPrivateKey(""); }}>Cancel</button></div>
           </div> : null}
 
           {createdSecret ? <aside className={styles.recovery}>

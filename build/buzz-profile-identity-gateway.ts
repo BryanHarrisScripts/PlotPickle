@@ -2,7 +2,9 @@ import { spawn } from "node:child_process";
 import { createECDH } from "node:crypto";
 import type { IncomingMessage } from "node:http";
 import type { Plugin } from "vite";
+import { PLOTPICKLE_BUZZ_COMMUNITY } from "../lib/buzz-default-community";
 import { BUZZ_GUILDHALL_ACTORS } from "../lib/buzz-guildhall";
+import { buzzCliFailure, redactBuzzDiagnostic } from "./buzz-cli-failure";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import { readCredentialJson, writeCredentialJson } from "./local-credentials";
 
@@ -39,11 +41,7 @@ function text(value: unknown) {
 }
 
 function safeError(error: unknown) {
-  return (error instanceof Error ? error.message : "The BUZZ identity operation failed.")
-    .replace(/nsec1[a-z0-9]+/gi, "[redacted-nsec]")
-    .replace(/\b[a-f0-9]{64}\b/gi, "[redacted-secret]")
-    .replace(/(password|secret|private[_ -]?key|api[_ -]?key|token)\s*[=:]\s*\S+/gi, "$1=[redacted]")
-    .slice(0, 700);
+  return redactBuzzDiagnostic(error instanceof Error ? error.message : "The BUZZ identity operation failed.");
 }
 
 async function readIdentityPayload(request: IncomingMessage, byteLimit: number, label: string) {
@@ -61,13 +59,12 @@ async function readIdentityPayload(request: IncomingMessage, byteLimit: number, 
 }
 
 function normalizeRelayUrl(value: unknown) {
-  const source = text(value);
-  if (!source) throw new Error("Enter the BUZZ community address before creating or connecting an identity.");
+  const source = text(value) || PLOTPICKLE_BUZZ_COMMUNITY.relayUrl;
   const withProtocol = /^[a-z]+:\/\//i.test(source) ? source : `https://${source}`;
-  if (!URL.canParse(withProtocol)) throw new Error("Enter a complete BUZZ community address.");
+  if (!URL.canParse(withProtocol)) throw new Error("Enter a complete BUZZ relay address.");
   const url = new URL(withProtocol);
-  if (!["http:", "https:", "ws:", "wss:"].includes(url.protocol)) throw new Error("BUZZ community addresses must use HTTP, HTTPS, WS or WSS.");
-  if (url.username || url.password) throw new Error("Do not put credentials in the BUZZ community address.");
+  if (!["http:", "https:", "ws:", "wss:"].includes(url.protocol)) throw new Error("BUZZ relay addresses must use HTTP, HTTPS, WS or WSS.");
+  if (url.username || url.password) throw new Error("Do not put credentials in the BUZZ relay address.");
   url.hash = "";
   url.search = "";
   return url.toString().replace(/\/$/, "");
@@ -102,7 +99,7 @@ function nextConnection(existing: BuzzConnection | null, relayUrl: string, priva
     version: 1,
     mode: existing?.mode === "managed" ? "managed" : "existing-relay",
     relayUrl,
-    community: existing?.community || "",
+    community: PLOTPICKLE_BUZZ_COMMUNITY.name,
     identityLabel: existing?.identityLabel || "",
     cliPath: existing?.cliPath || "",
     privateKey,
@@ -162,7 +159,7 @@ function runCli(connection: BuzzConnection, args: string[]) {
         clearTimeout(timer);
         const stdout = Buffer.concat(output).toString("utf8").trim();
         const stderr = Buffer.concat(errors).toString("utf8").trim();
-        if ((code ?? 1) !== 0) reject(new Error(stderr || stdout || `BUZZ Desktop identity operation exited with code ${code ?? 1}.`));
+        if ((code ?? 1) !== 0) reject(buzzCliFailure(code, stderr || stdout));
         else resolve(stdout);
       });
     }).catch(reject);
@@ -266,7 +263,8 @@ async function handleIdentityAction(body: Record<string, unknown>) {
     return {
       ok: true,
       recoveryPrivateKey: privateKey,
-      message: "A new BUZZ identity was created and encrypted inside this Human profile. Save the recovery key before closing the Profile surface.",
+      community: PLOTPICKLE_BUZZ_COMMUNITY.name,
+      message: `A new BUZZ identity was created for ${PLOTPICKLE_BUZZ_COMMUNITY.name} and encrypted inside this Human profile. Save the recovery key before closing the Profile surface.`,
     };
   }
 
@@ -276,8 +274,20 @@ async function handleIdentityAction(body: Record<string, unknown>) {
     if (!/^(nsec1[a-z0-9]+|[a-f0-9]{64})$/i.test(privateKey)) throw new Error("The BUZZ private identity key must be an nsec or a 64-character hexadecimal key.");
     const connection = nextConnection(existing, relayUrl, privateKey, "imported");
     connection.identityLabel = profileDisplayName(body.displayName || existing?.identityLabel || "PlotPickle Human");
+
+    const profile = await readConnectedProfile(connection);
+    const identity = safeIdentity(connection, profile, connection.identityLabel);
+    if (!identity.humanCommunityAllowed) throw new Error(identity.message);
+
+    connection.verifiedAt = new Date().toISOString();
+    connection.verificationVersion = 2;
     await writeCredentialJson(CONNECTION_FILE, connection);
-    return { ok: true, message: "The existing BUZZ identity was encrypted inside this Human profile. Verification is still required before Community can use it." };
+    return {
+      ok: true,
+      identity,
+      community: PLOTPICKLE_BUZZ_COMMUNITY.name,
+      message: `The existing BUZZ identity was verified against ${PLOTPICKLE_BUZZ_COMMUNITY.name} and encrypted inside this Human profile.`,
+    };
   }
 
   if (action === "disconnect") {
@@ -294,7 +304,7 @@ async function handleIdentityAction(body: Record<string, unknown>) {
 
   if (action === "publish-profile") {
     if (!existing?.privateKey) throw new Error("Create or connect a BUZZ identity before publishing the Human Profile.");
-    if (!existing.relayUrl) throw new Error("A BUZZ community address is required before publishing the Human Profile.");
+    if (!existing.relayUrl) throw new Error("A BUZZ relay address is required before publishing the Human Profile.");
     const displayName = profileDisplayName(body.displayName);
     const bio = publicBio(body.publicBio);
     const picture = avatarUrl(body.avatarUrl);
@@ -311,9 +321,15 @@ async function handleIdentityAction(body: Record<string, unknown>) {
     const profile = await readConnectedProfile(existing);
     const identity = safeIdentity(existing, profile, displayName);
     if (!identity.humanCommunityAllowed) throw new Error(identity.message);
-    const verifiedConnection: BuzzConnection = { ...existing, identityLabel: displayName, verifiedAt: new Date().toISOString(), verificationVersion: 2 };
+    const verifiedConnection: BuzzConnection = {
+      ...existing,
+      community: PLOTPICKLE_BUZZ_COMMUNITY.name,
+      identityLabel: displayName,
+      verifiedAt: new Date().toISOString(),
+      verificationVersion: 2,
+    };
     await writeCredentialJson(CONNECTION_FILE, verifiedConnection);
-    return { ok: true, identity, message: "Profile saved locally and published to BUZZ with the same avatar, display name and public bio." };
+    return { ok: true, identity, community: PLOTPICKLE_BUZZ_COMMUNITY.name, message: "Profile saved locally and published to BUZZ with the same avatar, display name and public bio." };
   }
 
   throw new Error("That BUZZ identity action is unavailable.");

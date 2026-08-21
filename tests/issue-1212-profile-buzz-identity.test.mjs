@@ -17,7 +17,9 @@ test("#1212 exposes one editable Human presentation and exactly three unconfigur
   assert.equal(panel.match(/<span>Avatar<\/span>/gu)?.length, 1);
   assert.equal(panel.match(/<span>Public bio \/ description<\/span>/gu)?.length, 1);
   assert.match(panel, /data-buzz-setup-choices="true"[\s\S]*Create BUZZ Identity[\s\S]*Connect Existing Identity[\s\S]*Not Now/u);
-  assert.match(panel, /The same avatar is published to BUZZ when connected/u);
+  assert.match(panel, /Leave blank to use the PlotPickle lore glyph/u);
+  assert.match(panel, /A custom secure image is published to BUZZ when connected/u);
+  assert.match(panel, /data-default-lore-glyph="true"/u);
   assert.match(panel, /The same bio is published to BUZZ when connected/u);
   assert.match(panel, /BUZZ Identity[\s\S]*View identity details/u);
 

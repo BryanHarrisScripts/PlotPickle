@@ -1,10 +1,10 @@
-import { PlotPickleAuthError, toPublicAuthError, type BrowserSessionSummary, type ProfileSummary } from "@/core/auth/plotpickle-auth";
-import { PlotPickleServerSessionError, toPublicServerSessionError } from "@/core/auth/server-session/server-session-boundary";
+import { PlotPickleAuthError, toPublicAuthError, type BrowserSessionSummary, type ProfileSummary } from "../../../../core/auth/plotpickle-auth";
+import { PlotPickleServerSessionError, toPublicServerSessionError } from "../../../../core/auth/server-session/server-session-boundary";
 import {
   getProfileExperienceRuntime,
   requestBoundary,
   type ProfileExperienceStatus,
-} from "@/core/auth/profile-experience/profile-experience-runtime";
+} from "../../../../core/auth/profile-experience/profile-experience-runtime";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,21 +26,11 @@ export function publicProfileApiError(error: unknown) {
   return { code: "AUTH_REQUEST_REJECTED", message: "The authentication request could not be completed." } as const;
 }
 
-function syntheticDiagnostic(error: unknown, request?: Request) {
-  if (request?.headers.get("x-plotpickle-synthetic-diagnostic") !== "profile-bootstrap-v1") return null;
-  const hostname = new URL(request.url).hostname;
-  if (!["127.0.0.1", "localhost", "[::1]"].includes(hostname)) return null;
-  if (!(error instanceof Error)) return typeof error;
-  const cause = error.cause instanceof Error ? ` cause=${error.cause.name}:${error.cause.message}` : "";
-  return `${error.name}:${error.message}${cause}`.replace(/[\r\n]+/g, " ").slice(0, 600);
-}
-
-function errorResponse(error: unknown, request?: Request) {
+function errorResponse(error: unknown) {
   const detail = publicProfileApiError(error);
-  const diagnostic = syntheticDiagnostic(error, request);
   const status = detail.code === "AUTHENTICATION_THROTTLED" ? 429 : detail.code === "ACCESS_DENIED" ? 403 : 400;
   return response(
-    diagnostic ? { ...detail, syntheticDiagnostic: diagnostic } : detail,
+    detail,
     status,
     "retryAfterMs" in detail ? { "Retry-After": String(Math.ceil(Number(detail.retryAfterMs || 1) / 1_000)) } : {},
   );
@@ -78,7 +68,7 @@ export async function GET(request: Request) {
     };
     return response(result);
   } catch (error) {
-    return errorResponse(error, request);
+    return errorResponse(error);
   }
 }
 
@@ -143,6 +133,6 @@ export async function POST(request: Request) {
 
     return response({ code: "UNSUPPORTED_AUTH_ACTION", message: "That profile action is unavailable." }, 400);
   } catch (error) {
-    return errorResponse(error, request);
+    return errorResponse(error);
   }
 }

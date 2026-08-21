@@ -33,6 +33,23 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const localHealth = await withTransientBuzzRetry(() => request("/live-health"));
+if (!localHealth?.ok || !localHealth?.localBackbone) {
+  throw new Error("PlotPickle local BUZZ coordination health did not return bounded backbone evidence.");
+}
+process.stdout.write(`BUZZ local backbone ................. PASS  ${localHealth.localBackbone.state || "ready"}\n`);
+
+const status = await withTransientBuzzRetry(() => request("/status"));
+const connection = status?.connection || {};
+if (!connection.configured || !connection.identityConfigured) {
+  process.stdout.write("BUZZ signed live activity ........... NOT CONFIGURED  Human chose no BUZZ identity; local PlotPickle coordination remains available.\n");
+  process.stdout.write("BUZZ LIVE ACTIVITY PASS: local backbone verified; remote signed round-trip is optional and not configured.\n");
+  process.exit(0);
+}
+if (!connection.identityVerified) {
+  throw new Error("A BUZZ identity is configured but has not passed the existing signed identity verification. Re-test the connected identity in Profile/Settings.");
+}
+
 const rooms = await withTransientBuzzRetry(() => request("/rooms"));
 const roomByName = new Map((rooms.rooms || []).map((room) => [room.name, room]));
 for (const probe of probes) {
@@ -68,4 +85,4 @@ for (const probe of probes) {
   process.stdout.write(`BUZZ live activity · ${probe.label.padEnd(15)} PASS  ${probe.expectedChannel}\n`);
 }
 
-process.stdout.write(`BUZZ LIVE ACTIVITY PASS: ${verified.length}/${probes.length} PlotPickle activity routes were written and read back.\n`);
+process.stdout.write(`BUZZ LIVE ACTIVITY PASS: ${verified.length}/${probes.length} configured signed PlotPickle activity routes were written and read back.\n`);

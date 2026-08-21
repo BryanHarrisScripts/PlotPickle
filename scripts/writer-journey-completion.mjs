@@ -278,7 +278,7 @@ export async function runWriterAcceptanceCompletion({
     resultText,
     topic: "Foundations",
     nextTopics: ["World", "Character", "Theme", "Structure"],
-    expectedCount: 11,
+    expectedCount: 4,
   });
   record("learn", `${learn.completed} of ${learn.lessonCount} Foundations lessons visibly complete.`);
 

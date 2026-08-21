@@ -23,7 +23,7 @@ test("#1212 exposes one editable Human presentation and exactly three unconfigur
 
   assert.match(overlay, /ProfileIdentityPanel/u);
   assert.match(overlay, /plotpickle:profile-action/u);
-  for (const action of ["add-profile", "lock", "switch-profile", "logout"]) assert.match(overlay, new RegExp(`dispatch\\(\\"${action}\\"\\)`, "u"));
+  for (const action of ["add-profile", "lock", "switch-profile", "logout"]) assert.ok(overlay.includes(`dispatch("${action}")`), `Profile must preserve the ${action} Auth action`);
   assert.match(layout, /<ProfileAccessBoundary>\{children\}<\/ProfileAccessBoundary>[\s\S]*<ProfileIdentityOverlay \/>/u);
 });
 

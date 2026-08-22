@@ -69,11 +69,12 @@ test("#1236 Great Hall verifier requires one stable event id and rejects duplica
   assert.match(wrongSigner.summary, /signer/i);
 });
 
-test("#1236 Phase 3B3 exposes complete profile and BUZZ attended step drivers", () => {
+test("#1236 Phase 3B4 exposes exact Profile/BUZZ drivers before signer verification", () => {
   const browser = {
     clickVisible: async () => false,
     fillByLabel: async () => ({ ok: false, method: "test" }),
     navigate: async () => {},
+    currentState: async () => ({ url: "http://127.0.0.1:4173/" }),
   };
   const client = { call: async () => ({ content: [{ type: "text", text: '{"ok":false}' }] }) };
   const drivers = createPhase3b3StepDrivers({ browser, client, runState: {} });
@@ -83,6 +84,8 @@ test("#1236 Phase 3B3 exposes complete profile and BUZZ attended step drivers", 
     "profile-isolation:switch-b",
     "profile-isolation:deny-cross-profile",
     "profile-isolation:restart-and-recheck",
+    "buzz-connect-existing-identity:open-profile-buzz",
+    "buzz-connect-existing-identity:enter-existing-key",
     "buzz-connect-existing-identity:verify-signer",
     "buzz-connect-existing-identity:persist-connected",
     "buzz-connect-existing-identity:open-community",
@@ -91,7 +94,7 @@ test("#1236 Phase 3B3 exposes complete profile and BUZZ attended step drivers", 
     "buzz-great-hall-signed-conversation:observe-signed-event",
     "buzz-great-hall-signed-conversation:read-back",
     "buzz-great-hall-signed-conversation:reload-and-confirm",
-  ]) assert.equal(typeof drivers.get(key), "function", `missing Phase 3B3 driver ${key}`);
+  ]) assert.equal(typeof drivers.get(key), "function", `missing Phase 3B driver ${key}`);
 });
 
 test("#1236 Phase 3B3 profile and BUZZ proofs use the Casebook-declared independent verifier sources", async () => {
@@ -115,6 +118,27 @@ test("#1236 Phase 3B3 profile and BUZZ proofs use the Casebook-declared independ
   });
   assert.equal(buzzProof.status, "verified");
   assert.equal(buzzProof.source, buzz.independentVerification.source);
+});
+
+test("#1236 attended credential checkpoints wait for operator Enter with no countdown", async () => {
+  const [runner, runtime, phase] = await Promise.all([
+    readFile(path.join(repoRoot, "scripts", "run-casebook-attended.mjs"), "utf8"),
+    readFile(path.join(repoRoot, "scripts", "casebook-attended-runtime.mjs"), "utf8"),
+    readFile(path.join(repoRoot, "scripts", "creative-uat", "casebook-phase3b3-live.mjs"), "utf8"),
+  ]);
+  assert.match(runtime, /resumePolicy: "operator-enter"/);
+  assert.match(runner, /await io\.question\("Press Enter here when the Human-authorized action is complete: "\)/);
+  assert.match(phase, /paused with no time limit/);
+  assert.match(phase, /waiting indefinitely for operator Enter/);
+  assert.doesNotMatch(runner, /Promise\.race\([^)]*io\.question/s);
+});
+
+test("#1236 attended BUZZ reloads refuse undefined navigation targets", async () => {
+  const source = await readFile(path.join(repoRoot, "scripts", "creative-uat", "casebook-phase3b3-live.mjs"), "utf8");
+  assert.match(source, /const current = await browser\.currentState\(\)/);
+  assert.match(source, /refused to navigate with an undefined target/);
+  assert.doesNotMatch(source, /browser\.navigate\(location\.url\)/);
+  assert.doesNotMatch(source, /browser\.navigate\(current\.url\)/);
 });
 
 test("#1236 attended runner now executes B3 proof and faults instead of leaving a blanket pending-fault blocker", async () => {

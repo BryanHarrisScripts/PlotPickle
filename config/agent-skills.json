@@ -83,6 +83,19 @@
       "localOnly": true
     },
     {
+      "id": "visual-contract",
+      "name": "Visual Contract",
+      "description": "Compile bounded Human, PPF and approved visual-reference requirements into a provider-neutral constraint contract before image generation.",
+      "entry": ".agents/skills/visual-contract/SKILL.md",
+      "path": ".agents/skills/visual-contract",
+      "uri": "skill://plotpickle/visual-contract",
+      "roles": ["visual-contract"],
+      "primaryWorker": "host",
+      "consumers": ["visual-director", "visual-qa", "image-generation"],
+      "mcpReady": true,
+      "localOnly": true
+    },
+    {
       "id": "buzz-guildhall-reporting",
       "name": "BUZZ Guildhall Reporting",
       "description": "Summarize and route minimum-necessary operational agent activity for BUZZ Guildhall without making BUZZ the agent runtime.",

@@ -69,6 +69,13 @@
       "lastEvaluatedRevision": "visual-qa"
     },
     {
+      "uri": "skill://plotpickle/visual-contract",
+      "displayName": "Visual Contract",
+      "requestedCapabilityClasses": ["bounded-project-context", "visual-continuity-read", "generation-prompt-draft", "visual-validation-contract"],
+      "evalStatus": "covered",
+      "lastEvaluatedRevision": "issue-1267"
+    },
+    {
       "uri": "skill://plotpickle/buzz-guildhall-reporting",
       "displayName": "BUZZ Guildhall Reporting",
       "requestedCapabilityClasses": ["buzz-event-reporting", "verification-evidence-summary"],

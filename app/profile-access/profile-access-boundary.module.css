@@ -18,6 +18,24 @@
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
 }
 
+.card::before {
+  content: "PlotPickle is installed and ready";
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 10px 14px 10px 72px;
+  border: 1px solid #35505d;
+  border-radius: 14px;
+  background:
+    url("/assets/workflow-relics/profile.svg") 14px center / 46px 46px no-repeat,
+    linear-gradient(135deg, rgba(21, 48, 52, 0.9), rgba(10, 24, 32, 0.96));
+  color: #d9fffb;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.03), 0 0 24px rgba(78, 232, 242, 0.07);
+}
+
 .card h1,
 .card p {
   margin: 0;
@@ -359,6 +377,13 @@
 
   .card {
     padding: 22px;
+  }
+
+  .card::before {
+    min-height: 54px;
+    padding-left: 62px;
+    background-size: 38px 38px, auto;
+    background-position: 12px center, center;
   }
 
   .activeHuman {

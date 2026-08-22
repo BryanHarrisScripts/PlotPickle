@@ -14,7 +14,6 @@ import SageFastModelSetup from "./sage-fast-model-setup";
 import SettingsHelperDirectory from "./settings-helper-directory";
 import SettingsReadinessOverview from "./settings-readiness-overview";
 import WritingAssistantConsole from "./writing-assistant-console";
-import ProfilesSecurityPanel from "./profile-access/profiles-security-panel";
 import AiProviderSetupPanel from "./settings/ai-provider/ai-provider-setup-panel";
 import styles from "./sage-settings-workspace.module.css";
 
@@ -26,7 +25,6 @@ type SettingsSection =
   | "overview"
   | "updates"
   | "help"
-  | "profiles"
   | "models"
   | "routing"
   | "media"
@@ -55,7 +53,6 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
       { id: "overview", label: "Overview", detail: "What is ready and what is next" },
       { id: "updates", label: "What’s New", detail: "Latest PlotPickle releases and changes" },
       { id: "help", label: "HELP", detail: "Who does what in PlotPickle" },
-      { id: "profiles", label: "Profiles & Security", detail: "Human, passphrase, recovery and sessions" },
     ],
   },
   {
@@ -170,8 +167,6 @@ export default function SageSettingsWorkspace() {
         return <section id="settings-updates"><SectionIntro eyebrow="Settings · Latest updates" title="What’s New in PlotPickle." detail="Review the latest user-facing release notes without interrupting the main creative workspace." /><ReleaseHistoryPanel /></section>;
       case "help":
         return <section id="settings-help"><SectionIntro eyebrow="Settings · HELP" title="Meet the PlotPickle helpers." detail="Understand each helper before changing agent or runtime configuration." /><SettingsHelperDirectory /></section>;
-      case "profiles":
-        return <section id="settings-profiles"><SectionIntro eyebrow="Settings · Profiles & Security" title="Protect this Human’s private studio." detail="Manage the active Human, local vault passphrase and browser sessions. BUZZ remains a separate linked identity, never the PlotPickle login authority." /><ProfilesSecurityPanel /></section>;
       case "models":
         return <section id="settings-models"><SectionIntro eyebrow="Settings · Local AI" title="Configure and test Sage and PLAN." detail="Choose the local runtime and models, save them, then verify Sage and PLAN in the same workspace." /><SageFastModelSetup /></section>;
       case "routing":
@@ -187,7 +182,7 @@ export default function SageSettingsWorkspace() {
       case "activity":
         return <section id="settings-activity"><SectionIntro eyebrow="Settings · Agents" title="Inspect agent activity and health." detail="Use runtime evidence to confirm what is actually running without exposing prompts, answers, credentials or hidden reasoning." /><AgentObservabilityPanel /></section>;
       case "buzz":
-        return <section id="settings-buzz"><SectionIntro eyebrow="Settings · BUZZ / Community" title="Configure and test BUZZ in one place." detail="Connect the local identity and relay, build the Guildhall, then run the signed live round-trip test without exposing credentials." /><BuzzSettingsPanel /><BuzzLiveHealthCard /></section>;
+        return <section id="settings-buzz"><SectionIntro eyebrow="Settings · BUZZ / Community" title="Configure and test BUZZ in one place." detail="Profile owns the Human BUZZ identity. Use Settings for relay/runtime diagnostics and the signed live round-trip test without exposing credentials." /><BuzzSettingsPanel /><BuzzLiveHealthCard /></section>;
       case "runtime":
         return <section id="settings-advanced"><SectionIntro eyebrow="Settings · Advanced Runtime" title="Inspect hardware and expert runtime details." detail="Use these controls only when the overview or a focused setup panel says deeper runtime work is needed." /><details className={styles.advancedRuntime}><summary>Advanced runtime details</summary><p>AI provider routing is configured in the dedicated AI Routing section above so the hardware view is not repeated. Hardware, model inventory and optional developer harness information remain here for expert diagnostics.</p><DeepSeekHarnessPanel /><LocalRuntimePanel /></details></section>;
       case "overview":

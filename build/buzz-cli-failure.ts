@@ -13,7 +13,10 @@ function readableDiagnostic(value: unknown) {
         if (typeof item[key] === "string" && item[key].trim()) return item[key].trim();
       }
     }
-  } catch { /* BUZZ may return plain text diagnostics. */ }
+  } catch (error) {
+    if (!(error instanceof SyntaxError)) return raw;
+    return raw;
+  }
   return raw;
 }
 

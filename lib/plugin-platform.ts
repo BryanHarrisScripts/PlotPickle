@@ -152,7 +152,7 @@ export type CommunityExtensionSnapshot = {
   readonly agents: readonly PublicAgentContribution[];
 };
 
-const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const COMMUNITY_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function assertUnique(values: readonly string[], label: string) {
   const seen = new Set<string>();
@@ -177,7 +177,7 @@ export function defineCommunityExtensionPlugin(plugin: CommunityExtensionPlugin)
   const roomIds = new Set(plugin.rooms.map((room) => room.id));
   const helpGroups = new Set(plugin.helpGroups.map((group) => group.id));
   for (const room of plugin.rooms) {
-    if (!ID_PATTERN.test(room.id)) throw new Error(`Invalid Community room id: ${room.id}.`);
+    if (!COMMUNITY_ID_PATTERN.test(room.id)) throw new Error(`Invalid Community room id: ${room.id}.`);
     if (!room.label.trim() || !room.description.trim() || !room.actionHint.trim()) throw new Error(`Community room ${room.id} requires label, description, and actionHint.`);
   }
   for (const agent of plugin.agents) {

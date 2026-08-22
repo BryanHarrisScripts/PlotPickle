@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AgentPortrait from "../../components/agent-portrait";
-import { agentsForCommunityRoom } from "../../plugins/community-extension";
+import { agentsForCommunityRoom } from "../../lib/plugin-platform";
 import {
   PLOTPICKLE_COMMUNITY_EXTENSIONS,
   PLOTPICKLE_PLAYHOUSE_PLUGIN,

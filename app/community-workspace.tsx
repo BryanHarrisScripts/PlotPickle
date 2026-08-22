@@ -12,7 +12,7 @@ import {
   type BuzzStoryRoomId,
   type HumanBuzzIdentity,
 } from "../lib/buzz-story-room";
-import { agentsForCommunityRoom } from "../plugins/community-extension";
+import { agentsForCommunityRoom } from "../lib/plugin-platform";
 import CommunityBuzzSocial, { type CommunitySocialTarget } from "../modules/community/community-buzz-social";
 import {
   PLOTPICKLE_COMMUNITY_EXTENSIONS,

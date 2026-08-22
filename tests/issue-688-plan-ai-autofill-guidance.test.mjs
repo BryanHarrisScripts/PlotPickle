@@ -122,6 +122,20 @@ test("Foundations auto-story seed uses a fresh project identity and original wor
   assert.doesNotMatch(helper, /loadFoundationProject|saveFoundationProject|localStorage|sessionStorage/);
 });
 
+test("Writer-in-Residence history is owned by Library rather than Dashboard", async () => {
+  const [dashboard, library, sessions] = await Promise.all([
+    read("modules/dashboard/ui/dashboard-workspace.tsx"),
+    read("modules/library/ui/library-workspace.tsx"),
+    read("modules/dashboard/ui/avery-session-history/index.tsx"),
+  ]);
+  assert.doesNotMatch(dashboard, /AverySessionHistory/);
+  assert.match(library, /import AverySessionHistory/);
+  assert.match(library, /<AverySessionHistory \/>/);
+  assert.match(sessions, /searchParams\.set\("workspace", "library"\)/);
+  assert.match(sessions, /Back to Library/);
+  assert.match(sessions, /four Library positions stay reserved/i);
+});
+
 test("the Foundations drafter treats imported PPF evidence as read-only source canon", async () => {
   const drafter = await read("modules/plan/foundations-plan-drafter.ts");
 

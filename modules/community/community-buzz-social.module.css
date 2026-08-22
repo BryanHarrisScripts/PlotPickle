@@ -1,7 +1,7 @@
 .conversation {
   display: grid;
   grid-column: 1;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -23,7 +23,9 @@
 .conversationHeader span,
 .contextHeader span,
 .contextCard > span,
-.composer label {
+.composer label,
+.roomGuide > div > span,
+.helpers > span {
   color: #d6a95f;
   font-size: 9px;
   font-weight: 700;
@@ -40,6 +42,12 @@
 
 .conversationHeader small { color: #8f9c95; }
 .mirrorBadge { flex: 0 0 auto; padding: 5px 8px; border: 1px solid rgba(53, 201, 184, 0.35); border-radius: 999px; color: #8ce5d5; font-size: 8px; }
+.roomGuide { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:18px; align-items:center; padding:12px 20px; border-bottom:1px solid rgba(53,201,184,.12); background:rgba(14,25,22,.72); }
+.roomGuide p { margin:4px 0 0; color:#aab7b0; font-size:10px; line-height:1.5; }
+.helpers { display:grid; gap:6px; justify-items:end; }
+.helpers > div { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
+.helper { display:grid; grid-template-columns:auto auto; gap:6px; align-items:center; padding:4px 7px 4px 4px; border:1px solid rgba(53,201,184,.14); border-radius:999px; background:rgba(7,16,14,.72); }
+.helper small { color:#c8d5ce; font-size:8px; white-space:nowrap; }
 .timeline { min-height: 0; padding: 16px 20px 28px; overflow: auto; }
 .message { display: grid; gap: 5px; padding: 11px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.055); }
 .message header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
@@ -79,4 +87,7 @@
   .context { grid-column: auto; min-height: 420px; overflow: visible; }
   .timeline,
   .context { overflow: visible; }
+  .roomGuide { grid-template-columns:1fr; }
+  .helpers { justify-items:start; }
+  .helpers > div { justify-content:flex-start; }
 }

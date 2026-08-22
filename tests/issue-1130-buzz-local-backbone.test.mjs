@@ -18,7 +18,7 @@ async function withTempBackbone(run) {
   finally { await rm(root, { recursive: true, force: true }); }
 }
 
-test("#1130 records bounded local operational evidence even when remote BUZZ is unavailable", async () => {
+test("#1130 records bounded local operational evidence without falling back to the Human signer", async () => {
   await withTempBackbone(async (localRoot) => {
     const result = await bestEffortLiveBuzzActivity({
       type: "agent.presence",
@@ -37,7 +37,7 @@ test("#1130 records bounded local operational evidence even when remote BUZZ is 
     assert.equal(result.ok, true);
     assert.equal(result.localRecorded, true);
     assert.equal(result.buzzMirrored, false);
-    assert.equal(result.reason, "buzz-unavailable");
+    assert.equal(result.reason, "agent-signer-required");
 
     const events = await readLocalBuzzActivity({ localRoot });
     assert.equal(events.length, 1);

@@ -3,7 +3,7 @@ import { AGENT_PROFILES } from "../../lib/agent-profiles";
 import {
   createCommunityExtensionSnapshot,
   defineCommunityExtensionPlugin,
-} from "../../lib/community-extension-plugin";
+} from "../community-extension";
 import { PLUGIN_API_VERSION, type PluginManifest } from "../../lib/plugin-platform";
 
 const manifest: PluginManifest = {

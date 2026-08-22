@@ -115,7 +115,7 @@ function command(commandArgs, env = {}) {
 async function runJson(commandArgs, env) {
   const raw = await command(commandArgs, env);
   try { return JSON.parse(raw || "null"); }
-  catch { throw new Error(`BUZZ CLI returned invalid JSON for ${commandArgs.slice(0, 3).join(" ")}.`); }
+  catch (error) { throw new Error(`BUZZ CLI returned invalid JSON for ${commandArgs.slice(0, 3).join(" ")}.`, { cause: error }); }
 }
 
 function humanEnv() {

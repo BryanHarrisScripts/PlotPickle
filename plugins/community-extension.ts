@@ -1,4 +1,4 @@
-import type { PluginManifest } from "./plugin-platform";
+import type { PluginManifest } from "../lib/plugin-platform";
 
 export type CommunityRoomContribution = {
   readonly id: string;

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import AgentPortrait from "../components/agent-portrait";
 import { normalizeFoundationProject } from "../core/project/project";
 import { loadFoundationProject } from "../core/storage/foundation-project-browser";
-import { publicAgentByProfileId } from "../lib/community-extension-plugin";
+import { publicAgentByProfileId } from "../plugins/community-extension";
 import {
   buildCommunityAgentRoster,
   type AgentTrace,

@@ -30,6 +30,8 @@ export type BuzzNativeAgentState = {
   readonly created: boolean;
   readonly verified: boolean;
   readonly ownedByMe: boolean;
+  readonly official?: boolean;
+  readonly identityConfigured?: boolean;
   readonly pubkey: string;
   readonly presence: string;
   readonly updatedAt: string;
@@ -41,6 +43,8 @@ export type CommunityAgentRosterItem = {
   readonly displayName: string;
   readonly title: string;
   readonly summary: string;
+  readonly publicBio: string;
+  readonly avatarRef: string;
   readonly avatarInitials: string;
   readonly avatarKind: "local-initials";
   readonly runtime: string;
@@ -100,6 +104,9 @@ function projectMemoryPolicy(profile: AgentProfile) {
   if (profile.execution.kind === "buzz-managed") {
     return "BUZZ core/cold memory stays BUZZ-owned and separate. Only owner-approved history may enter PlotPickle task context; memory is never PPF canon.";
   }
+  if (profile.publicPresentation?.executionContexts.includes("public-buzz")) {
+    return "Private/local Agent context stays inside the authenticated Human/project scope. Public BUZZ participation receives public or explicitly shared context only; BUZZ history is never automatic PPF canon.";
+  }
   return "Task-scoped only. The host may attach approved data from the listed read scopes; project memory is evidence, never automatic canon or permission.";
 }
 
@@ -154,7 +161,7 @@ function buzzState(profile: AgentProfile, identityVerified: boolean, nativeAgent
     return {
       state: "setup-needed" as const,
       label: "Setup needed",
-      detail: "Connect and verify BUZZ before this BUZZ-managed agent can report presence.",
+      detail: "Connect and verify BUZZ before PlotPickle can inspect this Agent's public presence.",
       lastActiveAt: "",
     };
   }
@@ -167,11 +174,21 @@ function buzzState(profile: AgentProfile, identityVerified: boolean, nativeAgent
       lastActiveAt: native.updatedAt || "",
     };
   }
-  if (!native?.created || !native.verified || !native.ownedByMe) {
+  if (native?.official && !native.identityConfigured) {
     return {
       state: "needs-approval" as const,
-      label: "Needs owner approval",
-      detail: "Create and approve this agent in Buzz Desktop. PlotPickle will detect the binding automatically afterward.",
+      label: "Admin provisioning",
+      detail: "This official PlotPickle Agent is waiting for its BUZZ public signer to be provisioned by PlotPickle Admin outside the distributed app.",
+      lastActiveAt: native.updatedAt || "",
+    };
+  }
+  if (!native?.created || !native.verified || (!native.official && !native.ownedByMe)) {
+    return {
+      state: "needs-approval" as const,
+      label: native?.official ? "Identity not verified" : "Needs owner approval",
+      detail: native?.official
+        ? "The configured official Agent public key is not currently verified in BUZZ. PlotPickle will not substitute the connected Human identity."
+        : "Create and approve this agent in Buzz Desktop. PlotPickle will detect the binding automatically afterward.",
       lastActiveAt: native?.updatedAt || "",
     };
   }
@@ -227,7 +244,9 @@ export function buildCommunityAgentRoster(input: {
       id: profile.id,
       displayName: profile.displayName,
       title: profile.title,
-      summary: profile.responsibility,
+      summary: profile.publicPresentation?.publicBio || profile.responsibility,
+      publicBio: profile.publicPresentation?.publicBio || "",
+      avatarRef: profile.publicPresentation?.avatarRef || "",
       avatarInitials: initials(profile.displayName),
       avatarKind: "local-initials",
       runtime: profile.execution.kind,

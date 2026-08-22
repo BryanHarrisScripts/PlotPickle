@@ -29,6 +29,8 @@ type StoredConnection = {
   relayUrl?: string;
   cliPath?: string;
   identityLabel?: string;
+  identityPubkey?: string;
+  identityRole?: "human";
 };
 
 type IdentityCliAttempt =
@@ -171,6 +173,12 @@ async function inspectConnectedHuman(): Promise<HumanIdentityStatus> {
   const localPubkey = publicKeyFromPrivateKey(privateKey);
   if (!localPubkey) return { ...UNVERIFIED, message: "The saved BUZZ signer is invalid. Disconnect it and reconnect the Human BUZZ identity." };
 
+  const boundPubkey = typeof connection.identityPubkey === "string" ? connection.identityPubkey.toLowerCase() : "";
+  if (connection.identityRole === "human" && boundPubkey && boundPubkey !== localPubkey) {
+    return { ...UNVERIFIED, message: "The saved Human BUZZ role binding does not match the stored signer. Disconnect it and reconnect the intended Human identity." };
+  }
+  const roleBoundHuman = connection.identityRole === "human" && boundPubkey === localPubkey;
+
   const cliConnection = { privateKey, relayUrl, cliPath };
   let profile: Record<string, unknown> | null = null;
   const profileAttempt = await attemptIdentityCli(cliConnection, ["--format", "compact", "users", "get"]);
@@ -207,7 +215,7 @@ async function inspectConnectedHuman(): Promise<HumanIdentityStatus> {
   const displayName = firstText(profile, ["display_name", "displayName", "name", "username"])
     || (typeof connection.identityLabel === "string" ? connection.identityLabel.trim() : "")
     || "PlotPickle Human";
-  const agent = agentForDisplayName(displayName);
+  const agent = roleBoundHuman ? null : agentForDisplayName(displayName);
   if (agent) {
     return {
       ready: false,
@@ -229,9 +237,11 @@ async function inspectConnectedHuman(): Promise<HumanIdentityStatus> {
     displayName,
     kind: "human",
     agentId: "",
-    message: profile
-      ? `Community caller verified as ${displayName}.`
-      : `Community signer verified as ${displayName}; BUZZ profile metadata can publish separately.`,
+    message: roleBoundHuman
+      ? `Community caller verified by the Human signer binding as ${displayName}.`
+      : profile
+        ? `Community caller verified as ${displayName}.`
+        : `Community signer verified as ${displayName}; BUZZ profile metadata can publish separately.`,
   };
 }
 

@@ -4,13 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import AgentPortrait from "../components/agent-portrait";
 import { normalizeFoundationProject } from "../core/project/project";
 import { loadFoundationProject } from "../core/storage/foundation-project-browser";
-import { agentProfileById } from "../lib/agent-profiles";
+import { publicAgentByProfileId } from "../lib/community-extension-plugin";
 import {
   buildCommunityAgentRoster,
   type AgentTrace,
   type BuzzNativeAgentState,
   type WritingAssistantStatus,
 } from "../lib/community-agent-roster";
+import { PLOTPICKLE_COMMUNITY_EXTENSIONS } from "../plugins/plotpickle-playhouse";
 import styles from "./community-agent-roster.module.css";
 
 type TracePayload = {
@@ -44,12 +45,6 @@ type SpecialistReply = {
 type JsonMessage = { readonly message?: string };
 
 const SPECIALISTS = new Set<SpecialistId>(["critics-circle"]);
-const COMMUNITY_ROOM_LABELS: Readonly<Record<string, string>> = {
-  "great-hall": "Great Hall",
-  "story-council": "Story Workshop",
-  "wyrmwood-ring": "Wyrmwood",
-  marquee: "Marquee",
-};
 
 async function readJson<T>(url: string): Promise<T> {
   const response = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
@@ -116,13 +111,10 @@ function activeProjectContext(explicit: unknown) {
   }
 }
 
-function publicPresentation(agentId: string) {
-  return agentProfileById(agentId)?.publicPresentation ?? null;
-}
-
-function roomLabels(agentId: string, fallback: string) {
-  const roomIds = publicPresentation(agentId)?.communityRoomIds ?? [];
-  return roomIds.length ? roomIds.map((roomId) => COMMUNITY_ROOM_LABELS[roomId] ?? roomId) : [fallback];
+function roomLabels(roomIds: readonly string[], fallback: string) {
+  if (!roomIds.length) return [fallback];
+  const roomById = new Map(PLOTPICKLE_COMMUNITY_EXTENSIONS.rooms.map((room) => [room.id, room.label]));
+  return roomIds.map((roomId) => roomById.get(roomId) ?? roomId);
 }
 
 export default function CommunityAgentRoster({ projectContext = null }: { readonly projectContext?: unknown }) {
@@ -175,7 +167,7 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
     traces,
     buzzIdentityVerified,
     nativeAgents,
-  }).filter((agent) => Boolean(agent.publicBio && agent.avatarRef)), [assistantStatus, traces, buzzIdentityVerified, nativeAgents]);
+  }).filter((agent) => Boolean(publicAgentByProfileId(PLOTPICKLE_COMMUNITY_EXTENSIONS, agent.id))), [assistantStatus, traces, buzzIdentityVerified, nativeAgents]);
 
   async function askSpecialist(id: SpecialistId) {
     const prompt = specialistDrafts[id].trim();
@@ -226,8 +218,8 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
           const visibleInBuzz = Boolean(identity?.created && identity.verified && (officialIdentity || identity.ownedByMe));
           const specialist = isSpecialist(agent.id) ? agent.id : null;
           const reply = specialist ? specialistReplies[specialist] : null;
-          const presentation = publicPresentation(agent.id);
-          const rooms = roomLabels(agent.id, agent.homeRoom);
+          const presentation = publicAgentByProfileId(PLOTPICKLE_COMMUNITY_EXTENSIONS, agent.id);
+          const rooms = roomLabels(presentation?.roomIds ?? [], agent.homeRoom);
           return (
             <article className={styles.card} key={agent.id} data-state={agent.state}>
               <header>

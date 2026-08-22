@@ -57,7 +57,7 @@ function asArray(value) {
   if (Array.isArray(value)) return value;
   if (!value || typeof value !== "object") return [];
   for (const key of ["items", "data", "results", "users"]) if (Array.isArray(value[key])) return value[key];
-  return [];
+  return [value];
 }
 
 function text(value) {
@@ -140,6 +140,45 @@ function profilePrompt(profile, publicBio) {
   ].join("\n\n");
 }
 
+async function writeMissingAgentTeam(agents) {
+  if (!agents.length) return null;
+  const members = await Promise.all(agents.map(async (agent) => {
+    const avatarPath = path.join(root, "public", "assets", "helpers", "buzz", `${agent.profileId}.png`);
+    const avatar = await readFile(avatarPath);
+    return {
+      format: "buzz-agent-snapshot",
+      version: 1,
+      definition: {
+        name: agent.displayName,
+        systemPrompt: agent.prompt,
+        respondTo: "owner-only",
+        parallelism: 1,
+      },
+      profile: {
+        displayName: agent.displayName,
+        about: agent.publicBio,
+        avatarDataUrl: `data:image/png;base64,${avatar.toString("base64")}`,
+      },
+      memory: { level: "none", entries: [] },
+    };
+  }));
+  const syncPackagePath = process.env.PLOTPICKLE_BUZZ_SYNC_PACKAGE_PATH
+    ? path.resolve(process.env.PLOTPICKLE_BUZZ_SYNC_PACKAGE_PATH)
+    : path.join(root, ".plotpickle", "operator", "PlotPickle-BUZZ-Missing-Agents.team.json");
+  await mkdir(path.dirname(syncPackagePath), { recursive: true });
+  await writeFile(syncPackagePath, `${JSON.stringify({
+    format: "buzz-team-snapshot",
+    version: 1,
+    team: {
+      name: "PlotPickle Playhouse Agents",
+      description: "Official PlotPickle public Agents with approved names, prompts and lore avatars.",
+      instructions: "The Human remains the final creative authority. Agent work is advisory or proposal-only unless explicitly approved in PlotPickle.",
+    },
+    members,
+  }, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
+  return { path: syncPackagePath, agentCount: agents.length };
+}
+
 async function main() {
   const [plugin, baseProfiles, communityProfiles, publicProfiles, state] = await Promise.all([
     json(pluginPath),
@@ -177,6 +216,13 @@ async function main() {
     publicIdentityUpdates: {},
   };
 
+  if (args.has("--prepare-team")) {
+    result.agents = plan.map(({ prompt, ...agent }) => ({ ...agent, status: "prepared-for-buzz-import", promptReady: Boolean(prompt) }));
+    result.syncPackage = await writeMissingAgentTeam(plan);
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    return;
+  }
+
   if (!apply) {
     result.agents = plan.map(({ prompt, ...agent }) => ({ ...agent, promptReady: Boolean(prompt) }));
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
@@ -201,8 +247,13 @@ async function main() {
     let requestId = "";
 
     if (!pubkey) {
-      const ownedRaw = await runJson(["--format", "compact", "users", "get", "--name", agent.displayName, "--owner", "me"], humanEnv());
-      const matches = asArray(ownedRaw).filter((candidate) => text(candidate.display_name ?? candidate.displayName ?? candidate.name) === agent.displayName);
+      const ownedRaw = await runJson(["--format", "json", "users", "get", "--name", agent.displayName, "--owner", "me"], humanEnv());
+      const matches = asArray(ownedRaw).filter((candidate) => {
+        const candidateName = text(candidate.display_name ?? candidate.displayName ?? candidate.name);
+        const verification = text(candidate.verification);
+        const rejected = ["owner_mismatch", "invalid_auth", "invalid_agent_pubkey", "multiple_auth_tags"].includes(verification);
+        return !rejected && (candidateName === agent.displayName || (!candidateName && /^[a-f0-9]{64}$/i.test(text(candidate.pubkey))));
+      });
       if (matches.length > 1) {
         result.agents.push({ profileId: agent.profileId, displayName: agent.displayName, status: "ambiguous-existing-agent", matches: matches.length });
         continue;
@@ -255,6 +306,10 @@ async function main() {
     }
     result.agents.push({ profileId: agent.profileId, displayName: agent.displayName, pubkey, status: "ready", memberships });
   }
+
+  const missingAgents = plan.filter((agent) => result.agents.some((entry) =>
+    entry.profileId === agent.profileId && entry.status === "owner-provisioner-required"));
+  result.syncPackage = await writeMissingAgentTeam(missingAgents);
 
   await saveState(state);
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);

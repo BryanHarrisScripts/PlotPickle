@@ -2,8 +2,7 @@
 param(
   [string]$RelayUrl = "",
   [string]$BuzzCli = "",
-  [switch]$PlanOnly,
-  [switch]$SkipAgentDrafts
+  [switch]$PlanOnly
 )
 
 Set-StrictMode -Version Latest
@@ -88,8 +87,9 @@ $buzz = Find-BuzzExecutable -Requested $BuzzCli
 
 Write-Host ""
 Write-Host "PLOTPICKLE / BUZZ ONE-TIME COMMUNITY SETUP"
-Write-Host "This idempotent setup creates only missing channels and verifies Agent room membership."
-Write-Host "Secrets are requested in hidden prompts, passed only to child processes, and cleared before exit."
+Write-Host "This safe sync creates only missing channels, discovers approved Agents, and repairs room membership."
+Write-Host "Missing Agents are prepared as one BUZZ Desktop team import with their names, prompts, bios, and avatars."
+Write-Host "Your Human/admin key is requested in a hidden prompt, passed only to child processes, and cleared before exit."
 Write-Host ""
 Write-Host "BUZZ CLI: $buzz"
 
@@ -117,39 +117,25 @@ if ($confirmation -cne "SET UP") {
 }
 
 $humanSecure = Read-Host "Human/admin BUZZ private key" -AsSecureString
-$provisionerSecure = $null
-$authTagSecure = $null
 $humanKey = ""
-$provisionerKey = ""
-$authTag = ""
-
-if (-not $SkipAgentDrafts) {
-  $draftChoice = Read-Host "Do you have the BUZZ owner/provisioner credential and BUZZ_AUTH_TAG for missing Agent drafts? (y/N)"
-  if ($draftChoice -match "^(?i:y|yes)$") {
-    $provisionerSecure = Read-Host "BUZZ owner/provisioner private key" -AsSecureString
-    $authTagSecure = Read-Host "BUZZ_AUTH_TAG" -AsSecureString
-  }
-}
 
 try {
   $humanKey = Convert-SecureValue -Value $humanSecure
   if (-not $humanKey) { throw "The Human/admin BUZZ private key cannot be empty." }
-  if ($provisionerSecure) { $provisionerKey = Convert-SecureValue -Value $provisionerSecure }
-  if ($authTagSecure) { $authTag = Convert-SecureValue -Value $authTagSecure }
 
   $env:BUZZ_RELAY_URL = $RelayUrl
   $env:BUZZ_PRIVATE_KEY = $humanKey
   $env:BUZZ_CLI_PATH = $buzz
   $env:PLOTPICKLE_BUZZ_CLI = $buzz
-  $env:PLOTPICKLE_BUZZ_PROVISIONER_PRIVATE_KEY = $provisionerKey
-  $env:BUZZ_AUTH_TAG = $authTag
+  $env:PLOTPICKLE_BUZZ_PROVISIONER_PRIVATE_KEY = ""
+  $env:BUZZ_AUTH_TAG = ""
 
   Write-Host ""
   Write-Host "Preparing BUZZ channels..."
   $channelResult = Invoke-NodeScript -Node $node -Script $BootstrapScript -Arguments @("--apply", "--json", "--cli=$buzz") | ConvertFrom-Json
   Write-Host "Channels ready: $($channelResult.readyRooms). Created: $($channelResult.created.Count). Kept: $($channelResult.kept.Count)."
 
-  Write-Host "Provisioning PlotPickle Agent identities and room memberships..."
+  Write-Host "Synchronizing PlotPickle Agent identities, profiles, and room memberships..."
   $agentResult = Invoke-NodeScript -Node $node -Script $AgentScript -Arguments @("--apply") | ConvertFrom-Json
   $ready = @($agentResult.agents | Where-Object { $_.status -eq "ready" })
   $pending = @($agentResult.agents | Where-Object { $_.status -eq "awaiting-owner-approval" })
@@ -161,7 +147,17 @@ try {
     Write-Host "$($pending.Count) Agent draft(s) await your approval in BUZZ Desktop. Approve them, then rerun this launcher to verify identities and memberships."
   }
   if ($ownerRequired.Count) {
-    Write-Host "$($ownerRequired.Count) Agent(s) still need the BUZZ owner/provisioner credential and BUZZ_AUTH_TAG. Rerun when those are available."
+    if ($agentResult.syncPackage.path) {
+      Write-Host ""
+      Write-Host "ONE-TIME BUZZ AGENT IMPORT READY"
+      Write-Host "Missing Agents: $($agentResult.syncPackage.agentCount)"
+      Write-Host "Import file: $($agentResult.syncPackage.path)"
+      Write-Host "In BUZZ Desktop, open Agents, choose Import Team, select this file, and approve the import once."
+      Write-Host "BUZZ will create each separate Agent identity and publish its PlotPickle avatar."
+      Write-Host "Then rerun Sync-PlotPickle-BUZZ.cmd to verify the Agents and add their room memberships."
+    } else {
+      Write-Warning "Missing Agents were found, but the BUZZ team import could not be prepared."
+    }
   }
   foreach ($agent in $attention) { Write-Warning "$($agent.displayName): $($agent.status)" }
   if (-not $pending.Count -and -not $ownerRequired.Count -and -not $attention.Count) {
@@ -180,6 +176,4 @@ finally {
     [Environment]::SetEnvironmentVariable($name, $null, "Process")
   }
   $humanKey = ""
-  $provisionerKey = ""
-  $authTag = ""
 }

@@ -1,18 +1,19 @@
 # PlotPickle / BUZZ one-time Community setup
 
-On Windows, double-click `Setup-PlotPickle-BUZZ.cmd` from the PlotPickle folder.
+On Windows, double-click `Sync-PlotPickle-BUZZ.cmd` from the PlotPickle folder. The original `Setup-PlotPickle-BUZZ.cmd` remains as a compatible entry point to the same safe sync.
 
 The launcher first prints the channel and Agent plan without writing anything. When you confirm, it asks for the intended BUZZ relay and your Human/admin BUZZ private key using a hidden prompt. It then:
 
 1. Finds the BUZZ CLI installed with BUZZ Desktop.
 2. Creates only missing PlotPickle Guildhall channels; existing channels are kept.
-3. Discovers existing PlotPickle Agent identities owned by the BUZZ account.
-4. Adds each discovered Agent to the rooms contributed by the active PlotPickle Community plugin, with the BUZZ `bot` role.
-5. Verifies every membership after writing it.
+3. Discovers existing PlotPickle Agent identities owned by the BUZZ account, including BUZZ's single-record response shape.
+4. Creates one `PlotPickle-BUZZ-Missing-Agents.team.json` import containing only missing Agents, with their exact names, system prompts, public bios and embedded PlotPickle lore avatars.
+5. Adds each discovered Agent to the rooms contributed by the active PlotPickle Community plugin, with the BUZZ `bot` role.
+6. Verifies every membership after writing it.
 
-BUZZ-native Agent creation retains BUZZ's owner-review boundary. If an Agent does not exist, the launcher can also request the separate BUZZ owner/provisioner credential and `BUZZ_AUTH_TAG`, then open an owner-reviewed Agent draft. Approve those drafts in BUZZ Desktop and rerun the launcher once; the rerun discovers the approved identities and completes their room memberships.
+When Agents are missing, open BUZZ Desktop, choose **Agents → Import Team**, select the generated file shown by the launcher, and approve the import once. BUZZ Desktop mints a separate key and owner authorization for every imported Agent, stores those secrets in its protected local credential boundary, and publishes the Agent avatars. Rerun the sync once after import; it discovers the approved identities and completes their room memberships.
 
-The Human key is used for channel administration and membership only. PlotPickle Agents never sign or speak with the Human key. Credentials are passed to child processes through the current process environment and cleared in a `finally` block. They are not accepted as command-line arguments, printed, or written to source/configuration files.
+The Human key is used for channel administration and membership only. PlotPickle Agents never sign or speak with the Human key. The relay supplies public profiles and ownership proofs, never private keys. The Human credential is passed to child processes through the current process environment and cleared in a `finally` block. It is not accepted as a command-line argument, printed, or written to source/configuration files. The generated team import contains no credentials, memory or Human profile data.
 
 For a read-only plan from PowerShell:
 

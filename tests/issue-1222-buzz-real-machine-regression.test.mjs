@@ -43,7 +43,7 @@ test("#1222 imported signer is verified before it is persisted", async () => {
   const disconnectStart = gateway.indexOf('if (action === "disconnect")');
   assert.ok(importStart >= 0 && disconnectStart > importStart);
   const block = gateway.slice(importStart, disconnectStart);
-  const verifyIndex = block.indexOf("await readConnectedProfile(connection)");
+  const verifyIndex = block.indexOf("await verifyConnectedSigner(connection)");
   const writeIndex = block.indexOf("await writeCredentialJson(CONNECTION_FILE, connection)");
   assert.ok(verifyIndex >= 0, "import must verify the candidate signer against BUZZ");
   assert.ok(writeIndex > verifyIndex, "candidate signer must not be persisted before verification succeeds");
@@ -51,12 +51,14 @@ test("#1222 imported signer is verified before it is persisted", async () => {
   assert.match(block, /verificationVersion = 2/);
 });
 
-test("#1222 maps BUZZ CLI exit classes and redacts private identity material", async () => {
+test("#1222 maps BUZZ CLI exit classes, membership failures and redacts private identity material", async () => {
   const failure = await source("build/buzz-cli-failure.ts");
   assert.match(failure, /case 1:/);
   assert.match(failure, /case 2:[\s\S]*relay could not be reached/i);
   assert.match(failure, /case 3:[\s\S]*private identity key/i);
   assert.match(failure, /case 5:[\s\S]*write conflict/i);
+  assert.match(failure, /relay\[_ -\]\?membership/);
+  assert.match(failure, /not a member of the PlotPickle Community/i);
   assert.match(failure, /replace\(NSEC, "\[redacted-nsec\]"\)/);
   assert.match(failure, /replace\(HEX_SECRET, "\[redacted-secret\]"\)/);
 

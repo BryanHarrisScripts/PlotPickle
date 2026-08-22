@@ -6,6 +6,7 @@ import { PLOTPICKLE_BUZZ_COMMUNITY } from "../lib/buzz-default-community";
 import { BUZZ_GUILDHALL_ACTORS } from "../lib/buzz-guildhall";
 import { buzzCliFailure, redactBuzzDiagnostic } from "./buzz-cli-failure";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
+import { privateKeyHex, publicKeyFromPrivateKey } from "./buzz-key-identity";
 import { readCredentialJson, writeCredentialJson } from "./local-credentials";
 
 const API = "/api/local-buzz";
@@ -74,14 +75,6 @@ function generatedPrivateKey() {
   const identity = createECDH("secp256k1");
   identity.generateKeys();
   return identity.getPrivateKey("hex").padStart(64, "0");
-}
-
-function publicKeyFromHexPrivateKey(privateKey: string) {
-  if (!/^[a-f0-9]{64}$/i.test(privateKey)) return "";
-  const identity = createECDH("secp256k1");
-  identity.setPrivateKey(Buffer.from(privateKey, "hex"));
-  const compressed = identity.getPublicKey("hex", "compressed");
-  return compressed.slice(2);
 }
 
 function connectionFrom(value: unknown): BuzzConnection | null {
@@ -204,10 +197,37 @@ async function readConnectedProfile(connection: BuzzConnection) {
   return candidates.find((item) => item.owned_by_me === true || item.ownedByMe === true) ?? candidates[0] ?? null;
 }
 
-function safeIdentity(connection: BuzzConnection, profile: Record<string, unknown> | null, displayNameFallback: string): PublicIdentity {
+async function verifyConnectedSigner(connection: BuzzConnection) {
+  const localPubkey = publicKeyFromPrivateKey(connection.privateKey);
+  if (!localPubkey) throw new Error("The BUZZ private identity key is not a valid Nostr signing key.");
+
+  let profile: Record<string, unknown> | null = null;
+  let profileFailure = "";
+  try {
+    profile = await readConnectedProfile(connection);
+  } catch (error) {
+    profileFailure = safeError(error);
+    try {
+      await runCli(connection, ["--format", "compact", "channels", "list"]);
+    } catch (channelsError) {
+      const channelFailure = safeError(channelsError);
+      throw new Error(`BUZZ could not verify this signer against ${PLOTPICKLE_BUZZ_COMMUNITY.name}. ${profileFailure}${profileFailure && channelFailure ? " · " : ""}${channelFailure}`.trim());
+    }
+  }
+
+  if (profile) {
+    const remotePubkey = profileText(profile, "pubkey", ["public_key", "publicKey"]);
+    if (/^[a-f0-9]{64}$/i.test(remotePubkey) && remotePubkey.toLowerCase() !== localPubkey) {
+      throw new Error("BUZZ returned a profile for a different signing identity. PlotPickle did not store the candidate key.");
+    }
+  }
+  return { profile, pubkey: localPubkey };
+}
+
+function safeIdentity(connection: BuzzConnection, profile: Record<string, unknown> | null, displayNameFallback: string, verifiedPubkey = ""): PublicIdentity {
   const displayName = profile ? profileText(profile, "display_name", ["displayName", "name", "username"]) || displayNameFallback : displayNameFallback;
   const publicKey = profile ? profileText(profile, "pubkey", ["public_key", "publicKey", "npub"]) : "";
-  const pubkey = publicKey || publicKeyFromHexPrivateKey(connection.privateKey);
+  const pubkey = publicKey || verifiedPubkey || publicKeyFromPrivateKey(connection.privateKey);
   const agentId = agentIdForDisplayName(displayName);
   return agentId ? {
     ready: false,
@@ -271,12 +291,14 @@ async function handleIdentityAction(body: Record<string, unknown>) {
   if (action === "import") {
     const relayUrl = normalizeRelayUrl(body.relayUrl || existing?.relayUrl);
     const privateKey = text(body.privateKey);
-    if (!/^(nsec1[a-z0-9]+|[a-f0-9]{64})$/i.test(privateKey)) throw new Error("The BUZZ private identity key must be an nsec or a 64-character hexadecimal key.");
+    if (!/^(nsec1[a-z0-9]+|[a-f0-9]{64})$/i.test(privateKey) || !privateKeyHex(privateKey)) {
+      throw new Error("The BUZZ private identity key must be a valid nsec or a 64-character hexadecimal key.");
+    }
     const connection = nextConnection(existing, relayUrl, privateKey, "imported");
     connection.identityLabel = profileDisplayName(body.displayName || existing?.identityLabel || "PlotPickle Human");
 
-    const profile = await readConnectedProfile(connection);
-    const identity = safeIdentity(connection, profile, connection.identityLabel);
+    const verification = await verifyConnectedSigner(connection);
+    const identity = safeIdentity(connection, verification.profile, connection.identityLabel, verification.pubkey);
     if (!identity.humanCommunityAllowed) throw new Error(identity.message);
 
     connection.verifiedAt = new Date().toISOString();
@@ -310,16 +332,16 @@ async function handleIdentityAction(body: Record<string, unknown>) {
     const picture = avatarUrl(body.avatarUrl);
 
     if (existing.identitySource === "imported") {
-      const before = await readConnectedProfile(existing);
-      const priorName = before ? profileText(before, "display_name", ["displayName", "name", "username"]) : "";
+      const verification = await verifyConnectedSigner(existing);
+      const priorName = verification.profile ? profileText(verification.profile, "display_name", ["displayName", "name", "username"]) : "";
       if (priorName && agentIdForDisplayName(priorName)) throw new Error("A PlotPickle agent BUZZ identity cannot be connected as the Human Profile.");
     }
 
     const args = ["users", "set-profile", "--name", displayName, "--about", bio];
-    if (picture) args.push("--picture", picture);
+    if (picture) args.push("--avatar", picture);
     await runCli(existing, args);
-    const profile = await readConnectedProfile(existing);
-    const identity = safeIdentity(existing, profile, displayName);
+    const verification = await verifyConnectedSigner(existing);
+    const identity = safeIdentity(existing, verification.profile, displayName, verification.pubkey);
     if (!identity.humanCommunityAllowed) throw new Error(identity.message);
     const verifiedConnection: BuzzConnection = {
       ...existing,

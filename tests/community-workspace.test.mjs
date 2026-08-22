@@ -125,7 +125,7 @@ test("Community preserves local credential, agent separation, and no-secret boun
   assert.match(gateway, /\[redacted-nsec\]/);
   assert.match(guard, /BUZZ_GUILDHALL_ACTORS/);
   assert.match(guard, /humanCommunityAllowed/);
-  assert.match(guard, /\[redacted-secret\]/);
+  assert.match(guard, /redactBuzzDiagnostic/);
   assert.doesNotMatch(workspace, /privateKey|nsec1/i);
 });
 

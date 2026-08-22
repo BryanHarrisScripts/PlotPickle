@@ -244,7 +244,7 @@ export function buildCommunityAgentRoster(input: {
       id: profile.id,
       displayName: profile.displayName,
       title: profile.title,
-      summary: profile.publicPresentation?.publicBio || profile.responsibility,
+      summary: profile.responsibility,
       publicBio: profile.publicPresentation?.publicBio || "",
       avatarRef: profile.publicPresentation?.avatarRef || "",
       avatarInitials: initials(profile.displayName),

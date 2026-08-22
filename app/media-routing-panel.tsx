@@ -52,7 +52,17 @@ type MediaStatus = {
   hybridGate: { ready: boolean; requirements: Requirement[] };
 };
 type DiagnosticResponse = { comfyui: Partial<ComfyUiStatus> & Pick<ComfyUiStatus, "reachable" | "baseUrl" | "checkpoints" | "imageNodesReady" | "missingImageNodes" | "workflowNodesReady" | "missingWorkflowNodes" | "error"> };
-type ImageTestResult = { assetUrl: string; route: ImageRoute; providerRequestId?: string };
+type ComfyInstallationStatus = {
+  installed: boolean;
+  running: boolean;
+  canStart: boolean;
+  state: string;
+  detail: string;
+  location: string;
+  officialDownloadUrl: string;
+};
+type ComfyInstallResponse = { installation: ComfyInstallationStatus };
+type ImageTestResult = { assetUrl: string; assetLocation?: string; route: ImageRoute; providerRequestId?: string };
 type SdxlStarterStatus = {
   state: string;
   message: string;
@@ -122,6 +132,7 @@ function mergeDiagnostic(status: MediaStatus, diagnostic: DiagnosticResponse | n
 
 export default function MediaRoutingPanel({ onManage }: { onManage: (target: string) => void }) {
   const [status, setStatus] = useState<MediaStatus | null>(null);
+  const [comfyInstallation, setComfyInstallation] = useState<ComfyInstallationStatus | null>(null);
   const [working, setWorking] = useState("");
   const [notice, setNotice] = useState("");
   const [paidImageConsent, setPaidImageConsent] = useState(false);
@@ -139,9 +150,13 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
   async function refresh() {
     try {
       const next = await jsonRequest<MediaStatus>(`${API}/status`);
-      const diagnostic = await jsonRequest<DiagnosticResponse>(DIAGNOSTICS_API, "POST", { baseUrl: next.comfyui.baseUrl }).catch(() => null);
+      const [diagnostic, installResponse] = await Promise.all([
+        jsonRequest<DiagnosticResponse>(DIAGNOSTICS_API, "POST", { baseUrl: next.comfyui.baseUrl }).catch(() => null),
+        jsonRequest<ComfyInstallResponse>(COMFY_START_API).catch(() => null),
+      ]);
       const merged = mergeDiagnostic(next, diagnostic);
       setStatus(merged);
+      setComfyInstallation(installResponse?.installation ?? null);
       setComfyBaseUrl(merged.comfyui.baseUrl || "http://127.0.0.1:8188");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Media routing status could not be checked.");
@@ -235,10 +250,20 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
     return false;
   }
 
+  function openComfyInstaller() {
+    const destination = comfyInstallation?.officialDownloadUrl || "https://comfy.org/download";
+    window.open(destination, "_blank", "noopener,noreferrer");
+    setNotice("Opened the official ComfyUI Desktop download page. Complete the visible installer, then return here and choose Refresh status.");
+  }
+
   async function startComfyUiAndSelect() {
     if (!status) return;
+    if (comfyInstallation?.installed === false) {
+      openComfyInstaller();
+      return;
+    }
     const confirmed = window.confirm(
-      "Local ComfyUI is not ready yet. PlotPickle can open/start ComfyUI Desktop and wait for its local server on 127.0.0.1:8188.\n\nPlotPickle will not download MiniMax H3, video packs, or other large optional models. If the running image engine has no SDXL checkpoint, PlotPickle will show a separate source/size/license/destination approval before any image-model download. Continue?",
+      "PlotPickle found or can manage a local ComfyUI installation. It can open/start the local engine and wait for its server on 127.0.0.1:8188.\n\nPlotPickle will not download MiniMax H3, video packs, or other large optional models. If the running image engine has no SDXL checkpoint, PlotPickle will show a separate source/size/license/destination approval before any image-model download. Continue?",
     );
     if (!confirmed) {
       setNotice("ComfyUI was not changed. Your current image provider remains active; you can try again from Settings at any time.");
@@ -251,9 +276,13 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
     try {
       await jsonRequest<{ ready: boolean; state: string; detail?: string }>(COMFY_START_API, "POST", { approved: true });
       const next = await jsonRequest<MediaStatus>(`${API}/status`);
-      const diagnostic = await jsonRequest<DiagnosticResponse>(DIAGNOSTICS_API, "POST", { baseUrl: next.comfyui.baseUrl }).catch(() => null);
+      const [diagnostic, installResponse] = await Promise.all([
+        jsonRequest<DiagnosticResponse>(DIAGNOSTICS_API, "POST", { baseUrl: next.comfyui.baseUrl }).catch(() => null),
+        jsonRequest<ComfyInstallResponse>(COMFY_START_API).catch(() => null),
+      ]);
       let merged = mergeDiagnostic(next, diagnostic);
       setStatus(merged);
+      setComfyInstallation(installResponse?.installation ?? comfyInstallation);
       setComfyBaseUrl(merged.comfyui.baseUrl || "http://127.0.0.1:8188");
 
       if (!merged.comfyui.reachable) {
@@ -275,7 +304,7 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
 
       const activated = await jsonRequest<MediaStatus>(`${API}/routes`, "POST", { imageRoute: "comfyui" });
       setStatus(activated);
-      setNotice("ComfyUI is running, required image nodes and a checkpoint are ready, and local ComfyUI is now the active image provider.");
+      setNotice("ComfyUI is running, required image nodes and a checkpoint are ready. Run Test Image to verify real generation before PlotPickle reports the local route as ready.");
       refreshDashboardLights();
     } catch (error) {
       setNotice(`${error instanceof Error ? error.message : "ComfyUI could not be started."} Your current image provider remains active.`);
@@ -288,7 +317,8 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
 
   async function selectImageRoute(route: ImageRoute) {
     if (route === "comfyui" && !routeConfigured("comfyui")) {
-      await startComfyUiAndSelect();
+      if (comfyInstallation?.installed === false) openComfyInstaller();
+      else await startComfyUiAndSelect();
       return;
     }
     await chooseRoutes({ imageRoute: route });
@@ -299,9 +329,13 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
     setNotice("");
     try {
       const diagnostic = await jsonRequest<DiagnosticResponse>(DIAGNOSTICS_API, "POST", { baseUrl: comfyBaseUrl });
-      const next = await jsonRequest<MediaStatus>(`${API}/status`);
+      const [next, installResponse] = await Promise.all([
+        jsonRequest<MediaStatus>(`${API}/status`),
+        jsonRequest<ComfyInstallResponse>(COMFY_START_API).catch(() => null),
+      ]);
       const merged = mergeDiagnostic(next, diagnostic);
       setStatus(merged);
+      setComfyInstallation(installResponse?.installation ?? comfyInstallation);
       setComfyBaseUrl(merged.comfyui.baseUrl);
       setNotice(!merged.comfyui.reachable
         ? merged.comfyui.error || "ComfyUI did not respond."
@@ -323,7 +357,7 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
     try {
       setStatus(await jsonRequest<MediaStatus>(`${API}/comfyui/checkpoint`, "POST", { checkpoint }));
       setImageResult(null);
-      setNotice(`${checkpoint} is now the selected ComfyUI image checkpoint. Run Test image before the route turns green.`);
+      setNotice(`${checkpoint} is now the selected ComfyUI image checkpoint. Run Test Image before the route turns green.`);
       refreshDashboardLights();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The checkpoint could not be selected.");
@@ -346,7 +380,7 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
         billingAcknowledged: route === "openai" || route === "minimax" ? paidImageConsent : false,
       });
       setImageResult(result);
-      setNotice(`${imageOptions.find((item) => item.id === route)?.label} returned a real image to PlotPickle.`);
+      setNotice(`${imageOptions.find((item) => item.id === route)?.label} returned a real image to PlotPickle and the route is verified.`);
       await refresh();
       refreshDashboardLights();
     } catch (error) {
@@ -420,9 +454,20 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
     return <section className={styles.panel}><p>{notice || "Checking image and video engines…"}</p></section>;
   }
 
-  const comfyReady = status.comfyui.reachable && status.comfyui.imageNodesReady && Boolean(status.comfyui.checkpoint);
-  const comfyState = comfyReady ? "ready" : status.comfyui.reachable ? "attention" : "error";
-  const comfyStateLabel = comfyReady ? "Ready" : status.comfyui.reachable ? "Running · setup needed" : "Not connected";
+  const comfyConfigured = status.comfyui.reachable && status.comfyui.imageNodesReady && Boolean(status.comfyui.checkpoint);
+  const comfyReady = comfyConfigured && Boolean(status.comfyui.imageVerifiedAt);
+  const comfyState = comfyReady ? "ready" : status.comfyui.reachable || comfyInstallation?.installed ? "attention" : "error";
+  const comfyStateLabel = comfyReady
+    ? "Tested · ready"
+    : comfyConfigured
+      ? "Running · test needed"
+      : status.comfyui.reachable
+        ? "Running · setup needed"
+        : comfyInstallation?.installed
+          ? "Installed · stopped"
+          : comfyInstallation
+            ? "Not installed"
+            : "Not connected";
 
   return (
     <section className={styles.panel} aria-labelledby="media-routing-title">
@@ -442,7 +487,9 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
             {imageOptions.map((option) => {
               const verified = imageVerified(status, option.id);
               const configured = routeConfigured(option.id);
-              const stateLabel = option.id === "comfyui" && !configured ? "Set up" : verified ? "Ready" : configured ? "Test needed" : "Setup needed";
+              const stateLabel = option.id === "comfyui"
+                ? verified ? "Ready" : configured ? "Test needed" : status.comfyui.reachable ? "Setup needed" : comfyInstallation?.installed ? "Installed" : "Set up"
+                : verified ? "Ready" : configured ? "Test needed" : "Setup needed";
               return (
                 <div className={styles.option} data-active={status.imageRoute === option.id} key={option.id}>
                   <button type="button" className={styles.select} onClick={() => void selectImageRoute(option.id)} disabled={Boolean(working) || (option.id !== "comfyui" && !configured)}>
@@ -451,7 +498,7 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
                   </button>
                   {option.id !== "manual" ? (
                     <button type="button" className={styles.test} onClick={() => void testImage(option.id)} disabled={Boolean(working) || !configured}>
-                      {working === `image-${option.id}` ? "Testing…" : "Test image"}
+                      {working === `image-${option.id}` ? "Testing…" : "Test Image"}
                     </button>
                   ) : null}
                 </div>
@@ -471,24 +518,27 @@ export default function MediaRoutingPanel({ onManage }: { onManage: (target: str
               <span>ComfyUI server address</span>
               <input value={comfyBaseUrl} onChange={(event) => setComfyBaseUrl(event.target.value)} placeholder="http://127.0.0.1:8188" spellCheck={false} />
             </label>
-            {!comfyReady ? (
+            {!status.comfyui.reachable && comfyInstallation?.installed === false ? (
+              <button type="button" onClick={openComfyInstaller} disabled={Boolean(working)}>Install ComfyUI Desktop</button>
+            ) : !comfyConfigured ? (
               <button type="button" onClick={() => void startComfyUiAndSelect()} disabled={Boolean(working)}>
-                {working === "sdxl-starter" ? "Downloading / verifying SDXL 1.0…" : working === "comfy-start" ? "Opening / starting ComfyUI…" : "Install / start local ComfyUI"}
+                {working === "sdxl-starter" ? "Downloading / verifying SDXL 1.0…" : working === "comfy-start" ? "Starting ComfyUI…" : status.comfyui.reachable ? "Finish ComfyUI setup" : "Start ComfyUI"}
               </button>
             ) : null}
             <button type="button" onClick={() => void testComfyConnection()} disabled={Boolean(working) || !comfyBaseUrl.trim()}>
               {working === "comfy-connection" ? "Running live diagnostic…" : "Save & run live ComfyUI diagnostic"}
             </button>
-            <small>PlotPickle asks before opening ComfyUI Desktop. If no SDXL checkpoint exists, it shows the reviewed model source, 6.94 GB size, OpenRAIL++ license, exact destination and SHA-256 before asking separately for download approval. H3/video packs and cloud providers remain separate.</small>
+            <small>PlotPickle detects ComfyUI without launching it. If Desktop is installed but stopped, Start ComfyUI launches the existing local engine. If no SDXL checkpoint exists, PlotPickle shows source, size, license, destination and SHA-256 before asking separately for download approval. H3/video packs and cloud providers remain separate.</small>
             <small>{status.comfyui.reachable
               ? status.comfyui.capabilityError || `${status.comfyui.version ? `Version ${status.comfyui.version} · ` : ""}service responded${status.comfyui.latencyMs !== undefined ? ` in ${status.comfyui.latencyMs} ms` : ""}. ${status.comfyui.imageNodesReady ? "Required image nodes found." : `Missing nodes: ${status.comfyui.missingImageNodes.join(", ")}.`}`
-              : status.comfyui.error || "Choose Install / start local ComfyUI, approve the prompt, then let PlotPickle verify port 8188."}</small>
+              : comfyInstallation?.detail || status.comfyui.error || "ComfyUI is not responding on port 8188."}</small>
+            {comfyInstallation?.location ? <small>Detected at {comfyInstallation.location}.</small> : null}
             {status.comfyui.checkedAt ? <small>Last checked {formatDate(status.comfyui.checkedAt)}.</small> : null}
           </section>
           {status.comfyui.checkpoints.length ? (
             <label className={styles.checkpoint}><span>ComfyUI checkpoint</span><select value={status.comfyui.checkpoint} onChange={(event) => void chooseCheckpoint(event.target.value)} disabled={Boolean(working)}>{status.comfyui.checkpoints.map((name) => <option value={name} key={name}>{name}</option>)}</select></label>
-          ) : <p className={styles.warning}>{status.comfyui.reachable ? status.comfyui.capabilityError || "ComfyUI is running, but no checkpoint is available. Choose Set up / Install local ComfyUI to review the recommended SDXL 1.0 starter." : status.comfyui.error || "ComfyUI is not responding on port 8188."}</p>}
-          {imageResult ? <figure className={styles.preview}><img src={imageResult.assetUrl} alt="Generated media route connection test" /><figcaption>{imageResult.route} test asset stored locally</figcaption></figure> : null}
+          ) : <p className={styles.warning}>{status.comfyui.reachable ? status.comfyui.capabilityError || "ComfyUI is running, but no checkpoint is available. Choose Finish ComfyUI setup to review the recommended SDXL 1.0 starter." : comfyInstallation?.installed ? "ComfyUI is installed but stopped. Choose Start ComfyUI." : status.comfyui.error || "ComfyUI is not responding on port 8188."}</p>}
+          {imageResult ? <figure className={styles.preview}><img src={imageResult.assetUrl} alt="Generated media route connection test" /><figcaption>{imageResult.route} test asset stored locally{imageResult.assetLocation ? ` · ${imageResult.assetLocation}` : ""}</figcaption></figure> : null}
         </article>
 
         <article className={styles.routeCard}>

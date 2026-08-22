@@ -9,9 +9,12 @@ const marketing = readFileSync(resolve(root, "modules/learn/model/marquee-direct
 const overlay = readFileSync(resolve(root, "modules/learn/ui/marquee-agent-overlay.tsx"), "utf8");
 const roster = readFileSync(resolve(root, "modules/learn/model/learn-agent-roster.ts"), "utf8");
 const marketingContract = readFileSync(resolve(root, "core/contracts/build-progress.ts"), "utf8");
+const visualContract = readFileSync(resolve(root, "core/visual-contract/visual-contract.ts"), "utf8");
 const page = readFileSync(resolve(root, "app/page.tsx"), "utf8");
 const communityRoster = readFileSync(resolve(root, "app/community-agent-roster.tsx"), "utf8");
 const skill = readFileSync(resolve(root, ".agents/skills/marquee-director/SKILL.md"), "utf8");
+const visualContractSkill = readFileSync(resolve(root, ".agents/skills/visual-contract/SKILL.md"), "utf8");
+const skillRegistry = JSON.parse(readFileSync(resolve(root, "config/agent-skills.json"), "utf8"));
 
 test("#1080 unlocks Marquee only from canonical completed Foundations progression", () => {
   assert.match(marketing, /deriveGuidedCreationProgression\(curriculum, project\)\.foundations\.complete/);
@@ -47,6 +50,50 @@ test("#1080 derives a bounded Marketing Context from PPF Foundations evidence", 
   assert.match(marketing, /Use only the supplied Marketing Context as project fact/);
 });
 
+test("#1267 registers a shared provider-neutral Visual Contract Skill instead of another Agent", () => {
+  const registered = skillRegistry.skills.find((candidate) => candidate.id === "visual-contract");
+  assert.deepEqual(registered.roles, ["visual-contract"]);
+  assert.equal(registered.primaryWorker, "host");
+  assert.equal(registered.uri, "skill://plotpickle/visual-contract");
+  assert.match(visualContractSkill, /Hard constraints[\s\S]*Derived constraints[\s\S]*Open choices/);
+  assert.match(visualContractSkill, /lower-priority choice never overrides a higher-priority requirement/i);
+  assert.match(visualContractSkill, /does not select providers, spend money, store credentials, call image services, mutate PPF/i);
+  assert.match(visualContractSkill, /provider-neutral/i);
+  assert.doesNotMatch(visualContractSkill, /new Agent\(|new Mastra\(/);
+});
+
+test("#1267 Visual Contract core separates authority, references, scene construction and independent validation", () => {
+  assert.match(visualContract, /hardConstraints: readonly VisualConstraint\[\]/);
+  assert.match(visualContract, /derivedConstraints: readonly VisualConstraint\[\]/);
+  assert.match(visualContract, /openChoices: readonly string\[\]/);
+  assert.match(visualContract, /referenceMap: readonly VisualContractReference\[\]/);
+  assert.match(visualContract, /macroScene: readonly string\[\]/);
+  assert.match(visualContract, /elementInventory: readonly VisualContractElement\[\]/);
+  assert.match(visualContract, /relationships: readonly VisualContractRelationship\[\]/);
+  assert.match(visualContract, /geometry: readonly string\[\]/);
+  assert.match(visualContract, /composition: readonly string\[\]/);
+  assert.match(visualContract, /lighting: readonly string\[\]/);
+  assert.match(visualContract, /textRequirements: readonly string\[\]/);
+  assert.match(visualContract, /failureConstraints: readonly string\[\]/);
+  assert.match(visualContract, /validationChecks: readonly VisualContractValidation\[\]/);
+  assert.match(visualContract, /priority: hardConstraints\.length \+ index \+ 1/);
+  assert.match(visualContract, /Open choices may fill unspecified details only when they do not conflict with hard or derived constraints/);
+  assert.doesNotMatch(visualContract, /GPT Image|Nano Banana|OpenAI|ComfyUI|MiniMax/i);
+});
+
+test("#1267 compiles the first Marquee poster from the shared Visual Contract while preserving Foundations authority", () => {
+  assert.match(marketing, /buildFoundationsMarketingVisualContract/);
+  assert.match(marketing, /buildVisualContract\(\{/);
+  assert.match(marketing, /compileVisualContractPrompt\(buildFoundationsMarketingVisualContract\(context\)\)/);
+  assert.match(marketing, /canonical project title is/);
+  assert.match(marketing, /Treat supplied Foundations decisions and brief as story authority/);
+  assert.match(marketing, /roles: \["visual-language" as const\]/);
+  assert.match(marketing, /Produce exactly one standalone poster image/);
+  assert.match(marketing, /Do not add fake billing blocks, critic quotes, awards, festival laurels, release dates, studio\/platform logos/);
+  assert.match(skill, /shared `visual-contract` Skill/);
+  assert.match(skill, /provider-specific prompt must never silently weaken project-title spelling, accepted Foundations facts, accepted visual-reference intentions/);
+});
+
 test("#1080 generates exactly one first poster through existing image routing and never silently promotes cloud", () => {
   assert.match(overlay, /"\/api\/ai-routing\/status"/);
   assert.match(overlay, /"\/api\/local-ai\/generate\/image"/);
@@ -54,8 +101,8 @@ test("#1080 generates exactly one first poster through existing image routing an
   assert.match(overlay, /requestCount: 1/);
   assert.match(overlay, /cloudRoute && !billingAcknowledged/);
   assert.match(overlay, /Manual image mode is selected/);
-  assert.match(marketing, /Output exactly one poster image/);
-  assert.match(marketing, /Do not create a comparison sheet, contact sheet, alternate version, triptych or multiple poster concepts/);
+  assert.match(marketing, /Produce exactly one standalone poster image/);
+  assert.match(marketing, /comparison sheet, contact sheet, triptych or alternate set/);
 });
 
 test("#1080 automatically stores the successful poster as a PPF Marketing Reference without a v1 approval surface", () => {

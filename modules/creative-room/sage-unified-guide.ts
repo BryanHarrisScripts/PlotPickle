@@ -183,16 +183,35 @@ function lessonText(lesson: CurriculumLesson) {
   return [lesson.title, lesson.topic, lesson.overview, ...lesson.objectives, ...lesson.sections.flatMap((section) => [section.heading, ...section.paragraphs, ...(section.points ?? [])]), ...lesson.definitions.flatMap((definition) => [definition.term, definition.meaning]), lesson.apply].join(" ").toLowerCase();
 }
 
-function craftFallback(request: CurriculumGuideRequest, retrieval: CurriculumRetrieval) {
-  const lesson = matchingLesson(request);
-  if (!lesson) return answer("I couldn’t match that cleanly to the local PlotPickle curriculum. Try asking it another way and I’ll keep the answer direct.", "Sage curriculum fallback", retrieval);
-  const definition = lesson.definitions.find((item) => normalized(request.question).includes(normalized(item.term)));
-  const text = compactSentences([definition?.meaning, lesson.overview, lesson.apply].filter(Boolean).join(" "), 4, 680);
-  return answer(text || lesson.overview, "Sage curriculum fallback", retrieval);
+export function sageRuntimeRecoveryMessage(error: unknown) {
+  const detail = error instanceof Error ? error.message : String(error || "");
+  if (/abort|timeout|timed out/i.test(detail)) {
+    return "Sage’s local model timed out. Open Settings → Sage Setup, choose a smaller local model if needed, and run Test Sage before retrying.";
+  }
+  if (/prepare|model|runtime|local ai|writing assistant|fetch|connect|unavailable|no usable local reply/i.test(detail)) {
+    return "Sage’s local model is not ready. Open Settings → Sage Setup, choose or install a local model, then run Test Sage before retrying.";
+  }
+  return "Sage’s local model did not return a usable answer. Open Settings → Sage Setup and run Test Sage to see the exact runtime problem before retrying.";
 }
 
-function conversationFallback() {
-  return answer("That local reply didn’t come through cleanly, so I dropped it instead of showing you nonsense. Ask me again and I’ll keep it short and direct.", "Sage conversation fallback");
+function craftFallback(request: CurriculumGuideRequest, retrieval: CurriculumRetrieval, runtimeRecovery = "") {
+  const lesson = matchingLesson(request);
+  if (!lesson) {
+    const recovery = runtimeRecovery ? ` ${runtimeRecovery}` : "";
+    return answer(`I couldn’t match that cleanly to the local PlotPickle curriculum. Try asking it another way and I’ll keep the answer direct.${recovery}`, "Sage curriculum fallback", retrieval);
+  }
+  const definition = lesson.definitions.find((item) => normalized(request.question).includes(normalized(item.term)));
+  const teaching = definition
+    ? `${definition.term}: ${definition.meaning}`
+    : lesson.overview;
+  const practical = lesson.apply ? `For your story, the lesson asks you to apply it here: ${lesson.apply}` : "";
+  const text = compactSentences([teaching, practical].filter(Boolean).join(" "), 4, 680);
+  const recovery = runtimeRecovery ? ` ${runtimeRecovery}` : "";
+  return answer(`${text || lesson.overview}${recovery}`.trim(), "Sage curriculum fallback", retrieval);
+}
+
+function conversationFallback(runtimeRecovery: string) {
+  return answer(runtimeRecovery, "Sage runtime recovery");
 }
 
 export const answerFromCurriculum: CurriculumGuide = async (request) => {
@@ -208,6 +227,7 @@ export const answerFromCurriculum: CurriculumGuide = async (request) => {
     { role: "fast", repair: false },
     { role: "quality", repair: true },
   ];
+  let lastFailure: unknown = new Error("Sage local runtime did not start.");
   for (const attempt of attempts) {
     try {
       const result = await askModel(request, retrieval, attempt.role, attempt.repair);
@@ -219,10 +239,12 @@ export const answerFromCurriculum: CurriculumGuide = async (request) => {
         runtimeProvider: result.runtimeProvider,
         model: result.model || `${attempt.role} Sage model`,
       };
-    } catch {
+    } catch (error) {
+      lastFailure = error;
       // Bounded local-only recovery. A weak generation never reaches the writer.
     }
   }
 
-  return craft ? craftFallback(request, retrieval) : conversationFallback();
+  const runtimeRecovery = sageRuntimeRecoveryMessage(lastFailure);
+  return craft ? craftFallback(request, retrieval, runtimeRecovery) : conversationFallback(runtimeRecovery);
 };

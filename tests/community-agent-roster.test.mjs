@@ -33,7 +33,7 @@ test("Community shows a live roster sourced from Agent Contracts plus Mastra act
   assert.match(roster, /\/api\/writing-assistant\/traces/);
   assert.match(roster, /\/api\/local-buzz\/agent-roster/);
   assert.match(roster, /setInterval\(\(\) => void refresh\(\), 7_500\)/);
-  assert.match(roster, /Runs in/);
+  assert.match(roster, /Helps in/);
   assert.match(roster, /Home room/);
   assert.match(roster, /Active model/);
   assert.match(roster, /Last activity/);

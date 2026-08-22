@@ -4,47 +4,46 @@ import test from "node:test";
 
 const read = (relativePath) => readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 
-test("#1217 makes native BUZZ social destinations first-class while retaining the Great Hall terminal", async () => {
+test("#1283 makes Human-purpose BUZZ rooms and Direct Messages first-class without the legacy terminal", async () => {
   const source = await read("app/community-workspace.tsx");
   assert.match(source, /data-community-native-buzz="true"/);
-  assert.match(source, /aria-label="Channels, Forums and Direct Messages"/);
-  assert.match(source, />Channels</);
-  assert.match(source, />Forums</);
+  assert.match(source, /aria-label="Community rooms and Direct Messages"/);
+  assert.match(source, />Rooms</);
   assert.match(source, />Direct Messages</);
-  assert.match(source, /<CommunityBackdoorTerminal/);
+  assert.match(source, /<CommunityBuzzSocial target=\{selectedTarget\}/);
+  assert.doesNotMatch(source, /<CommunityBackdoorTerminal/);
 });
 
-test("#1217 opens the verified BUZZ Great Hall through the terminal without restoring the retired destination menu", async () => {
+test("#1283 opens the verified Great Hall through the normal BUZZ conversation surface", async () => {
   const source = await read("app/community-workspace.tsx");
-  assert.match(source, /setActiveRoom\(\(current\) => current \?\? createGreatHallActiveRoom\(communityBody\.greatHall\)\)/);
-  assert.match(source, /activeRoom \? <CommunityBackdoorTerminal/);
+  assert.match(source, /const greatHallDefinition = PUBLIC_ROOMS\.find\(\(room\) => room\.id === "great-hall"\)/);
+  assert.match(source, /chooseRoom\("great-hall"\)/);
   assert.match(source, /data-community-bbs-server="true"/);
   assert.match(source, /data-community-caller="verified-human"/);
-  assert.match(source, /CALLER/);
+  assert.match(source, /<CommunityBuzzSocial target=\{selectedTarget\}/);
   assert.doesNotMatch(source, /type CommunitySection =/);
 });
 
-test("#1217 derives Community readiness from verified Human BUZZ identity and operational native rooms", async () => {
+test("#1283 derives Community readiness from the verified Human identity and prepared plugin rooms", async () => {
   const source = await read("app/community-workspace.tsx");
   assert.match(source, /const connected = Boolean\(community\?\.identityVerified && humanCanPost\)/);
   assert.match(source, /const operational = Boolean\(guildhall\?\.operational\)/);
-  assert.match(source, /HUMAN BUZZ IDENTITY VERIFIED/);
+  assert.match(source, /BUZZ CONNECTED/);
   assert.match(source, /BUZZ IDENTITY REQUIRED/);
   assert.match(source, /Community requires BUZZ/);
-  assert.match(source, /Prepare Community rooms/);
+  assert.match(source, /Prepare Community/);
 });
 
-test("#1217 preserves PlotPickle Story Rooms, Connected Studios and agents beside native BUZZ social navigation", async () => {
+test("#1283 preserves one Private Story Room, Connected Studios and Agents beside plugin rooms", async () => {
   const source = await read("app/community-workspace.tsx");
-  for (const label of ["Private Story Rooms", "Connected Studios"]) {
-    assert.match(source, new RegExp(label), `Missing PlotPickle compatibility destination ${label}`);
+  for (const label of ["Private Story Room", "Connected Studios", "Agents"]) {
+    assert.match(source, new RegExp(label), `Missing PlotPickle destination ${label}`);
   }
-  assert.match(source, /Agents &amp; Stewards/);
   assert.match(source, /CommunityStoryRoomAccess/);
   assert.match(source, /ConnectedStudiosPanel/);
   assert.match(source, /CommunityAgentRoster/);
-  assert.match(source, /data-community-room=\{room\.id\}/);
-  assert.match(source, /room\.id === "great-hall"/);
+  assert.match(source, /PUBLIC_ROOMS\.map/);
+  assert.match(source, /definition\.id === "great-hall"|room\.id === "great-hall"/);
 });
 
 test("terminal provides keyboard-first controls and Enter-to-send without stealing typing shortcuts", async () => {
@@ -75,24 +74,20 @@ test("#1123 gives the centre screen the PlotPickle dragon room-first BBS treatme
   assert.doesNotMatch(source, /<div className=\{styles\.menuBlock\}>/);
 });
 
-test("terminal uses real Community and Guildhall routes rather than fake users or a second backend", async () => {
-  const [terminal, workspace] = await Promise.all([
+test("current Community conversation uses real BUZZ routes rather than fake users or a second backend", async () => {
+  const [terminal, workspace, social] = await Promise.all([
     read("app/community-backdoor-terminal.tsx"),
     read("app/community-workspace.tsx"),
+    read("modules/community/community-buzz-social.tsx"),
   ]);
   assert.match(terminal, /BUZZ_GUILDHALL_ACTORS/);
   assert.match(terminal, /BUZZ_GUILDHALL_CHANNELS/);
-  assert.match(terminal, /members\.filter\(\(member\) => member\.presence === "online"\)/);
   assert.match(terminal, /\/api\/local-buzz/);
-  assert.match(terminal, /\/messages\?channel=/);
-  assert.match(terminal, /body: JSON\.stringify\(\{ channel: channelId, content \}\)/);
-  assert.match(workspace, /humanIdentity=\{humanIdentity\}/);
-  assert.match(workspace, /activeRoom=\{activeRoom\}/);
+  assert.match(social, /\/messages\?channel=/);
+  assert.match(social, /body: JSON\.stringify\(\{ channel: channelId, content \}\)/);
   assert.match(workspace, /members=\{community\?\.members \?\? \[\]\}/);
-  assert.match(workspace, /recentActivity=\{community\?\.recentActivity \?\? \[\]\}/);
-  assert.match(workspace, /readyGuildhallRooms=\{guildhall\?\.readyRooms \?\? \[\]\}/);
-  assert.match(workspace, /storyRooms=\{storyRooms\}/);
-  assert.match(workspace, /reviews=\{\[\]\}/);
+  assert.match(workspace, /canPost=\{humanCanPost\}/);
+  assert.match(workspace, /target=\{selectedTarget\}/);
 });
 
 test("TALK is honest about shared human routes and agent home-room addressing", async () => {

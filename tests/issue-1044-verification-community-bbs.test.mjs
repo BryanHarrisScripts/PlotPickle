@@ -27,22 +27,17 @@ test("#1044 retries only transient BUZZ transport failures", async () => {
   assert.equal(functionalAttempts, 1);
 });
 
-test("#1044/#1217 Community BBS owns its visible identity while the active BUZZ community remains the node source of truth", async () => {
-  const [workspace, terminal] = await Promise.all([
+test("#1044/#1283 plugin branding owns the visible Community identity while BUZZ remains the transport source of truth", async () => {
+  const [workspace, social] = await Promise.all([
     read("app/community-workspace.tsx"),
-    read("app/community-backdoor-terminal.tsx"),
+    read("modules/community/community-buzz-social.tsx"),
   ]);
-  assert.match(workspace, /PlotPickle Community BBS/);
-  assert.match(workspace, /\{community\?\.community \|\| "BUZZ COMMUNITY"\}/);
-  assert.match(workspace, /nodeName=\{community\?\.community \|\| "BUZZ"\}/);
-  assert.doesNotMatch(workspace, /COMMUNITY_BBS_NODE|plotpickle-community/);
-  assert.doesNotMatch(workspace, /Playhouse/i);
-  assert.match(terminal, /PLOTPICKLE COMMUNITY BBS/);
-  assert.match(terminal, /readonly nodeName: string/);
-  assert.match(terminal, /BUZZ NODE UNAVAILABLE/);
-  assert.doesNotMatch(terminal, /COMMUNITY_BBS_NODE|plotpickle-community/);
-  assert.match(terminal, /DRAGON|dragon/);
-  assert.doesNotMatch(terminal, /Playhouse/i);
+  assert.match(workspace, /const COMMUNITY_BBS_NAME = PLOTPICKLE_PLAYHOUSE_PLUGIN\.displayName/);
+  assert.match(workspace, /<b>\{COMMUNITY_BBS_NAME\}<\/b>/);
+  assert.match(workspace, /community\?\.relayUrl/);
+  assert.match(workspace, /community\?\.community/);
+  assert.match(workspace, /<CommunityBuzzSocial target=\{selectedTarget\}/);
+  assert.match(social, /const BUZZ_API = "\/api\/local-buzz"/);
 });
 
 test("#1044 Community Presence replaces the user-facing Playhouse route while preserving local federation compatibility", async () => {

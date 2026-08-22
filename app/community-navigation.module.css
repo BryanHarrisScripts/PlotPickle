@@ -26,7 +26,7 @@
 .railHeader b {
   color: var(--community-text, #f1eee7);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 14px;
+  font-size: 16px;
   letter-spacing: 0.02em;
 }
 
@@ -145,8 +145,47 @@
 
 .destinationDetails > small {
   color: var(--community-muted, #918a80);
-  font-size: 8px;
+  font-size: 12px;
   line-height: 1.45;
+}
+
+.humanIdentity {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  margin: 4px 0;
+}
+
+.humanIdentity p {
+  min-width: 0;
+  margin: 0;
+  font-size: 14px;
+}
+
+.humanIdentity small {
+  color: var(--community-muted, #918a80);
+  font-size: 11px;
+}
+
+.humanAvatar {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(214, 169, 95, .55);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 25%, rgba(53, 201, 184, .25), rgba(8, 17, 15, .98) 68%);
+  color: #e9cf8f;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.humanAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .subDestinationList {
@@ -161,14 +200,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 7px 8px;
+  padding: 10px 9px;
   text-align: left;
 }
 
 .subDestination span {
   min-width: 0;
   overflow: hidden;
-  font-size: 8px;
+  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -176,7 +215,7 @@
 .subDestination small {
   flex: 0 0 auto;
   color: var(--community-muted, #918a80);
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .subDestination[aria-current="page"] {

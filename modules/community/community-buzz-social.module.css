@@ -9,6 +9,10 @@
   background: #090d0c;
 }
 
+.conversation[data-great-hall="true"] {
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+}
+
 .conversationHeader,
 .contextHeader {
   display: flex;
@@ -27,7 +31,7 @@
 .roomGuide > div > span,
 .helpers > span {
   color: #d6a95f;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -40,47 +44,125 @@
   font-family: Georgia, "Times New Roman", serif;
 }
 
-.conversationHeader small { color: #8f9c95; }
+.conversationHeader small { color: #8f9c95; font-size: 13px; line-height: 1.5; }
 .mirrorBadge { flex: 0 0 auto; padding: 5px 8px; border: 1px solid rgba(53, 201, 184, 0.35); border-radius: 999px; color: #8ce5d5; font-size: 8px; }
 .roomGuide { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:18px; align-items:center; padding:12px 20px; border-bottom:1px solid rgba(53,201,184,.12); background:rgba(14,25,22,.72); }
-.roomGuide p { margin:4px 0 0; color:#aab7b0; font-size:10px; line-height:1.5; }
+.roomGuide p { margin:4px 0 0; color:#aab7b0; font-size:15px; line-height:1.5; }
+.roomGuide small { font-size: 12px; line-height: 1.5; }
 .helpers { display:grid; gap:6px; justify-items:end; }
 .helpers > div { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
 .helper { display:grid; grid-template-columns:auto auto; gap:6px; align-items:center; padding:4px 7px 4px 4px; border:1px solid rgba(53,201,184,.14); border-radius:999px; background:rgba(7,16,14,.72); }
-.helper small { color:#c8d5ce; font-size:8px; white-space:nowrap; }
+.helper small { color:#c8d5ce; font-size:12px; white-space:nowrap; }
 .timeline { min-height: 0; padding: 16px 20px 28px; overflow: auto; }
-.message { display: grid; gap: 5px; padding: 11px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.055); }
+.message { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; padding: 14px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.055); }
+.messageBody { min-width: 0; }
 .message header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.message strong { color: #dfe8e2; font-size: 11px; }
-.message time { color: #6f7b75; font-size: 8px; }
-.message p { margin: 0; color: #bdc9c2; font-size: 11px; line-height: 1.6; white-space: pre-wrap; }
-.empty { margin: 30px auto; max-width: 480px; color: #7e8a83; font-size: 11px; line-height: 1.6; text-align: center; }
+.message strong { color: #dfe8e2; font-size: 15px; }
+.message strong small { margin-left: 8px; color: #71d8c8; font-size: 11px; letter-spacing: .08em; }
+.message time { color: #84928b; font-size: 12px; }
+.message p { margin: 5px 0 0; color: #d3ddd7; font-size: 16px; line-height: 1.55; white-space: pre-wrap; }
+.empty { margin: 30px auto; max-width: 480px; color: #89978f; font-size: 15px; line-height: 1.6; text-align: center; }
 .composer { display: grid; gap: 8px; padding: 14px 20px 18px; border-top: 1px solid rgba(53, 201, 184, 0.18); background: rgba(9, 15, 13, 0.98); }
-.composerRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 9px; }
-.composer textarea { min-height: 58px; resize: vertical; border: 1px solid rgba(53, 201, 184, 0.28); border-radius: 8px; background: #0d1311; color: #e4eee8; padding: 10px 12px; font: inherit; }
+.composerRow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 9px; align-items: start; }
+.prompt { padding-top: 11px; color: #93e36f; font-size: 15px; font-weight: 700; white-space: nowrap; }
+.composer textarea { min-height: 64px; resize: vertical; border: 1px solid rgba(53, 201, 184, 0.28); border-radius: 8px; background: #0d1311; color: #e4eee8; padding: 10px 12px; font: inherit; font-size: 16px; line-height: 1.5; }
 .composer textarea:focus-visible { border-color: #35c9b8; outline: 2px solid rgba(53, 201, 184, 0.24); }
 .composer button,
 .contextCard button,
-.contextCard a { align-self: end; border: 1px solid rgba(53, 201, 184, 0.4); border-radius: 7px; background: rgba(53, 201, 184, 0.09); color: #d9f7f0; padding: 9px 11px; font: inherit; font-size: 9px; text-decoration: none; cursor: pointer; }
+.contextCard a { align-self: end; border: 1px solid rgba(53, 201, 184, 0.4); border-radius: 7px; background: rgba(53, 201, 184, 0.09); color: #d9f7f0; padding: 9px 11px; font: inherit; font-size: 13px; text-decoration: none; cursor: pointer; }
 .composer button:disabled,
 .contextCard button:disabled { cursor: default; opacity: 0.45; }
-.notice { margin: 0; color: #d9b77e; font-size: 9px; }
+.composerHint,
+.notice { margin: 0; color: #d9b77e; font-size: 12px; }
 .context { display: grid; grid-column: 2; align-content: start; min-width: 0; min-height: 0; overflow: auto; background: #0b100e; }
 .contextBody { display: grid; gap: 10px; padding: 14px; }
 .contextCard { display: grid; gap: 8px; padding: 12px; border: 1px solid rgba(53, 201, 184, 0.17); border-radius: 8px; background: rgba(16, 25, 22, 0.75); }
 .contextCard h4,
 .contextCard p { margin: 0; }
-.contextCard h4 { color: #e5eee9; font-size: 11px; }
+.contextCard h4 { color: #e5eee9; font-size: 15px; }
 .contextCard p,
-.contextCard small { color: #8d9b93; font-size: 9px; line-height: 1.55; }
+.contextCard small { color: #9ba9a1; font-size: 13px; line-height: 1.55; }
 .memberList { display: grid; gap: 5px; }
-.memberRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.045); }
+.memberRow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.045); }
 .memberRow:last-child { border-bottom: 0; }
 .memberRow div { min-width: 0; }
 .memberRow strong,
 .memberRow small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.memberRow strong { color: #cbd7d0; font-size: 9px; }
-.memberRow button { padding: 5px 7px; font-size: 8px; }
+.memberRow strong { color: #cbd7d0; font-size: 13px; }
+.memberRow button { padding: 5px 7px; font-size: 12px; }
+
+.avatar,
+.avatarPortrait {
+  --community-avatar-size: 46px;
+  width: var(--community-avatar-size);
+  height: var(--community-avatar-size);
+  flex: 0 0 var(--community-avatar-size);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(214, 169, 95, .55);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 25%, rgba(53, 201, 184, .25), rgba(8, 17, 15, .98) 68%);
+  color: #e9cf8f;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.greatHallBanner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 30%);
+  gap: 18px;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(53, 201, 184, .2);
+  background:
+    linear-gradient(rgba(53, 201, 184, .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(53, 201, 184, .035) 1px, transparent 1px),
+    rgba(8, 17, 15, .96);
+  background-size: 20px 20px;
+}
+
+.greatHallBanner span {
+  color: #72d8cb;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .1em;
+}
+
+.greatHallBanner h1 {
+  margin: 7px 0 8px;
+  color: #e5bd72;
+  font-family: var(--font-mono, "Courier New", monospace);
+  font-size: clamp(20px, 2vw, 26px);
+  line-height: 1.15;
+  letter-spacing: .035em;
+}
+
+.greatHallBanner p {
+  margin: 0;
+  color: #f1eee7;
+  font-size: 16px;
+}
+
+.greatHallArt {
+  width: 100%;
+  max-height: 150px;
+  color: #65d6ca;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 6px rgba(53, 201, 184, .2));
+}
 
 @media (max-width: 900px) {
   .conversation,
@@ -90,4 +172,11 @@
   .roomGuide { grid-template-columns:1fr; }
   .helpers { justify-items:start; }
   .helpers > div { justify-content:flex-start; }
+  .greatHallBanner { grid-template-columns: 1fr; }
+  .greatHallArt { max-width: 260px; }
+}
+
+@media (max-width: 620px) {
+  .composerRow { grid-template-columns: 1fr; }
+  .prompt { padding-top: 0; white-space: normal; }
 }

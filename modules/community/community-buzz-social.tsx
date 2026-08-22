@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import AgentPortrait from "../../components/agent-portrait";
 import { agentsForCommunityRoom } from "../../lib/plugin-platform";
 import {
@@ -9,7 +11,8 @@ import {
 } from "../../plugins/plotpickle-playhouse";
 import styles from "./community-buzz-social.module.css";
 
-type CommunityMember = { readonly pubkey: string; readonly displayName: string; readonly presence: string; readonly updatedAt: string };
+type CommunityMember = { readonly pubkey: string; readonly displayName: string; readonly picture: string; readonly presence: string; readonly updatedAt: string };
+type HumanPresentation = { readonly displayName: string; readonly avatarUrl: string; readonly publicBio: string };
 export type CommunitySocialTarget = {
   readonly kind: "channel" | "forum" | "dm";
   readonly id: string;
@@ -26,6 +29,7 @@ type Props = {
   readonly members: readonly CommunityMember[];
   readonly canPost: boolean;
   readonly desktopUrl: string;
+  readonly humanPresentation: HumanPresentation | null;
   readonly onOpenDm: (pubkey: string) => Promise<void>;
 };
 
@@ -87,33 +91,110 @@ function participantName(pubkey: string, members: readonly CommunityMember[]) {
   return member?.displayName || `${pubkey.slice(0, 8)}…${pubkey.slice(-6)}`;
 }
 
-export default function CommunityBuzzSocial({ target, members, canPost, desktopUrl, onOpenDm }: Props) {
+function normalizedIdentity(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function isPublicKey(value: string) {
+  return /^[a-f0-9]{64}$/i.test(value.trim());
+}
+
+function initials(value: string) {
+  const label = isPublicKey(value) ? "BUZZ member" : value.trim();
+  return label.split(/\s+/u).filter(Boolean).slice(0, 2).map((part) => part.slice(0, 1).toUpperCase()).join("") || "B";
+}
+
+function friendlyTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) return "Time unavailable";
+  const today = new Date();
+  const time = date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  if (date.toDateString() === today.toDateString()) return `Today, ${time}`;
+  return date.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+function promptHandle(value: string) {
+  return value.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "HUMAN";
+}
+
+function agentForAuthor(author: string) {
+  const identity = normalizedIdentity(author);
+  return PLOTPICKLE_COMMUNITY_EXTENSIONS.agents.find((agent) =>
+    normalizedIdentity(agent.displayName) === identity
+    || normalizedIdentity(agent.profileId) === identity
+    || normalizedIdentity(agent.displayName).split(" ")[0] === identity,
+  ) ?? null;
+}
+
+function memberForAuthor(author: string, members: readonly CommunityMember[]) {
+  const identity = normalizedIdentity(author);
+  return members.find((member) => normalizedIdentity(member.pubkey) === identity || normalizedIdentity(member.displayName) === identity) ?? null;
+}
+
+function CommunityAvatar({
+  label,
+  imageUrl = "",
+  agentId = "",
+  size = 46,
+}: {
+  readonly label: string;
+  readonly imageUrl?: string;
+  readonly agentId?: string;
+  readonly size?: number;
+}) {
+  if (agentId) return <AgentPortrait id={agentId} alt={`${label} avatar`} size={size} className={styles.avatarPortrait} />;
+  return <span className={styles.avatar} style={{ "--community-avatar-size": `${size}px` } as CSSProperties}>
+    {imageUrl ? <Image src={imageUrl} alt={`${label} avatar`} width={size} height={size} unoptimized /> : <span aria-hidden="true">{initials(label)}</span>}
+  </span>;
+}
+
+function GreatHallBanner() {
+  return <section className={styles.greatHallBanner} aria-label="PlotPickle Great Hall BBS">
+    <div>
+      <span>COMMUNITY NODE 01</span>
+      <h1 aria-label="PlotPickle Great Hall">╔══ PLOTPICKLE GREAT HALL ══╗</h1>
+      <p>Writers, wizards and wayfarers online</p>
+    </div>
+    <svg className={styles.greatHallArt} viewBox="0 0 240 170" role="img" aria-label="Great Hall line art">
+      <path d="M30 145V73l26-13V39l15-8 15 8v8l34-17 34 17v-8l15-8 15 8v21l26 13v72M30 73l90 43 90-43M56 60l64 32 64-32M86 47l34 16 34-16M30 145l90 21 90-21M56 60v79M86 47v99M120 30v136M154 47v99M184 60v79" />
+      <path d="M42 137v-34q7-18 14 0v36M68 142v-31q9-24 18 0v35M101 158v-36q19-42 38 0v36M154 146v-35q9-24 18 0v31M184 139v-36q7-18 14 0v34M51 39h30M51 31v12M66 31v12M81 31v12M149 39h30M149 31v12M164 31v12M179 31v12M105 31V18M120 30V15M135 31V18" />
+    </svg>
+  </section>;
+}
+
+export default function CommunityBuzzSocial({ target, members, canPost, desktopUrl, humanPresentation, onOpenDm }: Props) {
   const [messages, setMessages] = useState<BuzzMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
 
   const roomGuide = useMemo(() => target ? roomGuideFor(target.id) : null, [target]);
+  const channelId = target?.channelId || "";
 
   const refresh = useCallback(async (quiet = false) => {
-    if (!target?.channelId) { setMessages([]); return; }
+    if (!channelId) { setMessages([]); return; }
     try {
-      const next = await readMessages(target.channelId);
+      const next = await readMessages(channelId);
       setMessages(next);
       if (!quiet) setNotice("Conversation refreshed from BUZZ.");
     } catch (error) {
       if (!quiet) setNotice(error instanceof Error ? error.message : "BUZZ conversation could not be loaded.");
     }
-  }, [target?.channelId]);
+  }, [channelId]);
 
   useEffect(() => {
-    setDraft("");
-    setNotice("");
-    void refresh(true);
-    if (!target?.channelId) return;
+    const start = window.setTimeout(() => {
+      setDraft("");
+      setNotice("");
+      void refresh(true);
+    }, 0);
+    if (!channelId) return () => window.clearTimeout(start);
     const timer = window.setInterval(() => { void refresh(true); }, 5000);
-    return () => window.clearInterval(timer);
-  }, [refresh, target?.channelId]);
+    return () => {
+      window.clearTimeout(start);
+      window.clearInterval(timer);
+    };
+  }, [channelId, refresh]);
 
   async function submit() {
     if (!target || !draft.trim() || !canPost || busy) return;
@@ -143,25 +224,43 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
 
   const kindLabel = target.kind === "dm" ? "Direct Message" : "Room";
   const participantNames = target.participants?.map((pubkey) => participantName(pubkey, members)) ?? [];
+  const greatHall = target.id === "great-hall";
+  const humanName = humanPresentation?.displayName.trim() || "PlotPickle Human";
 
   return <>
-    <main className={styles.conversation} aria-label={`${kindLabel}: ${target.label}`}>
+    <main className={styles.conversation} data-great-hall={greatHall ? "true" : undefined} aria-label={`${kindLabel}: ${target.label}`}>
       <header className={styles.conversationHeader}>
         <div><span>{kindLabel}</span><h2>{target.label}</h2><small>{target.description}</small></div>
       </header>
+      {greatHall ? <GreatHallBanner /> : null}
       {roomGuide ? <section className={styles.roomGuide} aria-label={`Who helps in ${target.label}`}>
         <div><span>What this room is for</span><p>{roomGuide.purpose}</p><small>{roomGuide.actionHint}</small></div>
         <div className={styles.helpers}><span>Who helps here</span><div>{roomGuide.agents.map((agent) => <span className={styles.helper} key={agent.id}><AgentPortrait id={agent.id} size={34} /><small>{agent.name}</small></span>)}</div></div>
       </section> : null}
       <section className={styles.timeline} aria-live="polite">
-        {messages.length ? messages.map((message) => <article className={styles.message} key={message.id} data-buzz-event-id={message.id}><header><strong>{message.author || "BUZZ member"}</strong><time dateTime={message.createdAt}>{message.createdAt}</time></header><p>{message.content}</p></article>) : <p className={styles.empty}>No conversation here yet. Start with a question, idea or update.</p>}
+        {messages.length ? messages.map((message) => {
+          const member = memberForAuthor(message.author, members);
+          const agent = agentForAuthor(member?.displayName || message.author);
+          const human = normalizedIdentity(member?.displayName || message.author) === normalizedIdentity(humanName);
+          const displayName = agent?.displayName || member?.displayName || (isPublicKey(message.author) ? "BUZZ member" : message.author.trim()) || "BUZZ member";
+          const picture = human ? humanPresentation?.avatarUrl || member?.picture || "" : member?.picture || "";
+          return <article className={styles.message} key={message.id} data-buzz-event-id={message.id}>
+            <CommunityAvatar label={displayName} imageUrl={picture} agentId={agent?.profileId} />
+            <div className={styles.messageBody}>
+              <header><strong>{displayName}{agent ? <small>AGENT</small> : null}</strong><time dateTime={message.createdAt}>{friendlyTime(message.createdAt)}</time></header>
+              <p>{message.content}</p>
+            </div>
+          </article>;
+        }) : <p className={styles.empty}>No conversation here yet. Start with a question, idea or update.</p>}
       </section>
       <form className={styles.composer} onSubmit={(event) => { event.preventDefault(); void submit(); }}>
         <label htmlFor="community-buzz-composer">Message {target.label}</label>
         <div className={styles.composerRow}>
-          <textarea id="community-buzz-composer" value={draft} disabled={!canPost || busy} onChange={(event) => setDraft(event.target.value)} placeholder={canPost ? "Write a thought, question or reply…" : "Connect your Human BUZZ identity in Profile to contribute."} />
-          <button type="submit" disabled={!canPost || !draft.trim() || busy}>{busy ? "Sending…" : "Send"}</button>
+          <span className={styles.prompt} aria-hidden="true">{promptHandle(humanName)}@{promptHandle(target.label)}:&gt;</span>
+          <textarea id="community-buzz-composer" value={draft} disabled={!canPost || busy} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void submit(); } }} onChange={(event) => setDraft(event.target.value)} placeholder={canPost ? "Type a message…" : "Connect your Human BUZZ identity in Profile to contribute."} />
+          <button type="submit" disabled={!canPost || !draft.trim() || busy}>{busy ? "Sending…" : "Post"}</button>
         </div>
+        <small className={styles.composerHint}>Enter to post · Shift+Enter for a new line</small>
         {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
       </form>
     </main>
@@ -170,7 +269,7 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
       <header className={styles.contextHeader}><div><span>{kindLabel}</span><h3>{target.label}</h3></div></header>
       <div className={styles.contextBody}>
         <section className={styles.contextCard}><span>Purpose</span><h4>{target.kind === "dm" ? "Private conversation" : "Community room"}</h4><p>{target.description}</p></section>
-        {target.kind === "dm" ? <section className={styles.contextCard}><span>Participants</span><h4>{participantNames.length || target.participants?.length || 0} participants</h4><p>{participantNames.join(" · ") || "BUZZ controls DM membership."}</p></section> : <section className={styles.contextCard}><span>People</span><h4>{members.length} visible Community members</h4><div className={styles.memberList}>{members.slice(0, 8).map((member) => <div className={styles.memberRow} key={member.pubkey}><div><strong>{member.displayName}</strong><small>{member.presence || "offline"}</small></div><button type="button" disabled={!canPost} onClick={() => void onOpenDm(member.pubkey)}>Message</button></div>)}</div></section>}
+        {target.kind === "dm" ? <section className={styles.contextCard}><span>Participants</span><h4>{participantNames.length || target.participants?.length || 0} participants</h4><p>{participantNames.join(" · ") || "BUZZ controls DM membership."}</p></section> : <section className={styles.contextCard}><span>People</span><h4>{members.length} visible Community members</h4><div className={styles.memberList}>{members.slice(0, 8).map((member) => <div className={styles.memberRow} key={member.pubkey}><CommunityAvatar label={member.displayName} imageUrl={normalizedIdentity(member.displayName) === normalizedIdentity(humanName) ? humanPresentation?.avatarUrl || member.picture : member.picture} size={38} /><div><strong>{member.displayName}</strong><small>{member.presence || "offline"}</small></div><button type="button" disabled={!canPost} onClick={() => void onOpenDm(member.pubkey)}>Message</button></div>)}</div></section>}
         <section className={styles.contextCard} data-native-buzz-huddle="desktop">
           <span>Voice</span><h4>Open in BUZZ Desktop</h4><p>Use BUZZ Desktop when you want the native Huddle/voice experience. PlotPickle keeps the text conversation here simple.</p>
           {desktopUrl ? <a href={desktopUrl}>Open BUZZ Desktop</a> : <button type="button" disabled>BUZZ Desktop setup required</button>}

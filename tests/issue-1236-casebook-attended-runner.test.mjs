@@ -102,7 +102,11 @@ test("#1236 runner is explicitly interactive and refuses to turn Human confirmat
   assert.match(source, /Human authorization checkpoints must never be automated/);
   assert.match(source, /Sensitive evidence capture is paused/);
   assert.match(source, /automated outcome proof is not implemented/);
+  assert.match(source, /Secret entry is Human-only and does not become PASS/);
   assert.match(source, /Independent Business Case verifier and deliberate fault injection are still required/);
   assert.match(source, /never turns Human confirmation into PASS by itself/);
+  assert.match(source, /import \{ createInterface \} from "node:readline\/promises"/);
+  assert.doesNotMatch(source, /const argument\s*=|function argument\s*\(/);
+  assert.doesNotMatch(source, /catch\s*\{\s*\}/);
   assert.doesNotMatch(source, /readline.*nsec|question\([^\n]*private key/i);
 });

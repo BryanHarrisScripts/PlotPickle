@@ -10,8 +10,29 @@ import {
   listLibraryProjects,
 } from "../../core/storage/project-library-browser";
 import { saveFoundationProject } from "../../core/storage/foundation-project-browser";
-import { normalizeFullStoryBrief, type FullStoryBrief } from "../../lib/full-story-builder.mjs";
+// The existing Full Story Builder is JavaScript. Keep its narrow typing local to PLAN
+// rather than adding another shared lib surface just for this consumer.
+// @ts-expect-error — full-story-builder.mjs intentionally has no TypeScript declaration file.
+import { normalizeFullStoryBrief } from "../../lib/full-story-builder.mjs";
 import { draftFoundationLesson } from "./foundations-plan-drafter";
+
+type FullStoryBrief = {
+  readonly title: string;
+  readonly premise: string;
+  readonly genre: string;
+  readonly tone: string;
+  readonly protagonist: string;
+  readonly protagonistGoal: string;
+  readonly opposition: string;
+  readonly theme: string;
+  readonly setting: string;
+  readonly visualLanguage: string;
+  readonly audience: string;
+  readonly contentRating: string;
+  readonly language: string;
+  readonly projectOwner: string;
+  readonly originalitySeed: string;
+};
 
 export type FoundationsAutoStoryProgress = {
   readonly stage: "creating" | "lesson" | "brief" | "complete";
@@ -72,7 +93,7 @@ export async function autoCompleteNewFoundationsStory(input: {
 
   const priorProjects = listLibraryProjects();
   const previousProjectId = priorProjects[0]?.id || "";
-  const seed = normalizeFullStoryBrief({ originalitySeed: originalitySeed() });
+  const seed = normalizeFullStoryBrief({ originalitySeed: originalitySeed() }) as FullStoryBrief;
   input.onProgress?.({ stage: "creating", message: `Creating a new story: ${seed.title}…` });
 
   let workingProject = createLibraryUserProject({

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { PPFProject } from "../core/project/project";
 import { loadFoundationProject } from "../core/storage/foundation-project-browser";
@@ -7,7 +8,6 @@ import {
   BUZZ_STORY_ROOMS,
   buzzProjectSlug,
   buzzRoomName,
-  humanBuzzFingerprint,
   isKnownHumanBuzzIdentity,
   type BuzzStoryRoomId,
   type HumanBuzzIdentity,
@@ -36,8 +36,9 @@ const PUBLIC_ROOMS = PLOTPICKLE_PLAYHOUSE_PLUGIN.rooms.map((room) => ({
 }));
 
 type BuzzChannel = { id: string; name: string; description: string };
-type CommunityMember = { pubkey: string; displayName: string; presence: string; updatedAt: string };
+type CommunityMember = { pubkey: string; displayName: string; picture: string; presence: string; updatedAt: string };
 type ActivityItem = { id: string; content: string; author: string; createdAt: string };
+type HumanPresentation = { displayName: string; avatarUrl: string; publicBio: string };
 type CommunityStatus = {
   configured: boolean;
   identityVerified: boolean;
@@ -127,6 +128,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
   const [community, setCommunity] = useState<CommunityStatus | null>(null);
   const [guildhall, setGuildhall] = useState<GuildhallStatus | null>(null);
   const [humanIdentity, setHumanIdentity] = useState<HumanBuzzIdentity | null>(null);
+  const [humanPresentation, setHumanPresentation] = useState<HumanPresentation | null>(null);
   const [project, setProject] = useState<PPFProject | null>(null);
   const [storyRooms, setStoryRooms] = useState<StoryRoomRecord[]>([]);
   const [dms, setDms] = useState<BuzzDm[]>([]);
@@ -137,7 +139,6 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
 
   const humanCanPost = isKnownHumanBuzzIdentity(humanIdentity);
   const callerName = humanIdentity?.displayName.trim() || "UNVERIFIED WRITER";
-  const callerFingerprint = humanBuzzFingerprint(humanIdentity?.pubkey || "");
   const desktopUrl = buzzDesktopUrl(community?.relayUrl || "", community?.community || "");
   const readyRoomById = useMemo(() => new Map((guildhall?.readyRooms ?? []).map((room) => [room.id, room])), [guildhall?.readyRooms]);
   const privateStoryRoom = storyRooms.find((room) => room.roomId === PRIVATE_STORY_ROOM_ID) ?? null;
@@ -154,14 +155,21 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
   }, [readyRoomById]);
 
   const refresh = useCallback(async () => {
-    const [communityBody, guildhallBody, humanBody] = await Promise.all([
+    const [communityBody, guildhallBody, humanBody, presentationBody] = await Promise.all([
       request<CommunityStatus & { ok: true }>("/community/status"),
       request<GuildhallStatus & { ok: true }>("/guildhall/status"),
       request<HumanBuzzIdentity & { ok: true }>("/human-identity"),
+      fetch("/api/auth/profile-presentation", { cache: "no-store", credentials: "same-origin" })
+        .then(async (response) => {
+          if (!response.ok) throw new Error("The active Human presentation could not be loaded.");
+          return response.json() as Promise<{ profile: HumanPresentation }>;
+        })
+        .catch(() => ({ profile: { displayName: "", avatarUrl: "", publicBio: "" } })),
     ]);
     setCommunity(communityBody);
     setGuildhall(guildhallBody);
     setHumanIdentity(humanBody);
+    setHumanPresentation(presentationBody.profile);
     const greatHallDefinition = PUBLIC_ROOMS.find((room) => room.id === "great-hall");
     const greatHall = guildhallBody.readyRooms.find((room) => room.id === "great-hall");
     setSelectedTarget((current) => current ?? (greatHall && greatHallDefinition ? socialTarget(greatHall, greatHallDefinition.label, greatHallDefinition.description) : null));
@@ -278,7 +286,14 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
         <header className={navigationStyles.railHeader}><b>{COMMUNITY_BBS_NAME}</b></header>
         <div className={navigationStyles.destinationDetails} data-community-bbs-server="true">
           <small>{connected ? "BUZZ CONNECTED" : "BUZZ IDENTITY REQUIRED"}</small>
-          <p data-community-caller="verified-human"><strong>{callerName}</strong>{callerFingerprint ? <><br /><small>{callerFingerprint}</small></> : null}</p>
+          <div className={navigationStyles.humanIdentity} data-community-caller="verified-human">
+            <span className={navigationStyles.humanAvatar}>
+              {humanPresentation?.avatarUrl
+                ? <Image src={humanPresentation.avatarUrl} alt={`${humanPresentation.displayName || callerName} profile avatar`} width={48} height={48} unoptimized />
+                : <span aria-hidden="true">{(humanPresentation?.displayName || callerName).trim().slice(0, 1).toUpperCase() || "H"}</span>}
+            </span>
+            <p><strong>{humanPresentation?.displayName || callerName}</strong><br /><small>Human profile</small></p>
+          </div>
           <small>{connected ? "You speak as yourself. Agents use separate identities." : community?.message || guildhall?.message || "Checking BUZZ…"}</small>
           {!connected ? <button type="button" className={navigationStyles.destinationButton} onClick={() => { if (!openProfileIdentity()) onOpenSettings(); }}><b>Open Profile · BUZZ Identity</b></button> : null}
           {notice ? <p role="status"><small>{notice}</small></p> : null}
@@ -323,7 +338,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
             <section className={styles.sectionHeading}><div><span>Private Story Room</span><h2>{project ? project.title : "Open a story first"}</h2><p>One private project space for story discussion. PlotPickle keeps the older category channels underneath for compatibility; you do not have to manage six Halls.</p></div><button type="button" disabled={!project || !community?.identityVerified || busy === "story-rooms" || Boolean(privateStoryRoom)} onClick={() => void ensureStoryRooms()}>{busy === "story-rooms" ? "Preparing…" : privateStoryRoom ? "Ready" : "Create Private Story Room"}</button></section>
             {privateStoryRoom ? <CommunityStoryRoomAccess channel={privateStoryRoom.channel} greatHallMembers={community?.members ?? []} desktopUrl={desktopUrl} /> : <p className={styles.empty}>{project ? "Create the Private Story Room when you want a BUZZ space dedicated to this story." : "Start or open a story in LEARN or PLAN first."}</p>}
           </main>
-        : <CommunityBuzzSocial target={selectedTarget} members={community?.members ?? []} canPost={humanCanPost} desktopUrl={desktopUrl} onOpenDm={openDm} />}
+        : <CommunityBuzzSocial target={selectedTarget} members={community?.members ?? []} canPost={humanCanPost} desktopUrl={desktopUrl} humanPresentation={humanPresentation} onOpenDm={openDm} />}
       </div>
     </div>
   </div>;

@@ -26,7 +26,7 @@ type BuzzConnection = {
 
 type CommandResult = { stdout: string; stderr: string; code: number };
 type BuzzChannel = { id: string; name: string; description: string };
-type BuzzMember = { pubkey: string; displayName: string; presence: string; updatedAt: string };
+type BuzzMember = { pubkey: string; displayName: string; picture: string; presence: string; updatedAt: string };
 type BuzzActivity = { id: string; content: string; author: string; createdAt: string };
 
 function isLoopback(value: string | undefined) {
@@ -186,6 +186,12 @@ function firstString(item: Record<string, unknown>, keys: string[]) {
   return "";
 }
 
+function publicPicture(value: string) {
+  if (!URL.canParse(value)) return "";
+  const url = new URL(value);
+  return url.protocol === "https:" && !url.username && !url.password ? url.toString() : "";
+}
+
 function channelsFrom(value: unknown): BuzzChannel[] {
   return array(value).flatMap((entry) => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
@@ -244,6 +250,7 @@ async function loadMembers(connection: BuzzConnection, channel: BuzzChannel): Pr
     return {
       pubkey,
       displayName: profile ? firstString(profile, ["display_name", "name"]) || `${pubkey.slice(0, 8)}…` : `${pubkey.slice(0, 8)}…`,
+      picture: profile ? publicPicture(firstString(profile, ["picture", "image", "avatar", "avatar_url"])) : "",
       presence: state ? firstString(state, ["status"]) || "offline" : "offline",
       updatedAt: typeof rawUpdated === "number" ? new Date(rawUpdated * 1000).toISOString() : text(rawUpdated),
     };

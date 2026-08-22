@@ -12,6 +12,7 @@ import {
   loadFoundationProject,
   saveFoundationProject,
 } from "../../../core/storage/foundation-project-browser";
+import { learnWizardRoster } from "../model/learn-agent-roster";
 import {
   buildFoundationsMarketingPosterPrompt,
   buildMarqueeConversationPrompt,
@@ -50,6 +51,8 @@ type ChatResponse = {
   readonly message?: string;
 };
 
+const WIZARD_ROSTER = learnWizardRoster();
+
 function id(prefix: string) {
   return globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
@@ -63,6 +66,10 @@ async function postJson<T>(url: string, body: Record<string, unknown>): Promise<
   const result = await response.json() as T & { message?: string };
   if (!response.ok) throw new Error(result.message || `PlotPickle returned ${response.status}.`);
   return result;
+}
+
+function shortName(displayName: string) {
+  return displayName.split(/\s+/)[0] || displayName;
 }
 
 export default function MarqueeAgentOverlay({ curriculum }: { readonly curriculum: readonly CurriculumLesson[] }) {
@@ -131,6 +138,17 @@ export default function MarqueeAgentOverlay({ curriculum }: { readonly curriculu
   const cloudRoute = selectedOption?.locality === "cloud";
   const manualRoute = selectedOption?.locality === "manual" || selectedRoute === "manual";
   const routeReady = selectedOption?.ready !== false;
+
+  function selectWizard(agentId: string, destination: "learn" | "plan" | null, available: boolean) {
+    if (!available) return;
+    if (agentId === "sage-brinewick") {
+      setActiveAgent("sage");
+      return;
+    }
+    if (destination === "plan") {
+      window.location.assign("/?workspace=plan&section=foundations");
+    }
+  }
 
   async function askDirector(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -221,29 +239,37 @@ export default function MarqueeAgentOverlay({ curriculum }: { readonly curriculu
 
   return createPortal(
     <>
-      <div className={styles.selector} aria-label="Creative Room agent selector">
-        <button
-          aria-label="Sage Brinewick · Curriculum Guide"
-          aria-pressed={activeAgent === "sage"}
-          className={styles.agentChoice}
-          onClick={() => setActiveAgent("sage")}
-          title="Talk with Sage Brinewick"
-          type="button"
-        >
-          <AgentPortrait id="sage-brinewick" alt="" size={48} />Sage
-        </button>
-        <button
-          aria-label={unlocked ? "Marquee · Marketing Director" : "Marquee · locked until Foundations is complete"}
-          aria-pressed={activeAgent === "marquee"}
-          className={styles.agentChoice}
-          data-locked={unlocked ? "false" : "true"}
-          disabled={!unlocked}
-          onClick={() => unlocked && setActiveAgent("marquee")}
-          title={unlocked ? "Talk with The Marquee Director" : "Complete Foundations to unlock"}
-          type="button"
-        >
-          <AgentPortrait id="marquee-director" alt="" locked={!unlocked} size={48} />Marquee{unlocked ? "" : " · locked"}
-        </button>
+      <div className={styles.selector} aria-label="Creative Room agent selector" data-wizard-roster="canonical-five">
+        {WIZARD_ROSTER.map((wizard) => (
+          <button
+            aria-label={`${wizard.displayName} · ${wizard.title}${wizard.available ? "" : " · locked"}`}
+            aria-pressed={wizard.id === "sage-brinewick" && activeAgent === "sage"}
+            className={styles.agentChoice}
+            data-locked={wizard.available ? "false" : "true"}
+            disabled={!wizard.available}
+            key={wizard.id}
+            onClick={() => selectWizard(wizard.id, wizard.destination, wizard.available)}
+            title={wizard.available ? wizard.responsibility : wizard.lockedReason}
+            type="button"
+          >
+            <AgentPortrait id={wizard.id} alt="" locked={!wizard.available} size={48} />
+            <span><strong>{shortName(wizard.displayName)}</strong><small>{wizard.title}</small></span>
+          </button>
+        ))}
+        {unlocked ? (
+          <button
+            aria-label="Marquee · Marketing Director"
+            aria-pressed={activeAgent === "marquee"}
+            className={`${styles.agentChoice} ${styles.specialistChoice}`}
+            data-locked="false"
+            onClick={() => setActiveAgent("marquee")}
+            title="Talk with The Marquee Director"
+            type="button"
+          >
+            <AgentPortrait id="marquee-director" alt="" size={48} />
+            <span><strong>Marquee</strong><small>Marketing Director</small></span>
+          </button>
+        ) : null}
       </div>
 
       {activeAgent === "marquee" ? (

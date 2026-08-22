@@ -4,6 +4,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import {
+  createAttendedLiveStepDrivers,
+  finalizeAttendedLiveProof,
+} from "../scripts/casebook-attended-live-drivers.mjs";
+import {
   CASEBOOK_ATTENDED_MODE,
   assertAttendedRecordSafe,
   attendedCheckpoint,
@@ -50,6 +54,7 @@ test("#1236 attended Casebook declares Human-only checkpoints for credentials an
 
   const comfy = attendedCheckpoint("comfyui-local-image-visible", "start-or-connect");
   assert.equal(comfy.secretEntry, false);
+  assert.match(comfy.instruction, /Install \/ start local ComfyUI/i);
   assert.match(comfy.instruction, /Windows|ComfyUI Desktop|UAC/);
 });
 
@@ -96,15 +101,44 @@ test("#1236 attended evidence scrubs secrets, local usernames and hidden reasoni
   assert.throws(() => assertAttendedRecordSafe({ reasoning: "private scratchpad" }), /hidden reasoning/i);
 });
 
-test("#1236 runner is explicitly interactive and refuses to turn Human confirmation into PASS", async () => {
+test("#1236 attended live drivers cover the complete Sage and ComfyUI Human journeys", async () => {
+  const browser = {
+    clickVisible: async () => false,
+    fillByLabel: async () => ({ ok: false, method: "test" }),
+  };
+  const client = { call: async () => ({ content: [{ type: "text", text: "{}" }] }) };
+  const drivers = createAttendedLiveStepDrivers({ browser, client, baseUrl: "http://127.0.0.1:4173", runState: {} });
+  for (const key of [
+    "sage-local-text-usable-response:ask-normal-question",
+    "sage-local-text-usable-response:invoke-selected-provider",
+    "sage-local-text-usable-response:render-answer",
+    "sage-local-text-usable-response:evaluate-answer",
+    "comfyui-local-image-visible:configure-comfyui",
+    "comfyui-local-image-visible:start-or-connect",
+    "comfyui-local-image-visible:verify-prerequisites",
+    "comfyui-local-image-visible:run-test-image",
+    "comfyui-local-image-visible:observe-output-asset",
+    "comfyui-local-image-visible:render-output",
+    "comfyui-local-image-visible:enable-local-route",
+  ]) assert.equal(typeof drivers.get(key), "function", `missing attended driver ${key}`);
+
+  const casebook = await loadCasebook();
+  const sage = casebook.cases.find((item) => item.id === "sage-local-text-usable-response");
+  const proof = { id: "proof", kind: "evaluation", status: "verified", source: "sage-response-evaluator", independent: true, summary: "verified" };
+  assert.equal(await finalizeAttendedLiveProof({ caseDefinition: sage, client, baseUrl: "http://127.0.0.1:4173", runState: { sage: { independentProof: proof } } }), proof);
+});
+
+test("#1236 runner is explicitly interactive, resumes after Human authority, and still requires real faults", async () => {
   const source = await read("scripts/run-casebook-attended.mjs");
   assert.match(source, /process\.stdin\.isTTY/);
   assert.match(source, /Human authorization checkpoints must never be automated/);
   assert.match(source, /Sensitive evidence capture is paused/);
   assert.match(source, /automated outcome proof is not implemented/);
   assert.match(source, /Secret entry is Human-only and does not become PASS/);
-  assert.match(source, /Independent Business Case verifier and deliberate fault injection are still required/);
-  assert.match(source, /never turns Human confirmation into PASS by itself/);
+  assert.match(source, /typeof afterHuman === "function"/);
+  assert.match(source, /finalizeAttendedLiveProof/);
+  assert.match(source, /Deliberate real-machine fault injection is still required/);
+  assert.match(source, /Human confirmation still never becomes PASS by itself/);
   assert.match(source, /import \{ createInterface \} from "node:readline\/promises"/);
   assert.doesNotMatch(source, /const argument\s*=|function argument\s*\(/);
   assert.doesNotMatch(source, /catch\s*\{\s*\}/);

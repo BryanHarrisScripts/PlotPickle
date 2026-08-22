@@ -8,10 +8,10 @@ import { createInterface } from "node:readline/promises";
 import { fileURLToPath } from "node:url";
 import { createCreativeBrowser } from "./creative-uat/browser-actions.mjs";
 import { McpClient, resultText } from "./creative-uat/mcp-runtime.mjs";
+import { createPhase3b3StepDrivers, finalizePhase3b3Proof, runPhase3b3Faults } from "./creative-uat/casebook-phase3b3-live.mjs";
 import { loadCasebook } from "./casebook-contract.mjs";
 import { resolveLocalEndpointTarget } from "./local-endpoint-target.mjs";
 import { createAttendedLiveStepDrivers, finalizeAttendedLiveProof } from "./casebook-attended-live-drivers.mjs";
-import { createPhase3b3StepDrivers, finalizePhase3b3Proof, runPhase3b3Faults } from "./casebook-phase3b3-live.mjs";
 import {
   assertAttendedRecordSafe,
   attendedCheckpoint,

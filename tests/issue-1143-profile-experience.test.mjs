@@ -116,12 +116,15 @@ test("#1143 server-network sessions persist encrypted Human-private state indepe
   assert.doesNotMatch(await readFile(path.join(home, "profiles", janeCreated.profile.profileId, "projects", "jane-project.json"), "utf8"), /Jane Secret/u);
 });
 
-test("#1143 profile gate contains offline setup, recovery acknowledgement, chooser, Guest and active-Human controls", async () => {
+test("#1143 profile gate contains branded installed-ready state, offline setup, recovery acknowledgement, chooser, Guest and active-Human controls", async () => {
   const ui = await readFile(path.join(root, "app/profile-access/profile-access-boundary.tsx"), "utf8");
+  const boundaryCss = await readFile(path.join(root, "app/profile-access/profile-access-boundary.module.css"), "utf8");
   const privateBrowser = await readFile(path.join(root, "core/storage/profile-private-browser.ts"), "utf8");
   for (const phrase of ["Create your local profile", "No email, phone, cloud account", "I saved the recovery secret", "Choose a PlotPickle profile", "Use isolated Guest", "Save as new profile", "Switch profile", "BUZZ identity is separate"]) {
     assert.ok(ui.includes(phrase), `Missing profile experience copy: ${phrase}`);
   }
+  assert.match(boundaryCss, /PlotPickle is installed and ready/u);
+  assert.match(boundaryCss, /workflow-relics\/profile\.svg/u);
   assert.doesNotMatch(ui, /type="email"|name="email"|Sign up for PlotPickle/u);
   assert.match(ui, /persistActiveProfileProject\(\)[\s\S]*flushProfilePrivateWrites\(\)[\s\S]*profileRequest\(action[\s\S]*clearPrivateScreen/u);
   assert.match(privateBrowser, /window\.sessionStorage\.clear\(\)[\s\S]*csrfToken = ""/u);
@@ -155,12 +158,16 @@ test("#1143 LEARN and Wyrmwood use session-only browser state backed by authenti
   assert.match(privateBrowser, /\/api\/auth\/profile-private[\s\S]*X-PlotPickle-CSRF[\s\S]*save-project/u);
 });
 
-test("#1143 Profiles & Security is a first-class Settings destination", async () => {
+test("#1143 Profile owns security actions while Settings no longer duplicates Profiles & Security", async () => {
   const settings = await readFile(path.join(root, "app/sage-settings-workspace.tsx"), "utf8");
-  const panel = await readFile(path.join(root, "app/profile-access/profiles-security-panel.tsx"), "utf8");
-  assert.match(settings, /Profiles & Security[\s\S]*ProfilesSecurityPanel/u);
-  for (const phrase of ["Current Human", "Change the local vault passphrase", "Recovery material created", "browser session(s)", "Lock all other sessions"]) {
-    assert.ok(panel.includes(phrase), `Missing Profiles & Security copy: ${phrase}`);
+  const profile = await readFile(path.join(root, "app/profile-access/profile-identity-panel.tsx"), "utf8");
+  const profileCss = await readFile(path.join(root, "app/profile-access/profile-identity-panel.module.css"), "utf8");
+  assert.doesNotMatch(settings, /ProfilesSecurityPanel|Profiles & Security|id:\s*["']profiles["']/u);
+  for (const phrase of ["Access", "Security", "Lock", "Switch profile", "Profile actions", "Add profile", "Log out"]) {
+    assert.ok(profile.includes(phrase), `Profile must own security/action copy: ${phrase}`);
   }
-  assert.match(panel, /separate[\s\S]*BUZZ identity/u);
+  assert.match(profileCss, /grid-template-columns:\s*minmax\(0, 1\.7fr\) minmax\(220px, 0\.72fr\)/u);
+  assert.match(profileCss, /\.identityColumn\s*\{[\s\S]*grid-column:\s*1;[\s\S]*grid-row:\s*1 \/ span 2;/u);
+  assert.match(profileCss, /\.actionColumn\s*\{[\s\S]*grid-column:\s*2;/u);
+  assert.match(profileCss, /@media \(max-width: 820px\)[\s\S]*\.identityColumn,[\s\S]*\.actionColumn[\s\S]*grid-column:\s*1;[\s\S]*grid-row:\s*auto;/u);
 });

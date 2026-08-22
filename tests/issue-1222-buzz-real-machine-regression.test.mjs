@@ -37,18 +37,23 @@ test("#1222 keeps Human signer setup in Profile and Settings limited to transpor
   assert.match(profile, /Private identity key/);
 });
 
-test("#1222 imported signer is verified before it is persisted", async () => {
+test("#1222 imported signer validates locally and persists even when Community admission is pending", async () => {
   const gateway = await source("build/buzz-profile-identity-gateway.ts");
   const importStart = gateway.indexOf('if (action === "import")');
   const disconnectStart = gateway.indexOf('if (action === "disconnect")');
   assert.ok(importStart >= 0 && disconnectStart > importStart);
   const block = gateway.slice(importStart, disconnectStart);
-  const verifyIndex = block.indexOf("await verifyConnectedSigner(connection)");
+  const localValidationIndex = block.indexOf("privateKeyHex(privateKey)");
+  const remoteVerifyIndex = block.indexOf("await verifyConnectedSigner(connection)");
   const writeIndex = block.indexOf("await writeCredentialJson(CONNECTION_FILE, connection)");
-  assert.ok(verifyIndex >= 0, "import must verify the candidate signer against BUZZ");
-  assert.ok(writeIndex > verifyIndex, "candidate signer must not be persisted before verification succeeds");
-  assert.match(block, /if \(!identity\.humanCommunityAllowed\) throw new Error\(identity\.message\)/);
+  assert.ok(localValidationIndex >= 0, "import must cryptographically validate the candidate signer locally");
+  assert.ok(remoteVerifyIndex > localValidationIndex, "Community verification happens only after local identity validation");
+  assert.ok(writeIndex > remoteVerifyIndex, "the validated Human identity must be persisted after the bounded Community attempt");
+  assert.match(block, /pendingCommunityIdentity\(connection, localPubkey, detail\)/);
+  assert.match(block, /communityReady = false/);
+  assert.match(block, /communityReady,/);
   assert.match(block, /verificationVersion = 2/);
+  assert.match(block, /if \(\/PlotPickle agent identity\/i\.test\(detail\)\) throw error/);
 });
 
 test("#1222 maps BUZZ CLI exit classes, membership failures and redacts private identity material", async () => {

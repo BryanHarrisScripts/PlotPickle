@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
@@ -286,12 +287,10 @@ function comfyJobsPath() {
 }
 
 async function readComfyJobs(): Promise<ComfyVideoJob[]> {
-  try {
-    const value = JSON.parse(await readFile(comfyJobsPath(), "utf8")) as unknown;
-    return Array.isArray(value) ? value.filter((item): item is ComfyVideoJob => Boolean(item && typeof item === "object" && typeof (item as ComfyVideoJob).id === "string")) : [];
-  } catch {
-    return [];
-  }
+  const jobsPath = comfyJobsPath();
+  if (!existsSync(jobsPath)) return [];
+  const value = JSON.parse(await readFile(jobsPath, "utf8")) as unknown;
+  return Array.isArray(value) ? value.filter((item): item is ComfyVideoJob => Boolean(item && typeof item === "object" && typeof (item as ComfyVideoJob).id === "string")) : [];
 }
 
 async function saveComfyJob(job: ComfyVideoJob) {

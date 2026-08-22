@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const marketing = readFileSync(resolve(root, "modules/learn/model/marquee-director.ts"), "utf8");
 const overlay = readFileSync(resolve(root, "modules/learn/ui/marquee-agent-overlay.tsx"), "utf8");
+const roster = readFileSync(resolve(root, "modules/learn/model/learn-agent-roster.ts"), "utf8");
 const marketingContract = readFileSync(resolve(root, "core/contracts/build-progress.ts"), "utf8");
 const page = readFileSync(resolve(root, "app/page.tsx"), "utf8");
 const communityRoster = readFileSync(resolve(root, "app/community-agent-roster.tsx"), "utf8");
@@ -14,16 +15,18 @@ const skill = readFileSync(resolve(root, ".agents/skills/marquee-director/SKILL.
 
 test("#1080 unlocks Marquee only from canonical completed Foundations progression", () => {
   assert.match(marketing, /deriveGuidedCreationProgression\(curriculum, project\)\.foundations\.complete/);
-  assert.match(overlay, /Complete Foundations to unlock/);
-  assert.match(overlay, /disabled=\{!unlocked\}/);
+  assert.match(overlay, /\{unlocked \? \([\s\S]*Marquee · Marketing Director/);
   assert.match(overlay, /if \(!unlocked && activeAgent === "marquee"\) setActiveAgent\("sage"\)/);
   assert.match(page, /<MarqueeAgentOverlay curriculum=\{plotPickleCurriculum\} \/>/);
 });
 
-test("#1080 keeps Marquee beside Sage in LEARN and out of the Community BBS UI", () => {
+test("#1080 keeps Marquee as an additive LEARN specialist after the canonical five-wizard roster and out of Community BBS", () => {
   assert.match(overlay, /Creative Room agent selector/);
-  assert.match(overlay, /<AgentPortrait id="sage-brinewick"[^>]*\/>Sage\s*<\/button>/);
-  assert.match(overlay, /Marquee\{unlocked \? "" : " · locked"\}/);
+  assert.match(overlay, /WIZARD_ROSTER\.map/);
+  assert.match(roster, /"sage-brinewick"[\s\S]*"tamsin-hearthquill"[\s\S]*"master-oaken-vague"[\s\S]*"rowan-scalequill"[\s\S]*"quillan-reedcloak"/);
+  const rosterIndex = overlay.indexOf("WIZARD_ROSTER.map");
+  const marqueeIndex = overlay.indexOf("Marquee · Marketing Director", rosterIndex);
+  assert.ok(rosterIndex >= 0 && marqueeIndex > rosterIndex, "Marquee must remain additive after the five-wizard roster");
   assert.match(overlay, /aria-label="The Marquee Director private project agent"/);
   assert.doesNotMatch(overlay, /\/api\/local-buzz/);
   assert.match(communityRoster, /PRIVATE_PROJECT_AGENT_IDS = new Set\(\["marquee-director"\]\)/);

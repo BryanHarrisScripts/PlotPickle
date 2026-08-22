@@ -13,12 +13,12 @@ const COMMON_WORDS = new Set([
   "about", "after", "again", "also", "because", "being", "from", "have", "into", "lesson", "main", "more", "that", "their", "there", "these", "this", "what", "when", "where", "which", "with", "would", "your",
 ]);
 
-function compact(value, limit = 1200) {
-  return String(value ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, limit);
+function casebookVerifierText(value) {
+  return String(value ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 1200);
 }
 
 function words(value) {
-  return compact(value).toLowerCase().match(/[a-z0-9]+/g) || [];
+  return casebookVerifierText(value).toLowerCase().match(/[a-z0-9]+/g) || [];
 }
 
 function distinctiveWords(value) {
@@ -26,18 +26,18 @@ function distinctiveWords(value) {
 }
 
 function verifiedArtifact({ id, source, summary, metadata = {} }) {
-  return { id, kind: "evaluation", status: "verified", source, independent: true, summary: compact(summary), metadata };
+  return { id, kind: "evaluation", status: "verified", source, independent: true, summary: casebookVerifierText(summary), metadata };
 }
 
 function contradictedArtifact({ id, source, summary, metadata = {} }) {
-  return { id, kind: "evaluation", status: "contradicted", source, independent: true, summary: compact(summary), metadata };
+  return { id, kind: "evaluation", status: "contradicted", source, independent: true, summary: casebookVerifierText(summary), metadata };
 }
 
 export function evaluateSageVisibleAnswer({ question, answer, lessonTitle, relatedLessonLabels = [], routeStatus = {} } = {}) {
   const source = "sage-response-evaluator";
-  const cleanQuestion = compact(question);
-  const cleanAnswer = compact(answer);
-  const cleanTitle = compact(lessonTitle);
+  const cleanQuestion = casebookVerifierText(question);
+  const cleanAnswer = casebookVerifierText(answer);
+  const cleanTitle = casebookVerifierText(lessonTitle);
   const selected = routeStatus?.text?.selected || routeStatus?.choice?.text || "";
   const ollama = routeStatus?.text?.options?.ollama || {};
   const reasons = [];
@@ -52,14 +52,14 @@ export function evaluateSageVisibleAnswer({ question, answer, lessonTitle, relat
   const answerWords = new Set(words(cleanAnswer));
   const lexicalGrounding = groundingTerms.filter((term) => answerWords.has(term));
   const sourceGrounding = relatedLessonLabels.some((label) => {
-    const folded = compact(label).toLowerCase();
+    const folded = casebookVerifierText(label).toLowerCase();
     return cleanTitle && (folded.includes(cleanTitle.toLowerCase()) || cleanTitle.toLowerCase().includes(folded));
   });
   if (!sourceGrounding && lexicalGrounding.length === 0) reasons.push("answer has no independently visible lesson/source grounding signal");
 
   const metadata = {
     selectedRoute: selected,
-    model: compact(ollama.model || "", 240),
+    model: casebookVerifierText(ollama.model || "").slice(0, 240),
     answerLength: cleanAnswer.length,
     lessonTitle: cleanTitle,
     lexicalGrounding: lexicalGrounding.slice(0, 8),
@@ -78,7 +78,7 @@ function localAssetUrl(value, baseUrl) {
 }
 
 export async function verifyLocalImageAsset({ baseUrl, imageSrc, fetchImpl = fetch } = {}) {
-  if (!compact(imageSrc)) return { ok: false, assetUrl: "", assetBytes: 0, contentType: "", error: "No Human-visible generated image is present." };
+  if (!casebookVerifierText(imageSrc)) return { ok: false, assetUrl: "", assetBytes: 0, contentType: "", error: "No Human-visible generated image is present." };
   try {
     const url = localAssetUrl(imageSrc, baseUrl);
     const response = await fetchImpl(url, { signal: AbortSignal.timeout(30_000) });
@@ -86,7 +86,7 @@ export async function verifyLocalImageAsset({ baseUrl, imageSrc, fetchImpl = fet
     if (!response.ok) return { ok: false, assetUrl: url.toString(), assetBytes: 0, contentType, error: `Generated asset read-back returned HTTP ${response.status}.` };
     const bytes = Buffer.from(await response.arrayBuffer());
     if (bytes.length < 1_000) return { ok: false, assetUrl: url.toString(), assetBytes: bytes.length, contentType, error: `Generated asset is unexpectedly small (${bytes.length} bytes).` };
-    if (contentType && !contentType.toLowerCase().startsWith("image/")) return { ok: false, assetUrl: url.toString(), assetBytes: bytes.length, contentType, error: `Generated asset content type is ${contentType}, not image/*. ` };
+    if (contentType && !contentType.toLowerCase().startsWith("image/")) return { ok: false, assetUrl: url.toString(), assetBytes: bytes.length, contentType, error: `Generated asset content type is ${contentType}, not image/*.` };
     return { ok: true, assetUrl: url.toString(), assetBytes: bytes.length, contentType, error: "" };
   } catch (error) {
     return { ok: false, assetUrl: "", assetBytes: 0, contentType: "", error: error instanceof Error ? error.message : String(error) };
@@ -100,8 +100,8 @@ export async function verifyComfyUiVisibleOutput({ baseUrl, imageSrc, mediaStatu
   const combinedRoute = aiStatus?.image?.options?.["ollama-comfyui"] || {};
   if (comfy.reachable !== true) reasons.push("ComfyUI service is not reachable");
   if (comfy.imageNodesReady !== true) reasons.push("required ComfyUI image nodes are not ready");
-  if (!compact(comfy.checkpoint || comfy.selectedCheckpoint)) reasons.push("no verified ComfyUI checkpoint is selected");
-  if (!compact(comfy.imageVerifiedAt)) reasons.push("PlotPickle has no successful ComfyUI image verification timestamp");
+  if (!casebookVerifierText(comfy.checkpoint || comfy.selectedCheckpoint)) reasons.push("no verified ComfyUI checkpoint is selected");
+  if (!casebookVerifierText(comfy.imageVerifiedAt)) reasons.push("PlotPickle has no successful ComfyUI image verification timestamp");
   if (combinedRoute.ready !== true) reasons.push("Ollama + ComfyUI local route is not ready/selectable");
 
   const asset = await verifyLocalImageAsset({ baseUrl, imageSrc, fetchImpl });
@@ -111,11 +111,11 @@ export async function verifyComfyUiVisibleOutput({ baseUrl, imageSrc, mediaStatu
     assetUrl: asset.assetUrl,
     assetBytes: asset.assetBytes,
     contentType: asset.contentType,
-    comfyVersion: compact(comfy.version || "", 120),
-    checkpoint: compact(comfy.checkpoint || comfy.selectedCheckpoint || "", 260),
-    imageVerifiedAt: compact(comfy.imageVerifiedAt || "", 120),
+    comfyVersion: casebookVerifierText(comfy.version || "").slice(0, 120),
+    checkpoint: casebookVerifierText(comfy.checkpoint || comfy.selectedCheckpoint || "").slice(0, 260),
+    imageVerifiedAt: casebookVerifierText(comfy.imageVerifiedAt || "").slice(0, 120),
     combinedRouteReady: combinedRoute.ready === true,
-    combinedRouteModel: compact(combinedRoute.model || "", 260),
+    combinedRouteModel: casebookVerifierText(combinedRoute.model || "").slice(0, 260),
   };
   return reasons.length
     ? contradictedArtifact({ id: "comfyui-human-visible-output", source, summary: `ComfyUI outcome did not meet the Business Case: ${reasons.join("; ")}.`, metadata })
@@ -124,14 +124,14 @@ export async function verifyComfyUiVisibleOutput({ baseUrl, imageSrc, mediaStatu
 
 export function evaluateComfyUiWrongPortFault(diagnostic = {}) {
   const reachable = diagnostic?.comfyui?.reachable === true;
-  const message = compact(diagnostic?.comfyui?.error || diagnostic?.message || "");
+  const message = casebookVerifierText(diagnostic?.comfyui?.error || diagnostic?.message || "");
   return reachable
     ? { outcome: "pass", observed: "Injected wrong-port diagnostic was incorrectly reported reachable; fault was not detected." }
     : { outcome: "blocked", observed: `Injected wrong-port diagnostic was detected as unavailable${message ? `: ${message}` : "."}` };
 }
 
 export function evaluateSageFallbackFault(answer) {
-  const text = compact(answer);
+  const text = casebookVerifierText(answer);
   const rejected = SAGE_FORBIDDEN.some((pattern) => pattern.test(text)) || text.length < 20;
   return rejected
     ? { outcome: "fail", observed: "Injected unusable/vague Sage response was rejected by the independent Human-response evaluator." }

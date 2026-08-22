@@ -66,7 +66,7 @@ test("Guildhall bootstrap preserves legacy private specialist rooms and explicit
   assert.match(bootstrap, /"channels", "create"/);
 });
 
-test("legacy specialist bridge remains bounded while current Community UI exposes Critics Circle only", async () => {
+test("legacy specialist bridge remains bounded while current Community conversation UI exposes Critics Circle only", async () => {
   const [gateway, ui] = await Promise.all([
     read("build/buzz-specialist-gateway.ts"),
     read("app/community-agent-roster.tsx"),
@@ -87,8 +87,8 @@ test("legacy specialist bridge remains bounded while current Community UI expose
   assert.match(gateway, /buzzHistoryWritten: true/);
 
   assert.match(ui, /type SpecialistId = "critics-circle"/);
-  assert.match(ui, /PRIVATE_PROJECT_AGENT_IDS = new Set\(\["marquee-director"\]\)/);
-  assert.match(ui, /\.filter\(\(agent\) => !PRIVATE_PROJECT_AGENT_IDS\.has\(agent\.id\)\)/);
+  assert.match(ui, /const SPECIALISTS = new Set<SpecialistId>\(\["critics-circle"\]\)/);
+  assert.match(ui, /\.filter\(\(agent\) => Boolean\(agent\.publicBio && agent\.avatarRef\)\)/);
 });
 
 test("project context federation remains opt-in for the Community specialist and private contact data is redacted", async () => {

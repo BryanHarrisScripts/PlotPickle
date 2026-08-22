@@ -10,7 +10,6 @@ import {
   type BuzzNativeAgentState,
   type WritingAssistantStatus,
 } from "../lib/community-agent-roster";
-import ResponsibilityRunActivity from "./responsibility-run-activity";
 import styles from "./community-agent-roster.module.css";
 
 type TracePayload = {
@@ -44,6 +43,20 @@ type SpecialistReply = {
 type JsonMessage = { readonly message?: string };
 
 const SPECIALISTS = new Set<SpecialistId>(["critics-circle"]);
+const ROOMS_BY_AGENT: Readonly<Record<string, readonly string[]>> = {
+  "sage-brinewick": ["Great Hall", "Story Workshop", "Wyrmwood"],
+  "tamsin-hearthquill": ["Story Workshop"],
+  "master-oaken-vague": ["Wyrmwood"],
+  "rowan-scalequill": ["Wyrmwood"],
+  "quillan-reedcloak": ["Story Workshop", "Marquee"],
+  "elowen-mapweaver": ["Story Workshop"],
+  "mira-threadmere": ["Story Workshop", "Marquee"],
+  "marquee-director": ["Marquee"],
+  "critics-circle": ["Story Workshop"],
+  "merrin-bellwarden": ["Great Hall"],
+  "orin-ledgerbark": ["Great Hall"],
+  "fen-copperwind": ["Great Hall when engineering status is relevant"],
+};
 
 async function readJson<T>(url: string): Promise<T> {
   const response = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
@@ -88,8 +101,8 @@ function buzzIdentityLabel(agentId: string, buzzPresence: string, nativeAgents: 
   }
   if (identity?.lookupError) return "BUZZ identity status unavailable";
   if (buzzPresence === "native-draft") return "Needs owner approval in BUZZ";
-  if (buzzPresence === "mirrored") return "Mastra agent · BUZZ identity not created";
-  return "Operational events only";
+  if (buzzPresence === "mirrored") return "PlotPickle Agent · official signer not active";
+  return "Local operational role";
 }
 
 function readableList(values: readonly string[]) {
@@ -132,15 +145,9 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
 
     const warnings: string[] = [];
     if (assistantResult.status === "fulfilled") setAssistantStatus(assistantResult.value);
-    else {
-      setAssistantStatus(null);
-      warnings.push("Mastra status unavailable");
-    }
+    else { setAssistantStatus(null); warnings.push("Agent runtime status unavailable"); }
     if (tracesResult.status === "fulfilled") setTraces(Array.isArray(tracesResult.value.traces) ? tracesResult.value.traces : []);
-    else {
-      setTraces([]);
-      warnings.push("session activity unavailable");
-    }
+    else { setTraces([]); warnings.push("recent Agent activity unavailable"); }
     if (buzzResult.status === "fulfilled") {
       setBuzzIdentityVerified(buzzResult.value.identityVerified === true);
       setNativeAgents(Array.isArray(buzzResult.value.agents) ? buzzResult.value.agents : []);
@@ -148,7 +155,7 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
     } else {
       setBuzzIdentityVerified(false);
       setNativeAgents([]);
-      warnings.push("BUZZ agent identity status unavailable");
+      warnings.push("BUZZ Agent identity status unavailable");
     }
     setNotice(warnings.join(" · "));
     setLoading(false);
@@ -168,20 +175,13 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
     nativeAgents,
   }).filter((agent) => Boolean(agent.publicBio && agent.avatarRef)), [assistantStatus, traces, buzzIdentityVerified, nativeAgents]);
 
-  const counts = useMemo(() => ({
-    active: roster.filter((agent) => agent.state === "working" || agent.state === "online" || agent.state === "away").length,
-    onDemand: roster.filter((agent) => agent.state === "on-demand").length,
-    parked: roster.filter((agent) => agent.state === "parked").length,
-    attention: roster.filter((agent) => ["offline", "needs-approval", "setup-needed", "unavailable"].includes(agent.state)).length,
-  }), [roster]);
-
   async function askSpecialist(id: SpecialistId) {
     const prompt = specialistDrafts[id].trim();
     if (!prompt || specialistBusy) return;
     const shareProjectContext = specialistProjectSharing[id];
     const sharedProjectContext = shareProjectContext ? activeProjectContext(projectContext) : null;
     if (shareProjectContext && !sharedProjectContext) {
-      setNotice("Open or load a project before choosing to share active project context with a specialist.");
+      setNotice("Open or load a project before sharing active project context with Critics' Circle.");
       return;
     }
     setSpecialistBusy(id);
@@ -195,10 +195,10 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
       });
       setSpecialistReplies((current) => ({ ...current, [id]: result }));
       setSpecialistDrafts((current) => ({ ...current, [id]: "" }));
-      setNotice(`${result.displayName} replied in ${result.room.name}. The exchange is in BUZZ history and did not change the PPF.`);
+      setNotice(`${result.displayName} replied. PPF unchanged.`);
       await refresh();
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "The specialist could not answer this room message.");
+      setNotice(error instanceof Error ? error.message : "Critics' Circle could not answer this message.");
     } finally {
       setSpecialistBusy("");
     }
@@ -208,27 +208,14 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
     <div className={styles.roster}>
       <section className={styles.heading}>
         <div>
-          <span>PlotPicklePlayhouse Agents</span>
-          <h2>Official Community personalities, their roles, and their current presence.</h2>
-          <p>Your connected BUZZ account remains your Human identity. Every official PlotPicklePlayhouse Agent has a separate public identity, description and portrait. BUZZ identity is community presence and signed provenance only; it does not give an agent new product, story, developer or GitHub authority. Skills describe procedure; they never grant permission. The writer remains the final authority over creative changes.</p>
+          <span>Official PlotPicklePlayhouse Agents</span>
+          <h2>Meet the helpers you can encounter around the Community.</h2>
+          <p>Each Agent has a distinct job and public identity. Rooms are organized around your goal, so several Agents may help in the same room. Your BUZZ account always remains your Human identity.</p>
         </div>
-        <button type="button" disabled={loading} onClick={() => void refresh()}>{loading ? "Checking…" : "Refresh status"}</button>
-      </section>
-
-      <section className={styles.summary} aria-label="Agent roster summary">
-        <div><strong>{counts.active}</strong><span>online or working</span></div>
-        <div><strong>{counts.onDemand}</strong><span>on demand</span></div>
-        <div><strong>{counts.parked}</strong><span>parked for later</span></div>
-        <div><strong>{counts.attention}</strong><span>need setup or attention</span></div>
-      </section>
-
-      <section className={styles.legend} aria-label="Agent status meanings">
-        <p><strong>Online</strong> means the real runtime reports the role available. <strong>Working</strong> means a run is active now. <strong>On demand</strong> means the service starts only when needed. <strong>Parked</strong> means the role is intentionally inactive. The connected Human signer is never an Agent signer. Official PlotPickle Agent private signers stay with PlotPickle Admin outside the distributed app.</p>
+        <button type="button" disabled={loading} onClick={() => void refresh()}>{loading ? "Checking…" : "Refresh"}</button>
       </section>
 
       {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
-
-      <ResponsibilityRunActivity />
 
       <section className={styles.grid} aria-label="PlotPickle agent roster">
         {roster.map((agent) => {
@@ -237,11 +224,12 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
           const visibleInBuzz = Boolean(identity?.created && identity.verified && (officialIdentity || identity.ownedByMe));
           const specialist = isSpecialist(agent.id) ? agent.id : null;
           const reply = specialist ? specialistReplies[specialist] : null;
+          const rooms = ROOMS_BY_AGENT[agent.id] ?? [agent.homeRoom];
           return (
             <article className={styles.card} key={agent.id} data-state={agent.state}>
               <header>
                 <div className={styles.identity}>
-                  <AgentPortrait id={agent.id} alt={`${agent.displayName} profile picture`} size={46} />
+                  <AgentPortrait id={agent.id} alt={`${agent.displayName} profile picture`} size={72} />
                   <div>
                     <strong>{agent.displayName}</strong>
                     <span>{agent.title}</span>
@@ -251,42 +239,18 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
               </header>
 
               <p className={styles.summaryText}>{agent.publicBio || agent.summary}</p>
-              <p className={styles.stateDetail}>{agent.stateDetail}</p>
-
-              <dl>
-                <div><dt>Runs in</dt><dd>{agent.runtimeLabel}</dd></div>
-                <div><dt>Home room</dt><dd>{agent.homeRoom}</dd></div>
-                <div><dt>Role</dt><dd>{agent.roleId || (agent.runtime === "buzz" ? "BUZZ identity" : "Operational service")}</dd></div>
-                <div><dt>Model need</dt><dd>{agent.requestedModelRole ? `${agent.requestedModelRole} capability` : "No model required"}</dd></div>
-                <div><dt>Active model</dt><dd>{agent.activeModel ? `${agent.activeRuntimeProvider || "runtime"} · ${agent.activeModel}` : "Shown when a run is active or recorded"}</dd></div>
-                <div><dt>BUZZ identity</dt><dd>{buzzIdentityLabel(agent.id, agent.buzzPresence, nativeAgents)}</dd></div>
-                <div><dt>Last activity</dt><dd>{displayTime(agent.lastActiveAt)}</dd></div>
-              </dl>
-
-              <details>
-                <summary>Capabilities, memory & boundaries</summary>
-                <dl>
-                  <div><dt>Skills</dt><dd>{agent.skillUris.length ? agent.skillUris.map((uri) => uri.replace("skill://plotpickle/", "")).join(", ") : "No packaged Skill required"}</dd></div>
-                  <div><dt>Requests</dt><dd>{readableList(agent.requestedCapabilities)}</dd></div>
-                  <div><dt>Memory scope</dt><dd>{readableList(agent.projectMemoryScope)}</dd></div>
-                  <div><dt>May propose</dt><dd>{readableList(agent.proposalScopes)}</dd></div>
-                  <div><dt>Cannot do</dt><dd>{readableList(agent.forbiddenCapabilities)}</dd></div>
-                  <div><dt>Creative authority</dt><dd>{agent.creativeAuthority.replaceAll("-", " ")}</dd></div>
-                </dl>
-                <p><strong>Memory policy:</strong> {agent.projectMemoryPolicy}</p>
-                <p><strong>Verification:</strong> {agent.verificationContract}</p>
-              </details>
+              <p className={styles.stateDetail}><strong>Helps in:</strong> {rooms.join(" · ")}</p>
 
               {specialist ? <section className={styles.specialist} aria-label={`${agent.displayName} BUZZ conversation`}>
                 <div className={styles.specialistHeading}>
-                  <div><strong>Talk in {agent.homeRoom}</strong><span>Private BUZZ room · PlotPickle/Mastra reply</span></div>
+                  <div><strong>Ask Critics&apos; Circle</strong><span>Private BUZZ exchange</span></div>
                   <small>Project sharing is off by default.</small>
                 </div>
                 <textarea
                   value={specialistDrafts[specialist]}
                   onChange={(event) => setSpecialistDrafts((current) => ({ ...current, [specialist]: event.target.value }))}
                   maxLength={8_000}
-                  rows={4}
+                  rows={3}
                   placeholder="Ask for an independent story, character, pacing or positioning critique…"
                 />
                 <label className={styles.shareToggle}>
@@ -295,29 +259,34 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
                     checked={specialistProjectSharing[specialist]}
                     onChange={(event) => setSpecialistProjectSharing((current) => ({ ...current, [specialist]: event.target.checked }))}
                   />
-                  <span>Share the active project&apos;s approved context with this private BUZZ exchange. This may include unpublished story details.</span>
+                  <span>Share the active project&apos;s approved context with this private exchange.</span>
                 </label>
-                <button
-                  type="button"
-                  disabled={!specialistDrafts[specialist].trim() || Boolean(specialistBusy) || agent.state === "offline"}
-                  onClick={() => void askSpecialist(specialist)}
-                >{specialistBusy === specialist ? "Asking…" : `Ask ${agent.displayName}`}</button>
-                {reply ? <div className={styles.specialistReply}>
-                  <strong>{reply.displayName}</strong>
-                  <p>{reply.reply}</p>
-                  <small>{reply.runtimeProvider} · {reply.model} · {reply.contextSummary}</small>
-                  <small>Written to BUZZ history · PPF unchanged · project context {reply.projectContextShared ? "explicitly shared" : "not shared"}</small>
-                </div> : null}
+                <button type="button" disabled={!specialistDrafts[specialist].trim() || Boolean(specialistBusy) || agent.state === "offline"} onClick={() => void askSpecialist(specialist)}>{specialistBusy === specialist ? "Asking…" : "Ask Critics' Circle"}</button>
+                {reply ? <div className={styles.specialistReply}><strong>{reply.displayName}</strong><p>{reply.reply}</p><small>BUZZ history · PPF unchanged · project context {reply.projectContextShared ? "shared" : "not shared"}</small></div> : null}
               </section> : null}
 
+              <details>
+                <summary>Technical details</summary>
+                <dl>
+                  <div><dt>Runtime</dt><dd>{agent.runtimeLabel}</dd></div>
+                  <div><dt>Role</dt><dd>{agent.roleId || "Community Agent"}</dd></div>
+                  <div><dt>Model need</dt><dd>{agent.requestedModelRole ? `${agent.requestedModelRole} capability` : "No model required"}</dd></div>
+                  <div><dt>Active model</dt><dd>{agent.activeModel ? `${agent.activeRuntimeProvider || "runtime"} · ${agent.activeModel}` : "Shown only when active"}</dd></div>
+                  <div><dt>BUZZ identity</dt><dd>{buzzIdentityLabel(agent.id, agent.buzzPresence, nativeAgents)}</dd></div>
+                  <div><dt>Last activity</dt><dd>{displayTime(agent.lastActiveAt)}</dd></div>
+                  <div><dt>Skills</dt><dd>{agent.skillUris.length ? agent.skillUris.map((uri) => uri.replace("skill://plotpickle/", "")).join(", ") : "None"}</dd></div>
+                  <div><dt>Requests</dt><dd>{readableList(agent.requestedCapabilities)}</dd></div>
+                  <div><dt>Memory scope</dt><dd>{readableList(agent.projectMemoryScope)}</dd></div>
+                  <div><dt>May propose</dt><dd>{readableList(agent.proposalScopes)}</dd></div>
+                  <div><dt>Cannot do</dt><dd>{readableList(agent.forbiddenCapabilities)}</dd></div>
+                </dl>
+                <p><strong>Memory policy:</strong> {agent.projectMemoryPolicy}</p>
+                <p><strong>Verification:</strong> {agent.verificationContract}</p>
+                <p><strong>Identity boundary:</strong> The connected Human signer is never an Agent signer. Official PlotPickle Agent private signers stay with PlotPickle Admin outside the distributed app.</p>
+              </details>
+
               <footer>
-                <span>{visibleInBuzz
-                  ? officialIdentity ? "Official PlotPickle Agent visible in Buzz Desktop" : "Visible in Buzz Desktop"
-                  : officialIdentity
-                    ? identity?.identityConfigured ? "Official BUZZ identity not verified" : "Official BUZZ identity awaiting Admin provisioning"
-                    : agent.buzzPresence === "native-draft" ? "BUZZ-native identity awaiting approval" : agent.buzzPresence === "mirrored" ? "PlotPickle/Mastra agent" : "Guildhall service"}</span>
-                {agent.buzzPresence === "mirrored" && !visibleInBuzz && !officialIdentity ? <small>Buzz Desktop → Agents → + can create the matching community identity when you want it.</small> : null}
-                {agent.state === "needs-approval" ? <small>{officialIdentity ? "Official Agent signing identity is provisioned by PlotPickle Admin, not by this Human profile." : "Open Buzz Desktop → Agents to create and approve this steward."}</small> : null}
+                <span>{visibleInBuzz ? "Official BUZZ identity available" : officialIdentity ? "Official BUZZ identity awaiting provisioning" : "PlotPickle Agent"}</span>
               </footer>
             </article>
           );

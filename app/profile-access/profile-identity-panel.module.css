@@ -1,7 +1,7 @@
 .profileColumns {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(190px, 0.65fr) minmax(190px, 0.65fr);
+  grid-template-columns: minmax(0, 1.7fr) minmax(220px, 0.72fr);
   gap: 12px;
   color: #e8f5f6;
 }
@@ -26,11 +26,14 @@
 }
 
 .identityColumn {
+  grid-column: 1;
+  grid-row: 1 / span 2;
   display: grid;
   gap: 16px;
 }
 
 .actionColumn {
+  grid-column: 2;
   display: grid;
   align-content: start;
   gap: 9px;
@@ -348,6 +351,12 @@
 @media (max-width: 820px) {
   .profileColumns {
     grid-template-columns: 1fr;
+  }
+
+  .identityColumn,
+  .actionColumn {
+    grid-column: 1;
+    grid-row: auto;
   }
 
   .notice {

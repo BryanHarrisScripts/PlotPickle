@@ -246,7 +246,7 @@ export default function BuzzSettingsPanel() {
     <header className={styles.heading}>
       <p>{"Settings · Repository & Collab · Buzz"}</p>
       <h1>BUZZ transport, runtime and Guildhall diagnostics.</h1>
-      <span>Your Human BUZZ signer is owned by Profile. Settings can inspect/test the transport and manage the optional local runtime, but it cannot replace the Human identity.</span>
+      <span>Your Human BUZZ signer connection is owned by Profile. Settings can inspect/test the transport and manage the optional local runtime, but it cannot replace the Human identity.</span>
     </header>
 
     <section className={styles.statusCard}>
@@ -287,7 +287,7 @@ export default function BuzzSettingsPanel() {
     <section className={styles.runtimeGrid} aria-label="Buzz status details">
       <article><span>Buzz Desktop / CLI</span><strong>{cliAvailable ? "Detected" : "Not detected"}</strong><small>{status?.cli.executable || status?.cli.error || "Open Buzz Desktop once, then refresh."}</small></article>
       <article><span>Community</span><strong>{reachable ? `${status?.relay.latencyMs} ms` : configured ? "Not verified" : "Built-in default"}</strong><small>{status?.connection.relayUrl || PLOTPICKLE_BUZZ_COMMUNITY.relayUrl}</small></article>
-      <article><span>Human signer owner</span><strong>{identityConfigured ? "Profile" : "Not connected"}</strong><small>Signer creation/import/disconnect belongs to Profile.</small></article>
+      <article><span>Human signer owner</span><strong>{identityConfigured ? "Profile" : "Not connected"}</strong><small>BUZZ creates identities; Profile connects/disconnects the Human signer.</small></article>
       <article><span>Verified Buzz signer / profile</span><strong>{humanIdentityReady ? humanIdentity?.displayName : identityMismatch ? "Agent identity blocked" : identityVerified ? "Signer unresolved" : "Not verified"}</strong><small>{signerFingerprint || "No verified Human public identity available"}</small></article>
     </section>
 
@@ -326,7 +326,7 @@ export default function BuzzSettingsPanel() {
       </div>
     </section> : null}
 
-    <section className={styles.boundary}><span>Authority boundary</span><h2>Discussion does not become canon by itself.</h2><p>Buzz messages can be linked to story entities and converted into local proposals. Only an explicit Human approval applies a selected proposal to the active PPF project.</p><ul><li>No Buzz service starts merely because PlotPickle is installed.</li><li>Profile owns Human signer creation/import/disconnect.</li><li>Settings owns transport, runtime and health diagnostics.</li><li>Removing or changing BUZZ never changes PlotPickle projects or approved canon.</li></ul></section>
+    <section className={styles.boundary}><span>Authority boundary</span><h2>Discussion does not become canon by itself.</h2><p>Buzz messages can be linked to story entities and converted into local proposals. Only an explicit Human approval applies a selected proposal to the active PPF project.</p><ul><li>No Buzz service starts merely because PlotPickle is installed.</li><li>BUZZ owns Human identity creation; Profile owns connect/disconnect.</li><li>Settings owns transport, runtime and health diagnostics.</li><li>Removing or changing BUZZ never changes PlotPickle projects or approved canon.</li></ul></section>
     {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
   </div>;
 }

@@ -1,5 +1,4 @@
 import { spawn } from "node:child_process";
-import { createECDH } from "node:crypto";
 import type { IncomingMessage } from "node:http";
 import type { Plugin } from "vite";
 import { PLOTPICKLE_BUZZ_COMMUNITY } from "../lib/buzz-default-community";
@@ -25,6 +24,8 @@ type BuzzConnection = {
   verifiedAt: string;
   verificationVersion?: 2;
   identitySource?: "generated" | "imported";
+  identityPubkey?: string;
+  identityRole?: "human";
 };
 
 type PublicIdentity = {
@@ -71,12 +72,6 @@ function normalizeRelayUrl(value: unknown) {
   return url.toString().replace(/\/$/, "");
 }
 
-function generatedPrivateKey() {
-  const identity = createECDH("secp256k1");
-  identity.generateKeys();
-  return identity.getPrivateKey("hex").padStart(64, "0");
-}
-
 function connectionFrom(value: unknown): BuzzConnection | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const item = value as Partial<BuzzConnection>;
@@ -87,7 +82,7 @@ function connectionFrom(value: unknown): BuzzConnection | null {
   return item as BuzzConnection;
 }
 
-function nextConnection(existing: BuzzConnection | null, relayUrl: string, privateKey: string, source: "generated" | "imported") {
+function nextConnection(existing: BuzzConnection | null, relayUrl: string, privateKey: string) {
   return {
     version: 1,
     mode: existing?.mode === "managed" ? "managed" : "existing-relay",
@@ -97,7 +92,7 @@ function nextConnection(existing: BuzzConnection | null, relayUrl: string, priva
     cliPath: existing?.cliPath || "",
     privateKey,
     verifiedAt: "",
-    identitySource: source,
+    identitySource: "imported",
   } satisfies BuzzConnection;
 }
 
@@ -190,6 +185,12 @@ function agentIdForDisplayName(displayName: string) {
   })?.id || "";
 }
 
+function boundHuman(connection: BuzzConnection, pubkey: string) {
+  return connection.identityRole === "human"
+    && typeof connection.identityPubkey === "string"
+    && connection.identityPubkey.toLowerCase() === pubkey.toLowerCase();
+}
+
 async function readConnectedProfile(connection: BuzzConnection) {
   const source = await runCli(connection, ["--format", "compact", "users", "get"]);
   const decoded: unknown = JSON.parse(source || "null");
@@ -228,7 +229,7 @@ function safeIdentity(connection: BuzzConnection, profile: Record<string, unknow
   const displayName = profile ? profileText(profile, "display_name", ["displayName", "name", "username"]) || displayNameFallback : displayNameFallback;
   const publicKey = profile ? profileText(profile, "pubkey", ["public_key", "publicKey", "npub"]) : "";
   const pubkey = publicKey || verifiedPubkey || publicKeyFromPrivateKey(connection.privateKey);
-  const agentId = agentIdForDisplayName(displayName);
+  const agentId = boundHuman(connection, pubkey) ? "" : agentIdForDisplayName(displayName);
   return agentId ? {
     ready: false,
     identityVerified: true,
@@ -288,17 +289,7 @@ async function handleIdentityAction(body: Record<string, unknown>) {
   const action = text(body.action);
 
   if (action === "create") {
-    const relayUrl = normalizeRelayUrl(body.relayUrl || existing?.relayUrl);
-    const privateKey = generatedPrivateKey();
-    const connection = nextConnection(existing, relayUrl, privateKey, "generated");
-    connection.identityLabel = profileDisplayName(body.displayName || "PlotPickle Human");
-    await writeCredentialJson(CONNECTION_FILE, connection);
-    return {
-      ok: true,
-      recoveryPrivateKey: privateKey,
-      community: PLOTPICKLE_BUZZ_COMMUNITY.name,
-      message: `A new BUZZ identity was created for ${PLOTPICKLE_BUZZ_COMMUNITY.name} and encrypted inside this Human profile. Save the recovery key before closing the Profile surface.`,
-    };
+    throw new Error("PlotPickle does not create BUZZ identities. Use Get BUZZ Identity in Profile, then connect the identity you created in BUZZ.");
   }
 
   if (action === "import") {
@@ -309,7 +300,7 @@ async function handleIdentityAction(body: Record<string, unknown>) {
     if (!/^(nsec1[a-z0-9]+|[a-f0-9]{64})$/i.test(privateKey) || !privateHex || !localPubkey) {
       throw new Error("The BUZZ private identity key must be a valid nsec or a 64-character hexadecimal key.");
     }
-    const connection = nextConnection(existing, relayUrl, privateKey, "imported");
+    const connection = nextConnection(existing, relayUrl, privateKey);
     connection.identityLabel = profileDisplayName(body.displayName || existing?.identityLabel || "PlotPickle Human");
 
     let identity: PublicIdentity;
@@ -318,6 +309,8 @@ async function handleIdentityAction(body: Record<string, unknown>) {
       const verification = await verifyConnectedSigner(connection);
       identity = safeIdentity(connection, verification.profile, connection.identityLabel, verification.pubkey);
       if (!identity.humanCommunityAllowed) throw new Error(identity.message);
+      connection.identityPubkey = verification.pubkey;
+      connection.identityRole = "human";
       communityReady = true;
     } catch (error) {
       const detail = safeError(error);
@@ -334,7 +327,7 @@ async function handleIdentityAction(body: Record<string, unknown>) {
       community: PLOTPICKLE_BUZZ_COMMUNITY.name,
       communityReady,
       message: communityReady
-        ? `The existing BUZZ identity was verified against ${PLOTPICKLE_BUZZ_COMMUNITY.name} and encrypted inside this Human profile.`
+        ? `The existing BUZZ identity was verified against ${PLOTPICKLE_BUZZ_COMMUNITY.displayName} and bound to this Human profile.`
         : identity.message,
     };
   }
@@ -347,12 +340,14 @@ async function handleIdentityAction(body: Record<string, unknown>) {
       verifiedAt: "",
       verificationVersion: undefined,
       identitySource: undefined,
+      identityPubkey: undefined,
+      identityRole: undefined,
     });
     return { ok: true, message: "The BUZZ identity was disconnected from this Human profile. Relay/runtime settings were kept." };
   }
 
   if (action === "publish-profile") {
-    if (!existing?.privateKey) throw new Error("Create or connect a BUZZ identity before publishing the Human Profile.");
+    if (!existing?.privateKey) throw new Error("Connect a BUZZ identity before publishing the Human Profile.");
     if (!existing.relayUrl) throw new Error("A BUZZ relay address is required before publishing the Human Profile.");
     const displayName = profileDisplayName(body.displayName);
     const bio = publicBio(body.publicBio);
@@ -360,8 +355,13 @@ async function handleIdentityAction(body: Record<string, unknown>) {
 
     if (existing.identitySource === "imported") {
       const verification = await verifyConnectedSigner(existing);
-      const priorName = verification.profile ? profileText(verification.profile, "display_name", ["displayName", "name", "username"]) : "";
-      if (priorName && agentIdForDisplayName(priorName)) throw new Error("A PlotPickle agent BUZZ identity cannot be connected as the Human Profile.");
+      if (existing.identityRole === "human" && !boundHuman(existing, verification.pubkey)) {
+        throw new Error("The stored Human BUZZ role binding does not match this signer. Disconnect it and reconnect the intended Human identity.");
+      }
+      if (!boundHuman(existing, verification.pubkey)) {
+        const priorName = verification.profile ? profileText(verification.profile, "display_name", ["displayName", "name", "username"]) : "";
+        if (priorName && agentIdForDisplayName(priorName)) throw new Error("A PlotPickle agent BUZZ identity cannot be connected as the Human Profile.");
+      }
     }
 
     const args = ["users", "set-profile", "--name", displayName, "--about", bio];
@@ -374,6 +374,8 @@ async function handleIdentityAction(body: Record<string, unknown>) {
       ...existing,
       community: PLOTPICKLE_BUZZ_COMMUNITY.name,
       identityLabel: displayName,
+      identityPubkey: verification.pubkey,
+      identityRole: "human",
       verifiedAt: new Date().toISOString(),
       verificationVersion: 2,
     };

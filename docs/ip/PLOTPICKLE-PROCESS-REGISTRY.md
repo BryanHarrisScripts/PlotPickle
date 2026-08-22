@@ -1,6 +1,6 @@
 # PLOTPICKLE PROCESS REGISTRY
 
-**Registry version:** 0.1  
+**Registry version:** 0.2  
 **Canonical as of:** 2026-08-22  
 **Status:** Living architecture and IP-identification index
 
@@ -32,6 +32,9 @@ This registry is a naming and technical-lineage record. It does **not** determin
 - External systems such as Caura may be studied for useful governance concepts, but PlotPickle keeps ownership of its memory and authority model. Caura is not a PlotPickle dependency.
 - **PLOTPICKLE CONTRACT** remains provider-neutral. Image-provider syntax belongs below the Contract boundary.
 - Human, Agent, BUZZ, and Node/install identities remain separate authorities.
+- BUZZ owns BUZZ identity creation. PlotPickle connects an existing signer to an authenticated Human profile rather than generating a new social identity.
+- **PLOTPICKLE FEDERATION** owns PlotPickle community-connection policy while BUZZ remains the social authority for community state and membership.
+- PlotPickle Playhouse is the required built-in community connection and is not removable by the Human.
 - PPF/canonical project state remains above retrieved memory, observations, peer material, and model assertions.
 - A model, worker, or Human assertion alone is never sufficient evidence that an automated Business Case passed.
 
@@ -54,6 +57,7 @@ This registry is a naming and technical-lineage record. It does **not** determin
 | **PLOTPICKLE TRUST** | Agent Skill Trust | Procedure integrity and provenance without new authority | Active |
 | **PLOTPICKLE VAULT** | Profile vault / profile-private storage | Per-Human encrypted private state | Active |
 | **PLOTPICKLE IDENTITY** | Identity authority contracts | Separation and binding of Human, Agent, BUZZ, and Node identity | Active |
+| **PLOTPICKLE FEDERATION** | Community connection policy | Root Playhouse connection and governed community admission | Evolving |
 | **PLOTPICKLE REPAIR** | Evidence-driven bounded repair | Repair only from confirmed findings within bounded authority | Active |
 | **PLOTPICKLE PPF** | Portable Project File / project specification | Portable canonical creative/project state | Active |
 
@@ -246,13 +250,33 @@ This registry is a naming and technical-lineage record. It does **not** determin
 
 **Purpose:** Prevent Human, Agent, BUZZ, and PlotPickle Node/install identities from being conflated.
 
-**Method:** IDENTITY assigns each identity class its own authority and binding rules. A BUZZ signer can represent a Human or Agent in community transport without becoming the PlotPickle Human login authority, and a Node identity does not inherit a Human's project authority.
+**Method:** IDENTITY assigns each identity class its own authority and binding rules. A BUZZ signer can represent a Human or Agent in community transport without becoming the PlotPickle Human login authority, and a Node identity does not inherit a Human's project authority. BUZZ identity creation remains BUZZ-owned; PlotPickle connects an existing signer. Once a Human signer is successfully verified, PlotPickle binds the verified pubkey to the Human role so mutable BUZZ presentation fields do not become the long-term security authority.
 
-**Implementation anchors:** #1072, #1123/#1124, #1137, #1144, #1212; PlotPickle Auth core; BUZZ Human identity guard and profile-scoped BUZZ gateways.
+**Implementation anchors:** #1072, #1123/#1124, #1137, #1144, #1212, #1277; PlotPickle Auth core; BUZZ Human identity guard and profile-scoped BUZZ gateways.
 
-**Related processes:** VAULT, TRUST, CASEBOOK, GATE.
+**Related processes:** VAULT, TRUST, CASEBOOK, GATE, FEDERATION.
 
 **IP review note:** Candidate multi-identity authority/binding architecture for later review.
+
+## PLOTPICKLE FEDERATION
+
+**Purpose:** Govern which BUZZ communities a PlotPickle Human is connected to and which identity/membership rules apply without creating a second PlotPickle social backend.
+
+**Method:** FEDERATION separates community connection/admission policy from identity ownership. The PlotPickle Playhouse root connection is required and non-removable by the Human. Future Human-owned communities may be created or connected through supported BUZZ community mechanisms, while PlotPickle may require admitted members to be a valid PlotPickle Human with a connected Human BUZZ signer. BUZZ remains the social authority for channels, membership, messages, DMs, presence, and other adopted community state.
+
+**Distinguishing boundaries:**
+
+- PlotPickle authentication is not delegated to BUZZ.
+- A BUZZ signer does not become a PlotPickle Human merely by knowing a relay/community URL.
+- Agent signers remain separate from Human membership authority.
+- PlotPickle does not maintain a competing message/member database.
+- The Playhouse root connection can be ignored in daily use but cannot be deleted from the PlotPickle federation policy.
+
+**Implementation anchors:** #1129 and #1277; `lib/buzz-default-community.ts`; BUZZ community/profile gateways.
+
+**Related processes:** IDENTITY, TRUST, VAULT, CASEBOOK.
+
+**IP review note:** Evolving candidate federation/admission-policy architecture. Future user-created-community behavior must be evaluated from implemented BUZZ contracts rather than treated as complete merely because the policy boundary is named here.
 
 ## PLOTPICKLE REPAIR
 
@@ -303,7 +327,10 @@ PLOTPICKLE PPF
 PLOTPICKLE IDENTITY
     ├── PLOTPICKLE VAULT
     ├── Human / Agent / BUZZ / Node separation
-    └── PLOTPICKLE TRUST
+    ├── PLOTPICKLE TRUST
+    └── PLOTPICKLE FEDERATION
+            ├── PlotPickle Playhouse (required root connection)
+            └── BUZZ communities (social authority)
 ```
 
 ## Invariant examples
@@ -316,6 +343,9 @@ The registry names are most useful when paired with stable rules. Current PlotPi
 - A Human may provide required authority at a GATE, but Human confirmation alone does not replace independent automated outcome evidence when a Case requires it.
 - A Skill can be trusted without receiving new authority.
 - A BUZZ identity is not automatically a PlotPickle Human identity.
+- BUZZ identity creation is BUZZ-owned; PlotPickle only connects an existing Human signer.
+- A verified Human signer binding is keyed by pubkey/role rather than mutable display-name presentation.
+- PlotPickle Playhouse is always present in FEDERATION policy and cannot be removed by the Human.
 - One Human cannot retrieve another Human's VAULT state merely because both use the same Node/computer.
 - A generated visual candidate cannot override BINDER/LOCKS/PPF authority.
 - Provider-specific COMPILER output cannot weaken CONTRACT hard constraints.

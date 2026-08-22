@@ -128,7 +128,15 @@ test("#1236 attended live drivers cover the complete Sage and ComfyUI Human jour
   assert.equal(await finalizeAttendedLiveProof({ caseDefinition: sage, client, baseUrl: "http://127.0.0.1:4173", runState: { sage: { independentProof: proof } } }), proof);
 });
 
-test("#1236 runner is explicitly interactive, resumes after Human authority, and executes bounded fault checks", async () => {
+test("#1236 Windows attended API probes always use the resolved PlotPickle origin", async () => {
+  const source = await read("scripts/casebook-attended-live-drivers.mjs");
+  assert.match(source, /const requestUrl = new URL\(pathname, baseUrl\)\.toString\(\)/);
+  assert.match(source, /fetch\(\$\{JSON\.stringify\(requestUrl\)\}/);
+  assert.match(source, /browserFetchStatus\(\{ client, baseUrl, pathname: "\/api\/ai-routing\/status"/);
+  assert.match(source, /browserFetchStatus\(\{ client, baseUrl, pathname: "\/api\/media-routing\/status"/);
+});
+
+test("#1236 runner is explicitly interactive, resumes after Human authority, executes bounded fault checks, and does not abort on one broken step", async () => {
   const source = await read("scripts/run-casebook-attended.mjs");
   assert.match(source, /process\.stdin\.isTTY/);
   assert.match(source, /Human authorization checkpoints must never be automated/);
@@ -139,6 +147,10 @@ test("#1236 runner is explicitly interactive, resumes after Human authority, and
   assert.match(source, /finalizeAttendedLiveProof/);
   assert.match(source, /runPhase3b3Faults/);
   assert.match(source, /record\.faults = await runPhase3b3Faults/);
+  assert.match(source, /safeFailureObservation/);
+  assert.match(source, /caught a bounded runner error instead of aborting the attended run/i);
+  assert.match(source, /Independent Business Case proof raised a bounded runner error/);
+  assert.match(source, /Deliberate fault verification raised a bounded runner error/);
   assert.match(source, /One or more required deliberate fault checks are missing or were not detected/);
   assert.match(source, /A case remains non-green if any critical step, independent proof or fault detector is missing/);
   assert.doesNotMatch(source, /Deliberate real-machine fault injection is still required before this attended record can become green/);

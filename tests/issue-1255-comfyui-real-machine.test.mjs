@@ -44,7 +44,7 @@ test("#1255 Settings keeps ComfyUI setup in place and reports the real local sta
   assert.match(panel, /imageResult\.assetLocation/);
 });
 
-test("#1255 local image readiness requires real ComfyUI nodes checkpoint and a successful returned image test", async () => {
+test("#1255 local image readiness requires real ComfyUI nodes checkpoint a returned image test and local asset evidence", async () => {
   const [provider, panel, routing] = await Promise.all([
     read("build/comfyui-media-provider.ts"),
     read("app/media-routing-panel.tsx"),
@@ -54,6 +54,8 @@ test("#1255 local image readiness requires real ComfyUI nodes checkpoint and a s
   for (const node of ["CheckpointLoaderSimple", "CLIPTextEncode", "EmptyLatentImage", "KSampler", "VAEDecode", "SaveImage"]) {
     assert.ok(provider.includes(`"${node}"`), `Required ComfyUI node missing from readiness contract: ${node}`);
   }
+  assert.match(provider, /const assetLocation = path\.join\(persistentHome\(\), "assets", fileName\)/);
+  assert.match(provider, /return \{ assetUrl, assetLocation,/);
   assert.match(panel, /const comfyConfigured = status\.comfyui\.reachable && status\.comfyui\.imageNodesReady && Boolean\(status\.comfyui\.checkpoint\)/);
   assert.match(panel, /const comfyReady = comfyConfigured && Boolean\(status\.comfyui\.imageVerifiedAt\)/);
   assert.match(routing, /const comfyImageReady = Boolean\(comfyImageConfigured && comfy\.imageNodesReady && media\.comfyui\.imageVerifiedAt\)/);

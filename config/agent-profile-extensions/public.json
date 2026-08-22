@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "profiles": {
+    "sage-brinewick": {
+      "avatarRef": "/assets/helpers/lore/sage-brinewick.svg",
+      "publicBio": "PlotPickle's Lorekeeper: a curriculum guide who helps writers apply story craft while leaving creative decisions and canon with the Human.",
+      "executionContexts": ["private-local", "public-buzz"],
+      "officialBuzzIdentity": {
+        "provisioning": "external-buzz-admin",
+        "pubkey": null
+      }
+    },
+    "tamsin-hearthquill": {
+      "avatarRef": "/assets/helpers/lore/tamsin-hearthquill.svg",
+      "publicBio": "Keeper of Foundations, helping writers turn early story decisions into structured, reviewable proposals without replacing accepted material.",
+      "executionContexts": ["private-local", "public-buzz"],
+      "officialBuzzIdentity": {
+        "provisioning": "external-buzz-admin",
+        "pubkey": null
+      }
+    },
+    "master-oaken-vague": {
+      "avatarRef": "/assets/helpers/lore/master-oaken-vague.svg",
+      "publicBio": "Keeper of the Wyrmwood, shaping curriculum-bound challenges and rival moves while deterministic PlotPickle rules remain in charge of game state.",
+      "executionContexts": ["private-local", "public-buzz"],
+      "officialBuzzIdentity": {
+        "provisioning": "external-buzz-admin",
+        "pubkey": null
+      }
+    },
+    "rowan-scalequill": {
+      "avatarRef": "/assets/helpers/lore/rowan-scalequill.svg",
+      "publicBio": "Arbiter of Lessons, evaluating Wyrmwood responses against curriculum and scene evidence without granting progress or rewriting state.",
+      "executionContexts": ["private-local", "public-buzz"],
+      "officialBuzzIdentity": {
+        "provisioning": "external-buzz-admin",
+        "pubkey": null
+      }
+    },
+    "quillan-reedcloak": {
+      "avatarRef": "/assets/helpers/lore/quillan-reedcloak.svg",
+      "publicBio": "PlotPickle's Story Scribe, coordinating creative specialists into reviewable choices while preserving Human intent and accepted canon.",
+      "executionContexts": ["private-local", "public-buzz"],
+      "officialBuzzIdentity": {
+        "provisioning": "external-buzz-admin",
+        "pubkey": null
+      }
+    }
+  }
+}

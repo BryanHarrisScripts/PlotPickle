@@ -91,6 +91,7 @@ export default function ProfileIdentityPanel({
   async function publishToBuzz(next: Presentation) {
     return jsonRequest<{ ok: true; message?: string; identity?: BuzzIdentity }>("/api/local-buzz/human-identity", {
       method: "POST",
+      headers: { "X-PlotPickle-CSRF": csrfToken },
       body: JSON.stringify({
         action: "publish-profile",
         displayName: next.displayName,
@@ -132,6 +133,7 @@ export default function ProfileIdentityPanel({
     try {
       const body = await jsonRequest<{ ok: true; recoveryPrivateKey?: string; message?: string; communityReady?: boolean; identity?: BuzzIdentity }>("/api/local-buzz/human-identity", {
         method: "POST",
+        headers: { "X-PlotPickle-CSRF": csrfToken },
         body: JSON.stringify({
           action,
           relayUrl: PLOTPICKLE_BUZZ_COMMUNITY.relayUrl,
@@ -164,6 +166,7 @@ export default function ProfileIdentityPanel({
     try {
       const result = await jsonRequest<{ ok: true; message?: string }>("/api/local-buzz/human-identity", {
         method: "POST",
+        headers: { "X-PlotPickle-CSRF": csrfToken },
         body: JSON.stringify({ action: "disconnect" }),
       });
       setCreatedSecret("");

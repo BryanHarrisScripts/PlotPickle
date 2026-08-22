@@ -9,7 +9,6 @@ import {
   countFoundationAnswers,
   createEmptyFoundationLessonAnswers,
   guidingQuestionsForFoundationField,
-  isUsableFoundationAnswer,
   type FoundationDraftProposal,
   type FoundationPlanLesson,
 } from "../../../core/contracts/foundation-plan";
@@ -19,6 +18,7 @@ import {
   loadFoundationProject,
   saveFoundationProject,
 } from "../../../core/storage/foundation-project-browser";
+import { createFoundationsAutoStory } from "../foundations-auto-story";
 import { draftFoundationLesson } from "../foundations-plan-drafter";
 import styles from "./foundations-plan-workspace.module.css";
 
@@ -230,7 +230,7 @@ export default function FoundationsPlanWorkspace({
         projectTitle: result.projectTitle || file.name.replace(/\.ppf$/i, ""),
         context: result.context,
       });
-      setAutoCompleteStatus(`${result.projectTitle || file.name} is loaded as read-only story evidence. Nothing has been changed yet.`);
+      setAutoCompleteStatus(`${result.projectTitle || file.name} is loaded as optional read-only evidence for manual Foundations drafting. Your active story has not changed.`);
     } catch (error) {
       setPpfSource(null);
       setDraftError(error instanceof Error ? error.message : "PlotPickle could not read this .ppf for PLAN Foundations.");
@@ -240,27 +240,43 @@ export default function FoundationsPlanWorkspace({
   }
 
   async function autoCompleteAllFoundations() {
-    if (!project || !ppfSource || autoCompletingFoundations || draftingLessonId) return;
+    if (!project || autoCompletingFoundations || draftingLessonId) return;
     setDraftError("");
     setAutoCompletingFoundations(true);
-    setAutoCompleteStatus(`Starting Foundations from ${ppfSource.projectTitle}…`);
-    let workingProject = project;
+    setAutoCompleteStatus("Saving your current story before PlotPickle creates a separate Foundations story…");
+    let workingProject: PPFProject | null = null;
+    let autoTitle = "the new Foundations story";
     try {
+      // Preserve the Human's current active project first. Saving a project with a
+      // new id through the same Library boundary adds a separate durable story
+      // and never overwrites this snapshot.
+      saveFoundationProject(project);
+      const autoStory = createFoundationsAutoStory();
+      autoTitle = autoStory.title;
+      workingProject = applyStoryCommand(autoStory.project, {
+        type: "foundations.lesson.open",
+        lessonId: lessons[0].id,
+        occurredAt: new Date().toISOString(),
+      });
+      workingProject = saveFoundationProject(workingProject);
+      setProject(workingProject);
+      setBriefDraft("");
+      setPpfSource(null);
+      setAutoCompleteStatus(`Created ${autoStory.title} as a new Library story. Working premise: ${autoStory.premise}`);
+
       for (const [index, lesson] of lessons.entries()) {
         const curriculumLesson = curriculumById.get(lesson.id);
         if (!curriculumLesson) throw new Error(`PLAN could not find the curriculum guidance for ${lesson.title}.`);
         const currentAnswers = workingProject.foundations.lessons[lesson.id]?.answers ?? {};
-        const emptyFields = lesson.fields.filter((field) => !isUsableFoundationAnswer(currentAnswers[field.id]));
-        setAutoCompleteStatus(`Foundations ${index + 1} of ${lessons.length}: ${lesson.title}${emptyFields.length ? "" : " — already complete"}`);
-        if (!emptyFields.length) continue;
+        setAutoCompleteStatus(`Foundations ${index + 1} of ${lessons.length}: completing every field in ${lesson.title} for ${autoStory.title}…`);
 
         const proposal = await draftFoundationLesson({
-          projectTitle: ppfSource.projectTitle,
-          lesson: { ...lesson, fields: emptyFields },
+          projectTitle: autoStory.title,
+          lesson,
           curriculumLesson,
           currentAnswers,
           priorStoryContext: acceptedFoundationContext(lessons, lesson.id, workingProject),
-          sourceStoryContext: ppfSource.context,
+          sourceStoryContext: autoStory.context,
         });
         const stored = applyStoryCommand(workingProject, {
           type: "foundations.proposal.store",
@@ -273,12 +289,12 @@ export default function FoundationsPlanWorkspace({
           lessonId: lesson.id,
           occurredAt: proposal.generatedAt,
         });
-        saveFoundationProject(workingProject);
+        workingProject = saveFoundationProject(workingProject);
         setProject(workingProject);
       }
 
       const content = assembleFoundationsBrief({
-        projectTitle: ppfSource.projectTitle,
+        projectTitle: autoStory.title,
         lessons,
         state: workingProject.foundations,
       });
@@ -287,13 +303,14 @@ export default function FoundationsPlanWorkspace({
         content,
         occurredAt: new Date().toISOString(),
       });
-      saveFoundationProject(workingProject);
+      workingProject = saveFoundationProject(workingProject);
       setProject(workingProject);
       setBriefDraft(content);
-      setAutoCompleteStatus(`Foundations complete from ${ppfSource.projectTitle}. Existing answers were preserved; no area outside PLAN / Foundations was changed.`);
+      setAutoCompleteStatus(`Foundations complete for ${autoStory.title}. Every Foundations field and the brief are saved in this separate Library story; your previous active story was preserved.`);
     } catch (error) {
       setDraftError(error instanceof Error ? error.message : "PLAN could not finish the Foundations auto-complete pass.");
-      setAutoCompleteStatus("The pass stopped. Any Foundations answers completed before the error remain saved; everything outside Foundations remains untouched.");
+      setAutoCompleteStatus(`The new Library story ${autoTitle} remains saved at its last completed Foundations stage. Your previous story was not overwritten.`);
+      if (workingProject) setProject(workingProject);
     } finally {
       setAutoCompletingFoundations(false);
     }
@@ -466,7 +483,7 @@ export default function FoundationsPlanWorkspace({
               >
                 <small>PLAN · FOUNDATIONS</small>
                 <h1>Foundations</h1>
-                <p>Choose how you want to begin. Bring in an existing PlotPickle story and let local AI build the Foundations working draft, or work through the eleven decisions yourself lesson by lesson.</p>
+                <p>Create a brand-new story with a complete Foundations working draft in one pass, or build the current story yourself lesson by lesson. Auto-complete always creates a separate Library project and never overwrites the story you already have open.</p>
               </header>
 
               <section
@@ -483,9 +500,27 @@ export default function FoundationsPlanWorkspace({
               >
                 <div className={styles.aiHeading}>
                   <div>
-                    <small>RECOMMENDED FOR AN EXISTING STORY · PPF AUTO-COMPLETE</small>
-                    <h2>Use an existing story to complete Foundations</h2>
-                    <p>Load afterglow.ppf or another PlotPickle project as read-only story evidence. PlotPickle reads the story, world, characters and 24 Blocks, then fills only currently empty Foundations answers. Existing answers are preserved and every area outside PLAN / Foundations stays untouched.</p>
+                    <small>RECOMMENDED · NEW STORY AUTO-COMPLETE</small>
+                    <h2>Create a new story and complete Foundations</h2>
+                    <p>PlotPickle saves your current story, creates a separate local Library story with an original working premise, completes every Foundations field with local AI, saves after each lesson, and builds the Foundations Brief. If generation stops part-way through, the new story remains saved at the last completed lesson and your previous story remains untouched.</p>
+                  </div>
+                  <button
+                    disabled={loadingPpf || autoCompletingFoundations || Boolean(draftingLessonId)}
+                    onClick={autoCompleteAllFoundations}
+                    type="button"
+                  >
+                    {autoCompletingFoundations ? "Creating & completing Foundations…" : "Create & auto-complete Foundations"}
+                  </button>
+                </div>
+
+                {autoCompleteStatus ? <p className={styles.aiSelectionStatus} aria-live="polite">{autoCompleteStatus}</p> : null}
+                {draftError ? <p className={styles.error} role="alert">{draftError}</p> : null}
+
+                <div className={styles.aiHeading} style={{ marginTop: 28 }}>
+                  <div>
+                    <small>OPTIONAL · EXISTING STORY EVIDENCE</small>
+                    <h2>Load a .ppf for manual drafting help</h2>
+                    <p>If you are working on the current story manually, you can load another PlotPickle .ppf as read-only story evidence for selected AI answers. This does not run auto-complete, does not switch projects, and never changes the imported source.</p>
                     <input
                       accept=".ppf,application/octet-stream"
                       aria-label="Choose PlotPickle PPF source"
@@ -504,32 +539,11 @@ export default function FoundationsPlanWorkspace({
                     onClick={() => ppfInputRef.current?.click()}
                     type="button"
                   >
-                    {loadingPpf ? "Reading .ppf…" : ppfSource ? "Replace .ppf source" : "Load .ppf source"}
+                    {loadingPpf ? "Reading .ppf…" : ppfSource ? "Replace .ppf evidence" : "Load optional .ppf evidence"}
                   </button>
                 </div>
 
-                <p className={styles.aiSelectionStatus} aria-live="polite">
-                  {ppfSource
-                    ? `${ppfSource.fileName} → ${ppfSource.projectTitle}. Source loaded read-only; nothing outside Foundations can be changed.`
-                    : "Step 1: load the .ppf. Loading the source alone makes no project changes."}
-                </p>
-
-                <div className={styles.aiHeading} style={{ marginTop: 28 }}>
-                  <div>
-                    <small>STEP 2 · ONE PASS · LOCAL AI</small>
-                    <h2>Auto-complete Foundations only</h2>
-                    <p>PlotPickle works through all eleven lessons, saves after each completed lesson, and builds the Foundations Brief at the end. If local AI stops part-way through, completed Foundations work remains saved and nothing downstream is touched.</p>
-                  </div>
-                  <button
-                    disabled={!ppfSource || loadingPpf || autoCompletingFoundations || Boolean(draftingLessonId)}
-                    onClick={autoCompleteAllFoundations}
-                    type="button"
-                  >
-                    {autoCompletingFoundations ? "Completing Foundations…" : "Auto-complete Foundations only"}
-                  </button>
-                </div>
-                {autoCompleteStatus ? <p className={styles.aiSelectionStatus} aria-live="polite">{autoCompleteStatus}</p> : null}
-                {draftError ? <p className={styles.error} role="alert">{draftError}</p> : null}
+                {ppfSource ? <p className={styles.aiSelectionStatus} aria-live="polite">{ppfSource.fileName} → {ppfSource.projectTitle}. Read-only evidence is available only for manual selected-field drafting.</p> : null}
               </section>
 
               <section
@@ -712,7 +726,7 @@ export default function FoundationsPlanWorkspace({
           </p>
           <section className={styles.briefGuidance}>
             <h3>What carries forward</h3>
-            <p>Your editable PLAN answers are the working project decisions. AI can fill only the answers you explicitly select, and the PPF auto-complete path can fill only currently empty Foundations answers. Review or edit that working text before using it downstream.</p>
+            <p>Your editable PLAN answers are the working project decisions. Selected-field AI changes only the answers you explicitly select. New-story auto-complete creates a separate Library project and fills its Foundations only; optional .ppf evidence remains read-only for manual drafting.</p>
           </section>
         </aside>
       </main>

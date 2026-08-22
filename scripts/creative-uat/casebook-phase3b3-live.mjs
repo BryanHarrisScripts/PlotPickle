@@ -54,6 +54,35 @@ async function waitFor(operation, predicate, attempts = 16, delayMs = 500) {
   return value;
 }
 
+async function openProfileIdentitySurface(client) {
+  return browserValue(client, `() => {
+    const overlay = document.querySelector('[aria-label="PlotPickle Profile"]');
+    const details = overlay?.querySelector('details');
+    const summary = details?.querySelector('summary');
+    if (!overlay || !details || !summary) return JSON.stringify({ found: false, opened: false, buzzVisible: false });
+    if (!details.open) summary.click();
+    const surface = overlay.querySelector('[data-profile-identity-surface="v1"]');
+    return JSON.stringify({
+      found: true,
+      opened: details.open,
+      buzzVisible: Boolean(surface) && /BUZZ Identity/i.test(surface?.textContent || ''),
+    });
+  }`, "PlotPickle Profile identity surface");
+}
+
+async function privateBuzzKeyFieldState(client) {
+  return browserValue(client, `() => {
+    const surface = document.querySelector('[data-profile-identity-surface="v1"]');
+    const labels = [...(surface?.querySelectorAll('label') || [])];
+    const label = labels.find((node) => /Private identity key/i.test(node.textContent || ''));
+    const input = label?.querySelector('input[type="password"]');
+    if (!input) return JSON.stringify({ visible: false, hasValue: false });
+    const style = getComputedStyle(input);
+    const visible = style.display !== 'none' && style.visibility !== 'hidden' && input.getClientRects().length > 0;
+    return JSON.stringify({ visible, hasValue: visible && input.value.length > 0 });
+  }`, "masked BUZZ private identity field");
+}
+
 const messageMatches = (messages, marker) => (Array.isArray(messages) ? messages : []).filter((message) => clean(message?.content) === marker);
 
 function signerFrom(message) {
@@ -103,6 +132,58 @@ export function createPhase3b3StepDrivers({ browser, client, runState }) {
     });
   }
 
+  drivers.set("buzz-connect-existing-identity:open-profile-buzz", async () => {
+    const state = await waitFor(
+      () => openProfileIdentitySurface(client),
+      (value) => value?.buzzVisible === true,
+      12,
+      250,
+    );
+    return stepResult(state?.buzzVisible === true,
+      state?.buzzVisible === true ? "The exact PlotPickle Profile overlay is open and its BUZZ Identity surface is visible." : "The PlotPickle Profile overlay did not expose the BUZZ Identity surface.",
+      "pointer",
+      "PlotPickle Profile overlay");
+  });
+
+  drivers.set("buzz-connect-existing-identity:enter-existing-key", async ({ checkpoint }) => {
+    await openProfileIdentitySurface(client);
+    const clicked = await clickFirst(browser, ["Connect Existing Identity", "Replace identity"]);
+    if (!clicked) return { outcome: "uncertain", workerClaim: "uncertain", observed: "Connect Existing Identity or Replace identity was not available in the open Profile overlay.", interaction: "pointer", target: "Connect Existing Identity", critical: false };
+    const fieldState = await waitFor(
+      () => privateBuzzKeyFieldState(client),
+      (value) => value?.visible === true,
+      12,
+      250,
+    );
+    if (!fieldState?.visible) return { outcome: "uncertain", workerClaim: "uncertain", observed: "The masked BUZZ private identity field did not become visible after opening the connection flow.", interaction: "focus", target: "Private identity key", critical: false };
+    const humanCheckpoint = checkpoint ? {
+      ...checkpoint,
+      instruction: `${checkpoint.instruction} Casebook is now paused with no time limit; it will not continue until you return to this terminal and press Enter.`,
+    } : checkpoint;
+    return {
+      outcome: "uncertain",
+      workerClaim: "uncertain",
+      observed: "The masked BUZZ private identity field is visible. Secret entry is Human-only and Casebook is waiting indefinitely for operator Enter.",
+      interaction: "focus",
+      target: "Private identity key",
+      humanCheckpoint,
+      critical: false,
+      afterHuman: async () => {
+        const after = await privateBuzzKeyFieldState(client);
+        return {
+          outcome: after?.visible && after?.hasValue ? "pass" : "uncertain",
+          workerClaim: after?.visible && after?.hasValue ? "pass" : "uncertain",
+          observed: after?.visible && after?.hasValue
+            ? "Human entry is present in the masked BUZZ field; Casebook verified only that the field is non-empty and did not read or log the secret."
+            : "The masked BUZZ field is still empty or no longer visible after the Human checkpoint.",
+          interaction: "focus",
+          target: "Private identity key",
+          critical: false,
+        };
+      },
+    };
+  });
+
   drivers.set("buzz-connect-existing-identity:verify-signer", async () => {
     if (!await clickFirst(browser, ["Connect identity"])) return stepResult(false, "Connect identity was not available after Human key entry.", "pointer", "Connect identity");
     const response = await waitFor(
@@ -114,10 +195,12 @@ export function createPhase3b3StepDrivers({ browser, client, runState }) {
   });
 
   drivers.set("buzz-connect-existing-identity:persist-connected", async () => {
-    const location = await browserValue(client, `() => JSON.stringify({ url: location.href })`, "current PlotPickle URL");
-    await browser.navigate(location.url);
+    const current = await browser.currentState();
+    const url = clean(current?.url, 2000);
+    if (!url) return stepResult(false, "PlotPickle did not expose a current URL for the persistence reload, so Casebook refused to navigate with an undefined target.", "navigate", "Current PlotPickle URL");
+    await browser.navigate(url);
     await new Promise((resolve) => setTimeout(resolve, 700));
-    await clickFirst(browser, ["Profile"]);
+    await openProfileIdentitySurface(client);
     const response = await browserRequest(client, "/api/local-buzz/human-identity", { label: "persisted BUZZ Human identity" });
     const before = clean(runState.buzzIdentity?.connected?.pubkey, 300);
     const after = clean(response?.body?.pubkey, 300);
@@ -180,8 +263,10 @@ export function createPhase3b3StepDrivers({ browser, client, runState }) {
   });
 
   drivers.set("buzz-great-hall-signed-conversation:reload-and-confirm", async () => {
-    const current = await browserValue(client, `() => JSON.stringify({ url: location.href })`, "Great Hall current URL");
-    await browser.navigate(current.url);
+    const current = await browser.currentState();
+    const url = clean(current?.url, 2000);
+    if (!url) return stepResult(false, "PlotPickle did not expose a current Great Hall URL for reload, so Casebook refused to navigate with an undefined target.", "navigate", "Great Hall current URL");
+    await browser.navigate(url);
     await new Promise((resolve) => setTimeout(resolve, 700));
     await clickFirst(browser, ["Community"]);
     await clickFirst(browser, ["The Great Hall", "Great Hall"]);

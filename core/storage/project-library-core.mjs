@@ -357,6 +357,25 @@ export function switchProfileActiveProject(input) {
   return { registry, activeProject: target.project };
 }
 
+export function createProfileUserProject(input) {
+  const initialized = initializeProfileProjectLibrary(input);
+  saveProfileActiveProject({ ...input, project: initialized.activeProject });
+  const now = input.now();
+  const project = input.createProject({
+    id: input.idFactory(),
+    now,
+    title: typeof input.title === "string" && input.title.trim() ? input.title.trim() : "Untitled Story",
+  });
+  return saveProfileActiveProject({
+    ...input,
+    project,
+    sourceKind: "user",
+    sourceId: null,
+    genre: typeof input.genre === "string" ? input.genre : "",
+    format: typeof input.format === "string" && input.format.trim() ? input.format.trim() : "Story",
+  });
+}
+
 export function createProfileWorkingCopy(input) {
   const initialized = initializeProfileProjectLibrary(input);
   saveProfileActiveProject({ ...input, project: initialized.activeProject });

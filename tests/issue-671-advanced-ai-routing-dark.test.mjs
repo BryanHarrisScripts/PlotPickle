@@ -47,7 +47,7 @@ test("#671 explains Advanced AI routing in writer-friendly language inside Setti
   assert.match(panel, /Off and Manual Import are explicit safe choices/);
   assert.match(settings, /One active choice per job/);
   assert.match(settings, /Ollama is optional and no longer defines the local architecture/);
-  assert.match(settings, /AI provider routing is configured in the dedicated AI Routing section above so the hardware view is not repeated/);
+  assert.match(settings, /AI provider routing is configured in the dedicated LLM Routing section above so the hardware view is not repeated/);
   assert.match(settings, /<LocalRuntimePanel \/>/);
   assert.match(settings, /<AiRoutingPanel \/>/);
   assert.doesNotMatch(page, /LocalRuntimePanel|AiRoutingPanel|<main/);

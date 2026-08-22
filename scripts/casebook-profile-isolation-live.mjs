@@ -98,7 +98,7 @@ export async function runProfileIsolationLiveCase({ root: requestedRoot, keepArt
     const bSeesMemory = await services.storage.readPrivateJson(profileB.authContext, { domain: "memory", objectId: "sage" });
     const bSeesIndex = await services.storage.readPrivateJson(profileB.authContext, { domain: "indexes", objectId: "retrieval" });
     const bSeesUi = await services.storage.readPrivateJson(profileB.authContext, { domain: "cache", objectId: "ui-state" });
-    const isolatedBeforeRestart = bProjects.length === 1 && bProjects[0]?.id === projectB.id
+    const isolatedBeforeRestart = bProjects.length === 1 && bProjects[0]?.projectId === projectB.id
       && bSeesAProject === null && bSeesBuzz === null && bSeesMemory === null && bSeesIndex === null && bSeesUi === null;
     observations.push(observation("cross-profile-denial", isolatedBeforeRestart, isolatedBeforeRestart
       ? "Human B could not observe Human A project, BUZZ credential, memory, retrieval index, or private UI cache."

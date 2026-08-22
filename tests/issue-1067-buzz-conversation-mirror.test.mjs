@@ -14,20 +14,19 @@ test("#1067 defines one BUZZ room history shared by PlotPickle and Buzz Desktop"
 });
 
 test("#1067 keeps PlotPickle Community reads and writes on the real BUZZ message route", async () => {
-  const [gateway, workspace, terminal, storyAccess] = await Promise.all([
+  const [gateway, workspace, social, storyAccess] = await Promise.all([
     read("build/buzz-gateway.ts"),
     read("app/community-workspace.tsx"),
-    read("app/community-backdoor-terminal.tsx"),
+    read("modules/community/community-buzz-social.tsx"),
     read("app/community-story-room-access.tsx"),
   ]);
   assert.match(gateway, /runBuzz\(connection, \["messages", "get", "--channel", channel, "--limit", String\(limit\)\]\)/);
   assert.match(gateway, /runBuzz\(connection, \["messages", "send", "--channel", channel, "--content", content\]/);
   assert.match(gateway, /firstString\(item, \["id", "event_id", "eventId"\]\)/);
-  assert.match(workspace, /activeRoom=\{activeRoom\}/);
-  assert.match(workspace, /greatHallChannelId=\{community\?\.greatHall\?\.id \|\| ""\}/);
-  assert.match(terminal, /fetch\(`\$\{BUZZ_API\}\/messages\?channel=/);
-  assert.match(terminal, /fetch\(`\$\{BUZZ_API\}\/messages`,/);
-  assert.match(terminal, /postMessage\(activeRoom\.channelId, roomDraft\.trim\(\)\)/);
+  assert.match(workspace, /<CommunityBuzzSocial target=\{selectedTarget\}/);
+  assert.match(social, /fetch\(`\$\{BUZZ_API\}\/messages\?channel=/);
+  assert.match(social, /fetch\(`\$\{BUZZ_API\}\/messages`,/);
+  assert.match(social, /sendMessage\(target\.channelId, draft\.trim\(\)\)/);
   assert.match(storyAccess, /One room, two interfaces/);
   assert.match(storyAccess, /same conversation in Buzz Desktop and PlotPickle/);
 });
@@ -56,6 +55,6 @@ test("#1067 requires real owner-approved BUZZ identities for agent provenance", 
   assert.match(rosterGateway, /"users", "get", "--name", actor\.displayName, "--owner", "me"/);
   assert.match(rosterGateway, /verified: verification === "verified"/);
   assert.match(rosterGateway, /ownedByMe/);
-  assert.match(roster, /Visible in Buzz Desktop/);
-  assert.match(roster, /BUZZ identity is community presence and signed provenance only/);
+  assert.match(roster, /Official BUZZ identity available/);
+  assert.match(roster, /The connected Human signer is never an Agent signer/);
 });

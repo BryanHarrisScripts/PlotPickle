@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (path) => readFileSync(resolve(root, path), "utf8");
-const helperDirectory = JSON.parse(read("config/helper-directory.json"));
+const playhouse = JSON.parse(read("plugins/plotpickle-playhouse/community.json"));
 const portraitUi = read("components/agent-portrait.tsx");
 const portraitCss = read("components/agent-portrait.module.css");
 const settingsUi = read("app/settings-helper-directory.tsx");
@@ -34,20 +34,23 @@ function webpDimensions(buffer) {
   assert.fail("The supplied portrait atlas has no supported WebP image chunk.");
 }
 
-const activePortraitSources = [JSON.stringify(helperDirectory), portraitUi, portraitCss, settingsUi, settingsCss, communityUi, marqueeUi, marqueeCss].join("\n");
+const activePortraitSources = [portraitUi, portraitCss, settingsUi, settingsCss, communityUi, marqueeUi, marqueeCss].join("\n");
 
-test("#1106 keeps one shared painterly portrait authority for the complete helper roster", () => {
-  assert.equal(helperDirectory.schemaVersion, 2); assert.equal(helperDirectory.portraitSystem, "painterly-fantasy-v1"); assert.equal(helperDirectory.helpers.length, 17);
-  for (const helper of helperDirectory.helpers) assert.match(portraitUi, new RegExp(`id: ["']${helper.id}["']`), `${helper.id} is missing from the portrait component registry`);
+test("#1106 keeps one shared painterly portrait authority for all 17 known roles while Help selects 12 public Agents", () => {
+  const portraitIds = [...portraitUi.matchAll(/\{ id: "([a-z0-9-]+)", displayName:/g)].map((match) => match[1]);
+  assert.equal(portraitIds.length, 17);
+  assert.equal(new Set(portraitIds).size, 17);
+  assert.equal(playhouse.agents.length, 12);
+  for (const helper of playhouse.agents) assert.ok(portraitIds.includes(helper.profileId), `${helper.profileId} is missing from the portrait component registry`);
   const atlasCoordinates = [...portraitUi.matchAll(/column: ([0-4]), row: ([0-3])/g)].map((match) => `${match[1]},${match[2]}`);
-  assert.equal(atlasCoordinates.length, helperDirectory.helpers.length); assert.equal(new Set(atlasCoordinates).size, helperDirectory.helpers.length);
+  assert.equal(atlasCoordinates.length, 17); assert.equal(new Set(atlasCoordinates).size, 17);
   assert.doesNotMatch(activePortraitSources, /\/assets\/helpers\/16bit\//i); assert.doesNotMatch(activePortraitSources, /image-rendering:\s*pixelated/i);
 });
 
 test("final agent artwork uses the supplied portrait atlas instead of generated portrait fallbacks", () => {
   assert.ok(existsSync(portraitAtlasPath)); const portraitAtlas = readFileSync(portraitAtlasPath); assert.deepEqual(webpDimensions(portraitAtlas), [2560, 2048]);
   assert.equal(createHash("sha256").update(portraitAtlas).digest("hex"), "ecf886037a292aa930bf839ffa05ffcb357ea63bc74325d68f38b7fe80f2ba7b");
-  assert.match(portraitCss, /background-image:\s*url\("\/assets\/agent-profile-atlas\.webp"\)/); assert.match(portraitUi, /data-agent-artwork="user-supplied"/);
+  assert.match(portraitCss, /background-image:\s*url\("\/assets\/agent-profile-atlas\.webp"\)/); assert.match(portraitUi, /data-agent-artwork="current-lore"/);
 });
 
 test("final supplied artwork preserves Sage, the five-wizard roster and Marquee identities", () => {
@@ -62,10 +65,10 @@ test("final supplied artwork preserves Sage, the five-wizard roster and Marquee 
 
 test("#1106 shares one circular medallion component across LEARN, Community and Settings Help", () => {
   assert.match(portraitUi, /data-agent-portrait="painterly-fantasy"/); assert.match(portraitCss, /border-radius:\s*50%/); assert.match(portraitCss, /--agent-portrait-size/);
-  assert.match(settingsUi, /<AgentPortrait[\s\S]*id=\{profile\.id\}/); assert.match(communityUi, /<AgentPortrait id=\{agent\.id\}/);
+  assert.match(settingsUi, /<AgentPortrait[\s\S]*id=\{agent\.profileId\}/); assert.match(communityUi, /<AgentPortrait id=\{agent\.id\}/);
   assert.match(marqueeUi, /<AgentPortrait id=\{wizard\.id\}/); assert.match(rosterUi, /"sage-brinewick"/); assert.match(marqueeUi, /<AgentPortrait id="marquee-director"/);
 });
 
 test("#1106 keeps archived 16-bit masters historical rather than runtime dependencies", () => {
-  assert.ok(existsSync(resolve(root, "public/assets/helpers/16bit"))); assert.doesNotMatch(JSON.stringify(helperDirectory), /16bit/i); assert.doesNotMatch(settingsUi, /16bit|pixelated/i); assert.doesNotMatch(communityUi, /avatarInitials/);
+  assert.ok(existsSync(resolve(root, "public/assets/helpers/16bit"))); assert.doesNotMatch(settingsUi, /16bit|pixelated/i); assert.doesNotMatch(communityUi, /avatarInitials/);
 });

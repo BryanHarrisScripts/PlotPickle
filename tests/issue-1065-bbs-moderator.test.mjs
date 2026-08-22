@@ -5,10 +5,10 @@ import test from "node:test";
 const read = (relativePath) => readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 
 test("#1065 registers Merrin as a host-owned BUZZ-managed Community Agent Profile", async () => {
-  const [profileExtension, loader, helpers] = await Promise.all([
+  const [profileExtension, loader, playhouse] = await Promise.all([
     read("config/agent-profile-extensions/community.json").then(JSON.parse),
     read("lib/agent-profiles.ts"),
-    read("config/helper-directory.json").then(JSON.parse),
+    read("plugins/plotpickle-playhouse/community.json").then(JSON.parse),
   ]);
   const profile = profileExtension.profiles.find((item) => item.id === "merrin-bellwarden");
   assert.ok(profile, "Merrin Agent Profile is missing");
@@ -18,7 +18,7 @@ test("#1065 registers Merrin as a host-owned BUZZ-managed Community Agent Profil
   assert.equal(profile.homeRoomId, "great-hall");
   assert.match(loader, /communityProfileConfig/);
   assert.match(loader, /profiles: \[\.\.\.BASE_AGENT_PROFILE_REGISTRY\.profiles, \.\.\.COMMUNITY_AGENT_PROFILES\]/);
-  assert.ok(helpers.helpers.some((helper) => helper.id === "merrin-bellwarden" && helper.group === "community"));
+  assert.ok(playhouse.agents.some((helper) => helper.profileId === "merrin-bellwarden" && helper.helpGroup === "community"));
 });
 
 test("#1065 keeps ordinary Great Hall greetings while later policy may expand eligible public-room coverage", async () => {

@@ -35,7 +35,7 @@ test("#1080 keeps Marquee additive in LEARN while its official Community identit
   assert.doesNotMatch(overlay, /\/api\/local-buzz/);
   assert.equal(publicPresentations.profiles["marquee-director"].avatarRef, "/assets/helpers/lore/marquee-director.svg");
   assert.ok(publicPresentations.profiles["marquee-director"].executionContexts.includes("public-buzz"));
-  assert.match(communityRoster, /filter\(\(agent\) => Boolean\(agent\.publicBio && agent\.avatarRef\)\)/);
+  assert.match(communityRoster, /publicAgentByProfileId\(PLOTPICKLE_COMMUNITY_EXTENSIONS, agent\.id\)/);
   assert.equal(skill.includes("not a BBS/Guildhall conversation agent in this workflow"), true);
   assert.equal(skill.includes("Do not publish, mirror or summarize private project context into BUZZ"), true);
 });

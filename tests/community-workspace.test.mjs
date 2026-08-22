@@ -20,7 +20,7 @@ test("Community remains a native PlotPickle workspace beside Dashboard", async (
   assert.match(glyph, /transparent PlotPickle guild sigil/i);
 });
 
-test("Community uses the existing three-column shell for BUZZ social navigation, conversation, and context", async () => {
+test("Community uses the existing three-column shell with one simple room rail", async () => {
   const [workspace, navigationStyles, socialStyles, continuity] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("app/community-navigation.module.css"),
@@ -28,9 +28,11 @@ test("Community uses the existing three-column shell for BUZZ social navigation,
     read("app/workspace-continuity.css"),
   ]);
   assert.match(workspace, /aria-label="BUZZ Community navigation"/);
-  assert.match(workspace, />Channels</);
-  assert.match(workspace, />Forums</);
+  assert.match(workspace, />Rooms</);
   assert.match(workspace, />Direct Messages</);
+  assert.match(workspace, />Your PlotPickle</);
+  assert.doesNotMatch(workspace, />Channels</);
+  assert.doesNotMatch(workspace, />Forums</);
   assert.match(navigationStyles, /\.communityLayout\s*\{[^}]*display:\s*contents;/s);
   assert.match(navigationStyles, /\.communityRail\s*\{[^}]*grid-column:\s*1;/s);
   assert.match(navigationStyles, /\.communityContent\s*\{[^}]*grid-column:\s*2 \/ 4;[^}]*grid-template-columns:\s*subgrid;/s);
@@ -39,20 +41,36 @@ test("Community uses the existing three-column shell for BUZZ social navigation,
   assert.match(continuity, /--pp-workspace-columns:\s*minmax\(240px, 19%\) minmax\(440px, 56%\) minmax\(300px, 25%\)/);
 });
 
-test("Great Hall remains the PlotPickle terminal while other rooms use the BUZZ social surface", async () => {
-  const [workspace, terminal, social] = await Promise.all([
+test("normal Community rail exposes plugin-contributed Human-purpose rooms instead of internal architecture", async () => {
+  const [workspace, plugin] = await Promise.all([
     read("app/community-workspace.tsx"),
-    read("app/community-backdoor-terminal.tsx"),
+    read("plugins/plotpickle-playhouse/community.json").then(JSON.parse),
+  ]);
+  assert.deepEqual(plugin.rooms.map((room) => [room.id, room.label]), [
+    ["great-hall", "Great Hall"],
+    ["story-council", "Story Workshop"],
+    ["wyrmwood-ring", "Wyrmwood"],
+    ["marquee", "Marquee"],
+  ]);
+  for (const hidden of ["gatehouse", "forge", "lantern-watch", "wayfarer-journal", "github-herald"]) {
+    assert.equal(plugin.rooms.some((room) => room.id === hidden), false);
+  }
+  assert.match(workspace, /PLOTPICKLE_PLAYHOUSE_PLUGIN\.rooms/);
+  assert.match(workspace, /Private Story Room/);
+  assert.match(workspace, /PLOTPICKLE_PLAYHOUSE_PLUGIN\.agents\.length/);
+});
+
+test("Great Hall uses the same readable BUZZ social surface as other public rooms", async () => {
+  const [workspace, social] = await Promise.all([
+    read("app/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
   ]);
-  assert.match(workspace, /room\.id === "great-hall"/);
-  assert.match(workspace, /createGreatHallActiveRoom/);
-  assert.match(workspace, /activeRoom \? <CommunityBackdoorTerminal/);
+  assert.match(workspace, /chooseRoom\("great-hall"\)/);
   assert.match(workspace, /<CommunityBuzzSocial target=\{selectedTarget\}/);
-  assert.match(terminal, /PLOTPICKLE COMMUNITY BBS/);
-  assert.match(terminal, /THE DOOR IS OPEN/);
-  assert.match(terminal, /postMessage\(activeRoom\.channelId, roomDraft\.trim\(\)\)/);
-  assert.match(social, /kind: "channel" \| "forum" \| "dm"/);
+  assert.doesNotMatch(workspace, /CommunityBackdoorTerminal|createGreatHallActiveRoom/);
+  assert.match(social, /What this room is for/);
+  assert.match(social, /Who helps here/);
+  assert.match(social, /isLegacyOperationalDump/);
 });
 
 test("Community caller comes from the authoritative Human BUZZ identity and Profile is the setup surface", async () => {
@@ -64,19 +82,17 @@ test("Community caller comes from the authoritative Human BUZZ identity and Prof
   assert.match(workspace, /humanCanPost = isKnownHumanBuzzIdentity\(humanIdentity\)/);
   assert.match(workspace, /data-community-caller="verified-human"/);
   assert.match(workspace, /Open Profile · BUZZ Identity/);
-  assert.match(workspace, /\[aria-label="PlotPickle Profile"\] details/);
+  assert.match(workspace, /You speak as yourself\. Agents use separate identities/);
   assert.match(guard, /Human BUZZ identity|human Community caller|human-buzz-identity-required/i);
-  assert.match(guard, /kind: "agent"/);
 });
 
-test("Channels Forums and DMs use real BUZZ message and DM contracts", async () => {
+test("purpose-led rooms and DMs use real BUZZ message and DM contracts", async () => {
   const [workspace, social, gateway] = await Promise.all([
     read("app/community-workspace.tsx"),
     read("modules/community/community-buzz-social.tsx"),
     read("build/buzz-guildhall-gateway.ts"),
   ]);
-  assert.match(workspace, /room\.type === "stream"/);
-  assert.match(workspace, /room\.type === "forum"/);
+  assert.match(workspace, /room\.type === "forum" \? "forum" : "channel"/);
   assert.match(workspace, /\/guildhall\/dms/);
   assert.match(workspace, /\/guildhall\/dms\/open/);
   assert.match(gateway, /\["dms", "list", "--limit", "100"\]/);
@@ -88,29 +104,22 @@ test("Channels Forums and DMs use real BUZZ message and DM contracts", async () 
 });
 
 test("Buzz Desktop and PlotPickle retain one conversation authority", async () => {
-  const [config, mirrorTest, social] = await Promise.all([
+  const [config, social] = await Promise.all([
     read("config/buzz-guildhall.json").then(JSON.parse),
-    read("tests/issue-1067-buzz-conversation-mirror.test.mjs"),
     read("modules/community/community-buzz-social.tsx"),
   ]);
   assert.equal(config.conversationMirror.messageAuthority, "buzz");
   assert.deepEqual(config.conversationMirror.clients, ["plotpickle", "buzz-desktop"]);
   assert.equal(config.conversationMirror.historyModel, "one-buzz-room-history");
   assert.equal(config.conversationMirror.offlineShadowHistory, false);
-  assert.match(mirrorTest, /one BUZZ room history shared by PlotPickle and Buzz Desktop/);
-  assert.match(social, /Buzz Desktop will see the same event/);
+  assert.match(social, /Message sent as your connected Human BUZZ identity/);
 });
 
-test("Huddles remain native BUZZ voice and never fake browser ownership", async () => {
-  const [social, reuse] = await Promise.all([
-    read("modules/community/community-buzz-social.tsx"),
-    read("docs/third-party/buzz-community-reuse.md"),
-  ]);
+test("Huddles remain native to BUZZ Desktop instead of adding a browser audio stack", async () => {
+  const social = await read("modules/community/community-buzz-social.tsx");
   assert.match(social, /data-native-buzz-huddle="desktop"/);
-  assert.match(social, /Open Huddle in Buzz Desktop/);
-  assert.match(social, /Tauri\/Rust audio owner and WebSocket Opus relay/);
+  assert.match(social, /Open BUZZ Desktop/);
   assert.doesNotMatch(social, /getUserMedia|AudioWorklet|start_huddle|join_huddle/);
-  assert.match(reuse, /desktop\/src\/features\/huddle\/HuddleContext\.tsx/);
 });
 
 test("Community preserves local credential, agent separation, and no-secret boundaries", async () => {

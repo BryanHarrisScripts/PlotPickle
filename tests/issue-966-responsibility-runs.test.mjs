@@ -102,12 +102,12 @@ test("Run records persist under the local PlotPickle home and are queryable/cont
   assert.match(vite, /responsibilityRunGateway/);
 });
 
-test("Agents & Stewards shows understandable Run state, limits and controls without hidden reasoning", async () => {
+test("Responsibility Run activity remains understandable while the simplified public Agent roster omits operator controls", async () => {
   const [roster, activity] = await Promise.all([
     read("app/community-agent-roster.tsx"),
     read("app/responsibility-run-activity.tsx"),
   ]);
-  assert.match(roster, /ResponsibilityRunActivity/);
+  assert.doesNotMatch(roster, /ResponsibilityRunActivity/);
   assert.match(activity, /Responsibility Runs/);
   assert.match(activity, /Bounded work with visible limits and human gates/);
   assert.match(activity, /Waiting for/);

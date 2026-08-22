@@ -13,9 +13,9 @@ test("Story Rooms are the same private BUZZ channels in PlotPickle and Buzz Desk
     read("vite.config.ts"),
   ]);
 
-  assert.match(workspace, /compatibility-safe private Story Room channels/);
-  assert.match(workspace, /activeRoom\?\.kind === "story-room"/);
-  assert.match(workspace, /<CommunityStoryRoomAccess channel=\{record\.channel\}/);
+  assert.match(workspace, /PRIVATE_STORY_ROOM_ID: BuzzStoryRoomId = "story"/);
+  assert.match(workspace, /older category channels underneath for compatibility/);
+  assert.match(workspace, /<CommunityStoryRoomAccess channel=\{privateStoryRoom\.channel\}/);
   assert.match(contract, /channelId: channel\.id/);
   assert.match(contract, /LEGACY_BROAD_STORY_ROOM_ID/);
   assert.match(access, /One room, two interfaces/);
@@ -55,10 +55,10 @@ test("PlotPickle agents can have visible BUZZ identities without moving reasonin
   assert.match(gateway, /request\.method !== "GET"/);
   assert.match(gateway, /Agent roster status is read-only/);
   assert.doesNotMatch(gateway, /"messages",\s*"send"|"agents",\s*"run"|"agents",\s*"create"/);
-  assert.match(roster, /Visible in BUZZ/);
-  assert.match(roster, /Mastra agent · BUZZ identity not created/);
-  assert.match(roster, /BUZZ identity is community presence and signed provenance only; it does not give an agent new product, story, developer or GitHub authority/);
-  assert.match(roster, /Skills describe procedure; they never grant permission/);
+  assert.match(roster, /Official BUZZ identity available/);
+  assert.match(roster, /Official BUZZ identity awaiting provisioning/);
+  assert.match(roster, /The connected Human signer is never an Agent signer/);
+  assert.match(roster, /Official PlotPickle Agent private signers stay with PlotPickle Admin outside the distributed app/);
   const parsed = JSON.parse(config);
   assert.equal(parsed.authority.agentRuntime, "Mastra remains the PlotPickle product-agent runtime. Buzz coordinates those agents; it does not replace their reasoning runtime.");
 });

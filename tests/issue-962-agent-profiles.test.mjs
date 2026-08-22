@@ -90,7 +90,7 @@ test("a developer-capable BUZZ harness cannot become PlotPickle developer author
   assert.match(authoritySource, /"ppf-direct-write"/);
 });
 
-test("Community roster consumes PlotPickle Agent Contracts while runtime and BUZZ presence stay live", async () => {
+test("Community roster consumes PlotPickle Agent Contracts while technical authority detail stays secondary", async () => {
   const [model, ui] = await Promise.all([
     read("lib/community-agent-roster.ts"),
     read("app/community-agent-roster.tsx"),
@@ -106,11 +106,12 @@ test("Community roster consumes PlotPickle Agent Contracts while runtime and BUZ
   assert.match(model, /avatarInitials/);
   assert.match(model, /projectMemoryPolicy/);
   assert.match(model, /activeModel/);
-  assert.match(ui, /Capabilities, memory & boundaries/);
-  assert.match(ui, /Skills describe procedure; they never grant permission/);
-  assert.match(ui, /writer remains the final authority over creative changes/i);
+  assert.match(ui, /<summary>Technical details<\/summary>/);
   assert.match(ui, /Cannot do/);
-  assert.match(ui, /Creative authority/);
+  assert.match(ui, /Memory policy/);
+  assert.match(ui, /Verification/);
+  assert.match(ui, /The connected Human signer is never an Agent signer/);
+  assert.match(ui, /Official PlotPickle Agent private signers stay with PlotPickle Admin outside the distributed app/);
 });
 
 test("startup validates Agent Contracts before continuing existing health checks", async () => {

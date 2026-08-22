@@ -33,13 +33,13 @@ test("Community shows a live roster sourced from Agent Contracts plus Mastra act
   assert.match(roster, /\/api\/writing-assistant\/traces/);
   assert.match(roster, /\/api\/local-buzz\/agent-roster/);
   assert.match(roster, /setInterval\(\(\) => void refresh\(\), 7_500\)/);
-  assert.match(roster, /Runs in/);
-  assert.match(roster, /Home room/);
+  assert.match(roster, /Helps in/);
+  assert.match(roster, /<summary>Technical details<\/summary>/);
   assert.match(roster, /Active model/);
   assert.match(roster, /Last activity/);
-  assert.match(roster, /Capabilities, memory & boundaries/);
-  assert.match(roster, /Memory scope/);
-  assert.match(roster, /Needs owner approval/);
+  assert.match(roster, /Cannot do/);
+  assert.match(roster, /Memory policy/);
+  assert.match(roster, /Official BUZZ identity awaiting provisioning/);
   assert.match(model, /AGENT_PROFILES\.map/);
   assert.match(model, /trace\?\.status === "running"/);
   assert.match(model, /status\?\.mastra\?\.ready === true/);

@@ -43,9 +43,7 @@ test("Connected Studios UI is a community directory and returns to Hall 1 Great 
     read("app/connected-studios-panel.module.css"),
   ]);
   assert.match(workspace, /ConnectedStudiosPanel/);
-  assert.match(workspace, /onOpenGreatHall=\{openGreatHall\}/);
-  assert.match(workspace, /function openGreatHall\(\)/);
-  assert.match(workspace, /createGreatHallActiveRoom\(community\?\.greatHall\)/);
+  assert.match(workspace, /onOpenGreatHall=\{\(\)\s*=>\s*chooseRoom\(\s*"great-hall"\s*\)\}/);
   assert.match(panel, /This is a community directory, not a server list/);
   assert.match(panel, /Studio \{studio\.shortCode\}/);
   for (const label of ["Online", "Away", "Busy", "Offline"]) assert.match(`${panel}\n${styles}`, new RegExp(label, "i"));

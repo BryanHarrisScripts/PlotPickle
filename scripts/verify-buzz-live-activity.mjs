@@ -1,13 +1,11 @@
 #!/usr/bin/env node
 
-import { randomUUID } from "node:crypto";
 import process from "node:process";
-import { postLiveBuzzActivity } from "./buzz-live-activity.mjs";
+import { normalizeLiveBuzzActivity } from "./buzz-live-activity.mjs";
 import { withTransientBuzzRetry } from "./buzz-verification-retry.mjs";
 import { verificationAuthRequestHeaders } from "./full-verification-auth.mjs";
 
 const baseUrl = String(process.env.PLOTPICKLE_URL || process.env.PLOTPICKLE_ACCEPTANCE_URL || "http://127.0.0.1:4173").replace(/\/$/, "");
-const tag = `plotpickle-live-activity:${randomUUID()}`;
 
 const probes = [
   { type: "curriculum.note", actorId: "sage-brinewick", label: "Sage", expectedChannel: "lore-library" },
@@ -29,60 +27,18 @@ async function request(pathname) {
   return body;
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 const localHealth = await withTransientBuzzRetry(() => request("/live-health"));
 if (!localHealth?.ok || !localHealth?.localBackbone) {
   throw new Error("PlotPickle local BUZZ coordination health did not return bounded backbone evidence.");
 }
 process.stdout.write(`BUZZ local backbone ................. PASS  ${localHealth.localBackbone.state || "ready"}\n`);
 
-const status = await withTransientBuzzRetry(() => request("/status"));
-const connection = status?.connection || {};
-if (!connection.configured || !connection.identityConfigured) {
-  process.stdout.write("BUZZ signed live activity ........... NOT CONFIGURED  Human chose no BUZZ identity; local PlotPickle coordination remains available.\n");
-  process.stdout.write("BUZZ LIVE ACTIVITY PASS: local backbone verified; remote signed round-trip is optional and not configured.\n");
-  process.exit(0);
-}
-if (!connection.identityVerified) {
-  throw new Error("A BUZZ identity is configured but has not passed the existing signed identity verification. Re-test the connected identity in Profile/Settings.");
-}
-
-const rooms = await withTransientBuzzRetry(() => request("/rooms"));
-const roomByName = new Map((rooms.rooms || []).map((room) => [room.name, room]));
 for (const probe of probes) {
-  if (!roomByName.get(probe.expectedChannel)?.id) throw new Error(`Guildhall room '${probe.expectedChannel}' is missing.`);
-}
-
-for (const probe of probes) {
-  await withTransientBuzzRetry(() => postLiveBuzzActivity({
-    type: probe.type,
-    actorId: probe.actorId,
-    summary: `${tag} · ${probe.label} live activity verification.`,
-    severity: "info",
-    target: "live-activity-verification",
-    verified: true,
-    actionable: false,
-  }, { baseUrl }));
-}
-
-const verified = [];
-for (const probe of probes) {
-  const room = roomByName.get(probe.expectedChannel);
-  let found = false;
-  for (let attempt = 0; attempt < 8; attempt += 1) {
-    if (attempt) await sleep(350);
-    const messages = await withTransientBuzzRetry(() => request(`/messages?channel=${encodeURIComponent(room.id)}&limit=40`));
-    if ((messages.messages || []).some((message) => String(message.content || "").includes(tag))) {
-      found = true;
-      break;
-    }
+  const normalized = normalizeLiveBuzzActivity({ type: probe.type, actorId: probe.actorId, summary: `${probe.label} activity contract.` });
+  if (normalized.channel.name !== probe.expectedChannel) {
+    throw new Error(`${probe.label} activity route changed from ${probe.expectedChannel} to ${normalized.channel.name}.`);
   }
-  if (!found) throw new Error(`${probe.label} activity was sent to ${probe.expectedChannel}, but the same signed message was not readable there.`);
-  verified.push(probe.expectedChannel);
-  process.stdout.write(`BUZZ live activity · ${probe.label.padEnd(15)} PASS  ${probe.expectedChannel}\n`);
+  process.stdout.write(`BUZZ local activity · ${probe.label.padEnd(15)} PASS  ${probe.expectedChannel}\n`);
 }
 
-process.stdout.write(`BUZZ LIVE ACTIVITY PASS: ${verified.length}/${probes.length} configured signed PlotPickle activity routes were written and read back.\n`);
+process.stdout.write("BUZZ LIVE ACTIVITY PASS: local operational routes verified; no Agent/test event was published through the Human signer.\n");

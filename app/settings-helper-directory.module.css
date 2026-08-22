@@ -1,7 +1,7 @@
 .help {
   display: grid;
-  max-width: 1136px;
-  gap: 34px;
+  max-width: 1280px;
+  gap: 30px;
   margin: 22px auto 8px;
   scroll-margin-top: 20px;
 }
@@ -17,7 +17,6 @@
 }
 
 .eyebrow,
-.groupHeader > p,
 .title {
   margin: 0 0 7px;
   color: #35c9b8;
@@ -102,11 +101,12 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 }
 
 .card {
+  display: grid;
   min-width: 0;
   overflow: hidden;
   border: 1px solid rgba(113, 111, 103, 0.28);
@@ -115,43 +115,28 @@
 }
 
 .portraitFrame {
-  position: relative;
   display: grid;
-  width: min(220px, calc(100% - 36px));
-  aspect-ratio: 1;
+  min-height: 170px;
   place-items: center;
-  margin: 18px auto 4px;
-}
-
-.portraitFrame > span:last-child {
-  position: absolute;
-  z-index: 4;
-  right: 50%;
-  bottom: 8px;
-  max-width: calc(100% - 30px);
-  padding: 5px 8px;
-  transform: translateX(50%);
-  overflow: hidden;
-  border: 1px solid rgba(53, 201, 184, 0.55);
-  border-radius: 999px;
-  background: rgba(5, 10, 10, 0.92);
-  color: #bcefe7;
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.07em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
+  padding: 18px 18px 4px;
 }
 
 .cardBody {
-  padding: 18px;
+  padding: 14px 18px 18px;
 }
 
 .card h4 {
-  margin: 0 0 14px;
+  margin: 0 0 8px;
   color: #f1eee7;
-  font-size: 25px;
+  font-size: 23px;
+}
+
+.shortBio {
+  min-height: 42px;
+  margin: 0 0 16px;
+  color: #d4cec3;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .card dl,
@@ -175,9 +160,9 @@
 
 .card dd {
   margin: 0;
-  color: #bbb4a9;
+  color: #aaa399;
   font-size: 11px;
-  line-height: 1.58;
+  line-height: 1.55;
 }
 
 .card details {
@@ -200,12 +185,16 @@
   line-height: 1.5;
 }
 
+@media (max-width: 1080px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 @media (max-width: 980px) {
   .hero { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 720px) {
   .grid { grid-template-columns: 1fr; }
   .hero { padding: 18px; }
-  .portraitFrame { width: min(240px, calc(100% - 28px)); }
+  .shortBio { min-height: 0; }
 }

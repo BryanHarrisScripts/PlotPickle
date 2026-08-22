@@ -5,27 +5,35 @@ import type { PPFProject } from "../core/project/project";
 import { loadFoundationProject } from "../core/storage/foundation-project-browser";
 import {
   BUZZ_STORY_ROOMS,
-  COMMUNITY_VISIBLE_STORY_ROOMS,
   buzzProjectSlug,
   buzzRoomName,
-  createGreatHallActiveRoom,
-  createStoryActiveRoom,
   humanBuzzFingerprint,
   isKnownHumanBuzzIdentity,
-  type ActiveBbsRoom,
   type BuzzStoryRoomId,
   type HumanBuzzIdentity,
 } from "../lib/buzz-story-room";
+import { agentsForCommunityRoom } from "../lib/plugin-platform";
 import CommunityBuzzSocial, { type CommunitySocialTarget } from "../modules/community/community-buzz-social";
+import {
+  PLOTPICKLE_COMMUNITY_EXTENSIONS,
+  PLOTPICKLE_PLAYHOUSE_PLUGIN,
+} from "../plugins/plotpickle-playhouse";
 import CommunityAgentRoster from "./community-agent-roster";
-import CommunityBackdoorTerminal from "./community-backdoor-terminal";
 import CommunityStoryRoomAccess from "./community-story-room-access";
 import ConnectedStudiosPanel from "./connected-studios-panel";
 import navigationStyles from "./community-navigation.module.css";
 import styles from "./community-workspace.module.css";
 
 const BUZZ_API = "/api/local-buzz";
-const COMMUNITY_BBS_NAME = "PlotPickle Community BBS";
+const COMMUNITY_BBS_NAME = PLOTPICKLE_PLAYHOUSE_PLUGIN.displayName;
+const PRIVATE_STORY_ROOM_ID: BuzzStoryRoomId = "story";
+
+const PUBLIC_ROOMS = PLOTPICKLE_PLAYHOUSE_PLUGIN.rooms.map((room) => ({
+  ...room,
+  helpers: agentsForCommunityRoom(PLOTPICKLE_COMMUNITY_EXTENSIONS, room.id)
+    .map((agent) => agent.displayName)
+    .join(" · "),
+}));
 
 type BuzzChannel = { id: string; name: string; description: string };
 type CommunityMember = { pubkey: string; displayName: string; presence: string; updatedAt: string };
@@ -104,6 +112,17 @@ function memberLabel(pubkey: string, members: readonly CommunityMember[]) {
   return member?.displayName || `${pubkey.slice(0, 8)}…${pubkey.slice(-6)}`;
 }
 
+function socialTarget(room: GuildhallRoom, label: string, description: string): CommunitySocialTarget {
+  return {
+    kind: room.type === "forum" ? "forum" : "channel",
+    id: room.id,
+    label,
+    channelId: room.channelId,
+    description,
+    visibility: room.visibility,
+  };
+}
+
 export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpenSettings: () => void }) {
   const [community, setCommunity] = useState<CommunityStatus | null>(null);
   const [guildhall, setGuildhall] = useState<GuildhallStatus | null>(null);
@@ -112,7 +131,6 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
   const [storyRooms, setStoryRooms] = useState<StoryRoomRecord[]>([]);
   const [dms, setDms] = useState<BuzzDm[]>([]);
   const [selectedTarget, setSelectedTarget] = useState<CommunitySocialTarget | null>(null);
-  const [activeRoom, setActiveRoom] = useState<ActiveBbsRoom | null>(null);
   const [utilityView, setUtilityView] = useState<UtilityView>("social");
   const [busy, setBusy] = useState("");
   const [notice, setNotice] = useState("");
@@ -121,8 +139,19 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
   const callerName = humanIdentity?.displayName.trim() || "UNVERIFIED WRITER";
   const callerFingerprint = humanBuzzFingerprint(humanIdentity?.pubkey || "");
   const desktopUrl = buzzDesktopUrl(community?.relayUrl || "", community?.community || "");
-  const channels = useMemo(() => (guildhall?.readyRooms ?? []).filter((room) => room.type === "stream"), [guildhall?.readyRooms]);
-  const forums = useMemo(() => (guildhall?.readyRooms ?? []).filter((room) => room.type === "forum"), [guildhall?.readyRooms]);
+  const readyRoomById = useMemo(() => new Map((guildhall?.readyRooms ?? []).map((room) => [room.id, room])), [guildhall?.readyRooms]);
+  const privateStoryRoom = storyRooms.find((room) => room.roomId === PRIVATE_STORY_ROOM_ID) ?? null;
+
+  const chooseRoom = useCallback((roomId: string) => {
+    const definition = PUBLIC_ROOMS.find((room) => room.id === roomId);
+    const room = definition ? readyRoomById.get(definition.id) : null;
+    if (!definition || !room) {
+      setNotice("That Community room is not ready yet.");
+      return;
+    }
+    setSelectedTarget(socialTarget(room, definition.label, definition.description));
+    setUtilityView("social");
+  }, [readyRoomById]);
 
   const refresh = useCallback(async () => {
     const [communityBody, guildhallBody, humanBody] = await Promise.all([
@@ -133,7 +162,9 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
     setCommunity(communityBody);
     setGuildhall(guildhallBody);
     setHumanIdentity(humanBody);
-    setActiveRoom((current) => current ?? createGreatHallActiveRoom(communityBody.greatHall));
+    const greatHallDefinition = PUBLIC_ROOMS.find((room) => room.id === "great-hall");
+    const greatHall = guildhallBody.readyRooms.find((room) => room.id === "great-hall");
+    setSelectedTarget((current) => current ?? (greatHall && greatHallDefinition ? socialTarget(greatHall, greatHallDefinition.label, greatHallDefinition.description) : null));
     return { communityBody, guildhallBody, humanBody };
   }, []);
 
@@ -155,11 +186,6 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
       return definition ? [{ roomId: definition.id, channel } satisfies StoryRoomRecord] : [];
     });
     setStoryRooms(mapped);
-    setActiveRoom((current) => {
-      if (!current || current.kind !== "story-room") return current;
-      const record = mapped.find((room) => room.roomId === current.roomId);
-      return record ? createStoryActiveRoom(record.roomId, record.channel) : current;
-    });
   }, []);
 
   useEffect(() => {
@@ -194,7 +220,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
   }
 
   async function ensureStoryRooms() {
-    if (!project) { setNotice("Open LEARN or PLAN once so PlotPickle has an active story before creating Story Rooms."); return; }
+    if (!project) { setNotice("Open LEARN or PLAN once so PlotPickle has an active story before creating its Private Story Room."); return; }
     setBusy("story-rooms");
     try {
       const body = await request<{ rooms: StoryRoomRecord[] }>("/rooms/ensure", {
@@ -205,54 +231,22 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
         }),
       });
       setStoryRooms(body.rooms);
-      setNotice(`All ${body.rooms.length} compatibility-safe private Story Room channels are ready for ${project.title}.`);
+      setNotice(`Private Story Room is ready for ${project.title}.`);
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "The private Story Rooms could not be prepared.");
+      setNotice(error instanceof Error ? error.message : "The Private Story Room could not be prepared.");
     } finally {
       setBusy("");
     }
   }
 
-  function openGreatHall() {
-    const room = createGreatHallActiveRoom(community?.greatHall);
-    if (!room) { setNotice("Great Hall is not available from BUZZ yet."); return; }
-    setActiveRoom(room);
-    setSelectedTarget(null);
-    setUtilityView("social");
-  }
-
-  function openStoryRoom(roomId: BuzzStoryRoomId) {
-    const record = storyRooms.find((room) => room.roomId === roomId);
-    const room = record ? createStoryActiveRoom(record.roomId, record.channel) : null;
-    if (!room) { setNotice("That Story Room has not been created yet."); return; }
-    setActiveRoom(room);
-    setSelectedTarget(null);
-    setUtilityView("social");
-  }
-
-  function selectRoom(room: GuildhallRoom) {
-    if (room.id === "great-hall") { openGreatHall(); return; }
-    setActiveRoom(null);
-    setUtilityView("social");
-    setSelectedTarget({
-      kind: room.type === "forum" ? "forum" : "channel",
-      id: room.id,
-      label: room.label,
-      channelId: room.channelId,
-      description: room.description,
-      visibility: room.visibility,
-    });
-  }
-
   function selectDm(dm: BuzzDm) {
-    setActiveRoom(null);
     setUtilityView("social");
     setSelectedTarget({
       kind: "dm",
       id: dm.id,
       label: dm.participants.map((pubkey) => memberLabel(pubkey, community?.members ?? [])).join(", ") || "Direct Message",
       channelId: dm.id,
-      description: "Participant-scoped native BUZZ direct message.",
+      description: "Private BUZZ conversation between the selected participants.",
       visibility: "Participants only",
       participants: dm.participants,
     });
@@ -267,7 +261,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
       });
       setDms([body.dm, ...dms.filter((dm) => dm.id !== body.dm.id)]);
       selectDm(body.dm);
-      setNotice("Native BUZZ direct message opened. Buzz Desktop and PlotPickle share the same DM history.");
+      setNotice("Direct Message opened in BUZZ.");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "The BUZZ direct message could not be opened.");
     } finally {
@@ -283,77 +277,52 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
       <aside className={navigationStyles.communityRail} aria-label="BUZZ Community navigation">
         <header className={navigationStyles.railHeader}><b>{COMMUNITY_BBS_NAME}</b></header>
         <div className={navigationStyles.destinationDetails} data-community-bbs-server="true">
-          <small>{community?.community || "BUZZ COMMUNITY"}</small>
-          <p><strong>{connected ? "HUMAN BUZZ IDENTITY VERIFIED" : "BUZZ IDENTITY REQUIRED"}</strong></p>
-          <p data-community-caller="verified-human"><small>CALLER</small><br /><strong>{callerName}</strong>{callerFingerprint ? <><br /><small>{callerFingerprint}</small></> : null}</p>
-          <small>{community?.message || guildhall?.message || "Checking BUZZ…"}</small>
+          <small>{connected ? "BUZZ CONNECTED" : "BUZZ IDENTITY REQUIRED"}</small>
+          <p data-community-caller="verified-human"><strong>{callerName}</strong>{callerFingerprint ? <><br /><small>{callerFingerprint}</small></> : null}</p>
+          <small>{connected ? "You speak as yourself. Agents use separate identities." : community?.message || guildhall?.message || "Checking BUZZ…"}</small>
           {!connected ? <button type="button" className={navigationStyles.destinationButton} onClick={() => { if (!openProfileIdentity()) onOpenSettings(); }}><b>Open Profile · BUZZ Identity</b></button> : null}
           {notice ? <p role="status"><small>{notice}</small></p> : null}
         </div>
 
-        <nav className={navigationStyles.destinationList} aria-label="Channels, Forums and Direct Messages">
-          <section aria-labelledby="community-channels-heading">
-            <div className={navigationStyles.railHeader}><b id="community-channels-heading">Channels</b></div>
+        <nav className={navigationStyles.destinationList} aria-label="Community rooms and Direct Messages">
+          <section aria-labelledby="community-rooms-heading">
+            <div className={navigationStyles.railHeader}><b id="community-rooms-heading">Rooms</b></div>
             <div className={navigationStyles.subDestinationList}>
-              {channels.map((room) => <button type="button" className={navigationStyles.subDestination} key={room.channelId} data-community-room={room.id} aria-current={activeRoom?.kind === "great-hall" && room.id === "great-hall" ? "page" : selectedTarget?.channelId === room.channelId ? "page" : undefined} onClick={() => selectRoom(room)}><span># {room.label}</span><small>{room.id === "great-hall" ? "BBS" : "BUZZ"}</small></button>)}
-            </div>
-          </section>
-
-          <section aria-labelledby="community-forums-heading">
-            <div className={navigationStyles.railHeader}><b id="community-forums-heading">Forums</b></div>
-            <div className={navigationStyles.subDestinationList}>
-              {forums.map((room) => <button type="button" className={navigationStyles.subDestination} key={room.channelId} aria-current={selectedTarget?.channelId === room.channelId ? "page" : undefined} onClick={() => selectRoom(room)}><span>{room.label}</span><small>FORUM</small></button>)}
+              {PUBLIC_ROOMS.map((definition) => {
+                const room = readyRoomById.get(definition.id);
+                const current = selectedTarget?.id === definition.id && utilityView === "social";
+                return <button type="button" className={navigationStyles.subDestination} key={definition.id} disabled={!room} aria-current={current ? "page" : undefined} onClick={() => chooseRoom(definition.id)}><span>{definition.label}</span><small>{definition.helpers}</small></button>;
+              })}
             </div>
           </section>
 
           <section aria-labelledby="community-dms-heading">
             <div className={navigationStyles.railHeader}><b id="community-dms-heading">Direct Messages</b></div>
             <div className={navigationStyles.subDestinationList}>
-              {dms.length ? dms.map((dm) => <button type="button" className={navigationStyles.subDestination} key={dm.id} aria-current={selectedTarget?.kind === "dm" && selectedTarget.id === dm.id ? "page" : undefined} onClick={() => selectDm(dm)}><span>{dm.participants.map((pubkey) => memberLabel(pubkey, community?.members ?? [])).join(", ") || "Direct Message"}</span><small>DM</small></button>) : <p><small>No BUZZ DMs yet. Use Message beside a member.</small></p>}
+              {dms.length ? dms.map((dm) => <button type="button" className={navigationStyles.subDestination} key={dm.id} aria-current={selectedTarget?.kind === "dm" && selectedTarget.id === dm.id ? "page" : undefined} onClick={() => selectDm(dm)}><span>{dm.participants.map((pubkey) => memberLabel(pubkey, community?.members ?? [])).join(", ") || "Direct Message"}</span><small>DM</small></button>) : <p><small>No Direct Messages yet.</small></p>}
             </div>
           </section>
 
           <section aria-labelledby="community-plotpickle-heading">
-            <div className={navigationStyles.railHeader}><b id="community-plotpickle-heading">PlotPickle</b></div>
+            <div className={navigationStyles.railHeader}><b id="community-plotpickle-heading">Your PlotPickle</b></div>
             <div className={navigationStyles.subDestinationList}>
-              <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "story-rooms" ? "page" : undefined} onClick={() => { setUtilityView("story-rooms"); setSelectedTarget(null); }}><span>Private Story Rooms</span><small>{storyRooms.length}/6</small></button>
-              <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "studios" ? "page" : undefined} onClick={() => { setUtilityView("studios"); setSelectedTarget(null); setActiveRoom(null); }}><span>Connected Studios</span><small>BUZZ</small></button>
-              <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "agents" ? "page" : undefined} onClick={() => { setUtilityView("agents"); setSelectedTarget(null); setActiveRoom(null); }}><span>Agents &amp; Stewards</span><small>ROSTER</small></button>
+              <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "story-rooms" ? "page" : undefined} onClick={() => { setUtilityView("story-rooms"); setSelectedTarget(null); }}><span>Private Story Room</span><small>{privateStoryRoom ? "READY" : project ? "SET UP" : "NO STORY"}</small></button>
+              <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "studios" ? "page" : undefined} onClick={() => { setUtilityView("studios"); setSelectedTarget(null); }}><span>Connected Studios</span><small>PEOPLE</small></button>
+              <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "agents" ? "page" : undefined} onClick={() => { setUtilityView("agents"); setSelectedTarget(null); }}><span>Agents</span><small>{PLOTPICKLE_PLAYHOUSE_PLUGIN.agents.length} OFFICIAL</small></button>
             </div>
           </section>
         </nav>
       </aside>
 
       <div className={navigationStyles.communityContent}>
-        {!connected ? <section className={styles.setupCard}><div><span>Community requires BUZZ</span><h2>Connect the Human BUZZ identity from Profile.</h2><p>PlotPickle remains fully usable without BUZZ. Live Channels, Forums, DMs, presence and Huddles stay gated until the active Human has a verified BUZZ identity.</p></div><button type="button" onClick={() => { if (!openProfileIdentity()) onOpenSettings(); }}>Open Profile</button></section>
-        : !operational ? <section className={styles.setupCard}><div><span>Prepare Community rooms</span><h2>{guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} BUZZ rooms ready` : "Checking BUZZ rooms"}</h2><p>PlotPickle creates only the missing native BUZZ Channels and Forums defined for the built-in Community. BUZZ remains the message and membership authority.</p></div><button type="button" disabled={!guildhall?.canSetup || busy === "setup"} onClick={() => void setupGuildhall()}>{busy === "setup" ? "Preparing…" : "Create missing BUZZ rooms"}</button></section>
-        : utilityView === "studios" ? <main className={styles.stack}><ConnectedStudiosPanel onOpenGreatHall={openGreatHall} /></main>
+        {!connected ? <section className={styles.setupCard}><div><span>Community requires BUZZ</span><h2>Connect your BUZZ identity from Profile.</h2><p>PlotPickle remains usable without BUZZ. Community conversation turns on when the active Human has a verified BUZZ identity.</p></div><button type="button" onClick={() => { if (!openProfileIdentity()) onOpenSettings(); }}>Open Profile</button></section>
+        : !operational ? <section className={styles.setupCard}><div><span>Prepare {COMMUNITY_BBS_NAME}</span><h2>{guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} BUZZ rooms ready` : "Checking Community"}</h2><p>PlotPickle will prepare the missing BUZZ rooms once. The normal user view will still show only the useful Community rooms contributed by the active Community plugin.</p></div><button type="button" disabled={!guildhall?.canSetup || busy === "setup"} onClick={() => void setupGuildhall()}>{busy === "setup" ? "Preparing…" : "Prepare Community"}</button></section>
+        : utilityView === "studios" ? <main className={styles.stack}><ConnectedStudiosPanel onOpenGreatHall={() => chooseRoom("great-hall")} /></main>
         : utilityView === "agents" ? <main className={styles.stack}><CommunityAgentRoster /></main>
         : utilityView === "story-rooms" ? <main className={styles.stack}>
-            <section className={styles.sectionHeading}><div><span>Private Story Rooms</span><h2>{project ? project.title : "Open a story to prepare its private rooms"}</h2><p>These compatibility-safe private Story Room channels remain the same BUZZ rooms used before the new Channels, Forums and DMs workspace. They are preserved rather than duplicated.</p></div><button type="button" disabled={!project || !community?.identityVerified || busy === "story-rooms"} onClick={() => void ensureStoryRooms()}>{busy === "story-rooms" ? "Preparing…" : storyRooms.length === 6 ? "Story Rooms ready" : "Create missing Story Rooms"}</button></section>
-            <section className={styles.memberGrid}>{COMMUNITY_VISIBLE_STORY_ROOMS.map((definition) => { const record = storyRooms.find((room) => room.roomId === definition.id); return <article key={definition.id} data-ready={record ? "true" : "false"}><header><div><strong>Hall {definition.hallNumber} · {definition.label}</strong></div><span>{record ? "Ready" : "Not created"}</span></header><p>{definition.description}</p><button type="button" disabled={!record} onClick={() => openStoryRoom(definition.id)}>Open Hall {definition.hallNumber}</button></article>; })}</section>
-            {activeRoom?.kind === "story-room" ? (() => { const record = storyRooms.find((room) => room.roomId === activeRoom.roomId); return record ? <CommunityStoryRoomAccess channel={record.channel} greatHallMembers={community?.members ?? []} desktopUrl={desktopUrl} /> : null; })() : null}
+            <section className={styles.sectionHeading}><div><span>Private Story Room</span><h2>{project ? project.title : "Open a story first"}</h2><p>One private project space for story discussion. PlotPickle keeps the older category channels underneath for compatibility; you do not have to manage six Halls.</p></div><button type="button" disabled={!project || !community?.identityVerified || busy === "story-rooms" || Boolean(privateStoryRoom)} onClick={() => void ensureStoryRooms()}>{busy === "story-rooms" ? "Preparing…" : privateStoryRoom ? "Ready" : "Create Private Story Room"}</button></section>
+            {privateStoryRoom ? <CommunityStoryRoomAccess channel={privateStoryRoom.channel} greatHallMembers={community?.members ?? []} desktopUrl={desktopUrl} /> : <p className={styles.empty}>{project ? "Create the Private Story Room when you want a BUZZ space dedicated to this story." : "Start or open a story in LEARN or PLAN first."}</p>}
           </main>
-        : activeRoom ? <CommunityBackdoorTerminal
-            connected={connected}
-            canPost={humanCanPost}
-            nodeName={community?.community || "BUZZ"}
-            humanIdentity={humanIdentity}
-            activeRoom={activeRoom}
-            greatHallChannelId={community?.greatHall?.id || ""}
-            members={community?.members ?? []}
-            recentActivity={community?.recentActivity ?? []}
-            readyGuildhallRooms={guildhall?.readyRooms ?? []}
-            storyRooms={storyRooms}
-            reviews={[]}
-            desktopUrl={desktopUrl}
-            onExit={() => setActiveRoom(null)}
-            onNotice={setNotice}
-            onOpenSettings={() => { if (!openProfileIdentity()) onOpenSettings(); }}
-            onRefreshCommunity={() => refresh().then(() => undefined)}
-            onSelectGreatHall={openGreatHall}
-            onSelectStoryRoom={openStoryRoom}
-          />
         : <CommunityBuzzSocial target={selectedTarget} members={community?.members ?? []} canPost={humanCanPost} desktopUrl={desktopUrl} onOpenDm={openDm} />}
       </div>
     </div>

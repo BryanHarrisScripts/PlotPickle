@@ -243,6 +243,11 @@ async function request(baseUrl, pathname, init, fetchImpl) {
   return body;
 }
 
+/**
+ * Explicit compatibility helper for a real signed Human message round-trip.
+ * Operational Agent/test activity must not call this path because /messages uses
+ * the connected Human signer. Official Agent speech requires that Agent's signer.
+ */
 export async function postLiveBuzzActivity(input, options = {}) {
   const normalized = normalizeLiveBuzzActivity(input);
   const baseUrl = options.baseUrl || process.env.PLOTPICKLE_URL || process.env.PLOTPICKLE_ACCEPTANCE_URL || "http://127.0.0.1:4173";
@@ -257,33 +262,29 @@ export async function postLiveBuzzActivity(input, options = {}) {
   return { ok: true, actor: normalized.actor.id, eventType: normalized.event.type, channel: normalized.channel.name };
 }
 
+/**
+ * Runtime/UAT/repair activity is local evidence. It must never fall back to the
+ * connected Human BUZZ signer. A future official-Agent publishing path can mirror
+ * selected public speech only after the Agent's own signer is available.
+ */
 export async function bestEffortLiveBuzzActivity(input, options = {}) {
-  let local;
   try {
-    local = await recordLocalBuzzActivity(input, options);
-  } catch (error) {
-    local = { ok: false, message: clean(error instanceof Error ? error.message : String(error), 300) };
-  }
-
-  try {
-    const mirror = await postLiveBuzzActivity(input, options);
+    const local = await recordLocalBuzzActivity(input, options);
     return {
-      ok: local.ok === true,
-      localRecorded: local.ok === true,
-      buzzMirrored: true,
-      actor: mirror.actor,
-      eventType: mirror.eventType,
-      channel: mirror.channel,
+      ok: true,
+      localRecorded: true,
+      buzzMirrored: false,
+      reason: "agent-signer-required",
       localFile: local.file || "",
     };
   } catch (error) {
     return {
-      ok: local.ok === true,
-      localRecorded: local.ok === true,
+      ok: false,
+      localRecorded: false,
       buzzMirrored: false,
-      reason: "buzz-unavailable",
+      reason: "local-record-failed",
       message: clean(error instanceof Error ? error.message : String(error), 300),
-      localFile: local.file || "",
+      localFile: "",
     };
   }
 }

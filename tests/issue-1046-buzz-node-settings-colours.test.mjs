@@ -4,20 +4,15 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#1217 native Community rail reads the connected BUZZ community name without substituting the PlotPickle presentation alias", async () => {
-  const [workspace, terminal] = await Promise.all([
+test("#1283 Community rail uses the plugin presentation name while the connected BUZZ relay remains authoritative", async () => {
+  const [workspace, social] = await Promise.all([
     read("app/community-workspace.tsx"),
-    read("app/community-backdoor-terminal.tsx"),
+    read("modules/community/community-buzz-social.tsx"),
   ]);
-
-  assert.match(workspace, /\{community\?\.community \|\| "BUZZ COMMUNITY"\}/);
-  assert.match(workspace, /<CommunityBackdoorTerminal[\s\S]*nodeName=\{community\?\.community \|\| "BUZZ"\}/);
-  assert.doesNotMatch(workspace, /COMMUNITY_BBS_NODE|plotpickle-community/);
-
-  assert.match(terminal, /readonly nodeName: string/);
-  assert.match(terminal, /<dt>NODE<\/dt>/);
-  assert.match(terminal, /\{nodeName \|\| "BUZZ NODE UNAVAILABLE"\}/);
-  assert.doesNotMatch(terminal, /COMMUNITY_BBS_NODE|plotpickle-community/);
+  assert.match(workspace, /const COMMUNITY_BBS_NAME = PLOTPICKLE_PLAYHOUSE_PLUGIN\.displayName/);
+  assert.match(workspace, /<b>\{COMMUNITY_BBS_NAME\}<\/b>/);
+  assert.match(workspace, /buzzDesktopUrl\(community\?\.relayUrl \|\| "", community\?\.community \|\| ""\)/);
+  assert.match(social, /const BUZZ_API = "\/api\/local-buzz"/);
 });
 
 test("BUZZ relay, identity and credential authority remain on the existing connection contract", async () => {

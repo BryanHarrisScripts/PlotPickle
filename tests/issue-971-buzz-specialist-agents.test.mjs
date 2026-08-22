@@ -88,7 +88,7 @@ test("legacy specialist bridge remains bounded while current Community conversat
 
   assert.match(ui, /type SpecialistId = "critics-circle"/);
   assert.match(ui, /const SPECIALISTS = new Set<SpecialistId>\(\["critics-circle"\]\)/);
-  assert.match(ui, /\.filter\(\(agent\) => Boolean\(agent\.publicBio && agent\.avatarRef\)\)/);
+  assert.match(ui, /\.filter\(\(agent\) => Boolean\(publicAgentByProfileId\(PLOTPICKLE_COMMUNITY_EXTENSIONS, agent\.id\)\)\)/);
 });
 
 test("project context federation remains opt-in for the Community specialist and private contact data is redacted", async () => {
@@ -107,11 +107,11 @@ test("project context federation remains opt-in for the Community specialist and
 
   assert.match(ui, /\{ "critics-circle": false \}/);
   assert.match(ui, /Project sharing is off by default/);
-  assert.match(ui, /Share the active project(?:'|&apos;)s approved context with this private BUZZ exchange/);
+  assert.match(ui, /Share the active project(?:'|&apos;)s approved context with this private exchange/);
   assert.match(ui, /activeProjectContext/);
   assert.match(ui, /loadFoundationProject/);
   assert.match(ui, /normalizeFoundationProject/);
-  assert.match(ui, /Written to BUZZ history · PPF unchanged/);
+  assert.match(ui, /BUZZ history · PPF unchanged/);
 });
 
 test("untrusted room text cannot grant provider spending PPF or developer authority through the specialist bridge", async () => {
@@ -149,8 +149,8 @@ test("Community profile cards show avatar role runtime/model memory scope skills
   assert.match(ui, /Active model/);
   assert.match(ui, /Memory scope/);
   assert.match(ui, /\/api\/local-buzz\/specialists\/ask/);
-  assert.match(ui, /Talk in \{agent\.homeRoom\}/);
-  assert.match(ui, /Private BUZZ room · PlotPickle\/Mastra reply/);
+  assert.match(ui, /Helps in:/);
+  assert.match(ui, /Private BUZZ exchange/);
   assert.match(css, /\.avatar/);
   assert.match(css, /\.specialistReply/);
 });

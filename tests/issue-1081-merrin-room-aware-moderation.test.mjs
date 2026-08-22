@@ -5,16 +5,16 @@ import test from "node:test";
 const read = (relativePath) => readFile(new URL(`../${relativePath}`, import.meta.url), "utf8");
 
 async function moderationFixture() {
-  const [community, profileExtension, helpers] = await Promise.all([
+  const [community, profileExtension, playhouse] = await Promise.all([
     read("config/buzz-guildhall-community.json").then(JSON.parse),
     read("config/agent-profile-extensions/community.json").then(JSON.parse),
-    read("config/helper-directory.json").then(JSON.parse),
+    read("plugins/plotpickle-playhouse/community.json").then(JSON.parse),
   ]);
   return {
     policy: community.moderationPolicy,
     actor: community.actors.find((item) => item.id === "merrin-bellwarden"),
     profile: profileExtension.profiles.find((item) => item.id === "merrin-bellwarden"),
-    helper: helpers.helpers.find((item) => item.id === "merrin-bellwarden"),
+    helper: playhouse.agents.find((item) => item.profileId === "merrin-bellwarden"),
   };
 }
 
@@ -112,6 +112,6 @@ test("#1081 forbids sensitive-person profiling and keeps private creative state 
   assert.ok(profile.forbiddenCapabilities.includes("ppf-project-read"));
   assert.match(actor.systemPrompt, /never build sensitive profiles about addiction, mental health, weapon ownership, politics, religion/i);
   assert.match(actor.systemPrompt, /Never copy private Story Room text into public memory, public conversation, training data or PPF canon/i);
-  assert.match(helper.how, /eligible public Community rooms/i);
-  assert.match(helper.how, /fictional story material/i);
+  assert.match(helper.helpPrompt, /Community conduct/i);
+  assert.ok(helper.roomIds.includes("great-hall"));
 });

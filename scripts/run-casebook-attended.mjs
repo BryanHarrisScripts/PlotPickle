@@ -151,6 +151,18 @@ async function screenshot(browser, caseIndex, stepIndex, phase) {
   return `creative-writer/${name}.png`;
 }
 
+function safeFailureObservation(step, error) {
+  const message = scrubAttendedText(error instanceof Error ? error.message : String(error));
+  return {
+    outcome: "fail",
+    workerClaim: "fail",
+    observed: `Casebook caught a bounded runner error instead of aborting the attended run: ${message || "unknown step failure"}`,
+    interaction: "observe",
+    target: step.action,
+    critical: true,
+  };
+}
+
 async function main() {
   if (!process.stdin.isTTY || !process.stdout.isTTY) throw new Error("Attended Casebook requires an interactive terminal because Human authorization checkpoints must never be automated or supplied through logs.");
   await mkdir(pluginData, { recursive: true });
@@ -192,32 +204,39 @@ async function main() {
       for (let stepOffset = 0; stepOffset < caseDefinition.humanJourney.length; stepOffset += 1) {
         const step = caseDefinition.humanJourney[stepOffset];
         const checkpoint = attendedCheckpoint(caseDefinition.id, step.id);
-        await evaluate(client, buildAttendedOverlayScript({
-          caseIndex: caseOffset + 1,
-          caseCount: cases.length,
-          caseTitle: caseDefinition.title,
-          stepIndex: stepOffset + 1,
-          stepCount: caseDefinition.humanJourney.length,
-          stepAction: step.action,
-          state: checkpoint ? "human-action" : "working",
-          detail: checkpoint ? "Casebook will pause before sensitive/native authority." : "Casebook is operating the visible app.",
-        }));
-
         let beforeScreenshot = "";
         let afterScreenshot = "";
-        if (!checkpoint?.secretEntry) beforeScreenshot = await screenshot(browser, caseOffset + 1, stepOffset + 1, "before");
-        const driver = drivers.get(`${caseDefinition.id}:${step.id}`);
-        let observation = driver
-          ? await driver({ browser, client, checkpoint })
-          : await operatorGuidedStep(io, client, caseDefinition, step);
-        if (observation.humanCheckpoint) {
-          const afterHuman = observation.afterHuman;
-          await operatorCheckpoint(io, client, observation.humanCheckpoint);
-          observation = typeof afterHuman === "function"
-            ? await afterHuman()
-            : { ...observation, humanCheckpoint: undefined, afterHuman: undefined };
+        let observation;
+
+        try {
+          await evaluate(client, buildAttendedOverlayScript({
+            caseIndex: caseOffset + 1,
+            caseCount: cases.length,
+            caseTitle: caseDefinition.title,
+            stepIndex: stepOffset + 1,
+            stepCount: caseDefinition.humanJourney.length,
+            stepAction: step.action,
+            state: checkpoint ? "human-action" : "working",
+            detail: checkpoint ? "Casebook will pause before sensitive/native authority." : "Casebook is operating the visible app.",
+          }));
+
+          if (!checkpoint?.secretEntry) beforeScreenshot = await screenshot(browser, caseOffset + 1, stepOffset + 1, "before");
+          const driver = drivers.get(`${caseDefinition.id}:${step.id}`);
+          observation = driver
+            ? await driver({ browser, client, checkpoint })
+            : await operatorGuidedStep(io, client, caseDefinition, step);
+          if (observation.humanCheckpoint) {
+            const afterHuman = observation.afterHuman;
+            await operatorCheckpoint(io, client, observation.humanCheckpoint);
+            observation = typeof afterHuman === "function"
+              ? await afterHuman()
+              : { ...observation, humanCheckpoint: undefined, afterHuman: undefined };
+          }
+          if (!checkpoint?.secretEntry && observation.critical !== false) afterScreenshot = await screenshot(browser, caseOffset + 1, stepOffset + 1, "after");
+        } catch (error) {
+          observation = safeFailureObservation(step, error);
+          runnerFindings.push(`${caseDefinition.id}:${step.id} bounded failure: ${observation.observed}`);
         }
-        if (!checkpoint?.secretEntry && observation.critical !== false) afterScreenshot = await screenshot(browser, caseOffset + 1, stepOffset + 1, "after");
 
         record.steps.push({
           stepId: step.id,
@@ -234,14 +253,27 @@ async function main() {
         status(`  ${step.id}`, observation.outcome.toUpperCase(), observation.observed);
       }
 
-      const phase3b3Proof = await finalizePhase3b3Proof({ caseDefinition, runState });
-      const existingProof = phase3b3Proof || await finalizeAttendedLiveProof({ caseDefinition, client, baseUrl: endpointTarget.baseUrl, runState });
-      if (existingProof) record.independentVerification = existingProof;
+      try {
+        const phase3b3Proof = await finalizePhase3b3Proof({ caseDefinition, runState });
+        const existingProof = phase3b3Proof || await finalizeAttendedLiveProof({ caseDefinition, client, baseUrl: endpointTarget.baseUrl, runState });
+        if (existingProof) record.independentVerification = existingProof;
+      } catch (error) {
+        const message = scrubAttendedText(error instanceof Error ? error.message : String(error));
+        record.blockers.push(`Independent Business Case proof raised a bounded runner error: ${message}`);
+        runnerFindings.push(`${caseDefinition.id} proof failure: ${message}`);
+      }
       if (record.independentVerification.status !== "verified") {
         record.blockers.push("Independent Business Case outcome proof is still missing or contradicted.");
       }
 
-      record.faults = await runPhase3b3Faults({ caseDefinition, client, runState });
+      try {
+        record.faults = await runPhase3b3Faults({ caseDefinition, client, runState });
+      } catch (error) {
+        const message = scrubAttendedText(error instanceof Error ? error.message : String(error));
+        record.blockers.push(`Deliberate fault verification raised a bounded runner error: ${message}`);
+        runnerFindings.push(`${caseDefinition.id} fault failure: ${message}`);
+        record.faults = [];
+      }
       const detectedFaults = record.faults.filter((item) => item.injected === true && item.detected === true).length;
       if (!record.faults.length || detectedFaults !== record.faults.length) {
         record.blockers.push("One or more required deliberate fault checks are missing or were not detected.");

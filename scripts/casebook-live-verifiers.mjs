@@ -97,12 +97,14 @@ export async function verifyComfyUiVisibleOutput({ baseUrl, imageSrc, mediaStatu
   const source = "comfyui-output-observer";
   const reasons = [];
   const comfy = mediaStatus?.comfyui || {};
+  const selectedImageRoute = aiStatus?.image?.selected || aiStatus?.choice?.image || "";
   const combinedRoute = aiStatus?.image?.options?.["ollama-comfyui"] || {};
   if (comfy.reachable !== true) reasons.push("ComfyUI service is not reachable");
   if (comfy.imageNodesReady !== true) reasons.push("required ComfyUI image nodes are not ready");
   if (!casebookVerifierText(comfy.checkpoint || comfy.selectedCheckpoint)) reasons.push("no verified ComfyUI checkpoint is selected");
   if (!casebookVerifierText(comfy.imageVerifiedAt)) reasons.push("PlotPickle has no successful ComfyUI image verification timestamp");
   if (combinedRoute.ready !== true) reasons.push("Ollama + ComfyUI local route is not ready/selectable");
+  if (selectedImageRoute !== "ollama-comfyui") reasons.push(`active image route is ${selectedImageRoute || "unknown"}, not ollama-comfyui`);
 
   const asset = await verifyLocalImageAsset({ baseUrl, imageSrc, fetchImpl });
   if (!asset.ok) reasons.push(asset.error);
@@ -115,11 +117,12 @@ export async function verifyComfyUiVisibleOutput({ baseUrl, imageSrc, mediaStatu
     checkpoint: casebookVerifierText(comfy.checkpoint || comfy.selectedCheckpoint || "").slice(0, 260),
     imageVerifiedAt: casebookVerifierText(comfy.imageVerifiedAt || "").slice(0, 120),
     combinedRouteReady: combinedRoute.ready === true,
+    combinedRouteSelected: selectedImageRoute === "ollama-comfyui",
     combinedRouteModel: casebookVerifierText(combinedRoute.model || "").slice(0, 260),
   };
   return reasons.length
     ? contradictedArtifact({ id: "comfyui-human-visible-output", source, summary: `ComfyUI outcome did not meet the Business Case: ${reasons.join("; ")}.`, metadata })
-    : verifiedArtifact({ id: "comfyui-human-visible-output", source, summary: "A real local ComfyUI image was independently read back, is visibly rendered in PlotPickle, and the Ollama + ComfyUI route is ready.", metadata });
+    : verifiedArtifact({ id: "comfyui-human-visible-output", source, summary: "A real local ComfyUI image was independently read back, is visibly rendered in PlotPickle, and Ollama + ComfyUI is the ready active image route.", metadata });
 }
 
 export function evaluateComfyUiWrongPortFault(diagnostic = {}) {

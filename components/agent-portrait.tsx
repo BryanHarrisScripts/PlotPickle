@@ -67,27 +67,17 @@ export default function AgentPortrait({
       className={`${styles.frame} ${className}`.trim()}
       data-agent-id={portrait.id}
       data-agent-portrait="painterly-fantasy"
+      data-public-avatar-ref={canonicalAvatarRef || undefined}
       data-locked={locked ? "true" : "false"}
       style={style}
     >
-      {canonicalAvatarRef ? (
-        // Canonical public Agent portraits are repository-owned assets, not remote user input.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          alt={label}
-          className={styles.canonicalPortrait}
-          data-agent-artwork="canonical-lore"
-          src={canonicalAvatarRef}
-        />
-      ) : (
-        <span
-          aria-label={label}
-          className={styles.atlasPortrait}
-          data-agent-artwork="user-supplied"
-          role="img"
-          style={atlasPosition(portrait.column, portrait.row)}
-        />
-      )}
+      <span
+        aria-label={label}
+        className={styles.atlasPortrait}
+        data-agent-artwork="current-lore"
+        role="img"
+        style={atlasPosition(portrait.column, portrait.row)}
+      />
     </span>
   );
 }

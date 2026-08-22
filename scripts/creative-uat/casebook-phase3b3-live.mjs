@@ -83,6 +83,30 @@ async function privateBuzzKeyFieldState(client) {
   }`, "masked BUZZ private identity field");
 }
 
+async function visibleHumanSessionState(client) {
+  return browserValue(client, `() => {
+    const active = document.querySelector('[aria-label="Active PlotPickle Human"]');
+    return JSON.stringify({
+      authenticated: Boolean(active),
+      displayName: (active?.querySelector('strong')?.textContent || '').trim(),
+      pageText: (document.body.innerText || '').slice(0, 3000),
+    });
+  }`, "visible PlotPickle Human session");
+}
+
+function visibleHumanCheckpoint() {
+  return {
+    schemaVersion: 1,
+    caseId: "buzz-connect-existing-identity",
+    stepId: "open-profile-buzz",
+    title: "Unlock your PlotPickle Human",
+    instruction: "In the visible Casebook browser, select and unlock the PlotPickle Human you want to test. Enter the passphrase only in PlotPickle. Casebook will wait with no time limit; return to this terminal and press Enter only after PlotPickle shows that Human as active.",
+    secretEntry: true,
+    evidencePolicy: "pause-sensitive-capture",
+    resumePolicy: "operator-enter",
+  };
+}
+
 const messageMatches = (messages, marker) => (Array.isArray(messages) ? messages : []).filter((message) => clean(message?.content) === marker);
 
 function signerFrom(message) {
@@ -133,10 +157,42 @@ export function createPhase3b3StepDrivers({ browser, client, runState }) {
   }
 
   drivers.set("buzz-connect-existing-identity:open-profile-buzz", async () => {
+    const human = await visibleHumanSessionState(client);
+    if (human?.authenticated !== true) {
+      return {
+        outcome: "uncertain",
+        workerClaim: "uncertain",
+        observed: "The attended browser is not authenticated to a PlotPickle Human yet. Casebook is pausing for Human-only profile unlock before testing BUZZ.",
+        interaction: "human-authority",
+        target: "PlotPickle Human profile",
+        humanCheckpoint: visibleHumanCheckpoint(),
+        afterHuman: async () => {
+          const after = await waitFor(
+            () => visibleHumanSessionState(client),
+            (value) => value?.authenticated === true,
+            20,
+            300,
+          );
+          if (after?.authenticated !== true) {
+            return stepResult(false, "PlotPickle still does not show an authenticated Human after the Human checkpoint.", "human-authority", "PlotPickle Human profile");
+          }
+          const state = await waitFor(
+            () => openProfileIdentitySurface(client),
+            (value) => value?.buzzVisible === true,
+            24,
+            250,
+          );
+          return stepResult(state?.buzzVisible === true,
+            state?.buzzVisible === true ? `The attended browser is authenticated as ${clean(after.displayName || "the selected Human", 120)} and the exact Profile overlay exposes BUZZ Identity.` : "The Human is authenticated, but the PlotPickle Profile overlay still did not expose the BUZZ Identity surface.",
+            "pointer",
+            "PlotPickle Profile overlay");
+        },
+      };
+    }
     const state = await waitFor(
       () => openProfileIdentitySurface(client),
       (value) => value?.buzzVisible === true,
-      12,
+      24,
       250,
     );
     return stepResult(state?.buzzVisible === true,

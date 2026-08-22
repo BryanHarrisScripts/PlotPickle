@@ -69,7 +69,7 @@ test("#1212 BUZZ identity gateway creates, imports, disconnects and publishes on
   assert.match(gateway, /action === "publish-profile"/u);
   assert.match(gateway, /recoveryPrivateKey: privateKey/u);
   assert.match(gateway, /"users", "set-profile", "--name", displayName, "--about", bio/u);
-  assert.match(gateway, /args\.push\("--picture", picture\)/u);
+  assert.match(gateway, /args\.push\("--avatar", picture\)/u);
   assert.match(gateway, /BUZZ_PRIVATE_KEY: connection\.privateKey/u);
   assert.doesNotMatch(gateway, /--private-key|--nsec/u);
   assert.match(gateway, /identitySource === "imported"[\s\S]*agentIdForDisplayName/u);

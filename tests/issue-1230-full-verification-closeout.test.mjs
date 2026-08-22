@@ -22,15 +22,12 @@ test("#1230 current Foundations LEARN contract is four lessons while PLAN remain
   assert.match(finalState, /Number\(plan\.completeLessonCount \|\| 0\) >= 11/);
 });
 
-test("#1230 optional BUZZ verifies the local backbone and never substitutes a fake remote identity", () => {
+test("#1230 optional BUZZ verifies the local backbone without publishing synthetic Agent traffic through the Human signer", () => {
   const buzz = source("scripts/verify-buzz-live-activity.mjs");
   assert.match(buzz, /request\("\/live-health"\)/);
-  assert.match(buzz, /request\("\/status"\)/);
-  assert.match(buzz, /if \(!connection\.configured \|\| !connection\.identityConfigured\)/);
-  assert.match(buzz, /NOT CONFIGURED/);
-  assert.match(buzz, /process\.exit\(0\)/);
-  assert.match(buzz, /if \(!connection\.identityVerified\)/);
-  assert.match(buzz, /signed identity verification/);
+  assert.match(buzz, /normalizeLiveBuzzActivity/);
+  assert.doesNotMatch(buzz, /request\("\/status"\)|postLiveBuzzActivity|\/messages\?channel=/);
+  assert.match(buzz, /no Agent\/test event was published through the Human signer/);
   for (const room of ["lore-library", "wayfarer-journal", "wyrmwood-ring", "lantern-watch", "gatehouse", "forge", "github-herald"]) {
     assert.match(buzz, new RegExp(room));
   }

@@ -130,7 +130,7 @@ export default function ProfileIdentityPanel({
   async function finishBuzzSetup(action: "create" | "import") {
     setBusy(action); setNotice("");
     try {
-      const body = await jsonRequest<{ ok: true; recoveryPrivateKey?: string; message?: string }>("/api/local-buzz/human-identity", {
+      const body = await jsonRequest<{ ok: true; recoveryPrivateKey?: string; message?: string; communityReady?: boolean; identity?: BuzzIdentity }>("/api/local-buzz/human-identity", {
         method: "POST",
         body: JSON.stringify({
           action,
@@ -142,6 +142,11 @@ export default function ProfileIdentityPanel({
       setPrivateKey("");
       if (body.recoveryPrivateKey) setCreatedSecret(body.recoveryPrivateKey);
       setSetupMode(null);
+      if (action === "import" && body.communityReady === false) {
+        setNotice(body.message || `BUZZ identity connected. ${PLOTPICKLE_BUZZ_COMMUNITY.name} access is still pending.`);
+        await refresh();
+        return;
+      }
       try {
         const published = await publishToBuzz(presentation);
         setNotice(published.message || `BUZZ identity connected to ${PLOTPICKLE_BUZZ_COMMUNITY.name} and your Profile was published.`);
@@ -172,7 +177,7 @@ export default function ProfileIdentityPanel({
 
   const identityConfigured = Boolean(buzzStatus?.connection?.identityConfigured);
   const connected = Boolean(buzz?.humanCommunityAllowed && buzz.identityVerified && buzz.kind === "human");
-  const identityLabel = connected ? "Connected" : identityConfigured ? "Saved · verification pending" : "Not configured";
+  const identityLabel = connected ? "Connected" : identityConfigured ? "Connected · Community access pending" : "Not configured";
 
   return (
     <div className={styles.profileColumns} data-profile-identity-surface="v1">
@@ -209,10 +214,10 @@ export default function ProfileIdentityPanel({
 
           {setupMode ? <div className={styles.buzzSetup}>
             <h3>{setupMode === "create" ? "Create BUZZ Identity" : "Connect Existing Identity"}</h3>
-            <p>{setupMode === "create" ? "PlotPickle will create a new signing key and encrypt it inside this Human profile." : "Paste the private key for the BUZZ identity you already own. PlotPickle verifies it against the official Community before storing it."}</p>
+            <p>{setupMode === "create" ? "PlotPickle will create a new signing key and encrypt it inside this Human profile." : "Paste the private key for the BUZZ identity you already own. PlotPickle validates the identity locally, stores it securely for this Human, then checks access to the official Community."}</p>
             <div data-buzz-default-community="true"><strong>{PLOTPICKLE_BUZZ_COMMUNITY.name}</strong><br /><small>{PLOTPICKLE_BUZZ_COMMUNITY.relayUrl}</small></div>
             {setupMode === "connect" ? <label><span>Private identity key</span><input type="password" autoComplete="off" value={privateKey} placeholder="nsec1… or 64-character key" onChange={(event) => setPrivateKey(event.target.value)} /></label> : null}
-            <div className={styles.buzzActions}><button type="button" disabled={Boolean(busy) || (setupMode === "connect" && !privateKey.trim())} onClick={() => void finishBuzzSetup(setupMode === "create" ? "create" : "import")}>{busy === setupMode ? "Working…" : setupMode === "create" ? "Create identity" : "Connect identity"}</button><button type="button" disabled={Boolean(busy)} onClick={() => { setSetupMode(null); setPrivateKey(""); }}>Cancel</button></div>
+            <div className={styles.buzzActions}><button type="button" disabled={Boolean(busy) || (setupMode === "connect" && !privateKey.trim())} onClick={() => void finishBuzzSetup(setupMode === "create" ? "create" : "import")}>{busy === (setupMode === "create" ? "create" : "import") ? "Working…" : setupMode === "create" ? "Create identity" : "Connect identity"}</button><button type="button" disabled={Boolean(busy)} onClick={() => { setSetupMode(null); setPrivateKey(""); }}>Cancel</button></div>
           </div> : null}
 
           {createdSecret ? <aside className={styles.recovery}>

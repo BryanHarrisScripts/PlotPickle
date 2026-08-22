@@ -38,7 +38,7 @@ test("#1028 helper directory mirrors every host-owned Agent Profile exactly once
   }
 });
 
-test("#1028 every helper resolves through the shared local portrait component and supplied atlas", async () => {
+test("#1028 every helper resolves through the shared current lore portrait component and supplied atlas", async () => {
   const [component, portraitCss] = await Promise.all([
     source("components/agent-portrait.tsx"),
     source("components/agent-portrait.module.css"),
@@ -49,7 +49,8 @@ test("#1028 every helper resolves through the shared local portrait component an
     assert.match(component, new RegExp(`id: ["']${helper.id}["']`), `${helper.id} is missing from the shared portrait component`);
   }
   assert.match(component, /id: "sage-brinewick"[\s\S]*supplied elder wizard/);
-  assert.match(component, /data-agent-artwork="user-supplied"/);
+  assert.match(component, /data-agent-artwork="current-lore"/);
+  assert.match(component, /styles\.atlasPortrait/);
   assert.match(portraitCss, /\/assets\/agent-profile-atlas\.webp/);
   await access(path.join(repoRoot, "public", "assets", "agent-profile-atlas.webp"));
   assert.doesNotMatch(component, /\/assets\/helpers\/16bit\//i);

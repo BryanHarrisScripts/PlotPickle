@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 import { BUZZ_GUILDHALL_ACTORS } from "../lib/buzz-guildhall";
+import { agentProfileById } from "../lib/agent-profiles";
 import { resolveBuzzCliExecutable } from "./buzz-desktop-discovery";
 import { readCredentialJson } from "./local-credentials";
 
@@ -27,6 +28,8 @@ type NativeAgentStatus = {
   created: boolean;
   verified: boolean;
   ownedByMe: boolean;
+  official: boolean;
+  identityConfigured: boolean;
   pubkey: string;
   presence: string;
   updatedAt: string;
@@ -148,6 +151,7 @@ async function runBuzz(connection: BuzzConnection, args: string[]) {
   const resolution = await resolveBuzzCliExecutable(connection.cliPath);
   const result = await command(resolution.executable, args, {
     BUZZ_RELAY_URL: relayHttpUrl(connection.relayUrl),
+    // The Human signer authenticates this read-only query. It is never used to sign as a PlotPickle Agent.
     BUZZ_PRIVATE_KEY: connection.privateKey,
   });
   try { return JSON.parse(result.stdout || "null") as unknown; }
@@ -176,28 +180,50 @@ function numberDate(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? new Date(value * 1000).toISOString() : text(value);
 }
 
-async function nativeAgentStatus(connection: BuzzConnection, actor: (typeof BUZZ_GUILDHALL_ACTORS)[number]): Promise<NativeAgentStatus> {
-  const empty = {
-    actorId: actor.id,
+function emptyAgentStatus(actorId: string): NativeAgentStatus {
+  const profile = agentProfileById(actorId);
+  const publicIdentity = profile?.publicPresentation?.officialBuzzIdentity ?? null;
+  return {
+    actorId,
     created: false,
     verified: false,
     ownedByMe: false,
-    pubkey: "",
+    official: Boolean(profile?.publicPresentation),
+    identityConfigured: Boolean(publicIdentity?.pubkey),
+    pubkey: publicIdentity?.pubkey || "",
     presence: "",
     updatedAt: "",
     lookupError: false,
   };
+}
+
+async function nativeAgentStatus(connection: BuzzConnection, actor: (typeof BUZZ_GUILDHALL_ACTORS)[number]): Promise<NativeAgentStatus> {
+  const empty = emptyAgentStatus(actor.id);
+  const profileContract = agentProfileById(actor.id)?.publicPresentation ?? null;
+  const expectedPubkey = profileContract?.officialBuzzIdentity.pubkey || "";
+
+  // Official PlotPickle Agent signers are provisioned outside the distributed app. Until the public key is configured,
+  // there is nothing truthful to discover and no Human-owned replacement should be created.
+  if (profileContract && !expectedPubkey) return empty;
+
   try {
-    const profilesRaw = await runBuzz(connection, ["--format", "compact", "users", "get", "--name", actor.displayName, "--owner", "me"]);
-    const profile = array(profilesRaw).map(record).find(Boolean) ?? null;
-    const pubkey = text(profile?.pubkey);
+    const args = profileContract
+      ? ["--format", "compact", "users", "get", "--name", actor.displayName]
+      : ["--format", "compact", "users", "get", "--name", actor.displayName, "--owner", "me"];
+    const profilesRaw = await runBuzz(connection, args);
+    const candidates = array(profilesRaw).map(record).filter((item): item is Record<string, unknown> => Boolean(item));
+    const found = profileContract
+      ? candidates.find((item) => text(item.pubkey).toLowerCase() === expectedPubkey.toLowerCase()) ?? null
+      : candidates[0] ?? null;
+    const pubkey = text(found?.pubkey);
     if (!/^[a-f0-9]{64}$/i.test(pubkey)) return empty;
-    const verification = text(profile?.verification);
-    const ownedByMe = profile?.owned_by_me === true;
+    if (profileContract && pubkey.toLowerCase() !== expectedPubkey.toLowerCase()) return empty;
+    const verification = text(found?.verification);
+    const ownedByMe = found?.owned_by_me === true;
     const presenceRaw = await runBuzz(connection, ["users", "presence", "--pubkeys", pubkey]).catch(() => []);
     const presence = array(presenceRaw).map(record).find((entry) => text(entry?.pubkey) === pubkey) ?? null;
     return {
-      actorId: actor.id,
+      ...empty,
       created: true,
       verified: verification === "verified",
       ownedByMe,
@@ -223,17 +249,8 @@ async function status() {
     return {
       ok: true,
       identityVerified,
-      agents: actors.map((actor) => ({
-        actorId: actor.id,
-        created: false,
-        verified: false,
-        ownedByMe: false,
-        pubkey: "",
-        presence: "",
-        updatedAt: "",
-        lookupError: false,
-      })),
-      message: "Connect and verify BUZZ to see which PlotPickle agents also have owner-approved BUZZ identities.",
+      agents: actors.map((actor) => emptyAgentStatus(actor.id)),
+      message: "Connect and verify your Human BUZZ identity to inspect Agent presence. That Human signer authenticates the read only; it never owns or signs as an official PlotPickle Agent.",
     };
   }
   const agents = await Promise.all(actors.map((actor) => nativeAgentStatus(connection, actor)));
@@ -242,8 +259,8 @@ async function status() {
     identityVerified: true,
     agents,
     message: agents.some((agent) => agent.lookupError)
-      ? "Some BUZZ agent identity status could not be read. PlotPickle will show status unavailable rather than guessing."
-      : "BUZZ identity status is current for PlotPickle agents and native stewards.",
+      ? "Some BUZZ Agent identity status could not be read. PlotPickle will show status unavailable rather than guessing."
+      : "BUZZ identity status is current. Official PlotPickle Agent identities are matched by their configured public signer, never by Human ownership.",
   };
 }
 

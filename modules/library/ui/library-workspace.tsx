@@ -11,7 +11,7 @@ import {
   switchActiveLibraryProject,
   type ProjectLibrarySummary,
 } from "../../../core/storage/project-library-browser";
-import AverySessionHistory from "../../dashboard/ui/avery-session-history";
+import AverySessionHistory from "../../dashboard/ui/avery-session-history/index";
 import { createFeaturedExamples, createGenrePresets, type LibraryCatalogItem } from "../project-library-catalog";
 import styles from "./library-workspace.module.css";
 
@@ -171,7 +171,7 @@ export default function LibraryWorkspace() {
         <section aria-labelledby="my-stories-title" className={styles.section}>
           <div className={styles.sectionHeading}>
             <div><p className={styles.eyebrow}>Durable local projects</p><h2 id="my-stories-title">My Stories</h2></div>
-            <p>Open any saved Human project here. Writer-in-Residence sessions above stay read-only and separate from your story shelf.</p>
+            <p>Open any saved Human project without mixing it with Avery’s read-only Writer-in-Residence sessions. Those sessions stay above the story shelf and never become the active Human project.</p>
           </div>
           {stories.length ? (
             <div className={styles.grid}>

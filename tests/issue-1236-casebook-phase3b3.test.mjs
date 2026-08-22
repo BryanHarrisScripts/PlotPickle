@@ -124,7 +124,7 @@ test("#1236 attended credential checkpoints wait for operator Enter with no coun
   const [runner, runtime, phase] = await Promise.all([
     readFile(path.join(repoRoot, "scripts", "run-casebook-attended.mjs"), "utf8"),
     readFile(path.join(repoRoot, "scripts", "casebook-attended-runtime.mjs"), "utf8"),
-    readFile(path.join(repoRoot, "scripts", "creative-uat", "casebook-phase3b3-live.mjs"), "utf8"),
+    readFile(path.join(repoRoot, "scripts", "creative-uat", "casebook-phase3b3-live-core.mjs"), "utf8"),
   ]);
   assert.match(runtime, /resumePolicy: "operator-enter"/);
   assert.match(runner, /await io\.question\("Press Enter here when the Human-authorized action is complete: "\)/);
@@ -134,7 +134,7 @@ test("#1236 attended credential checkpoints wait for operator Enter with no coun
 });
 
 test("#1236 attended BUZZ reloads refuse undefined navigation targets", async () => {
-  const source = await readFile(path.join(repoRoot, "scripts", "creative-uat", "casebook-phase3b3-live.mjs"), "utf8");
+  const source = await readFile(path.join(repoRoot, "scripts", "creative-uat", "casebook-phase3b3-live-core.mjs"), "utf8");
   assert.match(source, /const current = await browser\.currentState\(\)/);
   assert.match(source, /refused to navigate with an undefined target/);
   assert.doesNotMatch(source, /browser\.navigate\(location\.url\)/);
@@ -150,4 +150,15 @@ test("#1236 attended runner now executes B3 proof and faults instead of leaving 
   assert.match(source, /detectedFaults/);
   assert.doesNotMatch(source, /Deliberate real-machine fault injection is still required before this attended record can become green/);
   assert.match(source, /A case remains non-green if any critical step, independent proof or fault detector is missing/);
+});
+
+test("#1271 attended BUZZ uses the authenticated profile API as authority and the DOM marker only as supporting evidence", async () => {
+  const source = await readFile(path.join(repoRoot, "scripts", "creative-uat", "casebook-phase3b3-live.mjs"), "utf8");
+  assert.match(source, /fetch\('\/api\/auth\/profile', \{ credentials: 'same-origin', cache: 'no-store' \}\)/);
+  assert.match(source, /response\.ok && body\.authenticated === true && Boolean\(profile\?\.profileId\)/);
+  assert.match(source, /domActive: Boolean\(active\)/);
+  assert.match(source, /profile API still reports no active Human after the Human checkpoint/);
+  assert.match(source, /supporting DOM marker=/);
+  assert.doesNotMatch(source, /csrfToken/);
+  assert.match(source, /createCorePhase3b3StepDrivers/);
 });

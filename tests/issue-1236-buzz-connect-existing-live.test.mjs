@@ -48,6 +48,19 @@ test("#1236 existing identity verification does not require a published kind-0 p
   assert.match(gateway, /profileFailure/u);
 });
 
+test("#1236 valid existing identity survives a separate Community-admission failure", async () => {
+  const [gateway, guard] = await Promise.all([
+    source("build/buzz-profile-identity-gateway.ts"),
+    source("build/buzz-human-identity-guard.ts"),
+  ]);
+  assert.match(gateway, /pendingCommunityIdentity\(connection, localPubkey, detail\)/u);
+  assert.match(gateway, /communityReady,/u);
+  assert.match(gateway, /await writeCredentialJson\(CONNECTION_FILE, connection\)/u);
+  assert.match(guard, /identityVerified: true,[\s\S]*humanCommunityAllowed: false/u);
+  assert.match(guard, /BUZZ identity is connected to this Human profile, but PlotPickle Community access is not available yet/u);
+  assert.match(guard, /pubkey: localPubkey/u);
+});
+
 test("#1236 BUZZ v0.5.3 profile publication uses --avatar rather than the unsupported --picture flag", async () => {
   const gateway = await source("build/buzz-profile-identity-gateway.ts");
   assert.match(gateway, /args\.push\("--avatar", picture\)/u);

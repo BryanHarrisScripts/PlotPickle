@@ -41,15 +41,23 @@ test("Community uses the existing three-column shell with one simple room rail",
   assert.match(continuity, /--pp-workspace-columns:\s*minmax\(240px, 19%\) minmax\(440px, 56%\) minmax\(300px, 25%\)/);
 });
 
-test("normal Community rail exposes four Human-purpose rooms instead of internal architecture", async () => {
-  const workspace = await read("app/community-workspace.tsx");
-  for (const id of ["great-hall", "story-council", "wyrmwood-ring", "marquee"]) assert.match(workspace, new RegExp(`id: "${id}"`));
-  for (const label of ["Great Hall", "Story Workshop", "Wyrmwood", "Marquee"]) assert.match(workspace, new RegExp(`label: "${label}"`));
+test("normal Community rail exposes plugin-contributed Human-purpose rooms instead of internal architecture", async () => {
+  const [workspace, plugin] = await Promise.all([
+    read("app/community-workspace.tsx"),
+    read("plugins/plotpickle-playhouse/community.json").then(JSON.parse),
+  ]);
+  assert.deepEqual(plugin.rooms.map((room) => [room.id, room.label]), [
+    ["great-hall", "Great Hall"],
+    ["story-council", "Story Workshop"],
+    ["wyrmwood-ring", "Wyrmwood"],
+    ["marquee", "Marquee"],
+  ]);
   for (const hidden of ["gatehouse", "forge", "lantern-watch", "wayfarer-journal", "github-herald"]) {
-    assert.doesNotMatch(workspace, new RegExp(`id: "${hidden}"`));
+    assert.equal(plugin.rooms.some((room) => room.id === hidden), false);
   }
+  assert.match(workspace, /PLOTPICKLE_PLAYHOUSE_PLUGIN\.rooms/);
   assert.match(workspace, /Private Story Room/);
-  assert.match(workspace, /12 OFFICIAL/);
+  assert.match(workspace, /PLOTPICKLE_PLAYHOUSE_PLUGIN\.agents\.length/);
 });
 
 test("Great Hall uses the same readable BUZZ social surface as other public rooms", async () => {

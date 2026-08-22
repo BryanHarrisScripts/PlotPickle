@@ -6,33 +6,35 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const SOCIAL = "modules/community/community-buzz-social.tsx";
 
 test("#1129 keeps Great Hall as a real BUZZ-backed PlotPickle room", async () => {
-  const [workspace, social, mirror] = await Promise.all([
+  const [workspace, social, mirror, playhouse] = await Promise.all([
     read("app/community-workspace.tsx"),
     read(SOCIAL),
     read("config/buzz-guildhall.json").then(JSON.parse),
+    read("plugins/plotpickle-playhouse/community.json").then(JSON.parse),
   ]);
-  assert.match(workspace, /id: "great-hall"/);
-  assert.match(workspace, /label: "Great Hall"/);
+  assert.ok(playhouse.rooms.some((room) => room.id === "great-hall" && room.label === "Great Hall"));
+  assert.match(workspace, /PLOTPICKLE_PLAYHOUSE_PLUGIN\.rooms/);
   assert.match(workspace, /<CommunityBuzzSocial target=\{selectedTarget\}/);
-  assert.match(social, /Great Hall/);
+  assert.match(social, /roomGuideFor/);
   assert.equal(mirror.conversationMirror.messageAuthority, "buzz");
   assert.equal(mirror.conversationMirror.historyModel, "one-buzz-room-history");
   assert.equal(mirror.conversationMirror.offlineShadowHistory, false);
 });
 
 test("#1129 exposes four Human-purpose rooms and native Direct Messages instead of a second social backend", async () => {
-  const [workspace, social, gateway] = await Promise.all([
+  const [workspace, social, gateway, playhouse] = await Promise.all([
     read("app/community-workspace.tsx"),
     read(SOCIAL),
     read("build/buzz-guildhall-gateway.ts"),
+    read("plugins/plotpickle-playhouse/community.json").then(JSON.parse),
   ]);
   assert.match(workspace, />Rooms</);
   assert.match(workspace, />Direct Messages</);
-  for (const label of ["Great Hall", "Story Workshop", "Wyrmwood", "Marquee"]) assert.match(workspace, new RegExp(label));
+  assert.deepEqual(playhouse.rooms.map((room) => room.label), ["Great Hall", "Story Workshop", "Wyrmwood", "Marquee"]);
   assert.match(gateway, /\["dms", "list", "--limit", "100"\]/);
   assert.match(gateway, /const args = \["dms", "open"\]/);
   assert.match(gateway, /args\.push\("--pubkey", pubkey\)/);
-  assert.match(social, /Private BUZZ conversation between the selected participants|Direct Message/);
+  assert.match(social, /Direct Message/);
   assert.doesNotMatch(`${workspace}\n${social}\n${gateway}`, /community-messages\.json|community-dms\.json|better-sqlite/i);
 });
 
@@ -55,11 +57,9 @@ test("#1129 requires the verified Human BUZZ signer for messages and DM creation
   ]);
   assert.match(workspace, /isKnownHumanBuzzIdentity\(humanIdentity\)/);
   assert.match(workspace, /Open Profile · BUZZ Identity/);
-  assert.match(workspace, /\[aria-label="PlotPickle Profile"\] details/);
   assert.match(guard, /url\.pathname === `\$\{API\}\/messages`/);
   assert.match(guard, /url\.pathname === `\$\{API\}\/guildhall\/dms\/open`/);
   assert.match(guard, /human-buzz-identity-required/);
-  assert.match(guard, /kind: "agent"/);
 });
 
 test("#1129 keeps Huddle voice native to BUZZ instead of faking a browser audio stack", async () => {

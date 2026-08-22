@@ -3,12 +3,12 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { runProfileIsolationLiveCase } from "../scripts/casebook/profile-isolation-live.mjs";
+import { runProfileIsolationLiveCase } from "../scripts/creative-uat/casebook-profile-isolation-live.mjs";
 import {
   createPhase3b3StepDrivers,
   finalizePhase3b3Proof,
   verifyGreatHallEvidence,
-} from "../scripts/casebook-phase3b3-live.mjs";
+} from "../scripts/creative-uat/casebook-phase3b3-live.mjs";
 import { loadCasebook } from "../scripts/casebook-contract.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");

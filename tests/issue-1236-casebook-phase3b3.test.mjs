@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { runProfileIsolationLiveCase } from "../scripts/casebook-profile-isolation-live.mjs";
+import { runProfileIsolationLiveCase } from "../scripts/casebook/profile-isolation-live.mjs";
 import {
   createPhase3b3StepDrivers,
   finalizePhase3b3Proof,

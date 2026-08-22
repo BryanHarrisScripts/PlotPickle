@@ -32,8 +32,8 @@ const CHECKPOINTS = Object.freeze({
     secretEntry: true,
   },
   "comfyui-local-image-visible:start-or-connect": {
-    title: "Native approval may be required",
-    instruction: "If Windows, ComfyUI Desktop, or UAC asks for approval, complete that native prompt yourself. Press Enter when the prompt is finished; Casebook will continue by observing the service state.",
+    title: "Start local ComfyUI",
+    instruction: "In the visible PlotPickle Images setup, choose Install / start local ComfyUI and approve PlotPickle's confirmation. If Windows, ComfyUI Desktop, or UAC asks for approval, complete that native prompt yourself. Press Enter here when the prompts are finished; Casebook will continue by independently observing the service state.",
     secretEntry: false,
   },
 });

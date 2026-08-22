@@ -1,41 +1,20 @@
 import AgentPortrait from "../components/agent-portrait";
 import helperDirectory from "../config/helper-directory.json";
-import { AGENT_PROFILES, type AgentProfile } from "../lib/agent-profiles";
+import { publicAgentProfiles, type AgentProfile } from "../lib/agent-profiles";
 import styles from "./settings-helper-directory.module.css";
 
-const presentationById = new Map(helperDirectory.helpers.map((helper) => [helper.id, helper]));
-
 const ROOM_LABELS: Record<string, string> = {
-  "lore-library": "LEARN and the Creative Room",
-  "story-council": "PLAN and story planning",
+  "great-hall": "Great Hall",
+  "story-council": "Story Workshop",
   "wyrmwood-ring": "Wyrmwood",
-  "thread-vault": "Continuity review",
-  marquee: "BUILD campaign art and trailer work",
-  "critics-circle": "Feedback and story review",
-  "wayfarer-journal": "Writer-in-Residence review",
-  "lantern-watch": "Visual QA",
-  gatehouse: "UAT and Full Verification",
-  forge: "Engineering quality and repair",
-  archive: "Community and the Guildhall archive",
-  "github-herald": "Guildhall engineering handoff",
+  marquee: "Marquee",
 };
-
-function modeFor(profile: AgentProfile) {
-  if (profile.execution.kind === "buzz-managed") return "Community support";
-  if (["plotpickle-uat", "deterministic-observer", "deterministic-gate", "repository-handoff"].includes(profile.execution.kind)) {
-    return "Background quality";
-  }
-  if (profile.defaultAvailability === "on-demand" || profile.defaultAvailability === "parked") return "On demand";
-  return "User-facing";
-}
 
 function cannotDo(profile: AgentProfile) {
   if (profile.id === "sage-brinewick") return "Sage can advise and propose, but cannot silently change accepted story canon.";
   if (profile.forbiddenCapabilities.includes("merge-authority")) return `${profile.displayName} cannot merge code or change repository state.`;
   if (profile.forbiddenCapabilities.includes("game-state-write")) return `${profile.displayName} cannot change Wyrmwood state, progress or rewards.`;
   if (profile.forbiddenCapabilities.includes("external-publish")) return `${profile.displayName} cannot publish anything outside PlotPickle for you.`;
-  if (profile.forbiddenCapabilities.includes("product-input-write")) return `${profile.displayName} observes evidence but cannot operate the product or make changes on its own.`;
-  if (profile.forbiddenCapabilities.includes("hidden-browser-evaluation")) return `${profile.displayName} must use the visible writer journey and cannot secretly inspect the page to judge itself.`;
   if (["proposal-only", "advisory-only", "scenario-proposal-only"].includes(profile.creativeAuthority)) {
     return `${profile.displayName} can recommend options, but cannot make a creative change final without your approval.`;
   }
@@ -45,15 +24,20 @@ function cannotDo(profile: AgentProfile) {
   return `${profile.displayName} cannot override deterministic gates or the writer's final creative decisions.`;
 }
 
+function roomLabels(profile: AgentProfile) {
+  return profile.publicPresentation?.communityRoomIds.map((roomId) => ROOM_LABELS[roomId] ?? roomId).join(" · ") || "PlotPickle";
+}
+
 export default function SettingsHelperDirectory() {
+  const publicProfiles = publicAgentProfiles();
   return (
     <div className={styles.help} data-settings-help="meet-the-helpers">
       <header className={styles.hero}>
         <div>
           <p className={styles.eyebrow}>HELP · Meet the Helpers</p>
-          <h2 id="settings-help-title">Who can help me with this?</h2>
+          <h2 id="settings-help-title">Meet the PlotPickle helpers.</h2>
           <p>
-            PlotPickle has different helpers for story craft, visuals, community and quality. You stay the author. Helpers can teach, suggest, observe or report within their own job; they do not quietly take authority from you.
+            These are the same official personalities you meet throughout PlotPickle and PlotPicklePlayhouse. Pick the person whose job matches what you need; rooms may have several helpers working together.
           </p>
         </div>
         <nav className={styles.helpNav} aria-label="Help pages">
@@ -65,17 +49,17 @@ export default function SettingsHelperDirectory() {
       </header>
 
       {helperDirectory.groups.map((group) => {
-        const profiles = AGENT_PROFILES.filter((profile) => presentationById.get(profile.id)?.group === group.id);
+        const profiles = publicProfiles.filter((profile) => profile.publicPresentation?.helpGroup === group.id);
+        if (!profiles.length) return null;
         return (
           <section className={styles.group} key={group.id} aria-labelledby={`helper-group-${group.id}`}>
             <header className={styles.groupHeader}>
-              <p>{group.label}</p>
               <h3 id={`helper-group-${group.id}`}>{group.label}</h3>
               <span>{group.description}</span>
             </header>
             <div className={styles.grid}>
               {profiles.map((profile) => {
-                const presentation = presentationById.get(profile.id);
+                const presentation = profile.publicPresentation;
                 if (!presentation) return null;
                 return (
                   <article className={styles.card} data-helper-id={profile.id} key={profile.id}>
@@ -83,34 +67,27 @@ export default function SettingsHelperDirectory() {
                       <AgentPortrait
                         id={profile.id}
                         alt={`Illustrated fantasy portrait of ${profile.displayName}, ${profile.title}.`}
-                        size={210}
+                        size={140}
                       />
-                      <span>{modeFor(profile)}</span>
                     </div>
                     <div className={styles.cardBody}>
                       <p className={styles.title}>{profile.title}</p>
                       <h4>{profile.displayName}</h4>
+                      <p className={styles.shortBio}>{presentation.shortBio}</p>
                       <dl>
                         <div>
-                          <dt>Who they are</dt>
-                          <dd>{profile.responsibility}</dd>
+                          <dt>Ask me about</dt>
+                          <dd>{presentation.helpPrompt}</dd>
                         </div>
                         <div>
-                          <dt>How they help you</dt>
-                          <dd>{presentation.how}</dd>
-                        </div>
-                        <div>
-                          <dt>Where you meet them</dt>
-                          <dd>{ROOM_LABELS[profile.homeRoomId] ?? profile.homeRoomId}</dd>
-                        </div>
-                        <div>
-                          <dt>What they cannot do</dt>
-                          <dd>{cannotDo(profile)}</dd>
+                          <dt>Find me in</dt>
+                          <dd>{roomLabels(profile)}</dd>
                         </div>
                       </dl>
                       <details>
-                        <summary>Show the full guardrail</summary>
-                        <p>{profile.verificationContract}</p>
+                        <summary>About {profile.displayName}</summary>
+                        <p>{presentation.publicBio}</p>
+                        <p><strong>Boundary:</strong> {cannotDo(profile)}</p>
                       </details>
                     </div>
                   </article>

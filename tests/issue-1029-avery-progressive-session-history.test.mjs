@@ -40,15 +40,17 @@ test("#1029 retains each Avery run as an isolated local synthetic session", asyn
   assert.match(gateway, /sort\(\(a, b\) => b\.localeCompare\(a\)\)/);
 });
 
-test("#1029 Dashboard always reserves exactly four Avery session cards newest first", async () => {
-  const [config, dashboard, sessions] = await Promise.all([
+test("#1029 Library always reserves exactly four Avery session cards newest first", async () => {
+  const [config, dashboard, library, sessions] = await Promise.all([
     readJson("config/writer-in-residence.json"),
     read("modules/dashboard/ui/dashboard-workspace.tsx"),
+    read("modules/library/ui/library-workspace.tsx"),
     read("modules/dashboard/ui/avery-session-history/index.tsx"),
   ]);
-  assert.equal(config.sessionReview.dashboardSlots, 4);
+  assert.equal(config.sessionReview.dashboardSlots, 4, "legacy config field retains the four-slot count even though presentation now belongs to Library");
   assert.equal(config.sessionReview.emptyArtwork, "/brand/plotpickle-ouroboros-v2.png");
-  assert.match(dashboard, /AverySessionHistory/);
+  assert.doesNotMatch(dashboard, /AverySessionHistory/);
+  assert.match(library, /AverySessionHistory/);
   assert.match(sessions, /const SLOT_COUNT = 4/);
   assert.match(sessions, /Array\.from\(\{ length: SLOT_COUNT \}/);
   assert.match(sessions, /sessions\[index\] \|\| null/);
@@ -56,6 +58,7 @@ test("#1029 Dashboard always reserves exactly four Avery session cards newest fi
   assert.match(sessions, /UNUSED SESSION SLOT/);
   assert.match(sessions, /SYNTHETIC AVERY SESSION/);
   assert.match(sessions, /representativeVisualUrl/);
+  assert.match(sessions, /Exactly four Library positions stay reserved/);
 });
 
 test("#1029 keeps POSTER and TRAILER pills under every slot and session-bound", async () => {
@@ -83,6 +86,8 @@ test("#1029 in-app review exposes journey evidence without mutating the owner's 
   assert.match(sessions, /Screenshots and visual observations/);
   assert.match(sessions, /Full Writer-in-Residence history/);
   assert.match(sessions, /averySession/);
+  assert.match(sessions, /searchParams\.set\("workspace", "library"\)/);
+  assert.match(sessions, /Back to Library/);
   assert.doesNotMatch(sessions, /localStorage|sessionStorage|FOUNDATION_PROJECT_STORAGE_KEY|saveFoundationProject/);
 });
 

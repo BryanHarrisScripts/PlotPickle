@@ -28,17 +28,26 @@
   pointer-events: none;
 }
 
-.atlasPortrait {
+.atlasPortrait,
+.canonicalPortrait {
   display: block;
   width: 100%;
   height: 100%;
-  background-image: url("/assets/agent-profile-atlas.webp");
-  background-repeat: no-repeat;
-  background-size: 500% 400%;
   transition: filter 160ms ease, opacity 160ms ease;
 }
 
-.frame[data-locked="true"] .atlasPortrait {
+.atlasPortrait {
+  background-image: url("/assets/agent-profile-atlas.webp");
+  background-repeat: no-repeat;
+  background-size: 500% 400%;
+}
+
+.canonicalPortrait {
+  object-fit: cover;
+}
+
+.frame[data-locked="true"] .atlasPortrait,
+.frame[data-locked="true"] .canonicalPortrait {
   filter: grayscale(1) saturate(0.18) brightness(0.58) contrast(0.92);
   opacity: 0.67;
 }
@@ -51,7 +60,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atlasPortrait {
+  .atlasPortrait,
+  .canonicalPortrait {
     transition: none;
   }
 }

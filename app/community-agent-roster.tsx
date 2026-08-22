@@ -74,6 +74,15 @@ function displayTime(value: string) {
 
 function buzzIdentityLabel(agentId: string, buzzPresence: string, nativeAgents: readonly BuzzNativeAgentState[]) {
   const identity = nativeAgents.find((item) => item.actorId === agentId);
+  if (identity?.official) {
+    if (identity.lookupError) return "Official BUZZ identity status unavailable";
+    if (!identity.identityConfigured) return "Official BUZZ identity · Admin provisioning pending";
+    if (identity.created && identity.verified) {
+      const presence = identity.presence.trim().toLowerCase() || "offline";
+      return `Official PlotPickle Agent · ${presence}`;
+    }
+    return "Official BUZZ identity not verified";
+  }
   if (identity?.created && identity.verified && identity.ownedByMe) {
     const presence = identity.presence.trim().toLowerCase() || "offline";
     return `Visible in BUZZ · ${presence}`;
@@ -215,7 +224,7 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
       </section>
 
       <section className={styles.legend} aria-label="Agent status meanings">
-        <p><strong>Online</strong> means the real runtime reports the role available. <strong>Working</strong> means a run is active now. <strong>On demand</strong> means the service starts only when needed. <strong>Parked</strong> means the role is intentionally inactive. A BUZZ identity is community presence and signed provenance only; it does not give an agent new product, story, developer or GitHub authority.</p>
+        <p><strong>Online</strong> means the real runtime reports the role available. <strong>Working</strong> means a run is active now. <strong>On demand</strong> means the service starts only when needed. <strong>Parked</strong> means the role is intentionally inactive. BUZZ identity is community presence and signed provenance only; it does not give an agent new product, story, developer or GitHub authority. Official PlotPickle Agent private signers stay with PlotPickle Admin outside the distributed app.</p>
       </section>
 
       {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
@@ -225,7 +234,8 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
       <section className={styles.grid} aria-label="PlotPickle agent roster">
         {roster.map((agent) => {
           const identity = nativeAgents.find((item) => item.actorId === agent.id);
-          const visibleInBuzz = Boolean(identity?.created && identity.verified && identity.ownedByMe);
+          const officialIdentity = identity?.official === true;
+          const visibleInBuzz = Boolean(identity?.created && identity.verified && (officialIdentity || identity.ownedByMe));
           const specialist = isSpecialist(agent.id) ? agent.id : null;
           const reply = specialist ? specialistReplies[specialist] : null;
           return (
@@ -302,9 +312,13 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
               </section> : null}
 
               <footer>
-                <span>{visibleInBuzz ? "Visible in Buzz Desktop" : agent.buzzPresence === "native-draft" ? "BUZZ-native identity awaiting approval" : agent.buzzPresence === "mirrored" ? "PlotPickle/Mastra agent" : "Guildhall service"}</span>
-                {agent.buzzPresence === "mirrored" && !visibleInBuzz ? <small>Buzz Desktop → Agents → + can create the matching community identity when you want it.</small> : null}
-                {agent.state === "needs-approval" ? <small>Open Buzz Desktop → Agents to create and approve this steward.</small> : null}
+                <span>{visibleInBuzz
+                  ? officialIdentity ? "Official PlotPickle Agent visible in Buzz Desktop" : "Visible in Buzz Desktop"
+                  : officialIdentity
+                    ? identity?.identityConfigured ? "Official BUZZ identity not verified" : "Official BUZZ identity awaiting Admin provisioning"
+                    : agent.buzzPresence === "native-draft" ? "BUZZ-native identity awaiting approval" : agent.buzzPresence === "mirrored" ? "PlotPickle/Mastra agent" : "Guildhall service"}</span>
+                {agent.buzzPresence === "mirrored" && !visibleInBuzz && !officialIdentity ? <small>Buzz Desktop → Agents → + can create the matching community identity when you want it.</small> : null}
+                {agent.state === "needs-approval" ? <small>{officialIdentity ? "Official Agent signing identity is provisioned by PlotPickle Admin, not by this Human profile." : "Open Buzz Desktop → Agents to create and approve this steward."}</small> : null}
               </footer>
             </article>
           );

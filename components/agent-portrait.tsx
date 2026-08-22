@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { agentProfileById } from "../lib/agent-profiles";
 import styles from "./agent-portrait.module.css";
 
 type AgentPortraitSpec = {
@@ -59,6 +60,7 @@ export default function AgentPortrait({
 
   const label = alt || `Painterly fantasy portrait of ${portrait.displayName}`;
   const style: PortraitStyle = { "--agent-portrait-size": `${size}px` };
+  const canonicalAvatarRef = agentProfileById(id)?.publicPresentation?.avatarRef || "";
 
   return (
     <span
@@ -68,13 +70,24 @@ export default function AgentPortrait({
       data-locked={locked ? "true" : "false"}
       style={style}
     >
-      <span
-        aria-label={label}
-        className={styles.atlasPortrait}
-        data-agent-artwork="user-supplied"
-        role="img"
-        style={atlasPosition(portrait.column, portrait.row)}
-      />
+      {canonicalAvatarRef ? (
+        // Canonical public Agent portraits are repository-owned assets, not remote user input.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          alt={label}
+          className={styles.canonicalPortrait}
+          data-agent-artwork="canonical-lore"
+          src={canonicalAvatarRef}
+        />
+      ) : (
+        <span
+          aria-label={label}
+          className={styles.atlasPortrait}
+          data-agent-artwork="user-supplied"
+          role="img"
+          style={atlasPosition(portrait.column, portrait.row)}
+        />
+      )}
     </span>
   );
 }

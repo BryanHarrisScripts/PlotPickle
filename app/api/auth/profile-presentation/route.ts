@@ -4,6 +4,7 @@ import {
   getProfileExperienceRuntime,
   requestBoundary,
 } from "../../../../core/auth/profile-experience/profile-experience-runtime";
+import { isPlotPickleGeneratedAvatarRef } from "../../../../lib/buzz-default-community";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,12 +52,13 @@ function publicBio(value: unknown) {
 
 function avatarUrl(value: unknown) {
   if (value === null || value === undefined || value === "") return "";
-  if (typeof value !== "string") throw new Error("Avatar must be a web image address.");
+  if (typeof value !== "string") throw new Error("Avatar must be a web image address or generated PlotPickle image.");
   const normalized = value.trim();
   if (normalized.length > MAX_AVATAR_URL_LENGTH) throw new Error("Avatar image address is too long.");
-  if (!URL.canParse(normalized)) throw new Error("Avatar must use a complete https:// image address.");
+  if (isPlotPickleGeneratedAvatarRef(normalized)) return normalized;
+  if (!URL.canParse(normalized)) throw new Error("Avatar must use a complete https:// image address or a generated PlotPickle image.");
   const parsed = new URL(normalized);
-  if (parsed.protocol !== "https:") throw new Error("Avatar must use a secure https:// image address.");
+  if (parsed.protocol !== "https:") throw new Error("External avatar images must use a secure https:// address.");
   if (parsed.username || parsed.password) throw new Error("Avatar image addresses cannot contain credentials.");
   return parsed.toString();
 }

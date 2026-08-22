@@ -3,7 +3,7 @@ import { mkdtemp, readdir, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { runProfileIsolationLiveCase } from "../scripts/casebook-profile-isolation-live.mjs";
+import { runProfileIsolationLiveCase } from "../scripts/casebook/profile-isolation-live.mjs";
 
 test("#1236 profile Case exercises two Humans, private storage, deliberate cross-profile faults, and restart on one test Node", async () => {
   const parent = await mkdtemp(path.join(os.tmpdir(), "plotpickle-casebook-profile-test-"));

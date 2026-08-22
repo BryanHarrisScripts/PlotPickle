@@ -1,14 +1,7 @@
 import AgentPortrait from "../components/agent-portrait";
-import helperDirectory from "../config/helper-directory.json";
-import { publicAgentProfiles, type AgentProfile } from "../lib/agent-profiles";
+import { agentProfileById, type AgentProfile } from "../lib/agent-profiles";
+import { PLOTPICKLE_COMMUNITY_EXTENSIONS } from "../plugins/plotpickle-playhouse";
 import styles from "./settings-helper-directory.module.css";
-
-const ROOM_LABELS: Record<string, string> = {
-  "great-hall": "Great Hall",
-  "story-council": "Story Workshop",
-  "wyrmwood-ring": "Wyrmwood",
-  marquee: "Marquee",
-};
 
 function cannotDo(profile: AgentProfile) {
   if (profile.id === "sage-brinewick") return "Sage can advise and propose, but cannot silently change accepted story canon.";
@@ -24,12 +17,13 @@ function cannotDo(profile: AgentProfile) {
   return `${profile.displayName} cannot override deterministic gates or the writer's final creative decisions.`;
 }
 
-function roomLabels(profile: AgentProfile) {
-  return profile.publicPresentation?.communityRoomIds.map((roomId) => ROOM_LABELS[roomId] ?? roomId).join(" · ") || "PlotPickle";
+function roomLabels(roomIds: readonly string[]) {
+  const roomById = new Map(PLOTPICKLE_COMMUNITY_EXTENSIONS.rooms.map((room) => [room.id, room.label]));
+  return roomIds.map((roomId) => roomById.get(roomId) ?? roomId).join(" · ");
 }
 
 export default function SettingsHelperDirectory() {
-  const publicProfiles = publicAgentProfiles();
+  const { agents, helpGroups } = PLOTPICKLE_COMMUNITY_EXTENSIONS;
   return (
     <div className={styles.help} data-settings-help="meet-the-helpers">
       <header className={styles.hero}>
@@ -48,9 +42,9 @@ export default function SettingsHelperDirectory() {
         </nav>
       </header>
 
-      {helperDirectory.groups.map((group) => {
-        const profiles = publicProfiles.filter((profile) => profile.publicPresentation?.helpGroup === group.id);
-        if (!profiles.length) return null;
+      {helpGroups.map((group) => {
+        const groupAgents = agents.filter((agent) => agent.helpGroup === group.id);
+        if (!groupAgents.length) return null;
         return (
           <section className={styles.group} key={group.id} aria-labelledby={`helper-group-${group.id}`}>
             <header className={styles.groupHeader}>
@@ -58,35 +52,35 @@ export default function SettingsHelperDirectory() {
               <span>{group.description}</span>
             </header>
             <div className={styles.grid}>
-              {profiles.map((profile) => {
-                const presentation = profile.publicPresentation;
-                if (!presentation) return null;
+              {groupAgents.map((agent) => {
+                const profile = agentProfileById(agent.profileId);
+                if (!profile) return null;
                 return (
-                  <article className={styles.card} data-helper-id={profile.id} key={profile.id}>
+                  <article className={styles.card} data-helper-id={agent.profileId} key={agent.profileId}>
                     <div className={styles.portraitFrame}>
                       <AgentPortrait
-                        id={profile.id}
-                        alt={`Illustrated fantasy portrait of ${profile.displayName}, ${profile.title}.`}
+                        id={agent.profileId}
+                        alt={`Illustrated fantasy portrait of ${agent.displayName}, ${agent.title}.`}
                         size={140}
                       />
                     </div>
                     <div className={styles.cardBody}>
-                      <p className={styles.title}>{profile.title}</p>
-                      <h4>{profile.displayName}</h4>
-                      <p className={styles.shortBio}>{presentation.shortBio}</p>
+                      <p className={styles.title}>{agent.title}</p>
+                      <h4>{agent.displayName}</h4>
+                      <p className={styles.shortBio}>{agent.shortBio}</p>
                       <dl>
                         <div>
                           <dt>Ask me about</dt>
-                          <dd>{presentation.helpPrompt}</dd>
+                          <dd>{agent.helpPrompt}</dd>
                         </div>
                         <div>
                           <dt>Find me in</dt>
-                          <dd>{roomLabels(profile)}</dd>
+                          <dd>{roomLabels(agent.roomIds)}</dd>
                         </div>
                       </dl>
                       <details>
-                        <summary>About {profile.displayName}</summary>
-                        <p>{presentation.publicBio}</p>
+                        <summary>About {agent.displayName}</summary>
+                        <p>{agent.publicBio}</p>
                         <p><strong>Boundary:</strong> {cannotDo(profile)}</p>
                       </details>
                     </div>

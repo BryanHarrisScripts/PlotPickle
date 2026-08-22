@@ -56,11 +56,21 @@ test("#1222 imported signer validates locally and persists even when Community a
   assert.match(block, /if \(\/PlotPickle agent identity\/i\.test\(detail\)\) throw error/);
 });
 
+test("#1222 Profile distinguishes connected identity from Community readiness", async () => {
+  const profile = await source("app/profile-access/profile-identity-panel.tsx");
+  assert.match(profile, /communityReady\?: boolean/u);
+  assert.match(profile, /action === "import" && body\.communityReady === false/u);
+  assert.match(profile, /Connected · Community access pending/u);
+  assert.match(profile, /validates the identity locally, stores it securely for this Human, then checks access to the official Community/u);
+  assert.match(profile, /busy === \(setupMode === "create" \? "create" : "import"\)/u);
+});
+
 test("#1222 maps BUZZ CLI exit classes, membership failures and redacts private identity material", async () => {
   const failure = await source("build/buzz-cli-failure.ts");
   assert.match(failure, /case 1:/);
   assert.match(failure, /case 2:[\s\S]*relay could not be reached/i);
-  assert.match(failure, /case 3:[\s\S]*private identity key/i);
+  assert.match(failure, /case 3:[\s\S]*relay rejected signed authentication/i);
+  assert.match(failure, /Community membership or relay authorization may still be required/i);
   assert.match(failure, /case 5:[\s\S]*write conflict/i);
   assert.match(failure, /relay\[_ -\]\?membership/);
   assert.match(failure, /not a member of the PlotPickle Community/i);

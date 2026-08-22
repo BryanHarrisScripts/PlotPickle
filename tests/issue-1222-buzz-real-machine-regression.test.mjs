@@ -34,8 +34,10 @@ test("#1222 keeps Human signer setup in Profile and Settings limited to transpor
     source("app/profile-access/profile-identity-panel.tsx"),
   ]);
   assert.match(settings, /PLOTPICKLE_BUZZ_COMMUNITY\.relayUrl/);
-  assert.match(settings, /Profile owns Human signer creation\/import\/disconnect/);
+  assert.match(settings, /BUZZ creates identities; Profile connects\/disconnects the Human signer/);
+  assert.match(settings, /BUZZ owns Human identity creation; Profile owns connect\/disconnect/);
   assert.match(settings, /Save & test transport/);
+  assert.doesNotMatch(settings, /Signer creation\/import\/disconnect belongs to Profile/);
   assert.doesNotMatch(settings, /Buzz private identity key/);
   assert.doesNotMatch(settings, /Community name \(optional\)/);
   assert.doesNotMatch(settings, /Remove connection and identity/);

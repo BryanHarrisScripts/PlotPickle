@@ -1,4 +1,5 @@
-import { publicAgentProfiles } from "../../lib/agent-profiles";
+import communityConfig from "./community.json";
+import { AGENT_PROFILES } from "../../lib/agent-profiles";
 import {
   createCommunityExtensionSnapshot,
   defineCommunityExtensionPlugin,
@@ -22,68 +23,56 @@ const manifest: PluginManifest = {
   panels: [],
 };
 
+type CommunityConfig = {
+  readonly schemaVersion: number;
+  readonly communityId: string;
+  readonly displayName: string;
+  readonly rooms: readonly {
+    readonly id: string;
+    readonly label: string;
+    readonly description: string;
+    readonly actionHint: string;
+  }[];
+  readonly helpGroups: readonly {
+    readonly id: string;
+    readonly label: string;
+    readonly description: string;
+  }[];
+  readonly agents: readonly {
+    readonly profileId: string;
+    readonly shortBio: string;
+    readonly helpPrompt: string;
+    readonly helpGroup: string;
+    readonly roomIds: readonly string[];
+  }[];
+};
+
+const config = communityConfig as unknown as CommunityConfig;
+if (config.schemaVersion !== 1) throw new Error(`Unsupported PlotPicklePlayhouse plugin schema: ${config.schemaVersion}.`);
+
+const profileById = new Map(AGENT_PROFILES.map((profile) => [profile.id, profile]));
+
 export const PLOTPICKLE_PLAYHOUSE_PLUGIN = defineCommunityExtensionPlugin({
   manifest,
-  communityId: "plotpickle-playhouse",
-  displayName: "PlotPicklePlayhouse",
-  rooms: [
-    {
-      id: "great-hall",
-      label: "Great Hall",
-      description: "General Community conversation, welcome, questions and handoffs.",
-      actionHint: "Meet people, ask where to go, or continue a general PlotPickle conversation.",
-    },
-    {
-      id: "story-council",
-      label: "Story Workshop",
-      description: "Planning, structure, characters, continuity and story critique.",
-      actionHint: "Bring a story question, planning problem, character issue, or draft concern.",
-    },
-    {
-      id: "wyrmwood-ring",
-      label: "Wyrmwood",
-      description: "Curriculum challenges, game discussion and lesson evaluation.",
-      actionHint: "Work through Wyrmwood challenges or ask about the lesson behind a result.",
-    },
-    {
-      id: "marquee",
-      label: "Marquee",
-      description: "Visual development, posters, key art and promotion.",
-      actionHint: "Develop campaign visuals, poster ideas, key art, teasers, or trailer concepts.",
-    },
-  ],
-  helpGroups: [
-    {
-      id: "writing-story",
-      label: "Writing & Story",
-      description: "Helpers who teach, plan, challenge and strengthen the story you are making.",
-    },
-    {
-      id: "creative-visual",
-      label: "Creative & Visual",
-      description: "Helpers who develop posters, key art, teasers and other visual storytelling material.",
-    },
-    {
-      id: "community",
-      label: "Community",
-      description: "Helpers who welcome you, find earlier decisions and explain verified PlotPicklePlayhouse context.",
-    },
-  ],
-  agents: publicAgentProfiles().flatMap((profile) => {
-    const presentation = profile.publicPresentation;
-    if (!presentation) return [];
-    return [{
+  communityId: config.communityId,
+  displayName: config.displayName,
+  rooms: config.rooms,
+  helpGroups: config.helpGroups,
+  agents: config.agents.map((entry) => {
+    const profile = profileById.get(entry.profileId);
+    if (!profile?.publicPresentation) throw new Error(`Playhouse plugin references a non-public Agent Profile: ${entry.profileId}.`);
+    return {
       profileId: profile.id,
       displayName: profile.displayName,
       title: profile.title,
-      avatarRef: presentation.avatarRef,
-      shortBio: presentation.shortBio,
-      publicBio: presentation.publicBio,
-      helpPrompt: presentation.helpPrompt,
-      helpGroup: presentation.helpGroup,
-      roomIds: presentation.communityRoomIds,
-      officialBuzzPubkey: presentation.officialBuzzIdentity.pubkey,
-    }];
+      avatarRef: profile.publicPresentation.avatarRef,
+      shortBio: entry.shortBio,
+      publicBio: profile.publicPresentation.publicBio,
+      helpPrompt: entry.helpPrompt,
+      helpGroup: entry.helpGroup,
+      roomIds: entry.roomIds,
+      officialBuzzPubkey: profile.publicPresentation.officialBuzzIdentity.pubkey,
+    };
   }),
 });
 

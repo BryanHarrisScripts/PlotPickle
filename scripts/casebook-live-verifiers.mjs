@@ -77,6 +77,22 @@ function localAssetUrl(value, baseUrl) {
   return url;
 }
 
+export async function verifyLocalImageAsset({ baseUrl, imageSrc, fetchImpl = fetch } = {}) {
+  if (!compact(imageSrc)) return { ok: false, assetUrl: "", assetBytes: 0, contentType: "", error: "No Human-visible generated image is present." };
+  try {
+    const url = localAssetUrl(imageSrc, baseUrl);
+    const response = await fetchImpl(url, { signal: AbortSignal.timeout(30_000) });
+    const contentType = response.headers?.get?.("content-type") || "";
+    if (!response.ok) return { ok: false, assetUrl: url.toString(), assetBytes: 0, contentType, error: `Generated asset read-back returned HTTP ${response.status}.` };
+    const bytes = Buffer.from(await response.arrayBuffer());
+    if (bytes.length < 1_000) return { ok: false, assetUrl: url.toString(), assetBytes: bytes.length, contentType, error: `Generated asset is unexpectedly small (${bytes.length} bytes).` };
+    if (contentType && !contentType.toLowerCase().startsWith("image/")) return { ok: false, assetUrl: url.toString(), assetBytes: bytes.length, contentType, error: `Generated asset content type is ${contentType}, not image/*. ` };
+    return { ok: true, assetUrl: url.toString(), assetBytes: bytes.length, contentType, error: "" };
+  } catch (error) {
+    return { ok: false, assetUrl: "", assetBytes: 0, contentType: "", error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
 export async function verifyComfyUiVisibleOutput({ baseUrl, imageSrc, mediaStatus = {}, aiStatus = {}, fetchImpl = fetch } = {}) {
   const source = "comfyui-output-observer";
   const reasons = [];
@@ -87,33 +103,14 @@ export async function verifyComfyUiVisibleOutput({ baseUrl, imageSrc, mediaStatu
   if (!compact(comfy.checkpoint || comfy.selectedCheckpoint)) reasons.push("no verified ComfyUI checkpoint is selected");
   if (!compact(comfy.imageVerifiedAt)) reasons.push("PlotPickle has no successful ComfyUI image verification timestamp");
   if (combinedRoute.ready !== true) reasons.push("Ollama + ComfyUI local route is not ready/selectable");
-  if (!compact(imageSrc)) reasons.push("no Human-visible generated image is present");
 
-  let assetBytes = 0;
-  let contentType = "";
-  let assetUrl = "";
-  if (imageSrc) {
-    try {
-      const url = localAssetUrl(imageSrc, baseUrl);
-      assetUrl = url.toString();
-      const response = await fetchImpl(url, { signal: AbortSignal.timeout(30_000) });
-      contentType = response.headers?.get?.("content-type") || "";
-      if (!response.ok) reasons.push(`generated asset read-back returned HTTP ${response.status}`);
-      else {
-        const bytes = Buffer.from(await response.arrayBuffer());
-        assetBytes = bytes.length;
-        if (assetBytes < 1_000) reasons.push(`generated asset is unexpectedly small (${assetBytes} bytes)`);
-        if (contentType && !contentType.toLowerCase().startsWith("image/")) reasons.push(`generated asset content type is ${contentType}, not image/*`);
-      }
-    } catch (error) {
-      reasons.push(error instanceof Error ? error.message : String(error));
-    }
-  }
+  const asset = await verifyLocalImageAsset({ baseUrl, imageSrc, fetchImpl });
+  if (!asset.ok) reasons.push(asset.error);
 
   const metadata = {
-    assetUrl,
-    assetBytes,
-    contentType,
+    assetUrl: asset.assetUrl,
+    assetBytes: asset.assetBytes,
+    contentType: asset.contentType,
     comfyVersion: compact(comfy.version || "", 120),
     checkpoint: compact(comfy.checkpoint || comfy.selectedCheckpoint || "", 260),
     imageVerifiedAt: compact(comfy.imageVerifiedAt || "", 120),

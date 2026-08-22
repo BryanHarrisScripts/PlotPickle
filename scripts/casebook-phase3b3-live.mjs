@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { extractPageState, resultText } from "./creative-uat/mcp-runtime.mjs";
 import { evaluateComfyUiWrongPortFault, evaluateSageFallbackFault } from "./casebook-live-verifiers.mjs";
-import { runProfileIsolationLiveCase } from "./casebook-profile-isolation-live.mjs";
+import { runProfileIsolationLiveCase } from "./casebook/profile-isolation-live.mjs";
 
 function clean(value, limit = 900) {
   return String(value ?? "")

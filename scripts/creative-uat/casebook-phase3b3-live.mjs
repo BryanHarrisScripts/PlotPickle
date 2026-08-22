@@ -32,6 +32,40 @@ async function waitFor(operation, predicate, attempts = 16, delayMs = 500) {
   return value;
 }
 
+function httpOrigin(value) {
+  try {
+    const parsed = new URL(clean(value, 2_000));
+    return new Set(["http:", "https:"]).has(parsed.protocol) ? parsed.origin : "";
+  } catch {
+    return "";
+  }
+}
+
+async function ensurePlotPickleBrowserPage(browser, expectedOrigin) {
+  let current = { url: "" };
+  try {
+    current = await browser.currentState();
+  } catch (error) {
+    current = { url: "", observationError: clean(error instanceof Error ? error.message : String(error), 240) };
+  }
+  const beforeUrl = clean(current?.url, 2_000);
+  if (expectedOrigin && httpOrigin(beforeUrl) === expectedOrigin) {
+    return { reanchored: false, beforeUrl, afterUrl: beforeUrl };
+  }
+  if (!expectedOrigin) return { reanchored: false, beforeUrl, afterUrl: beforeUrl };
+
+  const target = `${expectedOrigin}/`;
+  await browser.navigate(target);
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  let after = { url: target };
+  try {
+    after = await browser.currentState();
+  } catch (error) {
+    after = { url: target, observationError: clean(error instanceof Error ? error.message : String(error), 240) };
+  }
+  return { reanchored: true, beforeUrl, afterUrl: clean(after?.url || target, 2_000) };
+}
+
 async function openProfileIdentitySurface(client) {
   return browserValue(client, `() => {
     const overlay = document.querySelector('[aria-label="PlotPickle Profile"]');
@@ -51,6 +85,7 @@ async function openProfileIdentitySurface(client) {
 async function humanSessionState(client) {
   return browserValue(client, `async () => {
     const active = document.querySelector('[aria-label="Active PlotPickle Human"]');
+    const url = location.href;
     let response;
     let body = {};
     try {
@@ -58,7 +93,7 @@ async function humanSessionState(client) {
       const text = await response.text();
       try { body = text ? JSON.parse(text) : {}; } catch { body = {}; }
     } catch {
-      return JSON.stringify({ authenticated: false, profileId: '', displayName: '', domActive: Boolean(active), status: 0 });
+      return JSON.stringify({ authenticated: false, profileId: '', displayName: '', domActive: Boolean(active), status: 0, url });
     }
     const profile = body && typeof body === 'object' && body.profile && typeof body.profile === 'object' ? body.profile : null;
     return JSON.stringify({
@@ -67,6 +102,7 @@ async function humanSessionState(client) {
       displayName: typeof profile?.displayName === 'string' ? profile.displayName : (active?.querySelector('strong')?.textContent || '').trim(),
       domActive: Boolean(active),
       status: response.status,
+      url,
     });
   }`, "PlotPickle authenticated Human session");
 }
@@ -107,6 +143,8 @@ export function createPhase3b3StepDrivers({ browser, client, runState }) {
 
   drivers.set("buzz-connect-existing-identity:open-profile-buzz", async () => {
     const human = await humanSessionState(client);
+    const initialOrigin = httpOrigin(human?.url);
+    if (initialOrigin) runState.attendedPlotPickleOrigin = initialOrigin;
     if (human?.authenticated === true) return observeAuthenticatedProfileSurface(client, human);
 
     return {
@@ -117,6 +155,7 @@ export function createPhase3b3StepDrivers({ browser, client, runState }) {
       target: "PlotPickle Human profile",
       humanCheckpoint: visibleHumanCheckpoint(),
       afterHuman: async () => {
+        const anchor = await ensurePlotPickleBrowserPage(browser, runState.attendedPlotPickleOrigin || initialOrigin);
         const after = await waitFor(
           () => humanSessionState(client),
           (value) => value?.authenticated === true,
@@ -124,9 +163,10 @@ export function createPhase3b3StepDrivers({ browser, client, runState }) {
           300,
         );
         if (after?.authenticated !== true) {
+          const browserUrl = clean(after?.url || anchor.afterUrl || anchor.beforeUrl, 240) || "unavailable";
           return stepResult(
             false,
-            `PlotPickle's authenticated profile API still reports no active Human after the Human checkpoint (status ${Number(after?.status || 0) || "unavailable"}; supporting DOM marker=${after?.domActive === true ? "present" : "absent"}).`,
+            `PlotPickle's authenticated profile API still reports no active Human after the Human checkpoint (status ${Number(after?.status || 0) || "unavailable"}; supporting DOM marker=${after?.domActive === true ? "present" : "absent"}; browser=${browserUrl}; re-anchored=${anchor.reanchored ? "yes" : "no"}).`,
             "human-authority",
             "PlotPickle Human profile",
           );

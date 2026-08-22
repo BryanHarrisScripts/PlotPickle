@@ -7,15 +7,18 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 const SETTINGS_SECTIONS = [
   "settings-quick",
+  "settings-updates",
   "settings-help",
-  "settings-models",
-  "settings-activity",
+  "settings-sage",
+  "settings-plan",
   "settings-routing",
+  "settings-images",
+  "settings-video",
   "settings-ollama",
   "settings-openai",
   "settings-minimax",
-  "settings-comfyui",
   "settings-buzz",
+  "settings-activity",
   "settings-advanced",
 ];
 
@@ -27,6 +30,8 @@ test("#1105 inventories every active Settings route and nested provider/runtime 
   for (const section of SETTINGS_SECTIONS) {
     assert.ok(workspace.includes(`id="${section}"`), `${section} must remain in the Settings route inventory`);
   }
+  assert.match(workspace, /"settings-models": "sage"/);
+  assert.match(workspace, /"settings-comfyui": "images"/);
 
   for (const component of [
     "SettingsHelperDirectory",

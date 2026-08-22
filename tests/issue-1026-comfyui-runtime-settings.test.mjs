@@ -4,16 +4,19 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("#1026 AI Routing opens exact in-place provider sections and hybrid exposes both owners", async () => {
+test("#1026 AI Routing opens exact in-place provider sections and normalizes ComfyUI into Images Setup", async () => {
   const [routing, settings, providerSetup] = await Promise.all([
     read("app/ai-routing-panel.tsx"),
     read("app/sage-settings-workspace.tsx"),
     read("app/settings/ai-provider/ai-provider-setup-panel.tsx"),
   ]);
 
-  for (const target of ["ollama", "openai", "minimax", "comfyui"]) {
+  for (const target of ["ollama", "openai", "minimax"]) {
     assert.match(settings, new RegExp(`id=["']settings-${target}["']`));
   }
+  assert.match(settings, /id=["']settings-images["']/);
+  assert.match(settings, /"settings-comfyui": "images"/);
+  assert.match(settings, /comfyui: "images"/);
   assert.match(routing, /type ProviderTarget = "ollama" \| "openai" \| "minimax" \| "comfyui"/);
   assert.match(routing, /const sectionId = `settings-\$\{target\}`/);
   assert.match(routing, /route === "ollama-comfyui"\) return \["ollama", "comfyui"\]/);

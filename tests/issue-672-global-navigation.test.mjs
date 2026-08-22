@@ -25,10 +25,10 @@ test("one shared root navigator owns the approved PlotPickle navigation groups",
   assert.match(navigator, /plotpickle-ouroboros-v3-transparent\.png/);
 
   const dashboard = navigator.indexOf('id: "dashboard"');
-  const community = navigator.indexOf('id: "community"');
-  const wyrmwood = navigator.indexOf('id: "wyrmwood"');
   const library = navigator.indexOf('id: "library"');
+  const community = navigator.indexOf('id: "community"');
   const learn = navigator.indexOf('id: "learn"');
+  const wyrmwood = navigator.indexOf('id: "wyrmwood"');
   const plan = navigator.indexOf('id: "plan"');
   const build = navigator.indexOf('id: "build"');
   const storyboard = navigator.indexOf('id: "storyboard"');
@@ -40,8 +40,8 @@ test("one shared root navigator owns the approved PlotPickle navigation groups",
   const reports = navigator.indexOf('id: "reports"');
   const settings = navigator.indexOf('id: "settings"');
 
-  assert.ok(dashboard >= 0 && dashboard < community && community < wyrmwood, "Dashboard, Community and Wyrmwood must form the opening group");
-  assert.ok(wyrmwood < library && library < learn && learn < plan && plan < build && build < storyboard && storyboard < previs, "Library through Previs must form the second group");
+  assert.ok(dashboard >= 0 && dashboard < library && library < community && community < learn && learn < wyrmwood, "Dashboard through Wyrmwood must form the opening group");
+  assert.ok(wyrmwood < plan && plan < build && build < storyboard && storyboard < previs, "Plan through Previs must form the second group");
   assert.ok(previs < write && write < edit && edit < feedback && feedback < refine, "Write through Refine must form the third group");
   assert.ok(refine < reports && reports < settings, "Reports and Settings must form the final group");
 

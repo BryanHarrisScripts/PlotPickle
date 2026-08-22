@@ -3,10 +3,10 @@ import { resultText } from "./creative-uat/mcp-runtime.mjs";
 
 export const EXPECTED_NAVIGATION_IDS = [
   "dashboard",
-  "community",
-  "wyrmwood",
   "library",
+  "community",
   "learn",
+  "wyrmwood",
   "plan",
   "build",
   "storyboard",
@@ -21,10 +21,10 @@ export const EXPECTED_NAVIGATION_IDS = [
 
 export const EXPECTED_NAVIGATION_LABELS = [
   "Dashboard",
-  "Community",
-  "Wyrmwood",
   "Library",
+  "Community",
   "Learn",
+  "Wyrmwood",
   "Plan",
   "Build",
   "Storyboard",

@@ -48,12 +48,11 @@ test("the standalone header exposes a dedicated lore-style Settings SVG and uses
   assert.doesNotMatch(relic, /<rect[^>]+(?:fill="#000|fill="black)/i);
 });
 
-test("workspace=settings opens a beginner-first Quick Setup inside the shared root navigator", async () => {
-  const [page, shell, settings, styles] = await Promise.all([
+test("workspace=settings opens an Overview-first setup inside the shared root navigator", async () => {
+  const [page, shell, settings] = await Promise.all([
     read("app/page.tsx"),
     read("app/plotpickle-workspace-shell.tsx"),
     read("app/sage-settings-workspace.tsx"),
-    read("app/sage-settings-workspace.module.css"),
   ]);
   assert.match(page, /type Workspace = RootWorkspace/);
   assert.match(shell, /RootWorkspace = "learn" \| "plan" \| "wyrmwood" \| "library" \| "community" \| "settings"/);
@@ -62,18 +61,18 @@ test("workspace=settings opens a beginner-first Quick Setup inside the shared ro
   assert.match(page, /<PlotPickleWorkspaceShell activeWorkspace="settings"/);
   assert.match(page, /<SageSettingsWorkspace \/>/);
   assert.match(shell, /label: "Settings", detail: "Config", selectable: true/);
-  assert.match(settings, /Settings · Quick Setup/);
-  assert.match(settings, /Set up Sage and PLAN\./);
-  assert.match(settings, /Step 1:<\/strong> Choose how you want PlotPickle to talk to local AI/);
-  assert.match(settings, /Step 2:<\/strong> Pick the model PlotPickle found/);
-  assert.match(settings, /Step 3:<\/strong> Test Sage/);
-  assert.match(settings, /Step 4:<\/strong> Test PLAN/);
+  assert.match(settings, /Settings · Overview/);
+  assert.match(settings, /<h2 id="settings-quick-steps">Quick Setup<\/h2>/);
+  assert.match(settings, /Step 1:<\/strong> Configure and test Sage/);
+  assert.match(settings, /Step 2:<\/strong> Configure and test PLAN/);
+  assert.match(settings, /Step 3:<\/strong> Choose explicit LLM and media routes/);
+  assert.match(settings, /Step 4:<\/strong> Configure only the providers you intend to use/);
   assert.match(settings, /href="\/\?workspace=learn">Return to LEARN/);
   assert.match(settings, /href="\/\?workspace=plan">Return to PLAN/);
-  assert.match(settings, /<SageFastModelSetup \/>/);
-  assert.match(settings, /<details className=\{styles\.advancedRuntime\}>[\s\S]*<LocalRuntimePanel \/>[\s\S]*<\/details>/);
+  assert.match(settings, /case "sage":[\s\S]*<SageFastModelSetup \/>/);
+  assert.match(settings, /case "plan":[\s\S]*<SageFastModelSetup \/>/);
+  assert.match(settings, /case "runtime":[\s\S]*<details className=\{styles\.advancedRuntime\}>[\s\S]*<LocalRuntimePanel \/>[\s\S]*<\/details>/);
   assert.doesNotMatch(settings, /<details className=\{styles\.advancedRuntime\}\s+open/);
-  assert.match(styles, /\.advancedRuntime/);
 });
 
 test("Quick Setup surfaces detected runtimes and models while managed llama.cpp stays collapsed", async () => {

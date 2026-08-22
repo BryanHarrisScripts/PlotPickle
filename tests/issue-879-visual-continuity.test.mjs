@@ -41,12 +41,22 @@ test("Settings exposes permanent left categories centre controls and right help 
   assert.match(settings, /data-settings-rail="navigation"/);
   assert.match(settings, /data-settings-main/);
   assert.match(settings, /data-settings-rail="context"/);
-  assert.match(settings, /label: "Overview"/);
-  assert.match(settings, /label: "Sage & PLAN"/);
-  assert.match(settings, /label: "AI Routing"/);
-  assert.match(settings, /label: "Agent Activity"/);
-  assert.match(settings, /label: "BUZZ \/ Community"/);
-  assert.match(settings, /label: "Advanced Runtime"/);
+  for (const label of [
+    "Overview",
+    "Sage Setup",
+    "PLAN Setup",
+    "LLM Routing",
+    "Images Setup",
+    "Video Setup",
+    "Ollama",
+    "OpenAI Cloud",
+    "MiniMax Cloud",
+    "BUZZ Setup",
+    "Agent Activity",
+    "Advanced Runtime",
+  ]) {
+    assert.match(settings, new RegExp(`label: "${label}"`));
+  }
   assert.match(settings, /<SageFastModelSetup \/>/);
   assert.match(settings, /<AgentObservabilityPanel \/>/);
   assert.match(settings, /<BuzzSettingsPanel \/>/);

@@ -12,7 +12,12 @@ import {
   type BuzzStoryRoomId,
   type HumanBuzzIdentity,
 } from "../lib/buzz-story-room";
+import { agentsForCommunityRoom } from "../lib/community-extension-plugin";
 import CommunityBuzzSocial, { type CommunitySocialTarget } from "../modules/community/community-buzz-social";
+import {
+  PLOTPICKLE_COMMUNITY_EXTENSIONS,
+  PLOTPICKLE_PLAYHOUSE_PLUGIN,
+} from "../plugins/plotpickle-playhouse";
 import CommunityAgentRoster from "./community-agent-roster";
 import CommunityStoryRoomAccess from "./community-story-room-access";
 import ConnectedStudiosPanel from "./connected-studios-panel";
@@ -20,35 +25,15 @@ import navigationStyles from "./community-navigation.module.css";
 import styles from "./community-workspace.module.css";
 
 const BUZZ_API = "/api/local-buzz";
-const COMMUNITY_BBS_NAME = "PlotPicklePlayhouse";
+const COMMUNITY_BBS_NAME = PLOTPICKLE_PLAYHOUSE_PLUGIN.displayName;
 const PRIVATE_STORY_ROOM_ID: BuzzStoryRoomId = "story";
 
-const PUBLIC_ROOMS = [
-  {
-    id: "great-hall",
-    label: "Great Hall",
-    description: "General Community conversation, welcome, questions and handoffs.",
-    helpers: "Sage · Merrin · Orin",
-  },
-  {
-    id: "story-council",
-    label: "Story Workshop",
-    description: "Planning, structure, characters, continuity and story critique.",
-    helpers: "Tamsin · Quillan · Elowen · Mira · Critics · Sage",
-  },
-  {
-    id: "wyrmwood-ring",
-    label: "Wyrmwood",
-    description: "Curriculum challenges, game discussion and lesson evaluation.",
-    helpers: "Oaken · Rowan · Sage",
-  },
-  {
-    id: "marquee",
-    label: "Marquee",
-    description: "Visual development, posters, key art and promotion.",
-    helpers: "Marquee Director · Quillan · Mira",
-  },
-] as const;
+const PUBLIC_ROOMS = PLOTPICKLE_PLAYHOUSE_PLUGIN.rooms.map((room) => ({
+  ...room,
+  helpers: agentsForCommunityRoom(PLOTPICKLE_COMMUNITY_EXTENSIONS, room.id)
+    .map((agent) => agent.displayName)
+    .join(" · "),
+}));
 
 type BuzzChannel = { id: string; name: string; description: string };
 type CommunityMember = { pubkey: string; displayName: string; presence: string; updatedAt: string };
@@ -177,8 +162,9 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
     setCommunity(communityBody);
     setGuildhall(guildhallBody);
     setHumanIdentity(humanBody);
+    const greatHallDefinition = PUBLIC_ROOMS.find((room) => room.id === "great-hall");
     const greatHall = guildhallBody.readyRooms.find((room) => room.id === "great-hall");
-    setSelectedTarget((current) => current ?? (greatHall ? socialTarget(greatHall, "Great Hall", PUBLIC_ROOMS[0].description) : null));
+    setSelectedTarget((current) => current ?? (greatHall && greatHallDefinition ? socialTarget(greatHall, greatHallDefinition.label, greatHallDefinition.description) : null));
     return { communityBody, guildhallBody, humanBody };
   }, []);
 
@@ -322,7 +308,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
             <div className={navigationStyles.subDestinationList}>
               <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "story-rooms" ? "page" : undefined} onClick={() => { setUtilityView("story-rooms"); setSelectedTarget(null); }}><span>Private Story Room</span><small>{privateStoryRoom ? "READY" : project ? "SET UP" : "NO STORY"}</small></button>
               <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "studios" ? "page" : undefined} onClick={() => { setUtilityView("studios"); setSelectedTarget(null); }}><span>Connected Studios</span><small>PEOPLE</small></button>
-              <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "agents" ? "page" : undefined} onClick={() => { setUtilityView("agents"); setSelectedTarget(null); }}><span>Agents</span><small>12 OFFICIAL</small></button>
+              <button type="button" className={navigationStyles.subDestination} aria-current={utilityView === "agents" ? "page" : undefined} onClick={() => { setUtilityView("agents"); setSelectedTarget(null); }}><span>Agents</span><small>{PLOTPICKLE_PLAYHOUSE_PLUGIN.agents.length} OFFICIAL</small></button>
             </div>
           </section>
         </nav>
@@ -330,7 +316,7 @@ export default function CommunityWorkspace({ onOpenSettings }: { readonly onOpen
 
       <div className={navigationStyles.communityContent}>
         {!connected ? <section className={styles.setupCard}><div><span>Community requires BUZZ</span><h2>Connect your BUZZ identity from Profile.</h2><p>PlotPickle remains usable without BUZZ. Community conversation turns on when the active Human has a verified BUZZ identity.</p></div><button type="button" onClick={() => { if (!openProfileIdentity()) onOpenSettings(); }}>Open Profile</button></section>
-        : !operational ? <section className={styles.setupCard}><div><span>Prepare PlotPicklePlayhouse</span><h2>{guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} BUZZ rooms ready` : "Checking Community"}</h2><p>PlotPickle will prepare the missing BUZZ rooms once. The normal user view will still show only the four useful Community rooms.</p></div><button type="button" disabled={!guildhall?.canSetup || busy === "setup"} onClick={() => void setupGuildhall()}>{busy === "setup" ? "Preparing…" : "Prepare Community"}</button></section>
+        : !operational ? <section className={styles.setupCard}><div><span>Prepare {COMMUNITY_BBS_NAME}</span><h2>{guildhall ? `${guildhall.readyCount}/${guildhall.totalCount} BUZZ rooms ready` : "Checking Community"}</h2><p>PlotPickle will prepare the missing BUZZ rooms once. The normal user view will still show only the useful Community rooms contributed by the active Community plugin.</p></div><button type="button" disabled={!guildhall?.canSetup || busy === "setup"} onClick={() => void setupGuildhall()}>{busy === "setup" ? "Preparing…" : "Prepare Community"}</button></section>
         : utilityView === "studios" ? <main className={styles.stack}><ConnectedStudiosPanel onOpenGreatHall={() => chooseRoom("great-hall")} /></main>
         : utilityView === "agents" ? <main className={styles.stack}><CommunityAgentRoster /></main>
         : utilityView === "story-rooms" ? <main className={styles.stack}>

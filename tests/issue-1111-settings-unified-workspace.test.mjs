@@ -15,16 +15,18 @@ test("#1111 live Settings uses one persistent Community-style rail and one activ
   assert.doesNotMatch(source, /scrollIntoView\(/, "switching Settings areas should replace the center rather than scroll a long page of mini-apps");
 });
 
-test("#1111 exposes more than five major Settings destinations without returning to a Settings home screen", async () => {
+test("#1111 exposes the approved Settings destinations without returning to a Settings home screen", async () => {
   const source = await read("app/sage-settings-workspace.tsx");
-  for (const id of ["overview", "updates", "help", "models", "routing", "media", "ollama", "openai", "minimax", "activity", "buzz", "runtime"]) {
+  for (const id of ["overview", "updates", "help", "sage", "plan", "routing", "images", "video", "ollama", "openai", "minimax", "buzz", "activity", "runtime"]) {
     assert.match(source, new RegExp(`id: ["']${id}["']`), `missing Settings destination ${id}`);
   }
-  assert.match(source, /SETTINGS_GROUPS/);
-  assert.match(source, /Start/);
-  assert.match(source, /Local AI/);
-  assert.match(source, /Providers/);
-  assert.match(source, /System/);
+  for (const group of ["START", "LOCAL AI", "MODEL PROVIDERS", "COMMUNITY", "SYSTEM"]) {
+    assert.match(source, new RegExp(`label: ["']${group}["']`), `missing Settings group ${group}`);
+  }
+  for (const label of ["Overview", "What’s New", "Help", "Sage Setup", "PLAN Setup", "LLM Routing", "Images Setup", "Video Setup", "Ollama", "OpenAI Cloud", "MiniMax Cloud", "BUZZ Setup", "Agent Activity", "Advanced Runtime"]) {
+    assert.match(source, new RegExp(`label: ["']${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']`), `missing Settings label ${label}`);
+  }
+  assert.doesNotMatch(source, /Profiles\s*&\s*Security/i, "Profile remains the sole owner of profile and security actions");
 });
 
 test("#1111 Settings deep links are bookmarkable and browser back/forward restores the active center section", async () => {
@@ -36,9 +38,11 @@ test("#1111 Settings deep links are bookmarkable and browser back/forward restor
   assert.match(source, /window\.addEventListener\("popstate", sync\)/);
   assert.match(source, /window\.sessionStorage\.setItem\(SETTINGS_SECTION_KEY, section\)/);
   assert.match(source, /LEGACY_TARGETS/, "old Settings deep links must continue to resolve into the new navigation model");
+  assert.match(source, /"settings-models": "sage"/);
+  assert.match(source, /"settings-comfyui": "images"/);
   const hashIndex = source.indexOf("if (url.hash)");
   const queryIndex = source.indexOf("const querySection = url.searchParams.get(SETTINGS_QUERY_KEY)");
-  assert.ok(hashIndex >= 0 && queryIndex >= 0 && hashIndex < queryIndex, "legacy hash destinations must win over a stale settings query so HELP, AI Routing, ComfyUI and provider links remain usable");
+  assert.ok(hashIndex >= 0 && queryIndex >= 0 && hashIndex < queryIndex, "legacy hash destinations must win over a stale settings query so Help, LLM Routing, ComfyUI and provider links remain usable");
 });
 
 test("#1111 common overview reads existing runtime media and BUZZ authorities without creating a second status store", async () => {

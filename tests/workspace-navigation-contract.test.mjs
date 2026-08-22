@@ -14,10 +14,10 @@ const shellCss = await readFile(new URL("../app/plotpickle-workspace-shell.modul
 
 const canonicalIds = [
   "dashboard",
-  "community",
-  "wyrmwood",
   "library",
+  "community",
   "learn",
+  "wyrmwood",
   "plan",
   "build",
   "storyboard",
@@ -32,10 +32,10 @@ const canonicalIds = [
 
 const canonicalLabels = [
   "Dashboard",
-  "Community",
-  "Wyrmwood",
   "Library",
+  "Community",
   "Learn",
+  "Wyrmwood",
   "Plan",
   "Build",
   "Storyboard",

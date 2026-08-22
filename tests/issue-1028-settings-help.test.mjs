@@ -13,9 +13,10 @@ async function source(relativePath) {
   return readFile(path.join(repoRoot, relativePath), "utf8");
 }
 
-test("#1028 Settings exposes a discoverable HELP destination that lands on Meet the Helpers", async () => {
+test("#1028 Settings exposes a discoverable Help destination that lands on Meet the Helpers", async () => {
   const settings = await source("app/sage-settings-workspace.tsx");
-  assert.match(settings, /id: "settings-help", label: "HELP"/);
+  assert.match(settings, /label: "START"[\s\S]*\{ id: "help", label: "Help"/);
+  assert.match(settings, /LEGACY_HELP_DESTINATION = \{ id: "settings-help", label: "Help" \}/);
   assert.match(settings, /href="#settings-help">HELP<\/a>/);
   assert.match(settings, /id="settings-help"/);
   assert.match(settings, /<SettingsHelperDirectory \/>/);

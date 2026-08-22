@@ -10,6 +10,7 @@ import { createCreativeBrowser } from "./creative-uat/browser-actions.mjs";
 import { McpClient, resultText } from "./creative-uat/mcp-runtime.mjs";
 import { loadCasebook } from "./casebook-contract.mjs";
 import { resolveLocalEndpointTarget } from "./local-endpoint-target.mjs";
+import { createAttendedLiveStepDrivers, finalizeAttendedLiveProof } from "./casebook-attended-live-drivers.mjs";
 import {
   assertAttendedRecordSafe,
   attendedCheckpoint,
@@ -116,13 +117,6 @@ function safeStepDrivers() {
       const observation = await observePage(client, ["Learn", "Sage", "Creative Room"], "LEARN opened with a Human-facing learning/agent surface.", "LEARN did not expose the expected learning or Sage surface.");
       return { ...observation, interaction: "pointer", target: clicked || "Learn" };
     }],
-    ["comfyui-local-image-visible:configure-comfyui", async ({ browser, client }) => {
-      await firstVisibleClick(browser, ["Settings"]);
-      await firstVisibleClick(browser, ["Images Setup", "Images"]);
-      const clicked = await firstVisibleClick(browser, ["Configure ComfyUI"]);
-      const observation = await observePage(client, ["ComfyUI"], "The ComfyUI setup surface is visible and Configure ComfyUI was exercised.", "ComfyUI setup was not observed after the Configure action.");
-      return { ...observation, interaction: "pointer", target: clicked || "Configure ComfyUI" };
-    }],
   ]);
 }
 
@@ -182,11 +176,15 @@ async function main() {
     tools = await client.tools();
     const browser = createCreativeBrowser(client, tools, { baseUrl: endpointTarget.baseUrl, runnerFindings, evidence: browserEvidence });
     await browser.navigate(endpointTarget.baseUrl);
-    const drivers = safeStepDrivers();
 
     for (let caseOffset = 0; caseOffset < cases.length; caseOffset += 1) {
       const caseDefinition = cases[caseOffset];
       const record = attendedRecordSkeleton(caseDefinition);
+      const runState = {};
+      const drivers = new Map([
+        ...safeStepDrivers(),
+        ...createAttendedLiveStepDrivers({ browser, client, baseUrl: endpointTarget.baseUrl, runState }),
+      ]);
       status(caseDefinition.title, "START", `${caseOffset + 1}/${cases.length}`);
 
       for (let stepOffset = 0; stepOffset < caseDefinition.humanJourney.length; stepOffset += 1) {
@@ -211,8 +209,11 @@ async function main() {
           ? await driver({ browser, client, checkpoint })
           : await operatorGuidedStep(io, client, caseDefinition, step);
         if (observation.humanCheckpoint) {
+          const afterHuman = observation.afterHuman;
           await operatorCheckpoint(io, client, observation.humanCheckpoint);
-          observation = { ...observation, humanCheckpoint: undefined };
+          observation = typeof afterHuman === "function"
+            ? await afterHuman()
+            : { ...observation, humanCheckpoint: undefined, afterHuman: undefined };
         }
         if (!checkpoint?.secretEntry && observation.critical !== false) afterScreenshot = await screenshot(browser, caseOffset + 1, stepOffset + 1, "after");
 
@@ -226,20 +227,25 @@ async function main() {
           critical: observation.critical !== false,
           beforeScreenshot,
           afterScreenshot,
-          evidence: [],
+          evidence: Array.isArray(observation.evidence) ? observation.evidence : [],
         });
         status(`  ${step.id}`, observation.outcome.toUpperCase(), observation.observed);
       }
 
-      record.blockers.push("Independent Business Case verifier and deliberate fault injection are still required before this attended record can become green.");
+      const liveProof = await finalizeAttendedLiveProof({ caseDefinition, client, baseUrl: endpointTarget.baseUrl, runState });
+      if (liveProof) record.independentVerification = liveProof;
+      if (record.independentVerification.status !== "verified") {
+        record.blockers.push("Independent Business Case outcome proof is still missing or contradicted.");
+      }
+      record.blockers.push("Deliberate real-machine fault injection is still required before this attended record can become green.");
       assertAttendedRecordSafe(record);
       await writeFile(path.join(recordsDir, `${caseDefinition.id}.json`), `${JSON.stringify(record, null, 2)}\n`, "utf8");
-      status(caseDefinition.title, "RECORDED", `records/${caseDefinition.id}.json`);
+      status(caseDefinition.title, "RECORDED", `independent=${record.independentVerification.status}; faults=pending`);
     }
 
     await endpointTarget.assertCurrent();
     process.stdout.write(`\nAttended run recorded ${cases.length} Business Case${cases.length === 1 ? "" : "s"}.\n`);
-    process.stdout.write("This harness never turns Human confirmation into PASS by itself. Run Casebook's independent real-machine verifier and fault checks before closing Phase 3.\n");
+    process.stdout.write("Sage and ComfyUI now collect independent live outcome proof when available. Human confirmation still never becomes PASS by itself, and real fault injection remains required before Phase 3 can close.\n");
   } finally {
     io.close();
     if (tools.some((tool) => tool.name === "browser_close")) {

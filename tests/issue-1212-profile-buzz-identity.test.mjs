@@ -126,7 +126,8 @@ test("#1212 every Profile-owned BUZZ mutation carries the authenticated session 
 
   assert.match(sessionBoundary, /const mutation = requirements\.mutation === true \|\| !SAFE_HTTP_METHODS\.includes\(method\)/u);
   assert.match(sessionBoundary, /headerValue\(request\?\.headers, "x-plotpickle-csrf"\)/u);
-  assert.match(gateway, /privateKey: action === "import" \? privateKey\.trim\(\) : undefined/u);
+  assert.match(panel, /privateKey: action === "import" \? privateKey\.trim\(\) : undefined/u);
+  assert.match(gateway, /const privateKey = text\(body\.privateKey\)/u);
   assert.match(gateway, /BUZZ_PRIVATE_KEY: connection\.privateKey/u);
   assert.doesNotMatch(panel, /console\.(?:log|info|warn|error)\([^\n]*privateKey/u);
 });

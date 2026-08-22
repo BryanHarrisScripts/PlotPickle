@@ -8,7 +8,9 @@ import { diagnoseComfyUI, launchComfyWithManagedCli } from "./comfyui-connection
 const execFileAsync = promisify(execFile);
 const START_PATH = "/api/media-routing/comfyui/start";
 const LOCAL_COMFY_URL = "http://127.0.0.1:8188";
+const COMFY_DOWNLOAD_URL = "https://comfy.org/download";
 const READY_STATES = new Set(["ready-existing", "mcp-managed-started-ready", "desktop-started-ready", "started-ready"]);
+const INSTALLED_TOOL_STATES = new Set(["detected", "installed-api-not-ready", "installed", "installed-not-running"]);
 
 function isLoopback(value: string | undefined) {
   return value === "127.0.0.1" || value === "::1" || value === "::ffff:127.0.0.1";
@@ -90,6 +92,78 @@ async function waitForComfyApi(timeoutMs = 90_000) {
   return false;
 }
 
+async function inspectInstalledComfyUi() {
+  const diagnostics = await diagnoseComfyUI(LOCAL_COMFY_URL, null);
+  if (diagnostics.serviceReady) {
+    return {
+      installed: true,
+      running: true,
+      canStart: false,
+      state: "ready-existing",
+      detail: "ComfyUI is installed and its local API is running.",
+      location: LOCAL_COMFY_URL,
+      officialDownloadUrl: COMFY_DOWNLOAD_URL,
+      diagnostics,
+    };
+  }
+
+  if (process.platform !== "win32") {
+    return {
+      installed: false,
+      running: false,
+      canStart: false,
+      state: "not-detected",
+      detail: "PlotPickle could not verify an installed ComfyUI Desktop from this platform. Start ComfyUI locally or use the official installer.",
+      location: "",
+      officialDownloadUrl: COMFY_DOWNLOAD_URL,
+      diagnostics,
+    };
+  }
+
+  const script = path.resolve(process.cwd(), "scripts", "install-local-ai-tool.ps1");
+  const args = [
+    "-NoProfile",
+    "-ExecutionPolicy", "Bypass",
+    "-File", script,
+    "-Tool", "ComfyUI",
+    "-CheckOnly",
+  ];
+  let stdout = "";
+  let stderr = "";
+  try {
+    const result = await execFileAsync("powershell.exe", args, {
+      cwd: process.cwd(),
+      windowsHide: true,
+      timeout: 20_000,
+      maxBuffer: 512 * 1024,
+    });
+    stdout = String(result.stdout || "");
+    stderr = String(result.stderr || "");
+  } catch (error) {
+    const value = error as Error & { stdout?: string | Buffer; stderr?: string | Buffer };
+    stdout = String(value.stdout || "");
+    stderr = String(value.stderr || value.message || "");
+  }
+
+  const combined = `${stdout}\n${stderr}`;
+  const toolState = marker(combined, "PLOTPICKLE_LOCAL_AI_STATUS") || "missing";
+  const location = marker(combined, "PLOTPICKLE_LOCAL_AI_LOCATION");
+  const detail = marker(combined, "PLOTPICKLE_LOCAL_AI_DETAIL");
+  const installed = INSTALLED_TOOL_STATES.has(toolState);
+  return {
+    installed,
+    running: false,
+    canStart: installed,
+    state: installed ? "installed-stopped" : "not-installed",
+    detail: detail || (installed
+      ? "ComfyUI Desktop is installed, but its local API is stopped."
+      : "ComfyUI Desktop is not installed on this Windows profile."),
+    location,
+    officialDownloadUrl: COMFY_DOWNLOAD_URL,
+    diagnostics,
+  };
+}
+
 async function startWithDesktopFallback() {
   if (process.platform !== "win32") {
     throw new Error("Automatic fallback startup without the optional Comfy MCP management stack is currently available on Windows only. Start ComfyUI locally, then retry from Settings.");
@@ -168,8 +242,15 @@ export function registerComfyUiOnboardingGateway(server: ViteDevServer) {
       sendJson(response, 403, { ok: false, message: "ComfyUI setup is available only from this local PlotPickle server." });
       return;
     }
+    if (request.method === "GET") {
+      void inspectInstalledComfyUi().then(
+        (installation) => sendJson(response, 200, { ok: true, installation }),
+        (error) => sendJson(response, 500, { ok: false, message: error instanceof Error ? error.message : "ComfyUI installation status could not be checked." }),
+      );
+      return;
+    }
     if (request.method !== "POST") {
-      sendJson(response, 405, { ok: false, message: "Use the Settings action to start ComfyUI." });
+      sendJson(response, 405, { ok: false, message: "Use GET to inspect ComfyUI or the Settings action to start it." });
       return;
     }
 

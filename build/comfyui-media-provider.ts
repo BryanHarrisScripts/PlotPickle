@@ -96,11 +96,15 @@ function checkpointNames(body: Record<string, unknown>) {
 }
 
 export function workflowNodeClasses(source: Record<string, unknown>) {
-  return Array.from(new Set(Object.values(source).flatMap((value) => {
-    if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+  const classes = new Set<string>();
+  for (const value of Object.values(source)) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) continue;
     const classType = (value as Record<string, unknown>).class_type;
-    return typeof classType === "string" && classType.trim() ? [classType.trim()] : [];
-  }))).sort();
+    if (typeof classType !== "string") continue;
+    const normalized = classType.trim();
+    if (normalized) classes.add(normalized);
+  }
+  return [...classes].sort();
 }
 
 async function missingNodes(baseUrl: string, names: readonly string[]) {

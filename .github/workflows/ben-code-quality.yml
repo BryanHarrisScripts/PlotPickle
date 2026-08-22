@@ -55,8 +55,8 @@ jobs:
       - name: Validate release security regressions
         run: node --test tests/issue-1226-release-security-cleanup.test.mjs tests/issue-1228-security-closeout.test.mjs
 
-      - name: Validate Casebook real integrations, attended mode, evidence, semantic execution and existing repair-graph authority
-        run: node --test tests/issue-1236-casebook-real-integrations.test.mjs tests/issue-1236-casebook-attended-runner.test.mjs tests/issue-1235-casebook-evidence.test.mjs tests/issue-1234-casebook-contract.test.mjs tests/issue-1218-semantic-execution-contract.test.mjs tests/issue-989-verification-execution-graph.test.mjs
+      - name: Validate Casebook real integrations, attended mode, live outcome proof, evidence, semantic execution and existing repair-graph authority
+        run: node --test tests/issue-1236-casebook-real-integrations.test.mjs tests/issue-1236-casebook-attended-runner.test.mjs tests/issue-1236-casebook-live-verifiers.test.mjs tests/issue-1235-casebook-evidence.test.mjs tests/issue-1234-casebook-contract.test.mjs tests/issue-1218-semantic-execution-contract.test.mjs tests/issue-989-verification-execution-graph.test.mjs
 
       - name: Validate architecture health and record audit evidence
         run: |

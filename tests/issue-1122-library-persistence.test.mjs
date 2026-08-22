@@ -158,10 +158,12 @@ test("#1122 mounts one canonical Library route, accessible filters, safe-switch 
     read("modules/library/ui/avery-session-history/index.tsx"),
   ]);
 
-  const wyrmwood = shell.indexOf('id: "wyrmwood"');
+  const dashboard = shell.indexOf('id: "dashboard"');
   const library = shell.indexOf('id: "library"');
+  const community = shell.indexOf('id: "community"');
   const learn = shell.indexOf('id: "learn"');
-  assert.ok(wyrmwood < library && library < learn);
+  const wyrmwood = shell.indexOf('id: "wyrmwood"');
+  assert.ok(dashboard < library && library < community && community < learn && learn < wyrmwood);
   assert.match(shell, /label: "Library", detail: "Examples & Stories", selectable: true/);
   assert.match(route, /activeWorkspace="library"/);
   assert.match(workspace, /Featured Examples/);

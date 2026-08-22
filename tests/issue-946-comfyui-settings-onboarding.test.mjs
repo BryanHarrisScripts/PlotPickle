@@ -10,7 +10,9 @@ test("Settings can recover ComfyUI instead of disabling the provider", async () 
 
   assert.match(panel, /COMFY_START_API = `\$\{API\}\/comfyui\/start`/);
   assert.match(panel, /window\.confirm\(/);
-  assert.match(panel, /Install \/ start local ComfyUI/);
+  assert.match(panel, /Install ComfyUI Desktop/);
+  assert.match(panel, /Start ComfyUI/);
+  assert.match(panel, /Finish ComfyUI setup/);
   assert.match(panel, /option\.id !== "comfyui" && !configured/);
   assert.match(panel, /selectImageRoute\(option\.id\)/);
   assert.match(panel, /approved: true/);
@@ -28,14 +30,19 @@ test("ComfyUI activation is delayed until the local engine, image nodes, and che
   assert.match(panel, /previousRoute = status\.imageRoute/);
   assert.match(panel, /remains the active image provider/);
   assert.match(panel, /Your current image provider remains active/);
+  assert.match(panel, /comfyConfigured && Boolean\(status\.comfyui\.imageVerifiedAt\)/);
+  assert.match(panel, /Running · test needed/);
+  assert.match(panel, /Tested · ready/);
 });
 
-test("the local onboarding gateway requires explicit consent and invokes the reviewed Windows starter without a shell", async () => {
+test("the local onboarding gateway passively detects installation and requires consent before starting", async () => {
   const gateway = await source("build/comfyui-onboarding-gateway.ts");
 
   for (const contract of [
     "/api/media-routing/comfyui/start",
     "body.approved !== true",
+    "install-local-ai-tool.ps1",
+    "-CheckOnly",
     "start-comfyui-background.ps1",
     "-AllowDesktopLaunch",
     "http://127.0.0.1:8188",
@@ -45,6 +52,10 @@ test("the local onboarding gateway requires explicit consent and invokes the rev
     assert.ok(gateway.includes(contract), `Missing ComfyUI onboarding contract: ${contract}`);
   }
 
+  assert.match(gateway, /request\.method === "GET"/);
+  assert.match(gateway, /installed-stopped/);
+  assert.match(gateway, /not-installed/);
+  assert.match(gateway, /officialDownloadUrl/);
   assert.match(gateway, /execFileAsync\("powershell\.exe"/);
   assert.doesNotMatch(gateway, /shell\s*:\s*true/);
   assert.doesNotMatch(gateway, /Invoke-WebRequest\s+.*(?:huggingface|civitai)/i);

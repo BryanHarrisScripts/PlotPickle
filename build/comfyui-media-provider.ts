@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
@@ -95,11 +96,15 @@ function checkpointNames(body: Record<string, unknown>) {
 }
 
 export function workflowNodeClasses(source: Record<string, unknown>) {
-  return Array.from(new Set(Object.values(source).flatMap((value) => {
-    if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+  const classes = new Set<string>();
+  for (const value of Object.values(source)) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) continue;
     const classType = (value as Record<string, unknown>).class_type;
-    return typeof classType === "string" && classType.trim() ? [classType.trim()] : [];
-  }))).sort();
+    if (typeof classType !== "string") continue;
+    const normalized = classType.trim();
+    if (normalized) classes.add(normalized);
+  }
+  return [...classes].sort();
 }
 
 async function missingNodes(baseUrl: string, names: readonly string[]) {
@@ -233,7 +238,9 @@ export async function generateComfyImage(baseUrl: string, checkpoint: string, in
     const output = firstOutput(entry);
     if (output) {
       const assetUrl = await saveGeneratedAsset(await downloadOutput(baseUrl, output), input.assetId || input.characterId || "comfyui-image", ".png");
-      return { assetUrl, revisedPrompt: "", referenceImagesUsed: 0, providerRequestId: promptId };
+      const fileName = assetUrl.slice(assetUrl.lastIndexOf("/") + 1);
+      const assetLocation = path.join(persistentHome(), "assets", fileName);
+      return { assetUrl, assetLocation, revisedPrompt: "", referenceImagesUsed: 0, providerRequestId: promptId };
     }
     await new Promise((resolve) => setTimeout(resolve, 1_000));
   }
@@ -284,12 +291,10 @@ function comfyJobsPath() {
 }
 
 async function readComfyJobs(): Promise<ComfyVideoJob[]> {
-  try {
-    const value = JSON.parse(await readFile(comfyJobsPath(), "utf8")) as unknown;
-    return Array.isArray(value) ? value.filter((item): item is ComfyVideoJob => Boolean(item && typeof item === "object" && typeof (item as ComfyVideoJob).id === "string")) : [];
-  } catch {
-    return [];
-  }
+  const jobsPath = comfyJobsPath();
+  if (!existsSync(jobsPath)) return [];
+  const value = JSON.parse(await readFile(jobsPath, "utf8")) as unknown;
+  return Array.isArray(value) ? value.filter((item): item is ComfyVideoJob => Boolean(item && typeof item === "object" && typeof (item as ComfyVideoJob).id === "string")) : [];
 }
 
 async function saveComfyJob(job: ComfyVideoJob) {

@@ -233,7 +233,7 @@ test("phase 3 first-run panel exposes independent controls real tests and truthf
     "Manual Import",
     "MiniMax H3 Direct",
     "MiniMax H3 through ComfyUI",
-    "Test image",
+    "Test Image",
     "Paid H3 test",
     "Cloud image test approval",
     "Paid H3 test approval",

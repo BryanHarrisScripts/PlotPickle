@@ -1,9 +1,0 @@
-{
-  "schemaVersion": 3,
-  "portraitSystem": "painterly-fantasy-v1",
-  "groups": [
-    { "id": "writing-story", "label": "Writing & Story", "description": "Helpers who teach, plan, challenge and strengthen the story you are making." },
-    { "id": "creative-visual", "label": "Creative & Visual", "description": "Helpers who develop posters, key art, teasers and other visual storytelling material." },
-    { "id": "community", "label": "Community", "description": "Helpers who welcome you, find earlier decisions and explain verified PlotPicklePlayhouse context." }
-  ]
-}

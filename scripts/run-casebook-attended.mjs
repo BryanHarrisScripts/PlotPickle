@@ -8,6 +8,7 @@ import { createInterface } from "node:readline/promises";
 import { fileURLToPath } from "node:url";
 import { createCreativeBrowser } from "./creative-uat/browser-actions.mjs";
 import { McpClient, resultText } from "./creative-uat/mcp-runtime.mjs";
+import { createPhase3b3StepDrivers, finalizePhase3b3Proof, runPhase3b3Faults } from "./creative-uat/casebook-phase3b3-live.mjs";
 import { loadCasebook } from "./casebook-contract.mjs";
 import { resolveLocalEndpointTarget } from "./local-endpoint-target.mjs";
 import { createAttendedLiveStepDrivers, finalizeAttendedLiveProof } from "./casebook-attended-live-drivers.mjs";
@@ -184,6 +185,7 @@ async function main() {
       const drivers = new Map([
         ...safeStepDrivers(),
         ...createAttendedLiveStepDrivers({ browser, client, baseUrl: endpointTarget.baseUrl, runState }),
+        ...createPhase3b3StepDrivers({ browser, client, runState }),
       ]);
       status(caseDefinition.title, "START", `${caseOffset + 1}/${cases.length}`);
 
@@ -232,20 +234,30 @@ async function main() {
         status(`  ${step.id}`, observation.outcome.toUpperCase(), observation.observed);
       }
 
-      const liveProof = await finalizeAttendedLiveProof({ caseDefinition, client, baseUrl: endpointTarget.baseUrl, runState });
-      if (liveProof) record.independentVerification = liveProof;
+      const phase3b3Proof = await finalizePhase3b3Proof({ caseDefinition, runState });
+      const existingProof = phase3b3Proof || await finalizeAttendedLiveProof({ caseDefinition, client, baseUrl: endpointTarget.baseUrl, runState });
+      if (existingProof) record.independentVerification = existingProof;
       if (record.independentVerification.status !== "verified") {
         record.blockers.push("Independent Business Case outcome proof is still missing or contradicted.");
       }
-      record.blockers.push("Deliberate real-machine fault injection is still required before this attended record can become green.");
+
+      record.faults = await runPhase3b3Faults({ caseDefinition, client, runState });
+      const detectedFaults = record.faults.filter((item) => item.injected === true && item.detected === true).length;
+      if (!record.faults.length || detectedFaults !== record.faults.length) {
+        record.blockers.push("One or more required deliberate fault checks are missing or were not detected.");
+      }
+      if (record.steps.some((item) => item.critical !== false && item.outcome !== "pass")) {
+        record.blockers.push("One or more critical Human/Business Case journey steps did not pass.");
+      }
+
       assertAttendedRecordSafe(record);
       await writeFile(path.join(recordsDir, `${caseDefinition.id}.json`), `${JSON.stringify(record, null, 2)}\n`, "utf8");
-      status(caseDefinition.title, "RECORDED", `independent=${record.independentVerification.status}; faults=pending`);
+      status(caseDefinition.title, "RECORDED", `independent=${record.independentVerification.status}; faults=${detectedFaults}/${record.faults.length}; blockers=${record.blockers.length}`);
     }
 
     await endpointTarget.assertCurrent();
     process.stdout.write(`\nAttended run recorded ${cases.length} Business Case${cases.length === 1 ? "" : "s"}.\n`);
-    process.stdout.write("Sage and ComfyUI now collect independent live outcome proof when available. Human confirmation still never becomes PASS by itself, and real fault injection remains required before Phase 3 can close.\n");
+    process.stdout.write("Casebook now combines visible Human journeys, independent outcome proof and deliberate fault checks. A case remains non-green if any critical step, independent proof or fault detector is missing.\n");
   } finally {
     io.close();
     if (tools.some((tool) => tool.name === "browser_close")) {

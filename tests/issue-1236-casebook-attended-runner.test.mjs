@@ -128,7 +128,7 @@ test("#1236 attended live drivers cover the complete Sage and ComfyUI Human jour
   assert.equal(await finalizeAttendedLiveProof({ caseDefinition: sage, client, baseUrl: "http://127.0.0.1:4173", runState: { sage: { independentProof: proof } } }), proof);
 });
 
-test("#1236 runner is explicitly interactive, resumes after Human authority, and still requires real faults", async () => {
+test("#1236 runner is explicitly interactive, resumes after Human authority, and executes bounded fault checks", async () => {
   const source = await read("scripts/run-casebook-attended.mjs");
   assert.match(source, /process\.stdin\.isTTY/);
   assert.match(source, /Human authorization checkpoints must never be automated/);
@@ -137,8 +137,11 @@ test("#1236 runner is explicitly interactive, resumes after Human authority, and
   assert.match(source, /Secret entry is Human-only and does not become PASS/);
   assert.match(source, /typeof afterHuman === "function"/);
   assert.match(source, /finalizeAttendedLiveProof/);
-  assert.match(source, /Deliberate real-machine fault injection is still required/);
-  assert.match(source, /Human confirmation still never becomes PASS by itself/);
+  assert.match(source, /runPhase3b3Faults/);
+  assert.match(source, /record\.faults = await runPhase3b3Faults/);
+  assert.match(source, /One or more required deliberate fault checks are missing or were not detected/);
+  assert.match(source, /A case remains non-green if any critical step, independent proof or fault detector is missing/);
+  assert.doesNotMatch(source, /Deliberate real-machine fault injection is still required before this attended record can become green/);
   assert.match(source, /import \{ createInterface \} from "node:readline\/promises"/);
   assert.doesNotMatch(source, /const argument\s*=|function argument\s*\(/);
   assert.doesNotMatch(source, /catch\s*\{\s*\}/);

@@ -18,7 +18,7 @@ export function buzzActivityForAgent(agentId: string) {
 }
 
 /**
- * Agent runtime activity is deliberately not mirrored through /api/local-buzz/messages.
+ * Agent runtime activity is deliberately not mirrored through the Human message gateway.
  * That endpoint signs as the connected Human. An official PlotPickle Agent may publish
  * Community speech only when its own BUZZ signer is available. Until then the runtime
  * trace remains local and the connected Human signer is never used as an Agent fallback.

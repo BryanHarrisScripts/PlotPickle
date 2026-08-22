@@ -210,7 +210,7 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
         <div>
           <span>PlotPicklePlayhouse Agents</span>
           <h2>Official Community personalities, their roles, and their current presence.</h2>
-          <p>Your connected BUZZ account remains your Human identity. Every official PlotPicklePlayhouse Agent has a separate public identity, description and portrait; Agent identity never grants new product, story, developer or GitHub authority.</p>
+          <p>Your connected BUZZ account remains your Human identity. Every official PlotPicklePlayhouse Agent has a separate public identity, description and portrait. Skills describe procedure; they never grant permission. Agent identity never grants new product, story, developer or GitHub authority. The writer remains the final authority over creative changes.</p>
         </div>
         <button type="button" disabled={loading} onClick={() => void refresh()}>{loading ? "Checking…" : "Refresh status"}</button>
       </section>

@@ -33,12 +33,10 @@ async function waitFor(operation, predicate, attempts = 16, delayMs = 500) {
 }
 
 function httpOrigin(value) {
-  try {
-    const parsed = new URL(clean(value, 2_000));
-    return new Set(["http:", "https:"]).has(parsed.protocol) ? parsed.origin : "";
-  } catch {
-    return "";
-  }
+  const candidate = clean(value, 2_000);
+  if (!candidate || !URL.canParse(candidate)) return "";
+  const parsed = new URL(candidate);
+  return new Set(["http:", "https:"]).has(parsed.protocol) ? parsed.origin : "";
 }
 
 async function ensurePlotPickleBrowserPage(browser, expectedOrigin) {

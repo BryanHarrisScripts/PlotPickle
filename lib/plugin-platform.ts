@@ -9,7 +9,7 @@ export type PluginPermission =
 export type PluginCapability =
   | "github" | "ai-provider" | "music" | "image-generation" | "voice"
   | "pdf-export" | "final-draft-import" | "final-draft-export" | "fountain"
-  | "report-export" | "panel" | "command";
+  | "report-export" | "panel" | "command" | "community" | "agent-directory" | "buzz-agent-provisioner";
 
 export type PluginManifest = {
   id: string;

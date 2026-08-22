@@ -6,9 +6,19 @@ import path from "node:path";
 export const BUZZ_DESKTOP_COMPATIBILITY = {
   releaseTag: "desktop-v0.5.3",
   version: "0.5.3",
+  minimumVersion: "0.5.3",
   sourceCommit: "3a96ace",
   windowsAsset: "Buzz_0.5.3_x64-setup_alpha-unsigned.exe",
 } as const;
+
+export const BUZZ_DESKTOP_RUNTIME_POLICY = Object.freeze({
+  primary: "profile-scoped-cli",
+  desktopRequired: false,
+  desktopClosed: "supported",
+  desktopRunning: "supported",
+  desktopSessionSignerBridge: false,
+  reason: "PlotPickle uses the installed BUZZ CLI sidecar and its Human-profile encrypted signer whether the BUZZ Desktop window is closed or already running.",
+});
 
 export type BuzzCliSource = "configured" | "environment" | "buzz-desktop" | "path";
 
@@ -104,19 +114,20 @@ export async function resolveBuzzCliExecutable(
   explicitPath = "",
   options: BuzzCliDiscoveryOptions = {},
 ): Promise<BuzzCliResolution> {
+  const env = options.env ?? process.env;
+  const canAccess = options.canAccess ?? defaultCanAccess;
+  const platform = options.platform ?? process.platform;
+
   const configured = explicitPath.trim();
-  if (configured) {
+  if (configured && await canAccess(configured)) {
     return { executable: configured, source: "configured", discovered: false, releaseTag: "" };
   }
 
-  const env = options.env ?? process.env;
   const environmentPath = env.BUZZ_CLI_PATH?.trim();
-  if (environmentPath) {
+  if (environmentPath && await canAccess(environmentPath)) {
     return { executable: environmentPath, source: "environment", discovered: false, releaseTag: "" };
   }
 
-  const canAccess = options.canAccess ?? defaultCanAccess;
-  const platform = options.platform ?? process.platform;
   const candidates = buzzDesktopCliCandidates(platform, env, options.home ?? os.homedir());
   for (const candidate of candidates) {
     if (await canAccess(candidate)) {

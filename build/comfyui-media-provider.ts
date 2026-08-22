@@ -233,7 +233,9 @@ export async function generateComfyImage(baseUrl: string, checkpoint: string, in
     const output = firstOutput(entry);
     if (output) {
       const assetUrl = await saveGeneratedAsset(await downloadOutput(baseUrl, output), input.assetId || input.characterId || "comfyui-image", ".png");
-      return { assetUrl, revisedPrompt: "", referenceImagesUsed: 0, providerRequestId: promptId };
+      const fileName = assetUrl.slice(assetUrl.lastIndexOf("/") + 1);
+      const assetLocation = path.join(persistentHome(), "assets", fileName);
+      return { assetUrl, assetLocation, revisedPrompt: "", referenceImagesUsed: 0, providerRequestId: promptId };
     }
     await new Promise((resolve) => setTimeout(resolve, 1_000));
   }

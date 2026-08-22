@@ -3,7 +3,6 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
-const asWindowsText = (text) => text.replace(/\r?\n/g, "\r\n");
 
 test("each PLAN field exposes exactly three helper questions", async () => {
   const [contract, workspace] = await Promise.all([
@@ -86,19 +85,28 @@ test("a PPF can be reduced to read-only story evidence for PLAN Foundations", as
   assert.doesNotMatch(context, /project\.collaboration|apiKey|password|providerConfiguration|privateLocalPath/);
 });
 
-test("PPF auto-complete fills only empty Foundations fields and saves the Foundations brief", async () => {
-  const workspace = asWindowsText(await read("modules/plan/ui/foundations-plan-workspace.tsx"));
-  const batchMatch = workspace.match(/async function autoCompleteAllFoundations\(\) \{[\s\S]*?\r?\n  }\r?\n\r?\n  async function requestLocalDraft/);
-  assert.ok(batchMatch, "the whole-Foundations auto-complete function should be present on LF or CRLF checkouts");
-  const batch = batchMatch[0];
+test("Foundations auto-complete creates a separate story and completes every Foundations lesson", async () => {
+  const [workspace, autoStory] = await Promise.all([
+    read("modules/plan/ui/foundations-plan-workspace.tsx"),
+    read("modules/plan/foundations-auto-story.ts"),
+  ]);
 
-  assert.match(workspace, /Auto-complete Foundations only/);
-  assert.match(batch, /!isUsableFoundationAnswer\(currentAnswers\[field\.id\]\)/);
-  assert.match(batch, /sourceStoryContext: ppfSource\.context/);
-  assert.match(batch, /type: "foundations\.proposal\.store"/);
-  assert.match(batch, /type: "foundations\.proposal\.accept"/);
-  assert.match(batch, /type: "foundations\.brief\.save"/);
-  assert.doesNotMatch(batch, /type: "lesson\.|type: "foundations\.answer\.update"|BUILD|STORYBOARD|PREVIS|WRITE|EDIT|FEEDBACK|REFINE|REPORTS/);
+  assert.match(workspace, /autoCompleteNewFoundationsStory/);
+  assert.match(workspace, /const previousProjectId = project\.id/);
+  assert.match(workspace, /result\.project\.id === previousProjectId/);
+  assert.match(workspace, /Your previous story was saved separately and was not overwritten/);
+  assert.match(workspace, /Create & auto-complete Foundations/);
+
+  assert.match(autoStory, /createLibraryUserProject/);
+  assert.match(autoStory, /normalizeFullStoryBrief\(\{ originalitySeed: originalitySeed\(\) \}\)/);
+  assert.match(autoStory, /for \(const \[index, lesson\] of input\.lessons\.entries\(\)\)/);
+  assert.match(autoStory, /currentAnswers: \{\}/);
+  assert.match(autoStory, /type: "foundations\.proposal\.store"/);
+  assert.match(autoStory, /type: "foundations\.proposal\.accept"/);
+  assert.match(autoStory, /type: "lesson\.complete"/);
+  assert.match(autoStory, /saveFoundationProject\(workingProject\)/);
+  assert.match(autoStory, /type: "foundations\.brief\.save"/);
+  assert.doesNotMatch(autoStory, /BUILD|STORYBOARD|PREVIS|WRITE|EDIT|FEEDBACK|REFINE|REPORTS/);
 });
 
 test("the Foundations drafter treats imported PPF evidence as read-only source canon", async () => {
@@ -118,7 +126,9 @@ test("PLAN Foundations opens on a welcome choice before lesson editing", async (
   assert.match(workspace, /setShowWelcome\(!requested\)/);
   assert.match(workspace, /Foundations welcome choices/);
   assert.match(workspace, /Choose how you want to begin/);
-  assert.match(workspace, /RECOMMENDED FOR AN EXISTING STORY · PPF AUTO-COMPLETE/);
+  assert.match(workspace, /NEW STORY · ONE PASS · LOCAL AI/);
+  assert.match(workspace, /Create a new story and auto-complete Foundations/);
+  assert.match(workspace, /OPTIONAL · EXISTING \.PPF · READ-ONLY EVIDENCE/);
   assert.match(workspace, /Or build Foundations yourself/);
   assert.match(workspace, /function openFoundationsWelcome\(\)/);
   assert.match(workspace, /url\.searchParams\.delete\("lesson"\)/);

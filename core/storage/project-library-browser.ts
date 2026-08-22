@@ -110,6 +110,18 @@ export function switchActiveLibraryProject(projectId: string) {
   return result.activeProject;
 }
 
+export function createLibraryUserProject(input: {
+  readonly title: string;
+  readonly genre?: string;
+  readonly format?: string;
+}) {
+  const result = libraryCore.createProfileUserProject({ ...coreInput(), ...input }) as {
+    readonly activeProject: PPFProject;
+  };
+  announceChange();
+  return result.activeProject;
+}
+
 export function createLibraryWorkingCopy(input: {
   readonly sourceProject: PPFProject;
   readonly sourceKind: "example" | "preset";

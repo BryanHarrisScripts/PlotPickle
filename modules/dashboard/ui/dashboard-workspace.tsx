@@ -13,7 +13,6 @@ import {
   type ProgressStageState,
 } from "../guided-progression";
 import { deriveVisualWriterFrontierStatus } from "../visual-writer-frontier";
-import AverySessionHistory from "./avery-session-history";
 import styles from "./dashboard-workspace.module.css";
 
 type DashboardDestination = "learn" | "plan" | "build";
@@ -95,8 +94,6 @@ export default function DashboardWorkspace({
           adding only worldbuilding decisions and preserving earlier visual history.
         </p>
       </header>
-
-      <AverySessionHistory />
 
       <section className={styles.nextModule} aria-label="Visual Writer current frontier">
         <div>

@@ -88,7 +88,7 @@ test("#1279 Community shows official Agent state without requiring ownedByMe", a
   ]);
   assert.match(ui, /officialIdentity \|\| identity\.ownedByMe/);
   assert.match(ui, /Official BUZZ identity · Admin provisioning pending/);
-  assert.match(ui, /private signer stays with PlotPickle Admin outside the distributed app/);
+  assert.match(ui, /Official PlotPickle Agent private signers stay with PlotPickle Admin outside the distributed app/);
   assert.match(roster, /public-buzz/);
   assert.match(roster, /public or explicitly shared context only/);
   assert.match(roster, /will not substitute the connected Human identity/);
@@ -96,7 +96,7 @@ test("#1279 Community shows official Agent state without requiring ownedByMe", a
 
 test("#1279 Generate Lore Avatar reuses the selected image route and saves only after generation succeeds", async () => {
   const [contract, panel, route] = await Promise.all([
-    read("lib/human-lore-avatar.ts"),
+    read("lib/buzz-default-community.ts"),
     read("app/profile-access/profile-identity-panel.tsx"),
     read("app/api/auth/profile-presentation/route.ts"),
   ]);

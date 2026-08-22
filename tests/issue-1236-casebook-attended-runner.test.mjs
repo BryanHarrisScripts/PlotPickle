@@ -159,3 +159,20 @@ test("#1236 runner is explicitly interactive, resumes after Human authority, exe
   assert.doesNotMatch(source, /catch\s*\{\s*\}/);
   assert.doesNotMatch(source, /readline.*nsec|question\([^\n]*private key/i);
 });
+
+test("#1269 attended Casebook asks the Human to stop or continue after the first critical non-pass", async () => {
+  const source = await read("scripts/run-casebook-attended.mjs");
+  assert.match(source, /async function operatorCriticalDecision/);
+  assert.match(source, /Choose \[C\]ontinue or \[S\]top/);
+  assert.match(source, /answer === "c" \|\| answer === "continue"/);
+  assert.match(source, /answer === "s" \|\| answer === "stop"/);
+  assert.match(source, /observation\.critical !== false && observation\.outcome !== "pass"/);
+  assert.match(source, /record\.criticalInteractionsUnreached = Math\.max\(0, caseDefinition\.humanJourney\.length - stepOffset - 1\)/);
+  assert.match(source, /remaining dependent journey step\(s\) were not exercised/);
+  assert.match(source, /Independent Business Case outcome proof was not run after the Human-controlled critical interruption/);
+  assert.match(source, /Deliberate fault checks were not run because the journey stopped at a critical non-pass/);
+  assert.match(source, /if \(caseDecision === "stop"\)/);
+  assert.match(source, /Casebook stopped by Human choice after a critical non-pass/);
+  assert.match(source, /await writeFile[\s\S]*if \(caseDecision === "stop"\)/);
+  assert.doesNotMatch(source, /\[C\/s\]|\[c\/S\]/);
+});

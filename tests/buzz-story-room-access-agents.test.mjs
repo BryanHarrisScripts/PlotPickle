@@ -50,7 +50,7 @@ test("PlotPickle agents can have visible BUZZ identities without moving reasonin
     read("config/buzz-guildhall.json"),
   ]);
 
-  assert.match(gateway, /actor\.buzzPresence === "mirrored" \|\| actor\.buzzPresence === "native-draft"/);
+  assert.match(gateway, /BUZZ_GUILDHALL_ACTORS\.filter\(\(actor\) => Boolean\(agentProfileById\(actor\.id\)\?\.publicPresentation\)\)/);
   assert.match(gateway, /"users", "get", "--name", actor\.displayName, "--owner", "me"/);
   assert.match(gateway, /request\.method !== "GET"/);
   assert.match(gateway, /Agent roster status is read-only/);

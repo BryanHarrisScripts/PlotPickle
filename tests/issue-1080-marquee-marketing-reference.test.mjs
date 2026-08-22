@@ -12,6 +12,7 @@ const marketingContract = readFileSync(resolve(root, "core/contracts/build-progr
 const visualContract = readFileSync(resolve(root, "core/visual-contract/visual-contract.ts"), "utf8");
 const page = readFileSync(resolve(root, "app/page.tsx"), "utf8");
 const communityRoster = readFileSync(resolve(root, "app/community-agent-roster.tsx"), "utf8");
+const publicPresentations = JSON.parse(readFileSync(resolve(root, "config/agent-profile-extensions/public.json"), "utf8"));
 const skill = readFileSync(resolve(root, ".agents/skills/marquee-director/SKILL.md"), "utf8");
 const visualContractSkill = readFileSync(resolve(root, ".agents/skills/visual-contract/SKILL.md"), "utf8");
 const skillRegistry = JSON.parse(readFileSync(resolve(root, "config/agent-skills.json"), "utf8"));
@@ -23,7 +24,7 @@ test("#1080 unlocks Marquee only from canonical completed Foundations progressio
   assert.match(page, /<MarqueeAgentOverlay curriculum=\{plotPickleCurriculum\} \/>/);
 });
 
-test("#1080 keeps Marquee as an additive LEARN specialist after the canonical five-wizard roster and out of Community BBS", () => {
+test("#1080 keeps Marquee additive in LEARN while its official Community identity stays separate from private project context", () => {
   assert.match(overlay, /Creative Room agent selector/);
   assert.match(overlay, /WIZARD_ROSTER\.map/);
   assert.match(roster, /"sage-brinewick"[\s\S]*"tamsin-hearthquill"[\s\S]*"master-oaken-vague"[\s\S]*"rowan-scalequill"[\s\S]*"quillan-reedcloak"/);
@@ -32,9 +33,11 @@ test("#1080 keeps Marquee as an additive LEARN specialist after the canonical fi
   assert.ok(rosterIndex >= 0 && marqueeIndex > rosterIndex, "Marquee must remain additive after the five-wizard roster");
   assert.match(overlay, /aria-label="The Marquee Director private project agent"/);
   assert.doesNotMatch(overlay, /\/api\/local-buzz/);
-  assert.match(communityRoster, /PRIVATE_PROJECT_AGENT_IDS = new Set\(\["marquee-director"\]\)/);
-  assert.match(communityRoster, /\.filter\(\(agent\) => !PRIVATE_PROJECT_AGENT_IDS\.has\(agent\.id\)\)/);
-  assert.equal(skill.includes("not a BBS/Guildhall conversation agent"), true);
+  assert.equal(publicPresentations.profiles["marquee-director"].avatarRef, "/assets/helpers/lore/marquee-director.svg");
+  assert.ok(publicPresentations.profiles["marquee-director"].executionContexts.includes("public-buzz"));
+  assert.match(communityRoster, /filter\(\(agent\) => Boolean\(agent\.publicBio && agent\.avatarRef\)\)/);
+  assert.equal(skill.includes("not a BBS/Guildhall conversation agent in this workflow"), true);
+  assert.equal(skill.includes("Do not publish, mirror or summarize private project context into BUZZ"), true);
 });
 
 test("#1080 derives a bounded Marketing Context from PPF Foundations evidence", () => {

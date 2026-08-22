@@ -241,7 +241,7 @@ async function nativeAgentStatus(connection: BuzzConnection, actor: (typeof BUZZ
 }
 
 function visibleActors() {
-  return BUZZ_GUILDHALL_ACTORS.filter((actor) => actor.buzzPresence === "mirrored" || actor.buzzPresence === "native-draft");
+  return BUZZ_GUILDHALL_ACTORS.filter((actor) => Boolean(agentProfileById(actor.id)?.publicPresentation));
 }
 
 async function status() {

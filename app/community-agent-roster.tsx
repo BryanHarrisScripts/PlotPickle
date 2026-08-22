@@ -224,7 +224,7 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
       </section>
 
       <section className={styles.legend} aria-label="Agent status meanings">
-        <p><strong>Online</strong> means the real runtime reports the role available. <strong>Working</strong> means a run is active now. <strong>On demand</strong> means the service starts only when needed. <strong>Parked</strong> means the role is intentionally inactive. An official BUZZ identity is public presence and signed provenance only; its private signer stays with PlotPickle Admin outside the distributed app and never grants new product, story, developer or GitHub authority.</p>
+        <p><strong>Online</strong> means the real runtime reports the role available. <strong>Working</strong> means a run is active now. <strong>On demand</strong> means the service starts only when needed. <strong>Parked</strong> means the role is intentionally inactive. BUZZ identity is community presence and signed provenance only; it does not give an agent new product, story, developer or GitHub authority. Official PlotPickle Agent private signers stay with PlotPickle Admin outside the distributed app.</p>
       </section>
 
       {notice ? <p className={styles.notice} role="status">{notice}</p> : null}

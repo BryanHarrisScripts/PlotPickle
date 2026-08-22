@@ -162,3 +162,16 @@ test("#1271 attended BUZZ uses the authenticated profile API as authority and th
   assert.doesNotMatch(source, /csrfToken/);
   assert.match(source, /createCorePhase3b3StepDrivers/);
 });
+
+test("#1273 attended BUZZ restores a drifted browser to the remembered PlotPickle origin before Human verification", async () => {
+  const source = await readFile(path.join(repoRoot, "scripts", "creative-uat", "casebook-phase3b3-live.mjs"), "utf8");
+  assert.match(source, /function httpOrigin/);
+  assert.match(source, /URL\.canParse\(candidate\)/);
+  assert.match(source, /async function ensurePlotPickleBrowserPage/);
+  assert.match(source, /if \(expectedOrigin && httpOrigin\(beforeUrl\) === expectedOrigin\)/);
+  assert.match(source, /await browser\.navigate\(target\)/);
+  assert.match(source, /runState\.attendedPlotPickleOrigin = initialOrigin/);
+  assert.match(source, /const anchor = await ensurePlotPickleBrowserPage\(browser, runState\.attendedPlotPickleOrigin \|\| initialOrigin\)/);
+  assert.match(source, /re-anchored=\$\{anchor\.reanchored \? "yes" : "no"\}/);
+  assert.doesNotMatch(source, /csrfToken/);
+});

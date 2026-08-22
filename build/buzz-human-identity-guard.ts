@@ -31,6 +31,10 @@ type StoredConnection = {
   identityLabel?: string;
 };
 
+type IdentityCliAttempt =
+  | { ok: true; output: string }
+  | { ok: false; error: unknown };
+
 const UNVERIFIED: HumanIdentityStatus = {
   ready: false,
   identityVerified: false,
@@ -141,6 +145,17 @@ async function runIdentityCli(connection: Required<Pick<StoredConnection, "priva
   });
 }
 
+async function attemptIdentityCli(
+  connection: Required<Pick<StoredConnection, "privateKey" | "relayUrl" | "cliPath">>,
+  args: string[],
+): Promise<IdentityCliAttempt> {
+  try {
+    return { ok: true, output: await runIdentityCli(connection, args) };
+  } catch (error) {
+    return { ok: false, error };
+  }
+}
+
 async function inspectConnectedHuman(): Promise<HumanIdentityStatus> {
   const connection = connectionFrom(await readCredentialJson<unknown>(CONNECTION_FILE));
   const verified = connection?.verificationVersion === 2
@@ -156,17 +171,19 @@ async function inspectConnectedHuman(): Promise<HumanIdentityStatus> {
   const localPubkey = publicKeyFromPrivateKey(privateKey);
   if (!localPubkey) return { ...UNVERIFIED, message: "The saved BUZZ signer is invalid. Disconnect it and reconnect the Human BUZZ identity." };
 
+  const cliConnection = { privateKey, relayUrl, cliPath };
   let profile: Record<string, unknown> | null = null;
-  try {
-    const stdout = await runIdentityCli({ privateKey, relayUrl, cliPath }, ["--format", "compact", "users", "get"]);
-    const decoded: unknown = JSON.parse(stdout || "null");
+  const profileAttempt = await attemptIdentityCli(cliConnection, ["--format", "compact", "users", "get"]);
+  if (profileAttempt.ok) {
+    const decoded: unknown = JSON.parse(profileAttempt.output || "null");
     const candidates = recordsFrom(decoded);
     profile = candidates.find((item) => item.owned_by_me === true || item.ownedByMe === true) ?? candidates[0] ?? null;
-  } catch (profileError) {
-    try {
-      await runIdentityCli({ privateKey, relayUrl, cliPath }, ["--format", "compact", "channels", "list"]);
-    } catch (channelError) {
-      throw new Error(`${redactBuzzDiagnostic(profileError instanceof Error ? profileError.message : profileError)} · ${redactBuzzDiagnostic(channelError instanceof Error ? channelError.message : channelError)}`.slice(0, 700));
+  } else {
+    const channelAttempt = await attemptIdentityCli(cliConnection, ["--format", "compact", "channels", "list"]);
+    if (!channelAttempt.ok) {
+      const profileMessage = redactBuzzDiagnostic(profileAttempt.error instanceof Error ? profileAttempt.error.message : profileAttempt.error);
+      const channelMessage = redactBuzzDiagnostic(channelAttempt.error instanceof Error ? channelAttempt.error.message : channelAttempt.error);
+      throw new Error(`BUZZ signer verification failed: ${profileMessage} · ${channelMessage}`.slice(0, 700));
     }
   }
 

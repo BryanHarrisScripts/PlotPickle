@@ -44,7 +44,6 @@ type SpecialistReply = {
 type JsonMessage = { readonly message?: string };
 
 const SPECIALISTS = new Set<SpecialistId>(["critics-circle"]);
-const PRIVATE_PROJECT_AGENT_IDS = new Set(["marquee-director"]);
 
 async function readJson<T>(url: string): Promise<T> {
   const response = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
@@ -167,7 +166,7 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
     traces,
     buzzIdentityVerified,
     nativeAgents,
-  }).filter((agent) => !PRIVATE_PROJECT_AGENT_IDS.has(agent.id)), [assistantStatus, traces, buzzIdentityVerified, nativeAgents]);
+  }).filter((agent) => Boolean(agent.publicBio && agent.avatarRef)), [assistantStatus, traces, buzzIdentityVerified, nativeAgents]);
 
   const counts = useMemo(() => ({
     active: roster.filter((agent) => agent.state === "working" || agent.state === "online" || agent.state === "away").length,
@@ -209,9 +208,9 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
     <div className={styles.roster}>
       <section className={styles.heading}>
         <div>
-          <span>Agents & Stewards</span>
-          <h2>Who is here, what they help with, and what PlotPickle allows them to do.</h2>
-          <p>Each identity has one host-owned Agent Profile. The profile can request a kind of model, a Skill and safe capabilities, but PlotPickle decides what is actually available. Skills describe procedure; they never grant permission. The writer remains the final authority over creative changes.</p>
+          <span>PlotPicklePlayhouse Agents</span>
+          <h2>Official Community personalities, their roles, and their current presence.</h2>
+          <p>Your connected BUZZ account remains your Human identity. Every official PlotPicklePlayhouse Agent has a separate public identity, description and portrait; Agent identity never grants new product, story, developer or GitHub authority.</p>
         </div>
         <button type="button" disabled={loading} onClick={() => void refresh()}>{loading ? "Checking…" : "Refresh status"}</button>
       </section>
@@ -224,7 +223,7 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
       </section>
 
       <section className={styles.legend} aria-label="Agent status meanings">
-        <p><strong>Online</strong> means the real runtime reports the role available. <strong>Working</strong> means a run is active now. <strong>On demand</strong> means the service starts only when needed. <strong>Parked</strong> means the role is intentionally inactive. BUZZ identity is community presence and signed provenance only; it does not give an agent new product, story, developer or GitHub authority. Official PlotPickle Agent private signers stay with PlotPickle Admin outside the distributed app.</p>
+        <p><strong>Online</strong> means the real runtime reports the role available. <strong>Working</strong> means a run is active now. <strong>On demand</strong> means the service starts only when needed. <strong>Parked</strong> means the role is intentionally inactive. The connected Human signer is never an Agent signer. Official PlotPickle Agent private signers stay with PlotPickle Admin outside the distributed app.</p>
       </section>
 
       {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
@@ -251,7 +250,7 @@ export default function CommunityAgentRoster({ projectContext = null }: { readon
                 <span className={styles.status} data-state={agent.state}><i aria-hidden="true" />{agent.stateLabel}</span>
               </header>
 
-              <p className={styles.summaryText}>{agent.summary}</p>
+              <p className={styles.summaryText}>{agent.publicBio || agent.summary}</p>
               <p className={styles.stateDetail}>{agent.stateDetail}</p>
 
               <dl>

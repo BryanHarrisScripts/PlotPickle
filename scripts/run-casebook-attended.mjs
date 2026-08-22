@@ -4,7 +4,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
-import readline from "node:readline/promises";
+import { createInterface } from "node:readline/promises";
 import { fileURLToPath } from "node:url";
 import { createCreativeBrowser } from "./creative-uat/browser-actions.mjs";
 import { McpClient, resultText } from "./creative-uat/mcp-runtime.mjs";
@@ -22,15 +22,14 @@ import {
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
-const argument = (name, fallback = "") => {
-  const index = argv.indexOf(name);
-  return index >= 0 && index + 1 < argv.length ? argv[index + 1] : fallback;
-};
-const has = (name) => argv.includes(name);
+const artifactArgIndex = argv.indexOf("--artifact-root");
+const caseArgIndex = argv.indexOf("--case");
+const browserArgIndex = argv.indexOf("--browser");
 const localRoot = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
-const artifactRoot = path.resolve(argument("--artifact-root", path.join(localRoot, "PlotPickle", "casebook-attended")));
-const requestedCase = argument("--case", "");
-const browserName = argument("--browser", "chrome");
+const defaultArtifactRoot = path.join(localRoot, "PlotPickle", "casebook-attended");
+const artifactRoot = path.resolve(artifactArgIndex >= 0 && artifactArgIndex + 1 < argv.length ? argv[artifactArgIndex + 1] : defaultArtifactRoot);
+const requestedCase = caseArgIndex >= 0 && caseArgIndex + 1 < argv.length ? argv[caseArgIndex + 1] : "";
+const browserName = browserArgIndex >= 0 && browserArgIndex + 1 < argv.length ? argv[browserArgIndex + 1] : "chrome";
 const pluginRoot = path.join(repoRoot, "tools", "agent-plugins", "plotpickle-workflow-tester");
 const pluginData = path.join(artifactRoot, "browser-profile");
 const recordsDir = path.join(artifactRoot, "records");
@@ -73,8 +72,17 @@ function safeStepDrivers() {
     ["buzz-connect-existing-identity:enter-existing-key", async ({ browser, client, checkpoint }) => {
       const clicked = await firstVisibleClick(browser, ["Connect Existing Identity", "Replace identity"]);
       if (!clicked) return { outcome: "uncertain", observed: "Connect Existing Identity control was not found.", interaction: "pointer", target: "Connect Existing Identity", critical: false };
-      const fieldReady = await observePage(client, ["Private identity key"], "The masked BUZZ private identity field is visible for Human entry.", "The BUZZ private identity field did not become visible.");
-      return { ...fieldReady, interaction: "focus", target: "Private identity key", humanCheckpoint: checkpoint, critical: false };
+      const fieldReady = await observePage(client, ["Private identity key"], "The masked BUZZ private identity field is ready for Human entry.", "The BUZZ private identity field did not become visible.");
+      return {
+        outcome: "uncertain",
+        observed: fieldReady.outcome === "pass"
+          ? "The masked BUZZ private identity field is ready. Secret entry is Human-only and does not become PASS until the subsequent signer/connected-state verifier succeeds."
+          : fieldReady.observed,
+        interaction: "focus",
+        target: "Private identity key",
+        humanCheckpoint: checkpoint,
+        critical: false,
+      };
     }],
     ["buzz-connect-existing-identity:verify-signer", async ({ browser, client }) => {
       const clicked = await firstVisibleClick(browser, ["Connect identity"]);
@@ -160,7 +168,7 @@ async function main() {
   const config = JSON.parse(await readFile(path.join(pluginRoot, "mcp.json"), "utf8"));
   const visibleServer = buildAttendedPlaywrightServer(config?.mcpServers?.playwright, { pluginRoot, pluginData, browser: browserName });
   const client = new McpClient(visibleServer.command, visibleServer.args, { cwd: visibleServer.cwd, env: visibleServer.env });
-  const io = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const io = createInterface({ input: process.stdin, output: process.stdout });
   const runnerFindings = [];
   const browserEvidence = [];
   let tools = [];
@@ -235,9 +243,13 @@ async function main() {
   } finally {
     io.close();
     if (tools.some((tool) => tool.name === "browser_close")) {
-      try { await client.call("browser_close", {}); } catch {}
+      try {
+        await client.call("browser_close", {});
+      } catch (error) {
+        runnerFindings.push(`Browser close warning: ${scrubAttendedText(error instanceof Error ? error.message : String(error))}`);
+      }
     }
-    await client.close().catch(() => undefined);
+    await client.close().catch((error) => runnerFindings.push(`MCP close warning: ${scrubAttendedText(error instanceof Error ? error.message : String(error))}`));
   }
 }
 

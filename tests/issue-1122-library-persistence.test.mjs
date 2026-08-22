@@ -155,7 +155,7 @@ test("#1122 mounts one canonical Library route, accessible filters, safe-switch 
     read("modules/library/project-library-catalog.ts"),
     read("core/storage/project-library-browser.ts"),
     read("core/storage/project-library-core.mjs"),
-    read("modules/dashboard/ui/avery-session-history/index.tsx"),
+    read("modules/library/ui/avery-session-history/index.tsx"),
   ]);
 
   const wyrmwood = shell.indexOf('id: "wyrmwood"');

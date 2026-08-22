@@ -21,12 +21,13 @@ async function casebookBrowserValue({ client, functionSource, label }) {
   return parsed;
 }
 
-async function browserFetchStatus({ client, pathname, label }) {
+async function browserFetchStatus({ client, baseUrl, pathname, label }) {
+  const requestUrl = new URL(pathname, baseUrl).toString();
   return casebookBrowserValue({
     client,
     label,
     functionSource: `async () => {
-      const response = await fetch(${JSON.stringify(pathname)}, { cache: 'no-store' });
+      const response = await fetch(${JSON.stringify(requestUrl)}, { cache: 'no-store' });
       const text = await response.text();
       let body = {};
       try { body = text ? JSON.parse(text) : {}; } catch { body = { raw: text.slice(0, 500) }; }
@@ -129,7 +130,7 @@ export function createAttendedLiveStepDrivers({ browser, client, baseUrl, runSta
   });
 
   drivers.set("sage-local-text-usable-response:invoke-selected-provider", async () => {
-    const route = await browserFetchStatus({ client, pathname: "/api/ai-routing/status", label: "AI routing status" });
+    const route = await browserFetchStatus({ client, baseUrl, pathname: "/api/ai-routing/status", label: "AI routing status" });
     const selected = route?.body?.text?.selected || route?.body?.choice?.text || "";
     const ready = route?.body?.text?.options?.ollama?.ready === true;
     runState.sage = { ...(runState.sage || {}), routeStatus: route?.body || {} };
@@ -205,7 +206,7 @@ export function createAttendedLiveStepDrivers({ browser, client, baseUrl, runSta
       extra: { humanCheckpoint: checkpoint },
     }),
     afterHuman: async () => {
-      const status = await browserFetchStatus({ client, pathname: "/api/media-routing/status", label: "ComfyUI media status after Human approval" });
+      const status = await browserFetchStatus({ client, baseUrl, pathname: "/api/media-routing/status", label: "ComfyUI media status after Human approval" });
       runState.comfyui = { ...(runState.comfyui || {}), mediaStatus: status?.body || {} };
       const comfy = status?.body?.comfyui || {};
       return comfy.reachable === true
@@ -215,7 +216,7 @@ export function createAttendedLiveStepDrivers({ browser, client, baseUrl, runSta
   }));
 
   drivers.set("comfyui-local-image-visible:verify-prerequisites", async () => {
-    const status = await browserFetchStatus({ client, pathname: "/api/media-routing/status", label: "ComfyUI prerequisite status" });
+    const status = await browserFetchStatus({ client, baseUrl, pathname: "/api/media-routing/status", label: "ComfyUI prerequisite status" });
     runState.comfyui = { ...(runState.comfyui || {}), mediaStatus: status?.body || {} };
     const comfy = status?.body?.comfyui || {};
     const checkpoint = casebookObservedText(comfy.checkpoint || comfy.selectedCheckpoint || "").slice(0, 260);
@@ -255,7 +256,7 @@ export function createAttendedLiveStepDrivers({ browser, client, baseUrl, runSta
   });
 
   drivers.set("comfyui-local-image-visible:enable-local-route", async () => {
-    const before = await browserFetchStatus({ client, pathname: "/api/ai-routing/status", label: "AI routing readiness before local selection" });
+    const before = await browserFetchStatus({ client, baseUrl, pathname: "/api/ai-routing/status", label: "AI routing readiness before local selection" });
     const option = before?.body?.image?.options?.["ollama-comfyui"] || {};
     if (option.ready !== true) {
       runState.comfyui = { ...(runState.comfyui || {}), aiStatus: before?.body || {} };
@@ -267,7 +268,7 @@ export function createAttendedLiveStepDrivers({ browser, client, baseUrl, runSta
       return attendedObservation({ outcome: "uncertain", observed: "The local route is ready in the routing contract, but its visible radio control could not be exercised from Settings.", interaction: "pointer", target: "Ollama + ComfyUI · Local" });
     }
     await new Promise((resolve) => setTimeout(resolve, 500));
-    const after = await browserFetchStatus({ client, pathname: "/api/ai-routing/status", label: "AI routing status after local selection" });
+    const after = await browserFetchStatus({ client, baseUrl, pathname: "/api/ai-routing/status", label: "AI routing status after local selection" });
     runState.comfyui = { ...(runState.comfyui || {}), aiStatus: after?.body || {} };
     return after?.body?.image?.selected === "ollama-comfyui"
       ? attendedObservation({ outcome: "pass", observed: "Ollama + ComfyUI · Local is ready, visibly selectable, and became the active image route.", interaction: "pointer", target: "Ollama + ComfyUI · Local" })
@@ -288,8 +289,8 @@ export async function finalizeAttendedLiveProof({ caseDefinition, client, baseUr
     });
   }
   if (caseDefinition.id === "comfyui-local-image-visible") {
-    const media = await browserFetchStatus({ client, pathname: "/api/media-routing/status", label: "final ComfyUI media status" });
-    const ai = await browserFetchStatus({ client, pathname: "/api/ai-routing/status", label: "final AI routing status" });
+    const media = await browserFetchStatus({ client, baseUrl, pathname: "/api/media-routing/status", label: "final ComfyUI media status" });
+    const ai = await browserFetchStatus({ client, baseUrl, pathname: "/api/ai-routing/status", label: "final AI routing status" });
     const image = runState.comfyui?.visibleImage || await waitForVisibleComfyImage({ client, attempts: 5 });
     return verifyComfyUiVisibleOutput({
       baseUrl,

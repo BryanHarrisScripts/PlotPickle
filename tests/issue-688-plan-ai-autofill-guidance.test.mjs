@@ -66,11 +66,12 @@ test("PLAN recovers failed Quality fields through the Fast local role before giv
   assert.match(drafter, /after Quality and Fast local recovery/);
 });
 
-test("a PPF can be reduced to read-only story evidence for PLAN Foundations", async () => {
-  const [gateway, context, localGateway] = await Promise.all([
+test("a PPF can be reduced to optional read-only story evidence for manual PLAN Foundations drafting", async () => {
+  const [gateway, context, localGateway, workspace] = await Promise.all([
     read("build/foundations-ppf-gateway.ts"),
     read("lib/foundation-source-context.ts"),
     read("build/local-ai-gateway.ts"),
+    read("modules/plan/ui/foundations-plan-workspace.tsx"),
   ]);
 
   assert.match(gateway, /\/api\/plan\/foundations\/ppf-context/);
@@ -84,21 +85,41 @@ test("a PPF can be reduced to read-only story evidence for PLAN Foundations", as
   assert.match(context, /project\.characters/);
   assert.match(context, /project\.blocks/);
   assert.doesNotMatch(context, /project\.collaboration|apiKey|password|providerConfiguration|privateLocalPath/);
+  assert.match(workspace, /Load a \.ppf for manual drafting help/);
+  assert.match(workspace, /does not run auto-complete, does not switch projects/);
 });
 
-test("PPF auto-complete fills only empty Foundations fields and saves the Foundations brief", async () => {
+test("Foundations auto-complete creates a brand-new isolated Library story and completes every Foundations field", async () => {
   const workspace = asWindowsText(await read("modules/plan/ui/foundations-plan-workspace.tsx"));
   const batchMatch = workspace.match(/async function autoCompleteAllFoundations\(\) \{[\s\S]*?\r?\n  }\r?\n\r?\n  async function requestLocalDraft/);
   assert.ok(batchMatch, "the whole-Foundations auto-complete function should be present on LF or CRLF checkouts");
   const batch = batchMatch[0];
 
-  assert.match(workspace, /Auto-complete Foundations only/);
-  assert.match(batch, /!isUsableFoundationAnswer\(currentAnswers\[field\.id\]\)/);
-  assert.match(batch, /sourceStoryContext: ppfSource\.context/);
+  assert.match(workspace, /Create & auto-complete Foundations/);
+  assert.match(batch, /saveFoundationProject\(project\)/);
+  assert.match(batch, /createFoundationsAutoStory\(\)/);
+  assert.match(batch, /saveFoundationProject\(workingProject\)/);
+  assert.match(batch, /projectTitle: autoStory\.title/);
+  assert.match(batch, /lesson,/);
+  assert.match(batch, /sourceStoryContext: autoStory\.context/);
   assert.match(batch, /type: "foundations\.proposal\.store"/);
   assert.match(batch, /type: "foundations\.proposal\.accept"/);
   assert.match(batch, /type: "foundations\.brief\.save"/);
-  assert.doesNotMatch(batch, /type: "lesson\.|type: "foundations\.answer\.update"|BUILD|STORYBOARD|PREVIS|WRITE|EDIT|FEEDBACK|REFINE|REPORTS/);
+  assert.match(batch, /previous active story was preserved/);
+  assert.match(batch, /previous story was not overwritten/);
+  assert.doesNotMatch(batch, /!ppfSource/);
+  assert.doesNotMatch(batch, /emptyFields|currently empty/i);
+});
+
+test("Foundations auto-story seed uses a fresh project identity and original working premise", async () => {
+  const helper = await read("modules/plan/foundations-auto-story.ts");
+  assert.match(helper, /createEmptyProject/);
+  assert.match(helper, /globalThis\.crypto\.randomUUID\(\)/);
+  assert.match(helper, /globalThis\.crypto\.getRandomValues/);
+  assert.match(helper, /const premise = `In \$\{setting\}/);
+  assert.match(helper, /PlotPickle auto-created this original working story seed/);
+  assert.match(helper, /Do not refer to another Human story or imported project/);
+  assert.doesNotMatch(helper, /loadFoundationProject|saveFoundationProject|localStorage|sessionStorage/);
 });
 
 test("the Foundations drafter treats imported PPF evidence as read-only source canon", async () => {
@@ -117,8 +138,8 @@ test("PLAN Foundations opens on a welcome choice before lesson editing", async (
   assert.match(workspace, /const \[showWelcome, setShowWelcome\] = useState\(true\)/);
   assert.match(workspace, /setShowWelcome\(!requested\)/);
   assert.match(workspace, /Foundations welcome choices/);
-  assert.match(workspace, /Choose how you want to begin/);
-  assert.match(workspace, /RECOMMENDED FOR AN EXISTING STORY · PPF AUTO-COMPLETE/);
+  assert.match(workspace, /Create a brand-new story with a complete Foundations working draft in one pass/);
+  assert.match(workspace, /RECOMMENDED · NEW STORY AUTO-COMPLETE/);
   assert.match(workspace, /Or build Foundations yourself/);
   assert.match(workspace, /function openFoundationsWelcome\(\)/);
   assert.match(workspace, /url\.searchParams\.delete\("lesson"\)/);

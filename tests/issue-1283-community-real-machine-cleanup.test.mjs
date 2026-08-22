@@ -43,9 +43,13 @@ test("#1283 Community rooms and Agent membership come from a reusable plugin rat
   assert.match(pluginCode, /createCommunityExtensionSnapshot/);
   assert.match(pluginCode, /buzz-agent-provisioner/);
 
-  for (const surface of [workspace, social, roster]) {
+  for (const surface of [workspace, social]) {
     for (const id of PUBLIC_AGENT_IDS) assert.doesNotMatch(surface, new RegExp(`"${id}"`));
   }
+  for (const id of PUBLIC_AGENT_IDS.filter((value) => value !== "critics-circle")) {
+    assert.doesNotMatch(roster, new RegExp(`"${id}"`));
+  }
+  assert.match(roster, /const SPECIALISTS = new Set<SpecialistId>\(\["critics-circle"\]\)/, "Critics' Circle remains an explicit private specialist interaction, not a room-membership hard-code");
   assert.match(workspace, /PLOTPICKLE_PLAYHOUSE_PLUGIN\.rooms/);
   assert.match(social, /agentsForCommunityRoom/);
   assert.match(roster, /publicAgentByProfileId/);
@@ -78,6 +82,23 @@ test("#1283 rooms explain their value and show groups of relevant Agents", async
     assert.ok(room.actionHint.trim());
     assert.ok(pluginConfig.agents.some((agent) => agent.roomIds.includes(room.id)));
   }
+});
+
+test("#1283 reusable BUZZ provisioner consumes plugin contributions and fails closed around owner approval", async () => {
+  const provisioner = await read("scripts/provision-community-agents.mjs");
+  for (const id of PUBLIC_AGENT_IDS) assert.doesNotMatch(provisioner, new RegExp(`"${id}"`));
+  assert.match(provisioner, /PLOTPICKLE_COMMUNITY_PLUGIN_CONFIG/);
+  assert.match(provisioner, /plugin\.agents\.map/);
+  assert.match(provisioner, /plugin\.rooms/);
+  assert.match(provisioner, /"users", "get", "--name", agent\.displayName, "--owner", "me"/);
+  assert.match(provisioner, /"agents", "draft-create"/);
+  assert.match(provisioner, /"channels", "add-member"[\s\S]*"--role", "bot"/);
+  assert.match(provisioner, /ambiguous-existing-agent/);
+  assert.match(provisioner, /awaiting-owner-approval/);
+  assert.match(provisioner, /owner-provisioner-required/);
+  assert.match(provisioner, /state\.pendingDrafts/);
+  assert.match(provisioner, /publicIdentityUpdates/);
+  assert.doesNotMatch(provisioner, /console\.log\([^\n]*(?:humanKey|provisionerKey|provisionerAuthTag)/);
 });
 
 test("#1283 Great Hall is normal readable BUZZ conversation and legacy verification dumps are hidden", async () => {

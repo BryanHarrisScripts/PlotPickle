@@ -2,6 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AgentPortrait from "../../components/agent-portrait";
+import { agentsForCommunityRoom } from "../../lib/community-extension-plugin";
+import {
+  PLOTPICKLE_COMMUNITY_EXTENSIONS,
+  PLOTPICKLE_PLAYHOUSE_PLUGIN,
+} from "../../plugins/plotpickle-playhouse";
 import styles from "./community-buzz-social.module.css";
 
 type CommunityMember = { readonly pubkey: string; readonly displayName: string; readonly presence: string; readonly updatedAt: string };
@@ -26,47 +31,24 @@ type Props = {
 
 type RoomGuide = {
   readonly purpose: string;
+  readonly actionHint: string;
   readonly agents: readonly { id: string; name: string }[];
 };
 
 const BUZZ_API = "/api/local-buzz";
-const ROOM_GUIDES: Readonly<Record<string, RoomGuide>> = {
-  "great-hall": {
-    purpose: "General Community conversation, welcome, questions and handoffs.",
-    agents: [
-      { id: "sage-brinewick", name: "Sage" },
-      { id: "merrin-bellwarden", name: "Merrin" },
-      { id: "orin-ledgerbark", name: "Orin" },
-    ],
-  },
-  "story-council": {
-    purpose: "Plan, structure, characters, continuity and independent story review.",
-    agents: [
-      { id: "tamsin-hearthquill", name: "Tamsin" },
-      { id: "quillan-reedcloak", name: "Quillan" },
-      { id: "elowen-mapweaver", name: "Elowen" },
-      { id: "mira-threadmere", name: "Mira" },
-      { id: "critics-circle", name: "Critics' Circle" },
-      { id: "sage-brinewick", name: "Sage" },
-    ],
-  },
-  "wyrmwood-ring": {
-    purpose: "Play curriculum challenges and discuss Wyrmwood lesson evaluation.",
-    agents: [
-      { id: "master-oaken-vague", name: "Oaken" },
-      { id: "rowan-scalequill", name: "Rowan" },
-      { id: "sage-brinewick", name: "Sage" },
-    ],
-  },
-  marquee: {
-    purpose: "Develop posters, key art, visual direction and promotion from approved story context.",
-    agents: [
-      { id: "marquee-director", name: "Marquee Director" },
-      { id: "quillan-reedcloak", name: "Quillan" },
-      { id: "mira-threadmere", name: "Mira" },
-    ],
-  },
-};
+
+function roomGuideFor(roomId: string): RoomGuide | null {
+  const room = PLOTPICKLE_COMMUNITY_EXTENSIONS.rooms.find((candidate) => candidate.id === roomId);
+  if (!room) return null;
+  return {
+    purpose: room.description,
+    actionHint: room.actionHint,
+    agents: agentsForCommunityRoom(PLOTPICKLE_COMMUNITY_EXTENSIONS, roomId).map((agent) => ({
+      id: agent.profileId,
+      name: agent.displayName,
+    })),
+  };
+}
 
 function chronological(messages: readonly BuzzMessage[]) {
   return [...messages].sort((left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime());
@@ -111,7 +93,7 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
 
-  const roomGuide = useMemo(() => target ? ROOM_GUIDES[target.id] ?? null : null, [target]);
+  const roomGuide = useMemo(() => target ? roomGuideFor(target.id) : null, [target]);
 
   const refresh = useCallback(async (quiet = false) => {
     if (!target?.channelId) { setMessages([]); return; }
@@ -152,10 +134,10 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
   if (!target) {
     return <>
       <main className={styles.conversation} aria-label="BUZZ Community conversation">
-        <header className={styles.conversationHeader}><div><span>PlotPicklePlayhouse</span><h2>Choose a room or Direct Message</h2></div></header>
+        <header className={styles.conversationHeader}><div><span>{PLOTPICKLE_PLAYHOUSE_PLUGIN.displayName}</span><h2>Choose a room or Direct Message</h2></div></header>
         <p className={styles.empty}>Rooms are organized around what you want to do. Pick a room from the left; the Agents who help there are shown before the conversation.</p>
       </main>
-      <aside className={styles.context} aria-label="Community details"><header className={styles.contextHeader}><div><span>Community</span><h3>PlotPicklePlayhouse</h3></div></header><div className={styles.contextBody}><section className={styles.contextCard}><span>Your identity</span><h4>You speak as yourself.</h4><p>Agent activity never falls back to your signer. Official Agents speak in BUZZ only through their own identities.</p></section></div></aside>
+      <aside className={styles.context} aria-label="Community details"><header className={styles.contextHeader}><div><span>Community</span><h3>{PLOTPICKLE_PLAYHOUSE_PLUGIN.displayName}</h3></div></header><div className={styles.contextBody}><section className={styles.contextCard}><span>Your identity</span><h4>You speak as yourself.</h4><p>Agent activity never falls back to your signer. Official Agents speak in BUZZ only through their own identities.</p></section></div></aside>
     </>;
   }
 
@@ -168,7 +150,7 @@ export default function CommunityBuzzSocial({ target, members, canPost, desktopU
         <div><span>{kindLabel}</span><h2>{target.label}</h2><small>{target.description}</small></div>
       </header>
       {roomGuide ? <section className={styles.roomGuide} aria-label={`Who helps in ${target.label}`}>
-        <div><span>What this room is for</span><p>{roomGuide.purpose}</p></div>
+        <div><span>What this room is for</span><p>{roomGuide.purpose}</p><small>{roomGuide.actionHint}</small></div>
         <div className={styles.helpers}><span>Who helps here</span><div>{roomGuide.agents.map((agent) => <span className={styles.helper} key={agent.id}><AgentPortrait id={agent.id} size={34} /><small>{agent.name}</small></span>)}</div></div>
       </section> : null}
       <section className={styles.timeline} aria-live="polite">

@@ -172,6 +172,7 @@ test("#1269 attended Casebook asks the Human to stop or continue after the first
   assert.match(source, /Independent Business Case outcome proof was not run after the Human-controlled critical interruption/);
   assert.match(source, /Deliberate fault checks were not run because the journey stopped at a critical non-pass/);
   assert.match(source, /if \(caseDecision === "stop"\)/);
+  assert.match(source, /if \(caseDecision === "continue"\)[\s\S]*await browser\.navigate\(endpointTarget\.baseUrl\)/);
   assert.match(source, /Casebook stopped by Human choice after a critical non-pass/);
   assert.match(source, /await writeFile[\s\S]*if \(caseDecision === "stop"\)/);
   assert.doesNotMatch(source, /\[C\/s\]|\[c\/S\]/);

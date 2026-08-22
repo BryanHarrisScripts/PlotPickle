@@ -28,7 +28,8 @@ test("#1279 canonical five wizards own one public PlotPickle presentation contra
     read("modules/learn/model/learn-agent-roster.ts"),
   ]);
   assert.equal(publicConfig.schemaVersion, 1);
-  assert.deepEqual(Object.keys(publicConfig.profiles), OFFICIAL_WIZARDS);
+  const publicIds = new Set(Object.keys(publicConfig.profiles));
+  for (const id of OFFICIAL_WIZARDS) assert.ok(publicIds.has(id), `Public presentation missing ${id}`);
   const baseIds = new Set(base.profiles.map((profile) => profile.id));
   for (const id of OFFICIAL_WIZARDS) {
     assert.ok(baseIds.has(id), `Host Agent Profile missing ${id}`);

@@ -155,7 +155,10 @@ async function runBuzz(connection: BuzzConnection, args: string[]) {
     BUZZ_PRIVATE_KEY: connection.privateKey,
   });
   try { return JSON.parse(result.stdout || "null") as unknown; }
-  catch { throw new Error("BUZZ CLI returned invalid JSON."); }
+  catch (cause) {
+    const detail = cause instanceof Error ? cause.message : String(cause);
+    throw new Error(`BUZZ CLI returned invalid JSON: ${detail}`, { cause });
+  }
 }
 
 function array(value: unknown): unknown[] {

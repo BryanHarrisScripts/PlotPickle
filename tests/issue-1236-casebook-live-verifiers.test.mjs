@@ -32,10 +32,10 @@ function mediaStatus(overrides = {}) {
   };
 }
 
-function aiStatus(overrides = {}) {
+function aiStatus(overrides = {}, selected = "ollama-comfyui") {
   return {
     image: {
-      selected: "comfyui",
+      selected,
       options: {
         "ollama-comfyui": { ready: true, model: "Ollama → SDXL", ...overrides },
       },
@@ -78,7 +78,7 @@ test("#1236 Sage independent verifier rejects the vague real-machine fallback an
   assert.match(wrongRoute.summary, /not ollama/i);
 });
 
-test("#1236 ComfyUI independent verifier requires local asset read-back, visible image readiness and combined-route readiness", async () => {
+test("#1236 ComfyUI independent verifier requires local asset read-back, visible image readiness and active combined route", async () => {
   const bytes = Buffer.alloc(2_400, 7);
   const result = await verifyComfyUiVisibleOutput({
     baseUrl: "http://127.0.0.1:4173",
@@ -94,9 +94,10 @@ test("#1236 ComfyUI independent verifier requires local asset read-back, visible
   assert.equal(result.source, "comfyui-output-observer");
   assert.equal(result.metadata.assetBytes, 2400);
   assert.equal(result.metadata.combinedRouteReady, true);
+  assert.equal(result.metadata.combinedRouteSelected, true);
 });
 
-test("#1236 ComfyUI verifier rejects job-only success, external assets, and a route still marked Test needed", async () => {
+test("#1236 ComfyUI verifier rejects job-only success, external assets, Test-needed route, and unselected route", async () => {
   const noVisible = await verifyComfyUiVisibleOutput({
     baseUrl: "http://127.0.0.1:4173",
     imageSrc: "",
@@ -115,6 +116,16 @@ test("#1236 ComfyUI verifier rejects job-only success, external assets, and a ro
   });
   assert.equal(routeBlocked.status, "contradicted");
   assert.match(routeBlocked.summary, /not ready\/selectable/i);
+
+  const unselected = await verifyComfyUiVisibleOutput({
+    baseUrl: "http://127.0.0.1:4173",
+    imageSrc: "/generated/test.png",
+    mediaStatus: mediaStatus(),
+    aiStatus: aiStatus({}, "comfyui"),
+    fetchImpl: async () => new Response(Buffer.alloc(2_000), { status: 200, headers: { "content-type": "image/png" } }),
+  });
+  assert.equal(unselected.status, "contradicted");
+  assert.match(unselected.summary, /not ollama-comfyui/i);
 
   const external = await verifyComfyUiVisibleOutput({
     baseUrl: "http://127.0.0.1:4173",

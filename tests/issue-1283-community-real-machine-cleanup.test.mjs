@@ -3,19 +3,62 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+const readJson = async (path) => JSON.parse(await read(path));
 
-test("#1283 normal Community rail is four Human-purpose rooms rather than internal architecture", async () => {
-  const workspace = await read("app/community-workspace.tsx");
-  for (const pair of [
-    ["great-hall", "Great Hall"],
-    ["story-council", "Story Workshop"],
-    ["wyrmwood-ring", "Wyrmwood"],
-    ["marquee", "Marquee"],
-  ]) {
-    assert.match(workspace, new RegExp(`id: "${pair[0]}"`));
-    assert.match(workspace, new RegExp(`label: "${pair[1]}"`));
+const PUBLIC_AGENT_IDS = [
+  "sage-brinewick",
+  "tamsin-hearthquill",
+  "master-oaken-vague",
+  "rowan-scalequill",
+  "quillan-reedcloak",
+  "elowen-mapweaver",
+  "mira-threadmere",
+  "marquee-director",
+  "critics-circle",
+  "merrin-bellwarden",
+  "orin-ledgerbark",
+  "fen-copperwind",
+];
+
+const PUBLIC_ROOMS = [
+  ["great-hall", "Great Hall"],
+  ["story-council", "Story Workshop"],
+  ["wyrmwood-ring", "Wyrmwood"],
+  ["marquee", "Marquee"],
+];
+
+test("#1283 Community rooms and Agent membership come from a reusable plugin rather than app hard-coding", async () => {
+  const [workspace, social, roster, pluginCode, pluginConfig] = await Promise.all([
+    read("app/community-workspace.tsx"),
+    read("modules/community/community-buzz-social.tsx"),
+    read("app/community-agent-roster.tsx"),
+    read("plugins/plotpickle-playhouse/index.ts"),
+    readJson("plugins/plotpickle-playhouse/community.json"),
+  ]);
+
+  assert.equal(pluginConfig.communityId, "plotpickle-playhouse");
+  assert.deepEqual(pluginConfig.rooms.map((room) => [room.id, room.label]), PUBLIC_ROOMS);
+  assert.deepEqual(pluginConfig.agents.map((agent) => agent.profileId), PUBLIC_AGENT_IDS);
+  assert.match(pluginCode, /defineCommunityExtensionPlugin/);
+  assert.match(pluginCode, /createCommunityExtensionSnapshot/);
+  assert.match(pluginCode, /buzz-agent-provisioner/);
+
+  for (const surface of [workspace, social, roster]) {
+    for (const id of PUBLIC_AGENT_IDS) assert.doesNotMatch(surface, new RegExp(`"${id}"`));
   }
+  assert.match(workspace, /PLOTPICKLE_PLAYHOUSE_PLUGIN\.rooms/);
+  assert.match(social, /agentsForCommunityRoom/);
+  assert.match(roster, /publicAgentByProfileId/);
+});
+
+test("#1283 normal Community rail is Human-purpose rooms rather than internal architecture", async () => {
+  const [workspace, pluginConfig] = await Promise.all([
+    read("app/community-workspace.tsx"),
+    readJson("plugins/plotpickle-playhouse/community.json"),
+  ]);
+  assert.equal(pluginConfig.rooms.length, 4);
   for (const hidden of ["gatehouse", "forge", "lantern-watch", "wayfarer-journal", "github-herald"]) {
+    assert.equal(pluginConfig.rooms.some((room) => room.id === hidden), false);
     assert.doesNotMatch(workspace, new RegExp(`id: "${hidden}"`));
   }
   assert.match(workspace, />Rooms</);
@@ -24,11 +67,16 @@ test("#1283 normal Community rail is four Human-purpose rooms rather than intern
 });
 
 test("#1283 rooms explain their value and show groups of relevant Agents", async () => {
-  const social = await read("modules/community/community-buzz-social.tsx");
+  const [social, pluginConfig] = await Promise.all([
+    read("modules/community/community-buzz-social.tsx"),
+    readJson("plugins/plotpickle-playhouse/community.json"),
+  ]);
   assert.match(social, /What this room is for/);
   assert.match(social, /Who helps here/);
-  for (const id of ["sage-brinewick", "merrin-bellwarden", "orin-ledgerbark", "tamsin-hearthquill", "quillan-reedcloak", "elowen-mapweaver", "mira-threadmere", "critics-circle", "master-oaken-vague", "rowan-scalequill", "marquee-director"]) {
-    assert.match(social, new RegExp(id));
+  for (const room of pluginConfig.rooms) {
+    assert.ok(room.description.trim());
+    assert.ok(room.actionHint.trim());
+    assert.ok(pluginConfig.agents.some((agent) => agent.roomIds.includes(room.id)));
   }
 });
 
@@ -67,11 +115,12 @@ test("#1283 one Private Story Room replaces the six-Hall presentation without de
   assert.doesNotMatch(workspace, /Open Hall/);
 });
 
-test("#1283 Agent and Help presentation uses current lore art and keeps technical detail secondary", async () => {
-  const [portrait, roster, help] = await Promise.all([
+test("#1283 Agent and Help presentation uses current lore art and the same plugin directory", async () => {
+  const [portrait, roster, help, pluginConfig] = await Promise.all([
     read("components/agent-portrait.tsx"),
     read("app/community-agent-roster.tsx"),
     read("app/settings-helper-directory.tsx"),
+    readJson("plugins/plotpickle-playhouse/community.json"),
   ]);
   assert.match(portrait, /data-agent-artwork="current-lore"/);
   assert.match(portrait, /styles\.atlasPortrait/);
@@ -79,7 +128,13 @@ test("#1283 Agent and Help presentation uses current lore art and keeps technica
   assert.match(roster, /Helps in:/);
   assert.match(roster, /<summary>Technical details<\/summary>/);
   assert.doesNotMatch(roster, /ResponsibilityRunActivity/);
+  assert.match(help, /PLOTPICKLE_COMMUNITY_EXTENSIONS/);
   assert.match(help, /<AgentPortrait/);
+  assert.equal(pluginConfig.agents.length, 12);
+  for (const agent of pluginConfig.agents) {
+    assert.ok(agent.shortBio.trim());
+    assert.ok(agent.helpPrompt.trim());
+  }
 });
 
 test("#1283 BUZZ Settings normal path is Human + Community readiness with diagnostics collapsed", async () => {

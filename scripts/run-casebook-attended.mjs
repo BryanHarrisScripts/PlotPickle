@@ -129,6 +129,17 @@ async function operatorCheckpoint(io, client, checkpoint) {
   await io.question("Press Enter here when the Human-authorized action is complete: ");
 }
 
+async function operatorCriticalDecision(io, caseDefinition, step, observation) {
+  process.stdout.write(`\nCritical Casebook step did not pass.\nCase: ${scrubAttendedText(caseDefinition.title)}\nStep: ${scrubAttendedText(step.id)} · ${String(observation.outcome || "uncertain").toUpperCase()}\n`);
+  process.stdout.write("Continue records this blocked case and moves to the next Business Case. Stop records this case and ends the attended run.\n");
+  while (true) {
+    const answer = String(await io.question("Choose [C]ontinue or [S]top: ")).trim().toLowerCase();
+    if (answer === "c" || answer === "continue") return "continue";
+    if (answer === "s" || answer === "stop") return "stop";
+    process.stdout.write("Enter C to continue to the next Business Case or S to stop Casebook.\n");
+  }
+}
+
 async function operatorGuidedStep(io, client, caseDefinition, step) {
   const checkpoint = attendedCheckpoint(caseDefinition.id, step.id) || {
     title: "Human observation required",
@@ -198,6 +209,8 @@ async function main() {
     tools = await client.tools();
     const browser = createCreativeBrowser(client, tools, { baseUrl: endpointTarget.baseUrl, runnerFindings, evidence: browserEvidence });
     await browser.navigate(endpointTarget.baseUrl);
+    let recordedCaseCount = 0;
+    let operatorStopped = false;
 
     for (let caseOffset = 0; caseOffset < cases.length; caseOffset += 1) {
       const caseDefinition = cases[caseOffset];
@@ -208,6 +221,9 @@ async function main() {
         ...createAttendedLiveStepDrivers({ browser, client, baseUrl: endpointTarget.baseUrl, runState }),
         ...createPhase3b3StepDrivers({ browser, client, runState }),
       ]);
+      let caseInterrupted = false;
+      let caseDecision = "";
+      let interruptedStepId = "";
       status(caseDefinition.title, "START", `${caseOffset + 1}/${cases.length}`);
 
       for (let stepOffset = 0; stepOffset < caseDefinition.humanJourney.length; stepOffset += 1) {
@@ -260,45 +276,73 @@ async function main() {
           evidence: Array.isArray(observation.evidence) ? observation.evidence : [],
         });
         status(`  ${step.id}`, observation.outcome.toUpperCase(), observation.observed);
+
+        if (observation.critical !== false && observation.outcome !== "pass") {
+          caseInterrupted = true;
+          interruptedStepId = step.id;
+          record.criticalInteractionsUnreached = Math.max(0, caseDefinition.humanJourney.length - stepOffset - 1);
+          record.blockers.push(`Critical journey step ${step.id} ended ${String(observation.outcome).toUpperCase()}; ${record.criticalInteractionsUnreached} remaining dependent journey step(s) were not exercised.`);
+          caseDecision = await operatorCriticalDecision(io, caseDefinition, step, observation);
+          break;
+        }
       }
 
-      try {
-        const phase3b3Proof = await finalizePhase3b3Proof({ caseDefinition, runState });
-        const existingProof = phase3b3Proof || await finalizeAttendedLiveProof({ caseDefinition, client, baseUrl: endpointTarget.baseUrl, runState });
-        if (existingProof) record.independentVerification = existingProof;
-      } catch (error) {
-        const message = scrubAttendedText(error instanceof Error ? error.message : String(error));
-        record.blockers.push(`Independent Business Case proof raised a bounded runner error: ${message}`);
-        runnerFindings.push(`${caseDefinition.id} proof failure: ${message}`);
-      }
-      if (record.independentVerification.status !== "verified") {
-        record.blockers.push("Independent Business Case outcome proof is still missing or contradicted.");
-      }
-
-      try {
-        record.faults = await runPhase3b3Faults({ caseDefinition, client, runState });
-      } catch (error) {
-        const message = scrubAttendedText(error instanceof Error ? error.message : String(error));
-        record.blockers.push(`Deliberate fault verification raised a bounded runner error: ${message}`);
-        runnerFindings.push(`${caseDefinition.id} fault failure: ${message}`);
+      let detectedFaults = 0;
+      if (caseInterrupted) {
+        record.blockers.push("Independent Business Case outcome proof was not run after the Human-controlled critical interruption.");
+        record.blockers.push("Deliberate fault checks were not run because the journey stopped at a critical non-pass.");
         record.faults = [];
+      } else {
+        try {
+          const phase3b3Proof = await finalizePhase3b3Proof({ caseDefinition, runState });
+          const existingProof = phase3b3Proof || await finalizeAttendedLiveProof({ caseDefinition, client, baseUrl: endpointTarget.baseUrl, runState });
+          if (existingProof) record.independentVerification = existingProof;
+        } catch (error) {
+          const message = scrubAttendedText(error instanceof Error ? error.message : String(error));
+          record.blockers.push(`Independent Business Case proof raised a bounded runner error: ${message}`);
+          runnerFindings.push(`${caseDefinition.id} proof failure: ${message}`);
+        }
+        if (record.independentVerification.status !== "verified") {
+          record.blockers.push("Independent Business Case outcome proof is still missing or contradicted.");
+        }
+
+        try {
+          record.faults = await runPhase3b3Faults({ caseDefinition, client, runState });
+        } catch (error) {
+          const message = scrubAttendedText(error instanceof Error ? error.message : String(error));
+          record.blockers.push(`Deliberate fault verification raised a bounded runner error: ${message}`);
+          runnerFindings.push(`${caseDefinition.id} fault failure: ${message}`);
+          record.faults = [];
+        }
+        detectedFaults = record.faults.filter((item) => item.injected === true && item.detected === true).length;
+        if (!record.faults.length || detectedFaults !== record.faults.length) {
+          record.blockers.push("One or more required deliberate fault checks are missing or were not detected.");
+        }
       }
-      const detectedFaults = record.faults.filter((item) => item.injected === true && item.detected === true).length;
-      if (!record.faults.length || detectedFaults !== record.faults.length) {
-        record.blockers.push("One or more required deliberate fault checks are missing or were not detected.");
-      }
+
       if (record.steps.some((item) => item.critical !== false && item.outcome !== "pass")) {
         record.blockers.push("One or more critical Human/Business Case journey steps did not pass.");
       }
 
       assertAttendedRecordSafe(record);
       await writeFile(path.join(recordsDir, `${caseDefinition.id}.json`), `${JSON.stringify(record, null, 2)}\n`, "utf8");
+      recordedCaseCount += 1;
       status(caseDefinition.title, "RECORDED", `independent=${record.independentVerification.status}; faults=${detectedFaults}/${record.faults.length}; blockers=${record.blockers.length}`);
+
+      if (caseDecision === "stop") {
+        operatorStopped = true;
+        status("Attended Casebook", "STOPPED", `${caseDefinition.title} · ${interruptedStepId}`);
+        break;
+      }
     }
 
     await endpointTarget.assertCurrent();
-    process.stdout.write(`\nAttended run recorded ${cases.length} Business Case${cases.length === 1 ? "" : "s"}.\n`);
-    process.stdout.write("Casebook now combines visible Human journeys, independent outcome proof and deliberate fault checks. A case remains non-green if any critical step, independent proof or fault detector is missing.\n");
+    process.stdout.write(`\nAttended run recorded ${recordedCaseCount} Business Case${recordedCaseCount === 1 ? "" : "s"}.\n`);
+    if (operatorStopped) {
+      process.stdout.write("Casebook stopped by Human choice after a critical non-pass. The interrupted case was recorded safely; rerun when you are ready to continue testing.\n");
+    } else {
+      process.stdout.write("Casebook now combines visible Human journeys, independent outcome proof and deliberate fault checks. A case remains non-green if any critical step, independent proof or fault detector is missing.\n");
+    }
   } finally {
     io.close();
     if (tools.some((tool) => tool.name === "browser_close")) {

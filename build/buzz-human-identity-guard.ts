@@ -183,7 +183,19 @@ async function inspectConnectedHuman(): Promise<HumanIdentityStatus> {
     if (!channelAttempt.ok) {
       const profileMessage = redactBuzzDiagnostic(profileAttempt.error instanceof Error ? profileAttempt.error.message : profileAttempt.error);
       const channelMessage = redactBuzzDiagnostic(channelAttempt.error instanceof Error ? channelAttempt.error.message : channelAttempt.error);
-      throw new Error(`BUZZ signer verification failed: ${profileMessage} · ${channelMessage}`.slice(0, 700));
+      const displayName = typeof connection.identityLabel === "string" && connection.identityLabel.trim()
+        ? connection.identityLabel.trim()
+        : "PlotPickle Human";
+      return {
+        ready: false,
+        identityVerified: true,
+        humanCommunityAllowed: false,
+        pubkey: localPubkey,
+        displayName,
+        kind: "human",
+        agentId: "",
+        message: `BUZZ identity is connected to this Human profile, but PlotPickle Community access is not available yet. ${profileMessage}${profileMessage && channelMessage ? " · " : ""}${channelMessage}`.trim().slice(0, 700),
+      };
     }
   }
 

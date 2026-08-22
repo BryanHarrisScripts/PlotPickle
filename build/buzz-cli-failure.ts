@@ -32,7 +32,7 @@ export function redactBuzzDiagnostic(value: unknown) {
 export function buzzCliFailure(code: number | null | undefined, diagnostic: unknown) {
   const detail = redactBuzzDiagnostic(diagnostic);
   if (/relay[_ -]?membership[_ -]?required|not a relay member|not authorized.*community|membership required/i.test(detail)) {
-    return new Error(`BUZZ recognized the signer, but this identity is not a member of the PlotPickle Community. Open the PlotPickle Community with the same identity in BUZZ Desktop, join or confirm membership, then retry. ${detail}`.trim());
+    return new Error(`BUZZ recognized the signer, but this identity is not a member of the PlotPickle Community. The identity can stay connected to this Human profile while Community access is resolved. ${detail}`.trim());
   }
   const suffix = detail ? ` ${detail}` : "";
   switch (code ?? 4) {
@@ -41,7 +41,7 @@ export function buzzCliFailure(code: number | null | undefined, diagnostic: unkn
     case 2:
       return new Error(`The BUZZ relay could not be reached.${suffix}`);
     case 3:
-      return new Error(`BUZZ rejected this private identity key or its signed authentication.${suffix}`);
+      return new Error(`The BUZZ relay rejected signed authentication for this locally valid identity. Community membership or relay authorization may still be required.${suffix}`);
     case 5:
       return new Error(`BUZZ reported a write conflict while updating the identity.${suffix}`);
     default:

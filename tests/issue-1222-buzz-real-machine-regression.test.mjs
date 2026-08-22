@@ -37,25 +37,40 @@ test("#1222 keeps Human signer setup in Profile and Settings limited to transpor
   assert.match(profile, /Private identity key/);
 });
 
-test("#1222 imported signer is verified before it is persisted", async () => {
+test("#1222 imported signer validates locally and persists even when Community admission is pending", async () => {
   const gateway = await source("build/buzz-profile-identity-gateway.ts");
   const importStart = gateway.indexOf('if (action === "import")');
   const disconnectStart = gateway.indexOf('if (action === "disconnect")');
   assert.ok(importStart >= 0 && disconnectStart > importStart);
   const block = gateway.slice(importStart, disconnectStart);
-  const verifyIndex = block.indexOf("await verifyConnectedSigner(connection)");
+  const localValidationIndex = block.indexOf("privateKeyHex(privateKey)");
+  const remoteVerifyIndex = block.indexOf("await verifyConnectedSigner(connection)");
   const writeIndex = block.indexOf("await writeCredentialJson(CONNECTION_FILE, connection)");
-  assert.ok(verifyIndex >= 0, "import must verify the candidate signer against BUZZ");
-  assert.ok(writeIndex > verifyIndex, "candidate signer must not be persisted before verification succeeds");
-  assert.match(block, /if \(!identity\.humanCommunityAllowed\) throw new Error\(identity\.message\)/);
+  assert.ok(localValidationIndex >= 0, "import must cryptographically validate the candidate signer locally");
+  assert.ok(remoteVerifyIndex > localValidationIndex, "Community verification happens only after local identity validation");
+  assert.ok(writeIndex > remoteVerifyIndex, "the validated Human identity must be persisted after the bounded Community attempt");
+  assert.match(block, /pendingCommunityIdentity\(connection, localPubkey, detail\)/);
+  assert.match(block, /communityReady = false/);
+  assert.match(block, /communityReady,/);
   assert.match(block, /verificationVersion = 2/);
+  assert.match(block, /if \(\/PlotPickle agent identity\/i\.test\(detail\)\) throw error/);
+});
+
+test("#1222 Profile distinguishes connected identity from Community readiness", async () => {
+  const profile = await source("app/profile-access/profile-identity-panel.tsx");
+  assert.match(profile, /communityReady\?: boolean/u);
+  assert.match(profile, /action === "import" && body\.communityReady === false/u);
+  assert.match(profile, /Connected · Community access pending/u);
+  assert.match(profile, /validates the identity locally, stores it securely for this Human, then checks access to the official Community/u);
+  assert.match(profile, /busy === \(setupMode === "create" \? "create" : "import"\)/u);
 });
 
 test("#1222 maps BUZZ CLI exit classes, membership failures and redacts private identity material", async () => {
   const failure = await source("build/buzz-cli-failure.ts");
   assert.match(failure, /case 1:/);
   assert.match(failure, /case 2:[\s\S]*relay could not be reached/i);
-  assert.match(failure, /case 3:[\s\S]*private identity key/i);
+  assert.match(failure, /case 3:[\s\S]*relay rejected signed authentication/i);
+  assert.match(failure, /Community membership or relay authorization may still be required/i);
   assert.match(failure, /case 5:[\s\S]*write conflict/i);
   assert.match(failure, /relay\[_ -\]\?membership/);
   assert.match(failure, /not a member of the PlotPickle Community/i);

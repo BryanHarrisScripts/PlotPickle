@@ -248,6 +248,19 @@ function safeIdentity(connection: BuzzConnection, profile: Record<string, unknow
   };
 }
 
+function pendingCommunityIdentity(connection: BuzzConnection, pubkey: string, detail: string): PublicIdentity {
+  const displayName = connection.identityLabel || "PlotPickle Human";
+  return {
+    ready: false,
+    identityVerified: true,
+    humanCommunityAllowed: false,
+    pubkey,
+    displayName,
+    kind: "human",
+    message: `BUZZ identity connected as ${displayName}. PlotPickle Community access is still pending. ${detail}`.trim(),
+  };
+}
+
 function profileDisplayName(value: unknown) {
   const name = text(value);
   if (!name || name.length > 120 || /[\u0000-\u001f\u007f]/u.test(name)) throw new Error("Display name must be 1-120 characters without control characters.");
@@ -291,15 +304,26 @@ async function handleIdentityAction(body: Record<string, unknown>) {
   if (action === "import") {
     const relayUrl = normalizeRelayUrl(body.relayUrl || existing?.relayUrl);
     const privateKey = text(body.privateKey);
-    if (!/^(nsec1[a-z0-9]+|[a-f0-9]{64})$/i.test(privateKey) || !privateKeyHex(privateKey)) {
+    const privateHex = privateKeyHex(privateKey);
+    const localPubkey = publicKeyFromPrivateKey(privateKey);
+    if (!/^(nsec1[a-z0-9]+|[a-f0-9]{64})$/i.test(privateKey) || !privateHex || !localPubkey) {
       throw new Error("The BUZZ private identity key must be a valid nsec or a 64-character hexadecimal key.");
     }
     const connection = nextConnection(existing, relayUrl, privateKey, "imported");
     connection.identityLabel = profileDisplayName(body.displayName || existing?.identityLabel || "PlotPickle Human");
 
-    const verification = await verifyConnectedSigner(connection);
-    const identity = safeIdentity(connection, verification.profile, connection.identityLabel, verification.pubkey);
-    if (!identity.humanCommunityAllowed) throw new Error(identity.message);
+    let identity: PublicIdentity;
+    let communityReady = false;
+    try {
+      const verification = await verifyConnectedSigner(connection);
+      identity = safeIdentity(connection, verification.profile, connection.identityLabel, verification.pubkey);
+      if (!identity.humanCommunityAllowed) throw new Error(identity.message);
+      communityReady = true;
+    } catch (error) {
+      const detail = safeError(error);
+      if (/PlotPickle agent identity/i.test(detail)) throw error;
+      identity = pendingCommunityIdentity(connection, localPubkey, detail);
+    }
 
     connection.verifiedAt = new Date().toISOString();
     connection.verificationVersion = 2;
@@ -308,7 +332,10 @@ async function handleIdentityAction(body: Record<string, unknown>) {
       ok: true,
       identity,
       community: PLOTPICKLE_BUZZ_COMMUNITY.name,
-      message: `The existing BUZZ identity was verified against ${PLOTPICKLE_BUZZ_COMMUNITY.name} and encrypted inside this Human profile.`,
+      communityReady,
+      message: communityReady
+        ? `The existing BUZZ identity was verified against ${PLOTPICKLE_BUZZ_COMMUNITY.name} and encrypted inside this Human profile.`
+        : identity.message,
     };
   }
 

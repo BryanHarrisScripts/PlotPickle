@@ -3,10 +3,11 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import {
   BUZZ_IDENTITY_ONBOARDING_URL,
+  buildHumanLoreAvatarPrompt,
   DEFAULT_HUMAN_LORE_GLYPH,
+  isPlotPickleGeneratedAvatarRef,
   PLOTPICKLE_BUZZ_COMMUNITY,
 } from "../../lib/buzz-default-community";
-import { buildHumanLoreAvatarPrompt, isPlotPickleGeneratedAvatarRef } from "../../lib/human-lore-avatar";
 import styles from "./profile-identity-panel.module.css";
 
 type Profile = { readonly profileId: string; readonly displayName: string; readonly avatarRef: string | null; readonly status: string };
@@ -249,7 +250,7 @@ export default function ProfileIdentityPanel({
 
         <form className={styles.identityForm} onSubmit={savePresentation}>
           <label><span>Display name</span><input value={presentation.displayName} maxLength={120} required onChange={(event) => setPresentation((current) => ({ ...current, displayName: event.target.value }))} /></label>
-          <label><span>Avatar</span><input type="text" inputMode="url" placeholder="https://… or generated Lore Avatar" value={presentation.avatarUrl} onChange={(event) => setPresentation((current) => ({ ...current, avatarUrl: event.target.value }))} /><small>{localGeneratedAvatar ? "Generated Lore Avatar saved to this Human profile. BUZZ requires a publicly reachable HTTPS image, so its current avatar is preserved." : "Leave blank to use the PlotPickle lore glyph. A secure HTTPS image is published to BUZZ when connected."}</small></label>
+          <label><span>Avatar</span><input type="text" inputMode="url" placeholder="https://… or generated Lore Avatar" value={presentation.avatarUrl} onChange={(event) => setPresentation((current) => ({ ...current, avatarUrl: event.target.value }))} /><small>{localGeneratedAvatar ? "Generated Lore Avatar saved to this Human profile. BUZZ requires a publicly reachable HTTPS image, so its current avatar is preserved." : "Leave blank to use the PlotPickle lore glyph. A custom secure image is published to BUZZ when connected."}</small></label>
           <label><span>Generate Lore Avatar</span><textarea rows={2} maxLength={1000} value={avatarDescription} placeholder="Describe your appearance, mood, clothing or storybook persona…" onChange={(event) => setAvatarDescription(event.target.value)} /><small>PlotPickle combines your description with its existing lore visual contract and sends one request through the image route you selected in Settings.</small></label>
           <button type="button" disabled={Boolean(busy) || !avatarDescription.trim()} onClick={() => void generateLoreAvatar()}>{busy === "avatar" ? "Generating Lore Avatar…" : "Generate Lore Avatar"}</button>
           <label><span>Public bio / description</span><textarea rows={3} maxLength={500} value={presentation.publicBio} onChange={(event) => setPresentation((current) => ({ ...current, publicBio: event.target.value }))} /><small>{presentation.publicBio.length}/500 · The same bio is published to BUZZ when connected.</small></label>
